@@ -1,0 +1,66 @@
+package org.sudu.experiments.math;
+
+// XorShift RGN with 64 bit state
+// Paper: PDF "Xorshift RNGs" by George Marsaglia, 2003
+
+public class XorShiftRandom {
+  int seedA, seedB;
+
+  public XorShiftRandom() {
+    this(roll_7_1_9((int) System.nanoTime()), ((int) System.nanoTime()) ^ 0xDeadBeef);
+  }
+
+  public XorShiftRandom(int seedA, int seedB) {
+    this.seedA = seedA;
+    this.seedB = seedB;
+  }
+
+  public int next() {
+    int v = roll_2_7_3(seedA, seedB);
+    seedA = seedB;
+    seedB = v;
+    return v;
+  }
+
+  static int roll_2_7_3(int a, int b) {
+    int t = a ^ (a << 2);
+    int k = t ^ (t >>> 7);
+    return (b ^ (b >>> 3)) ^ k;
+  }
+
+  static int roll_7_1_9(int x) {
+    x ^= x << 7;
+    x ^= x >>> 1;
+    x ^= x << 9;
+    return x;
+  }
+
+  // return [0 .. limit)
+  public int nextInt(int limit) {
+    return (int) (nextFloat() * limit);
+  }
+
+  // returns [0 .. 1) with 24 bits of randomness
+  public float nextFloat() {
+    int bits24 = next() & 0xFFFFFF;
+    return 0x1p-24f * bits24;
+  }
+
+  // returns [0 .. 1) with 32 random mantissa bits
+  public final double nextDouble() {
+    double bits32 = 0x1p-32 * next();
+    return bits32 < 0 ? bits32 + 1 : bits32;
+  }
+
+  public <T> void shuffle(T[] array) {
+    for (int i = array.length - 1; i > 0; i--) {
+      int r = nextInt(i + 1);
+      if (r != i) {
+        T a = array[i];
+        T b = array[r];
+        array[r] = a;
+        array[i] = b;
+      }
+    }
+  }
+}

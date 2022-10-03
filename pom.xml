@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.sudu</groupId>
+  <artifactId>root-pom</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>demo-edit</module>
+    <module>demo-edit-js</module>
+    <module>web-console-js</module>
+    <module>demo-edit-jvm</module>
+    <module>graphics</module>
+    <module>graphics-common</module>
+    <module>graphics-stub</module>
+    <module>graphics-js</module>
+    <module>graphics-jvm</module>
+    <module>wasm-test</module>
+    <module>angle-dll</module>
+  </modules>
+  <properties>
+    <project.build.sourceLevel>17</project.build.sourceLevel>
+    <teavm.version>0.7.0-SNAPSHOT</teavm.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <jupiter.version>5.9.0</jupiter.version>
+
+  </properties>
+
+</project>

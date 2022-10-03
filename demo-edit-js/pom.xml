@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>demo-edit-js</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <parent>
+    <groupId>org.sudu</groupId>
+    <artifactId>root-pom</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <properties>
+    <mainClass>org.sudu.experiments.WebApp</mainClass>
+
+    <!-- compiler settings -->
+    <teavm.sourceMaps>true</teavm.sourceMaps>
+    <teavm.debugInfo>true</teavm.debugInfo>
+    <teavm.minifying>false</teavm.minifying>
+
+    <teavm.optimizationLevel1>ADVANCED</teavm.optimizationLevel1>
+    <teavm.optimizationLevel>SIMPLE</teavm.optimizationLevel>
+
+  </properties>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <properties>
+        <teavm.sourceMaps>false</teavm.sourceMaps>
+        <teavm.debugInfo>false</teavm.debugInfo>
+        <teavm.minifying>true</teavm.minifying>
+        <teavm.optimizationLevel>FULL</teavm.optimizationLevel>
+      </properties>
+    </profile>
+  </profiles>
+
+  <packaging>war</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.sudu</groupId>
+      <artifactId>graphics-js</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sudu</groupId>
+      <artifactId>wasm-test</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sudu</groupId>
+      <artifactId>demo-edit</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.teavm</groupId>
+      <artifactId>teavm-jso-apis</artifactId>
+      <version>${teavm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.teavm</groupId>
+      <artifactId>teavm-classlib</artifactId>
+      <version>${teavm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.teavm</groupId>
+        <artifactId>teavm-maven-plugin</artifactId>
+        <version>${teavm.version}</version>
+        <executions>
+          <execution>
+            <id>web-client</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <targetDirectory>${project.build.directory}/generated/js/teavm</targetDirectory>
+              <mainClass>${mainClass}</mainClass>
+              <minifying>${teavm.minifying}</minifying>
+              <debugInformationGenerated>${teavm.debugInfo}</debugInformationGenerated>
+              <sourceMapsGenerated>${teavm.sourceMaps}</sourceMapsGenerated>
+              <sourceFilesCopied>${teavm.sourceMaps}</sourceFilesCopied>
+              <optimizationLevel>${teavm.optimizationLevel}</optimizationLevel>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+
+        <configuration>
+          <source>${project.build.sourceLevel}</source>
+          <target>${project.build.sourceLevel}</target>
+        </configuration>
+      </plugin>
+
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.2.3</version>
+        <configuration>
+          <webResources>
+            <resource><directory>${project.build.directory}/generated/js</directory></resource>
+            <resource><directory>${project.basedir}/../wasm-test/target/wasm</directory></resource>
+          </webResources>
+          <packagingExcludes>WEB-INF/classes/,WEB-INF/lib/</packagingExcludes>
+        </configuration>
+      </plugin>
+
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <!-- remove WEB-INF/classes because it is client only code and mot server-related -->
+            <id>clean-server-classes</id>
+            <phase>package</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <target>
+                <delete dir="target/demo-edit-js-1.0-SNAPSHOT/WEB-INF/classes" />
+                <delete dir="target/demo-edit-js-1.0-SNAPSHOT/WEB-INF/lib" />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

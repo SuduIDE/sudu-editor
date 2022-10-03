@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>wasm-test</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <parent>
+    <groupId>org.sudu</groupId>
+    <artifactId>root-pom</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <properties>
+    <project.build.wasmTarget>target/wasm/test.wasm</project.build.wasmTarget>
+  </properties>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <properties>
+      </properties>
+    </profile>
+  </profiles>
+
+  <packaging>jar</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.sudu</groupId>
+      <artifactId>graphics-js</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.teavm</groupId>
+      <artifactId>teavm-jso-apis</artifactId>
+      <version>${teavm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.teavm</groupId>
+      <artifactId>teavm-classlib</artifactId>
+      <version>${teavm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+
+        <configuration>
+          <source>${project.build.sourceLevel}</source>
+          <target>${project.build.sourceLevel}</target>
+        </configuration>
+      </plugin>
+
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>create-wasm-dir</id>
+            <phase>initialize</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <target><mkdir dir="target/wasm"/></target>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>build-wasm-module</id>
+            <phase>generate-resources</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+            <target>
+              <exec executable="clang">
+                <arg value="--target=wasm32"/>
+                <arg value="-nostdlib"/>
+                <arg value="-fno-builtin"/>
+                <arg value="-Wl,--no-entry"/>
+                <arg value="-Wl,--export-dynamic"/>
+                <arg value="-Wl,--import-undefined"/>
+                <arg value="-O3"/>
+                <arg value="-flto"/>
+                <arg value="-Wl,--lto-O3"/>
+                <arg value="-o"/>
+                <arg value="${project.build.wasmTarget}"/>
+                <arg value="@cppList"/>
+              </exec>
+            </target>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>dis-assemble-wasm</id>
+            <phase>process-resources</phase>
+            <goals><goal>run</goal></goals>
+            <configuration><target>
+              <exec executable="wasm-dis">
+                <arg value="${project.build.wasmTarget}"/>
+                <arg value="-o"/>
+                <arg value="target/test.wast"/>
+              </exec>
+            </target></configuration>
+          </execution>
+
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
