@@ -16,6 +16,7 @@ public class ConsoleWebApp {
       e.stopPropagation();
       e.preventDefault();
       inputLine.setValue("");
+      inputLine.scrollIntoView();
     });
   }
 
