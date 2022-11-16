@@ -52,11 +52,24 @@ public class DemoEdit extends Scene {
   boolean applyContrast = true, renderBlankLines = true;
   boolean scrollDown, scrollUp, scrollFaster, scrollEvenFaster;
 
+  // line numeration
+  LineNumbersComponent lineNumbers;
+  int lineNumLeftMargin = 10;
+
   public DemoEdit(SceneApi api) {
     double devicePR = api.window.devicePixelRatio();
     Debug.consoleInfo("api.window.devicePixelRatio() = ", devicePR);
     this.api = api;
     g = api.graphics;
+
+    vLineX = Numbers.iRnd(vLineXBase * devicePR);
+    vLineLeftDelta = Numbers.iRnd(10 * devicePR);
+
+    int lineNumerationWidth = vLineX - vLineLeftDelta - lineNumLeftMargin;
+    lineNumbers = new LineNumbersComponent(g, new V2i(lineNumLeftMargin, 0),
+      lineNumerationWidth,
+      Colors.defaultText, Colors.editBgColor);
+
     api.input.addListener(new MyInputListener());
     clientRect = api.window.getClientRect();
     if (1<0) DebugHelper.dumpFontsSize(g.mCanvas);
@@ -65,8 +78,6 @@ public class DemoEdit extends Scene {
     setFont(EditorConst.FONT, editorFontSize);
     int toolbarFontSize = Numbers.iRnd(EditorConst.TOOLBAR_FONT_SIZE * devicePR);
     toolBarFont = g.fontDesk(EditorConst.TOOLBAR_FONT_NAME, toolbarFontSize);
-    vLineX = Numbers.iRnd(vLineXBase * devicePR);
-    vLineLeftDelta = Numbers.iRnd(10 * devicePR);
     layout();
     initToolbar();
 
@@ -172,6 +183,10 @@ public class DemoEdit extends Scene {
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
     renderingCanvas.setFont(font);
 
+    lineNumbers.setFont(font, lineHeight);
+    lineNumbers.initTextures();
+    lineNumbers.setEditorBottom(editorHeight());
+
     int baseLineBase = lineHeight - font.descent;
     int baseline = baseLineBase - (lineHeight - realFontSize) / 2;
 
@@ -206,6 +221,7 @@ public class DemoEdit extends Scene {
     for (CodeLineRenderer line : lines) {
       line.dispose();
     }
+    lineNumbers.dispose();
     document.invalidateFont();
   }
 
@@ -221,6 +237,7 @@ public class DemoEdit extends Scene {
       line.dispose();
     }
     renderingCanvas = Disposable.assign(renderingCanvas, null);
+    lineNumbers.dispose();
   }
 
   int editorFullHeight() {
@@ -327,6 +344,12 @@ public class DemoEdit extends Scene {
       }
 
       drawScrollBar();
+
+      lineNumbers.update(firstLine);
+      lineNumbers.draw(editorVScrollPos);
+      if (firstLine <= caretLine && caretLine <= lastLine){
+        lineNumbers.drawCaretLine(editorVScrollPos, caretLine);
+      }
     }
 
     drawFooter();
@@ -420,6 +443,10 @@ public class DemoEdit extends Scene {
   public void onResize(V2i size) {
     clientRect = size;
     layout();
+
+    lineNumbers.resize(size, editorHeight());
+    int firstLine = Math.min(editorVScrollPos / lineHeight, document.length() - 1);
+    lineNumbers.initTextures(firstLine);
   }
 
   int clampScrollPos(int pos) {

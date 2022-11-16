@@ -16,4 +16,6 @@ interface EditorConst {
   // lineHeight = 1.2 * (font.ascent + font.descent)
   int LINE_HEIGHT_NUMERATOR = 12;
   int LINE_HEIGHT_DENOMINATOR = 10;
+
+  int LINE_NUMERATION_TEXTURE_SIZE = 20;
 }
