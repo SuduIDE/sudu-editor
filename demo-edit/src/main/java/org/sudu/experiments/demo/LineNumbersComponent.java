@@ -10,7 +10,7 @@ import java.util.List;
 public class LineNumbersComponent implements Disposable {
 
   private final WglGraphics g;
-  private final int numberOfLines = EditorConst.LINE_NUMERATION_TEXTURE_SIZE;
+  private final int numberOfLines = EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
 
   private final V2i componentPos;
   private FontDesk fontDesk;

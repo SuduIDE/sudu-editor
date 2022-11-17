@@ -10,10 +10,10 @@ import org.sudu.experiments.math.V4f;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 
-public class ManyTexturesLineNumerationScene extends Scene {
+public class ManyTexturesLineNumbersScene extends Scene {
 
   final WglGraphics g;
-  private final LineNumbersComponent lineNumeration;
+  private final LineNumbersComponent lineNumbers;
   private ScrollBar scrollBar;
   private V2i viewPortSize;
   private int scrollPos = 0;
@@ -22,16 +22,16 @@ public class ManyTexturesLineNumerationScene extends Scene {
   private int lineHeight = 20;
   private int fontSize = 20;
 
-  public ManyTexturesLineNumerationScene(SceneApi api){
+  public ManyTexturesLineNumbersScene(SceneApi api){
     //super(api);
-    api.input.addListener(new LineNumerationInputListener());
+    api.input.addListener(new LineNumbersInputListener());
     this.g = api.graphics;
 
-    lineNumeration = new LineNumbersComponent(
+    lineNumbers = new LineNumbersComponent(
       g, new V2i(0, 0), 50,
       new Color(0), new Color(255)
     );
-    lineNumeration.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight);
+    lineNumbers.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight);
 
     scrollBar = new ScrollBar();
   }
@@ -53,23 +53,23 @@ public class ManyTexturesLineNumerationScene extends Scene {
 
     Debug.consoleInfo("scrollPos: " + scrollPos);
 
-    lineNumeration.update(scrollPos / 20);
-    lineNumeration.draw(scrollPos);
+    lineNumbers.update(scrollPos / 20);
+    lineNumbers.draw(scrollPos);
   }
 
   @Override
   public void onResize(V2i size) {
     viewPortSize = size;
-    lineNumeration.resize(size, 500);
-    lineNumeration.initTextures();
+    lineNumbers.resize(size, 500);
+    lineNumbers.initTextures();
   }
 
   @Override
   public void dispose() {
-    lineNumeration.dispose();
+    lineNumbers.dispose();
   }
 
-  private class LineNumerationInputListener implements InputListener {
+  private class LineNumbersInputListener implements InputListener {
     Consumer<V2i> dragLock;
     Consumer<IntUnaryOperator> vScrollHandler =
       move -> scrollPos = move.applyAsInt(verticalSize());

@@ -35,7 +35,7 @@ public class TextureRegionTestScene extends Scene {
   public TextureRegionTestScene(SceneApi api) {
     //super(api);
     g = api.graphics;
-    api.input.addListener(new LineNumerationInputListener());
+    api.input.addListener(new LineNumbersInputListener());
 
     viewPortSize = api.window.getClientRect();
 
@@ -133,7 +133,7 @@ public class TextureRegionTestScene extends Scene {
     return editorFullH - viewPortSize.y;
   }
 
-  private class LineNumerationInputListener implements InputListener {
+  private class LineNumbersInputListener implements InputListener {
     Consumer<V2i> dragLock;
     Consumer<IntUnaryOperator> vScrollHandler =
       move -> scrollPos = move.applyAsInt(verticalSize());

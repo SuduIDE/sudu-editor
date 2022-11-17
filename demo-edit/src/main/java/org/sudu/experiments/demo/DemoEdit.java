@@ -52,7 +52,7 @@ public class DemoEdit extends Scene {
   boolean applyContrast = true, renderBlankLines = true;
   boolean scrollDown, scrollUp, scrollFaster, scrollEvenFaster;
 
-  // line numeration
+  // line numbers
   LineNumbersComponent lineNumbers;
   int lineNumLeftMargin = 10;
 
@@ -65,9 +65,9 @@ public class DemoEdit extends Scene {
     vLineX = Numbers.iRnd(vLineXBase * devicePR);
     vLineLeftDelta = Numbers.iRnd(10 * devicePR);
 
-    int lineNumerationWidth = vLineX - vLineLeftDelta - lineNumLeftMargin;
+    int lineNumbersWidth = vLineX - vLineLeftDelta - lineNumLeftMargin;
     lineNumbers = new LineNumbersComponent(g, new V2i(lineNumLeftMargin, 0),
-      lineNumerationWidth,
+      lineNumbersWidth,
       Colors.defaultText, Colors.editBgColor);
 
     api.input.addListener(new MyInputListener());
