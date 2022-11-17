@@ -100,6 +100,7 @@ public class LineNumbersTexture implements Disposable {
     int yPos = ((texturePos.y - (scrollPos % fullTexturesSize)) + fullTexturesSize) % fullTexturesSize;
     if (yPos + height > fullTexturesSize) yPos = -(scrollPos % lineTexture.height());
     yPos += (caretLine % numberOfLines) * lineHeight;
+    if (yPos < -lineHeight) yPos += fullTexturesSize;
 
     rectSize.set(textureSize.x, lineHeight);
     rectRegion.set(0, (caretLine % numberOfLines) * lineHeight, textureSize.x, lineHeight);
