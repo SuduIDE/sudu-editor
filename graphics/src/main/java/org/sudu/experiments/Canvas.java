@@ -36,6 +36,13 @@ public abstract class Canvas implements GLApi.Canvas, Disposable, CanvasDebug {
   public abstract void drawText(String s, float x, float y);
   public abstract void setFillColor(int r, int g, int b);
   public abstract void clear();
+  public abstract void setTextAlign(int align);
+
+  public interface TextAlign {
+    int LEFT = 0;
+    int CENTER = 1;
+    int RIGHT = 2;
+  }
 }
 
 interface CanvasDebug {

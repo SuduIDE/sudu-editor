@@ -160,7 +160,7 @@ public interface GL {
 
     public void setContent(Canvas canvas) {
       checkSizeAndAllocate(canvas.width, canvas.height, GLApi.Context.RGBA8);
-      update(canvas, 0, 0);
+      doUpdate(canvas, 0, 0);
     }
 
     private void checkSizeAndAllocate(int newWidth, int newHeight, int internalformat) {
@@ -174,8 +174,13 @@ public interface GL {
     }
 
     public void update(Canvas canvas, int xOffset, int yOffset) {
+      bind();
+      doUpdate(canvas, xOffset, yOffset);
+    }
+
+    private void doUpdate(Canvas canvas, int xOffset, int yOffset){
       ctx.gl.texSubImage2D(GLApi.Context.TEXTURE_2D, 0, xOffset, yOffset,
-          GLApi.Context.RGBA, GLApi.Context.UNSIGNED_BYTE, canvas);
+        GLApi.Context.RGBA, GLApi.Context.UNSIGNED_BYTE, canvas);
       if (checkErrorOnTextureUpdate) ctx.gl.checkError("Texture.setContent(Canvas): ");
     }
 

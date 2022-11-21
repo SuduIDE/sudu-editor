@@ -1,8 +1,6 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.demo.DemoEdit;
-import org.sudu.experiments.demo.DemoScene1;
-import org.sudu.experiments.demo.Fonts;
+import org.sudu.experiments.demo.*;
 import org.sudu.experiments.demo.wasm.WasmDemo;
 import org.sudu.experiments.js.FireFoxWarning;
 import org.sudu.experiments.js.JsCanvas;
@@ -38,6 +36,8 @@ public class WebApp {
       default -> new DemoEdit(api);
       case "#test" -> new DemoScene1(api);
       case "#wasm" -> new WasmDemo(api);
+      case "#oneTexture" -> new TextureRegionTestScene(api);
+      case "#manyTextures" -> new ManyTexturesLineNumbersScene(api);
     };
   }
 

@@ -34,6 +34,15 @@ public class JsCanvas extends Canvas {
     c2d.clearRect(0, 0, width, height);
   }
 
+  @Override
+  public void setTextAlign(int align) {
+    switch (align) {
+      case TextAlign.LEFT -> c2d.setTextAlign("left");
+      case TextAlign.CENTER -> c2d.setTextAlign("center");
+      case TextAlign.RIGHT -> c2d.setTextAlign("right");
+    }
+  }
+
   public void debugAddToDocument() {
     HTMLDocument.current().getElementById("panelDiv").appendChild(element);
   }
