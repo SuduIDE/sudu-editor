@@ -17,6 +17,7 @@ import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.events.*;
 import org.teavm.jso.dom.html.HTMLElement;
+import org.teavm.jso.dom.xml.Element;
 
 import java.util.function.Consumer;
 
@@ -54,6 +55,7 @@ public class JsInput {
           } // JsHelper.consoleInfo("Window.focus event ", e)
         )
     );
+    initPointerCapture(element);
   }
 
   public void dispose() {
@@ -261,4 +263,31 @@ public class JsInput {
       native void getAsString(StringConsumer receiver);
     }
   }
+
+  @JSFunctor
+  public interface PointerEventFunction extends JSObject {
+    void f(PointerEvent e);
+  }
+
+  @JSBody(params = {"element", "pointer"},
+    script = "element.setPointerCapture(pointer.pointerId)")
+  static native void setPointerCapture(Element element, PointerEvent pointer);
+
+  @JSBody(params = {"element", "pointer"},
+    script = "element.releasePointerCapture(pointer.pointerId)")
+  static native void releasePointerCapture(Element element, PointerEvent pointer);
+
+  @JSBody(params = {"element", "f"},
+    script = "element.onpointerdown = f")
+  static native void setOnPointerDown(Element element, PointerEventFunction f);
+
+  @JSBody(params = {"element", "f"},
+    script = "element.onpointerup = f")
+  static native void setOnPointerUp(Element element, PointerEventFunction f);
+
+  public void initPointerCapture(Element element) {
+    setOnPointerDown(element, pointer -> setPointerCapture(element, pointer));
+    setOnPointerUp(element, pointer -> releasePointerCapture(element, pointer));
+  }
+
 }
