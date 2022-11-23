@@ -17,10 +17,9 @@ public class D2dCanvas extends Canvas {
   private long textFormatRef;
 
   D2dCanvas(D2dFactory f, int w, int h, long pWicBitmap, long pD2D1RenderTarget) {
-    IUnknown.requireNonNull(pWicBitmap);
+    this.pWicBitmap = IUnknown.requireNonNull(pWicBitmap);
+    this.pD2D1RenderTarget = IUnknown.requireNonNull(pD2D1RenderTarget);
     factory = f;
-    this.pWicBitmap = pWicBitmap;
-    this.pD2D1RenderTarget = pD2D1RenderTarget;
     width = w;
     height = h;
     pBrush = ID2D1RenderTarget.CreateSolidColorBrush(pD2D1RenderTarget, 1, 1, 1, 1, f.hr);

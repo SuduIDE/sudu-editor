@@ -170,15 +170,14 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
     char[] metrics = IDWriteFont.newMetrics();
 
     if (fam != null) {
-      long fontFamily = fam.dWriteFontFamily;
-      long font = IDWriteFontFamily.GetFirstMatchingFont(
-          fontFamily, weight, DWRITE_FONT_STRETCH_NORMAL, d2dStyle, hr);
+      long font = IDWriteFontFamily.GetFirstMatchingFont(fam.dWriteFontFamily,
+          weight, DWRITE_FONT_STRETCH_NORMAL, d2dStyle, hr);
       if (font != 0) {
         hr[0] = IDWriteFont.GetMetrics(font, metrics);
         IUnknown.release(font);
       }
       if (font == 0 || hr[0] < 0) System.err.println("IDWriteFont.GetMetrics error: " + errorString());
-      IUnknown.release(fontFamily);
+      fam.dispose();
     }
 
     float ascent = metrics[0] != 0 ? IDWriteFont.ascent(metrics) * size : size * 14 / 16;
@@ -223,6 +222,10 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
     FindRes(long collection, long dWriteFontFamily) {
       this.dWriteFontCollection = collection;
       this.dWriteFontFamily = dWriteFontFamily;
+    }
+
+    void dispose() {
+      dWriteFontFamily = IUnknown.release(dWriteFontFamily);
     }
   }
 
