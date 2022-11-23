@@ -153,7 +153,7 @@ public class LineNumbersComponent implements Disposable {
 
   @Override
   public void dispose() {
-    textures.forEach(Disposable::dispose);
+    textures.forEach(LineNumbersTexture::dispose);
     textures.clear();
     textureCanvas = Disposable.assign(textureCanvas, null);
     updateCanvas = Disposable.assign(updateCanvas, null);

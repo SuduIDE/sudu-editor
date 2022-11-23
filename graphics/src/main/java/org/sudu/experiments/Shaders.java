@@ -135,7 +135,7 @@ public interface Shaders {
     final GLApi.UniformLocation uResolution;
     final GLApi.UniformLocation uSizePos;
 
-    private V2i screenSizeUpdate;
+    final V2i shaderValue = new V2i();
 
     Shader2d(GLApi.Context gl, String vsCode, String psCode, GL.VertexLayout layout) {
       super(gl, vsCode, psCode, layout);
@@ -143,14 +143,11 @@ public interface Shaders {
       uSizePos = gl.getUniformLocation(program, "uSizePos");
     }
 
-    void setScreenSize(V2i screen) {
-      screenSizeUpdate = screen;
-    }
 
-    void updateScreenSize(GLApi.Context gl) {
-      if (screenSizeUpdate != null) {
-        gl.uniform2f(uResolution, screenSizeUpdate.x, screenSizeUpdate.y);
-        screenSizeUpdate = null;
+    void setScreenSize(GLApi.Context gl, V2i screen) {
+      if (!shaderValue.equals(screen)) {
+        shaderValue.set(screen);
+        gl.uniform2f(uResolution, screen.x, screen.y);
       }
     }
 
@@ -160,7 +157,7 @@ public interface Shaders {
       float px = (x * 2 + size.x) / screen.x - 1;
       float py = 1 - (y * 2 + size.y) / screen.y;
       gl.uniform4f(uSizePos, sx, sy, px, py);
-      updateScreenSize(gl);
+      setScreenSize(gl, screen);
     }
   }
 

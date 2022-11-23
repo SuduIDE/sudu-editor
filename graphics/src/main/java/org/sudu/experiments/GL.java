@@ -1,8 +1,10 @@
 package org.sudu.experiments;
 
 public interface GL {
-  boolean checkErrorOnTextureUpdate = false;
-  boolean checkErrorOnShaderLink = false;
+  boolean checkErrorOnTextureUpdate = true;
+  boolean checkErrorOnShaderLink = true;
+  boolean checkErrorOnMeshCreate = false;
+  boolean checkErrorOnMeshDispose = true;
 
   // only TRIANGLE_LIST for now
   class Mesh {
@@ -33,13 +35,16 @@ public interface GL {
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
-      if (1 < 0) System.out.println("Mesh::Mesh exit: " + "numVertices = " + nVertices +
-          ", numPrimitives = " + nIndices + ", error = " + gl.getError());
+      if (checkErrorOnMeshCreate) {
+        System.out.println("Mesh::Mesh exit: " + "numVertices = " + nVertices +
+            ", numPrimitives = " + nIndices);
+        gl.checkError("error = ");
+      }
     }
 
     // todo: performance: separate bind and draw calls, to avoid binding of already bound buffer
     public int draw(int currentAttributes) {
-      currentAttributes = bindAttributes(currentAttributes, layout.attributeMask);
+      currentAttributes = bindAttributes(currentAttributes, layout.attributeMask, gl);
       bindData();
       if (ib != null) {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
@@ -51,12 +56,13 @@ public interface GL {
     }
 
     public void dispose() {
-      System.out.println("Mesh::dispose, error = " + gl.getError());
       vb = deleteBuffer(vb);
       bb = deleteBuffer(bb);
       ib = deleteBuffer(ib);
       nVertices = nIndices = 0;
-      System.out.println("Mesh::dispose exit, error = " + gl.getError());
+      if (checkErrorOnMeshDispose) {
+        gl.checkError("Mesh::dispose exit, error = ");
+      }
     }
 
     private GLApi.Buffer deleteBuffer(GLApi.Buffer buffer) {
@@ -66,7 +72,7 @@ public interface GL {
       return null;
     }
 
-    private int bindAttributes(int currentAttributes, int requiredAttributes) {
+    public static int bindAttributes(int currentAttributes, int requiredAttributes, GLApi.Context gl) {
       int diff = currentAttributes ^ requiredAttributes;
       for (int i = 0; diff != 0; i++) {
         int mask = 1 << i;

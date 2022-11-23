@@ -29,4 +29,13 @@ public class V2i {
   public String toString() {
     return "x = " + x + ", y = " + y;
   }
+
+  public boolean equals(Object other) {
+    return this == other || (other.getClass() == this.getClass() && equals((V2i) other));
+  }
+
+  public boolean equals(V2i other) {
+    return x == other.x && y == other.y;
+  }
+
 }

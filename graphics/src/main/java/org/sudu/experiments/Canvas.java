@@ -24,10 +24,14 @@ public abstract class Canvas implements GLApi.Canvas, Disposable, CanvasDebug {
     globalCounter--;
   }
 
-  public abstract void setFont(int size, String font);
+  public void setFont(String font, float size) {
+    setFont(font, size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
+  }
+
+  public abstract void setFont(String font, float size, int weight, int style);
   public abstract void setFont(FontDesk font);
 
-  public abstract Object platformFont(String font, int size);
+  public abstract Object platformFont(String font, float size);
 
   //  returns the following metrics:
   //    new V4f(fontAscent, fontDescent, WCharWidth, spaceWidth)
@@ -46,6 +50,6 @@ public abstract class Canvas implements GLApi.Canvas, Disposable, CanvasDebug {
 }
 
 interface CanvasDebug {
-  String getFont();
-  void drawSvgSample();
+  default String getFont() { return "font"; }
+  default void drawSvgSample() {}
 }

@@ -45,4 +45,32 @@ public interface ArrayOp {
     }
     return -1;
   }
+
+  static int writeInt16Le(byte[] d, int pos, int value) {
+    d[pos] = (byte) value;
+    d[pos + 1] = (byte) (value >>> 8);
+    return pos + 2;
+  }
+
+  static int readInt16Le(byte[] d, int pos) {
+    int i0 = d[pos] & 0xFF;
+    int i1 = d[pos + 1] & 0xFF;
+    return (i1 << 8) + i0;
+  }
+
+  static int writeInt32Le(byte[] d, int pos, int value) {
+    d[pos] = (byte) value;
+    d[pos + 1] = (byte) (value >>> 8);
+    d[pos + 2] = (byte) (value >>> 16);
+    d[pos + 3] = (byte) (value >>> 24);
+    return pos + 4;
+  }
+
+  static int readInt32Le(byte[] d, int pos) {
+    int i0 = d[pos] & 0xFF;
+    int i1 = d[pos + 1] & 0xFF;
+    int i2 = d[pos + 2] & 0xFF;
+    int i3 = d[pos + 3] & 0xFF;
+    return (i3 << 24) + (i2 << 16) + (i1 << 8) + i0;
+  }
 }

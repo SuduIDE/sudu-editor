@@ -23,7 +23,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
   private int fontSize = 20;
 
   public ManyTexturesLineNumbersScene(SceneApi api){
-    //super(api);
+    super(api);
     api.input.addListener(new LineNumbersInputListener());
     this.g = api.graphics;
 

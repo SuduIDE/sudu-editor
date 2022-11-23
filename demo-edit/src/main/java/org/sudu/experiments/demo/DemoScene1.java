@@ -11,7 +11,6 @@ import org.sudu.experiments.input.MouseEvent;
 import java.util.function.Consumer;
 
 public class DemoScene1 extends Scene {
-  final SceneApi api;
   final WglGraphics g;
   final V4f bgColor = new V4f(Colors.editBgColor.v4f);
   final TextRect demoRect = new TextRect(0, 0, 300, 300);
@@ -30,7 +29,7 @@ public class DemoScene1 extends Scene {
   int curCursor;
 
   public DemoScene1(SceneApi api) {
-    this.api = api;
+    super(api);
     g = api.graphics;
     V2i clientRect = api.window.getClientRect();
 
@@ -52,7 +51,7 @@ public class DemoScene1 extends Scene {
 //    textCanvas.setFont(12, Fonts.Helvetica);
 
     String s = " HuaweЙ KeyModifiers 收件人 |";
-    textCanvas.setFont(11, Fonts.SegoeUI);
+    textCanvas.setFont(Fonts.SegoeUI, 11);
     System.out.println("textCanvas.getFont() = " + textCanvas.getFont());
 
     textCanvas.measureText(s);
@@ -107,7 +106,7 @@ public class DemoScene1 extends Scene {
   private GL.Texture svgTexture() {
     Canvas h = g.createCanvas(300, 300);
     h.drawSvgSample();
-    h.setFont(11, Fonts.CourierNew);
+    h.setFont(Fonts.CourierNew, 11);
     h.setFillColor(187, 187, 187);
     drawSomeText("jsCanvas.setFont(11, CourierNew);", h);
     GL.Texture texture = g.createTexture();

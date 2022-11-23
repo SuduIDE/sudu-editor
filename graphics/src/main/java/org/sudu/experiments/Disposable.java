@@ -13,6 +13,11 @@ public interface Disposable {
     };
   }
 
+  static Disposable dispose(Disposable d) {
+    d.dispose();
+    return Const.empty;
+  }
+
   static <T extends Disposable> T assign(T oldValue, T newValue) {
     if (oldValue != null) oldValue.dispose();
     return newValue;

@@ -2,6 +2,7 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.Canvas;
 import org.sudu.experiments.Debug;
+import org.sudu.experiments.Fonts;
 import org.sudu.experiments.math.V4f;
 
 public class DebugHelper {
@@ -14,7 +15,7 @@ public class DebugHelper {
 
   static void dumpFontSize(String font, Canvas measuringCanvas) {
     for (int i = 5; i < 32; i++) {
-      measuringCanvas.setFont(i, font);
+      measuringCanvas.setFont(font, i);
       V4f fontMetrics = measuringCanvas.getFontMetrics();
       Debug.consoleInfo("[" + i + "] ascent = ", fontMetrics.x);
       Debug.consoleInfo("[" + i + "] descent = ", fontMetrics.y);

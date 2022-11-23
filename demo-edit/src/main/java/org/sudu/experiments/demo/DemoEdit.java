@@ -22,7 +22,6 @@ public class DemoEdit extends Scene {
   int footerHeight;
   Runnable[] debugFlags = new Runnable[10];
 
-  final SceneApi api;
   final WglGraphics g;
   final V4f bgColor = Color.Cvt.gray(0);
   final Caret caret = new Caret();
@@ -57,9 +56,9 @@ public class DemoEdit extends Scene {
   int lineNumLeftMargin = 10;
 
   public DemoEdit(SceneApi api) {
+    super(api);
     double devicePR = api.window.devicePixelRatio();
     Debug.consoleInfo("api.window.devicePixelRatio() = ", devicePR);
-    this.api = api;
     g = api.graphics;
 
     vLineX = Numbers.iRnd(vLineXBase * devicePR);
@@ -86,9 +85,10 @@ public class DemoEdit extends Scene {
     V2i screenRect = api.window.getScreenRect();
     Debug.consoleInfo("screenRect = " + screenRect);
 
-    int nLines3x = Numbers.iDivRoundUp(screenRect.y * 3, lineHeight);
-    Debug.consoleInfo("nLines3x = ", nLines3x);
-    allocLines(Math.max(nLines3x, EditorConst.MIN_CACHE_LINES));
+    int vY = Math.max(clientRect.y, screenRect.y);
+    int cacheLines = Numbers.iDivRoundUp(vY, lineHeight) + EditorConst.MIN_CACHE_LINES;
+    Debug.consoleInfo("cacheLines = ", cacheLines);
+    allocLines(cacheLines);
 
 //      measureAll();
 
@@ -119,12 +119,12 @@ public class DemoEdit extends Scene {
   }
 
   private void increaseFont() {
-    changeFont(font.name, font.size + 1);
+    changeFont(font.name, font.iSize + 1);
   }
 
   private void decreaseFont() {
-    if (font.size <= EditorConst.MIN_FONT_SIZE) return;
-    changeFont(font.name, font.size - 1);
+    if (font.iSize <= EditorConst.MIN_FONT_SIZE) return;
+    changeFont(font.name, font.iSize - 1);
   }
 
   private void moveDown() {
@@ -159,19 +159,19 @@ public class DemoEdit extends Scene {
   }
 
   private void setSegoeUI() {
-    changeFont(Fonts.SegoeUI, font.size);
+    changeFont(Fonts.SegoeUI, font.iSize);
   }
 
   private void setVerdana() {
-    changeFont(Fonts.Verdana, font.size);
+    changeFont(Fonts.Verdana, font.iSize);
   }
 
   private void setJetBrainsMono() {
-    changeFont(Fonts.JetBrainsMono, font.size);
+    changeFont(Fonts.JetBrainsMono, font.iSize);
   }
 
   private void setConsolas() {
-    changeFont(Fonts.Consolas, font.size);
+    changeFont(Fonts.Consolas, font.iSize);
   }
 
   private void setFont(String name, int size) {
@@ -185,7 +185,7 @@ public class DemoEdit extends Scene {
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
     renderingCanvas.setFont(font);
 
-    int baseLineBase = lineHeight - font.descent;
+    int baseLineBase = lineHeight - font.iDescent;
     int baseline = baseLineBase - (lineHeight - realFontSize) / 2;
 
     Debug.consoleInfo("Set editor font to: "+ name + " " + size
@@ -202,7 +202,7 @@ public class DemoEdit extends Scene {
     setFont(name, size);
     afterFontChanged();
     initLineNumbers();
-    g.repaint();
+    api.window.repaint();
   }
 
   private void afterFontChanged() {
@@ -225,6 +225,7 @@ public class DemoEdit extends Scene {
   }
 
   private void allocLines(int N) {
+    Debug.consoleInfo("allocLines: N = ", N);
     lines = new CodeLineRenderer[N];
     for (int i = 0; i < lines.length; i++) {
       lines[i] = new CodeLineRenderer();

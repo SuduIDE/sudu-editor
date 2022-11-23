@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="local-server" type="JettyConfiguration" factoryName="Local" APPLICATION_SERVER_NAME="Jetty 9.4.27.v20200227" ALTERNATIVE_JRE_ENABLED="true" ALTERNATIVE_JRE_PATH="$USER_HOME$/.jdks/openjdk-18.0.2.1">
+  <configuration default="false" name="local-server" type="JettyConfiguration" factoryName="Local" APPLICATION_SERVER_NAME="jetty-distribution-9.4.49.v20220914" ALTERNATIVE_JRE_ENABLED="true" ALTERNATIVE_JRE_PATH="$USER_HOME$/.jdks/openjdk-19.0.1">
     <option name="BROWSER_ID" value="37cae5b9-e8b2-4949-9172-aafa37fbc09c" />
     <option name="COMMON_VM_ARGUMENTS" value="-Djetty.port=8080" />
     <option name="UPDATING_POLICY" value="restart-server" />
@@ -35,9 +35,6 @@
               <option name="path" value="modules\acceptratelimit.mod" />
             </JettyConfigFile>
             <JettyConfigFile>
-              <option name="path" value="modules\alpn-impl.mod" />
-            </JettyConfigFile>
-            <JettyConfigFile>
               <option name="path" value="modules\alpn.mod" />
             </JettyConfigFile>
             <JettyConfigFile>
@@ -48,6 +45,9 @@
             </JettyConfigFile>
             <JettyConfigFile>
               <option name="path" value="modules\apache-jstl.mod" />
+            </JettyConfigFile>
+            <JettyConfigFile>
+              <option name="path" value="modules\bytebufferpool-logarithmic.mod" />
             </JettyConfigFile>
             <JettyConfigFile>
               <option name="path" value="modules\bytebufferpool.mod" />
@@ -333,6 +333,9 @@
             </JettyConfigFile>
             <JettyConfigFile>
               <option name="path" value="modules\spring.mod" />
+            </JettyConfigFile>
+            <JettyConfigFile>
+              <option name="path" value="modules\ssl-reload.mod" />
             </JettyConfigFile>
             <JettyConfigFile>
               <option name="path" value="modules\ssl.mod" />
@@ -400,9 +403,6 @@
               <option name="path" value="modules\acceptratelimit.mod" />
             </JettyConfigFile>
             <JettyConfigFile>
-              <option name="path" value="modules\alpn-impl.mod" />
-            </JettyConfigFile>
-            <JettyConfigFile>
               <option name="path" value="modules\alpn.mod" />
             </JettyConfigFile>
             <JettyConfigFile>
@@ -413,6 +413,9 @@
             </JettyConfigFile>
             <JettyConfigFile>
               <option name="path" value="modules\apache-jstl.mod" />
+            </JettyConfigFile>
+            <JettyConfigFile>
+              <option name="path" value="modules\bytebufferpool-logarithmic.mod" />
             </JettyConfigFile>
             <JettyConfigFile>
               <option name="path" value="modules\bytebufferpool.mod" />
@@ -698,6 +701,9 @@
             </JettyConfigFile>
             <JettyConfigFile>
               <option name="path" value="modules\spring.mod" />
+            </JettyConfigFile>
+            <JettyConfigFile>
+              <option name="path" value="modules\ssl-reload.mod" />
             </JettyConfigFile>
             <JettyConfigFile>
               <option name="path" value="modules\ssl.mod" />

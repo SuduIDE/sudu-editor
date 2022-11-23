@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\main\java\org\sudu\experiments\angle\AngleGL.cpp">
+      <Filter>Cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main\java\org\sudu\experiments\CString.cpp">
+      <Filter>Cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main\java\org\sudu\experiments\win32\Win32.cpp">
+      <Filter>Cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main\java\org\sudu\experiments\win32\d2d\D2d.cpp">
+      <Filter>Cpp</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="target\javah\org_sudu_experiments_angle_AngleGL.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_CString.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_Win32.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_angle_AngleEGL.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_D2d.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_ID2D1Factory.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_ID2D1RenderTarget.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_IDWriteFactory5.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_IDWriteFontSetBuilder1.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_IDWriteInMemoryFontFileLoader.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_IWICBitmap.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_IWICBitmapLock.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_IWICImagingFactory.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_IDWriteFont.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_IDWriteFontCollection.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_IDWriteFontFamily.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_IDWriteTextFormat.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_IDWriteTextLayout.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_IUnknown.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\angle-include\libGLESv2.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Cpp">
+      <UniqueIdentifier>{473db115-de61-4eaf-811a-0f0c9bdc0894}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Javah">
+      <UniqueIdentifier>{3574001c-19c3-486a-8d3d-a3d7a718980d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

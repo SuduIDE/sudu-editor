@@ -16,7 +16,7 @@ import java.util.function.BiFunction;
 
 public class WebWindow implements org.sudu.experiments.Window {
   final AnimationFrameCallback frameCallback = this::onAnimationFrame;
-  final Runnable repaint = this::requestRepaint;
+  final Runnable repaint = this::repaint;
   final InputListeners inputListeners = new InputListeners(repaint);
   final HTMLElement canvasDiv;
   final HTMLCanvasElement mainCanvas;
@@ -55,7 +55,7 @@ public class WebWindow implements org.sudu.experiments.Window {
 
   private void init(GLApi.Context gl, V2i clientRect, BiFunction<SceneApi, String, Scene> sf) {
     eventHandler = new JsInput(mainCanvas, inputListeners);
-    g = new WebGraphics(gl, clientRect, repaint);
+    g = new WebGraphics(gl, repaint, clientRect);
     mainCanvas.focus();
 
     Window.current().addEventListener("resize", this::handleWindowResize);
@@ -67,6 +67,9 @@ public class WebWindow implements org.sudu.experiments.Window {
     onAnimationFrame(t0);
   }
 
+  @Override
+  public void setTitle(String title) {}
+
   private SceneApi api() {
     return new SceneApi(g, inputListeners, this);
   }
@@ -74,7 +77,7 @@ public class WebWindow implements org.sudu.experiments.Window {
   private void requestNewFrame() {
     Window.requestAnimationFrame(frameCallback);
   }
-  private void requestRepaint() {
+  public void repaint() {
     repaintRequested = true;
   }
 
@@ -91,8 +94,8 @@ public class WebWindow implements org.sudu.experiments.Window {
     Debug.consoleInfo("handleWindowResize new size: " + size);
     mainCanvas.setWidth(size.x);
     mainCanvas.setHeight(size.y);
-
-    g.setWindowSize(size);
+    g.setClientRect(size);
+    g.setViewPortToClientRect();
     scene.onResize(size);
     scene.paint();
   }

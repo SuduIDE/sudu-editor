@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 public class DllLoader {
@@ -30,33 +31,30 @@ public class DllLoader {
 
   static String copyDllFromResources(String libraryName, ClassLoader classLoader) {
     try {
-      return getResourceFile(libraryName, classLoader).getAbsolutePath();
+      return getResourceFile(libraryName, classLoader);
     } catch (Throwable e) {
       System.err.println("Failed to load library \"" + libraryName + "\": " + e.getMessage());
       return null;
     }
   }
 
-  static File getResourceFile(String libraryFullName, ClassLoader classLoader) throws IOException {
+  static String getResourceFile(String libraryFullName, ClassLoader classLoader) throws IOException {
     URL fileUrl = classLoader.getResource(libraryFullName);
     if (fileUrl != null && "file".equals(fileUrl.getProtocol())) {
-      return new File(fileUrl.getFile());
+      return new File(fileUrl.getFile()).getAbsolutePath();
     } else {
       InputStream inputStream = classLoader.getResourceAsStream(libraryFullName);
       if (inputStream == null) {
         throw new IOException("classLoader can not locate resource: " + libraryFullName);
       }
 
-      File tempDir = Files.createTempDirectory("sudu").toFile();
-      tempDir.deleteOnExit();
-      File tempDll = new File(tempDir, libraryFullName);
-      tempDll.deleteOnExit();
+      Path dll = AppHomeDir.appHome.resolve(libraryFullName).toAbsolutePath();
 
+      System.out.println("Files.copy: dll = " + dll);
       try (InputStream s = inputStream) {
-        Files.copy(s, tempDll.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(s, dll, StandardCopyOption.REPLACE_EXISTING);
       }
-
-      return tempDll;
+      return dll.toString();
     }
   }
 }

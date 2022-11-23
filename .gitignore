@@ -2,3 +2,4 @@ target/
 .idea/
 .vs/
 *.vcxproj.user
+/angle-dll/src/main/resources/libGLESv2.dll

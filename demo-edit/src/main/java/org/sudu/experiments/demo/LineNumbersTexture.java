@@ -36,8 +36,8 @@ public class LineNumbersTexture implements Disposable {
     this.textColor = textColor.v4f;
     this.bgColor = bgColor.v4f;
 
-    int baseLineBase = lineHeight - fontDesk.descent;
-    this.baseline = baseLineBase - (lineHeight - fontDesk.ascent - fontDesk.descent) / 2;
+    int baseLineBase = lineHeight - fontDesk.iDescent;
+    this.baseline = baseLineBase - (lineHeight - fontDesk.iAscent - fontDesk.iDescent) / 2;
   }
 
   public int updateTexture(Canvas textureCanvas, Canvas updateCanvas, int curFirstLine, int firstLine, int updateOn) {

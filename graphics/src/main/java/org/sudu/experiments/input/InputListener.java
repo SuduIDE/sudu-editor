@@ -35,5 +35,7 @@ public interface InputListener {
     return null;
   }
 
+  default void onFocus() {}
+
   default void onBlur() {}
 }

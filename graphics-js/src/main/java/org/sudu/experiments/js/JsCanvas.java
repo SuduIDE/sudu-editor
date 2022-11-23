@@ -47,7 +47,7 @@ public class JsCanvas extends Canvas {
     HTMLDocument.current().getElementById("panelDiv").appendChild(element);
   }
 
-  public void setFont(int size, String font) {
+  public void setFont(String font, float size, int weight, int style) {
     doSetFont((JSString) platformFont(font, size));
   }
 
@@ -62,14 +62,14 @@ public class JsCanvas extends Canvas {
   }
 
   @Override
-  public Object platformFont(String font, int size) {
+  public Object platformFont(String font, float size) {
     return fontJSString(font, size);
   }
 
   @JSBody(params = {"a", "b"}, script = "return a == b;")
   static native boolean jsStrEquals(JSString a, JSString b);
   @JSBody(params = {"font", "size"}, script = "return size + 'px ' + font;")
-  static native JSString fontJSString(String font, int size);
+  static native JSString fontJSString(String font, float size);
   @JSBody(params = {"font", "size", "weight"}, script = "return weight + ' ' + size + 'px ' + font;")
   static native JSString fontJSString(String font, int size, int weight);
 

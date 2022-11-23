@@ -63,4 +63,21 @@ public class XorShiftRandom {
       }
     }
   }
+
+  public void fill(byte[] data) {
+    int n = (data.length / 4) * 4;
+    for (int i = 0; i < n; i+=4) {
+      int next = next();
+      data[i] = (byte) next;
+      data[i + 1] = (byte) (next >>> 8);
+      data[i + 2] = (byte) (next >>> 16);
+      data[i + 3] = (byte) (next >>> 24);
+    }
+    if (n < data.length) {
+      for (int next = next(); n < data.length; n++) {
+        data[n] = (byte) next;
+        next >>>= 8;
+      }
+    }
+  }
 }

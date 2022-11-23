@@ -12,8 +12,12 @@ import org.teavm.jso.dom.html.HTMLImageElement;
 import java.util.function.Consumer;
 
 public class WebGraphics extends WglGraphics {
-  public WebGraphics(GLApi.Context gl, V2i canvasSize, Runnable repaint) {
-    super(gl, canvasSize, repaint);
+  protected Runnable repaint;
+
+  public WebGraphics(GLApi.Context gl, Runnable repaint, V2i clientRect) {
+    super(gl, JsCanvas::new);
+    this.repaint = repaint;
+    setClientRect(clientRect);
   }
 
   public interface ErrorEvent extends org.teavm.jso.dom.events.ErrorEvent {
@@ -30,14 +34,10 @@ public class WebGraphics extends WglGraphics {
       texture.setContent(image.getNaturalWidth(), image.getNaturalHeight(), (t, gl) ->
           gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, image));
       onLoad.accept(texture);
-      repaint();
+      repaint.run();
     });
     image.addEventListener("err or", onError);
     image.setCrossOrigin("anonymous");
     image.setSrc(src);
-  }
-
-  public Canvas createCanvas(int w, int h) {
-    return new JsCanvas(w, h);
   }
 }

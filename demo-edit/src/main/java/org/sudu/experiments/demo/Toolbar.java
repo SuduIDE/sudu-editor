@@ -88,7 +88,7 @@ public class Toolbar {
   private void renderTexture(WglGraphics g) {
     int textHeight = textHeight();
     int textWidth = rect.size.x - border - border * buttons.size();
-    int baseline = font.ascent;
+    int baseline = font.iAscent;
     Canvas canvas = g.createCanvas(textWidth, textHeight);
     canvas.setFont(font);
     for (int i = 0; i < buttons.size(); i++) {

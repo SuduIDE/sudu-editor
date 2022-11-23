@@ -81,14 +81,13 @@ public interface GLApi {
     int ELEMENT_ARRAY_BUFFER           = 0x8893;
     int ARRAY_BUFFER_BINDING           = 0x8894;
     int ELEMENT_ARRAY_BUFFER_BINDING   = 0x8895;
-
+    int STATIC_DRAW                      = 0x88E4;
     int FRAGMENT_SHADER                  = 0x8B30;
     int VERTEX_SHADER                    = 0x8B31;
     int COMPILE_STATUS                   = 0x8B81;
     int LINK_STATUS                      = 0x8B82;
 
-
-    String getParameterString(int version);
+    String getParameterString(int name);
 
     int getRenderbufferParameteri(int target, int name);
 
@@ -167,8 +166,11 @@ public interface GLApi {
       uniform4f(location, v.x, v.y, v.z, v.w);
     }
 
-    String getError();
-    void checkError(String title);
+    int getError();
+    default void checkError(String title) {
+      int error = getError();
+      if (error != 0) System.out.println(title + error);
+    }
 
     void viewport(int x, int y, int width, int height);
     void clearColor(float r, float g, float b, float alpha);
@@ -177,7 +179,6 @@ public interface GLApi {
     void disable(int feature);
 
     void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha);
-
 
     void drawElements(int mode, int count, int type, int offset);
 

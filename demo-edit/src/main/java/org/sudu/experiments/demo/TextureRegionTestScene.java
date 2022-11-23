@@ -33,17 +33,17 @@ public class TextureRegionTestScene extends Scene {
   };
 
   public TextureRegionTestScene(SceneApi api) {
-    //super(api);
+    super(api);
     g = api.graphics;
     api.input.addListener(new LineNumbersInputListener());
 
     viewPortSize = api.window.getClientRect();
 
     linesCanvas = g.createCanvas(200, batchSize * fontSize);
-    linesCanvas.setFont(fontSize, Fonts.Consolas);
+    linesCanvas.setFont(Fonts.Consolas, fontSize);
 
     updateCanvas = g.createCanvas(200, fontSize);
-    updateCanvas.setFont(fontSize, Fonts.Consolas);
+    updateCanvas.setFont(Fonts.Consolas, fontSize);
 
     scrollBar = new ScrollBar();
   }

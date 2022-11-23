@@ -1,5 +1,7 @@
 package org.sudu.experiments.demo;
 
+import org.sudu.experiments.Fonts;
+
 interface EditorConst {
   String FONT1 = Fonts.Consolas;
   String FONT = Fonts.JetBrainsMono;
@@ -11,7 +13,7 @@ interface EditorConst {
   int TOOLBAR_FONT_SIZE = 20;
   String TOOLBAR_FONT_NAME = Fonts.SegoeUI;
   int MIN_FONT_SIZE = 7;
-  int MIN_CACHE_LINES = 100;
+  int MIN_CACHE_LINES = 7;
 
   // lineHeight = 1.2 * (font.ascent + font.descent)
   int LINE_HEIGHT_NUMERATOR = 12;

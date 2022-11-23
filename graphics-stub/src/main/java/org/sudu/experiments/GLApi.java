@@ -88,7 +88,7 @@ public interface GLApi {
     int LINK_STATUS                      = 0x8B82;
 
 
-    String getParameterString(int version);
+    String getParameterString(int name);
 
     int getRenderbufferParameteri(int target, int name);
 
@@ -167,7 +167,7 @@ public interface GLApi {
       uniform4f(location, v.x, v.y, v.z, v.w);
     }
 
-    String getError();
+    int getError();
     void checkError(String title);
 
     void viewport(int x, int y, int width, int height);

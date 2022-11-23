@@ -19,15 +19,21 @@
     <module>graphics-stub</module>
     <module>graphics-js</module>
     <module>graphics-jvm</module>
+    <module>graphics-jvm-tests</module>
     <module>wasm-test</module>
     <module>angle-dll</module>
+    <module>fonts</module>
   </modules>
   <properties>
-    <project.build.sourceLevel>17</project.build.sourceLevel>
-    <teavm.version>0.7.0-SNAPSHOT</teavm.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <jupiter.version>5.9.0</jupiter.version>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
 
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <project.build.sourceLevel>17</project.build.sourceLevel>
+
+    <teavm.version>0.7.0-SNAPSHOT</teavm.version>
+    <jupiter.version>5.9.0</jupiter.version>
   </properties>
 
 </project>

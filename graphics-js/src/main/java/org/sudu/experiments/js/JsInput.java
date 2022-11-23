@@ -43,6 +43,7 @@ public class JsInput {
         addListener(element, "wheel", this::onMouseWheelOnElement),
         addListener(element, "dblclick", this::onDoubleClick),
         addListener(element, "contextmenu", this::onContextMenu),
+        addListener(element, "focus", this::onFocus),
         addListener(element, "blur", this::onBlur),
         addListener(element, "drop", this::onDrop),
         addListener(window, "paste", this::onPaste, true),
@@ -146,6 +147,10 @@ public class JsInput {
 
   private void onBlur(Event event) {
     listeners.sendBlurEvent();
+  }
+
+  private void onFocus(Event event) {
+    listeners.sendFocusEvent();
   }
 
   private void onDrop(DragEvent event) {

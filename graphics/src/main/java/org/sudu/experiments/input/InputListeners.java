@@ -59,6 +59,13 @@ public class InputListeners extends Input {
     repaint.run();
   }
 
+  public void sendFocusEvent() {
+    for (InputListener listener : snapshot()) {
+      listener.onFocus();
+    }
+    repaint.run();
+  }
+
   @Override
   public boolean sendKeyEvent(KeyEvent e) {
     repaint.run();

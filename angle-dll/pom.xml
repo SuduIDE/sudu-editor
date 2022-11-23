@@ -14,10 +14,6 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <properties>
-    <edge>105.0.1343.53</edge>
-  </properties>
-
   <packaging>jar</packaging>
 
   <dependencies>
@@ -34,41 +30,6 @@
     </dependency>
   </dependencies>
 
-  <profiles>
-    <profile>
-      <id>copy-libGLESv2</id>
-<!--      <activation><os><family>windows</family></os></activation>-->
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-resources-plugin</artifactId>
-            <version>3.3.0</version>
-            <executions>
-              <execution>
-                <id>copy-libGLE-libs</id>
-                <phase>generate-resources</phase>
-                <goals><goal>copy-resources</goal></goals>
-                <configuration>
-                  <outputDirectory>${project.basedir}/src/main/resources</outputDirectory>
-                  <resources>
-                    <resource>
-                      <directory>C:/Program Files (x86)/Microsoft/Edge/Application/${edge}}</directory>
-                      <includes>
-                        <include>libGLESv2.dll</include>
-                        <include>libEGL.dll</include>
-                      </includes>
-                    </resource>
-                  </resources>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
-
   <build>
     <plugins>
       <plugin>
@@ -81,8 +42,6 @@
           <target>${project.build.sourceLevel}</target>
         </configuration>
       </plugin>
-
-
     </plugins>
   </build>
 </project>

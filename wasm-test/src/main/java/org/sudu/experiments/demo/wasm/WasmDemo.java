@@ -8,6 +8,7 @@ import org.sudu.experiments.math.V2i;
 public class WasmDemo extends Scene {
 
   public WasmDemo(SceneApi api) {
+    super(api);
     Fetch.fetch(WasmTest.module)
         .then(Fetch.Response::arrayBuffer)
         .then(WasmTest::instantiate)

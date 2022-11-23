@@ -45,8 +45,74 @@
         <configuration>
           <source>${project.build.sourceLevel}</source>
           <target>${project.build.sourceLevel}</target>
+          <compilerArgs>
+            <arg>-h</arg>
+            <arg>${project.build.directory}/javah</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.2.0</version>
+<!--        <configuration>-->
+<!--          <filesets>-->
+<!--            <fileset><directory>${project.build.directory}/javah</directory></fileset>-->
+<!--          </filesets>-->
+<!--        </configuration>-->
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>build-dll-windows</id>
+            <phase>process-classes</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <target>
+                <exec executable="MSBuild.exe" failonerror="true">
+                  <arg value="/p:Platform=x64"/>
+                  <arg value="/p:Configuration=Release"/>
+                  <arg value="Dll.vcxproj"/>
+                </exec>
+              </target>
+            </configuration>
+          </execution>
+
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.0</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.build.directory}/generated-resources</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
+<!--    <resources>-->
+<!--      <resource>-->
+<!--        <directory>${project.build.directory}/generated-resources</directory>-->
+<!--      </resource>-->
+<!--    </resources>-->
   </build>
 </project>

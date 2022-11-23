@@ -83,4 +83,17 @@ class XorShiftRandomTest {
       System.out.println(rrr.nextDouble());
     }
   }
+
+  @Test
+  void fillTest() {
+    fillTest(1);
+    fillTest(3);
+    fillTest(5);
+  }
+
+  private void fillTest(int n) {
+    byte[] data = new byte[n];
+    new XorShiftRandom().fill(data);
+//    System.out.println("data = " + Arrays.toString(data));
+  }
 }

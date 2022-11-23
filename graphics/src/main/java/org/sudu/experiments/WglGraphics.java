@@ -6,10 +6,10 @@ import org.sudu.experiments.math.V4f;
 import java.util.function.Consumer;
 
 public abstract class WglGraphics {
+  public final CanvasFactory canvasFactory;
   public final Canvas mCanvas;
   final GLApi.Context gl;
   final GL.TextureContext tc;
-  final V2i clientRect = new V2i();
   final boolean isWGL2;
 
   final Shaders.ConstColor shConstColor;
@@ -19,22 +19,26 @@ public abstract class WglGraphics {
   final Shaders.Text shText;
   final Shaders.GrayIcon shGrayIcon;
   final Shaders.Shader2d[] all2dShaders;
-  private GL.Program currentShader;
   private GL.Mesh rectangle;
-  private final Runnable repaint;
+
+  // state
+  final V2i clientRect = new V2i();
+  private GL.Program currentShader;
   private int attributeMask = 0;
   private boolean blendState;
 
-  public WglGraphics(GLApi.Context gl, V2i canvasSize, Runnable repaint) {
-    this.gl = gl;
-    this.repaint = repaint;
-    mCanvas = createCanvas(4, 4);
-    rectangle = GL.createRectangle(gl);
-    String version = gl.getParameterString(gl.VERSION);
-    System.out.println("GL info: " + version);
-    isWGL2 = version.startsWith("WebGL 2");
+  public interface CanvasFactory {
+    Canvas create(int w, int h);
+  }
 
+  public WglGraphics(GLApi.Context gl, CanvasFactory canvasFactory) {
+    this.canvasFactory = canvasFactory;
+    String version = gl.getParameterString(gl.VERSION);
+    System.out.println("[Graphics] GL version: " + version);
+    this.gl = gl;
+    mCanvas = canvasFactory.create(4, 4);
     rectangle = GL.createRectangle(gl);
+    isWGL2 = version.startsWith("WebGL 2");
     tc = new GL.TextureContext(gl);
 
     all2dShaders = new Shaders.Shader2d[] {
@@ -46,9 +50,11 @@ public abstract class WglGraphics {
         shGrayIcon = new Shaders.GrayIcon(gl),
     };
 
-    setWindowSize(canvasSize);
-
     gl.checkError("WebGraphics::ctor finish");
+  }
+
+  public void setClientRect(V2i size) {
+    clientRect.set(size);
   }
 
   public void dispose() {
@@ -60,22 +66,35 @@ public abstract class WglGraphics {
   }
 
   public FontDesk fontDesk(String name, int size) {
-    return new FontDesk(size, name, mCanvas);
+    return fontDesk(name, size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
   }
 
-  public void repaint() {
-    repaint.run();
+  public FontDesk fontDesk(String family, float size, int weight, int style) {
+    return new FontDesk(family, size, weight, style, mCanvas);
   }
 
-  public abstract Canvas createCanvas(int w, int h);
-
-  public void setWindowSize(V2i size) {
-    gl.viewport(0, 0, size.x, size.y);
-    clientRect.set(size);
-    for (Shaders.Shader2d shader2d : all2dShaders) {
-      shader2d.setScreenSize(clientRect);
-    }
+  public final Canvas createCanvas(int w, int h) {
+    return canvasFactory.create(w, h);
   }
+
+  public void setViewPortToClientRect() {
+//    System.out.println("setViewport: 0,0, " + clientRect.x + ", " + clientRect.y);
+    gl.viewport(0, 0, clientRect.x, clientRect.y);
+  }
+
+  // WglGraphics is shared between different windows and angle contexts
+  // there are two options for state management between context switch
+  //  - save and restore state on context switch
+  //  - or reset state to its default before to present a window
+  // lets try the latter for now
+
+  public void resetState() {
+    enableBlend(false);
+    attributeMask = GL.Mesh.bindAttributes(attributeMask, 0, gl);
+    currentShader = null;
+  }
+
+  public void restoreState() {}
 
   public void clear(V4f color) {
     gl.clearColor(color.x, color.y, color.z, color.w);
