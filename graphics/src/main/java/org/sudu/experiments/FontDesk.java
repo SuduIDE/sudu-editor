@@ -47,7 +47,7 @@ public class FontDesk {
     platformFont = measuringCanvas.platformFont(name, iSize);
     sStyle = stringStyle(style);
 
-    if (1>0) debug(dotWidth);
+//    debug(dotWidth);
   }
 
   public FontDesk(
@@ -71,7 +71,7 @@ public class FontDesk {
     this.iDescent = Numbers.iRnd(fDescent);
     monospace = monospace(spaceWidth, WWidth, dotWidth);
     sStyle = stringStyle(style);
-    debug(dotWidth);
+//    debug(dotWidth);
   }
 
   private void debug(float dotWidth) {
@@ -91,8 +91,8 @@ public class FontDesk {
   }
 
   // usually this is very near to (size * 1.2)
-  public int realFontSize() {
-    return iAscent + iDescent;
+  public int lineHeight() {
+    return Numbers.iRnd(fAscent + fDescent);
   }
 
   public int caretHeight(int lineHeight) {

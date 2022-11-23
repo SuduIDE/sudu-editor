@@ -261,7 +261,7 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
   }
 
   @Override
-  public Canvas create(int w, int h) {
+  public D2dCanvas create(int w, int h) {
     long pWicBitmap = createBitmap(w, h);
     long pD2D1RenderTarget = createRenderTarget(pWicBitmap);
     if (pWicBitmap == 0 || pD2D1RenderTarget == 0) throw new RuntimeException(

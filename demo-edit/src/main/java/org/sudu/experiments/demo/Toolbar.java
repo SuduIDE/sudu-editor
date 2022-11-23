@@ -82,7 +82,7 @@ public class Toolbar {
   }
 
   private int textHeight() {
-    return font.realFontSize();
+    return font.lineHeight();
   }
 
   private void renderTexture(WglGraphics g) {

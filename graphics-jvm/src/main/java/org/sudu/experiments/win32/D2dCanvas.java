@@ -3,6 +3,7 @@ package org.sudu.experiments.win32;
 import org.sudu.experiments.CString;
 import org.sudu.experiments.Canvas;
 import org.sudu.experiments.FontDesk;
+import org.sudu.experiments.GL.ImageData;
 import org.sudu.experiments.angle.AngleGL;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.win32.d2d.*;
@@ -114,5 +115,12 @@ public class D2dCanvas extends Canvas {
   @Override
   public void clear() {
     ID2D1RenderTarget.Clear(pD2D1RenderTarget);
+  }
+
+  public ImageData toImage() {
+    endDraw();
+    ImageData image = IWICBitmap.toImage(pWicBitmap, width, height);
+    beginDraw();
+    return image;
   }
 }

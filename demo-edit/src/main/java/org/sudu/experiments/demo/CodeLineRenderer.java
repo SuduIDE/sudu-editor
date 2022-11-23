@@ -33,7 +33,7 @@ class CodeLineRenderer implements Disposable {
 //    int texWidth = renderingCanvas.width();
 
     int baseLineBase = lineHeight - font.iDescent;
-    int baseline = baseLineBase - (lineHeight - font.iAscent - font.iDescent) / 2;
+    int baseline = baseLineBase - (lineHeight - font.lineHeight()) / 2;
 
     if (print) {
       print = false;

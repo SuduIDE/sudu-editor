@@ -176,7 +176,7 @@ public class DemoEdit extends Scene {
 
   private void setFont(String name, int size) {
     font = g.fontDesk(name, size);
-    realFontSize = font.realFontSize();
+    realFontSize = font.lineHeight();
     lineHeight = Numbers.iDivRound(
         realFontSize * EditorConst.LINE_HEIGHT_NUMERATOR, EditorConst.LINE_HEIGHT_DENOMINATOR);
     footerHeight = lineHeight;
