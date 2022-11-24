@@ -488,7 +488,7 @@ public class DemoEdit extends Scene {
         return true;
       }
 
-      if (button == mouseButtonLeft && clickCount == 1 && press) {
+      if (button == MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
         if (toolbar.onMouseClick(event.position, press)) {
           return true;
         }

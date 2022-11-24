@@ -198,7 +198,7 @@ public class DemoScene1 extends Scene {
       String a = press ? "click b=" : "unClick b=";
       System.out.println(a + button + ", count=" + clickCount);
 
-      if (button == mouseButtonLeft && clickCount == 1) {
+      if (button == MOUSE_BUTTON_LEFT && clickCount == 1) {
         V2i p = event.position;
         drag = press && demoRect.isInside(p) ? p : null;
         if (press) {
@@ -207,7 +207,7 @@ public class DemoScene1 extends Scene {
         }
       }
 
-      if (button == mouseButtonLeft && clickCount == 2) {
+      if (button == MOUSE_BUTTON_LEFT && clickCount == 2) {
         setRandomColor(demoRect);
       }
 

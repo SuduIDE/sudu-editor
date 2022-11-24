@@ -3,6 +3,8 @@ package org.sudu.experiments;
 import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
+import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.win32.Win32;
 
 import static org.sudu.experiments.win32.WindowPeer.*;
@@ -27,6 +29,40 @@ class Win32InputState {
         ctrl, alt, shift, meta);
 
     return listeners.sendKeyEvent(event);
+  }
+
+  void onMouseButton(int msg, long lParam, V2i windowSize, InputListeners listeners) {
+    int btn = (msg - WM_LBUTTONDOWN) / 3, state = (msg - WM_LBUTTONDOWN) % 3;
+
+    int mouseX = Win32.GET_X_LPARAM(lParam);
+    int mouseY = Win32.GET_Y_LPARAM(lParam);
+    MouseEvent event = new MouseEvent(
+        new V2i(mouseX, mouseY), new V2i(windowSize), ctrl, alt, shift, meta);
+    boolean press = state != 1;
+    int count = state == 2 ? 2 : 1;
+    System.out.println("mouse press = " + press + ", count = " + count);
+    listeners.sendMouseButton(event,
+        mapMouseButton(btn), press, count);
+  }
+
+  void onMouseMove(long lParam, V2i windowSize, InputListeners listeners) {
+    int mouseX = Win32.GET_X_LPARAM(lParam);
+    int mouseY = Win32.GET_Y_LPARAM(lParam);
+    MouseEvent event = new MouseEvent(
+        new V2i(mouseX, mouseY), new V2i(windowSize), ctrl, alt, shift, meta);
+    listeners.sendMouseMove(event);
+  }
+
+  void onMouseWheel(long lParam, V2i windowSize, InputListeners listeners) {
+
+  }
+
+  static int mapMouseButton(int btn) {
+    return switch (btn) {
+      case 1 -> 2;
+      case 2 -> 1;
+      default -> 0;
+    };
   }
 
   void onKillFocus() {

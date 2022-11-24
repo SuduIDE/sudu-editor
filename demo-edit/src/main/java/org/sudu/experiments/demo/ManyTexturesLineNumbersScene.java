@@ -90,7 +90,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
         return true;
       }
 
-      if (button == mouseButtonLeft && clickCount == 1 && press) {
+      if (button == MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
         dragLock = scrollBar.onMouseClick(event.position, vScrollHandler);
         if (dragLock != null) return true;
       }

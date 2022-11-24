@@ -3,6 +3,7 @@ package org.sudu.experiments;
 import org.sudu.experiments.angle.AngleEGL;
 import org.sudu.experiments.angle.AngleWindow;
 import org.sudu.experiments.input.InputListeners;
+import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.win32.Win32;
 import org.sudu.experiments.win32.Win32Graphics;
@@ -15,6 +16,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Win32Window implements WindowPeer, Window {
+
+  static final float DEVICE_SCALE = 1;
 
   static boolean debugContext = true;
 
@@ -37,6 +40,8 @@ public class Win32Window implements WindowPeer, Window {
   State windowState = State.NORMAL;
   ArrayList<Win32Window> childWindows = new ArrayList<>();
   Win32InputState inputState = new Win32InputState();
+  String title = "";
+  FpsMeter fpsMeter = new FpsMeter(this::updateFps);
 
   enum State { MINIMIZED, NORMAL, MAXIMIZED }
 
@@ -60,6 +65,7 @@ public class Win32Window implements WindowPeer, Window {
       Supplier<Win32Graphics> graphics,
       Win32Window mainWindow
   ) {
+    title = windowTitle;
     hWnd = Win32.CreateWindow(this, windowTitle,
         Win32.CW_USEDEFAULT, Win32.CW_USEDEFAULT,
         Win32.CW_USEDEFAULT, Win32.CW_USEDEFAULT, 0, 2000);
@@ -84,6 +90,7 @@ public class Win32Window implements WindowPeer, Window {
       return false;
     }
     angleSurfaceSize.set(angleSize);
+    setVSync(false);
 
     if (mainWindow == null) {
       time.printTime("window, angle and graphics started: ");
@@ -97,7 +104,13 @@ public class Win32Window implements WindowPeer, Window {
 
   @Override
   public void setTitle(String title) {
+    this.title = title;
     Win32.SetWindowTextW(hWnd, CString.toChar16CString(title));
+  }
+
+  private void updateFps(double fps) {
+    String t = title + " - " + Numbers.iRnd(fps) + "fps";
+    Win32.SetWindowTextW(hWnd, CString.toChar16CString(t));
   }
 
   private boolean renderFirst(boolean maximized) {
@@ -131,6 +144,7 @@ public class Win32Window implements WindowPeer, Window {
       repaintRequested = false;
       scene.paint();
       angleWindow.swapBuffers();
+      fpsMeter.notifyNewFrame();
     }
     return needsRepaint;
   }
@@ -157,7 +171,7 @@ public class Win32Window implements WindowPeer, Window {
     if (angleWindow != null) saveMaximized(state == State.MAXIMIZED);
     windowState = state;
     windowSize.set(msgWidth, msgHeight);
-    Debug.consoleInfo("WM_SIZE: " + windowSize + ", state = " + windowState);
+//    Debug.consoleInfo("WM_SIZE: " + windowSize + ", state = " + windowState);
     repaint();
   }
 
@@ -209,13 +223,8 @@ public class Win32Window implements WindowPeer, Window {
 
   @Override
   public double devicePixelRatio() {
-    return 1.5;
+    return DEVICE_SCALE;
   }
-
-  void onMouseMove() {
-    repaint();
-  }
-
 
   void onTimer() { update(); }
 
@@ -248,14 +257,18 @@ public class Win32Window implements WindowPeer, Window {
       case WM_TIMER -> { onTimer(); return 0; }
     }
 
+    if (WM_LBUTTONDOWN <= msg && msg <= WM_MBUTTONDBLCLK) {
+      inputState.onMouseButton(msg, lParam, windowSize, inputListeners);
+    }
+
     switch (msg) {
       case WM_SIZE -> onWindowResize(Win32.LOWORD(lParam), Win32.HIWORD(lParam), wParamToState((int) wParam));
       case WM_MOVE -> onWindowMove(Win32.LOWORD(lParam), Win32.HIWORD(lParam));
-      case WM_ENTERSIZEMOVE,
-          WM_EXITSIZEMOVE -> onEnterExitSizeMove(hWnd, msg == WM_ENTERSIZEMOVE);
+      case WM_ENTERSIZEMOVE, WM_EXITSIZEMOVE
+          -> onEnterExitSizeMove(hWnd, msg == WM_ENTERSIZEMOVE);
 
-      // mouse
-      case WM_MOUSEMOVE -> onMouseMove();
+      case WM_MOUSEMOVE -> inputState.onMouseMove(lParam, windowSize, inputListeners);
+      case WM_MOUSEWHEEL -> inputState.onMouseWheel(lParam, windowSize, inputListeners);
 
       // keyboard
       case WM_SYSKEYUP, WM_SYSKEYDOWN ->

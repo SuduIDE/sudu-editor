@@ -46,6 +46,10 @@ public class Win32 {
     return (char) (lParam >>> 16);
   }
 
+  public static int GET_X_LPARAM(long lParam) { return (short) LOWORD(lParam); }
+
+  public static int GET_Y_LPARAM(long lParam) { return (short) HIWORD(lParam); }
+
   public static native long DefWindowProcW(long hWnd, int msg, long wParam, long lParam);
 
   public static native boolean ValidateRect0(long hWnd);

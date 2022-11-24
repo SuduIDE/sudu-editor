@@ -86,8 +86,7 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
           return null;
         }
       } else {
-        System.err.println("Can not load (not present) font " + font);
-        return null;
+        System.err.println("Can not load (not present) font file " + font);
       }
     }
     return new double[] {loadResources, loadToD2d};

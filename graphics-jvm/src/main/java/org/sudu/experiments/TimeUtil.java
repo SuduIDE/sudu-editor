@@ -19,6 +19,10 @@ public interface TimeUtil {
     };
   }
 
+  static double now() {
+    return System.nanoTime() * nsToS;
+  }
+
   static String toString3(double t) {
     int t3 = (int) (t * 1000);
     int s = t3 / 1000, ms = t3 % 1000;
