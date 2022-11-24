@@ -14,7 +14,7 @@ public class DemoEditJvm {
     SuduDll.require();
 
     var selectScene = selectScene(args.length > 0 ? args[0] : "default");
-    Application.run(selectScene, "DemoEditJvm", FontLoader.JetBrainsMono.regular());
+    Application.run(selectScene, "DemoEditJvm", FontLoader.JetBrainsMono.all());
   }
 
   static Function<SceneApi, Scene> selectScene(String name) {

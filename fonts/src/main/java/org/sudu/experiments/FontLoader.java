@@ -3,6 +3,10 @@ package org.sudu.experiments;
 public class FontLoader {
   public interface JetBrainsMono {
     String typeface = "JetBrains Mono";
+    String ExtraLight = "JetBrainsMono-ExtraLight.ttf";
+    String ExtraLightItalic = "JetBrainsMono-ExtraLightItalic.ttf";
+    String Light = "JetBrainsMono-Light.ttf";
+    String LightItalic = "JetBrainsMono-LightItalic.ttf";
     String Bold = "JetBrainsMono-Bold.ttf";
     String BoldItalic = "JetBrainsMono-BoldItalic.ttf";
     String Italic = "JetBrainsMono-Italic.ttf";
@@ -18,6 +22,8 @@ public class FontLoader {
 
     static FontConfig all() {
       return new FontConfig(FontLoader::load,
+          JetBrainsMono.ExtraLight, JetBrainsMono.ExtraLightItalic,
+          JetBrainsMono.Light,      JetBrainsMono.LightItalic,
           JetBrainsMono.Regular,    JetBrainsMono.Italic,
           JetBrainsMono.Medium,     JetBrainsMono.MediumItalic,
           JetBrainsMono.SemiBold,   JetBrainsMono.SemiBoldItalic,
