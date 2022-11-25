@@ -18,7 +18,6 @@ public class CodeLine {
   int[][] glyphMeasureCache;
   boolean measureDirty;
   boolean contentDirty;
-  boolean individualWords;
 
   public CodeLine(CodeElement ... data) {
     elements = data;
@@ -90,7 +89,7 @@ public class CodeLine {
     invalidateCache();
   }
 
-  String measure(Canvas measuringCanvas, boolean individualWords) {
+  void measure(Canvas measuringCanvas) {
     int length = elements.length;
     if (iMeasure == null || iMeasure.length < length) {
       fMeasure = new float[length];
@@ -98,34 +97,24 @@ public class CodeLine {
       measureDirty = true;
     }
 
-    String accum = "";
     if (measureDirty) {
-      this.individualWords = individualWords;
       int totalLength = 0;
+      float sumMeasure = .0f;
       cacheMiss++;
       for (int i = 0; i < length; i++) {
         CodeElement entry = elements[i];
         totalLength += entry.s.length();
-        if (individualWords) {
-          float wordLength = measuringCanvas.measureText(entry.s);
-          fMeasure[i] = wordLength;
-          iMeasure[i] = (int) (wordLength + .5f);
-        } else {
-          accum = accum.concat(entry.s);
-          float stringLength = measuringCanvas.measureText(accum);
-          fMeasure[i] = stringLength;
-          iMeasure[i] = (int) (stringLength + .5f);
-        }
+
+        float wordLength = measuringCanvas.measureText(entry.s);
+        sumMeasure += wordLength;
+        fMeasure[i] = sumMeasure;
+        iMeasure[i] = (int) (sumMeasure + .5f);
       }
       totalStrLength = totalLength;
       measureDirty = false;
     } else {
       cacheHits++;
-      if (!individualWords) for (CodeElement word : elements) {
-        accum = accum.concat(word.s);
-      }
     }
-    return accum;
   }
 
   public void invalidateCache() {
@@ -135,7 +124,6 @@ public class CodeLine {
   }
 
   public int computeCaretLocation(int pixelLocation, Canvas mCanvas) {
-    if (individualWords) throw new UnsupportedOperationException("todo: implement");
     if (elements.length == 0) return 0;
 
     // check borders
@@ -208,7 +196,7 @@ public class CodeLine {
     if (elements.length == 0) return 0;
     if (caretCharPos == 0) return 0;
     if (measureDirty || iMeasure == null) {
-      measure(mCanvas, individualWords);
+      measure(mCanvas);
     }
     if (caretCharPos >= totalStrLength)
       return iMeasure[elements.length - 1];
@@ -225,6 +213,10 @@ public class CodeLine {
 
     int[] cache = getCache(mCanvas, el);
     return cache[caretCharPos - elementsLength - 1];
+  }
+
+  public int lineMeasure() {
+    return iMeasure[iMeasure.length - 1];
   }
 
   @Override

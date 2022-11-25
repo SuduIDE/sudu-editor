@@ -9,7 +9,6 @@ class CodeLineRenderer implements Disposable {
   static boolean print = 1<0;
   static boolean bw = 1<0;
 
-  static boolean individualWords = false;
   CodeLine line;
   GL.Texture lineTexture;
 
@@ -20,7 +19,7 @@ class CodeLineRenderer implements Disposable {
   public void updateTexture(CodeLine content, Canvas renderingCanvas, FontDesk font, WglGraphics g, int lineHeight) {
     line = content;
 
-    String accum = content.measure(g.mCanvas, individualWords);
+    content.measure(g.mCanvas);
 
     if (dumpMeasure) {
       Debug.consoleInfo("fMeasure", content.fMeasure);
@@ -39,17 +38,14 @@ class CodeLineRenderer implements Disposable {
       print = false;
     }
 
-    if (individualWords) {
-      CodeElement[] words = content.elements;
-      int[] iMeasure = content.iMeasure;
-      for (int i = 0, x = 0, l = words.length; i < l; i++) {
-        CodeElement entry = words[i];
-        renderingCanvas.drawText(entry.s, x, baseline);
-        x += iMeasure[i];
-      }
-    } else {
-      renderingCanvas.drawText(accum, 0, baseline);
+    CodeElement[] words = content.elements;
+    float[] fMeasure = content.fMeasure;
+    for (int i = 0, l = words.length; i < l; i++) {
+      CodeElement entry = words[i];
+      float x = i == 0 ? 0 : fMeasure[i - 1];
+      renderingCanvas.drawText(entry.s, x, baseline);
     }
+
     if (lineTexture == null) {
       lineTexture = g.createTexture();
     }
@@ -67,7 +63,7 @@ class CodeLineRenderer implements Disposable {
     CodeElement[] words = line.elements;
     for (int i = 0; i < words.length; i++) {
       CodeElement e = words[i];
-      int pxLen = individualWords ? xPos + iMeasure[i] : iMeasure[i];
+      int pxLen = iMeasure[i];
       if (pxLen > limit) pxLen = limit;
       int drawWidth = pxLen - xPos;
       region.x = xPos;

@@ -209,7 +209,7 @@ public class DemoEdit extends Scene {
     // footer depends on font size and needs re-layout
     layoutFooter();
     CodeLine codeLine = document.line(caretLine);
-    codeLine.measure(g.mCanvas, CodeLineRenderer.individualWords);
+    codeLine.measure(g.mCanvas);
     caretPos = codeLine.computePixelLocation(caretCharPos, g.mCanvas);
     adjustEditorVScrollToCaret();
   }
