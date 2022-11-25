@@ -128,8 +128,14 @@ public class JsInput {
 
   private void onMouseWheelOnElement(WheelEvent event) {
     debug("onMouseWheelElement");
-    int deltaMode = event.getDeltaMode();
-    listeners.sendMouseWheel(mouseEvent(event), event.getDeltaX(), event.getDeltaY());
+    float scale = switch (event.getDeltaMode()) {
+      case WheelEvent.DOM_DELTA_PIXEL -> 1;
+      case WheelEvent.DOM_DELTA_LINE -> 25;
+      case WheelEvent.DOM_DELTA_PAGE -> 250;
+      default -> 0;
+    };
+    listeners.sendMouseWheel(mouseEvent(event),
+        scale * event.getDeltaX(), scale * event.getDeltaY());
     stopEvent(event);
   }
 

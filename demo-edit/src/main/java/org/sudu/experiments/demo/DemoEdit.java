@@ -469,10 +469,9 @@ public class DemoEdit extends Scene {
 
     @Override
     public boolean onMouseWheel(MouseEvent event, double dX, double dY) {
-//      JsHelper.consoleInfo("dY = ", dY);
-      int change = (Math.abs((int)dY) + 4) / 2;
-      int sign = dY == 0 ? 0 : dY > 0 ? 1 : -1;
-      editorVScrollPos = clampScrollPos(editorVScrollPos + change * sign);
+      // chrome sends 150px, firefox send "6 lines"
+      int change = Numbers.iRnd(lineHeight * 4 * dY / 150);
+      editorVScrollPos = clampScrollPos(editorVScrollPos + change);
       return true;
     }
 

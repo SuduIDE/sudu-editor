@@ -60,9 +60,8 @@ class Win32InputState {
   private MouseEvent createMouseEvent(long lParam, V2i windowSize) {
     int mouseX = Win32.GET_X_LPARAM(lParam);
     int mouseY = Win32.GET_Y_LPARAM(lParam);
-    MouseEvent event = new MouseEvent(
+    return new MouseEvent(
         new V2i(mouseX, mouseY), new V2i(windowSize), ctrl, alt, shift, meta);
-    return event;
   }
 
   static int mapMouseButton(int btn) {
