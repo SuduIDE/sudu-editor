@@ -4,9 +4,10 @@ import org.sudu.experiments.CString;
 
 public class Win32 {
 
-  public static final int CW_USEDEFAULT = 0x80000000;
+  public static final int E_INVALIDARG   = 0x80070057;
+  public static final int E_ACCESSDENIED = 0x80070005;
 
-  public static final int E_INVALIDARG = 0x80070057;
+  public static final int CW_USEDEFAULT = 0x80000000;
 
   static native long CreateWindow(
       long id, char[] title,
@@ -71,6 +72,9 @@ public class Win32 {
   public static native long LoadCursorW(long hInstance, long lpCursorName);
 
   public static native long GetDC(long hWnd);
+  public static native long SetCapture(long hWnd);
+  public static native int  ReleaseCapture();
+  public static native int  GetDpiForWindow(long hWnd);
 
   public static native long GetCommandLineA();
   public static native long GetCommandLineW();
@@ -84,15 +88,39 @@ public class Win32 {
 
   public static native long __ImageBase();
 
-  static native int invokeCritical(int index, int[] a);
-  static native int invokeStandard(int index, int[] a);
-
   public static native int CoInitialize();
 
   public static void coInitialize() {
     int hr = CoInitialize();
-    if (hr < 0)
-      throw new RuntimeException("CoInitialize failed 0x" + Integer.toHexString(hr));
+    if (hr < 0) {
+      throw new RuntimeException("CoInitialize failed: 0x" + Integer.toHexString(hr));
+    }
   }
 
+  // Shcore.dll
+  public static final int PROCESS_DPI_UNAWARE = 0;
+  public static final int PROCESS_SYSTEM_DPI_AWARE = 1;
+  public static final int PROCESS_PER_MONITOR_DPI_AWARE = 2;
+  public static native int SetProcessDpiAwareness(int value);
+
+  public static void setProcessDpiAwareness(int value) {
+    int hr = SetProcessDpiAwareness(value);
+    if (hr < 0) {
+      String name = switch (value) {
+        case PROCESS_DPI_UNAWARE -> "PROCESS_DPI_UNAWARE";
+        case PROCESS_SYSTEM_DPI_AWARE -> "PROCESS_SYSTEM_DPI_AWARE";
+        case PROCESS_PER_MONITOR_DPI_AWARE -> "PROCESS_PER_MONITOR_DPI_AWARE";
+        default -> "errorValue " + value;
+      };
+      System.out.println("SetProcessDpiAwareness(" + name + ") failed: " + errorToString(hr));
+    }
+  }
+
+  public static String errorToString(int errorCode) {
+    return switch (errorCode) {
+      case E_INVALIDARG -> "E_INVALIDARG";
+      case E_ACCESSDENIED -> "E_ACCESSDENIED";
+      default -> "0x" + Integer.toHexString(errorCode);
+    };
+  }
 }

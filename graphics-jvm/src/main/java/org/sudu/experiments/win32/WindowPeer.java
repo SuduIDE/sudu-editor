@@ -52,6 +52,8 @@ public interface WindowPeer {
   int WM_ENTERSIZEMOVE        = 0x0231;
   int WM_EXITSIZEMOVE         = 0x0232;
 
+  int WM_TOUCH                = 0x0240;
+
   // WM_SIZE args
   int SIZE_MINIMIZED = 1;
   int SIZE_MAXIMIZED = 2;
@@ -84,6 +86,7 @@ public interface WindowPeer {
       case WM_TIMER -> "WM_TIMER";
       case WM_ENTERSIZEMOVE -> "WM_ENTERSIZEMOVE";
       case WM_EXITSIZEMOVE -> "WM_EXITSIZEMOVE";
+      case WM_TOUCH -> "WM_TOUCH";
       default -> "WM_".concat(Integer.toHexString(wm));
     };
   }

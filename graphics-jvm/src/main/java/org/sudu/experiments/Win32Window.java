@@ -17,8 +17,6 @@ import java.util.function.Supplier;
 
 public class Win32Window implements WindowPeer, Window {
 
-  static final float DEVICE_SCALE = 1;
-
   static boolean debugContext = true;
 
   final Runnable repaint = this::repaint;
@@ -34,6 +32,7 @@ public class Win32Window implements WindowPeer, Window {
 
   // platform windows
   long hWnd, timerId;
+  int windowDpi;
   AngleWindow angleWindow;
   V2i angleSurfaceSize = new V2i();
   V2i windowSize = new V2i();
@@ -70,6 +69,8 @@ public class Win32Window implements WindowPeer, Window {
         Win32.CW_USEDEFAULT, Win32.CW_USEDEFAULT,
         Win32.CW_USEDEFAULT, Win32.CW_USEDEFAULT, 0, 2000);
     if (hWnd == 0) return false;
+
+    windowDpi = Win32.GetDpiForWindow(hWnd);
 
     boolean maximized = loadMaximized();
     if (maximized) {
@@ -223,7 +224,7 @@ public class Win32Window implements WindowPeer, Window {
 
   @Override
   public double devicePixelRatio() {
-    return DEVICE_SCALE;
+    return windowDpi / 96.;
   }
 
   void onTimer() { update(); }
@@ -258,7 +259,7 @@ public class Win32Window implements WindowPeer, Window {
     }
 
     if (WM_LBUTTONDOWN <= msg && msg <= WM_MBUTTONDBLCLK) {
-      inputState.onMouseButton(msg, lParam, windowSize, inputListeners);
+      inputState.onMouseButton(msg, lParam, windowSize, hWnd, inputListeners);
     }
 
     switch (msg) {
@@ -268,7 +269,7 @@ public class Win32Window implements WindowPeer, Window {
           -> onEnterExitSizeMove(hWnd, msg == WM_ENTERSIZEMOVE);
 
       case WM_MOUSEMOVE -> inputState.onMouseMove(lParam, windowSize, inputListeners);
-      case WM_MOUSEWHEEL -> inputState.onMouseWheel(lParam, windowSize, inputListeners);
+      case WM_MOUSEWHEEL -> inputState.onMouseWheel(lParam, wParam, windowSize, inputListeners);
 
       // keyboard
       case WM_SYSKEYUP, WM_SYSKEYDOWN ->

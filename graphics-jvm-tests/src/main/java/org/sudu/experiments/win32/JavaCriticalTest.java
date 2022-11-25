@@ -28,10 +28,10 @@ public class JavaCriticalTest {
   static int[] arg = { 33, 44 };
 
   static void invokeCritical() {
-    int l = Win32.invokeCritical(1, arg);
+    int l = TestHelper.invokeCritical(1, arg);
   }
   static void invokeStandard() {
-    int l = Win32.invokeStandard(1, arg);
+    int l = TestHelper.invokeStandard(1, arg);
   }
 
   static final String max = Helper.fmLong(Long.MAX_VALUE);

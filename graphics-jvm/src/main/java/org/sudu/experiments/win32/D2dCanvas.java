@@ -5,7 +5,6 @@ import org.sudu.experiments.Canvas;
 import org.sudu.experiments.FontDesk;
 import org.sudu.experiments.GL.ImageData;
 import org.sudu.experiments.angle.AngleGL;
-import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.win32.d2d.*;
 
 public class D2dCanvas extends Canvas {
@@ -13,6 +12,7 @@ public class D2dCanvas extends Canvas {
   private FontDesk font;
   private long pWicBitmap, pD2D1RenderTarget;
   private long pBrush;
+  private int textAlign = TextAlign.LEFT;
 
   // reference
   private long textFormatRef;
@@ -42,10 +42,12 @@ public class D2dCanvas extends Canvas {
         width, height, IWICBitmap.WICBitmapLockRead, factory.hr);
     if (pWICBitmapLock != 0) {
       int lockDataLength = width * height * 4;
-      long pointer = IWICBitmapLock.GetDataPointer(pWICBitmapLock, lockDataLength, null);
+      long pointer = IWICBitmapLock.GetDataPointer(pWICBitmapLock, lockDataLength, factory.hr);
       if (pointer != 0) {
         AngleGL.texSubImage2DPtr(target, level, xOffset, yOffset,
             width, height, format, type, pointer);
+      } else {
+        System.err.println("IWICwBitmapLock.GetDataPointer failed: " + factory.errorString());
       }
       IUnknown.Release(pWICBitmapLock);
     } else {
@@ -76,7 +78,7 @@ public class D2dCanvas extends Canvas {
 
   @Override
   public void setTextAlign(int align) {
-    // todo
+    textAlign = align;
   }
 
   @Override
@@ -85,11 +87,23 @@ public class D2dCanvas extends Canvas {
     return factory.measure(textFormatRef, CString.toChar16CString(s));
   }
 
+  public float measureText(char[] text) {
+    return textFormatRef != 0 ? factory.measure(textFormatRef, text) : 0;
+  }
+
   @Override
   public void drawText(String s, float x, float y) {
     if (textFormatRef == 0) return;
     char[] cString = CString.toChar16CString(s);
     float top = y - font.fAscent;
+
+    if (textAlign != TextAlign.LEFT) {
+      float measureText = measureText(cString);
+      if (textAlign == TextAlign.RIGHT) {
+        x -= measureText;
+      }
+    }
+
     ID2D1RenderTarget.DrawText(pD2D1RenderTarget,
         cString, 0, cString.length,
         textFormatRef,

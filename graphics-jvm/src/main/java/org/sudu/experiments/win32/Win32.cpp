@@ -5,6 +5,7 @@
 
 #include "org_sudu_experiments_win32_Win32.h"
 #include "org_sudu_experiments_win32_IUnknown.h"
+#include "org_sudu_experiments_win32_TestHelper.h"
 
 static_assert(sizeof(WCHAR) == sizeof(jchar), "Fatal: sizeof(WCHAR) != sizeof(jchar)");
 
@@ -36,7 +37,7 @@ extern "C" {
 
 extern "C" IMAGE_DOS_HEADER __ImageBase;
 #pragma comment(lib, "Rpcrt4.lib")
-
+#pragma comment(lib, "Shcore.lib")
 
 static jclass Win32_clazz;
 static jmethodID Win32_wndProc_methodID;
@@ -279,6 +280,24 @@ jlong Java_org_sudu_experiments_win32_Win32_GetDC(JNIEnv *, jclass, jlong hWnd) 
   return jlong(GetDC(HWND(hWnd)));
 }
 
+jlong Java_org_sudu_experiments_win32_Win32_SetCapture(JNIEnv*, jclass, jlong hWnd) {
+  return jlong(SetCapture(HWND(hWnd)));
+}
+
+jint Java_org_sudu_experiments_win32_Win32_ReleaseCapture(JNIEnv*, jclass) {
+  return ReleaseCapture();
+}
+
+jint Java_org_sudu_experiments_win32_Win32_GetDpiForWindow(JNIEnv*, jclass, jlong hWnd) {
+  return GetDpiForWindow(HWND(hWnd));
+}
+
+#include <shellscalingapi.h>
+
+jint Java_org_sudu_experiments_win32_Win32_SetProcessDpiAwareness(JNIEnv*, jclass, jint value) {
+  return SetProcessDpiAwareness(PROCESS_DPI_AWARENESS(value));
+}
+
 jlong Java_org_sudu_experiments_win32_Win32_GetCommandLineA(JNIEnv*, jclass) {
   return jlong(GetCommandLineA());
 }
@@ -364,11 +383,11 @@ jchar Java_org_sudu_experiments_win32_Win32_GetKeyState(JNIEnv *, jclass, jint n
   return jchar(GetKeyState(nVirtKey));
 }
 
-jint JavaCritical_org_sudu_experiments_win32_Win32_invokeCritical(jint index, jint length, jint* arrayPtr) {
+jint JavaCritical_org_sudu_experiments_win32_TestHelper_invokeCritical(jint index, jint length, jint* arrayPtr) {
   return arrayPtr[index];
 }
 
-jint Java_org_sudu_experiments_win32_Win32_invokeStandard(JNIEnv *j, jclass, jint index, jintArray array) {
+jint Java_org_sudu_experiments_win32_TestHelper_invokeStandard(JNIEnv *j, jclass, jint index, jintArray array) {
   auto length = j->GetArrayLength(array);
   auto arrPtr = (jint*)j->GetPrimitiveArrayCritical(array, 0);
   auto result = -arrPtr[index];
@@ -376,8 +395,8 @@ jint Java_org_sudu_experiments_win32_Win32_invokeStandard(JNIEnv *j, jclass, jin
   return result;
 }
 
-jint Java_org_sudu_experiments_win32_Win32_invokeCritical(JNIEnv *j, jclass c, jint index, jintArray array) {
-  return Java_org_sudu_experiments_win32_Win32_invokeStandard(j, c, index, array);
+jint Java_org_sudu_experiments_win32_TestHelper_invokeCritical(JNIEnv *j, jclass c, jint index, jintArray array) {
+  return Java_org_sudu_experiments_win32_TestHelper_invokeStandard(j, c, index, array);
 }
 
 #include <unknwn.h>

@@ -412,6 +412,7 @@ public class DemoEdit extends Scene {
     g.enableBlend(true);
     V2i size = toolbar.size();
     int pos = (vScroll.visible() ? vScroll.bgPos.x : clientRect.x) - 2 - size.x;
+
     toolbar.setPos(pos, 0);
     toolbar.render(g);
   }
@@ -470,8 +471,8 @@ public class DemoEdit extends Scene {
     public boolean onMouseWheel(MouseEvent event, double dX, double dY) {
 //      JsHelper.consoleInfo("dY = ", dY);
       int change = (Math.abs((int)dY) + 4) / 2;
-      int change1 = dY < 0 ? -1 : 1;
-      editorVScrollPos = clampScrollPos(editorVScrollPos + change * change1);
+      int sign = dY == 0 ? 0 : dY > 0 ? 1 : -1;
+      editorVScrollPos = clampScrollPos(editorVScrollPos + change * sign);
       return true;
     }
 

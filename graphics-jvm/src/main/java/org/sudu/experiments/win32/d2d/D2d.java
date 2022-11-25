@@ -53,8 +53,7 @@ public interface D2d {
       case D2DERR_WRONG_STATE              -> "D2DERR_WRONG_STATE";
       case D2DERR_UNSUPPORTED_PIXEL_FORMAT -> "D2DERR_UNSUPPORTED_PIXEL_FORMAT";
       case WINCODEC_ERR_ALREADYLOCKED      -> "WINCODEC_ERR_ALREADYLOCKED";
-      case Win32.E_INVALIDARG -> "E_INVALIDARG";
-      default -> "0x" + Integer.toHexString(errorCode);
+      default -> Win32.errorToString(errorCode);
     };
   }
 

@@ -31,30 +31,38 @@ class Win32InputState {
     return listeners.sendKeyEvent(event);
   }
 
-  void onMouseButton(int msg, long lParam, V2i windowSize, InputListeners listeners) {
+  void onMouseButton(int msg, long lParam, V2i windowSize, long hWnd, InputListeners listeners) {
     int btn = (msg - WM_LBUTTONDOWN) / 3, state = (msg - WM_LBUTTONDOWN) % 3;
 
-    int mouseX = Win32.GET_X_LPARAM(lParam);
-    int mouseY = Win32.GET_Y_LPARAM(lParam);
-    MouseEvent event = new MouseEvent(
-        new V2i(mouseX, mouseY), new V2i(windowSize), ctrl, alt, shift, meta);
     boolean press = state != 1;
     int count = state == 2 ? 2 : 1;
     System.out.println("mouse press = " + press + ", count = " + count);
-    listeners.sendMouseButton(event,
-        mapMouseButton(btn), press, count);
+    MouseEvent event = createMouseEvent(lParam, windowSize);
+    listeners.sendMouseButton(event, mapMouseButton(btn), press, count);
+    switch (state) {
+      case 0 -> Win32.SetCapture(hWnd);
+      case 1 -> Win32.ReleaseCapture();
+    }
   }
 
   void onMouseMove(long lParam, V2i windowSize, InputListeners listeners) {
+    listeners.sendMouseMove(createMouseEvent(lParam, windowSize));
+  }
+
+  static int GET_WHEEL_DELTA_WPARAM(long wParam) { return (short) Win32.HIWORD(wParam); }
+
+  void onMouseWheel(long lParam, long wParam, V2i windowSize, InputListeners listeners) {
+    MouseEvent event = createMouseEvent(lParam, windowSize);
+    int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+    listeners.sendMouseWheel(event, 0, -1.25f * delta);
+  }
+
+  private MouseEvent createMouseEvent(long lParam, V2i windowSize) {
     int mouseX = Win32.GET_X_LPARAM(lParam);
     int mouseY = Win32.GET_Y_LPARAM(lParam);
     MouseEvent event = new MouseEvent(
         new V2i(mouseX, mouseY), new V2i(windowSize), ctrl, alt, shift, meta);
-    listeners.sendMouseMove(event);
-  }
-
-  void onMouseWheel(long lParam, V2i windowSize, InputListeners listeners) {
-
+    return event;
   }
 
   static int mapMouseButton(int btn) {

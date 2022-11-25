@@ -18,6 +18,8 @@ public class Application {
   public static void run(Function<SceneApi, Scene> sf, String title, FontConfig fontConfig) throws InterruptedException {
     Win32Time time = new Win32Time();
     Win32.coInitialize();
+    // todo: debug under other launcher
+    //   Win32.setProcessDpiAwareness(Win32.PROCESS_SYSTEM_DPI_AWARE);
 
     D2dFactory d2dCanvasFactory = D2dFactory.create();
     if (!loadFontConfig(fontConfig, d2dCanvasFactory)) return;
