@@ -1,23 +1,22 @@
-  package org.sudu.experiments.js;
+package org.sudu.experiments.js;
 
-  import org.sudu.experiments.Canvas;
-  import org.sudu.experiments.FontDesk;
-  import org.sudu.experiments.math.Color;
-  import org.sudu.experiments.math.V4f;
-  import org.teavm.jso.JSBody;
-  import org.teavm.jso.JSMethod;
-  import org.teavm.jso.JSObject;
-  import org.teavm.jso.JSProperty;
-  import org.teavm.jso.canvas.CanvasRenderingContext2D;
-  import org.teavm.jso.core.JSObjects;
-  import org.teavm.jso.core.JSString;
-  import org.teavm.jso.dom.html.HTMLCanvasElement;
-  import org.teavm.jso.dom.html.HTMLDocument;
+import org.sudu.experiments.Canvas;
+import org.sudu.experiments.FontDesk;
+import org.sudu.experiments.math.Color;
+import org.teavm.jso.JSBody;
+import org.teavm.jso.JSMethod;
+import org.teavm.jso.JSObject;
+import org.teavm.jso.JSProperty;
+import org.teavm.jso.canvas.CanvasRenderingContext2D;
+import org.teavm.jso.core.JSObjects;
+import org.teavm.jso.core.JSString;
+import org.teavm.jso.dom.html.HTMLCanvasElement;
+import org.teavm.jso.dom.html.HTMLDocument;
 
 public class JsCanvas extends Canvas {
   public HTMLCanvasElement element;
   public Context2D c2d;
-  private JSString fontSet;
+  private JSString jsFont;
 
   public JsCanvas(int width, int height) {
     this.width = width;
@@ -48,30 +47,40 @@ public class JsCanvas extends Canvas {
   }
 
   public void setFont(String font, float size, int weight, int style) {
-    doSetFont((JSString) platformFont(font, size));
+    setJsFont(jsPlatformFont(font, size, weight, style));
   }
 
   public void setFont(FontDesk font) {
-    doSetFont((JSString) font.platformFont);
+    setJsFont((JSString) font.platformFont);
   }
 
-  private void doSetFont(JSString font) {
-    if (!jsStrEquals(fontSet, font)) {
-      c2d.setFont(fontSet = font);
+  private void setJsFont(JSString font) {
+    if (!jsStrEquals(jsFont, font)) {
+      c2d.setFont(jsFont = font);
     }
   }
 
-  @Override
-  public Object platformFont(String font, float size) {
-    return fontJSString(font, size);
+  public static JSString jsPlatformFont(String font, float size, int weight, int style) {
+    return fontJSString(font, size, weight,
+        switch (style) {
+          case FontDesk.STYLE_OBLIQUE -> oblique();
+          case FontDesk.STYLE_ITALIC -> italic();
+          default -> normal();
+        });
   }
 
   @JSBody(params = {"a", "b"}, script = "return a == b;")
   static native boolean jsStrEquals(JSString a, JSString b);
-  @JSBody(params = {"font", "size"}, script = "return size + 'px ' + font;")
-  static native JSString fontJSString(String font, float size);
-  @JSBody(params = {"font", "size", "weight"}, script = "return weight + ' ' + size + 'px ' + font;")
-  static native JSString fontJSString(String font, int size, int weight);
+
+  @JSBody(script = "return 'italic '")
+  static native JSString italic();
+  @JSBody(script = "return 'oblique '")
+  static native JSString oblique();
+  @JSBody(script = "return ''")
+  static native JSString normal();
+
+  @JSBody(params = {"font", "size", "weight", "style"}, script = "return style + weight + ' ' + size + 'px ' + font;")
+  static native JSString fontJSString(String font, float size, int weight, JSString style);
 
   public void drawText(String s, float x, float y) {
     c2d.fillText(s, x, y);
@@ -83,14 +92,17 @@ public class JsCanvas extends Canvas {
     return (float) c2d.measureTextD(jsString).getWidth();
   }
 
-  @Override
-  public V4f getFontMetrics() {
-    TextMetrics metrics = c2d.measureTextD("W");
+  public FontDesk createFontDesk(String family, float size, int weight, int style) {
+    JSString platformFont = jsPlatformFont(family, size, weight, style);
+    setJsFont(platformFont);
+    JsCanvas.TextMetrics metrics = c2d.measureTextD("W");
     float ascent = (float) metrics.getFontBoundingBoxAscent();
     float descent = (float) metrics.getFontBoundingBoxDescent();
-    float WCharWidth = (float) metrics.getWidth();
-    float spaceWidth = (float) c2d.measureTextD(" ").getWidth();
-    return new V4f(ascent, descent, WCharWidth, spaceWidth);
+    float wWidth = (float) metrics.getWidth();
+    float spaceWidth = measureText(" ");
+    float dotWidth = measureText(".");
+    return new FontDesk(family, size, weight, style,
+        ascent, descent, spaceWidth, wWidth, dotWidth, platformFont);
   }
 
   @Override

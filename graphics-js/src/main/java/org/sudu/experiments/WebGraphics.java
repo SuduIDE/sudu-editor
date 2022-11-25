@@ -20,6 +20,10 @@ public class WebGraphics extends WglGraphics {
     setClientRect(clientRect);
   }
 
+  public FontDesk fontDesk(String family, float size, int weight, int style) {
+    return ((JsCanvas)mCanvas).createFontDesk(family, size, weight, style);
+  }
+
   public interface ErrorEvent extends org.teavm.jso.dom.events.ErrorEvent {
     @JSProperty("message")
     JSString getMessageJs();

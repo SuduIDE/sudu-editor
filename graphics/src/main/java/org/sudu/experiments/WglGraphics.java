@@ -69,9 +69,7 @@ public abstract class WglGraphics {
     return fontDesk(name, size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
   }
 
-  public FontDesk fontDesk(String family, float size, int weight, int style) {
-    return new FontDesk(family, size, weight, style, mCanvas);
-  }
+  public abstract FontDesk fontDesk(String family, float size, int weight, int style);
 
   public final Canvas createCanvas(int w, int h) {
     return canvasFactory.create(w, h);

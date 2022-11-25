@@ -1,7 +1,6 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.math.Numbers;
-import org.sudu.experiments.math.V4f;
 
 public class FontDesk {
   public static final int WEIGHT_REGULAR = 400;
@@ -24,31 +23,6 @@ public class FontDesk {
   public final boolean monospace;
 
   public final Object platformFont;
-
-  public FontDesk(String name, float size, int weight, int style, Canvas measuringCanvas) {
-    this.name = name;
-    this.size = size;
-    this.weight = weight;
-    this.style = style;
-
-    iSize = iSize(size);
-
-    measuringCanvas.setFont(name, size, weight, style);
-
-    V4f fontMetrics = measuringCanvas.getFontMetrics();
-    fAscent = fontMetrics.x;
-    fDescent = fontMetrics.y;
-    WWidth = fontMetrics.z;
-    spaceWidth = fontMetrics.w;
-    float dotWidth = measuringCanvas.measureText(".");
-    iAscent = Numbers.iRnd(fAscent);
-    iDescent = Numbers.iRnd(fDescent);
-    monospace = monospace(spaceWidth, WWidth, dotWidth);
-    platformFont = measuringCanvas.platformFont(name, iSize);
-    sStyle = stringStyle(style);
-
-//    debug(dotWidth);
-  }
 
   public FontDesk(
       String name, float size, int weight, int style,

@@ -3,8 +3,8 @@ package org.sudu.experiments.demo;
 import org.sudu.experiments.Fonts;
 
 interface EditorConst {
-  String FONT1 = Fonts.Consolas;
-  String FONT = Fonts.JetBrainsMono;
+  String FONT = Fonts.Consolas;
+  String FONT2 = Fonts.JetBrainsMono;
   float CONTRAST = .5f;
   int DOCUMENT_LINES = 1000;
   int BLANK_LINES = 5;

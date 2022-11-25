@@ -71,7 +71,7 @@ public class DemoEdit extends Scene {
 
     api.input.addListener(new MyInputListener());
     clientRect = api.window.getClientRect();
-    if (1<0) DebugHelper.dumpFontsSize(g.mCanvas);
+    if (1<0) DebugHelper.dumpFontsSize(g);
     int editorFontSize = Numbers.iRnd(EditorConst.DEFAULT_FONT_SIZE * devicePR);
     caret.setWidth(Numbers.iRnd(caret.width() * devicePR));
     setFont(EditorConst.FONT, editorFontSize);

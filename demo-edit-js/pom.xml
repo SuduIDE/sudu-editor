@@ -18,8 +18,8 @@
     <mainClass>org.sudu.experiments.WebApp</mainClass>
 
     <!-- compiler settings -->
-    <teavm.sourceMaps>true</teavm.sourceMaps>
-    <teavm.debugInfo>true</teavm.debugInfo>
+    <teavm.sourceMaps>false</teavm.sourceMaps>
+    <teavm.debugInfo>false</teavm.debugInfo>
     <teavm.minifying>false</teavm.minifying>
 
     <teavm.optimizationLevel1>ADVANCED</teavm.optimizationLevel1>

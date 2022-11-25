@@ -80,16 +80,6 @@ public class D2dCanvas extends Canvas {
   }
 
   @Override
-  public Object platformFont(String font, float size) {
-    return null;
-  }
-
-  @Override
-  public V4f getFontMetrics() {
-    return new V4f(font.fAscent, font.fDescent, font.WWidth, font.spaceWidth);
-  }
-
-  @Override
   public float measureText(String s) {
     if (textFormatRef == 0) return 0;
     return factory.measure(textFormatRef, CString.toChar16CString(s));
