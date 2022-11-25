@@ -12,6 +12,7 @@ import static org.sudu.experiments.win32.WindowPeer.*;
 class Win32InputState {
 
   boolean shift, ctrl, alt, meta;
+  boolean doubleClick;
 
   boolean onKey(int msg, long wParam, long lParam, InputListeners listeners) {
     boolean onChar = msg == WM_CHAR;
@@ -35,13 +36,18 @@ class Win32InputState {
     int btn = (msg - WM_LBUTTONDOWN) / 3, state = (msg - WM_LBUTTONDOWN) % 3;
 
     boolean press = state != 1;
-    int count = state == 2 ? 2 : 1;
-    System.out.println("mouse press = " + press + ", count = " + count);
     MouseEvent event = createMouseEvent(lParam, windowSize);
-    listeners.sendMouseButton(event, mapMouseButton(btn), press, count);
+    listeners.sendMouseButton(event, mapMouseButton(btn), press, 1);
+
     switch (state) {
       case 0 -> Win32.SetCapture(hWnd);
       case 1 -> Win32.ReleaseCapture();
+      case 2 -> doubleClick = true;
+    }
+
+    if (state == 1 && doubleClick) {
+      listeners.sendMouseButton(event, mapMouseButton(btn), true, 2);
+      doubleClick = false;
     }
   }
 
