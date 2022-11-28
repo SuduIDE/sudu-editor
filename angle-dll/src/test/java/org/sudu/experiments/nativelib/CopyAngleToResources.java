@@ -11,8 +11,11 @@ public class CopyAngleToResources {
     Path dir = Paths.get("angle-dll/src/main/resources/");
     Path resourceDir = dir.toAbsolutePath();
     if (!Files.isDirectory(resourceDir)) {
-      System.out.println("resourceDir path is not a directory: " + resourceDir);
-      return;
+      Files.createDirectories(resourceDir);
+      if (!Files.isDirectory(resourceDir)) {
+        System.out.println("resourceDir path is not a directory: " + resourceDir);
+        return;
+      }
     }
     Path edgePath = Paths.get("C:\\Program Files (x86)\\Microsoft\\Edge\\Application");
 
