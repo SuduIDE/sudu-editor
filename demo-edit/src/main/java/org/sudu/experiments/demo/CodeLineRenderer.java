@@ -19,11 +19,10 @@ class CodeLineRenderer implements Disposable {
   public void updateTexture(CodeLine content, Canvas renderingCanvas, FontDesk font, WglGraphics g, int lineHeight) {
     line = content;
 
-    content.measure(g.mCanvas);
+    content.measure(g.mCanvas, font);
 
     if (dumpMeasure) {
       Debug.consoleInfo("fMeasure", content.fMeasure);
-      Debug.consoleInfo("iMeasure", content.iMeasure);
       dumpMeasure = false;
     }
 

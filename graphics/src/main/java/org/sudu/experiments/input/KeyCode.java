@@ -9,6 +9,7 @@ public interface KeyCode {
 
   int C = 67;
   int X = 88;
+  int W = 87;
 
 
   int F5 = 116;

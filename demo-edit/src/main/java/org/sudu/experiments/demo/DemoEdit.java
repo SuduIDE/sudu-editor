@@ -208,9 +208,7 @@ public class DemoEdit extends Scene {
   private void afterFontChanged() {
     // footer depends on font size and needs re-layout
     layoutFooter();
-    CodeLine codeLine = document.line(caretLine);
-    codeLine.measure(g.mCanvas);
-    caretPos = codeLine.computePixelLocation(caretCharPos, g.mCanvas);
+    caretPos = caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, font);
     adjustEditorVScrollToCaret();
   }
 
@@ -411,9 +409,12 @@ public class DemoEdit extends Scene {
   private void drawToolBar() {
     g.enableBlend(true);
     V2i size = toolbar.size();
-    int pos = (vScroll.visible() ? vScroll.bgPos.x : clientRect.x) - 2 - size.x;
 
-    toolbar.setPos(pos, 0);
+    int editorHeight = editorHeight();
+    boolean above = caretLine * lineHeight - editorVScrollPos < editorHeight / 2;
+    int posX = (vScroll.visible() ? vScroll.bgPos.x : clientRect.x) - 2 - size.x;
+    int posY = above ? editorHeight - size.y - 1 : 1;
+    toolbar.setPos(posX, posY);
     toolbar.render(g);
   }
 
@@ -532,6 +533,12 @@ public class DemoEdit extends Scene {
       if (handleEditingKeys(event)) return true;
 
       if (1 > 0) Debug.consoleInfo(event.desc());
+
+      if (event.ctrl && event.keyCode == KeyCode.W) {
+        Debug.consoleInfo("Ctrl-W pressed ;)");
+        return true;
+      }
+
       if (event.ctrl || event.alt) return false;
       if (event.keyCode == KeyCode.ESC) return false;
       return handleInsert(event.key);
@@ -633,7 +640,7 @@ public class DemoEdit extends Scene {
   private boolean setCaretPos(int charPos) {
     caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
     g.mCanvas.setFont(font);
-    caretPos = caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas);
+    caretPos = caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, font);
     caret.startDelay(api.window.timeNow());
     return true;
   }
@@ -658,9 +665,9 @@ public class DemoEdit extends Scene {
     CodeLine line = caretCodeLine();
     g.mCanvas.setFont(font);
     int documentXPosition = Math.max(0, position.x - vLineX);
-    caretCharPos = line.computeCaretLocation(documentXPosition, g.mCanvas);
-    caretPos = line.computePixelLocation(caretCharPos, g.mCanvas);
-    if (1>0) Debug.consoleInfo(
+    caretCharPos = line.computeCaretLocation(documentXPosition, g.mCanvas, font);
+    caretPos = line.computePixelLocation(caretCharPos, g.mCanvas, font);
+    if (1<0) Debug.consoleInfo(
         "onClickText: caretCharPos = " + caretCharPos + ", caretPos = " + caretPos);
     caret.startDelay(api.window.timeNow());
   }
