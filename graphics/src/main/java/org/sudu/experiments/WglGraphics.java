@@ -34,7 +34,7 @@ public abstract class WglGraphics {
   public WglGraphics(GLApi.Context gl, CanvasFactory canvasFactory) {
     this.canvasFactory = canvasFactory;
     String version = gl.getParameterString(gl.VERSION);
-    System.out.println("[Graphics] GL version: " + version);
+    Debug.consoleInfo("[Graphics] GL version: " + version);
     this.gl = gl;
     mCanvas = canvasFactory.create(4, 4);
     rectangle = GL.createRectangle(gl);

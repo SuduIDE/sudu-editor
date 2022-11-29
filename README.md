@@ -57,3 +57,11 @@ In order to build it one need to
 Now you can build the demo with
 
 `mvn package`
+
+To run desktop version one need to get libGLESv2.dll - Angle library.
+One way of getting it is to run org.sudu.experiments.nativelib.CopyAngleToResources
+
+You may also need to build native parts of project with this maven command:
+`mvn package -am -pl graphics-jvm`
+
+After this steps you can simply run org.sudu.experiments.DemoEditJvm

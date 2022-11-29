@@ -50,7 +50,7 @@ public class WindowTest {
       Win32.DeleteClassGlobalRef();
     }
     static long windowProc(long hWnd, int msg, long wParam, long lParam) {
-      if (msg >= WindowPeer.WM_MOUSEMOVE && msg <= WindowPeer.WM_MOUSELAST) {
+      if (msg == WindowPeer.WM_MOUSEMOVE) {
         return Win32.DefWindowProcW(hWnd, msg, wParam, lParam);
       }
 
@@ -99,7 +99,7 @@ public class WindowTest {
     }
 
     static long windowProc(long hWnd, int msg, long wParam, long lParam) {
-      if (msg >= WindowPeer.WM_MOUSEMOVE && msg <= WindowPeer.WM_MOUSELAST) {
+      if (msg == WindowPeer.WM_MOUSEMOVE) {
         return Win32.DefWindowProcW(hWnd, msg, wParam, lParam);
       }
 

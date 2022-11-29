@@ -91,7 +91,7 @@ public class CodeLine {
 
   void measure(Canvas measuringCanvas) {
     int length = elements.length;
-    if (iMeasure == null || iMeasure.length < length) {
+    if (fMeasure == null || fMeasure.length < length) {
       fMeasure = new float[length];
       iMeasure = new int[length];
       measureDirty = true;

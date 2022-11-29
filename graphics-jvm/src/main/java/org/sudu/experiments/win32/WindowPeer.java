@@ -48,7 +48,6 @@ public interface WindowPeer {
   int WM_MBUTTONDBLCLK        = 0x0209;
   int WM_MOUSEWHEEL           = 0x020A;
   int WM_MOUSEHWHEEL          = 0x020E;
-  int WM_MOUSELAST            = 0x020E;
 
   int WM_ENTERSIZEMOVE        = 0x0231;
   int WM_EXITSIZEMOVE         = 0x0232;
@@ -88,6 +87,8 @@ public interface WindowPeer {
       case WM_ENTERSIZEMOVE -> "WM_ENTERSIZEMOVE";
       case WM_EXITSIZEMOVE -> "WM_EXITSIZEMOVE";
       case WM_TOUCH -> "WM_TOUCH";
+      case WM_MOUSEWHEEL -> "WM_MOUSEWHEEL";
+      case WM_MOUSEHWHEEL -> "WM_MOUSEHWHEEL";
       default -> "WM_".concat(Integer.toHexString(wm));
     };
   }
