@@ -57,10 +57,11 @@ class Win32InputState {
 
   static int GET_WHEEL_DELTA_WPARAM(long wParam) { return (short) Win32.HIWORD(wParam); }
 
-  void onMouseWheel(long lParam, long wParam, V2i windowSize, InputListeners listeners) {
+  void onMouseWheel(long lParam, long wParam, V2i windowSize, InputListeners listeners, boolean isY) {
     MouseEvent event = createMouseEvent(lParam, windowSize);
     int delta = GET_WHEEL_DELTA_WPARAM(wParam);
-    listeners.sendMouseWheel(event, 0, -1.25f * delta);
+    float value = 1.25f * delta;
+    listeners.sendMouseWheel(event, isY ? 0 : value, isY ? -value : 0);
   }
 
   private MouseEvent createMouseEvent(long lParam, V2i windowSize) {

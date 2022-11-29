@@ -269,7 +269,8 @@ public class Win32Window implements WindowPeer, Window {
           -> onEnterExitSizeMove(hWnd, msg == WM_ENTERSIZEMOVE);
 
       case WM_MOUSEMOVE -> inputState.onMouseMove(lParam, windowSize, inputListeners);
-      case WM_MOUSEWHEEL -> inputState.onMouseWheel(lParam, wParam, windowSize, inputListeners);
+      case WM_MOUSEWHEEL, WM_MOUSEHWHEEL ->
+        inputState.onMouseWheel(lParam, wParam, windowSize, inputListeners, msg == WM_MOUSEWHEEL);
 
       // keyboard
       case WM_SYSKEYUP, WM_SYSKEYDOWN ->

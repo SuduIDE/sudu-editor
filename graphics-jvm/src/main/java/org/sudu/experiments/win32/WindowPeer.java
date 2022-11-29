@@ -47,6 +47,7 @@ public interface WindowPeer {
   int WM_MBUTTONUP            = 0x0208;
   int WM_MBUTTONDBLCLK        = 0x0209;
   int WM_MOUSEWHEEL           = 0x020A;
+  int WM_MOUSEHWHEEL          = 0x020E;
   int WM_MOUSELAST            = 0x020E;
 
   int WM_ENTERSIZEMOVE        = 0x0231;
