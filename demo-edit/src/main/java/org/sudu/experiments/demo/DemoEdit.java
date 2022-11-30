@@ -121,6 +121,7 @@ public class DemoEdit extends Scene {
 
   private void toggleContrast() {
     applyContrast = !applyContrast;
+    Debug.consoleInfo("applyContrast = " + applyContrast);
   }
 
   private void toggleBW() {
@@ -186,8 +187,7 @@ public class DemoEdit extends Scene {
   private void setFont(String name, int size) {
     font = g.fontDesk(name, size);
     realFontSize = font.lineHeight();
-    lineHeight = Numbers.iDivRound(
-        realFontSize * EditorConst.LINE_HEIGHT_NUMERATOR, EditorConst.LINE_HEIGHT_DENOMINATOR);
+    lineHeight = Numbers.iRnd((font.fAscent + font.fDescent) * EditorConst.LINE_HEIGHT);
     footerHeight = lineHeight;
     caret.setHeight(font.caretHeight(lineHeight));
     renderingCanvas = Disposable.assign(
@@ -198,11 +198,9 @@ public class DemoEdit extends Scene {
     int baseline = baseLineBase - (lineHeight - realFontSize) / 2;
 
     Debug.consoleInfo("Set editor font to: "+ name + " " + size
-        + ", real font size = " + realFontSize
+        + ", ascent+descent = " + realFontSize
         + ", lineHeight = " + lineHeight
         + ", caretHeight = " + caret.height()
-        + ", ");
-    Debug.consoleInfo("\t(lineHeight - font.descent) = " + baseLineBase
         + ", baseline = " + baseline);
   }
 
@@ -541,7 +539,7 @@ public class DemoEdit extends Scene {
       if (handleNavigation(event)) return true;
       if (handleEditingKeys(event)) return true;
 
-      if (1 > 0) Debug.consoleInfo(event.desc());
+      if (1 < 0) Debug.consoleInfo("DemoEdit::onKey: "+ event.desc());
 
       if (event.ctrl && event.keyCode == KeyCode.W) {
         Debug.consoleInfo("Ctrl-W pressed ;)");
