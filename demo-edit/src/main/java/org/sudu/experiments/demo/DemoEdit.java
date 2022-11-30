@@ -48,7 +48,7 @@ public class DemoEdit extends Scene {
   V2i clientRect;
   int editorVScrollPos = 0;
 
-  boolean applyContrast = true, renderBlankLines = true;
+  boolean applyContrast, renderBlankLines = true;
   boolean scrollDown, scrollUp, scrollFaster, scrollEvenFaster;
 
   // line numbers
@@ -92,16 +92,21 @@ public class DemoEdit extends Scene {
 
 //      measureAll();
 
-    debugFlags[0] = () -> applyContrast = !applyContrast;
+    debugFlags[0] = this::toggleContrast;
     debugFlags[1] = () -> renderBlankLines = !renderBlankLines;
     debugFlags[3] = () -> Debug.consoleInfo(" debug event [" + 3 + "]");
+
+    // d2d is very bold, contrast makes font heavier
+    applyContrast = api.window.getHost() != Host.Direct2D;
   }
 
   private void initToolbar() {
     toolbar.setBgColor(Colors.toolbarBg);
-    toolbar.addButton("↓↓↓", Colors.toolbarText3, this::moveDown);
-    toolbar.addButton("↑↑↑", Colors.toolbarText3, this::moveUp);
-    toolbar.addButton("■", Colors.toolbarText3, this::stopMove);
+//    toolbar.addButton("↓↓↓", Colors.toolbarText3, this::moveDown);
+//    toolbar.addButton("↑↑↑", Colors.toolbarText3, this::moveUp);
+//    toolbar.addButton("■", Colors.toolbarText3, this::stopMove);
+
+    toolbar.addButton("C", Colors.toolbarText2, this::toggleContrast);
     toolbar.addButton("B/W", Colors.toolbarTextWhite, this::toggleBW);
     toolbar.addButton("A↑", Colors.toolbarText2, this::increaseFont);
     toolbar.addButton("A↓", Colors.toolbarText2, this::decreaseFont);
@@ -112,6 +117,10 @@ public class DemoEdit extends Scene {
 
     toolbar.setFont(toolBarFont);
     V2i measure = toolbar.measure(g.mCanvas);
+  }
+
+  private void toggleContrast() {
+    applyContrast = !applyContrast;
   }
 
   private void toggleBW() {
@@ -411,7 +420,7 @@ public class DemoEdit extends Scene {
     V2i size = toolbar.size();
 
     int editorHeight = editorHeight();
-    boolean above = caretLine * lineHeight - editorVScrollPos < editorHeight / 2;
+    boolean above = false; // caretLine * lineHeight - editorVScrollPos < editorHeight / 2;
     int posX = (vScroll.visible() ? vScroll.bgPos.x : clientRect.x) - 2 - size.x;
     int posY = above ? editorHeight - size.y - 1 : 1;
     toolbar.setPos(posX, posY);

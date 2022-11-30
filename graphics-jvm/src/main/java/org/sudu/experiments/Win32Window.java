@@ -332,4 +332,9 @@ public class Win32Window implements WindowPeer, Window {
     }
     return update;
   }
+
+  @Override
+  public Host getHost() {
+    return Host.Direct2D;
+  }
 }

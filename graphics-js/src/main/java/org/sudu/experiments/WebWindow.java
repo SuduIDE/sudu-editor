@@ -128,4 +128,8 @@ public class WebWindow implements org.sudu.experiments.Window {
     return Window.current().getDevicePixelRatio();
   }
 
+  @Override
+  public Host getHost() {
+    return Host.Chrome;
+  }
 }

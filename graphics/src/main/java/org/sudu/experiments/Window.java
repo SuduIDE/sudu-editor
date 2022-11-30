@@ -16,4 +16,6 @@ public interface Window {
   default boolean addChild(String title, Function<SceneApi, Scene> sf) {
     return false;
   }
+
+  Host getHost();
 }

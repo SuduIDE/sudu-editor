@@ -113,7 +113,7 @@ public class LineNumbersTexture implements Disposable {
       rectSize,
       rectRegion,
       lineTexture,
-      textColor, bgColor, 1f);
+      textColor, bgColor, 0f);
   }
 
   private int scrollDown(Canvas textureCanvas, Canvas updateCanvas, int firstLine, int updateOn, int curFirstLine) {

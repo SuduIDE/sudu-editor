@@ -45,14 +45,14 @@ public class Toolbar {
   }
 
   public V2i measure(Canvas mCanvas) {
-    int textHeight = textHeight();
     mCanvas.setFont(font);
+    int textHeight = font.lineHeight();
     border = Numbers.iRnd(mCanvas.measureText("."));
     btnXPad = Numbers.iRnd(font.WWidth);
     int tw = 0;
     for (int i = 0; i < buttons.size(); i++) {
       Button button = buttons.get(i);
-      int m = Numbers.iRnd(mCanvas.measureText(button.text));
+      int m = (int)(mCanvas.measureText(button.text) + 7.f / 8);
       int w = btnXPad + m + btnXPad;
       button.tRect.pos.x = tw;
       button.tRect.pos.y = 0;
@@ -88,7 +88,7 @@ public class Toolbar {
   private void renderTexture(WglGraphics g) {
     int textHeight = textHeight();
     int textWidth = rect.size.x - border - border * buttons.size();
-    int baseline = font.iAscent;
+    float baseline = font.fAscent;
     Canvas canvas = g.createCanvas(textWidth, textHeight);
     canvas.setFont(font);
     for (int i = 0; i < buttons.size(); i++) {
@@ -104,7 +104,7 @@ public class Toolbar {
     if (texture == null) renderTexture(g);
     rect.draw(g, 0, 0);
     for (int i = 0; i < buttons.size(); i++) {
-      buttons.get(i).tRect.drawText(g, texture, 0, 0, 1);
+      buttons.get(i).tRect.drawText(g, texture, 0, 0, 0);
     }
   }
 
