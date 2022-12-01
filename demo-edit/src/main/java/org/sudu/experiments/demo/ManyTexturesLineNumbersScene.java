@@ -29,7 +29,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
 
     lineNumbers = new LineNumbersComponent(
       g, new V2i(0, 0), 50,
-      LineNumbersColorScheme.IDEA_COLOR_SCHEME
+      LineNumbersColorScheme.ideaColorScheme()
     );
     lineNumbers.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight);
 
@@ -60,8 +60,9 @@ public class ManyTexturesLineNumbersScene extends Scene {
   @Override
   public void onResize(V2i size) {
     viewPortSize = size;
-    lineNumbers.resize(size, 500);
-    lineNumbers.initTextures();
+    // fixme:
+//    lineNumbers.resize(size, 500);
+//    lineNumbers.initTextures(editorBottom);
   }
 
   @Override

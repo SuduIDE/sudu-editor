@@ -55,8 +55,7 @@ public class DemoEdit extends Scene {
 
   // line numbers
   LineNumbersComponent lineNumbers;
-  LineNumbersColorScheme lineNumbersColorScheme =
-    LineNumbersColorScheme.IDEA_COLOR_SCHEME;
+  LineNumbersColorScheme lineNumbersColorScheme = LineNumbersColorScheme.ideaColorScheme();
   int lineNumLeftMargin = 10;
 
   public DemoEdit(SceneApi api) {
@@ -234,7 +233,7 @@ public class DemoEdit extends Scene {
   }
 
   private void allocLines(int N) {
-    Debug.consoleInfo("allocLines: N = ", N);
+    System.out.println("allocLines:N = " + N);
     lines = new CodeLineRenderer[N];
     for (int i = 0; i < lines.length; i++) {
       lines[i] = new CodeLineRenderer();
