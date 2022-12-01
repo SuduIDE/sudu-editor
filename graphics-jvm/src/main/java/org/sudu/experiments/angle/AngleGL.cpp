@@ -346,7 +346,7 @@ jlong Java_org_sudu_experiments_angle_AngleEGL_createContext(
 }
 
 jboolean Java_org_sudu_experiments_angle_AngleEGL_destroyContext(
-  JNIEnv *j, jclass, jlong display, jlong context
+  JNIEnv *, jclass, jlong display, jlong context
 ) {
   return EGL_DestroyContext(EGLDisplay(display), EGLContext(context));
 }

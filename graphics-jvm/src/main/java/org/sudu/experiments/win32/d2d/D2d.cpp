@@ -351,7 +351,7 @@ jint Java_org_sudu_experiments_win32_d2d_IDWriteFontCollection_FindFamilyName(
   return toJavaR(j, jHR, hr, exists[0]);
 }
 
-jint Java_org_sudu_experiments_win32_d2d_IDWriteFontCollection_GetFontFamilyCount(JNIEnv* j, jclass, jlong _this) {
+jint Java_org_sudu_experiments_win32_d2d_IDWriteFontCollection_GetFontFamilyCount(JNIEnv*, jclass, jlong _this) {
   return PDWriteFontCollection(_this)->GetFontFamilyCount();
 }
 
