@@ -37,7 +37,7 @@ public class DemoEdit extends Scene {
   FontDesk toolBarFont;
 
   // layout
-  int vLineXBase = 80;
+  int vLineXBase = 100;
   int vLineX;
   int vLineW = 1;
   int vLineLeftDelta;
@@ -48,16 +48,20 @@ public class DemoEdit extends Scene {
   V2i clientRect;
   int editorVScrollPos = 0;
 
+  double devicePR;
+
   boolean applyContrast, renderBlankLines = true;
   boolean scrollDown, scrollUp, scrollFaster, scrollEvenFaster;
 
   // line numbers
   LineNumbersComponent lineNumbers;
+  LineNumbersColorScheme lineNumbersColorScheme =
+    LineNumbersColorScheme.IDEA_COLOR_SCHEME;
   int lineNumLeftMargin = 10;
 
   public DemoEdit(SceneApi api) {
     super(api);
-    double devicePR = api.window.devicePixelRatio();
+    devicePR = api.window.devicePixelRatio();
     Debug.consoleInfo("api.window.devicePixelRatio() = ", devicePR);
     g = api.graphics;
 
@@ -66,8 +70,8 @@ public class DemoEdit extends Scene {
 
     int lineNumbersWidth = vLineX - vLineLeftDelta - lineNumLeftMargin;
     lineNumbers = new LineNumbersComponent(g, new V2i(lineNumLeftMargin, 0),
-      lineNumbersWidth,
-      Colors.defaultText, Colors.editBgColor);
+      lineNumbersWidth, lineNumbersColorScheme);
+    lineNumbers.setDevicePR(devicePR);
 
     api.input.addListener(new MyInputListener());
     clientRect = api.window.getClientRect();
@@ -262,7 +266,7 @@ public class DemoEdit extends Scene {
   }
 
   private void layoutFooter() {
-    int editorHeight = clientRect.y - footerHeight;
+    int editorHeight = editorHeight();
     footerRc.set(0, editorHeight, clientRect.x, footerHeight);
     footerRc.color.set(Colors.editFooterFill.v4f);
     vLineSize.y = editorHeight;
@@ -296,7 +300,7 @@ public class DemoEdit extends Scene {
   private int debugFL, debugLL;
 
   public void paint() {
-    int editorBottom = clientRect.y - footerHeight;
+    int editorBottom = editorHeight();
     int editorRight = clientRect.x;
 
     vScroll.layoutVertical(editorVScrollPos, editorRight, editorHeight(), editorFullHeight(), vScrollBarWidth());
@@ -350,8 +354,12 @@ public class DemoEdit extends Scene {
 
       drawScrollBar();
 
+      int textHeight = Math.min(editorBottom, document.length() * lineHeight - editorVScrollPos);
+
       lineNumbers.update(firstLine);
-      lineNumbers.draw(editorVScrollPos);
+      lineNumbers.draw(editorVScrollPos, textHeight);
+      lineNumbers.drawBottom(textHeight, editorBottom);
+
       if (firstLine <= caretLine && caretLine <= lastLine){
         lineNumbers.drawCaretLine(editorVScrollPos, caretLine);
       }
@@ -373,8 +381,7 @@ public class DemoEdit extends Scene {
 
   private void initLineNumbers(){
     lineNumbers.setFont(font, lineHeight);
-    lineNumbers.setEditorBottom(editorHeight());
-    lineNumbers.initTextures(getFirstLine());
+    lineNumbers.initTextures(getFirstLine(), editorHeight());
   }
 
   private CodeLineRenderer lineRenderer(int i) {
@@ -463,9 +470,8 @@ public class DemoEdit extends Scene {
     clientRect = size;
     layout();
 
-    lineNumbers.resize(size, editorHeight());
     int firstLine = getFirstLine();
-    lineNumbers.initTextures(firstLine);
+    lineNumbers.initTextures(firstLine, editorHeight());
   }
 
   int clampScrollPos(int pos) {

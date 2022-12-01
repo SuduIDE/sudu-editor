@@ -29,7 +29,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
 
     lineNumbers = new LineNumbersComponent(
       g, new V2i(0, 0), 50,
-      new Color(0), new Color(255)
+      LineNumbersColorScheme.IDEA_COLOR_SCHEME
     );
     lineNumbers.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight);
 

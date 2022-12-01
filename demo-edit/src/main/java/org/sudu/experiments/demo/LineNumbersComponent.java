@@ -15,12 +15,11 @@ public class LineNumbersComponent implements Disposable {
   private final V2i componentPos;
   private FontDesk fontDesk;
   private int lineHeight;
-  private final Color textColor;
-  private final Color bgColor;
+  private final LineNumbersColorScheme colorScheme;
 
   private int textureHeight;
   private int textureWidth;
-  private int editorBottom;
+  private double devicePR;
 
   private final List<LineNumbersTexture> textures;
   private Canvas textureCanvas;
@@ -32,13 +31,12 @@ public class LineNumbersComponent implements Disposable {
     final WglGraphics g,
     final V2i componentPos,
     final int textureWidth,
-    Color textColor, Color bgColor
+    final LineNumbersColorScheme colorScheme
   ) {
     this.g = g;
     this.componentPos = componentPos;
     this.textureWidth = textureWidth;
-    this.textColor = textColor;
-    this.bgColor = bgColor;
+    this.colorScheme = colorScheme;
 
     this.textures = new ArrayList<>();
   }
@@ -66,53 +64,52 @@ public class LineNumbersComponent implements Disposable {
       if (curFirstLine < firstLine) {
         for (int i = startTextureUpdate; i <= endTextureUpdate; i++) {
           LineNumbersTexture texture = textures.get(i % numOfTextures);
-          curFirstLine = texture.updateTexture(textureCanvas, updateCanvas, curFirstLine, firstLine, updateOn);
+          curFirstLine = texture.updateTexture(textureCanvas, updateCanvas, curFirstLine, firstLine, updateOn, devicePR);
         }
       } else {
         for (int i = endTextureUpdate; i >= startTextureUpdate; i--) {
           LineNumbersTexture texture = textures.get(i % numOfTextures);
-          curFirstLine = texture.updateTexture(textureCanvas, updateCanvas, curFirstLine, firstLine, updateOn);
+          curFirstLine = texture.updateTexture(textureCanvas, updateCanvas, curFirstLine, firstLine, updateOn, devicePR);
         }
       }
     }
   }
 
-  public void draw(int scrollPos) {
+  public void draw(int scrollPos, int editorHeight) {
     for (var text : textures) {
-      text.draw(g, componentPos, editorBottom, scrollPos, textures.size() * textureHeight);
+      text.draw(g, componentPos, editorHeight, scrollPos, textures.size() * textureHeight, colorScheme);
     }
   }
 
   public void drawCaretLine(int scrollPos, int caretLine) {
     int caretTexture = (caretLine / numberOfLines) % textures.size();
 
-    textures.get(caretTexture).drawCurrentLine(g, componentPos, scrollPos, textures.size() * textureHeight, caretLine);
+    textures.get(caretTexture).drawCurrentLine(g, componentPos, scrollPos, textures.size() * textureHeight, caretLine, colorScheme);
   }
 
-  public void resize(V2i size, int editorH) {
-    this.editorBottom = Math.max(0, Math.min(size.y, editorH));
+  public void drawBottom(int textHeight, int editorBottom) {
+    if (textHeight < editorBottom) {
+      g.drawRect(componentPos.x, componentPos.y + textHeight,
+        new V2i(textureWidth, editorBottom - textHeight),
+        colorScheme.bgColor);
+    }
   }
 
-  public void setEditorBottom(int editorH) {
-    this.editorBottom = editorH;
+  public void initTextures(int editorHeight) {
+    initTextures(0, editorHeight);
   }
 
-  public void initTextures() {
-    initTextures(0);
-  }
-
-  public void initTextures(int firstLine) {
+  public void initTextures(int firstLine, int editorHeight) {
     int oldSize = textures.size();
 
-    while (textures.size() * textureHeight <= editorBottom) {
+    while (textures.size() * textureHeight <= editorHeight) {
       int number = textures.size();
       V2i texturePos = new V2i(0, number * textureHeight);
       LineNumbersTexture texture = new LineNumbersTexture(
         texturePos,
         numberOfLines,
         textureWidth, lineHeight,
-        fontDesk,
-        textColor, bgColor
+        fontDesk
       );
       texture.createTexture(g);
       textures.add(texture);
@@ -129,7 +126,7 @@ public class LineNumbersComponent implements Disposable {
     int startNum = (numberOfFullScroll + 1) * size * numberOfLines;
 
     for (LineNumbersTexture texture : textures) {
-      startNum = texture.initTexture(textureCanvas, startNum, firstLine, size);
+      startNum = texture.initTexture(textureCanvas, startNum, firstLine, size, devicePR);
     }
   }
 
@@ -149,6 +146,10 @@ public class LineNumbersComponent implements Disposable {
     );
     updateCanvas.setFont(fontDesk);
     updateCanvas.setTextAlign(Canvas.TextAlign.RIGHT);
+  }
+
+  public void setDevicePR(double devicePR) {
+    this.devicePR = devicePR;
   }
 
   @Override

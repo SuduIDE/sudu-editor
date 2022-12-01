@@ -18,4 +18,5 @@ interface EditorConst {
   float LINE_HEIGHT = 1.5f;
 
   int LINE_NUMBERS_TEXTURE_SIZE = 20;
+  int LINE_NUMBERS_RIGHT_PADDING = 20;
 }

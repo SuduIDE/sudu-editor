@@ -1,7 +1,6 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
@@ -13,8 +12,6 @@ public class LineNumbersTexture implements Disposable {
   private final V2i textureSize;
   private final int numberOfLines;
   private final int lineHeight;
-  private final V4f textColor;
-  private final V4f bgColor;
 
   private final V2i rectSize = new V2i();
   private final V4f rectRegion = new V4f();
@@ -26,32 +23,29 @@ public class LineNumbersTexture implements Disposable {
     int numberOfLines,
     int textureWidth,
     int lineHeight,
-    FontDesk fontDesk,
-    Color textColor, Color bgColor
+    FontDesk fontDesk
   ) {
     this.texturePos = texturePos;
     this.numberOfLines = numberOfLines;
     this.lineHeight = lineHeight;
     this.textureSize = new V2i(textureWidth, this.numberOfLines * lineHeight);
-    this.textColor = textColor.v4f;
-    this.bgColor = bgColor.v4f;
 
     int baseLineBase = lineHeight - fontDesk.iDescent;
     this.baseline = baseLineBase - (lineHeight - fontDesk.lineHeight()) / 2;
   }
 
-  public int updateTexture(Canvas textureCanvas, Canvas updateCanvas, int curFirstLine, int firstLine, int updateOn) {
+  public int updateTexture(Canvas textureCanvas, Canvas updateCanvas, int curFirstLine, int firstLine, int updateOn, double devicePR) {
     if (firstLine > curFirstLine)
-      return scrollDown(textureCanvas, updateCanvas, firstLine, updateOn, curFirstLine);
+      return scrollDown(textureCanvas, updateCanvas, firstLine, updateOn, curFirstLine, devicePR);
     else
-      return scrollUp(textureCanvas, updateCanvas, firstLine, updateOn, curFirstLine);
+      return scrollUp(textureCanvas, updateCanvas, firstLine, updateOn, curFirstLine, devicePR);
   }
 
   public void createTexture(final WglGraphics g) {
     if (lineTexture == null) lineTexture = g.createTexture();
   }
 
-  public int initTexture(Canvas textureCanvas, int startNum, int toNum, int texturesSize) {
+  public int initTexture(Canvas textureCanvas, int startNum, int toNum, int texturesSize, double devicePR) {
     textureCanvas.clear();
 
     for (int i = 0; i < numberOfLines; i++) {
@@ -60,15 +54,14 @@ public class LineNumbersTexture implements Disposable {
 
       String lineNum = String.valueOf(startNum++ + 1);
       int yPos = lineHeight * i + baseline;
-      float xPos = textureSize.x;
-      textureCanvas.drawText(lineNum, xPos, yPos);
+      drawLine(textureCanvas, lineNum, yPos, devicePR);
     }
 
     lineTexture.setContent(textureCanvas);
     return startNum;
   }
 
-  public void draw(WglGraphics g, V2i dXdY, int componentHeight, int scrollPos, int fullTexturesSize) {
+  public void draw(WglGraphics g, V2i dXdY, int componentHeight, int scrollPos, int fullTexturesSize, LineNumbersColorScheme colorScheme) {
     int height = textureSize.y;
     int yPos = ((texturePos.y - (scrollPos % fullTexturesSize)) + fullTexturesSize) % fullTexturesSize;
 
@@ -76,26 +69,26 @@ public class LineNumbersTexture implements Disposable {
       rectSize.set(lineTexture.width(), height);
       rectRegion.set(0, 0, lineTexture.width(), height);
 
-      draw(g, yPos, dXdY, textColor, bgColor);
+      draw(g, yPos, dXdY, colorScheme.textColor, colorScheme.bgColor);
     } else {
       if (yPos + height > componentHeight && yPos < componentHeight) {
         int topHeight = Math.max(componentHeight - yPos, 0);
         rectSize.set(lineTexture.width(), topHeight);
         rectRegion.set(0, 0, lineTexture.width(), topHeight);
 
-        draw(g, yPos, dXdY, textColor, bgColor);
+        draw(g, yPos, dXdY, colorScheme.textColor, colorScheme.bgColor);
       }
       if (yPos + height > fullTexturesSize) {
         height = (yPos + height) % fullTexturesSize;
         rectSize.set(lineTexture.width(), height);
         rectRegion.set(0, scrollPos % lineTexture.height(), lineTexture.width(), height);
 
-        draw(g, 0, dXdY, textColor, bgColor);
+        draw(g, 0, dXdY, colorScheme.textColor, colorScheme.bgColor);
       }
     }
   }
 
-  public void drawCurrentLine(WglGraphics g, V2i dXdY, int scrollPos, int fullTexturesSize, int caretLine) {
+  public void drawCurrentLine(WglGraphics g, V2i dXdY, int scrollPos, int fullTexturesSize, int caretLine, LineNumbersColorScheme colorScheme) {
     int height = textureSize.y;
     int yPos = ((texturePos.y - (scrollPos % fullTexturesSize)) + fullTexturesSize) % fullTexturesSize;
     if (yPos + height > fullTexturesSize) yPos = -(scrollPos % lineTexture.height());
@@ -105,7 +98,7 @@ public class LineNumbersTexture implements Disposable {
     rectSize.set(textureSize.x, lineHeight);
     rectRegion.set(0, (caretLine % numberOfLines) * lineHeight, textureSize.x, lineHeight);
 
-    draw(g, yPos, dXdY, Colors.white, Colors.black);
+    draw(g, yPos, dXdY, colorScheme.caretTextColor, colorScheme.caretBgColor);
   }
 
   private void draw(WglGraphics g, int yPos, V2i dXdY, V4f textColor, V4f bgColor) {
@@ -116,7 +109,7 @@ public class LineNumbersTexture implements Disposable {
       textColor, bgColor, 0f);
   }
 
-  private int scrollDown(Canvas textureCanvas, Canvas updateCanvas, int firstLine, int updateOn, int curFirstLine) {
+  private int scrollDown(Canvas textureCanvas, Canvas updateCanvas, int firstLine, int updateOn, int curFirstLine, double devicePR) {
     int stNum = (curFirstLine / numberOfLines) * numberOfLines;
     int endNum = stNum + numberOfLines;
 
@@ -128,26 +121,26 @@ public class LineNumbersTexture implements Disposable {
 
         String lineNum = String.valueOf(line + updateOn);
 
-        drawLine(textureCanvas, lineNum, lineHeight * i + baseline);
+        drawLine(textureCanvas, lineNum, lineHeight * i + baseline, devicePR);
       }
       lineTexture.setContent(textureCanvas);
       return Math.min(endNum, firstLine);
     }
 
-    while (curFirstLine < firstLine - 1) {
+    while (curFirstLine < firstLine) {
       updateCanvas.clear();
 
       String lineNum = String.valueOf(curFirstLine + updateOn + 1);
       int yPos = (curFirstLine++ * lineHeight) % textureSize.y;
 
-      drawLine(updateCanvas, lineNum, baseline);
+      drawLine(updateCanvas, lineNum, baseline, devicePR);
       lineTexture.update(updateCanvas, 0, yPos);
       if (curFirstLine % numberOfLines == 0) break;
     }
     return curFirstLine;
   }
 
-  private int scrollUp(Canvas textureCanvas, Canvas updateCanvas, int firstLine, int updateOn, int curFirstLine) {
+  private int scrollUp(Canvas textureCanvas, Canvas updateCanvas, int firstLine, int updateOn, int curFirstLine, double devicePR) {
     int stNum = (curFirstLine / numberOfLines) * numberOfLines;
     int endNum = stNum + numberOfLines;
 
@@ -155,13 +148,13 @@ public class LineNumbersTexture implements Disposable {
       textureCanvas.clear();
       for (int i = numberOfLines - 1; i >= 0; i--) {
         int line = endNum--;
-        if (line < firstLine) line += updateOn;
+        if (line <= firstLine) line += updateOn;
         String lineNum = String.valueOf(line);
 
-        drawLine(textureCanvas, lineNum, lineHeight * i + baseline);
+        drawLine(textureCanvas, lineNum, lineHeight * i + baseline, devicePR);
       }
       lineTexture.setContent(textureCanvas);
-      return Math.max(stNum, firstLine) - 1;
+      return Math.max(stNum, firstLine);
     }
 
     while (curFirstLine > firstLine) {
@@ -170,15 +163,16 @@ public class LineNumbersTexture implements Disposable {
       String lineNum = String.valueOf(curFirstLine--);
       int yPos = (curFirstLine * lineHeight) % textureSize.y;
 
-      drawLine(updateCanvas, lineNum, baseline);
+      drawLine(updateCanvas, lineNum, baseline, devicePR);
       lineTexture.update(updateCanvas, 0, yPos);
       if (curFirstLine % numberOfLines == 0) break;
     }
     return curFirstLine;
   }
 
-  private void drawLine(Canvas canvas, String lineNumber, int yPos) {
-    canvas.drawText(lineNumber, textureSize.x, yPos);
+  private void drawLine(Canvas canvas, String lineNumber, int yPos, double devicePR) {
+    int padding = EditorConst.LINE_NUMBERS_RIGHT_PADDING;
+    canvas.drawText(lineNumber, (float) (textureSize.x - padding * devicePR), yPos);
   }
 
   @Override

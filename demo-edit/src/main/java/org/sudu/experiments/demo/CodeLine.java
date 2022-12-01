@@ -219,7 +219,8 @@ public class CodeLine {
   }
 
   public int lineMeasure() {
-    return iMeasure[iMeasure.length - 1];
+    if (iMeasure.length == 0) return 0;
+    else return iMeasure[iMeasure.length - 1];
   }
 
   @Override
