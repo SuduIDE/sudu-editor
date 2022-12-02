@@ -105,7 +105,7 @@ public class Toolbar {
   }
 
   public void invalidateTexture() {
-    textureDirty = false;
+    textureDirty = true;
   }
 
 
