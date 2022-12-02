@@ -9,12 +9,16 @@ import java.util.ArrayList;
 
 @SuppressWarnings("ForLoopReplaceableByForEach")
 public class Toolbar {
+  static int vPad = 0;
   private FontDesk font;
   private final DemoRect rect = new DemoRect();
-  private int border, btnXPad;
+  private final V2i textureSize = new V2i();
+  private int border, textPadding;
   private Button hoverItem = null;
   private final ArrayList<Button> buttons = new ArrayList<>();
   private GL.Texture texture;
+
+  static boolean useTopMode = false;
 
   public void setBgColor(V4f bgColor) {
     rect.color.set(bgColor);
@@ -44,16 +48,16 @@ public class Toolbar {
     buttons.remove(b);
   }
 
-  public V2i measure(Canvas mCanvas) {
+  public V2i measure(Canvas mCanvas, double devicePR) {
     mCanvas.setFont(font);
-    int textHeight = font.lineHeight();
-    border = Numbers.iRnd(mCanvas.measureText("."));
-    btnXPad = Numbers.iRnd(font.WWidth);
+    int textHeight = font.lineHeight() + vPad + vPad;
+    border = Numbers.iRnd(2 * devicePR);
+    textPadding = Numbers.iRnd(font.WWidth);
     int tw = 0;
     for (int i = 0; i < buttons.size(); i++) {
       Button button = buttons.get(i);
       int m = (int)(mCanvas.measureText(button.text) + 7.f / 8);
-      int w = btnXPad + m + btnXPad;
+      int w = textPadding + m + textPadding;
       button.tRect.pos.x = tw;
       button.tRect.pos.y = 0;
       button.tRect.size.x = w;
@@ -61,6 +65,8 @@ public class Toolbar {
       button.tRect.textureRegion.set(tw, 0, w, textHeight);
       tw += w;
     }
+    textureSize.x = tw;
+    textureSize.y = textHeight;
     rect.size.y = textHeight + border * 2;
     rect.size.x = tw + border * buttons.size() + border;
     return rect.size;
@@ -81,19 +87,15 @@ public class Toolbar {
     return rect.size;
   }
 
-  private int textHeight() {
-    return font.lineHeight();
-  }
-
   private void renderTexture(WglGraphics g) {
-    int textHeight = textHeight();
-    int textWidth = rect.size.x - border - border * buttons.size();
-    float baseline = font.fAscent;
-    Canvas canvas = g.createCanvas(textWidth, textHeight);
+    Canvas canvas = g.createCanvas(textureSize.x, textureSize.y);
     canvas.setFont(font);
+    canvas.setTopMode(useTopMode);
+    float baseline = vPad + (useTopMode ? 0 : font.fAscent);
+
     for (int i = 0; i < buttons.size(); i++) {
       Button button = buttons.get(i);
-      canvas.drawText(button.text, button.tRect.textureRegion.x + btnXPad, baseline);
+      canvas.drawText(button.text, button.tRect.textureRegion.x + textPadding, baseline);
     }
     texture = Disposable.assign(texture, g.createTexture());
     texture.setContent(canvas);

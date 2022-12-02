@@ -13,6 +13,7 @@ public class D2dCanvas extends Canvas {
   private long pWicBitmap, pD2D1RenderTarget;
   private long pBrush;
   private int textAlign = TextAlign.LEFT;
+  private boolean topMode = false;
 
   // reference
   private long textFormatRef;
@@ -92,10 +93,15 @@ public class D2dCanvas extends Canvas {
   }
 
   @Override
+  public void setTopMode(boolean top) {
+    topMode = top;
+  }
+
+  @Override
   public void drawText(String s, float x, float y) {
     if (textFormatRef == 0) return;
     char[] cString = CString.toChar16CString(s);
-    float top = y - font.fAscent;
+    float top = topMode ? y : y - font.fAscent;
 
     if (textAlign != TextAlign.LEFT) {
       float measureText = measureText(cString);

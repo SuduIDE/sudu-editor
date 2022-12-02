@@ -54,7 +54,9 @@ public class ManyTexturesLineNumbersScene extends Scene {
     Debug.consoleInfo("scrollPos: " + scrollPos);
 
     lineNumbers.update(scrollPos / 20);
-    lineNumbers.draw(scrollPos);
+    // fixme
+
+    lineNumbers.draw(scrollPos, editorBottom);
   }
 
   @Override

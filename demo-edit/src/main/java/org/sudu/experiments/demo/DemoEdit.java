@@ -51,6 +51,7 @@ public class DemoEdit extends Scene {
   double devicePR;
 
   boolean applyContrast, renderBlankLines = true;
+  boolean renderAfterLines = true;
   boolean scrollDown, scrollUp, scrollFaster, scrollEvenFaster;
 
   // line numbers
@@ -96,11 +97,21 @@ public class DemoEdit extends Scene {
 //      measureAll();
 
     debugFlags[0] = this::toggleContrast;
-    debugFlags[1] = () -> renderBlankLines = !renderBlankLines;
-    debugFlags[3] = () -> Debug.consoleInfo(" debug event [" + 3 + "]");
+    debugFlags[1] = this::toggleBlankLines;
+    debugFlags[2] = this::toggleRenderAfterLines;
 
     // d2d is very bold, contrast makes font heavier
     applyContrast = api.window.getHost() != Host.Direct2D;
+  }
+
+  private void toggleRenderAfterLines() {
+    renderAfterLines = !renderAfterLines;
+    Debug.consoleInfo("renderAfterLines = " + renderAfterLines);
+  }
+
+  private void toggleBlankLines() {
+    renderBlankLines = !renderBlankLines;
+    Debug.consoleInfo("renderBlankLines = " + renderBlankLines);
   }
 
   private void initToolbar() {
@@ -110,7 +121,8 @@ public class DemoEdit extends Scene {
 //    toolbar.addButton("■", Colors.toolbarText3, this::stopMove);
 
     toolbar.addButton("C", Colors.toolbarText2, this::toggleContrast);
-    toolbar.addButton("B/W", Colors.toolbarTextWhite, this::toggleBW);
+    toolbar.addButton("TE", Colors.toolbarText2, this::toggleTopEdit);
+    toolbar.addButton("TB", Colors.toolbarText2, this::toggleTopBar);
     toolbar.addButton("A↑", Colors.toolbarText2, this::increaseFont);
     toolbar.addButton("A↓", Colors.toolbarText2, this::decreaseFont);
     toolbar.addButton("Segoe UI", Colors.rngToolButton(), this::setSegoeUI);
@@ -119,7 +131,7 @@ public class DemoEdit extends Scene {
     toolbar.addButton("Consolas", Colors.rngToolButton(), this::setConsolas);
 
     toolbar.setFont(toolBarFont);
-    V2i measure = toolbar.measure(g.mCanvas);
+    V2i measure = toolbar.measure(g.mCanvas, devicePR);
   }
 
   private void toggleContrast() {
@@ -127,8 +139,14 @@ public class DemoEdit extends Scene {
     Debug.consoleInfo("applyContrast = " + applyContrast);
   }
 
-  private void toggleBW() {
-    CodeLineRenderer.bw = !CodeLineRenderer.bw;
+  private void toggleTopEdit() {
+    CodeLineRenderer.bw = false;
+    CodeLineRenderer.useTop = !CodeLineRenderer.useTop;
+    Debug.consoleInfo("CodeLineRenderer.useTop = " + CodeLineRenderer.useTop);
+  }
+  private void toggleTopBar() {
+    Toolbar.useTopMode = !Toolbar.useTopMode;
+    Debug.consoleInfo("Toolbar.useTopMode = " + Toolbar.useTopMode);
   }
 
   private void increaseFont() {
@@ -197,14 +215,14 @@ public class DemoEdit extends Scene {
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
     renderingCanvas.setFont(font);
 
-    int baseLineBase = lineHeight - font.iDescent;
-    int baseline = baseLineBase - (lineHeight - realFontSize) / 2;
-
-    Debug.consoleInfo("Set editor font to: "+ name + " " + size
+    Debug.consoleInfo("Set editor font to: " + name + " " + size
         + ", ascent+descent = " + realFontSize
         + ", lineHeight = " + lineHeight
-        + ", caretHeight = " + caret.height()
-        + ", baseline = " + baseline);
+        + ", caretHeight = " + caret.height());
+
+    if (CodeLineRenderer.useTop) {
+      Debug.consoleInfo("topBase(font, lineHeight) = " + CodeLineRenderer.topBase(font, lineHeight));
+    }
   }
 
   private void changeFont(String name, int size) {

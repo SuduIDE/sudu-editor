@@ -5,9 +5,9 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
 class CodeLineRenderer implements Disposable {
-  static boolean dumpMeasure = 1<0;
-  static boolean print = 1<0;
-  static boolean bw = 1<0;
+  static boolean dumpMeasure;
+  static boolean bw;
+  static boolean useTop = false;
 
   CodeLine line;
   GL.Texture lineTexture;
@@ -30,19 +30,15 @@ class CodeLineRenderer implements Disposable {
 
 //    int texWidth = renderingCanvas.width();
 
-    int baseLineBase = lineHeight - font.iDescent;
-    int baseline = baseLineBase - (lineHeight - font.lineHeight()) / 2;
-
-    if (print) {
-      print = false;
-    }
+    int yPos = useTop ? topBase(font, lineHeight) : baselineShift(font, lineHeight);
+    renderingCanvas.setTopMode(useTop);
 
     CodeElement[] words = content.elements;
     float[] fMeasure = content.fMeasure;
     for (int i = 0, l = words.length; i < l; i++) {
       CodeElement entry = words[i];
       float x = i == 0 ? 0 : fMeasure[i - 1];
-      renderingCanvas.drawText(entry.s, x, baseline);
+      renderingCanvas.drawText(entry.s, x, yPos);
     }
 
     if (lineTexture == null) {
@@ -50,6 +46,14 @@ class CodeLineRenderer implements Disposable {
     }
     lineTexture.setContent(renderingCanvas);
     line.contentDirty = false;
+  }
+
+  static int topBase(FontDesk font, int lineHeight) {
+    return (lineHeight - font.lineHeight()) / 2;
+  }
+
+  static int baselineShift(FontDesk font, int lineHeight) {
+    return topBase(font, lineHeight) + font.iAscent;
   }
 
   public void draw(int yPosition, int dx, WglGraphics g, V4f region, V2i size, float contrast) {

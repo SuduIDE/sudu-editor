@@ -123,7 +123,6 @@ public class Win32Window implements WindowPeer, Window {
     return angleWindow.swapBuffers();
   }
 
-
   public boolean update() {
     return updateSelf() || updateChildren();
   }
@@ -172,6 +171,7 @@ public class Win32Window implements WindowPeer, Window {
     if (angleWindow != null) saveMaximized(state == State.MAXIMIZED);
     windowState = state;
     windowSize.set(msgWidth, msgHeight);
+    windowDpi = Win32.GetDpiForWindow(hWnd);
 //    Debug.consoleInfo("WM_SIZE: " + windowSize + ", state = " + windowState);
     repaint();
   }
@@ -189,6 +189,7 @@ public class Win32Window implements WindowPeer, Window {
   private void onWindowMove(int x, int y) {
     int[] rect4 = new int[4];
     Win32.GetWindowRect(hWnd, rect4);
+    windowDpi = Win32.GetDpiForWindow(hWnd);
 
     // todo: save windowPos
 //    AppPreferences.setInt(config.concat(".x"), rect4[0]);
@@ -214,7 +215,7 @@ public class Win32Window implements WindowPeer, Window {
 
   @Override
   public V2i getScreenRect() {
-    return new V2i(1920, 1080);
+    return new V2i(windowSize);
   }
 
   @Override

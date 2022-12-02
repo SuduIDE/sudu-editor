@@ -15,10 +15,10 @@ public class IDWriteFontFamily {
     if (names != 0) {
       String value = IDWriteLocalizedStrings.getString(names, 0, hr);
       IUnknown.Release(names);
-      return value;
-    } else {
-      return "<error: " + D2d.errorToString(hr[0]) + ">";
+      if (value != null) return value;
     }
+
+    return "<error: " + D2d.errorToString(hr[0]) + ">";
   }
 
 }

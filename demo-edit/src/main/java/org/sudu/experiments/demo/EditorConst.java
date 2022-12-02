@@ -15,7 +15,7 @@ interface EditorConst {
   int MIN_FONT_SIZE = 7;
   int MIN_CACHE_LINES = 7;
 
-  float LINE_HEIGHT = 1.5f;
+  float LINE_HEIGHT = 1.5f - 0.125f;
 
   int LINE_NUMBERS_TEXTURE_SIZE = 20;
   int LINE_NUMBERS_RIGHT_PADDING = 20;

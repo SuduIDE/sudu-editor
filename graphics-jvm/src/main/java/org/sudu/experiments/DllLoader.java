@@ -16,11 +16,13 @@ public class DllLoader {
 
   public static String loadDll(String library, Class<?> aClass) {
     String libraryName = System.mapLibraryName(library);
-
+    Path libPath = appPath(aClass).resolve(libraryName);
     try {
-      System.load(libraryName);
-      return libraryName;
+      String dllName = libPath.toString();
+      System.load(dllName);
+      return dllName;
     } catch (Throwable t) {
+      System.err.println("System.load failed: " + t.getMessage());
       String path = copyDllFromResources(libraryName, aClass.getClassLoader());
       if (path != null) {
         System.load(path);
@@ -56,5 +58,19 @@ public class DllLoader {
       }
       return dll.toString();
     }
+  }
+
+  public static Path appPath(Class<?> aClass) {
+    URL url = aClass.getProtectionDomain().getCodeSource().getLocation();
+    if ("file".equals(url.getProtocol())) {
+      File file = new File(url.getFile());
+      if (file.isDirectory()) return file.toPath();
+      if (file.isFile()) {
+        if (file.getPath().endsWith(".jar")) {
+          return file.getParentFile().getParentFile().toPath();
+        }
+      }
+    }
+    throw new RuntimeException("unexpected location " + url);
   }
 }

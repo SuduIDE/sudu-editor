@@ -26,9 +26,9 @@ public class IDWriteLocalizedStrings {
     int l = GetStringLength(_this, index, hr);
     if (hr[0] >= 0) {
       char[] data = new char[l + 1];
-      int hResult = GetString(_this, index, data);
-      if (hResult >= 0) return new String(data, 0, l);
+      hr[0] = GetString(_this, index, data);
+      if (hr[0] >= 0) return new String(data, 0, l);
     }
-    return "error";
+    return null;
   }
 }

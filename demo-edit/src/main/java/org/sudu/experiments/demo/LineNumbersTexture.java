@@ -29,9 +29,7 @@ public class LineNumbersTexture implements Disposable {
     this.numberOfLines = numberOfLines;
     this.lineHeight = lineHeight;
     this.textureSize = new V2i(textureWidth, this.numberOfLines * lineHeight);
-
-    int baseLineBase = lineHeight - fontDesk.iDescent;
-    this.baseline = baseLineBase - (lineHeight - fontDesk.lineHeight()) / 2;
+    this.baseline = CodeLineRenderer.baselineShift(fontDesk, lineHeight);
   }
 
   public int updateTexture(Canvas textureCanvas, Canvas updateCanvas, int curFirstLine, int firstLine, int updateOn, double devicePR) {
@@ -53,8 +51,7 @@ public class LineNumbersTexture implements Disposable {
         startNum -= texturesSize * numberOfLines;
 
       String lineNum = String.valueOf(startNum++ + 1);
-      int yPos = lineHeight * i + baseline;
-      drawLine(textureCanvas, lineNum, yPos, devicePR);
+      drawLine(textureCanvas, lineNum, lineHeight * i + baseline, devicePR);
     }
 
     lineTexture.setContent(textureCanvas);
@@ -120,7 +117,6 @@ public class LineNumbersTexture implements Disposable {
         if (line > firstLine) line -= updateOn;
 
         String lineNum = String.valueOf(line + updateOn);
-
         drawLine(textureCanvas, lineNum, lineHeight * i + baseline, devicePR);
       }
       lineTexture.setContent(textureCanvas);
@@ -149,8 +145,8 @@ public class LineNumbersTexture implements Disposable {
       for (int i = numberOfLines - 1; i >= 0; i--) {
         int line = endNum--;
         if (line <= firstLine) line += updateOn;
-        String lineNum = String.valueOf(line);
 
+        String lineNum = String.valueOf(line);
         drawLine(textureCanvas, lineNum, lineHeight * i + baseline, devicePR);
       }
       lineTexture.setContent(textureCanvas);

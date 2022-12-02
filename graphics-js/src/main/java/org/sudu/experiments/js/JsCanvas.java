@@ -87,6 +87,15 @@ public class JsCanvas extends Canvas {
   }
 
   @Override
+  public void setTopMode(boolean top) {
+    if (top) {
+      c2d.setTextBaseline("top");
+    } else {
+      c2d.setTextBaseline("alphabetic");
+    }
+  }
+
+  @Override
   public float measureText(String s) {
     JSString jsString = JSString.valueOf(s);
     return (float) c2d.measureTextD(jsString).getWidth();
