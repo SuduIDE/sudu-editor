@@ -17,6 +17,7 @@ public class Toolbar {
   private Button hoverItem = null;
   private final ArrayList<Button> buttons = new ArrayList<>();
   private GL.Texture texture;
+  boolean textureDirty;
 
   static boolean useTopMode = false;
 
@@ -100,10 +101,16 @@ public class Toolbar {
     texture = Disposable.assign(texture, g.createTexture());
     texture.setContent(canvas);
     canvas.dispose();
+    textureDirty = false;
   }
 
+  public void invalidateTexture() {
+    textureDirty = false;
+  }
+
+
   public void render(WglGraphics g) {
-    if (texture == null) renderTexture(g);
+    if (texture == null || textureDirty) renderTexture(g);
     rect.draw(g, 0, 0);
     for (int i = 0; i < buttons.size(); i++) {
       buttons.get(i).tRect.drawText(g, texture, 0, 0, 0);

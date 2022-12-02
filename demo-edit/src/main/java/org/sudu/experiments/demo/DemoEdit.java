@@ -143,10 +143,12 @@ public class DemoEdit extends Scene {
     CodeLineRenderer.bw = false;
     CodeLineRenderer.useTop = !CodeLineRenderer.useTop;
     Debug.consoleInfo("CodeLineRenderer.useTop = " + CodeLineRenderer.useTop);
+    invalidateFont();
   }
   private void toggleTopBar() {
     Toolbar.useTopMode = !Toolbar.useTopMode;
     Debug.consoleInfo("Toolbar.useTopMode = " + Toolbar.useTopMode);
+    toolbar.invalidateTexture();
   }
 
   private void increaseFont() {
@@ -226,6 +228,7 @@ public class DemoEdit extends Scene {
   }
 
   private void changeFont(String name, int size) {
+    lineNumbers.dispose();
     invalidateFont();
     setFont(name, size);
     afterFontChanged();
@@ -246,7 +249,6 @@ public class DemoEdit extends Scene {
     for (CodeLineRenderer line : lines) {
       line.dispose();
     }
-    lineNumbers.dispose();
     document.invalidateFont();
   }
 
