@@ -4,6 +4,7 @@ import org.sudu.experiments.math.Numbers;
 
 public class FontDesk {
   public static final int WEIGHT_REGULAR = 400;
+  public static final int WEIGHT_BOLD    = 700;
 
   public static final int STYLE_NORMAL  = 0;
   public static final int STYLE_OBLIQUE = 1;

@@ -90,7 +90,7 @@ public class CodeLine {
     invalidateCache();
   }
 
-  void measure(Canvas measuringCanvas, FontDesk font) {
+  void measure(Canvas measuringCanvas, FontDesk[] fonts) {
     int length = elements.length;
     if (fMeasure == null || fMeasure.length < length) {
       fMeasure = new float[length];
@@ -102,11 +102,11 @@ public class CodeLine {
       int totalLength = 0;
       float sumMeasure = .0f;
       cacheMiss++;
-      measuringCanvas.setFont(font);
       for (int i = 0; i < length; i++) {
         CodeElement entry = elements[i];
         totalLength += entry.s.length();
 
+        measuringCanvas.setFont(fonts[entry.fontIndex]);
         float wordLength = measuringCanvas.measureText(entry.s);
         sumMeasure += wordLength;
         fMeasure[i] = sumMeasure;
@@ -125,7 +125,7 @@ public class CodeLine {
     glyphMeasureCache = null;
   }
 
-  public int computeCaretLocation(int pixelLocation, Canvas mCanvas, FontDesk font) {
+  public int computeCaretLocation(int pixelLocation, Canvas mCanvas, FontDesk[] fonts) {
     if (elements.length == 0) return 0;
 
     // check borders
@@ -136,7 +136,7 @@ public class CodeLine {
     int entry = findEntryByPixel(pixelLocation);
     if (entry == elements.length) return totalStrLength;
 
-    int[] cache = getCache(mCanvas, font, entry);
+    int[] cache = getCache(mCanvas, fonts, entry);
 
     int pos = 0;
     for (int i = 0; i < entry; i++) {
@@ -163,9 +163,9 @@ public class CodeLine {
     return (pixelLocation - prev) <= (next - pixelLocation) ? pos : pos + 1;
   }
 
-  private int[] buildGlyphMeasureCache(int entry, Canvas mCanvas, FontDesk font) {
-    mCanvas.setFont(font);
+  private int[] buildGlyphMeasureCache(int entry, Canvas mCanvas, FontDesk[] fonts) {
     CodeElement element = elements[entry];
+    mCanvas.setFont(fonts[element.fontIndex]);
     String s = element.s;
     int[] cache = new int[s.length() - 1];
     char[] chars = s.toCharArray();
@@ -178,11 +178,11 @@ public class CodeLine {
     return glyphMeasureCache[entry] = cache;
   }
 
-  private int[] getCache(Canvas mCanvas, FontDesk font, int entry) {
+  private int[] getCache(Canvas mCanvas, FontDesk[] fonts, int entry) {
     if (glyphMeasureCache == null) glyphMeasureCache = new int[elements.length][];
     int[] cache = glyphMeasureCache[entry];
     if (cache == null) {
-      cache = buildGlyphMeasureCache(entry, mCanvas, font);
+      cache = buildGlyphMeasureCache(entry, mCanvas, fonts);
     }
     return cache;
   }
@@ -195,11 +195,11 @@ public class CodeLine {
     return elements.length;
   }
 
-  public int computePixelLocation(int caretCharPos, Canvas mCanvas, FontDesk font) {
+  public int computePixelLocation(int caretCharPos, Canvas mCanvas, FontDesk[] fonts) {
     if (elements.length == 0) return 0;
     if (caretCharPos == 0) return 0;
     if (measureDirty || iMeasure == null) {
-      measure(mCanvas, font);
+      measure(mCanvas, fonts);
     }
     if (caretCharPos >= totalStrLength)
       return iMeasure[elements.length - 1];
@@ -214,7 +214,7 @@ public class CodeLine {
       elementsLength = elementsLengthNext;
     }
 
-    int[] cache = getCache(mCanvas, font, el);
+    int[] cache = getCache(mCanvas, fonts, el);
     return cache[caretCharPos - elementsLength - 1];
   }
 

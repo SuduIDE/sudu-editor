@@ -16,10 +16,10 @@ class CodeLineRenderer implements Disposable {
     return line != content || line.contentDirty;
   }
 
-  public void updateTexture(CodeLine content, Canvas renderingCanvas, FontDesk font, WglGraphics g, int lineHeight) {
+  public void updateTexture(CodeLine content, Canvas renderingCanvas, FontDesk[] fonts, WglGraphics g, int lineHeight) {
     line = content;
 
-    content.measure(g.mCanvas, font);
+    content.measure(g.mCanvas, fonts);
 
     if (dumpMeasure) {
       Debug.consoleInfo("fMeasure", content.fMeasure);
@@ -30,7 +30,7 @@ class CodeLineRenderer implements Disposable {
 
 //    int texWidth = renderingCanvas.width();
 
-    int yPos = useTop ? topBase(font, lineHeight) : baselineShift(font, lineHeight);
+    int yPos = useTop ? topBase(fonts[0], lineHeight) : baselineShift(fonts[0], lineHeight);
     renderingCanvas.setTopMode(useTop);
 
     CodeElement[] words = content.elements;
@@ -38,6 +38,7 @@ class CodeLineRenderer implements Disposable {
     for (int i = 0, l = words.length; i < l; i++) {
       CodeElement entry = words[i];
       float x = i == 0 ? 0 : fMeasure[i - 1];
+      renderingCanvas.setFont(fonts[entry.fontIndex]);
       renderingCanvas.drawText(entry.s, x, yPos);
     }
 

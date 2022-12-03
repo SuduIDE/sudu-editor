@@ -28,7 +28,9 @@ public class DemoEdit extends Scene {
   int caretLine, caretCharPos, caretPos;
   Canvas renderingCanvas;
   FontDesk font;
-  int lineHeight, realFontSize;
+  FontDesk[] fonts = new FontDesk[4];
+
+  int lineHeight;
 
   Document document = new Document(EditorConst.DOCUMENT_LINES);
   CodeLineRenderer[] lines;
@@ -208,23 +210,35 @@ public class DemoEdit extends Scene {
   }
 
   private void setFont(String name, int size) {
-    font = g.fontDesk(name, size);
-    realFontSize = font.lineHeight();
-    lineHeight = Numbers.iRnd((font.fAscent + font.fDescent) * EditorConst.LINE_HEIGHT);
+    setFonts(name, size);
+    font = fonts[CodeElement.fontIndex(false, false)];
+
+    int fontLineHeight = font.lineHeight();
+    lineHeight = Numbers.iRnd(fontLineHeight * EditorConst.LINE_HEIGHT);
     footerHeight = lineHeight;
     caret.setHeight(font.caretHeight(lineHeight));
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
-    renderingCanvas.setFont(font);
 
     Debug.consoleInfo("Set editor font to: " + name + " " + size
-        + ", ascent+descent = " + realFontSize
+        + ", ascent+descent = " + fontLineHeight
         + ", lineHeight = " + lineHeight
         + ", caretHeight = " + caret.height());
 
     if (CodeLineRenderer.useTop) {
       Debug.consoleInfo("topBase(font, lineHeight) = " + CodeLineRenderer.topBase(font, lineHeight));
     }
+  }
+
+  private void setFonts(String name, int size) {
+    fonts[CodeElement.fontIndex(false, false)] =
+        g.fontDesk(name, size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
+    fonts[CodeElement.fontIndex(false, true)] =
+        g.fontDesk(name, size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_ITALIC);
+    fonts[CodeElement.fontIndex(true, false)] =
+        g.fontDesk(name, size, FontDesk.WEIGHT_BOLD, FontDesk.STYLE_NORMAL);
+    fonts[CodeElement.fontIndex(true, true)] =
+        g.fontDesk(name, size, FontDesk.WEIGHT_BOLD, FontDesk.STYLE_ITALIC);
   }
 
   private void changeFont(String name, int size) {
@@ -239,7 +253,7 @@ public class DemoEdit extends Scene {
   private void afterFontChanged() {
     // footer depends on font size and needs re-layout
     layoutFooter();
-    caretPos = caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, font);
+    caretPos = caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, fonts);
     adjustEditorVScrollToCaret();
   }
 
@@ -350,8 +364,7 @@ public class DemoEdit extends Scene {
         CodeLine nextLine = document.line(i);
         CodeLineRenderer line = lineRenderer(i);
         if (line.needsUpdate(nextLine)) {
-          g.mCanvas.setFont(font);
-          line.updateTexture(nextLine, renderingCanvas, font, g, lineHeight);
+          line.updateTexture(nextLine, renderingCanvas, fonts, g, lineHeight);
         }
       }
 
@@ -399,7 +412,7 @@ public class DemoEdit extends Scene {
   }
 
   private void initLineNumbers(){
-    lineNumbers.setFont(font, lineHeight);
+    lineNumbers.setFont(fonts[0], lineHeight);
     lineNumbers.initTextures(getFirstLine(), editorHeight());
   }
 
@@ -671,8 +684,7 @@ public class DemoEdit extends Scene {
 
   private boolean setCaretPos(int charPos) {
     caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
-    g.mCanvas.setFont(font);
-    caretPos = caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, font);
+    caretPos = caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, fonts);
     caret.startDelay(api.window.timeNow());
     return true;
   }
@@ -695,10 +707,9 @@ public class DemoEdit extends Scene {
         (position.y + editorVScrollPos) / lineHeight, document.length() - 1);
 
     CodeLine line = caretCodeLine();
-    g.mCanvas.setFont(font);
     int documentXPosition = Math.max(0, position.x - vLineX);
-    caretCharPos = line.computeCaretLocation(documentXPosition, g.mCanvas, font);
-    caretPos = line.computePixelLocation(caretCharPos, g.mCanvas, font);
+    caretCharPos = line.computeCaretLocation(documentXPosition, g.mCanvas, fonts);
+    caretPos = line.computePixelLocation(caretCharPos, g.mCanvas, fonts);
     if (1<0) Debug.consoleInfo(
         "onClickText: caretCharPos = " + caretCharPos + ", caretPos = " + caretPos);
     caret.startDelay(api.window.timeNow());

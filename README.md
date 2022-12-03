@@ -30,7 +30,7 @@ In order to build it one need to
 
 3. If you also need to build the desktop app, you need Microsoft Visual Studio 2022
 
-   Do not use installer UX, there is commandline below that install only necessary componets
+   Do not use installer UX, there is a commandline below that installs only necessary components
 
    3a: IDE: https://aka.ms/vs/17/release/vs_community.exe
     ```

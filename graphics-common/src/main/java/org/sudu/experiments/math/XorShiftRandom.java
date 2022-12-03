@@ -13,6 +13,7 @@ public class XorShiftRandom {
   public XorShiftRandom(int seedA, int seedB) {
     this.seedA = seedA;
     this.seedB = seedB;
+    for (int i = 0; i < 19; i++) next();
   }
 
   public int next() {
