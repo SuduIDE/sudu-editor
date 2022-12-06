@@ -2,6 +2,7 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.demo.DemoEdit;
 import org.sudu.experiments.demo.DemoScene1;
+import org.sudu.experiments.demo.ManyTexturesLineNumbersScene;
 import org.sudu.experiments.nativelib.AngleDll;
 import org.sudu.experiments.nativelib.SuduDll;
 
@@ -22,6 +23,7 @@ public class DemoEditJvm {
     return switch (name) {
       default -> DemoEdit::new;
       case "test" -> DemoScene1::new;
+      case "many" -> ManyTexturesLineNumbersScene::new;
 //      case "#wasm" -> new WasmDemo(api);
     };
   }

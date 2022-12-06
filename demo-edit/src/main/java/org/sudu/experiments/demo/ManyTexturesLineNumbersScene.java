@@ -46,25 +46,21 @@ public class ManyTexturesLineNumbersScene extends Scene {
     Debug.consoleInfo("scrollPos: " + scrollPos);
     g.clear(bgColor);
 
-    scrollBar.layoutVertical(scrollPos, viewPortSize.x, editorBottom, 5000, 20);
+    scrollBar.layoutVertical(scrollPos, viewPortSize.x, editorHeight(), 5000, 20);
     g.enableBlend(true);
     scrollBar.draw(g);
     g.enableBlend(false);
 
     Debug.consoleInfo("scrollPos: " + scrollPos);
 
-    lineNumbers.update(scrollPos / 20);
-    // fixme
-
-    lineNumbers.draw(scrollPos, editorBottom);
+    lineNumbers.update(scrollPos / lineHeight);
+    lineNumbers.draw(scrollPos, editorHeight());
   }
 
   @Override
   public void onResize(V2i size) {
     viewPortSize = size;
-    // fixme:
-//    lineNumbers.resize(size, 500);
-//    lineNumbers.initTextures(editorBottom);
+    lineNumbers.initTextures(editorHeight());
   }
 
   @Override
@@ -116,7 +112,11 @@ public class ManyTexturesLineNumbersScene extends Scene {
   }
 
   int verticalSize() {
-    return 5000 - viewPortSize.y;
+    return 5000 - editorHeight();
+  }
+
+  int editorHeight() {
+    return Math.min(editorBottom, viewPortSize.y);
   }
 
 }
