@@ -412,3 +412,37 @@ jint Java_org_sudu_experiments_win32_IUnknown_AddRef(JNIEnv *, jclass, jlong ptr
 jint Java_org_sudu_experiments_win32_IUnknown_Release(JNIEnv *, jclass, jlong ptr) {
   return LPUNKNOWN(ptr)->Release();
 }
+
+static_assert(sizeof(HGLOBAL) == sizeof(jlong), "Fatal: sizeof(HGLOBAL) != sizeof(jlong)");
+
+jboolean Java_org_sudu_experiments_win32_Win32_OpenClipboard(JNIEnv*, jclass, jlong hwnd) {
+  return bool(OpenClipboard(HWND(hwnd)));
+}
+
+jboolean Java_org_sudu_experiments_win32_Win32_EmptyClipboard(JNIEnv*, jclass) {
+  return bool(EmptyClipboard());
+}
+
+jboolean Java_org_sudu_experiments_win32_Win32_CloseClipboard(JNIEnv*, jclass) {
+  return bool(CloseClipboard());
+}
+
+jlong Java_org_sudu_experiments_win32_Win32_GlobalAlloc(JNIEnv*, jclass, jint uFlags, jlong dwBytes) {
+  return jlong(GlobalAlloc(uFlags, dwBytes));
+}
+
+jlong Java_org_sudu_experiments_win32_Win32_GlobalLock(JNIEnv*, jclass, jlong handle) {
+  return jlong(GlobalLock(HGLOBAL(handle)));
+}
+
+jboolean Java_org_sudu_experiments_win32_Win32_GlobalUnlock(JNIEnv*, jclass, jlong handle) {
+  return bool(GlobalUnlock(HGLOBAL(handle)));
+}
+
+jlong Java_org_sudu_experiments_win32_Win32_SetClipboardData(JNIEnv*, jclass, jint format, jlong handle) {
+  return jlong(SetClipboardData(format, HANDLE(handle)));
+}
+
+jlong Java_org_sudu_experiments_win32_Win32_GetClipboardData(JNIEnv*, jclass, jint format) {
+  return jlong(GetClipboardData(format));
+}

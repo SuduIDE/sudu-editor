@@ -29,8 +29,14 @@ public class CString {
   public static native int strlen(long address);
   public static native int strlenChar16t(long address);
 
-  public static native void setByteArrayRegion(byte[] dst, int start, int nBytes, long src);
-  public static native void setCharArrayRegion(char[] dst, int start, int nBytes, long src);
+  public static native void setByteArrayRegion(byte[] dst, int start, int len, long src);
+  public static native void setCharArrayRegion(char[] dst, int start, int len, long src);
+
+  public static native void getByteArrayRegion(byte[] dst, int start, int len, long receiver);
+  public static native void getCharArrayRegion(char[] dst, int start, int len, long receiver);
+
+  public static native long operatorNew(long size);
+  public static native void operatorDelete(long ptr);
 
   public static String fromNativeString(long address) {
     int length = strlen(address);

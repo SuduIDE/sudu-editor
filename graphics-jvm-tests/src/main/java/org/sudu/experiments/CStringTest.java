@@ -11,6 +11,9 @@ public class CStringTest {
 
   public static void main(String[] args) {
     Helper.loadDlls();
+
+    testArrayRegion();
+
     long pCommandLineA = Win32.GetCommandLineA();
     long pCommandLineW = Win32.GetCommandLineW();
     String commandLineA = CString.fromNativeString(pCommandLineA);
@@ -57,5 +60,33 @@ public class CStringTest {
     System.out.println("N = " + N);
     System.out.println("getSetPrimitiveArrayCriticalTest time " + TimeUtil.toString3(ns_to_s * (now2 - now1)));
     System.out.println("setIntArrayRegionTest time " + TimeUtil.toString3(ns_to_s * (now3 - now2)));
+  }
+
+  static void testArrayRegion() {
+    String s = "тестируем регионы";
+    {
+      char[] chars = CString.toChar16CString(s);
+      char[] chars1 = new char[chars.length];
+
+      for (int i = 3; i >= 0; i--) {
+        long dataChars = CString.operatorNew(chars.length * 2L);
+        CString.getCharArrayRegion(chars, i, chars.length, dataChars);
+        CString.setCharArrayRegion(chars1, i, chars1.length, dataChars);
+        CString.operatorDelete(dataChars);
+      }
+
+      if (!Arrays.equals(chars, chars1)) throw new RuntimeException();
+    }
+    {
+      byte[] utf8 = CString.toUtf8CString(s);
+      byte[] utf8a = new byte[utf8.length];
+
+      long dataBytes = CString.operatorNew(utf8.length);
+      CString.getByteArrayRegion(utf8, 0, utf8.length, dataBytes);
+      CString.setByteArrayRegion(utf8a, 0, utf8a.length, dataBytes);
+      CString.operatorDelete(dataBytes);
+
+      if (!Arrays.equals(utf8, utf8a)) throw new RuntimeException();
+    }
   }
 }

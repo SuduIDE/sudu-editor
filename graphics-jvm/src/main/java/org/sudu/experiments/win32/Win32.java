@@ -81,6 +81,20 @@ public class Win32 {
 
   public static native long GetModuleHandle0();
 
+  // clipboard
+  public static native boolean OpenClipboard(long hwnd);
+  public static native boolean EmptyClipboard();
+  public static native boolean CloseClipboard();
+  // handle
+  public static native long GlobalAlloc(int uFlags, long dwBytes);
+  // ptr
+  public static native long GlobalLock(long handle);
+  public static native boolean GlobalUnlock(long handle);
+
+  public static final int CF_UNICODETEXT = 13;
+  public static native long SetClipboardData(int format, long handle);
+  public static native long GetClipboardData(int format);
+
   public static native long GetPerformanceCounter();
   public static native long GetPerformanceFrequency();
 
@@ -122,5 +136,45 @@ public class Win32 {
       case E_ACCESSDENIED -> "E_ACCESSDENIED";
       default -> "0x" + Integer.toHexString(errorCode);
     };
+  }
+
+  public static boolean setClipboardText(long hwnd, String value) {
+    if (OpenClipboard(hwnd)) {
+      try {
+        EmptyClipboard();
+        char[] chars = CString.toChar16CString(value);
+        long handle = GlobalAlloc(0, chars.length * 2L);
+        if (handle != 0) {
+          long lockPtr = GlobalLock(handle);
+          if (lockPtr != 0) {
+            CString.getCharArrayRegion(chars, 0, chars.length, lockPtr);
+            GlobalUnlock(handle);
+            return 0 != SetClipboardData(CF_UNICODETEXT, handle);
+          }
+        }
+      } finally {
+        CloseClipboard();
+      }
+    }
+    return false;
+  }
+
+  public static String getClipboardText(long hwnd, String onError) {
+    if (OpenClipboard(hwnd)) {
+      try {
+        long handle = GetClipboardData(CF_UNICODETEXT);
+        if (handle != 0) {
+          long lockPtr = GlobalLock(handle);
+          try {
+            if (lockPtr != 0) return CString.fromNativeString16(lockPtr);
+          } finally {
+            GlobalUnlock(handle);
+          }
+        }
+      } finally {
+        CloseClipboard();
+      }
+    }
+    return onError;
   }
 }
