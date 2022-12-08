@@ -1,24 +1,14 @@
 package org.sudu.experiments.demo;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.sudu.experiments.math.ArrayOp;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 class DocumentTest {
-
-  public static void main(String[] args) {
-    concatTest();
-    concatTest2();
-    concat3Test();
-    newLineTest();
-    newLineTest2();
-    deleteAtTest();
-    insertAtTest();
-    deleteCharTest();
-  }
-
-  static void deleteCharTest() {
+  @Test void deleteCharTest() {
     String[] from = new String[] { "A", "B", "C" };
     String[] r1 = ArrayOp.remove(from, 0, new String[2]);
     String[] r2 = ArrayOp.remove(from, 1, new String[2]);
@@ -35,7 +25,7 @@ class DocumentTest {
     Assertions.assertEquals(cl.elements.length, 0);
   }
 
-  private static void concatTest() {
+  @Test void concatTest() {
     Document d = doc4();
     d.concatLines(0);
     Assertions.assertEquals(d.document.length, 3);
@@ -67,7 +57,7 @@ class DocumentTest {
     Assertions.assertEquals(d.document[0].elements[3].s, "GH");
   }
 
-  private static void concatTest2() {
+  @Test void concatTest2() {
     Document d = doc4();
     d.concatLines(1);
     d.concatLines(1);
@@ -80,7 +70,7 @@ class DocumentTest {
     Assertions.assertEquals(d.document[1].elements[2].s, "GH");
   }
 
-  private static void concat3Test() {
+  @Test void concat3Test() {
     Document d = doc4();
     d.concatLines(2);
 
@@ -94,11 +84,7 @@ class DocumentTest {
     Assertions.assertEquals(d.document[2].elements[1].s, "GH");
   }
 
-  private static Document doc4() {
-    return new Document(ab("AB"), ab("CD"), ab("EF"), ab("GH"));
-  }
-
-  static void newLineTest() {
+  @Test void newLineTest() {
     Document a = new Document(3);
     a.newLineOp(0,0);
 
@@ -125,7 +111,7 @@ class DocumentTest {
     Assertions.assertEquals(d.document[3].elements.length,0);
   }
 
-  static void newLineTest2() {
+  @Test void newLineTest2() {
     ArrayList<Document> list = new ArrayList<>();
     {
       Document a = new Document(line());
@@ -190,7 +176,7 @@ class DocumentTest {
 //    System.out.println("r = " + list);
   }
 
-  static void deleteAtTest() {
+  @Test void deleteAtTest() {
     {
       CodeElement a = abElement("ABC");
       CodeElement da = a.deleteAt(0);
@@ -208,7 +194,7 @@ class DocumentTest {
     }
   }
 
-  static void insertAtTest() {
+  @Test void insertAtTest() {
     {
       CodeElement a = abElement("ABC");
       CodeElement d = a.insertAt(0, "Ins");
@@ -232,6 +218,41 @@ class DocumentTest {
 
   }
 
+  @Test void deleteLineTest() {
+    Document doc4 = doc4();
+    Document doc0 = new Document();
+
+    CodeLine[] copy = Arrays.copyOf(doc4.document, doc4.document.length);
+
+
+    try {
+      doc0.deleteLine(0);
+      Assertions.fail();
+    } catch (RuntimeException ignored) {}
+
+    doc4.deleteLine(3);
+    Assertions.assertEquals(doc4.document.length, 3);
+    Assertions.assertSame(doc4.line(0), copy[0]);
+    Assertions.assertSame(doc4.line(1), copy[1]);
+    Assertions.assertSame(doc4.line(2), copy[2]);
+
+    doc4.deleteLine(0);
+    Assertions.assertEquals(doc4.document.length, 2);
+    Assertions.assertSame(doc4.line(0), copy[1]);
+    Assertions.assertSame(doc4.line(1), copy[2]);
+
+    doc4.deleteLine(1);
+    Assertions.assertEquals(doc4.document.length, 1);
+    Assertions.assertSame(doc4.line(0), copy[1]);
+
+    doc4.deleteLine(0);
+    Assertions.assertEquals(doc4.document.length, 0);
+  }
+
+  static Document doc4() {
+    return new Document(ab("AB"), ab("CD"), ab("EF"), ab("GH"));
+  }
+
   static CodeLine line() {
     return ab("AB");
   }
@@ -240,7 +261,7 @@ class DocumentTest {
     return new CodeLine(abElement(t));
   }
 
-  private static CodeElement abElement(String t) {
+  static CodeElement abElement(String t) {
     return new CodeElement(t, Colors.defaultText);
   }
 }

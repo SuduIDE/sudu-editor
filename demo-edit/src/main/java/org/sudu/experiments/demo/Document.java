@@ -63,7 +63,7 @@ public class Document {
   }
 
   private CodeLine[] deleteLineOp(int caretLine) {
-    if (caretLine >= document.length - 1 || caretLine < 0) throw new RuntimeException();
+    if (caretLine >= document.length || caretLine < 0) throw new RuntimeException();
     CodeLine[] doc = new CodeLine[document.length - 1];
     if (caretLine > 0) System.arraycopy(document, 0, doc, 0, caretLine);
     if (doc.length > caretLine + 1) {
