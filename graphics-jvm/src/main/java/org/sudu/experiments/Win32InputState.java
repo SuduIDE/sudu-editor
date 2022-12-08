@@ -7,6 +7,8 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.win32.Win32;
 
+import java.util.function.Consumer;
+
 import static org.sudu.experiments.win32.WindowPeer.*;
 
 class Win32InputState {
@@ -14,7 +16,7 @@ class Win32InputState {
   boolean shift, ctrl, alt, meta;
   boolean doubleClick;
 
-  boolean onKey(int msg, long wParam, long lParam, InputListeners listeners) {
+  boolean onKey(long hWnd, int msg, long wParam, long lParam, InputListeners listeners) {
     boolean onChar = msg == WM_CHAR;
     boolean down = msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN || onChar;
     boolean prevState = (lParam & (1 << 30)) != 0;
@@ -32,7 +34,34 @@ class Win32InputState {
     KeyEvent event = new KeyEvent(key, toWebKeyCode(vKey), down, down == prevState,
         ctrl, alt, shift, meta);
 
-    return listeners.sendKeyEvent(event);
+    boolean keyEvent = listeners.sendKeyEvent(event);
+
+    if (down && copyOrCutKey(vKey, ctrl, shift)) {
+      boolean cut = vKey == KeyCode.X || vKey == KeyCode.DELETE;
+      listeners.sendCopy(s -> Win32.setClipboardText(hWnd, s), cut);
+    }
+
+    if (down && pasteKey(vKey, ctrl, shift)) {
+      Consumer<String> onPaste = listeners.onPastePlainText();
+      if (onPaste != null) {
+        String clipboardText = Win32.getClipboardText(hWnd, null);
+        if (clipboardText != null) onPaste.accept(clipboardText);
+      }
+    }
+
+    return keyEvent;
+  }
+
+  static boolean pasteKey(int vKey, boolean ctrl, boolean shift) {
+    return (ctrl && vKey == KeyCode.V) ||
+        (shift && vKey == KeyCode.INSERT);
+  }
+
+  static boolean copyOrCutKey(int vKey, boolean ctrl, boolean shift) {
+    return (shift && vKey == KeyCode.DELETE) ||
+        (ctrl && vKey == KeyCode.X) ||
+        (ctrl && vKey == KeyCode.C) ||
+        (ctrl && vKey == KeyCode.INSERT);
   }
 
   void onMouseButton(int msg, long lParam, V2i windowSize, long hWnd, InputListeners listeners) {

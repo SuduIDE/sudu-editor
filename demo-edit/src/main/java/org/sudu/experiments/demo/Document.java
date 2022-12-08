@@ -52,14 +52,24 @@ public class Document {
   }
 
   public void concatLines(int caretLine) {
+    CodeLine newLine = CodeLine.concat(document[caretLine], document[caretLine + 1]);
+    CodeLine[] doc = deleteLineOp(caretLine);
+    doc[caretLine] = newLine;
+    document = doc;
+  }
+
+  public void deleteLine(int caretLine) {
+    document = deleteLineOp(caretLine);
+  }
+
+  private CodeLine[] deleteLineOp(int caretLine) {
     if (caretLine >= document.length - 1 || caretLine < 0) throw new RuntimeException();
     CodeLine[] doc = new CodeLine[document.length - 1];
     if (caretLine > 0) System.arraycopy(document, 0, doc, 0, caretLine);
-    doc[caretLine] = CodeLine.concat(document[caretLine], document[caretLine + 1]);
     if (doc.length > caretLine + 1) {
-      System.arraycopy(document, caretLine + 2, doc, caretLine + 1, doc.length - caretLine - 1);
+      System.arraycopy(document, caretLine + 1, doc, caretLine, doc.length - caretLine);
     }
-    document = doc;
+    return doc;
   }
 
   public void deleteChar(int caretLine, int caretCharPos) {

@@ -223,6 +223,14 @@ public class CodeLine {
     else return iMeasure[iMeasure.length - 1];
   }
 
+  public String makeString() {
+    StringBuilder sb = new StringBuilder(totalStrLength);
+    for (CodeElement element : elements) {
+      sb.append(element.s);
+    }
+    return sb.toString();
+  }
+
   @Override
   public String toString() {
     return Arrays.toString(elements);

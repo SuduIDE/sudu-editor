@@ -93,7 +93,7 @@ public class DemoEdit extends Scene {
 
     int vY = Math.max(clientRect.y, screenRect.y);
     int cacheLines = Numbers.iDivRoundUp(vY, lineHeight) + EditorConst.MIN_CACHE_LINES;
-    Debug.consoleInfo("cacheLines = ", cacheLines);
+    Debug.consoleInfo("cacheLines = " + cacheLines);
     allocLines(cacheLines);
 
 //      measureAll();
@@ -632,8 +632,11 @@ public class DemoEdit extends Scene {
 
     @Override
     public boolean onCopy(Consumer<String> setText, boolean isCut) {
-      Debug.consoleInfo("onCopy");
-      setText.accept("This is onCopy text handler, operation = " + (isCut ? "cut" : "copy"));
+      String string = caretCodeLine().makeString();
+      setText.accept(string);
+      if (isCut) {
+        document.deleteLine(caretLine);
+      }
       return true;
     }
 
