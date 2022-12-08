@@ -41,11 +41,19 @@ void Java_org_sudu_experiments_CString_getCharArrayRegion(
   j->GetCharArrayRegion(array, start, len, (jchar*)(ptr));
 }
 
-void Java_org_sudu_experiments_CString_getSetPrimitiveArrayCriticalTest(
+void Java_org_sudu_experiments_CString_getSetPrimitiveArrayCriticalTest___3II(
   JNIEnv* j, jclass, jintArray array, jint value
 ) {
   auto data = (jint*)j->GetPrimitiveArrayCritical(array, 0);
   *data = value;
+  j->ReleasePrimitiveArrayCritical(array, data, 0);
+}
+
+void Java_org_sudu_experiments_CString_getSetPrimitiveArrayCriticalTest___3FI(
+  JNIEnv* j, jclass, jfloatArray array, jint size
+) {
+  auto data = (jfloat*)j->GetPrimitiveArrayCritical(array, 0);
+  for (int i = 0; i < size; i++) data[i] = float(i);
   j->ReleasePrimitiveArrayCritical(array, data, 0);
 }
 
@@ -54,6 +62,16 @@ void Java_org_sudu_experiments_CString_setIntArrayRegionTest(
 ) {
   jint region[1] = { value };
   j->SetIntArrayRegion(array, 0, 1, region);
+}
+
+void Java_org_sudu_experiments_CString_setFloatArrayRegionTest9(
+  JNIEnv* j, jclass, jfloatArray array, jint
+) {
+  auto l = j->GetArrayLength(array);
+  if (l >= 9) {
+    jfloat region[9] = { 0,1,2,3,4,5,6,7,8 };
+    j->SetFloatArrayRegion(array, 0, 9, region);
+  }
 }
 
 jlong Java_org_sudu_experiments_CString_operatorNew(JNIEnv*, jclass, jlong size) {

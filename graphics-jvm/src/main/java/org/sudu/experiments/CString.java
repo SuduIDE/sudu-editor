@@ -58,4 +58,7 @@ public class CString {
 
   static native void getSetPrimitiveArrayCriticalTest(int[] array, int value);
   static native void setIntArrayRegionTest(int[] array, int value);
+
+  static native void getSetPrimitiveArrayCriticalTest(float[] array, int size);
+  static native void setFloatArrayRegionTest9(float[] array, int size);
 }

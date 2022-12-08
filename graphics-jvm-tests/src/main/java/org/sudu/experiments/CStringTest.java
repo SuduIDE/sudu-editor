@@ -4,46 +4,41 @@ import org.junit.jupiter.api.Assertions;
 import org.sudu.experiments.win32.Helper;
 import org.sudu.experiments.win32.Win32;
 
-import java.util.Arrays;
 import java.util.Objects;
 
-public class CStringTest {
-  static final double ns_to_s = 1. / 1_000_000_000.;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+public class CStringTest {
   public static void main(String[] args) {
     Helper.loadDlls();
 
     testArrayRegion();
+    cmdLineTest();
+    performanceCmpTest();
+  }
 
-    long pCommandLineA = Win32.GetCommandLineA();
-    long pCommandLineW = Win32.GetCommandLineW();
-    String commandLineA = CString.fromNativeString(pCommandLineA);
-    String commandLineW = CString.fromNativeString16(pCommandLineW);
+  static void cmdLineTest() {
+    String commandLineA = CString.fromNativeString(Win32.GetCommandLineA());
+    String commandLineW = CString.fromNativeString16(Win32.GetCommandLineW());
 
     System.out.println("commandLineA = " + commandLineA);
     System.out.println("commandLineW = " + commandLineW);
-
-    System.out.println("equals = " + Objects.equals(commandLineA, commandLineW));
-
-    char[] dataW = new char[7];
-    byte[] dataA = new byte[7];
-
-    for (int i = 3; i >= 0; i--) {
-      System.out.println("range test: " + i + ", n = " + (dataA.length - i * 2));
-      CString.setByteArrayRegion(dataA, i, dataA.length - i * 2, pCommandLineA);
-      CString.setCharArrayRegion(dataW, i, dataW.length - i * 2, pCommandLineW);
-      System.out.println(" dataA = " + Arrays.toString(dataA));
-      System.out.println(" dataW = " + Arrays.toString(dataW));
-    }
-
-    int[] intArray = new int[1];
-
-    for (int i = 10; i < 1_000_000_000; i *= 10) {
-      iterate(i, intArray);
+    if (!Objects.equals(commandLineA, commandLineW)) {
+      System.out.println("commandLineA != commandLineW");
     }
   }
 
-  static void iterate(int N, int[] intArray) {
+  static void performanceCmpTest() {
+    int[] intArray = new int[1];
+    float[] floats = new float[9];
+
+    for (int i = 10; i < 1_000_000_000; i *= 10) {
+      iterateSingleInt(i, intArray);
+      iterateFloats(i, floats);
+    }
+  }
+
+  static void iterateSingleInt(int N, int[] intArray) {
     long now1 = System.nanoTime();
 
     for (int j = 0; j < N; j++) {
@@ -58,36 +53,88 @@ public class CStringTest {
 
     long now3 = System.nanoTime();
 
-    System.out.println("N = " + N);
-    System.out.println("getSetPrimitiveArrayCriticalTest time " + TimeUtil.toString3(ns_to_s * (now2 - now1)));
-    System.out.println("setIntArrayRegionTest time " + TimeUtil.toString3(ns_to_s * (now3 - now2)));
+    report("int[1]: N = " + N,
+        "\t{Get,Set}PrimitiveArrayCriticalTest time ",
+        "\tSetIntArrayRegion time ",
+        now1, now2, now3);
+  }
+
+  static void iterateFloats(int N, float[] floats) {
+    long now1 = System.nanoTime();
+
+    for (int j = 0; j < N; j++) {
+      CString.getSetPrimitiveArrayCriticalTest(floats, floats.length);
+    }
+
+    long now2 = System.nanoTime();
+
+    for (int j = 0; j < N; j++) {
+      CString.setFloatArrayRegionTest9(floats, floats.length);
+    }
+
+    long now3 = System.nanoTime();
+
+    report("float[" + floats.length + "]: N = " + N,
+        "\t{Get,Set}PrimitiveArrayCriticalTest time ",
+        "\tsetFloatArrayRegion time ", now1, now2, now3);
+  }
+
+  static void report(String N, String x, String y, long t1, long t2, long t3) {
+    System.out.println(N);
+    System.out.println(x + TimeUtil.toString3(TimeUtil.nsToS * (t2 - t1)));
+    System.out.println(y + TimeUtil.toString3(TimeUtil.nsToS * (t3 - t2)));
   }
 
   static void testArrayRegion() {
     String s = "тестируем регионы";
-    {
-      char[] chars = CString.toChar16CString(s);
-      char[] chars1 = new char[chars.length];
 
-      for (int i = 3; i >= 0; i--) {
-        long dataChars = CString.operatorNew(chars.length * 2L);
-        CString.getCharArrayRegion(chars, i, chars.length, dataChars);
-        CString.setCharArrayRegion(chars1, i, chars1.length, dataChars);
-        CString.operatorDelete(dataChars);
-      }
+    charArrayRegionTest(s);
+    byteArrayRegionTest(s);
+  }
 
-      Assertions.assertArrayEquals(chars, chars1);
+  static void charArrayRegionTest(String s) {
+    char[] source = CString.toChar16CString(s);
+    long dataChars = CString.operatorNew(source.length * 2L);
+
+    for (int a = 3; a >= 0; a--) {
+      char[] copy = new char[source.length];
+      int b = source.length - a;
+      CString.getCharArrayRegion(source, a, b - a, dataChars);
+      CString.setCharArrayRegion(copy, a, b - a, dataChars);
+      for (int j = 0; j < a; j++) assertEquals(0, copy[j]);
+      for (int j = a; j < b; j++) assertEquals(copy[j], source[j]);
+      for (int j = b; j < copy.length; j++) assertEquals(0, copy[j]);
     }
-    {
-      byte[] utf8 = CString.toUtf8CString(s);
-      byte[] utf8a = new byte[utf8.length];
 
-      long dataBytes = CString.operatorNew(utf8.length);
-      CString.getByteArrayRegion(utf8, 0, utf8.length, dataBytes);
-      CString.setByteArrayRegion(utf8a, 0, utf8a.length, dataBytes);
-      CString.operatorDelete(dataBytes);
+    char[] copy = new char[source.length];
+    CString.getCharArrayRegion(source, 0, source.length, dataChars);
+    CString.setCharArrayRegion(copy, 0, source.length, dataChars);
 
-      Assertions.assertArrayEquals(utf8, utf8a);
+    CString.operatorDelete(dataChars);
+    Assertions.assertArrayEquals(source, copy);
+  }
+
+  static void byteArrayRegionTest(String s) {
+    byte[] source = CString.toUtf8CString(s);
+    long dataBytes = CString.operatorNew(source.length);
+
+    for (int a = 3; a >= 0; a--) {
+      byte[] copy = new byte[source.length];
+
+      int b = source.length - a;
+      CString.getByteArrayRegion(source, a, b - a, dataBytes);
+      CString.setByteArrayRegion(copy, a, b - a, dataBytes);
+      for (int j = 0; j < a; j++) assertEquals(0, copy[j]);
+      for (int j = a; j < b; j++) assertEquals(copy[j], source[j]);
+      for (int j = b; j < copy.length; j++) assertEquals(0, copy[j]);
     }
+
+    byte[] copy = new byte[source.length];
+
+    CString.getByteArrayRegion(source, 0, source.length, dataBytes);
+    CString.setByteArrayRegion(copy, 0, copy.length, dataBytes);
+    CString.operatorDelete(dataBytes);
+
+    Assertions.assertArrayEquals(source, copy);
   }
 }
