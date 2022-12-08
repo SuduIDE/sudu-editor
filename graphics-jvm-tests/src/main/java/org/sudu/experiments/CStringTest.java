@@ -1,5 +1,6 @@
 package org.sudu.experiments;
 
+import org.junit.jupiter.api.Assertions;
 import org.sudu.experiments.win32.Helper;
 import org.sudu.experiments.win32.Win32;
 
@@ -75,7 +76,7 @@ public class CStringTest {
         CString.operatorDelete(dataChars);
       }
 
-      if (!Arrays.equals(chars, chars1)) throw new RuntimeException();
+      Assertions.assertArrayEquals(chars, chars1);
     }
     {
       byte[] utf8 = CString.toUtf8CString(s);
@@ -86,7 +87,7 @@ public class CStringTest {
       CString.setByteArrayRegion(utf8a, 0, utf8a.length, dataBytes);
       CString.operatorDelete(dataBytes);
 
-      if (!Arrays.equals(utf8, utf8a)) throw new RuntimeException();
+      Assertions.assertArrayEquals(utf8, utf8a);
     }
   }
 }
