@@ -154,8 +154,8 @@ public class TextureRegionTestScene extends Scene {
         return true;
       }
 
-      if (button == MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
-        dragLock = scrollBar.onMouseClick(event.position, vScrollHandler);
+      if (button == InputListener.MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
+        dragLock = scrollBar.onMouseClick(event.position, vScrollHandler, true);
         if (dragLock != null) return true;
       }
 

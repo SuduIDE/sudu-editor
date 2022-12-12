@@ -184,7 +184,7 @@ public interface GL {
       doUpdate(canvas, xOffset, yOffset);
     }
 
-    private void doUpdate(Canvas canvas, int xOffset, int yOffset){
+    private void doUpdate(Canvas canvas, int xOffset, int yOffset) {
       ctx.gl.texSubImage2D(GLApi.Context.TEXTURE_2D, 0, xOffset, yOffset,
         GLApi.Context.RGBA, GLApi.Context.UNSIGNED_BYTE, canvas);
       if (checkErrorOnTextureUpdate) ctx.gl.checkError("Texture.setContent(Canvas): ");

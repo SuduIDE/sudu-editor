@@ -1,7 +1,6 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 
 import java.util.ArrayList;

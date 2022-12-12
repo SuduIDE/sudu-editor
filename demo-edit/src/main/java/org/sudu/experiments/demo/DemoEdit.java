@@ -47,9 +47,12 @@ public class DemoEdit extends Scene {
   V2i vLineSize = new V2i(1, 0);
   DemoRect footerRc = new DemoRect();
   ScrollBar vScroll = new ScrollBar();
+  ScrollBar hScroll = new ScrollBar();
   V2i clientRect;
   int editorVScrollPos = 0;
+  int editorHScrollPos = 0;
 
+  int fullWidth = 0;
   double devicePR;
 
   boolean applyContrast, renderBlankLines = true;
@@ -58,7 +61,8 @@ public class DemoEdit extends Scene {
 
   // line numbers
   LineNumbersComponent lineNumbers;
-  LineNumbersColorScheme lineNumbersColorScheme = LineNumbersColorScheme.ideaColorScheme();
+  LineNumbersColorScheme lineNumbersColorScheme =
+    LineNumbersColorScheme.ideaColorScheme();
   int lineNumLeftMargin = 10;
 
   public DemoEdit(SceneApi api) {
@@ -254,7 +258,7 @@ public class DemoEdit extends Scene {
     // footer depends on font size and needs re-layout
     layoutFooter();
     caretPos = caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, fonts);
-    adjustEditorVScrollToCaret();
+    adjustEditorScrollToCaret();
   }
 
   private void invalidateFont() {
@@ -290,6 +294,15 @@ public class DemoEdit extends Scene {
     return Math.max(editorFullHeight() - editorHeight(), 0);
   }
 
+  int maxEditorHScrollPos() {
+    return Math.max(fullWidth - editorWidth(), 0);
+  }
+
+  int editorWidth() {
+    int editorRight = clientRect.x;
+    return editorRight - vLineX;
+  }
+
   int editorHeight() {
     return clientRect.y - footerHeight;
   }
@@ -309,7 +322,8 @@ public class DemoEdit extends Scene {
     int scrollSpeed = 1 + (scrollFaster ? 5 : 0) + (scrollEvenFaster ? 15 : 0);
     int vScrollPos = editorVScrollPos;
     editorVScrollPos = clampScrollPos(editorVScrollPos
-        + (scrollDown ? scrollSpeed : 0) + (scrollUp ? -scrollSpeed : 0));
+        + (scrollDown ? scrollSpeed : 0) + (scrollUp ? -scrollSpeed : 0),
+      maxEditorVScrollPos());
 
     boolean scrollMoving = vScrollPos != editorVScrollPos;
 
@@ -336,23 +350,20 @@ public class DemoEdit extends Scene {
     int editorBottom = editorHeight();
     int editorRight = clientRect.x;
 
-    vScroll.layoutVertical(editorVScrollPos, editorRight, editorHeight(), editorFullHeight(), vScrollBarWidth());
-
     g.enableBlend(false);
     g.clear(bgColor);
 
     drawVerticalLine();
 
     int caretVerticalOffset = (lineHeight - caret.height()) / 2;
-    caret.setPosition(vLineX + caretPos - caret.width() / 2,
-        caretVerticalOffset + caretLine * lineHeight - editorVScrollPos);
+    int caretX = caretPos - caret.width() / 2 - editorHScrollPos;
+    caret.setPosition(vLineX + caretX, caretVerticalOffset + caretLine * lineHeight - editorVScrollPos);
 
     if (lines != null) {
       int docLen = document.length();
 
       int firstLine = getFirstLine();
-      int lastLine = Math.min(
-          (editorVScrollPos + editorHeight() - 1) / lineHeight, docLen - 1);
+      int lastLine = getLastLine();
 
       if (firstLine != debugFL || lastLine != debugLL) {
         debugFL = firstLine;
@@ -364,18 +375,24 @@ public class DemoEdit extends Scene {
         CodeLine nextLine = document.line(i);
         CodeLineRenderer line = lineRenderer(i);
         if (line.needsUpdate(nextLine)) {
-          line.updateTexture(nextLine, renderingCanvas, fonts, g, lineHeight);
+          line.updateTexture(nextLine, renderingCanvas, fonts, g, lineHeight, editorWidth(), editorHScrollPos);
         }
+        fullWidth = Math.max(fullWidth, nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * devicePR));
+      }
+
+      for (int i = firstLine; i <= lastLine && i < docLen; i++) {
+        CodeLineRenderer line = lineRenderer(i);
+        line.updateTextureOnScroll(renderingCanvas, fonts, lineHeight, editorHScrollPos);
       }
 
       for (int i = firstLine; i <= lastLine && i < docLen; i++) {
         int lineIndex = i % lines.length;
         int yPosition = lineHeight * i - editorVScrollPos;
         lines[lineIndex].draw(yPosition, vLineX, g, tRegion, size,
-            applyContrast ? EditorConst.CONTRAST : 0);
+            applyContrast ? EditorConst.CONTRAST : 0, editorWidth(), lineHeight, editorHScrollPos);
       }
 
-      caret.paint(g);
+      if (caretX >= -caret.width() / 2) caret.paint(g);
 
       // draw bottom 5 invisible lines
       if (renderBlankLines) {
@@ -392,13 +409,17 @@ public class DemoEdit extends Scene {
       lineNumbers.draw(editorVScrollPos, textHeight);
       lineNumbers.drawBottom(textHeight, editorBottom);
 
-      if (firstLine <= caretLine && caretLine <= lastLine){
+      if (firstLine <= caretLine && caretLine <= lastLine) {
         lineNumbers.drawCaretLine(editorVScrollPos, caretLine);
       }
     }
 
     drawFooter();
     drawToolBar();
+
+    vScroll.layoutVertical(editorVScrollPos, editorRight, editorHeight(), editorFullHeight(), vScrollBarWidth());
+    hScroll.layoutHorizontal(editorHScrollPos, editorBottom, editorRight - vLineX, fullWidth, vLineX, vScrollBarWidth());
+
 //    g.checkError("paint complete");
     if (0>1) {
       String s = "fullMeasure:" + CodeLine.cacheMiss + ", cacheHits: " + CodeLine.cacheHits;
@@ -411,7 +432,11 @@ public class DemoEdit extends Scene {
     return Math.min(editorVScrollPos / lineHeight, document.length() - 1);
   }
 
-  private void initLineNumbers(){
+  private int getLastLine() {
+    return Math.min((editorVScrollPos + editorHeight() - 1) / lineHeight, document.length() - 1);
+  }
+
+  private void initLineNumbers() {
     lineNumbers.setFont(fonts[0], lineHeight);
     lineNumbers.initTextures(getFirstLine(), editorHeight());
   }
@@ -428,6 +453,7 @@ public class DemoEdit extends Scene {
 
   boolean handleDelete() {
     document.deleteChar(caretLine, caretCharPos);
+    adjustEditorScrollToCaret();
     return true;
   }
 
@@ -483,6 +509,10 @@ public class DemoEdit extends Scene {
       g.enableBlend(true);
       vScroll.draw(g);
     }
+    if (hScroll.visible()) {
+      g.enableBlend(true);
+      hScroll.draw(g);
+    }
   }
 
   private void drawFooter() {
@@ -501,13 +531,21 @@ public class DemoEdit extends Scene {
   public void onResize(V2i size) {
     clientRect = size;
     layout();
+    devicePR = api.window.devicePixelRatio();
+    lineNumbers.setDevicePR(devicePR);
 
     int firstLine = getFirstLine();
+    int lastLine = getLastLine();
     lineNumbers.initTextures(firstLine, editorHeight());
+    for (int i = firstLine; i <= lastLine; i++) {
+      CodeLine nextLine = document.line(i);
+      CodeLineRenderer line = lineRenderer(i);
+      line.resize(nextLine, renderingCanvas, fonts, g, lineHeight, editorWidth(), editorHScrollPos);
+    }
   }
 
-  int clampScrollPos(int pos) {
-    return Math.min(Math.max(0, pos), maxEditorVScrollPos());
+  int clampScrollPos(int pos, int maxScrollPos) {
+    return Math.min(Math.max(0, pos), maxScrollPos);
   }
 
   class MyInputListener implements InputListener {
@@ -516,13 +554,18 @@ public class DemoEdit extends Scene {
     @Override
     public boolean onMouseWheel(MouseEvent event, double dX, double dY) {
       // chrome sends 150px, firefox send "6 lines"
-      int change = Numbers.iRnd(lineHeight * 4 * dY / 150);
-      editorVScrollPos = clampScrollPos(editorVScrollPos + change);
+      int changeY = Numbers.iRnd(lineHeight * 4 * dY / 150);
+      int changeX = Numbers.iRnd(dX);
+      editorVScrollPos = clampScrollPos(editorVScrollPos + changeY, maxEditorVScrollPos());
+      editorHScrollPos = clampScrollPos(editorHScrollPos + changeX, maxEditorHScrollPos());
       return true;
     }
 
     Consumer<IntUnaryOperator> vScrollHandler =
         move -> editorVScrollPos = move.applyAsInt(maxEditorVScrollPos());
+
+    Consumer<IntUnaryOperator> hScrollHandler =
+      move -> editorHScrollPos = move.applyAsInt(maxEditorHScrollPos());
 
     @Override
     public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
@@ -539,7 +582,10 @@ public class DemoEdit extends Scene {
           return true;
         }
 
-        dragLock = vScroll.onMouseClick(event.position, vScrollHandler);
+        dragLock = vScroll.onMouseClick(event.position, vScrollHandler, true);
+        if (dragLock != null) return true;
+
+        dragLock = hScroll.onMouseClick(event.position, hScrollHandler, false);
         if (dragLock != null) return true;
 
         if (footerRc.isInside(event.position)) {
@@ -647,7 +693,7 @@ public class DemoEdit extends Scene {
   private boolean arrowUpDown(int amount, boolean ctrl, boolean alt) {
     if (ctrl && alt) return true;
     if (ctrl) {  //  editorVScrollPos moves, caretLine does not change
-      editorVScrollPos = clampScrollPos(editorVScrollPos + amount * lineHeight * 12 / 10);
+      editorVScrollPos = clampScrollPos(editorVScrollPos + amount * lineHeight * 12 / 10, maxEditorVScrollPos());
     } else if (alt) {
       // todo: smart move to prev/next method start
     } else {
@@ -672,6 +718,7 @@ public class DemoEdit extends Scene {
     } else {
       setCaretPos(newPos);
     }
+    adjustEditorHScrollToCaret();
     return true;
   }
 
@@ -689,7 +736,13 @@ public class DemoEdit extends Scene {
     caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
     caretPos = caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, fonts);
     caret.startDelay(api.window.timeNow());
+    adjustEditorScrollToCaret();
     return true;
+  }
+
+  private void adjustEditorScrollToCaret() {
+    adjustEditorVScrollToCaret();
+    adjustEditorHScrollToCaret();
   }
 
   private void adjustEditorVScrollToCaret() {
@@ -699,9 +752,24 @@ public class DemoEdit extends Scene {
     int caretVisibleY1 = caretLine * lineHeight + lineHeight;
 
     if (caretVisibleY0 < editVisibleYMin + lineHeight) {
-      editorVScrollPos = clampScrollPos(caretVisibleY0 - lineHeight);
+      editorVScrollPos = clampScrollPos(caretVisibleY0 - lineHeight, maxEditorVScrollPos());
     } else if (caretVisibleY1 > editVisibleYMax - lineHeight) {
-      editorVScrollPos = clampScrollPos(caretVisibleY1 - editorHeight() + lineHeight);
+      editorVScrollPos = clampScrollPos(caretVisibleY1 - editorHeight() + lineHeight, maxEditorVScrollPos());
+    }
+  }
+
+  private void adjustEditorHScrollToCaret() {
+    int xOffset = (int) devicePR * EditorConst.CARET_X_OFFSET;
+
+    int editVisibleXMin = editorHScrollPos;
+    int editVisibleXMax = editorHScrollPos + editorWidth();
+    int caretVisibleX0 = caretPos;
+    int caretVisibleX1 = caretPos + xOffset;
+
+    if (caretVisibleX0 < editVisibleXMin + xOffset) {
+      editorHScrollPos = clampScrollPos(caretVisibleX0 - xOffset, maxEditorHScrollPos());
+    } else if (caretVisibleX1 > editVisibleXMax - xOffset) {
+      editorHScrollPos = clampScrollPos(caretVisibleX1 - editorWidth() + xOffset, maxEditorHScrollPos());
     }
   }
 
@@ -710,12 +778,13 @@ public class DemoEdit extends Scene {
         (position.y + editorVScrollPos) / lineHeight, document.length() - 1);
 
     CodeLine line = caretCodeLine();
-    int documentXPosition = Math.max(0, position.x - vLineX);
+    int documentXPosition = Math.max(0, position.x - vLineX + editorHScrollPos);
     caretCharPos = line.computeCaretLocation(documentXPosition, g.mCanvas, fonts);
     caretPos = line.computePixelLocation(caretCharPos, g.mCanvas, fonts);
     if (1<0) Debug.consoleInfo(
         "onClickText: caretCharPos = " + caretCharPos + ", caretPos = " + caretPos);
     caret.startDelay(api.window.timeNow());
+    adjustEditorScrollToCaret();
   }
 
   CodeLine caretCodeLine() {

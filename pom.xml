@@ -23,6 +23,8 @@
     <module>wasm-test</module>
     <module>angle-dll</module>
     <module>fonts</module>
+    <module>demo-test-scenes</module>
+    <module>graphics-test</module>
   </modules>
   <properties>
     <maven.compiler.source>17</maven.compiler.source>

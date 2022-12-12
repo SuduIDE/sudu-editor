@@ -22,7 +22,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
   private int lineHeight = 20;
   private int fontSize = 20;
 
-  public ManyTexturesLineNumbersScene(SceneApi api){
+  public ManyTexturesLineNumbersScene(SceneApi api) {
     super(api);
     api.input.addListener(new LineNumbersInputListener());
     this.g = api.graphics;
@@ -90,7 +90,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
       }
 
       if (button == MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
-        dragLock = scrollBar.onMouseClick(event.position, vScrollHandler);
+        dragLock = scrollBar.onMouseClick(event.position, vScrollHandler, true);
         if (dragLock != null) return true;
       }
 

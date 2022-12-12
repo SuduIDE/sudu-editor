@@ -8,7 +8,9 @@ interface EditorConst {
   float CONTRAST = .5f;
   int DOCUMENT_LINES = 1000;
   int BLANK_LINES = 5;
-  int TEXTURE_WIDTH = 1024 * 3;
+  int TEXTURE_WIDTH = 512;
+  int RIGHT_PADDING = 40;
+  int CARET_X_OFFSET = 30;
   int DEFAULT_FONT_SIZE = 16;
   int TOOLBAR_FONT_SIZE = 20;
   String TOOLBAR_FONT_NAME = Fonts.SegoeUI;

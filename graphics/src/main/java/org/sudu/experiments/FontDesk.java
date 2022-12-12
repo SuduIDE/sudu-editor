@@ -58,9 +58,9 @@ public class FontDesk {
     int dotSize = (int) (dotWidth * 32);
     int spaceSize = (int) (spaceWidth * 32);
     int WSize = (int) (WWidth * 32);
-    Debug.consoleInfo("  '.' size * 32 = ", dotSize);
-    Debug.consoleInfo("  'W' size * 32 = ", WSize);
-    Debug.consoleInfo("  ' ' size * 32 = ", spaceSize);
+    Debug.consoleInfo("  '.' size * 32 = " + dotSize);
+    Debug.consoleInfo("  'W' size * 32 = " + WSize);
+    Debug.consoleInfo("  ' ' size * 32 = " + spaceSize);
     Debug.consoleInfo("  monospace = " + monospace);
     Debug.consoleInfo("  platformFont = ", platformFont);
   }

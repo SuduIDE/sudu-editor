@@ -1,12 +1,12 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 
 import java.util.function.Consumer;
 
@@ -198,7 +198,7 @@ public class DemoScene1 extends Scene {
       String a = press ? "click b=" : "unClick b=";
       System.out.println(a + button + ", count=" + clickCount);
 
-      if (button == MOUSE_BUTTON_LEFT && clickCount == 1) {
+      if (button == InputListener.MOUSE_BUTTON_LEFT && clickCount == 1) {
         V2i p = event.position;
         drag = press && demoRect.isInside(p) ? p : null;
         if (press) {
@@ -207,7 +207,7 @@ public class DemoScene1 extends Scene {
         }
       }
 
-      if (button == MOUSE_BUTTON_LEFT && clickCount == 2) {
+      if (button == InputListener.MOUSE_BUTTON_LEFT && clickCount == 2) {
         setRandomColor(demoRect);
       }
 

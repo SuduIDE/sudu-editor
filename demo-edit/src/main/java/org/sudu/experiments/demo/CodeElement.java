@@ -20,6 +20,10 @@ class CodeElement {
     this(s, colorF, colorB, fontIndex(bold, italic));
   }
 
+  CodeElement(String s, Color colorF, Color colorB) {
+    this(s, colorF, colorB, false, false);
+  }
+
   CodeElement(String s, Color colorF, Color colorB, int fontIndex) {
     this.s = s;
     this.colorF = colorF;

@@ -31,6 +31,10 @@ public class CodeLine {
     return new CodeLine(ArrayOp.add(a.elements, b.elements));
   }
 
+  public CodeElement get(int ind) {
+    return elements[ind];
+  }
+
   public CodeLine[] split(int pos) {
     if (pos <= 0) return new CodeLine[] {new CodeLine(), this};
     if (pos >= totalStrLength) return new CodeLine[] {this, new CodeLine()};
@@ -126,6 +130,7 @@ public class CodeLine {
   }
 
   public int computeCaretLocation(int pixelLocation, Canvas mCanvas, FontDesk[] fonts) {
+    if (iMeasure == null) measure(mCanvas, fonts);
     if (elements.length == 0) return 0;
 
     // check borders
@@ -188,11 +193,9 @@ public class CodeLine {
   }
 
   private int findEntryByPixel(int pixelLocation) {
-    // todo: rewrite to bSearch
-    for (int i = 0; i < elements.length; i++) {
-      if (pixelLocation < iMeasure[i]) return i;
-    }
-    return elements.length;
+    int ind = Arrays.binarySearch(iMeasure, pixelLocation);
+    if (ind < 0) ind = -ind - 1;
+    return ind;
   }
 
   public int computePixelLocation(int caretCharPos, Canvas mCanvas, FontDesk[] fonts) {
