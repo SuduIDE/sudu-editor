@@ -117,14 +117,14 @@ public class Toolbar {
     }
   }
 
-  public boolean onMouseMove(V2i pos) {
+  public boolean onMouseMove(V2i pos, SetCursor setCursor) {
     Button h = find(pos);
     if (hoverItem != h) {
       if (hoverItem != null) hoverItem.setHover(false);
       if (h != null ) h.setHover(true);
       hoverItem = h;
     }
-    return rect.isInside(pos);
+    return rect.isInside(pos) && setCursor.setDefault();
   }
 
   public boolean onMouseClick(V2i pos, boolean press) {

@@ -5,6 +5,7 @@ import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
@@ -17,6 +18,9 @@ public class DemoScene1 extends Scene {
   final DemoRect mouse = new DemoRect(0, 0, 3, 3);
   final TextRect canvasRect1 = new TextRect(0, 0, 300, 300);
   final Caret caret = new Caret();
+  final String[] cursorNames = cursors();
+  final DemoRect[] cursors = new DemoRect[cursorNames.length];
+
   GL.Texture mouseTexture;
   GL.Texture demoRectTexture;
   GL.Texture textureCanvas;
@@ -32,6 +36,15 @@ public class DemoScene1 extends Scene {
     super(api);
     g = api.graphics;
     V2i clientRect = api.window.getClientRect();
+
+    double r = api.window.devicePixelRatio();
+    int dp30 = Numbers.iRnd(r * 30);
+    int dp10 = Numbers.iRnd(r * 10);
+    for (int i = 0; i < cursors.length; i++) {
+      int x = dp10 * (1 + i) + dp30 * i;
+      cursors[i] = new DemoRect(x, dp30, dp30, dp30);
+      setRandomColor(cursors[i]);
+    }
 
     mouse.pos.set(clientRect.x / 2 - 1, clientRect.y / 2 - 1);
     demoRect.pos.set(clientRect.x - demoRect.size.x, (clientRect.y  - demoRect.size.y) / 2);
@@ -137,6 +150,10 @@ public class DemoScene1 extends Scene {
   public void paint() {
     g.clear(bgColor);
 
+    for (DemoRect cursor : cursors) {
+      cursor.draw(g, 0, 0);
+    }
+
     demoRect.drawText(g, demoRectTexture, 0, 0, 0.5f);
 
     for (int i = 0, N = 7; i < N; i++) {
@@ -172,13 +189,9 @@ public class DemoScene1 extends Scene {
       int nextY = event.position.y - mouse.size.y; // 2;
       mouse.pos.set(nextX, nextY);
 
-      boolean wasInside = demoRect.isInside(lastMouse);
-      boolean nowInside = demoRect.isInside(event.position);
       lastMouse = event.position;
 
-      if (wasInside != nowInside) {
-        api.window.setCursor(nowInside ? readArray(cursors(), curCursor++) : null);
-      }
+      api.window.setCursor(hitTestCursors(event.position));
 
       return true;
     }
@@ -254,10 +267,17 @@ public class DemoScene1 extends Scene {
     return new String[]{
         Cursor.pointer,
         Cursor.text,
-        Cursor.grab,
-        Cursor.grabbing,
         Cursor.ew_resize,
         Cursor.ns_resize,
     };
+  }
+
+  private String hitTestCursors(V2i position) {
+    for (int i = 0; i < cursors.length; i++) {
+      if (cursors[i].isInside(position)) {
+        return cursorNames[i];
+      }
+    }
+    return null;
   }
 }

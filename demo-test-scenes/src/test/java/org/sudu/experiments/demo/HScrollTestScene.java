@@ -152,7 +152,7 @@ public class HScrollTestScene extends Scene {
         dragLock.accept(event.position);
         return true;
       }
-      return scrollBar.onMouseMove(event.position);
+      return scrollBar.onMouseMove(event.position, SetCursor.wrap(api.window));
     }
   }
 

@@ -27,8 +27,12 @@ public class ScrollBar {
     return buttonSize.x * buttonSize.y != 0;
   }
 
+  public boolean hitTest(V2i p) {
+    return Rect.isInside(p, bgPos, bgSize);
+  }
+
   public Consumer<V2i> onMouseClick(V2i p, Consumer<IntUnaryOperator> onMove, boolean isVertical) {
-    boolean hitScroll = Rect.isInside(p, bgPos, bgSize);
+    boolean hitScroll = hitTest(p);
     boolean hitButton = Rect.isInside(p, buttonPos, buttonSize);
 
     if (hitScroll || hitButton) {
@@ -162,7 +166,7 @@ public class ScrollBar {
     buttonSize.x += 2; buttonSize.y += 2;
   }
 
-  public boolean onMouseMove(V2i position) {
-    return false;
+  public boolean onMouseMove(V2i position, SetCursor setCursor) {
+    return hitTest(position) && setCursor.setDefault();
   }
 }

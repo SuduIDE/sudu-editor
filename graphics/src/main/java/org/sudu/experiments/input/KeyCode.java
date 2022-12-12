@@ -14,6 +14,7 @@ public interface KeyCode {
 
 
   int F5 = 116;
+  int F10 = 121;
   int F11 = 122;
   int F12 = 123;
 

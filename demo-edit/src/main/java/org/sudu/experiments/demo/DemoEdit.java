@@ -599,15 +599,18 @@ public class DemoEdit extends Scene {
       return true;
     }
 
+    final SetCursor setCursor = SetCursor.wrap(api.window);
+
     @Override
     public boolean onMouseMove(MouseEvent event) {
       if (dragLock != null) {
         dragLock.accept(event.position);
         return true;
       }
-      if (toolbar.onMouseMove(event.position)) return true;
-      if (vScroll.onMouseMove(event.position)) return true;
-      return false;
+
+      if (toolbar.onMouseMove(event.position, setCursor)) return true;
+      if (vScroll.onMouseMove(event.position, setCursor)) return true;
+      return setCursor.set(Cursor.text);
     }
 
     @Override
@@ -618,6 +621,10 @@ public class DemoEdit extends Scene {
       }
       // do not process release events
       if (!event.isPressed) return false;
+
+      if (event.keyCode == KeyCode.F10) {
+        api.window.addChild("child", DemoEdit::new);
+      }
 
       if (handleDebug(event)) return true;
       if (handleNavigation(event)) return true;

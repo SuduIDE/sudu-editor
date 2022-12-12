@@ -5,10 +5,7 @@ import org.sudu.experiments.angle.AngleWindow;
 import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.win32.Win32;
-import org.sudu.experiments.win32.Win32Graphics;
-import org.sudu.experiments.win32.Win32Time;
-import org.sudu.experiments.win32.WindowPeer;
+import org.sudu.experiments.win32.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -27,6 +24,7 @@ public class Win32Window implements WindowPeer, Window {
   private boolean repaintRequested = true;
   private boolean closed;
   private String currentCursor;
+  private long currentCursorHandle = Win32Cursors.IDC_ARROW;
   private Scene scene;
   Win32Time time;
 
@@ -204,8 +202,12 @@ public class Win32Window implements WindowPeer, Window {
     angleWindow.swapInterval(vSync ? 1 : 0);
   }
 
+  @SuppressWarnings("StringEquality")
   public void setCursor(String cursor) {
-    currentCursor = cursor; // JsHelper.setCursor(cursor, currentCursor, mainCanvas);
+    if (currentCursor != cursor) {
+      currentCursor = cursor;
+      currentCursorHandle = Win32Cursors.toWin32(cursor);
+    }
   }
 
   @Override
@@ -272,6 +274,13 @@ public class Win32Window implements WindowPeer, Window {
       case WM_MOUSEMOVE -> inputState.onMouseMove(lParam, windowSize, inputListeners);
       case WM_MOUSEWHEEL, WM_MOUSEHWHEEL ->
         inputState.onMouseWheel(lParam, wParam, windowSize, inputListeners, msg == WM_MOUSEWHEEL);
+
+      case WM_SETCURSOR -> {
+        if (Win32HitTest.hitClient(lParam)) {
+          Win32.SetCursor(currentCursorHandle);
+          return 1;
+        }
+      }
 
       // keyboard
       case WM_SYSKEYUP, WM_SYSKEYDOWN ->

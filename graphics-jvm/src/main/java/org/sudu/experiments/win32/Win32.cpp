@@ -20,7 +20,7 @@ struct Debug {
 };
 
 extern "C" {
-  JNIEXPORT jint JNICALL JavaCritical_org_sudu_experiments_win32_Win32_invokeCritical(jint index, jint length, jint* arrayPtr);
+  JNIEXPORT jint JNICALL JavaCritical_org_sudu_experiments_win32_TestHelper_invokeCritical(jint index, jint length, jint* arrayPtr);
   JNIEXPORT jlong JNICALL JavaCritical_org_sudu_experiments_win32_Win32_GetPerformanceCounter();
   JNIEXPORT jlong JNICALL JavaCritical_org_sudu_experiments_win32_Win32_GetPerformanceFrequency();
 
@@ -274,6 +274,10 @@ jboolean Java_org_sudu_experiments_win32_Win32_KillTimer(JNIEnv *, jclass, jlong
 
 jlong Java_org_sudu_experiments_win32_Win32_LoadCursorW(JNIEnv *, jclass, jlong hInstance, jlong lpCursorName) {
   return jlong(LoadCursorW(HINSTANCE(hInstance), LPCWSTR(lpCursorName)));
+}
+
+jlong Java_org_sudu_experiments_win32_Win32_SetCursor(JNIEnv *, jclass, jlong hCursor) {
+  return jlong(SetCursor(HCURSOR(hCursor)));
 }
 
 jlong Java_org_sudu_experiments_win32_Win32_GetDC(JNIEnv *, jclass, jlong hWnd) {

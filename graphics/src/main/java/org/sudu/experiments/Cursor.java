@@ -5,11 +5,8 @@ package org.sudu.experiments;
 
 public interface Cursor {
   String arrow = null;
-  String none = "none";
   String pointer = "pointer";
   String text = "text";
-  String grab = "grab";
-  String grabbing = "grabbing";
   String ew_resize = "ew-resize";
   String ns_resize = "ns-resize";
 }
