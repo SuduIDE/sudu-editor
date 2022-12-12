@@ -610,6 +610,7 @@ public class DemoEdit extends Scene {
 
       if (toolbar.onMouseMove(event.position, setCursor)) return true;
       if (vScroll.onMouseMove(event.position, setCursor)) return true;
+      if (hScroll.onMouseMove(event.position, setCursor)) return true;
       return setCursor.set(Cursor.text);
     }
 
