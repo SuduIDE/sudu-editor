@@ -139,7 +139,8 @@ class CodeLineRenderer implements Disposable {
     float contrast,
     int editorWidth,
     int lineHeight,
-    int horScrollPos
+    int horScrollPos,
+    CodeElementColor[] colors
   ) {
     if (lineTextures.isEmpty()) return;
     if (horScrollPos > line.lineMeasure()) return;
@@ -168,7 +169,7 @@ class CodeLineRenderer implements Disposable {
         region.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
         size.set(drawWidth, lineHeight);
 
-        drawWord(g, xPos + dx, yPosition, size, region, e, texture, contrast);
+        drawWord(g, xPos + dx, yPosition, size, region, e, texture, contrast, colors);
 
         texturePos = pxLen;
         xPos += drawWidth;
@@ -178,7 +179,7 @@ class CodeLineRenderer implements Disposable {
         region.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
         size.set(drawWidth, lineHeight);
 
-        drawWord(g, xPos + dx, yPosition, size, region, e, texture, contrast);
+        drawWord(g, xPos + dx, yPosition, size, region, e, texture, contrast, colors);
 
         texturePos += drawWidth;
         xPos += drawWidth;
@@ -194,11 +195,14 @@ class CodeLineRenderer implements Disposable {
     return curWord;
   }
 
-  private void drawWord(WglGraphics g, int xPos, int yPos, V2i size, V4f region, CodeElement e, GL.Texture texture, float contrast) {
+  private void drawWord(
+      WglGraphics g, int xPos, int yPos, V2i size, V4f region,
+      CodeElement e, GL.Texture texture,
+      float contrast, CodeElementColor[] colors
+  ) {
+    CodeElementColor c = colors[e.color];
     g.drawText(xPos, yPos, size,
-      region, texture,
-      bw ? Colors.white : e.colorF.v4f,
-      bw ? Colors.black : e.colorB(Colors.editBgColor).v4f,
+      region, texture, c.colorF.v4f, c.colorB.v4f,
       bw ? 0 : contrast);
   }
 
@@ -235,14 +239,14 @@ class CodeLineRenderer implements Disposable {
     Debug.consoleInfo("\tlineTextures.size(): " + lineTextures.size());
   }
 
-  public void drawDebug(int yPosition, int dx, WglGraphics g) {
+  public void drawDebug(int yPosition, int dx, WglGraphics g, V4f color, V4f bgColor) {
     int testHeight = 20;
     for (int i = 0; i < lineTextures.size(); i++) {
       var texture = lineTextures.get(i);
       g.drawText(dx, yPosition + (testHeight + 5) * i,
         new V2i(TEXTURE_WIDTH, testHeight),
         new V4f(0, 0, TEXTURE_WIDTH, testHeight),
-        texture, Colors.comma.v4f, Colors.defaultText.v4f, 1f);
+        texture, color, bgColor, 1f);
     }
   }
 }

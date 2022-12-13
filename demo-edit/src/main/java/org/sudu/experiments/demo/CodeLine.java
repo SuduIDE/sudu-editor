@@ -86,7 +86,7 @@ public class CodeLine {
       pos -= el;
     }
     if (elements.length == 0) {
-      elements = new CodeElement[] {new CodeElement(value, Colors.defaultText)};
+      elements = new CodeElement[] {new CodeElement(value)};
     } else {
       elements[i] = elements[i].insertAt(pos, value);
     }

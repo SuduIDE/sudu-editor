@@ -10,34 +10,25 @@ public class LineNumbersComponent implements Disposable {
 
   private final WglGraphics g;
   private final int numberOfLines = EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
+  private final int textureWidth;
 
   private final V2i componentPos;
   private FontDesk fontDesk;
   private int lineHeight;
-  private final LineNumbersColorScheme colorScheme;
 
   private int textureHeight;
-  private int textureWidth;
   private double devicePR;
 
-  private final List<LineNumbersTexture> textures;
+  private final List<LineNumbersTexture> textures = new ArrayList<>();
   private Canvas textureCanvas;
   private Canvas updateCanvas;
 
   private int curFirstLine;
 
-  public LineNumbersComponent(
-    final WglGraphics g,
-    final V2i componentPos,
-    final int textureWidth,
-    final LineNumbersColorScheme colorScheme
-  ) {
+  public LineNumbersComponent(WglGraphics g, V2i componentPos, int textureWidth) {
     this.g = g;
     this.componentPos = componentPos;
     this.textureWidth = textureWidth;
-    this.colorScheme = colorScheme;
-
-    this.textures = new ArrayList<>();
   }
 
   public void update(int firstLine) {
@@ -74,19 +65,35 @@ public class LineNumbersComponent implements Disposable {
     }
   }
 
-  public void draw(int scrollPos, int editorHeight) {
+  public void draw(
+      int editorHeight, int textHeight, int scrollPos,
+      int firstLine, int lastLine, int caretLine,
+      LineNumbersColors colors
+  ) {
+    update(firstLine);
+    draw(scrollPos, textHeight, colors);
+    drawBottom(textHeight, editorHeight, colors);
+
+    if (firstLine <= caretLine && caretLine <= lastLine) {
+      drawCaretLine(scrollPos, caretLine, colors);
+    }
+  }
+
+  public void draw(int scrollPos, int editorHeight, LineNumbersColors colorScheme) {
     for (var text : textures) {
       text.draw(g, componentPos, editorHeight, scrollPos, textures.size() * textureHeight, colorScheme);
     }
   }
 
-  public void drawCaretLine(int scrollPos, int caretLine) {
+  private void drawCaretLine(int scrollPos, int caretLine, LineNumbersColors colorScheme) {
     int caretTexture = (caretLine / numberOfLines) % textures.size();
 
-    textures.get(caretTexture).drawCurrentLine(g, componentPos, scrollPos, textures.size() * textureHeight, caretLine, colorScheme);
+    textures.get(caretTexture).drawCurrentLine(
+        g, componentPos, scrollPos,
+        textures.size() * textureHeight, caretLine, colorScheme);
   }
 
-  public void drawBottom(int textHeight, int editorBottom) {
+  private void drawBottom(int textHeight, int editorBottom, LineNumbersColors colorScheme) {
     if (textHeight < editorBottom) {
       g.drawRect(componentPos.x, componentPos.y + textHeight,
         new V2i(textureWidth, editorBottom - textHeight),

@@ -4,65 +4,64 @@ import org.sudu.experiments.math.XorShiftRandom;
 
 public class TestText {
   static CodeElement[] spaces() {
-    return new CodeElement[]{
-        new CodeElement("  ", Colors.defaultText),
-        new CodeElement(" ", Colors.defaultText),
-        new CodeElement(".", Colors.defaultText),
-        new CodeElement("(", Colors.defaultText),
-        new CodeElement(")", Colors.defaultText),
-        new CodeElement(" + ", Colors.defaultText),
-        new CodeElement("-", Colors.defaultText),
-        new CodeElement(".", Colors.defaultText),
-        new CodeElement("(", Colors.braceMatchF, Colors.braceMatchB, false, true),
-        new CodeElement(")", Colors.braceMatchF, Colors.braceMatchB, false, true),
-        new CodeElement(" + ", Colors.defaultText),
-        new CodeElement(";", Colors.keyword),
-        new CodeElement("{", Colors.keyword),
-        new CodeElement("}", Colors.keyword),
+    int keyword = CodeColors.keyword.ordinal();
+    int braceMatch = CodeColors.comma.ordinal();
 
-        new CodeElement(" ", Colors.defaultText),
-        new CodeElement(" ", Colors.defaultText),
-        new CodeElement("(", Colors.defaultText),
-        new CodeElement(",", Colors.comma),
-        new CodeElement(",", Colors.comma),
-        new CodeElement(" ", Colors.defaultText),
-        new CodeElement(" ", Colors.defaultText),
-        new CodeElement(",", Colors.comma),
-        new CodeElement(" ", Colors.defaultText),
-        new CodeElement(")", Colors.defaultText),
-        new CodeElement(";", Colors.keyword)
+    CodeElement sp = new CodeElement(" ", 0);
+    CodeElement br1 = new CodeElement("(", 0);
+    CodeElement br2 = new CodeElement(")", 0);
+    CodeElement plus = new CodeElement(" + ", 0);
+    CodeElement minus = new CodeElement("-", 0);
+    CodeElement comma = new CodeElement(",", CodeColors.comma.ordinal());
+    CodeElement dot = new CodeElement(".", 0);
+    CodeElement br3 = new CodeElement("{", keyword);
+    CodeElement br4 = new CodeElement("}", keyword);
+    CodeElement br5 = new CodeElement("(", braceMatch, false, true);
+    CodeElement br6 = new CodeElement(")", braceMatch, false, true);
+    CodeElement sp2 = new CodeElement("  ", 0);
+    CodeElement semicolon = new CodeElement(";", keyword);
+    return new CodeElement[] {
+        sp2,
+        sp, sp, sp, sp, sp, sp,
+        br1, br2, br1, br2, br3, br4, br5, br6,
+        plus, plus, minus, minus,
+        comma, comma, comma, dot, dot,
+        semicolon, semicolon
     };
   }
+
   static CodeElement[] words(XorShiftRandom r) {
+    int numColors = CodeColors.values().length;
+    int stirng = CodeColors.string.ordinal();
     return new CodeElement[]{
-        new CodeElement("return", Colors.keyword, r.nextInt(4)),
-        new CodeElement("System", Colors.defaultText, r.nextInt(4)),
-        new CodeElement("Arrays", Colors.defaultText, r.nextInt(4)),
-        new CodeElement("InputStream", Colors.unused, r.nextInt(4)),
-        new CodeElement("out", Colors.field, r.nextInt(4)),
-        new CodeElement("length", Colors.field, r.nextInt(4)),
-        new CodeElement("println", Colors.defaultText,  r.nextInt(4)),
-        new CodeElement("\"textCanvas.getFont() = \"", Colors.string, r.nextInt(4)),
-        new CodeElement("textCanvas", Colors.error, r.nextInt(4)),
-        new CodeElement("getFont", Colors.defaultText, r.nextInt(4)),
-        new CodeElement("37", Colors.number, r.nextInt(4)),
-        new CodeElement("\"ggg\"", Colors.string, r.nextInt(4)),
-        new CodeElement("public", Colors.keyword, r.nextInt(4)),
-        new CodeElement("static", Colors.keyword, r.nextInt(4)),
-        new CodeElement("class", Colors.keyword, r.nextInt(4)),
-        new CodeElement("extends", Colors.keyword, r.nextInt(4)),
-        new CodeElement("implements", Colors.keyword, r.nextInt(4)),
-        new CodeElement("interface", Colors.keyword, r.nextInt(4)),
-        new CodeElement("boolean", Colors.keyword, r.nextInt(4)),
-        new CodeElement("int", Colors.keyword, r.nextInt(4)),
-        new CodeElement("double", Colors.keyword, r.nextInt(4)),
-        new CodeElement("onMousePress", Colors.method, r.nextInt(4)),
-        new CodeElement("MouseEvent", Colors.error, r.nextInt(4)),
-        new CodeElement("event", Colors.unused, r.nextInt(4)),
-        new CodeElement("boolean", Colors.keyword, r.nextInt(4)),
-        new CodeElement("press", Colors.unused, r.nextInt(4)),
-        new CodeElement("void", Colors.keyword, r.nextInt(4)),
-        new CodeElement("clickCount", Colors.unused, r.nextInt(4)),
+        new CodeElement("return", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("System", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("Arrays", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("InputStream", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("out", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("length", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("println", r.nextInt(numColors),  r.nextInt(4)),
+        new CodeElement("\"a string or text\"", stirng, r.nextInt(4)),
+        new CodeElement("textCanvas", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("getFont", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("37", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("\"ggg\"", stirng, r.nextInt(4)),
+        new CodeElement("public", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("static", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("class", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("extends", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("implements", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("interface", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("boolean", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("int", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("double", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("onMousePress", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("MouseEvent", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("event", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("boolean", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("press", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("void", r.nextInt(numColors), r.nextInt(4)),
+        new CodeElement("clickCount", r.nextInt(numColors), r.nextInt(4)),
     };
   }
 
@@ -71,7 +70,7 @@ public class TestText {
     CodeElement[] words = words(r);
     CodeElement[] spaces = spaces();
     int min = words.length / 5;
-    int max = words.length - 1;
+    int max = words.length * 2;
     CodeLine[] doc = new CodeLine[nLines];
     for (int i = 0; i < nLines; i++) {
       CodeElement[] nextLine = generateLine(words, spaces, min, max, r);
@@ -90,7 +89,10 @@ public class TestText {
     return new CodeLine(line);
   }
 
-  private static CodeElement[] generateLine(CodeElement[] words, CodeElement[] spaces, int min, int max, XorShiftRandom r) {
+  private static CodeElement[] generateLine(
+      CodeElement[] words, CodeElement[] spaces,
+      int min, int max, XorShiftRandom r
+  ) {
     r.shuffle(words);
     CodeElement[] nextLine = new CodeElement[min + r.nextInt(max - min)];
     for (int j = 0; j < nextLine.length; j++) {

@@ -29,7 +29,8 @@ public class DemoEdit extends Scene {
   Canvas renderingCanvas;
   FontDesk font;
   FontDesk[] fonts = new FontDesk[4];
-
+  EditorColorScheme colors = new EditorColorScheme();
+  
   int lineHeight;
 
   Document document = new Document(EditorConst.DOCUMENT_LINES);
@@ -61,8 +62,6 @@ public class DemoEdit extends Scene {
 
   // line numbers
   LineNumbersComponent lineNumbers;
-  LineNumbersColorScheme lineNumbersColorScheme =
-    LineNumbersColorScheme.ideaColorScheme();
   int lineNumLeftMargin = 10;
 
   public DemoEdit(SceneApi api) {
@@ -75,8 +74,7 @@ public class DemoEdit extends Scene {
     vLineLeftDelta = Numbers.iRnd(10 * devicePR);
 
     int lineNumbersWidth = vLineX - vLineLeftDelta - lineNumLeftMargin;
-    lineNumbers = new LineNumbersComponent(g, new V2i(lineNumLeftMargin, 0),
-      lineNumbersWidth, lineNumbersColorScheme);
+    lineNumbers = new LineNumbersComponent(g, new V2i(lineNumLeftMargin, 0), lineNumbersWidth);
     lineNumbers.setDevicePR(devicePR);
 
     api.input.addListener(new MyInputListener());
@@ -388,8 +386,11 @@ public class DemoEdit extends Scene {
       for (int i = firstLine; i <= lastLine && i < docLen; i++) {
         int lineIndex = i % lines.length;
         int yPosition = lineHeight * i - editorVScrollPos;
-        lines[lineIndex].draw(yPosition, vLineX, g, tRegion, size,
-            applyContrast ? EditorConst.CONTRAST : 0, editorWidth(), lineHeight, editorHScrollPos);
+        lines[lineIndex].draw(
+            yPosition, vLineX, g, tRegion, size,
+            applyContrast ? EditorConst.CONTRAST : 0, 
+            editorWidth(), lineHeight, editorHScrollPos,
+            colors.codeColors);
       }
 
       if (caretX >= -caret.width() / 2) caret.paint(g);
@@ -402,16 +403,7 @@ public class DemoEdit extends Scene {
       }
 
       drawScrollBar();
-
-      int textHeight = Math.min(editorBottom, document.length() * lineHeight - editorVScrollPos);
-
-      lineNumbers.update(firstLine);
-      lineNumbers.draw(editorVScrollPos, textHeight);
-      lineNumbers.drawBottom(textHeight, editorBottom);
-
-      if (firstLine <= caretLine && caretLine <= lastLine) {
-        lineNumbers.drawCaretLine(editorVScrollPos, caretLine);
-      }
+      drawLineNumbers(editorBottom, firstLine, lastLine);
     }
 
     drawFooter();
@@ -426,6 +418,16 @@ public class DemoEdit extends Scene {
       Debug.consoleInfo(s);
       CodeLine.cacheMiss = CodeLine.cacheHits = 0;
     }
+  }
+
+  private void drawLineNumbers(int editorBottom, int firstLine, int lastLine) {
+    int textHeight = Math.min(editorBottom, document.length() * lineHeight - editorVScrollPos);
+
+    lineNumbers.draw(
+        editorBottom, textHeight, editorVScrollPos,
+        firstLine, lastLine, caretLine,
+        colors.lineNumbersColors
+    );
   }
 
   private int getFirstLine() {

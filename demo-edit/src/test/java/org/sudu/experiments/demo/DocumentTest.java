@@ -20,7 +20,7 @@ class DocumentTest {
     Assertions.assertEquals(r3[0], "A");
     Assertions.assertEquals(r3[1], "B");
 
-    CodeLine cl = new CodeLine(new CodeElement("A", null));
+    CodeLine cl = new CodeLine(new CodeElement("A"));
     cl.deleteAt(0);
     Assertions.assertEquals(cl.elements.length, 0);
   }
@@ -262,6 +262,6 @@ class DocumentTest {
   }
 
   static CodeElement abElement(String t) {
-    return new CodeElement(t, Colors.defaultText);
+    return new CodeElement(t);
   }
 }

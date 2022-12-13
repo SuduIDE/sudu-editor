@@ -5,19 +5,19 @@ import org.sudu.experiments.math.V4f;
 
 interface Colors {
   Color editBgColor = new Color(43);
+  Color selectionBg = new Color("#214283");
   Color editCurrentLineBg = new Color(50);
-  Color defaultText = new Color("#A9B7C6");
-  Color comma = new Color("#CC7832");
-  Color field = new Color(152, 118, 170);
-  Color string = new Color(106, 135, 89);
-  Color keyword = new Color(204, 120, 50);
-  Color showUsageBg = new Color(52, 65, 52);
-  Color error = new Color(188, 63, 60);
-  Color unused = new Color("#72737A");
-  Color braceMatchF = new Color("#FFEF28");
-  Color braceMatchB = new Color("#3B514D");
-  Color number = new Color("#6897BB");
-  Color method = new Color("#FFC66D");
+  Color defaultTextC = new Color("#A9B7C6");
+
+
+  static CodeElementColor makeDefault(Color color) {
+    return new CodeElementColor(color, editBgColor, selectionBg);
+  }
+
+  static CodeElementColor makeDefault(Color color, Color bgColor) {
+    return new CodeElementColor(color, bgColor, selectionBg);
+  }
+
   Color editNumbersVLine = new Color(85);
   Color editFooterFill = new Color(60, 63, 65);
   V4f white = new V4f(1, 1, 1, 1);
@@ -40,4 +40,5 @@ interface Colors {
     return new Toolbar.ButtonColors(
         Color.Cvt.fromHSV(Math.random(), 1, 1), toolbarTextBg, toolbarTextBg2);
   }
+
 }

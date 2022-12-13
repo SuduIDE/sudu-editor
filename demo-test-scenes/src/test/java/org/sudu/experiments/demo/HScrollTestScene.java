@@ -1,7 +1,6 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.demo.*;
 import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Color;
@@ -29,6 +28,7 @@ public class HScrollTestScene extends Scene {
   FontDesk[] fontDesk = new FontDesk[1];
 
   boolean needsUpdate = true;
+  final CodeElementColor[] colors = new CodeElementColor[] { CodeColors.defaultText.v };
 
   public HScrollTestScene(SceneApi api) {
     super(api);
@@ -38,23 +38,23 @@ public class HScrollTestScene extends Scene {
     viewportSize = api.window.getClientRect();
 
     CodeElement[] codeElements = new CodeElement[]{
-      new CodeElement("Первое слово", Colors.comma, Colors.editBgColor),
-      new CodeElement("Второе", Colors.error, Colors.showUsageBg),
-      new CodeElement("3-е", Colors.number, Colors.unused),
-      new CodeElement("Слово номер четыре", Colors.keyword, Colors.string),
-      new CodeElement("Lorem ipsum dolor sit amet, ", Colors.number, Colors.editNumbersVLine),
-      new CodeElement("consectetur adipiscing elit, ", Colors.editNumbersVLine, Colors.number),
-      new CodeElement("sed do eiusmod tempor incididunt ut labore et dolore magna aliqua sed do eiusmod tempor incididunt ut labore et dolore magna aliqua", Colors.number, Colors.editNumbersVLine),
-      new CodeElement("Ut enim ad minim veniam", new Color(255), Colors.braceMatchB),
-      new CodeElement("3-е", Colors.number, Colors.unused),
-      new CodeElement("Слово номер четыре", Colors.keyword, Colors.string),
-      new CodeElement("Lorem ipsum dolor sit amet, ", Colors.number, Colors.editNumbersVLine),
-      new CodeElement("consectetur adipiscing elit, ", Colors.editNumbersVLine, Colors.number),
-      new CodeElement("Ut enim ad minim veniam", new Color(255), Colors.braceMatchB),
-      new CodeElement("3-е", Colors.number, Colors.unused),
-      new CodeElement("Слово номер четыре", Colors.keyword, Colors.string),
-      new CodeElement("Lorem ipsum dolor sit amet, ", Colors.number, Colors.editNumbersVLine),
-      new CodeElement("consectetur adipiscing elit, ", Colors.editNumbersVLine, Colors.number)
+      new CodeElement("Первое слово", 0),
+      new CodeElement("Второе", 0),
+      new CodeElement("3-е", 0),
+      new CodeElement("Слово номер четыре", 0),
+      new CodeElement("Lorem ipsum dolor sit amet, ", 0),
+      new CodeElement("consectetur adipiscing elit, ", 0),
+      new CodeElement("sed do eiusmod tempor incididunt ut labore et dolore magna aliqua sed do eiusmod tempor incididunt ut labore et dolore magna aliqua", 0),
+      new CodeElement("Ut enim ad minim veniam", 0),
+      new CodeElement("3-е", 0),
+      new CodeElement("Слово номер четыре", 0),
+      new CodeElement("Lorem ipsum dolor sit amet, ", 0),
+      new CodeElement("consectetur adipiscing elit, ", 0),
+      new CodeElement("Ut enim ad minim veniam", 0),
+      new CodeElement("3-е", 0),
+      new CodeElement("Слово номер четыре", 0),
+      new CodeElement("Lorem ipsum dolor sit amet, ", 0),
+      new CodeElement("consectetur adipiscing elit, ", 0)
     };
 
     codeLine = new CodeLine(codeElements);
@@ -71,6 +71,9 @@ public class HScrollTestScene extends Scene {
     return false;
   }
 
+  Color error = new Color(188, 63, 60);
+  V4f debugColor = new Color("#CC7832").v4f;
+  V4f debugColorBg = new Color("#A9B7C6").v4f;
   @Override
   public void paint() {
     g.clear(Colors.editBgColor.v4f);
@@ -80,16 +83,18 @@ public class HScrollTestScene extends Scene {
     g.enableBlend(false);
 
     codeLineRenderer.updateTextureOnScroll(renderCanvas, fontDesk, fontDesk[0].iSize, scrollPosH);
-    codeLineRenderer.draw(200, 0, g, new V4f(), new V2i(), 1f, viewportSize.x, fontSize, scrollPosH);
-    codeLineRenderer.drawDebug(300, 0, g);
+
+    codeLineRenderer.draw(200, 0, g, new V4f(), new V2i(), 1f,
+        viewportSize.x, fontSize, scrollPosH, colors);
+
+    codeLineRenderer.drawDebug(300, 0, g, debugColor, debugColorBg);
 
     if (needsUpdate) {
       codeLineRenderer.updateTexture(codeLine, renderCanvas, fontDesk, g, fontDesk[0].iSize, viewportSize.x, scrollPosH);
       needsUpdate = false;
     }
 
-    g.drawRect(scrollPosH, 0, new V2i(1, viewportSize.y), Colors.error.v4f);
-
+    g.drawRect(scrollPosH, 0, new V2i(1, viewportSize.y), error.v4f);
 
     Debug.consoleInfo("hScrollPos: " + scrollPosH);
     Debug.consoleInfo("lineMeasure: " + codeLine.lineMeasure());

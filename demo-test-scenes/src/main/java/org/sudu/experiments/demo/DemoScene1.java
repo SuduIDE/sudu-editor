@@ -56,7 +56,7 @@ public class DemoScene1 extends Scene {
     mouse.size.set(mouseTexture.width(), mouseTexture.height());
 
     demoRect.bgColor.set(Colors.editBgColor.v4f);
-    demoRect.color.set(Colors.keyword.v4f);
+    demoRect.color.set(new Color(204, 120, 50).v4f);
 
     api.input.addListener(new MyInputListener());
 

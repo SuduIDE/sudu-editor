@@ -58,7 +58,11 @@ public class LineNumbersTexture implements Disposable {
     return startNum;
   }
 
-  public void draw(WglGraphics g, V2i dXdY, int componentHeight, int scrollPos, int fullTexturesSize, LineNumbersColorScheme colorScheme) {
+  public void draw(
+      WglGraphics g, V2i dXdY,
+      int componentHeight, int scrollPos, int fullTexturesSize,
+      LineNumbersColors colorScheme
+  ) {
     int height = textureSize.y;
     int yPos = ((texturePos.y - (scrollPos % fullTexturesSize)) + fullTexturesSize) % fullTexturesSize;
 
@@ -85,7 +89,11 @@ public class LineNumbersTexture implements Disposable {
     }
   }
 
-  public void drawCurrentLine(WglGraphics g, V2i dXdY, int scrollPos, int fullTexturesSize, int caretLine, LineNumbersColorScheme colorScheme) {
+  void drawCurrentLine(
+      WglGraphics g, V2i dXdY,
+      int scrollPos, int fullTexturesSize, int caretLine,
+      LineNumbersColors colorScheme
+  ) {
     int height = textureSize.y;
     int yPos = ((texturePos.y - (scrollPos % fullTexturesSize)) + fullTexturesSize) % fullTexturesSize;
     if (yPos + height > fullTexturesSize) yPos = -(scrollPos % lineTexture.height());
@@ -106,7 +114,10 @@ public class LineNumbersTexture implements Disposable {
       textColor, bgColor, 0f);
   }
 
-  private int scrollDown(Canvas textureCanvas, Canvas updateCanvas, int firstLine, int updateOn, int curFirstLine, double devicePR) {
+  private int scrollDown(
+      Canvas textureCanvas, Canvas updateCanvas,
+      int firstLine, int updateOn, int curFirstLine, double devicePR
+  ) {
     int stNum = (curFirstLine / numberOfLines) * numberOfLines;
     int endNum = stNum + numberOfLines;
 
@@ -136,7 +147,10 @@ public class LineNumbersTexture implements Disposable {
     return curFirstLine;
   }
 
-  private int scrollUp(Canvas textureCanvas, Canvas updateCanvas, int firstLine, int updateOn, int curFirstLine, double devicePR) {
+  private int scrollUp(
+      Canvas textureCanvas, Canvas updateCanvas,
+      int firstLine, int updateOn, int curFirstLine, double devicePR
+  ) {
     int stNum = (curFirstLine / numberOfLines) * numberOfLines;
     int endNum = stNum + numberOfLines;
 

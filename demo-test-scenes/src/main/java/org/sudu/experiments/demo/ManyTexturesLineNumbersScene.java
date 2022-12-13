@@ -27,10 +27,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
     api.input.addListener(new LineNumbersInputListener());
     this.g = api.graphics;
 
-    lineNumbers = new LineNumbersComponent(
-      g, new V2i(0, 0), 50,
-      LineNumbersColorScheme.ideaColorScheme()
-    );
+    lineNumbers = new LineNumbersComponent(g, new V2i(0, 0), 50);
     lineNumbers.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight);
 
     scrollBar = new ScrollBar();
@@ -40,6 +37,8 @@ public class ManyTexturesLineNumbersScene extends Scene {
   public boolean update(double timestamp) {
     return false;
   }
+
+  LineNumbersColors colors = LineNumbersColors.ideaColorScheme();
 
   @Override
   public void paint() {
@@ -54,7 +53,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
     Debug.consoleInfo("scrollPos: " + scrollPos);
 
     lineNumbers.update(scrollPos / lineHeight);
-    lineNumbers.draw(scrollPos, editorHeight());
+    lineNumbers.draw(scrollPos, editorHeight(), colors);
   }
 
   @Override
