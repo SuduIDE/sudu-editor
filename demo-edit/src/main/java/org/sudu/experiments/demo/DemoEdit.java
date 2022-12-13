@@ -59,6 +59,7 @@ public class DemoEdit extends Scene {
   boolean applyContrast, renderBlankLines = true;
   boolean renderAfterLines = true;
   boolean scrollDown, scrollUp, scrollFaster, scrollEvenFaster;
+  boolean drawTails = true;
 
   // line numbers
   LineNumbersComponent lineNumbers;
@@ -125,6 +126,7 @@ public class DemoEdit extends Scene {
 //    toolbar.addButton("■", Colors.toolbarText3, this::stopMove);
 
     toolbar.addButton("C", Colors.toolbarText2, this::toggleContrast);
+    toolbar.addButton("DT", Colors.toolbarText2, this::toggleTails);
     toolbar.addButton("TE", Colors.toolbarText2, this::toggleTopEdit);
     toolbar.addButton("TB", Colors.toolbarText2, this::toggleTopBar);
     toolbar.addButton("A↑", Colors.toolbarText3, this::increaseFont);
@@ -136,6 +138,10 @@ public class DemoEdit extends Scene {
 
     toolbar.setFont(toolBarFont);
     V2i measure = toolbar.measure(g.mCanvas, devicePR);
+  }
+
+  private void toggleTails() {
+    drawTails ^= true;
   }
 
   private void toggleContrast() {
@@ -392,6 +398,12 @@ public class DemoEdit extends Scene {
             applyContrast ? EditorConst.CONTRAST : 0, 
             editorWidth(), lineHeight, editorHScrollPos,
             colors.codeColors);
+      }
+
+      for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
+        CodeLineRenderer line = lineRenderer(i);
+        int yPosition = lineHeight * i - editorVScrollPos;
+        line.drawTail(g, vLineX, yPosition, lineHeight, size, editorHScrollPos, editorWidth(), colors.codeLineTailColor);
       }
 
       if (caretX >= -caret.width() / 2) caret.paint(g);

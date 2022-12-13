@@ -1,6 +1,7 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
@@ -248,5 +249,21 @@ class CodeLineRenderer implements Disposable {
         new V4f(0, 0, TEXTURE_WIDTH, testHeight),
         texture, color, bgColor, 1f);
     }
+  }
+
+  public void drawTail(
+      WglGraphics g,
+      int dx, int yPos,
+      int lineHeight,
+      V2i size,
+      int editorHScrollPos,
+      int editorWidth,
+      Color editBgColor
+  ) {
+    int lineEnd = Math.max(0, line.lineMeasure() - editorHScrollPos);
+    if (lineEnd >= editorWidth) return;
+    int recWidth = editorWidth - lineEnd;
+    size.set(recWidth, lineHeight);
+    g.drawRect(dx + lineEnd, yPos, size, editBgColor.v4f);
   }
 }
