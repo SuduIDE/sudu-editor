@@ -153,8 +153,22 @@ public class Win32Window implements WindowPeer, Window {
     hWnd = Win32.DestroyWindow(hWnd) ? 0 : -1;
     if (hWnd != 0) System.err.println("DesktopWindow.dispose: destroyWindow failed");
     windowSize.set(0,0);
+    scene.dispose();
     scene = null;
     currentCursor = null;
+    reportLostResources();
+  }
+
+  static void reportLostResources() {
+    if (GL.Texture.globalCounter != 0 || Canvas.globalCounter != 1) {
+      System.out.println("[window] dispose:");
+      if (GL.Texture.globalCounter != 0) {
+        System.out.println("\tGL.Texture.globalCounter = " + GL.Texture.globalCounter);
+      }
+      if (Canvas.globalCounter != 1) {
+        System.out.println("Canvas.globalCounter = " + Canvas.globalCounter);
+      }
+    }
   }
 
   private SceneApi api() {

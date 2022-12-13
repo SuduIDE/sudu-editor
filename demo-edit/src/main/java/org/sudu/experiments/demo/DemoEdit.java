@@ -282,6 +282,7 @@ public class DemoEdit extends Scene {
     }
     renderingCanvas = Disposable.assign(renderingCanvas, null);
     lineNumbers.dispose();
+    toolbar.dispose();
   }
 
   int editorFullHeight() {
