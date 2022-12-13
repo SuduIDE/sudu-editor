@@ -8,13 +8,13 @@ public enum CodeColors {
   keyword(new Color(204, 120, 50)),
   field(new Color("#9876AA")),
   string(new Color("#6A8759")),
-  comma (new Color("#CC7832")),
-  error (new Color(188, 63, 60)),
+  comma(new Color("#CC7832")),
+  error(new Color(188, 63, 60)),
   unused(new Color("#72737A")),
   number(new Color("#6897BB")),
   method(new Color("#FFC66D")),
-  braceMatch(new Color("#FFEF28"), new Color("#3B514D")),
-  showUsage(Colors.defaultTextC, new Color(52, 65, 52));
+  showUsage(Colors.defaultTextC, new Color(52, 65, 52)),
+  braceMatch(new Color("#FFEF28"), new Color("#3B514D"));
 
   public final CodeElementColor v;
 

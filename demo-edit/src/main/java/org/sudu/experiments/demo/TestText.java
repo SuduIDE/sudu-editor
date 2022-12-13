@@ -5,7 +5,7 @@ import org.sudu.experiments.math.XorShiftRandom;
 public class TestText {
   static CodeElement[] spaces() {
     int keyword = CodeColors.keyword.ordinal();
-    int braceMatch = CodeColors.comma.ordinal();
+    int braceMatch = CodeColors.braceMatch.ordinal();
 
     CodeElement sp = new CodeElement(" ", 0);
     CodeElement br1 = new CodeElement("(", 0);
@@ -31,8 +31,8 @@ public class TestText {
   }
 
   static CodeElement[] words(XorShiftRandom r) {
-    int numColors = CodeColors.values().length;
-    int stirng = CodeColors.string.ordinal();
+    int numColors = CodeColors.values().length - 1;
+    int string = CodeColors.string.ordinal();
     return new CodeElement[]{
         new CodeElement("return", r.nextInt(numColors), r.nextInt(4)),
         new CodeElement("System", r.nextInt(numColors), r.nextInt(4)),
@@ -41,11 +41,11 @@ public class TestText {
         new CodeElement("out", r.nextInt(numColors), r.nextInt(4)),
         new CodeElement("length", r.nextInt(numColors), r.nextInt(4)),
         new CodeElement("println", r.nextInt(numColors),  r.nextInt(4)),
-        new CodeElement("\"a string or text\"", stirng, r.nextInt(4)),
+        new CodeElement("\"a string or text\"", string, r.nextInt(4)),
         new CodeElement("textCanvas", r.nextInt(numColors), r.nextInt(4)),
         new CodeElement("getFont", r.nextInt(numColors), r.nextInt(4)),
         new CodeElement("37", r.nextInt(numColors), r.nextInt(4)),
-        new CodeElement("\"ggg\"", stirng, r.nextInt(4)),
+        new CodeElement("\"ggg\"", string, r.nextInt(4)),
         new CodeElement("public", r.nextInt(numColors), r.nextInt(4)),
         new CodeElement("static", r.nextInt(numColors), r.nextInt(4)),
         new CodeElement("class", r.nextInt(numColors), r.nextInt(4)),
