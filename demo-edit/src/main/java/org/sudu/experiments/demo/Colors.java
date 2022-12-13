@@ -9,15 +9,6 @@ interface Colors {
   Color editCurrentLineBg = new Color(50);
   Color defaultTextC = new Color("#A9B7C6");
 
-
-  static CodeElementColor makeDefault(Color color) {
-    return new CodeElementColor(color, editBgColor, selectionBg);
-  }
-
-  static CodeElementColor makeDefault(Color color, Color bgColor) {
-    return new CodeElementColor(color, bgColor, selectionBg);
-  }
-
   Color editNumbersVLine = new Color(85);
   Color editFooterFill = new Color(60, 63, 65);
   V4f white = new V4f(1, 1, 1, 1);

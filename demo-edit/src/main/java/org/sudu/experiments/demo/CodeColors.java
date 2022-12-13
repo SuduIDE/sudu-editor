@@ -18,9 +18,13 @@ public enum CodeColors {
 
   public final CodeElementColor v;
 
-  CodeColors(CodeElementColor color) { v = color; }
-  CodeColors(Color color) { v = Colors.makeDefault(color); }
-  CodeColors(Color color, Color bgColor) { v = Colors.makeDefault(color, bgColor); }
+  CodeColors(Color color) {
+    v = new CodeElementColor(color, Colors.editBgColor, Colors.selectionBg);
+  }
+
+  CodeColors(Color color, Color bgColor) {
+    v = new CodeElementColor(color, bgColor, Colors.selectionBg);
+  }
 
   public static CodeElementColor[] toArray() {
     CodeColors[] values = CodeColors.values();

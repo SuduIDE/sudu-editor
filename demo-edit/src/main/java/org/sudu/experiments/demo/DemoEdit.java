@@ -127,8 +127,8 @@ public class DemoEdit extends Scene {
     toolbar.addButton("C", Colors.toolbarText2, this::toggleContrast);
     toolbar.addButton("TE", Colors.toolbarText2, this::toggleTopEdit);
     toolbar.addButton("TB", Colors.toolbarText2, this::toggleTopBar);
-    toolbar.addButton("A↑", Colors.toolbarText2, this::increaseFont);
-    toolbar.addButton("A↓", Colors.toolbarText2, this::decreaseFont);
+    toolbar.addButton("A↑", Colors.toolbarText3, this::increaseFont);
+    toolbar.addButton("A↓", Colors.toolbarText3, this::decreaseFont);
     toolbar.addButton("Segoe UI", Colors.rngToolButton(), this::setSegoeUI);
     toolbar.addButton("Verdana", Colors.rngToolButton(), this::setVerdana);
     toolbar.addButton("JetBrains Mono", Colors.rngToolButton(), this::setJetBrainsMono);
