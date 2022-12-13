@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 public abstract class WglGraphics {
   public final CanvasFactory canvasFactory;
   public final Canvas mCanvas;
-  final GLApi.Context gl;
+  public final GLApi.Context gl;
   final GL.TextureContext tc;
   final boolean isWGL2;
 

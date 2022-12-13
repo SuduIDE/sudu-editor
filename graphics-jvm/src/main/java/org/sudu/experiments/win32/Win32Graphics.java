@@ -31,6 +31,10 @@ public class Win32Graphics extends WglGraphics {
 
   public void loadImage(String src, Consumer<GL.Texture> onLoad) {}
 
+  public Win32AngleGL getAngleGl() {
+    return (Win32AngleGL) gl;
+  }
+
   XorShiftRandom random;
 
   XorShiftRandom random() {

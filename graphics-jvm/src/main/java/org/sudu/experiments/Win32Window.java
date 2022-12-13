@@ -108,7 +108,8 @@ public class Win32Window implements WindowPeer, Window {
   }
 
   private void updateFps(double fps) {
-    String t = title + " - " + Numbers.iRnd(fps) + "fps";
+    int drawCalls = angleWindow.graphics().getAngleGl().getDrawCallCount();
+    String t = title + " - " + Numbers.iRnd(fps) + "fps, " + drawCalls + " drawCalls";
     Win32.SetWindowTextW(hWnd, CString.toChar16CString(t));
   }
 
@@ -142,6 +143,7 @@ public class Win32Window implements WindowPeer, Window {
       repaintRequested = false;
       scene.paint();
       angleWindow.swapBuffers();
+      angleWindow.graphics().getAngleGl().notifyNewFrame();
       fpsMeter.notifyNewFrame();
     }
     return needsRepaint;
