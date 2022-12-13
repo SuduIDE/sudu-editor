@@ -118,6 +118,8 @@ public interface GL {
   }
 
   class Texture implements Disposable {
+    static int globalCounter;
+
     final TextureContext ctx;
     GLApi.Texture texture;
     int width, height;
@@ -125,11 +127,13 @@ public interface GL {
     Texture(TextureContext ctx) {
       this.ctx = ctx;
       texture = ctx.gl.createTexture();
+      globalCounter++;
     }
 
     @Override
     public void dispose() {
       if (texture != null) {
+        globalCounter--;
         ctx.gl.deleteTexture(texture);
         texture = null;
       }
