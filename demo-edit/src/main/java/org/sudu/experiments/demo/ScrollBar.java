@@ -120,7 +120,7 @@ public class ScrollBar {
     int buttonSize,
     boolean isVertical
   ) {
-    if (editorFullSize < editorSize) {
+    if (editorFullSize <= editorSize) {
       bgSize.set(0, 0);
       this.buttonSize.set(0, 0);
     } else {
