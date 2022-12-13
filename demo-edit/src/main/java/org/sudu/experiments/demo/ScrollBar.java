@@ -17,6 +17,7 @@ public class ScrollBar {
   final V2i bgSize = new V2i();
   final V4f color1 = new V4f();
   final V4f color2 = new V4f();
+  private int editorStart;
 
   public ScrollBar() {
     color1.set(Colors.scrollBarBody1);
@@ -38,22 +39,23 @@ public class ScrollBar {
     if (hitScroll || hitButton) {
       if (!hitButton) {
         if (isVertical) {
-          onMove.accept(getClickLocationResultY(p.y));
+          onMove.accept(getClickLocationResultY(p.y - editorStart));
         } else {
-          onMove.accept(getClickLocationResultX(p.x));
+          onMove.accept(getClickLocationResultX(p.x - editorStart));
         }
       }
-      int buttonCenter = buttonPos.y + buttonSize.y / 2;
-      return dragInfo(hitButton ? buttonCenter - p.y : 0, onMove, isVertical);
+      int buttonCenter = isVertical ? buttonPos.y + buttonSize.y / 2 : buttonPos.x + buttonSize.x / 2;
+      int delta = isVertical ? p.y : p.x;
+      return dragInfo(hitButton ? buttonCenter - delta : 0, onMove, isVertical);
     }
     return null;
   }
 
   Consumer<V2i> dragInfo(int hitOffset, Consumer<IntUnaryOperator> onMove, boolean isVertical) {
     if (isVertical)
-      return pos -> onMove.accept(getClickLocationResultY(pos.y + hitOffset));
+      return pos -> onMove.accept(getClickLocationResultY(pos.y + hitOffset - editorStart));
     else
-      return pos -> onMove.accept(getClickLocationResultX(pos.x + hitOffset));
+      return pos -> onMove.accept(getClickLocationResultX(pos.x + hitOffset - editorStart));
   }
 
   static IntUnaryOperator result(int position, int maxPosition) {
@@ -126,6 +128,7 @@ public class ScrollBar {
     } else {
       int scrollControlHSize = scrollControlSize(editorSize, editorFullSize, buttonSize * BUTTON_SIZE);
       int scrollControlHPos = scrollControlPos(scrollPos, editorSize, editorFullSize, scrollControlHSize);
+      this.editorStart = editorStart;
       if (isVertical) {
         buttonPos.x = editorBorder - buttonSize;
         buttonPos.y = scrollControlHPos + editorStart;
