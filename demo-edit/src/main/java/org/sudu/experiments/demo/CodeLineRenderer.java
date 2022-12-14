@@ -146,7 +146,7 @@ class CodeLineRenderer implements Disposable {
     if (lineTextures.isEmpty()) return;
     if (horScrollPos > line.lineMeasure()) return;
 
-    float[] iMeasure = line.fMeasure;
+    int[] iMeasure = line.iMeasure;
     CodeElement[] words = line.elements;
 
     int curTexture = horScrollPos / TEXTURE_WIDTH;
@@ -162,7 +162,7 @@ class CodeLineRenderer implements Disposable {
 
       GL.Texture texture = lineTextures.get(curTexture % numOfTextures);
       CodeElement e = words[i];
-      int pxLen = (int) iMeasure[i];
+      int pxLen = iMeasure[i];
 
       if (pxLen - curTexture * TEXTURE_WIDTH <= TEXTURE_WIDTH) {
         int drawWidth = pxLen - texturePos;
