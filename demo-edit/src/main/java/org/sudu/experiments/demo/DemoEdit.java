@@ -57,7 +57,6 @@ public class DemoEdit extends Scene {
   double devicePR;
 
   boolean applyContrast, renderBlankLines = true;
-  boolean renderAfterLines = true;
   boolean scrollDown, scrollUp, scrollFaster, scrollEvenFaster;
   boolean drawTails = true;
 
@@ -103,15 +102,10 @@ public class DemoEdit extends Scene {
 
     debugFlags[0] = this::toggleContrast;
     debugFlags[1] = this::toggleBlankLines;
-    debugFlags[2] = this::toggleRenderAfterLines;
+    debugFlags[2] = this::toggleTails;
 
     // d2d is very bold, contrast makes font heavier
     applyContrast = api.window.getHost() != Host.Direct2D;
-  }
-
-  private void toggleRenderAfterLines() {
-    renderAfterLines = !renderAfterLines;
-    Debug.consoleInfo("renderAfterLines = " + renderAfterLines);
   }
 
   private void toggleBlankLines() {
@@ -142,6 +136,7 @@ public class DemoEdit extends Scene {
 
   private void toggleTails() {
     drawTails ^= true;
+    Debug.consoleInfo("drawTails = " + drawTails);
   }
 
   private void toggleContrast() {
@@ -379,15 +374,13 @@ public class DemoEdit extends Scene {
       for (int i = firstLine; i <= lastLine && i < docLen; i++) {
         CodeLine nextLine = document.line(i);
         CodeLineRenderer line = lineRenderer(i);
+
         if (line.needsUpdate(nextLine)) {
           line.updateTexture(nextLine, renderingCanvas, fonts, g, lineHeight, editorWidth(), editorHScrollPos);
         }
-        fullWidth = Math.max(fullWidth, nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * devicePR));
-      }
-
-      for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-        CodeLineRenderer line = lineRenderer(i);
         line.updateTextureOnScroll(renderingCanvas, fonts, lineHeight, editorHScrollPos);
+
+        fullWidth = Math.max(fullWidth, nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * devicePR));
       }
 
       for (int i = firstLine; i <= lastLine && i < docLen; i++) {
@@ -403,7 +396,8 @@ public class DemoEdit extends Scene {
       for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
         CodeLineRenderer line = lineRenderer(i);
         int yPosition = lineHeight * i - editorVScrollPos;
-        line.drawTail(g, vLineX, yPosition, lineHeight, size, editorHScrollPos, editorWidth(), colors.codeLineTailColor);
+        line.drawTail(g, vLineX, yPosition, lineHeight,
+            size, editorHScrollPos, editorWidth(), colors.codeLineTailColor);
       }
 
       if (caretX >= -caret.width() / 2) caret.paint(g);
