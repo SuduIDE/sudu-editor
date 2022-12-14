@@ -20,14 +20,15 @@ class Win32InputState {
     boolean onChar = msg == WM_CHAR;
     boolean down = msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN || onChar;
     boolean prevState = (lParam & (1 << 30)) != 0;
-    int vKey = (int) wParam;
+    int vKey = onChar ? 0 : (int) wParam;
 
-    if (onChar && (vKey == VK_ESCAPE || vKey == VK_BACK || vKey == VK_RETURN))
+    if (onChar && (wParam == VK_ESCAPE || wParam == VK_BACK || wParam == VK_RETURN))
       return true;
 
-    String key = onChar ? String.valueOf((char) vKey) : ""; // wmchar
+    String key = onChar ? String.valueOf((char) wParam) : ""; // wmchar
 
-//    System.out.println((onChar ? "char = " : "vKey = ") + vKey + ", down = " + down + ", prevState = " + prevState);
+    if (false) System.out.println(
+        (onChar ? "char = " : "vKey = ") + vKey + ", down = " + down + ", prevState = " + prevState);
 
     updateMods(vKey, down);
 

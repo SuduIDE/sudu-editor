@@ -649,7 +649,7 @@ public class DemoEdit extends Scene {
 
       if (event.ctrl || event.alt) return false;
       if (event.keyCode == KeyCode.ESC) return false;
-      return handleInsert(event.key);
+      return event.key.length() > 0 && handleInsert(event.key);
     }
 
     private boolean handleDebug(KeyEvent event) {
