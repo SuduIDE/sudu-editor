@@ -223,7 +223,7 @@ public class CodeLine {
 
   public int lineMeasure() {
     if (iMeasure.length == 0) return 0;
-    else return iMeasure[iMeasure.length - 1];
+    else return iMeasure[elements.length - 1];
   }
 
   public String makeString() {
