@@ -15,6 +15,7 @@ class CodeLineRenderer implements Disposable {
   static boolean bw;
   static boolean useTop = false;
   static final int TEXTURE_WIDTH = EditorConst.TEXTURE_WIDTH;
+  private int xOffset = 3;
 
   CodeLine line;
   List<GL.Texture> lineTextures = new ArrayList<>();
@@ -34,35 +35,34 @@ class CodeLineRenderer implements Disposable {
       int editorWidth,
       int horScrollPos
   ) {
-    line = content;
+    if (needsUpdate(content)) {
+      line = content;
 
-    content.measure(g.mCanvas, fonts);
+      content.measure(g.mCanvas, fonts);
 
-    if (dumpMeasure) {
-      Debug.consoleInfo("fMeasure", content.fMeasure);
-      dumpMeasure = false;
+      if (dumpMeasure) {
+        Debug.consoleInfo("fMeasure", content.fMeasure);
+        dumpMeasure = false;
+      }
+
+      renderingCanvas.setTopMode(useTop);
+
+      numOfTextures = countNumOfTextures(editorWidth);
+      initNTextures(renderingCanvas, g, fonts, lineHeight, horScrollPos);
+
+      line.contentDirty = false;
     }
-
-    renderingCanvas.clear();
-
-
-
-    renderingCanvas.setTopMode(useTop);
-
-    numOfTextures = countNumOfTextures(editorWidth);
-    initNTextures(renderingCanvas, g, fonts, lineHeight, horScrollPos);
-
-    line.contentDirty = false;
+    updateTextureOnScroll(renderingCanvas, fonts, lineHeight, horScrollPos);
   }
 
   public void resize(
-    CodeLine content,
-    Canvas renderingCanvas,
-    FontDesk[] fonts,
-    WglGraphics g,
-    int lineHeight,
-    int editorWidth,
-    int horScrollPos
+      CodeLine content,
+      Canvas renderingCanvas,
+      FontDesk[] fonts,
+      WglGraphics g,
+      int lineHeight,
+      int editorWidth,
+      int horScrollPos
   ) {
     if (line == null) {
       line = content;
@@ -84,6 +84,10 @@ class CodeLineRenderer implements Disposable {
 
   static int baselineShift(FontDesk font, int lineHeight) {
     return topBase(font, lineHeight) + font.iAscent;
+  }
+
+  public void setXOffset(int xOffset) {
+    this.xOffset = xOffset;
   }
 
   public void updateTextureOnScroll(Canvas renderingCanvas, FontDesk[] fonts, int lineHeight, int horScrollPos) {
@@ -112,38 +116,38 @@ class CodeLineRenderer implements Disposable {
   public void drawOnTexture(Canvas renderingCanvas, int lineHeight, FontDesk[] fonts, int numberOfTexture) {
     renderingCanvas.clear();
 
-    int[] iMeasure = line.iMeasure;
+    float[] fMeasure = line.fMeasure;
     int offset = numberOfTexture * TEXTURE_WIDTH;
 
     int curWord = getWordIndex(offset);
     if (curWord >= line.elements.length) return;
 
-    int wordMeasure = curWord == 0 ? 0 : iMeasure[curWord - 1];
-    int x = wordMeasure - offset;
+    float wordMeasure = curWord == 0 ? 0 : fMeasure[curWord - 1];
+    float x = wordMeasure - offset + xOffset;
 
     for (; curWord < line.elements.length; curWord++) {
       CodeElement entry = line.get(curWord);
-      int yPos = useTop ? topBase(fonts[entry.fontIndex], lineHeight) : baselineShift(fonts[0], lineHeight);
+      int yPos = useTop ? topBase(fonts[entry.fontIndex], lineHeight) : baselineShift(fonts[entry.fontIndex], lineHeight);
       renderingCanvas.setFont(fonts[entry.fontIndex]);
       renderingCanvas.drawText(entry.s, x, yPos);
-      if (iMeasure[curWord] - offset <= TEXTURE_WIDTH) {
-        x = iMeasure[curWord] - offset;
-      } else break;
+      x = fMeasure[curWord] - offset + xOffset;
+      if (x > TEXTURE_WIDTH) break;
     }
     lineTextures.get(numberOfTexture % numOfTextures).setContent(renderingCanvas);
   }
 
   public void draw(
-    int yPosition, int dx,
-    WglGraphics g,
-    V4f region, V2i size,
-    float contrast,
-    int editorWidth,
-    int lineHeight,
-    int horScrollPos,
-    CodeElementColor[] colors
+      int yPosition, int dx,
+      WglGraphics g,
+      V4f region, V2i size,
+      float contrast,
+      int editorWidth,
+      int lineHeight,
+      int horScrollPos,
+      CodeElementColor[] colors
   ) {
     if (lineTextures.isEmpty()) return;
+    if (numOfTextures == 0) return;
     if (horScrollPos > line.lineMeasure()) return;
 
     int[] iMeasure = line.iMeasure;
@@ -154,36 +158,35 @@ class CodeLineRenderer implements Disposable {
     if (curWord > iMeasure.length) return;
 
     int texturePos = horScrollPos;
-    int xPos = 0;
+    int xPos = -xOffset;
 
     for (int i = curWord; i < words.length; i++) {
-      //if (curTexture >= numOfTextures) return;
-      if (xPos >= editorWidth) return;
+      boolean isLastWord = i == words.length - 1;
+      if (xPos >= editorWidth) break;
 
       GL.Texture texture = lineTextures.get(curTexture % numOfTextures);
       CodeElement e = words[i];
-      int pxLen = iMeasure[i];
+      int pxLen = iMeasure[i] + xOffset;
 
-      if (pxLen - curTexture * TEXTURE_WIDTH <= TEXTURE_WIDTH) {
-        int drawWidth = pxLen - texturePos;
+      boolean drawOnCurTexture = pxLen - curTexture * TEXTURE_WIDTH <= TEXTURE_WIDTH;
 
-        region.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
-        size.set(drawWidth, lineHeight);
-
-        drawWord(g, xPos + dx, yPosition, size, region, e, texture, contrast, colors);
-
-        texturePos = pxLen;
-        xPos += drawWidth;
+      int drawWidth;
+      if (drawOnCurTexture) {
+        drawWidth = pxLen - texturePos;
+        if (isLastWord) drawWidth += xOffset;
       } else {
-        int drawWidth = (curTexture + 1) * TEXTURE_WIDTH - texturePos;
+        drawWidth = (curTexture + 1) * TEXTURE_WIDTH - texturePos;
+      }
 
-        region.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
-        size.set(drawWidth, lineHeight);
+      region.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
+      size.set(drawWidth, lineHeight);
 
-        drawWord(g, xPos + dx, yPosition, size, region, e, texture, contrast, colors);
+      drawWord(g, xPos + dx, yPosition, size, region, e, texture, contrast, colors);
 
-        texturePos += drawWidth;
-        xPos += drawWidth;
+      texturePos += drawWidth;
+      xPos += drawWidth;
+
+      if (!drawOnCurTexture) {
         curTexture++;
         i--;
       }
@@ -203,8 +206,8 @@ class CodeLineRenderer implements Disposable {
   ) {
     CodeElementColor c = colors[e.color];
     g.drawText(xPos, yPos, size,
-      region, texture, c.colorF.v4f, c.colorB.v4f,
-      bw ? 0 : contrast);
+        region, texture, c.colorF.v4f, c.colorB.v4f,
+        bw ? 0 : contrast);
   }
 
   private int countNumOfTextures(int editorWidth) {
@@ -240,14 +243,13 @@ class CodeLineRenderer implements Disposable {
     Debug.consoleInfo("\tlineTextures.size(): " + lineTextures.size());
   }
 
-  public void drawDebug(int yPosition, int dx, WglGraphics g, V4f color, V4f bgColor) {
-    int testHeight = 20;
+  public void drawDebug(int yPosition, int dx, int lineH, WglGraphics g, V4f color, V4f bgColor) {
     for (int i = 0; i < lineTextures.size(); i++) {
       var texture = lineTextures.get(i);
-      g.drawText(dx, yPosition + (testHeight + 5) * i,
-        new V2i(TEXTURE_WIDTH, testHeight),
-        new V4f(0, 0, TEXTURE_WIDTH, testHeight),
-        texture, color, bgColor, 1f);
+      g.drawText(dx, yPosition + (lineH + 5) * i,
+          new V2i(TEXTURE_WIDTH, lineH),
+          new V4f(0, 0, TEXTURE_WIDTH, lineH),
+          texture, color, bgColor, 1f);
     }
   }
 
@@ -262,6 +264,7 @@ class CodeLineRenderer implements Disposable {
   ) {
     int lineEnd = Math.max(0, line.lineMeasure() - editorHScrollPos);
     if (lineEnd >= editorWidth) return;
+    if (lineEnd > 0) lineEnd += xOffset;
     int recWidth = editorWidth - lineEnd;
     size.set(recWidth, lineHeight);
     g.drawRect(dx + lineEnd, yPos, size, editBgColor.v4f);

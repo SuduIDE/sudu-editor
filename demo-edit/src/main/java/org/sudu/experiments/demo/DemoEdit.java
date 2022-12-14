@@ -59,6 +59,7 @@ public class DemoEdit extends Scene {
   boolean applyContrast, renderBlankLines = true;
   boolean scrollDown, scrollUp, scrollFaster, scrollEvenFaster;
   boolean drawTails = true;
+  int xOffset = 3;
 
   // line numbers
   LineNumbersComponent lineNumbers;
@@ -120,6 +121,7 @@ public class DemoEdit extends Scene {
 //    toolbar.addButton("■", Colors.toolbarText3, this::stopMove);
 
     toolbar.addButton("C", Colors.toolbarText2, this::toggleContrast);
+    toolbar.addButton("XO", Colors.toolbarText2, this::toggleXOffset);
     toolbar.addButton("DT", Colors.toolbarText2, this::toggleTails);
     toolbar.addButton("TE", Colors.toolbarText2, this::toggleTopEdit);
     toolbar.addButton("TB", Colors.toolbarText2, this::toggleTopBar);
@@ -132,6 +134,14 @@ public class DemoEdit extends Scene {
 
     toolbar.setFont(toolBarFont);
     V2i measure = toolbar.measure(g.mCanvas, devicePR);
+  }
+
+  private void toggleXOffset() {
+    xOffset = (xOffset + 3) % 6;
+    for (var line: lines) {
+      line.setXOffset(xOffset);
+      if (line.line != null) line.line.contentDirty = true;
+    }
   }
 
   private void toggleTails() {
@@ -374,11 +384,7 @@ public class DemoEdit extends Scene {
       for (int i = firstLine; i <= lastLine && i < docLen; i++) {
         CodeLine nextLine = document.line(i);
         CodeLineRenderer line = lineRenderer(i);
-
-        if (line.needsUpdate(nextLine)) {
-          line.updateTexture(nextLine, renderingCanvas, fonts, g, lineHeight, editorWidth(), editorHScrollPos);
-        }
-        line.updateTextureOnScroll(renderingCanvas, fonts, lineHeight, editorHScrollPos);
+        line.updateTexture(nextLine, renderingCanvas, fonts, g, lineHeight, editorWidth(), editorHScrollPos);
 
         fullWidth = Math.max(fullWidth, nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * devicePR));
       }
