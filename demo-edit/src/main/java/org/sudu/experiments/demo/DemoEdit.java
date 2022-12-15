@@ -364,6 +364,8 @@ public class DemoEdit extends Scene {
     g.clear(bgColor);
 
     drawVerticalLine();
+    editorVScrollPos = Math.min(editorVScrollPos, maxEditorVScrollPos());
+    editorHScrollPos = Math.min(editorHScrollPos, maxEditorHScrollPos());
 
     int caretVerticalOffset = (lineHeight - caret.height()) / 2;
     int caretX = caretPos - caret.width() / 2 - editorHScrollPos;
@@ -548,15 +550,6 @@ public class DemoEdit extends Scene {
     layout();
     devicePR = api.window.devicePixelRatio();
     lineNumbers.setDevicePR(devicePR);
-
-    int firstLine = getFirstLine();
-    int lastLine = getLastLine();
-    lineNumbers.initTextures(firstLine, editorHeight());
-    for (int i = firstLine; i <= lastLine; i++) {
-      CodeLine nextLine = document.line(i);
-      CodeLineRenderer line = lineRenderer(i);
-      line.resize(nextLine, renderingCanvas, fonts, g, lineHeight, editorWidth(), editorHScrollPos);
-    }
   }
 
   int clampScrollPos(int pos, int maxScrollPos) {

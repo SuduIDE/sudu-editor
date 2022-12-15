@@ -70,6 +70,7 @@ public class LineNumbersComponent implements Disposable {
       int firstLine, int lastLine, int caretLine,
       LineNumbersColors colors
   ) {
+    initTextures(firstLine, editorHeight);
     update(firstLine);
     draw(scrollPos, textHeight, colors);
     drawBottom(textHeight, editorHeight, colors);
@@ -108,7 +109,7 @@ public class LineNumbersComponent implements Disposable {
   public void initTextures(int firstLine, int editorHeight) {
     int oldSize = textures.size();
 
-    while (textures.size() * textureHeight <= editorHeight) {
+    while (textures.size() * textureHeight <= editorHeight + lineHeight) {
       int number = textures.size();
       V2i texturePos = new V2i(0, number * textureHeight);
       LineNumbersTexture texture = new LineNumbersTexture(

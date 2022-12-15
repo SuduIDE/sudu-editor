@@ -22,10 +22,6 @@ class CodeLineRenderer implements Disposable {
   int numOfTextures;
   int curFromTexture = 0;
 
-  public boolean needsUpdate(CodeLine content) {
-    return line != content || line.contentDirty;
-  }
-
   public void updateTexture(
       CodeLine content,
       Canvas renderingCanvas,
@@ -35,10 +31,16 @@ class CodeLineRenderer implements Disposable {
       int editorWidth,
       int horScrollPos
   ) {
-    if (needsUpdate(content)) {
+    boolean lineChanged = line != content || line.contentDirty;
+    if (lineChanged) {
       line = content;
-
       content.measure(g.mCanvas, fonts);
+    }
+    int newNumOfTextures = countNumOfTextures(editorWidth);
+    boolean needsResize = newNumOfTextures > numOfTextures;
+    if (needsResize) numOfTextures = newNumOfTextures;
+
+    if (lineChanged || needsResize) {
 
       if (dumpMeasure) {
         Debug.consoleInfo("fMeasure", content.fMeasure);
@@ -46,36 +48,11 @@ class CodeLineRenderer implements Disposable {
       }
 
       renderingCanvas.setTopMode(useTop);
-
-      numOfTextures = countNumOfTextures(editorWidth);
       initNTextures(renderingCanvas, g, fonts, lineHeight, horScrollPos);
 
       line.contentDirty = false;
     }
     updateTextureOnScroll(renderingCanvas, fonts, lineHeight, horScrollPos);
-  }
-
-  public void resize(
-      CodeLine content,
-      Canvas renderingCanvas,
-      FontDesk[] fonts,
-      WglGraphics g,
-      int lineHeight,
-      int editorWidth,
-      int horScrollPos
-  ) {
-    if (line == null) {
-      line = content;
-      line.measure(g.mCanvas, fonts);
-    }
-
-    renderingCanvas.setTopMode(useTop);
-
-    int newNumOfTextures = countNumOfTextures(editorWidth);
-    if (newNumOfTextures != 0 && numOfTextures >= newNumOfTextures) return;
-    numOfTextures = newNumOfTextures;
-
-    initNTextures(renderingCanvas, g, fonts, lineHeight, horScrollPos);
   }
 
   static int topBase(FontDesk font, int lineHeight) {
@@ -211,7 +188,9 @@ class CodeLineRenderer implements Disposable {
   }
 
   private int countNumOfTextures(int editorWidth) {
-    if (line.lineMeasure() >= editorWidth) {
+    if (line == null) {
+      return 0;
+    } else if (line.lineMeasure() >= editorWidth) {
       return Numbers.iDivRoundUp(editorWidth, TEXTURE_WIDTH) + 1;
     } else {
       return Numbers.iDivRoundUp(line.lineMeasure(), TEXTURE_WIDTH);

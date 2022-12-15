@@ -111,7 +111,6 @@ public class HScrollTestScene extends Scene {
   @Override
   public void onResize(V2i size) {
     viewportSize = size;
-    codeLineRenderer.resize(codeLine, renderCanvas, fontDesk, g, fontDesk[0].iSize, viewportSize.x, scrollPosH);
   }
 
   @Override
