@@ -2,17 +2,20 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.math.XorShiftRandom;
 
+import org.sudu.experiments.demo.IdeaCodeColors.Elements;
+
 public class TestText {
   static CodeElement[] spaces() {
-    int keyword = CodeColors.keyword.ordinal();
-    int braceMatch = CodeColors.braceMatch.ordinal();
+    int keyword = Elements.keyword.ordinal();
+    int braceMatch = Elements.braceMatch.ordinal();
+    int commaIndex = Elements.comma.ordinal();
 
     CodeElement sp = new CodeElement(" ", 0);
     CodeElement br1 = new CodeElement("(", 0);
     CodeElement br2 = new CodeElement(")", 0);
     CodeElement plus = new CodeElement(" + ", 0);
     CodeElement minus = new CodeElement("-", 0);
-    CodeElement comma = new CodeElement(",", CodeColors.comma.ordinal());
+    CodeElement comma = new CodeElement(",", commaIndex);
     CodeElement dot = new CodeElement(".", 0);
     CodeElement br3 = new CodeElement("{", keyword);
     CodeElement br4 = new CodeElement("}", keyword);
@@ -31,8 +34,8 @@ public class TestText {
   }
 
   static CodeElement[] words(XorShiftRandom r) {
-    int numColors = CodeColors.values().length - 1;
-    int string = CodeColors.string.ordinal();
+    int numColors = Elements.values().length - 1;
+    int string = Elements.string.ordinal();
     return new CodeElement[]{
         new CodeElement("return", r.nextInt(numColors), r.nextInt(4)),
         new CodeElement("System", r.nextInt(numColors), r.nextInt(4)),

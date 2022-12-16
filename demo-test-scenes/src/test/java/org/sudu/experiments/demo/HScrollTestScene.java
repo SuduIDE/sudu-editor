@@ -28,7 +28,8 @@ public class HScrollTestScene extends Scene {
   FontDesk[] fontDesk = new FontDesk[1];
 
   boolean needsUpdate = true;
-  final CodeElementColor[] colors = new CodeElementColor[] { CodeColors.defaultText.v };
+
+  final EditorColorScheme colors = new EditorColorScheme();
 
   public HScrollTestScene(SceneApi api) {
     super(api);
@@ -76,7 +77,7 @@ public class HScrollTestScene extends Scene {
   V4f debugColorBg = new Color("#A9B7C6").v4f;
   @Override
   public void paint() {
-    g.clear(Colors.editBgColor.v4f);
+    g.clear(IdeaCodeColors.Colors.editBgColor.v4f);
     g.enableBlend(true);
     scrollBar.layoutHorizontal(scrollPosH, viewportSize.y, viewportSize.x, horizontalSize, 20);
     scrollBar.draw(g);

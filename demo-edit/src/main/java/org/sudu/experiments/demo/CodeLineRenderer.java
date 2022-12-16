@@ -121,7 +121,7 @@ class CodeLineRenderer implements Disposable {
       int editorWidth,
       int lineHeight,
       int horScrollPos,
-      CodeElementColor[] colors
+      EditorColorScheme colors
   ) {
     if (lineTextures.isEmpty()) return;
     if (numOfTextures == 0) return;
@@ -179,11 +179,11 @@ class CodeLineRenderer implements Disposable {
   private void drawWord(
       WglGraphics g, int xPos, int yPos, V2i size, V4f region,
       CodeElement e, GL.Texture texture,
-      float contrast, CodeElementColor[] colors
+      float contrast, EditorColorScheme colors
   ) {
-    CodeElementColor c = colors[e.color];
+    CodeElementColor c = colors.codeColors[e.color];
     g.drawText(xPos, yPos, size,
-        region, texture, c.colorF.v4f, c.colorB.v4f,
+        region, texture, c.colorF.v4f, colors.bgColor(c.colorB).v4f,
         bw ? 0 : contrast);
   }
 

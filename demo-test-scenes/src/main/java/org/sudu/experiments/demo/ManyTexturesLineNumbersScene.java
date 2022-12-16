@@ -38,7 +38,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
     return false;
   }
 
-  LineNumbersColors colors = LineNumbersColors.ideaColorScheme();
+  LineNumbersColors colors = IdeaCodeColors.lineNumberColors();
 
   @Override
   public void paint() {

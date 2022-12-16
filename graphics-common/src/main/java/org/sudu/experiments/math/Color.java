@@ -42,6 +42,11 @@ public class Color {
     Cvt.fromRGBA(r, g, b, a, v4f);
   }
 
+  public Color(Color c) {
+    r = c.r; g = c.g; b = c.b; a = c.a;
+    v4f.set(c.v4f);
+  }
+
   public String toHexString() {
     return Cvt.toHexString(r, g, b);
   }

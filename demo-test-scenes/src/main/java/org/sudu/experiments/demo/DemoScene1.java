@@ -11,6 +11,8 @@ import org.sudu.experiments.math.V4f;
 
 import java.util.function.Consumer;
 
+import static org.sudu.experiments.demo.IdeaCodeColors.Colors;
+
 public class DemoScene1 extends Scene {
   final WglGraphics g;
   final V4f bgColor = new V4f(Colors.editBgColor.v4f);

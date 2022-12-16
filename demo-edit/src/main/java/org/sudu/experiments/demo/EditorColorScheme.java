@@ -3,7 +3,15 @@ package org.sudu.experiments.demo;
 import org.sudu.experiments.math.Color;
 
 public class EditorColorScheme {
-  public final CodeElementColor[] codeColors = CodeColors.toArray();
-  public final LineNumbersColors lineNumbersColors = LineNumbersColors.ideaColorScheme();
-  public final Color codeLineTailColor = Colors.editBgColor;
+  public final Color editBgColor = new Color(IdeaCodeColors.Colors.editBgColor);
+  public final Color editNumbersVLine = new Color(IdeaCodeColors.Colors.editNumbersVLine);
+  public final Color editFooterFill = new Color(IdeaCodeColors.Colors.editFooterFill);
+  public final Color codeLineTailColor = new Color(editBgColor);
+
+  public final CodeElementColor[] codeColors = IdeaCodeColors.codeElementColors();
+  public final LineNumbersColors lineNumbersColors = IdeaCodeColors.lineNumberColors();
+
+  public Color bgColor(Color bg) {
+    return bg != null ? bg : editBgColor;
+  }
 }
