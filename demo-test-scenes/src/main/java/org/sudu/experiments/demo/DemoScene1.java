@@ -15,7 +15,7 @@ import static org.sudu.experiments.demo.IdeaCodeColors.Colors;
 
 public class DemoScene1 extends Scene {
   final WglGraphics g;
-  final V4f bgColor = new V4f(Colors.editBgColor.v4f);
+  final V4f bgColor = new V4f(Colors.editBgColor);
   final TextRect demoRect = new TextRect(0, 0, 300, 300);
   final DemoRect mouse = new DemoRect(0, 0, 3, 3);
   final TextRect canvasRect1 = new TextRect(0, 0, 300, 300);
@@ -57,8 +57,8 @@ public class DemoScene1 extends Scene {
 
     mouse.size.set(mouseTexture.width(), mouseTexture.height());
 
-    demoRect.bgColor.set(Colors.editBgColor.v4f);
-    demoRect.color.set(new Color(204, 120, 50).v4f);
+    demoRect.bgColor.set(Colors.editBgColor);
+    demoRect.color.set(new Color(204, 120, 50));
 
     api.input.addListener(new MyInputListener());
 

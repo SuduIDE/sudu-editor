@@ -183,7 +183,7 @@ class CodeLineRenderer implements Disposable {
   ) {
     CodeElementColor c = colors.codeColors[e.color];
     g.drawText(xPos, yPos, size,
-        region, texture, c.colorF.v4f, colors.bgColor(c.colorB).v4f,
+        region, texture, c.colorF, colors.bgColor(c.colorB),
         bw ? 0 : contrast);
   }
 
@@ -246,6 +246,6 @@ class CodeLineRenderer implements Disposable {
     if (lineEnd > 0) lineEnd += xOffset;
     int recWidth = editorWidth - lineEnd;
     size.set(recWidth, lineHeight);
-    g.drawRect(dx + lineEnd, yPos, size, editBgColor.v4f);
+    g.drawRect(dx + lineEnd, yPos, size, editBgColor);
   }
 }

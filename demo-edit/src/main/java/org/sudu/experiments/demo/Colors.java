@@ -12,9 +12,9 @@ interface Colors {
   V4f toolbarTextBg2 = Color.Cvt.fromRGBA(70, 70, 70, 200);
 
   Toolbar.ButtonColors toolbarText2 = new Toolbar.ButtonColors(
-      new Color("#6897BB").v4f, toolbarTextBg, toolbarTextBg2);
+      new Color("#6897BB"), toolbarTextBg, toolbarTextBg2);
   Toolbar.ButtonColors toolbarText3 = new Toolbar.ButtonColors(
-      new Color("#629755").v4f, toolbarTextBg, toolbarTextBg2);
+      new Color("#629755"), toolbarTextBg, toolbarTextBg2);
 
   static Toolbar.ButtonColors rngToolButton() {
     return new Toolbar.ButtonColors(

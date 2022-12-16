@@ -73,11 +73,11 @@ public class HScrollTestScene extends Scene {
   }
 
   Color error = new Color(188, 63, 60);
-  V4f debugColor = new Color("#CC7832").v4f;
-  V4f debugColorBg = new Color("#A9B7C6").v4f;
+  V4f debugColor = new Color("#CC7832");
+  V4f debugColorBg = new Color("#A9B7C6");
   @Override
   public void paint() {
-    g.clear(IdeaCodeColors.Colors.editBgColor.v4f);
+    g.clear(IdeaCodeColors.Colors.editBgColor);
     g.enableBlend(true);
     scrollBar.layoutHorizontal(scrollPosH, viewportSize.y, viewportSize.x, horizontalSize, 20);
     scrollBar.draw(g);
@@ -95,7 +95,7 @@ public class HScrollTestScene extends Scene {
       needsUpdate = false;
     }
 
-    g.drawRect(scrollPosH, 0, new V2i(1, viewportSize.y), error.v4f);
+    g.drawRect(scrollPosH, 0, new V2i(1, viewportSize.y), error);
 
     Debug.consoleInfo("hScrollPos: " + scrollPosH);
     Debug.consoleInfo("lineMeasure: " + codeLine.lineMeasure());

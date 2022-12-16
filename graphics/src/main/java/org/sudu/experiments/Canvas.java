@@ -1,7 +1,5 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.math.V4f;
-
 public abstract class Canvas implements GLApi.Canvas, Disposable, CanvasDebug {
 
   static int globalCounter;

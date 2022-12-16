@@ -324,7 +324,7 @@ public class DemoEdit extends Scene {
   private void layoutFooter() {
     int editorHeight = editorHeight();
     footerRc.set(0, editorHeight, clientRect.x, footerHeight);
-    footerRc.color.set(colors.editFooterFill.v4f);
+    footerRc.color.set(colors.editFooterFill);
     vLineSize.y = editorHeight;
   }
 
@@ -516,7 +516,7 @@ public class DemoEdit extends Scene {
       size.y = editorBottom - yPosition;
       size.x = editorRight - vLineX;
 
-      g.drawRect(vLineX, yPosition, size, colors.editBgColor.v4f);
+      g.drawRect(vLineX, yPosition, size, colors.editBgColor);
     }
   }
 
@@ -540,9 +540,9 @@ public class DemoEdit extends Scene {
 
   private void drawVerticalLine() {
     vLineSize.x = vLineW;
-    g.drawRect(vLineX - vLineLeftDelta, 0, vLineSize, colors.editNumbersVLine.v4f);
+    g.drawRect(vLineX - vLineLeftDelta, 0, vLineSize, colors.editNumbersVLine);
     vLineSize.x = vLineLeftDelta - vLineW;
-    g.drawRect(vLineX - vLineLeftDelta + vLineW, 0, vLineSize, colors.editBgColor.v4f);
+    g.drawRect(vLineX - vLineLeftDelta + vLineW, 0, vLineSize, colors.editBgColor);
   }
 
   public void onResize(V2i size) {

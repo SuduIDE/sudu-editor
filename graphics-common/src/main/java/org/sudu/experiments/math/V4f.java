@@ -53,8 +53,10 @@ public class V4f {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    V4f v = (V4f) o;
+    return o != null && getClass() == o.getClass() && equals((V4f) o);
+  }
+
+  public boolean equals(V4f v) {
     return v.x == x && v.y == y && v.z == z && v.w == w;
   }
 

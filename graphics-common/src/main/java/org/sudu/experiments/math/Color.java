@@ -1,9 +1,8 @@
 package org.sudu.experiments.math;
 
-public class Color {
+public class Color extends V4f {
 
   public int r, g, b, a;
-  public final V4f v4f = new V4f();
 
   public Color(int gray) {
     this(gray, gray, gray, 255);
@@ -31,7 +30,7 @@ public class Color {
       b = valueOfHex2(s.charAt(5), s.charAt(6));
       a = s.length() == 9 ? valueOfHex2(s.charAt(7), s.charAt(8)) : 255;
     }
-    Cvt.fromRGBA(r, g, b, a, v4f);
+    Cvt.fromRGBA(r, g, b, a, this);
   }
 
   public Color(int r, int g, int b, int a) {
@@ -39,12 +38,12 @@ public class Color {
     this.g = g;
     this.b = b;
     this.a = a;
-    Cvt.fromRGBA(r, g, b, a, v4f);
+    Cvt.fromRGBA(r, g, b, a, this);
   }
 
   public Color(Color c) {
     r = c.r; g = c.g; b = c.b; a = c.a;
-    v4f.set(c.v4f);
+    super.set(c);
   }
 
   public String toHexString() {
@@ -64,9 +63,12 @@ public class Color {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    Color color = (Color) o;
-    return r == color.r && g == color.g && b == color.b && a == color.a;
+    return o != null && getClass() == o.getClass() && equals((Color) o);
+  }
+
+  public boolean equals(Color color) {
+    return super.equals(this) &&
+        r == color.r && g == color.g && b == color.b && a == color.a;
   }
 
   public interface Cvt {

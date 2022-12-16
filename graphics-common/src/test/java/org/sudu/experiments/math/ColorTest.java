@@ -42,7 +42,7 @@ class ColorTest {
       String webString = Color.Cvt.toHexString(r, g, b);
       V4f fromRGB = Color.Cvt.fromRGB(r, g, b);
       Color fromString = new Color(webString);
-      Assertions.assertEquals(fromRGB, fromString.v4f);
+      Assertions.assertEquals(fromRGB, fromString);
     }
   }
 }

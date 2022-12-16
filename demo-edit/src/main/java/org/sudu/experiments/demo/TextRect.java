@@ -27,15 +27,15 @@ public class TextRect extends DemoRect {
   }
 
   void setColor(Color c) {
-    color.set(c.v4f);
+    color.set(c);
   }
 
   void setColors(Color cf, Color cb) {
-    color.set(cf.v4f);
-    bgColor.set(cb.v4f);
+    color.set(cf);
+    bgColor.set(cb);
   }
 
   void setBgColor(Color c) {
-    bgColor.set(c.v4f);
+    bgColor.set(c);
   }
 }
