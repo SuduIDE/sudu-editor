@@ -32,20 +32,26 @@ In order to build it one need to
 
    Do not use installer UX, there is a commandline below that installs only necessary components
 
-   3a: IDE: https://aka.ms/vs/17/release/vs_community.exe
+   IDE: https://aka.ms/vs/17/release/vs_community.exe
     ```
     vs_community.exe --wait --p --norestart --nocache --locale en-US --add "Microsoft.VisualStudio.Workload.NativeDesktop;includeRecommended"  
     set MSBuildPath=C:\Program Files\Microsoft Visual Studio\2022\Community\Msbuild\Current\Bin\amd64
     ```
-
-   3b: BuildTools: https://aka.ms/vs/17/release/vs_BuildTools.exe  
+   If, for some reason, you do not need IDE to be installed, you can try BuildTools instead, but vs_community is recommended:
+   BuildTools: https://aka.ms/vs/17/release/vs_BuildTools.exe  
    https://learn.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2022
     ```
    vs_BuildTools.exe --wait --p --norestart --nocache --locale en-US --add "Microsoft.VisualStudio.Workload.VCTools;includeRecommended"  
    set MSBuildPath=C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin
    ```
 
-4. add MSBuild and Clang to the system path
+4. Edit environment:
+   ```
+   rundll32 sysdm.cpl,EditEnvironmentVariables
+   ```
+   add the components to the user %path% manually or (not recommended) by **setx** command 
+    - MSBuild: %MSBuildPath% from step 3 
+    - Clang: %EMSDK%\upstream\bin from step 2
     ```
     setx Path "%Path%;%EMSDK%\upstream\bin;%MSBuildPath%" 
     ```
@@ -53,7 +59,6 @@ In order to build it one need to
 5. Finally check that compilers work, and review Environment Variables
    You need a new console instance to apply env changes
     ```
-   rundll32 sysdm.cpl,EditEnvironmentVariables
    MSBuild --help
    clang --help
     ```
