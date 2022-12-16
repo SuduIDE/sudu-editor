@@ -67,7 +67,7 @@ public class Color extends V4f {
   }
 
   public boolean equals(Color color) {
-    return super.equals(this) &&
+    return super.equals(color) &&
         r == color.r && g == color.g && b == color.b && a == color.a;
   }
 

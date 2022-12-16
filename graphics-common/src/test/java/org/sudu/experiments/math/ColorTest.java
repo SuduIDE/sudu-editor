@@ -45,6 +45,17 @@ class ColorTest {
       Assertions.assertEquals(fromRGB, fromString);
     }
   }
+
+  @Test
+  void testEquals() {
+    Color c1 = new Color(55,66,77);
+    Color c2 = new Color(55,66,77);
+
+    Assertions.assertEquals(c1, c2);
+
+    c1.x += 1. / 1024;
+    Assertions.assertNotEquals(c1, c2);
+  }
 }
 
 
