@@ -2,6 +2,7 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.math.Color;
 
+@SuppressWarnings("ClassCanBeRecord")
 public class CodeElementColor {
   public final Color colorF;
   public final Color colorB;

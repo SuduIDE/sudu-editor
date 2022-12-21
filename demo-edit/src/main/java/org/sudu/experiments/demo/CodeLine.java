@@ -222,8 +222,8 @@ public class CodeLine {
   }
 
   public int lineMeasure() {
-    if (iMeasure.length == 0) return 0;
-    else return iMeasure[elements.length - 1];
+    return elements.length == 0 || iMeasure.length == 0
+        ? 0 : iMeasure[elements.length - 1];
   }
 
   public String makeString() {

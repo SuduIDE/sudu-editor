@@ -34,7 +34,11 @@ public class DemoEdit extends Scene {
   int lineHeight;
 
   Document document = new Document(EditorConst.DOCUMENT_LINES);
-  CodeLineRenderer[] lines;
+
+  // render cache
+  CodeLineRenderer[] lines = new CodeLineRenderer[0];
+  int firstLineRendered, lastLineRendered;
+
 
   final Toolbar toolbar = new Toolbar();
   FontDesk toolBarFont;
@@ -93,13 +97,6 @@ public class DemoEdit extends Scene {
 
     V2i screenRect = api.window.getScreenRect();
     Debug.consoleInfo("screenRect = " + screenRect);
-
-    int vY = Math.max(clientRect.y, screenRect.y);
-    int cacheLines = Numbers.iDivRoundUp(vY, lineHeight) + EditorConst.MIN_CACHE_LINES;
-    Debug.consoleInfo("cacheLines = " + cacheLines);
-    allocLines(cacheLines);
-
-//      measureAll();
 
     debugFlags[0] = this::toggleContrast;
     debugFlags[1] = this::toggleBlankLines;
@@ -279,14 +276,6 @@ public class DemoEdit extends Scene {
     document.invalidateFont();
   }
 
-  private void allocLines(int N) {
-    System.out.println("allocLines:N = " + N);
-    lines = new CodeLineRenderer[N];
-    for (int i = 0; i < lines.length; i++) {
-      lines[i] = new CodeLineRenderer();
-    }
-  }
-
   public void dispose() {
     for (CodeLineRenderer line : lines) {
       line.dispose();
@@ -353,12 +342,15 @@ public class DemoEdit extends Scene {
   private final V4f tRegion = new V4f();
   private final V2i size = new V2i();
 
-  // debug
-  private int debugFL, debugLL;
 
   public void paint() {
     int editorBottom = editorHeight();
     int editorRight = clientRect.x;
+
+    int cacheLines = Numbers.iDivRoundUp(editorHeight(), lineHeight) + EditorConst.MIN_CACHE_LINES;
+    if (lines.length < cacheLines) {
+      lines = CodeLineRenderer.reallocRenderLines(cacheLines, lines, firstLineRendered, lastLineRendered, document);
+    }
 
     g.enableBlend(false);
     g.clear(bgColor);
@@ -371,55 +363,47 @@ public class DemoEdit extends Scene {
     int caretX = caretPos - caret.width() / 2 - editorHScrollPos;
     caret.setPosition(vLineX + caretX, caretVerticalOffset + caretLine * lineHeight - editorVScrollPos);
 
-    if (lines != null) {
-      int docLen = document.length();
+    int docLen = document.length();
 
-      int firstLine = getFirstLine();
-      int lastLine = getLastLine();
+    int firstLine = getFirstLine();
+    int lastLine = getLastLine();
 
-      if (firstLine != debugFL || lastLine != debugLL) {
-        debugFL = firstLine;
-        debugLL = lastLine;
-//        JsHelper.consoleInfo("firstLine = " + firstLine + ", lastLine = " + lastLine);
-      }
+    this.firstLineRendered = firstLine;
+    this.lastLineRendered = lastLine;
 
-      for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-        CodeLine nextLine = document.line(i);
-        CodeLineRenderer line = lineRenderer(i);
-        line.updateTexture(nextLine, renderingCanvas, fonts, g, lineHeight, editorWidth(), editorHScrollPos);
+    for (int i = firstLine; i <= lastLine && i < docLen; i++) {
+      CodeLine nextLine = document.line(i);
+      CodeLineRenderer line = lineRenderer(i);
+      line.updateTexture(nextLine, renderingCanvas, fonts, g, lineHeight, editorWidth(), editorHScrollPos);
 
-        fullWidth = Math.max(fullWidth, nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * devicePR));
-      }
+      fullWidth = Math.max(fullWidth, nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * devicePR));
 
-      for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-        int lineIndex = i % lines.length;
-        int yPosition = lineHeight * i - editorVScrollPos;
-        lines[lineIndex].draw(
-            yPosition, vLineX, g, tRegion, size,
-            applyContrast ? EditorConst.CONTRAST : 0, 
-            editorWidth(), lineHeight, editorHScrollPos,
-            colors);
-      }
-
-      for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
-        CodeLineRenderer line = lineRenderer(i);
-        int yPosition = lineHeight * i - editorVScrollPos;
-        line.drawTail(g, vLineX, yPosition, lineHeight,
-            size, editorHScrollPos, editorWidth(), colors.codeLineTailColor);
-      }
-
-      if (caretX >= -caret.width() / 2) caret.paint(g);
-
-      // draw bottom 5 invisible lines
-      if (renderBlankLines) {
-        int nextLine = Math.min(lastLine + 1, docLen);
-        int yPosition = lineHeight * nextLine - editorVScrollPos;
-        drawDocumentBottom(editorBottom, editorRight, yPosition);
-      }
-
-      drawScrollBar();
-      drawLineNumbers(editorBottom, firstLine, lastLine);
+      int yPosition = lineHeight * i - editorVScrollPos;
+      line.draw(
+          yPosition, vLineX, g, tRegion, size,
+          applyContrast ? EditorConst.CONTRAST : 0,
+          editorWidth(), lineHeight, editorHScrollPos,
+          colors);
     }
+
+    for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
+      CodeLineRenderer line = lineRenderer(i);
+      int yPosition = lineHeight * i - editorVScrollPos;
+      line.drawTail(g, vLineX, yPosition, lineHeight,
+          size, editorHScrollPos, editorWidth(), colors.codeLineTailColor);
+    }
+
+    if (caretX >= -caret.width() / 2) caret.paint(g);
+
+    // draw bottom 5 invisible lines
+    if (renderBlankLines) {
+      int nextLine = Math.min(lastLine + 1, docLen);
+      int yPosition = lineHeight * nextLine - editorVScrollPos;
+      drawDocumentBottom(editorBottom, editorRight, yPosition);
+    }
+
+    drawScrollBar();
+    drawLineNumbers(editorBottom, firstLine, lastLine);
 
     drawFooter();
     drawToolBar();

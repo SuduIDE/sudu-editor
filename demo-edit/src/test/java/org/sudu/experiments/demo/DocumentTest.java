@@ -25,6 +25,14 @@ class DocumentTest {
     Assertions.assertEquals(cl.elements.length, 0);
   }
 
+  @Test void testLineMeasure() {
+    CodeLine cl = new CodeLine(new CodeElement("A"));
+    cl.iMeasure = new int[1];
+    int lm = cl.lineMeasure();
+    cl.deleteAt(0);
+    int lm2 = cl.lineMeasure();
+  }
+
   @Test void concatTest() {
     Document d = doc4();
     d.concatLines(0);

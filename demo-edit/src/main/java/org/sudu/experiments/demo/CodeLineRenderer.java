@@ -248,4 +248,36 @@ class CodeLineRenderer implements Disposable {
     size.set(recWidth, lineHeight);
     g.drawRect(dx + lineEnd, yPos, size, editBgColor);
   }
+
+  static CodeLineRenderer[] reallocRenderLines(
+      int newSize,
+      CodeLineRenderer[] lines, int first, int last,
+      Document document
+  ) {
+    CodeLineRenderer[] r = new CodeLineRenderer[newSize];
+    int pSrc = 0;
+    if (lines.length > 0) for (int i = first; i <= last; i++) {
+      CodeLine docLine = document.line(i);
+      int newIndex = i % r.length;
+      int oldIndex = i % lines.length;
+      CodeLineRenderer oldLine = lines[oldIndex];
+      if (oldLine.line == docLine && r[newIndex] == null) {
+        r[newIndex] = oldLine;
+        lines[oldIndex] = null;
+      }
+    }
+    for (int i = 0; i < r.length; i++) {
+      if (r[i] == null) {
+        CodeLineRenderer v = pSrc < lines.length ? lines[pSrc++] : null;
+        while (pSrc < lines.length && v == null) v = lines[pSrc++];
+        if (v != null) { r[i] = v; lines[pSrc-1] = null; }
+        else r[i] = new CodeLineRenderer();
+      }
+    }
+    for (; pSrc < lines.length; pSrc++) {
+      CodeLineRenderer v = lines[pSrc];
+      if (v != null) v.dispose();
+    }
+    return r;
+  }
 }
