@@ -1,10 +1,10 @@
 package org.sudu.experiments;
 
 public interface GL {
-  boolean checkErrorOnTextureUpdate = true;
+  boolean checkErrorOnTextureUpdate = false;
   boolean checkErrorOnShaderLink = true;
   boolean checkErrorOnMeshCreate = false;
-  boolean checkErrorOnMeshDispose = true;
+  boolean checkErrorOnMeshDispose = false;
 
   // only TRIANGLE_LIST for now
   class Mesh {
