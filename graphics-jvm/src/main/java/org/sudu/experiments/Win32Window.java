@@ -80,6 +80,10 @@ public class Win32Window implements WindowPeer, Window {
       Win32.SendMessageW(hWnd, WindowPeer.WM_SYSCOMMAND, WindowPeer.SC_MAXIMIZE, 0);
     }
 
+    if (mainWindow == null && debugContext) {
+      System.out.println("Using Angle debugContext");
+    }
+
     angleWindow = new AngleWindow(hWnd, debugContext,
         mainWindow != null ? mainWindow.angleWindow : null, graphics);
 

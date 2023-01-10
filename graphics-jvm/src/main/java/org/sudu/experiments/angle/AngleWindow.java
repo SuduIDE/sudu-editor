@@ -44,6 +44,10 @@ public class AngleWindow {
     graphics.setViewPortToClientRect();
   }
 
+  public boolean isRootContext() {
+    return share_context == null;
+  }
+
   public boolean initialized() {
     return graphics != null && context != 0 && surface != 0;
   }
