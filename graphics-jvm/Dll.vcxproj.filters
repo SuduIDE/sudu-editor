@@ -72,6 +72,39 @@
     <ClInclude Include="target\javah\org_sudu_experiments_win32_IUnknown.h">
       <Filter>Javah</Filter>
     </ClInclude>
+    <ClInclude Include="src\main\java\org\sudu\experiments\win32\javaHR.h">
+      <Filter>Cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_ID2D1SolidColorBrush.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_d2d_IDWriteLocalizedStrings.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_NativeTest.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_shobj_IFileDialog.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_shobj_IFileOpenDialog.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_shobj_IModalWindow.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_TestHelper.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_Win32FileDialog.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_shobj_IShellItem.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
+    <ClInclude Include="target\javah\org_sudu_experiments_win32_shobj_IShellItemArray.h">
+      <Filter>Javah</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\angle-include\libGLESv2.lib" />

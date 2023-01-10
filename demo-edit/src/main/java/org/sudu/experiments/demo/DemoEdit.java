@@ -61,7 +61,7 @@ public class DemoEdit extends Scene {
   double devicePR;
 
   boolean applyContrast, renderBlankLines = true;
-  boolean scrollDown, scrollUp, scrollFaster, scrollEvenFaster;
+  int scrollDown, scrollUp;
   boolean drawTails = true;
   int xOffset = 3;
 
@@ -101,6 +101,7 @@ public class DemoEdit extends Scene {
     debugFlags[0] = this::toggleContrast;
     debugFlags[1] = this::toggleBlankLines;
     debugFlags[2] = this::toggleTails;
+    debugFlags[3] = this::toggleXOffset;
 
     // d2d is very bold, contrast makes font heavier
     applyContrast = api.window.getHost() != Host.Direct2D;
@@ -113,15 +114,15 @@ public class DemoEdit extends Scene {
 
   private void initToolbar() {
     toolbar.setBgColor(Colors.toolbarBg);
-//    toolbar.addButton("↓↓↓", Colors.toolbarText3, this::moveDown);
+    toolbar.addButton("↓", Colors.toolbarText3, this::moveDown);
+    toolbar.addButton("■", Colors.toolbarText3, this::stopMove);
 //    toolbar.addButton("↑↑↑", Colors.toolbarText3, this::moveUp);
-//    toolbar.addButton("■", Colors.toolbarText3, this::stopMove);
 
-    toolbar.addButton("C", Colors.toolbarText2, this::toggleContrast);
-    toolbar.addButton("XO", Colors.toolbarText2, this::toggleXOffset);
-    toolbar.addButton("DT", Colors.toolbarText2, this::toggleTails);
-    toolbar.addButton("TE", Colors.toolbarText2, this::toggleTopEdit);
-    toolbar.addButton("TB", Colors.toolbarText2, this::toggleTopBar);
+//    toolbar.addButton("C", Colors.toolbarText2, this::toggleContrast);
+//    toolbar.addButton("XO", Colors.toolbarText2, this::toggleXOffset);
+//    toolbar.addButton("DT", Colors.toolbarText2, this::toggleTails);
+//    toolbar.addButton("TE", Colors.toolbarText2, this::toggleTopEdit);
+//    toolbar.addButton("TB", Colors.toolbarText2, this::toggleTopBar);
     toolbar.addButton("A↑", Colors.toolbarText3, this::increaseFont);
     toolbar.addButton("A↓", Colors.toolbarText3, this::decreaseFont);
     toolbar.addButton("Segoe UI", Colors.rngToolButton(), this::setSegoeUI);
@@ -130,7 +131,6 @@ public class DemoEdit extends Scene {
     toolbar.addButton("Consolas", Colors.rngToolButton(), this::setConsolas);
 
     toolbar.setFont(toolBarFont);
-    V2i measure = toolbar.measure(g.mCanvas, devicePR);
   }
 
   private void toggleXOffset() {
@@ -174,33 +174,20 @@ public class DemoEdit extends Scene {
 
   private void moveDown() {
     scrollDown = switchScroll(scrollDown);
-    scrollUp = false;
+    scrollUp = 0;
   }
 
   private void moveUp() {
     scrollUp = switchScroll(scrollUp);
-    scrollDown = false;
+    scrollDown = 0;
   }
 
-  private boolean switchScroll(boolean scrollValue) {
-    if (scrollValue) {
-      scrollEvenFaster = !scrollEvenFaster;
-      scrollFaster = !scrollFaster;
-      if (scrollFaster) {
-        scrollValue = false;
-      }
-    } else {
-      scrollFaster = true;
-      scrollEvenFaster = false;
-      scrollValue = true;
-    }
-    return scrollValue;
+  private int switchScroll(int scrollValue) {
+    return (scrollValue + 4) % 20;
   }
 
   private void stopMove() {
-    scrollFaster = true;
-    scrollEvenFaster = false;
-    scrollUp = scrollDown = false;
+    scrollUp = scrollDown = 0;
   }
 
   private void setSegoeUI() {
@@ -318,11 +305,9 @@ public class DemoEdit extends Scene {
   }
 
   public boolean update(double timestamp) {
-    int scrollSpeed = 1 + (scrollFaster ? 5 : 0) + (scrollEvenFaster ? 15 : 0);
     int vScrollPos = editorVScrollPos;
-    editorVScrollPos = clampScrollPos(editorVScrollPos
-        + (scrollDown ? scrollSpeed : 0) + (scrollUp ? -scrollSpeed : 0),
-      maxEditorVScrollPos());
+    editorVScrollPos = clampScrollPos(editorVScrollPos + scrollDown  -  scrollUp,
+        maxEditorVScrollPos());
 
     boolean scrollMoving = vScrollPos != editorVScrollPos;
 
@@ -481,7 +466,7 @@ public class DemoEdit extends Scene {
 
   private void drawToolBar() {
     g.enableBlend(true);
-    V2i size = toolbar.size();
+    V2i size = toolbar.size(g, devicePR);
 
     int editorHeight = editorHeight();
     boolean above = false; // caretLine * lineHeight - editorVScrollPos < editorHeight / 2;
@@ -619,6 +604,16 @@ public class DemoEdit extends Scene {
         api.window.addChild("child", DemoEdit::new);
       }
 
+      if (event.ctrl && event.keyCode == KeyCode.O) {
+        if (event.shift) {
+          api.window.showDirectoryPicker(
+              s -> Debug.consoleInfo("showDirectoryPicker -> " + s));
+        } else {
+          api.window.showOpenFilePicker(DemoEdit.this::openFile);
+        }
+        return true;
+      }
+
       if (handleDebug(event)) return true;
       if (handleNavigation(event)) return true;
       if (handleEditingKeys(event)) return true;
@@ -630,7 +625,7 @@ public class DemoEdit extends Scene {
         return true;
       }
 
-      if (event.ctrl || event.alt) return false;
+      if (event.ctrl || event.alt || event.meta) return false;
       if (event.keyCode == KeyCode.ESC) return false;
       return event.key.length() > 0 && handleInsert(event.key);
     }
@@ -690,6 +685,17 @@ public class DemoEdit extends Scene {
       return DemoEdit.this::handleInsert;
     }
   }
+
+  private void onFileLoad(String content) {
+    Debug.consoleInfo("readAsText complete, l = " + content.length());
+  }
+
+  private void openFile(FileHandle f) {
+    int fileSize = f.getSize();
+    Debug.consoleInfo("openFile: name = " + f.getName() + ", size =  " + fileSize);
+    f.readAsText(this::onFileLoad, System.err::println);
+  }
+
   private boolean arrowUpDown(int amount, boolean ctrl, boolean alt) {
     if (ctrl && alt) return true;
     if (ctrl) {  //  editorVScrollPos moves, caretLine does not change

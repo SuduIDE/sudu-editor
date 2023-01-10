@@ -1,11 +1,22 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <shellapi.h>
+#include <shlobj_core.h>
+#include <shobjidl_core.h>
+#include <commdlg.h>
 #include <stdint.h>
 
 #include "org_sudu_experiments_win32_Win32.h"
 #include "org_sudu_experiments_win32_IUnknown.h"
 #include "org_sudu_experiments_win32_TestHelper.h"
+#include "org_sudu_experiments_win32_Win32FileDialog.h"
+#include "org_sudu_experiments_win32_shobj_IModalWindow.h"
+#include "org_sudu_experiments_win32_shobj_IFileDialog.h"
+#include "org_sudu_experiments_win32_shobj_IFileOpenDialog.h"
+#include "org_sudu_experiments_win32_shobj_IShellItemArray.h"
+#include "org_sudu_experiments_win32_shobj_IShellItem.h"
+
+#include "javaHR.h"
 
 static_assert(sizeof(WCHAR) == sizeof(jchar), "Fatal: sizeof(WCHAR) != sizeof(jchar)");
 
@@ -449,4 +460,78 @@ jlong Java_org_sudu_experiments_win32_Win32_SetClipboardData(JNIEnv*, jclass, ji
 
 jlong Java_org_sudu_experiments_win32_Win32_GetClipboardData(JNIEnv*, jclass, jint format) {
   return jlong(GetClipboardData(format));
+}
+
+void Java_org_sudu_experiments_win32_Win32_CoTaskMemFree(JNIEnv*, jclass, jlong data) {
+  CoTaskMemFree(LPVOID(data));
+}
+
+jlong Java_org_sudu_experiments_win32_Win32FileDialog_SHGetKnownDesktopPath(JNIEnv * j, jclass, jintArray pHR) {
+  PWSTR p[1] = { 0 };
+  HRESULT hr = SHGetKnownFolderPath(FOLDERID_Desktop, 0, 0, p);
+  return toJava(j, pHR, hr, p[0]);
+}
+
+typedef IModalWindow* PModalWindow;
+
+jint Java_org_sudu_experiments_win32_shobj_IModalWindow_Show(JNIEnv *, jclass, jlong _this, jlong hwndOwner) {
+  return PModalWindow(_this)->Show(HWND(hwndOwner));
+}
+
+typedef IFileOpenDialog* PFileOpenDialog;
+
+jlong Java_org_sudu_experiments_win32_shobj_IFileOpenDialog_CoCreateInstance(JNIEnv *j, jclass, jintArray pHR) {
+  void* res[1] = { 0 };
+  auto hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER,
+                            __uuidof(IFileOpenDialog), res);
+  return toJava(j, pHR, hr, res[0]);
+}
+
+jlong Java_org_sudu_experiments_win32_shobj_IFileOpenDialog_GetResults(JNIEnv *j, jclass, jlong _this, jintArray pHR) {
+  IShellItemArray* res[1] = { 0 };
+  auto hr = PFileOpenDialog(_this)->GetResults(res);
+  return toJava(j, pHR, hr, res[0]);
+}
+
+typedef IFileDialog* PFileDialog;
+
+jint Java_org_sudu_experiments_win32_shobj_IFileDialog_GetOptions(JNIEnv *j, jclass, jlong _this, jintArray res) {
+  FILEOPENDIALOGOPTIONS opts[1] = { 0 };
+  auto hr = PFileDialog(_this)->GetOptions(opts);
+
+  if (hr >= 0) {
+    jint update[1] = { jint(opts[0]) };
+    j->SetIntArrayRegion(res, 0, 1, update);
+  }
+  return hr;
+}
+
+jint Java_org_sudu_experiments_win32_shobj_IFileDialog_SetOptions(JNIEnv *, jclass, jlong _this, jint options) {
+  return PFileDialog(_this)->SetOptions(options);
+}
+
+typedef IShellItemArray* PShellItemArray;
+
+jint Java_org_sudu_experiments_win32_shobj_IShellItemArray_GetCount(JNIEnv *j, jclass, jlong _this, jintArray pHR) {
+  DWORD res[1] = { 0 };
+  auto hr = PShellItemArray(_this)->GetCount(res);
+  return toJavaR(j, pHR, hr, res[0]);
+}
+
+jlong Java_org_sudu_experiments_win32_shobj_IShellItemArray_GetItemAt(
+  JNIEnv *j, jclass, jlong _this, jint index, jintArray pHR
+) {
+  IShellItem* res[1] = { 0 };
+  auto hr = PShellItemArray(_this)->GetItemAt(index, res);
+  return toJava(j, pHR, hr, res[0]);
+}
+
+typedef IShellItem* PShellItem;
+
+jlong Java_org_sudu_experiments_win32_shobj_IShellItem_GetDisplayName(
+  JNIEnv *j, jclass, jlong _this, jint sigdnName, jintArray pHR
+) {
+  WCHAR* res[1] = { 0 };
+  auto hr = PShellItem(_this)->GetDisplayName(SIGDN(sigdnName), res);
+  return toJava(j, pHR, hr, res[0]);
 }

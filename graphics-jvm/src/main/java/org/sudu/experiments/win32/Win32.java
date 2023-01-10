@@ -8,6 +8,7 @@ public class Win32 {
   public static final int E_ACCESSDENIED = 0x80070005;
 
   public static final int CW_USEDEFAULT = 0x80000000;
+  public static final long HWND_DESKTOP = 0;
 
   static native long CreateWindow(
       long id, char[] title,
@@ -96,6 +97,8 @@ public class Win32 {
   public static native long SetClipboardData(int format, long handle);
   public static native long GetClipboardData(int format);
 
+  public static native void CoTaskMemFree(long data);
+
   public static native long GetPerformanceCounter();
   public static native long GetPerformanceFrequency();
 
@@ -178,4 +181,6 @@ public class Win32 {
     }
     return onError;
   }
+
+  public static boolean hr(int x) { return x >= 0; }
 }

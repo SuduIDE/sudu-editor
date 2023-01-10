@@ -38,6 +38,7 @@ public class WebApp {
       case "#wasm" -> new WasmDemo(api);
       case "#oneTexture" -> new TextureRegionTestScene(api);
       case "#manyTextures" -> new ManyTexturesLineNumbersScene(api);
+      case "#SelectFileTest" -> new SelectFileTest(api);
     };
   }
 

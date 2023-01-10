@@ -2,12 +2,14 @@ package org.sudu.experiments;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
 
-public class EventQueue {
+public class EventQueue implements Executor {
   final Queue<Runnable> queue = new ConcurrentLinkedQueue<>();
 
-  public void addEvent(Runnable r) {
-    queue.add(r);
+  @Override
+  public void execute(Runnable command) {
+    queue.add(command);
   }
 
   public void execute() {

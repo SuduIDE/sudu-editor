@@ -27,7 +27,7 @@ public class Toolbar {
 
   public void setFont(FontDesk font) {
     this.font = font;
-    disposeTexture();
+    invalidateTexture();
   }
 
   public void dispose() {
@@ -49,7 +49,7 @@ public class Toolbar {
     buttons.remove(b);
   }
 
-  public V2i measure(Canvas mCanvas, double devicePR) {
+  private void measure(Canvas mCanvas, double devicePR) {
     mCanvas.setFont(font);
     int textHeight = font.lineHeight() + vPad + vPad;
     border = Numbers.iRnd(2 * devicePR);
@@ -70,7 +70,6 @@ public class Toolbar {
     textureSize.y = textHeight;
     rect.size.y = textHeight + border * 2;
     rect.size.x = tw + border * buttons.size() + border;
-    return rect.size;
   }
 
   public void setPos(int x, int y) {
@@ -84,7 +83,8 @@ public class Toolbar {
     }
   }
 
-  public V2i size() {
+  public V2i size(WglGraphics g, double devicePR) {
+    if (rect.size.x == 0 || rect.size.y == 0) measure(g.mCanvas, devicePR);
     return rect.size;
   }
 

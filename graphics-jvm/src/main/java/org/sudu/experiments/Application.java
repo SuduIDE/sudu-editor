@@ -2,6 +2,8 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.win32.*;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -28,8 +30,9 @@ public class Application {
 
     Supplier<Win32Graphics> graphics = Win32Graphics.lazyInit(d2dCanvasFactory);
     EventQueue eventQueue = new EventQueue();
+    ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
 
-    Win32Window window = new Win32Window(eventQueue, time);
+    Win32Window window = new Win32Window(eventQueue, time, ioExecutor);
 
     if (!window.init(title, sf, graphics, null)) {
       throw new RuntimeException("window.init failed");
@@ -43,6 +46,7 @@ public class Application {
     }
 
     window.dispose();
+    ioExecutor.shutdown();
   }
 
   static boolean loadFontConfig(FontConfig config, D2dFactory factory) {

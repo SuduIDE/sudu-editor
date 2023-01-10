@@ -1,7 +1,6 @@
 package org.sudu.experiments.win32;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.win32.d2d.*;
 
 import java.util.HashMap;
@@ -45,7 +44,7 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
         && t(pWicFactory = IWICImagingFactory.CoCreateInstance(hr))
         && t(pDWriteFactory5 = IDWriteFactory5.DWriteCreateFactory5(hr))
         && t(pDWriteInMemoryFontFileLoader = IDWriteFactory5.CreateInMemoryFontFileLoader(pDWriteFactory5, hr))
-        && hr(hr[0] = IDWriteFactory5.RegisterFontFileLoader(pDWriteFactory5, pDWriteInMemoryFontFileLoader))
+        && Win32.hr(hr[0] = IDWriteFactory5.RegisterFontFileLoader(pDWriteFactory5, pDWriteInMemoryFontFileLoader))
         && t(pDWriteFontSetBuilder1 = IDWriteFactory5.CreateFontSetBuilder1(pDWriteFactory5, hr))
         && t(pDWriteFontCollection1System = IDWriteFactory5.GetSystemFontCollection(
             pDWriteFactory5, false, false, hr));

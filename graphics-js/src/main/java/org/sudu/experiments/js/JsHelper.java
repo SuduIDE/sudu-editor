@@ -93,8 +93,17 @@ public class JsHelper {
     return new V2i(sizeX, sizeY);
   }
 
+  @JSBody(params = {"s"}, script = "console.info(s);")
+  public static native void consoleInfo(String s);
+
+  @JSBody(params = {"s"}, script = "console.info(s);")
+  public static native void consoleInfo(JSObject s);
+
   @JSBody(params = {"s0", "obj"}, script = "console.info(s0 + obj);")
   public static native void consoleInfo(String s0, JSObject obj);
+
+  @JSBody(params = {"s", "d"}, script = "console.info(s + d);")
+  public static native void consoleInfo(String s, double d);
 
   @JSBody(params = {"s0", "obj1", "obj2"}, script = "console.info(s0 + obj1 + obj2);")
   public static native void consoleInfo(String s0, JSObject obj1, JSObject obj2);
@@ -108,9 +117,6 @@ public class JsHelper {
   @JSBody(params = {"obj"}, script = "return obj[Symbol.toStringTag];")
   public static native JSString jsToStringTag(JSObject obj);
 
-  private static boolean isDigit(char value) {
-    return '0' <= value && value <= '9';
-  }
-
-  private static int digitValue(char value) { return value - '0'; }
+  @JSBody(params = {"a", "b"}, script = "return a === b;")
+  public static native boolean strictEquals(JSObject a, JSObject b);
 }

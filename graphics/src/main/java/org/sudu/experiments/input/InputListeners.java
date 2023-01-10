@@ -41,6 +41,13 @@ public class InputListeners extends Input {
     }
   }
 
+  public void clear() {
+    map.clear();
+    size = 0;
+    snapshot = noListeners;
+    snapshotValid = true;
+  }
+
   private InputListener[] snapshot() {
     if (snapshotValid) return snapshot;
     if (snapshot.length != size) snapshot = new InputListener[size];

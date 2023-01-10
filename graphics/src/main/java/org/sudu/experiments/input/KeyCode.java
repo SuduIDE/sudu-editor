@@ -8,6 +8,7 @@ public interface KeyCode {
   int CAPS_LOCK = 20;
 
   int C = 67;
+  int O = 79;
   int V = 86;
   int X = 88;
   int W = 87;

@@ -2,6 +2,7 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.math.V2i;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface Window {
@@ -18,4 +19,7 @@ public interface Window {
   }
 
   Host getHost();
+
+  void showDirectoryPicker(Consumer<FileHandle> onResult);
+  void showOpenFilePicker(Consumer<FileHandle> onResult);
 }

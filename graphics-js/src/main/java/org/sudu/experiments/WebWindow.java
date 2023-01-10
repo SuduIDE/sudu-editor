@@ -13,6 +13,7 @@ import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 public class WebWindow implements org.sudu.experiments.Window {
   final AnimationFrameCallback frameCallback = this::onAnimationFrame;
@@ -131,5 +132,15 @@ public class WebWindow implements org.sudu.experiments.Window {
   @Override
   public Host getHost() {
     return Host.Chrome;
+  }
+
+  @Override
+  public void showDirectoryPicker(Consumer<FileHandle> onResult) {
+    JsFileDialog.showDirectoryPicker(onResult);
+  }
+
+  @Override
+  public void showOpenFilePicker(Consumer<FileHandle> onResult) {
+    JsFileDialog.showOpenFilePicker(onResult);
   }
 }

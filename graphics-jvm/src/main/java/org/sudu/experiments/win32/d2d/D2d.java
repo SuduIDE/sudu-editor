@@ -57,8 +57,6 @@ public interface D2d {
     };
   }
 
-  static boolean hr(int x) { return x >= 0; }
-
   interface Locale {
     char[] noLocale = CString.emptyCString();
     char[] en_us = CString.toChar16CString("en-us");

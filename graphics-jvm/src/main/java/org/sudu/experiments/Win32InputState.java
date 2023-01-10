@@ -22,8 +22,7 @@ class Win32InputState {
     boolean prevState = (lParam & (1 << 30)) != 0;
     int vKey = onChar ? 0 : (int) wParam;
 
-    if (onChar && (wParam == VK_ESCAPE || wParam == VK_BACK || wParam == VK_RETURN))
-      return true;
+    if (onChar && (wParam < VK_SPACE)) return false;
 
     String key = onChar ? String.valueOf((char) wParam) : ""; // wmchar
 

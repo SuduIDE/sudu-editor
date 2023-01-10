@@ -21,6 +21,10 @@ public class JsMemoryAccess {
     f64 = Float64Array.create(memory);
   }
 
+  static byte[] toByteArray(ArrayBuffer jsArrayBuffer) {
+    return toJavaArray(Int8Array.create(jsArrayBuffer));
+  }
+
   public int byteLength() {
     return buffer.getByteLength();
   }

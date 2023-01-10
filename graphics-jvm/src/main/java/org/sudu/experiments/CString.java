@@ -32,8 +32,8 @@ public class CString {
   public static native void setByteArrayRegion(byte[] dst, int start, int len, long src);
   public static native void setCharArrayRegion(char[] dst, int start, int len, long src);
 
-  public static native void getByteArrayRegion(byte[] dst, int start, int len, long receiver);
-  public static native void getCharArrayRegion(char[] dst, int start, int len, long receiver);
+  public static native void getByteArrayRegion(byte[] src, int start, int len, long receiver);
+  public static native void getCharArrayRegion(char[] src, int start, int len, long receiver);
 
   public static native long operatorNew(long size);
   public static native void operatorDelete(long ptr);
@@ -54,6 +54,10 @@ public class CString {
     char[] data = new char[length];
     setCharArrayRegion(data, 0, length, address);
     return new String(data);
+  }
+
+  public static String fromNativeString16(long address, String valueIfNull) {
+    return address != 0 ? fromNativeString16(address) : valueIfNull;
   }
 
   static native void getSetPrimitiveArrayCriticalTest(int[] array, int value);

@@ -1,6 +1,6 @@
 package org.sudu.experiments.win32.d2d;
 
-import static org.sudu.experiments.win32.d2d.D2d.hr;
+import org.sudu.experiments.win32.Win32;
 
 public class IDWriteFontCollection {
 
@@ -16,7 +16,7 @@ public class IDWriteFontCollection {
     long[] result = new long[count];
     for (int i = 0; i < count; i++) {
       result[i] = IDWriteFontCollection.GetFontFamily(_this, i, hr);
-      if (!hr(hr[0])) {
+      if (!Win32.hr(hr[0])) {
         System.err.println("IDWriteFontCollection.GetFontFamily failed: "
             + D2d.errorToString(hr[0]));
       }

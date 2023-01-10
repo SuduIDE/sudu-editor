@@ -9,6 +9,8 @@ import org.sudu.experiments.win32.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -20,6 +22,7 @@ public class Win32Window implements WindowPeer, Window {
   final InputListeners inputListeners = new InputListeners(repaint);
   final EventQueue eventQueue;
   final String config;
+  final Executor bgWorker;
 
   private boolean repaintRequested = true;
   private boolean closed;
@@ -42,14 +45,15 @@ public class Win32Window implements WindowPeer, Window {
 
   enum State { MINIMIZED, NORMAL, MAXIMIZED }
 
-  public Win32Window(EventQueue eq, Win32Time t) {
-    this(eq, "window", t);
+  public Win32Window(EventQueue eq, Win32Time t, Executor worker) {
+    this(eq, "window", t, worker);
   }
 
-  public Win32Window(EventQueue eq, String configName, Win32Time t) {
+  public Win32Window(EventQueue eq, String configName, Win32Time t, Executor worker) {
     eventQueue = eq;
     config = configName;
     time = t;
+    bgWorker = worker;
   }
 
   public boolean opened() {
@@ -155,6 +159,7 @@ public class Win32Window implements WindowPeer, Window {
     hWnd = Win32.DestroyWindow(hWnd) ? 0 : -1;
     if (hWnd != 0) System.err.println("DesktopWindow.dispose: destroyWindow failed");
     windowSize.set(0,0);
+    inputListeners.clear();
     scene.dispose();
     scene = null;
     currentCursor = null;
@@ -246,7 +251,10 @@ public class Win32Window implements WindowPeer, Window {
     return windowDpi / 96.;
   }
 
-  void onTimer() { update(); }
+  private void onTimer() {
+    eventQueue.execute();
+    update();
+  }
 
   void onEnterExitSizeMove(long hWnd, boolean enter) {
     if (enter) {
@@ -326,7 +334,7 @@ public class Win32Window implements WindowPeer, Window {
   }
 
   public boolean addChild(String title, Function<SceneApi, Scene> sf) {
-    Win32Window child = new Win32Window(eventQueue, "child", time);
+    Win32Window child = new Win32Window(eventQueue, "child", time, bgWorker);
 
     if (!child.init(title, sf, angleWindow::graphics, Win32Window.this)) {
       System.err.println("Window.init failed");
@@ -362,5 +370,22 @@ public class Win32Window implements WindowPeer, Window {
   @Override
   public Host getHost() {
     return Host.Direct2D;
+  }
+
+  @Override
+  public void showDirectoryPicker(Consumer<FileHandle> onResult) {
+    String result = Win32FileDialog.openFolderDialog(hWnd);
+    if (result != null) {
+      PathWalk.walkFileTree(result, onResult, bgWorker, eventQueue);
+    }
+  }
+
+  @Override
+  public void showOpenFilePicker(Consumer<FileHandle> onResult) {
+    String file = Win32FileDialog.openFileDialog(hWnd);
+    if (file != null) {
+      FileHandle fh = FileFactory.fromPath(file, new String[0], bgWorker, eventQueue);
+      eventQueue.execute(() -> onResult.accept(fh));
+    }
   }
 }
