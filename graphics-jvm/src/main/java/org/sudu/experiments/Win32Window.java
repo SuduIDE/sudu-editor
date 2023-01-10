@@ -69,7 +69,8 @@ public class Win32Window implements WindowPeer, Window {
     title = windowTitle;
     hWnd = Win32.CreateWindow(this, windowTitle,
         Win32.CW_USEDEFAULT, Win32.CW_USEDEFAULT,
-        Win32.CW_USEDEFAULT, Win32.CW_USEDEFAULT, 0, 2000);
+        Win32.CW_USEDEFAULT, Win32.CW_USEDEFAULT,
+        Win32.GetModuleHandle0(), 2000);
     if (hWnd == 0) return false;
 
     windowDpi = Win32.GetDpiForWindow(hWnd);
