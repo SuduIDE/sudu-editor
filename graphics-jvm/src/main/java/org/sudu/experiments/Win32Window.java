@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 
 public class Win32Window implements WindowPeer, Window {
 
-  static boolean debugContext = true;
+  static boolean debugContext = AppPreferences.getInt("debugContext", 0) != 0;
 
   final Runnable repaint = this::repaint;
   final InputListeners inputListeners = new InputListeners(repaint);
@@ -156,6 +156,7 @@ public class Win32Window implements WindowPeer, Window {
 
   public void dispose() {
     disposeChildren();
+    boolean contextIsRoot = angleWindow.isRootContext();
     angleWindow.dispose();
     hWnd = Win32.DestroyWindow(hWnd) ? 0 : -1;
     if (hWnd != 0) System.err.println("DesktopWindow.dispose: destroyWindow failed");
@@ -164,7 +165,7 @@ public class Win32Window implements WindowPeer, Window {
     scene.dispose();
     scene = null;
     currentCursor = null;
-    reportLostResources();
+    if (contextIsRoot) reportLostResources();
   }
 
   static void reportLostResources() {
