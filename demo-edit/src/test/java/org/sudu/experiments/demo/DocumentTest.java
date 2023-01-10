@@ -257,6 +257,140 @@ class DocumentTest {
     Assertions.assertEquals(doc4.document.length, 0);
   }
 
+  @Test void deleteLinesTest() {
+    Document doc5 = doc5();
+    CodeLine[] copy = Arrays.copyOf(doc5.document, doc5.document.length);
+
+    doc5.deleteLines(1, 3);
+    Assertions.assertEquals(doc5.document.length, 3);
+    Assertions.assertEquals(doc5.document[0], copy[0]);
+    Assertions.assertEquals(doc5.document[1], copy[3]);
+    Assertions.assertEquals(doc5.document[2], copy[4]);
+
+    doc5.deleteLines(0, 1);
+    Assertions.assertEquals(doc5.document.length, 2);
+    Assertions.assertEquals(doc5.document[0], copy[3]);
+    Assertions.assertEquals(doc5.document[1], copy[4]);
+
+    doc5.deleteLines(0, 2);
+    Assertions.assertEquals(doc5.document.length, 0);
+  }
+
+  @Test void deleteSelectedTest() {
+    Document doc5 = doc5();
+    Selection selection = new Selection();
+    selection.startPos.set(0, 7);
+    selection.endPos.set(3, 4);
+
+    doc5.deleteSelected(selection);
+
+    Assertions.assertEquals(doc5.document.length, 2);
+    Assertions.assertEquals(doc5.document[0].makeString(), "This is demo is designed to investigate");
+    Assertions.assertEquals(doc5.document[0].elements.length, 3);
+
+    selection.startPos.set(1, 2);
+    selection.endPos.set(1, 8);
+
+    doc5.deleteSelected(selection);
+
+    Assertions.assertEquals(doc5.document.length, 2);
+    Assertions.assertEquals(doc5.document[1].makeString(), "pence limits of this approach");
+    Assertions.assertEquals(doc5.document[1].elements.length, 2);
+
+    selection.startPos.set(1, 2);
+    selection.endPos.set(1, 20);
+
+    doc5.deleteSelected(selection);
+
+    Assertions.assertEquals(doc5.document.length, 2);
+    Assertions.assertEquals(doc5.document[1].makeString(), "pe approach");
+    Assertions.assertEquals(doc5.document[1].elements.length, 2);
+
+    selection.startPos.set(1, 0);
+    selection.endPos.set(1, 3);
+
+    doc5.deleteSelected(selection);
+
+    Assertions.assertEquals(doc5.document.length, 2);
+    Assertions.assertEquals(doc5.document[1].makeString(), "approach");
+    Assertions.assertEquals(doc5.document[1].elements.length, 1);
+  }
+
+  @Test void copyTest() {
+    Document doc5 = doc5();
+    CodeLine[] copy = Arrays.copyOf(doc5.document, doc5.document.length);
+    Selection selection = new Selection();
+    String copied;
+
+    selection.startPos.set(0, 8);
+    selection.endPos.set(0, 23);
+
+    copied = doc5.copy(selection, false);
+    Assertions.assertEquals(copied, "an experimental");
+    Assertions.assertArrayEquals(doc5.document, copy);
+
+    copied = doc5.copy(selection, true);
+    Assertions.assertEquals(copied, "an experimental");
+    Assertions.assertEquals(doc5.document[0].elements[0].s, "This is ");
+    Assertions.assertEquals(doc5.document[0].elements[1].s, " project");
+    for (int i = 1; i < 5; i++) Assertions.assertEquals(doc5.document[i], copy[i]);
+
+    String expected = """
+        a portable (Web + Desktop)
+        editor in java and kotlin
+        This demo is designed to investigate
+        performance limits""";
+
+    selection.startPos.set(1, 9);
+    selection.endPos.set(4, 18);
+
+    copied = doc5.copy(selection, false);
+    Assertions.assertEquals(copied, expected);
+  }
+
+  @Test void insertLinesTest() {
+    Document doc = new Document(new CodeLine());
+
+    doc.insertLines(0, 0, new String[]{"This is an"});
+    Assertions.assertEquals(doc.document.length, 1);
+    Assertions.assertEquals(doc.document[0].elements.length, 1);
+    Assertions.assertEquals(doc.document[0].makeString(), "This is an");
+
+    doc.insertLines(0, 10, new String[]{" experimental project"});
+    Assertions.assertEquals(doc.document.length, 1);
+    Assertions.assertEquals(doc.document[0].elements.length, 1);
+    Assertions.assertEquals(doc.document[0].makeString(), "This is an experimental project");
+  }
+
+  @Test
+  void insertLinesTest2() {
+    Document doc = new Document(new CodeLine());
+
+    doc.insertLines(0, 0, new String[]{"line 1", "line 4", "line 5"});
+    Assertions.assertEquals(doc.document.length, 3);
+    Assertions.assertEquals(doc.document[0].elements[0].s, "line 1");
+    Assertions.assertEquals(doc.document[1].elements[0].s, "line 4");
+    Assertions.assertEquals(doc.document[2].elements[0].s, "line 5");
+
+    doc.insertLines(1, 0, new String[]{"line 2", "line 3", ""});
+    Assertions.assertEquals(doc.document.length, 5);
+    Assertions.assertEquals(doc.document[0].elements[0].s, "line 1");
+    Assertions.assertEquals(doc.document[1].elements[0].s, "line 2");
+    Assertions.assertEquals(doc.document[2].elements[0].s, "line 3");
+    Assertions.assertEquals(doc.document[3].elements[0].s, "line 4");
+    Assertions.assertEquals(doc.document[4].elements[0].s, "line 5");
+  }
+
+  static Document doc5() {
+    return new Document(
+        ab("This is an ", "experimental project"),
+        ab("to write a portable"," (Web + Desktop)"),
+        ab("editor in", " java and kotlin"),
+        ab("This demo is ", "designed to investigate"),
+        ab("performance limits", " of this approach")
+    );
+  }
+
   static Document doc4() {
     return new Document(ab("AB"), ab("CD"), ab("EF"), ab("GH"));
   }
@@ -267,6 +401,10 @@ class DocumentTest {
 
   static CodeLine ab(String t) {
     return new CodeLine(abElement(t));
+  }
+
+  static CodeLine ab(String a, String b) {
+    return new CodeLine(abElement(a), abElement(b));
   }
 
   static CodeElement abElement(String t) {

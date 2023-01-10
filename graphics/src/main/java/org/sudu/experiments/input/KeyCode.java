@@ -7,6 +7,7 @@ public interface KeyCode {
   int META = 91;
   int CAPS_LOCK = 20;
 
+  int A = 65;
   int C = 67;
   int O = 79;
   int V = 86;

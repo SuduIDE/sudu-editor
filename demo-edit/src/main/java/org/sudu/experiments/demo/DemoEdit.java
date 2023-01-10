@@ -8,10 +8,7 @@ import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4f;
-import org.sudu.experiments.math.Numbers;
+import org.sudu.experiments.math.*;
 
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
@@ -53,6 +50,7 @@ public class DemoEdit extends Scene {
   DemoRect footerRc = new DemoRect();
   ScrollBar vScroll = new ScrollBar();
   ScrollBar hScroll = new ScrollBar();
+  Selection selection = new Selection();
   V2i clientRect;
   int editorVScrollPos = 0;
   int editorHScrollPos = 0;
@@ -360,23 +358,26 @@ public class DemoEdit extends Scene {
       CodeLine nextLine = document.line(i);
       CodeLineRenderer line = lineRenderer(i);
       line.updateTexture(nextLine, renderingCanvas, fonts, g, lineHeight, editorWidth(), editorHScrollPos);
+      CodeLine lineContent = line.line;
 
       fullWidth = Math.max(fullWidth, nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * devicePR));
-
       int yPosition = lineHeight * i - editorVScrollPos;
+
       line.draw(
           yPosition, vLineX, g, tRegion, size,
           applyContrast ? EditorConst.CONTRAST : 0,
           editorWidth(), lineHeight, editorHScrollPos,
-          colors);
+          colors, getSelLineSegment(i, lineContent));
     }
 
-    for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
-      CodeLineRenderer line = lineRenderer(i);
-      int yPosition = lineHeight * i - editorVScrollPos;
-      line.drawTail(g, vLineX, yPosition, lineHeight,
-          size, editorHScrollPos, editorWidth(), colors.codeLineTailColor);
-    }
+      for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
+        CodeLineRenderer line = lineRenderer(i);
+        int yPosition = lineHeight * i - editorVScrollPos;
+        boolean isTailSelected = selection.isTailSelected(i);
+        Color tailColor = isTailSelected? colors.selectionBgColor : colors.codeLineTailColor;
+        line.drawTail(g, vLineX, yPosition, lineHeight,
+            size, editorHScrollPos, editorWidth(), tailColor);
+      }
 
     if (caretX >= -caret.width() / 2) caret.paint(g);
 
@@ -402,6 +403,16 @@ public class DemoEdit extends Scene {
       Debug.consoleInfo(s);
       CodeLine.cacheMiss = CodeLine.cacheHits = 0;
     }
+  }
+
+  private V2i getSelLineSegment(int lineInd, CodeLine line) {
+    V2i selLine = selection.getLine(lineInd);
+    if (selLine != null) {
+      if (selLine.y == -1) selLine.y = line.totalStrLength;
+      selLine.x = line.computePixelLocation(selLine.x, g.mCanvas, fonts);
+      selLine.y = line.computePixelLocation(selLine.y, g.mCanvas, fonts);
+    }
+    return selLine;
   }
 
   private void drawLineNumbers(int editorBottom, int firstLine, int lastLine) {
@@ -432,36 +443,67 @@ public class DemoEdit extends Scene {
   }
 
   boolean handleEnter() {
+    if (selection.isAreaSelected()) deleteSelectedArea();
     document.line(caretLine).invalidateCache();
     document.newLineOp(caretLine, caretCharPos);
     return setCaretLinePos(caretLine + 1, 0);
   }
 
   boolean handleDelete() {
-    document.deleteChar(caretLine, caretCharPos);
+    if (selection.isAreaSelected()) deleteSelectedArea();
+    else document.deleteChar(caretLine, caretCharPos);
     adjustEditorScrollToCaret();
     return true;
   }
 
   boolean handleBackspace() {
-    if (caretCharPos == 0 && caretLine == 0) return true;
-
-    int cLine, cPos;
-    if (caretCharPos == 0) {
-      cLine = caretLine - 1;
-      cPos = document.strLength(cLine);
-      document.concatLines(cLine);
+    if (selection.isAreaSelected()) {
+      deleteSelectedArea();
+      return true;
     } else {
-      cLine = caretLine;
-      cPos = caretCharPos - 1;
-      document.deleteChar(cLine, cPos);
+      if (caretCharPos == 0 && caretLine == 0) return true;
+
+      int cLine, cPos;
+      if (caretCharPos == 0) {
+        cLine = caretLine - 1;
+        cPos = document.strLength(cLine);
+        document.concatLines(cLine);
+      } else {
+        cLine = caretLine;
+        cPos = caretCharPos - 1;
+        document.deleteChar(cLine, cPos);
+      }
+      return setCaretLinePos(cLine, cPos);
     }
-    return setCaretLinePos(cLine, cPos);
   }
 
   boolean handleInsert(String s) {
-    document.insertAt(caretLine, caretCharPos, s);
-    return setCaretPos(caretCharPos + s.length());
+    if (selection.isAreaSelected()) deleteSelectedArea();
+    String[] lines = s.split("\n", -1);
+
+    document.insertLines(caretLine, caretCharPos, lines);
+
+    int newCaretLine = caretLine + lines.length - 1;
+    int newCaretPos;
+    if (newCaretLine == caretLine) newCaretPos = caretCharPos + lines[0].length();
+    else newCaretPos = lines[lines.length - 1].length();
+
+    setCaretLinePos(newCaretLine, newCaretPos);
+    setSelectionToCaret();
+    return true;
+  }
+
+  private void deleteSelectedArea() {
+    var leftPos = selection.getLeftPos();
+    document.deleteSelected(selection);
+    setCaretLinePos(leftPos.line, leftPos.charInd);
+    setSelectionToCaret();
+  }
+
+  private void setSelectionToCaret() {
+    selection.isSelectionStarted = false;
+    selection.startPos.set(caretLine, caretCharPos);
+    selection.endPos.set(caretLine, caretCharPos);
   }
 
   private void drawToolBar() {
@@ -549,11 +591,17 @@ public class DemoEdit extends Scene {
 //      String a = press ? "click b=" : "unClick b=";
 //      System.out.println(a + button + ", count=" + clickCount);
 
+      if (!press) selection.isSelectionStarted = false;
+
       if (!press && dragLock != null) {
         dragLock = null;
         return true;
       }
 
+      if (button == MOUSE_BUTTON_LEFT && clickCount == 2 && press) {
+        onDoubleClickText(event.position);
+        return true;
+      }
       if (button == MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
         if (toolbar.onMouseClick(event.position, press)) {
           return true;
@@ -570,7 +618,7 @@ public class DemoEdit extends Scene {
           return true;
         }
 
-        dragLock = DemoEdit.this::onClickText;
+        dragLock = (position) -> onClickText(position, event.shift);
         dragLock.accept(event.position);
       }
       return true;
@@ -588,7 +636,13 @@ public class DemoEdit extends Scene {
       if (toolbar.onMouseMove(event.position, setCursor)) return true;
       if (vScroll.onMouseMove(event.position, setCursor)) return true;
       if (hScroll.onMouseMove(event.position, setCursor)) return true;
-      return setCursor.set(Cursor.text);
+      if (lineNumbers.onMouseMove(event.position, setCursor, editorHeight())) return true;
+      if (onMouseMove(event.position)) return true;
+      return setCursor.setDefault();
+    }
+
+    private boolean onMouseMove(V2i position) {
+      return Rect.isInside(position, new V2i(vLineX, 0), new V2i(editorWidth(), editorHeight())) && setCursor.set(Cursor.text);
     }
 
     @Override
@@ -597,6 +651,7 @@ public class DemoEdit extends Scene {
       if (KeyEvent.isCopyPasteRelatedKey(event) || KeyEvent.isBrowserKey(event)) {
         return false;
       }
+      if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
       // do not process release events
       if (!event.isPressed) return false;
 
@@ -642,22 +697,32 @@ public class DemoEdit extends Scene {
       return false;
     }
 
+    private boolean selectAll() {
+      int line = document.length() - 1;
+      int charInd = document.strLength(line);
+      selection.startPos.set(0, 0);
+      selection.endPos.set(document.length() - 1, charInd);
+      return true;
+    }
+
     private boolean handleNavigation(KeyEvent event) {
-      return switch (event.keyCode) {
-        case KeyCode.ARROW_UP -> arrowUpDown(-1, event.ctrl, event.alt);
-        case KeyCode.ARROW_DOWN -> arrowUpDown(1, event.ctrl, event.alt);
+      boolean result = switch (event.keyCode) {
+        case KeyCode.ARROW_UP -> arrowUpDown(-1, event.ctrl, event.alt, event.shift);
+        case KeyCode.ARROW_DOWN -> arrowUpDown(1, event.ctrl, event.alt, event.shift);
         case KeyCode.PAGE_UP ->
             event.ctrl ? setCaretLine(Numbers.iDivRoundUp(editorVScrollPos, lineHeight))
-                : arrowUpDown(2 - Numbers.iDivRound(editorHeight(), lineHeight), false, event.alt);
+                : arrowUpDown(2 - Numbers.iDivRound(editorHeight(), lineHeight), false, event.alt, event.shift);
         case KeyCode.PAGE_DOWN ->
             event.ctrl ? setCaretLine((editorVScrollPos + editorHeight()) / lineHeight - 1)
-                : arrowUpDown(Numbers.iDivRound(editorHeight(), lineHeight) - 2, false, event.alt);
-        case KeyCode.ARROW_LEFT -> moveCaretLeftRight(-1);
-        case KeyCode.ARROW_RIGHT -> moveCaretLeftRight(1);
-        case KeyCode.HOME -> setCaretPos(0);
-        case KeyCode.END -> setCaretPos(caretCodeLine().totalStrLength);
+                : arrowUpDown(Numbers.iDivRound(editorHeight(), lineHeight) - 2, false, event.alt, event.shift);
+        case KeyCode.ARROW_LEFT -> moveCaretLeftRight(-1, event.ctrl, event.shift);
+        case KeyCode.ARROW_RIGHT -> moveCaretLeftRight(1, event.ctrl, event.shift);
+        case KeyCode.HOME -> shiftSelection(event.shift) || setCaretPos(0);
+        case KeyCode.END -> shiftSelection(event.shift) || setCaretPos(caretCodeLine().totalStrLength);
         default -> false;
       };
+      if (result && event.shift) selection.endPos.set(caretLine, caretCharPos);
+      return result;
     }
 
     private boolean handleEditingKeys(KeyEvent event) {
@@ -673,11 +738,31 @@ public class DemoEdit extends Scene {
 
     @Override
     public boolean onCopy(Consumer<String> setText, boolean isCut) {
-      String string = caretCodeLine().makeString();
-      setText.accept(string);
-      if (isCut) {
-        document.deleteLine(caretLine);
+      var left = selection.getLeftPos();
+      int line = left.line;
+      String result;
+
+      if (!selection.isAreaSelected()) {
+        result = document.copyLine(line);
+        int newLine = Math.min(document.length() - 1, line);
+
+        selection.endPos.set(newLine, 0);
+        if (line < document.length() - 1)
+          selection.startPos.set(newLine + 1, 0);
+        else
+          selection.endPos.set(newLine, document.strLength(newLine));
+
+        if (isCut) deleteSelectedArea();
+        else setCaretLinePos(line, 0);
+      } else {
+        result = document.copy(selection, isCut);
+        if (isCut) {
+          setCaretLinePos(left.line, left.charInd);
+          setSelectionToCaret();
+        }
       }
+
+      setText.accept(result);
       return true;
     }
 
@@ -685,7 +770,6 @@ public class DemoEdit extends Scene {
       return DemoEdit.this::handleInsert;
     }
   }
-
   private void onFileLoad(String content) {
     Debug.consoleInfo("readAsText complete, l = " + content.length());
   }
@@ -696,7 +780,8 @@ public class DemoEdit extends Scene {
     f.readAsText(this::onFileLoad, System.err::println);
   }
 
-  private boolean arrowUpDown(int amount, boolean ctrl, boolean alt) {
+  private boolean arrowUpDown(int amount, boolean ctrl, boolean alt, boolean shiftPressed) {
+    if (shiftSelection(shiftPressed)) return true;
     if (ctrl && alt) return true;
     if (ctrl) {  //  editorVScrollPos moves, caretLine does not change
       editorVScrollPos = clampScrollPos(editorVScrollPos + amount * lineHeight * 12 / 10, maxEditorVScrollPos());
@@ -709,9 +794,19 @@ public class DemoEdit extends Scene {
     return true;
   }
 
-  private boolean moveCaretLeftRight(int shift) {
-    int newPos = caretCharPos + shift;
-    if (newPos > caretCodeLine().totalStrLength) { // goto next line
+  private boolean moveCaretLeftRight(int shift, boolean ctrl, boolean shiftPressed) {
+    if (shiftSelection(shiftPressed)) return true;
+    var caretCodeLine = caretCodeLine();
+    int newPos;
+    if (ctrl) {
+      if (shift < 0)
+        newPos = caretCodeLine.prevPos(caretPos);
+      else
+        newPos = caretCodeLine.nextPos(caretPos);
+    } else {
+      newPos = caretCharPos + shift;
+    }
+    if (newPos > caretCodeLine.totalStrLength) { // goto next line
       if ((caretLine + 1) < document.length()) {
         caretCharPos = 0;
         setCaretLine(caretLine + 1);
@@ -726,6 +821,16 @@ public class DemoEdit extends Scene {
     }
     adjustEditorHScrollToCaret();
     return true;
+  }
+
+  private boolean shiftSelection(boolean shift) {
+    if (selection.isAreaSelected() && !shift) {
+      setSelectionToCaret();
+      adjustEditorScrollToCaret();
+      return true;
+    }
+    if (!shift || !selection.isAreaSelected()) setSelectionToCaret();
+    return false;
   }
 
   private boolean setCaretLinePos(int line, int pos) {
@@ -779,7 +884,7 @@ public class DemoEdit extends Scene {
     }
   }
 
-  void onClickText(V2i position) {
+  private void computeCaret(V2i position) {
     caretLine = Numbers.clamp(0,
         (position.y + editorVScrollPos) / lineHeight, document.length() - 1);
 
@@ -790,7 +895,26 @@ public class DemoEdit extends Scene {
     if (1<0) Debug.consoleInfo(
         "onClickText: caretCharPos = " + caretCharPos + ", caretPos = " + caretPos);
     caret.startDelay(api.window.timeNow());
+  }
+
+  void onClickText(V2i position, boolean shift) {
+    computeCaret(position);
     adjustEditorScrollToCaret();
+    if (shift) selection.isSelectionStarted = true;
+    selection.select(caretLine, caretCharPos);
+  }
+
+  void onDoubleClickText(V2i position) {
+    computeCaret(position);
+    adjustEditorScrollToCaret();
+
+    CodeLine line = caretCodeLine();
+    int wordStart = line.wordStart(caretPos);
+    int wordEnd = line.wordEnd(caretPos);
+
+    selection.startPos.set(caretLine, wordStart);
+    selection.endPos.set(caretLine, wordEnd);
+    setCaretLinePos(caretLine, wordEnd);
   }
 
   CodeLine caretCodeLine() {

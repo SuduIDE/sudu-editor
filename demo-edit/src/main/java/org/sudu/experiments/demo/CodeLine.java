@@ -35,6 +35,73 @@ public class CodeLine {
     return elements[ind];
   }
 
+  public void delete(int beginIndex, int endIndex) {
+    if (beginIndex <= 0 && endIndex >= totalStrLength) {
+      elements = new CodeElement[0];
+      invalidateCache();
+      totalStrLength = 0;
+      return;
+    }
+    if (beginIndex >= endIndex) return;
+    int diff = endIndex - beginIndex;
+
+    int i = 0, j = 0;
+    while (i < elements.length && j < elements.length) {
+      int iSz = elements[i].s.length();
+      int jSz = elements[j].s.length();
+      if (beginIndex <= iSz && endIndex <= jSz) break;
+      if (beginIndex > iSz) {
+        beginIndex -= iSz;
+        i++;
+      }
+      if (endIndex > jSz) {
+        endIndex -= jSz;
+        j++;
+      }
+    }
+
+    if (i == j) {
+      CodeElement elem = elements[j];
+      boolean isEmpty = beginIndex == 0 && endIndex == elem.s.length();
+      if (isEmpty) {
+        elements = ArrayOp.remove(elements, i, new CodeElement[elements.length - 1]);
+        totalStrLength -= diff;
+        return;
+      }
+
+      String s1 = elem.s.substring(0, beginIndex);
+      String s2 = elem.s.substring(endIndex);
+      String newValue = s1.concat(s2);
+      elements[i] = new CodeElement(newValue, elem.color, elem.fontIndex);
+    } else {
+      CodeElement from = elements[i];
+      CodeElement to = elements[j];
+
+      if (beginIndex != 0) {
+        if (beginIndex != from.s.length()) {
+          String newValue = from.s.substring(0, beginIndex);
+          elements[i] = new CodeElement(newValue, from.color, from.fontIndex);
+        }
+        i++;
+      }
+
+      if (endIndex != to.s.length()) {
+        if (endIndex != 0) {
+          String newValue = to.s.substring(endIndex);
+          elements[j] = new CodeElement(newValue, to.color, to.fontIndex);
+        }
+      } else j++;
+
+      elements = ArrayOp.remove(elements, i, j, new CodeElement[elements.length - j + i]);
+    }
+    totalStrLength -= diff;
+    invalidateCache();
+  }
+
+  public void delete(int beginIndex) {
+    delete(beginIndex, totalStrLength);
+  }
+
   public CodeLine[] split(int pos) {
     if (pos <= 0) return new CodeLine[] {new CodeLine(), this};
     if (pos >= totalStrLength) return new CodeLine[] {this, new CodeLine()};
@@ -47,8 +114,8 @@ public class CodeLine {
     }
     if (pos == 0) {
       return new CodeLine[] {
-        new CodeLine(ArrayOp.segment(e, 0, new CodeElement[i])),
-        new CodeLine(ArrayOp.segment(e, i, new CodeElement[e.length - i]))
+          new CodeLine(ArrayOp.segment(e, 0, new CodeElement[i])),
+          new CodeLine(ArrayOp.segment(e, i, new CodeElement[e.length - i]))
       };
     }
 
@@ -85,13 +152,28 @@ public class CodeLine {
       if (pos <= el) break;
       pos -= el;
     }
+    insertAt(i, pos, value);
+    totalStrLength += value.length();
+    invalidateCache();
+  }
+
+  private void insertAt(int ind, int pos, String value) {
     if (elements.length == 0) {
       elements = new CodeElement[] {new CodeElement(value)};
     } else {
-      elements[i] = elements[i].insertAt(pos, value);
+      elements[ind] = elements[ind].insertAt(pos, value);
     }
     totalStrLength += value.length();
     invalidateCache();
+  }
+
+  public void insertToEnd(String value) {
+    int elemSize = elements.length == 0 ? 0 : elements[elements.length - 1].s.length();
+    insertAt(elements.length - 1, elemSize, value);
+  }
+
+  public void insertToBegin(String value) {
+    insertAt(0, 0, value);
   }
 
   void measure(Canvas measuringCanvas, FontDesk[] fonts) {
@@ -193,9 +275,28 @@ public class CodeLine {
   }
 
   private int findEntryByPixel(int pixelLocation) {
-    int ind = Arrays.binarySearch(iMeasure, pixelLocation);
+    int ind = Arrays.binarySearch(iMeasure, 0, elements.length, pixelLocation);
     if (ind < 0) ind = -ind - 1;
     return ind;
+  }
+
+  public int wordStart(int pixelLocation) {
+    int pos = findEntryByPixel(pixelLocation);
+    if (pos == 0) return 0;
+    else pos--;
+    int charInd = 0;
+    for (int i = 0; i <= pos; i++)
+      charInd += elements[i].s.length();
+    return charInd;
+  }
+
+  public int wordEnd(int pixelLocation) {
+    int pos = findEntryByPixel(pixelLocation);
+    if (pos >= elements.length) pos = elements.length - 1;
+    int charInd = 0;
+    for (int i = 0; i < pos + 1; i++)
+      charInd += elements[i].s.length();
+    return charInd;
   }
 
   public int computePixelLocation(int caretCharPos, Canvas mCanvas, FontDesk[] fonts) {
@@ -226,12 +327,40 @@ public class CodeLine {
         ? 0 : iMeasure[elements.length - 1];
   }
 
+  public int prevPos(int caretPos) {
+    int pos = findEntryByPixel(caretPos);
+    if (pos == 0 && caretPos == 0) return -1;
+    int charInd = 0;
+    for (int i = 0; i < pos; i++)
+      charInd += elements[i].s.length();
+    return charInd;
+  }
+
+  public int nextPos(int caretPos) {
+    int pos = findEntryByPixel(caretPos);
+    if (iMeasure[pos] == caretPos) pos++;
+    pos++;
+    if (pos >= elements.length && caretPos == lineMeasure()) return Integer.MAX_VALUE;
+    int charInd = 0;
+    for (int i = 0; i < pos; i++)
+      charInd += elements[i].s.length();
+    return charInd;
+  }
+
   public String makeString() {
     StringBuilder sb = new StringBuilder(totalStrLength);
     for (CodeElement element : elements) {
       sb.append(element.s);
     }
     return sb.toString();
+  }
+
+  public String makeString(int beginIndex) {
+    return makeString().substring(beginIndex);
+  }
+
+  public String makeString(int beginIndex, int endIndex) {
+    return makeString().substring(beginIndex, endIndex);
   }
 
   @Override

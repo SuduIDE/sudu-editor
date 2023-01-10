@@ -121,7 +121,8 @@ class CodeLineRenderer implements Disposable {
       int editorWidth,
       int lineHeight,
       int horScrollPos,
-      EditorColorScheme colors
+      EditorColorScheme colors,
+      V2i selectedSegment
   ) {
     if (lineTextures.isEmpty()) return;
     if (numOfTextures == 0) return;
@@ -147,18 +148,35 @@ class CodeLineRenderer implements Disposable {
 
       boolean drawOnCurTexture = pxLen - curTexture * TEXTURE_WIDTH <= TEXTURE_WIDTH;
 
-      int drawWidth;
-      if (drawOnCurTexture) {
-        drawWidth = pxLen - texturePos;
-        if (isLastWord) drawWidth += xOffset;
+      int drawWidth = Math.min((curTexture + 1) * TEXTURE_WIDTH, pxLen) - texturePos;
+      if (drawOnCurTexture && isLastWord) drawWidth += xOffset;
+
+      boolean isNotSelected = selectedSegment == null;
+      boolean isFullUnselected = isNotSelected || isFullUnselected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
+      boolean isFullSelected = !isNotSelected && isFullSelected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
+
+      if (isFullSelected || isFullUnselected) {
+        region.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
+        size.set(drawWidth, lineHeight);
+        drawWord(g, xPos + dx, yPosition, size, region, e, texture, contrast, colors, isFullSelected);
       } else {
-        drawWidth = (curTexture + 1) * TEXTURE_WIDTH - texturePos;
+        selectedSegment.y = Math.min(selectedSegment.y, line.lineMeasure());
+        int pre;
+        int post;
+
+        if (texturePos >= selectedSegment.x) pre = drawWidth;
+        else pre = Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH) - selectedSegment.x - xOffset;
+
+        if (texturePos + drawWidth <= selectedSegment.y + (isLastWord ? 2 * xOffset : xOffset)) post = 0;
+        else post = Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH) - selectedSegment.y - xOffset;
+
+        int regionX = texturePos - curTexture * TEXTURE_WIDTH;
+        drawSelected(g, xPos + dx, yPosition,
+            region, size, contrast,
+            lineHeight, colors,
+            texture, e,
+            drawWidth, pre, post, regionX);
       }
-
-      region.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
-      size.set(drawWidth, lineHeight);
-
-      drawWord(g, xPos + dx, yPosition, size, region, e, texture, contrast, colors);
 
       texturePos += drawWidth;
       xPos += drawWidth;
@@ -170,21 +188,56 @@ class CodeLineRenderer implements Disposable {
     }
   }
 
-  public int getWordIndex(int horScrollPos) {
-    int curWord = Arrays.binarySearch(line.iMeasure, horScrollPos);
-    if (curWord < 0) curWord = -curWord - 1;
-    return curWord;
+  private void drawSelected(
+      WglGraphics g, int xPos, int yPosition,
+      V4f region, V2i size, float contrast,
+      int lineHeight, EditorColorScheme colors,
+      GL.Texture texture, CodeElement e,
+      int drawWidth, int pre, int post, int regionX
+  ) {
+    region.set(regionX, 0, drawWidth - pre, lineHeight);
+    size.set(drawWidth - pre, lineHeight);
+    drawWord(g, xPos, yPosition, size, region, e, texture, contrast, colors, false);
+
+    region.set(regionX + drawWidth - post, 0, post, lineHeight);
+    size.set(post, lineHeight);
+    drawWord(g, xPos + drawWidth - post, yPosition, size, region, e, texture, contrast, colors, false);
+
+    region.set(regionX + drawWidth - pre, 0, pre - post, lineHeight);
+    size.set(pre - post, lineHeight);
+    drawWord(g, xPos + drawWidth - pre, yPosition, size, region, e, texture, contrast, colors, true);
   }
 
   private void drawWord(
       WglGraphics g, int xPos, int yPos, V2i size, V4f region,
       CodeElement e, GL.Texture texture,
-      float contrast, EditorColorScheme colors
+      float contrast, EditorColorScheme colors, boolean isSelected
   ) {
+    if (size.x == 0 || size.y == 0) return;
+    if (region.w == 0 || region.z == 0) return;
+
     CodeElementColor c = colors.codeColors[e.color];
+    Color bgColor = isSelected ? colors.selectionBgColor : colors.bgColor(c.colorB);
     g.drawText(xPos, yPos, size,
-        region, texture, c.colorF, colors.bgColor(c.colorB),
+        region, texture, c.colorF, bgColor,
         bw ? 0 : contrast);
+  }
+
+  private int getWordIndex(int horScrollPos) {
+    int curWord = Arrays.binarySearch(line.fMeasure, 0, line.elements.length, horScrollPos);
+    if (curWord < 0) curWord = -curWord - 1;
+    return curWord;
+  }
+
+  private boolean isFullUnselected(V2i sel, int texturePos, int drawWidth, int offset) {
+    return sel.x >= sel.y
+        || texturePos > sel.y
+        || texturePos + drawWidth <= sel.x + offset;
+  }
+
+  private boolean isFullSelected(V2i sel, int texturePos, int drawWidth, int offset) {
+    return texturePos >= sel.x
+        && texturePos + drawWidth <= sel.y + offset;
   }
 
   private int countNumOfTextures(int editorWidth) {
@@ -241,9 +294,10 @@ class CodeLineRenderer implements Disposable {
       int editorWidth,
       Color editBgColor
   ) {
-    int lineEnd = Math.max(0, line.lineMeasure() - editorHScrollPos);
+    int lineMeasure = line.lineMeasure();
+    if (lineMeasure != 0) lineMeasure += xOffset;
+    int lineEnd = Math.max(-xOffset, lineMeasure - editorHScrollPos);
     if (lineEnd >= editorWidth) return;
-    if (lineEnd > 0) lineEnd += xOffset;
     int recWidth = editorWidth - lineEnd;
     size.set(recWidth, lineHeight);
     g.drawRect(dx + lineEnd, yPos, size, editBgColor);

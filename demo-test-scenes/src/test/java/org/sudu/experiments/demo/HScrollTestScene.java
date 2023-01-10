@@ -86,7 +86,7 @@ public class HScrollTestScene extends Scene {
     codeLineRenderer.updateTextureOnScroll(renderCanvas, fontDesk, fontDesk[0].iSize, scrollPosH);
 
     codeLineRenderer.draw(200, 0, g, new V4f(), new V2i(), 1f,
-        viewportSize.x, fontSize, scrollPosH, colors);
+        viewportSize.x, fontSize, scrollPosH, colors, null);
 
     codeLineRenderer.drawDebug(300, 0, fontSize, g, debugColor, debugColorBg);
 

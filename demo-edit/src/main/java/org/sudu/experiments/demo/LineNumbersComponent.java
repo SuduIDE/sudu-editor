@@ -1,6 +1,7 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 
 import java.util.ArrayList;
@@ -167,4 +168,7 @@ public class LineNumbersComponent implements Disposable {
     updateCanvas = Disposable.assign(updateCanvas, null);
   }
 
+  public boolean onMouseMove(V2i position, SetCursor setCursor, int editorHeight) {
+    return Rect.isInside(position, componentPos, new V2i(textureWidth, editorHeight)) && setCursor.setDefault();
+  }
 }

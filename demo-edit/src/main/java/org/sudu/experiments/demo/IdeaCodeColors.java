@@ -49,5 +49,6 @@ public interface IdeaCodeColors {
     Color defaultText = new Color("#A9B7C6");
     Color editNumbersVLine = new Color(85);
     Color editFooterFill = new Color(60, 63, 65);
+    Color editSelectedBg = new Color(33, 66, 131);
   }
 }

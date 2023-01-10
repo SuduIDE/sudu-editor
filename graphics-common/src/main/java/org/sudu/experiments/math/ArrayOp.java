@@ -23,6 +23,16 @@ public interface ArrayOp {
     return target;
   }
 
+  static <T> T[] remove(T[] from, int fromInd, int toInd, T[] target) {
+    if (fromInd > 0) {
+      System.arraycopy(from, 0, target, 0, fromInd);
+    }
+    if (toInd > 0 && toInd <= from.length) {
+      System.arraycopy(from, toInd, target, fromInd, from.length - toInd);
+    }
+    return target;
+  }
+
   static <T> T[] add(T[] array, T element) {
     T[] r = Arrays.copyOf(array, array.length + 1);
     r[array.length] = element;

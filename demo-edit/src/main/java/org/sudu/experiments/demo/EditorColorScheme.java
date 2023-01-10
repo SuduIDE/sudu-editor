@@ -7,6 +7,7 @@ public class EditorColorScheme {
   public final Color editNumbersVLine = new Color(IdeaCodeColors.Colors.editNumbersVLine);
   public final Color editFooterFill = new Color(IdeaCodeColors.Colors.editFooterFill);
   public final Color codeLineTailColor = new Color(editBgColor);
+  public final Color selectionBgColor = new Color(IdeaCodeColors.Colors.editSelectedBg);
 
   public final CodeElementColor[] codeColors = IdeaCodeColors.codeElementColors();
   public final LineNumbersColors lineNumbersColors = IdeaCodeColors.lineNumberColors();

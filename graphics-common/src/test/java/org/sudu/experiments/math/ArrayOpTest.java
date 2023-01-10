@@ -25,4 +25,15 @@ public class ArrayOpTest {
     Assertions.assertEquals(value0, value2);
 
   }
+
+  @Test
+  void deleteTest() {
+    String[] from = new String[] { "A", "B", "C", "D", "E"};
+    String[] r1 = ArrayOp.remove(from, 0, 3, new String[2]);
+    String[] r2 = ArrayOp.remove(from, 1, 4, new String[2]);
+    String[] r3 = ArrayOp.remove(from, 2, 5, new String[2]);
+    Assertions.assertArrayEquals(new String[] {"D", "E"}, r1);
+    Assertions.assertArrayEquals(new String[] {"A", "E"}, r2);
+    Assertions.assertArrayEquals(new String[] {"A", "B"}, r3);
+  }
 }
