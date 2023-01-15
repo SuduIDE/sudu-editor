@@ -80,7 +80,7 @@ public class HScrollTestScene extends Scene {
     g.clear(IdeaCodeColors.Colors.editBgColor);
     g.enableBlend(true);
     scrollBar.layoutHorizontal(scrollPosH, viewportSize.y, viewportSize.x, horizontalSize, 20);
-    scrollBar.draw(g);
+    scrollBar.draw(g, new V2i(0, 0));
     g.enableBlend(false);
 
     codeLineRenderer.updateTextureOnScroll(renderCanvas, fontDesk, fontDesk[0].iSize, scrollPosH);

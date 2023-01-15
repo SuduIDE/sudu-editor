@@ -109,11 +109,11 @@ public class Toolbar {
   }
 
 
-  public void render(WglGraphics g) {
+  public void render(WglGraphics g, V2i dxdy) {
     if (texture == null || textureDirty) renderTexture(g);
-    rect.draw(g, 0, 0);
+    rect.draw(g, dxdy.x, dxdy.y);
     for (int i = 0; i < buttons.size(); i++) {
-      buttons.get(i).tRect.drawText(g, texture, 0, 0, 0);
+      buttons.get(i).tRect.drawText(g, texture, dxdy.x, dxdy.y, 0);
     }
   }
 

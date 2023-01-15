@@ -169,6 +169,10 @@ public class LineNumbersComponent implements Disposable {
   }
 
   public boolean onMouseMove(V2i position, SetCursor setCursor, int editorHeight) {
-    return Rect.isInside(position, componentPos, new V2i(textureWidth, editorHeight)) && setCursor.setDefault();
+    return Rect.isInside(position, new V2i(0, 0), new V2i(textureWidth, editorHeight)) && setCursor.setDefault();
+  }
+
+  public void setPos(V2i newPos) {
+    componentPos.set(newPos.x, newPos.y);
   }
 }

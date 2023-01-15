@@ -159,11 +159,11 @@ public class ScrollBar {
     return Numbers.iDivRound(editorScrollPos * displayScrollRange, maxEditorPosY);
   }
 
-  public void draw(WglGraphics g) {
-    g.drawRect(bgPos.x, bgPos.y, bgSize, color1);
+  public void draw(WglGraphics g, V2i dxdy) {
+    g.drawRect(dxdy.x + bgPos.x, dxdy.y + bgPos.y, bgSize, color1);
 //    g.drawRect(pos.x, pos.y, size, color1);
     buttonSize.x -= 2; buttonSize.y -= 2;
-    g.drawRect(buttonPos.x + 1, buttonPos.y + 1, buttonSize, color2);
+    g.drawRect(dxdy.x + buttonPos.x + 1, dxdy.y + buttonPos.y + 1, buttonSize, color2);
     buttonSize.x += 2; buttonSize.y += 2;
   }
 

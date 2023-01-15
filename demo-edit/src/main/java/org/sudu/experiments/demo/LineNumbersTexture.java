@@ -81,6 +81,7 @@ public class LineNumbersTexture implements Disposable {
       }
       if (yPos + height > fullTexturesSize) {
         height = (yPos + height) % fullTexturesSize;
+        height = Math.min(height, componentHeight);
         rectSize.set(lineTexture.width(), height);
         rectRegion.set(0, scrollPos % lineTexture.height(), lineTexture.width(), height);
 

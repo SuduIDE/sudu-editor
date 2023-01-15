@@ -2,6 +2,8 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.Rect;
+import org.sudu.experiments.math.V2i;
 
 public class Caret {
   public static final int grayColor = 187;
@@ -52,7 +54,11 @@ public class Caret {
     state = true;
   }
 
-  public void paint(WglGraphics g) {
-    if (state) shape.draw(g, 0, 0);
+  public boolean needsPaint(V2i size) {
+    return Rect.isInside(shape.pos, new V2i(0, 0), size);
+  }
+
+  public void paint(WglGraphics g, V2i dxdy) {
+    if (state) shape.draw(g, dxdy.x, dxdy.y);
   }
 }

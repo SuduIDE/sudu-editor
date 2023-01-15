@@ -57,7 +57,7 @@ public class TextureRegionTestScene extends Scene {
   public void paint() {
     scrollBar.layoutVertical(scrollPos, viewPortSize.x, viewPortSize.y, editorFullH, 20);
     g.enableBlend(true);
-    scrollBar.draw(g);
+    scrollBar.draw(g, new V2i(0, 0));
 
     if (texture == null) {
       for (int i = 0; i < batchSize; i++) {

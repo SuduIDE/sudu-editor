@@ -167,7 +167,7 @@ public class DemoScene1 extends Scene {
     mouse.drawGrayIcon(g,
         textureIcon != null ? textureIcon : mouseTexture, 0, 0, 0);
 
-    caret.paint(g);
+    caret.paint(g, new V2i());
 
     g.checkError("paint complete ");
   }
