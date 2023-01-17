@@ -585,6 +585,9 @@ public class EditorComponent implements Disposable {
 
   private void onFileLoad(String content) {
     Debug.consoleInfo("readAsText complete, l = " + content.length());
+    LineParser parser = new LineParser();
+    this.document = parser.parse(content);
+    setCaretLinePos(0, 0, false);
   }
 
   private void openFile(FileHandle f) {
