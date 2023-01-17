@@ -19,7 +19,6 @@ class Selection {
     endPos.set(caretLine, caretCharPos);
     if (!isSelectionStarted) {
       startPos.set(caretLine, caretCharPos);
-      isSelectionStarted = true;
     }
   }
 

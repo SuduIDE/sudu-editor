@@ -460,7 +460,7 @@ public class EditorComponent implements Disposable {
     if (selection.isAreaSelected()) deleteSelectedArea();
     document.line(caretLine).invalidateCache();
     document.newLineOp(caretLine, caretCharPos);
-    return setCaretLinePos(caretLine + 1, 0);
+    return setCaretLinePos(caretLine + 1, 0, false);
   }
 
   boolean handleDelete() {
@@ -487,7 +487,7 @@ public class EditorComponent implements Disposable {
         cPos = caretCharPos - 1;
         document.deleteChar(cLine, cPos);
       }
-      return setCaretLinePos(cLine, cPos);
+      return setCaretLinePos(cLine, cPos, false);
     }
   }
 
@@ -502,7 +502,7 @@ public class EditorComponent implements Disposable {
     if (newCaretLine == caretLine) newCaretPos = caretCharPos + lines[0].length();
     else newCaretPos = lines[lines.length - 1].length();
 
-    setCaretLinePos(newCaretLine, newCaretPos);
+    setCaretLinePos(newCaretLine, newCaretPos, false);
     setSelectionToCaret();
     return true;
   }
@@ -510,7 +510,7 @@ public class EditorComponent implements Disposable {
   private void deleteSelectedArea() {
     var leftPos = selection.getLeftPos();
     document.deleteSelected(selection);
-    setCaretLinePos(leftPos.line, leftPos.charInd);
+    setCaretLinePos(leftPos.line, leftPos.charInd, false);
     setSelectionToCaret();
   }
 
@@ -593,7 +593,7 @@ public class EditorComponent implements Disposable {
     f.readAsText(this::onFileLoad, System.err::println);
   }
 
-  private boolean arrowUpDown(int amount, boolean ctrl, boolean alt, boolean shiftPressed) {
+  boolean arrowUpDown(int amount, boolean ctrl, boolean alt, boolean shiftPressed) {
     if (shiftSelection(shiftPressed)) return true;
     if (ctrl && alt) return true;
     if (ctrl) {  //  editorVScrollPos moves, caretLine does not change
@@ -601,7 +601,7 @@ public class EditorComponent implements Disposable {
     } else if (alt) {
       // todo: smart move to prev/next method start
     } else {
-      setCaretLine(caretLine + amount);
+      setCaretLine(caretLine + amount, shiftPressed);
       adjustEditorVScrollToCaret();
     }
     return true;
@@ -622,15 +622,15 @@ public class EditorComponent implements Disposable {
     if (newPos > caretCodeLine.totalStrLength) { // goto next line
       if ((caretLine + 1) < document.length()) {
         caretCharPos = 0;
-        setCaretLine(caretLine + 1);
+        setCaretLine(caretLine + 1, shiftPressed);
       }
     } else if (newPos < 0) {  // goto prev line
       if (caretLine > 0) {
         caretCharPos = document.line(caretLine - 1).totalStrLength;
-        setCaretLine(caretLine - 1);
+        setCaretLine(caretLine - 1, shiftPressed);
       }
     } else {
-      setCaretPos(newPos);
+      setCaretPos(newPos, shiftPressed);
     }
     adjustEditorHScrollToCaret();
     return true;
@@ -646,21 +646,24 @@ public class EditorComponent implements Disposable {
     return false;
   }
 
-  private boolean setCaretLinePos(int line, int pos) {
+  private boolean setCaretLinePos(int line, int pos, boolean shift) {
     caretLine = Numbers.clamp(0, line, document.length() - 1);
-    return setCaretPos(pos);
+    return setCaretPos(pos, shift);
   }
 
-  private boolean setCaretLine(int value) {
+  private boolean setCaretLine(int value, boolean shift) {
     caretLine = Numbers.clamp(0, value, document.length() - 1);
-    return setCaretPos(caretCharPos);
+    return setCaretPos(caretCharPos, shift);
   }
 
-  private boolean setCaretPos(int charPos) {
+  private boolean setCaretPos(int charPos, boolean shift) {
     caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
     caretPos = caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, fonts);
     caret.startDelay(api.window.timeNow());
     adjustEditorScrollToCaret();
+    if (shift) selection.isSelectionStarted = true;
+    selection.select(caretLine, caretCharPos);
+    selection.isSelectionStarted = false;
     return true;
   }
 
@@ -714,6 +717,10 @@ public class EditorComponent implements Disposable {
     computeCaret(position);
     adjustEditorScrollToCaret();
     if (shift) selection.isSelectionStarted = true;
+    if (!selection.isSelectionStarted) {
+      selection.startPos.set(caretLine, caretCharPos);
+      selection.isSelectionStarted = true;
+    }
     selection.select(caretLine, caretCharPos);
   }
 
@@ -726,8 +733,9 @@ public class EditorComponent implements Disposable {
     int wordEnd = line.wordEnd(caretPos);
 
     selection.startPos.set(caretLine, wordStart);
-    selection.endPos.set(caretLine, wordEnd);
-    setCaretLinePos(caretLine, wordEnd);
+    selection.isSelectionStarted = true;
+    setCaretLinePos(caretLine, wordEnd, false);
+    selection.isSelectionStarted = false;
   }
 
   CodeLine caretCodeLine() {
@@ -862,11 +870,11 @@ public class EditorComponent implements Disposable {
         selection.endPos.set(newLine, document.strLength(newLine));
 
       if (isCut) deleteSelectedArea();
-      else setCaretLinePos(line, 0);
+      else setCaretLinePos(line, 0, false);
     } else {
       result = document.copy(selection, isCut);
       if (isCut) {
-        setCaretLinePos(left.line, left.charInd);
+        setCaretLinePos(left.line, left.charInd, false);
         setSelectionToCaret();
       }
     }
@@ -895,15 +903,15 @@ public class EditorComponent implements Disposable {
       case KeyCode.ARROW_UP -> arrowUpDown(-1, event.ctrl, event.alt, event.shift);
       case KeyCode.ARROW_DOWN -> arrowUpDown(1, event.ctrl, event.alt, event.shift);
       case KeyCode.PAGE_UP ->
-          event.ctrl ? setCaretLine(Numbers.iDivRoundUp(editorVScrollPos, lineHeight))
+          event.ctrl ? setCaretLine(Numbers.iDivRoundUp(editorVScrollPos, lineHeight), event.shift)
               : arrowUpDown(2 - Numbers.iDivRound(editorHeight(), lineHeight), false, event.alt, event.shift);
       case KeyCode.PAGE_DOWN ->
-          event.ctrl ? setCaretLine((editorVScrollPos + editorHeight()) / lineHeight - 1)
+          event.ctrl ? setCaretLine((editorVScrollPos + editorHeight()) / lineHeight - 1, event.shift)
               : arrowUpDown(Numbers.iDivRound(editorHeight(), lineHeight) - 2, false, event.alt, event.shift);
       case KeyCode.ARROW_LEFT -> moveCaretLeftRight(-1, event.ctrl, event.shift);
       case KeyCode.ARROW_RIGHT -> moveCaretLeftRight(1, event.ctrl, event.shift);
-      case KeyCode.HOME -> shiftSelection(event.shift) || setCaretPos(0);
-      case KeyCode.END -> shiftSelection(event.shift) || setCaretPos(caretCodeLine().totalStrLength);
+      case KeyCode.HOME -> shiftSelection(event.shift) || setCaretPos(0, event.shift);
+      case KeyCode.END -> shiftSelection(event.shift) || setCaretPos(caretCodeLine().totalStrLength, event.shift);
       default -> false;
     };
     if (result && event.shift) selection.endPos.set(caretLine, caretCharPos);

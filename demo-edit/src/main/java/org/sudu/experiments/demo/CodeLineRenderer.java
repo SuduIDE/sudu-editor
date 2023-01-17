@@ -165,11 +165,16 @@ class CodeLineRenderer implements Disposable {
         int pre;
         int post;
 
-        if (texturePos >= selectedSegment.x) pre = drawWidth;
-        else pre = Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH) - selectedSegment.x - xOffset;
-
-        if (texturePos + drawWidth <= selectedSegment.y + (isLastWord ? 2 * xOffset : xOffset)) post = 0;
-        else post = Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH) - selectedSegment.y - xOffset;
+        if (texturePos >= selectedSegment.x) {
+          pre = drawWidth;
+        } else {
+          pre = Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH) - selectedSegment.x - (isLastWord ? 0 : xOffset);
+        }
+        if (texturePos + drawWidth <= selectedSegment.y + (isLastWord ? 2 * xOffset : xOffset)) {
+          post = 0;
+        } else {
+          post = Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH) - selectedSegment.y - (isLastWord ? 0 : xOffset);
+        }
 
         int regionX = texturePos - curTexture * TEXTURE_WIDTH;
         drawSelected(g, xPos + dx, yPosition,
