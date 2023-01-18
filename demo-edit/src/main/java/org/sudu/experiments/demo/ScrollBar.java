@@ -58,7 +58,7 @@ public class ScrollBar {
   }
 
   static IntUnaryOperator result(int position, int maxPosition) {
-    return maxValue -> Numbers.iDivRound(position * maxValue, maxPosition);
+    return maxValue -> Numbers.iDivRound(position, maxValue, maxPosition);
   }
 
   // returns the new scroll position assuming that
@@ -150,13 +150,13 @@ public class ScrollBar {
   }
 
   private int scrollControlSize(int editorSize, int editorFullSize, int minSize) {
-    return Math.max(Numbers.iDivRound(editorSize * editorSize, editorFullSize), minSize);
+    return Math.max(Numbers.iDivRound(editorSize, editorSize, editorFullSize), minSize);
   }
 
   private int scrollControlPos(int editorScrollPos, int editorSize, int editorFullSize, int scrollControlSize) {
     int maxEditorPosY = editorFullSize - editorSize;
     int displayScrollRange = editorSize - scrollControlSize;
-    return Numbers.iDivRound(editorScrollPos * displayScrollRange, maxEditorPosY);
+    return Numbers.iDivRound(editorScrollPos, displayScrollRange, maxEditorPosY);
   }
 
   public void draw(WglGraphics g, V2i dxdy) {
