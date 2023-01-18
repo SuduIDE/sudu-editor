@@ -9,9 +9,7 @@ public class Numbers {
   // multiply without overflow
   public static int iDivRound(int a, int b, int denominator) {
     if (a < Integer.MAX_VALUE / b) return iDivRound(a * b, denominator);
-    int aa = Math.min(a, b);
-    double bb = Math.max(a, b);
-    return (int) ((bb / denominator) * aa);
+    return (int) (((double) b * a) / denominator);
   }
 
   public static int iDivRoundUp(int numerator, int denominator) {
