@@ -1,5 +1,6 @@
 package org.sudu.experiments.math;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public interface ArrayOp {
@@ -82,5 +83,14 @@ public interface ArrayOp {
     int i2 = d[pos + 2] & 0xFF;
     int i3 = d[pos + 3] & 0xFF;
     return (i3 << 24) + (i2 << 16) + (i1 << 8) + i0;
+  }
+
+  // Reason for hand copy:
+  //   this is faster (than toArray()) on JavaScript
+  //   because JS(Harmony) uses generic iterator implementation
+  static <T> T[] cloneArrayList(ArrayList<T> list, T[] target) {
+    for (int i = 0; i < target.length; i++)
+      target[i] = list.get(i);
+    return target;
   }
 }

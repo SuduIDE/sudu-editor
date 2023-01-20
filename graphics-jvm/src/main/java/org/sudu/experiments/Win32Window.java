@@ -394,4 +394,9 @@ public class Win32Window implements WindowPeer, Window {
       eventQueue.execute(() -> onResult.accept(fh));
     }
   }
+
+  @Override
+  public void sendToWorker(Consumer<Object[]> handler, String method, Object... args) {
+
+  }
 }

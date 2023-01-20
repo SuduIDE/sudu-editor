@@ -16,6 +16,9 @@
 
   <properties>
     <mainClass>org.sudu.experiments.WebApp</mainClass>
+    <workerClass>org.sudu.experiments.WebWorker</workerClass>
+    <workerFile>worker.js</workerFile>
+    <workerFileTemp>workerOut.js</workerFileTemp>
 
     <!-- compiler settings -->
     <teavm.sourceMaps>false</teavm.sourceMaps>
@@ -35,6 +38,13 @@
         <teavm.debugInfo>false</teavm.debugInfo>
         <teavm.minifying>true</teavm.minifying>
         <teavm.optimizationLevel>FULL</teavm.optimizationLevel>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>module</id>
+      <properties>
+        <teavm.module>true</teavm.module>
       </properties>
     </profile>
   </profiles>
@@ -86,6 +96,7 @@
           <version>1.0-SNAPSHOT</version>
           <scope>compile</scope>
       </dependency>
+
   </dependencies>
 
   <build>
@@ -110,8 +121,49 @@
               <optimizationLevel>${teavm.optimizationLevel}</optimizationLevel>
             </configuration>
           </execution>
+          <execution>
+            <id>web-worker</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <properties><worker>true</worker></properties>
+              <targetDirectory>${project.build.directory}/generated/js/teavm</targetDirectory>
+              <targetFileName>${workerFile}</targetFileName>
+              <mainClass>${workerClass}</mainClass>
+              <minifying>${teavm.minifying}</minifying>
+              <debugInformationGenerated>${teavm.debugInfo}</debugInformationGenerated>
+              <sourceMapsGenerated>${teavm.sourceMaps}</sourceMapsGenerated>
+              <sourceFilesCopied>${teavm.sourceMaps}</sourceFilesCopied>
+              <optimizationLevel>${teavm.optimizationLevel}</optimizationLevel>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>generate-es-module</id>
+<!--            <phase>process-classes</phase>-->
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <target>
+                <concat destfile="${project.build.directory}/generated/js/teavm/${workerFileTemp}"
+                        overwrite="yes">
+                  <!-- Provide directory containing txt files that you need to concat-->
+                  <fileset file="${project.build.directory}/generated/js/teavm/${workerFile}"/>
+                  <fileset file="ES6moduleExport.js-template"/>
+                </concat>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>

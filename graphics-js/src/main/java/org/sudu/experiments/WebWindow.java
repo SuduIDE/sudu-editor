@@ -8,10 +8,12 @@ import org.teavm.jso.browser.Performance;
 import org.teavm.jso.browser.Screen;
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.events.Event;
+import org.teavm.jso.dom.events.MessageEvent;
 import org.teavm.jso.dom.html.HTMLCanvasElement;
 import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
+import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -27,7 +29,21 @@ public class WebWindow implements org.sudu.experiments.Window {
   private String currentCursor;
   private Scene scene;
 
-  public WebWindow(BiFunction<SceneApi, String, Scene> factory, Runnable onWebGlError, String canvasDivId) {
+  // workers and jobs
+  private final WorkerContext worker;
+  private final TreeMap<Integer, Consumer<Object[]>> jobs = new TreeMap<>();
+  private int workerJobIdNext;
+
+  public WebWindow(
+      BiFunction<SceneApi, String, Scene> factory,
+      Runnable onWebGlError,
+      String canvasDivId,
+      WorkerContext worker
+  ) {
+    this.worker = worker;
+    worker.onMessage(this::onWorkerMessage);
+    WorkerProtocol.sendPingToWorker(worker);
+
     canvasDiv = HTMLDocument.current().getElementById(canvasDivId);
     V2i clientRect = JsHelper.elementSizeToPixelSize(canvasDiv);
 
@@ -142,5 +158,20 @@ public class WebWindow implements org.sudu.experiments.Window {
   @Override
   public void showOpenFilePicker(Consumer<FileHandle> onResult) {
     JsFileDialog.showOpenFilePicker(onResult);
+  }
+
+  private void onWorkerMessage(MessageEvent event) {
+    WorkerContext.onEdtMessage(jobs, event.getData());
+  }
+
+  @Override
+  public void sendToWorker(Consumer<Object[]> handler, String method, Object... args) {
+    int id = nextId();
+    jobs.put(id, handler);
+    WorkerProtocol.sendToWorker(worker, id, method, args);
+  }
+
+  private int nextId() {
+    return ++workerJobIdNext;
   }
 }

@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="WebApp clean package release" type="MavenRunConfiguration" factoryName="Maven">
+  <configuration default="false" name="WebApp package release" type="MavenRunConfiguration" factoryName="Maven">
     <MavenSettings>
       <option name="myGeneralSettings" />
       <option name="myRunnerSettings">
@@ -25,7 +25,6 @@
           </option>
           <option name="goals">
             <list>
-              <option value="clean" />
               <option value="package" />
               <option value="-am" />
               <option value="-pl" />

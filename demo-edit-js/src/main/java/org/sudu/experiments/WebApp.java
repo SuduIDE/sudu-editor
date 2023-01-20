@@ -2,21 +2,39 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.demo.*;
 import org.sudu.experiments.demo.wasm.WasmDemo;
-import org.sudu.experiments.js.FireFoxWarning;
-import org.sudu.experiments.js.JsCanvas;
-import org.sudu.experiments.js.JsHelper;
-import org.sudu.experiments.js.WebFont;
+import org.sudu.experiments.demo.worker.WorkerTest;
+import org.sudu.experiments.js.*;
+import org.teavm.jso.JSBody;
+import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSString;
 
 public class WebApp {
 
   public static final String preDiv = "panelDiv";
 
+  boolean fontsLoaded;
+  WorkerContext workerStarted;
+
+
+  interface EditJsApi extends JSObject {
+
+    void setText(JSString t);
+  }
+
+  @JSBody(params = {"api"}, script = "window.EditJava = api;")
+
+  static native void setApi(EditJsApi api);
+
   public static void main(String[] args) {
+//    setApi(api());;
 //    JsPlayground.jsoTagTest();
 //    JsPlayground.jsTestViewOfJavaArray();
     if (JsCanvas.checkFontMetricsAPI()) {
+      WebApp webApp = new WebApp();
+      WorkerContext.start(webApp::setWorker, "teavm/worker.js");
+
       WebFont.loadGoogleFont(
-          WebApp::startApp,
+          webApp::onFontsLoad,
           WebApp::fontsLoadError,
           WebApp::fontLoadEvent,
           WebFont.makeFontList(Fonts.googleFontLoadScript)
@@ -26,8 +44,18 @@ public class WebApp {
     }
   }
 
-  static void startApp() {
-    new WebWindow(WebApp::createScene, WebApp::onWebGlError, "canvasDiv");
+  private void onFontsLoad() {
+    fontsLoaded = true;
+    if (workerStarted != null) startApp(workerStarted);
+  }
+
+  private void setWorker(WorkerContext worker) {
+    workerStarted = worker;
+    if (fontsLoaded) startApp(workerStarted);
+  }
+
+  static void startApp(WorkerContext worker) {
+    new WebWindow(WebApp::createScene, WebApp::onWebGlError, "canvasDiv", worker);
   }
 
   static Scene createScene(SceneApi api, String name) {
@@ -39,6 +67,7 @@ public class WebApp {
       case "#oneTexture" -> new TextureRegionTestScene(api);
       case "#manyTextures" -> new ManyTexturesLineNumbersScene(api);
       case "#SelectFileTest" -> new SelectFileTest(api);
+      case "#WorkerMessageTest" -> new WorkerTest(api);
     };
   }
 

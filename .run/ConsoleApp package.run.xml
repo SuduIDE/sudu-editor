@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="ConsoleApp clean package" type="MavenRunConfiguration" factoryName="Maven">
+  <configuration default="false" name="ConsoleApp package" type="MavenRunConfiguration" factoryName="Maven">
     <MavenSettings>
       <option name="myGeneralSettings" />
       <option name="myRunnerSettings">
@@ -25,7 +25,6 @@
           </option>
           <option name="goals">
             <list>
-              <option value="clean" />
               <option value="package" />
               <option value="-am" />
               <option value="-pl" />
@@ -34,7 +33,9 @@
           </option>
           <option name="pomFileName" value="pom.xml" />
           <option name="profilesMap">
-            <map />
+            <map>
+              <entry key="release" value="true" />
+            </map>
           </option>
           <option name="resolveToWorkspace" value="false" />
           <option name="workingDirPath" value="$PROJECT_DIR$" />

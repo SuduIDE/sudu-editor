@@ -51,7 +51,7 @@ public class JsFileDialog {
           for (int i = 0, l = array.getLength(); i < l; i++) {
             FileSystemFileHandle handle = array.get(i);
             handle.getFile().then(
-                jsFile -> onResul.accept(JsFileFactory.fromFile(jsFile, new String[0])),
+                jsFile -> onResul.accept(new JsFileHandle(jsFile, new String[0])),
                 onError);
           }
         }, onError
@@ -83,7 +83,7 @@ public class JsFileDialog {
   ) {
     if (handle.isFile()) {
       handle.<FileSystemFileHandle>cast().getFile().then(
-          file -> onResult.accept(JsFileFactory.fromFile(file, path)),
+          file -> onResult.accept(new JsFileHandle(file, path)),
           onError);
     } else {
       FileSystemDirectoryHandle dir = handle.cast();
@@ -112,7 +112,7 @@ public class JsFileDialog {
     FileList files = input.getFiles();
 
     for (int i = 0; i < files.getLength(); i++) {
-      FileHandle file = JsFileFactory.fromWebkitRelativeFile(files.item(i));
+      FileHandle file = JsFileHandle.fromWebkitRelativeFile(files.item(i));
       Window.setTimeout(() -> onResul.accept(file), 0);
     }
   }
@@ -132,7 +132,7 @@ public class JsFileDialog {
   static void walkEntry(Consumer<FileHandle> onResult, FileSystemEntry entry) {
     if (entry.getIsFile()) {
       JsFile file = entry.<FileSystemFileEntry>cast().file();
-      onResult.accept(JsFileFactory.fromWebkitRelativeFile(file));
+      onResult.accept(JsFileHandle.fromWebkitRelativeFile(file));
     } else {
       walkDirectory(onResult, entry.cast());
     }
