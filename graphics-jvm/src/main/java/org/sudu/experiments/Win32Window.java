@@ -6,6 +6,8 @@ import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.win32.*;
+import org.sudu.experiments.worker.WorkerExecutor;
+import org.sudu.experiments.worker.WorkerProxy;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -23,6 +25,7 @@ public class Win32Window implements WindowPeer, Window {
   final EventQueue eventQueue;
   final String config;
   final Executor bgWorker;
+  final WorkerExecutor workerExecutor;
 
   private boolean repaintRequested = true;
   private boolean closed;
@@ -45,15 +48,16 @@ public class Win32Window implements WindowPeer, Window {
 
   enum State { MINIMIZED, NORMAL, MAXIMIZED }
 
-  public Win32Window(EventQueue eq, Win32Time t, Executor worker) {
-    this(eq, "window", t, worker);
+  public Win32Window(EventQueue eq, Win32Time t, Executor worker, WorkerExecutor workerExecutor) {
+    this(eq, "window", t, worker, workerExecutor);
   }
 
-  public Win32Window(EventQueue eq, String configName, Win32Time t, Executor worker) {
+  public Win32Window(EventQueue eq, String configName, Win32Time t, Executor worker, WorkerExecutor workerJobs) {
     eventQueue = eq;
     config = configName;
     time = t;
     bgWorker = worker;
+    workerExecutor = workerJobs;
   }
 
   public boolean opened() {
@@ -340,7 +344,7 @@ public class Win32Window implements WindowPeer, Window {
   }
 
   public boolean addChild(String title, Function<SceneApi, Scene> sf) {
-    Win32Window child = new Win32Window(eventQueue, "child", time, bgWorker);
+    Win32Window child = new Win32Window(eventQueue, "child", time, bgWorker, workerExecutor);
 
     if (!child.init(title, sf, angleWindow::graphics, Win32Window.this)) {
       System.err.println("Window.init failed");
@@ -397,6 +401,6 @@ public class Win32Window implements WindowPeer, Window {
 
   @Override
   public void sendToWorker(Consumer<Object[]> handler, String method, Object... args) {
-
+    bgWorker.execute(WorkerProxy.job(workerExecutor, method, args, handler, eventQueue));
   }
 }

@@ -1,6 +1,7 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.win32.*;
+import org.sudu.experiments.worker.WorkerExecutor;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -9,15 +10,16 @@ import java.util.function.Supplier;
 
 public class Application {
 
-  public static void run(Function<SceneApi, Scene> sf) throws InterruptedException {
-    run(sf, new FontConfig());
-  }
-
   public static void run(Function<SceneApi, Scene> sf, FontConfig fontConfig) throws InterruptedException {
-    run(sf, sf.getClass().getName(), fontConfig);
+    run(sf, WorkerExecutor.i(), sf.getClass().getName(), fontConfig);
   }
 
-  public static void run(Function<SceneApi, Scene> sf, String title, FontConfig fontConfig) throws InterruptedException {
+  public static void run(
+      Function<SceneApi, Scene> sf,
+      WorkerExecutor workerExecutor,
+      String title,
+      FontConfig fontConfig
+  ) throws InterruptedException {
     Win32Time time = new Win32Time();
     Win32.coInitialize();
     // todo: debug under other launcher
@@ -32,7 +34,7 @@ public class Application {
     EventQueue eventQueue = new EventQueue();
     ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
 
-    Win32Window window = new Win32Window(eventQueue, time, ioExecutor);
+    Win32Window window = new Win32Window(eventQueue, time, ioExecutor, workerExecutor);
 
     if (!window.init(title, sf, graphics, null)) {
       throw new RuntimeException("window.init failed");
