@@ -67,7 +67,7 @@ public class WebApp {
       case "#oneTexture" -> new TextureRegionTestScene(api);
       case "#manyTextures" -> new ManyTexturesLineNumbersScene(api);
       case "#SelectFileTest" -> new SelectFileTest(api);
-      case "#WorkerMessageTest" -> new WorkerTest(api);
+      case "#WorkerTest" -> new WorkerTest(api);
     };
   }
 

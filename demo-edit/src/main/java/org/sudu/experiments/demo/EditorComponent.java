@@ -591,8 +591,7 @@ public class EditorComponent implements Disposable {
   }
 
   private void openFile(FileHandle f) {
-    int fileSize = f.getSize();
-    Debug.consoleInfo("openFile: name = " + f.getName() + ", size =  " + fileSize);
+    Debug.consoleInfo("openFile: name = " + f.getName());
     f.readAsText(this::onFileLoad, System.err::println);
   }
 

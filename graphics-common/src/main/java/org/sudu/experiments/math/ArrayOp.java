@@ -2,6 +2,7 @@ package org.sudu.experiments.math;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 public interface ArrayOp {
   static <T> T[] add(T[] a, T[] b) {
@@ -88,9 +89,9 @@ public interface ArrayOp {
   // Reason for hand copy:
   //   this is faster (than toArray()) on JavaScript
   //   because JS(Harmony) uses generic iterator implementation
-  static <T> T[] cloneArrayList(ArrayList<T> list, T[] target) {
-    for (int i = 0; i < target.length; i++)
-      target[i] = list.get(i);
-    return target;
+  static void sendArrayList(ArrayList<?> list, Consumer<Object[]> result) {
+    Object[] data = new Object[list.size()];
+    for (int i = 0; i < data.length; i++) data[i] = list.get(i);
+    result.accept(data);
   }
 }

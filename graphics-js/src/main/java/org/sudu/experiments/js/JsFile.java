@@ -13,8 +13,8 @@ interface JsBlob extends JSObject {
 }
 
 public interface JsFile extends JsBlob {
-  @JSProperty String getName();
-  @JSProperty String getType();
+  @JSProperty JSString getName();
+  @JSProperty JSString getType();
   @JSProperty double getSize();
   @JSProperty JSString getWebkitRelativePath();
 }

@@ -1,7 +1,9 @@
 package org.sudu.experiments.worker;
 
-public interface WorkerExecutor {
-  Object[] execute(String method, Object[] args);
+import java.util.function.Consumer;
 
-  static WorkerExecutor i() { return (method, args) -> args; }
+public interface WorkerExecutor {
+  void execute(String method, Object[] args, Consumer<Object[]> result);
+
+  static WorkerExecutor i() { return (method, args, result) -> {}; }
 }

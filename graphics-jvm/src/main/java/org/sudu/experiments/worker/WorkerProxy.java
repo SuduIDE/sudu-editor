@@ -1,21 +1,22 @@
 package org.sudu.experiments.worker;
 
-import org.sudu.experiments.EventQueue;
+import org.sudu.experiments.JvmFileHandle;
 
 import java.util.Objects;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 public class WorkerProxy {
   public static Runnable job(
       WorkerExecutor we, String method, Object[] args,
-      Consumer<Object[]> handler, EventQueue edt
+      Consumer<Object[]> handler, Executor edt
   ) {
-    return () -> {
-      Object[] cArgs = convertArgs(args);
-      Object[] result = we.execute(method, cArgs);
-      Object[] cResult = convertArgs(result);
-      edt.execute(() -> handler.accept(cResult));
-    };
+    return () -> we.execute(method, convertArgs(args),
+        results -> {
+          Object[] cResult = convertArgs(results);
+          edt.execute(() -> handler.accept(cResult));
+        }
+    );
   }
 
   static Object[] convertArgs(Object[] args) {
@@ -27,10 +28,12 @@ public class WorkerProxy {
   }
 
   static Object convertArg(Object arg) {
+    if (arg instanceof String) return arg;
     if (arg instanceof byte[] bytes) return new Array(bytes, null, null);
     if (arg instanceof char[] chars) return new Array(null, chars, null);
     if (arg instanceof int[] ints) return new Array(null, null, ints);
-    return arg;
+    if (arg instanceof JvmFileHandle file) return file.workerFile();
+    throw new IllegalArgumentException();
   }
 
   @SuppressWarnings("ClassCanBeRecord")
@@ -63,9 +66,9 @@ public class WorkerProxy {
     @Override
     public String toString() {
       return "Array view" +
-          (bytes != null ? " bytes.length = ".concat(Integer.toString(bytes.length)) : "") +
-          (chars != null ? " chars.length = ".concat(Integer.toString(chars.length)) : "") +
-          (ints != null ? " ints.length = ".concat(Integer.toString(ints.length)) : "");
+          (bytes != null ? " bytes.length = " + bytes.length : "") +
+          (chars != null ? " chars.length = " + chars.length : "") +
+          (ints != null ? " ints.length = " + ints.length : "");
     }
   }
 }

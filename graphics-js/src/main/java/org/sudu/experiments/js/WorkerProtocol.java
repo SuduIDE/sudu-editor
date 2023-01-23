@@ -39,12 +39,12 @@ public class WorkerProtocol {
     if (array.getLength() >= 2) {
       JSObject taskId = array.get(0);
       String method = array.get(1).<JSString>cast().stringValue();
-      Object[] result = executor.execute(method, toJava(array, 2));
-      sendResults(WorkerContext.self(), result, taskId);
+      executor.execute(method, toJava(array, 2),
+          results -> sendResults(WorkerContext.self(), results, taskId));
     } else throw new IllegalArgumentException();
   }
 
-  public static void dispatchResult(Map<Integer, Consumer<Object[]>> handlers, JSArrayReader<JSObject> array) {
+  static void dispatchResult(Map<Integer, Consumer<Object[]>> handlers, JSArrayReader<JSObject> array) {
     if (array.getLength() >= 1) {
       int taskId = array.get(0).<JSNumber>cast().intValue();
       Consumer<Object[]> handler = handlers.remove(taskId);
@@ -80,12 +80,18 @@ public class WorkerProtocol {
   //   JSString <-> String
   //   char[], byte[], int[] <-> ArrayBuffer <-> ArrayView
   static Object bridgeToJava(JSObject jsObject) {
-    if (JSString.isInstance(jsObject))
+    if (JSString.isInstance(jsObject)) {
       return jsObject.<JSString>cast().stringValue();
-
-    if (isArrayBuffer(jsObject))
+    }
+    if (isArrayBuffer(jsObject)) {
       return new JsArrayView(jsObject.cast());
-
+    }
+    if (isFile(jsObject)) {
+      return new JsFileHandle(null, jsObject.cast());
+    }
+    if (isFileSystemFileHandle(jsObject)) {
+      return new JsFileHandle(jsObject.cast(), null);
+    }
     return null;
   }
 
@@ -102,7 +108,11 @@ public class WorkerProtocol {
     if (javaObject instanceof int[] intArray) {
       return JsMemoryAccess.bufferView(intArray).getBuffer();
     }
-    return null;
+    if (javaObject instanceof JsFileHandle jsFileHandle) {
+      return jsFileHandle.fileHandle != null
+          ? jsFileHandle.fileHandle : jsFileHandle.jsFile;
+    }
+    throw new IllegalArgumentException();
   }
 
   @JSBody(params = "data", script = "return data instanceof Array;")
@@ -110,4 +120,10 @@ public class WorkerProtocol {
 
   @JSBody(params = "data", script = "return data instanceof ArrayBuffer;")
   static native boolean isArrayBuffer(JSObject data);
+
+  @JSBody(params = "data", script = "return data instanceof File;")
+  static native boolean isFile(JSObject data);
+
+  @JSBody(params = "data", script = "return data instanceof FileSystemFileHandle;")
+  static native boolean isFileSystemFileHandle(JSObject data);
 }

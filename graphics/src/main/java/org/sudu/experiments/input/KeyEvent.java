@@ -18,6 +18,10 @@ public class KeyEvent extends KeyModifiers {
     this.isRepeated = repeated;
   }
 
+  public boolean singlePress() {
+    return isPressed && !isRepeated;
+  }
+
   // Ctrl-C
   // Ctrl-X
   // Ctrl-Insert

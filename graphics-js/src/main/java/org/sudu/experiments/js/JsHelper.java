@@ -119,4 +119,7 @@ public class JsHelper {
 
   @JSBody(params = {"a", "b"}, script = "return a === b;")
   public static native boolean strictEquals(JSObject a, JSObject b);
+
+  @JSBody(params = {"n"}, script = "return String(n);")
+  public static native String jsDoubleToString(double n);
 }

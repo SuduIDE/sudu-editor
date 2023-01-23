@@ -51,7 +51,7 @@ public class JsFileDialog {
           for (int i = 0, l = array.getLength(); i < l; i++) {
             FileSystemFileHandle handle = array.get(i);
             handle.getFile().then(
-                jsFile -> onResul.accept(new JsFileHandle(jsFile, new String[0])),
+                jsFile -> onResul.accept(new JsFileHandle(handle, jsFile)),
                 onError);
           }
         }, onError
@@ -82,9 +82,9 @@ public class JsFileDialog {
       String[] path
   ) {
     if (handle.isFile()) {
-      handle.<FileSystemFileHandle>cast().getFile().then(
-          file -> onResult.accept(new JsFileHandle(file, path)),
-          onError);
+      FileSystemFileHandle fileHandle = handle.cast();
+      fileHandle.getFile().then(file -> onResult.accept(
+          new JsFileHandle(fileHandle, file, path)), onError);
     } else {
       FileSystemDirectoryHandle dir = handle.cast();
       walkDirIterator(dir.values(), onResult, onError,

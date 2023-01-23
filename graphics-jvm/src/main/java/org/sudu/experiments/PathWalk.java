@@ -21,7 +21,7 @@ public class PathWalk {
       Files.walkFileTree(start, new SimpleFileVisitor<>() {
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-          FileHandle fh = FileFactory.fromPath(file, toRPath(file, start), bgWorker, edt);
+          FileHandle fh = JvmFileHandle.fromPath(file, toRPath(file, start), bgWorker, edt);
           files.add(fh);
           return FileVisitResult.CONTINUE;
         }
