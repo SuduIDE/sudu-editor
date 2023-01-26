@@ -4,6 +4,8 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.demo.worker.FileParser;
+import org.sudu.experiments.demo.worker.LineParser;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
@@ -129,8 +131,9 @@ public class EditorComponent implements Disposable {
 
   private void initToolbar() {
     toolbar.setBgColor(Colors.toolbarBg);
-    toolbar.addButton("↓", Colors.toolbarText3, this::moveDown);
-    toolbar.addButton("■", Colors.toolbarText3, this::stopMove);
+    toolbar.addButton("Open", Colors.toolbarText3, this::showOpenFile);
+//    toolbar.addButton("↓", Colors.toolbarText3, this::moveDown);
+//    toolbar.addButton("■", Colors.toolbarText3, this::stopMove);
 //    toolbar.addButton("↑↑↑", Colors.toolbarText3, this::moveUp);
 //
 //    toolbar.addButton("C", Colors.toolbarText2, this::toggleContrast);
@@ -602,8 +605,9 @@ public class EditorComponent implements Disposable {
   }
 
   private void openFile(FileHandle f) {
-    Debug.consoleInfo("openFile: name = " + f.getName());
-    f.readAsBytes(this::onFileLoad, System.err::println);
+    Debug.consoleInfo("opening file " + f.getName());
+    // f.readAsBytes(this::onFileLoad, System.err::println);
+    api.window.sendToWorker(this::onFileParsed, FileParser.asyncParseFile, f);
   }
 
   boolean arrowUpDown(int amount, boolean ctrl, boolean alt, boolean shiftPressed) {
@@ -846,7 +850,7 @@ public class EditorComponent implements Disposable {
         api.window.showDirectoryPicker(
             s -> Debug.consoleInfo("showDirectoryPicker -> " + s));
       } else {
-        api.window.showOpenFilePicker(EditorComponent.this::openFile);
+        showOpenFile();
       }
       return true;
     }
@@ -865,6 +869,10 @@ public class EditorComponent implements Disposable {
     if (event.ctrl || event.alt || event.meta) return false;
     if (event.keyCode == KeyCode.ESC) return false;
     return event.key.length() > 0 && handleInsert(event.key);
+  }
+
+  private void showOpenFile() {
+    api.window.showOpenFilePicker(EditorComponent.this::openFile);
   }
 
   public boolean onCopy(Consumer<String> setText, boolean isCut) {

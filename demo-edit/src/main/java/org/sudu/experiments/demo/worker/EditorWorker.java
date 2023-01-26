@@ -1,7 +1,6 @@
 package org.sudu.experiments.demo.worker;
 
 import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.demo.LineParser;
 import org.sudu.experiments.demo.worker.WorkerTest.TestJobs;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.worker.ArrayView;
@@ -35,6 +34,7 @@ public class EditorWorker {
   static void asyncMethod(String method, Object[] a, Consumer<Object[]> r) {
     switch (method) {
       case TestJobs.asyncWithFile -> TestJobs.asyncWithFile(file(a, 0), r);
+      case FileParser.asyncParseFile -> FileParser.asyncParseFile(file(a, 0), r);
     }
   }
 

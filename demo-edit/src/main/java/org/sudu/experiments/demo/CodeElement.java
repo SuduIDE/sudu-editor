@@ -1,25 +1,25 @@
 package org.sudu.experiments.demo;
 
-class CodeElement {
+public class CodeElement {
   String s;
   int color;
   int fontIndex;
 
-  CodeElement(String s) {
+  public CodeElement(String s) {
     this(s, 0, 0);
   }
 
-  CodeElement(String s, int color) {
+  public CodeElement(String s, int color) {
     this(s, color, 0);
   }
 
-  CodeElement(String s, int color, int font) {
+  public CodeElement(String s, int color, int font) {
     this.s = s;
     this.color = color;
     this.fontIndex = font;
   }
 
-  CodeElement(String s, int color, boolean bold, boolean italic) {
+  public CodeElement(String s, int color, boolean bold, boolean italic) {
     this(s, color, fontIndex(bold, italic));
   }
 

@@ -20,15 +20,15 @@ public class DemoEdit extends Scene {
   EditorComponent editor;
   V2i editorPos = new V2i();
   V2i editorSize = new V2i();
-  Document document;
 
   public DemoEdit(SceneApi api) {
     super(api);
     this.g = api.graphics;
-    document = new Document(EditorConst.DOCUMENT_LINES);
 
     V2i clientRect = api.window.getClientRect();
     editorSize.set(clientRect.x, clientRect.y);
+
+    Document document = new Document(EditorConst.DOCUMENT_LINES);
     editor = new EditorComponent(api, document, editorPos, editorSize);
 
     api.input.addListener(new MyInputListener());

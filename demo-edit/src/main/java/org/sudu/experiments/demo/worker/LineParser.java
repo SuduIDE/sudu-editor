@@ -1,6 +1,9 @@
-package org.sudu.experiments.demo;
+package org.sudu.experiments.demo.worker;
 
 import org.sudu.experiments.Debug;
+import org.sudu.experiments.demo.CodeElement;
+import org.sudu.experiments.demo.CodeLine;
+import org.sudu.experiments.demo.Document;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
