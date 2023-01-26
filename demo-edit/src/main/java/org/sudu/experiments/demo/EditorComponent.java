@@ -8,6 +8,7 @@ import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.*;
+import org.sudu.experiments.worker.ArrayView;
 
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
@@ -583,16 +584,26 @@ public class EditorComponent implements Disposable {
     return Math.min(Math.max(0, pos), maxScrollPos);
   }
 
-  private void onFileLoad(String content) {
-    Debug.consoleInfo("readAsText complete, l = " + content.length());
-    LineParser parser = new LineParser();
-    this.document = parser.parse(content);
+  private void onFileParsed(Object[] result) {
+    Debug.consoleInfo("onFileParsed");
+    int[] ints = ((ArrayView) result[0]).ints();
+    char[] chars = ((ArrayView) result[1]).chars();
+
+    this.document = LineParser.makeDocument(ints, chars);
     setCaretLinePos(0, 0, false);
+    api.window.setCursor(Cursor.arrow);
+    api.window.repaint();
+  }
+
+  private void onFileLoad(byte[] content) {
+    Debug.consoleInfo("readAsBytes complete, l = " + content.length);
+
+    api.window.sendToWorker(this::onFileParsed, LineParser.PARSE_BYTES, content);
   }
 
   private void openFile(FileHandle f) {
     Debug.consoleInfo("openFile: name = " + f.getName());
-    f.readAsText(this::onFileLoad, System.err::println);
+    f.readAsBytes(this::onFileLoad, System.err::println);
   }
 
   boolean arrowUpDown(int amount, boolean ctrl, boolean alt, boolean shiftPressed) {

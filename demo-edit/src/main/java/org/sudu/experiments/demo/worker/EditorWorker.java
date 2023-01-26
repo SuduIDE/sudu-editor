@@ -1,6 +1,7 @@
 package org.sudu.experiments.demo.worker;
 
 import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.demo.LineParser;
 import org.sudu.experiments.demo.worker.WorkerTest.TestJobs;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.worker.ArrayView;
@@ -27,6 +28,7 @@ public class EditorWorker {
       case TestJobs.withChars -> TestJobs.withChars(array(a, 0).chars(), result);
       case TestJobs.withBytes -> TestJobs.withBytes(array(a, 0).bytes(), result);
       case TestJobs.withInts -> TestJobs.withInts(array(a, 0).ints(), result);
+      case LineParser.PARSE_BYTES -> LineParser.parseBytes(array(a, 0).bytes(), result);
     }
   }
 
