@@ -19,12 +19,8 @@ public class JvmFileHandle implements FileHandle {
   private final Executor bgWorker;
   private final Executor edt;
 
-  public static FileHandle fromPath(String path, String[] rPath, Executor bgWorker, Executor edt) {
-    return fromPath(Path.of(path), rPath, bgWorker, edt);
-  }
-
-  public static FileHandle fromPath(Path path, String[] rPath, Executor bgWorker, Executor edt) {
-    return new JvmFileHandle(path, rPath, bgWorker, edt);
+  public JvmFileHandle(String path, String[] rPath, Executor bgWorker, Executor edt) {
+    this(Path.of(path), rPath, bgWorker, edt);
   }
 
   public JvmFileHandle(Path path, String[] rPath, Executor bgWorker, Executor edt) {
@@ -34,10 +30,11 @@ public class JvmFileHandle implements FileHandle {
     this.edt = edt;
   }
 
-  // returns a handle to same file, but without EDT for worker threads
-  public JvmFileHandle workerFile() {
-    boolean isWorker = edt == bgWorker;
-    return isWorker ? this : new JvmFileHandle(path, rPath, bgWorker, bgWorker);
+  // Returns a handle to same file, but with specified event thread
+  // If edt argument is null then the background worker's bus is used
+  public JvmFileHandle withEdt(Executor edt) {
+    return this.edt == edt ? this :
+        new JvmFileHandle(path, rPath, bgWorker, edt != null ? edt : bgWorker);
   }
 
   @Override
