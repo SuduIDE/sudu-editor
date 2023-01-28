@@ -302,6 +302,7 @@ class CodeLineRenderer implements Disposable {
   ) {
     int lineMeasure = line.lineMeasure();
     if (lineMeasure != 0) lineMeasure += xOffset;
+    if (lineMeasure == 0) lineMeasure -= xOffset;
     int lineEnd = Math.max(-xOffset, lineMeasure - editorHScrollPos);
     if (lineEnd >= editorWidth) return;
     int recWidth = editorWidth - lineEnd;
