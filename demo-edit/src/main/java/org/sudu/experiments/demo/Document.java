@@ -31,6 +31,9 @@ public class Document {
   public int strLength(int i) {
     return document[i].totalStrLength;
   }
+  public CodeLine last() {
+    return document[document.length - 1];
+  }
 
   public void newLineOp(int caretLine, int caretCharPos) {
     CodeLine line = document[caretLine];

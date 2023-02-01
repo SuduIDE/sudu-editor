@@ -611,7 +611,7 @@ public class EditorComponent implements Disposable {
   }
 
   boolean arrowUpDown(int amount, boolean ctrl, boolean alt, boolean shiftPressed) {
-    if (shiftSelection(shiftPressed)) return true;
+    if (shiftSelection(amount, shiftPressed)) return true;
     if (ctrl && alt) return true;
     if (ctrl) {  //  editorVScrollPos moves, caretLine does not change
       editorVScrollPos = clampScrollPos(editorVScrollPos + amount * lineHeight * 12 / 10, maxEditorVScrollPos());
@@ -625,7 +625,7 @@ public class EditorComponent implements Disposable {
   }
 
   private boolean moveCaretLeftRight(int shift, boolean ctrl, boolean shiftPressed) {
-    if (shiftSelection(shiftPressed)) return true;
+    if (shiftSelection(shift, shiftPressed)) return true;
     var caretCodeLine = caretCodeLine();
     int newPos;
     if (ctrl) {
@@ -653,8 +653,10 @@ public class EditorComponent implements Disposable {
     return true;
   }
 
-  private boolean shiftSelection(boolean shift) {
+  private boolean shiftSelection(int amount, boolean shift) {
     if (selection.isAreaSelected() && !shift) {
+      var pos = amount > 0 ? selection.getRightPos() : selection.getLeftPos();
+      setCaretLinePos(pos.line, pos.charInd, false);
       setSelectionToCaret();
       adjustEditorScrollToCaret();
       return true;
@@ -841,9 +843,9 @@ public class EditorComponent implements Disposable {
     // do not process release events
     if (!event.isPressed) return false;
 
-      if (event.keyCode == KeyCode.F10) {
-        api.window.addChild("child", DemoEdit::new);
-      }
+    if (event.keyCode == KeyCode.F10) {
+      api.window.addChild("child", DemoEdit::new);
+    }
 
     if (event.ctrl && event.keyCode == KeyCode.O) {
       if (event.shift) {
@@ -931,8 +933,10 @@ public class EditorComponent implements Disposable {
               : arrowUpDown(Numbers.iDivRound(editorHeight(), lineHeight) - 2, false, event.alt, event.shift);
       case KeyCode.ARROW_LEFT -> moveCaretLeftRight(-1, event.ctrl, event.shift);
       case KeyCode.ARROW_RIGHT -> moveCaretLeftRight(1, event.ctrl, event.shift);
-      case KeyCode.HOME -> shiftSelection(event.shift) || setCaretPos(0, event.shift);
-      case KeyCode.END -> shiftSelection(event.shift) || setCaretPos(caretCodeLine().totalStrLength, event.shift);
+      case KeyCode.HOME -> event.ctrl ? setCaretLinePos(0, 0, event.shift)
+          : setCaretPos(0, event.shift);
+      case KeyCode.END -> event.ctrl ? setCaretLinePos(document.length() - 1, document.last().totalStrLength, event.shift)
+          : setCaretPos(caretCodeLine().totalStrLength, event.shift);
       default -> false;
     };
     if (result && event.shift) selection.endPos.set(caretLine, caretCharPos);
