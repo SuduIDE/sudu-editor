@@ -627,6 +627,21 @@ public class EditorComponent implements Disposable {
   private boolean moveCaretLeftRight(int shift, boolean ctrl, boolean shiftPressed) {
     if (shiftSelection(shift, shiftPressed)) return true;
     var caretCodeLine = caretCodeLine();
+    if (caretCharPos == 0 && shift < 0) {
+      if (caretLine > 0) {
+        caretCharPos = document.line(caretLine - 1).totalStrLength;
+        setCaretLine(caretLine - 1, shiftPressed);
+        adjustEditorHScrollToCaret();
+      }
+      return true;
+    } else if (caretCharPos == caretCodeLine.totalStrLength && shift > 0) {
+      if ((caretLine + 1) < document.length()) {
+        caretCharPos = 0;
+        setCaretLine(caretLine + 1, shiftPressed);
+        adjustEditorHScrollToCaret();
+      }
+      return true;
+    }
     int newPos;
     if (ctrl) {
       if (shift < 0)
@@ -636,19 +651,7 @@ public class EditorComponent implements Disposable {
     } else {
       newPos = caretCharPos + shift;
     }
-    if (newPos > caretCodeLine.totalStrLength) { // goto next line
-      if ((caretLine + 1) < document.length()) {
-        caretCharPos = 0;
-        setCaretLine(caretLine + 1, shiftPressed);
-      }
-    } else if (newPos < 0) {  // goto prev line
-      if (caretLine > 0) {
-        caretCharPos = document.line(caretLine - 1).totalStrLength;
-        setCaretLine(caretLine - 1, shiftPressed);
-      }
-    } else {
-      setCaretPos(newPos, shiftPressed);
-    }
+    setCaretPos(newPos, shiftPressed);
     adjustEditorHScrollToCaret();
     return true;
   }

@@ -337,6 +337,7 @@ public class CodeLine {
   }
 
   public int nextPos(int caretPos) {
+    if (iMeasure == null || elements == null || elements.length == 0) return 0;
     int pos = findEntryByPixel(caretPos);
     if (iMeasure[pos] == caretPos) pos++;
     pos++;
