@@ -893,10 +893,10 @@ public class EditorComponent implements Disposable {
       if (line < document.length() - 1)
         selection.startPos.set(newLine + 1, 0);
       else
-        selection.endPos.set(newLine, document.strLength(newLine));
+        selection.startPos.set(newLine, document.strLength(newLine));
 
       if (isCut) deleteSelectedArea();
-      else setCaretLinePos(line, 0, false);
+      else setCaretLinePos(line, 0, true);
     } else {
       result = document.copy(selection, isCut);
       if (isCut) {
