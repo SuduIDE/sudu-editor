@@ -29,14 +29,17 @@ public class EditorComponent implements Disposable {
 
   final Caret caret = new Caret();
   int caretLine, caretCharPos, caretPos;
-  Canvas renderingCanvas;
+  boolean hasFocus;
+
+  int fontVirtualSize = EditorConst.DEFAULT_FONT_SIZE;
   FontDesk font;
   FontDesk[] fonts = new FontDesk[4];
-  EditorColorScheme colors = new EditorColorScheme();
-
   int lineHeight;
 
   Document document;
+  EditorColorScheme colors = new EditorColorScheme();
+
+  Canvas renderingCanvas;
 
   // render cache
   CodeLineRenderer[] lines = new CodeLineRenderer[0];
@@ -69,51 +72,24 @@ public class EditorComponent implements Disposable {
   int xOffset = 3;
 
   // line numbers
-  LineNumbersComponent lineNumbers;
+  LineNumbersComponent lineNumbers = new LineNumbersComponent();
   //int lineNumLeftMargin = 10;
 
-  V2i compPos;
-  V2i compSize;
+  final V2i compPos = new V2i();
+  final V2i compSize = new V2i();
 
   public EditorComponent(
       SceneApi api,
-      Document document,
-      V2i compPos,
-      V2i compSize
+      Document document
   ) {
     this.api = api;
     this.document = document;
-    this.compPos = compPos;
-    this.compSize = compSize;
+    this.g = api.graphics;
+    this.setCursor = SetCursor.wrap(api.window);
 
-    setCursor = SetCursor.wrap(api.window);
+    if (api.window.hasFocus()) onFocusGain();
 
-    devicePR = api.window.devicePixelRatio();
-    Debug.consoleInfo("api.window.devicePixelRatio() = ", devicePR);
-    g = api.graphics;
-
-    vLineX = Numbers.iRnd(vLineXBase * devicePR);
-    vLineLeftDelta = Numbers.iRnd(10 * devicePR);
-
-    int lineNumbersWidth = vLineX - vLineLeftDelta;
-    lineNumbers = new LineNumbersComponent(g, compPos, lineNumbersWidth);
-    lineNumbers.setDevicePR(devicePR);
-
-    //api.input.addListener(new MyInputListener());
-    //clientRect = api.window.getClientRect();
-    if (1<0) DebugHelper.dumpFontsSize(g);
-    int editorFontSize = Numbers.iRnd(EditorConst.DEFAULT_FONT_SIZE * devicePR);
-    caret.setWidth(Numbers.iRnd(caret.width() * devicePR));
-    setFont(EditorConst.FONT, editorFontSize);
-    initLineNumbers();
-
-    int toolbarFontSize = Numbers.iRnd(EditorConst.TOOLBAR_FONT_SIZE * devicePR);
-    toolBarFont = g.fontDesk(EditorConst.TOOLBAR_FONT_NAME, toolbarFontSize);
-    layout();
     initToolbar();
-
-    V2i screenRect = api.window.getScreenRect();
-    Debug.consoleInfo("screenRect = " + screenRect);
 
     debugFlags[0] = this::toggleContrast;
     debugFlags[1] = this::toggleBlankLines;
@@ -124,11 +100,45 @@ public class EditorComponent implements Disposable {
     applyContrast = api.window.getHost() != Host.Direct2D;
   }
 
+  void setPos(V2i pos, V2i size, double dpr) {
+    compPos.set(pos);
+    compSize.set(size);
+    devicePR = dpr;
+
+    vLineX = Numbers.iRnd(vLineXBase * devicePR);
+    vLineLeftDelta = Numbers.iRnd(10 * devicePR);
+
+    int lineNumbersWidth = vLineX - vLineLeftDelta;
+    lineNumbers.setPos(compPos, lineNumbersWidth, editorHeight(), devicePR);
+
+    //api.input.addListener(new MyInputListener());
+    //clientRect = api.window.getClientRect();
+    if (1<0) DebugHelper.dumpFontsSize(g);
+    caret.setWidth(Numbers.iRnd(caret.width() * devicePR));
+
+    int newFontSize = Numbers.iRnd(fontVirtualSize * devicePR);
+    int oldSize = font == null ? 0 : font.iSize;
+
+    if (newFontSize != oldSize) {
+      String fontName = font == null ? EditorConst.FONT : font.name;
+      setFont(fontName, newFontSize);
+    }
+
+    updateLineNumbersFont();
+
+    int toolbarFontSize = Numbers.iRnd(EditorConst.TOOLBAR_FONT_SIZE * devicePR);
+    toolBarFont = g.fontDesk(EditorConst.TOOLBAR_FONT_NAME, toolbarFontSize);
+    toolbar.setFont(toolBarFont);
+    layout();
+  }
+
+
   private void toggleBlankLines() {
     renderBlankLines = !renderBlankLines;
     Debug.consoleInfo("renderBlankLines = " + renderBlankLines);
   }
 
+  @SuppressWarnings("CommentedOutCode")
   private void initToolbar() {
     toolbar.setBgColor(Colors.toolbarBg);
     toolbar.addButton("Open", Colors.toolbarText3, this::showOpenFile);
@@ -148,7 +158,19 @@ public class EditorComponent implements Disposable {
     toolbar.addButton("JetBrains Mono", Colors.rngToolButton(), this::setJetBrainsMono);
     toolbar.addButton("Consolas", Colors.rngToolButton(), this::setConsolas);
 
-    toolbar.setFont(toolBarFont);
+  }
+
+  public void onFocusGain() {
+    hasFocus = true;
+    startBlinking();
+  }
+
+  public void onFocusLost() {
+    hasFocus = false;
+  }
+
+  private void startBlinking() {
+    caret.startDelay(api.window.timeNow());
   }
 
   private void toggleXOffset() {
@@ -261,7 +283,7 @@ public class EditorComponent implements Disposable {
     invalidateFont();
     setFont(name, size);
     afterFontChanged();
-    initLineNumbers();
+    updateLineNumbersFont();
     api.window.repaint();
   }
 
@@ -397,7 +419,9 @@ public class EditorComponent implements Disposable {
           size, editorHScrollPos, editorWidth(), tailColor);
     }
 
-    if (caretX >= -caret.width() / 2 && caret.needsPaint(compSize)) caret.paint(g, compPos);
+    if (hasFocus && caretX >= -caret.width() / 2 && caret.needsPaint(compSize)) {
+      caret.paint(g, compPos);
+    }
 
     // draw bottom 5 invisible lines
     if (renderBlankLines) {
@@ -436,9 +460,7 @@ public class EditorComponent implements Disposable {
   private void drawLineNumbers(int editorBottom, int firstLine, int lastLine) {
     int textHeight = Math.min(editorBottom, document.length() * lineHeight - editorVScrollPos);
 
-    lineNumbers.draw(
-        editorBottom, textHeight, editorVScrollPos,
-        firstLine, lastLine, caretLine,
+    lineNumbers.draw(editorBottom, textHeight, editorVScrollPos, firstLine, lastLine, caretLine, g,
         colors.lineNumbersColors
     );
   }
@@ -451,9 +473,9 @@ public class EditorComponent implements Disposable {
     return Math.min((editorVScrollPos + editorHeight() - 1) / lineHeight, document.length() - 1);
   }
 
-  private void initLineNumbers() {
-    lineNumbers.setFont(fonts[0], lineHeight);
-    lineNumbers.initTextures(getFirstLine(), editorHeight());
+  private void updateLineNumbersFont() {
+    lineNumbers.setFont(fonts[0], lineHeight, g);
+    lineNumbers.initTextures(g, getFirstLine(), editorHeight());
   }
 
   private CodeLineRenderer lineRenderer(int i) {
@@ -574,14 +596,6 @@ public class EditorComponent implements Disposable {
     g.drawRect(compPos.x + vLineX - vLineLeftDelta + vLineW, compPos.y, vLineSize, colors.editBgColor);
   }
 
-  public void onResize(V2i pos, V2i size) {
-    compPos = pos;
-    compSize = size;
-    layout();
-    devicePR = api.window.devicePixelRatio();
-    lineNumbers.setPos(pos);
-    lineNumbers.setDevicePR(devicePR);
-  }
 
   int clampScrollPos(int pos, int maxScrollPos) {
     return Math.min(Math.max(0, pos), maxScrollPos);
@@ -676,7 +690,7 @@ public class EditorComponent implements Disposable {
   private boolean setCaretPos(int charPos, boolean shift) {
     caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
     caretPos = caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, fonts);
-    caret.startDelay(api.window.timeNow());
+    startBlinking();
     adjustEditorScrollToCaret();
     if (shift) selection.isSelectionStarted = true;
     selection.select(caretLine, caretCharPos);
@@ -727,7 +741,7 @@ public class EditorComponent implements Disposable {
     caretPos = line.computePixelLocation(caretCharPos, g.mCanvas, fonts);
     if (1<0) Debug.consoleInfo(
         "onClickText: caretCharPos = " + caretCharPos + ", caretPos = " + caretPos);
-    caret.startDelay(api.window.timeNow());
+    startBlinking();
   }
 
   void onClickText(V2i position, boolean shift) {
@@ -827,7 +841,7 @@ public class EditorComponent implements Disposable {
     if (toolbar.onMouseMove(eventPosition, setCursor)) return true;
     if (vScroll.onMouseMove(eventPosition, setCursor)) return true;
     if (hScroll.onMouseMove(eventPosition, setCursor)) return true;
-    if (lineNumbers.onMouseMove(eventPosition, setCursor, editorHeight())) return true;
+    if (lineNumbers.onMouseMove(eventPosition, setCursor)) return true;
     if (onMouseMove(eventPosition)) return true;
     return setCursor.setDefault();
   }
@@ -905,7 +919,10 @@ public class EditorComponent implements Disposable {
   }
 
   private boolean onMouseMove(V2i position) {
-    return Rect.isInside(position, new V2i(vLineX, 0), new V2i(editorWidth(), editorHeight())) && setCursor.set(Cursor.text);
+    return Rect.isInside(position,
+        new V2i(vLineX, 0),
+        new V2i(editorWidth(), editorHeight()))
+        && setCursor.set(Cursor.text);
   }
 
   private boolean handleEditingKeys(KeyEvent event) {
@@ -923,20 +940,31 @@ public class EditorComponent implements Disposable {
     boolean result = switch (event.keyCode) {
       case KeyCode.ARROW_UP -> arrowUpDown(-1, event.ctrl, event.alt, event.shift);
       case KeyCode.ARROW_DOWN -> arrowUpDown(1, event.ctrl, event.alt, event.shift);
-      case KeyCode.PAGE_UP ->
-          event.ctrl ? setCaretLine(Numbers.iDivRoundUp(editorVScrollPos, lineHeight), event.shift)
-              : arrowUpDown(2 - Numbers.iDivRound(editorHeight(), lineHeight), false, event.alt, event.shift);
-      case KeyCode.PAGE_DOWN ->
-          event.ctrl ? setCaretLine((editorVScrollPos + editorHeight()) / lineHeight - 1, event.shift)
-              : arrowUpDown(Numbers.iDivRound(editorHeight(), lineHeight) - 2, false, event.alt, event.shift);
+      case KeyCode.PAGE_UP -> pgUp(event);
+      case KeyCode.PAGE_DOWN -> pgDown(event);
       case KeyCode.ARROW_LEFT -> moveCaretLeftRight(-1, event.ctrl, event.shift);
       case KeyCode.ARROW_RIGHT -> moveCaretLeftRight(1, event.ctrl, event.shift);
       case KeyCode.HOME -> shiftSelection(event.shift) || setCaretPos(0, event.shift);
-      case KeyCode.END -> shiftSelection(event.shift) || setCaretPos(caretCodeLine().totalStrLength, event.shift);
+      case KeyCode.END -> shiftSelection(event.shift) ||
+          setCaretPos(caretCodeLine().totalStrLength, event.shift);
       default -> false;
     };
     if (result && event.shift) selection.endPos.set(caretLine, caretCharPos);
     return result;
+  }
+
+  boolean pgDown(KeyEvent event) {
+    return event.ctrl
+        ? setCaretLine((editorVScrollPos + editorHeight()) / lineHeight - 1, event.shift)
+        : arrowUpDown(Numbers.iDivRound(editorHeight(), lineHeight) - 2,
+        false, event.alt, event.shift);
+  }
+
+  boolean pgUp(KeyEvent event) {
+    return event.ctrl
+        ? setCaretLine(Numbers.iDivRoundUp(editorVScrollPos, lineHeight), event.shift)
+        : arrowUpDown(2 - Numbers.iDivRound(editorHeight(), lineHeight),
+        false, event.alt, event.shift);
   }
 
   private boolean handleDebug(KeyEvent event) {

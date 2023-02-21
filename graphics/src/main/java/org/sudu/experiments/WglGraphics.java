@@ -53,10 +53,6 @@ public abstract class WglGraphics {
     gl.checkError("WebGraphics::ctor finish");
   }
 
-  public void setClientRect(V2i size) {
-    clientRect.set(size);
-  }
-
   public void dispose() {
     if (rectangle != null) {
       rectangle.dispose();
@@ -75,7 +71,8 @@ public abstract class WglGraphics {
     return canvasFactory.create(w, h);
   }
 
-  public void setViewPortToClientRect() {
+  public void setViewPortAndClientRect(int w, int h) {
+    clientRect.set(w, h);
 //    System.out.println("setViewport: 0,0, " + clientRect.x + ", " + clientRect.y);
     gl.viewport(0, 0, clientRect.x, clientRect.y);
   }

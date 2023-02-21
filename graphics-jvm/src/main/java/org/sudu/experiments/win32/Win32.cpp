@@ -19,6 +19,7 @@
 #include "javaHR.h"
 
 static_assert(sizeof(WCHAR) == sizeof(jchar), "Fatal: sizeof(WCHAR) != sizeof(jchar)");
+static_assert(sizeof(HWND) <= sizeof(jlong),  "Fatal: sizeof(HWND) > sizeof(jlong)");
 
 struct Debug {
   struct Hex { int64_t value; Hex(int value) : value(value) {} };
@@ -305,6 +306,10 @@ jint Java_org_sudu_experiments_win32_Win32_ReleaseCapture(JNIEnv*, jclass) {
 
 jint Java_org_sudu_experiments_win32_Win32_GetDpiForWindow(JNIEnv*, jclass, jlong hWnd) {
   return GetDpiForWindow(HWND(hWnd));
+}
+
+jlong Java_org_sudu_experiments_win32_Win32_GetFocus(JNIEnv*, jclass) {
+  return jlong(GetFocus());
 }
 
 #include <shellscalingapi.h>

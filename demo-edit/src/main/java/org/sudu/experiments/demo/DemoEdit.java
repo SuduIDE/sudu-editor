@@ -25,13 +25,18 @@ public class DemoEdit extends Scene {
     super(api);
     this.g = api.graphics;
 
-    V2i clientRect = api.window.getClientRect();
-    editorSize.set(clientRect.x, clientRect.y);
-
     Document document = new Document(EditorConst.DOCUMENT_LINES);
-    editor = new EditorComponent(api, document, editorPos, editorSize);
+    editor = new EditorComponent(api, document);
 
-    api.input.addListener(new MyInputListener());
+    api.input.addListener(new EditInput());
+  }
+
+  public Document document() {
+    return editor.document;
+  }
+
+  public EditorComponent editor() {
+    return editor;
   }
 
   @Override
@@ -51,13 +56,23 @@ public class DemoEdit extends Scene {
   }
 
   @Override
-  public void onResize(V2i size) {
+  public void onResize(V2i size, double dpr) {
     editorSize.set(size);
 
-    editor.onResize(new V2i(0, 0), editorSize);
+    editor.setPos(editorPos, editorSize, dpr);
   }
 
-  class MyInputListener implements InputListener {
+  class EditInput implements InputListener {
+
+    @Override
+    public void onFocus() {
+      editor.onFocusGain();
+    }
+
+    @Override
+    public void onBlur() {
+      editor.onFocusLost();
+    }
 
     @Override
     public boolean onMouseWheel(MouseEvent event, double dX, double dY) {
@@ -77,6 +92,10 @@ public class DemoEdit extends Scene {
     @Override
     public boolean onKey(KeyEvent event) {
       return editor.onKey(event);
+    }
+
+    public boolean onContextMenu(MouseEvent event) {
+      return Math.random() * 2 > 1;
     }
 
     @Override

@@ -77,6 +77,7 @@ public class Win32 {
   public static native long SetCapture(long hWnd);
   public static native int  ReleaseCapture();
   public static native int  GetDpiForWindow(long hWnd);
+  public static native long GetFocus();
 
   public static native long GetCommandLineA();
   public static native long GetCommandLineW();

@@ -21,6 +21,7 @@ public class InputListeners extends Input {
   @Override
   public Disposable addListener(InputListener l, int order) {
     snapshotValid = false;
+    snapshot = noListeners;
     size++;
     Integer boxOrder = order;
     InputListener[] listeners = map.get(boxOrder);
@@ -33,6 +34,7 @@ public class InputListeners extends Input {
     InputListener[] newList = ArrayOp.remove(oldList, element);
     if (newList == oldList) throw new RuntimeException("unexpected InputListener");
     snapshotValid = false;
+    snapshot = noListeners;
     size--;
     if (newList != null) {
       map.put(order, newList);

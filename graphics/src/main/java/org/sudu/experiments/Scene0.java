@@ -6,7 +6,7 @@ import org.sudu.experiments.math.V4f;
 
 public class Scene0 extends Scene {
   final V4f clearColor = Color.Cvt.fromRGB(0,0, 64);
-  protected V2i size;
+  protected final V2i size = new V2i();
 
   public Scene0(SceneApi api) {
     super(api);
@@ -21,10 +21,9 @@ public class Scene0 extends Scene {
     api.graphics.clear(clearColor);
   }
 
-  public void onResize(V2i size) {
-    api.window.setTitle(getClass().getName() + ", size: " + size);
-
-    this.size = size;
+  public void onResize(V2i newSize, double dpr) {
+    api.window.setTitle(getClass().getName() + ", size: " + newSize);
+    size.set(newSize);
   }
 
   public void dispose() {}

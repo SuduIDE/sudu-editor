@@ -40,8 +40,7 @@ public class AngleWindow {
     if (surfaceSize == null) return;
 
     graphics = share_context != null ? share_context.graphics : g.get();
-    graphics.setClientRect(surfaceSize);
-    graphics.setViewPortToClientRect();
+    graphics.setViewPortAndClientRect(surfaceSize.x, surfaceSize.y);
   }
 
   public boolean isRootContext() {
@@ -56,8 +55,7 @@ public class AngleWindow {
     boolean r = setCurrentContext();
     if (r) {
       V2i size = getSurfaceSize();
-      graphics.setClientRect(size);
-      graphics.setViewPortToClientRect();
+      graphics.setViewPortAndClientRect(size.x, size.y);
       graphics.restoreState();
       return size;
     } else {

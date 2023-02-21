@@ -4,9 +4,7 @@ import org.sudu.experiments.demo.*;
 import org.sudu.experiments.demo.wasm.WasmDemo;
 import org.sudu.experiments.demo.worker.WorkerTest;
 import org.sudu.experiments.js.*;
-import org.teavm.jso.JSBody;
-import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSString;
+import org.teavm.jso.browser.Window;
 
 public class WebApp {
 
@@ -15,20 +13,7 @@ public class WebApp {
   boolean fontsLoaded;
   WorkerContext workerStarted;
 
-
-  interface EditJsApi extends JSObject {
-
-    void setText(JSString t);
-  }
-
-  @JSBody(params = {"api"}, script = "window.EditJava = api;")
-
-  static native void setApi(EditJsApi api);
-
   public static void main(String[] args) {
-//    setApi(api());;
-//    JsPlayground.jsoTagTest();
-//    JsPlayground.jsTestViewOfJavaArray();
     if (JsCanvas.checkFontMetricsAPI()) {
       WebApp webApp = new WebApp();
       WorkerContext.start(webApp::setWorker, "teavm/worker.js");
@@ -55,10 +40,15 @@ public class WebApp {
   }
 
   static void startApp(WorkerContext worker) {
-    new WebWindow(WebApp::createScene, WebApp::onWebGlError, "canvasDiv", worker);
+    var window = new WebWindow(
+        WebApp::createScene,
+        WebApp::onWebGlError,
+        "canvasDiv", worker);
+    window.focus();
   }
 
-  static Scene createScene(SceneApi api, String name) {
+  static Scene createScene(SceneApi api) {
+    String name = Window.current().getLocation().getHash();
     Debug.consoleInfo("createScene: " + name);
     return switch (name) {
       default -> new DemoEdit(api);

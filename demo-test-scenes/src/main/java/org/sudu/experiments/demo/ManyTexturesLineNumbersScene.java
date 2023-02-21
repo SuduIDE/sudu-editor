@@ -13,7 +13,7 @@ import java.util.function.IntUnaryOperator;
 public class ManyTexturesLineNumbersScene extends Scene {
 
   final WglGraphics g;
-  private final LineNumbersComponent lineNumbers;
+  private final LineNumbersComponent lineNumbers = new LineNumbersComponent();
   private ScrollBar scrollBar;
   private V2i viewPortSize;
   private int scrollPos = 0;
@@ -27,8 +27,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
     api.input.addListener(new LineNumbersInputListener());
     this.g = api.graphics;
 
-    lineNumbers = new LineNumbersComponent(g, new V2i(0, 0), 50);
-    lineNumbers.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight);
+    lineNumbers.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight, g);
 
     scrollBar = new ScrollBar();
   }
@@ -53,13 +52,14 @@ public class ManyTexturesLineNumbersScene extends Scene {
     Debug.consoleInfo("scrollPos: " + scrollPos);
 
     lineNumbers.update(scrollPos / lineHeight);
-    lineNumbers.draw(scrollPos, editorHeight(), colors);
+    lineNumbers.draw(scrollPos, editorHeight(), colors, g);
   }
 
   @Override
-  public void onResize(V2i size) {
+  public void onResize(V2i size, double dpr) {
     viewPortSize = size;
-    lineNumbers.initTextures(editorHeight());
+    lineNumbers.setPos(new V2i(0, 0), 50, editorHeight(), dpr);
+    lineNumbers.initTextures(g, editorHeight());
   }
 
   @Override

@@ -17,7 +17,7 @@ public class HScrollTestScene extends Scene {
   final int dx = 50;
   final int fontSize = 20;
   final int horizontalSize = dx * MAX_NUM;
-  V2i viewportSize;
+  final V2i viewportSize = new V2i();
 
   ScrollBar scrollBar = new ScrollBar();
   int scrollPosH = 0;
@@ -36,7 +36,6 @@ public class HScrollTestScene extends Scene {
     g = new TestGraphics(api.graphics);
 
     api.input.addListener(new HScrollInputListener());
-    viewportSize = api.window.getClientRect();
 
     CodeElement[] codeElements = new CodeElement[]{
       new CodeElement("Первое слово", 0),
@@ -110,8 +109,8 @@ public class HScrollTestScene extends Scene {
   }
 
   @Override
-  public void onResize(V2i size) {
-    viewportSize = size;
+  public void onResize(V2i size, double dpr) {
+    viewportSize.set(size);
   }
 
   @Override

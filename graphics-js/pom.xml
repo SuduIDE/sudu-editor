@@ -29,7 +29,7 @@
 
     <dependency>
       <groupId>org.teavm</groupId>
-      <artifactId>teavm-cli</artifactId>
+      <artifactId>teavm-core</artifactId>
       <version>${teavm.version}</version>
     </dependency>
 
@@ -39,6 +39,8 @@
       <version>${teavm.version}</version>
       <scope>provided</scope>
     </dependency>
+
+    <!--suppress VulnerableLibrariesLocal -->
     <dependency>
       <groupId>org.teavm</groupId>
       <artifactId>teavm-classlib</artifactId>

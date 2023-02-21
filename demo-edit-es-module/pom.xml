@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>demo-edit-es-module</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <parent>
+    <groupId>org.sudu</groupId>
+    <artifactId>root-pom</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <properties>
+    <mainClass>org.sudu.experiments.EditorModule</mainClass>
+    <workerClass>org.sudu.experiments.WebWorker</workerClass>
+    <workerFileTemp>workerOut.js</workerFileTemp>
+
+    <moduleSrc>module/src</moduleSrc>
+    <workerFile>worker.js</workerFile>
+    <module.js>module.js</module.js>
+
+    <module.template.prefix>src/main/ES6moduleExport.template.js.0</module.template.prefix>
+    <module.template.suffix>src/main/ES6moduleExport.template.js.1</module.template.suffix>
+    <teavm.pre.module.js>${project.build.directory}/generated</teavm.pre.module.js>
+
+    <!-- compiler settings -->
+    <teavm.sourceMaps>false</teavm.sourceMaps>
+    <teavm.debugInfo>false</teavm.debugInfo>
+    <teavm.minifying>false</teavm.minifying>
+
+<!--    <teavm.optimizationLevel>ADVANCED</teavm.optimizationLevel>-->
+    <teavm.optimizationLevel>SIMPLE</teavm.optimizationLevel>
+
+  </properties>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <properties>
+        <teavm.sourceMaps>false</teavm.sourceMaps>
+        <teavm.debugInfo>false</teavm.debugInfo>
+        <teavm.minifying>true</teavm.minifying>
+        <teavm.optimizationLevel>ADVANCED</teavm.optimizationLevel>
+      </properties>
+    </profile>
+  </profiles>
+
+  <packaging>jar</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.sudu</groupId>
+      <artifactId>graphics-js</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sudu</groupId>
+      <artifactId>wasm-test</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sudu</groupId>
+      <artifactId>demo-edit</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.teavm</groupId>
+      <artifactId>teavm-jso-apis</artifactId>
+      <version>${teavm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!--suppress VulnerableLibrariesLocal -->
+    <dependency>
+      <groupId>org.teavm</groupId>
+      <artifactId>teavm-classlib</artifactId>
+      <version>${teavm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+
+    <plugins>
+      <plugin>
+        <groupId>org.teavm</groupId>
+        <artifactId>teavm-maven-plugin</artifactId>
+        <version>${teavm.version}</version>
+        <executions>
+          <execution>
+            <id>editor-es-module</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <targetDirectory>${teavm.pre.module.js}</targetDirectory>
+              <mainClass>${mainClass}</mainClass>
+              <targetFileName>${module.js}</targetFileName>
+              <minifying>${teavm.minifying}</minifying>
+              <debugInformationGenerated>${teavm.debugInfo}</debugInformationGenerated>
+              <sourceMapsGenerated>${teavm.sourceMaps}</sourceMapsGenerated>
+              <sourceFilesCopied>${teavm.sourceMaps}</sourceFilesCopied>
+              <optimizationLevel>${teavm.optimizationLevel}</optimizationLevel>
+            </configuration>
+          </execution>
+          <execution>
+            <id>web-worker</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <properties><worker>true</worker></properties>
+              <targetDirectory>${moduleSrc}</targetDirectory>
+              <targetFileName>${workerFile}</targetFileName>
+              <mainClass>${workerClass}</mainClass>
+              <minifying>${teavm.minifying}</minifying>
+              <debugInformationGenerated>${teavm.debugInfo}</debugInformationGenerated>
+              <sourceMapsGenerated>${teavm.sourceMaps}</sourceMapsGenerated>
+              <sourceFilesCopied>${teavm.sourceMaps}</sourceFilesCopied>
+              <optimizationLevel>${teavm.optimizationLevel}</optimizationLevel>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>generate-es-module</id>
+            <phase>process-classes</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <target>
+                <concat destfile="${moduleSrc}/editor.js" overwrite="yes">
+                  <fileset file="${module.template.prefix}"/>
+                  <fileset file="${teavm.pre.module.js}/${module.js}"/>
+                  <fileset file="${module.template.suffix}"/>
+                </concat>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+
+        <configuration>
+          <source>${project.build.sourceLevel}</source>
+          <target>${project.build.sourceLevel}</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <filesets>
+            <fileset><directory>module/src</directory></fileset>
+            <fileset><directory>webpack-test/editor-on-java-sample/dist</directory></fileset>
+          </filesets>
+        </configuration>
+    </plugin>
+
+    </plugins>
+  </build>
+
+</project>

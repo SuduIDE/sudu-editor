@@ -24,7 +24,7 @@ public class TextureRegionTestScene extends Scene {
   private final int fontSize = 20;
   private final int batchSize = 10 + 1;
   private final int textureSize = fontSize * batchSize;
-  private V2i viewPortSize;
+  private final V2i viewPortSize = new V2i();
   private final int editorFullH = 5000;
   int minNum = 1;
 
@@ -36,8 +36,6 @@ public class TextureRegionTestScene extends Scene {
     super(api);
     g = api.graphics;
     api.input.addListener(new LineNumbersInputListener());
-
-    viewPortSize = api.window.getClientRect();
 
     linesCanvas = g.createCanvas(200, batchSize * fontSize);
     linesCanvas.setFont(Fonts.Consolas, fontSize);
@@ -99,8 +97,8 @@ public class TextureRegionTestScene extends Scene {
     downRect.drawText(g, texture, 0, 0, 1f);
   }
 
-  public void onResize(V2i size) {
-    viewPortSize = size;
+  public void onResize(V2i size, double dpr) {
+    viewPortSize.set(size);
   }
 
   public boolean update(double timestamp) {

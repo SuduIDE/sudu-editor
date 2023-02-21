@@ -32,7 +32,10 @@ public class LineNumbersTexture implements Disposable {
     this.baseline = CodeLineRenderer.baselineShift(fontDesk, lineHeight);
   }
 
-  public int updateTexture(Canvas textureCanvas, Canvas updateCanvas, int curFirstLine, int firstLine, int updateOn, double devicePR) {
+  public int updateTexture(
+      Canvas textureCanvas, Canvas updateCanvas,
+      int curFirstLine, int firstLine, int updateOn, double devicePR
+  ) {
     if (firstLine > curFirstLine)
       return scrollDown(textureCanvas, updateCanvas, firstLine, updateOn, curFirstLine, devicePR);
     else
@@ -59,9 +62,8 @@ public class LineNumbersTexture implements Disposable {
   }
 
   public void draw(
-      WglGraphics g, V2i dXdY,
-      int componentHeight, int scrollPos, int fullTexturesSize,
-      LineNumbersColors colorScheme
+      V2i dXdY, int componentHeight, int scrollPos, int fullTexturesSize,
+      LineNumbersColors colorScheme, WglGraphics g
   ) {
     int height = textureSize.y;
     int yPos = ((texturePos.y - (scrollPos % fullTexturesSize)) + fullTexturesSize) % fullTexturesSize;

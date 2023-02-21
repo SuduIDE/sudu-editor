@@ -55,10 +55,10 @@ public class Caret {
   }
 
   public boolean needsPaint(V2i size) {
-    return Rect.isInside(shape.pos, new V2i(0, 0), size);
+    return Rect.isInside(shape.pos, 0, 0, size);
   }
 
-  public void paint(WglGraphics g, V2i dxdy) {
-    if (state) shape.draw(g, dxdy.x, dxdy.y);
+  public void paint(WglGraphics g, V2i dXdY) {
+    if (state) shape.draw(g, dXdY.x, dXdY.y);
   }
 }

@@ -21,13 +21,13 @@ import org.teavm.jso.dom.xml.Element;
 
 import java.util.function.Consumer;
 
-// todo: hook mouse when dragging, example:
-//   start drag scrollbar and exit browser window
-
 public class JsInput {
+  static final boolean debug = 1 < 0;
+
   private final JsHelper.HTMLElement element;
   private final InputListeners listeners;
   private Disposable disposer;
+  private V2i clientRect = null;
 
   public JsInput(HTMLElement element, InputListeners listeners) {
     this.element = element.cast();
@@ -59,6 +59,10 @@ public class JsInput {
     initPointerCapture(element);
   }
 
+  public void setClientRect(int w, int h) {
+    clientRect = new V2i(w, h);
+  }
+
   public void dispose() {
     if (disposer != null) {
       disposer.dispose();
@@ -83,27 +87,34 @@ public class JsInput {
     return () -> element.removeEventListener(type, listener);
   }
 
+
   static void debug(String string) {
-    if (1<0) Debug.consoleInfo(string);
+    if (debug) Debug.consoleInfo(string);
+  }
+
+  static void debug(String string, int btn) {
+    if (debug) Debug.consoleInfo(string + btn);
   }
 
   private void onMouseMove(org.teavm.jso.dom.events.MouseEvent event) {
-    debug("onMouseMove");
+    if (clientRect == null) return;
     MouseEvent mouseEvent = mouseEvent(event);
     listeners.sendMouseMove(mouseEvent);
     stopEvent(event);
   }
 
+  // mouse down events are not stopped to propagate in order to
+  // allow browser focus management to function properly
   private void onMouseDown(org.teavm.jso.dom.events.MouseEvent event) {
-    debug("onMouseDown");
+    debug("onMouseDown bt #", event.getButton());
+    if (clientRect == null) return;
     MouseEvent mouseEvent = mouseEvent(event);
-    if (listeners.sendMouseButton(mouseEvent, event.getButton(), true, 1)) {
-      stopEvent(event);
-    }
+    listeners.sendMouseButton(mouseEvent, event.getButton(), true, 1);
   }
 
   private void onMouseUp(org.teavm.jso.dom.events.MouseEvent event) {
-    debug("onMouseUp");
+    debug("onMouseUp bt #", event.getButton());
+    if (clientRect == null) return;
     MouseEvent mouseEvent = mouseEvent(event);
     if (listeners.sendMouseButton(mouseEvent, event.getButton(), false, 1)) {
       stopEvent(event);
@@ -112,6 +123,7 @@ public class JsInput {
 
   private void onDoubleClick(org.teavm.jso.dom.events.MouseEvent event) {
     debug("onDoubleClick");
+    if (clientRect == null) return;
     MouseEvent mouseEvent = mouseEvent(event);
     if (listeners.sendMouseButton(mouseEvent, event.getButton(), true, 2)) {
       stopEvent(event);
@@ -120,6 +132,7 @@ public class JsInput {
 
   private void onContextMenu(org.teavm.jso.dom.events.MouseEvent event) {
     debug("onContextMenu");
+    if (clientRect == null) return;
     MouseEvent mouseEvent = mouseEvent(event);
     if (listeners.sendContextMenu(mouseEvent)) {
       stopEvent(event);
@@ -127,6 +140,7 @@ public class JsInput {
   }
 
   private void onMouseWheelOnElement(WheelEvent event) {
+    if (clientRect == null) return;
     debug("onMouseWheelElement");
     float scale = switch (event.getDeltaMode()) {
       case WheelEvent.DOM_DELTA_PIXEL -> 1;
@@ -140,9 +154,16 @@ public class JsInput {
   }
 
   private void onKeyDown(KeyboardEvent event) {
+    if (debug) JsHelper.consoleInfo(
+        "onKeyDown id=" + getId() + ", event.key = " + event.getKey());
+
     if (listeners.sendKeyEvent(keyEvent(event, true))) {
       stopEvent(event);
     }
+  }
+
+  private String getId() {
+    return element.getParentNode().<HTMLElement>cast().getId();
   }
 
   private void onKeyUp(KeyboardEvent event) {
@@ -152,15 +173,22 @@ public class JsInput {
   }
 
   private void onBlur(Event event) {
+    if (debug) JsHelper.consoleInfo("onBlur event("
+            + getId() + "), target == element " +
+        (event.getTarget() == element));
     listeners.sendBlurEvent();
   }
 
   private void onFocus(Event event) {
+    if (debug) JsHelper.consoleInfo("onFocus event("
+        + getId() + "), target == element " +
+        (event.getTarget() == element));
     listeners.sendFocusEvent();
   }
 
   private void onDrop(DragEvent event) {
     debug("onDrop");
+    if (clientRect == null) return;
     MouseEvent mouseEvent = mouseEvent(event);
   }
 
@@ -209,16 +237,13 @@ public class JsInput {
 
   private MouseEvent mouseEvent(org.teavm.jso.dom.events.MouseEvent event) {
     double devicePixelRatio = Window.current().getDevicePixelRatio();
-    JsHelper.DOMRect rect = element.getBoundingClientRectD();
+    DOMRect rect = element.getBoundingClientRectD();
 
     V2i position = new V2i(
         Numbers.iRnd((event.getClientX() - rect.getLeft()) * devicePixelRatio),
         Numbers.iRnd((event.getClientY() - rect.getTop()) * devicePixelRatio));
 
-    V2i size = new V2i(
-        Numbers.iRnd(rect.getWidth() * devicePixelRatio),
-        Numbers.iRnd(rect.getHeight() * devicePixelRatio));
-
+    V2i size = new V2i(clientRect);
     return new MouseEvent(
         position, size,
         event.getCtrlKey(),

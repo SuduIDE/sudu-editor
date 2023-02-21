@@ -1,9 +1,11 @@
 package org.sudu.experiments.js;
 
 import org.sudu.experiments.GLApi;
+import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.teavm.jso.*;
 import org.teavm.jso.browser.Window;
+import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.css.CSSStyleDeclaration;
 import org.teavm.jso.dom.html.HTMLCanvasElement;
@@ -22,11 +24,9 @@ public class JsHelper {
     HTMLDocument.current().getElementById(div).appendChild(e);
   }
 
-  public static HTMLCanvasElement createMainCanvas(V2i size, String className) {
+  public static HTMLCanvasElement createMainCanvas(String className) {
     HTMLCanvasElement element = createCanvas();
     if (className != null) element.setClassName(className);
-    element.setWidth(size.x);
-    element.setHeight(size.y);
     element.setTabIndex(0);
     CSSStyleDeclaration style = element.getStyle();
     style.setProperty("width", "100%");
@@ -67,29 +67,44 @@ public class JsHelper {
     return currentCursor;
   }
 
-  public interface DOMRect extends JSObject {
-    @JSProperty double getLeft();
-    @JSProperty double getRight();
-    @JSProperty double getTop();
-    @JSProperty double getBottom();
-    @JSProperty double getWidth();
-    @JSProperty double getHeight();
-  }
-
   interface HTMLElement extends org.teavm.jso.dom.html.HTMLElement {
-    @JSMethod("getBoundingClientRect") JsHelper.DOMRect getBoundingClientRectD();
+    @JSMethod("getBoundingClientRect")
+    DOMRect getBoundingClientRectD();
   }
 
-  public static V2i elementSizeToPixelSize(org.teavm.jso.dom.html.HTMLElement element) {
+  @SuppressWarnings("SuspiciousNameCombination")
+  public static V2i getBoundingClientRect(
+      org.teavm.jso.dom.html.HTMLElement element,
+      JSString id
+  ) {
     double devicePixelRatio = Window.current().getDevicePixelRatio();
+    JsHelper.consoleInfo("getBoundingClientRect: ", id);
     DOMRect rect = element.<HTMLElement>cast().getBoundingClientRectD();
+    double top = rect.getTop() * devicePixelRatio;
     double left = rect.getLeft() * devicePixelRatio;
     double right = rect.getRight() * devicePixelRatio;
-    double top = rect.getTop() * devicePixelRatio;
     double bottom = rect.getBottom() * devicePixelRatio;
 
-    int sizeX = (int) Math.rint(right - left);
-    int sizeY = (int) Math.rint(bottom - top);
+    JsHelper.consoleInfo(" dpr = " + devicePixelRatio);
+    JsHelper.consoleInfo("  top * dpr = ", top);
+    JsHelper.consoleInfo("  left * dpr = ", left);
+    JsHelper.consoleInfo("  right * dpr = ", right);
+    JsHelper.consoleInfo("  bottom * dpr = ", bottom);
+    JsHelper.consoleInfo("  doubleW = ", right - left);
+    JsHelper.consoleInfo("  doubleH = ", bottom - top);
+
+    int iTop = Numbers.iRnd(top);
+    int iLeft = Numbers.iRnd(left);
+    int iRight = Numbers.iRnd(right);
+    int iBottom = Numbers.iRnd(bottom);
+
+    JsHelper.consoleInfo("  iTop = ", iTop);
+    JsHelper.consoleInfo("  iLeft = ", iLeft);
+    JsHelper.consoleInfo("  iRight = ", iRight);
+    JsHelper.consoleInfo("  iBottom = ", iBottom);
+
+    int sizeX = iRight - iLeft;
+    int sizeY = iBottom - iTop;
     return new V2i(sizeX, sizeY);
   }
 
@@ -122,4 +137,19 @@ public class JsHelper {
 
   @JSBody(params = {"n"}, script = "return String(n);")
   public static native String jsDoubleToString(double n);
+
+  @JSBody(params = {"arg"}, script = "return new JSError(arg);")
+  public static native JSError newError(String arg);
+
+  public interface Error extends JSObject {
+    @JSProperty JSString getMessage();
+  }
+
+  public interface WithId extends JSObject {
+    @JSProperty JSString getId();
+
+    static JSString get(JSObject o) {
+      return o.<WithId>cast().getId();
+    }
+  }
 }

@@ -9,7 +9,7 @@ In order to build it one need to
     ```
     git clone https://github.com/konsoletyper/teavm.git
     cd teavm 
-    mvn -e install -DskipTests -Dteavm.build.all=false -Pwith-cli -Dmaven.javadoc.skip=true -T4
+    gradle publishToMavenLocal -x test
     ```
 
 2. Also, you need to get the latest emscripten for wasm compilation:

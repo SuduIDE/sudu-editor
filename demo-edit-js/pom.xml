@@ -24,8 +24,6 @@
     <teavm.sourceMaps>false</teavm.sourceMaps>
     <teavm.debugInfo>false</teavm.debugInfo>
     <teavm.minifying>false</teavm.minifying>
-
-    <teavm.optimizationLevel1>ADVANCED</teavm.optimizationLevel1>
     <teavm.optimizationLevel>SIMPLE</teavm.optimizationLevel>
 
   </properties>
@@ -37,7 +35,7 @@
         <teavm.sourceMaps>false</teavm.sourceMaps>
         <teavm.debugInfo>false</teavm.debugInfo>
         <teavm.minifying>true</teavm.minifying>
-        <teavm.optimizationLevel>FULL</teavm.optimizationLevel>
+        <teavm.optimizationLevel>ADVANCED</teavm.optimizationLevel>
       </properties>
     </profile>
 
@@ -77,6 +75,7 @@
       <scope>provided</scope>
     </dependency>
 
+    <!--suppress VulnerableLibrariesLocal -->
     <dependency>
       <groupId>org.teavm</groupId>
       <artifactId>teavm-classlib</artifactId>
@@ -90,12 +89,12 @@
       <version>${jupiter.version}</version>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>org.sudu</groupId>
-          <artifactId>demo-test-scenes</artifactId>
-          <version>1.0-SNAPSHOT</version>
-          <scope>compile</scope>
-      </dependency>
+    <dependency>
+      <groupId>org.sudu</groupId>
+      <artifactId>demo-test-scenes</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
 
   </dependencies>
 
@@ -136,29 +135,6 @@
               <sourceMapsGenerated>${teavm.sourceMaps}</sourceMapsGenerated>
               <sourceFilesCopied>${teavm.sourceMaps}</sourceFilesCopied>
               <optimizationLevel>${teavm.optimizationLevel}</optimizationLevel>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>3.1.0</version>
-        <executions>
-          <execution>
-            <id>generate-es-module</id>
-<!--            <phase>process-classes</phase>-->
-            <goals><goal>run</goal></goals>
-            <configuration>
-              <target>
-                <concat destfile="${project.build.directory}/generated/js/teavm/${workerFileTemp}"
-                        overwrite="yes">
-                  <!-- Provide directory containing txt files that you need to concat-->
-                  <fileset file="${project.build.directory}/generated/js/teavm/${workerFile}"/>
-                  <fileset file="ES6moduleExport.js-template"/>
-                </concat>
-              </target>
             </configuration>
           </execution>
         </executions>

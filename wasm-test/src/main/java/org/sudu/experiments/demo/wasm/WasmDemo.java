@@ -27,6 +27,6 @@ public class WasmDemo extends Scene {
   public void paint() {}
 
   @Override
-  public void onResize(V2i size) {}
+  public void onResize(V2i size, double dpr) {}
 
 }

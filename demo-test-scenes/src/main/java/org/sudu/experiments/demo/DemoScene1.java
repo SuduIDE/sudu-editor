@@ -25,23 +25,64 @@ public class DemoScene1 extends Scene {
 
   GL.Texture mouseTexture;
   GL.Texture demoRectTexture;
-  GL.Texture textureCanvas;
-  GL.Texture textureCanvas2;
-  GL.Texture textureIcon;
+  GL.Texture canvas1Texture;
+  GL.Texture canvas2Texture;
+  GL.Texture iconTexture;
 
   Canvas textCanvas;
 
   V2i drag;
-  int curCursor;
 
   public DemoScene1(SceneApi api) {
     super(api);
     g = api.graphics;
-    V2i clientRect = api.window.getClientRect();
+    api.input.addListener(new MyInputListener());
 
-    double r = api.window.devicePixelRatio();
-    int dp30 = Numbers.iRnd(r * 30);
-    int dp10 = Numbers.iRnd(r * 10);
+    demoRectTexture = svgTexture();
+    demoRect.setTextureRegionDefault(demoRectTexture);
+    demoRect.setSizeToTextureRegion();
+    demoRect.bgColor.set(Colors.editBgColor);
+    demoRect.color.set(new Color(204, 120, 50));
+
+    mouseTexture = mouseTexture();
+    mouse.size.set(mouseTexture.width(), mouseTexture.height());
+
+
+    String s = " HuaweЙ KeyModifiers 收件人 |";
+
+    textCanvas = g.createCanvas(255, 100);
+    textCanvas.setFont(Fonts.SegoeUI, 11);
+    System.out.println("textCanvas.getFont() = " + textCanvas.getFont());
+
+    textCanvas.measureText(s);
+    textCanvas.setFillColor(169, 183, 198);
+    drawSomeText(s, textCanvas);
+
+    canvas1Texture = g.createTexture();
+    canvas1Texture.setContent(textCanvas);
+
+    canvasRect1.setTextureRegionDefault(canvas1Texture);
+    canvasRect1.setSizeToTextureRegion();
+
+    canvasRect1.setColor(new Color(255));
+    canvasRect1.setBgColor(Colors.editBgColor);
+
+    canvas2Texture = g.createTexture();
+
+    if (1 < 0) g.loadImage("img/icon16.png", t -> {
+      System.out.println("t = " + t.width() + "x" + t.height());
+      iconTexture = Disposable.assign(iconTexture, t);
+      mouse.size.set(iconTexture.width(), iconTexture.height());
+    });
+
+    mouse.bgColor.set(bgColor);
+  }
+
+  void layout(V2i clientRect, double dpr) {
+    System.out.println("clientRect = " + clientRect);
+    System.out.println("dpr = " + dpr);
+    int dp30 = Numbers.iRnd(dpr * 30);
+    int dp10 = Numbers.iRnd(dpr * 10);
     for (int i = 0; i < cursors.length; i++) {
       int x = dp10 * (1 + i) + dp30 * i;
       cursors[i] = new DemoRect(x, dp30, dp30, dp30);
@@ -49,57 +90,18 @@ public class DemoScene1 extends Scene {
     }
 
     mouse.pos.set(clientRect.x / 2 - 1, clientRect.y / 2 - 1);
-    demoRect.pos.set(clientRect.x - demoRect.size.x, (clientRect.y  - demoRect.size.y) / 2);
-
-    mouseTexture = mouseTexture();
-    demoRectTexture = svgTexture();
-    demoRect.setTextureRegion(0, 0, demoRectTexture.width(), demoRectTexture.height());
-
-    mouse.size.set(mouseTexture.width(), mouseTexture.height());
-
-    demoRect.bgColor.set(Colors.editBgColor);
-    demoRect.color.set(new Color(204, 120, 50));
-
-    api.input.addListener(new MyInputListener());
-
-    textCanvas = g.createCanvas(255, 128);
-//    textCanvas.setFont(12, Fonts.Helvetica);
-
-    String s = " HuaweЙ KeyModifiers 收件人 |";
-    textCanvas.setFont(Fonts.SegoeUI, 11);
-    System.out.println("textCanvas.getFont() = " + textCanvas.getFont());
-
-    textCanvas.measureText(s);
-    textCanvas.setFillColor(169, 183, 198);
-    drawSomeText(s, textCanvas);
-//    textCanvas.addToDocument();
-
-    textureCanvas = g.createTexture();
-    textureCanvas.setContent(textCanvas);
-    canvasRect1.size.set(textureCanvas.width(), textureCanvas.height());
-    canvasRect1.setTextureRegion(0, 0, textureCanvas.width(), textureCanvas.height());
-
-    Color white = new Color(255);
-    canvasRect1.setColor(white);
-    canvasRect1.setBgColor(Colors.editBgColor);
-
-    textureCanvas2 = g.createTexture();
-
-    g.loadImage("img/icon80.png", t -> {
-      System.out.println("t = " + t.width() + "x" + t.height());
-      textureIcon = Disposable.assign(textureIcon, t);
-      mouse.size.set(textureIcon.width(), textureIcon.height());
-    });
-
-    mouse.bgColor.set(bgColor);
+    demoRect.pos.set(
+        (clientRect.x - demoRect.size.x) / 2,
+        (clientRect.y - demoRect.size.y) / 2);
+    canvasRect1.pos.y = clientRect.y - canvasRect1.size.y;
   }
 
   public void dispose() {
     mouseTexture = Disposable.assign(mouseTexture, null);
     demoRectTexture = Disposable.assign(demoRectTexture, null);
-    textureCanvas = Disposable.assign(textureCanvas, null);
-    textureCanvas2 = Disposable.assign(textureCanvas2, null);
-    textureIcon = Disposable.assign(textureIcon, null);
+    canvas1Texture = Disposable.assign(canvas1Texture, null);
+    canvas2Texture = Disposable.assign(canvas2Texture, null);
+    iconTexture = Disposable.assign(iconTexture, null);
     textCanvas = Disposable.assign(textCanvas, null);
   }
 
@@ -108,10 +110,6 @@ public class DemoScene1 extends Scene {
     canvas.drawText(s, .25f, 40);
     canvas.drawText(s, .5f, 60);
     canvas.drawText(s, .75f, 80);
-  }
-
-  private void layout(V2i clientRect) {
-    canvasRect1.pos.y = clientRect.y - canvasRect1.size.y;
   }
 
   private void setRandomColor(DemoRect rect) {
@@ -158,28 +156,30 @@ public class DemoScene1 extends Scene {
 
     demoRect.drawText(g, demoRectTexture, 0, 0, 0.5f);
 
+    GL.Texture texture = canvas1Texture;
     for (int i = 0, N = 7; i < N; i++) {
-      canvasRect1.drawText(g, textureCanvas,
+      canvasRect1.drawText(g, texture,
           i * (10 + 10 * canvasRect1.size.x / 15) + 5, -5,
           1.f * i / N);
     }
 
     mouse.drawGrayIcon(g,
-        textureIcon != null ? textureIcon : mouseTexture, 0, 0, 0);
+        iconTexture != null ? iconTexture : mouseTexture, 0, 0, 0);
 
     caret.paint(g, new V2i());
 
     g.checkError("paint complete ");
   }
 
-  public void onResize(V2i size) {
-    layout(size);
+  public void onResize(V2i size, double dpr) {
+    layout(size, dpr);
   }
 
   class MyInputListener implements InputListener {
     V2i lastMouse = new V2i();
     @Override
     public boolean onMouseMove(MouseEvent event) {
+//      System.out.println("event = " + event.position);
       if (drag != null) {
         V2i rcPos = demoRect.pos;
         rcPos.x += event.position.x - drag.x;

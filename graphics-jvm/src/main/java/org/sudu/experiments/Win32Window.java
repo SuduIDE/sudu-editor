@@ -60,6 +60,11 @@ public class Win32Window implements WindowPeer, Window {
     workerExecutor = workerJobs;
   }
 
+  @Override
+  public boolean hasFocus() {
+    return hWnd == Win32.GetFocus();
+  }
+
   public boolean opened() {
     return !closed;
   }
@@ -109,7 +114,7 @@ public class Win32Window implements WindowPeer, Window {
     }
 
     scene = sf.apply(api());
-    scene.onResize(angleSurfaceSize);
+    scene.onResize(angleSurfaceSize, devicePixelRatio());
 
     return renderFirst(maximized);
   }
@@ -147,7 +152,7 @@ public class Win32Window implements WindowPeer, Window {
 
     if (!angleSurfaceSize.equals(angleSize)) {
       angleSurfaceSize.set(angleSize);
-      scene.onResize(angleSurfaceSize);
+      scene.onResize(angleSurfaceSize, devicePixelRatio());
       repaintRequested = true;
     }
 
@@ -169,8 +174,8 @@ public class Win32Window implements WindowPeer, Window {
     hWnd = Win32.DestroyWindow(hWnd) ? 0 : -1;
     if (hWnd != 0) System.err.println("DesktopWindow.dispose: destroyWindow failed");
     windowSize.set(0,0);
-    inputListeners.clear();
     scene.dispose();
+    inputListeners.clear();
     scene = null;
     currentCursor = null;
     if (contextIsRoot) reportLostResources();
@@ -215,6 +220,7 @@ public class Win32Window implements WindowPeer, Window {
 
   private String cfgMax() { return config.concat(".maximized"); }
 
+  @SuppressWarnings("CommentedOutCode")
   private void onWindowMove(int x, int y) {
     int[] rect4 = new int[4];
     Win32.GetWindowRect(hWnd, rect4);
@@ -242,21 +248,10 @@ public class Win32Window implements WindowPeer, Window {
   }
 
   @Override
-  public V2i getClientRect() {
-    return new V2i(angleSurfaceSize);
-  }
-
-  @Override
-  public V2i getScreenRect() {
-    return new V2i(windowSize);
-  }
-
-  @Override
   public double timeNow() {
     return time.now();
   }
 
-  @Override
   public double devicePixelRatio() {
     return windowDpi / 96.;
   }

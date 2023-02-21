@@ -14,10 +14,10 @@ import java.util.function.Consumer;
 public class WebGraphics extends WglGraphics {
   protected Runnable repaint;
 
-  public WebGraphics(GLApi.Context gl, Runnable repaint, V2i clientRect) {
+  public WebGraphics(GLApi.Context gl, Runnable repaint) {
     super(gl, JsCanvas::new);
     this.repaint = repaint;
-    setClientRect(clientRect);
+//    setClientRect(clientRect);
   }
 
   public FontDesk fontDesk(String family, float size, int weight, int style) {

@@ -14,6 +14,16 @@ public class TextRect extends DemoRect {
     set(x, y, w, h);
   }
 
+  public void setSizeToTextureRegion() {
+    size.set(
+        (int) (textureRegion.z - textureRegion.x),
+        (int) (textureRegion.w - textureRegion.y));
+  }
+
+  public void setTextureRegionDefault(GL.Texture texture) {
+    setTextureRegion(0, 0, texture.width(), texture.height());
+  }
+
   public void setTextureRegion(int x, int y, int w, int h) {
     textureRegion.set(x, y, w, h);
   }

@@ -1,0 +1,10 @@
+{
+  "name": "webpack-test",
+  "workspaces": [
+    "editor-on-java", "editor-on-java-sample"
+  ],
+  "scripts": {
+    "i": "npm install",
+    "build-editor-on-java-samplebn": "npm run -w editor-on-java-sample build"
+  }
+}

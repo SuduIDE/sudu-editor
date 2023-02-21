@@ -2,20 +2,21 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.js.*;
-import org.sudu.experiments.math.V2i;
 import org.teavm.jso.browser.AnimationFrameCallback;
 import org.teavm.jso.browser.Performance;
-import org.teavm.jso.browser.Screen;
 import org.teavm.jso.browser.Window;
+import org.teavm.jso.core.JSArrayReader;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.dom.events.Event;
+import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.events.MessageEvent;
 import org.teavm.jso.dom.html.HTMLCanvasElement;
 import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import java.util.TreeMap;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class WebWindow implements org.sudu.experiments.Window {
   final AnimationFrameCallback frameCallback = this::onAnimationFrame;
@@ -23,9 +24,13 @@ public class WebWindow implements org.sudu.experiments.Window {
   final InputListeners inputListeners = new InputListeners(repaint);
   final HTMLElement canvasDiv;
   final HTMLCanvasElement mainCanvas;
+  final ResizeObserver observer = ResizeObserver.create(this::onSizeObserved);
+  final EventListener<Event> handleWindowResize = this::handleWindowResize;
+
   private JsInput eventHandler;
   private WebGraphics g;
   private boolean repaintRequested = true;
+  private int animationFrameRequest;
   private String currentCursor;
   private Scene scene;
 
@@ -35,7 +40,7 @@ public class WebWindow implements org.sudu.experiments.Window {
   private int workerJobIdNext;
 
   public WebWindow(
-      BiFunction<SceneApi, String, Scene> factory,
+      Function<SceneApi, Scene> factory,
       Runnable onWebGlError,
       String canvasDivId,
       WorkerContext worker
@@ -43,26 +48,61 @@ public class WebWindow implements org.sudu.experiments.Window {
     this.worker = worker;
     worker.onMessage(this::onWorkerMessage);
     WorkerProtocol.sendPingToWorker(worker);
-
+//    JsHelper.consoleInfo("starting web window on " + canvasDivId);
     canvasDiv = HTMLDocument.current().getElementById(canvasDivId);
-    V2i clientRect = JsHelper.elementSizeToPixelSize(canvasDiv);
-
-//    JsHelper.addPreText("WebApp::WebApp size in pixels: = " + clientRect);
-
-    mainCanvas = JsHelper.createMainCanvas(clientRect, null);
+    mainCanvas = JsHelper.createMainCanvas(null);
+    observer.observePixelsOrDefault(mainCanvas);
     canvasDiv.appendChild(mainCanvas);
 
     GLApi.Context gl = JsHelper.createContext(mainCanvas);
 
     if (gl != null) {
-      init(gl, clientRect, factory);
+      init(gl, factory);
     } else {
       onWebGlError.run();
     }
   }
 
+  public void focus() {
+    mainCanvas.focus();
+  }
+
+  @Override
+  public boolean hasFocus() {
+    return mainCanvas == HTMLDocument.current().getActiveElement();
+  }
+
+  void onSizeObserved(JSArrayReader<ResizeObserver.ResizeObserverEntry> entries, ResizeObserver o) {
+//    JsHelper.consoleInfo("onSizeObserved: entries.length = ", entries.getLength());
+    for (int i = 0, n = entries.getLength(); i < n; i++) {
+      var entry = entries.get(i);
+      if (entry.getTarget() == mainCanvas) {
+        if (JSObjects.hasProperty(entry, entry.devicePixelContentBoxSize)) {
+          if (entry.getDevicePixelContentBoxSize().getLength() == 1) {
+            var size = entry.getDevicePixelContentBoxSize().get(0);
+            onCanvasSizeChanged((int) size.getInlineSize(), (int) size.getBlockSize());
+          }
+        } else {
+          var domRect = entry.getContentRect();
+          throw new UnsupportedOperationException("todo");
+        }
+      }
+    }
+  }
+
+  public Scene scene() {
+    return scene;
+  }
+
   @SuppressWarnings("unused")
   public void dispose() {
+    if (animationFrameRequest != 0) {
+      Window.cancelAnimationFrame(animationFrameRequest);
+      animationFrameRequest = 0;
+    }
+    Window.current().removeEventListener("resize", handleWindowResize);
+
+    observer.disconnect();
     g.dispose();
     if (eventHandler != null) {
       eventHandler.dispose();
@@ -70,18 +110,16 @@ public class WebWindow implements org.sudu.experiments.Window {
     }
   }
 
-  private void init(GLApi.Context gl, V2i clientRect, BiFunction<SceneApi, String, Scene> sf) {
+  private void init(GLApi.Context gl, Function<SceneApi, Scene> sf) {
     eventHandler = new JsInput(mainCanvas, inputListeners);
-    g = new WebGraphics(gl, repaint, clientRect);
-    mainCanvas.focus();
+    g = new WebGraphics(gl, repaint);
 
-    Window.current().addEventListener("resize", this::handleWindowResize);
+    Window.current().addEventListener("resize", handleWindowResize);
 
-    scene = sf.apply(api(), Window.current().getLocation().getHash());
-    scene.onResize(clientRect);
+    scene = sf.apply(api());
     double t0 = timeNow();
-    Debug.consoleInfo("time start: ", t0);
-    onAnimationFrame(t0);
+    JsHelper.consoleInfo("time start: ", t0);
+    requestNewFrame();
   }
 
   @Override
@@ -92,7 +130,7 @@ public class WebWindow implements org.sudu.experiments.Window {
   }
 
   private void requestNewFrame() {
-    Window.requestAnimationFrame(frameCallback);
+    animationFrameRequest = Window.requestAnimationFrame(frameCallback);
   }
   public void repaint() {
     repaintRequested = true;
@@ -100,20 +138,36 @@ public class WebWindow implements org.sudu.experiments.Window {
 
   private void onAnimationFrame(double timestamp) {
     if (scene.update(timestamp / 1000) || repaintRequested) {
-      repaintRequested = false;
-      scene.paint();
+      if (g.clientRect.x * g.clientRect.y != 0) {
+        repaintRequested = false;
+        scene.paint();
+      }
     }
     requestNewFrame();
   }
 
+  private void onCanvasSizeChanged(int inlineSize, int blockSize) {
+    if (1 < 0) {
+      JsHelper.consoleInfo("  onCanvasSizeChanged: ", JsHelper.WithId.get(canvasDiv));
+      JsHelper.consoleInfo("    inlineSize =  ", inlineSize);
+      JsHelper.consoleInfo("    blockSize =  ", blockSize);
+    }
+    eventHandler.setClientRect(inlineSize, blockSize);
+    mainCanvas.setWidth(inlineSize);
+    mainCanvas.setHeight(blockSize);
+
+    g.setViewPortAndClientRect(inlineSize, blockSize);
+    scene.onResize(g.clientRect, devicePixelRatio());
+    scene.paint();
+  }
+
   private void handleWindowResize(Event evt) {
-    V2i size = JsHelper.elementSizeToPixelSize(canvasDiv);
-    Debug.consoleInfo("handleWindowResize new size: " + size);
-    mainCanvas.setWidth(size.x);
-    mainCanvas.setHeight(size.y);
-    g.setClientRect(size);
-    g.setViewPortToClientRect();
-    scene.onResize(size);
+    if (1 < 0) {
+      JsHelper.consoleInfo("handleWindowResize: ", JsHelper.WithId.get(canvasDiv));
+      JsHelper.consoleInfo("  devicePixelRatio  = ", devicePixelRatio());
+    }
+
+    scene.onResize(g.clientRect, devicePixelRatio());
     scene.paint();
   }
 
@@ -122,25 +176,10 @@ public class WebWindow implements org.sudu.experiments.Window {
   }
 
   @Override
-  public V2i getClientRect() {
-    return new V2i(g.clientRect);
-  }
-
-  @Override
-  public V2i getScreenRect() {
-    Screen screen = Window.current().getScreen();
-    //todo: add Firefox <-> Chrome detection code
-    //   firefox measures in DOM pixels
-    //   chrome measures in Device pixels
-    return new V2i(screen.getWidth(), screen.getHeight());
-  }
-
-  @Override
   public double timeNow() {
     return Performance.now() / 1000;
   }
 
-  @Override
   public double devicePixelRatio() {
     return Window.current().getDevicePixelRatio();
   }

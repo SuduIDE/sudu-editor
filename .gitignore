@@ -3,3 +3,10 @@ target/
 .vs/
 *.vcxproj.user
 /angle-dll/src/main/resources/libGLESv2.dll
+/webpack-test/editor-on-java-sample/package-lock.json
+/webpack-test/editor-on-java-sample/dist/
+/webpack-test/package-lock.json
+/demo-edit-es-module/module/src/
+/demo-edit-es-module/webpack-test/package-lock.json
+/demo-edit-es-module/webpack-test/editor-on-java-sample/dist/
+node_modules

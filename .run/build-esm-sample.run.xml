@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="build-esm-sample" type="js.build_tools.npm">
+    <package-json value="$PROJECT_DIR$/demo-edit-es-module/webpack-test/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="build-editor-on-java-sample" />
+    </scripts>
+    <node-interpreter value="project" />
+    <envs />
+    <method v="2">
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Module package" run_configuration_type="MavenRunConfiguration" />
+    </method>
+  </configuration>
+</component>

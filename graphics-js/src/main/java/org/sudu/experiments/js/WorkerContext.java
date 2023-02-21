@@ -5,6 +5,8 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSArrayReader;
+import org.teavm.jso.core.JSError;
+import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.events.MessageEvent;
 
 import java.util.Map;
@@ -14,6 +16,9 @@ public abstract class WorkerContext implements JSObject {
 
   @JSBody(params = "url", script = "return new Worker(url);")
   public static native WorkerContext newWorker(String url);
+
+  @JSBody(params = "url", script = "return new Worker(url);")
+  public static native WorkerContext newWorker(JSString url);
 
   @JSBody(script = "return self")
   public static native WorkerContext self();
@@ -27,17 +32,28 @@ public abstract class WorkerContext implements JSObject {
   public abstract void postMessage(JSObject message);
   public abstract void postMessage(JSObject message, JSArrayReader<?> transfer);
 
-  public static void start(Consumer<WorkerContext> onStart, String url) {
+  public static void start(
+      Consumer<WorkerContext> onStart,
+      JsFunctions.Consumer<JSObject> error,
+      JSString url
+  ) {
     WorkerContext worker = newWorker(url);
     worker.onMessage(message -> {
       if (WorkerProtocol.isStarted(message.getData())) {
-//        JsHelper.consoleInfo("WorkerContext started");
         worker.onMessage((JSObject) null);
         onStart.accept(worker);
       } else {
-        throw new RuntimeException("worker is not started");
+        error.f(JsHelper.newError("worker is not started"));
       }
     });
+  }
+
+  public static void start(Consumer<WorkerContext> onStart, String url) {
+    start(onStart, WorkerContext::throwJsError, JSString.valueOf(url));
+  }
+
+  static void throwJsError(JSObject jsError) {
+    throw new RuntimeException(jsError.<JSError>cast().getMessage());
   }
 
   public static void workerMain(WorkerExecutor executor) {
