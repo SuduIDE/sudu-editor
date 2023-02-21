@@ -62,14 +62,19 @@ In order to build it one need to
    MSBuild --help
    clang --help
     ```
-Now you can build the demo with
+   Now you can build the demo with
 
-`mvn package`
+   `mvn package`
 
-To run desktop version one need to get libGLESv2.dll - Angle library.
-One way of getting it is to run org.sudu.experiments.nativelib.CopyAngleToResources
 
-You may also need to build native parts of project with this maven command:
-`mvn package -am -pl graphics-jvm`
+6. To run desktop version one need to get libGLESv2.dll - Angle library. 
+   One way of getting it is to run org.sudu.experiments.nativelib.CopyAngleToResources
+   You may also need to build native parts of project with this maven command:
+   `mvn package -am -pl graphics-jvm`
+   After this steps you can simply run org.sudu.experiments.DemoEditJvm
 
-After this steps you can simply run org.sudu.experiments.DemoEditJvm
+
+7. If you want to build ES module with its demo, you need Node.js version 18+. 
+   Steps:  
+   1. maven task "Module package"
+   2. npm script "i" and "build-editor-on-java-sample" in demo-edit-es-module/webpack-test/package.json

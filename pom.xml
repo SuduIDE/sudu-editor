@@ -35,7 +35,7 @@
 
     <project.build.sourceLevel>17</project.build.sourceLevel>
 
-    <teavm.version>0.7.0-SNAPSHOT</teavm.version>
+    <teavm.version>0.8.0-SNAPSHOT</teavm.version>
     <jupiter.version>5.9.0</jupiter.version>
   </properties>
 
