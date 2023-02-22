@@ -62,19 +62,32 @@ In order to build it one need to
    MSBuild --help
    clang --help
     ```
+
+6. Clone and build TeaVM-compatible version of ANTLR:
+   ```
+   git clone https://github.com/pertsevpv/antlr4-teavm-compatible.git
+   cd antlr4-teavm-compatible
+   mvn install -DskipTests
+   ```
+   6.1. If you need to edit grammars and generate parsers, you need to install ANTLR4.
+   The easiest way is installed antlr4-tools:
+   ```
+   pip install antlr4-tools
+   ```
+
    Now you can build the demo with
 
    `mvn package`
 
 
-6. To run desktop version one need to get libGLESv2.dll - Angle library. 
+7. To run desktop version one need to get libGLESv2.dll - Angle library. 
    One way of getting it is to run org.sudu.experiments.nativelib.CopyAngleToResources
    You may also need to build native parts of project with this maven command:
    `mvn package -am -pl graphics-jvm`
    After this steps you can simply run org.sudu.experiments.DemoEditJvm
 
 
-7. If you want to build ES module with its demo, you need Node.js version 18+. 
+8. If you want to build ES module with its demo, you need Node.js version 18+. 
    Steps:  
    1. maven task "Module package"
    2. npm script "i" and "build-editor-on-java-sample" in demo-edit-es-module/webpack-test/package.json

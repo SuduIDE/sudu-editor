@@ -10,3 +10,4 @@ target/
 /demo-edit-es-module/webpack-test/package-lock.json
 /demo-edit-es-module/webpack-test/editor-on-java-sample/dist/
 node_modules
+*.iml

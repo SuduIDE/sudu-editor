@@ -20,7 +20,7 @@ public class FileParser {
 
   private static void parseBytes(byte[] bytes, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    LineParser.parseBytes(bytes, list);
+    JavaParser.parseBytes(bytes, list);
     ArrayOp.sendArrayList(list, result);
   }
 }

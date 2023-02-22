@@ -5,6 +5,7 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.worker.FileParser;
+import org.sudu.experiments.demo.worker.JavaParser;
 import org.sudu.experiments.demo.worker.LineParser;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -141,6 +142,7 @@ public class EditorComponent implements Disposable {
   @SuppressWarnings("CommentedOutCode")
   private void initToolbar() {
     toolbar.setBgColor(Colors.toolbarBg);
+    toolbar.addButton("Reparse", Colors.toolbarText3, this::reparse);
     toolbar.addButton("Open", Colors.toolbarText3, this::showOpenFile);
 //    toolbar.addButton("↓", Colors.toolbarText3, this::moveDown);
 //    toolbar.addButton("■", Colors.toolbarText3, this::stopMove);
@@ -601,26 +603,33 @@ public class EditorComponent implements Disposable {
     return Math.min(Math.max(0, pos), maxScrollPos);
   }
 
+  private long parsingTimeStart;
   private void onFileParsed(Object[] result) {
     Debug.consoleInfo("onFileParsed");
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
 
-    this.document = LineParser.makeDocument(ints, chars);
-    setCaretLinePos(0, 0, false);
+    this.document = JavaParser.makeDocument(ints, chars);
+
+    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
+    int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
+
+    setCaretLinePos(newCaretLine, newCaretCharInd, false);
     api.window.setCursor(Cursor.arrow);
     api.window.repaint();
+    Debug.consoleInfo("File parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
   }
 
   private void onFileLoad(byte[] content) {
     Debug.consoleInfo("readAsBytes complete, l = " + content.length);
-
+    parsingTimeStart = System.currentTimeMillis();
     api.window.sendToWorker(this::onFileParsed, LineParser.PARSE_BYTES, content);
   }
 
   private void openFile(FileHandle f) {
     Debug.consoleInfo("opening file " + f.getName());
     // f.readAsBytes(this::onFileLoad, System.err::println);
+    parsingTimeStart = System.currentTimeMillis();
     api.window.sendToWorker(this::onFileParsed, FileParser.asyncParseFile, f);
   }
 
@@ -869,6 +878,11 @@ public class EditorComponent implements Disposable {
       return true;
     }
 
+    if (event.ctrl && event.keyCode == KeyCode.P) {
+      reparse();
+      return true;
+    }
+
     if (handleDebug(event)) return true;
     if (handleNavigation(event)) return true;
     if (handleEditingKeys(event)) return true;
@@ -883,6 +897,11 @@ public class EditorComponent implements Disposable {
     if (event.ctrl || event.alt || event.meta) return false;
     if (event.keyCode == KeyCode.ESC) return false;
     return event.key.length() > 0 && handleInsert(event.key);
+  }
+
+  private void reparse() {
+    parsingTimeStart = System.currentTimeMillis();
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, document.getBytes());
   }
 
   private void showOpenFile() {

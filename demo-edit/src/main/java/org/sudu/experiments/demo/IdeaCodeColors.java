@@ -15,7 +15,9 @@ public interface IdeaCodeColors {
     number(new Color("#6897BB")),
     method(new Color("#FFC66D")),
     showUsage(Colors.defaultText, new Color(52, 65, 52)),
-    braceMatch(new Color("#FFEF28"), new Color("#3B514D"));
+    braceMatch(new Color("#FFEF28"), new Color("#3B514D")),
+    comment(new Color("#808080")),
+    annotation(new Color("#BBB529"));
 
     public final CodeElementColor v;
 

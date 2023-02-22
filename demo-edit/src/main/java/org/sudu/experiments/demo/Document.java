@@ -2,7 +2,10 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.math.ArrayOp;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Document {
   CodeLine[] document;
@@ -175,5 +178,11 @@ public class Document {
       deleteLines(leftPos.line + 1, rightPos.line);
       concatLines(leftPos.line);
     }
+  }
+
+  public byte[] getBytes() {
+    List<String> lines = Arrays.stream(document).map(CodeLine::makeString).collect(Collectors.toList());
+    String documentText = String.join("\n", lines);
+    return documentText.getBytes(StandardCharsets.UTF_8);
   }
 }

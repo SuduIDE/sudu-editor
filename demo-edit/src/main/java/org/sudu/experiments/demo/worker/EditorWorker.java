@@ -28,6 +28,7 @@ public class EditorWorker {
       case TestJobs.withBytes -> TestJobs.withBytes(array(a, 0).bytes(), result);
       case TestJobs.withInts -> TestJobs.withInts(array(a, 0).ints(), result);
       case LineParser.PARSE_BYTES -> LineParser.parseBytes(array(a, 0).bytes(), result);
+      case JavaParser.PARSE_BYTES_JAVA -> JavaParser.parseBytes(array(a, 0).bytes(), result);
     }
   }
 

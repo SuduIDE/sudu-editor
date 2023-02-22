@@ -26,6 +26,7 @@
     <module>fonts</module>
     <module>demo-test-scenes</module>
     <module>graphics-test</module>
+    <module>parser</module>
   </modules>
   <properties>
     <maven.compiler.source>17</maven.compiler.source>
