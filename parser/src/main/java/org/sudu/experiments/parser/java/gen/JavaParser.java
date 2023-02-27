@@ -1,4 +1,4 @@
-// Generated from java-escape by ANTLR 4.11.1
+// Generated from parser/src/main/resources/grammar/java/JavaParser.g4 by ANTLR 4.12.0
 package org.sudu.experiments.parser.java.gen;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
 public class JavaParser extends Parser {
-	static { RuntimeMetaData.checkVersion("4.11.1", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.12.0", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
@@ -201,7 +201,7 @@ public class JavaParser extends Parser {
 	}
 
 	@Override
-	public String getGrammarFileName() { return "java-escape"; }
+	public String getGrammarFileName() { return "JavaParser.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }
@@ -290,7 +290,7 @@ public class JavaParser extends Parser {
 				setState(264);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				while (((_la) & ~0x3f) == 0 && ((1L << _la) & -2250914781658622L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576460752304472071L) != 0 || _la==IDENTIFIER) {
+				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & -2250914781658622L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576460752304472071L) != 0) || _la==IDENTIFIER) {
 					{
 					{
 					setState(261);
@@ -303,6 +303,7 @@ public class JavaParser extends Parser {
 				}
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -362,7 +363,7 @@ public class JavaParser extends Parser {
 			setState(275);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0 || _la==AT || _la==IDENTIFIER) {
+			while (((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0) || _la==AT || _la==IDENTIFIER) {
 				{
 				{
 				setState(272);
@@ -762,6 +763,7 @@ public class JavaParser extends Parser {
 				annotation();
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -769,6 +771,7 @@ public class JavaParser extends Parser {
 				match(PUBLIC);
 				}
 				break;
+
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
@@ -776,6 +779,7 @@ public class JavaParser extends Parser {
 				match(PROTECTED);
 				}
 				break;
+
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
@@ -783,6 +787,7 @@ public class JavaParser extends Parser {
 				match(PRIVATE);
 				}
 				break;
+
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
@@ -790,6 +795,7 @@ public class JavaParser extends Parser {
 				match(STATIC);
 				}
 				break;
+
 			case 6:
 				enterOuterAlt(_localctx, 6);
 				{
@@ -797,6 +803,7 @@ public class JavaParser extends Parser {
 				match(ABSTRACT);
 				}
 				break;
+
 			case 7:
 				enterOuterAlt(_localctx, 7);
 				{
@@ -804,6 +811,7 @@ public class JavaParser extends Parser {
 				match(FINAL);
 				}
 				break;
+
 			case 8:
 				enterOuterAlt(_localctx, 8);
 				{
@@ -811,6 +819,7 @@ public class JavaParser extends Parser {
 				match(STRICTFP);
 				}
 				break;
+
 			case 9:
 				enterOuterAlt(_localctx, 9);
 				{
@@ -818,6 +827,7 @@ public class JavaParser extends Parser {
 				match(SEALED);
 				}
 				break;
+
 			case 10:
 				enterOuterAlt(_localctx, 10);
 				{
@@ -1311,7 +1321,7 @@ public class JavaParser extends Parser {
 			setState(395);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0 || _la==AT || _la==IDENTIFIER) {
+			if (((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0) || _la==AT || _la==IDENTIFIER) {
 				{
 				setState(394);
 				enumConstants();
@@ -1544,7 +1554,7 @@ public class JavaParser extends Parser {
 			setState(430);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((_la) & ~0x3f) == 0 && ((1L << _la) & -1331583875988694L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576460752338092039L) != 0 || _la==IDENTIFIER) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & -1331583875988694L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576460752338092039L) != 0) || _la==IDENTIFIER) {
 				{
 				{
 				setState(427);
@@ -1698,7 +1708,7 @@ public class JavaParser extends Parser {
 			setState(452);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((_la) & ~0x3f) == 0 && ((1L << _la) & -1331583875988694L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576460752338092039L) != 0 || _la==IDENTIFIER) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & -1331583875988694L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576460752338092039L) != 0) || _la==IDENTIFIER) {
 				{
 				{
 				setState(449);
@@ -1760,7 +1770,7 @@ public class JavaParser extends Parser {
 			setState(461);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((_la) & ~0x3f) == 0 && ((1L << _la) & -1331583875984598L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576460752338026503L) != 0 || _la==IDENTIFIER) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & -1331583875984598L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576460752338026503L) != 0) || _la==IDENTIFIER) {
 				{
 				{
 				setState(458);
@@ -1832,6 +1842,7 @@ public class JavaParser extends Parser {
 				match(SEMI);
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -1849,6 +1860,7 @@ public class JavaParser extends Parser {
 				block();
 				}
 				break;
+
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
@@ -1945,6 +1957,7 @@ public class JavaParser extends Parser {
 				recordDeclaration();
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -1952,6 +1965,7 @@ public class JavaParser extends Parser {
 				methodDeclaration();
 				}
 				break;
+
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
@@ -1959,6 +1973,7 @@ public class JavaParser extends Parser {
 				genericMethodDeclaration();
 				}
 				break;
+
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
@@ -1966,6 +1981,7 @@ public class JavaParser extends Parser {
 				fieldDeclaration();
 				}
 				break;
+
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
@@ -1973,6 +1989,7 @@ public class JavaParser extends Parser {
 				constructorDeclaration();
 				}
 				break;
+
 			case 6:
 				enterOuterAlt(_localctx, 6);
 				{
@@ -1980,6 +1997,7 @@ public class JavaParser extends Parser {
 				genericConstructorDeclaration();
 				}
 				break;
+
 			case 7:
 				enterOuterAlt(_localctx, 7);
 				{
@@ -1987,6 +2005,7 @@ public class JavaParser extends Parser {
 				interfaceDeclaration();
 				}
 				break;
+
 			case 8:
 				enterOuterAlt(_localctx, 8);
 				{
@@ -1994,6 +2013,7 @@ public class JavaParser extends Parser {
 				annotationTypeDeclaration();
 				}
 				break;
+
 			case 9:
 				enterOuterAlt(_localctx, 9);
 				{
@@ -2001,6 +2021,7 @@ public class JavaParser extends Parser {
 				classDeclaration();
 				}
 				break;
+
 			case 10:
 				enterOuterAlt(_localctx, 10);
 				{
@@ -2703,6 +2724,7 @@ public class JavaParser extends Parser {
 				constDeclaration();
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -2710,6 +2732,7 @@ public class JavaParser extends Parser {
 				interfaceMethodDeclaration();
 				}
 				break;
+
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
@@ -2717,6 +2740,7 @@ public class JavaParser extends Parser {
 				genericInterfaceMethodDeclaration();
 				}
 				break;
+
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
@@ -2724,6 +2748,7 @@ public class JavaParser extends Parser {
 				interfaceDeclaration();
 				}
 				break;
+
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
@@ -2731,6 +2756,7 @@ public class JavaParser extends Parser {
 				annotationTypeDeclaration();
 				}
 				break;
+
 			case 6:
 				enterOuterAlt(_localctx, 6);
 				{
@@ -2738,6 +2764,7 @@ public class JavaParser extends Parser {
 				classDeclaration();
 				}
 				break;
+
 			case 7:
 				enterOuterAlt(_localctx, 7);
 				{
@@ -2745,6 +2772,7 @@ public class JavaParser extends Parser {
 				enumDeclaration();
 				}
 				break;
+
 			case 8:
 				enterOuterAlt(_localctx, 8);
 				{
@@ -3115,7 +3143,7 @@ public class JavaParser extends Parser {
 			setState(604);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((_la) & ~0x3f) == 0 && ((1L << _la) & -2250940820221950L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576460752303423491L) != 0 || _la==IDENTIFIER) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & -2250940820221950L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576460752303423491L) != 0) || _la==IDENTIFIER) {
 				{
 				{
 				setState(601);
@@ -3595,7 +3623,7 @@ public class JavaParser extends Parser {
 			setState(669);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0 || (((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343707135L) != 0) {
+			if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343707135L) != 0)) {
 				{
 				setState(658);
 				variableInitializer();
@@ -3784,13 +3812,14 @@ public class JavaParser extends Parser {
 				typeType();
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(692);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				while ((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0 || _la==AT || _la==IDENTIFIER) {
+				while (((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0) || _la==AT || _la==IDENTIFIER) {
 					{
 					{
 					setState(689);
@@ -3944,7 +3973,7 @@ public class JavaParser extends Parser {
 				setState(712);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223090579141953573L) != 0 || _la==AT || _la==IDENTIFIER) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223090579141953573L) != 0) || _la==AT || _la==IDENTIFIER) {
 					{
 					setState(711);
 					receiverParameter();
@@ -3953,6 +3982,7 @@ public class JavaParser extends Parser {
 
 				}
 				break;
+
 			case 2:
 				{
 				setState(714);
@@ -3971,12 +4001,13 @@ public class JavaParser extends Parser {
 
 				}
 				break;
+
 			case 3:
 				{
 				setState(720);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223090579141986341L) != 0 || _la==AT || _la==IDENTIFIER) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223090579141986341L) != 0) || _la==AT || _la==IDENTIFIER) {
 					{
 					setState(719);
 					formalParameterList();
@@ -4043,7 +4074,7 @@ public class JavaParser extends Parser {
 			setState(732);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0 || _la==IDENTIFIER) {
+			while (((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0) || _la==IDENTIFIER) {
 				{
 				{
 				setState(727);
@@ -4146,6 +4177,7 @@ public class JavaParser extends Parser {
 
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -4298,7 +4330,7 @@ public class JavaParser extends Parser {
 			setState(771);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0 || _la==AT || _la==IDENTIFIER) {
+			while (((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0) || _la==AT || _la==IDENTIFIER) {
 				{
 				{
 				setState(768);
@@ -4653,7 +4685,7 @@ public class JavaParser extends Parser {
 			{
 			setState(811);
 			_la = _input.LA(1);
-			if ( !((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 15L) != 0) ) {
+			if ( !(((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 15L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -4759,7 +4791,7 @@ public class JavaParser extends Parser {
 			setState(820);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0 || _la==IDENTIFIER) {
+			while (((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0) || _la==IDENTIFIER) {
 				{
 				{
 				setState(815);
@@ -4838,6 +4870,7 @@ public class JavaParser extends Parser {
 				qualifiedName();
 				}
 				break;
+
 			case 2:
 				{
 				setState(828);
@@ -4861,6 +4894,7 @@ public class JavaParser extends Parser {
 					elementValuePairs();
 					}
 					break;
+
 				case 2:
 					{
 					setState(833);
@@ -5037,6 +5071,7 @@ public class JavaParser extends Parser {
 				expression(0);
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -5044,6 +5079,7 @@ public class JavaParser extends Parser {
 				annotation();
 				}
 				break;
+
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
@@ -5105,7 +5141,7 @@ public class JavaParser extends Parser {
 			setState(865);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0 || (((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343707135L) != 0) {
+			if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343707135L) != 0)) {
 				{
 				setState(857);
 				elementValue();
@@ -5242,7 +5278,7 @@ public class JavaParser extends Parser {
 			setState(881);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((_la) & ~0x3f) == 0 && ((1L << _la) & -1613058852699350L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576460752304472071L) != 0 || _la==IDENTIFIER) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & -1613058852699350L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576460752304472071L) != 0) || _la==IDENTIFIER) {
 				{
 				{
 				setState(878);
@@ -5442,6 +5478,7 @@ public class JavaParser extends Parser {
 				match(SEMI);
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -5459,6 +5496,7 @@ public class JavaParser extends Parser {
 				}
 				}
 				break;
+
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
@@ -5476,6 +5514,7 @@ public class JavaParser extends Parser {
 				}
 				}
 				break;
+
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
@@ -5493,6 +5532,7 @@ public class JavaParser extends Parser {
 				}
 				}
 				break;
+
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
@@ -5510,6 +5550,7 @@ public class JavaParser extends Parser {
 				}
 				}
 				break;
+
 			case 6:
 				enterOuterAlt(_localctx, 6);
 				{
@@ -5576,6 +5617,7 @@ public class JavaParser extends Parser {
 				annotationMethodRest();
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -5835,7 +5877,7 @@ public class JavaParser extends Parser {
 			setState(948);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((_la) & ~0x3f) == 0 && ((1L << _la) & 495395959010754560L) != 0) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 495395959010754560L) != 0)) {
 				{
 				{
 				setState(945);
@@ -6184,7 +6226,7 @@ public class JavaParser extends Parser {
 			setState(1007);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223090579141953573L) != 0 || _la==AT || _la==IDENTIFIER) {
+			if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223090579141953573L) != 0) || _la==AT || _la==IDENTIFIER) {
 				{
 				setState(1006);
 				recordComponentList();
@@ -6357,7 +6399,7 @@ public class JavaParser extends Parser {
 			setState(1027);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((_la) & ~0x3f) == 0 && ((1L << _la) & -1331583875988694L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576460752338092039L) != 0 || _la==IDENTIFIER) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & -1331583875988694L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576460752338092039L) != 0) || _la==IDENTIFIER) {
 				{
 				setState(1025);
 				_errHandler.sync(this);
@@ -6368,6 +6410,7 @@ public class JavaParser extends Parser {
 					classBodyDeclaration();
 					}
 					break;
+
 				case 2:
 					{
 					setState(1024);
@@ -6431,7 +6474,7 @@ public class JavaParser extends Parser {
 			setState(1036);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((_la) & ~0x3f) == 0 && ((1L << _la) & -668508564985026L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576461783331602431L) != 0 || _la==IDENTIFIER) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & -668508564985026L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576461783331602431L) != 0) || _la==IDENTIFIER) {
 				{
 				{
 				setState(1033);
@@ -6499,6 +6542,7 @@ public class JavaParser extends Parser {
 				match(SEMI);
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -6506,6 +6550,7 @@ public class JavaParser extends Parser {
 				localTypeDeclaration();
 				}
 				break;
+
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
@@ -6600,6 +6645,7 @@ public class JavaParser extends Parser {
 				expression(0);
 				}
 				break;
+
 			case 2:
 				{
 				setState(1059);
@@ -6663,7 +6709,7 @@ public class JavaParser extends Parser {
 			{
 			setState(1064);
 			_la = _input.LA(1);
-			if ( !((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0 || _la==IDENTIFIER) ) {
+			if ( !(((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0) || _la==IDENTIFIER) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -6723,7 +6769,7 @@ public class JavaParser extends Parser {
 			{
 			setState(1066);
 			_la = _input.LA(1);
-			if ( !((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 29695L) != 0 || _la==IDENTIFIER) ) {
+			if ( !(((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 29695L) != 0) || _la==IDENTIFIER) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -6941,6 +6987,7 @@ public class JavaParser extends Parser {
 				((StatementContext)_localctx).blockLabel = block();
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -6964,6 +7011,7 @@ public class JavaParser extends Parser {
 				match(SEMI);
 				}
 				break;
+
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
@@ -6987,6 +7035,7 @@ public class JavaParser extends Parser {
 				}
 				}
 				break;
+
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
@@ -7002,6 +7051,7 @@ public class JavaParser extends Parser {
 				statement();
 				}
 				break;
+
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
@@ -7013,6 +7063,7 @@ public class JavaParser extends Parser {
 				statement();
 				}
 				break;
+
 			case 6:
 				enterOuterAlt(_localctx, 6);
 				{
@@ -7028,6 +7079,7 @@ public class JavaParser extends Parser {
 				match(SEMI);
 				}
 				break;
+
 			case 7:
 				enterOuterAlt(_localctx, 7);
 				{
@@ -7077,6 +7129,7 @@ public class JavaParser extends Parser {
 				}
 				}
 				break;
+
 			case 8:
 				enterOuterAlt(_localctx, 8);
 				{
@@ -7112,6 +7165,7 @@ public class JavaParser extends Parser {
 
 				}
 				break;
+
 			case 9:
 				enterOuterAlt(_localctx, 9);
 				{
@@ -7155,6 +7209,7 @@ public class JavaParser extends Parser {
 				match(RBRACE);
 				}
 				break;
+
 			case 10:
 				enterOuterAlt(_localctx, 10);
 				{
@@ -7166,6 +7221,7 @@ public class JavaParser extends Parser {
 				block();
 				}
 				break;
+
 			case 11:
 				enterOuterAlt(_localctx, 11);
 				{
@@ -7174,7 +7230,7 @@ public class JavaParser extends Parser {
 				setState(1159);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0 || (((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
 					{
 					setState(1158);
 					expression(0);
@@ -7185,6 +7241,7 @@ public class JavaParser extends Parser {
 				match(SEMI);
 				}
 				break;
+
 			case 12:
 				enterOuterAlt(_localctx, 12);
 				{
@@ -7196,6 +7253,7 @@ public class JavaParser extends Parser {
 				match(SEMI);
 				}
 				break;
+
 			case 13:
 				enterOuterAlt(_localctx, 13);
 				{
@@ -7204,7 +7262,7 @@ public class JavaParser extends Parser {
 				setState(1168);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0 || _la==IDENTIFIER) {
+				if (((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0) || _la==IDENTIFIER) {
 					{
 					setState(1167);
 					identifier();
@@ -7215,6 +7273,7 @@ public class JavaParser extends Parser {
 				match(SEMI);
 				}
 				break;
+
 			case 14:
 				enterOuterAlt(_localctx, 14);
 				{
@@ -7223,7 +7282,7 @@ public class JavaParser extends Parser {
 				setState(1173);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0 || _la==IDENTIFIER) {
+				if (((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0) || _la==IDENTIFIER) {
 					{
 					setState(1172);
 					identifier();
@@ -7234,6 +7293,7 @@ public class JavaParser extends Parser {
 				match(SEMI);
 				}
 				break;
+
 			case 15:
 				enterOuterAlt(_localctx, 15);
 				{
@@ -7245,6 +7305,7 @@ public class JavaParser extends Parser {
 				match(SEMI);
 				}
 				break;
+
 			case 16:
 				enterOuterAlt(_localctx, 16);
 				{
@@ -7252,6 +7313,7 @@ public class JavaParser extends Parser {
 				match(SEMI);
 				}
 				break;
+
 			case 17:
 				enterOuterAlt(_localctx, 17);
 				{
@@ -7261,6 +7323,7 @@ public class JavaParser extends Parser {
 				match(SEMI);
 				}
 				break;
+
 			case 18:
 				enterOuterAlt(_localctx, 18);
 				{
@@ -7278,6 +7341,7 @@ public class JavaParser extends Parser {
 				}
 				}
 				break;
+
 			case 19:
 				enterOuterAlt(_localctx, 19);
 				{
@@ -7689,6 +7753,7 @@ public class JavaParser extends Parser {
 					variableDeclaratorId();
 					}
 					break;
+
 				case 2:
 					{
 					setState(1242);
@@ -7704,6 +7769,7 @@ public class JavaParser extends Parser {
 				expression(0);
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -7786,7 +7852,7 @@ public class JavaParser extends Parser {
 				setState(1260); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-			} while ( ((_la) & ~0x3f) == 0 && ((1L << _la) & -668508564985026L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576461783331602431L) != 0 || _la==IDENTIFIER );
+			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & -668508564985026L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576461783331602431L) != 0) || _la==IDENTIFIER );
 			}
 		}
 		catch (RecognitionException re) {
@@ -7853,12 +7919,14 @@ public class JavaParser extends Parser {
 					((SwitchLabelContext)_localctx).constantExpression = expression(0);
 					}
 					break;
+
 				case 2:
 					{
 					setState(1264);
 					((SwitchLabelContext)_localctx).enumConstantName = match(IDENTIFIER);
 					}
 					break;
+
 				case 3:
 					{
 					setState(1265);
@@ -7944,13 +8012,14 @@ public class JavaParser extends Parser {
 				enhancedForControl();
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(1277);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610998821L) != 0 || (((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610998821L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
 					{
 					setState(1276);
 					forInit();
@@ -7962,7 +8031,7 @@ public class JavaParser extends Parser {
 				setState(1281);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0 || (((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
 					{
 					setState(1280);
 					expression(0);
@@ -7974,7 +8043,7 @@ public class JavaParser extends Parser {
 				setState(1285);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0 || (((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
 					{
 					setState(1284);
 					((ForControlContext)_localctx).forUpdate = expressionList();
@@ -8032,6 +8101,7 @@ public class JavaParser extends Parser {
 				localVariableDeclaration();
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -8117,6 +8187,7 @@ public class JavaParser extends Parser {
 				typeType();
 				}
 				break;
+
 			case 2:
 				{
 				setState(1300);
@@ -8312,7 +8383,7 @@ public class JavaParser extends Parser {
 				setState(1322);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0 || (((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
 					{
 					setState(1321);
 					expressionList();
@@ -8333,7 +8404,7 @@ public class JavaParser extends Parser {
 				setState(1329);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0 || (((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
 					{
 					setState(1328);
 					expressionList();
@@ -8354,7 +8425,7 @@ public class JavaParser extends Parser {
 				setState(1335);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0 || (((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
 					{
 					setState(1334);
 					expressionList();
@@ -8534,12 +8605,14 @@ public class JavaParser extends Parser {
 				primary();
 				}
 				break;
+
 			case 2:
 				{
 				setState(1342);
 				methodCall();
 				}
 				break;
+
 			case 3:
 				{
 				setState(1343);
@@ -8548,6 +8621,7 @@ public class JavaParser extends Parser {
 				creator();
 				}
 				break;
+
 			case 4:
 				{
 				setState(1345);
@@ -8592,12 +8666,13 @@ public class JavaParser extends Parser {
 				expression(22);
 				}
 				break;
+
 			case 5:
 				{
 				setState(1363);
 				((ExpressionContext)_localctx).prefix = _input.LT(1);
 				_la = _input.LA(1);
-				if ( !((((_la - 100)) & ~0x3f) == 0 && ((1L << (_la - 100)) & 15L) != 0) ) {
+				if ( !(((((_la - 100)) & ~0x3f) == 0 && ((1L << (_la - 100)) & 15L) != 0)) ) {
 					((ExpressionContext)_localctx).prefix = (Token)_errHandler.recoverInline(this);
 				}
 				else {
@@ -8609,6 +8684,7 @@ public class JavaParser extends Parser {
 				expression(20);
 				}
 				break;
+
 			case 6:
 				{
 				setState(1365);
@@ -8626,18 +8702,21 @@ public class JavaParser extends Parser {
 				expression(19);
 				}
 				break;
+
 			case 7:
 				{
 				setState(1367);
 				lambdaExpression();
 				}
 				break;
+
 			case 8:
 				{
 				setState(1368);
 				switchExpression();
 				}
 				break;
+
 			case 9:
 				{
 				setState(1369);
@@ -8690,6 +8769,7 @@ public class JavaParser extends Parser {
 				}
 				}
 				break;
+
 			case 10:
 				{
 				setState(1378);
@@ -8732,7 +8812,7 @@ public class JavaParser extends Parser {
 						setState(1388);
 						((ExpressionContext)_localctx).bop = _input.LT(1);
 						_la = _input.LA(1);
-						if ( !((((_la - 104)) & ~0x3f) == 0 && ((1L << (_la - 104)) & 35L) != 0) ) {
+						if ( !(((((_la - 104)) & ~0x3f) == 0 && ((1L << (_la - 104)) & 35L) != 0)) ) {
 							((ExpressionContext)_localctx).bop = (Token)_errHandler.recoverInline(this);
 						}
 						else {
@@ -8744,6 +8824,7 @@ public class JavaParser extends Parser {
 						expression(19);
 						}
 						break;
+
 					case 2:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -8765,6 +8846,7 @@ public class JavaParser extends Parser {
 						expression(18);
 						}
 						break;
+
 					case 3:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -8782,6 +8864,7 @@ public class JavaParser extends Parser {
 							match(LT);
 							}
 							break;
+
 						case 2:
 							{
 							setState(1396);
@@ -8792,6 +8875,7 @@ public class JavaParser extends Parser {
 							match(GT);
 							}
 							break;
+
 						case 3:
 							{
 							setState(1399);
@@ -8805,6 +8889,7 @@ public class JavaParser extends Parser {
 						expression(17);
 						}
 						break;
+
 					case 4:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -8814,7 +8899,7 @@ public class JavaParser extends Parser {
 						setState(1405);
 						((ExpressionContext)_localctx).bop = _input.LT(1);
 						_la = _input.LA(1);
-						if ( !((((_la - 88)) & ~0x3f) == 0 && ((1L << (_la - 88)) & 387L) != 0) ) {
+						if ( !(((((_la - 88)) & ~0x3f) == 0 && ((1L << (_la - 88)) & 387L) != 0)) ) {
 							((ExpressionContext)_localctx).bop = (Token)_errHandler.recoverInline(this);
 						}
 						else {
@@ -8826,6 +8911,7 @@ public class JavaParser extends Parser {
 						expression(16);
 						}
 						break;
+
 					case 5:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -8847,6 +8933,7 @@ public class JavaParser extends Parser {
 						expression(14);
 						}
 						break;
+
 					case 6:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -8859,6 +8946,7 @@ public class JavaParser extends Parser {
 						expression(13);
 						}
 						break;
+
 					case 7:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -8871,6 +8959,7 @@ public class JavaParser extends Parser {
 						expression(12);
 						}
 						break;
+
 					case 8:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -8883,6 +8972,7 @@ public class JavaParser extends Parser {
 						expression(11);
 						}
 						break;
+
 					case 9:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -8895,6 +8985,7 @@ public class JavaParser extends Parser {
 						expression(10);
 						}
 						break;
+
 					case 10:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -8907,6 +8998,7 @@ public class JavaParser extends Parser {
 						expression(9);
 						}
 						break;
+
 					case 11:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -8923,6 +9015,7 @@ public class JavaParser extends Parser {
 						expression(7);
 						}
 						break;
+
 					case 12:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -8932,7 +9025,7 @@ public class JavaParser extends Parser {
 						setState(1432);
 						((ExpressionContext)_localctx).bop = _input.LT(1);
 						_la = _input.LA(1);
-						if ( !((((_la - 87)) & ~0x3f) == 0 && ((1L << (_la - 87)) & 17171480577L) != 0) ) {
+						if ( !(((((_la - 87)) & ~0x3f) == 0 && ((1L << (_la - 87)) & 17171480577L) != 0)) ) {
 							((ExpressionContext)_localctx).bop = (Token)_errHandler.recoverInline(this);
 						}
 						else {
@@ -8944,6 +9037,7 @@ public class JavaParser extends Parser {
 						expression(6);
 						}
 						break;
+
 					case 13:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -8961,18 +9055,21 @@ public class JavaParser extends Parser {
 							identifier();
 							}
 							break;
+
 						case 2:
 							{
 							setState(1437);
 							methodCall();
 							}
 							break;
+
 						case 3:
 							{
 							setState(1438);
 							match(THIS);
 							}
 							break;
+
 						case 4:
 							{
 							setState(1439);
@@ -8991,6 +9088,7 @@ public class JavaParser extends Parser {
 							innerCreator();
 							}
 							break;
+
 						case 5:
 							{
 							setState(1444);
@@ -8999,6 +9097,7 @@ public class JavaParser extends Parser {
 							superSuffix();
 							}
 							break;
+
 						case 6:
 							{
 							setState(1446);
@@ -9008,6 +9107,7 @@ public class JavaParser extends Parser {
 						}
 						}
 						break;
+
 					case 14:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -9022,6 +9122,7 @@ public class JavaParser extends Parser {
 						match(RBRACK);
 						}
 						break;
+
 					case 15:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -9041,6 +9142,7 @@ public class JavaParser extends Parser {
 						}
 						}
 						break;
+
 					case 16:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -9058,6 +9160,7 @@ public class JavaParser extends Parser {
 							typeType();
 							}
 							break;
+
 						case 2:
 							{
 							setState(1459);
@@ -9067,6 +9170,7 @@ public class JavaParser extends Parser {
 						}
 						}
 						break;
+
 					case 17:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
@@ -9296,6 +9400,7 @@ public class JavaParser extends Parser {
 				identifier();
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -9304,7 +9409,7 @@ public class JavaParser extends Parser {
 				setState(1495);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223090579141986341L) != 0 || _la==AT || _la==IDENTIFIER) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223090579141986341L) != 0) || _la==AT || _la==IDENTIFIER) {
 					{
 					setState(1494);
 					formalParameterList();
@@ -9315,6 +9420,7 @@ public class JavaParser extends Parser {
 				match(RPAREN);
 				}
 				break;
+
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
@@ -9342,6 +9448,7 @@ public class JavaParser extends Parser {
 				match(RPAREN);
 				}
 				break;
+
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
@@ -9350,7 +9457,7 @@ public class JavaParser extends Parser {
 				setState(1511);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la - 18)) & ~0x3f) == 0 && ((1L << (_la - 18)) & 281466386776065L) != 0 || _la==AT || _la==IDENTIFIER) {
+				if (((((_la - 18)) & ~0x3f) == 0 && ((1L << (_la - 18)) & 281466386776065L) != 0) || _la==AT || _la==IDENTIFIER) {
 					{
 					setState(1510);
 					lambdaLVTIList();
@@ -9541,6 +9648,7 @@ public class JavaParser extends Parser {
 				match(RPAREN);
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -9548,6 +9656,7 @@ public class JavaParser extends Parser {
 				match(THIS);
 				}
 				break;
+
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
@@ -9555,6 +9664,7 @@ public class JavaParser extends Parser {
 				match(SUPER);
 				}
 				break;
+
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
@@ -9562,6 +9672,7 @@ public class JavaParser extends Parser {
 				literal();
 				}
 				break;
+
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
@@ -9569,6 +9680,7 @@ public class JavaParser extends Parser {
 				identifier();
 				}
 				break;
+
 			case 6:
 				enterOuterAlt(_localctx, 6);
 				{
@@ -9580,6 +9692,7 @@ public class JavaParser extends Parser {
 				match(CLASS);
 				}
 				break;
+
 			case 7:
 				enterOuterAlt(_localctx, 7);
 				{
@@ -9758,12 +9871,14 @@ public class JavaParser extends Parser {
 					expressionList();
 					}
 					break;
+
 				case 2:
 					{
 					setState(1553);
 					match(NULL_LITERAL);
 					}
 					break;
+
 				case 3:
 					{
 					setState(1554);
@@ -10060,13 +10175,14 @@ public class JavaParser extends Parser {
 				block();
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(1604);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				while (((_la) & ~0x3f) == 0 && ((1L << _la) & -668508564985026L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576461783331602431L) != 0 || _la==IDENTIFIER) {
+				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & -668508564985026L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 576461783331602431L) != 0) || _la==IDENTIFIER) {
 					{
 					{
 					setState(1601);
@@ -10798,6 +10914,7 @@ public class JavaParser extends Parser {
 				match(GT);
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -10855,6 +10972,7 @@ public class JavaParser extends Parser {
 				match(GT);
 				}
 				break;
+
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
@@ -11095,7 +11213,7 @@ public class JavaParser extends Parser {
 					setState(1730);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
-					while ((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0 || _la==AT || _la==IDENTIFIER) {
+					while (((((_la - 51)) & ~0x3f) == 0 && ((1L << (_la - 51)) & 32767L) != 0) || _la==AT || _la==IDENTIFIER) {
 						{
 						{
 						setState(1727);
@@ -11163,7 +11281,7 @@ public class JavaParser extends Parser {
 			{
 			setState(1740);
 			_la = _input.LA(1);
-			if ( !(((_la) & ~0x3f) == 0 && ((1L << _la) & 138111107368L) != 0) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 138111107368L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -11453,7 +11571,7 @@ public class JavaParser extends Parser {
 			setState(1773);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0 || (((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0) {
+			if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
 				{
 				setState(1772);
 				expressionList();
@@ -11479,6 +11597,7 @@ public class JavaParser extends Parser {
 		switch (ruleIndex) {
 		case 99:
 			return expression_sempred((ExpressionContext)_localctx, predIndex);
+
 		case 107:
 			return guardedPattern_sempred((GuardedPatternContext)_localctx, predIndex);
 		}
@@ -11488,36 +11607,52 @@ public class JavaParser extends Parser {
 		switch (predIndex) {
 		case 0:
 			return precpred(_ctx, 18);
+
 		case 1:
 			return precpred(_ctx, 17);
+
 		case 2:
 			return precpred(_ctx, 16);
+
 		case 3:
 			return precpred(_ctx, 15);
+
 		case 4:
 			return precpred(_ctx, 13);
+
 		case 5:
 			return precpred(_ctx, 12);
+
 		case 6:
 			return precpred(_ctx, 11);
+
 		case 7:
 			return precpred(_ctx, 10);
+
 		case 8:
 			return precpred(_ctx, 9);
+
 		case 9:
 			return precpred(_ctx, 8);
+
 		case 10:
 			return precpred(_ctx, 7);
+
 		case 11:
 			return precpred(_ctx, 6);
+
 		case 12:
 			return precpred(_ctx, 26);
+
 		case 13:
 			return precpred(_ctx, 25);
+
 		case 14:
 			return precpred(_ctx, 21);
+
 		case 15:
 			return precpred(_ctx, 14);
+
 		case 16:
 			return precpred(_ctx, 3);
 		}
