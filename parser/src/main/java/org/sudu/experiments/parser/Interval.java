@@ -16,7 +16,15 @@ public class Interval {
   }
 
   public Interval(ParserRuleContext ruleContext, int intervalType) {
-    this(ruleContext.start.getStartIndex(), ruleContext.stop.getStopIndex() + 1, intervalType);
+    if (ruleContext.start == null || ruleContext.stop == null) {
+      this.start = -1;
+      this.stop = -1;
+      this.intervalType = -1;
+    } else {
+      this.start = ruleContext.start.getStartIndex();
+      this.stop = ruleContext.stop.getStopIndex();
+      this.intervalType = intervalType;
+    }
   }
 
   @Override
