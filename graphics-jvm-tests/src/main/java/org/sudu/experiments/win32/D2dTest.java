@@ -1,8 +1,6 @@
 package org.sudu.experiments.win32;
 
-import org.sudu.experiments.CString;
-import org.sudu.experiments.FontLoader;
-import org.sudu.experiments.Fonts;
+import org.sudu.experiments.*;
 import org.sudu.experiments.win32.d2d.*;
 
 import java.util.Arrays;
@@ -87,13 +85,14 @@ public class D2dTest {
     int hr1 = IDWriteFactory5.RegisterFontFileLoader(pDWriteFactory5, pDWriteInMemoryFontFileLoader);
     HR(hr1, "IDWriteFactory5_RegisterFontFileLoader");
 
-    byte[] font = FontLoader.load(FontLoader.JetBrainsMono.Regular);
+    FontLoaderJvm fLoader = Application.fontLoader(JetBrainsMono.regular());
+    byte[] font = fLoader.loader.apply(JetBrainsMono.Regular);
     System.out.println("font = byte[" + font.length + "] "  + font);
 
     long inMemoryFont = IDWriteInMemoryFontFileLoader.CreateInMemoryFontFileReference(
         pDWriteInMemoryFontFileLoader, pDWriteFactory5, font, hr);
     HR(inMemoryFont,
-        "IDWriteInMemoryFontFileLoader_CreateInMemoryFontFileReference " + FontLoader.JetBrainsMono.Regular);
+        "IDWriteInMemoryFontFileLoader_CreateInMemoryFontFileReference " + JetBrainsMono.Regular);
 
     long pDWriteFontSetBuilder1 = IDWriteFactory5.CreateFontSetBuilder1(pDWriteFactory5, hr);
     HR(pDWriteFontSetBuilder1, "IDWriteFactory5_CreateFontSetBuilder1");

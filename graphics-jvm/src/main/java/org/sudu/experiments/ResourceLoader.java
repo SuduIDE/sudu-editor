@@ -2,8 +2,13 @@ package org.sudu.experiments;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Function;
 
 public class ResourceLoader {
+  public static Function<String, byte[]> loader(String folder, Class<?> aClass) {
+    return name -> load(folder.concat(name), aClass);
+  }
+
   public static byte[] load(String name, Class<?> aClass) {
     InputStream resource = aClass.getClassLoader().getResourceAsStream(name);
     if (resource == null) return null;

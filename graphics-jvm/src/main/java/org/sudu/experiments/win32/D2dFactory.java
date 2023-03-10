@@ -33,7 +33,7 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
     return factory;
   }
 
-  public static D2dFactory create(FontConfig fontConfig) {
+  public static D2dFactory create(FontLoaderJvm fontConfig) {
     D2dFactory f = D2dFactory.create();
     f.loadFontConfig(fontConfig);
     return f;
@@ -68,11 +68,11 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
     pD2D1Factory = IUnknown.safeRelease(pD2D1Factory);
   }
 
-  public void loadFontConfig(FontConfig config) {
+  public void loadFontConfig(FontLoaderJvm config) {
     loadFontConfig(config, Const.double0);
   }
 
-  public double[] loadFontConfig(FontConfig config, DoubleSupplier dt) {
+  public double[] loadFontConfig(FontLoaderJvm config, DoubleSupplier dt) {
     double loadResources = 0, loadToD2d = 0;
     for (String font : config.fonts) {
       byte[] fontData = config.loader.apply(font);

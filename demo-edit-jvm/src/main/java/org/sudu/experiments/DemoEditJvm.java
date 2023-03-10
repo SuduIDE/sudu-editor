@@ -20,8 +20,7 @@ public class DemoEditJvm {
     var selectScene = selectScene(args.length > 0 ? args[0] : "default");
     Application.run(
         selectScene, EditorWorker::execute,
-        "DemoEditJvm",
-        FontLoader.JetBrainsMono.all()
+        "DemoEditJvm", JetBrainsMono.all()
     );
   }
 

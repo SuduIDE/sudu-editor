@@ -5,6 +5,7 @@ import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.teavm.jso.*;
 import org.teavm.jso.browser.Window;
+import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.css.CSSStyleDeclaration;
@@ -134,6 +135,15 @@ public class JsHelper {
 
   @JSBody(params = {"a", "b"}, script = "return a === b;")
   public static native boolean strictEquals(JSObject a, JSObject b);
+
+  @JSBody(params = {"array"}, script = "return array;")
+  public static native JSArray<JSObject> toJsArray(@JSByRef JSObject ... array);
+
+  @JSBody(params = {"a", "b"}, script = "return [a, b];")
+  public static native JSArray<JSObject> toJsArray(JSObject a, JSObject b);
+
+  @JSBody(params = {"a", "b", "c"}, script = "return [a, b, c];")
+  public static native JSArray<JSObject> toJsArray(JSObject a, JSObject b, JSObject c);
 
   @JSBody(params = {"n"}, script = "return String(n);")
   public static native String jsDoubleToString(double n);

@@ -4,7 +4,10 @@ import org.sudu.experiments.demo.*;
 import org.sudu.experiments.demo.wasm.WasmDemo;
 import org.sudu.experiments.demo.worker.WorkerTest;
 import org.sudu.experiments.js.*;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Window;
+import org.teavm.jso.core.JSArrayReader;
+import org.teavm.jso.core.JSError;
 
 public class WebApp {
 
@@ -17,16 +20,23 @@ public class WebApp {
     if (JsCanvas.checkFontMetricsAPI()) {
       WebApp webApp = new WebApp();
       WorkerContext.start(webApp::setWorker, "teavm/worker.js");
-
-      WebFont.loadGoogleFont(
-          webApp::onFontsLoad,
-          WebApp::fontsLoadError,
-          WebApp::fontLoadEvent,
-          WebFont.makeFontList(Fonts.googleFontLoadScript)
-      );
+      FontFace.loadFonts(JetBrainsMono.webConfig())
+          .then(webApp::loadFonts, WebApp::fontLoadError);
     } else {
       FireFoxWarning.display(preDiv);
     }
+  }
+
+  void loadFonts(JSArrayReader<JSObject> fontFaces) {
+    for (int i = 0; i < fontFaces.getLength(); i++) {
+      FontFace font = fontFaces.get(i).cast();
+      font.addToDocument();
+    }
+    onFontsLoad();
+  }
+
+  private static void fontLoadError(JSError error) {
+    JsHelper.consoleInfo("font load error", error);
   }
 
   private void onFontsLoad() {
@@ -63,13 +73,5 @@ public class WebApp {
 
   static void onWebGlError() {
     JsHelper.addPreText(preDiv, "FATAL: WebGL is not enabled in the browser");
-  }
-
-  static void fontsLoadError() {
-    JsHelper.addPreText(preDiv, "WebFont failed to load google fonts: " + Fonts.googleFontLoadScript);
-  }
-
-  static void fontLoadEvent(String familyName, String fvd) {
-    Debug.consoleInfo("fontActive: " + familyName + ", fvd=" + fvd);
   }
 }

@@ -14,7 +14,7 @@
   <dependencies>
     <dependency>
       <groupId>org.sudu</groupId>
-      <artifactId>graphics-jvm</artifactId>
+      <artifactId>graphics</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>

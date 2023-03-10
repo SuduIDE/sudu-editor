@@ -1,9 +1,6 @@
 package org.sudu.experiments.win32;
 
-import org.sudu.experiments.BmpWriter;
-import org.sudu.experiments.FontLoader.JetBrainsMono;
-import org.sudu.experiments.Fonts;
-import org.sudu.experiments.GL;
+import org.sudu.experiments.*;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.win32.d2d.ID2D1RenderTarget;
@@ -19,7 +16,7 @@ public class D2dDrawTextCTest {
     Helper.loadDlls();
     Win32.coInitialize();
 
-    D2dFactory f = D2dFactory.create(JetBrainsMono.regular());
+    D2dFactory f = D2dFactory.create(Application.fontLoader(JetBrainsMono.regular()));
 
     long[] jbMono = new long[11];
     for (int i = 0; i < jbMono.length; i++) {

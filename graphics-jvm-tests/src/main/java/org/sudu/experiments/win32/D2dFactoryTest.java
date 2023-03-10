@@ -11,16 +11,21 @@ public class D2dFactoryTest {
     Helper.loadDlls();
     Win32.coInitialize();
 
-    D2dFactory f = D2dFactory.create(FontLoader.JetBrainsMono.regular());
+    D2dFactory f = D2dFactory.create(
+        Application.fontLoader(JetBrainsMono.regular()));
 
     int size = 50;
-    FontDesk jbMono = f.getFont(Fonts.JetBrainsMono, size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
-    FontDesk font2 = f.getFont(Fonts.JetBrainsMono, size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
+    FontDesk jbMono = f.getFont(Fonts.JetBrainsMono,
+        size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
+    FontDesk font2 = f.getFont(Fonts.JetBrainsMono,
+        size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
 
     if (jbMono != font2) throw new RuntimeException("jbMono != font2");
 
-    FontDesk segoeUI = f.getFont(Fonts.SegoeUI, size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
-    FontDesk consolas = f.getFont(Fonts.Consolas, size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
+    FontDesk segoeUI = f.getFont(Fonts.SegoeUI,
+        size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
+    FontDesk consolas = f.getFont(Fonts.Consolas,
+        size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
 
     String text = "Text";
 
@@ -36,7 +41,9 @@ public class D2dFactoryTest {
     f.dispose();
   }
 
-  static void renderImage(FontDesk jbMono, String text, D2dCanvas canvas, String file) throws IOException {
+  static void renderImage(
+      FontDesk jbMono, String text, D2dCanvas canvas, String file
+  ) throws IOException {
     canvas.setFont(jbMono);
     canvas.drawText(text, 0, jbMono.fAscent);
     GL.ImageData image = canvas.toImage();

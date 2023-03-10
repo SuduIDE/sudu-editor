@@ -1,7 +1,9 @@
 package org.sudu.experiments.win32;
 
+import org.sudu.experiments.Application;
 import org.sudu.experiments.Canvas;
-import org.sudu.experiments.FontLoader;
+import org.sudu.experiments.FontLoaderJvm;
+import org.sudu.experiments.JetBrainsMono;
 
 public class D2dAddFontFileCTest {
   public static void main(String[] args) {
@@ -10,7 +12,8 @@ public class D2dAddFontFileCTest {
 
     D2dFactory factory = D2dFactory.create();
 
-    byte[] font = FontLoader.load(FontLoader.JetBrainsMono.Medium);
+    FontLoaderJvm loader = Application.fontLoader(JetBrainsMono.all());
+    byte[] font = loader.loader.apply(JetBrainsMono.Medium);
     if (font == null)
       throw new RuntimeException("font == null");
 

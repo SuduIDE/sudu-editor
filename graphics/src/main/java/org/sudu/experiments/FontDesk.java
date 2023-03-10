@@ -10,6 +10,10 @@ public class FontDesk {
   public static final int STYLE_OBLIQUE = 1;
   public static final int STYLE_ITALIC  = 2;
 
+  public static final String OBLIQUE = "oblique";
+  public static final String ITALIC = "italic";
+  public static final String NORMAL = "normal";
+
   public final String name;
   public final String sStyle;
   public final float size;
@@ -93,9 +97,9 @@ public class FontDesk {
 
   static String stringStyle(int style) {
     return switch (style) {
-      case 1 -> "oblique";
-      case 2 -> "italic";
-      default -> "normal";
+      case 1 -> OBLIQUE;
+      case 2 -> ITALIC;
+      default -> NORMAL;
     };
   }
 }

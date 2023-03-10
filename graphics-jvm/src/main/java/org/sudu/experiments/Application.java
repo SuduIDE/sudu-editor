@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 
 public class Application {
 
-  public static void run(Function<SceneApi, Scene> sf, FontConfig fontConfig) throws InterruptedException {
+  public static void run(Function<SceneApi, Scene> sf, FontResources fontConfig) throws InterruptedException {
     run(sf, WorkerExecutor.i(), sf.getClass().getName(), fontConfig);
   }
 
@@ -18,7 +18,7 @@ public class Application {
       Function<SceneApi, Scene> sf,
       WorkerExecutor workerExecutor,
       String title,
-      FontConfig fontConfig
+      FontResources fontConfig
   ) throws InterruptedException {
     Win32Time time = new Win32Time();
     Win32.coInitialize();
@@ -51,13 +51,19 @@ public class Application {
     ioExecutor.shutdown();
   }
 
-  static boolean loadFontConfig(FontConfig config, D2dFactory factory) {
+  static boolean loadFontConfig(FontResources config, D2dFactory factory) {
     System.out.println("[Fonts] Loading fonts ...");
-    double[] times = factory.loadFontConfig(config, TimeUtil.dt());
-    if (times != null && times.length == 17) {
+    double[] times = factory.loadFontConfig(fontLoader(config), TimeUtil.dt());
+    if (times != null && times.length == 2) {
       System.out.println("[Fonts]   loadResources: " + TimeUtil.toString3(times[0]) + " ms");
       System.out.println("[Fonts]   d2dAddFontFiles: " + TimeUtil.toString3(times[1]) + " ms");
     }
     return true;
+  }
+
+  public static FontLoaderJvm fontLoader(FontResources fontConfig) {
+    return new FontLoaderJvm(
+        ResourceLoader.loader(fontConfig.folder, fontConfig.resourceClass),
+        fontConfig.fonts);
   }
 }

@@ -9,6 +9,4 @@ public interface Fonts {
   String JetBrainsMono = "JetBrains Mono";
 
   String googleFontLoadScript = "JetBrains Mono:400,400i";
-
-  int REGULAR = 400;
 }

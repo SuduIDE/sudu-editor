@@ -1,7 +1,8 @@
 package org.sudu.experiments.win32;
 
+import org.sudu.experiments.Application;
 import org.sudu.experiments.CString;
-import org.sudu.experiments.FontLoader;
+import org.sudu.experiments.JetBrainsMono;
 import org.sudu.experiments.Fonts;
 import org.sudu.experiments.win32.d2d.*;
 
@@ -13,7 +14,7 @@ public class D2dDumpFamilies {
     Helper.loadDlls();
     Win32.coInitialize();
 
-    D2dFactory f = D2dFactory.create(FontLoader.JetBrainsMono.regular());
+    D2dFactory f = D2dFactory.create(Application.fontLoader(JetBrainsMono.regular()));
 
     dumpAllNames(f);
 
@@ -56,7 +57,8 @@ public class D2dDumpFamilies {
   }
 
   static void dump(D2dFactory f, String title, long[] families) {
-    StringBuilder s = new StringBuilder(title).append('\n');
+    String indent = "  ";
+    StringBuilder s = new StringBuilder(title).append('\n').append(indent);
     for (int i = 0; i < families.length; i++) {
       String fam = (families[i] != 0)
           ? IDWriteFontFamily.getFamilyName(families[i], f.hr)
@@ -65,7 +67,7 @@ public class D2dDumpFamilies {
       if (i + 1 < families.length) s.append(", ");
       if (s.length() > 70) {
         System.out.println(s);
-        s = new StringBuilder();
+        s = new StringBuilder(indent);
       }
     }
     if (s.length() > 0) {

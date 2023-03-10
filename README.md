@@ -56,7 +56,7 @@ In order to build it one need to
     setx Path "%Path%;%EMSDK%\upstream\bin;%MSBuildPath%" 
     ```
 
-5. Finally check that compilers work, and review Environment Variables
+5. Finally check that compilers work, and review Environment Variables.
    You need a new console instance to apply env changes
     ```
    MSBuild --help
@@ -89,5 +89,10 @@ In order to build it one need to
 
 8. If you want to build ES module with its demo, you need Node.js version 18+. 
    Steps:  
-   1. maven task "Module package"
-   2. npm script "i" and "build-editor-on-java-sample" in demo-edit-es-module/webpack-test/package.json
+   1. Run maven task to build the module (any of "a" or "b")
+      1. run IDEA run-configuration "Module package"
+      2. or with maven `mvn package -am -pl demo-edit-es-module` in root
+   2. Build the webpack demo using file demo-edit-es-module/webpack-test/package.json
+      1. run npm script "i"
+      2. run npm script "build-editor-on-java-sample"
+      
