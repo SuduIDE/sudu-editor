@@ -1,6 +1,6 @@
 package org.sudu.experiments.demo;
 
-import org.sudu.experiments.Fonts;
+import org.sudu.experiments.fonts.Fonts;
 
 interface EditorConst {
   String FONT = Fonts.Consolas;

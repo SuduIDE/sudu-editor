@@ -1,6 +1,6 @@
 package org.sudu.experiments.js;
 
-import org.sudu.experiments.FontConfigJs;
+import org.sudu.experiments.fonts.FontConfigJs;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;

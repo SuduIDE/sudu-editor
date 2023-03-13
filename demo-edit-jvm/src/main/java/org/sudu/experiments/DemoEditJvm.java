@@ -6,6 +6,7 @@ import org.sudu.experiments.demo.ManyTexturesLineNumbersScene;
 import org.sudu.experiments.demo.SelectFileTest;
 import org.sudu.experiments.demo.worker.EditorWorker;
 import org.sudu.experiments.demo.worker.WorkerTest;
+import org.sudu.experiments.fonts.JetBrainsMono;
 import org.sudu.experiments.nativelib.AngleDll;
 import org.sudu.experiments.nativelib.SuduDll;
 

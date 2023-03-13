@@ -1,6 +1,8 @@
 package org.sudu.experiments.win32;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.fonts.FontLoaderJvm;
 import org.sudu.experiments.win32.d2d.*;
 
 import java.util.HashMap;

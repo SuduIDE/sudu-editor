@@ -1,4 +1,4 @@
-package org.sudu.experiments;
+package org.sudu.experiments.fonts;
 
 public interface Fonts {
   String Helvetica = "Helvetica";
@@ -7,6 +7,4 @@ public interface Fonts {
   String SegoeUI = "Segoe UI";
   String Consolas = "Consolas";
   String JetBrainsMono = "JetBrains Mono";
-
-  String googleFontLoadScript = "JetBrains Mono:400,400i";
 }

@@ -1,4 +1,6 @@
-package org.sudu.experiments;
+package org.sudu.experiments.fonts;
+
+import org.sudu.experiments.Application;
 
 public class FontLoadTest {
   public static void main(String[] args) {

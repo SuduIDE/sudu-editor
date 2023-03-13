@@ -60,18 +60,8 @@ public class EditorModule implements Editor_d_ts {
     return JSString.valueOf(line);
   }
 
-  //todo: load font
-
   static void onWebGlError() {
     JsHelper.consoleInfo("FATAL: WebGL is not enabled in the browser");
-  }
-
-  static void fontsLoadError() {
-    JsHelper.consoleInfo("WebFont failed to load google fonts: " + Fonts.googleFontLoadScript);
-  }
-
-  static void fontLoadEvent(String familyName, String fvd) {
-    Debug.consoleInfo("fontActive: " + familyName + ", fvd=" + fvd);
   }
 
   static Promise<Editor_d_ts> newEdit(EditArguments arguments) {

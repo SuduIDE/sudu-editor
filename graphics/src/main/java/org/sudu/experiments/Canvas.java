@@ -1,5 +1,7 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.fonts.FontDesk;
+
 public abstract class Canvas implements GLApi.Canvas, Disposable, CanvasDebug {
 
   static int globalCounter;

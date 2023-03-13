@@ -2,8 +2,8 @@ package org.sudu.experiments.win32;
 
 import org.sudu.experiments.Application;
 import org.sudu.experiments.CString;
-import org.sudu.experiments.JetBrainsMono;
-import org.sudu.experiments.Fonts;
+import org.sudu.experiments.fonts.JetBrainsMono;
+import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.win32.d2d.*;
 
 import java.io.IOException;

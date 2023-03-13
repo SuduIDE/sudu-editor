@@ -1,4 +1,4 @@
-package org.sudu.experiments;
+package org.sudu.experiments.fonts;
 
 public interface JetBrainsMono {
   String typeface = "JetBrains Mono";

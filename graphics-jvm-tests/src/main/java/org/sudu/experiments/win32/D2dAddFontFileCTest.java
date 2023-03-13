@@ -2,8 +2,8 @@ package org.sudu.experiments.win32;
 
 import org.sudu.experiments.Application;
 import org.sudu.experiments.Canvas;
-import org.sudu.experiments.FontLoaderJvm;
-import org.sudu.experiments.JetBrainsMono;
+import org.sudu.experiments.fonts.FontLoaderJvm;
+import org.sudu.experiments.fonts.JetBrainsMono;
 
 public class D2dAddFontFileCTest {
   public static void main(String[] args) {

@@ -2,7 +2,7 @@ package org.sudu.experiments.win32;
 
 import org.sudu.experiments.CString;
 import org.sudu.experiments.Canvas;
-import org.sudu.experiments.FontDesk;
+import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.GL.ImageData;
 import org.sudu.experiments.angle.AngleGL;
 import org.sudu.experiments.win32.d2d.*;

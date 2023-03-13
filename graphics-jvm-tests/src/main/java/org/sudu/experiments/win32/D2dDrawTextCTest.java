@@ -1,6 +1,8 @@
 package org.sudu.experiments.win32;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.fonts.Fonts;
+import org.sudu.experiments.fonts.JetBrainsMono;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.win32.d2d.ID2D1RenderTarget;

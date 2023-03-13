@@ -1,8 +1,8 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.Debug;
-import org.sudu.experiments.FontDesk;
-import org.sudu.experiments.Fonts;
+import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.WglGraphics;
 
 public class DebugHelper {

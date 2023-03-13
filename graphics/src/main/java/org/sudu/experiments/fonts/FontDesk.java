@@ -1,5 +1,6 @@
-package org.sudu.experiments;
+package org.sudu.experiments.fonts;
 
+import org.sudu.experiments.Debug;
 import org.sudu.experiments.math.Numbers;
 
 public class FontDesk {

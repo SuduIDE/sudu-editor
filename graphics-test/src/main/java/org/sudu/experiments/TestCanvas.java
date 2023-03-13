@@ -1,5 +1,7 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.fonts.FontDesk;
+
 public class TestCanvas extends Canvas {
 
   private final Canvas testingCanvas;

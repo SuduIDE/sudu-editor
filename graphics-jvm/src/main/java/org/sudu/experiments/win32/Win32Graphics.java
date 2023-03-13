@@ -1,6 +1,6 @@
 package org.sudu.experiments.win32;
 
-import org.sudu.experiments.FontDesk;
+import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.GL;
 import org.sudu.experiments.LazyInit;
 import org.sudu.experiments.WglGraphics;

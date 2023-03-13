@@ -3,6 +3,7 @@ package org.sudu.experiments;
 import org.sudu.experiments.demo.*;
 import org.sudu.experiments.demo.wasm.WasmDemo;
 import org.sudu.experiments.demo.worker.WorkerTest;
+import org.sudu.experiments.fonts.JetBrainsMono;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Window;

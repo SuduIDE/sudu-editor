@@ -1,8 +1,8 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.js.JsCanvas;
 import org.sudu.experiments.js.JsHelper;
-import org.sudu.experiments.math.V2i;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.events.EventListener;

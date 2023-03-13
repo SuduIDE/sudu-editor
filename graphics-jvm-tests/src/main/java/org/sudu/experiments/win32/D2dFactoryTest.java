@@ -1,6 +1,9 @@
 package org.sudu.experiments.win32;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.fonts.Fonts;
+import org.sudu.experiments.fonts.JetBrainsMono;
 
 import java.io.IOException;
 import java.nio.file.Files;

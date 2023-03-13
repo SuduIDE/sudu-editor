@@ -1,5 +1,7 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.fonts.FontLoaderJvm;
+import org.sudu.experiments.fonts.FontResources;
 import org.sudu.experiments.win32.*;
 import org.sudu.experiments.worker.WorkerExecutor;
 

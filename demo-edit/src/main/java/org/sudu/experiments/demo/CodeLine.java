@@ -2,7 +2,7 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.Canvas;
 import org.sudu.experiments.Debug;
-import org.sudu.experiments.FontDesk;
+import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.ArrayOp;
 
 import java.util.Arrays;
