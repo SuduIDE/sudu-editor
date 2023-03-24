@@ -52,13 +52,13 @@ public class WebWindow implements org.sudu.experiments.Window {
 //    JsHelper.consoleInfo("starting web window on " + canvasDivId);
     canvasDiv = HTMLDocument.current().getElementById(canvasDivId);
     mainCanvas = JsHelper.createMainCanvas(null);
-    observer.observePixelsOrDefault(mainCanvas);
     canvasDiv.appendChild(mainCanvas);
 
     GLApi.Context gl = JsHelper.createContext(mainCanvas);
 
     if (gl != null) {
       init(gl, factory);
+      observer.observePixelsOrDefault(mainCanvas);
     } else {
       onWebGlError.run();
     }
