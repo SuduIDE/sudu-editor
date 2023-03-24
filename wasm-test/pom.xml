@@ -109,18 +109,18 @@
             </configuration>
           </execution>
 
-          <execution>
-            <id>dis-assemble-wasm</id>
-            <phase>process-resources</phase>
-            <goals><goal>run</goal></goals>
-            <configuration><target>
-              <exec executable="wasm-dis">
-                <arg value="${project.build.wasmTarget}"/>
-                <arg value="-o"/>
-                <arg value="target/test.wast"/>
-              </exec>
-            </target></configuration>
-          </execution>
+<!--          <execution>-->
+<!--            <id>dis-assemble-wasm</id>-->
+<!--            <phase>process-resources</phase>-->
+<!--            <goals><goal>run</goal></goals>-->
+<!--            <configuration><target>-->
+<!--              <exec executable="wasm-dis">-->
+<!--                <arg value="${project.build.wasmTarget}"/>-->
+<!--                <arg value="-o"/>-->
+<!--                <arg value="target/test.wast"/>-->
+<!--              </exec>-->
+<!--            </target></configuration>-->
+<!--          </execution>-->
 
         </executions>
       </plugin>
