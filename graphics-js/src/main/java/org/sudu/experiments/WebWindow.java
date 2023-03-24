@@ -2,6 +2,7 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.js.*;
+import org.sudu.experiments.math.Numbers;
 import org.teavm.jso.browser.AnimationFrameCallback;
 import org.teavm.jso.browser.Performance;
 import org.teavm.jso.browser.Window;
@@ -84,7 +85,10 @@ public class WebWindow implements org.sudu.experiments.Window {
           }
         } else {
           var domRect = entry.getContentRect();
-          throw new UnsupportedOperationException("todo");
+          double ratio = devicePixelRatio();
+          int width = Numbers.iRnd(domRect.getWidth() * ratio);
+          int height = Numbers.iRnd(domRect.getHeight() * ratio);
+          onCanvasSizeChanged(width, height);
         }
       }
     }
