@@ -1,14 +1,25 @@
 package org.sudu.experiments.demo;
 
+import org.sudu.experiments.demo.worker.IntervalTree;
 import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.parser.Interval;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class Document {
   CodeLine[] document;
+  public IntervalTree tree;
+  List<Diff> diffs = new ArrayList<>();
+
+  public Document() {
+    tree = new IntervalTree(new ArrayList<>());
+    document = new CodeLine[]{new CodeLine(new CodeElement(""))};
+  }
 
   public Document(CodeLine ... data) {
     document = data;
@@ -22,6 +33,10 @@ public class Document {
     return document[i];
   }
 
+  public char getChar(int line, int pos) {
+    return line(line).getChar(pos);
+  }
+
   public void invalidateFont() {
     for (CodeLine codeLine : document) {
       codeLine.invalidateCache();
@@ -33,6 +48,10 @@ public class Document {
   }
   public int strLength(int i) {
     return document[i].totalStrLength;
+  }
+
+  public void setLine(int ind, CodeLine line) {
+    document[ind] = line;
   }
 
   public void newLineOp(int caretLine, int caretCharPos) {
@@ -54,9 +73,16 @@ public class Document {
       document[caretLine] = split[0];
       document[caretLine + 1] = split[1];
     }
+
+    makeDiff(caretLine, caretCharPos, false, "\n");
   }
 
   public void concatLines(int caretLine) {
+    concatLinesOp(caretLine);
+    makeDiff(caretLine, strLength(caretLine), true, "\n");
+  }
+
+  private void concatLinesOp(int caretLine) {
     CodeLine newLine = CodeLine.concat(document[caretLine], document[caretLine + 1]);
     CodeLine[] doc = deleteLineOp(caretLine);
     doc[caretLine] = newLine;
@@ -64,7 +90,10 @@ public class Document {
   }
 
   public void deleteLine(int caretLine) {
+    String deleted = line(caretLine).makeString().concat("\n");
     document = deleteLineOp(caretLine);
+
+    makeDiff(caretLine, 0, true, deleted);
   }
 
   public String copyLine(int caretLine) {
@@ -95,9 +124,10 @@ public class Document {
     if (isLastPosition(caretLine, caretCharPos)) {
       // do nothing at the document end
       if (caretLine != document.length - 1) {
-        concatLines(caretLine);
+        concatLinesOp(caretLine);
       }
     } else {
+      makeDiff(caretLine, caretCharPos, true, String.valueOf(getChar(caretLine, caretCharPos)));
       document[caretLine].deleteAt(caretCharPos);
     }
   }
@@ -107,6 +137,11 @@ public class Document {
   }
 
   public void insertLines(int line, int pos, String[] lines) {
+    insertLinesOp(line, pos, lines);
+    makeDiff(line, pos, false, String.join("\n", lines));
+  }
+
+  private void insertLinesOp(int line, int pos, String[] lines) {
     if (lines.length == 0) return;
     if (lines.length == 1) {
       document[line].insertAt(pos, lines[0]);
@@ -140,34 +175,46 @@ public class Document {
   }
 
   public String copy(Selection selection, boolean isCut) {
-    Selection.SelPos leftPos = selection.getLeftPos();
-    Selection.SelPos rightPos = selection.getRightPos();
-    String result;
-
-    if (leftPos.line == rightPos.line) {
-      String line = document[leftPos.line].makeString();
-      result = line.substring(leftPos.charInd, rightPos.charInd);
-    } else {
-      StringBuilder sb = new StringBuilder();
-
-      String firstLine = document[leftPos.line]
-          .makeString(leftPos.charInd);
-      sb.append(firstLine).append('\n');
-
-      Arrays.stream(document, leftPos.line + 1, rightPos.line)
-          .forEach(line -> sb.append(line.makeString()).append('\n'));
-
-      String lastLine = document[rightPos.line]
-          .makeString(0, rightPos.charInd);
-      sb.append(lastLine);
-
-      result = sb.toString();
-    }
-    if (isCut) deleteSelected(selection);
+    String result = getSelectedText(selection);
+    if (isCut) deleteSelected(selection, result);
     return result;
   }
 
+  public String getSelectedText(Selection selection) {
+    Selection.SelPos leftPos = selection.getLeftPos();
+    Selection.SelPos rightPos = selection.getRightPos();
+
+    if (leftPos.line == rightPos.line) {
+      String line = document[leftPos.line].makeString();
+      return line.substring(leftPos.charInd, rightPos.charInd);
+    } else {
+      StringBuilder selected = new StringBuilder();
+
+      String firstLine = document[leftPos.line]
+          .makeString(leftPos.charInd);
+      selected.append(firstLine).append('\n');
+
+      Arrays.stream(document, leftPos.line + 1, rightPos.line)
+          .forEach(line -> selected.append(line.makeString()).append('\n'));
+
+      String lastLine = document[rightPos.line]
+          .makeString(0, rightPos.charInd);
+      selected.append(lastLine);
+      return selected.toString();
+    }
+  }
+
   public void deleteSelected(Selection selection) {
+    deleteSelected(selection, getSelectedText(selection));
+  }
+
+  private void deleteSelected(Selection selection, String selected) {
+    deleteSelectedOp(selection);
+    Selection.SelPos leftPos = selection.getLeftPos();
+    makeDiff(leftPos.line, leftPos.charInd, true, selected);
+  }
+
+  private void deleteSelectedOp(Selection selection) {
     Selection.SelPos leftPos = selection.getLeftPos();
     Selection.SelPos rightPos = selection.getRightPos();
     if (leftPos.line == rightPos.line) {
@@ -176,13 +223,82 @@ public class Document {
       document[leftPos.line].delete(leftPos.charInd);
       document[rightPos.line].delete(0, rightPos.charInd);
       deleteLines(leftPos.line + 1, rightPos.line);
-      concatLines(leftPos.line);
+      concatLinesOp(leftPos.line);
     }
+  }
+
+  public int getLineStartInd(int firstLine) {
+    int result = 0;
+    for (int i = 0; i < firstLine; i++) {
+      result += strLength(i);
+      result++;
+    }
+    return result;
+  }
+
+  public int getVpEnd(int lastLine) {
+    int result = 0;
+    for (int i = 0; i < Math.min(lastLine + 1, document.length); i++) {
+      result += strLength(i);
+      if (i != document.length - 1) result++;
+    }
+    return result;
   }
 
   public byte[] getBytes() {
     List<String> lines = Arrays.stream(document).map(CodeLine::makeString).collect(Collectors.toList());
     String documentText = String.join("\n", lines);
     return documentText.getBytes(StandardCharsets.UTF_8);
+  }
+
+  public int[] getIntervals() {
+    List<Interval> intervalList = tree.toList();
+    int[] intervals = new int[3 * intervalList.size()];
+    for (int i = 0, ind = 0; i < intervals.length; ind++) {
+      var interval = intervalList.get(ind);
+      intervals[i++] = interval.start;
+      intervals[i++] = interval.stop;
+      intervals[i++] = interval.intervalType;
+    }
+    return intervals;
+  }
+
+  public void makeDiff(int line, int from, boolean isDelete, String change) {
+    diffs.add(new Diff(line, from, isDelete, change));
+    int posInDoc = getLineStartInd(line) + from;
+    if (isDelete) tree.makeDeleteDiff(posInDoc, change.length());
+    else tree.makeInsertDiff(posInDoc, change.length());
+  }
+
+  public V2i undoLastDiff() {
+    if (diffs.size() == 0) return null;
+    Diff diff = diffs.remove(diffs.size() - 1);
+    String[] lines = diff.change.split("\n", -1);
+    if (diff.isDelete) {
+      insertLinesOp(diff.line, diff.pos, lines);
+
+      if (lines.length == 1) {
+        return new V2i(diff.line, diff.pos + lines[0].length());
+      } else {
+        return new V2i(diff.line + lines.length - 1, lines[lines.length - 1].length());
+      }
+    } else {
+      Selection selection = new Selection();
+      selection.startPos.set(diff.line, diff.pos);
+
+      if (lines.length == 1) {
+        selection.endPos.set(diff.line, diff.pos + lines[0].length());
+      } else {
+        selection.endPos.set(diff.line + lines.length - 1, lines[lines.length - 1].length());
+      }
+
+      deleteSelectedOp(selection);
+
+      return new V2i(diff.line, diff.pos);
+    }
+  }
+
+  public void printIntervals() {
+    tree.printIntervals(new String(getBytes()));
   }
 }

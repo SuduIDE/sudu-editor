@@ -15,6 +15,13 @@ public interface FileHandle {
 
   void readAsBytes(Consumer<byte[]> consumer, Consumer<String> onError);
 
+  default String getExtension() {
+    String name = getName();
+    int ind = name.lastIndexOf('.');
+    if (ind == -1) return name;
+    else return name.substring(ind);
+  }
+
   static String toString(String[] path, String name, int intSize) {
     return Arrays.toString(path) + " name: " + name + ", size = " + intSize;
   }

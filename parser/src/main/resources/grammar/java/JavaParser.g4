@@ -768,3 +768,9 @@ explicitGenericInvocationSuffix
 arguments
     : '(' expressionList? ')'
     ;
+
+// Only for parsing viewport usage!
+classOrInterfaceBodyDeclaration
+    : classBodyDeclaration
+    | interfaceBodyDeclaration
+    ;

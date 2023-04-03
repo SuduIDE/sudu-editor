@@ -16,6 +16,9 @@ interface EditorConst {
   String TOOLBAR_FONT_NAME = Fonts.SegoeUI;
   int MIN_FONT_SIZE = 7;
   int MIN_CACHE_LINES = 7;
+  int VIEWPORT_OFFSET = 100;
+  int[] FIRST_LINES = new int[]{100};
+  int BIG_FILE_SIZE_KB = 10 * 1024;
 
   float LINE_HEIGHT = 1.5f - 0.125f;
 

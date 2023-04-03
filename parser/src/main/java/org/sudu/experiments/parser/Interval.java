@@ -1,10 +1,11 @@
 package org.sudu.experiments.parser;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 
 import java.util.Objects;
 
-public class Interval {
+public class Interval implements Comparable<Interval> {
 
   public int start, stop;
   public int intervalType;
@@ -22,9 +23,26 @@ public class Interval {
       this.intervalType = -1;
     } else {
       this.start = ruleContext.start.getStartIndex();
-      this.stop = ruleContext.stop.getStopIndex();
+      this.stop = ruleContext.stop.getStopIndex() + 1;
       this.intervalType = intervalType;
     }
+  }
+
+  public boolean containsIn(int from, int to) {
+    return from <= this.start && to >= this.stop;
+  }
+
+  public boolean contains(int from, int to) {
+    return from >= this.start && to <= this.stop;
+  }
+
+  public boolean contains(Token token) {
+    return contains(token.getStartIndex(), token.getStopIndex());
+  }
+
+  public boolean intersect(int from, int to) {
+    return (this.start <= from && from <= this.stop)
+        || (this.start <= to && to <= this.stop);
   }
 
   @Override
@@ -46,5 +64,12 @@ public class Interval {
         ", " + stop +
         ", " + intervalType +
         ")";
+  }
+
+  @Override
+  public int compareTo(Interval o) {
+    int leftCmp = Integer.compare(start, o.start);
+    if (leftCmp != 0) return leftCmp;
+    else return Integer.compare(o.stop, stop);
   }
 }

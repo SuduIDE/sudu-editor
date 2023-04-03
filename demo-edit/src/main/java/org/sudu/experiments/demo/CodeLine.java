@@ -66,6 +66,7 @@ public class CodeLine {
       if (isEmpty) {
         elements = ArrayOp.remove(elements, i, new CodeElement[elements.length - 1]);
         totalStrLength -= diff;
+        invalidateCache();
         return;
       }
 
@@ -272,6 +273,15 @@ public class CodeLine {
       cache = buildGlyphMeasureCache(entry, mCanvas, fonts);
     }
     return cache;
+  }
+
+  char getChar(int charPos) {
+    for (CodeElement element : elements) {
+      int len = element.s.length();
+      if (charPos < len) return element.s.charAt(charPos);
+      charPos -= element.s.length();
+    }
+    return '\0';
   }
 
   private int findEntryByPixel(int pixelLocation) {

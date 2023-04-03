@@ -1,4 +1,4 @@
-package org.sudu.experiments.parser.java;
+package org.sudu.experiments.parser.java.walker;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RuleContext;
@@ -14,14 +14,14 @@ import java.util.Collections;
 import java.util.List;
 
 // Walker for getting JavaClass
-class ClassWalker extends JavaParserBaseListener {
-  JavaClass dummy;
-  JavaClass current;
+public class ClassWalker extends JavaParserBaseListener {
+  public JavaClass dummy;
+  public JavaClass current;
 
-  int curDepth = 0;
-  int maxDepth = 0;
-  double depthSum = 0;
-  int amount = 0;
+  public int curDepth = 0;
+  public int maxDepth = 0;
+  public double depthSum = 0;
+  public int amount = 0;
 
   private static final int COMP_UNIT = 0;
   private static final int PACKAGE = 1;
@@ -32,7 +32,7 @@ class ClassWalker extends JavaParserBaseListener {
   private static final int ANNO_TYPE_ELEM_DECL = 6;
   private static final int ENUM_CONSTS = 7;
 
-  List<Interval> intervals;
+  public List<Interval> intervals;
 
   public ClassWalker() {
     dummy = new JavaClass(null);
@@ -125,6 +125,15 @@ class ClassWalker extends JavaParserBaseListener {
   }
 
   @Override
+  public void enterAnnotationTypeDeclaration(JavaParser.AnnotationTypeDeclarationContext ctx) {
+    super.enterAnnotationTypeDeclaration(ctx);
+    String className = getIdentifier(ctx.identifier()).getText();
+    JavaClass clazz = new JavaClass(className, current);
+    current.nestedClasses.add(clazz);
+    current = clazz;
+  }
+
+  @Override
   public void exitClassDeclaration(JavaParser.ClassDeclarationContext ctx) {
     super.exitClassDeclaration(ctx);
     current = current.innerClass;
@@ -145,6 +154,12 @@ class ClassWalker extends JavaParserBaseListener {
   @Override
   public void exitRecordDeclaration(JavaParser.RecordDeclarationContext ctx) {
     super.exitRecordDeclaration(ctx);
+    current = current.innerClass;
+  }
+
+  @Override
+  public void exitAnnotationTypeDeclaration(JavaParser.AnnotationTypeDeclarationContext ctx) {
+    super.exitAnnotationTypeDeclaration(ctx);
     current = current.innerClass;
   }
 
@@ -178,10 +193,30 @@ class ClassWalker extends JavaParserBaseListener {
   }
 
   @Override
+  public void exitAnnotationConstantRest(JavaParser.AnnotationConstantRestContext ctx) {
+    super.exitAnnotationConstantRest(ctx);
+    var variableDeclarators = ctx.variableDeclarators().variableDeclarator();
+    for (var variableDeclarator : variableDeclarators) {
+      var variableDeclaratorId = variableDeclarator.variableDeclaratorId();
+      var node = getIdentifier(variableDeclaratorId.identifier());
+      boolean isStatic = isStatic(getAnnotationMethodOrConstantRestModifiers((JavaParser.AnnotationMethodOrConstantRestContext) ctx.parent));
+      current.fields.add(new JavaMethodField(node.getText(), isStatic));
+    }
+  }
+
+  @Override
   public void exitMethodDeclaration(JavaParser.MethodDeclarationContext ctx) {
     super.exitMethodDeclaration(ctx);
     var node = getIdentifier(ctx.identifier());
     var isStatic = isStatic(getModifiers(ctx));
+    current.methods.add(new JavaMethodField(node.getText(), isStatic));
+  }
+
+  @Override
+  public void exitAnnotationMethodRest(JavaParser.AnnotationMethodRestContext ctx) {
+    super.exitAnnotationMethodRest(ctx);
+    var node = getIdentifier(ctx.identifier());
+    var isStatic = isStatic(getAnnotationMethodOrConstantRestModifiers((JavaParser.AnnotationMethodOrConstantRestContext) ctx.parent));
     current.methods.add(new JavaMethodField(node.getText(), isStatic));
   }
 
@@ -211,6 +246,15 @@ class ClassWalker extends JavaParserBaseListener {
 
   public static TerminalNode getIdentifier(JavaParser.IdentifierContext ctx) {
     return (TerminalNode) ctx.children.get(0);
+  }
+
+  public static List<String> getAnnotationMethodOrConstantRestModifiers(JavaParser.AnnotationMethodOrConstantRestContext ctx) {
+    ArrayList<String> modifiers = new ArrayList<>();
+    if (ctx.parent.parent instanceof JavaParser.AnnotationTypeElementDeclarationContext declarationContext) {
+      for (var mod : declarationContext.modifier())
+        modifiers.add(mod.children.get(0).getText());
+    }
+    return modifiers;
   }
 
   public static List<String> getModifiers(RuleContext ctx) {

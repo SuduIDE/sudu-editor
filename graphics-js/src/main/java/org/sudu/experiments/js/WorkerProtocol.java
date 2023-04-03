@@ -112,6 +112,7 @@ public class WorkerProtocol {
       return jsFileHandle.fileHandle != null
           ? jsFileHandle.fileHandle : jsFileHandle.jsFile;
     }
+    System.out.println("Illegal argument javaObject instanceof " + javaObject.getClass().getName());
     throw new IllegalArgumentException();
   }
 

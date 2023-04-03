@@ -1,97 +1,90 @@
 package org.sudu.experiments.demo.worker;
 
 import org.sudu.experiments.Debug;
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.demo.CodeElement;
 import org.sudu.experiments.demo.CodeLine;
 import org.sudu.experiments.demo.Document;
+import org.sudu.experiments.math.ArrayOp;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.function.Consumer;
 
 public class LineParser {
 
   StringTokenizer lineTokenizer;
-  StringTokenizer wordTokenizer;
 
-  private static final String LINE_DELIM = System.lineSeparator();
-  private static final String WORD_DELIM = " \t()[]<>,.\";";
+  private static final String LINE_DELIM = "\r\n";
 
-  public static final String PARSE_BYTES = "parseBytes";
+  public static final String PARSE_LINES = "LineParser.parseBytes";
 
   public static void parseBytes(byte[] bytes, List<Object> result) {
     String source = new String(bytes, StandardCharsets.UTF_8);
     LineParser parser = new LineParser();
-    int[] ints = parser.parseIntArray(source);
+    int[] ints = parser.parseIntArray(source, Integer.MAX_VALUE);
     char[] chars = source.toCharArray();
     result.add(ints);
     result.add(chars);
   }
 
-  Document parse(String source) {
-    List<CodeLine> lines = new ArrayList<>();
-    List<CodeElement> words = new ArrayList<>();
+  public static final String PARSE_FIRST_LINES = "asyncLineParser.parseFirstLines";
 
-    lineTokenizer = new StringTokenizer(source, LINE_DELIM);
-    while (lineTokenizer.hasMoreTokens()) {
-      String token = lineTokenizer.nextToken();
-      String line = trim(token);
-      wordTokenizer = new StringTokenizer(line, WORD_DELIM, true);
-      words.clear();
-      while (wordTokenizer.hasMoreTokens()) {
-        String word = wordTokenizer.nextToken();
-        words.add(plainText(word));
-      }
-      lines.add(new CodeLine(words.toArray(CodeElement[]::new)));
-    }
-    return new Document(lines.toArray(CodeLine[]::new));
+  public static void parseFirstLines(FileHandle f, int[] lines, Consumer<Object[]> r) {
+    f.readAsBytes(
+        bytes -> parseFirstLines(bytes, lines, r),
+        String::toString);
+  }
+
+  private static void parseFirstLines(byte[] bytes, int[] lines, Consumer<Object[]> result) {
+    ArrayList<Object> list = new ArrayList<>();
+    parseFirstLines(bytes, lines, list);
+    ArrayOp.sendArrayList(list, result);
+  }
+
+  private static void parseFirstLines(byte[] bytes, int[] lines, List<Object> result) {
+    String source = new String(bytes, StandardCharsets.UTF_8);
+    LineParser parser = new LineParser();
+    int numOfLines = lines[0];
+    int[] ints = parser.parseIntArray(source, numOfLines);
+    char[] chars = source.toCharArray();
+    result.add(ints);
+    result.add(chars);
   }
 
   // result[0] = N - number of lines
   // result[1..N] - number of elements on line
   // result[N+1..] - end index of word
-  int[] parseIntArray(String source) {
+  int[] parseIntArray(String source, int numOfLines) {
     List<Integer> lines = new ArrayList<>();
-    List<Integer> words = new ArrayList<>();
-    int wordEnd = 0;
     boolean prevLine = false;
+    int lineEnd = 0;
 
     lineTokenizer = new StringTokenizer(source, LINE_DELIM, true);
-    while (lineTokenizer.hasMoreTokens()) {
+    while (lineTokenizer.hasMoreTokens() && lines.size() < numOfLines) {
       String line = lineTokenizer.nextToken();
       if (isCarriage(line)) {
-        wordEnd++;
+        lineEnd++;
         continue;
       }
       if (isNewLine(line)) {
-        wordEnd++;
-        if (prevLine) lines.add(0);
+        lineEnd++;
+        if (prevLine) lines.add(lineEnd);
         prevLine = true;
         continue;
       }
+      lineEnd += line.length();
       prevLine = false;
-      int wordCnt = 0;
-      wordTokenizer = new StringTokenizer(line, WORD_DELIM, true);
-      while (wordTokenizer.hasMoreTokens()) {
-        String word = wordTokenizer.nextToken();
-        wordEnd += word.length();
-        wordCnt++;
-        words.add(wordEnd);
-      }
-      lines.add(wordCnt);
+      lines.add(lineEnd);
     }
     int lineNumber = lines.size();
-    int wordNumber = words.size();
-    int[] result = new int[1 + lineNumber + wordNumber];
+    int[] result = new int[1 + lineNumber];
     result[0] = lineNumber;
-    for (int i = 0; i < lineNumber; i++) {
+    for (int i = 0; i < lineNumber; i++)
       result[1 + i] = lines.get(i);
-    }
-    for (int i = 0; i < wordNumber; i++) {
-      result[1 + lineNumber + i] = words.get(i);
-    }
     Debug.consoleInfo("Parsing complete");
     return result;
   }
@@ -104,65 +97,19 @@ public class LineParser {
     return str.length() == 1 && str.charAt(0) == '\r';
   }
 
-  private static boolean isQuote(String str) {
-    return str.length() == 1 && str.charAt(0) == '\"';
-  }
-
-  private CodeElement plainText(String text) {
-    return new CodeElement(text);
-  }
-
-  private String trim(String str) {
-    int from = 0;
-    int to = str.length();
-    if (str.charAt(str.length() - 1) == '\r') to--;
-    return str.substring(from, to);
-  }
-
   public static Document makeDocument(int[] ints, char[] chars) {
     int numLines = ints[0];
-    int wordStart = 0;
-    boolean hasQuote = false;
+    int lineStart = 0;
     CodeLine[] newDoc = new CodeLine[numLines];
-    for (int i = 0, wordInd = 1 + numLines; i < numLines; i++) {
-      int len = ints[1 + i];
-      CodeElement[] elements = new CodeElement[len];
-      for (int j = 0; j < len; j++, wordInd++) {
-        int wordEnd = ints[wordInd];
-        String word = makeWord(wordStart, wordEnd, chars);
-        if (isQuote(word)) {
-          elements[j] = makeCodeElement(word, true);
-          hasQuote = !hasQuote;
-        } else {
-          elements[j] = makeCodeElement(word, hasQuote);
-        }
-        wordStart = wordEnd;
-      }
+    for (int i = 0; i < numLines; i++) {
+      CodeElement[] elements = new CodeElement[1];
+      int lineEnd = ints[1 + i];
+      String line = makeWord(lineStart, lineEnd, chars);
+      elements[0] = new CodeElement(line);
+      lineStart = lineEnd;
       newDoc[i] = new CodeLine(elements);
-      wordStart++;
     }
     return new Document(newDoc);
-  }
-
-  private static CodeElement makeCodeElement(String word, boolean hasQuote) {
-    if (hasQuote) return new CodeElement(word, 3);
-    if (isNumeric(word)) return new CodeElement(word, 7);
-    if (javaKeyWords.contains(word)) return new CodeElement(word, 1);
-    return new CodeElement(word);
-  }
-
-  private static boolean isNumeric(String str) {
-    if (str.isEmpty()) return false;
-    if (str.charAt(0) == '-' && str.length() == 1) return false;
-    if (!Character.isDigit(str.charAt(0))) return false;
-    boolean hasDot = false;
-    for (int i = 1; i < str.length(); i++) {
-      if (str.charAt(i) == '.') {
-        if (hasDot) return false;
-        else hasDot = true;
-      } else if (!Character.isDigit(str.charAt(i))) return false;
-    }
-    return true;
   }
 
   private static String makeWord(int from, int to, char[] chars) {
@@ -170,61 +117,5 @@ public class LineParser {
     while (to - 1 > 0 && to > from && (chars[to - 1] == '\n' || chars[to - 1] == '\r')) to--;
     return new String(chars, from, to - from);
   }
-
-  private static final Set<String> javaKeyWords = Set.of(
-      "byte",
-      "short",
-      "int",
-      "long",
-      "float",
-      "double",
-      "if",
-      "else",
-      "switch",
-      "case",
-      "default",
-      "do",
-      "while",
-      "for",
-      "break",
-      "continue",
-      "return",
-      "static",
-      "final",
-      "abstract",
-      "native",
-      "transient",
-      "volatile",
-      "synchronized",
-      "strictfp",
-      "private",
-      "protected",
-      "public",
-      "class",
-      "interface",
-      "enum",
-      "extends",
-      "implements",
-      "import",
-      "package",
-      "this",
-      "super",
-      "instanceof",
-      "new",
-      "try",
-      "catch",
-      "finally",
-      "throw",
-      "throws",
-      "assert",
-      "goto",
-      "const",
-      "var",
-      "true",
-      "false",
-      "null",
-
-      ";", ","
-  );
 
 }

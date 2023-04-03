@@ -4,9 +4,7 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.demo.worker.FileParser;
-import org.sudu.experiments.demo.worker.JavaParser;
-import org.sudu.experiments.demo.worker.LineParser;
+import org.sudu.experiments.demo.worker.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyCode;
@@ -15,6 +13,8 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.*;
 import org.sudu.experiments.worker.ArrayView;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 
@@ -81,6 +81,17 @@ public class EditorComponent implements Disposable {
   final V2i compPos = new V2i();
   final V2i compSize = new V2i();
 
+  boolean fileStructureParsed;
+  int fileType = FileParser.JAVA_FILE;
+
+  public EditorComponent(
+      SceneApi api
+  ) {
+    this(api, new Document());
+    parsingTimeStart = System.currentTimeMillis();
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, StartFile.START_CODE_JAVA.getBytes(StandardCharsets.UTF_8));
+  }
+
   public EditorComponent(
       SceneApi api,
       Document document
@@ -144,8 +155,10 @@ public class EditorComponent implements Disposable {
   @SuppressWarnings("CommentedOutCode")
   private void initToolbar() {
     toolbar.setBgColor(Colors.toolbarBg);
-    toolbar.addButton("Reparse", Colors.toolbarText3, this::reparse);
-    toolbar.addButton("Open", Colors.toolbarText3, this::showOpenFile);
+    toolbar.addButton("Int", Colors.toolbarText3, () -> document.printIntervals());
+    toolbar.addButton("VP", Colors.toolbarText3, () -> parseViewport(fileType));
+    toolbar.addButton("Rep", Colors.toolbarText3, this::parseFullFile);
+    toolbar.addButton("Op", Colors.toolbarText3, this::showOpenFile);
 //    toolbar.addButton("↓", Colors.toolbarText3, this::moveDown);
 //    toolbar.addButton("■", Colors.toolbarText3, this::stopMove);
 //    toolbar.addButton("↑↑↑", Colors.toolbarText3, this::moveUp);
@@ -175,6 +188,13 @@ public class EditorComponent implements Disposable {
 
   private void startBlinking() {
     caret.startDelay(api.window.timeNow());
+  }
+
+  private void undoLastDiff() {
+    if (selection.isAreaSelected()) setSelectionToCaret();
+    var caretDiff = document.undoLastDiff();
+    if (caretDiff == null) return;
+    setCaretLinePos(caretDiff.x, caretDiff.y, false);
   }
 
   private void toggleXOffset() {
@@ -523,7 +543,7 @@ public class EditorComponent implements Disposable {
 
   boolean handleInsert(String s) {
     if (selection.isAreaSelected()) deleteSelectedArea();
-    String[] lines = s.split("\n", -1);
+    String[] lines = s.replace("\r", "").split("\n", -1);
 
     document.insertLines(caretLine, caretCharPos, lines);
 
@@ -610,8 +630,13 @@ public class EditorComponent implements Disposable {
     Debug.consoleInfo("onFileParsed");
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
+    int type = ((ArrayView) result[2]).ints()[0];
 
-    this.document = JavaParser.makeDocument(ints, chars);
+    if (type == FileParser.JAVA_FILE) {
+      this.document = JavaParser.makeDocument(ints, chars);
+    } else if (type == FileParser.TEXT_FILE) {
+      this.document = LineParser.makeDocument(ints, chars);
+    }
 
     int newCaretLine = Numbers.clamp(0, caretLine, document.length());
     int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
@@ -619,20 +644,77 @@ public class EditorComponent implements Disposable {
     setCaretLinePos(newCaretLine, newCaretCharInd, false);
     api.window.setCursor(Cursor.arrow);
     api.window.repaint();
-    Debug.consoleInfo("File parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
+    Debug.consoleInfo("Full file parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
+  }
+
+  private void onFileStructureParsed(Object[] result) {
+    fileStructureParsed = true;
+
+    int[] ints = ((ArrayView) result[0]).ints();
+    char[] chars = ((ArrayView) result[1]).chars();
+    int type = ((ArrayView) result[2]).ints()[0];
+    this.fileType = type;
+
+    this.document = JavaLexerFirstLines.makeDocument(document, ints, chars);
+
+    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
+    int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
+
+    setCaretLinePos(newCaretLine, newCaretCharInd, false);
+    api.window.setCursor(Cursor.arrow);
+    api.window.repaint();
+    Debug.consoleInfo("File structure parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
+
+    parseViewport(type);
+  }
+
+  private void onVpParsed(Object[] result) {
+    Debug.consoleInfo("onVpParsed");
+    int[] ints = ((ArrayView) result[0]).ints();
+    char[] chars = ((ArrayView) result[1]).chars();
+
+    JavaParser.makeViewport(document, ints, chars);
+
+    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
+    int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
+
+    setCaretLinePos(newCaretLine, newCaretCharInd, false);
+    api.window.setCursor(Cursor.arrow);
+    api.window.repaint();
+    Debug.consoleInfo("Viewport parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
+
+    parseFullFile();
   }
 
   private void onFileLoad(byte[] content) {
     Debug.consoleInfo("readAsBytes complete, l = " + content.length);
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, LineParser.PARSE_BYTES, content);
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, content);
+  }
+
+  private void onFirstLinesParsed(Object[] result) {
+    if (fileStructureParsed) return;
+    int[] ints = ((ArrayView) result[0]).ints();
+    char[] chars = ((ArrayView) result[1]).chars();
+    this.document = JavaParser.makeDocument(ints, chars);
+
+    Debug.consoleInfo("First lines parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
   }
 
   private void openFile(FileHandle f) {
     Debug.consoleInfo("opening file " + f.getName());
+    setCaretLinePos(0, 0, false);
     // f.readAsBytes(this::onFileLoad, System.err::println);
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, FileParser.asyncParseFile, f);
+    fileStructureParsed = false;
+    f.getSize(size -> {
+      if (size <= EditorConst.BIG_FILE_SIZE_KB) {
+        api.window.sendToWorker(this::onFileParsed, FileParser.asyncParseFullFile, f);
+      } else {
+        api.window.sendToWorker(this::onFirstLinesParsed, JavaLexerFirstLines.LEXER_FIRST_LINES, f, Arrays.copyOf(EditorConst.FIRST_LINES, 1));
+        api.window.sendToWorker(this::onFileStructureParsed, FileParser.asyncParseFile, f);
+      }
+    });
   }
 
   boolean arrowUpDown(int amount, boolean ctrl, boolean alt, boolean shiftPressed) {
@@ -881,7 +963,12 @@ public class EditorComponent implements Disposable {
     }
 
     if (event.ctrl && event.keyCode == KeyCode.P) {
-      reparse();
+      parseFullFile();
+      return true;
+    }
+
+    if (event.ctrl && event.keyCode == KeyCode.Z) {
+      undoLastDiff();
       return true;
     }
 
@@ -901,7 +988,22 @@ public class EditorComponent implements Disposable {
     return event.key.length() > 0 && handleInsert(event.key);
   }
 
-  private void reparse() {
+  private void parseViewport(int type) {
+    if (type == FileParser.JAVA_FILE)
+      api.window.sendToWorker(this::onVpParsed, JavaParser.PARSE_BYTES_JAVA_VIEWPORT, document.getBytes(), getViewport(), document.getIntervals() );
+  }
+
+  private int[] getViewport() {
+    int firstLine = getFirstLine();
+    int lastLine = getLastLine();
+
+    firstLine = Math.max(0, firstLine - EditorConst.VIEWPORT_OFFSET);
+    lastLine = Math.min(document.length() - 1, lastLine + EditorConst.VIEWPORT_OFFSET);
+
+    return new int[]{document.getLineStartInd(firstLine), document.getVpEnd(lastLine), firstLine};
+  }
+
+  private void parseFullFile() {
     parsingTimeStart = System.currentTimeMillis();
     api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, document.getBytes());
   }

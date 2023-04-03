@@ -14,6 +14,7 @@ public interface KeyCode {
   int V = 86;
   int X = 88;
   int W = 87;
+  int Z = A + 25;
 
 
   int F5 = 116;

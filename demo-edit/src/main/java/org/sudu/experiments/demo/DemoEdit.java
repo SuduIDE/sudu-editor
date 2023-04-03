@@ -25,8 +25,9 @@ public class DemoEdit extends Scene {
     super(api);
     this.g = api.graphics;
 
-    Document document = new Document(EditorConst.DOCUMENT_LINES);
-    editor = new EditorComponent(api, document);
+//    Document document = new Document(EditorConst.DOCUMENT_LINES);
+//    editor = new EditorComponent(api, document);
+    editor = new EditorComponent(api);
 
     api.input.addListener(new EditInput());
   }
