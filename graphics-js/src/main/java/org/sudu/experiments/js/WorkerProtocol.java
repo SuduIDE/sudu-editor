@@ -112,8 +112,10 @@ public class WorkerProtocol {
       return jsFileHandle.fileHandle != null
           ? jsFileHandle.fileHandle : jsFileHandle.jsFile;
     }
-    System.out.println("Illegal argument javaObject instanceof " + javaObject.getClass().getName());
-    throw new IllegalArgumentException();
+
+    throw new IllegalArgumentException(
+        "Illegal argument javaObject instanceof " + javaObject.getClass().getName()
+    );
   }
 
   @JSBody(params = "data", script = "return data instanceof Array;")

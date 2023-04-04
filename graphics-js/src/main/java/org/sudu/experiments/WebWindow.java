@@ -58,7 +58,6 @@ public class WebWindow implements org.sudu.experiments.Window {
 
     if (gl != null) {
       init(gl, factory);
-      observer.observePixelsOrDefault(mainCanvas);
     } else {
       onWebGlError.run();
     }
@@ -117,6 +116,7 @@ public class WebWindow implements org.sudu.experiments.Window {
   private void init(GLApi.Context gl, Function<SceneApi, Scene> sf) {
     eventHandler = new JsInput(mainCanvas, inputListeners);
     g = new WebGraphics(gl, repaint);
+    observer.observePixelsOrDefault(mainCanvas);
 
     Window.current().addEventListener("resize", handleWindowResize);
 
@@ -127,7 +127,9 @@ public class WebWindow implements org.sudu.experiments.Window {
   }
 
   @Override
-  public void setTitle(String title) {}
+  public void setTitle(String title) {
+    HTMLDocument.current().setTitle(title);
+  }
 
   private SceneApi api() {
     return new SceneApi(g, inputListeners, this);
