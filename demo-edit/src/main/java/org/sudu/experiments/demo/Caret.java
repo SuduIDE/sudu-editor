@@ -9,7 +9,9 @@ public class Caret {
   public static final int grayColor = 187;
   public static final float delayK = 1.25f;
 
-  private final DemoRect shape = new DemoRect(0,0, 2, 20);
+  public static final int defaultWidth = 2;
+
+  private final DemoRect shape = new DemoRect(0,0, defaultWidth, 20);
   private double frequency = .5;
   private double nextTime = 0;
   private boolean state;

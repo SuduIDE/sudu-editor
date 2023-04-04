@@ -6,7 +6,6 @@ package org.sudu.experiments.demo;
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.worker.*;
 import org.sudu.experiments.fonts.FontDesk;
-import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
@@ -28,7 +27,6 @@ public class EditorComponent implements Disposable {
 
   final SceneApi api;
   final WglGraphics g;
-  final SetCursor setCursor;
 
   final Caret caret = new Caret();
   int caretLine, caretCharPos, caretPos;
@@ -40,6 +38,8 @@ public class EditorComponent implements Disposable {
   int lineHeight;
 
   Document document;
+  Selection selection = new Selection();
+
   EditorColorScheme colors = new EditorColorScheme();
 
   Canvas renderingCanvas;
@@ -48,8 +48,6 @@ public class EditorComponent implements Disposable {
   CodeLineRenderer[] lines = new CodeLineRenderer[0];
   int firstLineRendered, lastLineRendered;
 
-  final Toolbar toolbar = new Toolbar();
-  FontDesk toolBarFont;
 
   // layout
   int vLineXBase = 100;
@@ -59,12 +57,11 @@ public class EditorComponent implements Disposable {
 
   V2i vLineSize = new V2i(1, 0);
   DemoRect footerRc = new DemoRect();
+
   ScrollBar vScroll = new ScrollBar();
   ScrollBar hScroll = new ScrollBar();
-  Selection selection = new Selection();
-  //V2i clientRect;
-  int editorVScrollPos = 0;
-  int editorHScrollPos = 0;
+  int vScrollPos = 0;
+  int hScrollPos = 0;
 
   int fullWidth = 0;
   double devicePR;
@@ -83,13 +80,15 @@ public class EditorComponent implements Disposable {
 
   boolean fileStructureParsed;
   int fileType = FileParser.JAVA_FILE;
+  String tabIndent = "  ";
 
   public EditorComponent(
       SceneApi api
   ) {
     this(api, new Document());
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, StartFile.START_CODE_JAVA.getBytes(StandardCharsets.UTF_8));
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA,
+        StartFile.START_CODE_JAVA.getBytes(StandardCharsets.UTF_8));
   }
 
   public EditorComponent(
@@ -99,11 +98,8 @@ public class EditorComponent implements Disposable {
     this.api = api;
     this.document = document;
     this.g = api.graphics;
-    this.setCursor = SetCursor.wrap(api.window);
 
     if (api.window.hasFocus()) onFocusGain();
-
-    initToolbar();
 
     debugFlags[0] = this::toggleContrast;
     debugFlags[1] = this::toggleBlankLines;
@@ -128,7 +124,7 @@ public class EditorComponent implements Disposable {
     //api.input.addListener(new MyInputListener());
     //clientRect = api.window.getClientRect();
     if (1<0) DebugHelper.dumpFontsSize(g);
-    caret.setWidth(Numbers.iRnd(caret.width() * devicePR));
+    caret.setWidth(Numbers.iRnd(Caret.defaultWidth * devicePR));
 
     int newFontSize = Numbers.iRnd(fontVirtualSize * devicePR);
     int oldSize = font == null ? 0 : font.iSize;
@@ -140,9 +136,6 @@ public class EditorComponent implements Disposable {
 
     updateLineNumbersFont();
 
-    int toolbarFontSize = Numbers.iRnd(EditorConst.TOOLBAR_FONT_SIZE * devicePR);
-    toolBarFont = g.fontDesk(EditorConst.TOOLBAR_FONT_NAME, toolbarFontSize);
-    toolbar.setFont(toolBarFont);
     layout();
   }
 
@@ -150,31 +143,6 @@ public class EditorComponent implements Disposable {
   private void toggleBlankLines() {
     renderBlankLines = !renderBlankLines;
     Debug.consoleInfo("renderBlankLines = " + renderBlankLines);
-  }
-
-  @SuppressWarnings("CommentedOutCode")
-  private void initToolbar() {
-    toolbar.setBgColor(Colors.toolbarBg);
-    toolbar.addButton("Int", Colors.toolbarText3, () -> document.printIntervals());
-    toolbar.addButton("VP", Colors.toolbarText3, () -> parseViewport(fileType));
-    toolbar.addButton("Rep", Colors.toolbarText3, this::parseFullFile);
-    toolbar.addButton("Op", Colors.toolbarText3, this::showOpenFile);
-//    toolbar.addButton("↓", Colors.toolbarText3, this::moveDown);
-//    toolbar.addButton("■", Colors.toolbarText3, this::stopMove);
-//    toolbar.addButton("↑↑↑", Colors.toolbarText3, this::moveUp);
-//
-//    toolbar.addButton("C", Colors.toolbarText2, this::toggleContrast);
-//    toolbar.addButton("XO", Colors.toolbarText2, this::toggleXOffset);
-//    toolbar.addButton("DT", Colors.toolbarText2, this::toggleTails);
-//    toolbar.addButton("TE", Colors.toolbarText2, this::toggleTopEdit);
-//    toolbar.addButton("TB", Colors.toolbarText2, this::toggleTopBar);
-    toolbar.addButton("A↑", Colors.toolbarText3, this::increaseFont);
-    toolbar.addButton("A↓", Colors.toolbarText3, this::decreaseFont);
-    toolbar.addButton("Segoe UI", Colors.rngToolButton(), this::setSegoeUI);
-    toolbar.addButton("Verdana", Colors.rngToolButton(), this::setVerdana);
-    toolbar.addButton("JetBrains Mono", Colors.rngToolButton(), this::setJetBrainsMono);
-    toolbar.addButton("Consolas", Colors.rngToolButton(), this::setConsolas);
-
   }
 
   public void onFocusGain() {
@@ -215,23 +183,19 @@ public class EditorComponent implements Disposable {
     Debug.consoleInfo("applyContrast = " + applyContrast);
   }
 
-  private void toggleTopEdit() {
+  private void toggleTopTextRenderMode() {
     CodeLineRenderer.bw = false;
     CodeLineRenderer.useTop = !CodeLineRenderer.useTop;
     Debug.consoleInfo("CodeLineRenderer.useTop = " + CodeLineRenderer.useTop);
     invalidateFont();
   }
-  private void toggleTopBar() {
-    Toolbar.useTopMode = !Toolbar.useTopMode;
-    Debug.consoleInfo("Toolbar.useTopMode = " + Toolbar.useTopMode);
-    toolbar.invalidateTexture();
-  }
 
-  private void increaseFont() {
+
+  public void increaseFont() {
     changeFont(font.name, font.iSize + 1);
   }
 
-  private void decreaseFont() {
+  public void decreaseFont() {
     if (font.iSize <= EditorConst.MIN_FONT_SIZE) return;
     changeFont(font.name, font.iSize - 1);
   }
@@ -254,25 +218,11 @@ public class EditorComponent implements Disposable {
     scrollUp = scrollDown = 0;
   }
 
-  private void setSegoeUI() {
-    changeFont(Fonts.SegoeUI, font.iSize);
+  public int getFontISize() {
+    return font.iSize;
   }
-
-  private void setVerdana() {
-    changeFont(Fonts.Verdana, font.iSize);
-  }
-
-  private void setJetBrainsMono() {
-    changeFont(Fonts.JetBrainsMono, font.iSize);
-  }
-
-  private void setConsolas() {
-    changeFont(Fonts.Consolas, font.iSize);
-  }
-
   private void setFont(String name, int size) {
     setFonts(name, size);
-    font = fonts[CodeElement.fontIndex(false, false)];
 
     int fontLineHeight = font.lineHeight();
     lineHeight = Numbers.iRnd(fontLineHeight * EditorConst.LINE_HEIGHT);
@@ -300,9 +250,10 @@ public class EditorComponent implements Disposable {
         g.fontDesk(name, size, FontDesk.WEIGHT_BOLD, FontDesk.STYLE_NORMAL);
     fonts[CodeElement.fontIndex(true, true)] =
         g.fontDesk(name, size, FontDesk.WEIGHT_BOLD, FontDesk.STYLE_ITALIC);
+    font = fonts[CodeElement.fontIndex(false, false)];
   }
 
-  private void changeFont(String name, int size) {
+  public void changeFont(String name, int size) {
     lineNumbers.dispose();
     invalidateFont();
     setFont(name, size);
@@ -333,18 +284,17 @@ public class EditorComponent implements Disposable {
     }
     renderingCanvas = Disposable.assign(renderingCanvas, null);
     lineNumbers.dispose();
-    toolbar.dispose();
   }
 
   int editorFullHeight() {
     return (document.length() + EditorConst.BLANK_LINES) * lineHeight;
   }
 
-  int maxEditorVScrollPos() {
+  int maxVScrollPos() {
     return Math.max(editorFullHeight() - editorHeight(), 0);
   }
 
-  int maxEditorHScrollPos() {
+  int maxHScrollPos() {
     return Math.max(fullWidth - editorWidth(), 0);
   }
 
@@ -368,11 +318,11 @@ public class EditorComponent implements Disposable {
   }
 
   public boolean update(double timestamp) {
-    int vScrollPos = editorVScrollPos;
-    editorVScrollPos = clampScrollPos(editorVScrollPos + scrollDown  -  scrollUp,
-        maxEditorVScrollPos());
+    int oldVScrollPos = vScrollPos;
+    vScrollPos = clampScrollPos(vScrollPos + scrollDown  -  scrollUp,
+        maxVScrollPos());
 
-    boolean scrollMoving = vScrollPos != editorVScrollPos;
+    boolean scrollMoving = oldVScrollPos != vScrollPos;
 
 //    boolean replaceCurrentLine = debugFlags[2];
 //    if (replaceCurrentLine) {
@@ -403,12 +353,12 @@ public class EditorComponent implements Disposable {
     g.enableBlend(false);
 
     drawVerticalLine();
-    editorVScrollPos = Math.min(editorVScrollPos, maxEditorVScrollPos());
-    editorHScrollPos = Math.min(editorHScrollPos, maxEditorHScrollPos());
+    vScrollPos = Math.min(vScrollPos, maxVScrollPos());
+    hScrollPos = Math.min(hScrollPos, maxHScrollPos());
 
     int caretVerticalOffset = (lineHeight - caret.height()) / 2;
-    int caretX = caretPos - caret.width() / 2 - editorHScrollPos;
-    caret.setPosition(vLineX + caretX, caretVerticalOffset + caretLine * lineHeight - editorVScrollPos);
+    int caretX = caretPos - caret.width() / 2 - hScrollPos;
+    caret.setPosition(vLineX + caretX, caretVerticalOffset + caretLine * lineHeight - vScrollPos);
 
     int docLen = document.length();
 
@@ -421,26 +371,26 @@ public class EditorComponent implements Disposable {
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
       CodeLine nextLine = document.line(i);
       CodeLineRenderer line = lineRenderer(i);
-      line.updateTexture(nextLine, renderingCanvas, fonts, g, lineHeight, editorWidth(), editorHScrollPos);
+      line.updateTexture(nextLine, renderingCanvas, fonts, g, lineHeight, editorWidth(), hScrollPos);
       CodeLine lineContent = line.line;
 
       fullWidth = Math.max(fullWidth, nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * devicePR));
-      int yPosition = lineHeight * i - editorVScrollPos;
+      int yPosition = lineHeight * i - vScrollPos;
 
       line.draw(
           compPos.y + yPosition, compPos.x +  vLineX, g, tRegion, size,
           applyContrast ? EditorConst.CONTRAST : 0,
-          editorWidth(), lineHeight, editorHScrollPos,
+          editorWidth(), lineHeight, hScrollPos,
           colors, getSelLineSegment(i, lineContent));
     }
 
     for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
       CodeLineRenderer line = lineRenderer(i);
-      int yPosition = lineHeight * i - editorVScrollPos;
+      int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection.isTailSelected(i);
       Color tailColor = isTailSelected? colors.selectionBgColor : colors.codeLineTailColor;
       line.drawTail(g, compPos.x + vLineX,compPos.y + yPosition, lineHeight,
-          size, editorHScrollPos, editorWidth(), tailColor);
+          size, hScrollPos, editorWidth(), tailColor);
     }
 
     if (hasFocus && caretX >= -caret.width() / 2 && caret.needsPaint(compSize)) {
@@ -450,18 +400,18 @@ public class EditorComponent implements Disposable {
     // draw bottom 5 invisible lines
     if (renderBlankLines) {
       int nextLine = Math.min(lastLine + 1, docLen);
-      int yPosition = lineHeight * nextLine - editorVScrollPos;
+      int yPosition = lineHeight * nextLine - vScrollPos;
       drawDocumentBottom(editorBottom, editorRight, yPosition);
     }
 
-    drawScrollBar();
     drawLineNumbers(editorBottom, firstLine, lastLine);
 
     drawFooter();
-    drawToolBar();
 
-    vScroll.layoutVertical(editorVScrollPos, editorRight, editorHeight(), editorFullHeight(), vScrollBarWidth());
-    hScroll.layoutHorizontal(editorHScrollPos, editorBottom, editorRight - vLineX, fullWidth, vLineX, vScrollBarWidth());
+    g.enableBlend(true);
+    vScroll.layoutVertical(vScrollPos, editorRight, editorHeight(), editorFullHeight(), vScrollBarWidth());
+    hScroll.layoutHorizontal(hScrollPos, editorBottom, editorRight - vLineX, fullWidth, vLineX, vScrollBarWidth());
+    drawScrollBar();
 
 //    g.checkError("paint complete");
     if (0>1) {
@@ -482,19 +432,19 @@ public class EditorComponent implements Disposable {
   }
 
   private void drawLineNumbers(int editorBottom, int firstLine, int lastLine) {
-    int textHeight = Math.min(editorBottom, document.length() * lineHeight - editorVScrollPos);
+    int textHeight = Math.min(editorBottom, document.length() * lineHeight - vScrollPos);
 
-    lineNumbers.draw(editorBottom, textHeight, editorVScrollPos, firstLine, lastLine, caretLine, g,
+    lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine, caretLine, g,
         colors.lineNumbersColors
     );
   }
 
   private int getFirstLine() {
-    return Math.min(editorVScrollPos / lineHeight, document.length() - 1);
+    return Math.min(vScrollPos / lineHeight, document.length() - 1);
   }
 
   private int getLastLine() {
-    return Math.min((editorVScrollPos + editorHeight() - 1) / lineHeight, document.length() - 1);
+    return Math.min((vScrollPos + editorHeight() - 1) / lineHeight, document.length() - 1);
   }
 
   private void updateLineNumbersFont() {
@@ -504,6 +454,11 @@ public class EditorComponent implements Disposable {
 
   private CodeLineRenderer lineRenderer(int i) {
     return lines[i % lines.length];
+  }
+
+  boolean handleTab() {
+    handleInsert(tabIndent);
+    return true;
   }
 
   boolean handleEnter() {
@@ -568,18 +523,6 @@ public class EditorComponent implements Disposable {
     selection.isSelectionStarted = false;
     selection.startPos.set(caretLine, caretCharPos);
     selection.endPos.set(caretLine, caretCharPos);
-  }
-
-  private void drawToolBar() {
-    g.enableBlend(true);
-    V2i size = toolbar.size(g, devicePR);
-
-    int editorHeight = editorHeight();
-    boolean above = false; // caretLine * lineHeight - editorVScrollPos < editorHeight / 2;
-    int posX = (vScroll.visible() ? vScroll.bgPos.x : compSize.x) - 2 - size.x;
-    int posY = above ? editorHeight - size.y - 1 : 1;
-    toolbar.setPos(posX, posY);
-    toolbar.render(g, compPos);
   }
 
   int vScrollBarWidth() {
@@ -701,7 +644,7 @@ public class EditorComponent implements Disposable {
     Debug.consoleInfo("First lines parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
   }
 
-  private void openFile(FileHandle f) {
+  void openFile(FileHandle f) {
     Debug.consoleInfo("opening file " + f.getName());
     setCaretLinePos(0, 0, false);
     // f.readAsBytes(this::onFileLoad, System.err::println);
@@ -721,7 +664,7 @@ public class EditorComponent implements Disposable {
     if (shiftSelection(shiftPressed)) return true;
     if (ctrl && alt) return true;
     if (ctrl) {  //  editorVScrollPos moves, caretLine does not change
-      editorVScrollPos = clampScrollPos(editorVScrollPos + amount * lineHeight * 12 / 10, maxEditorVScrollPos());
+      vScrollPos = clampScrollPos(vScrollPos + amount * lineHeight * 12 / 10, maxVScrollPos());
     } else if (alt) {
       // todo: smart move to prev/next method start
     } else {
@@ -797,39 +740,39 @@ public class EditorComponent implements Disposable {
   }
 
   private void adjustEditorVScrollToCaret() {
-    int editVisibleYMin = editorVScrollPos;
-    int editVisibleYMax = editorVScrollPos + editorHeight();
+    int editVisibleYMin = vScrollPos;
+    int editVisibleYMax = vScrollPos + editorHeight();
     int caretVisibleY0 = caretLine * lineHeight;
     int caretVisibleY1 = caretLine * lineHeight + lineHeight;
 
     if (caretVisibleY0 < editVisibleYMin + lineHeight) {
-      editorVScrollPos = clampScrollPos(caretVisibleY0 - lineHeight, maxEditorVScrollPos());
+      vScrollPos = clampScrollPos(caretVisibleY0 - lineHeight, maxVScrollPos());
     } else if (caretVisibleY1 > editVisibleYMax - lineHeight) {
-      editorVScrollPos = clampScrollPos(caretVisibleY1 - editorHeight() + lineHeight, maxEditorVScrollPos());
+      vScrollPos = clampScrollPos(caretVisibleY1 - editorHeight() + lineHeight, maxVScrollPos());
     }
   }
 
   private void adjustEditorHScrollToCaret() {
     int xOffset = (int) devicePR * EditorConst.CARET_X_OFFSET;
 
-    int editVisibleXMin = editorHScrollPos;
-    int editVisibleXMax = editorHScrollPos + editorWidth();
+    int editVisibleXMin = hScrollPos;
+    int editVisibleXMax = hScrollPos + editorWidth();
     int caretVisibleX0 = caretPos;
     int caretVisibleX1 = caretPos + xOffset;
 
     if (caretVisibleX0 < editVisibleXMin + xOffset) {
-      editorHScrollPos = clampScrollPos(caretVisibleX0 - xOffset, maxEditorHScrollPos());
+      hScrollPos = clampScrollPos(caretVisibleX0 - xOffset, maxHScrollPos());
     } else if (caretVisibleX1 > editVisibleXMax - xOffset) {
-      editorHScrollPos = clampScrollPos(caretVisibleX1 - editorWidth() + xOffset, maxEditorHScrollPos());
+      hScrollPos = clampScrollPos(caretVisibleX1 - editorWidth() + xOffset, maxHScrollPos());
     }
   }
 
   private void computeCaret(V2i position) {
     caretLine = Numbers.clamp(0,
-        (position.y + editorVScrollPos) / lineHeight, document.length() - 1);
+        (position.y + vScrollPos) / lineHeight, document.length() - 1);
 
     CodeLine line = caretCodeLine();
-    int documentXPosition = Math.max(0, position.x - vLineX + editorHScrollPos);
+    int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
     caretCharPos = line.computeCaretLocation(documentXPosition, g.mCanvas, fonts);
     caretPos = line.computePixelLocation(caretCharPos, g.mCanvas, fonts);
     if (1<0) Debug.consoleInfo(
@@ -873,18 +816,18 @@ public class EditorComponent implements Disposable {
   Consumer<V2i> dragLock;
 
   Consumer<IntUnaryOperator> vScrollHandler =
-      move -> editorVScrollPos = move.applyAsInt(maxEditorVScrollPos());
+      move -> vScrollPos = move.applyAsInt(maxVScrollPos());
 
   Consumer<IntUnaryOperator> hScrollHandler =
-      move -> editorHScrollPos = move.applyAsInt(maxEditorHScrollPos());
+      move -> hScrollPos = move.applyAsInt(maxHScrollPos());
 
 
   public boolean onMouseWheel(MouseEvent event, double dX, double dY) {
     // chrome sends 150px, firefox send "6 lines"
     int changeY = Numbers.iRnd(lineHeight * 4 * dY / 150);
     int changeX = Numbers.iRnd(dX);
-    editorVScrollPos = clampScrollPos(editorVScrollPos + changeY, maxEditorVScrollPos());
-    editorHScrollPos = clampScrollPos(editorHScrollPos + changeX, maxEditorHScrollPos());
+    vScrollPos = clampScrollPos(vScrollPos + changeY, maxVScrollPos());
+    hScrollPos = clampScrollPos(hScrollPos + changeX, maxHScrollPos());
     return true;
   }
 
@@ -902,10 +845,6 @@ public class EditorComponent implements Disposable {
       return true;
     }
     if (button == MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
-      if (toolbar.onMouseClick(eventPosition, press)) {
-        return true;
-      }
-
       dragLock = vScroll.onMouseClick(eventPosition, vScrollHandler, true);
       if (dragLock != null) return true;
 
@@ -923,7 +862,7 @@ public class EditorComponent implements Disposable {
     return true;
   }
 
-  public boolean onMouseMove(MouseEvent event) {
+  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
     eventPosition.set(event.position.x - compPos.x, event.position.y - compPos.y);
 
     if (dragLock != null) {
@@ -931,11 +870,10 @@ public class EditorComponent implements Disposable {
       return true;
     }
 
-    if (toolbar.onMouseMove(eventPosition, setCursor)) return true;
     if (vScroll.onMouseMove(eventPosition, setCursor)) return true;
     if (hScroll.onMouseMove(eventPosition, setCursor)) return true;
     if (lineNumbers.onMouseMove(eventPosition, setCursor)) return true;
-    if (onMouseMove(eventPosition)) return true;
+    if (onMouseMove(eventPosition)) return setCursor.set(Cursor.text);
     return setCursor.setDefault();
   }
 
@@ -948,18 +886,8 @@ public class EditorComponent implements Disposable {
     // do not process release events
     if (!event.isPressed) return false;
 
-      if (event.keyCode == KeyCode.F10) {
-        api.window.addChild("child", DemoEdit::new);
-      }
-
-    if (event.ctrl && event.keyCode == KeyCode.O) {
-      if (event.shift) {
-        api.window.showDirectoryPicker(
-            s -> Debug.consoleInfo("showDirectoryPicker -> " + s));
-      } else {
-        showOpenFile();
-      }
-      return true;
+    if (event.keyCode == KeyCode.F10) {
+      api.window.addChild("child", DemoEdit::new);
     }
 
     if (event.ctrl && event.keyCode == KeyCode.P) {
@@ -988,6 +916,19 @@ public class EditorComponent implements Disposable {
     return event.key.length() > 0 && handleInsert(event.key);
   }
 
+  void reparse() {
+    parsingTimeStart = System.currentTimeMillis();
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, document.getBytes());
+  }
+
+  public void parseViewport() {
+    parseViewport(fileType);
+  }
+
+  public void debugPrintDocumentIntervals() {
+    parseViewport(fileType);
+  }
+
   private void parseViewport(int type) {
     if (type == FileParser.JAVA_FILE)
       api.window.sendToWorker(this::onVpParsed, JavaParser.PARSE_BYTES_JAVA_VIEWPORT, document.getBytes(), getViewport(), document.getIntervals() );
@@ -1003,13 +944,9 @@ public class EditorComponent implements Disposable {
     return new int[]{document.getLineStartInd(firstLine), document.getVpEnd(lastLine), firstLine};
   }
 
-  private void parseFullFile() {
+  public void parseFullFile() {
     parsingTimeStart = System.currentTimeMillis();
     api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, document.getBytes());
-  }
-
-  private void showOpenFile() {
-    api.window.showOpenFilePicker(EditorComponent.this::openFile);
   }
 
   public boolean onCopy(Consumer<String> setText, boolean isCut) {
@@ -1044,12 +981,12 @@ public class EditorComponent implements Disposable {
   private boolean onMouseMove(V2i position) {
     return Rect.isInside(position,
         new V2i(vLineX, 0),
-        new V2i(editorWidth(), editorHeight()))
-        && setCursor.set(Cursor.text);
+        new V2i(editorWidth(), editorHeight()));
   }
 
   private boolean handleEditingKeys(KeyEvent event) {
     return switch (event.keyCode) {
+      case KeyCode.TAB -> handleTab();
       case KeyCode.ENTER -> handleEnter();
       case KeyCode.DELETE -> handleDelete();
       case KeyCode.BACKSPACE -> handleBackspace();
@@ -1078,14 +1015,14 @@ public class EditorComponent implements Disposable {
 
   boolean pgDown(KeyEvent event) {
     return event.ctrl
-        ? setCaretLine((editorVScrollPos + editorHeight()) / lineHeight - 1, event.shift)
+        ? setCaretLine((vScrollPos + editorHeight()) / lineHeight - 1, event.shift)
         : arrowUpDown(Numbers.iDivRound(editorHeight(), lineHeight) - 2,
         false, event.alt, event.shift);
   }
 
   boolean pgUp(KeyEvent event) {
     return event.ctrl
-        ? setCaretLine(Numbers.iDivRoundUp(editorVScrollPos, lineHeight), event.shift)
+        ? setCaretLine(Numbers.iDivRoundUp(vScrollPos, lineHeight), event.shift)
         : arrowUpDown(2 - Numbers.iDivRound(editorHeight(), lineHeight),
         false, event.alt, event.shift);
   }
@@ -1110,4 +1047,11 @@ public class EditorComponent implements Disposable {
     return true;
   }
 
+  public boolean hasVScroll() {
+    return vScroll.visible();
+  }
+
+  public int getVScrollSize() {
+    return vScroll.bgSize.x;
+  }
 }

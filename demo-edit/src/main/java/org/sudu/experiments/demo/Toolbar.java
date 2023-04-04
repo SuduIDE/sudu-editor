@@ -22,6 +22,12 @@ public class Toolbar {
 
   static boolean useTopMode = false;
 
+  public void toggleTopMode() {
+    Toolbar.useTopMode = !Toolbar.useTopMode;
+    Debug.consoleInfo("Toolbar.useTopMode = " + Toolbar.useTopMode);
+    invalidateTexture();
+  }
+
   public void setBgColor(V4f bgColor) {
     rect.color.set(bgColor);
   }
@@ -50,7 +56,7 @@ public class Toolbar {
     buttons.remove(b);
   }
 
-  private void measure(Canvas mCanvas, double devicePR) {
+  public void measure(Canvas mCanvas, double devicePR) {
     mCanvas.setFont(font);
     int textHeight = font.lineHeight() + vPad + vPad;
     border = Numbers.iRnd(2 * devicePR);
@@ -84,8 +90,7 @@ public class Toolbar {
     }
   }
 
-  public V2i size(WglGraphics g, double devicePR) {
-    if (rect.size.x == 0 || rect.size.y == 0) measure(g.mCanvas, devicePR);
+  public V2i size() {
     return rect.size;
   }
 
@@ -136,7 +141,7 @@ public class Toolbar {
         return true;
       }
     }
-    return false;
+    return rect.isInside(pos);
   }
 
   private Button find(V2i pos) {
