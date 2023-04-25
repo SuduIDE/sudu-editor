@@ -1403,4 +1403,26 @@ public interface JavaParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitClassOrInterfaceBodyDeclaration(JavaParser.ClassOrInterfaceBodyDeclarationContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link JavaParser#unknownInterval}.
+	 * @param ctx the parse tree
+	 */
+	void enterUnknownInterval(JavaParser.UnknownIntervalContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link JavaParser#unknownInterval}.
+	 * @param ctx the parse tree
+	 */
+	void exitUnknownInterval(JavaParser.UnknownIntervalContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link JavaParser#anySeq}.
+	 * @param ctx the parse tree
+	 */
+	void enterAnySeq(JavaParser.AnySeqContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link JavaParser#anySeq}.
+	 * @param ctx the parse tree
+	 */
+	void exitAnySeq(JavaParser.AnySeqContext ctx);
 }

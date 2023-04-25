@@ -1,6 +1,8 @@
 package org.sudu.experiments.demo.worker;
 
+import org.sudu.experiments.Debug;
 import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.demo.EditorComponent;
 import org.sudu.experiments.math.ArrayOp;
 
 import java.nio.charset.StandardCharsets;
@@ -26,7 +28,16 @@ public class FileParser {
   public static void asyncParseFullFile(FileHandle file, Consumer<Object[]> result) {
     file.readAsBytes(
         bytes -> parseFullBytes(file.getExtension(), bytes, result),
-        error -> parseFullBytes(file.getExtension(), error.getBytes(StandardCharsets.UTF_8), result)
+        Debug::consoleInfo
+    );
+  }
+
+  public static final String asyncParseFirstLines = "asyncParseFirstLines";
+
+  public static void asyncParseFirstLines(FileHandle file, int[] lines, Consumer<Object[]> result) {
+    file.readAsBytes(
+        bytes -> parseFirstLinesBytes(file.getExtension(), bytes, lines, result),
+        Debug::consoleInfo
     );
   }
 
@@ -41,6 +52,13 @@ public class FileParser {
     switch (res) {
       case ".java" -> parseFullJavaBytes(bytes, result);
       default -> parseBytes(bytes, result);
+    }
+  }
+
+  private static void parseFirstLinesBytes(String res, byte[] bytes, int[] lines, Consumer<Object[]> result) {
+    switch (res) {
+      case ".java" -> JavaLexerFirstLines.parseFirstLines(bytes, lines, result);
+      default -> LineParser.parseFirstLines(bytes, lines, result);
     }
   }
 

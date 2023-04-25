@@ -1,5 +1,6 @@
 package org.sudu.experiments.demo;
 
+import org.sudu.experiments.Debug;
 import org.sudu.experiments.demo.worker.IntervalTree;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
@@ -16,13 +17,19 @@ public class Document {
   public IntervalTree tree;
   List<Diff> diffs = new ArrayList<>();
 
+  int currentVersion;
+  int lastParsedVersion;
+  double lastDiffTimestamp;
+
   public Document() {
     tree = new IntervalTree(new ArrayList<>());
     document = new CodeLine[]{new CodeLine(new CodeElement(""))};
+    currentVersion = lastParsedVersion = 0;
   }
 
   public Document(CodeLine ... data) {
     document = data;
+    currentVersion = lastParsedVersion = 0;
   }
 
   public Document(int n) {
@@ -227,6 +234,14 @@ public class Document {
     }
   }
 
+  public V2i getLine(int ind) {
+    for (int i = 0, sum = 0; i < document.length; i++) {
+      if (sum + line(i).totalStrLength >= ind) return new V2i(i, ind - sum);
+      sum += line(i).totalStrLength + 1;
+    }
+    return new V2i(document.length, 0);
+  }
+
   public int getLineStartInd(int firstLine) {
     int result = 0;
     for (int i = 0; i < firstLine; i++) {
@@ -245,10 +260,13 @@ public class Document {
     return result;
   }
 
-  public byte[] getBytes() {
+  public String makeString() {
     List<String> lines = Arrays.stream(document).map(CodeLine::makeString).collect(Collectors.toList());
-    String documentText = String.join("\n", lines);
-    return documentText.getBytes(StandardCharsets.UTF_8);
+    return String.join("\n", lines);
+  }
+
+  public byte[] getBytes() {
+    return makeString().getBytes(StandardCharsets.UTF_8);
   }
 
   public int[] getIntervals() {
@@ -264,6 +282,8 @@ public class Document {
   }
 
   public void makeDiff(int line, int from, boolean isDelete, String change) {
+    currentVersion++;
+
     diffs.add(new Diff(line, from, isDelete, change));
     int posInDoc = getLineStartInd(line) + from;
     if (isDelete) tree.makeDeleteDiff(posInDoc, change.length());
@@ -271,11 +291,14 @@ public class Document {
   }
 
   public V2i undoLastDiff() {
+    currentVersion++;
+
     if (diffs.size() == 0) return null;
     Diff diff = diffs.remove(diffs.size() - 1);
     String[] lines = diff.change.split("\n", -1);
     if (diff.isDelete) {
       insertLinesOp(diff.line, diff.pos, lines);
+      tree.makeInsertDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
 
       if (lines.length == 1) {
         return new V2i(diff.line, diff.pos + lines[0].length());
@@ -293,12 +316,27 @@ public class Document {
       }
 
       deleteSelectedOp(selection);
+      tree.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
 
       return new V2i(diff.line, diff.pos);
     }
   }
 
+  public void setLastDiffTimestamp(double timestamp) {
+    lastDiffTimestamp = timestamp;
+  }
+
   public void printIntervals() {
-    tree.printIntervals(new String(getBytes()));
+    Debug.consoleInfo("Current Version: " + currentVersion);
+    Debug.consoleInfo("Last Parsed Version: " + lastParsedVersion);
+    tree.printIntervals(makeString());
+  }
+
+  public boolean needReparse(double timestamp) {
+    return (lastParsedVersion != currentVersion) && (timestamp - lastDiffTimestamp > 1);
+  }
+
+  public void onReparse() {
+    lastParsedVersion = currentVersion;
   }
 }

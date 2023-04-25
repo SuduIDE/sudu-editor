@@ -25,6 +25,7 @@ public interface ParserConstants {
   }
 
   interface IntervalTypes {
+    int UNKNOWN = -1;
     int COMP_UNIT = 0;
     int PACKAGE = 1;
     int IMPORT = 2;

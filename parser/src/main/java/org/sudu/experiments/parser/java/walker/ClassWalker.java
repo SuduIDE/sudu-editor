@@ -8,6 +8,7 @@ import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.JavaParserBaseListener;
 import org.sudu.experiments.parser.java.model.JavaClass;
 import org.sudu.experiments.parser.java.model.JavaMethodField;
+import static org.sudu.experiments.parser.java.ParserConstants.IntervalTypes.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,16 +24,9 @@ public class ClassWalker extends JavaParserBaseListener {
   public double depthSum = 0;
   public int amount = 0;
 
-  private static final int COMP_UNIT = 0;
-  private static final int PACKAGE = 1;
-  private static final int IMPORT = 2;
-  private static final int TYPE_DECL = 3;
-  private static final int CLASS_BODY_DECL = 4;
-  private static final int INTERFACE_BODY_DECL = 5;
-  private static final int ANNO_TYPE_ELEM_DECL = 6;
-  private static final int ENUM_CONSTS = 7;
-
   public List<Interval> intervals;
+
+  private int lastIntervalEnd = 0;
 
   public ClassWalker() {
     dummy = new JavaClass(null);
@@ -41,51 +35,51 @@ public class ClassWalker extends JavaParserBaseListener {
   }
 
   @Override
-  public void enterCompilationUnit(JavaParser.CompilationUnitContext ctx) {
-    super.enterCompilationUnit(ctx);
-    intervals.add(new Interval(ctx, COMP_UNIT));
-  }
-
-  @Override
   public void enterPackageDeclaration(JavaParser.PackageDeclarationContext ctx) {
     super.enterPackageDeclaration(ctx);
-    intervals.add(new Interval(ctx, PACKAGE));
+    addInterval(ctx, PACKAGE);
   }
 
   @Override
   public void enterImportDeclaration(JavaParser.ImportDeclarationContext ctx) {
     super.enterImportDeclaration(ctx);
-    intervals.add(new Interval(ctx, IMPORT));
+    addInterval(ctx, IMPORT);
   }
 
   @Override
   public void enterTypeDeclaration(JavaParser.TypeDeclarationContext ctx) {
     super.enterTypeDeclaration(ctx);
-    intervals.add(new Interval(ctx, TYPE_DECL));
+    addInterval(ctx, TYPE_DECL);
   }
 
   @Override
   public void enterClassBodyDeclaration(JavaParser.ClassBodyDeclarationContext ctx) {
     super.enterClassBodyDeclaration(ctx);
-    intervals.add(new Interval(ctx, CLASS_BODY_DECL));
+    addInterval(ctx, CLASS_BODY);
   }
 
   @Override
   public void enterInterfaceBodyDeclaration(JavaParser.InterfaceBodyDeclarationContext ctx) {
     super.enterInterfaceBodyDeclaration(ctx);
-    intervals.add(new Interval(ctx, INTERFACE_BODY_DECL));
+    addInterval(ctx, CLASS_BODY);
   }
 
   @Override
   public void enterAnnotationTypeElementDeclaration(JavaParser.AnnotationTypeElementDeclarationContext ctx) {
     super.enterAnnotationTypeElementDeclaration(ctx);
-    intervals.add(new Interval(ctx, ANNO_TYPE_ELEM_DECL));
+    addInterval(ctx, UNKNOWN);
   }
 
   @Override
   public void enterEnumConstants(JavaParser.EnumConstantsContext ctx) {
     super.enterEnumConstants(ctx);
-    intervals.add(new Interval(ctx, ENUM_CONSTS));
+    addInterval(ctx, UNKNOWN);
+  }
+
+  @Override
+  public void enterAnySeq(JavaParser.AnySeqContext ctx) {
+    super.enterAnySeq(ctx);
+    addInterval(ctx, UNKNOWN);
   }
 
   @Override
@@ -95,6 +89,8 @@ public class ClassWalker extends JavaParserBaseListener {
     JavaClass clazz = new JavaClass(className, current);
     current.nestedClasses.add(clazz);
     current = clazz;
+
+    lastIntervalEnd = ctx.classBody().LBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
@@ -104,6 +100,8 @@ public class ClassWalker extends JavaParserBaseListener {
     JavaClass clazz = new JavaClass(className, current);
     current.nestedClasses.add(clazz);
     current = clazz;
+
+    lastIntervalEnd = ctx.interfaceBody().LBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
@@ -113,6 +111,8 @@ public class ClassWalker extends JavaParserBaseListener {
     JavaClass clazz = new JavaClass(className, current);
     current.nestedClasses.add(clazz);
     current = clazz;
+
+    lastIntervalEnd = ctx.LBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
@@ -122,6 +122,8 @@ public class ClassWalker extends JavaParserBaseListener {
     JavaClass clazz = new JavaClass(className, current);
     current.nestedClasses.add(clazz);
     current = clazz;
+
+    lastIntervalEnd = ctx.recordBody().LBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
@@ -131,36 +133,48 @@ public class ClassWalker extends JavaParserBaseListener {
     JavaClass clazz = new JavaClass(className, current);
     current.nestedClasses.add(clazz);
     current = clazz;
+
+    lastIntervalEnd = ctx.annotationTypeBody().LBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
   public void exitClassDeclaration(JavaParser.ClassDeclarationContext ctx) {
     super.exitClassDeclaration(ctx);
     current = current.innerClass;
+
+    lastIntervalEnd = ctx.classBody().RBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
   public void exitInterfaceDeclaration(JavaParser.InterfaceDeclarationContext ctx) {
     super.exitInterfaceDeclaration(ctx);
     current = current.innerClass;
+
+    lastIntervalEnd = ctx.interfaceBody().RBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
   public void exitEnumDeclaration(JavaParser.EnumDeclarationContext ctx) {
     super.exitEnumDeclaration(ctx);
     current = current.innerClass;
+
+    lastIntervalEnd = ctx.RBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
   public void exitRecordDeclaration(JavaParser.RecordDeclarationContext ctx) {
     super.exitRecordDeclaration(ctx);
     current = current.innerClass;
+
+    lastIntervalEnd = ctx.recordBody().RBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
   public void exitAnnotationTypeDeclaration(JavaParser.AnnotationTypeDeclarationContext ctx) {
     super.exitAnnotationTypeDeclaration(ctx);
     current = current.innerClass;
+
+    lastIntervalEnd = ctx.annotationTypeBody().RBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
@@ -238,6 +252,12 @@ public class ClassWalker extends JavaParserBaseListener {
     maxDepth = Math.max(maxDepth, curDepth);
     depthSum += curDepth;
     amount++;
+  }
+
+  private void addInterval(ParserRuleContext ctx, int type) {
+    int end = ctx.stop.getStopIndex() + 1;
+    intervals.add(new Interval(lastIntervalEnd, end, type));
+    lastIntervalEnd = end;
   }
 
   public static boolean isStatic(List<String> list) {

@@ -13,9 +13,10 @@ import java.util.stream.Collectors;
 
 public abstract class BaseJavaViewportParser extends BaseJavaParser {
 
-  protected int[] getVpInts(int firstLine, int vpStart) {
+  protected int[] getVpInts(int intervalStart, int intervalStop) {
     int N = allTokens.get(allTokens.size() - 1).getLine() - 1;
     int M = 0;
+    int K = 0;
     Map<Integer, List<Token>> tokensByLine = groupTokensByLine(allTokens);
     for (var entry : tokensByLine.entrySet()) {
       var filtered = entry.getValue().stream()
@@ -25,21 +26,22 @@ public abstract class BaseJavaViewportParser extends BaseJavaParser {
       M += filtered.size();
     }
 
-    int[] result = new int[4 + N + 4 * M];
-    result[0] = firstLine;
-    result[1] = vpStart;
+    int[] result = new int[5 + N + 4 * M];
+    result[0] = intervalStart;
+    result[1] = intervalStop;
     result[2] = N;
     result[3] = M;
+    result[4] = K;
 
     int ind = 0;
     for (int i = 0; i < N; i++) {
       var tokensOnLine = tokensByLine.getOrDefault(i + 1, Collections.emptyList());
-      result[4 + i] = tokensOnLine.size();
+      result[5 + i] = tokensOnLine.size();
       for (var token : tokensOnLine) {
-        result[4 + N + 4 * ind] = token.getStartIndex();
-        result[4 + N + 4 * ind + 1] = token.getStopIndex() + 1;
-        result[4 + N + 4 * ind + 2] = tokenTypes[token.getTokenIndex()];
-        result[4 + N + 4 * ind + 3] = tokenStyles[token.getTokenIndex()];
+        result[5 + N + 4 * ind] = token.getStartIndex();
+        result[5 + N + 4 * ind + 1] = token.getStopIndex() + 1;
+        result[5 + N + 4 * ind + 2] = tokenTypes[token.getTokenIndex()];
+        result[5 + N + 4 * ind + 3] = tokenStyles[token.getTokenIndex()];
         ind++;
       }
     }

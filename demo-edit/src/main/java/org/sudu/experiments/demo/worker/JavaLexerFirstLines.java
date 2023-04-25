@@ -1,6 +1,5 @@
 package org.sudu.experiments.demo.worker;
 
-import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.demo.CodeElement;
 import org.sudu.experiments.demo.CodeLine;
 import org.sudu.experiments.demo.Document;
@@ -18,13 +17,7 @@ public class JavaLexerFirstLines {
 
   public static final String LEXER_FIRST_LINES = "asyncJavaLexerFirstLines.parseFirstLines";
 
-  public static void parseFirstLines(FileHandle f, int[] lines, Consumer<Object[]> r) {
-    f.readAsBytes(
-        bytes -> parseFirstLines(bytes, lines, r),
-        String::toString);
-  }
-
-  private static void parseFirstLines(byte[] bytes, int[] lines, Consumer<Object[]> result) {
+  public static void parseFirstLines(byte[] bytes, int[] lines, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
     parseFirstLines(bytes, lines, list);
     ArrayOp.sendArrayList(list, result);
@@ -40,24 +33,17 @@ public class JavaLexerFirstLines {
     result.add(chars);
   }
 
-  public static Document makeDocument(Document document, int[] ints, char[] chars) {
+  public static Document makeDocument(Document document, int[] ints, char[] chars, boolean isFirstLinesParsed) {
     int N = ints[0];
     int M = ints[1];
     int K = ints[2];
     CodeLine[] newDoc = new CodeLine[N];
 
-    int[] intervals = Arrays.copyOfRange(ints, 3 + N + 4 * M, 3 + N + 4 * M + 3 * K);
-    List<Interval> intervalList = new ArrayList<>();
-    for (int i = 0; i < intervals.length; ) {
-      int start = intervals[i++];
-      int end = intervals[i++];
-      int type = intervals[i++];
-      intervalList.add(new Interval(start, end, type));
-    }
+    List<Interval> intervalList = BaseParser.getIntervalList(ints, 3 + N + 4 * M, K);
 
     for (int i = 0, wordInd = 0; i < N; i++) {
       int len = ints[3 + i];
-      if (i < document.length()) {
+      if (isFirstLinesParsed && i < document.length()) {
         newDoc[i] = document.line(i);
         wordInd += len;
         continue;

@@ -28,6 +28,11 @@ public class Interval implements Comparable<Interval> {
     }
   }
 
+  public boolean bordersEqual(Interval b) {
+    return this.start == b.start
+        && this.stop == b.stop;
+  }
+
   public boolean containsIn(int from, int to) {
     return from <= this.start && to >= this.stop;
   }

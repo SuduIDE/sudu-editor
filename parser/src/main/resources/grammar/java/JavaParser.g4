@@ -769,8 +769,21 @@ arguments
     : '(' expressionList? ')'
     ;
 
-// Only for parsing viewport usage!
+// Not for parsing full file usage!
 classOrInterfaceBodyDeclaration
     : classBodyDeclaration
     | interfaceBodyDeclaration
     ;
+
+unknownInterval
+    : ( typeDeclaration
+      | classOrInterfaceBodyDeclaration
+      | importDeclaration
+      | packageDeclaration
+      | anySeq
+      )+?
+    | EOF
+    ;
+
+anySeq:
+    .+;

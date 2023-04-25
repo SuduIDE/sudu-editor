@@ -3,7 +3,7 @@ package org.sudu.experiments.parser.java.parser;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.java.CommonTokenSubStream;
+import org.sudu.experiments.parser.CommonTokenSubStream;
 import org.sudu.experiments.parser.java.ParserConstants;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.walker.ClassWalker;
@@ -19,14 +19,13 @@ public class JavaViewportIntervalsParser extends BaseJavaViewportParser {
   public int[] parseViewport(String source, int[] viewport, int[] intervals) {
     int vpStart = viewport[0];
     int vpEnd = viewport[1];
-    int firstLine = viewport[2];
     initLexer(source.substring(vpStart, vpEnd));
 
     List<Interval> intervalList = makeIntervalList(intervals, vpStart, vpEnd);
 
     highlightTokens();
     parseIntervals(intervalList);
-    return getVpInts(firstLine, vpStart);
+    return getVpInts(vpStart, vpEnd);
   }
 
   private List<Interval> makeIntervalList(int[] intervals, int vpStart, int vpEnd) {

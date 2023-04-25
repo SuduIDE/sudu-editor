@@ -1,4 +1,4 @@
-package org.sudu.experiments.parser.java;
+package org.sudu.experiments.parser;
 
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;

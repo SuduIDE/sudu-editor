@@ -1,12 +1,12 @@
 package org.sudu.experiments.parser.java.walker;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.JavaParserBaseListener;
 import org.sudu.experiments.parser.java.model.JavaClass;
 import static org.sudu.experiments.parser.java.ParserConstants.*;
 import static org.sudu.experiments.parser.java.ParserConstants.TokenTypes.*;
+import static org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting.*;
 
 import java.util.Collections;
 import java.util.Set;
@@ -295,31 +295,4 @@ public class JavaWalker extends JavaParserBaseListener {
     return (TerminalNode) ctx.children.get(0);
   }
 
-  private static boolean isKeyword(int type) {
-    return type >= JavaLexer.ABSTRACT && type <= JavaLexer.NON_SEALED;
-  }
-
-  private static boolean isNumeric(int type) {
-    return type >= JavaLexer.DECIMAL_LITERAL && type <= JavaLexer.HEX_FLOAT_LITERAL;
-  }
-
-  private static boolean isBooleanLiteral(int type) {
-    return type == JavaLexer.BOOL_LITERAL;
-  }
-
-  private static boolean isStringOrChar(int type) {
-    return type >= JavaLexer.CHAR_LITERAL && type <= JavaLexer.TEXT_BLOCK;
-  }
-
-  private static boolean isNull(int type) {
-    return type == JavaLexer.NULL_LITERAL;
-  }
-
-  private static boolean isSemi(int type) {
-    return type == JavaLexer.SEMI || type == JavaLexer.COMMA;
-  }
-
-  private static boolean isAT(int type) {
-    return type == JavaLexer.AT;
-  }
 }

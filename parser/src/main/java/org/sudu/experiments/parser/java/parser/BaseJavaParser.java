@@ -1,6 +1,8 @@
 package org.sudu.experiments.parser.java.parser;
 
 import org.antlr.v4.runtime.*;
+import org.sudu.experiments.parser.ErrorToken;
+import org.sudu.experiments.parser.TokenRecognitionListener;
 import org.sudu.experiments.parser.java.ParserConstants;
 
 import java.util.*;
@@ -14,6 +16,8 @@ public abstract class BaseJavaParser {
 
   protected CommonTokenStream tokenStream;
 
+  protected TokenRecognitionListener tokenRecognitionListener;
+
   protected abstract boolean isMultilineToken(int tokenType);
   protected abstract boolean isComment(int tokenType);
   protected abstract Lexer initLexer(CharStream stream);
@@ -21,14 +25,32 @@ public abstract class BaseJavaParser {
 
   protected void initLexer(String source) {
     this.fileSource = source;
+    this.tokenRecognitionListener = new TokenRecognitionListener();
     CharStream stream = CharStreams.fromString(fileSource);
     Lexer lexer = initLexer(stream);
+    lexer.addErrorListener(tokenRecognitionListener);
 
     tokenStream = new CommonTokenStream(lexer);
     tokenStream.fill();
+    if (tokenErrorOccurred()) {
+      makeErrorToken();
+      return;
+    }
+
     allTokens = tokenStream.getTokens();
     tokenTypes = new int[allTokens.size()];
     tokenStyles = new int[allTokens.size()];
+  }
+
+  protected boolean tokenErrorOccurred() {
+    return tokenRecognitionListener.syntaxErrorOccurred;
+  }
+
+  protected void makeErrorToken() {
+    Token errorToken = new ErrorToken(fileSource);
+    allTokens = List.of(errorToken);
+    tokenTypes = new int[1];
+    tokenStyles = new int[1];
   }
 
   protected static Token makeToken(Token token, String text, int line, int start, int stop) {

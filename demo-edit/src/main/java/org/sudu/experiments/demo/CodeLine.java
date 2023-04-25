@@ -5,6 +5,7 @@ import org.sudu.experiments.Debug;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.ArrayOp;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class CodeLine {
@@ -127,6 +128,16 @@ public class CodeLine {
     segment2[0] = element.splitRight(pos);
 
     return new CodeLine[] {new CodeLine(segment1), new CodeLine(segment2)};
+  }
+
+  public CodeElement[] getElementsToLeft(int pos) {
+    CodeLine[] splitted = split(pos);
+    return splitted[0].elements;
+  }
+
+  public CodeElement[] getElementsToRight(int pos) {
+    CodeLine[] splitted = split(pos);
+    return splitted[1].elements;
   }
 
   public void deleteAt(int pos) {
@@ -364,6 +375,8 @@ public class CodeLine {
     }
     return sb.toString();
   }
+
+
 
   public String makeString(int beginIndex) {
     return makeString().substring(beginIndex);

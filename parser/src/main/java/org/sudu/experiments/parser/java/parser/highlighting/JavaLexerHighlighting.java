@@ -30,32 +30,33 @@ public class JavaLexerHighlighting {
         || type == JavaLexer.LINE_COMMENT;
   }
 
-  private static boolean isKeyword(int type) {
+  // Tokens from MODULE to VAR can be used as identifiers
+  public static boolean isKeyword(int type) {
     return (type >= JavaLexer.ABSTRACT && type <= JavaLexer.WHILE)
         || (type >= JavaLexer.YIELD && type <= JavaLexer.NON_SEALED);
   }
 
-  private static boolean isNumeric(int type) {
+  public static boolean isNumeric(int type) {
     return type >= JavaLexer.DECIMAL_LITERAL && type <= JavaLexer.HEX_FLOAT_LITERAL;
   }
 
-  private static boolean isBooleanLiteral(int type) {
+  public static boolean isBooleanLiteral(int type) {
     return type == JavaLexer.BOOL_LITERAL;
   }
 
-  private static boolean isStringOrChar(int type) {
+  public static boolean isStringOrChar(int type) {
     return type >= JavaLexer.CHAR_LITERAL && type <= JavaLexer.TEXT_BLOCK;
   }
 
-  private static boolean isNull(int type) {
+  public static boolean isNull(int type) {
     return type == JavaLexer.NULL_LITERAL;
   }
 
-  private static boolean isSemi(int type) {
+  public static boolean isSemi(int type) {
     return type == JavaLexer.SEMI || type == JavaLexer.COMMA;
   }
 
-  private static boolean isAT(int type) {
+  public static boolean isAT(int type) {
     return type == JavaLexer.AT;
   }
 

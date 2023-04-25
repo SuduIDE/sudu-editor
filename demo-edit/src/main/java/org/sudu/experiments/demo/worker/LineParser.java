@@ -31,15 +31,7 @@ public class LineParser {
     result.add(chars);
   }
 
-  public static final String PARSE_FIRST_LINES = "asyncLineParser.parseFirstLines";
-
-  public static void parseFirstLines(FileHandle f, int[] lines, Consumer<Object[]> r) {
-    f.readAsBytes(
-        bytes -> parseFirstLines(bytes, lines, r),
-        String::toString);
-  }
-
-  private static void parseFirstLines(byte[] bytes, int[] lines, Consumer<Object[]> result) {
+  public static void parseFirstLines(byte[] bytes, int[] lines, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
     parseFirstLines(bytes, lines, list);
     ArrayOp.sendArrayList(list, result);
@@ -55,36 +47,57 @@ public class LineParser {
     result.add(chars);
   }
 
-  // result[0] = N - number of lines
-  // result[1..N] - number of elements on line
-  // result[N+1..] - end index of word
   int[] parseIntArray(String source, int numOfLines) {
     List<Integer> lines = new ArrayList<>();
     boolean prevLine = false;
-    int lineEnd = 0;
+    int wordStart = 0;
+    int N = 0;
+    int M = 0;
 
     lineTokenizer = new StringTokenizer(source, LINE_DELIM, true);
-    while (lineTokenizer.hasMoreTokens() && lines.size() < numOfLines) {
+    while (lineTokenizer.hasMoreTokens() && N < numOfLines) {
       String line = lineTokenizer.nextToken();
       if (isCarriage(line)) {
-        lineEnd++;
+        wordStart++;
         continue;
       }
       if (isNewLine(line)) {
-        lineEnd++;
-        if (prevLine) lines.add(lineEnd);
+        wordStart++;
+        N++;
+        if (prevLine) {
+          lines.add(-1);
+          lines.add(-1);
+        }
         prevLine = true;
         continue;
       }
-      lineEnd += line.length();
+      lines.add(wordStart);
+      wordStart += line.length();
+      lines.add(wordStart);
       prevLine = false;
-      lines.add(lineEnd);
+      M++;
     }
-    int lineNumber = lines.size();
-    int[] result = new int[1 + lineNumber];
-    result[0] = lineNumber;
-    for (int i = 0; i < lineNumber; i++)
-      result[1 + i] = lines.get(i);
+    if (!lineTokenizer.hasMoreTokens()) N++;
+
+    int[] result = new int[3 + N + 4 * M];
+    result[0] = N;
+    result[1] = M;
+    result[2] = 0;
+    for (int wordInd = 0, lineInd = 0; 2 * lineInd < lines.size(); lineInd++) {
+      int start = lines.get(2 * lineInd);
+      int stop = lines.get(2 * lineInd + 1);
+
+      if (start == stop && start == -1) {
+        result[3 + lineInd] = 0;
+        continue;
+      }
+      result[3 + lineInd] = 1;
+      result[3 + N + 4 * wordInd] = start;
+      result[3 + N + 4 * wordInd + 1] = stop;
+      result[3 + N + 4 * wordInd + 2] = 0;
+      result[3 + N + 4 * wordInd + 3] = 0;
+      wordInd++;
+    }
     Debug.consoleInfo("Parsing complete");
     return result;
   }
@@ -95,27 +108,6 @@ public class LineParser {
 
   private static boolean isCarriage(String str) {
     return str.length() == 1 && str.charAt(0) == '\r';
-  }
-
-  public static Document makeDocument(int[] ints, char[] chars) {
-    int numLines = ints[0];
-    int lineStart = 0;
-    CodeLine[] newDoc = new CodeLine[numLines];
-    for (int i = 0; i < numLines; i++) {
-      CodeElement[] elements = new CodeElement[1];
-      int lineEnd = ints[1 + i];
-      String line = makeWord(lineStart, lineEnd, chars);
-      elements[0] = new CodeElement(line);
-      lineStart = lineEnd;
-      newDoc[i] = new CodeLine(elements);
-    }
-    return new Document(newDoc);
-  }
-
-  private static String makeWord(int from, int to, char[] chars) {
-    while (from < chars.length && from < to && (chars[from] == '\n' || chars[from] == '\r')) from++;
-    while (to - 1 > 0 && to > from && (chars[to - 1] == '\n' || chars[to - 1] == '\r')) to--;
-    return new String(chars, from, to - from);
   }
 
 }

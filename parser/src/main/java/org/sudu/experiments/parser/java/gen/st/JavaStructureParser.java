@@ -1149,11 +1149,11 @@ public class JavaStructureParser extends Parser {
 	@SuppressWarnings("CheckReturnValue")
 	public static class FieldDeclarationContext extends ParserRuleContext {
 		public TerminalNode SEMI() { return getToken(JavaStructureParser.SEMI, 0); }
-		public List<AnyBlockContext> anyBlock() {
-			return getRuleContexts(AnyBlockContext.class);
+		public List<BlockContext> block() {
+			return getRuleContexts(BlockContext.class);
 		}
-		public AnyBlockContext anyBlock(int i) {
-			return getRuleContext(AnyBlockContext.class,i);
+		public BlockContext block(int i) {
+			return getRuleContext(BlockContext.class,i);
 		}
 		public List<AnyTokenContext> anyToken() {
 			return getRuleContexts(AnyTokenContext.class);
@@ -1194,7 +1194,7 @@ public class JavaStructureParser extends Parser {
 					case LBRACE:
 						{
 						setState(150);
-						anyBlock();
+						block();
 						}
 						break;
 					case SEMI:
@@ -1779,7 +1779,7 @@ public class JavaStructureParser extends Parser {
 		"\u0000\u0091\u008f\u0001\u0000\u0000\u0000\u0091\u0092\u0001\u0000\u0000"+
 		"\u0000\u0092\u0094\u0001\u0000\u0000\u0000\u0093\u0091\u0001\u0000\u0000"+
 		"\u0000\u0094\u0095\u0003&\u0013\u0000\u0095\u001f\u0001\u0000\u0000\u0000"+
-		"\u0096\u0099\u0003$\u0012\u0000\u0097\u0099\u0003(\u0014\u0000\u0098\u0096"+
+		"\u0096\u0099\u0003&\u0013\u0000\u0097\u0099\u0003(\u0014\u0000\u0098\u0096"+
 		"\u0001\u0000\u0000\u0000\u0098\u0097\u0001\u0000\u0000\u0000\u0099\u009c"+
 		"\u0001\u0000\u0000\u0000\u009a\u009b\u0001\u0000\u0000\u0000\u009a\u0098"+
 		"\u0001\u0000\u0000\u0000\u009b\u009d\u0001\u0000\u0000\u0000\u009c\u009a"+

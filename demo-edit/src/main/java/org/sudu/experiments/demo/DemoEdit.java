@@ -91,6 +91,7 @@ public class DemoEdit extends Scene {
 //    toolbar.addButton("Open", Colors.toolbarText3, this::showOpenFile);
 
     toolbar.addButton("Int", Colors.toolbarText3, editor::debugPrintDocumentIntervals);
+    toolbar.addButton("Iter", Colors.toolbarText3, editor::iterativeParsing);
     toolbar.addButton("VP", Colors.toolbarText3, editor::parseViewport);
     toolbar.addButton("Rep", Colors.toolbarText3, editor::parseFullFile);
     toolbar.addButton("Open", Colors.toolbarText3, this::showOpenFile);

@@ -10,6 +10,7 @@ import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.*;
+import org.sudu.experiments.parser.java.parser.JavaIntervalParser;
 import org.sudu.experiments.worker.ArrayView;
 
 import java.nio.charset.StandardCharsets;
@@ -78,7 +79,7 @@ public class EditorComponent implements Disposable {
   final V2i compPos = new V2i();
   final V2i compSize = new V2i();
 
-  boolean fileStructureParsed;
+  boolean fileStructureParsed, firstLinesParsed;
   int fileType = FileParser.JAVA_FILE;
   String tabIndent = "  ";
 
@@ -163,6 +164,7 @@ public class EditorComponent implements Disposable {
     var caretDiff = document.undoLastDiff();
     if (caretDiff == null) return;
     setCaretLinePos(caretDiff.x, caretDiff.y, false);
+    updateDocumentDiffTimeStamp();
   }
 
   private void toggleXOffset() {
@@ -318,10 +320,11 @@ public class EditorComponent implements Disposable {
   }
 
   public boolean update(double timestamp) {
+    if (document.needReparse(timestamp)) iterativeParsing();
+
     int oldVScrollPos = vScrollPos;
     vScrollPos = clampScrollPos(vScrollPos + scrollDown  -  scrollUp,
         maxVScrollPos());
-
     boolean scrollMoving = oldVScrollPos != vScrollPos;
 
 //    boolean replaceCurrentLine = debugFlags[2];
@@ -342,6 +345,7 @@ public class EditorComponent implements Disposable {
 
 
   public void paint() {
+
     int editorBottom = editorHeight();
     int editorRight = compSize.x;
 
@@ -465,6 +469,7 @@ public class EditorComponent implements Disposable {
     if (selection.isAreaSelected()) deleteSelectedArea();
     document.line(caretLine).invalidateCache();
     document.newLineOp(caretLine, caretCharPos);
+    updateDocumentDiffTimeStamp();
     return setCaretLinePos(caretLine + 1, 0, false);
   }
 
@@ -472,6 +477,7 @@ public class EditorComponent implements Disposable {
     if (selection.isAreaSelected()) deleteSelectedArea();
     else document.deleteChar(caretLine, caretCharPos);
     adjustEditorScrollToCaret();
+    updateDocumentDiffTimeStamp();
     return true;
   }
 
@@ -492,6 +498,7 @@ public class EditorComponent implements Disposable {
         cPos = caretCharPos - 1;
         document.deleteChar(cLine, cPos);
       }
+      updateDocumentDiffTimeStamp();
       return setCaretLinePos(cLine, cPos, false);
     }
   }
@@ -509,6 +516,7 @@ public class EditorComponent implements Disposable {
 
     setCaretLinePos(newCaretLine, newCaretPos, false);
     setSelectionToCaret();
+    updateDocumentDiffTimeStamp();
     return true;
   }
 
@@ -517,6 +525,7 @@ public class EditorComponent implements Disposable {
     document.deleteSelected(selection);
     setCaretLinePos(leftPos.line, leftPos.charInd, false);
     setSelectionToCaret();
+    updateDocumentDiffTimeStamp();
   }
 
   private void setSelectionToCaret() {
@@ -573,13 +582,8 @@ public class EditorComponent implements Disposable {
     Debug.consoleInfo("onFileParsed");
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
-    int type = ((ArrayView) result[2]).ints()[0];
 
-    if (type == FileParser.JAVA_FILE) {
-      this.document = JavaParser.makeDocument(ints, chars);
-    } else if (type == FileParser.TEXT_FILE) {
-      this.document = LineParser.makeDocument(ints, chars);
-    }
+    this.document = BaseParser.makeDocument(ints, chars);
 
     int newCaretLine = Numbers.clamp(0, caretLine, document.length());
     int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
@@ -598,7 +602,7 @@ public class EditorComponent implements Disposable {
     int type = ((ArrayView) result[2]).ints()[0];
     this.fileType = type;
 
-    this.document = JavaLexerFirstLines.makeDocument(document, ints, chars);
+    this.document = JavaLexerFirstLines.makeDocument(document, ints, chars, firstLinesParsed);
 
     int newCaretLine = Numbers.clamp(0, caretLine, document.length());
     int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
@@ -608,7 +612,7 @@ public class EditorComponent implements Disposable {
     api.window.repaint();
     Debug.consoleInfo("File structure parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
 
-    parseViewport(type);
+    //parseViewport(type);
   }
 
   private void onVpParsed(Object[] result) {
@@ -616,7 +620,7 @@ public class EditorComponent implements Disposable {
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
 
-    JavaParser.makeViewport(document, ints, chars);
+    BaseParser.updateDocument(document, ints, chars);
 
     int newCaretLine = Numbers.clamp(0, caretLine, document.length());
     int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
@@ -639,8 +643,8 @@ public class EditorComponent implements Disposable {
     if (fileStructureParsed) return;
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
-    this.document = JavaParser.makeDocument(ints, chars);
-
+    this.document = BaseParser.makeDocument(ints, chars);
+    firstLinesParsed = true;
     Debug.consoleInfo("First lines parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
   }
 
@@ -650,11 +654,12 @@ public class EditorComponent implements Disposable {
     // f.readAsBytes(this::onFileLoad, System.err::println);
     parsingTimeStart = System.currentTimeMillis();
     fileStructureParsed = false;
+    firstLinesParsed = false;
     f.getSize(size -> {
       if (size <= EditorConst.BIG_FILE_SIZE_KB) {
         api.window.sendToWorker(this::onFileParsed, FileParser.asyncParseFullFile, f);
       } else {
-        api.window.sendToWorker(this::onFirstLinesParsed, JavaLexerFirstLines.LEXER_FIRST_LINES, f, Arrays.copyOf(EditorConst.FIRST_LINES, 1));
+        api.window.sendToWorker(this::onFirstLinesParsed, FileParser.asyncParseFirstLines, f, Arrays.copyOf(EditorConst.FIRST_LINES, 1));
         api.window.sendToWorker(this::onFileStructureParsed, FileParser.asyncParseFile, f);
       }
     });
@@ -900,6 +905,7 @@ public class EditorComponent implements Disposable {
       return true;
     }
 
+    if (handleDoubleKey(event)) return true;
     if (handleDebug(event)) return true;
     if (handleNavigation(event)) return true;
     if (handleEditingKeys(event)) return true;
@@ -926,7 +932,7 @@ public class EditorComponent implements Disposable {
   }
 
   public void debugPrintDocumentIntervals() {
-    parseViewport(fileType);
+    document.printIntervals();
   }
 
   private void parseViewport(int type) {
@@ -947,6 +953,21 @@ public class EditorComponent implements Disposable {
   public void parseFullFile() {
     parsingTimeStart = System.currentTimeMillis();
     api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, document.getBytes());
+  }
+
+  public void iterativeParsing() {
+    var node = document.tree.getReparseNode();
+    if (node == null) return;
+    String source = document.makeString();
+    int[] interval = new int[]{node.getStart(), node.getStop(), node.getType()};
+    int[] ints = new JavaIntervalParser().parseInterval(source, interval);
+    char[] chars = document.makeString().toCharArray();
+    BaseParser.updateDocument(document, ints, chars);
+    document.onReparse();
+  }
+
+  private void showOpenFile() {
+    api.window.showOpenFilePicker(EditorComponent.this::openFile);
   }
 
   public boolean onCopy(Consumer<String> setText, boolean isCut) {
@@ -971,6 +992,7 @@ public class EditorComponent implements Disposable {
       if (isCut) {
         setCaretLinePos(left.line, left.charInd, false);
         setSelectionToCaret();
+        updateDocumentDiffTimeStamp();
       }
     }
 
@@ -1039,12 +1061,51 @@ public class EditorComponent implements Disposable {
     return false;
   }
 
+  private boolean handleDoubleKey(KeyEvent event) {
+    if (event.ctrl || event.alt) return false;
+    if (event.key.equals("{")) {
+      handleInsert("{}");
+      setCaretPos(caretCharPos - 1, false);
+      return true;
+    }
+    if (event.key.equals("(")) {
+      handleInsert("()");
+      setCaretPos(caretCharPos - 1, false);
+      return true;
+    }
+    if (event.key.equals("[")) {
+      handleInsert("[]");
+      setCaretPos(caretCharPos - 1, false);
+      return true;
+    }
+    if (event.key.equals("<")) {
+      handleInsert("<>");
+      setCaretPos(caretCharPos - 1, false);
+      return true;
+    }
+    if (event.key.equals("\"")) {
+      handleInsert("\"\"");
+      setCaretPos(caretCharPos - 1, false);
+      return true;
+    }
+    if (event.key.equals("'")) {
+      handleInsert("''");
+      setCaretPos(caretCharPos - 1, false);
+      return true;
+    }
+    return false;
+  }
+
   private boolean selectAll() {
     int line = document.length() - 1;
     int charInd = document.strLength(line);
     selection.startPos.set(0, 0);
     selection.endPos.set(document.length() - 1, charInd);
     return true;
+  }
+
+  private void updateDocumentDiffTimeStamp() {
+    document.setLastDiffTimestamp(api.window.timeNow());
   }
 
   public boolean hasVScroll() {

@@ -9,6 +9,7 @@ import java.util.List;
 public class IntervalTree {
 
   IntervalNode root;
+  private boolean updateFlag = false;
 
   private static final Comparator<Interval> INTERVAL_CMP = (a, b) -> {
     if (a.start == b.start) {
@@ -16,14 +17,74 @@ public class IntervalTree {
     } else return Integer.compare(a.start, b.start);
   };
 
+  private static final Comparator<IntervalNode> INTERVAL_NODE_CMP = (a, b) -> INTERVAL_CMP.compare(a.interval, b.interval);
+
   public IntervalTree(List<Interval> intervals) {
+    this(null, intervals);
+  }
+
+  private IntervalTree(Interval root, List<Interval> intervals) {
+    if (intervals.isEmpty()) return;
     intervals.sort(INTERVAL_CMP);
+    if (root != null)
+      this.root = new IntervalNode(root);
+
     for (var inter: intervals) {
-      if (root == null) {
-        root = new IntervalNode(inter);
+      if (this.root == null) {
+        this.root = new IntervalNode(inter);
         continue;
       }
-      addNodeRec(root, new IntervalNode(inter));
+      addNodeRec(this.root, new IntervalNode(inter));
+    }
+  }
+
+  public IntervalNode getReparseNode() {
+    return getReparseNode(root);
+  }
+
+  private IntervalNode getReparseNode(IntervalNode curNode) {
+    if (curNode.needReparse) return curNode;
+    for (var subNode : curNode.subIntervals) {
+      var result = getReparseNode(subNode);
+      if (result != null) return result;
+    }
+    return null;
+  }
+
+  public void replaceInterval(Interval from, List<Interval> to) {
+    var subTree = new IntervalTree(from, to);
+    var replaceNode = replaceIntervalRec(root, from);
+    if (replaceNode == null) return;
+
+    var newNodes = subTree.root.subIntervals;
+    if (replaceNode == root) {
+      this.root = newNodes.get(0);
+      return;
+    }
+    if (replaceNode.parent != null) {
+      newNodes.forEach(it -> it.parent = replaceNode.parent);
+
+      int ind = replaceNode.parent.subIntervals.indexOf(replaceNode);
+      replaceNode.parent.subIntervals.remove(ind);
+      replaceNode.parent.subIntervals.addAll(ind, newNodes);
+    }
+  }
+
+  private IntervalNode replaceIntervalRec(IntervalNode curNode, Interval oldNode) {
+    if (curNode.interval.bordersEqual(oldNode)) {
+      for (var subInterval: curNode.subIntervals) {
+        var result = replaceIntervalRec(subInterval, oldNode);
+        if (result != null) return result;
+      }
+      return curNode;
+    } else {
+      for (var subInterval: curNode.subIntervals) {
+        if (subInterval.containsInterval(oldNode.start, oldNode.stop)) {
+          var result = replaceIntervalRec(subInterval, oldNode);
+          if (result != null) return result;
+        }
+      }
+      return null;
     }
   }
 
@@ -40,6 +101,7 @@ public class IntervalTree {
   }
 
   public void makeInsertDiff(int start, int size) {
+    updateFlag = false;
     makeInsertDiff(root, start, size);
   }
 
@@ -50,51 +112,70 @@ public class IntervalTree {
       curNode.updateStop(size);
       for (var subInterval: curNode.subIntervals)
         makeInsertDiff(subInterval, start, size);
-    } else if (curNode.between(start)) {    // Interval contains insertion point
+    } else if (curNode.between(start) || (!updateFlag && curNode.getStop() == start)) {    // Interval contains insertion point
       curNode.updateStop(size);
-      curNode.needReparse = true;
-      for (var subInterval: curNode.subIntervals)
-        makeInsertDiff(subInterval, start, size);
+      if (curNode.getStart() == start && updateFlag) curNode.updateStart(size);
+
+      for (var subInterval : curNode.subIntervals) makeInsertDiff(subInterval, start, size);
+
+      if (!updateFlag) {
+        curNode.needReparse = true;
+        updateFlag = true;
+      }
     }
   }
 
   public void makeDeleteDiff(int start, int size) {
+    updateFlag = false;
     makeDeleteDiff(root, start, size);
   }
 
   private void makeDeleteDiff(IntervalNode curNode, int start, int size) {
-    if (curNode.getStop() < start) return;
-    if (curNode.between(start)) {
-      if (start + size < curNode.getStop()) curNode.updateStop(-size);
-      else curNode.setStop(start);
-      for (var subInterval: curNode.subIntervals)
-        makeDeleteDiff(subInterval, start, size);
-      curNode.needReparse = true;
-      curNode.subIntervals = makeGood(curNode.subIntervals);
-    } else if (curNode.containsInInterval(start, start + size)) {
-      curNode.setStart(-1);
-      curNode.setStop(-1);
-      curNode.subIntervals.clear();
-    } else if (curNode.between(start + size)) {
-      curNode.setStart(start);
-      curNode.updateStop(-size);
-      for (var subInterval: curNode.subIntervals)
-        makeDeleteDiff(subInterval, start, size);
-      curNode.needReparse = true;
-      curNode.subIntervals = makeGood(curNode.subIntervals);
-    } if (curNode.getStart() > start + size) {
+    if (curNode.getStop() < start) return;            // delete interval lies to the left of current
+    else if (curNode.getStart() > start + size) {     // delete interval lies to the right of current
       curNode.updateStart(-size);
       curNode.updateStop(-size);
-      for (var subInterval: curNode.subIntervals)
+      for (var subInterval : curNode.subIntervals)
         makeDeleteDiff(subInterval, start, size);
-      curNode.subIntervals = makeGood(curNode.subIntervals);
+      curNode.subIntervals = updateSubIntervals(curNode.subIntervals);
+    } else if (curNode.containsInInterval(start, start + size)) {   // cur node contains in delete interval
+      if (curNode == root) {
+        curNode.setStart(0);
+        curNode.setStop(0);
+      } else {
+        curNode.setStart(-1);
+        curNode.setStop(-1);
+      }
+      curNode.subIntervals.clear();
+    } else {
+      boolean containsStart = curNode.between(start);
+      boolean containsEnd = curNode.between(start + size);
+
+      if (containsStart && containsEnd) {
+        curNode.updateStop(-size);
+      } else if (containsStart) {
+        curNode.setStop(start);
+      } else if (containsEnd) {
+        curNode.setStart(start);
+        curNode.updateStop(-size);
+      } else return;
+
+      for (var subInterval : curNode.subIntervals)
+        makeDeleteDiff(subInterval, start, size);
+
+      curNode.subIntervals = updateSubIntervals(curNode.subIntervals);
+      if (!updateFlag) {
+        curNode.needReparse = true;
+        updateFlag = true;
+      }
     }
   }
 
-  private List<IntervalNode> makeGood(List<IntervalNode> subIntervals) {
+  private List<IntervalNode> updateSubIntervals(List<IntervalNode> subIntervals) {
     var result = new ArrayList<IntervalNode>();
     IntervalNode curNode = null;
 
+    subIntervals.sort(INTERVAL_NODE_CMP);
     for (var interval : subIntervals) {
       if (interval.getStart() == interval.getStop()) continue;
       if (!interval.needReparse) {
@@ -104,18 +185,20 @@ public class IntervalTree {
         }
         result.add(interval);
       } else {
-        if (curNode == null) {
-          curNode = interval;
-        } else if (interval.getType() == curNode.getType()) {
-          curNode = curNode.merge(interval);
-        } else {
-          result.add(curNode);
-          curNode = interval;
-        }
+        if (curNode == null) curNode = interval;
+        else curNode = curNode.merge(interval);
       }
     }
     if (curNode != null) result.add(curNode);
     return result;
+  }
+
+  private void alignSubIntervals(List<IntervalNode> subIntervals) {
+    for (int i = 1; i < subIntervals.size(); i++) {
+      var prev = subIntervals.get(i - 1);
+      var cur = subIntervals.get(i);
+      cur.setStart(prev.getStop());
+    }
   }
 
   private void addNodeRec(IntervalNode curNode, IntervalNode node) {
@@ -127,12 +210,13 @@ public class IntervalTree {
         }
       }
       curNode.subIntervals.add(node);
+      node.parent = curNode;
     }
   }
 
   public void printIntervals(String source) {
-    printIntervals(source, root);
     printStructure(source);
+    System.out.println();
   }
 
   public void printStructure(String source) {
@@ -151,10 +235,14 @@ public class IntervalTree {
   }
 
   private void printStructure(int depth, IntervalNode curNode, String source) {
-    int st = curNode.interval.start;
-    int end = Math.min(curNode.interval.start + 20, curNode.getStop());
-    String intervalStart = source.substring(st, end).replace("\n", "");
-    System.out.println(depth + " " + curNode + "\t" + intervalStart);
+    String intervalString;
+    if (curNode.getStop() - curNode.getStart() < 43) {
+      intervalString = source.substring(curNode.getStart(), curNode.getStop());
+    } else {
+      intervalString = source.substring(curNode.getStart(), curNode.getStart() + 20) + "..." + source.substring(curNode.getStop() - 20, curNode.getStop());
+    }
+    intervalString = intervalString.replace("\n", "\\n");
+    System.out.println(depth + " " + curNode + "\t" + intervalString);
     for (var subNode: curNode.subIntervals) {
       printStructure(depth + 1, subNode, source);
     }
@@ -206,7 +294,7 @@ public class IntervalTree {
     }
 
     public boolean between(int p) {
-      return getStart() <= p && p <= getStop();
+      return getStart() <= p && p < getStop();
     }
 
     public boolean containsInterval(int start, int stop) {
@@ -221,6 +309,7 @@ public class IntervalTree {
       int start = Math.min(getStart(), node.getStart());
       int stop = Math.max(getStop(), node.getStop());
       IntervalNode newNode = new IntervalNode(new Interval(start, stop, interval.intervalType));
+      newNode.parent = node.parent;
       newNode.needReparse = true;
       return newNode;
     }

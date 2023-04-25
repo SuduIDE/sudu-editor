@@ -40,8 +40,7 @@ public class EditorWorker {
       case TestJobs.asyncWithFile -> TestJobs.asyncWithFile(file(a, 0), r);
       case FileParser.asyncParseFile -> FileParser.asyncParseFile(file(a, 0), r);
       case FileParser.asyncParseFullFile -> FileParser.asyncParseFullFile(file(a, 0), r);
-      case LineParser.PARSE_FIRST_LINES -> LineParser.parseFirstLines(file(a, 0), array(a, 1).ints(), r);
-      case JavaLexerFirstLines.LEXER_FIRST_LINES -> JavaLexerFirstLines.parseFirstLines(file(a, 0), array(a, 1).ints(), r);
+      case FileParser.asyncParseFirstLines -> FileParser.asyncParseFirstLines(file(a, 0), array(a, 1).ints(), r);
     }
   }
 
