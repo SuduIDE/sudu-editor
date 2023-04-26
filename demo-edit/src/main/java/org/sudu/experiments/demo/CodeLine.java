@@ -369,11 +369,14 @@ public class CodeLine {
   }
 
   public String makeString() {
-    StringBuilder sb = new StringBuilder(totalStrLength);
+    return append(new StringBuilder(totalStrLength)).toString();
+  }
+
+  public StringBuilder append(StringBuilder sb) {
     for (CodeElement element : elements) {
       sb.append(element.s);
     }
-    return sb.toString();
+    return sb;
   }
 
 

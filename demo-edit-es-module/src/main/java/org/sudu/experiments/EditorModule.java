@@ -5,34 +5,21 @@ import org.sudu.experiments.js.*;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
-interface EditApi {
-  void setText(String t);
-
-  String getText();
-
-  Disposable addListener(Listener listener);
-
-  interface Listener {
-    void somethingHappened();
-  }
-
-}
-
 public class EditorModule implements Editor_d_ts {
 
   private final EditArguments args;
   private final WebWindow window;
-  private final DemoEdit demoEdit;
+  private final DemoEdit0 demoEdit;
 
   public EditorModule(EditArguments args, WorkerContext worker) {
     this.args = args;
 
     this.window = new WebWindow(
-        DemoEdit::new,
+        DemoEdit0::new,
         EditorModule::onWebGlError,
         args.getContainerId().stringValue(),
         worker);
-    demoEdit = (DemoEdit) window.scene();
+    demoEdit = (DemoEdit0) window.scene();
   }
 
   @Override
@@ -49,9 +36,13 @@ public class EditorModule implements Editor_d_ts {
 
   @Override
   public void setText(JSString t) {
-    EditorComponent editor = demoEdit.editor();
-    Document document = demoEdit.document();
-    JsHelper.consoleInfo("setText: ", JSString.valueOf(t.stringValue()));
+    demoEdit.editor().setText(TextEncoder.toUtf8(t));
+  }
+
+  @Override
+  public JSString getText() {
+    byte[] bytes = demoEdit.document().getBytes();
+    return TextDecoder.fromUtf8(bytes);
   }
 
   @Override
@@ -77,7 +68,7 @@ public class EditorModule implements Editor_d_ts {
 
   static JSString workerUrl(EditArguments arguments) {
     return JSObjects.hasProperty(arguments, EditArguments.workerUrlProperty)
-        ? arguments.getWorkerUrl() : JSString.valueOf("worker1.js");
+        ? arguments.getWorkerUrl() : JSString.valueOf("worker.js");
   }
 
   public static void main(String[] args) {

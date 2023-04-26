@@ -13,14 +13,13 @@ import org.sudu.experiments.math.*;
 import org.sudu.experiments.parser.java.parser.JavaIntervalParser;
 import org.sudu.experiments.worker.ArrayView;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 
 import static org.sudu.experiments.input.InputListener.MOUSE_BUTTON_LEFT;
 
-public class EditorComponent implements Disposable {
+public class EditorComponent implements EditApi, Disposable {
 
   boolean forceMaxFPS = false;
   int footerHeight;
@@ -83,13 +82,8 @@ public class EditorComponent implements Disposable {
   int fileType = FileParser.JAVA_FILE;
   String tabIndent = "  ";
 
-  public EditorComponent(
-      SceneApi api
-  ) {
+  public EditorComponent(SceneApi api) {
     this(api, new Document());
-    parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA,
-        StartFile.START_CODE_JAVA.getBytes(StandardCharsets.UTF_8));
   }
 
   public EditorComponent(
@@ -892,7 +886,7 @@ public class EditorComponent implements Disposable {
     if (!event.isPressed) return false;
 
     if (event.keyCode == KeyCode.F10) {
-      api.window.addChild("child", DemoEdit::new);
+      api.window.addChild("child", DemoEdit0::new);
     }
 
     if (event.ctrl && event.keyCode == KeyCode.P) {
@@ -1096,7 +1090,7 @@ public class EditorComponent implements Disposable {
     return false;
   }
 
-  private boolean selectAll() {
+  public boolean selectAll() {
     int line = document.length() - 1;
     int charInd = document.strLength(line);
     selection.startPos.set(0, 0);
@@ -1114,5 +1108,23 @@ public class EditorComponent implements Disposable {
 
   public int getVScrollSize() {
     return vScroll.bgSize.x;
+  }
+
+  /* API */
+
+  @Override
+  public void setText(byte[] utf8bytes) {
+    parsingTimeStart = System.currentTimeMillis();
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, utf8bytes);
+  }
+
+  @Override
+  public byte[] getText() {
+    return document.getBytes();
+  }
+
+  @Override
+  public Disposable addListener(Listener listener) {
+    return Disposable.empty();
   }
 }

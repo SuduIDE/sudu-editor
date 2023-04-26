@@ -126,4 +126,9 @@ public class JsMemoryAccess {
     Int8Array v = bufferView(data);
     return Uint8Array.create(v.getBuffer(), v.getByteOffset(), v.getByteLength());
   }
+
+  public static byte[] toByteArray(Uint8Array ua) {
+    return toJavaArray(Int8Array.create(
+        ua.getBuffer(), ua.getByteOffset(), ua.getByteLength()));
+  }
 }

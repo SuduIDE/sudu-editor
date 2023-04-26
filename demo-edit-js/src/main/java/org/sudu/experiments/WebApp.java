@@ -62,7 +62,7 @@ public class WebApp {
     String name = Window.current().getLocation().getHash();
     Debug.consoleInfo("createScene: " + name);
     return switch (name) {
-      default -> new DemoEdit(api);
+      default -> new DemoEditWithToolbar(api);
       case "#test" -> new DemoScene1(api);
       case "#wasm" -> new WasmDemo(api);
       case "#oneTexture" -> new TextureRegionTestScene(api);

@@ -14,7 +14,7 @@ import org.sudu.experiments.math.*;
 
 import java.util.function.Consumer;
 
-public class DemoEdit extends Scene {
+public class DemoEdit0 extends Scene {
 
   WglGraphics g;
   final SetCursor setCursor;
@@ -31,17 +31,15 @@ public class DemoEdit extends Scene {
 
   private double devicePR;
 
-  public DemoEdit(SceneApi api) {
+  public DemoEdit0(SceneApi api) {
     super(api);
     this.g = api.graphics;
     this.setCursor = SetCursor.wrap(api.window);
 
-//    Document document = new Document(EditorConst.DOCUMENT_LINES);
-//    editor = new EditorComponent(api, document);
     editor = new EditorComponent(api);
+    editor.setText(StartFile.getBytes());
 
     api.input.addListener(new EditInput());
-    initToolbar();
   }
 
   public Document document() {
@@ -85,7 +83,7 @@ public class DemoEdit extends Scene {
   }
 
   @SuppressWarnings("CommentedOutCode")
-  private void initToolbar() {
+  protected void initToolbar() {
     toolbar.setBgColor(Colors.toolbarBg);
 //    toolbar.addButton("Reparse", Colors.toolbarText3, editor::reparse);
 //    toolbar.addButton("Open", Colors.toolbarText3, this::showOpenFile);

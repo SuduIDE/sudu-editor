@@ -15,6 +15,7 @@ public interface Editor_d_ts extends JSObject {
   void focus();
   JSString saySomething();
   void setText(JSString t);
+  JSString getText();
 
   interface EditArguments extends JSObject {
     @JSProperty JSString getContainerId();

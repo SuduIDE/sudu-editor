@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Document {
   CodeLine[] document;
@@ -261,12 +260,16 @@ public class Document {
   }
 
   public String makeString() {
-    List<String> lines = Arrays.stream(document).map(CodeLine::makeString).collect(Collectors.toList());
-    return String.join("\n", lines);
+    StringBuilder sb = new StringBuilder(getLineStartInd(length()));
+    for (CodeLine codeLine : document) {
+      codeLine.append(sb).append('\n');
+    }
+    return sb.toString();
   }
 
   public byte[] getBytes() {
-    return makeString().getBytes(StandardCharsets.UTF_8);
+    String documentText = makeString();
+    return documentText.getBytes(StandardCharsets.UTF_8);
   }
 
   public int[] getIntervals() {

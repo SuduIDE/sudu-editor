@@ -381,6 +381,21 @@ class DocumentTest {
     Assertions.assertEquals(doc.document[4].elements[0].s, "line 5");
   }
 
+  @Test
+  void documentTextTest() {
+    Document d = doc5();
+
+    String text = """
+        This is an experimental project
+        to write a portable (Web + Desktop)
+        editor in java and kotlin
+        This demo is designed to investigate
+        performance limits of this approach
+        """;
+
+    Assertions.assertEquals(d.makeString(), text);
+  }
+
   static Document doc5() {
     return new Document(
         ab("This is an ", "experimental project"),

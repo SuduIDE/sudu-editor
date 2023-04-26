@@ -11,7 +11,8 @@ interface EditArgs {
 interface EditApi {
     focus() : void
     saySomething() : string
-    setText(text: string)
+    setText(text: string) : void
+    getText() : string
 }
 
 interface EditView extends EditApi {

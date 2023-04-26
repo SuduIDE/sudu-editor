@@ -1,5 +1,7 @@
 package org.sudu.experiments.demo;
 
+import java.nio.charset.StandardCharsets;
+
 public interface StartFile {
 
   String START_CODE_JAVA = """
@@ -34,4 +36,8 @@ public interface StartFile {
         }
       }
       """;
+
+  static byte[] getBytes() {
+    return START_CODE_JAVA.getBytes(StandardCharsets.UTF_8);
+  }
 }

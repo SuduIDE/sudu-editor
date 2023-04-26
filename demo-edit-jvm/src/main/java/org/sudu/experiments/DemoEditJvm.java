@@ -1,9 +1,6 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.demo.DemoEdit;
-import org.sudu.experiments.demo.DemoScene1;
-import org.sudu.experiments.demo.ManyTexturesLineNumbersScene;
-import org.sudu.experiments.demo.SelectFileTest;
+import org.sudu.experiments.demo.*;
 import org.sudu.experiments.demo.worker.EditorWorker;
 import org.sudu.experiments.demo.worker.WorkerTest;
 import org.sudu.experiments.fonts.JetBrainsMono;
@@ -28,7 +25,7 @@ public class DemoEditJvm {
   static Function<SceneApi, Scene> selectScene(String name) {
     Debug.consoleInfo("createScene: " + name);
     return switch (name) {
-      default -> DemoEdit::new;
+      default -> DemoEditWithToolbar::new;
       case "test" -> DemoScene1::new;
       case "many" -> ManyTexturesLineNumbersScene::new;
       case "SelectFileTest" -> SelectFileTest::new;
