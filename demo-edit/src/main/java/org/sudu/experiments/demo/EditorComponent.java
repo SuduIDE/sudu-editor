@@ -606,7 +606,7 @@ public class EditorComponent implements EditApi, Disposable {
     api.window.repaint();
     Debug.consoleInfo("File structure parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
 
-    //parseViewport(type);
+    parseViewport(type);
   }
 
   private void onVpParsed(Object[] result) {
