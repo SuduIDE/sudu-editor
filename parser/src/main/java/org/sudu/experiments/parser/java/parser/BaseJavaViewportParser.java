@@ -24,6 +24,7 @@ public abstract class BaseJavaViewportParser extends BaseJavaParser {
           .collect(Collectors.toList());
       entry.setValue(filtered);
       M += filtered.size();
+      N = Math.max(N, entry.getKey());
     }
 
     int[] result = new int[5 + N + 4 * M];
