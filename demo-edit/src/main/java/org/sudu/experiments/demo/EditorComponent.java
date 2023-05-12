@@ -108,6 +108,7 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   void setPos(V2i pos, V2i size, double dpr) {
+    System.out.println("dpr = " + dpr);
     compPos.set(pos);
     compSize.set(size);
     devicePR = dpr;
@@ -124,7 +125,8 @@ public class EditorComponent implements EditApi, Disposable {
     caret.setWidth(Numbers.iRnd(Caret.defaultWidth * devicePR));
 
     // Should be called if dpr changed
-    setFont(fontFamilyName, fontVirtualSize);
+
+    doChangeFont(fontFamilyName, fontVirtualSize);
 
     updateLineNumbersFont();
 
@@ -219,8 +221,8 @@ public class EditorComponent implements EditApi, Disposable {
     return fontFamilyName;
   }
 
-  private void setFont(String name, int size) {
-    setFonts(name, size);
+  private void setFont(String name, int pixelSize) {
+    setFonts(name, pixelSize);
 
     int fontLineHeight = font.lineHeight();
     lineHeight = Numbers.iRnd(fontLineHeight * EditorConst.LINE_HEIGHT);
@@ -229,7 +231,7 @@ public class EditorComponent implements EditApi, Disposable {
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
-    Debug.consoleInfo("Set editor font to: " + name + " " + size
+    Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight
         + ", lineHeight = " + lineHeight
         + ", caretHeight = " + caret.height());
@@ -251,21 +253,28 @@ public class EditorComponent implements EditApi, Disposable {
     font = fonts[CodeElement.fontIndex(false, false)];
   }
 
+
+
   public void changeFont(String name, int virtualSize) {
+    System.out.println("changeFont: virtualSize = " + virtualSize);
     if (devicePR != 0) {
-      int newPixelFontSize = Numbers.iRnd(virtualSize * devicePR);
-      int oldPixelFontSize = font == null ? 0 : font.iSize;
-      if (newPixelFontSize != oldPixelFontSize || !Objects.equals(name, fontFamilyName)) {
-        lineNumbers.dispose();
-        invalidateFont();
-        setFont(name, newPixelFontSize);
-        afterFontChanged();
-        updateLineNumbersFont();
-      }
+      doChangeFont(name, virtualSize);
     }
     fontVirtualSize = virtualSize;
     fontFamilyName = name;
     api.window.repaint();
+  }
+
+  private void doChangeFont(String name, int virtualSize) {
+    int newPixelFontSize = Numbers.iRnd(virtualSize * devicePR);
+    int oldPixelFontSize = font == null ? 0 : font.iSize;
+    if (newPixelFontSize != oldPixelFontSize || !Objects.equals(name, fontFamilyName)) {
+      lineNumbers.dispose();
+      invalidateFont();
+      setFont(name, newPixelFontSize);
+      afterFontChanged();
+      updateLineNumbersFont();
+    }
   }
 
   private void afterFontChanged() {
