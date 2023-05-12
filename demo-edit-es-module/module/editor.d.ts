@@ -9,14 +9,21 @@ interface EditArgs {
 }
 
 interface EditApi {
-    focus() : void
-    saySomething() : string
-    setText(text: string) : void
-    getText() : string
+    focus(): void
+
+    saySomething(): string
+
+    setText(text: string): void
+
+    getText(): string
+
+    setFontFamily(fontFamily: string): void
+
+    setFontSize(fontSize: number): void
 }
 
 interface EditView extends EditApi {
-    dispose() : void
+    dispose(): void
 }
 
-export function newEditor(args: EditArgs) : Promise<EditView>
+export function newEditor(args: EditArgs): Promise<EditView>
