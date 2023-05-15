@@ -8,6 +8,8 @@ import org.sudu.experiments.math.V4f;
 
 import java.util.ArrayList;
 
+import static org.sudu.experiments.input.InputListener.MOUSE_BUTTON_LEFT;
+
 @SuppressWarnings("ForLoopReplaceableByForEach")
 public class Toolbar {
   static int vPad = 0;
@@ -124,24 +126,25 @@ public class Toolbar {
   }
 
   public boolean onMouseMove(V2i pos, SetCursor setCursor) {
+    if (!rect.isInside(pos)) return false;
     Button h = find(pos);
     if (hoverItem != h) {
       if (hoverItem != null) hoverItem.setHover(false);
       if (h != null ) h.setHover(true);
       hoverItem = h;
     }
-    return rect.isInside(pos) && setCursor.setDefault();
+    return setCursor.setDefault();
   }
 
-  public boolean onMouseClick(V2i pos, boolean press) {
-    if (press) {
+  public boolean onMouseClick(V2i pos, int button, boolean press, int clickCount) {
+    if (!rect.isInside(pos)) return false;
+    if (button == MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
       Button b = find(pos);
       if (b != null) {
         b.action.run();
-        return true;
       }
     }
-    return rect.isInside(pos);
+    return true;
   }
 
   private Button find(V2i pos) {

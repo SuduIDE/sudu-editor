@@ -163,7 +163,7 @@ public class DemoEdit0 extends Scene {
 
     @Override
     public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-      return toolbar.onMouseClick(event.position, press)
+      return toolbar.onMouseClick(event.position, button, press, clickCount)
           || editor.onMousePress(event, button, press, clickCount);
     }
 
