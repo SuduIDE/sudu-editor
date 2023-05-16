@@ -13,8 +13,9 @@ public interface ParserConstants {
     int ERROR = 5;
     int NUMERIC = 7;
     int METHOD = 8;
-    int ANNOTATION = 12;
     int COMMENT = 11;
+    int ANNOTATION = 12;
+    int TYPES_LENGTH = ANNOTATION + 1;
   }
 
   interface TokenStyles {

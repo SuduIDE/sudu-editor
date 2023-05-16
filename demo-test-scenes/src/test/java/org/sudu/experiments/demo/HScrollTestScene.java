@@ -31,7 +31,7 @@ public class HScrollTestScene extends Scene {
 
   boolean needsUpdate = true;
 
-  final EditorColorScheme colors = new EditorColorScheme();
+  final EditorColorScheme colors = EditorColorScheme.darkIdeaColorScheme();
 
   public HScrollTestScene(SceneApi api) {
     super(api);

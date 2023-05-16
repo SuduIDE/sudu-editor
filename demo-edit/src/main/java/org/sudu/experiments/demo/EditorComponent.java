@@ -40,7 +40,7 @@ public class EditorComponent implements EditApi, Disposable {
   Document document;
   Selection selection = new Selection();
 
-  EditorColorScheme colors = new EditorColorScheme();
+  EditorColorScheme colors = EditorColorScheme.darkIdeaColorScheme();
 
   Canvas renderingCanvas;
 
@@ -159,6 +159,14 @@ public class EditorComponent implements EditApi, Disposable {
     if (caretDiff == null) return;
     setCaretLinePos(caretDiff.x, caretDiff.y, false);
     updateDocumentDiffTimeStamp();
+  }
+
+  public void toggleDark() {
+    this.colors = EditorColorScheme.darkIdeaColorScheme();
+  }
+
+  public void toggleLight() {
+    this.colors = EditorColorScheme.lightIdeaColorScheme();
   }
 
   private void toggleXOffset() {
