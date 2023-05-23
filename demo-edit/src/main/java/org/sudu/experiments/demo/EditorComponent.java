@@ -108,7 +108,6 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   void setPos(V2i pos, V2i size, double dpr) {
-    System.out.println("dpr = " + dpr);
     compPos.set(pos);
     compSize.set(size);
     devicePR = dpr;
@@ -264,7 +263,6 @@ public class EditorComponent implements EditApi, Disposable {
 
 
   public void changeFont(String name, int virtualSize) {
-    System.out.println("changeFont: virtualSize = " + virtualSize);
     if (devicePR != 0) {
       doChangeFont(name, virtualSize);
     }
