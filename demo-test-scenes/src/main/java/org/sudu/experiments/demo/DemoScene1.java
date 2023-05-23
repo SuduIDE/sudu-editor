@@ -24,7 +24,6 @@ public class DemoScene1 extends Scene {
   final String[] cursorNames = cursors();
   final DemoRect[] cursors = new DemoRect[cursorNames.length];
 
-  GL.Texture mouseTexture;
   GL.Texture demoRectTexture;
   GL.Texture canvas1Texture;
   GL.Texture canvas2Texture;
@@ -44,10 +43,6 @@ public class DemoScene1 extends Scene {
     demoRect.setSizeToTextureRegion();
     demoRect.bgColor.set(Colors.editBgColor);
     demoRect.color.set(new Color(204, 120, 50));
-
-    mouseTexture = mouseTexture();
-    mouse.size.set(mouseTexture.width(), mouseTexture.height());
-
 
     String s = " HuaweЙ KeyModifiers 收件人 |";
 
@@ -98,7 +93,6 @@ public class DemoScene1 extends Scene {
   }
 
   public void dispose() {
-    mouseTexture = Disposable.assign(mouseTexture, null);
     demoRectTexture = Disposable.assign(demoRectTexture, null);
     canvas1Texture = Disposable.assign(canvas1Texture, null);
     canvas2Texture = Disposable.assign(canvas2Texture, null);
@@ -164,8 +158,9 @@ public class DemoScene1 extends Scene {
           1.f * i / N);
     }
 
-    mouse.drawGrayIcon(g,
-        iconTexture != null ? iconTexture : mouseTexture, 0, 0, 0);
+    if (iconTexture != null) {
+      mouse.drawGrayIcon(g, iconTexture, 0, 0, 0);
+    }
 
     caret.paint(g, new V2i());
 

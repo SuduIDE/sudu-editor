@@ -5,7 +5,7 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
 public class Scene0 extends Scene {
-  final V4f clearColor = Color.Cvt.fromRGB(0,0, 64);
+  protected final V4f clearColor = Color.Cvt.fromRGB(0,0, 64);
   protected final V2i size = new V2i();
 
   public Scene0(SceneApi api) {

@@ -26,10 +26,11 @@ public class DemoEditJvm {
     Debug.consoleInfo("createScene: " + name);
     return switch (name) {
       default -> DemoEditWithToolbar::new;
-      case "test" -> DemoScene1::new;
-      case "many" -> ManyTexturesLineNumbersScene::new;
+      case "DemoScene1" -> DemoScene1::new;
+      case "ManyTexturesLineNumbersScene" -> ManyTexturesLineNumbersScene::new;
       case "SelectFileTest" -> SelectFileTest::new;
       case "WorkerTest" -> WorkerTest::new;
+      case "RenderTexture" -> RenderTexture::new;
 //      case "#wasm" -> new WasmDemo(api);
     };
   }
