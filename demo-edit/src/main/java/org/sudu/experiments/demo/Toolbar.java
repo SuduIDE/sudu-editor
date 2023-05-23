@@ -8,6 +8,8 @@ import org.sudu.experiments.math.V4f;
 
 import java.util.ArrayList;
 
+import static org.sudu.experiments.input.InputListener.MOUSE_BUTTON_LEFT;
+
 @SuppressWarnings("ForLoopReplaceableByForEach")
 public class Toolbar {
   static int vPad = 0;
@@ -115,33 +117,36 @@ public class Toolbar {
   }
 
 
-  public void render(WglGraphics g, V2i dxdy) {
-    if (texture == null || textureDirty) renderTexture(g);
-    rect.draw(g, dxdy.x, dxdy.y);
+  public void render(WglGraphics g, V2i dXdY) {
+    if ((texture == null || textureDirty) && textureSize.x * textureSize.y != 0) {
+      renderTexture(g);
+    }
+    rect.draw(g, dXdY.x, dXdY.y);
     for (int i = 0; i < buttons.size(); i++) {
-      buttons.get(i).tRect.drawText(g, texture, dxdy.x, dxdy.y, 0);
+      buttons.get(i).tRect.drawText(g, texture, dXdY.x, dXdY.y, 0);
     }
   }
 
   public boolean onMouseMove(V2i pos, SetCursor setCursor) {
+    if (!rect.isInside(pos)) return false;
     Button h = find(pos);
     if (hoverItem != h) {
       if (hoverItem != null) hoverItem.setHover(false);
       if (h != null ) h.setHover(true);
       hoverItem = h;
     }
-    return rect.isInside(pos) && setCursor.setDefault();
+    return setCursor.setDefault();
   }
 
-  public boolean onMouseClick(V2i pos, boolean press) {
-    if (press) {
+  public boolean onMouseClick(V2i pos, int button, boolean press, int clickCount) {
+    if (!rect.isInside(pos)) return false;
+    if (button == MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
       Button b = find(pos);
       if (b != null) {
         b.action.run();
-        return true;
       }
     }
-    return rect.isInside(pos);
+    return true;
   }
 
   private Button find(V2i pos) {

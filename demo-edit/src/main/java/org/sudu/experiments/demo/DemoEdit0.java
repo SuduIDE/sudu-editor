@@ -103,6 +103,8 @@ public class DemoEdit0 extends Scene {
 //    toolbar.addButton("DT", Colors.toolbarText2, this::toggleTails);
 //    toolbar.addButton("TE", Colors.toolbarText2, this::toggleTopEdit);
 //    toolbar.addButton("TB", Colors.toolbarText2, this::toggleTopBar);
+    toolbar.addButton("D", Colors.toolbarText3, editor::toggleDark);
+    toolbar.addButton("L", Colors.toolbarText3, editor::toggleLight);
     toolbar.addButton("A↑", Colors.toolbarText3, editor::increaseFont);
     toolbar.addButton("A↓", Colors.toolbarText3, editor::decreaseFont);
     toolbar.addButton("Segoe UI", Colors.rngToolButton(), this::setSegoeUI);
@@ -163,7 +165,7 @@ public class DemoEdit0 extends Scene {
 
     @Override
     public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-      return toolbar.onMouseClick(event.position, press)
+      return toolbar.onMouseClick(event.position, button, press, clickCount)
           || editor.onMousePress(event, button, press, clickCount);
     }
 
