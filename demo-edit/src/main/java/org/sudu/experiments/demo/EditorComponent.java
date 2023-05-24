@@ -14,6 +14,7 @@ import org.sudu.experiments.parser.java.parser.JavaIntervalParser;
 import org.sudu.experiments.worker.ArrayView;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 
@@ -33,6 +34,7 @@ public class EditorComponent implements EditApi, Disposable {
   boolean hasFocus;
 
   int fontVirtualSize = EditorConst.DEFAULT_FONT_SIZE;
+  String fontFamilyName = EditorConst.FONT;
   FontDesk font;
   FontDesk[] fonts = new FontDesk[4];
   int lineHeight;
@@ -121,13 +123,9 @@ public class EditorComponent implements EditApi, Disposable {
     if (1<0) DebugHelper.dumpFontsSize(g);
     caret.setWidth(Numbers.iRnd(Caret.defaultWidth * devicePR));
 
-    int newFontSize = Numbers.iRnd(fontVirtualSize * devicePR);
-    int oldSize = font == null ? 0 : font.iSize;
+    // Should be called if dpr changed
 
-    if (newFontSize != oldSize) {
-      String fontName = font == null ? EditorConst.FONT : font.name;
-      setFont(fontName, newFontSize);
-    }
+    doChangeFont(fontFamilyName, fontVirtualSize);
 
     updateLineNumbersFont();
 
@@ -196,12 +194,12 @@ public class EditorComponent implements EditApi, Disposable {
 
 
   public void increaseFont() {
-    changeFont(font.name, font.iSize + 1);
+    changeFont(font.name, fontVirtualSize + 1);
   }
 
   public void decreaseFont() {
-    if (font.iSize <= EditorConst.MIN_FONT_SIZE) return;
-    changeFont(font.name, font.iSize - 1);
+    if (fontVirtualSize <= EditorConst.MIN_FONT_SIZE) return;
+    changeFont(font.name, fontVirtualSize - 1);
   }
 
   private void moveDown() {
@@ -222,11 +220,16 @@ public class EditorComponent implements EditApi, Disposable {
     scrollUp = scrollDown = 0;
   }
 
-  public int getFontISize() {
-    return font.iSize;
+  public int getFontVirtualSize() {
+    return fontVirtualSize;
   }
-  private void setFont(String name, int size) {
-    setFonts(name, size);
+
+  public String getFontFamily() {
+    return fontFamilyName;
+  }
+
+  private void setFont(String name, int pixelSize) {
+    setFonts(name, pixelSize);
 
     int fontLineHeight = font.lineHeight();
     lineHeight = Numbers.iRnd(fontLineHeight * EditorConst.LINE_HEIGHT);
@@ -235,7 +238,7 @@ public class EditorComponent implements EditApi, Disposable {
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
-    Debug.consoleInfo("Set editor font to: " + name + " " + size
+    Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight
         + ", lineHeight = " + lineHeight
         + ", caretHeight = " + caret.height());
@@ -257,13 +260,27 @@ public class EditorComponent implements EditApi, Disposable {
     font = fonts[CodeElement.fontIndex(false, false)];
   }
 
-  public void changeFont(String name, int size) {
-    lineNumbers.dispose();
-    invalidateFont();
-    setFont(name, size);
-    afterFontChanged();
-    updateLineNumbersFont();
+
+
+  public void changeFont(String name, int virtualSize) {
+    if (devicePR != 0) {
+      doChangeFont(name, virtualSize);
+    }
+    fontVirtualSize = virtualSize;
+    fontFamilyName = name;
     api.window.repaint();
+  }
+
+  private void doChangeFont(String name, int virtualSize) {
+    int newPixelFontSize = Numbers.iRnd(virtualSize * devicePR);
+    int oldPixelFontSize = font == null ? 0 : font.iSize;
+    if (newPixelFontSize != oldPixelFontSize || !Objects.equals(name, fontFamilyName)) {
+      lineNumbers.dispose();
+      invalidateFont();
+      setFont(name, newPixelFontSize);
+      afterFontChanged();
+      updateLineNumbersFont();
+    }
   }
 
   private void afterFontChanged() {

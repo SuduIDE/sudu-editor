@@ -16,6 +16,9 @@ public interface Editor_d_ts extends JSObject {
   JSString saySomething();
   void setText(JSString t);
   JSString getText();
+  void setFontFamily(JSString fontFamily);
+  void setFontSize(int fontSize);
+
 
   interface EditArguments extends JSObject {
     @JSProperty JSString getContainerId();

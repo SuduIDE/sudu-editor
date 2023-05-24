@@ -131,19 +131,19 @@ public class DemoEdit0 extends Scene {
   }
 
   private void setSegoeUI() {
-    editor.changeFont(Fonts.SegoeUI, editor.getFontISize());
+    editor.changeFont(Fonts.SegoeUI, editor.getFontVirtualSize());
   }
 
   private void setVerdana() {
-    editor.changeFont(Fonts.Verdana, editor.getFontISize());
+    editor.changeFont(Fonts.Verdana, editor.getFontVirtualSize());
   }
 
   private void setJetBrainsMono() {
-    editor.changeFont(Fonts.JetBrainsMono, editor.getFontISize());
+    editor.changeFont(Fonts.JetBrainsMono, editor.getFontVirtualSize());
   }
 
   private void setConsolas() {
-    editor.changeFont(Fonts.Consolas, editor.getFontISize());
+    editor.changeFont(Fonts.Consolas, editor.getFontVirtualSize());
   }
 
   class EditInput implements InputListener {

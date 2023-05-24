@@ -51,6 +51,18 @@ public class EditorModule implements Editor_d_ts {
     return JSString.valueOf(line);
   }
 
+  @Override
+  public void setFontFamily(JSString fontFamily) {
+    EditorComponent editor = demoEdit.editor();
+    editor.changeFont(fontFamily.stringValue(), editor.getFontVirtualSize());
+  }
+
+  @Override
+  public void setFontSize(int fontSize) {
+    EditorComponent editor = demoEdit.editor();
+    editor.changeFont(editor.getFontFamily(), fontSize);
+  }
+
   static void onWebGlError() {
     JsHelper.consoleInfo("FATAL: WebGL is not enabled in the browser");
   }
