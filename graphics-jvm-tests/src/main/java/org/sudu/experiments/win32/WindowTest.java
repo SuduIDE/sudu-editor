@@ -32,6 +32,7 @@ public class WindowTest {
   static class B {
     static boolean destroyed = false;
     static boolean opened = true;
+    static int id;
 
     public static void main(String[] args) throws InterruptedException {
       Helper.loadDlls();
@@ -51,7 +52,14 @@ public class WindowTest {
     }
     static long windowProc(long hWnd, int msg, long wParam, long lParam) {
       if (msg == WindowPeer.WM_MOUSEMOVE) {
+        System.out.println(
+            (++id) + ": WM_MOUSEMOVE = " + Win32.GET_X_LPARAM(lParam) + ", " + Win32.GET_Y_LPARAM(lParam));
         return Win32.DefWindowProcW(hWnd, msg, wParam, lParam);
+      }
+
+      if (WindowPeer.WM_LBUTTONDOWN <= msg && msg <= WindowPeer.WM_MBUTTONDBLCLK) {
+        System.out.println(
+            (++id) + ": WM_BUTTONDOWN = " + (msg - WindowPeer.WM_LBUTTONDOWN));
       }
 
       switch (msg) {
