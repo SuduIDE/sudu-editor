@@ -5,11 +5,7 @@ import org.sudu.experiments.demo.CodeElement;
 import org.sudu.experiments.demo.CodeLine;
 import org.sudu.experiments.demo.Document;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class KeywordParser {
 
@@ -21,11 +17,10 @@ public class KeywordParser {
 
   public static final String PARSE_KEYWORDS = "KeywordParser.parseBytes";
 
-  public static void parseBytes(byte[] bytes, List<Object> result) {
-    String source = new String(bytes, StandardCharsets.UTF_8);
+  public static void parseChars(char[] chars, List<Object> result) {
+    String source = new String(chars);
     KeywordParser parser = new KeywordParser();
     int[] ints = parser.parseIntArray(source);
-    char[] chars = source.toCharArray();
     result.add(ints);
     result.add(chars);
   }

@@ -37,7 +37,7 @@ public interface StartFile {
       }
       """;
 
-  static byte[] getBytes() {
-    return START_CODE_JAVA.getBytes(StandardCharsets.UTF_8);
+  static char[] getChars() {
+    return START_CODE_JAVA.toCharArray();
   }
 }

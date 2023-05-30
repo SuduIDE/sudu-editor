@@ -267,9 +267,9 @@ public class Document {
     return sb.toString();
   }
 
-  public byte[] getBytes() {
+  public char[] getChars() {
     String documentText = makeString();
-    return documentText.getBytes(StandardCharsets.UTF_8);
+    return documentText.toCharArray();
   }
 
   public int[] getIntervals() {

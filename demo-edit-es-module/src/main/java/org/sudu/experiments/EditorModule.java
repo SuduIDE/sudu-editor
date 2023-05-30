@@ -1,6 +1,7 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.demo.*;
+import org.sudu.experiments.demo.DemoEdit0;
+import org.sudu.experiments.demo.EditorComponent;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
@@ -36,13 +37,19 @@ public class EditorModule implements Editor_d_ts {
 
   @Override
   public void setText(JSString t) {
-    demoEdit.editor().setText(TextEncoder.toUtf8(t));
+    int l = t.getLength();
+    char[] buffer = new char[l];
+    for (int i = 0; i < l; ++i) {
+      char codeAt = (char) t.charCodeAt(i);
+      buffer[i] = codeAt;
+    }
+    demoEdit.editor().setText(buffer);
   }
 
   @Override
   public JSString getText() {
-    byte[] bytes = demoEdit.document().getBytes();
-    return TextDecoder.fromUtf8(bytes);
+    char[] chars = demoEdit.document().getChars();
+    return JSString.valueOf(new String(chars));
   }
 
   @Override
