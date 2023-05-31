@@ -37,19 +37,14 @@ public class EditorModule implements Editor_d_ts {
 
   @Override
   public void setText(JSString t) {
-    int l = t.getLength();
-    char[] buffer = new char[l];
-    for (int i = 0; i < l; ++i) {
-      char codeAt = (char) t.charCodeAt(i);
-      buffer[i] = codeAt;
-    }
+    char[] buffer = TextEncoder.toCharArray(t);
     demoEdit.editor().setText(buffer);
   }
 
   @Override
   public JSString getText() {
     char[] chars = demoEdit.document().getChars();
-    return JSString.valueOf(new String(chars));
+    return TextDecoder.fromCharArray(chars);
   }
 
   @Override
