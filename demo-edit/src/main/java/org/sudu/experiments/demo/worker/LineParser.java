@@ -1,16 +1,12 @@
 package org.sudu.experiments.demo.worker;
 
 import org.sudu.experiments.Debug;
-import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.demo.CodeElement;
-import org.sudu.experiments.demo.CodeLine;
-import org.sudu.experiments.demo.Document;
 import org.sudu.experiments.math.ArrayOp;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.function.Consumer;
 
@@ -22,27 +18,25 @@ public class LineParser {
 
   public static final String PARSE_LINES = "LineParser.parseBytes";
 
-  public static void parseBytes(byte[] bytes, List<Object> result) {
-    String source = new String(bytes, StandardCharsets.UTF_8);
+  public static void parseChars(char[] chars, List<Object> result) {
+    String source = new String(chars);
     LineParser parser = new LineParser();
     int[] ints = parser.parseIntArray(source, Integer.MAX_VALUE);
-    char[] chars = source.toCharArray();
     result.add(ints);
     result.add(chars);
   }
 
-  public static void parseFirstLines(byte[] bytes, int[] lines, Consumer<Object[]> result) {
+  public static void parseFirstLines(char[] chars, int[] lines, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    parseFirstLines(bytes, lines, list);
+    parseFirstLines(chars, lines, list);
     ArrayOp.sendArrayList(list, result);
   }
 
-  private static void parseFirstLines(byte[] bytes, int[] lines, List<Object> result) {
-    String source = new String(bytes, StandardCharsets.UTF_8);
+  private static void parseFirstLines(char[] chars, int[] lines, List<Object> result) {
+    String source = new String(chars);
     LineParser parser = new LineParser();
     int numOfLines = lines[0];
     int[] ints = parser.parseIntArray(source, numOfLines);
-    char[] chars = source.toCharArray();
     result.add(ints);
     result.add(chars);
   }

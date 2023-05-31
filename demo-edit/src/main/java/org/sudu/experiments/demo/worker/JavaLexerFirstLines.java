@@ -17,18 +17,17 @@ public class JavaLexerFirstLines {
 
   public static final String LEXER_FIRST_LINES = "asyncJavaLexerFirstLines.parseFirstLines";
 
-  public static void parseFirstLines(byte[] bytes, int[] lines, Consumer<Object[]> result) {
+  public static void parseFirstLines(char[] chars, int[] lines, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    parseFirstLines(bytes, lines, list);
+    parseFirstLines(chars, lines, list);
     ArrayOp.sendArrayList(list, result);
   }
 
-  private static void parseFirstLines(byte[] bytes, int[] lines, List<Object> result) {
-    String source = new String(bytes, StandardCharsets.UTF_8).replace("\r", "");
+  private static void parseFirstLines(char[] chars, int[] lines, List<Object> result) {
+    String source = new String(chars);
     JavaFirstLinesLexer parser = new JavaFirstLinesLexer();
     int numOfLines = lines[0];
     int[] ints = parser.parse(source, numOfLines);
-    char[] chars = source.toCharArray();
     result.add(ints);
     result.add(chars);
   }

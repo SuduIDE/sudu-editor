@@ -2,7 +2,6 @@ package org.sudu.experiments.demo.worker;
 
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.demo.EditorComponent;
 import org.sudu.experiments.math.ArrayOp;
 
 import java.nio.charset.StandardCharsets;
@@ -18,8 +17,11 @@ public class FileParser {
 
   public static void asyncParseFile(FileHandle file, Consumer<Object[]> result) {
     file.readAsBytes(
-        bytes -> parseBytes(file.getExtension(), bytes, result),
-        error -> parseBytes(file.getExtension(), error.getBytes(StandardCharsets.UTF_8), result)
+        bytes -> {
+          String source = new String(bytes, StandardCharsets.UTF_8).replace("\r", "");
+          parseChars(file.getExtension(), source.toCharArray(), result);
+        },
+        error -> parseChars(file.getExtension(), error.toCharArray(), result)
     );
   }
 
@@ -27,7 +29,10 @@ public class FileParser {
 
   public static void asyncParseFullFile(FileHandle file, Consumer<Object[]> result) {
     file.readAsBytes(
-        bytes -> parseFullBytes(file.getExtension(), bytes, result),
+        bytes -> {
+          String source = new String(bytes, StandardCharsets.UTF_8).replace("\r", "");
+          parseFullChars(file.getExtension(), source.toCharArray(), result);
+        },
         Debug::consoleInfo
     );
   }
@@ -36,49 +41,52 @@ public class FileParser {
 
   public static void asyncParseFirstLines(FileHandle file, int[] lines, Consumer<Object[]> result) {
     file.readAsBytes(
-        bytes -> parseFirstLinesBytes(file.getExtension(), bytes, lines, result),
+        bytes -> {
+          String source = new String(bytes, StandardCharsets.UTF_8).replace("\r", "");
+          parseFirstLinesChars(file.getExtension(), source.toCharArray(), lines, result);
+        },
         Debug::consoleInfo
     );
   }
 
-  private static void parseBytes(String res, byte[] bytes, Consumer<Object[]> result) {
+  private static void parseChars(String res, char[] chars, Consumer<Object[]> result) {
     switch (res) {
-      case ".java" -> parseJavaBytes(bytes, result);
-      default -> parseBytes(bytes, result);
+      case ".java" -> parseJavaChars(chars, result);
+      default -> parseChars(chars, result);
     }
   }
 
-  private static void parseFullBytes(String res, byte[] bytes, Consumer<Object[]> result) {
+  private static void parseFullChars(String res, char[] chars, Consumer<Object[]> result) {
     switch (res) {
-      case ".java" -> parseFullJavaBytes(bytes, result);
-      default -> parseBytes(bytes, result);
+      case ".java" -> parseFullJavaChars(chars, result);
+      default -> parseChars(chars, result);
     }
   }
 
-  private static void parseFirstLinesBytes(String res, byte[] bytes, int[] lines, Consumer<Object[]> result) {
+  private static void parseFirstLinesChars(String res, char[] chars, int[] lines, Consumer<Object[]> result) {
     switch (res) {
-      case ".java" -> JavaLexerFirstLines.parseFirstLines(bytes, lines, result);
-      default -> LineParser.parseFirstLines(bytes, lines, result);
+      case ".java" -> JavaLexerFirstLines.parseFirstLines(chars, lines, result);
+      default -> LineParser.parseFirstLines(chars, lines, result);
     }
   }
 
-  private static void parseBytes(byte[] bytes, Consumer<Object[]> result) {
+  private static void parseChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    LineParser.parseBytes(bytes, list);
+    LineParser.parseChars(chars, list);
     list.add(new int[]{TEXT_FILE});
     ArrayOp.sendArrayList(list, result);
   }
 
-  private static void parseJavaBytes(byte[] bytes, Consumer<Object[]> result) {
+  private static void parseJavaChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    JavaStructureParser.parseBytes(bytes, list);
+    JavaStructureParser.parseChars(chars, list);
     list.add(new int[]{JAVA_FILE});
     ArrayOp.sendArrayList(list, result);
   }
 
-  private static void parseFullJavaBytes(byte[] bytes, Consumer<Object[]> result) {
+  private static void parseFullJavaChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    JavaParser.parseBytes(bytes, list);
+    JavaParser.parseChars(chars, list);
     list.add(new int[]{JAVA_FILE});
     ArrayOp.sendArrayList(list, result);
   }

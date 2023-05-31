@@ -37,7 +37,7 @@ public class DemoEdit0 extends Scene {
     this.setCursor = SetCursor.wrap(api.window);
 
     editor = new EditorComponent(api);
-    editor.setText(StartFile.getBytes());
+    editor.setText(StartFile.getChars());
 
     api.input.addListener(new EditInput());
   }

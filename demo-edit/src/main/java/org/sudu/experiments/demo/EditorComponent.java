@@ -943,7 +943,7 @@ public class EditorComponent implements EditApi, Disposable {
 
   void reparse() {
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, document.getBytes());
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, document.getChars());
   }
 
   public void parseViewport() {
@@ -956,7 +956,7 @@ public class EditorComponent implements EditApi, Disposable {
 
   private void parseViewport(int type) {
     if (type == FileParser.JAVA_FILE)
-      api.window.sendToWorker(this::onVpParsed, JavaParser.PARSE_BYTES_JAVA_VIEWPORT, document.getBytes(), getViewport(), document.getIntervals() );
+      api.window.sendToWorker(this::onVpParsed, JavaParser.PARSE_BYTES_JAVA_VIEWPORT, document.getChars(), getViewport(), document.getIntervals() );
   }
 
   private int[] getViewport() {
@@ -971,7 +971,7 @@ public class EditorComponent implements EditApi, Disposable {
 
   public void parseFullFile() {
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, document.getBytes());
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, document.getChars());
   }
 
   public void iterativeParsing() {
@@ -1138,14 +1138,14 @@ public class EditorComponent implements EditApi, Disposable {
   /* API */
 
   @Override
-  public void setText(byte[] utf8bytes) {
+  public void setText(char[] charArray) {
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, utf8bytes);
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, charArray);
   }
 
   @Override
-  public byte[] getText() {
-    return document.getBytes();
+  public char[] getText() {
+    return document.getChars();
   }
 
   @Override
