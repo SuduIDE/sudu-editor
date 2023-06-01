@@ -7,6 +7,7 @@ import org.teavm.jso.*;
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSError;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.css.CSSStyleDeclaration;
 import org.teavm.jso.dom.html.HTMLCanvasElement;
@@ -109,6 +110,11 @@ public class JsHelper {
     return new V2i(sizeX, sizeY);
   }
 
+  public static String getStringOrNull(JSString str) {
+    if (jsIf(str)) return str.stringValue();
+    return null;
+  }
+
   @JSBody(params = {"s"}, script = "console.info(s);")
   public static native void consoleInfo(String s);
 
@@ -165,4 +171,7 @@ public class JsHelper {
       return o.<WithId>cast().getId();
     }
   }
+
+  @JSBody(params = {"x"}, script = "return x ? true : false;")
+  public static native boolean jsIf(JSObject x);
 }

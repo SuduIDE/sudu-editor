@@ -1,10 +1,13 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.demo.DemoEdit0;
-import org.sudu.experiments.demo.EditorComponent;
+import org.sudu.experiments.demo.*;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
+import org.sudu.experiments.utils.LanguageSelectorUtils;
+import org.sudu.experiments.utils.PromiseUtils;
+import org.sudu.experiments.utils.ProviderUtils;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSString;
 
 public class JsCodeEditor0 implements JsCodeEditor {
@@ -67,23 +70,86 @@ public class JsCodeEditor0 implements JsCodeEditor {
   }
 
   @Override
-  public void setModel(JsITextModel model) {}
+  public void setModel(JsITextModel model) {
+    EditorComponent editor = demoEdit.editor();
+    editor.setModel(((JsTextModel) model).javaModel);
+  }
 
   @Override
-  public void setPosition(JSObject selectionOrPosition) {}
+  public void setPosition(JSObject selectionOrPosition) {
+    EditorComponent editor = demoEdit.editor();
+    if (JsPosition.isInstance(selectionOrPosition)) {
+      JsPosition pos = selectionOrPosition.cast();
+      editor.setPosition(pos.getColumn(), pos.getLineNumber());
+    } else {
+      JsRange sel = selectionOrPosition.cast();
+      editor.setSelection(
+          sel.getEndColumn(),
+          sel.getEndLineNumber(),
+          sel.getStartColumn(),
+          sel.getStartLineNumber()
+      );
+    }
+  }
 
   @Override
   public JsITextModel getModel() {
-    return null;
+    return JsTextModel.fromJava(demoEdit.editor().getModel());
   }
 
   @Override
   public JsDisposable registerDefinitionProvider(JSObject languageSelector, JsDefinitionProvider provider) {
+    EditorComponent editor = demoEdit.editor();
+    LanguageSelector[] strLanguages = LanguageSelectorUtils.getLanguageSelectorValues(languageSelector);
+    editor.registerDefinitionProvider(
+        new DefinitionProvider(
+            strLanguages,
+            (m, line, column) -> {
+              JSObject res = provider.provideDefinition(
+                  JsTextModel.fromJava(m),
+                  JsPosition.create(column, line),
+                  // Currently I don't want to implement cancellation token, so we accept it in API but throw away.
+                  JsCancellationToken.create()
+              );
+              PromiseUtils.<JSArray<JsLocation>>promiseOrT(
+                  res,
+                  (jsArr) -> {
+                    Location[] locs = ProviderUtils.transformJsArrToJavaLocationArr(jsArr);
+                    editor.gotoDefinition(locs[0]);
+                  }
+              );
+            }
+        )
+    );
     return JsDisposable.empty();
   }
 
   @Override
   public JsDisposable registerReferenceProvider(JSObject languageSelector, JsReferenceProvider provider) {
+    EditorComponent editor = demoEdit.editor();
+    LanguageSelector[] strLanguages = LanguageSelectorUtils.getLanguageSelectorValues(languageSelector);
+    editor.registerReferenceProvider(
+        new ReferenceProvider(
+            strLanguages,
+            (m, line, column, includeDecl) -> {
+              JSObject res = provider.provideReferences(
+                  JsTextModel.fromJava(m),
+                  JsPosition.create(column, line),
+                  JsReferenceProvider.Context.create(includeDecl),
+                  // Currently I don't want to implement cancellation token, so we accept it in API but throw away.
+                  JsCancellationToken.create()
+              );
+              PromiseUtils.<JSArray<JsLocation>>promiseOrT(
+                  res,
+                  (jsArr) -> {
+                    Location[] locs = ProviderUtils.transformJsArrToJavaLocationArr(jsArr);
+                    // TODO: make something like this in the future:
+                    // editor.provideUsages(locs);
+                  }
+              );
+            }
+        )
+    );
     return JsDisposable.empty();
   }
 

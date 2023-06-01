@@ -43,7 +43,7 @@ public class DemoEdit0 extends Scene0 {
   }
 
   public Document document() {
-    return editor.document;
+    return editor.model.document;
   }
 
   public EditorComponent editor() {
