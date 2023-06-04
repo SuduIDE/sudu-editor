@@ -398,4 +398,21 @@ public class Win32Window implements WindowPeer, Window {
   public void sendToWorker(Consumer<Object[]> handler, String method, Object... args) {
     bgWorker.execute(WorkerProxy.job(workerExecutor, method, args, handler, eventQueue));
   }
+
+  @Override
+  public void readClipboardText(Consumer<String> success, Consumer<Throwable> onError) {
+    String clipboardText = Win32.getClipboardText(hWnd, null);
+    Runnable r = clipboardText != null ?
+      () -> success.accept(clipboardText) :
+      () -> onError.accept(new RuntimeException("getClipboardText failed"));
+    eventQueue.execute(r);
+  }
+
+  @Override
+  public void writeClipboardText(String text, Runnable success, Consumer<Throwable> onError) {
+    boolean set = Win32.setClipboardText(hWnd, text);
+    Runnable r = set ? success :
+            () -> onError.accept(new RuntimeException("setClipboardText failed"));
+    eventQueue.execute(r);
+  }
 }

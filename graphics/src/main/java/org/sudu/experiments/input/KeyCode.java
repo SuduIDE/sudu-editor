@@ -1,11 +1,14 @@
 package org.sudu.experiments.input;
 
+// https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode
+
 public interface KeyCode {
   int SHIFT = 16;
   int CTRL = 17;
   int ALT = 18;
   int META = 91;
   int CAPS_LOCK = 20;
+  int SPACE = 32;
 
   int A = 65;
   int C = 67;

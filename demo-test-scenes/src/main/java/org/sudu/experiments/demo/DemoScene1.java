@@ -15,7 +15,6 @@ import java.util.function.Consumer;
 import static org.sudu.experiments.demo.IdeaCodeColors.Colors;
 
 public class DemoScene1 extends Scene {
-  final WglGraphics g;
   final V4f bgColor = new V4f(Colors.editBgColor);
   final TextRect demoRect = new TextRect(0, 0, 300, 300);
   final DemoRect mouse = new DemoRect(0, 0, 3, 3);
@@ -35,7 +34,7 @@ public class DemoScene1 extends Scene {
 
   public DemoScene1(SceneApi api) {
     super(api);
-    g = api.graphics;
+    WglGraphics g = api.graphics;
     api.input.addListener(new MyInputListener());
 
     demoRectTexture = svgTexture();
@@ -112,12 +111,12 @@ public class DemoScene1 extends Scene {
   }
 
   private GL.Texture svgTexture() {
-    Canvas h = g.createCanvas(300, 300);
+    Canvas h = api.graphics.createCanvas(300, 300);
     h.drawSvgSample();
     h.setFont(Fonts.CourierNew, 11);
     h.setFillColor(187, 187, 187);
     drawSomeText("jsCanvas.setFont(11, CourierNew);", h);
-    GL.Texture texture = g.createTexture();
+    GL.Texture texture = api.graphics.createTexture();
     texture.setContent(h);
     h.dispose();
     return texture;
@@ -125,7 +124,7 @@ public class DemoScene1 extends Scene {
 
   private GL.Texture mouseTexture() {
     GL.ImageData image = TGen.chess(5, 5);
-    GL.Texture texture = g.createTexture();
+    GL.Texture texture = api.graphics.createTexture();
     texture.setContent(image);
     return texture;
   }
@@ -143,6 +142,8 @@ public class DemoScene1 extends Scene {
   }
 
   public void paint() {
+    WglGraphics g = api.graphics;
+
     g.clear(bgColor);
 
     for (DemoRect cursor : cursors) {

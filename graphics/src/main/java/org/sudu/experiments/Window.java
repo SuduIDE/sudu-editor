@@ -26,4 +26,11 @@ public interface Window {
   void showOpenFilePicker(Consumer<FileHandle> onResult);
 
   void sendToWorker(Consumer<Object[]> handler, String method, Object ... args);
+
+  void readClipboardText(Consumer<String> success, Consumer<Throwable> onError);
+  void writeClipboardText(String text, Runnable success, Consumer<Throwable> onError);
+
+  // firefox does not support read clipboard text
+  // as result vscode.dev does not render "Paste" command there
+  default boolean isReadClipboardTextSupported() { return true; }
 }

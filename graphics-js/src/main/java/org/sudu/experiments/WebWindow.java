@@ -7,6 +7,7 @@ import org.teavm.jso.browser.AnimationFrameCallback;
 import org.teavm.jso.browser.Performance;
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.core.JSArrayReader;
+import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
@@ -218,5 +219,26 @@ public class WebWindow implements org.sudu.experiments.Window {
 
   private int nextId() {
     return ++workerJobIdNext;
+  }
+
+  @Override
+  public void readClipboardText(Consumer<String> success, Consumer<Throwable> onError) {
+    JsClipboard.get().readText().then(
+            str -> success.accept(str.stringValue()), onError(onError));
+  }
+
+  @Override
+  public void writeClipboardText(String text, Runnable success, Consumer<Throwable> onError) {
+    JsClipboard.get().writeText(TextDecoder.fromCharArray(text.toCharArray())).then(
+            v -> success.run(), onError(onError));
+  }
+
+  @Override
+  public boolean isReadClipboardTextSupported() {
+    return JsClipboard.isReadTextSupported();
+  }
+
+  static JsFunctions.Consumer<JSError> onError(Consumer<Throwable> onError) {
+    return jsError -> onError.accept(new RuntimeException(jsError.getMessage()));
   }
 }

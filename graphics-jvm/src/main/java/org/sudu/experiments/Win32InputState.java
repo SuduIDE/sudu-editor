@@ -1,9 +1,7 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.input.InputListeners;
-import org.sudu.experiments.input.KeyCode;
-import org.sudu.experiments.input.KeyEvent;
-import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.*;
+import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.win32.Win32;
 
@@ -14,7 +12,7 @@ import static org.sudu.experiments.win32.WindowPeer.*;
 class Win32InputState {
 
   boolean shift, ctrl, alt, meta;
-  boolean doubleClick;
+  boolean doubleClick, rightMouseDown;
 
   boolean onKey(long hWnd, int msg, long wParam, long lParam, InputListeners listeners) {
     boolean onChar = msg == WM_CHAR;
@@ -81,6 +79,16 @@ class Win32InputState {
       listeners.sendMouseButton(event, mapMouseButton(btn), true, 2);
       doubleClick = false;
     }
+
+    if (btn == 1)
+      if (press) {
+        rightMouseDown = true;
+      } else if (rightMouseDown) {
+        rightMouseDown = false;
+        boolean inside = Rect.isInside(event.position, 0, 0, event.resolution);
+
+        if (inside) listeners.sendContextMenu(event);
+      }
   }
 
   void onMouseMove(long lParam, V2i windowSize, InputListeners listeners) {
@@ -105,9 +113,9 @@ class Win32InputState {
 
   static int mapMouseButton(int btn) {
     return switch (btn) {
-      case 1 -> 2;
-      case 2 -> 1;
-      default -> 0;
+      case 1 -> InputListener.MOUSE_BUTTON_RIGHT;
+      case 2 -> InputListener.MOUSE_BUTTON_CENTER;
+      default -> InputListener.MOUSE_BUTTON_LEFT;
     };
   }
 
@@ -147,7 +155,7 @@ class Win32InputState {
       case VK_DELETE -> KeyCode.DELETE;
       case VK_BACK   -> KeyCode.BACKSPACE;
       case VK_TAB    -> KeyCode.TAB;
-//      case VK_SPACE  -> KeyCode.SPACE;
+      case VK_SPACE  -> KeyCode.SPACE;
       default -> 0;
     };
   }
