@@ -26,5 +26,5 @@ interface EditorConst {
   int LINE_NUMBERS_TEXTURE_SIZE = 20;
   int LINE_NUMBERS_RIGHT_PADDING = 20;
 
-  double TYPING_STOP_TIME = .1;
+  double TYPING_STOP_TIME = 1./32.;
 }

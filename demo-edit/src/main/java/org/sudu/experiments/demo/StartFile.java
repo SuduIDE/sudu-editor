@@ -13,8 +13,28 @@ public interface StartFile {
       
       public class Main {
       
+        private static String helloWorld = "Hello,\\tWorld\\u3000";
+        private static char n = '\\n';
+        private static int a;
+            
         public int field;
 
+        public static void main(String[] args) {
+          System.out.println(helloWorld + n);
+          sum(a + a);
+        }
+            
+        @Deprecated
+        private static void sum() {
+        }
+            
+        @Deprecated
+        private static int sum(int a) {
+          int b = 10;
+          int c = a + b;
+          return c;
+        }
+            
         public int sumField(int field) {
           return field + this.field;
         }
