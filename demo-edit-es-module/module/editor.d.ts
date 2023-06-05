@@ -8,22 +8,141 @@ interface EditArgs {
     workerUrl?: string
 }
 
-interface EditApi {
-    focus(): void
-
-    saySomething(): string
-
-    setText(text: string): void
-
-    getText(): string
-
-    setFontFamily(fontFamily: string): void
-
-    setFontSize(fontSize: number): void
+interface Uri {
+    scheme?: string,
+    authority?: string,
+    path?: string
 }
 
-interface EditView extends EditApi {
+interface IDisposable {
     dispose(): void
 }
 
+interface ITextModel extends IDisposable {
+    language?: string
+    uri?: Uri
+    getOffsetAt(position: IPosition): number
+    getPositionAt(offset: number): IPosition
+}
+
+type ProviderResult<T> = T | undefined | null | Promise<T | undefined | null>;
+
+interface IPosition {
+    column: number,
+    lineNumber: number
+}
+
+interface IRange {
+    endColumn: number,
+    endLineNumber: number,
+    startColumn: number,
+    startLineNumber: number
+}
+
+interface ICancellationToken {
+    isCancellationRequested: boolean
+}
+
+interface ILocation {
+    range: IRange,
+    uri: Uri
+}
+
+export enum DocumentHighlightKind {
+    Text = 0,
+    Read = 1,
+    Write = 2
+}
+
+interface IDocumentHighlight {
+    range: IRange,
+    kind?: DocumentHighlightKind
+}
+
+interface IDefinitionProvider {
+    provideDefinition(
+        model: ITextModel,
+        position: IPosition,
+        token: ICancellationToken
+    ): ProviderResult<ILocation[]>
+}
+
+interface IReferenceProvider {
+    provideReferences(
+        model: ITextModel,
+        position: IPosition,
+        context: { includeDeclaration: boolean },
+        token: ICancellationToken
+    ): ProviderResult<ILocation[]>
+}
+
+interface IDocumentHighlightProvider {
+    provideDocumentHighlights(
+        model: ITextModel,
+        position: IPosition,
+        token: ICancellationToken
+    ): ProviderResult<IDocumentHighlight[]>
+}
+
+type SelectionOrPosition = IRange | IPosition;
+
+interface ICodeEditorOpener {
+    openCodeEditor(
+        source: ICodeEditor,
+        resource: Uri,
+        selectionOrPosition?: SelectionOrPosition
+    ): boolean | Promise<boolean>;
+}
+
+interface ILanguageFilter {
+    language?: string
+    scheme?: string
+}
+
+type LanguageSelector = string | ILanguageFilter | Array<string | ILanguageFilter>;
+
+// function apply(filter:LanguageSelector, model: ITextModel) : boolean {
+//    if (Array.isArray(filter)) foreach...
+//    else return apply(filter)
+// }
+
+// function apply(filter:LanguageFilter, model: ITextModel) : boolean {
+//     if (filter.language && model.language && filter.language !== model.language) return false;
+//     if (filter.scheme && model.uri.scheme && filter.scheme !== model.uri.scheme) return false;
+//     return true;
+// }
+
+interface ICodeEditor {
+    focus(): void,
+
+    saySomething(): string,
+
+    setText(text: string): void,
+
+    getText(): string,
+
+    setFontFamily(fontFamily: string): void,
+
+    setFontSize(fontSize: number): void,
+
+    setModel(model: ITextModel): void,
+
+    setPosition(selectionOrPosition: SelectionOrPosition): void
+
+    getModel(): ITextModel,
+
+    registerDefinitionProvider(languageSelector: LanguageSelector, provider: IDefinitionProvider): IDisposable,
+
+    registerReferenceProvider(languageSelector: LanguageSelector, provider: IReferenceProvider): IDisposable,
+
+    registerDocumentHighlightProvider(languageSelector: LanguageSelector, provider: IDocumentHighlightProvider): IDisposable,
+
+    registerEditorOpener(opener: ICodeEditorOpener): IDisposable
+}
+
+
+interface EditView extends ICodeEditor, IDisposable {}
+
 export function newEditor(args: EditArgs): Promise<EditView>
+
+export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel

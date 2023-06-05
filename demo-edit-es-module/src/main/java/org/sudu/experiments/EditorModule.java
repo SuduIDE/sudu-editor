@@ -2,7 +2,9 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.demo.DemoEdit0;
 import org.sudu.experiments.demo.EditorComponent;
+import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
@@ -65,6 +67,37 @@ public class EditorModule implements Editor_d_ts {
     editor.changeFont(editor.getFontFamily(), fontSize);
   }
 
+  @Override
+  public void setModel(JsITextModel model) {}
+
+  @Override
+  public void setPosition(JSObject selectionOrPosition) {}
+
+  @Override
+  public JsITextModel getModel() {
+    return null;
+  }
+
+  @Override
+  public JsDisposable registerDefinitionProvider(JSObject languageSelector, JsDefinitionProvider provider) {
+    return JsDisposable.empty();
+  }
+
+  @Override
+  public JsDisposable registerReferenceProvider(JSObject languageSelector, JsReferenceProvider provider) {
+    return JsDisposable.empty();
+  }
+
+  @Override
+  public JsDisposable registerDocumentHighlightProvider(JSObject languageSelector, JsDocumentHighlight provider) {
+    return JsDisposable.empty();
+  }
+
+  @Override
+  public JsDisposable registerEditorOpener(JsCodeEditorOpener opener) {
+    return JsDisposable.empty();
+  }
+
   static void onWebGlError() {
     JsHelper.consoleInfo("FATAL: WebGL is not enabled in the browser");
   }
@@ -86,6 +119,8 @@ public class EditorModule implements Editor_d_ts {
   }
 
   public static void main(String[] args) {
+
     Editor_d_ts.Setter.setApi(EditorModule::newEdit);
+    JsITextModel.Setter.setModel(JsTextModel::newTextModel);
   }
 }
