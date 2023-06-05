@@ -173,7 +173,7 @@ public class EditorComponent implements EditApi, Disposable {
     this.colors = EditorColorScheme.lightIdeaColorScheme();
   }
 
-  private void toggleXOffset() {
+  void toggleXOffset() {
     xOffset = (xOffset + 3) % 6;
     for (var line: lines) {
       line.setXOffset(xOffset);
@@ -181,12 +181,12 @@ public class EditorComponent implements EditApi, Disposable {
     }
   }
 
-  private void toggleTails() {
+  void toggleTails() {
     drawTails ^= true;
     Debug.consoleInfo("drawTails = " + drawTails);
   }
 
-  private void toggleContrast() {
+  void toggleContrast() {
     applyContrast = !applyContrast;
     Debug.consoleInfo("applyContrast = " + applyContrast);
   }
@@ -208,12 +208,12 @@ public class EditorComponent implements EditApi, Disposable {
     changeFont(font.name, fontVirtualSize - 1);
   }
 
-  private void moveDown() {
+  void moveDown() {
     scrollDown = switchScroll(scrollDown);
     scrollUp = 0;
   }
 
-  private void moveUp() {
+  void moveUp() {
     scrollUp = switchScroll(scrollUp);
     scrollDown = 0;
   }
@@ -222,7 +222,7 @@ public class EditorComponent implements EditApi, Disposable {
     return (scrollValue + 4) % 20;
   }
 
-  private void stopMove() {
+  void stopMove() {
     scrollUp = scrollDown = 0;
   }
 
@@ -239,7 +239,7 @@ public class EditorComponent implements EditApi, Disposable {
 
     int fontLineHeight = font.lineHeight();
     lineHeight = Numbers.iRnd(fontLineHeight * EditorConst.LINE_HEIGHT);
-    footerHeight = lineHeight;
+    footerHeight = lineHeight * 0;
     caret.setHeight(font.caretHeight(lineHeight));
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
@@ -339,7 +339,7 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   private void layoutFooter() {
-    footerRc.set(0, editorHeight(), compSize.x, lineHeight);
+    footerRc.set(0, editorHeight(), compSize.x, footerHeight);
     footerRc.color.set(colors.editFooterFill);
     vLineSize.y = editorHeight();
   }
@@ -1003,11 +1003,11 @@ public class EditorComponent implements EditApi, Disposable {
     api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, document.getChars());
   }
 
-  public void parseViewport() {
+  void parseViewport() {
     parseViewport(fileType);
   }
 
-  public void debugPrintDocumentIntervals() {
+  void debugPrintDocumentIntervals() {
     document.printIntervals();
   }
 

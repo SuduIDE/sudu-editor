@@ -6,7 +6,7 @@ import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V4f;
 
 public class TextRect extends DemoRect {
-  final V4f textureRegion = new V4f();
+  public final V4f textureRegion = new V4f();
 
   public TextRect() {}
 

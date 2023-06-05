@@ -1,24 +1,25 @@
 package org.sudu.experiments.demo;
 
+import org.sudu.experiments.demo.ui.ToolbarItemColors;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V4f;
 
-interface Colors {
+public interface Colors {
 
   V4f scrollBarBody1 = Color.Cvt.fromRGBA(50, 50, 50, 100);
   V4f scrollBarBody2 = Color.Cvt.fromRGBA(80, 80, 80, 200);
-  V4f toolbarBg = Color.Cvt.fromRGBA(40, 40, 40, 200);
-  V4f toolbarTextBg = Color.Cvt.fromRGBA(40, 40, 40, 128);
-  V4f toolbarTextBg2 = Color.Cvt.fromRGBA(70, 70, 70, 200);
+  V4f toolbarBg = new Color("#3C3F41");
+  V4f toolbarBorder = new Color("#616161");
+  V4f toolbarSelectedBg = new Color("#4B6EAF");
 
-  Toolbar.ButtonColors toolbarText2 = new Toolbar.ButtonColors(
-      new Color("#6897BB"), toolbarTextBg, toolbarTextBg2);
-  Toolbar.ButtonColors toolbarText3 = new Toolbar.ButtonColors(
-      new Color("#629755"), toolbarTextBg, toolbarTextBg2);
+  ToolbarItemColors popupText = new ToolbarItemColors(
+      new Color("#BBBBBB"), toolbarBg, toolbarSelectedBg);
+  ToolbarItemColors popupText2 = new ToolbarItemColors(
+      new Color("#CCCCCC"), toolbarBg, toolbarSelectedBg);
 
-  static Toolbar.ButtonColors rngToolButton() {
-    return new Toolbar.ButtonColors(
-        Color.Cvt.fromHSV(Math.random(), 1, 1), toolbarTextBg, toolbarTextBg2);
+  static ToolbarItemColors rngToolButton() {
+    return new ToolbarItemColors(
+        Color.Cvt.fromHSV(Math.random(), 1, 1), toolbarBg, toolbarSelectedBg);
   }
 
 }

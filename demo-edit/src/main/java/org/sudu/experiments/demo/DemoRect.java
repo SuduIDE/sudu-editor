@@ -23,6 +23,14 @@ public class DemoRect {
     size.set(w, h);
   }
 
+  public void makeEmpty() {
+    size.set(0, 0);
+  }
+
+  public boolean isEmpty() {
+    return size.x * size.y == 0;
+  }
+
   public boolean isInside(V2i p) {
     return Rect.isInside(p, pos, size);
   }

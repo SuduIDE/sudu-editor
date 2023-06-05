@@ -3,6 +3,7 @@ package org.sudu.experiments.math;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public interface ArrayOp {
   static <T> T[] add(T[] a, T[] b) {
@@ -94,4 +95,8 @@ public interface ArrayOp {
     for (int i = 0; i < data.length; i++) data[i] = list.get(i);
     result.accept(data);
   }
+
+  static <T> Supplier<T[]> supplier(T... values) {
+      return () -> values;
+    }
 }

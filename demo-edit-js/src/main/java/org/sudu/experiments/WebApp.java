@@ -60,7 +60,6 @@ public class WebApp {
 
   static Scene createScene(SceneApi api) {
     String name = Window.current().getLocation().getHash();
-    Debug.consoleInfo("createScene: " + name);
     return switch (name) {
       case "" -> new DemoEdit0(api);
       case "#wasm" -> new WasmDemo(api);
