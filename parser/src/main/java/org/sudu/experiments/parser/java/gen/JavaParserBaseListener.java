@@ -1681,6 +1681,19 @@ public class JavaParserBaseListener implements JavaParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterCompilationUnitOrAny(JavaParser.CompilationUnitOrAnyContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCompilationUnitOrAny(JavaParser.CompilationUnitOrAnyContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterAnySeq(JavaParser.AnySeqContext ctx) { }
 	/**
 	 * {@inheritDoc}

@@ -5,8 +5,8 @@ import org.sudu.experiments.parser.java.gen.JavaLexer;
 
 import java.util.List;
 
-import static org.sudu.experiments.parser.java.ParserConstants.TokenTypes.*;
-import static org.sudu.experiments.parser.java.ParserConstants.TokenTypes.COMMENT;
+import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
+import static org.sudu.experiments.parser.ParserConstants.TokenTypes.COMMENT;
 
 public class JavaLexerHighlighting {
 
@@ -34,6 +34,10 @@ public class JavaLexerHighlighting {
   public static boolean isKeyword(int type) {
     return (type >= JavaLexer.ABSTRACT && type <= JavaLexer.WHILE)
         || (type >= JavaLexer.YIELD && type <= JavaLexer.NON_SEALED);
+  }
+
+  public static boolean isKeywordIdentifier(int type) {
+    return type >= JavaLexer.MODULE && type <= JavaLexer.VAR;
   }
 
   public static boolean isNumeric(int type) {

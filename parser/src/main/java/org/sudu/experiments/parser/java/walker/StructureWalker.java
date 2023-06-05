@@ -7,7 +7,7 @@ import org.sudu.experiments.parser.java.gen.st.JavaStructureParserBaseListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.sudu.experiments.parser.java.ParserConstants.IntervalTypes.*;
+import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Java.*;
 
 public class StructureWalker extends JavaStructureParserBaseListener {
 

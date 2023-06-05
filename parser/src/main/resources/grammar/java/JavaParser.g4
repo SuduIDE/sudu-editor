@@ -34,7 +34,7 @@ parser grammar JavaParser;
 options { tokenVocab=JavaLexer; }
 
 compilationUnit
-    : packageDeclaration? importDeclaration* typeDeclaration*
+    : packageDeclaration? importDeclaration* typeDeclaration* EOF
     | moduleDeclaration EOF
     ;
 
@@ -783,6 +783,11 @@ unknownInterval
       | anySeq
       )+?
     | EOF
+    ;
+
+compilationUnitOrAny
+    : compilationUnit
+    | anySeq+?
     ;
 
 anySeq:

@@ -12,27 +12,19 @@ public interface StartFile {
       */
       
       public class Main {
-        private static String helloWorld = "Hello, World!";
-        private int a;
-        
-        public static void main(String[] args) {
-          System.out.println(helloWorld);
+      
+        public int field;
+
+        public int sumField(int field) {
+          return field + this.field;
         }
-        
-        @Deprecated
-        private int sum(int a) {
-          int b = 10;
-          int c = a + b + this.a;
-          return c;
-        }
-        
+
         public interface A {
-          void a();
+          int sumField(int field);
           
-          // Some func
-          void b();
-          
-          void c();
+          default void foo() {
+            sumField(10);
+          }
         }
       }
       """;

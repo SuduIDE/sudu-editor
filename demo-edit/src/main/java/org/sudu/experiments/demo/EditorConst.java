@@ -17,13 +17,14 @@ interface EditorConst {
   int MIN_FONT_SIZE = 7;
   int MIN_CACHE_LINES = 7;
   int VIEWPORT_OFFSET = 100;
-  int[] FIRST_LINES = new int[]{100};
-  int BIG_FILE_SIZE_KB = 10 * 1024;
+  int[] FIRST_LINES = new int[]{250};
+  int FILE_SIZE_5_KB = 5 * 1024;
+  int FILE_SIZE_10_KB = 10 * 1024;
 
   float LINE_HEIGHT = 1.5f - 0.125f;
 
   int LINE_NUMBERS_TEXTURE_SIZE = 20;
   int LINE_NUMBERS_RIGHT_PADDING = 20;
 
-  double TYPING_STOP_TIME = .25;
+  double TYPING_STOP_TIME = .1;
 }

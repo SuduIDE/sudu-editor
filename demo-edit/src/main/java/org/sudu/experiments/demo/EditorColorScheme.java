@@ -1,7 +1,7 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.math.Color;
-import org.sudu.experiments.parser.java.ParserConstants;
+import org.sudu.experiments.parser.ParserConstants;
 
 public class EditorColorScheme {
   public final Color editBgColor;

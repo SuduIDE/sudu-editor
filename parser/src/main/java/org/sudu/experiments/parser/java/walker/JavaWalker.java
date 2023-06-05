@@ -1,30 +1,38 @@
 package org.sudu.experiments.parser.java.walker;
 
+import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.sudu.experiments.parser.Pos;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.JavaParserBaseListener;
+import org.sudu.experiments.parser.java.model.Block;
+import org.sudu.experiments.parser.java.model.Decl;
+import org.sudu.experiments.parser.java.model.Field;
 import org.sudu.experiments.parser.java.model.JavaClass;
-import static org.sudu.experiments.parser.java.ParserConstants.*;
-import static org.sudu.experiments.parser.java.ParserConstants.TokenTypes.*;
+
+import static org.sudu.experiments.parser.ParserConstants.*;
+import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
 import static org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting.*;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class JavaWalker extends JavaParserBaseListener {
   private final int[] tokenTypes;
   private final int[] tokenStyles;
   private JavaClass javaClass;
+  private final Map<Pos, Pos> usagesToDefs;
 
-  private Set<String> curMethodArgs;
+  private List<Decl> curMethodArgs;
+  private Block currentBlock;
 
-  public JavaWalker(int[] tokenTypes, int[] tokenStyles, JavaClass javaClass) {
+  public JavaWalker(int[] tokenTypes, int[] tokenStyles, JavaClass javaClass, Map<Pos, Pos> usagesToDefs) {
     this.tokenTypes = tokenTypes;
     this.tokenStyles = tokenStyles;
     this.javaClass = javaClass;
+    this.usagesToDefs = usagesToDefs;
 
-    curMethodArgs = Collections.emptySet();
+    currentBlock = new Block(null);
+    curMethodArgs = new ArrayList<>();
   }
 
   @Override
@@ -162,7 +170,7 @@ public class JavaWalker extends JavaParserBaseListener {
     tokenTypes[id.getTokenIndex()] = TokenTypes.METHOD;
     tokenStyles[id.getTokenIndex()] = isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL;
 
-    curMethodArgs = Collections.emptySet();
+    curMethodArgs.clear();
   }
 
   @Override
@@ -176,7 +184,7 @@ public class JavaWalker extends JavaParserBaseListener {
   @Override
   public void exitConstructorDeclaration(JavaParser.ConstructorDeclarationContext ctx) {
     super.exitConstructorDeclaration(ctx);
-    curMethodArgs = Collections.emptySet();
+    curMethodArgs.clear();
 
     var id = getIdentifier(ctx.identifier()).getSymbol();
     tokenTypes[id.getTokenIndex()] = TokenTypes.METHOD;
@@ -193,43 +201,28 @@ public class JavaWalker extends JavaParserBaseListener {
   public void exitQualifiedName(JavaParser.QualifiedNameContext ctx) {
     super.exitQualifiedName(ctx);
     var first = ctx.identifier(0);
-    var ind = first.getRuleIndex();
-    if (isField(first)) {
-      var field = javaClass.getField(first.getText());
-      tokenTypes[ind] = TokenTypes.FIELD;
-      tokenStyles[ind] = field.isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL;
-    }
-  }
-
-  @Override
-  public void exitPrimary(JavaParser.PrimaryContext ctx) {
-    super.exitPrimary(ctx);
-    if (ctx.identifier() == null) return;
-    var token = getIdentifier(ctx.identifier()).getSymbol();
-    if (isField(ctx.identifier())) {
-      var field = javaClass.getField(ctx.identifier().getText());
-      tokenTypes[token.getTokenIndex()] = TokenTypes.FIELD;
-      tokenStyles[token.getTokenIndex()] = field.isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL;
-    }
+    markFieldUsage(getIdentifier(first), false);
   }
 
   @Override
   public void exitIdentifier(JavaParser.IdentifierContext ctx) {
     super.exitIdentifier(ctx);
-    var name = ctx.getText();
-    if (ctx.parent instanceof JavaParser.ExpressionContext parent && parent.getText().startsWith("this.")) {
-      var token = getIdentifier(parent.identifier()).getSymbol();
-      var field = javaClass.getField(name);
-      if (field != null) {
-        tokenTypes[token.getTokenIndex()] = TokenTypes.FIELD;
-        tokenStyles[token.getTokenIndex()] = field.isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL;
-      }
-      else
-        tokenTypes[token.getTokenIndex()] = TokenTypes.ERROR;
+    if (!(ctx.parent instanceof JavaParser.MethodCallContext
+        || ctx.parent instanceof JavaParser.PrimaryContext
+        || ctx.parent instanceof JavaParser.ExpressionContext)
+    ) return;
+
+    boolean isMethodCall = false;
+    if (ctx.parent instanceof JavaParser.MethodCallContext methodCall) {
+      if (!isSoleMethodCall(methodCall)) return;
+      isMethodCall = true;
     }
-    var method = javaClass.getMethod(name);
-    if (method != null && method.isStatic)
-      tokenStyles[getIdentifier(ctx).getSymbol().getTokenIndex()] = TokenStyles.ITALIC;
+
+    boolean hasThis = ctx.parent instanceof JavaParser.ExpressionContext exprParent && hasThis(exprParent);
+    if (ctx.parent instanceof JavaParser.ExpressionContext && !hasThis) return;
+
+    if (isMethodCall) markMethodUsage(getIdentifier(ctx), hasThis);
+    else markFieldUsage(getIdentifier(ctx), hasThis);
   }
 
   @Override
@@ -248,15 +241,31 @@ public class JavaWalker extends JavaParserBaseListener {
   }
 
   @Override
-  public void exitMethodCall(JavaParser.MethodCallContext ctx) {
-    super.exitMethodCall(ctx);
-    if (ctx.identifier() == null) return;
-    var id = getIdentifier(ctx.identifier()).getSymbol();
-    var method = javaClass.getMethod(id.getText());
-    if (method != null) {
-      tokenTypes[id.getTokenIndex()] = DEFAULT;
-      tokenStyles[id.getTokenIndex()] = method.isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL;
+  public void enterBlock(JavaParser.BlockContext ctx) {
+    super.enterBlock(ctx);
+    Block block = new Block(currentBlock);
+    currentBlock.subBlock = block;
+    currentBlock = block;
+  }
+
+  @Override
+  public void exitBlock(JavaParser.BlockContext ctx) {
+    super.exitBlock(ctx);
+    currentBlock = currentBlock.innerBlock;
+    currentBlock.subBlock = null;
+  }
+
+  @Override
+  public void exitLocalVariableDeclaration(JavaParser.LocalVariableDeclarationContext ctx) {
+    super.exitLocalVariableDeclaration(ctx);
+    if (!(ctx.parent instanceof JavaParser.BlockStatementContext)) return;
+    if (ctx.identifier() != null) {
+      var node = getIdentifier(ctx.identifier());
+      Decl decl = new Decl(node.getText(), Pos.fromNode(node));
+      currentBlock.localVars.add(decl);
+      return;
     }
+    currentBlock.localVars.addAll(getVarDeclarators(ctx.variableDeclarators()));
   }
 
   @Override
@@ -265,7 +274,7 @@ public class JavaWalker extends JavaParserBaseListener {
     var token = node.getSymbol();
     int ind = token.getTokenIndex();
     int type = token.getType();
-    if (isKeyword(type) && !isIdentifier(node)) tokenTypes[ind] = KEYWORD;
+    if (isKeyword(type) || (isKeywordIdentifier(type) && !isIdentifier(node))) tokenTypes[ind] = KEYWORD;
     else if (isNumeric(type)) tokenTypes[ind] = NUMERIC;
     else if (isBooleanLiteral(type)) tokenTypes[ind] = BOOLEAN;
     else if (isStringOrChar(type)) tokenTypes[ind] = STRING;
@@ -274,25 +283,120 @@ public class JavaWalker extends JavaParserBaseListener {
     else if (isAT(type)) tokenTypes[ind] = ANNOTATION;
   }
 
-  private static Set<String> getMethodArguments(JavaParser.FormalParametersContext formalParameters) {
+  @Override
+  public void visitErrorNode(ErrorNode node) {
+    super.visitErrorNode(node);
+    var token = node.getSymbol();
+    int ind = token.getTokenIndex();
+    if (ind == -1) {
+      return;
+    }
+    tokenTypes[ind] = ERROR;
+  }
+
+  private void markFieldUsage(TerminalNode node, boolean hasThis) {
+    var token = node.getSymbol();
+    String name = token.getText();
+    int ind = token.getTokenIndex();
+
+    Decl decl;
+    if (hasThis) {
+      decl = javaClass.getField(name);
+      if (decl == null) {
+        tokenTypes[ind] = ERROR;
+        return;
+      }
+      tokenTypes[ind] = FIELD;
+      tokenStyles[ind] = ((Field) decl).isStatic ? ERROR : TokenStyles.NORMAL;
+      usagesToDefs.put(Pos.fromNode(node), decl.position);
+      return;
+    }
+
+    decl = getMethodArgument(name);
+    if (decl != null) {
+      usagesToDefs.put(Pos.fromNode(node), decl.position);
+      return;
+    }
+    decl = currentBlock.getLocalDecl(name);
+    if (decl != null) {
+      usagesToDefs.put(Pos.fromNode(node), decl.position);
+      return;
+    }
+
+    decl = javaClass.getField(name);
+    if (decl == null) return;
+
+    Field declField = (Field) decl;
+    tokenTypes[ind] = FIELD;
+    tokenStyles[ind] = declField.isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL;
+    usagesToDefs.put(Pos.fromNode(node), declField.position);
+  }
+
+  private void markMethodUsage(TerminalNode node, boolean hasThis) {
+    var token = node.getSymbol();
+    String name = token.getText();
+    int ind = token.getTokenIndex();
+    var def = javaClass.getMethod(name);
+    if (def == null) {
+      tokenTypes[ind] = hasThis ? ERROR : DEFAULT;
+      return;
+    }
+
+    int style = TokenStyles.BOLD;
+    if (def.isStatic) style |= TokenStyles.ITALIC;
+    tokenStyles[ind] = style;
+    usagesToDefs.put(Pos.fromNode(node), def.position);
+  }
+
+  private static List<Decl> getMethodArguments(JavaParser.FormalParametersContext formalParameters) {
     var parameterList = formalParameters.formalParameterList();
-    if (parameterList == null) return Collections.emptySet();
+    if (parameterList == null) return new ArrayList<>();
     var parameters = parameterList.formalParameter();
-    return parameters.stream().map(param -> param.variableDeclaratorId().getText()).collect(Collectors.toSet());
+    List<Decl> result = new ArrayList<>();
+    for (var param: parameters) {
+      var id = getIdentifier(param.variableDeclaratorId().identifier());
+      result.add(new Decl(id.getText(), Pos.fromNode(id)));
+    }
+    return result;
+  }
+
+  private Decl getMethodArgument(String declName) {
+    for (var arg: curMethodArgs) {
+      if (arg.name.equals(declName)) return arg;
+    }
+    return null;
+  }
+
+  private static List<Decl> getVarDeclarators(JavaParser.VariableDeclaratorsContext ctx) {
+    List<Decl> result = new ArrayList<>();
+    for (var declarator: ctx.variableDeclarator()) {
+      var node = getIdentifier(declarator.variableDeclaratorId().identifier());
+      Decl decl = new Decl(node.getText(), Pos.fromNode(node));
+      result.add(decl);
+    }
+    return result;
+  }
+
+  private static boolean isSoleMethodCall(JavaParser.MethodCallContext ctx) {
+    JavaParser.ExpressionContext parent = (JavaParser.ExpressionContext) ctx.parent;
+    return parent.getChildCount() == 1 && parent.getChild(0) instanceof JavaParser.MethodCallContext;
+  }
+
+  private static boolean hasThis(JavaParser.ExpressionContext ctx) {
+    if (ctx.getChildCount() < 3) return false;
+    var expression = ctx.expression(0);
+    return expression.primary() != null && expression.primary().THIS() != null
+        && ctx.bop != null;
   }
 
   private static boolean isIdentifier(TerminalNode node) {
     if (node.getParent() == null) return false;
-    return node.getParent() instanceof JavaParser.IdentifierContext;
-  }
-
-  private boolean isField(JavaParser.IdentifierContext ctx) {
-    String id = ctx.getText();
-    return javaClass.getField(id) != null && !curMethodArgs.contains(id);
+    return node.getParent() instanceof JavaParser.IdentifierContext
+        || node.getParent() instanceof JavaParser.AnySeqContext;
   }
 
   private static TerminalNode getIdentifier(JavaParser.IdentifierContext ctx) {
-    return (TerminalNode) ctx.children.get(0);
+    return (TerminalNode) ctx.getChild(0);
   }
 
 }

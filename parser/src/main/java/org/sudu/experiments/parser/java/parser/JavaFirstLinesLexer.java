@@ -3,13 +3,14 @@ package org.sudu.experiments.parser.java.parser;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Token;
+import org.sudu.experiments.parser.common.BaseFullParser;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class JavaFirstLinesLexer extends BaseJavaFullParser {
+public class JavaFirstLinesLexer extends BaseFullParser {
 
   public int[] parse(String source, int numOfStrings) {
     long parsingStartTime = System.currentTimeMillis();
