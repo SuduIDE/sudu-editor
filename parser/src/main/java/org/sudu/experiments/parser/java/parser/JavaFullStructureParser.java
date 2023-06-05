@@ -3,15 +3,16 @@ package org.sudu.experiments.parser.java.parser;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.common.BaseFullParser;
 import org.sudu.experiments.parser.java.gen.st.JavaStructureLexer;
 import org.sudu.experiments.parser.java.gen.st.JavaStructureParser;
 import org.sudu.experiments.parser.java.walker.StructureWalker;
 
 import java.util.*;
 
-import static org.sudu.experiments.parser.java.ParserConstants.*;
+import static org.sudu.experiments.parser.ParserConstants.*;
 
-public class JavaFullStructureParser extends BaseJavaFullParser {
+public class JavaFullStructureParser extends BaseFullParser {
 
   public int[] parse(String source) {
     long parsingStartTime = System.currentTimeMillis();
@@ -21,7 +22,7 @@ public class JavaFullStructureParser extends BaseJavaFullParser {
 
     var compUnit = parser.compilationUnit();
     var stWalker = new StructureWalker();
-    stWalker.intervals.add(new Interval(0, source.length(), IntervalTypes.COMP_UNIT));
+    stWalker.intervals.add(new Interval(0, source.length(), IntervalTypes.Java.COMP_UNIT));
 
     ParseTreeWalker walker = new ParseTreeWalker();
     walker.walk(stWalker, compUnit);
@@ -29,7 +30,7 @@ public class JavaFullStructureParser extends BaseJavaFullParser {
     List<Interval> intervals = stWalker.intervals;
     for (var token : allTokens) {
       if (token.getType() == JavaStructureLexer.COMMENT) {
-        var commentInterval = new Interval(token.getStartIndex(), token.getStopIndex() + 1, IntervalTypes.COMMENT);
+        var commentInterval = new Interval(token.getStartIndex(), token.getStopIndex() + 1, IntervalTypes.Java.COMMENT);
         intervals.add(commentInterval);
       }
     }

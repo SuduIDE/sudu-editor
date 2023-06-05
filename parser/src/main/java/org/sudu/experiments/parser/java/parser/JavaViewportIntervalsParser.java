@@ -4,16 +4,22 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.CommonTokenSubStream;
-import org.sudu.experiments.parser.java.ParserConstants;
+import org.sudu.experiments.parser.common.BaseIntervalParser;
+import org.sudu.experiments.parser.ParserConstants;
+import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
+import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting;
 import org.sudu.experiments.parser.java.walker.ClassWalker;
 import org.sudu.experiments.parser.java.walker.JavaWalker;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class JavaViewportIntervalsParser extends BaseJavaViewportParser {
+import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Java.*;
+
+public class JavaViewportIntervalsParser extends BaseIntervalParser {
 
   // viewport - {leftInd, rightInd, firstLine}
   public int[] parseViewport(String source, int[] viewport, int[] intervals) {
@@ -25,10 +31,10 @@ public class JavaViewportIntervalsParser extends BaseJavaViewportParser {
 
     highlightTokens();
     parseIntervals(intervalList);
-    return getVpInts(vpStart, vpEnd);
+    return getVpInts(vpStart, vpEnd, List.of());
   }
 
-  private List<Interval> makeIntervalList(int[] intervals, int vpStart, int vpEnd) {
+  List<Interval> makeIntervalList(int[] intervals, int vpStart, int vpEnd) {
     List<Interval> intervalList = new ArrayList<>();
     for (int i = 0; i < intervals.length; ) {
       int start = intervals[i++];
@@ -46,6 +52,32 @@ public class JavaViewportIntervalsParser extends BaseJavaViewportParser {
     return intervalList;
   }
 
+  @Override
+  protected List<Interval> parseInterval(Interval interval) {
+    var tokenSrc = getSubSource(interval);
+    CommonTokenStream tokenStream = new CommonTokenSubStream(tokenSrc);
+    tokenStream.fill();
+
+    JavaParser parser = new JavaParser(tokenStream);
+    ParserRuleContext ruleContext;
+
+    ruleContext = switch (interval.intervalType) {
+      case COMP_UNIT -> parser.compilationUnit();
+      case PACKAGE -> parser.packageDeclaration();
+      case IMPORT -> parser.importDeclaration();
+      case TYPE_DECL -> parser.typeDeclaration();
+      case CLASS_BODY -> parser.classOrInterfaceBodyDeclaration();
+      default -> throw new IllegalStateException("Unexpected value: " + interval.intervalType);
+    };
+    ParseTreeWalker walker = new ParseTreeWalker();
+
+    var classWalker = new ClassWalker();
+    walker.walk(classWalker, ruleContext);
+    var javaWalker = new JavaWalker(tokenTypes, tokenStyles, classWalker.dummy, new HashMap<>());
+    walker.walk(javaWalker, ruleContext);
+    return List.of();
+  }
+
   private TokenSource getSubSource(Interval interval) {
     List<Token> tokensInInterval = allTokens.stream()
         .filter(interval::contains)
@@ -60,7 +92,7 @@ public class JavaViewportIntervalsParser extends BaseJavaViewportParser {
         parsedIntervals.add(interval);
         continue;
       }
-      if (interval.intervalType != ParserConstants.IntervalTypes.COMMENT) parseInterval(interval);
+      if (interval.intervalType != COMMENT) parseInterval(interval);
       else highlightComment(interval);
 
       parsedIntervals.add(interval);
@@ -83,38 +115,38 @@ public class JavaViewportIntervalsParser extends BaseJavaViewportParser {
 
   private boolean filterIntervals(Interval interval, int vpStart, int vpEnd) {
     if (interval.containsIn(vpStart, vpEnd)) return true;
-    return interval.intervalType == ParserConstants.IntervalTypes.COMMENT
+    return interval.intervalType == COMMENT
         && (interval.intersect(vpStart, vpEnd)
         || interval.contains(vpStart, vpEnd)
     );
   }
 
-  void parseInterval(Interval interval) {
-    var tokenSrc = getSubSource(interval);
-    CommonTokenStream tokenStream = new CommonTokenSubStream(tokenSrc);
-    tokenStream.fill();
-
-    JavaParser parser = new JavaParser(tokenStream);
-    ParserRuleContext ruleContext;
-
-    ruleContext = switch (interval.intervalType) {
-      case ParserConstants.IntervalTypes.COMP_UNIT -> parser.compilationUnit();
-      case ParserConstants.IntervalTypes.PACKAGE -> parser.packageDeclaration();
-      case ParserConstants.IntervalTypes.IMPORT -> parser.importDeclaration();
-      case ParserConstants.IntervalTypes.TYPE_DECL -> parser.typeDeclaration();
-      case ParserConstants.IntervalTypes.CLASS_BODY -> parser.classOrInterfaceBodyDeclaration();
-      default -> throw new IllegalStateException("Unexpected value: " + interval.intervalType);
-    };
-    ParseTreeWalker walker = new ParseTreeWalker();
-
-    var classWalker = new ClassWalker();
-    walker.walk(classWalker, ruleContext);
-    var javaWalker = new JavaWalker(tokenTypes, tokenStyles, classWalker.dummy);
-    walker.walk(javaWalker, ruleContext);
+  @Override
+  protected void highlightTokens() {
+    JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes);
   }
 
   @Override
   protected boolean isComment(int tokenType) {
-    return false;
+    return JavaLexerHighlighting.isComment(tokenType);
   }
+
+  @Override
+  protected boolean isMultilineToken(int tokenType) {
+    return tokenType == JavaLexer.COMMENT
+        || tokenType == JavaLexer.TEXT_BLOCK;
+  }
+
+  @Override
+  protected Lexer initLexer(CharStream stream) {
+    return new JavaLexer(stream);
+  }
+
+  @Override
+  protected boolean tokenFilter(Token token) {
+    int type = token.getType();
+    return type != JavaLexer.NEW_LINE
+        && type != JavaLexer.EOF;
+  }
+
 }

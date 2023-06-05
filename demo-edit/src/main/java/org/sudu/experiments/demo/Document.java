@@ -5,15 +5,15 @@ import org.sudu.experiments.demo.worker.IntervalTree;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.Pos;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class Document {
   CodeLine[] document;
   public IntervalTree tree;
+  public Map<Pos, Pos> usageToDef;
   List<Diff> diffs = new ArrayList<>();
 
   int currentVersion;
@@ -24,6 +24,7 @@ public class Document {
     tree = new IntervalTree(new ArrayList<>());
     document = new CodeLine[]{new CodeLine(new CodeElement(""))};
     currentVersion = lastParsedVersion = 0;
+    usageToDef = new HashMap<>();
   }
 
   public Document(CodeLine ... data) {
@@ -233,6 +234,19 @@ public class Document {
     }
   }
 
+  public boolean hasDefinition(int line, int pos) {
+    return getDefinitionPos(line, pos) != null;
+  }
+
+  public Pos getDefinitionPos(int line, int pos) {
+    return usageToDef.get(getPosition(line, pos));
+  }
+
+  public Pos getPosition(int line, int pos) {
+    int charPos = line(line).getElementPos(pos);
+    return new Pos(line, charPos);
+  }
+
   public V2i getLine(int ind) {
     for (int i = 0, sum = 0; i < document.length; i++) {
       if (sum + line(i).totalStrLength >= ind) return new V2i(i, ind - sum);
@@ -336,7 +350,7 @@ public class Document {
   }
 
   public boolean needReparse(double timestamp) {
-    return (lastParsedVersion != currentVersion) && (timestamp - lastDiffTimestamp > 1);
+    return (lastParsedVersion != currentVersion) && (timestamp - lastDiffTimestamp > EditorConst.TYPING_STOP_TIME);
   }
 
   public void onReparse() {

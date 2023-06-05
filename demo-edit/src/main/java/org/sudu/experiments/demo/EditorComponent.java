@@ -4,13 +4,17 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.demo.worker.*;
+import org.sudu.experiments.demo.worker.parser.FileParser;
+import org.sudu.experiments.demo.worker.parser.JavaParser;
+import org.sudu.experiments.demo.worker.parser.ParserUtils;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.*;
+import org.sudu.experiments.parser.cpp.parser.CppIntervalParser;
 import org.sudu.experiments.parser.java.parser.JavaIntervalParser;
+import org.sudu.experiments.parser.javascript.parser.JavaScriptIntervalParser;
 import org.sudu.experiments.worker.ArrayView;
 
 import java.util.Arrays;
@@ -83,6 +87,8 @@ public class EditorComponent implements EditApi, Disposable {
   boolean fileStructureParsed, firstLinesParsed;
   int fileType = FileParser.JAVA_FILE;
   String tabIndent = "  ";
+
+  boolean ctrlPressed = false;
 
   public EditorComponent(SceneApi api) {
     this(api, new Document());
@@ -599,34 +605,44 @@ public class EditorComponent implements EditApi, Disposable {
   private long parsingTimeStart;
   private void onFileParsed(Object[] result) {
     Debug.consoleInfo("onFileParsed");
-    int[] ints = ((ArrayView) result[0]).ints();
-    char[] chars = ((ArrayView) result[1]).chars();
-
-    this.document = BaseParser.makeDocument(ints, chars);
-
-    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
-    int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
-
-    setCaretLinePos(newCaretLine, newCaretCharInd, false);
-    api.window.setCursor(Cursor.arrow);
-    api.window.repaint();
-    Debug.consoleInfo("Full file parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
-  }
-
-  private void onFileStructureParsed(Object[] result) {
     fileStructureParsed = true;
+    firstLinesParsed = true;
 
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
     int type = ((ArrayView) result[2]).ints()[0];
+
+    this.document = ParserUtils.makeDocument(ints, chars);
     this.fileType = type;
 
-    this.document = JavaLexerFirstLines.makeDocument(document, ints, chars, firstLinesParsed);
+//    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
+//    int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
+//
+//    setCaretLinePos(newCaretLine, newCaretCharInd, false);
+    api.window.setCursor(Cursor.arrow);
+    api.window.repaint();
+    Debug.consoleInfo("Full file parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
+    Debug.consoleInfo("\n");
+  }
 
-    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
-    int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
+  private void onFileStructureParsed(Object[] result) {
+    int type = ((ArrayView) result[2]).ints()[0];
+    if (type != FileParser.JAVA_FILE) {
+      onFileParsed(result);
+      return;
+    }
+    fileStructureParsed = true;
 
-    setCaretLinePos(newCaretLine, newCaretCharInd, false);
+    int[] ints = ((ArrayView) result[0]).ints();
+    char[] chars = ((ArrayView) result[1]).chars();
+    this.fileType = type;
+
+    this.document = ParserUtils.updateDocument(document, ints, chars, firstLinesParsed);
+
+//    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
+//    int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
+//
+//    setCaretLinePos(newCaretLine, newCaretCharInd, false);
     api.window.setCursor(Cursor.arrow);
     api.window.repaint();
     Debug.consoleInfo("File structure parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
@@ -639,12 +655,12 @@ public class EditorComponent implements EditApi, Disposable {
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
 
-    BaseParser.updateDocument(document, ints, chars);
+    ParserUtils.updateDocument(document, ints, chars);
 
-    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
-    int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
-
-    setCaretLinePos(newCaretLine, newCaretCharInd, false);
+//    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
+//    int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
+//
+//    setCaretLinePos(newCaretLine, newCaretCharInd, false);
     api.window.setCursor(Cursor.arrow);
     api.window.repaint();
     Debug.consoleInfo("Viewport parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
@@ -662,7 +678,7 @@ public class EditorComponent implements EditApi, Disposable {
     if (fileStructureParsed) return;
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
-    this.document = BaseParser.makeDocument(ints, chars);
+    this.document = ParserUtils.makeDocument(ints, chars);
     firstLinesParsed = true;
     Debug.consoleInfo("First lines parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
   }
@@ -674,8 +690,18 @@ public class EditorComponent implements EditApi, Disposable {
     parsingTimeStart = System.currentTimeMillis();
     fileStructureParsed = false;
     firstLinesParsed = false;
+    document = new Document();
+    setCaretLinePos(0, 0, false);
+    sendFileToWorkers(f);
+  }
+
+  private void sendFileToWorkers(FileHandle f) {
+    String ext = f.getExtension();
+    int bigFileSize = FileParser.isJavaExtension(ext) ?
+        EditorConst.FILE_SIZE_10_KB : EditorConst.FILE_SIZE_5_KB;
+
     f.getSize(size -> {
-      if (size <= EditorConst.BIG_FILE_SIZE_KB) {
+      if (size <= bigFileSize) {
         api.window.sendToWorker(this::onFileParsed, FileParser.asyncParseFullFile, f);
       } else {
         api.window.sendToWorker(this::onFirstLinesParsed, FileParser.asyncParseFirstLines, f, Arrays.copyOf(EditorConst.FIRST_LINES, 1));
@@ -805,7 +831,26 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   void onClickText(V2i position, boolean shift) {
-    computeCaret(position);
+    int line = Numbers.clamp(0, (position.y + vScrollPos) / lineHeight, document.length() - 1);
+    int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
+    int charPos = document.line(line).computeCaretLocation(documentXPosition, g.mCanvas, fonts);
+
+    if (ctrlPressed) {
+      var defPos = document.getDefinitionPos(line, charPos);
+      if (defPos != null) {
+        setCaretLinePos(defPos.line, defPos.pos, false);
+        int nextPos = caretCodeLine().nextPos(caretPos);
+        selection.startPos.set(caretLine, nextPos);
+        selection.endPos.set(caretLine, caretCharPos);
+        return;
+      }
+    }
+
+    caretLine = line;
+    caretCharPos = charPos;
+    caretPos = document.line(line).computePixelLocation(caretCharPos, g.mCanvas, fonts);
+    startBlinking();
+
     adjustEditorScrollToCaret();
     if (shift) selection.isSelectionStarted = true;
     if (!selection.isSelectionStarted) {
@@ -897,11 +942,20 @@ public class EditorComponent implements EditApi, Disposable {
     if (vScroll.onMouseMove(eventPosition, setCursor)) return true;
     if (hScroll.onMouseMove(eventPosition, setCursor)) return true;
     if (lineNumbers.onMouseMove(eventPosition, setCursor)) return true;
-    if (onMouseMove(eventPosition)) return setCursor.set(Cursor.text);
+    if (onMouseMove(eventPosition)) {
+      if (ctrlPressed) {
+        int line = Numbers.clamp(0, (eventPosition.y + vScrollPos) / lineHeight, document.length() - 1);
+        int documentXPosition = Math.max(0, eventPosition.x - vLineX + hScrollPos);
+        int pos = document.line(line).computeCaretLocation(documentXPosition, g.mCanvas, fonts);
+        return document.hasDefinition(line, pos) ? setCursor.set(Cursor.pointer) : setCursor.set(Cursor.text);
+      }
+      return setCursor.set(Cursor.text);
+    }
     return setCursor.setDefault();
   }
 
   public boolean onKey(KeyEvent event) {
+    if (!event.isPressed) ctrlPressed = false;
     // do not consume browser keyboard to allow page reload and debug
     if (KeyEvent.isCopyPasteRelatedKey(event) || KeyEvent.isBrowserKey(event)) {
       return false;
@@ -936,7 +990,10 @@ public class EditorComponent implements EditApi, Disposable {
       return true;
     }
 
-    if (event.ctrl || event.alt || event.meta) return false;
+    if (event.ctrl || event.alt || event.meta) {
+      ctrlPressed = event.ctrl;
+      return false;
+    }
     if (event.keyCode == KeyCode.ESC) return false;
     return event.key.length() > 0 && handleInsert(event.key);
   }
@@ -977,11 +1034,19 @@ public class EditorComponent implements EditApi, Disposable {
   public void iterativeParsing() {
     var node = document.tree.getReparseNode();
     if (node == null) return;
+    if (fileType == FileParser.TEXT_FILE) {
+      document.onReparse();
+    }
     String source = document.makeString();
     int[] interval = new int[]{node.getStart(), node.getStop(), node.getType()};
-    int[] ints = new JavaIntervalParser().parseInterval(source, interval);
     char[] chars = document.makeString().toCharArray();
-    BaseParser.updateDocument(document, ints, chars);
+    int[] ints = switch (fileType) {
+      case FileParser.JAVA_FILE -> new JavaIntervalParser().parseInterval(source, interval);
+      case FileParser.CPP_FILE -> new CppIntervalParser().parseInterval(source, interval);
+      case FileParser.JS_FILE -> new JavaScriptIntervalParser().parseInterval(source, interval);
+      default -> null;
+    };
+    if (ints != null) ParserUtils.updateDocument(document, ints, chars);
     document.onReparse();
   }
 
@@ -1032,7 +1097,7 @@ public class EditorComponent implements EditApi, Disposable {
       case KeyCode.DELETE -> handleDelete();
       case KeyCode.BACKSPACE -> handleBackspace();
       case KeyCode.INSERT, KeyCode.ALT, KeyCode.SHIFT,
-          KeyCode.CAPS_LOCK, KeyCode.CTRL -> true;
+          KeyCode.CAPS_LOCK -> true;
       default -> false;
     };
   }

@@ -4,11 +4,14 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.Pos;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.JavaParserBaseListener;
+import org.sudu.experiments.parser.java.model.Field;
 import org.sudu.experiments.parser.java.model.JavaClass;
-import org.sudu.experiments.parser.java.model.JavaMethodField;
-import static org.sudu.experiments.parser.java.ParserConstants.IntervalTypes.*;
+import org.sudu.experiments.parser.java.model.Method;
+
+import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Java.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,7 +32,7 @@ public class ClassWalker extends JavaParserBaseListener {
   private int lastIntervalEnd = 0;
 
   public ClassWalker() {
-    dummy = new JavaClass(null);
+    dummy = new JavaClass(null, null, null);
     current = dummy;
     intervals = new ArrayList<>();
   }
@@ -55,6 +58,7 @@ public class ClassWalker extends JavaParserBaseListener {
   @Override
   public void enterClassBodyDeclaration(JavaParser.ClassBodyDeclarationContext ctx) {
     super.enterClassBodyDeclaration(ctx);
+    if (ctx.parent instanceof JavaParser.EnumBodyDeclarationsContext) return;
     addInterval(ctx, CLASS_BODY);
   }
 
@@ -70,23 +74,17 @@ public class ClassWalker extends JavaParserBaseListener {
     addInterval(ctx, UNKNOWN);
   }
 
-  @Override
-  public void enterEnumConstants(JavaParser.EnumConstantsContext ctx) {
-    super.enterEnumConstants(ctx);
-    addInterval(ctx, UNKNOWN);
-  }
-
-  @Override
-  public void enterAnySeq(JavaParser.AnySeqContext ctx) {
-    super.enterAnySeq(ctx);
-    addInterval(ctx, UNKNOWN);
-  }
+//  @Override
+//  public void enterAnySeq(JavaParser.AnySeqContext ctx) {
+//    super.enterAnySeq(ctx);
+//    addInterval(ctx, UNKNOWN);
+//  }
 
   @Override
   public void enterClassDeclaration(JavaParser.ClassDeclarationContext ctx) {
     super.enterClassDeclaration(ctx);
-    String className = getIdentifier(ctx.identifier()).getText();
-    JavaClass clazz = new JavaClass(className, current);
+    var id = getIdentifier(ctx.identifier());
+    JavaClass clazz = new JavaClass(id.getText(), Pos.fromNode(id), current);
     current.nestedClasses.add(clazz);
     current = clazz;
 
@@ -96,8 +94,8 @@ public class ClassWalker extends JavaParserBaseListener {
   @Override
   public void enterInterfaceDeclaration(JavaParser.InterfaceDeclarationContext ctx) {
     super.enterInterfaceDeclaration(ctx);
-    String className = getIdentifier(ctx.identifier()).getText();
-    JavaClass clazz = new JavaClass(className, current);
+    var id = getIdentifier(ctx.identifier());
+    JavaClass clazz = new JavaClass(id.getText(), Pos.fromNode(id), current);
     current.nestedClasses.add(clazz);
     current = clazz;
 
@@ -107,8 +105,8 @@ public class ClassWalker extends JavaParserBaseListener {
   @Override
   public void enterEnumDeclaration(JavaParser.EnumDeclarationContext ctx) {
     super.enterEnumDeclaration(ctx);
-    String className = getIdentifier(ctx.identifier()).getText();
-    JavaClass clazz = new JavaClass(className, current);
+    var id = getIdentifier(ctx.identifier());
+    JavaClass clazz = new JavaClass(id.getText(), Pos.fromNode(id), current);
     current.nestedClasses.add(clazz);
     current = clazz;
 
@@ -118,8 +116,8 @@ public class ClassWalker extends JavaParserBaseListener {
   @Override
   public void enterRecordDeclaration(JavaParser.RecordDeclarationContext ctx) {
     super.enterRecordDeclaration(ctx);
-    String className = getIdentifier(ctx.identifier()).getText();
-    JavaClass clazz = new JavaClass(className, current);
+    var id = getIdentifier(ctx.identifier());
+    JavaClass clazz = new JavaClass(id.getText(), Pos.fromNode(id), current);
     current.nestedClasses.add(clazz);
     current = clazz;
 
@@ -129,8 +127,8 @@ public class ClassWalker extends JavaParserBaseListener {
   @Override
   public void enterAnnotationTypeDeclaration(JavaParser.AnnotationTypeDeclarationContext ctx) {
     super.enterAnnotationTypeDeclaration(ctx);
-    String className = getIdentifier(ctx.identifier()).getText();
-    JavaClass clazz = new JavaClass(className, current);
+    var id = getIdentifier(ctx.identifier());
+    JavaClass clazz = new JavaClass(id.getText(), Pos.fromNode(id), current);
     current.nestedClasses.add(clazz);
     current = clazz;
 
@@ -185,7 +183,7 @@ public class ClassWalker extends JavaParserBaseListener {
       var variableDeclaratorId = variableDeclarator.variableDeclaratorId();
       var node = getIdentifier(variableDeclaratorId.identifier());
       boolean isStatic = isStatic(getModifiers(ctx));
-      current.fields.add(new JavaMethodField(node.getText(), isStatic));
+      addField(node, isStatic);
     }
   }
 
@@ -195,15 +193,8 @@ public class ClassWalker extends JavaParserBaseListener {
     var constantDeclarators = ctx.constantDeclarator();
     for (var constantDeclarator : constantDeclarators) {
       var node = getIdentifier(constantDeclarator.identifier());
-      current.fields.add(new JavaMethodField(node.getText(), true));
+      addField(node, true);
     }
-  }
-
-  @Override
-  public void exitEnumConstant(JavaParser.EnumConstantContext ctx) {
-    super.exitEnumConstant(ctx);
-    var node = getIdentifier(ctx.identifier());
-    current.fields.add(new JavaMethodField(node.getText(), true));
   }
 
   @Override
@@ -214,7 +205,7 @@ public class ClassWalker extends JavaParserBaseListener {
       var variableDeclaratorId = variableDeclarator.variableDeclaratorId();
       var node = getIdentifier(variableDeclaratorId.identifier());
       boolean isStatic = isStatic(getAnnotationMethodOrConstantRestModifiers((JavaParser.AnnotationMethodOrConstantRestContext) ctx.parent));
-      current.fields.add(new JavaMethodField(node.getText(), isStatic));
+      addField(node, isStatic);
     }
   }
 
@@ -223,7 +214,7 @@ public class ClassWalker extends JavaParserBaseListener {
     super.exitMethodDeclaration(ctx);
     var node = getIdentifier(ctx.identifier());
     var isStatic = isStatic(getModifiers(ctx));
-    current.methods.add(new JavaMethodField(node.getText(), isStatic));
+    addMethod(node, isStatic);
   }
 
   @Override
@@ -231,7 +222,28 @@ public class ClassWalker extends JavaParserBaseListener {
     super.exitAnnotationMethodRest(ctx);
     var node = getIdentifier(ctx.identifier());
     var isStatic = isStatic(getAnnotationMethodOrConstantRestModifiers((JavaParser.AnnotationMethodOrConstantRestContext) ctx.parent));
-    current.methods.add(new JavaMethodField(node.getText(), isStatic));
+    addMethod(node, isStatic);
+  }
+
+  @Override
+  public void exitInterfaceCommonBodyDeclaration(JavaParser.InterfaceCommonBodyDeclarationContext ctx) {
+    super.exitInterfaceCommonBodyDeclaration(ctx);
+    var node = getIdentifier(ctx.identifier());
+    addMethod(node, false);
+  }
+
+  private void addField(TerminalNode node, boolean isStatic) {
+    var token = node.getSymbol();
+    var pos = new Pos(token.getLine(), token.getCharPositionInLine());
+    var text = token.getText();
+    current.fields.add(new Field(text, pos, isStatic));
+  }
+
+  private void addMethod(TerminalNode node, boolean isStatic) {
+    var token = node.getSymbol();
+    var pos = new Pos(token.getLine(), token.getCharPositionInLine());
+    var text = token.getText();
+    current.methods.add(new Method(text, pos, isStatic, List.of()));
   }
 
   @Override

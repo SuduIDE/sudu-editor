@@ -36,6 +36,15 @@ public class CodeLine {
     return elements[ind];
   }
 
+  public int getElementPos(int charPos) {
+    int sum = 0;
+    for (var elem: elements) {
+      if (sum + elem.s.length() > charPos) break;
+      sum += elem.s.length();
+    }
+    return sum;
+  }
+
   public void delete(int beginIndex, int endIndex) {
     if (beginIndex <= 0 && endIndex >= totalStrLength) {
       elements = new CodeElement[0];

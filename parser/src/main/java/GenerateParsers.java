@@ -13,7 +13,23 @@ public class GenerateParsers {
   private static final String javaStGenPath = baseGenPath + "java/gen/st/";
   private static final String javaStPackagePath = basePackageName + ".java.gen.st";
 
+  private static final String javaHelpGenPath = baseGenPath + "java/gen/help/";
+  private static final String javaHelpPackagePath = basePackageName + ".java.gen.help";
+
+  private static final String cppGenPath = baseGenPath + "cpp/gen/";
+  private static final String cppPackagePath = basePackageName + ".cpp.gen";
+  private static final String cppGrammarPath = baseGrammarPath + "cpp/";
+
+  private static final String jsGenPath = baseGenPath + "javascript/gen/";
+  private static final String jsPackagePath = basePackageName + ".javascript.gen";
+  private static final String jsGrammarPath = baseGrammarPath + "javascript/";
+
+  private static final String lightJsGenPath = baseGenPath + "javascript/gen/light/";
+  private static final String lightJsPackagePath = basePackageName + ".javascript.gen.light";
+
   public static void main(String[] args) {
+    System.out.println("");
+
     new Tool(new String[]{
         "-o",
         javaGenPath,
@@ -31,6 +47,41 @@ public class GenerateParsers {
         javaGrammarPath + "JavaStructureLexer.g4",
         javaGrammarPath + "JavaStructureParser.g4"
     }).processGrammarsOnCommandLine();
+
+    new Tool(new String[]{
+        "-o",
+        javaHelpGenPath,
+        "-package",
+        javaHelpPackagePath,
+        javaGrammarPath + "JavaStringSplitter.g4"
+    }).processGrammarsOnCommandLine();
+
+    new Tool(new String[]{
+        "-o",
+        cppGenPath,
+        "-package",
+        cppPackagePath,
+        cppGrammarPath + "CPP14Lexer.g4",
+        cppGrammarPath + "CPP14Parser.g4"
+    }).processGrammarsOnCommandLine();
+
+    new Tool(new String[]{
+        "-o",
+        jsGenPath,
+        "-package",
+        jsPackagePath,
+        jsGrammarPath + "JavaScriptLexer.g4",
+        jsGrammarPath + "JavaScriptParser.g4"
+    }).processGrammarsOnCommandLine();
+
+    new Tool(new String[]{
+        "-o",
+        lightJsGenPath,
+        "-package",
+        lightJsPackagePath,
+        jsGrammarPath + "LightJavaScriptLexer.g4",
+    }).processGrammarsOnCommandLine();
+
   }
 
 }

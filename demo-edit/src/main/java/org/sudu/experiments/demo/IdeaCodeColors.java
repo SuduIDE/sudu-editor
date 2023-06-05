@@ -17,7 +17,9 @@ public interface IdeaCodeColors {
     showUsage(Colors.defaultText, new Color(52, 65, 52)),
     braceMatch(new Color("#FFEF28"), new Color("#3B514D")),
     comment(new Color("#808080")),
-    annotation(new Color("#BBB529"));
+    annotation(new Color("#BBB529")),
+    type(new Color("#287BDE")),
+    operator(new Color("#5F8C8A"));
 
     public final CodeElementColor v;
 
@@ -43,7 +45,9 @@ public interface IdeaCodeColors {
     showUsage(Colors.defaultText, new Color(0xed, 0xeb, 0xfc)),
     braceMatch(new Color("#FFEF28"), new Color("#93D9D9")),
     comment(new Color("#808080")),
-    annotation(new Color("#BBB529"));
+    annotation(new Color("#BBB529")),
+    type(new Color("#287BDE")),
+    operator(new Color("#5F8C8A"));
 
     public final CodeElementColor v;
 
