@@ -126,7 +126,7 @@ public class ToolbarDemo extends Scene0 implements InputListener {
     V2i tbhSize = tbH.size();
     V2i tbvSize = tbV.size();
     tbH.setPos((newSize.x - tbhSize.x) / 2, (newSize.y - 3 * tbhSize.y) / 2 - 5);
-    tbV.setPos((newSize.x - tbvSize.x) / 2, (newSize.y + 3 * tbhSize.y) / 2 + 5);
+    tbV.setPos((newSize.x - tbvSize.x) / 2, (newSize.y + 3 * tbvSize.y) / 2 + 5);
   }
 
   @Override

@@ -12,6 +12,10 @@ public interface Colors {
   V4f toolbarBorder = new Color("#616161");
   V4f toolbarSelectedBg = new Color("#4B6EAF");
 
+  V4f findUsagesBg = new Color(43);
+  V4f findUsagesBorder = new Color(45);
+  V4f findUsagedSelectedBg = new Color(33, 66, 131);
+
   ToolbarItemColors popupText = new ToolbarItemColors(
       new Color("#BBBBBB"), toolbarBg, toolbarSelectedBg);
   ToolbarItemColors popupText2 = new ToolbarItemColors(

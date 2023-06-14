@@ -3,6 +3,7 @@ package org.sudu.experiments.demo;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.Scene;
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.demo.menu.FindUsagesDemo;
 import org.sudu.experiments.demo.menu.ToolbarDemo;
 import org.sudu.experiments.demo.worker.WorkerTest;
 
@@ -17,6 +18,7 @@ public class TestSceneSelector {
       default -> DemoEdit0::new;
       case "DemoScene1", "test" -> DemoScene1::new;
       case "ToolbarDemo" -> ToolbarDemo::new;
+      case "FindUsagesDemo" -> FindUsagesDemo::new;
       case "ManyTexturesLineNumbersScene", "many"
           -> ManyTexturesLineNumbersScene::new;
       case "SelectFileTest" -> SelectFileTest::new;
