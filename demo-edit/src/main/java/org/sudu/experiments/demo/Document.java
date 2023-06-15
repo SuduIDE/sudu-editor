@@ -40,6 +40,12 @@ public class Document {
     return document[i];
   }
 
+  public void append(char[] text) {
+    int size  = document.length;
+    document = Arrays.copyOf(document, size + 1);
+    document[size] = new CodeLine(new CodeElement(new String(text)));
+  }
+
   public char getChar(int line, int pos) {
     return line(line).getChar(pos);
   }

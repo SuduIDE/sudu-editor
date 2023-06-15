@@ -7,6 +7,7 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSError;
+import org.teavm.jso.core.JSObjects;
 
 public abstract class Promise<T extends JSObject> implements JSObject {
   public native void then(Consumer<T> onResult, Consumer<JSError> onError);
@@ -48,5 +49,9 @@ public abstract class Promise<T extends JSObject> implements JSObject {
 
   public static Promise<JSArrayReader<JSObject>> all(JSObject a, JSObject b, JSObject c) {
     return all(JsHelper.toJsArray(a, b, c));
+  }
+
+  public static boolean isThenable(JSObject obj) {
+    return JSObjects.hasProperty(obj, "then");
   }
 }
