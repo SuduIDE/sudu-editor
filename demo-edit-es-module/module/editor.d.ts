@@ -6,6 +6,9 @@ interface EditArgs {
 
     // default value for workerUrl is "worker.js"
     workerUrl?: string
+
+    // themes: "dark", "light"
+    theme?: string
 }
 
 interface Uri {
@@ -116,8 +119,6 @@ type LanguageSelector = string | ILanguageFilter | Array<string | ILanguageFilte
 interface ICodeEditor {
     focus(): void,
 
-    saySomething(): string,
-
     setText(text: string): void,
 
     getText(): string,
@@ -125,6 +126,8 @@ interface ICodeEditor {
     setFontFamily(fontFamily: string): void,
 
     setFontSize(fontSize: number): void,
+
+    setTheme(theme: string): void,
 
     setModel(model: ITextModel): void,
 

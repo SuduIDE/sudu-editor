@@ -5,7 +5,6 @@ import org.sudu.experiments.demo.EditorComponent;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 public class JsCodeEditor0 implements JsCodeEditor {
@@ -23,6 +22,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
         args.getContainerId().stringValue(),
         worker);
     demoEdit = (DemoEdit0) window.scene();
+    if (args.hasTheme()) setTheme(args.getTheme());
   }
 
   @Override
@@ -50,12 +50,6 @@ public class JsCodeEditor0 implements JsCodeEditor {
   }
 
   @Override
-  public JSString saySomething() {
-    String line = "Hello from java editor " + this;
-    return JSString.valueOf(line);
-  }
-
-  @Override
   public void setFontFamily(JSString fontFamily) {
     EditorComponent editor = demoEdit.editor();
     editor.changeFont(fontFamily.stringValue(), editor.getFontVirtualSize());
@@ -65,6 +59,11 @@ public class JsCodeEditor0 implements JsCodeEditor {
   public void setFontSize(int fontSize) {
     EditorComponent editor = demoEdit.editor();
     editor.changeFont(editor.getFontFamily(), fontSize);
+  }
+
+  @Override
+  public void setTheme(JSString theme) {
+    demoEdit.editor().setTheme(theme.stringValue());
   }
 
   @Override
@@ -107,15 +106,9 @@ public class JsCodeEditor0 implements JsCodeEditor {
       return Promise.create((postResult, postError) ->
           WorkerContext.start(
               worker -> postResult.f(new JsCodeEditor0(arguments, worker)),
-              postError, workerUrl(arguments)));
+              postError, arguments.workerUrl()));
     } else {
       return Promise.reject(FireFoxWarning.message);
     }
   }
-
-  static JSString workerUrl(EditArguments arguments) {
-    return JSObjects.hasProperty(arguments, EditArguments.workerUrlProperty)
-        ? arguments.getWorkerUrl() : JSString.valueOf("worker.js");
-  }
-
 }

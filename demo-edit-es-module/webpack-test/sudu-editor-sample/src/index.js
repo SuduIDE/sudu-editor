@@ -1,4 +1,4 @@
-import { newEditor } from "editor-on-java";
+import { newEditor } from "sudu-editor";
 
 function addPreText(divId, text) {
     let pre = document.createElement("pre");
@@ -14,7 +14,8 @@ function main() {
         newEditor({containerId: x, workerUrl: "worker.js"}).then(
             result => {
                 if (x === "editor1") result.focus();
-                console.log(`Editor started on ${x}: ${result.saySomething()}`)
+                else result.setTheme("light")
+                console.log("Editor " + x + " started")
             },
             error => addPreText(x, error)
         )

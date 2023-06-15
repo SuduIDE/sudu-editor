@@ -165,7 +165,7 @@
         <configuration>
           <filesets>
             <fileset><directory>module/src</directory></fileset>
-            <fileset><directory>webpack-test/editor-on-java-sample/dist</directory></fileset>
+            <fileset><directory>webpack-test/sudu-editor-sample/dist</directory></fileset>
           </filesets>
         </configuration>
     </plugin>

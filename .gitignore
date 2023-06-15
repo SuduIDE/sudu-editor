@@ -8,6 +8,6 @@ target/
 /webpack-test/package-lock.json
 /demo-edit-es-module/module/src/
 /demo-edit-es-module/webpack-test/package-lock.json
-/demo-edit-es-module/webpack-test/editor-on-java-sample/dist/
+/demo-edit-es-module/webpack-test/sudu-editor-sample/dist/
 node_modules
 *.iml

@@ -94,5 +94,5 @@ In order to build it one need to
       2. or with maven `mvn package -am -pl demo-edit-es-module` in root
    2. Build the webpack demo using file demo-edit-es-module/webpack-test/package.json
       1. run npm script "i"
-      2. run npm script "build-editor-on-java-sample"
+      2. run npm script "build-sudu-editor-sample"
       

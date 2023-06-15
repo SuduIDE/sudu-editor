@@ -173,6 +173,14 @@ public class EditorComponent implements EditApi, Disposable {
     this.colors = EditorColorScheme.lightIdeaColorScheme();
   }
 
+  public void setTheme(String theme) {
+    switch (theme) {
+      case "light" -> toggleLight();
+      case "dark" -> toggleDark();
+      default -> Debug.consoleInfo("unknown theme: " + theme);
+    }
+  }
+
   void toggleXOffset() {
     xOffset = (xOffset + 3) % 6;
     for (var line: lines) {

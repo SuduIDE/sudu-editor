@@ -1,5 +1,5 @@
 {
-  "name": "editor-on-java-sample",
+  "name": "sudu-editor-sample",
   "version": "1.0.0",
   "description": "Editor sample site",
   "author": "Kirill",
@@ -15,6 +15,6 @@
     "webpack-cli": "^5.0.1"
   },
   "dependencies": {
-    "editor-on-java": "0.0.0"
+    "sudu-editor": "0.0.1"
   }
 }
