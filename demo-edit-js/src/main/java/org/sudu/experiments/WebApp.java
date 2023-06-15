@@ -18,9 +18,6 @@ public class WebApp {
   WorkerContext workerStarted;
 
   public static void main(String[] args) {
-    JsTests.testArray();
-    JsTests.testPromise();
-
     if (JsCanvas.checkFontMetricsAPI()) {
       WebApp webApp = new WebApp();
       WorkerContext.start(webApp::setWorker, "teavm/worker.js");
