@@ -15,7 +15,7 @@
   </parent>
 
   <properties>
-    <mainClass>org.sudu.experiments.EditorModule</mainClass>
+    <mainClass>org.sudu.experiments.Editor_d_ts</mainClass>
     <workerClass>org.sudu.experiments.WebWorker</workerClass>
     <workerFileTemp>workerOut.js</workerFileTemp>
 

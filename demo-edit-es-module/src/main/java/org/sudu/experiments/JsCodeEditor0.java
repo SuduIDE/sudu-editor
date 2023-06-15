@@ -8,18 +8,18 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
-public class EditorModule implements Editor_d_ts {
+public class JsCodeEditor0 implements JsCodeEditor {
 
   private final EditArguments args;
   private final WebWindow window;
   private final DemoEdit0 demoEdit;
 
-  public EditorModule(EditArguments args, WorkerContext worker) {
+  public JsCodeEditor0(EditArguments args, WorkerContext worker) {
     this.args = args;
 
     this.window = new WebWindow(
         DemoEdit0::new,
-        EditorModule::onWebGlError,
+        JsCodeEditor0::onWebGlError,
         args.getContainerId().stringValue(),
         worker);
     demoEdit = (DemoEdit0) window.scene();
@@ -102,11 +102,11 @@ public class EditorModule implements Editor_d_ts {
     JsHelper.consoleInfo("FATAL: WebGL is not enabled in the browser");
   }
 
-  static Promise<Editor_d_ts> newEdit(EditArguments arguments) {
+  static Promise<JsCodeEditor> newEdit(EditArguments arguments) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
           WorkerContext.start(
-              worker -> postResult.f(new EditorModule(arguments, worker)),
+              worker -> postResult.f(new JsCodeEditor0(arguments, worker)),
               postError, workerUrl(arguments)));
     } else {
       return Promise.reject(FireFoxWarning.message);
@@ -118,9 +118,4 @@ public class EditorModule implements Editor_d_ts {
         ? arguments.getWorkerUrl() : JSString.valueOf("worker.js");
   }
 
-  public static void main(String[] args) {
-
-    Editor_d_ts.Setter.setApi(EditorModule::newEdit);
-    JsITextModel.Setter.setModel(JsTextModel::newTextModel);
-  }
 }
