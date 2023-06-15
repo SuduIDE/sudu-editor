@@ -25,7 +25,8 @@ interface ITextModel extends IDisposable {
     getPositionAt(offset: number): IPosition
 }
 
-type ProviderResult<T> = T | undefined | null | Promise<T | undefined | null>;
+type ProviderValue<T> = T | undefined | null;
+type ProviderResult<T> = ProviderValue<T> | Promise<ProviderValue<T>>;
 
 interface IPosition {
     column: number,
