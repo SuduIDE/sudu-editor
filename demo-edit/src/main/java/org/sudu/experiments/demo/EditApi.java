@@ -13,6 +13,4 @@ interface EditApi {
   interface Listener {
     void somethingHappened();
   }
-
-
 }

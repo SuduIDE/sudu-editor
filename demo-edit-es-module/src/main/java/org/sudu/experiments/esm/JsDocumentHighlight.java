@@ -5,5 +5,7 @@ import org.teavm.jso.JSProperty;
 
 public abstract class JsDocumentHighlight implements JSObject {
   @JSProperty abstract JsRange getRange();
-  @JSProperty abstract JsDocumentHighlightKind getKind();
+
+  // see JsDocumentHighlightKind for enum values
+  @JSProperty abstract int getKind();
 }
