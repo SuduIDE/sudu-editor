@@ -142,6 +142,8 @@ interface ICodeEditor {
     registerDocumentHighlightProvider(languageSelector: LanguageSelector, provider: IDocumentHighlightProvider): IDisposable,
 
     registerEditorOpener(opener: ICodeEditorOpener): IDisposable
+
+    revealLineInCenter(line: number): void
 }
 
 
