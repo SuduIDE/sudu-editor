@@ -1,0 +1,64 @@
+name: "Build and Publish"
+
+on:
+  push:
+    tags:
+      - v0.[0-9]+.[0-9]+
+      - v0.[0-9]+.[0-9]+-rc[0-9]+
+      - v0.[0-9]+.[0-9]+-beta[0-9]+
+      - v0.[0-9]+.[0-9]+-alpha[0-9]+
+
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: 'sudu-editor'
+      -
+        name: Checkout Antlr4 TeaVM compatible repo
+        uses: actions/checkout@v3
+        with:
+          repository: 'pertsevpv/antlr4-teavm-compatible'
+          ref: 'master'
+          path: 'antlr4'
+      -
+        name: Set up Maven
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+      -
+        name: Maven Antlr4 Prerequisite
+        run: cd $GITHUB_WORKSPACE/antlr4 && mvn install -DskipTests
+      -
+        name: Maven Package
+        run: cd $GITHUB_WORKSPACE/sudu-editor && mvn package -am -pl demo-edit-es-module
+      -
+        name: Setup Node
+        uses: actions/setup-node@v3
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        with:
+          node-version: '18.x'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@sudu-ide'
+      -
+        name: Publish artifact to NPM Registry
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        run: |
+          NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
+          echo "::notice::version \"${NEW_VERSION}\""
+          cd $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module && yarn publish --no-git-tag-version --new-version ${NEW_VERSION}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
