@@ -2,6 +2,7 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.DemoRect;
+import org.sudu.experiments.demo.IdeaCodeColors;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.TextRect;
 import org.sudu.experiments.fonts.FontDesk;
@@ -156,7 +157,8 @@ public class FindUsages {
         }
 
         for (FindUsagesItem item : items) {
-            item.tRect.drawText(g, texture, 0, 0, 0);
+            g.drawText(0, 0, item.tRect.size, item.tRect.textureRegion, texture, new Color("#e28720"), new Color("#"))
+            item.tRect.drawText(g, texture, 0, 0, 2);
         }
         if (isVertical) {
             for (FindUsagesItem item : items) {

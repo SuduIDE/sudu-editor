@@ -8,6 +8,8 @@ import java.util.function.Supplier;
 
 public class FindUsagesItem {
     final TextRect tRect = new TextRect();
+    final TextRect tLines = new TextRect();
+    final TextRect tContent = new TextRect();
     final Runnable action;
     final FindUsagesItemColors colors;
     final Supplier<FindUsagesItem[]> subMenu;
