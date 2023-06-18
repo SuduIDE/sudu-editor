@@ -144,6 +144,8 @@ interface ICodeEditor {
     registerEditorOpener(opener: ICodeEditorOpener): IDisposable
 
     revealLineInCenter(line: number): void
+
+    revealLine(line: number): void
 }
 
 
