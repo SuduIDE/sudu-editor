@@ -21,6 +21,24 @@ interface IDisposable {
     dispose(): void
 }
 
+interface IEvent<T> {
+    (listener: (e: T) => any, thisArg?: any): IDisposable;
+}
+
+/**
+ * An event describing that an editor has had its model reset (i.e. `editor.setModel()`).
+ */
+export interface IModelChangedEvent {
+    /**
+     * The `uri` of the previous model or null.
+     */
+    readonly oldModelUrl: Uri | null;
+    /**
+     * The `uri` of the new model or null.
+     */
+    readonly newModelUrl: Uri | null;
+}
+
 interface ITextModel extends IDisposable {
     language?: string
     uri?: Uri
@@ -146,6 +164,8 @@ interface ICodeEditor {
     revealLineInCenter(line: number): void
 
     revealLine(line: number): void
+
+    onDidChangeModel: IEvent<IModelChangedEvent>
 }
 
 
