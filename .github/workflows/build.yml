@@ -68,12 +68,12 @@ jobs:
         name: Maven Antlr4
         run: |
           cd $GITHUB_WORKSPACE/antlr4
-          mvn install --update-snapshots -DskipTests
+          mvn install -DskipTests
       -
         name: Maven Sudu Editor
         run: |
           cd $GITHUB_WORKSPACE/sudu-editor 
-          mvn package --update-snapshots -am -pl demo-edit-es-module
+          mvn package -am -pl demo-edit-es-module
       -
         name: Save Maven Cache
         if: github.event_name == 'workflow_dispatch'
