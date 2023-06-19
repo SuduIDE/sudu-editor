@@ -32,6 +32,6 @@ public interface Editor_d_ts {
 
   static void main(String[] args) {
     EditorFactory.Setter.setApi(JsCodeEditor0::newEdit);
-    TextModelFactory.Setter.setModel(JsTextModel::newTextModel);
+    TextModelFactory.Setter.setModel(JsTextModel::new);
   }
 }

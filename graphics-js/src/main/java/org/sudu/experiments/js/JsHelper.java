@@ -111,8 +111,7 @@ public class JsHelper {
   }
 
   public static String getStringOrNull(JSString str) {
-    if (jsIf(str)) return str.stringValue();
-    return null;
+    return jsIf(str) ? str.stringValue() : null;
   }
 
   @JSBody(params = {"s"}, script = "console.info(s);")

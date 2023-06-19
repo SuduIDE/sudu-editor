@@ -18,7 +18,7 @@ public class LanguageSelector {
         && cmpOptional(docScheme, scheme);
   }
 
-  private static boolean cmpOptional(String docLanguage, String language) {
-    return language == null || docLanguage == null || language.equals(docLanguage);
+  private static boolean cmpOptional(String valueA, String valueB) {
+    return valueB == null || valueA == null || valueB.equals(valueA);
   }
 }

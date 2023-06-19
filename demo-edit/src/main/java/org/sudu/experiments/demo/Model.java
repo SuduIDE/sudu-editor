@@ -5,10 +5,12 @@ public class Model {
   public final String language;
   public final Uri uri;
   public Document document;
+  public Object platformObject;
 
-  public Model(String[] text, String language, Uri uri) {
+  public Model(String[] text, String language, Uri uri, Object platformObject) {
     this.language = language;
     this.uri = uri;
+    this.platformObject = platformObject;
 
     CodeLine[] cl = new CodeLine[text.length];
     for (int i = 0; i < text.length; i++) {
