@@ -31,6 +31,13 @@ jobs:
         with:
           path: 'sudu-editor'
       -
+        name: Checkout TeaVM
+        uses: actions/checkout@v3
+        with:
+          repository: 'kirillp/teavm'
+          ref: 'master'
+          path: 'teavm'
+      -
         name: Checkout Antlr4 TeaVM compatible repo
         uses: actions/checkout@v3
         with:
@@ -38,24 +45,32 @@ jobs:
           ref: 'master'
           path: 'antlr4'
       -
-        name: Restore Maven Cache
-        uses: actions/cache/restore@v3
-        with:
-          path: ~/.m2/repository
-          key: maven-${{ hashFiles('**/pom.xml') }}
-      -
-        name: Set up Maven
+        name: Set up Java
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'adopt'
       -
-        name: Maven Antlr4 Prerequisite
+        name: Restore Maven and Gradle Cache
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.m2/repository
+          key: sudu-editor-cache
+      -
+        name: Maven TeaVM
+        run: |
+          cd $GITHUB_WORKSPACE/teavm
+          ./gradlew publishToMavenLocal --no-daemon -x test
+      -
+        name: Maven Antlr4
         run: |
           cd $GITHUB_WORKSPACE/antlr4
           mvn install --update-snapshots -DskipTests
       -
-        name: Maven Package
+        name: Maven Sudu Editor
         run: |
           cd $GITHUB_WORKSPACE/sudu-editor 
           mvn package --update-snapshots -am -pl demo-edit-es-module
@@ -64,8 +79,11 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         uses: actions/cache/save@v3
         with:
-          path: ~/.m2/repository
-          key: maven-${{ hashFiles('**/pom.xml') }}
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.m2/repository
+          key: sudu-editor-cache
       -
         name: Setup Node
         uses: actions/setup-node@v3
@@ -75,7 +93,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           scope: '@sudu-ide'
       -
-        name: Publish artifact to NPM Registry
+        name: Publish Sudu Editor package to NPM Registry
         if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
