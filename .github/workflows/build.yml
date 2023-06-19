@@ -12,6 +12,10 @@ on:
     branches:
       - master
 
+  workflow_dispatch:
+    branches:
+      - master
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
@@ -34,6 +38,12 @@ jobs:
           ref: 'master'
           path: 'antlr4'
       -
+        name: Restore Maven Cache
+        uses: actions/cache/restore@v3
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('**/pom.xml') }}
+      -
         name: Set up Maven
         uses: actions/setup-java@v3
         with:
@@ -41,10 +51,21 @@ jobs:
           distribution: 'adopt'
       -
         name: Maven Antlr4 Prerequisite
-        run: cd $GITHUB_WORKSPACE/antlr4 && mvn install -DskipTests
+        run: |
+          cd $GITHUB_WORKSPACE/antlr4
+          mvn install --update-snapshots -DskipTests
       -
         name: Maven Package
-        run: cd $GITHUB_WORKSPACE/sudu-editor && mvn package -am -pl demo-edit-es-module
+        run: |
+          cd $GITHUB_WORKSPACE/sudu-editor 
+          mvn package --update-snapshots -am -pl demo-edit-es-module
+      -
+        name: Save Maven Cache
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/cache/save@v3
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('**/pom.xml') }}
       -
         name: Setup Node
         uses: actions/setup-node@v3
@@ -59,6 +80,8 @@ jobs:
         run: |
           NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
           echo "::notice::version \"${NEW_VERSION}\""
-          cd $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module && yarn publish --no-git-tag-version --new-version ${NEW_VERSION}
+          cd $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module
+          npm version ${NEW_VERSION}
+          npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
