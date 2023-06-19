@@ -25,6 +25,10 @@ public class IntervalTree {
     this(null, intervals);
   }
 
+  public static IntervalTree singleInterval(int start, int stop, int intervalType) {
+    return new IntervalTree(new ArrayList<>(List.of(new Interval(start, stop, intervalType))));
+  }
+
   private IntervalTree(Interval root, List<Interval> intervals) {
     if (intervals.isEmpty()) return;
     intervals.sort(INTERVAL_CMP);

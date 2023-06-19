@@ -12,8 +12,8 @@ import java.util.*;
 public class Document {
   CodeLine[] document;
   public IntervalTree tree;
-  public Map<Pos, Pos> usageToDef;
-  public Map<Pos, List<Pos>> defToUsages;
+  public final Map<Pos, Pos> usageToDef = new HashMap<>();
+  public final Map<Pos, List<Pos>> defToUsages = new HashMap<>();
   List<Diff> diffs = new ArrayList<>();
 
   int currentVersion;
@@ -21,22 +21,30 @@ public class Document {
   double lastDiffTimestamp;
 
   public Document() {
-    document = new CodeLine[]{new CodeLine(new CodeElement(""))};
+    document = CodeLine.singleElementLine("");
     currentVersion = lastParsedVersion = 0;
-    usageToDef = new HashMap<>();
-    defToUsages = new HashMap<>();
-    tree = new IntervalTree(new ArrayList<>(List.of(new Interval(0, makeString().length(), 0))));
+    tree = initialInterval();
   }
 
   public Document(CodeLine ... data) {
     document = data;
     currentVersion = lastParsedVersion = 0;
-    tree = new IntervalTree(new ArrayList<>(List.of(new Interval(0, makeString().length(), 0))));
+    tree = initialInterval();
+  }
+
+  public Document(CodeLine[] data, List<Interval> intervalList) {
+    document = data;
+    currentVersion = lastParsedVersion = 0;
+    tree = new IntervalTree(intervalList);
   }
 
   public Document(int n) {
     this(TestText.document(n, false));
-    tree = new IntervalTree(new ArrayList<>(List.of(new Interval(0, makeString().length(), 0))));
+    tree = initialInterval();
+  }
+
+  private IntervalTree initialInterval() {
+    return IntervalTree.singleInterval(0, getFullLength(), 0);
   }
 
   public CodeLine line(int i) {
@@ -56,6 +64,20 @@ public class Document {
   public int length() {
     return document.length;
   }
+
+  public int getFullLength() {
+    return getLineStartInd(length());
+  }
+
+  public void clear() {
+    diffs.clear();
+    usageToDef.clear();
+    defToUsages.clear();
+    document = CodeLine.singleElementLine("");
+    currentVersion = lastParsedVersion = 0;
+    tree = initialInterval();
+  }
+
   public int strLength(int i) {
     return document[i].totalStrLength;
   }
@@ -289,7 +311,7 @@ public class Document {
   }
 
   public String makeString() {
-    StringBuilder sb = new StringBuilder(getLineStartInd(length()));
+    StringBuilder sb = new StringBuilder(getFullLength());
     for (CodeLine codeLine : document) {
       codeLine.append(sb).append('\n');
     }

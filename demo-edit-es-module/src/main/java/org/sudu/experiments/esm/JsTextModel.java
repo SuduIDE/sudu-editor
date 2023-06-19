@@ -21,7 +21,7 @@ public class JsTextModel implements JsITextModel {
 
   @Override
   public void dispose() {
-    throw new UnsupportedOperationException("Not yet implemented");
+    javaModel.document.clear();
   }
 
   @Override

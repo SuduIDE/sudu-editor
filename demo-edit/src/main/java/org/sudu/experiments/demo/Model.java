@@ -24,18 +24,4 @@ public class Model {
     this.language = "java";
     this.uri = null;
   }
-
-  public Model(Document document, String language) {
-    this.document = document;
-    this.language = language;
-    this.uri = null;
-  }
-
-  public String[] getCodeLines() {
-    String[] res = new String[document.length()];
-    for (int i = 0; i < document.length(); i++) {
-      res[i] = document.line(i).makeString();
-    }
-    return res;
-  }
 }

@@ -5,7 +5,6 @@ import org.sudu.experiments.Debug;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.ArrayOp;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class CodeLine {
@@ -399,5 +398,9 @@ public class CodeLine {
   @Override
   public String toString() {
     return Arrays.toString(elements);
+  }
+
+  static CodeLine[] singleElementLine(String s) {
+    return new CodeLine[]{new CodeLine(new CodeElement(s))};
   }
 }

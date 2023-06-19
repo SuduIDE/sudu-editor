@@ -38,13 +38,11 @@ public abstract class ParserUtils {
     }
 
     List<Interval> intervalList = ParserUtils.getIntervalList(reader, K);
-    Map<Pos, Pos> usageToDef = ParserUtils.getUsageToDefMap(reader, L);
-    reader.checkSize();
+    Document updDocument = new Document(newDocument, intervalList);
 
-    Document updDocument = new Document(newDocument);
-    updDocument.tree = new IntervalTree(intervalList);
-    updDocument.usageToDef = usageToDef;
-    updDocument.defToUsages = ParserUtils.getDefToUsagesMap(usageToDef);
+    ParserUtils.getUsageToDefMap(reader, L, updDocument.usageToDef);
+    ParserUtils.getDefToUsagesMap(updDocument.usageToDef, updDocument.defToUsages);
+    reader.checkSize();
     return updDocument;
   }
 
@@ -104,18 +102,15 @@ public abstract class ParserUtils {
     return intervalList;
   }
 
-  public static Map<Pos, Pos> getUsageToDefMap(ArrayReader reader, int L) {
-    Map<Pos, Pos> usageMap = new HashMap<>();
+  public static void getUsageToDefMap(ArrayReader reader, int L, Map<Pos, Pos> usageMap) {
     for (int i = 0; i < L; i++) {
       Pos usage = new Pos(reader.next(), reader.next());
       Pos def = new Pos(reader.next(), reader.next());
       usageMap.put(usage, def);
     }
-    return usageMap;
   }
 
-  public static Map<Pos, List<Pos>> getDefToUsagesMap(Map<Pos, Pos> usageToDef) {
-    Map<Pos, List<Pos>> defMap = new HashMap<>();
+  public static void getDefToUsagesMap(Map<Pos, Pos> usageToDef, Map<Pos, List<Pos>> defMap) {
     for (var entry : usageToDef.entrySet()) {
       var usage = entry.getKey();
       var definition = entry.getValue();
@@ -123,7 +118,6 @@ public abstract class ParserUtils {
       defMap.get(definition).add(usage);
     }
     for (var usages : defMap.values()) Collections.sort(usages);
-    return defMap;
   }
 
 }
