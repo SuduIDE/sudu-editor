@@ -2,17 +2,17 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.DemoRect;
-import org.sudu.experiments.demo.IdeaCodeColors;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.TextRect;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.math.*;
 
-import java.io.Console;
-
 public class FindUsages {
 
+    // TODO(DELETE) 160 250
+    int lineSep = 100;
+    int codeContentSep = 180;
     private FontDesk font;
     private final DemoRect rect = new DemoRect();
     private final V2i textureSize = new V2i();
@@ -81,17 +81,37 @@ public class FindUsages {
         border = Numbers.iRnd(2 * devicePR);
         textXPad = Numbers.iRnd(font.WWidth);
         int tw = 0;
-        for (FindUsagesItem item : items) {
-            int m = (int) (mCanvas.measureText(item.text) + 7.f / 8);
-            int w = textXPad + m + textXPad;
-            maxW = Math.max(maxW, w);
+        //TODO(DELETE)
+        int measureTextExtra = 200;
 
-            item.tRect.pos.x = tw;
-            item.tRect.pos.y = 0;
-            item.tRect.size.x = w;
-            item.tRect.size.y = textHeight;
-            item.tRect.textureRegion.set(tw, 0, w, textHeight);
-            tw += w;
+        for (FindUsagesItem item : items) {
+            int m = (int) (measureTextExtra + mCanvas.measureText(item.fileName + item.lineNumber + item.codeContent) + 7.f / 8);
+            int mFile = (int) (mCanvas.measureText(item.fileName) + 7.f / 8);
+            int mLines = (int) (mCanvas.measureText(item.lineNumber) + 7.f / 8);
+            int mCodeContent = (int) (mCanvas.measureText(item.codeContent) + 7.f / 8);
+
+            int wFile = textXPad + mFile + textXPad;
+            int wLines = textXPad + mLines + textXPad;
+            int wCodeContent = textXPad + mCodeContent + textXPad;
+            // TODO(Math.max(maxW, w)) think
+            maxW = Math.max(maxW, wFile + wLines + wCodeContent + lineSep + codeContentSep);
+
+            item.tFiles.pos.x = tw;
+            item.tFiles.pos.y = 0;
+            item.tFiles.size.x = wFile;
+            item.tFiles.size.y = textHeight;
+            item.tFiles.textureRegion.set(tw, 0, wFile, textHeight);
+            item.tLines.pos.x = tw + wFile;
+            item.tLines.pos.y = 0;
+            item.tLines.size.x = wLines;
+            item.tLines.size.y = textHeight;
+            item.tLines.textureRegion.set(tw + wFile, 0, wLines, textHeight);
+            item.tContent.pos.x = tw + wFile + wLines;
+            item.tContent.pos.y = 0;
+            item.tContent.size.x = wCodeContent;
+            item.tContent.size.y = textHeight;
+            item.tContent.textureRegion.set(tw + wFile + wLines, 0, wCodeContent, textHeight);
+            tw += wFile + wLines + wCodeContent;
         }
         textureSize.x = tw;
         textureSize.y = textHeight;
@@ -103,15 +123,21 @@ public class FindUsages {
         rect.pos.set(x, y);
         int localX = border, localY = border;
         for (FindUsagesItem item : items) {
-            TextRect tRect = item.tRect;
-            tRect.pos.x = x + localX;
-            tRect.pos.y = y + localY;
+            TextRect tFiles = item.tFiles;
+            TextRect tLines = item.tLines;
+            TextRect tContent = item.tContent;
+            tFiles.pos.x = x + localX;
+            tFiles.pos.y = y + localY;
+            tLines.pos.x = x + localX + lineSep;
+            tLines.pos.y = y + localY;
+            tContent.pos.x = x + localX + codeContentSep;
+            tContent.pos.y = y + localY;
             if (isVertical) {
-                if (tRect.size.y == 0) tRectWarning();
-                localY += tRect.size.y + border;
+                if (tFiles.size.y == 0 || tLines.size.y == 0 || tContent.size.y == 0) tRectWarning();
+                localY += tFiles.size.y + border;
             } else {
-                if (tRect.size.x == 0) tRectWarning();
-                localX += tRect.size.x + border;
+                if (tFiles.size.x == 0) tRectWarning();
+                localX += tFiles.size.x + border;
             }
         }
     }
@@ -128,12 +154,16 @@ public class FindUsages {
     }
 
     private void renderTexture(WglGraphics g) {
-        Canvas canvas = g.createCanvas(textureSize.x, textureSize.y);
+        Canvas canvas = g.createCanvas(textureSize.x + 150, textureSize.y);
         canvas.setFont(font);
         float baseline = font.fAscent - (font.fAscent + font.fDescent) / 16;
 
         for (FindUsagesItem item : items) {
-            canvas.drawText(item.text, item.tRect.textureRegion.x + textXPad, baseline);
+            canvas.drawText(item.fileName, item.tFiles.textureRegion.x + textXPad, baseline);
+            canvas.drawText(item.lineNumber, item.tLines.textureRegion.x + textXPad, baseline);
+            canvas.drawText(item.codeContent, item.tContent.textureRegion.x + textXPad, baseline);
+
+//            canvas.drawText(item.text, item.tRect.textureRegion.x + textXPad, baseline);
         }
         texture = Disposable.assign(texture, g.createTexture());
         texture.setContent(canvas);
@@ -157,17 +187,21 @@ public class FindUsages {
         }
 
         for (FindUsagesItem item : items) {
-            g.drawText(0, 0, item.tRect.size, item.tRect.textureRegion, texture, new Color("#e28720"), new Color("#"))
-            item.tRect.drawText(g, texture, 0, 0, 2);
+//            g.drawText(0, 0, item.tRect.size, item.tRect.textureRegion, texture, new Color("#e28720"), new Color("#"))
+            item.tFiles.drawText(g, texture, 0, 0, 2);
+            item.tLines.drawText(g, texture, item.tFiles.size.x, 0, 2);
+            item.tContent.drawText(g, texture, item.tFiles.size.x + item.tLines.size.x, 0, 2);
         }
         if (isVertical) {
             for (FindUsagesItem item : items) {
-                TextRect tRect = item.tRect;
-                v2i.x = rect.size.x - border * 2 - tRect.size.x;
-                v2i.y = tRect.size.y;
+                TextRect tFiles = item.tFiles;
+                TextRect tLines = item.tLines;
+                TextRect tContent = item.tContent;
+                v2i.x = rect.size.x - border * 2 - (tFiles.size.x);
+                v2i.y = (tFiles.size.y + tLines.size.y + tContent.size.y);
                 if (v2i.x > 0) {
-                    g.drawRect(tRect.pos.x + tRect.size.x, tRect.pos.y,
-                            v2i, tRect.bgColor);
+//                    g.drawRect(tFiles.pos.x + tFiles.size.x, tFiles.pos.y,
+//                            v2i, tFiles.bgColor);
                 }
             }
         }
@@ -251,7 +285,7 @@ public class FindUsages {
     private int find(V2i pos) {
         for (int i = 0; i < items.length; i++) {
             FindUsagesItem item = items[i];
-            TextRect tRect = item.tRect;
+            TextRect tRect = item.tFiles;
             if (tRect.isInside(pos)) {
                 return i;
             }

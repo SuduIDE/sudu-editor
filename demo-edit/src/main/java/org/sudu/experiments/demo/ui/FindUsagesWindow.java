@@ -101,17 +101,6 @@ public class FindUsagesWindow {
                 : posX - usages.size().x;
     }
 
-    static void setScreenLimitedPosition(FindUsages popup, int x, int y, V2i screen) {
-        popup.setPos(
-                Math.max(0, Math.min(x, screen.x - popup.size().x)),
-                Math.max(0, Math.min(y, screen.y - popup.size().y)));
-    }
-
-    private static V2i computeSubmenuPosition(FindUsagesItem parentItem, FindUsages parent) {
-        DemoRect view = parentItem.getView();
-        int border = parent.borderSize();
-        return new V2i(view.pos.x - border * 3, view.pos.y - border);
-    }
 
     private void removePopupsAfter(FindUsages wall) {
         for (int i = usagesList.size() - 1; i >= 0; i--) {

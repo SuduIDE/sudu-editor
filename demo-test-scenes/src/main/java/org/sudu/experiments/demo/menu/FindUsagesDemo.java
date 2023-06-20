@@ -69,23 +69,23 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
     private static Supplier<FindUsagesItem[]> createItems() {
         FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
 
-        addAction(tbb, "main.java  | 5     | private static void foo (...);", null);
-        addAction(tbb, "main.java  | 25    | String foo = \"boo\";", null);
-        addAction(tbb, "main.java  | 131   | int a = 5;", null);
-        addAction(tbb, "class.java | 176   | public class FindTest extend Test {...};", null);
-        addAction(tbb, "main.java  | 1234  | private static void foo (...);", null);
-        addAction(tbb, "sub.java   | 4321  | private static void foo (...);", null);
-        addAction(tbb, "demo.java  | 23872 | private static void foo (...);", null);
+        addAction(tbb, "main.java", "5", "private static void foo (...);", null);
+        addAction(tbb, "main.java", "25", "String foo = \"boo\";", null);
+        addAction(tbb, "main.java", "131", "int a = 5;", null);
+        addAction(tbb, "class.java", "176", "public class FindTest extend Test {...};", null);
+        addAction(tbb, "main.java", "1234", "private static void foo (...);", null);
+        addAction(tbb, "sub.java", "4321", "private static void foo (...);", null);
+        addAction(tbb, "demo.java", "23872", "private static void foo (...);", null);
 
         return tbb.supplier();
     }
 
-    private static void addAction(FindUsagesItemBuilder fu, String action, Supplier<FindUsagesItem[]> sub) {
-        FindUsagesItemColors colors = new FindUsagesItemColors(IdeaCodeColors.Colors.defaultText, Colors.toolbarBg, Colors.toolbarSelectedBg);
+    private static void addAction(FindUsagesItemBuilder fu, String fileName, String lineNumber, String codeContent, Supplier<FindUsagesItem[]> sub) {
+        FindUsagesItemColors colors = new FindUsagesItemColors(IdeaCodeColors.Colors.defaultText, IdeaCodeColors.Colors.editNumbersVLine, IdeaCodeColors.Colors.defaultText, Colors.toolbarBg, Colors.toolbarSelectedBg);
         if (sub != null) {
-            fu.addItem(action, colors, sub);
+            fu.addItem(fileName, lineNumber, codeContent, colors, sub);
         } else {
-            fu.addItem(action, colors, () -> System.out.println(action));
+            fu.addItem(fileName, lineNumber, codeContent, colors, () -> System.out.println(fileName + "\t" + lineNumber + "\t" + codeContent));
         }
     }
 
