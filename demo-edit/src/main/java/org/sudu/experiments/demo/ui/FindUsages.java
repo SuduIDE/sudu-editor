@@ -90,18 +90,18 @@ public class FindUsages {
             int mLines = (int) (mCanvas.measureText(item.lineNumber) + 7.f / 8);
             int mCodeContent = (int) (mCanvas.measureText(item.codeContent) + 7.f / 8);
 
-            int wFile = textXPad + mFile + textXPad;
-            int wLines = textXPad + mLines + textXPad;
-            int wCodeContent = textXPad + mCodeContent + textXPad;
+            int wFile = textXPad + mFile;
+            int wLines = mLines + textXPad;
+            int wCodeContent = mCodeContent + textXPad;
             // TODO(Math.max(maxW, w)) think
-            maxW = Math.max(maxW, wFile + wLines + wCodeContent + lineSep + codeContentSep);
+            maxW = Math.max(maxW, wFile + wLines + wCodeContent);
 
             item.tFiles.pos.x = tw;
             item.tFiles.pos.y = 0;
             item.tFiles.size.x = wFile;
             item.tFiles.size.y = textHeight;
             item.tFiles.textureRegion.set(tw, 0, wFile, textHeight);
-            item.tLines.pos.x = tw + wFile;
+            item.tLines.pos.x = wFile + textXPad;
             item.tLines.pos.y = 0;
             item.tLines.size.x = wLines;
             item.tLines.size.y = textHeight;
@@ -128,9 +128,9 @@ public class FindUsages {
             TextRect tContent = item.tContent;
             tFiles.pos.x = x + localX;
             tFiles.pos.y = y + localY;
-            tLines.pos.x = x + localX + lineSep;
+            tLines.pos.x = x + localX;
             tLines.pos.y = y + localY;
-            tContent.pos.x = x + localX + codeContentSep;
+            tContent.pos.x = x + localX;
             tContent.pos.y = y + localY;
             if (isVertical) {
                 if (tFiles.size.y == 0 || tLines.size.y == 0 || tContent.size.y == 0) tRectWarning();

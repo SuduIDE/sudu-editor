@@ -90,7 +90,6 @@ public class FindUsagesWindow {
         return r;
     }
 
-    // todo: add keyboard up-down-left-right navigation
     public boolean onKey(KeyEvent event) {
         return false;
     }
