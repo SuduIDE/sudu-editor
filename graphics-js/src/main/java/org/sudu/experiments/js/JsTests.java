@@ -4,15 +4,9 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSString;
 
-import java.nio.CharBuffer;
-
 public class JsTests {
 
   // this code crashes TeaVM, but works fine on java
-  public static void charBufferTest() {
-    CharBuffer cb = CharBuffer.allocate(0);
-    cb.put("");
-  }
 
   public static void testArray() {
     JSString string1 = JSString.valueOf("string1");
