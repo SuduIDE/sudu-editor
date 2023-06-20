@@ -1,4 +1,4 @@
-package org.sudu.experiments.demo.worker;
+package org.sudu.experiments.parser;
 
 public class ArrayReader {
 

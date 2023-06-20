@@ -13,7 +13,7 @@ module.exports = {
     plugins: [
         new CopyPlugin({
             patterns: [
-                { from: '../node_modules/sudu-editor/src/worker.js', to: '' },
+                { from: '../node_modules/sudu-editor-tmp/src/worker.js', to: '' },
                 { from: 'src/index.html', to: '' },
             ]
         })

@@ -4,12 +4,12 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.Pos;
+import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.JavaParserBaseListener;
-import org.sudu.experiments.parser.java.model.Field;
+import org.sudu.experiments.parser.java.model.JavaField;
 import org.sudu.experiments.parser.java.model.JavaClass;
-import org.sudu.experiments.parser.java.model.Method;
+import org.sudu.experiments.parser.java.model.JavaMethod;
 
 import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Java.*;
 
@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 
 // Walker for getting JavaClass
-public class ClassWalker extends JavaParserBaseListener {
+public class JavaClassWalker extends JavaParserBaseListener {
   public JavaClass dummy;
   public JavaClass current;
 
@@ -31,7 +31,7 @@ public class ClassWalker extends JavaParserBaseListener {
 
   private int lastIntervalEnd = 0;
 
-  public ClassWalker() {
+  public JavaClassWalker() {
     dummy = new JavaClass(null, null, null);
     current = dummy;
     intervals = new ArrayList<>();
@@ -73,12 +73,6 @@ public class ClassWalker extends JavaParserBaseListener {
     super.enterAnnotationTypeElementDeclaration(ctx);
     addInterval(ctx, UNKNOWN);
   }
-
-//  @Override
-//  public void enterAnySeq(JavaParser.AnySeqContext ctx) {
-//    super.enterAnySeq(ctx);
-//    addInterval(ctx, UNKNOWN);
-//  }
 
   @Override
   public void enterClassDeclaration(JavaParser.ClassDeclarationContext ctx) {
@@ -236,14 +230,14 @@ public class ClassWalker extends JavaParserBaseListener {
     var token = node.getSymbol();
     var pos = new Pos(token.getLine(), token.getCharPositionInLine());
     var text = token.getText();
-    current.fields.add(new Field(text, pos, isStatic));
+    current.fields.add(new JavaField(text, pos, isStatic));
   }
 
   private void addMethod(TerminalNode node, boolean isStatic) {
     var token = node.getSymbol();
     var pos = new Pos(token.getLine(), token.getCharPositionInLine());
     var text = token.getText();
-    current.methods.add(new Method(text, pos, isStatic, List.of()));
+    current.methods.add(new JavaMethod(text, pos, isStatic, List.of()));
   }
 
   @Override

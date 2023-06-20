@@ -122,8 +122,7 @@ public class WebWindow implements org.sudu.experiments.Window {
     Window.current().addEventListener("resize", handleWindowResize);
 
     scene = sf.apply(api());
-    double t0 = timeNow();
-    JsHelper.consoleInfo("time start: ", t0);
+//    JsHelper.consoleInfo("time start: ", timeNow());
     requestNewFrame();
   }
 

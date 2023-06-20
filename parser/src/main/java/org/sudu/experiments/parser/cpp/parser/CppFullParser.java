@@ -1,14 +1,16 @@
 package org.sudu.experiments.parser.cpp.parser;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.Lexer;
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.BaseFullParser;
 import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
 import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
 import org.sudu.experiments.parser.cpp.walker.CppWalker;
+import org.sudu.experiments.parser.cpp.walker.CppClassWalker;
+
+import java.util.Collections;
+import java.util.List;
 
 import static org.sudu.experiments.parser.ParserConstants.*;
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
@@ -19,7 +21,17 @@ public class CppFullParser extends BaseFullParser {
     long parsingTime = System.currentTimeMillis();
 
     initLexer(source);
+    return parseWithLexer(parsingTime);
+  }
 
+  public int[] parse(char[] source) {
+    long parsingTime = System.currentTimeMillis();
+
+    initLexer(source);
+    return parseWithLexer(parsingTime);
+  }
+
+  private int[] parseWithLexer(long parsingTime) {
     CPP14Parser parser = new CPP14Parser(tokenStream);
 
     var transUnit = parser.translationUnit();
@@ -27,21 +39,30 @@ public class CppFullParser extends BaseFullParser {
 
     highlightTokens();
 
-    CppWalker cppWalker = new CppWalker(tokenTypes, tokenStyles);
+    CppClassWalker classWalker = new CppClassWalker();
+    walker.walk(classWalker, transUnit);
+
+    CppWalker cppWalker = new CppWalker(tokenTypes, tokenStyles, classWalker.current, usageToDefinition);
     walker.walk(cppWalker, transUnit);
 
-    cppWalker.intervals.add(new Interval(0, source.length(), IntervalTypes.Cpp.TRANS_UNIT));
+    classWalker.intervals.add(new Interval(0, fileSourceLength, IntervalTypes.Cpp.TRANS_UNIT));
 
-    var result = getInts(cppWalker.intervals);
+    var result = getInts(classWalker.intervals);
     System.out.println("Parsing full cpp time: " + (System.currentTimeMillis() - parsingTime) + "ms");
     return result;
   }
 
   @Override
+  protected List<Token> splitToken(Token token) {
+    int tokenType = token.getType();
+    if (isMultilineToken(tokenType)) return splitTokenByLine(token);
+    if (tokenType == CPP14Lexer.Directive || tokenType == CPP14Lexer.MultiLineMacro) return CppDirectiveSplitter.divideDirective(token);
+    return Collections.singletonList(token);
+  }
+
+  @Override
   protected boolean isMultilineToken(int tokenType) {
     return tokenType == CPP14Lexer.BlockComment
-        || tokenType == CPP14Lexer.Directive
-        || tokenType == CPP14Lexer.MultiLineMacro
         || tokenType == CPP14Lexer.StringLiteral;
   }
 

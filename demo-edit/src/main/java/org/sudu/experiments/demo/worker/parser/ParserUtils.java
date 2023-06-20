@@ -3,17 +3,14 @@ package org.sudu.experiments.demo.worker.parser;
 import org.sudu.experiments.demo.CodeElement;
 import org.sudu.experiments.demo.CodeLine;
 import org.sudu.experiments.demo.Document;
-import org.sudu.experiments.demo.worker.ArrayReader;
 import org.sudu.experiments.demo.worker.IntervalTree;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.parser.ArrayReader;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.Pos;
+import org.sudu.experiments.parser.common.Pos;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class ParserUtils {
 
@@ -47,6 +44,7 @@ public abstract class ParserUtils {
     Document updDocument = new Document(newDocument);
     updDocument.tree = new IntervalTree(intervalList);
     updDocument.usageToDef = usageToDef;
+    updDocument.defToUsages = ParserUtils.getDefToUsagesMap(usageToDef);
     return updDocument;
   }
 
@@ -89,7 +87,7 @@ public abstract class ParserUtils {
       int stop = reader.next();
       int type = reader.next();
       int style = reader.next();
-      String word = new String(chars, startDx + start,stop - start);
+      String word = new String(chars, startDx + start, stop - start);
       elements[j] = new CodeElement(word, type, style);
     }
     return elements;
@@ -114,6 +112,18 @@ public abstract class ParserUtils {
       usageMap.put(usage, def);
     }
     return usageMap;
+  }
+
+  public static Map<Pos, List<Pos>> getDefToUsagesMap(Map<Pos, Pos> usageToDef) {
+    Map<Pos, List<Pos>> defMap = new HashMap<>();
+    for (var entry : usageToDef.entrySet()) {
+      var usage = entry.getKey();
+      var definition = entry.getValue();
+      defMap.putIfAbsent(definition, new ArrayList<>());
+      defMap.get(definition).add(usage);
+    }
+    for (var usages : defMap.values()) Collections.sort(usages);
+    return defMap;
   }
 
 }

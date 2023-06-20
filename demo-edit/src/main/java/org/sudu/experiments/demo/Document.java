@@ -5,15 +5,15 @@ import org.sudu.experiments.demo.worker.IntervalTree;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.Pos;
+import org.sudu.experiments.parser.common.Pos;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Document {
   CodeLine[] document;
   public IntervalTree tree;
   public Map<Pos, Pos> usageToDef;
+  public Map<Pos, List<Pos>> defToUsages;
   List<Diff> diffs = new ArrayList<>();
 
   int currentVersion;
@@ -21,19 +21,22 @@ public class Document {
   double lastDiffTimestamp;
 
   public Document() {
-    tree = new IntervalTree(new ArrayList<>());
     document = new CodeLine[]{new CodeLine(new CodeElement(""))};
     currentVersion = lastParsedVersion = 0;
     usageToDef = new HashMap<>();
+    defToUsages = new HashMap<>();
+    tree = new IntervalTree(new ArrayList<>(List.of(new Interval(0, makeString().length(), 0))));
   }
 
   public Document(CodeLine ... data) {
     document = data;
     currentVersion = lastParsedVersion = 0;
+    tree = new IntervalTree(new ArrayList<>(List.of(new Interval(0, makeString().length(), 0))));
   }
 
   public Document(int n) {
     this(TestText.document(n, false));
+    tree = new IntervalTree(new ArrayList<>(List.of(new Interval(0, makeString().length(), 0))));
   }
 
   public CodeLine line(int i) {
@@ -240,12 +243,24 @@ public class Document {
     }
   }
 
+  public boolean hasDefOrUsages(int line, int pos) {
+    return hasDefinition(line, pos) || hasUsages(line, pos);
+  }
+
   public boolean hasDefinition(int line, int pos) {
     return getDefinitionPos(line, pos) != null;
   }
 
+  public boolean hasUsages(int line, int pos) {
+    return getUsagesList(line, pos) != null;
+  }
+
   public Pos getDefinitionPos(int line, int pos) {
     return usageToDef.get(getPosition(line, pos));
+  }
+
+  public List<Pos> getUsagesList(int line, int pos) {
+    return defToUsages.get(getPosition(line, pos));
   }
 
   public Pos getPosition(int line, int pos) {

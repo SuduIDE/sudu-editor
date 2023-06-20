@@ -206,6 +206,8 @@ NEW_LINE:           '\r'? '\n' ->  channel(HIDDEN);
 
 IDENTIFIER:         Letter LetterOrDigit*;
 
+ERROR:              . -> channel(HIDDEN);
+
 // Fragment rules
 
 fragment ExponentPart

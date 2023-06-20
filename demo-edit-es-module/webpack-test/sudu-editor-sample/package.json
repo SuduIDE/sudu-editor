@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "clean": "npx rimraf dist",
-    "build": "npx webpack"
+    "compile": "npx webpack"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^11.0.0",
@@ -15,6 +15,6 @@
     "webpack-cli": "^5.0.1"
   },
   "dependencies": {
-    "sudu-editor": "0.0.1"
+    "sudu-editor-tmp": "0.0.8-ppantlrbeta1"
   }
 }

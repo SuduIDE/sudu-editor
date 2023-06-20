@@ -1,15 +1,16 @@
 package org.sudu.experiments.parser.java.model;
 
+import org.sudu.experiments.parser.common.Decl;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Block {
+public class JavaBlock {
 
-  public Block innerBlock;
-  public Block subBlock;
+  public JavaBlock innerBlock;
+  public JavaBlock subBlock;
   public List<Decl> localVars;
 
-  public Block(Block innerBlock) {
+  public JavaBlock(JavaBlock innerBlock) {
     this.innerBlock = innerBlock;
     this.subBlock = null;
     this.localVars = new ArrayList<>();

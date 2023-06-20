@@ -5,6 +5,6 @@
   ],
   "scripts": {
     "i": "npm install",
-    "sudu-editor-sample": "npm run -w sudu-editor-sample build"
+    "sudu-editor-sample-compile": "npm run -w sudu-editor-sample compile"
   }
 }

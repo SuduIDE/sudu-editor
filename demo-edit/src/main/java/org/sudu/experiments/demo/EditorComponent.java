@@ -4,6 +4,9 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.demo.ui.PopupMenu;
+import org.sudu.experiments.demo.ui.ToolbarItem;
+import org.sudu.experiments.demo.ui.ToolbarItemBuilder;
 import org.sudu.experiments.demo.worker.parser.FileParser;
 import org.sudu.experiments.demo.worker.parser.JavaParser;
 import org.sudu.experiments.demo.worker.parser.ParserUtils;
@@ -12,15 +15,15 @@ import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.*;
-import org.sudu.experiments.parser.cpp.parser.CppIntervalParser;
-import org.sudu.experiments.parser.java.parser.JavaIntervalParser;
-import org.sudu.experiments.parser.javascript.parser.JavaScriptIntervalParser;
+import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.worker.ArrayView;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
+import java.util.function.Supplier;
 
 import static org.sudu.experiments.input.InputListener.MOUSE_BUTTON_LEFT;
 
@@ -90,6 +93,8 @@ public class EditorComponent implements EditApi, Disposable {
 
   boolean ctrlPressed = false;
 
+  PopupMenu usagesMenu;
+
   public EditorComponent(SceneApi api) {
     this(api, new Document());
   }
@@ -111,6 +116,8 @@ public class EditorComponent implements EditApi, Disposable {
 
     // d2d is very bold, contrast makes font heavier
     applyContrast = api.window.getHost() != Host.Direct2D;
+
+    usagesMenu = new PopupMenu(g);
   }
 
   void setPos(V2i pos, V2i size, double dpr) {
@@ -136,6 +143,7 @@ public class EditorComponent implements EditApi, Disposable {
     updateLineNumbersFont();
 
     layout();
+    usagesMenu.onResize(size, dpr);
   }
 
 
@@ -252,6 +260,8 @@ public class EditorComponent implements EditApi, Disposable {
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
+    usagesMenu.setTheme(font, Colors.toolbarBg);
+
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight
         + ", lineHeight = " + lineHeight
@@ -305,7 +315,7 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   private void invalidateFont() {
-    Debug.consoleInfo("invalidateFont");
+//    Debug.consoleInfo("invalidateFont");
 
     for (CodeLineRenderer line : lines) {
       line.dispose();
@@ -352,8 +362,12 @@ public class EditorComponent implements EditApi, Disposable {
     vLineSize.y = editorHeight();
   }
 
+  private int iterativeVersion;
   public boolean update(double timestamp) {
-    if (document.needReparse(timestamp)) iterativeParsing();
+    if (document.needReparse(timestamp) && iterativeVersion != document.currentVersion) {
+      iterativeVersion = document.currentVersion;
+      iterativeParsing();
+    }
 
     int oldVScrollPos = vScrollPos;
     vScrollPos = clampScrollPos(vScrollPos + scrollDown  -  scrollUp,
@@ -449,6 +463,8 @@ public class EditorComponent implements EditApi, Disposable {
     vScroll.layoutVertical(vScrollPos, editorRight, editorHeight(), editorFullHeight(), vScrollBarWidth());
     hScroll.layoutHorizontal(hScrollPos, editorBottom, editorRight - vLineX, fullWidth, vLineX, vScrollBarWidth());
     drawScrollBar();
+
+    usagesMenu.paint();
 
 //    g.checkError("paint complete");
     if (0>1) {
@@ -612,7 +628,7 @@ public class EditorComponent implements EditApi, Disposable {
 
   private long parsingTimeStart;
   private void onFileParsed(Object[] result) {
-    Debug.consoleInfo("onFileParsed");
+//    Debug.consoleInfo("onFileParsed");
     fileStructureParsed = true;
     firstLinesParsed = true;
 
@@ -630,7 +646,6 @@ public class EditorComponent implements EditApi, Disposable {
     api.window.setCursor(Cursor.arrow);
     api.window.repaint();
     Debug.consoleInfo("Full file parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
-    Debug.consoleInfo("\n");
   }
 
   private void onFileStructureParsed(Object[] result) {
@@ -659,7 +674,7 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   private void onVpParsed(Object[] result) {
-    Debug.consoleInfo("onVpParsed");
+//    Debug.consoleInfo("onVpParsed");
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
 
@@ -838,19 +853,47 @@ public class EditorComponent implements EditApi, Disposable {
     startBlinking();
   }
 
+  private Supplier<ToolbarItem[]> usagesItems(List<Pos> usages) {
+    ToolbarItemBuilder tbb = new ToolbarItemBuilder();
+    int cnt = 0;
+    for (var pos : usages) {
+      tbb.addItem(makeShowUsageString(pos), Colors.popupText2, () -> gotoElement(pos));
+      if (++cnt > EditorConst.MAX_SHOW_USAGES_NUMBER) {
+        tbb.addItem("... and " + (usages.size() - cnt) + " more usages", Colors.popupText2, () -> {});
+        break;
+      }
+    }
+    return tbb.supplier();
+  }
+
+  private void gotoElement(Pos defPos) {
+    setCaretLinePos(defPos.line, defPos.pos, false);
+    int nextPos = caretCodeLine().nextPos(caretPos);
+    selection.startPos.set(caretLine, nextPos);
+    selection.endPos.set(caretLine, caretCharPos);
+    usagesMenu.hide();
+  }
+
+  private String makeShowUsageString(Pos pos) {
+    String codeLine = document.line(pos.line).makeString().trim();
+    String line = codeLine.length() > 43 ? codeLine.substring(0, 40) + "..." : codeLine;
+    return (pos.line + 1) + ":" + pos.pos + "  " + line;
+  }
+
   void onClickText(V2i position, boolean shift) {
     int line = Numbers.clamp(0, (position.y + vScrollPos) / lineHeight, document.length() - 1);
     int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
     int charPos = document.line(line).computeCaretLocation(documentXPosition, g.mCanvas, fonts);
 
     if (ctrlPressed) {
-      var defPos = document.getDefinitionPos(line, charPos);
+      var defPos = document.getDefinitionPos(line, documentXPosition);
       if (defPos != null) {
-        setCaretLinePos(defPos.line, defPos.pos, false);
-        int nextPos = caretCodeLine().nextPos(caretPos);
-        selection.startPos.set(caretLine, nextPos);
-        selection.endPos.set(caretLine, caretCharPos);
+        gotoElement(defPos);
         return;
+      }
+      var usagesList = document.getUsagesList(line, documentXPosition);
+      if (usagesList != null && !usagesList.isEmpty()) {
+        if (!usagesMenu.isVisible()) usagesMenu.display(position, usagesItems(usagesList), this::onFocusGain);
       }
     }
 
@@ -917,6 +960,7 @@ public class EditorComponent implements EditApi, Disposable {
       return true;
     }
 
+    if (usagesMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
     if (button == MOUSE_BUTTON_LEFT && clickCount == 2 && press) {
       onDoubleClickText(eventPosition);
       return true;
@@ -941,6 +985,7 @@ public class EditorComponent implements EditApi, Disposable {
 
   public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
     eventPosition.set(event.position.x - compPos.x, event.position.y - compPos.y);
+    if (usagesMenu.onMouseMove(eventPosition, setCursor)) return true;
 
     if (dragLock != null) {
       dragLock.accept(eventPosition);
@@ -954,8 +999,7 @@ public class EditorComponent implements EditApi, Disposable {
       if (ctrlPressed) {
         int line = Numbers.clamp(0, (eventPosition.y + vScrollPos) / lineHeight, document.length() - 1);
         int documentXPosition = Math.max(0, eventPosition.x - vLineX + hScrollPos);
-        int pos = document.line(line).computeCaretLocation(documentXPosition, g.mCanvas, fonts);
-        return document.hasDefinition(line, pos) ? setCursor.set(Cursor.pointer) : setCursor.set(Cursor.text);
+        return document.hasDefOrUsages(line, documentXPosition) ? setCursor.set(Cursor.pointer) : setCursor.set(Cursor.text);
       }
       return setCursor.set(Cursor.text);
     }
@@ -1039,23 +1083,23 @@ public class EditorComponent implements EditApi, Disposable {
     api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, document.getChars());
   }
 
+  public void onFileIterativeParsed(Object[] result) {
+    if (document.currentVersion != iterativeVersion) return;
+    int[] ints = ((ArrayView) result[0]).ints();
+    char[] chars = ((ArrayView) result[1]).chars();
+    ParserUtils.updateDocument(document, ints, chars);
+    document.onReparse();
+  }
+
   public void iterativeParsing() {
     var node = document.tree.getReparseNode();
     if (node == null) return;
     if (fileType == FileParser.TEXT_FILE) {
       document.onReparse();
     }
-    String source = document.makeString();
     int[] interval = new int[]{node.getStart(), node.getStop(), node.getType()};
     char[] chars = document.makeString().toCharArray();
-    int[] ints = switch (fileType) {
-      case FileParser.JAVA_FILE -> new JavaIntervalParser().parseInterval(source, interval);
-      case FileParser.CPP_FILE -> new CppIntervalParser().parseInterval(source, interval);
-      case FileParser.JS_FILE -> new JavaScriptIntervalParser().parseInterval(source, interval);
-      default -> null;
-    };
-    if (ints != null) ParserUtils.updateDocument(document, ints, chars);
-    document.onReparse();
+    api.window.sendToWorker(this::onFileIterativeParsed, FileParser.asyncIterativeParsing, chars, new int[]{fileType}, interval);
   }
 
   private void showOpenFile() {

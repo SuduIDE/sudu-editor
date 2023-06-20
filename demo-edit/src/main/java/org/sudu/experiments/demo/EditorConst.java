@@ -27,4 +27,5 @@ interface EditorConst {
   int LINE_NUMBERS_RIGHT_PADDING = 20;
 
   double TYPING_STOP_TIME = 1./32.;
+  int MAX_SHOW_USAGES_NUMBER = 20;
 }

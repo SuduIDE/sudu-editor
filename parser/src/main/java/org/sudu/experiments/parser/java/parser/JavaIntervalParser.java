@@ -8,7 +8,7 @@ import org.sudu.experiments.parser.common.BaseIntervalParser;
 import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
-import org.sudu.experiments.parser.java.walker.ClassWalker;
+import org.sudu.experiments.parser.java.walker.JavaClassWalker;
 import org.sudu.experiments.parser.java.walker.JavaWalker;
 
 import static org.sudu.experiments.parser.ParserConstants.*;
@@ -29,14 +29,14 @@ public class JavaIntervalParser extends BaseIntervalParser {
     };
     ParseTreeWalker walker = new ParseTreeWalker();
 
-    var classWalker = new ClassWalker();
+    var classWalker = new JavaClassWalker();
     walker.walk(classWalker, ruleContext);
     var javaWalker = new JavaWalker(tokenTypes, tokenStyles, classWalker.dummy, new HashMap<>());
     walker.walk(javaWalker, ruleContext);
     highlightTokens();
 
     if (interval.intervalType == IntervalTypes.Java.COMP_UNIT) {
-      var compUnitInterval = new Interval(0, fileSource.length(), IntervalTypes.Java.COMP_UNIT);
+      var compUnitInterval = new Interval(0, fileSourceLength, IntervalTypes.Java.COMP_UNIT);
       classWalker.intervals.add(0, compUnitInterval);
     }
     return classWalker.intervals;

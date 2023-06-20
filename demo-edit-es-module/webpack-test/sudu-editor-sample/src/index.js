@@ -1,4 +1,4 @@
-import { newEditor } from "sudu-editor";
+import { newEditor } from "sudu-editor-tmp";
 
 function addPreText(divId, text) {
     let pre = document.createElement("pre");
@@ -12,9 +12,13 @@ function addPreText(divId, text) {
 function main() {
     for (const x of ["editor1", "editor2"]) {
         newEditor({containerId: x, workerUrl: "worker.js"}).then(
-            result => {
-                if (x === "editor1") result.focus();
-                else result.setTheme("light")
+            editor => {
+                if (x === "editor1") {
+                    editor.focus();
+                    editor.setText("");
+                } else {
+                    editor.setTheme("light")
+                }
                 console.log("Editor " + x + " started")
             },
             error => addPreText(x, error)
