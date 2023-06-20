@@ -1,5 +1,6 @@
 package org.sudu.experiments.esm;
 
+import org.sudu.experiments.js.JsFunctions;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSObjects;
@@ -19,6 +20,8 @@ public interface JsCodeEditor extends JsDisposable {
   JsDisposable registerReferenceProvider(JSObject languageSelector, JsReferenceProvider provider);
   JsDisposable registerDocumentHighlightProvider(JSObject languageSelector, JsDocumentHighlight provider);
   JsDisposable registerEditorOpener(JsCodeEditorOpener opener);
+
+  JsDisposable onDidChangeModel(JsFunctions.Consumer<JsIModelChangedEvent> f);
 
   interface EditArguments extends JSObject {
     @JSProperty JSString getContainerId();

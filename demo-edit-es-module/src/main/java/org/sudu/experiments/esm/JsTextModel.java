@@ -11,15 +11,21 @@ public class JsTextModel implements JsITextModel {
 
   public final Model javaModel;
 
-  @JSProperty native JsUri getUri();
+  public final JsUri getUri() { return getUri(this); }
 
-  @JSProperty native JSString getLanguage();
+  public final JSString getLanguage() { return getLanguage(this); }
 
   @JSBody(params = {"model", "uri"}, script = "model.uri = uri;")
   public static native void setUri(JsITextModel model, JsUri uri);
 
+  @JSBody(params = {"model"}, script = "return model.uri;")
+  public static native JsUri getUri(JsITextModel model);
+
   @JSBody(params = {"model", "language"}, script = "model.language = language;")
   public static native void setLanguage(JsITextModel model, JSString language);
+
+  @JSBody(params = {"model"}, script = "return model.language;")
+  public static native JSString getLanguage(JsITextModel model);
 
   @Override
   public void dispose() {
@@ -56,7 +62,7 @@ public class JsTextModel implements JsITextModel {
     setUri(this, JsUri.fromJava(javaModel.uri));
   }
 
-  public static JsITextModel fromJava(Model model) {
+  public static JsTextModel fromJava(Model model) {
     if (model.platformObject == null) {
       model.platformObject = new JsTextModel(model);
     }

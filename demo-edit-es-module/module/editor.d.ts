@@ -22,7 +22,7 @@ interface IDisposable {
 }
 
 interface IEvent<T> {
-    (listener: (e: T) => any, thisArg?: any): IDisposable;
+    (listener: (e: T) => any): IDisposable;
 }
 
 /**

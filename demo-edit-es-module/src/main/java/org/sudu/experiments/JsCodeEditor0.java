@@ -10,6 +10,8 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSString;
 
+import java.util.function.BiConsumer;
+
 public class JsCodeEditor0 implements JsCodeEditor {
 
   private final EditArguments args;
@@ -159,6 +161,20 @@ public class JsCodeEditor0 implements JsCodeEditor {
   @Override
   public JsDisposable registerEditorOpener(JsCodeEditorOpener opener) {
     return JsDisposable.empty();
+  }
+
+  @Override
+  public JsDisposable onDidChangeModel(JsFunctions.Consumer<JsIModelChangedEvent> f) {
+    editor.addModelChangeListener(convert(f));
+    return JsDisposable.empty();
+  }
+
+  static BiConsumer<Model, Model> convert(JsFunctions.Consumer<JsIModelChangedEvent> jsCallback) {
+    return (oldModel, newModel) -> jsCallback.f(
+        JsIModelChangedEvent.create(
+            JsTextModel.fromJava(oldModel).getUri(),
+            JsTextModel.fromJava(newModel).getUri()
+        ));
   }
 
   static void onWebGlError() {

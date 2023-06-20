@@ -19,6 +19,7 @@ import org.sudu.experiments.worker.ArrayView;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
@@ -1295,9 +1296,15 @@ public class EditorComponent implements EditApi, Disposable {
     editorRegistrations.registerReferenceProvider(refProvider);
   }
 
+  public void addModelChangeListener(BiConsumer<Model, Model> listener) {
+    editorRegistrations.addModelChangeListener(listener);
+  }
+
   public void setModel(Model model) {
+    Model oldModel = this.model;
     this.model = model;
     setText(model.document.getChars());
+    editorRegistrations.fireModelChange(oldModel, model);
   }
 
   public Model model() { return model; }
