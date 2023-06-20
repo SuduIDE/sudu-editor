@@ -1,16 +1,17 @@
 package org.sudu.experiments.parser.java.model;
 
-import org.sudu.experiments.parser.Pos;
+import org.sudu.experiments.parser.common.Decl;
+import org.sudu.experiments.parser.common.Pos;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class JavaClass extends Decl{
+public class JavaClass extends Decl {
 
-  public List<Field> fields;
-  public List<Method> methods;
-  public ArrayList<JavaClass> nestedClasses;
+  public List<JavaField> fields;
+  public List<JavaMethod> methods;
+  public List<JavaClass> nestedClasses;
   public JavaClass innerClass;
 
   public int nestPos = 0;
@@ -23,14 +24,14 @@ public class JavaClass extends Decl{
     this.nestedClasses = new ArrayList<>();
   }
 
-  public Field getField(String fieldName) {
+  public JavaField getField(String fieldName) {
     for (var field: fields)
       if (field.name.equals(fieldName)) return field;
     if (innerClass != null) return innerClass.getField(fieldName);
     return null;
   }
 
-  public Method getMethod(String methodName) {
+  public JavaMethod getMethod(String methodName) {
     for (var method: methods)
       if (method.name.equals(methodName)) return method;
     if (innerClass != null) return innerClass.getMethod(methodName);

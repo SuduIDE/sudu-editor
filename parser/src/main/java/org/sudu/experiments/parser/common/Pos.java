@@ -1,10 +1,10 @@
-package org.sudu.experiments.parser;
+package org.sudu.experiments.parser.common;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.Objects;
 
-public class Pos {
+public class Pos implements Comparable<Pos> {
 
   public int line, pos;
 
@@ -34,6 +34,11 @@ public class Pos {
   @Override
   public String toString() {
     return "(" + line + ", " + pos + ")";
+  }
+
+  @Override
+  public int compareTo(Pos o) {
+    return line != o.line ? Integer.compare(line, o.line) : Integer.compare(pos, o.pos);
   }
 
 }

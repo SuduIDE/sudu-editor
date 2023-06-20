@@ -63,7 +63,7 @@ public abstract class WorkerContext implements JSObject {
 
   static void onWorkerMessage(WorkerExecutor executor, JSObject message) {
     if (WorkerProtocol.isPing(message)) {
-      JsHelper.consoleInfo("Worker: hello");
+//      JsHelper.consoleInfo("Worker: hello");
       self().postMessage(WorkerProtocol.ping());
     } else if (WorkerProtocol.isArray(message)) {
       WorkerProtocol.execute(executor, message.cast());
@@ -72,7 +72,7 @@ public abstract class WorkerContext implements JSObject {
 
   public static void onEdtMessage(Map<Integer, Consumer<Object[]>> handlers, JSObject message) {
     if (WorkerProtocol.isPing(message)) {
-      JsHelper.consoleInfo("App: hello from worker");
+//      JsHelper.consoleInfo("App: hello from worker");
     } else if (WorkerProtocol.isArray(message)) {
 //      JsHelper.consoleInfo("App: message from worker = ", message);
       WorkerProtocol.dispatchResult(handlers, message.cast());

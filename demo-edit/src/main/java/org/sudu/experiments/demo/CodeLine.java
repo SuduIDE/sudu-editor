@@ -37,11 +37,9 @@ public class CodeLine {
   }
 
   public int getElementPos(int charPos) {
+    int ind = findEntryByPixel(charPos);
     int sum = 0;
-    for (var elem: elements) {
-      if (sum + elem.s.length() > charPos) break;
-      sum += elem.s.length();
-    }
+    for (int i = 0; i < ind; i++) sum += elements[i].s.length();
     return sum;
   }
 

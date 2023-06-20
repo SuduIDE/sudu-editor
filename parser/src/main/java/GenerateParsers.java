@@ -20,6 +20,9 @@ public class GenerateParsers {
   private static final String cppPackagePath = basePackageName + ".cpp.gen";
   private static final String cppGrammarPath = baseGrammarPath + "cpp/";
 
+  private static final String cppHelpGenPath = baseGenPath + "cpp/gen/help/";
+  private static final String cppHelpPackagePath = basePackageName + ".cpp.gen.help";
+
   private static final String jsGenPath = baseGenPath + "javascript/gen/";
   private static final String jsPackagePath = basePackageName + ".javascript.gen";
   private static final String jsGrammarPath = baseGrammarPath + "javascript/";
@@ -63,6 +66,14 @@ public class GenerateParsers {
         cppPackagePath,
         cppGrammarPath + "CPP14Lexer.g4",
         cppGrammarPath + "CPP14Parser.g4"
+    }).processGrammarsOnCommandLine();
+
+    new Tool(new String[]{
+        "-o",
+        cppHelpGenPath,
+        "-package",
+        cppHelpPackagePath,
+        cppGrammarPath + "CPP14Directive.g4"
     }).processGrammarsOnCommandLine();
 
     new Tool(new String[]{

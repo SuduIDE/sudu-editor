@@ -3,8 +3,8 @@ package org.sudu.experiments.demo.worker.parser;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.parser.javascript.parser.JavaScriptFirstLinesLexer;
 import org.sudu.experiments.parser.javascript.parser.JavaScriptFullParser;
+import org.sudu.experiments.parser.javascript.parser.JavaScriptIntervalParser;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -35,6 +35,20 @@ public class JavaScriptParser {
     JavaScriptFirstLinesLexer parser = new JavaScriptFirstLinesLexer();
     int numOfLines = lines[0];
     int[] ints = parser.parse(source, numOfLines);
+    result.add(ints);
+    result.add(chars);
+  }
+
+  public static void parseInterval(char[] chars, int[] interval, Consumer<Object[]> result) {
+    ArrayList<Object> list = new ArrayList<>();
+    parseInterval(chars, interval, list);
+    ArrayOp.sendArrayList(list, result);
+  }
+
+  private static void parseInterval(char[] chars, int[] interval, List<Object> result) {
+    String source = new String(chars);
+    JavaScriptIntervalParser parser = new JavaScriptIntervalParser();
+    int[] ints = parser.parseInterval(source, interval);
     result.add(ints);
     result.add(chars);
   }

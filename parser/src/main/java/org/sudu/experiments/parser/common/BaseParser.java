@@ -3,11 +3,14 @@ package org.sudu.experiments.parser.common;
 import org.antlr.v4.runtime.*;
 import org.sudu.experiments.parser.*;
 
+import java.nio.CharBuffer;
 import java.util.*;
+import java.util.function.Supplier;
 
 public abstract class BaseParser {
 
-  protected String fileSource;
+  protected int fileSourceLength;
+  protected Supplier<String> fileSource;
   protected List<Token> allTokens;
   protected int[] tokenTypes;
   protected int[] tokenStyles;
@@ -19,13 +22,35 @@ public abstract class BaseParser {
 
   protected abstract boolean isMultilineToken(int tokenType);
   protected abstract boolean isComment(int tokenType);
+  protected boolean isErrorToken(int tokenType){return false;};
   protected abstract Lexer initLexer(CharStream stream);
   protected abstract boolean tokenFilter(Token token);
 
+  static <T> Supplier<T> supplier(T t) { return () -> t; }
+
   protected void initLexer(String source) {
-    this.fileSource = source;
-    this.tokenRecognitionListener = new TokenRecognitionListener();
-    CharStream stream = CharStreams.fromString(fileSource);
+    initLexerWithStream(supplier(source), source.length(), CharStreams.fromString(source));
+  }
+
+  protected void initLexer(char[] source) {
+    initLexer(source, 0, source.length);
+  }
+
+  protected void initLexer(char[] source, int offset, int length) {
+    CodePointCharStream stream = CodePointCharStream.fromBuffer(
+            CodePointBuffer.withChars(CharBuffer.wrap(source, offset, length))
+    );
+    initLexerWithStream(makeString(source, offset, length), length, stream);
+  }
+
+  static Supplier<String> makeString(char[] source, int offset, int length) {
+    return () -> new String(source, offset, length);
+  }
+
+  protected void initLexerWithStream(Supplier<String> source, int sourceLength, CharStream stream) {
+    fileSource = source;
+    fileSourceLength = sourceLength;
+    tokenRecognitionListener = new TokenRecognitionListener();
     Lexer lexer = initLexer(stream);
     lexer.addErrorListener(tokenRecognitionListener);
 
@@ -46,7 +71,7 @@ public abstract class BaseParser {
   }
 
   protected void makeErrorToken() {
-    Token errorToken = new ErrorToken(fileSource);
+    Token errorToken = new ErrorToken(fileSource.get());
     allTokens = List.of(errorToken);
     tokenTypes = new int[1];
     tokenStyles = new int[1];
@@ -175,6 +200,7 @@ public abstract class BaseParser {
     for (var token: allTokens) {
       int ind = token.getTokenIndex();
       if (isComment(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.COMMENT;
+      if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
     }
   }
 

@@ -9,7 +9,7 @@ import org.sudu.experiments.parser.common.BaseFullParser;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.help.JavaStringSplitter;
-import org.sudu.experiments.parser.java.walker.ClassWalker;
+import org.sudu.experiments.parser.java.walker.JavaClassWalker;
 import org.sudu.experiments.parser.java.walker.JavaWalker;
 
 import java.util.ArrayList;
@@ -24,6 +24,17 @@ public class JavaFullParser extends BaseFullParser {
     long parsingStartTime = System.currentTimeMillis();
     initLexer(source);
 
+    return parse(source.length(), parsingStartTime);
+  }
+
+  public int[] parse(char[] source) {
+    long parsingStartTime = System.currentTimeMillis();
+    initLexer(source);
+
+    return parse(source.length, parsingStartTime);
+  }
+
+  private int[] parse(int sourceLength, long parsingStartTime) {
     JavaParser parser = new JavaParser(tokenStream);
     parser.setErrorHandler(new ErrorHighlightingStrategy());
 
@@ -32,12 +43,12 @@ public class JavaFullParser extends BaseFullParser {
 
     highlightTokens();
 
-    var classWalker = new ClassWalker();
+    var classWalker = new JavaClassWalker();
     walker.walk(classWalker, compUnit);
 
     var javaWalker = new JavaWalker(tokenTypes, tokenStyles, classWalker.dummy, usageToDefinition);
     walker.walk(javaWalker, compUnit);
-    classWalker.intervals.add(new Interval(0, source.length(), IntervalTypes.Java.COMP_UNIT));
+    classWalker.intervals.add(new Interval(0, sourceLength, IntervalTypes.Java.COMP_UNIT));
 
     var result = getInts(classWalker.intervals);
     System.out.println("Parsing full java time: " + (System.currentTimeMillis() - parsingStartTime) + "ms");
@@ -91,4 +102,8 @@ public class JavaFullParser extends BaseFullParser {
         || type == JavaLexer.LINE_COMMENT;
   }
 
+  @Override
+  protected boolean isErrorToken(int tokenType) {
+    return tokenType == JavaLexer.ERROR;
+  }
 }

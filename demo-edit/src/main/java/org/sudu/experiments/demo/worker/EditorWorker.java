@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 
 public class EditorWorker {
   public static void execute(String method, Object[] a, Consumer<Object[]> onResult) {
-    System.out.println("EditorWorker: method = " + method);
+//    Debug.consoleInfo("EditorWorker: method = " + method);
 
     if (method.startsWith("async")) {
       asyncMethod(method, a, onResult);
@@ -42,6 +42,7 @@ public class EditorWorker {
       case FileParser.asyncParseFile -> FileParser.asyncParseFile(file(a, 0), r);
       case FileParser.asyncParseFullFile -> FileParser.asyncParseFullFile(file(a, 0), r);
       case FileParser.asyncParseFirstLines -> FileParser.asyncParseFirstLines(file(a, 0), array(a, 1).ints(), r);
+      case FileParser.asyncIterativeParsing -> FileParser.asyncIterativeParsing(array(a, 0).chars(), array(a, 1).ints(), array(a,2).ints(), r);
     }
   }
 

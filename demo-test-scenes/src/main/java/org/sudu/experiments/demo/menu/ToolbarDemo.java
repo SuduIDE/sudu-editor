@@ -18,9 +18,7 @@ import java.util.function.Supplier;
 public class ToolbarDemo extends Scene0 implements InputListener {
 
   private final SetCursor windowCursor;
-  private final V2i windowSize = new V2i();
   private final FontDesk font;
-  private double dpr;
 
   private final Toolbar tbH = new Toolbar();
   private final Toolbar tbV = new Toolbar();
@@ -110,8 +108,7 @@ public class ToolbarDemo extends Scene0 implements InputListener {
 
   @Override
   public void onResize(V2i newSize, double dpr) {
-    super.onResize(newSize, dpr);
-    windowSize.set(newSize);
+    size.set(newSize);
 
     hLine.set(newSize.x, Numbers.iRnd(dpr) * 2);
     vLine.set(Numbers.iRnd(dpr) * 2, newSize.y);
@@ -135,8 +132,8 @@ public class ToolbarDemo extends Scene0 implements InputListener {
     WglGraphics graphics = api.graphics;
     graphics.enableBlend(true);
     V4f crossColors = Colors.scrollBarBody1;
-    graphics.drawRect(0, windowSize.y / 2 - hLine.y / 2, hLine, crossColors);
-    graphics.drawRect(windowSize.x / 2 - vLine.x / 2, 0, vLine, crossColors);
+    graphics.drawRect(0, size.y / 2 - hLine.y / 2, hLine, crossColors);
+    graphics.drawRect(size.x / 2 - vLine.x / 2, 0, vLine, crossColors);
     graphics.enableBlend(true);
     tbH.render(graphics, dpr);
     tbV.render(graphics, dpr);

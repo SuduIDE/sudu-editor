@@ -1,7 +1,5 @@
 package org.sudu.experiments.demo;
 
-import java.nio.charset.StandardCharsets;
-
 public interface StartFile {
 
   String START_CODE_JAVA = """

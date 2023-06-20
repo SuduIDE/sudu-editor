@@ -2,12 +2,12 @@ package org.sudu.experiments.parser.java.walker;
 
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.sudu.experiments.parser.Pos;
+import org.sudu.experiments.parser.common.Decl;
+import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.JavaParserBaseListener;
-import org.sudu.experiments.parser.java.model.Block;
-import org.sudu.experiments.parser.java.model.Decl;
-import org.sudu.experiments.parser.java.model.Field;
+import org.sudu.experiments.parser.java.model.JavaBlock;
+import org.sudu.experiments.parser.java.model.JavaField;
 import org.sudu.experiments.parser.java.model.JavaClass;
 
 import static org.sudu.experiments.parser.ParserConstants.*;
@@ -23,7 +23,7 @@ public class JavaWalker extends JavaParserBaseListener {
   private final Map<Pos, Pos> usagesToDefs;
 
   private List<Decl> curMethodArgs;
-  private Block currentBlock;
+  private JavaBlock currentBlock;
 
   public JavaWalker(int[] tokenTypes, int[] tokenStyles, JavaClass javaClass, Map<Pos, Pos> usagesToDefs) {
     this.tokenTypes = tokenTypes;
@@ -31,7 +31,7 @@ public class JavaWalker extends JavaParserBaseListener {
     this.javaClass = javaClass;
     this.usagesToDefs = usagesToDefs;
 
-    currentBlock = new Block(null);
+    currentBlock = new JavaBlock(null);
     curMethodArgs = new ArrayList<>();
   }
 
@@ -42,9 +42,9 @@ public class JavaWalker extends JavaParserBaseListener {
     var variableDeclarators = ctx.variableDeclarators().variableDeclarator();
     for (var variableDeclarator: variableDeclarators) {
       var id = getIdentifier(variableDeclarator.variableDeclaratorId().identifier()).getSymbol();
-      var modifiers = ClassWalker.getModifiers(ctx);
+      var modifiers = JavaClassWalker.getModifiers(ctx);
       tokenTypes[id.getTokenIndex()] = TokenTypes.FIELD;
-      tokenStyles[id.getTokenIndex()] = ClassWalker.isStatic(modifiers) ? TokenStyles.ITALIC : TokenStyles.NORMAL;
+      tokenStyles[id.getTokenIndex()] = JavaClassWalker.isStatic(modifiers) ? TokenStyles.ITALIC : TokenStyles.NORMAL;
     }
   }
 
@@ -74,9 +74,9 @@ public class JavaWalker extends JavaParserBaseListener {
     var variableDeclarators = ctx.variableDeclarators().variableDeclarator();
     for (var variableDeclarator: variableDeclarators) {
       var id = getIdentifier(variableDeclarator.variableDeclaratorId().identifier()).getSymbol();
-      var modifiers = ClassWalker.getModifiers(ctx);
+      var modifiers = JavaClassWalker.getModifiers(ctx);
       tokenTypes[id.getTokenIndex()] = TokenTypes.FIELD;
-      tokenStyles[id.getTokenIndex()] = ClassWalker.isStatic(modifiers) ? TokenStyles.ITALIC : TokenStyles.NORMAL;
+      tokenStyles[id.getTokenIndex()] = JavaClassWalker.isStatic(modifiers) ? TokenStyles.ITALIC : TokenStyles.NORMAL;
     }
   }
 
@@ -157,6 +157,12 @@ public class JavaWalker extends JavaParserBaseListener {
   }
 
   @Override
+  public void enterInterfaceMethodDeclaration(JavaParser.InterfaceMethodDeclarationContext ctx) {
+    super.enterInterfaceMethodDeclaration(ctx);
+    curMethodArgs = getMethodArguments(ctx.interfaceCommonBodyDeclaration().formalParameters());
+  }
+
+  @Override
   public void enterConstructorDeclaration(JavaParser.ConstructorDeclarationContext ctx) {
     super.enterConstructorDeclaration(ctx);
     curMethodArgs = getMethodArguments(ctx.formalParameters());
@@ -179,6 +185,8 @@ public class JavaWalker extends JavaParserBaseListener {
     var id = getIdentifier(ctx.interfaceCommonBodyDeclaration().identifier()).getSymbol();
     tokenTypes[id.getTokenIndex()] = TokenTypes.METHOD;
     tokenStyles[id.getTokenIndex()] = TokenStyles.NORMAL;
+
+    curMethodArgs.clear();
   }
 
   @Override
@@ -243,7 +251,7 @@ public class JavaWalker extends JavaParserBaseListener {
   @Override
   public void enterBlock(JavaParser.BlockContext ctx) {
     super.enterBlock(ctx);
-    Block block = new Block(currentBlock);
+    JavaBlock block = new JavaBlock(currentBlock);
     currentBlock.subBlock = block;
     currentBlock = block;
   }
@@ -307,7 +315,7 @@ public class JavaWalker extends JavaParserBaseListener {
         return;
       }
       tokenTypes[ind] = FIELD;
-      tokenStyles[ind] = ((Field) decl).isStatic ? ERROR : TokenStyles.NORMAL;
+      tokenStyles[ind] = ((JavaField) decl).isStatic ? ERROR : TokenStyles.NORMAL;
       usagesToDefs.put(Pos.fromNode(node), decl.position);
       return;
     }
@@ -326,7 +334,7 @@ public class JavaWalker extends JavaParserBaseListener {
     decl = javaClass.getField(name);
     if (decl == null) return;
 
-    Field declField = (Field) decl;
+    JavaField declField = (JavaField) decl;
     tokenTypes[ind] = FIELD;
     tokenStyles[ind] = declField.isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL;
     usagesToDefs.put(Pos.fromNode(node), declField.position);

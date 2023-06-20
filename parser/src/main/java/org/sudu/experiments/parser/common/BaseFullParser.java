@@ -3,7 +3,7 @@ package org.sudu.experiments.parser.common;
 import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.ArrayWriter;
-import org.sudu.experiments.parser.Pos;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

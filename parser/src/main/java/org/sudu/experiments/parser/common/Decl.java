@@ -1,6 +1,6 @@
-package org.sudu.experiments.parser.java.model;
+package org.sudu.experiments.parser.common;
 
-import org.sudu.experiments.parser.Pos;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.Objects;
 
@@ -12,6 +12,10 @@ public class Decl {
   public Decl(String name, Pos position) {
     this.name = name;
     this.position = position;
+  }
+
+  public static Decl fromNode(TerminalNode node) {
+    return new Decl(node.getText(), Pos.fromNode(node));
   }
 
   @Override
@@ -27,4 +31,8 @@ public class Decl {
     return Objects.hash(name, position);
   }
 
+  @Override
+  public String toString() {
+    return name + " " + position;
+  }
 }
