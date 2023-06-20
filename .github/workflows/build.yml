@@ -73,7 +73,7 @@ jobs:
         name: Maven Sudu Editor
         run: |
           cd $GITHUB_WORKSPACE/sudu-editor 
-          mvn package -am -pl demo-edit-es-module
+          mvn package -am -pl demo-edit-es-module -P release
       -
         name: Save Maven Cache
         if: github.event_name == 'workflow_dispatch'
