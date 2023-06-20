@@ -12,9 +12,9 @@ import java.util.function.Consumer;
 
 public class JavaParser {
 
-  public static final String PARSE_BYTES_JAVA = "JavaParser.parseBytes";
+  public static final String PARSE = "JavaParser.parse";
 
-  public static void parseChars(char[] chars, List<Object> result) {
+  public static void parse(char[] chars, List<Object> result) {
     int[] ints = new JavaFullParser().parse(chars);
     result.add(ints);
     result.add(chars);

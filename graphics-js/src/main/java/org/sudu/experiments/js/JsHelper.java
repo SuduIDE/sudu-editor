@@ -110,10 +110,6 @@ public class JsHelper {
     return new V2i(sizeX, sizeY);
   }
 
-  public static String getStringOrNull(JSString str) {
-    return jsIf(str) ? str.stringValue() : null;
-  }
-
   @JSBody(params = {"s"}, script = "console.info(s);")
   public static native void consoleInfo(String s);
 
@@ -173,4 +169,8 @@ public class JsHelper {
 
   @JSBody(params = {"x"}, script = "return x ? true : false;")
   public static native boolean jsIf(JSObject x);
+
+  public static String toString(JSString jsString, String orElse) {
+    return jsIf(jsString) ? jsString.stringValue() : orElse;
+  }
 }

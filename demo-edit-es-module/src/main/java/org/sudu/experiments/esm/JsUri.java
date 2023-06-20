@@ -18,18 +18,15 @@ public abstract class JsUri implements JSObject {
   @JSProperty abstract JSString getPath();
 
   public String getSchemeOrNull() {
-    JSString scheme = getScheme();
-    return JsHelper.getStringOrNull(scheme);
+    return JsHelper.toString(getScheme(), null);
   }
 
   public String getAuthorityOrNull() {
-    JSString authority = getAuthority();
-    return JsHelper.getStringOrNull(authority);
+    return JsHelper.toString(getAuthority(), null);
   }
 
   public String getPathOrNull() {
-    JSString path = getPath();
-    return JsHelper.getStringOrNull(path);
+    return JsHelper.toString(getPath(), null);
   }
 
   @JSBody(params = {"scheme", "authority", "path"}, script = """

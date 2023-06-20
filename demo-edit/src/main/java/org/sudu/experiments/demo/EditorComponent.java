@@ -7,9 +7,7 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.demo.ui.PopupMenu;
 import org.sudu.experiments.demo.ui.ToolbarItem;
 import org.sudu.experiments.demo.ui.ToolbarItemBuilder;
-import org.sudu.experiments.demo.worker.parser.FileParser;
-import org.sudu.experiments.demo.worker.parser.JavaParser;
-import org.sudu.experiments.demo.worker.parser.ParserUtils;
+import org.sudu.experiments.demo.worker.parser.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -695,7 +693,7 @@ public class EditorComponent implements EditApi, Disposable {
   private void onFileLoad(byte[] content) {
     Debug.consoleInfo("readAsBytes complete, l = " + content.length);
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, content);
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE, content);
   }
 
   private void onFirstLinesParsed(Object[] result) {
@@ -888,8 +886,8 @@ public class EditorComponent implements EditApi, Disposable {
 
     if (ctrlPressed) {
       String scheme = model.uri != null ? model.uri.scheme : null;
-      DefinitionProvider defProvider = editorRegistrations.findDefinitionProvider(model.language, scheme);
-      if (defProvider == null) {
+      DefinitionProvider provider = editorRegistrations.findDefinitionProvider(model.language, scheme);
+      if (provider == null) {
         // Default def provider
         var defPos = model.document.getDefinitionPos(line, documentXPosition);
         if (defPos != null) {
@@ -897,7 +895,7 @@ public class EditorComponent implements EditApi, Disposable {
           return;
         }
       } else {
-        defProvider.provideDefinition(model, line, charPos);
+        provider.f.provideDefinition(this, line, charPos);
         return;
       }
       var usagesList = model.document.getUsagesList(line, documentXPosition);
@@ -918,6 +916,14 @@ public class EditorComponent implements EditApi, Disposable {
       selection.isSelectionStarted = true;
     }
     selection.select(caretLine, caretCharPos);
+  }
+
+  public void gotoReferences(Location[] locs) {
+
+  }
+
+  public void gotoDefinition(Location[] locs) {
+    gotoDefinition(locs[0]);
   }
 
   public void gotoDefinition(Location loc) {
@@ -1067,7 +1073,7 @@ public class EditorComponent implements EditApi, Disposable {
 
   void reparse() {
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, model.document.getChars());
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE, model.document.getChars());
   }
 
   void parseViewport() {
@@ -1095,7 +1101,7 @@ public class EditorComponent implements EditApi, Disposable {
 
   public void parseFullFile() {
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, model.document.getChars());
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE, model.document.getChars());
   }
 
   public void onFileIterativeParsed(Object[] result) {
@@ -1267,14 +1273,10 @@ public class EditorComponent implements EditApi, Disposable {
     return vScroll.bgSize.x;
   }
 
-  /* API */
-
-  //TODO: Make it as API
   public void setPosition(int column, int lineNumber) {
     setCaretLinePos(lineNumber, column, false);
   }
 
-  //TODO: Make it as API
   public void setSelection(
       int endColumn,
       int endLineNumber,
@@ -1285,29 +1287,36 @@ public class EditorComponent implements EditApi, Disposable {
     selection.getRightPos().set(endLineNumber, endColumn);
   }
 
-  //TODO: Make it as API
   public void registerDefinitionProvider(DefinitionProvider defProvider) {
     editorRegistrations.registerDefinitionProvider(defProvider);
   }
 
-  //TODO: Make it as API
   public void registerReferenceProvider(ReferenceProvider refProvider) {
     editorRegistrations.registerReferenceProvider(refProvider);
   }
 
-  //TODO: Make it as API
   public void setModel(Model model) {
     this.model = model;
     setText(model.document.getChars());
   }
 
-  //TODO: Make it as API
-  public Model getModel() { return this.model; }
+  public Model model() { return model; }
 
   @Override
   public void setText(char[] charArray) {
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, charArray);
+    String jobName = parseJobName(model.language, null);
+    if (jobName != null) {
+      api.window.sendToWorker(this::onFileParsed, jobName, charArray);
+    }
+  }
+
+  static String parseJobName(String language, String def) {
+    return language != null ? switch (language) {
+      case "java" -> JavaParser.PARSE;
+      case "c++", "cpp" -> CppParser.PARSE;
+      default -> def;
+    } : def;
   }
 
   @Override

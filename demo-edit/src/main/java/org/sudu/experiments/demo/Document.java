@@ -295,15 +295,15 @@ public class Document {
   public int getLineStartInd(int firstLine) {
     int result = 0;
     for (int i = 0; i < firstLine; i++) {
-      result += strLength(i);
-      result++;
+      result += strLength(i) + 1;
     }
     return result;
   }
 
   public int getVpEnd(int lastLine) {
     int result = 0;
-    for (int i = 0; i < Math.min(lastLine + 1, document.length); i++) {
+    int limit = Math.min(lastLine + 1, document.length);
+    for (int i = 0; i < limit; i++) {
       result += strLength(i);
       if (i != document.length - 1) result++;
     }
@@ -392,5 +392,30 @@ public class Document {
 
   public void onReparse() {
     lastParsedVersion = currentVersion;
+  }
+
+  public Pos getPositionAt(int offset) {
+    int lineOffset = 0;
+    for (int line = 0; line < document.length; ++line) {
+      CodeLine codeLine = document[line];
+      int lineLength = codeLine.totalStrLength;
+      if (offset <= lineOffset + lineLength) {
+        return new Pos(line, offset - lineOffset);
+      }
+      lineOffset += lineLength + 1;
+    }
+    return new Pos(document.length, 0);
+  }
+
+  public int getOffsetAt(Pos pos) {
+    return getOffsetAt(pos.line, pos.pos);
+  }
+
+  public int getOffsetAt(int lineNumber, int column) {
+    int position = 0;
+    for (int i = 0; i < document.length && i < lineNumber; ++i) {
+      position += document[i].totalStrLength + 1;
+    }
+    return position + column;
   }
 }

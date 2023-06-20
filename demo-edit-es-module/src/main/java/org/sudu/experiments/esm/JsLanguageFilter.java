@@ -11,12 +11,10 @@ public abstract class JsLanguageFilter implements JSObject {
   @JSProperty abstract JSString getScheme();
 
   public String getLanguageOrNull() {
-    JSString language = getLanguage();
-    return JsHelper.getStringOrNull(language);
+    return JsHelper.toString(getLanguage(), null);
   }
 
   public String getSchemeOrNull() {
-    JSString scheme = getScheme();
-    return JsHelper.getStringOrNull(scheme);
+    return JsHelper.toString(getScheme(), null);
   }
 }

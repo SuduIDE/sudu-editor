@@ -8,7 +8,7 @@ import org.teavm.jso.core.JSArray;
 
 public abstract class ProviderUtils {
 
-  public static Location[] transformJsArrToJavaLocationArr(JSArray<JsLocation> jsArr) {
+  public static Location[] toLocations(JSArray<JsLocation> jsArr) {
     Location[] result = new Location[jsArr.getLength()];
     for (int i = 0; i < result.length; i++) {
       JsLocation loc = jsArr.get(i);

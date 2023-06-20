@@ -126,14 +126,14 @@ public class FileParser {
 
   private static void parseFullJavaChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    JavaParser.parseChars(chars, list);
+    JavaParser.parse(chars, list);
     list.add(new int[]{JAVA_FILE});
     ArrayOp.sendArrayList(list, result);
   }
 
   private static void parseFullCppChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    CppParser.parseChars(chars, list);
+    CppParser.parse(chars, list);
     list.add(new int[]{CPP_FILE});
     ArrayOp.sendArrayList(list, result);
   }

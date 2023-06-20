@@ -1,4 +1,4 @@
-import { newEditor } from "./src/editor.js";
+import { newEditor, newTextModel } from "./src/editor.js";
 
 function main() {
     newEditor({containerId: "editor", workerUrl: "./src/worker.js"})
@@ -14,10 +14,23 @@ const suduEditorConnector = {
     }
 }
 
-function connectEditor(editor) {
+const initialText =
+    "This is an experimental project\n" +
+    "to write a portable (Web + Desktop)\n" +
+    "editor in java and kotlin";
 
+function connectEditor(editor) {
     editor.focus();
-    editor.setText("");
+
+    let model = newTextModel(initialText)
+
+    editor.setModel(model);
+    let p31 = model.getPositionAt(31);
+    let p32 = model.getPositionAt(32);
+    let p18 = model.getPositionAt(18);
+    console.log("p31 = " + JSON.stringify(p31));
+    console.log("p32 = " + JSON.stringify(p32));
+    console.log("p18 = " + JSON.stringify(p18));
     console.log("Editor started");
 
     const input = document.getElementById("address");

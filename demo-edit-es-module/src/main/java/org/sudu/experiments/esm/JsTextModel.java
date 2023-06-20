@@ -1,6 +1,8 @@
 package org.sudu.experiments.esm;
 
 import org.sudu.experiments.demo.Model;
+import org.sudu.experiments.js.JsHelper;
+import org.sudu.experiments.parser.common.Pos;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSString;
@@ -26,17 +28,24 @@ public class JsTextModel implements JsITextModel {
 
   @Override
   public int getOffsetAt(JsPosition position) {
-    throw new UnsupportedOperationException("Not yet implemented");
+    return javaModel.document.getOffsetAt(
+        position.getLineNumber(), position.getColumn());
   }
 
   @Override
   public JsPosition getPositionAt(int offset) {
-    throw new UnsupportedOperationException("Not yet implemented");
+    return makeJsPos(javaModel.document.getPositionAt(offset));
+  }
+
+  static JsPosition makeJsPos(Pos pos) {
+    return JsPosition.create(pos.pos, pos.line);
   }
 
   public JsTextModel(JSString text, JSString language, JsUri uri) {
     String[] split = SplitJsText.split(text, '\n');
-    this.javaModel = new Model(split, language.stringValue(), uri.toJava(), this);
+    this.javaModel = new Model(split,
+        JsHelper.toString(language, ""),
+        uri.toJava(), this);
     setLanguage(this, language);
     setUri(this, uri);
   }

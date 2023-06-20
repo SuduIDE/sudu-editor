@@ -13,7 +13,7 @@ class JavaParserTest {
   @Test
   void parseChars() {
     List<Object> result = new ArrayList<>();
-    JavaParser.parseChars(new char[0], result);
+    JavaParser.parse(new char[0], result);
 
     for (Object o : result) {
       assertTrue(o.getClass().isArray());

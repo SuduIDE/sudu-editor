@@ -9,7 +9,7 @@ import org.teavm.jso.core.JSString;
 
 public abstract class LanguageSelectorUtils {
 
-  public static LanguageSelector[] getLanguageSelectorValues(JSObject obj) {
+  public static LanguageSelector[] languageSelectors(JSObject obj) {
     if (JsHelper.isJsArray(obj)) {
       JSArray<?> jsArr = obj.cast();
       int jsArrLength = jsArr.getLength();

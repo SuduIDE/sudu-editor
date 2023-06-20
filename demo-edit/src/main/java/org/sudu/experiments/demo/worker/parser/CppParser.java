@@ -11,9 +11,9 @@ import java.util.function.Consumer;
 
 public class CppParser {
 
-  public static final String PARSE_BYTES_CPP = "CppParser.parseBytes";
+  public static final String PARSE = "CppParser.parse";
 
-  public static void parseChars(char[] chars, List<Object> result) {
+  public static void parse(char[] chars, List<Object> result) {
     int[] ints = new CppFullParser().parse(chars);
     result.add(ints);
     result.add(chars);

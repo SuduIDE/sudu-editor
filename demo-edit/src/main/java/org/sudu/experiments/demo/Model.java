@@ -2,8 +2,8 @@ package org.sudu.experiments.demo;
 
 public class Model {
 
-  public final String language;
   public final Uri uri;
+  public String language;
   public Document document;
   public Object platformObject;
 

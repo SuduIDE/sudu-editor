@@ -14,7 +14,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   private final EditArguments args;
   private final WebWindow window;
-  private final DemoEdit0 demoEdit;
+  private final EditorComponent editor;
 
   public JsCodeEditor0(EditArguments args, WorkerContext worker) {
     this.args = args;
@@ -24,7 +24,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
         JsCodeEditor0::onWebGlError,
         args.getContainerId().stringValue(),
         worker);
-    demoEdit = (DemoEdit0) window.scene();
+    editor = ((DemoEdit0) window.scene()).editor();
     if (args.hasTheme()) setTheme(args.getTheme());
   }
 
@@ -43,41 +43,41 @@ public class JsCodeEditor0 implements JsCodeEditor {
   @Override
   public void setText(JSString t) {
     char[] buffer = TextEncoder.toCharArray(t);
-    demoEdit.editor().setText(buffer);
+    editor.setText(buffer);
   }
 
   @Override
   public JSString getText() {
-    char[] chars = demoEdit.document().getChars();
-    return TextDecoder.fromCharArray(chars);
+    char[] chars = editor.model().document.getChars();
+    return window.decoderUTF16.decode(chars);
   }
 
   @Override
   public void setFontFamily(JSString fontFamily) {
-    EditorComponent editor = demoEdit.editor();
     editor.changeFont(fontFamily.stringValue(), editor.getFontVirtualSize());
   }
 
   @Override
   public void setFontSize(int fontSize) {
-    EditorComponent editor = demoEdit.editor();
     editor.changeFont(editor.getFontFamily(), fontSize);
   }
 
   @Override
   public void setTheme(JSString theme) {
-    demoEdit.editor().setTheme(theme.stringValue());
+    editor.setTheme(theme.stringValue());
   }
 
   @Override
   public void setModel(JsITextModel model) {
-    EditorComponent editor = demoEdit.editor();
-    editor.setModel(((JsTextModel) model).javaModel);
+    if (model instanceof JsTextModel jsTextModel) {
+      editor.setModel(jsTextModel.javaModel);
+    } else {
+      throw new IllegalArgumentException("bad model");
+    }
   }
 
   @Override
   public void setPosition(JSObject selectionOrPosition) {
-    EditorComponent editor = demoEdit.editor();
     if (JsPosition.isInstance(selectionOrPosition)) {
       JsPosition pos = selectionOrPosition.cast();
       editor.setPosition(pos.getColumn(), pos.getLineNumber());
@@ -94,63 +94,61 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   @Override
   public JsITextModel getModel() {
-    return JsTextModel.fromJava(demoEdit.editor().getModel());
+    return JsTextModel.fromJava(editor.model());
   }
 
   @Override
   public JsDisposable registerDefinitionProvider(JSObject languageSelector, JsDefinitionProvider provider) {
-    EditorComponent editor = demoEdit.editor();
-    LanguageSelector[] strLanguages = LanguageSelectorUtils.getLanguageSelectorValues(languageSelector);
     editor.registerDefinitionProvider(
         new DefinitionProvider(
-            strLanguages,
-            (m, line, column) -> {
-              JSObject res = provider.provideDefinition(
-                  JsTextModel.fromJava(m),
-                  JsPosition.create(column, line),
-                  // Currently I don't want to implement cancellation token, so we accept it in API but throw away.
-                  JsCancellationToken.create()
-              );
-              PromiseUtils.<JSArray<JsLocation>>promiseOrT(
-                  res,
-                  (jsArr) -> {
-                    Location[] locs = ProviderUtils.transformJsArrToJavaLocationArr(jsArr);
-                    editor.gotoDefinition(locs[0]);
-                  }
-              );
-            }
-        )
-    );
+            LanguageSelectorUtils.languageSelectors(languageSelector),
+            convert(provider)));
     return JsDisposable.empty();
   }
 
   @Override
   public JsDisposable registerReferenceProvider(JSObject languageSelector, JsReferenceProvider provider) {
-    EditorComponent editor = demoEdit.editor();
-    LanguageSelector[] strLanguages = LanguageSelectorUtils.getLanguageSelectorValues(languageSelector);
     editor.registerReferenceProvider(
         new ReferenceProvider(
-            strLanguages,
-            (m, line, column, includeDecl) -> {
-              JSObject res = provider.provideReferences(
-                  JsTextModel.fromJava(m),
-                  JsPosition.create(column, line),
-                  JsReferenceProvider.Context.create(includeDecl),
-                  // Currently I don't want to implement cancellation token, so we accept it in API but throw away.
-                  JsCancellationToken.create()
-              );
-              PromiseUtils.<JSArray<JsLocation>>promiseOrT(
-                  res,
-                  (jsArr) -> {
-                    Location[] locs = ProviderUtils.transformJsArrToJavaLocationArr(jsArr);
-                    // TODO: make something like this in the future:
-                    // editor.provideUsages(locs);
-                  }
-              );
-            }
-        )
+            LanguageSelectorUtils.languageSelectors(languageSelector),
+            convert(provider))
     );
     return JsDisposable.empty();
+  }
+
+  static DefinitionProvider.Provider convert(JsDefinitionProvider provider) {
+    return (editor, line, column) ->
+        PromiseUtils.<JSArray<JsLocation>>promiseOrT(
+            provider.provideDefinition(
+                JsTextModel.fromJava(editor.model()),
+                JsPosition.create(column, line),
+                JsCancellationToken.create()
+            ), jsArr -> gotoDefinition(editor, jsArr));
+  }
+
+  static ReferenceProvider.Provider convert(JsReferenceProvider provider) {
+    return (editor, line, column, includeDecl) ->
+        PromiseUtils.<JSArray<JsLocation>>promiseOrT(
+            provider.provideReferences(
+                JsTextModel.fromJava(editor.model()),
+                JsPosition.create(column, line),
+                JsReferenceProvider.Context.create(includeDecl),
+                JsCancellationToken.create()
+            ), jsArr -> gotoReferences(editor, jsArr));
+  }
+
+  static void gotoDefinition(EditorComponent editor, JSArray<JsLocation> jsArr) {
+    if (!JSArray.isArray(jsArr)) {
+      throw new IllegalArgumentException("provideDefinition result is not an array");
+    }
+    editor.gotoDefinition(ProviderUtils.toLocations(jsArr));
+  }
+
+  static void gotoReferences(EditorComponent editor, JSArray<JsLocation> jsArr) {
+    if (!JSArray.isArray(jsArr)) {
+      throw new IllegalArgumentException("provideDefinition result is not an array");
+    }
+    editor.gotoReferences(ProviderUtils.toLocations(jsArr));
   }
 
   @Override
