@@ -28,9 +28,6 @@ public class TextRect extends DemoRect {
     textureRegion.set(x, y, w, h);
   }
 
-  public void drawWord(WglGraphics g, GL.Texture texture, int dx, int dy, float contrast, V4f color) {
-    g.drawText(pos.x + dx, pos.y + dy, size, textureRegion, texture, color, bgColor, contrast);
-  }
   public void drawText(WglGraphics g, GL.Texture texture, int dx, int dy, float contrast) {
     g.drawText(pos.x + dx, pos.y + dy, size, textureRegion, texture, color, bgColor, contrast);
   }
