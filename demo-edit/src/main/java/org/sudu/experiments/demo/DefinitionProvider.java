@@ -13,6 +13,9 @@ public class DefinitionProvider {
   }
 
   public interface Provider {
-    void provideDefinition(Model model, int line, int column, Consumer<Location[]> result, Consumer<String> onError);
+    void provideDefinition(
+        Model model, int line, int column,
+        Consumer<Location[]> result,
+        Consumer<String> onError);
   }
 }
