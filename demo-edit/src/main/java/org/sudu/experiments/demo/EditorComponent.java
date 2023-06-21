@@ -4,9 +4,7 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.demo.ui.PopupMenu;
-import org.sudu.experiments.demo.ui.ToolbarItem;
-import org.sudu.experiments.demo.ui.ToolbarItemBuilder;
+import org.sudu.experiments.demo.ui.*;
 import org.sudu.experiments.demo.worker.parser.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
@@ -93,7 +91,7 @@ public class EditorComponent implements EditApi, Disposable {
 
   boolean ctrlPressed = false;
 
-  PopupMenu usagesMenu;
+  FindUsagesWindow usagesMenu;
 
   public EditorComponent(SceneApi api) {
     this(api, new Document());
@@ -117,7 +115,7 @@ public class EditorComponent implements EditApi, Disposable {
     // d2d is very bold, contrast makes font heavier
     applyContrast = api.window.getHost() != Host.Direct2D;
 
-    usagesMenu = new PopupMenu(g);
+    usagesMenu = new FindUsagesWindow(g);
   }
 
   void setPos(V2i pos, V2i size, double dpr) {
@@ -260,7 +258,7 @@ public class EditorComponent implements EditApi, Disposable {
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
-    usagesMenu.setTheme(font, Colors.toolbarBg);
+    usagesMenu.setTheme(font, Colors.findUsagesBg);
 
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight
@@ -283,7 +281,6 @@ public class EditorComponent implements EditApi, Disposable {
         g.fontDesk(name, size, FontDesk.WEIGHT_BOLD, FontDesk.STYLE_ITALIC);
     font = fonts[CodeElement.fontIndex(false, false)];
   }
-
 
 
   public void changeFont(String name, int virtualSize) {
@@ -363,6 +360,7 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   private int iterativeVersion;
+
   public boolean update(double timestamp) {
     if (model.document.needReparse(timestamp) && iterativeVersion != model.document.currentVersion) {
       iterativeVersion = model.document.currentVersion;
@@ -627,6 +625,7 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   private long parsingTimeStart;
+
   private void onFileParsed(Object[] result) {
 //    Debug.consoleInfo("onFileParsed");
     fileStructureParsed = true;
@@ -853,17 +852,54 @@ public class EditorComponent implements EditApi, Disposable {
     startBlinking();
   }
 
-  private Supplier<ToolbarItem[]> usagesItems(List<Pos> usages) {
-    ToolbarItemBuilder tbb = new ToolbarItemBuilder();
+  private Supplier<FindUsagesItem[]> usagesItems(List<Pos> usages) {
+    FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
     int cnt = 0;
+    int maxFileNameLen = 0;
+    int maxLineLen = 0;
+    int maxCodeContentLen = 0;
     for (var pos : usages) {
-      tbb.addItem(makeShowUsageString(pos), Colors.popupText2, () -> gotoElement(pos));
+      // TODO(Get file names from server)
+      String fileName = "Main.java";
+      String codeContent = model.document.line(pos.line).makeString().trim();
+      String codeContentFormatted = codeContent.length() > 43 ? codeContent.substring(0, 40) + "..." : codeContent;
+      String lineNumber = String.valueOf(pos.line);
+      maxFileNameLen = Math.max(fileName.length(), maxFileNameLen);
+      maxLineLen = Math.max(lineNumber.length(), maxLineLen);
+      maxCodeContentLen = Math.max(codeContentFormatted.length(), maxCodeContentLen);
+    }
+    for (var pos : usages) {
+      // TODO(Get file names from server)
+      String fileName = formatFindUsagesItem(
+              "Main.java",
+              maxFileNameLen
+      );
+      String codeContent = model.document.line(pos.line).makeString().trim();
+      String codeContentFormatted = formatFindUsagesItem(
+              codeContent.length() > 43 ? codeContent.substring(0, 40) + "..." : codeContent,
+              maxCodeContentLen
+      );
+      String lineNumber = formatFindUsagesItem(
+              String.valueOf(pos.line),
+              maxLineLen
+      );
+
       if (++cnt > EditorConst.MAX_SHOW_USAGES_NUMBER) {
-        tbb.addItem("... and " + (usages.size() - cnt) + " more usages", Colors.popupText2, () -> {});
+        tbb.addItem(
+                "... and " + (usages.size() - (cnt - 1)) + " more usages",
+                "",
+                "",
+                Colors.findUsagesColorsContinued, () -> {}
+        );
         break;
       }
+      tbb.addItem(fileName, lineNumber, codeContentFormatted, Colors.findUsagesColors, () -> gotoElement(pos));
     }
     return tbb.supplier();
+  }
+
+  private String formatFindUsagesItem(String item, int maxLength) {
+    return item + " ".repeat(Math.max(maxLength - item.length(), 0));
   }
 
   private void gotoElement(Pos defPos) {
@@ -872,12 +908,6 @@ public class EditorComponent implements EditApi, Disposable {
     selection.startPos.set(caretLine, nextPos);
     selection.endPos.set(caretLine, caretCharPos);
     usagesMenu.hide();
-  }
-
-  private String makeShowUsageString(Pos pos) {
-    String codeLine = model.document.line(pos.line).makeString().trim();
-    String line = codeLine.length() > 43 ? codeLine.substring(0, 40) + "..." : codeLine;
-    return (pos.line + 1) + ":" + pos.pos + "  " + line;
   }
 
   void onClickText(V2i position, boolean shift) {

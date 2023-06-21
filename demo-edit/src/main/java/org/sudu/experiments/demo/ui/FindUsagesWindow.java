@@ -3,7 +3,6 @@ package org.sudu.experiments.demo.ui;
 import org.sudu.experiments.Const;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.Colors;
-import org.sudu.experiments.demo.DemoRect;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyEvent;
@@ -33,16 +32,40 @@ public class FindUsagesWindow {
         bgColor = bg;
     }
 
+    private FindUsages displayFindUsagesMenu(V2i pos, Supplier<FindUsagesItem[]> items) {
+        FindUsages findUsages = new FindUsages();
+        findUsages.setLayoutVertical();
+        findUsages.setItems(items.get());
+        setFindUsagesStyle(findUsages);
+        findUsages.measure(graphics.mCanvas, dpr);
+        setScreenLimitedPosition(findUsages, pos.x, pos.y, windowSize);
+
+        findUsages.onEnter((mouse, index, item) -> {
+            removeUsageWindowAfter(findUsages);
+        });
+
+        usagesList.add(findUsages);
+        return findUsages;
+    }
+
     public void display(V2i mousePos, Supplier<FindUsagesItem[]> actions, Runnable onClose) {
         if (font == null || isVisible()) {
             throw new IllegalArgumentException();
         }
         this.onClose = onClose;
+        FindUsages usagesMenu = displayFindUsagesMenu(mousePos, actions);
+        usagesMenu.onClickOutside(this::hide);
+    }
+
+    static void setScreenLimitedPosition(FindUsages findUsages, int x, int y, V2i screen) {
+        findUsages.setPos(
+                Math.max(0, Math.min(x, screen.x - findUsages.size().x)),
+                Math.max(0, Math.min(y, screen.y - findUsages.size().y)));
     }
 
     public void hide() {
         if (isVisible()) {
-            removePopupsAfter(null);
+            removeUsageWindowAfter(null);
             onClose.run();
             onClose = Const.emptyRunnable;
         }
@@ -67,6 +90,7 @@ public class FindUsagesWindow {
     public void paint() {
         // let's do 0-garbage rendering
         //noinspection ForLoopReplaceableByForEach
+        if (!usagesList.isEmpty()) graphics.enableBlend(true);
         for (int i = 0; i < usagesList.size(); i++) {
             usagesList.get(i).render(graphics, dpr);
         }
@@ -94,14 +118,7 @@ public class FindUsagesWindow {
         return false;
     }
 
-    private int relativeToParentPos(int posX, FindUsages parent, FindUsages usages) {
-        return windowSize.x >= posX + parent.size().x + usages.size().x
-                ? posX + parent.size().x
-                : posX - usages.size().x;
-    }
-
-
-    private void removePopupsAfter(FindUsages wall) {
+    private void removeUsageWindowAfter(FindUsages wall) {
         for (int i = usagesList.size() - 1; i >= 0; i--) {
             FindUsages tb = usagesList.get(i);
             if (wall == tb) break;
