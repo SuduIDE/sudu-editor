@@ -895,6 +895,13 @@ public class EditorComponent implements EditApi, Disposable {
 
   }
 
+  void useDeclarationProvider(int line, int column) {
+    var p = registrations.findDeclarationProvider(model.language, model.uriScheme());
+    if (p != null) {
+      p.provide(model, line, column, this::gotoDefinition, onError);
+    }
+  }
+
   void onClickText(V2i position, boolean shift) {
     int line = Numbers.clamp(0, (position.y + vScrollPos) / lineHeight, model.document.length() - 1);
     int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
@@ -910,7 +917,7 @@ public class EditorComponent implements EditApi, Disposable {
           return;
         }
       } else {
-        provider.provideDefinition(model, line, charPos, this::gotoDefinition, onError);
+        provider.provide(model, line, charPos, this::gotoDefinition, onError);
         return;
       }
       var usagesList = model.document.getUsagesList(line, documentXPosition);

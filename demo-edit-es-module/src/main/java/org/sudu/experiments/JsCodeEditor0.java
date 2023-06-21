@@ -102,11 +102,20 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   @Override
   public JsDisposable registerDefinitionProvider(JSObject languageSelector, JsDefinitionProvider provider) {
-    var defProvider = new DefinitionProvider(
+    var defProvider = new DefDeclProvider(
         LanguageSelectorUtils.languageSelectors(languageSelector),
         convert(provider));
     editor.registrations().registerDefinitionProvider(defProvider);
     return () -> editor.registrations().removeDefinitionProvider(defProvider);
+  }
+
+  @Override
+  public JsDisposable registerDeclarationProvider(JSObject languageSelector, JsDeclarationProvider provider) {
+    var defProvider = new DefDeclProvider(
+        LanguageSelectorUtils.languageSelectors(languageSelector),
+        convert(provider));
+    editor.registrations().registerDeclarationProvider(defProvider);
+    return () -> editor.registrations().removeDeclarationProvider(defProvider);
   }
 
   @Override
@@ -117,10 +126,21 @@ public class JsCodeEditor0 implements JsCodeEditor {
     return () -> editor.registrations().removeReferenceProvider(referenceProvider);
   }
 
-  static DefinitionProvider.Provider convert(JsDefinitionProvider provider) {
+  static DefDeclProvider.Provider convert(JsDefinitionProvider provider) {
     return (model, line, column, onResult, onError) ->
         PromiseUtils.<JSArray<JsLocation>>promiseOrT(
             provider.provideDefinition(
+                JsTextModel.fromJava(model),
+                JsPosition.create(column, line),
+                JsCancellationToken.create()),
+            jsArr -> acceptResult(jsArr, onResult, onError),
+            onError);
+  }
+
+  static DefDeclProvider.Provider convert(JsDeclarationProvider provider) {
+    return (model, line, column, onResult, onError) ->
+        PromiseUtils.<JSArray<JsLocation>>promiseOrT(
+            provider.provideDeclaration(
                 JsTextModel.fromJava(model),
                 JsPosition.create(column, line),
                 JsCancellationToken.create()),

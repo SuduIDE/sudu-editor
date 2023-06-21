@@ -6,16 +6,25 @@ import java.util.function.BiConsumer;
 @SuppressWarnings("unchecked")
 public class EditorRegistrations {
 
-  DefinitionProvider[] definitionProviders = new DefinitionProvider[0];
+  DefDeclProvider[] definitionProviders = new DefDeclProvider[0];
+  DefDeclProvider[] declarationProviders = new DefDeclProvider[0];
   ReferenceProvider[] referenceProviders = new ReferenceProvider[0];
   BiConsumer<Model, Model>[] modelChangeListeners = new BiConsumer[0];
 
-  public void registerDefinitionProvider(DefinitionProvider defProvider) {
+  public void registerDefinitionProvider(DefDeclProvider defProvider) {
     definitionProviders = addItem(definitionProviders, defProvider);
   }
 
-  public void removeDefinitionProvider(DefinitionProvider defProvider) {
+  public void removeDefinitionProvider(DefDeclProvider defProvider) {
     removeItem(definitionProviders, defProvider);
+  }
+
+  public void registerDeclarationProvider(DefDeclProvider defProvider) {
+    declarationProviders = addItem(declarationProviders, defProvider);
+  }
+
+  public void removeDeclarationProvider(DefDeclProvider defProvider) {
+    removeItem(declarationProviders, defProvider);
   }
 
   public void registerReferenceProvider(ReferenceProvider refProvider) {
@@ -34,8 +43,16 @@ public class EditorRegistrations {
     removeItem(modelChangeListeners, listener);
   }
 
-  public DefinitionProvider.Provider findDefinitionProvider(String language, String scheme) {
-    for (DefinitionProvider provider : definitionProviders) {
+  public DefDeclProvider.Provider findDefinitionProvider(String language, String scheme) {
+    return findDdProvider(definitionProviders, language, scheme);
+  }
+
+  public DefDeclProvider.Provider findDeclarationProvider(String language, String scheme) {
+    return findDdProvider(declarationProviders, language, scheme);
+  }
+
+  private DefDeclProvider.Provider findDdProvider(DefDeclProvider[] definitionProviders, String language, String scheme) {
+    for (DefDeclProvider provider : definitionProviders) {
       if (provider != null) for (LanguageSelector defSelector : provider.languageSelectors) {
         if (defSelector.match(language, scheme)) {
           return provider.f;
