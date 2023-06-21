@@ -16,6 +16,7 @@ public abstract class JsUri implements JSObject {
   @JSProperty abstract JSString getScheme();
   @JSProperty abstract JSString getAuthority();
   @JSProperty abstract JSString getPath();
+  @JSProperty abstract JSObject getJavaPeer();
 
   public String getSchemeOrNull() {
     return JsHelper.toString(getScheme(), null);
@@ -29,18 +30,25 @@ public abstract class JsUri implements JSObject {
     return JsHelper.toString(getPath(), null);
   }
 
-  @JSBody(params = {"scheme", "authority", "path"}, script = """
-    return {scheme: scheme, authority: authority, path: path};
+  @JSBody(params = {"scheme", "authority", "path", "javaPeer"}, script = """
+    return {scheme: scheme, authority: authority, path: path, javaPeer:javaPeer };
   """)
-  private static native JsUri create(String scheme, String authority, String path);
+  private static native JsUri create(
+      String scheme,
+      String authority,
+      String path,
+      JSObject javaPeer);
 
   public static JsUri fromJava(Uri uri) {
     if (uri == null) return null;
-    return create(uri.scheme, uri.authority, uri.path);
+    JSObject jsJavaPeer = (JSObject) uri;
+    return create(uri.scheme, uri.authority, uri.path, jsJavaPeer);
   }
 
   public Uri toJava() {
     if (!jsIf(this)) return null;
+    Object javaPeer = getJavaPeer();
+    if (javaPeer instanceof Uri uri) return uri;
     return new Uri(
         getSchemeOrNull(),
         getAuthorityOrNull(),

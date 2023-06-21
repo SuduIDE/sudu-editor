@@ -19,7 +19,6 @@ import org.sudu.experiments.worker.ArrayView;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
@@ -46,7 +45,7 @@ public class EditorComponent implements EditApi, Disposable {
   int lineHeight;
 
   Model model;
-  EditorRegistrations editorRegistrations = new EditorRegistrations();
+  EditorRegistrations registrations = new EditorRegistrations();
   Selection selection = new Selection();
 
   EditorColorScheme colors = EditorColorScheme.darkIdeaColorScheme();
@@ -94,6 +93,8 @@ public class EditorComponent implements EditApi, Disposable {
   boolean ctrlPressed = false;
 
   PopupMenu usagesMenu;
+
+  Consumer<String> onError = System.err::println;
 
   public EditorComponent(SceneApi api) {
     this(api, new Document());
@@ -880,14 +881,27 @@ public class EditorComponent implements EditApi, Disposable {
     return (pos.line + 1) + ":" + pos.pos + "  " + line;
   }
 
+  void provideReferences(int line, int column, boolean includeDeclaration) {
+    var provider = registrations.findReferenceProvider(model.language, model.uriScheme());
+    if (provider != null) {
+      provider.provideReferences(
+          model, line, column, includeDeclaration,
+          this::gotoReferences, onError
+      );
+    }
+  }
+
+  private void gotoReferences(Location[] locs) {
+
+  }
+
   void onClickText(V2i position, boolean shift) {
     int line = Numbers.clamp(0, (position.y + vScrollPos) / lineHeight, model.document.length() - 1);
     int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
     int charPos = model.document.line(line).computeCaretLocation(documentXPosition, g.mCanvas, fonts);
 
     if (ctrlPressed) {
-      String scheme = model.uri != null ? model.uri.scheme : null;
-      DefinitionProvider provider = editorRegistrations.findDefinitionProvider(model.language, scheme);
+      var provider = registrations.findDefinitionProvider(model.language, model.uriScheme());
       if (provider == null) {
         // Default def provider
         var defPos = model.document.getDefinitionPos(line, documentXPosition);
@@ -896,7 +910,7 @@ public class EditorComponent implements EditApi, Disposable {
           return;
         }
       } else {
-        provider.f.provideDefinition(this, line, charPos);
+        provider.provideDefinition(model, line, charPos, this::gotoDefinition, onError);
         return;
       }
       var usagesList = model.document.getUsagesList(line, documentXPosition);
@@ -919,11 +933,7 @@ public class EditorComponent implements EditApi, Disposable {
     selection.select(caretLine, caretCharPos);
   }
 
-  public void gotoReferences(Location[] locs) {
-
-  }
-
-  public void gotoDefinition(Location[] locs) {
+  private void gotoDefinition(Location[] locs) {
     gotoDefinition(locs[0]);
   }
 
@@ -1288,23 +1298,13 @@ public class EditorComponent implements EditApi, Disposable {
     selection.getRightPos().set(endLineNumber, endColumn);
   }
 
-  public void registerDefinitionProvider(DefinitionProvider defProvider) {
-    editorRegistrations.registerDefinitionProvider(defProvider);
-  }
-
-  public void registerReferenceProvider(ReferenceProvider refProvider) {
-    editorRegistrations.registerReferenceProvider(refProvider);
-  }
-
-  public void addModelChangeListener(BiConsumer<Model, Model> listener) {
-    editorRegistrations.addModelChangeListener(listener);
-  }
+  public EditorRegistrations registrations() { return registrations; }
 
   public void setModel(Model model) {
     Model oldModel = this.model;
     this.model = model;
     setText(model.document.getChars());
-    editorRegistrations.fireModelChange(oldModel, model);
+    registrations.fireModelChange(oldModel, model);
   }
 
   public Model model() { return model; }

@@ -229,8 +229,13 @@ public class CodeLine {
     glyphMeasureCache = null;
   }
 
+  int[] ensureIMeasure(Canvas mCanvas, FontDesk[] fonts) {
+    if (iMeasure == null || measureDirty) measure(mCanvas, fonts);
+    return iMeasure;
+  }
+
   public int computeCaretLocation(int pixelLocation, Canvas mCanvas, FontDesk[] fonts) {
-    if (iMeasure == null) measure(mCanvas, fonts);
+    int[] iMeasure = ensureIMeasure(mCanvas, fonts);
     if (elements.length == 0) return 0;
 
     // check borders

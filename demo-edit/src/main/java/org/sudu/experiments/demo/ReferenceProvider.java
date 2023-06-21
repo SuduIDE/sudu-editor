@@ -1,5 +1,7 @@
 package org.sudu.experiments.demo;
 
+import java.util.function.Consumer;
+
 public class ReferenceProvider {
 
   final LanguageSelector[] languageSelectors;
@@ -11,6 +13,13 @@ public class ReferenceProvider {
   }
 
   public interface Provider {
-    void provideReferences(EditorComponent editor, int line, int column, boolean includeDeclaration);
+    void provideReferences(
+        Model model,
+        int line,
+        int column,
+        boolean includeDeclaration,
+        Consumer<Location[]> onResult,
+        Consumer<String> onError
+    );
   }
 }

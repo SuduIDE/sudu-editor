@@ -1,5 +1,7 @@
 package org.sudu.experiments.demo;
 
+import java.util.function.Consumer;
+
 public class DefinitionProvider {
 
   final LanguageSelector[] languageSelectors;
@@ -11,6 +13,6 @@ public class DefinitionProvider {
   }
 
   public interface Provider {
-    void provideDefinition(EditorComponent editor, int line, int column);
+    void provideDefinition(Model model, int line, int column, Consumer<Location[]> result, Consumer<String> onError);
   }
 }

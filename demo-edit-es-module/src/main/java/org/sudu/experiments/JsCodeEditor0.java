@@ -11,6 +11,7 @@ import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class JsCodeEditor0 implements JsCodeEditor {
 
@@ -101,57 +102,52 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   @Override
   public JsDisposable registerDefinitionProvider(JSObject languageSelector, JsDefinitionProvider provider) {
-    editor.registerDefinitionProvider(
-        new DefinitionProvider(
-            LanguageSelectorUtils.languageSelectors(languageSelector),
-            convert(provider)));
-    return JsDisposable.empty();
+    var defProvider = new DefinitionProvider(
+        LanguageSelectorUtils.languageSelectors(languageSelector),
+        convert(provider));
+    editor.registrations().registerDefinitionProvider(defProvider);
+    return () -> editor.registrations().removeDefinitionProvider(defProvider);
   }
 
   @Override
   public JsDisposable registerReferenceProvider(JSObject languageSelector, JsReferenceProvider provider) {
-    editor.registerReferenceProvider(
-        new ReferenceProvider(
-            LanguageSelectorUtils.languageSelectors(languageSelector),
-            convert(provider))
-    );
-    return JsDisposable.empty();
+    var referenceProvider = new ReferenceProvider(
+        LanguageSelectorUtils.languageSelectors(languageSelector), convert(provider));
+    editor.registrations().registerReferenceProvider(referenceProvider);
+    return () -> editor.registrations().removeReferenceProvider(referenceProvider);
   }
 
   static DefinitionProvider.Provider convert(JsDefinitionProvider provider) {
-    return (editor, line, column) ->
+    return (model, line, column, onResult, onError) ->
         PromiseUtils.<JSArray<JsLocation>>promiseOrT(
             provider.provideDefinition(
-                JsTextModel.fromJava(editor.model()),
+                JsTextModel.fromJava(model),
                 JsPosition.create(column, line),
-                JsCancellationToken.create()
-            ), jsArr -> gotoDefinition(editor, jsArr));
+                JsCancellationToken.create()),
+            jsArr -> acceptResult(jsArr, onResult, onError),
+            onError);
   }
 
   static ReferenceProvider.Provider convert(JsReferenceProvider provider) {
-    return (editor, line, column, includeDecl) ->
+    return (model, line, column, includeDecl, onResult, onError) ->
         PromiseUtils.<JSArray<JsLocation>>promiseOrT(
             provider.provideReferences(
-                JsTextModel.fromJava(editor.model()),
+                JsTextModel.fromJava(model),
                 JsPosition.create(column, line),
                 JsReferenceProvider.Context.create(includeDecl),
-                JsCancellationToken.create()
-            ), jsArr -> gotoReferences(editor, jsArr));
+                JsCancellationToken.create()),
+            jsArr -> acceptResult(jsArr, onResult, onError),
+            onError);
   }
 
-  static void gotoDefinition(EditorComponent editor, JSArray<JsLocation> jsArr) {
-    if (!JSArray.isArray(jsArr)) {
-      throw new IllegalArgumentException("provideDefinition result is not an array");
+  static void acceptResult(JSArray<JsLocation> jsArr, Consumer<Location[]> c, Consumer<String> onError) {
+    if (JSArray.isArray(jsArr)) {
+      c.accept(ProviderUtils.toLocations(jsArr));
+    } else {
+      onError.accept("provideDefinition result is not an array");
     }
-    editor.gotoDefinition(ProviderUtils.toLocations(jsArr));
   }
 
-  static void gotoReferences(EditorComponent editor, JSArray<JsLocation> jsArr) {
-    if (!JSArray.isArray(jsArr)) {
-      throw new IllegalArgumentException("provideDefinition result is not an array");
-    }
-    editor.gotoReferences(ProviderUtils.toLocations(jsArr));
-  }
 
   @Override
   public JsDisposable registerDocumentHighlightProvider(JSObject languageSelector, JsDocumentHighlight provider) {
@@ -165,8 +161,9 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   @Override
   public JsDisposable onDidChangeModel(JsFunctions.Consumer<JsIModelChangedEvent> f) {
-    editor.addModelChangeListener(convert(f));
-    return JsDisposable.empty();
+    var listener = convert(f);
+    editor.registrations().addModelChangeListener(listener);
+    return () -> editor.registrations().removeModelChangeListener(listener);
   }
 
   static BiConsumer<Model, Model> convert(JsFunctions.Consumer<JsIModelChangedEvent> jsCallback) {

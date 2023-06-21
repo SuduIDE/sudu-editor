@@ -24,4 +24,8 @@ public class Model {
     this.language = "java";
     this.uri = null;
   }
+
+  public String uriScheme() {
+    return uri != null ? uri.scheme : null;
+  }
 }
