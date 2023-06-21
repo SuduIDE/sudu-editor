@@ -20,35 +20,30 @@ import java.util.function.Supplier;
 
 import static org.sudu.experiments.demo.ui.ToolbarItemBuilder.*;
 
-public class DemoEdit0 extends Scene {
+public class DemoEdit0 extends Scene0 {
 
   WglGraphics g;
   final SetCursor setCursor;
-
-  final V4f bgColor = Color.Cvt.gray(0);
 
   final PopupMenu popupMenu;
   FontDesk toolBarFont;
 
   EditorComponent editor;
   V2i editorPos = new V2i();
-  V2i editorSize = new V2i();
-  double dpr;
 
   public DemoEdit0(SceneApi api) {
-    super(api);
+    super(api, false);
     this.g = api.graphics;
+//    clearColor.set(Color.Cvt.gray(0));
     this.setCursor = SetCursor.wrap(api.window);
     popupMenu = new PopupMenu(g);
 
     editor = new EditorComponent(api);
-    editor.setText(StartFile.getChars());
-
     api.input.addListener(new EditInput());
   }
 
   public Document document() {
-    return editor.document;
+    return editor.model.document;
   }
 
   public EditorComponent editor() {
@@ -68,13 +63,8 @@ public class DemoEdit0 extends Scene {
 
   @Override
   public void paint() {
-    g.clear(bgColor);
+    super.paint();
     editor.paint();
-    drawToolBar();
-  }
-
-  private void drawToolBar() {
-    g.enableBlend(true);
     popupMenu.paint();
   }
 
@@ -172,9 +162,9 @@ public class DemoEdit0 extends Scene {
   }
 
   @Override
-  public void onResize(V2i size, double newDpr) {
-    editorSize.set(size);
-    editor.setPos(editorPos, editorSize, newDpr);
+  public void onResize(V2i newSize, double newDpr) {
+    size.set(newSize);
+    editor.setPos(editorPos, size, newDpr);
 
     if (dpr != newDpr) {
       dpr = newDpr;
@@ -182,7 +172,7 @@ public class DemoEdit0 extends Scene {
       toolBarFont = g.fontDesk(EditorConst.TOOLBAR_FONT_NAME, toolbarFontSize);
       popupMenu.setTheme(toolBarFont, Colors.toolbarBg);
     }
-    popupMenu.onResize(size, newDpr);
+    popupMenu.onResize(newSize, newDpr);
   }
 
   private void setSegoeUI() {

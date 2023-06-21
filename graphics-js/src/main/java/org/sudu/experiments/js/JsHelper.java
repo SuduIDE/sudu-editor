@@ -7,6 +7,7 @@ import org.teavm.jso.*;
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSError;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.css.CSSStyleDeclaration;
 import org.teavm.jso.dom.html.HTMLCanvasElement;
@@ -145,6 +146,9 @@ public class JsHelper {
   @JSBody(params = {"a", "b", "c"}, script = "return [a, b, c];")
   public static native JSArray<JSObject> toJsArray(JSObject a, JSObject b, JSObject c);
 
+  @JSBody(params = {"a"}, script = "return Array.isArray(a);")
+  public static native boolean isJsArray(JSObject a);
+
   @JSBody(params = {"n"}, script = "return String(n);")
   public static native String jsDoubleToString(double n);
 
@@ -161,5 +165,12 @@ public class JsHelper {
     static JSString get(JSObject o) {
       return o.<WithId>cast().getId();
     }
+  }
+
+  @JSBody(params = {"x"}, script = "return x ? true : false;")
+  public static native boolean jsIf(JSObject x);
+
+  public static String toString(JSString jsString, String orElse) {
+    return jsIf(jsString) ? jsString.stringValue() : orElse;
   }
 }

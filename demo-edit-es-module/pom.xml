@@ -15,7 +15,7 @@
   </parent>
 
   <properties>
-    <mainClass>org.sudu.experiments.EditorModule</mainClass>
+    <mainClass>org.sudu.experiments.Editor_d_ts</mainClass>
     <workerClass>org.sudu.experiments.WebWorker</workerClass>
     <workerFileTemp>workerOut.js</workerFileTemp>
 
@@ -165,7 +165,7 @@
         <configuration>
           <filesets>
             <fileset><directory>module/src</directory></fileset>
-            <fileset><directory>webpack-test/editor-on-java-sample/dist</directory></fileset>
+            <fileset><directory>webpack-test/sudu-editor-sample/dist</directory></fileset>
           </filesets>
         </configuration>
     </plugin>

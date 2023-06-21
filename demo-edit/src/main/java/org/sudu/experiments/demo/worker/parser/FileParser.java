@@ -51,6 +51,16 @@ public class FileParser {
     );
   }
 
+  public static final String asyncIterativeParsing = "asyncIterativeParsing";
+
+  public static void asyncIterativeParsing(char[] chars, int[] type, int[] interval, Consumer<Object[]> result) {
+    switch (type[0]) {
+      case JAVA_FILE -> JavaParser.parseInterval(chars,interval, result);
+      case CPP_FILE -> CppParser.parseInterval(chars,interval, result);
+      case JS_FILE -> JavaScriptParser.parseInterval(chars,interval, result);
+    }
+  }
+
   public static boolean isJavaExtension(String ext) {
     return ext.equals(".java");
   }
@@ -116,14 +126,14 @@ public class FileParser {
 
   private static void parseFullJavaChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    JavaParser.parseChars(chars, list);
+    JavaParser.parse(chars, list);
     list.add(new int[]{JAVA_FILE});
     ArrayOp.sendArrayList(list, result);
   }
 
   private static void parseFullCppChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    CppParser.parseChars(chars, list);
+    CppParser.parse(chars, list);
     list.add(new int[]{CPP_FILE});
     ArrayOp.sendArrayList(list, result);
   }

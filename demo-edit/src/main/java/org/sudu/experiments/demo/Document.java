@@ -5,15 +5,15 @@ import org.sudu.experiments.demo.worker.IntervalTree;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.Pos;
+import org.sudu.experiments.parser.common.Pos;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Document {
   CodeLine[] document;
   public IntervalTree tree;
-  public Map<Pos, Pos> usageToDef;
+  public final Map<Pos, Pos> usageToDef = new HashMap<>();
+  public final Map<Pos, List<Pos>> defToUsages = new HashMap<>();
   List<Diff> diffs = new ArrayList<>();
 
   int currentVersion;
@@ -21,19 +21,30 @@ public class Document {
   double lastDiffTimestamp;
 
   public Document() {
-    tree = new IntervalTree(new ArrayList<>());
-    document = new CodeLine[]{new CodeLine(new CodeElement(""))};
+    document = CodeLine.singleElementLine("");
     currentVersion = lastParsedVersion = 0;
-    usageToDef = new HashMap<>();
+    tree = initialInterval();
   }
 
   public Document(CodeLine ... data) {
     document = data;
     currentVersion = lastParsedVersion = 0;
+    tree = initialInterval();
+  }
+
+  public Document(CodeLine[] data, List<Interval> intervalList) {
+    document = data;
+    currentVersion = lastParsedVersion = 0;
+    tree = new IntervalTree(intervalList);
   }
 
   public Document(int n) {
     this(TestText.document(n, false));
+    tree = initialInterval();
+  }
+
+  private IntervalTree initialInterval() {
+    return IntervalTree.singleInterval(0, getFullLength(), 0);
   }
 
   public CodeLine line(int i) {
@@ -53,6 +64,20 @@ public class Document {
   public int length() {
     return document.length;
   }
+
+  public int getFullLength() {
+    return getLineStartInd(length());
+  }
+
+  public void clear() {
+    diffs.clear();
+    usageToDef.clear();
+    defToUsages.clear();
+    document = CodeLine.singleElementLine("");
+    currentVersion = lastParsedVersion = 0;
+    tree = initialInterval();
+  }
+
   public int strLength(int i) {
     return document[i].totalStrLength;
   }
@@ -234,12 +259,24 @@ public class Document {
     }
   }
 
+  public boolean hasDefOrUsages(int line, int pos) {
+    return hasDefinition(line, pos) || hasUsages(line, pos);
+  }
+
   public boolean hasDefinition(int line, int pos) {
     return getDefinitionPos(line, pos) != null;
   }
 
+  public boolean hasUsages(int line, int pos) {
+    return getUsagesList(line, pos) != null;
+  }
+
   public Pos getDefinitionPos(int line, int pos) {
     return usageToDef.get(getPosition(line, pos));
+  }
+
+  public List<Pos> getUsagesList(int line, int pos) {
+    return defToUsages.get(getPosition(line, pos));
   }
 
   public Pos getPosition(int line, int pos) {
@@ -258,15 +295,15 @@ public class Document {
   public int getLineStartInd(int firstLine) {
     int result = 0;
     for (int i = 0; i < firstLine; i++) {
-      result += strLength(i);
-      result++;
+      result += strLength(i) + 1;
     }
     return result;
   }
 
   public int getVpEnd(int lastLine) {
     int result = 0;
-    for (int i = 0; i < Math.min(lastLine + 1, document.length); i++) {
+    int limit = Math.min(lastLine + 1, document.length);
+    for (int i = 0; i < limit; i++) {
       result += strLength(i);
       if (i != document.length - 1) result++;
     }
@@ -274,7 +311,7 @@ public class Document {
   }
 
   public String makeString() {
-    StringBuilder sb = new StringBuilder(getLineStartInd(length()));
+    StringBuilder sb = new StringBuilder(getFullLength());
     for (CodeLine codeLine : document) {
       codeLine.append(sb).append('\n');
     }
@@ -355,5 +392,30 @@ public class Document {
 
   public void onReparse() {
     lastParsedVersion = currentVersion;
+  }
+
+  public Pos getPositionAt(int offset) {
+    int lineOffset = 0;
+    for (int line = 0; line < document.length; ++line) {
+      CodeLine codeLine = document[line];
+      int lineLength = codeLine.totalStrLength;
+      if (offset <= lineOffset + lineLength) {
+        return new Pos(line, offset - lineOffset);
+      }
+      lineOffset += lineLength + 1;
+    }
+    return new Pos(document.length, 0);
+  }
+
+  public int getOffsetAt(Pos pos) {
+    return getOffsetAt(pos.line, pos.pos);
+  }
+
+  public int getOffsetAt(int lineNumber, int column) {
+    int position = 0;
+    for (int i = 0; i < document.length && i < lineNumber; ++i) {
+      position += document[i].totalStrLength + 1;
+    }
+    return position + column;
   }
 }

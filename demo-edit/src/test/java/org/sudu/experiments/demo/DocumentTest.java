@@ -3,6 +3,7 @@ package org.sudu.experiments.demo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.parser.common.Pos;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -404,6 +405,37 @@ class DocumentTest {
         ab("This demo is ", "designed to investigate"),
         ab("performance limits", " of this approach")
     );
+  }
+
+  @Test
+  void getPositionOffsetTest() {
+    Document document = doc5();
+    System.out.println(document.makeString());
+
+    int l0 = document.line(0).makeString().length();
+    int l1 = document.line(1).makeString().length();
+    Pos at0 = document.getPositionAt(0);
+    Assertions.assertEquals(at0, new Pos(0, 0));
+    Assertions.assertEquals(document.getOffsetAt(at0), 0);
+    Pos atl0 = document.getPositionAt(l0);
+    Assertions.assertEquals(atl0, new Pos(0, l0));
+    Assertions.assertEquals(document.getOffsetAt(atl0), l0);
+
+    Pos atl1 = document.getPositionAt(l0 + 1);
+    Assertions.assertEquals(atl1, new Pos(1, 0));
+    Assertions.assertEquals(document.getOffsetAt(atl1), l0+1);
+
+    Pos atl01 = document.getPositionAt(l0 + 1 + l1);
+    Assertions.assertEquals(atl01, new Pos(1, l1));
+    Assertions.assertEquals(document.getOffsetAt(atl01), l0 + 1 + l1);
+
+    Pos atl20 = document.getPositionAt(l0 + 1 + l1 + 1);
+    Assertions.assertEquals(atl20, new Pos(2, 0));
+    Assertions.assertEquals(document.getOffsetAt(atl20), l0 + 1 + l1 + 1);
+
+    Pos atlMax = document.getPositionAt(document.getFullLength() * 2);
+    Assertions.assertEquals(atlMax, new Pos(document.length(), 0));
+    Assertions.assertEquals(document.getOffsetAt(atlMax), document.getFullLength());
   }
 
   static Document doc4() {

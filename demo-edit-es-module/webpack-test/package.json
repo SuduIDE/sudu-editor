@@ -1,10 +1,10 @@
 {
   "name": "webpack-test",
   "workspaces": [
-    "../module", "editor-on-java-sample"
+    "../module", "sudu-editor-sample"
   ],
   "scripts": {
     "i": "npm install",
-    "build-editor-on-java-sample": "npm run -w editor-on-java-sample build"
+    "sudu-editor-sample-compile": "npm run -w sudu-editor-sample compile"
   }
 }

@@ -15,7 +15,7 @@ public class TestSceneSelector {
       Debug.consoleInfo("selectScene " + name);
     }
     return switch (name) {
-      default -> DemoEdit0::new;
+      default -> DemoEdit1::new;
       case "DemoScene1", "test" -> DemoScene1::new;
       case "ToolbarDemo" -> ToolbarDemo::new;
       case "FindUsagesDemo" -> FindUsagesDemo::new;

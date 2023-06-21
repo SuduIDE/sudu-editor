@@ -2,7 +2,6 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.demo.*;
 import org.sudu.experiments.demo.wasm.WasmDemo;
-import org.sudu.experiments.demo.worker.WorkerTest;
 import org.sudu.experiments.fonts.JetBrainsMono;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;
@@ -59,12 +58,10 @@ public class WebApp {
   }
 
   static Scene createScene(SceneApi api) {
-    String name = Window.current().getLocation().getHash();
-    return switch (name) {
-      case "" -> new DemoEdit0(api);
-      case "#wasm" -> new WasmDemo(api);
-      default -> TestSceneSelector.selectScene(name.substring(1)).apply(api);
-    };
+    String hash = Window.current().getLocation().getHash();
+    if ("#wasm".equals(hash)) return new WasmDemo(api);
+    String name = hash.length() > 0 ? hash.substring(1) : "";
+    return TestSceneSelector.selectScene(name).apply(api);
   }
 
   static void onWebGlError() {

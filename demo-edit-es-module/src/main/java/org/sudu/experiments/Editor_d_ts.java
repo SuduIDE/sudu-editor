@@ -1,38 +1,37 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSString;
 
-// js reflection of this file is located at
-// demo-edit-es-module/module/editor.d.ts
+// see ES6moduleExport.template.js.1
+// see editor.d.ts
 
-public interface Editor_d_ts extends JSObject {
-  void dispose();
-  void focus();
-  JSString saySomething();
-  void setText(JSString t);
-  JSString getText();
-  void setFontFamily(JSString fontFamily);
-  void setFontSize(int fontSize);
+public interface Editor_d_ts {
 
+  @JSFunctor interface EditorFactory extends JSObject {
+    Promise<JsCodeEditor> create(JsCodeEditor.EditArguments args);
 
-  interface EditArguments extends JSObject {
-    @JSProperty JSString getContainerId();
-
-    String workerUrlProperty = "workerUrl";
-    @JSProperty JSString getWorkerUrl();
+    class Setter {
+      @JSBody(params = {"f"}, script = "editorFactory = f;")
+      public static native void setApi(EditorFactory f);
+    }
   }
 
-  @JSFunctor interface Factory extends JSObject {
-    Promise<Editor_d_ts> create(EditArguments args);
+  @JSFunctor interface TextModelFactory extends JSObject {
+    JsITextModel create(JSString value, JSString language, JsUri uri);
+
+    class Setter {
+      @JSBody(params = {"f"}, script = "modelFactory = f;")
+      public static native void setModel(TextModelFactory f);
+    }
   }
 
-  class Setter {
-    @JSBody(params = {"api"}, script = "editorFactory = api;")
-    static native void setApi(Editor_d_ts.Factory api);
+  static void main(String[] args) {
+    EditorFactory.Setter.setApi(JsCodeEditor0::newEdit);
+    TextModelFactory.Setter.setModel(JsTextModel::new);
   }
 }

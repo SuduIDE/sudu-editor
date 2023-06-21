@@ -4,23 +4,25 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.demo.worker.parser.FileParser;
-import org.sudu.experiments.demo.worker.parser.JavaParser;
-import org.sudu.experiments.demo.worker.parser.ParserUtils;
+import org.sudu.experiments.demo.ui.PopupMenu;
+import org.sudu.experiments.demo.ui.ToolbarItem;
+import org.sudu.experiments.demo.ui.ToolbarItemBuilder;
+import org.sudu.experiments.demo.worker.parser.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.*;
-import org.sudu.experiments.parser.cpp.parser.CppIntervalParser;
-import org.sudu.experiments.parser.java.parser.JavaIntervalParser;
-import org.sudu.experiments.parser.javascript.parser.JavaScriptIntervalParser;
+import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.worker.ArrayView;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
+import java.util.function.Supplier;
 
 import static org.sudu.experiments.input.InputListener.MOUSE_BUTTON_LEFT;
 
@@ -43,7 +45,8 @@ public class EditorComponent implements EditApi, Disposable {
   FontDesk[] fonts = new FontDesk[4];
   int lineHeight;
 
-  Document document;
+  Model model;
+  EditorRegistrations editorRegistrations = new EditorRegistrations();
   Selection selection = new Selection();
 
   EditorColorScheme colors = EditorColorScheme.darkIdeaColorScheme();
@@ -90,6 +93,8 @@ public class EditorComponent implements EditApi, Disposable {
 
   boolean ctrlPressed = false;
 
+  PopupMenu usagesMenu;
+
   public EditorComponent(SceneApi api) {
     this(api, new Document());
   }
@@ -99,7 +104,7 @@ public class EditorComponent implements EditApi, Disposable {
       Document document
   ) {
     this.api = api;
-    this.document = document;
+    this.model = new Model(document);
     this.g = api.graphics;
 
     if (api.window.hasFocus()) onFocusGain();
@@ -111,6 +116,8 @@ public class EditorComponent implements EditApi, Disposable {
 
     // d2d is very bold, contrast makes font heavier
     applyContrast = api.window.getHost() != Host.Direct2D;
+
+    usagesMenu = new PopupMenu(g);
   }
 
   void setPos(V2i pos, V2i size, double dpr) {
@@ -136,6 +143,7 @@ public class EditorComponent implements EditApi, Disposable {
     updateLineNumbersFont();
 
     layout();
+    usagesMenu.onResize(size, dpr);
   }
 
 
@@ -159,7 +167,7 @@ public class EditorComponent implements EditApi, Disposable {
 
   private void undoLastDiff() {
     if (selection.isAreaSelected()) setSelectionToCaret();
-    var caretDiff = document.undoLastDiff();
+    var caretDiff = model.document.undoLastDiff();
     if (caretDiff == null) return;
     setCaretLinePos(caretDiff.x, caretDiff.y, false);
     updateDocumentDiffTimeStamp();
@@ -171,6 +179,14 @@ public class EditorComponent implements EditApi, Disposable {
 
   public void toggleLight() {
     this.colors = EditorColorScheme.lightIdeaColorScheme();
+  }
+
+  public void setTheme(String theme) {
+    switch (theme) {
+      case "light" -> toggleLight();
+      case "dark" -> toggleDark();
+      default -> Debug.consoleInfo("unknown theme: " + theme);
+    }
   }
 
   void toggleXOffset() {
@@ -244,6 +260,8 @@ public class EditorComponent implements EditApi, Disposable {
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
+    usagesMenu.setTheme(font, Colors.toolbarBg);
+
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight
         + ", lineHeight = " + lineHeight
@@ -297,12 +315,12 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   private void invalidateFont() {
-    Debug.consoleInfo("invalidateFont");
+//    Debug.consoleInfo("invalidateFont");
 
     for (CodeLineRenderer line : lines) {
       line.dispose();
     }
-    document.invalidateFont();
+    model.document.invalidateFont();
   }
 
   public void dispose() {
@@ -314,7 +332,7 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   int editorFullHeight() {
-    return (document.length() + EditorConst.BLANK_LINES) * lineHeight;
+    return (model.document.length() + EditorConst.BLANK_LINES) * lineHeight;
   }
 
   int maxVScrollPos() {
@@ -344,8 +362,12 @@ public class EditorComponent implements EditApi, Disposable {
     vLineSize.y = editorHeight();
   }
 
+  private int iterativeVersion;
   public boolean update(double timestamp) {
-    if (document.needReparse(timestamp)) iterativeParsing();
+    if (model.document.needReparse(timestamp) && iterativeVersion != model.document.currentVersion) {
+      iterativeVersion = model.document.currentVersion;
+      iterativeParsing();
+    }
 
     int oldVScrollPos = vScrollPos;
     vScrollPos = clampScrollPos(vScrollPos + scrollDown  -  scrollUp,
@@ -376,7 +398,7 @@ public class EditorComponent implements EditApi, Disposable {
 
     int cacheLines = Numbers.iDivRoundUp(editorHeight(), lineHeight) + EditorConst.MIN_CACHE_LINES;
     if (lines.length < cacheLines) {
-      lines = CodeLineRenderer.reallocRenderLines(cacheLines, lines, firstLineRendered, lastLineRendered, document);
+      lines = CodeLineRenderer.reallocRenderLines(cacheLines, lines, firstLineRendered, lastLineRendered, model.document);
     }
 
     g.enableBlend(false);
@@ -389,7 +411,7 @@ public class EditorComponent implements EditApi, Disposable {
     int caretX = caretPos - caret.width() / 2 - hScrollPos;
     caret.setPosition(vLineX + caretX, caretVerticalOffset + caretLine * lineHeight - vScrollPos);
 
-    int docLen = document.length();
+    int docLen = model.document.length();
 
     int firstLine = getFirstLine();
     int lastLine = getLastLine();
@@ -398,7 +420,7 @@ public class EditorComponent implements EditApi, Disposable {
     this.lastLineRendered = lastLine;
 
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      CodeLine nextLine = document.line(i);
+      CodeLine nextLine = model.document.line(i);
       CodeLineRenderer line = lineRenderer(i);
       line.updateTexture(nextLine, renderingCanvas, fonts, g, lineHeight, editorWidth(), hScrollPos);
       CodeLine lineContent = line.line;
@@ -442,6 +464,8 @@ public class EditorComponent implements EditApi, Disposable {
     hScroll.layoutHorizontal(hScrollPos, editorBottom, editorRight - vLineX, fullWidth, vLineX, vScrollBarWidth());
     drawScrollBar();
 
+    usagesMenu.paint();
+
 //    g.checkError("paint complete");
     if (0>1) {
       String s = "fullMeasure:" + CodeLine.cacheMiss + ", cacheHits: " + CodeLine.cacheHits;
@@ -461,7 +485,7 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   private void drawLineNumbers(int editorBottom, int firstLine, int lastLine) {
-    int textHeight = Math.min(editorBottom, document.length() * lineHeight - vScrollPos);
+    int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
 
     lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine, caretLine, g,
         colors.lineNumbersColors
@@ -469,11 +493,11 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   private int getFirstLine() {
-    return Math.min(vScrollPos / lineHeight, document.length() - 1);
+    return Math.min(vScrollPos / lineHeight, model.document.length() - 1);
   }
 
   private int getLastLine() {
-    return Math.min((vScrollPos + editorHeight() - 1) / lineHeight, document.length() - 1);
+    return Math.min((vScrollPos + editorHeight() - 1) / lineHeight, model.document.length() - 1);
   }
 
   private void updateLineNumbersFont() {
@@ -492,15 +516,15 @@ public class EditorComponent implements EditApi, Disposable {
 
   boolean handleEnter() {
     if (selection.isAreaSelected()) deleteSelectedArea();
-    document.line(caretLine).invalidateCache();
-    document.newLineOp(caretLine, caretCharPos);
+    model.document.line(caretLine).invalidateCache();
+    model.document.newLineOp(caretLine, caretCharPos);
     updateDocumentDiffTimeStamp();
     return setCaretLinePos(caretLine + 1, 0, false);
   }
 
   boolean handleDelete() {
     if (selection.isAreaSelected()) deleteSelectedArea();
-    else document.deleteChar(caretLine, caretCharPos);
+    else model.document.deleteChar(caretLine, caretCharPos);
     adjustEditorScrollToCaret();
     updateDocumentDiffTimeStamp();
     return true;
@@ -516,12 +540,12 @@ public class EditorComponent implements EditApi, Disposable {
       int cLine, cPos;
       if (caretCharPos == 0) {
         cLine = caretLine - 1;
-        cPos = document.strLength(cLine);
-        document.concatLines(cLine);
+        cPos = model.document.strLength(cLine);
+        model.document.concatLines(cLine);
       } else {
         cLine = caretLine;
         cPos = caretCharPos - 1;
-        document.deleteChar(cLine, cPos);
+        model.document.deleteChar(cLine, cPos);
       }
       updateDocumentDiffTimeStamp();
       return setCaretLinePos(cLine, cPos, false);
@@ -532,7 +556,7 @@ public class EditorComponent implements EditApi, Disposable {
     if (selection.isAreaSelected()) deleteSelectedArea();
     String[] lines = s.replace("\r", "").split("\n", -1);
 
-    document.insertLines(caretLine, caretCharPos, lines);
+    model.document.insertLines(caretLine, caretCharPos, lines);
 
     int newCaretLine = caretLine + lines.length - 1;
     int newCaretPos;
@@ -547,7 +571,7 @@ public class EditorComponent implements EditApi, Disposable {
 
   private void deleteSelectedArea() {
     var leftPos = selection.getLeftPos();
-    document.deleteSelected(selection);
+    model.document.deleteSelected(selection);
     setCaretLinePos(leftPos.line, leftPos.charInd, false);
     setSelectionToCaret();
     updateDocumentDiffTimeStamp();
@@ -604,7 +628,7 @@ public class EditorComponent implements EditApi, Disposable {
 
   private long parsingTimeStart;
   private void onFileParsed(Object[] result) {
-    Debug.consoleInfo("onFileParsed");
+//    Debug.consoleInfo("onFileParsed");
     fileStructureParsed = true;
     firstLinesParsed = true;
 
@@ -612,7 +636,7 @@ public class EditorComponent implements EditApi, Disposable {
     char[] chars = ((ArrayView) result[1]).chars();
     int type = ((ArrayView) result[2]).ints()[0];
 
-    this.document = ParserUtils.makeDocument(ints, chars);
+    this.model.document = ParserUtils.makeDocument(ints, chars);
     this.fileType = type;
 
 //    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
@@ -622,7 +646,6 @@ public class EditorComponent implements EditApi, Disposable {
     api.window.setCursor(Cursor.arrow);
     api.window.repaint();
     Debug.consoleInfo("Full file parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
-    Debug.consoleInfo("\n");
   }
 
   private void onFileStructureParsed(Object[] result) {
@@ -637,7 +660,7 @@ public class EditorComponent implements EditApi, Disposable {
     char[] chars = ((ArrayView) result[1]).chars();
     this.fileType = type;
 
-    this.document = ParserUtils.updateDocument(document, ints, chars, firstLinesParsed);
+    this.model.document = ParserUtils.updateDocument(model.document, ints, chars, firstLinesParsed);
 
 //    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
 //    int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
@@ -651,11 +674,11 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   private void onVpParsed(Object[] result) {
-    Debug.consoleInfo("onVpParsed");
+//    Debug.consoleInfo("onVpParsed");
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
 
-    ParserUtils.updateDocument(document, ints, chars);
+    ParserUtils.updateDocument(model.document, ints, chars);
 
 //    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
 //    int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
@@ -671,14 +694,14 @@ public class EditorComponent implements EditApi, Disposable {
   private void onFileLoad(byte[] content) {
     Debug.consoleInfo("readAsBytes complete, l = " + content.length);
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, content);
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE, content);
   }
 
   private void onFirstLinesParsed(Object[] result) {
     if (fileStructureParsed) return;
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
-    this.document = ParserUtils.makeDocument(ints, chars);
+    this.model.document = ParserUtils.makeDocument(ints, chars);
     firstLinesParsed = true;
     Debug.consoleInfo("First lines parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
   }
@@ -690,7 +713,7 @@ public class EditorComponent implements EditApi, Disposable {
     parsingTimeStart = System.currentTimeMillis();
     fileStructureParsed = false;
     firstLinesParsed = false;
-    document = new Document();
+    model.document = new Document();
     setCaretLinePos(0, 0, false);
     sendFileToWorkers(f);
   }
@@ -737,13 +760,13 @@ public class EditorComponent implements EditApi, Disposable {
       newPos = caretCharPos + shift;
     }
     if (newPos > caretCodeLine.totalStrLength) { // goto next line
-      if ((caretLine + 1) < document.length()) {
+      if ((caretLine + 1) < model.document.length()) {
         caretCharPos = 0;
         setCaretLine(caretLine + 1, shiftPressed);
       }
     } else if (newPos < 0) {  // goto prev line
       if (caretLine > 0) {
-        caretCharPos = document.line(caretLine - 1).totalStrLength;
+        caretCharPos = model.document.line(caretLine - 1).totalStrLength;
         setCaretLine(caretLine - 1, shiftPressed);
       }
     } else {
@@ -764,12 +787,12 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   private boolean setCaretLinePos(int line, int pos, boolean shift) {
-    caretLine = Numbers.clamp(0, line, document.length() - 1);
+    caretLine = Numbers.clamp(0, line, model.document.length() - 1);
     return setCaretPos(pos, shift);
   }
 
   private boolean setCaretLine(int value, boolean shift) {
-    caretLine = Numbers.clamp(0, value, document.length() - 1);
+    caretLine = Numbers.clamp(0, value, model.document.length() - 1);
     return setCaretPos(caretCharPos, shift);
   }
 
@@ -819,7 +842,7 @@ public class EditorComponent implements EditApi, Disposable {
 
   private void computeCaret(V2i position) {
     caretLine = Numbers.clamp(0,
-        (position.y + vScrollPos) / lineHeight, document.length() - 1);
+        (position.y + vScrollPos) / lineHeight, model.document.length() - 1);
 
     CodeLine line = caretCodeLine();
     int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
@@ -830,25 +853,61 @@ public class EditorComponent implements EditApi, Disposable {
     startBlinking();
   }
 
+  private Supplier<ToolbarItem[]> usagesItems(List<Pos> usages) {
+    ToolbarItemBuilder tbb = new ToolbarItemBuilder();
+    int cnt = 0;
+    for (var pos : usages) {
+      tbb.addItem(makeShowUsageString(pos), Colors.popupText2, () -> gotoElement(pos));
+      if (++cnt > EditorConst.MAX_SHOW_USAGES_NUMBER) {
+        tbb.addItem("... and " + (usages.size() - cnt) + " more usages", Colors.popupText2, () -> {});
+        break;
+      }
+    }
+    return tbb.supplier();
+  }
+
+  private void gotoElement(Pos defPos) {
+    setCaretLinePos(defPos.line, defPos.pos, false);
+    int nextPos = caretCodeLine().nextPos(caretPos);
+    selection.startPos.set(caretLine, nextPos);
+    selection.endPos.set(caretLine, caretCharPos);
+    usagesMenu.hide();
+  }
+
+  private String makeShowUsageString(Pos pos) {
+    String codeLine = model.document.line(pos.line).makeString().trim();
+    String line = codeLine.length() > 43 ? codeLine.substring(0, 40) + "..." : codeLine;
+    return (pos.line + 1) + ":" + pos.pos + "  " + line;
+  }
+
   void onClickText(V2i position, boolean shift) {
-    int line = Numbers.clamp(0, (position.y + vScrollPos) / lineHeight, document.length() - 1);
+    int line = Numbers.clamp(0, (position.y + vScrollPos) / lineHeight, model.document.length() - 1);
     int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
-    int charPos = document.line(line).computeCaretLocation(documentXPosition, g.mCanvas, fonts);
+    int charPos = model.document.line(line).computeCaretLocation(documentXPosition, g.mCanvas, fonts);
 
     if (ctrlPressed) {
-      var defPos = document.getDefinitionPos(line, charPos);
-      if (defPos != null) {
-        setCaretLinePos(defPos.line, defPos.pos, false);
-        int nextPos = caretCodeLine().nextPos(caretPos);
-        selection.startPos.set(caretLine, nextPos);
-        selection.endPos.set(caretLine, caretCharPos);
+      String scheme = model.uri != null ? model.uri.scheme : null;
+      DefinitionProvider provider = editorRegistrations.findDefinitionProvider(model.language, scheme);
+      if (provider == null) {
+        // Default def provider
+        var defPos = model.document.getDefinitionPos(line, documentXPosition);
+        if (defPos != null) {
+          gotoElement(defPos);
+          return;
+        }
+      } else {
+        provider.f.provideDefinition(this, line, charPos);
         return;
+      }
+      var usagesList = model.document.getUsagesList(line, documentXPosition);
+      if (usagesList != null && !usagesList.isEmpty()) {
+        if (!usagesMenu.isVisible()) usagesMenu.display(position, usagesItems(usagesList), this::onFocusGain);
       }
     }
 
     caretLine = line;
     caretCharPos = charPos;
-    caretPos = document.line(line).computePixelLocation(caretCharPos, g.mCanvas, fonts);
+    caretPos = model.document.line(line).computePixelLocation(caretCharPos, g.mCanvas, fonts);
     startBlinking();
 
     adjustEditorScrollToCaret();
@@ -858,6 +917,20 @@ public class EditorComponent implements EditApi, Disposable {
       selection.isSelectionStarted = true;
     }
     selection.select(caretLine, caretCharPos);
+  }
+
+  public void gotoReferences(Location[] locs) {
+
+  }
+
+  public void gotoDefinition(Location[] locs) {
+    gotoDefinition(locs[0]);
+  }
+
+  public void gotoDefinition(Location loc) {
+    setCaretLinePos(loc.starLineNumber, loc.startColumn, false);
+    selection.startPos.set(loc.starLineNumber, loc.startColumn);
+    selection.endPos.set(loc.endLineNumber, loc.endColumn);
   }
 
   void onDoubleClickText(V2i position) {
@@ -875,7 +948,7 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   CodeLine caretCodeLine() {
-    return document.line(caretLine);
+    return model.document.line(caretLine);
   }
 
   // InputListener methods
@@ -909,6 +982,7 @@ public class EditorComponent implements EditApi, Disposable {
       return true;
     }
 
+    if (usagesMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
     if (button == MOUSE_BUTTON_LEFT && clickCount == 2 && press) {
       onDoubleClickText(eventPosition);
       return true;
@@ -933,6 +1007,7 @@ public class EditorComponent implements EditApi, Disposable {
 
   public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
     eventPosition.set(event.position.x - compPos.x, event.position.y - compPos.y);
+    if (usagesMenu.onMouseMove(eventPosition, setCursor)) return true;
 
     if (dragLock != null) {
       dragLock.accept(eventPosition);
@@ -944,10 +1019,9 @@ public class EditorComponent implements EditApi, Disposable {
     if (lineNumbers.onMouseMove(eventPosition, setCursor)) return true;
     if (onMouseMove(eventPosition)) {
       if (ctrlPressed) {
-        int line = Numbers.clamp(0, (eventPosition.y + vScrollPos) / lineHeight, document.length() - 1);
+        int line = Numbers.clamp(0, (eventPosition.y + vScrollPos) / lineHeight, model.document.length() - 1);
         int documentXPosition = Math.max(0, eventPosition.x - vLineX + hScrollPos);
-        int pos = document.line(line).computeCaretLocation(documentXPosition, g.mCanvas, fonts);
-        return document.hasDefinition(line, pos) ? setCursor.set(Cursor.pointer) : setCursor.set(Cursor.text);
+        return model.document.hasDefOrUsages(line, documentXPosition) ? setCursor.set(Cursor.pointer) : setCursor.set(Cursor.text);
       }
       return setCursor.set(Cursor.text);
     }
@@ -1000,7 +1074,7 @@ public class EditorComponent implements EditApi, Disposable {
 
   void reparse() {
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, document.getChars());
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE, model.document.getChars());
   }
 
   void parseViewport() {
@@ -1008,12 +1082,12 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   void debugPrintDocumentIntervals() {
-    document.printIntervals();
+    model.document.printIntervals();
   }
 
   private void parseViewport(int type) {
     if (type == FileParser.JAVA_FILE)
-      api.window.sendToWorker(this::onVpParsed, JavaParser.PARSE_BYTES_JAVA_VIEWPORT, document.getChars(), getViewport(), document.getIntervals() );
+      api.window.sendToWorker(this::onVpParsed, JavaParser.PARSE_BYTES_JAVA_VIEWPORT, model.document.getChars(), getViewport(), model.document.getIntervals() );
   }
 
   private int[] getViewport() {
@@ -1021,33 +1095,33 @@ public class EditorComponent implements EditApi, Disposable {
     int lastLine = getLastLine();
 
     firstLine = Math.max(0, firstLine - EditorConst.VIEWPORT_OFFSET);
-    lastLine = Math.min(document.length() - 1, lastLine + EditorConst.VIEWPORT_OFFSET);
+    lastLine = Math.min(model.document.length() - 1, lastLine + EditorConst.VIEWPORT_OFFSET);
 
-    return new int[]{document.getLineStartInd(firstLine), document.getVpEnd(lastLine), firstLine};
+    return new int[]{model.document.getLineStartInd(firstLine), model.document.getVpEnd(lastLine), firstLine};
   }
 
   public void parseFullFile() {
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, document.getChars());
+    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE, model.document.getChars());
+  }
+
+  public void onFileIterativeParsed(Object[] result) {
+    if (model.document.currentVersion != iterativeVersion) return;
+    int[] ints = ((ArrayView) result[0]).ints();
+    char[] chars = ((ArrayView) result[1]).chars();
+    ParserUtils.updateDocument(model.document, ints, chars);
+    model.document.onReparse();
   }
 
   public void iterativeParsing() {
-    var node = document.tree.getReparseNode();
+    var node = model.document.tree.getReparseNode();
     if (node == null) return;
     if (fileType == FileParser.TEXT_FILE) {
-      document.onReparse();
+      model.document.onReparse();
     }
-    String source = document.makeString();
     int[] interval = new int[]{node.getStart(), node.getStop(), node.getType()};
-    char[] chars = document.makeString().toCharArray();
-    int[] ints = switch (fileType) {
-      case FileParser.JAVA_FILE -> new JavaIntervalParser().parseInterval(source, interval);
-      case FileParser.CPP_FILE -> new CppIntervalParser().parseInterval(source, interval);
-      case FileParser.JS_FILE -> new JavaScriptIntervalParser().parseInterval(source, interval);
-      default -> null;
-    };
-    if (ints != null) ParserUtils.updateDocument(document, ints, chars);
-    document.onReparse();
+    char[] chars = model.document.makeString().toCharArray();
+    api.window.sendToWorker(this::onFileIterativeParsed, FileParser.asyncIterativeParsing, chars, new int[]{fileType}, interval);
   }
 
   private void showOpenFile() {
@@ -1060,19 +1134,19 @@ public class EditorComponent implements EditApi, Disposable {
     String result;
 
     if (!selection.isAreaSelected()) {
-      result = document.copyLine(line);
-      int newLine = Math.min(document.length() - 1, line);
+      result = model.document.copyLine(line);
+      int newLine = Math.min(model.document.length() - 1, line);
 
       selection.endPos.set(newLine, 0);
-      if (line < document.length() - 1)
+      if (line < model.document.length() - 1)
         selection.startPos.set(newLine + 1, 0);
       else
-        selection.endPos.set(newLine, document.strLength(newLine));
+        selection.endPos.set(newLine, model.document.strLength(newLine));
 
       if (isCut) deleteSelectedArea();
       else setCaretLinePos(line, 0, false);
     } else {
-      result = document.copy(selection, isCut);
+      result = model.document.copy(selection, isCut);
       if (isCut) {
         setCaretLinePos(left.line, left.charInd, false);
         setSelectionToCaret();
@@ -1181,15 +1255,15 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   public boolean selectAll() {
-    int line = document.length() - 1;
-    int charInd = document.strLength(line);
+    int line = model.document.length() - 1;
+    int charInd = model.document.strLength(line);
     selection.startPos.set(0, 0);
-    selection.endPos.set(document.length() - 1, charInd);
+    selection.endPos.set(model.document.length() - 1, charInd);
     return true;
   }
 
   private void updateDocumentDiffTimeStamp() {
-    document.setLastDiffTimestamp(api.window.timeNow());
+    model.document.setLastDiffTimestamp(api.window.timeNow());
   }
 
   public boolean hasVScroll() {
@@ -1200,17 +1274,61 @@ public class EditorComponent implements EditApi, Disposable {
     return vScroll.bgSize.x;
   }
 
-  /* API */
+  public void setPosition(int column, int lineNumber) {
+    setCaretLinePos(lineNumber, column, false);
+  }
+
+  public void setSelection(
+      int endColumn,
+      int endLineNumber,
+      int startColumn,
+      int startLineNumber
+  ) {
+    selection.getLeftPos().set(startLineNumber,startColumn);
+    selection.getRightPos().set(endLineNumber, endColumn);
+  }
+
+  public void registerDefinitionProvider(DefinitionProvider defProvider) {
+    editorRegistrations.registerDefinitionProvider(defProvider);
+  }
+
+  public void registerReferenceProvider(ReferenceProvider refProvider) {
+    editorRegistrations.registerReferenceProvider(refProvider);
+  }
+
+  public void addModelChangeListener(BiConsumer<Model, Model> listener) {
+    editorRegistrations.addModelChangeListener(listener);
+  }
+
+  public void setModel(Model model) {
+    Model oldModel = this.model;
+    this.model = model;
+    setText(model.document.getChars());
+    editorRegistrations.fireModelChange(oldModel, model);
+  }
+
+  public Model model() { return model; }
 
   @Override
   public void setText(char[] charArray) {
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE_BYTES_JAVA, charArray);
+    String jobName = parseJobName(model.language, null);
+    if (jobName != null) {
+      api.window.sendToWorker(this::onFileParsed, jobName, charArray);
+    }
+  }
+
+  static String parseJobName(String language, String def) {
+    return language != null ? switch (language) {
+      case "java" -> JavaParser.PARSE;
+      case "c++", "cpp" -> CppParser.PARSE;
+      default -> def;
+    } : def;
   }
 
   @Override
   public char[] getText() {
-    return document.getChars();
+    return model.document.getChars();
   }
 
   @Override

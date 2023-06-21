@@ -33,7 +33,7 @@ public class JavaScriptIntervalParser extends BaseIntervalParser {
     highlightTokens();
 
     if (interval.intervalType == ParserConstants.IntervalTypes.Java.COMP_UNIT) {
-      var compUnitInterval = new Interval(0, fileSource.length(), ParserConstants.IntervalTypes.Java.COMP_UNIT);
+      var compUnitInterval = new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.Java.COMP_UNIT);
       classWalker.intervals.add(0, compUnitInterval);
     }
     return classWalker.intervals;

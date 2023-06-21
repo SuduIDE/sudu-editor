@@ -9,7 +9,7 @@ import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting;
-import org.sudu.experiments.parser.java.walker.ClassWalker;
+import org.sudu.experiments.parser.java.walker.JavaClassWalker;
 import org.sudu.experiments.parser.java.walker.JavaWalker;
 
 import java.util.ArrayList;
@@ -71,7 +71,7 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser {
     };
     ParseTreeWalker walker = new ParseTreeWalker();
 
-    var classWalker = new ClassWalker();
+    var classWalker = new JavaClassWalker();
     walker.walk(classWalker, ruleContext);
     var javaWalker = new JavaWalker(tokenTypes, tokenStyles, classWalker.dummy, new HashMap<>());
     walker.walk(javaWalker, ruleContext);

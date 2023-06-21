@@ -3,21 +3,19 @@ package org.sudu.experiments.demo.worker.parser;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.parser.java.parser.JavaFirstLinesLexer;
 import org.sudu.experiments.parser.java.parser.JavaFullParser;
+import org.sudu.experiments.parser.java.parser.JavaIntervalParser;
 import org.sudu.experiments.parser.java.parser.JavaViewportIntervalsParser;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class JavaParser {
 
-  public static final String PARSE_BYTES_JAVA = "JavaParser.parseBytes";
+  public static final String PARSE = "JavaParser.parse";
 
-  public static void parseChars(char[] chars, List<Object> result) {
-    String source = new String(chars);
-
-    int[] ints = new JavaFullParser().parse(source);
+  public static void parse(char[] chars, List<Object> result) {
+    int[] ints = new JavaFullParser().parse(chars);
     result.add(ints);
     result.add(chars);
     result.add(new int[]{FileParser.JAVA_FILE});
@@ -46,6 +44,20 @@ public class JavaParser {
     JavaFirstLinesLexer parser = new JavaFirstLinesLexer();
     int numOfLines = lines[0];
     int[] ints = parser.parse(source, numOfLines);
+    result.add(ints);
+    result.add(chars);
+  }
+
+  public static void parseInterval(char[] chars, int[] interval, Consumer<Object[]> result) {
+    ArrayList<Object> list = new ArrayList<>();
+    parseInterval(chars, interval, list);
+    ArrayOp.sendArrayList(list, result);
+  }
+
+  private static void parseInterval(char[] chars, int[] interval, List<Object> result) {
+    String source = new String(chars);
+    JavaIntervalParser parser = new JavaIntervalParser();
+    int[] ints = parser.parseInterval(source, interval);
     result.add(ints);
     result.add(chars);
   }

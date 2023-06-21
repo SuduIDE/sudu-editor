@@ -11,16 +11,22 @@ public class IntervalTree {
   IntervalNode root;
   private boolean updateFlag = false;
 
-  private static final Comparator<Interval> INTERVAL_CMP = (a, b) -> {
-    if (a.start == b.start) {
-      return Integer.compare(b.stop, a.stop);
-    } else return Integer.compare(a.start, b.start);
-  };
+  private static final Comparator<Interval> INTERVAL_CMP = IntervalTree::compare;
 
-  private static final Comparator<IntervalNode> INTERVAL_NODE_CMP = (a, b) -> INTERVAL_CMP.compare(a.interval, b.interval);
+  private static final Comparator<IntervalNode> INTERVAL_NODE_CMP = (a, b) -> compare(a.interval, b.interval);
+
+  private static int compare(Interval a, Interval b) {
+    return a.start == b.start
+        ? Integer.compare(b.stop, a.stop)
+        : Integer.compare(a.start, b.start);
+  }
 
   public IntervalTree(List<Interval> intervals) {
     this(null, intervals);
+  }
+
+  public static IntervalTree singleInterval(int start, int stop, int intervalType) {
+    return new IntervalTree(new ArrayList<>(List.of(new Interval(start, stop, intervalType))));
   }
 
   private IntervalTree(Interval root, List<Interval> intervals) {

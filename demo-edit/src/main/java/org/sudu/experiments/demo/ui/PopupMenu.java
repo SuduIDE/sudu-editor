@@ -97,6 +97,7 @@ public class PopupMenu {
 
   public void paint() {
     // let's do 0-garbage rendering
+    if (!toolbars.isEmpty()) graphics.enableBlend(true);
     //noinspection ForLoopReplaceableByForEach
     for (int i = 0; i < toolbars.size(); i++) {
       toolbars.get(i).render(graphics, dpr);

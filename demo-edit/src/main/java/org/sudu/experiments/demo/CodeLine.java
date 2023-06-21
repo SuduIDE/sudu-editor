@@ -5,7 +5,6 @@ import org.sudu.experiments.Debug;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.ArrayOp;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class CodeLine {
@@ -37,11 +36,9 @@ public class CodeLine {
   }
 
   public int getElementPos(int charPos) {
+    int ind = findEntryByPixel(charPos);
     int sum = 0;
-    for (var elem: elements) {
-      if (sum + elem.s.length() > charPos) break;
-      sum += elem.s.length();
-    }
+    for (int i = 0; i < ind; i++) sum += elements[i].s.length();
     return sum;
   }
 
@@ -401,5 +398,9 @@ public class CodeLine {
   @Override
   public String toString() {
     return Arrays.toString(elements);
+  }
+
+  static CodeLine[] singleElementLine(String s) {
+    return new CodeLine[]{new CodeLine(new CodeElement(s))};
   }
 }

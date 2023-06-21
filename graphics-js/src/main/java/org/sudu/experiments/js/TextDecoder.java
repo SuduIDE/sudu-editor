@@ -17,8 +17,16 @@ public abstract class TextDecoder implements JSObject {
 
   public abstract JSString decode(Uint8Array array);
 
+  public final JSString decode(char[] data) {
+    return decode(JsMemoryAccess.bufferView(data));
+  }
+
+  public static TextDecoder createUTF16() {
+    return create("utf-16");
+  }
+
   public static JSString fromCharArray(char[] data) {
-    return create("utf-16").decode(JsMemoryAccess.bufferView(data));
+    return createUTF16().decode(data);
   }
 
   public static JSString fromUtf8(byte[] data) {

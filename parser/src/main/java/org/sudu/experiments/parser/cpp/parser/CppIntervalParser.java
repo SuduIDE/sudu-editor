@@ -11,7 +11,9 @@ import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
 import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
 import org.sudu.experiments.parser.cpp.walker.CppWalker;
 import org.sudu.experiments.parser.ParserConstants.IntervalTypes;
+import org.sudu.experiments.parser.cpp.walker.CppClassWalker;
 
+import java.util.HashMap;
 import java.util.List;
 
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.ANNOTATION;
@@ -30,12 +32,15 @@ public class CppIntervalParser extends BaseIntervalParser {
     };
     ParseTreeWalker walker = new ParseTreeWalker();
 
-    var classWalker = new CppWalker(tokenTypes, tokenStyles);
+    CppClassWalker classWalker = new CppClassWalker();
     walker.walk(classWalker, ruleContext);
+
+    var cppWalker = new CppWalker(tokenTypes, tokenStyles, classWalker.current, new HashMap<>());
+    walker.walk(cppWalker, ruleContext);
     highlightTokens();
 
     if (interval.intervalType == IntervalTypes.Cpp.TRANS_UNIT) {
-      var compUnitInterval = new Interval(0, fileSource.length(), IntervalTypes.Cpp.TRANS_UNIT);
+      var compUnitInterval = new Interval(0, fileSourceLength, IntervalTypes.Cpp.TRANS_UNIT);
       classWalker.intervals.add(0, compUnitInterval);
     }
     return classWalker.intervals;
