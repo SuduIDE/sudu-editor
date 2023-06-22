@@ -62,7 +62,8 @@ const newText = "1\n2\n3\n4\nselected\n6"
 function test1(editor) {
 
     let model = newTextModel(initialText, "java", null)
-    let anotherModel = newTextModel(newText, "java", null)
+    // Uri's of model and anotherModel must differ (obviously)
+    let anotherModel = newTextModel(newText, "java", {path: "somePath"})
     editor.setModel(model)
     editor.registerDefinitionProvider("java",
         {

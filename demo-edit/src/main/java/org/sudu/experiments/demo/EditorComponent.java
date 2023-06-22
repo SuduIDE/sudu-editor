@@ -958,6 +958,7 @@ public class EditorComponent implements Disposable {
   }
 
   public void gotoDefinition(Location loc) {
+    if (loc.uri != model.uri) return;
     Range range = loc.range;
     setCaretLinePos(range.startLineNumber, range.startColumn, false);
     selection.startPos.set(range.startLineNumber, range.startColumn);
