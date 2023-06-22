@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 
 import static org.sudu.experiments.input.InputListener.MOUSE_BUTTON_LEFT;
 
-public class EditorComponent implements EditApi, Disposable {
+public class EditorComponent implements Disposable {
 
   boolean forceMaxFPS = false;
   int footerHeight;
@@ -902,6 +902,19 @@ public class EditorComponent implements EditApi, Disposable {
     }
   }
 
+  void useDocumentHighlightProvider(int line, int column) {
+    var p = registrations.findDocumentHighlightProvider(model.language, model.uriScheme());
+    if (p != null) {
+      p.provide(model, line, column,
+          highlights -> applyHighlights(line, column, highlights),
+          onError);
+    }
+  }
+
+  void applyHighlights(int line, int column, DocumentHighlight[] highlights) {
+
+  }
+
   void onClickText(V2i position, boolean shift) {
     int line = Numbers.clamp(0, (position.y + vScrollPos) / lineHeight, model.document.length() - 1);
     int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
@@ -945,9 +958,10 @@ public class EditorComponent implements EditApi, Disposable {
   }
 
   public void gotoDefinition(Location loc) {
-    setCaretLinePos(loc.starLineNumber, loc.startColumn, false);
-    selection.startPos.set(loc.starLineNumber, loc.startColumn);
-    selection.endPos.set(loc.endLineNumber, loc.endColumn);
+    Range range = loc.range;
+    setCaretLinePos(range.startLineNumber, range.startColumn, false);
+    selection.startPos.set(range.startLineNumber, range.startColumn);
+    selection.endPos.set(range.endLineNumber, range.endColumn);
   }
 
   void onDoubleClickText(V2i position) {
@@ -1087,11 +1101,6 @@ public class EditorComponent implements EditApi, Disposable {
     }
     if (event.keyCode == KeyCode.ESC) return false;
     return event.key.length() > 0 && handleInsert(event.key);
-  }
-
-  void reparse() {
-    parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE, model.document.getChars());
   }
 
   void parseViewport() {
@@ -1310,13 +1319,17 @@ public class EditorComponent implements EditApi, Disposable {
   public void setModel(Model model) {
     Model oldModel = this.model;
     this.model = model;
-    setText(model.document.getChars());
+    setText(getChars());
     registrations.fireModelChange(oldModel, model);
   }
 
   public Model model() { return model; }
 
-  @Override
+  public void setText(String[] newLines) {
+    model.document.setContent(newLines);
+    setText(getChars());
+  }
+
   public void setText(char[] charArray) {
     parsingTimeStart = System.currentTimeMillis();
     String jobName = parseJobName(model.language, null);
@@ -1333,13 +1346,8 @@ public class EditorComponent implements EditApi, Disposable {
     } : def;
   }
 
-  @Override
-  public char[] getText() {
+  public char[] getChars() {
     return model.document.getChars();
   }
 
-  @Override
-  public Disposable addListener(Listener listener) {
-    return Disposable.empty();
-  }
 }

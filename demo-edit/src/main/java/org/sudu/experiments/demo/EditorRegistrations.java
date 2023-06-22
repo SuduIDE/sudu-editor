@@ -1,103 +1,65 @@
 package org.sudu.experiments.demo;
 
-import java.util.Arrays;
+import org.sudu.experiments.Subscribers;
+
 import java.util.function.BiConsumer;
 
 @SuppressWarnings("unchecked")
 public class EditorRegistrations {
 
-  DefDeclProvider[] definitionProviders = new DefDeclProvider[0];
-  DefDeclProvider[] declarationProviders = new DefDeclProvider[0];
-  ReferenceProvider[] referenceProviders = new ReferenceProvider[0];
-  BiConsumer<Model, Model>[] modelChangeListeners = new BiConsumer[0];
+  public final Subscribers<DefDeclProvider> definitionProviders =
+      new Subscribers<>(new DefDeclProvider[0]);
 
-  public void registerDefinitionProvider(DefDeclProvider defProvider) {
-    definitionProviders = addItem(definitionProviders, defProvider);
-  }
+  public final Subscribers<DefDeclProvider> declarationProviders =
+      new Subscribers<>(new DefDeclProvider[0]);
 
-  public void removeDefinitionProvider(DefDeclProvider defProvider) {
-    removeItem(definitionProviders, defProvider);
-  }
+  public final Subscribers<ReferenceProvider> referenceProviders =
+      new Subscribers<>(new ReferenceProvider[0]);
 
-  public void registerDeclarationProvider(DefDeclProvider defProvider) {
-    declarationProviders = addItem(declarationProviders, defProvider);
-  }
+  public final Subscribers<DocumentHighlightProvider> documentHighlightProviders =
+      new Subscribers<>(new DocumentHighlightProvider[0]);
 
-  public void removeDeclarationProvider(DefDeclProvider defProvider) {
-    removeItem(declarationProviders, defProvider);
-  }
-
-  public void registerReferenceProvider(ReferenceProvider refProvider) {
-    referenceProviders = addItem(referenceProviders, refProvider);
-  }
-
-  public void removeReferenceProvider(ReferenceProvider refProvider) {
-    removeItem(referenceProviders, refProvider);
-  }
-
-  public void addModelChangeListener(BiConsumer<Model, Model> listener) {
-    modelChangeListeners = addItem(modelChangeListeners, listener);
-  }
-
-  public void removeModelChangeListener(BiConsumer<Model, Model> listener) {
-    removeItem(modelChangeListeners, listener);
-  }
+  public final Subscribers<BiConsumer<Model, Model>> modelChangeListeners =
+      new Subscribers<BiConsumer<Model, Model>>(new BiConsumer[0]);
 
   public DefDeclProvider.Provider findDefinitionProvider(String language, String scheme) {
-    return findDdProvider(definitionProviders, language, scheme);
+    return findDdProvider(definitionProviders.array(), language, scheme);
   }
 
   public DefDeclProvider.Provider findDeclarationProvider(String language, String scheme) {
-    return findDdProvider(declarationProviders, language, scheme);
+    return findDdProvider(declarationProviders.array(), language, scheme);
+  }
+
+  public DocumentHighlightProvider.Provider findDocumentHighlightProvider(String language, String scheme) {
+    for (DocumentHighlightProvider provider : documentHighlightProviders.array()) {
+      if (provider != null && provider.match(language, scheme)) {
+        return provider.f;
+      }
+    }
+    return null;
   }
 
   private DefDeclProvider.Provider findDdProvider(DefDeclProvider[] definitionProviders, String language, String scheme) {
     for (DefDeclProvider provider : definitionProviders) {
-      if (provider != null) for (LanguageSelector defSelector : provider.languageSelectors) {
-        if (defSelector.match(language, scheme)) {
-          return provider.f;
-        }
+      if (provider != null && provider.match(language, scheme)) {
+        return provider.f;
       }
     }
     return null;
   }
 
   public ReferenceProvider.Provider findReferenceProvider(String language, String scheme) {
-    for (ReferenceProvider provider : referenceProviders) {
-      if (provider != null) for (LanguageSelector defSelector : provider.languageSelectors) {
-        if (defSelector.match(language, scheme)) {
-          return provider.f;
-        }
+    for (ReferenceProvider provider : referenceProviders.array()) {
+      if (provider != null && provider.match(language, scheme)) {
+        return provider.f;
       }
     }
     return null;
   }
 
   public void fireModelChange(Model oldModel, Model newModel) {
-    for (BiConsumer<Model, Model> listener : modelChangeListeners) {
+    for (BiConsumer<Model, Model> listener : modelChangeListeners.array()) {
       if (listener != null) listener.accept(oldModel, newModel);
-    }
-  }
-
-  static <T> T[] addItem(T[] array, T item) {
-    int length = array.length;
-    for (int i = 0; i < length; i++) {
-      if (array[i] == null) {
-        array[i] = item;
-        return array;
-      }
-    }
-    array = Arrays.copyOf(array, length + 8);
-    array[length] = item;
-    return array;
-  }
-
-  static <T> void removeItem(T[] array, T item) {
-    for (int i = 0; i < array.length; i++) {
-      if (array[i] == item) {
-        array[i] = null;
-        return;
-      }
     }
   }
 }

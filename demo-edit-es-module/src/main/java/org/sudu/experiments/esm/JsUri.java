@@ -30,9 +30,9 @@ public abstract class JsUri implements JSObject {
     return JsHelper.toString(getPath(), null);
   }
 
-  @JSBody(params = {"scheme", "authority", "path", "javaPeer"}, script = """
-    return {scheme: scheme, authority: authority, path: path, javaPeer:javaPeer };
-  """)
+  @JSBody(
+      params = {"scheme", "authority", "path", "javaPeer"},
+      script = "return {scheme: scheme, authority: authority, path: path, javaPeer:javaPeer};")
   private static native JsUri create(
       String scheme,
       String authority,

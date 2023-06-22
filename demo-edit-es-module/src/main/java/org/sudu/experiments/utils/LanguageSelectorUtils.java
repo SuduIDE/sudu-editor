@@ -8,7 +8,7 @@ import org.teavm.jso.core.JSString;
 
 public abstract class LanguageSelectorUtils {
 
-  public static LanguageSelector[] languageSelectors(JSObject obj) {
+  public static LanguageSelector[] toSelectors(JSObject obj) {
     if (JSArray.isArray(obj)) {
       JSArray<?> jsArr = obj.cast();
       int jsArrLength = jsArr.getLength();

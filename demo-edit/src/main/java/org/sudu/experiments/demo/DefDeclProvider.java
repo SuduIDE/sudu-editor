@@ -2,13 +2,12 @@ package org.sudu.experiments.demo;
 
 import java.util.function.Consumer;
 
-public class DefDeclProvider {
+public class DefDeclProvider extends LanguageSelectors {
 
-  final LanguageSelector[] languageSelectors;
   final Provider f;
 
-  public DefDeclProvider(LanguageSelector[] languageSelectors, Provider f) {
-    this.languageSelectors = languageSelectors;
+  public DefDeclProvider(LanguageSelector[] selectors, Provider f) {
+    super(selectors);
     this.f = f;
   }
 

@@ -15,6 +15,8 @@ import java.util.function.Consumer;
 
 public class JsCodeEditor0 implements JsCodeEditor {
 
+  public static final String errorNotArray = "provided result is not an array";
+
   private final EditArguments args;
   private final WebWindow window;
   private final EditorComponent editor;
@@ -45,8 +47,9 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   @Override
   public void setText(JSString t) {
-    char[] buffer = TextEncoder.toCharArray(t);
-    editor.setText(buffer);
+//    char[] buffer = TextEncoder.toCharArray(t);
+    String[] split = SplitJsText.split(t, '\n');
+    editor.setText(split);
   }
 
   @Override
@@ -103,27 +106,39 @@ public class JsCodeEditor0 implements JsCodeEditor {
   @Override
   public JsDisposable registerDefinitionProvider(JSObject languageSelector, JsDefinitionProvider provider) {
     var defProvider = new DefDeclProvider(
-        LanguageSelectorUtils.languageSelectors(languageSelector),
+        LanguageSelectorUtils.toSelectors(languageSelector),
         convert(provider));
-    editor.registrations().registerDefinitionProvider(defProvider);
-    return () -> editor.registrations().removeDefinitionProvider(defProvider);
+
+    return JsDisposable.of(editor.registrations()
+            .definitionProviders.disposableAdd(defProvider));
   }
 
   @Override
   public JsDisposable registerDeclarationProvider(JSObject languageSelector, JsDeclarationProvider provider) {
     var defProvider = new DefDeclProvider(
-        LanguageSelectorUtils.languageSelectors(languageSelector),
+        LanguageSelectorUtils.toSelectors(languageSelector),
         convert(provider));
-    editor.registrations().registerDeclarationProvider(defProvider);
-    return () -> editor.registrations().removeDeclarationProvider(defProvider);
+
+    return JsDisposable.of(editor.registrations()
+            .declarationProviders.disposableAdd(defProvider));
   }
 
   @Override
   public JsDisposable registerReferenceProvider(JSObject languageSelector, JsReferenceProvider provider) {
     var referenceProvider = new ReferenceProvider(
-        LanguageSelectorUtils.languageSelectors(languageSelector), convert(provider));
-    editor.registrations().registerReferenceProvider(referenceProvider);
-    return () -> editor.registrations().removeReferenceProvider(referenceProvider);
+        LanguageSelectorUtils.toSelectors(languageSelector), convert(provider));
+    return JsDisposable.of(editor.registrations()
+            .referenceProviders.disposableAdd(referenceProvider));
+  }
+
+  @Override
+  public JsDisposable registerDocumentHighlightProvider(JSObject languageSelector, JsDocumentHighlightProvider provider) {
+    var hlProvider = new DocumentHighlightProvider(
+        LanguageSelectorUtils.toSelectors(languageSelector),
+        convert(provider));
+
+    return JsDisposable.of(editor.registrations()
+        .documentHighlightProviders.disposableAdd(hlProvider));
   }
 
   static DefDeclProvider.Provider convert(JsDefinitionProvider provider) {
@@ -133,7 +148,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
                 JsTextModel.fromJava(model),
                 JsPosition.create(column, line),
                 JsCancellationToken.create()),
-            jsArr -> acceptResult(jsArr, onResult, onError),
+            jsArr -> acceptLocations(jsArr, onResult, onError),
             onError);
   }
 
@@ -144,7 +159,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
                 JsTextModel.fromJava(model),
                 JsPosition.create(column, line),
                 JsCancellationToken.create()),
-            jsArr -> acceptResult(jsArr, onResult, onError),
+            jsArr -> acceptLocations(jsArr, onResult, onError),
             onError);
   }
 
@@ -156,22 +171,35 @@ public class JsCodeEditor0 implements JsCodeEditor {
                 JsPosition.create(column, line),
                 JsReferenceProvider.Context.create(includeDecl),
                 JsCancellationToken.create()),
-            jsArr -> acceptResult(jsArr, onResult, onError),
+            jsArr -> acceptLocations(jsArr, onResult, onError),
             onError);
   }
 
-  static void acceptResult(JSArray<JsLocation> jsArr, Consumer<Location[]> c, Consumer<String> onError) {
+  static DocumentHighlightProvider.Provider convert(JsDocumentHighlightProvider provider) {
+    return (model, line, column, onResult, onError) ->
+        PromiseUtils.<JSArray<JsDocumentHighlight>>promiseOrT(
+            provider.provideDocumentHighlights(
+                JsTextModel.fromJava(model),
+                JsPosition.create(column, line),
+                JsCancellationToken.create()),
+            jsArr -> acceptHighlight(jsArr, onResult, onError),
+            onError);
+  }
+
+  static void acceptLocations(JSArray<JsLocation> jsArr, Consumer<Location[]> c, Consumer<String> onError) {
     if (JSArray.isArray(jsArr)) {
       c.accept(ProviderUtils.toLocations(jsArr));
     } else {
-      onError.accept("provideDefinition result is not an array");
+      onError.accept(errorNotArray);
     }
   }
 
-
-  @Override
-  public JsDisposable registerDocumentHighlightProvider(JSObject languageSelector, JsDocumentHighlight provider) {
-    return JsDisposable.empty();
+  static void acceptHighlight(JSArray<JsDocumentHighlight> jsArr, Consumer<DocumentHighlight[]> c, Consumer<String> onError) {
+    if (JSArray.isArray(jsArr)) {
+      c.accept(ProviderUtils.toHighlights(jsArr));
+    } else {
+      onError.accept(errorNotArray);
+    }
   }
 
   @Override
@@ -182,8 +210,8 @@ public class JsCodeEditor0 implements JsCodeEditor {
   @Override
   public JsDisposable onDidChangeModel(JsFunctions.Consumer<JsIModelChangedEvent> f) {
     var listener = convert(f);
-    editor.registrations().addModelChangeListener(listener);
-    return () -> editor.registrations().removeModelChangeListener(listener);
+    return JsDisposable.of(editor.registrations()
+            .modelChangeListeners.disposableAdd(listener));
   }
 
   static BiConsumer<Model, Model> convert(JsFunctions.Consumer<JsIModelChangedEvent> jsCallback) {

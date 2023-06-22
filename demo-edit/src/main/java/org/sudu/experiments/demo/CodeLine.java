@@ -31,6 +31,14 @@ public class CodeLine {
     return new CodeLine(ArrayOp.add(a.elements, b.elements));
   }
 
+  static CodeLine[] makeLines(String[] text) {
+    CodeLine[] cl = new CodeLine[text.length];
+    for (int i = 0; i < text.length; i++) {
+      cl[i] = new CodeLine(new CodeElement(text[i]));
+    }
+    return cl;
+  }
+
   public CodeElement get(int ind) {
     return elements[ind];
   }
