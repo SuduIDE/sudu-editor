@@ -114,6 +114,7 @@ public class WebWindow implements org.sudu.experiments.Window {
       eventHandler.dispose();
       eventHandler = null;
     }
+    worker.terminate();
   }
 
   private void init(GLApi.Context gl, Function<SceneApi, Scene> sf) {
