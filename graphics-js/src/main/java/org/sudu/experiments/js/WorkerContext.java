@@ -32,6 +32,8 @@ public abstract class WorkerContext implements JSObject {
   public abstract void postMessage(JSObject message);
   public abstract void postMessage(JSObject message, JSArrayReader<?> transfer);
 
+  public abstract void terminate();
+
   public static void start(
       Consumer<WorkerContext> onStart,
       JsFunctions.Consumer<JSObject> error,

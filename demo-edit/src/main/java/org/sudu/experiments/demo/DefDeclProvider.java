@@ -2,18 +2,17 @@ package org.sudu.experiments.demo;
 
 import java.util.function.Consumer;
 
-public class DefinitionProvider {
+public class DefDeclProvider extends LanguageSelectors {
 
-  final LanguageSelector[] languageSelectors;
   final Provider f;
 
-  public DefinitionProvider(LanguageSelector[] languageSelectors, Provider f) {
-    this.languageSelectors = languageSelectors;
+  public DefDeclProvider(LanguageSelector[] selectors, Provider f) {
+    super(selectors);
     this.f = f;
   }
 
   public interface Provider {
-    void provideDefinition(
+    void provide(
         Model model, int line, int column,
         Consumer<Location[]> result,
         Consumer<String> onError);
