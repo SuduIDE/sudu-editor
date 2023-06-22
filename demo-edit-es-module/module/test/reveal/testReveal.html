@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sudu editor code browser</title>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+  <style>
+    html, body {
+      height: 100%;
+      background-color:#2b2b2b;
+    }
+
+    body {
+      display: flex;
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    #editor {
+      width: 100%;
+      height: 90%;
+    }
+
+    #address {
+      width: 100%;
+      color: gray;
+      margin: 5px;
+      padding: 5px;
+    }
+
+    #address:focus {
+      color: black;
+    }
+
+    #statusBar {
+      font-size: 12px;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+<div id="toolbar">
+  <button id="reveal1">reveal 1</button>
+  <button id="reveal10">reveal 10</button>
+  <button id="reveal30">reveal 30</button>
+  <button id="reveal41">reveal 41</button>
+  <button id="revealCenter20">reveal center 20</button>
+  <button id="revealCenter40">reveal center 40</button>
+</div>
+
+<div id="editor"></div>
+<script type="module" charset="utf-8" src="testReveal.js"></script>
+</body>
+</html>

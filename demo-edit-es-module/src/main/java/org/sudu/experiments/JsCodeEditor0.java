@@ -160,6 +160,16 @@ public class JsCodeEditor0 implements JsCodeEditor {
   }
 
   @Override
+  public void revealLineInCenter(int line) {
+    editor.revealLineInCenter(line);
+  }
+
+  @Override
+  public void revealLine(int line) {
+    editor.revealLine(line);
+  }
+
+  @Override
   public JsDisposable onDidChangeModel(JsFunctions.Consumer<JsIModelChangedEvent> f) {
     var listener = convert(f);
     editor.registrations().addModelChangeListener(listener);
