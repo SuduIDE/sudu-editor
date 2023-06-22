@@ -22,7 +22,6 @@ public class JavaWalker extends JavaParserBaseListener {
   private JavaClass javaClass;
   private final Map<Pos, Pos> usagesToDefs;
 
-  private List<Decl> curMethodArgs;
   private JavaBlock currentBlock;
 
   public JavaWalker(int[] tokenTypes, int[] tokenStyles, JavaClass javaClass, Map<Pos, Pos> usagesToDefs) {
@@ -32,7 +31,6 @@ public class JavaWalker extends JavaParserBaseListener {
     this.usagesToDefs = usagesToDefs;
 
     currentBlock = new JavaBlock(null);
-    curMethodArgs = new ArrayList<>();
   }
 
   @Override
@@ -153,19 +151,22 @@ public class JavaWalker extends JavaParserBaseListener {
   @Override
   public void enterMethodDeclaration(JavaParser.MethodDeclarationContext ctx) {
     super.enterMethodDeclaration(ctx);
-    curMethodArgs = getMethodArguments(ctx.formalParameters());
+    enterBlock();
+    currentBlock.localVars = getMethodArguments(ctx.formalParameters());
   }
 
   @Override
   public void enterInterfaceMethodDeclaration(JavaParser.InterfaceMethodDeclarationContext ctx) {
     super.enterInterfaceMethodDeclaration(ctx);
-    curMethodArgs = getMethodArguments(ctx.interfaceCommonBodyDeclaration().formalParameters());
+    enterBlock();
+    currentBlock.localVars = getMethodArguments(ctx.interfaceCommonBodyDeclaration().formalParameters());
   }
 
   @Override
   public void enterConstructorDeclaration(JavaParser.ConstructorDeclarationContext ctx) {
     super.enterConstructorDeclaration(ctx);
-    curMethodArgs = getMethodArguments(ctx.formalParameters());
+    enterBlock();
+    currentBlock.localVars = getMethodArguments(ctx.formalParameters());
   }
 
   @Override
@@ -176,7 +177,7 @@ public class JavaWalker extends JavaParserBaseListener {
     tokenTypes[id.getTokenIndex()] = TokenTypes.METHOD;
     tokenStyles[id.getTokenIndex()] = isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL;
 
-    curMethodArgs.clear();
+    exitBlock();
   }
 
   @Override
@@ -186,13 +187,13 @@ public class JavaWalker extends JavaParserBaseListener {
     tokenTypes[id.getTokenIndex()] = TokenTypes.METHOD;
     tokenStyles[id.getTokenIndex()] = TokenStyles.NORMAL;
 
-    curMethodArgs.clear();
+    exitBlock();
   }
 
   @Override
   public void exitConstructorDeclaration(JavaParser.ConstructorDeclarationContext ctx) {
     super.exitConstructorDeclaration(ctx);
-    curMethodArgs.clear();
+    exitBlock();
 
     var id = getIdentifier(ctx.identifier()).getSymbol();
     tokenTypes[id.getTokenIndex()] = TokenTypes.METHOD;
@@ -251,26 +252,40 @@ public class JavaWalker extends JavaParserBaseListener {
   @Override
   public void enterBlock(JavaParser.BlockContext ctx) {
     super.enterBlock(ctx);
-    JavaBlock block = new JavaBlock(currentBlock);
-    currentBlock.subBlock = block;
-    currentBlock = block;
+    enterBlock();
   }
 
   @Override
   public void exitBlock(JavaParser.BlockContext ctx) {
     super.exitBlock(ctx);
-    currentBlock = currentBlock.innerBlock;
-    currentBlock.subBlock = null;
+    exitBlock();
+  }
+
+  @Override
+  public void enterStatement(JavaParser.StatementContext ctx) {
+    super.enterStatement(ctx);
+    if (ctx.FOR() != null) {
+      enterBlock();
+      if (ctx.forControl().enhancedForControl() != null) {
+        var forControl = ctx.forControl().enhancedForControl();
+        var id = forControl.variableDeclaratorId().identifier();
+        currentBlock.localVars.add(Decl.fromNode(getIdentifier(id)));
+      }
+    }
+  }
+
+  @Override
+  public void exitStatement(JavaParser.StatementContext ctx) {
+    super.exitStatement(ctx);
+    if (ctx.FOR() != null) exitBlock();
   }
 
   @Override
   public void exitLocalVariableDeclaration(JavaParser.LocalVariableDeclarationContext ctx) {
     super.exitLocalVariableDeclaration(ctx);
-    if (!(ctx.parent instanceof JavaParser.BlockStatementContext)) return;
     if (ctx.identifier() != null) {
       var node = getIdentifier(ctx.identifier());
-      Decl decl = new Decl(node.getText(), Pos.fromNode(node));
-      currentBlock.localVars.add(decl);
+      currentBlock.localVars.add(Decl.fromNode(node));
       return;
     }
     currentBlock.localVars.addAll(getVarDeclarators(ctx.variableDeclarators()));
@@ -320,11 +335,6 @@ public class JavaWalker extends JavaParserBaseListener {
       return;
     }
 
-    decl = getMethodArgument(name);
-    if (decl != null) {
-      usagesToDefs.put(Pos.fromNode(node), decl.position);
-      return;
-    }
     decl = currentBlock.getLocalDecl(name);
     if (decl != null) {
       usagesToDefs.put(Pos.fromNode(node), decl.position);
@@ -356,31 +366,39 @@ public class JavaWalker extends JavaParserBaseListener {
     usagesToDefs.put(Pos.fromNode(node), def.position);
   }
 
+
+  private void enterBlock() {
+    JavaBlock block = new JavaBlock(currentBlock);
+    currentBlock.subBlock = block;
+    currentBlock = block;
+  }
+
+  private void exitBlock() {
+    currentBlock = currentBlock.innerBlock;
+    currentBlock.subBlock = null;
+  }
+
   private static List<Decl> getMethodArguments(JavaParser.FormalParametersContext formalParameters) {
     var parameterList = formalParameters.formalParameterList();
     if (parameterList == null) return new ArrayList<>();
     var parameters = parameterList.formalParameter();
     List<Decl> result = new ArrayList<>();
     for (var param: parameters) {
-      var id = getIdentifier(param.variableDeclaratorId().identifier());
-      result.add(new Decl(id.getText(), Pos.fromNode(id)));
+      var id = param.variableDeclaratorId().identifier();
+      result.add(Decl.fromNode(getIdentifier(id)));
+    }
+    if (parameterList.lastFormalParameter() != null) {
+      var lastId = parameterList.lastFormalParameter().variableDeclaratorId().identifier();
+      result.add(Decl.fromNode(getIdentifier(lastId)));
     }
     return result;
-  }
-
-  private Decl getMethodArgument(String declName) {
-    for (var arg: curMethodArgs) {
-      if (arg.name.equals(declName)) return arg;
-    }
-    return null;
   }
 
   private static List<Decl> getVarDeclarators(JavaParser.VariableDeclaratorsContext ctx) {
     List<Decl> result = new ArrayList<>();
     for (var declarator: ctx.variableDeclarator()) {
       var node = getIdentifier(declarator.variableDeclaratorId().identifier());
-      Decl decl = new Decl(node.getText(), Pos.fromNode(node));
-      result.add(decl);
+      result.add(Decl.fromNode(node));
     }
     return result;
   }

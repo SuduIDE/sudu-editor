@@ -9,6 +9,8 @@ public class EditorColorScheme {
   public final Color editFooterFill;
   public final Color codeLineTailColor;
   public final Color selectionBgColor;
+  public final Color definitionBgColor;
+  public final Color usageBgColor;
 
   public final CodeElementColor[] codeColors;
   public final LineNumbersColors lineNumbersColors;
@@ -20,6 +22,8 @@ public class EditorColorScheme {
         new Color(IdeaCodeColors.Colors.editFooterFill),
         new Color(IdeaCodeColors.Colors.editBgColor),
         new Color(IdeaCodeColors.Colors.editSelectedBg),
+        new Color(IdeaCodeColors.Colors.definitionBgColor),
+        new Color(IdeaCodeColors.Colors.usageBgColor),
         IdeaCodeColors.codeElementColors(),
         IdeaCodeColors.lineNumberColors()
     );
@@ -32,6 +36,8 @@ public class EditorColorScheme {
         new Color(IdeaCodeColors.Colors.editFooterFill),
         new Color(IdeaCodeColors.Colors.editBgColorLight),
         new Color(IdeaCodeColors.Colors.editSelectedBgLight),
+        new Color(IdeaCodeColors.Colors.definitionBgColor),
+        new Color(IdeaCodeColors.Colors.usageBgColor),
         IdeaCodeColors.codeElementColorsLight(),
         IdeaCodeColors.lineNumberColorsLight()
     );
@@ -43,6 +49,8 @@ public class EditorColorScheme {
       Color editFooterFill,
       Color codeLineTailColor,
       Color selectionBgColor,
+      Color definitionBgColor,
+      Color usageBgColor,
       CodeElementColor[] codeColors,
       LineNumbersColors lineNumbersColors
   ) {
@@ -51,6 +59,8 @@ public class EditorColorScheme {
     this.editFooterFill = editFooterFill;
     this.codeLineTailColor = codeLineTailColor;
     this.selectionBgColor = selectionBgColor;
+    this.definitionBgColor = definitionBgColor;
+    this.usageBgColor = usageBgColor;
     this.codeColors = codeColors;
     this.lineNumbersColors = lineNumbersColors;
     if (codeColors.length < ParserConstants.TokenTypes.TYPES_LENGTH) {

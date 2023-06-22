@@ -330,6 +330,10 @@ public class Document {
     return sb.toString();
   }
 
+  public CodeElement getCodeElement(Pos pos) {
+    return line(pos.line).getCodeElement(pos.pos);
+  }
+
   public char[] getChars() {
     String documentText = makeString();
     return documentText.toCharArray();
