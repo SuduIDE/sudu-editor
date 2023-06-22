@@ -22,6 +22,9 @@ public interface JsCodeEditor extends JsDisposable {
   JsDisposable registerDocumentHighlightProvider(JSObject languageSelector, JsDocumentHighlightProvider provider);
   JsDisposable registerEditorOpener(JsCodeEditorOpener opener);
 
+  void revealLineInCenter(int line);
+  void revealLine(int line);
+
   JsDisposable onDidChangeModel(JsFunctions.Consumer<JsIModelChangedEvent> f);
 
   interface EditArguments extends JSObject {

@@ -1338,6 +1338,33 @@ public class EditorComponent implements Disposable {
     }
   }
 
+  public void revealLineInCenter(int lineNumber) {
+    if (lineNumber <= 0) return;
+    int computed = lineHeight * (lineNumber - (editorHeight() / (lineHeight * 2)) - 1);
+    vScrollPos = clampScrollPos(computed, maxVScrollPos());
+  }
+
+  public void revealLine(int lineNumber) {
+    if (lineNumber <= 0) return;
+    int lineVPos = (lineNumber - 1) * lineHeight;
+    if (lineVPos >= vScrollPos) {
+      if (lineVPos - vScrollPos < editorHeight()) return;
+      scrollDownToLine(lineNumber);
+    } else scrollUpToLine(lineNumber);
+  }
+
+  private void scrollDownToLine(int lineNumber) {
+    if (lineNumber > model.document.length()) {
+      vScrollPos = maxVScrollPos();
+      return;
+    }
+    vScrollPos = clampScrollPos((lineNumber + 1) * lineHeight - editorHeight(), maxVScrollPos());
+  }
+
+  private void scrollUpToLine(int lineNumber) {
+    vScrollPos = clampScrollPos((lineNumber - 2) * lineHeight, maxVScrollPos());
+  }
+
   static String parseJobName(String language, String def) {
     return language != null ? switch (language) {
       case "java" -> JavaParser.PARSE;
