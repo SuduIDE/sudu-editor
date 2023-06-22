@@ -68,11 +68,12 @@ public class DemoEdit0 extends Scene0 {
     popupMenu.paint();
   }
 
-  protected Supplier<ToolbarItem[]> popupMenuContent() {
+  protected Supplier<ToolbarItem[]> popupMenuContent(V2i eventPosition) {
     ToolbarItemBuilder tbb = new ToolbarItemBuilder();
 
     cutCopyPaste(tbb);
     tbb.addItem("open ...", Colors.popupText, this::showOpenFilePicker);
+    tbb.addItem("goto >", Colors.popupText2, gotoItems(eventPosition));
     tbb.addItem("parser >", Colors.popupText2, parser());
     if (1<0) tbb.addItem("old >", Colors.popupText2, oldDev());
     tbb.addItem("theme >", Colors.popupText2, themes());
@@ -89,6 +90,12 @@ public class DemoEdit0 extends Scene0 {
     if (api.window.isReadClipboardTextSupported()) {
       tbb.addItem("paste", Colors.popupText, this::pasteAction);
     }
+  }
+
+  private Supplier<ToolbarItem[]> gotoItems(V2i eventPosition) {
+    return ArrayOp.supplier(
+        ti("Definition or usages", Colors.popupText, () -> findUsages(eventPosition))
+    );
   }
 
   private Supplier<ToolbarItem[]> parser() {
@@ -151,6 +158,11 @@ public class DemoEdit0 extends Scene0 {
     return text -> api.window.writeClipboardText(text,
             org.sudu.experiments.Const.emptyRunnable,
             onError("writeClipboardText error: "));
+  }
+
+  private void findUsages(V2i eventPosition) {
+    popupMenu.hide();
+    editor.findUsages(eventPosition);
   }
 
   static Consumer<Throwable> onError(String s) {
@@ -217,7 +229,7 @@ public class DemoEdit0 extends Scene0 {
 
     public boolean onContextMenu(MouseEvent event) {
       if (!popupMenu.isVisible()) {
-        popupMenu.display(event.position, popupMenuContent(), editor::onFocusGain);
+        popupMenu.display(event.position, popupMenuContent(event.position), editor::onFocusGain);
         editor.onFocusLost();
       }
       return true;

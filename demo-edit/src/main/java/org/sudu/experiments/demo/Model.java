@@ -18,7 +18,7 @@ public class Model {
 
   public Model(Document document) {
     this.document = document;
-    this.language = "java";
+    this.language = Languages.TEXT;
     this.uri = null;
   }
 
