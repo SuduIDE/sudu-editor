@@ -1336,9 +1336,7 @@ public class EditorComponent implements EditApi, Disposable {
   private void scrollDownToLine(int lineNumber) {
     if (lineNumber > model.document.length()) {
       vScrollPos = maxVScrollPos();
-      return;
-    }
-    vScrollPos = clampScrollPos((lineNumber + 1) * lineHeight - editorHeight(), maxVScrollPos());
+    } else vScrollPos = clampScrollPos((lineNumber + 1) * lineHeight - editorHeight(), maxVScrollPos());
   }
 
   private void scrollUpToLine(int lineNumber) {
