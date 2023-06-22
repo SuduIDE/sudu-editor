@@ -1351,13 +1351,17 @@ public class EditorComponent implements Disposable {
     if (lineVPos >= vScrollPos) {
       if (lineVPos - vScrollPos < editorHeight()) return;
       scrollDownToLine(lineNumber);
-    } else scrollUpToLine(lineNumber);
+    } else {
+      scrollUpToLine(lineNumber);
+    }
   }
 
   private void scrollDownToLine(int lineNumber) {
     if (lineNumber > model.document.length()) {
       vScrollPos = maxVScrollPos();
-    } else vScrollPos = clampScrollPos((lineNumber + 1) * lineHeight - editorHeight(), maxVScrollPos());
+    } else {
+      vScrollPos = clampScrollPos((lineNumber + 1) * lineHeight - editorHeight(), maxVScrollPos());
+    }
   }
 
   private void scrollUpToLine(int lineNumber) {
