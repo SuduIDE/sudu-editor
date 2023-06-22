@@ -146,9 +146,6 @@ public class JsHelper {
   @JSBody(params = {"a", "b", "c"}, script = "return [a, b, c];")
   public static native JSArray<JSObject> toJsArray(JSObject a, JSObject b, JSObject c);
 
-  @JSBody(params = {"a"}, script = "return Array.isArray(a);")
-  public static native boolean isJsArray(JSObject a);
-
   @JSBody(params = {"n"}, script = "return String(n);")
   public static native String jsDoubleToString(double n);
 

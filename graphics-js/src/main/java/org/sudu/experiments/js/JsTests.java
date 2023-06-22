@@ -6,14 +6,12 @@ import org.teavm.jso.core.JSString;
 
 public class JsTests {
 
-  // this code crashes TeaVM, but works fine on java
-
   public static void testArray() {
     JSString string1 = JSString.valueOf("string1");
     JSString string2 = JSString.valueOf("string2");
     JSArray<JSObject> array = JsHelper.toJsArray(string1, string2);
-    JsHelper.consoleInfo("JsHelper.isJsArray(array) = " + JsHelper.isJsArray(array));
-    JsHelper.consoleInfo("JsHelper.isJsArray(string1) = " + JsHelper.isJsArray(string1));
+    JsHelper.consoleInfo("JsHelper.isJsArray(array) = " + JSArray.isArray(array));
+    JsHelper.consoleInfo("JsHelper.isJsArray(string1) = " + JSArray.isArray(string1));
     JsHelper.consoleInfo("JSString.isInstance(string1) = " + JSString.isInstance(string1));
   }
 

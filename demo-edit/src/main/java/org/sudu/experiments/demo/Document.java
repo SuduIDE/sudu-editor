@@ -27,12 +27,14 @@ public class Document {
   }
 
   public Document(CodeLine ... data) {
+    if (data.length == 0) throw new IllegalArgumentException();
     document = data;
     currentVersion = lastParsedVersion = 0;
     tree = initialInterval();
   }
 
   public Document(CodeLine[] data, List<Interval> intervalList) {
+    if (data.length == 0) throw new IllegalArgumentException();
     document = data;
     currentVersion = lastParsedVersion = 0;
     tree = new IntervalTree(intervalList);
@@ -73,7 +75,16 @@ public class Document {
     diffs.clear();
     usageToDef.clear();
     defToUsages.clear();
-    document = CodeLine.singleElementLine("");
+
+    currentVersion = lastParsedVersion = 0;
+    tree = initialInterval();
+  }
+
+  public void setContent(String[] newLines) {
+    diffs.clear();
+    usageToDef.clear();
+    defToUsages.clear();
+    document = CodeLine.makeLines(newLines);
     currentVersion = lastParsedVersion = 0;
     tree = initialInterval();
   }
@@ -312,8 +323,9 @@ public class Document {
 
   public String makeString() {
     StringBuilder sb = new StringBuilder(getFullLength());
-    for (CodeLine codeLine : document) {
-      codeLine.append(sb).append('\n');
+    for (int i = 0; i < document.length; ) {
+      document[i].append(sb);
+      if (++i < document.length) sb.append('\n');
     }
     return sb.toString();
   }

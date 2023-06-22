@@ -19,14 +19,13 @@ import org.sudu.experiments.worker.ArrayView;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
 
 import static org.sudu.experiments.input.InputListener.MOUSE_BUTTON_LEFT;
 
-public class EditorComponent implements EditApi, Disposable {
+public class EditorComponent implements Disposable {
 
   boolean forceMaxFPS = false;
   int footerHeight;
@@ -46,7 +45,7 @@ public class EditorComponent implements EditApi, Disposable {
   int lineHeight;
 
   Model model;
-  EditorRegistrations editorRegistrations = new EditorRegistrations();
+  EditorRegistrations registrations = new EditorRegistrations();
   Selection selection = new Selection();
 
   EditorColorScheme colors = EditorColorScheme.darkIdeaColorScheme();
@@ -94,6 +93,8 @@ public class EditorComponent implements EditApi, Disposable {
   boolean ctrlPressed = false;
 
   PopupMenu usagesMenu;
+
+  Consumer<String> onError = System.err::println;
 
   public EditorComponent(SceneApi api) {
     this(api, new Document());
@@ -880,14 +881,47 @@ public class EditorComponent implements EditApi, Disposable {
     return (pos.line + 1) + ":" + pos.pos + "  " + line;
   }
 
+  void provideReferences(int line, int column, boolean includeDeclaration) {
+    var provider = registrations.findReferenceProvider(model.language, model.uriScheme());
+    if (provider != null) {
+      provider.provideReferences(
+          model, line, column, includeDeclaration,
+          this::gotoReferences, onError
+      );
+    }
+  }
+
+  private void gotoReferences(Location[] locs) {
+
+  }
+
+  void useDeclarationProvider(int line, int column) {
+    var p = registrations.findDeclarationProvider(model.language, model.uriScheme());
+    if (p != null) {
+      p.provide(model, line, column, this::gotoDefinition, onError);
+    }
+  }
+
+  void useDocumentHighlightProvider(int line, int column) {
+    var p = registrations.findDocumentHighlightProvider(model.language, model.uriScheme());
+    if (p != null) {
+      p.provide(model, line, column,
+          highlights -> applyHighlights(line, column, highlights),
+          onError);
+    }
+  }
+
+  void applyHighlights(int line, int column, DocumentHighlight[] highlights) {
+
+  }
+
   void onClickText(V2i position, boolean shift) {
     int line = Numbers.clamp(0, (position.y + vScrollPos) / lineHeight, model.document.length() - 1);
     int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
     int charPos = model.document.line(line).computeCaretLocation(documentXPosition, g.mCanvas, fonts);
 
     if (ctrlPressed) {
-      String scheme = model.uri != null ? model.uri.scheme : null;
-      DefinitionProvider provider = editorRegistrations.findDefinitionProvider(model.language, scheme);
+      var provider = registrations.findDefinitionProvider(model.language, model.uriScheme());
       if (provider == null) {
         // Default def provider
         var defPos = model.document.getDefinitionPos(line, documentXPosition);
@@ -896,7 +930,7 @@ public class EditorComponent implements EditApi, Disposable {
           return;
         }
       } else {
-        provider.f.provideDefinition(this, line, charPos);
+        provider.provide(model, line, charPos, this::gotoDefinition, onError);
         return;
       }
       var usagesList = model.document.getUsagesList(line, documentXPosition);
@@ -919,18 +953,15 @@ public class EditorComponent implements EditApi, Disposable {
     selection.select(caretLine, caretCharPos);
   }
 
-  public void gotoReferences(Location[] locs) {
-
-  }
-
-  public void gotoDefinition(Location[] locs) {
+  private void gotoDefinition(Location[] locs) {
     gotoDefinition(locs[0]);
   }
 
   public void gotoDefinition(Location loc) {
-    setCaretLinePos(loc.starLineNumber, loc.startColumn, false);
-    selection.startPos.set(loc.starLineNumber, loc.startColumn);
-    selection.endPos.set(loc.endLineNumber, loc.endColumn);
+    Range range = loc.range;
+    setCaretLinePos(range.startLineNumber, range.startColumn, false);
+    selection.startPos.set(range.startLineNumber, range.startColumn);
+    selection.endPos.set(range.endLineNumber, range.endColumn);
   }
 
   void onDoubleClickText(V2i position) {
@@ -1070,11 +1101,6 @@ public class EditorComponent implements EditApi, Disposable {
     }
     if (event.keyCode == KeyCode.ESC) return false;
     return event.key.length() > 0 && handleInsert(event.key);
-  }
-
-  void reparse() {
-    parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE, model.document.getChars());
   }
 
   void parseViewport() {
@@ -1288,34 +1314,55 @@ public class EditorComponent implements EditApi, Disposable {
     selection.getRightPos().set(endLineNumber, endColumn);
   }
 
-  public void registerDefinitionProvider(DefinitionProvider defProvider) {
-    editorRegistrations.registerDefinitionProvider(defProvider);
-  }
-
-  public void registerReferenceProvider(ReferenceProvider refProvider) {
-    editorRegistrations.registerReferenceProvider(refProvider);
-  }
-
-  public void addModelChangeListener(BiConsumer<Model, Model> listener) {
-    editorRegistrations.addModelChangeListener(listener);
-  }
+  public EditorRegistrations registrations() { return registrations; }
 
   public void setModel(Model model) {
     Model oldModel = this.model;
     this.model = model;
-    setText(model.document.getChars());
-    editorRegistrations.fireModelChange(oldModel, model);
+    setText(getChars());
+    registrations.fireModelChange(oldModel, model);
   }
 
   public Model model() { return model; }
 
-  @Override
+  public void setText(String[] newLines) {
+    model.document.setContent(newLines);
+    setText(getChars());
+  }
+
   public void setText(char[] charArray) {
     parsingTimeStart = System.currentTimeMillis();
     String jobName = parseJobName(model.language, null);
     if (jobName != null) {
       api.window.sendToWorker(this::onFileParsed, jobName, charArray);
     }
+  }
+
+  public void revealLineInCenter(int lineNumber) {
+    if (lineNumber <= 0) return;
+    int computed = lineHeight * (lineNumber - (editorHeight() / (lineHeight * 2)) - 1);
+    vScrollPos = clampScrollPos(computed, maxVScrollPos());
+  }
+
+  public void revealLine(int lineNumber) {
+    if (lineNumber <= 0) return;
+    int lineVPos = (lineNumber - 1) * lineHeight;
+    if (lineVPos >= vScrollPos) {
+      if (lineVPos - vScrollPos < editorHeight()) return;
+      scrollDownToLine(lineNumber);
+    } else scrollUpToLine(lineNumber);
+  }
+
+  private void scrollDownToLine(int lineNumber) {
+    if (lineNumber > model.document.length()) {
+      vScrollPos = maxVScrollPos();
+      return;
+    }
+    vScrollPos = clampScrollPos((lineNumber + 1) * lineHeight - editorHeight(), maxVScrollPos());
+  }
+
+  private void scrollUpToLine(int lineNumber) {
+    vScrollPos = clampScrollPos((lineNumber - 2) * lineHeight, maxVScrollPos());
   }
 
   static String parseJobName(String language, String def) {
@@ -1326,13 +1373,8 @@ public class EditorComponent implements EditApi, Disposable {
     } : def;
   }
 
-  @Override
-  public char[] getText() {
+  public char[] getChars() {
     return model.document.getChars();
   }
 
-  @Override
-  public Disposable addListener(Listener listener) {
-    return Disposable.empty();
-  }
 }
