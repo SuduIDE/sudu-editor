@@ -1,7 +1,7 @@
 import { newEditor, newTextModel } from "../../src/editor.js";
 import * as assert from "../utils.js";
 
-const workerUrl = "./../../../../../../../module/src/worker.js"
+const workerUrl = "./../../src/worker.js"
 
 function main() {
     newEditor({containerId: "editor", workerUrl: workerUrl})
