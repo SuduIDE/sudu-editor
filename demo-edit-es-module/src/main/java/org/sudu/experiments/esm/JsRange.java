@@ -17,7 +17,7 @@ public abstract class JsRange implements JSObject {
   )
   public static native JsRange create(int endColumn, int endLineNumber, int startColumn, int startLineNumber);
 
-  public void toRange(Range range) {
+  public void toJava(Range range) {
     range.startColumn = getStartColumn();
     range.startLineNumber = getStartLineNumber();
     range.endColumn = getEndColumn();
