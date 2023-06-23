@@ -89,15 +89,6 @@ public class Document {
     tree = initialInterval();
   }
 
-  public void setContent(String[] newLines) {
-    diffs.clear();
-    usageToDef.clear();
-    defToUsages.clear();
-    document = CodeLine.makeLines(newLines);
-    currentVersion = lastParsedVersion = 0;
-    tree = initialInterval();
-  }
-
   public int strLength(int i) {
     return document[i].totalStrLength;
   }
