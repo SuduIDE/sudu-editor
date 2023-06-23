@@ -10,6 +10,8 @@ import org.sudu.experiments.parser.common.Pos;
 import java.util.*;
 
 public class Document {
+  public static final char newLine = '\n';
+
   CodeLine[] document;
   public IntervalTree tree;
   public final Map<Pos, Pos> usageToDef = new HashMap<>();
@@ -43,6 +45,10 @@ public class Document {
   public Document(int n) {
     this(TestText.document(n, false));
     tree = initialInterval();
+  }
+
+  public Document(String[] text) {
+    this(CodeLine.makeLines(text));
   }
 
   private IntervalTree initialInterval() {
@@ -134,7 +140,11 @@ public class Document {
 
   public void deleteLine(int caretLine) {
     String deleted = line(caretLine).makeString().concat("\n");
-    document = deleteLineOp(caretLine);
+    if (document.length > 1) {
+      document = deleteLineOp(caretLine);
+    } else {
+      document[0].delete(0);
+    }
 
     makeDiff(caretLine, 0, true, deleted);
   }
@@ -305,8 +315,10 @@ public class Document {
 
   public int getLineStartInd(int firstLine) {
     int result = 0;
-    for (int i = 0; i < firstLine; i++) {
-      result += strLength(i) + 1;
+    int lines = document.length;
+    for (int i = 0; i < firstLine;) {
+      result += strLength(i);
+      if (++i < lines) result++;
     }
     return result;
   }
@@ -322,12 +334,7 @@ public class Document {
   }
 
   public String makeString() {
-    StringBuilder sb = new StringBuilder(getFullLength());
-    for (int i = 0; i < document.length; ) {
-      document[i].append(sb);
-      if (++i < document.length) sb.append('\n');
-    }
-    return sb.toString();
+    return new String(getChars());
   }
 
   public CodeElement getCodeElement(Pos pos) {
@@ -335,8 +342,13 @@ public class Document {
   }
 
   public char[] getChars() {
-    String documentText = makeString();
-    return documentText.toCharArray();
+    char[] dst = new char[getFullLength()];
+    int docLength = document.length;
+    for (int i = 0, pos = 0; i < docLength; ) {
+      pos = document[i].toCharArray(dst, pos);
+      if (++i < docLength) dst[pos++] = newLine;
+    }
+    return dst;
   }
 
   public int[] getIntervals() {
@@ -429,8 +441,10 @@ public class Document {
 
   public int getOffsetAt(int lineNumber, int column) {
     int position = 0;
-    for (int i = 0; i < document.length && i < lineNumber; ++i) {
-      position += document[i].totalStrLength + 1;
+    for (int i = 0; i < lineNumber;) {
+      position += document[i].totalStrLength;
+      if (++i < document.length) position ++;
+      else break;
     }
     return position + column;
   }

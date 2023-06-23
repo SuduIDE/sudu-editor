@@ -13,13 +13,25 @@ public interface Languages {
   String JS = "js";
 
   static String getLanguage(String lang) {
-    return switch (lang.toLowerCase(Locale.ROOT)) {
+    return switch (lang.toLowerCase(Locale.ENGLISH)) {
       case "text", "txt", "plaintext" -> TEXT;
       case "java" -> JAVA;
       case "cpp", "c++" -> CPP;
       case "js", "javascript" -> JS;
       default -> null;
     };
+  }
+
+  static String languageFromFilename(String path) {
+    if (path == null) return null;
+    if (path.endsWith(".cpp")
+        || path.endsWith(".cxx")
+        || path.endsWith(".hpp")
+        || path.endsWith(".c")
+        || path.endsWith(".h")) return CPP;
+    if (path.endsWith(".java")) return JAVA;
+    if (path.endsWith(".js")) return JS;
+    return null;
   }
 
   static String getLanguage(int type) {
@@ -40,10 +52,6 @@ public interface Languages {
       case Languages.JS -> FileParser.JS_FILE;
       default -> -1;
     };
-  }
-
-  static String getLanguageOrDefault(String lang, String def) {
-    return Objects.requireNonNullElse(getLanguage(lang), def);
   }
 
   static String getLanguageOrDefault(int type, String def) {

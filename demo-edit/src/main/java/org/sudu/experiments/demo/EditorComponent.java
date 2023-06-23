@@ -45,7 +45,7 @@ public class EditorComponent implements Disposable {
   FontDesk[] fonts = new FontDesk[4];
   int lineHeight;
 
-  Model model;
+  Model model = new Model();
   EditorRegistrations registrations = new EditorRegistrations();
   Selection selection = new Selection();
 
@@ -101,15 +101,7 @@ public class EditorComponent implements Disposable {
   Consumer<String> onError = System.err::println;
 
   public EditorComponent(SceneApi api) {
-    this(api, new Document());
-  }
-
-  public EditorComponent(
-      SceneApi api,
-      Document document
-  ) {
     this.api = api;
-    this.model = new Model(document);
     this.g = api.graphics;
 
     if (api.window.hasFocus()) onFocusGain();
@@ -643,8 +635,9 @@ public class EditorComponent implements Disposable {
     char[] chars = ((ArrayView) result[1]).chars();
     int type = ((ArrayView) result[2]).ints()[0];
 
-    this.model.document = ParserUtils.makeDocument(ints, chars);
-    this.model.language = Languages.getLanguageOrDefault(type, Languages.TEXT);
+    model.document = ParserUtils.makeDocument(ints, chars);
+
+    changeModelLanguage(Languages.getLanguage(type));
 
     api.window.setCursor(Cursor.arrow);
     api.window.repaint();
@@ -662,8 +655,8 @@ public class EditorComponent implements Disposable {
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
 
-    this.model.document = ParserUtils.updateDocument(model.document, ints, chars, firstLinesParsed);
-    this.model.language = Languages.getLanguageOrDefault(type, Languages.TEXT);
+    model.document = ParserUtils.updateDocument(model.document, ints, chars, firstLinesParsed);
+    changeModelLanguage(Languages.getLanguage(type));
 
     api.window.setCursor(Cursor.arrow);
     api.window.repaint();
@@ -671,6 +664,14 @@ public class EditorComponent implements Disposable {
 
     parseViewport();
     parseFullFile();
+  }
+
+  private void changeModelLanguage(String languageFromParser) {
+    String language = model.language();
+    if (!Objects.equals(language, languageFromParser)) {
+      Debug.consoleInfo("change model language: from = " + language + " to = " + languageFromParser);
+      model.setLanguage(languageFromParser);
+    }
   }
 
   private void onVpParsed(Object[] result) {
@@ -919,7 +920,7 @@ public class EditorComponent implements Disposable {
   }
 
   void provideReferences(int line, int column, boolean includeDeclaration) {
-    var provider = registrations.findReferenceProvider(model.language, model.uriScheme());
+    var provider = registrations.findReferenceProvider(model.language(), model.uriScheme());
     if (provider != null) {
       provider.provideReferences(
           model, line, column, includeDeclaration,
@@ -933,14 +934,14 @@ public class EditorComponent implements Disposable {
   }
 
   void useDeclarationProvider(int line, int column) {
-    var p = registrations.findDeclarationProvider(model.language, model.uriScheme());
+    var p = registrations.findDeclarationProvider(model.language(), model.uriScheme());
     if (p != null) {
       p.provide(model, line, column, this::gotoDefinition, onError);
     }
   }
 
   void useDocumentHighlightProvider(int line, int column) {
-    var p = registrations.findDocumentHighlightProvider(model.language, model.uriScheme());
+    var p = registrations.findDocumentHighlightProvider(model.language(), model.uriScheme());
     if (p != null) {
       p.provide(model, line, column,
           highlights -> applyHighlights(line, column, highlights),
@@ -958,7 +959,7 @@ public class EditorComponent implements Disposable {
     int charPos = model.document.line(line).computeCaretLocation(documentXPosition, g.mCanvas, fonts);
 
     if (ctrlPressed) {
-      var provider = registrations.findDefinitionProvider(model.language, model.uriScheme());
+      var provider = registrations.findDefinitionProvider(model.language(), model.uriScheme());
       if (provider == null) {
         // Default def provider
         var defPos = model.document.getDefinitionPos(line, documentXPosition);
@@ -1147,8 +1148,9 @@ public class EditorComponent implements Disposable {
   }
 
   public void parseViewport() {
-    if (model.language.equals(Languages.JAVA))
-      api.window.sendToWorker(this::onVpParsed, JavaParser.PARSE_BYTES_JAVA_VIEWPORT, model.document.getChars(), getViewport(), model.document.getIntervals() );
+    if (Languages.JAVA.equals(model.language()))
+      api.window.sendToWorker(this::onVpParsed, JavaParser.PARSE_BYTES_JAVA_VIEWPORT,
+          model.document.getChars(), getViewport(), model.document.getIntervals() );
   }
 
   private int[] getViewport() {
@@ -1162,9 +1164,11 @@ public class EditorComponent implements Disposable {
   }
 
   public void parseFullFile() {
-    String parseJob = parseJobName(model.language, LineParser.PARSE);
-    parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, parseJob, model.document.getChars());
+    String parseJob = parseJobName(model.language(), null);
+    if (parseJob != null) {
+      parsingTimeStart = System.currentTimeMillis();
+      api.window.sendToWorker(this::onFileParsed, parseJob, model.document.getChars());
+    }
   }
 
   public void onFileIterativeParsed(Object[] result) {
@@ -1178,12 +1182,12 @@ public class EditorComponent implements Disposable {
   public void iterativeParsing() {
     var node = model.document.tree.getReparseNode();
     if (node == null) return;
-    if (model.language.equals(Languages.TEXT)) {
+    if (Languages.TEXT.equals(model.language())) {
       model.document.onReparse();
     }
     int[] interval = new int[]{node.getStart(), node.getStop(), node.getType()};
-    char[] chars = model.document.makeString().toCharArray();
-    int[] type = new int[] {Languages.getType(model.language)};
+    char[] chars = model.document.getChars();
+    int[] type = new int[] {Languages.getType(model.language())};
 
     api.window.sendToWorker(this::onFileIterativeParsed, FileParser.asyncIterativeParsing, chars, type, interval);
   }
@@ -1359,7 +1363,7 @@ public class EditorComponent implements Disposable {
   public void setModel(Model model) {
     Model oldModel = this.model;
     this.model = model;
-    setText(getChars());
+    onContentChange();
     registrations.fireModelChange(oldModel, model);
   }
 
@@ -1367,15 +1371,19 @@ public class EditorComponent implements Disposable {
 
   public void setText(String[] newLines) {
     model.document.setContent(newLines);
-    setText(getChars());
+    onContentChange();
   }
 
-  public void setText(char[] charArray) {
+  private void onContentChange() {
     parsingTimeStart = System.currentTimeMillis();
-    String jobName = parseJobName(model.language, Languages.TEXT);
+    String jobName = parseJobName(model.language(), null);
     if (jobName != null) {
-      api.window.sendToWorker(this::onFileParsed, jobName, charArray);
+      api.window.sendToWorker(this::onFileParsed, jobName, getChars());
     }
+  }
+
+  public void setLanguage(String language) {
+    model.setLanguage(language);
   }
 
   public void revealLineInCenter(int lineNumber) {
@@ -1408,10 +1416,8 @@ public class EditorComponent implements Disposable {
   }
 
   static String parseJobName(String language, String def) {
-    if (language == null) return def;
-    String parsedLanguage = Languages.getLanguage(language);
-    return parsedLanguage != null ? switch (parsedLanguage) {
-      case Languages.TEXT -> LineParser.PARSE;
+    return language != null ? switch (language) {
+      case Languages.TEXT -> null;
       case Languages.JAVA -> JavaParser.PARSE;
       case Languages.CPP -> CppParser.PARSE;
       case Languages.JS -> JavaScriptParser.PARSE;

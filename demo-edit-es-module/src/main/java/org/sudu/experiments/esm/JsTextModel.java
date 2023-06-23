@@ -1,10 +1,10 @@
 package org.sudu.experiments.esm;
 
+import org.sudu.experiments.demo.Document;
 import org.sudu.experiments.demo.Model;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.parser.common.Pos;
 import org.teavm.jso.JSBody;
-import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSString;
 
 public class JsTextModel implements JsITextModel {
@@ -48,9 +48,9 @@ public class JsTextModel implements JsITextModel {
   }
 
   public JsTextModel(JSString text, JSString language, JsUri uri) {
-    String[] split = SplitJsText.split(text, '\n');
+    String[] split = SplitJsText.split(text, Document.newLine);
     this.javaModel = new Model(split,
-        JsHelper.toString(language, ""),
+        JsHelper.toString(language, null),
         uri.toJava(), this);
     setLanguage(this, language);
     setUri(this, uri);
@@ -58,7 +58,7 @@ public class JsTextModel implements JsITextModel {
 
   public JsTextModel(Model javaModel) {
     this.javaModel = javaModel;
-    setLanguage(this, JSString.valueOf(javaModel.language));
+    setLanguage(this, JSString.valueOf(javaModel.docLanguage()));
     setUri(this, JsUri.fromJava(javaModel.uri));
   }
 

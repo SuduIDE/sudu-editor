@@ -49,8 +49,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   @Override
   public void setText(JSString t) {
-//    char[] buffer = TextEncoder.toCharArray(t);
-    String[] split = SplitJsText.split(t, '\n');
+    String[] split = SplitJsText.split(t, Document.newLine);
     editor.setText(split);
   }
 

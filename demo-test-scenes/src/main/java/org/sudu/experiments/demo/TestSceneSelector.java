@@ -15,6 +15,7 @@ public class TestSceneSelector {
     }
     return switch (name) {
       default -> DemoEdit1::new;
+      case "DemoEdit0" -> DemoEdit0::new;
       case "DemoScene1", "test" -> DemoScene1::new;
       case "ToolbarDemo" -> ToolbarDemo::new;
       case "ManyTexturesLineNumbersScene", "many"
