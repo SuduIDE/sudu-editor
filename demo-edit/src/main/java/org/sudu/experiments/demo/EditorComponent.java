@@ -4,10 +4,14 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.demo.ui.FindUsagesItem;
+import org.sudu.experiments.demo.ui.FindUsagesItemBuilder;
 import org.sudu.experiments.demo.ui.FindUsagesWindow;
 import org.sudu.experiments.demo.worker.parser.CppParser;
 import org.sudu.experiments.demo.worker.parser.FileParser;
 import org.sudu.experiments.demo.worker.parser.JavaParser;
+import org.sudu.experiments.demo.worker.parser.JavaScriptParser;
+import org.sudu.experiments.demo.worker.parser.LineParser;
 import org.sudu.experiments.demo.worker.parser.ParserUtils;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
@@ -17,12 +21,13 @@ import org.sudu.experiments.math.*;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.worker.ArrayView;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
-import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
+import java.util.function.Supplier;
 
 import static org.sudu.experiments.input.InputListener.MOUSE_BUTTON_LEFT;
 
@@ -863,12 +868,40 @@ public class EditorComponent implements Disposable {
     caretPos = line.computePixelLocation(caretCharPos, g.mCanvas, fonts);
 
     computeUsages();
-    if (1<0) Debug.consoleInfo(
+    if (1 < 0) Debug.consoleInfo(
         "onClickText: caretCharPos = " + caretCharPos + ", caretPos = " + caretPos);
     startBlinking();
   }
 
-  public final void gotoElement(Pos defPos) {
+  public void findUsages(V2i position) {
+    int line = Numbers.clamp(0, (position.y + vScrollPos) / lineHeight, model.document.length() - 1);
+    int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
+
+    Pos def = model.document.getDefinitionPos(line, documentXPosition);
+    if (def != null) {
+      gotoUsageMenuElement(def);
+      return;
+    }
+
+    List<Pos> usages = model.document.getUsagesList(line, documentXPosition);
+    var items = usages == null || usages.isEmpty() ? noDefOrUsages() : usagesMenu.buildUsagesItems(usages, this, model);
+    if (!usagesMenu.isVisible()) usagesMenu.display(position, items, this::onFocusGain);
+  }
+
+  private Supplier<FindUsagesItem[]> noDefOrUsages() {
+    FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
+    tbb.addItem(
+        "No definition or usages",
+        "",
+        "",
+        Colors.findUsagesColorsError, () -> {
+        }
+    );
+    return tbb.supplier();
+  }
+
+  // TODO(Minor): Move usageMenu.hide() out off & rename method
+  public final void gotoUsageMenuElement(Pos defPos) {
     setCaretLinePos(defPos.line, defPos.pos, false);
     int nextPos = caretCodeLine().nextPos(caretPos);
     selection.startPos.set(caretLine, nextPos);
@@ -922,7 +955,7 @@ public class EditorComponent implements Disposable {
         // Default def provider
         var defPos = model.document.getDefinitionPos(line, documentXPosition);
         if (defPos != null) {
-          gotoElement(defPos);
+          gotoUsageMenuElement(defPos);
           return;
         }
       } else {
@@ -931,7 +964,10 @@ public class EditorComponent implements Disposable {
       }
       var usagesList = model.document.getUsagesList(line, documentXPosition);
       if (usagesList != null && !usagesList.isEmpty()) {
-        if (!usagesMenu.isVisible())
+        if (usagesList.size() == 1) {
+          gotoUsageMenuElement(usagesList.get(0));
+          return;
+        } else if (!usagesMenu.isVisible())
           usagesMenu.display(
               position,
               usagesMenu.buildUsagesItems(usagesList, this, model),

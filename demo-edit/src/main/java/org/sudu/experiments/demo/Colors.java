@@ -18,14 +18,21 @@ public interface Colors {
   V4f findUsagesBorder = new Color("#616161");
   V4f findUsagesSelectedBg = new Color("#4B6EAF");
 
+  V4f findUsagesErrorBg = new Color("#781732");
+
   FindUsagesItemColors findUsagesColors = new FindUsagesItemColors(
-          IdeaCodeColors.Colors.defaultText, IdeaCodeColors.Colors.editNumbersVLine,
-          IdeaCodeColors.Colors.defaultText, Colors.findUsagesBg, Colors.findUsagesSelectedBg
+      IdeaCodeColors.Colors.defaultText, IdeaCodeColors.Colors.editNumbersVLine,
+      IdeaCodeColors.Colors.defaultText, Colors.findUsagesBg, Colors.findUsagesSelectedBg
   );
 
   FindUsagesItemColors findUsagesColorsContinued = new FindUsagesItemColors(
-          new Color("#CCCCCC"), IdeaCodeColors.Colors.editNumbersVLine,
-          IdeaCodeColors.Colors.defaultText, Colors.findUsagesBg, Colors.findUsagesBg
+      new Color("#CCCCCC"), IdeaCodeColors.Colors.editNumbersVLine,
+      IdeaCodeColors.Colors.defaultText, Colors.findUsagesBg, Colors.findUsagesBg
+  );
+
+  FindUsagesItemColors findUsagesColorsError = new FindUsagesItemColors(
+      new Color("#BBBBBB"), IdeaCodeColors.Colors.editNumbersVLine,
+      IdeaCodeColors.Colors.defaultText, Colors.findUsagesErrorBg, Colors.findUsagesErrorBg
   );
 
   ToolbarItemColors popupText = new ToolbarItemColors(

@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 
 public class FindUsagesWindow {
   private final V2i windowSize = new V2i();
-  private final ArrayList<FindUsages> usagesList = new ArrayList<>();
+  private final ArrayList<FindUsagesDialog> usagesList = new ArrayList<>();
   private final WglGraphics graphics;
   private final V4f frameColor = Colors.findUsagesBorder;
   private double dpr;
@@ -27,7 +27,7 @@ public class FindUsagesWindow {
     this.graphics = graphics;
   }
 
-  static void setScreenLimitedPosition(FindUsages findUsages, int x, int y, V2i screen) {
+  static void setScreenLimitedPosition(FindUsagesDialog findUsages, int x, int y, V2i screen) {
     findUsages.setPos(
         Math.max(0, Math.min(x, screen.x - findUsages.size().x)),
         Math.max(0, Math.min(y, screen.y - findUsages.size().y)));
@@ -39,8 +39,8 @@ public class FindUsagesWindow {
     bgColor = bg;
   }
 
-  private FindUsages displayFindUsagesMenu(V2i pos, Supplier<FindUsagesItem[]> items) {
-    FindUsages findUsages = new FindUsages();
+  private FindUsagesDialog displayFindUsagesMenu(V2i pos, Supplier<FindUsagesItem[]> items) {
+    FindUsagesDialog findUsages = new FindUsagesDialog();
     findUsages.setItems(items.get());
     setFindUsagesStyle(findUsages);
     findUsages.measure(graphics.mCanvas, dpr);
@@ -57,7 +57,7 @@ public class FindUsagesWindow {
       throw new IllegalArgumentException();
     }
     this.onClose = onClose;
-    FindUsages usagesMenu = displayFindUsagesMenu(mousePos, actions);
+    FindUsagesDialog usagesMenu = displayFindUsagesMenu(mousePos, actions);
     usagesMenu.onClickOutside(this::hide);
   }
 
@@ -69,7 +69,7 @@ public class FindUsagesWindow {
     }
   }
 
-  private void setFindUsagesStyle(FindUsages fu) {
+  private void setFindUsagesStyle(FindUsagesDialog fu) {
     fu.setFont(font);
     fu.setBgColor(bgColor);
     fu.setFrameColor(frameColor);
@@ -78,7 +78,7 @@ public class FindUsagesWindow {
   public void onResize(V2i newSize, double newDpr) {
     windowSize.set(newSize);
     if (this.dpr != newDpr) {
-      for (FindUsages usages : usagesList) {
+      for (FindUsagesDialog usages : usagesList) {
         usages.measure(graphics.mCanvas, newDpr);
       }
       this.dpr = newDpr;
@@ -88,7 +88,7 @@ public class FindUsagesWindow {
   public void paint() {
     // let's do 0-garbage rendering
     if (!usagesList.isEmpty()) graphics.enableBlend(true);
-    for (FindUsages findUsages : usagesList) {
+    for (FindUsagesDialog findUsages : usagesList) {
       findUsages.render(graphics, dpr);
     }
   }
@@ -115,17 +115,17 @@ public class FindUsagesWindow {
     return false;
   }
 
-  private void removeUsageWindowAfter(FindUsages wall) {
+  private void removeUsageWindowAfter(FindUsagesDialog wall) {
     for (int i = usagesList.size() - 1; i >= 0; i--) {
-      FindUsages tb = usagesList.get(i);
+      FindUsagesDialog tb = usagesList.get(i);
       if (wall == tb) break;
       usagesList.remove(i);
       tb.dispose();
     }
   }
 
-  private void disposeList(ArrayList<FindUsages> list) {
-    for (FindUsages toolbar : list) {
+  private void disposeList(ArrayList<FindUsagesDialog> list) {
+    for (FindUsagesDialog toolbar : list) {
       toolbar.dispose();
     }
     list.clear();
@@ -182,7 +182,13 @@ public class FindUsagesWindow {
         );
         break;
       }
-      tbb.addItem(fileName, lineNumber, codeContentFormatted, Colors.findUsagesColors, () -> editorComponent.gotoElement(pos));
+      tbb.addItem(
+          fileName,
+          lineNumber,
+          codeContentFormatted,
+          Colors.findUsagesColors,
+          () -> editorComponent.gotoUsageMenuElement(pos)
+      );
     }
     return tbb.supplier();
   }

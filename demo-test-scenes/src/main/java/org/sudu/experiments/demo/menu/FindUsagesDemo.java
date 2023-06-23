@@ -12,7 +12,9 @@ import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.*;
+import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.Numbers;
+import org.sudu.experiments.math.V2i;
 
 import java.util.function.Supplier;
 
@@ -21,12 +23,11 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
     private final SetCursor windowCursor;
     private final V2i windowSize = new V2i();
     private final FontDesk font;
-    private double dpr;
-    private final FindUsages tbV = new FindUsages();
+    private final FindUsagesDialog tbV = new FindUsagesDialog();
     private final V2i hLine = new V2i();
     private final V2i vLine = new V2i();
-
     private final FindUsagesWindow findUsagesWindow;
+    private double dpr;
 
     public FindUsagesDemo(SceneApi api) {
         super(api);
@@ -50,19 +51,8 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
 
     }
 
-    private void setFindUsagesStyle(FindUsages fu) {
-        fu.setFont(font);
-        fu.setBgColor(Colors.findUsagesBg);
-        fu.setFrameColor(Colors.findUsagesBorder);
-    }
+    private static void addAndFormatAction(FindUsagesItemBuilder tbb, String fileName, String lineNumber, String codeContent) {
 
-    private void onEnterLeave(FindUsages fu) {
-        fu.onEnter((mouse, index, item) ->
-                System.out.println(
-                        "onEnter item " + index + ", item " + item));
-        fu.onLeave((mouse, index, item) ->
-                System.out.println(
-                        "onLeave item " + index + ", item " + item));
     }
 
     private static Supplier<FindUsagesItem[]> createItems() {
@@ -86,6 +76,21 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
         } else {
             fu.addItem(fileName, lineNumber, codeContent, colors, () -> System.out.println(fileName + "\t" + lineNumber + "\t" + codeContent));
         }
+    }
+
+    private void setFindUsagesStyle(FindUsagesDialog fu) {
+        fu.setFont(font);
+        fu.setBgColor(Colors.findUsagesBg);
+        fu.setFrameColor(Colors.findUsagesBorder);
+    }
+
+    private void onEnterLeave(FindUsagesDialog fu) {
+        fu.onEnter((mouse, index, item) ->
+            System.out.println(
+                "onEnter item " + index + ", item " + item));
+        fu.onLeave((mouse, index, item) ->
+            System.out.println(
+                "onLeave item " + index + ", item " + item));
     }
 
     @Override
@@ -142,7 +147,7 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
         System.out.println("onContextMenu");
         if (!findUsagesWindow.isVisible()) {
             findUsagesWindow.display(event.position, createItems(),
-                    this::onPopupClosed);
+                this::onPopupClosed);
         }
         return true;
     }

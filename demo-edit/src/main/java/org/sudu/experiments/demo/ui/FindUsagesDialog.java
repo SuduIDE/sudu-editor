@@ -11,7 +11,7 @@ import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
-public class FindUsages {
+public class FindUsagesDialog {
 
   private final DemoRect rect = new DemoRect();
   private final V2i textureSize = new V2i();
