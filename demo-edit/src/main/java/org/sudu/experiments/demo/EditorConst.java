@@ -2,7 +2,7 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.fonts.Fonts;
 
-interface EditorConst {
+public interface EditorConst {
   String FONT = Fonts.Consolas;
   String FONT2 = Fonts.JetBrainsMono;
   float CONTRAST = .5f;

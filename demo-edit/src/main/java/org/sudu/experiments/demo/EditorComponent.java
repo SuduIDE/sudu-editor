@@ -4,8 +4,11 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.demo.ui.*;
-import org.sudu.experiments.demo.worker.parser.*;
+import org.sudu.experiments.demo.ui.FindUsagesWindow;
+import org.sudu.experiments.demo.worker.parser.CppParser;
+import org.sudu.experiments.demo.worker.parser.FileParser;
+import org.sudu.experiments.demo.worker.parser.JavaParser;
+import org.sudu.experiments.demo.worker.parser.ParserUtils;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -15,12 +18,10 @@ import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.worker.ArrayView;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
-import java.util.function.Supplier;
 
 import static org.sudu.experiments.input.InputListener.MOUSE_BUTTON_LEFT;
 
@@ -852,57 +853,7 @@ public class EditorComponent implements EditApi, Disposable {
     startBlinking();
   }
 
-  private Supplier<FindUsagesItem[]> usagesItems(List<Pos> usages) {
-    FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
-    int cnt = 0;
-    int maxFileNameLen = 0;
-    int maxLineLen = 0;
-    int maxCodeContentLen = 0;
-    for (var pos : usages) {
-      // TODO(Get file names from server)
-      String fileName = "Main.java";
-      String codeContent = model.document.line(pos.line).makeString().trim();
-      String codeContentFormatted = codeContent.length() > 43 ? codeContent.substring(0, 40) + "..." : codeContent;
-      String lineNumber = String.valueOf(pos.line);
-      maxFileNameLen = Math.max(fileName.length(), maxFileNameLen);
-      maxLineLen = Math.max(lineNumber.length(), maxLineLen);
-      maxCodeContentLen = Math.max(codeContentFormatted.length(), maxCodeContentLen);
-    }
-    for (var pos : usages) {
-      // TODO(Get file names from server)
-      String fileName = formatFindUsagesItem(
-              "Main.java",
-              maxFileNameLen
-      );
-      String codeContent = model.document.line(pos.line).makeString().trim();
-      String codeContentFormatted = formatFindUsagesItem(
-              codeContent.length() > 43 ? codeContent.substring(0, 40) + "..." : codeContent,
-              maxCodeContentLen
-      );
-      String lineNumber = formatFindUsagesItem(
-              String.valueOf(pos.line),
-              maxLineLen
-      );
-
-      if (++cnt > EditorConst.MAX_SHOW_USAGES_NUMBER) {
-        tbb.addItem(
-                "... and " + (usages.size() - (cnt - 1)) + " more usages",
-                "",
-                "",
-                Colors.findUsagesColorsContinued, () -> {}
-        );
-        break;
-      }
-      tbb.addItem(fileName, lineNumber, codeContentFormatted, Colors.findUsagesColors, () -> gotoElement(pos));
-    }
-    return tbb.supplier();
-  }
-
-  private String formatFindUsagesItem(String item, int maxLength) {
-    return item + " ".repeat(Math.max(maxLength - item.length(), 0));
-  }
-
-  private void gotoElement(Pos defPos) {
+  public final void gotoElement(Pos defPos) {
     setCaretLinePos(defPos.line, defPos.pos, false);
     int nextPos = caretCodeLine().nextPos(caretPos);
     selection.startPos.set(caretLine, nextPos);
@@ -931,7 +882,12 @@ public class EditorComponent implements EditApi, Disposable {
       }
       var usagesList = model.document.getUsagesList(line, documentXPosition);
       if (usagesList != null && !usagesList.isEmpty()) {
-        if (!usagesMenu.isVisible()) usagesMenu.display(position, usagesItems(usagesList), this::onFocusGain);
+        if (!usagesMenu.isVisible())
+          usagesMenu.display(
+              position,
+              usagesMenu.buildUsagesItems(usagesList, this, model),
+              this::onFocusGain
+          );
       }
     }
 
