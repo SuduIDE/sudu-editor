@@ -92,6 +92,7 @@ public class EditorComponent implements Disposable {
   String tabIndent = "  ";
 
   boolean ctrlPressed = false;
+  public boolean isReadonly = false;
 
   PopupMenu usagesMenu;
 
@@ -559,6 +560,7 @@ public class EditorComponent implements Disposable {
   }
 
   boolean handleInsert(String s) {
+    if (isReadonly) return false;
     if (selection.isAreaSelected()) deleteSelectedArea();
     String[] lines = s.replace("\r", "").split("\n", -1);
 
@@ -1115,7 +1117,7 @@ public class EditorComponent implements Disposable {
       return true;
     }
 
-    if (event.ctrl && event.keyCode == KeyCode.Z) {
+    if (!isReadonly && event.ctrl && event.keyCode == KeyCode.Z) {
       undoLastDiff();
       return true;
     }
@@ -1227,6 +1229,7 @@ public class EditorComponent implements Disposable {
   }
 
   private boolean handleEditingKeys(KeyEvent event) {
+    if (isReadonly) return false;
     return switch (event.keyCode) {
       case KeyCode.TAB -> handleTab();
       case KeyCode.ENTER -> handleEnter();
@@ -1405,7 +1408,7 @@ public class EditorComponent implements Disposable {
   }
 
   static String parseJobName(String language, String def) {
-    return language != null ? switch (Languages.getLanguage(language)) {
+    return language != null ? switch (Languages.getLanguageOrDefault(language, def)) {
       case Languages.TEXT -> LineParser.PARSE;
       case Languages.JAVA -> JavaParser.PARSE;
       case Languages.CPP -> CppParser.PARSE;
