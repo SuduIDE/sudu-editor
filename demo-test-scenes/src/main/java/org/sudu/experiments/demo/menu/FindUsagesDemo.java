@@ -36,7 +36,6 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
 
         api.input.addListener(this);
 
-        tbV.setLayoutVertical();
         font = api.graphics.fontDesk("Consolas", 25);
 
         findUsagesWindow.setTheme(font, Colors.findUsagesBg);

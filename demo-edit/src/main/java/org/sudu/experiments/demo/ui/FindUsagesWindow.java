@@ -41,7 +41,6 @@ public class FindUsagesWindow {
 
   private FindUsages displayFindUsagesMenu(V2i pos, Supplier<FindUsagesItem[]> items) {
     FindUsages findUsages = new FindUsages();
-    findUsages.setLayoutVertical();
     findUsages.setItems(items.get());
     setFindUsagesStyle(findUsages);
     findUsages.measure(graphics.mCanvas, dpr);
