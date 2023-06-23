@@ -19,6 +19,8 @@ import org.sudu.experiments.worker.ArrayView;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
@@ -87,12 +89,14 @@ public class EditorComponent implements Disposable {
   final V2i compSize = new V2i();
 
   boolean fileStructureParsed, firstLinesParsed;
-  int fileType = FileParser.JAVA_FILE;
   String tabIndent = "  ";
 
   boolean ctrlPressed = false;
 
   PopupMenu usagesMenu;
+
+  private CodeElement definition = null;
+  private List<CodeElement> usages = new ArrayList<>();
 
   Consumer<String> onError = System.err::println;
 
@@ -433,7 +437,8 @@ public class EditorComponent implements Disposable {
           compPos.y + yPosition, compPos.x +  vLineX, g, tRegion, size,
           applyContrast ? EditorConst.CONTRAST : 0,
           editorWidth(), lineHeight, hScrollPos,
-          colors, getSelLineSegment(i, lineContent));
+          colors, getSelLineSegment(i, lineContent),
+          definition, usages);
     }
 
     for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
@@ -638,12 +643,8 @@ public class EditorComponent implements Disposable {
     int type = ((ArrayView) result[2]).ints()[0];
 
     this.model.document = ParserUtils.makeDocument(ints, chars);
-    this.fileType = type;
+    this.model.language = Languages.getLanguageOrDefault(type, Languages.TEXT);
 
-//    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
-//    int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
-//
-//    setCaretLinePos(newCaretLine, newCaretCharInd, false);
     api.window.setCursor(Cursor.arrow);
     api.window.repaint();
     Debug.consoleInfo("Full file parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
@@ -659,19 +660,16 @@ public class EditorComponent implements Disposable {
 
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
-    this.fileType = type;
 
     this.model.document = ParserUtils.updateDocument(model.document, ints, chars, firstLinesParsed);
+    this.model.language = Languages.getLanguageOrDefault(type, Languages.TEXT);
 
-//    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
-//    int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
-//
-//    setCaretLinePos(newCaretLine, newCaretCharInd, false);
     api.window.setCursor(Cursor.arrow);
     api.window.repaint();
     Debug.consoleInfo("File structure parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
 
-    parseViewport(type);
+    parseViewport();
+    parseFullFile();
   }
 
   private void onVpParsed(Object[] result) {
@@ -681,15 +679,9 @@ public class EditorComponent implements Disposable {
 
     ParserUtils.updateDocument(model.document, ints, chars);
 
-//    int newCaretLine = Numbers.clamp(0, caretLine, document.length());
-//    int newCaretCharInd = Numbers.clamp(0, caretCharPos, document.strLength(newCaretLine));
-//
-//    setCaretLinePos(newCaretLine, newCaretCharInd, false);
     api.window.setCursor(Cursor.arrow);
     api.window.repaint();
     Debug.consoleInfo("Viewport parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
-
-    parseFullFile();
   }
 
   private void onFileLoad(byte[] content) {
@@ -841,6 +833,26 @@ public class EditorComponent implements Disposable {
     }
   }
 
+  private void computeUsages() {
+    definition = null;
+    usages.clear();
+
+    if (!model.document.hasDefOrUsages(caretLine, caretPos)) return;
+
+    Pos def;
+    List<Pos> usages;
+    if (model.document.hasDefinition(caretLine, caretPos)) {
+      def = model.document.getDefinitionPos(caretLine, caretPos);
+      usages = model.document.defToUsages.get(def);
+    } else {
+      def = model.document.getPosition(caretLine, caretPos);
+      usages = model.document.getUsagesList(caretLine, caretPos);
+    }
+
+    definition = model.document.getCodeElement(def);
+    for (var usage : usages) this.usages.add(model.document.getCodeElement(usage));
+  }
+
   private void computeCaret(V2i position) {
     caretLine = Numbers.clamp(0,
         (position.y + vScrollPos) / lineHeight, model.document.length() - 1);
@@ -849,9 +861,26 @@ public class EditorComponent implements Disposable {
     int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
     caretCharPos = line.computeCaretLocation(documentXPosition, g.mCanvas, fonts);
     caretPos = line.computePixelLocation(caretCharPos, g.mCanvas, fonts);
+
+    computeUsages();
     if (1<0) Debug.consoleInfo(
         "onClickText: caretCharPos = " + caretCharPos + ", caretPos = " + caretPos);
     startBlinking();
+  }
+
+  public void findUsages(V2i position) {
+    int line = Numbers.clamp(0, (position.y + vScrollPos) / lineHeight, model.document.length() - 1);
+    int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
+
+    Pos def = model.document.getDefinitionPos(line, documentXPosition);
+    if (def != null) {
+      gotoElement(def);
+      return;
+    }
+
+    List<Pos> usages = model.document.getUsagesList(line, documentXPosition);
+    var items = usages == null || usages.isEmpty() ? noDefOrUsages() : usagesItems(usages);
+    if (!usagesMenu.isVisible()) usagesMenu.display(position, items, this::onFocusGain);
   }
 
   private Supplier<ToolbarItem[]> usagesItems(List<Pos> usages) {
@@ -864,6 +893,12 @@ public class EditorComponent implements Disposable {
         break;
       }
     }
+    return tbb.supplier();
+  }
+
+  private Supplier<ToolbarItem[]> noDefOrUsages() {
+    ToolbarItemBuilder tbb = new ToolbarItemBuilder();
+    tbb.addItem("No definition or usages", Colors.popupErrorText, () -> {});
     return tbb.supplier();
   }
 
@@ -942,6 +977,7 @@ public class EditorComponent implements Disposable {
     caretLine = line;
     caretCharPos = charPos;
     caretPos = model.document.line(line).computePixelLocation(caretCharPos, g.mCanvas, fonts);
+    computeUsages();
     startBlinking();
 
     adjustEditorScrollToCaret();
@@ -1104,16 +1140,12 @@ public class EditorComponent implements Disposable {
     return event.key.length() > 0 && handleInsert(event.key);
   }
 
-  void parseViewport() {
-    parseViewport(fileType);
-  }
-
   void debugPrintDocumentIntervals() {
     model.document.printIntervals();
   }
 
-  private void parseViewport(int type) {
-    if (type == FileParser.JAVA_FILE)
+  public void parseViewport() {
+    if (model.language.equals(Languages.JAVA))
       api.window.sendToWorker(this::onVpParsed, JavaParser.PARSE_BYTES_JAVA_VIEWPORT, model.document.getChars(), getViewport(), model.document.getIntervals() );
   }
 
@@ -1128,8 +1160,9 @@ public class EditorComponent implements Disposable {
   }
 
   public void parseFullFile() {
+    String parseJob = parseJobName(model.language, LineParser.PARSE);
     parsingTimeStart = System.currentTimeMillis();
-    api.window.sendToWorker(this::onFileParsed, JavaParser.PARSE, model.document.getChars());
+    api.window.sendToWorker(this::onFileParsed, parseJob, model.document.getChars());
   }
 
   public void onFileIterativeParsed(Object[] result) {
@@ -1143,12 +1176,14 @@ public class EditorComponent implements Disposable {
   public void iterativeParsing() {
     var node = model.document.tree.getReparseNode();
     if (node == null) return;
-    if (fileType == FileParser.TEXT_FILE) {
+    if (model.language.equals(Languages.TEXT)) {
       model.document.onReparse();
     }
     int[] interval = new int[]{node.getStart(), node.getStop(), node.getType()};
     char[] chars = model.document.makeString().toCharArray();
-    api.window.sendToWorker(this::onFileIterativeParsed, FileParser.asyncIterativeParsing, chars, new int[]{fileType}, interval);
+    int[] type = new int[] {Languages.getType(model.language)};
+
+    api.window.sendToWorker(this::onFileIterativeParsed, FileParser.asyncIterativeParsing, chars, type, interval);
   }
 
   private void showOpenFile() {
@@ -1217,6 +1252,7 @@ public class EditorComponent implements Disposable {
       default -> false;
     };
     if (result && event.shift) selection.endPos.set(caretLine, caretCharPos);
+    computeUsages();
     return result;
   }
 
@@ -1333,7 +1369,7 @@ public class EditorComponent implements Disposable {
 
   public void setText(char[] charArray) {
     parsingTimeStart = System.currentTimeMillis();
-    String jobName = parseJobName(model.language, null);
+    String jobName = parseJobName(model.language, Languages.TEXT);
     if (jobName != null) {
       api.window.sendToWorker(this::onFileParsed, jobName, charArray);
     }
@@ -1369,9 +1405,11 @@ public class EditorComponent implements Disposable {
   }
 
   static String parseJobName(String language, String def) {
-    return language != null ? switch (language) {
-      case "java" -> JavaParser.PARSE;
-      case "c++", "cpp" -> CppParser.PARSE;
+    return language != null ? switch (Languages.getLanguage(language)) {
+      case Languages.TEXT -> LineParser.PARSE;
+      case Languages.JAVA -> JavaParser.PARSE;
+      case Languages.CPP -> CppParser.PARSE;
+      case Languages.JS -> JavaScriptParser.PARSE;
       default -> def;
     } : def;
   }

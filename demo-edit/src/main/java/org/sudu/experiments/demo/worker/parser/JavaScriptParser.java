@@ -11,9 +11,9 @@ import java.util.function.Consumer;
 
 public class JavaScriptParser {
 
-  public static final String PARSE_BYTES_JAVASCRIPT = "JavaScriptParser.parseBytes";
+  public static final String PARSE = "JavaScriptParser.parseBytes";
 
-  public static void parseChars(char[] chars, List<Object> result) {
+  public static void parse(char[] chars, List<Object> result) {
     String source = new String(chars);
 
     int[] ints = new JavaScriptFullParser().parse(source);

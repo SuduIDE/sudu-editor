@@ -438,6 +438,12 @@ class DocumentTest {
     Assertions.assertEquals(document.getOffsetAt(atlMax), document.getFullLength());
   }
 
+  @Test void setEmptyText() {
+    Document d = new Document(ab(""));
+    char[] chars = d.getChars();
+    Assertions.assertArrayEquals(chars, new char[0]);
+  }
+
   static Document doc4() {
     return new Document(ab("AB"), ab("CD"), ab("EF"), ab("GH"));
   }

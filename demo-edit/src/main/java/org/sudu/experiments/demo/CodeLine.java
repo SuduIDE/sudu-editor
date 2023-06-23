@@ -32,6 +32,7 @@ public class CodeLine {
   }
 
   static CodeLine[] makeLines(String[] text) {
+    if (text.length == 0) return singleElementLine("");
     CodeLine[] cl = new CodeLine[text.length];
     for (int i = 0; i < text.length; i++) {
       cl[i] = new CodeLine(new CodeElement(text[i]));
@@ -44,10 +45,21 @@ public class CodeLine {
   }
 
   public int getElementPos(int charPos) {
+    if (iMeasure == null) return -1;
     int ind = findEntryByPixel(charPos);
     int sum = 0;
     for (int i = 0; i < ind; i++) sum += elements[i].s.length();
     return sum;
+  }
+
+  public CodeElement getCodeElement(int pos) {
+    int i = 0;
+    for (; i + 1 < elements.length; i++) {
+      int el = elements[i].s.length();
+      if (pos < el) break;
+      pos -= el;
+    }
+    return elements[i];
   }
 
   public void delete(int beginIndex, int endIndex) {
