@@ -994,6 +994,7 @@ public class EditorComponent implements Disposable {
   }
 
   public void gotoDefinition(Location loc) {
+    if (loc.uri != model.uri) return;
     Range range = loc.range;
     setCaretLinePos(range.startLineNumber, range.startColumn, false);
     selection.startPos.set(range.startLineNumber, range.startColumn);
@@ -1386,15 +1387,17 @@ public class EditorComponent implements Disposable {
     if (lineVPos >= vScrollPos) {
       if (lineVPos - vScrollPos < editorHeight()) return;
       scrollDownToLine(lineNumber);
-    } else scrollUpToLine(lineNumber);
+    } else {
+      scrollUpToLine(lineNumber);
+    }
   }
 
   private void scrollDownToLine(int lineNumber) {
     if (lineNumber > model.document.length()) {
       vScrollPos = maxVScrollPos();
-      return;
+    } else {
+      vScrollPos = clampScrollPos((lineNumber + 1) * lineHeight - editorHeight(), maxVScrollPos());
     }
-    vScrollPos = clampScrollPos((lineNumber + 1) * lineHeight - editorHeight(), maxVScrollPos());
   }
 
   private void scrollUpToLine(int lineNumber) {
