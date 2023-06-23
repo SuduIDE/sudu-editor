@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sudu editor ESM sample</title>
+  <title>Sudu editor code browser</title>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
   <style>
     html, body {
@@ -42,13 +42,16 @@
   </style>
 </head>
 <body>
-<div class="controls">
-  <input type="text" id="address" placeholder="Enter Sudu Link" onClick="this.select();"/>
-  <div id="statusBar"></div>
+<div id="toolbar">
+  <button id="reveal1">reveal 1</button>
+  <button id="reveal10">reveal 10</button>
+  <button id="reveal30">reveal 30</button>
+  <button id="reveal41">reveal 41</button>
+  <button id="revealCenter20">reveal center 20</button>
+  <button id="revealCenter40">reveal center 40</button>
 </div>
+
 <div id="editor"></div>
-
-<script type="module" charset="utf-8" src="example.js"></script>
-
+<script type="module" charset="utf-8" src="testReveal.js"></script>
 </body>
 </html>

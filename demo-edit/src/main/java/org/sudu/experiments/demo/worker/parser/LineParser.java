@@ -17,14 +17,15 @@ public class LineParser {
 
   private static final String LINE_DELIM = "\r\n";
 
-  public static final String PARSE_LINES = "LineParser.parseBytes";
+  public static final String PARSE = "LineParser.parse";
 
-  public static void parseChars(char[] chars, List<Object> result) {
+  public static void parse(char[] chars, List<Object> result) {
     String source = new String(chars);
     LineParser parser = new LineParser();
     int[] ints = parser.parseIntArray(source, Integer.MAX_VALUE);
     result.add(ints);
     result.add(chars);
+    result.add(new int[]{FileParser.TEXT_FILE});
   }
 
   public static void parseFirstLines(char[] chars, int[] lines, Consumer<Object[]> result) {

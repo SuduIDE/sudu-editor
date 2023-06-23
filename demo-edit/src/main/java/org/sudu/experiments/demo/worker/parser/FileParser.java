@@ -102,7 +102,7 @@ public class FileParser {
 
   private static void parseChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    LineParser.parseChars(chars, list);
+    LineParser.parse(chars, list);
     list.add(new int[]{TEXT_FILE});
     ArrayOp.sendArrayList(list, result);
   }
@@ -140,7 +140,7 @@ public class FileParser {
 
   private static void parseFullJavaScriptChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    JavaScriptParser.parseChars(chars, list);
+    JavaScriptParser.parse(chars, list);
     list.add(new int[]{JS_FILE});
     ArrayOp.sendArrayList(list, result);
   }

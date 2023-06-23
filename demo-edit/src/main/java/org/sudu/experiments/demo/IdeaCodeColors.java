@@ -102,5 +102,7 @@ public interface IdeaCodeColors {
     Color defaultTextLight = new Color(0x00, 0x00, 0x00);
     Color editNumbersVLineLight = new Color(0xd4, 0xd4, 0xd4);
     Color editSelectedBgLight = new Color(0xa6, 0xd6, 0xff);
+    Color definitionBgColor =  new Color("#40332B");
+    Color usageBgColor =  new Color("#344134");
   }
 }

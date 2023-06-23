@@ -12,16 +12,17 @@ public class Model {
     this.uri = uri;
     this.platformObject = platformObject;
 
-    CodeLine[] cl = new CodeLine[text.length];
-    for (int i = 0; i < text.length; i++) {
-      cl[i] = new CodeLine(new CodeElement(text[i]));
-    }
+    CodeLine[] cl = CodeLine.makeLines(text);
     this.document = new Document(cl);
   }
 
   public Model(Document document) {
     this.document = document;
-    this.language = "java";
+    this.language = Languages.TEXT;
     this.uri = null;
+  }
+
+  public String uriScheme() {
+    return uri != null ? uri.scheme : null;
   }
 }

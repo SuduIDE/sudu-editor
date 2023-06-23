@@ -2,22 +2,20 @@ package org.sudu.experiments.demo;
 
 import java.util.function.Consumer;
 
-public class ReferenceProvider extends LanguageSelectors {
-
+public class DocumentHighlightProvider extends LanguageSelectors {
   final Provider f;
 
-  public ReferenceProvider(LanguageSelector[] selectors, Provider f) {
+  public DocumentHighlightProvider(LanguageSelector[] selectors, Provider f) {
     super(selectors);
     this.f = f;
   }
 
   public interface Provider {
-    void provideReferences(
+    void provide(
         Model model,
         int line,
         int column,
-        boolean includeDeclaration,
-        Consumer<Location[]> onResult,
+        Consumer<DocumentHighlight[]> onResult,
         Consumer<String> onError
     );
   }

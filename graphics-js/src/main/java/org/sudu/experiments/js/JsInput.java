@@ -16,6 +16,7 @@ import org.teavm.jso.browser.Window;
 import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.events.*;
+import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.xml.Element;
 
@@ -48,15 +49,13 @@ public class JsInput {
         addListener(element, "drop", this::onDrop),
         addListener(window, "paste", this::onPaste, true),
         addListener(window, "copy", this::onCopy),
-        addListener(window, "cut", this::onCut),
-        addListener(window, "blur", e -> {
-          } // JsHelper.consoleInfo("Window.blur event ", e); }
-        ),
-        addListener(window, "focus", e -> {
-          } // JsHelper.consoleInfo("Window.focus event ", e)
-        )
+        addListener(window, "cut", this::onCut)
     );
     initPointerCapture(element);
+  }
+
+  public static HTMLElement focus() {
+    return HTMLDocument.current().getActiveElement();
   }
 
   public void setClientRect(int w, int h) {
@@ -193,6 +192,7 @@ public class JsInput {
   }
 
   private void onPaste(ClipboardEvent event) {
+    if (focus() != element) return;
     JSArrayReader<DataTransfer.Item> items = event.getClipboardData().getItems();
     for (int i = 0, n = items.getLength(); i < n; i++) {
       DataTransfer.Item item = items.get(i);
@@ -218,6 +218,7 @@ public class JsInput {
   }
 
   private void onCopy(ClipboardEvent e) {
+    if (focus() != element) return;
     if (listeners.sendCopy(wrapCopyCutEvent(e), false)) {
       stopEvent(e);
 //      DataTransfer.Item item = e.getClipboardData().getItems().get(0);
@@ -226,6 +227,7 @@ public class JsInput {
   }
 
   private void onCut(ClipboardEvent e) {
+    if (focus() != element) return;
     if (listeners.sendCopy(wrapCopyCutEvent(e), true)) {
       stopEvent(e);
     }

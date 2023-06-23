@@ -7,9 +7,7 @@ import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 class CodeLineRenderer implements Disposable {
   static boolean dumpMeasure;
@@ -123,7 +121,9 @@ class CodeLineRenderer implements Disposable {
       int lineHeight,
       int horScrollPos,
       EditorColorScheme colors,
-      V2i selectedSegment
+      V2i selectedSegment,
+      CodeElement def,
+      List<CodeElement> usages
   ) {
     if (lineTextures.isEmpty()) return;
     if (numOfTextures == 0) return;
@@ -157,10 +157,14 @@ class CodeLineRenderer implements Disposable {
       boolean isFullUnselected = isNotSelected || isFullUnselected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
       boolean isFullSelected = !isNotSelected && isFullSelected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
 
+      Color elemBgColor = null;
+      if (e == def) elemBgColor = colors.definitionBgColor;
+      if (usages.contains(e)) elemBgColor = colors.usageBgColor;
+
       if (isFullSelected || isFullUnselected) {
         region.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
         size.set(drawWidth, lineHeight);
-        drawWord(g, xPos + dx, yPosition, size, region, e, texture, contrast, colors, isFullSelected);
+        drawWord(g, xPos + dx, yPosition, size, region, e, texture, contrast, colors, isFullSelected, elemBgColor);
       } else {
         selectedSegment.y = Math.min(selectedSegment.y, line.lineMeasure());
         int pre;
@@ -182,7 +186,7 @@ class CodeLineRenderer implements Disposable {
             region, size, contrast,
             lineHeight, colors,
             texture, e,
-            drawWidth, pre, post, regionX);
+            drawWidth, pre, post, regionX, elemBgColor);
       }
 
       texturePos += drawWidth;
@@ -200,31 +204,32 @@ class CodeLineRenderer implements Disposable {
       V4f region, V2i size, float contrast,
       int lineHeight, EditorColorScheme colors,
       GL.Texture texture, CodeElement e,
-      int drawWidth, int pre, int post, int regionX
+      int drawWidth, int pre, int post, int regionX,
+      Color elemBgColor
   ) {
     region.set(regionX, 0, drawWidth - pre, lineHeight);
     size.set(drawWidth - pre, lineHeight);
-    drawWord(g, xPos, yPosition, size, region, e, texture, contrast, colors, false);
+    drawWord(g, xPos, yPosition, size, region, e, texture, contrast, colors, false, elemBgColor);
 
     region.set(regionX + drawWidth - post, 0, post, lineHeight);
     size.set(post, lineHeight);
-    drawWord(g, xPos + drawWidth - post, yPosition, size, region, e, texture, contrast, colors, false);
+    drawWord(g, xPos + drawWidth - post, yPosition, size, region, e, texture, contrast, colors, false, elemBgColor);
 
     region.set(regionX + drawWidth - pre, 0, pre - post, lineHeight);
     size.set(pre - post, lineHeight);
-    drawWord(g, xPos + drawWidth - pre, yPosition, size, region, e, texture, contrast, colors, true);
+    drawWord(g, xPos + drawWidth - pre, yPosition, size, region, e, texture, contrast, colors, true, elemBgColor);
   }
 
   private void drawWord(
       WglGraphics g, int xPos, int yPos, V2i size, V4f region,
       CodeElement e, GL.Texture texture,
-      float contrast, EditorColorScheme colors, boolean isSelected
+      float contrast, EditorColorScheme colors, boolean isSelected, Color elemBgColor
   ) {
     if (size.x == 0 || size.y == 0) return;
     if (region.w == 0 || region.z == 0) return;
 
     CodeElementColor c = colors.codeColors[e.color];
-    Color bgColor = isSelected ? colors.selectionBgColor : colors.bgColor(c.colorB);
+    Color bgColor = isSelected ? colors.selectionBgColor : Objects.requireNonNullElse(elemBgColor, colors.bgColor(c.colorB));
     g.drawText(xPos, yPos, size,
         region, texture, c.colorF, bgColor,
         bw ? 0 : contrast);

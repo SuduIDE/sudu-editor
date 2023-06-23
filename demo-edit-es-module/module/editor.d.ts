@@ -89,6 +89,14 @@ interface IDefinitionProvider {
     ): ProviderResult<ILocation[]>
 }
 
+interface IDeclarationProvider {
+    provideDeclaration(
+        model: ITextModel,
+        position: IPosition,
+        token: ICancellationToken
+    ): ProviderResult<ILocation[]>
+}
+
 interface IReferenceProvider {
     provideReferences(
         model: ITextModel,
@@ -154,7 +162,7 @@ interface ICodeEditor {
     getModel(): ITextModel,
 
     registerDefinitionProvider(languageSelector: LanguageSelector, provider: IDefinitionProvider): IDisposable,
-
+    registerDeclarationProvider(languageSelector: LanguageSelector, provider: IDeclarationProvider): IDisposable;
     registerReferenceProvider(languageSelector: LanguageSelector, provider: IReferenceProvider): IDisposable,
 
     registerDocumentHighlightProvider(languageSelector: LanguageSelector, provider: IDocumentHighlightProvider): IDisposable,

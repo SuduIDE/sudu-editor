@@ -1,5 +1,7 @@
 package org.sudu.experiments.demo;
 
+import java.util.Objects;
+
 public class Uri {
 
   public final String scheme;
@@ -12,5 +14,18 @@ public class Uri {
     this.path = path;
   }
 
-  public Uri() { this(null, null ,null); }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Uri uri = (Uri) o;
+    return Objects.equals(scheme, uri.scheme)
+        && Objects.equals(authority, uri.authority)
+        && Objects.equals(path, uri.path);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(scheme, authority, path);
+  }
 }

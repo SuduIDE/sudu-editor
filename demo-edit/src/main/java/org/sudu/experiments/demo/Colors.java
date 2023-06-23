@@ -12,6 +12,7 @@ public interface Colors {
   V4f toolbarBg = new Color("#3C3F41");
   V4f toolbarBorder = new Color("#616161");
   V4f toolbarSelectedBg = new Color("#4B6EAF");
+  V4f toolbarErrorBg = new Color("#781732");
 
   V4f findUsagesBg = new Color("#3C3F41");
   V4f findUsagesBorder = new Color("#616161");
@@ -31,6 +32,8 @@ public interface Colors {
       new Color("#BBBBBB"), toolbarBg, toolbarSelectedBg);
   ToolbarItemColors popupText2 = new ToolbarItemColors(
       new Color("#CCCCCC"), toolbarBg, toolbarSelectedBg);
+  ToolbarItemColors popupErrorText = new ToolbarItemColors(
+      new Color("#BBBBBB"), toolbarErrorBg, toolbarErrorBg);
 
   static ToolbarItemColors rngToolButton() {
     return new ToolbarItemColors(

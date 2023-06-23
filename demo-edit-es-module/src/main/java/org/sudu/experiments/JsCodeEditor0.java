@@ -11,8 +11,11 @@ import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class JsCodeEditor0 implements JsCodeEditor {
+
+  public static final String errorNotArray = "provided result is not an array";
 
   private final EditArguments args;
   private final WebWindow window;
@@ -44,8 +47,9 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   @Override
   public void setText(JSString t) {
-    char[] buffer = TextEncoder.toCharArray(t);
-    editor.setText(buffer);
+//    char[] buffer = TextEncoder.toCharArray(t);
+    String[] split = SplitJsText.split(t, '\n');
+    editor.setText(split);
   }
 
   @Override
@@ -101,61 +105,101 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   @Override
   public JsDisposable registerDefinitionProvider(JSObject languageSelector, JsDefinitionProvider provider) {
-    editor.registerDefinitionProvider(
-        new DefinitionProvider(
-            LanguageSelectorUtils.languageSelectors(languageSelector),
-            convert(provider)));
-    return JsDisposable.empty();
+    var defProvider = new DefDeclProvider(
+        LanguageSelectorUtils.toSelectors(languageSelector),
+        convert(provider));
+
+    return JsDisposable.of(editor.registrations()
+            .definitionProviders.disposableAdd(defProvider));
+  }
+
+  @Override
+  public JsDisposable registerDeclarationProvider(JSObject languageSelector, JsDeclarationProvider provider) {
+    var defProvider = new DefDeclProvider(
+        LanguageSelectorUtils.toSelectors(languageSelector),
+        convert(provider));
+
+    return JsDisposable.of(editor.registrations()
+            .declarationProviders.disposableAdd(defProvider));
   }
 
   @Override
   public JsDisposable registerReferenceProvider(JSObject languageSelector, JsReferenceProvider provider) {
-    editor.registerReferenceProvider(
-        new ReferenceProvider(
-            LanguageSelectorUtils.languageSelectors(languageSelector),
-            convert(provider))
-    );
-    return JsDisposable.empty();
-  }
-
-  static DefinitionProvider.Provider convert(JsDefinitionProvider provider) {
-    return (editor, line, column) ->
-        PromiseUtils.<JSArray<JsLocation>>promiseOrT(
-            provider.provideDefinition(
-                JsTextModel.fromJava(editor.model()),
-                JsPosition.create(column, line),
-                JsCancellationToken.create()
-            ), jsArr -> gotoDefinition(editor, jsArr));
-  }
-
-  static ReferenceProvider.Provider convert(JsReferenceProvider provider) {
-    return (editor, line, column, includeDecl) ->
-        PromiseUtils.<JSArray<JsLocation>>promiseOrT(
-            provider.provideReferences(
-                JsTextModel.fromJava(editor.model()),
-                JsPosition.create(column, line),
-                JsReferenceProvider.Context.create(includeDecl),
-                JsCancellationToken.create()
-            ), jsArr -> gotoReferences(editor, jsArr));
-  }
-
-  static void gotoDefinition(EditorComponent editor, JSArray<JsLocation> jsArr) {
-    if (!JSArray.isArray(jsArr)) {
-      throw new IllegalArgumentException("provideDefinition result is not an array");
-    }
-    editor.gotoDefinition(ProviderUtils.toLocations(jsArr));
-  }
-
-  static void gotoReferences(EditorComponent editor, JSArray<JsLocation> jsArr) {
-    if (!JSArray.isArray(jsArr)) {
-      throw new IllegalArgumentException("provideDefinition result is not an array");
-    }
-    editor.gotoReferences(ProviderUtils.toLocations(jsArr));
+    var referenceProvider = new ReferenceProvider(
+        LanguageSelectorUtils.toSelectors(languageSelector), convert(provider));
+    return JsDisposable.of(editor.registrations()
+            .referenceProviders.disposableAdd(referenceProvider));
   }
 
   @Override
-  public JsDisposable registerDocumentHighlightProvider(JSObject languageSelector, JsDocumentHighlight provider) {
-    return JsDisposable.empty();
+  public JsDisposable registerDocumentHighlightProvider(JSObject languageSelector, JsDocumentHighlightProvider provider) {
+    var hlProvider = new DocumentHighlightProvider(
+        LanguageSelectorUtils.toSelectors(languageSelector),
+        convert(provider));
+
+    return JsDisposable.of(editor.registrations()
+        .documentHighlightProviders.disposableAdd(hlProvider));
+  }
+
+  static DefDeclProvider.Provider convert(JsDefinitionProvider provider) {
+    return (model, line, column, onResult, onError) ->
+        PromiseUtils.<JSArray<JsLocation>>promiseOrT(
+            provider.provideDefinition(
+                JsTextModel.fromJava(model),
+                JsPosition.create(column, line),
+                JsCancellationToken.create()),
+            jsArr -> acceptLocations(jsArr, onResult, onError),
+            onError);
+  }
+
+  static DefDeclProvider.Provider convert(JsDeclarationProvider provider) {
+    return (model, line, column, onResult, onError) ->
+        PromiseUtils.<JSArray<JsLocation>>promiseOrT(
+            provider.provideDeclaration(
+                JsTextModel.fromJava(model),
+                JsPosition.create(column, line),
+                JsCancellationToken.create()),
+            jsArr -> acceptLocations(jsArr, onResult, onError),
+            onError);
+  }
+
+  static ReferenceProvider.Provider convert(JsReferenceProvider provider) {
+    return (model, line, column, includeDecl, onResult, onError) ->
+        PromiseUtils.<JSArray<JsLocation>>promiseOrT(
+            provider.provideReferences(
+                JsTextModel.fromJava(model),
+                JsPosition.create(column, line),
+                JsReferenceProvider.Context.create(includeDecl),
+                JsCancellationToken.create()),
+            jsArr -> acceptLocations(jsArr, onResult, onError),
+            onError);
+  }
+
+  static DocumentHighlightProvider.Provider convert(JsDocumentHighlightProvider provider) {
+    return (model, line, column, onResult, onError) ->
+        PromiseUtils.<JSArray<JsDocumentHighlight>>promiseOrT(
+            provider.provideDocumentHighlights(
+                JsTextModel.fromJava(model),
+                JsPosition.create(column, line),
+                JsCancellationToken.create()),
+            jsArr -> acceptHighlight(jsArr, onResult, onError),
+            onError);
+  }
+
+  static void acceptLocations(JSArray<JsLocation> jsArr, Consumer<Location[]> c, Consumer<String> onError) {
+    if (JSArray.isArray(jsArr)) {
+      c.accept(ProviderUtils.toLocations(jsArr));
+    } else {
+      onError.accept(errorNotArray);
+    }
+  }
+
+  static void acceptHighlight(JSArray<JsDocumentHighlight> jsArr, Consumer<DocumentHighlight[]> c, Consumer<String> onError) {
+    if (JSArray.isArray(jsArr)) {
+      c.accept(ProviderUtils.toHighlights(jsArr));
+    } else {
+      onError.accept(errorNotArray);
+    }
   }
 
   @Override
@@ -164,9 +208,20 @@ public class JsCodeEditor0 implements JsCodeEditor {
   }
 
   @Override
+  public void revealLineInCenter(int line) {
+    editor.revealLineInCenter(line);
+  }
+
+  @Override
+  public void revealLine(int line) {
+    editor.revealLine(line);
+  }
+
+  @Override
   public JsDisposable onDidChangeModel(JsFunctions.Consumer<JsIModelChangedEvent> f) {
-    editor.addModelChangeListener(convert(f));
-    return JsDisposable.empty();
+    var listener = convert(f);
+    return JsDisposable.of(editor.registrations()
+            .modelChangeListeners.disposableAdd(listener));
   }
 
   static BiConsumer<Model, Model> convert(JsFunctions.Consumer<JsIModelChangedEvent> jsCallback) {

@@ -31,6 +31,7 @@ public interface SplitJsText {
       }
       res[line++] = new String(buffer, 0, column);
     }
+    if (line == 0) res[line++] = "";
     res = Arrays.copyOf(res, line);
     return res;
   }
