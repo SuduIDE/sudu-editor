@@ -25,7 +25,7 @@ function test1(editor) {
 }
 
 function main() {
-    newEditor({containerId: "editor", workerUrl: workerUrl})
+    newEditor({containerId: "editor", workerUrl: "./../" + workerUrl})
         .then(run, error => console.error(error));
 }
 

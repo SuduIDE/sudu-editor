@@ -63,4 +63,4 @@ package sudu.editor;
   }
 `
 
-export const workerUrl = "./../../src/worker.js"
+export const workerUrl = "../src/worker.js"
