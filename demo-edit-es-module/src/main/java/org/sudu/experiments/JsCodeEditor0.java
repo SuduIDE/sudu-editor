@@ -32,7 +32,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
         worker);
     editor = ((DemoEdit0) window.scene()).editor();
     if (args.hasTheme()) setTheme(args.getTheme());
-    if (args.hasIsReadonly()) setReadonly(args.getIsReadonly());
+    if (args.hasReadonly()) setReadonly(args.getReadonly());
   }
 
   @Override
@@ -221,7 +221,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   @Override
   public void setReadonly(JSBoolean flag) {
-    editor.isReadonly = flag.booleanValue();
+    editor.readonly = flag.booleanValue();
   }
 
   @Override

@@ -10,7 +10,7 @@ interface EditArgs {
     // themes: "dark", "light"
     theme?: string
 
-    isReadonly?: boolean
+    readonly?: boolean
 }
 
 interface Uri {

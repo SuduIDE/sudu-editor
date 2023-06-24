@@ -7,7 +7,7 @@ function test1(editor) {
 }
 
 function main() {
-    newEditor({containerId: "editor", workerUrl: "./../" + workerUrl, isReadonly: true})
+    newEditor({containerId: "editor", workerUrl: "./../" + workerUrl, readonly: true})
         .then(run, error => console.error(error));
 }
 

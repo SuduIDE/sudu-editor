@@ -41,11 +41,11 @@ public interface JsCodeEditor extends JsDisposable {
       return JSObjects.hasProperty(this, themeProperty);
     }
 
-    String isReadonlyProperty = "isReadonly";
-    @JSProperty JSBoolean getIsReadonly();
+    String readonlyProperty = "readonly";
+    @JSProperty JSBoolean getReadonly();
 
-    default boolean hasIsReadonly() {
-      return JSObjects.hasProperty(this, isReadonlyProperty);
+    default boolean hasReadonly() {
+      return JSObjects.hasProperty(this, readonlyProperty);
     }
 
     default JSString workerUrl() {
