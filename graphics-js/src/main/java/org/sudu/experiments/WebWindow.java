@@ -243,4 +243,9 @@ public class WebWindow implements org.sudu.experiments.Window {
   static JsFunctions.Consumer<JSError> onError(Consumer<Throwable> onError) {
     return jsError -> onError.accept(new RuntimeException(jsError.getMessage()));
   }
+
+  @Override
+  public void runLater(Runnable command) {
+    Window.setTimeout(command::run, 0);
+  }
 }

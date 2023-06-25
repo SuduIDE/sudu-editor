@@ -415,4 +415,9 @@ public class Win32Window implements WindowPeer, Window {
             () -> onError.accept(new RuntimeException("setClipboardText failed"));
     eventQueue.execute(r);
   }
+
+  @Override
+  public void runLater(Runnable r) {
+    eventQueue.execute(r);
+  }
 }
