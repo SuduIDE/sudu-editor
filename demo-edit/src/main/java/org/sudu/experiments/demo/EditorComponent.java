@@ -113,7 +113,7 @@ public class EditorComponent implements Disposable {
   FindUsagesWindow usagesMenu;
 
   private CodeElement definition = null;
-  private List<CodeElement> usages = new ArrayList<>();
+  private final List<CodeElement> usages = new ArrayList<>();
 
   Consumer<String> onError = System.err::println;
 
@@ -909,8 +909,8 @@ public class EditorComponent implements Disposable {
         "No definition or usages",
         "",
         "",
-        Colors.findUsagesColorsError, () -> {
-        }
+        Colors.findUsagesColorsError,
+        () -> {}
     );
     return tbb.supplier();
   }
@@ -1137,7 +1137,9 @@ public class EditorComponent implements Disposable {
       return true;
     }
 
-    if (usagesMenu.isVisible()) return handleUsagesMenuKey(event);
+    if (usagesMenu.isVisible()) {
+      return handleUsagesMenuKey(event);
+    }
     if (handleDoubleKey(event)) return true;
     if (handleDebug(event)) return true;
     if (handleNavigation(event)) return true;

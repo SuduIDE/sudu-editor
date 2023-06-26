@@ -8,8 +8,6 @@ import org.sudu.experiments.demo.EditorConst;
 import org.sudu.experiments.demo.Model;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.fonts.FontDesk;
-import org.sudu.experiments.input.KeyCode;
-import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.parser.common.Pos;
@@ -118,10 +116,6 @@ public class FindUsagesWindow {
     return r;
   }
 
-  public boolean onKey(KeyEvent event) {
-    return false;
-  }
-
   private void removeUsageWindowAfter(FindUsagesDialog wall) {
     for (int i = usagesList.size() - 1; i >= 0; i--) {
       FindUsagesDialog tb = usagesList.get(i);
@@ -157,7 +151,7 @@ public class FindUsagesWindow {
       String fileName = "Main.java";
       String codeContent = model.document.line(pos.line).makeString().trim();
       String codeContentFormatted = codeContent.length() > 43 ? codeContent.substring(0, 40) + "..." : codeContent;
-      String lineNumber = String.valueOf(pos.line);
+      String lineNumber = String.valueOf(pos.line + 1);
       // noinspection DataFlowIssue
       maxFileNameLen = Math.max(fileName.length(), maxFileNameLen);
       maxLineLen = Math.max(lineNumber.length(), maxLineLen);
@@ -175,7 +169,7 @@ public class FindUsagesWindow {
           maxCodeContentLen
       );
       String lineNumber = formatFindUsagesItem(
-          String.valueOf(pos.line),
+          String.valueOf(pos.line + 1),
           maxLineLen
       );
 
@@ -184,7 +178,8 @@ public class FindUsagesWindow {
             "... and " + (usages.size() - (cnt - 1)) + " more usages",
             "",
             "",
-            Colors.findUsagesColorsContinued, () -> {
+            Colors.findUsagesColorsContinued,
+            () -> {
             }
         );
         break;
@@ -202,7 +197,7 @@ public class FindUsagesWindow {
 
   private String formatFindUsagesItem(String item, int maxLength) {
     StringBuilder s = new StringBuilder();
-    for (int i = 0; i < Math.max(0, maxLength - item.length()); ++i){
+    for (int i = 0; i < Math.max(0, maxLength - item.length()); ++i) {
       s.append(" ");
     }
     return item + s;

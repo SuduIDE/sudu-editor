@@ -1,6 +1,10 @@
 package org.sudu.experiments.demo.ui;
 
-import org.sudu.experiments.*;
+import org.sudu.experiments.Canvas;
+import org.sudu.experiments.Debug;
+import org.sudu.experiments.Disposable;
+import org.sudu.experiments.GL;
+import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.DemoRect;
 import org.sudu.experiments.demo.EditorConst;
 import org.sudu.experiments.demo.SetCursor;
@@ -24,8 +28,6 @@ public class FindUsagesDialog {
   private int border, textXPad;
   private int hoverItemId = -1;
   private Runnable onClickOutside;
-  private HoverCallback onEnter;
-  private HoverCallback onLeave;
 
   private static void tRectWarning() {
     Debug.consoleInfo("FindUsages.setPos: tRect.size == 0");
@@ -49,11 +51,9 @@ public class FindUsagesDialog {
   }
 
   public void onEnter(HoverCallback callback) {
-    onEnter = callback;
   }
 
   public void onLeave(HoverCallback callback) {
-    onLeave = callback;
   }
 
   public void setBgColor(V4f bgColor) {
@@ -193,10 +193,6 @@ public class FindUsagesDialog {
       TextRect tContent = item.tContent;
       v2i.x = rect.size.x - border * 2 - (tFiles.size.x);
       v2i.y = (tFiles.size.y + tLines.size.y + tContent.size.y);
-      if (v2i.x > 0) {
-//                    g.drawRect(tFiles.pos.x + tFiles.size.x, tFiles.pos.y,
-//                            v2i, tFiles.bgColor);
-      }
     }
 
   }
@@ -232,6 +228,7 @@ public class FindUsagesDialog {
     g.drawRect(rect.pos.x + rect.size.x + border, rect.pos.y + border * 2, v2i, shadow);
 
   }
+
   public boolean onKeyArrow(int keyCode) {
     if (hoverItemId >= 0) items[hoverItemId].setHover(false);
 
@@ -250,7 +247,6 @@ public class FindUsagesDialog {
       case KeyCode.ARROW_RIGHT -> hoverItemId = Math.min(items.length, EditorConst.MAX_SHOW_USAGES_NUMBER) - 1;
       default -> hoverItemId = 0;
     }
-    ;
     items[hoverItemId].setHover(true);
     return true;
   }
@@ -282,9 +278,7 @@ public class FindUsagesDialog {
       int index = find(pos);
       if (index >= 0) {
         FindUsagesItem item = items[index];
-        if (!item.isSubmenu()) {
-          item.action.run();
-        }
+        item.action.run();
       }
     }
     return true;
@@ -309,9 +303,6 @@ public class FindUsagesDialog {
     return -1;
   }
 
-  public int borderSize() {
-    return border;
-  }
 
   public interface HoverCallback {
     void event(V2i mouse, int index, FindUsagesItem item);
