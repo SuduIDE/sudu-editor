@@ -3,7 +3,14 @@
 
 package org.sudu.experiments.demo;
 
-import org.sudu.experiments.*;
+import org.sudu.experiments.Canvas;
+import org.sudu.experiments.Cursor;
+import org.sudu.experiments.Debug;
+import org.sudu.experiments.Disposable;
+import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.Host;
+import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.ui.FindUsagesItem;
 import org.sudu.experiments.demo.ui.FindUsagesItemBuilder;
 import org.sudu.experiments.demo.ui.FindUsagesWindow;
@@ -17,7 +24,11 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.*;
+import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.Numbers;
+import org.sudu.experiments.math.Rect;
+import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.worker.ArrayView;
 
@@ -1122,6 +1133,7 @@ public class EditorComponent implements Disposable {
       return true;
     }
 
+    if (usagesMenu.isVisible()) return handleUsagesMenuKey(event);
     if (handleDoubleKey(event)) return true;
     if (handleDebug(event)) return true;
     if (handleNavigation(event)) return true;
@@ -1226,6 +1238,15 @@ public class EditorComponent implements Disposable {
     return Rect.isInside(position,
         new V2i(vLineX, 0),
         new V2i(editorWidth(), editorHeight()));
+  }
+
+  private boolean handleUsagesMenuKey(KeyEvent event) {
+    return switch (event.keyCode) {
+      case KeyCode.ESC -> usagesMenu.hide();
+      case KeyCode.ARROW_DOWN, KeyCode.ARROW_UP, KeyCode.ARROW_LEFT, KeyCode.ARROW_RIGHT -> usagesMenu.usagesList.get(0).onKeyArrow(event.keyCode);
+      case KeyCode.ENTER -> usagesMenu.usagesList.get(0).goToSelectedItem();
+      default -> false;
+    };
   }
 
   private boolean handleEditingKeys(KeyEvent event) {

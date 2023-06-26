@@ -2,6 +2,7 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.DemoRect;
+import org.sudu.experiments.demo.EditorConst;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.TextRect;
 import org.sudu.experiments.fonts.FontDesk;
@@ -17,20 +18,25 @@ public class FindUsagesDialog {
   private final V2i textureSize = new V2i();
   private final V2i v2i = new V2i();
   private final V4f shadow = new V4f().setW(0.125f);
-  // TODO(DELETE) 160 250
-  int lineSep = 100;
-  int codeContentSep = 180;
   private FontDesk font;
   private FindUsagesItem[] items = FindUsagesItemBuilder.items0;
   private GL.Texture texture;
   private int border, textXPad;
-  private int hoverItem = -1;
+  private int hoverItemId = -1;
   private Runnable onClickOutside;
   private HoverCallback onEnter;
   private HoverCallback onLeave;
 
   private static void tRectWarning() {
     Debug.consoleInfo("FindUsages.setPos: tRect.size == 0");
+  }
+
+  public boolean goToSelectedItem() {
+    if (hoverItemId == -1) {
+      return false;
+    }
+    items[hoverItemId].action.run();
+    return true;
   }
 
   public void setItems(FindUsagesItem[] actions) {
@@ -66,7 +72,7 @@ public class FindUsagesDialog {
   public void dispose() {
     disposeTexture();
     items = FindUsagesItemBuilder.items0;
-    hoverItem = -1;
+    hoverItemId = -1;
     rect.makeEmpty();
   }
 
@@ -76,17 +82,15 @@ public class FindUsagesDialog {
   }
 
   public void measure(Canvas mCanvas, double devicePR) {
+    // TODO(Major): Remove measureText with space
     if (font == null) throw new RuntimeException("FindUsages font has not been set");
     mCanvas.setFont(font);
     int textHeight = font.lineHeight(), maxW = 0;
     border = Numbers.iRnd(2 * devicePR);
     textXPad = Numbers.iRnd(font.WWidth);
     int tw = 0;
-    //TODO(DELETE)
-    int measureTextExtra = 200;
 
     for (FindUsagesItem item : items) {
-      int m = (int) (measureTextExtra + mCanvas.measureText(item.fileName + item.lineNumber + item.codeContent) + 7.f / 8);
       int mFile = (int) (mCanvas.measureText(item.fileName) + 7.f / 8);
       int mLines = (int) (mCanvas.measureText(item.lineNumber) + 7.f / 8);
       int mCodeContent = (int) (mCanvas.measureText(item.codeContent) + 7.f / 8);
@@ -94,7 +98,6 @@ public class FindUsagesDialog {
       int wFile = textXPad + mFile;
       int wLines = mLines + textXPad;
       int wCodeContent = mCodeContent + textXPad;
-      // TODO(Math.max(maxW, w)) think
       maxW = Math.max(maxW, wFile + wLines + wCodeContent);
 
       item.tFiles.pos.x = tw;
@@ -229,27 +232,42 @@ public class FindUsagesDialog {
     g.drawRect(rect.pos.x + rect.size.x + border, rect.pos.y + border * 2, v2i, shadow);
 
   }
+  public boolean onKeyArrow(int keyCode) {
+    if (hoverItemId >= 0) items[hoverItemId].setHover(false);
 
-  public void onKeyArrow(int keyCode) {
-    if (hoverItem >= 0) items[hoverItem].setHover(false);
-    int balance = keyCode == KeyCode.ARROW_UP ? -1 : 1;
-    hoverItem = (hoverItem + balance + items.length) % items.length;
-    items[hoverItem].setHover(true);
+    switch (keyCode) {
+      case KeyCode.ARROW_UP -> {
+        hoverItemId = (items.length + hoverItemId - 1) % items.length;
+        if (hoverItemId == EditorConst.MAX_SHOW_USAGES_NUMBER)
+          hoverItemId = EditorConst.MAX_SHOW_USAGES_NUMBER - 1;
+      }
+      case KeyCode.ARROW_DOWN -> {
+        if (hoverItemId == EditorConst.MAX_SHOW_USAGES_NUMBER - 1)
+          hoverItemId = 0;
+        else
+          hoverItemId = (hoverItemId + 1) % items.length;
+      }
+      case KeyCode.ARROW_RIGHT -> hoverItemId = Math.min(items.length, EditorConst.MAX_SHOW_USAGES_NUMBER) - 1;
+      default -> hoverItemId = 0;
+    }
+    ;
+    items[hoverItemId].setHover(true);
+    return true;
   }
 
   public boolean onMouseMove(V2i pos, SetCursor setCursor) {
     boolean inside = rect.isInside(pos);
     int mouseItem = inside ? find(pos) : -1;
 
-    if (hoverItem != mouseItem) {
+    if (hoverItemId != mouseItem) {
       if (mouseItem >= 0) {
         FindUsagesItem newItem = items[mouseItem];
         newItem.setHover(true);
-        if (hoverItem >= 0) {
-          FindUsagesItem oldItem = items[hoverItem];
+        if (hoverItemId >= 0) {
+          FindUsagesItem oldItem = items[hoverItemId];
           oldItem.setHover(false);
         }
-        hoverItem = mouseItem;
+        hoverItemId = mouseItem;
       }
     }
     return inside && setCursor.setDefault();

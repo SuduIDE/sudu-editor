@@ -2,8 +2,13 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.Const;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.*;
+import org.sudu.experiments.demo.Colors;
+import org.sudu.experiments.demo.EditorComponent;
+import org.sudu.experiments.demo.EditorConst;
+import org.sudu.experiments.demo.Model;
+import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
@@ -15,7 +20,7 @@ import java.util.function.Supplier;
 
 public class FindUsagesWindow {
   private final V2i windowSize = new V2i();
-  private final ArrayList<FindUsagesDialog> usagesList = new ArrayList<>();
+  public final ArrayList<FindUsagesDialog> usagesList = new ArrayList<>();
   private final WglGraphics graphics;
   private final V4f frameColor = Colors.findUsagesBorder;
   private double dpr;
@@ -61,12 +66,14 @@ public class FindUsagesWindow {
     usagesMenu.onClickOutside(this::hide);
   }
 
-  public void hide() {
+  public boolean hide() {
     if (isVisible()) {
       removeUsageWindowAfter(null);
       onClose.run();
       onClose = Const.emptyRunnable;
+      return true;
     }
+    return false;
   }
 
   private void setFindUsagesStyle(FindUsagesDialog fu) {
@@ -194,6 +201,10 @@ public class FindUsagesWindow {
   }
 
   private String formatFindUsagesItem(String item, int maxLength) {
-    return item + " ".repeat(Math.max(maxLength - item.length(), 0));
+    StringBuilder s = new StringBuilder();
+    for (int i = 0; i < Math.max(0, maxLength - item.length()); ++i){
+      s.append(" ");
+    }
+    return item + s;
   }
 }
