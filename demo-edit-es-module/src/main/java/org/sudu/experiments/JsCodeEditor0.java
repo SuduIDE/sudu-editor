@@ -3,12 +3,14 @@ package org.sudu.experiments;
 import org.sudu.experiments.demo.*;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
+import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.utils.LanguageSelectorUtils;
 import org.sudu.experiments.utils.PromiseUtils;
 import org.sudu.experiments.utils.ProviderUtils;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSBoolean;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.BiConsumer;
@@ -49,8 +51,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   @Override
   public void setText(JSString t) {
-//    char[] buffer = TextEncoder.toCharArray(t);
-    String[] split = SplitJsText.split(t, '\n');
+    String[] split = SplitJsText.split(t, Document.newLine);
     editor.setText(split);
   }
 
@@ -206,7 +207,18 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   @Override
   public JsDisposable registerEditorOpener(JsCodeEditorOpener opener) {
-    return JsDisposable.empty();
+    return JsDisposable.of(editor.registrations().openers.disposableAdd(
+        (uri, selection, pos) -> opener.openCodeEditor(
+            this, JsUri.fromJava(uri),
+            selectionOrPositionToJs(selection, pos))));
+  }
+
+  static JSObject selectionOrPositionToJs(Selection s, Pos pos) {
+    if (s != null) return JsRange.create(
+          s.endPos.charInd, s.endPos.line,
+          s.startPos.charInd, s.startPos.line);
+    if (pos != null) return JsPosition.create(pos.pos, pos.line);
+    return JSObjects.undefined();
   }
 
   @Override

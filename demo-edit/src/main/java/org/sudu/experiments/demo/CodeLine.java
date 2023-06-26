@@ -422,10 +422,21 @@ public class CodeLine {
 
   @Override
   public String toString() {
-    return Arrays.toString(elements);
+    return elements.length == 1
+        ? elements[0].toString()
+        : Arrays.toString(elements);
   }
 
   static CodeLine[] singleElementLine(String s) {
     return new CodeLine[]{new CodeLine(new CodeElement(s))};
+  }
+
+  public int toCharArray(char[] dst, int pos) {
+    for (CodeElement element : elements) {
+      String s = element.s;
+      s.getChars(0, s.length(), dst, pos);
+      pos += s.length();
+    }
+    return pos;
   }
 }

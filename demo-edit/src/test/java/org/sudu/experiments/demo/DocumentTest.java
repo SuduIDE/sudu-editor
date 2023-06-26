@@ -230,15 +230,12 @@ class DocumentTest {
   @Test void deleteLineTest() {
     Document doc4 = doc4();
     Document doc0 = new Document();
+    doc0.deleteLine(0);
+    doc0.deleteLine(0);
+    doc0.deleteLine(0);
+    Assertions.assertEquals(doc0.document.length, 1);
 
     CodeLine[] copy = Arrays.copyOf(doc4.document, doc4.document.length);
-
-
-    try {
-      doc0.deleteLine(0);
-      Assertions.fail();
-    } catch (RuntimeException ignored) {}
-
     doc4.deleteLine(3);
     Assertions.assertEquals(doc4.document.length, 3);
     Assertions.assertSame(doc4.line(0), copy[0]);
@@ -254,8 +251,10 @@ class DocumentTest {
     Assertions.assertEquals(doc4.document.length, 1);
     Assertions.assertSame(doc4.line(0), copy[1]);
 
+    Assertions.assertTrue(doc4.document[0].totalStrLength > 0);
     doc4.deleteLine(0);
-    Assertions.assertEquals(doc4.document.length, 0);
+    Assertions.assertEquals(doc4.document.length, 1);
+    Assertions.assertEquals(doc4.document[0].totalStrLength, 0);
   }
 
   @Test void deleteLinesTest() {
@@ -391,9 +390,22 @@ class DocumentTest {
         to write a portable (Web + Desktop)
         editor in java and kotlin
         This demo is designed to investigate
+        performance limits of this approach""";
+
+    Assertions.assertEquals(d.makeString(), text);
+  }
+
+  @Test
+  void documentFromTextTest() {
+    String text = """
+        This is an experimental project
+        to write a portable (Web + Desktop)
+        editor in java and kotlin
+        This demo is designed to investigate
         performance limits of this approach
         """;
 
+    Document d = new Document(SplitText.split(text));
     Assertions.assertEquals(d.makeString(), text);
   }
 
@@ -442,6 +454,37 @@ class DocumentTest {
     Document d = new Document(ab(""));
     char[] chars = d.getChars();
     Assertions.assertArrayEquals(chars, new char[0]);
+  }
+
+  @Test void testLength() {
+    Document document = doc5();
+    String docString = document.makeString();
+    int fullLength = document.getFullLength();
+    Assertions.assertEquals(docString.length(), fullLength);
+    char[] chars = document.getChars();
+    Assertions.assertEquals(new String(chars), docString);
+  }
+
+  @Test void testGetLineStartInd() {
+    // line starts: 0, 3, 6, 9, 11
+    Document document = doc4();
+    for (int i = 0; i < 4; i++) {
+      int lineStart = document.getLineStartInd(i);
+      Assertions.assertEquals(lineStart, i * 3);
+
+    }
+    int lineStart = document.getLineStartInd(4);
+    Assertions.assertEquals(lineStart, 4 * 3 - 1);
+
+    try {
+      int l5 = document.getLineStartInd(5);
+      Assertions.fail();
+    } catch (ArrayIndexOutOfBoundsException ignored) {
+    }
+  }
+
+  @Test void testThrows() {
+
   }
 
   static Document doc4() {
