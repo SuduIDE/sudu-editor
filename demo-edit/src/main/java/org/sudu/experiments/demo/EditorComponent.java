@@ -3,19 +3,36 @@
 
 package org.sudu.experiments.demo;
 
-import org.sudu.experiments.*;
-import org.sudu.experiments.demo.ui.PopupMenu;
-import org.sudu.experiments.demo.ui.ToolbarItem;
-import org.sudu.experiments.demo.ui.ToolbarItemBuilder;
-import org.sudu.experiments.demo.worker.parser.*;
+import org.sudu.experiments.Canvas;
+import org.sudu.experiments.Cursor;
+import org.sudu.experiments.Debug;
+import org.sudu.experiments.Disposable;
+import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.Host;
+import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.demo.ui.FindUsagesItem;
+import org.sudu.experiments.demo.ui.FindUsagesItemBuilder;
+import org.sudu.experiments.demo.ui.FindUsagesWindow;
+import org.sudu.experiments.demo.worker.parser.CppParser;
+import org.sudu.experiments.demo.worker.parser.FileParser;
+import org.sudu.experiments.demo.worker.parser.JavaParser;
+import org.sudu.experiments.demo.worker.parser.JavaScriptParser;
+import org.sudu.experiments.demo.worker.parser.LineParser;
+import org.sudu.experiments.demo.worker.parser.ParserUtils;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.*;
+import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.Numbers;
+import org.sudu.experiments.math.Rect;
+import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.worker.ArrayView;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -93,10 +110,10 @@ public class EditorComponent implements Disposable {
   boolean ctrlPressed = false;
   public boolean readonly = false;
 
-  PopupMenu usagesMenu;
+  FindUsagesWindow usagesMenu;
 
   private CodeElement definition = null;
-  private List<CodeElement> usages = new ArrayList<>();
+  private final List<CodeElement> usages = new ArrayList<>();
 
   Consumer<String> onError = System.err::println;
 
@@ -114,7 +131,7 @@ public class EditorComponent implements Disposable {
     // d2d is very bold, contrast makes font heavier
     applyContrast = api.window.getHost() != Host.Direct2D;
 
-    usagesMenu = new PopupMenu(g);
+    usagesMenu = new FindUsagesWindow(g);
   }
 
   void setPos(V2i pos, V2i size, double dpr) {
@@ -257,7 +274,7 @@ public class EditorComponent implements Disposable {
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
-    usagesMenu.setTheme(font, Colors.toolbarBg);
+    usagesMenu.setTheme(font, Colors.findUsagesBg);
 
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight
@@ -280,7 +297,6 @@ public class EditorComponent implements Disposable {
         g.fontDesk(name, size, FontDesk.WEIGHT_BOLD, FontDesk.STYLE_ITALIC);
     font = fonts[CodeElement.fontIndex(false, false)];
   }
-
 
 
   public void changeFont(String name, int virtualSize) {
@@ -360,6 +376,7 @@ public class EditorComponent implements Disposable {
   }
 
   private int iterativeVersion;
+
   public boolean update(double timestamp) {
     if (model.document.needReparse(timestamp) && iterativeVersion != model.document.currentVersion) {
       iterativeVersion = model.document.currentVersion;
@@ -626,6 +643,7 @@ public class EditorComponent implements Disposable {
   }
 
   private long parsingTimeStart;
+
   private void onFileParsed(Object[] result) {
 //    Debug.consoleInfo("onFileParsed");
     fileStructureParsed = true;
@@ -866,7 +884,7 @@ public class EditorComponent implements Disposable {
     caretPos = line.computePixelLocation(caretCharPos, g.mCanvas, fonts);
 
     computeUsages();
-    if (1<0) Debug.consoleInfo(
+    if (1 < 0) Debug.consoleInfo(
         "onClickText: caretCharPos = " + caretCharPos + ", caretPos = " + caretPos);
     startBlinking();
   }
@@ -877,35 +895,29 @@ public class EditorComponent implements Disposable {
 
     Pos def = model.document.getDefinitionPos(line, documentXPosition);
     if (def != null) {
-      gotoElement(def);
+      gotoUsageMenuElement(def);
       return;
     }
 
     List<Pos> usages = model.document.getUsagesList(line, documentXPosition);
-    var items = usages == null || usages.isEmpty() ? noDefOrUsages() : usagesItems(usages);
+    var items = usages == null || usages.isEmpty() ? noDefOrUsages() : usagesMenu.buildUsagesItems(usages, this, model);
     if (!usagesMenu.isVisible()) usagesMenu.display(position, items, this::onFocusGain);
   }
 
-  private Supplier<ToolbarItem[]> usagesItems(List<Pos> usages) {
-    ToolbarItemBuilder tbb = new ToolbarItemBuilder();
-    int cnt = 0;
-    for (var pos : usages) {
-      tbb.addItem(makeShowUsageString(pos), Colors.popupText2, () -> gotoElement(pos));
-      if (++cnt > EditorConst.MAX_SHOW_USAGES_NUMBER) {
-        tbb.addItem("... and " + (usages.size() - cnt) + " more usages", Colors.popupText2, () -> {});
-        break;
-      }
-    }
+  private Supplier<FindUsagesItem[]> noDefOrUsages() {
+    FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
+    tbb.addItem(
+        "No definition or usages",
+        "",
+        "",
+        Colors.findUsagesColorsError,
+        () -> {}
+    );
     return tbb.supplier();
   }
 
-  private Supplier<ToolbarItem[]> noDefOrUsages() {
-    ToolbarItemBuilder tbb = new ToolbarItemBuilder();
-    tbb.addItem("No definition or usages", Colors.popupErrorText, () -> {});
-    return tbb.supplier();
-  }
-
-  private void gotoElement(Pos defPos) {
+  // TODO(Minor): Move usageMenu.hide() out off & rename method
+  public final void gotoUsageMenuElement(Pos defPos) {
     setCaretLinePos(defPos.line, defPos.pos, false);
     int nextPos = caretCodeLine().nextPos(caretPos);
     selection.startPos.set(caretLine, nextPos);
@@ -913,11 +925,6 @@ public class EditorComponent implements Disposable {
     usagesMenu.hide();
   }
 
-  private String makeShowUsageString(Pos pos) {
-    String codeLine = model.document.line(pos.line).makeString().trim();
-    String line = codeLine.length() > 43 ? codeLine.substring(0, 40) + "..." : codeLine;
-    return (pos.line + 1) + ":" + pos.pos + "  " + line;
-  }
 
   void provideReferences(int line, int column, boolean includeDeclaration) {
     var provider = registrations.findReferenceProvider(model.language(), model.uriScheme());
@@ -964,7 +971,7 @@ public class EditorComponent implements Disposable {
         // Default def provider
         var defPos = model.document.getDefinitionPos(line, documentXPosition);
         if (defPos != null) {
-          gotoElement(defPos);
+          gotoUsageMenuElement(defPos);
           return;
         }
       } else {
@@ -973,7 +980,15 @@ public class EditorComponent implements Disposable {
       }
       var usagesList = model.document.getUsagesList(line, documentXPosition);
       if (usagesList != null && !usagesList.isEmpty()) {
-        if (!usagesMenu.isVisible()) usagesMenu.display(position, usagesItems(usagesList), this::onFocusGain);
+        if (usagesList.size() == 1) {
+          gotoUsageMenuElement(usagesList.get(0));
+          return;
+        } else if (!usagesMenu.isVisible())
+          usagesMenu.display(
+              position,
+              usagesMenu.buildUsagesItems(usagesList, this, model),
+              this::onFocusGain
+          );
       }
     }
 
@@ -1108,6 +1123,9 @@ public class EditorComponent implements Disposable {
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
     // do not process release events
     if (!event.isPressed) return false;
+
+    // Should prevent other keys from being used when the usages window is open
+    if (usagesMenu.isVisible() && usagesMenu.handleUsagesMenuKey(event)) return true;
 
     if (event.keyCode == KeyCode.F10) {
       api.window.addChild("child", DemoEdit0::new);

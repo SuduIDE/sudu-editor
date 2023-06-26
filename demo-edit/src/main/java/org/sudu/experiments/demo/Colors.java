@@ -1,5 +1,6 @@
 package org.sudu.experiments.demo;
 
+import org.sudu.experiments.demo.ui.FindUsagesItemColors;
 import org.sudu.experiments.demo.ui.ToolbarItemColors;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V4f;
@@ -12,6 +13,27 @@ public interface Colors {
   V4f toolbarBorder = new Color("#616161");
   V4f toolbarSelectedBg = new Color("#4B6EAF");
   V4f toolbarErrorBg = new Color("#781732");
+
+  V4f findUsagesBg = new Color("#3C3F41");
+  V4f findUsagesBorder = new Color("#616161");
+  V4f findUsagesSelectedBg = new Color("#4B6EAF");
+
+  V4f findUsagesErrorBg = new Color("#781732");
+
+  FindUsagesItemColors findUsagesColors = new FindUsagesItemColors(
+      IdeaCodeColors.Colors.defaultText, IdeaCodeColors.Colors.editNumbersVLine,
+      IdeaCodeColors.Colors.defaultText, Colors.findUsagesBg, Colors.findUsagesSelectedBg
+  );
+
+  FindUsagesItemColors findUsagesColorsContinued = new FindUsagesItemColors(
+      new Color("#CCCCCC"), IdeaCodeColors.Colors.editNumbersVLine,
+      IdeaCodeColors.Colors.defaultText, Colors.findUsagesBg, Colors.findUsagesBg
+  );
+
+  FindUsagesItemColors findUsagesColorsError = new FindUsagesItemColors(
+      new Color("#BBBBBB"), IdeaCodeColors.Colors.editNumbersVLine,
+      IdeaCodeColors.Colors.defaultText, Colors.findUsagesErrorBg, Colors.findUsagesErrorBg
+  );
 
   ToolbarItemColors popupText = new ToolbarItemColors(
       new Color("#BBBBBB"), toolbarBg, toolbarSelectedBg);
