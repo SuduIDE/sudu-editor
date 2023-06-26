@@ -25,6 +25,7 @@ public interface Languages {
   static String languageFromFilename(String path) {
     if (path == null) return null;
     if (path.endsWith(".cpp")
+        || path.endsWith(".cc")
         || path.endsWith(".cxx")
         || path.endsWith(".hpp")
         || path.endsWith(".c")

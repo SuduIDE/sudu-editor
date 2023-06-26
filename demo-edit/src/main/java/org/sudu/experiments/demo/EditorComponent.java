@@ -997,7 +997,7 @@ public class EditorComponent implements Disposable {
   }
 
   public void gotoDefinition(Location loc) {
-    if (loc.uri != model.uri) return;
+    if (!Objects.equals(loc.uri, model.uri)) return;
     Range range = loc.range;
     setCaretLinePos(range.startLineNumber, range.startColumn, false);
     selection.startPos.set(range.startLineNumber, range.startColumn);
@@ -1164,7 +1164,7 @@ public class EditorComponent implements Disposable {
   }
 
   public void parseFullFile() {
-    String parseJob = parseJobName(model.language(), null);
+    String parseJob = parseJobName(model.language());
     if (parseJob != null) {
       parsingTimeStart = System.currentTimeMillis();
       api.window.sendToWorker(this::onFileParsed, parseJob, model.document.getChars());
@@ -1376,7 +1376,7 @@ public class EditorComponent implements Disposable {
 
   private void onContentChange() {
     parsingTimeStart = System.currentTimeMillis();
-    String jobName = parseJobName(model.language(), null);
+    String jobName = parseJobName(model.language());
     if (jobName != null) {
       api.window.sendToWorker(this::onFileParsed, jobName, getChars());
     }
@@ -1415,14 +1415,13 @@ public class EditorComponent implements Disposable {
     vScrollPos = clampScrollPos((lineNumber - 2) * lineHeight, maxVScrollPos());
   }
 
-  static String parseJobName(String language, String def) {
+  static String parseJobName(String language) {
     return language != null ? switch (language) {
-      case Languages.TEXT -> null;
       case Languages.JAVA -> JavaParser.PARSE;
       case Languages.CPP -> CppParser.PARSE;
       case Languages.JS -> JavaScriptParser.PARSE;
-      default -> def;
-    } : def;
+      default -> null;
+    } : null;
   }
 
   public char[] getChars() {
