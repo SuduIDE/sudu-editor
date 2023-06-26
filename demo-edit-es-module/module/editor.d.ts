@@ -9,6 +9,8 @@ interface EditArgs {
 
     // themes: "dark", "light"
     theme?: string
+
+    readonly?: boolean
 }
 
 interface Uri {
@@ -172,6 +174,8 @@ interface ICodeEditor {
     revealLineInCenter(line: number): void
 
     revealLine(line: number): void
+
+    setReadonly(flag: boolean): void
 
     onDidChangeModel: IEvent<IModelChangedEvent>
 }
