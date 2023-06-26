@@ -1,7 +1,5 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.math.V2i;
-
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -26,6 +24,8 @@ public interface Window {
   void showOpenFilePicker(Consumer<FileHandle> onResult);
 
   void sendToWorker(Consumer<Object[]> handler, String method, Object ... args);
+
+  void runLater(Runnable r);
 
   void readClipboardText(Consumer<String> success, Consumer<Throwable> onError);
   void writeClipboardText(String text, Runnable success, Consumer<Throwable> onError);

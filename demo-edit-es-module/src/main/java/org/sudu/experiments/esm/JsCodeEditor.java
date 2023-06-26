@@ -3,6 +3,7 @@ package org.sudu.experiments.esm;
 import org.sudu.experiments.js.JsFunctions;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
+import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
@@ -21,9 +22,9 @@ public interface JsCodeEditor extends JsDisposable {
   JsDisposable registerReferenceProvider(JSObject languageSelector, JsReferenceProvider provider);
   JsDisposable registerDocumentHighlightProvider(JSObject languageSelector, JsDocumentHighlightProvider provider);
   JsDisposable registerEditorOpener(JsCodeEditorOpener opener);
-
   void revealLineInCenter(int line);
   void revealLine(int line);
+  void setReadonly(JSBoolean flag);
 
   JsDisposable onDidChangeModel(JsFunctions.Consumer<JsIModelChangedEvent> f);
 
@@ -38,6 +39,13 @@ public interface JsCodeEditor extends JsDisposable {
 
     default boolean hasTheme() {
       return JSObjects.hasProperty(this, themeProperty);
+    }
+
+    String readonlyProperty = "readonly";
+    @JSProperty JSBoolean getReadonly();
+
+    default boolean hasReadonly() {
+      return JSObjects.hasProperty(this, readonlyProperty);
     }
 
     default JSString workerUrl() {

@@ -8,6 +8,7 @@ import org.sudu.experiments.utils.PromiseUtils;
 import org.sudu.experiments.utils.ProviderUtils;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSArray;
+import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.BiConsumer;
@@ -31,6 +32,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
         worker);
     editor = ((DemoEdit0) window.scene()).editor();
     if (args.hasTheme()) setTheme(args.getTheme());
+    if (args.hasReadonly()) setReadonly(args.getReadonly());
   }
 
   @Override
@@ -215,6 +217,11 @@ public class JsCodeEditor0 implements JsCodeEditor {
   @Override
   public void revealLine(int line) {
     editor.revealLine(line);
+  }
+
+  @Override
+  public void setReadonly(JSBoolean flag) {
+    editor.readonly = flag.booleanValue();
   }
 
   @Override

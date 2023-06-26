@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
@@ -107,6 +108,7 @@ public class EditorComponent implements Disposable {
   String tabIndent = "  ";
 
   boolean ctrlPressed = false;
+  public boolean readonly = false;
 
   FindUsagesWindow usagesMenu;
 
@@ -574,6 +576,7 @@ public class EditorComponent implements Disposable {
   }
 
   boolean handleInsert(String s) {
+    if (readonly) return false;
     if (selection.isAreaSelected()) deleteSelectedArea();
     String[] lines = s.replace("\r", "").split("\n", -1);
 
@@ -853,6 +856,7 @@ public class EditorComponent implements Disposable {
     definition = null;
     usages.clear();
 
+    if (caretLine >= model.document.length()) return;
     if (!model.document.hasDefOrUsages(caretLine, caretPos)) return;
 
     Pos def;
@@ -1128,7 +1132,7 @@ public class EditorComponent implements Disposable {
       return true;
     }
 
-    if (event.ctrl && event.keyCode == KeyCode.Z) {
+    if (!readonly && event.ctrl && event.keyCode == KeyCode.Z) {
       undoLastDiff();
       return true;
     }
@@ -1250,6 +1254,7 @@ public class EditorComponent implements Disposable {
   }
 
   private boolean handleEditingKeys(KeyEvent event) {
+    if (readonly) return false;
     return switch (event.keyCode) {
       case KeyCode.TAB -> handleTab();
       case KeyCode.ENTER -> handleEnter();
@@ -1428,7 +1433,9 @@ public class EditorComponent implements Disposable {
   }
 
   static String parseJobName(String language, String def) {
-    return language != null ? switch (Languages.getLanguage(language)) {
+    if (language == null) return def;
+    String parsedLanguage = Languages.getLanguage(language);
+    return parsedLanguage != null ? switch (parsedLanguage) {
       case Languages.TEXT -> LineParser.PARSE;
       case Languages.JAVA -> JavaParser.PARSE;
       case Languages.CPP -> CppParser.PARSE;
