@@ -1115,6 +1115,10 @@ public class EditorComponent implements Disposable {
 
   public boolean onKey(KeyEvent event) {
     if (!event.isPressed) ctrlPressed = false;
+
+    // Should prevent other keys from being used when the usages window is open
+    if (usagesMenu.isVisible() && usagesMenu.handleUsagesMenuKey(event)) return true;
+
     // do not consume browser keyboard to allow page reload and debug
     if (KeyEvent.isCopyPasteRelatedKey(event) || KeyEvent.isBrowserKey(event)) {
       return false;
@@ -1137,9 +1141,6 @@ public class EditorComponent implements Disposable {
       return true;
     }
 
-    if (usagesMenu.isVisible()) {
-      return handleUsagesMenuKey(event);
-    }
     if (handleDoubleKey(event)) return true;
     if (handleDebug(event)) return true;
     if (handleNavigation(event)) return true;
@@ -1244,15 +1245,6 @@ public class EditorComponent implements Disposable {
     return Rect.isInside(position,
         new V2i(vLineX, 0),
         new V2i(editorWidth(), editorHeight()));
-  }
-
-  private boolean handleUsagesMenuKey(KeyEvent event) {
-    return switch (event.keyCode) {
-      case KeyCode.ESC -> usagesMenu.hide();
-      case KeyCode.ARROW_DOWN, KeyCode.ARROW_UP, KeyCode.ARROW_LEFT, KeyCode.ARROW_RIGHT -> usagesMenu.usagesList.get(0).onKeyArrow(event.keyCode);
-      case KeyCode.ENTER -> usagesMenu.usagesList.get(0).goToSelectedItem();
-      default -> false;
-    };
   }
 
   private boolean handleEditingKeys(KeyEvent event) {

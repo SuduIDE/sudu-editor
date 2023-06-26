@@ -8,6 +8,8 @@ import org.sudu.experiments.demo.EditorConst;
 import org.sudu.experiments.demo.Model;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.input.KeyCode;
+import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.parser.common.Pos;
@@ -201,5 +203,14 @@ public class FindUsagesWindow {
       s.append(" ");
     }
     return item + s;
+  }
+
+  public boolean handleUsagesMenuKey(KeyEvent event) {
+    return switch (event.keyCode) {
+      case KeyCode.ESC -> hide();
+      case KeyCode.ARROW_DOWN, KeyCode.ARROW_UP, KeyCode.ARROW_LEFT, KeyCode.ARROW_RIGHT -> usagesList.get(0).onKeyArrow(event.keyCode);
+      case KeyCode.ENTER -> usagesList.get(0).goToSelectedItem();
+      default -> true;
+    };
   }
 }
