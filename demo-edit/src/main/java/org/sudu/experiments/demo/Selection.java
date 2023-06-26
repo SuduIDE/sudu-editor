@@ -4,16 +4,11 @@ import org.sudu.experiments.math.V2i;
 
 import java.util.Objects;
 
-class Selection {
+public class Selection {
 
-  SelPos startPos, endPos;
-  boolean isSelectionStarted;
-
-  Selection() {
-    startPos = new SelPos();
-    endPos = new SelPos();
-    isSelectionStarted = false;
-  }
+  public final SelPos startPos = new SelPos();
+  public final SelPos endPos = new SelPos();
+  public boolean isSelectionStarted;
 
   void select(int caretLine, int caretCharPos) {
     endPos.set(caretLine, caretCharPos);
@@ -63,9 +58,9 @@ class Selection {
     return left.line <= line && line < right.line;
   }
 
-  static class SelPos implements Comparable<SelPos> {
-    int line;
-    int charInd;
+  public static class SelPos implements Comparable<SelPos> {
+    public int line;
+    public int charInd;
 
     public SelPos() {}
 

@@ -41,8 +41,8 @@ public abstract class JsUri implements JSObject {
 
   public static JsUri fromJava(Uri uri) {
     if (uri == null) return null;
-    JSObject jsJavaPeer = (JSObject) uri;
-    return create(uri.scheme, uri.authority, uri.path, jsJavaPeer);
+    if (uri.nativeObject != null) return (JsUri) uri.nativeObject;
+    return create(uri.scheme, uri.authority, uri.path, (JSObject) uri);
   }
 
   public Uri toJava() {
@@ -52,13 +52,7 @@ public abstract class JsUri implements JSObject {
     return new Uri(
         getSchemeOrNull(),
         getAuthorityOrNull(),
-        getPathOrNull()
-    );
-  }
-
-  public String stringValue() {
-    return Objects.toString(getSchemeOrNull(), "") +
-        Objects.toString(getAuthorityOrNull(), "") +
-        Objects.toString(getPathOrNull(), "");
+        getPathOrNull(),
+        this);
   }
 }

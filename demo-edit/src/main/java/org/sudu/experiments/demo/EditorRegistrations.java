@@ -22,6 +22,8 @@ public class EditorRegistrations {
   public final Subscribers<BiConsumer<Model, Model>> modelChangeListeners =
       new Subscribers<BiConsumer<Model, Model>>(new BiConsumer[0]);
 
+  public final Subscribers<EditorOpener> openers = new Subscribers<>(new EditorOpener[0]);
+
   public DefDeclProvider.Provider findDefinitionProvider(String language, String scheme) {
     return findDdProvider(definitionProviders.array(), language, scheme);
   }
@@ -35,6 +37,13 @@ public class EditorRegistrations {
       if (provider != null && provider.match(language, scheme)) {
         return provider.f;
       }
+    }
+    return null;
+  }
+
+  public EditorOpener findOpener() {
+    for (EditorOpener opener : openers.array()) {
+      if (opener != null) return opener;
     }
     return null;
   }

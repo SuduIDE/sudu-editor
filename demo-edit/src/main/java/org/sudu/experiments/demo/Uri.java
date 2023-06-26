@@ -7,11 +7,13 @@ public class Uri {
   public final String scheme;
   public final String authority;
   public final String path;
+  public final Object nativeObject;
 
-  public Uri(String scheme, String authority, String path) {
+  public Uri(String scheme, String authority, String path, Object nativeObject) {
     this.scheme = scheme;
     this.authority = authority;
     this.path = path;
+    this.nativeObject = nativeObject;
   }
 
   @Override
