@@ -29,6 +29,10 @@ public class FindUsagesDialog {
   private int hoverItemId = -1;
   private Runnable onClickOutside;
 
+  public boolean isEmpty(){
+    return items.length == 0;
+  }
+
   private static void tRectWarning() {
     Debug.consoleInfo("FindUsages.setPos: tRect.size == 0");
   }

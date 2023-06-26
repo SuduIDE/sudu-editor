@@ -14,13 +14,12 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.parser.common.Pos;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
 public class FindUsagesWindow {
   private final V2i windowSize = new V2i();
-  public final ArrayList<FindUsagesDialog> usagesList = new ArrayList<>();
+  public FindUsagesDialog usagesList = new FindUsagesDialog();
   private final WglGraphics graphics;
   private final V4f frameColor = Colors.findUsagesBorder;
   private double dpr;
@@ -51,9 +50,9 @@ public class FindUsagesWindow {
     findUsages.measure(graphics.mCanvas, dpr);
     setScreenLimitedPosition(findUsages, pos.x, pos.y, windowSize);
 
-    findUsages.onEnter((mouse, index, item) -> removeUsageWindowAfter(findUsages));
+    findUsages.onEnter((mouse, index, item) -> dispose());
 
-    usagesList.add(findUsages);
+    usagesList = findUsages;
     return findUsages;
   }
 
@@ -68,7 +67,7 @@ public class FindUsagesWindow {
 
   public boolean hide() {
     if (isVisible()) {
-      removeUsageWindowAfter(null);
+      dispose();
       onClose.run();
       onClose = Const.emptyRunnable;
       return true;
@@ -85,9 +84,8 @@ public class FindUsagesWindow {
   public void onResize(V2i newSize, double newDpr) {
     windowSize.set(newSize);
     if (this.dpr != newDpr) {
-      for (FindUsagesDialog usages : usagesList) {
-        usages.measure(graphics.mCanvas, newDpr);
-      }
+      if (!usagesList.isEmpty())
+        usagesList.measure(graphics.mCanvas, newDpr);
       this.dpr = newDpr;
     }
   }
@@ -95,51 +93,23 @@ public class FindUsagesWindow {
   public void paint() {
     // let's do 0-garbage rendering
     if (!usagesList.isEmpty()) graphics.enableBlend(true);
-    for (FindUsagesDialog findUsages : usagesList) {
-      findUsages.render(graphics, dpr);
-    }
+    usagesList.render(graphics, dpr);
   }
 
   public boolean onMouseMove(V2i mouse, SetCursor windowCursor) {
-    boolean r = false;
-    for (int i = usagesList.size() - 1; i >= 0; --i) {
-      r = usagesList.get(i).onMouseMove(mouse, windowCursor);
-      if (r) break;
-    }
-    return r;
+    return usagesList.onMouseMove(mouse, windowCursor);
   }
 
   public boolean onMousePress(V2i position, int button, boolean press, int clickCount) {
-    boolean r = false;
-    for (int i = usagesList.size() - 1; i >= 0; --i) {
-      r = usagesList.get(i).onMousePress(position, button, press, clickCount);
-      if (r) break;
-    }
-    return r;
-  }
-
-  private void removeUsageWindowAfter(FindUsagesDialog wall) {
-    for (int i = usagesList.size() - 1; i >= 0; i--) {
-      FindUsagesDialog tb = usagesList.get(i);
-      if (wall == tb) break;
-      usagesList.remove(i);
-      tb.dispose();
-    }
-  }
-
-  private void disposeList(ArrayList<FindUsagesDialog> list) {
-    for (FindUsagesDialog toolbar : list) {
-      toolbar.dispose();
-    }
-    list.clear();
+    return usagesList.onMousePress(position, button, press, clickCount);
   }
 
   public boolean isVisible() {
-    return usagesList.size() > 0;
+    return !usagesList.isEmpty();
   }
 
   public void dispose() {
-    disposeList(usagesList);
+    usagesList.dispose();
   }
 
   public final Supplier<FindUsagesItem[]> buildUsagesItems(List<Pos> usages, EditorComponent editorComponent, Model model) {
@@ -208,9 +178,10 @@ public class FindUsagesWindow {
   public boolean handleUsagesMenuKey(KeyEvent event) {
     return switch (event.keyCode) {
       case KeyCode.ESC -> hide();
-      case KeyCode.ARROW_DOWN, KeyCode.ARROW_UP, KeyCode.ARROW_LEFT, KeyCode.ARROW_RIGHT -> usagesList.get(0).onKeyArrow(event.keyCode);
-      case KeyCode.ENTER -> usagesList.get(0).goToSelectedItem();
-      default -> true;
+      case KeyCode.ARROW_DOWN, KeyCode.ARROW_UP, KeyCode.ARROW_LEFT, KeyCode.ARROW_RIGHT ->
+          usagesList.onKeyArrow(event.keyCode);
+      case KeyCode.ENTER -> usagesList.goToSelectedItem();
+      default -> false;
     };
   }
 }

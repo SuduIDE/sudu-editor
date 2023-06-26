@@ -1115,10 +1115,6 @@ public class EditorComponent implements Disposable {
 
   public boolean onKey(KeyEvent event) {
     if (!event.isPressed) ctrlPressed = false;
-
-    // Should prevent other keys from being used when the usages window is open
-    if (usagesMenu.isVisible() && usagesMenu.handleUsagesMenuKey(event)) return true;
-
     // do not consume browser keyboard to allow page reload and debug
     if (KeyEvent.isCopyPasteRelatedKey(event) || KeyEvent.isBrowserKey(event)) {
       return false;
@@ -1126,6 +1122,9 @@ public class EditorComponent implements Disposable {
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
     // do not process release events
     if (!event.isPressed) return false;
+
+    // Should prevent other keys from being used when the usages window is open
+    if (usagesMenu.isVisible() && usagesMenu.handleUsagesMenuKey(event)) return true;
 
     if (event.keyCode == KeyCode.F10) {
       api.window.addChild("child", DemoEdit0::new);
