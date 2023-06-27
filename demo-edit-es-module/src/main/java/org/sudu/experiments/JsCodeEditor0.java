@@ -190,18 +190,26 @@ public class JsCodeEditor0 implements JsCodeEditor {
   }
 
   static void acceptLocations(JSArray<JsLocation> jsArr, Consumer<Location[]> c, Consumer<String> onError) {
-    if (JSArray.isArray(jsArr)) {
-      c.accept(ProviderUtils.toLocations(jsArr));
+    if (JsHelper.jsIf(jsArr)) {
+      if (JSArray.isArray(jsArr)) {
+        c.accept(ProviderUtils.toLocations(jsArr));
+      } else {
+        onError.accept(errorNotArray);
+      }
     } else {
-      onError.accept(errorNotArray);
+      Debug.consoleInfo("provider result is undefined");
     }
   }
 
   static void acceptHighlight(JSArray<JsDocumentHighlight> jsArr, Consumer<DocumentHighlight[]> c, Consumer<String> onError) {
-    if (JSArray.isArray(jsArr)) {
-      c.accept(ProviderUtils.toHighlights(jsArr));
+    if (JsHelper.jsIf(jsArr)) {
+      if (JSArray.isArray(jsArr)) {
+        c.accept(ProviderUtils.toHighlights(jsArr));
+      } else {
+        onError.accept(errorNotArray);
+      }
     } else {
-      onError.accept(errorNotArray);
+      Debug.consoleInfo("provider result is undefined");
     }
   }
 

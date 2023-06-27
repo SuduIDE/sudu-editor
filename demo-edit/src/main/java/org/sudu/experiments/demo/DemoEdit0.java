@@ -122,10 +122,13 @@ public class DemoEdit0 extends Scene0 {
       var refProvider = reg.findReferenceProvider(language, scheme);
 
       if (refProvider != null) {
-        DebugHelper.dumpReferenceProvider(
-            refProvider,
-            model,
-            editor.computeCharPos(eventPosition));
+        l.add(ti(
+            "use referenceProvider",
+            Colors.popupText,
+            () -> DebugHelper.dumpReferenceProvider(
+                refProvider,
+                model,
+                editor.computeCharPos(eventPosition))));
       }
 
       l.add(ti(
