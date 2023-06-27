@@ -21,8 +21,4 @@ public class FindUsagesItemBuilder {
   public FindUsagesItem[] items() {
     return list.toArray(items0);
   }
-
-  public Supplier<FindUsagesItem[]> supplier() {
-    return ArrayOp.supplier(items());
-  }
 }
