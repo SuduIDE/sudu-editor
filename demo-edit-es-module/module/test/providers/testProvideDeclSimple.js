@@ -4,9 +4,9 @@ import {initialTextJava, workerUrl} from "../utils.js";
 function test1(editor) {
     let model = newTextModel(initialTextJava, "java", null)
     editor.setModel(model)
-    let disposable = editor.registerDefinitionProvider("java",
+    let disposable = editor.registerDeclarationProvider("java",
         {
-            provideDefinition(model, position, token) {
+            provideDeclaration(model, position, token) {
                 return [{
                     uri: model.uri,
                     range: {
@@ -19,7 +19,6 @@ function test1(editor) {
             }
         }
     )
-    document.getElementById("dispose").addEventListener("click", () => disposable.dispose())
 }
 
 function main() {

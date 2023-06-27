@@ -11,14 +11,11 @@ import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.Host;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.ui.FindUsagesItem;
-import org.sudu.experiments.demo.ui.FindUsagesItemBuilder;
-import org.sudu.experiments.demo.ui.FindUsagesWindow;
+import org.sudu.experiments.demo.ui.*;
 import org.sudu.experiments.demo.worker.parser.CppParser;
 import org.sudu.experiments.demo.worker.parser.FileParser;
 import org.sudu.experiments.demo.worker.parser.JavaParser;
 import org.sudu.experiments.demo.worker.parser.JavaScriptParser;
-import org.sudu.experiments.demo.worker.parser.LineParser;
 import org.sudu.experiments.demo.worker.parser.ParserUtils;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
@@ -36,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
@@ -111,6 +107,7 @@ public class EditorComponent implements Disposable {
   public boolean readonly = false;
 
   FindUsagesWindow usagesMenu;
+  FindUsagesWindow gotoMenu;
 
   private CodeElement definition = null;
   private final List<CodeElement> usages = new ArrayList<>();
@@ -132,6 +129,7 @@ public class EditorComponent implements Disposable {
     applyContrast = api.window.getHost() != Host.Direct2D;
 
     usagesMenu = new FindUsagesWindow(g);
+    gotoMenu = new FindUsagesWindow(g);
   }
 
   void setPos(V2i pos, V2i size, double dpr) {
@@ -158,6 +156,7 @@ public class EditorComponent implements Disposable {
 
     layout();
     usagesMenu.onResize(size, dpr);
+    gotoMenu.onResize(size, dpr);
   }
 
 
@@ -275,6 +274,7 @@ public class EditorComponent implements Disposable {
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
     usagesMenu.setTheme(font, Colors.findUsagesBg);
+    gotoMenu.setTheme(font, Colors.findUsagesBg);
 
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight
@@ -480,6 +480,7 @@ public class EditorComponent implements Disposable {
     drawScrollBar();
 
     usagesMenu.paint();
+    gotoMenu.paint();
 
 //    g.checkError("paint complete");
     if (0>1) {
@@ -858,16 +859,16 @@ public class EditorComponent implements Disposable {
     usages.clear();
 
     if (caretLine >= model.document.length()) return;
-    if (!model.document.hasDefOrUsages(caretLine, caretPos)) return;
+    if (!model.document.hasDefOrUsagesDeprecated(caretLine, caretPos)) return;
 
     Pos def;
     List<Pos> usages;
     if (model.document.hasDefinition(caretLine, caretPos)) {
-      def = model.document.getDefinitionPos(caretLine, caretPos);
+      def = model.document.getDefinitionPosDeprecated(caretLine, caretPos);
       usages = model.document.defToUsages.get(def);
     } else {
-      def = model.document.getPosition(caretLine, caretPos);
-      usages = model.document.getUsagesList(caretLine, caretPos);
+      def = model.document.getPositionDeprecated(caretLine, caretPos);
+      usages = model.document.getUsagesListDeprecated(caretLine, caretPos);
     }
 
     definition = model.document.getCodeElement(def);
@@ -880,7 +881,7 @@ public class EditorComponent implements Disposable {
 
     CodeLine line = caretCodeLine();
     int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
-    caretCharPos = line.computeCaretLocation(documentXPosition, g.mCanvas, fonts);
+    caretCharPos = line.computeCharPos(documentXPosition, g.mCanvas, fonts);
     caretPos = line.computePixelLocation(caretCharPos, g.mCanvas, fonts);
 
     computeUsages();
@@ -889,18 +890,46 @@ public class EditorComponent implements Disposable {
     startBlinking();
   }
 
-  public void findUsages(V2i position) {
-    int line = Numbers.clamp(0, (position.y + vScrollPos) / lineHeight, model.document.length() - 1);
-    int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
+  public void findUsages(V2i position, ReferenceProvider.Provider provider) {
+    Pos documentPosition = computeCharPos(position);
 
-    Pos def = model.document.getDefinitionPos(line, documentXPosition);
+    if (provider != null) {
+      provider.provideReferences(model, documentPosition.line, documentPosition.pos, true,
+          (locs) -> showUsagesViaLocations(position, locs), onError);
+    }
+  }
+
+  public void findUsages(V2i position, DefDeclProvider.Provider provider) {
+
+    Pos documentPosition = computeCharPos(position);
+    if (provider != null) {
+      provider.provide(model, documentPosition.line, documentPosition.pos, (locs) -> gotoDefinition(position, locs), onError);
+      return;
+    }
+
+    model.document.moveToElementStart(documentPosition);
+    Pos def = model.document.usageToDef.get(documentPosition);
     if (def != null) {
       gotoUsageMenuElement(def);
       return;
     }
 
-    List<Pos> usages = model.document.getUsagesList(line, documentXPosition);
-    var items = usages == null || usages.isEmpty() ? noDefOrUsages() : usagesMenu.buildUsagesItems(usages, this, model);
+    List<Pos> usages = model.document.defToUsages.get(documentPosition);
+    var items = usages == null || usages.isEmpty()
+        ? noDefOrUsages()
+        : usagesMenu.buildUsagesItems(usages, this, model);
+
+    if (!usagesMenu.isVisible()) usagesMenu.display(position, items, this::onFocusGain);
+  }
+
+  private void showUsagesViaLocations(V2i position, Location[] locs) {
+    List<Pos> pos = new ArrayList<>();
+    for (Location loc : locs) {
+      pos.add(new Pos(loc.range.startLineNumber, loc.range.startColumn));
+    }
+    var items = pos.isEmpty()
+        ? noDefOrUsages()
+        : usagesMenu.buildUsagesItems(pos, this, model);
     if (!usagesMenu.isVisible()) usagesMenu.display(position, items, this::onFocusGain);
   }
 
@@ -920,11 +949,10 @@ public class EditorComponent implements Disposable {
   public final void gotoUsageMenuElement(Pos defPos) {
     setCaretLinePos(defPos.line, defPos.pos, false);
     int nextPos = caretCodeLine().nextPos(caretPos);
-    selection.startPos.set(caretLine, nextPos);
-    selection.endPos.set(caretLine, caretCharPos);
+    selection.endPos.set(caretLine, nextPos);
+    selection.startPos.set(caretLine, caretCharPos);
     usagesMenu.hide();
   }
-
 
   void provideReferences(int line, int column, boolean includeDeclaration) {
     var provider = registrations.findReferenceProvider(model.language(), model.uriScheme());
@@ -940,12 +968,12 @@ public class EditorComponent implements Disposable {
 
   }
 
-  void useDeclarationProvider(int line, int column) {
-    var p = registrations.findDeclarationProvider(model.language(), model.uriScheme());
-    if (p != null) {
-      p.provide(model, line, column, this::gotoDefinition, onError);
-    }
-  }
+//  void useDeclarationProvider(int line, int column) {
+//    var p = registrations.findDeclarationProvider(model.language(), model.uriScheme());
+//    if (p != null) {
+//      p.provide(model, line, column, this::gotoDefinition, onError);
+//    }
+//  }
 
   void useDocumentHighlightProvider(int line, int column) {
     var p = registrations.findDocumentHighlightProvider(model.language(), model.uriScheme());
@@ -960,41 +988,34 @@ public class EditorComponent implements Disposable {
 
   }
 
+  Pos computeCharPos(V2i position) {
+    return computeCharPos(position.x, position.y);
+  }
+
+  Pos computeCharPos(int positionX, int positionY) {
+    int line = Numbers.clamp(0, (positionY + vScrollPos) / lineHeight, model.document.length() - 1);
+    int documentXPosition = Math.max(0, positionX - vLineX + hScrollPos);
+    int charPos = model.document.line(line).computeCharPos(documentXPosition, g.mCanvas, fonts);
+    return new Pos(line, charPos);
+  }
+
   void onClickText(V2i position, boolean shift) {
-    int line = Numbers.clamp(0, (position.y + vScrollPos) / lineHeight, model.document.length() - 1);
-    int documentXPosition = Math.max(0, position.x - vLineX + hScrollPos);
-    int charPos = model.document.line(line).computeCaretLocation(documentXPosition, g.mCanvas, fonts);
+    Pos pos = computeCharPos(position);
 
     if (ctrlPressed) {
+      var elementStart = model.document.getElementStart(pos.line, pos.pos);
       var provider = registrations.findDefinitionProvider(model.language(), model.uriScheme());
-      if (provider == null) {
-        // Default def provider
-        var defPos = model.document.getDefinitionPos(line, documentXPosition);
-        if (defPos != null) {
-          gotoUsageMenuElement(defPos);
-          return;
-        }
+      if (provider != null) {
+        provider.provide(model, pos.line, pos.pos, (locs) -> gotoDefinition(position, locs), onError);
       } else {
-        provider.provide(model, line, charPos, this::gotoDefinition, onError);
-        return;
-      }
-      var usagesList = model.document.getUsagesList(line, documentXPosition);
-      if (usagesList != null && !usagesList.isEmpty()) {
-        if (usagesList.size() == 1) {
-          gotoUsageMenuElement(usagesList.get(0));
-          return;
-        } else if (!usagesMenu.isVisible())
-          usagesMenu.display(
-              position,
-              usagesMenu.buildUsagesItems(usagesList, this, model),
-              this::onFocusGain
-          );
+        // Default def provider
+        if (gotoByLocalProvider(position, elementStart)) return;
       }
     }
 
-    caretLine = line;
-    caretCharPos = charPos;
-    caretPos = model.document.line(line).computePixelLocation(caretCharPos, g.mCanvas, fonts);
+    caretLine = pos.line;
+    caretCharPos = pos.pos;
+    caretPos = model.document.line(pos.line).computePixelLocation(caretCharPos, g.mCanvas, fonts);
     computeUsages();
     startBlinking();
 
@@ -1007,11 +1028,44 @@ public class EditorComponent implements Disposable {
     selection.select(caretLine, caretCharPos);
   }
 
-  private void gotoDefinition(Location[] locs) {
-    gotoDefinition(locs[0]);
+  private boolean gotoByLocalProvider(V2i position, Pos elementStart) {
+    var defPos = model.document.usageToDef.get(elementStart);
+    if (defPos != null) {
+      gotoUsageMenuElement(defPos);
+      return true;
+    } else {
+      var usagesList = model.document.defToUsages.get(elementStart);
+      if (usagesList != null && !usagesList.isEmpty()) {
+        if (usagesList.size() == 1) {
+          gotoUsageMenuElement(usagesList.get(0));
+          return true;
+        } else if (!usagesMenu.isVisible())
+          usagesMenu.display(
+              position,
+              usagesMenu.buildUsagesItems(usagesList, this, model),
+              this::onFocusGain
+          );
+      }
+    }
+    return false;
+  }
+
+  private void gotoDefinition(V2i position, Location[] locs) {
+    switch (locs.length) {
+      case 0 -> {}
+      case 1 -> gotoDefinition(locs[0]);
+      default -> {
+        if (!gotoMenu.isVisible()) gotoMenu.display(
+            position,
+            gotoMenu.buildDefItems(locs, this, model),
+            this::onFocusGain
+        );
+      }
+    }
   }
 
   public void gotoDefinition(Location loc) {
+    if (gotoMenu.isVisible()) gotoMenu.hide();
     if (!Objects.equals(loc.uri, model.uri)) return;
     Range range = loc.range;
     setCaretLinePos(range.startLineNumber, range.startColumn, false);
@@ -1069,6 +1123,7 @@ public class EditorComponent implements Disposable {
     }
 
     if (usagesMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
+    if (gotoMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
     if (button == MOUSE_BUTTON_LEFT && clickCount == 2 && press) {
       onDoubleClickText(eventPosition);
       return true;
@@ -1094,6 +1149,7 @@ public class EditorComponent implements Disposable {
   public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
     eventPosition.set(event.position.x - compPos.x, event.position.y - compPos.y);
     if (usagesMenu.onMouseMove(eventPosition, setCursor)) return true;
+    if (gotoMenu.onMouseMove(eventPosition, setCursor)) return true;
 
     if (dragLock != null) {
       dragLock.accept(eventPosition);
@@ -1105,9 +1161,11 @@ public class EditorComponent implements Disposable {
     if (lineNumbers.onMouseMove(eventPosition, setCursor)) return true;
     if (onMouseMove(eventPosition)) {
       if (ctrlPressed) {
-        int line = Numbers.clamp(0, (eventPosition.y + vScrollPos) / lineHeight, model.document.length() - 1);
-        int documentXPosition = Math.max(0, eventPosition.x - vLineX + hScrollPos);
-        return model.document.hasDefOrUsages(line, documentXPosition) ? setCursor.set(Cursor.pointer) : setCursor.set(Cursor.text);
+        Pos pos = computeCharPos(eventPosition);
+        model.document.moveToElementStart(pos);
+        if (model.document.hasDefOrUsagesForElementPos(pos)) {
+          return setCursor.set(Cursor.pointer);
+        }
       }
       return setCursor.set(Cursor.text);
     }
@@ -1246,8 +1304,8 @@ public class EditorComponent implements Disposable {
 
   private boolean onMouseMove(V2i position) {
     return Rect.isInside(position,
-        new V2i(vLineX, 0),
-        new V2i(editorWidth(), editorHeight()));
+        vLineX, 0,
+        editorWidth(), editorHeight());
   }
 
   private boolean handleEditingKeys(KeyEvent event) {

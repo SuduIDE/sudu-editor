@@ -44,11 +44,18 @@ public class CodeLine {
     return elements[ind];
   }
 
-  public int getElementPos(int charPos) {
+  public int getElementPosDeprecated(int pixelPos) {
     if (iMeasure == null) return -1;
-    int ind = findEntryByPixel(charPos);
-    int sum = 0;
-    for (int i = 0; i < ind; i++) sum += elements[i].s.length();
+    return getElementStart(findEntryByPixel(pixelPos));
+  }
+
+  public int getElementStart(int charPos) {
+    int sum = 0, l = 0;
+    for (int i = 0, n = elements.length; i < n; i++) {
+      l = elements[i].s.length();
+      if (sum + l > charPos) break;
+      sum += l;
+    }
     return sum;
   }
 
@@ -254,7 +261,7 @@ public class CodeLine {
     return iMeasure;
   }
 
-  public int computeCaretLocation(int pixelLocation, Canvas mCanvas, FontDesk[] fonts) {
+  public int computeCharPos(int pixelLocation, Canvas mCanvas, FontDesk[] fonts) {
     int[] iMeasure = ensureIMeasure(mCanvas, fonts);
     if (elements.length == 0) return 0;
 

@@ -2,11 +2,7 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.Const;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.Colors;
-import org.sudu.experiments.demo.EditorComponent;
-import org.sudu.experiments.demo.EditorConst;
-import org.sudu.experiments.demo.Model;
-import org.sudu.experiments.demo.SetCursor;
+import org.sudu.experiments.demo.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -14,7 +10,10 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.parser.common.Pos;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class FindUsagesWindow {
@@ -113,35 +112,46 @@ public class FindUsagesWindow {
   }
 
   public final Supplier<FindUsagesItem[]> buildUsagesItems(List<Pos> usages, EditorComponent editorComponent, Model model) {
+    return buildItems(usages, null, editorComponent, model);
+  }
+
+  public final Supplier<FindUsagesItem[]> buildDefItems(Location[] defs, EditorComponent editorComponent, Model model) {
+    return buildItems(Collections.emptyList(), defs, editorComponent, model);
+  }
+
+  private Supplier<FindUsagesItem[]> buildItems(List<Pos> usages, Location[] defs, EditorComponent editorComponent, Model model) {
     FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
     int cnt = 0;
     int maxFileNameLen = 0;
     int maxLineLen = 0;
     int maxCodeContentLen = 0;
-    for (var pos : usages) {
+    int itemsLength = defs == null ? usages.size() : defs.length;
+    for (int i = 0; i < itemsLength; i++) {
+      int intLineNumber = defs == null ? usages.get(i).line :  defs[i].range.startLineNumber;
       // TODO(Get file names from server)
       String fileName = "Main.java";
-      String codeContent = model.document.line(pos.line).makeString().trim();
+      String codeContent = model.document.line(intLineNumber).makeString().trim();
       String codeContentFormatted = codeContent.length() > 43 ? codeContent.substring(0, 40) + "..." : codeContent;
-      String lineNumber = String.valueOf(pos.line + 1);
+      String lineNumber = String.valueOf(intLineNumber + 1);
       // noinspection DataFlowIssue
       maxFileNameLen = Math.max(fileName.length(), maxFileNameLen);
       maxLineLen = Math.max(lineNumber.length(), maxLineLen);
       maxCodeContentLen = Math.max(codeContentFormatted.length(), maxCodeContentLen);
     }
-    for (var pos : usages) {
+    for (int i = 0; i < itemsLength; i++) {
+      int intLineNumber = defs == null ? usages.get(i).line :  defs[i].range.startLineNumber;
       // TODO(Get file names from server)
       String fileName = formatFindUsagesItem(
           "Main.java",
           maxFileNameLen
       );
-      String codeContent = model.document.line(pos.line).makeString().trim();
+      String codeContent = model.document.line(intLineNumber).makeString().trim();
       String codeContentFormatted = formatFindUsagesItem(
           codeContent.length() > 43 ? codeContent.substring(0, 40) + "..." : codeContent,
           maxCodeContentLen
       );
       String lineNumber = formatFindUsagesItem(
-          String.valueOf(pos.line + 1),
+          String.valueOf(intLineNumber + 1),
           maxLineLen
       );
 
@@ -156,12 +166,23 @@ public class FindUsagesWindow {
         );
         break;
       }
+      Location def;
+      Pos pos;
+      if (defs == null) {
+        def = null;
+        pos = usages.get(i);
+      } else {
+        pos = null;
+        def = defs[i];
+      }
+      Runnable action = defs == null ? () -> editorComponent.gotoUsageMenuElement(pos) :
+          () -> editorComponent.gotoDefinition(def) ;
       tbb.addItem(
           fileName,
           lineNumber,
           codeContentFormatted,
           Colors.findUsagesColors,
-          () -> editorComponent.gotoUsageMenuElement(pos)
+          action
       );
     }
     return tbb.supplier();

@@ -17,4 +17,9 @@ public class DefDeclProvider extends LanguageSelectors {
         Consumer<Location[]> result,
         Consumer<String> onError);
   }
+
+  enum Type {
+    DEF,
+    DECL
+  }
 }

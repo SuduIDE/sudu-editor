@@ -280,29 +280,50 @@ public class Document {
     }
   }
 
-  public boolean hasDefOrUsages(int line, int pos) {
-    return hasDefinition(line, pos) || hasUsages(line, pos);
+  public boolean hasDefOrUsagesForElementPos(Pos elementPos) {
+    return usageToDef.containsKey(elementPos) || defToUsages.containsKey(elementPos);
   }
 
-  public boolean hasDefinition(int line, int pos) {
-    return getDefinitionPos(line, pos) != null;
+  public boolean hasDefOrUsagesForPos(Pos elementPos) {
+    return usageToDef.containsKey(elementPos) || defToUsages.containsKey(elementPos);
   }
 
-  public boolean hasUsages(int line, int pos) {
-    return getUsagesList(line, pos) != null;
+  public boolean hasDefOrUsagesDeprecated(int line, int pixelPos) {
+    return hasDefinition(line, pixelPos) || hasUsages(line, pixelPos);
   }
 
-  public Pos getDefinitionPos(int line, int pos) {
-    return usageToDef.get(getPosition(line, pos));
+  public boolean hasDefinition(int line, int pixelPos) {
+    return getDefinitionPosDeprecated(line, pixelPos) != null;
   }
 
-  public List<Pos> getUsagesList(int line, int pos) {
-    return defToUsages.get(getPosition(line, pos));
+  public boolean hasUsages(int line, int pixelPos) {
+    return getUsagesListDeprecated(line, pixelPos) != null;
   }
 
-  public Pos getPosition(int line, int pos) {
-    int charPos = line(line).getElementPos(pos);
+  public Pos getDefinitionPosDeprecated(int line, int pos) {
+    return usageToDef.get(getPositionDeprecated(line, pos));
+  }
+
+  public Pos getDefinitionPosByCharPos(int line, int pos) {
+    return usageToDef.get(getElementStart(line, pos));
+  }
+
+  public List<Pos> getUsagesListDeprecated(int line, int pos) {
+    return defToUsages.get(getPositionDeprecated(line, pos));
+  }
+
+  public Pos getPositionDeprecated(int line, int pixelPos) {
+    int charPos = line(line).getElementPosDeprecated(pixelPos);
     return new Pos(line, charPos);
+  }
+
+  public Pos getElementStart(int line, int charPos) {
+    int elemPos = line(line).getElementStart(charPos);
+    return new Pos(line, elemPos);
+  }
+
+  public void moveToElementStart(Pos pos) {
+    pos.pos = line(pos.line).getElementStart(pos.pos);
   }
 
   public V2i getLine(int ind) {

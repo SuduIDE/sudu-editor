@@ -15,6 +15,7 @@ import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.*;
 
+import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -75,7 +76,7 @@ public class DemoEdit0 extends Scene0 {
     tbb.addItem("open ...", Colors.popupText, this::showOpenFilePicker);
     tbb.addItem("goto >", Colors.popupText2, gotoItems(eventPosition));
     tbb.addItem("parser >", Colors.popupText2, parser());
-    if (1<0) tbb.addItem("old >", Colors.popupText2, oldDev());
+    if (1 < 0) tbb.addItem("old >", Colors.popupText2, oldDev());
     tbb.addItem("theme >", Colors.popupText2, themes());
     tbb.addItem("font size >", Colors.popupText2, fontSize());
     tbb.addItem("fonts >", Colors.popupText2, fontSelect());
@@ -93,55 +94,92 @@ public class DemoEdit0 extends Scene0 {
   }
 
   private Supplier<ToolbarItem[]> gotoItems(V2i eventPosition) {
-    return ArrayOp.supplier(
-        ti("Definition or usages", Colors.popupText, () -> findUsages(eventPosition))
-    );
+    return () -> {
+      ArrayList<ToolbarItem> l = new ArrayList<>();
+      Model model = editor().model();
+      String language = model.language();
+      String scheme = model.uriScheme();
+      EditorRegistrations reg = editor().registrations;
+
+      var declarationProvider = reg.findDeclarationProvider(language, scheme);
+
+      if (declarationProvider != null) {
+        l.add(ti(
+            "use declarationProvider",
+            Colors.popupText,
+            () -> findUsagesDefDecl(eventPosition, DefDeclProvider.Type.DECL)));
+      }
+
+      var definitionProvider = reg.findDefinitionProvider(language, scheme);
+
+      if (definitionProvider != null) {
+        l.add(ti(
+            "use definitionProvider",
+            Colors.popupText,
+            () -> findUsagesDefDecl(eventPosition, DefDeclProvider.Type.DEF)));
+      }
+
+      var refProvider = reg.findReferenceProvider(language, scheme);
+
+      if (refProvider != null) {
+        DebugHelper.dumpReferenceProvider(
+            refProvider,
+            model,
+            editor.computeCharPos(eventPosition));
+      }
+
+      l.add(ti(
+          "Definition or usages",
+          Colors.popupText,
+          () -> findUsagesDefDecl(eventPosition, null)));
+      return l.toArray(ToolbarItem[]::new);
+    };
   }
 
   private Supplier<ToolbarItem[]> parser() {
     return ArrayOp.supplier(
-            ti("Int", Colors.popupText, editor::debugPrintDocumentIntervals),
-            ti("Iter", Colors.popupText, editor::iterativeParsing),
-            ti("VP", Colors.popupText, editor::parseViewport),
-            ti("Rep", Colors.popupText, editor::parseFullFile));
+        ti("Int", Colors.popupText, editor::debugPrintDocumentIntervals),
+        ti("Iter", Colors.popupText, editor::iterativeParsing),
+        ti("VP", Colors.popupText, editor::parseViewport),
+        ti("Rep", Colors.popupText, editor::parseFullFile));
   }
 
   private Supplier<ToolbarItem[]> oldDev() {
     return ArrayOp.supplier(
-            ti("↓ move", Colors.popupText, editor::moveDown),
-            ti("■ stop", Colors.popupText, editor::stopMove),
-            ti("↑ move", Colors.popupText, editor::moveUp),
-            ti("toggleContrast", Colors.popupText, editor::toggleContrast),
-            ti("toggleXOffset", Colors.popupText, editor::toggleXOffset),
-            ti("toggleTails", Colors.popupText, editor::toggleTails));
+        ti("↓ move", Colors.popupText, editor::moveDown),
+        ti("■ stop", Colors.popupText, editor::stopMove),
+        ti("↑ move", Colors.popupText, editor::moveUp),
+        ti("toggleContrast", Colors.popupText, editor::toggleContrast),
+        ti("toggleXOffset", Colors.popupText, editor::toggleXOffset),
+        ti("toggleTails", Colors.popupText, editor::toggleTails));
   }
 
   private Supplier<ToolbarItem[]> themes() {
     return ArrayOp.supplier(
-            ti("Dark", Colors.popupText, editor::toggleDark),
-            ti("Light", Colors.popupText, editor::toggleLight)
+        ti("Dark", Colors.popupText, editor::toggleDark),
+        ti("Light", Colors.popupText, editor::toggleLight)
     );
   }
-  
+
   private Supplier<ToolbarItem[]> fontSize() {
     return ArrayOp.supplier(
-            ti("↑ increase", Colors.popupText, editor::increaseFont),
-            ti("↓ decrease", Colors.popupText, editor::decreaseFont));
+        ti("↑ increase", Colors.popupText, editor::increaseFont),
+        ti("↓ decrease", Colors.popupText, editor::decreaseFont));
   }
 
   private Supplier<ToolbarItem[]> fontSelect() {
     return ArrayOp.supplier(
-            ti("Segoe UI", Colors.rngToolButton(), this::setSegoeUI),
-            ti("Verdana", Colors.rngToolButton(), this::setVerdana),
-            ti("JetBrains Mono", Colors.rngToolButton(), this::setJetBrainsMono),
-            ti("Consolas", Colors.rngToolButton(), this::setConsolas));
+        ti("Segoe UI", Colors.rngToolButton(), this::setSegoeUI),
+        ti("Verdana", Colors.rngToolButton(), this::setVerdana),
+        ti("JetBrains Mono", Colors.rngToolButton(), this::setJetBrainsMono),
+        ti("Consolas", Colors.rngToolButton(), this::setConsolas));
   }
 
   private void pasteAction() {
     popupMenu.hide();
     api.window.readClipboardText(
-            editor::handleInsert,
-            onError("readClipboardText error: "));
+        editor::handleInsert,
+        onError("readClipboardText error: "));
   }
 
   private void cutAction() {
@@ -156,13 +194,26 @@ public class DemoEdit0 extends Scene0 {
 
   private Consumer<String> copyHandler() {
     return text -> api.window.writeClipboardText(text,
-            org.sudu.experiments.Const.emptyRunnable,
-            onError("writeClipboardText error: "));
+        org.sudu.experiments.Const.emptyRunnable,
+        onError("writeClipboardText error: "));
   }
 
-  private void findUsages(V2i eventPosition) {
+  private void findUsages(V2i eventPosition, ReferenceProvider.Provider provider) {
     popupMenu.hide();
-    editor.findUsages(eventPosition);
+    editor.findUsages(eventPosition, provider);
+  }
+
+  private void findUsagesDefDecl(V2i eventPosition, DefDeclProvider.Type type) {
+    popupMenu.hide();
+    Model model = editor().model();
+    String language = model.language();
+    String scheme = model.uriScheme();
+    EditorRegistrations reg = editor().registrations;
+    DefDeclProvider.Provider provider = type != null ? switch (type) {
+      case DEF -> reg.findDefinitionProvider(language, scheme);
+      case DECL -> reg.findDeclarationProvider(language, scheme);
+    } : null;
+    editor.findUsages(eventPosition, provider);
   }
 
   static Consumer<Throwable> onError(String s) {
@@ -238,7 +289,7 @@ public class DemoEdit0 extends Scene0 {
     @Override
     public boolean onMouseMove(MouseEvent event) {
       return popupMenu.onMouseMove(event.position, setCursor)
-          ||  editor.onMouseMove(event, setCursor);
+          || editor.onMouseMove(event, setCursor);
     }
 
     @Override

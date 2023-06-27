@@ -12,4 +12,10 @@ public class Rect {
         point.x >= posX && point.x < (posX + size.x) &&
         point.y >= posY && point.y < (posY + size.y);
   }
+
+  public static boolean isInside(V2i point, int posX, int posY, int sizeX, int sizeY) {
+    return
+        point.x >= posX && point.x < (posX + sizeX) &&
+        point.y >= posY && point.y < (posY + sizeY);
+  }
 }
