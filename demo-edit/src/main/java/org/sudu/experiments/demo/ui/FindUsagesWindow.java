@@ -115,35 +115,12 @@ public class FindUsagesWindow {
   public final Supplier<FindUsagesItem[]> buildUsagesItems(List<Pos> usages, EditorComponent editorComponent, Model model) {
     FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
     int cnt = 0;
-    int maxFileNameLen = 0;
-    int maxLineLen = 0;
-    int maxCodeContentLen = 0;
     for (var pos : usages) {
       // TODO(Get file names from server)
       String fileName = "Main.java";
       String codeContent = model.document.line(pos.line).makeString().trim();
       String codeContentFormatted = codeContent.length() > 43 ? codeContent.substring(0, 40) + "..." : codeContent;
       String lineNumber = String.valueOf(pos.line + 1);
-      // noinspection DataFlowIssue
-      maxFileNameLen = Math.max(fileName.length(), maxFileNameLen);
-      maxLineLen = Math.max(lineNumber.length(), maxLineLen);
-      maxCodeContentLen = Math.max(codeContentFormatted.length(), maxCodeContentLen);
-    }
-    for (var pos : usages) {
-      // TODO(Get file names from server)
-      String fileName = formatFindUsagesItem(
-          "Main.java",
-          maxFileNameLen
-      );
-      String codeContent = model.document.line(pos.line).makeString().trim();
-      String codeContentFormatted = formatFindUsagesItem(
-          codeContent.length() > 43 ? codeContent.substring(0, 40) + "..." : codeContent,
-          maxCodeContentLen
-      );
-      String lineNumber = formatFindUsagesItem(
-          String.valueOf(pos.line + 1),
-          maxLineLen
-      );
 
       if (++cnt > EditorConst.MAX_SHOW_USAGES_NUMBER) {
         tbb.addItem(
@@ -165,14 +142,6 @@ public class FindUsagesWindow {
       );
     }
     return tbb.supplier();
-  }
-
-  private String formatFindUsagesItem(String item, int maxLength) {
-    StringBuilder s = new StringBuilder();
-    for (int i = 0; i < Math.max(0, maxLength - item.length()); ++i) {
-      s.append(" ");
-    }
-    return item + s;
   }
 
   public boolean handleUsagesMenuKey(KeyEvent event) {

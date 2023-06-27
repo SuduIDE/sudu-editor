@@ -94,14 +94,30 @@ public class FindUsagesDialog {
     textXPad = Numbers.iRnd(font.WWidth);
     int tw = 0;
 
-    for (FindUsagesItem item : items) {
+    int maxFileNameLen = 0;
+    int maxLineLen = 0;
+    int maxCodeContentLen = 0;
+    for (FindUsagesItem item: items) {
+      // TODO(Minor) Remove this crutch when the scroll appears
+      if (item.fileName.startsWith("...")) continue;
       int mFile = (int) (mCanvas.measureText(item.fileName) + 7.f / 8);
       int mLines = (int) (mCanvas.measureText(item.lineNumber) + 7.f / 8);
       int mCodeContent = (int) (mCanvas.measureText(item.codeContent) + 7.f / 8);
+      maxFileNameLen = Math.max(maxFileNameLen, mFile);
+      maxLineLen = Math.max(maxLineLen, mLines);
+      maxCodeContentLen = Math.max(maxCodeContentLen, mCodeContent);
+    }
 
-      int wFile = textXPad + mFile;
-      int wLines = mLines + textXPad;
-      int wCodeContent = mCodeContent + textXPad;
+    for (FindUsagesItem item : items) {
+      int wFile = textXPad + maxFileNameLen;
+      int wLines = maxLineLen + textXPad;
+      int wCodeContent = maxCodeContentLen + textXPad;
+      // TODO(Minor) Remove this crutch when the scroll appears
+      if (item.fileName.startsWith("...")) {
+        wFile = (int) (mCanvas.measureText(item.fileName) + 7.f / 8) + textXPad;
+        wLines = 0;
+        wCodeContent = 0;
+      }
       maxW = Math.max(maxW, wFile + wLines + wCodeContent);
 
       item.tFiles.pos.x = tw;
@@ -109,7 +125,7 @@ public class FindUsagesDialog {
       item.tFiles.size.x = wFile;
       item.tFiles.size.y = textHeight;
       item.tFiles.textureRegion.set(tw, 0, wFile, textHeight);
-      item.tLines.pos.x = wFile + textXPad;
+      item.tLines.pos.x = tw + wFile;
       item.tLines.pos.y = 0;
       item.tLines.size.x = wLines;
       item.tLines.size.y = textHeight;
