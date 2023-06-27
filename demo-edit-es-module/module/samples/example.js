@@ -1,9 +1,9 @@
-import { newEditor, newTextModel } from "./src/editor.js";
 
-function main() {
-    newEditor({containerId: "editor", workerUrl: "./src/worker.js"})
-        .then(useEditor, error => console.error(error));
-}
+const editorApi = await import("../src/editor.js");
+
+console.log("main");
+editorApi.newEditor({containerId: "editor", workerUrl: "../src/worker.js"})
+    .then(useEditor, error => console.error(error));
 
 const initialText =
     "This is an experimental project\n" +
@@ -19,7 +19,7 @@ function modelChanged(modelChanged) {
 function useEditor(editor) {
     editor.focus();
 
-    let model = newTextModel(initialText, "language", "urlNew")
+    let model = editorApi.newTextModel(initialText, "language", "urlNew")
 
     editor.onDidChangeModel(modelChanged);
     editor.setModel(model);
@@ -39,4 +39,4 @@ function useEditor(editor) {
     };
 }
 
-document.addEventListener("DOMContentLoaded", main)
+document.addEventListener("DOMContentLoaded", () => console.log("DOMContentLoaded"))
