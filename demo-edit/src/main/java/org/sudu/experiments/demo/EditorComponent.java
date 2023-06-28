@@ -929,8 +929,8 @@ public class EditorComponent implements Disposable {
     }
     var items = pos.isEmpty()
         ? noDefOrUsages()
-        : usagesMenu.buildUsagesItems(pos, this, model);
-    if (!usagesMenu.isVisible()) usagesMenu.display(position, items, this::onFocusGain);
+        : gotoMenu.buildDefItems(locs, this, model);
+    if (!gotoMenu.isVisible()) gotoMenu.display(position, items, this::onFocusGain);
   }
 
   private Supplier<FindUsagesItem[]> noDefOrUsages() {

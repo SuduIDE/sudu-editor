@@ -125,10 +125,7 @@ public class DemoEdit0 extends Scene0 {
         l.add(ti(
             "use referenceProvider",
             Colors.popupText,
-            () -> DebugHelper.dumpReferenceProvider(
-                refProvider,
-                model,
-                editor.computeCharPos(eventPosition))));
+            () -> findUsages(eventPosition, refProvider)));
       }
 
       l.add(ti(
