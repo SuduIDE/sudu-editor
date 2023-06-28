@@ -2,25 +2,17 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.Const;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.Colors;
-import org.sudu.experiments.demo.EditorComponent;
-import org.sudu.experiments.demo.EditorConst;
-import org.sudu.experiments.demo.Model;
-import org.sudu.experiments.demo.SetCursor;
+import org.sudu.experiments.demo.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.parser.common.Pos;
-import org.sudu.experiments.demo.Location;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class FindUsagesWindow {
   private final V2i windowSize = new V2i();

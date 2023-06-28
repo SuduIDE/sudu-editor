@@ -3,7 +3,10 @@
 
 package org.sudu.experiments.demo;
 
-import org.sudu.experiments.*;
+import org.sudu.experiments.Debug;
+import org.sudu.experiments.Scene0;
+import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.ui.PopupMenu;
 import org.sudu.experiments.demo.ui.ToolbarItem;
 import org.sudu.experiments.demo.ui.ToolbarItemBuilder;
@@ -13,13 +16,14 @@ import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.*;
+import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.math.Numbers;
+import org.sudu.experiments.math.V2i;
 
-import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static org.sudu.experiments.demo.ui.ToolbarItemBuilder.*;
+import static org.sudu.experiments.demo.ui.ToolbarItemBuilder.ti;
 
 public class DemoEdit0 extends Scene0 {
 
@@ -72,30 +76,41 @@ public class DemoEdit0 extends Scene0 {
   protected Supplier<ToolbarItem[]> popupMenuContent(V2i eventPosition) {
     ToolbarItemBuilder tbb = new ToolbarItemBuilder();
 
+    gotoItems(eventPosition, tbb);
     cutCopyPaste(tbb);
-    tbb.addItem("open ...", Colors.popupText, this::showOpenFilePicker);
-    tbb.addItem("goto >", Colors.popupText2, gotoItems(eventPosition));
-    tbb.addItem("parser >", Colors.popupText2, parser());
     if (1 < 0) tbb.addItem("old >", Colors.popupText2, oldDev());
-    tbb.addItem("theme >", Colors.popupText2, themes());
-    tbb.addItem("font size >", Colors.popupText2, fontSize());
-    tbb.addItem("fonts >", Colors.popupText2, fontSelect());
-
+    tbb.addItem("Settings >", Colors.popupText2, settingsItems());
+    tbb.addItem("Development >", Colors.popupText2, devItems());
     return tbb.supplier();
   }
 
   private void cutCopyPaste(ToolbarItemBuilder tbb) {
-    tbb.addItem("cut", Colors.popupText, this::cutAction);
-    tbb.addItem("copy", Colors.popupText, this::copyAction);
+    if (!editor().readonly) {
+      tbb.addItem("Cut", Colors.popupText, this::cutAction);
+    }
+    tbb.addItem("Copy", Colors.popupText, this::copyAction);
 
-    if (api.window.isReadClipboardTextSupported()) {
-      tbb.addItem("paste", Colors.popupText, this::pasteAction);
+    if (!editor().readonly && api.window.isReadClipboardTextSupported()) {
+      tbb.addItem("Paste", Colors.popupText, this::pasteAction);
     }
   }
 
-  private Supplier<ToolbarItem[]> gotoItems(V2i eventPosition) {
-    return () -> {
-      ArrayList<ToolbarItem> l = new ArrayList<>();
+  private Supplier<ToolbarItem[]> settingsItems() {
+    ToolbarItemBuilder tbb = new ToolbarItemBuilder();
+    tbb.addItem("Theme >", Colors.popupText2, themes());
+    tbb.addItem("Font size >", Colors.popupText2, fontSize());
+    tbb.addItem("Fonts >", Colors.popupText2, fontSelect());
+    return tbb.supplier();
+  }
+
+  private Supplier<ToolbarItem[]> devItems() {
+    ToolbarItemBuilder tbb = new ToolbarItemBuilder();
+    tbb.addItem("parser >", Colors.popupText2, parser());
+    tbb.addItem("open ...", Colors.popupText, this::showOpenFilePicker);
+    return tbb.supplier();
+  }
+
+  private void gotoItems(V2i eventPosition, ToolbarItemBuilder tbb) {
       Model model = editor().model();
       String language = model.language();
       String scheme = model.uriScheme();
@@ -104,36 +119,34 @@ public class DemoEdit0 extends Scene0 {
       var declarationProvider = reg.findDeclarationProvider(language, scheme);
 
       if (declarationProvider != null) {
-        l.add(ti(
-            "use declarationProvider",
+        tbb.addItem(
+            "Go to Declaration",
             Colors.popupText,
-            () -> findUsagesDefDecl(eventPosition, DefDeclProvider.Type.DECL)));
+            () -> findUsagesDefDecl(eventPosition, DefDeclProvider.Type.DECL));
       }
 
       var definitionProvider = reg.findDefinitionProvider(language, scheme);
 
       if (definitionProvider != null) {
-        l.add(ti(
-            "use definitionProvider",
+        tbb.addItem(
+            "Go to Definition",
             Colors.popupText,
-            () -> findUsagesDefDecl(eventPosition, DefDeclProvider.Type.DEF)));
+            () -> findUsagesDefDecl(eventPosition, DefDeclProvider.Type.DEF));
       }
 
       var refProvider = reg.findReferenceProvider(language, scheme);
 
       if (refProvider != null) {
-        l.add(ti(
-            "use referenceProvider",
+        tbb.addItem(
+            "Go to References",
             Colors.popupText,
-            () -> findUsages(eventPosition)));
+            () -> findUsages(eventPosition));
       }
 
-      l.add(ti(
-          "Definition or usages",
+      tbb.addItem(
+          "Go to (local)",
           Colors.popupText,
-          () -> findUsagesDefDecl(eventPosition, null)));
-      return l.toArray(ToolbarItem[]::new);
-    };
+          () -> findUsagesDefDecl(eventPosition, null));
   }
 
   private Supplier<ToolbarItem[]> parser() {
