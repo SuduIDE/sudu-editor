@@ -16,6 +16,14 @@ public class Uri {
     this.nativeObject = nativeObject;
   }
 
+  public String getFileName() {
+    if (path == null) {
+      return "";
+    }
+    var i = path.lastIndexOf("/");
+    return i == -1 ? path : path.substring(i + 1);
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

@@ -119,6 +119,10 @@ public class FindUsagesWindow {
     return buildItems(Collections.emptyList(), defs, editorComponent, model);
   }
 
+  private String fileName(Uri uri) {
+    return uri != null ? uri.getFileName() : "";
+  }
+
   private FindUsagesItem[] buildItems(List<Pos> usages, Location[] defs, EditorComponent editorComponent, Model model) {
     FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
     int cnt = 0;
@@ -126,16 +130,18 @@ public class FindUsagesWindow {
     for (int i = 0; i < itemsLength; i++) {
       int intLineNumber;
       String codeContent;
+      String fileName;
       if (defs == null) {
         intLineNumber = usages.get(i).line;
         codeContent = model.document.line(intLineNumber).makeString().trim();
+        fileName = fileName(model.uri);
       } else {
         intLineNumber = defs[i].range.startLineNumber;
         codeContent = Objects.equals(editorComponent.model().uri, defs[i].uri)
             ? model.document.line(intLineNumber).makeString().trim() : "other file...";
+
+        fileName = fileName(defs[i].uri);
       }
-      // TODO(Get file names from server)
-      String fileName = "Main.java";
       String codeContentFormatted = codeContent.length() > 43 ? codeContent.substring(0, 40) + "..." : codeContent;
       String lineNumber = String.valueOf(intLineNumber + 1);
 

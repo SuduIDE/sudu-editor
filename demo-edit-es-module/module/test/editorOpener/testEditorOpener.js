@@ -1,8 +1,8 @@
 import {newEditor, newTextModel} from "../../src/editor.js";
 import {initialTextJava, workerUrl} from "../utils.js";
 
-const uriBase = {path: "base"};
-const otherUri = {path: "other"};
+const uriBase = {path: "kek/Base.java"};
+const otherUri = {path: "lol/kek/Other.java"};
 
 function test1(editor) {
     let model = newTextModel(initialTextJava, "java", uriBase);
