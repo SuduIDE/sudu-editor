@@ -6,6 +6,7 @@ import org.sudu.experiments.parser.ErrorHighlightingStrategy;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.SplitToken;
 import org.sudu.experiments.parser.common.BaseFullParser;
+import org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.help.JavaStringSplitter;
@@ -37,20 +38,30 @@ public class JavaFullParser extends BaseFullParser {
   private int[] parse(int sourceLength, long parsingStartTime) {
     JavaParser parser = new JavaParser(tokenStream);
     parser.setErrorHandler(new ErrorHighlightingStrategy());
+    parser.removeErrorListeners();
+    parser.addErrorListener(parserRecognitionListener);
 
     var compUnit = parser.compilationUnit();
+    if (parserErrorOccurred()) CppLexerHighlighting.highlightTokens(allTokens, tokenTypes);
+    else highlightTokens();
+
     ParseTreeWalker walker = new ParseTreeWalker();
-
-    highlightTokens();
-
     var classWalker = new JavaClassWalker();
-    walker.walk(classWalker, compUnit);
+    int[] result;
 
-    var javaWalker = new JavaWalker(tokenTypes, tokenStyles, classWalker.dummy, usageToDefinition);
-    walker.walk(javaWalker, compUnit);
-    classWalker.intervals.add(new Interval(0, sourceLength, IntervalTypes.Java.COMP_UNIT));
+    try {
+      walker.walk(classWalker, compUnit);
 
-    var result = getInts(classWalker.intervals);
+      var javaWalker = new JavaWalker(tokenTypes, tokenStyles, classWalker.dummy, classWalker.types, usageToDefinition);
+      walker.walk(javaWalker, compUnit);
+      classWalker.intervals.add(new Interval(0, sourceLength, IntervalTypes.Java.COMP_UNIT));
+
+      result = getInts(classWalker.intervals);
+    } catch (Exception e) {
+      e.printStackTrace();
+      result = getInts(List.of(defaultInterval()));
+    }
+
     System.out.println("Parsing full java time: " + (System.currentTimeMillis() - parsingStartTime) + "ms");
     return result;
   }

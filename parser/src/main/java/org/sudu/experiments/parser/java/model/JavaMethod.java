@@ -1,18 +1,16 @@
 package org.sudu.experiments.parser.java.model;
 
-import org.sudu.experiments.parser.common.Decl;
 import org.sudu.experiments.parser.common.Pos;
 
-import java.util.List;
 import java.util.Objects;
 
 public class JavaMethod extends ClassBodyDecl {
 
-  public List<Decl> arguments;
+  public int numberOfArgs;
 
-  public JavaMethod(String name, Pos position, boolean isStatic, List<Decl> arguments) {
+  public JavaMethod(String name, Pos position, boolean isStatic, int numberOfArgs) {
     super(name, position, isStatic);
-    this.arguments = arguments;
+    this.numberOfArgs = numberOfArgs;
   }
 
   @Override
@@ -21,11 +19,11 @@ public class JavaMethod extends ClassBodyDecl {
     if (o == null || getClass() != o.getClass()) return false;
     if (!super.equals(o)) return false;
     JavaMethod method = (JavaMethod) o;
-    return isStatic == method.isStatic && Objects.equals(arguments, method.arguments);
+    return isStatic == method.isStatic && Objects.equals(numberOfArgs, method.numberOfArgs);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), isStatic, arguments);
+    return Objects.hash(super.hashCode(), isStatic, numberOfArgs);
   }
 }

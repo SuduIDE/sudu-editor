@@ -18,11 +18,12 @@ public abstract class BaseParser {
 
   protected CommonTokenStream tokenStream;
 
-  protected TokenRecognitionListener tokenRecognitionListener;
+  protected ErrorRecognizerListener tokenRecognitionListener;
+  protected ErrorRecognizerListener parserRecognitionListener;
 
   protected abstract boolean isMultilineToken(int tokenType);
   protected abstract boolean isComment(int tokenType);
-  protected boolean isErrorToken(int tokenType){return false;};
+  protected boolean isErrorToken(int tokenType){return false;}
   protected abstract Lexer initLexer(CharStream stream);
   protected abstract boolean tokenFilter(Token token);
 
@@ -50,16 +51,14 @@ public abstract class BaseParser {
   protected void initLexerWithStream(Supplier<String> source, int sourceLength, CharStream stream) {
     fileSource = source;
     fileSourceLength = sourceLength;
-    tokenRecognitionListener = new TokenRecognitionListener();
+    tokenRecognitionListener = new ErrorRecognizerListener();
+    parserRecognitionListener = new ErrorRecognizerListener();
+
     Lexer lexer = initLexer(stream);
     lexer.addErrorListener(tokenRecognitionListener);
 
     tokenStream = new CommonTokenStream(lexer);
     tokenStream.fill();
-/*    if (tokenErrorOccurred()) {
-      makeErrorToken();
-      return;
-    }*/
 
     allTokens = tokenStream.getTokens();
     tokenTypes = new int[allTokens.size()];
@@ -67,7 +66,11 @@ public abstract class BaseParser {
   }
 
   protected boolean tokenErrorOccurred() {
-    return tokenRecognitionListener.syntaxErrorOccurred;
+    return tokenRecognitionListener.errorOccurred;
+  }
+
+  protected boolean parserErrorOccurred() {
+    return parserRecognitionListener.errorOccurred;
   }
 
   protected void makeErrorToken() {
@@ -202,6 +205,10 @@ public abstract class BaseParser {
       if (isComment(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.COMMENT;
       if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
     }
+  }
+
+  protected Interval defaultInterval() {
+    return new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.UNKNOWN);
   }
 
 }

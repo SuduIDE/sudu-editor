@@ -73,7 +73,7 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser {
 
     var classWalker = new JavaClassWalker();
     walker.walk(classWalker, ruleContext);
-    var javaWalker = new JavaWalker(tokenTypes, tokenStyles, classWalker.dummy, new HashMap<>());
+    var javaWalker = new JavaWalker(tokenTypes, tokenStyles, classWalker.dummy, classWalker.types, new HashMap<>());
     walker.walk(javaWalker, ruleContext);
     return List.of();
   }
