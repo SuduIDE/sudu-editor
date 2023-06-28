@@ -51,11 +51,15 @@ interface ITextModel extends IDisposable {
 type ProviderValue<T> = T | undefined | null;
 type ProviderResult<T> = ProviderValue<T> | Promise<ProviderValue<T>>;
 
+// Monaco like IPosition line and column starts with 1:
+//      1st line has number 1,
+//      first char column is 1, 1st glyph is between column 1 and column 2
 interface IPosition {
     column: number,
     lineNumber: number
 }
 
+// numeration starts from 1
 interface IRange {
     endColumn: number,
     endLineNumber: number,

@@ -89,14 +89,14 @@ public class JsCodeEditor0 implements JsCodeEditor {
   public void setPosition(JSObject selectionOrPosition) {
     if (JsPosition.isInstance(selectionOrPosition)) {
       JsPosition pos = selectionOrPosition.cast();
-      editor.setPosition(pos.getColumn(), pos.getLineNumber());
+      editor.setPosition(pos.getColumn() - 1, pos.getLineNumber() - 1);
     } else {
       JsRange sel = selectionOrPosition.cast();
       editor.setSelection(
-          sel.getEndColumn(),
-          sel.getEndLineNumber(),
-          sel.getStartColumn(),
-          sel.getStartLineNumber()
+          sel.getEndColumn() - 1,
+          sel.getEndLineNumber() - 1,
+          sel.getStartColumn() - 1,
+          sel.getStartLineNumber() - 1
       );
     }
   }
@@ -149,7 +149,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
         PromiseUtils.<JSArray<JsLocation>>promiseOrT(
             provider.provideDefinition(
                 JsTextModel.fromJava(model),
-                JsPosition.create(column, line),
+                JsPosition.fromJava(column, line),
                 JsCancellationToken.create()),
             jsArr -> acceptLocations(jsArr, onResult, onError),
             onError);
@@ -160,7 +160,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
         PromiseUtils.<JSArray<JsLocation>>promiseOrT(
             provider.provideDeclaration(
                 JsTextModel.fromJava(model),
-                JsPosition.create(column, line),
+                JsPosition.fromJava(column, line),
                 JsCancellationToken.create()),
             jsArr -> acceptLocations(jsArr, onResult, onError),
             onError);
@@ -171,7 +171,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
         PromiseUtils.<JSArray<JsLocation>>promiseOrT(
             provider.provideReferences(
                 JsTextModel.fromJava(model),
-                JsPosition.create(column, line),
+                JsPosition.fromJava(column, line),
                 JsReferenceProvider.Context.create(includeDecl),
                 JsCancellationToken.create()),
             jsArr -> acceptLocations(jsArr, onResult, onError),
@@ -183,7 +183,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
         PromiseUtils.<JSArray<JsDocumentHighlight>>promiseOrT(
             provider.provideDocumentHighlights(
                 JsTextModel.fromJava(model),
-                JsPosition.create(column, line),
+                JsPosition.fromJava(column, line),
                 JsCancellationToken.create()),
             jsArr -> acceptHighlight(jsArr, onResult, onError),
             onError);
@@ -222,10 +222,8 @@ public class JsCodeEditor0 implements JsCodeEditor {
   }
 
   static JSObject selectionOrPositionToJs(Selection s, Pos pos) {
-    if (s != null) return JsRange.create(
-          s.endPos.charInd, s.endPos.line,
-          s.startPos.charInd, s.startPos.line);
-    if (pos != null) return JsPosition.create(pos.pos, pos.line);
+    if (s != null) return JsRange.fromJava(s);
+    if (pos != null) return JsPosition.fromJava(pos);
     return JSObjects.undefined();
   }
 

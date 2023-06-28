@@ -35,16 +35,12 @@ public class JsTextModel implements JsITextModel {
   @Override
   public int getOffsetAt(JsPosition position) {
     return javaModel.document.getOffsetAt(
-        position.getLineNumber(), position.getColumn());
+        position.getLineNumber() - 1, position.getColumn() - 1);
   }
 
   @Override
   public JsPosition getPositionAt(int offset) {
-    return makeJsPos(javaModel.document.getPositionAt(offset));
-  }
-
-  static JsPosition makeJsPos(Pos pos) {
-    return JsPosition.create(pos.pos, pos.line);
+    return JsPosition.fromJava(javaModel.document.getPositionAt(offset));
   }
 
   public JsTextModel(JSString text, JSString language, JsUri uri) {

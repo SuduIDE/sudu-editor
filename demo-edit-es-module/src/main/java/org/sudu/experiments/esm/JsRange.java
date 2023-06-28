@@ -1,6 +1,7 @@
 package org.sudu.experiments.esm;
 
 import org.sudu.experiments.demo.Range;
+import org.sudu.experiments.demo.Selection;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
@@ -15,12 +16,18 @@ public abstract class JsRange implements JSObject {
       "return { endColumn: endColumn, endLineNumber: endLineNumber, " +
           "startColumn: startColumn, startLineNumber: startLineNumber}"
   )
-  public static native JsRange create(int endColumn, int endLineNumber, int startColumn, int startLineNumber);
+  static native JsRange create(int endColumn, int endLineNumber, int startColumn, int startLineNumber);
+
+  public static JsRange fromJava(Selection s) {
+    return JsRange.create(
+        s.endPos.charInd + 1, s.endPos.line + 1,
+        s.startPos.charInd + 1, s.startPos.line + 1);
+  }
 
   public void toJava(Range range) {
-    range.startColumn = getStartColumn();
-    range.startLineNumber = getStartLineNumber();
-    range.endColumn = getEndColumn();
-    range.endLineNumber = getEndLineNumber();
+    range.startColumn = getStartColumn() - 1;
+    range.startLineNumber = getStartLineNumber() - 1;
+    range.endColumn = getEndColumn() - 1;
+    range.endLineNumber = getEndLineNumber() - 1;
   }
 }
