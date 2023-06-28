@@ -85,10 +85,12 @@ public class DemoEdit0 extends Scene0 {
   }
 
   private void cutCopyPaste(ToolbarItemBuilder tbb) {
-    tbb.addItem("cut", Colors.popupText, this::cutAction);
+    if (!editor().readonly) {
+      tbb.addItem("cut", Colors.popupText, this::cutAction);
+    }
     tbb.addItem("copy", Colors.popupText, this::copyAction);
 
-    if (api.window.isReadClipboardTextSupported()) {
+    if (!editor().readonly && api.window.isReadClipboardTextSupported()) {
       tbb.addItem("paste", Colors.popupText, this::pasteAction);
     }
   }

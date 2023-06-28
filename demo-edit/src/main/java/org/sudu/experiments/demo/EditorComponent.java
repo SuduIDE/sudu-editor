@@ -1285,6 +1285,7 @@ public class EditorComponent implements Disposable {
   }
 
   public boolean onCopy(Consumer<String> setText, boolean isCut) {
+    if (isCut && readonly) return false;
     var left = selection.getLeftPos();
     int line = left.line;
     String result;
