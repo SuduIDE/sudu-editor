@@ -1066,8 +1066,20 @@ public class EditorComponent implements Disposable {
 
   public void gotoDefinition(Location loc) {
     if (gotoMenu.isVisible()) gotoMenu.hide();
-    if (!Objects.equals(loc.uri, model.uri)) return;
-    Range range = loc.range;
+    if (!Objects.equals(loc.uri, model.uri)) {
+      EditorOpener editorOpener = registrations.findOpener();
+      if (editorOpener != null) {
+        api.window.runLater(() -> {
+          editorOpener.open(loc.uri, loc.range.toSelection(), null);
+          updateSelectionViaRange(loc.range);
+        });
+      }
+    } else {
+      updateSelectionViaRange(loc.range);
+    }
+  }
+
+  private void updateSelectionViaRange(Range range) {
     setCaretLinePos(range.startLineNumber, range.startColumn, false);
     selection.startPos.set(range.startLineNumber, range.startColumn);
     selection.endPos.set(range.endLineNumber, range.endColumn);
