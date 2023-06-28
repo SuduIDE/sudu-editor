@@ -12,6 +12,7 @@ import org.sudu.experiments.parser.common.Pos;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -127,10 +128,18 @@ public class FindUsagesWindow {
     int maxCodeContentLen = 0;
     int itemsLength = defs == null ? usages.size() : defs.length;
     for (int i = 0; i < itemsLength; i++) {
-      int intLineNumber = defs == null ? usages.get(i).line :  defs[i].range.startLineNumber;
+      int intLineNumber;
+      String codeContent;
+      if (defs == null) {
+        intLineNumber = usages.get(i).line;
+        codeContent = model.document.line(intLineNumber).makeString().trim();
+      } else {
+        intLineNumber = defs[i].range.startLineNumber;
+        codeContent = Objects.equals(editorComponent.model().uri, defs[i].uri)
+            ? model.document.line(intLineNumber).makeString().trim() : "other file...";
+      }
       // TODO(Get file names from server)
       String fileName = "Main.java";
-      String codeContent = model.document.line(intLineNumber).makeString().trim();
       String codeContentFormatted = codeContent.length() > 43 ? codeContent.substring(0, 40) + "..." : codeContent;
       String lineNumber = String.valueOf(intLineNumber + 1);
       // noinspection DataFlowIssue
@@ -139,13 +148,21 @@ public class FindUsagesWindow {
       maxCodeContentLen = Math.max(codeContentFormatted.length(), maxCodeContentLen);
     }
     for (int i = 0; i < itemsLength; i++) {
-      int intLineNumber = defs == null ? usages.get(i).line :  defs[i].range.startLineNumber;
+      int intLineNumber;
+      String codeContent;
+      if (defs == null) {
+        intLineNumber = usages.get(i).line;
+        codeContent = model.document.line(intLineNumber).makeString().trim();
+      } else {
+        intLineNumber = defs[i].range.startLineNumber;
+        codeContent = Objects.equals(editorComponent.model().uri, defs[i].uri)
+            ? model.document.line(intLineNumber).makeString().trim() : "other file...";
+      }
       // TODO(Get file names from server)
       String fileName = formatFindUsagesItem(
           "Main.java",
           maxFileNameLen
       );
-      String codeContent = model.document.line(intLineNumber).makeString().trim();
       String codeContentFormatted = formatFindUsagesItem(
           codeContent.length() > 43 ? codeContent.substring(0, 40) + "..." : codeContent,
           maxCodeContentLen
