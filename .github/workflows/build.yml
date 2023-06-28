@@ -82,7 +82,7 @@ jobs:
         if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           cd $GITHUB_WORKSPACE/sudu-editor 
-          mvn package -am -pl demo-edit-es-module -P release
+          mvn package -am -pl demo-edit-es-module
 
       -
         name: Upload release artifacts to OBS
@@ -90,8 +90,8 @@ jobs:
         run: |
           NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
           
-          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/editor.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
-          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/worker.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
+          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/editor.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
+          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/worker.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
       -
         name: Maven Sudu Editor
         run: |
@@ -103,8 +103,8 @@ jobs:
         run: |
           NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
 
-          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/editor.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
-          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/worker.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
+          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/editor.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
+          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/worker.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
       -
         name: Save Maven Cache
         if: github.event_name == 'workflow_dispatch'
