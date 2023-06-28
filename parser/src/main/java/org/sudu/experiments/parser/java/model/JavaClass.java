@@ -11,6 +11,7 @@ public class JavaClass extends Decl {
 
   public List<JavaField> fields;
   public List<JavaMethod> methods;
+  public List<JavaConstructor> constructors;
   public List<JavaClass> nestedClasses;
   public JavaClass innerClass;
 
@@ -21,6 +22,7 @@ public class JavaClass extends Decl {
     this.innerClass = innerClass;
     this.fields = new ArrayList<>();
     this.methods = new ArrayList<>();
+    this.constructors = new ArrayList<>();
     this.nestedClasses = new ArrayList<>();
   }
 
@@ -31,10 +33,29 @@ public class JavaClass extends Decl {
     return null;
   }
 
-  public JavaMethod getMethod(String methodName) {
-    for (var method: methods)
-      if (method.name.equals(methodName)) return method;
-    if (innerClass != null) return innerClass.getMethod(methodName);
+  public JavaMethod getMethod(String methodName, int numberOfArgs) {
+    for (var method : methods) {
+      if (method.name.equals(methodName)
+          && method.numberOfArgs == numberOfArgs) return method;
+    }
+    if (innerClass != null) return innerClass.getMethod(methodName, numberOfArgs);
+    return null;
+  }
+
+  public JavaConstructor getConstructor(String methodName, int numberOfArgs) {
+    for (var constructor : constructors) {
+      if (constructor.name.equals(methodName)
+          && constructor.numberOfArgs == numberOfArgs) return constructor;
+    }
+    if (innerClass != null) return innerClass.getConstructor(methodName, numberOfArgs);
+    return null;
+  }
+
+  public JavaConstructor getThisConstructor(int numberOfArgs) {
+    for (var constructor : constructors) {
+      if (constructor.numberOfArgs == numberOfArgs) return constructor;
+    }
+    if (innerClass != null) return innerClass.getThisConstructor(numberOfArgs);
     return null;
   }
 

@@ -4,14 +4,18 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.common.Decl;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.JavaParserBaseListener;
+import org.sudu.experiments.parser.java.model.JavaConstructor;
 import org.sudu.experiments.parser.java.model.JavaField;
 import org.sudu.experiments.parser.java.model.JavaClass;
 import org.sudu.experiments.parser.java.model.JavaMethod;
 
 import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Java.*;
+import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.UNKNOWN;
+import static org.sudu.experiments.parser.java.walker.JavaWalker.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +25,7 @@ import java.util.List;
 public class JavaClassWalker extends JavaParserBaseListener {
   public JavaClass dummy;
   public JavaClass current;
+  public List<Decl> types;
 
   public int curDepth = 0;
   public int maxDepth = 0;
@@ -35,6 +40,7 @@ public class JavaClassWalker extends JavaParserBaseListener {
     dummy = new JavaClass(null, null, null);
     current = dummy;
     intervals = new ArrayList<>();
+    types = new ArrayList<>();
   }
 
   @Override
@@ -82,6 +88,8 @@ public class JavaClassWalker extends JavaParserBaseListener {
     current.nestedClasses.add(clazz);
     current = clazz;
 
+    types.add(Decl.fromNode(id));
+
     lastIntervalEnd = ctx.classBody().LBRACE().getSymbol().getStartIndex() + 1;
   }
 
@@ -92,6 +100,8 @@ public class JavaClassWalker extends JavaParserBaseListener {
     JavaClass clazz = new JavaClass(id.getText(), Pos.fromNode(id), current);
     current.nestedClasses.add(clazz);
     current = clazz;
+
+    types.add(Decl.fromNode(id));
 
     lastIntervalEnd = ctx.interfaceBody().LBRACE().getSymbol().getStartIndex() + 1;
   }
@@ -104,6 +114,8 @@ public class JavaClassWalker extends JavaParserBaseListener {
     current.nestedClasses.add(clazz);
     current = clazz;
 
+    types.add(Decl.fromNode(id));
+
     lastIntervalEnd = ctx.LBRACE().getSymbol().getStartIndex() + 1;
   }
 
@@ -115,6 +127,8 @@ public class JavaClassWalker extends JavaParserBaseListener {
     current.nestedClasses.add(clazz);
     current = clazz;
 
+    types.add(Decl.fromNode(id));
+
     lastIntervalEnd = ctx.recordBody().LBRACE().getSymbol().getStartIndex() + 1;
   }
 
@@ -125,6 +139,8 @@ public class JavaClassWalker extends JavaParserBaseListener {
     JavaClass clazz = new JavaClass(id.getText(), Pos.fromNode(id), current);
     current.nestedClasses.add(clazz);
     current = clazz;
+
+    types.add(Decl.fromNode(id));
 
     lastIntervalEnd = ctx.annotationTypeBody().LBRACE().getSymbol().getStartIndex() + 1;
   }
@@ -208,7 +224,21 @@ public class JavaClassWalker extends JavaParserBaseListener {
     super.exitMethodDeclaration(ctx);
     var node = getIdentifier(ctx.identifier());
     var isStatic = isStatic(getModifiers(ctx));
-    addMethod(node, isStatic);
+    addMethod(node, isStatic, countNumberOfArgs(ctx.formalParameters()));
+  }
+
+  @Override
+  public void exitConstructorDeclaration(JavaParser.ConstructorDeclarationContext ctx) {
+    super.exitConstructorDeclaration(ctx);
+    var node = getIdentifier(ctx.identifier());
+    addConstructor(node, countNumberOfArgs(ctx.formalParameters()));
+  }
+
+  @Override
+  public void exitCompactConstructorDeclaration(JavaParser.CompactConstructorDeclarationContext ctx) {
+    super.exitCompactConstructorDeclaration(ctx);
+    var node = getIdentifier(ctx.identifier());
+    addConstructor(node, 0);
   }
 
   @Override
@@ -216,14 +246,14 @@ public class JavaClassWalker extends JavaParserBaseListener {
     super.exitAnnotationMethodRest(ctx);
     var node = getIdentifier(ctx.identifier());
     var isStatic = isStatic(getAnnotationMethodOrConstantRestModifiers((JavaParser.AnnotationMethodOrConstantRestContext) ctx.parent));
-    addMethod(node, isStatic);
+    addMethod(node, isStatic, 0);
   }
 
   @Override
   public void exitInterfaceCommonBodyDeclaration(JavaParser.InterfaceCommonBodyDeclarationContext ctx) {
     super.exitInterfaceCommonBodyDeclaration(ctx);
     var node = getIdentifier(ctx.identifier());
-    addMethod(node, false);
+    addMethod(node, false, countNumberOfArgs(ctx.formalParameters()));
   }
 
   private void addField(TerminalNode node, boolean isStatic) {
@@ -233,11 +263,18 @@ public class JavaClassWalker extends JavaParserBaseListener {
     current.fields.add(new JavaField(text, pos, isStatic));
   }
 
-  private void addMethod(TerminalNode node, boolean isStatic) {
+  private void addMethod(TerminalNode node, boolean isStatic, int numOfArgs) {
     var token = node.getSymbol();
     var pos = new Pos(token.getLine(), token.getCharPositionInLine());
     var text = token.getText();
-    current.methods.add(new JavaMethod(text, pos, isStatic, List.of()));
+    current.methods.add(new JavaMethod(text, pos, isStatic, numOfArgs));
+  }
+
+  private void addConstructor(TerminalNode node, int numOfArgs) {
+    var token = node.getSymbol();
+    var pos = new Pos(token.getLine(), token.getCharPositionInLine());
+    var text = token.getText();
+    current.constructors.add(new JavaConstructor(text, pos, numOfArgs));
   }
 
   @Override
@@ -270,15 +307,11 @@ public class JavaClassWalker extends JavaParserBaseListener {
     return list.contains("static");
   }
 
-  public static TerminalNode getIdentifier(JavaParser.IdentifierContext ctx) {
-    return (TerminalNode) ctx.children.get(0);
-  }
-
   public static List<String> getAnnotationMethodOrConstantRestModifiers(JavaParser.AnnotationMethodOrConstantRestContext ctx) {
     ArrayList<String> modifiers = new ArrayList<>();
     if (ctx.parent.parent instanceof JavaParser.AnnotationTypeElementDeclarationContext declarationContext) {
       for (var mod : declarationContext.modifier())
-        modifiers.add(mod.children.get(0).getText());
+        modifiers.add(mod.getChild(0).getText());
     }
     return modifiers;
   }
@@ -297,7 +330,7 @@ public class JavaClassWalker extends JavaParserBaseListener {
     if (classBodyDeclaration == null) return Collections.emptyList();
     ArrayList<String> modifiers = new ArrayList<>();
     for (var mod : classBodyDeclaration.modifier())
-      modifiers.add(mod.children.get(0).getText());
+      modifiers.add(mod.getChild(0).getText());
     return modifiers;
   }
 }

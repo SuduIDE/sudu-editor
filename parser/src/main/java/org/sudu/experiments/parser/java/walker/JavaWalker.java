@@ -20,15 +20,17 @@ public class JavaWalker extends JavaParserBaseListener {
   private final int[] tokenTypes;
   private final int[] tokenStyles;
   private JavaClass javaClass;
+  private final List<Decl> types;
   private final Map<Pos, Pos> usagesToDefs;
 
   private JavaBlock currentBlock;
 
-  public JavaWalker(int[] tokenTypes, int[] tokenStyles, JavaClass javaClass, Map<Pos, Pos> usagesToDefs) {
+  public JavaWalker(int[] tokenTypes, int[] tokenStyles, JavaClass javaClass, List<Decl> types, Map<Pos, Pos> usagesToDefs) {
     this.tokenTypes = tokenTypes;
     this.tokenStyles = tokenStyles;
     this.javaClass = javaClass;
     this.usagesToDefs = usagesToDefs;
+    this.types = types;
 
     currentBlock = new JavaBlock(null);
   }
@@ -36,14 +38,8 @@ public class JavaWalker extends JavaParserBaseListener {
   @Override
   public void exitFieldDeclaration(JavaParser.FieldDeclarationContext ctx) {
     super.exitFieldDeclaration(ctx);
-
-    var variableDeclarators = ctx.variableDeclarators().variableDeclarator();
-    for (var variableDeclarator: variableDeclarators) {
-      var id = getIdentifier(variableDeclarator.variableDeclaratorId().identifier()).getSymbol();
-      var modifiers = JavaClassWalker.getModifiers(ctx);
-      tokenTypes[id.getTokenIndex()] = TokenTypes.FIELD;
-      tokenStyles[id.getTokenIndex()] = JavaClassWalker.isStatic(modifiers) ? TokenStyles.ITALIC : TokenStyles.NORMAL;
-    }
+    boolean isStatic = JavaClassWalker.isStatic(JavaClassWalker.getModifiers(ctx));
+    markFields(ctx.variableDeclarators(), isStatic);
   }
 
   @Override
@@ -69,83 +65,68 @@ public class JavaWalker extends JavaParserBaseListener {
   @Override
   public void exitAnnotationConstantRest(JavaParser.AnnotationConstantRestContext ctx) {
     super.exitAnnotationConstantRest(ctx);
-    var variableDeclarators = ctx.variableDeclarators().variableDeclarator();
-    for (var variableDeclarator: variableDeclarators) {
-      var id = getIdentifier(variableDeclarator.variableDeclaratorId().identifier()).getSymbol();
-      var modifiers = JavaClassWalker.getModifiers(ctx);
-      tokenTypes[id.getTokenIndex()] = TokenTypes.FIELD;
-      tokenStyles[id.getTokenIndex()] = JavaClassWalker.isStatic(modifiers) ? TokenStyles.ITALIC : TokenStyles.NORMAL;
-    }
+    boolean isStatic = JavaClassWalker.isStatic(JavaClassWalker.getModifiers(ctx));
+    markFields(ctx.variableDeclarators(), isStatic);
   }
 
   @Override
   public void enterClassDeclaration(JavaParser.ClassDeclarationContext ctx) {
     super.enterClassDeclaration(ctx);
-    int ind = javaClass.nestPos;
-    javaClass = javaClass.nestedClasses.get(ind);
+    enterClass();
   }
 
   @Override
   public void enterInterfaceDeclaration(JavaParser.InterfaceDeclarationContext ctx) {
     super.enterInterfaceDeclaration(ctx);
-    int ind = javaClass.nestPos;
-    javaClass = javaClass.nestedClasses.get(ind);
+    enterClass();
   }
 
   @Override
   public void enterEnumDeclaration(JavaParser.EnumDeclarationContext ctx) {
     super.enterEnumDeclaration(ctx);
-    int ind = javaClass.nestPos;
-    javaClass = javaClass.nestedClasses.get(ind);
+    enterClass();
   }
 
   @Override
   public void enterRecordDeclaration(JavaParser.RecordDeclarationContext ctx) {
     super.enterRecordDeclaration(ctx);
-    int ind = javaClass.nestPos;
-    javaClass = javaClass.nestedClasses.get(ind);
+    enterClass();
   }
 
   @Override
   public void enterAnnotationTypeDeclaration(JavaParser.AnnotationTypeDeclarationContext ctx) {
     super.enterAnnotationTypeDeclaration(ctx);
-    int ind = javaClass.nestPos;
-    javaClass = javaClass.nestedClasses.get(ind);
+    enterClass();
   }
 
   @Override
   public void exitClassDeclaration(JavaParser.ClassDeclarationContext ctx) {
     super.exitClassDeclaration(ctx);
-    javaClass = javaClass.innerClass;
-    javaClass.nestPos++;
+    exitClass();
   }
 
   @Override
   public void exitInterfaceDeclaration(JavaParser.InterfaceDeclarationContext ctx) {
     super.exitInterfaceDeclaration(ctx);
-    javaClass = javaClass.innerClass;
-    javaClass.nestPos++;
+    exitClass();
   }
 
   @Override
   public void exitEnumDeclaration(JavaParser.EnumDeclarationContext ctx) {
     super.exitEnumDeclaration(ctx);
-    javaClass = javaClass.innerClass;
-    javaClass.nestPos++;
+    exitClass();
   }
 
   @Override
   public void exitRecordDeclaration(JavaParser.RecordDeclarationContext ctx) {
     super.exitRecordDeclaration(ctx);
-    javaClass = javaClass.innerClass;
-    javaClass.nestPos++;
+    exitClass();
   }
 
   @Override
   public void exitAnnotationTypeDeclaration(JavaParser.AnnotationTypeDeclarationContext ctx) {
     super.exitAnnotationTypeDeclaration(ctx);
-    javaClass = javaClass.innerClass;
-    javaClass.nestPos++;
+    exitClass();
   }
 
   @Override
@@ -173,7 +154,7 @@ public class JavaWalker extends JavaParserBaseListener {
   public void exitMethodDeclaration(JavaParser.MethodDeclarationContext ctx) {
     super.exitMethodDeclaration(ctx);
     var id = getIdentifier(ctx.identifier()).getSymbol();
-    var isStatic = javaClass.getMethod(id.getText()).isStatic;
+    var isStatic = javaClass.getMethod(id.getText(), countNumberOfArgs(ctx.formalParameters())).isStatic;
     tokenTypes[id.getTokenIndex()] = TokenTypes.METHOD;
     tokenStyles[id.getTokenIndex()] = isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL;
 
@@ -207,34 +188,6 @@ public class JavaWalker extends JavaParserBaseListener {
   }
 
   @Override
-  public void exitQualifiedName(JavaParser.QualifiedNameContext ctx) {
-    super.exitQualifiedName(ctx);
-    var first = ctx.identifier(0);
-    markFieldUsage(getIdentifier(first), false);
-  }
-
-  @Override
-  public void exitIdentifier(JavaParser.IdentifierContext ctx) {
-    super.exitIdentifier(ctx);
-    if (!(ctx.parent instanceof JavaParser.MethodCallContext
-        || ctx.parent instanceof JavaParser.PrimaryContext
-        || ctx.parent instanceof JavaParser.ExpressionContext)
-    ) return;
-
-    boolean isMethodCall = false;
-    if (ctx.parent instanceof JavaParser.MethodCallContext methodCall) {
-      if (!isSoleMethodCall(methodCall)) return;
-      isMethodCall = true;
-    }
-
-    boolean hasThis = ctx.parent instanceof JavaParser.ExpressionContext exprParent && hasThis(exprParent);
-    if (ctx.parent instanceof JavaParser.ExpressionContext && !hasThis) return;
-
-    if (isMethodCall) markMethodUsage(getIdentifier(ctx), hasThis);
-    else markFieldUsage(getIdentifier(ctx), hasThis);
-  }
-
-  @Override
   public void exitAnnotation(JavaParser.AnnotationContext ctx) {
     super.exitAnnotation(ctx);
     if (ctx.qualifiedName() != null) {
@@ -250,14 +203,102 @@ public class JavaWalker extends JavaParserBaseListener {
   }
 
   @Override
+  public void exitQualifiedName(JavaParser.QualifiedNameContext ctx) {
+    super.exitQualifiedName(ctx);
+    var first = ctx.identifier(0);
+    markFieldUsage(getIdentifier(first), false);
+  }
+
+  @Override
+  public void exitIdentifier(JavaParser.IdentifierContext ctx) {
+    super.exitIdentifier(ctx);
+    if (!(ctx.parent instanceof JavaParser.MethodCallContext
+        || ctx.parent instanceof JavaParser.PrimaryContext
+        || ctx.parent instanceof JavaParser.ExpressionContext)
+    ) return;
+
+    boolean isMethodCall = false;
+    int numOfArgs = 0;
+
+    if (ctx.parent instanceof JavaParser.MethodCallContext methodCall) {
+      if (!isSoleMethodCall(methodCall)) return;
+      if (methodCall.identifier() != null) isMethodCall = true;
+      numOfArgs = methodCall.expressionList() == null ? 0
+          : methodCall.expressionList().expression().size();
+    }
+
+    boolean hasThis = ctx.parent instanceof JavaParser.ExpressionContext exprParent && hasThis(exprParent);
+    if (ctx.parent instanceof JavaParser.ExpressionContext && !hasThis) return;
+
+    if (isMethodCall) markMethodUsage(getIdentifier(ctx), numOfArgs, hasThis);
+    else markFieldUsage(getIdentifier(ctx), hasThis);
+  }
+
+  @Override
+  public void exitMethodCall(JavaParser.MethodCallContext ctx) {
+    super.exitMethodCall(ctx);
+    if (ctx.identifier() != null) return;   // already handled in exitIdentifier
+    int numOfArgs = ctx.expressionList() == null ? 0
+        : ctx.expressionList().expression().size();
+    var node = Objects.requireNonNullElse(ctx.THIS(), ctx.SUPER());
+    markConstructorUsage(node, numOfArgs, true);
+  }
+
+  @Override
+  public void exitCreator(JavaParser.CreatorContext ctx) {
+    super.exitCreator(ctx);
+    if (ctx.classCreatorRest() == null) return; // todo
+    var node = ctx.createdName().primitiveType() != null
+        ? (TerminalNode) ctx.createdName().primitiveType().getChild(0)
+        : getIdentifier(ctx.createdName().identifier(0));
+    int numOfArgs = countNumberOfArgs(ctx.classCreatorRest().arguments());
+    markConstructorUsage(node, numOfArgs, false);
+  }
+
+  @Override
+  public void enterTypeIdentifier(JavaParser.TypeIdentifierContext ctx) {
+    super.enterTypeIdentifier(ctx);
+    var node = (TerminalNode) ctx.getChild(0);
+    var token = node.getSymbol();
+    var name = token.getText();
+    for (var type: types) {
+      if (type.name.equals(name)) {
+        usagesToDefs.put(Pos.fromNode(node), type.position);
+        return;
+      }
+    }
+  }
+
+  @Override
   public void enterBlock(JavaParser.BlockContext ctx) {
     super.enterBlock(ctx);
     enterBlock();
+    if (isInsideTryWithResources(ctx)) {
+      var statement = (JavaParser.StatementContext) ctx.parent;
+      currentBlock.localVars.addAll(getResources(statement.resourceSpecification()));
+    } else if (isInsideCatchClause(ctx)) {
+      var catchClause = (JavaParser.CatchClauseContext) ctx.parent;
+      currentBlock.localVars.add(Decl.fromNode(getIdentifier(catchClause.identifier())));
+    }
   }
 
   @Override
   public void exitBlock(JavaParser.BlockContext ctx) {
     super.exitBlock(ctx);
+    exitBlock();
+  }
+
+  @Override
+  public void enterLambdaExpression(JavaParser.LambdaExpressionContext ctx) {
+    super.enterLambdaExpression(ctx);
+    enterBlock();
+    List<Decl> params = getLambdaParameters(ctx.lambdaParameters());
+    currentBlock.localVars.addAll(params);
+  }
+
+  @Override
+  public void exitLambdaExpression(JavaParser.LambdaExpressionContext ctx) {
+    super.exitLambdaExpression(ctx);
     exitBlock();
   }
 
@@ -286,9 +327,11 @@ public class JavaWalker extends JavaParserBaseListener {
     if (ctx.identifier() != null) {
       var node = getIdentifier(ctx.identifier());
       currentBlock.localVars.add(Decl.fromNode(node));
-      return;
+    } else {
+      var nodes = getVarDeclarators(ctx.variableDeclarators())
+          .stream().map(Decl::fromNode).toList();
+      currentBlock.localVars.addAll(nodes);
     }
-    currentBlock.localVars.addAll(getVarDeclarators(ctx.variableDeclarators()));
   }
 
   @Override
@@ -350,11 +393,11 @@ public class JavaWalker extends JavaParserBaseListener {
     usagesToDefs.put(Pos.fromNode(node), declField.position);
   }
 
-  private void markMethodUsage(TerminalNode node, boolean hasThis) {
+  private void markMethodUsage(TerminalNode node, int numOfArgs, boolean hasThis) {
     var token = node.getSymbol();
     String name = token.getText();
     int ind = token.getTokenIndex();
-    var def = javaClass.getMethod(name);
+    var def = javaClass.getMethod(name, numOfArgs);
     if (def == null) {
       tokenTypes[ind] = hasThis ? ERROR : DEFAULT;
       return;
@@ -366,6 +409,32 @@ public class JavaWalker extends JavaParserBaseListener {
     usagesToDefs.put(Pos.fromNode(node), def.position);
   }
 
+  private void markConstructorUsage(TerminalNode node, int numOfArgs, boolean isThis) {
+    var token = node.getSymbol();
+    String name = token.getText();
+    int ind = token.getTokenIndex();
+    var def = isThis
+        ? javaClass.getThisConstructor(numOfArgs)
+        : javaClass.getConstructor(name, numOfArgs);
+    if (def == null) return;
+
+    if (!isThis) {
+      int style = TokenStyles.BOLD;
+      if (def.isStatic) style |= TokenStyles.ITALIC;
+      tokenStyles[ind] = style;
+    }
+
+    usagesToDefs.put(Pos.fromNode(node), def.position);
+  }
+
+  void markFields(JavaParser.VariableDeclaratorsContext ctx, boolean isStatic) {
+    List<TerminalNode> declarators = getVarDeclarators(ctx);
+    for (var decl: declarators) {
+      var id = decl.getSymbol();
+      tokenTypes[id.getTokenIndex()] = TokenTypes.FIELD;
+      tokenStyles[id.getTokenIndex()] = isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL;
+    }
+  }
 
   private void enterBlock() {
     JavaBlock block = new JavaBlock(currentBlock);
@@ -378,51 +447,113 @@ public class JavaWalker extends JavaParserBaseListener {
     currentBlock.subBlock = null;
   }
 
-  private static List<Decl> getMethodArguments(JavaParser.FormalParametersContext formalParameters) {
+  private void enterClass() {
+    int ind = javaClass.nestPos;
+    javaClass = javaClass.nestedClasses.get(ind);
+  }
+  
+  private void exitClass() {
+    javaClass = javaClass.innerClass;
+    javaClass.nestPos++;
+  }
+
+  static int countNumberOfArgs(JavaParser.FormalParametersContext ctx) {
+    int cnt = 0;
+    if (ctx.receiverParameter() != null) cnt++;
+    if (ctx.formalParameterList() != null) {
+      cnt += ctx.formalParameterList().formalParameter().size();
+      if (ctx.formalParameterList().lastFormalParameter() != null) cnt++;
+    }
+    return cnt;
+  }
+
+  static int countNumberOfArgs(JavaParser.ArgumentsContext ctx) {
+    if (ctx.expressionList() == null) return 0;
+    else return ctx.expressionList().expression().size();
+  }
+
+  static TerminalNode getIdentifier(JavaParser.IdentifierContext ctx) {
+    return (TerminalNode) ctx.getChild(0);
+  }
+
+  static List<Decl> getMethodArguments(JavaParser.FormalParametersContext formalParameters) {
     var parameterList = formalParameters.formalParameterList();
     if (parameterList == null) return new ArrayList<>();
-    var parameters = parameterList.formalParameter();
+    else return getMethodArguments(parameterList);
+  }
+
+  static List<Decl> getMethodArguments(JavaParser.FormalParameterListContext ctx) {
+    var parameters = ctx.formalParameter();
     List<Decl> result = new ArrayList<>();
     for (var param: parameters) {
       var id = param.variableDeclaratorId().identifier();
       result.add(Decl.fromNode(getIdentifier(id)));
     }
-    if (parameterList.lastFormalParameter() != null) {
-      var lastId = parameterList.lastFormalParameter().variableDeclaratorId().identifier();
+    if (ctx.lastFormalParameter() != null) {
+      var lastId = ctx.lastFormalParameter().variableDeclaratorId().identifier();
       result.add(Decl.fromNode(getIdentifier(lastId)));
     }
     return result;
   }
 
-  private static List<Decl> getVarDeclarators(JavaParser.VariableDeclaratorsContext ctx) {
+  static List<Decl> getLambdaParameters(JavaParser.LambdaParametersContext ctx) {
     List<Decl> result = new ArrayList<>();
-    for (var declarator: ctx.variableDeclarator()) {
-      var node = getIdentifier(declarator.variableDeclaratorId().identifier());
-      result.add(Decl.fromNode(node));
+    if (ctx.identifier() != null && !ctx.identifier().isEmpty()) {
+      for (var id: ctx.identifier())
+        result.add(Decl.fromNode(getIdentifier(id)));
+    } else if (ctx.lambdaLVTIList() != null) {
+      for (var param: ctx.lambdaLVTIList().lambdaLVTIParameter())
+        result.add(Decl.fromNode(getIdentifier(param.identifier())));
+    } else if (ctx.formalParameterList() != null) {
+      result.addAll(getMethodArguments(ctx.formalParameterList()));
     }
     return result;
   }
 
-  private static boolean isSoleMethodCall(JavaParser.MethodCallContext ctx) {
+  static List<Decl> getResources(JavaParser.ResourceSpecificationContext ctx) {
+    List<Decl> result = new ArrayList<>();
+    var resources = ctx.resources().resource();
+    for (var resource: resources) {
+      var id = Objects.requireNonNullElse(resource.identifier(), resource.variableDeclaratorId().identifier());
+      result.add(Decl.fromNode(getIdentifier(id)));
+    }
+    return result;
+  }
+
+  static List<TerminalNode> getVarDeclarators(JavaParser.VariableDeclaratorsContext ctx) {
+    List<TerminalNode> result = new ArrayList<>();
+    for (var declarator: ctx.variableDeclarator()) {
+      var id = declarator.variableDeclaratorId().identifier();
+      result.add(getIdentifier(id));
+    }
+    return result;
+  }
+
+  static boolean isInsideTryWithResources(JavaParser.BlockContext ctx) {
+    return ctx.parent instanceof JavaParser.StatementContext statement
+        && statement.resourceSpecification() != null;
+  }
+
+  static boolean isInsideCatchClause(JavaParser.BlockContext ctx) {
+    return ctx.parent instanceof JavaParser.CatchClauseContext;
+  }
+
+  static boolean isSoleMethodCall(JavaParser.MethodCallContext ctx) {
     JavaParser.ExpressionContext parent = (JavaParser.ExpressionContext) ctx.parent;
     return parent.getChildCount() == 1 && parent.getChild(0) instanceof JavaParser.MethodCallContext;
   }
 
-  private static boolean hasThis(JavaParser.ExpressionContext ctx) {
+  static boolean hasThis(JavaParser.ExpressionContext ctx) {
     if (ctx.getChildCount() < 3) return false;
     var expression = ctx.expression(0);
     return expression.primary() != null && expression.primary().THIS() != null
         && ctx.bop != null;
   }
 
-  private static boolean isIdentifier(TerminalNode node) {
+  static boolean isIdentifier(TerminalNode node) {
     if (node.getParent() == null) return false;
     return node.getParent() instanceof JavaParser.IdentifierContext
         || node.getParent() instanceof JavaParser.AnySeqContext;
-  }
-
-  private static TerminalNode getIdentifier(JavaParser.IdentifierContext ctx) {
-    return (TerminalNode) ctx.getChild(0);
   }
 
 }

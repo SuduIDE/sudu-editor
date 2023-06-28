@@ -46,7 +46,7 @@ public class CodeLine {
 
   public int getElementPosDeprecated(int pixelPos) {
     if (iMeasure == null) return -1;
-    return getElementStart(findEntryByPixel(pixelPos));
+    return wordStart(pixelPos);
   }
 
   public int getElementStart(int charPos) {

@@ -1,11 +1,14 @@
 package org.sudu.experiments.parser.cpp.parser;
 
 import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.IterativeParseTreeWalker;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.sudu.experiments.parser.ErrorHighlightingStrategy;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.BaseFullParser;
 import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
 import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
+import org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting;
 import org.sudu.experiments.parser.cpp.walker.CppWalker;
 import org.sudu.experiments.parser.cpp.walker.CppClassWalker;
 
@@ -33,21 +36,31 @@ public class CppFullParser extends BaseFullParser {
 
   private int[] parseWithLexer(long parsingTime) {
     CPP14Parser parser = new CPP14Parser(tokenStream);
+    parser.setErrorHandler(new ErrorHighlightingStrategy());
+    parser.removeErrorListeners();
+    parser.addErrorListener(parserRecognitionListener);
 
     var transUnit = parser.translationUnit();
-    ParseTreeWalker walker = new ParseTreeWalker();
+    if (parserErrorOccurred()) CppLexerHighlighting.highlightTokens(allTokens, tokenTypes);
+    else highlightTokens();
 
-    highlightTokens();
-
+    ParseTreeWalker walker = new IterativeParseTreeWalker();
     CppClassWalker classWalker = new CppClassWalker();
-    walker.walk(classWalker, transUnit);
+    int[] result;
+    try {
+      walker.walk(classWalker, transUnit);
 
-    CppWalker cppWalker = new CppWalker(tokenTypes, tokenStyles, classWalker.current, usageToDefinition);
-    walker.walk(cppWalker, transUnit);
+      CppWalker cppWalker = new CppWalker(tokenTypes, tokenStyles, classWalker.current, usageToDefinition);
+      walker.walk(cppWalker, transUnit);
 
-    classWalker.intervals.add(new Interval(0, fileSourceLength, IntervalTypes.Cpp.TRANS_UNIT));
+      classWalker.intervals.add(new Interval(0, fileSourceLength, IntervalTypes.Cpp.TRANS_UNIT));
 
-    var result = getInts(classWalker.intervals);
+      result = getInts(classWalker.intervals);
+    } catch (Exception e) {
+      e.printStackTrace();
+      result = getInts(List.of(defaultInterval()));
+    }
+
     System.out.println("Parsing full cpp time: " + (System.currentTimeMillis() - parsingTime) + "ms");
     return result;
   }

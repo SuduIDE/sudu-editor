@@ -1,7 +1,7 @@
 package org.sudu.experiments.parser;
 
 public interface ParserConstants {
-  
+
   interface TokenTypes {
     int DEFAULT = 0;
     int KEYWORD = 1;
@@ -29,8 +29,9 @@ public interface ParserConstants {
 
   interface IntervalTypes {
 
+    int UNKNOWN = -1;
+
     interface Java {
-      int UNKNOWN = -1;
       int COMP_UNIT = 0;
       int PACKAGE = 1;
       int IMPORT = 2;
