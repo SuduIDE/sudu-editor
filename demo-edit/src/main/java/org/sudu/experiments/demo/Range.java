@@ -15,6 +15,13 @@ public class Range {
     this.startLineNumber = startLineNumber;
   }
 
+  public Selection toSelection() {
+    Selection sel = new Selection();
+    sel.getLeftPos().set(startLineNumber, startColumn);
+    sel.getRightPos().set(endLineNumber, endColumn);
+    return sel;
+  }
+
   @Override
   public String toString() {
     return "Range{ from (line=" + startLineNumber + ", col=" + startColumn + ") "

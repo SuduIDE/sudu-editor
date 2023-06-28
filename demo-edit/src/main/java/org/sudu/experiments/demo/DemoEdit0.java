@@ -125,10 +125,7 @@ public class DemoEdit0 extends Scene0 {
         l.add(ti(
             "use referenceProvider",
             Colors.popupText,
-            () -> DebugHelper.dumpReferenceProvider(
-                refProvider,
-                model,
-                editor.computeCharPos(eventPosition))));
+            () -> findUsages(eventPosition)));
       }
 
       l.add(ti(
@@ -201,7 +198,10 @@ public class DemoEdit0 extends Scene0 {
         onError("writeClipboardText error: "));
   }
 
-  private void findUsages(V2i eventPosition, ReferenceProvider.Provider provider) {
+  private void findUsages(V2i eventPosition) {
+    String language = editor().model.language();
+    String scheme = editor().model.uriScheme();
+    ReferenceProvider.Provider provider =  editor().registrations.findReferenceProvider(language, scheme);
     popupMenu.hide();
     editor.findUsages(eventPosition, provider);
   }
