@@ -21,7 +21,7 @@ public abstract class JsPosition implements JSObject {
     return JsPosition.create(pos.pos + 1, pos.line + 1);
   }
 
-  public static JsPosition fromJava(int line, int column) {
+  public static JsPosition fromJava(int column, int line) {
     return JsPosition.create(column + 1, line + 1);
   }
 
