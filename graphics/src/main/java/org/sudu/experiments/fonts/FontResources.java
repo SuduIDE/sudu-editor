@@ -13,4 +13,8 @@ public class FontResources {
     this.folder = folder;
     this.fonts = fonts;
   }
+
+  public static FontResources noFonts() {
+    return new FontResources(FontResources.class, "fonts/");
+  }
 }

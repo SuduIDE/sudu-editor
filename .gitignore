@@ -11,3 +11,4 @@ target/
 /demo-edit-es-module/webpack-test/sudu-editor-sample/dist/
 node_modules
 *.iml
+/fonts/src/main/resources/fonts/

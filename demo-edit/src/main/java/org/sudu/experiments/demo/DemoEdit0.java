@@ -181,11 +181,21 @@ public class DemoEdit0 extends Scene0 {
   }
 
   private Supplier<ToolbarItem[]> fontSelect() {
-    return ArrayOp.supplier(
-        ti("Segoe UI", Colors.rngToolButton(), this::setSegoeUI),
-        ti("Verdana", Colors.rngToolButton(), this::setVerdana),
-        ti("JetBrains Mono", Colors.rngToolButton(), this::setJetBrainsMono),
-        ti("Consolas", Colors.rngToolButton(), this::setConsolas));
+    return () -> {
+      String[] fonts = menuFonts();
+      ToolbarItem[] items = new ToolbarItem[fonts.length];
+      for (int i = 0; i < items.length; i++) {
+        var font = fonts[i];
+        items[i] = new ToolbarItem(() -> setFont(font), font, Colors.rngToolButton());
+      }
+      return items;
+    };
+  }
+
+  protected String[] menuFonts() { return Fonts.editorFonts(false); }
+
+  private void setFont(String font) {
+    editor.changeFont(font, editor.getFontVirtualSize());
   }
 
   private void pasteAction() {
@@ -252,22 +262,6 @@ public class DemoEdit0 extends Scene0 {
       popupMenu.setTheme(toolBarFont, Colors.toolbarBg);
     }
     popupMenu.onResize(newSize, newDpr);
-  }
-
-  private void setSegoeUI() {
-    editor.changeFont(Fonts.SegoeUI, editor.getFontVirtualSize());
-  }
-
-  private void setVerdana() {
-    editor.changeFont(Fonts.Verdana, editor.getFontVirtualSize());
-  }
-
-  private void setJetBrainsMono() {
-    editor.changeFont(Fonts.JetBrainsMono, editor.getFontVirtualSize());
-  }
-
-  private void setConsolas() {
-    editor.changeFont(Fonts.Consolas, editor.getFontVirtualSize());
   }
 
   class EditInput implements InputListener {

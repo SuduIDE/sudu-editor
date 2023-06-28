@@ -1,5 +1,7 @@
 package org.sudu.experiments.fonts;
 
+import org.sudu.experiments.math.ArrayOp;
+
 public interface Fonts {
   String Helvetica = "Helvetica";
   String Verdana = "Verdana";
@@ -7,4 +9,10 @@ public interface Fonts {
   String SegoeUI = "Segoe UI";
   String Consolas = "Consolas";
   String JetBrainsMono = "JetBrains Mono";
+
+  static String[] editorFonts(boolean withJB) {
+    return withJB
+            ? ArrayOp.array(Consolas, SegoeUI, Verdana, JetBrainsMono)
+            : ArrayOp.array(Consolas, SegoeUI, Verdana);
+  }
 }

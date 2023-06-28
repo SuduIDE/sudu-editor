@@ -22,6 +22,62 @@
   <properties>
   </properties>
 
+  <profiles>
+    <profile>
+      <id>downloadFont</id>
+      <properties>
+        <zip>https://github.com/JetBrains/JetBrainsMono/releases/download/v2.304/JetBrainsMono-2.304.zip</zip>
+        <cdnPath>https://cdn.jsdelivr.net/gh/JetBrains/JetBrainsMono@2.304/fonts/ttf/</cdnPath>
+        <dest>${project.basedir}/src/main/resources/fonts</dest>
+        <f1>${cdnPath}JetBrainsMono-ExtraLight.ttf</f1>
+        <f2>${cdnPath}JetBrainsMono-ExtraLightItalic.ttf</f2>
+        <f3>${cdnPath}JetBrainsMono-Light.ttf</f3>
+        <f4>${cdnPath}JetBrainsMono-LightItalic.ttf</f4>
+        <f5>${cdnPath}JetBrainsMono-Bold.ttf</f5>
+        <f6>${cdnPath}JetBrainsMono-BoldItalic.ttf</f6>
+        <f7>${cdnPath}JetBrainsMono-Italic.ttf</f7>
+        <f8>${cdnPath}JetBrainsMono-Medium.ttf</f8>
+        <f9>${cdnPath}JetBrainsMono-MediumItalic.ttf</f9>
+        <f10>${cdnPath}JetBrainsMono-Regular.ttf</f10>
+        <f11>${cdnPath}JetBrainsMono-SemiBold.ttf</f11>
+        <f12>${cdnPath}JetBrainsMono-SemiBoldItalic.ttf</f12>
+      </properties>
+
+      <build>
+
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>3.1.0</version>
+            <executions><execution>
+                <id>download-files</id>
+                <phase>prepare-package</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <target>
+                    <!-- download file -->
+                    <get src="${f1}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                    <get src="${f2}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                    <get src="${f3}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                    <get src="${f4}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                    <get src="${f5}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                    <get src="${f6}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                    <get src="${f7}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                    <get src="${f8}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                    <get src="${f9}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                    <get src="${f10}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                    <get src="${f11}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                    <get src="${f12}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                  </target>
+                </configuration>
+            </execution></executions>
+          </plugin>
+        </plugins>
+      </build>
+
+    </profile>
+  </profiles>
 
 
 </project>

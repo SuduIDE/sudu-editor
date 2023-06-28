@@ -100,6 +100,10 @@ public interface ArrayOp {
       return () -> values;
   }
 
+  static <T> T[] array(T... values) {
+      return values;
+  }
+
   static <T> T[] resizeOrReturn(T[] array, int size) {
     return array.length == size ? array : Arrays.copyOf(array, size);
   }
