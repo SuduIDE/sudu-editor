@@ -15,10 +15,4 @@ URL.revokeObjectURL(workerUrl);
 
 editor.setText("loaded from " + cdn + workerJS)
 
-const input = document.getElementById("address");
-
-input.onkeydown = (event) => {
-    if (event.key === 'Enter') editor.setText(input.value)
-};
-
 document.addEventListener("DOMContentLoaded", () => console.log("DOMContentLoaded"))

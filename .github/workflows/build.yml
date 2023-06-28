@@ -60,6 +60,14 @@ jobs:
             ~/.m2/repository
           key: sudu-editor-cache
       -
+        name: Install OBSUtil
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        run: |
+          curl -O https://obs-community-intl.obs.ap-southeast-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz
+          tar -z -x -v --strip-components 1 --wildcards -f obsutil_linux_amd64.tar.gz obsutil*/obsutil
+          chmod +x ./obsutil
+          ./obsutil config -e=${{ vars.OBS_ENDPOINT }} -i=${{ secrets.HW_ACCESS_KEY }} -k=${{ secrets.HW_SECRET_KEY }}
+      -
         name: Maven TeaVM
         run: |
           cd $GITHUB_WORKSPACE/teavm
@@ -70,10 +78,33 @@ jobs:
           cd $GITHUB_WORKSPACE/antlr4
           mvn install -DskipTests
       -
+        name: Maven Sudu Editor Release
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        run: |
+          cd $GITHUB_WORKSPACE/sudu-editor 
+          mvn package -am -pl demo-edit-es-module
+
+      -
+        name: Upload release artifacts to OBS
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        run: |
+          NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
+          
+          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/editor.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
+          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/worker.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
+      -
         name: Maven Sudu Editor
         run: |
           cd $GITHUB_WORKSPACE/sudu-editor 
           mvn package -am -pl demo-edit-es-module -P release
+      -
+        name: Upload artifacts to OBS
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        run: |
+          NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
+
+          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/editor.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
+          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/worker.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
       -
         name: Save Maven Cache
         if: github.event_name == 'workflow_dispatch'

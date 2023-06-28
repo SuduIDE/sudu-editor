@@ -933,7 +933,7 @@ public class EditorComponent implements Disposable {
     if (!gotoMenu.isVisible()) gotoMenu.display(position, items, this::onFocusGain);
   }
 
-  private Supplier<FindUsagesItem[]> noDefOrUsages() {
+  private FindUsagesItem[] noDefOrUsages() {
     FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
     tbb.addItem(
         "No definition or usages",
@@ -942,7 +942,7 @@ public class EditorComponent implements Disposable {
         Colors.findUsagesColorsError,
         () -> {}
     );
-    return tbb.supplier();
+    return tbb.items();
   }
 
   // TODO(Minor): Move usageMenu.hide() out off & rename method

@@ -2,13 +2,18 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.Const;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.*;
+import org.sudu.experiments.demo.Colors;
+import org.sudu.experiments.demo.EditorComponent;
+import org.sudu.experiments.demo.EditorConst;
+import org.sudu.experiments.demo.Model;
+import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.demo.Location;
 
 import java.util.Collections;
 import java.util.List;
@@ -43,20 +48,18 @@ public class FindUsagesWindow {
     bgColor = bg;
   }
 
-  private FindUsagesDialog displayFindUsagesMenu(V2i pos, Supplier<FindUsagesItem[]> items) {
+  private FindUsagesDialog displayFindUsagesMenu(V2i pos, FindUsagesItem[] items) {
     FindUsagesDialog findUsages = new FindUsagesDialog();
-    findUsages.setItems(items.get());
+    findUsages.setItems(items);
     setFindUsagesStyle(findUsages);
     findUsages.measure(graphics.mCanvas, dpr);
     setScreenLimitedPosition(findUsages, pos.x, pos.y, windowSize);
-
-    findUsages.onEnter((mouse, index, item) -> dispose());
 
     usagesList = findUsages;
     return findUsages;
   }
 
-  public void display(V2i mousePos, Supplier<FindUsagesItem[]> actions, Runnable onClose) {
+  public void display(V2i mousePos, FindUsagesItem[] actions, Runnable onClose) {
     if (font == null || isVisible()) {
       throw new IllegalArgumentException();
     }
@@ -90,8 +93,12 @@ public class FindUsagesWindow {
     }
   }
 
+  public void center(V2i newSize) {
+    V2i usageSize = usagesList.size();
+    usagesList.setPos((newSize.x - usageSize.x) / 2, ((newSize.y - usageSize.y) / 2));
+  }
+
   public void paint() {
-    // let's do 0-garbage rendering
     if (!usagesList.isEmpty()) graphics.enableBlend(true);
     usagesList.render(graphics, dpr);
   }
@@ -112,20 +119,17 @@ public class FindUsagesWindow {
     usagesList.dispose();
   }
 
-  public final Supplier<FindUsagesItem[]> buildUsagesItems(List<Pos> usages, EditorComponent editorComponent, Model model) {
+  public final FindUsagesItem[] buildUsagesItems(List<Pos> usages, EditorComponent editorComponent, Model model) {
     return buildItems(usages, null, editorComponent, model);
   }
 
-  public final Supplier<FindUsagesItem[]> buildDefItems(Location[] defs, EditorComponent editorComponent, Model model) {
+  public final FindUsagesItem[] buildDefItems(Location[] defs, EditorComponent editorComponent, Model model) {
     return buildItems(Collections.emptyList(), defs, editorComponent, model);
   }
 
-  private Supplier<FindUsagesItem[]> buildItems(List<Pos> usages, Location[] defs, EditorComponent editorComponent, Model model) {
+  private FindUsagesItem[] buildItems(List<Pos> usages, Location[] defs, EditorComponent editorComponent, Model model) {
     FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
     int cnt = 0;
-    int maxFileNameLen = 0;
-    int maxLineLen = 0;
-    int maxCodeContentLen = 0;
     int itemsLength = defs == null ? usages.size() : defs.length;
     for (int i = 0; i < itemsLength; i++) {
       int intLineNumber;
@@ -142,35 +146,6 @@ public class FindUsagesWindow {
       String fileName = "Main.java";
       String codeContentFormatted = codeContent.length() > 43 ? codeContent.substring(0, 40) + "..." : codeContent;
       String lineNumber = String.valueOf(intLineNumber + 1);
-      // noinspection DataFlowIssue
-      maxFileNameLen = Math.max(fileName.length(), maxFileNameLen);
-      maxLineLen = Math.max(lineNumber.length(), maxLineLen);
-      maxCodeContentLen = Math.max(codeContentFormatted.length(), maxCodeContentLen);
-    }
-    for (int i = 0; i < itemsLength; i++) {
-      int intLineNumber;
-      String codeContent;
-      if (defs == null) {
-        intLineNumber = usages.get(i).line;
-        codeContent = model.document.line(intLineNumber).makeString().trim();
-      } else {
-        intLineNumber = defs[i].range.startLineNumber;
-        codeContent = Objects.equals(editorComponent.model().uri, defs[i].uri)
-            ? model.document.line(intLineNumber).makeString().trim() : "other file...";
-      }
-      // TODO(Get file names from server)
-      String fileName = formatFindUsagesItem(
-          "Main.java",
-          maxFileNameLen
-      );
-      String codeContentFormatted = formatFindUsagesItem(
-          codeContent.length() > 43 ? codeContent.substring(0, 40) + "..." : codeContent,
-          maxCodeContentLen
-      );
-      String lineNumber = formatFindUsagesItem(
-          String.valueOf(intLineNumber + 1),
-          maxLineLen
-      );
 
       if (++cnt > EditorConst.MAX_SHOW_USAGES_NUMBER) {
         tbb.addItem(
@@ -202,15 +177,7 @@ public class FindUsagesWindow {
           action
       );
     }
-    return tbb.supplier();
-  }
-
-  private String formatFindUsagesItem(String item, int maxLength) {
-    StringBuilder s = new StringBuilder();
-    for (int i = 0; i < Math.max(0, maxLength - item.length()); ++i) {
-      s.append(" ");
-    }
-    return item + s;
+    return tbb.items();
   }
 
   public boolean handleUsagesMenuKey(KeyEvent event) {
