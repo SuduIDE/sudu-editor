@@ -6,7 +6,8 @@ target/
 /webpack-test/editor-on-java-sample/package-lock.json
 /webpack-test/editor-on-java-sample/dist/
 /webpack-test/package-lock.json
-/demo-edit-es-module/module/src/
+/demo-edit-es-module/module/src/editor.js
+/demo-edit-es-module/module/src/worker.js
 /demo-edit-es-module/webpack-test/package-lock.json
 /demo-edit-es-module/webpack-test/sudu-editor-sample/dist/
 node_modules

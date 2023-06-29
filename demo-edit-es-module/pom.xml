@@ -164,7 +164,8 @@
         <version>3.2.0</version>
         <configuration>
           <filesets>
-            <fileset><directory>module/src</directory></fileset>
+            <fileset><file>module/src/editor.js</file></fileset>
+            <fileset><file>module/src/worker.js</file></fileset>
             <fileset><directory>webpack-test/sudu-editor-sample/dist</directory></fileset>
           </filesets>
         </configuration>
