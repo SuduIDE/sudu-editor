@@ -63,7 +63,7 @@ public class EditorComponent implements Disposable {
   EditorRegistrations registrations = new EditorRegistrations();
   Selection selection = new Selection();
 
-  EditorColorScheme colors = EditorColorScheme.darkIdeaColorScheme();
+  EditorColorScheme colors;
 
   Canvas renderingCanvas;
 
@@ -119,6 +119,7 @@ public class EditorComponent implements Disposable {
     this.api = api;
     this.g = api.graphics;
 
+    toggleDark();
     if (api.window.hasFocus()) onFocusGain();
 
     debugFlags[0] = this::toggleContrast;
@@ -188,11 +189,17 @@ public class EditorComponent implements Disposable {
   }
 
   public void toggleDark() {
-    this.colors = EditorColorScheme.darkIdeaColorScheme();
+    colors = EditorColorScheme.darkIdeaColorScheme();
+    applyTheme();
   }
 
   public void toggleLight() {
-    this.colors = EditorColorScheme.lightIdeaColorScheme();
+    colors = EditorColorScheme.lightIdeaColorScheme();
+    applyTheme();
+  }
+
+  private void applyTheme() {
+    caret.setColor(colors.cursorColor);
   }
 
   public void setTheme(String theme) {
