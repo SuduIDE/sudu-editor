@@ -131,8 +131,8 @@ public class FindUsagesWindow {
   }
 
   private FindUsagesItem[] buildItems(List<Pos> usages, Location[] defs, EditorComponent editorComponent, Model model, EditorColorScheme scheme) {
-    frameColor = Colors.findUsagesColorBorderByScheme(scheme);
-    bgColor = Colors.findUsagesColorsByScheme(scheme).bgColor;
+    frameColor = scheme.dialogItemColor.findUsagesColorBorder;
+    bgColor = scheme.dialogItemColor.findUsagesColors.bgColor;
     FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
     int cnt = 0;
     int itemsLength = defs == null ? usages.size() : defs.length;
@@ -159,7 +159,7 @@ public class FindUsagesWindow {
             "... and " + (usages.size() - (cnt - 1)) + " more usages",
             "",
             "",
-            Colors.findUsagesColorsContinuedByScheme(scheme),
+            scheme.dialogItemColor.findUsagesColorsContinued,
             () -> {
             }
         );
@@ -180,7 +180,7 @@ public class FindUsagesWindow {
           fileName,
           lineNumber,
           codeContentFormatted,
-          Colors.findUsagesColorsByScheme(scheme),
+          scheme.dialogItemColor.findUsagesColors,
           action
       );
     }

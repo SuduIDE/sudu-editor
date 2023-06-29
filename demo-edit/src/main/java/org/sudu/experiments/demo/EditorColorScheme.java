@@ -1,5 +1,7 @@
 package org.sudu.experiments.demo;
 
+import org.sudu.experiments.demo.ui.DialogItemColor;
+import org.sudu.experiments.demo.ui.FindUsagesItemColors;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.parser.ParserConstants;
 
@@ -12,6 +14,7 @@ public class EditorColorScheme {
   public final Color selectionBgColor;
   public final Color definitionBgColor;
   public final Color usageBgColor;
+  public final DialogItemColor dialogItemColor;
 
   public final CodeElementColor[] codeColors;
   public final LineNumbersColors lineNumbersColors;
@@ -27,7 +30,8 @@ public class EditorColorScheme {
         new Color(IdeaCodeColors.Colors.definitionBgColor),
         new Color(IdeaCodeColors.Colors.usageBgColor),
         IdeaCodeColors.codeElementColors(),
-        IdeaCodeColors.lineNumberColors()
+        IdeaCodeColors.lineNumberColors(),
+        DialogItemColor.darkColorScheme()
     );
   }
 
@@ -42,7 +46,8 @@ public class EditorColorScheme {
         new Color(IdeaCodeColors.Colors.definitionBgColor),
         new Color(IdeaCodeColors.Colors.usageBgColor),
         IdeaCodeColors.codeElementColorsLight(),
-        IdeaCodeColors.lineNumberColorsLight()
+        IdeaCodeColors.lineNumberColorsLight(),
+        DialogItemColor.lightColorScheme()
     );
   }
 
@@ -56,7 +61,8 @@ public class EditorColorScheme {
       Color definitionBgColor,
       Color usageBgColor,
       CodeElementColor[] codeColors,
-      LineNumbersColors lineNumbersColors
+      LineNumbersColors lineNumbersColors,
+      DialogItemColor dialogItemColor
   ) {
     this.editBgColor = editBgColor;
     this.cursorColor = cursorColor;
@@ -71,6 +77,7 @@ public class EditorColorScheme {
     if (codeColors.length < ParserConstants.TokenTypes.TYPES_LENGTH) {
       throw new IllegalArgumentException();
     }
+    this.dialogItemColor = dialogItemColor;
   }
 
   public Color bgColor(Color bg) {

@@ -1,5 +1,6 @@
 package org.sudu.experiments.demo.ui;
 
+import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V4f;
 
 public final class ToolbarItemColors {
@@ -12,4 +13,10 @@ public final class ToolbarItemColors {
     this.bgColor = bgColor;
     this.bgHighlight = bgHighlight;
   }
+
+//  public static ToolbarItemColors darkToolbarItemColors() {
+//    return new ToolbarItemColors(
+//        new Color("#BBBBBB"), Colors.toolbarBg, toolbarSelectedBg)
+//    )
+//  }
 }
