@@ -2,7 +2,14 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.Const;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.*;
+import org.sudu.experiments.demo.Colors;
+import org.sudu.experiments.demo.EditorColorScheme;
+import org.sudu.experiments.demo.EditorComponent;
+import org.sudu.experiments.demo.EditorConst;
+import org.sudu.experiments.demo.Location;
+import org.sudu.experiments.demo.Model;
+import org.sudu.experiments.demo.SetCursor;
+import org.sudu.experiments.demo.Uri;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -18,10 +25,10 @@ public class FindUsagesWindow {
   private final V2i windowSize = new V2i();
   public FindUsagesDialog usagesList = new FindUsagesDialog();
   private final WglGraphics graphics;
-  private final V4f frameColor = Colors.findUsagesBorder;
+  private V4f frameColor = Colors.findUsagesBorder;
   private double dpr;
   private FontDesk font;
-  private V4f bgColor = Colors.findUsagesBg;
+  private V4f bgColor = Colors.findusagesBgLight;
   private Runnable onClose = Const.emptyRunnable;
 
   public FindUsagesWindow(WglGraphics graphics) {
@@ -111,19 +118,21 @@ public class FindUsagesWindow {
     usagesList.dispose();
   }
 
-  public final FindUsagesItem[] buildUsagesItems(List<Pos> usages, EditorComponent editorComponent, Model model) {
-    return buildItems(usages, null, editorComponent, model);
+  public final FindUsagesItem[] buildUsagesItems(List<Pos> usages, EditorComponent editorComponent, Model model, EditorColorScheme scheme) {
+    return buildItems(usages, null, editorComponent, model, scheme);
   }
 
-  public final FindUsagesItem[] buildDefItems(Location[] defs, EditorComponent editorComponent, Model model) {
-    return buildItems(Collections.emptyList(), defs, editorComponent, model);
+  public final FindUsagesItem[] buildDefItems(Location[] defs, EditorComponent editorComponent, Model model, EditorColorScheme scheme) {
+    return buildItems(Collections.emptyList(), defs, editorComponent, model, scheme);
   }
 
   private String fileName(Uri uri) {
     return uri != null ? uri.getFileName() : "";
   }
 
-  private FindUsagesItem[] buildItems(List<Pos> usages, Location[] defs, EditorComponent editorComponent, Model model) {
+  private FindUsagesItem[] buildItems(List<Pos> usages, Location[] defs, EditorComponent editorComponent, Model model, EditorColorScheme scheme) {
+    frameColor = Colors.findUsagesColorBorderByScheme(scheme);
+    bgColor = Colors.findUsagesColorsByScheme(scheme).bgColor;
     FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
     int cnt = 0;
     int itemsLength = defs == null ? usages.size() : defs.length;
@@ -150,7 +159,7 @@ public class FindUsagesWindow {
             "... and " + (usages.size() - (cnt - 1)) + " more usages",
             "",
             "",
-            Colors.findUsagesColorsContinued,
+            Colors.findUsagesColorsContinuedByScheme(scheme),
             () -> {
             }
         );
@@ -171,7 +180,7 @@ public class FindUsagesWindow {
           fileName,
           lineNumber,
           codeContentFormatted,
-          Colors.findUsagesColors,
+          Colors.findUsagesColorsByScheme(scheme),
           action
       );
     }

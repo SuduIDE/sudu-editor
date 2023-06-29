@@ -11,7 +11,9 @@ import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.Host;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.ui.*;
+import org.sudu.experiments.demo.ui.FindUsagesItem;
+import org.sudu.experiments.demo.ui.FindUsagesItemBuilder;
+import org.sudu.experiments.demo.ui.FindUsagesWindow;
 import org.sudu.experiments.demo.worker.parser.CppParser;
 import org.sudu.experiments.demo.worker.parser.FileParser;
 import org.sudu.experiments.demo.worker.parser.JavaParser;
@@ -35,7 +37,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
-import java.util.function.Supplier;
 
 import static org.sudu.experiments.input.InputListener.MOUSE_BUTTON_LEFT;
 
@@ -917,7 +918,7 @@ public class EditorComponent implements Disposable {
     List<Pos> usages = model.document.defToUsages.get(documentPosition);
     var items = usages == null || usages.isEmpty()
         ? noDefOrUsages()
-        : usagesMenu.buildUsagesItems(usages, this, model);
+        : usagesMenu.buildUsagesItems(usages, this, model, colors);
 
     if (!usagesMenu.isVisible()) usagesMenu.display(position, items, this::onFocusGain);
   }
@@ -929,7 +930,7 @@ public class EditorComponent implements Disposable {
     }
     var items = pos.isEmpty()
         ? noDefOrUsages()
-        : gotoMenu.buildDefItems(locs, this, model);
+        : gotoMenu.buildDefItems(locs, this, model, colors);
     if (!gotoMenu.isVisible()) gotoMenu.display(position, items, this::onFocusGain);
   }
 
@@ -939,8 +940,9 @@ public class EditorComponent implements Disposable {
         "No definition or usages",
         "",
         "",
-        Colors.findUsagesColorsError,
-        () -> {}
+        Colors.findUsagesColorsErrorByScheme(colors),
+        () -> {
+        }
     );
     return tbb.items();
   }
@@ -1042,7 +1044,7 @@ public class EditorComponent implements Disposable {
         } else if (!usagesMenu.isVisible())
           usagesMenu.display(
               position,
-              usagesMenu.buildUsagesItems(usagesList, this, model),
+              usagesMenu.buildUsagesItems(usagesList, this, model, colors),
               this::onFocusGain
           );
       }
@@ -1057,7 +1059,7 @@ public class EditorComponent implements Disposable {
       default -> {
         if (!gotoMenu.isVisible()) gotoMenu.display(
             position,
-            gotoMenu.buildDefItems(locs, this, model),
+            gotoMenu.buildDefItems(locs, this, model, colors),
             this::onFocusGain
         );
       }
