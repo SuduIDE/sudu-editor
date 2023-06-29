@@ -21,7 +21,9 @@ public class FindUsagesDialog {
   private final DemoRect rect = new DemoRect();
   private final V2i textureSize = new V2i();
   private final V2i v2i = new V2i();
-  private final V4f shadow = new V4f().setW(0.125f);
+  private final V4f shadow = new V4f().setW(0.075f);
+  private int shadowSize;
+  private V4f bgColor;
   private FontDesk font;
   private FindUsagesItem[] items = FindUsagesItemBuilder.items0;
   private GL.Texture texture;
@@ -29,7 +31,7 @@ public class FindUsagesDialog {
   private int hoverItemId = -1;
   private Runnable onClickOutside;
 
-  public boolean isEmpty(){
+  public boolean isEmpty() {
     return items.length == 0;
   }
 
@@ -56,6 +58,7 @@ public class FindUsagesDialog {
 
   public void setBgColor(V4f bgColor) {
     rect.color.set(bgColor);
+    this.bgColor = bgColor;
   }
 
   public void setFrameColor(V4f bgColor) {
@@ -85,6 +88,7 @@ public class FindUsagesDialog {
     mCanvas.setFont(font);
     int textHeight = font.lineHeight(), maxW = 0;
     border = Numbers.iRnd(2 * devicePR);
+    shadowSize = Numbers.iRnd(devicePR);
     textXPad = Numbers.iRnd(font.WWidth);
     int tw = 0;
 
@@ -107,12 +111,12 @@ public class FindUsagesDialog {
       int wLines = maxLineLen + textXPad;
       int wCodeContent = maxCodeContentLen + textXPad;
       // TODO(Minor) Remove this crutch when the scroll appears
+      maxW = Math.max(maxW, wFile + wLines + wCodeContent);
       if (item.fileName.startsWith("...")) {
         wFile = (int) (mCanvas.measureText(item.fileName) + 7.f / 8) + textXPad;
-        wLines = 0;
+        wLines = maxW - wFile;
         wCodeContent = 0;
       }
-      maxW = Math.max(maxW, wFile + wLines + wCodeContent);
 
       item.tFiles.pos.x = tw;
       item.tFiles.pos.y = 0;
@@ -171,8 +175,6 @@ public class FindUsagesDialog {
       canvas.drawText(item.fileName, item.tFiles.textureRegion.x + textXPad, baseline);
       canvas.drawText(item.lineNumber, item.tLines.textureRegion.x + textXPad, baseline);
       canvas.drawText(item.codeContent, item.tContent.textureRegion.x + textXPad, baseline);
-
-//            canvas.drawText(item.text, item.tRect.textureRegion.x + textXPad, baseline);
     }
     texture = Disposable.assign(texture, g.createTexture());
     texture.setContent(canvas);
@@ -196,7 +198,6 @@ public class FindUsagesDialog {
     }
 
     for (FindUsagesItem item : items) {
-//            g.drawText(0, 0, item.tRect.size, item.tRect.textureRegion, texture, new Color("#e28720"), new Color("#"))
       item.tFiles.drawText(g, texture, 0, 0, 2);
       item.tLines.drawText(g, texture, item.tFiles.size.x, 0, 2);
       item.tContent.drawText(g, texture, item.tFiles.size.x + item.tLines.size.x, 0, 2);
@@ -226,20 +227,20 @@ public class FindUsagesDialog {
     // body
     v2i.x = rect.size.x - border - border;
     v2i.y = rect.size.y - border - border;
-    g.drawRect(rect.pos.x + border, rect.pos.y + border, v2i, rect.color);
+    g.drawRect(rect.pos.x + border, rect.pos.y + border, v2i, bgColor);
 
     // shadow
     v2i.x = rect.size.x;
-    v2i.y = border;
-    g.drawRect(rect.pos.x + border, rect.pos.y + rect.size.y, v2i, shadow);
-    g.drawRect(rect.pos.x + border, rect.pos.y + rect.size.y, v2i, shadow);
-    g.drawRect(rect.pos.x + border * 2, rect.pos.y + rect.size.y + border, v2i, shadow);
+    v2i.y = shadowSize;
+    g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadow);
+    g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadow);
+    g.drawRect(rect.pos.x + shadowSize * 2, rect.pos.y + rect.size.y + shadowSize, v2i, shadow);
 
-    v2i.x = border;
-    v2i.y = rect.size.y - border;
-    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + border, v2i, shadow);
-    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + border, v2i, shadow);
-    g.drawRect(rect.pos.x + rect.size.x + border, rect.pos.y + border * 2, v2i, shadow);
+    v2i.x = shadowSize;
+    v2i.y = rect.size.y - shadowSize;
+    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadow);
+    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadow);
+    g.drawRect(rect.pos.x + rect.size.x + shadowSize, rect.pos.y + shadowSize * 2, v2i, shadow);
 
   }
 
