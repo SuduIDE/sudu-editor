@@ -741,7 +741,8 @@ public class EditorComponent implements Disposable {
       if (size <= bigFileSize) {
         api.window.sendToWorker(this::onFileParsed, FileParser.asyncParseFullFile, f);
       } else {
-        api.window.sendToWorker(this::onFirstLinesParsed, FileParser.asyncParseFirstLines, f, Arrays.copyOf(EditorConst.FIRST_LINES, 1));
+        api.window.sendToWorker(this::onFirstLinesParsed, FileParser.asyncParseFirstLines,
+                f, new int[]{EditorConst.FIRST_LINES});
         api.window.sendToWorker(this::onFileStructureParsed, FileParser.asyncParseFile, f);
       }
     });

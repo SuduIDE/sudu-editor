@@ -129,7 +129,7 @@ public class PopupMenu {
 
   private int relativeToParentPos(int posX, Toolbar parent, Toolbar popup) {
     return windowSize.x >= posX + parent.size().x + popup.size().x
-        ? posX + parent.size().x
+        ? posX + parent.size().x - parent.margin()
         : posX - popup.size().x;
   }
 
@@ -141,8 +141,9 @@ public class PopupMenu {
 
   private static V2i computeSubmenuPosition(ToolbarItem parentItem, Toolbar parent) {
     DemoRect view = parentItem.getView();
-    int border = parent.borderSize();
-    return new V2i(view.pos.x - border * 3, view.pos.y - border);
+    int border = parent.border();
+    int margin = parent.margin();
+    return new V2i(view.pos.x - border * 3 - margin, view.pos.y - border - margin);
   }
 
   private void removePopupsAfter(Toolbar wall) {

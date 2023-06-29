@@ -257,8 +257,8 @@ public class DemoEdit0 extends Scene0 {
 
     if (dpr != newDpr) {
       dpr = newDpr;
-      int toolbarFontSize = Numbers.iRnd(EditorConst.TOOLBAR_FONT_SIZE * newDpr);
-      toolBarFont = g.fontDesk(EditorConst.TOOLBAR_FONT_NAME, toolbarFontSize);
+      int toolbarFontSize = Numbers.iRnd(EditorConst.POPUP_MENU_FONT_SIZE * newDpr);
+      toolBarFont = g.fontDesk(EditorConst.POPUP_MENU_FONT_NAME, toolbarFontSize);
       popupMenu.setTheme(toolBarFont, Colors.toolbarBg);
     }
     popupMenu.onResize(newSize, newDpr);
