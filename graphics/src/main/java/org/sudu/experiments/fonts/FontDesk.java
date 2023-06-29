@@ -75,6 +75,10 @@ public class FontDesk {
     return Numbers.iRnd(fAscent + fDescent);
   }
 
+  public int lineHeight(float scale) {
+    return Numbers.iRnd((fAscent + fDescent) * scale);
+  }
+
   public int caretHeight(int lineHeight) {
     int caretOffer = (iAscent + iDescent + iSize) / 2;
     return lineHeight - (lineHeight / 2 - caretOffer / 2) * 2;

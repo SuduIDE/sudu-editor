@@ -8,6 +8,10 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.*;
 
 public class Toolbar {
+  static final int dpMargin = 3;
+  static final int dpBorder = 2;
+  static final int textHorizontalMargin = 12;
+  static final float textHeightScale = 1.25f;
 
   private FontDesk font;
   private final DemoRect rect = new DemoRect();
@@ -16,7 +20,7 @@ public class Toolbar {
   private final V4f shadow = new V4f().setW(0.125f);
   private ToolbarItem[] items = ToolbarItemBuilder.items0;
   private GL.Texture texture;
-  private int border, textXPad;
+  private int border, margin, textXPad;
   private int hoverItem = -1;
   boolean isVertical;
 
@@ -73,9 +77,10 @@ public class Toolbar {
   public void measure(Canvas mCanvas, double devicePR) {
     if (font == null) throw new RuntimeException("Toolbar font has not been set");
     mCanvas.setFont(font);
-    int textHeight = font.lineHeight(), maxW = 0;
-    border = Numbers.iRnd(2 * devicePR);
-    textXPad = Numbers.iRnd(font.WWidth);
+    int textHeight = font.lineHeight(textHeightScale), maxW = 0;
+    border = Numbers.iRnd(dpBorder * devicePR);
+    margin = Numbers.iRnd(dpMargin * devicePR);
+    textXPad = Numbers.iRnd(textHorizontalMargin * devicePR);
     int tw = 0;
     for (ToolbarItem item : items) {
       int m = (int)(mCanvas.measureText(item.text) + 7.f / 8);
@@ -92,16 +97,16 @@ public class Toolbar {
     textureSize.x = tw;
     textureSize.y = textHeight;
     rect.size.x = isVertical
-        ? maxW + border * 2
+        ? maxW + border * 2 + margin * 2
         : tw + border + border * items.length;
     rect.size.y = isVertical
-        ? (textHeight + border) * items.length + border
+        ? (textHeight + border) * items.length + border + margin * 2
         : textHeight + border * 2;
   }
 
   public void setPos(int x, int y) {
     rect.pos.set(x, y);
-    int localX = border, localY = border;
+    int localX = border + margin, localY = border + margin;
     for (ToolbarItem item : items) {
       TextRect tRect = item.tRect;
       tRect.pos.x = x + localX;
@@ -121,7 +126,7 @@ public class Toolbar {
   }
 
   public V2i size() {
-    if (textureSize.x == 9 && textureSize.y == 0) {
+    if (textureSize.x == 0 || textureSize.y == 0) {
       throw new RuntimeException("toolbar size is unknown");
     }
     return rect.size;
@@ -130,7 +135,8 @@ public class Toolbar {
   private void renderTexture(WglGraphics g) {
     Canvas canvas = g.createCanvas(textureSize.x, textureSize.y);
     canvas.setFont(font);
-    float baseline = font.fAscent - (font.fAscent + font.fDescent) / 16;
+    int textMargin = font.lineHeight(textHeightScale * .5f - .5f), maxW = 0;
+    float baseline = textMargin + font.fAscent - (font.fAscent + font.fDescent) / 16;
 
     for (ToolbarItem item : items) {
       canvas.drawText(item.text, item.tRect.textureRegion.x + textXPad, baseline);
@@ -162,7 +168,7 @@ public class Toolbar {
     if (isVertical) {
       for (ToolbarItem item : items) {
         TextRect tRect = item.tRect;
-        v2i.x = rect.size.x - border * 2 - tRect.size.x;
+        v2i.x = rect.size.x - border * 2 - margin * 2 - tRect.size.x;
         v2i.y = tRect.size.y;
         if (v2i.x > 0) {
           g.drawRect(tRect.pos.x + tRect.size.x, tRect.pos.y,
@@ -266,7 +272,11 @@ public class Toolbar {
     isVertical = true;
   }
 
-  public int borderSize() {
+  public int border() {
     return border;
+  }
+
+  public int margin() {
+    return margin;
   }
 }
