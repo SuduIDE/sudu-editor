@@ -10,14 +10,15 @@ public class DialogItemColor {
   public final FindUsagesItemColors findUsagesColorsError;
   public final Color findUsagesColorBorder;
 
-//  public final ToolbarItemColors popupText;
+  public final ToolbarItemColors toolbarItemColors;
 
   public static DialogItemColor darkColorScheme() {
     return new DialogItemColor(
         FindUsagesItemColors.darkFindUsagesItemColors(),
         FindUsagesItemColors.darkFindUsagesItemColorsExtraLine(),
         FindUsagesItemColors.darkFindUsagesItemColorsError(),
-        new Color("#616161")
+        new Color("#616161"),
+        ToolbarItemColors.darkToolbarItemColors()
     );
   }
 
@@ -26,7 +27,8 @@ public class DialogItemColor {
         FindUsagesItemColors.lightFindUsagesItemColors(),
         FindUsagesItemColors.lightFindUsagesItemColorsExtraLine(),
         FindUsagesItemColors.lightFindUsagesItemColorsError(),
-        new Color("#B9BDC9")
+        new Color("#B9BDC9"),
+        ToolbarItemColors.lightToolbarItemColors()
     );
   }
 
@@ -34,11 +36,13 @@ public class DialogItemColor {
       FindUsagesItemColors findUsagesItemColors,
       FindUsagesItemColors findUsagesColorsContinued,
       FindUsagesItemColors findUsagesColorsError,
-      Color findUsagesColorsBorder
+      Color findUsagesColorsBorder,
+      ToolbarItemColors toolbarItemColors
   ) {
     this.findUsagesColors = findUsagesItemColors;
     this.findUsagesColorsContinued = findUsagesColorsContinued;
     this.findUsagesColorsError = findUsagesColorsError;
     this.findUsagesColorBorder = findUsagesColorsBorder;
+    this.toolbarItemColors = toolbarItemColors;
   }
 }

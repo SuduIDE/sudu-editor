@@ -78,35 +78,35 @@ public class DemoEdit0 extends Scene0 {
 
     gotoItems(eventPosition, tbb);
     cutCopyPaste(tbb);
-    if (1 < 0) tbb.addItem("old >", Colors.popupText2, oldDev());
-    tbb.addItem("Settings >", Colors.popupText2, settingsItems());
-    tbb.addItem("Development >", Colors.popupText2, devItems());
+    if (1 < 0) tbb.addItem("old >", editor.colors.dialogItemColor.toolbarItemColors, oldDev());
+    tbb.addItem("Settings >", editor.colors.dialogItemColor.toolbarItemColors, settingsItems());
+    tbb.addItem("Development >", editor.colors.dialogItemColor.toolbarItemColors, devItems());
     return tbb.supplier();
   }
 
   private void cutCopyPaste(ToolbarItemBuilder tbb) {
     if (!editor().readonly) {
-      tbb.addItem("Cut", Colors.popupText, this::cutAction);
+      tbb.addItem("Cut", editor.colors.dialogItemColor.toolbarItemColors, this::cutAction);
     }
-    tbb.addItem("Copy", Colors.popupText, this::copyAction);
+    tbb.addItem("Copy", editor.colors.dialogItemColor.toolbarItemColors, this::copyAction);
 
     if (!editor().readonly && api.window.isReadClipboardTextSupported()) {
-      tbb.addItem("Paste", Colors.popupText, this::pasteAction);
+      tbb.addItem("Paste", editor.colors.dialogItemColor.toolbarItemColors, this::pasteAction);
     }
   }
 
   private Supplier<ToolbarItem[]> settingsItems() {
     ToolbarItemBuilder tbb = new ToolbarItemBuilder();
-    tbb.addItem("Theme >", Colors.popupText2, themes());
-    tbb.addItem("Font size >", Colors.popupText2, fontSize());
-    tbb.addItem("Fonts >", Colors.popupText2, fontSelect());
+    tbb.addItem("Theme >", editor.colors.dialogItemColor.toolbarItemColors, themes());
+    tbb.addItem("Font size >", editor.colors.dialogItemColor.toolbarItemColors, fontSize());
+    tbb.addItem("Fonts >", editor.colors.dialogItemColor.toolbarItemColors, fontSelect());
     return tbb.supplier();
   }
 
   private Supplier<ToolbarItem[]> devItems() {
     ToolbarItemBuilder tbb = new ToolbarItemBuilder();
-    tbb.addItem("parser >", Colors.popupText2, parser());
-    tbb.addItem("open ...", Colors.popupText, this::showOpenFilePicker);
+    tbb.addItem("parser >", editor.colors.dialogItemColor.toolbarItemColors, parser());
+    tbb.addItem("open ...", editor.colors.dialogItemColor.toolbarItemColors, this::showOpenFilePicker);
     return tbb.supplier();
   }
 
@@ -121,7 +121,7 @@ public class DemoEdit0 extends Scene0 {
       if (declarationProvider != null) {
         tbb.addItem(
             "Go to Declaration",
-            Colors.popupText,
+            editor.colors.dialogItemColor.toolbarItemColors,
             () -> findUsagesDefDecl(eventPosition, DefDeclProvider.Type.DECL));
       }
 
@@ -130,7 +130,7 @@ public class DemoEdit0 extends Scene0 {
       if (definitionProvider != null) {
         tbb.addItem(
             "Go to Definition",
-            Colors.popupText,
+            editor.colors.dialogItemColor.toolbarItemColors,
             () -> findUsagesDefDecl(eventPosition, DefDeclProvider.Type.DEF));
       }
 
@@ -139,45 +139,46 @@ public class DemoEdit0 extends Scene0 {
       if (refProvider != null) {
         tbb.addItem(
             "Go to References",
-            Colors.popupText,
+            editor.colors.dialogItemColor.toolbarItemColors,
             () -> findUsages(eventPosition));
       }
 
       tbb.addItem(
           "Go to (local)",
-          Colors.popupText,
+          editor.colors.dialogItemColor.toolbarItemColors,
           () -> findUsagesDefDecl(eventPosition, null));
   }
 
   private Supplier<ToolbarItem[]> parser() {
     return ArrayOp.supplier(
-        ti("Int", Colors.popupText, editor::debugPrintDocumentIntervals),
-        ti("Iter", Colors.popupText, editor::iterativeParsing),
-        ti("VP", Colors.popupText, editor::parseViewport),
-        ti("Rep", Colors.popupText, editor::parseFullFile));
+        ti("Int", editor.colors.dialogItemColor.toolbarItemColors, editor::debugPrintDocumentIntervals),
+        ti("Iter", editor.colors.dialogItemColor.toolbarItemColors, editor::iterativeParsing),
+        ti("VP", editor.colors.dialogItemColor.toolbarItemColors, editor::parseViewport),
+        ti("Rep", editor.colors.dialogItemColor.toolbarItemColors, editor::parseFullFile));
   }
 
   private Supplier<ToolbarItem[]> oldDev() {
     return ArrayOp.supplier(
-        ti("↓ move", Colors.popupText, editor::moveDown),
-        ti("■ stop", Colors.popupText, editor::stopMove),
-        ti("↑ move", Colors.popupText, editor::moveUp),
-        ti("toggleContrast", Colors.popupText, editor::toggleContrast),
-        ti("toggleXOffset", Colors.popupText, editor::toggleXOffset),
-        ti("toggleTails", Colors.popupText, editor::toggleTails));
+        ti("↓ move", editor.colors.dialogItemColor.toolbarItemColors, editor::moveDown),
+        ti("■ stop", editor.colors.dialogItemColor.toolbarItemColors, editor::stopMove),
+        ti("↑ move", editor.colors.dialogItemColor.toolbarItemColors, editor::moveUp),
+        ti("toggleContrast", editor.colors.dialogItemColor.toolbarItemColors, editor::toggleContrast),
+        ti("toggleXOffset", editor.colors.dialogItemColor.toolbarItemColors, editor::toggleXOffset),
+        ti("toggleTails", editor.colors.dialogItemColor.toolbarItemColors, editor::toggleTails));
   }
 
   private Supplier<ToolbarItem[]> themes() {
+    popupMenu.hide();
     return ArrayOp.supplier(
-        ti("Dark", Colors.popupText, editor::toggleDark),
-        ti("Light", Colors.popupText, editor::toggleLight)
+        ti("Dark", editor.colors.dialogItemColor.toolbarItemColors, editor::toggleDark),
+        ti("Light", editor.colors.dialogItemColor.toolbarItemColors, editor::toggleLight)
     );
   }
 
   private Supplier<ToolbarItem[]> fontSize() {
     return ArrayOp.supplier(
-        ti("↑ increase", Colors.popupText, editor::increaseFont),
-        ti("↓ decrease", Colors.popupText, editor::decreaseFont));
+        ti("↑ increase", editor.colors.dialogItemColor.toolbarItemColors, editor::increaseFont),
+        ti("↓ decrease", editor.colors.dialogItemColor.toolbarItemColors, editor::decreaseFont));
   }
 
   private Supplier<ToolbarItem[]> fontSelect() {
@@ -290,7 +291,7 @@ public class DemoEdit0 extends Scene0 {
 
     public boolean onContextMenu(MouseEvent event) {
       if (!popupMenu.isVisible()) {
-        popupMenu.display(event.position, popupMenuContent(event.position), editor::onFocusGain);
+        popupMenu.display(event.position, popupMenuContent(event.position), editor::onFocusGain, editor.colors);
         editor.onFocusLost();
       }
       return true;
