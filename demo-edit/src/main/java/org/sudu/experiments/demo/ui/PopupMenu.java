@@ -4,6 +4,7 @@ import org.sudu.experiments.Const;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.Colors;
 import org.sudu.experiments.demo.DemoRect;
+import org.sudu.experiments.demo.EditorColorScheme;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyEvent;
@@ -33,13 +34,15 @@ public class PopupMenu {
     bgColor = bg;
   }
 
-  public void display(V2i mousePos, Supplier<ToolbarItem[]> actions, Runnable onClose) {
+  public void display(V2i mousePos, Supplier<ToolbarItem[]> actions, Runnable onClose, EditorColorScheme scheme) {
+    bgColor = scheme.dialogItemColor.toolbarItemColors.bgColor;
+    frameColor = scheme.dialogItemColor.findUsagesColorBorder;
     if (font == null || isVisible()) {
       throw new IllegalArgumentException();
     }
     this.onClose = onClose;
 
-    Toolbar rootMenu = displaySubMenu(mousePos, actions, null);
+    Toolbar rootMenu = displaySubMenu(mousePos, actions, null, scheme);
     rootMenu.onClickOutside(this::hide);
   }
 
@@ -51,7 +54,7 @@ public class PopupMenu {
     }
   }
 
-  private Toolbar displaySubMenu(V2i pos, Supplier<ToolbarItem[]> items, Toolbar parent) {
+  private Toolbar displaySubMenu(V2i pos, Supplier<ToolbarItem[]> items, Toolbar parent, EditorColorScheme scheme) {
     if (windowSize.x * windowSize.y == 0 || dpr == 0) {
       throw new IllegalStateException(
           "trying to display popup with unknown screen size and dpr");
@@ -71,7 +74,7 @@ public class PopupMenu {
       if (item.isSubmenu()) {
         displaySubMenu(
             computeSubmenuPosition(item, popup),
-            item.subMenu(), popup);
+            item.subMenu(), popup, scheme);
       }
     });
 
