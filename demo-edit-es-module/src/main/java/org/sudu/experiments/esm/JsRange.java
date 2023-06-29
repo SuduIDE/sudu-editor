@@ -24,6 +24,12 @@ public abstract class JsRange implements JSObject {
         s.startPos.charInd + 1, s.startPos.line + 1);
   }
 
+  public static JsRange fromJava(Range r) {
+    return JsRange.create(
+        r.endColumn + 1, r.endLineNumber + 1,
+        r.startColumn + 1, r.startLineNumber + 1);
+  }
+
   public void toJava(Range range) {
     range.startColumn = getStartColumn() - 1;
     range.startLineNumber = getStartLineNumber() - 1;

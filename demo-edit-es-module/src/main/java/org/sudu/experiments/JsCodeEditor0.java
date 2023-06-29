@@ -221,8 +221,8 @@ public class JsCodeEditor0 implements JsCodeEditor {
             selectionOrPositionToJs(selection, pos))));
   }
 
-  static JSObject selectionOrPositionToJs(Selection s, Pos pos) {
-    if (s != null) return JsRange.fromJava(s);
+  static JSObject selectionOrPositionToJs(Range range, Pos pos) {
+    if (range != null) return JsRange.fromJava(range);
     if (pos != null) return JsPosition.fromJava(pos);
     return JSObjects.undefined();
   }
