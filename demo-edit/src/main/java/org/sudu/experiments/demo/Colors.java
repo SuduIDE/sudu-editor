@@ -22,34 +22,6 @@ public interface Colors {
   V4f findusagesBgLight = IdeaCodeColors.Colors.editBgColorLight;
   V4f findUsagesErrorBg = new Color("#781732");
 
-  static Color findUsagesColorBorderByScheme(EditorColorScheme scheme) {
-    if (Objects.equals(scheme.editBgColor, IdeaCodeColors.Colors.editBgColor)) {
-      return new Color("#616161");
-    }
-    return new Color("#B9BDC9");
-  }
-
-  static FindUsagesItemColors findUsagesColorsByScheme(EditorColorScheme scheme) {
-    if (Objects.equals(scheme.editBgColor, IdeaCodeColors.Colors.editBgColor)) {
-      return FindUsagesItemColors.darkFindUsagesItemColors();
-    }
-    return FindUsagesItemColors.lightFindUsagesItemColors();
-  }
-
-  static FindUsagesItemColors findUsagesColorsContinuedByScheme(EditorColorScheme scheme) {
-    if (Objects.equals(scheme.editBgColor, IdeaCodeColors.Colors.editBgColor)) {
-      return FindUsagesItemColors.darkFindUsagesItemColorsExtraLine();
-    }
-    return FindUsagesItemColors.lightFindUsagesItemColorsExtraLine();
-  }
-
-  static FindUsagesItemColors findUsagesColorsErrorByScheme(EditorColorScheme scheme) {
-    if (Objects.equals(scheme.editBgColor, IdeaCodeColors.Colors.editBgColor)) {
-      return FindUsagesItemColors.darkFindUsagesItemColorsError();
-    }
-    return FindUsagesItemColors.lightFindUsagesItemColorsError();
-  }
-
   ToolbarItemColors popupText = new ToolbarItemColors(
       new Color("#BBBBBB"), toolbarBg, toolbarSelectedBg);
   ToolbarItemColors popupText2 = new ToolbarItemColors(
