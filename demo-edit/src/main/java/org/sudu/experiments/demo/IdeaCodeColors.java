@@ -93,6 +93,8 @@ public interface IdeaCodeColors {
   }
 
   interface Colors {
+    Color cursorDark = new Color(Caret.grayColor);
+    Color cursorWhite = new Color(0);
     Color editBgColor = new Color(43);
     Color defaultText = new Color("#A9B7C6");
     Color editNumbersVLine = new Color(85);

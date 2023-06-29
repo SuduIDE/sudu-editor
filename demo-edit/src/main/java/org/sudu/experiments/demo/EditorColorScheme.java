@@ -5,6 +5,7 @@ import org.sudu.experiments.parser.ParserConstants;
 
 public class EditorColorScheme {
   public final Color editBgColor;
+  public final Color cursorColor;
   public final Color editNumbersVLine;
   public final Color editFooterFill;
   public final Color codeLineTailColor;
@@ -18,6 +19,7 @@ public class EditorColorScheme {
   public static EditorColorScheme darkIdeaColorScheme() {
     return new EditorColorScheme(
         new Color(IdeaCodeColors.Colors.editBgColor),
+        new Color(IdeaCodeColors.Colors.cursorDark),
         new Color(IdeaCodeColors.Colors.editNumbersVLine),
         new Color(IdeaCodeColors.Colors.editFooterFill),
         new Color(IdeaCodeColors.Colors.editBgColor),
@@ -32,6 +34,7 @@ public class EditorColorScheme {
   public static EditorColorScheme lightIdeaColorScheme() {
     return new EditorColorScheme(
         new Color(IdeaCodeColors.Colors.editBgColorLight),
+        new Color(IdeaCodeColors.Colors.cursorWhite),
         new Color(IdeaCodeColors.Colors.editNumbersVLineLight),
         new Color(IdeaCodeColors.Colors.editFooterFill),
         new Color(IdeaCodeColors.Colors.editBgColorLight),
@@ -45,6 +48,7 @@ public class EditorColorScheme {
 
   private EditorColorScheme(
       Color editBgColor,
+      Color cursorColor,
       Color editNumbersVLine,
       Color editFooterFill,
       Color codeLineTailColor,
@@ -55,6 +59,7 @@ public class EditorColorScheme {
       LineNumbersColors lineNumbersColors
   ) {
     this.editBgColor = editBgColor;
+    this.cursorColor = cursorColor;
     this.editNumbersVLine = editNumbersVLine;
     this.editFooterFill = editFooterFill;
     this.codeLineTailColor = codeLineTailColor;

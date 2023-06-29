@@ -63,4 +63,8 @@ public class Caret {
   public void paint(WglGraphics g, V2i dXdY) {
     if (state) shape.draw(g, dXdY.x, dXdY.y);
   }
+
+  public void setColor(Color cursorColor) {
+    shape.color.set(cursorColor);
+  }
 }
