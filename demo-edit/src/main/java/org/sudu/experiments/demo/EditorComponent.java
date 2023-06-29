@@ -15,6 +15,7 @@ import org.sudu.experiments.demo.ui.FindUsagesItem;
 import org.sudu.experiments.demo.ui.FindUsagesItemBuilder;
 import org.sudu.experiments.demo.ui.FindUsagesItemColors;
 import org.sudu.experiments.demo.ui.FindUsagesWindow;
+import org.sudu.experiments.demo.ui.PopupMenu;
 import org.sudu.experiments.demo.worker.parser.CppParser;
 import org.sudu.experiments.demo.worker.parser.FileParser;
 import org.sudu.experiments.demo.worker.parser.JavaParser;
@@ -110,6 +111,7 @@ public class EditorComponent implements Disposable {
 
   FindUsagesWindow usagesMenu;
   FindUsagesWindow gotoMenu;
+  PopupMenu popupMenu;
 
   private CodeElement definition = null;
   private final List<CodeElement> usages = new ArrayList<>();
@@ -119,6 +121,10 @@ public class EditorComponent implements Disposable {
   public EditorComponent(SceneApi api) {
     this.api = api;
     this.g = api.graphics;
+
+    usagesMenu = new FindUsagesWindow(g);
+    gotoMenu = new FindUsagesWindow(g);
+    popupMenu = new PopupMenu(g);
 
     toggleDark();
     if (api.window.hasFocus()) onFocusGain();
@@ -130,9 +136,6 @@ public class EditorComponent implements Disposable {
 
     // d2d is very bold, contrast makes font heavier
     applyContrast = api.window.getHost() != Host.Direct2D;
-
-    usagesMenu = new FindUsagesWindow(g);
-    gotoMenu = new FindUsagesWindow(g);
   }
 
   void setPos(V2i pos, V2i size, double dpr) {
@@ -200,6 +203,7 @@ public class EditorComponent implements Disposable {
   }
 
   private void applyTheme() {
+    if (popupMenu.isVisible()) popupMenu.hide();
     caret.setColor(colors.cursorColor);
   }
 

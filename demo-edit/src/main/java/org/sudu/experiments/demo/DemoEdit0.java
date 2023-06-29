@@ -30,7 +30,6 @@ public class DemoEdit0 extends Scene0 {
   WglGraphics g;
   final SetCursor setCursor;
 
-  final PopupMenu popupMenu;
   FontDesk toolBarFont;
 
   EditorComponent editor;
@@ -41,7 +40,6 @@ public class DemoEdit0 extends Scene0 {
     this.g = api.graphics;
 //    clearColor.set(Color.Cvt.gray(0));
     this.setCursor = SetCursor.wrap(api.window);
-    popupMenu = new PopupMenu(g);
 
     editor = new EditorComponent(api);
     api.input.addListener(new EditInput());
@@ -57,7 +55,7 @@ public class DemoEdit0 extends Scene0 {
 
   @Override
   public void dispose() {
-    popupMenu.dispose();
+    editor.popupMenu.dispose();
     editor.dispose();
   }
 
@@ -70,7 +68,7 @@ public class DemoEdit0 extends Scene0 {
   public void paint() {
     super.paint();
     editor.paint();
-    popupMenu.paint();
+    editor.popupMenu.paint();
   }
 
   protected Supplier<ToolbarItem[]> popupMenuContent(V2i eventPosition) {
@@ -168,7 +166,7 @@ public class DemoEdit0 extends Scene0 {
   }
 
   private Supplier<ToolbarItem[]> themes() {
-    popupMenu.hide();
+    editor.popupMenu.hide();
     return ArrayOp.supplier(
         ti("Dark", editor.colors.dialogItemColor.toolbarItemColors, editor::toggleDark),
         ti("Light", editor.colors.dialogItemColor.toolbarItemColors, editor::toggleLight)
@@ -200,19 +198,19 @@ public class DemoEdit0 extends Scene0 {
   }
 
   private void pasteAction() {
-    popupMenu.hide();
+    editor.popupMenu.hide();
     api.window.readClipboardText(
         editor::handleInsert,
         onError("readClipboardText error: "));
   }
 
   private void cutAction() {
-    popupMenu.hide();
+    editor.popupMenu.hide();
     editor.onCopy(copyHandler(), true);
   }
 
   private void copyAction() {
-    popupMenu.hide();
+    editor.popupMenu.hide();
     editor.onCopy(copyHandler(), false);
   }
 
@@ -226,12 +224,12 @@ public class DemoEdit0 extends Scene0 {
     String language = editor().model.language();
     String scheme = editor().model.uriScheme();
     ReferenceProvider.Provider provider =  editor().registrations.findReferenceProvider(language, scheme);
-    popupMenu.hide();
+    editor.popupMenu.hide();
     editor.findUsages(eventPosition, provider);
   }
 
   private void findUsagesDefDecl(V2i eventPosition, DefDeclProvider.Type type) {
-    popupMenu.hide();
+    editor.popupMenu.hide();
     Model model = editor().model();
     String language = model.language();
     String scheme = model.uriScheme();
@@ -260,9 +258,9 @@ public class DemoEdit0 extends Scene0 {
       dpr = newDpr;
       int toolbarFontSize = Numbers.iRnd(EditorConst.POPUP_MENU_FONT_SIZE * newDpr);
       toolBarFont = g.fontDesk(EditorConst.POPUP_MENU_FONT_NAME, toolbarFontSize);
-      popupMenu.setTheme(toolBarFont, Colors.toolbarBg);
+      editor.popupMenu.setTheme(toolBarFont, Colors.toolbarBg);
     }
-    popupMenu.onResize(newSize, newDpr);
+    editor.popupMenu.onResize(newSize, newDpr);
   }
 
   class EditInput implements InputListener {
@@ -274,7 +272,7 @@ public class DemoEdit0 extends Scene0 {
 
     @Override
     public void onBlur() {
-      popupMenu.hide();
+      editor.popupMenu.hide();
       editor.onFocusLost();
     }
 
@@ -285,13 +283,13 @@ public class DemoEdit0 extends Scene0 {
 
     @Override
     public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-      return popupMenu.onMousePress(event.position, button, press, clickCount)
+      return editor.popupMenu.onMousePress(event.position, button, press, clickCount)
           || editor.onMousePress(event, button, press, clickCount);
     }
 
     public boolean onContextMenu(MouseEvent event) {
-      if (!popupMenu.isVisible()) {
-        popupMenu.display(event.position, popupMenuContent(event.position), editor::onFocusGain, editor.colors);
+      if (!editor.popupMenu.isVisible()) {
+        editor.popupMenu.display(event.position, popupMenuContent(event.position), editor::onFocusGain, editor.colors);
         editor.onFocusLost();
       }
       return true;
@@ -299,7 +297,7 @@ public class DemoEdit0 extends Scene0 {
 
     @Override
     public boolean onMouseMove(MouseEvent event) {
-      return popupMenu.onMouseMove(event.position, setCursor)
+      return editor.popupMenu.onMouseMove(event.position, setCursor)
           || editor.onMouseMove(event, setCursor);
     }
 
@@ -312,8 +310,8 @@ public class DemoEdit0 extends Scene0 {
       if (!event.isPressed) return false;
 
       if (event.keyCode == KeyCode.ESC) {
-        if (popupMenu.isVisible()) {
-          popupMenu.hide();
+        if (editor.popupMenu.isVisible()) {
+          editor.popupMenu.hide();
           return true;
         }
       }
