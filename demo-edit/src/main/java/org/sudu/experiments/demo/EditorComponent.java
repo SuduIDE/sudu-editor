@@ -13,6 +13,7 @@ import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.ui.FindUsagesItem;
 import org.sudu.experiments.demo.ui.FindUsagesItemBuilder;
+import org.sudu.experiments.demo.ui.FindUsagesItemColors;
 import org.sudu.experiments.demo.ui.FindUsagesWindow;
 import org.sudu.experiments.demo.worker.parser.CppParser;
 import org.sudu.experiments.demo.worker.parser.FileParser;
@@ -948,7 +949,7 @@ public class EditorComponent implements Disposable {
         "No definition or usages",
         "",
         "",
-        Colors.findUsagesColorsErrorByScheme(colors),
+        colors.dialogItemColor.findUsagesColorsError,
         () -> {
         }
     );
