@@ -5,6 +5,6 @@
   "author": "Kirill Prazdnikov",
   "license": "MIT",
   "main": "./src/editor.js",
-  "files": [ "editor.d.ts", "./src/editor.js", "./src/worker.js" ],
+  "files": [ "editor.d.ts", "./src/editor.js", "./src/worker.js", "./src/loader.js" ],
   "typings": "./editor.d.ts"
 }
