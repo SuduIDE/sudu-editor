@@ -1071,8 +1071,7 @@ public class EditorComponent implements Disposable {
       EditorOpener editorOpener = registrations.findOpener();
       if (editorOpener != null) {
         api.window.runLater(() -> {
-          editorOpener.open(loc.uri, loc.range.toSelection(), null);
-          updateSelectionViaRange(loc.range);
+          editorOpener.open(loc.uri, loc.range, null);
         });
       }
     } else {
