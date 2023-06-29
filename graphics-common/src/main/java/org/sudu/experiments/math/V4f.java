@@ -62,6 +62,6 @@ public class V4f {
 
   @Override
   public String toString() {
-    return "x = " + x + ", y = " + y + ", z = " + z;
+    return "x = " + x + ", y = " + y + ", z = " + z + ", w = " + w;
   }
 }
