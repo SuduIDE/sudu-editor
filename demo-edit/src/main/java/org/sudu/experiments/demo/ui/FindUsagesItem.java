@@ -7,8 +7,9 @@ public class FindUsagesItem {
   final TextRect tLines = new TextRect();
   final TextRect tContent = new TextRect();
   final Runnable action;
-  final FindUsagesItemColors colors;
+  FindUsagesItemColors colors;
   String fileName, lineNumber, codeContent;
+  boolean isHover = false;
 
   public FindUsagesItem(Runnable r, String fileName, String lineNumber, String codeContent, FindUsagesItemColors colors) {
     this.fileName = fileName;
@@ -28,5 +29,6 @@ public class FindUsagesItem {
     tFiles.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
     tLines.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
     tContent.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
+    isHover = b;
   }
 }

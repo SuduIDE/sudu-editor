@@ -43,15 +43,13 @@ public class PopupMenu {
     }
   }
 
-  public void display(V2i mousePos, Supplier<ToolbarItem[]> actions, Runnable onClose, EditorColorScheme scheme) {
-    bgColor = scheme.dialogItemColor.toolbarItemColors.bgColor;
-    frameColor = scheme.dialogItemColor.findUsagesColorBorder;
+  public void display(V2i mousePos, Supplier<ToolbarItem[]> actions, Runnable onClose) {
     if (font == null || isVisible()) {
       throw new IllegalArgumentException();
     }
     this.onClose = onClose;
 
-    Toolbar rootMenu = displaySubMenu(mousePos, actions, null, scheme);
+    Toolbar rootMenu = displaySubMenu(mousePos, actions, null);
     rootMenu.onClickOutside(this::hide);
   }
 
@@ -63,7 +61,7 @@ public class PopupMenu {
     }
   }
 
-  private Toolbar displaySubMenu(V2i pos, Supplier<ToolbarItem[]> items, Toolbar parent, EditorColorScheme scheme) {
+  private Toolbar displaySubMenu(V2i pos, Supplier<ToolbarItem[]> items, Toolbar parent) {
     if (windowSize.x * windowSize.y == 0 || dpr == 0) {
       throw new IllegalStateException(
           "trying to display popup with unknown screen size and dpr");
@@ -83,7 +81,7 @@ public class PopupMenu {
       if (item.isSubmenu()) {
         displaySubMenu(
             computeSubmenuPosition(item, popup),
-            item.subMenu(), popup, scheme);
+            item.subMenu(), popup);
       }
     });
 
