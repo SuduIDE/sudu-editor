@@ -1066,7 +1066,12 @@ public class EditorComponent implements Disposable {
 
   private void gotoDefinition(V2i position, Location[] locs) {
     switch (locs.length) {
-      case 0 -> {}
+      case 0 -> {
+        if (!usagesMenu.isVisible()) {
+          usagesMenu.display(position,
+              noDefOrUsages(), this::onFocusGain);
+        }
+      }
       case 1 -> gotoDefinition(locs[0]);
       default -> {
         if (!usagesMenu.isVisible()) usagesMenu.display(

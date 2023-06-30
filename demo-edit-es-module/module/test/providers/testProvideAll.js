@@ -1,6 +1,10 @@
 import {newEditor, newTextModel} from "../../src/editor.js";
 import {initialTextJava, workerUrl} from "../utils.js";
 
+function registerForButton(id, listener) {
+    document.getElementById(id).addEventListener("click", listener)
+}
+
 function test1(editor) {
     let model = newTextModel(initialTextJava, "java", null)
     editor.setModel(model)
@@ -65,9 +69,21 @@ function test1(editor) {
             }
         }
     );
-    document.getElementById("disposeDef").addEventListener("click", () => disposableDef.dispose())
-    document.getElementById("disposeDecl").addEventListener("click", () => disposableDecl.dispose())
-    document.getElementById("disposeRef").addEventListener("click", () => disposableRef.dispose())
+    registerForButton("disposeDef", () => disposableDef.dispose());
+    registerForButton("disposeDecl",
+        () => disposableDecl.dispose())
+    registerForButton("disposeRef",
+        () => disposableRef.dispose())
+    registerForButton("registerEmptyDefinitions",
+        () => {
+            disposableDef.dispose()
+            disposableDef = editor.registerDefinitionProvider("java", {
+                provideDefinition(model, position, token) {
+                    return [];
+                }
+            });
+        })
+
 }
 
 function main() {
