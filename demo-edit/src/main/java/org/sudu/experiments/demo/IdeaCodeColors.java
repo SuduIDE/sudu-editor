@@ -105,6 +105,8 @@ public interface IdeaCodeColors {
     Color editNumbersVLineLight = new Color(0xd4, 0xd4, 0xd4);
     Color editSelectedBgLight = new Color(0xa6, 0xd6, 0xff);
     Color definitionBgColor =  new Color("#40332B");
+    Color definitionBgColorLight = new Color("#edebfc");
     Color usageBgColor =  new Color("#344134");
+    Color usageBgColorLight = new Color("#edebfc");
   }
 }

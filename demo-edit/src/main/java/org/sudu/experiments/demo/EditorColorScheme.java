@@ -42,8 +42,8 @@ public class EditorColorScheme {
         new Color(IdeaCodeColors.Colors.editFooterFill),
         new Color(IdeaCodeColors.Colors.editBgColorLight),
         new Color(IdeaCodeColors.Colors.editSelectedBgLight),
-        new Color(IdeaCodeColors.Colors.definitionBgColor),
-        new Color(IdeaCodeColors.Colors.usageBgColor),
+        new Color(IdeaCodeColors.Colors.definitionBgColorLight),
+        new Color(IdeaCodeColors.Colors.usageBgColorLight),
         IdeaCodeColors.codeElementColorsLight(),
         IdeaCodeColors.lineNumberColorsLight(),
         DialogItemColors.lightColorScheme()
