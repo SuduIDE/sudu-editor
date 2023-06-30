@@ -12,7 +12,7 @@ public class ToolbarItem {
   ToolbarItemColors colors;
   final Supplier<ToolbarItem[]> subMenu;
   String text;
-  Boolean isHover = false;
+  boolean isHover = false;
 
   public ToolbarItem(Runnable r, String text, ToolbarItemColors colors) {
     this(r, text, colors, null);

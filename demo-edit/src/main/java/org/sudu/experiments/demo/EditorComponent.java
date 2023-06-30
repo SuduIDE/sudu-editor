@@ -200,7 +200,7 @@ public class EditorComponent implements Disposable {
   }
 
   private void applyTheme() {
-    popupMenu.changeTheme(colors);
+    popupMenu.setTheme(colors);
     caret.setColor(colors.cursorColor);
   }
 
