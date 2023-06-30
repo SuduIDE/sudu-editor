@@ -127,15 +127,11 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
       return true;
     }
     if (event.isPressed) {
-      findUsagesWindow.handleUsagesMenuKey(event);
+      findUsagesWindow.onKey(event);
       return true;
     }
 
     return false;
   }
 
-  @Override
-  public boolean update(double timestamp) {
-    return false;
-  }
 }
