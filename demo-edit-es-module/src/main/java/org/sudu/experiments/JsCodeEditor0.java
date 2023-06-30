@@ -232,12 +232,12 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   @Override
   public void revealLineInCenter(int line) {
-    editor.revealLineInCenter(line);
+    editor.revealLineInCenter(line - 1);
   }
 
   @Override
   public void revealLine(int line) {
-    editor.revealLine(line);
+    editor.revealLine(line - 1);
   }
 
   @Override

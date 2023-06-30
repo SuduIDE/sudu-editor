@@ -156,7 +156,7 @@ public class FindUsagesWindow {
       } else {
         intLineNumber = defs[i].range.startLineNumber;
         codeContent = Objects.equals(editorComponent.model().uri, defs[i].uri)
-            ? model.document.line(intLineNumber).makeString().trim() : "other file...";
+            ? model.document.line(intLineNumber).makeString().trim() : "";
 
         fileName = fileName(defs[i].uri);
       }
