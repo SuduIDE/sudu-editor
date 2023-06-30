@@ -163,7 +163,9 @@ interface ICodeEditor {
 
     setModel(model: ITextModel): void,
 
-    setPosition(selectionOrPosition: SelectionOrPosition): void
+    setPosition(position: IPosition): void
+
+    getPosition(): IPosition
 
     getModel(): ITextModel,
 
@@ -178,6 +180,8 @@ interface ICodeEditor {
     revealLineInCenter(line: number): void
 
     revealLine(line: number): void
+
+    revealPosition(position: IPosition): void
 
     setReadonly(flag: boolean): void
 
