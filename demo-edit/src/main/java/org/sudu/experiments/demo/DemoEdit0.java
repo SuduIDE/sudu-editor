@@ -7,7 +7,6 @@ import org.sudu.experiments.Debug;
 import org.sudu.experiments.Scene0;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.ui.PopupMenu;
 import org.sudu.experiments.demo.ui.ToolbarItem;
 import org.sudu.experiments.demo.ui.ToolbarItemBuilder;
 import org.sudu.experiments.fonts.FontDesk;
@@ -55,7 +54,6 @@ public class DemoEdit0 extends Scene0 {
 
   @Override
   public void dispose() {
-    editor.popupMenu.dispose();
     editor.dispose();
   }
 
@@ -68,7 +66,6 @@ public class DemoEdit0 extends Scene0 {
   public void paint() {
     super.paint();
     editor.paint();
-    editor.popupMenu.paint();
   }
 
   protected Supplier<ToolbarItem[]> popupMenuContent(V2i eventPosition) {
@@ -166,7 +163,6 @@ public class DemoEdit0 extends Scene0 {
   }
 
   private Supplier<ToolbarItem[]> themes() {
-    editor.popupMenu.hide();
     return ArrayOp.supplier(
         ti("Dark", editor.colors.dialogItemColor.toolbarItemColors, editor::toggleDark),
         ti("Light", editor.colors.dialogItemColor.toolbarItemColors, editor::toggleLight)
@@ -185,7 +181,7 @@ public class DemoEdit0 extends Scene0 {
       ToolbarItem[] items = new ToolbarItem[fonts.length];
       for (int i = 0; i < items.length; i++) {
         var font = fonts[i];
-        items[i] = new ToolbarItem(() -> setFont(font), font, Colors.rngToolButton());
+        items[i] = new ToolbarItem(() -> setFont(font), font, editor.colors.dialogItemColor.toolbarItemColors);
       }
       return items;
     };
@@ -260,7 +256,6 @@ public class DemoEdit0 extends Scene0 {
       toolBarFont = g.fontDesk(EditorConst.POPUP_MENU_FONT_NAME, toolbarFontSize);
       editor.popupMenu.setTheme(toolBarFont, Colors.toolbarBg);
     }
-    editor.popupMenu.onResize(newSize, newDpr);
   }
 
   class EditInput implements InputListener {
@@ -283,8 +278,7 @@ public class DemoEdit0 extends Scene0 {
 
     @Override
     public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-      return editor.popupMenu.onMousePress(event.position, button, press, clickCount)
-          || editor.onMousePress(event, button, press, clickCount);
+      return editor.onMousePress(event, button, press, clickCount);
     }
 
     public boolean onContextMenu(MouseEvent event) {
@@ -297,8 +291,7 @@ public class DemoEdit0 extends Scene0 {
 
     @Override
     public boolean onMouseMove(MouseEvent event) {
-      return editor.popupMenu.onMouseMove(event.position, setCursor)
-          || editor.onMouseMove(event, setCursor);
+      return editor.onMouseMove(event, setCursor);
     }
 
     @Override
@@ -308,13 +301,6 @@ public class DemoEdit0 extends Scene0 {
 
     private boolean handleKey(KeyEvent event) {
       if (!event.isPressed) return false;
-
-      if (event.keyCode == KeyCode.ESC) {
-        if (editor.popupMenu.isVisible()) {
-          editor.popupMenu.hide();
-          return true;
-        }
-      }
 
       if (event.ctrl && event.keyCode == KeyCode.O) {
         if (event.shift) {

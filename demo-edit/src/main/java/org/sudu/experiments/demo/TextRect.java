@@ -45,6 +45,11 @@ public class TextRect extends DemoRect {
     bgColor.set(cb);
   }
 
+  public void setColors(V4f cf, V4f cb) {
+    color.set(cf);
+    bgColor.set(cb);
+  }
+
   void setBgColor(Color c) {
     bgColor.set(c);
   }

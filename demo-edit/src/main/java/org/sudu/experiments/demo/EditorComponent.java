@@ -13,7 +13,6 @@ import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.ui.FindUsagesItem;
 import org.sudu.experiments.demo.ui.FindUsagesItemBuilder;
-import org.sudu.experiments.demo.ui.FindUsagesItemColors;
 import org.sudu.experiments.demo.ui.FindUsagesWindow;
 import org.sudu.experiments.demo.ui.PopupMenu;
 import org.sudu.experiments.demo.worker.parser.CppParser;
@@ -34,7 +33,6 @@ import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.worker.ArrayView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -163,6 +161,7 @@ public class EditorComponent implements Disposable {
     layout();
     usagesMenu.onResize(size, dpr);
     gotoMenu.onResize(size, dpr);
+    popupMenu.onResize(size, dpr);
   }
 
 
@@ -203,7 +202,7 @@ public class EditorComponent implements Disposable {
   }
 
   private void applyTheme() {
-    if (popupMenu.isVisible()) popupMenu.hide();
+    popupMenu.changeTheme(colors);
     caret.setColor(colors.cursorColor);
   }
 
@@ -355,6 +354,7 @@ public class EditorComponent implements Disposable {
     }
     renderingCanvas = Disposable.assign(renderingCanvas, null);
     lineNumbers.dispose();
+    popupMenu.dispose();
   }
 
   int editorFullHeight() {
@@ -494,6 +494,7 @@ public class EditorComponent implements Disposable {
 
     usagesMenu.paint();
     gotoMenu.paint();
+    popupMenu.paint();
 
 //    g.checkError("paint complete");
     if (0>1) {
@@ -1150,6 +1151,7 @@ public class EditorComponent implements Disposable {
 
     if (usagesMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
     if (gotoMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
+    if (popupMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
     if (button == MOUSE_BUTTON_LEFT && clickCount == 2 && press) {
       onDoubleClickText(eventPosition);
       return true;
@@ -1176,6 +1178,7 @@ public class EditorComponent implements Disposable {
     eventPosition.set(event.position.x - compPos.x, event.position.y - compPos.y);
     if (usagesMenu.onMouseMove(eventPosition, setCursor)) return true;
     if (gotoMenu.onMouseMove(eventPosition, setCursor)) return true;
+    if (popupMenu.onMouseMove(eventPosition, setCursor)) return true;
 
     if (dragLock != null) {
       dragLock.accept(eventPosition);
@@ -1209,7 +1212,8 @@ public class EditorComponent implements Disposable {
     if (!event.isPressed) return false;
 
     // Should prevent other keys from being used when the usages window is open
-    if (usagesMenu.isVisible() && usagesMenu.handleUsagesMenuKey(event)) return true;
+    if (usagesMenu.onKey(event)) return true;
+    if (popupMenu.onKey(event)) return true;
 
     if (event.keyCode == KeyCode.F10) {
       api.window.addChild("child", DemoEdit0::new);

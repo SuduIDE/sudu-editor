@@ -9,9 +9,10 @@ import java.util.function.Supplier;
 public class ToolbarItem {
   final TextRect tRect = new TextRect();
   final Runnable action;
-  final ToolbarItemColors colors;
+  ToolbarItemColors colors;
   final Supplier<ToolbarItem[]> subMenu;
   String text;
+  Boolean isHover = false;
 
   public ToolbarItem(Runnable r, String text, ToolbarItemColors colors) {
     this(r, text, colors, null);
@@ -44,5 +45,6 @@ public class ToolbarItem {
 
   public void setHover(boolean b) {
     tRect.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
+    isHover = b;
   }
 }
