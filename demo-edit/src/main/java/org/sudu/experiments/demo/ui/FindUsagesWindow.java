@@ -2,7 +2,14 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.Const;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.*;
+import org.sudu.experiments.demo.Colors;
+import org.sudu.experiments.demo.EditorColorScheme;
+import org.sudu.experiments.demo.EditorComponent;
+import org.sudu.experiments.demo.EditorConst;
+import org.sudu.experiments.demo.Location;
+import org.sudu.experiments.demo.Model;
+import org.sudu.experiments.demo.SetCursor;
+import org.sudu.experiments.demo.Uri;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -18,11 +25,13 @@ public class FindUsagesWindow {
   private final V2i windowSize = new V2i();
   public FindUsagesDialog usagesList = new FindUsagesDialog();
   private final WglGraphics graphics;
-  private final V4f frameColor = Colors.findUsagesBorder;
+  private V4f frameColor = Colors.findUsagesBorder;
   private double dpr;
   private FontDesk font;
   private V4f bgColor = Colors.findUsagesBg;
   private Runnable onClose = Const.emptyRunnable;
+
+  private EditorColorScheme editorColorScheme;
 
   public FindUsagesWindow(WglGraphics graphics) {
     this.graphics = graphics;
@@ -35,9 +44,16 @@ public class FindUsagesWindow {
   }
 
   // todo: change font and size if dps changed on
-  public void setTheme(FontDesk f, V4f bg) {
+  public void setFont(FontDesk f, V4f bg) {
     font = f;
     bgColor = bg;
+  }
+
+  public void setTheme(EditorColorScheme scheme) {
+    editorColorScheme = scheme;
+    bgColor = scheme.dialogItemColors.findUsagesColors.bgColor;
+    frameColor = scheme.dialogItemColors.findUsagesColorBorder;
+    usagesList.setTheme(scheme);
   }
 
   private FindUsagesDialog displayFindUsagesMenu(V2i pos, FindUsagesItem[] items) {
@@ -124,6 +140,8 @@ public class FindUsagesWindow {
   }
 
   private FindUsagesItem[] buildItems(List<Pos> usages, Location[] defs, EditorComponent editorComponent, Model model) {
+    if (editorColorScheme == null) throw new RuntimeException("Editor color scheme has not been set");
+
     FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
     int cnt = 0;
     int itemsLength = defs == null ? usages.size() : defs.length;
@@ -150,7 +168,7 @@ public class FindUsagesWindow {
             "... and " + (usages.size() - (cnt - 1)) + " more usages",
             "",
             "",
-            Colors.findUsagesColorsContinued,
+            editorColorScheme.dialogItemColors.findUsagesColorsContinued,
             () -> {
             }
         );
@@ -166,19 +184,20 @@ public class FindUsagesWindow {
         def = defs[i];
       }
       Runnable action = defs == null ? () -> editorComponent.gotoUsageMenuElement(pos) :
-          () -> editorComponent.gotoDefinition(def) ;
+          () -> editorComponent.gotoDefinition(def);
       tbb.addItem(
           fileName,
           lineNumber,
           codeContentFormatted,
-          Colors.findUsagesColors,
+          editorColorScheme.dialogItemColors.findUsagesColors,
           action
       );
     }
     return tbb.items();
   }
 
-  public boolean handleUsagesMenuKey(KeyEvent event) {
+  public boolean onKey(KeyEvent event) {
+    if (!isVisible()) return false;
     return switch (event.keyCode) {
       case KeyCode.ESC -> hide();
       case KeyCode.ARROW_DOWN, KeyCode.ARROW_UP, KeyCode.ARROW_LEFT, KeyCode.ARROW_RIGHT ->

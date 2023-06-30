@@ -11,7 +11,10 @@ import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.Host;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.ui.*;
+import org.sudu.experiments.demo.ui.FindUsagesItem;
+import org.sudu.experiments.demo.ui.FindUsagesItemBuilder;
+import org.sudu.experiments.demo.ui.FindUsagesWindow;
+import org.sudu.experiments.demo.ui.PopupMenu;
 import org.sudu.experiments.demo.worker.parser.CppParser;
 import org.sudu.experiments.demo.worker.parser.FileParser;
 import org.sudu.experiments.demo.worker.parser.JavaParser;
@@ -30,12 +33,10 @@ import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.worker.ArrayView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
-import java.util.function.Supplier;
 
 import static org.sudu.experiments.input.InputListener.MOUSE_BUTTON_LEFT;
 
@@ -107,7 +108,8 @@ public class EditorComponent implements Disposable {
   public boolean readonly = false;
 
   FindUsagesWindow usagesMenu;
-  FindUsagesWindow gotoMenu;
+
+  PopupMenu popupMenu;
 
   private CodeElement definition = null;
   private final List<CodeElement> usages = new ArrayList<>();
@@ -117,6 +119,9 @@ public class EditorComponent implements Disposable {
   public EditorComponent(SceneApi api) {
     this.api = api;
     this.g = api.graphics;
+
+    usagesMenu = new FindUsagesWindow(g);
+    popupMenu = new PopupMenu(g);
 
     toggleDark();
     if (api.window.hasFocus()) onFocusGain();
@@ -128,9 +133,6 @@ public class EditorComponent implements Disposable {
 
     // d2d is very bold, contrast makes font heavier
     applyContrast = api.window.getHost() != Host.Direct2D;
-
-    usagesMenu = new FindUsagesWindow(g);
-    gotoMenu = new FindUsagesWindow(g);
   }
 
   void setPos(V2i pos, V2i size, double dpr) {
@@ -157,7 +159,7 @@ public class EditorComponent implements Disposable {
 
     layout();
     usagesMenu.onResize(size, dpr);
-    gotoMenu.onResize(size, dpr);
+    popupMenu.onResize(size, dpr);
   }
 
 
@@ -198,6 +200,8 @@ public class EditorComponent implements Disposable {
   }
 
   private void applyTheme() {
+    usagesMenu.setTheme(colors);
+    popupMenu.setTheme(colors);
     caret.setColor(colors.cursorColor);
   }
 
@@ -280,8 +284,7 @@ public class EditorComponent implements Disposable {
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
-    usagesMenu.setTheme(font, Colors.findUsagesBg);
-    gotoMenu.setTheme(font, Colors.findUsagesBg);
+    usagesMenu.setFont(font, Colors.findUsagesBg);
 
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight
@@ -349,6 +352,7 @@ public class EditorComponent implements Disposable {
     }
     renderingCanvas = Disposable.assign(renderingCanvas, null);
     lineNumbers.dispose();
+    popupMenu.dispose();
   }
 
   int editorFullHeight() {
@@ -487,7 +491,7 @@ public class EditorComponent implements Disposable {
     drawScrollBar();
 
     usagesMenu.paint();
-    gotoMenu.paint();
+    popupMenu.paint();
 
 //    g.checkError("paint complete");
     if (0>1) {
@@ -937,8 +941,8 @@ public class EditorComponent implements Disposable {
     }
     var items = pos.isEmpty()
         ? noDefOrUsages()
-        : gotoMenu.buildDefItems(locs, this, model);
-    if (!gotoMenu.isVisible()) gotoMenu.display(position, items, this::onFocusGain);
+        : usagesMenu.buildDefItems(locs, this, model);
+    if (!usagesMenu.isVisible()) usagesMenu.display(position, items, this::onFocusGain);
   }
 
   private FindUsagesItem[] noDefOrUsages() {
@@ -947,8 +951,9 @@ public class EditorComponent implements Disposable {
         "No definition or usages",
         "",
         "",
-        Colors.findUsagesColorsError,
-        () -> {}
+        colors.dialogItemColors.findUsagesColorsError,
+        () -> {
+        }
     );
     return tbb.items();
   }
@@ -1063,9 +1068,9 @@ public class EditorComponent implements Disposable {
       case 0 -> {}
       case 1 -> gotoDefinition(locs[0]);
       default -> {
-        if (!gotoMenu.isVisible()) gotoMenu.display(
+        if (!usagesMenu.isVisible()) usagesMenu.display(
             position,
-            gotoMenu.buildDefItems(locs, this, model),
+            usagesMenu.buildDefItems(locs, this, model),
             this::onFocusGain
         );
       }
@@ -1073,7 +1078,7 @@ public class EditorComponent implements Disposable {
   }
 
   public void gotoDefinition(Location loc) {
-    if (gotoMenu.isVisible()) gotoMenu.hide();
+    if (usagesMenu.isVisible()) usagesMenu.hide();
     if (!Objects.equals(loc.uri, model.uri)) {
       EditorOpener editorOpener = registrations.findOpener();
       if (editorOpener != null) {
@@ -1142,7 +1147,7 @@ public class EditorComponent implements Disposable {
     }
 
     if (usagesMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
-    if (gotoMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
+    if (popupMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
     if (button == MOUSE_BUTTON_LEFT && clickCount == 2 && press) {
       onDoubleClickText(eventPosition);
       return true;
@@ -1168,7 +1173,7 @@ public class EditorComponent implements Disposable {
   public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
     eventPosition.set(event.position.x - compPos.x, event.position.y - compPos.y);
     if (usagesMenu.onMouseMove(eventPosition, setCursor)) return true;
-    if (gotoMenu.onMouseMove(eventPosition, setCursor)) return true;
+    if (popupMenu.onMouseMove(eventPosition, setCursor)) return true;
 
     if (dragLock != null) {
       dragLock.accept(eventPosition);
@@ -1202,7 +1207,8 @@ public class EditorComponent implements Disposable {
     if (!event.isPressed) return false;
 
     // Should prevent other keys from being used when the usages window is open
-    if (usagesMenu.isVisible() && usagesMenu.handleUsagesMenuKey(event)) return true;
+    if (usagesMenu.onKey(event)) return true;
+    if (popupMenu.onKey(event)) return true;
 
     if (event.keyCode == KeyCode.F10) {
       api.window.addChild("child", DemoEdit0::new);

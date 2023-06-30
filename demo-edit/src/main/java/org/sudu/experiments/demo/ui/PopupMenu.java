@@ -4,8 +4,10 @@ import org.sudu.experiments.Const;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.Colors;
 import org.sudu.experiments.demo.DemoRect;
+import org.sudu.experiments.demo.EditorColorScheme;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
@@ -31,6 +33,14 @@ public class PopupMenu {
   public void setTheme(FontDesk f, V4f bg) {
     font = f;
     bgColor = bg;
+  }
+
+  public void setTheme(EditorColorScheme scheme) {
+    for (Toolbar toolbar : toolbars) {
+      bgColor = scheme.dialogItemColors.toolbarItemColors.bgColor;
+      frameColor = scheme.dialogItemColors.findUsagesColorBorder;
+      toolbar.setTheme(scheme);
+    }
   }
 
   public void display(V2i mousePos, Supplier<ToolbarItem[]> actions, Runnable onClose) {
@@ -124,7 +134,14 @@ public class PopupMenu {
 
     // todo: add keyboard up-down-left-right navigation
   public boolean onKey(KeyEvent event) {
-    return false;
+    if (!isVisible()) return false;
+    return switch (event.keyCode) {
+      case KeyCode.ESC -> {
+        hide();
+        yield true;
+      }
+      default -> false;
+    };
   }
 
   private int relativeToParentPos(int posX, Toolbar parent, Toolbar popup) {

@@ -1,11 +1,19 @@
 package org.sudu.experiments.demo.ui;
 
-import org.sudu.experiments.*;
+import org.sudu.experiments.Canvas;
+import org.sudu.experiments.Debug;
+import org.sudu.experiments.Disposable;
+import org.sudu.experiments.GL;
+import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.DemoRect;
+import org.sudu.experiments.demo.EditorColorScheme;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.TextRect;
 import org.sudu.experiments.fonts.FontDesk;
-import org.sudu.experiments.math.*;
+import org.sudu.experiments.math.Numbers;
+import org.sudu.experiments.math.Rect;
+import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 
 public class Toolbar {
   static final int dpMargin = 3;
@@ -60,6 +68,22 @@ public class Toolbar {
   public void setFont(FontDesk font) {
     this.font = font;
     invalidateTexture();
+  }
+
+  public void setTheme(EditorColorScheme scheme) {
+    setBgColor(scheme.dialogItemColors.toolbarItemColors.bgColor);
+    setFrameColor(scheme.dialogItemColors.findUsagesColorBorder);
+    for (ToolbarItem item : items) {
+      item.setTheme(scheme);
+      if (item.isSubmenu()) setThemeSubItem(scheme, item);
+    }
+  }
+
+  private void setThemeSubItem(EditorColorScheme scheme, ToolbarItem item) {
+    for (ToolbarItem subItem : item.subMenu().get()) {
+      subItem.setTheme(scheme);
+      if (subItem.isSubmenu()) setThemeSubItem(scheme, subItem);
+    }
   }
 
   public void dispose() {

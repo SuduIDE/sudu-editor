@@ -162,7 +162,7 @@ public class ToolbarDemo extends Scene0 implements InputListener {
     System.out.println("onContextMenu");
     if (!popupMenu.isVisible()) {
       popupMenu.display(event.position, items(4),
-              this::onPopupClosed);
+          this::onPopupClosed);
     }
     return true;
   }
