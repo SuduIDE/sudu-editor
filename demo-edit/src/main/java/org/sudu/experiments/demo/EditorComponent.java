@@ -200,6 +200,7 @@ public class EditorComponent implements Disposable {
   }
 
   private void applyTheme() {
+    usagesMenu.setTheme(colors);
     popupMenu.setTheme(colors);
     caret.setColor(colors.cursorColor);
   }
@@ -283,7 +284,7 @@ public class EditorComponent implements Disposable {
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
-    usagesMenu.setTheme(font, Colors.findUsagesBg);
+    usagesMenu.setFont(font, Colors.findUsagesBg);
 
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight
@@ -928,7 +929,7 @@ public class EditorComponent implements Disposable {
     List<Pos> usages = model.document.defToUsages.get(documentPosition);
     var items = usages == null || usages.isEmpty()
         ? noDefOrUsages()
-        : usagesMenu.buildUsagesItems(usages, this, model, colors);
+        : usagesMenu.buildUsagesItems(usages, this, model);
 
     if (!usagesMenu.isVisible()) usagesMenu.display(position, items, this::onFocusGain);
   }
@@ -940,7 +941,7 @@ public class EditorComponent implements Disposable {
     }
     var items = pos.isEmpty()
         ? noDefOrUsages()
-        : usagesMenu.buildDefItems(locs, this, model, colors);
+        : usagesMenu.buildDefItems(locs, this, model);
     if (!usagesMenu.isVisible()) usagesMenu.display(position, items, this::onFocusGain);
   }
 
@@ -1054,7 +1055,7 @@ public class EditorComponent implements Disposable {
         } else if (!usagesMenu.isVisible())
           usagesMenu.display(
               position,
-              usagesMenu.buildUsagesItems(usagesList, this, model, colors),
+              usagesMenu.buildUsagesItems(usagesList, this, model),
               this::onFocusGain
           );
       }
@@ -1069,7 +1070,7 @@ public class EditorComponent implements Disposable {
       default -> {
         if (!usagesMenu.isVisible()) usagesMenu.display(
             position,
-            usagesMenu.buildDefItems(locs, this, model, colors),
+            usagesMenu.buildDefItems(locs, this, model),
             this::onFocusGain
         );
       }

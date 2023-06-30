@@ -283,7 +283,7 @@ public class DemoEdit0 extends Scene0 {
 
     public boolean onContextMenu(MouseEvent event) {
       if (!editor.popupMenu.isVisible()) {
-        editor.popupMenu.display(event.position, popupMenuContent(event.position), editor::onFocusGain, editor.colors);
+        editor.popupMenu.display(event.position, popupMenuContent(event.position), editor::onFocusGain);
         editor.onFocusLost();
       }
       return true;
