@@ -96,7 +96,7 @@ public class FindUsagesDialog {
     int maxFileNameLen = 0;
     int maxLineLen = 0;
     int maxCodeContentLen = 0;
-    for (FindUsagesItem item: items) {
+    for (FindUsagesItem item : items) {
       // TODO(Minor) Remove this crutch when the scroll appears
       if (item.fileName.startsWith("...")) continue;
       int mFile = (int) (mCanvas.measureText(item.fileName) + 7.f / 8);

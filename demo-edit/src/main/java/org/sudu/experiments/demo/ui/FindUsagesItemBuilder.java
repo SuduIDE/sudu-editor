@@ -1,9 +1,6 @@
 package org.sudu.experiments.demo.ui;
 
-import org.sudu.experiments.math.ArrayOp;
-
 import java.util.ArrayList;
-import java.util.function.Supplier;
 
 public class FindUsagesItemBuilder {
   static final FindUsagesItem[] items0 = new FindUsagesItem[0];

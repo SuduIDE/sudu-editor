@@ -184,7 +184,7 @@ public class FindUsagesWindow {
         def = defs[i];
       }
       Runnable action = defs == null ? () -> editorComponent.gotoUsageMenuElement(pos) :
-          () -> editorComponent.gotoDefinition(def) ;
+          () -> editorComponent.gotoDefinition(def);
       tbb.addItem(
           fileName,
           lineNumber,
