@@ -28,8 +28,10 @@ public class FindUsagesWindow {
   private V4f frameColor = Colors.findUsagesBorder;
   private double dpr;
   private FontDesk font;
-  private V4f bgColor = Colors.findusagesBgLight;
+  private V4f bgColor = Colors.findUsagesBg;
   private Runnable onClose = Const.emptyRunnable;
+
+  private EditorColorScheme editorColorScheme;
 
   public FindUsagesWindow(WglGraphics graphics) {
     this.graphics = graphics;
@@ -42,9 +44,16 @@ public class FindUsagesWindow {
   }
 
   // todo: change font and size if dps changed on
-  public void setTheme(FontDesk f, V4f bg) {
+  public void setFont(FontDesk f, V4f bg) {
     font = f;
     bgColor = bg;
+  }
+
+  public void setTheme(EditorColorScheme scheme) {
+    editorColorScheme = scheme;
+    bgColor = scheme.dialogItemColor.findUsagesColors.bgColor;
+    frameColor = scheme.dialogItemColor.findUsagesColorBorder;
+    usagesList.setTheme(scheme);
   }
 
   private FindUsagesDialog displayFindUsagesMenu(V2i pos, FindUsagesItem[] items) {
@@ -118,21 +127,21 @@ public class FindUsagesWindow {
     usagesList.dispose();
   }
 
-  public final FindUsagesItem[] buildUsagesItems(List<Pos> usages, EditorComponent editorComponent, Model model, EditorColorScheme scheme) {
-    return buildItems(usages, null, editorComponent, model, scheme);
+  public final FindUsagesItem[] buildUsagesItems(List<Pos> usages, EditorComponent editorComponent, Model model) {
+    return buildItems(usages, null, editorComponent, model);
   }
 
-  public final FindUsagesItem[] buildDefItems(Location[] defs, EditorComponent editorComponent, Model model, EditorColorScheme scheme) {
-    return buildItems(Collections.emptyList(), defs, editorComponent, model, scheme);
+  public final FindUsagesItem[] buildDefItems(Location[] defs, EditorComponent editorComponent, Model model) {
+    return buildItems(Collections.emptyList(), defs, editorComponent, model);
   }
 
   private String fileName(Uri uri) {
     return uri != null ? uri.getFileName() : "";
   }
 
-  private FindUsagesItem[] buildItems(List<Pos> usages, Location[] defs, EditorComponent editorComponent, Model model, EditorColorScheme scheme) {
-    frameColor = scheme.dialogItemColor.findUsagesColorBorder;
-    bgColor = scheme.dialogItemColor.findUsagesColors.bgColor;
+  private FindUsagesItem[] buildItems(List<Pos> usages, Location[] defs, EditorComponent editorComponent, Model model) {
+    if (editorColorScheme == null) throw new RuntimeException("Editor color scheme has not been set");
+
     FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
     int cnt = 0;
     int itemsLength = defs == null ? usages.size() : defs.length;
@@ -159,7 +168,7 @@ public class FindUsagesWindow {
             "... and " + (usages.size() - (cnt - 1)) + " more usages",
             "",
             "",
-            scheme.dialogItemColor.findUsagesColorsContinued,
+            editorColorScheme.dialogItemColor.findUsagesColorsContinued,
             () -> {
             }
         );
@@ -180,7 +189,7 @@ public class FindUsagesWindow {
           fileName,
           lineNumber,
           codeContentFormatted,
-          scheme.dialogItemColor.findUsagesColors,
+          editorColorScheme.dialogItemColor.findUsagesColors,
           action
       );
     }
