@@ -1,6 +1,7 @@
 package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.demo.DemoRect;
+import org.sudu.experiments.demo.EditorColorScheme;
 import org.sudu.experiments.demo.TextRect;
 import org.sudu.experiments.math.V2i;
 
@@ -46,5 +47,14 @@ public class ToolbarItem {
   public void setHover(boolean b) {
     tRect.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
     isHover = b;
+  }
+
+  public void setTheme(EditorColorScheme scheme) {
+    colors = scheme.dialogItemColor.toolbarItemColors;
+    tRect.setColors(
+        scheme.dialogItemColor.toolbarItemColors.color,
+        scheme.dialogItemColor.toolbarItemColors.bgColor
+    );
+    if (isHover) setHover(true);
   }
 }

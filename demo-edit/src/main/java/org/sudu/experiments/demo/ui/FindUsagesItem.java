@@ -1,5 +1,6 @@
 package org.sudu.experiments.demo.ui;
 
+import org.sudu.experiments.demo.EditorColorScheme;
 import org.sudu.experiments.demo.TextRect;
 
 public class FindUsagesItem {
@@ -30,5 +31,22 @@ public class FindUsagesItem {
     tLines.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
     tContent.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
     isHover = b;
+  }
+
+  public void setTheme(EditorColorScheme scheme) {
+      colors = scheme.dialogItemColor.findUsagesColors;
+      tFiles.setColors(
+          scheme.dialogItemColor.findUsagesColors.fileColor,
+          scheme.dialogItemColor.findUsagesColors.bgColor
+      );
+      tLines.setColors(
+          scheme.dialogItemColor.findUsagesColors.lineColor,
+          scheme.dialogItemColor.findUsagesColors.bgColor
+      );
+      tContent.setColors(
+          scheme.dialogItemColor.findUsagesColors.contentColor,
+          scheme.dialogItemColor.findUsagesColors.bgColor
+      );
+      if (isHover) setHover(true);
   }
 }

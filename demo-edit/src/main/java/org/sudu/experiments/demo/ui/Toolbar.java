@@ -74,25 +74,16 @@ public class Toolbar {
     setBgColor(scheme.dialogItemColor.toolbarItemColors.bgColor);
     setFrameColor(scheme.dialogItemColor.findUsagesColorBorder);
     for (ToolbarItem item : items) {
-      setColors(scheme, item);
+      item.setTheme(scheme);
       if (item.isSubmenu()) setThemeSubItem(scheme, item);
     }
   }
 
   private void setThemeSubItem(EditorColorScheme scheme, ToolbarItem item) {
     for (ToolbarItem subItem : item.subMenu().get()) {
-      setColors(scheme, subItem);
+      subItem.setTheme(scheme);
       if (subItem.isSubmenu()) setThemeSubItem(scheme, subItem);
     }
-  }
-
-  private void setColors(EditorColorScheme scheme, ToolbarItem item) {
-    item.colors = scheme.dialogItemColor.toolbarItemColors;
-    item.tRect.setColors(
-        scheme.dialogItemColor.toolbarItemColors.color,
-        scheme.dialogItemColor.toolbarItemColors.bgColor
-    );
-    if (item.isHover) item.setHover(true);
   }
 
   public void dispose() {

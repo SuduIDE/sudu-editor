@@ -323,25 +323,8 @@ public class FindUsagesDialog {
     setBgColor(scheme.dialogItemColor.findUsagesColors.bgColor);
     setFrameColor(scheme.dialogItemColor.findUsagesColorBorder);
     for (FindUsagesItem item : items) {
-      setColors(scheme, item);
+      item.setTheme(scheme);
     }
-  }
-
-  private void setColors(EditorColorScheme scheme, FindUsagesItem item) {
-    item.colors = scheme.dialogItemColor.findUsagesColors;
-    item.tFiles.setColors(
-        scheme.dialogItemColor.findUsagesColors.fileColor,
-        scheme.dialogItemColor.findUsagesColors.bgColor
-    );
-    item.tLines.setColors(
-        scheme.dialogItemColor.findUsagesColors.lineColor,
-        scheme.dialogItemColor.findUsagesColors.bgColor
-    );
-    item.tContent.setColors(
-        scheme.dialogItemColor.findUsagesColors.contentColor,
-        scheme.dialogItemColor.findUsagesColors.bgColor
-    );
-    if (item.isHover) item.setHover(true);
   }
 
   public interface HoverCallback {
