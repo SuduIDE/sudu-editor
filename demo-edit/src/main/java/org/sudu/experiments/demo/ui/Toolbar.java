@@ -71,8 +71,8 @@ public class Toolbar {
   }
 
   public void setTheme(EditorColorScheme scheme) {
-    setBgColor(scheme.dialogItemColor.toolbarItemColors.bgColor);
-    setFrameColor(scheme.dialogItemColor.findUsagesColorBorder);
+    setBgColor(scheme.dialogItemColors.toolbarItemColors.bgColor);
+    setFrameColor(scheme.dialogItemColors.findUsagesColorBorder);
     for (ToolbarItem item : items) {
       item.setTheme(scheme);
       if (item.isSubmenu()) setThemeSubItem(scheme, item);

@@ -951,7 +951,7 @@ public class EditorComponent implements Disposable {
         "No definition or usages",
         "",
         "",
-        colors.dialogItemColor.findUsagesColorsError,
+        colors.dialogItemColors.findUsagesColorsError,
         () -> {
         }
     );

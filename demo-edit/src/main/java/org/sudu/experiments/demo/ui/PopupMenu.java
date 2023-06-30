@@ -37,8 +37,8 @@ public class PopupMenu {
 
   public void setTheme(EditorColorScheme scheme) {
     for (Toolbar toolbar : toolbars) {
-      bgColor = scheme.dialogItemColor.toolbarItemColors.bgColor;
-      frameColor = scheme.dialogItemColor.findUsagesColorBorder;
+      bgColor = scheme.dialogItemColors.toolbarItemColors.bgColor;
+      frameColor = scheme.dialogItemColors.findUsagesColorBorder;
       toolbar.setTheme(scheme);
     }
   }

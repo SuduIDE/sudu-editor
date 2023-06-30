@@ -320,8 +320,8 @@ public class FindUsagesDialog {
   }
 
   public void setTheme(EditorColorScheme scheme) {
-    setBgColor(scheme.dialogItemColor.findUsagesColors.bgColor);
-    setFrameColor(scheme.dialogItemColor.findUsagesColorBorder);
+    setBgColor(scheme.dialogItemColors.findUsagesColors.bgColor);
+    setFrameColor(scheme.dialogItemColors.findUsagesColorBorder);
     for (FindUsagesItem item : items) {
       item.setTheme(scheme);
     }

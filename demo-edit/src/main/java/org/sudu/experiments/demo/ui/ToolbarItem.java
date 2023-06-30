@@ -50,10 +50,10 @@ public class ToolbarItem {
   }
 
   public void setTheme(EditorColorScheme scheme) {
-    colors = scheme.dialogItemColor.toolbarItemColors;
+    colors = scheme.dialogItemColors.toolbarItemColors;
     tRect.setColors(
-        scheme.dialogItemColor.toolbarItemColors.color,
-        scheme.dialogItemColor.toolbarItemColors.bgColor
+        scheme.dialogItemColors.toolbarItemColors.color,
+        scheme.dialogItemColors.toolbarItemColors.bgColor
     );
     if (isHover) setHover(true);
   }

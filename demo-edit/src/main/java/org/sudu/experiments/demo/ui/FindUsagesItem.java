@@ -34,18 +34,18 @@ public class FindUsagesItem {
   }
 
   public void setTheme(EditorColorScheme scheme) {
-      colors = scheme.dialogItemColor.findUsagesColors;
+      colors = scheme.dialogItemColors.findUsagesColors;
       tFiles.setColors(
-          scheme.dialogItemColor.findUsagesColors.fileColor,
-          scheme.dialogItemColor.findUsagesColors.bgColor
+          scheme.dialogItemColors.findUsagesColors.fileColor,
+          scheme.dialogItemColors.findUsagesColors.bgColor
       );
       tLines.setColors(
-          scheme.dialogItemColor.findUsagesColors.lineColor,
-          scheme.dialogItemColor.findUsagesColors.bgColor
+          scheme.dialogItemColors.findUsagesColors.lineColor,
+          scheme.dialogItemColors.findUsagesColors.bgColor
       );
       tContent.setColors(
-          scheme.dialogItemColor.findUsagesColors.contentColor,
-          scheme.dialogItemColor.findUsagesColors.bgColor
+          scheme.dialogItemColors.findUsagesColors.contentColor,
+          scheme.dialogItemColors.findUsagesColors.bgColor
       );
       if (isHover) setHover(true);
   }

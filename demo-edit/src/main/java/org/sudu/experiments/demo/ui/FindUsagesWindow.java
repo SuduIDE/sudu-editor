@@ -51,8 +51,8 @@ public class FindUsagesWindow {
 
   public void setTheme(EditorColorScheme scheme) {
     editorColorScheme = scheme;
-    bgColor = scheme.dialogItemColor.findUsagesColors.bgColor;
-    frameColor = scheme.dialogItemColor.findUsagesColorBorder;
+    bgColor = scheme.dialogItemColors.findUsagesColors.bgColor;
+    frameColor = scheme.dialogItemColors.findUsagesColorBorder;
     usagesList.setTheme(scheme);
   }
 
@@ -168,7 +168,7 @@ public class FindUsagesWindow {
             "... and " + (usages.size() - (cnt - 1)) + " more usages",
             "",
             "",
-            editorColorScheme.dialogItemColor.findUsagesColorsContinued,
+            editorColorScheme.dialogItemColors.findUsagesColorsContinued,
             () -> {
             }
         );
@@ -189,7 +189,7 @@ public class FindUsagesWindow {
           fileName,
           lineNumber,
           codeContentFormatted,
-          editorColorScheme.dialogItemColor.findUsagesColors,
+          editorColorScheme.dialogItemColors.findUsagesColors,
           action
       );
     }

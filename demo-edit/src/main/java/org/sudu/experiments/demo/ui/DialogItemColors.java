@@ -1,9 +1,8 @@
 package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.V4f;
 
-public class DialogItemColor {
+public class DialogItemColors {
 
   public final FindUsagesItemColors findUsagesColors;
   public final FindUsagesItemColors findUsagesColorsContinued;
@@ -12,8 +11,8 @@ public class DialogItemColor {
 
   public final ToolbarItemColors toolbarItemColors;
 
-  public static DialogItemColor darkColorScheme() {
-    return new DialogItemColor(
+  public static DialogItemColors darkColorScheme() {
+    return new DialogItemColors(
         FindUsagesItemColors.darkFindUsagesItemColors(),
         FindUsagesItemColors.darkFindUsagesItemColorsExtraLine(),
         FindUsagesItemColors.darkFindUsagesItemColorsError(),
@@ -22,8 +21,8 @@ public class DialogItemColor {
     );
   }
 
-  public static DialogItemColor lightColorScheme() {
-    return new DialogItemColor(
+  public static DialogItemColors lightColorScheme() {
+    return new DialogItemColors(
         FindUsagesItemColors.lightFindUsagesItemColors(),
         FindUsagesItemColors.lightFindUsagesItemColorsExtraLine(),
         FindUsagesItemColors.lightFindUsagesItemColorsError(),
@@ -32,7 +31,7 @@ public class DialogItemColor {
     );
   }
 
-  public DialogItemColor(
+  public DialogItemColors(
       FindUsagesItemColors findUsagesItemColors,
       FindUsagesItemColors findUsagesColorsContinued,
       FindUsagesItemColors findUsagesColorsError,
