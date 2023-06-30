@@ -35,11 +35,11 @@ public class PopupMenu {
     bgColor = bg;
   }
 
-  public void changeTheme(EditorColorScheme scheme) {
+  public void setTheme(EditorColorScheme scheme) {
     for (Toolbar toolbar : toolbars) {
       bgColor = scheme.dialogItemColor.toolbarItemColors.bgColor;
       frameColor = scheme.dialogItemColor.findUsagesColorBorder;
-      toolbar.changeTheme(scheme);
+      toolbar.setTheme(scheme);
     }
   }
 

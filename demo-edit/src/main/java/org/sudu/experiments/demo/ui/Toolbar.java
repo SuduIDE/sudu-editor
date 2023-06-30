@@ -70,19 +70,19 @@ public class Toolbar {
     invalidateTexture();
   }
 
-  public void changeTheme(EditorColorScheme scheme) {
+  public void setTheme(EditorColorScheme scheme) {
     setBgColor(scheme.dialogItemColor.toolbarItemColors.bgColor);
     setFrameColor(scheme.dialogItemColor.findUsagesColorBorder);
     for (ToolbarItem item : items) {
       changeColors(scheme, item);
-      if (item.isSubmenu()) changeThemeSubItem(scheme, item);
+      if (item.isSubmenu()) setThemeSubItem(scheme, item);
     }
   }
 
-  private void changeThemeSubItem(EditorColorScheme scheme, ToolbarItem item) {
+  private void setThemeSubItem(EditorColorScheme scheme, ToolbarItem item) {
     for (ToolbarItem subItem : item.subMenu().get()) {
       changeColors(scheme, subItem);
-      if (subItem.isSubmenu()) changeThemeSubItem(scheme, subItem);
+      if (subItem.isSubmenu()) setThemeSubItem(scheme, subItem);
     }
   }
 
