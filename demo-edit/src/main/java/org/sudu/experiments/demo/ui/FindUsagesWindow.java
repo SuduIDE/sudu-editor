@@ -187,7 +187,8 @@ public class FindUsagesWindow {
     return tbb.items();
   }
 
-  public boolean handleUsagesMenuKey(KeyEvent event) {
+  public boolean onKey(KeyEvent event) {
+    if (!isVisible()) return false;
     return switch (event.keyCode) {
       case KeyCode.ESC -> hide();
       case KeyCode.ARROW_DOWN, KeyCode.ARROW_UP, KeyCode.ARROW_LEFT, KeyCode.ARROW_RIGHT ->
