@@ -108,7 +108,7 @@ public class EditorComponent implements Disposable {
   public boolean readonly = false;
 
   FindUsagesWindow usagesMenu;
-  FindUsagesWindow gotoMenu;
+
   PopupMenu popupMenu;
 
   private CodeElement definition = null;
@@ -121,7 +121,6 @@ public class EditorComponent implements Disposable {
     this.g = api.graphics;
 
     usagesMenu = new FindUsagesWindow(g);
-    gotoMenu = new FindUsagesWindow(g);
     popupMenu = new PopupMenu(g);
 
     toggleDark();
@@ -160,7 +159,6 @@ public class EditorComponent implements Disposable {
 
     layout();
     usagesMenu.onResize(size, dpr);
-    gotoMenu.onResize(size, dpr);
     popupMenu.onResize(size, dpr);
   }
 
@@ -286,7 +284,6 @@ public class EditorComponent implements Disposable {
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
     usagesMenu.setTheme(font, Colors.findUsagesBg);
-    gotoMenu.setTheme(font, Colors.findUsagesBg);
 
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight
@@ -493,7 +490,6 @@ public class EditorComponent implements Disposable {
     drawScrollBar();
 
     usagesMenu.paint();
-    gotoMenu.paint();
     popupMenu.paint();
 
 //    g.checkError("paint complete");
@@ -944,8 +940,8 @@ public class EditorComponent implements Disposable {
     }
     var items = pos.isEmpty()
         ? noDefOrUsages()
-        : gotoMenu.buildDefItems(locs, this, model, colors);
-    if (!gotoMenu.isVisible()) gotoMenu.display(position, items, this::onFocusGain);
+        : usagesMenu.buildDefItems(locs, this, model, colors);
+    if (!usagesMenu.isVisible()) usagesMenu.display(position, items, this::onFocusGain);
   }
 
   private FindUsagesItem[] noDefOrUsages() {
@@ -1071,9 +1067,9 @@ public class EditorComponent implements Disposable {
       case 0 -> {}
       case 1 -> gotoDefinition(locs[0]);
       default -> {
-        if (!gotoMenu.isVisible()) gotoMenu.display(
+        if (!usagesMenu.isVisible()) usagesMenu.display(
             position,
-            gotoMenu.buildDefItems(locs, this, model, colors),
+            usagesMenu.buildDefItems(locs, this, model, colors),
             this::onFocusGain
         );
       }
@@ -1081,7 +1077,7 @@ public class EditorComponent implements Disposable {
   }
 
   public void gotoDefinition(Location loc) {
-    if (gotoMenu.isVisible()) gotoMenu.hide();
+    if (usagesMenu.isVisible()) usagesMenu.hide();
     if (!Objects.equals(loc.uri, model.uri)) {
       EditorOpener editorOpener = registrations.findOpener();
       if (editorOpener != null) {
@@ -1150,7 +1146,6 @@ public class EditorComponent implements Disposable {
     }
 
     if (usagesMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
-    if (gotoMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
     if (popupMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
     if (button == MOUSE_BUTTON_LEFT && clickCount == 2 && press) {
       onDoubleClickText(eventPosition);
@@ -1177,7 +1172,6 @@ public class EditorComponent implements Disposable {
   public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
     eventPosition.set(event.position.x - compPos.x, event.position.y - compPos.y);
     if (usagesMenu.onMouseMove(eventPosition, setCursor)) return true;
-    if (gotoMenu.onMouseMove(eventPosition, setCursor)) return true;
     if (popupMenu.onMouseMove(eventPosition, setCursor)) return true;
 
     if (dragLock != null) {
