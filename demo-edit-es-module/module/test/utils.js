@@ -18,8 +18,8 @@ export function throws(f, message) {
     }
 }
 
-export const initialTextJava = `
-package sudu.editor;
+export const initialTextJava =
+`package sudu.editor;
       
   /*
   * This is multiplatform lightweight code editor

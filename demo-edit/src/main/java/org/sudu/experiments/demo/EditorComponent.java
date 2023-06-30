@@ -824,7 +824,8 @@ public class EditorComponent implements Disposable {
 
   private boolean setCaretPos(int charPos, boolean shift) {
     caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
-    caretPos = caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, fonts);
+    caretPos = devicePR == 0 ? 0
+        : caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, fonts);
     startBlinking();
     adjustEditorScrollToCaret();
     if (shift) selection.isSelectionStarted = true;
@@ -1449,6 +1450,9 @@ public class EditorComponent implements Disposable {
   public void setPosition(int column, int lineNumber) {
     setCaretLinePos(lineNumber, column, false);
   }
+
+  public int caretLine() { return caretLine; }
+  public int caretCharPos() { return caretCharPos; }
 
   public void setSelection(
       int endColumn,

@@ -86,19 +86,22 @@ public class JsCodeEditor0 implements JsCodeEditor {
   }
 
   @Override
-  public void setPosition(JSObject selectionOrPosition) {
-    if (JsPosition.isInstance(selectionOrPosition)) {
-      JsPosition pos = selectionOrPosition.cast();
-      editor.setPosition(pos.getColumn() - 1, pos.getLineNumber() - 1);
-    } else {
-      JsRange sel = selectionOrPosition.cast();
-      editor.setSelection(
-          sel.getEndColumn() - 1,
-          sel.getEndLineNumber() - 1,
-          sel.getStartColumn() - 1,
-          sel.getStartLineNumber() - 1
-      );
-    }
+  public void setPosition(JsPosition pos) {
+    editor.setPosition(pos.getColumn() - 1, pos.getLineNumber() - 1);
+  }
+
+  @Override
+  public JsPosition getPosition() {
+    return JsPosition.fromJava(editor.caretCharPos(), editor.caretLine());
+  }
+
+  private void setSelection(JsRange sel) {
+    editor.setSelection(
+        sel.getEndColumn() - 1,
+        sel.getEndLineNumber() - 1,
+        sel.getStartColumn() - 1,
+        sel.getStartLineNumber() - 1
+    );
   }
 
   @Override
@@ -235,6 +238,12 @@ public class JsCodeEditor0 implements JsCodeEditor {
   @Override
   public void revealLine(int line) {
     editor.revealLine(line);
+  }
+
+  @Override
+  public void revealPosition(JsPosition position) {
+    revealLine(position.getLineNumber());
+    // todo: also set hScroll position here
   }
 
   @Override

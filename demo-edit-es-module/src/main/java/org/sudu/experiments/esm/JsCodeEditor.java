@@ -15,7 +15,8 @@ public interface JsCodeEditor extends JsDisposable {
   void setFontSize(int fontSize);
   void setTheme(JSString theme);
   void setModel(JsITextModel model);
-  void setPosition(JSObject selectionOrPosition);
+  void setPosition(JsPosition selectionOrPosition);
+  JsPosition getPosition();
   JsITextModel getModel();
   JsDisposable registerDefinitionProvider(JSObject languageSelector, JsDefinitionProvider provider);
   JsDisposable registerDeclarationProvider(JSObject languageSelector, JsDeclarationProvider provider);
@@ -23,6 +24,7 @@ public interface JsCodeEditor extends JsDisposable {
   JsDisposable registerDocumentHighlightProvider(JSObject languageSelector, JsDocumentHighlightProvider provider);
   JsDisposable registerEditorOpener(JsCodeEditorOpener opener);
   void revealLineInCenter(int line);
+  void revealPosition(JsPosition position);
   void revealLine(int line);
   void setReadonly(JSBoolean flag);
 

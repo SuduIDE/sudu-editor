@@ -22,6 +22,13 @@ function test1(editor) {
     currentModel = editor.getModel();
     if (currentModel !== model)
         throw `Assertion error on model: ${currentModel} != ${model}`
+
+    editor.setPosition({ column: 13, lineNumber: 4});
+    let position = editor.getPosition();
+
+    if (position.column !== 13 || position.lineNumber !== 4)
+        throw `Assertion error: editor.getPosition() and editor.setPosition() inconsistent`
+    editor.focus();
 }
 
 function main() {
