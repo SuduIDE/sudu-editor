@@ -3,18 +3,8 @@
 
 package org.sudu.experiments.demo;
 
-import org.sudu.experiments.Canvas;
-import org.sudu.experiments.Cursor;
-import org.sudu.experiments.Debug;
-import org.sudu.experiments.Disposable;
-import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.Host;
-import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.ui.FindUsagesItem;
-import org.sudu.experiments.demo.ui.FindUsagesItemBuilder;
-import org.sudu.experiments.demo.ui.FindUsagesWindow;
-import org.sudu.experiments.demo.ui.PopupMenu;
+import org.sudu.experiments.*;
+import org.sudu.experiments.demo.ui.*;
 import org.sudu.experiments.demo.worker.parser.CppParser;
 import org.sudu.experiments.demo.worker.parser.FileParser;
 import org.sudu.experiments.demo.worker.parser.JavaParser;
@@ -24,11 +14,7 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.Numbers;
-import org.sudu.experiments.math.Rect;
-import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.math.*;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.worker.ArrayView;
 
@@ -37,6 +23,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
+import java.util.function.Supplier;
 
 import static org.sudu.experiments.input.InputListener.MOUSE_BUTTON_LEFT;
 
@@ -146,13 +133,10 @@ public class EditorComponent implements Disposable {
     int lineNumbersWidth = vLineX - vLineLeftDelta;
     lineNumbers.setPos(compPos, lineNumbersWidth, editorHeight(), devicePR);
 
-    //api.input.addListener(new MyInputListener());
-    //clientRect = api.window.getClientRect();
     if (1<0) DebugHelper.dumpFontsSize(g);
     caret.setWidth(Numbers.iRnd(Caret.defaultWidth * devicePR));
 
     // Should be called if dpr changed
-
     doChangeFont(fontFamilyName, fontVirtualSize);
 
     updateLineNumbersFont();
@@ -928,11 +912,14 @@ public class EditorComponent implements Disposable {
     }
 
     List<Pos> usages = model.document.defToUsages.get(documentPosition);
-    var items = usages == null || usages.isEmpty()
-        ? noDefOrUsages()
-        : usagesMenu.buildUsagesItems(usages, this, model);
-
-    if (!usagesMenu.isVisible()) usagesMenu.display(position, items, this::onFocusGain);
+    if (usages == null || usages.isEmpty()) {
+      displayNoUsagesPopup(position);
+    } else {
+      usagesMenu.hide();
+      usagesMenu.display(position,
+          usagesMenu.buildUsagesItems(usages, this, model),
+          this::onFocusGain);
+    }
   }
 
   private void showUsagesViaLocations(V2i position, Location[] locs) {
@@ -940,23 +927,13 @@ public class EditorComponent implements Disposable {
     for (Location loc : locs) {
       pos.add(new Pos(loc.range.startLineNumber, loc.range.startColumn));
     }
-    var items = pos.isEmpty()
-        ? noDefOrUsages()
-        : usagesMenu.buildDefItems(locs, this, model);
-    if (!usagesMenu.isVisible()) usagesMenu.display(position, items, this::onFocusGain);
-  }
-
-  private FindUsagesItem[] noDefOrUsages() {
-    FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
-    tbb.addItem(
-        "No definition or usages",
-        "",
-        "",
-        colors.dialogItemColors.findUsagesColorsError,
-        () -> {
-        }
-    );
-    return tbb.items();
+    if (pos.isEmpty()) {
+      displayNoUsagesPopup(position);
+    } else {
+      var items = usagesMenu.buildDefItems(locs, this, model);
+      usagesMenu.hide();
+      usagesMenu.display(position, items, this::onFocusGain);
+    }
   }
 
   // TODO(Minor): Move usageMenu.hide() out off & rename method
@@ -1066,12 +1043,7 @@ public class EditorComponent implements Disposable {
 
   private void gotoDefinition(V2i position, Location[] locs) {
     switch (locs.length) {
-      case 0 -> {
-        if (!usagesMenu.isVisible()) {
-          usagesMenu.display(position,
-              noDefOrUsages(), this::onFocusGain);
-        }
-      }
+      case 0 -> displayNoUsagesPopup(position);
       case 1 -> gotoDefinition(locs[0]);
       default -> {
         if (!usagesMenu.isVisible()) usagesMenu.display(
@@ -1081,6 +1053,21 @@ public class EditorComponent implements Disposable {
         );
       }
     }
+  }
+
+  private void displayNoUsagesPopup(V2i position) {
+    usagesMenu.hide();
+    popupMenu.hide();
+    popupMenu.display(position, noDefOrUsagesPop(), this::onFocusGain);
+  }
+
+  private Supplier<ToolbarItem[]> noDefOrUsagesPop() {
+    return ArrayOp.supplier(
+        new ToolbarItem(
+            popupMenu::hide,
+            "No definition or usages",
+            colors.dialogItemColors.findUsagesColorsError)
+        );
   }
 
   public void gotoDefinition(Location loc) {

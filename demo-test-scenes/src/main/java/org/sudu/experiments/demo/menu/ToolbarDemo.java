@@ -38,7 +38,7 @@ public class ToolbarDemo extends Scene0 implements InputListener {
     tbV.setLayoutVertical();
     font = api.graphics.fontDesk("Consolas", 25);
 
-    popupMenu.setTheme(font, Colors.toolbarBg);
+    popupMenu.setFont(font);
     clearColor.set(new Color(43));
 
     setToolbarStyle(tbH);
@@ -89,8 +89,14 @@ public class ToolbarDemo extends Scene0 implements InputListener {
     return dph == 0 ? text : dph + ": " + text;
   }
 
+  static ToolbarItemColors rngToolButton() {
+    return new ToolbarItemColors(
+            Color.Cvt.fromHSV(Math.random(), 1, 1),
+            Colors.toolbarBg, Colors.toolbarSelectedBg);
+  }
+
   private static void addAction(ToolbarItemBuilder tb, String action, Supplier<ToolbarItem[]> sub) {
-    ToolbarItemColors colors = Colors.rngToolButton();
+    ToolbarItemColors colors = rngToolButton();
     if (sub != null) {
       tb.addItem(action, colors, sub);
     } else {

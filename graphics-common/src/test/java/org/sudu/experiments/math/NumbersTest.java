@@ -17,9 +17,15 @@ public class NumbersTest {
     Assertions.assertEquals(Integer.MAX_VALUE, Numbers.iDivRound(Integer.MAX_VALUE, 100000, 100000));
     Assertions.assertEquals(Integer.MAX_VALUE, Numbers.iDivRound(Integer.MAX_VALUE, 1000000, 1000000));
 
-    Assertions.assertEquals(Integer.MAX_VALUE / 10, Numbers.iDivRound(Integer.MAX_VALUE, 10, 100));
-    Assertions.assertEquals(Integer.MAX_VALUE / 100, Numbers.iDivRound(Integer.MAX_VALUE, 100, 10000));
-    Assertions.assertEquals(Integer.MAX_VALUE / 1000, Numbers.iDivRound(Integer.MAX_VALUE, 1000, 1000000));
+    Assertions.assertEquals(
+            Math.round(Integer.MAX_VALUE / 10.),
+            Numbers.iDivRound(Integer.MAX_VALUE, 10, 100));
+    Assertions.assertEquals(
+            Math.round(Integer.MAX_VALUE / 100.),
+            Numbers.iDivRound(Integer.MAX_VALUE, 100, 10000));
+    Assertions.assertEquals(
+            Math.round(Integer.MAX_VALUE / 1000.),
+            Numbers.iDivRound(Integer.MAX_VALUE, 1000, 1000000));
 
 
     Assertions.assertEquals(1, Numbers.iDivRound(Integer.MAX_VALUE / 2, 2, Integer.MAX_VALUE - 1));

@@ -6,7 +6,7 @@ public class DialogItemColors {
 
   public final FindUsagesItemColors findUsagesColors;
   public final FindUsagesItemColors findUsagesColorsContinued;
-  public final FindUsagesItemColors findUsagesColorsError;
+  public final ToolbarItemColors findUsagesColorsError;
   public final Color findUsagesColorBorder;
 
   public final ToolbarItemColors toolbarItemColors;
@@ -15,7 +15,7 @@ public class DialogItemColors {
     return new DialogItemColors(
         FindUsagesItemColors.darkFindUsagesItemColors(),
         FindUsagesItemColors.darkFindUsagesItemColorsExtraLine(),
-        FindUsagesItemColors.darkFindUsagesItemColorsError(),
+        FindUsagesItemColors.darkNoUsages(),
         new Color("#616161"),
         ToolbarItemColors.darkToolbarItemColors()
     );
@@ -25,7 +25,7 @@ public class DialogItemColors {
     return new DialogItemColors(
         FindUsagesItemColors.lightFindUsagesItemColors(),
         FindUsagesItemColors.lightFindUsagesItemColorsExtraLine(),
-        FindUsagesItemColors.lightFindUsagesItemColorsError(),
+        FindUsagesItemColors.lightNoUsages(),
         new Color("#B9BDC9"),
         ToolbarItemColors.lightToolbarItemColors()
     );
@@ -34,14 +34,16 @@ public class DialogItemColors {
   public DialogItemColors(
       FindUsagesItemColors findUsagesItemColors,
       FindUsagesItemColors findUsagesColorsContinued,
-      FindUsagesItemColors findUsagesColorsError,
+      ToolbarItemColors noUsagesColors,
       Color findUsagesColorsBorder,
       ToolbarItemColors toolbarItemColors
   ) {
     this.findUsagesColors = findUsagesItemColors;
     this.findUsagesColorsContinued = findUsagesColorsContinued;
-    this.findUsagesColorsError = findUsagesColorsError;
+    this.findUsagesColorsError = noUsagesColors;
     this.findUsagesColorBorder = findUsagesColorsBorder;
     this.toolbarItemColors = toolbarItemColors;
   }
+//        Colors.findUsagesErrorBg,
+//        Colors.findUsagesErrorBg
 }

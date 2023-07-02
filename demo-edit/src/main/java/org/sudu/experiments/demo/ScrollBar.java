@@ -64,99 +64,99 @@ public class ScrollBar {
   // returns the new scroll position assuming that
   // user wants to set the button center to mouseY
   private IntUnaryOperator getClickLocationResultY(int mouseY) {
-    int editorHeight = bgSize.y;
+    int viewHeight = bgSize.y;
     int buttonHeight = buttonSize.y;
-    int virtualSize = editorHeight - buttonHeight;
+    int virtualSize = viewHeight - buttonHeight;
     int virtualPos = mouseY - buttonHeight / 2;
 
     return result(Math.min(Math.max(0, virtualPos), virtualSize), virtualSize);
   }
 
   private IntUnaryOperator getClickLocationResultX(int mouseX) {
-    int editorWidth = bgSize.x;
+    int viewWidth = bgSize.x;
     int buttonWidth = buttonSize.x;
-    int virtualSize = editorWidth - buttonWidth;
+    int virtualSize = viewWidth - buttonWidth;
     int virtualPos = mouseX - buttonWidth / 2;
 
     return result(Math.min(Math.max(0, virtualPos), virtualSize), virtualSize);
   }
 
   public void layoutVertical(
-    int editorVScrollPos,
-    int editorRight,
-    int editorHeight,
-    int editorFullHeight,
+    int viewVScrollPos,
+    int viewRight,
+    int viewHeight,
+    int viewFullHeight,
     int width
   ) {
-    layout(editorVScrollPos, editorRight, editorHeight, editorFullHeight, 0, width, true);
+    layout(viewVScrollPos, viewRight, viewHeight, viewFullHeight, 0, width, true);
   }
 
   public void layoutHorizontal(
-    int editorHScrollPos,
-    int editorBottom,
-    int editorWidth,
-    int editorFullWidth,
+    int viewHScrollPos,
+    int viewBottom,
+    int viewWidth,
+    int viewFullWidth,
     int height
   ) {
-    layout(editorHScrollPos, editorBottom, editorWidth, editorFullWidth, 0, height, false);
+    layout(viewHScrollPos, viewBottom, viewWidth, viewFullWidth, 0, height, false);
   }
 
   public void layoutHorizontal(
-    int editorHScrollPos,
-    int editorBottom,
-    int editorWidth,
-    int editorFullWidth,
-    int editorLeft,
+    int scrollPos,
+    int viewBottom,
+    int viewWidth,
+    int viewVirtualWidth,
+    int viewLeft,
     int height
   ) {
-    layout(editorHScrollPos, editorBottom, editorWidth, editorFullWidth, editorLeft, height, false);
+    layout(scrollPos, viewBottom, viewWidth, viewVirtualWidth, viewLeft, height, false);
   }
 
   private void layout(
     int scrollPos,
-    int editorBorder,
-    int editorSize,
-    int editorFullSize,
-    int editorStart,
-    int buttonSize,
+    int viewZLimit,
+    int viewSize,
+    int viewVirtualSize,
+    int viewStart,
+    int buttonZSize,
     boolean isVertical
   ) {
-    if (editorFullSize <= editorSize) {
+    if (viewVirtualSize <= viewSize) {
       bgSize.set(0, 0);
-      this.buttonSize.set(0, 0);
+      buttonSize.set(0, 0);
     } else {
-      int scrollControlHSize = scrollControlSize(editorSize, editorFullSize, buttonSize * BUTTON_SIZE);
-      int scrollControlHPos = scrollControlPos(scrollPos, editorSize, editorFullSize, scrollControlHSize);
+      int buttonLength = scrollControlSize(viewSize, viewVirtualSize, buttonZSize * BUTTON_SIZE);
+      int buttonPosition = scrollControlPos(scrollPos, viewSize, viewVirtualSize, buttonLength);
       if (isVertical) {
-        buttonPos.x = editorBorder - buttonSize;
-        buttonPos.y = scrollControlHPos + editorStart;
-        this.buttonSize.x = buttonSize;
-        this.buttonSize.y = scrollControlHSize;
+        buttonPos.x = viewZLimit - buttonZSize;
+        buttonPos.y = buttonPosition + viewStart;
+        buttonSize.x = buttonZSize;
+        buttonSize.y = buttonLength;
         bgPos.x = buttonPos.x;
-        bgPos.y = editorStart;
-        bgSize.x = buttonSize;
-        bgSize.y = editorSize;
+        bgPos.y = viewStart;
+        bgSize.x = buttonZSize;
+        bgSize.y = viewSize;
       } else {
-        buttonPos.x = scrollControlHPos + editorStart;
-        buttonPos.y = editorBorder - buttonSize;
-        this.buttonSize.x = scrollControlHSize;
-        this.buttonSize.y = buttonSize;
-        bgPos.x = editorStart;
+        buttonPos.x = buttonPosition + viewStart;
+        buttonPos.y = viewZLimit - buttonZSize;
+        buttonSize.x = buttonLength;
+        buttonSize.y = buttonZSize;
+        bgPos.x = viewStart;
         bgPos.y = buttonPos.y;
-        bgSize.x = editorSize;
-        bgSize.y = buttonSize;
+        bgSize.x = viewSize;
+        bgSize.y = buttonZSize;
       }
     }
   }
 
-  private int scrollControlSize(int editorSize, int editorFullSize, int minSize) {
-    return Math.max(Numbers.iDivRound(editorSize, editorSize, editorFullSize), minSize);
+  private int scrollControlSize(int viewSize, int virtualSize, int minSize) {
+    return Math.max(Numbers.iDivRound(viewSize, viewSize, virtualSize), minSize);
   }
 
-  private int scrollControlPos(int editorScrollPos, int editorSize, int editorFullSize, int scrollControlSize) {
-    int maxEditorPosY = editorFullSize - editorSize;
-    int displayScrollRange = editorSize - scrollControlSize;
-    return Numbers.iDivRound(editorScrollPos, displayScrollRange, maxEditorPosY);
+  private int scrollControlPos(int scrollPos, int viewSize, int viewFullSize, int controlSize) {
+    int virtualScrollRange = viewFullSize - viewSize;
+    int displayScrollRange = viewSize - controlSize;
+    return Numbers.iDivRound(scrollPos, displayScrollRange, virtualScrollRange);
   }
 
   public void draw(WglGraphics g, V2i dxdy) {

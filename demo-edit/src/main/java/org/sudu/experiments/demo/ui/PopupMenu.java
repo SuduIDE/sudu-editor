@@ -30,9 +30,8 @@ public class PopupMenu {
   }
 
   // todo: change font and size if dps changed on
-  public void setTheme(FontDesk f, V4f bg) {
+  public void setFont(FontDesk f) {
     font = f;
-    bgColor = bg;
   }
 
   public void setTheme(EditorColorScheme scheme) {

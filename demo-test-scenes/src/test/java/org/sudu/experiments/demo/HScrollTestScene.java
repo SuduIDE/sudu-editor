@@ -9,6 +9,7 @@ import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
+import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 
@@ -76,6 +77,8 @@ public class HScrollTestScene extends Scene {
   Color error = new Color(188, 63, 60);
   V4f debugColor = new Color("#CC7832");
   V4f debugColorBg = new Color("#A9B7C6");
+  ArrayList<CodeElement> usages = new ArrayList<>();
+
   @Override
   public void paint() {
     g.clear(IdeaCodeColors.Colors.editBgColor);
@@ -87,7 +90,7 @@ public class HScrollTestScene extends Scene {
     codeLineRenderer.updateTextureOnScroll(renderCanvas, fontDesk, fontDesk[0].iSize, scrollPosH);
 
     codeLineRenderer.draw(200, 0, g, new V4f(), new V2i(), 1f,
-        viewportSize.x, fontSize, scrollPosH, colors, null);
+        viewportSize.x, fontSize, scrollPosH, colors, null, null, usages);
 
     codeLineRenderer.drawDebug(300, 0, fontSize, g, debugColor, debugColorBg);
 

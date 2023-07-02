@@ -1,10 +1,8 @@
 package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.demo.Colors;
-import org.sudu.experiments.demo.EditorColorScheme;
 import org.sudu.experiments.demo.IdeaCodeColors;
 import org.sudu.experiments.math.V4f;
-
 
 public class FindUsagesItemColors {
   final V4f fileColor;
@@ -12,8 +10,6 @@ public class FindUsagesItemColors {
   final V4f contentColor;
   final V4f bgColor;
   final V4f bgHighlight;
-
-  EditorColorScheme currentScheme;
 
   public FindUsagesItemColors(V4f fileColor, V4f lineColor, V4f contentColor, V4f bgColor, V4f bgHighlight) {
     this.fileColor = fileColor;
@@ -43,14 +39,8 @@ public class FindUsagesItemColors {
     );
   }
 
-  public static FindUsagesItemColors darkFindUsagesItemColorsError() {
-    return new FindUsagesItemColors(
-        IdeaCodeColors.Colors.defaultText,
-        IdeaCodeColors.Colors.editNumbersVLine,
-        IdeaCodeColors.Colors.defaultText,
-        Colors.findUsagesErrorBg,
-        Colors.findUsagesErrorBg
-    );
+  public static ToolbarItemColors darkNoUsages() {
+    return ToolbarItemColors.darkToolbarItemColors();
   }
 
   public static FindUsagesItemColors lightFindUsagesItemColors() {
@@ -73,13 +63,7 @@ public class FindUsagesItemColors {
     );
   }
 
-  public static FindUsagesItemColors lightFindUsagesItemColorsError() {
-    return new FindUsagesItemColors(
-        IdeaCodeColors.Colors.defaultText,
-        IdeaCodeColors.Colors.editNumbersVLineLight,
-        IdeaCodeColors.Colors.defaultText,
-        Colors.findUsagesErrorBg,
-        Colors.findUsagesErrorBg
-    );
+  public static ToolbarItemColors lightNoUsages() {
+    return ToolbarItemColors.lightToolbarItemColors();
   }
 }
