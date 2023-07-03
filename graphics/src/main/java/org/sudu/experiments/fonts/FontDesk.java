@@ -80,8 +80,9 @@ public class FontDesk {
   }
 
   public int caretHeight(int lineHeight) {
-    int caretOffer = (iAscent + iDescent + iSize) / 2;
-    return lineHeight - (lineHeight / 2 - caretOffer / 2) * 2;
+    return lineHeight();
+//    int caretOffer = lineHeight();
+//    return lineHeight - (lineHeight / 2 - caretOffer / 2) * 2;
   }
 
   static int iSize(float size) {

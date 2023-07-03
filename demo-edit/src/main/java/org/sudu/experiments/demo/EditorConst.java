@@ -20,7 +20,7 @@ public interface EditorConst {
   int FILE_SIZE_5_KB = 5 * 1024;
   int FILE_SIZE_10_KB = 10 * 1024;
 
-  float LINE_HEIGHT = 1.5f - 0.125f;
+  float LINE_HEIGHT = 1.25f;
 
   int LINE_NUMBERS_TEXTURE_SIZE = 20;
   int LINE_NUMBERS_RIGHT_PADDING = 20;
