@@ -184,7 +184,8 @@ public class EditorComponent implements Disposable {
   }
 
   private void applyTheme() {
-    usagesMenu.setTheme(colors);
+    if (colors == null) throw new RuntimeException("Editor theme has not been set");
+    usagesMenu.setTheme(colors.dialogItemColors);
     popupMenu.setTheme(colors.dialogItemColors);
     caret.setColor(colors.cursorColor);
   }

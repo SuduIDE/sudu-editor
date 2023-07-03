@@ -6,7 +6,6 @@ import org.sudu.experiments.Disposable;
 import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.DemoRect;
-import org.sudu.experiments.demo.EditorColorScheme;
 import org.sudu.experiments.demo.EditorConst;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.TextRect;
@@ -319,15 +318,12 @@ public class FindUsagesDialog {
     return -1;
   }
 
-  public void setTheme(EditorColorScheme scheme) {
-    setBgColor(scheme.dialogItemColors.findUsagesColors.bgColor);
-    setFrameColor(scheme.dialogItemColors.findUsagesColorBorder);
-    for (FindUsagesItem item : items) {
-      item.setTheme(scheme);
+  public void setTheme(DialogItemColors dialogItemColors) {
+    setBgColor(dialogItemColors.findUsagesColors.bgColor);
+    setFrameColor(dialogItemColors.dialogBorderColor);
+    for (int i = 0; i < items.length; i++) {
+      items[i].setTheme(dialogItemColors.findUsagesColors);
+      if (hoverItemId == i) items[i].setHover(true);
     }
-  }
-
-  public interface HoverCallback {
-    void event(V2i mouse, int index, FindUsagesItem item);
   }
 }

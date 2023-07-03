@@ -2,8 +2,6 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.Const;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.Colors;
-import org.sudu.experiments.demo.EditorColorScheme;
 import org.sudu.experiments.demo.EditorComponent;
 import org.sudu.experiments.demo.EditorConst;
 import org.sudu.experiments.demo.Location;
@@ -14,7 +12,6 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.parser.common.Pos;
 
 import java.util.Collections;
@@ -23,13 +20,12 @@ import java.util.Objects;
 
 public class FindUsagesWindow {
   private final V2i windowSize = new V2i();
-  public FindUsagesDialog usagesList = new FindUsagesDialog();
+  public FindUsagesDialog findUsagesDialog = new FindUsagesDialog();
   private final WglGraphics graphics;
   private double dpr;
   private FontDesk font;
   private Runnable onClose = Const.emptyRunnable;
-
-  private EditorColorScheme editorColorScheme;
+  private DialogItemColors theme;
 
   public FindUsagesWindow(WglGraphics graphics) {
     this.graphics = graphics;
@@ -46,9 +42,9 @@ public class FindUsagesWindow {
     font = f;
   }
 
-  public void setTheme(EditorColorScheme scheme) {
-    editorColorScheme = scheme;
-    usagesList.setTheme(scheme);
+  public void setTheme(DialogItemColors dialogItemColors) {
+    this.theme = dialogItemColors;
+    findUsagesDialog.setTheme(dialogItemColors);
   }
 
   private FindUsagesDialog displayFindUsagesMenu(V2i pos, FindUsagesItem[] items) {
@@ -58,7 +54,7 @@ public class FindUsagesWindow {
     findUsages.measure(graphics.mCanvas, dpr);
     setScreenLimitedPosition(findUsages, pos.x, pos.y, windowSize);
 
-    usagesList = findUsages;
+    findUsagesDialog = findUsages;
     return findUsages;
   }
 
@@ -83,42 +79,42 @@ public class FindUsagesWindow {
 
   private void setFindUsagesStyle(FindUsagesDialog fu) {
     fu.setFont(font);
-    fu.setTheme(editorColorScheme);
+    fu.setTheme(theme);
   }
 
   public void onResize(V2i newSize, double newDpr) {
     windowSize.set(newSize);
     if (this.dpr != newDpr) {
-      if (!usagesList.isEmpty())
-        usagesList.measure(graphics.mCanvas, newDpr);
+      if (!findUsagesDialog.isEmpty())
+        findUsagesDialog.measure(graphics.mCanvas, newDpr);
       this.dpr = newDpr;
     }
   }
 
   public void center(V2i newSize) {
-    V2i usageSize = usagesList.size();
-    usagesList.setPos((newSize.x - usageSize.x) / 2, ((newSize.y - usageSize.y) / 2));
+    V2i usageSize = findUsagesDialog.size();
+    findUsagesDialog.setPos((newSize.x - usageSize.x) / 2, ((newSize.y - usageSize.y) / 2));
   }
 
   public void paint() {
-    if (!usagesList.isEmpty()) graphics.enableBlend(true);
-    usagesList.render(graphics, dpr);
+    if (!findUsagesDialog.isEmpty()) graphics.enableBlend(true);
+    findUsagesDialog.render(graphics, dpr);
   }
 
   public boolean onMouseMove(V2i mouse, SetCursor windowCursor) {
-    return usagesList.onMouseMove(mouse, windowCursor);
+    return findUsagesDialog.onMouseMove(mouse, windowCursor);
   }
 
   public boolean onMousePress(V2i position, int button, boolean press, int clickCount) {
-    return usagesList.onMousePress(position, button, press, clickCount);
+    return findUsagesDialog.onMousePress(position, button, press, clickCount);
   }
 
   public boolean isVisible() {
-    return !usagesList.isEmpty();
+    return !findUsagesDialog.isEmpty();
   }
 
   public void dispose() {
-    usagesList.dispose();
+    findUsagesDialog.dispose();
   }
 
   public final FindUsagesItem[] buildUsagesItems(List<Pos> usages, EditorComponent editorComponent, Model model) {
@@ -134,7 +130,7 @@ public class FindUsagesWindow {
   }
 
   private FindUsagesItem[] buildItems(List<Pos> usages, Location[] defs, EditorComponent editorComponent, Model model) {
-    if (editorColorScheme == null) throw new RuntimeException("Editor color scheme has not been set");
+    if (theme == null) throw new RuntimeException("Dialog item color theme has not been set");
 
     FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
     int cnt = 0;
@@ -162,7 +158,7 @@ public class FindUsagesWindow {
             "... and " + (usages.size() - (cnt - 1)) + " more usages",
             "",
             "",
-            editorColorScheme.dialogItemColors.findUsagesColorsContinued,
+            theme.findUsagesColorsContinued,
             () -> {
             }
         );
@@ -183,7 +179,7 @@ public class FindUsagesWindow {
           fileName,
           lineNumber,
           codeContentFormatted,
-          editorColorScheme.dialogItemColors.findUsagesColors,
+          theme.findUsagesColors,
           action
       );
     }
@@ -195,8 +191,8 @@ public class FindUsagesWindow {
     return switch (event.keyCode) {
       case KeyCode.ESC -> hide();
       case KeyCode.ARROW_DOWN, KeyCode.ARROW_UP, KeyCode.ARROW_LEFT, KeyCode.ARROW_RIGHT ->
-          usagesList.onKeyArrow(event.keyCode);
-      case KeyCode.ENTER -> usagesList.goToSelectedItem();
+          findUsagesDialog.onKeyArrow(event.keyCode);
+      case KeyCode.ENTER -> findUsagesDialog.goToSelectedItem();
       default -> false;
     };
   }

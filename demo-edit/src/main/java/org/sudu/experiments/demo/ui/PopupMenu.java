@@ -153,7 +153,7 @@ public class PopupMenu {
     DemoRect view = parentItem.getView();
     int border = parent.border();
     int margin = parent.margin();
-    return new V2i(view.pos.x - border * 3 - margin, view.pos.y - border - margin);
+    return new V2i(view.pos.x - 2 * border - margin, view.pos.y - border - margin);
   }
 
   private void removePopupsAfter(Toolbar wall) {

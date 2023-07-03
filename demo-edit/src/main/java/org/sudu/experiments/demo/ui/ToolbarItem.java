@@ -12,7 +12,6 @@ public class ToolbarItem {
   ToolbarItemColors colors;
   final Supplier<ToolbarItem[]> subMenu;
   String text;
-  boolean isHover = false;
 
   public ToolbarItem(Runnable r, String text, ToolbarItemColors colors) {
     this(r, text, colors, null);
@@ -45,7 +44,6 @@ public class ToolbarItem {
 
   public void setHover(boolean b) {
     tRect.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
-    isHover = b;
   }
 
   public void setTheme(ToolbarItemColors toolbarItemColors) {
@@ -54,6 +52,5 @@ public class ToolbarItem {
         toolbarItemColors.color,
         toolbarItemColors.bgColor
     );
-    if (isHover) setHover(true);
   }
 }
