@@ -55,8 +55,7 @@ public class ToolbarDemo extends Scene0 implements InputListener {
 
   private void setToolbarStyle(Toolbar tb) {
     tb.setFont(font);
-    tb.setBgColor(Colors.toolbarBg);
-    tb.setFrameColor(Colors.toolbarBorder);
+    tb.setTheme(DialogItemColors.darkColorScheme());
   }
 
   private void onEnterLeave(Toolbar tb) {

@@ -6,7 +6,6 @@ import org.sudu.experiments.Disposable;
 import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.DemoRect;
-import org.sudu.experiments.demo.EditorColorScheme;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.TextRect;
 import org.sudu.experiments.fonts.FontDesk;
@@ -57,11 +56,11 @@ public class Toolbar {
     onLeave = callback;
   }
 
-  public void setBgColor(V4f bgColor) {
+  private void setBgColor(V4f bgColor) {
     rect.color.set(bgColor);
   }
 
-  public void setFrameColor(V4f bgColor) {
+  private void setFrameColor(V4f bgColor) {
     rect.bgColor.set(bgColor);
   }
 
@@ -70,19 +69,19 @@ public class Toolbar {
     invalidateTexture();
   }
 
-  public void setTheme(EditorColorScheme scheme) {
-    setBgColor(scheme.dialogItemColors.toolbarItemColors.bgColor);
-    setFrameColor(scheme.dialogItemColors.findUsagesColorBorder);
+  public void setTheme(DialogItemColors dialogItemColors) {
+    setBgColor(dialogItemColors.toolbarItemColors.bgColor);
+    setFrameColor(dialogItemColors.findUsagesColorBorder);
     for (ToolbarItem item : items) {
-      item.setTheme(scheme);
-      if (item.isSubmenu()) setThemeSubItem(scheme, item);
+      item.setTheme(dialogItemColors.toolbarItemColors);
+      if (item.isSubmenu()) setThemeSubItem(item, dialogItemColors.toolbarItemColors);
     }
   }
 
-  private void setThemeSubItem(EditorColorScheme scheme, ToolbarItem item) {
+  private void setThemeSubItem(ToolbarItem item, ToolbarItemColors toolbarItemColors) {
     for (ToolbarItem subItem : item.subMenu().get()) {
-      subItem.setTheme(scheme);
-      if (subItem.isSubmenu()) setThemeSubItem(scheme, subItem);
+      subItem.setTheme(toolbarItemColors);
+      if (subItem.isSubmenu()) setThemeSubItem(subItem, toolbarItemColors);
     }
   }
 

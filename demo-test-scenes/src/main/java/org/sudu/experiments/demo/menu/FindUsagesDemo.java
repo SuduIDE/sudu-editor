@@ -38,7 +38,7 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
 
     FontDesk font = api.graphics.fontDesk("Consolas", 25);
 
-    findUsagesWindow.setFont(font, Colors.findUsagesBg);
+    findUsagesWindow.setFont(font);
     clearColor.set(new Color(43));
 
   }

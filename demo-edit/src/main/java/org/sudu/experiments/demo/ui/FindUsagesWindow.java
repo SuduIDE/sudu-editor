@@ -25,10 +25,8 @@ public class FindUsagesWindow {
   private final V2i windowSize = new V2i();
   public FindUsagesDialog usagesList = new FindUsagesDialog();
   private final WglGraphics graphics;
-  private V4f frameColor = Colors.findUsagesBorder;
   private double dpr;
   private FontDesk font;
-  private V4f bgColor = Colors.findUsagesBg;
   private Runnable onClose = Const.emptyRunnable;
 
   private EditorColorScheme editorColorScheme;
@@ -44,15 +42,12 @@ public class FindUsagesWindow {
   }
 
   // todo: change font and size if dps changed on
-  public void setFont(FontDesk f, V4f bg) {
+  public void setFont(FontDesk f) {
     font = f;
-    bgColor = bg;
   }
 
   public void setTheme(EditorColorScheme scheme) {
     editorColorScheme = scheme;
-    bgColor = scheme.dialogItemColors.findUsagesColors.bgColor;
-    frameColor = scheme.dialogItemColors.findUsagesColorBorder;
     usagesList.setTheme(scheme);
   }
 
@@ -88,8 +83,7 @@ public class FindUsagesWindow {
 
   private void setFindUsagesStyle(FindUsagesDialog fu) {
     fu.setFont(font);
-    fu.setBgColor(bgColor);
-    fu.setFrameColor(frameColor);
+    fu.setTheme(editorColorScheme);
   }
 
   public void onResize(V2i newSize, double newDpr) {

@@ -2,15 +2,12 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.Const;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.Colors;
 import org.sudu.experiments.demo.DemoRect;
-import org.sudu.experiments.demo.EditorColorScheme;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4f;
 
 import java.util.ArrayList;
 import java.util.function.Supplier;
@@ -21,8 +18,7 @@ public class PopupMenu {
   private final WglGraphics graphics;
   private double dpr;
   private FontDesk font;
-  private V4f bgColor = Colors.toolbarBg;
-  private V4f frameColor = Colors.toolbarBorder;
+  private DialogItemColors theme;
   private Runnable onClose = Const.emptyRunnable;
 
   public PopupMenu(WglGraphics graphics) {
@@ -34,11 +30,10 @@ public class PopupMenu {
     font = f;
   }
 
-  public void setTheme(EditorColorScheme scheme) {
+  public void setTheme(DialogItemColors dialogItemColors) {
+    theme = dialogItemColors;
     for (Toolbar toolbar : toolbars) {
-      bgColor = scheme.dialogItemColors.toolbarItemColors.bgColor;
-      frameColor = scheme.dialogItemColors.findUsagesColorBorder;
-      toolbar.setTheme(scheme);
+      toolbar.setTheme(theme);
     }
   }
 
@@ -89,9 +84,8 @@ public class PopupMenu {
   }
 
   private void setToolbarStyle(Toolbar tb) {
+    tb.setTheme(theme);
     tb.setFont(font);
-    tb.setBgColor(bgColor);
-    tb.setFrameColor(frameColor);
   }
 
   public void onResize(V2i newSize, double newDpr) {

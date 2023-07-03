@@ -185,7 +185,7 @@ public class EditorComponent implements Disposable {
 
   private void applyTheme() {
     usagesMenu.setTheme(colors);
-    popupMenu.setTheme(colors);
+    popupMenu.setTheme(colors.dialogItemColors);
     caret.setColor(colors.cursorColor);
   }
 
@@ -268,7 +268,7 @@ public class EditorComponent implements Disposable {
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
-    usagesMenu.setFont(font, Colors.findUsagesBg);
+    usagesMenu.setFont(font);
 
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight

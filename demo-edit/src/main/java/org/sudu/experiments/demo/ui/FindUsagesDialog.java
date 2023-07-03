@@ -57,12 +57,12 @@ public class FindUsagesDialog {
     onClickOutside = action;
   }
 
-  public void setBgColor(V4f bgColor) {
+  private void setBgColor(V4f bgColor) {
     rect.color.set(bgColor);
     this.bgColor = bgColor;
   }
 
-  public void setFrameColor(V4f bgColor) {
+  private void setFrameColor(V4f bgColor) {
     rect.bgColor.set(bgColor);
   }
 
