@@ -113,7 +113,8 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
   }
 
   private void openWindow(V2i position) {
-    findUsagesWindow.display(position, createItems(), this::onPopupClosed);
+    findUsagesWindow.onClose(this::onPopupClosed);
+    findUsagesWindow.display(position, createItems());
   }
 
   private void onPopupClosed() {

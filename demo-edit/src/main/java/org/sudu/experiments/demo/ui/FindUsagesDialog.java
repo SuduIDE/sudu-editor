@@ -82,7 +82,8 @@ public class FindUsagesDialog {
     textureSize.set(0, 0);
   }
 
-  public void measure(Canvas mCanvas, double devicePR) {
+  void measure(Canvas mCanvas, double devicePR) {
+    if (isEmpty()) return;
     // TODO(Major): Remove measureText with space
     if (font == null) throw new RuntimeException("FindUsages font has not been set");
     mCanvas.setFont(font);
@@ -139,6 +140,13 @@ public class FindUsagesDialog {
     textureSize.y = textHeight;
     rect.size.x = maxW + border * 2;
     rect.size.y = (textHeight + border) * items.length + border;
+  }
+
+  public void setScreenLimitedPosition(int x, int y, V2i screen) {
+    V2i size = size();
+    x = Math.max(0, Math.min(x, screen.x - size.x));
+    y = Math.max(0, Math.min(y, screen.y - size.y));
+    setPos(x, y);
   }
 
   public void setPos(int x, int y) {
