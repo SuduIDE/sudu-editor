@@ -6,10 +6,7 @@ import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.Colors;
 import org.sudu.experiments.demo.IdeaCodeColors;
 import org.sudu.experiments.demo.SetCursor;
-import org.sudu.experiments.demo.ui.FindUsagesItem;
-import org.sudu.experiments.demo.ui.FindUsagesItemBuilder;
-import org.sudu.experiments.demo.ui.FindUsagesItemColors;
-import org.sudu.experiments.demo.ui.FindUsagesWindow;
+import org.sudu.experiments.demo.ui.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.KeyCode;
@@ -21,18 +18,16 @@ import org.sudu.experiments.math.V2i;
 
 public class FindUsagesDemo extends Scene0 implements InputListener {
 
-  private final SetCursor windowCursor;
-  private final V2i windowSize = new V2i();
-
-  private final V2i hLine = new V2i();
-  private final V2i vLine = new V2i();
+  private final UiContext uiContext;
   private final FindUsagesWindow findUsagesWindow;
 
   public FindUsagesDemo(SceneApi api) {
     super(api);
-    windowCursor = SetCursor.wrap(api.window);
 
-    findUsagesWindow = new FindUsagesWindow(api.graphics);
+    uiContext = new UiContext(api);
+    uiContext.dprListeners.add(this::open);
+    findUsagesWindow = new FindUsagesWindow(uiContext);
+    findUsagesWindow.setTheme(DialogItemColors.darkColorScheme());
 
     api.input.addListener(this);
 
@@ -43,23 +38,29 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
 
   }
 
+  private void open(float oldDpr, float newDpr) {
+    if (oldDpr == 0) {
+      openWindow(new V2i());
+    }
+  }
+
   private static FindUsagesItem[] createItems() {
     FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
 
-    addAction(tbb, "main.java  ", "5    ", "private static void foo (...);           ");
-    addAction(tbb, "main.java  ", "25   ", "String foo = \"boo\";                      ");
-    addAction(tbb, "main.java  ", "131  ", "int a = 5;                               ");
-    addAction(tbb, "class.java ", "176  ", "public class FindTest extend Test {...}; ");
-    addAction(tbb, "main.java  ", "1234 ", "private static void foo (...);           ");
-    addAction(tbb, "sub.java   ", "4321 ", "private static void foo (...);           ");
-    addAction(tbb, "demo.java  ", "23872", "private static void foo (...);           ");
+    addAction(tbb,"main.java","5","private static void foo (...);          ");
+    addAction(tbb,"main.java","25","String foo = \"boo\";                     ");
+    addAction(tbb,"main.java","131","int a = 5;                              ");
+    addAction(tbb,"class.java","176","public class FindTest extend Test {...};");
+    addAction(tbb,"main.java","1234","private static void foo (...);          ");
+    addAction(tbb,"sub.java","4321","private static void foo (...);          ");
+    addAction(tbb,"demo.java","23872","private static void foo (...);          ");
 
     return tbb.items();
   }
 
   private static void addAction(FindUsagesItemBuilder fu, String fileName, String lineNumber, String codeContent) {
     FindUsagesItemColors colors = new FindUsagesItemColors(IdeaCodeColors.Colors.defaultText, IdeaCodeColors.Colors.editNumbersVLine, IdeaCodeColors.Colors.defaultText, Colors.findUsagesBg, Colors.findUsagesSelectedBg);
-    fu.addItem(fileName, lineNumber, codeContent, colors, () -> System.out.println(fileName + "\t" + lineNumber + "\t" + codeContent));
+    fu.addItem(fileName, lineNumber, codeContent, colors, () -> System.out.println(fileName +"\t" + lineNumber +"\t" + codeContent));
   }
 
   @Override
@@ -69,18 +70,9 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
   }
 
   @Override
-  public void onResize(V2i newSize, double dpr) {
+  public void onResize(V2i newSize, float dpr) {
     super.onResize(newSize, dpr);
-    windowSize.set(newSize);
-
-    hLine.set(newSize.x, Numbers.iRnd(dpr) * 2);
-    vLine.set(Numbers.iRnd(dpr) * 2, newSize.y);
-
-    if (!findUsagesWindow.isVisible()) {
-      openWindow(new V2i());
-    }
-
-    findUsagesWindow.onResize(newSize, dpr);
+    uiContext.onResize(newSize, dpr);
     findUsagesWindow.center(newSize);
   }
 
@@ -95,7 +87,7 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
-    return findUsagesWindow.onMouseMove(event.position, windowCursor);
+    return findUsagesWindow.onMouseMove(event.position, uiContext.windowCursor);
   }
 
   @Override
@@ -105,7 +97,6 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
 
   @Override
   public boolean onContextMenu(MouseEvent event) {
-    System.out.println("onContextMenu");
     if (!findUsagesWindow.isVisible()) {
       openWindow(event.position);
     }
@@ -118,7 +109,7 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
   }
 
   private void onPopupClosed() {
-    System.out.println("onPopupClosed");
+    System.out.println("closed");
   }
 
   @Override

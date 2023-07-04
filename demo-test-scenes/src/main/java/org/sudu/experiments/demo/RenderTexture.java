@@ -91,7 +91,7 @@ public class RenderTexture extends Scene0 {
     api.graphics.checkError("paint complete ");
   }
 
-  public void onResize(V2i size, double dpr) {
+  public void onResize(V2i size, float dpr) {
     super.onResize(size, dpr);
     layout(size);
   }

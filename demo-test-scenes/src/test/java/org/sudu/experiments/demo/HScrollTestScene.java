@@ -114,7 +114,7 @@ public class HScrollTestScene extends Scene {
   }
 
   @Override
-  public void onResize(V2i size, double dpr) {
+  public void onResize(V2i size, float dpr) {
     viewportSize.set(size);
   }
 

@@ -15,9 +15,8 @@ import org.sudu.experiments.math.*;
 
 import java.util.function.Supplier;
 
-public class ToolbarDemo extends Scene0 implements InputListener {
+public class ToolbarDemo extends Scene0 implements InputListener, DprChangeListener {
 
-  private final SetCursor windowCursor;
   private final FontDesk font;
 
   private final Toolbar tbH = new Toolbar();
@@ -25,13 +24,14 @@ public class ToolbarDemo extends Scene0 implements InputListener {
   private final V2i hLine = new V2i();
   private final V2i vLine = new V2i();
 
+  private final UiContext uiContext;
   private final PopupMenu popupMenu;
 
   public ToolbarDemo(SceneApi api) {
     super(api);
-    windowCursor = SetCursor.wrap(api.window);
-
-    popupMenu = new PopupMenu(api.graphics);
+    uiContext = new UiContext(api);
+    popupMenu = new PopupMenu(uiContext);
+    uiContext.dprListeners.add(this);
 
     api.input.addListener(this);
 
@@ -51,6 +51,12 @@ public class ToolbarDemo extends Scene0 implements InputListener {
     tbH.setItems(items(0).get());
     tbV.setItems(items(0).get());
 
+  }
+
+  @Override
+  public void onDprChanged(float oldDpr, float newDpr) {
+    tbH.measure(uiContext);
+    tbV.measure(uiContext);
   }
 
   private void setToolbarStyle(Toolbar tb) {
@@ -112,19 +118,13 @@ public class ToolbarDemo extends Scene0 implements InputListener {
   }
 
   @Override
-  public void onResize(V2i newSize, double dpr) {
+  public void onResize(V2i newSize, float dpr) {
+    uiContext.onResize(newSize, dpr);
     size.set(newSize);
 
     hLine.set(newSize.x, Numbers.iRnd(dpr) * 2);
     vLine.set(Numbers.iRnd(dpr) * 2, newSize.y);
 
-    popupMenu.onResize(newSize, dpr);
-
-    if (this.dpr != dpr) {
-      tbH.measure(api.graphics.mCanvas, dpr);
-      tbV.measure(api.graphics.mCanvas, dpr);
-    }
-    this.dpr = dpr;
     V2i tbhSize = tbH.size();
     V2i tbvSize = tbV.size();
     tbH.setPos((newSize.x - tbhSize.x) / 2, (newSize.y - 3 * tbhSize.y) / 2 - 5);
@@ -140,17 +140,17 @@ public class ToolbarDemo extends Scene0 implements InputListener {
     graphics.drawRect(0, size.y / 2 - hLine.y / 2, hLine, crossColors);
     graphics.drawRect(size.x / 2 - vLine.x / 2, 0, vLine, crossColors);
     graphics.enableBlend(true);
-    tbH.render(graphics, dpr);
-    tbV.render(graphics, dpr);
+    tbH.render(uiContext);
+    tbV.render(uiContext);
     popupMenu.paint();
     graphics.enableBlend(false);
   }
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
-    boolean r = popupMenu.onMouseMove(event.position, windowCursor);
-    boolean tbHResult = tbH.onMouseMove(event.position, windowCursor);
-    boolean tbVResult = tbV.onMouseMove(event.position, windowCursor);
+    boolean r = popupMenu.onMouseMove(event.position, uiContext.windowCursor);
+    boolean tbHResult = tbH.onMouseMove(event.position, uiContext.windowCursor);
+    boolean tbVResult = tbV.onMouseMove(event.position, uiContext.windowCursor);
     return r || tbHResult || tbVResult;
   }
 

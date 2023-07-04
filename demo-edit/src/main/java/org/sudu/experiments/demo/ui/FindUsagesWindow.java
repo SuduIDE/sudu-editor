@@ -1,7 +1,6 @@
 package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.Const;
-import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.EditorComponent;
 import org.sudu.experiments.demo.EditorConst;
 import org.sudu.experiments.demo.Location;
@@ -17,17 +16,16 @@ import org.sudu.experiments.parser.common.Pos;
 import java.util.List;
 import java.util.Objects;
 
-public class FindUsagesWindow {
-  private final V2i windowSize = new V2i();
+public class FindUsagesWindow implements DprChangeListener {
   private final FindUsagesDialog view = new FindUsagesDialog();
-  private final WglGraphics graphics;
-  private double dpr;
+  private final UiContext context;
   private FontDesk font;
   private Runnable onClose = Const.emptyRunnable;
   private DialogItemColors theme;
 
-  public FindUsagesWindow(WglGraphics graphics) {
-    this.graphics = graphics;
+  public FindUsagesWindow(UiContext context) {
+    this.context = context;
+    context.dprListeners.add(this);
     view.onClickOutside(this::hide);
   }
 
@@ -51,8 +49,8 @@ public class FindUsagesWindow {
       throw new IllegalArgumentException();
     }
     view.setItems(actions);
-    view.measure(graphics.mCanvas, dpr);
-    view.setScreenLimitedPosition(mousePos.x, mousePos.y, windowSize);
+    view.measure(context);
+    view.setScreenLimitedPosition(mousePos.x, mousePos.y, context.windowSize);
   }
 
   public boolean hide() {
@@ -64,12 +62,9 @@ public class FindUsagesWindow {
     return false;
   }
 
-  public void onResize(V2i newSize, double newDpr) {
-    windowSize.set(newSize);
-    if (this.dpr != newDpr) {
-      view.measure(graphics.mCanvas, newDpr);
-      this.dpr = newDpr;
-    }
+  @Override
+  public void onDprChanged(float oldDpr, float newDpr) {
+    view.measure(context);
   }
 
   public void center(V2i newSize) {
@@ -78,8 +73,7 @@ public class FindUsagesWindow {
   }
 
   public void paint() {
-    if (!view.isEmpty()) graphics.enableBlend(true);
-    view.render(graphics, dpr);
+    view.render(context);
   }
 
   public boolean onMouseMove(V2i mouse, SetCursor windowCursor) {

@@ -57,7 +57,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
   }
 
   @Override
-  public void onResize(V2i size, double dpr) {
+  public void onResize(V2i size, float dpr) {
     viewPortSize = size;
     lineNumbers.setPos(new V2i(0, 0), 50, editorHeight(), dpr);
     lineNumbers.initTextures(g, editorHeight());

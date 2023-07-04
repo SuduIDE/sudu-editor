@@ -1,7 +1,6 @@
 package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.Const;
-import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.DemoRect;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.fonts.FontDesk;
@@ -12,17 +11,16 @@ import org.sudu.experiments.math.V2i;
 import java.util.ArrayList;
 import java.util.function.Supplier;
 
-public class PopupMenu {
-  private final V2i windowSize = new V2i();
+public class PopupMenu implements DprChangeListener {
+  private final UiContext uiContext;
   private final ArrayList<Toolbar> toolbars = new ArrayList<>();
-  private final WglGraphics graphics;
-  private double dpr;
   private FontDesk font;
   private DialogItemColors theme;
   private Runnable onClose = Const.emptyRunnable;
 
-  public PopupMenu(WglGraphics graphics) {
-    this.graphics = graphics;
+  public PopupMenu(UiContext uiContext) {
+    this.uiContext = uiContext;
+    uiContext.dprListeners.add(this);
   }
 
   // todo: change font and size if dps changed on
@@ -38,6 +36,7 @@ public class PopupMenu {
   }
 
   public void display(V2i mousePos, Supplier<ToolbarItem[]> actions, Runnable onClose) {
+    uiContext.requireWindowVisible();
     if (font == null || isVisible()) {
       throw new IllegalArgumentException();
     }
@@ -55,20 +54,16 @@ public class PopupMenu {
     }
   }
 
-  private Toolbar displaySubMenu(V2i pos, Supplier<ToolbarItem[]> items, Toolbar parent) {
-    if (windowSize.x * windowSize.y == 0 || dpr == 0) {
-      throw new IllegalStateException(
-          "trying to display popup with unknown screen size and dpr");
-    }
 
+  private Toolbar displaySubMenu(V2i pos, Supplier<ToolbarItem[]> items, Toolbar parent) {
     Toolbar popup = new Toolbar();
     popup.setLayoutVertical();
     popup.setItems(items.get());
     setToolbarStyle(popup);
-    popup.measure(graphics.mCanvas, dpr);
+    popup.measure(uiContext);
 
     int x = parent != null ? relativeToParentPos(pos.x, parent, popup) : pos.x;
-    setScreenLimitedPosition(popup, x, pos.y, windowSize);
+    setScreenLimitedPosition(popup, x, pos.y, uiContext.windowSize);
 
     popup.onEnter((mouse, index, item) -> {
       removePopupsAfter(popup);
@@ -88,22 +83,19 @@ public class PopupMenu {
     tb.setFont(font);
   }
 
-  public void onResize(V2i newSize, double newDpr) {
-    windowSize.set(newSize);
-    if (this.dpr != newDpr) {
-      for (Toolbar toolbar : toolbars) {
-        toolbar.measure(graphics.mCanvas, newDpr);
-      }
-      this.dpr = newDpr;
+  @Override
+  public void onDprChanged(float oldDpr, float newDpr) {
+    for (Toolbar toolbar : toolbars) {
+      toolbar.measure(uiContext);
     }
   }
 
   public void paint() {
     // let's do 0-garbage rendering
-    if (!toolbars.isEmpty()) graphics.enableBlend(true);
+    if (!toolbars.isEmpty()) uiContext.graphics.enableBlend(true);
     //noinspection ForLoopReplaceableByForEach
     for (int i = 0; i < toolbars.size(); i++) {
-      toolbars.get(i).render(graphics, dpr);
+      toolbars.get(i).render(uiContext);
     }
   }
 
@@ -138,7 +130,7 @@ public class PopupMenu {
   }
 
   private int relativeToParentPos(int posX, Toolbar parent, Toolbar popup) {
-    return windowSize.x >= posX + parent.size().x + popup.size().x
+    return uiContext.windowSize.x >= posX + parent.size().x + popup.size().x
         ? posX + parent.size().x - parent.margin()
         : posX - popup.size().x;
   }

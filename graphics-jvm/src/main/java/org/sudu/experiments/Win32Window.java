@@ -252,8 +252,8 @@ public class Win32Window implements WindowPeer, Window {
     return time.now();
   }
 
-  public double devicePixelRatio() {
-    return windowDpi / 96.;
+  public float devicePixelRatio() {
+    return windowDpi / 96.f;
   }
 
   private void onTimer() {

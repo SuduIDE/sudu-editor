@@ -98,7 +98,7 @@ public class TextureRegionTestScene extends Scene {
     downRect.drawText(g, texture, 0, 0, 1f);
   }
 
-  public void onResize(V2i size, double dpr) {
+  public void onResize(V2i size, float dpr) {
     viewPortSize.set(size);
   }
 

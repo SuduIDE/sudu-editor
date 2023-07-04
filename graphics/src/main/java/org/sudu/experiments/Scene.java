@@ -17,5 +17,5 @@ public abstract class Scene implements Disposable {
 
   public abstract void paint();
 
-  public abstract void onResize(V2i size, double dpr);
+  public abstract void onResize(V2i size, float dpr);
 }

@@ -90,7 +90,9 @@ public class Toolbar {
     textureSize.set(0, 0);
   }
 
-  public void measure(Canvas mCanvas, double devicePR) {
+  public void measure(UiContext uiContext) {
+    Canvas mCanvas = uiContext.mCanvas();
+    float devicePR = uiContext.dpr;
     if (font == null) throw new RuntimeException("Toolbar font has not been set");
     mCanvas.setFont(font);
     int textHeight = font.lineHeight(textHeightScale), maxW = 0;
@@ -166,10 +168,11 @@ public class Toolbar {
     textureSize.set(0, 0);
   }
 
-  public void render(WglGraphics g, double dpr) {
+  public void render(UiContext uiContext) {
+    WglGraphics g = uiContext.graphics;
     if (items.length == 0) return;
     if (texture == null || textureSize.x * textureSize.y == 0) {
-      if (textureSize.x * textureSize.y == 0) measure(g.mCanvas, dpr);
+      if (textureSize.x * textureSize.y == 0) measure(uiContext);
       if (textureSize.x * textureSize.y == 0) return;
       renderTexture(g);
     }

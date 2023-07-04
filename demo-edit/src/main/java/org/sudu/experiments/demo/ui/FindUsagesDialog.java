@@ -82,14 +82,15 @@ public class FindUsagesDialog {
     textureSize.set(0, 0);
   }
 
-  void measure(Canvas mCanvas, double devicePR) {
+  void measure(UiContext uiContext) {
+    Canvas mCanvas = uiContext.mCanvas();
     if (isEmpty()) return;
     // TODO(Major): Remove measureText with space
     if (font == null) throw new RuntimeException("FindUsages font has not been set");
     mCanvas.setFont(font);
     int textHeight = font.lineHeight(), maxW = 0;
-    border = Numbers.iRnd(2 * devicePR);
-    shadowSize = Numbers.iRnd(devicePR);
+    border = Numbers.iRnd(2 * uiContext.dpr);
+    shadowSize = Numbers.iRnd(uiContext.dpr);
     textXPad = Numbers.iRnd(font.WWidth);
     int tw = 0;
 
@@ -193,13 +194,17 @@ public class FindUsagesDialog {
     textureSize.set(0, 0);
   }
 
-  public void render(WglGraphics g, double dpr) {
+  public void render(UiContext context) {
     if (items.length == 0) return;
     if (texture == null || textureSize.x * textureSize.y == 0) {
-      if (textureSize.x * textureSize.y == 0) measure(g.mCanvas, dpr);
+      if (textureSize.x * textureSize.y == 0) measure(context);
       if (textureSize.x * textureSize.y == 0) return;
-      renderTexture(g);
+      renderTexture(context.graphics);
     }
+
+    WglGraphics g = context.graphics;
+
+    g.enableBlend(true);
 
     if (!rect.isEmpty()) {
       drawFrameAndShadow(g);

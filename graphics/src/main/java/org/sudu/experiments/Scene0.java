@@ -26,7 +26,7 @@ public class Scene0 extends Scene {
     api.graphics.clear(clearColor);
   }
 
-  public void onResize(V2i newSize, double dpr) {
+  public void onResize(V2i newSize, float dpr) {
     size.set(newSize);
     this.dpr = dpr;
   }

@@ -168,7 +168,7 @@ public class DemoScene1 extends Scene {
     g.checkError("paint complete ");
   }
 
-  public void onResize(V2i size, double dpr) {
+  public void onResize(V2i size, float dpr) {
     layout(size, dpr);
   }
 

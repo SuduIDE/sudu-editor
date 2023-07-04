@@ -74,7 +74,6 @@ public class EditorComponent implements Disposable {
   int hScrollPos = 0;
 
   int fullWidth = 0;
-  double devicePR;
 
   boolean applyContrast, renderBlankLines = true;
   int scrollDown, scrollUp;
@@ -94,8 +93,8 @@ public class EditorComponent implements Disposable {
   boolean ctrlPressed = false;
   public boolean readonly = false;
 
+  UiContext uiContext;
   FindUsagesWindow usagesMenu;
-
   PopupMenu popupMenu;
 
   private CodeElement definition = null;
@@ -107,9 +106,10 @@ public class EditorComponent implements Disposable {
     this.api = api;
     this.g = api.graphics;
 
-    usagesMenu = new FindUsagesWindow(g);
+    uiContext = new UiContext(api);
+    usagesMenu = new FindUsagesWindow(uiContext);
     usagesMenu.onClose(this::onFocusGain);
-    popupMenu = new PopupMenu(g);
+    popupMenu = new PopupMenu(uiContext);
 
     toggleDark();
     if (api.window.hasFocus()) onFocusGain();
@@ -123,19 +123,20 @@ public class EditorComponent implements Disposable {
     applyContrast = api.window.getHost() != Host.Direct2D;
   }
 
-  void setPos(V2i pos, V2i size, double dpr) {
+  void setPos(V2i pos, V2i size, float dpr) {
     compPos.set(pos);
     compSize.set(size);
-    devicePR = dpr;
+    uiContext.onResize(size, dpr);
 
-    vLineX = Numbers.iRnd(vLineXBase * devicePR);
-    vLineLeftDelta = Numbers.iRnd(10 * devicePR);
+
+    vLineX = Numbers.iRnd(vLineXBase * dpr);
+    vLineLeftDelta = Numbers.iRnd(10 * dpr);
 
     int lineNumbersWidth = vLineX - vLineLeftDelta;
-    lineNumbers.setPos(compPos, lineNumbersWidth, editorHeight(), devicePR);
+    lineNumbers.setPos(compPos, lineNumbersWidth, editorHeight(), dpr);
 
     if (1<0) DebugHelper.dumpFontsSize(g);
-    caret.setWidth(Numbers.iRnd(Caret.defaultWidth * devicePR));
+    caret.setWidth(Numbers.iRnd(Caret.defaultWidth * dpr));
 
     // Should be called if dpr changed
     doChangeFont(fontFamilyName, fontVirtualSize);
@@ -143,8 +144,6 @@ public class EditorComponent implements Disposable {
     updateLineNumbersFont();
 
     layout();
-    usagesMenu.onResize(size, dpr);
-    popupMenu.onResize(size, dpr);
   }
 
 
@@ -296,16 +295,16 @@ public class EditorComponent implements Disposable {
 
 
   public void changeFont(String name, int virtualSize) {
-    if (devicePR != 0) {
+    if (uiContext.dpr != 0) {
       doChangeFont(name, virtualSize);
+      api.window.repaint();
     }
     fontVirtualSize = virtualSize;
     fontFamilyName = name;
-    api.window.repaint();
   }
 
   private void doChangeFont(String name, int virtualSize) {
-    int newPixelFontSize = Numbers.iRnd(virtualSize * devicePR);
+    int newPixelFontSize = Numbers.iRnd(virtualSize * uiContext.dpr);
     int oldPixelFontSize = font == null ? 0 : font.iSize;
     if (newPixelFontSize != oldPixelFontSize || !Objects.equals(name, fontFamilyName)) {
       lineNumbers.dispose();
@@ -339,6 +338,7 @@ public class EditorComponent implements Disposable {
     renderingCanvas = Disposable.assign(renderingCanvas, null);
     lineNumbers.dispose();
     popupMenu.dispose();
+    usagesMenu.dispose();
   }
 
   int editorFullHeight() {
@@ -436,7 +436,7 @@ public class EditorComponent implements Disposable {
       line.updateTexture(nextLine, renderingCanvas, fonts, g, lineHeight, editorWidth(), hScrollPos);
       CodeLine lineContent = line.line;
 
-      fullWidth = Math.max(fullWidth, nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * devicePR));
+      fullWidth = Math.max(fullWidth, nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * uiContext.dpr));
       int yPosition = lineHeight * i - vScrollPos;
 
       line.draw(
@@ -810,7 +810,7 @@ public class EditorComponent implements Disposable {
 
   private boolean setCaretPos(int charPos, boolean shift) {
     caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
-    caretPos = devicePR == 0 ? 0
+    caretPos = uiContext.dpr == 0 ? 0
         : caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, fonts);
     startBlinking();
     adjustEditorScrollToCaret();
@@ -839,7 +839,7 @@ public class EditorComponent implements Disposable {
   }
 
   private void adjustEditorHScrollToCaret() {
-    int xOffset = (int) devicePR * EditorConst.CARET_X_OFFSET;
+    int xOffset = (int) uiContext.dpr * EditorConst.CARET_X_OFFSET;
 
     int editVisibleXMin = hScrollPos;
     int editVisibleXMax = hScrollPos + editorWidth();
@@ -1165,7 +1165,8 @@ public class EditorComponent implements Disposable {
     return true;
   }
 
-  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
+  public boolean onMouseMove(MouseEvent event) {
+    SetCursor setCursor = uiContext.windowCursor;
     eventPosition.set(event.position.x - compPos.x, event.position.y - compPos.y);
     if (usagesMenu.onMouseMove(eventPosition, setCursor)) return true;
     if (popupMenu.onMouseMove(eventPosition, setCursor)) return true;

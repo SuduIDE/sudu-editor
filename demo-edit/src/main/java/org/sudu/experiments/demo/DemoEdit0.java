@@ -27,8 +27,6 @@ import static org.sudu.experiments.demo.ui.ToolbarItemBuilder.ti;
 public class DemoEdit0 extends Scene0 {
 
   WglGraphics g;
-  final SetCursor setCursor;
-
   FontDesk toolBarFont;
 
   EditorComponent editor;
@@ -38,7 +36,6 @@ public class DemoEdit0 extends Scene0 {
     super(api, false);
     this.g = api.graphics;
 //    clearColor.set(Color.Cvt.gray(0));
-    this.setCursor = SetCursor.wrap(api.window);
 
     editor = new EditorComponent(api);
     api.input.addListener(new EditInput());
@@ -246,7 +243,7 @@ public class DemoEdit0 extends Scene0 {
   }
 
   @Override
-  public void onResize(V2i newSize, double newDpr) {
+  public void onResize(V2i newSize, float newDpr) {
     size.set(newSize);
     editor.setPos(editorPos, size, newDpr);
 
@@ -291,7 +288,7 @@ public class DemoEdit0 extends Scene0 {
 
     @Override
     public boolean onMouseMove(MouseEvent event) {
-      return editor.onMouseMove(event, setCursor);
+      return editor.onMouseMove(event);
     }
 
     @Override
