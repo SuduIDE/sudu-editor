@@ -108,6 +108,7 @@ public class EditorComponent implements Disposable {
     this.g = api.graphics;
 
     usagesMenu = new FindUsagesWindow(g);
+    usagesMenu.onClose(this::onFocusGain);
     popupMenu = new PopupMenu(g);
 
     toggleDark();
@@ -184,7 +185,8 @@ public class EditorComponent implements Disposable {
   }
 
   private void applyTheme() {
-    usagesMenu.setTheme(colors);
+    Objects.requireNonNull(colors);
+    usagesMenu.setTheme(colors.dialogItemColors);
     popupMenu.setTheme(colors.dialogItemColors);
     caret.setColor(colors.cursorColor);
   }
@@ -917,8 +919,7 @@ public class EditorComponent implements Disposable {
     } else {
       usagesMenu.hide();
       usagesMenu.display(position,
-          usagesMenu.buildUsagesItems(usages, this, model),
-          this::onFocusGain);
+          usagesMenu.buildUsagesItems(usages, this));
     }
   }
 
@@ -930,9 +931,9 @@ public class EditorComponent implements Disposable {
     if (pos.isEmpty()) {
       displayNoUsagesPopup(position);
     } else {
-      var items = usagesMenu.buildDefItems(locs, this, model);
+      var items = usagesMenu.buildDefItems(locs, this);
       usagesMenu.hide();
-      usagesMenu.display(position, items, this::onFocusGain);
+      usagesMenu.display(position, items);
     }
   }
 
@@ -1030,12 +1031,7 @@ public class EditorComponent implements Disposable {
         if (usagesList.size() == 1) {
           gotoUsageMenuElement(usagesList.get(0));
           return true;
-        } else if (!usagesMenu.isVisible())
-          usagesMenu.display(
-              position,
-              usagesMenu.buildUsagesItems(usagesList, this, model),
-              this::onFocusGain
-          );
+        } else showUsagesWindow(position, usagesList);
       }
     }
     return false;
@@ -1045,14 +1041,20 @@ public class EditorComponent implements Disposable {
     switch (locs.length) {
       case 0 -> displayNoUsagesPopup(position);
       case 1 -> gotoDefinition(locs[0]);
-      default -> {
-        if (!usagesMenu.isVisible()) usagesMenu.display(
-            position,
-            usagesMenu.buildDefItems(locs, this, model),
-            this::onFocusGain
-        );
-      }
+      default -> showUsagesWindow(position, locs);
     }
+  }
+
+  private void showUsagesWindow(V2i position, Location[] locs) {
+    usagesMenu.hide();
+    usagesMenu.display(position,
+        usagesMenu.buildDefItems(locs, this));
+  }
+
+  private void showUsagesWindow(V2i position, List<Pos> usagesList) {
+    usagesMenu.hide();
+    usagesMenu.display(position,
+            usagesMenu.buildUsagesItems(usagesList, this));
   }
 
   private void displayNoUsagesPopup(V2i position) {

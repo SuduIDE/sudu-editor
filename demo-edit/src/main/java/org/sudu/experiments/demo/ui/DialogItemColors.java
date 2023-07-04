@@ -7,8 +7,7 @@ public class DialogItemColors {
   public final FindUsagesItemColors findUsagesColors;
   public final FindUsagesItemColors findUsagesColorsContinued;
   public final ToolbarItemColors findUsagesColorsError;
-  public final Color findUsagesColorBorder;
-
+  public final Color dialogBorderColor;
   public final ToolbarItemColors toolbarItemColors;
 
   public static DialogItemColors darkColorScheme() {
@@ -35,15 +34,13 @@ public class DialogItemColors {
       FindUsagesItemColors findUsagesItemColors,
       FindUsagesItemColors findUsagesColorsContinued,
       ToolbarItemColors noUsagesColors,
-      Color findUsagesColorsBorder,
+      Color dialogBorderColor,
       ToolbarItemColors toolbarItemColors
   ) {
     this.findUsagesColors = findUsagesItemColors;
     this.findUsagesColorsContinued = findUsagesColorsContinued;
     this.findUsagesColorsError = noUsagesColors;
-    this.findUsagesColorBorder = findUsagesColorsBorder;
+    this.dialogBorderColor = dialogBorderColor;
     this.toolbarItemColors = toolbarItemColors;
   }
-//        Colors.findUsagesErrorBg,
-//        Colors.findUsagesErrorBg
 }

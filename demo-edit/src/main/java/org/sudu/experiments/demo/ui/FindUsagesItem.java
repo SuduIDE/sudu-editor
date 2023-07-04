@@ -1,6 +1,5 @@
 package org.sudu.experiments.demo.ui;
 
-import org.sudu.experiments.demo.EditorColorScheme;
 import org.sudu.experiments.demo.TextRect;
 
 public class FindUsagesItem {
@@ -10,7 +9,6 @@ public class FindUsagesItem {
   final Runnable action;
   FindUsagesItemColors colors;
   String fileName, lineNumber, codeContent;
-  boolean isHover = false;
 
   public FindUsagesItem(Runnable r, String fileName, String lineNumber, String codeContent, FindUsagesItemColors colors) {
     this.fileName = fileName;
@@ -30,23 +28,21 @@ public class FindUsagesItem {
     tFiles.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
     tLines.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
     tContent.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
-    isHover = b;
   }
 
-  public void setTheme(EditorColorScheme scheme) {
-    colors = scheme.dialogItemColors.findUsagesColors;
+  public void setTheme(FindUsagesItemColors findUsagesItemColors) {
+    colors = findUsagesItemColors;
     tFiles.setColors(
-        scheme.dialogItemColors.findUsagesColors.fileColor,
-        scheme.dialogItemColors.findUsagesColors.bgColor
+        findUsagesItemColors.fileColor,
+        findUsagesItemColors.bgColor
     );
     tLines.setColors(
-        scheme.dialogItemColors.findUsagesColors.lineColor,
-        scheme.dialogItemColors.findUsagesColors.bgColor
+        findUsagesItemColors.lineColor,
+        findUsagesItemColors.bgColor
     );
     tContent.setColors(
-        scheme.dialogItemColors.findUsagesColors.contentColor,
-        scheme.dialogItemColors.findUsagesColors.bgColor
+        findUsagesItemColors.contentColor,
+        findUsagesItemColors.bgColor
     );
-    if (isHover) setHover(true);
   }
 }

@@ -28,7 +28,7 @@ public class Toolbar {
   private ToolbarItem[] items = ToolbarItemBuilder.items0;
   private GL.Texture texture;
   private int border, margin, textXPad;
-  private int hoverItem = -1;
+  private int hoverItemId = -1;
   boolean isVertical;
 
   private Runnable onClickOutside;
@@ -71,24 +71,17 @@ public class Toolbar {
 
   public void setTheme(DialogItemColors dialogItemColors) {
     setBgColor(dialogItemColors.toolbarItemColors.bgColor);
-    setFrameColor(dialogItemColors.findUsagesColorBorder);
-    for (ToolbarItem item : items) {
-      item.setTheme(dialogItemColors.toolbarItemColors);
-      if (item.isSubmenu()) setThemeSubItem(item, dialogItemColors.toolbarItemColors);
-    }
-  }
-
-  private void setThemeSubItem(ToolbarItem item, ToolbarItemColors toolbarItemColors) {
-    for (ToolbarItem subItem : item.subMenu().get()) {
-      subItem.setTheme(toolbarItemColors);
-      if (subItem.isSubmenu()) setThemeSubItem(subItem, toolbarItemColors);
+    setFrameColor(dialogItemColors.dialogBorderColor);
+    for (int i = 0; i < items.length; i++) {
+      items[i].setTheme(dialogItemColors.toolbarItemColors);
+      if (hoverItemId == i) items[i].setHover(true);
     }
   }
 
   public void dispose() {
     disposeTexture();
     items = ToolbarItemBuilder.items0;
-    hoverItem = -1;
+    hoverItemId = -1;
     rect.makeEmpty();
   }
 
@@ -238,18 +231,18 @@ public class Toolbar {
     boolean inside = rect.isInside(pos);
     int mouseItem = inside ? find(pos) : -1;
 
-    if (hoverItem != mouseItem) {
-      if (hoverItem >= 0) {
-        ToolbarItem oldItem = items[hoverItem];
+    if (hoverItemId != mouseItem) {
+      if (hoverItemId >= 0) {
+        ToolbarItem oldItem = items[hoverItemId];
         oldItem.setHover(false);
-        if (onLeave != null) onLeave.event(pos, hoverItem, oldItem);
+        if (onLeave != null) onLeave.event(pos, hoverItemId, oldItem);
       }
       if (mouseItem >= 0) {
         ToolbarItem newItem = items[mouseItem];
         newItem.setHover(true);
         if (onEnter != null) onEnter.event(pos, mouseItem, newItem);
       }
-      hoverItem = mouseItem;
+      hoverItemId = mouseItem;
     }
     return inside && setCursor.setDefault();
   }
