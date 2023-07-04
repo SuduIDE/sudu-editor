@@ -153,8 +153,8 @@ public class PopupMenu {
     DemoRect view = parentItem.getView();
     int border = parent.border();
     int margin = parent.margin();
+    // TODO: Submenu position leaves a gap if it opens to the left of the parent
     return new V2i(view.pos.x - border * 3 - margin, view.pos.y - border - margin);
-//    return new V2i(view.pos.x - 2 * border - margin, view.pos.y - border - margin);
   }
 
   private void removePopupsAfter(Toolbar wall) {

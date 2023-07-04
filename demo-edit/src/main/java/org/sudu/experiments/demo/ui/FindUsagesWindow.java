@@ -113,7 +113,7 @@ public class FindUsagesWindow {
 
   private FindUsagesItem[] buildItems(List<Pos> usages, Location[] defs, EditorComponent edit) {
     Model model = edit.model();
-    if (theme == null) throw new RuntimeException("Dialog item color theme has not been set");
+    Objects.requireNonNull(theme);
 
     FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
     int cnt = 0;
