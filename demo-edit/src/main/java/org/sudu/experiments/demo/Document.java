@@ -284,37 +284,12 @@ public class Document {
     return usageToDef.containsKey(elementPos) || defToUsages.containsKey(elementPos);
   }
 
-  public boolean hasDefOrUsagesForPos(Pos elementPos) {
-    return usageToDef.containsKey(elementPos) || defToUsages.containsKey(elementPos);
+  public Pos getDefinition(Pos pos) {
+    return usageToDef.get(pos);
   }
 
-  public boolean hasDefOrUsagesDeprecated(int line, int pixelPos) {
-    return hasDefinition(line, pixelPos) || hasUsages(line, pixelPos);
-  }
-
-  public boolean hasDefinition(int line, int pixelPos) {
-    return getDefinitionPosDeprecated(line, pixelPos) != null;
-  }
-
-  public boolean hasUsages(int line, int pixelPos) {
-    return getUsagesListDeprecated(line, pixelPos) != null;
-  }
-
-  public Pos getDefinitionPosDeprecated(int line, int pos) {
-    return usageToDef.get(getPositionDeprecated(line, pos));
-  }
-
-  public Pos getDefinitionPosByCharPos(int line, int pos) {
-    return usageToDef.get(getElementStart(line, pos));
-  }
-
-  public List<Pos> getUsagesListDeprecated(int line, int pos) {
-    return defToUsages.get(getPositionDeprecated(line, pos));
-  }
-
-  public Pos getPositionDeprecated(int line, int pixelPos) {
-    int charPos = line(line).getElementPosDeprecated(pixelPos);
-    return new Pos(line, charPos);
+  public List<Pos> getUsagesList(Pos pos) {
+    return defToUsages.get(pos);
   }
 
   public Pos getElementStart(int line, int charPos) {

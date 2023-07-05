@@ -16,15 +16,18 @@ public class CodeLine {
 
   float[] fMeasure;
   int[] iMeasure;
+  int[] lengthCache;
   int[][] glyphMeasureCache;
   boolean measureDirty;
   boolean contentDirty;
+  boolean lengthDirty;
 
   public CodeLine(CodeElement ... data) {
     elements = data;
     int l = 0;
     for (CodeElement e : data) l += e.s.length();
     totalStrLength = l;
+    invalidateCache();
   }
 
   static CodeLine concat(CodeLine a, CodeLine b) {
@@ -44,29 +47,22 @@ public class CodeLine {
     return elements[ind];
   }
 
-  public int getElementPosDeprecated(int pixelPos) {
-    if (iMeasure == null) return -1;
-    return wordStart(pixelPos);
+  public int getElementStart(int charPos) {
+    int[] cache = lengthCache();
+    int ind = Arrays.binarySearch(cache, 0, cache.length, charPos);
+    int index =  ind < 0 ? -ind - 1 : ind + 1;
+    return index == 0 ? 0 : cache[index - 1];
   }
 
-  public int getElementStart(int charPos) {
-    int sum = 0, l = 0;
-    for (int i = 0, n = elements.length; i < n; i++) {
-      l = elements[i].s.length();
-      if (sum + l > charPos) break;
-      sum += l;
-    }
-    return sum;
+  public int getElementIndex(int charPos) {
+    int[] cache = lengthCache();
+    int ind = Arrays.binarySearch(
+        cache, 0, cache.length - 1, charPos);
+    return ind < 0 ? -ind - 1 : ind + 1;
   }
 
   public CodeElement getCodeElement(int pos) {
-    int i = 0;
-    for (; i + 1 < elements.length; i++) {
-      int el = elements[i].s.length();
-      if (pos < el) break;
-      pos -= el;
-    }
-    return elements[i];
+    return elements[getElementIndex(pos)];
   }
 
   public void delete(int beginIndex, int endIndex) {
@@ -229,6 +225,8 @@ public class CodeLine {
       measureDirty = true;
     }
 
+    allocateLengthCache();
+
     if (measureDirty) {
       int totalLength = 0;
       float sumMeasure = .0f;
@@ -236,6 +234,7 @@ public class CodeLine {
       for (int i = 0; i < length; i++) {
         CodeElement entry = elements[i];
         totalLength += entry.s.length();
+        lengthCache[i] = totalLength;
 
         measuringCanvas.setFont(fonts[entry.fontIndex]);
         float wordLength = measuringCanvas.measureText(entry.s);
@@ -245,14 +244,36 @@ public class CodeLine {
       }
       totalStrLength = totalLength;
       measureDirty = false;
+      lengthDirty = false;
     } else {
       cacheHits++;
     }
   }
 
+  private void allocateLengthCache() {
+    if (lengthCache == null || lengthCache.length < elements.length) {
+      lengthCache = new int[elements.length];
+      lengthDirty = true;
+    }
+  }
+
+  private int[] lengthCache() {
+    if (lengthCache == null || lengthDirty) {
+      allocateLengthCache();
+
+      for (int i = 0, sum = 0, e = elements.length; i < e; i++) {
+        sum += elements[i].s.length();
+        lengthCache[i] = sum;
+      }
+      lengthDirty = false;
+    }
+    return lengthCache;
+  }
+
   public void invalidateCache() {
     measureDirty = true;
     contentDirty = true;
+    lengthDirty = true;
     glyphMeasureCache = null;
   }
 
@@ -339,7 +360,7 @@ public class CodeLine {
     return ind;
   }
 
-  public int wordStart(int pixelLocation) {
+  public int wordStartDeprecated(int pixelLocation) {
     int pos = findEntryByPixel(pixelLocation);
     if (pos == 0) return 0;
     else pos--;
@@ -349,7 +370,7 @@ public class CodeLine {
     return charInd;
   }
 
-  public int wordEnd(int pixelLocation) {
+  public int wordEndDeprecated(int pixelLocation) {
     int pos = findEntryByPixel(pixelLocation);
     if (pos >= elements.length) pos = elements.length - 1;
     int charInd = 0;
@@ -358,13 +379,12 @@ public class CodeLine {
     return charInd;
   }
 
-  public int computePixelLocation(int caretCharPos, Canvas mCanvas, FontDesk[] fonts) {
-    if (elements.length == 0) return 0;
-    if (caretCharPos == 0) return 0;
+  public int computePixelLocation(int charPos, Canvas mCanvas, FontDesk[] fonts) {
+    if (elements.length == 0 || charPos == 0) return 0;
     if (measureDirty || iMeasure == null) {
       measure(mCanvas, fonts);
     }
-    if (caretCharPos >= totalStrLength)
+    if (charPos >= totalStrLength)
       return iMeasure[elements.length - 1];
 
     int elementsLength = 0, el = 0;
@@ -372,13 +392,13 @@ public class CodeLine {
     // todo: optimize
     for (; el < elements.length; el++) {
       int elementsLengthNext = elementsLength + elements[el].s.length();
-      if (caretCharPos < elementsLengthNext) break;
-      if (caretCharPos == elementsLengthNext) return iMeasure[el];
+      if (charPos < elementsLengthNext) break;
+      if (charPos == elementsLengthNext) return iMeasure[el];
       elementsLength = elementsLengthNext;
     }
 
     int[] cache = getCache(mCanvas, fonts, el);
-    return cache[caretCharPos - elementsLength - 1];
+    return cache[charPos - elementsLength - 1];
   }
 
   public int lineMeasure() {
@@ -386,16 +406,16 @@ public class CodeLine {
         ? 0 : iMeasure[elements.length - 1];
   }
 
-  public int prevPos(int caretPos) {
-    int pos = findEntryByPixel(caretPos);
-    if (pos == 0 && caretPos == 0) return -1;
+  public int prevPosDeprecated(int caretPixelPos) {
+    int pos = findEntryByPixel(caretPixelPos);
+    if (pos == 0 && caretPixelPos == 0) return -1;
     int charInd = 0;
     for (int i = 0; i < pos; i++)
       charInd += elements[i].s.length();
     return charInd;
   }
 
-  public int nextPos(int caretPos) {
+  public int nextPosDeprecated(int caretPos) {
     int pos = findEntryByPixel(caretPos);
     if (iMeasure[pos] == caretPos) pos++;
     pos++;

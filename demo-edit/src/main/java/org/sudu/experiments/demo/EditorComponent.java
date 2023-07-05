@@ -765,9 +765,9 @@ public class EditorComponent implements Disposable {
     int newPos;
     if (ctrl) {
       if (shift < 0)
-        newPos = caretCodeLine.prevPos(caretPos);
+        newPos = caretCodeLine.prevPosDeprecated(caretPos);
       else
-        newPos = caretCodeLine.nextPos(caretPos);
+        newPos = caretCodeLine.nextPosDeprecated(caretPos);
     } else {
       newPos = caretCharPos + shift;
     }
@@ -856,22 +856,20 @@ public class EditorComponent implements Disposable {
   private void computeUsages() {
     definition = null;
     usages.clear();
+    Document document = model.document;
+    if (caretLine >= document.length()) return;
 
-    if (caretLine >= model.document.length()) return;
-    if (!model.document.hasDefOrUsagesDeprecated(caretLine, caretPos)) return;
+    Pos pos = document.getElementStart(caretLine, caretCharPos);
+    Pos def = document.getDefinition(pos);
 
-    Pos def;
-    List<Pos> usages;
-    if (model.document.hasDefinition(caretLine, caretPos)) {
-      def = model.document.getDefinitionPosDeprecated(caretLine, caretPos);
-      usages = model.document.defToUsages.get(def);
-    } else {
-      def = model.document.getPositionDeprecated(caretLine, caretPos);
-      usages = model.document.getUsagesListDeprecated(caretLine, caretPos);
+    if (def != null) definition = model.document.getCodeElement(def);
+
+    List<Pos> usageList = document.getUsagesList(def != null ? def : pos);
+    if (usageList != null) {
+      for (var usage : usageList) {
+        usages.add(document.getCodeElement(usage));
+      }
     }
-
-    definition = model.document.getCodeElement(def);
-    for (var usage : usages) this.usages.add(model.document.getCodeElement(usage));
   }
 
   private void computeCaret(V2i position) {
@@ -940,7 +938,7 @@ public class EditorComponent implements Disposable {
   // TODO(Minor): Move usageMenu.hide() out off & rename method
   public final void gotoUsageMenuElement(Pos defPos) {
     setCaretLinePos(defPos.line, defPos.pos, false);
-    int nextPos = caretCodeLine().nextPos(caretPos);
+    int nextPos = caretCodeLine().nextPosDeprecated(caretPos);
     selection.endPos.set(caretLine, nextPos);
     selection.startPos.set(caretLine, caretCharPos);
     usagesMenu.hide();
@@ -1097,8 +1095,8 @@ public class EditorComponent implements Disposable {
     adjustEditorScrollToCaret();
 
     CodeLine line = caretCodeLine();
-    int wordStart = line.wordStart(caretPos);
-    int wordEnd = line.wordEnd(caretPos);
+    int wordStart = line.wordStartDeprecated(caretPos);
+    int wordEnd = line.wordEndDeprecated(caretPos);
 
     selection.startPos.set(caretLine, wordStart);
     selection.isSelectionStarted = true;
@@ -1432,14 +1430,6 @@ public class EditorComponent implements Disposable {
 
   private void updateDocumentDiffTimeStamp() {
     model.document.setLastDiffTimestamp(api.window.timeNow());
-  }
-
-  public boolean hasVScroll() {
-    return vScroll.visible();
-  }
-
-  public int getVScrollSize() {
-    return vScroll.bgSize.x;
   }
 
   public void setPosition(int column, int lineNumber) {

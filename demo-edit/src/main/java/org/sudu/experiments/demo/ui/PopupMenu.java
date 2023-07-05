@@ -54,7 +54,6 @@ public class PopupMenu implements DprChangeListener {
     }
   }
 
-
   private Toolbar displaySubMenu(V2i pos, Supplier<ToolbarItem[]> items, Toolbar parent) {
     Toolbar popup = new Toolbar();
     popup.setLayoutVertical();
@@ -91,8 +90,8 @@ public class PopupMenu implements DprChangeListener {
   }
 
   public void paint() {
-    // let's do 0-garbage rendering
-    if (!toolbars.isEmpty()) uiContext.graphics.enableBlend(true);
+    if (toolbars.isEmpty()) return;
+    uiContext.graphics.enableBlend(true);
     //noinspection ForLoopReplaceableByForEach
     for (int i = 0; i < toolbars.size(); i++) {
       toolbars.get(i).render(uiContext);

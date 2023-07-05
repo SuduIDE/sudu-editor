@@ -134,7 +134,6 @@ class CodeLineRenderer implements Disposable {
 
     int curTexture = horScrollPos / TEXTURE_WIDTH;
     int curWord = getWordIndex(horScrollPos);
-    if (curWord > iMeasure.length) return;
 
     int texturePos = horScrollPos;
     int xPos = -xOffset;

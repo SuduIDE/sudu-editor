@@ -6,8 +6,45 @@ import org.sudu.experiments.math.ArrayOp;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CodeLineTest {
+
+  @Test public void lengthTest() {
+    CodeLine cl = line1();
+    for (int i = 0; i <= cl.totalStrLength + 2; i++) {
+      int elementStart = cl.getElementStart(i);
+      int linear = getElementStartLinear(i, cl.elements);
+      assertEquals(elementStart, linear);
+      CodeElement element = cl.getCodeElement(i);
+      CodeElement linearElement = getCodeElementLinear(i, cl.elements);
+      assertSame(linearElement, element);
+    }
+
+    CodeLine cl0 = new CodeLine();
+    assertEquals(0, cl0.getElementStart(5));
+    assertEquals(0, cl0.getElementStart(0));
+  }
+
+  static int getElementStartLinear(int charPos, CodeElement[] elements) {
+    int sum = 0;
+    for (int i = 0, n = elements.length; i < n; i++) {
+      int l = elements[i].s.length();
+      if (sum + l > charPos) break;
+      sum += l;
+    }
+    return sum;
+  }
+
+  static CodeElement getCodeElementLinear(int pos, CodeElement[] elements) {
+    int i = 0;
+    for (; i + 1 < elements.length; i++) {
+      int el = elements[i].s.length();
+      if (pos < el) break;
+      pos -= el;
+    }
+    return elements[i];
+  }
 
   @Test
   public void makeStringTest() {
