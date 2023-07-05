@@ -33,29 +33,27 @@ public class JavaClass extends Decl {
     return null;
   }
 
-  public JavaMethod getMethod(String methodName, int numberOfArgs) {
+  public JavaMethod getMethod(String methodName, List<String> argsTypes) {
     for (var method : methods) {
-      if (method.name.equals(methodName)
-          && method.numberOfArgs == numberOfArgs) return method;
+      if (method.match(methodName, argsTypes)) return method;
     }
-    if (innerClass != null) return innerClass.getMethod(methodName, numberOfArgs);
+    if (innerClass != null) return innerClass.getMethod(methodName, argsTypes);
     return null;
   }
 
-  public JavaConstructor getConstructor(String methodName, int numberOfArgs) {
+  public JavaConstructor getConstructor(String methodName, List<String> argsTypes) {
     for (var constructor : constructors) {
-      if (constructor.name.equals(methodName)
-          && constructor.numberOfArgs == numberOfArgs) return constructor;
+      if (constructor.match(methodName, argsTypes)) return constructor;
     }
-    if (innerClass != null) return innerClass.getConstructor(methodName, numberOfArgs);
+    if (innerClass != null) return innerClass.getConstructor(methodName, argsTypes);
     return null;
   }
 
-  public JavaConstructor getThisConstructor(int numberOfArgs) {
+  public JavaConstructor getThisConstructor(List<String> argsTypes) {
     for (var constructor : constructors) {
-      if (constructor.numberOfArgs == numberOfArgs) return constructor;
+      if (constructor.matchArgs(argsTypes)) return constructor;
     }
-    if (innerClass != null) return innerClass.getThisConstructor(numberOfArgs);
+    if (innerClass != null) return innerClass.getThisConstructor(argsTypes);
     return null;
   }
 

@@ -4,7 +4,7 @@ import org.sudu.experiments.parser.common.Pos;
 
 public class JavaField extends ClassBodyDecl {
 
-  public JavaField(String name, Pos position, boolean isStatic) {
-    super(name, position, isStatic);
+  public JavaField(String name, Pos position, String type, boolean isStatic) {
+    super(name, position, type, isStatic);
   }
 }

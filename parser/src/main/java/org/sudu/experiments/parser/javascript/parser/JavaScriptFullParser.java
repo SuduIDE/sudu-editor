@@ -10,9 +10,7 @@ import org.sudu.experiments.parser.common.BaseFullParser;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptLexer;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptParser;
 import org.sudu.experiments.parser.javascript.parser.highlighting.JavaScriptLexerHighlighting;
-import org.sudu.experiments.parser.javascript.walker.JavaScriptWalker;
-
-import java.util.List;
+import org.sudu.experiments.parser.javascript.walker.JsWalker;
 
 public class JavaScriptFullParser extends BaseFullParser {
 
@@ -28,7 +26,7 @@ public class JavaScriptFullParser extends BaseFullParser {
 
     highlightTokens();
 
-    JavaScriptWalker jsWalker = new JavaScriptWalker(tokenTypes, tokenStyles);
+    JsWalker jsWalker = new JsWalker(tokenTypes, tokenStyles);
     walker.walk(jsWalker, program);
 
     jsWalker.intervals.add(new Interval(0, source.length(), ParserConstants.IntervalTypes.Js.PROGRAM));

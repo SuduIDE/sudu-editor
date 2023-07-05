@@ -11,7 +11,7 @@ import org.sudu.experiments.parser.common.BaseIntervalParser;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptLexer;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptParser;
 import org.sudu.experiments.parser.javascript.parser.highlighting.JavaScriptLexerHighlighting;
-import org.sudu.experiments.parser.javascript.walker.JavaScriptWalker;
+import org.sudu.experiments.parser.javascript.walker.JsWalker;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class JavaScriptIntervalParser extends BaseIntervalParser {
     };
     ParseTreeWalker walker = new ParseTreeWalker();
 
-    var classWalker = new JavaScriptWalker(tokenTypes, tokenStyles);
+    var classWalker = new JsWalker(tokenTypes, tokenStyles);
     walker.walk(classWalker, ruleContext);
     highlightTokens();
 
