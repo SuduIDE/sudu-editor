@@ -4,12 +4,12 @@ import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V4f;
 
 public class ShadowParameters {
-  public final V4f color;
+  public final V4f color = new V4f();
   public int size;
 
   public ShadowParameters(int size, float value) {
     this.size = size;
-    this.color = new V4f().setW(value);
+    this.color.setW(value);
   }
 
   public static ShadowParameters darkTheme() {
