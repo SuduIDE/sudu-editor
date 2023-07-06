@@ -1,12 +1,7 @@
 package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.Const;
-import org.sudu.experiments.demo.EditorComponent;
-import org.sudu.experiments.demo.EditorConst;
-import org.sudu.experiments.demo.Location;
-import org.sudu.experiments.demo.Model;
-import org.sudu.experiments.demo.SetCursor;
-import org.sudu.experiments.demo.Uri;
+import org.sudu.experiments.demo.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -37,7 +32,7 @@ public class FindUsagesWindow implements DprChangeListener {
 
   public void setTheme(DialogItemColors dialogItemColors) {
     theme = dialogItemColors;
-    view.setTheme(dialogItemColors, context);
+    view.setTheme(dialogItemColors);
   }
 
   public void onClose(Runnable onClose) {
@@ -64,7 +59,6 @@ public class FindUsagesWindow implements DprChangeListener {
 
   @Override
   public void onDprChanged(float oldDpr, float newDpr) {
-    view.setShadowParameters(theme.shadowParameters, context);
     view.measure(context);
   }
 

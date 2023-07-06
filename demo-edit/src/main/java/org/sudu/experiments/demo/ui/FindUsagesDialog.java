@@ -23,8 +23,7 @@ public class FindUsagesDialog {
   private final DemoRect rect = new DemoRect();
   private final V2i textureSize = new V2i();
   private final V2i v2i = new V2i();
-  private V4f shadow;
-  private int shadowSize;
+  private ShadowParameters shadowParameters;
   private V4f bgColor;
   private FontDesk font;
   private FindUsagesItem[] items = FindUsagesItemBuilder.items0;
@@ -91,7 +90,6 @@ public class FindUsagesDialog {
     mCanvas.setFont(font);
     int textHeight = font.lineHeight(), maxW = 0;
     border = Numbers.iRnd(2 * uiContext.dpr);
-    shadowSize = Numbers.iRnd(uiContext.dpr);
     textXPad = Numbers.iRnd(font.WWidth);
     int tw = 0;
 
@@ -206,6 +204,8 @@ public class FindUsagesDialog {
 
     g.enableBlend(true);
 
+    shadowParameters.setShadowSize(context.dpr);
+
     if (!rect.isEmpty()) {
       drawFrameAndShadow(g);
     }
@@ -244,16 +244,16 @@ public class FindUsagesDialog {
 
     // shadow
     v2i.x = rect.size.x;
-    v2i.y = shadowSize;
-    g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadow);
-    g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadow);
-    g.drawRect(rect.pos.x + shadowSize * 2, rect.pos.y + rect.size.y + shadowSize, v2i, shadow);
+    v2i.y = shadowParameters.size;
+    g.drawRect(rect.pos.x + shadowParameters.size, rect.pos.y + rect.size.y, v2i, shadowParameters.w);
+    g.drawRect(rect.pos.x + shadowParameters.size, rect.pos.y + rect.size.y, v2i, shadowParameters.w);
+    g.drawRect(rect.pos.x + shadowParameters.size * 2, rect.pos.y + rect.size.y + shadowParameters.size, v2i, shadowParameters.w);
 
-    v2i.x = shadowSize;
-    v2i.y = rect.size.y - shadowSize;
-    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadow);
-    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadow);
-    g.drawRect(rect.pos.x + rect.size.x + shadowSize, rect.pos.y + shadowSize * 2, v2i, shadow);
+    v2i.x = shadowParameters.size;
+    v2i.y = rect.size.y - shadowParameters.size;
+    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowParameters.size, v2i, shadowParameters.w);
+    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowParameters.size, v2i, shadowParameters.w);
+    g.drawRect(rect.pos.x + rect.size.x + shadowParameters.size, rect.pos.y + shadowParameters.size * 2, v2i, shadowParameters.w);
 
   }
 
@@ -331,18 +331,13 @@ public class FindUsagesDialog {
     return -1;
   }
 
-  public void setTheme(DialogItemColors dialogItemColors, UiContext uiContext) {
-    setShadowParameters(dialogItemColors.shadowParameters, uiContext);
+  public void setTheme(DialogItemColors dialogItemColors) {
+    shadowParameters = dialogItemColors.shadowParameters;
     setBgColor(dialogItemColors.findUsagesColors.bgColor);
     setFrameColor(dialogItemColors.dialogBorderColor);
     for (int i = 0; i < items.length; i++) {
       items[i].setTheme(dialogItemColors.findUsagesColors);
       if (hoverItemId == i) items[i].setHover(true);
     }
-  }
-
-  public void setShadowParameters(ShadowParameters shadowParameters, UiContext uiContext) {
-    shadow = new V4f().setW(shadowParameters.w);
-    shadowSize = Numbers.iRnd(shadowParameters.size * uiContext.dpr);
   }
 }

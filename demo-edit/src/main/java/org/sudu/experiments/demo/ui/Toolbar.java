@@ -1,10 +1,6 @@
 package org.sudu.experiments.demo.ui;
 
-import org.sudu.experiments.Canvas;
-import org.sudu.experiments.Debug;
-import org.sudu.experiments.Disposable;
-import org.sudu.experiments.GL;
-import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.*;
 import org.sudu.experiments.demo.DemoRect;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.TextRect;
@@ -26,8 +22,7 @@ public class Toolbar {
   private final DemoRect rect = new DemoRect();
   private final V2i textureSize = new V2i();
   private final V2i v2i = new V2i();
-  private V4f shadow;
-  private int shadowSize;
+  private ShadowParameters shadowParameters;
   private ToolbarItem[] items = ToolbarItemBuilder.items0;
   private GL.Texture texture;
   private int border, margin, textXPad;
@@ -72,8 +67,8 @@ public class Toolbar {
     invalidateTexture();
   }
 
-  public void setTheme(DialogItemColors dialogItemColors, UiContext context) {
-    setShadowParameters(dialogItemColors.shadowParameters, context);
+  public void setTheme(DialogItemColors dialogItemColors) {
+    shadowParameters = dialogItemColors.shadowParameters;
     setBgColor(dialogItemColors.toolbarItemColors.bgColor);
     setFrameColor(dialogItemColors.dialogBorderColor);
     for (int i = 0; i < items.length; i++) {
@@ -172,14 +167,16 @@ public class Toolbar {
     textureSize.set(0, 0);
   }
 
-  public void render(UiContext uiContext) {
-    WglGraphics g = uiContext.graphics;
+  public void render(UiContext context) {
+    WglGraphics g = context.graphics;
     if (items.length == 0) return;
     if (texture == null || textureSize.x * textureSize.y == 0) {
-      if (textureSize.x * textureSize.y == 0) measure(uiContext);
+      if (textureSize.x * textureSize.y == 0) measure(context);
       if (textureSize.x * textureSize.y == 0) return;
       renderTexture(g);
     }
+
+    shadowParameters.setShadowSize(context.dpr);
 
     if (!rect.isEmpty()) {
       drawFrameAndShadow(g);
@@ -221,16 +218,16 @@ public class Toolbar {
     // shadow
     if (isVertical) {
       v2i.x = rect.size.x;
-      v2i.y = shadowSize;
-      g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadow);
-      g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadow);
-      g.drawRect(rect.pos.x + shadowSize * 2, rect.pos.y + rect.size.y + shadowSize, v2i, shadow);
+      v2i.y = shadowParameters.size;
+      g.drawRect(rect.pos.x + shadowParameters.size, rect.pos.y + rect.size.y, v2i, shadowParameters.w);
+      g.drawRect(rect.pos.x + shadowParameters.size, rect.pos.y + rect.size.y, v2i, shadowParameters.w);
+      g.drawRect(rect.pos.x + shadowParameters.size * 2, rect.pos.y + rect.size.y + shadowParameters.size, v2i, shadowParameters.w);
 
-      v2i.x = shadowSize;
-      v2i.y = rect.size.y - shadowSize;
-      g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadow);
-      g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadow);
-      g.drawRect(rect.pos.x + rect.size.x + shadowSize, rect.pos.y + shadowSize * 2, v2i, shadow);
+      v2i.x = shadowParameters.size;
+      v2i.y = rect.size.y - shadowParameters.size;
+      g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowParameters.size, v2i, shadowParameters.w);
+      g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowParameters.size, v2i, shadowParameters.w);
+      g.drawRect(rect.pos.x + rect.size.x + shadowParameters.size, rect.pos.y + shadowParameters.size * 2, v2i, shadowParameters.w);
     }
   }
 
@@ -303,8 +300,4 @@ public class Toolbar {
     return margin;
   }
 
-  public void setShadowParameters(ShadowParameters shadowParameters, UiContext uiContext) {
-    shadow = new V4f().setW(shadowParameters.w);
-    shadowSize = Numbers.iRnd(shadowParameters.size * uiContext.dpr);
-  }
 }

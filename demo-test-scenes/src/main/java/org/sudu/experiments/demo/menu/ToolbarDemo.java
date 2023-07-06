@@ -4,25 +4,13 @@ import org.sudu.experiments.Scene0;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.Colors;
-import org.sudu.experiments.demo.ui.DialogItemColors;
-import org.sudu.experiments.demo.ui.DprChangeListener;
-import org.sudu.experiments.demo.ui.PopupMenu;
-import org.sudu.experiments.demo.ui.Toolbar;
-import org.sudu.experiments.demo.ui.ToolbarItem;
-import org.sudu.experiments.demo.ui.ToolbarItemBuilder;
-import org.sudu.experiments.demo.ui.ToolbarItemColors;
-import org.sudu.experiments.demo.ui.UiContext;
+import org.sudu.experiments.demo.ui.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.Numbers;
-import org.sudu.experiments.math.RngHelper;
-import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4f;
-import org.sudu.experiments.math.XorShiftRandom;
+import org.sudu.experiments.math.*;
 
 import java.util.function.Supplier;
 
@@ -72,7 +60,7 @@ public class ToolbarDemo extends Scene0 implements InputListener, DprChangeListe
 
   private void setToolbarStyle(Toolbar tb) {
     tb.setFont(font);
-    tb.setTheme(DialogItemColors.darkColorScheme(), uiContext);
+    tb.setTheme(DialogItemColors.darkColorScheme());
   }
 
   private void onEnterLeave(Toolbar tb) {
