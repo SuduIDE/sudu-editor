@@ -12,15 +12,15 @@ import java.util.ArrayList;
 import java.util.function.Supplier;
 
 public class PopupMenu implements DprChangeListener {
-  private final UiContext uiContext;
+  private final UiContext context;
   private final ArrayList<Toolbar> toolbars = new ArrayList<>();
   private FontDesk font;
   private DialogItemColors theme;
   private Runnable onClose = Const.emptyRunnable;
 
-  public PopupMenu(UiContext uiContext) {
-    this.uiContext = uiContext;
-    uiContext.dprListeners.add(this);
+  public PopupMenu(UiContext context) {
+    this.context = context;
+    context.dprListeners.add(this);
   }
 
   // todo: change font and size if dps changed on
@@ -36,7 +36,7 @@ public class PopupMenu implements DprChangeListener {
   }
 
   public void display(V2i mousePos, Supplier<ToolbarItem[]> actions, Runnable onClose) {
-    uiContext.requireWindowVisible();
+    context.requireWindowVisible();
     if (font == null || isVisible()) {
       throw new IllegalArgumentException();
     }
@@ -59,10 +59,10 @@ public class PopupMenu implements DprChangeListener {
     popup.setLayoutVertical();
     popup.setItems(items.get());
     setToolbarStyle(popup);
-    popup.measure(uiContext);
+    popup.measure(context);
 
     int x = parent != null ? relativeToParentPos(pos.x, parent, popup) : pos.x;
-    setScreenLimitedPosition(popup, x, pos.y, uiContext.windowSize);
+    setScreenLimitedPosition(popup, x, pos.y, context.windowSize);
 
     popup.onEnter((mouse, index, item) -> {
       removePopupsAfter(popup);
@@ -85,16 +85,16 @@ public class PopupMenu implements DprChangeListener {
   @Override
   public void onDprChanged(float oldDpr, float newDpr) {
     for (Toolbar toolbar : toolbars) {
-      toolbar.measure(uiContext);
+      toolbar.measure(context);
     }
   }
 
   public void paint() {
     if (toolbars.isEmpty()) return;
-    uiContext.graphics.enableBlend(true);
+    context.graphics.enableBlend(true);
     //noinspection ForLoopReplaceableByForEach
     for (int i = 0; i < toolbars.size(); i++) {
-      toolbars.get(i).render(uiContext);
+      toolbars.get(i).render(context);
     }
   }
 
@@ -129,7 +129,7 @@ public class PopupMenu implements DprChangeListener {
   }
 
   private int relativeToParentPos(int posX, Toolbar parent, Toolbar popup) {
-    return uiContext.windowSize.x >= posX + parent.size().x + popup.size().x
+    return context.windowSize.x >= posX + parent.size().x + popup.size().x
         ? posX + parent.size().x - parent.margin()
         : posX - popup.size().x;
   }

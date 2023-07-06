@@ -14,6 +14,8 @@ import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
+import java.util.Objects;
+
 public class Toolbar {
   static final int dpMargin = 3;
   static final int dpBorder = 2;
@@ -24,7 +26,8 @@ public class Toolbar {
   private final DemoRect rect = new DemoRect();
   private final V2i textureSize = new V2i();
   private final V2i v2i = new V2i();
-  private final V4f shadow = new V4f().setW(0.125f);
+  private V4f shadow;
+  private int shadowSize;
   private ToolbarItem[] items = ToolbarItemBuilder.items0;
   private GL.Texture texture;
   private int border, margin, textXPad;
@@ -69,7 +72,8 @@ public class Toolbar {
     invalidateTexture();
   }
 
-  public void setTheme(DialogItemColors dialogItemColors) {
+  public void setTheme(DialogItemColors dialogItemColors, UiContext context) {
+    setShadowParameters(dialogItemColors.shadowParameters, context);
     setBgColor(dialogItemColors.toolbarItemColors.bgColor);
     setFrameColor(dialogItemColors.dialogBorderColor);
     for (int i = 0; i < items.length; i++) {
@@ -93,7 +97,7 @@ public class Toolbar {
   public void measure(UiContext uiContext) {
     Canvas mCanvas = uiContext.mCanvas();
     float devicePR = uiContext.dpr;
-    if (font == null) throw new RuntimeException("Toolbar font has not been set");
+    Objects.requireNonNull(font);
     mCanvas.setFont(font);
     int textHeight = font.lineHeight(textHeightScale), maxW = 0;
     border = Numbers.iRnd(dpBorder * devicePR);
@@ -217,16 +221,16 @@ public class Toolbar {
     // shadow
     if (isVertical) {
       v2i.x = rect.size.x;
-      v2i.y = border;
-      g.drawRect(rect.pos.x + border, rect.pos.y + rect.size.y, v2i, shadow);
-      g.drawRect(rect.pos.x + border, rect.pos.y + rect.size.y, v2i, shadow);
-      g.drawRect(rect.pos.x + border * 2, rect.pos.y + rect.size.y + border, v2i, shadow);
+      v2i.y = shadowSize;
+      g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadow);
+      g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadow);
+      g.drawRect(rect.pos.x + shadowSize * 2, rect.pos.y + rect.size.y + shadowSize, v2i, shadow);
 
-      v2i.x = border;
-      v2i.y = rect.size.y - border;
-      g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + border, v2i, shadow);
-      g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + border, v2i, shadow);
-      g.drawRect(rect.pos.x + rect.size.x + border, rect.pos.y + border * 2, v2i, shadow);
+      v2i.x = shadowSize;
+      v2i.y = rect.size.y - shadowSize;
+      g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadow);
+      g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadow);
+      g.drawRect(rect.pos.x + rect.size.x + shadowSize, rect.pos.y + shadowSize * 2, v2i, shadow);
     }
   }
 
@@ -297,5 +301,10 @@ public class Toolbar {
 
   public int margin() {
     return margin;
+  }
+
+  public void setShadowParameters(ShadowParameters shadowParameters, UiContext uiContext) {
+    shadow = new V4f().setW(shadowParameters.w);
+    shadowSize = Numbers.iRnd(shadowParameters.size * uiContext.dpr);
   }
 }

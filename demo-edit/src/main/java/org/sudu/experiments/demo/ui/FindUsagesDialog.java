@@ -16,12 +16,14 @@ import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
+import java.util.Objects;
+
 public class FindUsagesDialog {
 
   private final DemoRect rect = new DemoRect();
   private final V2i textureSize = new V2i();
   private final V2i v2i = new V2i();
-  private final V4f shadow = new V4f().setW(0.075f);
+  private V4f shadow;
   private int shadowSize;
   private V4f bgColor;
   private FontDesk font;
@@ -85,8 +87,7 @@ public class FindUsagesDialog {
   void measure(UiContext uiContext) {
     Canvas mCanvas = uiContext.mCanvas();
     if (isEmpty()) return;
-    // TODO(Major): Remove measureText with space
-    if (font == null) throw new RuntimeException("FindUsages font has not been set");
+    Objects.requireNonNull(font);
     mCanvas.setFont(font);
     int textHeight = font.lineHeight(), maxW = 0;
     border = Numbers.iRnd(2 * uiContext.dpr);
@@ -119,7 +120,6 @@ public class FindUsagesDialog {
         wLines = maxW - wFile;
         wCodeContent = 0;
       }
-
       item.tFiles.pos.x = tw;
       item.tFiles.pos.y = 0;
       item.tFiles.size.x = wFile;
@@ -331,12 +331,18 @@ public class FindUsagesDialog {
     return -1;
   }
 
-  public void setTheme(DialogItemColors dialogItemColors) {
+  public void setTheme(DialogItemColors dialogItemColors, UiContext uiContext) {
+    setShadowParameters(dialogItemColors.shadowParameters, uiContext);
     setBgColor(dialogItemColors.findUsagesColors.bgColor);
     setFrameColor(dialogItemColors.dialogBorderColor);
     for (int i = 0; i < items.length; i++) {
       items[i].setTheme(dialogItemColors.findUsagesColors);
       if (hoverItemId == i) items[i].setHover(true);
     }
+  }
+
+  public void setShadowParameters(ShadowParameters shadowParameters, UiContext uiContext) {
+    shadow = new V4f().setW(shadowParameters.w);
+    shadowSize = Numbers.iRnd(shadowParameters.size * uiContext.dpr);
   }
 }

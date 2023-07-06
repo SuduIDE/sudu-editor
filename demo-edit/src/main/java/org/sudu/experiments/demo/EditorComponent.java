@@ -3,8 +3,18 @@
 
 package org.sudu.experiments.demo;
 
-import org.sudu.experiments.*;
-import org.sudu.experiments.demo.ui.*;
+import org.sudu.experiments.Canvas;
+import org.sudu.experiments.Cursor;
+import org.sudu.experiments.Debug;
+import org.sudu.experiments.Disposable;
+import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.Host;
+import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.demo.ui.FindUsagesWindow;
+import org.sudu.experiments.demo.ui.PopupMenu;
+import org.sudu.experiments.demo.ui.ToolbarItem;
+import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.demo.worker.parser.CppParser;
 import org.sudu.experiments.demo.worker.parser.FileParser;
 import org.sudu.experiments.demo.worker.parser.JavaParser;
@@ -14,7 +24,12 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.*;
+import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.Numbers;
+import org.sudu.experiments.math.Rect;
+import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.worker.ArrayView;
 
@@ -269,7 +284,13 @@ public class EditorComponent implements Disposable {
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
-    usagesMenu.setFont(font);
+    // TODO: Remove min value when texture allocator appears
+    usagesMenu.setFont(g.fontDesk(
+        name,
+        Math.min(26, font.size),
+        font.weight,
+        font.style)
+    );
 
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight

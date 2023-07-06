@@ -37,7 +37,7 @@ public class FindUsagesWindow implements DprChangeListener {
 
   public void setTheme(DialogItemColors dialogItemColors) {
     theme = dialogItemColors;
-    view.setTheme(dialogItemColors);
+    view.setTheme(dialogItemColors, context);
   }
 
   public void onClose(Runnable onClose) {
@@ -64,6 +64,7 @@ public class FindUsagesWindow implements DprChangeListener {
 
   @Override
   public void onDprChanged(float oldDpr, float newDpr) {
+    view.setShadowParameters(theme.shadowParameters, context);
     view.measure(context);
   }
 
@@ -133,7 +134,7 @@ public class FindUsagesWindow implements DprChangeListener {
 
       if (++cnt > EditorConst.MAX_SHOW_USAGES_NUMBER) {
         tbb.addItem(
-            "... and " + (usages.size() - (cnt - 1)) + " more usages",
+            "... and " + (itemsLength - (cnt - 1)) + " more usages",
             "",
             "",
             theme.findUsagesColorsContinued,
