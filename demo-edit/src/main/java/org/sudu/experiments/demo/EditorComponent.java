@@ -4,12 +4,11 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.demo.ui.*;
-import org.sudu.experiments.demo.worker.parser.CppParser;
-import org.sudu.experiments.demo.worker.parser.FileParser;
-import org.sudu.experiments.demo.worker.parser.JavaParser;
-import org.sudu.experiments.demo.worker.parser.JavaScriptParser;
-import org.sudu.experiments.demo.worker.parser.ParserUtils;
+import org.sudu.experiments.demo.ui.FindUsagesWindow;
+import org.sudu.experiments.demo.ui.PopupMenu;
+import org.sudu.experiments.demo.ui.ToolbarItem;
+import org.sudu.experiments.demo.ui.UiContext;
+import org.sudu.experiments.demo.worker.parser.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -269,7 +268,13 @@ public class EditorComponent implements Disposable {
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
-    usagesMenu.setFont(font);
+    // TODO: Remove min value when texture allocator appears
+    usagesMenu.setFont(g.fontDesk(
+        name,
+        Math.min(EditorConst.MAX_FONT_SIZE_USAGES_WINDOW, font.size),
+        font.weight,
+        font.style)
+    );
 
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight

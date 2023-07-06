@@ -14,7 +14,6 @@ public class EditorColorScheme {
   public final Color definitionBgColor;
   public final Color usageBgColor;
   public final DialogItemColors dialogItemColors;
-
   public final CodeElementColor[] codeColors;
   public final LineNumbersColors lineNumbersColors;
 

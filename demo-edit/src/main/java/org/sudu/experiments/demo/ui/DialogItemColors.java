@@ -9,6 +9,7 @@ public class DialogItemColors {
   public final ToolbarItemColors findUsagesColorsError;
   public final Color dialogBorderColor;
   public final ToolbarItemColors toolbarItemColors;
+  public final ShadowParameters shadowParameters;
 
   public static DialogItemColors darkColorScheme() {
     return new DialogItemColors(
@@ -16,7 +17,8 @@ public class DialogItemColors {
         FindUsagesItemColors.darkFindUsagesItemColorsExtraLine(),
         FindUsagesItemColors.darkNoUsages(),
         new Color("#616161"),
-        ToolbarItemColors.darkToolbarItemColors()
+        ToolbarItemColors.darkToolbarItemColors(),
+        ShadowParameters.darkTheme()
     );
   }
 
@@ -26,7 +28,8 @@ public class DialogItemColors {
         FindUsagesItemColors.lightFindUsagesItemColorsExtraLine(),
         FindUsagesItemColors.lightNoUsages(),
         new Color("#B9BDC9"),
-        ToolbarItemColors.lightToolbarItemColors()
+        ToolbarItemColors.lightToolbarItemColors(),
+        ShadowParameters.lightTheme()
     );
   }
 
@@ -35,12 +38,14 @@ public class DialogItemColors {
       FindUsagesItemColors findUsagesColorsContinued,
       ToolbarItemColors noUsagesColors,
       Color dialogBorderColor,
-      ToolbarItemColors toolbarItemColors
+      ToolbarItemColors toolbarItemColors,
+      ShadowParameters shadowParameters
   ) {
     this.findUsagesColors = findUsagesItemColors;
     this.findUsagesColorsContinued = findUsagesColorsContinued;
     this.findUsagesColorsError = noUsagesColors;
     this.dialogBorderColor = dialogBorderColor;
     this.toolbarItemColors = toolbarItemColors;
+    this.shadowParameters = shadowParameters;
   }
 }

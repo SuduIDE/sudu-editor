@@ -1,10 +1,6 @@
 package org.sudu.experiments.demo.ui;
 
-import org.sudu.experiments.Canvas;
-import org.sudu.experiments.Debug;
-import org.sudu.experiments.Disposable;
-import org.sudu.experiments.GL;
-import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.*;
 import org.sudu.experiments.demo.DemoRect;
 import org.sudu.experiments.demo.EditorConst;
 import org.sudu.experiments.demo.SetCursor;
@@ -16,13 +12,14 @@ import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
+import java.util.Objects;
+
 public class FindUsagesDialog {
 
   private final DemoRect rect = new DemoRect();
   private final V2i textureSize = new V2i();
   private final V2i v2i = new V2i();
-  private final V4f shadow = new V4f().setW(0.075f);
-  private int shadowSize;
+  private ShadowParameters shadowParameters;
   private V4f bgColor;
   private FontDesk font;
   private FindUsagesItem[] items = FindUsagesItemBuilder.items0;
@@ -85,12 +82,10 @@ public class FindUsagesDialog {
   void measure(UiContext uiContext) {
     Canvas mCanvas = uiContext.mCanvas();
     if (isEmpty()) return;
-    // TODO(Major): Remove measureText with space
-    if (font == null) throw new RuntimeException("FindUsages font has not been set");
+    Objects.requireNonNull(font);
     mCanvas.setFont(font);
     int textHeight = font.lineHeight(), maxW = 0;
     border = Numbers.iRnd(2 * uiContext.dpr);
-    shadowSize = Numbers.iRnd(uiContext.dpr);
     textXPad = Numbers.iRnd(font.WWidth);
     int tw = 0;
 
@@ -119,7 +114,6 @@ public class FindUsagesDialog {
         wLines = maxW - wFile;
         wCodeContent = 0;
       }
-
       item.tFiles.pos.x = tw;
       item.tFiles.pos.y = 0;
       item.tFiles.size.x = wFile;
@@ -207,7 +201,7 @@ public class FindUsagesDialog {
     g.enableBlend(true);
 
     if (!rect.isEmpty()) {
-      drawFrameAndShadow(g);
+      drawFrameAndShadow(g, context);
     }
 
     for (FindUsagesItem item : items) {
@@ -225,7 +219,9 @@ public class FindUsagesDialog {
 
   }
 
-  private void drawFrameAndShadow(WglGraphics g) {
+  private void drawFrameAndShadow(WglGraphics g, UiContext context) {
+    int shadowSize = shadowParameters.getShadowSize(context.dpr);
+
     // frame
     v2i.x = rect.size.x;
     v2i.y = border;
@@ -245,15 +241,15 @@ public class FindUsagesDialog {
     // shadow
     v2i.x = rect.size.x;
     v2i.y = shadowSize;
-    g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadow);
-    g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadow);
-    g.drawRect(rect.pos.x + shadowSize * 2, rect.pos.y + rect.size.y + shadowSize, v2i, shadow);
+    g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadowParameters.color);
+    g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadowParameters.color);
+    g.drawRect(rect.pos.x + shadowSize * 2, rect.pos.y + rect.size.y + shadowSize, v2i, shadowParameters.color);
 
     v2i.x = shadowSize;
     v2i.y = rect.size.y - shadowSize;
-    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadow);
-    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadow);
-    g.drawRect(rect.pos.x + rect.size.x + shadowSize, rect.pos.y + shadowSize * 2, v2i, shadow);
+    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadowParameters.color);
+    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadowParameters.color);
+    g.drawRect(rect.pos.x + rect.size.x + shadowSize, rect.pos.y + shadowSize * 2, v2i, shadowParameters.color);
 
   }
 
@@ -332,6 +328,7 @@ public class FindUsagesDialog {
   }
 
   public void setTheme(DialogItemColors dialogItemColors) {
+    shadowParameters = dialogItemColors.shadowParameters;
     setBgColor(dialogItemColors.findUsagesColors.bgColor);
     setFrameColor(dialogItemColors.dialogBorderColor);
     for (int i = 0; i < items.length; i++) {

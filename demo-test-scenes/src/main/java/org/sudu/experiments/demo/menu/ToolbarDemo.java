@@ -4,7 +4,6 @@ import org.sudu.experiments.Scene0;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.Colors;
-import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.ui.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.InputListener;
