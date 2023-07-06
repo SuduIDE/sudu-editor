@@ -12,14 +12,20 @@ public class CodeLineTest {
 
   @Test public void lengthTest() {
     CodeLine cl = line1();
-    for (int i = 0; i <= cl.totalStrLength + 2; i++) {
+    for (int i = 0; i < cl.totalStrLength; i++) {
       int elementStart = cl.getElementStart(i);
       int linear = getElementStartLinear(i, cl.elements);
-      assertEquals(elementStart, linear);
+      assertEquals(linear, elementStart);
       CodeElement element = cl.getCodeElement(i);
       CodeElement linearElement = getCodeElementLinear(i, cl.elements);
       assertSame(linearElement, element);
     }
+
+    int elementStart = cl.getElementStart(cl.totalStrLength);
+    int expected = cl.totalStrLength - cl.get(cl.elements.length - 1).s.length();
+    assertEquals(expected, elementStart);
+    int elementStart1 = cl.getElementStart(cl.totalStrLength + 1);
+    assertEquals(elementStart, elementStart1);
 
     CodeLine cl0 = new CodeLine();
     assertEquals(0, cl0.getElementStart(5));

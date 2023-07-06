@@ -48,20 +48,19 @@ public class CodeLine {
   }
 
   public int getElementStart(int charPos) {
-    int[] cache = lengthCache();
-    int ind = Arrays.binarySearch(cache, 0, cache.length, charPos);
-    int index =  ind < 0 ? -ind - 1 : ind + 1;
-    return index == 0 ? 0 : cache[index - 1];
+    int index = getElementIndex(charPos);
+    return index == 0 ? 0 : lengthCache[index - 1];
   }
 
   public int getElementIndex(int charPos) {
     int[] cache = lengthCache();
-    int ind = Arrays.binarySearch(
+    int ind = cache.length == 0 ? -1 : Arrays.binarySearch(
         cache, 0, cache.length - 1, charPos);
     return ind < 0 ? -ind - 1 : ind + 1;
   }
 
   public CodeElement getCodeElement(int pos) {
+    if (elements.length == 0) return null;
     return elements[getElementIndex(pos)];
   }
 
@@ -360,25 +359,6 @@ public class CodeLine {
     return ind;
   }
 
-  public int wordStartDeprecated(int pixelLocation) {
-    int pos = findEntryByPixel(pixelLocation);
-    if (pos == 0) return 0;
-    else pos--;
-    int charInd = 0;
-    for (int i = 0; i <= pos; i++)
-      charInd += elements[i].s.length();
-    return charInd;
-  }
-
-  public int wordEndDeprecated(int pixelLocation) {
-    int pos = findEntryByPixel(pixelLocation);
-    if (pos >= elements.length) pos = elements.length - 1;
-    int charInd = 0;
-    for (int i = 0; i < pos + 1; i++)
-      charInd += elements[i].s.length();
-    return charInd;
-  }
-
   public int computePixelLocation(int charPos, Canvas mCanvas, FontDesk[] fonts) {
     if (elements.length == 0 || charPos == 0) return 0;
     if (measureDirty || iMeasure == null) {
@@ -406,24 +386,17 @@ public class CodeLine {
         ? 0 : iMeasure[elements.length - 1];
   }
 
-  public int prevPosDeprecated(int caretPixelPos) {
-    int pos = findEntryByPixel(caretPixelPos);
-    if (pos == 0 && caretPixelPos == 0) return -1;
-    int charInd = 0;
-    for (int i = 0; i < pos; i++)
-      charInd += elements[i].s.length();
-    return charInd;
+  public int nextPos(int charPos) {
+    if (charPos >= totalStrLength) return charPos + 1;
+    int element = getElementIndex(charPos);
+    return lengthCache[element];
   }
 
-  public int nextPosDeprecated(int caretPos) {
-    int pos = findEntryByPixel(caretPos);
-    if (iMeasure[pos] == caretPos) pos++;
-    pos++;
-    if (pos >= elements.length && caretPos == lineMeasure()) return Integer.MAX_VALUE;
-    int charInd = 0;
-    for (int i = 0; i < pos; i++)
-      charInd += elements[i].s.length();
-    return charInd;
+  public int prevPos(int charPos) {
+    if (charPos == 0) return -1;
+    int element = getElementIndex(charPos);
+    if (element > 0 && lengthCache[element - 1] == charPos) element--;
+    return element > 0 ? lengthCache[element - 1] : 0;
   }
 
   public String makeString() {
@@ -436,8 +409,6 @@ public class CodeLine {
     }
     return sb;
   }
-
-
 
   public String makeString(int beginIndex) {
     return makeString().substring(beginIndex);

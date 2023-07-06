@@ -767,24 +767,20 @@ public class EditorComponent implements Disposable {
   private boolean moveCaretLeftRight(int shift, boolean ctrl, boolean shiftPressed) {
     if (shiftSelection(shiftPressed)) return true;
     var caretCodeLine = caretCodeLine();
-    int newPos;
-    if (ctrl) {
-      if (shift < 0)
-        newPos = caretCodeLine.prevPosDeprecated(caretPos);
-      else
-        newPos = caretCodeLine.nextPosDeprecated(caretPos);
-    } else {
-      newPos = caretCharPos + shift;
-    }
+    int newPos = ctrl
+            ? shift < 0
+                ? caretCodeLine.prevPos(caretCharPos)
+                : caretCodeLine.nextPos(caretCharPos)
+            : caretCharPos + shift;
+
     if (newPos > caretCodeLine.totalStrLength) { // goto next line
-      if ((caretLine + 1) < model.document.length()) {
-        caretCharPos = 0;
-        setCaretLine(caretLine + 1, shiftPressed);
+      if (caretLine + 1 < model.document.length()) {
+        setCaretLinePos(caretLine + 1, 0, shiftPressed);
       }
     } else if (newPos < 0) {  // goto prev line
       if (caretLine > 0) {
-        caretCharPos = model.document.line(caretLine - 1).totalStrLength;
-        setCaretLine(caretLine - 1, shiftPressed);
+        int pos = model.document.line(caretLine - 1).totalStrLength;
+        setCaretLinePos(caretLine - 1, pos, shiftPressed);
       }
     } else {
       setCaretPos(newPos, shiftPressed);
@@ -804,8 +800,8 @@ public class EditorComponent implements Disposable {
   }
 
   private boolean setCaretLinePos(int line, int pos, boolean shift) {
-    caretLine = Numbers.clamp(0, line, model.document.length() - 1);
-    return setCaretPos(pos, shift);
+    caretCharPos = pos;
+    return setCaretLine(line, shift);
   }
 
   private boolean setCaretLine(int value, boolean shift) {
@@ -844,7 +840,7 @@ public class EditorComponent implements Disposable {
   }
 
   private void adjustEditorHScrollToCaret() {
-    int xOffset = (int) uiContext.dpr * EditorConst.CARET_X_OFFSET;
+    int xOffset = Numbers.iRnd(uiContext.dpr * EditorConst.CARET_X_OFFSET);
 
     int editVisibleXMin = hScrollPos;
     int editVisibleXMax = hScrollPos + editorWidth();
@@ -903,20 +899,20 @@ public class EditorComponent implements Disposable {
 
   public void findUsages(V2i position, DefDeclProvider.Provider provider) {
 
-    Pos documentPosition = computeCharPos(position);
+    Pos pos = computeCharPos(position);
     if (provider != null) {
-      provider.provide(model, documentPosition.line, documentPosition.pos, (locs) -> gotoDefinition(position, locs), onError);
+      provider.provide(model, pos.line, pos.pos, (locs) -> gotoDefinition(position, locs), onError);
       return;
     }
 
-    model.document.moveToElementStart(documentPosition);
-    Pos def = model.document.usageToDef.get(documentPosition);
+    model.document.moveToElementStart(pos);
+    Pos def = model.document.usageToDef.get(pos);
     if (def != null) {
       gotoUsageMenuElement(def);
       return;
     }
 
-    List<Pos> usages = model.document.defToUsages.get(documentPosition);
+    List<Pos> usages = model.document.defToUsages.get(pos);
     if (usages == null || usages.isEmpty()) {
       displayNoUsagesPopup(position);
     } else {
@@ -943,7 +939,7 @@ public class EditorComponent implements Disposable {
   // TODO(Minor): Move usageMenu.hide() out off & rename method
   public final void gotoUsageMenuElement(Pos defPos) {
     setCaretLinePos(defPos.line, defPos.pos, false);
-    int nextPos = caretCodeLine().nextPosDeprecated(caretPos);
+    int nextPos = caretCodeLine().nextPos(caretCharPos);
     selection.endPos.set(caretLine, nextPos);
     selection.startPos.set(caretLine, caretCharPos);
     usagesMenu.hide();
@@ -1100,8 +1096,8 @@ public class EditorComponent implements Disposable {
     adjustEditorScrollToCaret();
 
     CodeLine line = caretCodeLine();
-    int wordStart = line.wordStartDeprecated(caretPos);
-    int wordEnd = line.wordEndDeprecated(caretPos);
+    int wordStart = line.getElementStart(caretCharPos);
+    int wordEnd = line.nextPos(caretCharPos);
 
     selection.startPos.set(caretLine, wordStart);
     selection.isSelectionStarted = true;
