@@ -189,8 +189,8 @@ public class WebWindow implements org.sudu.experiments.Window {
     return Performance.now() / 1000;
   }
 
-  public double devicePixelRatio() {
-    return Window.current().getDevicePixelRatio();
+  public float devicePixelRatio() {
+    return (float) Window.current().getDevicePixelRatio();
   }
 
   @Override
