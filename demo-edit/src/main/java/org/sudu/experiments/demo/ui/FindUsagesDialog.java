@@ -241,15 +241,15 @@ public class FindUsagesDialog {
     // shadow
     v2i.x = rect.size.x;
     v2i.y = shadowSize;
-    g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadowParameters.w);
-    g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadowParameters.w);
-    g.drawRect(rect.pos.x + shadowSize * 2, rect.pos.y + rect.size.y + shadowSize, v2i, shadowParameters.w);
+    g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadowParameters.color);
+    g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadowParameters.color);
+    g.drawRect(rect.pos.x + shadowSize * 2, rect.pos.y + rect.size.y + shadowSize, v2i, shadowParameters.color);
 
     v2i.x = shadowSize;
     v2i.y = rect.size.y - shadowSize;
-    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadowParameters.w);
-    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadowParameters.w);
-    g.drawRect(rect.pos.x + rect.size.x + shadowSize, rect.pos.y + shadowSize * 2, v2i, shadowParameters.w);
+    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadowParameters.color);
+    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadowParameters.color);
+    g.drawRect(rect.pos.x + rect.size.x + shadowSize, rect.pos.y + shadowSize * 2, v2i, shadowParameters.color);
 
   }
 
