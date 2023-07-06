@@ -27,4 +27,5 @@ public interface EditorConst {
 
   double TYPING_STOP_TIME = 1./32.;
   int MAX_SHOW_USAGES_NUMBER = 20;
+  int MAX_FONT_SIZE_USAGES_WINDOW = 26;
 }

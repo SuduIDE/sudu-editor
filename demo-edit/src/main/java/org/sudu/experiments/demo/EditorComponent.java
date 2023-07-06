@@ -271,7 +271,7 @@ public class EditorComponent implements Disposable {
     // TODO: Remove min value when texture allocator appears
     usagesMenu.setFont(g.fontDesk(
         name,
-        Math.min(26, font.size),
+        Math.min(EditorConst.MAX_FONT_SIZE_USAGES_WINDOW, font.size),
         font.weight,
         font.style)
     );
