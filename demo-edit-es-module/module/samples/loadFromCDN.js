@@ -1,11 +1,13 @@
+document.addEventListener("DOMContentLoaded",
+    () => console.log("DOMContentLoaded 1"))
 
-const cdn = "https://cdn.jsdelivr.net/npm/sudu-editor-tmp@0.0.8-beta5"
+const cdn = "https://cdn.jsdelivr.net/npm/sudu-editor-tmp@0.0.8-beta17"
 const editorJs = "/src/editor.js";
 const workerJS = "/src/worker.js"
 
 const ep = import(cdn + editorJs)
 const wp = fetch(cdn + workerJS).then(r => r.blob());
-await Promise.all([ep, wp]);
+// await Promise.all([ep, wp]);
 const editorApi = await ep;
 const workerBlob = await wp;
 
@@ -15,4 +17,5 @@ URL.revokeObjectURL(workerUrl);
 
 editor.setText("loaded from " + cdn + workerJS)
 
-document.addEventListener("DOMContentLoaded", () => console.log("DOMContentLoaded"))
+document.addEventListener("DOMContentLoaded",
+    () => console.log("DOMContentLoaded 2"))
