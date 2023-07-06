@@ -200,9 +200,8 @@ public class FindUsagesDialog {
 
     g.enableBlend(true);
 
-    int shadowSize = shadowParameters.getShadowSize(context.dpr);
     if (!rect.isEmpty()) {
-      drawFrameAndShadow(g, shadowSize);
+      drawFrameAndShadow(g, context);
     }
 
     for (FindUsagesItem item : items) {
@@ -220,7 +219,9 @@ public class FindUsagesDialog {
 
   }
 
-  private void drawFrameAndShadow(WglGraphics g, int shadowSize) {
+  private void drawFrameAndShadow(WglGraphics g, UiContext context) {
+    int shadowSize = shadowParameters.getShadowSize(context.dpr);
+
     // frame
     v2i.x = rect.size.x;
     v2i.y = border;
