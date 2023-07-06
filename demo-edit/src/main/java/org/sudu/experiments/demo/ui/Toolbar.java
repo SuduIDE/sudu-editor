@@ -176,10 +176,9 @@ public class Toolbar {
       renderTexture(g);
     }
 
-    shadowParameters.setShadowSize(context.dpr);
-
+    int shadowSize = shadowParameters.getShadowSize(context.dpr);
     if (!rect.isEmpty()) {
-      drawFrameAndShadow(g);
+      drawFrameAndShadow(g, shadowSize);
     }
 
     for (ToolbarItem item : items) {
@@ -198,7 +197,7 @@ public class Toolbar {
     }
   }
 
-  private void drawFrameAndShadow(WglGraphics g) {
+  private void drawFrameAndShadow(WglGraphics g, int shadowSize) {
     // frame
     v2i.x = rect.size.x;
     v2i.y = border;
@@ -218,16 +217,16 @@ public class Toolbar {
     // shadow
     if (isVertical) {
       v2i.x = rect.size.x;
-      v2i.y = shadowParameters.size;
-      g.drawRect(rect.pos.x + shadowParameters.size, rect.pos.y + rect.size.y, v2i, shadowParameters.w);
-      g.drawRect(rect.pos.x + shadowParameters.size, rect.pos.y + rect.size.y, v2i, shadowParameters.w);
-      g.drawRect(rect.pos.x + shadowParameters.size * 2, rect.pos.y + rect.size.y + shadowParameters.size, v2i, shadowParameters.w);
+      v2i.y = shadowSize;
+      g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadowParameters.w);
+      g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadowParameters.w);
+      g.drawRect(rect.pos.x + shadowSize * 2, rect.pos.y + rect.size.y + shadowSize, v2i, shadowParameters.w);
 
-      v2i.x = shadowParameters.size;
-      v2i.y = rect.size.y - shadowParameters.size;
-      g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowParameters.size, v2i, shadowParameters.w);
-      g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowParameters.size, v2i, shadowParameters.w);
-      g.drawRect(rect.pos.x + rect.size.x + shadowParameters.size, rect.pos.y + shadowParameters.size * 2, v2i, shadowParameters.w);
+      v2i.x = shadowSize;
+      v2i.y = rect.size.y - shadowSize;
+      g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadowParameters.w);
+      g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadowParameters.w);
+      g.drawRect(rect.pos.x + rect.size.x + shadowSize, rect.pos.y + shadowSize * 2, v2i, shadowParameters.w);
     }
   }
 

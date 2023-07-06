@@ -20,7 +20,7 @@ public class ShadowParameters {
     return new ShadowParameters(1, new V4f().setW(0.075f));
   }
 
-  public void setShadowSize(float dpr) {
-    this.size = Numbers.iRnd(1 * dpr);
+  public int getShadowSize(float dpr) {
+    return Numbers.iRnd(size * dpr);
   }
 }
