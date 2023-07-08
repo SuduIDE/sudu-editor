@@ -49,7 +49,7 @@ public class CodeLine {
 
   public int getElementStart(int charPos) {
     int index = getElementIndex(charPos);
-    return index == 0 ? 0 : lengthCache[index - 1];
+    return index <= 0 ? 0 : lengthCache[index - 1];
   }
 
   public int getElementIndex(int charPos) {
