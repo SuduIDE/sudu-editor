@@ -53,9 +53,10 @@ public class CodeLine {
   }
 
   public int getElementIndex(int charPos) {
-    int[] cache = lengthCache();
-    int ind = cache.length == 0 ? -1 : Arrays.binarySearch(
-        cache, 0, cache.length - 1, charPos);
+    int length = elements.length;
+    if (length == 0) return -1;
+    int ind = Arrays.binarySearch(lengthCache(),
+            0, length - 1, charPos);
     return ind < 0 ? -ind - 1 : ind + 1;
   }
 
