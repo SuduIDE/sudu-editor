@@ -27,7 +27,7 @@ public abstract class WglGraphics {
   final V2i clientRect = new V2i();
   private GL.Program currentShader;
   private int attributeMask = 0;
-  private boolean blendState;
+  private boolean blendState, scissorState;
 
   public interface CanvasFactory {
     Canvas create(int w, int h);
@@ -90,6 +90,7 @@ public abstract class WglGraphics {
   // lets try the latter for now
 
   public void resetState() {
+    disableScissor();
     enableBlend(false);
     attributeMask = GL.Mesh.bindAttributes(attributeMask, 0, gl);
     currentShader = null;
@@ -113,6 +114,21 @@ public abstract class WglGraphics {
     boolean oldMode = blendState;
     blendState = en;
     return oldMode;
+  }
+
+  public void enableScissor(int x, int y, V2i size) {
+    gl.scissor(x, y, size.x, size.y);
+    if (!scissorState) {
+      gl.enable(GLApi.Context.SCISSOR_TEST);
+      scissorState = true;
+    }
+  }
+
+  public void disableScissor() {
+    if (scissorState) {
+      gl.disable(GLApi.Context.SCISSOR_TEST);
+      scissorState = false;
+    }
   }
 
   public void drawRect(int x, int y, V2i size, V4f color) {

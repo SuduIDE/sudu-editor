@@ -1,13 +1,11 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.fonts.Fonts;
+import org.sudu.experiments.demo.IdeaCodeColors.Colors;
 import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
-
-import static org.sudu.experiments.demo.IdeaCodeColors.Colors;
 
 public class RenderTexture extends Scene0 {
   final TextRect demoRect = new TextRect(0, 0, 300, 300);
@@ -25,7 +23,7 @@ public class RenderTexture extends Scene0 {
     WglGraphics g = api.graphics;
     api.input.addListener(new MyInputListener());
 
-    canvasTexture = canvasTexture(g);
+    canvasTexture = TestHelper.canvasTexture(g);
     demoRect.setTextureRegionDefault(canvasTexture);
     demoRect.setSizeToTextureRegion();
     demoRect.bgColor.set(Colors.editBgColor);
@@ -47,22 +45,6 @@ public class RenderTexture extends Scene0 {
     mouseTexture = Disposable.assign(mouseTexture, null);
     canvasTexture = Disposable.assign(canvasTexture, null);
     textCanvas = Disposable.assign(textCanvas, null);
-  }
-
-  private void drawSomeText(String s, Canvas canvas) {
-    canvas.drawText(s, 0, 20);
-    canvas.drawText(s, .25f, 40);
-  }
-
-  private GL.Texture canvasTexture(WglGraphics g) {
-    Canvas h = g.createCanvas(200, 50);
-    h.setFont(Fonts.CourierNew, 11);
-    h.setFillColor(187, 187, 187);
-    drawSomeText("|The sample text", h);
-    GL.Texture texture = g.createTexture();
-    texture.setContent(h);
-    h.dispose();
-    return texture;
   }
 
   private GL.Texture mouseTexture(WglGraphics g) {

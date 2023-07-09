@@ -83,6 +83,7 @@ void GL_Uniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3
 GLenum GL_GetError() { return 0; }
 
 void GL_Viewport(GLint x, GLint y, GLsizei width, GLsizei height) {}
+void GL_Scissor(GLint x, GLint y, GLsizei width, GLsizei height) {}
 
 void GL_VertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized,
                             GLsizei stride, const void *pointer) {}

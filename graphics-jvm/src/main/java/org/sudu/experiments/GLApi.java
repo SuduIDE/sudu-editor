@@ -177,6 +177,7 @@ public interface GLApi {
     }
 
     void viewport(int x, int y, int width, int height);
+    void scissor(int x, int y, int width, int height);
     void clearColor(float r, float g, float b, float alpha);
     void clear(int flags);
     void enable(int feature);

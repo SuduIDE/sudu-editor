@@ -63,6 +63,7 @@ public interface GLApi {
     int COLOR_BUFFER_BIT    = 0x4000;
     int CULL_FACE           = 0x0B44;
     int BLEND               = 0x0BE2;
+    int SCISSOR_TEST        = 0x0C11;
 
     int ZERO                = 0;
     int ONE                 = 1;
@@ -177,6 +178,7 @@ public interface GLApi {
     void checkError(String title);
 
     void viewport(int x, int y, int width, int height);
+    void scissor(int x, int y, int width, int height);
     void clearColor(float r, float g, float b, float alpha);
     void clear(int flags);
     void enable(int feature);

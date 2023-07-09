@@ -25,6 +25,7 @@ public class TestSceneSelector {
       case "SelectFileTest" -> SelectFileTest::new;
       case "WorkerTest" -> WorkerTest::new;
       case "RenderTexture" -> RenderTexture::new;
+      case "ScissorDemo" -> ScissorDemo::new;
       case "TextureRegionTestScene" -> TextureRegionTestScene::new;
       case "ClipboardTest" -> ClipboardTest::new;
 

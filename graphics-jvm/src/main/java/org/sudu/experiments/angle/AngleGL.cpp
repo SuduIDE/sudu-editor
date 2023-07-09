@@ -196,6 +196,10 @@ void Java_org_sudu_experiments_angle_AngleGL_viewport(JNIEnv*, jobject, jint x, 
   GL_Viewport(x, y, width, height);
 }
 
+void Java_org_sudu_experiments_angle_AngleGL_scissor(JNIEnv*, jobject, jint x, jint y, jint width, jint height) {
+  GL_Scissor(x, y, width, height);
+}
+
 void Java_org_sudu_experiments_angle_AngleGL_clearColor(JNIEnv*, jobject, jfloat r, jfloat g, jfloat b, jfloat a) {
   GL_ClearColor(r, g, b, a);
 }

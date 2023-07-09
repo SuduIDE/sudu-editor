@@ -295,6 +295,9 @@ public abstract class AngleGL implements GLApi.Context {
   public native void viewport(int x, int y, int width, int height);
 
   @Override
+  public native void scissor(int x, int y, int width, int height);
+
+  @Override
   public native void clearColor(float r, float g, float b, float alpha);
 
   @Override
