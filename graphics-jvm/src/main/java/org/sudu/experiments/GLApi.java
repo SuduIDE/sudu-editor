@@ -89,6 +89,10 @@ public interface GLApi {
 
     String getParameterString(int name);
 
+    int getParameteri(int name);
+
+    float getParameterf(int name);
+
     int getRenderbufferParameteri(int target, int name);
 
     // shader api

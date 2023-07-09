@@ -278,6 +278,18 @@ jlong Java_org_sudu_experiments_angle_AngleGL_getString(JNIEnv*, jclass, jint na
   return jlong(GL_GetString(name));
 }
 
+jint Java_org_sudu_experiments_angle_AngleGL_getParameteri(JNIEnv*, jobject, jint name) {
+  GLint data[1] = {0};
+  GL_GetIntegerv(name, data);
+  return data[0];
+}
+
+jfloat Java_org_sudu_experiments_angle_AngleGL_getParameterf(JNIEnv*, jobject, jint name) {
+  GLfloat data[1] = {0};
+  GL_GetFloatv(name, data);
+  return data[0];
+}
+
 jint Java_org_sudu_experiments_angle_AngleEGL_getError(JNIEnv *, jclass) {
   return EGL_GetError();
 }

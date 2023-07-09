@@ -21,6 +21,10 @@ public abstract class AngleGL implements GLApi.Context {
     return CString.fromNativeStringNullable(getString(name));
   }
 
+  public native int getParameteri(int name);
+
+  public native float getParameterf(int name);
+
   static native int glCreateShader(int type);
 
   @Override

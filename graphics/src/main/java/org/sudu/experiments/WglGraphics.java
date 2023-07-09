@@ -11,6 +11,7 @@ public abstract class WglGraphics {
   public final Canvas mCanvas;
   public final GLApi.Context gl;
   final GL.TextureContext tc;
+  final int maxTextureSize;
   final boolean isWGL2;
 
   final Shaders.ConstColor shConstColor;
@@ -34,13 +35,17 @@ public abstract class WglGraphics {
 
   public WglGraphics(GLApi.Context gl, CanvasFactory canvasFactory) {
     this.canvasFactory = canvasFactory;
+
     String version = gl.getParameterString(gl.VERSION);
-    Debug.consoleInfo("[Graphics] GL version: " + version);
+    Debug.consoleInfo("[Graphics] " + version);
     this.gl = gl;
     mCanvas = canvasFactory.create(4, 4);
     rectangle = GL.createRectangle(gl);
     isWGL2 = version.startsWith("WebGL 2");
     tc = new GL.TextureContext(gl);
+
+    maxTextureSize = gl.getParameteri(gl.MAX_TEXTURE_SIZE);
+    Debug.consoleInfo("[Graphics] maxTextureSize: " + maxTextureSize);
 
     all2dShaders = new Shaders.Shader2d[] {
         shConstColor = new Shaders.ConstColor(gl),

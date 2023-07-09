@@ -17,6 +17,10 @@ void GL_ClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {}
 
 const GLubyte * GL_GetString(GLenum name) { return 0; }
 
+void GL_GetFloatv(GLenum name, GLfloat *data) {}
+
+void GL_GetIntegerv(GLenum name, GLint *data) {}
+
 GLuint GL_CreateShader(GLenum type) { return 0; }
 
 GLuint GL_CreateProgram() { return 0; }

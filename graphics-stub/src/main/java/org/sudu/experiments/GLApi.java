@@ -52,6 +52,9 @@ public interface GLApi {
     int RGBA8 = 0x8058;
     // webgl2 texture formats, for texSubImage2D
     int RED   = 0x1903;
+
+    int MAX_TEXTURE_SIZE    = 0x0D33;
+
     int TEXTURE_2D          = 0x0DE1;
     int TEXTURE0            = 0x84C0;
 
@@ -89,6 +92,9 @@ public interface GLApi {
 
 
     String getParameterString(int name);
+
+    int getParameteri(int name);
+    float getParameterf(int name);
 
     int getRenderbufferParameteri(int target, int name);
 
