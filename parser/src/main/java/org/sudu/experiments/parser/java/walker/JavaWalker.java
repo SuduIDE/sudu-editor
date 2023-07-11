@@ -1,6 +1,7 @@
 package org.sudu.experiments.parser.java.walker;
 
 import org.antlr.v4.runtime.tree.ErrorNode;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.sudu.experiments.parser.common.Decl;
 import org.sudu.experiments.parser.common.Pos;
@@ -235,7 +236,7 @@ public class JavaWalker extends JavaParserBaseListener {
       var id = getNode(catchClause.identifier());
       var catchTypes = catchClause.catchType().qualifiedName();
       String type = catchTypes.size() == 1
-          ? catchTypes.get(0).getText() : "Throwable";
+          ? catchTypes.get(0).getText() : "Exception";
       currentBlock.localVars.add(TypedDecl.fromNode(id, type));
     }
   }
@@ -314,9 +315,7 @@ public class JavaWalker extends JavaParserBaseListener {
     super.visitErrorNode(node);
     var token = node.getSymbol();
     int ind = token.getTokenIndex();
-    if (ind == -1) {
-      return;
-    }
+    if (ind == -1) return;
     tokenTypes[ind] = ERROR;
   }
 
@@ -353,16 +352,27 @@ public class JavaWalker extends JavaParserBaseListener {
   private String handleExpression(JavaParser.ExpressionContext ctx) {
     if (hasThis(ctx)) return handleThis(ctx);
     if (ctx.primary() != null) return handlePrimary(ctx.primary());
-    if (ctx.methodCall() != null) {
+    if (isTernary(ctx)) return handleTernary(ctx);
+    if (isBooleanExpression(ctx)) return handleBooleanExpression(ctx);
+    if (isCast(ctx)) return handleCast(ctx);
+    if (ctx.INSTANCEOF() != null) {
+      handleExpression(ctx.expression(0));
+      return "boolean";
+    }
+    if (ctx.methodCall() != null && ctx.getChildCount() == 1) {
       var methodCall = handleMethodCall(ctx.methodCall(), false);
       return methodCall != null ? methodCall.type : null;
     }
     if (ctx.creator() != null) {
       var creator = handleCreator(ctx.creator());
-      return creator != null ? creator.type : null;
+      return creator != null ? creator.type : getCreatorType(ctx.creator());
     }
-    if (ctx.expression() != null && !ctx.expression().isEmpty())
-      return handleExpression(ctx.expression(0));
+    if (ctx.expression() != null && !ctx.expression().isEmpty()){
+      String result = handleExpression(ctx.expression(0));
+      for (int i = 1; i < ctx.expression().size(); i++)
+        handleExpression(ctx.expression(i));
+      return result;
+    }
     return null;
   }
 
@@ -386,6 +396,25 @@ public class JavaWalker extends JavaParserBaseListener {
     }
     return null;
   }
+
+  private String handleTernary(JavaParser.ExpressionContext ctx) {
+    handleExpression(ctx.expression(0));
+    var result = handleExpression(ctx.expression(1));
+    handleExpression(ctx.expression(2));
+    return result;
+  }
+
+  private String handleBooleanExpression(JavaParser.ExpressionContext ctx) {
+    handleExpression(ctx.expression(0));
+    handleExpression(ctx.expression(1));
+    return "boolean";
+  }
+
+  private String handleCast(JavaParser.ExpressionContext ctx) {
+    handleExpression(ctx.expression(0));
+    return getType(ctx.typeType(0));
+  }
+
 
   private String handleLiteral(JavaParser.LiteralContext ctx) {
     if (ctx.integerLiteral() != null) return "int";
@@ -424,6 +453,10 @@ public class JavaWalker extends JavaParserBaseListener {
 
     var node = getNode(ctx.createdName());
     return markConstructor(node, argsTypes, false);
+  }
+
+  private String getCreatorType(JavaParser.CreatorContext ctx) {
+    return getNode(ctx.createdName()).getText();
   }
 
   private TypedDecl markLocalVarOrField(JavaParser.IdentifierContext identifier) {
@@ -520,7 +553,7 @@ public class JavaWalker extends JavaParserBaseListener {
   }
 
   static TerminalNode getNode(JavaParser.CreatedNameContext ctx) {
-    if (ctx.identifier() != null) return getNode(ctx.identifier(0));
+    if (isNonNullAndEmpty(ctx.identifier())) return getNode(ctx.identifier(0));
     else return (TerminalNode) ctx.primitiveType().getChild(0);
   }
 
@@ -626,10 +659,38 @@ public class JavaWalker extends JavaParserBaseListener {
         && ctx.bop != null;
   }
 
+  static boolean isTernary(JavaParser.ExpressionContext ctx) {
+    return ctx.getChildCount() == 5
+        && ctx.QUESTION() != null
+        && ctx.COLON() != null;
+  }
+
+  static boolean isBooleanExpression(JavaParser.ExpressionContext ctx) {
+    return ctx.getChildCount() == 3
+        && (isNonNullAndEmpty(ctx.LT())
+        || isNonNullAndEmpty(ctx.GT())
+        || ctx.LE() != null
+        || ctx.GE() != null
+        || ctx.EQUAL() != null
+        || ctx.NOTEQUAL() != null);
+  }
+
+  static boolean isCast(JavaParser.ExpressionContext ctx) {
+    return ctx.getChildCount() >= 4
+        && ctx.LPAREN() != null
+        && ctx.typeType() != null
+        && ctx.RPAREN() != null
+        && isNonNullAndEmpty(ctx.expression());
+  }
+
   static boolean isIdentifier(TerminalNode node) {
     if (node.getParent() == null) return false;
     return node.getParent() instanceof JavaParser.IdentifierContext
         || node.getParent() instanceof JavaParser.AnySeqContext;
+  }
+
+  static <T extends ParseTree> boolean isNonNullAndEmpty(List<T> nodes) {
+    return nodes != null && !nodes.isEmpty();
   }
 
 }

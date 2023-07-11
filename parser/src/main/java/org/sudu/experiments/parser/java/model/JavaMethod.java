@@ -16,11 +16,11 @@ public class JavaMethod extends ClassBodyDecl {
 
   public boolean match(String name, List<String> argsTypes) {
     if (!this.name.equals(name)) return false;
-    if (this.argsTypes.size() != argsTypes.size()) return false;
     return matchArgs(argsTypes);
   }
 
   public boolean matchArgs(List<String> argsTypes) {
+    if (argsTypes.size() != this.argsTypes.size()) return false;
     for (int i = 0; i < argsTypes.size(); i++) {
       String expected = this.argsTypes.get(i);
       String actual = argsTypes.get(i);
