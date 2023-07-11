@@ -45,13 +45,15 @@ public class FindUsagesDemo extends Scene0 implements MouseListener {
   private static FindUsagesItem[] createItems() {
     FindUsagesItemBuilder tbb = new FindUsagesItemBuilder();
 
-    addAction(tbb,"main.java","5","private static void foo (...);          ");
-    addAction(tbb,"main.java","25","String foo = \"boo\";                     ");
-    addAction(tbb,"main.java","131","int a = 5;                              ");
+    addAction(tbb,"main.java","5","private static void foo (...);");
+    addAction(tbb,"main.java","25","String foo = \"boo\";");
+    addAction(tbb,"main.java","131","int a = 5;");
     addAction(tbb,"class.java","176","public class FindTest extend Test {...};");
-    addAction(tbb,"main.java","1234","private static void foo (...);          ");
-    addAction(tbb,"sub.java","4321","private static void foo (...);          ");
-    addAction(tbb,"demo.java","23872","private static void foo (...);          ");
+    addAction(tbb,"main.java","1234","private static void foo (...);");
+    addAction(tbb,"sub.java","4321","private static void foo (...);");
+    addAction(tbb,"demo.java","23872","private static void foo (...);");
+    addAction(tbb,"demoWWWWWWWWWWWWWWWWWWWWWWWWW.java","23872","private static void foo (...);");
+    addAction(tbb,"demoWWDSADASWDAWDAWDKOAWPDKOPKDPAWKDOADOPKWDOPAKWDOP.java","23872","private static void foo (...);");
 
     return tbb.items();
   }
