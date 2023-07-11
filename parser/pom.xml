@@ -28,6 +28,7 @@
       <groupId>org.antlr</groupId>
       <artifactId>antlr4</artifactId>
       <version>4.12.1-SNAPSHOT</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
