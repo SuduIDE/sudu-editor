@@ -89,7 +89,6 @@ public class EditorComponent implements Disposable {
   boolean fileStructureParsed, firstLinesParsed;
   String tabIndent = "  ";
 
-  boolean ctrlPressed = false;
   public boolean readonly = false;
 
   UiContext uiContext;
@@ -990,10 +989,10 @@ public class EditorComponent implements Disposable {
     return new Pos(line, charPos);
   }
 
-  void onClickText(V2i position, boolean shift) {
+  void onClickText(V2i position, boolean shift, boolean ctrl) {
     Pos pos = computeCharPos(position);
 
-    if (ctrlPressed) {
+    if (ctrl) {
       var elementStart = model.document.getElementStart(pos.line, pos.pos);
       var provider = registrations.findDefinitionProvider(model.language(), model.uriScheme());
       if (provider != null) {
@@ -1140,8 +1139,8 @@ public class EditorComponent implements Disposable {
       return true;
     }
 
-    if (usagesMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
-    if (popupMenu.onMousePress(eventPosition, button, press, clickCount)) return true;
+    if (usagesMenu.onMousePress(event.position, button, press, clickCount)) return true;
+    if (popupMenu.onMousePress(event.position, button, press, clickCount)) return true;
     if (button == MOUSE_BUTTON_LEFT && clickCount == 2 && press) {
       onDoubleClickText(eventPosition);
       return true;
@@ -1158,7 +1157,7 @@ public class EditorComponent implements Disposable {
         return true;
       }
 
-      dragLock = (position) -> onClickText(position, event.shift);
+      dragLock = (position) -> onClickText(position, event.shift, event.ctrl);
       dragLock.accept(eventPosition);
     }
     return true;
@@ -1167,8 +1166,8 @@ public class EditorComponent implements Disposable {
   public boolean onMouseMove(MouseEvent event) {
     SetCursor setCursor = uiContext.windowCursor;
     eventPosition.set(event.position.x - compPos.x, event.position.y - compPos.y);
-    if (usagesMenu.onMouseMove(eventPosition, setCursor)) return true;
-    if (popupMenu.onMouseMove(eventPosition, setCursor)) return true;
+    if (usagesMenu.onMouseMove(event.position, setCursor)) return true;
+    if (popupMenu.onMouseMove(event.position, setCursor)) return true;
 
     if (dragLock != null) {
       dragLock.accept(eventPosition);
@@ -1179,7 +1178,7 @@ public class EditorComponent implements Disposable {
     if (hScroll.onMouseMove(eventPosition, setCursor)) return true;
     if (lineNumbers.onMouseMove(eventPosition, setCursor)) return true;
     if (onMouseMove(eventPosition)) {
-      if (ctrlPressed) {
+      if (event.ctrl) {
         Pos pos = computeCharPos(eventPosition);
         model.document.moveToElementStart(pos);
         if (model.document.hasDefOrUsagesForElementPos(pos)) {
@@ -1192,14 +1191,14 @@ public class EditorComponent implements Disposable {
   }
 
   public boolean onKey(KeyEvent event) {
-    if (!event.isPressed) ctrlPressed = false;
     // do not consume browser keyboard to allow page reload and debug
     if (KeyEvent.isCopyPasteRelatedKey(event) || KeyEvent.isBrowserKey(event)) {
       return false;
     }
-    if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
     // do not process release events
     if (!event.isPressed) return false;
+
+    if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
 
     // Should prevent other keys from being used when the usages window is open
     if (usagesMenu.onKey(event)) return true;
@@ -1231,10 +1230,6 @@ public class EditorComponent implements Disposable {
       return true;
     }
 
-    if (event.ctrl || event.alt || event.meta) {
-      ctrlPressed = event.ctrl;
-      return false;
-    }
     if (event.keyCode == KeyCode.ESC) return false;
     return event.key.length() > 0 && handleInsert(event.key);
   }

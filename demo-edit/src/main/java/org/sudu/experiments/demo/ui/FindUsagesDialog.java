@@ -298,7 +298,7 @@ public class FindUsagesDialog {
       if (press && !rect.isEmpty() && onClickOutside != null) onClickOutside.run();
       return false;
     }
-    if (clickCount == 1 && press) {
+    if (press) {
       int index = find(pos);
       if (index >= 0) {
         FindUsagesItem item = items[index];
