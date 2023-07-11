@@ -1,1 +1,0 @@
-antlr4 -o ../../../java/org/sudu/experiments/parser/java/gen -package org.sudu.experiments.parser.java.gen JavaLexer.g4 JavaParser.g4

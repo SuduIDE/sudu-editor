@@ -1,4 +1,4 @@
-// Generated from parser/src/main/resources/grammar/cpp/CPP14Parser.g4 by ANTLR 4.12.0
+// Generated from parser-generator/src/main/resources/grammar/cpp/CPP14Parser.g4 by ANTLR 4.12.0
 package org.sudu.experiments.parser.cpp.gen;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
