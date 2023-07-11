@@ -88,6 +88,7 @@ public class FindUsagesDialog {
     border = Numbers.iRnd(2 * uiContext.dpr);
     textXPad = Numbers.iRnd(font.WWidth);
     int tw = 0;
+    int th = 0;
 
     int maxFileNameLen = 0;
     int maxLineLen = 0;
@@ -103,36 +104,41 @@ public class FindUsagesDialog {
       maxCodeContentLen = Math.max(maxCodeContentLen, mCodeContent);
     }
 
+    maxW = maxFileNameLen + maxLineLen + maxCodeContentLen + textXPad * 3;
+
     for (FindUsagesItem item : items) {
       int wFile = textXPad + maxFileNameLen;
       int wLines = maxLineLen + textXPad;
       int wCodeContent = maxCodeContentLen + textXPad;
       // TODO(Minor) Remove this crutch when the scroll appears
-      maxW = Math.max(maxW, wFile + wLines + wCodeContent);
       if (item.fileName.startsWith("...")) {
         wFile = (int) (mCanvas.measureText(item.fileName) + 7.f / 8) + textXPad;
         wLines = maxW - wFile;
         wCodeContent = 0;
       }
       item.tFiles.pos.x = tw;
-      item.tFiles.pos.y = 0;
+      item.tFiles.pos.y = th;
       item.tFiles.size.x = wFile;
       item.tFiles.size.y = textHeight;
-      item.tFiles.textureRegion.set(tw, 0, wFile, textHeight);
+      item.tFiles.textureRegion.set(tw, th, wFile, textHeight);
       item.tLines.pos.x = tw + wFile;
-      item.tLines.pos.y = 0;
+      item.tLines.pos.y = th;
       item.tLines.size.x = wLines;
       item.tLines.size.y = textHeight;
-      item.tLines.textureRegion.set(tw + wFile, 0, wLines, textHeight);
+      item.tLines.textureRegion.set(tw + wFile, th, wLines, textHeight);
       item.tContent.pos.x = tw + wFile + wLines;
-      item.tContent.pos.y = 0;
+      item.tContent.pos.y = th;
       item.tContent.size.x = wCodeContent;
       item.tContent.size.y = textHeight;
-      item.tContent.textureRegion.set(tw + wFile + wLines, 0, wCodeContent, textHeight);
+      item.tContent.textureRegion.set(tw + wFile + wLines, th, wCodeContent, textHeight);
       tw += wFile + wLines + wCodeContent;
+      if (tw >= maxW - 3 * textXPad) {
+        tw = 0;
+        th += textHeight;
+      }
     }
-    textureSize.x = tw;
-    textureSize.y = textHeight;
+    textureSize.x = maxW + border * 2;
+    textureSize.y = th + border * 2;
     rect.size.x = maxW + border * 2;
     rect.size.y = (textHeight + border) * items.length + border;
   }
@@ -175,9 +181,9 @@ public class FindUsagesDialog {
     float baseline = font.fAscent - (font.fAscent + font.fDescent) / 16;
 
     for (FindUsagesItem item : items) {
-      canvas.drawText(item.fileName, item.tFiles.textureRegion.x + textXPad, baseline);
-      canvas.drawText(item.lineNumber, item.tLines.textureRegion.x + textXPad, baseline);
-      canvas.drawText(item.codeContent, item.tContent.textureRegion.x + textXPad, baseline);
+      canvas.drawText(item.fileName, item.tFiles.textureRegion.x + textXPad, baseline + item.tFiles.textureRegion.y);
+      canvas.drawText(item.lineNumber, item.tLines.textureRegion.x + textXPad, baseline + item.tLines.textureRegion.y);
+      canvas.drawText(item.codeContent, item.tContent.textureRegion.x + textXPad, baseline + item.tContent.textureRegion.y);
     }
     texture = Disposable.assign(texture, g.createTexture());
     texture.setContent(canvas);
