@@ -48,7 +48,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
 
     scrollBar.layoutVertical(scrollPos, 0, editorHeight(), 5000, viewPortSize.x, 20);
     g.enableBlend(true);
-    scrollBar.draw(g, new V2i(0, 0));
+    scrollBar.draw(g);
     g.enableBlend(false);
 
     Debug.consoleInfo("scrollPos: " + scrollPos);
