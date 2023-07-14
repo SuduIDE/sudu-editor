@@ -1091,6 +1091,8 @@ public class EditorComponent implements Disposable {
   }
 
   public boolean onKeyPress(KeyEvent event) {
+    Debug.consoleInfo("EditorComponent::onKey: "+ event.desc());
+
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
 
     if (event.ctrl && event.keyCode == KeyCode.P) {
@@ -1105,10 +1107,9 @@ public class EditorComponent implements Disposable {
 
     if (handleDoubleKey(event)) return true;
     if (handleDebug(event)) return true;
+    if (handleSpecialKeys(event)) return true;
     if (handleNavigation(event)) return true;
     if (handleEditingKeys(event)) return true;
-
-    if (1 < 0) Debug.consoleInfo("EditorComponent::onKey: "+ event.desc());
 
     if (event.ctrl && event.keyCode == KeyCode.W) {
       Debug.consoleInfo("Ctrl-W is not possible ;)");
@@ -1205,6 +1206,16 @@ public class EditorComponent implements Disposable {
         editorWidth(), editorHeight());
   }
 
+  private boolean handleSpecialKeys(KeyEvent event) {
+    if (KeyCode.F1 <= event.keyCode && event.keyCode <= KeyCode.F12) return true;
+    return switch (event.keyCode) {
+      case KeyCode.INSERT, KeyCode.Pause,
+          KeyCode.CapsLock, KeyCode.NumLock, KeyCode.ScrollLock,
+          KeyCode.ALT, KeyCode.SHIFT, KeyCode.CTRL -> true;
+      default -> false;
+    };
+  }
+
   private boolean handleEditingKeys(KeyEvent event) {
     if (readonly) return false;
     return switch (event.keyCode) {
@@ -1212,8 +1223,6 @@ public class EditorComponent implements Disposable {
       case KeyCode.ENTER -> handleEnter();
       case KeyCode.DELETE -> handleDelete();
       case KeyCode.BACKSPACE -> handleBackspace();
-      case KeyCode.INSERT, KeyCode.ALT, KeyCode.SHIFT,
-          KeyCode.CAPS_LOCK -> true;
       default -> false;
     };
   }
@@ -1232,7 +1241,7 @@ public class EditorComponent implements Disposable {
       default -> false;
     };
     if (result && event.shift) selection.endPos.set(caretLine, caretCharPos);
-    computeUsages();
+    if (result) computeUsages();
     return result;
   }
 

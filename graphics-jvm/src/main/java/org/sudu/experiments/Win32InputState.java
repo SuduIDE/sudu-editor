@@ -149,13 +149,19 @@ class Win32InputState {
     if (vkCode >= VK_F1 && vkCode <= VK_F12)     return vkCode;
 
     return switch (vkCode) {
-      case VK_RETURN -> KeyCode.ENTER;
-      case VK_ESCAPE -> KeyCode.ESC;
-      case VK_INSERT -> KeyCode.INSERT;
-      case VK_DELETE -> KeyCode.DELETE;
-      case VK_BACK   -> KeyCode.BACKSPACE;
-      case VK_TAB    -> KeyCode.TAB;
-      case VK_SPACE  -> KeyCode.SPACE;
+      case VK_RETURN  -> KeyCode.ENTER;
+      case VK_ESCAPE  -> KeyCode.ESC;
+      case VK_INSERT  -> KeyCode.INSERT;
+      case VK_DELETE  -> KeyCode.DELETE;
+      case VK_BACK    -> KeyCode.BACKSPACE;
+      case VK_TAB     -> KeyCode.TAB;
+      case VK_SPACE   -> KeyCode.SPACE;
+      case VK_CONTROL -> KeyCode.CTRL;
+      case VK_SHIFT   -> KeyCode.SHIFT;
+      case VK_MENU    -> KeyCode.ALT;
+      case VK_NUMLOCK -> KeyCode.NumLock;
+      case VK_SCROLL  -> KeyCode.ScrollLock;
+      case VK_PAUSE   -> KeyCode.Pause;
       default -> 0;
     };
   }
@@ -187,5 +193,6 @@ class Win32InputState {
   static final int VK_F12     = 0x7B;
   static final int VK_KEY0    = 0x30;
   static final int VK_KEY9    = 0x39;
-
+  static final int VK_NUMLOCK = 0x90;
+  static final int VK_SCROLL  = 0x91;
 }

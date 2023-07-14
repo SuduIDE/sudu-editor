@@ -6,8 +6,11 @@ public interface KeyCode {
   int SHIFT = 16;
   int CTRL = 17;
   int ALT = 18;
+
+  int Pause = 19;
+  int CapsLock = 20;
+
   int META = 91;
-  int CAPS_LOCK = 20;
   int SPACE = 32;
 
   int A = 65;
@@ -25,6 +28,9 @@ public interface KeyCode {
   int F10 = 121;
   int F11 = 122;
   int F12 = 123;
+
+  int NumLock = 144;
+  int ScrollLock = 145;
 
   int _0 = 48;
   int _9 = 57;
