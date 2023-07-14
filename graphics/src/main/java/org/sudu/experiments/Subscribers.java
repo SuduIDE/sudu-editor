@@ -6,24 +6,19 @@ import java.util.Arrays;
 public class Subscribers<T> {
 
   private T[] data;
+  private T[] copy;
+  private int length;
 
   public Subscribers(T[] init) {
     data = init;
   }
 
   public void add(T item) {
-    T[] array = data;
-    int length = array.length, i = 0;
-    for (; i < length; i++) {
-      if (array[i] == null) {
-        array[i] = item;
-        break;
-      }
+    if (length == data.length) {
+      data = Arrays.copyOf(data, length + 4);
     }
-    if (i == length) {
-      data = Arrays.copyOf(array, length + 4);
-      data[length] = item;
-    }
+    data[length++] = item;
+    copy = null;
   }
 
   public Disposable disposableAdd(T item) {
@@ -34,14 +29,28 @@ public class Subscribers<T> {
   public void remove(T item) {
     for (int i = 0; i < data.length; i++) {
       if (data[i] == item) {
+        for (; i + 1 < data.length; i++)
+          data[i] = data[i + 1];
         data[i] = null;
-        break;
+        length--;
+        copy = null;
       }
     }
   }
 
-  // returns array with nullable subscribers
+  public void clear() {
+    copy = null;
+    for (int i = 0; i < length; i++) {
+      data[i] = null;
+    }
+    length = 0;
+  }
+
+  // returns actual copy of subscribers
   public T[] array() {
-    return data;
+    if (copy == null || copy.length != length) {
+      copy = Arrays.copyOf(data, length);
+    }
+    return copy;
   }
 }

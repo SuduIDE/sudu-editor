@@ -4,41 +4,53 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.Debug;
-import org.sudu.experiments.Scene0;
+import org.sudu.experiments.Scene;
 import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.ui.ToolbarItem;
-import org.sudu.experiments.demo.ui.ToolbarItemBuilder;
+import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.fonts.Fonts;
-import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.input.MouseListener;
+import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 
+import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
-import static org.sudu.experiments.demo.ui.ToolbarItemBuilder.ti;
+public class DemoEdit0 extends Scene {
 
-public class DemoEdit0 extends Scene0 {
+  final V4f clearColor = Color.Cvt.fromRGB(0,0, 64);
+  final UiContext uiContext;
+  final EditorComponent editor;
+  final EditorUi ui;
 
-  WglGraphics g;
   FontDesk toolBarFont;
 
-  EditorComponent editor;
   V2i editorPos = new V2i();
 
   public DemoEdit0(SceneApi api) {
-    super(api, false);
-    this.g = api.graphics;
-//    clearColor.set(Color.Cvt.gray(0));
+    super(api);
+    uiContext = new UiContext(api);
 
-    editor = new EditorComponent(api);
-    api.input.addListener(new EditInput());
+    ui = new EditorUi(uiContext);
+    uiContext.dprListeners.add(this::onDprChange);
+    editor = new EditorComponent(uiContext, ui);
+    ui.usagesMenu.onClose(editor::onFocusGain);
+
+    api.input.onMouse.add(new EditInput());
+    api.input.onKeyPress.add(this::onKeyPress);
+    api.input.onKeyPress.add(new CtrlO(api, editor::openFile));
+    api.input.onCopy.add(this::onCopy);
+    api.input.onPaste.add(this::onPastePlainText);
+    api.input.onFocus.add(this::onFocus);
+    api.input.onBlur.add(this::onBlur);
+    api.input.onContextMenu.add(this::onContextMenu);
+    api.input.onScroll.add(this::onScroll);
+    toggleDark();
   }
 
   public Document document() {
@@ -51,6 +63,7 @@ public class DemoEdit0 extends Scene0 {
 
   @Override
   public void dispose() {
+    ui.dispose();
     editor.dispose();
   }
 
@@ -61,264 +74,98 @@ public class DemoEdit0 extends Scene0 {
 
   @Override
   public void paint() {
-    super.paint();
+    api.graphics.clear(clearColor);
     editor.paint();
-  }
-
-  protected Supplier<ToolbarItem[]> popupMenuContent(V2i eventPosition) {
-    ToolbarItemBuilder tbb = new ToolbarItemBuilder();
-
-    gotoItems(eventPosition, tbb);
-    cutCopyPaste(tbb);
-    if (1 < 0) tbb.addItem("old >", editor.colors.dialogItemColors.toolbarItemColors, oldDev());
-    tbb.addItem("Settings >", editor.colors.dialogItemColors.toolbarItemColors, settingsItems());
-    tbb.addItem("Development >", editor.colors.dialogItemColors.toolbarItemColors, devItems());
-    return tbb.supplier();
-  }
-
-  private void cutCopyPaste(ToolbarItemBuilder tbb) {
-    if (!editor().readonly) {
-      tbb.addItem("Cut", editor.colors.dialogItemColors.toolbarItemColors, this::cutAction);
-    }
-    tbb.addItem("Copy", editor.colors.dialogItemColors.toolbarItemColors, this::copyAction);
-
-    if (!editor().readonly && api.window.isReadClipboardTextSupported()) {
-      tbb.addItem("Paste", editor.colors.dialogItemColors.toolbarItemColors, this::pasteAction);
-    }
-  }
-
-  private Supplier<ToolbarItem[]> settingsItems() {
-    ToolbarItemBuilder tbb = new ToolbarItemBuilder();
-    tbb.addItem("Theme >", editor.colors.dialogItemColors.toolbarItemColors, themes());
-    tbb.addItem("Font size >", editor.colors.dialogItemColors.toolbarItemColors, fontSize());
-    tbb.addItem("Fonts >", editor.colors.dialogItemColors.toolbarItemColors, fontSelect());
-    return tbb.supplier();
-  }
-
-  private Supplier<ToolbarItem[]> devItems() {
-    ToolbarItemBuilder tbb = new ToolbarItemBuilder();
-    tbb.addItem("parser >", editor.colors.dialogItemColors.toolbarItemColors, parser());
-    tbb.addItem("open ...", editor.colors.dialogItemColors.toolbarItemColors, this::showOpenFilePicker);
-    return tbb.supplier();
-  }
-
-  private void gotoItems(V2i eventPosition, ToolbarItemBuilder tbb) {
-      Model model = editor().model();
-      String language = model.language();
-      String scheme = model.uriScheme();
-      EditorRegistrations reg = editor().registrations;
-
-      var declarationProvider = reg.findDeclarationProvider(language, scheme);
-
-      if (declarationProvider != null) {
-        tbb.addItem(
-            "Go to Declaration",
-            editor.colors.dialogItemColors.toolbarItemColors,
-            () -> findUsagesDefDecl(eventPosition, DefDeclProvider.Type.DECL));
-      }
-
-      var definitionProvider = reg.findDefinitionProvider(language, scheme);
-
-      if (definitionProvider != null) {
-        tbb.addItem(
-            "Go to Definition",
-            editor.colors.dialogItemColors.toolbarItemColors,
-            () -> findUsagesDefDecl(eventPosition, DefDeclProvider.Type.DEF));
-      }
-
-      var refProvider = reg.findReferenceProvider(language, scheme);
-
-      if (refProvider != null) {
-        tbb.addItem(
-            "Go to References",
-            editor.colors.dialogItemColors.toolbarItemColors,
-            () -> findUsages(eventPosition));
-      }
-
-      tbb.addItem(
-          "Go to (local)",
-          editor.colors.dialogItemColors.toolbarItemColors,
-          () -> findUsagesDefDecl(eventPosition, null));
-  }
-
-  private Supplier<ToolbarItem[]> parser() {
-    return ArrayOp.supplier(
-        ti("Int", editor.colors.dialogItemColors.toolbarItemColors, editor::debugPrintDocumentIntervals),
-        ti("Iter", editor.colors.dialogItemColors.toolbarItemColors, editor::iterativeParsing),
-        ti("VP", editor.colors.dialogItemColors.toolbarItemColors, editor::parseViewport),
-        ti("Rep", editor.colors.dialogItemColors.toolbarItemColors, editor::parseFullFile));
-  }
-
-  private Supplier<ToolbarItem[]> oldDev() {
-    return ArrayOp.supplier(
-        ti("↓ move", editor.colors.dialogItemColors.toolbarItemColors, editor::moveDown),
-        ti("■ stop", editor.colors.dialogItemColors.toolbarItemColors, editor::stopMove),
-        ti("↑ move", editor.colors.dialogItemColors.toolbarItemColors, editor::moveUp),
-        ti("toggleContrast", editor.colors.dialogItemColors.toolbarItemColors, editor::toggleContrast),
-        ti("toggleXOffset", editor.colors.dialogItemColors.toolbarItemColors, editor::toggleXOffset),
-        ti("toggleTails", editor.colors.dialogItemColors.toolbarItemColors, editor::toggleTails));
-  }
-
-  private Supplier<ToolbarItem[]> themes() {
-    return ArrayOp.supplier(
-        ti("Dark", editor.colors.dialogItemColors.toolbarItemColors, editor::toggleDark),
-        ti("Light", editor.colors.dialogItemColors.toolbarItemColors, editor::toggleLight)
-    );
-  }
-
-  private Supplier<ToolbarItem[]> fontSize() {
-    return ArrayOp.supplier(
-        ti("↑ increase", editor.colors.dialogItemColors.toolbarItemColors, editor::increaseFont),
-        ti("↓ decrease", editor.colors.dialogItemColors.toolbarItemColors, editor::decreaseFont));
-  }
-
-  private Supplier<ToolbarItem[]> fontSelect() {
-    return () -> {
-      String[] fonts = menuFonts();
-      ToolbarItem[] items = new ToolbarItem[fonts.length];
-      for (int i = 0; i < items.length; i++) {
-        var font = fonts[i];
-        items[i] = new ToolbarItem(() -> setFont(font), font, editor.colors.dialogItemColors.toolbarItemColors);
-      }
-      return items;
-    };
+    ui.paint();
   }
 
   protected String[] menuFonts() { return Fonts.editorFonts(false); }
 
-  private void setFont(String font) {
-    editor.changeFont(font, editor.getFontVirtualSize());
-  }
-
-  private void pasteAction() {
-    editor.popupMenu.hide();
-    api.window.readClipboardText(
-        editor::handleInsert,
-        onError("readClipboardText error: "));
-  }
-
-  private void cutAction() {
-    editor.popupMenu.hide();
-    editor.onCopy(copyHandler(), true);
-  }
-
-  private void copyAction() {
-    editor.popupMenu.hide();
-    editor.onCopy(copyHandler(), false);
-  }
-
-  private Consumer<String> copyHandler() {
-    return text -> api.window.writeClipboardText(text,
-        org.sudu.experiments.Const.emptyRunnable,
-        onError("writeClipboardText error: "));
-  }
-
-  private void findUsages(V2i eventPosition) {
-    String language = editor().model.language();
-    String scheme = editor().model.uriScheme();
-    ReferenceProvider.Provider provider =  editor().registrations.findReferenceProvider(language, scheme);
-    editor.popupMenu.hide();
-    editor.findUsages(eventPosition, provider);
-  }
-
-  private void findUsagesDefDecl(V2i eventPosition, DefDeclProvider.Type type) {
-    editor.popupMenu.hide();
-    Model model = editor().model();
-    String language = model.language();
-    String scheme = model.uriScheme();
-    EditorRegistrations reg = editor().registrations;
-    DefDeclProvider.Provider provider = type != null ? switch (type) {
-      case DEF -> reg.findDefinitionProvider(language, scheme);
-      case DECL -> reg.findDeclarationProvider(language, scheme);
-    } : null;
-    editor.findUsages(eventPosition, provider);
-  }
-
-  static Consumer<Throwable> onError(String s) {
-    return throwable -> Debug.consoleInfo(s + throwable.getMessage());
-  }
-
-  void showOpenFilePicker() {
-    api.window.showOpenFilePicker(editor::openFile);
-  }
-
   @Override
   public void onResize(V2i newSize, float newDpr) {
-    size.set(newSize);
-    editor.setPos(editorPos, size, newDpr);
+    uiContext.onResize(newSize, newDpr);
+    editor.setPos(editorPos, newSize, newDpr);
+  }
 
-    if (dpr != newDpr) {
-      dpr = newDpr;
-      int toolbarFontSize = Numbers.iRnd(EditorConst.POPUP_MENU_FONT_SIZE * newDpr);
-      toolBarFont = g.fontDesk(EditorConst.POPUP_MENU_FONT_NAME, toolbarFontSize);
-      editor.popupMenu.setFont(toolBarFont);
+  private void onDprChange(float oldDpr, float newDpr) {
+    int toolbarFontSize = Numbers.iRnd(EditorConst.POPUP_MENU_FONT_SIZE * newDpr);
+    toolBarFont = uiContext.graphics.fontDesk(EditorConst.POPUP_MENU_FONT_NAME, toolbarFontSize);
+    ui.popupMenu.setFont(toolBarFont);
+  }
+
+  public void toggleDark() {
+    applyTheme(EditorColorScheme.darkIdeaColorScheme());
+  }
+
+  public void toggleLight() {
+    applyTheme(EditorColorScheme.lightIdeaColorScheme());
+  }
+
+  private void applyTheme(EditorColorScheme theme) {
+    Objects.requireNonNull(theme);
+    ui.setTheme(theme);
+    editor.setTheme(theme);
+  }
+
+  public void setTheme(String theme) {
+    switch (theme) {
+      case "light" -> toggleLight();
+      case "dark" -> toggleDark();
+      default -> Debug.consoleInfo("unknown theme: " + theme);
     }
   }
 
-  class EditInput implements InputListener {
+  Consumer<String> onPastePlainText() {
+    return editor::handleInsert;
+  }
 
-    @Override
-    public void onFocus() {
+  boolean onKeyPress(KeyEvent event) {
+    // do not consume browser keyboard to allow page reload and debug
+    if (KeyEvent.isCopyPasteRelatedKey(event) || KeyEvent.isBrowserKey(event)) {
+      return false;
+    }
+    if (event.keyCode == KeyCode.F10) {
+      api.window.addChild("child", DemoEdit0::new);
+      return true;
+    }
+
+    return ui.onKeyPress(event) || editor.onKeyPress(event);
+  }
+
+  boolean onCopy(Consumer<String> setText, boolean isCut) {
+    return editor.onCopy(setText, isCut);
+  }
+
+  void onBlur() {
+    ui.onFocusLost();
+    editor.onFocusLost();
+  }
+
+  void onFocus() {
+    if (!ui.onFocusGain())
       editor.onFocusGain();
-    }
+  }
 
-    @Override
-    public void onBlur() {
-      editor.popupMenu.hide();
-      editor.onFocusLost();
-    }
+  boolean onContextMenu(MouseEvent event) {
+    ui.showContextMenu(event, editor, DemoEdit0.this);
+    return true;
+  }
 
-    @Override
-    public boolean onMouseWheel(MouseEvent event, double dX, double dY) {
-      return editor.onMouseWheel(event, dX, dY);
-    }
+  boolean onScroll(MouseEvent event, float dX, float dY) {
+    return editor.onScroll(dX, dY);
+  }
+
+  class EditInput implements MouseListener {
 
     @Override
     public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-      return editor.onMousePress(event, button, press, clickCount);
-    }
-
-    public boolean onContextMenu(MouseEvent event) {
-      if (!editor.popupMenu.isVisible()) {
-        editor.popupMenu.display(event.position, popupMenuContent(event.position), editor::onFocusGain);
-        editor.onFocusLost();
-      }
-      return true;
+      return ui.onMousePress(event, button, press, clickCount)
+          || editor.onMousePress(event, button, press, clickCount);
     }
 
     @Override
     public boolean onMouseMove(MouseEvent event) {
-      return editor.onMouseMove(event);
-    }
-
-    @Override
-    public boolean onKey(KeyEvent event) {
-      return handleKey(event) || editor.onKey(event);
-    }
-
-    private boolean handleKey(KeyEvent event) {
-      if (!event.isPressed) return false;
-
-      if (event.ctrl && event.keyCode == KeyCode.O) {
-        if (event.shift) {
-          api.window.showDirectoryPicker(
-              s -> Debug.consoleInfo("showDirectoryPicker -> " + s));
-        } else {
-          showOpenFilePicker();
-        }
-        return true;
-      }
-      return false;
-    }
-
-    @Override
-    public boolean onCopy(Consumer<String> setText, boolean isCut) {
-      return editor.onCopy(setText, isCut);
-    }
-
-    @Override
-    public Consumer<String> onPastePlainText() {
-      return editor::handleInsert;
+      return ui.onMouseMove(event) || editor.onMouseMove(event);
     }
   }
 }

@@ -1,139 +1,128 @@
 package org.sudu.experiments.input;
 
-import org.sudu.experiments.Disposable;
-import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.Subscribers;
 
-import java.util.TreeMap;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
-public class InputListeners extends Input {
+public class InputListeners {
+  public final Subscribers<KeyHandler> onKeyPress = new Subscribers<>(new KeyHandler[0]);
+  public final Subscribers<KeyHandler> onKeyRelease = new Subscribers<>(new KeyHandler[0]);
+
+  public final Subscribers<MouseListener> onMouse = new Subscribers<>(new MouseListener[0]);
+  public final Subscribers<ScrollHandler> onScroll = new Subscribers<>(new ScrollHandler[0]);
+
+  public final Subscribers<ContextMenuHandler> onContextMenu = new Subscribers<>(new ContextMenuHandler[0]);
+
+  public final Subscribers<CopyHandler> onCopy = new Subscribers<>(new CopyHandler[0]);
+  public final Subscribers<PasteHandler> onPaste = new Subscribers<>(new PasteHandler[0]);
+
+  public final Subscribers<Runnable> onBlur = new Subscribers<>(new Runnable[0]);
+  public final Subscribers<Runnable> onFocus = new Subscribers<>(new Runnable[0]);
+
   public final Runnable repaint;
-  private final TreeMap<Integer, InputListener[]> map = new TreeMap<>();
-  private final InputListener[] noListeners = new InputListener[0];
-  private InputListener[] snapshot = noListeners;
-  private boolean snapshotValid = true;
-  private int size = 0;
 
   public InputListeners(Runnable repaint) {
     this.repaint = repaint;
   }
 
-  @Override
-  public Disposable addListener(InputListener l, int order) {
-    snapshotValid = false;
-    snapshot = noListeners;
-    size++;
-    Integer boxOrder = order;
-    InputListener[] listeners = map.get(boxOrder);
-    map.put(boxOrder, listeners == null ? new InputListener[]{l} : ArrayOp.add(listeners, l));
-    return () -> removeListener(order, l);
-  }
-
-  private void removeListener(int order, InputListener element) {
-    InputListener[] oldList = map.get(order);
-    InputListener[] newList = ArrayOp.remove(oldList, element);
-    if (newList == oldList) throw new RuntimeException("unexpected InputListener");
-    snapshotValid = false;
-    snapshot = noListeners;
-    size--;
-    if (newList != null) {
-      map.put(order, newList);
-    } else {
-      map.remove(order);
-    }
-  }
-
   public void clear() {
-    map.clear();
-    size = 0;
-    snapshot = noListeners;
-    snapshotValid = true;
-  }
-
-  private InputListener[] snapshot() {
-    if (snapshotValid) return snapshot;
-    if (snapshot.length != size) snapshot = new InputListener[size];
-    int pos = 0;
-    for (InputListener[] listeners : map.values()) {
-      System.arraycopy(listeners, 0, snapshot, pos, listeners.length);
-      pos += listeners.length;
-    }
-    return snapshot;
+    onKeyPress.clear();
+    onKeyRelease.clear();
+    onMouse.clear();
+    onScroll.clear();
+    onContextMenu.clear();
+    onCopy.clear();
+    onPaste.clear();
+    onBlur.clear();
+    onFocus.clear();
   }
 
   public void sendBlurEvent() {
-    for (InputListener listener : snapshot()) {
-      listener.onBlur();
+    Runnable[] array = onBlur.array();
+    for (Runnable listener : array) {
+      listener.run();
     }
     repaint.run();
   }
 
   public void sendFocusEvent() {
-    for (InputListener listener : snapshot()) {
-      listener.onFocus();
+    for (Runnable listener : onFocus.array()) {
+      listener.run();
     }
     repaint.run();
   }
 
-  @Override
   public boolean sendKeyEvent(KeyEvent e) {
     repaint.run();
-    for (InputListener listener : snapshot()) {
-      if (listener.onKey(e)) return true;
+    var toSend = e.isPressed ? onKeyPress : onKeyRelease;
+
+    for (Predicate<KeyEvent> listener : toSend.array()) {
+      if (listener.test(e)) e.prevented = true;
       if (e.prevented) break;
     }
+
     return false;
   }
 
-  @Override
   public void sendMouseMove(MouseEvent e) {
     repaint.run();
-    for (InputListener listener : snapshot()) {
+    for (MouseListener listener : onMouse.array()) {
       if (listener.onMouseMove(e)) return;
     }
   }
 
-  @Override
   public boolean sendMouseButton(MouseEvent e, int button, boolean press, int count) {
     repaint.run();
-    for (InputListener listener : snapshot()) {
+    for (MouseListener listener : onMouse.array()) {
       if (listener.onMousePress(e, button, press, count)) return true;
     }
     return false;
   }
 
-  @Override
-  public void sendMouseWheel(MouseEvent e, double dX, double dY) {
+  public void sendMouseWheel(MouseEvent e, float dX, float dY) {
     repaint.run();
-    for (InputListener listener : snapshot()) {
-      if (listener.onMouseWheel(e, dX, dY)) return;
+    for (ScrollHandler listener : onScroll.array()) {
+      if (listener.onScroll(e, dX, dY)) return;
     }
   }
 
-  @Override
   public boolean sendContextMenu(MouseEvent e) {
     repaint.run();
-    for (InputListener listener : snapshot()) {
-      if (listener.onContextMenu(e)) return true;
+    for (ContextMenuHandler listener : onContextMenu.array()) {
+      if (listener.test(e)) return true;
     }
     return false;
   }
 
-  @Override
   public boolean sendCopy(Consumer<String> receiver, boolean isCut) {
     repaint.run();
-    for (InputListener listener : snapshot()) {
+    for (CopyHandler listener : onCopy.array()) {
       if (listener.onCopy(receiver, isCut)) return true;
     }
     return false;
   }
 
-  @Override
   public Consumer<String> onPastePlainText() {
-    for (InputListener listener : snapshot()) {
-      Consumer<String> onPaste = listener.onPastePlainText();
+    for (PasteHandler listener : onPaste.array()) {
+      Consumer<String> onPaste = listener.get();
       if (onPaste != null) return onPaste;
     }
     return null;
+  }
+
+  public interface CopyHandler {
+    boolean onCopy(Consumer<String> setText, boolean isCut);
+  }
+
+  public interface PasteHandler extends Supplier<Consumer<String>> {}
+
+  public interface ContextMenuHandler extends Predicate<MouseEvent> {}
+
+  public interface KeyHandler extends Predicate<KeyEvent> {}
+
+  public interface ScrollHandler {
+    boolean onScroll(MouseEvent event, float dX, float dY);
   }
 }

@@ -2,8 +2,8 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.IdeaCodeColors.Colors;
-import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 
@@ -21,7 +21,7 @@ public class RenderTexture extends Scene0 {
   public RenderTexture(SceneApi api) {
     super(api);
     WglGraphics g = api.graphics;
-    api.input.addListener(new MyInputListener());
+    api.input.onMouse.add(new MyInputListener());
 
     canvasTexture = TestHelper.canvasTexture(g);
     demoRect.setTextureRegionDefault(canvasTexture);
@@ -78,8 +78,7 @@ public class RenderTexture extends Scene0 {
     layout(size);
   }
 
-  class MyInputListener implements InputListener {
-    V2i lastMouse = new V2i();
+  class MyInputListener implements MouseListener {
     @Override
     public boolean onMouseMove(MouseEvent event) {
 //      System.out.println("event = " + event.position);
@@ -94,14 +93,12 @@ public class RenderTexture extends Scene0 {
       int nextY = event.position.y - mouse.size.y; // 2;
       mouse.pos.set(nextX, nextY);
 
-      lastMouse = event.position;
-
       return true;
     }
 
     @Override
     public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-      if (button == InputListener.MOUSE_BUTTON_LEFT && clickCount == 1) {
+      if (button == MouseListener.MOUSE_BUTTON_LEFT && clickCount == 1) {
         V2i p = event.position;
         drag = press && demoRect.isInside(p) ? p : null;
       }

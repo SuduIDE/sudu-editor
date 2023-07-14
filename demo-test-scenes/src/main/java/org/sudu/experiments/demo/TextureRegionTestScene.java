@@ -2,8 +2,8 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.fonts.Fonts;
-import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 
@@ -36,7 +36,8 @@ public class TextureRegionTestScene extends Scene {
   public TextureRegionTestScene(SceneApi api) {
     super(api);
     g = api.graphics;
-    api.input.addListener(new LineNumbersInputListener());
+    api.input.onMouse.add(new MListener());
+    api.input.onScroll.add(this::onMouseWheel);
 
     linesCanvas = g.createCanvas(200, batchSize * fontSize);
     linesCanvas.setFont(Fonts.Consolas, fontSize);
@@ -54,7 +55,7 @@ public class TextureRegionTestScene extends Scene {
   }
 
   public void paint() {
-    scrollBar.layoutVertical(scrollPos, viewPortSize.x, viewPortSize.y, editorFullH, 20);
+    scrollBar.layoutVertical(scrollPos, 0, viewPortSize.y, editorFullH, viewPortSize.x, 20);
     g.enableBlend(true);
     scrollBar.draw(g, new V2i(0, 0));
 
@@ -132,19 +133,18 @@ public class TextureRegionTestScene extends Scene {
     return editorFullH - viewPortSize.y;
   }
 
-  private class LineNumbersInputListener implements InputListener {
-    Consumer<V2i> dragLock;
+  boolean onMouseWheel(MouseEvent event, float dX, float dY) {
+    int change = (Math.abs((int) dY) + 4) / 2;
+    int change1 = dY < 0 ? -1 : 1;
+    scrollPos = clampScrollPos(scrollPos + change * change1);
+
+    return true;
+  }
+
+  private class MListener implements MouseListener {
+    Consumer<MouseEvent> dragLock;
     Consumer<IntUnaryOperator> vScrollHandler =
       move -> scrollPos = move.applyAsInt(verticalSize());
-
-    @Override
-    public boolean onMouseWheel(MouseEvent event, double dX, double dY) {
-      int change = (Math.abs((int) dY) + 4) / 2;
-      int change1 = dY < 0 ? -1 : 1;
-      scrollPos = clampScrollPos(scrollPos + change * change1);
-
-      return true;
-    }
 
     @Override
     public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
@@ -153,7 +153,7 @@ public class TextureRegionTestScene extends Scene {
         return true;
       }
 
-      if (button == InputListener.MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
+      if (button == MouseListener.MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
         dragLock = scrollBar.onMouseClick(event.position, vScrollHandler, true);
         if (dragLock != null) return true;
       }
@@ -164,7 +164,7 @@ public class TextureRegionTestScene extends Scene {
     @Override
     public boolean onMouseMove(MouseEvent event) {
       if (dragLock != null) {
-        dragLock.accept(event.position);
+        dragLock.accept(event);
         return true;
       }
       return scrollBar.onMouseMove(event.position, SetCursor.wrap(api.window));

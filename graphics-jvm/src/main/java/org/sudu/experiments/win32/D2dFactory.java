@@ -71,7 +71,7 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
   }
 
   public void loadFontConfig(FontLoaderJvm config) {
-    loadFontConfig(config, Const.double0);
+    loadFontConfig(config, () -> 0);
   }
 
   public double[] loadFontConfig(FontLoaderJvm config, DoubleSupplier dt) {

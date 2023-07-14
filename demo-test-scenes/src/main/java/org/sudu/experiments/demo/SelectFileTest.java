@@ -4,14 +4,13 @@ import org.sudu.experiments.Debug;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.Scene0;
 import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 
-public class SelectFileTest extends Scene0 implements InputListener {
+public class SelectFileTest extends Scene0 {
   public SelectFileTest(SceneApi api) {
     super(api);
-    api.input.addListener(this);
+    api.input.onKeyPress.add(this::onKeyPress);
   }
 
   void takeDirectory(FileHandle dir) {
@@ -32,9 +31,8 @@ public class SelectFileTest extends Scene0 implements InputListener {
     System.out.println("file.content.length = " + content.length);
   }
 
-  @Override
-  public boolean onKey(KeyEvent event) {
-    if (event.isPressed && event.ctrl && event.keyCode == KeyCode.O) {
+  boolean onKeyPress(KeyEvent event) {
+    if (event.ctrl && event.keyCode == KeyCode.O) {
       if (event.shift) {
         api.window.showDirectoryPicker(this::takeDirectory);
       } else {

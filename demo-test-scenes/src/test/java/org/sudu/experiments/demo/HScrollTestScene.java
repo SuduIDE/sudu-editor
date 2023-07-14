@@ -3,8 +3,8 @@ package org.sudu.experiments.demo;
 import org.sudu.experiments.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.fonts.Fonts;
-import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
@@ -38,7 +38,8 @@ public class HScrollTestScene extends Scene {
     super(api);
     g = new TestGraphics(api.graphics);
 
-    api.input.addListener(new HScrollInputListener());
+    api.input.onMouse.add(new HScrollInputListener());
+    api.input.onScroll.add(this::onMouseWheel);
 
     CodeElement[] codeElements = new CodeElement[]{
       new CodeElement("Первое слово", 0),
@@ -83,7 +84,7 @@ public class HScrollTestScene extends Scene {
   public void paint() {
     g.clear(IdeaCodeColors.Colors.editBgColor);
     g.enableBlend(true);
-    scrollBar.layoutHorizontal(scrollPosH, viewportSize.y, viewportSize.x, horizontalSize, 20);
+    scrollBar.layoutHorizontal(scrollPosH, 0, viewportSize.x, horizontalSize, viewportSize.y, 20);
     scrollBar.draw(g, new V2i(0, 0));
     g.enableBlend(false);
 
@@ -125,20 +126,21 @@ public class HScrollTestScene extends Scene {
     codeLineRenderer.dispose();
   }
 
-  private class HScrollInputListener implements InputListener {
-    Consumer<V2i> dragLock;
+  boolean onMouseWheel(MouseEvent event, double dX, double dY) {
+    int change = (Math.abs((int) dX) + 64) / 2;
+    int changeX = (int) Math.signum(dX);
+    int changeY = (int) Math.signum(dY);
+    scrollPosH = clampScrollPos(scrollPosH + change * (changeX + changeY));
+
+    return true;
+  }
+
+
+  private class HScrollInputListener implements MouseListener {
+    Consumer<MouseEvent> dragLock;
     Consumer<IntUnaryOperator> vScrollHandler =
       move -> scrollPosH = move.applyAsInt(horizontalSize());
 
-    @Override
-    public boolean onMouseWheel(MouseEvent event, double dX, double dY) {
-      int change = (Math.abs((int) dX) + 64) / 2;
-      int changeX = (int) Math.signum(dX);
-      int changeY = (int) Math.signum(dY);
-      scrollPosH = clampScrollPos(scrollPosH + change * (changeX + changeY));
-
-      return true;
-    }
 
     @Override
     public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
@@ -147,7 +149,7 @@ public class HScrollTestScene extends Scene {
         return true;
       }
 
-      if (button == InputListener.MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
+      if (button == MouseListener.MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
         dragLock = scrollBar.onMouseClick(event.position, vScrollHandler, false);
         if (dragLock != null) return true;
       }
@@ -158,7 +160,7 @@ public class HScrollTestScene extends Scene {
     @Override
     public boolean onMouseMove(MouseEvent event) {
       if (dragLock != null) {
-        dragLock.accept(event.position);
+        dragLock.accept(event);
         return true;
       }
       return scrollBar.onMouseMove(event.position, SetCursor.wrap(api.window));

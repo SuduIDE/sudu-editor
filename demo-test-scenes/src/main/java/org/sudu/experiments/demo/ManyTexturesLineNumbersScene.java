@@ -2,8 +2,8 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.fonts.Fonts;
-import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
@@ -25,7 +25,8 @@ public class ManyTexturesLineNumbersScene extends Scene {
 
   public ManyTexturesLineNumbersScene(SceneApi api) {
     super(api);
-    api.input.addListener(new LineNumbersInputListener());
+    api.input.onMouse.add(new LineNumbersInputListener());
+    api.input.onScroll.add(this::onMouseWheel);
     this.g = api.graphics;
 
     lineNumbers.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight, g);
@@ -45,7 +46,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
     Debug.consoleInfo("scrollPos: " + scrollPos);
     g.clear(bgColor);
 
-    scrollBar.layoutVertical(scrollPos, viewPortSize.x, editorHeight(), 5000, 20);
+    scrollBar.layoutVertical(scrollPos, 0, editorHeight(), 5000, viewPortSize.x, 20);
     g.enableBlend(true);
     scrollBar.draw(g, new V2i(0, 0));
     g.enableBlend(false);
@@ -68,19 +69,18 @@ public class ManyTexturesLineNumbersScene extends Scene {
     lineNumbers.dispose();
   }
 
-  private class LineNumbersInputListener implements InputListener {
-    Consumer<V2i> dragLock;
+  boolean onMouseWheel(MouseEvent event, float dX, float dY) {
+    int change = (Math.abs((int) dY) + 4) / 2;
+    int change1 = dY < 0 ? -1 : 1;
+    scrollPos = clampScrollPos(scrollPos + change * change1);
+
+    return true;
+  }
+
+  private class LineNumbersInputListener implements MouseListener {
+    Consumer<MouseEvent> dragLock;
     Consumer<IntUnaryOperator> vScrollHandler =
       move -> scrollPos = move.applyAsInt(verticalSize());
-
-    @Override
-    public boolean onMouseWheel(MouseEvent event, double dX, double dY) {
-      int change = (Math.abs((int) dY) + 4) / 2;
-      int change1 = dY < 0 ? -1 : 1;
-      scrollPos = clampScrollPos(scrollPos + change * change1);
-
-      return true;
-    }
 
     @Override
     public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
@@ -100,7 +100,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
     @Override
     public boolean onMouseMove(MouseEvent event) {
       if (dragLock != null) {
-        dragLock.accept(event.position);
+        dragLock.accept(event);
         return true;
       }
       return scrollBar.onMouseMove(event.position, SetCursor.wrap(api.window));

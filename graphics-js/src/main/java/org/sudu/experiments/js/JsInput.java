@@ -2,9 +2,7 @@ package org.sudu.experiments.js;
 
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.Disposable;
-import org.sudu.experiments.input.InputListeners;
-import org.sudu.experiments.input.KeyEvent;
-import org.sudu.experiments.input.MimeTypes;
+import org.sudu.experiments.input.*;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
@@ -25,14 +23,14 @@ import java.util.function.Consumer;
 public class JsInput {
   static final boolean debug = 1 < 0;
 
+  public final InputListeners listeners;
   private final JsHelper.HTMLElement element;
-  private final InputListeners listeners;
   private Disposable disposer;
   private V2i clientRect = null;
 
-  public JsInput(HTMLElement element, InputListeners listeners) {
+  public JsInput(HTMLElement element, Runnable repaint) {
     this.element = element.cast();
-    this.listeners = listeners;
+    this.listeners = new InputListeners(repaint);
     Window window = Window.current();
     this.disposer = Disposable.composite(
         addListener(element, "keydown", this::onKeyDown),
@@ -85,7 +83,6 @@ public class JsInput {
   private <T extends Event> Disposable remover(EventTarget element, String type, EventListener<T> listener) {
     return () -> element.removeEventListener(type, listener);
   }
-
 
   static void debug(String string) {
     if (debug) Debug.consoleInfo(string);
@@ -148,7 +145,8 @@ public class JsInput {
       default -> 0;
     };
     listeners.sendMouseWheel(mouseEvent(event),
-        scale * event.getDeltaX(), scale * event.getDeltaY());
+            (float) (scale * event.getDeltaX()),
+            (float) (scale * event.getDeltaY()));
     stopEvent(event);
   }
 

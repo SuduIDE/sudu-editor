@@ -32,9 +32,13 @@ public class JsCodeEditor0 implements JsCodeEditor {
         JsCodeEditor0::onWebGlError,
         args.getContainerId().stringValue(),
         worker);
-    editor = ((DemoEdit0) window.scene()).editor();
+    editor = demoEdit0().editor();
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly()) setReadonly(args.getReadonly());
+  }
+
+  private DemoEdit0 demoEdit0() {
+    return (DemoEdit0) window.scene();
   }
 
   @Override
@@ -73,7 +77,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   @Override
   public void setTheme(JSString theme) {
-    editor.setTheme(theme.stringValue());
+    demoEdit0().setTheme(theme.stringValue());
   }
 
   @Override

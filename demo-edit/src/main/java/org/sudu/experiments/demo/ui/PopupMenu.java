@@ -98,10 +98,10 @@ public class PopupMenu implements DprChangeListener {
     }
   }
 
-  public boolean onMouseMove(V2i mouse, SetCursor windowCursor) {
+  public boolean onMouseMove(V2i mouse) {
     boolean r = false;
     for (int i = toolbars.size() - 1; i >= 0; --i) {
-      r = toolbars.get(i).onMouseMove(mouse, windowCursor);
+      r = toolbars.get(i).onMouseMove(mouse, context.windowCursor);
       if (r) break;
     }
     return r;

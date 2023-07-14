@@ -1,6 +1,7 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
@@ -31,7 +32,7 @@ public class ScrollBar {
     return Rect.isInside(p, bgPos, bgSize);
   }
 
-  public Consumer<V2i> onMouseClick(V2i p, Consumer<IntUnaryOperator> onMove, boolean isVertical) {
+  public Consumer<MouseEvent> onMouseClick(V2i p, Consumer<IntUnaryOperator> onMove, boolean isVertical) {
     boolean hitScroll = hitTest(p);
     boolean hitButton = Rect.isInside(p, buttonPos, buttonSize);
 
@@ -45,16 +46,14 @@ public class ScrollBar {
       }
       int buttonCenter = isVertical ? buttonPos.y + buttonSize.y / 2 : buttonPos.x + buttonSize.x / 2;
       int delta = isVertical ? p.y : p.x;
-      return dragInfo(hitButton ? buttonCenter - delta : 0, onMove, isVertical);
+      int hitOffset = hitButton ? buttonCenter - delta : 0;
+      return isVertical
+          ? event -> onMove.accept(
+            getClickLocationResultY(event.position.y + hitOffset - bgPos.y))
+          : event -> onMove.accept(
+            getClickLocationResultX(event.position.x + hitOffset - bgPos.x));
     }
     return null;
-  }
-
-  Consumer<V2i> dragInfo(int hitOffset, Consumer<IntUnaryOperator> onMove, boolean isVertical) {
-    if (isVertical)
-      return pos -> onMove.accept(getClickLocationResultY(pos.y + hitOffset - bgPos.y));
-    else
-      return pos -> onMove.accept(getClickLocationResultX(pos.x + hitOffset - bgPos.x));
   }
 
   static IntUnaryOperator result(int position, int maxPosition) {
@@ -82,44 +81,26 @@ public class ScrollBar {
   }
 
   public void layoutVertical(
-    int viewVScrollPos,
-    int viewRight,
-    int viewHeight,
-    int viewFullHeight,
-    int width
+      int scrollPos,
+      int y0, int ySize, int yVirtualSize,
+      int x1, int width // x0 = x1 - width
   ) {
-    layout(viewVScrollPos, viewRight, viewHeight, viewFullHeight, 0, width, true);
+    layout(scrollPos, y0, ySize, yVirtualSize, x1, width, true);
   }
 
   public void layoutHorizontal(
-    int viewHScrollPos,
-    int viewBottom,
-    int viewWidth,
-    int viewFullWidth,
-    int height
+      int scrollPos,
+      int x0, int xSize, int xVirtualSize,
+      int y1, int height  // y0 = y1 - height
   ) {
-    layout(viewHScrollPos, viewBottom, viewWidth, viewFullWidth, 0, height, false);
-  }
-
-  public void layoutHorizontal(
-    int scrollPos,
-    int viewBottom,
-    int viewWidth,
-    int viewVirtualWidth,
-    int viewLeft,
-    int height
-  ) {
-    layout(scrollPos, viewBottom, viewWidth, viewVirtualWidth, viewLeft, height, false);
+    layout(scrollPos, x0, xSize, xVirtualSize, y1, height, false);
   }
 
   private void layout(
-    int scrollPos,
-    int viewZLimit,
-    int viewSize,
-    int viewVirtualSize,
-    int viewStart,
-    int buttonZSize,
-    boolean isVertical
+      int scrollPos,
+      int viewStart, int viewSize, int viewVirtualSize,
+      int viewZMax, int buttonZSize,
+      boolean isVertical
   ) {
     if (viewVirtualSize <= viewSize) {
       bgSize.set(0, 0);
@@ -128,7 +109,7 @@ public class ScrollBar {
       int buttonLength = scrollControlSize(viewSize, viewVirtualSize, buttonZSize * BUTTON_SIZE);
       int buttonPosition = scrollControlPos(scrollPos, viewSize, viewVirtualSize, buttonLength);
       if (isVertical) {
-        buttonPos.x = viewZLimit - buttonZSize;
+        buttonPos.x = viewZMax - buttonZSize;
         buttonPos.y = buttonPosition + viewStart;
         buttonSize.x = buttonZSize;
         buttonSize.y = buttonLength;
@@ -138,7 +119,7 @@ public class ScrollBar {
         bgSize.y = viewSize;
       } else {
         buttonPos.x = buttonPosition + viewStart;
-        buttonPos.y = viewZLimit - buttonZSize;
+        buttonPos.y = viewZMax - buttonZSize;
         buttonSize.x = buttonLength;
         buttonSize.y = buttonZSize;
         bgPos.x = viewStart;

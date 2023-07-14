@@ -21,8 +21,6 @@
     <teavm.sourceMaps>true</teavm.sourceMaps>
     <teavm.debugInfo>true</teavm.debugInfo>
     <teavm.minifying>false</teavm.minifying>
-
-    <teavm.optimizationLevel1>ADVANCED</teavm.optimizationLevel1>
     <teavm.optimizationLevel>SIMPLE</teavm.optimizationLevel>
 
   </properties>
@@ -34,7 +32,7 @@
         <teavm.sourceMaps>false</teavm.sourceMaps>
         <teavm.debugInfo>false</teavm.debugInfo>
         <teavm.minifying>true</teavm.minifying>
-        <teavm.optimizationLevel>FULL</teavm.optimizationLevel>
+        <teavm.optimizationLevel>ADVANCED</teavm.optimizationLevel>
       </properties>
     </profile>
   </profiles>

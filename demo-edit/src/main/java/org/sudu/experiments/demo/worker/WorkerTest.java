@@ -30,7 +30,7 @@ public class WorkerTest extends Scene0 {
     api.window.sendToWorker(this::intsResult,
         TestJobs.withInts, new int[]{ 1,2,3,4,5 });
 
-    api.input.addListener(new CtrlO(api, this::openDirectory, this::openFile));
+    api.input.onKeyPress.add(new CtrlO(api, this::openDirectory, this::openFile));
   }
 
   private void openFile(FileHandle fileHandle) {

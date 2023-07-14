@@ -74,42 +74,6 @@ public class JsHelper {
     DOMRect getBoundingClientRectD();
   }
 
-  @SuppressWarnings("SuspiciousNameCombination")
-  public static V2i getBoundingClientRect(
-      org.teavm.jso.dom.html.HTMLElement element,
-      JSString id
-  ) {
-    double devicePixelRatio = Window.current().getDevicePixelRatio();
-    JsHelper.consoleInfo("getBoundingClientRect: ", id);
-    DOMRect rect = element.<HTMLElement>cast().getBoundingClientRectD();
-    double top = rect.getTop() * devicePixelRatio;
-    double left = rect.getLeft() * devicePixelRatio;
-    double right = rect.getRight() * devicePixelRatio;
-    double bottom = rect.getBottom() * devicePixelRatio;
-
-    JsHelper.consoleInfo(" dpr = " + devicePixelRatio);
-    JsHelper.consoleInfo("  top * dpr = ", top);
-    JsHelper.consoleInfo("  left * dpr = ", left);
-    JsHelper.consoleInfo("  right * dpr = ", right);
-    JsHelper.consoleInfo("  bottom * dpr = ", bottom);
-    JsHelper.consoleInfo("  doubleW = ", right - left);
-    JsHelper.consoleInfo("  doubleH = ", bottom - top);
-
-    int iTop = Numbers.iRnd(top);
-    int iLeft = Numbers.iRnd(left);
-    int iRight = Numbers.iRnd(right);
-    int iBottom = Numbers.iRnd(bottom);
-
-    JsHelper.consoleInfo("  iTop = ", iTop);
-    JsHelper.consoleInfo("  iLeft = ", iLeft);
-    JsHelper.consoleInfo("  iRight = ", iRight);
-    JsHelper.consoleInfo("  iBottom = ", iBottom);
-
-    int sizeX = iRight - iLeft;
-    int sizeY = iBottom - iTop;
-    return new V2i(sizeX, sizeY);
-  }
-
   @JSBody(params = {"s"}, script = "console.info(s);")
   public static native void consoleInfo(String s);
 

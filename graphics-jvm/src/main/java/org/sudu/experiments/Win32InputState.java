@@ -113,9 +113,9 @@ class Win32InputState {
 
   static int mapMouseButton(int btn) {
     return switch (btn) {
-      case 1 -> InputListener.MOUSE_BUTTON_RIGHT;
-      case 2 -> InputListener.MOUSE_BUTTON_CENTER;
-      default -> InputListener.MOUSE_BUTTON_LEFT;
+      case 1 -> MouseListener.MOUSE_BUTTON_RIGHT;
+      case 2 -> MouseListener.MOUSE_BUTTON_CENTER;
+      default -> MouseListener.MOUSE_BUTTON_LEFT;
     };
   }
 

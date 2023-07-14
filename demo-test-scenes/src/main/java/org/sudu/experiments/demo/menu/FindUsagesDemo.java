@@ -5,18 +5,13 @@ import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.Colors;
 import org.sudu.experiments.demo.IdeaCodeColors;
-import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.ui.*;
 import org.sudu.experiments.fonts.FontDesk;
-import org.sudu.experiments.input.InputListener;
-import org.sudu.experiments.input.KeyCode;
-import org.sudu.experiments.input.KeyEvent;
-import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 
-public class FindUsagesDemo extends Scene0 implements InputListener {
+public class FindUsagesDemo extends Scene0 implements MouseListener {
 
   private final UiContext uiContext;
   private final FindUsagesWindow findUsagesWindow;
@@ -29,7 +24,9 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
     findUsagesWindow = new FindUsagesWindow(uiContext);
     findUsagesWindow.setTheme(DialogItemColors.darkColorScheme());
 
-    api.input.addListener(this);
+    api.input.onMouse.add(this);
+    api.input.onKeyPress.add(this::onKeyPress);
+    api.input.onContextMenu.add(this::onContextMenu);
 
     FontDesk font = api.graphics.fontDesk("Consolas", 25);
 
@@ -87,7 +84,7 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
-    return findUsagesWindow.onMouseMove(event.position, uiContext.windowCursor);
+    return findUsagesWindow.onMouseMove(event.position);
   }
 
   @Override
@@ -95,8 +92,7 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
     return findUsagesWindow.onMousePress(event.position, button, press, clickCount);
   }
 
-  @Override
-  public boolean onContextMenu(MouseEvent event) {
+  boolean onContextMenu(MouseEvent event) {
     if (!findUsagesWindow.isVisible()) {
       openWindow(event.position);
     }
@@ -112,18 +108,11 @@ public class FindUsagesDemo extends Scene0 implements InputListener {
     System.out.println("closed");
   }
 
-  @Override
-  public boolean onKey(KeyEvent event) {
-    if (event.isPressed && event.keyCode == KeyCode.SPACE) {
+  boolean onKeyPress(KeyEvent event) {
+    if (event.keyCode == KeyCode.SPACE) {
       findUsagesWindow.hide();
       return true;
     }
-    if (event.isPressed) {
-      findUsagesWindow.onKey(event);
-      return true;
-    }
-
-    return false;
+    return findUsagesWindow.onKey(event);
   }
-
 }

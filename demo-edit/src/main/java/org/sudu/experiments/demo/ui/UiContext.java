@@ -1,15 +1,13 @@
 package org.sudu.experiments.demo.ui;
 
-import org.sudu.experiments.Canvas;
-import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.Subscribers;
-import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.*;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.math.V2i;
 
 public class UiContext {
 
   public final WglGraphics graphics;
+  public final Window window;
   public final V2i windowSize = new V2i();
   public final SetCursor windowCursor;
   public float dpr;
@@ -19,6 +17,7 @@ public class UiContext {
 
   public UiContext(SceneApi api) {
     this.graphics = api.graphics;
+    this.window = api.window;
     windowCursor = SetCursor.wrap(api.window);
   }
 

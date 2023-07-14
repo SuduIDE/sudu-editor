@@ -4,7 +4,6 @@ import org.sudu.experiments.Disposable;
 import org.sudu.experiments.Scene0;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.Color;
@@ -12,14 +11,14 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.math.XorShiftRandom;
 
-public class WindowSizeTestScene extends Scene0 implements InputListener {
+public class WindowSizeTestScene extends Scene0 {
 
   Disposable disposable;
   V4f mainColor = Color.Cvt.fromHSV(r(), 1, 1);
 
   public WindowSizeTestScene(SceneApi api) {
     super(api);
-    disposable = api.input.addListener(this);
+    disposable = api.input.onKeyPress.disposableAdd(this::onKeyPress);
   }
 
   @Override
@@ -28,12 +27,11 @@ public class WindowSizeTestScene extends Scene0 implements InputListener {
     super.dispose();
   }
 
-  @Override
-  public boolean onKey(KeyEvent event) {
-    if (event.isPressed && event.keyCode == KeyCode.F11) {
+  boolean onKeyPress(KeyEvent event) {
+    if (event.keyCode == KeyCode.F1) {
       api.window.addChild("child", WindowSizeTestScene::new);
     }
-    return InputListener.super.onKey(event);
+    return false;
   }
 
   @Override

@@ -173,7 +173,7 @@ public class LineNumbersComponent implements Disposable {
   }
 
   public boolean onMouseMove(V2i position, SetCursor setCursor) {
-    return Rect.isInside(position, new V2i(0, 0), size) && setCursor.setDefault();
+    return Rect.isInside(position, pos, size) && setCursor.setDefault();
   }
 
   void setPos(V2i pos, int width, int height, double dpr) {

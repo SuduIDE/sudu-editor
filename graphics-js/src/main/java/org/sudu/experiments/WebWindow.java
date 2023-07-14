@@ -1,6 +1,5 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.math.Numbers;
 import org.teavm.jso.browser.AnimationFrameCallback;
@@ -25,7 +24,6 @@ public class WebWindow implements org.sudu.experiments.Window {
 
   final AnimationFrameCallback frameCallback = this::onAnimationFrame;
   final Runnable repaint = this::repaint;
-  final InputListeners inputListeners = new InputListeners(repaint);
   final HTMLElement canvasDiv;
   final HTMLCanvasElement mainCanvas;
   final ResizeObserver observer = ResizeObserver.create(this::onSizeObserved);
@@ -118,7 +116,7 @@ public class WebWindow implements org.sudu.experiments.Window {
   }
 
   private void init(GLApi.Context gl, Function<SceneApi, Scene> sf) {
-    eventHandler = new JsInput(mainCanvas, inputListeners);
+    eventHandler = new JsInput(mainCanvas, repaint);
     g = new WebGraphics(gl, repaint);
     observer.observePixelsOrDefault(mainCanvas);
 
@@ -135,7 +133,7 @@ public class WebWindow implements org.sudu.experiments.Window {
   }
 
   private SceneApi api() {
-    return new SceneApi(g, inputListeners, this);
+    return new SceneApi(g, eventHandler.listeners, this);
   }
 
   private void requestNewFrame() {

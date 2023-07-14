@@ -2,8 +2,8 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.IdeaCodeColors.Colors;
-import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
@@ -18,7 +18,7 @@ public class ScissorDemo extends Scene0 {
   public ScissorDemo(SceneApi api) {
     super(api);
     WglGraphics g = api.graphics;
-    api.input.addListener(new MyInputListener());
+    api.input.onMouse.add(mouseListener());
 
     texture = TestHelper.canvasTexture(g);
     demoRect.setTextureRegionDefault(texture);
@@ -44,21 +44,23 @@ public class ScissorDemo extends Scene0 {
     scissorSize.set(size.x * 9 / 10, size.y * 9 / 10);
   }
 
-  class MyInputListener implements InputListener {
-    @Override
-    public boolean onMouseMove(MouseEvent event) {
-      if (lastMouse != null) {
-        int dx = event.position.x - lastMouse.x;
-        int dy = event.position.y - lastMouse.y;
-        scissorPos.x = Numbers.clamp(0,
-            scissorPos.x + dx,
-            size.x - scissorSize.x);
-        scissorPos.y = Numbers.clamp(0,
-            scissorPos.y - dy,
-            size.y - scissorSize.y);
+  MouseListener mouseListener() {
+    return new MouseListener() {
+      @Override
+      public boolean onMouseMove(MouseEvent event) {
+        if (lastMouse != null) {
+          int dx = event.position.x - lastMouse.x;
+          int dy = event.position.y - lastMouse.y;
+          scissorPos.x = Numbers.clamp(0,
+                  scissorPos.x + dx,
+                  size.x - scissorSize.x);
+          scissorPos.y = Numbers.clamp(0,
+                  scissorPos.y - dy,
+                  size.y - scissorSize.y);
+        }
+        lastMouse = event.position;
+        return true;
       }
-      lastMouse = event.position;
-      return true;
-    }
+    };
   }
 }

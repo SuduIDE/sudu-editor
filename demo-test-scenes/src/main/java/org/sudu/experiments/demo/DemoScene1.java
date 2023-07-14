@@ -2,9 +2,9 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.fonts.Fonts;
-import org.sudu.experiments.input.InputListener;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
@@ -35,7 +35,13 @@ public class DemoScene1 extends Scene {
   public DemoScene1(SceneApi api) {
     super(api);
     WglGraphics g = api.graphics;
-    api.input.addListener(new MyInputListener());
+    api.input.onMouse.add(new MyInputListener());
+    api.input.onKeyPress.add(this::onKeyEvent);
+    api.input.onKeyRelease.add(this::onKeyEvent);
+    api.input.onCopy.add(this::onCopy);
+    api.input.onBlur.add(this::onBlur);
+    api.input.onContextMenu.add(this::onContextMenu);
+    api.input.onScroll.add(this::onScroll);
 
     demoRectTexture = svgTexture();
     demoRect.setTextureRegionDefault(demoRectTexture);
@@ -122,13 +128,6 @@ public class DemoScene1 extends Scene {
     return texture;
   }
 
-  private GL.Texture mouseTexture() {
-    GL.ImageData image = TGen.chess(5, 5);
-    GL.Texture texture = api.graphics.createTexture();
-    texture.setContent(image);
-    return texture;
-  }
-
   int frameN;
   public boolean update(double timestamp) {
     frameN++;
@@ -172,11 +171,32 @@ public class DemoScene1 extends Scene {
     layout(size, dpr);
   }
 
-  class MyInputListener implements InputListener {
-    V2i lastMouse = new V2i();
+  boolean onKeyEvent(KeyEvent event) {
+    System.out.println(
+        (event.isPressed ? "key down = " : "key up = ") + event.key +
+            ", keyCode = " + event.keyCode +
+            ", isRepeated = " + event.isRepeated);
+    return false;
+  }
+
+  boolean onCopy(Consumer<String> setText, boolean isCut) {
+    System.out.println("onCopy");
+    setText.accept("This is a " + (isCut ? "cut" : "copied") + " text sample");
+    return true;
+  }
+
+  boolean onScroll(MouseEvent event, float dX, float dY) {
+    int change = (int) -dY / 10;
+    demoRect.size.x += change;
+    demoRect.size.y += change;
+    demoRect.pos.x -= change / 2;
+    demoRect.pos.y -= change / 2;
+    return true;
+  }
+
+  class MyInputListener implements MouseListener {
     @Override
     public boolean onMouseMove(MouseEvent event) {
-//      System.out.println("event = " + event.position);
       if (drag != null) {
         V2i rcPos = demoRect.pos;
         rcPos.x += event.position.x - drag.x;
@@ -188,29 +208,18 @@ public class DemoScene1 extends Scene {
       int nextY = event.position.y - mouse.size.y; // 2;
       mouse.pos.set(nextX, nextY);
 
-      lastMouse = event.position;
-
       api.window.setCursor(hitTestCursors(event.position));
 
       return true;
     }
 
-    @Override
-    public boolean onMouseWheel(MouseEvent event, double dX, double dY) {
-      int change = (int) -dY / 10;
-      demoRect.size.x += change;
-      demoRect.size.y += change;
-      demoRect.pos.x -= change / 2;
-      demoRect.pos.y -= change / 2;
-      return true;
-    }
 
     @Override
     public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
       String a = press ? "click b=" : "unClick b=";
       System.out.println(a + button + ", count=" + clickCount);
 
-      if (button == InputListener.MOUSE_BUTTON_LEFT && clickCount == 1) {
+      if (button == MouseListener.MOUSE_BUTTON_LEFT && clickCount == 1) {
         V2i p = event.position;
         drag = press && demoRect.isInside(p) ? p : null;
         if (press) {
@@ -219,48 +228,24 @@ public class DemoScene1 extends Scene {
         }
       }
 
-      if (button == InputListener.MOUSE_BUTTON_LEFT && clickCount == 2) {
+      if (button == MouseListener.MOUSE_BUTTON_LEFT && clickCount == 2) {
         setRandomColor(demoRect);
       }
 
       return true;
     }
-
-    @Override
-    public boolean onKey(KeyEvent event) {
-      System.out.println(
-          (event.isPressed ? "key down = " : "key up = ") + event.key +
-              ", keyCode = " + event.keyCode +
-              ", isRepeated = " + event.isRepeated);
-
-      // do not consume copy\paste keys to fire "copy" event
-      // do not consume browser keyboard to allow page reload and debug
-      return !KeyEvent.isCopyPasteRelatedKey(event) && !KeyEvent.isBrowserKey(event);
-    }
-
-    @Override
-    public boolean onContextMenu(MouseEvent event) {
-      System.out.println("menu");
-
-      return true;
-    }
-
-    @Override
-    public boolean onCopy(Consumer<String> setText, boolean isCut) {
-      System.out.println("onCopy");
-      setText.accept("This is a " + (isCut ? "cut" : "copied") + " text sample");
-      return true;
-    }
-
-    @Override
-    public void onBlur() {
-      System.out.println("focus lost");
-    }
   }
 
-  static <T> T readArray(T[] array, int pos) {
-    return array[pos % array.length];
+  boolean onContextMenu(MouseEvent event) {
+    System.out.println("menu");
+
+    return true;
   }
+
+  private void onBlur() {
+    System.out.println("focus lost");
+  }
+
 
   static String[] cursors() {
     return new String[]{

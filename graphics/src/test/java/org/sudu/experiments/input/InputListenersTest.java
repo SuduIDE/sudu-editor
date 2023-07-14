@@ -20,10 +20,10 @@ class InputListenersTest {
   void testDelivery() {
     ListenerRemover r = new ListenerRemover();
 
-    ls.addListener(r);
-    r.toRemove = ls.addListener(l1);
-    ls.addListener(l2);
-    ls.addListener(l3);
+    ls.onBlur.add(r);
+    r.toRemove = ls.onBlur.disposableAdd(l1);
+    ls.onBlur.add(l2);
+    ls.onBlur.add(l3);
 
     ls.sendBlurEvent();
 
@@ -47,24 +47,18 @@ class InputListenersTest {
 
   @Test
   void testDisposeManyTimes() {
-    Disposable d = ls.addListener(l1);
+    Disposable d = ls.onBlur.disposableAdd(l1);
 
     d.dispose();
 
-    try {
-      d.dispose();
-      Assertions.fail("no exception on second dispose");
-    } catch (RuntimeException ignored) {}
-    try {
-      d.dispose();
-      Assertions.fail("no exception on 3rd dispose");
-    } catch (RuntimeException ignored) {}
+    d.dispose();
+    d.dispose();
   }
 
-  class Listener implements InputListener {
+  class Listener implements Runnable {
     boolean fired = false;
     int order;
-    public void onBlur() {
+    public void run() {
       fired = true;
       this.order = getOrder();
     }
@@ -73,8 +67,8 @@ class InputListenersTest {
   class ListenerRemover extends Listener {
     Disposable toRemove;
     @Override
-    public void onBlur() {
-      super.onBlur();
+    public void run() {
+      super.run();
       toRemove.dispose();
       toRemove = Disposable.empty();
     }

@@ -6,15 +6,12 @@ import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.Colors;
 import org.sudu.experiments.demo.ui.*;
 import org.sudu.experiments.fonts.FontDesk;
-import org.sudu.experiments.input.InputListener;
-import org.sudu.experiments.input.KeyCode;
-import org.sudu.experiments.input.KeyEvent;
-import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.*;
 
 import java.util.function.Supplier;
 
-public class ToolbarDemo extends Scene0 implements InputListener, DprChangeListener {
+public class ToolbarDemo extends Scene0 implements MouseListener, DprChangeListener {
 
   private final FontDesk font;
 
@@ -32,7 +29,9 @@ public class ToolbarDemo extends Scene0 implements InputListener, DprChangeListe
     popupMenu = new PopupMenu(uiContext);
     uiContext.dprListeners.add(this);
 
-    api.input.addListener(this);
+    api.input.onKeyPress.add(this::onKeyPress);
+    api.input.onMouse.add(this);
+    api.input.onContextMenu.add(this::onContextMenu);
 
     tbV.setLayoutVertical();
     font = api.graphics.fontDesk("Consolas", 25);
@@ -147,7 +146,7 @@ public class ToolbarDemo extends Scene0 implements InputListener, DprChangeListe
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
-    boolean r = popupMenu.onMouseMove(event.position, uiContext.windowCursor);
+    boolean r = popupMenu.onMouseMove(event.position);
     boolean tbHResult = tbH.onMouseMove(event.position, uiContext.windowCursor);
     boolean tbVResult = tbV.onMouseMove(event.position, uiContext.windowCursor);
     return r || tbHResult || tbVResult;
@@ -161,8 +160,7 @@ public class ToolbarDemo extends Scene0 implements InputListener, DprChangeListe
     return r || tbHResult || tbVResult;
   }
 
-  @Override
-  public boolean onContextMenu(MouseEvent event) {
+  boolean onContextMenu(MouseEvent event) {
     System.out.println("onContextMenu");
     if (!popupMenu.isVisible()) {
       popupMenu.display(event.position, items(4),
@@ -175,17 +173,10 @@ public class ToolbarDemo extends Scene0 implements InputListener, DprChangeListe
     System.out.println("onPopupClosed");
   }
 
-  @Override
-  public boolean onKey(KeyEvent event) {
-    if (event.isPressed && event.keyCode == KeyCode.SPACE) {
+  private boolean onKeyPress(KeyEvent event) {
+    if (event.keyCode == KeyCode.SPACE) {
       tbV.dispose();
-      return true;
     }
-    return false;
-  }
-
-  @Override
-  public boolean update(double timestamp) {
     return false;
   }
 }

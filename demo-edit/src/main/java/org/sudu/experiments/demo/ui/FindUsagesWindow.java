@@ -71,8 +71,8 @@ public class FindUsagesWindow implements DprChangeListener {
     view.render(context);
   }
 
-  public boolean onMouseMove(V2i mouse, SetCursor windowCursor) {
-    return view.onMouseMove(mouse, windowCursor);
+  public boolean onMouseMove(V2i mouse) {
+    return view.onMouseMove(mouse, context.windowCursor);
   }
 
   public boolean onMousePress(V2i position, int button, boolean press, int clickCount) {
