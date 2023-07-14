@@ -1091,7 +1091,7 @@ public class EditorComponent implements Disposable {
   }
 
   public boolean onKeyPress(KeyEvent event) {
-    Debug.consoleInfo("EditorComponent::onKey: "+ event.desc());
+//    Debug.consoleInfo("EditorComponent::onKey: "+ event.desc());
 
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
 
