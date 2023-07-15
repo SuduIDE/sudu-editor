@@ -836,7 +836,7 @@ public class EditorComponent implements Disposable {
     model.document.moveToElementStart(pos);
     Pos def = model.document.usageToDef.get(pos);
     if (def != null) {
-      gotoUsageMenuElement(def);
+      gotoUsage(def);
       return;
     }
 
@@ -860,13 +860,11 @@ public class EditorComponent implements Disposable {
     }
   }
 
-  // TODO(Minor): Move usageMenu.hide() out off & rename method
-  public final void gotoUsageMenuElement(Pos defPos) {
+  public final void gotoUsage(Pos defPos) {
     setCaretLinePos(defPos.line, defPos.pos, false);
     int nextPos = caretCodeLine().nextPos(caretCharPos);
     selection.endPos.set(caretLine, nextPos);
     selection.startPos.set(caretLine, caretCharPos);
-    ui.usagesMenu.hide();
   }
 
   void provideReferences(int line, int column, boolean includeDeclaration) {
@@ -957,13 +955,13 @@ public class EditorComponent implements Disposable {
   private boolean gotoByLocalProvider(V2i position, Pos elementStart) {
     var defPos = model.document.usageToDef.get(elementStart);
     if (defPos != null) {
-      gotoUsageMenuElement(defPos);
+      gotoUsage(defPos);
       return true;
     } else {
       var usagesList = model.document.defToUsages.get(elementStart);
       if (usagesList != null && !usagesList.isEmpty()) {
         if (usagesList.size() == 1) {
-          gotoUsageMenuElement(usagesList.get(0));
+          gotoUsage(usagesList.get(0));
           return true;
         } else {
           ui.showUsagesWindow(position, usagesList, this);
@@ -983,7 +981,6 @@ public class EditorComponent implements Disposable {
   }
 
   public void gotoDefinition(Location loc) {
-    ui.usagesMenu.hide();
     if (!Objects.equals(loc.uri, model.uri)) {
       EditorOpener editorOpener = registrations.findOpener();
       if (editorOpener != null) {

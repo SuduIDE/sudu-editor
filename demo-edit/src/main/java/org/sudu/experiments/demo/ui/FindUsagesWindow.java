@@ -146,9 +146,9 @@ public class FindUsagesWindow implements DprChangeListener {
         pos = null;
         def = defs[i];
       }
-      Runnable action = defs == null
-              ? () -> edit.gotoUsageMenuElement(pos)
-              : () -> edit.gotoDefinition(def);
+      Runnable action = hideAnd(defs == null
+          ? () -> edit.gotoUsage(pos)
+          : () -> edit.gotoDefinition(def));
       tbb.addItem(
           fileName,
           lineNumber,
@@ -158,6 +158,13 @@ public class FindUsagesWindow implements DprChangeListener {
       );
     }
     return tbb.items();
+  }
+
+  private Runnable hideAnd(Runnable r) {
+    return  () -> {
+      hide();
+      r.run();
+    };
   }
 
   public boolean onKey(KeyEvent event) {
