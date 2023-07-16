@@ -63,18 +63,17 @@ public class WindowTest {
       }
 
       switch (msg) {
-        case WindowPeer.WM_CLOSE:
+        case WindowPeer.WM_CLOSE -> {
           opened = false;
           System.out.println("WindowPeer.WM_CLOSE");
-          break;
-
-        case WindowPeer.WM_DESTROY:
+        }
+        case WindowPeer.WM_DESTROY -> {
           destroyed = true;
           System.out.println("WindowPeer.WM_DESTROY");
-          break;
-
-        case WindowPeer.WM_SETCURSOR:
+        }
+        case WindowPeer.WM_SETCURSOR -> {
           return Win32.DefWindowProcW(hWnd, msg, wParam, lParam);
+        }
       }
       return WindowTest.windowProc(hWnd, msg, wParam, lParam);
     }
@@ -112,20 +111,15 @@ public class WindowTest {
       }
 
       switch (msg) {
-        case WindowPeer.WM_CREATE:
+        case WindowPeer.WM_CREATE -> {
           opened++;
           System.out.println("WindowPeer.WM_CREATE");
-          break;
-        case WindowPeer.WM_CLOSE:
-          System.out.println("WindowPeer.WM_CLOSE");
-          break;
-
-        case WindowPeer.WM_DESTROY:
-          opened--;
-          break;
-
-        case WindowPeer.WM_SETCURSOR:
+        }
+        case WindowPeer.WM_CLOSE -> System.out.println("WindowPeer.WM_CLOSE");
+        case WindowPeer.WM_DESTROY -> opened--;
+        case WindowPeer.WM_SETCURSOR -> {
           return Win32.DefWindowProcW(hWnd, msg, wParam, lParam);
+        }
       }
       return WindowTest.windowProc(hWnd, msg, wParam, lParam);
     }
