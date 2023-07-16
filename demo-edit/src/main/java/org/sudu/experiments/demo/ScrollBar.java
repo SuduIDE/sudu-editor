@@ -141,8 +141,15 @@ public class ScrollBar {
   }
 
   public void draw(WglGraphics g) {
+    drawBg(g);
+    drawButton(g);
+  }
+
+  public void drawBg(WglGraphics g) {
     g.drawRect(bgPos.x, bgPos.y, bgSize, color1);
-//    g.drawRect(pos.x, pos.y, size, color1);
+  }
+
+  public void drawButton(WglGraphics g) {
     buttonSize.x -= 2; buttonSize.y -= 2;
     g.drawRect(buttonPos.x + 1, buttonPos.y + 1, buttonSize, color2);
     buttonSize.x += 2; buttonSize.y += 2;

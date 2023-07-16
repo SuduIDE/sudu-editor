@@ -563,14 +563,14 @@ public class EditorComponent implements Disposable {
   }
 
   private void drawScrollBar() {
-    // draw v-scroll bar
-    if (vScroll.visible()) {
+    boolean vv = vScroll.visible();
+    boolean hv = hScroll.visible();
+    if (vv || hv) {
       g.enableBlend(true);
-      vScroll.draw(g);
-    }
-    if (hScroll.visible()) {
-      g.enableBlend(true);
-      hScroll.draw(g);
+      if (vv) vScroll.drawBg(g);
+      if (hv) hScroll.drawBg(g);
+      if (vv) vScroll.drawButton(g);
+      if (hv) hScroll.drawButton(g);
     }
   }
 
