@@ -48,6 +48,7 @@ public class PopupMenu implements DprChangeListener, Focusable {
 
   public void hide() {
     if (isVisible()) {
+      context.removeFocus(this);
       removePopupsAfter(null);
       onClose.run();
       onClose = Const.emptyRunnable;

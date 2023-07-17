@@ -171,7 +171,6 @@ public class ToolbarDemo extends Scene0 implements MouseListener, DprChangeListe
   }
 
   private void onPopupClosed() {
-    uiContext.setFocus(null);
     System.out.println("onPopupClosed");
   }
 
