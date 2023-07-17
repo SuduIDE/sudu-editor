@@ -59,8 +59,8 @@ public class InputListeners {
     var toSend = e.isPressed ? onKeyPress : onKeyRelease;
 
     for (Predicate<KeyEvent> listener : toSend.array()) {
-      if (listener.test(e)) e.prevented = true;
-      if (e.prevented) break;
+      boolean value = listener.test(e);
+      if (value || e.prevented) return value;
     }
 
     return false;

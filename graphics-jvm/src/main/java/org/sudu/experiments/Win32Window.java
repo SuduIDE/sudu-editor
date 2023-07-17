@@ -387,7 +387,9 @@ public class Win32Window implements WindowPeer, Window {
 
   @Override
   public void showOpenFilePicker(Consumer<FileHandle> onResult) {
+    onEnterExitSizeMove(hWnd, true);
     String file = Win32FileDialog.openFileDialog(hWnd);
+    onEnterExitSizeMove(hWnd, false);
     if (file != null) {
       FileHandle fh = new JvmFileHandle(file, new String[0], bgWorker, eventQueue);
       eventQueue.execute(() -> onResult.accept(fh));
