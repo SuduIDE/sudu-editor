@@ -39,15 +39,15 @@ public class DemoEdit0 extends Scene {
     ui = new EditorUi(uiContext);
     uiContext.dprListeners.add(this::onDprChange);
     editor = new EditorComponent(uiContext, ui);
-    ui.usagesMenu.onClose(editor::onFocusGain);
+    uiContext.initFocus(editor);
 
     api.input.onMouse.add(new EditInput());
     api.input.onKeyPress.add(this::onKeyPress);
     api.input.onKeyPress.add(new CtrlO(api, editor::openFile));
     api.input.onCopy.add(this::onCopy);
     api.input.onPaste.add(this::onPastePlainText);
-    api.input.onFocus.add(this::onFocus);
-    api.input.onBlur.add(this::onBlur);
+    api.input.onFocus.add(uiContext::sendFocusGain);
+    api.input.onBlur.add(uiContext::sendFocusLost);
     api.input.onContextMenu.add(this::onContextMenu);
     api.input.onScroll.add(this::onScroll);
     toggleDark();
@@ -129,25 +129,17 @@ public class DemoEdit0 extends Scene {
       return true;
     }
 
-    return ui.onKeyPress(event) || editor.onKeyPress(event);
+    return uiContext.onKeyPress(event);
   }
 
   boolean onCopy(Consumer<String> setText, boolean isCut) {
     return editor.onCopy(setText, isCut);
   }
 
-  void onBlur() {
-    ui.onFocusLost();
-    editor.onFocusLost();
-  }
-
-  void onFocus() {
-    if (!ui.onFocusGain())
-      editor.onFocusGain();
-  }
-
   boolean onContextMenu(MouseEvent event) {
-    ui.showContextMenu(event, editor, DemoEdit0.this);
+    if (uiContext.isFocused(editor)) {
+      ui.showContextMenu(event, editor, DemoEdit0.this);
+    }
     return true;
   }
 

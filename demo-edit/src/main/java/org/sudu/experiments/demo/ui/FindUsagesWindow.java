@@ -11,7 +11,7 @@ import org.sudu.experiments.parser.common.Pos;
 import java.util.List;
 import java.util.Objects;
 
-public class FindUsagesWindow implements DprChangeListener {
+public class FindUsagesWindow implements DprChangeListener, Focusable {
   private final FindUsagesDialog view = new FindUsagesDialog();
   private final UiContext context;
   private FontDesk font;
@@ -35,23 +35,23 @@ public class FindUsagesWindow implements DprChangeListener {
     view.setTheme(dialogItemColors);
   }
 
-  public void onClose(Runnable onClose) {
-    this.onClose = onClose;
-  }
-
-  public void display(V2i mousePos, FindUsagesItem[] actions) {
+  public void display(V2i mousePos, FindUsagesItem[] actions, Runnable onClose) {
     if (font == null || isVisible()) {
       throw new IllegalArgumentException();
     }
     view.setItems(actions);
     view.measure(context);
     view.setScreenLimitedPosition(mousePos.x, mousePos.y, context.windowSize);
+    context.setFocus(this);
+    this.onClose = onClose;
   }
 
   public boolean hide() {
     if (isVisible()) {
+      context.removeFocus(this);
       onClose.run();
-      dispose();
+      onClose = Const.emptyRunnable;
+      view.dispose();
       return true;
     }
     return false;
@@ -85,6 +85,7 @@ public class FindUsagesWindow implements DprChangeListener {
 
   public void dispose() {
     onClose = Const.emptyRunnable;
+    context.removeFocus(this);
     view.dispose();
   }
 
@@ -167,7 +168,8 @@ public class FindUsagesWindow implements DprChangeListener {
     };
   }
 
-  public boolean onKey(KeyEvent event) {
+  @Override
+  public boolean onKeyPress(KeyEvent event) {
     if (!isVisible()) return false;
     return switch (event.keyCode) {
       case KeyCode.ESC -> hide();

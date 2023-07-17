@@ -2,7 +2,6 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.Const;
 import org.sudu.experiments.demo.DemoRect;
-import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -11,7 +10,7 @@ import org.sudu.experiments.math.V2i;
 import java.util.ArrayList;
 import java.util.function.Supplier;
 
-public class PopupMenu implements DprChangeListener {
+public class PopupMenu implements DprChangeListener, Focusable {
   private final UiContext context;
   private final ArrayList<Toolbar> toolbars = new ArrayList<>();
   private FontDesk font;
@@ -44,6 +43,7 @@ public class PopupMenu implements DprChangeListener {
 
     Toolbar rootMenu = displaySubMenu(mousePos, actions, null);
     rootMenu.onClickOutside(this::hide);
+    context.setFocus(this);
   }
 
   public void hide() {
@@ -117,7 +117,7 @@ public class PopupMenu implements DprChangeListener {
   }
 
     // todo: add keyboard up-down-left-right navigation
-  public boolean onKey(KeyEvent event) {
+  public boolean onKeyPress(KeyEvent event) {
     if (!isVisible()) return false;
     return switch (event.keyCode) {
       case KeyCode.ESC -> {
@@ -169,6 +169,7 @@ public class PopupMenu implements DprChangeListener {
   }
 
   public void dispose() {
+    context.removeFocus(this);
     disposeList(toolbars);
   }
 }

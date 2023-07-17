@@ -4,6 +4,7 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.demo.ui.Focusable;
 import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.demo.worker.parser.*;
 import org.sudu.experiments.fonts.FontDesk;
@@ -22,7 +23,7 @@ import java.util.function.IntUnaryOperator;
 
 import static org.sudu.experiments.input.MouseListener.MOUSE_BUTTON_LEFT;
 
-public class EditorComponent implements Disposable {
+public class EditorComponent implements Focusable {
   final UiContext context;
   final WglGraphics g;
   final EditorUi ui;
@@ -93,8 +94,6 @@ public class EditorComponent implements Disposable {
     this.context = context;
     this.g = context.graphics;
     this.ui = ui;
-
-    if (context.window.hasFocus()) onFocusGain();
 
     debugFlags[0] = this::toggleContrast;
     debugFlags[1] = this::toggleBlankLines;
@@ -667,6 +666,7 @@ public class EditorComponent implements Disposable {
 
   void openFile(FileHandle f) {
     Debug.consoleInfo("opening file " + f.getName());
+    window().setTitle(f.getName());
     setCaretLinePos(0, 0, false);
     // f.readAsBytes(this::onFileLoad, System.err::println);
     parsingTimeStart = System.currentTimeMillis();

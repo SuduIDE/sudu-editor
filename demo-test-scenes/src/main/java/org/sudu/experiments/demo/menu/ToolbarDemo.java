@@ -30,6 +30,7 @@ public class ToolbarDemo extends Scene0 implements MouseListener, DprChangeListe
     uiContext.dprListeners.add(this);
 
     api.input.onKeyPress.add(this::onKeyPress);
+    api.input.onKeyPress.add(uiContext::onKeyPress);
     api.input.onMouse.add(this);
     api.input.onContextMenu.add(this::onContextMenu);
 
@@ -170,6 +171,7 @@ public class ToolbarDemo extends Scene0 implements MouseListener, DprChangeListe
   }
 
   private void onPopupClosed() {
+    uiContext.setFocus(null);
     System.out.println("onPopupClosed");
   }
 

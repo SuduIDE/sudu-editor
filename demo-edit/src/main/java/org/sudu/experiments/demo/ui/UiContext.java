@@ -2,6 +2,7 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.SetCursor;
+import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.V2i;
 
 public class UiContext {
@@ -11,6 +12,8 @@ public class UiContext {
   public final V2i windowSize = new V2i();
   public final SetCursor windowCursor;
   public float dpr;
+
+  private Focusable focused;
 
   public final Subscribers<DprChangeListener> dprListeners
       = new Subscribers<>(new DprChangeListener[0]);
@@ -30,6 +33,49 @@ public class UiContext {
         if (listener != null) listener.onDprChanged(oldDpr, newDpr);
       }
     }
+  }
+
+  public boolean onKeyPress(KeyEvent event) {
+    return focused != null && focused.onKeyPress(event);
+  }
+
+  public void sendFocusGain() {
+    if (focused != null) {
+      focused.onFocusGain();
+    }
+  }
+
+  public void sendFocusLost() {
+    if (focused != null) {
+      focused.onFocusLost();
+    }
+  }
+
+  public void initFocus(Focusable f) {
+    boolean hasFocus = window.hasFocus();
+    if (hasFocus) sendFocusLost();
+    focused = f;
+    if (hasFocus) sendFocusGain();
+  }
+
+  public void setFocus(Focusable f) {
+    sendFocusLost();
+    focused = f;
+    sendFocusGain();
+  }
+
+  public void removeFocus(Focusable f) {
+    if (focused == f) {
+      focused = null;
+    }
+  }
+
+  public boolean isFocused(Focusable f) {
+    return f == focused;
+  }
+
+  public Focusable focusable() {
+    return focused;
   }
 
   public Canvas mCanvas() { return graphics.mCanvas; }

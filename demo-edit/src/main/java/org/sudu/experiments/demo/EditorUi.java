@@ -3,7 +3,6 @@ package org.sudu.experiments.demo;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.Window;
 import org.sudu.experiments.demo.ui.*;
-import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
@@ -44,10 +43,6 @@ class EditorUi {
     popupMenu.paint();
   }
 
-  boolean onKeyPress(KeyEvent event) {
-    return usagesMenu.onKey(event) || popupMenu.onKey(event);
-  }
-
   boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
     return usagesMenu.onMousePress(event.position, button, press, clickCount)
         || popupMenu.onMousePress(event.position, button, press, clickCount);
@@ -58,30 +53,26 @@ class EditorUi {
         || popupMenu.onMouseMove(event.position);
   }
 
-  void onFocusLost() {
-    popupMenu.hide();
+  void showUsagesWindow(V2i position, List<Pos> usagesList, EditorComponent editor) {
+    showUsagesWindow(position, editor, usagesMenu.buildUsagesItems(usagesList, editor));
   }
 
-  boolean onFocusGain() {
-    return false;
+  void showUsagesWindow(V2i position, Location[] locs, EditorComponent editor) {
+    showUsagesWindow(position, editor, usagesMenu.buildDefItems(locs, editor));
   }
 
-  void showUsagesWindow(V2i position, List<Pos> usagesList, EditorComponent edit) {
+  void showUsagesWindow(V2i position, EditorComponent editor, FindUsagesItem[] actions) {
     usagesMenu.hide();
-    usagesMenu.display(position,
-        usagesMenu.buildUsagesItems(usagesList, edit));
-  }
-
-  void showUsagesWindow(V2i position, Location[] locs, EditorComponent edit) {
-    usagesMenu.hide();
-    usagesMenu.display(position,
-        usagesMenu.buildDefItems(locs, edit));
+    usagesMenu.display(position, actions, setEditFocus(editor));
   }
 
   void displayNoUsagesPopup(V2i position, EditorComponent edit) {
-    usagesMenu.hide();
     popupMenu.hide();
-    popupMenu.display(position, noDefOrUsagesPop(), edit::onFocusGain);
+    popupMenu.display(position, noDefOrUsagesPop(), setEditFocus(edit));
+  }
+
+  Runnable setEditFocus(EditorComponent editor) {
+    return () -> uiContext.setFocus(editor);
   }
 
   private Supplier<ToolbarItem[]> noDefOrUsagesPop() {
@@ -97,8 +88,7 @@ class EditorUi {
     if (!popupMenu.isVisible()) {
       popupMenu.display(event.position,
           new PopupMenuBuilder(editor, demoEdit0).build(event.position),
-          editor::onFocusGain);
-      editor.onFocusLost();
+          setEditFocus(editor));
     }
   }
 
@@ -175,6 +165,7 @@ class EditorUi {
     }
 
     void showOpenFilePicker() {
+      popupMenu.hide();
       window().showOpenFilePicker(editor::openFile);
     }
 

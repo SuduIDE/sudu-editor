@@ -26,6 +26,7 @@ public class FindUsagesDemo extends Scene0 implements MouseListener {
 
     api.input.onMouse.add(this);
     api.input.onKeyPress.add(this::onKeyPress);
+    api.input.onKeyPress.add(uiContext::onKeyPress);
     api.input.onContextMenu.add(this::onContextMenu);
 
     FontDesk font = api.graphics.fontDesk("Consolas", 25);
@@ -100,8 +101,7 @@ public class FindUsagesDemo extends Scene0 implements MouseListener {
   }
 
   private void openWindow(V2i position) {
-    findUsagesWindow.onClose(this::onPopupClosed);
-    findUsagesWindow.display(position, createItems());
+    findUsagesWindow.display(position, createItems(), this::onPopupClosed);
   }
 
   private void onPopupClosed() {
@@ -113,6 +113,6 @@ public class FindUsagesDemo extends Scene0 implements MouseListener {
       findUsagesWindow.hide();
       return true;
     }
-    return findUsagesWindow.onKey(event);
+    return false;
   }
 }
