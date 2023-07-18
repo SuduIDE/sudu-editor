@@ -13,39 +13,44 @@ import java.util.*;
 
 public abstract class ParserUtils {
 
-  public static Document makeDocument(int[] ints, char[] chars) {
-    return updateDocument(null, ints, chars, false);
+  public static void updateDocument(Document document, int[] ints, char[] chars) {
+    updateDocument(document, ints, chars, false);
   }
 
-  public static Document updateDocument(Document document, int[] ints, char[] chars, boolean isFirstLinesParsed) {
+  public static void updateDocument(Document document, int[] ints, char[] chars, boolean saveOldLines) {
     ArrayReader reader = new ArrayReader(ints);
 
     int N = reader.next();
     int K = reader.next();
     int L = reader.next();
-    CodeLine[] newDocument = new CodeLine[N];
+
+    int documentLength = document.length();
+
+    document.document = saveOldLines
+        ? ArrayOp.resizeOrReturn(document.document, N)
+        : new CodeLine[N];
 
     for (int i = 0; i < N; i++) {
-      if (document != null && isFirstLinesParsed && i < document.length()) {
+      if (saveOldLines && i < documentLength) {
         int len = reader.next();
-        newDocument[i] = document.line(i);
         reader.skip(4 * len);
         continue;
       }
       CodeElement[] elements = readElements(reader, chars, 0);
-      newDocument[i] = new CodeLine(elements);
+      document.document[i] = new CodeLine(elements);
     }
 
     List<Interval> intervalList = ParserUtils.getIntervalList(reader, K);
-    Document updDocument = new Document(newDocument, intervalList);
+    document.tree = new IntervalTree(intervalList);
 
-    ParserUtils.getUsageToDefMap(reader, L, updDocument.usageToDef);
-    ParserUtils.getDefToUsagesMap(updDocument.usageToDef, updDocument.defToUsages);
+    document.usageToDef.clear();
+    document.defToUsages.clear();
+    ParserUtils.getUsageToDefMap(reader, L, document.usageToDef);
+    ParserUtils.getDefToUsagesMap(document.usageToDef, document.defToUsages);
     reader.checkSize();
-    return updDocument;
   }
 
-  public static void updateDocument(Document document, int[] ints, char[] chars) {
+  public static void updateDocumentInterval(Document document, int[] ints, char[] chars) {
     if (ints.length == 1 && ints[0] == -1) return;
 
     ArrayReader reader = new ArrayReader(ints);

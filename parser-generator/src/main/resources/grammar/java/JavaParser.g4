@@ -790,5 +790,4 @@ compilationUnitOrAny
     | anySeq+?
     ;
 
-anySeq:
-    .+;
+anySeq: .;

@@ -13,7 +13,7 @@ import java.util.function.BiConsumer;
 public class Document {
   public static final char newLine = '\n';
 
-  CodeLine[] document;
+  public CodeLine[] document;
   public IntervalTree tree;
   public final Map<Pos, Pos> usageToDef = new HashMap<>();
   public final Map<Pos, List<Pos>> defToUsages = new HashMap<>();

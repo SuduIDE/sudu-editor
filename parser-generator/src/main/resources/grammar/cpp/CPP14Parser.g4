@@ -833,4 +833,4 @@ unknownInterval
     | EOF
     ;
 
-anySeq: .+;
+anySeq: .;
