@@ -3,7 +3,10 @@ package org.sudu.experiments.parser.java.parser;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.BaseFullParser;
+import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.java.JavaStructureSplitRules;
 import org.sudu.experiments.parser.java.gen.st.JavaStructureLexer;
 import org.sudu.experiments.parser.java.gen.st.JavaStructureParser;
 import org.sudu.experiments.parser.java.walker.StructureWalker;
@@ -40,15 +43,9 @@ public class JavaFullStructureParser extends BaseFullParser {
     return result;
   }
 
-  @Override
   protected boolean isComment(int type) {
     return type == JavaStructureLexer.COMMENT
         || type == JavaStructureLexer.LINE_COMMENT;
-  }
-
-  @Override
-  protected boolean isMultilineToken(int tokenType) {
-    return true;
   }
 
   @Override
@@ -57,10 +54,24 @@ public class JavaFullStructureParser extends BaseFullParser {
   }
 
   @Override
+  protected SplitRules initSplitRules() {
+    return new JavaStructureSplitRules();
+  }
+
+  @Override
   protected boolean tokenFilter(Token token) {
     int type = token.getType();
     return type != JavaStructureLexer.NEW_LINE
         && type != JavaStructureLexer.EOF;
+  }
+
+  @Override
+  protected void highlightTokens() {
+    for (var token: allTokens) {
+      int ind = token.getTokenIndex();
+      if (isComment(token.getType())) tokenTypes[ind] = TokenTypes.COMMENT;
+      if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
+    }
   }
 
 }

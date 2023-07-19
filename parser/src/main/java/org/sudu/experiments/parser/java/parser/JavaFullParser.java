@@ -1,12 +1,17 @@
 package org.sudu.experiments.parser.java.parser;
 
 import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.Pair;
+import org.antlr.v4.runtime.misc.Predicate;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.ErrorHighlightingStrategy;
 import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.SplitToken;
 import org.sudu.experiments.parser.common.BaseFullParser;
+import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting;
+import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.help.JavaStringSplitter;
@@ -16,6 +21,7 @@ import org.sudu.experiments.parser.java.walker.JavaWalker;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import static org.sudu.experiments.parser.ParserConstants.*;
 
@@ -67,37 +73,13 @@ public class JavaFullParser extends BaseFullParser {
   }
 
   @Override
-  protected List<Token> splitToken(Token token) {
-    int tokenType = token.getType();
-    if (tokenType == JavaLexer.COMMENT) return splitTokenByLine(token);
-    if (tokenType == JavaLexer.TEXT_BLOCK || tokenType == JavaLexer.STRING_LITERAL || tokenType == JavaLexer.CHAR_LITERAL) {
-      JavaStringSplitter splitter = new JavaStringSplitter(CharStreams.fromString(token.getText()));
-      var splitTokenStream = new CommonTokenStream(splitter);
-      splitTokenStream.fill();
-      ArrayList<Token> result = new ArrayList<>();
-      int line = token.getLine() - 1, start = token.getStartIndex();
-
-      for (var splitToken : splitTokenStream.getTokens()) {
-        int splitTokenType = splitToken.getType();
-        if (splitTokenType == JavaStringSplitter.NEW_LINE || splitTokenType == JavaStringSplitter.EOF) continue;
-
-        int type = splitTokenType == JavaStringSplitter.ESCAPE ? TokenTypes.KEYWORD : TokenTypes.STRING;
-        result.add(new SplitToken(splitToken, line, start, type));
-      }
-      return result;
-    }
-    return Collections.singletonList(token);
-  }
-
-  @Override
-  protected boolean isMultilineToken(int tokenType) {
-    return tokenType == JavaLexer.COMMENT
-        || tokenType == JavaLexer.TEXT_BLOCK;
-  }
-
-  @Override
   protected Lexer initLexer(CharStream stream) {
     return new JavaLexer(stream);
+  }
+
+  @Override
+  protected SplitRules initSplitRules() {
+    return new JavaSplitRules();
   }
 
   @Override
@@ -108,13 +90,22 @@ public class JavaFullParser extends BaseFullParser {
   }
 
   @Override
-  protected boolean isComment(int type) {
+  protected boolean isErrorToken(int tokenType) {
+    return tokenType == JavaLexer.ERROR;
+  }
+
+  public static boolean isComment(int type) {
     return type == JavaLexer.COMMENT
         || type == JavaLexer.LINE_COMMENT;
   }
 
   @Override
-  protected boolean isErrorToken(int tokenType) {
-    return tokenType == JavaLexer.ERROR;
+  protected void highlightTokens() {
+    for (var token: allTokens) {
+      int ind = token.getTokenIndex();
+      if (isComment(token.getType())) tokenTypes[ind] = TokenTypes.COMMENT;
+      if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
+    }
   }
+
 }

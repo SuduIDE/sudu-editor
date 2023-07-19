@@ -22,6 +22,7 @@ public class CppLexerHighlighting {
       else if (isComment(token.getType())) tokenTypes[ind] = COMMENT;
       else if (isDirective(token.getType())) tokenTypes[ind] = ANNOTATION;
       else if (isOperator(token.getType())) tokenTypes[ind] = OPERATOR;
+      else if (isError(token.getType())) tokenTypes[ind] = ERROR;
     }
   }
 
@@ -69,6 +70,10 @@ public class CppLexerHighlighting {
         || tokenType == CPP14Lexer.RightBracket
         || (tokenType >= CPP14Lexer.Plus
         && tokenType <= CPP14Lexer.Ellipsis);
+  }
+
+  public static boolean isError(int tokenType) {
+    return tokenType == CPP14Lexer.ERROR;
   }
 
 }

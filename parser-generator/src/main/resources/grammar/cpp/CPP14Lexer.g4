@@ -407,3 +407,5 @@ Newline: ('\r' '\n'? | '\n') -> channel(HIDDEN);
 BlockComment: '/*' .*? '*/' -> channel(HIDDEN);
 
 LineComment: '//' ~ [\r\n]* -> channel(HIDDEN);
+
+ERROR:              . -> channel(HIDDEN);

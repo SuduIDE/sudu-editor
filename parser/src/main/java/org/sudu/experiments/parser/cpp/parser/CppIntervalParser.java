@@ -7,6 +7,8 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.BaseIntervalParser;
+import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.cpp.CppSplitRules;
 import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
 import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
 import org.sudu.experiments.parser.cpp.walker.CppWalker;
@@ -47,22 +49,13 @@ public class CppIntervalParser extends BaseIntervalParser {
   }
 
   @Override
-  protected boolean isMultilineToken(int tokenType) {
-    return tokenType == CPP14Lexer.BlockComment
-        || tokenType == CPP14Lexer.Directive
-        || tokenType == CPP14Lexer.MultiLineMacro
-        || tokenType == CPP14Lexer.StringLiteral;
-  }
-
-  @Override
-  protected boolean isComment(int tokenType) {
-    return tokenType == CPP14Lexer.BlockComment
-        || tokenType == CPP14Lexer.LineComment;
-  }
-
-  @Override
   protected Lexer initLexer(CharStream stream) {
     return new CPP14Lexer(stream);
+  }
+
+  @Override
+  protected SplitRules initSplitRules() {
+    return new CppSplitRules();
   }
 
   @Override
@@ -85,4 +78,15 @@ public class CppIntervalParser extends BaseIntervalParser {
     return tokenType == CPP14Lexer.Directive
         || tokenType == CPP14Lexer.MultiLineMacro;
   }
+
+  public static boolean isComment(int tokenType) {
+    return tokenType == CPP14Lexer.BlockComment
+        || tokenType == CPP14Lexer.LineComment;
+  }
+
+  @Override
+  protected boolean isErrorToken(int tokenType) {
+    return tokenType == CPP14Lexer.ERROR;
+  }
+
 }

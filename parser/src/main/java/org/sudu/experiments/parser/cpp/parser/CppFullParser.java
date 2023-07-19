@@ -6,13 +6,14 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.ErrorHighlightingStrategy;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.BaseFullParser;
+import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.cpp.CppSplitRules;
 import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
 import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
 import org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting;
 import org.sudu.experiments.parser.cpp.walker.CppWalker;
 import org.sudu.experiments.parser.cpp.walker.CppClassWalker;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.sudu.experiments.parser.ParserConstants.*;
@@ -24,6 +25,7 @@ public class CppFullParser extends BaseFullParser {
     long parsingTime = System.currentTimeMillis();
 
     initLexer(source);
+    initSplitRules();
     return parseWithLexer(parsingTime);
   }
 
@@ -31,6 +33,7 @@ public class CppFullParser extends BaseFullParser {
     long parsingTime = System.currentTimeMillis();
 
     initLexer(source);
+    initSplitRules();
     return parseWithLexer(parsingTime);
   }
 
@@ -47,6 +50,7 @@ public class CppFullParser extends BaseFullParser {
     ParseTreeWalker walker = new IterativeParseTreeWalker();
     CppClassWalker classWalker = new CppClassWalker();
     int[] result;
+
     try {
       walker.walk(classWalker, transUnit);
 
@@ -66,28 +70,13 @@ public class CppFullParser extends BaseFullParser {
   }
 
   @Override
-  protected List<Token> splitToken(Token token) {
-    int tokenType = token.getType();
-    if (isMultilineToken(tokenType)) return splitTokenByLine(token);
-    if (tokenType == CPP14Lexer.Directive || tokenType == CPP14Lexer.MultiLineMacro) return CppDirectiveSplitter.divideDirective(token);
-    return Collections.singletonList(token);
-  }
-
-  @Override
-  protected boolean isMultilineToken(int tokenType) {
-    return tokenType == CPP14Lexer.BlockComment
-        || tokenType == CPP14Lexer.StringLiteral;
-  }
-
-  @Override
-  protected boolean isComment(int tokenType) {
-    return tokenType == CPP14Lexer.BlockComment
-        || tokenType == CPP14Lexer.LineComment;
-  }
-
-  @Override
   protected Lexer initLexer(CharStream stream) {
     return new CPP14Lexer(stream);
+  }
+
+  @Override
+  protected SplitRules initSplitRules() {
+    return new CppSplitRules();
   }
 
   @Override
@@ -110,4 +99,15 @@ public class CppFullParser extends BaseFullParser {
     return tokenType == CPP14Lexer.Directive
         || tokenType == CPP14Lexer.MultiLineMacro;
   }
+
+  public static boolean isComment(int tokenType) {
+    return tokenType == CPP14Lexer.BlockComment
+        || tokenType == CPP14Lexer.LineComment;
+  }
+
+  @Override
+  protected boolean isErrorToken(int tokenType) {
+    return tokenType == CPP14Lexer.ERROR;
+  }
+
 }

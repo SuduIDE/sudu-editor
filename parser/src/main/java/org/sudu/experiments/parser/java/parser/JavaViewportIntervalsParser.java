@@ -6,6 +6,8 @@ import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.CommonTokenSubStream;
 import org.sudu.experiments.parser.common.BaseIntervalParser;
 import org.sudu.experiments.parser.ParserConstants;
+import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting;
@@ -127,14 +129,8 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser {
   }
 
   @Override
-  protected boolean isComment(int tokenType) {
-    return JavaLexerHighlighting.isComment(tokenType);
-  }
-
-  @Override
-  protected boolean isMultilineToken(int tokenType) {
-    return tokenType == JavaLexer.COMMENT
-        || tokenType == JavaLexer.TEXT_BLOCK;
+  protected SplitRules initSplitRules() {
+    return new JavaSplitRules();
   }
 
   @Override
@@ -147,6 +143,11 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser {
     int type = token.getType();
     return type != JavaLexer.NEW_LINE
         && type != JavaLexer.EOF;
+  }
+
+  public static boolean isComment(int type) {
+    return type == JavaLexer.COMMENT
+        || type == JavaLexer.LINE_COMMENT;
   }
 
 }

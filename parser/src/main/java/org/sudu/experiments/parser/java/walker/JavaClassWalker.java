@@ -53,6 +53,9 @@ public class JavaClassWalker extends JavaParserBaseListener {
   public void enterImportDeclaration(JavaParser.ImportDeclarationContext ctx) {
     super.enterImportDeclaration(ctx);
     addInterval(ctx, IMPORT);
+
+    var node = getLastNode(ctx.qualifiedName());
+    types.add(Decl.fromNode(node));
   }
 
   @Override

@@ -6,6 +6,8 @@ import org.sudu.experiments.parser.ErrorToken;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.BaseIntervalParser;
 import org.sudu.experiments.parser.ParserConstants;
+import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.walker.JavaClassWalker;
@@ -43,13 +45,6 @@ public class JavaIntervalParser extends BaseIntervalParser {
   }
 
   @Override
-  protected boolean isMultilineToken(int tokenType) {
-    return tokenType == JavaLexer.COMMENT
-        || tokenType == JavaLexer.TEXT_BLOCK
-        || tokenType == ErrorToken.ERROR_TYPE;
-  }
-
-  @Override
   protected Lexer initLexer(CharStream stream) {
     return new JavaLexer(stream);
   }
@@ -62,7 +57,20 @@ public class JavaIntervalParser extends BaseIntervalParser {
   }
 
   @Override
-  protected boolean isComment(int type) {
+  protected SplitRules initSplitRules() {
+    return new JavaSplitRules();
+  }
+
+  @Override
+  protected void highlightTokens() {
+    for (var token: allTokens) {
+      int ind = token.getTokenIndex();
+      if (isComment(token.getType())) tokenTypes[ind] = TokenTypes.COMMENT;
+      if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
+    }
+  }
+
+  public static boolean isComment(int type) {
     return type == JavaLexer.COMMENT
         || type == JavaLexer.LINE_COMMENT;
   }

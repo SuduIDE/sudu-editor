@@ -22,6 +22,7 @@ public class JavaLexerHighlighting {
       else if (isSemi(type)) tokenTypes[ind] = SEMI;
       else if (isAT(type)) tokenTypes[ind] = ANNOTATION;
       else if (isComment(token.getType())) tokenTypes[ind] = COMMENT;
+      else if (isError(token.getType())) tokenTypes[ind] = ERROR;
     }
   }
 
@@ -62,6 +63,10 @@ public class JavaLexerHighlighting {
 
   public static boolean isAT(int type) {
     return type == JavaLexer.AT;
+  }
+
+  public static boolean isError(int type) {
+    return type == JavaLexer.ERROR;
   }
 
 }

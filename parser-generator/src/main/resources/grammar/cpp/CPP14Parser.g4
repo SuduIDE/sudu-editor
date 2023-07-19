@@ -823,14 +823,15 @@ literal:
 
 // Only for iterative parsing usage
 
-translationUnitOrAny:
-    translationUnit
-    | anySeq+?
-    ;
-
 unknownInterval
-    : (declaration | anySeq)+?
+    : declaration+?
+    | anySeq
     | EOF
     ;
 
-anySeq: .;
+translationUnitOrAny
+    : translationUnit
+    | anySeq
+    ;
+
+anySeq: .+?;

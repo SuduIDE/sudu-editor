@@ -8,6 +8,8 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.BaseIntervalParser;
+import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.javascript.JsSplitRules;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptLexer;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptParser;
 import org.sudu.experiments.parser.javascript.parser.highlighting.JavaScriptLexerHighlighting;
@@ -40,21 +42,13 @@ public class JavaScriptIntervalParser extends BaseIntervalParser {
   }
 
   @Override
-  protected boolean isMultilineToken(int tokenType) {
-    return tokenType == JavaScriptLexer.MultiLineComment
-        || tokenType == JavaScriptLexer.HtmlComment
-        || tokenType == JavaScriptLexer.CDataComment
-        || tokenType == JavaScriptLexer.StringLiteral;
-  }
-
-  @Override
-  protected boolean isComment(int tokenType) {
-    return JavaScriptLexerHighlighting.isComment(tokenType);
-  }
-
-  @Override
   protected Lexer initLexer(CharStream stream) {
     return new JavaScriptLexer(stream);
+  }
+
+  @Override
+  protected SplitRules initSplitRules() {
+    return new JsSplitRules();
   }
 
   @Override
@@ -63,4 +57,18 @@ public class JavaScriptIntervalParser extends BaseIntervalParser {
     return type != JavaScriptLexer.LineTerminator
         && type != JavaScriptLexer.EOF;
   }
+
+  @Override
+  protected void highlightTokens() {
+    for (var token: allTokens) {
+      int ind = token.getTokenIndex();
+      if (isComment(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.COMMENT;
+      if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
+    }
+  }
+
+  public static boolean isComment(int tokenType) {
+    return JavaScriptLexerHighlighting.isComment(tokenType);
+  }
+
 }

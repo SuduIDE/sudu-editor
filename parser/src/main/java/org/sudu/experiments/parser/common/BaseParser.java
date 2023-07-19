@@ -21,11 +21,11 @@ public abstract class BaseParser {
 
   protected ErrorRecognizerListener tokenRecognitionListener;
   protected ErrorRecognizerListener parserRecognitionListener;
+  protected SplitRules splitRules;
 
-  protected abstract boolean isMultilineToken(int tokenType);
-  protected abstract boolean isComment(int tokenType);
   protected boolean isErrorToken(int tokenType){return false;}
   protected abstract Lexer initLexer(CharStream stream);
+  protected abstract SplitRules initSplitRules();
   protected abstract boolean tokenFilter(Token token);
 
   static <T> Supplier<T> supplier(T t) { return () -> t; }
@@ -64,6 +64,8 @@ public abstract class BaseParser {
     allTokens = tokenStream.getTokens();
     tokenTypes = new int[allTokens.size()];
     tokenStyles = new int[allTokens.size()];
+
+    this.splitRules = initSplitRules();
   }
 
   protected boolean tokenErrorOccurred() {
@@ -79,60 +81,6 @@ public abstract class BaseParser {
     allTokens = List.of(errorToken);
     tokenTypes = new int[1];
     tokenStyles = new int[1];
-  }
-
-  protected static Token makeSplitToken(Token token, String text, int line, int start, int stop) {
-    return new Token() {
-      @Override
-      public String getText() {
-        return text;
-      }
-
-      @Override
-      public int getType() {
-        return token.getType();
-      }
-
-      @Override
-      public int getLine() {
-        return line;
-      }
-
-      @Override
-      public int getCharPositionInLine() {
-        return token.getCharPositionInLine();
-      }
-
-      @Override
-      public int getChannel() {
-        return token.getChannel();
-      }
-
-      @Override
-      public int getTokenIndex() {
-        return token.getTokenIndex();
-      }
-
-      @Override
-      public int getStartIndex() {
-        return start;
-      }
-
-      @Override
-      public int getStopIndex() {
-        return stop;
-      }
-
-      @Override
-      public TokenSource getTokenSource() {
-        return token.getTokenSource();
-      }
-
-      @Override
-      public CharStream getInputStream() {
-        return token.getInputStream();
-      }
-    };
   }
 
   protected void writeTokens(int N, Map<Integer, List<Token>> tokensByLine) {
@@ -177,33 +125,15 @@ public abstract class BaseParser {
   }
 
   protected List<Token> splitToken(Token token) {
-     if (isMultilineToken(token.getType())) return splitTokenByLine(token);
-     return Collections.singletonList(token);
-  }
-
-  protected List<Token> splitTokenByLine(Token token) {
-    List<Token> result = new ArrayList<>();
-    String text = token.getText();
-
-    StringTokenizer lineTokenizer = new StringTokenizer(text, "\n\r", true);
-    int lineNum = token.getLine();
-    int start = token.getStartIndex();
-    while (lineTokenizer.hasMoreTokens()) {
-      var line = lineTokenizer.nextToken();
-      if (line.equals("\n"))
-        lineNum++;
-      else if (!line.equals("\r"))
-        result.add(makeSplitToken(token, line, lineNum, start, start + line.length() - 1));
-
-      start += line.length();
+    for (var rule: splitRules.getRules()) {
+      if (rule.test(token)) return rule.split(token);
     }
-    return result;
+    return Collections.singletonList(token);
   }
 
   protected void highlightTokens() {
     for (var token: allTokens) {
       int ind = token.getTokenIndex();
-      if (isComment(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.COMMENT;
       if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
     }
   }

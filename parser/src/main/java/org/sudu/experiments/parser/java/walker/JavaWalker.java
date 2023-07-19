@@ -214,14 +214,7 @@ public class JavaWalker extends JavaParserBaseListener {
   public void enterTypeIdentifier(JavaParser.TypeIdentifierContext ctx) {
     super.enterTypeIdentifier(ctx);
     var node = (TerminalNode) ctx.getChild(0);
-    var token = node.getSymbol();
-    var name = token.getText();
-    for (var type: types) {
-      if (type.name.equals(name)) {
-        usagesToDefs.put(Pos.fromNode(node), type.position);
-        return;
-      }
-    }
+    markType(node);
   }
 
   @Override
@@ -531,6 +524,18 @@ public class JavaWalker extends JavaParserBaseListener {
     return def;
   }
 
+  private Decl markType(TerminalNode node) {
+    var token = node.getSymbol();
+    var name = token.getText();
+    for (var type: types) {
+      if (type.name.equals(name)) {
+        usagesToDefs.put(Pos.fromNode(node), type.position);
+        return type;
+      }
+    }
+    return null;
+  }
+
   static List<String> getArgsTypes(JavaParser.FormalParametersContext ctx) {
     List<String> result = new ArrayList<>();
     if (ctx.receiverParameter() != null) {
@@ -555,6 +560,11 @@ public class JavaWalker extends JavaParserBaseListener {
   static TerminalNode getNode(JavaParser.CreatedNameContext ctx) {
     if (isNonNullAndEmpty(ctx.identifier())) return getNode(ctx.identifier(0));
     else return (TerminalNode) ctx.primitiveType().getChild(0);
+  }
+
+  static TerminalNode getLastNode(JavaParser.QualifiedNameContext ctx) {
+    var size = ctx.identifier().size();
+    return getNode(ctx.identifier(size - 1));
   }
 
   static String getType(JavaParser.TypeTypeOrVoidContext ctx) {

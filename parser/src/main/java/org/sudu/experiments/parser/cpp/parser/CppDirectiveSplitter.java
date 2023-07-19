@@ -18,7 +18,7 @@ import static org.sudu.experiments.parser.ParserConstants.*;
 
 public class CppDirectiveSplitter {
 
-  static List<Token> divideDirective(Token token) {
+  public static List<Token> divideDirective(Token token) {
     CPP14DirectiveLexer directiveLexer = new CPP14DirectiveLexer(CharStreams.fromString(token.getText()));
     var directiveStream = new CommonTokenStream(directiveLexer);
     directiveStream.fill();
