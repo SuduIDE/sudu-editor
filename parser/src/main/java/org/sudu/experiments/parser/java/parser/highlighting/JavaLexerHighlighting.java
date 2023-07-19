@@ -22,6 +22,7 @@ public class JavaLexerHighlighting {
       else if (isSemi(type)) tokenTypes[ind] = SEMI;
       else if (isAT(type)) tokenTypes[ind] = ANNOTATION;
       else if (isComment(token.getType())) tokenTypes[ind] = COMMENT;
+      else if (isJavadoc(token.getType())) tokenTypes[ind] = JAVADOC;
       else if (isError(token.getType())) tokenTypes[ind] = ERROR;
     }
   }
@@ -29,6 +30,10 @@ public class JavaLexerHighlighting {
   public static boolean isComment(int type) {
     return type == JavaLexer.COMMENT
         || type == JavaLexer.LINE_COMMENT;
+  }
+
+  public static boolean isJavadoc(int type) {
+    return type == JavaLexer.JAVADOC;
   }
 
   // Tokens from MODULE to VAR can be used as identifiers

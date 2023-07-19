@@ -36,8 +36,8 @@ public class JavaParser extends Parser {
 		MOD=109, ADD_ASSIGN=110, SUB_ASSIGN=111, MUL_ASSIGN=112, DIV_ASSIGN=113, 
 		AND_ASSIGN=114, OR_ASSIGN=115, XOR_ASSIGN=116, MOD_ASSIGN=117, LSHIFT_ASSIGN=118, 
 		RSHIFT_ASSIGN=119, URSHIFT_ASSIGN=120, ARROW=121, COLONCOLON=122, AT=123, 
-		ELLIPSIS=124, WS=125, COMMENT=126, LINE_COMMENT=127, NEW_LINE=128, IDENTIFIER=129, 
-		ERROR=130;
+		ELLIPSIS=124, WS=125, JAVADOC=126, COMMENT=127, LINE_COMMENT=128, NEW_LINE=129, 
+		IDENTIFIER=130, ERROR=131;
 	public static final int
 		RULE_compilationUnit = 0, RULE_packageDeclaration = 1, RULE_importDeclaration = 2, 
 		RULE_typeDeclaration = 3, RULE_modifier = 4, RULE_classOrInterfaceModifier = 5, 
@@ -165,8 +165,8 @@ public class JavaParser extends Parser {
 			"OR", "INC", "DEC", "ADD", "SUB", "MUL", "DIV", "BITAND", "BITOR", "CARET", 
 			"MOD", "ADD_ASSIGN", "SUB_ASSIGN", "MUL_ASSIGN", "DIV_ASSIGN", "AND_ASSIGN", 
 			"OR_ASSIGN", "XOR_ASSIGN", "MOD_ASSIGN", "LSHIFT_ASSIGN", "RSHIFT_ASSIGN", 
-			"URSHIFT_ASSIGN", "ARROW", "COLONCOLON", "AT", "ELLIPSIS", "WS", "COMMENT", 
-			"LINE_COMMENT", "NEW_LINE", "IDENTIFIER", "ERROR"
+			"URSHIFT_ASSIGN", "ARROW", "COLONCOLON", "AT", "ELLIPSIS", "WS", "JAVADOC", 
+			"COMMENT", "LINE_COMMENT", "NEW_LINE", "IDENTIFIER", "ERROR"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -3628,7 +3628,7 @@ public class JavaParser extends Parser {
 			setState(678);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343707135L) != 0)) {
+			if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & -9151314313938456577L) != 0)) {
 				{
 				setState(667);
 				variableInitializer();
@@ -5146,7 +5146,7 @@ public class JavaParser extends Parser {
 			setState(874);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343707135L) != 0)) {
+			if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & -9151314313938456577L) != 0)) {
 				{
 				setState(866);
 				elementValue();
@@ -7235,7 +7235,7 @@ public class JavaParser extends Parser {
 				setState(1168);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & -9151314313938464769L) != 0)) {
 					{
 					setState(1167);
 					expression(0);
@@ -8024,7 +8024,7 @@ public class JavaParser extends Parser {
 				setState(1286);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610998821L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610998821L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & -9151314313938464769L) != 0)) {
 					{
 					setState(1285);
 					forInit();
@@ -8036,7 +8036,7 @@ public class JavaParser extends Parser {
 				setState(1290);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & -9151314313938464769L) != 0)) {
 					{
 					setState(1289);
 					expression(0);
@@ -8048,7 +8048,7 @@ public class JavaParser extends Parser {
 				setState(1294);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & -9151314313938464769L) != 0)) {
 					{
 					setState(1293);
 					((ForControlContext)_localctx).forUpdate = expressionList();
@@ -8388,7 +8388,7 @@ public class JavaParser extends Parser {
 				setState(1331);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & -9151314313938464769L) != 0)) {
 					{
 					setState(1330);
 					expressionList();
@@ -8409,7 +8409,7 @@ public class JavaParser extends Parser {
 				setState(1338);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & -9151314313938464769L) != 0)) {
 					{
 					setState(1337);
 					expressionList();
@@ -8430,7 +8430,7 @@ public class JavaParser extends Parser {
 				setState(1344);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
+				if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & -9151314313938464769L) != 0)) {
 					{
 					setState(1343);
 					expressionList();
@@ -11576,7 +11576,7 @@ public class JavaParser extends Parser {
 			setState(1782);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & 4683743741343698943L) != 0)) {
+			if (((((_la - 3)) & ~0x3f) == 0 && ((1L << (_la - 3)) & 9223127275610966053L) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & -9151314313938464769L) != 0)) {
 				{
 				setState(1781);
 				expressionList();
@@ -11975,7 +11975,7 @@ public class JavaParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001\u0082\u0714\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001"+
+		"\u0004\u0001\u0083\u0714\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001"+
 		"\u0002\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004"+
 		"\u0002\u0005\u0007\u0005\u0002\u0006\u0007\u0006\u0002\u0007\u0007\u0007"+
 		"\u0002\b\u0007\b\u0002\t\u0007\t\u0002\n\u0007\n\u0002\u000b\u0007\u000b"+
@@ -12187,8 +12187,8 @@ public class JavaParser extends Parser {
 		"\u00c6\u00c8\u00ca\u00cc\u00ce\u00d0\u00d2\u00d4\u00d6\u00d8\u00da\u00dc"+
 		"\u00de\u00e0\u00e2\u00e4\u00e6\u00e8\u00ea\u00ec\u00ee\u00f0\u00f2\u00f4"+
 		"\u00f6\u00f8\u00fa\u00fc\u00fe\u0100\u0102\u0000\u0010\u0002\u0000\u0011"+
-		"\u0011((\u0001\u0000CF\u0001\u0000GH\u0002\u0000&&<<\u0002\u00003A\u0081"+
-		"\u0081\u0003\u00003<?A\u0081\u0081\u0001\u0000dg\u0001\u0000Z[\u0002\u0000"+
+		"\u0011((\u0001\u0000CF\u0001\u0000GH\u0002\u0000&&<<\u0002\u00003A\u0082"+
+		"\u0082\u0003\u00003<?A\u0082\u0082\u0001\u0000dg\u0001\u0000Z[\u0002\u0000"+
 		"himm\u0001\u0000fg\u0002\u0000XY_`\u0002\u0000^^aa\u0002\u0000WWnx\u0001"+
 		"\u0000de\u0002\u0000]]yy\b\u0000\u0003\u0003\u0005\u0005\b\b\u000e\u000e"+
 		"\u0014\u0014\u001b\u001b\u001d\u001d%%\u07e0\u0000\u0117\u0001\u0000\u0000"+
@@ -12827,7 +12827,7 @@ public class JavaParser extends Parser {
 		"\u0001\u0000\u0000\u0000\u04f5\u04f3\u0001\u0000\u0000\u0000\u04f5\u04f6"+
 		"\u0001\u0000\u0000\u0000\u04f6\u00b7\u0001\u0000\u0000\u0000\u04f7\u04fd"+
 		"\u0005\u0006\u0000\u0000\u04f8\u04fe\u0003\u00c6c\u0000\u04f9\u04fe\u0005"+
-		"\u0081\u0000\u0000\u04fa\u04fb\u0003\u00f0x\u0000\u04fb\u04fc\u0003\u00a2"+
+		"\u0082\u0000\u0000\u04fa\u04fb\u0003\u00f0x\u0000\u04fb\u04fc\u0003\u00a2"+
 		"Q\u0000\u04fc\u04fe\u0001\u0000\u0000\u0000\u04fd\u04f8\u0001\u0000\u0000"+
 		"\u0000\u04fd\u04f9\u0001\u0000\u0000\u0000\u04fd\u04fa\u0001\u0000\u0000"+
 		"\u0000\u04fe\u04ff\u0001\u0000\u0000\u0000\u04ff\u0503\u0005]\u0000\u0000"+

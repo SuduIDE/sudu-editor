@@ -25,7 +25,8 @@ public class JavaSplitRules extends SplitRules {
   private boolean isMultiline(Token token) {
     int type = token.getType();
     return type == JavaLexer.COMMENT
-        || type == JavaLexer.TEXT_BLOCK;
+        || type == JavaLexer.TEXT_BLOCK
+        || type == JavaLexer.JAVADOC;
   }
 
   private boolean isStringOrCharLiteral(Token token) {

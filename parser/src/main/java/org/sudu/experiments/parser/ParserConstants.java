@@ -17,7 +17,8 @@ public interface ParserConstants {
     int ANNOTATION = 12;
     int TYPE = 13;
     int OPERATOR = 14;
-    int TYPES_LENGTH = OPERATOR + 1;
+    int JAVADOC = 15;
+    int TYPES_LENGTH = JAVADOC + 1;
   }
 
   interface TokenStyles {

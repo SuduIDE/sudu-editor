@@ -22,6 +22,7 @@ public class CppDirectiveSplitter {
     CPP14DirectiveLexer directiveLexer = new CPP14DirectiveLexer(CharStreams.fromString(token.getText()));
     var directiveStream = new CommonTokenStream(directiveLexer);
     directiveStream.fill();
+
     var allTokens = directiveStream.getTokens();
     var result = new ArrayList<Token>();
     int[] splitTokenTypes = new int[allTokens.size()];
@@ -31,9 +32,7 @@ public class CppDirectiveSplitter {
     var walker = new ParseTreeWalker();
     walker.walk(new DirectiveWalker(splitTokenTypes), directive);
 
-
-    int line = token.getLine() - 1;
-    int start = token.getStartIndex();
+    int line = token.getLine() - 1, start = token.getStartIndex();
     for (var splitToken : allTokens) {
       int ind = splitToken.getTokenIndex();
       if (splitToken.getType() == EOF) continue;

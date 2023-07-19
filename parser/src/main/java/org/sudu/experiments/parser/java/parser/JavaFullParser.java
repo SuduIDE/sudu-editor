@@ -1,28 +1,20 @@
 package org.sudu.experiments.parser.java.parser;
 
 import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.misc.Pair;
-import org.antlr.v4.runtime.misc.Predicate;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.ErrorHighlightingStrategy;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.ParserConstants;
-import org.sudu.experiments.parser.SplitToken;
 import org.sudu.experiments.parser.common.BaseFullParser;
 import org.sudu.experiments.parser.common.SplitRules;
-import org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting;
 import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
-import org.sudu.experiments.parser.java.gen.help.JavaStringSplitter;
 import org.sudu.experiments.parser.java.walker.JavaClassWalker;
 import org.sudu.experiments.parser.java.walker.JavaWalker;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
-
+import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting;
 import static org.sudu.experiments.parser.ParserConstants.*;
 
 public class JavaFullParser extends BaseFullParser {
@@ -48,7 +40,7 @@ public class JavaFullParser extends BaseFullParser {
     parser.addErrorListener(parserRecognitionListener);
 
     var compUnit = parser.compilationUnit();
-    if (parserErrorOccurred()) CppLexerHighlighting.highlightTokens(allTokens, tokenTypes);
+    if (parserErrorOccurred()) JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes);
     else highlightTokens();
 
     ParseTreeWalker walker = new ParseTreeWalker();
@@ -94,16 +86,12 @@ public class JavaFullParser extends BaseFullParser {
     return tokenType == JavaLexer.ERROR;
   }
 
-  public static boolean isComment(int type) {
-    return type == JavaLexer.COMMENT
-        || type == JavaLexer.LINE_COMMENT;
-  }
-
   @Override
   protected void highlightTokens() {
     for (var token: allTokens) {
       int ind = token.getTokenIndex();
-      if (isComment(token.getType())) tokenTypes[ind] = TokenTypes.COMMENT;
+      if (JavaLexerHighlighting.isComment(token.getType())) tokenTypes[ind] = TokenTypes.COMMENT;
+      if (JavaLexerHighlighting.isJavadoc(token.getType())) tokenTypes[ind] = TokenTypes.JAVADOC;
       if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
     }
   }

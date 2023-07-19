@@ -3,7 +3,6 @@ package org.sudu.experiments.parser.java.parser;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Token;
-import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.BaseFullParser;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.java.JavaSplitRules;
