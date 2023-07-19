@@ -34,7 +34,7 @@ public class EditorRegistrations {
 
   public DocumentHighlightProvider.Provider findDocumentHighlightProvider(String language, String scheme) {
     for (DocumentHighlightProvider provider : documentHighlightProviders.array()) {
-      if (provider != null && provider.match(language, scheme)) {
+      if (provider.match(language, scheme)) {
         return provider.f;
       }
     }
@@ -50,7 +50,7 @@ public class EditorRegistrations {
 
   private DefDeclProvider.Provider findDdProvider(DefDeclProvider[] definitionProviders, String language, String scheme) {
     for (DefDeclProvider provider : definitionProviders) {
-      if (provider != null && provider.match(language, scheme)) {
+      if (provider.match(language, scheme)) {
         return provider.f;
       }
     }
@@ -59,7 +59,7 @@ public class EditorRegistrations {
 
   public ReferenceProvider.Provider findReferenceProvider(String language, String scheme) {
     for (ReferenceProvider provider : referenceProviders.array()) {
-      if (provider != null && provider.match(language, scheme)) {
+      if (provider.match(language, scheme)) {
         return provider.f;
       }
     }
@@ -68,7 +68,7 @@ public class EditorRegistrations {
 
   public void fireModelChange(Model oldModel, Model newModel) {
     for (BiConsumer<Model, Model> listener : modelChangeListeners.array()) {
-      if (listener != null) listener.accept(oldModel, newModel);
+      listener.accept(oldModel, newModel);
     }
   }
 }
