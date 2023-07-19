@@ -5,10 +5,12 @@ function test1(editor) {
     let model = newTextModel(initialTextJava, "java", null)
     editor.setModel(model)
     let savedResolve = null
+    let savedPosition = null
     editor.registerDocumentHighlightProvider("java",
         {
             provideDocumentHighlights(model, position, token) {
                 if (savedResolve === null) {
+                    savedPosition = position
                     return new Promise((resolve, reject) => {
                         savedResolve = resolve
                     });
@@ -25,18 +27,20 @@ function test1(editor) {
                                 kind: 1
                             }
                         ])
-                        setTimeout(
-                            savedResolve(
-                                [{
-                                    range: {
-                                        startLineNumber: 17,
-                                        startColumn: 9,
-                                        endLineNumber: 17,
-                                        endColumn: 9
-                                    },
-                                    kind: 1
-                                }]
-                            ), 1500)
+                        if (JSON.stringify(position) === JSON.stringify(savedPosition)) {
+                            setTimeout(() =>
+                                savedResolve(
+                                    [{
+                                        range: {
+                                            startLineNumber: 17,
+                                            startColumn: 9,
+                                            endLineNumber: 17,
+                                            endColumn: 9
+                                        },
+                                        kind: 1
+                                    }]
+                                ), 2000)
+                        }
                     });
                 }
             }
