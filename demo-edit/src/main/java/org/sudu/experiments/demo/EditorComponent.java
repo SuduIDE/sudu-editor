@@ -898,7 +898,12 @@ public class EditorComponent implements Focusable {
   }
 
   void applyHighlights(int line, int column, DocumentHighlight[] highlights) {
-
+    for (var highlight : highlights) {
+      var range = highlight.range;
+      Debug.consoleInfo("Range: " + "[(" + range.startLineNumber + ","
+          + range.startColumn + "),(" + range.endLineNumber + "," + range.endColumn + ")]");
+      Debug.consoleInfo("Kind: " + highlight.kind);
+    }
   }
 
   Pos computeCharPos(V2i eventPosition) {
@@ -926,6 +931,8 @@ public class EditorComponent implements Focusable {
         if (gotoByLocalProvider(eventPosition, elementStart)) return;
       }
     }
+
+    useDocumentHighlightProvider(pos.line, pos.pos);
 
     moveCaret(pos);
     computeUsages();
