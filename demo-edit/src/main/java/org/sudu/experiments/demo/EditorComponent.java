@@ -1199,7 +1199,7 @@ public class EditorComponent implements Focusable {
   private boolean handleSpecialKeys(KeyEvent event) {
     if (KeyCode.F1 <= event.keyCode && event.keyCode <= KeyCode.F12) return true;
     return switch (event.keyCode) {
-      case KeyCode.INSERT, KeyCode.Pause,
+      case KeyCode.INSERT, KeyCode.Pause, KeyCode.META,
           KeyCode.CapsLock, KeyCode.NumLock, KeyCode.ScrollLock,
           KeyCode.ALT, KeyCode.SHIFT, KeyCode.CTRL -> true;
       default -> false;

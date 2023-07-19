@@ -1,3 +1,4 @@
+document.addEventListener("DOMContentLoaded", () => console.log("DOMContentLoaded"))
 
 const editorApi = await import("../src/editor.js");
 
@@ -31,12 +32,5 @@ function useEditor(editor) {
     console.log("p31 = " + JSON.stringify(p31));
     console.log("p32 = " + JSON.stringify(p32));
     console.log("p18 = " + JSON.stringify(p18));
-
-    const input = document.getElementById("address");
-
-    input.onkeydown = (event) => {
-        if (event.key === 'Enter') editor.setText(input.value)
-    };
 }
 
-document.addEventListener("DOMContentLoaded", () => console.log("DOMContentLoaded"))

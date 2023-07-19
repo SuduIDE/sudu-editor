@@ -48,7 +48,7 @@ public class KeyEvent extends KeyModifiers {
         e.keyCode == KeyCode.F5;
   }
 
-  public String desc() {
+  public String toString() {
     return (isPressed ? "key down: " : "key up: ") + key +
         ", keyCode = " + keyCode + ", isRepeated = " + isRepeated;
   }
