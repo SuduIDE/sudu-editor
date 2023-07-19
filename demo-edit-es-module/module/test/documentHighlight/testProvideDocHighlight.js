@@ -2,7 +2,7 @@ import {newEditor, newTextModel} from "../../src/editor.js";
 import {initialTextJava, workerUrl} from "../utils.js";
 
 function test1(editor) {
-    let model = newTextModel(initialTextJava, "java", null)
+    let model = newTextModel(initialTextJava, "java")
     editor.setModel(model)
     editor.registerDocumentHighlightProvider("java",
         {
@@ -11,18 +11,18 @@ function test1(editor) {
                     {
                         range: {
                             startLineNumber: 17,
-                            startColumn: 9,
+                            startColumn: 11,
                             endLineNumber: 17,
-                            endColumn: 9
+                            endColumn: 12
                         },
                         kind: 1
                     },
                     {
                         range: {
                             startLineNumber: 17,
-                            startColumn: 13,
+                            startColumn: 15,
                             endLineNumber: 17,
-                            endColumn: 13
+                            endColumn: 16
                         },
                         kind: 1
                     }, {
