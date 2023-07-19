@@ -4,24 +4,13 @@ import {initialTextJava, workerUrl} from "../utils.js";
 function test1(editor) {
     let model = newTextModel(initialTextJava, "java", null)
     editor.setModel(model)
-    let counter = 0;
+    let savedResolve = null
     editor.registerDocumentHighlightProvider("java",
         {
             provideDocumentHighlights(model, position, token) {
-                if (counter === 0) {
-                    counter++;
+                if (savedResolve === null) {
                     return new Promise((resolve, reject) => {
-                        setTimeout(() => resolve([
-                            {
-                                range: {
-                                    startLineNumber: 17,
-                                    startColumn: 9,
-                                    endLineNumber: 17,
-                                    endColumn: 9
-                                },
-                                kind: 1
-                            }
-                        ]), 3000)
+                        savedResolve = resolve
                     });
                 } else {
                     return new Promise((resolve, reject) => {
@@ -36,6 +25,18 @@ function test1(editor) {
                                 kind: 1
                             }
                         ])
+                        setTimeout(
+                            savedResolve(
+                                [{
+                                    range: {
+                                        startLineNumber: 17,
+                                        startColumn: 9,
+                                        endLineNumber: 17,
+                                        endColumn: 9
+                                    },
+                                    kind: 1
+                                }]
+                            ), 1500)
                     });
                 }
             }
