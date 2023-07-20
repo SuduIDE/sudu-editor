@@ -129,8 +129,6 @@ public class DemoEdit0 extends Scene {
       return true;
     }
 
-    System.out.println("event = " + event);
-
     return uiContext.onKeyPress(event);
   }
 
