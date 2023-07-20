@@ -8,6 +8,7 @@ import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.Pos;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class Document {
   public static final char newLine = '\n';
@@ -386,7 +387,8 @@ public class Document {
       boolean[] areDeletes,
       String[] changes,
       int caretLine,
-      int caretPos
+      int caretPos,
+      BiConsumer<Integer, String> editorAction
   ) {
     currentVersion++;
 
@@ -397,6 +399,7 @@ public class Document {
     diffs.add(temp);
     for (int i = 0; i < lines.length; i++) {
       makeDiffOp(lines[i], from[i], areDeletes[i], changes[i]);
+      editorAction.accept(lines[i], changes[i]);
     }
   }
 

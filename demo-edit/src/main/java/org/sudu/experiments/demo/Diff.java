@@ -26,13 +26,13 @@ public class Diff {
 
   private V2i makeCaretReturnPos(int line, int pos, boolean isDelete, String change) {
     String[] lines = change.split("\n", 0);
-    if (isDelete) {
+    if (isDelete && lines.length > 0) {
       if (lines.length == 1) {
         return new V2i(line, pos + lines[0].length());
       } else {
         return new V2i(line + lines.length - 1, lines[lines.length - 1].length());
       }
     }
-    return new V2i(line ,pos);
+    return new V2i(line, pos);
   }
 }

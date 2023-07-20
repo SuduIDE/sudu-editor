@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 
@@ -475,14 +476,16 @@ public class EditorComponent implements Focusable {
       int size = right.line - left.line + 1;
       int[] lines = new int[size];
       String[] changes = new String[size];
-      int c = 0;
+      int i = 0;
       for (int l = left.line; l <= right.line; l++) {
-        lines[c] = l;
-        changes[c++] = tabIndent;
-        model.document.insertAt(l, 0, tabIndent);
+        lines[i] = l;
+        changes[i++] = tabIndent;
+//        model.document.insertAt(l, 0, tabIndent);
       }
 
-      tabDiffHandler(lines, 0, false, changes, caretLine, caretCharPos);
+      tabDiffHandler(lines, 0, false, changes, caretLine, caretCharPos,
+          (l, c) -> model.document.insertAt(l, 0, tabIndent)
+          );
       left.charInd += tabIndent.length();
       right.charInd += tabIndent.length();
       setCaretPosWithSelection(caretCharPos + tabIndent.length(), false);
@@ -530,18 +533,23 @@ public class EditorComponent implements Focusable {
     }
     lines = Arrays.copyOf(lines, size);
     changes = Arrays.copyOf(changes, size);
-    tabDiffHandler(lines, 0, true, changes, prevCaretLine, prevCaretPos);
     for (int i = 0; i < size; i++) {
       String indent = changes[i];
       int l = lines[i];
-      CodeLine codeLine = model.document.line(l);
-      codeLine.delete(0, indent.length());
+//      CodeLine codeLine = model.document.line(l);
+//      codeLine.delete(0, indent.length());
       if (l == left.line) left.charInd = Math.max(0, left.charInd - indent.length());
       if (l == right.line) {
         right.charInd = Math.max(0, right.charInd - indent.length());
         setCaretPosWithSelection(caretCharPos - indent.length(), false);
       }
     }
+    tabDiffHandler(lines, 0, true, changes, prevCaretLine, prevCaretPos,
+        (l, c) -> {
+          CodeLine codeLine = model.document.line(l);
+          codeLine.delete(0, c.length());
+        }
+        );
   }
 
   private String calculateTabIndent(CodeLine codeLine) {
@@ -549,28 +557,29 @@ public class EditorComponent implements Focusable {
     return count == 0 ? null : " ".repeat(count);
   }
 
-  private void tabDiffHandler(
+  private <T>void tabDiffHandler(
       int[] lines,
       int fromValue,
       boolean isDelValue,
       String[] changes,
       int caretReturnLine,
-      int caretReturnPos
+      int caretReturnPos,
+      BiConsumer<Integer, String> editorAction
+
   ) {
     if (lines.length == 0) return;
     int[] from = new int[lines.length];
     boolean[] areDeletes = new boolean[lines.length];
-    for (int i = 0; i < lines.length; i++) {
-      from[i] = fromValue;
-      areDeletes[i] = isDelValue;
-    }
+    Arrays.fill(from, fromValue);
+    Arrays.fill(areDeletes, isDelValue);
     model.document.makeComplexDiff(
         lines,
         from,
         areDeletes,
         changes,
         caretReturnLine,
-        caretReturnPos
+        caretReturnPos,
+        editorAction
     );
   }
 
