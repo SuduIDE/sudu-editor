@@ -87,6 +87,7 @@ public class EditorComponent implements Focusable {
 
   private CodeElement definition = null;
   private final List<CodeElement> usages = new ArrayList<>();
+  private ExternalHighlights externalHighlights;
 
   Consumer<String> onError = System.err::println;
 
@@ -798,22 +799,32 @@ public class EditorComponent implements Focusable {
   }
 
   private void computeUsages() {
-    definition = null;
-    usages.clear();
+    Pos caretPos = new Pos(caretLine, caretCharPos);
+    Pos elementPos = model.document.getElementStart(caretLine, caretCharPos);
+    computeUsages(caretPos, elementPos);
+  }
+
+  private void computeUsages(Pos caretPos, Pos elementPos) {
+    clearUsages();
+
     Document document = model.document;
-    if (caretLine >= document.length()) return;
+    Pos def = document.getDefinition(elementPos);
 
-    Pos pos = document.getElementStart(caretLine, caretCharPos);
-    Pos def = document.getDefinition(pos);
+    if (def != null) definition = document.getCodeElement(def);
 
-    if (def != null) definition = model.document.getCodeElement(def);
-
-    List<Pos> usageList = document.getUsagesList(def != null ? def : pos);
+    List<Pos> usageList = document.getUsagesList(def != null ? def : elementPos);
     if (usageList != null) {
       for (var usage : usageList) {
         usages.add(document.getCodeElement(usage));
       }
     }
+
+    useDocumentHighlightProvider(caretPos.line, caretPos.pos);
+  }
+
+  private void applyHighlights() {
+    clearUsages();
+    externalHighlights.buildUsages(model.document, usages);
   }
 
   public void findUsages(V2i position, ReferenceProvider.Provider provider) {
@@ -867,38 +878,20 @@ public class EditorComponent implements Focusable {
     selection.startPos.set(caretLine, caretCharPos);
   }
 
-  void provideReferences(int line, int column, boolean includeDeclaration) {
-    var provider = registrations.findReferenceProvider(model.language(), model.uriScheme());
-    if (provider != null) {
-      provider.provideReferences(
-          model, line, column, includeDeclaration,
-          this::gotoReferences, onError
-      );
-    }
-  }
-
-  private void gotoReferences(Location[] locs) {
-
-  }
-
-//  void useDeclarationProvider(int line, int column) {
-//    var p = registrations.findDeclarationProvider(model.language(), model.uriScheme());
-//    if (p != null) {
-//      p.provide(model, line, column, this::gotoDefinition, onError);
-//    }
-//  }
-
   void useDocumentHighlightProvider(int line, int column) {
     var p = registrations.findDocumentHighlightProvider(model.language(), model.uriScheme());
     if (p != null) {
+      Model saveModel = model;
       p.provide(model, line, column,
-          highlights -> applyHighlights(line, column, highlights),
+          highlights -> setHighlights(saveModel, line, column, highlights),
           onError);
     }
   }
 
-  void applyHighlights(int line, int column, DocumentHighlight[] highlights) {
-
+  void setHighlights(Model saveModel, int line, int column, DocumentHighlight[] highlights) {
+    if (model != saveModel || caretLine != line || caretCharPos != column) return; // late reply
+    externalHighlights = new ExternalHighlights(line, column, highlights);
+    applyHighlights();
   }
 
   Pos computeCharPos(V2i eventPosition) {
@@ -914,21 +907,21 @@ public class EditorComponent implements Focusable {
   void onClickText(MouseEvent event) {
     V2i eventPosition = event.position;
     Pos pos = computeCharPos(eventPosition);
+    Pos elementPos = model.document.getElementStart(pos.line, pos.pos);
 
     if (event.ctrl) {
-      var elementStart = model.document.getElementStart(pos.line, pos.pos);
       var provider = registrations.findDefinitionProvider(model.language(), model.uriScheme());
       if (provider != null) {
         provider.provide(model, pos.line, pos.pos,
             (locs) -> gotoDefinition(eventPosition, locs), onError);
       } else {
         // Default def provider
-        if (gotoByLocalProvider(eventPosition, elementStart)) return;
+        if (gotoByLocalProvider(eventPosition, elementPos)) return;
       }
     }
 
     moveCaret(pos);
-    computeUsages();
+    computeUsages(pos, elementPos);
 
     if (!event.shift && !selection.isSelectionStarted) {
       selection.startPos.set(caretLine, caretCharPos);
@@ -1206,7 +1199,7 @@ public class EditorComponent implements Focusable {
   private boolean handleSpecialKeys(KeyEvent event) {
     if (KeyCode.F1 <= event.keyCode && event.keyCode <= KeyCode.F12) return true;
     return switch (event.keyCode) {
-      case KeyCode.INSERT, KeyCode.Pause,
+      case KeyCode.INSERT, KeyCode.Pause, KeyCode.META,
           KeyCode.CapsLock, KeyCode.NumLock, KeyCode.ScrollLock,
           KeyCode.ALT, KeyCode.SHIFT, KeyCode.CTRL -> true;
       default -> false;
@@ -1335,10 +1328,17 @@ public class EditorComponent implements Focusable {
   public EditorRegistrations registrations() { return registrations; }
 
   public void setModel(Model model) {
+    externalHighlights = null;
+    clearUsages();
     Model oldModel = this.model;
     this.model = model;
     onContentChange();
     registrations.fireModelChange(oldModel, model);
+  }
+
+  private void clearUsages() {
+    definition = null;
+    usages.clear();
   }
 
   public Model model() { return model; }

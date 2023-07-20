@@ -42,8 +42,8 @@ public class DemoEdit0 extends Scene {
     uiContext.initFocus(editor);
 
     api.input.onMouse.add(new EditInput());
-    api.input.onKeyPress.add(this::onKeyPress);
     api.input.onKeyPress.add(new CtrlO(api, editor::openFile));
+    api.input.onKeyPress.add(this::onKeyPress);
     api.input.onCopy.add(this::onCopy);
     api.input.onPaste.add(this::onPastePlainText);
     api.input.onFocus.add(uiContext::sendFocusGain);
@@ -128,6 +128,8 @@ public class DemoEdit0 extends Scene {
       api.window.addChild("child", DemoEdit0::new);
       return true;
     }
+
+    System.out.println("event = " + event);
 
     return uiContext.onKeyPress(event);
   }
