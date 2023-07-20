@@ -6,9 +6,21 @@ import java.util.Objects;
 
 public class Selection {
 
-  public final SelPos startPos = new SelPos();
-  public final SelPos endPos = new SelPos();
+  public final SelPos startPos;
+  public final SelPos endPos;
   public boolean isSelectionStarted;
+
+  Selection() {
+    startPos = new SelPos();
+    endPos = new SelPos();
+    isSelectionStarted = false;
+  }
+
+  Selection(Selection selection) {
+    startPos = new SelPos(selection.startPos);
+    endPos = new SelPos(selection.endPos);
+    isSelectionStarted = selection.isSelectionStarted;
+  }
 
   void select(int caretLine, int caretCharPos) {
     endPos.set(caretLine, caretCharPos);
@@ -67,6 +79,11 @@ public class Selection {
     public SelPos(int lineInd, int charInd) {
       this.line = lineInd;
       this.charInd = charInd;
+    }
+
+    SelPos(SelPos selPos) {
+      this.line = selPos.line;
+      this.charInd = selPos.charInd;
     }
 
     public void set(int lineInd, int charInd) {
