@@ -29,7 +29,7 @@ public class RegionTexture implements RegionTextureAllocator{
   @Override
   public V4f alloc(int width) {
     if (width >= MAX_TEXTURE_SIZE) {
-      throw new RuntimeException("RegionTextureAllocator: width >= MAX_TEXTURE_SIZE");
+      throw new RuntimeException("RegionTextureAllocator: current width(" + width + ") > MAX_TEXTURE_SIZE(" + MAX_TEXTURE_SIZE + ")");
     }
 
     V4f region = new V4f();
