@@ -1,6 +1,6 @@
 package org.sudu.experiments.fonts;
 
-import org.sudu.experiments.Application;
+import org.sudu.experiments.ResourceLoader;
 
 public class FontLoadTest {
   public static void main(String[] args) {
@@ -11,9 +11,7 @@ public class FontLoadTest {
 
   static void t(String name) {
     System.out.print("loading ".concat(name));
-    FontResources fr = JetBrainsMono.regular();
-    FontLoaderJvm fontLoader = Application.fontLoader(fr);
-    byte[] result = fontLoader.loader.apply(name);
+    byte[] result = ResourceLoader.load(name, JetBrainsMono.regular());
     if (result != null) {
       System.out.println(": result[" + result.length + "]");
     } else {

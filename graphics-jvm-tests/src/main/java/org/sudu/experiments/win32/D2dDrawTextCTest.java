@@ -18,7 +18,7 @@ public class D2dDrawTextCTest {
     Helper.loadDlls();
     Win32.coInitialize();
 
-    D2dFactory f = D2dFactory.create(Application.fontLoader(JetBrainsMono.regular()));
+    D2dFactory f = D2dFactory.create(JetBrainsMono.regular());
 
     long[] jbMono = new long[11];
     for (int i = 0; i < jbMono.length; i++) {

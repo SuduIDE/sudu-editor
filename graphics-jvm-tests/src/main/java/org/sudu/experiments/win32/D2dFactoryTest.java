@@ -1,6 +1,7 @@
 package org.sudu.experiments.win32;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.fonts.Codicon;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.fonts.JetBrainsMono;
@@ -14,8 +15,7 @@ public class D2dFactoryTest {
     Helper.loadDlls();
     Win32.coInitialize();
 
-    D2dFactory f = D2dFactory.create(
-        Application.fontLoader(JetBrainsMono.regular()));
+    D2dFactory f = D2dFactory.create(JetBrainsMono.regular(), Codicon.fontResource());
 
     int size = 50;
     FontDesk jbMono = f.getFont(Fonts.JetBrainsMono,
@@ -30,6 +30,9 @@ public class D2dFactoryTest {
     FontDesk consolas = f.getFont(Fonts.Consolas,
         size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
 
+    FontDesk codicon = f.getFont(Fonts.codicon,
+        size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
+
     String text = "Text";
 
     D2dCanvas canvas = f.create(size * 3, size * 3 / 2);
@@ -39,6 +42,8 @@ public class D2dFactoryTest {
     renderImage(segoeUI, text, canvas, "segoeUI.bmp");
     canvas.clear();
     renderImage(consolas, text, canvas, "consolas.bmp");
+    canvas.clear();
+    renderImage(codicon, "\uEB45", canvas, "codicon.bmp");
 
     canvas.dispose();
     f.dispose();

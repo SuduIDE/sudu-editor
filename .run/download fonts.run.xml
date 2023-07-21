@@ -13,6 +13,8 @@
               <option value="package" />
               <option value="-am" />
               <option value="-pl" />
+              <option value=":codicon" />
+              <option value="-pl" />
               <option value=":fonts" />
             </list>
           </option>

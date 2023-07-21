@@ -9,6 +9,7 @@ public interface Fonts {
   String SegoeUI = "Segoe UI";
   String Consolas = "Consolas";
   String JetBrainsMono = "JetBrains Mono";
+  String codicon = "codicon";
 
   static String[] editorFonts(boolean withJB) {
     return withJB

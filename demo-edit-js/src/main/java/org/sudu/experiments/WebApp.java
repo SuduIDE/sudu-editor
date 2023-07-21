@@ -2,8 +2,10 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.demo.*;
 import org.sudu.experiments.demo.wasm.WasmDemo;
+import org.sudu.experiments.fonts.Codicon;
 import org.sudu.experiments.fonts.JetBrainsMono;
 import org.sudu.experiments.js.*;
+import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.core.JSArrayReader;
@@ -20,26 +22,15 @@ public class WebApp {
     if (JsCanvas.checkFontMetricsAPI()) {
       WebApp webApp = new WebApp();
       WorkerContext.start(webApp::setWorker, "teavm/worker.js");
-      FontFace.loadFonts(JetBrainsMono.webConfig())
+      FontFace.loadFonts(ArrayOp.add(JetBrainsMono.webConfig(), Codicon.webConfig()))
           .then(webApp::loadFonts, WebApp::fontLoadError);
     } else {
       FireFoxWarning.display(preDiv);
     }
   }
 
-  void loadFonts(JSArrayReader<JSObject> fontFaces) {
-    for (int i = 0; i < fontFaces.getLength(); i++) {
-      FontFace font = fontFaces.get(i).cast();
-      font.addToDocument();
-    }
-    onFontsLoad();
-  }
-
-  private static void fontLoadError(JSError error) {
-    JsHelper.consoleInfo("font load error", error);
-  }
-
-  private void onFontsLoad() {
+  private void loadFonts(JSArrayReader<JSObject> fontFaces) {
+    FontFace.addToDocument(fontFaces);
     fontsLoaded = true;
     if (workerStarted != null) startApp(workerStarted);
   }
@@ -47,6 +38,10 @@ public class WebApp {
   private void setWorker(WorkerContext worker) {
     workerStarted = worker;
     if (fontsLoaded) startApp(workerStarted);
+  }
+
+  static void fontLoadError(JSError error) {
+    JsHelper.consoleInfo("font load error ", error);
   }
 
   static void startApp(WorkerContext worker) {

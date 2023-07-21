@@ -24,6 +24,7 @@
     <module>wasm-test</module>
     <module>angle-dll</module>
     <module>fonts</module>
+    <module>codicon</module>
     <module>demo-test-scenes</module>
     <module>graphics-test</module>
     <module>parser</module>

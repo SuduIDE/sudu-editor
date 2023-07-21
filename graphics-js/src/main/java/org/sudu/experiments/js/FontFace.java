@@ -34,6 +34,13 @@ public abstract class FontFace implements JSObject {
     return create(family, source, createDescriptor(style, weight));
   }
 
+  public static void addToDocument(JSArrayReader<JSObject> fontFaces) {
+    for (int i = 0; i < fontFaces.getLength(); i++) {
+      FontFace font = fontFaces.get(i).cast();
+      font.addToDocument();
+    }
+  }
+
   public native Promise<FontFace> load();
 
   @JSProperty

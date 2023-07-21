@@ -101,6 +101,12 @@
       <version>1.0-SNAPSHOT</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.sudu</groupId>
+      <artifactId>codicon</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -166,6 +172,10 @@
             <resource><directory>${project.build.directory}/generated/js</directory></resource>
             <resource><directory>${project.basedir}/../wasm-test/target/wasm</directory></resource>
             <resource><directory>${project.basedir}/../fonts/src/main/resources</directory></resource>
+            <resource>
+              <directory>${project.basedir}/../codicon/src/main/resources</directory>
+              <includes><include>**/*.ttf</include></includes>
+            </resource>
           </webResources>
           <packagingExcludes>WEB-INF/classes/,WEB-INF/lib/</packagingExcludes>
         </configuration>
