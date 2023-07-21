@@ -33,7 +33,7 @@ public class CodiconDemo extends Scene {
     float measureText1 = graphics.mCanvas.measureText(text1);
     float measureText2 = graphics.mCanvas.measureText(text2);
     int w = Numbers.iRnd(Math.max(measureText1, measureText2));
-    int lineHeight = codicon.lineHeight(59.f / 50);
+    int lineHeight = codicon.lineHeight(Fonts.codiconLineHeight);
     System.out.println("w = " + w + ", lineHeight = " + lineHeight);
     textCanvas = graphics.createCanvas(w, lineHeight * 2);
     textCanvas.setFont(codicon);
