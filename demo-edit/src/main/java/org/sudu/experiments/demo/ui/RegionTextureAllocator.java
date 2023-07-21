@@ -5,7 +5,7 @@ import org.sudu.experiments.math.V4f;
 import java.util.ArrayList;
 
 public interface RegionTextureAllocator {
-  int MAX_TEXTURE_SIZE = 4096;
+  int MAX_TEXTURE_SIZE = 2048;
 
   ArrayList<V4f> freeRegions = new ArrayList<>();
 
