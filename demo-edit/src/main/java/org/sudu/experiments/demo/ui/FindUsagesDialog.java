@@ -102,33 +102,26 @@ public class FindUsagesDialog {
       maxLineLen = Math.max(maxLineLen, mLines);
       maxCodeContentLen = Math.max(maxCodeContentLen, mCodeContent);
     }
-
-    maxW = maxFileNameLen + maxLineLen + maxCodeContentLen + textXPad * 3;
-
-    regionTexture.setContext(mCanvas, font, textHeight, maxW);
-
+    maxW = maxFileNameLen + maxLineLen + maxCodeContentLen + textXPad * 2;
+    regionTexture.setContext(mCanvas, font, textHeight);
     for (FindUsagesItem item : items) {
-      int wFile = textXPad + maxFileNameLen;
-      int wLines = maxLineLen + textXPad;
-      // TODO(Minor) Remove this crutch when the scroll appears
-      if (item.fileName.startsWith("...")) {
-        wFile = (int) (mCanvas.measureText(item.fileName) + 7.f / 8) + textXPad;
-        wLines = maxW - wFile;
-      }
       item.tFiles.textureRegion.set(regionTexture.alloc(item.fileName));
       setCoords(item.tFiles, 0);
       item.tLines.textureRegion.set(regionTexture.alloc(item.lineNumber));
-      setCoords(item.tLines, wFile);
+      setCoords(item.tLines, item.tFiles.textureRegion.z + textXPad);
       item.tContent.textureRegion.set(regionTexture.alloc(item.codeContent));
-      setCoords(item.tContent, wFile + wLines);
+      setCoords(item.tContent, item.tFiles.textureRegion.z + item.tLines.textureRegion.z + textXPad);
+      maxFileNameLen = Math.max(maxFileNameLen, item.tFiles.size.x);
+      maxLineLen = Math.max(maxLineLen, item.tLines.size.x);
+      maxCodeContentLen = Math.max(maxCodeContentLen, item.tContent.size.x);
     }
     textureSize.set(regionTexture.getTextureSize());
     rect.size.x = maxW + border * 2;
     rect.size.y = (textHeight + border) * items.length + border;
   }
 
-  private static void setCoords(TextRect item, int dx) {
-    item.pos.x = ((int) item.textureRegion.x) + dx;
+  private static void setCoords(TextRect item, float dx) {
+    item.pos.x = (int) (item.textureRegion.x + dx);
     item.pos.y = (int) item.textureRegion.y;
     item.size.x = (int) item.textureRegion.z;
     item.size.y = (int) item.textureRegion.w;
@@ -150,9 +143,11 @@ public class FindUsagesDialog {
       TextRect tContent = item.tContent;
       tFiles.pos.x = x + localX;
       tFiles.pos.y = y + localY;
-      tLines.pos.x = x + localX + (maxFileNameLen - tFiles.size.x);
+      tLines.pos.x = x + localX;
+      // x + localX + (maxFileNameLen - tFiles.size.x)
       tLines.pos.y = y + localY;
-      tContent.pos.x = x + localX + (maxFileNameLen - tFiles.size.x) + (maxLineLen - tLines.size.x);
+      tContent.pos.x = tLines.pos.x + tLines.size.x + (maxLineLen - tLines.size.x);
+      // x + localX + (maxFileNameLen - tFiles.size.x) + (maxLineLen - tLines.size.x);
       tContent.pos.y = y + localY;
       if (tFiles.size.y == 0 || tLines.size.y == 0 || tContent.size.y == 0) tRectWarning();
       localY += tFiles.size.y + border;
