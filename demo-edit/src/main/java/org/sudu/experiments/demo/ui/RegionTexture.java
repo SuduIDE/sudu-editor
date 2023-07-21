@@ -7,6 +7,8 @@ import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
+import java.util.ArrayList;
+
 public class RegionTexture implements RegionTextureAllocator{
   private GL.Texture texture;
   private FontDesk font;
@@ -14,6 +16,7 @@ public class RegionTexture implements RegionTextureAllocator{
   private int textHeight;
   private static int tw = 0;
   private static int th = 0;
+  private final ArrayList<V4f> freeRegions = new ArrayList<>();
 
   public void setContext(Canvas canvas, FontDesk font, int textHeight) {
     this.mCanvas = canvas;

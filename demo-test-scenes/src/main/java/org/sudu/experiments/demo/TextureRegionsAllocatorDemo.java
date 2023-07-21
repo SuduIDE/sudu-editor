@@ -18,10 +18,12 @@ public class TextureRegionsAllocatorDemo extends Scene0 implements MouseListener
   private final RegionTexture regionTexture;
   private final ArrayList<TextRect> tItemsList = new ArrayList<>();
   private final ArrayList<String> itemsName = new ArrayList<>();
+  private final ArrayList<V4f> colors = new ArrayList<>();
   private final FontDesk font;
   private final int ELEMENTS_COUNT = 100;
   private final int MIN_TEXT_LENGTH = 1;
   private final int MAX_TEXT_LENGTH = 30;
+  private final Color textureBgColor = new Color("#e3c8ab");
   private GL.Texture texture;
   private V2i textureSize;
 
@@ -71,13 +73,14 @@ public class TextureRegionsAllocatorDemo extends Scene0 implements MouseListener
 
   private void addItem(Canvas mCanvas) {
     String text = getRandomText(MIN_TEXT_LENGTH, MAX_TEXT_LENGTH);
-    itemsName.add(text);
     TextRect textRect = new TextRect();
     regionTexture.setContext(mCanvas, font, font.lineHeight());
     textRect.textureRegion.set(regionTexture.alloc(text));
     textRect.pos.set((int) textRect.textureRegion.x, (int) textRect.textureRegion.y);
     textRect.size.set((int) textRect.textureRegion.z, (int) textRect.textureRegion.w);
+    itemsName.add(text);
     tItemsList.add(textRect);
+    colors.add(Color.Cvt.fromHSV(Math.random(), 1, 1).setW(0.5f));
   }
 
   private void createItems(int n) {
@@ -136,17 +139,19 @@ public class TextureRegionsAllocatorDemo extends Scene0 implements MouseListener
     int textXPad = Numbers.iRnd(font.WWidth);
     float baseline = textMargin + font.fAscent - (font.fAscent + font.fDescent) / 16;
 
-    g.drawRect(0, 0, textureSize, new Color("#e3c8ab"));
+    XorShiftRandom r = new XorShiftRandom(5, 6);
+
+    g.drawRect(0, 0, textureSize, textureBgColor);
 
     for (int i = 0; i < itemsName.size(); i++) {
       TextRect textRect = tItemsList.get(i);
       canvas.drawText(itemsName.get(i), textRect.textureRegion.x + textXPad, textRect.textureRegion.y + baseline);
       g.drawRect(
-          (int) textRect.textureRegion.x,
-          (int) textRect.textureRegion.y,
+          (int) textRect.textureRegion.x + r.nextInt(10) - 5,
+          (int) textRect.textureRegion.y + r.nextInt(10) - 5,
           new V2i((int) textRect.textureRegion.z,
               (int) textRect.textureRegion.w),
-          new Color("#8e7d6b")
+            colors.get(i)
       );
     }
 

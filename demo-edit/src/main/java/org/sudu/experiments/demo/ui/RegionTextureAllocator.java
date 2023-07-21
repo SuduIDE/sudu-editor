@@ -7,8 +7,6 @@ import java.util.ArrayList;
 public interface RegionTextureAllocator {
   int MAX_TEXTURE_SIZE = 2048;
 
-  ArrayList<V4f> freeRegions = new ArrayList<>();
-
   V4f alloc(int width);
 
   void free(V4f location);
