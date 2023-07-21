@@ -87,6 +87,7 @@ public class FindUsagesDialog {
     Objects.requireNonNull(font);
     mCanvas.setFont(font);
     int textHeight = font.lineHeight(), maxW = 0;
+    var measureWithPad = RegionTextureAllocator.measuringWithWPad(mCanvas, font.WWidth);
     border = Numbers.iRnd(2 * uiContext.dpr);
     textXPad = Numbers.iRnd(font.WWidth);
 
@@ -105,11 +106,11 @@ public class FindUsagesDialog {
     maxW = maxFileNameLen + maxLineLen + maxCodeContentLen + textXPad * 2;
     regionTexture.setContext(mCanvas, font, textHeight);
     for (FindUsagesItem item : items) {
-      item.tFiles.textureRegion.set(regionTexture.alloc(item.fileName));
+      item.tFiles.textureRegion.set(regionTexture.alloc(item.fileName, measureWithPad));
       setCoords(item.tFiles, 0);
-      item.tLines.textureRegion.set(regionTexture.alloc(item.lineNumber));
+      item.tLines.textureRegion.set(regionTexture.alloc(item.lineNumber, measureWithPad));
       setCoords(item.tLines, item.tFiles.textureRegion.z + textXPad);
-      item.tContent.textureRegion.set(regionTexture.alloc(item.codeContent));
+      item.tContent.textureRegion.set(regionTexture.alloc(item.codeContent, measureWithPad));
       setCoords(item.tContent, item.tFiles.textureRegion.z + item.tLines.textureRegion.z + textXPad);
       maxFileNameLen = Math.max(maxFileNameLen, item.tFiles.size.x);
       maxLineLen = Math.max(maxLineLen, item.tLines.size.x);

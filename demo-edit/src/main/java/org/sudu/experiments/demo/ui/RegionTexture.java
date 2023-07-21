@@ -3,11 +3,11 @@ package org.sudu.experiments.demo.ui;
 import org.sudu.experiments.Canvas;
 import org.sudu.experiments.GL;
 import org.sudu.experiments.fonts.FontDesk;
-import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
 import java.util.ArrayList;
+import java.util.function.ToIntFunction;
 
 public class RegionTexture implements RegionTextureAllocator{
   private GL.Texture texture;
@@ -18,15 +18,15 @@ public class RegionTexture implements RegionTextureAllocator{
   private static int th = 0;
   private final ArrayList<V4f> freeRegions = new ArrayList<>();
 
+  // TODO textHeight should be deleted
   public void setContext(Canvas canvas, FontDesk font, int textHeight) {
     this.mCanvas = canvas;
     this.font = font;
     this.textHeight = textHeight;
   }
 
-  public V4f alloc(String text){
-    int w = (int) (mCanvas.measureText(text) + 7.f / 8);
-    return alloc(w + Numbers.iRnd(font.WWidth) * 2);
+  public V4f alloc(String text, ToIntFunction<String> measureText) {
+    return alloc(measureText.applyAsInt(text));
   }
 
   @Override
@@ -57,6 +57,7 @@ public class RegionTexture implements RegionTextureAllocator{
     }
     region.set(tw, th, width, textHeight);
     tw += width;
+    System.out.println("th = " + th);
     return region;
   }
 
