@@ -2,7 +2,7 @@ package org.sudu.experiments.win32;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.fonts.FontDesk;
-import org.sudu.experiments.fonts.FontLoaderJvm;
+import org.sudu.experiments.fonts.FontResources;
 import org.sudu.experiments.win32.d2d.*;
 
 import java.util.HashMap;
@@ -35,7 +35,7 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
     return factory;
   }
 
-  public static D2dFactory create(FontLoaderJvm fontConfig) {
+  public static D2dFactory create(FontResources ... fontConfig) {
     D2dFactory f = D2dFactory.create();
     f.loadFontConfig(fontConfig);
     return f;
@@ -70,24 +70,26 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
     pD2D1Factory = IUnknown.safeRelease(pD2D1Factory);
   }
 
-  public void loadFontConfig(FontLoaderJvm config) {
+  public void loadFontConfig(FontResources[] config) {
     loadFontConfig(config, () -> 0);
   }
 
-  public double[] loadFontConfig(FontLoaderJvm config, DoubleSupplier dt) {
+  public double[] loadFontConfig(FontResources[] config, DoubleSupplier dt) {
     double loadResources = 0, loadToD2d = 0;
-    for (String font : config.fonts) {
-      byte[] fontData = config.loader.apply(font);
-      loadResources += dt.getAsDouble();
-      if (fontData != null) {
-        boolean addFontFile = addFontFile(fontData);
-        loadToD2d += dt.getAsDouble();
-        if (!addFontFile) {
-          System.err.println("Can not load font " + font + ", error = " + errorString());
-          return null;
+    for (FontResources fr : config) {
+      for (String font : fr.fonts) {
+        byte[] fontData = ResourceLoader.load(font, fr);
+        loadResources += dt.getAsDouble();
+        if (fontData != null) {
+          boolean addFontFile = addFontFile(fontData);
+          loadToD2d += dt.getAsDouble();
+          if (!addFontFile) {
+            System.err.println("Can not load font " + font + ", error = " + errorString());
+            return null;
+          }
+        } else {
+          System.err.println("Can not load (not present) font file " + font);
         }
-      } else {
-        System.err.println("Can not load (not present) font file " + font);
       }
     }
     return new double[] {loadResources, loadToD2d};

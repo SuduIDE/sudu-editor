@@ -9,6 +9,8 @@ public interface Fonts {
   String SegoeUI = "Segoe UI";
   String Consolas = "Consolas";
   String JetBrainsMono = "JetBrains Mono";
+  String codicon = "codicon";
+  float codiconLineHeight = 59.f / 50;
 
   static String[] editorFonts(boolean withJB) {
     return withJB

@@ -13,3 +13,4 @@ target/
 node_modules
 *.iml
 /fonts/src/main/resources/fonts/
+/codicon/src/main/resources/fonts/
