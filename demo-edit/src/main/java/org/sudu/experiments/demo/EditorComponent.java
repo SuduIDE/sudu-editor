@@ -557,7 +557,7 @@ public class EditorComponent implements Focusable {
     return count == 0 ? null : " ".repeat(count);
   }
 
-  private <T>void tabDiffHandler(
+  private void tabDiffHandler(
       int[] lines,
       int fromValue,
       boolean isDelValue,
