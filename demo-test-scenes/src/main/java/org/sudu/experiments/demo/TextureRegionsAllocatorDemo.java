@@ -7,9 +7,11 @@ import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
-import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
-import org.sudu.experiments.math.*;
+import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.RngHelper;
+import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.ArrayList;
 
@@ -19,18 +21,17 @@ public class TextureRegionsAllocatorDemo extends Scene0 implements MouseListener
   private final RegionTexture regionTexture;
   private final ArrayList<TextRect> tItemsList = new ArrayList<>();
   private final ArrayList<String> itemsName = new ArrayList<>();
-  private final ArrayList<V4f> colors = new ArrayList<>();
   private final FontDesk font;
   private final int ELEMENTS_COUNT = 100;
   private final int MIN_TEXT_LENGTH = 1;
-  private final int MAX_TEXT_LENGTH = 30;
+  private final int MAX_TEXT_LENGTH = 20;
+  private final double COVERAGE_PERCENT = 0.7;
   private final Color textureBgColor = new Color("#e3c8ab");
   private GL.Texture texture;
   private V2i textureSize;
   private boolean isTesting;
   XorShiftRandom r = new XorShiftRandom();
-  private int allocatedItemsCount = 0;
-  private int deletedItemsCount = 0;
+  private int usedCoverage = 0;
 
   public TextureRegionsAllocatorDemo(SceneApi api) {
     super(api);
@@ -54,6 +55,10 @@ public class TextureRegionsAllocatorDemo extends Scene0 implements MouseListener
       return true;
     }
     if (keyEvent.keyCode == KeyCode.ENTER) {
+      createItems(1);
+      return true;
+    }
+    if (keyEvent.keyCode == KeyCode.BACKSPACE) {
       removeItems(1);
       return true;
     }
@@ -66,6 +71,7 @@ public class TextureRegionsAllocatorDemo extends Scene0 implements MouseListener
         int indexToRemove = (int) (Math.random() * (tItemsList.size() - 1));
         TextRect textRect = tItemsList.remove(indexToRemove);
         itemsName.remove(indexToRemove);
+        usedCoverage -= textRect.size.x * textRect.size.y;
         regionTexture.free(textRect.textureRegion);
       }
     }
@@ -85,6 +91,7 @@ public class TextureRegionsAllocatorDemo extends Scene0 implements MouseListener
     textRect.size.set((int) textRect.textureRegion.z, (int) textRect.textureRegion.w);
     itemsName.add(text);
     tItemsList.add(textRect);
+    usedCoverage += textRect.size.x * textRect.size.y;
   }
 
   private void createItems(int n) {
@@ -136,7 +143,6 @@ public class TextureRegionsAllocatorDemo extends Scene0 implements MouseListener
   private void renderTexture(WglGraphics g) {
     Canvas canvas = g.createCanvas(textureSize.x, textureSize.y);
     canvas.setFont(font);
-    int textXPad = Numbers.iRnd(font.WWidth);
     float baseline = font.fAscent;
 
     g.drawRect(0, 0, textureSize, textureBgColor);
@@ -144,9 +150,8 @@ public class TextureRegionsAllocatorDemo extends Scene0 implements MouseListener
     for (int i = 0; i < itemsName.size(); i++) {
       TextRect textRect = tItemsList.get(i);
       canvas.drawText(itemsName.get(i),
-          textRect.textureRegion.x + textXPad,
+          textRect.textureRegion.x,
           textRect.textureRegion.y + baseline);
-
     }
 
     if (texture == null || texture.width() != textureSize.x || texture.height() != textureSize.y) {
@@ -157,22 +162,21 @@ public class TextureRegionsAllocatorDemo extends Scene0 implements MouseListener
   }
 
   @Override
-  public boolean onMouseMove(MouseEvent event) {
-    return false;
-  }
-
-  @Override
   public boolean update(double timestamp) {
     if (isTesting) {
-      createItems(r.nextInt(10));
-      removeItems(r.nextInt(10));
+      balanceItems();
     }
     return isTesting;
   }
 
-  @Override
-  public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-    return false;
+  private void balanceItems() {
+    int textureArea = Math.min(textureSize.x * textureSize.y, RegionTextureAllocator.MAX_TEXTURE_SIZE * 1080);
+    double coveragePercent = (double) usedCoverage / textureArea;
+    if (coveragePercent > COVERAGE_PERCENT) {
+      removeItems(r.nextInt(5));
+    } else {
+      createItems(r.nextInt(5));
+    }
   }
 
   private void openWindow(V2i position) {

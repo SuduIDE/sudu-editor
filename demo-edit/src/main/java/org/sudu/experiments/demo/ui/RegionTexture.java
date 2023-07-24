@@ -57,7 +57,6 @@ public class RegionTexture implements RegionTextureAllocator{
     }
     region.set(tw, th, width, textHeight);
     tw += width;
-    System.out.println("th = " + th);
     return region;
   }
 
