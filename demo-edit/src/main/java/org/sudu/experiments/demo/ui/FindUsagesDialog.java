@@ -104,13 +104,12 @@ public class FindUsagesDialog {
       maxCodeContentLen = Math.max(maxCodeContentLen, mCodeContent);
     }
     maxW = maxFileNameLen + maxLineLen + maxCodeContentLen + textXPad * 2;
-    regionTexture.setContext(mCanvas, font, textHeight);
     for (FindUsagesItem item : items) {
-      item.tFiles.textureRegion.set(regionTexture.alloc(item.fileName, measureWithPad));
+      item.tFiles.textureRegion.set(regionTexture.alloc(item.fileName, measureWithPad, textHeight));
       setCoords(item.tFiles, 0);
-      item.tLines.textureRegion.set(regionTexture.alloc(item.lineNumber, measureWithPad));
+      item.tLines.textureRegion.set(regionTexture.alloc(item.lineNumber, measureWithPad, textHeight));
       setCoords(item.tLines, item.tFiles.textureRegion.z + textXPad);
-      item.tContent.textureRegion.set(regionTexture.alloc(item.codeContent, measureWithPad));
+      item.tContent.textureRegion.set(regionTexture.alloc(item.codeContent, measureWithPad, textHeight));
       setCoords(item.tContent, item.tFiles.textureRegion.z + item.tLines.textureRegion.z + textXPad);
       maxFileNameLen = Math.max(maxFileNameLen, item.tFiles.size.x);
       maxLineLen = Math.max(maxLineLen, item.tLines.size.x);

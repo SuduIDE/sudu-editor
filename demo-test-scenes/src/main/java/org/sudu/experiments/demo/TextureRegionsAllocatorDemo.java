@@ -84,8 +84,7 @@ public class TextureRegionsAllocatorDemo extends Scene0 implements MouseListener
   private void addItem(Canvas mCanvas) {
     String text = getRandomText(MIN_TEXT_LENGTH, MAX_TEXT_LENGTH);
     TextRect textRect = new TextRect();
-    regionTexture.setContext(mCanvas, font, font.lineHeight());
-    textRect.textureRegion.set(regionTexture.alloc(text, RegionTextureAllocator.measuringF(mCanvas)));
+    textRect.textureRegion.set(regionTexture.alloc(text, RegionTextureAllocator.measuring(mCanvas), font.lineHeight()));
     Color.Cvt.fromHSV(Math.random(), 1, 1, textRect.bgColor).setW(0.5f);
     textRect.pos.set((int) textRect.textureRegion.x, (int) textRect.textureRegion.y);
     textRect.size.set((int) textRect.textureRegion.z, (int) textRect.textureRegion.w);
