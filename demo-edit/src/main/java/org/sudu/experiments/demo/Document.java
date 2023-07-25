@@ -169,6 +169,7 @@ public class Document {
     if (isLastPosition(caretLine, caretCharPos)) {
       // do nothing at the document end
       if (caretLine != document.length - 1) {
+        makeDiff(caretLine, caretCharPos, true, "\n");
         concatLinesOp(caretLine);
       }
     } else {
