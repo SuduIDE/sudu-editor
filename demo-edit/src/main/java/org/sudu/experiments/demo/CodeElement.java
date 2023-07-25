@@ -42,6 +42,10 @@ public class CodeElement {
     return new CodeElement(s.substring(pos), color, fontIndex);
   }
 
+  public int length() {
+    return s.length();
+  }
+
   public String toString() {
     StringBuilder b = new StringBuilder(s);
     boolean bold = bold(fontIndex);
@@ -74,5 +78,9 @@ public class CodeElement {
     for (int i = 0; i < x; i++) data[i + pos] = value.charAt(i);
     for (int i = 0; i < end; i++) data[i + y] = s.charAt(i + pos);
     return new CodeElement(new String(data), color, fontIndex);
+  }
+
+  public char charAt(int index) {
+    return s.charAt(index);
   }
 }

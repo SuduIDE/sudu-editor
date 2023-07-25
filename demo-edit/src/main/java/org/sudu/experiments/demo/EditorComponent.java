@@ -999,6 +999,14 @@ public class EditorComponent implements Focusable {
     int wordEnd = line.nextPos(caretCharPos);
     CodeElement elem = line.getCodeElement(wordStart);
 
+    // Select line without tale if double-clicking the end of the line
+    if (wordEnd - 1 == line.totalStrLength) {
+      selection.startPos.set(caretLine, line.getBlankStartLength());
+      selection.endPos.set(caretLine, line.totalStrLength);
+      return;
+    }
+
+    // Select adjacent CodeElements if one ' ', or the whole line
     if (elem != null && elem.s.isBlank()) {
       if (wordStart == caretCharPos) {
         wordStart = line.getElementStart(wordStart - 1);
@@ -1012,6 +1020,7 @@ public class EditorComponent implements Focusable {
       }
     }
 
+    // Select CodeElement that holds the caret inside
     selection.startPos.set(caretLine, wordStart);
     selection.isSelectionStarted = true;
     setCaretLinePos(caretLine, wordEnd, false);
@@ -1019,7 +1028,6 @@ public class EditorComponent implements Focusable {
   }
 
   void onTripleClickText(V2i eventPosition) {
-    Pos pos = computeCharPos(eventPosition);
     selection.selectLine(caretLine);
   }
 

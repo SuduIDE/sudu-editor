@@ -219,6 +219,17 @@ public class CodeLine {
     invalidateCache();
   }
 
+  public int getBlankStartLength() {
+    int c = 0;
+    for (CodeElement e: elements) {
+      for (int i = 0; i < e.length(); i++) {
+        if (e.charAt(i) != ' ') return c;
+        c++;
+      }
+    }
+    return c;
+  }
+
   public void insertToEnd(String value) {
     int elemSize = elements.length == 0 ? 0 : elements[elements.length - 1].s.length();
     insertAt(elements.length - 1, elemSize, value);
