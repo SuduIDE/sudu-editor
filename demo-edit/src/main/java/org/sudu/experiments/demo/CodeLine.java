@@ -194,8 +194,6 @@ public class CodeLine {
       pos -= el;
     }
     insertAt(i, pos, value);
-    totalStrLength += value.length();
-    invalidateCache();
   }
 
   private void insertAt(int ind, int pos, String value) {
