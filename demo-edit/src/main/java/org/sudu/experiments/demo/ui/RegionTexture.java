@@ -5,11 +5,12 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.function.ToIntFunction;
 
 public class RegionTexture implements RegionTextureAllocator {
-  private static int tw = 0;
-  private static int th = 0;
+  private int tw = 0;
+  private int th = 0;
   private final ArrayList<V4f> freeRegions = new ArrayList<>();
   private int textHeight;
 
@@ -49,26 +50,32 @@ public class RegionTexture implements RegionTextureAllocator {
 
   @Override
   public void free(V4f location) {
+    V4f currentLocation = new V4f(location);
     if (freeRegions.size() > 0) {
-      for (V4f freeRegion : freeRegions) {
-        if (freeRegion.y == location.y) {
-          if (freeRegion.x + freeRegion.z == location.x) {
-            freeRegion.z += location.z;
-            return;
-          }
-          if (location.x + location.z == freeRegion.x) {
-            freeRegion.x = location.x;
-            freeRegion.z += location.z;
-            return;
+      Iterator<V4f> iter = freeRegions.iterator();
+      while (iter.hasNext()) {
+        V4f freeRegion = iter.next();
+        if (freeRegion.y == currentLocation.y) {
+          if (freeRegion.x + freeRegion.z == currentLocation.x) {
+            currentLocation.x = freeRegion.x;
+            currentLocation.z += freeRegion.z;
+            iter.remove();
+          } else if (currentLocation.x + currentLocation.z == freeRegion.x) {
+            currentLocation.z += freeRegion.z;
+            iter.remove();
           }
         }
       }
     }
-    freeRegions.add(location);
+    freeRegions.add(currentLocation);
   }
 
   public V2i getTextureSize() {
     return new V2i(MAX_TEXTURE_SIZE, th + textHeight);
+  }
+
+  public ArrayList<V4f> getFreeRegions() {
+    return freeRegions;
   }
 
   native void canvasDraw(FontDesk fd, V4f location, String text);
