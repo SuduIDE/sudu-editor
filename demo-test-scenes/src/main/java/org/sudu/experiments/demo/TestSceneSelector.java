@@ -20,7 +20,7 @@ public class TestSceneSelector {
       case "DemoScene1", "test" -> DemoScene1::new;
       case "ToolbarDemo" -> ToolbarDemo::new;
       case "FindUsagesDemo" -> FindUsagesDemo::new;
-      case "TextureRegionsAllocatorDemo" -> TextureRegionsAllocatorDemo::new;
+      case "RegionTextureAllocatorDemo" -> RegionTextureAllocatorDemo::new;
       case "ManyTexturesLineNumbersScene", "many"
           -> ManyTexturesLineNumbersScene::new;
       case "SelectFileTest" -> SelectFileTest::new;

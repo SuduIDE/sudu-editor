@@ -15,7 +15,7 @@ import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.ArrayList;
 
-public class TextureRegionsAllocatorDemo extends Scene0 implements MouseListener {
+public class RegionTextureAllocatorDemo extends Scene0 implements MouseListener {
 
   private final UiContext uiContext;
   private final RegionTexture regionTexture;
@@ -33,7 +33,7 @@ public class TextureRegionsAllocatorDemo extends Scene0 implements MouseListener
   XorShiftRandom r = new XorShiftRandom();
   private int usedCoverage = 0;
 
-  public TextureRegionsAllocatorDemo(SceneApi api) {
+  public RegionTextureAllocatorDemo(SceneApi api) {
     super(api);
 
     uiContext = new UiContext(api);
