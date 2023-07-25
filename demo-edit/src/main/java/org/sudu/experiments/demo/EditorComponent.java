@@ -480,12 +480,11 @@ public class EditorComponent implements Focusable {
       for (int l = left.line; l <= right.line; l++) {
         lines[i] = l;
         changes[i++] = tabIndent;
-//        model.document.insertAt(l, 0, tabIndent);
       }
 
-      tabDiffHandler(lines, 0, false, changes, caretLine, caretCharPos,
+      tabDiffHandler(lines, 0, false, changes, new Pos(caretLine, caretCharPos),
           (l, c) -> model.document.insertAt(l, 0, tabIndent)
-          );
+      );
       left.charInd += tabIndent.length();
       right.charInd += tabIndent.length();
       setCaretPosWithSelection(caretCharPos + tabIndent.length(), false);
@@ -504,7 +503,9 @@ public class EditorComponent implements Focusable {
       if (codeLine.elements.length > 0) {
         String indent = calculateTabIndent(codeLine);
         if (indent == null) return true;
-        model.document.makeDiffWithCaretReturn(caretLine, 0, true, indent, caretLine, caretCharPos);
+        model.document.makeDiffWithCaretReturn(
+            caretLine, 0, true, indent, new Pos(caretLine, caretCharPos)
+        );
         codeLine.delete(0, indent.length());
         setCaretPosWithSelection(caretCharPos - indent.length(), false);
       }
@@ -536,20 +537,18 @@ public class EditorComponent implements Focusable {
     for (int i = 0; i < size; i++) {
       String indent = changes[i];
       int l = lines[i];
-//      CodeLine codeLine = model.document.line(l);
-//      codeLine.delete(0, indent.length());
       if (l == left.line) left.charInd = Math.max(0, left.charInd - indent.length());
       if (l == right.line) {
         right.charInd = Math.max(0, right.charInd - indent.length());
         setCaretPosWithSelection(caretCharPos - indent.length(), false);
       }
     }
-    tabDiffHandler(lines, 0, true, changes, prevCaretLine, prevCaretPos,
+    tabDiffHandler(lines, 0, true, changes, new Pos(prevCaretLine, prevCaretPos),
         (l, c) -> {
           CodeLine codeLine = model.document.line(l);
           codeLine.delete(0, c.length());
         }
-        );
+    );
   }
 
   private String calculateTabIndent(CodeLine codeLine) {
@@ -562,8 +561,7 @@ public class EditorComponent implements Focusable {
       int fromValue,
       boolean isDelValue,
       String[] changes,
-      int caretReturnLine,
-      int caretReturnPos,
+      Pos caretPosition,
       BiConsumer<Integer, String> editorAction
 
   ) {
@@ -577,8 +575,7 @@ public class EditorComponent implements Focusable {
         from,
         areDeletes,
         changes,
-        caretReturnLine,
-        caretReturnPos,
+        caretPosition,
         editorAction
     );
   }

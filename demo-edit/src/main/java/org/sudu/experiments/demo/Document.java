@@ -372,12 +372,11 @@ public class Document {
       int from,
       boolean isDelete,
       String change,
-      int caretLine,
-      int caretPos
+      Pos caretPos
   ) {
     currentVersion++;
 
-    diffs.add(ArrayOp.array(new Diff(line, from, isDelete, change, caretLine, caretPos)));
+    diffs.add(ArrayOp.array(new Diff(line, from, isDelete, change, caretPos.line, caretPos.pos)));
     makeDiffOp(line, from, isDelete, change);
   }
 
@@ -386,15 +385,14 @@ public class Document {
       int[] from,
       boolean[] areDeletes,
       String[] changes,
-      int caretLine,
-      int caretPos,
+      Pos caretPos,
       BiConsumer<Integer, String> editorAction
   ) {
     currentVersion++;
 
     Diff[] temp = new Diff[lines.length];
     for (int i = 0; i < lines.length; i++) {
-      temp[i] = new Diff(lines[i], from[i], areDeletes[i], changes[i], caretLine, caretPos);
+      temp[i] = new Diff(lines[i], from[i], areDeletes[i], changes[i], caretPos.line, caretPos.pos);
     }
     diffs.add(temp);
     for (int i = 0; i < lines.length; i++) {

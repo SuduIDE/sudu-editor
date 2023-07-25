@@ -6,19 +6,15 @@ import java.util.Objects;
 
 public class Selection {
 
-  public final SelPos startPos;
-  public final SelPos endPos;
+  public final SelPos startPos = new SelPos();
+  public final SelPos endPos = new SelPos();
   public boolean isSelectionStarted;
 
-  Selection() {
-    startPos = new SelPos();
-    endPos = new SelPos();
-    isSelectionStarted = false;
-  }
+  Selection() {}
 
   Selection(Selection selection) {
-    startPos = new SelPos(selection.startPos);
-    endPos = new SelPos(selection.endPos);
+    startPos.set(selection.startPos);
+    endPos.set(selection.endPos);
     isSelectionStarted = selection.isSelectionStarted;
   }
 
