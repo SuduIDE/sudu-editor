@@ -22,11 +22,13 @@ import java.util.function.Consumer;
 
 public class JsInput {
   static final boolean debug = 1 < 0;
+  private final int clickTime = 500;
 
   public final InputListeners listeners;
   private final JsHelper.HTMLElement element;
   private Disposable disposer;
   private V2i clientRect = null;
+  private long prevDoubleClickTime = 0;
 
   public JsInput(HTMLElement element, Runnable repaint) {
     this.element = element.cast();
@@ -41,6 +43,7 @@ public class JsInput {
         // todo add onMouseWheelOnWindow
         addListener(element, "wheel", this::onMouseWheelOnElement),
         addListener(element, "dblclick", this::onDoubleClick),
+        addListener(element, "click", this::onClick),
         addListener(element, "contextmenu", this::onContextMenu),
         addListener(element, "focus", this::onFocus),
         addListener(element, "blur", this::onBlur),
@@ -120,9 +123,22 @@ public class JsInput {
   private void onDoubleClick(org.teavm.jso.dom.events.MouseEvent event) {
     debug("onDoubleClick");
     if (clientRect == null) return;
+    prevDoubleClickTime = System.currentTimeMillis();
     MouseEvent mouseEvent = mouseEvent(event);
     if (listeners.sendMouseButton(mouseEvent, event.getButton(), true, 2)) {
       stopEvent(event);
+    }
+  }
+
+  private void onClick(org.teavm.jso.dom.events.MouseEvent event) {
+    debug("onClick");
+    if (clientRect == null) return;
+    if (System.currentTimeMillis() - prevDoubleClickTime < clickTime) {
+      debug("onTripleClick");
+      MouseEvent mouseEvent = mouseEvent(event);
+      if (listeners.sendMouseButton(mouseEvent, event.getButton(), true, 3)) {
+        stopEvent(event);
+      }
     }
   }
 

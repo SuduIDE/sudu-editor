@@ -4,6 +4,7 @@ import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.win32.Win32;
+import org.sudu.experiments.win32.Win32Time;
 
 import java.util.function.Consumer;
 
@@ -12,7 +13,8 @@ import static org.sudu.experiments.win32.WindowPeer.*;
 class Win32InputState {
 
   boolean shift, ctrl, alt, meta;
-  boolean doubleClick, rightMouseDown;
+  boolean doubleClick, tripleClick, rightMouseDown;
+  long prevDoubleClickTime = 0;
 
   boolean onKey(long hWnd, int msg, long wParam, long lParam, InputListeners listeners) {
     boolean onChar = msg == WM_CHAR;
@@ -69,15 +71,32 @@ class Win32InputState {
     MouseEvent event = createMouseEvent(lParam, windowSize);
     listeners.sendMouseButton(event, mapMouseButton(btn), press, 1);
 
+    long time = System.currentTimeMillis();
+
     switch (state) {
-      case 0 -> Win32.SetCapture(hWnd);
+      case 0 -> {
+        Win32.SetCapture(hWnd);
+        if (doubleClick) {
+          if (time - prevDoubleClickTime <= Win32Time.clickTime) {
+            tripleClick = true;
+          }
+          doubleClick = false;
+        }
+      }
       case 1 -> Win32.ReleaseCapture();
-      case 2 -> doubleClick = true;
+      case 2 -> {
+        prevDoubleClickTime = time;
+        doubleClick = true;
+      }
+    }
+
+    if (state == 1 && tripleClick) {
+      listeners.sendMouseButton(event, mapMouseButton(btn), true, 3);
+      tripleClick = false;
     }
 
     if (state == 1 && doubleClick) {
       listeners.sendMouseButton(event, mapMouseButton(btn), true, 2);
-      doubleClick = false;
     }
 
     if (btn == 1)

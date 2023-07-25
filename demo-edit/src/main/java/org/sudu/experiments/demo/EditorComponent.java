@@ -993,16 +993,34 @@ public class EditorComponent implements Focusable {
   }
 
   void onDoubleClickText(V2i eventPosition) {
-    Pos pos = computeCharPos(eventPosition);;
-
+    Pos pos = computeCharPos(eventPosition);
     CodeLine line = codeLine(pos.line);
     int wordStart = line.getElementStart(caretCharPos);
     int wordEnd = line.nextPos(caretCharPos);
+    CodeElement elem = line.getCodeElement(wordStart);
+
+    if (elem != null && elem.s.isBlank()) {
+      if (wordStart == caretCharPos) {
+        wordStart = line.getElementStart(wordStart - 1);
+        wordEnd = line.nextPos(wordStart);
+      } else if (wordEnd == caretCharPos) {
+        wordStart = line.getElementStart(wordEnd + 1);
+        wordEnd = line.nextPos(wordStart);
+      } else {
+        selection.selectLine(caretLine);
+        return;
+      }
+    }
 
     selection.startPos.set(caretLine, wordStart);
     selection.isSelectionStarted = true;
     setCaretLinePos(caretLine, wordEnd, false);
     selection.isSelectionStarted = false;
+  }
+
+  void onTripleClickText(V2i eventPosition) {
+    Pos pos = computeCharPos(eventPosition);
+    selection.selectLine(caretLine);
   }
 
   CodeLine caretCodeLine() {
@@ -1040,6 +1058,10 @@ public class EditorComponent implements Focusable {
       return true;
     }
 
+    if (button == MOUSE_BUTTON_LEFT && clickCount == 3 && press) {
+      onTripleClickText(event.position);
+      return true;
+    }
     if (button == MOUSE_BUTTON_LEFT && clickCount == 2 && press) {
       onDoubleClickText(event.position);
       return true;
