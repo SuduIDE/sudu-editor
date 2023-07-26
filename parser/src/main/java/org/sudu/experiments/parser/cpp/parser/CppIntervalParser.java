@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.BaseIntervalParser;
+import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.cpp.CppSplitRules;
 import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
@@ -16,7 +17,6 @@ import org.sudu.experiments.parser.ParserConstants.IntervalTypes;
 import org.sudu.experiments.parser.cpp.walker.CppClassWalker;
 
 import java.util.HashMap;
-import java.util.List;
 
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.ANNOTATION;
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.COMMENT;
@@ -24,28 +24,29 @@ import static org.sudu.experiments.parser.ParserConstants.TokenTypes.COMMENT;
 public class CppIntervalParser extends BaseIntervalParser {
 
   @Override
-  protected List<Interval> parseInterval(Interval interval) {
+  protected IntervalNode parseInterval(Interval interval) {
     CPP14Parser parser = new CPP14Parser(tokenStream);
     ParserRuleContext ruleContext;
+    Interval initInterval;
 
-    ruleContext = switch (interval.intervalType) {
-      case IntervalTypes.Cpp.TRANS_UNIT -> parser.translationUnitOrAny();
-      default -> parser.unknownInterval();
-    };
+    if (interval.intervalType == IntervalTypes.Cpp.TRANS_UNIT) {
+      ruleContext = parser.translationUnitOrAny();
+      initInterval = new Interval(0, fileSourceLength, IntervalTypes.Java.COMP_UNIT);
+    } else {
+      ruleContext = parser.unknownInterval();
+      initInterval = defaultInterval();
+    }
+
     ParseTreeWalker walker = new ParseTreeWalker();
 
-    CppClassWalker classWalker = new CppClassWalker();
+    var classWalker = new CppClassWalker(new IntervalNode(initInterval));
+    classWalker.intervalStart = intervalStart;
     walker.walk(classWalker, ruleContext);
-
     var cppWalker = new CppWalker(tokenTypes, tokenStyles, classWalker.current, new HashMap<>());
     walker.walk(cppWalker, ruleContext);
     highlightTokens();
 
-    if (interval.intervalType == IntervalTypes.Cpp.TRANS_UNIT) {
-      var compUnitInterval = new Interval(0, fileSourceLength, IntervalTypes.Cpp.TRANS_UNIT);
-      classWalker.intervals.add(0, compUnitInterval);
-    }
-    return classWalker.intervals;
+    return classWalker.node;
   }
 
   @Override

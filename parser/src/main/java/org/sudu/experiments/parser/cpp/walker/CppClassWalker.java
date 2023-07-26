@@ -3,18 +3,18 @@ package org.sudu.experiments.parser.cpp.walker;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.Decl;
+import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
 import org.sudu.experiments.parser.cpp.gen.CPP14ParserBaseListener;
 import org.sudu.experiments.parser.cpp.model.CppClass;
 import org.sudu.experiments.parser.cpp.model.CppMethod;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.sudu.experiments.parser.cpp.walker.CppWalker.*;
+import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Cpp.*;
 
 public class CppClassWalker extends CPP14ParserBaseListener {
 
@@ -26,23 +26,28 @@ public class CppClassWalker extends CPP14ParserBaseListener {
   public double depthSum = 0;
   public int amount = 0;
 
-  public final List<Interval> intervals;
+  public IntervalNode node;
 
-  int lastDeclarationInd = 0;
+  public int intervalStart = 0;
+  private int lastIntervalEnd = 0;
 
-  public CppClassWalker() {
+  public CppClassWalker(IntervalNode node) {
     dummy = new CppClass(null, null, null);
     current = dummy;
-    this.intervals = new ArrayList<>();
+    this.node = node;
   }
 
   @Override
   public void enterDeclaration(CPP14Parser.DeclarationContext ctx) {
     super.enterDeclaration(ctx);
+    addChild(ctx, DECLARATION);
+    enterChild();
+  }
 
-    int stop = ctx.stop.getStopIndex() + 1;
-    intervals.add(new Interval(lastDeclarationInd, stop, ParserConstants.IntervalTypes.Cpp.DECLARATION));
-    lastDeclarationInd = stop;
+  @Override
+  public void exitDeclaration(CPP14Parser.DeclarationContext ctx) {
+    super.exitDeclaration(ctx);
+    exitChild();
   }
 
   @Override
@@ -81,6 +86,20 @@ public class CppClassWalker extends CPP14ParserBaseListener {
     if (node == null) return;
     var field = Decl.fromNode(node);
     current.fields.add(field);
+  }
+
+  private void addChild(ParserRuleContext ctx, int type) {
+    int end = ctx.stop.getStopIndex() + 1;
+    node.addChild(new Interval(intervalStart + lastIntervalEnd, intervalStart + end, type));
+    lastIntervalEnd = end;
+  }
+
+  private void enterChild() {
+    node = node.lastChild();
+  }
+
+  private void exitChild() {
+    node = node.parent;
   }
 
   @Override

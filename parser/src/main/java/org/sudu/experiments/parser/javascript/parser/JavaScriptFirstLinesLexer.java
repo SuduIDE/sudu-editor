@@ -3,7 +3,6 @@ package org.sudu.experiments.parser.javascript.parser;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Token;
-import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.BaseFullParser;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.javascript.JsSplitRules;
@@ -12,7 +11,6 @@ import org.sudu.experiments.parser.javascript.parser.highlighting.JavaScriptLexe
 import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptLexerHighlighting;
 
 import java.util.Arrays;
-import java.util.List;
 
 public class JavaScriptFirstLinesLexer extends BaseFullParser {
 
@@ -22,7 +20,7 @@ public class JavaScriptFirstLinesLexer extends BaseFullParser {
 
     highlightTokens();
 
-    var result = getInts(List.of());
+    var result = getInts(null);
     System.out.println("Lexing viewport js time " + (System.currentTimeMillis() - parsingStartTime) + "ms");
     return result;
   }

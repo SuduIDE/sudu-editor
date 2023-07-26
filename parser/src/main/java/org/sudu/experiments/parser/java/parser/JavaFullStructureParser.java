@@ -5,13 +5,12 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.BaseFullParser;
+import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.java.JavaStructureSplitRules;
 import org.sudu.experiments.parser.java.gen.st.JavaStructureLexer;
 import org.sudu.experiments.parser.java.gen.st.JavaStructureParser;
 import org.sudu.experiments.parser.java.walker.StructureWalker;
-
-import java.util.*;
 
 import static org.sudu.experiments.parser.ParserConstants.*;
 
@@ -24,21 +23,13 @@ public class JavaFullStructureParser extends BaseFullParser {
     JavaStructureParser parser = new JavaStructureParser(tokenStream);
 
     var compUnit = parser.compilationUnit();
-    var stWalker = new StructureWalker();
-    stWalker.intervals.add(new Interval(0, source.length(), IntervalTypes.Java.COMP_UNIT));
+    Interval compUnitInterval = new Interval(0, source.length(), IntervalTypes.Java.COMP_UNIT);
+    var stWalker = new StructureWalker(new IntervalNode(compUnitInterval));
 
     ParseTreeWalker walker = new ParseTreeWalker();
     walker.walk(stWalker, compUnit);
 
-    List<Interval> intervals = stWalker.intervals;
-    for (var token : allTokens) {
-      if (token.getType() == JavaStructureLexer.COMMENT) {
-        var commentInterval = new Interval(token.getStartIndex(), token.getStopIndex() + 1, IntervalTypes.Java.COMMENT);
-        intervals.add(commentInterval);
-      }
-    }
-
-    int[] result = getInts(stWalker.intervals);
+    int[] result = getInts(stWalker.node);
     System.out.println("Parsing java structure time: " + (System.currentTimeMillis() - parsingStartTime) + "ms");
     return result;
   }

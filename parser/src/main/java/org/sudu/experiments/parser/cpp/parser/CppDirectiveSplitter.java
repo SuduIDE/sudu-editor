@@ -93,6 +93,7 @@ public class CppDirectiveSplitter {
     private void markToken(TerminalNode node, int type) {
       if (node == null) return;
       int ind = node.getSymbol().getTokenIndex();
+      if (ind < 0) return;
       splitTokenTypes[ind] = type;
     }
   }

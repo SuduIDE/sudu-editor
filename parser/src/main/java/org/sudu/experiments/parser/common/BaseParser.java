@@ -142,4 +142,8 @@ public abstract class BaseParser {
     return new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.UNKNOWN);
   }
 
+  protected IntervalNode defaultIntervalNode() {
+    return new IntervalNode(defaultInterval(), null);
+  }
+
 }

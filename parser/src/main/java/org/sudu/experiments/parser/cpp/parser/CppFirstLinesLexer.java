@@ -10,7 +10,6 @@ import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
 import org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting;
 
 import java.util.Arrays;
-import java.util.List;
 
 public class CppFirstLinesLexer extends BaseFullParser {
 
@@ -20,7 +19,7 @@ public class CppFirstLinesLexer extends BaseFullParser {
 
     highlightTokens();
 
-    var result = getInts(List.of());
+    var result = getInts(defaultIntervalNode());
     System.out.println("Lexing viewport cpp time " + (System.currentTimeMillis() - parsingStartTime) + "ms");
     return result;
   }

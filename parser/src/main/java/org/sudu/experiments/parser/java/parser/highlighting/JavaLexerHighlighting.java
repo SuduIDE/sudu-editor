@@ -1,6 +1,7 @@
 package org.sudu.experiments.parser.java.parser.highlighting;
 
 import org.antlr.v4.runtime.Token;
+import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 
 import java.util.List;
@@ -24,6 +25,15 @@ public class JavaLexerHighlighting {
       else if (isComment(token.getType())) tokenTypes[ind] = COMMENT;
       else if (isJavadoc(token.getType())) tokenTypes[ind] = JAVADOC;
       else if (isError(token.getType())) tokenTypes[ind] = ERROR;
+    }
+  }
+
+  public static void highlightCommentTokens(List<Token> allTokens, int[] tokenTypes) {
+    for (var token: allTokens) {
+      int ind = token.getTokenIndex();
+      if (JavaLexerHighlighting.isComment(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.COMMENT;
+      if (JavaLexerHighlighting.isJavadoc(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.JAVADOC;
+      if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
     }
   }
 
@@ -71,6 +81,10 @@ public class JavaLexerHighlighting {
   }
 
   public static boolean isError(int type) {
+    return type == JavaLexer.ERROR;
+  }
+
+  public static boolean isErrorToken(int type) {
     return type == JavaLexer.ERROR;
   }
 

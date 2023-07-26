@@ -1,7 +1,8 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.Debug;
-import org.sudu.experiments.demo.worker.IntervalTree;
+import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.IntervalTree;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.Interval;
@@ -36,11 +37,11 @@ public class Document {
     tree = initialInterval();
   }
 
-  public Document(CodeLine[] data, List<Interval> intervalList) {
+  public Document(CodeLine[] data, IntervalNode node) {
     if (data.length == 0) throw new IllegalArgumentException();
     document = data;
     currentVersion = lastParsedVersion = 0;
-    tree = new IntervalTree(intervalList);
+    tree = new IntervalTree(node);
   }
 
   public Document(int n) {

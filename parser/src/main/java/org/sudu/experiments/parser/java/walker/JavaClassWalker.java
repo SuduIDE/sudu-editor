@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.Decl;
+import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.JavaParserBaseListener;
@@ -32,27 +33,28 @@ public class JavaClassWalker extends JavaParserBaseListener {
   public double depthSum = 0;
   public int amount = 0;
 
-  public List<Interval> intervals;
+  public IntervalNode node;
+  public int intervalStart = 0;
 
   private int lastIntervalEnd = 0;
 
-  public JavaClassWalker() {
+  public JavaClassWalker(IntervalNode node) {
     dummy = new JavaClass(null, null, null);
     current = dummy;
-    intervals = new ArrayList<>();
     types = new ArrayList<>();
+    this.node = node;
   }
 
   @Override
   public void enterPackageDeclaration(JavaParser.PackageDeclarationContext ctx) {
     super.enterPackageDeclaration(ctx);
-    addInterval(ctx, PACKAGE);
+    addChild(ctx, PACKAGE);
   }
 
   @Override
   public void enterImportDeclaration(JavaParser.ImportDeclarationContext ctx) {
     super.enterImportDeclaration(ctx);
-    addInterval(ctx, IMPORT);
+    addChild(ctx, IMPORT);
 
     var node = getLastNode(ctx.qualifiedName());
     types.add(Decl.fromNode(node));
@@ -61,26 +63,54 @@ public class JavaClassWalker extends JavaParserBaseListener {
   @Override
   public void enterTypeDeclaration(JavaParser.TypeDeclarationContext ctx) {
     super.enterTypeDeclaration(ctx);
-    addInterval(ctx, TYPE_DECL);
+    addChild(ctx, TYPE_DECL);
+    enterChild();
+  }
+
+  @Override
+  public void exitTypeDeclaration(JavaParser.TypeDeclarationContext ctx) {
+    super.exitTypeDeclaration(ctx);
+    exitChild();
   }
 
   @Override
   public void enterClassBodyDeclaration(JavaParser.ClassBodyDeclarationContext ctx) {
     super.enterClassBodyDeclaration(ctx);
     if (ctx.parent instanceof JavaParser.EnumBodyDeclarationsContext) return;
-    addInterval(ctx, CLASS_BODY);
+    addChild(ctx, CLASS_BODY);
+    enterChild();
+  }
+
+  @Override
+  public void exitClassBodyDeclaration(JavaParser.ClassBodyDeclarationContext ctx) {
+    super.exitClassBodyDeclaration(ctx);
+    exitChild();
   }
 
   @Override
   public void enterInterfaceBodyDeclaration(JavaParser.InterfaceBodyDeclarationContext ctx) {
     super.enterInterfaceBodyDeclaration(ctx);
-    addInterval(ctx, CLASS_BODY);
+    addChild(ctx, CLASS_BODY);
+    enterChild();
+  }
+
+  @Override
+  public void exitInterfaceBodyDeclaration(JavaParser.InterfaceBodyDeclarationContext ctx) {
+    super.exitInterfaceBodyDeclaration(ctx);
+    exitChild();
   }
 
   @Override
   public void enterAnnotationTypeElementDeclaration(JavaParser.AnnotationTypeElementDeclarationContext ctx) {
     super.enterAnnotationTypeElementDeclaration(ctx);
-    addInterval(ctx, UNKNOWN);
+    addChild(ctx, UNKNOWN);
+    enterChild();
+  }
+
+  @Override
+  public void exitAnnotationTypeElementDeclaration(JavaParser.AnnotationTypeElementDeclarationContext ctx) {
+    super.exitAnnotationTypeElementDeclaration(ctx);
+    exitChild();
   }
 
   @Override
@@ -302,10 +332,18 @@ public class JavaClassWalker extends JavaParserBaseListener {
     amount++;
   }
 
-  private void addInterval(ParserRuleContext ctx, int type) {
+  private void addChild(ParserRuleContext ctx, int type) {
     int end = ctx.stop.getStopIndex() + 1;
-    intervals.add(new Interval(lastIntervalEnd, end, type));
+    node.addChild(new Interval(lastIntervalEnd + intervalStart, end + intervalStart, type));
     lastIntervalEnd = end;
+  }
+
+  private void enterChild() {
+    node = node.lastChild();
+  }
+
+  private void exitChild() {
+    node = node.parent;
   }
 
   public static boolean isStatic(List<String> list) {

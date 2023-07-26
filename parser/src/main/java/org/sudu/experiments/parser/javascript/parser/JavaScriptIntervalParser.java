@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.BaseIntervalParser;
+import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.javascript.JsSplitRules;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptLexer;
@@ -20,7 +21,7 @@ import java.util.List;
 public class JavaScriptIntervalParser extends BaseIntervalParser {
 
   @Override
-  protected List<Interval> parseInterval(Interval interval) {
+  protected IntervalNode parseInterval(Interval interval) {
     JavaScriptParser parser = new JavaScriptParser(tokenStream);
     ParserRuleContext ruleContext;
 
@@ -38,7 +39,7 @@ public class JavaScriptIntervalParser extends BaseIntervalParser {
       var compUnitInterval = new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.Java.COMP_UNIT);
       classWalker.intervals.add(0, compUnitInterval);
     }
-    return classWalker.intervals;
+    return defaultIntervalNode();
   }
 
   @Override

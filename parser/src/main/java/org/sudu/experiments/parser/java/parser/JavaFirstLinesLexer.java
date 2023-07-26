@@ -10,7 +10,6 @@ import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting;
 
 import java.util.Arrays;
-import java.util.List;
 
 public class JavaFirstLinesLexer extends BaseFullParser {
 
@@ -20,7 +19,7 @@ public class JavaFirstLinesLexer extends BaseFullParser {
 
     highlightTokens();
 
-    var result = getInts(List.of());
+    var result = getInts(defaultIntervalNode());
     System.out.println("Lexing viewport java time: " + (System.currentTimeMillis() - parsingStartTime) + "ms");
     return result;
   }

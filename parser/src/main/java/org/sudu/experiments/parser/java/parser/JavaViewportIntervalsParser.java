@@ -6,6 +6,7 @@ import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.CommonTokenSubStream;
 import org.sudu.experiments.parser.common.BaseIntervalParser;
 import org.sudu.experiments.parser.ParserConstants;
+import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
@@ -33,7 +34,7 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser {
 
     highlightTokens();
     parseIntervals(intervalList);
-    return getVpInts(vpStart, vpEnd, List.of());
+    return getVpInts(vpStart, vpEnd, null);
   }
 
   List<Interval> makeIntervalList(int[] intervals, int vpStart, int vpEnd) {
@@ -55,7 +56,7 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser {
   }
 
   @Override
-  protected List<Interval> parseInterval(Interval interval) {
+  protected IntervalNode parseInterval(Interval interval) {
     var tokenSrc = getSubSource(interval);
     CommonTokenStream tokenStream = new CommonTokenSubStream(tokenSrc);
     tokenStream.fill();
@@ -73,11 +74,11 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser {
     };
     ParseTreeWalker walker = new ParseTreeWalker();
 
-    var classWalker = new JavaClassWalker();
+    var classWalker = new JavaClassWalker(defaultIntervalNode());
     walker.walk(classWalker, ruleContext);
     var javaWalker = new JavaWalker(tokenTypes, tokenStyles, classWalker.dummy, classWalker.types, new HashMap<>());
     walker.walk(javaWalker, ruleContext);
-    return List.of();
+    return null;
   }
 
   private TokenSource getSubSource(Interval interval) {

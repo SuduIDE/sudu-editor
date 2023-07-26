@@ -32,7 +32,8 @@ public class JavaScriptFullParser extends BaseFullParser {
 
     jsWalker.intervals.add(new Interval(0, source.length(), ParserConstants.IntervalTypes.Js.PROGRAM));
 
-    var result = getInts(jsWalker.intervals);
+    //todo
+    var result = getInts(null);
     System.out.println("Parsing full js time: " + (System.currentTimeMillis() - parsingTime) + "ms");
     return result;
   }

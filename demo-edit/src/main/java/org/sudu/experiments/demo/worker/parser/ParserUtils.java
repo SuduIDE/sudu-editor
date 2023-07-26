@@ -3,6 +3,8 @@ package org.sudu.experiments.demo.worker.parser;
 import org.sudu.experiments.demo.CodeElement;
 import org.sudu.experiments.demo.CodeLine;
 import org.sudu.experiments.demo.Document;
+import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.IntervalTree;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.arrays.ArrayReader;
@@ -40,8 +42,7 @@ public abstract class ParserUtils {
       document.document[i] = new CodeLine(elements);
     }
 
-    List<Interval> intervalList = ParserUtils.getIntervalList(reader, K);
-    document.tree = new IntervalTree(intervalList);
+    document.tree = new IntervalTree(IntervalNode.getNode(reader));
 
     document.usageToDef.clear();
     document.defToUsages.clear();
@@ -72,13 +73,13 @@ public abstract class ParserUtils {
       document.setLine(stLine.x + i, new CodeLine(elements));
     }
 
-    List<Interval> intervalList = ParserUtils.getIntervalList(reader, K);
+    if (K != 0) {
+      IntervalNode intervalNode = IntervalNode.getNode(reader);
+      Interval oldInterval = new Interval(intervalStart, intervalStop, -1);
+      document.tree.replaceInterval(oldInterval, intervalNode);
+    }
     reader.checkSize();
 
-    if (!intervalList.isEmpty()) {
-      Interval oldInterval = new Interval(intervalStart, intervalStop, -1);
-      document.tree.replaceInterval(oldInterval, intervalList);
-    }
   }
 
   public static CodeElement[] readElements(ArrayReader reader, char[] chars, int startDx) {

@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.ErrorHighlightingStrategy;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.BaseFullParser;
+import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.cpp.CppSplitRules;
 import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
@@ -13,8 +14,6 @@ import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
 import org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting;
 import org.sudu.experiments.parser.cpp.walker.CppWalker;
 import org.sudu.experiments.parser.cpp.walker.CppClassWalker;
-
-import java.util.List;
 
 import static org.sudu.experiments.parser.ParserConstants.*;
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
@@ -48,7 +47,8 @@ public class CppFullParser extends BaseFullParser {
     else highlightTokens();
 
     ParseTreeWalker walker = new IterativeParseTreeWalker();
-    CppClassWalker classWalker = new CppClassWalker();
+    Interval compUnitInterval = new Interval(0, fileSourceLength, IntervalTypes.Cpp.TRANS_UNIT);
+    var classWalker = new CppClassWalker(new IntervalNode(compUnitInterval));
     int[] result;
 
     try {
@@ -57,12 +57,10 @@ public class CppFullParser extends BaseFullParser {
       CppWalker cppWalker = new CppWalker(tokenTypes, tokenStyles, classWalker.current, usageToDefinition);
       walker.walk(cppWalker, transUnit);
 
-      classWalker.intervals.add(new Interval(0, fileSourceLength, IntervalTypes.Cpp.TRANS_UNIT));
-
-      result = getInts(classWalker.intervals);
+      result = getInts(classWalker.node);
     } catch (Exception e) {
       e.printStackTrace();
-      result = getInts(List.of(defaultInterval()));
+      result = getInts(defaultIntervalNode());
     }
 
     System.out.println("Parsing full cpp time: " + (System.currentTimeMillis() - parsingTime) + "ms");
