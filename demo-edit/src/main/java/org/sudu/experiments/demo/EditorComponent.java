@@ -906,6 +906,7 @@ public class EditorComponent implements Focusable {
   }
 
   void onClickText(MouseEvent event) {
+    saveToNavStack();
     V2i eventPosition = event.position;
     Pos pos = computeCharPos(eventPosition);
     Pos elementPos = model.document.getElementStart(pos.line, pos.pos);
@@ -929,7 +930,6 @@ public class EditorComponent implements Focusable {
     }
     selection.isSelectionStarted = true;
     selection.select(caretLine, caretCharPos);
-    saveToNavStack();
     dragLock = this::dragText;
   }
 
@@ -1044,6 +1044,9 @@ public class EditorComponent implements Focusable {
 
     if (button == MOUSE_BUTTON_LEFT && clickCount == 2 && press) {
       onDoubleClickText(event.position);
+      // Remove redundant single-click location
+      navStack.pop();
+      saveToNavStack();
       return true;
     }
     if (button == MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
@@ -1242,22 +1245,22 @@ public class EditorComponent implements Focusable {
   }
 
   void saveToNavStack() {
-    selection.isSelectionStarted = false;
+    NavigationContext curr = navStack.getCurrentCtx();
+    if (curr != null && caretLine == curr.getLine() && caretCharPos == curr.getCharPos()) {
+      return;
+    }
+    Selection newSel = new Selection(selection);
+    newSel.isSelectionStarted = false;
     navStack.add(new NavigationContext(
         new Pos(caretLine, caretCharPos),
-        new Selection(selection)
+        newSel
     ));
-    selection.isSelectionStarted = true;
   }
 
   boolean navigateBack() {
-    NavigationContext curr = navStack.getCurrentCtx();
+    saveToNavStack();
     NavigationContext prev = navStack.getPrevCtx();
     if (prev == null) return false;
-    if (caretLine != curr.getLine() || caretCharPos != curr.getCharPos()) {
-      saveToNavStack();
-      navStack.decCurrent();
-    }
     setCaretLinePos(prev.getLine(), prev.getCharPos(), false);
     selection = new Selection(prev.getSelection());
     return true;

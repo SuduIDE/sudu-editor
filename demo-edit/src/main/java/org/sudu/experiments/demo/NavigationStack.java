@@ -18,7 +18,8 @@ public class NavigationStack {
     if (current == size - 1) {
       push(ctx);
     } else {
-      for (int i = current + 1; i < size; i++) {
+      int savedSize = size;
+      for (int i = current + 1; i < savedSize; i++) {
         pop();
       }
       push(ctx);
@@ -26,7 +27,8 @@ public class NavigationStack {
     current++;
   }
 
-  private void pop() {
+  public void pop() {
+    if (current == size - 1) current--;
     st[--size] = null;
   }
 
@@ -35,6 +37,7 @@ public class NavigationStack {
   }
 
   public NavigationContext getCurrentCtx() {
+    if (current < 0) return null;
     return st[current];
   }
 
