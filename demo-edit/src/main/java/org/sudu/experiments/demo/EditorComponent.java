@@ -44,6 +44,7 @@ public class EditorComponent implements Focusable {
   Model model = new Model();
   EditorRegistrations registrations = new EditorRegistrations();
   Selection selection = new Selection();
+  NavigationStack navStack = new NavigationStack();
 
   EditorColorScheme colors;
 
@@ -928,6 +929,7 @@ public class EditorComponent implements Focusable {
     }
     selection.isSelectionStarted = true;
     selection.select(caretLine, caretCharPos);
+    saveToNavStack();
     dragLock = this::dragText;
   }
 
@@ -1223,8 +1225,12 @@ public class EditorComponent implements Focusable {
       case KeyCode.ARROW_DOWN -> arrowUpDown(1, event.ctrl, event.alt, event.shift);
       case KeyCode.PAGE_UP -> pgUp(event);
       case KeyCode.PAGE_DOWN -> pgDown(event);
-      case KeyCode.ARROW_LEFT -> moveCaretLeftRight(-1, event.ctrl, event.shift);
-      case KeyCode.ARROW_RIGHT -> moveCaretLeftRight(1, event.ctrl, event.shift);
+      case KeyCode.ARROW_LEFT ->
+          event.ctrl && event.alt ? navigateBack() :
+              moveCaretLeftRight(-1, event.ctrl, event.shift);
+      case KeyCode.ARROW_RIGHT ->
+          event.ctrl && event.alt ? navigateForward() :
+              moveCaretLeftRight(1, event.ctrl, event.shift);
       case KeyCode.HOME -> shiftSelection(event.shift) || setCaretPos(0, event.shift);
       case KeyCode.END -> shiftSelection(event.shift) ||
           setCaretPos(caretCodeLine().totalStrLength, event.shift);
@@ -1233,6 +1239,36 @@ public class EditorComponent implements Focusable {
     if (result && event.shift) selection.endPos.set(caretLine, caretCharPos);
     if (result) computeUsages();
     return result;
+  }
+
+  void saveToNavStack() {
+    selection.isSelectionStarted = false;
+    navStack.add(new NavigationContext(
+        new Pos(caretLine, caretCharPos),
+        new Selection(selection)
+    ));
+    selection.isSelectionStarted = true;
+  }
+
+  boolean navigateBack() {
+    NavigationContext curr = navStack.getCurrentCtx();
+    NavigationContext prev = navStack.getPrevCtx();
+    if (prev == null) return false;
+    if (caretLine != curr.getLine() || caretCharPos != curr.getCharPos()) {
+      saveToNavStack();
+      navStack.decCurrent();
+    }
+    setCaretLinePos(prev.getLine(), prev.getCharPos(), false);
+    selection = new Selection(prev.getSelection());
+    return true;
+  }
+
+  boolean navigateForward() {
+    NavigationContext curr = navStack.getNextCtx();
+    if (curr == null) return false;
+    setCaretLinePos(curr.getLine(), curr.getCharPos(), false);
+    selection = new Selection(curr.getSelection());
+    return true;
   }
 
   boolean pgDown(KeyEvent event) {

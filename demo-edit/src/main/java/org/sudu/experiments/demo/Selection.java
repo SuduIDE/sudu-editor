@@ -10,6 +10,14 @@ public class Selection {
   public final SelPos endPos = new SelPos();
   public boolean isSelectionStarted;
 
+  Selection() {}
+
+  Selection(Selection selection) {
+    startPos.set(selection.startPos);
+    endPos.set(selection.endPos);
+    isSelectionStarted = selection.isSelectionStarted;
+  }
+
   void select(int caretLine, int caretCharPos) {
     endPos.set(caretLine, caretCharPos);
     if (!isSelectionStarted) {
@@ -67,6 +75,11 @@ public class Selection {
     public SelPos(int lineInd, int charInd) {
       this.line = lineInd;
       this.charInd = charInd;
+    }
+
+    SelPos(SelPos selPos) {
+      this.line = selPos.line;
+      this.charInd = selPos.charInd;
     }
 
     public void set(int lineInd, int charInd) {
