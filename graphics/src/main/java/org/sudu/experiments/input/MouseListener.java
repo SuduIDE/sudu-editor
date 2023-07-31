@@ -6,6 +6,7 @@ public interface MouseListener {
     return false;
   }
 
+  double clickTimeFrame = 0.5;
   int MOUSE_BUTTON_LEFT = 0;
   int MOUSE_BUTTON_CENTER = 1;
   int MOUSE_BUTTON_RIGHT = 2;

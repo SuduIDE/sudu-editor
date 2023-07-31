@@ -2,7 +2,9 @@ package org.sudu.experiments.js;
 
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.Disposable;
-import org.sudu.experiments.input.*;
+import org.sudu.experiments.input.InputListeners;
+import org.sudu.experiments.input.KeyEvent;
+import org.sudu.experiments.input.MimeTypes;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
@@ -22,13 +24,11 @@ import java.util.function.Consumer;
 
 public class JsInput {
   static final boolean debug = 1 < 0;
-  private final int clickTime = 500;
 
   public final InputListeners listeners;
   private final JsHelper.HTMLElement element;
   private Disposable disposer;
   private V2i clientRect = null;
-  private long prevDoubleClickTime = 0;
 
   public JsInput(HTMLElement element, Runnable repaint) {
     this.element = element.cast();
@@ -123,17 +123,22 @@ public class JsInput {
   private void onDoubleClick(org.teavm.jso.dom.events.MouseEvent event) {
     debug("onDoubleClick");
     if (clientRect == null) return;
-    prevDoubleClickTime = System.currentTimeMillis();
     MouseEvent mouseEvent = mouseEvent(event);
     if (listeners.sendMouseButton(mouseEvent, event.getButton(), true, 2)) {
       stopEvent(event);
     }
   }
 
+  private interface JsMouseEvent extends org.teavm.jso.dom.events.MouseEvent {
+    @JSProperty
+    int getDetail();
+  }
+
   private void onClick(org.teavm.jso.dom.events.MouseEvent event) {
     debug("onClick");
     if (clientRect == null) return;
-    if (System.currentTimeMillis() - prevDoubleClickTime < clickTime) {
+    JsMouseEvent e = event.cast();
+    if (e.getDetail() == 3) {
       debug("onTripleClick");
       MouseEvent mouseEvent = mouseEvent(event);
       if (listeners.sendMouseButton(mouseEvent, event.getButton(), true, 3)) {

@@ -5,8 +5,6 @@ import org.sudu.experiments.TimeUtil;
 public class Win32Time {
   double frequency = Win32.GetPerformanceFrequency();
   long t0 = Win32.GetPerformanceCounter();
-  // Double-click wiki
-  public static int clickTime = 500;
 
   public double now() {
     long tNow = Win32.GetPerformanceCounter() - t0;
