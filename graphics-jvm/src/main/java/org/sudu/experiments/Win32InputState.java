@@ -15,8 +15,8 @@ class Win32InputState {
 
   boolean shift, ctrl, alt, meta;
   boolean doubleClick, tripleClick, rightMouseDown;
-  double prevDoubleClickTime = 0;
-  V2i prevDoubleClickLoc = new V2i();
+  double clickTime = 0;
+  V2i clickLoc = new V2i();
   Win32Time time;
 
   public Win32InputState(Win32Time time) {
@@ -82,7 +82,7 @@ class Win32InputState {
       case 0 -> {
         Win32.SetCapture(hWnd);
         if (doubleClick) {
-          if (event.position.equals(prevDoubleClickLoc) && time.now() - prevDoubleClickTime <= clickTimeFrame) {
+          if (event.position.equals(clickLoc) && time.now() - clickTime <= clickTimeFrame) {
             tripleClick = true;
           }
           doubleClick = false;
@@ -90,8 +90,8 @@ class Win32InputState {
       }
       case 1 -> Win32.ReleaseCapture();
       case 2 -> {
-        prevDoubleClickTime = time.now();
-        prevDoubleClickLoc = event.position;
+        clickTime = time.now();
+        clickLoc.set(event.position);
         doubleClick = true;
       }
     }

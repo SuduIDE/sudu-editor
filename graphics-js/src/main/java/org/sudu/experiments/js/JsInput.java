@@ -134,6 +134,7 @@ public class JsInput {
     int getDetail();
   }
 
+  // Currently both onClick and onMouseDown will fire on mouse click
   private void onClick(org.teavm.jso.dom.events.MouseEvent event) {
     debug("onClick");
     if (clientRect == null) return;
