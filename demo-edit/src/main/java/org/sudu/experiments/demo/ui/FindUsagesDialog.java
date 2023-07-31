@@ -27,7 +27,7 @@ public class FindUsagesDialog {
   private int maxFileNameLen = 0;
   private int maxLineLen = 0;
   private int maxCodeContentLen = 0;
-  static boolean debug = true;
+  static boolean debug = false;
 
   public boolean isEmpty() {
     return items.length == 0;
@@ -86,18 +86,18 @@ public class FindUsagesDialog {
     Objects.requireNonNull(font);
     mCanvas.setFont(font);
     int textHeight = font.lineHeight(), maxW = 0;
-    var measureWithPad = RegionTextureAllocator.measuringWithWPad(mCanvas, font.WWidth);
     border = Numbers.iRnd(2 * uiContext.dpr);
     textXPad = Numbers.iRnd(font.WWidth);
+    var measureWithPad = RegionTextureAllocator.measuringWithWPad(mCanvas, textXPad);
 
     RegionTexture regionTexture = new RegionTexture();
 
     for (FindUsagesItem item : items) {
       // TODO(Minor) Remove this crutch when the scroll appears
       if (item.fileName.startsWith("...")) continue;
-      int mFile = (int) (mCanvas.measureText(item.fileName) + 7.f / 8);
-      int mLines = (int) (mCanvas.measureText(item.lineNumber) + 7.f / 8);
-      int mCodeContent = (int) (mCanvas.measureText(item.codeContent) + 7.f / 8);
+      int mFile = measureWithPad.applyAsInt(item.fileName);
+      int mLines = measureWithPad.applyAsInt(item.lineNumber);
+      int mCodeContent = measureWithPad.applyAsInt(item.codeContent);
       maxFileNameLen = Math.max(maxFileNameLen, mFile);
       maxLineLen = Math.max(maxLineLen, mLines);
       maxCodeContentLen = Math.max(maxCodeContentLen, mCodeContent);
