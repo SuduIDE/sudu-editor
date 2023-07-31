@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class RegionTextureAllocatorTest {
 
   @Test
-  public void NewRegionNoCollision() {
+  public void newRegionNoCollision() {
     RegionTexture rt = new RegionTexture();
     int width = 100, height = 100;
     V4f r1 = rt.alloc(width, height), r2 = rt.alloc(width, height);
@@ -22,7 +22,7 @@ public class RegionTextureAllocatorTest {
   }
 
   @Test
-  public void SeveralRegionsNoCollision() {
+  public void severalRegionsNoCollision() {
     RegionTexture rt = new RegionTexture();
     int width = 100, height = 100;
     ArrayList<V4f> regions = new ArrayList<>();
@@ -41,7 +41,7 @@ public class RegionTextureAllocatorTest {
   }
 
   @Test
-  public void UseFreeRegion() {
+  public void useFreeRegion() {
     RegionTexture rt = new RegionTexture();
     int width = 100, height = 100;
     ArrayList<V4f> regions = new ArrayList<>();
@@ -56,7 +56,7 @@ public class RegionTextureAllocatorTest {
   }
 
   @Test
-  public void MergeFreeRegionsFromStart() {
+  public void mergeFreeRegionsFromStart() {
     RegionTexture rt = new RegionTexture();
     int width = 100, height = 100;
     ArrayList<V4f> regions = new ArrayList<>();
@@ -70,7 +70,7 @@ public class RegionTextureAllocatorTest {
   }
 
   @Test
-  public void MergeFreeRegionsFromEnd() {
+  public void mergeFreeRegionsFromEnd() {
     RegionTexture rt = new RegionTexture();
     int width = 100, height = 100;
     ArrayList<V4f> regions = new ArrayList<>();
@@ -84,7 +84,7 @@ public class RegionTextureAllocatorTest {
   }
 
   @Test
-  public void MergeFreeRegionsWithPeriod() {
+  public void mergeFreeRegionsWithPeriod() {
     RegionTexture rt = new RegionTexture();
     int width = 100, height = 100;
     ArrayList<V4f> regions = new ArrayList<>();
@@ -105,7 +105,7 @@ public class RegionTextureAllocatorTest {
   }
 
   @Test
-  public void CorrectTextureSize() {
+  public void correctTextureSize() {
     RegionTexture rt = new RegionTexture();
     int width = 300, height = 100, count = 10;
     for (int i = 0; i < count; i++) {
@@ -116,7 +116,7 @@ public class RegionTextureAllocatorTest {
   }
 
   @Test
-  public void ExceedingWidth(){
+  public void exceedingWidth(){
     RegionTexture rt = new RegionTexture();
     int width = RegionTextureAllocator.MAX_TEXTURE_SIZE + 1, height = 100;
     assertThrows(RuntimeException.class, () -> rt.alloc(width, height));
