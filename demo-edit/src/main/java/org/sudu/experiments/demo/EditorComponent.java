@@ -1249,11 +1249,10 @@ public class EditorComponent implements Focusable {
     if (curr != null && caretLine == curr.getLine() && caretCharPos == curr.getCharPos()) {
       return;
     }
-    Selection newSel = new Selection(selection);
-    newSel.isSelectionStarted = false;
     navStack.add(new NavigationContext(
-        new Pos(caretLine, caretCharPos),
-        newSel
+        caretLine,
+        caretCharPos,
+        selection
     ));
   }
 

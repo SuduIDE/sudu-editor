@@ -6,9 +6,10 @@ public class NavigationContext {
   private final Pos pos;
   private final Selection selection;
 
-  public NavigationContext(Pos pos, Selection selection) {
-    this.pos = pos;
-    this.selection = selection;
+  public NavigationContext(int line, int charPos, Selection selection) {
+    this.pos = new Pos(line, charPos);
+    this.selection = new Selection(selection);
+    this.selection.isSelectionStarted = false;
   }
 
   public int getLine() {
