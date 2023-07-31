@@ -11,6 +11,8 @@ import java.util.function.ToIntFunction;
 public class RegionTexture implements RegionTextureAllocator {
   private int tw = 0;
   private int th = 0;
+//   The basic implementation uses ArrayList, in the future it is desirable to replace
+//   the list of free regions with a more suitable structure, e.g. linked list, red-black tree
   private final ArrayList<V4f> freeRegions = new ArrayList<>();
   private int textHeight;
 
@@ -77,17 +79,4 @@ public class RegionTexture implements RegionTextureAllocator {
   public ArrayList<V4f> getFreeRegions() {
     return freeRegions;
   }
-
-  native void canvasDraw(FontDesk fd, V4f location, String text);
-
-  native void updateTexture();
-
-  native void draw(
-      V4f allocation,
-      int x, int y,
-      V4f colorF,
-      V4f colorB,
-      float contrast
-  );
-
 }
