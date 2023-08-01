@@ -3,7 +3,6 @@ package org.sudu.experiments.demo;
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.ui.RegionTexture;
 import org.sudu.experiments.demo.ui.RegionTextureAllocator;
-import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -15,17 +14,17 @@ import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.ArrayList;
 
-public class RegionTextureAllocatorDemo extends Scene0 implements MouseListener {
+public class RegionTextureAllocatorDemo extends Scene1 implements MouseListener {
+  static final int ELEMENTS_COUNT = 100;
+  static final int MIN_TEXT_LENGTH = 1;
+  static final int MAX_TEXT_LENGTH = 20;
+  static final double COVERAGE_PERCENT = 0.7;
 
-  private final UiContext uiContext;
+
   private final RegionTexture regionTexture;
   private final ArrayList<TextRect> tItemsList = new ArrayList<>();
   private final ArrayList<String> itemsName = new ArrayList<>();
   private final FontDesk font;
-  private final int ELEMENTS_COUNT = 100;
-  private final int MIN_TEXT_LENGTH = 1;
-  private final int MAX_TEXT_LENGTH = 20;
-  private final double COVERAGE_PERCENT = 0.7;
   private final Color textureBgColor = new Color("#e3c8ab");
   private GL.Texture texture;
   private V2i textureSize;
@@ -36,13 +35,11 @@ public class RegionTextureAllocatorDemo extends Scene0 implements MouseListener 
   public RegionTextureAllocatorDemo(SceneApi api) {
     super(api);
 
-    uiContext = new UiContext(api);
     uiContext.dprListeners.add(this::open);
     regionTexture = new RegionTexture();
 
     api.input.onMouse.add(this);
     api.input.onKeyPress.add(this::onKeyPress);
-    api.input.onKeyPress.add(uiContext::onKeyPress);
 
     font = api.graphics.fontDesk("Consolas", 35);
     clearColor.set(new Color("#39322b"));
@@ -109,15 +106,7 @@ public class RegionTextureAllocatorDemo extends Scene0 implements MouseListener 
   }
 
   @Override
-  public void dispose() {
-    super.dispose();
-  }
-
-  @Override
-  public void onResize(V2i newSize, float dpr) {
-    super.onResize(newSize, dpr);
-    uiContext.onResize(newSize, dpr);
-  }
+  public void dispose() {}
 
   @Override
   public void paint() {
