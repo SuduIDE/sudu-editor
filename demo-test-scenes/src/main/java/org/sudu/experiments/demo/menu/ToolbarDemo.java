@@ -154,10 +154,10 @@ public class ToolbarDemo extends Scene0 implements MouseListener, DprChangeListe
   }
 
   @Override
-  public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-    boolean r = popupMenu.onMousePress(event.position, button, press, clickCount);
-    boolean tbHResult = tbH.onMousePress(event.position, button, press, clickCount);
-    boolean tbVResult = tbV.onMousePress(event.position, button, press, clickCount);
+  public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
+    boolean r = popupMenu.onMouseClick(event.position, button, clickCount);
+    boolean tbHResult = tbH.onMouseClick(event.position, button, clickCount);
+    boolean tbVResult = tbV.onMouseClick(event.position, button, clickCount);
     return r || tbHResult || tbVResult;
   }
 

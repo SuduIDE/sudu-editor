@@ -108,10 +108,10 @@ public class PopupMenu implements DprChangeListener, Focusable {
     return r;
   }
 
-  public boolean onMousePress(V2i position, int button, boolean press, int clickCount) {
+  public boolean onMouseClick(V2i position, int button, int clickCount) {
     boolean r = false;
     for (int i = toolbars.size() - 1; i >= 0; --i) {
-      r = toolbars.get(i).onMousePress(position, button, press, clickCount);
+      r = toolbars.get(i).onMouseClick(position, button, clickCount);
       if (r) break;
     }
     return r;

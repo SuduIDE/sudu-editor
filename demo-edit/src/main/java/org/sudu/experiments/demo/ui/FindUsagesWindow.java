@@ -75,8 +75,8 @@ public class FindUsagesWindow implements DprChangeListener, Focusable {
     return view.onMouseMove(mouse, context.windowCursor);
   }
 
-  public boolean onMousePress(V2i position, int button, boolean press, int clickCount) {
-    return view.onMousePress(position, button, press, clickCount);
+  public boolean onMouseClick(V2i position, int button, int clickCount) {
+    return view.onMouseClick(position, button, clickCount);
   }
 
   public boolean isVisible() {

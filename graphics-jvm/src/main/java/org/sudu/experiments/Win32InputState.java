@@ -8,19 +8,16 @@ import org.sudu.experiments.win32.Win32Time;
 
 import java.util.function.Consumer;
 
-import static org.sudu.experiments.input.MouseListener.clickTimeFrame;
 import static org.sudu.experiments.win32.WindowPeer.*;
 
 class Win32InputState {
 
   boolean shift, ctrl, alt, meta;
-  boolean doubleClick, tripleClick, rightMouseDown;
-  double clickTime = 0;
-  V2i clickLoc = new V2i();
-  Win32Time time;
+  boolean rightMouseDown;
+  ClickCounter clickCounter;
 
-  public Win32InputState(Win32Time time) {
-    this.time = time;
+  public Win32InputState(ClickCounter c) {
+    this.clickCounter = c;
   }
 
   boolean onKey(long hWnd, int msg, long wParam, long lParam, InputListeners listeners) {
@@ -73,40 +70,25 @@ class Win32InputState {
 
   void onMouseButton(int msg, long lParam, V2i windowSize, long hWnd, InputListeners listeners) {
     int btn = (msg - WM_LBUTTONDOWN) / 3, state = (msg - WM_LBUTTONDOWN) % 3;
-
-    boolean press = state != 1;
     MouseEvent event = createMouseEvent(lParam, windowSize);
-    listeners.sendMouseButton(event, mapMouseButton(btn), press, 1);
 
     switch (state) {
       case 0 -> {
         Win32.SetCapture(hWnd);
-        if (doubleClick) {
-          if (event.position.equals(clickLoc) && time.now() - clickTime <= clickTimeFrame) {
-            tripleClick = true;
-          }
-          doubleClick = false;
-        }
+        listeners.sendMouseDown(event, mapMouseButton(btn));
       }
-      case 1 -> Win32.ReleaseCapture();
-      case 2 -> {
-        clickTime = time.now();
-        clickLoc.set(event.position);
-        doubleClick = true;
+      case 1 -> {
+        Win32.ReleaseCapture();
+        listeners.sendMouseUp(event, mapMouseButton(btn));
       }
     }
 
-    if (state == 1 && tripleClick) {
-      listeners.sendMouseButton(event, mapMouseButton(btn), true, 3);
-      tripleClick = false;
-    }
-
-    if (state == 1 && doubleClick) {
-      listeners.sendMouseButton(event, mapMouseButton(btn), true, 2);
+    if (state == 1 && clickCounter.clicks() > 0) {
+      listeners.sendMouseClick(event, mapMouseButton(btn), clickCounter.clicks());
     }
 
     if (btn == 1)
-      if (press) {
+      if (state != 1) {
         rightMouseDown = true;
       } else if (rightMouseDown) {
         rightMouseDown = false;

@@ -73,10 +73,25 @@ public class InputListeners {
     }
   }
 
-  public boolean sendMouseButton(MouseEvent e, int button, boolean press, int count) {
+  public boolean sendMouseClick(MouseEvent e, int button, int count) {
     repaint.run();
     for (MouseListener listener : onMouse.array()) {
-      if (listener.onMousePress(e, button, press, count)) return true;
+      if (listener.onMouseClick(e, button, count)) return true;
+    }
+    return false;
+  }
+  public boolean sendMouseDown(MouseEvent e, int button) {
+    repaint.run();
+    for (MouseListener listener : onMouse.array()) {
+      if (listener.onMouseDown(e, button)) return true;
+    }
+    return false;
+  }
+
+  public boolean sendMouseUp(MouseEvent e, int button) {
+    repaint.run();
+    for (MouseListener listener : onMouse.array()) {
+      if (listener.onMouseUp(e, button)) return true;
     }
     return false;
   }

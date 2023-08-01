@@ -43,9 +43,9 @@ class EditorUi {
     popupMenu.paint();
   }
 
-  boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-    return usagesMenu.onMousePress(event.position, button, press, clickCount)
-        || popupMenu.onMousePress(event.position, button, press, clickCount);
+  boolean onMouseClick(MouseEvent event, int button, int clickCount) {
+    return usagesMenu.onMouseClick(event.position, button, clickCount)
+        || popupMenu.onMouseClick(event.position, button, clickCount);
   }
 
   boolean onMouseMove(MouseEvent event) {

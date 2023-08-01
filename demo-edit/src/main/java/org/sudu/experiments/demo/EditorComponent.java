@@ -1059,22 +1059,14 @@ public class EditorComponent implements Focusable {
     return true;
   }
 
-  public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-    if (!press) selection.isSelectionStarted = false;
-    if (!press && dragLock != null) {
-      dragLock = null;
-      return true;
-    }
+  public boolean onMouseUp(MouseEvent event, int button) {
+    selection.isSelectionStarted = false;
+    if (dragLock != null) dragLock = null;
+    return true;
+  }
 
-    if (button == MOUSE_BUTTON_LEFT && clickCount == 3 && press) {
-      onTripleClickText(event.position);
-      return true;
-    }
-    if (button == MOUSE_BUTTON_LEFT && clickCount == 2 && press) {
-      onDoubleClickText(event.position);
-      return true;
-    }
-    if (button == MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
+  public boolean onMouseDown(MouseEvent event, int button) {
+    if (button == MOUSE_BUTTON_LEFT) {
       dragLock = vScroll.onMouseClick(event.position, vScrollHandler, true);
       if (dragLock != null) return true;
 
@@ -1082,6 +1074,18 @@ public class EditorComponent implements Focusable {
       if (dragLock != null) return true;
 
       onClickText(event);
+    }
+    return true;
+  }
+
+  public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
+    if (button == MOUSE_BUTTON_LEFT && clickCount == 3) {
+      onTripleClickText(event.position);
+      return true;
+    }
+    if (button == MOUSE_BUTTON_LEFT && clickCount == 2) {
+      onDoubleClickText(event.position);
+      return true;
     }
     return true;
   }

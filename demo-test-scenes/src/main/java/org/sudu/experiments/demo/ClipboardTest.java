@@ -51,12 +51,10 @@ public class ClipboardTest  extends Scene0 implements MouseListener {
   }
 
   @Override
-  public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-    if (press) {
-      switch (button) {
-        case MOUSE_BUTTON_LEFT -> readClipboard();
-        case MOUSE_BUTTON_RIGHT -> writeClipboard();
-      }
+  public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
+    switch (button) {
+      case MOUSE_BUTTON_LEFT -> readClipboard();
+      case MOUSE_BUTTON_RIGHT -> writeClipboard();
     }
     return true;
   }
