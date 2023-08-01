@@ -1,4 +1,4 @@
-public class TestResolve {
+public class TestMethodTypeResolve {
 
   public void intResolve() {
     int a = 1;
@@ -66,6 +66,7 @@ public class TestResolve {
     fun(c);
     fun(d);
     fun(e);
+    fun(f);
   }
 
   public void fun(int a) {}

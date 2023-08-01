@@ -1030,10 +1030,11 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     Document document = model.document;
     Pos def = document.getDefinition(elementPos);
 
-    if (def != null) definition = document.getCodeElement(def);
+    if (def == null) def = elementPos;
 
-    List<Pos> usageList = document.getUsagesList(def != null ? def : elementPos);
+    List<Pos> usageList = document.getUsagesList(def);
     if (usageList != null) {
+      definition = document.getCodeElement(def);
       for (var usage : usageList) {
         usages.add(document.getCodeElement(usage));
       }

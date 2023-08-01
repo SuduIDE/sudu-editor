@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 // Base class for parsers, that parse all text in file
 public abstract class BaseFullParser extends BaseParser {
 
-  protected Map<Pos, Pos> usageToDefinition = new HashMap<>();
+  public Map<Pos, Pos> usageToDefinition = new HashMap<>();
 
   protected int[] getInts(IntervalNode node) {
     int N = allTokens.get(allTokens.size() - 1).getLine();

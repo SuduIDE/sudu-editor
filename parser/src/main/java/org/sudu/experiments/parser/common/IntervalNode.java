@@ -34,8 +34,12 @@ public class IntervalNode {
     children.add(node);
   }
 
+  public IntervalNode getChild(int i) {
+    return children.get(i);
+  }
+
   public IntervalNode lastChild() {
-    return children.get(children.size() - 1);
+    return getChild(children.size() - 1);
   }
 
   public static IntervalNode getNode(ArrayReader reader) {

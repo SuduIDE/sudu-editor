@@ -11,12 +11,15 @@ import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
+import org.sudu.experiments.parser.java.model.JavaClass;
 import org.sudu.experiments.parser.java.walker.JavaClassWalker;
 import org.sudu.experiments.parser.java.walker.JavaWalker;
 
 import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting;
 
 public class JavaFullParser extends BaseFullParser {
+
+  private JavaClass javaClass;
 
   public int[] parse(String source) {
     long parsingStartTime = System.currentTimeMillis();
@@ -50,7 +53,8 @@ public class JavaFullParser extends BaseFullParser {
     try {
       walker.walk(classWalker, compUnit);
 
-      var javaWalker = new JavaWalker(tokenTypes, tokenStyles, classWalker.dummy, classWalker.types, usageToDefinition);
+      javaClass = classWalker.dummy;
+      var javaWalker = new JavaWalker(tokenTypes, tokenStyles, javaClass, classWalker.types, usageToDefinition);
       walker.walk(javaWalker, compUnit);
 
       result = getInts(classWalker.node);
@@ -88,6 +92,10 @@ public class JavaFullParser extends BaseFullParser {
   @Override
   protected void highlightTokens() {
     JavaLexerHighlighting.highlightCommentTokens(allTokens, tokenTypes);
+  }
+
+  public JavaClass getJavaClass() {
+    return javaClass;
   }
 
 }

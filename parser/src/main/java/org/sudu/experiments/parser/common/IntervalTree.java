@@ -8,7 +8,7 @@ import java.util.List;
 
 public class IntervalTree {
 
-  IntervalNode root;
+  public IntervalNode root;
   private boolean updateFlag = false;
 
   private static final Comparator<IntervalNode> INTERVAL_NODE_CMP = (a, b) -> compare(a.interval, b.interval);
