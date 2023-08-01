@@ -265,8 +265,8 @@ public class JsCodeEditor0 implements JsCodeEditor {
   static BiConsumer<Model, Model> convert(JsFunctions.Consumer<JsIModelChangedEvent> jsCallback) {
     return (oldModel, newModel) -> jsCallback.f(
         JsIModelChangedEvent.create(
-            JsTextModel.fromJava(oldModel).getUri(),
-            JsTextModel.fromJava(newModel).getUri()
+            JsUri.fromJava(oldModel.uri),
+            JsUri.fromJava(newModel.uri)
         ));
   }
 

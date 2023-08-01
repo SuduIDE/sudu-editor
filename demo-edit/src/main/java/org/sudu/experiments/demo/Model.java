@@ -9,12 +9,11 @@ public class Model {
   private String languageFromFile;
 
   public Model(String text, String language) {
-    this(SplitText.split(text), language, null, null);
+    this(SplitText.split(text), language, null);
   }
 
-  public Model(String[] text, String language, Uri uri, Object platformObject) {
+  public Model(String[] text, String language, Uri uri) {
     this.uri = uri;
-    this.platformObject = platformObject;
     docLanguage = language;
     languageFromFile = uri != null ? Languages.languageFromFilename(uri.path) : null;
     document = new Document(text);
