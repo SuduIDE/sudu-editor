@@ -7,19 +7,16 @@ import org.sudu.experiments.Debug;
 import org.sudu.experiments.Scene;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.demo.ui.UiContext;
-import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
 import java.util.Objects;
-import java.util.function.Consumer;
 
 public class DemoEdit0 extends Scene {
 
@@ -28,8 +25,6 @@ public class DemoEdit0 extends Scene {
   final EditorComponent editor;
   final EditorUi ui;
 
-  FontDesk toolBarFont;
-
   V2i editorPos = new V2i();
 
   public DemoEdit0(SceneApi api) {
@@ -37,19 +32,21 @@ public class DemoEdit0 extends Scene {
     uiContext = new UiContext(api);
 
     ui = new EditorUi(uiContext);
-    uiContext.dprListeners.add(this::onDprChange);
     editor = new EditorComponent(uiContext, ui);
     uiContext.initFocus(editor);
 
-    api.input.onMouse.add(new EditInput());
-    api.input.onKeyPress.add(new CtrlO(api, editor::openFile));
+    api.input.onMouse.add(new MouseHandler());
+
+    api.input.onKeyPress.add(KeyEvent::handleSpecialKey);
     api.input.onKeyPress.add(this::onKeyPress);
-    api.input.onCopy.add(this::onCopy);
-    api.input.onPaste.add(this::onPastePlainText);
-    api.input.onFocus.add(uiContext::sendFocusGain);
-    api.input.onBlur.add(uiContext::sendFocusLost);
+    api.input.onKeyPress.add(new CtrlO(api, editor::openFile));
+    api.input.onKeyPress.add(uiContext::onKeyPress);
+
+    api.input.onCopy.add(editor::onCopy);
+    api.input.onPaste.add(() -> editor::handleInsert);
+    api.input.onScroll.add((e, dX, dY) -> editor.onScroll(dX, dY));
     api.input.onContextMenu.add(this::onContextMenu);
-    api.input.onScroll.add(this::onScroll);
+
     toggleDark();
   }
 
@@ -87,12 +84,6 @@ public class DemoEdit0 extends Scene {
     editor.setPos(editorPos, newSize, newDpr);
   }
 
-  private void onDprChange(float oldDpr, float newDpr) {
-    int toolbarFontSize = Numbers.iRnd(EditorConst.POPUP_MENU_FONT_SIZE * newDpr);
-    toolBarFont = uiContext.graphics.fontDesk(EditorConst.POPUP_MENU_FONT_NAME, toolbarFontSize);
-    ui.popupMenu.setFont(toolBarFont);
-  }
-
   public void toggleDark() {
     applyTheme(EditorColorScheme.darkIdeaColorScheme());
   }
@@ -115,25 +106,12 @@ public class DemoEdit0 extends Scene {
     }
   }
 
-  Consumer<String> onPastePlainText() {
-    return editor::handleInsert;
-  }
-
   boolean onKeyPress(KeyEvent event) {
-    // do not consume browser keyboard to allow page reload and debug
-    if (KeyEvent.isCopyPasteRelatedKey(event) || KeyEvent.isBrowserKey(event)) {
-      return false;
-    }
     if (event.keyCode == KeyCode.F10) {
       api.window.addChild("child", DemoEdit0::new);
       return true;
     }
-
-    return uiContext.onKeyPress(event);
-  }
-
-  boolean onCopy(Consumer<String> setText, boolean isCut) {
-    return editor.onCopy(setText, isCut);
+    return false;
   }
 
   boolean onContextMenu(MouseEvent event) {
@@ -143,11 +121,7 @@ public class DemoEdit0 extends Scene {
     return true;
   }
 
-  boolean onScroll(MouseEvent event, float dX, float dY) {
-    return editor.onScroll(dX, dY);
-  }
-
-  class EditInput implements MouseListener {
+  class MouseHandler implements MouseListener {
 
     @Override
     public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {

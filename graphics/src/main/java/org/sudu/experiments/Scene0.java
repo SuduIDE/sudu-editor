@@ -5,9 +5,9 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
 public class Scene0 extends Scene {
-  protected final V4f clearColor = Color.Cvt.fromRGB(0,0, 64);
-  protected final V2i size = new V2i();
-  protected double dpr;
+  public final V4f clearColor = Color.Cvt.fromRGB(0, 0, 64);
+  public final V2i size = new V2i();
+  protected float dpr;
 
   public Scene0(SceneApi api) {
     this(api, true);
@@ -16,10 +16,6 @@ public class Scene0 extends Scene {
   public Scene0(SceneApi api, boolean setTitle) {
     super(api);
     if (setTitle) api.window.setTitle(getClass().getName());
-  }
-
-  public boolean update(double timestamp) {
-    return false;
   }
 
   public void paint() {

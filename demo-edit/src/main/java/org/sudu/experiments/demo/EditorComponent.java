@@ -109,14 +109,14 @@ public class EditorComponent implements Focusable {
     compPos.set(pos);
     compSize.set(size);
 
-    vLineX = Numbers.iRnd(vLineXBase * dpr);
-    vLineLeftDelta = Numbers.iRnd(10 * dpr);
+    vLineX = DprUtil.toPx(vLineXBase,  dpr);
+    vLineLeftDelta = DprUtil.toPx(10, dpr);
 
     int lineNumbersWidth = vLineX - vLineLeftDelta;
     lineNumbers.setPos(compPos, lineNumbersWidth, compSize.y, dpr);
 
     if (1<0) DebugHelper.dumpFontsSize(g);
-    caret.setWidth(Numbers.iRnd(Caret.defaultWidth * dpr));
+    caret.setWidth(DprUtil.toPx(Caret.defaultWidth, dpr));
 
     // Should be called if dpr changed
     doChangeFont(fontFamilyName, fontVirtualSize);
@@ -269,7 +269,7 @@ public class EditorComponent implements Focusable {
   }
 
   private void doChangeFont(String name, int virtualSize) {
-    int newPixelFontSize = Numbers.iRnd(virtualSize * context.dpr);
+    int newPixelFontSize = DprUtil.toPx(virtualSize, context.dpr);
     int oldPixelFontSize = font == null ? 0 : font.iSize;
     if (newPixelFontSize != oldPixelFontSize || !Objects.equals(name, fontFamilyName)) {
       lineNumbers.dispose();

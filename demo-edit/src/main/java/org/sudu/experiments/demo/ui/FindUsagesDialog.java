@@ -86,7 +86,7 @@ public class FindUsagesDialog {
     Objects.requireNonNull(font);
     mCanvas.setFont(font);
     int textHeight = font.lineHeight(), maxW = 0;
-    border = Numbers.iRnd(2 * uiContext.dpr);
+    border = DprUtil.toPx(2, uiContext.dpr);
     textXPad = Numbers.iRnd(font.WWidth);
     var measureWithPad = RegionTextureAllocator.measuringWithWPad(mCanvas, textXPad);
 

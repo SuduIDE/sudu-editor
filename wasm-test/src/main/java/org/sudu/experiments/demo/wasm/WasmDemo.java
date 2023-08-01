@@ -19,11 +19,6 @@ public class WasmDemo extends Scene {
   public void dispose() {}
 
   @Override
-  public boolean update(double timestamp) {
-    return false;
-  }
-
-  @Override
   public void paint() {}
 
   @Override

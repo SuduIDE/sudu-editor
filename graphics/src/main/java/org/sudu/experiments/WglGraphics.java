@@ -67,6 +67,10 @@ public abstract class WglGraphics {
     mCanvas.dispose();
   }
 
+  public FontDesk fontDesk(String name, float size, float dpr) {
+    return fontDesk(name, DprUtil.toPx(size, dpr));
+  }
+
   public FontDesk fontDesk(String name, int size) {
     return fontDesk(name, size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
   }

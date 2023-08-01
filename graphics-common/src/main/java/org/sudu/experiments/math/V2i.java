@@ -38,4 +38,7 @@ public class V2i {
     return x == other.x && y == other.y;
   }
 
+  public boolean equals(int x, int y) {
+    return this.x == x && this.y == y;
+  }
 }

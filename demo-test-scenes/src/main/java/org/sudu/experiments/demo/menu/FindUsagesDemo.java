@@ -1,10 +1,10 @@
 package org.sudu.experiments.demo.menu;
 
-import org.sudu.experiments.Scene0;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.Colors;
 import org.sudu.experiments.demo.IdeaCodeColors;
+import org.sudu.experiments.demo.Scene1;
 import org.sudu.experiments.demo.ui.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
@@ -16,22 +16,19 @@ import org.sudu.experiments.math.RngHelper;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.XorShiftRandom;
 
-public class FindUsagesDemo extends Scene0 implements MouseListener {
+public class FindUsagesDemo extends Scene1 implements MouseListener {
 
-  private final UiContext uiContext;
   private final FindUsagesWindow findUsagesWindow;
 
   public FindUsagesDemo(SceneApi api) {
     super(api);
 
-    uiContext = new UiContext(api);
     uiContext.dprListeners.add(this::open);
     findUsagesWindow = new FindUsagesWindow(uiContext);
     findUsagesWindow.setTheme(DialogItemColors.darkColorScheme());
 
     api.input.onMouse.add(this);
     api.input.onKeyPress.add(this::onKeyPress);
-    api.input.onKeyPress.add(uiContext::onKeyPress);
     api.input.onContextMenu.add(this::onContextMenu);
 
     FontDesk font = api.graphics.fontDesk("Consolas", 25);
@@ -85,14 +82,12 @@ public class FindUsagesDemo extends Scene0 implements MouseListener {
 
   @Override
   public void dispose() {
-    super.dispose();
     findUsagesWindow.dispose();
   }
 
   @Override
   public void onResize(V2i newSize, float dpr) {
     super.onResize(newSize, dpr);
-    uiContext.onResize(newSize, dpr);
     findUsagesWindow.center(newSize);
   }
 
