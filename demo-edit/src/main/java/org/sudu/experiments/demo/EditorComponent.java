@@ -44,6 +44,7 @@ public class EditorComponent implements Focusable {
   Model model = new Model();
   EditorRegistrations registrations = new EditorRegistrations();
   Selection selection = new Selection();
+  NavigationStack navStack = new NavigationStack();
 
   EditorColorScheme colors;
 
@@ -905,6 +906,7 @@ public class EditorComponent implements Focusable {
   }
 
   void onClickText(MouseEvent event) {
+    saveToNavStack();
     V2i eventPosition = event.position;
     Pos pos = computeCharPos(eventPosition);
     Pos elementPos = model.document.getElementStart(pos.line, pos.pos);
@@ -1042,6 +1044,9 @@ public class EditorComponent implements Focusable {
 
     if (button == MOUSE_BUTTON_LEFT && clickCount == 2 && press) {
       onDoubleClickText(event.position);
+      // Remove redundant single-click location
+      navStack.pop();
+      saveToNavStack();
       return true;
     }
     if (button == MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
@@ -1223,8 +1228,12 @@ public class EditorComponent implements Focusable {
       case KeyCode.ARROW_DOWN -> arrowUpDown(1, event.ctrl, event.alt, event.shift);
       case KeyCode.PAGE_UP -> pgUp(event);
       case KeyCode.PAGE_DOWN -> pgDown(event);
-      case KeyCode.ARROW_LEFT -> moveCaretLeftRight(-1, event.ctrl, event.shift);
-      case KeyCode.ARROW_RIGHT -> moveCaretLeftRight(1, event.ctrl, event.shift);
+      case KeyCode.ARROW_LEFT ->
+          event.ctrl && event.alt ? navigateBack() :
+              moveCaretLeftRight(-1, event.ctrl, event.shift);
+      case KeyCode.ARROW_RIGHT ->
+          event.ctrl && event.alt ? navigateForward() :
+              moveCaretLeftRight(1, event.ctrl, event.shift);
       case KeyCode.HOME -> shiftSelection(event.shift) || setCaretPos(0, event.shift);
       case KeyCode.END -> shiftSelection(event.shift) ||
           setCaretPos(caretCodeLine().totalStrLength, event.shift);
@@ -1233,6 +1242,35 @@ public class EditorComponent implements Focusable {
     if (result && event.shift) selection.endPos.set(caretLine, caretCharPos);
     if (result) computeUsages();
     return result;
+  }
+
+  void saveToNavStack() {
+    NavigationContext curr = navStack.getCurrentCtx();
+    if (curr != null && caretLine == curr.getLine() && caretCharPos == curr.getCharPos()) {
+      return;
+    }
+    navStack.add(new NavigationContext(
+        caretLine,
+        caretCharPos,
+        selection
+    ));
+  }
+
+  boolean navigateBack() {
+    saveToNavStack();
+    NavigationContext prev = navStack.getPrevCtx();
+    if (prev == null) return false;
+    setCaretLinePos(prev.getLine(), prev.getCharPos(), false);
+    selection = new Selection(prev.getSelection());
+    return true;
+  }
+
+  boolean navigateForward() {
+    NavigationContext curr = navStack.getNextCtx();
+    if (curr == null) return false;
+    setCaretLinePos(curr.getLine(), curr.getCharPos(), false);
+    selection = new Selection(curr.getSelection());
+    return true;
   }
 
   boolean pgDown(KeyEvent event) {
