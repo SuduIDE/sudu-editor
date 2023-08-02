@@ -16,7 +16,7 @@ public interface RegionTextureAllocator {
     return text -> (int) (canvas.measureText(text) + width * 2 + 7.f / 8);
   }
 
-  V4f alloc(int width, int height);
+  V4f alloc(int width);
 
   void free(V4f location);
 
