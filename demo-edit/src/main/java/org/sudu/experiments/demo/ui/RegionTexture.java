@@ -26,6 +26,9 @@ public class RegionTexture implements RegionTextureAllocator {
    * @param height the height of the region texture
    */
   public RegionTexture(int height) {
+    if (height == 0) {
+      throw new IllegalArgumentException("Height cannot be zero.");
+    }
     this.textHeight = height;
   }
 
@@ -59,8 +62,8 @@ public class RegionTexture implements RegionTextureAllocator {
     }
 
     V4f region = new V4f();
-    if (width == 0 || textHeight == 0) {
-      return new V4f();
+    if (width == 0) {
+      return region;
     }
 
     if (freeRegions.size() > 0) {
