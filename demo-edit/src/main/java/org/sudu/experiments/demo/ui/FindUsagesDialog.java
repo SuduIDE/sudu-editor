@@ -7,10 +7,7 @@ import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.TextRect;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
-import org.sudu.experiments.math.Numbers;
-import org.sudu.experiments.math.Rect;
-import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.math.*;
 
 import java.util.Objects;
 
@@ -27,6 +24,10 @@ public class FindUsagesDialog {
   private int border, textXPad;
   private int hoverItemId = -1;
   private Runnable onClickOutside;
+  private int maxFileNameLen = 0;
+  private int maxLineLen = 0;
+  private int maxCodeContentLen = 0;
+  static boolean debug = false;
 
   public boolean isEmpty() {
     return items.length == 0;
@@ -85,56 +86,67 @@ public class FindUsagesDialog {
     Objects.requireNonNull(font);
     mCanvas.setFont(font);
     int textHeight = font.lineHeight(), maxW = 0;
-    border = Numbers.iRnd(2 * uiContext.dpr);
+    border = DprUtil.toPx(2, uiContext.dpr);
     textXPad = Numbers.iRnd(font.WWidth);
-    int tw = 0;
+    var measureWithPad = RegionTextureAllocator.measuringWithWPad(mCanvas, textXPad);
 
-    int maxFileNameLen = 0;
-    int maxLineLen = 0;
-    int maxCodeContentLen = 0;
+    RegionTexture regionTexture = new RegionTexture();
+
     for (FindUsagesItem item : items) {
       // TODO(Minor) Remove this crutch when the scroll appears
       if (item.fileName.startsWith("...")) continue;
-      int mFile = (int) (mCanvas.measureText(item.fileName) + 7.f / 8);
-      int mLines = (int) (mCanvas.measureText(item.lineNumber) + 7.f / 8);
-      int mCodeContent = (int) (mCanvas.measureText(item.codeContent) + 7.f / 8);
+      int mFile = measureWithPad.applyAsInt(item.fileName);
+      int mLines = measureWithPad.applyAsInt(item.lineNumber);
+      int mCodeContent = measureWithPad.applyAsInt(item.codeContent);
       maxFileNameLen = Math.max(maxFileNameLen, mFile);
       maxLineLen = Math.max(maxLineLen, mLines);
       maxCodeContentLen = Math.max(maxCodeContentLen, mCodeContent);
     }
-
+    maxW = maxFileNameLen + maxLineLen + maxCodeContentLen + textXPad * 2;
     for (FindUsagesItem item : items) {
-      int wFile = textXPad + maxFileNameLen;
-      int wLines = maxLineLen + textXPad;
-      int wCodeContent = maxCodeContentLen + textXPad;
-      // TODO(Minor) Remove this crutch when the scroll appears
-      maxW = Math.max(maxW, wFile + wLines + wCodeContent);
-      if (item.fileName.startsWith("...")) {
-        wFile = (int) (mCanvas.measureText(item.fileName) + 7.f / 8) + textXPad;
-        wLines = maxW - wFile;
-        wCodeContent = 0;
-      }
-      item.tFiles.pos.x = tw;
-      item.tFiles.pos.y = 0;
-      item.tFiles.size.x = wFile;
-      item.tFiles.size.y = textHeight;
-      item.tFiles.textureRegion.set(tw, 0, wFile, textHeight);
-      item.tLines.pos.x = tw + wFile;
-      item.tLines.pos.y = 0;
-      item.tLines.size.x = wLines;
-      item.tLines.size.y = textHeight;
-      item.tLines.textureRegion.set(tw + wFile, 0, wLines, textHeight);
-      item.tContent.pos.x = tw + wFile + wLines;
-      item.tContent.pos.y = 0;
-      item.tContent.size.x = wCodeContent;
-      item.tContent.size.y = textHeight;
-      item.tContent.textureRegion.set(tw + wFile + wLines, 0, wCodeContent, textHeight);
-      tw += wFile + wLines + wCodeContent;
+      item.tFiles.textureRegion.set(regionTexture.alloc(item.fileName, measureWithPad, textHeight));
+      setCoords(item.tFiles, 0);
+      item.tLines.textureRegion.set(regionTexture.alloc(item.lineNumber, measureWithPad, textHeight));
+      setCoords(item.tLines, (maxFileNameLen - item.tFiles.size.x));
+      item.tContent.textureRegion.set(regionTexture.alloc(item.codeContent, measureWithPad, textHeight));
+      setCoords(item.tContent, (maxFileNameLen - item.tFiles.size.x) + (maxLineLen - item.tLines.size.x));
+      maxFileNameLen = Math.max(maxFileNameLen, item.tFiles.size.x);
+      maxLineLen = Math.max(maxLineLen, item.tLines.size.x);
+      maxCodeContentLen = Math.max(maxCodeContentLen, item.tContent.size.x);
     }
-    textureSize.x = tw;
-    textureSize.y = textHeight;
+    textureSize.set(regionTexture.getTextureSize());
     rect.size.x = maxW + border * 2;
     rect.size.y = (textHeight + border) * items.length + border;
+  }
+
+  private void setRectCoords(FindUsagesItem item) {
+    item.rectFiles.set(
+        item.tFiles.pos.x + item.tFiles.size.x,
+        item.tFiles.pos.y,
+        maxFileNameLen - item.tFiles.size.x,
+        item.tFiles.size.y
+    );
+
+    item.rectLines.set(
+        item.rectFiles.pos.x + item.rectFiles.size.x + item.tLines.size.x,
+        item.tLines.pos.y,
+        maxLineLen - item.tLines.size.x,
+        item.tLines.size.y
+    );
+
+    item.rectContent.set(
+        item.rectLines.pos.x + item.rectLines.size.x + item.tContent.size.x,
+        item.tContent.pos.y,
+        rect.size.x - item.tContent.size.x - maxLineLen - maxFileNameLen - border * 2,
+        item.tContent.size.y
+    );
+  }
+
+  private static void setCoords(TextRect item, float dx) {
+    item.pos.x = (int) (item.textureRegion.x + dx);
+    item.pos.y = (int) item.textureRegion.y;
+    item.size.x = (int) item.textureRegion.z;
+    item.size.y = (int) item.textureRegion.w;
   }
 
   public void setScreenLimitedPosition(int x, int y, V2i screen) {
@@ -153,10 +165,17 @@ public class FindUsagesDialog {
       TextRect tContent = item.tContent;
       tFiles.pos.x = x + localX;
       tFiles.pos.y = y + localY;
-      tLines.pos.x = x + localX;
+      tLines.pos.x = x + localX + (maxFileNameLen - tFiles.size.x);
       tLines.pos.y = y + localY;
-      tContent.pos.x = x + localX;
+      tContent.pos.x = x + localX + (maxFileNameLen - tFiles.size.x) + (maxLineLen - tLines.size.x);
       tContent.pos.y = y + localY;
+      setRectCoords(item);
+      item.rectFiles.pos.x = x + localX + tFiles.size.x;
+      item.rectFiles.pos.y = y + localY;
+      item.rectLines.pos.x = x + localX + tLines.pos.x + tLines.size.x;
+      item.rectLines.pos.y = y + localY;
+      item.rectContent.pos.x = x + localX + tContent.pos.x + tContent.size.x;
+      item.rectContent.pos.y = y + localY;
       if (tFiles.size.y == 0 || tLines.size.y == 0 || tContent.size.y == 0) tRectWarning();
       localY += tFiles.size.y + border;
     }
@@ -173,11 +192,10 @@ public class FindUsagesDialog {
     Canvas canvas = g.createCanvas(textureSize.x + 150, textureSize.y);
     canvas.setFont(font);
     float baseline = font.fAscent - (font.fAscent + font.fDescent) / 16;
-
     for (FindUsagesItem item : items) {
-      canvas.drawText(item.fileName, item.tFiles.textureRegion.x + textXPad, baseline);
-      canvas.drawText(item.lineNumber, item.tLines.textureRegion.x + textXPad, baseline);
-      canvas.drawText(item.codeContent, item.tContent.textureRegion.x + textXPad, baseline);
+      canvas.drawText(item.fileName, item.tFiles.textureRegion.x + textXPad, baseline + item.tFiles.textureRegion.y);
+      canvas.drawText(item.lineNumber, item.tLines.textureRegion.x + textXPad, baseline + item.tLines.textureRegion.y);
+      canvas.drawText(item.codeContent, item.tContent.textureRegion.x + textXPad, baseline + item.tContent.textureRegion.y);
     }
     texture = Disposable.assign(texture, g.createTexture());
     texture.setContent(canvas);
@@ -205,9 +223,18 @@ public class FindUsagesDialog {
     }
 
     for (FindUsagesItem item : items) {
+      setRectCoords(item);
       item.tFiles.drawText(g, texture, 0, 0, 2);
       item.tLines.drawText(g, texture, item.tFiles.size.x, 0, 2);
       item.tContent.drawText(g, texture, item.tFiles.size.x + item.tLines.size.x, 0, 2);
+      item.rectFiles.draw(g, 0, 0);
+      item.rectLines.draw(g, 0, 0);
+      item.rectContent.draw(g, 0, 0);
+      if (debug) {
+        Color.Cvt.fromHSV(1, 1, 1, item.rectFiles.color).setW(0.3f);
+        Color.Cvt.fromHSV(0.2, 1, 1, item.rectLines.color).setW(0.3f);
+        Color.Cvt.fromHSV(0.5, 1, 1, item.rectContent.color).setW(0.3f);
+      }
     }
     for (FindUsagesItem item : items) {
       TextRect tFiles = item.tFiles;

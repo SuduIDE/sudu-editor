@@ -8,43 +8,43 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class LanguageSelectorTest {
 
   @Test
-  public void AllExistMatch() {
+  public void allExistMatch() {
     LanguageSelector ls = new LanguageSelector("java", "some");
     assertTrue(ls.match("java", "some"));
   }
 
   @Test
-  public void AllExistLanguageMismatch() {
+  public void allExistLanguageMismatch() {
     LanguageSelector ls = new LanguageSelector("java", "some");
     assertFalse(ls.match("c", "some"));
   }
 
   @Test
-  public void AllExistSchemeMismatch() {
+  public void allExistSchemeMismatch() {
     LanguageSelector ls = new LanguageSelector("java", "some");
     assertFalse(ls.match("java", "another"));
   }
 
   @Test
-  public void LanguageExistMatch() {
+  public void languageExistMatch() {
     LanguageSelector ls = new LanguageSelector("java", null);
     assertTrue(ls.match("java", null));
   }
 
   @Test
-  public void LanguageExistPartialSchemeMatch() {
+  public void languageExistPartialSchemeMatch() {
     LanguageSelector ls = new LanguageSelector("java", null);
     assertTrue(ls.match("java", "some"));
   }
 
   @Test
-  public void SchemeExistMatch() {
+  public void schemeExistMatch() {
     LanguageSelector ls = new LanguageSelector(null, "some");
     assertTrue(ls.match(null, "some"));
   }
 
   @Test
-  public void NonExistMatch() {
+  public void nonExistMatch() {
     LanguageSelector ls = new LanguageSelector(null, null);
     assertTrue(ls.match(null, null));
   }

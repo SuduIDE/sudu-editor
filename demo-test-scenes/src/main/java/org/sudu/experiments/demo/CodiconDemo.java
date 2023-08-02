@@ -49,11 +49,6 @@ public class CodiconDemo extends Scene {
     textRect.color.set(Colors.defaultText);
   }
 
-  @Override
-  public boolean update(double timestamp) {
-    return false;
-  }
-
   public void dispose() {
     texture = Disposable.assign(texture, null);
     textCanvas = Disposable.assign(textCanvas, null);

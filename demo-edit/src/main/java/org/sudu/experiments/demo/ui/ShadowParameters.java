@@ -1,6 +1,6 @@
 package org.sudu.experiments.demo.ui;
 
-import org.sudu.experiments.math.Numbers;
+import org.sudu.experiments.DprUtil;
 import org.sudu.experiments.math.V4f;
 
 public class ShadowParameters {
@@ -21,6 +21,6 @@ public class ShadowParameters {
   }
 
   public int getShadowSize(float dpr) {
-    return Numbers.iRnd(size * dpr);
+    return DprUtil.toPx(size, dpr);
   }
 }

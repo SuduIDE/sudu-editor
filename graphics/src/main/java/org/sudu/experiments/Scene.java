@@ -13,7 +13,9 @@ public abstract class Scene implements Disposable {
   // if scene update returns true it means
   // there is some animation going, and we need to re-paint
   //   timestamp - time since app start, in seconds
-  public abstract boolean update(double timestamp);
+  public boolean update(double timestamp) {
+    return false;
+  }
 
   public abstract void paint();
 
