@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 public class PopupMenu implements DprChangeListener, Focusable {
   private final UiContext context;
   private final ArrayList<Toolbar> toolbars = new ArrayList<>();
+  private UiFont uiFont;
   private FontDesk font;
   private DialogItemColors theme;
   private Runnable onClose = Const.emptyRunnable;
@@ -22,9 +23,8 @@ public class PopupMenu implements DprChangeListener, Focusable {
     context.dprListeners.add(this);
   }
 
-  // todo: change font and size if dps changed on
-  public void setFont(FontDesk f) {
-    font = f;
+  public void setFont(UiFont f) {
+    uiFont = f;
   }
 
   public void setTheme(DialogItemColors dialogItemColors) {
@@ -34,13 +34,15 @@ public class PopupMenu implements DprChangeListener, Focusable {
     }
   }
 
+  public DialogItemColors theme() { return theme; }
+
   public void display(V2i mousePos, Supplier<ToolbarItem[]> actions, Runnable onClose) {
     context.requireWindowVisible();
-    if (font == null || isVisible()) {
+    if (uiFont == null || isVisible()) {
       throw new IllegalArgumentException();
     }
     this.onClose = onClose;
-
+    font = context.fontDesk(uiFont);
     Toolbar rootMenu = displaySubMenu(mousePos, actions, null);
     rootMenu.onClickOutside(this::hide);
     context.setFocus(this);
@@ -59,7 +61,8 @@ public class PopupMenu implements DprChangeListener, Focusable {
     Toolbar popup = new Toolbar();
     popup.setLayoutVertical();
     popup.setItems(items.get());
-    setToolbarStyle(popup);
+    popup.setTheme(theme);
+    popup.setFont(font);
     popup.measure(context);
 
     int x = parent != null ? relativeToParentPos(pos.x, parent, popup) : pos.x;
@@ -78,14 +81,11 @@ public class PopupMenu implements DprChangeListener, Focusable {
     return popup;
   }
 
-  private void setToolbarStyle(Toolbar tb) {
-    tb.setTheme(theme);
-    tb.setFont(font);
-  }
-
   @Override
   public void onDprChanged(float oldDpr, float newDpr) {
+    font = context.fontDesk(uiFont);
     for (Toolbar toolbar : toolbars) {
+      toolbar.setFont(font);
       toolbar.measure(context);
     }
   }
@@ -170,6 +170,7 @@ public class PopupMenu implements DprChangeListener, Focusable {
   }
 
   public void dispose() {
+    context.dprListeners.remove(this);
     context.removeFocus(this);
     disposeList(toolbars);
   }

@@ -58,6 +58,11 @@
       <artifactId>fonts</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.sudu</groupId>
+      <artifactId>codicon</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
       <dependency>
           <groupId>org.sudu</groupId>
           <artifactId>demo-test-scenes</artifactId>

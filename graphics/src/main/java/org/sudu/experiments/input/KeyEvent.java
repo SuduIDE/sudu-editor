@@ -48,8 +48,16 @@ public class KeyEvent extends KeyModifiers {
         e.keyCode == KeyCode.F5;
   }
 
-  public String desc() {
+  public String toString() {
     return (isPressed ? "key down: " : "key up: ") + key +
         ", keyCode = " + keyCode + ", isRepeated = " + isRepeated;
+  }
+
+  public static boolean handleSpecialKey(KeyEvent event) {
+    // do not consume browser keyboard to allow page reload and debug
+    if (isCopyPasteRelatedKey(event) || isBrowserKey(event)) {
+      event.prevented = true;
+    }
+    return false;
   }
 }

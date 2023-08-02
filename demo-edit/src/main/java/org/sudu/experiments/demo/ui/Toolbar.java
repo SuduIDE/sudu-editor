@@ -5,7 +5,6 @@ import org.sudu.experiments.demo.DemoRect;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.TextRect;
 import org.sudu.experiments.fonts.FontDesk;
-import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
@@ -95,9 +94,9 @@ public class Toolbar {
     Objects.requireNonNull(font);
     mCanvas.setFont(font);
     int textHeight = font.lineHeight(textHeightScale), maxW = 0;
-    border = Numbers.iRnd(dpBorder * devicePR);
-    margin = Numbers.iRnd(dpMargin * devicePR);
-    textXPad = Numbers.iRnd(textHorizontalMargin * devicePR);
+    border = DprUtil.toPx(dpBorder, devicePR);
+    margin = DprUtil.toPx(dpMargin, devicePR);
+    textXPad = DprUtil.toPx(textHorizontalMargin, devicePR);
     int tw = 0;
     for (ToolbarItem item : items) {
       int m = (int)(mCanvas.measureText(item.text) + 7.f / 8);
@@ -152,7 +151,7 @@ public class Toolbar {
   private void renderTexture(WglGraphics g) {
     Canvas canvas = g.createCanvas(textureSize.x, textureSize.y);
     canvas.setFont(font);
-    int textMargin = font.lineHeight(textHeightScale * .5f - .5f), maxW = 0;
+    int textMargin = font.lineHeight(textHeightScale * .5f - .5f);
     float baseline = textMargin + font.fAscent - (font.fAscent + font.fDescent) / 16;
 
     for (ToolbarItem item : items) {

@@ -14,7 +14,7 @@ public class FontResources {
     this.fonts = fonts;
   }
 
-  public static FontResources noFonts() {
-    return new FontResources(FontResources.class, "fonts/");
+  public String path(String name) {
+    return folder.concat(name);
   }
 }

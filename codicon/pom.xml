@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>root-pom</artifactId>
+    <groupId>org.sudu</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>codicon</artifactId>
+  <dependencies>
+    <dependency>
+      <groupId>org.sudu</groupId>
+      <artifactId>graphics</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>downloadFont</id>
+      <properties>
+        <codicon.version>0.0.33</codicon.version>
+        <cdnPath>https://cdn.jsdelivr.net/npm/@vscode/codicons@${codicon.version}/dist/</cdnPath>
+        <dest>${project.basedir}/src/main/resources/fonts</dest>
+        <f1>${cdnPath}codicon.ttf</f1>
+        <f2>${cdnPath}codicon.css</f2>
+        <f3>${cdnPath}codicon.html</f3>
+      </properties>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>3.1.0</version>
+            <executions><execution>
+                <id>download-files</id>
+                <phase>prepare-package</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <target>
+                    <mkdir dir="${dest}"/>
+                    <!-- download file -->
+                    <get src="${f1}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                    <get src="${f2}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                    <get src="${f3}" dest="${dest}" verbose="false" usetimestamp="false"/>
+                  </target>
+                </configuration>
+            </execution></executions>
+          </plugin>
+        </plugins>
+      </build>
+
+    </profile>
+  </profiles>
+</project>

@@ -46,6 +46,7 @@ public class EditorComponent implements Focusable {
   Model model = new Model();
   EditorRegistrations registrations = new EditorRegistrations();
   Selection selection = new Selection();
+  NavigationStack navStack = new NavigationStack();
 
   EditorColorScheme colors;
 
@@ -89,6 +90,7 @@ public class EditorComponent implements Focusable {
 
   private CodeElement definition = null;
   private final List<CodeElement> usages = new ArrayList<>();
+  private ExternalHighlights externalHighlights;
 
   Consumer<String> onError = System.err::println;
 
@@ -110,14 +112,14 @@ public class EditorComponent implements Focusable {
     compPos.set(pos);
     compSize.set(size);
 
-    vLineX = Numbers.iRnd(vLineXBase * dpr);
-    vLineLeftDelta = Numbers.iRnd(10 * dpr);
+    vLineX = DprUtil.toPx(vLineXBase,  dpr);
+    vLineLeftDelta = DprUtil.toPx(10, dpr);
 
     int lineNumbersWidth = vLineX - vLineLeftDelta;
     lineNumbers.setPos(compPos, lineNumbersWidth, compSize.y, dpr);
 
     if (1<0) DebugHelper.dumpFontsSize(g);
-    caret.setWidth(Numbers.iRnd(Caret.defaultWidth * dpr));
+    caret.setWidth(DprUtil.toPx(Caret.defaultWidth, dpr));
 
     // Should be called if dpr changed
     doChangeFont(fontFamilyName, fontVirtualSize);
@@ -270,7 +272,7 @@ public class EditorComponent implements Focusable {
   }
 
   private void doChangeFont(String name, int virtualSize) {
-    int newPixelFontSize = Numbers.iRnd(virtualSize * context.dpr);
+    int newPixelFontSize = DprUtil.toPx(virtualSize, context.dpr);
     int oldPixelFontSize = font == null ? 0 : font.iSize;
     if (newPixelFontSize != oldPixelFontSize || !Objects.equals(name, fontFamilyName)) {
       lineNumbers.dispose();
@@ -917,22 +919,32 @@ public class EditorComponent implements Focusable {
   }
 
   private void computeUsages() {
-    definition = null;
-    usages.clear();
+    Pos caretPos = new Pos(caretLine, caretCharPos);
+    Pos elementPos = model.document.getElementStart(caretLine, caretCharPos);
+    computeUsages(caretPos, elementPos);
+  }
+
+  private void computeUsages(Pos caretPos, Pos elementPos) {
+    clearUsages();
+
     Document document = model.document;
-    if (caretLine >= document.length()) return;
+    Pos def = document.getDefinition(elementPos);
 
-    Pos pos = document.getElementStart(caretLine, caretCharPos);
-    Pos def = document.getDefinition(pos);
+    if (def != null) definition = document.getCodeElement(def);
 
-    if (def != null) definition = model.document.getCodeElement(def);
-
-    List<Pos> usageList = document.getUsagesList(def != null ? def : pos);
+    List<Pos> usageList = document.getUsagesList(def != null ? def : elementPos);
     if (usageList != null) {
       for (var usage : usageList) {
         usages.add(document.getCodeElement(usage));
       }
     }
+
+    useDocumentHighlightProvider(caretPos.line, caretPos.pos);
+  }
+
+  private void applyHighlights() {
+    clearUsages();
+    externalHighlights.buildUsages(model.document, usages);
   }
 
   public void findUsages(V2i position, ReferenceProvider.Provider provider) {
@@ -986,38 +998,20 @@ public class EditorComponent implements Focusable {
     selection.startPos.set(caretLine, caretCharPos);
   }
 
-  void provideReferences(int line, int column, boolean includeDeclaration) {
-    var provider = registrations.findReferenceProvider(model.language(), model.uriScheme());
-    if (provider != null) {
-      provider.provideReferences(
-          model, line, column, includeDeclaration,
-          this::gotoReferences, onError
-      );
-    }
-  }
-
-  private void gotoReferences(Location[] locs) {
-
-  }
-
-//  void useDeclarationProvider(int line, int column) {
-//    var p = registrations.findDeclarationProvider(model.language(), model.uriScheme());
-//    if (p != null) {
-//      p.provide(model, line, column, this::gotoDefinition, onError);
-//    }
-//  }
-
   void useDocumentHighlightProvider(int line, int column) {
     var p = registrations.findDocumentHighlightProvider(model.language(), model.uriScheme());
     if (p != null) {
+      Model saveModel = model;
       p.provide(model, line, column,
-          highlights -> applyHighlights(line, column, highlights),
+          highlights -> setHighlights(saveModel, line, column, highlights),
           onError);
     }
   }
 
-  void applyHighlights(int line, int column, DocumentHighlight[] highlights) {
-
+  void setHighlights(Model saveModel, int line, int column, DocumentHighlight[] highlights) {
+    if (model != saveModel || caretLine != line || caretCharPos != column) return; // late reply
+    externalHighlights = new ExternalHighlights(line, column, highlights);
+    applyHighlights();
   }
 
   Pos computeCharPos(V2i eventPosition) {
@@ -1031,23 +1025,24 @@ public class EditorComponent implements Focusable {
   }
 
   void onClickText(MouseEvent event) {
+    saveToNavStack();
     V2i eventPosition = event.position;
     Pos pos = computeCharPos(eventPosition);
+    Pos elementPos = model.document.getElementStart(pos.line, pos.pos);
 
     if (event.ctrl) {
-      var elementStart = model.document.getElementStart(pos.line, pos.pos);
       var provider = registrations.findDefinitionProvider(model.language(), model.uriScheme());
       if (provider != null) {
         provider.provide(model, pos.line, pos.pos,
             (locs) -> gotoDefinition(eventPosition, locs), onError);
       } else {
         // Default def provider
-        if (gotoByLocalProvider(eventPosition, elementStart)) return;
+        if (gotoByLocalProvider(eventPosition, elementPos)) return;
       }
     }
 
     moveCaret(pos);
-    computeUsages();
+    computeUsages(pos, elementPos);
 
     if (!event.shift && !selection.isSelectionStarted) {
       selection.startPos.set(caretLine, caretCharPos);
@@ -1168,6 +1163,9 @@ public class EditorComponent implements Focusable {
 
     if (button == MOUSE_BUTTON_LEFT && clickCount == 2 && press) {
       onDoubleClickText(event.position);
+      // Remove redundant single-click location
+      navStack.pop();
+      saveToNavStack();
       return true;
     }
     if (button == MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
@@ -1325,7 +1323,7 @@ public class EditorComponent implements Focusable {
   private boolean handleSpecialKeys(KeyEvent event) {
     if (KeyCode.F1 <= event.keyCode && event.keyCode <= KeyCode.F12) return true;
     return switch (event.keyCode) {
-      case KeyCode.INSERT, KeyCode.Pause,
+      case KeyCode.INSERT, KeyCode.Pause, KeyCode.META,
           KeyCode.CapsLock, KeyCode.NumLock, KeyCode.ScrollLock,
           KeyCode.ALT, KeyCode.SHIFT, KeyCode.CTRL -> true;
       default -> false;
@@ -1349,8 +1347,12 @@ public class EditorComponent implements Focusable {
       case KeyCode.ARROW_DOWN -> arrowUpDown(1, event.ctrl, event.alt, event.shift);
       case KeyCode.PAGE_UP -> pgUp(event);
       case KeyCode.PAGE_DOWN -> pgDown(event);
-      case KeyCode.ARROW_LEFT -> moveCaretLeftRight(-1, event.ctrl, event.shift);
-      case KeyCode.ARROW_RIGHT -> moveCaretLeftRight(1, event.ctrl, event.shift);
+      case KeyCode.ARROW_LEFT ->
+          event.ctrl && event.alt ? navigateBack() :
+              moveCaretLeftRight(-1, event.ctrl, event.shift);
+      case KeyCode.ARROW_RIGHT ->
+          event.ctrl && event.alt ? navigateForward() :
+              moveCaretLeftRight(1, event.ctrl, event.shift);
       case KeyCode.HOME -> shiftSelection(event.shift) || setCaretPos(0, event.shift);
       case KeyCode.END -> shiftSelection(event.shift) ||
           setCaretPos(caretCodeLine().totalStrLength, event.shift);
@@ -1359,6 +1361,35 @@ public class EditorComponent implements Focusable {
     if (result && event.shift) selection.endPos.set(caretLine, caretCharPos);
     if (result) computeUsages();
     return result;
+  }
+
+  void saveToNavStack() {
+    NavigationContext curr = navStack.getCurrentCtx();
+    if (curr != null && caretLine == curr.getLine() && caretCharPos == curr.getCharPos()) {
+      return;
+    }
+    navStack.add(new NavigationContext(
+        caretLine,
+        caretCharPos,
+        selection
+    ));
+  }
+
+  boolean navigateBack() {
+    saveToNavStack();
+    NavigationContext prev = navStack.getPrevCtx();
+    if (prev == null) return false;
+    setCaretLinePos(prev.getLine(), prev.getCharPos(), false);
+    selection = new Selection(prev.getSelection());
+    return true;
+  }
+
+  boolean navigateForward() {
+    NavigationContext curr = navStack.getNextCtx();
+    if (curr == null) return false;
+    setCaretLinePos(curr.getLine(), curr.getCharPos(), false);
+    selection = new Selection(curr.getSelection());
+    return true;
   }
 
   boolean pgDown(KeyEvent event) {
@@ -1454,10 +1485,17 @@ public class EditorComponent implements Focusable {
   public EditorRegistrations registrations() { return registrations; }
 
   public void setModel(Model model) {
+    externalHighlights = null;
+    clearUsages();
     Model oldModel = this.model;
     this.model = model;
     onContentChange();
     registrations.fireModelChange(oldModel, model);
+  }
+
+  private void clearUsages() {
+    definition = null;
+    usages.clear();
   }
 
   public Model model() { return model; }

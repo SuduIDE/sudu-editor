@@ -49,7 +49,18 @@ public class CodeLine {
 
   public int getElementStart(int charPos) {
     int index = getElementIndex(charPos);
+    return getElementStartAtIndex(index);
+  }
+
+  // this works only after getElementIndex call
+  public int getElementStartAtIndex(int index) {
     return index <= 0 ? 0 : lengthCache[index - 1];
+  }
+
+  // this works only after getElementIndex call
+  public int getElementEndAtIndex(int element) {
+    return element < elements.length
+        ? lengthCache[element] : totalStrLength;
   }
 
   public int getElementIndex(int charPos) {

@@ -1,7 +1,7 @@
 package org.sudu.experiments.win32;
 
-import org.sudu.experiments.Application;
 import org.sudu.experiments.CString;
+import org.sudu.experiments.fonts.Codicon;
 import org.sudu.experiments.fonts.JetBrainsMono;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.win32.d2d.*;
@@ -14,18 +14,17 @@ public class D2dDumpFamilies {
     Helper.loadDlls();
     Win32.coInitialize();
 
-    D2dFactory f = D2dFactory.create(Application.fontLoader(JetBrainsMono.regular()));
+    D2dFactory f = D2dFactory.create(JetBrainsMono.regular(), Codicon.fontResource());
 
     dumpAllNames(f);
 
-    testFind(f, Fonts.Consolas, Fonts.SegoeUI, Fonts.JetBrainsMono);
-
+    testFind(f, Fonts.Consolas, Fonts.codicon, Fonts.JetBrainsMono);
   }
 
   private static void dumpAllNames(D2dFactory f) {
-    dump(f, "Jetbrains fonts",
+    dump(f, "getFontCollection fonts",
         IDWriteFontCollection.getAllFontFamilies(f.getFontCollection(), f.hr));
-    dump(f, "systemFontCollection",
+    dump(f, "getSystemFontCollection fonts",
         IDWriteFontCollection.getAllFontFamilies(f.getSystemFontCollection(), f.hr));
   }
 
