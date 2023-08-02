@@ -15,10 +15,10 @@ import java.util.function.ToIntFunction;
  */
 public class RegionTexture implements RegionTextureAllocator {
 
-  private int tw = 0;
-  private int th = 0;
   private final ArrayList<V4f> freeRegions = new ArrayList<>();
   private final int textHeight;
+  private int tw = 0;
+  private int th = 0;
 
   /**
    * Constructs a new RegionTexture object with the specified height.
