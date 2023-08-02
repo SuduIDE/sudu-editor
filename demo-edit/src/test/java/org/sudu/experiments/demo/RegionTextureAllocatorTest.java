@@ -124,11 +124,7 @@ public class RegionTextureAllocatorTest {
 
   @Test
   public void zeroTextHeight() {
-    int width = 100, height = 0;
-    RegionTexture rt = new RegionTexture(height);
-    for (int i = 0; i < 10; i++) {
-      rt.alloc(width);
-    }
-    assertEquals(new V2i(RegionTextureAllocator.MAX_TEXTURE_SIZE, 0), rt.getTextureSize());
+    int height = 0;
+    assertThrows(IllegalArgumentException.class, () -> new RegionTexture(height));
   }
 }
