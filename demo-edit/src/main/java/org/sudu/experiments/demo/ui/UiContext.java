@@ -77,7 +77,7 @@ public class UiContext {
     return f == focused;
   }
 
-  public Focusable focusable() {
+  public Focusable focused() {
     return focused;
   }
 
