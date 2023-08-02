@@ -14,7 +14,8 @@ import java.util.function.ToIntFunction;
  * It implements the `RegionTextureAllocator` interface.
  */
 public class RegionTexture implements RegionTextureAllocator {
-
+  //   The basic implementation uses ArrayList, in the future it is desirable to replace
+  //   the list of free regions with a more suitable structure, e.g. linked list, red-black tree
   private final ArrayList<V4f> freeRegions = new ArrayList<>();
   private final int textHeight;
   private int tw = 0;
