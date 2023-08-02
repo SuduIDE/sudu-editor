@@ -110,7 +110,7 @@ public class RegionTextureAllocatorDemo extends Scene0 implements MouseListener 
 
   @Override
   public void dispose() {
-    super.dispose();
+    texture.dispose();
   }
 
   @Override
