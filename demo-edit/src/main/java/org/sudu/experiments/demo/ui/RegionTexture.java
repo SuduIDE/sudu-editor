@@ -18,7 +18,16 @@ public class RegionTexture implements RegionTextureAllocator {
   private int tw = 0;
   private int th = 0;
   private final ArrayList<V4f> freeRegions = new ArrayList<>();
-  private int textHeight;
+  private final int textHeight;
+
+  /**
+   * Constructs a new RegionTexture object with the specified height.
+   *
+   * @param height the height of the region texture
+   */
+  public RegionTexture(int height) {
+    this.textHeight = height;
+  }
 
   /**
    * Allocates a region within the texture for the given text with the specified height.
@@ -29,20 +38,7 @@ public class RegionTexture implements RegionTextureAllocator {
    * @return The allocated region represented by a `V4f` object.
    */
   public V4f alloc(String text, ToIntFunction<String> measureText, int height) {
-    textHeight = height;
     return alloc(measureText.applyAsInt(text));
-  }
-
-  /**
-   * Allocates a region within the texture with the specified width and height.
-   *
-   * @param width  The width of the allocated region.
-   * @param height The height of the allocated region.
-   * @return The allocated region represented by a `V4f` object.
-   */
-  public V4f alloc(int width, int height) {
-    textHeight = height;
-    return alloc(width);
   }
 
   /**

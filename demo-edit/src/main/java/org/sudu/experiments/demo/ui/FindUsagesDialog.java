@@ -90,7 +90,7 @@ public class FindUsagesDialog {
     textXPad = Numbers.iRnd(font.WWidth);
     var measureWithPad = RegionTextureAllocator.measuringWithWPad(mCanvas, textXPad);
 
-    RegionTexture regionTexture = new RegionTexture();
+    RegionTexture regionTexture = new RegionTexture(textHeight);
 
     for (FindUsagesItem item : items) {
       // TODO(Minor) Remove this crutch when the scroll appears

@@ -8,10 +8,7 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseListener;
-import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.RngHelper;
-import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.XorShiftRandom;
+import org.sudu.experiments.math.*;
 
 import java.util.ArrayList;
 
@@ -38,13 +35,13 @@ public class RegionTextureAllocatorDemo extends Scene0 implements MouseListener 
 
     uiContext = new UiContext(api);
     uiContext.dprListeners.add(this::open);
-    regionTexture = new RegionTexture();
 
     api.input.onMouse.add(this);
     api.input.onKeyPress.add(this::onKeyPress);
     api.input.onKeyPress.add(uiContext::onKeyPress);
 
     font = api.graphics.fontDesk("Consolas", 35);
+    regionTexture = new RegionTexture(font.lineHeight());
     clearColor.set(new Color("#39322b"));
 
   }
