@@ -16,8 +16,10 @@ import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.worker.ArrayView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 
@@ -464,9 +466,120 @@ public class EditorComponent implements Focusable {
     return lines[i % lines.length];
   }
 
-  boolean handleTab() {
-    handleInsert(tabIndent);
+  boolean handleTab(boolean shiftPressed) {
+    if (shiftPressed) return handleShiftTabOp();
+    else return handleTabOp();
+  }
+
+  private boolean handleTabOp() {
+    if (selection.isAreaSelected()) {
+      Selection.SelPos left = selection.getLeftPos();
+      Selection.SelPos right = selection.getRightPos();
+      int size = right.line - left.line + 1;
+      int[] lines = new int[size];
+      String[] changes = new String[size];
+      int i = 0;
+      for (int l = left.line; l <= right.line; l++) {
+        lines[i] = l;
+        changes[i++] = tabIndent;
+      }
+
+      tabDiffHandler(lines, 0, false, changes, new Pos(caretLine, caretCharPos),
+          (l, c) -> model.document.insertAt(l, 0, tabIndent)
+      );
+      left.charInd += tabIndent.length();
+      right.charInd += tabIndent.length();
+      setCaretPosWithSelection(caretCharPos + tabIndent.length(), false);
+      updateDocumentDiffTimeStamp();
+    } else {
+      handleInsert(tabIndent);
+    }
     return true;
+  }
+
+  private boolean handleShiftTabOp() {
+    if (selection.isAreaSelected()) {
+      shiftTabSelection();
+    } else {
+      CodeLine codeLine = model.document.line(caretLine);
+      if (codeLine.elements.length > 0) {
+        String indent = calculateTabIndent(codeLine);
+        if (indent == null) return true;
+        model.document.makeDiffWithCaretReturn(
+            caretLine, 0, true, indent, new Pos(caretLine, caretCharPos)
+        );
+        codeLine.delete(0, indent.length());
+        setCaretPosWithSelection(caretCharPos - indent.length(), false);
+      }
+    }
+    updateDocumentDiffTimeStamp();
+    return true;
+  }
+
+  private void shiftTabSelection() {
+    Selection.SelPos left = selection.getLeftPos();
+    Selection.SelPos right = selection.getRightPos();
+    int initSize = right.line - left.line + 1;
+    int[] lines = new int[initSize];
+    String[] changes = new String[initSize];
+    int prevCaretPos = caretCharPos;
+    int prevCaretLine = caretLine;
+    int size = 0;
+    for (int l = left.line; l <= right.line; l++) {
+      CodeLine codeLine = model.document.line(l);
+      if (codeLine.elements.length > 0) {
+        String indent = calculateTabIndent(codeLine);
+        if (indent == null) continue;
+        lines[size] = l;
+        changes[size++] = indent;
+      }
+    }
+    lines = Arrays.copyOf(lines, size);
+    changes = Arrays.copyOf(changes, size);
+    for (int i = 0; i < size; i++) {
+      String indent = changes[i];
+      int l = lines[i];
+      if (l == left.line) left.charInd = Math.max(0, left.charInd - indent.length());
+      if (l == right.line) {
+        right.charInd = Math.max(0, right.charInd - indent.length());
+        setCaretPosWithSelection(caretCharPos - indent.length(), false);
+      }
+    }
+    tabDiffHandler(lines, 0, true, changes, new Pos(prevCaretLine, prevCaretPos),
+        (l, c) -> {
+          CodeLine codeLine = model.document.line(l);
+          codeLine.delete(0, c.length());
+        }
+    );
+  }
+
+  private String calculateTabIndent(CodeLine codeLine) {
+    int count = Numbers.clamp(0, tabIndent.length(), codeLine.getBlankStartLength());
+    return count == 0 ? null : " ".repeat(count);
+  }
+
+  private void tabDiffHandler(
+      int[] lines,
+      int fromValue,
+      boolean isDelValue,
+      String[] changes,
+      Pos caretPosition,
+      BiConsumer<Integer, String> editorAction
+
+  ) {
+    if (lines.length == 0) return;
+    int[] from = new int[lines.length];
+    boolean[] areDeletes = new boolean[lines.length];
+    Arrays.fill(from, fromValue);
+    Arrays.fill(areDeletes, isDelValue);
+    model.document.makeComplexDiff(
+        lines,
+        from,
+        areDeletes,
+        changes,
+        caretPosition,
+        editorAction
+    );
   }
 
   boolean handleEnter() {
@@ -764,6 +877,12 @@ public class EditorComponent implements Focusable {
     selection.select(caretLine, caretCharPos);
     selection.isSelectionStarted = false;
     return true;
+  }
+
+  void setCaretPosWithSelection(int charPos, boolean shift) {
+    Selection prevSelection = new Selection(selection);
+    setCaretPos(charPos, shift);
+    selection = prevSelection;
   }
 
   private void adjustEditorScrollToCaret() {
@@ -1214,7 +1333,7 @@ public class EditorComponent implements Focusable {
   private boolean handleEditingKeys(KeyEvent event) {
     if (readonly) return false;
     return switch (event.keyCode) {
-      case KeyCode.TAB -> handleTab();
+      case KeyCode.TAB -> handleTab(event.shift);
       case KeyCode.ENTER -> handleEnter();
       case KeyCode.DELETE -> handleDelete();
       case KeyCode.BACKSPACE -> handleBackspace();
