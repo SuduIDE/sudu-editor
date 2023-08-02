@@ -14,20 +14,20 @@ public class RegionTextureAllocatorTest {
 
   @Test
   public void newRegionNoCollision() {
-    RegionTexture rt = new RegionTexture();
     int width = 100, height = 100;
-    V4f r1 = rt.alloc(width, height), r2 = rt.alloc(width, height);
+    RegionTexture rt = new RegionTexture(height);
+    V4f r1 = rt.alloc(width), r2 = rt.alloc(width);
     assertFalse(r1.x + r1.z > r2.x);
     assertFalse(r2.x - r2.z < r1.x);
   }
 
   @Test
   public void severalRegionsNoCollision() {
-    RegionTexture rt = new RegionTexture();
     int width = 100, height = 100;
+    RegionTexture rt = new RegionTexture(height);
     ArrayList<V4f> regions = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
-      regions.add(rt.alloc(width, height));
+      regions.add(rt.alloc(width));
     }
     for (int i = 0; i < regions.size(); i++) {
       for (int j = i + 1; j < regions.size(); j++) {
@@ -42,26 +42,26 @@ public class RegionTextureAllocatorTest {
 
   @Test
   public void useFreeRegion() {
-    RegionTexture rt = new RegionTexture();
     int width = 100, height = 100;
+    RegionTexture rt = new RegionTexture(height);
     ArrayList<V4f> regions = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
-      regions.add(rt.alloc(width, height));
+      regions.add(rt.alloc(width));
     }
     V4f element = regions.get(5);
     V4f oldV4f = new V4f(element);
     rt.free(element);
     assertEquals(rt.getFreeRegions().get(0), element);
-    assertTrue(oldV4f.equals(rt.alloc(width, height)));
+    assertTrue(oldV4f.equals(rt.alloc(width)));
   }
 
   @Test
   public void mergeFreeRegionsFromStart() {
-    RegionTexture rt = new RegionTexture();
     int width = 100, height = 100;
+    RegionTexture rt = new RegionTexture(height);
     ArrayList<V4f> regions = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
-      regions.add(rt.alloc(width, height));
+      regions.add(rt.alloc(width));
     }
     for (V4f region : regions) {
       rt.free(region);
@@ -71,11 +71,11 @@ public class RegionTextureAllocatorTest {
 
   @Test
   public void mergeFreeRegionsFromEnd() {
-    RegionTexture rt = new RegionTexture();
     int width = 100, height = 100;
+    RegionTexture rt = new RegionTexture(height);
     ArrayList<V4f> regions = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
-      regions.add(rt.alloc(width, height));
+      regions.add(rt.alloc(width));
     }
     for (int i = regions.size() - 1; i >= 0; i--) {
       rt.free(regions.get(i));
@@ -85,11 +85,11 @@ public class RegionTextureAllocatorTest {
 
   @Test
   public void mergeFreeRegionsWithPeriod() {
-    RegionTexture rt = new RegionTexture();
     int width = 100, height = 100;
+    RegionTexture rt = new RegionTexture(height);
     ArrayList<V4f> regions = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
-      regions.add(rt.alloc(width, height));
+      regions.add(rt.alloc(width));
     }
     for (int i = 0; i < regions.size(); i++) {
       if (i % 2 == 0) {
@@ -106,19 +106,25 @@ public class RegionTextureAllocatorTest {
 
   @Test
   public void correctTextureSize() {
-    RegionTexture rt = new RegionTexture();
     int width = 300, height = 100, count = 10;
+    RegionTexture rt = new RegionTexture(height);
     for (int i = 0; i < count; i++) {
-      rt.alloc(width, height);
+      rt.alloc(width);
     }
     int layers = width * count / RegionTextureAllocator.MAX_TEXTURE_SIZE + 1;
-    assertEquals(rt.getTextureSize(), new V2i(RegionTextureAllocator.MAX_TEXTURE_SIZE, height * layers));
+    assertEquals(new V2i(RegionTextureAllocator.MAX_TEXTURE_SIZE, height * layers), rt.getTextureSize());
   }
 
   @Test
-  public void exceedingWidth(){
-    RegionTexture rt = new RegionTexture();
+  public void exceedingWidth() {
     int width = RegionTextureAllocator.MAX_TEXTURE_SIZE + 1, height = 100;
-    assertThrows(RuntimeException.class, () -> rt.alloc(width, height));
+    RegionTexture rt = new RegionTexture(height);
+    assertThrows(RuntimeException.class, () -> rt.alloc(width));
+  }
+
+  @Test
+  public void zeroTextHeight() {
+    int height = 0;
+    assertThrows(IllegalArgumentException.class, () -> new RegionTexture(height));
   }
 }
