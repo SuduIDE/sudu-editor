@@ -1353,9 +1353,15 @@ public class EditorComponent implements Focusable {
       case KeyCode.ARROW_RIGHT ->
           event.ctrl && event.alt ? navigateForward() :
               moveCaretLeftRight(1, event.ctrl, event.shift);
-      case KeyCode.HOME -> shiftSelection(event.shift) || setCaretPos(0, event.shift);
-      case KeyCode.END -> shiftSelection(event.shift) ||
-          setCaretPos(caretCodeLine().totalStrLength, event.shift);
+      case KeyCode.HOME -> event.ctrl ?
+          setCaretLinePos(0, 0, event.shift) :
+          setCaretPos(caretCodeLine().getBlankStartLength(), event.shift);
+      case KeyCode.END -> event.ctrl ?
+          setCaretLinePos(
+              model.document.length() - 1,
+              model.document.lastLine().totalStrLength - 1,
+              event.shift
+          ) : setCaretPos(caretCodeLine().totalStrLength, event.shift);
       default -> false;
     };
     if (result && event.shift) selection.endPos.set(caretLine, caretCharPos);

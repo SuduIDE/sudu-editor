@@ -60,6 +60,10 @@ public class Document {
     return document[i];
   }
 
+  public CodeLine lastLine() {
+    return line(length() - 1);
+  }
+
   public char getChar(int line, int pos) {
     return line(line).getChar(pos);
   }
