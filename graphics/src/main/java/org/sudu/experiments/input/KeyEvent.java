@@ -24,12 +24,14 @@ public class KeyEvent extends KeyModifiers {
 
   // Ctrl-C
   // Ctrl-X
+  // Ctrl-V
   // Ctrl-Insert
   // Shift-Delete
   public static boolean isCopyPasteRelatedKey(KeyEvent e) {
     if (e.controlOnly() &&
         (e.keyCode == KeyCode.C ||
          e.keyCode == KeyCode.X ||
+         e.keyCode == KeyCode.V ||
          e.keyCode == KeyCode.INSERT)
     ) {
       return true;
