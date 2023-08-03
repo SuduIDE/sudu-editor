@@ -71,22 +71,23 @@ class Win32InputState {
   void onMouseButton(int msg, long lParam, V2i windowSize, long hWnd, InputListeners listeners) {
     int btn = (msg - WM_LBUTTONDOWN) / 3, state = (msg - WM_LBUTTONDOWN) % 3;
     MouseEvent event = createMouseEvent(lParam, windowSize);
+    int mouseBtn = mapMouseButton(btn);
 
     switch (state) {
       case 0 -> {
         Win32.SetCapture(hWnd);
-        clickCounter.onMouseDown(event, mapMouseButton(btn));
-        listeners.sendMouseDown(event, mapMouseButton(btn));
+        clickCounter.onMouseDown(event, mouseBtn);
+        listeners.sendMouseDown(event, mouseBtn);
       }
       case 1 -> {
         Win32.ReleaseCapture();
-        clickCounter.onMouseUp(event, mapMouseButton(btn));
-        listeners.sendMouseUp(event, mapMouseButton(btn));
+        clickCounter.onMouseUp(event, mouseBtn);
+        listeners.sendMouseUp(event, mouseBtn);
       }
     }
 
     if (state == 1 && clickCounter.clicks() > 0) {
-      listeners.sendMouseClick(event, mapMouseButton(btn), clickCounter.clicks());
+      listeners.sendMouseClick(event, mouseBtn, clickCounter.clicks());
     }
 
     if (btn == 1)
