@@ -6,6 +6,7 @@ import org.sudu.experiments.demo.Colors;
 import org.sudu.experiments.demo.Scene1;
 import org.sudu.experiments.demo.TestHelper;
 import org.sudu.experiments.demo.ui.*;
+import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.*;
 
@@ -19,6 +20,7 @@ public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListe
   private final Toolbar tbV = new Toolbar();
 
   private final PopupMenu popupMenu;
+  private final UiFont consolas;
 
   public ToolbarDemo(SceneApi api) {
     super(api);
@@ -30,11 +32,14 @@ public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListe
     api.input.onContextMenu.add(this::onContextMenu);
 
     tbV.setLayoutVertical();
-    popupMenu.setFont(new UiFont("Consolas", 25));
+    consolas = new UiFont("Consolas", 25);
+    popupMenu.setFont(consolas);
+    popupMenu.setTheme(DialogItemColors.darkColorScheme());
     clearColor.set(new Color(43));
 
-    setToolbarStyle(tbH);
-    setToolbarStyle(tbV);
+    DialogItemColors dark = DialogItemColors.darkColorScheme();
+    tbH.setTheme(dark);
+    tbV.setTheme(dark);
 
     tbH.onClickOutside(() -> System.out.println("tbH onClickOutside"));
     tbV.onClickOutside(() -> System.out.println("tbV onClickOutside"));
@@ -42,17 +47,15 @@ public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListe
 
     tbH.setItems(items(0).get());
     tbV.setItems(items(0).get());
-
   }
 
   @Override
   public void onDprChanged(float oldDpr, float newDpr) {
+    FontDesk font = uiContext.fontDesk(consolas);
+    tbH.setFont(font);
+    tbV.setFont(font);
     tbH.measure(uiContext);
     tbV.measure(uiContext);
-  }
-
-  private void setToolbarStyle(Toolbar tb) {
-    tb.setTheme(DialogItemColors.darkColorScheme());
   }
 
   private void onEnterLeave(Toolbar tb) {
@@ -110,11 +113,15 @@ public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListe
   @Override
   public void onResize(V2i newSize, float dpr) {
     super.onResize(newSize, dpr);
+    layout();
+  }
 
+  private void layout() {
+    V2i windowSize = uiContext.windowSize;
     V2i tbhSize = tbH.size();
     V2i tbvSize = tbV.size();
-    tbH.setPos((newSize.x - tbhSize.x) / 2, (newSize.y - 3 * tbhSize.y) / 2 - 5);
-    tbV.setPos((newSize.x - tbvSize.x) / 2, (newSize.y + 3 * tbvSize.y) / 2 + 5);
+    tbH.setPos((windowSize.x - tbhSize.x) / 2, (windowSize.y - 3 * tbhSize.y) / 2 - 5);
+    tbV.setPos((windowSize.x - tbvSize.x) / 2, (windowSize.y) / 2 + 5);
   }
 
   @Override
