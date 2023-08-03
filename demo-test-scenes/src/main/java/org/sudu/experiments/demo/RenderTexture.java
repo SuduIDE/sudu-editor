@@ -97,10 +97,10 @@ public class RenderTexture extends Scene0 {
     }
 
     @Override
-    public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-      if (button == MouseListener.MOUSE_BUTTON_LEFT && clickCount == 1) {
+    public boolean onMouseDown(MouseEvent event, int button) {
+      if (button == MouseListener.MOUSE_BUTTON_LEFT) {
         V2i p = event.position;
-        drag = press && demoRect.isInside(p) ? p : null;
+        drag = demoRect.isInside(p) ? p : null;
       }
       return true;
     }

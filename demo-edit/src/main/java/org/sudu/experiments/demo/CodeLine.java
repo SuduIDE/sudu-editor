@@ -227,12 +227,14 @@ public class CodeLine {
   }
 
   public int getBlankStartLength() {
-    CodeElement e = elements[0];
-    int i = 0;
-    for (; i < e.length(); i++) {
-      if (e.charAt(i) != ' ') break;
+    int c = 0;
+    for (CodeElement e: elements) {
+      for (int i = 0; i < e.length(); i++) {
+        if (e.charAt(i) != ' ') return c;
+        c++;
+      }
     }
-    return i;
+    return c;
   }
 
   public void insertToEnd(String value) {

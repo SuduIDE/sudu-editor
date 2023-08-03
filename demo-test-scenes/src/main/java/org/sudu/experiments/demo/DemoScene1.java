@@ -215,26 +215,34 @@ public class DemoScene1 extends Scene {
 
 
     @Override
-    public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-      String a = press ? "click b=" : "unClick b=";
-      System.out.println(a + button + ", count=" + clickCount);
-
-      if (button == MouseListener.MOUSE_BUTTON_LEFT && clickCount == 1) {
-        V2i p = event.position;
-        drag = press && demoRect.isInside(p) ? p : null;
-        if (press) {
-          caret.setPosition(p.x, p.y);
-          caret.startDelay(api.window.timeNow());
-        }
-      }
-
+    public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
       if (button == MouseListener.MOUSE_BUTTON_LEFT && clickCount == 2) {
         setRandomColor(demoRect);
       }
 
       return true;
     }
+
+    @Override
+    public boolean onMouseDown(MouseEvent event, int button) {
+      System.out.println("mouseDown b=" + button);
+      if (button == MouseListener.MOUSE_BUTTON_LEFT) {
+        V2i p = event.position;
+        drag = demoRect.isInside(p) ? p : null;
+        caret.setPosition(p.x, p.y);
+        caret.startDelay(api.window.timeNow());
+      }
+      return true;
+    }
+
+    @Override
+    public boolean onMouseUp(MouseEvent event, int button) {
+      System.out.println("mouseUp b=" + button);
+      return true;
+    }
   }
+
+
 
   boolean onContextMenu(MouseEvent event) {
     System.out.println("menu");

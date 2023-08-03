@@ -2,7 +2,9 @@ package org.sudu.experiments.js;
 
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.Disposable;
-import org.sudu.experiments.input.*;
+import org.sudu.experiments.input.InputListeners;
+import org.sudu.experiments.input.KeyEvent;
+import org.sudu.experiments.input.MimeTypes;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
@@ -40,7 +42,7 @@ public class JsInput {
         addListener(element, "mouseup", this::onMouseUp),
         // todo add onMouseWheelOnWindow
         addListener(element, "wheel", this::onMouseWheelOnElement),
-        addListener(element, "dblclick", this::onDoubleClick),
+        addListener(element, "click", this::onClick),
         addListener(element, "contextmenu", this::onContextMenu),
         addListener(element, "focus", this::onFocus),
         addListener(element, "blur", this::onBlur),
@@ -105,23 +107,30 @@ public class JsInput {
     debug("onMouseDown bt #", event.getButton());
     if (clientRect == null) return;
     MouseEvent mouseEvent = mouseEvent(event);
-    listeners.sendMouseButton(mouseEvent, event.getButton(), true, 1);
+    listeners.sendMouseDown(mouseEvent, event.getButton());
   }
 
   private void onMouseUp(org.teavm.jso.dom.events.MouseEvent event) {
     debug("onMouseUp bt #", event.getButton());
     if (clientRect == null) return;
     MouseEvent mouseEvent = mouseEvent(event);
-    if (listeners.sendMouseButton(mouseEvent, event.getButton(), false, 1)) {
+    if (listeners.sendMouseUp(mouseEvent, event.getButton())) {
       stopEvent(event);
     }
   }
 
-  private void onDoubleClick(org.teavm.jso.dom.events.MouseEvent event) {
-    debug("onDoubleClick");
+  private interface JsMouseEvent extends org.teavm.jso.dom.events.MouseEvent {
+    @JSProperty
+    int getDetail();
+  }
+
+  // Currently both onClick and onMouseDown will fire on mouse click
+  private void onClick(org.teavm.jso.dom.events.MouseEvent event) {
+    debug("onClick");
     if (clientRect == null) return;
-    MouseEvent mouseEvent = mouseEvent(event);
-    if (listeners.sendMouseButton(mouseEvent, event.getButton(), true, 2)) {
+    JsMouseEvent e = event.cast();
+    MouseEvent mouseEvent = mouseEvent(e);
+    if (listeners.sendMouseClick(mouseEvent, event.getButton(), e.getDetail())) {
       stopEvent(event);
     }
   }

@@ -147,17 +147,17 @@ public class TextureRegionTestScene extends Scene {
       move -> scrollPos = move.applyAsInt(verticalSize());
 
     @Override
-    public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-      if (!press && dragLock != null) {
-        dragLock = null;
-        return true;
-      }
-
-      if (button == MouseListener.MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
+    public boolean onMouseDown(MouseEvent event, int button) {
+      if (button == MouseListener.MOUSE_BUTTON_LEFT) {
         dragLock = scrollBar.onMouseClick(event.position, vScrollHandler, true);
         if (dragLock != null) return true;
       }
+      return true;
+    }
 
+    @Override
+    public boolean onMouseUp(MouseEvent event, int button) {
+      if (dragLock != null) dragLock = null;
       return true;
     }
 

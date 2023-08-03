@@ -1114,16 +1114,42 @@ public class EditorComponent implements Focusable {
   }
 
   void onDoubleClickText(V2i eventPosition) {
-    Pos pos = computeCharPos(eventPosition);;
-
+    Pos pos = computeCharPos(eventPosition);
     CodeLine line = codeLine(pos.line);
     int wordStart = line.getElementStart(caretCharPos);
     int wordEnd = line.nextPos(caretCharPos);
+    CodeElement elem = line.getCodeElement(wordStart);
 
+    // Select line without tale if double-clicking the end of the line
+    if (wordEnd - 1 == line.totalStrLength) {
+      selection.startPos.set(caretLine, line.getBlankStartLength());
+      selection.endPos.set(caretLine, line.totalStrLength);
+      return;
+    }
+
+    // Select adjacent CodeElements if one ' ', or the whole line
+    if (elem != null && elem.s.isBlank()) {
+      if (wordStart == caretCharPos) {
+        wordStart = line.getElementStart(wordStart - 1);
+        wordEnd = line.nextPos(wordStart);
+      } else if (wordEnd == caretCharPos) {
+        wordStart = line.getElementStart(wordEnd + 1);
+        wordEnd = line.nextPos(wordStart);
+      } else {
+        selection.selectLine(caretLine);
+        return;
+      }
+    }
+
+    // Select CodeElement that holds the caret inside
     selection.startPos.set(caretLine, wordStart);
     selection.isSelectionStarted = true;
     setCaretLinePos(caretLine, wordEnd, false);
     selection.isSelectionStarted = false;
+  }
+
+  void onTripleClickText(V2i eventPosition) {
+    selection.selectLine(caretLine);
   }
 
   CodeLine caretCodeLine() {
@@ -1154,21 +1180,16 @@ public class EditorComponent implements Focusable {
     return true;
   }
 
-  public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-    if (!press) selection.isSelectionStarted = false;
-    if (!press && dragLock != null) {
-      dragLock = null;
-      return true;
-    }
+  public boolean onMouseUp(MouseEvent event, int button) {
+    Debug.consoleInfo("up");
+    selection.isSelectionStarted = false;
+    if (dragLock != null) dragLock = null;
+    return true;
+  }
 
-    if (button == MOUSE_BUTTON_LEFT && clickCount == 2 && press) {
-      onDoubleClickText(event.position);
-      // Remove redundant single-click location
-      navStack.pop();
-      saveToNavStack();
-      return true;
-    }
-    if (button == MOUSE_BUTTON_LEFT && clickCount == 1 && press) {
+  public boolean onMouseDown(MouseEvent event, int button) {
+    Debug.consoleInfo("down");
+    if (button == MOUSE_BUTTON_LEFT) {
       dragLock = vScroll.onMouseClick(event.position, vScrollHandler, true);
       if (dragLock != null) return true;
 
@@ -1176,6 +1197,22 @@ public class EditorComponent implements Focusable {
       if (dragLock != null) return true;
 
       onClickText(event);
+    }
+    return true;
+  }
+
+  public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
+    Debug.consoleInfo("click " + clickCount);
+    if (button == MOUSE_BUTTON_LEFT && clickCount == 3) {
+      onTripleClickText(event.position);
+      navStack.pop();
+      saveToNavStack();
+      return true;
+    }
+    if (button == MOUSE_BUTTON_LEFT && clickCount == 2) {
+      onDoubleClickText(event.position);
+      saveToNavStack();
+      return true;
     }
     return true;
   }

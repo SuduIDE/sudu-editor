@@ -42,7 +42,7 @@ public class Win32Window implements WindowPeer, Window {
   V2i windowSize = new V2i();
   State windowState = State.NORMAL;
   ArrayList<Win32Window> childWindows = new ArrayList<>();
-  Win32InputState inputState = new Win32InputState();
+  Win32InputState inputState;
   String title = "";
   FpsMeter fpsMeter = new FpsMeter(this::updateFps);
 
@@ -56,6 +56,7 @@ public class Win32Window implements WindowPeer, Window {
     eventQueue = eq;
     config = configName;
     time = t;
+    inputState = new Win32InputState(t);
     bgWorker = worker;
     workerExecutor = workerJobs;
   }

@@ -124,9 +124,19 @@ public class DemoEdit0 extends Scene {
   class MouseHandler implements MouseListener {
 
     @Override
-    public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-      return ui.onMousePress(event, button, press, clickCount)
-          || editor.onMousePress(event, button, press, clickCount);
+    public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
+      return ui.onMouseClick(event, button, clickCount)
+          || editor.onMouseClick(event, button, clickCount);
+    }
+
+    @Override
+    public boolean onMouseUp(MouseEvent event, int button) {
+      return editor.onMouseUp(event, button);
+    }
+
+    @Override
+    public boolean onMouseDown(MouseEvent event, int button) {
+      return editor.onMouseDown(event, button);
     }
 
     @Override

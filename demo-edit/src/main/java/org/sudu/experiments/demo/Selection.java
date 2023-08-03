@@ -25,6 +25,11 @@ public class Selection {
     }
   }
 
+  void selectLine(int line) {
+    startPos.set(line, 0);
+    endPos.set(line + 1, 0);
+  }
+
   SelPos getLeftPos() {
     if (startPos.compareTo(endPos) <= 0)
       return startPos;

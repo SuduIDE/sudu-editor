@@ -106,8 +106,8 @@ public class FindUsagesDemo extends Scene1 implements MouseListener {
   }
 
   @Override
-  public boolean onMousePress(MouseEvent event, int button, boolean press, int clickCount) {
-    return findUsagesWindow.onMousePress(event.position, button, press, clickCount);
+  public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
+    return findUsagesWindow.onMouseClick(event.position, button, clickCount);
   }
 
   boolean onContextMenu(MouseEvent event) {
