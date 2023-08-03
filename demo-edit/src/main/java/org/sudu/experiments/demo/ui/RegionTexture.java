@@ -10,27 +10,34 @@ import java.util.function.ToIntFunction;
 /**
  * The `RegionTexture` class represents a region texture allocator that is used for allocating
  * regions within a texture for rendering text or other graphical elements.
- * <p>
- * It implements the `RegionTextureAllocator` interface.
  */
 public class RegionTexture implements RegionTextureAllocator {
   //   The basic implementation uses ArrayList, in the future it is desirable to replace
   //   the list of free regions with a more suitable structure, e.g. linked list, red-black tree
   private final ArrayList<V4f> freeRegions = new ArrayList<>();
   private final int textHeight;
-  private int tw = 0;
-  private int th = 0;
+  private final int textureWidth;
+  private int textureHeight = 0;
 
   /**
    * Constructs a new RegionTexture object with the specified height.
    *
-   * @param height the height of the region texture
+   * @param textHeight The text height.
    */
-  public RegionTexture(int height) {
-    if (height == 0) {
-      throw new IllegalArgumentException("Height cannot be zero.");
-    }
-    this.textHeight = height;
+  public RegionTexture(int textHeight) {
+    this.textureWidth = DEFAULT_TEXTURE_WIDTH;
+    this.textHeight = textHeight;
+  }
+
+  /**
+   * Constructs a new RegionTexture object with the specified text height and texture width.
+   *
+   * @param textHeight The text height.
+   * @param textureWidth The width of the region texture.
+   */
+  public RegionTexture(int textHeight, int textureWidth) {
+    this.textureWidth = textureWidth;
+    this.textHeight = textHeight;
   }
 
   /**
@@ -38,28 +45,28 @@ public class RegionTexture implements RegionTextureAllocator {
    *
    * @param text        The text to be rendered.
    * @param measureText A function that measures the width of the text.
-   * @param height      The height of the allocated region.
    * @return The allocated region represented by a `V4f` object.
    */
-  public V4f alloc(String text, ToIntFunction<String> measureText, int height) {
+  public V4f alloc(String text, ToIntFunction<String> measureText) {
     return alloc(measureText.applyAsInt(text));
   }
 
   /**
    * Allocates a region within the texture with the specified width.
-   * <p>
-   * The height of the allocated region is the same as the height of the last allocated region.
-   * If the height of the last allocated region is zero, returns an empty region.
    *
-   * @param width The width of the allocated region.
+   * @param width The width of the text to be allocated.
    * @return The allocated region represented by a `V4f` object.
    * @throws RuntimeException if the specified width exceeds the maximum texture size.
+   * @throws IllegalArgumentException if the text height is zero.
    */
   @Override
   public V4f alloc(int width) {
-    if (width >= MAX_TEXTURE_SIZE) {
-      throw new RuntimeException("RegionTextureAllocator: current width(" + width +
-          ") > MAX_TEXTURE_SIZE(" + MAX_TEXTURE_SIZE + ")");
+    if (width > textureWidth) {
+      throw new RuntimeException("RegionTexture: current width(" + width +
+          ") greater than the allowable value of texture width(" + textureWidth + ")");
+    }
+    if (textHeight == 0) {
+      throw new IllegalArgumentException("RegionTexture: Text height cannot be zero.");
     }
 
     V4f region = new V4f();
@@ -80,12 +87,9 @@ public class RegionTexture implements RegionTextureAllocator {
         }
       }
     }
-    if (tw + width >= MAX_TEXTURE_SIZE) {
-      tw = 0;
-      th += textHeight;
-    }
-    region.set(tw, th, width, textHeight);
-    tw += width;
+    region.set(0, textureHeight, width, textHeight);
+    freeRegions.add(new V4f(width, textureHeight, textureWidth - width, textHeight));
+    textureHeight += textHeight;
     return region;
   }
 
@@ -116,20 +120,10 @@ public class RegionTexture implements RegionTextureAllocator {
     freeRegions.add(currentLocation);
   }
 
-  /**
-   * Returns the size of the texture.
-   *
-   * @return The size of the texture represented by a `V2i` object.
-   */
   public V2i getTextureSize() {
-    return new V2i(MAX_TEXTURE_SIZE, th + textHeight);
+    return new V2i(textureWidth, textureHeight);
   }
 
-  /**
-   * Returns the list of free regions within the texture.
-   *
-   * @return The list of free regions represented by an `ArrayList` of `V4f` objects.
-   */
   public ArrayList<V4f> getFreeRegions() {
     return freeRegions;
   }

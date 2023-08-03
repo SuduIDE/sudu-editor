@@ -6,7 +6,7 @@ import org.sudu.experiments.math.V4f;
 import java.util.function.ToIntFunction;
 
 public interface RegionTextureAllocator {
-  int MAX_TEXTURE_SIZE = 2048;
+  int DEFAULT_TEXTURE_WIDTH = 2048;
 
   static ToIntFunction<String> measuring(Canvas canvas) {
     return text -> (int) (canvas.measureText(text) + 7.f / 8);
