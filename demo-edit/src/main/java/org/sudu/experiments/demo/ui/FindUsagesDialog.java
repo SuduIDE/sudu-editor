@@ -27,6 +27,8 @@ public class FindUsagesDialog {
   private int maxFileNameLen = 0;
   private int maxLineLen = 0;
   private int maxCodeContentLen = 0;
+  // TODO(Major) Remove when the scroll appears
+  private int tailContentLen = 0;
   static boolean debug = false;
 
   public boolean isEmpty() {
@@ -72,6 +74,9 @@ public class FindUsagesDialog {
     disposeTexture();
     items = FindUsagesItemBuilder.items0;
     hoverItemId = -1;
+    maxFileNameLen = 0;
+    maxLineLen = 0;
+    maxCodeContentLen = 0;
     rect.makeEmpty();
   }
 
@@ -93,9 +98,12 @@ public class FindUsagesDialog {
     RegionTexture regionTexture = new RegionTexture(textHeight);
 
     for (FindUsagesItem item : items) {
-      // TODO(Minor) Remove this crutch when the scroll appears
-      if (item.fileName.startsWith("...")) continue;
       int mFile = measureWithPad.applyAsInt(item.fileName);
+      // TODO(Major) Remove this crutch when the scroll appears
+      if (item.fileName.startsWith("...")) {
+        tailContentLen = mFile;
+        continue;
+      }
       int mLines = measureWithPad.applyAsInt(item.lineNumber);
       int mCodeContent = measureWithPad.applyAsInt(item.codeContent);
       maxFileNameLen = Math.max(maxFileNameLen, mFile);
@@ -106,6 +114,8 @@ public class FindUsagesDialog {
     for (FindUsagesItem item : items) {
       item.tFiles.textureRegion.set(regionTexture.alloc(item.fileName, measureWithPad));
       setCoords(item.tFiles, 0);
+      // TODO(Major) Remove this crutch when the scroll appears
+      if (item.fileName.startsWith("...")) continue;
       item.tLines.textureRegion.set(regionTexture.alloc(item.lineNumber, measureWithPad));
       setCoords(item.tLines, (maxFileNameLen - item.tFiles.size.x));
       item.tContent.textureRegion.set(regionTexture.alloc(item.codeContent, measureWithPad));
@@ -115,11 +125,14 @@ public class FindUsagesDialog {
       maxCodeContentLen = Math.max(maxCodeContentLen, item.tContent.size.x);
     }
     textureSize.set(regionTexture.getTextureSize());
-    rect.size.x = maxW + border * 2;
+    // TODO(Major) Remove `Math.max(..., tailContentLen)` when the scroll appears
+    rect.size.x = Math.max(maxW, tailContentLen) + border * 2;
     rect.size.y = (textHeight + border) * items.length + border;
   }
 
   private void setRectCoords(FindUsagesItem item) {
+    // TODO(Major) Remove this crutch when the scroll appears
+    if (item.fileName.startsWith("...")) return;
     item.rectFiles.set(
         item.tFiles.pos.x + item.tFiles.size.x,
         item.tFiles.pos.y,
@@ -169,13 +182,16 @@ public class FindUsagesDialog {
       tLines.pos.y = y + localY;
       tContent.pos.x = x + localX + (maxFileNameLen - tFiles.size.x) + (maxLineLen - tLines.size.x);
       tContent.pos.y = y + localY;
-      setRectCoords(item);
-      item.rectFiles.pos.x = x + localX + tFiles.size.x;
-      item.rectFiles.pos.y = y + localY;
-      item.rectLines.pos.x = x + localX + tLines.pos.x + tLines.size.x;
-      item.rectLines.pos.y = y + localY;
-      item.rectContent.pos.x = x + localX + tContent.pos.x + tContent.size.x;
-      item.rectContent.pos.y = y + localY;
+      // TODO(Major) Remove this crutch when the scroll appears
+      if (!item.fileName.startsWith("...")) {
+        setRectCoords(item);
+        item.rectFiles.pos.x = x + localX + tFiles.size.x;
+        item.rectFiles.pos.y = y + localY;
+        item.rectLines.pos.x = x + localX + tLines.pos.x + tLines.size.x;
+        item.rectLines.pos.y = y + localY;
+        item.rectContent.pos.x = x + localX + tContent.pos.x + tContent.size.x;
+        item.rectContent.pos.y = y + localY;
+      }
       if (tFiles.size.y == 0 || tLines.size.y == 0 || tContent.size.y == 0) tRectWarning();
       localY += tFiles.size.y + border;
     }
