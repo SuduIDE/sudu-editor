@@ -44,15 +44,10 @@ public class RegionTextureAllocatorTest {
   public void useFreeRegion() {
     int width = 100, height = 100;
     RegionTexture rt = new RegionTexture(height);
-    ArrayList<V4f> regions = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
-      regions.add(rt.alloc(width));
-    }
-    V4f element = regions.get(5);
-    V4f oldV4f = new V4f(element);
-    rt.free(element);
-    assertEquals(rt.getFreeRegions().get(0), element);
-    assertTrue(oldV4f.equals(rt.alloc(width)));
+    rt.free(rt.alloc(width));
+    assertEquals(1, rt.getFreeRegions().size());
+    rt.alloc(RegionTextureAllocator.DEFAULT_TEXTURE_WIDTH);
+    assertEquals(0, rt.getFreeRegions().size());
   }
 
   @Test

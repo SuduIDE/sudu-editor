@@ -7,7 +7,10 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseListener;
-import org.sudu.experiments.math.*;
+import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.RngHelper;
+import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.ArrayList;
 
@@ -16,6 +19,7 @@ public class RegionTextureAllocatorDemo extends Scene1 implements MouseListener 
   static final int MIN_TEXT_LENGTH = 1;
   static final int MAX_TEXT_LENGTH = 20;
   static final double COVERAGE_PERCENT = 0.7;
+  static final int DEMO_MAX_TEXTURE_HEIGHT = 1080;
 
   private final RegionTexture regionTexture;
   private final ArrayList<TextRect> tItemsList = new ArrayList<>();
@@ -163,7 +167,10 @@ public class RegionTextureAllocatorDemo extends Scene1 implements MouseListener 
   }
 
   private void balanceItems() {
-    int textureArea = Math.min(textureSize.x * textureSize.y, RegionTextureAllocator.DEFAULT_TEXTURE_WIDTH * 1080);
+    int textureArea = Math.min(
+        textureSize.x * textureSize.y,
+        RegionTextureAllocator.DEFAULT_TEXTURE_WIDTH * DEMO_MAX_TEXTURE_HEIGHT
+    );
     double coveragePercent = (double) usedCoverage / textureArea;
     if (coveragePercent > COVERAGE_PERCENT) {
       removeItems(r.nextInt(5));
@@ -175,5 +182,4 @@ public class RegionTextureAllocatorDemo extends Scene1 implements MouseListener 
   private void openWindow(V2i position) {
     createItems(ELEMENTS_COUNT);
   }
-
 }

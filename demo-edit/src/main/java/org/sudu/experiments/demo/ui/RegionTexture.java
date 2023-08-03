@@ -16,9 +16,8 @@ public class RegionTexture implements RegionTextureAllocator {
   //   the list of free regions with a more suitable structure, e.g. linked list, red-black tree
   private final ArrayList<V4f> freeRegions = new ArrayList<>();
   private final int textHeight;
-  private int tw = 0;
+  private final int textureWidth;
   private int textureHeight = 0;
-  private int textureWidth = 0;
 
   /**
    * Constructs a new RegionTexture object with the specified height.
@@ -62,8 +61,8 @@ public class RegionTexture implements RegionTextureAllocator {
    */
   @Override
   public V4f alloc(int width) {
-    if (width >= textureWidth) {
-      throw new RuntimeException("RegionTextureAllocator: current width(" + width +
+    if (width > textureWidth) {
+      throw new RuntimeException("RegionTexture: current width(" + width +
           ") greater than the allowable value of texture width(" + textureWidth + ")");
     }
     if (textHeight == 0) {
@@ -88,12 +87,9 @@ public class RegionTexture implements RegionTextureAllocator {
         }
       }
     }
-    if (tw + width >= textureWidth) {
-      tw = 0;
-      textureHeight += textHeight;
-    }
-    region.set(tw, textureHeight, width, textHeight);
-    tw += width;
+    region.set(0, textureHeight, width, textHeight);
+    freeRegions.add(new V4f(width, textureHeight, textureWidth - width, textHeight));
+    textureHeight += textHeight;
     return region;
   }
 
@@ -125,7 +121,7 @@ public class RegionTexture implements RegionTextureAllocator {
   }
 
   public V2i getTextureSize() {
-    return new V2i(textureWidth, textureHeight + textHeight);
+    return new V2i(textureWidth, textureHeight);
   }
 
   public ArrayList<V4f> getFreeRegions() {
