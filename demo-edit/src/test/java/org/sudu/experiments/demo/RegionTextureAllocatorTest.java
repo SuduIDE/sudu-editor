@@ -111,20 +111,21 @@ public class RegionTextureAllocatorTest {
     for (int i = 0; i < count; i++) {
       rt.alloc(width);
     }
-    int layers = width * count / RegionTextureAllocator.MAX_TEXTURE_SIZE + 1;
-    assertEquals(new V2i(RegionTextureAllocator.MAX_TEXTURE_SIZE, height * layers), rt.getTextureSize());
+    int layers = width * count / RegionTextureAllocator.DEFAULT_TEXTURE_WIDTH + 1;
+    assertEquals(new V2i(RegionTextureAllocator.DEFAULT_TEXTURE_WIDTH, height * layers), rt.getTextureSize());
   }
 
   @Test
   public void exceedingWidth() {
-    int width = RegionTextureAllocator.MAX_TEXTURE_SIZE + 1, height = 100;
+    int width = RegionTextureAllocator.DEFAULT_TEXTURE_WIDTH + 1, height = 100;
     RegionTexture rt = new RegionTexture(height);
     assertThrows(RuntimeException.class, () -> rt.alloc(width));
   }
 
   @Test
   public void zeroTextHeight() {
-    int height = 0;
-    assertThrows(IllegalArgumentException.class, () -> new RegionTexture(height));
+    int width = 100, height = 0;
+    RegionTexture rt = new RegionTexture(height);
+    assertThrows(IllegalArgumentException.class, () -> rt.alloc(width));
   }
 }

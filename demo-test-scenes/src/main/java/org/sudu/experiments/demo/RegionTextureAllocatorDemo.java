@@ -17,16 +17,15 @@ public class RegionTextureAllocatorDemo extends Scene1 implements MouseListener 
   static final int MAX_TEXT_LENGTH = 20;
   static final double COVERAGE_PERCENT = 0.7;
 
-
   private final RegionTexture regionTexture;
   private final ArrayList<TextRect> tItemsList = new ArrayList<>();
   private final ArrayList<String> itemsName = new ArrayList<>();
   private final FontDesk font;
   private final Color textureBgColor = new Color("#e3c8ab");
+  XorShiftRandom r = new XorShiftRandom();
   private GL.Texture texture;
   private V2i textureSize;
   private boolean isTesting;
-  XorShiftRandom r = new XorShiftRandom();
   private int usedCoverage = 0;
 
   public RegionTextureAllocatorDemo(SceneApi api) {
@@ -71,6 +70,7 @@ public class RegionTextureAllocatorDemo extends Scene1 implements MouseListener 
     }
   }
 
+  @SuppressWarnings("SameParameterValue")
   private String getRandomText(int minLength, int maxLength) {
     return RngHelper.rngString(r, minLength + (int) (Math.random() * (maxLength - minLength)));
   }
@@ -78,7 +78,7 @@ public class RegionTextureAllocatorDemo extends Scene1 implements MouseListener 
   private void addItem(Canvas mCanvas) {
     String text = getRandomText(MIN_TEXT_LENGTH, MAX_TEXT_LENGTH);
     TextRect textRect = new TextRect();
-    textRect.textureRegion.set(regionTexture.alloc(text, RegionTextureAllocator.measuring(mCanvas), font.lineHeight()));
+    textRect.textureRegion.set(regionTexture.alloc(text, RegionTextureAllocator.measuring(mCanvas)));
     Color.Cvt.fromHSV(Math.random(), 1, 1, textRect.bgColor).setW(0.5f);
     textRect.pos.set((int) textRect.textureRegion.x, (int) textRect.textureRegion.y);
     textRect.size.set((int) textRect.textureRegion.z, (int) textRect.textureRegion.w);
@@ -163,7 +163,7 @@ public class RegionTextureAllocatorDemo extends Scene1 implements MouseListener 
   }
 
   private void balanceItems() {
-    int textureArea = Math.min(textureSize.x * textureSize.y, RegionTextureAllocator.MAX_TEXTURE_SIZE * 1080);
+    int textureArea = Math.min(textureSize.x * textureSize.y, RegionTextureAllocator.DEFAULT_TEXTURE_WIDTH * 1080);
     double coveragePercent = (double) usedCoverage / textureArea;
     if (coveragePercent > COVERAGE_PERCENT) {
       removeItems(r.nextInt(5));
