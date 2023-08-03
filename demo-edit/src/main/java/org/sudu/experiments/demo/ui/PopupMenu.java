@@ -5,6 +5,7 @@ import org.sudu.experiments.demo.DemoRect;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
+import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.V2i;
 
 import java.util.ArrayList;
@@ -99,25 +100,38 @@ public class PopupMenu implements DprChangeListener, Focusable {
     }
   }
 
-  public boolean onMouseMove(V2i mouse) {
+  public boolean onMouseMove(MouseEvent e) {
     boolean r = false;
     for (int i = toolbars.size() - 1; i >= 0; --i) {
-      r = toolbars.get(i).onMouseMove(mouse, context.windowCursor);
+      r = toolbars.get(i).onMouseMove(e.position, context.windowCursor);
       if (r) break;
     }
     return r;
   }
 
-  public boolean onMouseClick(V2i position, int button, int clickCount) {
+  public boolean onMouseClick(MouseEvent e, int button, int clickCount) {
     boolean r = false;
     for (int i = toolbars.size() - 1; i >= 0; --i) {
-      r = toolbars.get(i).onMouseClick(position, button, clickCount);
+      r = toolbars.get(i).onMouseClick(e.position, button, clickCount);
       if (r) break;
     }
     return r;
   }
 
-    // todo: add keyboard up-down-left-right navigation
+  public boolean onMouseDown(MouseEvent e, int button) {
+    boolean r = false;
+    for (int i = toolbars.size() - 1; i >= 0; --i) {
+      r = toolbars.get(i).onMouseDown(e.position, button);
+      if (r) break;
+    }
+    return r;
+  }
+
+  public boolean onMouseUp(MouseEvent e, int button) {
+    return isVisible();
+  }
+
+  // todo: add keyboard up-down-left-right navigation
   public boolean onKeyPress(KeyEvent event) {
     if (!isVisible()) return false;
     return switch (event.keyCode) {

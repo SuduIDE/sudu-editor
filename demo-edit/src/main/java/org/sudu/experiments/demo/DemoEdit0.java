@@ -35,7 +35,8 @@ public class DemoEdit0 extends Scene {
     editor = new EditorComponent(uiContext, ui);
     uiContext.initFocus(editor);
 
-    api.input.onMouse.add(new MouseHandler());
+    api.input.onMouse.add(ui);
+    api.input.onMouse.add(editor);
 
     api.input.onKeyPress.add(KeyEvent::handleSpecialKey);
     api.input.onKeyPress.add(this::onKeyPress);
@@ -119,29 +120,5 @@ public class DemoEdit0 extends Scene {
       ui.showContextMenu(event, editor, DemoEdit0.this);
     }
     return true;
-  }
-
-  class MouseHandler implements MouseListener {
-
-    @Override
-    public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-      return ui.onMouseClick(event, button, clickCount)
-          || editor.onMouseClick(event, button, clickCount);
-    }
-
-    @Override
-    public boolean onMouseUp(MouseEvent event, int button) {
-      return editor.onMouseUp(event, button);
-    }
-
-    @Override
-    public boolean onMouseDown(MouseEvent event, int button) {
-      return editor.onMouseDown(event, button);
-    }
-
-    @Override
-    public boolean onMouseMove(MouseEvent event) {
-      return ui.onMouseMove(event) || editor.onMouseMove(event);
-    }
   }
 }

@@ -250,11 +250,17 @@ public class Toolbar {
     return inside && setCursor.setDefault();
   }
 
-  public boolean onMouseClick(V2i pos, int button, int clickCount) {
-    if (!rect.isInside(pos)) {
-      if (!rect.isEmpty() && onClickOutside != null) onClickOutside.run();
-      return false;
+  public boolean onMouseDown(V2i pos, int button) {
+    boolean inside = rect.isInside(pos);
+    if (!inside) {
+      if (!rect.isEmpty() && onClickOutside != null) {
+        onClickOutside.run();
+      }
     }
+    return inside;
+  }
+
+  public boolean onMouseClick(V2i pos, int button, int clickCount) {
     if (clickCount == 1) {
       int index = find(pos);
       if (index >= 0) {

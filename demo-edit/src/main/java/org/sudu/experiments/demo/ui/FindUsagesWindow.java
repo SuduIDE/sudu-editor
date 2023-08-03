@@ -5,6 +5,7 @@ import org.sudu.experiments.demo.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
+import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.common.Pos;
 
@@ -69,6 +70,10 @@ public class FindUsagesWindow implements DprChangeListener, Focusable {
 
   public void paint() {
     view.render(context);
+  }
+
+  public boolean onMouse(MouseEvent event, int button) {
+    return isVisible();
   }
 
   public boolean onMouseMove(V2i mouse) {

@@ -4,6 +4,7 @@ import org.sudu.experiments.Debug;
 import org.sudu.experiments.Window;
 import org.sudu.experiments.demo.ui.*;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.common.Pos;
@@ -14,7 +15,7 @@ import java.util.function.Supplier;
 
 import static org.sudu.experiments.demo.ui.ToolbarItemBuilder.ti;
 
-class EditorUi {
+class EditorUi implements MouseListener {
   final UiContext uiContext;
 
   FindUsagesWindow usagesMenu;
@@ -46,14 +47,28 @@ class EditorUi {
     popupMenu.paint();
   }
 
-  boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-    return usagesMenu.onMouseClick(event.position, button, clickCount)
-        || popupMenu.onMouseClick(event.position, button, clickCount);
+  @Override
+  public boolean onMouseMove(MouseEvent event) {
+    return usagesMenu.onMouseMove(event.position)
+        || popupMenu.onMouseMove(event);
   }
 
-  boolean onMouseMove(MouseEvent event) {
-    return usagesMenu.onMouseMove(event.position)
-        || popupMenu.onMouseMove(event.position);
+  @Override
+  public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
+    return usagesMenu.onMouseClick(event.position, button, clickCount)
+        || popupMenu.onMouseClick(event, button, clickCount);
+  }
+
+  @Override
+  public boolean onMouseDown(MouseEvent event, int button) {
+    return usagesMenu.onMouse(event, button)
+        || popupMenu.onMouseDown(event, button);
+  }
+
+  @Override
+  public boolean onMouseUp(MouseEvent event, int button) {
+    return usagesMenu.onMouse(event, button)
+        || popupMenu.onMouseUp(event, button);
   }
 
   void showUsagesWindow(V2i position, List<Pos> usagesList, EditorComponent editor) {

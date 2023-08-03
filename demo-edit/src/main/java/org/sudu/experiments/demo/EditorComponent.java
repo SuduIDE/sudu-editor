@@ -11,6 +11,7 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.*;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.worker.ArrayView;
@@ -23,9 +24,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 
-import static org.sudu.experiments.input.MouseListener.MOUSE_BUTTON_LEFT;
-
-public class EditorComponent implements Focusable {
+public class EditorComponent implements Focusable, MouseListener {
   final UiContext context;
   final WglGraphics g;
   final EditorUi ui;
