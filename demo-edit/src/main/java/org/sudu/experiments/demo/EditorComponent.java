@@ -1181,14 +1181,12 @@ public class EditorComponent implements Focusable {
   }
 
   public boolean onMouseUp(MouseEvent event, int button) {
-    Debug.consoleInfo("up");
     selection.isSelectionStarted = false;
     if (dragLock != null) dragLock = null;
     return true;
   }
 
   public boolean onMouseDown(MouseEvent event, int button) {
-    Debug.consoleInfo("down");
     if (button == MOUSE_BUTTON_LEFT) {
       dragLock = vScroll.onMouseClick(event.position, vScrollHandler, true);
       if (dragLock != null) return true;
@@ -1202,7 +1200,6 @@ public class EditorComponent implements Focusable {
   }
 
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-    Debug.consoleInfo("click " + clickCount);
     if (button == MOUSE_BUTTON_LEFT && clickCount == 3) {
       onTripleClickText(event.position);
       navStack.pop();
