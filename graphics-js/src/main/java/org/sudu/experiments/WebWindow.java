@@ -116,7 +116,7 @@ public class WebWindow implements org.sudu.experiments.Window {
   }
 
   private void init(GLApi.Context gl, Function<SceneApi, Scene> sf) {
-    eventHandler = new JsInput(mainCanvas, repaint, () -> timeNow());
+    eventHandler = new JsInput(mainCanvas, repaint);
     g = new WebGraphics(gl, repaint);
     observer.observePixelsOrDefault(mainCanvas);
 

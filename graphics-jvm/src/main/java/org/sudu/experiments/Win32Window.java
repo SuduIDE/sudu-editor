@@ -2,7 +2,6 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.angle.AngleEGL;
 import org.sudu.experiments.angle.AngleWindow;
-import org.sudu.experiments.input.ClickCounter;
 import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
@@ -57,9 +56,7 @@ public class Win32Window implements WindowPeer, Window {
     eventQueue = eq;
     config = configName;
     time = t;
-    ClickCounter c = new ClickCounter(() -> time.now());
-    inputListeners.onMouse.add(c);
-    inputState = new Win32InputState(c);
+    inputState = new Win32InputState(t);
     bgWorker = worker;
     workerExecutor = workerJobs;
   }

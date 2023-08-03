@@ -14,10 +14,10 @@ class Win32InputState {
 
   boolean shift, ctrl, alt, meta;
   boolean rightMouseDown;
-  ClickCounter clickCounter;
+  Win32ClickCounter clickCounter;
 
-  public Win32InputState(ClickCounter c) {
-    this.clickCounter = c;
+  public Win32InputState(Win32Time timer) {
+    this.clickCounter = new Win32ClickCounter(timer);
   }
 
   boolean onKey(long hWnd, int msg, long wParam, long lParam, InputListeners listeners) {
@@ -75,10 +75,12 @@ class Win32InputState {
     switch (state) {
       case 0 -> {
         Win32.SetCapture(hWnd);
+        clickCounter.onMouseDown(event, mapMouseButton(btn));
         listeners.sendMouseDown(event, mapMouseButton(btn));
       }
       case 1 -> {
         Win32.ReleaseCapture();
+        clickCounter.onMouseUp(event, mapMouseButton(btn));
         listeners.sendMouseUp(event, mapMouseButton(btn));
       }
     }

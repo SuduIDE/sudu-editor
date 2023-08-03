@@ -2,8 +2,10 @@ package org.sudu.experiments.js;
 
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.Disposable;
+import org.sudu.experiments.input.InputListeners;
+import org.sudu.experiments.input.KeyEvent;
+import org.sudu.experiments.input.MimeTypes;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.teavm.jso.JSBody;
@@ -19,22 +21,18 @@ import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.xml.Element;
 
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class JsInput {
   static final boolean debug = 1 < 0;
 
   public final InputListeners listeners;
   private final JsHelper.HTMLElement element;
-  private final ClickCounter clickCounter;
   private Disposable disposer;
   private V2i clientRect = null;
 
-  public JsInput(HTMLElement element, Runnable repaint, Supplier<Double> timer) {
+  public JsInput(HTMLElement element, Runnable repaint) {
     this.element = element.cast();
     this.listeners = new InputListeners(repaint);
-    this.clickCounter = new ClickCounter(timer);
-    this.listeners.onMouse.add(clickCounter);
     Window window = Window.current();
     this.disposer = Disposable.composite(
         addListener(element, "keydown", this::onKeyDown),
@@ -44,6 +42,7 @@ public class JsInput {
         addListener(element, "mouseup", this::onMouseUp),
         // todo add onMouseWheelOnWindow
         addListener(element, "wheel", this::onMouseWheelOnElement),
+        addListener(element, "click", this::onClick),
         addListener(element, "contextmenu", this::onContextMenu),
         addListener(element, "focus", this::onFocus),
         addListener(element, "blur", this::onBlur),
@@ -117,9 +116,22 @@ public class JsInput {
     MouseEvent mouseEvent = mouseEvent(event);
     if (listeners.sendMouseUp(mouseEvent, event.getButton())) {
       stopEvent(event);
-      if (clickCounter.clicks() > 0) {
-        listeners.sendMouseClick(mouseEvent, event.getButton(), clickCounter.clicks());
-      }
+    }
+  }
+
+  private interface JsMouseEvent extends org.teavm.jso.dom.events.MouseEvent {
+    @JSProperty
+    int getDetail();
+  }
+
+  // Currently both onClick and onMouseDown will fire on mouse click
+  private void onClick(org.teavm.jso.dom.events.MouseEvent event) {
+    debug("onClick");
+    if (clientRect == null) return;
+    JsMouseEvent e = event.cast();
+    MouseEvent mouseEvent = mouseEvent(e);
+    if (listeners.sendMouseClick(mouseEvent, event.getButton(), e.getDetail())) {
+      stopEvent(event);
     }
   }
 
