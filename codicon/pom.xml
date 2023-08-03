@@ -23,8 +23,8 @@
     <profile>
       <id>downloadFont</id>
       <properties>
-        <version>0.0.33</version>
-        <cdnPath>https://cdn.jsdelivr.net/npm/@vscode/codicons@${version}/dist/</cdnPath>
+        <codicon.version>0.0.33</codicon.version>
+        <cdnPath>https://cdn.jsdelivr.net/npm/@vscode/codicons@${codicon.version}/dist/</cdnPath>
         <dest>${project.basedir}/src/main/resources/fonts</dest>
         <f1>${cdnPath}codicon.ttf</f1>
         <f2>${cdnPath}codicon.css</f2>

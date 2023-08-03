@@ -205,18 +205,25 @@ public class CodeLine {
       pos -= el;
     }
     insertAt(i, pos, value);
-    totalStrLength += value.length();
-    invalidateCache();
   }
 
   private void insertAt(int ind, int pos, String value) {
     if (elements.length == 0) {
       elements = new CodeElement[] {new CodeElement(value)};
+    } else if (ind == 0 && pos == 0) {
+      insertToLineStart(value);
     } else {
       elements[ind] = elements[ind].insertAt(pos, value);
     }
     totalStrLength += value.length();
     invalidateCache();
+  }
+
+  private void insertToLineStart(String value) {
+    CodeElement[] newElements = new CodeElement[elements.length + 1];
+    System.arraycopy(elements, 0, newElements, 1, elements.length);
+    newElements[0] = new CodeElement(value);
+    elements = newElements;
   }
 
   public int getBlankStartLength() {

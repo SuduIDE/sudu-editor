@@ -25,6 +25,9 @@ class EditorUi {
     uiContext = context;
     usagesMenu = new FindUsagesWindow(uiContext);
     popupMenu = new PopupMenu(uiContext);
+    popupMenu.setFont(new UiFont(
+        EditorConst.POPUP_MENU_FONT_NAME,
+        EditorConst.POPUP_MENU_FONT_SIZE));
   }
 
   void setTheme(EditorColorScheme theme) {

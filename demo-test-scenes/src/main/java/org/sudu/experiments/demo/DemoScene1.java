@@ -79,11 +79,11 @@ public class DemoScene1 extends Scene {
     mouse.bgColor.set(bgColor);
   }
 
-  void layout(V2i clientRect, double dpr) {
+  void layout(V2i clientRect, float dpr) {
     System.out.println("clientRect = " + clientRect);
     System.out.println("dpr = " + dpr);
-    int dp30 = Numbers.iRnd(dpr * 30);
-    int dp10 = Numbers.iRnd(dpr * 10);
+    int dp30 = DprUtil.toPx(30, dpr);
+    int dp10 = DprUtil.toPx(10, dpr);
     for (int i = 0; i < cursors.length; i++) {
       int x = dp10 * (1 + i) + dp30 * i;
       cursors[i] = new DemoRect(x, dp30, dp30, dp30);

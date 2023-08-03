@@ -34,11 +34,6 @@ public class ManyTexturesLineNumbersScene extends Scene {
     scrollBar = new ScrollBar();
   }
 
-  @Override
-  public boolean update(double timestamp) {
-    return false;
-  }
-
   LineNumbersColors colors = IdeaCodeColors.lineNumberColors();
 
   @Override

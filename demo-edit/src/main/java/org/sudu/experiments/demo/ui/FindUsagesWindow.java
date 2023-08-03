@@ -123,8 +123,11 @@ public class FindUsagesWindow implements DprChangeListener, Focusable {
 
         fileName = fileName(defs[i].uri);
       }
+      // TODO: Move to FindUsagesDialog, implement formatter
       String codeContentFormatted = codeContent.length() > 43
               ? codeContent.substring(0, 40) + "..." : codeContent;
+      String fileNameFormatted = fileName.length() > 43
+              ? fileName.substring(0, 40) + "..." : fileName;
       String lineNumber = String.valueOf(intLineNumber + 1);
 
       if (++cnt > EditorConst.MAX_SHOW_USAGES_NUMBER) {
@@ -151,7 +154,7 @@ public class FindUsagesWindow implements DprChangeListener, Focusable {
           ? () -> edit.gotoUsage(pos)
           : () -> edit.gotoDefinition(def));
       tbb.addItem(
-          fileName,
+          fileNameFormatted,
           lineNumber,
           codeContentFormatted,
           theme.findUsagesColors,

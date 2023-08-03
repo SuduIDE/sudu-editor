@@ -2,6 +2,7 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.SetCursor;
+import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.V2i;
 
@@ -22,6 +23,8 @@ public class UiContext {
     this.graphics = api.graphics;
     this.window = api.window;
     windowCursor = SetCursor.wrap(api.window);
+    api.input.onFocus.add(this::sendFocusGain);
+    api.input.onBlur.add(this::sendFocusLost);
   }
 
   public void onResize(V2i newSize, float newDpr) {
@@ -74,7 +77,7 @@ public class UiContext {
     return f == focused;
   }
 
-  public Focusable focusable() {
+  public Focusable focused() {
     return focused;
   }
 
@@ -87,4 +90,7 @@ public class UiContext {
     }
   }
 
+  public FontDesk fontDesk(UiFont font) {
+    return graphics.fontDesk(font.familyName, font.size, dpr);
+  }
 }

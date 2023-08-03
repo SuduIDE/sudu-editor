@@ -8,6 +8,7 @@ import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.Pos;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class Document {
   public static final char newLine = '\n';
@@ -16,7 +17,7 @@ public class Document {
   public IntervalTree tree;
   public final Map<Pos, Pos> usageToDef = new HashMap<>();
   public final Map<Pos, List<Pos>> defToUsages = new HashMap<>();
-  List<Diff> diffs = new ArrayList<>();
+  List<Diff[]> diffs = new ArrayList<>();
 
   int currentVersion;
   int lastParsedVersion;
@@ -362,7 +363,45 @@ public class Document {
   public void makeDiff(int line, int from, boolean isDelete, String change) {
     currentVersion++;
 
-    diffs.add(new Diff(line, from, isDelete, change));
+    diffs.add(ArrayOp.array(new Diff(line, from, isDelete, change)));
+    makeDiffOp(line, from, isDelete, change);
+  }
+
+  public void makeDiffWithCaretReturn(
+      int line,
+      int from,
+      boolean isDelete,
+      String change,
+      Pos caretPos
+  ) {
+    currentVersion++;
+
+    diffs.add(ArrayOp.array(new Diff(line, from, isDelete, change, caretPos.line, caretPos.pos)));
+    makeDiffOp(line, from, isDelete, change);
+  }
+
+  public void makeComplexDiff(
+      int[] lines,
+      int[] from,
+      boolean[] areDeletes,
+      String[] changes,
+      Pos caretPos,
+      BiConsumer<Integer, String> editorAction
+  ) {
+    currentVersion++;
+
+    Diff[] temp = new Diff[lines.length];
+    for (int i = 0; i < lines.length; i++) {
+      temp[i] = new Diff(lines[i], from[i], areDeletes[i], changes[i], caretPos.line, caretPos.pos);
+    }
+    diffs.add(temp);
+    for (int i = 0; i < lines.length; i++) {
+      makeDiffOp(lines[i], from[i], areDeletes[i], changes[i]);
+      editorAction.accept(lines[i], changes[i]);
+    }
+  }
+
+  void makeDiffOp(int line, int from, boolean isDelete, String change) {
     int posInDoc = getLineStartInd(line) + from;
     if (isDelete) tree.makeDeleteDiff(posInDoc, change.length());
     else tree.makeInsertDiff(posInDoc, change.length());
@@ -372,17 +411,21 @@ public class Document {
     currentVersion++;
 
     if (diffs.size() == 0) return null;
-    Diff diff = diffs.remove(diffs.size() - 1);
+    Diff[] complexDiff = diffs.remove(diffs.size() - 1);
+    V2i res = undoSingleDiff(complexDiff[0]);
+    for (int i = 1; i < complexDiff.length; i++) {
+      undoSingleDiff(complexDiff[i]);
+    }
+
+    return res;
+  }
+
+  private V2i undoSingleDiff(Diff diff) {
     String[] lines = diff.change.split("\n", -1);
     if (diff.isDelete) {
       insertLinesOp(diff.line, diff.pos, lines);
       tree.makeInsertDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
 
-      if (lines.length == 1) {
-        return new V2i(diff.line, diff.pos + lines[0].length());
-      } else {
-        return new V2i(diff.line + lines.length - 1, lines[lines.length - 1].length());
-      }
     } else {
       Selection selection = new Selection();
       selection.startPos.set(diff.line, diff.pos);
@@ -396,8 +439,8 @@ public class Document {
       deleteSelectedOp(selection);
       tree.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
 
-      return new V2i(diff.line, diff.pos);
     }
+    return diff.caretReturn;
   }
 
   public void setLastDiffTimestamp(double timestamp) {

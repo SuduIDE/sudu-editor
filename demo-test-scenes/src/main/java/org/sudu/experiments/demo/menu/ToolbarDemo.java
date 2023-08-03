@@ -1,43 +1,36 @@
 package org.sudu.experiments.demo.menu;
 
-import org.sudu.experiments.Scene0;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.Colors;
+import org.sudu.experiments.demo.Scene1;
+import org.sudu.experiments.demo.TestHelper;
 import org.sudu.experiments.demo.ui.*;
-import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.*;
 
 import java.util.function.Supplier;
 
-public class ToolbarDemo extends Scene0 implements MouseListener, DprChangeListener {
+public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListener {
 
-  private final FontDesk font;
+  final TestHelper.Cross c = new TestHelper.Cross();
 
   private final Toolbar tbH = new Toolbar();
   private final Toolbar tbV = new Toolbar();
-  private final V2i hLine = new V2i();
-  private final V2i vLine = new V2i();
 
-  private final UiContext uiContext;
   private final PopupMenu popupMenu;
 
   public ToolbarDemo(SceneApi api) {
     super(api);
-    uiContext = new UiContext(api);
     popupMenu = new PopupMenu(uiContext);
     uiContext.dprListeners.add(this);
 
     api.input.onKeyPress.add(this::onKeyPress);
-    api.input.onKeyPress.add(uiContext::onKeyPress);
     api.input.onMouse.add(this);
     api.input.onContextMenu.add(this::onContextMenu);
 
     tbV.setLayoutVertical();
-    font = api.graphics.fontDesk("Consolas", 25);
-
-    popupMenu.setFont(font);
+    popupMenu.setFont(new UiFont("Consolas", 25));
     clearColor.set(new Color(43));
 
     setToolbarStyle(tbH);
@@ -59,7 +52,6 @@ public class ToolbarDemo extends Scene0 implements MouseListener, DprChangeListe
   }
 
   private void setToolbarStyle(Toolbar tb) {
-    tb.setFont(font);
     tb.setTheme(DialogItemColors.darkColorScheme());
   }
 
@@ -110,7 +102,6 @@ public class ToolbarDemo extends Scene0 implements MouseListener, DprChangeListe
 
   @Override
   public void dispose() {
-    super.dispose();
     tbH.dispose();
     tbV.dispose();
     popupMenu.dispose();
@@ -118,11 +109,7 @@ public class ToolbarDemo extends Scene0 implements MouseListener, DprChangeListe
 
   @Override
   public void onResize(V2i newSize, float dpr) {
-    uiContext.onResize(newSize, dpr);
-    size.set(newSize);
-
-    hLine.set(newSize.x, Numbers.iRnd(dpr) * 2);
-    vLine.set(Numbers.iRnd(dpr) * 2, newSize.y);
+    super.onResize(newSize, dpr);
 
     V2i tbhSize = tbH.size();
     V2i tbvSize = tbV.size();
@@ -135,10 +122,7 @@ public class ToolbarDemo extends Scene0 implements MouseListener, DprChangeListe
     super.paint();
     WglGraphics graphics = api.graphics;
     graphics.enableBlend(true);
-    V4f crossColors = Colors.scrollBarBody1;
-    graphics.drawRect(0, size.y / 2 - hLine.y / 2, hLine, crossColors);
-    graphics.drawRect(size.x / 2 - vLine.x / 2, 0, vLine, crossColors);
-    graphics.enableBlend(true);
+    c.draw(uiContext);
     tbH.render(uiContext);
     tbV.render(uiContext);
     popupMenu.paint();
