@@ -1,8 +1,6 @@
-package org.sudu.experiments.parser.java.model;
+package org.sudu.experiments.parser.common;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.sudu.experiments.parser.common.Decl;
-import org.sudu.experiments.parser.common.Pos;
 
 import java.util.Objects;
 

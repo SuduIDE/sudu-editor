@@ -247,6 +247,105 @@ public class WalkerTest {
     Assertions.assertTrue(checkUsages(usageToDefinition, classFunUsages, classFun.position));
   }
 
+  @Test
+  public void testLocalVarsResolve() {
+    String source = readFile("java/TestLocalVarsResolve.java");
+    JavaFullParser parser = new JavaFullParser();
+    parser.parse(source);
+    JavaClass javaClass = parser.getJavaClass().nestedClasses.get(0);
+
+    var usageToDefinition = parser.usageToDefinition;
+
+    JavaField field = javaClass.getField("field");
+    JavaField a = javaClass.getField("a");
+    JavaMethod foo = javaClass.getMethod("foo", List.of("int"));
+    JavaMethod bar = javaClass.getMethod("bar", List.of("int"));
+
+    var fieldUsages = new HashSet<Pos>(Set.of(
+    ));
+
+    var aUsages = new HashSet<>(Set.of(
+        new Pos(12, 8)
+    ));
+
+    var fieldArgUsages = new HashSet<>(Set.of(
+        new Pos(13, 12),
+        new Pos(14, 8)
+    ));
+
+    var aVarUsages = new HashSet<>(Set.of(
+        new Pos(15, 8),
+        new Pos(16, 24),
+        new Pos(30, 17),
+        new Pos(34, 20),
+        new Pos(38, 20)
+    ));
+
+    var iVarUsages = new HashSet<>(Set.of(
+        new Pos(16, 20),
+        new Pos(16, 27),
+        new Pos(16, 36)
+    ));
+
+    var bVarUsages = new HashSet<>(Set.of(
+        new Pos(17, 40)
+    ));
+
+    var scVarUsages = new HashSet<>(Set.of(
+        new Pos(20, 10),
+        new Pos(23, 6)
+    ));
+
+    var scannerVarUsages = new HashSet<>(Set.of(
+        new Pos(21, 8)
+    ));
+
+    var eVarUsages = new HashSet<>(Set.of(
+        new Pos(25, 6)
+    ));
+
+    var cVarUsages = new HashSet<>(Set.of(
+        new Pos(28, 44)
+    ));
+
+    var dVarUsages = new HashSet<>(Set.of(
+        new Pos(31, 6)
+    ));
+
+    var fVarUsages = new HashSet<>(Set.of(
+        new Pos(35, 6)
+    ));
+
+    var gVarUsages = new HashSet<>(Set.of(
+        new Pos(39, 6)
+    ));
+
+    Assertions.assertNotNull(field);
+    Assertions.assertNotNull(a);
+    Assertions.assertNotNull(foo);
+    Assertions.assertNotNull(bar);
+
+    Assertions.assertEquals("int", field.type);
+    Assertions.assertEquals("int", a.type);
+    Assertions.assertEquals("void", foo.type);
+    Assertions.assertEquals("int", bar.type);
+
+    Assertions.assertTrue(checkUsages(usageToDefinition, fieldUsages, field.position));
+    Assertions.assertTrue(checkUsages(usageToDefinition, aUsages, a.position));
+
+    Assertions.assertTrue(checkUsages(usageToDefinition, fieldArgUsages, new Pos(11, 15)));
+    Assertions.assertTrue(checkUsages(usageToDefinition, aVarUsages, new Pos(13, 8)));
+    Assertions.assertTrue(checkUsages(usageToDefinition, iVarUsages, new Pos(16, 13)));
+    Assertions.assertTrue(checkUsages(usageToDefinition, bVarUsages, new Pos(17, 13)));
+    Assertions.assertTrue(checkUsages(usageToDefinition, scVarUsages, new Pos(19, 19)));
+    Assertions.assertTrue(checkUsages(usageToDefinition, scannerVarUsages, new Pos(20, 32)));
+    Assertions.assertTrue(checkUsages(usageToDefinition, eVarUsages, new Pos(24, 23)));
+    Assertions.assertTrue(checkUsages(usageToDefinition, cVarUsages, new Pos(28, 38)));
+    Assertions.assertTrue(checkUsages(usageToDefinition, dVarUsages, new Pos(30, 38)));
+    Assertions.assertTrue(checkUsages(usageToDefinition, fVarUsages, new Pos(34, 41)));
+    Assertions.assertTrue(checkUsages(usageToDefinition, gVarUsages, new Pos(38, 41)));
+  }
+
   private boolean checkUsages(
       Map<Pos, Pos> usageToDef,
       HashSet<Pos> expUsages,

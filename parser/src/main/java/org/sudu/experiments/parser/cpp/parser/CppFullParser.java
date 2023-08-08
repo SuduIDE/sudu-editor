@@ -60,6 +60,7 @@ public class CppFullParser extends BaseFullParser {
       result = getInts(classWalker.node);
     } catch (Exception e) {
       e.printStackTrace();
+      CppLexerHighlighting.highlightTokens(allTokens, tokenTypes);
       result = getInts(defaultIntervalNode());
     }
 

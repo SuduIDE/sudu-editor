@@ -60,6 +60,7 @@ public class JavaFullParser extends BaseFullParser {
       result = getInts(classWalker.node);
     } catch (Exception e) {
       e.printStackTrace();
+      JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes);
       result = getInts(defaultIntervalNode());
     }
 

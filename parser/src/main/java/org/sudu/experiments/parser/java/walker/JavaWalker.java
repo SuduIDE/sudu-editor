@@ -9,7 +9,7 @@ import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.JavaParserBaseListener;
 import org.sudu.experiments.parser.java.model.JavaBlock;
 import org.sudu.experiments.parser.java.model.JavaClass;
-import org.sudu.experiments.parser.java.model.TypedDecl;
+import org.sudu.experiments.parser.common.TypedDecl;
 
 import static org.sudu.experiments.parser.ParserConstants.*;
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
@@ -25,6 +25,8 @@ public class JavaWalker extends JavaParserBaseListener {
   private final Map<Pos, Pos> usagesToDefs;
 
   private JavaBlock currentBlock;
+
+  private boolean isInstanceOfPatternAvailable = false;
 
   public JavaWalker(int[] tokenTypes, int[] tokenStyles, JavaClass javaClass, List<Decl> types, Map<Pos, Pos> usagesToDefs) {
     this.tokenTypes = tokenTypes;
@@ -259,6 +261,7 @@ public class JavaWalker extends JavaParserBaseListener {
     super.enterStatement(ctx);
     if (ctx.FOR() != null) {
       enterBlock();
+      isInstanceOfPatternAvailable = true;
       if (ctx.forControl().enhancedForControl() != null) {
         var forControl = ctx.forControl().enhancedForControl();
         var id = forControl.variableDeclaratorId().identifier();
@@ -266,12 +269,27 @@ public class JavaWalker extends JavaParserBaseListener {
         currentBlock.localVars.add(TypedDecl.fromNode(getNode(id), type));
       }
     }
+    if (ctx.parExpression() != null) {
+      enterBlock();
+      if (ctx.IF() != null ||
+          ctx.WHILE() != null
+      ) isInstanceOfPatternAvailable = true;
+    }
   }
 
   @Override
   public void exitStatement(JavaParser.StatementContext ctx) {
     super.exitStatement(ctx);
-    if (ctx.FOR() != null) exitBlock();
+    if (ctx.FOR() != null) {
+      isInstanceOfPatternAvailable = false;
+      exitBlock();
+    }
+    if (ctx.parExpression() != null) {
+      if (ctx.IF() != null ||
+          ctx.WHILE() != null
+      ) isInstanceOfPatternAvailable = false;
+      exitBlock();
+    }
   }
 
   @Override
@@ -348,10 +366,7 @@ public class JavaWalker extends JavaParserBaseListener {
     if (isTernary(ctx)) return handleTernary(ctx);
     if (isBooleanExpression(ctx)) return handleBooleanExpression(ctx);
     if (isCast(ctx)) return handleCast(ctx);
-    if (ctx.INSTANCEOF() != null) {
-      handleExpression(ctx.expression(0));
-      return "boolean";
-    }
+    if (ctx.INSTANCEOF() != null) return handleInstanceOf(ctx);
     if (ctx.methodCall() != null && ctx.getChildCount() == 1) {
       var methodCall = handleMethodCall(ctx.methodCall(), false);
       return methodCall != null ? methodCall.type : null;
@@ -360,7 +375,7 @@ public class JavaWalker extends JavaParserBaseListener {
       var creator = handleCreator(ctx.creator());
       return creator != null ? creator.type : getCreatorType(ctx.creator());
     }
-    if (ctx.expression() != null && !ctx.expression().isEmpty()){
+    if (ctx.expression() != null && !ctx.expression().isEmpty()) {
       String result = handleExpression(ctx.expression(0));
       for (int i = 1; i < ctx.expression().size(); i++)
         handleExpression(ctx.expression(i));
@@ -416,6 +431,19 @@ public class JavaWalker extends JavaParserBaseListener {
     if (ctx.STRING_LITERAL() != null || ctx.TEXT_BLOCK() != null) return "String";
     if (ctx.BOOL_LITERAL() != null) return "boolean";
     return null;
+  }
+
+  private String handleInstanceOf(JavaParser.ExpressionContext ctx) {
+    handleExpression(ctx.expression(0));
+    if (isInstanceOfPatternAvailable && ctx.pattern() != null) {
+      var pattern = ctx.pattern();
+      var node = getNode(pattern.identifier());
+      String name = node.getText();
+      Pos pos = Pos.fromNode(node);
+      String type = getType(pattern.typeType());
+      currentBlock.localVars.add(new TypedDecl(name, pos, type));
+    }
+    return "boolean";
   }
 
   private List<String> handleExpressionList(JavaParser.ExpressionListContext ctx) {

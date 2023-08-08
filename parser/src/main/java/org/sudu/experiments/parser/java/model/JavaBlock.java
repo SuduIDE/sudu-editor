@@ -1,6 +1,7 @@
 package org.sudu.experiments.parser.java.model;
 
-import org.sudu.experiments.parser.common.Decl;
+import org.sudu.experiments.parser.common.TypedDecl;
+
 import java.util.ArrayList;
 import java.util.List;
 

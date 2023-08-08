@@ -2,6 +2,7 @@ package org.sudu.experiments.parser.cpp.model;
 
 import org.sudu.experiments.parser.common.Decl;
 import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.parser.common.TypedDecl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.Objects;
 
 public class CppClass extends Decl {
 
-  public List<Decl> fields;
+  public List<TypedDecl> fields;
   public List<CppMethod> methods;
   public List<CppClass> nestedClasses;
   public CppClass innerClass;

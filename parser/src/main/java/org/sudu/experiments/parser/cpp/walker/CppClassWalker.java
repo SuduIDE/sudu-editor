@@ -6,6 +6,7 @@ import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.Decl;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.parser.common.TypedDecl;
 import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
 import org.sudu.experiments.parser.cpp.gen.CPP14ParserBaseListener;
 import org.sudu.experiments.parser.cpp.model.CppClass;
@@ -73,19 +74,35 @@ public class CppClassWalker extends CPP14ParserBaseListener {
     super.enterFunctionDefinition(ctx);
     if (!(ctx.parent instanceof CPP14Parser.MemberdeclarationContext)) return;
 
-    var node = getIdentifier(ctx.declarator());
-    if (node == null) return;
-    var method = new CppMethod(node.getText(), Pos.fromNode(node), List.of());
-    current.methods.add(method);
+
   }
 
   @Override
-  public void enterMemberDeclarator(CPP14Parser.MemberDeclaratorContext ctx) {
-    super.enterMemberDeclarator(ctx);
-    var node = getIdentifier(ctx.declarator());
-    if (node == null) return;
-    var field = Decl.fromNode(node);
-    current.fields.add(field);
+  public void enterMemberdeclaration(CPP14Parser.MemberdeclarationContext ctx) {
+    super.enterMemberdeclaration(ctx);
+    if (ctx.declSpecifierSeq() != null &&
+        ctx.memberDeclaratorList() != null
+    ) {
+      var type = getType(ctx.declSpecifierSeq());
+      for (var memDeclarator: ctx.memberDeclaratorList().memberDeclarator()) {
+        var node = getIdentifier(memDeclarator.declarator());
+        if (node == null) continue;
+        String name = node.getText();
+        Pos pos = Pos.fromNode(node);
+        current.fields.add(new TypedDecl(name, pos, type));
+      }
+    } else if (ctx.functionDefinition() != null) {
+      var func = ctx.functionDefinition();
+      if (func.declSpecifierSeq() == null) return;
+      var node = getIdentifier(func.declarator());
+      if (node == null) return;
+      String name = node.getText();
+      Pos pos = Pos.fromNode(node);
+      String type = getType(func.declSpecifierSeq());
+      List<String> args = getMethodArgumentsTypes(func.declarator());
+      var method = new CppMethod(name, pos, type, args);
+      current.methods.add(method);
+    }
   }
 
   private void addChild(ParserRuleContext ctx, int type) {
