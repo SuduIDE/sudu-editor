@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.java.model.JavaClass;
+import org.sudu.experiments.parser.java.model.JavaConstructor;
 import org.sudu.experiments.parser.java.model.JavaField;
 import org.sudu.experiments.parser.java.model.JavaMethod;
 import org.sudu.experiments.parser.java.parser.JavaFullParser;
@@ -344,6 +345,68 @@ public class WalkerTest {
     Assertions.assertTrue(checkUsages(usageToDefinition, dVarUsages, new Pos(30, 38)));
     Assertions.assertTrue(checkUsages(usageToDefinition, fVarUsages, new Pos(34, 41)));
     Assertions.assertTrue(checkUsages(usageToDefinition, gVarUsages, new Pos(38, 41)));
+  }
+
+  @Test
+  public void testConstructorsResolve() {
+    String source = readFile("java/TestConstructorResolve.java");
+    JavaFullParser parser = new JavaFullParser();
+    parser.parse(source);
+    JavaClass javaClass = parser.getJavaClass().nestedClasses.get(0);
+
+    var usageToDefinition = parser.usageToDefinition;
+
+    JavaField a = javaClass.getField("a");
+    JavaField b = javaClass.getField("b");
+    JavaField c = javaClass.getField("c");
+    JavaField d = javaClass.getField("d");
+
+    JavaConstructor constructor1 = javaClass.getConstructor("TestConstructorResolve", List.of("int", "int", "boolean", "boolean"));
+    JavaConstructor constructor2 = javaClass.getConstructor("TestConstructorResolve", List.of("int", "int"));
+    JavaConstructor constructor3 = javaClass.getConstructor("TestConstructorResolve", List.of("boolean", "boolean"));
+    JavaConstructor constructor4 = javaClass.getConstructor("TestConstructorResolve", List.of("int", "boolean"));
+
+    JavaMethod foo = javaClass.getMethod("foo", List.of());
+
+    var constructor1Usages = new HashSet<>(Set.of(
+        new Pos(16, 4),
+        new Pos(20, 4),
+        new Pos(24, 4),
+        new Pos(28, 8)
+    ));
+
+    var constructor4Usages = new HashSet<>(Set.of(
+        new Pos(29, 35),
+        new Pos(30, 16)
+    ));
+
+    Assertions.assertNotNull(a);
+    Assertions.assertNotNull(b);
+    Assertions.assertNotNull(c);
+    Assertions.assertNotNull(d);
+    Assertions.assertNotNull(constructor1);
+    Assertions.assertNotNull(constructor2);
+    Assertions.assertNotNull(constructor3);
+    Assertions.assertNotNull(constructor4);
+    Assertions.assertNotNull(foo);
+
+    Assertions.assertEquals("int", a.type);
+    Assertions.assertEquals("int", b.type);
+    Assertions.assertEquals("boolean", c.type);
+    Assertions.assertEquals("boolean", d.type);
+    Assertions.assertEquals("TestConstructorResolve", constructor1.type);
+    Assertions.assertEquals("TestConstructorResolve", constructor2.type);
+    Assertions.assertEquals("TestConstructorResolve", constructor3.type);
+    Assertions.assertEquals("TestConstructorResolve", constructor4.type);
+    Assertions.assertEquals("void", foo.type);
+
+    Assertions.assertEquals(List.of("int", "int", "boolean", "boolean"), constructor1.argsTypes);
+    Assertions.assertEquals(List.of("int", "int"), constructor2.argsTypes);
+    Assertions.assertEquals(List.of("boolean", "boolean"), constructor3.argsTypes);
+    Assertions.assertEquals(List.of("int", "boolean"), constructor4.argsTypes);
+
+    Assertions.assertTrue(checkUsages(usageToDefinition, constructor1Usages, new Pos(8, 9)));
+    Assertions.assertTrue(checkUsages(usageToDefinition, constructor4Usages, new Pos(23, 9)));
   }
 
   private boolean checkUsages(
