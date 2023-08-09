@@ -143,7 +143,7 @@ public abstract class BaseParser {
   }
 
   protected IntervalNode defaultIntervalNode() {
-    return new IntervalNode(defaultInterval(), null);
+    return new IntervalNode(defaultInterval());
   }
 
 }

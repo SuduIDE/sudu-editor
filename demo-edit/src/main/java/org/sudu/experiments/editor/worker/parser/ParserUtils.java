@@ -18,6 +18,12 @@ import java.util.Map;
 
 public abstract class ParserUtils {
 
+  public static Document makeDocument(int[] ints, char[] chars) {
+    Document document = new Document();
+    updateDocument(document, ints, chars);
+    return document;
+  }
+
   public static void updateDocument(Document document, int[] ints, char[] chars) {
     updateDocument(document, ints, chars, false);
   }

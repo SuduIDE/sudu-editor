@@ -590,7 +590,7 @@ methodCall
 
 expression
     : primary
-    | expression bop='.'
+    | expression dot='.'
       (
          identifier
        | methodCall

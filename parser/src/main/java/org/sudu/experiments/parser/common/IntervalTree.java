@@ -20,7 +20,7 @@ public class IntervalTree {
   }
 
   public IntervalTree(Interval interval) {
-    this(new IntervalNode(interval, null));
+    this(new IntervalNode(interval));
   }
 
   public IntervalTree(IntervalNode node) {

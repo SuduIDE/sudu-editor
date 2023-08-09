@@ -3,6 +3,7 @@ package org.sudu.experiments.parser.common;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,20 +14,34 @@ public class IntervalNode {
   public Interval interval;
   public IntervalNode parent;
   public List<IntervalNode> children;
+  public ScopeNode scope;
   public boolean needReparse = false;
 
-  public IntervalNode(Interval interval, IntervalNode parent) {
+  public IntervalNode(Interval interval, IntervalNode parent, ScopeNode scope) {
     this.interval = interval;
     this.parent = parent;
     this.children = new ArrayList<>();
+    this.scope = scope;
+  }
+
+  public IntervalNode(Interval interval, ScopeNode scope) {
+    this(interval, null, scope);
+  }
+
+  public IntervalNode(Interval interval, IntervalNode parent) {
+    this(interval, parent, null);
   }
 
   public IntervalNode(Interval interval) {
-    this(interval, null);
+    this(interval, null, null);
+  }
+
+  public void addChild(Interval node, ScopeNode scope) {
+    children.add(new IntervalNode(node, this, scope));
   }
 
   public void addChild(Interval node) {
-    children.add(new IntervalNode(node, this));
+    children.add(new IntervalNode(node, this, null));
   }
 
   public void addChild(IntervalNode node) {

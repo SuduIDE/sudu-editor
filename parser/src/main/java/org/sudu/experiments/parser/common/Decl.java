@@ -5,7 +5,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import java.io.IOException;
 import java.util.Objects;
 
-public class Decl {
+public class Decl implements Comparable<Decl> {
 
   public String name;
   public Pos position;
@@ -36,4 +36,10 @@ public class Decl {
   public String toString() {
     return name + " " + position;
   }
+
+  @Override
+  public int compareTo(Decl o) {
+    return position.compareTo(o.position);
+  }
+
 }

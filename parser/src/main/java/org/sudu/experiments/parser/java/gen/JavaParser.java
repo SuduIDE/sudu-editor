@@ -8460,6 +8460,7 @@ public class JavaParser extends Parser {
 	public static class ExpressionContext extends ParserRuleContext {
 		public Token prefix;
 		public Token bop;
+		public Token dot;
 		public Token postfix;
 		public PrimaryContext primary() {
 			return getRuleContext(PrimaryContext.class,0);
@@ -9050,7 +9051,7 @@ public class JavaParser extends Parser {
 						setState(1443);
 						if (!(precpred(_ctx, 26))) throw new FailedPredicateException(this, "precpred(_ctx, 26)");
 						setState(1444);
-						((ExpressionContext)_localctx).bop = match(DOT);
+						((ExpressionContext)_localctx).dot = match(DOT);
 						setState(1456);
 						_errHandler.sync(this);
 						switch ( getInterpreter().adaptivePredict(_input,169,_ctx) ) {
