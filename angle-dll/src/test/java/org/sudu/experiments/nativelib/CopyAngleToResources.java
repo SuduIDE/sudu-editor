@@ -3,6 +3,8 @@ package org.sudu.experiments.nativelib;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CopyAngleToResources {
 
@@ -25,6 +27,7 @@ public class CopyAngleToResources {
     }
 
     ArrayList<Path> dlls = new ArrayList<>();
+    Map<Path, String> versions = new HashMap<>();
 
     DirectoryStream<Path> dirStream = Files.newDirectoryStream(edgePath);
     for (Path dirFile: dirStream) {
@@ -32,22 +35,35 @@ public class CopyAngleToResources {
         Path dllPath = dirFile.resolve(dll);
         if (Files.isRegularFile(dllPath)) {
           dlls.add(dllPath);
+          versions.put(dllPath, dirFile.getFileName().toString());
         }
       }
     }
     dirStream.close();
 
-    if (dlls.size() == 0) {
+    if (dlls.isEmpty()) {
       System.out.println("no " + dll + " found");
     } else {
       dlls.sort(Path::compareTo);
 
       Path source = dlls.get(dlls.size() - 1);
       Path target = resourceDir.resolve(dll);
+      String versioString = versions.get(source);
+      Path versionFile = resourceDir.resolve("libGLESv2.version");
 
-      System.out.println("copying ... \n" +
-          " from " + source + "\n to-> " + target);
+      if (Files.isReadable(versionFile)) {
+        String oldVersion = Files.readString(versionFile);
+        System.out.println("oldVersion = " + oldVersion);
+      }
+      System.out.println("newVersion = " + versioString);
+
+      System.out.println("copying ... "
+          + "\n from " + source
+          + "\n to → " + target);
       Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+
+      Files.writeString(versionFile, versioString,
+          StandardOpenOption.WRITE, StandardOpenOption.CREATE);
     }
   }
 
