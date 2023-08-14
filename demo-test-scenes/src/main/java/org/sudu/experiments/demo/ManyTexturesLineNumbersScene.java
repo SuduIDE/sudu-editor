@@ -9,7 +9,6 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
 import java.util.function.Consumer;
-import java.util.function.IntUnaryOperator;
 
 public class ManyTexturesLineNumbersScene extends Scene {
 
@@ -22,12 +21,14 @@ public class ManyTexturesLineNumbersScene extends Scene {
   private V4f bgColor = Color.Cvt.gray(0);
   private int lineHeight = 20;
   private int fontSize = 20;
+  private SetCursor setCursor;
 
   public ManyTexturesLineNumbersScene(SceneApi api) {
     super(api);
     api.input.onMouse.add(new LineNumbersInputListener());
     api.input.onScroll.add(this::onMouseWheel);
     this.g = api.graphics;
+    setCursor = SetCursor.wrap(api.window);
 
     lineNumbers.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight, g);
 
@@ -74,13 +75,13 @@ public class ManyTexturesLineNumbersScene extends Scene {
 
   private class LineNumbersInputListener implements MouseListener {
     Consumer<MouseEvent> dragLock;
-    Consumer<IntUnaryOperator> vScrollHandler =
-      move -> scrollPos = move.applyAsInt(verticalSize());
+    Consumer<ScrollBar.Event> vScrollHandler =
+      event -> scrollPos = event.getPosition(verticalSize());
 
     @Override
-    public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-      if (button == MOUSE_BUTTON_LEFT && clickCount == 1) {
-        dragLock = scrollBar.onMouseClick(event.position, vScrollHandler, true);
+    public boolean onMouseDown(MouseEvent event, int button) {
+      if (button == MOUSE_BUTTON_LEFT) {
+        dragLock = scrollBar.onMouseDown(event.position, vScrollHandler, true);
         if (dragLock != null) return true;
       }
 
@@ -101,7 +102,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
         dragLock.accept(event);
         return true;
       }
-      return scrollBar.onMouseMove(event.position, SetCursor.wrap(api.window));
+      return scrollBar.onMouseMove(event.position, setCursor);
     }
   }
 

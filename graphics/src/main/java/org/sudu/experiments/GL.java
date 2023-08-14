@@ -1,5 +1,7 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.math.V2i;
+
 public interface GL {
   boolean checkErrorOnTextureUpdate = false;
   boolean checkErrorOnShaderLink = true;
@@ -122,7 +124,7 @@ public interface GL {
 
     final TextureContext ctx;
     GLApi.Texture texture;
-    int width, height;
+    final V2i size = new V2i();
 
     Texture(TextureContext ctx) {
       this.ctx = ctx;
@@ -139,17 +141,24 @@ public interface GL {
       }
     }
 
-    public int width() { return width; }
+    private void getNewHandle() {
+      ctx.gl.deleteTexture(texture);
+      texture = ctx.gl.createTexture();
+    }
 
-    public int height() { return height; }
+    public int width() { return size.x; }
+
+    public int height() { return size.y; }
+
+    public V2i size() { return size; }
 
     public void allocate(int width, int height) {
       allocate(width, height, GLApi.Context.RGBA8);
     }
 
     public void allocate(int width, int height, int internalformat) {
-      this.width = width;
-      this.height = height;
+      size.x = width;
+      size.y = height;
       bind();
       ctx.gl.texStorage2D(GLApi.Context.TEXTURE_2D, 1, internalformat, width, height);
       setupSampler();
@@ -174,12 +183,15 @@ public interface GL {
     }
 
     private void checkSizeAndAllocate(int newWidth, int newHeight, int internalformat) {
-      if (width == 0 || height == 0) {
+      if (size.x == 0 || size.y == 0) {
         allocate(newWidth, newHeight, internalformat);
-      } else if (width == newWidth && height == newHeight) {
-        bind();
       } else {
-        throw new RuntimeException("trying to redefine texture size in setContent");
+        if (size.equals(newWidth, newHeight)) {
+          bind();
+        } else {
+          getNewHandle();
+          allocate(newWidth, newHeight, internalformat);
+        }
       }
     }
 

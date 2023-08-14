@@ -235,14 +235,18 @@ public class FindUsagesDialog {
     g.enableBlend(true);
 
     if (!rect.isEmpty()) {
-      drawFrameAndShadow(g, context);
+      WindowPaint.drawInnerFrame(g, rect.size, rect.pos, rect.bgColor, border, v2i);
+      WindowPaint.drawBody(g, rect.size, rect.pos, rect.color, border, v2i);
+      WindowPaint.drawShadow(g, rect.size, rect.pos, 0,
+          shadowParameters.getShadowSize(context.dpr),
+          shadowParameters.color, v2i);
     }
 
     for (FindUsagesItem item : items) {
       setRectCoords(item);
-      item.tFiles.drawText(g, texture, 0, 0, 2);
-      item.tLines.drawText(g, texture, item.tFiles.size.x, 0, 2);
-      item.tContent.drawText(g, texture, item.tFiles.size.x + item.tLines.size.x, 0, 2);
+      item.tFiles.drawText(g, texture, 0, 0, 1);
+      item.tLines.drawText(g, texture, item.tFiles.size.x, 0, 1);
+      item.tContent.drawText(g, texture, item.tFiles.size.x + item.tLines.size.x, 0, 1);
       item.rectFiles.draw(g, 0, 0);
       item.rectLines.draw(g, 0, 0);
       item.rectContent.draw(g, 0, 0);
@@ -259,40 +263,6 @@ public class FindUsagesDialog {
       v2i.x = rect.size.x - border * 2 - (tFiles.size.x);
       v2i.y = (tFiles.size.y + tLines.size.y + tContent.size.y);
     }
-
-  }
-
-  private void drawFrameAndShadow(WglGraphics g, UiContext context) {
-    int shadowSize = shadowParameters.getShadowSize(context.dpr);
-
-    // frame
-    v2i.x = rect.size.x;
-    v2i.y = border;
-    g.drawRect(rect.pos.x, rect.pos.y, v2i, rect.bgColor);
-    g.drawRect(rect.pos.x, rect.pos.y + rect.size.y - border, v2i, rect.bgColor);
-
-    v2i.x = border;
-    v2i.y = rect.size.y - border - border;
-    g.drawRect(rect.pos.x, rect.pos.y + border, v2i, rect.bgColor);
-    g.drawRect(rect.pos.x + rect.size.x - border, rect.pos.y + border, v2i, rect.bgColor);
-
-    // body
-    v2i.x = rect.size.x - border - border;
-    v2i.y = rect.size.y - border - border;
-    g.drawRect(rect.pos.x + border, rect.pos.y + border, v2i, bgColor);
-
-    // shadow
-    v2i.x = rect.size.x;
-    v2i.y = shadowSize;
-    g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadowParameters.color);
-    g.drawRect(rect.pos.x + shadowSize, rect.pos.y + rect.size.y, v2i, shadowParameters.color);
-    g.drawRect(rect.pos.x + shadowSize * 2, rect.pos.y + rect.size.y + shadowSize, v2i, shadowParameters.color);
-
-    v2i.x = shadowSize;
-    v2i.y = rect.size.y - shadowSize;
-    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadowParameters.color);
-    g.drawRect(rect.pos.x + rect.size.x, rect.pos.y + shadowSize, v2i, shadowParameters.color);
-    g.drawRect(rect.pos.x + rect.size.x + shadowSize, rect.pos.y + shadowSize * 2, v2i, shadowParameters.color);
 
   }
 

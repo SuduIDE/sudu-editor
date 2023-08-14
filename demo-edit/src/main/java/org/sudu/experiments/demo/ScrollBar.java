@@ -8,7 +8,6 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
 import java.util.function.Consumer;
-import java.util.function.IntUnaryOperator;
 
 public class ScrollBar {
   public static final int BUTTON_SIZE = 3;
@@ -32,7 +31,7 @@ public class ScrollBar {
     return Rect.isInside(p, bgPos, bgSize);
   }
 
-  public Consumer<MouseEvent> onMouseClick(V2i p, Consumer<IntUnaryOperator> onMove, boolean isVertical) {
+  public Consumer<MouseEvent> onMouseDown(V2i p, Consumer<Event> onMove, boolean isVertical) {
     boolean hitScroll = hitTest(p);
     boolean hitButton = Rect.isInside(p, buttonPos, buttonSize);
 
@@ -56,13 +55,27 @@ public class ScrollBar {
     return null;
   }
 
-  static IntUnaryOperator result(int position, int maxPosition) {
-    return maxValue -> Numbers.iDivRound(position, maxValue, maxPosition);
+  public static class Event {
+    public int position, maxPosition;
+
+    public Event(int position, int maxPosition) {
+      this.position = position;
+      this.maxPosition = maxPosition;
+    }
+
+    public int getPosition(int maxValue) {
+      return Numbers.iDivRound(position, maxValue, maxPosition);
+    }
+
+  }
+
+  static Event result(int position, int maxPosition) {
+    return new Event(position, maxPosition);
   }
 
   // returns the new scroll position assuming that
   // user wants to set the button center to mouseY
-  private IntUnaryOperator getClickLocationResultY(int mouseY) {
+  private Event getClickLocationResultY(int mouseY) {
     int viewHeight = bgSize.y;
     int buttonHeight = buttonSize.y;
     int virtualSize = viewHeight - buttonHeight;
@@ -71,7 +84,7 @@ public class ScrollBar {
     return result(Math.min(Math.max(0, virtualPos), virtualSize), virtualSize);
   }
 
-  private IntUnaryOperator getClickLocationResultX(int mouseX) {
+  private Event getClickLocationResultX(int mouseX) {
     int viewWidth = bgSize.x;
     int buttonWidth = buttonSize.x;
     int virtualSize = viewWidth - buttonWidth;
@@ -137,7 +150,7 @@ public class ScrollBar {
   private int scrollControlPos(int scrollPos, int viewSize, int viewFullSize, int controlSize) {
     int virtualScrollRange = viewFullSize - viewSize;
     int displayScrollRange = viewSize - controlSize;
-    return Numbers.iDivRound(scrollPos, displayScrollRange, virtualScrollRange);
+    return displayScrollRange == 0 ? 0 : Numbers.iDivRound(scrollPos, displayScrollRange, virtualScrollRange);
   }
 
   public void draw(WglGraphics g) {

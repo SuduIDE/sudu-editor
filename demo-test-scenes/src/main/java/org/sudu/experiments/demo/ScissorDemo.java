@@ -41,7 +41,7 @@ public class ScissorDemo extends Scene0 {
 
   public void onResize(V2i size, float dpr) {
     super.onResize(size, dpr);
-    scissorSize.set(size.x * 9 / 10, size.y * 9 / 10);
+    scissorSize.set(size.x * 7 / 10, size.y * 7 / 10);
   }
 
   MouseListener mouseListener() {
@@ -55,7 +55,7 @@ public class ScissorDemo extends Scene0 {
                   scissorPos.x + dx,
                   size.x - scissorSize.x);
           scissorPos.y = Numbers.clamp(0,
-                  scissorPos.y - dy,
+                  scissorPos.y + dy,
                   size.y - scissorSize.y);
         }
         lastMouse = event.position;

@@ -3,6 +3,7 @@ package org.sudu.experiments;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.math.V4i;
 
 import java.util.function.Consumer;
 
@@ -27,7 +28,9 @@ public abstract class WglGraphics {
   final V2i clientRect = new V2i();
   private GL.Program currentShader;
   private int attributeMask = 0;
-  private boolean blendState, scissorState;
+  private boolean blendState;
+  private boolean scissorState, scissorRequest, scissorSync;
+  private final V4i scissor = new V4i();
 
   public interface CanvasFactory {
     Canvas create(int w, int h);
@@ -83,7 +86,6 @@ public abstract class WglGraphics {
 
   public void setViewPortAndClientRect(int w, int h) {
     clientRect.set(w, h);
-//    System.out.println("setViewport: 0,0, " + clientRect.x + ", " + clientRect.y);
     gl.viewport(0, 0, clientRect.x, clientRect.y);
   }
 
@@ -93,8 +95,11 @@ public abstract class WglGraphics {
   //  - or reset state to its default before to present a window
   // lets try the latter for now
 
+  // happens after render before present
+
   public void resetState() {
     disableScissor();
+    //syncScissor();
     enableBlend(false);
     attributeMask = GL.Mesh.bindAttributes(attributeMask, 0, gl);
     currentShader = null;
@@ -120,33 +125,53 @@ public abstract class WglGraphics {
     return oldMode;
   }
 
+  // x, y - upper left, same coordinate system as drawRect
+  // unlike webgl scissor coordinates which goes from lower left
   public void enableScissor(int x, int y, V2i size) {
-    gl.scissor(x, y, size.x, size.y);
-    if (!scissorState) {
-      gl.enable(GLApi.Context.SCISSOR_TEST);
-      scissorState = true;
-    }
+    scissorRequest = true;
+    scissorSync = true;
+    scissor.set(x, y, size.x, size.y);
+    syncScissor();
   }
 
   public void disableScissor() {
-    if (scissorState) {
-      gl.disable(GLApi.Context.SCISSOR_TEST);
-      scissorState = false;
+    scissorRequest = false;
+    scissorSync = false;
+    syncScissor();
+  }
+
+  private void syncScissor() {
+    if (scissorState != scissorRequest) {
+      scissorState = scissorRequest;
+      if (scissorState) {
+        gl.enable(GLApi.Context.SCISSOR_TEST);
+      } else {
+        gl.disable(GLApi.Context.SCISSOR_TEST);
+      }
     }
+    if (scissorState && scissorSync) {
+      scissorSync = false;
+      gl.scissor(scissor.x, clientRect.y - scissor.y - scissor.w,
+          scissor.z, scissor.w);
+    }
+  }
+
+  private void drawRect() {
+    attributeMask = rectangle.draw(attributeMask);
   }
 
   public void drawRect(int x, int y, V2i size, V4f color) {
     setShader(shConstColor);
     shConstColor.setPosition(gl, x, y, size, clientRect);
     shConstColor.setColor(gl, color);
-    attributeMask = rectangle.draw(attributeMask);
+    drawRect();
   }
 
   public void drawRect(int x, int y, V2i size, GL.Texture texture) {
     setShader(shSimpleTexture);
     shSimpleTexture.setPosition(gl, x, y, size, clientRect);
     shSimpleTexture.setTexture(gl, texture);
-    attributeMask = rectangle.draw(attributeMask);
+    drawRect();
   }
 
   public void drawRectShowAlpha(int x, int y, V2i size, GL.Texture texture, float contrast) {
@@ -154,7 +179,7 @@ public abstract class WglGraphics {
     shTextureShowAlpha.setPosition(gl, x, y, size, clientRect);
     shTextureShowAlpha.setTexture(gl, texture);
     shTextureShowAlpha.setContrast(gl, contrast);
-    attributeMask = rectangle.draw(attributeMask);
+    drawRect();
   }
 
   public void drawText(int x, int y, V2i size, V4f texRect,
@@ -165,7 +190,7 @@ public abstract class WglGraphics {
     shText.setTexture(gl, texture);
     shText.setTextureRect(gl, texture, texRect);
     shText.set(gl, color, bgColor, contrast);
-    attributeMask = rectangle.draw(attributeMask);
+    drawRect();
   }
 
   public void drawRectGrayIcon(int x, int y, V2i size, GL.Texture texture, V4f bColor, V4f fColor, float contrast) {
@@ -173,13 +198,13 @@ public abstract class WglGraphics {
     shGrayIcon.setPosition(gl, x, y, size, clientRect);
     shGrayIcon.setTexture(gl, texture);
     shGrayIcon.set(gl, bColor, fColor, contrast);
-    attributeMask = rectangle.draw(attributeMask);
+    drawRect();
   }
 
   public void drawRectUV(int x, int y, V2i size) {
     setShader(shShowUV);
     shShowUV.setPosition(gl, x, y, size, clientRect);
-    attributeMask = rectangle.draw(attributeMask);
+    drawRect();
   }
 
   public GL.Texture createTexture() {
@@ -191,6 +216,7 @@ public abstract class WglGraphics {
   }
 
   private void setShader(GL.Program shader) {
+    // syncScissor();
     if (shader != currentShader) {
       gl.useProgram(shader.program);
       currentShader = shader;

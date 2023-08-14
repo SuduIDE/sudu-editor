@@ -255,6 +255,19 @@ jboolean Java_org_sudu_experiments_win32_Win32_GetWindowRect(JNIEnv*j, jclass, j
   return r;
 }
 
+jboolean Java_org_sudu_experiments_win32_Win32_ScreenToClient(
+    JNIEnv*j, jclass,
+    jlong hWnd, jint x, jint y,
+    jintArray jResult
+) {
+  auto length = j->GetArrayLength(jResult);
+  if (unsigned(length) * sizeof(jint) < sizeof(POINT)) return false;
+  POINT p = { x, y };
+  auto r = ScreenToClient(HWND(hWnd), &p);
+  j->SetIntArrayRegion(jResult, 0, sizeof(POINT) / sizeof(jint), (jint*)(&p));
+  return r;
+}
+
 static_assert(sizeof(LRESULT) == sizeof(jlong), "Fatal: sizeof(LRESULT) != sizeof(jlong)");
 
 jlong Java_org_sudu_experiments_win32_Win32_SendMessageW(
@@ -401,6 +414,10 @@ jlong Java_org_sudu_experiments_win32_Win32_GetPerformanceFrequency(JNIEnv *, jc
 
 jchar Java_org_sudu_experiments_win32_Win32_GetKeyState(JNIEnv *, jclass, jint nVirtKey) {
   return jchar(GetKeyState(nVirtKey));
+}
+
+jchar Java_org_sudu_experiments_win32_Win32_GetAsyncKeyState(JNIEnv *, jclass, jint nVirtKey) {
+  return jchar(GetAsyncKeyState(nVirtKey));
 }
 
 jint JavaCritical_org_sudu_experiments_win32_TestHelper_invokeCritical(jint index, jint length, jint* arrayPtr) {

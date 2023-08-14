@@ -11,7 +11,6 @@ import org.sudu.experiments.math.V4f;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
-import java.util.function.IntUnaryOperator;
 
 public class HScrollTestScene extends Scene {
 
@@ -138,14 +137,14 @@ public class HScrollTestScene extends Scene {
 
   private class HScrollInputListener implements MouseListener {
     Consumer<MouseEvent> dragLock;
-    Consumer<IntUnaryOperator> vScrollHandler =
-      move -> scrollPosH = move.applyAsInt(horizontalSize());
+    Consumer<ScrollBar.Event> vScrollHandler =
+      event -> scrollPosH = event.getPosition(horizontalSize());
 
 
     @Override
     public boolean onMouseDown(MouseEvent event, int button) {
       if (button == MouseListener.MOUSE_BUTTON_LEFT) {
-        dragLock = scrollBar.onMouseClick(event.position, vScrollHandler, false);
+        dragLock = scrollBar.onMouseDown(event.position, vScrollHandler, false);
         if (dragLock != null) return true;
       }
 

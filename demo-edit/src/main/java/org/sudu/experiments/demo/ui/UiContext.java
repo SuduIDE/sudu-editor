@@ -5,6 +5,7 @@ import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 
 public class UiContext {
 
@@ -18,6 +19,8 @@ public class UiContext {
 
   public final Subscribers<DprChangeListener> dprListeners
       = new Subscribers<>(new DprChangeListener[0]);
+
+  public final V2i v2i1 = new V2i();
 
   public UiContext(SceneApi api) {
     this.graphics = api.graphics;
@@ -33,7 +36,7 @@ public class UiContext {
       float oldDpr = dpr;
       dpr = newDpr;
       for (DprChangeListener listener : dprListeners.array()) {
-        if (listener != null) listener.onDprChanged(oldDpr, newDpr);
+        listener.onDprChanged(oldDpr, newDpr);
       }
     }
   }
@@ -92,5 +95,9 @@ public class UiContext {
 
   public FontDesk fontDesk(UiFont font) {
     return graphics.fontDesk(font.familyName, font.size, dpr);
+  }
+
+  public int toPx(float value) {
+    return DprUtil.toPx(value, dpr);
   }
 }

@@ -8,7 +8,6 @@ import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 
 import java.util.function.Consumer;
-import java.util.function.IntUnaryOperator;
 
 public class TextureRegionTestScene extends Scene {
 
@@ -143,13 +142,13 @@ public class TextureRegionTestScene extends Scene {
 
   private class MListener implements MouseListener {
     Consumer<MouseEvent> dragLock;
-    Consumer<IntUnaryOperator> vScrollHandler =
-      move -> scrollPos = move.applyAsInt(verticalSize());
+    Consumer<ScrollBar.Event> vScrollHandler =
+      event -> scrollPos = event.getPosition(verticalSize());
 
     @Override
     public boolean onMouseDown(MouseEvent event, int button) {
       if (button == MouseListener.MOUSE_BUTTON_LEFT) {
-        dragLock = scrollBar.onMouseClick(event.position, vScrollHandler, true);
+        dragLock = scrollBar.onMouseDown(event.position, vScrollHandler, true);
         if (dragLock != null) return true;
       }
       return true;

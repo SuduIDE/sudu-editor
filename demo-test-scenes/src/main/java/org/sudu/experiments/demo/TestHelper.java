@@ -4,8 +4,11 @@ import org.sudu.experiments.Canvas;
 import org.sudu.experiments.DprUtil;
 import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.demo.ui.PopupMenu;
 import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.fonts.Fonts;
+import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
@@ -48,5 +51,29 @@ public class TestHelper {
       } while (x < size.x);
       y += texture.height();
     } while (y < size.y);
+  }
+
+  public static MouseListener popupMouseListener(PopupMenu popupMenu) {
+    return new MouseListener() {
+      @Override
+      public boolean onMouseMove(MouseEvent event) {
+        return popupMenu.onMouseMove(event);
+      }
+
+      @Override
+      public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
+        return popupMenu.onMouseClick(event, button, clickCount);
+      }
+
+      @Override
+      public boolean onMouseDown(MouseEvent event, int button) {
+        return popupMenu.onMouseDown(event, button);
+      }
+
+      @Override
+      public boolean onMouseUp(MouseEvent event, int button) {
+        return popupMenu.onMouseUp(event, button);
+      }
+    };
   }
 }

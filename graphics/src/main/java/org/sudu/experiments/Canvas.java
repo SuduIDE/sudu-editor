@@ -32,6 +32,20 @@ public abstract class Canvas implements GLApi.Canvas, Disposable, CanvasDebug {
   public abstract void setFont(FontDesk font);
 
   public abstract float measureText(String s);
+
+  public int measurePx(FontDesk font, String text, float pad) {
+    setFont(font);
+    return measurePx(text, pad);
+  }
+
+  public int measurePx(String text) {
+    return measurePx(text, 7.f / 8);
+  }
+
+  public int measurePx(String text, float pad) {
+    return (int) (measureText(text) + pad);
+  }
+
   public abstract void drawText(String s, float x, float y);
   public abstract void setTopMode(boolean top);
   public abstract void setFillColor(int r, int g, int b);

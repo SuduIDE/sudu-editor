@@ -5,6 +5,7 @@ import org.sudu.experiments.Scene;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.demo.menu.FindUsagesDemo;
 import org.sudu.experiments.demo.menu.ToolbarDemo;
+import org.sudu.experiments.demo.ui.window.WindowDemo;
 import org.sudu.experiments.demo.worker.WorkerTest;
 
 import java.util.function.Function;
@@ -30,6 +31,7 @@ public class TestSceneSelector {
       case "TextureRegionTestScene" -> TextureRegionTestScene::new;
       case "ClipboardTest" -> ClipboardTest::new;
       case "CodiconDemo" -> CodiconDemo::new;
+      case "WindowDemo" -> WindowDemo::new;
 
 //      case "#wasm" -> new WasmDemo(api);
     };

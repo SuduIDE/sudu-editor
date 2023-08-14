@@ -1,6 +1,7 @@
 package org.sudu.experiments.win32;
 
 import org.sudu.experiments.CString;
+import org.sudu.experiments.math.V2i;
 
 public class Win32 {
 
@@ -57,7 +58,17 @@ public class Win32 {
   public static native boolean ValidateRect0(long hWnd);
 
   public static native boolean IsZoomed(long hWnd);
+
   public static native boolean GetWindowRect(long hWnd, int[] rect4);
+  public static native boolean ScreenToClient(long hWnd, int x, int y, int[] result2);
+
+  public static boolean ScreenToClient(long hWnd, V2i point) {
+    int[] pt = new int[2];
+    boolean r = ScreenToClient(hWnd, point.x, point.y, pt);
+    if (r) point.set(pt[0], pt[1]);
+    return r;
+  }
+
   public static native long SendMessageW(long hWnd, int msg, long wParam, long lParam);
 
   public static final int SW_NORMAL   = 1;
@@ -104,6 +115,7 @@ public class Win32 {
   public static native long GetPerformanceFrequency();
 
   public static native char GetKeyState(int nVirtKey);
+  public static native char GetAsyncKeyState(int nVirtKey);
 
   public static native long __ImageBase();
 

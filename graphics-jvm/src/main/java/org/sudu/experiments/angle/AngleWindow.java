@@ -54,10 +54,7 @@ public class AngleWindow {
   public V2i makeCurrent() {
     boolean r = setCurrentContext();
     if (r) {
-      V2i size = getSurfaceSize();
-      graphics.setViewPortAndClientRect(size.x, size.y);
-      graphics.restoreState();
-      return size;
+      return getSurfaceSize();
     } else {
       System.err.println("AngleWindow::makeCurrent setCurrentContext failed");
       AngleEGL.dumpError();
@@ -65,14 +62,18 @@ public class AngleWindow {
     }
   }
 
+  public void initViewport(V2i viewport) {
+    graphics.setViewPortAndClientRect(viewport.x, viewport.y);
+    graphics.restoreState();
+  }
+
   private boolean setCurrentContext() {
     return AngleEGL.makeCurrent(device.display, surface, surface, context);
   }
 
-  public boolean swapInterval(int interval) {
+  public void swapInterval(int interval) {
     boolean r = AngleEGL.swapInterval(device.display, interval);
     if (!r) AngleEGL.dumpError();
-    return r;
   }
 
   public boolean swapBuffers() {

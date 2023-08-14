@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.IntUnaryOperator;
 
 public class EditorComponent implements Focusable, MouseListener {
   final UiContext context;
@@ -1163,11 +1162,11 @@ public class EditorComponent implements Focusable, MouseListener {
 
   Consumer<MouseEvent> dragLock;
 
-  Consumer<IntUnaryOperator> vScrollHandler =
-      move -> vScrollPos = move.applyAsInt(maxVScrollPos());
+  Consumer<ScrollBar.Event> vScrollHandler =
+      event -> vScrollPos = event.getPosition(maxVScrollPos());
 
-  Consumer<IntUnaryOperator> hScrollHandler =
-      move -> hScrollPos = move.applyAsInt(maxHScrollPos());
+  Consumer<ScrollBar.Event> hScrollHandler =
+      event -> hScrollPos = event.getPosition(maxHScrollPos());
 
 
   public boolean onScroll(float dX, float dY) {
@@ -1187,10 +1186,10 @@ public class EditorComponent implements Focusable, MouseListener {
 
   public boolean onMouseDown(MouseEvent event, int button) {
     if (button == MOUSE_BUTTON_LEFT) {
-      dragLock = vScroll.onMouseClick(event.position, vScrollHandler, true);
+      dragLock = vScroll.onMouseDown(event.position, vScrollHandler, true);
       if (dragLock != null) return true;
 
-      dragLock = hScroll.onMouseClick(event.position, hScrollHandler, false);
+      dragLock = hScroll.onMouseDown(event.position, hScrollHandler, false);
       if (dragLock != null) return true;
 
       onClickText(event);

@@ -147,6 +147,7 @@ public class JsInput {
   private void onMouseWheelOnElement(WheelEvent event) {
     if (clientRect == null) return;
     debug("onMouseWheelElement");
+    // chrome sends 150px, firefox send "6 lines"
     float scale = switch (event.getDeltaMode()) {
       case WheelEvent.DOM_DELTA_PIXEL -> 1;
       case WheelEvent.DOM_DELTA_LINE -> 25;

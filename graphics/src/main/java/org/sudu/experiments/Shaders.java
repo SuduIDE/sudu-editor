@@ -238,10 +238,11 @@ public interface Shaders {
     }
 
     public void setTextureRect(GLApi.Context gl, GL.Texture texture, V4f texRect) {
-      float dx = texRect.x / texture.width;
-      float dy = texRect.y / texture.height;
-      float mx = texRect.z / texture.width;
-      float my = texRect.w / texture.height;
+      int sx = texture.size.x, sy = texture.size.y;
+      float dx = texRect.x / sx;
+      float dy = texRect.y / sy;
+      float mx = texRect.z / sx;
+      float my = texRect.w / sy;
       gl.uniform4f(uTexTransform, dx, dy, mx, my);
     }
   }

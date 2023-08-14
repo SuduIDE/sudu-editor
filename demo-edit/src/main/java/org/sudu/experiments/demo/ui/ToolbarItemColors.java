@@ -6,9 +6,9 @@ import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V4f;
 
 public final class ToolbarItemColors {
-  final V4f color;
-  final V4f bgColor;
-  final V4f bgHighlight;
+  public V4f color;
+  public V4f bgColor;
+  public V4f bgHighlight;
 
   public ToolbarItemColors(V4f color, V4f bgColor, V4f bgHighlight) {
     this.color = color;

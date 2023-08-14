@@ -107,8 +107,19 @@ class Win32InputState {
 
   static int GET_WHEEL_DELTA_WPARAM(long wParam) { return (short) Win32.HIWORD(wParam); }
 
-  void onMouseWheel(long lParam, long wParam, V2i windowSize, InputListeners listeners, boolean isY) {
+  void onMouseWheel(
+      long lParam, long wParam,
+      V2i windowSize, long hWnd,
+      InputListeners listeners, boolean isY
+  ) {
+    // this event is fired when the window is in foreground,
+    // so it is required to update control keys state
+    final int MK_SHIFT = 0x0004, MK_CONTROL = 0x0008;
+    shift = (wParam & MK_SHIFT) != 0;
+    ctrl = (wParam & MK_CONTROL) != 0;
+    alt = getAsyncKeyState(VK_MENU);
     MouseEvent event = createMouseEvent(lParam, windowSize);
+    Win32.ScreenToClient(hWnd, event.position);
     int delta = GET_WHEEL_DELTA_WPARAM(wParam);
     float value = 1.25f * delta;
     listeners.sendMouseWheel(event, isY ? 0 : value, isY ? -value : 0);
@@ -148,6 +159,7 @@ class Win32InputState {
   }
 
   static boolean getKeyState(int vKey) { return (Win32.GetKeyState(vKey) & 0x8000) != 0; }
+  static boolean getAsyncKeyState(int vKey) { return (Win32.GetAsyncKeyState(vKey) & 0x8000) != 0; }
 
   static int toWebKeyCode(int vkCode) {
     // pageUp, pageDown, end, home, arrows
