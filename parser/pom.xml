@@ -41,6 +41,22 @@
     <antlr.grammar.java.path>${antlr.grammar.path}/java</antlr.grammar.java.path>
   </properties>
 
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven.compiler.version}</version>
+
+        <configuration>
+          <source>${project.build.sourceLevel}</source>
+          <target>${project.build.sourceLevel}</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
   <!--build>
     <plugins>
       <plugin>

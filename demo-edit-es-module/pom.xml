@@ -32,8 +32,8 @@
     <teavm.debugInfo>false</teavm.debugInfo>
     <teavm.minifying>false</teavm.minifying>
 
-<!--    <teavm.optimizationLevel>ADVANCED</teavm.optimizationLevel>-->
-    <teavm.optimizationLevel>SIMPLE</teavm.optimizationLevel>
+    <teavm.optimizationLevel>ADVANCED</teavm.optimizationLevel>
+<!--    <teavm.optimizationLevel>SIMPLE</teavm.optimizationLevel>-->
 
   </properties>
 
@@ -150,7 +150,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.0</version>
+        <version>${maven.compiler.version}</version>
 
         <configuration>
           <source>${project.build.sourceLevel}</source>

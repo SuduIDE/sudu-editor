@@ -39,6 +39,12 @@
 
     <teavm.version>0.9.0-SNAPSHOT</teavm.version>
     <jupiter.version>5.9.0</jupiter.version>
+
+    <maven.compiler.version>3.11.0</maven.compiler.version>
+    <maven.resource.version>3.3.1</maven.resource.version>
+    <maven.warplugin.version>3.4.0</maven.warplugin.version>
+
+    <maven.plugin.validation>DEFAULT</maven.plugin.validation>
   </properties>
 
 </project>

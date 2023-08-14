@@ -40,7 +40,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.0</version>
+        <version>${maven.compiler.version}</version>
 
         <configuration>
           <source>${project.build.sourceLevel}</source>
@@ -88,7 +88,7 @@
 
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>${maven.resource.version}</version>
         <executions>
           <execution>
             <id>copy-resources</id>
