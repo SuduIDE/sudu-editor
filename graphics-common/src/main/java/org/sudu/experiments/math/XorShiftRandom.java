@@ -36,7 +36,7 @@ public class XorShiftRandom {
     return x;
   }
 
-  public static double r32toDouble01(int next) {
+  public static double intToDouble01(int next) {
     double bits32 = 0x1p-32 * next;
     return bits32 < 0 ? bits32 + 1 : bits32;
   }
@@ -54,7 +54,7 @@ public class XorShiftRandom {
 
   // returns [0 .. 1) with 32 random mantissa bits
   public final double nextDouble() {
-    return r32toDouble01(next());
+    return intToDouble01(next());
   }
 
   public <T> void shuffle(T[] array) {

@@ -7,7 +7,7 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.math.XorShiftRandom;
 
-import static org.sudu.experiments.math.XorShiftRandom.r32toDouble01;
+import static org.sudu.experiments.math.XorShiftRandom.intToDouble01;
 
 public class ScrollContentDemo extends ScrollContent {
 
@@ -52,6 +52,6 @@ public class ScrollContentDemo extends ScrollContent {
     for (int i = 0; i < 17; i++) {
       t = XorShiftRandom.roll_7_1_9(t);
     }
-    return r32toDouble01(t);
+    return intToDouble01(t);
   }
 }
