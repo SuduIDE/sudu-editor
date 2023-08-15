@@ -237,7 +237,7 @@ public class FindUsagesDialog {
     if (!rect.isEmpty()) {
       WindowPaint.drawInnerFrame(g, rect.size, rect.pos, rect.bgColor, border, v2i);
       WindowPaint.drawBody(g, rect.size, rect.pos, rect.color, border, v2i);
-      WindowPaint.drawShadow(g, rect.size, rect.pos, 0,
+      WindowPaint.drawShadow(g, rect.size, rect.pos, 0, 0,
           shadowParameters.getShadowSize(context.dpr),
           shadowParameters.color, v2i);
     }

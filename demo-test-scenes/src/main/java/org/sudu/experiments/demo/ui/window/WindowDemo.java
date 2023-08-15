@@ -17,6 +17,8 @@ import static org.sudu.experiments.Const.emptyRunnable;
 
 public class WindowDemo extends Scene1 implements DprChangeListener {
 
+  static final int titleMargin = 3;
+
   private final PopupMenu popupMenu;
 
   private final WindowManager windowManager;
@@ -77,9 +79,9 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
     disposeWindow(window1);
     disposeWindow(window2);
 
-    window1 = newWindow("Window1", .5f);
+    window1 = newWindow(.5f);
     windowManager.addWindow(window1);
-    window2 = newWindow("Window2", 1);
+    window2 = newWindow(1);
     windowManager.addWindow(window2);
     layoutWindows();
   }
@@ -90,13 +92,12 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
       w.dispose();
     }
   }
-  UiFont titleFont = new UiFont(Fonts.SegoeUI, 15);
+  UiFont titleFont = new UiFont(Fonts.SegoeUI, 20);
 
-  private Window newWindow(String title, float v) {
+  private Window newWindow(float v) {
     Window window = new Window(uiContext);
     window.setContent(new ScrollView(new ScrollContentDemo(v), uiContext));
     window.setTheme(DialogItemColors.darkColorScheme());
-    window.setTitle(title, titleFont);
     return window;
   }
 
@@ -117,8 +118,8 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
         new V2i(newSize.x / 10, newSize.y / 10),
         new V2i(newSize.x * 6 / 10, newSize.y * 6 / 10)
     );
-    window1.setTitle("Window 1: " + window1.size().toString(), titleFont);
-    window2.setTitle("Window 2: " + window2.size().toString(), titleFont);
+    window1.setTitle("Window 1: " + window1.size().toString(), titleFont, titleMargin);
+    window2.setTitle("Window 2: " + window2.size().toString(), titleFont, titleMargin);
   }
 
 

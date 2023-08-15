@@ -21,8 +21,9 @@ public class Window {
     title = new TextLineView(context);
   }
 
-  public void setTitle(String title, UiFont font) {
-    this.title.setTitle(title, font);
+  public void setTitle(String title, UiFont font, float margin) {
+    this.title.setText(title, font, margin);
+    layoutTitle();
   }
 
   public void setTheme(DialogItemColors theme) {
@@ -55,7 +56,7 @@ public class Window {
   private void layoutTitle() {
     title.setWidth(content.size.x);
     title.setDprNoFire(context.dpr);
-    int height = title.computeAndSetHeight();
+    int height = title.isEmpty() ? 0 : title.computeAndSetHeight();
     title.pos.set(content.pos.x, content.pos.y - height);
   }
 
@@ -102,11 +103,16 @@ public class Window {
   private void drawFrameAndShadow(WglGraphics g) {
     g.enableBlend(true);
     int border = context.toPx(2);
+    boolean noTitle = title.sizeEmpty();
+    V2i size = context.v2i2;
+    int titleHeight = noTitle ? 0 : title.size.y;
+    size.set(content.size.x, content.size.y + titleHeight);
     WindowPaint.drawInnerFrame(g,
-        content.size, content.pos,
+        size, noTitle ? content.pos : title.pos,
         theme.dialogBorderColor, -border, context.v2i1);
+
     WindowPaint.drawShadow(g,
-        content.size, content.pos, border,
+        content.size, content.pos, border, titleHeight,
         theme.shadowParameters.getShadowSize(context.dpr),
         theme.shadowParameters.color, context.v2i1);
   }

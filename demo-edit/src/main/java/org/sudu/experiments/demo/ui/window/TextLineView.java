@@ -19,6 +19,7 @@ public class TextLineView extends View {
   private String title;
   private UiFont uiFont;
   private FontDesk font;
+  private float margin;
   private boolean renderRequest;
 
   private GL.Texture texture;
@@ -28,22 +29,24 @@ public class TextLineView extends View {
     this.context = context;
   }
 
-  public void setTitle(String title, UiFont uiFont) {
+  public void setText(String title, UiFont uiFont, float margin) {
     boolean fontChange = !Objects.equals(this.uiFont, uiFont);
     boolean titleChange = !Objects.equals(this.title, title);
-
+    boolean marginChange = margin != this.margin;
     if (fontChange) {
       this.uiFont = uiFont;
       font = null;
       setHeight(0);
     }
-    renderRequest = fontChange || titleChange;
+    renderRequest = fontChange || titleChange || marginChange;
     this.title = title;
+    this.margin = margin;
   }
 
   public int computeAndSetHeight() {
     requireFont();
-    setHeight(font.lineHeight());
+    int margin = context.toPx(this.margin);
+    setHeight(font.lineHeight() + margin * 2);
 
     return size.y;
   }
@@ -53,8 +56,8 @@ public class TextLineView extends View {
   }
 
   public void draw(WglGraphics g, DialogItemColors theme) {
-    if (title != null && !title.isEmpty() && uiFont != null) {
-      requireFont();
+    if (sizeEmpty()) return;
+    if (!isEmpty()) {
       if (renderRequest || texture == null) {
         renderTexture(g);
       }
@@ -71,6 +74,14 @@ public class TextLineView extends View {
     } else {
       drawBg(g, 0, size.x, bgColor);
     }
+  }
+
+  public boolean sizeEmpty() {
+    return size.x == 0 || size.y == 0;
+  }
+
+  public boolean isEmpty() {
+    return uiFont == null || title == null || title.isEmpty();
   }
 
   private void setHeight(int height) {
@@ -91,13 +102,18 @@ public class TextLineView extends View {
 
   private void renderTexture(WglGraphics g) {
     renderRequest = false;
-    float xPad = 1f + size.y / 5f;
-    int measured = g.mCanvas.measurePx(font, title, xPad);
-    int width = Math.min(measured, size.x);
+    requireFont();
+    float lineHeightF = font.lineHeightF();
+    float leftRightFontPadding = (lineHeightF + 5f) / 10;
+    int margin = context.toPx(this.margin);
+    int measured = g.mCanvas.measurePx(font, title, leftRightFontPadding * 2);
+    int width = Math.min(measured + margin, size.x);
     if (width == 0) return;
     Canvas canvas = g.createCanvas(width, size.y);
     canvas.setFont(font);
-    canvas.drawText(title, (size.y + 5f) / 10, font.uiBaseline());
+    canvas.drawText(title,
+        margin + leftRightFontPadding,
+        margin + font.uiBaseline());
     var t = texture != null ? texture : (texture = g.createTexture());
     t.setContent(canvas);
     canvas.dispose();
