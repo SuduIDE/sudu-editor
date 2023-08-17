@@ -54,4 +54,9 @@ public class ScrollContentDemo extends ScrollContent {
     }
     return intToDouble01(t);
   }
+
+  @Override
+  protected void onPosChange(V2i newPos) {
+    System.out.println("onPosChange: " + newPos);
+  }
 }

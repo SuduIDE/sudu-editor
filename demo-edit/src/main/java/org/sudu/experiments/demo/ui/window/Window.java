@@ -110,6 +110,7 @@ public class Window {
     final int diffCy = content.pos.y - mousePos.y;
     final int diffTx = title.pos.x - mousePos.x;
     final int diffTy = title.pos.y - mousePos.y;
+    final V2i newPos = new V2i();
 
     return event -> {
       int visibility = context.toPx(5);
@@ -119,10 +120,8 @@ public class Window {
 
       int mY = Math.min(context.windowSize.y - diffTy - visibility,
           Math.max(visibility - diffTy - title.size.y, event.position.y));
-
-      content.pos.x = mX + diffCx;
-      content.pos.y = mY + diffCy;
-      setPosition(content.pos, content.size);
+      newPos.set(mX + diffCx, mY + diffCy);
+      setPosition(newPos, content.size);
     };
   }
 

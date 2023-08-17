@@ -79,9 +79,9 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
     disposeWindow(window1);
     disposeWindow(window2);
 
-    window1 = newWindow(.5f);
+    window1 = newWindow(.5f, false);
+    window2 = newWindow(1, true);
     windowManager.addWindow(window1);
-    window2 = newWindow(1);
     windowManager.addWindow(window2);
     layoutWindows();
   }
@@ -94,9 +94,12 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
   }
   UiFont titleFont = new UiFont(Fonts.SegoeUI, 20);
 
-  private Window newWindow(float v) {
+  private Window newWindow(float v, boolean scroll) {
     Window window = new Window(uiContext);
-    window.setContent(new ScrollView(new ScrollContentDemo(v), uiContext));
+    ScrollContentDemo contentDemo = new ScrollContentDemo(v);
+    window.setContent(scroll
+        ? new ScrollView(contentDemo, uiContext)
+        : contentDemo);
     window.setTheme(DialogItemColors.darkColorScheme());
     return window;
   }
