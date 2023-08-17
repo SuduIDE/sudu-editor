@@ -7,7 +7,10 @@ import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.demo.ui.UiFont;
 import org.sudu.experiments.demo.ui.WindowPaint;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.V2i;
+
+import java.util.function.Consumer;
 
 public class Window {
 
@@ -15,6 +18,7 @@ public class Window {
   private final TextLineView title;
   private View content = new View();
   private DialogItemColors theme;
+  private Consumer<MouseEvent> dragLock;
 
   public Window(UiContext context) {
     this.context = context;
@@ -74,16 +78,42 @@ public class Window {
     return content.hitTest(point);
   }
 
-  boolean onMouseMove(MouseEvent screenPos) {
-    return content.onMouseMove(screenPos);
-  }
-
-  boolean onMouseUp(MouseEvent event, int button) {
-    return content.onMouseUp(event, button);
+  boolean onMouseMove(MouseEvent event) {
+    if (dragLock != null) {
+      dragLock.accept(event);
+      return true;
+    }
+    return content.onMouseMove(event);
   }
 
   boolean onMouseDown(MouseEvent event, int button) {
-    return content.onMouseDown(event, button);
+    if (button == MouseListener.MOUSE_BUTTON_LEFT
+        && !title.sizeEmpty() && title.hitTest(event.position))
+    {
+      if (dragLock == null) dragLock = dragWindow(event.position);
+      return true;
+    }
+    return content.onMouseDown(event, button)
+        || content.hitTest(event.position);
+  }
+
+  boolean onMouseUp(MouseEvent event, int button) {
+    if (button == MouseListener.MOUSE_BUTTON_LEFT && dragLock != null) {
+      dragLock = null;
+      return true;
+    }
+    return content.onMouseUp(event, button);
+  }
+
+  private Consumer<MouseEvent> dragWindow(V2i mousePos) {
+    V2i diff = new V2i(
+        mousePos.x - content.pos.x,
+        mousePos.y - content.pos.y);
+    return mouseEvent -> {
+      content.pos.x = mouseEvent.position.x - diff.x;
+      content.pos.y = mouseEvent.position.y - diff.y;
+      setPosition(content.pos, content.size);
+    };
   }
 
   boolean onMouseClick(MouseEvent event, int button, int clickCount) {
@@ -96,25 +126,27 @@ public class Window {
 
   void draw(WglGraphics g) {
     content.draw(g);
-    drawFrameAndShadow(g);
     title.draw(g, theme);
+    drawFrameAndShadow(g);
   }
 
   private void drawFrameAndShadow(WglGraphics g) {
     g.enableBlend(true);
     int border = context.toPx(2);
     boolean noTitle = title.sizeEmpty();
+    V2i temp = context.v2i1;
     V2i size = context.v2i2;
     int titleHeight = noTitle ? 0 : title.size.y;
     size.set(content.size.x, content.size.y + titleHeight);
+
     WindowPaint.drawInnerFrame(g,
         size, noTitle ? content.pos : title.pos,
-        theme.dialogBorderColor, -border, context.v2i1);
+        theme.dialogBorderColor, -border, temp);
 
     WindowPaint.drawShadow(g,
         content.size, content.pos, border, titleHeight,
         theme.shadowParameters.getShadowSize(context.dpr),
-        theme.shadowParameters.color, context.v2i1);
+        theme.shadowParameters.color, temp);
   }
 
   boolean update(double timestamp) {
