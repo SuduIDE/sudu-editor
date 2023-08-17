@@ -26,6 +26,7 @@ public class DemoEdit0 extends Scene {
   final EditorUi ui;
 
   V2i editorPos = new V2i();
+  V2i editorSize = new V2i();
 
   public DemoEdit0(SceneApi api) {
     super(api);
@@ -82,7 +83,12 @@ public class DemoEdit0 extends Scene {
   @Override
   public void onResize(V2i newSize, float newDpr) {
     uiContext.onResize(newSize, newDpr);
-    editor.setPos(editorPos, newSize, newDpr);
+    layout(newSize);
+    editor.setPos(editorPos, editorSize, newDpr);
+  }
+
+  protected void layout(V2i newSize) {
+    editorSize.set(newSize.x, newSize.y);
   }
 
   public void toggleDark() {
