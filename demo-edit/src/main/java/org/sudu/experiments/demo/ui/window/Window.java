@@ -106,12 +106,22 @@ public class Window {
   }
 
   private Consumer<MouseEvent> dragWindow(V2i mousePos) {
-    V2i diff = new V2i(
-        mousePos.x - content.pos.x,
-        mousePos.y - content.pos.y);
-    return mouseEvent -> {
-      content.pos.x = mouseEvent.position.x - diff.x;
-      content.pos.y = mouseEvent.position.y - diff.y;
+    final int diffCx = content.pos.x - mousePos.x;
+    final int diffCy = content.pos.y - mousePos.y;
+    final int diffTx = title.pos.x - mousePos.x;
+    final int diffTy = title.pos.y - mousePos.y;
+
+    return event -> {
+      int visibility = context.toPx(5);
+
+      int mX = Math.min(context.windowSize.x - diffTx - visibility,
+          Math.max(visibility - diffTx - title.size.x, event.position.x));
+
+      int mY = Math.min(context.windowSize.y - diffTy - visibility,
+          Math.max(visibility - diffTy - title.size.y, event.position.y));
+
+      content.pos.x = mX + diffCx;
+      content.pos.y = mY + diffCy;
       setPosition(content.pos, content.size);
     };
   }
