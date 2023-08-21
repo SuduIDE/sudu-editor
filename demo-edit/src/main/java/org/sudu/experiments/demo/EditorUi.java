@@ -174,7 +174,10 @@ class EditorUi implements MouseListener {
         item.setHover(true);
       });
       tbb.addItem("Font size >", colors.dialogItemColors.toolbarItemColors, fontSize());
-      tbb.addItem("Fonts >", colors.dialogItemColors.toolbarItemColors, fontSelect());
+      tbb.addItem("Fonts >", colors.dialogItemColors.toolbarItemColors, fontSelect(), (mouse, index, item) -> {
+        item.action().run();
+        item.setHover(true);
+      });
       return tbb.supplier();
     }
 
