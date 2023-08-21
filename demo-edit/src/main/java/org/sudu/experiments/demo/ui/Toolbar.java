@@ -232,7 +232,7 @@ public class Toolbar {
   }
 
   public boolean onMouseClick(V2i pos, int button, int clickCount) {
-    if (clickCount == 1) {
+    if (clickCount > 0) {
       int index = find(pos);
       if (index >= 0) {
         ToolbarItem item = items[index];
