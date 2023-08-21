@@ -18,7 +18,12 @@ public class ToolbarItemBuilder {
   }
 
   public void addItem(String text, ToolbarItemColors colors, Supplier<ToolbarItem[]> submenu) {
-    addItem(new ToolbarItem(null, text, colors, submenu));
+    addItem(text, colors, submenu, null);
+  }
+
+  public void addItem(String text, ToolbarItemColors colors,
+                      Supplier<ToolbarItem[]> submenu, Toolbar.HoverCallback onEnter) {
+    addItem(new ToolbarItem(null, text, colors, submenu, onEnter));
   }
 
   public void addItem(ToolbarItem item) {

@@ -11,15 +11,23 @@ public class ToolbarItem {
   final Runnable action;
   ToolbarItemColors colors;
   final Supplier<ToolbarItem[]> subMenu;
+  final Toolbar.HoverCallback onEnter;
   String text;
 
   public ToolbarItem(Runnable r, String text, ToolbarItemColors colors) {
-    this(r, text, colors, null);
+    this(r, text, colors, null, null);
   }
 
-  public ToolbarItem(Runnable r, String text, ToolbarItemColors colors, Supplier<ToolbarItem[]> submenu) {
+  public ToolbarItem(
+      Runnable r,
+      String text,
+      ToolbarItemColors colors,
+      Supplier<ToolbarItem[]> submenu,
+      Toolbar.HoverCallback onEnter
+  ) {
     this.text = text;
     this.colors = colors;
+    this.onEnter = onEnter;
     action = r;
     tRect.color.set(colors.color);
     tRect.bgColor.set(colors.bgColor);
@@ -36,6 +44,14 @@ public class ToolbarItem {
 
   public boolean isSubmenu() {
     return subMenu != null;
+  }
+
+  public Toolbar.HoverCallback onEnter() {
+    return onEnter;
+  }
+
+  public Runnable action() {
+    return action;
   }
 
   public Supplier<ToolbarItem[]> subMenu() {

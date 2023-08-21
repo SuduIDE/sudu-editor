@@ -169,7 +169,10 @@ class EditorUi implements MouseListener {
 
     private Supplier<ToolbarItem[]> settingsItems() {
       ToolbarItemBuilder tbb = new ToolbarItemBuilder();
-      tbb.addItem("Theme >", colors.dialogItemColors.toolbarItemColors, themes());
+      tbb.addItem("Theme >", colors.dialogItemColors.toolbarItemColors, themes(), (mouse, index, item) -> {
+        item.action().run();
+        item.setHover(true);
+      });
       tbb.addItem("Font size >", colors.dialogItemColors.toolbarItemColors, fontSize());
       tbb.addItem("Fonts >", colors.dialogItemColors.toolbarItemColors, fontSelect());
       return tbb.supplier();
