@@ -232,13 +232,11 @@ public class Toolbar {
   }
 
   public boolean onMouseClick(V2i pos, int button, int clickCount) {
-    if (clickCount == 1) {
-      int index = find(pos);
-      if (index >= 0) {
-        ToolbarItem item = items[index];
-        if (!item.isSubmenu()) {
-          item.action.run();
-        }
+    int index = find(pos);
+    if (index >= 0) {
+      ToolbarItem item = items[index];
+      if (!item.isSubmenu()) {
+        item.action.run();
       }
     }
     return true;
