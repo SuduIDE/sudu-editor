@@ -22,6 +22,7 @@ public class TextLineView extends View {
   private float margin;
   private boolean renderRequest;
 
+  private int measured;
   private GL.Texture texture;
   private final V4f texRect = new V4f();
 
@@ -41,6 +42,7 @@ public class TextLineView extends View {
     renderRequest = fontChange || titleChange || marginChange;
     this.title = title;
     this.margin = margin;
+    this.measured = 0;
   }
 
   public int computeAndSetHeight() {
@@ -53,6 +55,12 @@ public class TextLineView extends View {
 
   public void setWidth(int width) {
     size.x = width;
+
+    if (texture != null && width != texture.width()) {
+      if (width < measured || texture.width() < measured) {
+        renderRequest = true;
+      }
+    }
   }
 
   public void draw(WglGraphics g, DialogItemColors theme) {
@@ -104,15 +112,15 @@ public class TextLineView extends View {
     renderRequest = false;
     requireFont();
     float lineHeightF = font.lineHeightF();
-    float leftRightFontPadding = (lineHeightF + 5f) / 10;
+    float lrPadding = (lineHeightF + 5f) / 10;
     int margin = context.toPx(this.margin);
-    int measured = g.mCanvas.measurePx(font, title, leftRightFontPadding * 2);
-    int width = Math.min(measured + margin, size.x);
+    measured = margin + g.mCanvas.measurePx(font, title, lrPadding * 2);
+    int width = Math.min(measured, size.x);
     if (width == 0) return;
     Canvas canvas = g.createCanvas(width, size.y);
     canvas.setFont(font);
     canvas.drawText(title,
-        margin + leftRightFontPadding,
+        margin + lrPadding,
         margin + font.uiBaseline());
     var t = texture != null ? texture : (texture = g.createTexture());
     t.setContent(canvas);
@@ -123,6 +131,7 @@ public class TextLineView extends View {
   public void onDprChange() {
     if (uiFont != null) {
       font = null;
+      measured = 0;
       renderRequest = true;
     }
   }

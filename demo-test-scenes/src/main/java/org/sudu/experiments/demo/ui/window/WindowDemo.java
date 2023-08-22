@@ -3,12 +3,14 @@ package org.sudu.experiments.demo.ui.window;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.Scene1;
+import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.TestHelper;
 import org.sudu.experiments.demo.ui.*;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.*;
 
 import java.util.function.Supplier;
@@ -39,7 +41,17 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
     api.input.onContextMenu.add(this::onContextMenu);
     api.input.onMouse.add(TestHelper.popupMouseListener(popupMenu));
     api.input.onMouse.add(windowManager);
+    api.input.onMouse.add(desktopMouse(uiContext.windowCursor));
     api.input.onScroll.add(windowManager::onScroll);
+  }
+
+  static MouseListener desktopMouse(final SetCursor windowCursor) {
+    return new MouseListener() {
+      @Override
+      public boolean onMouseMove(MouseEvent event) {
+        return windowCursor.set(null);
+      }
+    };
   }
 
   @Override
@@ -79,8 +91,8 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
     disposeWindow(window1);
     disposeWindow(window2);
 
-    window1 = newWindow(.5f, false);
-    window2 = newWindow(1, true);
+    window1 = newWindow(.5f, false, "Window 1");
+    window2 = newWindow(1, true, "Window 2");
     windowManager.addWindow(window1);
     windowManager.addWindow(window2);
     layoutWindows();
@@ -94,9 +106,10 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
   }
   UiFont titleFont = new UiFont(Fonts.SegoeUI, 20);
 
-  private Window newWindow(float v, boolean scroll) {
+  private Window newWindow(float v, boolean scroll, String title) {
     Window window = new Window(uiContext);
-    ScrollContentDemo contentDemo = new ScrollContentDemo(v);
+    ScrollContentDemo contentDemo = new ScrollContentDemo(v,
+        s -> window.setTitle(title + ": " + s, titleFont, titleMargin));
     window.setContent(scroll
         ? new ScrollView(contentDemo, uiContext)
         : contentDemo);
@@ -113,16 +126,14 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
 
   private void layoutWindows() {
     V2i newSize = uiContext.windowSize;
-    window1.setPosition(
-        new V2i(newSize.x * 4 / 10, newSize.y * 4 / 10),
-        new V2i(newSize.x * 5 / 10, newSize.y * 5 / 10)
-    );
     window2.setPosition(
+        new V2i(newSize.x * 2 / 10, newSize.y * 2 / 10),
+        new V2i(newSize.x * 7 / 10, newSize.y * 7 / 10)
+    );
+    window1.setPosition(
         new V2i(newSize.x / 10, newSize.y / 10),
         new V2i(newSize.x * 6 / 10, newSize.y * 6 / 10)
     );
-    window1.setTitle("Window 1: " + window1.size().toString(), titleFont, titleMargin);
-    window2.setTitle("Window 2: " + window2.size().toString(), titleFont, titleMargin);
   }
 
 

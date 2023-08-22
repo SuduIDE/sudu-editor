@@ -19,7 +19,6 @@ public class ScrollView extends View {
 
   private ScrollContent content;
   private ScrollBar vScroll, hScroll;
-  private Consumer<MouseEvent> dragLock;
   private float scrollWidth = 10;
 
   public ScrollView(UiContext uiContext) {
@@ -83,7 +82,7 @@ public class ScrollView extends View {
         content.scrollPos.x,
         pos.x, size.x, content.virtualSize.x,
         pos.y + size.y,
-        DprUtil.toPx(scrollWidth, dpr));
+        scrollWidthPx());
   }
 
   private void layoutVScroll() {
@@ -91,7 +90,11 @@ public class ScrollView extends View {
         content.scrollPos.y,
         pos.y, size.y, content.virtualSize.y,
         pos.x + size.x,
-        DprUtil.toPx(scrollWidth, dpr));
+        scrollWidthPx());
+  }
+
+  private int scrollWidthPx() {
+    return DprUtil.toPx(scrollWidth, dpr);
   }
 
   private ScrollBar ensureHScroll() {
@@ -136,31 +139,24 @@ public class ScrollView extends View {
     layoutHScroll();
   }
 
-  // what does onMouseDown during existing dragLock ?
-  protected boolean onMouseDown(MouseEvent event, int button) {
-    if (dragLock == null && vScroll != null) {
-      dragLock = vScroll.onMouseDown(event.position, vScrollHandler, true);
+  protected Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
+    if (vScroll != null) {
+      var lock = vScroll.onMouseDown(event.position, vScrollHandler, true);
+      if (lock != null) return lock;
     }
-    if (dragLock == null && hScroll != null) {
-      dragLock = hScroll.onMouseDown(event.position, hScrollHandler, false);
+    if (hScroll != null) {
+      var lock = hScroll.onMouseDown(event.position, hScrollHandler, false);
+      if (lock != null) return lock;
     }
-    return dragLock != null || content.onMouseDown(event, button);
+    return content.onMouseDown(event, button);
   }
 
   protected boolean onMouseUp(MouseEvent event, int button) {
-    if (dragLock != null) {
-      dragLock = null;
-      return true;
-    }
     return scrollHitTest(event.position)
         || content.onMouseUp(event, button);
   }
 
   protected boolean onMouseMove(MouseEvent event) {
-    if (dragLock != null) {
-      dragLock.accept(event);
-      return true;
-    }
     boolean a = vScroll != null &&
         vScroll.onMouseMove(event.position, windowCursor);
     boolean b = hScroll != null &&
@@ -190,5 +186,14 @@ public class ScrollView extends View {
     }
 
     return true;
+  }
+
+  @Override
+  protected V2i minimalSize() {
+    int sizePx = scrollWidthPx();
+    V2i minimalSize = content.minimalSize();
+    minimalSize.x = Math.max(minimalSize.x, sizePx);
+    minimalSize.y = Math.max(minimalSize.y, sizePx);
+    return minimalSize;
   }
 }

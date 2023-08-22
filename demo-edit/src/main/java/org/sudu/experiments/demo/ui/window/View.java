@@ -7,12 +7,18 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 
+import java.util.function.Consumer;
+
 public class View implements Disposable {
   public final V2i pos = new V2i();
   public final V2i size = new V2i();
   public float dpr;
 
   public void dispose() {
+  }
+
+  protected V2i minimalSize() {
+    return new V2i(0,0);
   }
 
   protected void setPosition(V2i newPos, V2i newSize, float newDpr) {
@@ -64,8 +70,8 @@ public class View implements Disposable {
     return false;
   }
 
-  protected boolean onMouseDown(MouseEvent event, int button) {
-    return false;
+  protected Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
+    return null;
   }
 
   protected boolean onMouseUp(MouseEvent event, int button) {
@@ -78,5 +84,9 @@ public class View implements Disposable {
 
   boolean onScroll(MouseEvent event, float dX, float dY) {
     return false;
+  }
+
+  public interface Static {
+    Consumer<MouseEvent> emptyConsumer = e -> {};
   }
 }
