@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 public class Window {
 
   public static final float borderDrawDp = 2;
-  public static final float frameHitTestDp = 5;
+  public static final float frameHitTestDp = 7;
   public static final float minVisibleDp = 5;
 
   public final UiContext context;
@@ -162,8 +162,6 @@ public class Window {
   boolean onScroll(MouseEvent event, float dX, float dY) {
     return content.onScroll(event, dX, dY);
   }
-
-  static int id;
 
   private boolean leftFrameHitTest(int x, int frame) {
     int left = title.pos.x;

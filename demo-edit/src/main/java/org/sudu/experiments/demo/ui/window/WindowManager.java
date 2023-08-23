@@ -57,10 +57,12 @@ public class WindowManager implements MouseListener, DprChangeListener {
     return false;
   }
 
+  int id;
+
   @Override
   public boolean onMouseDown(MouseEvent event, int button) {
+//    System.out.println("onMouseDown(" + ++id + ") lock = " + dragLock);
     if (dragLock != null) return true;
-//    System.out.println("onMouseDown lock = " + dragLock);
 
     for (int i = 0; i < windows.size(); i++) {
       Consumer<MouseEvent> lock = windows.get(i).onMouseDown(event, button);
@@ -75,7 +77,7 @@ public class WindowManager implements MouseListener, DprChangeListener {
 
   @Override
   public boolean onMouseUp(MouseEvent event, int button) {
-//    System.out.println("onMouseUp");
+//    System.out.println("onMouseUp " + ++id);
     if (button == dragButton && dragLock != null) {
       dragLock = null;
 //      System.out.println("    dragLock = null;");
