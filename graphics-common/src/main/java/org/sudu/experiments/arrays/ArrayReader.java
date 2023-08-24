@@ -1,4 +1,4 @@
-package org.sudu.experiments.parser;
+package org.sudu.experiments.arrays;
 
 public class ArrayReader {
 
