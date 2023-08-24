@@ -9,4 +9,6 @@ public interface Cursor {
   String text = "text";
   String ew_resize = "ew-resize";
   String ns_resize = "ns-resize";
+  String nesw_resize = "nesw-resize";
+  String nwse_resize = "nwse-resize";
 }
