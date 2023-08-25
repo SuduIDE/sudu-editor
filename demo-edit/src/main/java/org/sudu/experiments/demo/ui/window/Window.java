@@ -124,31 +124,28 @@ public class Window {
     int frame = context.toPx(frameHitTestDp);
     int corner = context.toPx(cornerSizeDp);
 
-    boolean vHit = vHit(position.y, frame);
-    boolean hHit = hHit(position.x, frame);
-    int hCorner = hCorner(position.x, corner);
-    int vCorner = vCorner(position.y, corner);
-    boolean topFrame = hHit && topFrameHitTest(position.y, frame);
-    boolean leftFrame = vHit && leftFrameHitTest(position.x, frame);
-    boolean rightFrame = vHit && rightFrameHitTest(position.x, frame);
-    boolean bottomFrame = hHit && bottomFrameHitTest(position.y, frame);
+    if (hHit(position.x, frame)) {
+      int hCorner = hCorner(position.x, corner);
+      if (topFrameHitTest(position.y, frame))
+        return context.windowCursor.set(cur(hCorner, Cursor.ns_resize));
+      if (bottomFrameHitTest(position.y, frame))
+        return context.windowCursor.set(cur(-hCorner, Cursor.ns_resize));
+    }
 
-    if (topFrame) return context.windowCursor.set(
-        hCorner < 0 ? Cursor.nwse_resize :
-            hCorner > 0 ? Cursor.nesw_resize : Cursor.ns_resize);
+    if (vHit(position.y, frame)) {
+      int vCorner = vCorner(position.y, corner);
+      if (leftFrameHitTest(position.x, frame))
+        return context.windowCursor.set(cur(vCorner, Cursor.ew_resize));
+      if (rightFrameHitTest(position.x, frame))
+        return context.windowCursor.set(cur(-vCorner, Cursor.ew_resize));
+    }
 
-    if (leftFrame) return context.windowCursor.set(
-        vCorner < 0 ? Cursor.nwse_resize :
-            vCorner > 0 ? Cursor.nesw_resize : Cursor.ew_resize);
-
-    if (rightFrame) return context.windowCursor.set(
-        vCorner < 0 ? Cursor.nesw_resize :
-            vCorner > 0 ? Cursor.nwse_resize : Cursor.ew_resize);
-
-    if (bottomFrame) return context.windowCursor.set(
-        hCorner < 0 ? Cursor.nesw_resize :
-            hCorner > 0 ? Cursor.nwse_resize : Cursor.ns_resize);
     return false;
+  }
+
+  static String cur(int v, String frameCursor) {
+    return v < 0 ? Cursor.nwse_resize :
+        v > 0 ? Cursor.nesw_resize : frameCursor;
   }
 
   Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
@@ -238,205 +235,69 @@ public class Window {
 
     int frame = context.toPx(frameHitTestDp);
     int corner = context.toPx(cornerSizeDp);
-    boolean vHit = vHit(position.y, frame);
-    boolean hHit = hHit(position.x, frame);
-    int hCorner = hCorner(position.x, corner);
-    int vCorner = vCorner(position.y, corner);
-    boolean topFrame = hHit && topFrameHitTest(position.y, frame);
-    boolean leftFrame = vHit && leftFrameHitTest(position.x, frame);
-    boolean rightFrame = vHit && rightFrameHitTest(position.x, frame);
-    boolean bottomFrame = hHit && bottomFrameHitTest(position.y, frame);
 
-    if (topFrame) return hCorner < 0 ? nwResize(position)
-        : hCorner > 0 ? neResize(position) : topResize(position);
-    if (leftFrame) return vCorner < 0 ? nwResize(position)
-        : vCorner > 0 ? swResize(position) : leftResize(position);
-    if (rightFrame) return vCorner < 0 ? neResize(position)
-        : vCorner > 0 ? seResize(position) : rightResize(position);
-    if (bottomFrame) return hCorner < 0 ? swResize(position)
-        : hCorner > 0 ? seResize(position) : bottomResize(position);
+    if (hHit(position.x, frame)) {
+      int xMode = hCorner(position.x, corner);
+      if (topFrameHitTest(position.y, frame))
+        return resize(position, xMode, -1);
+      if (bottomFrameHitTest(position.y, frame))
+        return resize(position, xMode, 1);
+    }
+
+    if (vHit(position.y, frame)) {
+      int yMode = vCorner(position.y, corner);
+      if (leftFrameHitTest(position.x, frame))
+        return resize(position, -1, yMode);
+      if (rightFrameHitTest(position.x, frame))
+        return resize(position, 1, yMode);
+    }
+
     return null;
   }
 
-    private Consumer<MouseEvent> nwResize(V2i mousePos) {
+  private Consumer<MouseEvent> resize(V2i mousePos, int xMode, int yMode) {
     final V2i newSize = new V2i();
     final V2i newPos = new V2i();
     final int mouseX = mousePos.x, mouseY = mousePos.y;
-    final int posY = content.pos.y, posX = content.pos.x;
-    final int sizeY = content.size.y, sizeX = content.size.x;
-    return event -> {
-      int visibility = context.toPx(minVisibleDp);
-      V2i minSize = content.minimalSize();
-
-      // y top
-      int dY = event.position.y - mouseY;
-      int newPosY0 = Math.min(posY + dY,
-          context.windowSize.y + title.size.y - visibility);
-      int newSizeY0 = posY + sizeY - newPosY0;
-      int newSizeY = Math.max(minSize.y, newSizeY0);
-      int newPosY = posY + sizeY - newSizeY;
-
-      // x left
-      int dX = event.position.x - mouseX;
-      int newPosX0 = Math.min(posX + dX, context.windowSize.x - visibility);
-      int newSizeX0 = posX + sizeX - newPosX0;
-      int newSizeX = Math.max(minSize.x, newSizeX0);
-      int newPosX = posX + sizeX - newSizeX;
-
-      newPos.set(newPosX, newPosY);
-      newSize.set(newSizeX, newSizeY);
-      setPosition(newPos, newSize);
-    };
-  }
-
-  private Consumer<MouseEvent> neResize(V2i mousePos) {
-    final V2i newSize = new V2i();
-    final V2i newPos = new V2i();
-    final int mouseX = mousePos.x, mouseY = mousePos.y;
-    final int posY = content.pos.y, posX = content.pos.x;
-    final int sizeY = content.size.y, sizeX = content.size.x;
-    return event -> {
-      int visibility = context.toPx(minVisibleDp);
-      V2i minSize = content.minimalSize();
-
-      // y top
-      int dY = event.position.y - mouseY;
-      int newPosY0 = Math.min(posY + dY,
-          context.windowSize.y + title.size.y - visibility);
-      int newSizeY0 = posY + sizeY - newPosY0;
-      int newSizeY = Math.max(minSize.y, newSizeY0);
-      int newPosY = posY + sizeY - newSizeY;
-
-      // x right
-      int dX = event.position.x - mouseX;
-      int newSizeX = Math.max(sizeX + dX,
-          Math.max(minSize.x, visibility - title.pos.x));
-
-      // top  right
-      newPos.set(content.pos.x, newPosY);
-      newSize.set(newSizeX, newSizeY);
-
-      setPosition(newPos, newSize);
-    };
-  }
-
-  private Consumer<MouseEvent> seResize(V2i mousePos) {
-    final V2i newSize = new V2i();
-    final int mouseX = mousePos.x, mouseY = mousePos.y;
+    final int posX = content.pos.x, posY = content.pos.y;
     final int sizeX = content.size.x, sizeY = content.size.y;
     return event -> {
       int visibility = context.toPx(minVisibleDp);
       V2i minSize = content.minimalSize();
 
-      int dX = event.position.x - mouseX;
-      int newSizeX = Math.max(sizeX + dX,
-          Math.max(minSize.x, visibility - title.pos.x));
+      newSize.set(content.size);
+      newPos.set(content.pos);
 
-      int dY = event.position.y - mouseY;
-      int newSizeY = Math.max(sizeY + dY, minSize.y);
+      switch (xMode) {
+        case -1 -> { // left
+          int dX = event.position.x - mouseX;
+          int newPosX0 = Math.min(posX + dX, context.windowSize.x - visibility);
+          int newSizeX = Math.max(minSize.x, posX + sizeX - newPosX0);
+          newPos.x = posX + sizeX - newSizeX;
+          newSize.x = newSizeX;
+        }
+        case 1 -> { // right
+          newSize.x = Math.max(sizeX + event.position.x - mouseX,
+              Math.max(minSize.x, visibility - title.pos.x));
+        }
+      }
 
-      newSize.set(newSizeX, newSizeY);
-      setPosition(content.pos, newSize);
-    };
-  }
+      switch (yMode) {
+        case -1 -> { // top
+          int dY = event.position.y - mouseY;
+          int newPosY0 = Math.max(visibility, Math.min(posY + dY,
+              context.windowSize.y + title.size.y - visibility));
+          int newSizeY = Math.max(minSize.y, posY + sizeY - newPosY0);
 
-  private Consumer<MouseEvent> swResize(V2i mousePos) {
-    final V2i newSize = new V2i();
-    final V2i newPos = new V2i();
-    final int mouseX = mousePos.x, mouseY = mousePos.y;
-    final int sizeX = content.size.x, sizeY = content.size.y;
-    final int posX = content.pos.x;
-    return event -> {
-      int visibility = context.toPx(minVisibleDp);
-      V2i minSize = content.minimalSize();
+          newPos.y = posY + sizeY - newSizeY;
+          newSize.y = newSizeY;
+        }
+        case 1 -> { // bottom
+          newSize.y = Math.max(sizeY + event.position.y - mouseY, minSize.y);
+        }
+      }
 
-      // left
-      int dX = event.position.x - mouseX;
-      int newPosX0 = Math.min(posX + dX, context.windowSize.x - visibility);
-      int newSizeX0 = posX + sizeX - newPosX0;
-      int newSizeX = Math.max(minSize.x, newSizeX0);
-      int newPosX = posX + sizeX - newSizeX;
-
-      // bottom
-      int dY = event.position.y - mouseY;
-      int newSizeY = Math.max(sizeY + dY, minSize.y);
-
-      newPos.set(newPosX, content.pos.y);
-      newSize.set(newSizeX, newSizeY);
       setPosition(newPos, newSize);
-    };
-  }
-
-  private Consumer<MouseEvent> topResize(V2i mousePos) {
-    final V2i newSize = new V2i();
-    final V2i newPos = new V2i();
-    final int mouseY = mousePos.y;
-    final int posY = content.pos.y;
-    final int sizeY = content.size.y;
-    return event -> {
-      int visibility = context.toPx(minVisibleDp);
-
-      V2i minSize = content.minimalSize();
-      int dY = event.position.y - mouseY;
-      int newPosY0 = Math.min(posY + dY,
-          context.windowSize.y + title.size.y - visibility);
-      int newSizeY0 = posY + sizeY - newPosY0;
-      int newSizeY = Math.max(minSize.y, newSizeY0);
-      newPos.set(content.pos.x, posY + sizeY - newSizeY);
-      newSize.set(content.size.x, newSizeY);
-      setPosition(newPos, newSize);
-    };
-  }
-
-  private Consumer<MouseEvent> bottomResize(V2i mousePos) {
-    final V2i newSize = new V2i();
-    final int mouseY = mousePos.y;
-    final int sizeY = content.size.y;
-    return event -> {
-      int visibility = context.toPx(minVisibleDp);
-      V2i minSize = content.minimalSize();
-      int dY = event.position.y - mouseY;
-      int newSizeY = Math.max(sizeY + dY, minSize.y);
-      newSize.set(content.size.x, newSizeY);
-      setPosition(content.pos, newSize);
-    };
-  }
-
-  private Consumer<MouseEvent> leftResize(V2i mousePos) {
-    final V2i newSize = new V2i();
-    final V2i newPos = new V2i();
-    final int mouseX = mousePos.x;
-    final int posX = content.pos.x;
-    final int sizeX = content.size.x;
-    return event -> {
-      int visibility = context.toPx(minVisibleDp);
-      V2i minSize = content.minimalSize();
-
-      int dX = event.position.x - mouseX;
-      int newPosX0 = Math.min(posX + dX, context.windowSize.x - visibility);
-      int newSizeX0 = posX + sizeX - newPosX0;
-      int newSizeX = Math.max(minSize.x, newSizeX0);
-
-      newPos.set(posX + sizeX - newSizeX, content.pos.y);
-      newSize.set(newSizeX, content.size.y);
-      setPosition(newPos, newSize);
-    };
-  }
-
-  private Consumer<MouseEvent> rightResize(V2i mousePos) {
-    final V2i newSize = new V2i();
-    final int mouseX = mousePos.x;
-    final int sizeX = content.size.x;
-    return event -> {
-      int visibility = context.toPx(minVisibleDp);
-      V2i minSize = content.minimalSize();
-
-      int dX = event.position.x - mouseX;
-      int newSizeX = Math.max(sizeX + dX,
-          Math.max(minSize.x, visibility - title.pos.x));
-
-      newSize.set(newSizeX, content.size.y);
-      setPosition(content.pos, newSize);
     };
   }
 
@@ -459,5 +320,4 @@ public class Window {
       setPosition(newPos, content.size);
     };
   }
-
 }
