@@ -90,7 +90,7 @@ public class WindowManager implements MouseListener, DprChangeListener {
     return false;
   }
 
-  boolean onScroll(MouseEvent event, float dX, float dY) {
+  public boolean onScroll(MouseEvent event, float dX, float dY) {
     for (int i = 0; i < windows.size(); i++) {
       if (windows.get(i).onScroll(event, dX, dY)) return true;
     }

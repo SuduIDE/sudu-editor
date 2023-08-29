@@ -112,12 +112,6 @@ public class RegionTextureAllocatorDemo extends Scene1 implements MouseListener 
   }
 
   @Override
-  public void onResize(V2i newSize, float dpr) {
-    super.onResize(newSize, dpr);
-    uiContext.onResize(newSize, dpr);
-  }
-
-  @Override
   public void paint() {
     super.paint();
     WglGraphics graphics = api.graphics;

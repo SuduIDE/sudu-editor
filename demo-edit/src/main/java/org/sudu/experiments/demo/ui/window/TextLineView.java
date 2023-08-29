@@ -8,6 +8,7 @@ import org.sudu.experiments.demo.ui.DialogItemColors;
 import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.demo.ui.UiFont;
 import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
@@ -70,10 +71,10 @@ public class TextLineView extends View {
         renderTexture(g);
       }
     }
-    V4f bgColor = theme.toolbarItemColors.bgColor;
+    V4f bgColor = theme.windowTitleBgColor;
     if (texture != null) {
       int width = texture.width();
-      V4f textC = theme.toolbarItemColors.color;
+      V4f textC = theme.windowTitleTextColor;
       g.drawText(pos.x, pos.y, texture.size(), texRect, texture,
           textC, bgColor, 0);
       if (width < size.x) {
@@ -115,7 +116,7 @@ public class TextLineView extends View {
     float lrPadding = (lineHeightF + 5f) / 10;
     int margin = context.toPx(this.margin);
     measured = margin + g.mCanvas.measurePx(font, title, lrPadding * 2);
-    int width = Math.min(measured, size.x);
+    int width = Numbers.clamp(0, measured, size.x);
     if (width == 0) return;
     Canvas canvas = g.createCanvas(width, size.y);
     canvas.setFont(font);

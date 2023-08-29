@@ -37,6 +37,7 @@ public class DemoEdit0 extends Scene {
     uiContext.initFocus(editor);
 
     api.input.onMouse.add(ui);
+    api.input.onScroll.add(ui);
     api.input.onMouse.add(editor);
 
     api.input.onKeyPress.add(KeyEvent::handleSpecialKey);

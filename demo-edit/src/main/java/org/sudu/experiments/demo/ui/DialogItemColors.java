@@ -5,18 +5,20 @@ import org.sudu.experiments.math.Color;
 public class DialogItemColors {
 
   public final FindUsagesItemColors findUsagesColors;
-  public final FindUsagesItemColors findUsagesColorsContinued;
   public final ToolbarItemColors findUsagesColorsError;
-  public final Color dialogBorderColor;
+  public final Color windowBorderColor;
+  public final Color windowTitleBgColor;
+  public final Color windowTitleTextColor;
   public final ToolbarItemColors toolbarItemColors;
   public final ShadowParameters shadowParameters;
 
   public static DialogItemColors darkColorScheme() {
     return new DialogItemColors(
         FindUsagesItemColors.darkFindUsagesItemColors(),
-        FindUsagesItemColors.darkFindUsagesItemColorsExtraLine(),
         FindUsagesItemColors.darkNoUsages(),
         new Color("#616161"),
+        new Color("#393B40"),
+        new Color("#DFE1E5"), // same color for usages text color
         ToolbarItemColors.darkToolbarItemColors(),
         ShadowParameters.darkTheme()
     );
@@ -25,9 +27,10 @@ public class DialogItemColors {
   public static DialogItemColors lightColorScheme() {
     return new DialogItemColors(
         FindUsagesItemColors.lightFindUsagesItemColors(),
-        FindUsagesItemColors.lightFindUsagesItemColorsExtraLine(),
         FindUsagesItemColors.lightNoUsages(),
         new Color("#B9BDC9"),
+        new Color("#F7F8FA"),
+        new Color(0),
         ToolbarItemColors.lightToolbarItemColors(),
         ShadowParameters.lightTheme()
     );
@@ -35,16 +38,18 @@ public class DialogItemColors {
 
   public DialogItemColors(
       FindUsagesItemColors findUsagesItemColors,
-      FindUsagesItemColors findUsagesColorsContinued,
       ToolbarItemColors noUsagesColors,
-      Color dialogBorderColor,
+      Color windowBorderColor,
+      Color windowTitleBgColor,
+      Color windowTitleTextColor,
       ToolbarItemColors toolbarItemColors,
       ShadowParameters shadowParameters
   ) {
     this.findUsagesColors = findUsagesItemColors;
-    this.findUsagesColorsContinued = findUsagesColorsContinued;
     this.findUsagesColorsError = noUsagesColors;
-    this.dialogBorderColor = dialogBorderColor;
+    this.windowBorderColor = windowBorderColor;
+    this.windowTitleBgColor = windowTitleBgColor;
+    this.windowTitleTextColor = windowTitleTextColor;
     this.toolbarItemColors = toolbarItemColors;
     this.shadowParameters = shadowParameters;
   }

@@ -30,6 +30,11 @@ public class ScrollView extends View {
     windowCursor = uiContext.windowCursor;
   }
 
+  @Override
+  public void dispose() {
+    content = Disposable.assign(content, null);
+  }
+
   public void setContent(ScrollContent content) {
     this.content = Disposable.assign(this.content, content);
     this.content.setPosition(pos, size, dpr);
@@ -70,11 +75,11 @@ public class ScrollView extends View {
   }
 
   private boolean needVScroll() {
-    return content.virtualSize.y > size.y;
+    return size.y > 0 && content.virtualSize.y > size.y;
   }
 
   private boolean needHScroll() {
-    return content.virtualSize.x > size.x;
+    return size.x > 0 && content.virtualSize.x > size.x;
   }
 
   private void layoutHScroll() {
@@ -175,12 +180,12 @@ public class ScrollView extends View {
       changeY = 0;
     }
 
-    if (changeY != 0) {
+    if (vScroll != null && changeY != 0) {
       content.setScrollPosY(content.scrollPos.y + changeY);
       layoutVScroll();
     }
 
-    if (changeX != 0) {
+    if (hScroll != null && changeX != 0) {
       content.setScrollPosX(content.scrollPos.x + changeX);
       layoutHScroll();
     }

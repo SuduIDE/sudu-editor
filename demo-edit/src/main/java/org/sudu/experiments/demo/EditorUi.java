@@ -1,8 +1,12 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.Debug;
-import org.sudu.experiments.Window;
 import org.sudu.experiments.demo.ui.*;
+import org.sudu.experiments.demo.ui.window.ScrollView;
+import org.sudu.experiments.demo.ui.window.Window;
+import org.sudu.experiments.demo.ui.window.WindowManager;
+import org.sudu.experiments.fonts.Fonts;
+import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.ArrayOp;
@@ -15,16 +19,19 @@ import java.util.function.Supplier;
 
 import static org.sudu.experiments.demo.ui.ToolbarItemBuilder.ti;
 
-class EditorUi implements MouseListener {
+class EditorUi implements MouseListener, InputListeners.ScrollHandler {
   final UiContext uiContext;
-
-  FindUsagesWindow usagesMenu;
+  UiFont titleFont = new UiFont(Fonts.SegoeUI, 16);
+  WindowManager windowManager;
+  Window usagesMenu;
   PopupMenu popupMenu;
   EditorColorScheme colors;
 
   EditorUi(UiContext context) {
     uiContext = context;
-    usagesMenu = new FindUsagesWindow(uiContext);
+    windowManager = new WindowManager();
+
+
     popupMenu = new PopupMenu(uiContext);
     popupMenu.setFont(new UiFont(
         EditorConst.POPUP_MENU_FONT_NAME,
@@ -33,55 +40,86 @@ class EditorUi implements MouseListener {
 
   void setTheme(EditorColorScheme theme) {
     colors = theme;
-    usagesMenu.setTheme(theme.dialogItemColors);
+    if (usagesMenu != null) usagesMenu.setTheme(theme.dialogItemColors);
     popupMenu.setTheme(theme.dialogItemColors);
   }
 
   void dispose() {
     popupMenu.dispose();
-    usagesMenu.dispose();
+    if (usagesMenu != null) {
+      disposeUsagesWindow();
+    }
+    windowManager.dispose();
   }
 
   void paint() {
-    usagesMenu.paint();
+    windowManager.draw(uiContext.graphics);
     popupMenu.paint();
   }
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
-    return usagesMenu.onMouseMove(event.position)
+    return windowManager.onMouseMove(event)
         || popupMenu.onMouseMove(event);
   }
 
   @Override
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-    return usagesMenu.onMouseClick(event.position, button, clickCount)
+    return windowManager.onMouseClick(event, button, clickCount)
         || popupMenu.onMouseClick(event, button, clickCount);
   }
 
   @Override
   public boolean onMouseDown(MouseEvent event, int button) {
-    return usagesMenu.onMouse(event, button)
+    return windowManager.onMouseDown(event, button)
         || popupMenu.onMouseDown(event, button);
   }
 
   @Override
   public boolean onMouseUp(MouseEvent event, int button) {
-    return usagesMenu.onMouse(event, button)
+    return windowManager.onMouseUp(event, button)
         || popupMenu.onMouseUp(event, button);
   }
 
   void showUsagesWindow(V2i position, List<Pos> usagesList, EditorComponent editor) {
-    showUsagesWindow(position, editor, usagesMenu.buildUsagesItems(usagesList, editor));
+    showUsagesWindow(position, editor, FindUsagesItemBuilder.buildUsagesItems(usagesList, editor));
   }
 
   void showUsagesWindow(V2i position, Location[] locs, EditorComponent editor) {
-    showUsagesWindow(position, editor, usagesMenu.buildDefItems(locs, editor));
+    showUsagesWindow(position, editor, FindUsagesItemBuilder.buildDefItems(locs, editor));
   }
 
-  void showUsagesWindow(V2i position, EditorComponent editor, FindUsagesItem[] actions) {
-    usagesMenu.hide();
-    usagesMenu.display(position, actions, setEditFocus(editor));
+  void showUsagesWindow(V2i position, EditorComponent editor, FindUsagesItemData[] actions) {
+    if (usagesMenu != null) disposeUsagesWindow();
+    FindUsagesView usagesView = new FindUsagesView(uiContext, () -> {
+      uiContext.setFocus(editor);
+      disposeUsagesWindow();
+    });
+
+    usagesView.setFont(new UiFont(
+        EditorConst.FIND_USAGES_FONT_NAME,
+        EditorConst.FIND_USAGES_FONT_SIZE
+    ));
+    usagesView.setItems(actions);
+    usagesView.setTheme(colors.dialogItemColors);
+
+    usagesMenu = new Window(uiContext);
+    usagesMenu.setContent(new ScrollView(usagesView, uiContext));
+    usagesMenu.setTitle("Find Usages", titleFont, 4);
+    usagesMenu.setTheme(colors.dialogItemColors);
+    windowManager.addWindow(usagesMenu);
+    int minY = usagesMenu.titleHeight() + uiContext.toPx(2);
+    V2i limitedPosition = usagesView.setLimitedPosition(position, minY);
+    V2i size = usagesView.calculateSize(limitedPosition);
+    usagesMenu.setPosition(limitedPosition, size);
+
+    uiContext.setFocus(usagesView);
+  }
+
+  private void disposeUsagesWindow() {
+    windowManager.removeWindow(usagesMenu);
+    usagesMenu.dispose();
+    usagesMenu = null;
   }
 
   void displayNoUsagesPopup(V2i position, EditorComponent edit) {
@@ -108,6 +146,11 @@ class EditorUi implements MouseListener {
           new PopupMenuBuilder(editor, demoEdit0).build(event.position),
           setEditFocus(editor));
     }
+  }
+
+  @Override
+  public boolean onScroll(MouseEvent event, float dX, float dY) {
+    return windowManager.onScroll(event, dX, dY);
   }
 
   class PopupMenuBuilder {
@@ -142,7 +185,7 @@ class EditorUi implements MouseListener {
       }
     }
 
-    Window window() { return demoEdit0.uiContext.window; }
+    org.sudu.experiments.Window window() { return demoEdit0.uiContext.window; }
 
     private void pasteAction() {
       popupMenu.hide();

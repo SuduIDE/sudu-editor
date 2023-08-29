@@ -86,7 +86,7 @@ public class Window {
 
     WindowPaint.drawInnerFrame(g,
         size, noTitle ? content.pos : title.pos,
-        theme.dialogBorderColor, -border, temp);
+        theme.windowBorderColor, -border, temp);
 
     WindowPaint.drawShadow(g,
         content.size, content.pos, border, titleHeight,
@@ -155,17 +155,21 @@ public class Window {
         return handler;
       }
     }
-    var handler = content.onMouseDown(event, button);
+    var handler = title.hitTest(event.position)
+        ? View.Static.emptyConsumer : content.onMouseDown(event, button);
+    if (content == null) return null;
     return handler != null ? handler : content.hitTest(event.position)
         ? View.Static.emptyConsumer : null;
   }
 
   boolean onMouseUp(MouseEvent event, int button) {
-    return content.onMouseUp(event, button);
+    return title.hitTest(event.position) ||
+        content.hitTest(event.position) && content.onMouseUp(event, button);
   }
 
   boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-    return content.hitTest(event.position) &&
+    return title.hitTest(event.position) ||
+        content.hitTest(event.position) &&
         content.onMouseClick(event, button, clickCount);
   }
 
@@ -319,5 +323,9 @@ public class Window {
       newPos.set(mX + diffCx, mY + diffCy);
       setPosition(newPos, content.size);
     };
+  }
+
+  public int titleHeight() {
+    return title.size.y + context.toPx(borderDrawDp);
   }
 }

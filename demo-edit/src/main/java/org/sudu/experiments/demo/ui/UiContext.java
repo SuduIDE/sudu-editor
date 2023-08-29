@@ -21,6 +21,7 @@ public class UiContext {
       = new Subscribers<>(new DprChangeListener[0]);
 
   public final V2i v2i1 = new V2i(), v2i2 = new V2i();
+  public final V4f v4f1 = new V4f(), v4f2 = new V4f();
 
   public UiContext(SceneApi api) {
     this.graphics = api.graphics;

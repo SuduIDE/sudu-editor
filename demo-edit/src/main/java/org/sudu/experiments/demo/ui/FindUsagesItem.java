@@ -1,61 +1,90 @@
 package org.sudu.experiments.demo.ui;
 
-import org.sudu.experiments.demo.DemoRect;
-import org.sudu.experiments.demo.TextRect;
+import org.sudu.experiments.GL;
+import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
+
+import java.util.function.ToIntFunction;
 
 public class FindUsagesItem {
-  final TextRect tFiles = new TextRect();
-  final TextRect tLines = new TextRect();
-  final TextRect tContent = new TextRect();
-  final DemoRect rectFiles = new DemoRect();
-  final DemoRect rectLines = new DemoRect();
-  final DemoRect rectContent = new DemoRect();
-  final Runnable action;
-  FindUsagesItemColors colors;
-  String fileName, lineNumber, codeContent;
+  V4f tFiles;
+  V4f tLines;
+  V4f tContent;
+  final V2i sizeFiles = new V2i();
+  final V2i sizeLines = new V2i();
+  final V2i sizeContent = new V2i();
+  final FindUsagesItemData data;
 
-  public FindUsagesItem(Runnable r, String fileName, String lineNumber, String codeContent, FindUsagesItemColors colors) {
-    this.fileName = fileName;
-    this.lineNumber = lineNumber;
-    this.codeContent = codeContent;
-    this.colors = colors;
-    action = r;
-    tFiles.color.set(colors.fileColor);
-    tFiles.bgColor.set(colors.bgColor);
-    tLines.color.set(colors.lineColor);
-    tLines.bgColor.set(colors.bgColor);
-    tContent.color.set(colors.contentColor);
-    tContent.bgColor.set(colors.bgColor);
-    rectFiles.color.set(colors.bgColor);
-    rectLines.color.set(colors.bgColor);
-    rectContent.color.set(colors.bgColor);
+  public FindUsagesItem(FindUsagesItemData data, FindUsagesItemColors colors) {
+    this.data = data;
   }
 
-  public void setHover(boolean b) {
-    tFiles.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
-    tLines.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
-    tContent.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
-    rectFiles.color.set(b ? colors.bgHighlight : colors.bgColor);
-    rectLines.color.set(b ? colors.bgHighlight : colors.bgColor);
-    rectContent.color.set(b ? colors.bgHighlight : colors.bgColor);
+  public void draw(WglGraphics g, GL.Texture texture, int scrollX) {
+//    tFiles.drawText(g, texture, 0, 0, 1);
+//    tLines.drawText(g, texture, tFiles.size.x, 0, 1);
+//    tContent.drawText(g, texture, tFiles.size.x + tLines.size.x, 0, 1);
   }
 
-  public void setTheme(FindUsagesItemColors findUsagesItemColors) {
-    colors = findUsagesItemColors;
-    tFiles.setColors(
-        findUsagesItemColors.fileColor,
-        findUsagesItemColors.bgColor
-    );
-    tLines.setColors(
-        findUsagesItemColors.lineColor,
-        findUsagesItemColors.bgColor
-    );
-    tContent.setColors(
-        findUsagesItemColors.contentColor,
-        findUsagesItemColors.bgColor
-    );
-    rectFiles.bgColor.set(findUsagesItemColors.bgColor);
-    rectLines.bgColor.set(findUsagesItemColors.bgColor);
-    rectContent.bgColor.set(findUsagesItemColors.bgColor);
+  static FindUsagesItem[] reallocRenderLines(
+      int newSize,
+      FindUsagesItem[] lines, int first, int last,
+      FindUsagesItemData[] data,
+      RegionTexture regionTexture,
+      FindUsagesItemColors c,
+      ToIntFunction<String> m
+  ) {
+    FindUsagesItem[] r = new FindUsagesItem[newSize];
+    if (lines.length > 0) for (int i = first; i <= last; i++) {
+      FindUsagesItemData d = data[i];
+      int newIndex = i % r.length;
+      int oldIndex = i % lines.length;
+      FindUsagesItem oldItem = lines[oldIndex];
+      if (oldItem != null && oldItem.data != d) {
+        free(regionTexture, oldItem);
+        r[newIndex] = allocNewItem(d, c, regionTexture, m);
+        lines[oldIndex] = null;
+      } else if (oldItem != null && r[newIndex] == null) {
+        r[newIndex] = oldItem;
+        lines[oldIndex] = null;
+      } else {
+        r[newIndex] = allocNewItem(d, c, regionTexture, m);
+      }
+    } else if (newSize > 0) for (int i = first; i <= last; i++) {
+      FindUsagesItemData d = data[i];
+      int newIndex = i % r.length;
+      r[newIndex] = allocNewItem(d, c, regionTexture, m);
+    }
+    for (int i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      if (line != null) {
+        free(regionTexture, line);
+        lines[i] = null;
+      }
+    }
+    return r;
+  }
+
+  private static FindUsagesItem allocNewItem(
+      FindUsagesItemData d,
+      FindUsagesItemColors c,
+      RegionTexture regionTexture,
+      ToIntFunction<String> m
+  ) {
+    FindUsagesItem res = new FindUsagesItem(d, c);
+    res.tFiles = regionTexture.alloc(d.fileName, m);
+    res.sizeFiles.set((int) res.tFiles.z, (int) res.tFiles.w);
+    res.tLines = regionTexture.alloc(d.lineNumber, m);
+    res.sizeLines.set((int) res.tLines.z, (int) res.tLines.w);
+    res.tContent = regionTexture.alloc(d.codeContent, m);
+    res.sizeContent.set((int) res.tContent.z, (int) res.tContent.w);
+
+    return res;
+  }
+
+  private static void free(RegionTexture regionTexture, FindUsagesItem item) {
+    regionTexture.free(item.tFiles);
+    regionTexture.free(item.tLines);
+    regionTexture.free(item.tContent);
   }
 }

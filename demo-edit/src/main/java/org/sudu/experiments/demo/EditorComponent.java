@@ -225,14 +225,6 @@ public class EditorComponent implements Focusable, MouseListener {
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
-    // TODO: Remove min value when texture allocator appears
-    ui.usagesMenu.setFont(g.fontDesk(
-        name,
-        Math.min(EditorConst.MAX_FONT_SIZE_USAGES_WINDOW, font.size),
-        font.weight,
-        font.style)
-    );
-
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight
         + ", lineHeight = " + lineHeight
@@ -785,7 +777,12 @@ public class EditorComponent implements Focusable, MouseListener {
     parsingTimeStart = System.currentTimeMillis();
     fileStructureParsed = false;
     firstLinesParsed = false;
-    model.document = new Document();
+
+    model = new Model(
+        new String[] {""},
+        null,
+        new Uri("", "", f.getName(), null)
+    );
     setCaretLinePos(0, 0, false);
     sendFileToWorkers(f);
   }
@@ -1023,7 +1020,6 @@ public class EditorComponent implements Focusable, MouseListener {
   }
 
   void onClickText(MouseEvent event) {
-    saveToNavStack();
     V2i eventPosition = event.position;
     Pos pos = computeCharPos(eventPosition);
     Pos elementPos = model.document.getElementStart(pos.line, pos.pos);
@@ -1039,15 +1035,6 @@ public class EditorComponent implements Focusable, MouseListener {
       }
     }
 
-    moveCaret(pos);
-    computeUsages(pos, elementPos);
-
-    if (!event.shift && !selection.isSelectionStarted) {
-      selection.startPos.set(caretLine, caretCharPos);
-    }
-    selection.isSelectionStarted = true;
-    selection.select(caretLine, caretCharPos);
-    dragLock = this::dragText;
   }
 
   private void dragText(MouseEvent event) {
@@ -1192,22 +1179,39 @@ public class EditorComponent implements Focusable, MouseListener {
       dragLock = hScroll.onMouseDown(event.position, hScrollHandler, false);
       if (dragLock != null) return true;
 
-      onClickText(event);
+      saveToNavStack();
+      V2i eventPosition = event.position;
+      Pos pos = computeCharPos(eventPosition);
+      Pos elementPos = model.document.getElementStart(pos.line, pos.pos);
+
+      moveCaret(pos);
+      computeUsages(pos, elementPos);
+
+      if (!event.shift && !selection.isSelectionStarted) {
+        selection.startPos.set(caretLine, caretCharPos);
+      }
+
+      selection.isSelectionStarted = true;
+      selection.select(caretLine, caretCharPos);
+      dragLock = this::dragText;
     }
     return true;
   }
 
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-    if (button == MOUSE_BUTTON_LEFT && clickCount == 3) {
-      onTripleClickText(event.position);
-      navStack.pop();
-      saveToNavStack();
-      return true;
-    }
-    if (button == MOUSE_BUTTON_LEFT && clickCount == 2) {
-      onDoubleClickText(event.position);
-      saveToNavStack();
-      return true;
+    if (button == MOUSE_BUTTON_LEFT) {
+      switch (clickCount) {
+        case 3 -> {
+          onTripleClickText(event.position);
+          navStack.pop();
+          saveToNavStack();
+        }
+        case 2 -> {
+          onDoubleClickText(event.position);
+          saveToNavStack();
+        }
+        case 1 -> onClickText(event);
+      }
     }
     return true;
   }

@@ -2,6 +2,8 @@ package org.sudu.experiments.demo;
 
 public interface StartFile {
 
+  String START_CODE_FILE = "example.java";
+
   String START_CODE_JAVA = """
       package sudu.editor;
       
