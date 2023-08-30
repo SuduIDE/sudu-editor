@@ -957,23 +957,26 @@ public class EditorComponent implements Focusable, MouseListener {
   public void findUsages(V2i position, DefDeclProvider.Provider provider) {
 
     Pos pos = computeCharPos(position);
+    Pos startPos = model.document.getElementStart(pos.line, pos.pos);
+    String elementName = getElementNameByStartPos(startPos);
+
     if (provider != null) {
-      provider.provide(model, pos.line, pos.pos, (locs) -> gotoDefinition(position, locs), onError);
+      provider.provide(model, pos.line, pos.pos,
+          (locs) -> gotoDefinition(position, locs, elementName), onError);
       return;
     }
 
-    model.document.moveToElementStart(pos);
-    Pos def = model.document.usageToDef.get(pos);
+    Pos def = model.document.usageToDef.get(startPos);
     if (def != null) {
       gotoUsage(def);
       return;
     }
 
-    List<Pos> usages = model.document.defToUsages.get(pos);
+    List<Pos> usages = model.document.defToUsages.get(startPos);
     if (usages == null || usages.isEmpty()) {
       ui.displayNoUsagesPopup(position, this);
     } else {
-      ui.showUsagesWindow(position, usages, this);
+      ui.showUsagesWindow(position, usages, this, elementName);
     }
   }
 
@@ -985,7 +988,9 @@ public class EditorComponent implements Focusable, MouseListener {
     if (pos.isEmpty()) {
       ui.displayNoUsagesPopup(position, this);
     } else {
-      ui.showUsagesWindow(position, locs, this);
+      Pos charPos = computeCharPos(position);
+      Pos startPos = model.document.getElementStart(charPos.line, charPos.pos);
+      ui.showUsagesWindow(position, locs, this, getElementNameByStartPos(startPos));
     }
   }
 
@@ -1025,16 +1030,17 @@ public class EditorComponent implements Focusable, MouseListener {
   void onClickText(MouseEvent event) {
     V2i eventPosition = event.position;
     Pos pos = computeCharPos(eventPosition);
-    Pos elementPos = model.document.getElementStart(pos.line, pos.pos);
+    Pos startPos = model.document.getElementStart(pos.line, pos.pos);
+    String elementName = getElementNameByStartPos(startPos);
 
     if (event.ctrl) {
       var provider = registrations.findDefinitionProvider(model.language(), model.uriScheme());
       if (provider != null) {
         provider.provide(model, pos.line, pos.pos,
-            (locs) -> gotoDefinition(eventPosition, locs), onError);
+            (locs) -> gotoDefinition(eventPosition, locs, elementName), onError);
       } else {
         // Default def provider
-        if (gotoByLocalProvider(eventPosition, elementPos)) return;
+        if (gotoByLocalProvider(eventPosition, startPos, elementName)) return;
       }
     }
 
@@ -1054,7 +1060,7 @@ public class EditorComponent implements Focusable, MouseListener {
     startBlinking();
   }
 
-  private boolean gotoByLocalProvider(V2i position, Pos elementStart) {
+  private boolean gotoByLocalProvider(V2i position, Pos elementStart, String elementName) {
     var defPos = model.document.usageToDef.get(elementStart);
     if (defPos != null) {
       gotoUsage(defPos);
@@ -1066,7 +1072,7 @@ public class EditorComponent implements Focusable, MouseListener {
           gotoUsage(usagesList.get(0));
           return true;
         } else {
-          ui.showUsagesWindow(position, usagesList, this);
+          ui.showUsagesWindow(position, usagesList, this, elementName);
           return true;
         }
       }
@@ -1074,11 +1080,11 @@ public class EditorComponent implements Focusable, MouseListener {
     return false;
   }
 
-  private void gotoDefinition(V2i position, Location[] locs) {
+  private void gotoDefinition(V2i position, Location[] locs, String elementName) {
     switch (locs.length) {
       case 0 -> ui.displayNoUsagesPopup(position,this);
       case 1 -> gotoDefinition(locs[0]);
-      default -> ui.showUsagesWindow(position, locs, this);
+      default -> ui.showUsagesWindow(position, locs, this, elementName);
     }
   }
 
@@ -1596,5 +1602,11 @@ public class EditorComponent implements Focusable, MouseListener {
 
   public char[] getChars() {
     return model.document.getChars();
+  }
+
+  private String getElementNameByStartPos(Pos startPos) {
+    CodeElement codeElement = model.document.getCodeElement(startPos);
+    if (codeElement != null) return codeElement.s;
+    return "";
   }
 }
