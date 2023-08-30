@@ -125,6 +125,10 @@ public abstract class WglGraphics {
     return oldMode;
   }
 
+  public void enableScissor(V2i pos, V2i size) {
+    enableScissor(pos.x, pos.y, size);
+  }
+
   // x, y - upper left, same coordinate system as drawRect
   // unlike webgl scissor coordinates which goes from lower left
   public void enableScissor(int x, int y, V2i size) {

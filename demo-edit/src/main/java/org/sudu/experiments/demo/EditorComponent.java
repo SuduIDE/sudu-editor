@@ -353,6 +353,7 @@ public class EditorComponent implements Focusable, MouseListener {
     }
 
     g.enableBlend(false);
+    g.enableScissor(compPos, compSize);
 
     drawVerticalLine();
     vScrollPos = Math.min(vScrollPos, maxVScrollPos());
@@ -411,6 +412,8 @@ public class EditorComponent implements Focusable, MouseListener {
 
     layoutScrollbar();
     drawScrollBar();
+
+    g.disableScissor();
 
 //    g.checkError("paint complete");
     if (0>1) {
