@@ -118,19 +118,14 @@ public class FindUsagesView extends ScrollContent implements Focusable {
         Numbers.iDivRoundUp(size.y, textHeight),
         items.length
     ) + 30;
-    firstLineRendered = getFirstLine();
-    lastLineRendered = getLastLine();
-    int cachedBounds = (cacheLines - (lastLineRendered - firstLineRendered + 1)) / 2;
-    int cachedStart = Math.max(0, firstLineRendered - cachedBounds);
-    int cachedEnd = Math.min(items.length - 1, lastLineRendered + cachedBounds);
     FindUsagesItemColors theme = this.theme.findUsagesColors;
 
     if (view.length < cacheLines) {
       view = FindUsagesItem.reallocRenderLines(
           cacheLines,
           view,
-          cachedStart,
-          cachedEnd,
+          firstLineRendered,
+          lastLineRendered,
           items,
           regionTexture,
           measureWithPad
@@ -139,8 +134,11 @@ public class FindUsagesView extends ScrollContent implements Focusable {
       renderTexture(context.graphics);
     }
 
+    firstLineRendered = getFirstLine();
+    lastLineRendered = getLastLine();
+
     if (view.length == 0) return;
-    checkCached(cachedStart, cachedEnd, measureWithPad);
+    checkCached(measureWithPad);
     enableScissor(g);
 
     // background
@@ -186,24 +184,17 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     disableScissor(g);
   }
 
-  private void checkCached(int cachedStart, int cachedEnd, ToIntFunction<String> m) {
-    boolean flag = false;
-
+  private void checkCached(ToIntFunction<String> m) {
+    boolean rerender = false;
     for (int i = firstLineRendered; i <= lastLineRendered; i++) {
       FindUsagesItem item = itemView(i);
       if (item == null || item.data != items[i]) {
-        flag = true;
-        break;
+        FindUsagesItem.setNewItem(view, items, regionTexture, m, i);
+        rerender = true;
       }
     }
 
-    if (flag) {
-      for (int i = cachedStart; i <= cachedEnd; i++) {
-        FindUsagesItem item = itemView(i);
-        if (item == null || item.data != items[i]) {
-          FindUsagesItem.setNewItem(view, items, regionTexture, m, i);
-        }
-      }
+    if (rerender) {
       textureSize.set(regionTexture.getTextureSize());
       renderTexture(context.graphics);
     }
