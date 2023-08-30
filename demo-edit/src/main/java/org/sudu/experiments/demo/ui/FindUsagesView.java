@@ -209,10 +209,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     }
   }
 
-  int c = 0;
-
   private void renderTexture(WglGraphics g) {
-    Debug.consoleInfo("redner texture " + c++);
     Canvas canvas = g.createCanvas(textureSize.x + 150, textureSize.y);
     canvas.setFont(font);
     float baseline = font.fAscent - (font.fAscent + font.fDescent) / 16;
