@@ -81,15 +81,15 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
         || popupMenu.onMouseUp(event, button);
   }
 
-  void showUsagesWindow(V2i position, List<Pos> usagesList, EditorComponent editor) {
-    showUsagesWindow(position, editor, FindUsagesItemBuilder.buildUsagesItems(usagesList, editor));
+  void showUsagesWindow(V2i position, List<Pos> usagesList, EditorComponent editor, String elementName) {
+    showUsagesWindow(position, editor, FindUsagesItemBuilder.buildUsagesItems(usagesList, editor), elementName);
   }
 
-  void showUsagesWindow(V2i position, Location[] locs, EditorComponent editor) {
-    showUsagesWindow(position, editor, FindUsagesItemBuilder.buildDefItems(locs, editor));
+  void showUsagesWindow(V2i position, Location[] locs, EditorComponent editor, String elementName) {
+    showUsagesWindow(position, editor, FindUsagesItemBuilder.buildDefItems(locs, editor), elementName);
   }
 
-  void showUsagesWindow(V2i position, EditorComponent editor, FindUsagesItemData[] actions) {
+  void showUsagesWindow(V2i position, EditorComponent editor, FindUsagesItemData[] actions, String elementName) {
     if (usagesMenu != null) disposeUsagesWindow();
     FindUsagesView usagesView = new FindUsagesView(uiContext, () -> {
       uiContext.setFocus(editor);
@@ -105,7 +105,7 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
     usagesMenu = new Window(uiContext);
     usagesMenu.setContent(new ScrollView(usagesView, uiContext));
-    usagesMenu.setTitle("Find Usages", titleFont, 4);
+    usagesMenu.setTitle("Usages of " + elementName, titleFont, 4);
     usagesMenu.setTheme(colors.dialogItemColors);
     windowManager.addWindow(usagesMenu);
     int minY = usagesMenu.titleHeight() + uiContext.toPx(2);
