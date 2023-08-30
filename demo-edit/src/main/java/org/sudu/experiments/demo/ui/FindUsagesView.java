@@ -133,11 +133,9 @@ public class FindUsagesView extends ScrollContent implements Focusable {
           cachedEnd,
           items,
           regionTexture,
-          theme,
           measureWithPad
       );
       textureSize.set(regionTexture.getTextureSize());
-//      if (textureSize.x * textureSize.y == 0) return;
       renderTexture(context.graphics);
     }
 
@@ -203,7 +201,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
       for (int i = cachedStart; i <= cachedEnd; i++) {
         FindUsagesItem item = itemView(i);
         if (item == null || item.data != items[i]) {
-          FindUsagesItem.setNewItem(view, items, regionTexture, theme.findUsagesColors, m, i);
+          FindUsagesItem.setNewItem(view, items, regionTexture, m, i);
         }
       }
       textureSize.set(regionTexture.getTextureSize());

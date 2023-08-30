@@ -1,7 +1,5 @@
 package org.sudu.experiments.demo.ui;
 
-import org.sudu.experiments.GL;
-import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
@@ -16,14 +14,8 @@ public class FindUsagesItem {
   final V2i sizeContent = new V2i();
   final FindUsagesItemData data;
 
-  public FindUsagesItem(FindUsagesItemData data, FindUsagesItemColors colors) {
+  public FindUsagesItem(FindUsagesItemData data) {
     this.data = data;
-  }
-
-  public void draw(WglGraphics g, GL.Texture texture, int scrollX) {
-//    tFiles.drawText(g, texture, 0, 0, 1);
-//    tLines.drawText(g, texture, tFiles.size.x, 0, 1);
-//    tContent.drawText(g, texture, tFiles.size.x + tLines.size.x, 0, 1);
   }
 
   static FindUsagesItem[] reallocRenderLines(
@@ -31,7 +23,6 @@ public class FindUsagesItem {
       FindUsagesItem[] lines, int first, int last,
       FindUsagesItemData[] data,
       RegionTexture regionTexture,
-      FindUsagesItemColors c,
       ToIntFunction<String> m
   ) {
     FindUsagesItem[] r = new FindUsagesItem[newSize];
@@ -42,18 +33,18 @@ public class FindUsagesItem {
       FindUsagesItem oldItem = lines[oldIndex];
       if (oldItem != null && oldItem.data != d) {
         free(regionTexture, oldItem);
-        r[newIndex] = allocNewItem(d, c, regionTexture, m);
+        r[newIndex] = allocNewItem(d, regionTexture, m);
         lines[oldIndex] = null;
       } else if (oldItem != null && r[newIndex] == null) {
         r[newIndex] = oldItem;
         lines[oldIndex] = null;
       } else {
-        r[newIndex] = allocNewItem(d, c, regionTexture, m);
+        r[newIndex] = allocNewItem(d, regionTexture, m);
       }
     } else if (newSize > 0) for (int i = first; i <= last; i++) {
       FindUsagesItemData d = data[i];
       int newIndex = i % r.length;
-      r[newIndex] = allocNewItem(d, c, regionTexture, m);
+      r[newIndex] = allocNewItem(d, regionTexture, m);
     }
     for (int i = 0; i < lines.length; i++) {
       var line = lines[i];
@@ -69,22 +60,20 @@ public class FindUsagesItem {
       FindUsagesItem[] lines,
       FindUsagesItemData[] data,
       RegionTexture regionTexture,
-      FindUsagesItemColors c,
       ToIntFunction<String> m,
       int l
   ) {
     int index = l % lines.length;
     if (lines[index] != null) free(regionTexture, lines[index]);
-    lines[index] = allocNewItem(data[l], c, regionTexture, m);
+    lines[index] = allocNewItem(data[l], regionTexture, m);
   }
 
   private static FindUsagesItem allocNewItem(
       FindUsagesItemData d,
-      FindUsagesItemColors c,
       RegionTexture regionTexture,
       ToIntFunction<String> m
   ) {
-    FindUsagesItem res = new FindUsagesItem(d, c);
+    FindUsagesItem res = new FindUsagesItem(d);
     res.tFiles = regionTexture.alloc(d.fileName, m);
     res.sizeFiles.set((int) res.tFiles.z, (int) res.tFiles.w);
     res.tLines = regionTexture.alloc(d.lineNumber, m);
