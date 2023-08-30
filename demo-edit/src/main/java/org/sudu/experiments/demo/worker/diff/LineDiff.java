@@ -12,10 +12,6 @@ public class LineDiff {
     this.diffM = new ArrayList<>();
   }
 
-  public boolean isNotEmpty() {
-    return !diffN.isEmpty() && !diffM.isEmpty();
-  }
-
   @Override
   public String toString() {
     return diffN + " --> " + diffM;
