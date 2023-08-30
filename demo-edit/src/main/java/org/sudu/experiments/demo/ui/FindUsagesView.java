@@ -7,10 +7,12 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.*;
+import org.sudu.experiments.math.Numbers;
+import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 
-import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.ToIntFunction;
 
 public class FindUsagesView extends ScrollContent implements Focusable {
   private final UiContext context;
@@ -66,9 +68,9 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   public void setFont(UiFont font) {
     uiFont = font;
-    this.font = context.fontDesk(uiFont);
-    regionTexture = new RegionTexture(this.font.lineHeight());
-    textXPad = Numbers.iRnd(this.font.WWidth);
+    this.font = null;
+    regionTexture = null;
+    textXPad = 0;
     invalidateTexture();
   }
 
@@ -92,10 +94,10 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   @Override
   protected void onDprChange(float olDpr, float newDpr) {
     measure();
-    this.font = context.fontDesk(uiFont);
     border = DprUtil.toPx(2, context.dpr);
-    regionTexture = new RegionTexture(this.font.lineHeight());
-    textXPad = Numbers.iRnd(this.font.WWidth);
+    this.font = null;
+    regionTexture = null;
+    textXPad = 0;
   }
 
   @Override
@@ -107,30 +109,18 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   protected void draw(WglGraphics g) {
     Canvas mCanvas = context.mCanvas();
     if (isEmpty()) return;
-    Objects.requireNonNull(font);
+    requireFont();
     mCanvas.setFont(font);
-    int textHeight = font.lineHeight();
+    int textHeight = getLineHeight();
     var measureWithPad = RegionTextureAllocator.measuringWithWPad(mCanvas, textXPad);
 
     int cacheLines = Math.min(
-        Numbers.iDivRoundUp(rect.size.y, textHeight),
+        Numbers.iDivRoundUp(size.y, textHeight),
         items.length
     ) + 30;
-    boolean realloc = false;
-    firstLineRendered = getFirstLine();
-    lastLineRendered = getLastLine();
-    if (view.length > 0) {
-      for (int i = firstLineRendered; i <= lastLineRendered; i++) {
-        FindUsagesItem item = itemView(i);
-        if (item == null || item.data != items[i]) {
-          realloc = true;
-          break;
-        }
-      }
-    } else realloc = true;
-
     FindUsagesItemColors theme = this.theme.findUsagesColors;
-    if (realloc) {
+
+    if (view.length < cacheLines) {
       view = FindUsagesItem.reallocRenderLines(
           cacheLines,
           view,
@@ -138,15 +128,17 @@ public class FindUsagesView extends ScrollContent implements Focusable {
           lastLineRendered,
           items,
           regionTexture,
-          theme,
           measureWithPad
       );
       textureSize.set(regionTexture.getTextureSize());
-      if (textureSize.x * textureSize.y == 0) return;
       renderTexture(context.graphics);
     }
 
+    firstLineRendered = getFirstLine();
+    lastLineRendered = getLastLine();
+
     if (view.length == 0) return;
+    checkCached(measureWithPad);
     enableScissor(g);
 
     // background
@@ -192,6 +184,22 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     disableScissor(g);
   }
 
+  private void checkCached(ToIntFunction<String> m) {
+    boolean rerender = false;
+    for (int i = firstLineRendered; i <= lastLineRendered; i++) {
+      FindUsagesItem item = itemView(i);
+      if (item == null || item.data != items[i]) {
+        FindUsagesItem.setNewItem(view, items, regionTexture, m, i);
+        rerender = true;
+      }
+    }
+
+    if (rerender) {
+      textureSize.set(regionTexture.getTextureSize());
+      renderTexture(context.graphics);
+    }
+  }
+
   private void renderTexture(WglGraphics g) {
     Canvas canvas = g.createCanvas(textureSize.x + 150, textureSize.y);
     canvas.setFont(font);
@@ -223,7 +231,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   @Override
   protected void updateVirtualSize() {
-    // TODO: compute font
+    requireFont();
     int height = getLineHeight() * items.length + border * (items.length + 1);
     virtualSize.set(size.x, height);
   }
@@ -248,7 +256,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   private void measure() {
     Canvas mCanvas = context.mCanvas();
     if (isEmpty()) return;
-    Objects.requireNonNull(font);
+    requireFont();
     mCanvas.setFont(font);
     var measureWithPad = RegionTextureAllocator.measuringWithWPad(mCanvas, textXPad);
 
@@ -312,6 +320,14 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   private int getLastLine() {
     return Math.min((scrollPos.y + rect.size.y - 1 + border) / (getLineHeight() + border), items.length - 1);
+  }
+
+  private void requireFont() {
+    if (font == null) {
+      font = context.fontDesk(uiFont);
+      regionTexture = new RegionTexture(this.font.lineHeight());
+      textXPad = Numbers.iRnd(this.font.WWidth);
+    }
   }
 
   @Override
