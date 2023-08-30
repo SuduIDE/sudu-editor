@@ -65,6 +65,19 @@ public class FindUsagesItem {
     return r;
   }
 
+  public static void setNewItem(
+      FindUsagesItem[] lines,
+      FindUsagesItemData[] data,
+      RegionTexture regionTexture,
+      FindUsagesItemColors c,
+      ToIntFunction<String> m,
+      int l
+  ) {
+    int index = l % lines.length;
+    if (lines[index] != null) free(regionTexture, lines[index]);
+    lines[index] = allocNewItem(data[l], c, regionTexture, m);
+  }
+
   private static FindUsagesItem allocNewItem(
       FindUsagesItemData d,
       FindUsagesItemColors c,

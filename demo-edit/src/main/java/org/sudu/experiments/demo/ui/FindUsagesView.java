@@ -7,10 +7,12 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.*;
+import org.sudu.experiments.math.Numbers;
+import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 
-import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.ToIntFunction;
 
 public class FindUsagesView extends ScrollContent implements Focusable {
   private final UiContext context;
@@ -109,44 +111,38 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     if (isEmpty()) return;
     requireFont();
     mCanvas.setFont(font);
-    int textHeight = font.lineHeight();
+    int textHeight = getLineHeight();
     var measureWithPad = RegionTextureAllocator.measuringWithWPad(mCanvas, textXPad);
 
     int cacheLines = Math.min(
-        Numbers.iDivRoundUp(rect.size.y, textHeight),
+        Numbers.iDivRoundUp(size.y, textHeight),
         items.length
     ) + 30;
-    boolean realloc = false;
     firstLineRendered = getFirstLine();
     lastLineRendered = getLastLine();
-    if (view.length > 0) {
-      for (int i = firstLineRendered; i <= lastLineRendered; i++) {
-        FindUsagesItem item = itemView(i);
-        if (item == null || item.data != items[i]) {
-          realloc = true;
-          break;
-        }
-      }
-    } else realloc = true;
-
+    int cachedBounds = (cacheLines - (lastLineRendered - firstLineRendered + 1)) / 2;
+    int cachedStart = Math.max(0, firstLineRendered - cachedBounds);
+    int cachedEnd = Math.min(items.length - 1, lastLineRendered + cachedBounds);
     FindUsagesItemColors theme = this.theme.findUsagesColors;
-    if (realloc) {
+
+    if (view.length < cacheLines) {
       view = FindUsagesItem.reallocRenderLines(
           cacheLines,
           view,
-          firstLineRendered,
-          lastLineRendered,
+          cachedStart,
+          cachedEnd,
           items,
           regionTexture,
           theme,
           measureWithPad
       );
       textureSize.set(regionTexture.getTextureSize());
-      if (textureSize.x * textureSize.y == 0) return;
+//      if (textureSize.x * textureSize.y == 0) return;
       renderTexture(context.graphics);
     }
 
     if (view.length == 0) return;
+    checkCached(cachedStart, cachedEnd, measureWithPad);
     enableScissor(g);
 
     // background
@@ -192,7 +188,33 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     disableScissor(g);
   }
 
+  private void checkCached(int cachedStart, int cachedEnd, ToIntFunction<String> m) {
+    boolean flag = false;
+
+    for (int i = firstLineRendered; i <= lastLineRendered; i++) {
+      FindUsagesItem item = itemView(i);
+      if (item == null || item.data != items[i]) {
+        flag = true;
+        break;
+      }
+    }
+
+    if (flag) {
+      for (int i = cachedStart; i <= cachedEnd; i++) {
+        FindUsagesItem item = itemView(i);
+        if (item == null || item.data != items[i]) {
+          FindUsagesItem.setNewItem(view, items, regionTexture, theme.findUsagesColors, m, i);
+        }
+      }
+      textureSize.set(regionTexture.getTextureSize());
+      renderTexture(context.graphics);
+    }
+  }
+
+  int c = 0;
+
   private void renderTexture(WglGraphics g) {
+    Debug.consoleInfo("redner texture " + c++);
     Canvas canvas = g.createCanvas(textureSize.x + 150, textureSize.y);
     canvas.setFont(font);
     float baseline = font.fAscent - (font.fAscent + font.fDescent) / 16;
@@ -223,7 +245,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   @Override
   protected void updateVirtualSize() {
-    // TODO: compute font
+    requireFont();
     int height = getLineHeight() * items.length + border * (items.length + 1);
     virtualSize.set(size.x, height);
   }
@@ -248,7 +270,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   private void measure() {
     Canvas mCanvas = context.mCanvas();
     if (isEmpty()) return;
-    Objects.requireNonNull(font);
+    requireFont();
     mCanvas.setFont(font);
     var measureWithPad = RegionTextureAllocator.measuringWithWPad(mCanvas, textXPad);
 
