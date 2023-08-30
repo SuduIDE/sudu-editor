@@ -66,9 +66,9 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   public void setFont(UiFont font) {
     uiFont = font;
-    this.font = context.fontDesk(uiFont);
-    regionTexture = new RegionTexture(this.font.lineHeight());
-    textXPad = Numbers.iRnd(this.font.WWidth);
+    this.font = null;
+    regionTexture = null;
+    textXPad = 0;
     invalidateTexture();
   }
 
@@ -92,10 +92,10 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   @Override
   protected void onDprChange(float olDpr, float newDpr) {
     measure();
-    this.font = context.fontDesk(uiFont);
     border = DprUtil.toPx(2, context.dpr);
-    regionTexture = new RegionTexture(this.font.lineHeight());
-    textXPad = Numbers.iRnd(this.font.WWidth);
+    this.font = null;
+    regionTexture = null;
+    textXPad = 0;
   }
 
   @Override
@@ -107,7 +107,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   protected void draw(WglGraphics g) {
     Canvas mCanvas = context.mCanvas();
     if (isEmpty()) return;
-    Objects.requireNonNull(font);
+    requireFont();
     mCanvas.setFont(font);
     int textHeight = font.lineHeight();
     var measureWithPad = RegionTextureAllocator.measuringWithWPad(mCanvas, textXPad);
@@ -312,6 +312,14 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   private int getLastLine() {
     return Math.min((scrollPos.y + rect.size.y - 1 + border) / (getLineHeight() + border), items.length - 1);
+  }
+
+  private void requireFont() {
+    if (font == null) {
+      font = context.fontDesk(uiFont);
+      regionTexture = new RegionTexture(this.font.lineHeight());
+      textXPad = Numbers.iRnd(this.font.WWidth);
+    }
   }
 
   @Override
