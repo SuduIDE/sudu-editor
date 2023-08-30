@@ -954,20 +954,22 @@ public class EditorComponent implements Focusable, MouseListener {
   public void findUsages(V2i position, DefDeclProvider.Provider provider) {
 
     Pos pos = computeCharPos(position);
-    Pos elementStart = model.document.getElementStart(pos.line, pos.pos);
-    String elementName = model.document.getCodeElement(elementStart).s;
+    Pos startPos = model.document.getElementStart(pos.line, pos.pos);
+    String elementName = getElementNameByStartPos(startPos);
+
     if (provider != null) {
-      provider.provide(model, pos.line, pos.pos, (locs) -> gotoDefinition(position, locs, elementName), onError);
+      provider.provide(model, pos.line, pos.pos,
+          (locs) -> gotoDefinition(position, locs, elementName), onError);
       return;
     }
 
-    Pos def = model.document.usageToDef.get(elementStart);
+    Pos def = model.document.usageToDef.get(startPos);
     if (def != null) {
       gotoUsage(def);
       return;
     }
 
-    List<Pos> usages = model.document.defToUsages.get(elementStart);
+    List<Pos> usages = model.document.defToUsages.get(startPos);
     if (usages == null || usages.isEmpty()) {
       ui.displayNoUsagesPopup(position, this);
     } else {
@@ -983,7 +985,9 @@ public class EditorComponent implements Focusable, MouseListener {
     if (pos.isEmpty()) {
       ui.displayNoUsagesPopup(position, this);
     } else {
-      ui.showUsagesWindow(position, locs, this, getElementName(position));
+      Pos charPos = computeCharPos(position);
+      Pos startPos = model.document.getElementStart(charPos.line, charPos.pos);
+      ui.showUsagesWindow(position, locs, this, getElementNameByStartPos(startPos));
     }
   }
 
@@ -1023,11 +1027,8 @@ public class EditorComponent implements Focusable, MouseListener {
   void onClickText(MouseEvent event) {
     V2i eventPosition = event.position;
     Pos pos = computeCharPos(eventPosition);
-    Pos elementPos = model.document.getElementStart(pos.line, pos.pos);
-    CodeElement codeElement = model.document.getCodeElement(elementPos);
-    String elementName;
-    if (codeElement != null) elementName = codeElement.s;
-    else elementName = "";
+    Pos startPos = model.document.getElementStart(pos.line, pos.pos);
+    String elementName = getElementNameByStartPos(startPos);
 
     if (event.ctrl) {
       var provider = registrations.findDefinitionProvider(model.language(), model.uriScheme());
@@ -1036,7 +1037,7 @@ public class EditorComponent implements Focusable, MouseListener {
             (locs) -> gotoDefinition(eventPosition, locs, elementName), onError);
       } else {
         // Default def provider
-        if (gotoByLocalProvider(eventPosition, elementPos, elementName)) return;
+        if (gotoByLocalProvider(eventPosition, startPos, elementName)) return;
       }
     }
 
@@ -1600,10 +1601,8 @@ public class EditorComponent implements Focusable, MouseListener {
     return model.document.getChars();
   }
 
-  private String getElementName(V2i pos) {
-    Pos computedPos = computeCharPos(pos);
-    Pos elementPos = model.document.getElementStart(computedPos.line, computedPos.pos);
-    CodeElement codeElement = model.document.getCodeElement(elementPos);
+  private String getElementNameByStartPos(Pos startPos) {
+    CodeElement codeElement = model.document.getCodeElement(startPos);
     if (codeElement != null) return codeElement.s;
     return "";
   }

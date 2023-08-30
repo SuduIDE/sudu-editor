@@ -81,15 +81,40 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
         || popupMenu.onMouseUp(event, button);
   }
 
-  void showUsagesWindow(V2i position, List<Pos> usagesList, EditorComponent editor, String elementName) {
-    showUsagesWindow(position, editor, FindUsagesItemBuilder.buildUsagesItems(usagesList, editor), elementName);
+  void showUsagesWindow(
+      V2i position,
+      List<Pos> usagesList,
+      EditorComponent editor,
+      String elementName
+  ) {
+    showUsagesWindow(
+        position,
+        editor,
+        FindUsagesItemBuilder.buildUsagesItems(usagesList, editor),
+        elementName
+    );
   }
 
-  void showUsagesWindow(V2i position, Location[] locs, EditorComponent editor, String elementName) {
-    showUsagesWindow(position, editor, FindUsagesItemBuilder.buildDefItems(locs, editor), elementName);
+  void showUsagesWindow(
+      V2i position,
+      Location[] locs,
+      EditorComponent editor,
+      String elementName
+  ) {
+    showUsagesWindow(
+        position,
+        editor,
+        FindUsagesItemBuilder.buildDefItems(locs, editor),
+        elementName
+    );
   }
 
-  void showUsagesWindow(V2i position, EditorComponent editor, FindUsagesItemData[] actions, String elementName) {
+  void showUsagesWindow(
+      V2i position,
+      EditorComponent editor,
+      FindUsagesItemData[] actions,
+      String elementName
+  ) {
     if (usagesMenu != null) disposeUsagesWindow();
     FindUsagesView usagesView = new FindUsagesView(uiContext, () -> {
       uiContext.setFocus(editor);
