@@ -20,7 +20,6 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   private final UiContext context;
   private final DemoRect rect = new DemoRect();
   private final V2i textureSize = new V2i();
-  private final V2i v2i = new V2i();
   private UiFont uiFont;
   private FontDesk font;
   private FindUsagesItemData[] items = FindUsagesItemBuilder.items0;
@@ -149,6 +148,8 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
     int x = rect.pos.x;
     int y = rect.pos.y;
+
+    V2i v2i = context.v2i1;
 
     for (int i = firstLineRendered; i <= lastLineRendered; i++) {
       FindUsagesItem item = itemView(i);
