@@ -12,15 +12,16 @@ public class DialogItemColors {
   public final ToolbarItemColors toolbarItemColors;
   public final ShadowParameters shadowParameters;
 
-  public static DialogItemColors darkColorScheme() {
+  public static DialogItemColors darculaColorScheme() {
     return new DialogItemColors(
-        FindUsagesItemColors.darkFindUsagesItemColors(),
-        FindUsagesItemColors.darkNoUsages(),
+        FindUsagesItemColors.darculaFindUsagesItemColors(),
+        FindUsagesItemColors.darculaNoUsages(),
+        // TODO: Create windowColor
         new Color("#616161"),
         new Color("#393B40"),
-        new Color("#DFE1E5"), // same color for usages text color
-        ToolbarItemColors.darkToolbarItemColors(),
-        ShadowParameters.darkTheme()
+        new Color("#DFE1E5"),
+        ToolbarItemColors.darculaToolbarItemColors(),
+        ShadowParameters.darculaTheme()
     );
   }
 

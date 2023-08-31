@@ -1,6 +1,6 @@
 package org.sudu.experiments.demo.ui;
 
-import org.sudu.experiments.demo.Colors;
+import org.sudu.experiments.demo.DialogColors;
 import org.sudu.experiments.demo.IdeaCodeColors;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V4f;
@@ -16,15 +16,15 @@ public final class ToolbarItemColors {
     this.bgHighlight = bgHighlight;
   }
 
-  public static ToolbarItemColors darkToolbarItemColors() {
+  public static ToolbarItemColors darculaToolbarItemColors() {
     return new ToolbarItemColors(
-        new Color("#BBBBBB"), Colors.toolbarBg, Colors.toolbarSelectedBg
+        new Color("#BBBBBB"), DialogColors.Darcula.toolbarBg, DialogColors.Darcula.toolbarSelectedBg
     );
   }
 
   public static ToolbarItemColors lightToolbarItemColors() {
     return new ToolbarItemColors(
-        IdeaCodeColors.Colors.defaultTextLight, Colors.findusagesBgLight, Colors.toolbarSelectedBg
+        IdeaCodeColors.Light.defaultText, DialogColors.Light.toolbarBg, DialogColors.Light.toolbarSelectedBg
     );
   }
 }

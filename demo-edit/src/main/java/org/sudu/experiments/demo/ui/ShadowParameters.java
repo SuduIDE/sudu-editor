@@ -12,7 +12,7 @@ public class ShadowParameters {
     this.color.setW(value);
   }
 
-  public static ShadowParameters darkTheme() {
+  public static ShadowParameters darculaTheme() {
     return new ShadowParameters(1, 0.125f);
   }
 

@@ -153,7 +153,9 @@ public class EditorComponent implements Focusable, MouseListener {
 
   void setTheme(EditorColorScheme theme) {
     colors = theme;
-    caret.setColor(theme.cursorColor);
+    caret.setColor(theme.editor.cursor);
+    vScroll.setColor(theme.editor.scrollBarBg, theme.editor.scrollBarLine);
+    hScroll.setColor(theme.editor.scrollBarBg, theme.editor.scrollBarLine);
   }
 
   void toggleXOffset() {
@@ -392,7 +394,7 @@ public class EditorComponent implements Focusable, MouseListener {
       CodeLineRenderer line = lineRenderer(i);
       int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection.isTailSelected(i);
-      Color tailColor = isTailSelected? colors.selectionBgColor : colors.codeLineTailColor;
+      Color tailColor = isTailSelected ? colors.editor.selectionBg : colors.editor.lineTailContent;
       line.drawTail(g, compPos.x + vLineX,compPos.y + yPosition, lineHeight,
           size, hScrollPos, editorWidth(), tailColor);
     }
@@ -438,7 +440,7 @@ public class EditorComponent implements Focusable, MouseListener {
     int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
 
     lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine, caretLine, g,
-        colors.lineNumbersColors
+        colors.lineNumber
     );
   }
 
@@ -654,7 +656,7 @@ public class EditorComponent implements Focusable, MouseListener {
       size.y = compSize.y - yPosition;
       size.x = editorWidth();
 
-      g.drawRect(compPos.x + vLineX, compPos.y + yPosition, size, colors.editBgColor);
+      g.drawRect(compPos.x + vLineX, compPos.y + yPosition, size, colors.editor.bg);
     }
   }
 
@@ -684,9 +686,9 @@ public class EditorComponent implements Focusable, MouseListener {
   private void drawVerticalLine() {
     vLineSize.y = compSize.y;
     vLineSize.x = vLineW;
-    g.drawRect(compPos.x + vLineX - vLineLeftDelta, compPos.y, vLineSize, colors.editNumbersVLine);
+    g.drawRect(compPos.x + vLineX - vLineLeftDelta, compPos.y, vLineSize, colors.editor.numbersVLine);
     vLineSize.x = vLineLeftDelta - vLineW;
-    g.drawRect(compPos.x + vLineX - vLineLeftDelta + vLineW, compPos.y, vLineSize, colors.editBgColor);
+    g.drawRect(compPos.x + vLineX - vLineLeftDelta + vLineW, compPos.y, vLineSize, colors.editor.bg);
   }
 
   int clampScrollPos(int pos, int maxScrollPos) {

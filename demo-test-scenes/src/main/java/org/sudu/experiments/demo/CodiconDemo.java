@@ -9,8 +9,6 @@ import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
-import static org.sudu.experiments.demo.IdeaCodeColors.Colors;
-
 public class CodiconDemo extends Scene {
   static final String text1 = "\uEA84\uEA8F\uEA8C\uEA87\uEA90\uEA83\uEAB6\uEAB4";
   static final String text2 = "\uEADF\uEADC\uEA81\uEB23\uEAD2\uEAD0\uEA64\uEB49";
@@ -45,8 +43,8 @@ public class CodiconDemo extends Scene {
 
     textRect.setTextureRegionDefault(texture);
     textRect.setSizeToTextureRegion();
-    textRect.bgColor.set(Colors.editBgColor);
-    textRect.color.set(Colors.defaultText);
+    textRect.bgColor.set(IdeaCodeColors.Darcula.editBg);
+    textRect.color.set(IdeaCodeColors.Darcula.defaultText);
   }
 
   public void dispose() {

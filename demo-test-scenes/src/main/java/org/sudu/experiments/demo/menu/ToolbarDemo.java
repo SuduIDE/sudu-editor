@@ -2,7 +2,7 @@ package org.sudu.experiments.demo.menu;
 
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.Colors;
+import org.sudu.experiments.demo.DialogColors;
 import org.sudu.experiments.demo.Scene1;
 import org.sudu.experiments.demo.TestHelper;
 import org.sudu.experiments.demo.ui.*;
@@ -34,10 +34,10 @@ public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListe
     tbV.setLayoutVertical();
     consolas = new UiFont("Consolas", 25);
     popupMenu.setFont(consolas);
-    popupMenu.setTheme(DialogItemColors.darkColorScheme());
+    popupMenu.setTheme(DialogItemColors.darculaColorScheme());
     clearColor.set(new Color(43));
 
-    DialogItemColors dark = DialogItemColors.darkColorScheme();
+    DialogItemColors dark = DialogItemColors.darculaColorScheme();
     tbH.setTheme(dark);
     tbV.setTheme(dark);
 
@@ -90,8 +90,8 @@ public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListe
 
   static ToolbarItemColors rngToolButton() {
     return new ToolbarItemColors(
-            Color.Cvt.fromHSV(Math.random(), 1, 1),
-            Colors.toolbarBg, Colors.toolbarSelectedBg);
+        Color.Cvt.fromHSV(Math.random(), 1, 1),
+        DialogColors.Darcula.toolbarBg, DialogColors.Darcula.toolbarSelectedBg);
   }
 
   private static void addAction(ToolbarItemBuilder tb, String action, Supplier<ToolbarItem[]> sub) {

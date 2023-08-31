@@ -2,10 +2,7 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.Numbers;
-import org.sudu.experiments.math.Rect;
-import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.math.*;
 
 import java.util.function.Consumer;
 
@@ -19,8 +16,6 @@ public class ScrollBar {
   final V4f color2 = new V4f();
 
   public ScrollBar() {
-    color1.set(Colors.scrollBarBody1);
-    color2.set(Colors.scrollBarBody2);
   }
 
   public boolean visible() {
@@ -48,11 +43,16 @@ public class ScrollBar {
       int hitOffset = hitButton ? buttonCenter - delta : 0;
       return isVertical
           ? event -> onMove.accept(
-            getClickLocationResultY(event.position.y + hitOffset - bgPos.y))
+          getClickLocationResultY(event.position.y + hitOffset - bgPos.y))
           : event -> onMove.accept(
-            getClickLocationResultX(event.position.x + hitOffset - bgPos.x));
+          getClickLocationResultX(event.position.x + hitOffset - bgPos.x));
     }
     return null;
+  }
+
+  public void setColor(Color scrollBarLine, Color scrollBarBg) {
+    color1.set(scrollBarLine);
+    color2.set(scrollBarBg);
   }
 
   public static class Event {

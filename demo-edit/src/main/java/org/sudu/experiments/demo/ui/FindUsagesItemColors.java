@@ -1,8 +1,6 @@
 package org.sudu.experiments.demo.ui;
 
-import org.sudu.experiments.demo.Colors;
-import org.sudu.experiments.demo.IdeaCodeColors;
-import org.sudu.experiments.math.Color;
+import org.sudu.experiments.demo.DialogColors;
 import org.sudu.experiments.math.V4f;
 
 public class FindUsagesItemColors {
@@ -10,39 +8,41 @@ public class FindUsagesItemColors {
   final V4f lineColor;
   final V4f contentColor;
   final V4f bgColor;
-  final V4f bgHighlightColor;
-  final V4f textHighlightColor = new Color(255);
+  final V4f bgCaretColor;
+  final V4f textCaretColor;
 
-  public FindUsagesItemColors(V4f fileColor, V4f lineColor, V4f contentColor, V4f bgColor, V4f bgHighlightColor) {
+  public FindUsagesItemColors(V4f fileColor, V4f lineColor, V4f contentColor, V4f bgColor, V4f bgCaretColor, V4f textCaretColor) {
     this.fileColor = fileColor;
     this.lineColor = lineColor;
     this.contentColor = contentColor;
     this.bgColor = bgColor;
-    this.bgHighlightColor = bgHighlightColor;
+    this.bgCaretColor = bgCaretColor;
+    this.textCaretColor = textCaretColor;
   }
 
-  public static FindUsagesItemColors darkFindUsagesItemColors() {
+  public static FindUsagesItemColors darculaFindUsagesItemColors() {
     return new FindUsagesItemColors(
-        IdeaCodeColors.Colors.defaultText,
-        IdeaCodeColors.Colors.editNumbersVLine,
-        new Color("#DFE1E5"),
-        Colors.findUsagesBg,
-        Colors.findUsagesSelectedBg
+        DialogColors.Darcula.findUsagesTextCaret,
+        DialogColors.Darcula.findUsagesLineNumber,
+        DialogColors.Darcula.findUsagesContent,
+        DialogColors.Darcula.findUsagesBg,
+        DialogColors.Darcula.findUsagesBgCaret,
+        DialogColors.Darcula.findUsagesTextCaret
     );
   }
 
-
-  public static ToolbarItemColors darkNoUsages() {
-    return ToolbarItemColors.darkToolbarItemColors();
+  public static ToolbarItemColors darculaNoUsages() {
+    return ToolbarItemColors.darculaToolbarItemColors();
   }
 
   public static FindUsagesItemColors lightFindUsagesItemColors() {
     return new FindUsagesItemColors(
-        IdeaCodeColors.Colors.defaultTextLight,
-        IdeaCodeColors.Colors.editNumbersVLineLight,
-        IdeaCodeColors.Colors.defaultTextLight,
-        Colors.findusagesBgLight,
-        Colors.findUsagesSelectedBg
+        DialogColors.Light.findUsagesTextCaret,
+        DialogColors.Light.findUsagesLineNumber,
+        DialogColors.Light.findUsagesContent,
+        DialogColors.Light.findUsagesBg,
+        DialogColors.Light.findUsagesBgCaret,
+        DialogColors.Light.findUsagesTextCaret
     );
   }
 

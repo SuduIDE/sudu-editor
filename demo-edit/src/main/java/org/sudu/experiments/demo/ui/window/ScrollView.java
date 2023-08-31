@@ -7,6 +7,7 @@ import org.sudu.experiments.demo.ScrollBar;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 
 import java.util.function.Consumer;
@@ -41,6 +42,11 @@ public class ScrollView extends View {
     if (dpr != 0) {
       updateVirtualSize();
     }
+  }
+
+  public void setScrollColor(Color scrollBarLine, Color scrollBarBg) {
+    if (vScroll != null) vScroll.setColor(scrollBarLine, scrollBarBg);
+    if (hScroll != null) hScroll.setColor(scrollBarLine, scrollBarBg);
   }
 
   public ScrollContent content() {

@@ -34,7 +34,7 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
     clearColor.set(new Color(43));
 
     popupMenu = new PopupMenu(uiContext);
-    popupMenu.setTheme(DialogItemColors.darkColorScheme());
+    popupMenu.setTheme(DialogItemColors.darculaColorScheme());
     popupMenu.setFont(new UiFont("Consolas", 25));
 
     api.input.onKeyPress.add(this::onKey);
@@ -113,7 +113,7 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
     window.setContent(scroll
         ? new ScrollView(contentDemo, uiContext)
         : contentDemo);
-    window.setTheme(DialogItemColors.darkColorScheme());
+    window.setTheme(DialogItemColors.darculaColorScheme());
     return window;
   }
 

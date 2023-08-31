@@ -1,7 +1,6 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.demo.IdeaCodeColors.Colors;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;
@@ -23,7 +22,7 @@ public class ScissorDemo extends Scene0 {
     texture = TestHelper.canvasTexture(g);
     demoRect.setTextureRegionDefault(texture);
     demoRect.setSizeToTextureRegion();
-    demoRect.bgColor.set(Colors.editBgColor);
+    demoRect.bgColor.set(IdeaCodeColors.Darcula.editBg);
     demoRect.color.set(new Color(204, 120, 50));
   }
 

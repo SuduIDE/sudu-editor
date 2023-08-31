@@ -35,7 +35,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
     scrollBar = new ScrollBar();
   }
 
-  LineNumbersColors colors = IdeaCodeColors.lineNumberColors();
+  LineNumbersColors colors = LineNumbersColors.darcula();
 
   @Override
   public void paint() {

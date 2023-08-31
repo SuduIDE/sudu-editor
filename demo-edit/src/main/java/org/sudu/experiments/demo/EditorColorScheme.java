@@ -5,80 +5,45 @@ import org.sudu.experiments.math.Color;
 import org.sudu.experiments.parser.ParserConstants;
 
 public class EditorColorScheme {
-  public final Color editBgColor;
-  public final Color cursorColor;
-  public final Color editNumbersVLine;
-  public final Color editFooterFill;
-  public final Color codeLineTailColor;
-  public final Color selectionBgColor;
-  public final Color definitionBgColor;
-  public final Color usageBgColor;
-  public final DialogItemColors dialogItemColors;
-  public final CodeElementColor[] codeColors;
-  public final LineNumbersColors lineNumbersColors;
+  public final EditorColors editor;
+  public final DialogItemColors dialogItem;
+  public final CodeElementColor[] codeElement;
+  public final LineNumbersColors lineNumber;
 
-  public static EditorColorScheme darkIdeaColorScheme() {
+  public static EditorColorScheme darculaIdeaColorScheme() {
     return new EditorColorScheme(
-        new Color(IdeaCodeColors.Colors.editBgColor),
-        new Color(IdeaCodeColors.Colors.cursorDark),
-        new Color(IdeaCodeColors.Colors.editNumbersVLine),
-        new Color(IdeaCodeColors.Colors.editFooterFill),
-        new Color(IdeaCodeColors.Colors.editBgColor),
-        new Color(IdeaCodeColors.Colors.editSelectedBg),
-        new Color(IdeaCodeColors.Colors.definitionBgColor),
-        new Color(IdeaCodeColors.Colors.usageBgColor),
+        EditorColors.darculaIdeaColorScheme(),
         IdeaCodeColors.codeElementColors(),
-        IdeaCodeColors.lineNumberColors(),
-        DialogItemColors.darkColorScheme()
+        LineNumbersColors.darcula(),
+        DialogItemColors.darculaColorScheme()
     );
   }
 
   public static EditorColorScheme lightIdeaColorScheme() {
     return new EditorColorScheme(
-        new Color(IdeaCodeColors.Colors.editBgColorLight),
-        new Color(IdeaCodeColors.Colors.cursorWhite),
-        new Color(IdeaCodeColors.Colors.editNumbersVLineLight),
-        new Color(IdeaCodeColors.Colors.editFooterFill),
-        new Color(IdeaCodeColors.Colors.editBgColorLight),
-        new Color(IdeaCodeColors.Colors.editSelectedBgLight),
-        new Color(IdeaCodeColors.Colors.definitionBgColorLight),
-        new Color(IdeaCodeColors.Colors.usageBgColorLight),
+        EditorColors.lightIdeaColorScheme(),
         IdeaCodeColors.codeElementColorsLight(),
-        IdeaCodeColors.lineNumberColorsLight(),
+        LineNumbersColors.light(),
         DialogItemColors.lightColorScheme()
     );
   }
 
   private EditorColorScheme(
-      Color editBgColor,
-      Color cursorColor,
-      Color editNumbersVLine,
-      Color editFooterFill,
-      Color codeLineTailColor,
-      Color selectionBgColor,
-      Color definitionBgColor,
-      Color usageBgColor,
-      CodeElementColor[] codeColors,
-      LineNumbersColors lineNumbersColors,
-      DialogItemColors dialogItemColors
+      EditorColors editor,
+      CodeElementColor[] codeElement,
+      LineNumbersColors lineNumber,
+      DialogItemColors dialogItem
   ) {
-    this.editBgColor = editBgColor;
-    this.cursorColor = cursorColor;
-    this.editNumbersVLine = editNumbersVLine;
-    this.editFooterFill = editFooterFill;
-    this.codeLineTailColor = codeLineTailColor;
-    this.selectionBgColor = selectionBgColor;
-    this.definitionBgColor = definitionBgColor;
-    this.usageBgColor = usageBgColor;
-    this.codeColors = codeColors;
-    this.lineNumbersColors = lineNumbersColors;
-    if (codeColors.length < ParserConstants.TokenTypes.TYPES_LENGTH) {
+    this.editor = editor;
+    this.codeElement = codeElement;
+    this.lineNumber = lineNumber;
+    if (codeElement.length < ParserConstants.TokenTypes.TYPES_LENGTH) {
       throw new IllegalArgumentException();
     }
-    this.dialogItemColors = dialogItemColors;
+    this.dialogItem = dialogItem;
   }
 
   public Color bgColor(Color bg) {
-    return bg != null ? bg : editBgColor;
+    return bg != null ? bg : editor.bg;
   }
 }

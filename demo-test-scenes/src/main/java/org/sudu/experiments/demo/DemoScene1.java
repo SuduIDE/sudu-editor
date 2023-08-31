@@ -6,16 +6,14 @@ import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
 import java.util.function.Consumer;
 
-import static org.sudu.experiments.demo.IdeaCodeColors.Colors;
-
 public class DemoScene1 extends Scene {
-  final V4f bgColor = new V4f(Colors.editBgColor);
+  final Color editorBgColor = EditorColorScheme.darculaIdeaColorScheme().editor.bg;
+  final V4f bgColor = new V4f(editorBgColor);
   final TextRect demoRect = new TextRect(0, 0, 300, 300);
   final DemoRect mouse = new DemoRect(0, 0, 3, 3);
   final TextRect canvasRect1 = new TextRect(0, 0, 300, 300);
@@ -46,7 +44,7 @@ public class DemoScene1 extends Scene {
     demoRectTexture = svgTexture();
     demoRect.setTextureRegionDefault(demoRectTexture);
     demoRect.setSizeToTextureRegion();
-    demoRect.bgColor.set(Colors.editBgColor);
+    demoRect.bgColor.set(editorBgColor);
     demoRect.color.set(new Color(204, 120, 50));
 
     String s = " HuaweЙ KeyModifiers 收件人 |";
@@ -66,7 +64,7 @@ public class DemoScene1 extends Scene {
     canvasRect1.setSizeToTextureRegion();
 
     canvasRect1.setColor(new Color(255));
-    canvasRect1.setBgColor(Colors.editBgColor);
+    canvasRect1.setBgColor(editorBgColor);
 
     canvas2Texture = g.createTexture();
 

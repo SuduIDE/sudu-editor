@@ -31,7 +31,7 @@ public class HScrollTestScene extends Scene {
 
   boolean needsUpdate = true;
 
-  final EditorColorScheme colors = EditorColorScheme.darkIdeaColorScheme();
+  final EditorColorScheme colors = EditorColorScheme.darculaIdeaColorScheme();
 
   public HScrollTestScene(SceneApi api) {
     super(api);
@@ -81,7 +81,7 @@ public class HScrollTestScene extends Scene {
 
   @Override
   public void paint() {
-    g.clear(IdeaCodeColors.Colors.editBgColor);
+    g.clear(IdeaCodeColors.Darcula.editBg);
     g.enableBlend(true);
     scrollBar.layoutHorizontal(scrollPosH, 0, viewportSize.x, horizontalSize, viewportSize.y, 20);
     scrollBar.draw(g);
