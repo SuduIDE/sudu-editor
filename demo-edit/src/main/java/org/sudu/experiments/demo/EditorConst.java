@@ -11,10 +11,6 @@ public interface EditorConst {
   int RIGHT_PADDING = 40;
   int CARET_X_OFFSET = 30;
   int DEFAULT_FONT_SIZE = 16;
-  int POPUP_MENU_FONT_SIZE = 17;
-  String POPUP_MENU_FONT_NAME = Fonts.SegoeUI;
-  int FIND_USAGES_FONT_SIZE = 15;
-  String FIND_USAGES_FONT_NAME = Fonts.Consolas;
   int MIN_FONT_SIZE = 7;
   int MIN_CACHE_LINES = 7;
   int VIEWPORT_OFFSET = 100;

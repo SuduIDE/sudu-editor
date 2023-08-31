@@ -71,7 +71,7 @@ public class Window {
 
   void draw(WglGraphics g) {
     content.draw(g);
-    title.draw(g, theme);
+    title.draw(g, theme.windowTheme);
     drawFrameAndShadow(g);
   }
 
@@ -86,7 +86,7 @@ public class Window {
 
     WindowPaint.drawInnerFrame(g,
         size, noTitle ? content.pos : title.pos,
-        theme.windowBorderColor, -border, temp);
+        theme.windowTheme.windowBorderColor, -border, temp);
 
     WindowPaint.drawShadow(g,
         content.size, content.pos, border, titleHeight,
@@ -107,10 +107,6 @@ public class Window {
   }
 
   public void onHostResize(V2i newSize, float newDpr) {}
-
-  public boolean hitTest(V2i point) {
-    return content.hitTest(point);
-  }
 
   boolean onMouseMove(MouseEvent event) {
     return setCursor(event.position) || content.hitTest(event.position)
