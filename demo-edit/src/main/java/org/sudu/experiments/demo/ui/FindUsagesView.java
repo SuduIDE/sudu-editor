@@ -41,7 +41,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   private Runnable onClose;
   private DialogItemColors theme;
-  private final Map<String, V4f> fileNameCache = new HashMap<>();
+  private final Map<String, CachableItem<V4f>> fileNameCache = new HashMap<>();
 
   public FindUsagesView(UiContext context, Runnable onClose) {
     this.context = context;
@@ -223,7 +223,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
       canvas.drawText(item.data.codeContent, item.tContent.x + textXPad, baseline + item.tContent.y);
     }
     fileNameCache.forEach(
-        (fileName, v4f) -> canvas.drawText(fileName, v4f.x + textXPad, baseline + v4f.y)
+        (fileName, v4f) -> canvas.drawText(fileName, v4f.content.x + textXPad, baseline + v4f.content.y)
     );
     texture = Disposable.assign(texture, g.createTexture());
     texture.setContent(canvas);

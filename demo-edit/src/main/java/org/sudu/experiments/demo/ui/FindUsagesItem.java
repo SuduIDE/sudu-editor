@@ -25,7 +25,7 @@ public class FindUsagesItem {
       FindUsagesItemData[] data,
       RegionTexture regionTexture,
       ToIntFunction<String> m,
-      Map<String, V4f> fileNameCache
+      Map<String, CachableItem<V4f>> fileNameCache
   ) {
     FindUsagesItem[] r = new FindUsagesItem[newSize];
     if (lines.length > 0) for (int i = first; i <= last; i++) {
@@ -34,7 +34,7 @@ public class FindUsagesItem {
       int oldIndex = i % lines.length;
       FindUsagesItem oldItem = lines[oldIndex];
       if (oldItem != null && oldItem.data != d) {
-        free(regionTexture, oldItem);
+        free(regionTexture, oldItem, fileNameCache);
         r[newIndex] = allocNewItem(d, regionTexture, m, fileNameCache);
         lines[oldIndex] = null;
       } else if (oldItem != null && r[newIndex] == null) {
@@ -51,7 +51,7 @@ public class FindUsagesItem {
     for (int i = 0; i < lines.length; i++) {
       var line = lines[i];
       if (line != null) {
-        free(regionTexture, line);
+        free(regionTexture, line, fileNameCache);
         lines[i] = null;
       }
     }
@@ -63,11 +63,11 @@ public class FindUsagesItem {
       FindUsagesItemData[] data,
       RegionTexture regionTexture,
       ToIntFunction<String> m,
-      Map<String, V4f> fileNameCache,
+      Map<String, CachableItem<V4f>> fileNameCache,
       int l
   ) {
     int index = l % lines.length;
-    if (lines[index] != null) free(regionTexture, lines[index]);
+    if (lines[index] != null) free(regionTexture, lines[index], fileNameCache);
     lines[index] = allocNewItem(data[l], regionTexture, m, fileNameCache);
   }
 
@@ -75,16 +75,16 @@ public class FindUsagesItem {
       FindUsagesItemData d,
       RegionTexture regionTexture,
       ToIntFunction<String> m,
-      Map<String, V4f> fileNameCache
+      Map<String, CachableItem<V4f>> fileNameCache
   ) {
     FindUsagesItem res = new FindUsagesItem(d);
 
-    V4f fileNameV4f = fileNameCache.get(d.fileName);
-    if (fileNameV4f == null) {
-      fileNameV4f = regionTexture.alloc(d.fileName, m);
-      fileNameCache.put(d.fileName, fileNameV4f);
-    }
-    res.tFiles = fileNameV4f;
+    CachableItem<V4f> cacheItem = fileNameCache.get(d.fileName);
+    if (cacheItem == null) {
+      cacheItem = new CachableItem<>(regionTexture.alloc(d.fileName, m));
+      fileNameCache.put(d.fileName, cacheItem);
+    } else cacheItem.inc();
+    res.tFiles = cacheItem.content;
     res.sizeFiles.set((int) res.tFiles.z, (int) res.tFiles.w);
     res.tLines = regionTexture.alloc(d.lineNumber, m);
     res.sizeLines.set((int) res.tLines.z, (int) res.tLines.w);
@@ -94,12 +94,22 @@ public class FindUsagesItem {
     return res;
   }
 
-  private static void free(RegionTexture regionTexture, FindUsagesItem item) {
+  private static void free(
+      RegionTexture regionTexture,
+      FindUsagesItem item,
+      Map<String, CachableItem<V4f>> fileNameCache
+  ) {
+    String fileName = item.data.fileName;
+    CachableItem<V4f> cacheItem = fileNameCache.get(fileName);
+    if (cacheItem.dec() == 0) {
+      regionTexture.free(cacheItem.content);
+      fileNameCache.remove(fileName);
+    }
     regionTexture.free(item.tLines);
     regionTexture.free(item.tContent);
   }
 
-  public static void freeFileNameCache(RegionTexture regionTexture, Map<String, V4f> fileNameCache) {
-    fileNameCache.forEach((key, v) -> regionTexture.free(v));
+  public static void freeFileNameCache(RegionTexture regionTexture, Map<String, CachableItem<V4f>> fileNameCache) {
+    fileNameCache.forEach((key, v) -> regionTexture.free(v.content));
   }
 }
