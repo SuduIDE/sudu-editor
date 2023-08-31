@@ -5,7 +5,6 @@ import org.sudu.experiments.demo.ui.*;
 import org.sudu.experiments.demo.ui.window.ScrollView;
 import org.sudu.experiments.demo.ui.window.Window;
 import org.sudu.experiments.demo.ui.window.WindowManager;
-import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
@@ -21,32 +20,28 @@ import static org.sudu.experiments.demo.ui.ToolbarItemBuilder.ti;
 
 class EditorUi implements MouseListener, InputListeners.ScrollHandler {
   final UiContext uiContext;
-  UiFont titleFont = new UiFont(Fonts.SegoeUI, 16);
-  WindowManager windowManager;
-  Window usagesMenu;
+  final WindowManager windowManager = new WindowManager();
+
+  Window usagesWindow;
   PopupMenu popupMenu;
-  EditorColorScheme colors;
+  EditorColorScheme theme;
 
   EditorUi(UiContext context) {
     uiContext = context;
-    windowManager = new WindowManager();
-
-
     popupMenu = new PopupMenu(uiContext);
-    popupMenu.setFont(new UiFont(
-        EditorConst.POPUP_MENU_FONT_NAME,
-        EditorConst.POPUP_MENU_FONT_SIZE));
   }
 
   void setTheme(EditorColorScheme theme) {
-    colors = theme;
-    if (usagesMenu != null) usagesMenu.setTheme(theme.dialogItemColors);
+    this.theme = theme;
+
+    if (usagesWindow != null) usagesWindow.setTheme(theme.dialogItemColors);
+    popupMenu.setFont(theme.popupMenuFont);
     popupMenu.setTheme(theme.dialogItemColors);
   }
 
   void dispose() {
     popupMenu.dispose();
-    if (usagesMenu != null) {
+    if (usagesWindow != null) {
       disposeUsagesWindow();
     }
     windowManager.dispose();
@@ -115,36 +110,33 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
       FindUsagesItemData[] actions,
       String elementName
   ) {
-    if (usagesMenu != null) disposeUsagesWindow();
+    if (usagesWindow != null) disposeUsagesWindow();
     FindUsagesView usagesView = new FindUsagesView(uiContext, () -> {
       uiContext.setFocus(editor);
       disposeUsagesWindow();
     });
 
-    usagesView.setFont(new UiFont(
-        EditorConst.FIND_USAGES_FONT_NAME,
-        EditorConst.FIND_USAGES_FONT_SIZE
-    ));
+    usagesView.setFont(theme.usagesFont);
     usagesView.setItems(actions);
-    usagesView.setTheme(colors.dialogItemColors);
+    usagesView.setTheme(theme.dialogItemColors);
 
-    usagesMenu = new Window(uiContext);
-    usagesMenu.setContent(new ScrollView(usagesView, uiContext));
-    usagesMenu.setTitle("Usages of " + elementName, titleFont, 4);
-    usagesMenu.setTheme(colors.dialogItemColors);
-    windowManager.addWindow(usagesMenu);
-    int minY = usagesMenu.titleHeight() + uiContext.toPx(2);
+    usagesWindow = new Window(uiContext);
+    usagesWindow.setContent(new ScrollView(usagesView, uiContext));
+    usagesWindow.setTitle("Usages of " + elementName, theme.windowTitleFont, 4);
+    usagesWindow.setTheme(theme.dialogItemColors);
+    windowManager.addWindow(usagesWindow);
+    int minY = usagesWindow.titleHeight() + uiContext.toPx(2);
     V2i limitedPosition = usagesView.setLimitedPosition(position, minY);
     V2i size = usagesView.calculateSize(limitedPosition);
-    usagesMenu.setPosition(limitedPosition, size);
+    usagesWindow.setPosition(limitedPosition, size);
 
     uiContext.setFocus(usagesView);
   }
 
   private void disposeUsagesWindow() {
-    windowManager.removeWindow(usagesMenu);
-    usagesMenu.dispose();
-    usagesMenu = null;
+    windowManager.removeWindow(usagesWindow);
+    usagesWindow.dispose();
+    usagesWindow = null;
   }
 
   void displayNoUsagesPopup(V2i position, EditorComponent edit) {
@@ -161,7 +153,7 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
         new ToolbarItem(
             popupMenu::hide,
             "No definition or usages",
-            colors.dialogItemColors.findUsagesColorsError)
+            theme.dialogItemColors.findUsagesColorsError)
     );
   }
 
@@ -193,20 +185,20 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
       gotoItems(eventPosition, tbb);
       cutCopyPaste(tbb);
-      if (1 < 0) tbb.addItem("old >", colors.dialogItemColors.toolbarItemColors, oldDev());
-      tbb.addItem("Settings >", colors.dialogItemColors.toolbarItemColors, settingsItems());
-      tbb.addItem("Development >", colors.dialogItemColors.toolbarItemColors, devItems());
+      if (1 < 0) tbb.addItem("old >", theme.dialogItemColors.toolbarItemColors, oldDev());
+      tbb.addItem("Settings >", theme.dialogItemColors.toolbarItemColors, settingsItems());
+      tbb.addItem("Development >", theme.dialogItemColors.toolbarItemColors, devItems());
       return tbb.supplier();
     }
 
     private void cutCopyPaste(ToolbarItemBuilder tbb) {
       if (!editor.readonly) {
-        tbb.addItem("Cut", colors.dialogItemColors.toolbarItemColors, this::cutAction);
+        tbb.addItem("Cut", theme.dialogItemColors.toolbarItemColors, this::cutAction);
       }
-      tbb.addItem("Copy", colors.dialogItemColors.toolbarItemColors, this::copyAction);
+      tbb.addItem("Copy", theme.dialogItemColors.toolbarItemColors, this::copyAction);
 
       if (!editor.readonly && window().isReadClipboardTextSupported()) {
-        tbb.addItem("Paste", colors.dialogItemColors.toolbarItemColors, this::pasteAction);
+        tbb.addItem("Paste", theme.dialogItemColors.toolbarItemColors, this::pasteAction);
       }
     }
 
@@ -237,16 +229,16 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
     private Supplier<ToolbarItem[]> settingsItems() {
       ToolbarItemBuilder tbb = new ToolbarItemBuilder();
-      tbb.addItem("Theme >", colors.dialogItemColors.toolbarItemColors, themes());
-      tbb.addItem("Font size >", colors.dialogItemColors.toolbarItemColors, fontSize());
-      tbb.addItem("Fonts >", colors.dialogItemColors.toolbarItemColors, fontSelect());
+      tbb.addItem("Theme >", theme.dialogItemColors.toolbarItemColors, themes());
+      tbb.addItem("Font size >", theme.dialogItemColors.toolbarItemColors, fontSize());
+      tbb.addItem("Fonts >", theme.dialogItemColors.toolbarItemColors, fontSelect());
       return tbb.supplier();
     }
 
     private Supplier<ToolbarItem[]> devItems() {
       ToolbarItemBuilder tbb = new ToolbarItemBuilder();
-      tbb.addItem("parser >", colors.dialogItemColors.toolbarItemColors, parser());
-      tbb.addItem("open ...", colors.dialogItemColors.toolbarItemColors, this::showOpenFilePicker);
+      tbb.addItem("parser >", theme.dialogItemColors.toolbarItemColors, parser());
+      tbb.addItem("open ...", theme.dialogItemColors.toolbarItemColors, this::showOpenFilePicker);
       return tbb.supplier();
     }
 
@@ -266,7 +258,7 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
       if (declarationProvider != null) {
         tbb.addItem(
             "Go to Declaration",
-            colors.dialogItemColors.toolbarItemColors,
+            theme.dialogItemColors.toolbarItemColors,
             () -> findUsagesDefDecl(eventPosition, DefDeclProvider.Type.DECL));
       }
 
@@ -275,7 +267,7 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
       if (definitionProvider != null) {
         tbb.addItem(
             "Go to Definition",
-            colors.dialogItemColors.toolbarItemColors,
+            theme.dialogItemColors.toolbarItemColors,
             () -> findUsagesDefDecl(eventPosition, DefDeclProvider.Type.DEF));
       }
 
@@ -284,45 +276,45 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
       if (refProvider != null) {
         tbb.addItem(
             "Go to References",
-            colors.dialogItemColors.toolbarItemColors,
+            theme.dialogItemColors.toolbarItemColors,
             () -> findUsages(eventPosition));
       }
 
       tbb.addItem(
           "Go to (local)",
-          colors.dialogItemColors.toolbarItemColors,
+          theme.dialogItemColors.toolbarItemColors,
           () -> findUsagesDefDecl(eventPosition, null));
     }
 
     private Supplier<ToolbarItem[]> parser() {
       return ArrayOp.supplier(
-          ti("Int", colors.dialogItemColors.toolbarItemColors, editor::debugPrintDocumentIntervals),
-          ti("Iter", colors.dialogItemColors.toolbarItemColors, editor::iterativeParsing),
-          ti("VP", colors.dialogItemColors.toolbarItemColors, editor::parseViewport),
-          ti("Rep", colors.dialogItemColors.toolbarItemColors, editor::parseFullFile));
+          ti("Int", theme.dialogItemColors.toolbarItemColors, editor::debugPrintDocumentIntervals),
+          ti("Iter", theme.dialogItemColors.toolbarItemColors, editor::iterativeParsing),
+          ti("VP", theme.dialogItemColors.toolbarItemColors, editor::parseViewport),
+          ti("Rep", theme.dialogItemColors.toolbarItemColors, editor::parseFullFile));
     }
 
     private Supplier<ToolbarItem[]> oldDev() {
       return ArrayOp.supplier(
-          ti("↓ move", colors.dialogItemColors.toolbarItemColors, editor::moveDown),
-          ti("■ stop", colors.dialogItemColors.toolbarItemColors, editor::stopMove),
-          ti("↑ move", colors.dialogItemColors.toolbarItemColors, editor::moveUp),
-          ti("toggleContrast", colors.dialogItemColors.toolbarItemColors, editor::toggleContrast),
-          ti("toggleXOffset", colors.dialogItemColors.toolbarItemColors, editor::toggleXOffset),
-          ti("toggleTails", colors.dialogItemColors.toolbarItemColors, editor::toggleTails));
+          ti("↓ move", theme.dialogItemColors.toolbarItemColors, editor::moveDown),
+          ti("■ stop", theme.dialogItemColors.toolbarItemColors, editor::stopMove),
+          ti("↑ move", theme.dialogItemColors.toolbarItemColors, editor::moveUp),
+          ti("toggleContrast", theme.dialogItemColors.toolbarItemColors, editor::toggleContrast),
+          ti("toggleXOffset", theme.dialogItemColors.toolbarItemColors, editor::toggleXOffset),
+          ti("toggleTails", theme.dialogItemColors.toolbarItemColors, editor::toggleTails));
     }
 
     private Supplier<ToolbarItem[]> themes() {
       return ArrayOp.supplier(
-          ti("Dark", colors.dialogItemColors.toolbarItemColors, demoEdit0::toggleDark),
-          ti("Light", colors.dialogItemColors.toolbarItemColors, demoEdit0::toggleLight)
+          ti("Dark", theme.dialogItemColors.toolbarItemColors, demoEdit0::toggleDark),
+          ti("Light", theme.dialogItemColors.toolbarItemColors, demoEdit0::toggleLight)
       );
     }
 
     private Supplier<ToolbarItem[]> fontSize() {
       return ArrayOp.supplier(
-          ti("↑ increase", colors.dialogItemColors.toolbarItemColors, editor::increaseFont),
-          ti("↓ decrease", colors.dialogItemColors.toolbarItemColors, editor::decreaseFont));
+          ti("↑ increase", theme.dialogItemColors.toolbarItemColors, editor::increaseFont),
+          ti("↓ decrease", theme.dialogItemColors.toolbarItemColors, editor::decreaseFont));
     }
 
     private Supplier<ToolbarItem[]> fontSelect() {
@@ -332,7 +324,7 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
         for (int i = 0; i < items.length; i++) {
           var font = fonts[i];
           Runnable runnable = () -> editor.changeFont(font);
-          items[i] = new ToolbarItem(runnable, font, colors.dialogItemColors.toolbarItemColors);
+          items[i] = new ToolbarItem(runnable, font, theme.dialogItemColors.toolbarItemColors);
         }
         return items;
       };

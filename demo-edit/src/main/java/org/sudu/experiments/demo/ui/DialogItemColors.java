@@ -4,21 +4,17 @@ import org.sudu.experiments.math.Color;
 
 public class DialogItemColors {
 
+  public final ShadowParameters shadowParameters;
+  public final WindowTheme windowTheme;
   public final FindUsagesItemColors findUsagesColors;
   public final ToolbarItemColors findUsagesColorsError;
-  public final Color windowBorderColor;
-  public final Color windowTitleBgColor;
-  public final Color windowTitleTextColor;
   public final ToolbarItemColors toolbarItemColors;
-  public final ShadowParameters shadowParameters;
 
   public static DialogItemColors darkColorScheme() {
     return new DialogItemColors(
         FindUsagesItemColors.darkFindUsagesItemColors(),
         FindUsagesItemColors.darkNoUsages(),
-        new Color("#616161"),
-        new Color("#393B40"),
-        new Color("#DFE1E5"), // same color for usages text color
+        windowDark(),
         ToolbarItemColors.darkToolbarItemColors(),
         ShadowParameters.darkTheme()
     );
@@ -28,28 +24,36 @@ public class DialogItemColors {
     return new DialogItemColors(
         FindUsagesItemColors.lightFindUsagesItemColors(),
         FindUsagesItemColors.lightNoUsages(),
-        new Color("#B9BDC9"),
-        new Color("#F7F8FA"),
-        new Color(0),
+        windowLight(),
         ToolbarItemColors.lightToolbarItemColors(),
         ShadowParameters.lightTheme()
     );
   }
 
+  static WindowTheme windowDark() {
+    return new WindowTheme(
+        new Color("#616161"),
+        new Color("#393B40"),
+        new Color("#DFE1E5"));
+  }
+
+  static WindowTheme windowLight() {
+    return new WindowTheme(
+        new Color("#B9BDC9"),
+        new Color("#F7F8FA"),
+        new Color(0));
+  }
+
   public DialogItemColors(
       FindUsagesItemColors findUsagesItemColors,
       ToolbarItemColors noUsagesColors,
-      Color windowBorderColor,
-      Color windowTitleBgColor,
-      Color windowTitleTextColor,
+      WindowTheme windowTheme,
       ToolbarItemColors toolbarItemColors,
       ShadowParameters shadowParameters
   ) {
     this.findUsagesColors = findUsagesItemColors;
     this.findUsagesColorsError = noUsagesColors;
-    this.windowBorderColor = windowBorderColor;
-    this.windowTitleBgColor = windowTitleBgColor;
-    this.windowTitleTextColor = windowTitleTextColor;
+    this.windowTheme = windowTheme;
     this.toolbarItemColors = toolbarItemColors;
     this.shadowParameters = shadowParameters;
   }

@@ -17,6 +17,9 @@ import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 
 public class FindUsagesView extends ScrollContent implements Focusable {
+  static final float hMarinDp = 2;
+  static final int spacingDp = 2;
+
   private final UiContext context;
   private final DemoRect rect = new DemoRect();
   private final V2i textureSize = new V2i();
@@ -25,7 +28,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   private FindUsagesItemData[] items = FindUsagesItemBuilder.items0;
   private FindUsagesItem[] view = new FindUsagesItem[0];
   private GL.Texture texture;
-  private int hMargin, spacing, textXPad;
+  private int spacing, textXPad;
   private Runnable onClickOutside;
   private int maxFileNameLen = 0;
   private int maxLineLen = 0;
@@ -44,8 +47,11 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     this.context = context;
     this.onClose = onClose;
     onClickOutside(onClose);
-    this.hMargin = DprUtil.toPx(2, context.dpr);
-    this.spacing = DprUtil.toPx(2, context.dpr);
+    setDpr();
+  }
+
+  private void setDpr() {
+    spacing = DprUtil.toPx(spacingDp, context.dpr);
   }
 
   public boolean isEmpty() {
@@ -98,8 +104,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   @Override
   protected void onDprChange(float olDpr, float newDpr) {
     measure();
-    this.hMargin = DprUtil.toPx(2, context.dpr);
-    this.spacing = DprUtil.toPx(2, context.dpr);
+    setDpr();
     this.font = null;
     regionTexture = null;
     textXPad = 0;
@@ -148,6 +153,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
     int x = rect.pos.x;
     int y = rect.pos.y;
+    int hMargin = DprUtil.toPx(hMarinDp, dpr);
 
     V2i v2i = context.v2i1;
 
