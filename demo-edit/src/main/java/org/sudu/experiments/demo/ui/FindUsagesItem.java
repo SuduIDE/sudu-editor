@@ -25,7 +25,7 @@ public class FindUsagesItem {
       FindUsagesItemData[] data,
       RegionTexture regionTexture,
       ToIntFunction<String> m,
-      Map<String, CachableItem<V4f>> fileNameCache
+      Map<String, CountedItem<V4f>> fileNameCache
   ) {
     FindUsagesItem[] r = new FindUsagesItem[newSize];
     if (lines.length > 0) for (int i = first; i <= last; i++) {
@@ -63,7 +63,7 @@ public class FindUsagesItem {
       FindUsagesItemData[] data,
       RegionTexture regionTexture,
       ToIntFunction<String> m,
-      Map<String, CachableItem<V4f>> fileNameCache,
+      Map<String, CountedItem<V4f>> fileNameCache,
       int l
   ) {
     int index = l % lines.length;
@@ -75,15 +75,15 @@ public class FindUsagesItem {
       FindUsagesItemData d,
       RegionTexture regionTexture,
       ToIntFunction<String> m,
-      Map<String, CachableItem<V4f>> fileNameCache
+      Map<String, CountedItem<V4f>> fileNameCache
   ) {
     FindUsagesItem res = new FindUsagesItem(d);
 
-    CachableItem<V4f> cacheItem = fileNameCache.get(d.fileName);
+    CountedItem<V4f> cacheItem = fileNameCache.get(d.fileName);
     if (cacheItem == null) {
-      cacheItem = new CachableItem<>(regionTexture.alloc(d.fileName, m));
+      cacheItem = new CountedItem<>(regionTexture.alloc(d.fileName, m));
       fileNameCache.put(d.fileName, cacheItem);
-    } else cacheItem.inc();
+    } else cacheItem.addRef();
     res.tFiles = cacheItem.content;
     res.sizeFiles.set((int) res.tFiles.z, (int) res.tFiles.w);
     res.tLines = regionTexture.alloc(d.lineNumber, m);
@@ -97,19 +97,19 @@ public class FindUsagesItem {
   private static void free(
       RegionTexture regionTexture,
       FindUsagesItem item,
-      Map<String, CachableItem<V4f>> fileNameCache
+      Map<String, CountedItem<V4f>> fileNameCache
   ) {
     String fileName = item.data.fileName;
-    CachableItem<V4f> cacheItem = fileNameCache.get(fileName);
-    if (cacheItem.dec() == 0) {
-      regionTexture.free(cacheItem.content);
+    CountedItem<V4f> cacheItem = fileNameCache.get(fileName);
+    if (cacheItem.release() == 0) {
       fileNameCache.remove(fileName);
+      regionTexture.free(cacheItem.content);
     }
     regionTexture.free(item.tLines);
     regionTexture.free(item.tContent);
   }
 
-  public static void freeFileNameCache(RegionTexture regionTexture, Map<String, CachableItem<V4f>> fileNameCache) {
+  public static void freeFileNameCache(RegionTexture regionTexture, Map<String, CountedItem<V4f>> fileNameCache) {
     fileNameCache.forEach((key, v) -> regionTexture.free(v.content));
   }
 }

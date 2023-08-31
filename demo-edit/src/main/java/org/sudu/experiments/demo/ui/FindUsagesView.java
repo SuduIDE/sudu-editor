@@ -41,7 +41,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   private Runnable onClose;
   private DialogItemColors theme;
-  private final Map<String, CachableItem<V4f>> fileNameCache = new HashMap<>();
+  private final Map<String, CountedItem<V4f>> fileNameCache = new HashMap<>();
 
   public FindUsagesView(UiContext context, Runnable onClose) {
     this.context = context;

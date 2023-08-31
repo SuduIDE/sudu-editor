@@ -1,19 +1,19 @@
 package org.sudu.experiments.demo.ui;
 
-public class CachableItem<T> {
+public class CountedItem<T> {
 
   public final T content;
   private int counter = 1;
 
-  public CachableItem(T content) {
+  public CountedItem(T content) {
     this.content = content;
   }
 
-  public int dec() {
+  public int release() {
     return --counter;
   }
 
-  public int inc() {
+  public int addRef() {
     return ++counter;
   }
 }
