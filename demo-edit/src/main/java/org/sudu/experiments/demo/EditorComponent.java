@@ -1027,25 +1027,6 @@ public class EditorComponent implements Focusable, MouseListener {
     return new Pos(line, charPos);
   }
 
-  void onClickText(MouseEvent event) {
-    V2i eventPosition = event.position;
-    Pos pos = computeCharPos(eventPosition);
-    Pos startPos = model.document.getElementStart(pos.line, pos.pos);
-    String elementName = getElementNameByStartPos(startPos);
-
-    if (event.ctrl) {
-      var provider = registrations.findDefinitionProvider(model.language(), model.uriScheme());
-      if (provider != null) {
-        provider.provide(model, pos.line, pos.pos,
-            (locs) -> gotoDefinition(eventPosition, locs, elementName), onError);
-      } else {
-        // Default def provider
-        if (gotoByLocalProvider(eventPosition, startPos, elementName)) return;
-      }
-    }
-
-  }
-
   private void dragText(MouseEvent event) {
     Pos pos = computeCharPos(event.position);
     moveCaret(pos);
@@ -1107,6 +1088,24 @@ public class EditorComponent implements Focusable, MouseListener {
     selection.endPos.set(range.endLineNumber, range.endColumn);
   }
 
+  void onClickText(MouseEvent event) {
+    if (!event.ctrl) return;
+
+    V2i eventPosition = event.position;
+    Pos pos = computeCharPos(eventPosition);
+    Pos startPos = model.document.getElementStart(pos.line, pos.pos);
+    String elementName = getElementNameByStartPos(startPos);
+
+    var provider = registrations.findDefinitionProvider(model.language(), model.uriScheme());
+    if (provider != null) {
+      provider.provide(model, pos.line, pos.pos,
+          (locs) -> gotoDefinition(eventPosition, locs, elementName), onError);
+    } else {
+      // Default def provider
+      if (gotoByLocalProvider(eventPosition, startPos, elementName)) return;
+    }
+  }
+
   void onDoubleClickText(V2i eventPosition) {
     Pos pos = computeCharPos(eventPosition);
     CodeLine line = codeLine(pos.line);
@@ -1140,10 +1139,13 @@ public class EditorComponent implements Focusable, MouseListener {
     selection.isSelectionStarted = true;
     setCaretLinePos(caretLine, wordEnd, false);
     selection.isSelectionStarted = false;
+    saveToNavStack();
   }
 
-  void onTripleClickText(V2i eventPosition) {
+  void onTripleClickText() {
     selection.selectLine(caretLine);
+    navStack.pop();
+    saveToNavStack();
   }
 
   CodeLine caretCodeLine() {
@@ -1210,16 +1212,9 @@ public class EditorComponent implements Focusable, MouseListener {
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
     if (button == MOUSE_BUTTON_LEFT) {
       switch (clickCount) {
-        case 3 -> {
-          onTripleClickText(event.position);
-          navStack.pop();
-          saveToNavStack();
-        }
-        case 2 -> {
-          onDoubleClickText(event.position);
-          saveToNavStack();
-        }
         case 1 -> onClickText(event);
+        case 2 -> onDoubleClickText(event.position);
+        case 3 -> onTripleClickText();
       }
     }
     return true;
