@@ -11,6 +11,8 @@ import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 
@@ -37,6 +39,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   private Runnable onClose;
   private DialogItemColors theme;
+  private final Map<String, V4f> fileNameCache = new HashMap<>();
 
   public FindUsagesView(UiContext context, Runnable onClose) {
     this.context = context;
@@ -77,6 +80,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   public void dispose() {
     super.dispose();
+    FindUsagesItem.freeFileNameCache(regionTexture, fileNameCache);
     disposeTexture();
     items = FindUsagesItemBuilder.items0;
     view = null;
@@ -125,7 +129,8 @@ public class FindUsagesView extends ScrollContent implements Focusable {
           lastLineRendered,
           items,
           regionTexture,
-          measureWithPad
+          measureWithPad,
+          fileNameCache
       );
       textureSize.set(regionTexture.getTextureSize());
       renderTexture(context.graphics);
@@ -190,7 +195,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     for (int i = firstLineRendered; i <= lastLineRendered; i++) {
       FindUsagesItem item = itemView(i);
       if (item == null || item.data != items[i]) {
-        FindUsagesItem.setNewItem(view, items, regionTexture, m, i);
+        FindUsagesItem.setNewItem(view, items, regionTexture, m, fileNameCache, i);
         rerender = true;
       }
     }
@@ -207,10 +212,12 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     float baseline = font.fAscent - (font.fAscent + font.fDescent) / 16;
     for (var item: view) {
       if (item == null) continue;
-      canvas.drawText(item.data.fileName, item.tFiles.x + textXPad, baseline + item.tFiles.y);
       canvas.drawText(item.data.lineNumber, item.tLines.x + textXPad, baseline + item.tLines.y);
       canvas.drawText(item.data.codeContent, item.tContent.x + textXPad, baseline + item.tContent.y);
     }
+    fileNameCache.forEach(
+        (fileName, v4f) -> canvas.drawText(fileName, v4f.x + textXPad, baseline + v4f.y)
+    );
     texture = Disposable.assign(texture, g.createTexture());
     texture.setContent(canvas);
     canvas.dispose();
