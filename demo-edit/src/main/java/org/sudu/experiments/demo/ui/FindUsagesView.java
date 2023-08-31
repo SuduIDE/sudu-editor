@@ -24,7 +24,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   private FindUsagesItemData[] items = FindUsagesItemBuilder.items0;
   private FindUsagesItem[] view = new FindUsagesItem[0];
   private GL.Texture texture;
-  private int border, textXPad;
+  private int hMargin, spacing, textXPad;
   private Runnable onClickOutside;
   private int maxFileNameLen = 0;
   private int maxLineLen = 0;
@@ -42,7 +42,8 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     this.context = context;
     this.onClose = onClose;
     onClickOutside(onClose);
-    this.border = DprUtil.toPx(2, context.dpr);
+    this.hMargin = DprUtil.toPx(2, context.dpr);
+    this.spacing = DprUtil.toPx(2, context.dpr);
   }
 
   public boolean isEmpty() {
@@ -94,7 +95,8 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   @Override
   protected void onDprChange(float olDpr, float newDpr) {
     measure();
-    border = DprUtil.toPx(2, context.dpr);
+    this.hMargin = DprUtil.toPx(2, context.dpr);
+    this.spacing = DprUtil.toPx(2, context.dpr);
     this.font = null;
     regionTexture = null;
     textXPad = 0;
@@ -145,8 +147,8 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
     for (int i = firstLineRendered; i <= lastLineRendered; i++) {
       FindUsagesItem item = itemView(i);
-      int localY = i * getLineHeight() + (i + 1) * border;
-      int fileTX = x + border;
+      int localY = i * getLineHeight() + (i + 1) * spacing;
+      int fileTX = x + hMargin;
       int lineTX = fileTX + maxFileNameLen;
       int contentTX = lineTX + maxLineLen;
       boolean hover = hoverItemId == i;
@@ -171,12 +173,12 @@ public class FindUsagesView extends ScrollContent implements Focusable {
       v2i.set(Math.max(0, maxLineLen - item.sizeLines.x), item.sizeLines.y);
       g.drawRect(linesX, y1, v2i, itemBg);
       int contentX = contentTX + item.sizeContent.x;
-      v2i.set(Math.max(0, rect.size.x - item.sizeContent.x - maxLineLen - maxFileNameLen - border), item.sizeContent.y);
+      v2i.set(Math.max(0, rect.size.x - item.sizeContent.x - maxLineLen - maxFileNameLen - hMargin), item.sizeContent.y);
       g.drawRect(contentX, y1, v2i, itemBg);
 
       // border
-      int borderX = x + size.x - border;
-      v2i.set(border, getLineHeight() + border);
+      int borderX = x + size.x - hMargin;
+      v2i.set(hMargin, getLineHeight() + spacing);
       g.drawRect(borderX, y1, v2i, bgColor);
     }
 
@@ -231,7 +233,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   @Override
   protected void updateVirtualSize() {
     requireFont();
-    int height = getLineHeight() * items.length + border * (items.length + 1);
+    int height = getLineHeight() * items.length + spacing * (items.length + 1);
     virtualSize.set(size.x, height);
   }
 
@@ -303,8 +305,8 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     if (view.length == 0) return -1;
 
     int lineHeight = getLineHeight();
-    int y = pos.y - this.pos.y + scrollPos.y + border;
-    int index = y / (lineHeight + border);
+    int y = pos.y - this.pos.y + scrollPos.y + spacing;
+    int index = y / (lineHeight + spacing);
     if (index >= items.length) return -1;
     return index;
   }
@@ -314,11 +316,11 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   }
 
   private int getFirstLine() {
-    return Math.min((scrollPos.y + border) / (getLineHeight() + border), items.length - 1);
+    return Math.min((scrollPos.y + spacing) / (getLineHeight() + spacing), items.length - 1);
   }
 
   private int getLastLine() {
-    return Math.min((scrollPos.y + rect.size.y - 1 + border) / (getLineHeight() + border), items.length - 1);
+    return Math.min((scrollPos.y + rect.size.y - 1 + spacing) / (getLineHeight() + spacing), items.length - 1);
   }
 
   private void requireFont() {
