@@ -229,15 +229,11 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
     private Supplier<ToolbarItem[]> settingsItems() {
       ToolbarItemBuilder tbb = new ToolbarItemBuilder();
-      tbb.addItem("Theme >", theme.dialogItemColors.toolbarItemColors, themes(), (mouse, index, item) -> {
-        item.action().run();
-        item.setHover(true);
-      });
+      tbb.addItem("Theme >", theme.dialogItemColors.toolbarItemColors, themes(),
+          Toolbar.HoverCallback.fireOnHover);
       tbb.addItem("Font size >", theme.dialogItemColors.toolbarItemColors, fontSize());
-      tbb.addItem("Fonts >", theme.dialogItemColors.toolbarItemColors, fontSelect(), (mouse, index, item) -> {
-        item.action().run();
-        item.setHover(true);
-      });
+      tbb.addItem("Fonts >", theme.dialogItemColors.toolbarItemColors, fontSelect(),
+          Toolbar.HoverCallback.fireOnHover);
       return tbb.supplier();
     }
 
