@@ -35,7 +35,6 @@ public class DemoEdit0 extends Scene1 {
     api.input.onKeyPress.add(KeyEvent::handleSpecialKey);
     api.input.onKeyPress.add(this::onKeyPress);
     api.input.onKeyPress.add(new CtrlO(api, editor::openFile));
-    api.input.onKeyPress.add(uiContext::onKeyPress);
 
     api.input.onCopy.add(editor::onCopy);
     api.input.onPaste.add(() -> editor::handleInsert);
