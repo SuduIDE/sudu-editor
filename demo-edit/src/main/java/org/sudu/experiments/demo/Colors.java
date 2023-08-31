@@ -11,7 +11,7 @@ public interface Colors {
   V4f toolbarBorder = new Color("#616161");
   V4f toolbarSelectedBg = new Color("#4B6EAF");
 
-  V4f findUsagesBg = new Color("#3C3F41");
+  V4f findUsagesBg = new Color("#2B2D30");
   V4f findUsagesBorder = new Color("#616161");
   V4f findUsagesSelectedBg = new Color("#4B6EAF");
   V4f findusagesBgLight = IdeaCodeColors.Colors.editBgColorLight;

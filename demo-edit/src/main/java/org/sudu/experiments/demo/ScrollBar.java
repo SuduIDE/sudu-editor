@@ -119,8 +119,11 @@ public class ScrollBar {
       bgSize.set(0, 0);
       buttonSize.set(0, 0);
     } else {
-      int buttonLength = scrollControlSize(viewSize, viewVirtualSize, buttonZSize * BUTTON_SIZE);
-      int buttonPosition = scrollControlPos(scrollPos, viewSize, viewVirtualSize, buttonLength);
+      int buttonLength = scrollControlSize(
+          viewSize, viewVirtualSize,
+          Math.min(buttonZSize * BUTTON_SIZE, viewSize));
+      int buttonPosition = scrollControlPos(
+          scrollPos, viewSize, viewVirtualSize, buttonLength);
       if (isVertical) {
         buttonPos.x = viewZMax - buttonZSize;
         buttonPos.y = buttonPosition + viewStart;

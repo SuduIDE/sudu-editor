@@ -2,6 +2,7 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.demo.Colors;
 import org.sudu.experiments.demo.IdeaCodeColors;
+import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V4f;
 
 public class FindUsagesItemColors {
@@ -9,35 +10,27 @@ public class FindUsagesItemColors {
   final V4f lineColor;
   final V4f contentColor;
   final V4f bgColor;
-  final V4f bgHighlight;
+  final V4f bgHighlightColor;
+  final V4f textHighlightColor = new Color(255);
 
-  public FindUsagesItemColors(V4f fileColor, V4f lineColor, V4f contentColor, V4f bgColor, V4f bgHighlight) {
+  public FindUsagesItemColors(V4f fileColor, V4f lineColor, V4f contentColor, V4f bgColor, V4f bgHighlightColor) {
     this.fileColor = fileColor;
     this.lineColor = lineColor;
     this.contentColor = contentColor;
     this.bgColor = bgColor;
-    this.bgHighlight = bgHighlight;
+    this.bgHighlightColor = bgHighlightColor;
   }
 
   public static FindUsagesItemColors darkFindUsagesItemColors() {
     return new FindUsagesItemColors(
         IdeaCodeColors.Colors.defaultText,
         IdeaCodeColors.Colors.editNumbersVLine,
-        IdeaCodeColors.Colors.defaultText,
+        new Color("#DFE1E5"),
         Colors.findUsagesBg,
         Colors.findUsagesSelectedBg
     );
   }
 
-  public static FindUsagesItemColors darkFindUsagesItemColorsExtraLine() {
-    return new FindUsagesItemColors(
-        IdeaCodeColors.Colors.defaultText,
-        IdeaCodeColors.Colors.editNumbersVLine,
-        IdeaCodeColors.Colors.defaultText,
-        Colors.findUsagesBg,
-        Colors.findUsagesBg
-    );
-  }
 
   public static ToolbarItemColors darkNoUsages() {
     return ToolbarItemColors.darkToolbarItemColors();
@@ -50,16 +43,6 @@ public class FindUsagesItemColors {
         IdeaCodeColors.Colors.defaultTextLight,
         Colors.findusagesBgLight,
         Colors.findUsagesSelectedBg
-    );
-  }
-
-  public static FindUsagesItemColors lightFindUsagesItemColorsExtraLine() {
-    return new FindUsagesItemColors(
-        IdeaCodeColors.Colors.defaultTextLight,
-        IdeaCodeColors.Colors.editNumbersVLineLight,
-        IdeaCodeColors.Colors.defaultTextLight,
-        Colors.findusagesBgLight,
-        Colors.findusagesBgLight
     );
   }
 

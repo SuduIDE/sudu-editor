@@ -18,6 +18,7 @@ public class WindowManager implements MouseListener, DprChangeListener {
 
   private final ArrayList<Window> windows = new ArrayList<>();
   private Consumer<MouseEvent> dragLock;
+  private int dragButton;
 
   public WindowManager() {}
 
@@ -37,6 +38,11 @@ public class WindowManager implements MouseListener, DprChangeListener {
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
+    if (dragLock != null) {
+      dragLock.accept(event);
+      return true;
+    }
+
     for (int i = 0; i < windows.size(); i++) {
       if (windows.get(i).onMouseMove(event)) return true;
     }
@@ -51,23 +57,40 @@ public class WindowManager implements MouseListener, DprChangeListener {
     return false;
   }
 
+  int id;
+
   @Override
   public boolean onMouseDown(MouseEvent event, int button) {
+//    System.out.println("onMouseDown(" + ++id + ") lock = " + dragLock);
+    if (dragLock != null) return true;
+
     for (int i = 0; i < windows.size(); i++) {
-      if (windows.get(i).onMouseDown(event, button)) return true;
+      Consumer<MouseEvent> lock = windows.get(i).onMouseDown(event, button);
+      if (lock != null) {
+        dragLock = lock;
+        dragButton = button;
+        return true;
+      }
     }
     return false;
   }
 
   @Override
   public boolean onMouseUp(MouseEvent event, int button) {
+//    System.out.println("onMouseUp " + ++id);
+    if (button == dragButton && dragLock != null) {
+      dragLock = null;
+//      System.out.println("    dragLock = null;");
+      return true;
+    }
+
     for (int i = 0; i < windows.size(); i++) {
       if (windows.get(i).onMouseUp(event, button)) return true;
     }
     return false;
   }
 
-  boolean onScroll(MouseEvent event, float dX, float dY) {
+  public boolean onScroll(MouseEvent event, float dX, float dY) {
     for (int i = 0; i < windows.size(); i++) {
       if (windows.get(i).onScroll(event, dX, dY)) return true;
     }

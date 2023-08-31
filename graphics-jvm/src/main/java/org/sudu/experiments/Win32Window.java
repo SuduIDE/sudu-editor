@@ -246,6 +246,7 @@ public class Win32Window implements WindowPeer, Window {
     if (currentCursor != cursor) {
       currentCursor = cursor;
       currentCursorHandle = Win32Cursors.toWin32(cursor);
+      Win32.SetCursor(currentCursorHandle);
     }
   }
 

@@ -69,7 +69,7 @@ public class Toolbar {
   public void setTheme(DialogItemColors dialogItemColors) {
     shadowParameters = dialogItemColors.shadowParameters;
     setBgColor(dialogItemColors.toolbarItemColors.bgColor);
-    setFrameColor(dialogItemColors.dialogBorderColor);
+    setFrameColor(dialogItemColors.windowTheme.windowBorderColor);
     for (int i = 0; i < items.length; i++) {
       items[i].setTheme(dialogItemColors.toolbarItemColors);
       if (hoverItemId == i) items[i].setHover(true);
@@ -232,13 +232,11 @@ public class Toolbar {
   }
 
   public boolean onMouseClick(V2i pos, int button, int clickCount) {
-    if (clickCount > 0) {
-      int index = find(pos);
-      if (index >= 0) {
-        ToolbarItem item = items[index];
-        if (!item.isSubmenu()) {
-          item.action.run();
-        }
+    int index = find(pos);
+    if (index >= 0) {
+      ToolbarItem item = items[index];
+      if (!item.isSubmenu()) {
+        item.action.run();
       }
     }
     return true;

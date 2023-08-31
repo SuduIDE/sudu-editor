@@ -7,21 +7,36 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.math.XorShiftRandom;
 
+import java.util.function.Consumer;
+
 import static org.sudu.experiments.math.XorShiftRandom.intToDouble01;
 
 public class ScrollContentDemo extends ScrollContent {
 
   final V4f color = new V4f();
   final V2i sz = new V2i();
+  final Consumer<V2i> onSizeListener;
   float v;
 
-  public ScrollContentDemo(float v) {
+  public ScrollContentDemo(float v, Consumer<V2i> onSizeListener) {
+    this.onSizeListener = onSizeListener;
     this.v = v;
   }
 
   @Override
   protected void updateVirtualSize() {
-    virtualSize.set(size.x * 2, size.y * 2);
+    virtualSize.set(size.x * 3, size.y * 5);
+  }
+
+  @Override
+  protected V2i minimalSize() {
+    int px20 = DprUtil.toPx(20, dpr);
+    return new V2i(px20, px20);
+  }
+
+  @Override
+  protected void onSizeChange(V2i newSize) {
+    onSizeListener.accept(newSize);
   }
 
   @Override
@@ -57,6 +72,6 @@ public class ScrollContentDemo extends ScrollContent {
 
   @Override
   protected void onPosChange(V2i newPos) {
-    System.out.println("onPosChange: " + newPos);
+//    System.out.println("onPosChange: " + newPos);
   }
 }

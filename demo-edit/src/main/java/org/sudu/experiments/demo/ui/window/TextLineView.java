@@ -4,10 +4,11 @@ import org.sudu.experiments.Canvas;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.ui.DialogItemColors;
 import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.demo.ui.UiFont;
+import org.sudu.experiments.demo.ui.WindowTheme;
 import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
@@ -22,6 +23,7 @@ public class TextLineView extends View {
   private float margin;
   private boolean renderRequest;
 
+  private int measured;
   private GL.Texture texture;
   private final V4f texRect = new V4f();
 
@@ -41,6 +43,7 @@ public class TextLineView extends View {
     renderRequest = fontChange || titleChange || marginChange;
     this.title = title;
     this.margin = margin;
+    this.measured = 0;
   }
 
   public int computeAndSetHeight() {
@@ -53,19 +56,25 @@ public class TextLineView extends View {
 
   public void setWidth(int width) {
     size.x = width;
+
+    if (texture != null && width != texture.width()) {
+      if (width < measured || texture.width() < measured) {
+        renderRequest = true;
+      }
+    }
   }
 
-  public void draw(WglGraphics g, DialogItemColors theme) {
+  public void draw(WglGraphics g, WindowTheme theme) {
     if (sizeEmpty()) return;
     if (!isEmpty()) {
       if (renderRequest || texture == null) {
         renderTexture(g);
       }
     }
-    V4f bgColor = theme.toolbarItemColors.bgColor;
+    V4f bgColor = theme.windowTitleBgColor;
     if (texture != null) {
       int width = texture.width();
-      V4f textC = theme.toolbarItemColors.color;
+      V4f textC = theme.windowTitleTextColor;
       g.drawText(pos.x, pos.y, texture.size(), texRect, texture,
           textC, bgColor, 0);
       if (width < size.x) {
@@ -104,15 +113,15 @@ public class TextLineView extends View {
     renderRequest = false;
     requireFont();
     float lineHeightF = font.lineHeightF();
-    float leftRightFontPadding = (lineHeightF + 5f) / 10;
+    float lrPadding = (lineHeightF + 5f) / 10;
     int margin = context.toPx(this.margin);
-    int measured = g.mCanvas.measurePx(font, title, leftRightFontPadding * 2);
-    int width = Math.min(measured + margin, size.x);
+    measured = margin + g.mCanvas.measurePx(font, title, lrPadding * 2);
+    int width = Numbers.clamp(0, measured, size.x);
     if (width == 0) return;
     Canvas canvas = g.createCanvas(width, size.y);
     canvas.setFont(font);
     canvas.drawText(title,
-        margin + leftRightFontPadding,
+        margin + lrPadding,
         margin + font.uiBaseline());
     var t = texture != null ? texture : (texture = g.createTexture());
     t.setContent(canvas);
@@ -123,6 +132,7 @@ public class TextLineView extends View {
   public void onDprChange() {
     if (uiFont != null) {
       font = null;
+      measured = 0;
       renderRequest = true;
     }
   }

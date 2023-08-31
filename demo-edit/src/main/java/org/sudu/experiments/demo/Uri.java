@@ -9,6 +9,10 @@ public class Uri {
   public final String path;
   public final Object nativeObject;
 
+  public Uri(String path) {
+    this(null, null, path, null);
+  }
+
   public Uri(String scheme, String authority, String path, Object nativeObject) {
     this.scheme = scheme;
     this.authority = authority;

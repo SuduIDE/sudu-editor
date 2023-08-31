@@ -8,8 +8,8 @@ public class Model {
   private String docLanguage;
   private String languageFromFile;
 
-  public Model(String text, String language) {
-    this(SplitText.split(text), language, null);
+  public Model(String text, String language, Uri uri) {
+    this(SplitText.split(text), language, uri);
   }
 
   public Model(String[] text, String language, Uri uri) {

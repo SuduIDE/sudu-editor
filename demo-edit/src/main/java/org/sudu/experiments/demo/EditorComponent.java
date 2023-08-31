@@ -225,14 +225,6 @@ public class EditorComponent implements Focusable, MouseListener {
     renderingCanvas = Disposable.assign(
         renderingCanvas, g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight));
 
-    // TODO: Remove min value when texture allocator appears
-    ui.usagesMenu.setFont(g.fontDesk(
-        name,
-        Math.min(EditorConst.MAX_FONT_SIZE_USAGES_WINDOW, font.size),
-        font.weight,
-        font.style)
-    );
-
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
         + ", ascent+descent = " + fontLineHeight
         + ", lineHeight = " + lineHeight
@@ -361,6 +353,7 @@ public class EditorComponent implements Focusable, MouseListener {
     }
 
     g.enableBlend(false);
+    g.enableScissor(compPos, compSize);
 
     drawVerticalLine();
     vScrollPos = Math.min(vScrollPos, maxVScrollPos());
@@ -419,6 +412,8 @@ public class EditorComponent implements Focusable, MouseListener {
 
     layoutScrollbar();
     drawScrollBar();
+
+    g.disableScissor();
 
 //    g.checkError("paint complete");
     if (0>1) {
@@ -785,7 +780,12 @@ public class EditorComponent implements Focusable, MouseListener {
     parsingTimeStart = System.currentTimeMillis();
     fileStructureParsed = false;
     firstLinesParsed = false;
-    model.document = new Document();
+
+    model = new Model(
+        new String[] {""},
+        null,
+        new Uri("", "", f.getName(), null)
+    );
     setCaretLinePos(0, 0, false);
     sendFileToWorkers(f);
   }
@@ -957,23 +957,26 @@ public class EditorComponent implements Focusable, MouseListener {
   public void findUsages(V2i position, DefDeclProvider.Provider provider) {
 
     Pos pos = computeCharPos(position);
+    Pos startPos = model.document.getElementStart(pos.line, pos.pos);
+    String elementName = getElementNameByStartPos(startPos);
+
     if (provider != null) {
-      provider.provide(model, pos.line, pos.pos, (locs) -> gotoDefinition(position, locs), onError);
+      provider.provide(model, pos.line, pos.pos,
+          (locs) -> gotoDefinition(position, locs, elementName), onError);
       return;
     }
 
-    model.document.moveToElementStart(pos);
-    Pos def = model.document.usageToDef.get(pos);
+    Pos def = model.document.usageToDef.get(startPos);
     if (def != null) {
       gotoUsage(def);
       return;
     }
 
-    List<Pos> usages = model.document.defToUsages.get(pos);
+    List<Pos> usages = model.document.defToUsages.get(startPos);
     if (usages == null || usages.isEmpty()) {
       ui.displayNoUsagesPopup(position, this);
     } else {
-      ui.showUsagesWindow(position, usages, this);
+      ui.showUsagesWindow(position, usages, this, elementName);
     }
   }
 
@@ -985,7 +988,9 @@ public class EditorComponent implements Focusable, MouseListener {
     if (pos.isEmpty()) {
       ui.displayNoUsagesPopup(position, this);
     } else {
-      ui.showUsagesWindow(position, locs, this);
+      Pos charPos = computeCharPos(position);
+      Pos startPos = model.document.getElementStart(charPos.line, charPos.pos);
+      ui.showUsagesWindow(position, locs, this, getElementNameByStartPos(startPos));
     }
   }
 
@@ -1022,34 +1027,6 @@ public class EditorComponent implements Focusable, MouseListener {
     return new Pos(line, charPos);
   }
 
-  void onClickText(MouseEvent event) {
-    saveToNavStack();
-    V2i eventPosition = event.position;
-    Pos pos = computeCharPos(eventPosition);
-    Pos elementPos = model.document.getElementStart(pos.line, pos.pos);
-
-    if (event.ctrl) {
-      var provider = registrations.findDefinitionProvider(model.language(), model.uriScheme());
-      if (provider != null) {
-        provider.provide(model, pos.line, pos.pos,
-            (locs) -> gotoDefinition(eventPosition, locs), onError);
-      } else {
-        // Default def provider
-        if (gotoByLocalProvider(eventPosition, elementPos)) return;
-      }
-    }
-
-    moveCaret(pos);
-    computeUsages(pos, elementPos);
-
-    if (!event.shift && !selection.isSelectionStarted) {
-      selection.startPos.set(caretLine, caretCharPos);
-    }
-    selection.isSelectionStarted = true;
-    selection.select(caretLine, caretCharPos);
-    dragLock = this::dragText;
-  }
-
   private void dragText(MouseEvent event) {
     Pos pos = computeCharPos(event.position);
     moveCaret(pos);
@@ -1064,7 +1041,7 @@ public class EditorComponent implements Focusable, MouseListener {
     startBlinking();
   }
 
-  private boolean gotoByLocalProvider(V2i position, Pos elementStart) {
+  private boolean gotoByLocalProvider(V2i position, Pos elementStart, String elementName) {
     var defPos = model.document.usageToDef.get(elementStart);
     if (defPos != null) {
       gotoUsage(defPos);
@@ -1076,7 +1053,7 @@ public class EditorComponent implements Focusable, MouseListener {
           gotoUsage(usagesList.get(0));
           return true;
         } else {
-          ui.showUsagesWindow(position, usagesList, this);
+          ui.showUsagesWindow(position, usagesList, this, elementName);
           return true;
         }
       }
@@ -1084,11 +1061,11 @@ public class EditorComponent implements Focusable, MouseListener {
     return false;
   }
 
-  private void gotoDefinition(V2i position, Location[] locs) {
+  private void gotoDefinition(V2i position, Location[] locs, String elementName) {
     switch (locs.length) {
       case 0 -> ui.displayNoUsagesPopup(position,this);
       case 1 -> gotoDefinition(locs[0]);
-      default -> ui.showUsagesWindow(position, locs, this);
+      default -> ui.showUsagesWindow(position, locs, this, elementName);
     }
   }
 
@@ -1109,6 +1086,24 @@ public class EditorComponent implements Focusable, MouseListener {
     setCaretLinePos(range.startLineNumber, range.startColumn, false);
     selection.startPos.set(range.startLineNumber, range.startColumn);
     selection.endPos.set(range.endLineNumber, range.endColumn);
+  }
+
+  void onClickText(MouseEvent event) {
+    if (!event.ctrl) return;
+
+    V2i eventPosition = event.position;
+    Pos pos = computeCharPos(eventPosition);
+    Pos startPos = model.document.getElementStart(pos.line, pos.pos);
+    String elementName = getElementNameByStartPos(startPos);
+
+    var provider = registrations.findDefinitionProvider(model.language(), model.uriScheme());
+    if (provider != null) {
+      provider.provide(model, pos.line, pos.pos,
+          (locs) -> gotoDefinition(eventPosition, locs, elementName), onError);
+    } else {
+      // Default def provider
+      if (gotoByLocalProvider(eventPosition, startPos, elementName)) return;
+    }
   }
 
   void onDoubleClickText(V2i eventPosition) {
@@ -1144,10 +1139,13 @@ public class EditorComponent implements Focusable, MouseListener {
     selection.isSelectionStarted = true;
     setCaretLinePos(caretLine, wordEnd, false);
     selection.isSelectionStarted = false;
+    saveToNavStack();
   }
 
-  void onTripleClickText(V2i eventPosition) {
+  void onTripleClickText() {
     selection.selectLine(caretLine);
+    navStack.pop();
+    saveToNavStack();
   }
 
   CodeLine caretCodeLine() {
@@ -1192,22 +1190,32 @@ public class EditorComponent implements Focusable, MouseListener {
       dragLock = hScroll.onMouseDown(event.position, hScrollHandler, false);
       if (dragLock != null) return true;
 
-      onClickText(event);
+      saveToNavStack();
+      V2i eventPosition = event.position;
+      Pos pos = computeCharPos(eventPosition);
+      Pos elementPos = model.document.getElementStart(pos.line, pos.pos);
+
+      moveCaret(pos);
+      computeUsages(pos, elementPos);
+
+      if (!event.shift && !selection.isSelectionStarted) {
+        selection.startPos.set(caretLine, caretCharPos);
+      }
+
+      selection.isSelectionStarted = true;
+      selection.select(caretLine, caretCharPos);
+      dragLock = this::dragText;
     }
     return true;
   }
 
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-    if (button == MOUSE_BUTTON_LEFT && clickCount == 3) {
-      onTripleClickText(event.position);
-      navStack.pop();
-      saveToNavStack();
-      return true;
-    }
-    if (button == MOUSE_BUTTON_LEFT && clickCount == 2) {
-      onDoubleClickText(event.position);
-      saveToNavStack();
-      return true;
+    if (button == MOUSE_BUTTON_LEFT) {
+      switch (clickCount) {
+        case 1 -> onClickText(event);
+        case 2 -> onDoubleClickText(event.position);
+        case 3 -> onTripleClickText();
+      }
     }
     return true;
   }
@@ -1589,5 +1597,11 @@ public class EditorComponent implements Focusable, MouseListener {
 
   public char[] getChars() {
     return model.document.getChars();
+  }
+
+  private String getElementNameByStartPos(Pos startPos) {
+    CodeElement codeElement = model.document.getCodeElement(startPos);
+    if (codeElement != null) return codeElement.s;
+    return "";
   }
 }

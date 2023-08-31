@@ -9,8 +9,8 @@ function test1(editor) {
     editor.registerDefinitionProvider("java",
         {
             provideDefinition(model, position, token) {
-                return generateDefinitionData(model, position, 16).concat(
-                    generateDefinitionData(modelNormalFileName, position, 5)
+                return generateDefinitionData(model, position, 200).concat(
+                    generateDefinitionData(modelNormalFileName, position, 200)
                 );
             }
         }
