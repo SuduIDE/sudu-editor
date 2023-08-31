@@ -34,11 +34,6 @@ public class Toolbar {
 
   public interface HoverCallback {
     void event(V2i mouse, int index, ToolbarItem item);
-
-    HoverCallback fireOnHover = (mouse, index, item) -> {
-      item.action().run();
-      item.setHover(true);
-    };
   }
 
   public void setItems(ToolbarItem[] actions) {
