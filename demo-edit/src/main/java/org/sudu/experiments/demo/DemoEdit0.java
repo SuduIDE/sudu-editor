@@ -13,13 +13,10 @@ import org.sudu.experiments.math.V2i;
 
 import java.util.Objects;
 
-public class DemoEdit0 extends Scene1 {
+public class DemoEdit0 extends Scene1 implements EditorUi.ThemeApi {
 
   final EditorComponent editor;
   final EditorUi ui;
-
-  V2i editorPos = new V2i();
-  V2i editorSize = new V2i();
 
   public DemoEdit0(SceneApi api) {
     super(api);
@@ -32,7 +29,6 @@ public class DemoEdit0 extends Scene1 {
     api.input.onScroll.add(ui);
     api.input.onMouse.add(editor);
 
-    api.input.onKeyPress.add(KeyEvent::handleSpecialKey);
     api.input.onKeyPress.add(this::onKeyPress);
     api.input.onKeyPress.add(new CtrlO(api, editor::openFile));
 
@@ -41,7 +37,7 @@ public class DemoEdit0 extends Scene1 {
     api.input.onScroll.add((e, dX, dY) -> editor.onScroll(dX, dY));
     api.input.onContextMenu.add(this::onContextMenu);
 
-    toggleDark();
+    toggleDarcula();
   }
 
   public Document document() {
@@ -75,15 +71,14 @@ public class DemoEdit0 extends Scene1 {
   @Override
   public void onResize(V2i newSize, float newDpr) {
     super.onResize(newSize, newDpr);
-    layout(newSize);
-    editor.setPos(editorPos, editorSize, newDpr);
+    layout(newSize, newDpr);
   }
 
-  protected void layout(V2i newSize) {
-    editorSize.set(newSize.x, newSize.y);
+  protected void layout(V2i newSize, float dpr) {
+    editor.setPos(new V2i(), newSize, dpr);
   }
 
-  public void toggleDark() {
+  public void toggleDarcula() {
     applyTheme(EditorColorScheme.darkIdeaColorScheme());
   }
 
@@ -100,7 +95,7 @@ public class DemoEdit0 extends Scene1 {
   public void setTheme(String theme) {
     switch (theme) {
       case "light" -> toggleLight();
-      case "dark" -> toggleDark();
+      case "dracula" -> toggleDarcula();
       default -> Debug.consoleInfo("unknown theme: " + theme);
     }
   }
@@ -115,7 +110,8 @@ public class DemoEdit0 extends Scene1 {
 
   boolean onContextMenu(MouseEvent event) {
     if (uiContext.isFocused(editor)) {
-      ui.showContextMenu(event, editor, DemoEdit0.this);
+      ui.showContextMenu(event, editor,
+          DemoEdit0.this, DemoEdit0.this::menuFonts);
     }
     return true;
   }

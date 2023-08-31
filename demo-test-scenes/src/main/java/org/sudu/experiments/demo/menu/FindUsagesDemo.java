@@ -36,8 +36,8 @@ public class FindUsagesDemo extends Scene1 implements DprChangeListener {
     uiContext.dprListeners.add(this);
     clearColor.set(new Color(43));
     popupMenu = new PopupMenu(uiContext);
-    popupMenu.setTheme(DialogItemColors.darkColorScheme());
-    popupMenu.setFont(new UiFont("Consolas", 25));
+    popupMenu.setTheme(DialogItemColors.darkColorScheme(),
+        new UiFont("Consolas", 25));
 
     api.input.onKeyPress.add(this::onKey);
     api.input.onContextMenu.add(this::onContextMenu);
@@ -102,8 +102,7 @@ public class FindUsagesDemo extends Scene1 implements DprChangeListener {
     FindUsagesView view = new FindUsagesView(uiContext, () -> {});
     UiFont uiFont = new UiFont(Fonts.Consolas, 14);
     view.setItems(createItems());
-    view.setFont(uiFont);
-    view.setTheme(theme);
+    view.setTheme(theme, uiFont);
 
     Window window = new Window(uiContext);
     window.setContent(new ScrollView(view, uiContext));

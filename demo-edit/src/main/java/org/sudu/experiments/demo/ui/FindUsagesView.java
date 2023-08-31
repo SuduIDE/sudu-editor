@@ -63,10 +63,6 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     items = actions;
   }
 
-  public void setTheme(DialogItemColors dialogItemColors) {
-    theme = dialogItemColors;
-  }
-
   public void invalidateTexture() {
     textureSize.set(0, 0);
   }
@@ -75,7 +71,8 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     onClickOutside = action;
   }
 
-  public void setFont(UiFont font) {
+  public void setTheme(DialogItemColors dialogItemColors, UiFont font) {
+    theme = dialogItemColors;
     uiFont = font;
     this.font = null;
     regionTexture = null;
@@ -153,7 +150,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
     int x = rect.pos.x;
     int y = rect.pos.y;
-    int hMargin = DprUtil.toPx(hMarinDp, dpr);
+    int hMargin = context.toPx(hMarinDp);
 
     V2i v2i = context.v2i1;
 
