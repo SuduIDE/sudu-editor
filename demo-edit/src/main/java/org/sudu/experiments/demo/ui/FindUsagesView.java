@@ -101,11 +101,6 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   }
 
   @Override
-  public void setScrollPosY(int y) {
-    super.setScrollPosY(y);
-  }
-
-  @Override
   protected void draw(WglGraphics g) {
     Canvas mCanvas = context.mCanvas();
     if (isEmpty()) return;
@@ -142,17 +137,16 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     enableScissor(g);
 
     // background
-      V4f bgColor = theme.bgColor;
-      g.drawRect(pos.x, pos.y, size, bgColor);
+    V4f bgColor = theme.bgColor;
+    g.drawRect(pos.x, pos.y, size, bgColor);
 
-    int localX = border;
     int x = rect.pos.x;
     int y = rect.pos.y;
 
     for (int i = firstLineRendered; i <= lastLineRendered; i++) {
       FindUsagesItem item = itemView(i);
       int localY = i * getLineHeight() + (i + 1) * border;
-      int fileTX = x + localX;
+      int fileTX = x + border;
       int lineTX = fileTX + maxFileNameLen;
       int contentTX = lineTX + maxLineLen;
       boolean hover = hoverItemId == i;
@@ -177,8 +171,13 @@ public class FindUsagesView extends ScrollContent implements Focusable {
       v2i.set(Math.max(0, maxLineLen - item.sizeLines.x), item.sizeLines.y);
       g.drawRect(linesX, y1, v2i, itemBg);
       int contentX = contentTX + item.sizeContent.x;
-      v2i.set(Math.max(0, rect.size.x - item.sizeContent.x - maxLineLen - maxFileNameLen - border * 2), item.sizeContent.y);
+      v2i.set(Math.max(0, rect.size.x - item.sizeContent.x - maxLineLen - maxFileNameLen - border), item.sizeContent.y);
       g.drawRect(contentX, y1, v2i, itemBg);
+
+      // border
+      int borderX = x + size.x - border;
+      v2i.set(border, getLineHeight() + border);
+      g.drawRect(borderX, y1, v2i, bgColor);
     }
 
     disableScissor(g);
