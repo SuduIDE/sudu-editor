@@ -4,24 +4,17 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.Debug;
-import org.sudu.experiments.Scene;
 import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.input.MouseListener;
-import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4f;
 
 import java.util.Objects;
 
-public class DemoEdit0 extends Scene {
+public class DemoEdit0 extends Scene1 {
 
-  final V4f clearColor = Color.Cvt.fromRGB(0,0, 64);
-  final UiContext uiContext;
   final EditorComponent editor;
   final EditorUi ui;
 
@@ -30,7 +23,6 @@ public class DemoEdit0 extends Scene {
 
   public DemoEdit0(SceneApi api) {
     super(api);
-    uiContext = new UiContext(api);
 
     ui = new EditorUi(uiContext);
     editor = new EditorComponent(uiContext, ui);
@@ -74,7 +66,7 @@ public class DemoEdit0 extends Scene {
 
   @Override
   public void paint() {
-    api.graphics.clear(clearColor);
+    super.paint();
     editor.paint();
     ui.paint();
   }
@@ -83,7 +75,7 @@ public class DemoEdit0 extends Scene {
 
   @Override
   public void onResize(V2i newSize, float newDpr) {
-    uiContext.onResize(newSize, newDpr);
+    super.onResize(newSize, newDpr);
     layout(newSize);
     editor.setPos(editorPos, editorSize, newDpr);
   }
