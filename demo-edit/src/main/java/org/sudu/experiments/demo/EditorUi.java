@@ -172,8 +172,16 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
   }
 
   public interface ThemeApi {
-    void toggleDarcula();
+    void toggleDracula();
     void toggleLight();
+
+    default void setTheme(String theme) {
+      switch (theme) {
+        case "light" -> toggleLight();
+        case "dark" -> toggleDracula();
+        default -> Debug.consoleInfo("unknown theme: " + theme);
+      }
+    }
   }
 
   class PopupMenuBuilder {
@@ -319,7 +327,7 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
     private Supplier<ToolbarItem[]> themes() {
       return ArrayOp.supplier(
-          ti("Dracula", theme.dialogItemColors.toolbarItemColors, themeApi::toggleDarcula),
+          ti("Dracula", theme.dialogItemColors.toolbarItemColors, themeApi::toggleDracula),
           ti("Light", theme.dialogItemColors.toolbarItemColors, themeApi::toggleLight)
       );
     }

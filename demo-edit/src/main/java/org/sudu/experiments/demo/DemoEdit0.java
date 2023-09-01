@@ -37,7 +37,7 @@ public class DemoEdit0 extends Scene1 implements EditorUi.ThemeApi {
     api.input.onScroll.add((e, dX, dY) -> editor.onScroll(dX, dY));
     api.input.onContextMenu.add(this::onContextMenu);
 
-    toggleDarcula();
+    toggleDracula();
   }
 
   public Document document() {
@@ -78,7 +78,7 @@ public class DemoEdit0 extends Scene1 implements EditorUi.ThemeApi {
     editor.setPos(new V2i(), newSize, dpr);
   }
 
-  public void toggleDarcula() {
+  public void toggleDracula() {
     applyTheme(EditorColorScheme.darkIdeaColorScheme());
   }
 
@@ -90,14 +90,6 @@ public class DemoEdit0 extends Scene1 implements EditorUi.ThemeApi {
     Objects.requireNonNull(theme);
     ui.setTheme(theme);
     editor.setTheme(theme);
-  }
-
-  public void setTheme(String theme) {
-    switch (theme) {
-      case "light" -> toggleLight();
-      case "dracula" -> toggleDarcula();
-      default -> Debug.consoleInfo("unknown theme: " + theme);
-    }
   }
 
   boolean onKeyPress(KeyEvent event) {
