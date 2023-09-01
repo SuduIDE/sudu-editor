@@ -108,8 +108,4 @@ public class FindUsagesItem {
     regionTexture.free(item.tLines);
     regionTexture.free(item.tContent);
   }
-
-  public static void freeFileNameCache(RegionTexture regionTexture, Map<String, CountedItem<V4f>> fileNameCache) {
-    fileNameCache.forEach((key, v) -> regionTexture.free(v.content));
-  }
 }

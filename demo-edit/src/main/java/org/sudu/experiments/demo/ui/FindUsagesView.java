@@ -85,8 +85,9 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   public void dispose() {
     super.dispose();
-    FindUsagesItem.freeFileNameCache(regionTexture, fileNameCache);
     disposeTexture();
+    fileNameCache.clear();
+    regionTexture = null;
     items = FindUsagesItemBuilder.items0;
     view = null;
     maxFileNameLen = 0;
