@@ -5,12 +5,8 @@ import java.util.List;
 
 public class Diff<S> {
 
-  public List<S> diffN, diffM;
-
-  public Diff() {
-    this.diffN = new ArrayList<>();
-    this.diffM = new ArrayList<>();
-  }
+  public List<S> diffM = new ArrayList<>();
+  public List<S> diffN = new ArrayList<>();
 
   public boolean isNotEmpty() {
     return !(diffN.isEmpty() && diffM.isEmpty());

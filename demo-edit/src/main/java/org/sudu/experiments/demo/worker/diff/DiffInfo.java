@@ -9,27 +9,19 @@ import java.util.Set;
 
 public class DiffInfo {
 
-  public List<LineDiff> lineDiffs;
-  public List<ElemDiff> elemDiffs;
+  public List<LineDiff> lineDiffs = new ArrayList<>();
+  public List<ElemDiff> elemDiffs = new ArrayList<>();
 
-  public Set<Integer> linesDeletions, linesInsertions, linesEditN, linesEditM;
-  public Set<Pos> elemsDeletions, elemsInsertions, elemsEditN, elemsEditM;
-
-  public DiffInfo() {
-    this.lineDiffs = new ArrayList<>();
-    this.elemDiffs = new ArrayList<>();
-  }
+  public Set<Integer> linesDeletions = new HashSet<>();
+  public Set<Integer> linesInsertions = new HashSet<>();
+  public Set<Integer> linesEditN = new HashSet<>();
+  public Set<Integer> linesEditM = new HashSet<>();
+  public Set<Pos> elemsDeletions = new HashSet<>();
+  public Set<Pos> elemsInsertions = new HashSet<>();
+  public Set<Pos> elemsEditN = new HashSet<>();
+  public Set<Pos> elemsEditM = new HashSet<>();
 
   public void sort() {
-    linesDeletions = new HashSet<>();
-    linesInsertions = new HashSet<>();
-    linesEditN = new HashSet<>();
-    linesEditM = new HashSet<>();
-    elemsDeletions = new HashSet<>();
-    elemsInsertions = new HashSet<>();
-    elemsEditN = new HashSet<>();
-    elemsEditM = new HashSet<>();
-
     for (var lineDiff: lineDiffs) {
       if (lineDiff.diffM.isEmpty()) linesDeletions.addAll(lineDiff.diffN);
       else if (lineDiff.diffN.isEmpty()) linesInsertions.addAll(lineDiff.diffM);

@@ -5,12 +5,9 @@ import java.util.List;
 
 public class LineDiff {
 
-  public List<Integer> diffN, diffM;
-
-  public LineDiff() {
-    this.diffN = new ArrayList<>();
-    this.diffM = new ArrayList<>();
-  }
+  public List<Integer>
+      diffN = new ArrayList<>(),
+      diffM = new ArrayList<>();
 
   @Override
   public String toString() {

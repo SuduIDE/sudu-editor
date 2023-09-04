@@ -7,12 +7,8 @@ import java.util.List;
 
 public class ElemDiff {
 
-  public List<Pos> diffN, diffM;
-
-  public ElemDiff() {
-    diffN = new ArrayList<>();
-    diffM = new ArrayList<>();
-  }
+  public List<Pos> diffN = new ArrayList<>();
+  public List<Pos> diffM = new ArrayList<>();
 
   @Override
   public String toString() {

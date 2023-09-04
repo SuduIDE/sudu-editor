@@ -10,13 +10,8 @@ import java.util.stream.Stream;
 
 public class DiffModel {
 
-  public List<Diff<CodeLineS>> linesDiffs;
-  public List<Diff<CodeElementS>> elementsDiffs;
-
-  public DiffModel() {
-    this.linesDiffs = new ArrayList<>();
-    this.elementsDiffs = new ArrayList<>();
-  }
+  public List<Diff<CodeLineS>> linesDiffs = new ArrayList<>();
+  public List<Diff<CodeElementS>> elementsDiffs = new ArrayList<>();
 
   public int[] findDiffs(
       char[] charsN, int[] intsN,
