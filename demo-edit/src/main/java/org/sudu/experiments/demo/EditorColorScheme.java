@@ -1,6 +1,8 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.demo.ui.DialogItemColors;
+import org.sudu.experiments.demo.ui.UiFont;
+import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.parser.ParserConstants;
 
@@ -9,6 +11,10 @@ public class EditorColorScheme {
   public final DialogItemColors dialogItem;
   public final CodeElementColor[] codeElement;
   public final LineNumbersColors lineNumber;
+
+  public final UiFont windowTitleFont = new UiFont(Fonts.SegoeUI, 16);
+  public final UiFont popupMenuFont = new UiFont(Fonts.SegoeUI, 17);
+  public final UiFont usagesFont = new UiFont(Fonts.Consolas, 15);
 
   public static EditorColorScheme darculaIdeaColorScheme() {
     return new EditorColorScheme(

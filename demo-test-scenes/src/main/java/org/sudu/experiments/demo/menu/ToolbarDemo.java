@@ -33,8 +33,7 @@ public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListe
 
     tbV.setLayoutVertical();
     consolas = new UiFont("Consolas", 25);
-    popupMenu.setFont(consolas);
-    popupMenu.setTheme(DialogItemColors.darculaColorScheme());
+    popupMenu.setTheme(DialogItemColors.darculaColorScheme(), consolas);
     clearColor.set(new Color(43));
 
     DialogItemColors dark = DialogItemColors.darculaColorScheme();

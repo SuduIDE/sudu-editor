@@ -3,6 +3,7 @@ package org.sudu.experiments.demo.ui;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
+import java.util.Map;
 import java.util.function.ToIntFunction;
 
 public class FindUsagesItem {
@@ -23,7 +24,8 @@ public class FindUsagesItem {
       FindUsagesItem[] lines, int first, int last,
       FindUsagesItemData[] data,
       RegionTexture regionTexture,
-      ToIntFunction<String> m
+      ToIntFunction<String> m,
+      Map<String, V4f> fileNameCache
   ) {
     FindUsagesItem[] r = new FindUsagesItem[newSize];
     if (lines.length > 0) for (int i = first; i <= last; i++) {
@@ -33,18 +35,18 @@ public class FindUsagesItem {
       FindUsagesItem oldItem = lines[oldIndex];
       if (oldItem != null && oldItem.data != d) {
         free(regionTexture, oldItem);
-        r[newIndex] = allocNewItem(d, regionTexture, m);
+        r[newIndex] = allocNewItem(d, regionTexture, m, fileNameCache);
         lines[oldIndex] = null;
       } else if (oldItem != null && r[newIndex] == null) {
         r[newIndex] = oldItem;
         lines[oldIndex] = null;
       } else {
-        r[newIndex] = allocNewItem(d, regionTexture, m);
+        r[newIndex] = allocNewItem(d, regionTexture, m, fileNameCache);
       }
     } else if (newSize > 0) for (int i = first; i <= last; i++) {
       FindUsagesItemData d = data[i];
       int newIndex = i % r.length;
-      r[newIndex] = allocNewItem(d, regionTexture, m);
+      r[newIndex] = allocNewItem(d, regionTexture, m, fileNameCache);
     }
     for (int i = 0; i < lines.length; i++) {
       var line = lines[i];
@@ -61,20 +63,28 @@ public class FindUsagesItem {
       FindUsagesItemData[] data,
       RegionTexture regionTexture,
       ToIntFunction<String> m,
+      Map<String, V4f> fileNameCache,
       int l
   ) {
     int index = l % lines.length;
     if (lines[index] != null) free(regionTexture, lines[index]);
-    lines[index] = allocNewItem(data[l], regionTexture, m);
+    lines[index] = allocNewItem(data[l], regionTexture, m, fileNameCache);
   }
 
   private static FindUsagesItem allocNewItem(
       FindUsagesItemData d,
       RegionTexture regionTexture,
-      ToIntFunction<String> m
+      ToIntFunction<String> m,
+      Map<String, V4f> fileNameCache
   ) {
     FindUsagesItem res = new FindUsagesItem(d);
-    res.tFiles = regionTexture.alloc(d.fileName, m);
+
+    V4f fileNameV4f = fileNameCache.get(d.fileName);
+    if (fileNameV4f == null) {
+      fileNameV4f = regionTexture.alloc(d.fileName, m);
+      fileNameCache.put(d.fileName, fileNameV4f);
+    }
+    res.tFiles = fileNameV4f;
     res.sizeFiles.set((int) res.tFiles.z, (int) res.tFiles.w);
     res.tLines = regionTexture.alloc(d.lineNumber, m);
     res.sizeLines.set((int) res.tLines.z, (int) res.tLines.w);
@@ -85,8 +95,11 @@ public class FindUsagesItem {
   }
 
   private static void free(RegionTexture regionTexture, FindUsagesItem item) {
-    regionTexture.free(item.tFiles);
     regionTexture.free(item.tLines);
     regionTexture.free(item.tContent);
+  }
+
+  public static void freeFileNameCache(RegionTexture regionTexture, Map<String, V4f> fileNameCache) {
+    fileNameCache.forEach((key, v) -> regionTexture.free(v));
   }
 }

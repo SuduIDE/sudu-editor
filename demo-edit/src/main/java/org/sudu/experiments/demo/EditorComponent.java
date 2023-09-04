@@ -24,6 +24,9 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class EditorComponent implements Focusable, MouseListener {
+  final V2i compPos = new V2i();
+  final V2i compSize = new V2i();
+
   final UiContext context;
   final WglGraphics g;
   final EditorUi ui;
@@ -77,9 +80,6 @@ public class EditorComponent implements Focusable, MouseListener {
   // line numbers
   LineNumbersComponent lineNumbers = new LineNumbersComponent();
   //int lineNumLeftMargin = 10;
-
-  final V2i compPos = new V2i();
-  final V2i compSize = new V2i();
 
   boolean fileStructureParsed, firstLinesParsed;
   String tabIndent = "  ";

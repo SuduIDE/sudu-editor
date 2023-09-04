@@ -4,32 +4,23 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.Debug;
-import org.sudu.experiments.Scene;
 import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4f;
 
 import java.util.Objects;
 
-public class DemoEdit0 extends Scene {
+public class DemoEdit0 extends Scene1 implements EditorUi.ThemeApi {
 
-  final V4f clearColor = Color.Cvt.fromRGB(0,0, 64);
-  final UiContext uiContext;
   final EditorComponent editor;
   final EditorUi ui;
 
-  V2i editorPos = new V2i();
-  V2i editorSize = new V2i();
-
   public DemoEdit0(SceneApi api) {
     super(api);
-    uiContext = new UiContext(api);
 
     ui = new EditorUi(uiContext);
     editor = new EditorComponent(uiContext, ui);
@@ -39,10 +30,8 @@ public class DemoEdit0 extends Scene {
     api.input.onScroll.add(ui);
     api.input.onMouse.add(editor);
 
-    api.input.onKeyPress.add(KeyEvent::handleSpecialKey);
     api.input.onKeyPress.add(this::onKeyPress);
     api.input.onKeyPress.add(new CtrlO(api, editor::openFile));
-    api.input.onKeyPress.add(uiContext::onKeyPress);
 
     api.input.onCopy.add(editor::onCopy);
     api.input.onPaste.add(() -> editor::handleInsert);
@@ -73,7 +62,7 @@ public class DemoEdit0 extends Scene {
 
   @Override
   public void paint() {
-    api.graphics.clear(clearColor);
+    super.paint();
     editor.paint();
     ui.paint();
   }
@@ -82,13 +71,12 @@ public class DemoEdit0 extends Scene {
 
   @Override
   public void onResize(V2i newSize, float newDpr) {
-    uiContext.onResize(newSize, newDpr);
-    layout(newSize);
-    editor.setPos(editorPos, editorSize, newDpr);
+    super.onResize(newSize, newDpr);
+    layout(newSize, newDpr);
   }
 
-  protected void layout(V2i newSize) {
-    editorSize.set(newSize.x, newSize.y);
+  protected void layout(V2i newSize, float dpr) {
+    editor.setPos(new V2i(), newSize, dpr);
   }
 
   public void toggleDarcula() {
@@ -123,7 +111,8 @@ public class DemoEdit0 extends Scene {
 
   boolean onContextMenu(MouseEvent event) {
     if (uiContext.isFocused(editor)) {
-      ui.showContextMenu(event, editor, DemoEdit0.this);
+      ui.showContextMenu(event, editor,
+          DemoEdit0.this, DemoEdit0.this::menuFonts);
     }
     return true;
   }

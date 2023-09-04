@@ -5,7 +5,6 @@ import org.sudu.experiments.demo.ui.*;
 import org.sudu.experiments.demo.ui.window.ScrollView;
 import org.sudu.experiments.demo.ui.window.Window;
 import org.sudu.experiments.demo.ui.window.WindowManager;
-import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
@@ -21,32 +20,26 @@ import static org.sudu.experiments.demo.ui.ToolbarItemBuilder.ti;
 
 class EditorUi implements MouseListener, InputListeners.ScrollHandler {
   final UiContext uiContext;
-  UiFont titleFont = new UiFont(Fonts.SegoeUI, 16);
-  WindowManager windowManager;
-  Window usagesMenu;
+  final WindowManager windowManager = new WindowManager();
+
+  Window usagesWindow;
   PopupMenu popupMenu;
   EditorColorScheme theme;
 
   EditorUi(UiContext context) {
     uiContext = context;
-    windowManager = new WindowManager();
-
-
     popupMenu = new PopupMenu(uiContext);
-    popupMenu.setFont(new UiFont(
-        EditorConst.POPUP_MENU_FONT_NAME,
-        EditorConst.POPUP_MENU_FONT_SIZE));
   }
 
   void setTheme(EditorColorScheme theme) {
     this.theme = theme;
-    if (usagesMenu != null) usagesMenu.setTheme(theme.dialogItem);
-    popupMenu.setTheme(theme.dialogItem);
+    if (usagesWindow != null) usagesWindow.setTheme(theme.dialogItem);
+    popupMenu.setTheme(theme.dialogItem, theme.popupMenuFont);
   }
 
   void dispose() {
     popupMenu.dispose();
-    if (usagesMenu != null) {
+    if (usagesWindow != null) {
       disposeUsagesWindow();
     }
     windowManager.dispose();
@@ -115,38 +108,32 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
       FindUsagesItemData[] actions,
       String elementName
   ) {
-    if (usagesMenu != null) disposeUsagesWindow();
+    if (usagesWindow != null) disposeUsagesWindow();
     FindUsagesView usagesView = new FindUsagesView(uiContext, () -> {
       uiContext.setFocus(editor);
       disposeUsagesWindow();
     });
 
-    usagesView.setFont(new UiFont(
-        EditorConst.FIND_USAGES_FONT_NAME,
-        EditorConst.FIND_USAGES_FONT_SIZE
-    ));
     usagesView.setItems(actions);
-    usagesView.setTheme(theme.dialogItem);
+    usagesView.setTheme(theme.dialogItem, theme.usagesFont);
 
-    usagesMenu = new Window(uiContext);
-    ScrollView scrollView = new ScrollView(usagesView, uiContext);
-    scrollView.setScrollColor(theme.editor.scrollBarLine, theme.editor.scrollBarBg);
-    usagesMenu.setContent(scrollView);
-    usagesMenu.setTitle("Usages of " + elementName, titleFont, 4);
-    usagesMenu.setTheme(theme.dialogItem);
-    windowManager.addWindow(usagesMenu);
-    int minY = usagesMenu.titleHeight() + uiContext.toPx(2);
+    usagesWindow = new Window(uiContext);
+    usagesWindow.setContent(new ScrollView(usagesView, uiContext));
+    usagesWindow.setTitle("Usages of " + elementName, theme.windowTitleFont, 4);
+    usagesWindow.setTheme(theme.dialogItem);
+    windowManager.addWindow(usagesWindow);
+    int minY = usagesWindow.titleHeight() + uiContext.toPx(2);
     V2i limitedPosition = usagesView.setLimitedPosition(position, minY);
     V2i size = usagesView.calculateSize(limitedPosition);
-    usagesMenu.setPosition(limitedPosition, size);
+    usagesWindow.setPosition(limitedPosition, size);
 
     uiContext.setFocus(usagesView);
   }
 
   private void disposeUsagesWindow() {
-    windowManager.removeWindow(usagesMenu);
-    usagesMenu.dispose();
-    usagesMenu = null;
+    windowManager.removeWindow(usagesWindow);
+    usagesWindow.dispose();
+    usagesWindow = null;
   }
 
   void displayNoUsagesPopup(V2i position, EditorComponent edit) {
@@ -167,10 +154,13 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
     );
   }
 
-  public void showContextMenu(MouseEvent event, EditorComponent editor, DemoEdit0 demoEdit0) {
+  public void showContextMenu(MouseEvent event, EditorComponent editor, ThemeApi themeApi, Supplier<String[]> fonts) {
     if (!popupMenu.isVisible()) {
       popupMenu.display(event.position,
-          new PopupMenuBuilder(editor, demoEdit0).build(event.position),
+          new PopupMenuBuilder(
+              editor,
+              fonts,
+              themeApi).build(event.position),
           setEditFocus(editor));
     }
   }
@@ -180,14 +170,32 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
     return windowManager.onScroll(event, dX, dY);
   }
 
+  public interface ThemeApi {
+    void toggleDracula();
+    void toggleLight();
+
+    default void setTheme(String theme) {
+      switch (theme) {
+        case "light" -> toggleLight();
+        case "dark" -> toggleDracula();
+        default -> Debug.consoleInfo("unknown theme: " + theme);
+      }
+    }
+  }
+
   class PopupMenuBuilder {
 
     final EditorComponent editor;
-    final DemoEdit0 demoEdit0;
+    final Supplier<String[]> fonts;
+    final ThemeApi themeApi;
 
-    PopupMenuBuilder(EditorComponent editor, DemoEdit0 demoEdit0) {
+    PopupMenuBuilder(
+        EditorComponent editor,
+        Supplier<String[]> fonts,
+        ThemeApi themeApi) {
       this.editor = editor;
-      this.demoEdit0 = demoEdit0;
+      this.fonts = fonts;
+      this.themeApi = themeApi;
     }
 
     Supplier<ToolbarItem[]> build(V2i eventPosition) {
@@ -212,7 +220,9 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
       }
     }
 
-    org.sudu.experiments.Window window() { return demoEdit0.uiContext.window; }
+    private org.sudu.experiments.Window window() {
+      return editor.context.window;
+    }
 
     private void pasteAction() {
       popupMenu.hide();
@@ -316,8 +326,8 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
     private Supplier<ToolbarItem[]> themes() {
       return ArrayOp.supplier(
-          ti("Dark", theme.dialogItem.toolbarItemColors, demoEdit0::toggleDarcula),
-          ti("Light", theme.dialogItem.toolbarItemColors, demoEdit0::toggleLight)
+          ti("Darcula", theme.dialogItem.toolbarItemColors, themeApi::toggleDarcula),
+          ti("Light", theme.dialogItem.toolbarItemColors, themeApi::toggleLight)
       );
     }
 
@@ -329,7 +339,7 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
     private Supplier<ToolbarItem[]> fontSelect() {
       return () -> {
-        String[] fonts = demoEdit0.menuFonts();
+        String[] fonts = this.fonts.get();
         ToolbarItem[] items = new ToolbarItem[fonts.length];
         for (int i = 0; i < items.length; i++) {
           var font = fonts[i];

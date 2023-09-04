@@ -11,8 +11,8 @@ public class UiContext {
 
   public final WglGraphics graphics;
   public final Window window;
-  public final V2i windowSize = new V2i();
   public final SetCursor windowCursor;
+  public final V2i windowSize = new V2i();
   public float dpr;
 
   private Focusable focused;

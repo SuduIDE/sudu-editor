@@ -24,11 +24,8 @@ public class PopupMenu implements DprChangeListener, Focusable {
     context.dprListeners.add(this);
   }
 
-  public void setFont(UiFont f) {
+  public void setTheme(DialogItemColors dialogItemColors, UiFont f) {
     uiFont = f;
-  }
-
-  public void setTheme(DialogItemColors dialogItemColors) {
     theme = dialogItemColors;
     for (Toolbar toolbar : toolbars) {
       toolbar.setTheme(theme);

@@ -21,12 +21,14 @@ public class DemoEdit1 extends DemoEdit0 {
   }
 
   @Override
-  protected void layout(V2i newSize) {
+  protected void layout(V2i newSize, float dpr) {
     if (fullscreen) {
-      super.layout(newSize);
+      super.layout(newSize, dpr);
     } else {
-      editorPos.set(newSize.x / 10, newSize.y / 10);
-      editorSize.set(newSize.x * 8 / 10, newSize.y * 8 / 10);
+      editor.setPos(
+          new V2i(newSize.x / 10, newSize.y / 10),
+          new V2i(newSize.x * 8 / 10, newSize.y * 8 / 10),
+          dpr);
     }
   }
 }
