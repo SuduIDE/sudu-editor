@@ -171,13 +171,13 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
   }
 
   public interface ThemeApi {
-    void toggleDracula();
+    void toggleDarcula();
     void toggleLight();
 
     default void setTheme(String theme) {
       switch (theme) {
         case "light" -> toggleLight();
-        case "dark" -> toggleDracula();
+        case "darcula" -> toggleDarcula();
         default -> Debug.consoleInfo("unknown theme: " + theme);
       }
     }
