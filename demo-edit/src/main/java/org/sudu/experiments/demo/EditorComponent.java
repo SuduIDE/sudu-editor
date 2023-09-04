@@ -154,8 +154,8 @@ public class EditorComponent implements Focusable, MouseListener {
   void setTheme(EditorColorScheme theme) {
     colors = theme;
     caret.setColor(theme.editor.cursor);
-    vScroll.setColor(theme.editor.scrollBarBg, theme.editor.scrollBarLine);
-    hScroll.setColor(theme.editor.scrollBarBg, theme.editor.scrollBarLine);
+    vScroll.setColor(theme.editor.scrollBarLine, theme.editor.scrollBarBg);
+    hScroll.setColor(theme.editor.scrollBarLine, theme.editor.scrollBarBg);
   }
 
   void toggleXOffset() {

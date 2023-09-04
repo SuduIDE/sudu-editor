@@ -69,7 +69,7 @@ public class Toolbar {
   public void setTheme(DialogItemColors dialogItemColors) {
     shadowParameters = dialogItemColors.shadowParameters;
     setBgColor(dialogItemColors.toolbarItemColors.bgColor);
-    setFrameColor(dialogItemColors.windowTheme.windowBorderColor);
+    setFrameColor(dialogItemColors.windowColors.windowBorderColor);
     for (int i = 0; i < items.length; i++) {
       items[i].setTheme(dialogItemColors.toolbarItemColors);
       if (hoverItemId == i) items[i].setHover(true);

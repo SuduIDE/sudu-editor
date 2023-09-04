@@ -118,7 +118,9 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
     usagesView.setTheme(theme.dialogItem, theme.usagesFont);
 
     usagesWindow = new Window(uiContext);
-    usagesWindow.setContent(new ScrollView(usagesView, uiContext));
+    ScrollView scrollView = new ScrollView(usagesView, uiContext);
+    scrollView.setScrollColor(theme.dialogItem.dialogScrollLine, theme.dialogItem.dialogScrollBg);
+    usagesWindow.setContent(scrollView);
     usagesWindow.setTitle("Usages of " + elementName, theme.windowTitleFont, 4);
     usagesWindow.setTheme(theme.dialogItem);
     windowManager.addWindow(usagesWindow);

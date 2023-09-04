@@ -71,7 +71,7 @@ public class Window {
 
   void draw(WglGraphics g) {
     content.draw(g);
-    title.draw(g, theme.windowTheme);
+    title.draw(g, theme.windowColors);
     drawFrameAndShadow(g);
   }
 
@@ -86,7 +86,7 @@ public class Window {
 
     WindowPaint.drawInnerFrame(g,
         size, noTitle ? content.pos : title.pos,
-        theme.windowTheme.windowBorderColor, -border, temp);
+        theme.windowColors.windowBorderColor, -border, temp);
 
     WindowPaint.drawShadow(g,
         content.size, content.pos, border, titleHeight,

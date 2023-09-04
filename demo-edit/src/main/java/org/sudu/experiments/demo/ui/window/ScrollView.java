@@ -21,6 +21,7 @@ public class ScrollView extends View {
   private ScrollContent content;
   private ScrollBar vScroll, hScroll;
   private float scrollWidth = 10;
+  private Color scrollBarLineToSet, scrollBarBgToSet;
 
   public ScrollView(UiContext uiContext) {
     this(new ScrollContent(), uiContext);
@@ -45,6 +46,8 @@ public class ScrollView extends View {
   }
 
   public void setScrollColor(Color scrollBarLine, Color scrollBarBg) {
+    this.scrollBarLineToSet = scrollBarLine;
+    this.scrollBarBgToSet = scrollBarBg;
     if (vScroll != null) vScroll.setColor(scrollBarLine, scrollBarBg);
     if (hScroll != null) hScroll.setColor(scrollBarLine, scrollBarBg);
   }
@@ -109,11 +112,19 @@ public class ScrollView extends View {
   }
 
   private ScrollBar ensureHScroll() {
-    return hScroll != null ? hScroll : (hScroll = new ScrollBar());
+    hScroll = (hScroll != null) ? hScroll : new ScrollBar();
+    ensureColor(hScroll);
+    return hScroll;
   }
 
   private ScrollBar ensureVScroll() {
-    return vScroll != null ? vScroll : (vScroll = new ScrollBar());
+    vScroll = (vScroll != null) ? vScroll : new ScrollBar();
+    ensureColor(vScroll);
+    return vScroll;
+  }
+
+  private void ensureColor(ScrollBar scrollBar) {
+    scrollBar.setColorIfNotSame(scrollBarLineToSet, scrollBarBgToSet);
   }
 
   protected void draw(WglGraphics graphics) {

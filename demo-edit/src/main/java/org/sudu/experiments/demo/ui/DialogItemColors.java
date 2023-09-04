@@ -1,22 +1,46 @@
 package org.sudu.experiments.demo.ui;
 
+
+import org.sudu.experiments.demo.DialogColors;
 import org.sudu.experiments.math.Color;
 
 public class DialogItemColors {
 
   public final ShadowParameters shadowParameters;
-  public final WindowTheme windowTheme;
+  public final WindowColors windowColors;
   public final FindUsagesItemColors findUsagesColors;
   public final ToolbarItemColors findUsagesColorsError;
   public final ToolbarItemColors toolbarItemColors;
+  public final Color dialogScrollLine;
+  public final Color dialogScrollBg;
+
+  public DialogItemColors(
+      FindUsagesItemColors findUsagesItemColors,
+      ToolbarItemColors noUsagesColors,
+      WindowColors windowColors,
+      ToolbarItemColors toolbarItemColors,
+      ShadowParameters shadowParameters,
+      Color scrollBarLine,
+      Color scrollBarBg
+  ) {
+    this.findUsagesColors = findUsagesItemColors;
+    this.findUsagesColorsError = noUsagesColors;
+    this.windowColors = windowColors;
+    this.toolbarItemColors = toolbarItemColors;
+    this.shadowParameters = shadowParameters;
+    this.dialogScrollLine = scrollBarLine;
+    this.dialogScrollBg = scrollBarBg;
+  }
 
   public static DialogItemColors darculaColorScheme() {
     return new DialogItemColors(
         FindUsagesItemColors.darculaFindUsagesItemColors(),
         FindUsagesItemColors.darculaNoUsages(),
-        windowDarcula(),
+        WindowColors.darcula(),
         ToolbarItemColors.darculaToolbarItemColors(),
-        ShadowParameters.darculaTheme()
+        ShadowParameters.darculaTheme(),
+        DialogColors.Darcula.scrollBarLine,
+        DialogColors.Darcula.scrollBarBg
     );
   }
 
@@ -24,37 +48,11 @@ public class DialogItemColors {
     return new DialogItemColors(
         FindUsagesItemColors.lightFindUsagesItemColors(),
         FindUsagesItemColors.lightNoUsages(),
-        windowLight(),
+        WindowColors.light(),
         ToolbarItemColors.lightToolbarItemColors(),
-        ShadowParameters.lightTheme()
+        ShadowParameters.lightTheme(),
+        DialogColors.Light.scrollBarLine,
+        DialogColors.Light.scrollBarBg
     );
-  }
-
-  static WindowTheme windowDarcula() {
-    return new WindowTheme(
-        new Color("#616161"),
-        new Color("#393B40"),
-        new Color("#DFE1E5"));
-  }
-
-  static WindowTheme windowLight() {
-    return new WindowTheme(
-        new Color("#B9BDC9"),
-        new Color("#F7F8FA"),
-        new Color(0));
-  }
-
-  public DialogItemColors(
-      FindUsagesItemColors findUsagesItemColors,
-      ToolbarItemColors noUsagesColors,
-      WindowTheme windowTheme,
-      ToolbarItemColors toolbarItemColors,
-      ShadowParameters shadowParameters
-  ) {
-    this.findUsagesColors = findUsagesItemColors;
-    this.findUsagesColorsError = noUsagesColors;
-    this.windowTheme = windowTheme;
-    this.toolbarItemColors = toolbarItemColors;
-    this.shadowParameters = shadowParameters;
   }
 }

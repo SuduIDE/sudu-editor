@@ -51,8 +51,20 @@ public class ScrollBar {
   }
 
   public void setColor(Color scrollBarLine, Color scrollBarBg) {
-    color1.set(scrollBarLine);
-    color2.set(scrollBarBg);
+    if (scrollBarLine == null || scrollBarBg == null) return;
+    color1.set(scrollBarBg);
+    color2.set(scrollBarLine);
+  }
+
+  private boolean isColorSame(Color scrollBarLine, Color scrollBarBg) {
+    if (scrollBarLine == null || scrollBarBg == null) return false;
+    return color1.equals(scrollBarLine) && color2.equals(scrollBarBg);
+  }
+
+  public void setColorIfNotSame(Color scrollBarLine, Color scrollBarBg) {
+    if (!isColorSame(scrollBarLine, scrollBarBg)) {
+      setColor(scrollBarLine, scrollBarBg);
+    }
   }
 
   public static class Event {

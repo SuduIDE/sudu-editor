@@ -99,7 +99,6 @@ public class FindUsagesDemo extends Scene1 implements DprChangeListener {
   private Window newWindow() {
     EditorColorScheme editorColorScheme = EditorColorScheme.darculaIdeaColorScheme();
     DialogItemColors theme = editorColorScheme.dialogItem;
-    EditorColors editorColors = editorColorScheme.editor;
 
     FindUsagesView view = new FindUsagesView(uiContext, () -> {
     });
@@ -109,7 +108,7 @@ public class FindUsagesDemo extends Scene1 implements DprChangeListener {
 
     Window window = new Window(uiContext);
     ScrollView scrollView = new ScrollView(view, uiContext);
-    scrollView.setScrollColor(editorColors.scrollBarLine, editorColors.scrollBarBg);
+    scrollView.setScrollColor(theme.dialogScrollLine, theme.dialogScrollBg);
     window.setContent(scrollView);
     window.setTheme(theme);
     window.setTitle("FindUsagesView1", titleFont, 2);

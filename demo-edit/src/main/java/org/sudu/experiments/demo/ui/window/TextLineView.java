@@ -6,7 +6,7 @@ import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.demo.ui.UiFont;
-import org.sudu.experiments.demo.ui.WindowTheme;
+import org.sudu.experiments.demo.ui.WindowColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
@@ -64,7 +64,7 @@ public class TextLineView extends View {
     }
   }
 
-  public void draw(WglGraphics g, WindowTheme theme) {
+  public void draw(WglGraphics g, WindowColors theme) {
     if (sizeEmpty()) return;
     if (!isEmpty()) {
       if (renderRequest || texture == null) {
