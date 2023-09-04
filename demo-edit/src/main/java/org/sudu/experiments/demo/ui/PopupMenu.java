@@ -55,7 +55,12 @@ public class PopupMenu implements DprChangeListener, Focusable {
     }
   }
 
-  private Toolbar displaySubMenu(V2i pos, Supplier<ToolbarItem[]> items, Toolbar parent) {
+  private Toolbar displaySubMenu(
+      V2i pos,
+      Supplier<ToolbarItem[]> items,
+      Toolbar parent,
+      Toolbar.HoverCallback onEnter
+  ) {
     Toolbar popup = new Toolbar();
     popup.setLayoutVertical();
     popup.setItems(items.get());
@@ -68,15 +73,26 @@ public class PopupMenu implements DprChangeListener, Focusable {
 
     popup.onEnter((mouse, index, item) -> {
       removePopupsAfter(popup);
+      if (onEnter != null) onEnter.event(mouse, index, item);
       if (item.isSubmenu()) {
-        displaySubMenu(
-            computeSubmenuPosition(item, popup),
-            item.subMenu(), popup);
+        if (item.onEnter() != null) {
+          displaySubMenu(
+              computeSubmenuPosition(item, popup),
+              item.subMenu(), popup, item.onEnter());
+        } else {
+          displaySubMenu(
+              computeSubmenuPosition(item, popup),
+              item.subMenu(), popup);
+        }
       }
     });
 
     toolbars.add(popup);
     return popup;
+  }
+
+  private Toolbar displaySubMenu(V2i pos, Supplier<ToolbarItem[]> items, Toolbar parent) {
+    return displaySubMenu(pos, items, parent, null);
   }
 
   @Override
