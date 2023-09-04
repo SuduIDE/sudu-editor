@@ -2,11 +2,9 @@ package org.sudu.experiments.demo.worker.parser;
 
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.math.ArrayOp;
-import org.sudu.experiments.parser.ArrayWriter;
+import org.sudu.experiments.arrays.ArrayWriter;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.function.Consumer;

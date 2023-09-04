@@ -1,4 +1,4 @@
-package org.sudu.experiments.parser;
+package org.sudu.experiments.arrays;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

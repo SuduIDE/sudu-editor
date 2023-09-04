@@ -43,6 +43,10 @@ public class CodeLine {
     return cl;
   }
 
+  public int length() {
+    return elements.length;
+  }
+
   public CodeElement get(int ind) {
     return elements[ind];
   }

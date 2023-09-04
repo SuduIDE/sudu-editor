@@ -1,7 +1,7 @@
 package org.sudu.experiments.demo;
 
 public class CodeElement {
-  String s;
+  public String s;
   int color;
   int fontIndex;
 

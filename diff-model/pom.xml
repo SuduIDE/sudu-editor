@@ -2,37 +2,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-
-  <artifactId>demo-edit</artifactId>
-  <version>1.0-SNAPSHOT</version>
-
   <parent>
-    <groupId>org.sudu</groupId>
     <artifactId>root-pom</artifactId>
+    <groupId>org.sudu</groupId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
+  <modelVersion>4.0.0</modelVersion>
 
-  <properties>
-  </properties>
-
-  <packaging>jar</packaging>
+  <artifactId>diff-model</artifactId>
 
   <dependencies>
-    <dependency>
-      <groupId>org.sudu</groupId>
-      <artifactId>graphics</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.sudu</groupId>
-      <artifactId>graphics-stub</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
@@ -41,13 +21,9 @@
     </dependency>
     <dependency>
       <groupId>org.sudu</groupId>
-      <artifactId>parser</artifactId>
+      <artifactId>graphics-common</artifactId>
       <version>1.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sudu</groupId>
-      <artifactId>diff-model</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 
@@ -65,4 +41,5 @@
       </plugin>
     </plugins>
   </build>
+
 </project>

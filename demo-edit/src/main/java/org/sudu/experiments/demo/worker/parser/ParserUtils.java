@@ -3,10 +3,9 @@ package org.sudu.experiments.demo.worker.parser;
 import org.sudu.experiments.demo.CodeElement;
 import org.sudu.experiments.demo.CodeLine;
 import org.sudu.experiments.demo.Document;
-import org.sudu.experiments.demo.worker.IntervalTree;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.parser.ArrayReader;
+import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.Pos;
 

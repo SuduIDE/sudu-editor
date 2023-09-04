@@ -1,6 +1,7 @@
 package org.sudu.experiments.parser.common;
 
 import org.antlr.v4.runtime.*;
+import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.*;
 
 import java.nio.CharBuffer;
