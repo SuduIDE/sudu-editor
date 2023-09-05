@@ -120,11 +120,10 @@ public class EditorComponent implements Focusable, MouseListener {
     vLineX = DprUtil.toPx(vLineXBase, dpr);
     vLineLeftDelta = DprUtil.toPx(10, dpr);
 
-    int lineNumbersWidth = mirrored ? vLineX : vLineX - vLineLeftDelta;
     if (mirrored) {
-      context.v2i1.set(pos.x + size.x - lineNumbersWidth, pos.y);
+      context.v2i1.set(pos.x + size.x - lineNumbersWidth(), pos.y);
     } else context.v2i1.set(pos);
-    lineNumbers.setPos(context.v2i1, lineNumbersWidth, size.y, dpr);
+    lineNumbers.setPos(context.v2i1, lineNumbersWidth(), size.y, dpr);
 
     if (1<0) DebugHelper.dumpFontsSize(g);
     caret.setWidth(DprUtil.toPx(Caret.defaultWidth, dpr));
@@ -331,8 +330,12 @@ public class EditorComponent implements Focusable, MouseListener {
   }
 
   int editorWidth() {
-    int t = mirrored ? scrollBarWidth() + vLineW + vLineLeftDelta : 0;
+    int t = mirrored ? scrollBarWidth() + vLineLeftDelta : 0;
     return size.x - vLineX - t;
+  }
+
+  int lineNumbersWidth() {
+    return mirrored ? vLineX : vLineX - vLineLeftDelta;
   }
 
   int editorHeight() {
@@ -377,7 +380,6 @@ public class EditorComponent implements Focusable, MouseListener {
     g.enableBlend(false);
     g.enableScissor(pos, size);
 
-    drawVerticalLine();
     vScrollPos = Math.min(vScrollPos, maxVScrollPos());
     hScrollPos = Math.min(hScrollPos, maxHScrollPos());
 
@@ -435,6 +437,7 @@ public class EditorComponent implements Focusable, MouseListener {
       drawDocumentBottom(yPosition);
     }
 
+    drawVerticalLine();
     drawLineNumbers(firstLine, lastLine);
 
     layoutScrollbar();
@@ -719,6 +722,11 @@ public class EditorComponent implements Focusable, MouseListener {
     g.drawRect(pos.x + dx, pos.y, vLineSize, colors.editor.numbersVLine);
     vLineSize.x = mirrored ? vLineLeftDelta - vLineW + scrollBarWidth() : vLineLeftDelta - vLineW;
     g.drawRect(pos.x + dx + vLineW, pos.y, vLineSize, colors.editor.bg);
+    if (mirrored) {
+      vLineSize.x = vLineW;
+      g.drawRect(pos.x + size.x - lineNumbersWidth() - vLineW,
+              pos.y, vLineSize, colors.editor.numbersVLine);
+    }
   }
 
   int clampScrollPos(int pos, int maxScrollPos) {
