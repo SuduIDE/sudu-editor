@@ -6,7 +6,6 @@ import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 
 public class Caret {
-  public static final int grayColor = 187;
   public static final float delayK = 1.25f;
 
   public static final int defaultWidth = 2;
@@ -17,7 +16,7 @@ public class Caret {
   private boolean state;
 
   public Caret() {
-    Color.Cvt.gray(grayColor, shape.color);
+    Color.Cvt.gray(187, shape.color);
   }
 
   void setHeight(int h) {

@@ -18,9 +18,18 @@ public class EditorColorScheme {
   public static EditorColorScheme darculaIdeaColorScheme() {
     return new EditorColorScheme(
         EditorColors.darculaIdeaColorScheme(),
-        IdeaCodeColors.codeElementColors(),
+        IdeaCodeColors.codeElementColorsDarcula(),
         LineNumbersColors.darcula(),
         DialogItemColors.darculaColorScheme()
+    );
+  }
+
+  public static EditorColorScheme darkIdeaColorScheme() {
+    return new EditorColorScheme(
+        EditorColors.darkIdeaColorScheme(),
+        IdeaCodeColors.codeElementColorsDark(),
+        LineNumbersColors.dark(),
+        DialogItemColors.darkColorScheme()
     );
   }
 
