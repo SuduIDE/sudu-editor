@@ -61,7 +61,8 @@ public class EditorComponent implements Focusable, MouseListener {
   // layout
   int vLineXBase = 100;
   int vLineX;
-  int vLineW = 1;
+  int vLineW;
+  static final int vLineWDp = 1;
   int vLineLeftDelta;
 
   V2i vLineSize = new V2i(1, 0);
@@ -118,6 +119,7 @@ public class EditorComponent implements Focusable, MouseListener {
 
   private void internalLayout(V2i pos, V2i size, float dpr) {
     vLineX = DprUtil.toPx(vLineXBase, dpr);
+    vLineW = DprUtil.toPx(vLineWDp, dpr);
     vLineLeftDelta = DprUtil.toPx(10, dpr);
 
     if (mirrored) {
