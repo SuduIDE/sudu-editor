@@ -4,6 +4,7 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.demo.DemoRect;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.TextRect;
+import org.sudu.experiments.demo.ui.colors.DialogItemColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
@@ -69,7 +70,7 @@ public class Toolbar {
   public void setTheme(DialogItemColors dialogItemColors) {
     shadowParameters = dialogItemColors.shadowParameters;
     setBgColor(dialogItemColors.toolbarItemColors.bgColor);
-    setFrameColor(dialogItemColors.windowTheme.windowBorderColor);
+    setFrameColor(dialogItemColors.windowColors.windowBorderColor);
     for (int i = 0; i < items.length; i++) {
       items[i].setTheme(dialogItemColors.toolbarItemColors);
     }

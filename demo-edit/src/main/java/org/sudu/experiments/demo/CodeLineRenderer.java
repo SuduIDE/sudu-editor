@@ -1,6 +1,8 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.demo.ui.colors.CodeElementColor;
+import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Numbers;
@@ -157,8 +159,8 @@ class CodeLineRenderer implements Disposable {
       boolean isFullSelected = !isNotSelected && isFullSelected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
 
       Color elemBgColor = null;
-      if (e == def) elemBgColor = colors.definitionBgColor;
-      if (usages.contains(e)) elemBgColor = colors.usageBgColor;
+      if (e == def) elemBgColor = colors.editor.definitionBg;
+      if (usages.contains(e)) elemBgColor = colors.editor.usageBg;
 
       if (isFullSelected || isFullUnselected) {
         region.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
@@ -227,8 +229,8 @@ class CodeLineRenderer implements Disposable {
     if (size.x == 0 || size.y == 0) return;
     if (region.w == 0 || region.z == 0) return;
 
-    CodeElementColor c = colors.codeColors[e.color];
-    Color bgColor = isSelected ? colors.selectionBgColor : Objects.requireNonNullElse(elemBgColor, colors.bgColor(c.colorB));
+    CodeElementColor c = colors.codeElement[e.color];
+    Color bgColor = isSelected ? colors.editor.selectionBg : Objects.requireNonNullElse(elemBgColor, colors.bgColor(c.colorB));
     g.drawText(xPos, yPos, size,
         region, texture, c.colorF, bgColor,
         bw ? 0 : contrast);

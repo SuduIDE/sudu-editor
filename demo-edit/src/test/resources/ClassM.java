@@ -4,7 +4,7 @@ import org.sudu.experiments.Canvas;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.ui.DialogItemColors;
+import org.sudu.experiments.demo.ui.colors.DialogItemColors;
 import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.demo.ui.UiFont;
 import org.sudu.experiments.fonts.FontDesk;

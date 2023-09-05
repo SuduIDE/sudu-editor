@@ -5,6 +5,7 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -37,7 +38,7 @@ public class DemoEdit0 extends Scene1 implements EditorUi.ThemeApi {
     api.input.onScroll.add((e, dX, dY) -> editor.onScroll(dX, dY));
     api.input.onContextMenu.add(this::onContextMenu);
 
-    toggleDracula();
+    toggleDarcula();
   }
 
   public Document document() {
@@ -78,8 +79,8 @@ public class DemoEdit0 extends Scene1 implements EditorUi.ThemeApi {
     editor.setPos(new V2i(), newSize, dpr);
   }
 
-  public void toggleDracula() {
-    applyTheme(EditorColorScheme.darkIdeaColorScheme());
+  public void toggleDarcula() {
+    applyTheme(EditorColorScheme.darculaIdeaColorScheme());
   }
 
   public void toggleLight() {
@@ -90,6 +91,14 @@ public class DemoEdit0 extends Scene1 implements EditorUi.ThemeApi {
     Objects.requireNonNull(theme);
     ui.setTheme(theme);
     editor.setTheme(theme);
+  }
+
+  public void setTheme(String theme) {
+    switch (theme) {
+      case "light" -> toggleLight();
+      case "dark" -> toggleDarcula();
+      default -> Debug.consoleInfo("unknown theme: " + theme);
+    }
   }
 
   boolean onKeyPress(KeyEvent event) {

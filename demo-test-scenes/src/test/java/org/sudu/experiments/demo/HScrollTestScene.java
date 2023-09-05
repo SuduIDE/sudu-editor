@@ -1,6 +1,8 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
+import org.sudu.experiments.demo.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.MouseEvent;
@@ -31,7 +33,7 @@ public class HScrollTestScene extends Scene {
 
   boolean needsUpdate = true;
 
-  final EditorColorScheme colors = EditorColorScheme.darkIdeaColorScheme();
+  final EditorColorScheme colors = EditorColorScheme.darculaIdeaColorScheme();
 
   public HScrollTestScene(SceneApi api) {
     super(api);
@@ -81,7 +83,7 @@ public class HScrollTestScene extends Scene {
 
   @Override
   public void paint() {
-    g.clear(IdeaCodeColors.Colors.editBgColor);
+    g.clear(IdeaCodeColors.Darcula.editBg);
     g.enableBlend(true);
     scrollBar.layoutHorizontal(scrollPosH, 0, viewportSize.x, horizontalSize, viewportSize.y, 20);
     scrollBar.draw(g);
