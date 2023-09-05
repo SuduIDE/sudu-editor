@@ -421,7 +421,7 @@ public class EditorComponent implements Focusable, MouseListener {
       CodeLineRenderer line = lineRenderer(i);
       int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection.isTailSelected(i);
-      Color tailColor = isTailSelected? colors.editor.selectionBg : colors.editor.lineTailContent;
+      Color tailColor = isTailSelected ? colors.editor.selectionBg : colors.editor.lineTailContent;
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
           size1, hScrollPos, editorWidth(), tailColor);
     }
