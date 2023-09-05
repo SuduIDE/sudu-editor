@@ -102,6 +102,7 @@ public class EditorComponent implements Focusable, MouseListener {
     debugFlags[1] = this::toggleBlankLines;
     debugFlags[2] = this::toggleTails;
     debugFlags[3] = this::toggleXOffset;
+    debugFlags[4] = this::toggleMirrored;
 
     // d2d is very bold, contrast makes font heavier
     applyContrast = context.window.getHost() != Host.Direct2D;
@@ -111,7 +112,11 @@ public class EditorComponent implements Focusable, MouseListener {
     this.pos.set(pos);
     this.size.set(size);
 
-    vLineX = DprUtil.toPx(vLineXBase,  dpr);
+    internalLayout(pos, size, dpr);
+  }
+
+  private void internalLayout(V2i pos, V2i size, float dpr) {
+    vLineX = DprUtil.toPx(vLineXBase, dpr);
     vLineLeftDelta = DprUtil.toPx(10, dpr);
 
     int lineNumbersWidth = mirrored ? vLineX : vLineX - vLineLeftDelta;
@@ -175,6 +180,13 @@ public class EditorComponent implements Focusable, MouseListener {
 
   void setMirrored(boolean b) {
     mirrored = b;
+  }
+
+  void toggleMirrored() {
+    mirrored = !mirrored;
+    lineNumbers.dispose();
+    lineNumbers = new LineNumbersComponent();
+    internalLayout(pos, size, context.dpr);
   }
 
   void toggleContrast() {
@@ -354,7 +366,6 @@ public class EditorComponent implements Focusable, MouseListener {
 
 
   public void paint() {
-
     int cacheLines = Numbers.iDivRoundUp(size.y, lineHeight) + EditorConst.MIN_CACHE_LINES;
     if (lines.length < cacheLines) {
       lines = CodeLineRenderer.reallocRenderLines(cacheLines, lines, firstLineRendered, lastLineRendered, model.document);
