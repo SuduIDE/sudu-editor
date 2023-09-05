@@ -2,11 +2,11 @@ package org.sudu.experiments.demo.menu;
 
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.EditorColorScheme;
-import org.sudu.experiments.demo.EditorColors;
+import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.Scene1;
 import org.sudu.experiments.demo.TestHelper;
 import org.sudu.experiments.demo.ui.*;
+import org.sudu.experiments.demo.ui.colors.DialogItemColors;
 import org.sudu.experiments.demo.ui.window.ScrollView;
 import org.sudu.experiments.demo.ui.window.Window;
 import org.sudu.experiments.demo.ui.window.WindowManager;

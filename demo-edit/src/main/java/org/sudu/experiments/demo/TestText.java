@@ -1,6 +1,6 @@
 package org.sudu.experiments.demo;
 
-import org.sudu.experiments.demo.IdeaCodeColors.ElementsDarcula;
+import org.sudu.experiments.demo.ui.colors.IdeaCodeColors.ElementsDarcula;
 import org.sudu.experiments.math.XorShiftRandom;
 
 public class TestText {

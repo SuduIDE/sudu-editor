@@ -2,6 +2,8 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.DemoRect;
+import org.sudu.experiments.demo.ui.colors.DialogItemColors;
+import org.sudu.experiments.demo.ui.colors.FindUsagesItemColors;
 import org.sudu.experiments.demo.ui.window.ScrollContent;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;

@@ -1,4 +1,4 @@
-package org.sudu.experiments.demo;
+package org.sudu.experiments.demo.ui.colors;
 
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V4f;
@@ -10,7 +10,7 @@ public class LineNumbersColors {
   public final V4f caretTextColor;
   public final V4f caretBgColor;
 
-  static LineNumbersColors darcula() {
+  public static LineNumbersColors darcula() {
     return new LineNumbersColors(
         new Color("#606366"),
         new Color("#2B2B2B"),
@@ -20,7 +20,7 @@ public class LineNumbersColors {
   }
 
   // TODO: get colors
-  static LineNumbersColors dark() {
+  public static LineNumbersColors dark() {
     return new LineNumbersColors(
         new Color(""),
         new Color(""),
@@ -29,7 +29,7 @@ public class LineNumbersColors {
     );
   }
 
-  static LineNumbersColors light() {
+  public static LineNumbersColors light() {
     return new LineNumbersColors(
         new Color("#AEB3C2"),
         new Color("#FFFFFF"),

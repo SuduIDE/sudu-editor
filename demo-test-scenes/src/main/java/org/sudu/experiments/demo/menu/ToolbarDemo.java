@@ -2,10 +2,12 @@ package org.sudu.experiments.demo.menu;
 
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.DialogColors;
+import org.sudu.experiments.demo.ui.colors.DialogColors;
 import org.sudu.experiments.demo.Scene1;
 import org.sudu.experiments.demo.TestHelper;
 import org.sudu.experiments.demo.ui.*;
+import org.sudu.experiments.demo.ui.colors.DialogItemColors;
+import org.sudu.experiments.demo.ui.colors.ToolbarItemColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.*;

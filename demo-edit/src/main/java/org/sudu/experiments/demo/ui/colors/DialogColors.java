@@ -1,4 +1,4 @@
-package org.sudu.experiments.demo;
+package org.sudu.experiments.demo.ui.colors;
 
 import org.sudu.experiments.math.Color;
 

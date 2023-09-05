@@ -6,6 +6,7 @@ import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.ui.PopupMenu;
 import org.sudu.experiments.demo.ui.UiContext;
+import org.sudu.experiments.demo.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;

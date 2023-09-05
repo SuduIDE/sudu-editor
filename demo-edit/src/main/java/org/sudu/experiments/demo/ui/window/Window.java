@@ -3,7 +3,7 @@ package org.sudu.experiments.demo.ui.window;
 import org.sudu.experiments.Cursor;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.ui.DialogItemColors;
+import org.sudu.experiments.demo.ui.colors.DialogItemColors;
 import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.demo.ui.UiFont;
 import org.sudu.experiments.demo.ui.WindowPaint;

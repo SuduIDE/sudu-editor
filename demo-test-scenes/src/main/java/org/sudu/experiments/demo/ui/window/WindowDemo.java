@@ -6,6 +6,7 @@ import org.sudu.experiments.demo.Scene1;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.TestHelper;
 import org.sudu.experiments.demo.ui.*;
+import org.sudu.experiments.demo.ui.colors.DialogItemColors;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;

@@ -1,7 +1,7 @@
-package org.sudu.experiments.demo.ui;
+package org.sudu.experiments.demo.ui.colors;
 
 
-import org.sudu.experiments.demo.DialogColors;
+import org.sudu.experiments.demo.ui.ShadowParameters;
 import org.sudu.experiments.math.Color;
 
 public class DialogItemColors {

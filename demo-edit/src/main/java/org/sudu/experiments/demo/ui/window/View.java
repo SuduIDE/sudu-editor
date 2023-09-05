@@ -2,7 +2,7 @@ package org.sudu.experiments.demo.ui.window;
 
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.DialogColors;
+import org.sudu.experiments.demo.ui.colors.DialogColors;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;

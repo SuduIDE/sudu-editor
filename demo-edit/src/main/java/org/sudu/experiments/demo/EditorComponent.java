@@ -6,6 +6,7 @@ package org.sudu.experiments.demo;
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.ui.Focusable;
 import org.sudu.experiments.demo.ui.UiContext;
+import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.worker.parser.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;

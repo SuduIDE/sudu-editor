@@ -1,6 +1,7 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.demo.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;

@@ -5,11 +5,11 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 
 import java.util.Objects;

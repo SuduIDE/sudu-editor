@@ -1,15 +1,15 @@
-package org.sudu.experiments.demo.ui;
+package org.sudu.experiments.demo.ui.colors;
 
-import org.sudu.experiments.demo.DialogColors;
 import org.sudu.experiments.math.V4f;
 
+@SuppressWarnings("ClassCanBeRecord")
 public class FindUsagesItemColors {
-  final V4f fileColor;
-  final V4f lineColor;
-  final V4f contentColor;
-  final V4f bgColor;
-  final V4f bgCaretColor;
-  final V4f textCaretColor;
+  public final V4f fileColor;
+  public final V4f lineColor;
+  public final V4f contentColor;
+  public final V4f bgColor;
+  public final V4f bgCaretColor;
+  public final V4f textCaretColor;
 
   public FindUsagesItemColors(V4f fileColor, V4f lineColor, V4f contentColor, V4f bgColor, V4f bgCaretColor, V4f textCaretColor) {
     this.fileColor = fileColor;

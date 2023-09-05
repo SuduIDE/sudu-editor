@@ -2,6 +2,7 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.demo.ui.*;
+import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.ui.window.ScrollView;
 import org.sudu.experiments.demo.ui.window.Window;
 import org.sudu.experiments.demo.ui.window.WindowManager;

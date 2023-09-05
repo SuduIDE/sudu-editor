@@ -1,5 +1,6 @@
-package org.sudu.experiments.demo;
+package org.sudu.experiments.demo.ui.colors;
 
+import org.sudu.experiments.demo.Caret;
 import org.sudu.experiments.math.Color;
 
 public interface IdeaCodeColors {
