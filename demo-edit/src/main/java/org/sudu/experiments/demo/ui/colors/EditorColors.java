@@ -53,6 +53,21 @@ public class EditorColors {
     );
   }
 
+  public static EditorColors darkIdeaColorScheme() {
+    return new EditorColors(
+        new Color(IdeaCodeColors.Dark.cursor),
+        new Color(IdeaCodeColors.Dark.editBg),
+        new Color(IdeaCodeColors.Dark.editNumbersVLine),
+        new Color(IdeaCodeColors.Dark.editFooterFill),
+        new Color(IdeaCodeColors.Dark.editBg),
+        new Color(IdeaCodeColors.Dark.editSelectedBg),
+        new Color(IdeaCodeColors.Dark.definitionBgColor),
+        new Color(IdeaCodeColors.Dark.usageBgColor),
+        new Color(IdeaCodeColors.Dark.scrollBarBg),
+        new Color(IdeaCodeColors.Dark.scrollBarLine)
+    );
+  }
+
   public static EditorColors lightIdeaColorScheme() {
     return new EditorColors(
         new Color(IdeaCodeColors.Light.cursor),

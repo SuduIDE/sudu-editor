@@ -35,6 +35,21 @@ public class FindUsagesItemColors {
     return ToolbarItemColors.darculaToolbarItemColors();
   }
 
+  public static FindUsagesItemColors darkFindUsagesItemColors() {
+    return new FindUsagesItemColors(
+        DialogColors.Dark.findUsagesTextCaret,
+        DialogColors.Dark.findUsagesLineNumber,
+        DialogColors.Dark.findUsagesContent,
+        DialogColors.Dark.findUsagesBg,
+        DialogColors.Dark.findUsagesBgCaret,
+        DialogColors.Dark.findUsagesTextCaret
+    );
+  }
+
+  public static ToolbarItemColors darkNoUsages() {
+    return ToolbarItemColors.darkToolbarItemColors();
+  }
+
   public static FindUsagesItemColors lightFindUsagesItemColors() {
     return new FindUsagesItemColors(
         DialogColors.Light.findUsagesTextCaret,

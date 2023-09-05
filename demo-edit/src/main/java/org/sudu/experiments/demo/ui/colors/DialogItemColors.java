@@ -44,6 +44,18 @@ public class DialogItemColors {
     );
   }
 
+  public static DialogItemColors darkColorScheme() {
+    return new DialogItemColors(
+        FindUsagesItemColors.darkFindUsagesItemColors(),
+        FindUsagesItemColors.darkNoUsages(),
+        WindowColors.dark(),
+        ToolbarItemColors.darkToolbarItemColors(),
+        ShadowParameters.darkTheme(),
+        DialogColors.Dark.scrollBarLine,
+        DialogColors.Dark.scrollBarBg
+    );
+  }
+
   public static DialogItemColors lightColorScheme() {
     return new DialogItemColors(
         FindUsagesItemColors.lightFindUsagesItemColors(),
