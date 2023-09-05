@@ -2,7 +2,7 @@ package org.sudu.experiments.demo.ui.window;
 
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.Colors;
+import org.sudu.experiments.demo.ui.colors.DialogColors;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
@@ -42,7 +42,7 @@ public class View implements Disposable {
   }
 
   protected void draw(WglGraphics g) {
-    g.drawRect(pos.x, pos.y, size, Colors.toolbarBg);
+    g.drawRect(pos.x, pos.y, size, DialogColors.Darcula.toolbarBg);
   }
 
   protected final void enableScissor(WglGraphics g) {

@@ -1,7 +1,7 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.demo.IdeaCodeColors.Colors;
+import org.sudu.experiments.demo.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;
@@ -26,7 +26,7 @@ public class RenderTexture extends Scene0 {
     canvasTexture = TestHelper.canvasTexture(g);
     demoRect.setTextureRegionDefault(canvasTexture);
     demoRect.setSizeToTextureRegion();
-    demoRect.bgColor.set(Colors.editBgColor);
+    demoRect.bgColor.set(IdeaCodeColors.Darcula.editBg);
     demoRect.color.set(new Color(204, 120, 50));
 
     mouseTexture = mouseTexture(g);

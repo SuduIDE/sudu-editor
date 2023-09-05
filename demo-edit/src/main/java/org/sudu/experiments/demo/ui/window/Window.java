@@ -3,7 +3,7 @@ package org.sudu.experiments.demo.ui.window;
 import org.sudu.experiments.Cursor;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.ui.DialogItemColors;
+import org.sudu.experiments.demo.ui.colors.DialogItemColors;
 import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.demo.ui.UiFont;
 import org.sudu.experiments.demo.ui.WindowPaint;
@@ -71,7 +71,7 @@ public class Window {
 
   void draw(WglGraphics g) {
     content.draw(g);
-    title.draw(g, theme.windowTheme);
+    title.draw(g, theme.windowColors);
     drawFrameAndShadow(g);
   }
 
@@ -86,7 +86,7 @@ public class Window {
 
     WindowPaint.drawInnerFrame(g,
         size, noTitle ? content.pos : title.pos,
-        theme.windowTheme.windowBorderColor, -border, temp);
+        theme.windowColors.windowBorderColor, -border, temp);
 
     WindowPaint.drawShadow(g,
         content.size, content.pos, border, titleHeight,

@@ -6,6 +6,7 @@ import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.ui.PopupMenu;
 import org.sudu.experiments.demo.ui.UiContext;
+import org.sudu.experiments.demo.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
@@ -22,7 +23,7 @@ public class TestHelper {
 
       hLine.set(windowSize.x, DprUtil.toPx(2, uiContext.dpr));
       vLine.set(DprUtil.toPx(2, uiContext.dpr), windowSize.y);
-      V4f crossColors = Colors.scrollBarBody1;
+      V4f crossColors = IdeaCodeColors.Darcula.scrollBarLine;
       uiContext.graphics.drawRect(0, windowSize.y / 2 - hLine.y / 2, hLine, crossColors);
       uiContext.graphics.drawRect(windowSize.x / 2 - vLine.x / 2, 0, vLine, crossColors);
     }

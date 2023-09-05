@@ -2,6 +2,8 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.DemoRect;
+import org.sudu.experiments.demo.ui.colors.DialogItemColors;
+import org.sudu.experiments.demo.ui.colors.FindUsagesItemColors;
 import org.sudu.experiments.demo.ui.window.ScrollContent;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
@@ -163,10 +165,10 @@ public class FindUsagesView extends ScrollContent implements Focusable {
       int contentTX = lineTX + maxLineLen;
       boolean hover = hoverItemId == i;
 
-      V4f itemBg = hover ? theme.bgHighlightColor : bgColor;
-      V4f itemFile = hover ? theme.textHighlightColor : theme.fileColor;
-      V4f itemLine = hover ? theme.textHighlightColor : theme.lineColor;
-      V4f itemContent = hover ? theme.textHighlightColor : theme.contentColor;
+      V4f itemBg = hover ? theme.bgCaretColor : bgColor;
+      V4f itemFile = hover ? theme.textCaretColor : theme.fileColor;
+      V4f itemLine = hover ? theme.textCaretColor : theme.lineColor;
+      V4f itemContent = hover ? theme.textCaretColor : theme.contentColor;
 
       int y1 = y + localY - scrollPos.y;
       g.drawText(fileTX, y1, item.sizeFiles, item.tFiles,

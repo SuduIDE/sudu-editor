@@ -2,6 +2,7 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.Const;
 import org.sudu.experiments.demo.DemoRect;
+import org.sudu.experiments.demo.ui.colors.DialogItemColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;

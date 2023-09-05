@@ -6,6 +6,7 @@ import org.sudu.experiments.demo.Scene1;
 import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.TestHelper;
 import org.sudu.experiments.demo.ui.*;
+import org.sudu.experiments.demo.ui.colors.DialogItemColors;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -34,7 +35,7 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
     clearColor.set(new Color(43));
 
     popupMenu = new PopupMenu(uiContext);
-    popupMenu.setTheme(DialogItemColors.darkColorScheme(),
+    popupMenu.setTheme(DialogItemColors.darculaColorScheme(),
         new UiFont("Consolas", 25));
 
     api.input.onKeyPress.add(this::onKey);
@@ -113,7 +114,7 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
     window.setContent(scroll
         ? new ScrollView(contentDemo, uiContext)
         : contentDemo);
-    window.setTheme(DialogItemColors.darkColorScheme());
+    window.setTheme(DialogItemColors.darculaColorScheme());
     return window;
   }
 

@@ -6,6 +6,7 @@ package org.sudu.experiments.demo;
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.ui.Focusable;
 import org.sudu.experiments.demo.ui.UiContext;
+import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.worker.parser.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
@@ -162,7 +163,9 @@ public class EditorComponent implements Focusable, MouseListener {
 
   void setTheme(EditorColorScheme theme) {
     colors = theme;
-    caret.setColor(theme.cursorColor);
+    caret.setColor(theme.editor.cursor);
+    vScroll.setColor(theme.editor.scrollBarLine, theme.editor.scrollBarBg);
+    hScroll.setColor(theme.editor.scrollBarLine, theme.editor.scrollBarBg);
   }
 
   void toggleXOffset() {
@@ -416,7 +419,7 @@ public class EditorComponent implements Focusable, MouseListener {
       CodeLineRenderer line = lineRenderer(i);
       int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection.isTailSelected(i);
-      Color tailColor = isTailSelected? colors.selectionBgColor : colors.codeLineTailColor;
+      Color tailColor = isTailSelected? colors.editor.selectionBg : colors.editor.lineTailContent;
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
           size1, hScrollPos, editorWidth(), tailColor);
     }
@@ -462,7 +465,7 @@ public class EditorComponent implements Focusable, MouseListener {
     int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
 
     lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine, caretLine, g,
-        colors.lineNumbersColors
+        colors.lineNumber
     );
   }
 
@@ -680,7 +683,7 @@ public class EditorComponent implements Focusable, MouseListener {
       sizeT.y = size.y - yPosition;
       sizeT.x = mirrored ? editorWidth() + vLineW : editorWidth();
       int x = mirrored ? pos.x + vLineLeftDelta + scrollBarWidth() : pos.x + vLineX;
-      g.drawRect(x, pos.y + yPosition, sizeT, colors.editBgColor);
+      g.drawRect(x, pos.y + yPosition, sizeT, colors.editor.bg);
     }
   }
 
@@ -713,9 +716,9 @@ public class EditorComponent implements Focusable, MouseListener {
     vLineSize.y = size.y;
     vLineSize.x = vLineW;
     int dx = mirrored ? 0 : vLineX - vLineLeftDelta;
-    g.drawRect(pos.x + dx, pos.y, vLineSize, colors.editNumbersVLine);
+    g.drawRect(pos.x + dx, pos.y, vLineSize, colors.editor.numbersVLine);
     vLineSize.x = mirrored ? vLineLeftDelta - vLineW + scrollBarWidth() : vLineLeftDelta - vLineW;
-    g.drawRect(pos.x + dx + vLineW, pos.y, vLineSize, colors.editBgColor);
+    g.drawRect(pos.x + dx + vLineW, pos.y, vLineSize, colors.editor.bg);
   }
 
   int clampScrollPos(int pos, int maxScrollPos) {

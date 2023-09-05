@@ -2,6 +2,7 @@ package org.sudu.experiments.demo.ui;
 
 import org.sudu.experiments.demo.DemoRect;
 import org.sudu.experiments.demo.TextRect;
+import org.sudu.experiments.demo.ui.colors.ToolbarItemColors;
 import org.sudu.experiments.math.V2i;
 
 import java.util.function.Supplier;

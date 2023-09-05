@@ -2,10 +2,7 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.Numbers;
-import org.sudu.experiments.math.Rect;
-import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.math.*;
 
 import java.util.function.Consumer;
 
@@ -19,8 +16,6 @@ public class ScrollBar {
   final V4f color2 = new V4f();
 
   public ScrollBar() {
-    color1.set(Colors.scrollBarBody1);
-    color2.set(Colors.scrollBarBody2);
   }
 
   public boolean visible() {
@@ -48,11 +43,28 @@ public class ScrollBar {
       int hitOffset = hitButton ? buttonCenter - delta : 0;
       return isVertical
           ? event -> onMove.accept(
-            getClickLocationResultY(event.position.y + hitOffset - bgPos.y))
+          getClickLocationResultY(event.position.y + hitOffset - bgPos.y))
           : event -> onMove.accept(
-            getClickLocationResultX(event.position.x + hitOffset - bgPos.x));
+          getClickLocationResultX(event.position.x + hitOffset - bgPos.x));
     }
     return null;
+  }
+
+  public void setColor(Color scrollBarLine, Color scrollBarBg) {
+    if (scrollBarLine == null || scrollBarBg == null) return;
+    color1.set(scrollBarBg);
+    color2.set(scrollBarLine);
+  }
+
+  private boolean isColorSame(Color scrollBarLine, Color scrollBarBg) {
+    if (scrollBarLine == null || scrollBarBg == null) return false;
+    return color1.equals(scrollBarLine) && color2.equals(scrollBarBg);
+  }
+
+  public void setColorIfNotSame(Color scrollBarLine, Color scrollBarBg) {
+    if (!isColorSame(scrollBarLine, scrollBarBg)) {
+      setColor(scrollBarLine, scrollBarBg);
+    }
   }
 
   public static class Event {

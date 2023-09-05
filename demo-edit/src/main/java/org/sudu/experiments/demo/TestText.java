@@ -1,14 +1,13 @@
 package org.sudu.experiments.demo;
 
+import org.sudu.experiments.demo.ui.colors.IdeaCodeColors.ElementsDarcula;
 import org.sudu.experiments.math.XorShiftRandom;
-
-import org.sudu.experiments.demo.IdeaCodeColors.Elements;
 
 public class TestText {
   static CodeElement[] spaces() {
-    int keyword = Elements.keyword.ordinal();
-    int braceMatch = Elements.braceMatch.ordinal();
-    int commaIndex = Elements.comma.ordinal();
+    int keyword = ElementsDarcula.keyword.ordinal();
+    int braceMatch = ElementsDarcula.braceMatch.ordinal();
+    int commaIndex = ElementsDarcula.comma.ordinal();
 
     CodeElement sp = new CodeElement(" ", 0);
     CodeElement br1 = new CodeElement("(", 0);
@@ -34,8 +33,8 @@ public class TestText {
   }
 
   static CodeElement[] words(XorShiftRandom r) {
-    int numColors = Elements.values().length - 1;
-    int string = Elements.string.ordinal();
+    int numColors = ElementsDarcula.values().length - 1;
+    int string = ElementsDarcula.string.ordinal();
     return new CodeElement[]{
         new CodeElement("return", r.nextInt(numColors), r.nextInt(4)),
         new CodeElement("System", r.nextInt(numColors), r.nextInt(4)),
@@ -43,7 +42,7 @@ public class TestText {
         new CodeElement("InputStream", r.nextInt(numColors), r.nextInt(4)),
         new CodeElement("out", r.nextInt(numColors), r.nextInt(4)),
         new CodeElement("length", r.nextInt(numColors), r.nextInt(4)),
-        new CodeElement("println", r.nextInt(numColors),  r.nextInt(4)),
+        new CodeElement("println", r.nextInt(numColors), r.nextInt(4)),
         new CodeElement("\"a string or text\"", string, r.nextInt(4)),
         new CodeElement("textCanvas", r.nextInt(numColors), r.nextInt(4)),
         new CodeElement("getFont", r.nextInt(numColors), r.nextInt(4)),
