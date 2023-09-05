@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static org.sudu.experiments.demo.ui.ToolbarConst.fireOnHover;
 import static org.sudu.experiments.demo.ui.ToolbarItemBuilder.ti;
 
 class EditorUi implements MouseListener, InputListeners.ScrollHandler {
@@ -251,9 +252,9 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
     private Supplier<ToolbarItem[]> settingsItems() {
       ToolbarItemBuilder tbb = new ToolbarItemBuilder();
-      tbb.addItem("Theme >", theme.dialogItem.toolbarItemColors, themes());
+      tbb.addItem("Theme >", theme.dialogItem.toolbarItemColors, themes(), fireOnHover);
       tbb.addItem("Font size >", theme.dialogItem.toolbarItemColors, fontSize());
-      tbb.addItem("Fonts >", theme.dialogItem.toolbarItemColors, fontSelect());
+      tbb.addItem("Fonts >", theme.dialogItem.toolbarItemColors, fontSelect(), fireOnHover);
       return tbb.supplier();
     }
 

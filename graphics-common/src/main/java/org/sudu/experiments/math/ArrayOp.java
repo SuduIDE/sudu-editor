@@ -115,4 +115,14 @@ public interface ArrayOp {
     data[index] = value;
     return data;
   }
+
+  static <T> T[] reverse(T[] value) {
+    for (int i = 0; i < value.length / 2; i++) {
+      T temp = value[i];
+      value[i] = value[value.length - i - 1];
+      value[value.length - i - 1] = temp;
+    }
+    return value;
+  }
+
 }

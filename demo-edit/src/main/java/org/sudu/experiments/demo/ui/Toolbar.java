@@ -72,7 +72,6 @@ public class Toolbar {
     setFrameColor(dialogItemColors.windowColors.windowBorderColor);
     for (int i = 0; i < items.length; i++) {
       items[i].setTheme(dialogItemColors.toolbarItemColors);
-      if (hoverItemId == i) items[i].setHover(true);
     }
   }
 
@@ -213,8 +212,8 @@ public class Toolbar {
       }
       if (mouseItem >= 0) {
         ToolbarItem newItem = items[mouseItem];
-        newItem.setHover(true);
         if (onEnter != null) onEnter.event(pos, mouseItem, newItem);
+        newItem.setHover(true);
       }
       hoverItemId = mouseItem;
     }
