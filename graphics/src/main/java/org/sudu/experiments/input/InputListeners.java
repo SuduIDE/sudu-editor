@@ -23,6 +23,10 @@ public class InputListeners {
 
   public final Runnable repaint;
 
+  private Consumer<MouseEvent> dragLock;
+  private int dragButton;
+
+
   public InputListeners(Runnable repaint) {
     this.repaint = repaint;
   }
@@ -68,8 +72,12 @@ public class InputListeners {
 
   public void sendMouseMove(MouseEvent e) {
     repaint.run();
-    for (MouseListener listener : onMouse.array()) {
-      if (listener.onMouseMove(e)) return;
+    if (dragLock != null) {
+      dragLock.accept(e);
+    } else {
+      for (MouseListener listener : onMouse.array()) {
+        if (listener.onMouseMove(e)) return;
+      }
     }
   }
 
@@ -80,16 +88,27 @@ public class InputListeners {
     }
     return false;
   }
+
   public boolean sendMouseDown(MouseEvent e, int button) {
     repaint.run();
+    if (dragLock != null) return true;
+
     for (MouseListener listener : onMouse.array()) {
-      if (listener.onMouseDown(e, button)) return true;
+      Consumer<MouseEvent> lock = listener.onMouseDown(e, button);
+      if (lock != null) {
+        dragLock = lock;
+        dragButton = button;
+        return true;
+      }
     }
     return false;
   }
 
   public boolean sendMouseUp(MouseEvent e, int button) {
     repaint.run();
+    if (button == dragButton && dragLock != null) {
+      dragLock = null;
+    }
     for (MouseListener listener : onMouse.array()) {
       if (listener.onMouseUp(e, button)) return true;
     }

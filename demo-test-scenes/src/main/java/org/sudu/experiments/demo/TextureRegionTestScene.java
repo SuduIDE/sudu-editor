@@ -141,31 +141,25 @@ public class TextureRegionTestScene extends Scene {
   }
 
   private class MListener implements MouseListener {
-    Consumer<MouseEvent> dragLock;
     Consumer<ScrollBar.Event> vScrollHandler =
       event -> scrollPos = event.getPosition(verticalSize());
 
     @Override
-    public boolean onMouseDown(MouseEvent event, int button) {
+    public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
       if (button == MouseListener.MOUSE_BUTTON_LEFT) {
-        dragLock = scrollBar.onMouseDown(event.position, vScrollHandler, true);
-        if (dragLock != null) return true;
+        var h = scrollBar.onMouseDown(event.position, vScrollHandler, true);
+        if (h != null) return h;
       }
-      return true;
+      return Static.emptyConsumer;
     }
 
     @Override
     public boolean onMouseUp(MouseEvent event, int button) {
-      if (dragLock != null) dragLock = null;
       return true;
     }
 
     @Override
     public boolean onMouseMove(MouseEvent event) {
-      if (dragLock != null) {
-        dragLock.accept(event);
-        return true;
-      }
       return scrollBar.onMouseMove(event.position, SetCursor.wrap(api.window));
     }
   }

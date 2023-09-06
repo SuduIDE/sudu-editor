@@ -136,35 +136,27 @@ public class HScrollTestScene extends Scene {
     return true;
   }
 
-
   private class HScrollInputListener implements MouseListener {
-    Consumer<MouseEvent> dragLock;
     Consumer<ScrollBar.Event> vScrollHandler =
       event -> scrollPosH = event.getPosition(horizontalSize());
 
 
     @Override
-    public boolean onMouseDown(MouseEvent event, int button) {
+    public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
       if (button == MouseListener.MOUSE_BUTTON_LEFT) {
-        dragLock = scrollBar.onMouseDown(event.position, vScrollHandler, false);
-        if (dragLock != null) return true;
+        return scrollBar.onMouseDown(event.position, vScrollHandler, false);
       }
 
-      return true;
+      return null;
     }
 
     @Override
     public boolean onMouseUp(MouseEvent event, int button) {
-      if (dragLock != null) dragLock = null;
       return true;
     }
 
     @Override
     public boolean onMouseMove(MouseEvent event) {
-      if (dragLock != null) {
-        dragLock.accept(event);
-        return true;
-      }
       return scrollBar.onMouseMove(event.position, SetCursor.wrap(api.window));
     }
   }

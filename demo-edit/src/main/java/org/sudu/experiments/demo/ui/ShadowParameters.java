@@ -16,6 +16,10 @@ public class ShadowParameters {
     return new ShadowParameters(1, 0.125f);
   }
 
+  public static ShadowParameters darkTheme() {
+    return new ShadowParameters(1, 0.175f);
+  }
+
   public static ShadowParameters lightTheme() {
     return new ShadowParameters(1, 0.075f);
   }

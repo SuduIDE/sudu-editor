@@ -12,6 +12,7 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.*;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListener {
@@ -146,7 +147,7 @@ public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListe
   }
 
   @Override
-  public boolean onMouseDown(MouseEvent event, int button) {
+  public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
     return popupMenu.onMouseDown(event, button);
   }
 

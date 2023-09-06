@@ -6,11 +6,14 @@ import org.sudu.experiments.demo.SetCursor;
 import org.sudu.experiments.demo.TextRect;
 import org.sudu.experiments.demo.ui.colors.DialogItemColors;
 import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class Toolbar {
   static final int dpMargin = 3;
@@ -221,14 +224,14 @@ public class Toolbar {
     return inside && setCursor.setDefault();
   }
 
-  public boolean onMouseDown(V2i pos, int button) {
+  public Consumer<MouseEvent> onMouseDown(V2i pos, int button) {
     boolean inside = rect.isInside(pos);
     if (!inside) {
       if (!rect.isEmpty() && onClickOutside != null) {
         onClickOutside.run();
       }
     }
-    return inside;
+    return inside ? MouseListener.Static.emptyConsumer : null;
   }
 
   public boolean onMouseClick(V2i pos, int button, int clickCount) {

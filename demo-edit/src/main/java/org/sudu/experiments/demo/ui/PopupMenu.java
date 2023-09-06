@@ -10,6 +10,7 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.V2i;
 
 import java.util.ArrayList;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class PopupMenu implements DprChangeListener, Focusable {
@@ -132,11 +133,11 @@ public class PopupMenu implements DprChangeListener, Focusable {
     return r;
   }
 
-  public boolean onMouseDown(MouseEvent e, int button) {
-    boolean r = false;
+  public Consumer<MouseEvent> onMouseDown(MouseEvent e, int button) {
+    Consumer<MouseEvent> r = null;
     for (int i = toolbars.size() - 1; i >= 0; --i) {
       r = toolbars.get(i).onMouseDown(e.position, button);
-      if (r) break;
+      if (r != null) break;
     }
     return r;
   }

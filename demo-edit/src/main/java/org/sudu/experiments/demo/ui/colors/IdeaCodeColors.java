@@ -1,13 +1,33 @@
 package org.sudu.experiments.demo.ui.colors;
 
-import org.sudu.experiments.demo.Caret;
 import org.sudu.experiments.math.Color;
 
 public interface IdeaCodeColors {
 
+  static CodeElementColor[] codeElementColorsDarcula() {
+    ElementsDarcula[] values = ElementsDarcula.values();
+    CodeElementColor[] array = new CodeElementColor[values.length];
+    for (int i = 0; i < values.length; i++) array[i] = values[i].v;
+    return array;
+  }
+
+  static CodeElementColor[] codeElementColorsDark() {
+    ElementsDark[] values = ElementsDark.values();
+    CodeElementColor[] array = new CodeElementColor[values.length];
+    for (int i = 0; i < values.length; i++) array[i] = values[i].v;
+    return array;
+  }
+
+  static CodeElementColor[] codeElementColorsLight() {
+    ElementsLight[] values = ElementsLight.values();
+    CodeElementColor[] array = new CodeElementColor[values.length];
+    for (int i = 0; i < values.length; i++) array[i] = values[i].v;
+    return array;
+  }
+
   enum ElementsDarcula {
     defaultText(Darcula.defaultText),
-    keyword(new Color(204, 120, 50)),
+    keyword(new Color("#CC7832")),
     field(new Color("#9876AA")),
     string(new Color("#6A8759")),
     comma(new Color("#CC7832")),
@@ -19,7 +39,7 @@ public interface IdeaCodeColors {
     braceMatch(new Color("#FFEF28"), new Color("#3B514D")),
     comment(new Color("#808080")),
     annotation(new Color("#BBB529")),
-    type(new Color("#287BDE")),
+    type(Darcula.defaultText), // Old color: #287BDE
     operator(new Color("#5F8C8A"));
 
     public final CodeElementColor v;
@@ -29,35 +49,6 @@ public interface IdeaCodeColors {
     }
 
     ElementsDarcula(Color color, Color bgColor) {
-      v = new CodeElementColor(color, bgColor);
-    }
-  }
-
-  // TODO: get colors
-  enum ElementsDark {
-    defaultText(Darcula.defaultText),
-    keyword(new Color(0, 0, 0)),
-    field(new Color("#")),
-    string(new Color("#")),
-    comma(new Color("#")),
-    error(new Color(0, 0,0)),
-    unused(new Color("#")),
-    number(new Color("#")),
-    method(new Color("#")),
-    showUsage(Darcula.defaultText, new Color(0, 0, 0)),
-    braceMatch(new Color("#"), new Color("#")),
-    comment(new Color("#")),
-    annotation(new Color("#")),
-    type(new Color("#")),
-    operator(new Color("#"));
-
-    public final CodeElementColor v;
-
-    ElementsDark(Color color) {
-      v = new CodeElementColor(color, null);
-    }
-
-    ElementsDark(Color color, Color bgColor) {
       v = new CodeElementColor(color, bgColor);
     }
   }
@@ -88,25 +79,39 @@ public interface IdeaCodeColors {
     ElementsLight(Color color, Color bgColor) {
       v = new CodeElementColor(color, bgColor);
     }
+
   }
 
-  static CodeElementColor[] codeElementColors() {
-    ElementsDarcula[] values = ElementsDarcula.values();
-    CodeElementColor[] array = new CodeElementColor[values.length];
-    for (int i = 0; i < values.length; i++) array[i] = values[i].v;
-    return array;
-  }
+  enum ElementsDark {
+    defaultText(Dark.defaultText),
+    keyword(new Color("#CF8E6D")),
+    field(new Color("#C77DBB")),
+    string(new Color("#6AAB73")),
+    comma(Dark.defaultText),
+    error(new Color("#F75464")),
+    unused(new Color("#6F737A")),
+    number(new Color("#2AACB8")),
+    method(new Color("#56A8F5")),
+    showUsage(Darcula.defaultText, new Color("#373B39")),
+    braceMatch(Darcula.defaultText, new Color("#43454A")),
+    comment(new Color("#7A7E85")),
+    annotation(new Color("#B3AE60")),
+    type(Dark.defaultText),
+    operator(new Color("#5F8C8A"));
 
-  static CodeElementColor[] codeElementColorsLight() {
-    ElementsLight[] values = ElementsLight.values();
-    CodeElementColor[] array = new CodeElementColor[values.length];
-    for (int i = 0; i < values.length; i++) array[i] = values[i].v;
-    return array;
-  }
+    public final CodeElementColor v;
 
+    ElementsDark(Color color) {
+      v = new CodeElementColor(color, null);
+    }
+
+    ElementsDark(Color color, Color bgColor) {
+      v = new CodeElementColor(color, bgColor);
+    }
+  }
 
   interface Darcula {
-    Color cursor = new Color(Caret.grayColor);
+    Color cursor = new Color(187);
     Color defaultText = new Color("#A9B7C6");
     Color editNumbersVLine = new Color(55);
     Color editBg = new Color(43);
@@ -114,12 +119,21 @@ public interface IdeaCodeColors {
     Color editFooterFill = new Color(60, 63, 65);
     Color usageBgColor = new Color("#344134");
     Color definitionBgColor = new Color("#40332B");
-    Color scrollBarLine = new Color(85,85, 85, 128);
+    Color scrollBarLine = new Color(85, 85, 85, 128);
     Color scrollBarBg = new Color(43, 43, 43, 0);
   }
 
   interface Dark {
-
+    Color cursor = new Color(206);
+    Color defaultText = new Color("#BCBEC4");
+    Color editNumbersVLine = new Color("#313438");
+    Color editBg = new Color("#1E1F22");
+    Color editSelectedBg = new Color("#214283");
+    Color editFooterFill = new Color("#2B2D30");
+    Color usageBgColor = new Color("#373B39");
+    Color definitionBgColor = new Color("#402F33");
+    Color scrollBarLine = new Color(107, 106, 107, 128);
+    Color scrollBarBg = new Color(30, 31, 34, 0);
   }
 
   interface Light {

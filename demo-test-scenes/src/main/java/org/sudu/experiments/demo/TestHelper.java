@@ -13,6 +13,8 @@ import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
+import java.util.function.Consumer;
+
 public class TestHelper {
   public static class Cross {
     private final V2i hLine = new V2i();
@@ -67,7 +69,7 @@ public class TestHelper {
       }
 
       @Override
-      public boolean onMouseDown(MouseEvent event, int button) {
+      public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
         return popupMenu.onMouseDown(event, button);
       }
 

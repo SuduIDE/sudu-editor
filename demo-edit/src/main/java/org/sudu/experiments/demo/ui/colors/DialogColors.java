@@ -16,17 +16,16 @@ public interface DialogColors {
     Color scrollBarBg = new Color(63, 66, 68);
   }
 
-  // TODO: get colors
   interface Dark {
-    Color findUsagesBg = new Color("#");
-    Color findUsagesBgCaret = new Color("#");
-    Color findUsagesTextCaret = new Color("#");
-    Color findUsagesLineNumber = new Color("#");
-    Color findUsagesContent = new Color("#");
-    Color toolbarBg = new Color("#");
-    Color toolbarSelectedBg = new Color("#");
-    Color scrollBarLine = new Color("#");
-    Color scrollBarBg = new Color(63, 66, 68);
+    Color findUsagesBg = new Color("#2B2D30");
+    Color findUsagesBgCaret = new Color("#2E436E");
+    Color findUsagesTextCaret = new Color("#DFE1E5");
+    Color findUsagesLineNumber = new Color("#6F737A");
+    Color findUsagesContent = new Color("#BCBEC4");
+    Color toolbarBg = new Color("#2B2D30");
+    Color toolbarSelectedBg = new Color("#2E426D");
+    Color scrollBarLine = new Color("#4D4E51");
+    Color scrollBarBg = new Color(43, 45, 48);
   }
 
   interface Light {

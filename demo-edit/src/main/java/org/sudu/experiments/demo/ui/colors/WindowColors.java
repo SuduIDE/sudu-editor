@@ -26,6 +26,13 @@ public class WindowColors {
         new Color("#DFE1E5"));
   }
 
+  static WindowColors dark() {
+    return new WindowColors(
+        new Color("#43454A"),
+        new Color("#393B40"),
+        new Color("#DFE1E5"));
+  }
+
   static WindowColors light() {
     return new WindowColors(
         new Color("#B9BDC9"),

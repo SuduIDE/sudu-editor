@@ -20,6 +20,12 @@ public final class ToolbarItemColors {
     );
   }
 
+  public static ToolbarItemColors darkToolbarItemColors() {
+    return new ToolbarItemColors(
+        new Color("#DFE1E5"), DialogColors.Dark.toolbarBg, DialogColors.Dark.toolbarSelectedBg
+    );
+  }
+
   public static ToolbarItemColors lightToolbarItemColors() {
     return new ToolbarItemColors(
         IdeaCodeColors.Light.defaultText, DialogColors.Light.toolbarBg, DialogColors.Light.toolbarSelectedBg

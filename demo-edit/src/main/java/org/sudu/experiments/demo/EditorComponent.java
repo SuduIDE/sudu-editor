@@ -124,7 +124,7 @@ public class EditorComponent implements Focusable, MouseListener {
 
     if (mirrored) {
       context.v2i1.set(pos.x + size.x - lineNumbersWidth(), pos.y);
-    } else context.v2i1.set(pos);
+    } else context.v2i1.set(this.pos);
     lineNumbers.setPos(context.v2i1, lineNumbersWidth(), size.y, dpr);
 
     if (1<0) DebugHelper.dumpFontsSize(g);
@@ -374,6 +374,7 @@ public class EditorComponent implements Focusable, MouseListener {
 
 
   public void paint() {
+
     int cacheLines = Numbers.iDivRoundUp(size.y, lineHeight) + EditorConst.MIN_CACHE_LINES;
     if (lines.length < cacheLines) {
       lines = CodeLineRenderer.reallocRenderLines(cacheLines, lines, firstLineRendered, lastLineRendered, model.document);
@@ -398,8 +399,8 @@ public class EditorComponent implements Focusable, MouseListener {
     firstLineRendered = firstLine;
     lastLineRendered = lastLine;
 
-    V2i size1 = context.v2i1;
-    size1.set(editorWidth(), lineHeight);
+    V2i sizeTmp = context.v2i1;
+      sizeTmp.set(editorWidth(), lineHeight);
     int dx = mirrored ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth(): pos.x + vLineX;
 
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
@@ -412,7 +413,7 @@ public class EditorComponent implements Focusable, MouseListener {
       int yPosition = lineHeight * i - vScrollPos;
 
       line.draw(
-          pos.y + yPosition, dx, g, tRegion, size1,
+          pos.y + yPosition, dx, g, tRegion, sizeTmp,
           applyContrast ? EditorConst.CONTRAST : 0,
           editorWidth(), lineHeight, hScrollPos,
           colors, getSelLineSegment(i, lineContent),
@@ -425,7 +426,7 @@ public class EditorComponent implements Focusable, MouseListener {
       boolean isTailSelected = selection.isTailSelected(i);
       Color tailColor = isTailSelected ? colors.editor.selectionBg : colors.editor.lineTailContent;
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
-          size1, hScrollPos, editorWidth(), tailColor);
+          sizeTmp, hScrollPos, editorWidth(), tailColor);
     }
 
     if (hasFocus && caretX >= -caret.width() / 2 && caret.needsPaint(size)) {
@@ -683,12 +684,12 @@ public class EditorComponent implements Focusable, MouseListener {
 
   private void drawDocumentBottom(int yPosition) {
     if (yPosition < size.y) {
-      V2i sizeT = context.v2i1;
+      V2i sizeTmp = context.v2i1;
 
-      sizeT.y = size.y - yPosition;
-      sizeT.x = mirrored ? editorWidth() + vLineW : editorWidth();
+      sizeTmp.y = size.y - yPosition;
+      sizeTmp.x = mirrored ? editorWidth() + vLineW : editorWidth();
       int x = mirrored ? pos.x + vLineLeftDelta + scrollBarWidth() : pos.x + vLineX;
-      g.drawRect(x, pos.y + yPosition, sizeT, colors.editor.bg);
+      g.drawRect(x, pos.y + yPosition, sizeTmp, colors.editor.bg);
     }
   }
 
@@ -1197,8 +1198,6 @@ public class EditorComponent implements Focusable, MouseListener {
 
   // InputListener methods
 
-  Consumer<MouseEvent> dragLock;
-
   Consumer<ScrollBar.Event> vScrollHandler =
       event -> vScrollPos = event.getPosition(maxVScrollPos());
 
@@ -1217,17 +1216,16 @@ public class EditorComponent implements Focusable, MouseListener {
 
   public boolean onMouseUp(MouseEvent event, int button) {
     selection.isSelectionStarted = false;
-    if (dragLock != null) dragLock = null;
     return true;
   }
 
-  public boolean onMouseDown(MouseEvent event, int button) {
+  public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
     if (button == MOUSE_BUTTON_LEFT) {
-      dragLock = vScroll.onMouseDown(event.position, vScrollHandler, true);
-      if (dragLock != null) return true;
+      var lock = vScroll.onMouseDown(event.position, vScrollHandler, true);
+      if (lock != null) return lock;
 
-      dragLock = hScroll.onMouseDown(event.position, hScrollHandler, false);
-      if (dragLock != null) return true;
+      lock = hScroll.onMouseDown(event.position, hScrollHandler, false);
+      if (lock != null) return lock;
 
       saveToNavStack();
       V2i eventPosition = event.position;
@@ -1243,9 +1241,9 @@ public class EditorComponent implements Focusable, MouseListener {
 
       selection.isSelectionStarted = true;
       selection.select(caretLine, caretCharPos);
-      dragLock = this::dragText;
+      return this::dragText;
     }
-    return true;
+    return null;
   }
 
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
@@ -1260,11 +1258,6 @@ public class EditorComponent implements Focusable, MouseListener {
   }
 
   public boolean onMouseMove(MouseEvent event) {
-    if (dragLock != null) {
-      dragLock.accept(event);
-      return true;
-    }
-
     SetCursor setCursor = context.windowCursor;
     if (vScroll.onMouseMove(event.position, setCursor)) return true;
     if (hScroll.onMouseMove(event.position, setCursor)) return true;
@@ -1309,7 +1302,7 @@ public class EditorComponent implements Focusable, MouseListener {
       return true;
     }
 
-    if (event.keyCode == KeyCode.ESC) return false;
+    if (KeyCode.isFKey(event.keyCode) || event.keyCode == KeyCode.ESC) return false;
     return event.key.length() > 0 && handleInsert(event.key);
   }
 
@@ -1401,7 +1394,7 @@ public class EditorComponent implements Focusable, MouseListener {
   }
 
   private boolean handleSpecialKeys(KeyEvent event) {
-    if (KeyCode.F1 <= event.keyCode && event.keyCode <= KeyCode.F12) return true;
+//    if (KeyCode.F1 <= event.keyCode && event.keyCode <= KeyCode.F12) return true;
     return switch (event.keyCode) {
       case KeyCode.INSERT, KeyCode.Pause, KeyCode.META,
           KeyCode.CapsLock, KeyCode.NumLock, KeyCode.ScrollLock,
@@ -1643,5 +1636,10 @@ public class EditorComponent implements Focusable, MouseListener {
     CodeElement codeElement = model.document.getCodeElement(startPos);
     if (codeElement != null) return codeElement.s;
     return "";
+  }
+
+  // remove later
+  public boolean hitTest(V2i point) {
+    return Rect.isInside(point, pos, size);
   }
 }
