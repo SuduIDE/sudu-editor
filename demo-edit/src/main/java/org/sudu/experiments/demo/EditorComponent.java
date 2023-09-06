@@ -61,7 +61,8 @@ public class EditorComponent implements Focusable, MouseListener {
   // layout
   int vLineXBase = 100;
   int vLineX;
-  int vLineW = 1;
+  int vLineW;
+  static final int vLineWDp = 1;
   int vLineLeftDelta;
 
   V2i vLineSize = new V2i(1, 0);
@@ -86,6 +87,7 @@ public class EditorComponent implements Focusable, MouseListener {
   String tabIndent = "  ";
 
   public boolean readonly = false;
+  boolean mirrored = false;
 
   private CodeElement definition = null;
   private final List<CodeElement> usages = new ArrayList<>();
@@ -102,6 +104,7 @@ public class EditorComponent implements Focusable, MouseListener {
     debugFlags[1] = this::toggleBlankLines;
     debugFlags[2] = this::toggleTails;
     debugFlags[3] = this::toggleXOffset;
+    debugFlags[4] = this::toggleMirrored;
 
     // d2d is very bold, contrast makes font heavier
     applyContrast = context.window.getHost() != Host.Direct2D;
@@ -111,11 +114,18 @@ public class EditorComponent implements Focusable, MouseListener {
     this.pos.set(pos);
     this.size.set(size);
 
-    vLineX = DprUtil.toPx(vLineXBase,  dpr);
+    internalLayout(pos, size, dpr);
+  }
+
+  private void internalLayout(V2i pos, V2i size, float dpr) {
+    vLineX = DprUtil.toPx(vLineXBase, dpr);
+    vLineW = DprUtil.toPx(vLineWDp, dpr);
     vLineLeftDelta = DprUtil.toPx(10, dpr);
 
-    int lineNumbersWidth = vLineX - vLineLeftDelta;
-    lineNumbers.setPos(this.pos, lineNumbersWidth, this.size.y, dpr);
+    if (mirrored) {
+      context.v2i1.set(pos.x + size.x - lineNumbersWidth(), pos.y);
+    } else context.v2i1.set(this.pos);
+    lineNumbers.setPos(context.v2i1, lineNumbersWidth(), size.y, dpr);
 
     if (1<0) DebugHelper.dumpFontsSize(g);
     caret.setWidth(DprUtil.toPx(Caret.defaultWidth, dpr));
@@ -170,6 +180,17 @@ public class EditorComponent implements Focusable, MouseListener {
   void toggleTails() {
     drawTails ^= true;
     Debug.consoleInfo("drawTails = " + drawTails);
+  }
+
+  void setMirrored(boolean b) {
+    mirrored = b;
+  }
+
+  void toggleMirrored() {
+    mirrored = !mirrored;
+    lineNumbers.dispose();
+    lineNumbers = new LineNumbersComponent();
+    internalLayout(pos, size, context.dpr);
   }
 
   void toggleContrast() {
@@ -311,7 +332,12 @@ public class EditorComponent implements Focusable, MouseListener {
   }
 
   int editorWidth() {
-    return size.x - vLineX;
+    int t = mirrored ? scrollBarWidth() + vLineLeftDelta : 0;
+    return size.x - vLineX - t;
+  }
+
+  int lineNumbersWidth() {
+    return mirrored ? vLineX : vLineX - vLineLeftDelta;
   }
 
   int editorHeight() {
@@ -346,6 +372,7 @@ public class EditorComponent implements Focusable, MouseListener {
   // temp vars
   private final V4f tRegion = new V4f();
 
+
   public void paint() {
 
     int cacheLines = Numbers.iDivRoundUp(size.y, lineHeight) + EditorConst.MIN_CACHE_LINES;
@@ -356,13 +383,13 @@ public class EditorComponent implements Focusable, MouseListener {
     g.enableBlend(false);
     g.enableScissor(pos, size);
 
-    drawVerticalLine();
     vScrollPos = Math.min(vScrollPos, maxVScrollPos());
     hScrollPos = Math.min(hScrollPos, maxHScrollPos());
 
     int caretVerticalOffset = (lineHeight - caret.height()) / 2;
     int caretX = caretPos - caret.width() / 2 - hScrollPos;
-    caret.setPosition(vLineX + caretX, caretVerticalOffset + caretLine * lineHeight - vScrollPos);
+    int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth() : vLineX;
+    caret.setPosition(dCaret + caretX, caretVerticalOffset + caretLine * lineHeight - vScrollPos);
 
     int docLen = model.document.length();
 
@@ -373,6 +400,8 @@ public class EditorComponent implements Focusable, MouseListener {
     lastLineRendered = lastLine;
 
     V2i sizeTmp = context.v2i1;
+      sizeTmp.set(editorWidth(), lineHeight);
+    int dx = mirrored ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth(): pos.x + vLineX;
 
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
       CodeLine nextLine = model.document.line(i);
@@ -384,7 +413,7 @@ public class EditorComponent implements Focusable, MouseListener {
       int yPosition = lineHeight * i - vScrollPos;
 
       line.draw(
-          pos.y + yPosition, pos.x +  vLineX, g, tRegion, sizeTmp,
+          pos.y + yPosition, dx, g, tRegion, sizeTmp,
           applyContrast ? EditorConst.CONTRAST : 0,
           editorWidth(), lineHeight, hScrollPos,
           colors, getSelLineSegment(i, lineContent),
@@ -396,7 +425,7 @@ public class EditorComponent implements Focusable, MouseListener {
       int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection.isTailSelected(i);
       Color tailColor = isTailSelected ? colors.editor.selectionBg : colors.editor.lineTailContent;
-      line.drawTail(g, pos.x + vLineX, pos.y + yPosition, lineHeight,
+      line.drawTail(g, dx, pos.y + yPosition, lineHeight,
           sizeTmp, hScrollPos, editorWidth(), tailColor);
     }
 
@@ -411,6 +440,7 @@ public class EditorComponent implements Focusable, MouseListener {
       drawDocumentBottom(yPosition);
     }
 
+    drawVerticalLine();
     drawLineNumbers(firstLine, lastLine);
 
     layoutScrollbar();
@@ -655,20 +685,23 @@ public class EditorComponent implements Focusable, MouseListener {
   private void drawDocumentBottom(int yPosition) {
     if (yPosition < size.y) {
       V2i sizeTmp = context.v2i1;
-      sizeTmp.y = size.y - yPosition;
-      sizeTmp.x = editorWidth();
 
-      g.drawRect(pos.x + vLineX, pos.y + yPosition, sizeTmp, colors.editor.bg);
+      sizeTmp.y = size.y - yPosition;
+      sizeTmp.x = mirrored ? editorWidth() + vLineW : editorWidth();
+      int x = mirrored ? pos.x + vLineLeftDelta + scrollBarWidth() : pos.x + vLineX;
+      g.drawRect(x, pos.y + yPosition, sizeTmp, colors.editor.bg);
     }
   }
 
   private void layoutScrollbar() {
+    int x = mirrored ? pos.x + scrollBarWidth() : pos.x + size.x;
     vScroll.layoutVertical(vScrollPos,
         pos.y,
         editorHeight(), editorVirtualHeight(),
-        pos.x + size.x, scrollBarWidth());
+        x, scrollBarWidth());
+    x = mirrored ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth() : pos.x + vLineX;
     hScroll.layoutHorizontal(hScrollPos,
-        pos.x + vLineX,
+        x,
         editorWidth(), fullWidth,
         pos.y + editorHeight(), scrollBarWidth());
   }
@@ -688,9 +721,11 @@ public class EditorComponent implements Focusable, MouseListener {
   private void drawVerticalLine() {
     vLineSize.y = size.y;
     vLineSize.x = vLineW;
-    g.drawRect(pos.x + vLineX - vLineLeftDelta, pos.y, vLineSize, colors.editor.numbersVLine);
-    vLineSize.x = vLineLeftDelta - vLineW;
-    g.drawRect(pos.x + vLineX - vLineLeftDelta + vLineW, pos.y, vLineSize, colors.editor.bg);
+    int dx1 = mirrored ? size.x - lineNumbersWidth() - vLineW: vLineX - vLineLeftDelta;
+    g.drawRect(pos.x + dx1, pos.y, vLineSize, colors.editor.numbersVLine);
+    vLineSize.x = mirrored ? vLineLeftDelta + scrollBarWidth() : vLineLeftDelta - vLineW;
+    int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
+    g.drawRect(pos.x + dx2, pos.y, vLineSize, colors.editor.bg);
   }
 
   int clampScrollPos(int pos, int maxScrollPos) {
@@ -1026,7 +1061,8 @@ public class EditorComponent implements Focusable, MouseListener {
     int localY = eventPosition.y - pos.y;
 
     int line = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, model.document.length() - 1);
-    int documentXPosition = Math.max(0, localX - vLineX + hScrollPos);
+    int offset = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth() : vLineX;
+    int documentXPosition = Math.max(0, localX - offset + hScrollPos);
     int charPos = model.document.line(line).computeCharPos(documentXPosition, g.mCanvas, fonts);
     return new Pos(line, charPos);
   }
@@ -1351,8 +1387,9 @@ public class EditorComponent implements Focusable, MouseListener {
   }
 
   private boolean isInsideText(V2i position) {
+    int x = mirrored ? pos.x + vLineLeftDelta + vLineW + scrollBarWidth() : pos.x + vLineX;
     return Rect.isInside(position,
-        pos.x + vLineX, pos.y,
+        x, pos.y,
         editorWidth(), editorHeight());
   }
 
