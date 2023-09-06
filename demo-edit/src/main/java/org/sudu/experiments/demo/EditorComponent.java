@@ -87,7 +87,7 @@ public class EditorComponent implements Focusable, MouseListener {
   String tabIndent = "  ";
 
   public boolean readonly = false;
-  boolean mirrored = true;
+  boolean mirrored = false;
 
   private CodeElement definition = null;
   private final List<CodeElement> usages = new ArrayList<>();
