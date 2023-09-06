@@ -720,15 +720,11 @@ public class EditorComponent implements Focusable, MouseListener {
   private void drawVerticalLine() {
     vLineSize.y = size.y;
     vLineSize.x = vLineW;
-    int dx = mirrored ? 0 : vLineX - vLineLeftDelta;
-    g.drawRect(pos.x + dx, pos.y, vLineSize, colors.editor.numbersVLine);
-    vLineSize.x = mirrored ? vLineLeftDelta - vLineW + scrollBarWidth() : vLineLeftDelta - vLineW;
-    g.drawRect(pos.x + dx + vLineW, pos.y, vLineSize, colors.editor.bg);
-    if (mirrored) {
-      vLineSize.x = vLineW;
-      g.drawRect(pos.x + size.x - lineNumbersWidth() - vLineW,
-              pos.y, vLineSize, colors.editor.numbersVLine);
-    }
+    int dx1 = mirrored ? size.x - lineNumbersWidth() - vLineW: vLineX - vLineLeftDelta;
+    g.drawRect(pos.x + dx1, pos.y, vLineSize, colors.editor.numbersVLine);
+    vLineSize.x = mirrored ? vLineLeftDelta + scrollBarWidth() : vLineLeftDelta - vLineW;
+    int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
+    g.drawRect(pos.x + dx2, pos.y, vLineSize, colors.editor.bg);
   }
 
   int clampScrollPos(int pos, int maxScrollPos) {
