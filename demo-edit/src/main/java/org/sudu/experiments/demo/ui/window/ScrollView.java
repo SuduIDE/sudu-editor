@@ -24,12 +24,16 @@ public class ScrollView extends View {
   private Color scrollBarLineToSet, scrollBarBgToSet;
 
   public ScrollView(UiContext uiContext) {
-    this(new ScrollContent(), uiContext);
+    this(new ScrollContent(), uiContext.windowCursor);
   }
 
   public ScrollView(ScrollContent content, UiContext uiContext) {
+    this(content, uiContext.windowCursor);
+  }
+
+  public ScrollView(ScrollContent content, SetCursor setCursor) {
     this.content = content;
-    windowCursor = uiContext.windowCursor;
+    windowCursor = setCursor;
   }
 
   @Override

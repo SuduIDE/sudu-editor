@@ -65,9 +65,10 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
   }
 
   @Override
-  public boolean onMouseDown(MouseEvent event, int button) {
-    return windowManager.onMouseDown(event, button)
-        || popupMenu.onMouseDown(event, button);
+  public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
+    var r = popupMenu.onMouseDown(event, button);
+    if (r != null) return r;
+    return windowManager.onMouseDown(event, button);
   }
 
   @Override

@@ -223,7 +223,7 @@ public class DemoScene1 extends Scene {
     }
 
     @Override
-    public boolean onMouseDown(MouseEvent event, int button) {
+    public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
       System.out.println("mouseDown b=" + button);
       if (button == MouseListener.MOUSE_BUTTON_LEFT) {
         V2i p = event.position;
@@ -231,7 +231,7 @@ public class DemoScene1 extends Scene {
         caret.setPosition(p.x, p.y);
         caret.startDelay(api.window.timeNow());
       }
-      return true;
+      return Static.emptyConsumer;
     }
 
     @Override

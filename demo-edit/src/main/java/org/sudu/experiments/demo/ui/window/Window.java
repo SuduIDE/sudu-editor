@@ -152,10 +152,10 @@ public class Window {
       }
     }
     var handler = title.hitTest(event.position)
-        ? View.Static.emptyConsumer : content.onMouseDown(event, button);
+        ? MouseListener.Static.emptyConsumer : content.onMouseDown(event, button);
     if (content == null) return null;
     return handler != null ? handler : content.hitTest(event.position)
-        ? View.Static.emptyConsumer : null;
+        ? MouseListener.Static.emptyConsumer : null;
   }
 
   boolean onMouseUp(MouseEvent event, int button) {

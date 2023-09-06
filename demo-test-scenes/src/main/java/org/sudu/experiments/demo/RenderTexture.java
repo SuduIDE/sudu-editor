@@ -7,6 +7,8 @@ import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 
+import java.util.function.Consumer;
+
 public class RenderTexture extends Scene0 {
   final TextRect demoRect = new TextRect(0, 0, 300, 300);
   final DemoRect mouse = new DemoRect(0, 0, 3, 3);
@@ -97,12 +99,12 @@ public class RenderTexture extends Scene0 {
     }
 
     @Override
-    public boolean onMouseDown(MouseEvent event, int button) {
+    public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
       if (button == MouseListener.MOUSE_BUTTON_LEFT) {
         V2i p = event.position;
         drag = demoRect.isInside(p) ? p : null;
       }
-      return true;
+      return Static.emptyConsumer;
     }
   }
 

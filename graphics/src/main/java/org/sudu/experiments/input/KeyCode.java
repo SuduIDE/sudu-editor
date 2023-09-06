@@ -51,4 +51,8 @@ public interface KeyCode {
 
   int ENTER = 13;
   int ESC = 27;
+
+  static boolean isFKey(int keyCode) {
+    return F1 <= keyCode && keyCode <= F12;
+  }
 }

@@ -86,7 +86,4 @@ public class View implements Disposable {
     return false;
   }
 
-  public interface Static {
-    Consumer<MouseEvent> emptyConsumer = e -> {};
-  }
 }
