@@ -6,7 +6,7 @@ import org.sudu.experiments.math.V2i;
 
 public class DemoEdit1 extends DemoEdit0 {
 
-  static final boolean fullscreen = false;
+  static final boolean fullscreen = true;
 
   public DemoEdit1(SceneApi api) {
     super(api);
