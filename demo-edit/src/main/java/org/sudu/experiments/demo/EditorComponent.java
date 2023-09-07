@@ -1277,7 +1277,7 @@ public class EditorComponent implements Focusable, MouseListener {
   }
 
   public boolean onKeyPress(KeyEvent event) {
-//    Debug.consoleInfo("EditorComponent::onKey: "+ event.desc());
+//    Debug.consoleInfo("EditorComponent::onKey: "+ event.toString());
 
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
 
@@ -1303,7 +1303,7 @@ public class EditorComponent implements Focusable, MouseListener {
     }
 
     if (KeyCode.isFKey(event.keyCode) || event.keyCode == KeyCode.ESC) return false;
-
+    if (event.ctrl || event.alt || event.meta) return false;
     return event.key.length() > 0 && handleInsert(event.key);
   }
 
