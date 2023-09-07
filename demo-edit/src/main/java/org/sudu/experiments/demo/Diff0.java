@@ -12,8 +12,12 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
-public class Diff0 extends Scene1
-    implements MouseListener, EditorUi.ThemeApi, InputListeners.ScrollHandler
+public class Diff0 extends Scene1 implements
+    MouseListener,
+    EditorUi.ThemeApi,
+    InputListeners.ScrollHandler,
+    InputListeners.CopyHandler,
+    InputListeners.PasteHandler
 {
 
   final EditorComponent editor1;
@@ -45,11 +49,25 @@ public class Diff0 extends Scene1
     api.input.onKeyPress.add(this::onKeyPress);
     api.input.onKeyPress.add(new CtrlO(api, this::openFile));
 
-//    api.input.onCopy.add(editor::onCopy);
-//    api.input.onPaste.add(() -> editor::handleInsert);
+    api.input.onCopy.add(this);
+    api.input.onPaste.add(this);
     api.input.onContextMenu.add(this::onContextMenu);
 
     toggleDark();
+  }
+
+  public boolean onCopy(Consumer<String> consumer, boolean b) {
+    if (uiContext.isFocused(editor1)) return editor1.onCopy(consumer, b);
+    if (uiContext.isFocused(editor2)) return editor2.onCopy(consumer, b);
+    return false;
+  }
+
+  // paste handler
+  @Override
+  public Consumer<String> get() {
+    if (uiContext.isFocused(editor1)) return editor1::handleInsert;
+    if (uiContext.isFocused(editor2)) return editor2::handleInsert;
+    return null;
   }
 
   private void leftScrollChanged(int ignored) {
