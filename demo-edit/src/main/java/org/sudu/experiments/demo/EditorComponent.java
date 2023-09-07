@@ -1303,6 +1303,7 @@ public class EditorComponent implements Focusable, MouseListener {
     }
 
     if (KeyCode.isFKey(event.keyCode) || event.keyCode == KeyCode.ESC) return false;
+
     return event.key.length() > 0 && handleInsert(event.key);
   }
 
@@ -1451,7 +1452,7 @@ public class EditorComponent implements Focusable, MouseListener {
   boolean navigateBack() {
     saveToNavStack();
     NavigationContext prev = navStack.getPrevCtx();
-    if (prev == null) return false;
+    if (prev == null) return true;
     setCaretLinePos(prev.getLine(), prev.getCharPos(), false);
     selection = new Selection(prev.getSelection());
     return true;
@@ -1459,7 +1460,7 @@ public class EditorComponent implements Focusable, MouseListener {
 
   boolean navigateForward() {
     NavigationContext curr = navStack.getNextCtx();
-    if (curr == null) return false;
+    if (curr == null) return true;
     setCaretLinePos(curr.getLine(), curr.getCharPos(), false);
     selection = new Selection(curr.getSelection());
     return true;
