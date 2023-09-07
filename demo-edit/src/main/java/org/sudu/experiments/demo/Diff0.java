@@ -10,6 +10,7 @@ import org.sudu.experiments.math.V2i;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class Diff0 extends Scene1
     implements MouseListener, EditorUi.ThemeApi, InputListeners.ScrollHandler
@@ -25,6 +26,13 @@ public class Diff0 extends Scene1
     ui = new EditorUi(uiContext);
     editor1 = new EditorComponent(uiContext, ui);
     editor2 = new EditorComponent(uiContext, ui);
+    editor1.setMirrored(true);
+
+    IntConsumer leftScrollChanged = this::leftScrollChanged;
+    IntConsumer rightScrollChanged = this::rightScrollChanged;
+    editor1.setScrollListeners(leftScrollChanged, leftScrollChanged);
+    editor2.setScrollListeners(rightScrollChanged, rightScrollChanged);
+
     uiContext.initFocus(editor1);
 
     api.input.onMouse.add(ui);
@@ -42,6 +50,16 @@ public class Diff0 extends Scene1
     api.input.onContextMenu.add(this::onContextMenu);
 
     toggleDark();
+  }
+
+  private void leftScrollChanged(int ignored) {
+    editor2.setVScrollPosSilent(editor1.vScrollPos);
+    editor2.setHScrollPosSilent(editor1.hScrollPos);
+  }
+
+  private void rightScrollChanged(int ignored) {
+    editor1.setVScrollPosSilent(editor2.vScrollPos);
+    editor1.setHScrollPosSilent(editor2.hScrollPos);
   }
 
   private void openFile(FileHandle handle) {

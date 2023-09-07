@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class EditorComponent implements Focusable, MouseListener {
   final V2i pos = new V2i();
@@ -94,6 +95,7 @@ public class EditorComponent implements Focusable, MouseListener {
   private ExternalHighlights externalHighlights;
 
   Consumer<String> onError = System.err::println;
+  IntConsumer hScrollListener, vScrollListener;
 
   public EditorComponent(UiContext context, EditorUi ui) {
     this.context = context;
@@ -115,6 +117,11 @@ public class EditorComponent implements Focusable, MouseListener {
     this.size.set(size);
 
     internalLayout(pos, size, dpr);
+  }
+
+  void setScrollListeners(IntConsumer hListener, IntConsumer vListener) {
+    hScrollListener = hListener;
+    vScrollListener = vListener;
   }
 
   private void internalLayout(V2i pos, V2i size, float dpr) {
@@ -352,21 +359,40 @@ public class EditorComponent implements Focusable, MouseListener {
       iterativeParsing();
     }
 
-    int oldVScrollPos = vScrollPos;
-    vScrollPos = clampScrollPos(vScrollPos + scrollDown  -  scrollUp,
+    int newVScrollPos = clampScrollPos(vScrollPos + scrollDown  -  scrollUp,
         maxVScrollPos());
-    boolean scrollMoving = oldVScrollPos != vScrollPos;
-
-//    boolean replaceCurrentLine = debugFlags[2];
-//    if (replaceCurrentLine) {
-//      document[caretLine] = TestText.generateLine();
-//    }
+    boolean scrollMoving = vScrollPos != newVScrollPos;
+    if (scrollMoving) setVScrollPos(newVScrollPos);
 
     // repaint only if caret blinking
     // or animation in progress
     return caret.update(timestamp) || scrollMoving
         // || replaceCurrentLine
         || forceMaxFPS;
+  }
+
+  void setVScrollPos(int vPos) {
+    int newVPos = clampScrollPos(vPos, maxVScrollPos());
+    if (newVPos != vScrollPos) {
+      vScrollPos = newVPos;
+      if (vScrollListener != null) vScrollListener.accept(newVPos);
+    }
+  }
+
+  void setVScrollPosSilent(int vPos) {
+    vScrollPos = clampScrollPos(vPos, maxVScrollPos());
+  }
+
+  void setHScrollPos(int hPos) {
+    int newHPos = clampScrollPos(hPos, maxHScrollPos());
+    if (newHPos != hScrollPos) {
+      hScrollPos = newHPos;
+      if (hScrollListener != null) hScrollListener.accept(newHPos);
+    }
+  }
+
+  void setHScrollPosSilent(int hPos) {
+    hScrollPos = clampScrollPos(hPos, maxHScrollPos());
   }
 
   // temp vars
@@ -383,8 +409,8 @@ public class EditorComponent implements Focusable, MouseListener {
     g.enableBlend(false);
     g.enableScissor(pos, size);
 
-    vScrollPos = Math.min(vScrollPos, maxVScrollPos());
-    hScrollPos = Math.min(hScrollPos, maxHScrollPos());
+//    vScrollPos = Math.min(vScrollPos, maxVScrollPos());
+//    hScrollPos = Math.min(hScrollPos, maxHScrollPos());
 
     int caretVerticalOffset = (lineHeight - caret.height()) / 2;
     int caretX = caretPos - caret.width() / 2 - hScrollPos;
@@ -728,7 +754,7 @@ public class EditorComponent implements Focusable, MouseListener {
     g.drawRect(pos.x + dx2, pos.y, vLineSize, colors.editor.bg);
   }
 
-  int clampScrollPos(int pos, int maxScrollPos) {
+  static int clampScrollPos(int pos, int maxScrollPos) {
     return Math.min(Math.max(0, pos), maxScrollPos);
   }
 
@@ -849,7 +875,7 @@ public class EditorComponent implements Focusable, MouseListener {
     if (shiftSelection(shiftPressed)) return true;
     if (ctrl && alt) return true;
     if (ctrl) {  //  editorVScrollPos moves, caretLine does not change
-      vScrollPos = clampScrollPos(vScrollPos + amount * lineHeight * 12 / 10, maxVScrollPos());
+      setVScrollPos(vScrollPos + amount * lineHeight * 12 / 10);
     } else if (alt) {
       // todo: smart move to prev/next method start
     } else {
@@ -934,9 +960,9 @@ public class EditorComponent implements Focusable, MouseListener {
     int caretVisibleY1 = caretLine * lineHeight + lineHeight;
 
     if (caretVisibleY0 < editVisibleYMin + lineHeight) {
-      vScrollPos = clampScrollPos(caretVisibleY0 - lineHeight, maxVScrollPos());
+      setVScrollPos(caretVisibleY0 - lineHeight);
     } else if (caretVisibleY1 > editVisibleYMax - lineHeight) {
-      vScrollPos = clampScrollPos(caretVisibleY1 - editorHeight() + lineHeight, maxVScrollPos());
+      setVScrollPos(caretVisibleY1 - editorHeight() + lineHeight);
     }
   }
 
@@ -949,9 +975,9 @@ public class EditorComponent implements Focusable, MouseListener {
     int caretVisibleX1 = caretPos + xOffset;
 
     if (caretVisibleX0 < editVisibleXMin + xOffset) {
-      hScrollPos = clampScrollPos(caretVisibleX0 - xOffset, maxHScrollPos());
+      setHScrollPos(caretVisibleX0 - xOffset);
     } else if (caretVisibleX1 > editVisibleXMax - xOffset) {
-      hScrollPos = clampScrollPos(caretVisibleX1 - editorWidth() + xOffset, maxHScrollPos());
+      setHScrollPos(caretVisibleX1 - editorWidth() + xOffset);
     }
   }
 
@@ -1199,18 +1225,18 @@ public class EditorComponent implements Focusable, MouseListener {
   // InputListener methods
 
   Consumer<ScrollBar.Event> vScrollHandler =
-      event -> vScrollPos = event.getPosition(maxVScrollPos());
+      event -> setVScrollPos(event.getPosition(maxVScrollPos()));
 
   Consumer<ScrollBar.Event> hScrollHandler =
-      event -> hScrollPos = event.getPosition(maxHScrollPos());
+      event -> setHScrollPos(event.getPosition(maxHScrollPos()));
 
 
   public boolean onScroll(float dX, float dY) {
     // chrome sends 150px, firefox send "6 lines"
     int changeY = Numbers.iRnd(lineHeight * 4 * dY / 150);
     int changeX = Numbers.iRnd(dX);
-    vScrollPos = clampScrollPos(vScrollPos + changeY, maxVScrollPos());
-    hScrollPos = clampScrollPos(hScrollPos + changeX, maxHScrollPos());
+    if (changeY != 0) setVScrollPos(vScrollPos + changeY);
+    if (changeX != 0) setHScrollPos(hScrollPos + changeX);
     return true;
   }
 
@@ -1594,7 +1620,7 @@ public class EditorComponent implements Focusable, MouseListener {
   public void revealLineInCenter(int lineNumber) {
     if (lineNumber <= 0) return;
     int computed = lineHeight * (lineNumber - (editorHeight() / (lineHeight * 2)) - 1);
-    vScrollPos = clampScrollPos(computed, maxVScrollPos());
+    setVScrollPos(computed);
   }
 
   public void revealLine(int lineNumber) {
@@ -1609,15 +1635,13 @@ public class EditorComponent implements Focusable, MouseListener {
   }
 
   private void scrollDownToLine(int lineNumber) {
-    if (lineNumber > model.document.length()) {
-      vScrollPos = maxVScrollPos();
-    } else {
-      vScrollPos = clampScrollPos((lineNumber + 1) * lineHeight - editorHeight(), maxVScrollPos());
-    }
+    setVScrollPos(lineNumber > model.document.length()
+        ? maxVScrollPos()
+        : (lineNumber + 1) * lineHeight - editorHeight());
   }
 
   private void scrollUpToLine(int lineNumber) {
-    vScrollPos = clampScrollPos((lineNumber - 2) * lineHeight, maxVScrollPos());
+    setVScrollPos((lineNumber - 2) * lineHeight);
   }
 
   static String parseJobName(String language) {
