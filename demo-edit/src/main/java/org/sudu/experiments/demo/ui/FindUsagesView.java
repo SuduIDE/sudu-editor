@@ -383,9 +383,9 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
     }
     if (hoverItemId <= firstLineRendered) {
-      scrollView.setScrollPos(scrollPos.x, hoverItemId * getLineHeight() + (hoverItemId + 1) * spacing);
+      scrollView.setScrollPos(scrollPos.x, hoverItemId * getLineHeight() + hoverItemId * spacing);
     } else if (hoverItemId >= lastLineRendered) {
-      scrollView.setScrollPos(scrollPos.x, (hoverItemId + 1) * getLineHeight() + (hoverItemId + 2) * spacing - size.y);
+      scrollView.setScrollPos(scrollPos.x, (hoverItemId + 1) * getLineHeight() + (hoverItemId + 1) * spacing - size.y);
     }
     return false;
   }
