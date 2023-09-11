@@ -349,16 +349,49 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   @Override
   public boolean onKeyPress(KeyEvent event) {
     switch (event.keyCode) {
-      case KeyCode.ESC -> onClose.run();
-      case KeyCode.ENTER -> runItem(items[hoverItemId]);
+      case KeyCode.ESC -> {
+        onClose.run();
+        return false;
+      }
+      case KeyCode.ENTER -> {
+        runItem(items[hoverItemId]);
+        return false;
+      }
+      case KeyCode.ARROW_DOWN -> {
+        hoverItemId = (hoverItemId + 1) % items.length;
+      }
+      case KeyCode.ARROW_UP -> {
+        hoverItemId = (hoverItemId + items.length - 1) % items.length;
+      }
+      case KeyCode.ARROW_LEFT, KeyCode.HOME -> {
+        hoverItemId = 0;
+      }
+      case KeyCode.ARROW_RIGHT, KeyCode.END -> {
+        hoverItemId = items.length - 1;
+      }
+      // Page up and down should show the item in the middle of the screen
+      case KeyCode.PAGE_UP -> {
+        hoverItemId = firstLineRendered;
+        scrollView.setScrollPos(scrollPos.x, scrollPos.y - size.y / 2);
+        return false;
+      }
+      case KeyCode.PAGE_DOWN -> {
+        hoverItemId = lastLineRendered;
+        scrollView.setScrollPos(scrollPos.x, scrollPos.y + size.y / 2);
+        return false;
+      }
 
-      case KeyCode.ARROW_DOWN ->
-          hoverItemId = (hoverItemId + 1) % items.length;
-      case KeyCode.ARROW_UP ->
-          hoverItemId = (hoverItemId + items.length - 1) % items.length;
-
-      case KeyCode.ARROW_LEFT -> hoverItemId = 0;
-      case KeyCode.ARROW_RIGHT -> hoverItemId = items.length - 1;
+    }
+    if (hoverItemId <= firstLineRendered) {
+      scrollView.setScrollPos(
+          scrollPos.x,
+          hoverItemId * getLineHeight() + hoverItemId * spacing
+      );
+    } else if (hoverItemId >= lastLineRendered) {
+      scrollView.setScrollPos(
+          scrollPos.x,
+          (hoverItemId + 1) * getLineHeight() + (hoverItemId + 2) * spacing - size.y
+      );
     }
     return false;
   }

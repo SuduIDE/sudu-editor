@@ -34,15 +34,18 @@ public class ScrollView extends View {
   public ScrollView(ScrollContent content, SetCursor setCursor) {
     this.content = content;
     windowCursor = setCursor;
+    content.setScrollView(this);
   }
 
   @Override
   public void dispose() {
+    content.setScrollView(null);
     content = Disposable.assign(content, null);
   }
 
   public void setContent(ScrollContent content) {
     this.content = Disposable.assign(this.content, content);
+    content.setScrollView(this);
     this.content.setPosition(pos, size, dpr);
     if (dpr != 0) {
       updateVirtualSize();
@@ -70,8 +73,8 @@ public class ScrollView extends View {
     this.scrollWidth = scrollWidth;
   }
 
-  protected void setScrollPos(V2i newScrollPos) {
-    content.scrollPos.set(newScrollPos);
+  public void setScrollPos(int x, int y) {
+    content.setScrollPos(x, y);
     if (needHScroll()) layoutHScroll();
     if (needVScroll()) layoutVScroll();
   }
