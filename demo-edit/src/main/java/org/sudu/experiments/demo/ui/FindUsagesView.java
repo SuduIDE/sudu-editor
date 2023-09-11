@@ -349,46 +349,43 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   @Override
   public boolean onKeyPress(KeyEvent event) {
     switch (event.keyCode) {
-      case KeyCode.ESC -> onClose.run();
-      case KeyCode.ENTER -> runItem(items[hoverItemId]);
-
+      case KeyCode.ESC -> {
+        onClose.run();
+        return false;
+      }
+      case KeyCode.ENTER -> {
+        runItem(items[hoverItemId]);
+        return false;
+      }
       case KeyCode.ARROW_DOWN -> {
-        if (hoverItemId == lastLineRendered) {
-          scrollView.setScrollPos(scrollPos.x, scrollPos.y + (virtualSize.y / items.length) * 2);
-        }
-        if (hoverItemId == lastLineRendered - 1) {
-          scrollView.setScrollPos(scrollPos.x, scrollPos.y + virtualSize.y / items.length);
-        }
         hoverItemId = (hoverItemId + 1) % items.length;
-        if (hoverItemId == 0) {
-          scrollView.setScrollPos(scrollPos.x, 0);
-        }
       }
       case KeyCode.ARROW_UP -> {
-        if (hoverItemId == firstLineRendered) {
-          scrollView.setScrollPos(scrollPos.x, scrollPos.y - virtualSize.y / items.length);
-        }
         hoverItemId = (hoverItemId + items.length - 1) % items.length;
-        if (hoverItemId == items.length - 1) {
-          scrollView.setScrollPos(scrollPos.x, virtualSize.y - size.y);
-        }
       }
       case KeyCode.ARROW_LEFT, KeyCode.HOME -> {
         hoverItemId = 0;
-        scrollView.setScrollPos(scrollPos.x, 0);
       }
       case KeyCode.ARROW_RIGHT, KeyCode.END -> {
         hoverItemId = items.length - 1;
-        scrollView.setScrollPos(scrollPos.x, virtualSize.y - size.y);
+      }
+      // Page up and down should show the item in the middle of the screen
+      case KeyCode.PAGE_UP -> {
+        hoverItemId = firstLineRendered;
+        scrollView.setScrollPos(scrollPos.x, scrollPos.y - size.y / 2);
+        return false;
       }
       case KeyCode.PAGE_DOWN -> {
-        scrollView.setScrollPos(scrollPos.x, scrollPos.y + size.y - getLineHeight());
         hoverItemId = lastLineRendered;
+        scrollView.setScrollPos(scrollPos.x, scrollPos.y + size.y / 2);
+        return false;
       }
-      case KeyCode.PAGE_UP -> {
-        scrollView.setScrollPos(scrollPos.x, scrollPos.y - size.y);
-        hoverItemId = firstLineRendered;
-      }
+
+    }
+    if (hoverItemId <= firstLineRendered) {
+      scrollView.setScrollPos(scrollPos.x, hoverItemId * getLineHeight() + (hoverItemId + 1) * spacing);
+    } else if (hoverItemId >= lastLineRendered) {
+      scrollView.setScrollPos(scrollPos.x, (hoverItemId + 1) * getLineHeight() + (hoverItemId + 2) * spacing - size.y);
     }
     return false;
   }
