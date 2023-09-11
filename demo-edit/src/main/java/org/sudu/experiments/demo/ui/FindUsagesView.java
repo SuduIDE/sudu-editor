@@ -352,13 +352,43 @@ public class FindUsagesView extends ScrollContent implements Focusable {
       case KeyCode.ESC -> onClose.run();
       case KeyCode.ENTER -> runItem(items[hoverItemId]);
 
-      case KeyCode.ARROW_DOWN ->
-          hoverItemId = (hoverItemId + 1) % items.length;
-      case KeyCode.ARROW_UP ->
-          hoverItemId = (hoverItemId + items.length - 1) % items.length;
-
-      case KeyCode.ARROW_LEFT -> hoverItemId = 0;
-      case KeyCode.ARROW_RIGHT -> hoverItemId = items.length - 1;
+      case KeyCode.ARROW_DOWN -> {
+        if (hoverItemId == lastLineRendered) {
+          scrollView.setScrollPos(scrollPos.x, scrollPos.y + (virtualSize.y / items.length) * 2);
+        }
+        if (hoverItemId == lastLineRendered - 1) {
+          scrollView.setScrollPos(scrollPos.x, scrollPos.y + virtualSize.y / items.length);
+        }
+        hoverItemId = (hoverItemId + 1) % items.length;
+        if (hoverItemId == 0) {
+          scrollView.setScrollPos(scrollPos.x, 0);
+        }
+      }
+      case KeyCode.ARROW_UP -> {
+        if (hoverItemId == firstLineRendered) {
+          scrollView.setScrollPos(scrollPos.x, scrollPos.y - virtualSize.y / items.length);
+        }
+        hoverItemId = (hoverItemId + items.length - 1) % items.length;
+        if (hoverItemId == items.length - 1) {
+          scrollView.setScrollPos(scrollPos.x, virtualSize.y - size.y);
+        }
+      }
+      case KeyCode.ARROW_LEFT, KeyCode.HOME -> {
+        hoverItemId = 0;
+        scrollView.setScrollPos(scrollPos.x, 0);
+      }
+      case KeyCode.ARROW_RIGHT, KeyCode.END -> {
+        hoverItemId = items.length - 1;
+        scrollView.setScrollPos(scrollPos.x, virtualSize.y - size.y);
+      }
+      case KeyCode.PAGE_DOWN -> {
+        scrollView.setScrollPos(scrollPos.x, scrollPos.y + size.y - getLineHeight());
+        hoverItemId = lastLineRendered;
+      }
+      case KeyCode.PAGE_UP -> {
+        scrollView.setScrollPos(scrollPos.x, scrollPos.y - size.y);
+        hoverItemId = firstLineRendered;
+      }
     }
     return false;
   }

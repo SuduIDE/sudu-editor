@@ -6,6 +6,11 @@ public class ScrollContent extends View {
 
   public final V2i virtualSize = new V2i();
   public final V2i scrollPos = new V2i();
+  protected ScrollView scrollView;
+
+  public void setScrollView(ScrollView scrollView) {
+    this.scrollView = scrollView;
+  }
 
   protected void updateVirtualSize() {
     virtualSize.set(
@@ -23,6 +28,11 @@ public class ScrollContent extends View {
   }
 
   public void setScrollPosY(int y) {
+    scrollPos.y = limitScrollY(y);
+  }
+
+  public void setScrollPos(int x, int y) {
+    scrollPos.x = limitScrollX(x);
     scrollPos.y = limitScrollY(y);
   }
 
