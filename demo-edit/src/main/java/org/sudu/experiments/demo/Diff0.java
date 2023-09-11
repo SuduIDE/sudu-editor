@@ -15,6 +15,7 @@ import java.util.function.IntConsumer;
 public class Diff0 extends Scene1 implements
     MouseListener,
     EditorUi.ThemeApi,
+    EditorUi.FontApi,
     InputListeners.ScrollHandler,
     InputListeners.CopyHandler,
     InputListeners.PasteHandler
@@ -71,13 +72,22 @@ public class Diff0 extends Scene1 implements
   }
 
   private void leftScrollChanged(int ignored) {
-    editor2.setVScrollPosSilent(editor1.vScrollPos);
-    editor2.setHScrollPosSilent(editor1.hScrollPos);
+    sync(editor1, editor2);
   }
 
   private void rightScrollChanged(int ignored) {
-    editor1.setVScrollPosSilent(editor2.vScrollPos);
-    editor1.setHScrollPosSilent(editor2.hScrollPos);
+    sync(editor2, editor1);
+  }
+
+  private void sync(EditorComponent from, EditorComponent to) {
+    int delta = 10 * from.lineHeight;
+
+    if (Math.abs(from.vScrollPos - to.vScrollPos) > delta) {
+      to.setVScrollPosSilent(Math.max(from.vScrollPos - delta,
+          Math.min(to.vScrollPos, from.vScrollPos + delta)));
+    }
+
+    to.setHScrollPosSilent(from.hScrollPos);
   }
 
   private void openFile(FileHandle handle) {
@@ -114,6 +124,24 @@ public class Diff0 extends Scene1 implements
   }
 
   protected String[] menuFonts() { return Fonts.editorFonts(false); }
+
+  @Override
+  public void increaseFont() {
+    editor1.increaseFont();
+    editor2.increaseFont();
+  }
+
+  @Override
+  public void decreaseFont() {
+    editor1.decreaseFont();
+    editor2.decreaseFont();
+  }
+
+  @Override
+  public void changeFont(String f) {
+    editor1.changeFont(f);
+    editor2.changeFont(f);
+  }
 
   @Override
   public void onResize(V2i newSize, float newDpr) {
@@ -158,10 +186,10 @@ public class Diff0 extends Scene1 implements
 
   boolean onContextMenu(MouseEvent event) {
     if (uiContext.isFocused(editor1)) {
-      ui.showContextMenu(event, editor1, Diff0.this, Diff0.this::menuFonts);
+      ui.showContextMenu(event, editor1, this, this, this::menuFonts);
     }
     if (uiContext.isFocused(editor2)) {
-      ui.showContextMenu(event, editor2, Diff0.this, Diff0.this::menuFonts);
+      ui.showContextMenu(event, editor2, this, this, this::menuFonts);
     }
     return true;
   }

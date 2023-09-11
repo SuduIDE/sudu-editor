@@ -159,12 +159,18 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
     );
   }
 
-  public void showContextMenu(MouseEvent event, EditorComponent editor, ThemeApi themeApi, Supplier<String[]> fonts) {
+  public void showContextMenu(
+      MouseEvent event,
+      EditorComponent editor,
+      ThemeApi themeApi,
+      FontApi fontApi,
+      Supplier<String[]> fonts
+  ) {
     if (!popupMenu.isVisible()) {
       popupMenu.display(event.position,
           new PopupMenuBuilder(
               editor,
-              fonts,
+              fonts, fontApi,
               themeApi).build(event.position),
           setEditFocus(editor));
     }
@@ -173,6 +179,12 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
   @Override
   public boolean onScroll(MouseEvent event, float dX, float dY) {
     return windowManager.onScroll(event, dX, dY);
+  }
+
+  public interface FontApi {
+    void increaseFont();
+    void decreaseFont();
+    void changeFont(String f);
   }
 
   public interface ThemeApi {
@@ -194,14 +206,18 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
     final EditorComponent editor;
     final Supplier<String[]> fonts;
+    final FontApi fontApi;
     final ThemeApi themeApi;
 
     PopupMenuBuilder(
         EditorComponent editor,
         Supplier<String[]> fonts,
-        ThemeApi themeApi) {
+        FontApi fontApi,
+        ThemeApi themeApi
+    ) {
       this.editor = editor;
       this.fonts = fonts;
+      this.fontApi = fontApi;
       this.themeApi = themeApi;
     }
 
@@ -341,8 +357,8 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
     private Supplier<ToolbarItem[]> fontSize() {
       return ArrayOp.supplier(
-          ti("↑ increase", theme.dialogItem.toolbarItemColors, editor::increaseFont),
-          ti("↓ decrease", theme.dialogItem.toolbarItemColors, editor::decreaseFont));
+          ti("↑ increase", theme.dialogItem.toolbarItemColors, fontApi::increaseFont),
+          ti("↓ decrease", theme.dialogItem.toolbarItemColors, fontApi::decreaseFont));
     }
 
     private Supplier<ToolbarItem[]> fontSelect() {
@@ -351,7 +367,7 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
         ToolbarItem[] items = new ToolbarItem[fonts.length];
         for (int i = 0; i < items.length; i++) {
           var font = fonts[i];
-          Runnable runnable = () -> editor.changeFont(font);
+          Runnable runnable = () -> fontApi.changeFont(font);
           items[i] = new ToolbarItem(runnable, font, theme.dialogItem.toolbarItemColors);
         }
         return items;

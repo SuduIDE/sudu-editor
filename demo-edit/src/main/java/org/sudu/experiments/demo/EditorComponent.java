@@ -4,6 +4,7 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.demo.EditorUi.FontApi;
 import org.sudu.experiments.demo.ui.Focusable;
 import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
@@ -25,7 +26,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
-public class EditorComponent implements Focusable, MouseListener {
+public class EditorComponent implements Focusable, MouseListener, FontApi {
   final V2i pos = new V2i();
   final V2i size = new V2i();
 

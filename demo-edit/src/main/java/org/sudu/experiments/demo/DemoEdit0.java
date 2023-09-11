@@ -117,7 +117,7 @@ public class DemoEdit0 extends Scene1 implements EditorUi.ThemeApi {
   boolean onContextMenu(MouseEvent event) {
     if (uiContext.isFocused(editor)) {
       ui.showContextMenu(event, editor,
-          DemoEdit0.this, DemoEdit0.this::menuFonts);
+          DemoEdit0.this, editor, DemoEdit0.this::menuFonts);
     }
     return true;
   }
