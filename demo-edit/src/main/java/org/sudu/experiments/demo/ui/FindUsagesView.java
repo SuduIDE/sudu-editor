@@ -253,8 +253,9 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   public V2i setLimitedPosition(V2i position, int minY) {
     int width = maxFileNameLen + maxLineLen + maxCodeContentLen;
+    int xPad = context.toPx(5);
     return new V2i(
-        Numbers.clamp(0, position.x, context.windowSize.x - width),
+        Numbers.clamp(xPad, position.x, context.windowSize.x - width),
         Numbers.clamp(minY, position.y, context.windowSize.y - virtualSize.y)
     );
   }
