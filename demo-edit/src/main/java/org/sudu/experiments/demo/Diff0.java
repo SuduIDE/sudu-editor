@@ -101,6 +101,29 @@ public class Diff0 extends Scene1 implements
     return null;
   }
 
+  public void focus() {
+    uiContext.setFocus(editor1);
+  }
+
+  public void setReadonly(boolean f) {
+    editor1.readonly = f;
+    editor2.readonly = f;
+  }
+
+  public Model getAndSetLeftModel(Model m) {
+    Model prevModel = editor1.model();
+    if (m == null) return prevModel;
+    editor1.setModel(m);
+    return prevModel;
+  }
+
+  public Model getAndSetRightModel(Model m) {
+    Model prevModel = editor2.model();
+    if (m == null) return prevModel;
+    editor2.setModel(m);
+    return prevModel;
+  }
+
   @Override
   public void dispose() {
     ui.dispose();
@@ -169,11 +192,22 @@ public class Diff0 extends Scene1 implements
     applyTheme(EditorColorScheme.lightIdeaColorScheme());
   }
 
-  private void applyTheme(EditorColorScheme theme) {
+  public void applyTheme(EditorColorScheme theme) {
+
     Objects.requireNonNull(theme);
     ui.setTheme(theme);
     editor1.setTheme(theme);
     editor2.setTheme(theme);
+  }
+
+  public void setFontFamily(String fontFamily) {
+    editor1.changeFont(fontFamily, editor1.getFontVirtualSize());
+    editor2.changeFont(fontFamily, editor2.getFontVirtualSize());
+  }
+
+  public void setFontSize(int fontSize) {
+    editor1.changeFont(editor1.getFontFamily(), fontSize);
+    editor2.changeFont(editor2.getFontFamily(), fontSize);
   }
 
   boolean onKeyPress(KeyEvent event) {
