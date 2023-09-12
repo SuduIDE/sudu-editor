@@ -3,15 +3,13 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
 public class DiffModel {
 
-  public List<Diff<CodeLineS>> linesDiffs = new ArrayList<>();
-  public List<Diff<CodeElementS>> elementsDiffs = new ArrayList<>();
+  public LineDiff[] lineDiffsN, lineDiffsM;
 
   public int[] findDiffs(
       char[] charsN, int[] intsN,
@@ -24,6 +22,9 @@ public class DiffModel {
   }
 
   void findLinesDiff(CodeLineS[] docN, CodeLineS[] docM) {
+    lineDiffsN = new LineDiff[docN.length];
+    lineDiffsM = new LineDiff[docM.length];
+
     prepare(docN);
     prepare(docM);
 
@@ -32,19 +33,51 @@ public class DiffModel {
     List<CodeLineS> common = lcs.findCommon(lcsMatrix);
     lcs.countDiffs(common);
     for (var diff: lcs.diffs) {
-      linesDiffs.add(diff);
-      if (!diff.diffN.isEmpty() && !diff.diffM.isEmpty()) {
-        findElementsDiff(flatElements(diff.diffN), flatElements(diff.diffM));
-      }
+      if (diff.isDeletion()) handleDeletion(diff);
+      else if (diff.isInsertion()) handleInsertion(diff);
+      else if (diff.isEdition()) handleEdition(diff);
     }
   }
 
-  private void findElementsDiff(CodeElementS[] linesN, CodeElementS[] linesM) {
+  private List<Diff<CodeElementS>> findElementsDiff(CodeElementS[] linesN, CodeElementS[] linesM) {
     LCS<CodeElementS> lcs = new LCS<>(linesN, linesM);
     int[][] lcsMatrix = lcs.countLCSMatrix();
     List<CodeElementS> common = lcs.findCommon(lcsMatrix);
     lcs.countDiffs(common);
-    elementsDiffs.addAll(lcs.diffs);
+    return lcs.diffs;
+  }
+
+  private void handleDeletion(Diff<CodeLineS> diff) {
+    diff.diffN.forEach(line -> lineDiffsN[line.lineNum] = new LineDiff(LineDiff.DELETED));
+  }
+
+  private void handleElemDeletion(Diff<CodeElementS> diff) {
+    diff.diffN.forEach(elem -> lineDiffsN[elem.lineNum].elementTypes[elem.elemNum] = LineDiff.DELETED);
+  }
+
+  private void handleInsertion(Diff<CodeLineS> diff) {
+    diff.diffM.forEach(line -> lineDiffsM[line.lineNum] = new LineDiff(LineDiff.INSERTED));
+  }
+
+  private void handleElemInsertion(Diff<CodeElementS> diff) {
+    diff.diffM.forEach(elem -> lineDiffsM[elem.lineNum].elementTypes[elem.elemNum] = LineDiff.INSERTED);
+  }
+
+  private void handleEdition(Diff<CodeLineS> diff) {
+    diff.diffN.forEach(line -> lineDiffsN[line.lineNum] = new LineDiff(LineDiff.EDITED, line.len()));
+    diff.diffM.forEach(line -> lineDiffsM[line.lineNum] = new LineDiff(LineDiff.EDITED, line.len()));
+
+    var elementsDiffs = findElementsDiff(flatElements(diff.diffN), flatElements(diff.diffM));
+    elementsDiffs.forEach(elDiff -> {
+      if (elDiff.isDeletion()) handleElemDeletion(elDiff);
+      else if (elDiff.isInsertion()) handleElemInsertion(elDiff);
+      else if (elDiff.isEdition()) handleElemEdition(elDiff);
+    });
+  }
+
+  private void handleElemEdition(Diff<CodeElementS> diff) {
+    diff.diffN.forEach(elem -> lineDiffsN[elem.lineNum].elementTypes[elem.elemNum] = LineDiff.EDITED);
+    diff.diffM.forEach(elem -> lineDiffsM[elem.lineNum].elementTypes[elem.elemNum] = LineDiff.EDITED);
   }
 
   private CodeElementS[] flatElements(CodeLineS[] lines) {
@@ -88,32 +121,24 @@ public class DiffModel {
 
   private int[] writeResults() {
     ArrayWriter writer = new ArrayWriter();
-    writer.write(linesDiffs.size());
-    for (var diff: linesDiffs) {
-      writer.write(diff.diffN.size());
-      for (var diffN: diff.diffN) writer.write(diffN.lineNum);
-      writer.write(diff.diffM.size());
-      for (var diffM: diff.diffM) writer.write(diffM.lineNum);
-    }
-    writer.write(elementsDiffs.size());
-    for (var diff: elementsDiffs) {
-      writer.write(diff.diffN.size());
-      for (var diffN: diff.diffN) writer.write(diffN.lineNum, diffN.elemNum);
-      writer.write(diff.diffM.size());
-      for (var diffM: diff.diffM) writer.write(diffM.lineNum, diffM.elemNum);
-    }
+    writeResults(writer, lineDiffsN);
+    writeResults(writer, lineDiffsM);
     return writer.getInts();
   }
 
-  void printResults() {
-    System.out.println("Lines Edits: ");
-    for (var diff: linesDiffs) {
-      System.out.println(diff);
-    }
-    System.out.println();
-    System.out.println("Elements Edits: ");
-    for (var diff: elementsDiffs) {
-      System.out.println(diff);
+  private void writeResults(ArrayWriter writer, LineDiff[] diff) {
+    writer.write(diff.length);
+    for (int i = 0; i < diff.length; i++) {
+      if (diff[i] == null) {
+        writer.write(-1);
+        continue;
+      }
+      writer.write(i, diff[i].type);
+      if (diff[i].elementTypes == null) writer.write(-1);
+      else {
+        writer.write(diff[i].elementTypes.length);
+        for(int type: diff[i].elementTypes) writer.write(type);
+      }
     }
   }
 }

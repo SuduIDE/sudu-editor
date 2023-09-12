@@ -5,10 +5,9 @@ import org.sudu.experiments.demo.CodeLine;
 import org.sudu.experiments.demo.Document;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffModel;
-import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.diff.LineDiff;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class DiffUtils {
 
@@ -44,66 +43,55 @@ public class DiffUtils {
   }
 
   public static DiffInfo readDiffInfo(int[] ints) {
-    DiffInfo info = new DiffInfo();
     ArrayReader reader = new ArrayReader(ints);
-    int linesDiffLen = reader.next();
-    for (int i = 0; i < linesDiffLen; i++) {
-      LineDiff lineDiff = new LineDiff();
-      int lenN = reader.next();
-      for (int j = 0; j < lenN; j++) lineDiff.diffN.add(reader.next());
-      int lenM = reader.next();
-      for (int j = 0; j < lenM; j++) lineDiff.diffM.add(reader.next());
-      info.lineDiffs.add(lineDiff);
-    }
-    int elemsDiffLen = reader.next();
-    for (int i = 0; i < elemsDiffLen; i++) {
-      ElemDiff elemDiff = new ElemDiff();
-      int lenN = reader.next();
-      for (int j = 0; j < lenN; j++) elemDiff.diffN.add(new Pos(reader.next(), reader.next()));
-      int lenM = reader.next();
-      for (int j = 0; j < lenM; j++) elemDiff.diffM.add(new Pos(reader.next(), reader.next()));
-      info.elemDiffs.add(elemDiff);
-    }
-    return info;
+    return new DiffInfo(readLineDiffs(reader), readLineDiffs(reader));
   }
 
-  public static void printInfo(DiffInfo info) {
-    for (var lineDiff: info.lineDiffs) System.out.println(lineDiff);
-    System.out.println();
-    for (var elemDiff: info.elemDiffs) System.out.println(elemDiff);
+  public static LineDiff[] readLineDiffs(ArrayReader reader) {
+    int len = reader.next();
+    LineDiff[] lineDiff = new LineDiff[len];
+    for (int i = 0; i < len; i++) {
+      int line = reader.next();
+      if (line == -1) continue;
+      int type = reader.next();
+      int lineLen = reader.next();
+      if (lineLen == -1) lineDiff[line] = new LineDiff(type);
+      else {
+        lineDiff[line] = new LineDiff(type, lineLen);
+        for (int j = 0; j < lineLen; j++) {
+          lineDiff[line].elementTypes[j] = reader.next();
+        }
+      }
+    }
+    return lineDiff;
   }
 
   public static void printInfo(DiffInfo info, Document docN, Document docM) {
-    for (var lineDiff: info.lineDiffs) printInfo(lineDiff, docN, docM);
-    System.out.println();
-    for (var elemDiff: info.elemDiffs) printInfo(elemDiff, docN, docM);
+    int i = 0, j = 0;
+    while (i < info.lineDiffsN.length
+        && j < info.lineDiffsM.length) {
+      var diffN = info.lineDiffsN[i];
+      var diffM = info.lineDiffsM[j];
+      System.out.println(formatStr(docN, diffN, i) + "\t\t" + formatStr(docM, diffM, j));
+      i++;
+      j++;
+    }
+    for (; i < info.lineDiffsN.length; i++) {
+      System.out.println(formatStr(docN, info.lineDiffsN[i], i));
+    }
+    for (; j < info.lineDiffsM.length; j++) {
+      System.out.println(" ".repeat(46) + "\t\t" + formatStr(docM, info.lineDiffsM[j], j));
+    }
   }
 
-  public static void printInfo(LineDiff lineDiff, Document docN, Document docM) {
-    System.out.print(lineDiff.diffN.stream()
-        .map(docN::line)
-        .map(CodeLine::makeString)
-        .toList()
-    );
-    System.out.print(" --> ");
-    System.out.println(lineDiff.diffM.stream()
-        .map(docM::line)
-        .map(CodeLine::makeString)
-        .toList()
-    );
-  }
+  private static String formatStr(Document doc, LineDiff diff, int ind) {
+    String line = doc.line(ind).makeString();
+    if (line.length() < 40) line = line + " ".repeat(40 - line.length());
 
-  public static void printInfo(ElemDiff elemDiff, Document docN, Document docM) {
-    System.out.print(elemDiff.diffN.stream()
-        .map(elem -> docN.line(elem.line).get(elem.pos))
-        .map(it -> it.s)
-        .collect(Collectors.joining("", "[", "]"))
-    );
-    System.out.print(" --> ");
-    System.out.println(elemDiff.diffM.stream()
-        .map(elem -> docM.line(elem.line).get(elem.pos))
-        .map(it -> it.s)
-        .collect(Collectors.joining("", "[", "]"))
-    );
+    if (diff == null) return String.format("%4d  %.40s", ind + 1, line);
+    else if (diff.type == LineDiff.DELETED) return String.format("%4d- %.40s", ind + 1, line);
+    else if (diff.type == LineDiff.INSERTED) return String.format("%4d+ %.40s", ind + 1, line);
+    else if (diff.type == LineDiff.EDITED) return String.format("%4d# %.40s", ind + 1, line);
+    return String.format("%4d  %.40s", ind + 1, line);
   }
 }

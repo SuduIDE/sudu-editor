@@ -33,7 +33,6 @@ bar();
         """;
     DiffModel model = new DiffModel();
     model.findLinesDiff(d(ln(text1)), d(ln(text2)));
-    model.printResults();
   }
 
   CodeLineS[] d(CodeLineS... line) {
