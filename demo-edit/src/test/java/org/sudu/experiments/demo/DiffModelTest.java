@@ -8,6 +8,7 @@ import org.sudu.experiments.demo.worker.parser.ParserUtils;
 import org.sudu.experiments.diff.DiffModel;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -15,8 +16,16 @@ import java.util.List;
 
 public class DiffModelTest {
 
+  public static void main(String[] args) {
+    new DiffModelTest().compareDocuments(true);
+  }
+
   @Test
   public void compareDocuments() {
+    compareDocuments(false);
+  }
+
+  public void compareDocuments(boolean printResults) {
     var docN = parse(readFile("ClassN.java"));
     var docM = parse(readFile("ClassM.java"));
 
@@ -29,7 +38,7 @@ public class DiffModelTest {
     int[] res = model.findDiffs(charsN, intsN, charsM, intsM);
 
     DiffInfo info = DiffUtils.readDiffInfo(res);
-    DiffUtils.printInfo(info, docN, docM);
+    if (printResults) DiffUtils.printInfo(info, docN, docM);
   }
 
   private Document parse(String text) {
@@ -43,9 +52,10 @@ public class DiffModelTest {
 
   private String readFile(String filename) {
     try {
-      return Files.readString(Path.of("src", "test", "resources", filename))
-          .replace("\r", "");
-    } catch (IOException e) {
+      var url = getClass().getClassLoader().getResource(filename);
+      if (url == null) throw new IllegalArgumentException("Illegal resource name: " + filename);
+      return Files.readString(Path.of(url.toURI()));
+    } catch (URISyntaxException | IOException e) {
       throw new RuntimeException(e);
     }
   }

@@ -8,6 +8,18 @@ public class Diff<S> {
   public List<S> diffM = new ArrayList<>();
   public List<S> diffN = new ArrayList<>();
 
+  public boolean isDeletion() {
+    return !diffN.isEmpty() && diffM.isEmpty();
+  }
+
+  public boolean isInsertion() {
+    return diffN.isEmpty() && !diffM.isEmpty();
+  }
+
+  public boolean isEdition() {
+    return !diffN.isEmpty() && !diffM.isEmpty();
+  }
+
   public boolean isNotEmpty() {
     return !(diffN.isEmpty() && diffM.isEmpty());
   }
