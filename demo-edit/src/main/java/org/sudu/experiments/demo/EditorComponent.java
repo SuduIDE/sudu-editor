@@ -444,14 +444,16 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
           applyContrast ? EditorConst.CONTRAST : 0,
           editorWidth(), lineHeight, hScrollPos,
           colors, getSelLineSegment(i, lineContent),
-          definition, usages);
+          definition, usages, caretLine == i);
     }
 
     for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
       CodeLineRenderer line = lineRenderer(i);
       int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection.isTailSelected(i);
-      Color tailColor = isTailSelected ? colors.editor.selectionBg : colors.editor.lineTailContent;
+      Color tailColor = colors.editor.lineTailContent;
+      if (isTailSelected) tailColor = colors.editor.selectionBg;
+      else if (caretLine == i) tailColor = colors.lineNumber.caretBgColor;
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
           sizeTmp, hScrollPos, editorWidth(), tailColor);
     }
