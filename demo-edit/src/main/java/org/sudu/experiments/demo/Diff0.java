@@ -101,10 +101,6 @@ public class Diff0 extends Scene1 implements
     return null;
   }
 
-  public void focus() {
-    uiContext.setFocus(editor1);
-  }
-
   public void setReadonly(boolean f) {
     editor1.readonly = f;
     editor2.readonly = f;

@@ -5,6 +5,7 @@ import org.sudu.experiments.demo.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,7 @@ public class LineNumbersComponent implements Disposable {
   private double devicePR;
 
   private final List<LineNumbersTexture> textures = new ArrayList<>();
+  private V4f[] colors = new V4f[] {null};
   private Canvas textureCanvas;
   private Canvas updateCanvas;
 

@@ -34,7 +34,6 @@ public class JsCodeDiff0 implements JsCodeDiff {
   @Override
   public void focus() {
     window.focus();
-    diff.focus();
   }
 
   @Override

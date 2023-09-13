@@ -6,19 +6,50 @@ const editorArgs = {containerId: "editor", workerUrl: "./../" + workerUrl};
 function main() {
     newCodeDiff(editorArgs).then(
         diff1 => {
-            let model = newTextModel(initialTextJava, "java", "urlNew");
-            diff1.setLeftModel(model)
+            let model1 = newTextModel(initialTextJava, "java", "url1")
+            diff1.setLeftModel(model1)
+            let model2 = newTextModel(secondTextJava, "java", "url2")
+            diff1.setRightModel(model2)
             diff1.setReadonly(true)
-            newCodeDiff(editorArgs).then(
-                diff2 => {
-                    diff2.setRightModel(model)
-                    diff2.setReadonly(true)
-                    document.getElementById("focusFirst").addEventListener('click', () => diff1.focus())
-                    document.getElementById("focusSecond").addEventListener('click', () => diff2.focus())
-                }
-            )
         }
     )
 }
+
+const secondTextJava =
+`package sudu.editor;
+  
+  public class Main {
+  
+    private static String helloWorld = "Hello Second World";
+    private static char n = '\\n';
+    private static int a;
+    private static String s = "";
+
+    public int field;
+
+    public static void main(String[] args) {
+      System.out.println(helloWorld + n);
+      sum(a + a);
+    }
+        
+    @Deprecated
+    private static int sum(int a) {
+      int b = 10;
+      return b + 10;
+    }
+        
+    public int summm(int field) {
+      return field + this.field;
+    }
+
+    public interface A {
+      int summm(int field);
+      
+      default void foo() {
+        summm(10);
+      }
+    }
+  }
+`
 
 document.addEventListener("DOMContentLoaded", main)
