@@ -30,8 +30,18 @@ public interface Editor_d_ts {
     }
   }
 
+  @JSFunctor interface DiffFactory extends JSObject {
+    Promise<JsCodeDiff> create(JsCodeEditor.EditArguments args);
+
+    class Setter {
+      @JSBody(params = {"f"}, script = "diffFactory = f;")
+      public static native void setDiff(DiffFactory f);
+    }
+  }
+
   static void main(String[] args) {
     EditorFactory.Setter.setApi(JsCodeEditor0::newEdit);
     TextModelFactory.Setter.setModel(JsTextModel::new);
+    DiffFactory.Setter.setDiff(JsCodeDiff0::newDiff);
   }
 }
