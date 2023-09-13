@@ -417,8 +417,10 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int caretX = caretPos - caret.width() / 2 - hScrollPos;
     int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth() : vLineX;
     caret.setPosition(dCaret + caretX, caretVerticalOffset + caretLine * lineHeight - vScrollPos);
-
     int docLen = model.document.length();
+
+    // Drawing a vertical line before rendering ensures correct display if there is no text
+    drawVerticalLine();
 
     int firstLine = getFirstLine();
     int lastLine = getLastLine();
@@ -452,10 +454,22 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection.isTailSelected(i);
       Color tailColor = colors.editor.lineTailContent;
+      boolean isCaretLine = caretLine == i;
+
       if (isTailSelected) tailColor = colors.editor.selectionBg;
-      else if (caretLine == i) tailColor = colors.lineNumber.caretBgColor;
+      else if (isCaretLine) tailColor = colors.lineNumber.caretBgColor;
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
           sizeTmp, hScrollPos, editorWidth(), tailColor);
+
+      // Draw gap between line number and text
+      vLineSize.x = mirrored ? vLineLeftDelta + scrollBarWidth() : vLineLeftDelta - vLineW;
+      vLineSize.y = lineHeight;
+      int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
+      g.drawRect(pos.x + dx2,
+          pos.y + yPosition,
+          vLineSize,
+          isCaretLine ? colors.lineNumber.caretBgColor : colors.editor.bg
+      );
     }
 
     if (hasFocus && caretX >= -caret.width() / 2 && caret.needsPaint(size)) {
@@ -469,7 +483,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       drawDocumentBottom(yPosition);
     }
 
-    drawVerticalLine();
     drawLineNumbers(firstLine, lastLine);
 
     layoutScrollbar();
