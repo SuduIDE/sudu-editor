@@ -33,6 +33,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
 
   @Override
   public void focus() {
+    window.focus();
     diff.focus();
   }
 
@@ -59,7 +60,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
   @Override
   public void setLeftModel(JsITextModel model) {
     if (model instanceof JsTextModel jsTextModel) {
-      diff.getAndSetLeftModel(jsTextModel.javaModel);
+      diff.setLeftModel(jsTextModel.javaModel);
     } else {
       throw new IllegalArgumentException("bad model");
     }
@@ -68,7 +69,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
   @Override
   public void setRightModel(JsITextModel model) {
     if (model instanceof JsTextModel jsTextModel) {
-      diff.getAndSetRightModel(jsTextModel.javaModel);
+      diff.setRightModel(jsTextModel.javaModel);
     } else {
       throw new IllegalArgumentException("bad model");
     }
@@ -76,12 +77,12 @@ public class JsCodeDiff0 implements JsCodeDiff {
 
   @Override
   public JsITextModel getLeftModel() {
-    return JsTextModel.fromJava(diff.getAndSetLeftModel(null));
+    return JsTextModel.fromJava(diff.getLeftModel());
   }
 
   @Override
   public JsITextModel getRightModel() {
-    return JsTextModel.fromJava(diff.getAndSetRightModel(null));
+    return JsTextModel.fromJava(diff.getRightModel());
   }
 
   @Override

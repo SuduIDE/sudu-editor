@@ -110,18 +110,20 @@ public class Diff0 extends Scene1 implements
     editor2.readonly = f;
   }
 
-  public Model getAndSetLeftModel(Model m) {
-    Model prevModel = editor1.model();
-    if (m == null) return prevModel;
+  public void setLeftModel(Model m) {
     editor1.setModel(m);
-    return prevModel;
   }
 
-  public Model getAndSetRightModel(Model m) {
-    Model prevModel = editor2.model();
-    if (m == null) return prevModel;
+  public void setRightModel(Model m) {
     editor2.setModel(m);
-    return prevModel;
+  }
+
+  public Model getLeftModel() {
+    return editor1.model();
+  }
+
+  public Model getRightModel() {
+    return editor2.model();
   }
 
   @Override
