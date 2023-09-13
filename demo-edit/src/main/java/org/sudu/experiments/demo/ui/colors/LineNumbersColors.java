@@ -1,13 +1,14 @@
 package org.sudu.experiments.demo.ui.colors;
 
 import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.V4f;
 
 public class LineNumbersColors {
 
-  public final Color textColor;
-  public final Color bgColor;
-  public final Color caretTextColor;
-  public final Color caretBgColor;
+  public final V4f textColor;
+  public final V4f bgColor;
+  public final V4f caretTextColor;
+  public final V4f caretBgColor;
 
   public static LineNumbersColors darcula() {
     return new LineNumbersColors(
@@ -37,8 +38,8 @@ public class LineNumbersColors {
   }
 
   LineNumbersColors(
-      Color textColor, Color bgColor,
-      Color caretTextColor, Color caretBgColor
+      V4f textColor, V4f bgColor,
+      V4f caretTextColor, V4f caretBgColor
   ) {
     this.textColor = textColor;
     this.bgColor = bgColor;

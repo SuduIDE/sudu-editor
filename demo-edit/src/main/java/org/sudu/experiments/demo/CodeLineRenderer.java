@@ -160,7 +160,7 @@ class CodeLineRenderer implements Disposable {
       boolean isFullSelected = !isNotSelected && isFullSelected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
 
       Color elemBgColor = null;
-      if (isCaretLine) elemBgColor = colors.lineNumber.caretBgColor;
+      if (isCaretLine) elemBgColor = colors.editor.caretBg;
       if (e == def) elemBgColor = colors.editor.definitionBg;
       if (usages.contains(e)) elemBgColor = colors.editor.usageBg;
 

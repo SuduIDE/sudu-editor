@@ -13,6 +13,7 @@ public class EditorColors {
   public final Color usageBg;
   public final Color scrollBarBg;
   public final Color scrollBarLine;
+  public final Color caretBg;
 
   private EditorColors(
       Color cursor,
@@ -24,7 +25,8 @@ public class EditorColors {
       Color definitionBg,
       Color usageBg,
       Color scrollBarBg,
-      Color scrollBarLine
+      Color scrollBarLine,
+      Color caretBg
   ) {
     this.cursor = cursor;
     this.bg = bg;
@@ -36,6 +38,7 @@ public class EditorColors {
     this.usageBg = usageBg;
     this.scrollBarBg = scrollBarBg;
     this.scrollBarLine = scrollBarLine;
+    this.caretBg = caretBg;
   }
 
   public static EditorColors darculaIdeaColorScheme() {
@@ -49,7 +52,8 @@ public class EditorColors {
         new Color(IdeaCodeColors.Darcula.definitionBgColor),
         new Color(IdeaCodeColors.Darcula.usageBgColor),
         new Color(IdeaCodeColors.Darcula.scrollBarBg),
-        new Color(IdeaCodeColors.Darcula.scrollBarLine)
+        new Color(IdeaCodeColors.Darcula.scrollBarLine),
+        new Color(IdeaCodeColors.Darcula.caretBg)
     );
   }
 
@@ -64,7 +68,8 @@ public class EditorColors {
         new Color(IdeaCodeColors.Dark.definitionBgColor),
         new Color(IdeaCodeColors.Dark.usageBgColor),
         new Color(IdeaCodeColors.Dark.scrollBarBg),
-        new Color(IdeaCodeColors.Dark.scrollBarLine)
+        new Color(IdeaCodeColors.Dark.scrollBarLine),
+        new Color(IdeaCodeColors.Dark.caretBg)
     );
   }
 
@@ -79,7 +84,8 @@ public class EditorColors {
         new Color(IdeaCodeColors.Light.definitionBgColor),
         new Color(IdeaCodeColors.Light.usageBgColor),
         new Color(IdeaCodeColors.Light.scrollBarBg),
-        new Color(IdeaCodeColors.Light.scrollBarLine)
+        new Color(IdeaCodeColors.Light.scrollBarLine),
+        new Color(IdeaCodeColors.Light.caretBg)
     );
   }
 }
