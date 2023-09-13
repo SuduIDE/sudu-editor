@@ -13,7 +13,7 @@ public class EditorColors {
   public final Color usageBg;
   public final Color scrollBarBg;
   public final Color scrollBarLine;
-  public final Color caretBg;
+  public final Color currentLineBg;
 
   private EditorColors(
       Color cursor,
@@ -26,7 +26,7 @@ public class EditorColors {
       Color usageBg,
       Color scrollBarBg,
       Color scrollBarLine,
-      Color caretBg
+      Color currentLineBg
   ) {
     this.cursor = cursor;
     this.bg = bg;
@@ -38,7 +38,7 @@ public class EditorColors {
     this.usageBg = usageBg;
     this.scrollBarBg = scrollBarBg;
     this.scrollBarLine = scrollBarLine;
-    this.caretBg = caretBg;
+    this.currentLineBg = currentLineBg;
   }
 
   public static EditorColors darculaIdeaColorScheme() {

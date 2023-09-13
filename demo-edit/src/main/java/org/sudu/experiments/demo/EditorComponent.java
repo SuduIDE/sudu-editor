@@ -454,10 +454,10 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection.isTailSelected(i);
       Color tailColor = colors.editor.lineTailContent;
-      boolean isCaretLine = caretLine == i;
+      boolean isCurrentLine = caretLine == i;
 
       if (isTailSelected) tailColor = colors.editor.selectionBg;
-      else if (isCaretLine) tailColor = colors.editor.caretBg;
+      else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
           sizeTmp, hScrollPos, editorWidth(), tailColor);
 
@@ -468,7 +468,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       g.drawRect(pos.x + dx2,
           pos.y + yPosition,
           vLineSize,
-          isCaretLine ? colors.editor.caretBg : colors.editor.bg
+          isCurrentLine ? colors.editor.currentLineBg : colors.editor.bg
       );
     }
 
