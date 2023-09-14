@@ -125,7 +125,8 @@ class CodeLineRenderer implements Disposable {
       EditorColorScheme colors,
       V2i selectedSegment,
       CodeElement def,
-      List<CodeElement> usages
+      List<CodeElement> usages,
+      boolean isCurrentLine
   ) {
     if (lineTextures.isEmpty()) return;
     if (numOfTextures == 0) return;
@@ -159,6 +160,7 @@ class CodeLineRenderer implements Disposable {
       boolean isFullSelected = !isNotSelected && isFullSelected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
 
       Color elemBgColor = null;
+      if (isCurrentLine) elemBgColor = colors.editor.currentLineBg;
       if (e == def) elemBgColor = colors.editor.definitionBg;
       if (usages.contains(e)) elemBgColor = colors.editor.usageBg;
 

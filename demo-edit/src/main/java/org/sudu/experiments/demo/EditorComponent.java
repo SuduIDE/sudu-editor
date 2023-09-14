@@ -417,8 +417,10 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int caretX = caretPos - caret.width() / 2 - hScrollPos;
     int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth() : vLineX;
     caret.setPosition(dCaret + caretX, caretVerticalOffset + caretLine * lineHeight - vScrollPos);
-
     int docLen = model.document.length();
+
+    // Drawing a vertical line before rendering ensures correct display if there is no text
+    drawVerticalLine();
 
     int firstLine = getFirstLine();
     int lastLine = getLastLine();
@@ -428,7 +430,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
     V2i sizeTmp = context.v2i1;
       sizeTmp.set(editorWidth(), lineHeight);
-    int dx = mirrored ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth(): pos.x + vLineX;
+    int dx = mirrored
+        ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth()
+        : pos.x + vLineX;
 
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
       CodeLine nextLine = model.document.line(i);
@@ -444,16 +448,34 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
           applyContrast ? EditorConst.CONTRAST : 0,
           editorWidth(), lineHeight, hScrollPos,
           colors, getSelLineSegment(i, lineContent),
-          definition, usages);
+          definition, usages, caretLine == i);
     }
 
     for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
       CodeLineRenderer line = lineRenderer(i);
       int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection.isTailSelected(i);
-      Color tailColor = isTailSelected ? colors.editor.selectionBg : colors.editor.lineTailContent;
+      Color tailColor = colors.editor.lineTailContent;
+      boolean isCurrentLine = caretLine == i;
+
+      if (isTailSelected) tailColor = colors.editor.selectionBg;
+      else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
           sizeTmp, hScrollPos, editorWidth(), tailColor);
+
+      // Draw gap between line number and text
+      if (isCurrentLine) {
+        vLineSize.x = mirrored
+            ? vLineLeftDelta + scrollBarWidth()
+            : vLineLeftDelta - context.toPx(3);
+        vLineSize.y = lineHeight;
+        int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
+        g.drawRect(pos.x + dx2,
+            pos.y + yPosition,
+            vLineSize,
+            colors.editor.currentLineBg
+        );
+      }
     }
 
     if (hasFocus && caretX >= -caret.width() / 2 && caret.needsPaint(size)) {
@@ -467,7 +489,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       drawDocumentBottom(yPosition);
     }
 
-    drawVerticalLine();
     drawLineNumbers(firstLine, lastLine);
 
     layoutScrollbar();
