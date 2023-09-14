@@ -4,9 +4,12 @@ import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.demo.ui.Focusable;
 import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
+import org.sudu.experiments.demo.worker.diff.DiffInfo;
+import org.sudu.experiments.demo.worker.diff.DiffUtils;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.worker.ArrayView;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -24,6 +27,8 @@ public class Diff0 extends Scene1 implements
   final EditorComponent editor1;
   final EditorComponent editor2;
   final EditorUi ui;
+  private int modelFlags;
+  private DiffInfo diffModel;
 
   public Diff0(SceneApi api) {
     super(api);
@@ -37,6 +42,9 @@ public class Diff0 extends Scene1 implements
     IntConsumer rightScrollChanged = this::rightScrollChanged;
     editor1.setScrollListeners(leftScrollChanged, leftScrollChanged);
     editor2.setScrollListeners(rightScrollChanged, rightScrollChanged);
+
+    editor1.setFullFileParseListener(this::fullFileParseListener);
+    editor2.setFullFileParseListener(this::fullFileParseListener);
 
     uiContext.initFocus(editor1);
 
@@ -55,6 +63,15 @@ public class Diff0 extends Scene1 implements
     api.input.onContextMenu.add(this::onContextMenu);
 
     toggleDark();
+  }
+
+
+  void fullFileParseListener(EditorComponent editor) {
+    if (editor1 == editor) modelFlags |= 1;
+    if (editor2 == editor) modelFlags |= 2;
+    if ((modelFlags & 3) == 3) {
+      sendToDiff();
+    }
   }
 
   public boolean onCopy(Consumer<String> consumer, boolean b) {
@@ -93,6 +110,27 @@ public class Diff0 extends Scene1 implements
   private void openFile(FileHandle handle) {
     EditorComponent activeEditor = getActiveEditor();
     if (activeEditor != null) activeEditor.openFile(handle);
+  }
+
+  public void sendToDiff() {
+    System.out.println("sendToDiff");
+    Model model1 = editor1.model;
+    Model model2 = editor2.model;
+    char[] chars1 = model1.document.getChars();
+    char[] chars2 = model2.document.getChars();
+    int[] intervals1 = DiffUtils.makeIntervals(model1.document);
+    int[] intervals2 = DiffUtils.makeIntervals(model2.document);
+
+    api.window.sendToWorker(this::onDiffResult, DiffUtils.FIND_DIFFS,
+          chars1, intervals1, chars2, intervals2);
+  }
+
+  private void onDiffResult(Object[] result) {
+    int[] reply = ((ArrayView) result[0]).ints();
+
+    diffModel = DiffUtils.readDiffInfo(reply);
+    editor1.setDiffModel(diffModel.lineDiffsN);
+    editor2.setDiffModel(diffModel.lineDiffsM);
   }
 
   private EditorComponent getActiveEditor() {

@@ -3,6 +3,7 @@ package org.sudu.experiments.esm;
 import org.sudu.experiments.demo.Document;
 import org.sudu.experiments.demo.Model;
 import org.sudu.experiments.js.JsHelper;
+import org.sudu.experiments.js.SplitJsText;
 import org.teavm.jso.core.JSString;
 
 public class JsTextModel implements JsITextModel {

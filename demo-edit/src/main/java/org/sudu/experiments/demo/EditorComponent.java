@@ -9,6 +9,7 @@ import org.sudu.experiments.demo.ui.Focusable;
 import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.worker.parser.*;
+import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -48,6 +49,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   int lineHeight;
 
   Model model = new Model();
+  LineDiff[] diffModel;
   EditorRegistrations registrations = new EditorRegistrations();
   Selection selection = new Selection();
   NavigationStack navStack = new NavigationStack();
@@ -97,6 +99,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   Consumer<String> onError = System.err::println;
   IntConsumer hScrollListener, vScrollListener;
+  Consumer<EditorComponent> fullFileParseListener;
 
   public EditorComponent(UiContext context, EditorUi ui) {
     this.context = context;
@@ -123,6 +126,10 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   void setScrollListeners(IntConsumer hListener, IntConsumer vListener) {
     hScrollListener = hListener;
     vScrollListener = vListener;
+  }
+
+  void setFullFileParseListener(Consumer<EditorComponent> listener) {
+    fullFileParseListener = listener;
   }
 
   private void internalLayout(V2i pos, V2i size, float dpr) {
@@ -783,7 +790,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   private long parsingTimeStart;
 
   private void onFileParsed(Object[] result) {
-//    Debug.consoleInfo("onFileParsed");
+    Debug.consoleInfo("onFileParsed");
     fileStructureParsed = true;
     firstLinesParsed = true;
 
@@ -798,6 +805,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     window().setCursor(Cursor.arrow);
     window().repaint();
     Debug.consoleInfo("Full file parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
+    if (fullFileParseListener != null) {
+      fullFileParseListener.accept(this);
+    }
   }
 
   private void onFileStructureParsed(Object[] result) {
@@ -844,12 +854,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   private Window window() { return context.window; }
 
-  private void onFileLoad(byte[] content) {
-    Debug.consoleInfo("readAsBytes complete, l = " + content.length);
-    parsingTimeStart = System.currentTimeMillis();
-    window().sendToWorker(this::onFileParsed, JavaParser.PARSE, content);
-  }
-
   private void onFirstLinesParsed(Object[] result) {
     if (fileStructureParsed) return;
     int[] ints = ((ArrayView) result[0]).ints();
@@ -870,7 +874,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
     model = new Model(
         new String[] {""},
-        null,
         new Uri("", "", f.getName(), null)
     );
     setCaretLinePos(0, 0, false);
@@ -1622,11 +1625,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   public Model model() { return model; }
 
-  public void setText(String[] newLines) {
-    model.document.setContent(newLines);
-    onContentChange();
-  }
-
   private void onContentChange() {
     parsingTimeStart = System.currentTimeMillis();
     String jobName = parseJobName(model.language());
@@ -1688,5 +1686,12 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   // remove later
   public boolean hitTest(V2i point) {
     return Rect.isInside(point, pos, size);
+  }
+
+  public void setDiffModel(LineDiff[] lineDiffs) {
+    diffModel = lineDiffs;
+    System.out.println("EditorComponent::setDiffModel");
+    System.out.println("  diffModel.length = " + diffModel.length);
+    System.out.println("  model.document.length() = " + model.document.length());
   }
 }

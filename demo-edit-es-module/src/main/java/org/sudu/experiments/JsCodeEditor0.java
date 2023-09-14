@@ -55,8 +55,8 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   @Override
   public void setText(JSString t) {
-    String[] split = SplitJsText.split(t, Document.newLine);
-    editor.setText(split);
+    String[] text = SplitJsText.split(t, Document.newLine);
+    editor.setModel(new Model(text, editor.model().uri));
   }
 
   @Override

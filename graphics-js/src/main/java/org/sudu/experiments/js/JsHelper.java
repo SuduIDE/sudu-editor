@@ -69,6 +69,10 @@ public class JsHelper {
     return currentCursor;
   }
 
+  public static void onError(JSError error) {
+    consoleInfo("on error ", JSString.valueOf(error.getMessage()));
+  }
+
   interface HTMLElement extends org.teavm.jso.dom.html.HTMLElement {
     @JSMethod("getBoundingClientRect")
     DOMRect getBoundingClientRectD();
