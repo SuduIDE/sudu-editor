@@ -430,7 +430,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
     V2i sizeTmp = context.v2i1;
       sizeTmp.set(editorWidth(), lineHeight);
-    int dx = mirrored ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth(): pos.x + vLineX;
+    int dx = mirrored
+        ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth()
+        : pos.x + vLineX;
 
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
       CodeLine nextLine = model.document.line(i);
@@ -463,7 +465,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
       // Draw gap between line number and text
       if (isCurrentLine) {
-        vLineSize.x = mirrored ? vLineLeftDelta + scrollBarWidth() : vLineLeftDelta - context.toPx(3);
+        vLineSize.x = mirrored
+            ? vLineLeftDelta + scrollBarWidth()
+            : vLineLeftDelta - context.toPx(3);
         vLineSize.y = lineHeight;
         int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
         g.drawRect(pos.x + dx2,
