@@ -462,14 +462,16 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
           sizeTmp, hScrollPos, editorWidth(), tailColor);
 
       // Draw gap between line number and text
-      vLineSize.x = mirrored ? vLineLeftDelta + scrollBarWidth() : vLineLeftDelta - vLineW;
-      vLineSize.y = lineHeight;
-      int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
-      g.drawRect(pos.x + dx2,
-          pos.y + yPosition,
-          vLineSize,
-          isCurrentLine ? colors.editor.currentLineBg : colors.editor.bg
-      );
+      if (isCurrentLine) {
+        vLineSize.x = mirrored ? vLineLeftDelta + scrollBarWidth() : vLineLeftDelta - context.toPx(3);
+        vLineSize.y = lineHeight;
+        int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
+        g.drawRect(pos.x + dx2,
+            pos.y + yPosition,
+            vLineSize,
+            colors.editor.currentLineBg
+        );
+      }
     }
 
     if (hasFocus && caretX >= -caret.width() / 2 && caret.needsPaint(size)) {
