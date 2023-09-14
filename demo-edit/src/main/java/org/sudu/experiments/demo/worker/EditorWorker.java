@@ -36,7 +36,9 @@ public class EditorWorker {
       case LineParser.PARSE -> LineParser.parse(array(a, 0).chars(), result);
       case JavaParser.PARSE_BYTES_JAVA_VIEWPORT -> JavaParser.parseViewport(array(a, 0).chars(), array(a, 1).ints(), array(a, 2).ints(), result);
       case JavaStructureParser.PARSE_STRUCTURE_JAVA -> JavaStructureParser.parseChars(array(a, 0).chars(), result);
-      case DiffUtils.FIND_DIFFS -> DiffUtils.findDiffs(array(a, 0).chars(), array(a, 1).ints(), array(a, 2).chars(), array(a, 3).ints(), result);
+      case DiffUtils.FIND_DIFFS -> DiffUtils.findDiffs(
+          array(a, 0).chars(), array(a, 1).ints(),
+          array(a, 2).chars(), array(a, 3).ints(), result);
     }
   }
 
