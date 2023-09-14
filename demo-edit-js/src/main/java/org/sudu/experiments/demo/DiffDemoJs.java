@@ -1,6 +1,7 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.js.Fetch;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.SplitJsText;
@@ -14,6 +15,11 @@ public class DiffDemoJs extends Diff0 {
     setReadonly(true);
     load(this::setLeftModel, "ClassL.java");
     load(this::setRightModel, "ClassR.java");
+  }
+
+  @Override
+  protected String[] menuFonts() {
+    return Fonts.editorFonts(true);
   }
 
   void load(Consumer<Model> editor, String path) {
