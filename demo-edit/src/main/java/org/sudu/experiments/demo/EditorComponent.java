@@ -426,9 +426,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     caret.setPosition(dCaret + caretX, caretVerticalOffset + caretLine * lineHeight - vScrollPos);
     int docLen = model.document.length();
 
-    // Drawing a vertical line before rendering ensures correct display if there is no text
-    drawVerticalLine();
-
     int firstLine = getFirstLine();
     int lastLine = getLastLine();
 
@@ -474,20 +471,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
           sizeTmp, hScrollPos, editorWidth(), tailColor);
-
-      // Draw gap between line number and text
-      if (isCurrentLine) {
-        vLineSize.x = mirrored
-            ? vLineLeftDelta + scrollBarWidth()
-            : vLineLeftDelta - context.toPx(3);
-        vLineSize.y = lineHeight;
-        int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
-        g.drawRect(pos.x + dx2,
-            pos.y + yPosition,
-            vLineSize,
-            colors.editor.currentLineBg
-        );
-      }
     }
 
     if (hasFocus && caretX >= -caret.width() / 2 && caret.needsPaint(size)) {
@@ -501,7 +484,25 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       drawDocumentBottom(yPosition);
     }
 
+    drawVerticalLine();
     drawLineNumbers(firstLine, lastLine);
+
+    // Draw gap between line number and text for current line
+    for (int i = firstLine; i <= lastLine && i < docLen; i++) {
+      if (caretLine == i) {
+        vLineSize.x = mirrored
+            ? vLineLeftDelta + scrollBarWidth()
+            : vLineLeftDelta - vLineW;
+        vLineSize.y = lineHeight;
+        int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
+        int yPosition = lineHeight * i - vScrollPos;
+        g.drawRect(pos.x + dx2,
+            pos.y + yPosition,
+            vLineSize,
+            colors.editor.currentLineBg
+        );
+      }
+    }
 
     layoutScrollbar();
     drawScrollBar();
