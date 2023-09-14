@@ -65,7 +65,6 @@ public class Diff0 extends Scene1 implements
     toggleDark();
   }
 
-
   void fullFileParseListener(EditorComponent editor) {
     if (editor1 == editor) modelFlags |= 1;
     if (editor2 == editor) modelFlags |= 2;

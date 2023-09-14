@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 public class DiffDemoJs extends Diff0 {
   public DiffDemoJs(SceneApi api) {
     super(api);
+    setReadonly(true);
     load(this::setLeftModel, "ClassL.java");
     load(this::setRightModel, "ClassR.java");
   }
