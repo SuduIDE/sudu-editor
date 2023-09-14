@@ -17,7 +17,7 @@ import java.util.function.IntConsumer;
 
 public class Diff0 extends Scene1 implements
     MouseListener,
-    EditorUi.ThemeApi,
+    EditorTheme,
     EditorUi.FontApi,
     InputListeners.ScrollHandler,
     InputListeners.CopyHandler,
@@ -213,18 +213,6 @@ public class Diff0 extends Scene1 implements
     editor1.setPos(pos, size, dpr);
     pos.x = newSize.x - newSize.x / 2;
     editor2.setPos(pos, size, dpr);
-  }
-
-  public void toggleDarcula() {
-    applyTheme(EditorColorScheme.darculaIdeaColorScheme());
-  }
-
-  public void toggleDark() {
-    applyTheme(EditorColorScheme.darkIdeaColorScheme());
-  }
-
-  public void toggleLight() {
-    applyTheme(EditorColorScheme.lightIdeaColorScheme());
   }
 
   public void applyTheme(EditorColorScheme theme) {
