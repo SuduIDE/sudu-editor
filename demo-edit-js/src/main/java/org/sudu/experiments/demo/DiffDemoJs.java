@@ -11,8 +11,8 @@ import java.util.function.Consumer;
 public class DiffDemoJs extends Diff0 {
   public DiffDemoJs(SceneApi api) {
     super(api);
-    load(this::setLeftModel, "ClassM.java");
-    load(this::setRightModel, "ClassN.java");
+    load(this::setLeftModel, "ClassL.java");
+    load(this::setRightModel, "ClassR.java");
   }
 
   void load(Consumer<Model> editor, String path) {

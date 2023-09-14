@@ -4,12 +4,12 @@ import org.sudu.experiments.diff.LineDiff;
 
 public class DiffInfo {
 
-  public LineDiff[] lineDiffsN;
+  public LineDiff[] lineDiffsL;
 
-  public LineDiff[] lineDiffsM;
+  public LineDiff[] lineDiffsR;
 
-  public DiffInfo(LineDiff[] lineDiffsN, LineDiff[] lineDiffsM) {
-    this.lineDiffsN = lineDiffsN;
-    this.lineDiffsM = lineDiffsM;
+  public DiffInfo(LineDiff[] lineDiffsL, LineDiff[] lineDiffsR) {
+    this.lineDiffsL = lineDiffsL;
+    this.lineDiffsR = lineDiffsR;
   }
 }

@@ -26,19 +26,19 @@ public class DiffModelTest {
   }
 
   public void compareDocuments(boolean printResults) {
-    var docN = parse(readFile("ClassN.java"));
-    var docM = parse(readFile("ClassM.java"));
+    var docL = parse(readFile("ClassR.java"));
+    var docR = parse(readFile("ClassL.java"));
 
     DiffModel model = new DiffModel();
-    char[] charsN = docN.getChars();
-    int[] intsN = DiffUtils.makeIntervals(docN);
-    char[] charsM = docM.getChars();
-    int[] intsM = DiffUtils.makeIntervals(docM);
+    char[] charsL = docL.getChars();
+    int[] intsL = DiffUtils.makeIntervals(docL);
+    char[] charsR = docR.getChars();
+    int[] intsR = DiffUtils.makeIntervals(docR);
 
-    int[] res = model.findDiffs(charsN, intsN, charsM, intsM);
+    int[] res = model.findDiffs(charsL, intsL, charsR, intsR);
 
     DiffInfo info = DiffUtils.readDiffInfo(res);
-    if (printResults) DiffUtils.printInfo(info, docN, docM);
+    if (printResults) DiffUtils.printInfo(info, docL, docR);
   }
 
   private Document parse(String text) {

@@ -129,8 +129,8 @@ public class Diff0 extends Scene1 implements
     int[] reply = ((ArrayView) result[0]).ints();
 
     diffModel = DiffUtils.readDiffInfo(reply);
-    editor1.setDiffModel(diffModel.lineDiffsN);
-    editor2.setDiffModel(diffModel.lineDiffsM);
+    editor1.setDiffModel(diffModel.lineDiffsL);
+    editor2.setDiffModel(diffModel.lineDiffsR);
   }
 
   private EditorComponent getActiveEditor() {
