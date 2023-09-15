@@ -1690,6 +1690,11 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   public void setDiffModel(LineDiff[] lineDiffs) {
     diffModel = lineDiffs;
+    byte[] c = new byte[diffModel.length];
+    for (int i = 0; i < c.length; i++) {
+      c[i] = diffModel[i] != null ? (byte) diffModel[i].type : 0;
+    }
+    lineNumbers.setColors(c);
     System.out.println("EditorComponent::setDiffModel");
     System.out.println("  diffModel.length = " + diffModel.length);
     System.out.println("  model.document.length() = " + model.document.length());

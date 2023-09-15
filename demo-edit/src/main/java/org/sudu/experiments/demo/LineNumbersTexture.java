@@ -2,6 +2,7 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.ui.colors.LineNumbersColors;
+import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
@@ -66,7 +67,7 @@ public class LineNumbersTexture implements Disposable {
 
   public void draw(
       V2i dXdY, int componentHeight, int scrollPos, int fullTexturesSize,
-      LineNumbersColors colorScheme, V4f[] colors, WglGraphics g
+      LineNumbersColors colorScheme, byte[] colors, WglGraphics g
   ) {
     // TODO: if bucket has no elements from `colors` array, do not render line by line
     int height = textureSize.y;
@@ -77,7 +78,7 @@ public class LineNumbersTexture implements Disposable {
       rectSize.set(lineTexture.width(), lineHeight);
       for (int i = 0; i < height / lineHeight; i++) {
         rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-        V4f c = colors[i] == null ? colorScheme.bgColor : colors[i];
+        V4f c = colors[i] == 0 ? colorScheme.bgColor : convertColor(colorScheme, colors[i]);
         draw(g, yPos + i * lineHeight, dXdY, colorScheme.textColor, c);
       }
     } else {
@@ -86,7 +87,7 @@ public class LineNumbersTexture implements Disposable {
         rectSize.set(lineTexture.width(), lineHeight);
         for (int i = 0; i <= topHeight / lineHeight; i++) {
           rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-          V4f c = colors[i] == null ? colorScheme.bgColor : colors[i];
+          V4f c = colors[i] == 0 ? colorScheme.bgColor : convertColor(colorScheme, colors[i]);
           draw(g, yPos + i * lineHeight, dXdY, colorScheme.textColor, c);
         }
       }
@@ -98,11 +99,20 @@ public class LineNumbersTexture implements Disposable {
         int offset = y % lineHeight;
         for (int i = y / lineHeight; i < (y + height) / lineHeight; i++) {
           rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-          V4f c = colors[i] == null ? colorScheme.bgColor : colors[i];
+          V4f c = colors[i] == 0 ? colorScheme.bgColor : convertColor(colorScheme, colors[i]);
           draw(g, (i - y / lineHeight) * lineHeight - offset, dXdY, colorScheme.textColor, c);
         }
       }
     }
+  }
+
+  private V4f convertColor(LineNumbersColors colorScheme, byte c) {
+    return switch (c) {
+      case LineDiff.DELETED -> colorScheme.deletedBgColor;
+      case LineDiff.INSERTED -> colorScheme.insertedBgColor;
+      case LineDiff.EDITED -> colorScheme.editedBgColor;
+      default -> colorScheme.bgColor;
+    };
   }
 
   void drawCurrentLine(

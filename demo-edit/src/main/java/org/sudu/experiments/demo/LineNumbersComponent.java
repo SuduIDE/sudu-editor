@@ -25,7 +25,7 @@ public class LineNumbersComponent implements Disposable {
   private double devicePR;
 
   private final List<LineNumbersTexture> textures = new ArrayList<>();
-  private V4f[] colors = new V4f[0];
+  private byte[] colors = new byte[0];
   private Canvas textureCanvas;
   private Canvas updateCanvas;
 
@@ -67,6 +67,10 @@ public class LineNumbersComponent implements Disposable {
         }
       }
     }
+  }
+
+  public void setColors(byte[] c) {
+    this.colors = c;
   }
 
   public void draw(
