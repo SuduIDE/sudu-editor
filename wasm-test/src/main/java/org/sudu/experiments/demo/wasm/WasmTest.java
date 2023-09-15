@@ -8,8 +8,6 @@ import org.sudu.experiments.math.Numbers;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSError;
-import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.ArrayBuffer;
 
 import java.util.Arrays;
@@ -136,10 +134,6 @@ public class WasmTest {
       }
     }
     return "ok";
-  }
-
-  static void onError(JSError error) {
-    JsHelper.consoleInfo("on error ", JSString.valueOf(error.getMessage()));
   }
 
   static int jsToWasm1(int a, int b) {

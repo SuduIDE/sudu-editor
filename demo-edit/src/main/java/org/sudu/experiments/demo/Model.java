@@ -12,6 +12,10 @@ public class Model {
     this(SplitText.split(text), language, uri);
   }
 
+  public Model(String[] text, Uri uri) {
+    this(text, null, uri);
+  }
+
   public Model(String[] text, String language, Uri uri) {
     this.uri = uri;
     docLanguage = language;
@@ -27,7 +31,6 @@ public class Model {
 
   public void setLanguage(String language) {
     docLanguage = language;
-
   }
 
   public String language() {

@@ -1,4 +1,4 @@
-package org.sudu.experiments.esm;
+package org.sudu.experiments.js;
 
 import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.core.JSString;

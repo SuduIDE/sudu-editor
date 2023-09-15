@@ -2,6 +2,7 @@ package org.sudu.experiments.js;
 
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.ArrayBuffer;
 
 public class Fetch {
@@ -10,5 +11,6 @@ public class Fetch {
 
   public interface Response extends JSObject {
     Promise<ArrayBuffer> arrayBuffer();
+    Promise<JSString> text();
   }
 }

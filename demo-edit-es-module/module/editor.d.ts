@@ -148,6 +148,26 @@ type LanguageSelector = string | ILanguageFilter | Array<string | ILanguageFilte
 //     return true;
 // }
 
+interface ICodeDiff {
+    focus(): void,
+
+    setFontFamily(fontFamily: string): void,
+
+    setFontSize(fontSize: number): void,
+
+    setTheme(theme: string): void,
+
+    setLeftModel(model: ITextModel): void,
+
+    setRightModel(model: ITextModel): void,
+
+    getLeftModel(): ITextModel,
+
+    getRightModel(): ITextModel,
+
+    setReadonly(flag: boolean): void
+}
+
 interface ICodeEditor {
     focus(): void,
 
@@ -194,3 +214,6 @@ interface EditView extends ICodeEditor, IDisposable {}
 export function newEditor(args: EditArgs): Promise<EditView>
 
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
+
+export function newCodeDiff(args: EditArgs): Promise<ICodeDiff>
+

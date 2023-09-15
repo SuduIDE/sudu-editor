@@ -68,19 +68,19 @@ public class DiffUtils {
 
   public static void printInfo(DiffInfo info, Document docN, Document docM) {
     int i = 0, j = 0;
-    while (i < info.lineDiffsN.length
-        && j < info.lineDiffsM.length) {
-      var diffN = info.lineDiffsN[i];
-      var diffM = info.lineDiffsM[j];
+    while (i < info.lineDiffsL.length
+        && j < info.lineDiffsR.length) {
+      var diffN = info.lineDiffsL[i];
+      var diffM = info.lineDiffsR[j];
       System.out.println(formatStr(docN, diffN, i) + "\t\t" + formatStr(docM, diffM, j));
       i++;
       j++;
     }
-    for (; i < info.lineDiffsN.length; i++) {
-      System.out.println(formatStr(docN, info.lineDiffsN[i], i));
+    for (; i < info.lineDiffsL.length; i++) {
+      System.out.println(formatStr(docN, info.lineDiffsL[i], i));
     }
-    for (; j < info.lineDiffsM.length; j++) {
-      System.out.println(" ".repeat(46) + "\t\t" + formatStr(docM, info.lineDiffsM[j], j));
+    for (; j < info.lineDiffsR.length; j++) {
+      System.out.println(" ".repeat(46) + "\t\t" + formatStr(docM, info.lineDiffsR[j], j));
     }
   }
 

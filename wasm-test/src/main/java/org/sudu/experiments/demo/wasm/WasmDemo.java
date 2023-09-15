@@ -3,6 +3,7 @@ package org.sudu.experiments.demo.wasm;
 import org.sudu.experiments.Scene;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.js.Fetch;
+import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.V2i;
 
 public class WasmDemo extends Scene {
@@ -12,7 +13,7 @@ public class WasmDemo extends Scene {
     Fetch.fetch(WasmTest.module)
         .then(Fetch.Response::arrayBuffer)
         .then(WasmTest::instantiate)
-        .then(WasmTest::onLoad, WasmTest::onError);
+        .then(WasmTest::onLoad, JsHelper::onError);
   }
 
   @Override

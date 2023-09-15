@@ -14,7 +14,7 @@ import org.sudu.experiments.math.V2i;
 
 import java.util.Objects;
 
-public class DemoEdit0 extends Scene1 implements EditorUi.ThemeApi {
+public class DemoEdit0 extends Scene1 implements EditorTheme {
 
   final EditorComponent editor;
   final EditorUi ui;
@@ -79,19 +79,7 @@ public class DemoEdit0 extends Scene1 implements EditorUi.ThemeApi {
     editor.setPos(new V2i(), newSize, dpr);
   }
 
-  public void toggleDarcula() {
-    applyTheme(EditorColorScheme.darculaIdeaColorScheme());
-  }
-
-  public void toggleDark() {
-    applyTheme(EditorColorScheme.darkIdeaColorScheme());
-  }
-
-  public void toggleLight() {
-    applyTheme(EditorColorScheme.lightIdeaColorScheme());
-  }
-
-  private void applyTheme(EditorColorScheme theme) {
+  public void applyTheme(EditorColorScheme theme) {
     Objects.requireNonNull(theme);
     ui.setTheme(theme);
     editor.setTheme(theme);

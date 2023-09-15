@@ -121,6 +121,7 @@ public interface IdeaCodeColors {
     Color definitionBgColor = new Color("#40332B");
     Color scrollBarLine = new Color(85, 85, 85, 128);
     Color scrollBarBg = new Color(43, 43, 43, 0);
+    Color caretBg = new Color("#323232");
   }
 
   interface Dark {
@@ -134,6 +135,7 @@ public interface IdeaCodeColors {
     Color definitionBgColor = new Color("#402F33");
     Color scrollBarLine = new Color(107, 106, 107, 128);
     Color scrollBarBg = new Color(30, 31, 34, 0);
+    Color caretBg = new Color("#26282E");
   }
 
   interface Light {
@@ -147,5 +149,6 @@ public interface IdeaCodeColors {
     Color definitionBgColor = new Color("#FCE8F4");
     Color scrollBarLine = new Color(205, 205, 205, 153);
     Color scrollBarBg = new Color(255, 255, 255, 0);
+    Color caretBg = new Color("#F5F8FE");
   }
 }
