@@ -63,33 +63,44 @@ public class LineNumbersTexture implements Disposable {
     return startNum;
   }
 
+
   public void draw(
       V2i dXdY, int componentHeight, int scrollPos, int fullTexturesSize,
-      LineNumbersColors colorScheme, WglGraphics g
+      LineNumbersColors colorScheme, V4f[] colors, WglGraphics g
   ) {
+    // TODO: if bucket has no elements from `colors` array, do not render line by line
     int height = textureSize.y;
     int yPos = ((texturePos.y - (scrollPos % fullTexturesSize)) + fullTexturesSize) % fullTexturesSize;
 
     if ((yPos + height) <= componentHeight) {
-      rectSize.set(lineTexture.width(), height);
-      rectRegion.set(0, 0, lineTexture.width(), height);
 
-      draw(g, yPos, dXdY, colorScheme.textColor, colorScheme.bgColor);
+      rectSize.set(lineTexture.width(), lineHeight);
+      for (int i = 0; i < height / lineHeight; i++) {
+        rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
+        V4f c = colors[i] == null ? colorScheme.bgColor : colors[i];
+        draw(g, yPos + i * lineHeight, dXdY, colorScheme.textColor, c);
+      }
     } else {
       if (yPos + height > componentHeight && yPos < componentHeight) {
         int topHeight = Math.max(componentHeight - yPos, 0);
-        rectSize.set(lineTexture.width(), topHeight);
-        rectRegion.set(0, 0, lineTexture.width(), topHeight);
-
-        draw(g, yPos, dXdY, colorScheme.textColor, colorScheme.bgColor);
+        rectSize.set(lineTexture.width(), lineHeight);
+        for (int i = 0; i <= topHeight / lineHeight; i++) {
+          rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
+          V4f c = colors[i] == null ? colorScheme.bgColor : colors[i];
+          draw(g, yPos + i * lineHeight, dXdY, colorScheme.textColor, c);
+        }
       }
       if (yPos + height > fullTexturesSize) {
         height = (yPos + height) % fullTexturesSize;
         height = Math.min(height, componentHeight);
-        rectSize.set(lineTexture.width(), height);
-        rectRegion.set(0, scrollPos % lineTexture.height(), lineTexture.width(), height);
-
-        draw(g, 0, dXdY, colorScheme.textColor, colorScheme.bgColor);
+        rectSize.set(lineTexture.width(), lineHeight);
+        int y = scrollPos % lineTexture.height();
+        int offset = y % lineHeight;
+        for (int i = y / lineHeight; i < (y + height) / lineHeight; i++) {
+          rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
+          V4f c = colors[i] == null ? colorScheme.bgColor : colors[i];
+          draw(g, (i - y / lineHeight) * lineHeight - offset, dXdY, colorScheme.textColor, c);
+        }
       }
     }
   }

@@ -5,8 +5,11 @@ import org.sudu.experiments.demo.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 
+import java.sql.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class LineNumbersComponent implements Disposable {
@@ -22,6 +25,7 @@ public class LineNumbersComponent implements Disposable {
   private double devicePR;
 
   private final List<LineNumbersTexture> textures = new ArrayList<>();
+  private V4f[] colors = new V4f[0];
   private Canvas textureCanvas;
   private Canvas updateCanvas;
 
@@ -86,7 +90,7 @@ public class LineNumbersComponent implements Disposable {
       LineNumbersColors colorScheme, WglGraphics g
   ) {
     for (var text : textures) {
-      text.draw(pos, editorHeight, scrollPos, textures.size() * textureHeight, colorScheme, g);
+      text.draw(pos, editorHeight, scrollPos, textures.size() * textureHeight, colorScheme, colors, g);
     }
   }
 
@@ -133,7 +137,7 @@ public class LineNumbersComponent implements Disposable {
     }
     int newSize = textures.size();
     if (newSize == oldSize) return;
-
+    colors = Arrays.copyOf(colors, newSize * numberOfLines);
     updateToFirstLine(firstLine);
   }
 
