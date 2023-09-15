@@ -455,7 +455,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
           applyContrast ? EditorConst.CONTRAST : 0,
           editorWidth(), lineHeight, hScrollPos,
           colors, getSelLineSegment(i, lineContent),
-          definition, usages, caretLine == i);
+          definition, usages, caretLine == i && diffModel == null);
     }
 
     for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
@@ -463,7 +463,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection.isTailSelected(i);
       Color tailColor = colors.editor.lineTailContent;
-      boolean isCurrentLine = caretLine == i;
+      boolean isCurrentLine = caretLine == i && diffModel == null;
 
       if (isTailSelected) tailColor = colors.editor.selectionBg;
       else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
@@ -525,8 +525,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int editorBottom = size.y;
     int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
 
-    lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine, caretLine, g,
-        colors.lineNumber
+    lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine,
+        diffModel != null ? -1 : caretLine, g, colors.lineNumber
     );
   }
 
