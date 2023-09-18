@@ -48,6 +48,7 @@ public class DiffColors {
   }
 
   public V4f getDiffColor(EditorColorScheme colors, int elementType, int lineType) {
+    if (elementType != 0) lineType = elementType;
     return switch (lineType) {
       case LineDiff.DELETED -> colors.diff.deletedBgColor;
       case LineDiff.INSERTED -> colors.diff.insertedBgColor;
