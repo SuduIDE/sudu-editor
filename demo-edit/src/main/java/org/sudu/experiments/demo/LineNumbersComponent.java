@@ -3,6 +3,7 @@ package org.sudu.experiments.demo;
 import org.sudu.experiments.Canvas;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.Rect;
@@ -77,21 +78,21 @@ public class LineNumbersComponent implements Disposable {
       int editorHeight, int textHeight,
       int scrollPos,
       int firstLine, int lastLine, int caretLine,
-      WglGraphics g, LineNumbersColors colors
+      WglGraphics g, EditorColorScheme colors
   ) {
     initTextures(g, firstLine, editorHeight);
     update(firstLine);
     draw(scrollPos, textHeight, colors, g);
-    drawBottom(textHeight, editorHeight, colors, g);
+    drawBottom(textHeight, editorHeight, colors.lineNumber, g);
 
     if (firstLine <= caretLine && caretLine <= lastLine) {
-      drawCaretLine(scrollPos, caretLine, colors, g);
+      drawCaretLine(scrollPos, caretLine, colors.lineNumber, g);
     }
   }
 
   public void draw(
       int scrollPos, int editorHeight,
-      LineNumbersColors colorScheme, WglGraphics g
+      EditorColorScheme colorScheme, WglGraphics g
   ) {
     for (var text : textures) {
       text.draw(pos, editorHeight, scrollPos, textures.size() * textureHeight, colorScheme, colors, g);

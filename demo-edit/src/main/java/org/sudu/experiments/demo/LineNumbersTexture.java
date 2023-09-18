@@ -1,6 +1,8 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.demo.ui.colors.DiffColors;
+import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.ui.colors.LineNumbersColors;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.fonts.FontDesk;
@@ -67,19 +69,20 @@ public class LineNumbersTexture implements Disposable {
 
   public void draw(
       V2i dXdY, int componentHeight, int scrollPos, int fullTexturesSize,
-      LineNumbersColors colorScheme, byte[] colors, WglGraphics g
+      EditorColorScheme colorScheme, byte[] colors, WglGraphics g
   ) {
     // TODO: if bucket has no elements from `colors` array, do not render line by line
     int height = textureSize.y;
     int yPos = ((texturePos.y - (scrollPos % fullTexturesSize)) + fullTexturesSize) % fullTexturesSize;
 
+    LineNumbersColors lineNumber = colorScheme.lineNumber;
     if ((yPos + height) <= componentHeight) {
 
       rectSize.set(lineTexture.width(), lineHeight);
       for (int i = 0; i < height / lineHeight; i++) {
         rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-        V4f c = colors[i] == 0 ? colorScheme.bgColor : convertColor(colorScheme, colors[i]);
-        draw(g, yPos + i * lineHeight, dXdY, colorScheme.textColor, c);
+        V4f c = colors[i] == 0 ? lineNumber.bgColor : convertColor(colorScheme, colors[i]);
+        draw(g, yPos + i * lineHeight, dXdY, lineNumber.textColor, c);
       }
     } else {
       if (yPos + height > componentHeight && yPos < componentHeight) {
@@ -87,8 +90,8 @@ public class LineNumbersTexture implements Disposable {
         rectSize.set(lineTexture.width(), lineHeight);
         for (int i = 0; i <= topHeight / lineHeight; i++) {
           rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-          V4f c = colors[i] == 0 ? colorScheme.bgColor : convertColor(colorScheme, colors[i]);
-          draw(g, yPos + i * lineHeight, dXdY, colorScheme.textColor, c);
+          V4f c = colors[i] == 0 ? lineNumber.bgColor : convertColor(colorScheme, colors[i]);
+          draw(g, yPos + i * lineHeight, dXdY, lineNumber.textColor, c);
         }
       }
       if (yPos + height > fullTexturesSize) {
@@ -99,19 +102,20 @@ public class LineNumbersTexture implements Disposable {
         int offset = y % lineHeight;
         for (int i = y / lineHeight; i < (y + height) / lineHeight; i++) {
           rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-          V4f c = colors[i] == 0 ? colorScheme.bgColor : convertColor(colorScheme, colors[i]);
-          draw(g, (i - y / lineHeight) * lineHeight - offset, dXdY, colorScheme.textColor, c);
+          V4f c = colors[i] == 0 ? lineNumber.bgColor : convertColor(colorScheme, colors[i]);
+          draw(g, (i - y / lineHeight) * lineHeight - offset, dXdY, lineNumber.textColor, c);
         }
       }
     }
   }
 
-  private V4f convertColor(LineNumbersColors colorScheme, byte c) {
+  private V4f convertColor(EditorColorScheme colorScheme, byte c) {
+    final DiffColors diff = colorScheme.diff;
     return switch (c) {
-      case LineDiff.DELETED -> colorScheme.deletedBgColor;
-      case LineDiff.INSERTED -> colorScheme.insertedBgColor;
-      case LineDiff.EDITED -> colorScheme.editedBgColor;
-      default -> colorScheme.bgColor;
+      case LineDiff.DELETED -> diff.deletedBgColor;
+      case LineDiff.INSERTED -> diff.insertedBgColor;
+      case LineDiff.EDITED -> diff.editedBgColor;
+      default -> colorScheme.lineNumber.bgColor;
     };
   }
 

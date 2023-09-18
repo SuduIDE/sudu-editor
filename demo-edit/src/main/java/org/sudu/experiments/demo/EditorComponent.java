@@ -526,7 +526,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
 
     lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine,
-        diffModel != null ? -1 : caretLine, g, colors.lineNumber
+        diffModel != null ? -1 : caretLine, g, colors
     );
   }
 
