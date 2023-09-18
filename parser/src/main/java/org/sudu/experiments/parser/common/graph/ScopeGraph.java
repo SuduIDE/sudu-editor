@@ -2,15 +2,26 @@ package org.sudu.experiments.parser.common.graph;
 
 import org.sudu.experiments.parser.common.Name;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
+import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
+import org.sudu.experiments.parser.common.graph.node.ref.RefNode;
 import org.sudu.experiments.parser.common.graph.type.Type;
 
-import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class ScopeGraph {
 
   public ScopeNode root;
   public Map<String, Type> typeMap;
+
+  public void resolveAll(BiConsumer<RefNode, DeclNode> onResolve) {
+    resolveAllRec(root, onResolve);
+  }
+
+  private void resolveAllRec(ScopeNode current, BiConsumer<RefNode, DeclNode> onResolve) {
+    for (var ref: current.refList) current.resolve(ref, onResolve);
+    current.childList.forEach(child -> resolveAllRec(child, onResolve));
+  }
 
   public void makeInsertDiff(int pos, int len) {
     makeInsertDiffRec(root, pos, len);

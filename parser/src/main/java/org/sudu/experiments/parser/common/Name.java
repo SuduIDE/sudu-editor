@@ -6,11 +6,11 @@ import java.util.Objects;
 
 public class Name implements Comparable<Name> {
 
-  public String decl;
+  public String name;
   public int position;
 
-  public Name(String decl, int position) {
-    this.decl = decl;
+  public Name(String name, int position) {
+    this.name = name;
     this.position = position;
   }
 
@@ -23,12 +23,17 @@ public class Name implements Comparable<Name> {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Name name = (Name) o;
-    return position == name.position && Objects.equals(decl, name.decl);
+    return position == name.position && Objects.equals(this.name, name.name);
+  }
+
+  @Override
+  public String toString() {
+    return name;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(decl, position);
+    return Objects.hash(name, position);
   }
 
   @Override

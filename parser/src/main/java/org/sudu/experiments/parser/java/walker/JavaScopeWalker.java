@@ -297,15 +297,16 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     addMethodDecl(cbm.identifier(), cbm.typeTypeOrVoid(), cbm.formalParameters());
   }
 
-  @Override
-  public void enterConstructorDeclaration(JavaParser.ConstructorDeclarationContext ctx) {
+  public void handleConstructorDeclaration(JavaParser.ConstructorDeclarationContext ctx) {
     super.enterConstructorDeclaration(ctx);
     TerminalNode node = getNode(ctx.identifier());
     Name decl = Name.fromNode(node);
     String typeString = node.getText();
     Type type = scopeWalker.getType(typeString);
     List<ArgNode> args = getArgsTypes(ctx.formalParameters());
-    scopeWalker.enterMember(new CreatorNode(decl, type, args));
+    var creator = new CreatorNode(decl, type, args);
+    scopeWalker.enterMember(creator);
+    scopeWalker.addToRoot(creator);
   }
 
   private void addMethodDecl(
@@ -325,7 +326,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     return ctx.memberDeclaration() != null
         && (ctx.memberDeclaration().fieldDeclaration() != null
         || ctx.memberDeclaration().methodDeclaration() != null
-        || ctx.memberDeclaration().genericMethodDeclaration() != null);
+        || ctx.memberDeclaration().genericMethodDeclaration() != null
+        || ctx.memberDeclaration().constructorDeclaration() != null);
   }
 
   private boolean isMember(JavaParser.InterfaceBodyDeclarationContext ctx) {
@@ -340,6 +342,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     if (ctx.fieldDeclaration() != null) handleField(ctx.fieldDeclaration());
     else if (ctx.methodDeclaration() != null) handleMethod(ctx.methodDeclaration());
     else if (ctx.genericMethodDeclaration() != null) handleMethod(ctx.genericMethodDeclaration().methodDeclaration());
+    else if (ctx.constructorDeclaration() != null) handleConstructorDeclaration(ctx.constructorDeclaration());
     else throw new IllegalArgumentException();
   }
 

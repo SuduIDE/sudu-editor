@@ -24,7 +24,7 @@ public class QualifiedRefNode extends RefNode {
 
   @Override
   public String toString() {
-    return begin.decl.decl + "." + cont;
+    return begin.decl.name + "." + cont;
   }
 
   @Override

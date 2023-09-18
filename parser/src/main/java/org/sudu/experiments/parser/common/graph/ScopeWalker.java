@@ -116,6 +116,10 @@ public class ScopeWalker {
     currentNode = currentNode.parent;
   }
 
+  public void addToRoot(DeclNode decl) {
+    graph.root.declList.add(decl);
+  }
+
   private void addDecl(DeclNode node) {
     currentScope.declList.add(node);
   }

@@ -1,6 +1,6 @@
 package org.sudu.experiments.parser.common.graph.node;
 
-import org.sudu.experiments.parser.common.Name;
+import org.sudu.experiments.parser.common.TriFunction;
 import org.sudu.experiments.parser.common.graph.node.decl.CreatorNode;
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
 import org.sudu.experiments.parser.common.graph.node.decl.FieldNode;
@@ -9,10 +9,7 @@ import org.sudu.experiments.parser.common.graph.node.ref.*;
 import org.sudu.experiments.parser.common.graph.type.Type;
 
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,38 +37,31 @@ public class ScopeNode {
     return childList.get(i);
   }
 
-  public void resolve(RefNode ref, Consumer<Name> onResolve) {
-    DeclNode node = resolve(this, ref);
-    onResolve.accept(node.decl);
-  }
-
-  public DeclNode resolve(
-      ScopeNode refScope,
-      RefNode ref
-  ) {
-    var node = resolveRec(refScope, this, ref);
+  public DeclNode resolve(RefNode ref, BiConsumer<RefNode, DeclNode> onResolve) {
+    DeclNode node = resolveRec(this, ref, onResolve);
     if (node != null) ref.updateType(node.type);
+    onResolve.accept(ref, node);
     return node;
   }
 
   private static DeclNode resolveRec(
-      ScopeNode refScope,
       ScopeNode curScope,
-      RefNode ref
+      RefNode ref,
+      BiConsumer<RefNode, DeclNode> onResolve
   ) {
     if (ref instanceof CreatorCallNode creatorCall) {
-      resolveCallTypes(refScope, curScope, creatorCall);
-      return resolveCreatorCall(curScope, creatorCall);
+      resolveCallTypes(curScope, creatorCall, onResolve);
+      return resolveCreatorCall(curScope, creatorCall, onResolve);
     }
     if (ref instanceof MethodCallNode methodCall) {
-      resolveCallTypes(refScope, curScope, methodCall);
-      return resolveMethodCall(curScope, methodCall);
+      resolveCallTypes(curScope, methodCall, onResolve);
+      return resolveMethodCall(curScope, methodCall, onResolve);
     }
     if (ref instanceof QualifiedRefNode qualifiedRef) {
-      return resolveQualified(refScope, curScope, qualifiedRef);
+      return resolveQualified(curScope, qualifiedRef, onResolve);
     }
     if (ref instanceof FieldRefNode fieldRef) {
-      return resolveField(curScope, fieldRef);
+      return resolveField(curScope, fieldRef, onResolve);
     }
     for (var decl: curScope.getDeclarations()) {
       if (decl.match(ref)) return decl;
@@ -81,27 +71,28 @@ public class ScopeNode {
       }
     }
 
-    var resolved = resolveImport(curScope, ref, (_1, _2) -> resolveRec(refScope, _1, _2));
+    var resolved = resolveImport(curScope, ref, onResolve, ScopeNode::resolveRec);
     if (resolved != null) return resolved;
 
     return curScope.parent != null
-        ? resolveRec(refScope, curScope.parent, ref)
+        ? resolveRec(curScope.parent, ref, onResolve)
         : null;
   }
 
   private static void resolveCallTypes(
-      ScopeNode refScope,
       ScopeNode curScope,
-      MethodCallNode methodCall
+      MethodCallNode methodCall,
+      BiConsumer<RefNode, DeclNode> onResolve
   ) {
     for (var arg: methodCall.callArgs) {
-      if (!(arg instanceof TypeNode)) curScope.resolve(refScope, arg);
+      if (!(arg instanceof TypeNode)) curScope.resolve(arg, onResolve);
     }
   }
 
   private static CreatorNode resolveCreatorCall(
       ScopeNode curScope,
-      CreatorCallNode creatorCall
+      CreatorCallNode creatorCall,
+      BiConsumer<RefNode, DeclNode> onResolve
   ) {
     var root = curScope;
     while (root.parent != null) root = root.parent;
@@ -109,60 +100,65 @@ public class ScopeNode {
     for (var creator: root.getCreatorNodes()) {
       if (creator.matchCreatorCall(creatorCall)) return creator;
     }
-    return null;
+    CreatorNode importResolve = resolveImport(curScope, creatorCall, onResolve, ScopeNode::resolveCreatorCall);
+    if (importResolve != null) return importResolve;
+
+    return curScope.parent != null
+        ? resolveCreatorCall(curScope.parent, creatorCall, onResolve)
+        : null;
   }
 
   private static MethodNode resolveMethodCall(
       ScopeNode curScope,
-      MethodCallNode methodCall
+      MethodCallNode methodCall, BiConsumer<RefNode, DeclNode> onResolve
   ) {
     for (var methodNode: curScope.getMethodNodes()) {
       if (methodNode.matchMethodCall(methodCall)) return methodNode;
     }
-    MethodNode importResolve = resolveImport(curScope, methodCall, ScopeNode::resolveMethodCall);
+    MethodNode importResolve = resolveImport(curScope, methodCall, onResolve, ScopeNode::resolveMethodCall);
     if (importResolve != null) return importResolve;
 
     return curScope.parent != null
-        ? resolveMethodCall(curScope.parent, methodCall)
+        ? resolveMethodCall(curScope.parent, methodCall, onResolve)
         : null;
   }
 
   private static FieldNode resolveField(
       ScopeNode curScope,
-      FieldRefNode fieldRef
+      FieldRefNode fieldRef, BiConsumer<RefNode, DeclNode> onResolve
   ) {
     for (var fieldNode: curScope.getFieldNodes()) {
       if (fieldNode.matchField(fieldRef)) return fieldNode;
     }
-    FieldNode importResolve = resolveImport(curScope, fieldRef, ScopeNode::resolveField);
+    FieldNode importResolve = resolveImport(curScope, fieldRef, onResolve, ScopeNode::resolveField);
     if (importResolve != null) return importResolve;
 
     return curScope.parent != null
-        ? resolveField(curScope.parent, fieldRef)
+        ? resolveField(curScope.parent, fieldRef, onResolve)
         : null;
   }
 
   private static <D extends DeclNode, R extends RefNode> D resolveImport(
       ScopeNode curScope,
       R refNode,
-      BiFunction<ScopeNode, R, D> resolveFun
+      BiConsumer<RefNode, DeclNode> onResolve,
+      TriFunction<ScopeNode, R, BiConsumer<RefNode, DeclNode>, D> resolveFun
   ) {
     for (var importScope: curScope.importTypes) {
       if (importScope.associatedScope == null) continue;
-      var importResolve = resolveFun.apply(importScope.associatedScope, refNode);
+      var importResolve = resolveFun.apply(importScope.associatedScope, refNode, onResolve);
       if (importResolve != null) return importResolve;
     }
     return null;
   }
 
   private static DeclNode resolveQualified(
-      ScopeNode refScope,
       ScopeNode curScope,
-      QualifiedRefNode qualifiedRef
+      QualifiedRefNode qualifiedRef, BiConsumer<RefNode, DeclNode> onResolve
   ) {
-    var begin = curScope.resolve(refScope, qualifiedRef.begin);
+    var begin = curScope.resolve(qualifiedRef.begin, onResolve);
     if (begin == null || begin.type.associatedScope == null) return null;
-    return begin.type.associatedScope.resolve(refScope, qualifiedRef.cont);
+    return begin.type.associatedScope.resolve(qualifiedRef.cont, onResolve);
   }
 
   public List<ScopeNode> getChildren() {
