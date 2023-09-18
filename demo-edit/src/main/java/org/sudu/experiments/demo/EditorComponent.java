@@ -489,7 +489,14 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
     // Draw gap between line number and text for current line
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      if (caretLine == i) {
+      boolean isColoredLine = diffModel != null && i < diffModel.length && diffModel[i] != null;
+      V4f gapColor = isColoredLine
+          ? colors.diff.getDiffColor(colors, diffModel[i].type)
+          : diffModel == null
+          ? colors.editor.currentLineBg
+          : colors.editor.bg;
+
+      if (caretLine == i || isColoredLine) {
         vLineSize.x = mirrored
             ? vLineLeftDelta + scrollBarWidth()
             : vLineLeftDelta - vLineW;
@@ -499,7 +506,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
         g.drawRect(pos.x + dx2,
             pos.y + yPosition,
             vLineSize,
-            colors.editor.currentLineBg
+            gapColor
         );
       }
     }
