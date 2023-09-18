@@ -6,6 +6,7 @@ import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.demo.ui.Focusable;
 import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.worker.diff.DiffInfo;
+import org.sudu.experiments.demo.worker.diff.DiffRange;
 import org.sudu.experiments.demo.worker.diff.DiffUtils;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.*;
@@ -13,6 +14,8 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4i;
 import org.sudu.experiments.worker.ArrayView;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
