@@ -1,5 +1,6 @@
 package org.sudu.experiments.demo.ui.colors;
 
+import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V4f;
 
@@ -44,5 +45,19 @@ public class DiffColors {
         new Color("#C2D8F2"),
         new Color("#E7EFFA")
     );
+  }
+
+  public V4f getDiffColor(EditorColorScheme colors, int elementType, int lineType) {
+    return switch (lineType) {
+      case LineDiff.DELETED -> colors.diff.deletedBgColor;
+      case LineDiff.INSERTED -> colors.diff.insertedBgColor;
+      case LineDiff.EDITED ->
+          elementType == LineDiff.EDITED ? colors.diff.editedBgColor : colors.diff.editedBgPaleColor;
+      default -> colors.editor.bg;
+    };
+  }
+
+  public V4f getDiffColor(EditorColorScheme colors, int lineType) {
+    return getDiffColor(colors, 0, lineType);
   }
 }

@@ -71,7 +71,7 @@ public class LineNumbersComponent implements Disposable {
   }
 
   public void setColors(byte[] c) {
-    this.colors = c;
+    this.colors = c == null ? new byte[0] : c;
   }
 
   public void draw(

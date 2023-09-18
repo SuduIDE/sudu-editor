@@ -81,7 +81,7 @@ public class LineNumbersTexture implements Disposable {
       rectSize.set(lineTexture.width(), lineHeight);
       for (int i = 0; i < height / lineHeight; i++) {
         rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-        V4f c = colors[i] == 0 ? lineNumber.bgColor : convertColor(colorScheme, colors[i]);
+        V4f c = getItemColor(colorScheme, colors, i, lineNumber);
         draw(g, yPos + i * lineHeight, dXdY, lineNumber.textColor, c);
       }
     } else {
@@ -90,7 +90,7 @@ public class LineNumbersTexture implements Disposable {
         rectSize.set(lineTexture.width(), lineHeight);
         for (int i = 0; i <= topHeight / lineHeight; i++) {
           rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-          V4f c = colors[i] == 0 ? lineNumber.bgColor : convertColor(colorScheme, colors[i]);
+          V4f c = getItemColor(colorScheme, colors, i, lineNumber);
           draw(g, yPos + i * lineHeight, dXdY, lineNumber.textColor, c);
         }
       }
@@ -102,11 +102,17 @@ public class LineNumbersTexture implements Disposable {
         int offset = y % lineHeight;
         for (int i = y / lineHeight; i < (y + height) / lineHeight; i++) {
           rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-          V4f c = colors[i] == 0 ? lineNumber.bgColor : convertColor(colorScheme, colors[i]);
+          V4f c = getItemColor(colorScheme, colors, i, lineNumber);
           draw(g, (i - y / lineHeight) * lineHeight - offset, dXdY, lineNumber.textColor, c);
         }
       }
     }
+  }
+
+  private static V4f getItemColor(EditorColorScheme colorScheme, byte[] colors, int i, LineNumbersColors lineNumber) {
+    return i >= colors.length || colors[i] == 0
+        ? lineNumber.bgColor
+        : colorScheme.diff.getDiffColor(colorScheme, colors[i]);
   }
 
   private V4f convertColor(EditorColorScheme colorScheme, byte c) {

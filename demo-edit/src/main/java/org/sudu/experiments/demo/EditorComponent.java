@@ -450,12 +450,13 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       fullWidth = Math.max(fullWidth, nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * context.dpr));
       int yPosition = lineHeight * i - vScrollPos;
 
+      LineDiff diff = diffModel == null ? null : diffModel[i];
       line.draw(
           pos.y + yPosition, dx, g, tRegion, sizeTmp,
           applyContrast ? EditorConst.CONTRAST : 0,
           editorWidth(), lineHeight, hScrollPos,
           colors, getSelLineSegment(i, lineContent),
-          definition, usages, caretLine == i && diffModel == null);
+          definition, usages, caretLine == i, diffModel != null, diff);
     }
 
     for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
@@ -466,7 +467,11 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       boolean isCurrentLine = caretLine == i && diffModel == null;
 
       if (isTailSelected) tailColor = colors.editor.selectionBg;
+      else if (diffModel != null && i < diffModel.length && diffModel[i] != null) {
+        tailColor = (Color) colors.diff.getDiffColor(colors, diffModel[i].type);
+      }
       else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
+
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
           sizeTmp, hScrollPos, editorWidth(), tailColor);
 
@@ -1383,6 +1388,10 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (parseJob != null) {
       parsingTimeStart = System.currentTimeMillis();
       window().sendToWorker(this::onFileParsed, parseJob, model.document.getChars());
+    } else {
+      if (fullFileParseListener != null) {
+        fullFileParseListener.accept(this);
+      }
     }
   }
 
@@ -1690,13 +1699,18 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   public void setDiffModel(LineDiff[] lineDiffs) {
     diffModel = lineDiffs;
-    byte[] c = new byte[diffModel.length];
-    for (int i = 0; i < c.length; i++) {
-      c[i] = diffModel[i] != null ? (byte) diffModel[i].type : 0;
-    }
-    lineNumbers.setColors(c);
     System.out.println("EditorComponent::setDiffModel");
-    System.out.println("  diffModel.length = " + diffModel.length);
-    System.out.println("  model.document.length() = " + model.document.length());
+    if (diffModel != null) {
+      byte[] c = new byte[diffModel.length];
+      for (int i = 0; i < c.length; i++) {
+        c[i] = diffModel[i] != null ? (byte) diffModel[i].type : 0;
+      }
+      lineNumbers.setColors(c);
+      System.out.println("  diffModel.length = " + diffModel.length);
+      System.out.println("  model.document.length() = " + model.document.length());
+    } else {
+      System.out.println("  diffModel cleared ");
+      lineNumbers.setColors(null);
+    }
   }
 }

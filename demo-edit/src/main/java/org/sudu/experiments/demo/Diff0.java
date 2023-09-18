@@ -82,9 +82,17 @@ public class Diff0 extends Scene1 implements
   // paste handler
   @Override
   public Consumer<String> get() {
-    if (uiContext.isFocused(editor1)) return editor1::handleInsert;
-    if (uiContext.isFocused(editor2)) return editor2::handleInsert;
+    if (uiContext.isFocused(editor1)) return pasteHandler(editor1);
+    if (uiContext.isFocused(editor2)) return pasteHandler(editor2);
     return null;
+  }
+
+  private Consumer<String> pasteHandler(EditorComponent editor) {
+    return s -> {
+      editor.handleInsert(s);
+      editor.setDiffModel(null);
+      editor.parseFullFile();
+    };
   }
 
   private void leftScrollChanged(int ignored) {

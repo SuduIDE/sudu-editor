@@ -3,6 +3,7 @@ package org.sudu.experiments.demo;
 import org.sudu.experiments.*;
 import org.sudu.experiments.demo.ui.colors.CodeElementColor;
 import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
+import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Numbers;
@@ -126,7 +127,9 @@ class CodeLineRenderer implements Disposable {
       V2i selectedSegment,
       CodeElement def,
       List<CodeElement> usages,
-      boolean isCurrentLine
+      boolean isCurrentLine,
+      boolean isDiff,
+      LineDiff diff
   ) {
     if (lineTextures.isEmpty()) return;
     if (numOfTextures == 0) return;
@@ -159,10 +162,16 @@ class CodeLineRenderer implements Disposable {
       boolean isFullUnselected = isNotSelected || isFullUnselected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
       boolean isFullSelected = !isNotSelected && isFullSelected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
 
-      Color elemBgColor = null;
-      if (isCurrentLine) elemBgColor = colors.editor.currentLineBg;
+      V4f elemBgColor = null;
+      if (isCurrentLine && !isDiff) elemBgColor = colors.editor.currentLineBg;
       if (e == def) elemBgColor = colors.editor.definitionBg;
       if (usages.contains(e)) elemBgColor = colors.editor.usageBg;
+      if (diff != null) {
+        int elementType = diff.elementTypes == null
+            ? 0 : i < diff.elementTypes.length
+            ? diff.elementTypes[i] : 0;
+        elemBgColor = colors.diff.getDiffColor(colors, elementType, diff.type);
+      }
 
       if (isFullSelected || isFullUnselected) {
         region.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
@@ -208,7 +217,7 @@ class CodeLineRenderer implements Disposable {
       int lineHeight, EditorColorScheme colors,
       GL.Texture texture, CodeElement e,
       int drawWidth, int pre, int post, int regionX,
-      Color elemBgColor
+      V4f elemBgColor
   ) {
     region.set(regionX, 0, drawWidth - pre, lineHeight);
     size.set(drawWidth - pre, lineHeight);
@@ -226,13 +235,13 @@ class CodeLineRenderer implements Disposable {
   private void drawWord(
       WglGraphics g, int xPos, int yPos, V2i size, V4f region,
       CodeElement e, GL.Texture texture,
-      float contrast, EditorColorScheme colors, boolean isSelected, Color elemBgColor
+      float contrast, EditorColorScheme colors, boolean isSelected, V4f elemBgColor
   ) {
     if (size.x == 0 || size.y == 0) return;
     if (region.w == 0 || region.z == 0) return;
 
     CodeElementColor c = colors.codeElement[e.color];
-    Color bgColor = isSelected ? colors.editor.selectionBg : Objects.requireNonNullElse(elemBgColor, colors.bgColor(c.colorB));
+    V4f bgColor = isSelected ? colors.editor.selectionBg : Objects.requireNonNullElse(elemBgColor, colors.bgColor(c.colorB));
     g.drawText(xPos, yPos, size,
         region, texture, c.colorF, bgColor,
         bw ? 0 : contrast);
