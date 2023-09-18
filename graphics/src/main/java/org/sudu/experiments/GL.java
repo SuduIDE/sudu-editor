@@ -359,6 +359,9 @@ public interface GL {
         String message = h + gl.getShaderInfoLog(shader);
         gl.deleteShader(shader);
         System.out.println(message);
+        System.err.println("----");
+        System.err.println(source);
+        System.err.println("----");
         throw new RuntimeException(message);
       }
       return shader;

@@ -102,7 +102,10 @@ public interface Shaders {
             outColor = vec4(mix(uColorB.rgb, uColorF.rgb, value), 1.0);
           }""";
 
-  String vsCode2d = shaderHeader +
+  String screenPixelPos = "vec2 pixelPos(vec2 pos, vec2 resolution) {" +
+      "  return vec2((pos.x + 1.0) * 0.5 * resolution.x, (1.0 - pos.y) * 0.5 * resolution.y); }\n";
+
+  String vsCode2d = shaderHeader + psShaderPrecision + screenPixelPos +
       """
           uniform vec4 uSizePos;
           uniform vec2 uResolution;
@@ -110,13 +113,13 @@ public interface Shaders {
           out vec2 outScreenPos;
           out vec2 textureUV;
           void main() {
-            vec4 pos = vec4(vPos.x * uSizePos.x + uSizePos.z, vPos.y * uSizePos.y + uSizePos.w, 0.0, 1.0);
-            outScreenPos = (pos.xy + 1.0) * 0.5 * uResolution;
+            vec2 pos = vec2(vPos.x * uSizePos.x + uSizePos.z, vPos.y * uSizePos.y + uSizePos.w);
+            outScreenPos = pixelPos(pos, uResolution.xy);
             textureUV = vTex;
-            gl_Position = pos;
+            gl_Position = vec4(pos, 0.0, 1.0);
           }""";
 
-  String vsCode2dTexTransform = shaderHeader +
+  String vsCode2dTexTransform = shaderHeader + psShaderPrecision + screenPixelPos +
       """
           uniform vec4 uSizePos;
           uniform vec2 uResolution;
@@ -125,10 +128,10 @@ public interface Shaders {
           out vec2 outScreenPos;
           out vec2 textureUV;
           void main() {
-            vec4 pos = vec4(vPos.x * uSizePos.x + uSizePos.z, vPos.y * uSizePos.y + uSizePos.w, 0.0, 1.0);
-            outScreenPos = (pos.xy + 1.0) * 0.5 * uResolution;
+            vec2 pos = vec2(vPos.x * uSizePos.x + uSizePos.z, vPos.y * uSizePos.y + uSizePos.w);
+            outScreenPos = pixelPos(pos, uResolution.xy);
             textureUV = uTexTransform.xy + vTex * uTexTransform.zw;
-            gl_Position = pos;
+            gl_Position = vec4(pos, 0.0, 1.0);
           }""";
 
   class Shader2d extends GL.Program {
@@ -177,6 +180,45 @@ public interface Shaders {
   class ShowUV extends Shader2d {
     ShowUV(GLApi.Context gl) {
       super(gl, vsCode2d, psCodeShowUV, GL.VertexLayout.POS2_UV2);
+    }
+  }
+
+  String psCodeLineFill = shaderHeader + psShaderPrecision +
+      """
+          layout(location = 0) out vec4 outColor;
+          uniform vec4 uColor1, uColor2;
+          uniform vec4 uPoints;
+          in vec2 outScreenPos;
+
+          void main() {
+            vec2 pt = outScreenPos;
+            vec2 p1 = uPoints.xy;
+            vec2 p2 = uPoints.zw;
+            float p12d = distance(p1, p2);
+            float sd = ((p2.x - p1.x) * (p1.y - pt.y) - (p1.x - pt.x) * (p2.y - p1.y)) / p12d;
+            float t = clamp(sd / 1.0 + .5, 0.0, 1.0);
+            outColor = mix(uColor1, uColor2, t);
+          }""";
+
+  class LineFill extends Shader2d {
+    final GLApi.UniformLocation uColor1;
+    final GLApi.UniformLocation uColor2;
+    final GLApi.UniformLocation uPoints;
+
+    LineFill(GLApi.Context gl) {
+      super(gl, vsCode2d, psCodeLineFill, GL.VertexLayout.POS2_UV2);
+      uColor1 = gl.getUniformLocation(program, "uColor1");
+      uColor2 = gl.getUniformLocation(program, "uColor2");
+      uPoints = gl.getUniformLocation(program, "uPoints");
+    }
+
+    void setColors(GLApi.Context gl, V4f color1, V4f color2) {
+      gl.uniform4f(uColor1, color1);
+      gl.uniform4f(uColor2, color2);
+    }
+
+    void setPoints(GLApi.Context gl, V2i p1, V2i p2) {
+      gl.uniform4f(uPoints, p1.x, p1.y, p2.x, p2.y);
     }
   }
 

@@ -32,6 +32,7 @@ public class TestSceneSelector {
       case "TextureRegionTestScene" -> TextureRegionTestScene::new;
       case "ClipboardTest" -> ClipboardTest::new;
       case "CodiconDemo" -> CodiconDemo::new;
+      case "LineShaderDemo" -> LineShaderDemo::new;
       case "WindowDemo" -> WindowDemo::new;
 
 //      case "#wasm" -> new WasmDemo(api);
