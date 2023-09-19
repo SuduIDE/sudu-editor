@@ -6,7 +6,6 @@ import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.demo.ui.Focusable;
 import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.worker.diff.DiffInfo;
-import org.sudu.experiments.demo.worker.diff.DiffRange;
 import org.sudu.experiments.demo.worker.diff.DiffUtils;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.*;
@@ -14,8 +13,6 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4i;
 import org.sudu.experiments.worker.ArrayView;
 
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
@@ -26,8 +23,7 @@ public class Diff0 extends Scene1 implements
     EditorUi.FontApi,
     InputListeners.ScrollHandler,
     InputListeners.CopyHandler,
-    InputListeners.PasteHandler
-{
+    InputListeners.PasteHandler {
 
   final EditorComponent editor1;
   final EditorComponent editor2;
@@ -111,14 +107,21 @@ public class Diff0 extends Scene1 implements
   }
 
   private void sync(EditorComponent from, EditorComponent to) {
-    int delta = 10 * from.lineHeight;
+    if (this.diffModel == null || this.diffModel.ranges == null) return;
+    boolean isLeft = from == editor1;
 
-    if (Math.abs(from.vScrollPos - to.vScrollPos) > delta) {
-      to.setVScrollPosSilent(Math.max(from.vScrollPos - delta,
-          Math.min(to.vScrollPos, from.vScrollPos + delta)));
-    }
+    int fromStartLine = Math.min(from.vScrollPos / from.lineHeight, from.model.document.length() - 1);
+    int fromLastLine = Math.min((from.vScrollPos + from.editorHeight() - 1) / from.lineHeight, from.model.document.length() - 1);
+    int syncLine = (fromLastLine + fromStartLine) / 2;
+    int linesDelta = syncLine - fromStartLine;
 
-    to.setHScrollPosSilent(from.hScrollPos);
+    int fromRangeInd = diffModel.rangeBinSearch(syncLine, isLeft);
+    var fromRange = diffModel.ranges[fromRangeInd];
+
+    int rangeDelta = syncLine - (isLeft ? fromRange.fromL : fromRange.fromR);
+    int scrollDelta = from.vScrollPos - fromStartLine * from.lineHeight;
+    int toRangeStart = isLeft ? fromRange.fromR : fromRange.fromL;
+    to.setVScrollPosSilent((toRangeStart + rangeDelta - linesDelta) * to.lineHeight + scrollDelta);
   }
 
   private void openFile(FileHandle handle) {

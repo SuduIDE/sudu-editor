@@ -1,8 +1,7 @@
 package org.sudu.experiments.demo.worker.diff;
 
 import org.sudu.experiments.diff.LineDiff;
-
-import java.util.Arrays;
+import org.sudu.experiments.math.Numbers;
 
 public class DiffInfo {
 
@@ -32,6 +31,6 @@ public class DiffInfo {
       else if (midFrom > lineKey) high = mid - 1;
       else return mid;
     }
-    return low;
+    return Numbers.clamp(0, low, ranges.length - 1);
   }
 }
