@@ -76,11 +76,12 @@ public class LineNumbersComponent implements Disposable {
 
   public void draw(
       int editorHeight, int textHeight,
-      int scrollPos,
-      int firstLine, int lastLine, int caretLine,
-      WglGraphics g, EditorColorScheme colors
+      int scrollPos, int firstLine,
+      int lastLine, int caretLine,
+      WglGraphics g, EditorColorScheme colors,
+      int docLength
   ) {
-    initTextures(g, firstLine, editorHeight);
+    initTextures(g, firstLine, editorHeight, docLength);
     update(firstLine);
     draw(scrollPos, textHeight, colors, g);
     drawBottom(textHeight, editorHeight, colors.lineNumber, g);
@@ -122,11 +123,12 @@ public class LineNumbersComponent implements Disposable {
   }
 
   public void initTextures(WglGraphics g, int editorHeight) {
-    initTextures(g, 0, editorHeight);
+    initTextures(g, 0, editorHeight, editorHeight / lineHeight);
   }
 
-  public void initTextures(WglGraphics g, int firstLine, int editorHeight) {
+  public void initTextures(WglGraphics g, int firstLine, int editorHeight, int docLength) {
     int oldSize = textures.size();
+    colors = Arrays.copyOf(colors, docLength);
 
     while (textures.size() * textureHeight <= editorHeight + lineHeight) {
       int number = textures.size();
@@ -142,7 +144,6 @@ public class LineNumbersComponent implements Disposable {
     }
     int newSize = textures.size();
     if (newSize == oldSize) return;
-    colors = Arrays.copyOf(colors, newSize * numberOfLines);
     updateToFirstLine(firstLine);
   }
 

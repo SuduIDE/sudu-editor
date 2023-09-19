@@ -1,5 +1,6 @@
 package org.sudu.experiments.demo;
 
+import org.sudu.experiments.Debug;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.demo.ui.Focusable;
@@ -184,8 +185,11 @@ public class Diff0 extends Scene1 implements
   @Override
   public void paint() {
     super.paint();
+//    Debug.consoleInfo("Editor 1 paint:");
     editor1.paint();
+//    Debug.consoleInfo("Editor 2 paint:");
     editor2.paint();
+//    Debug.consoleInfo("================================");
     ui.paint();
   }
 

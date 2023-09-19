@@ -77,21 +77,30 @@ public class LineNumbersTexture implements Disposable {
 
     LineNumbersColors lineNumber = colorScheme.lineNumber;
     if ((yPos + height) <= componentHeight) {
-
       rectSize.set(lineTexture.width(), lineHeight);
+
       for (int i = 0; i < height / lineHeight; i++) {
         rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-        V4f c = getItemColor(colorScheme, colors, i, lineNumber);
+        V4f c = getItemColor(colorScheme, colors, texturePos.y / lineHeight + i, lineNumber);
         draw(g, yPos + i * lineHeight, dXdY, lineNumber.textColor, c);
       }
     } else {
       if (yPos + height > componentHeight && yPos < componentHeight) {
         int topHeight = Math.max(componentHeight - yPos, 0);
         rectSize.set(lineTexture.width(), lineHeight);
-        for (int i = 0; i <= topHeight / lineHeight; i++) {
+
+        for (int i = 0; i < topHeight / lineHeight; i++) {
           rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-          V4f c = getItemColor(colorScheme, colors, i, lineNumber);
+          V4f c = getItemColor(colorScheme, colors, texturePos.y / lineHeight + i, lineNumber);
           draw(g, yPos + i * lineHeight, dXdY, lineNumber.textColor, c);
+        }
+//        Debug.consoleInfo("2: [" + 0 + "," + (topHeight / lineHeight - (topHeight % lineHeight != 0 ? 0 : 1)) + "]");
+        if (topHeight % lineHeight != 0) {
+          rectSize.set(lineTexture.width(), topHeight % lineHeight);
+          rectRegion.set(0, topHeight - topHeight % lineHeight, lineTexture.width(), topHeight % lineHeight);
+          V4f c = getItemColor(colorScheme, colors, (texturePos.y + topHeight) / lineHeight, lineNumber);
+          draw(g, yPos + topHeight - topHeight % lineHeight, dXdY,
+              lineNumber.textColor, c);
         }
       }
       if (yPos + height > fullTexturesSize) {
@@ -99,11 +108,20 @@ public class LineNumbersTexture implements Disposable {
         height = Math.min(height, componentHeight);
         rectSize.set(lineTexture.width(), lineHeight);
         int y = scrollPos % lineTexture.height();
-        int offset = y % lineHeight;
-        for (int i = y / lineHeight; i < (y + height) / lineHeight; i++) {
-          rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-          V4f c = getItemColor(colorScheme, colors, i, lineNumber);
-          draw(g, (i - y / lineHeight) * lineHeight - offset, dXdY, lineNumber.textColor, c);
+        if (y % lineHeight != 0) y--;
+        int yLine = y / lineHeight;
+//        Debug.consoleInfo("3: [" + yLine + "," + (yLine + height / lineHeight - (height % lineHeight != 0 ? 0 : 1)) + "]");
+        for (int i = yLine; i < yLine + height / lineHeight; i++) {
+          rectRegion.set(0, y + (i - yLine) * lineHeight, lineTexture.width(), lineHeight);
+          V4f c = getItemColor(colorScheme, colors, texturePos.y / lineHeight + i, lineNumber);
+          draw(g, (i - yLine) * lineHeight, dXdY, lineNumber.textColor, c);
+        }
+        if (height % lineHeight != 0) {
+          rectSize.set(lineTexture.width(), height % lineHeight);
+          rectRegion.set(0, y + height - height % lineHeight, lineTexture.width(), height % lineHeight);
+          V4f c = getItemColor(colorScheme, colors, (texturePos.y + height) / lineHeight, lineNumber);
+          draw(g, height - height % lineHeight, dXdY,
+              lineNumber.textColor, c);
         }
       }
     }
