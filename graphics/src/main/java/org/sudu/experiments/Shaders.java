@@ -187,29 +187,34 @@ public interface Shaders {
       """
           layout(location = 0) out vec4 outColor;
           uniform vec4 uColor1, uColor2;
-          uniform vec4 uPoints;
+          uniform vec4 uPoints1, uPoints2;
           in vec2 outScreenPos;
 
           void main() {
             vec2 pt = outScreenPos;
-            vec2 p1 = uPoints.xy;
-            vec2 p2 = uPoints.zw;
-            float p12d = distance(p1, p2);
-            float sd = ((p2.x - p1.x) * (p1.y - pt.y) - (p1.x - pt.x) * (p2.y - p1.y)) / p12d;
-            float t = clamp(sd / 1.0 + .5, 0.0, 1.0);
-            outColor = mix(uColor1, uColor2, t);
+            vec2 p11 = uPoints1.xy, p12 = uPoints1.zw;
+            vec2 p21 = uPoints2.xy, p22 = uPoints2.zw;
+            float dist1 = distance(p11, p12);
+            float dist2 = distance(p21, p22);
+            float sd1 = ((p12.x - p11.x) * (p11.y - pt.y)
+                      - (p11.x - pt.x) * (p12.y - p11.y)) / dist1;
+            float sd2 = ((p21.x - p22.x) * (p21.y - pt.y)
+                      - (p21.x - pt.x) * (p21.y - p22.y)) / dist2;
+            float t1 = clamp(sd1 / 1. + .5, 0.0, 1.0);
+            float t2 = clamp(sd2 / 1. + .5, 0.0, 1.0);
+            outColor = mix(uColor1, uColor2, t1 + t2 - t1 * t2);
           }""";
 
   class LineFill extends Shader2d {
-    final GLApi.UniformLocation uColor1;
-    final GLApi.UniformLocation uColor2;
-    final GLApi.UniformLocation uPoints;
+    final GLApi.UniformLocation uColor1, uColor2;
+    final GLApi.UniformLocation uPoints1, uPoints2;
 
     LineFill(GLApi.Context gl) {
       super(gl, vsCode2d, psCodeLineFill, GL.VertexLayout.POS2_UV2);
       uColor1 = gl.getUniformLocation(program, "uColor1");
       uColor2 = gl.getUniformLocation(program, "uColor2");
-      uPoints = gl.getUniformLocation(program, "uPoints");
+      uPoints1 = gl.getUniformLocation(program, "uPoints1");
+      uPoints2 = gl.getUniformLocation(program, "uPoints2");
     }
 
     void setColors(GLApi.Context gl, V4f color1, V4f color2) {
@@ -217,8 +222,9 @@ public interface Shaders {
       gl.uniform4f(uColor2, color2);
     }
 
-    void setPoints(GLApi.Context gl, V2i p1, V2i p2) {
-      gl.uniform4f(uPoints, p1.x, p1.y, p2.x, p2.y);
+    void setPoints(GLApi.Context gl, V2i p11, V2i p12, V2i p21, V2i p22) {
+      gl.uniform4f(uPoints1, p11.x, p11.y, p12.x, p12.y);
+      gl.uniform4f(uPoints2, p21.x, p21.y, p22.x, p22.y);
     }
   }
 
