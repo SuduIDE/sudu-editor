@@ -7,10 +7,12 @@ In order to build it one need to
 1. Clone and build TeaVM compiler locally:
 
     ```
-    git clone https://github.com/konsoletyper/teavm.git
+    git clone https://github.com/kirillp/teavm.git
     cd teavm 
-    gradle publishToMavenLocal -x test
+    ./gradlew publishToMavenLocal -x test
     ```
+
+Note: we don't use git clone https://github.com/konsoletyper/teavm.git due to a chance of incompatible changes in master of TeaVM.
 
 2. Also, you need to get the latest emscripten for wasm compilation:
 

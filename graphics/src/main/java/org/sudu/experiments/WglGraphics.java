@@ -21,6 +21,7 @@ public abstract class WglGraphics {
   final Shaders.TextureShowAlpha shTextureShowAlpha;
   final Shaders.Text shText;
   final Shaders.GrayIcon shGrayIcon;
+  final Shaders.LineFill shLineFill;
   final Shaders.Shader2d[] all2dShaders;
   private GL.Mesh rectangle;
 
@@ -57,6 +58,7 @@ public abstract class WglGraphics {
         shTextureShowAlpha = new Shaders.TextureShowAlpha(gl),
         shText = new Shaders.Text(gl),
         shGrayIcon = new Shaders.GrayIcon(gl),
+        shLineFill = new Shaders.LineFill(gl)
     };
 
     gl.checkError("WebGraphics::ctor finish");
@@ -168,6 +170,18 @@ public abstract class WglGraphics {
     setShader(shConstColor);
     shConstColor.setPosition(gl, x, y, size, clientRect);
     shConstColor.setColor(gl, color);
+    drawRect();
+  }
+
+  public void drawLineFill(
+      int x, int y, V2i size,
+      V2i p11, V2i p12, V2i p21, V2i p22,
+      V4f color1, V4f color2
+  ) {
+    setShader(shLineFill);
+    shLineFill.setPosition(gl, x, y, size, clientRect);
+    shLineFill.setPoints(gl, p11, p12, p21, p22);
+    shLineFill.setColors(gl, color1, color2);
     drawRect();
   }
 

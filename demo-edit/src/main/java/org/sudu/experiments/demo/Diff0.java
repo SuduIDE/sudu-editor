@@ -1,6 +1,6 @@
 package org.sudu.experiments.demo;
 
-import org.sudu.experiments.Debug;
+import org.sudu.experiments.DprUtil;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.demo.ui.Focusable;
@@ -10,6 +10,7 @@ import org.sudu.experiments.demo.worker.diff.DiffUtils;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4i;
 import org.sudu.experiments.worker.ArrayView;
 
 import java.util.Objects;
@@ -30,6 +31,8 @@ public class Diff0 extends Scene1 implements
   final EditorUi ui;
   private int modelFlags;
   private DiffInfo diffModel;
+  static final float middleLineThicknessDp = 10;
+  private final V4i middleLine = new V4i();
 
   public Diff0(SceneApi api) {
     super(api);
@@ -191,6 +194,14 @@ public class Diff0 extends Scene1 implements
     editor2.paint();
 //    Debug.consoleInfo("================================");
     ui.paint();
+
+    // Draw middle line
+    V2i size = uiContext.v2i1;
+    size.set(middleLine.z, middleLine.w);
+    uiContext.graphics.drawRect(
+        middleLine.x, middleLine.y,
+        size,
+        ui.theme.editor.bg);
   }
 
   protected String[] menuFonts() { return Fonts.editorFonts(false); }
@@ -221,10 +232,12 @@ public class Diff0 extends Scene1 implements
 
   protected void layout(V2i newSize, float dpr) {
     V2i pos = new V2i();
-    V2i size = new V2i(newSize.x / 2, newSize.y);
+    int px = DprUtil.toPx(middleLineThicknessDp, dpr);
+    V2i size = new V2i(newSize.x / 2 - px / 2, newSize.y);
     editor1.setPos(pos, size, dpr);
-    pos.x = newSize.x - newSize.x / 2;
+    pos.x = newSize.x - newSize.x / 2 + px / 2;
     editor2.setPos(pos, size, dpr);
+    middleLine.set(size.x, pos.y, pos.x - size.x, size.y);
   }
 
   public void applyTheme(EditorColorScheme theme) {
