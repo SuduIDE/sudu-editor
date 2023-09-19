@@ -348,7 +348,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   int editorWidth() {
     int t = mirrored ? scrollBarWidth() + vLineLeftDelta : 0;
-    return size.x - vLineX - t;
+    // Minimal editor width is 81
+    return Math.max(81, size.x - vLineX - t);
   }
 
   int lineNumbersWidth() {
