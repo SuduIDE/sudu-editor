@@ -9,7 +9,7 @@ In order to build it one need to
     ```
     git clone https://github.com/kirillp/teavm.git
     cd teavm 
-    gradle publishToMavenLocal -x test
+    ./gradlew publishToMavenLocal -x test
     ```
 
 Note: we don't use git clone https://github.com/konsoletyper/teavm.git due to a chance of incompatible changes in master of TeaVM.
