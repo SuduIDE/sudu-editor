@@ -23,8 +23,7 @@ public class Diff0 extends Scene1 implements
     EditorUi.FontApi,
     InputListeners.ScrollHandler,
     InputListeners.CopyHandler,
-    InputListeners.PasteHandler
-{
+    InputListeners.PasteHandler {
 
   final EditorComponent editor1;
   final EditorComponent editor2;
@@ -108,14 +107,21 @@ public class Diff0 extends Scene1 implements
   }
 
   private void sync(EditorComponent from, EditorComponent to) {
-    int delta = 10 * from.lineHeight;
+    if (this.diffModel == null || this.diffModel.ranges == null) return;
+    boolean isLeft = from == editor1;
 
-    if (Math.abs(from.vScrollPos - to.vScrollPos) > delta) {
-      to.setVScrollPosSilent(Math.max(from.vScrollPos - delta,
-          Math.min(to.vScrollPos, from.vScrollPos + delta)));
-    }
+    int fromStartLine = Math.min(from.vScrollPos / from.lineHeight, from.model.document.length() - 1);
+    int fromLastLine = Math.min((from.vScrollPos + from.editorHeight() - 1) / from.lineHeight, from.model.document.length() - 1);
+    int syncLine = (fromLastLine + fromStartLine) / 2;
+    int linesDelta = syncLine - fromStartLine;
 
-    to.setHScrollPosSilent(from.hScrollPos);
+    int fromRangeInd = diffModel.rangeBinSearch(syncLine, isLeft);
+    var fromRange = diffModel.ranges[fromRangeInd];
+
+    int rangeDelta = syncLine - (isLeft ? fromRange.fromL : fromRange.fromR);
+    int scrollDelta = from.vScrollPos - fromStartLine * from.lineHeight;
+    int toRangeStart = isLeft ? fromRange.fromR : fromRange.fromL;
+    to.setVScrollPosSilent((toRangeStart + rangeDelta - linesDelta) * to.lineHeight + scrollDelta);
   }
 
   private void openFile(FileHandle handle) {
