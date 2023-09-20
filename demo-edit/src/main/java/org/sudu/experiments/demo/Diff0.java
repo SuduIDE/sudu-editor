@@ -110,18 +110,18 @@ public class Diff0 extends Scene1 implements
     if (this.diffModel == null || this.diffModel.ranges == null) return;
     boolean isLeft = from == editor1;
 
-    int fromStartLine = Math.min(from.vScrollPos / from.lineHeight, from.model.document.length() - 1);
-    int fromLastLine = Math.min((from.vScrollPos + from.editorHeight() - 1) / from.lineHeight, from.model.document.length() - 1);
-    int syncLine = (fromLastLine + fromStartLine) / 2;
-    int linesDelta = syncLine - fromStartLine;
+    int fromFirstLine = from.getFirstLine();
+    int fromLastLine = from.getLastLine();
+    int syncLine = (fromLastLine + fromFirstLine) / 2;
+    int linesDelta = syncLine - fromFirstLine;
 
-    int fromRangeInd = diffModel.rangeBinSearch(syncLine, isLeft);
-    var fromRange = diffModel.ranges[fromRangeInd];
+    var fromRange = diffModel.range(syncLine, isLeft);
 
     int rangeDelta = syncLine - (isLeft ? fromRange.fromL : fromRange.fromR);
-    int scrollDelta = from.vScrollPos - fromStartLine * from.lineHeight;
+    int scrollDelta = from.vScrollPos - fromFirstLine * from.lineHeight;
     int toRangeStart = isLeft ? fromRange.fromR : fromRange.fromL;
-    to.setVScrollPosSilent((toRangeStart + rangeDelta - linesDelta) * to.lineHeight + scrollDelta);
+    int toNewLine = (toRangeStart + rangeDelta - linesDelta);
+    to.setVScrollPosSilent(toNewLine * to.lineHeight + scrollDelta);
   }
 
   private void openFile(FileHandle handle) {
