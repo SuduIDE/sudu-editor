@@ -447,12 +447,13 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       fullWidth = Math.max(fullWidth, nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * context.dpr));
       int yPosition = lineHeight * i - vScrollPos;
 
+      LineDiff diff = diffModel == null ? null : diffModel[i];
       line.draw(
           pos.y + yPosition, dx, g, tRegion, sizeTmp,
           applyContrast ? EditorConst.CONTRAST : 0,
           editorWidth(), lineHeight, hScrollPos,
           colors, getSelLineSegment(i, lineContent),
-          definition, usages, caretLine == i);
+          definition, usages, caretLine == i, diffModel != null, diff);
     }
 
     for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
@@ -460,10 +461,14 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection.isTailSelected(i);
       Color tailColor = colors.editor.lineTailContent;
-      boolean isCurrentLine = caretLine == i;
+      boolean isCurrentLine = caretLine == i && diffModel == null;
 
       if (isTailSelected) tailColor = colors.editor.selectionBg;
+      else if (diffModel != null && i < diffModel.length && diffModel[i] != null) {
+        tailColor = (Color) colors.diff.getDiffColor(colors, diffModel[i].type);
+      }
       else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
+
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
           sizeTmp, hScrollPos, editorWidth(), tailColor);
     }
@@ -484,7 +489,14 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
     // Draw gap between line number and text for current line
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      if (caretLine == i) {
+      boolean isColoredLine = diffModel != null && i < diffModel.length && diffModel[i] != null;
+      V4f gapColor = isColoredLine
+          ? colors.diff.getDiffColor(colors, diffModel[i].type)
+          : diffModel == null
+          ? colors.editor.currentLineBg
+          : colors.editor.bg;
+
+      if (caretLine == i || isColoredLine) {
         vLineSize.x = mirrored
             ? vLineLeftDelta + scrollBarWidth()
             : vLineLeftDelta - vLineW;
@@ -494,7 +506,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
         g.drawRect(pos.x + dx2,
             pos.y + yPosition,
             vLineSize,
-            colors.editor.currentLineBg
+            gapColor
         );
       }
     }
@@ -526,8 +538,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int editorBottom = size.y;
     int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
 
-    lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine, caretLine, g,
-        colors.lineNumber
+    lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine,
+        diffModel != null ? -1 : caretLine, g, colors, model.document.length()
     );
   }
 
@@ -541,7 +553,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   private void updateLineNumbersFont() {
     lineNumbers.setFont(fonts[0], lineHeight, g);
-    lineNumbers.initTextures(g, getFirstLine(), editorHeight());
+    lineNumbers.initTextures(g, getFirstLine(), editorHeight(), model.document.length());
   }
 
   private CodeLineRenderer lineRenderer(int i) {
@@ -1384,6 +1396,10 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (parseJob != null) {
       parsingTimeStart = System.currentTimeMillis();
       window().sendToWorker(this::onFileParsed, parseJob, model.document.getChars());
+    } else {
+      if (fullFileParseListener != null) {
+        fullFileParseListener.accept(this);
+      }
     }
   }
 
@@ -1691,8 +1707,16 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   public void setDiffModel(LineDiff[] lineDiffs) {
     diffModel = lineDiffs;
-    System.out.println("EditorComponent::setDiffModel");
-    System.out.println("  diffModel.length = " + diffModel.length);
-    System.out.println("  model.document.length() = " + model.document.length());
+    System.out.println("setDiffModel");
+    if (diffModel != null) {
+      byte[] c = new byte[diffModel.length];
+      for (int i = 0; i < c.length; i++) {
+        c[i] = diffModel[i] != null ? (byte) diffModel[i].type : 0;
+      }
+      lineNumbers.setColors(c);
+    } else {
+      System.out.println("deleteDiffModel");
+      lineNumbers.setColors(null);
+    }
   }
 }

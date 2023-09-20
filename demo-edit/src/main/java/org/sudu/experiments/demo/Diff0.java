@@ -86,9 +86,17 @@ public class Diff0 extends Scene1 implements
   // paste handler
   @Override
   public Consumer<String> get() {
-    if (uiContext.isFocused(editor1)) return editor1::handleInsert;
-    if (uiContext.isFocused(editor2)) return editor2::handleInsert;
+    if (uiContext.isFocused(editor1)) return pasteHandler(editor1);
+    if (uiContext.isFocused(editor2)) return pasteHandler(editor2);
     return null;
+  }
+
+  private Consumer<String> pasteHandler(EditorComponent editor) {
+    return s -> {
+      editor.handleInsert(s);
+      editor.setDiffModel(null);
+      editor.parseFullFile();
+    };
   }
 
   private void leftScrollChanged(int ignored) {
@@ -182,7 +190,6 @@ public class Diff0 extends Scene1 implements
     super.paint();
     editor1.paint();
     editor2.paint();
-    ui.paint();
 
     // Draw middle line
     V2i size = uiContext.v2i1;
@@ -191,6 +198,8 @@ public class Diff0 extends Scene1 implements
         middleLine.x, middleLine.y,
         size,
         ui.theme.editor.bg);
+
+    ui.paint();
   }
 
   protected String[] menuFonts() { return Fonts.editorFonts(false); }

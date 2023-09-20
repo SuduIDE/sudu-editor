@@ -1,13 +1,16 @@
 package org.sudu.experiments.demo;
 
-import org.sudu.experiments.*;
+import org.sudu.experiments.Canvas;
+import org.sudu.experiments.Disposable;
+import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4f;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class LineNumbersComponent implements Disposable {
@@ -23,7 +26,7 @@ public class LineNumbersComponent implements Disposable {
   private double devicePR;
 
   private final List<LineNumbersTexture> textures = new ArrayList<>();
-  private V4f[] colors = new V4f[] {null};
+  private byte[] colors = new byte[0];
   private Canvas textureCanvas;
   private Canvas updateCanvas;
 
@@ -67,28 +70,33 @@ public class LineNumbersComponent implements Disposable {
     }
   }
 
+  public void setColors(byte[] c) {
+    this.colors = c == null ? new byte[0] : c;
+  }
+
   public void draw(
       int editorHeight, int textHeight,
-      int scrollPos,
-      int firstLine, int lastLine, int caretLine,
-      WglGraphics g, LineNumbersColors colors
+      int scrollPos, int firstLine,
+      int lastLine, int caretLine,
+      WglGraphics g, EditorColorScheme colors,
+      int docLength
   ) {
-    initTextures(g, firstLine, editorHeight);
+    initTextures(g, firstLine, editorHeight, docLength);
     update(firstLine);
     draw(scrollPos, textHeight, colors, g);
-    drawBottom(textHeight, editorHeight, colors, g);
+    drawBottom(textHeight, editorHeight, colors.lineNumber, g);
 
     if (firstLine <= caretLine && caretLine <= lastLine) {
-      drawCaretLine(scrollPos, caretLine, colors, g);
+      drawCaretLine(scrollPos, caretLine, colors.lineNumber, g);
     }
   }
 
   public void draw(
       int scrollPos, int editorHeight,
-      LineNumbersColors colorScheme, WglGraphics g
+      EditorColorScheme colorScheme, WglGraphics g
   ) {
     for (var text : textures) {
-      text.draw(pos, editorHeight, scrollPos, textures.size() * textureHeight, colorScheme, g);
+      text.draw(pos, editorHeight, scrollPos, textures.size() * textureHeight, colorScheme, colors, g);
     }
   }
 
@@ -115,11 +123,12 @@ public class LineNumbersComponent implements Disposable {
   }
 
   public void initTextures(WglGraphics g, int editorHeight) {
-    initTextures(g, 0, editorHeight);
+    initTextures(g, 0, editorHeight, editorHeight / lineHeight);
   }
 
-  public void initTextures(WglGraphics g, int firstLine, int editorHeight) {
+  public void initTextures(WglGraphics g, int firstLine, int editorHeight, int docLength) {
     int oldSize = textures.size();
+    colors = Arrays.copyOf(colors, docLength);
 
     while (textures.size() * textureHeight <= editorHeight + lineHeight) {
       int number = textures.size();
@@ -135,7 +144,6 @@ public class LineNumbersComponent implements Disposable {
     }
     int newSize = textures.size();
     if (newSize == oldSize) return;
-
     updateToFirstLine(firstLine);
   }
 

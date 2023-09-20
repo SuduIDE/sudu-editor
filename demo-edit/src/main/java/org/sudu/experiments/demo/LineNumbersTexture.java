@@ -1,6 +1,10 @@
 package org.sudu.experiments.demo;
 
-import org.sudu.experiments.*;
+import org.sudu.experiments.Canvas;
+import org.sudu.experiments.Disposable;
+import org.sudu.experiments.GL;
+import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.V2i;
@@ -63,35 +67,55 @@ public class LineNumbersTexture implements Disposable {
     return startNum;
   }
 
+
   public void draw(
       V2i dXdY, int componentHeight, int scrollPos, int fullTexturesSize,
-      LineNumbersColors colorScheme, WglGraphics g
+      EditorColorScheme colorScheme, byte[] colors, WglGraphics g
   ) {
+    // TODO: if bucket has no elements from `colors` array, do not render line by line
     int height = textureSize.y;
     int yPos = ((texturePos.y - (scrollPos % fullTexturesSize)) + fullTexturesSize) % fullTexturesSize;
-
+    LineNumbersColors lineNumber = colorScheme.lineNumber;
     if ((yPos + height) <= componentHeight) {
-      rectSize.set(lineTexture.width(), height);
-      rectRegion.set(0, 0, lineTexture.width(), height);
-
-      draw(g, yPos, dXdY, colorScheme.textColor, colorScheme.bgColor);
+      rectSize.set(lineTexture.width(), lineHeight);
+      for (int i = 0; i < height / lineHeight; i++) {
+        rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
+        V4f c = getItemColor(colorScheme, colors, (scrollPos + yPos) / lineHeight + i, lineNumber);
+        draw(g, yPos + i * lineHeight, dXdY, lineNumber.textColor, c);
+      }
     } else {
       if (yPos + height > componentHeight && yPos < componentHeight) {
         int topHeight = Math.max(componentHeight - yPos, 0);
-        rectSize.set(lineTexture.width(), topHeight);
-        rectRegion.set(0, 0, lineTexture.width(), topHeight);
-
-        draw(g, yPos, dXdY, colorScheme.textColor, colorScheme.bgColor);
+        int upper = topHeight / lineHeight;
+        if (topHeight % lineHeight != 0) upper++;
+        rectSize.set(lineTexture.width(), lineHeight);
+        for (int i = 0; i < upper; i++) {
+          rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
+          V4f c = getItemColor(colorScheme, colors, (scrollPos + yPos) / lineHeight + i, lineNumber);
+          draw(g, yPos + i * lineHeight, dXdY, lineNumber.textColor, c);
+        }
       }
       if (yPos + height > fullTexturesSize) {
         height = (yPos + height) % fullTexturesSize;
         height = Math.min(height, componentHeight);
-        rectSize.set(lineTexture.width(), height);
-        rectRegion.set(0, scrollPos % lineTexture.height(), lineTexture.width(), height);
-
-        draw(g, 0, dXdY, colorScheme.textColor, colorScheme.bgColor);
+        rectSize.set(lineTexture.width(), lineHeight);
+        int y = scrollPos % lineTexture.height();
+        int yLine = y / lineHeight;
+        int upper = yLine + height / lineHeight;
+        if (height % lineHeight != 0) upper++;
+        for (int i = yLine; i < upper; i++) {
+          rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
+          V4f c = getItemColor(colorScheme, colors, (scrollPos) / lineHeight + (i - yLine), lineNumber);
+          draw(g, (i - yLine) * lineHeight - scrollPos % lineHeight, dXdY, lineNumber.textColor, c);
+        }
       }
     }
+  }
+
+  private static V4f getItemColor(EditorColorScheme colorScheme, byte[] colors, int i, LineNumbersColors lineNumber) {
+    return i >= colors.length || colors[i] == 0
+        ? lineNumber.bgColor
+        : colorScheme.diff.getDiffColor(colorScheme, colors[i]);
   }
 
   void drawCurrentLine(

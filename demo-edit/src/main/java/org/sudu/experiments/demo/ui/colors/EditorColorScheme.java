@@ -10,6 +10,7 @@ public class EditorColorScheme {
   public final DialogItemColors dialogItem;
   public final CodeElementColor[] codeElement;
   public final LineNumbersColors lineNumber;
+  public final DiffColors diff;
 
   public final UiFont windowTitleFont = new UiFont(Fonts.SegoeUI, 16);
   public final UiFont popupMenuFont = new UiFont(Fonts.SegoeUI, 17);
@@ -20,7 +21,8 @@ public class EditorColorScheme {
         EditorColors.darculaIdeaColorScheme(),
         IdeaCodeColors.codeElementColorsDarcula(),
         LineNumbersColors.darcula(),
-        DialogItemColors.darculaColorScheme()
+        DialogItemColors.darculaColorScheme(),
+        DiffColors.darcula()
     );
   }
 
@@ -29,7 +31,8 @@ public class EditorColorScheme {
         EditorColors.darkIdeaColorScheme(),
         IdeaCodeColors.codeElementColorsDark(),
         LineNumbersColors.dark(),
-        DialogItemColors.darkColorScheme()
+        DialogItemColors.darkColorScheme(),
+        DiffColors.dark()
     );
   }
 
@@ -38,7 +41,8 @@ public class EditorColorScheme {
         EditorColors.lightIdeaColorScheme(),
         IdeaCodeColors.codeElementColorsLight(),
         LineNumbersColors.light(),
-        DialogItemColors.lightColorScheme()
+        DialogItemColors.lightColorScheme(),
+        DiffColors.light()
     );
   }
 
@@ -46,7 +50,8 @@ public class EditorColorScheme {
       EditorColors editor,
       CodeElementColor[] codeElement,
       LineNumbersColors lineNumber,
-      DialogItemColors dialogItem
+      DialogItemColors dialogItem,
+      DiffColors diff
   ) {
     this.editor = editor;
     this.codeElement = codeElement;
@@ -55,6 +60,7 @@ public class EditorColorScheme {
       throw new IllegalArgumentException();
     }
     this.dialogItem = dialogItem;
+    this.diff = diff;
   }
 
   public Color bgColor(Color bg) {
