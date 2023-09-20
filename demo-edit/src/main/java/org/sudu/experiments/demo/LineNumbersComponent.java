@@ -79,7 +79,7 @@ public class LineNumbersComponent implements Disposable {
       int lastLine, int caretLine,
       WglGraphics g, EditorColorScheme colors
   ) {
-//    g.enableScissor(pos, size);
+    g.enableScissor(pos, size);
     initTextures(g, firstLine, editorHeight);
     update(firstLine);
     draw(scrollPos, textHeight, colors, g);
@@ -88,7 +88,7 @@ public class LineNumbersComponent implements Disposable {
     if (firstLine <= caretLine && caretLine <= lastLine) {
       drawCaretLine(scrollPos, caretLine, colors.lineNumber, g);
     }
-//    g.disableScissor();
+    g.disableScissor();
   }
 
   public void draw(
