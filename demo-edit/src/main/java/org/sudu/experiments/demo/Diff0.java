@@ -188,12 +188,8 @@ public class Diff0 extends Scene1 implements
   @Override
   public void paint() {
     super.paint();
-//    Debug.consoleInfo("Editor 1 paint:");
     editor1.paint();
-//    Debug.consoleInfo("Editor 2 paint:");
     editor2.paint();
-//    Debug.consoleInfo("================================");
-    ui.paint();
 
     // Draw middle line
     V2i size = uiContext.v2i1;
@@ -202,6 +198,8 @@ public class Diff0 extends Scene1 implements
         middleLine.x, middleLine.y,
         size,
         ui.theme.editor.bg);
+
+    ui.paint();
   }
 
   protected String[] menuFonts() { return Fonts.editorFonts(false); }
