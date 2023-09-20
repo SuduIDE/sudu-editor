@@ -539,8 +539,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
 
     lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine,
-        diffModel != null ? -1 : caretLine, g, colors, model.document.length()
-    );
+        diffModel != null ? -1 : caretLine, g, colors);
   }
 
   private int getFirstLine() {
@@ -553,7 +552,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   private void updateLineNumbersFont() {
     lineNumbers.setFont(fonts[0], lineHeight, g);
-    lineNumbers.initTextures(g, getFirstLine(), editorHeight(), model.document.length());
+    lineNumbers.initTextures(g, getFirstLine(), editorHeight());
   }
 
   private CodeLineRenderer lineRenderer(int i) {

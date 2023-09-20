@@ -76,11 +76,12 @@ public class LineNumbersTexture implements Disposable {
     int height = textureSize.y;
     int yPos = ((texturePos.y - (scrollPos % fullTexturesSize)) + fullTexturesSize) % fullTexturesSize;
     LineNumbersColors lineNumber = colorScheme.lineNumber;
+    int baseColorInd = (scrollPos + yPos) / lineHeight;
     if ((yPos + height) <= componentHeight) {
       rectSize.set(lineTexture.width(), lineHeight);
       for (int i = 0; i < height / lineHeight; i++) {
         rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-        V4f c = getItemColor(colorScheme, colors, (scrollPos + yPos) / lineHeight + i, lineNumber);
+        V4f c = getItemColor(colorScheme, colors, baseColorInd + i, lineNumber);
         draw(g, yPos + i * lineHeight, dXdY, lineNumber.textColor, c);
       }
     } else {
@@ -91,7 +92,7 @@ public class LineNumbersTexture implements Disposable {
         rectSize.set(lineTexture.width(), lineHeight);
         for (int i = 0; i < upper; i++) {
           rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-          V4f c = getItemColor(colorScheme, colors, (scrollPos + yPos) / lineHeight + i, lineNumber);
+          V4f c = getItemColor(colorScheme, colors, baseColorInd + i, lineNumber);
           draw(g, yPos + i * lineHeight, dXdY, lineNumber.textColor, c);
         }
       }
@@ -99,13 +100,12 @@ public class LineNumbersTexture implements Disposable {
         height = (yPos + height) % fullTexturesSize;
         height = Math.min(height, componentHeight);
         rectSize.set(lineTexture.width(), lineHeight);
-        int y = scrollPos % lineTexture.height();
-        int yLine = y / lineHeight;
+        int yLine = scrollPos % lineTexture.height() / lineHeight;
         int upper = yLine + height / lineHeight;
         if (height % lineHeight != 0) upper++;
         for (int i = yLine; i < upper; i++) {
           rectRegion.set(0, i * lineHeight, lineTexture.width(), lineHeight);
-          V4f c = getItemColor(colorScheme, colors, (scrollPos) / lineHeight + (i - yLine), lineNumber);
+          V4f c = getItemColor(colorScheme, colors, scrollPos / lineHeight + (i - yLine), lineNumber);
           draw(g, (i - yLine) * lineHeight - scrollPos % lineHeight, dXdY, lineNumber.textColor, c);
         }
       }
