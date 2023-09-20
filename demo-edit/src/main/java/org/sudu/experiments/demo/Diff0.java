@@ -33,6 +33,13 @@ public class Diff0 extends Scene1 implements
   static final float middleLineThicknessDp = 10;
   private final V4i middleLine = new V4i();
 
+  final V2i p11 = new V2i();
+  final V2i p12 = new V2i();
+  final V2i p21 = new V2i();
+  final V2i p22 = new V2i();
+
+  DemoRect rect = new DemoRect();
+
   public Diff0(SceneApi api) {
     super(api);
 
@@ -110,8 +117,8 @@ public class Diff0 extends Scene1 implements
     if (this.diffModel == null || this.diffModel.ranges == null) return;
     boolean isLeft = from == editor1;
 
-    int fromStartLine = Math.min(from.vScrollPos / from.lineHeight, from.model.document.length() - 1);
-    int fromLastLine = Math.min((from.vScrollPos + from.editorHeight() - 1) / from.lineHeight, from.model.document.length() - 1);
+    int fromStartLine = from.getFirstLine();
+    int fromLastLine = from.getLastLine();
     int syncLine = (fromLastLine + fromStartLine) / 2;
     int linesDelta = syncLine - fromStartLine;
 
@@ -140,6 +147,52 @@ public class Diff0 extends Scene1 implements
 
     api.window.sendToWorker(this::onDiffResult, DiffUtils.FIND_DIFFS,
           chars1, intervals1, chars2, intervals2);
+  }
+
+  private void drawShader() {
+    if (this.diffModel == null || this.diffModel.ranges == null) return;
+
+    int leftStartLine = editor1.getFirstLine();
+    int leftLastLine = editor1.getLastLine();
+    int rightStartLine = editor2.getFirstLine();
+    int rightLastLine = editor2.getLastLine();
+
+    int leftStartRangeInd = diffModel.rangeBinSearch(leftStartLine, true);
+    int leftLastRangeInd = diffModel.rangeBinSearch(leftLastLine, true);
+    int rightStartRangeInd = diffModel.rangeBinSearch(rightStartLine, false);
+    int rightLastRangeInd = diffModel.rangeBinSearch(rightLastLine, false);
+
+    for (int i = Math.min(leftStartRangeInd, rightStartRangeInd);
+         i <= Math.max(leftLastRangeInd, rightLastRangeInd); i++) {
+      var range = diffModel.ranges[i];
+      if (range.type == 0) continue;
+
+      int yLeftStartPosition = editor1.lineHeight * range.fromL - editor1.vScrollPos;
+      int yLeftLastPosition = yLeftStartPosition + range.lenL * editor1.lineHeight;
+
+      int yRightStartPosition = editor2.lineHeight * range.fromR - editor2.vScrollPos;
+      int yRightLastPosition = yRightStartPosition + range.lenR * editor2.lineHeight;
+
+      p11.set(middleLine.x, yLeftStartPosition);
+      p21.set(middleLine.x, yLeftLastPosition);
+      p12.set(middleLine.x + middleLine.z, yRightStartPosition);
+      p22.set(middleLine.x + middleLine.z, yRightLastPosition);
+
+      int y = Math.min(yLeftStartPosition, yRightStartPosition);
+      int w = Math.max(yLeftLastPosition, yRightLastPosition) - y;
+
+      rect.set(middleLine.x, y, middleLine.z, w);
+      rect.bgColor.set(ui.theme.lineNumber.bgColor);
+      rect.color.set(ui.theme.diff.getDiffColor(ui.theme, range.type));
+
+      var g = uiContext.graphics;
+      g.enableScissor(middleLine);
+      g.enableBlend(true);
+      g.drawLineFill(rect.pos.x, rect.pos.y, rect.size,
+          p11, p12, p21, p22, rect.color);
+      g.enableBlend(false);
+      g.disableScissor();
+    }
   }
 
   private void onDiffResult(Object[] result) {
@@ -205,6 +258,7 @@ public class Diff0 extends Scene1 implements
         size,
         ui.theme.editor.bg);
 
+    drawShader();
     ui.paint();
   }
 
