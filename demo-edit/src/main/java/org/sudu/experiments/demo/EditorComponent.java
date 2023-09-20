@@ -1710,7 +1710,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (diffModel != null) {
       byte[] c = new byte[diffModel.length];
       for (int i = 0; i < c.length; i++) {
-        c[i] = diffModel[i] != null ? (byte) diffModel[i].type : 0;
+        LineDiff ld = diffModel[i];
+        c[i] = ld != null ? (byte) ld.type : 0;
       }
       lineNumbers.setColors(c);
     } else {
