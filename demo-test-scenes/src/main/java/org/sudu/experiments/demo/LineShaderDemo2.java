@@ -2,6 +2,7 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.V2i;
 
 public class LineShaderDemo2 extends LineShaderDemo0 {
@@ -16,6 +17,13 @@ public class LineShaderDemo2 extends LineShaderDemo0 {
     p12.set(500, 100);
     p21.set(150, 200);
     p22.set(500, 250);
+  }
+
+  @Override
+  public boolean onMouseMove(MouseEvent event) {
+    p12.y = event.position.y - 50;
+    p22.y = event.position.y + 100;
+    return true;
   }
 
   public void paint() {
