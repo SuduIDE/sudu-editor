@@ -32,7 +32,7 @@ public class TestSceneSelector {
       case "TextureRegionTestScene" -> TextureRegionTestScene::new;
       case "ClipboardTest" -> ClipboardTest::new;
       case "CodiconDemo" -> CodiconDemo::new;
-      case "LineShaderDemo" -> LineShaderDemo::new;
+      case "LineShaderDemo1" -> LineShaderDemo1::new;
       case "LineShaderDemo2" -> LineShaderDemo2::new;
       case "WindowDemo" -> WindowDemo::new;
 

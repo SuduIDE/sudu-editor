@@ -176,12 +176,12 @@ public abstract class WglGraphics {
   public void drawLineFill(
       int x, int y, V2i size,
       V2i p11, V2i p12, V2i p21, V2i p22,
-      V4f color1, V4f color2
+      V4f color
   ) {
     setShader(shLineFill);
     shLineFill.setPosition(gl, x, y, size, clientRect);
     shLineFill.setPoints(gl, p11, p12, p21, p22);
-    shLineFill.setColors(gl, color1, color2);
+    shLineFill.setColor(gl, color);
     drawRect();
   }
 
