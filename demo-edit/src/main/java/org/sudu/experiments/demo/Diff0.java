@@ -33,7 +33,6 @@ public class Diff0 extends Scene1 implements
   private DiffInfo diffModel;
   static final float middleLineThicknessDp = 20;
   static final float emptyRangeThicknessDp = 2;
-  private int emptyRangeThickness;
   private final V4i middleLine = new V4i();
 
   final V2i p11 = new V2i();
@@ -157,6 +156,7 @@ public class Diff0 extends Scene1 implements
 
   private void drawShader() {
     if (this.diffModel == null || this.diffModel.ranges == null) return;
+    int emptyRangeThickness = uiContext.toPx(emptyRangeThicknessDp);
 
     int leftStartLine = editor1.getFirstLine();
     int leftLastLine = editor1.getLastLine();
@@ -194,10 +194,10 @@ public class Diff0 extends Scene1 implements
       var g = uiContext.graphics;
       g.enableBlend(true);
       if (yLeftStartPosition == yLeftLastPosition) {
-        drawLeftLine(yLeftStartPosition, yRightStartPosition, g);
+        drawLeftLine(yLeftStartPosition, yRightStartPosition, emptyRangeThickness, g);
       }
       if (yRightStartPosition == yRightLastPosition) {
-        drawRightLine(yRightStartPosition, yLeftStartPosition, g);
+        drawRightLine(yRightStartPosition, yLeftStartPosition, emptyRangeThickness, g);
       }
       g.enableScissor(middleLine);
       g.drawLineFill(rect.pos.x, rect.pos.y, rect.size,
@@ -207,7 +207,9 @@ public class Diff0 extends Scene1 implements
     }
   }
 
-  private void drawLeftLine(int yLeftStartPosition, int yRightStartPosition, WglGraphics g) {
+  private void drawLeftLine(
+      int yLeftStartPosition, int yRightStartPosition, int emptyRangeThickness, WglGraphics g
+  ) {
     V2i temp = uiContext.v2i1;
     temp.set(middleLine.x - editor1.pos.x, emptyRangeThickness);
     int y = yLeftStartPosition;
@@ -218,7 +220,9 @@ public class Diff0 extends Scene1 implements
     g.drawRect(editor1.pos.x, y, temp, rect.color);
   }
 
-  private void drawRightLine(int yRightStartPosition, int yLeftStartPosition, WglGraphics g) {
+  private void drawRightLine(
+      int yRightStartPosition, int yLeftStartPosition, int emptyRangeThickness, WglGraphics g
+  ) {
     V2i temp = uiContext.v2i1;
     temp.set(editor2.size.x, emptyRangeThickness);
     int y = yRightStartPosition;
@@ -325,7 +329,6 @@ public class Diff0 extends Scene1 implements
   protected void layout(V2i newSize, float dpr) {
     V2i pos = new V2i();
     int px = DprUtil.toPx(middleLineThicknessDp, dpr);
-    emptyRangeThickness = DprUtil.toPx(emptyRangeThicknessDp, dpr);
     V2i size = new V2i(newSize.x / 2 - px / 2, newSize.y);
     editor1.setPos(pos, size, dpr);
     pos.x = newSize.x - newSize.x / 2 + px / 2;
