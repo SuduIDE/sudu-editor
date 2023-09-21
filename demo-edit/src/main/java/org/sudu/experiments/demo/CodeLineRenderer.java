@@ -17,7 +17,8 @@ class CodeLineRenderer implements Disposable {
   static boolean bw;
   static boolean useTop = false;
   static final int TEXTURE_WIDTH = EditorConst.TEXTURE_WIDTH;
-  private int xOffset = 3;
+  static final int initialOffset = 3;
+  private int xOffset = initialOffset;
 
   CodeLine line;
   List<GL.Texture> lineTextures = new ArrayList<>();

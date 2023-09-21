@@ -81,7 +81,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   boolean applyContrast, renderBlankLines = true;
   int scrollDown, scrollUp;
   boolean drawTails = true;
-  int xOffset = 3;
+  boolean drawGap = true;
+  int xOffset = CodeLineRenderer.initialOffset;
 
   // line numbers
   LineNumbersComponent lineNumbers = new LineNumbersComponent();
@@ -111,6 +112,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     debugFlags[2] = this::toggleTails;
     debugFlags[3] = this::toggleXOffset;
     debugFlags[4] = this::toggleMirrored;
+    debugFlags[5] = () -> drawGap = !drawGap;
 
     // d2d is very bold, contrast makes font heavier
     applyContrast = context.window.getHost() != Host.Direct2D;
@@ -487,29 +489,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     drawVerticalLine();
     drawLineNumbers(firstLine, lastLine);
 
-    // Draw gap between line number and text for current line
-    for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      boolean isColoredLine = diffModel != null && i < diffModel.length && diffModel[i] != null;
-      V4f gapColor = isColoredLine
-          ? colors.diff.getDiffColor(colors, diffModel[i].type)
-          : diffModel == null
-          ? colors.editor.currentLineBg
-          : colors.editor.bg;
+    if (drawGap) drawGap(firstLine, lastLine, docLen);
 
-      if (caretLine == i || isColoredLine) {
-        vLineSize.x = mirrored
-            ? vLineLeftDelta + scrollBarWidth()
-            : vLineLeftDelta - vLineW;
-        vLineSize.y = lineHeight;
-        int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
-        int yPosition = lineHeight * i - vScrollPos;
-        g.drawRect(pos.x + dx2,
-            pos.y + yPosition,
-            vLineSize,
-            gapColor
-        );
-      }
-    }
 
     layoutScrollbar();
     drawScrollBar();
@@ -521,6 +502,33 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       String s = "fullMeasure:" + CodeLine.cacheMiss + ", cacheHits: " + CodeLine.cacheHits;
       Debug.consoleInfo(s);
       CodeLine.cacheMiss = CodeLine.cacheHits = 0;
+    }
+  }
+
+  private void drawGap(int firstLine, int lastLine, int docLen) {
+    for (int i = firstLine; i <= lastLine && i < docLen; i++) {
+      LineDiff currentLineModel = diffModel != null && i < diffModel.length && diffModel[i] != null
+          ? diffModel[i]
+          : null;
+      V4f gapColor = currentLineModel != null
+          ? colors.diff.getDiffColor(colors, currentLineModel.type)
+          : diffModel == null
+          ? colors.editor.currentLineBg
+          : colors.editor.bg;
+
+      if (caretLine == i || currentLineModel != null) {
+        vLineSize.x = mirrored
+            ? vLineLeftDelta + scrollBarWidth()
+            : vLineLeftDelta - vLineW - xOffset;
+        vLineSize.y = lineHeight;
+        int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
+        int yPosition = lineHeight * i - vScrollPos;
+        g.drawRect(pos.x + dx2,
+            pos.y + yPosition,
+            vLineSize,
+            gapColor
+        );
+      }
     }
   }
 
