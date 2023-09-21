@@ -172,7 +172,6 @@
             <resource><directory>${project.build.directory}/generated/js</directory></resource>
             <resource><directory>${project.basedir}/../wasm-test/target/wasm</directory></resource>
             <resource><directory>${project.basedir}/../fonts/src/main/resources</directory></resource>
-            <resource><directory>${project.basedir}/../demo-edit/src/test/resources</directory></resource>
             <resource>
               <directory>${project.basedir}/../codicon/src/main/resources</directory>
               <includes><include>**/*.ttf</include></includes>
