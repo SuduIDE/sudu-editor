@@ -32,7 +32,7 @@ public class Diff0 extends Scene1 implements
   private int modelFlags;
   private DiffInfo diffModel;
   static final float middleLineThicknessDp = 20;
-  static final float emptyRangeThicknessDp = 2;
+  static final float lineWidthDp = 1;
   private final V4i middleLine = new V4i();
 
   final V2i p11 = new V2i();
@@ -156,7 +156,7 @@ public class Diff0 extends Scene1 implements
 
   private void drawShader() {
     if (this.diffModel == null || this.diffModel.ranges == null) return;
-    int emptyRangeThickness = uiContext.toPx(emptyRangeThicknessDp);
+    int lineWidth = uiContext.toPx(lineWidthDp);
 
     int leftStartLine = editor1.getFirstLine();
     int leftLastLine = editor1.getLastLine();
@@ -194,10 +194,10 @@ public class Diff0 extends Scene1 implements
       var g = uiContext.graphics;
       g.enableBlend(true);
       if (yLeftStartPosition == yLeftLastPosition) {
-        drawLeftLine(yLeftStartPosition, yRightStartPosition, emptyRangeThickness, g);
+        drawLeftLine(g, yLeftStartPosition, yRightStartPosition, lineWidth);
       }
       if (yRightStartPosition == yRightLastPosition) {
-        drawRightLine(yRightStartPosition, yLeftStartPosition, emptyRangeThickness, g);
+        drawRightLine(g, yRightStartPosition, yLeftStartPosition, lineWidth);
       }
       g.enableScissor(middleLine);
       g.drawLineFill(rect.pos.x, rect.pos.y, rect.size,
@@ -208,28 +208,30 @@ public class Diff0 extends Scene1 implements
   }
 
   private void drawLeftLine(
-      int yLeftStartPosition, int yRightStartPosition, int emptyRangeThickness, WglGraphics g
+      WglGraphics g,
+      int yLeftStartPosition, int yRightStartPosition, int lineWidth
   ) {
     V2i temp = uiContext.v2i1;
-    temp.set(middleLine.x - editor1.pos.x, emptyRangeThickness);
+    temp.set(middleLine.x - editor1.pos.x, lineWidth);
     int y = yLeftStartPosition;
     if (yRightStartPosition < yLeftStartPosition) {
-      y -= emptyRangeThickness;
-      p11.set(p11.x, p11.y - emptyRangeThickness);
-    } else p21.set(p21.x, p21.y + emptyRangeThickness);
+      y -= lineWidth;
+      p11.set(p11.x, p11.y - lineWidth);
+    } else p21.set(p21.x, p21.y + lineWidth);
     g.drawRect(editor1.pos.x, y, temp, rect.color);
   }
 
   private void drawRightLine(
-      int yRightStartPosition, int yLeftStartPosition, int emptyRangeThickness, WglGraphics g
+      WglGraphics g,
+      int yRightStartPosition, int yLeftStartPosition, int lineWidth
   ) {
     V2i temp = uiContext.v2i1;
-    temp.set(editor2.size.x, emptyRangeThickness);
+    temp.set(editor2.size.x, lineWidth);
     int y = yRightStartPosition;
     if (yLeftStartPosition < yRightStartPosition) {
-      y -= emptyRangeThickness;
-      p12.set(p12.x, p12.y - emptyRangeThickness);
-    } else p22.set(p22.x, p22.y + emptyRangeThickness);
+      y -= lineWidth;
+      p12.set(p12.x, p12.y - lineWidth);
+    } else p22.set(p22.x, p22.y + lineWidth);
     g.drawRect(middleLine.x + middleLine.z, y, temp, rect.color);
   }
 
