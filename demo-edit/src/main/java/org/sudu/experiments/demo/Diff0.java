@@ -3,6 +3,7 @@ package org.sudu.experiments.demo;
 import org.sudu.experiments.DprUtil;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.ui.Focusable;
 import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.worker.diff.DiffInfo;
@@ -31,6 +32,8 @@ public class Diff0 extends Scene1 implements
   private int modelFlags;
   private DiffInfo diffModel;
   static final float middleLineThicknessDp = 20;
+  static final float emptyRangeThicknessDp = 2;
+  private int emptyRangeThickness;
   private final V4i middleLine = new V4i();
 
   final V2i p11 = new V2i();
@@ -181,21 +184,49 @@ public class Diff0 extends Scene1 implements
       p12.set(middleLine.x + middleLine.z, yRightStartPosition);
       p22.set(middleLine.x + middleLine.z, yRightLastPosition);
 
-      int y = Math.min(yLeftStartPosition, yRightStartPosition);
-      int w = Math.max(yLeftLastPosition, yRightLastPosition) - y;
+      int rectY = Math.min(yLeftStartPosition, yRightStartPosition);
+      int rectW = Math.max(yLeftLastPosition, yRightLastPosition) - rectY;
 
-      rect.set(middleLine.x, y, middleLine.z, w);
+      rect.set(middleLine.x, rectY, middleLine.z, rectW);
       rect.bgColor.set(ui.theme.lineNumber.bgColor);
       rect.color.set(ui.theme.diff.getDiffColor(ui.theme, range.type));
 
       var g = uiContext.graphics;
-      g.enableScissor(middleLine);
       g.enableBlend(true);
+      if (yLeftStartPosition == yLeftLastPosition) {
+        drawLeftLine(yLeftStartPosition, yRightStartPosition, g);
+      }
+      if (yRightStartPosition == yRightLastPosition) {
+        drawRightLine(yRightStartPosition, yLeftStartPosition, g);
+      }
+      g.enableScissor(middleLine);
       g.drawLineFill(rect.pos.x, rect.pos.y, rect.size,
           p11, p12, p21, p22, rect.color);
-      g.enableBlend(false);
       g.disableScissor();
+      g.enableBlend(false);
     }
+  }
+
+  private void drawLeftLine(int yLeftStartPosition, int yRightStartPosition, WglGraphics g) {
+    V2i temp = uiContext.v2i1;
+    temp.set(middleLine.x - editor1.pos.x, emptyRangeThickness);
+    int y = yLeftStartPosition;
+    if (yRightStartPosition < yLeftStartPosition) {
+      y -= emptyRangeThickness;
+      p11.set(p11.x, p11.y - emptyRangeThickness);
+    } else p21.set(p21.x, p21.y + emptyRangeThickness);
+    g.drawRect(editor1.pos.x, y, temp, rect.color);
+  }
+
+  private void drawRightLine(int yRightStartPosition, int yLeftStartPosition, WglGraphics g) {
+    V2i temp = uiContext.v2i1;
+    temp.set(editor2.size.x, emptyRangeThickness);
+    int y = yRightStartPosition;
+    if (yLeftStartPosition < yRightStartPosition) {
+      y -= emptyRangeThickness;
+      p12.set(p12.x, p12.y - emptyRangeThickness);
+    } else p22.set(p22.x, p22.y + emptyRangeThickness);
+    g.drawRect(middleLine.x + middleLine.z, y, temp, rect.color);
   }
 
   private void onDiffResult(Object[] result) {
@@ -294,6 +325,7 @@ public class Diff0 extends Scene1 implements
   protected void layout(V2i newSize, float dpr) {
     V2i pos = new V2i();
     int px = DprUtil.toPx(middleLineThicknessDp, dpr);
+    emptyRangeThickness = DprUtil.toPx(emptyRangeThicknessDp, dpr);
     V2i size = new V2i(newSize.x / 2 - px / 2, newSize.y);
     editor1.setPos(pos, size, dpr);
     pos.x = newSize.x - newSize.x / 2 + px / 2;
