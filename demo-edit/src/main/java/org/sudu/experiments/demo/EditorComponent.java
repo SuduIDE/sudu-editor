@@ -63,7 +63,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   int firstLineRendered, lastLineRendered;
 
   // layout
-  int vLineXBase = 100;
+  static final int vLineXDp = 80;
   int vLineX;
   int vLineW;
   static final int vLineWDp = 1;
@@ -135,7 +135,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private void internalLayout(V2i pos, V2i size, float dpr) {
-    vLineX = DprUtil.toPx(vLineXBase, dpr);
+    vLineX = DprUtil.toPx(vLineXDp, dpr);
     vLineW = DprUtil.toPx(vLineWDp, dpr);
     vLineLeftDelta = DprUtil.toPx(10, dpr);
 
@@ -894,6 +894,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     parsingTimeStart = System.currentTimeMillis();
     fileStructureParsed = false;
     firstLinesParsed = false;
+    diffModel = null;
+    lineNumbers.setColors(null);
 
     model = new Model(
         new String[] {""},
