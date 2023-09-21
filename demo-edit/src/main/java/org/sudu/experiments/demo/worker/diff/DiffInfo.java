@@ -1,7 +1,6 @@
 package org.sudu.experiments.demo.worker.diff;
 
 import org.sudu.experiments.diff.LineDiff;
-import org.sudu.experiments.math.Numbers;
 
 public class DiffInfo {
 
@@ -14,6 +13,10 @@ public class DiffInfo {
     this.lineDiffsL = lineDiffsL;
     this.lineDiffsR = lineDiffsR;
     this.ranges = ranges;
+  }
+
+  public DiffRange range(int lineKey, boolean isL) {
+    return ranges[rangeBinSearch(lineKey, isL)];
   }
 
   public int rangeBinSearch(int lineKey, boolean isL) {
@@ -31,6 +34,6 @@ public class DiffInfo {
       else if (midFrom > lineKey) high = mid - 1;
       else return mid;
     }
-    return Numbers.clamp(0, low, ranges.length - 1);
+    return Math.min(low, ranges.length - 1);
   }
 }
