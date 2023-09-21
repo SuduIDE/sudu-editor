@@ -17,4 +17,15 @@ public interface ScopeGraphConstants {
     int VAR_DECL_NODE = 6;
   }
 
+  interface Refs {
+    int CREATOR_CALL_NODE = 1;
+    int FIELD_REF_NODE = 2;
+    int METHOD_CALL_NODE = 3;
+    int QUALIFIED_CALL_NODE = 4;
+    int BASE_REF_NODE = 5;
+    int SUPER_NODE = 6;
+    int THIS_NODE = 7;
+    int TYPE_NODE = 8;
+  }
+
 }

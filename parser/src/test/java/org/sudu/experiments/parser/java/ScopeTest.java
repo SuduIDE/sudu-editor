@@ -10,11 +10,11 @@ import org.sudu.experiments.parser.common.IntervalTree;
 import org.sudu.experiments.parser.common.graph.ScopeGraph;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
+import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.walker.JavaScopeWalker;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,6 +37,8 @@ public class ScopeTest {
     ScopeGraph graph = scopeWalker.scopeWalker.graph;
     IntervalTree tree = new IntervalTree(scopeWalker.scopeWalker.currentNode);
 
+    ScopeGraphWriter writer = new ScopeGraphWriter(graph);
+    writer.toInts();
     graph.resolveAll((ref, decl) -> System.out.println(ref + " |-> " + decl));
 
     graph.root.print(0);

@@ -1,39 +1,44 @@
-package org.sudu.experiments.parser.common.graph;
+package org.sudu.experiments.parser.common.graph.writer;
 
 import org.sudu.experiments.arrays.ArrayWriter;
+import org.sudu.experiments.parser.common.graph.ScopeGraph;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
 import org.sudu.experiments.parser.common.graph.node.MemberNode;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
-import org.sudu.experiments.parser.common.graph.node.decl.*;
 import org.sudu.experiments.parser.common.graph.type.Type;
 
 import java.util.IdentityHashMap;
 
 import static org.sudu.experiments.parser.common.graph.ScopeGraphConstants.Nodes.*;
-import static org.sudu.experiments.parser.common.graph.ScopeGraphConstants.Decls.*;
 
 public class ScopeGraphWriter {
 
   public final ScopeGraph graph;
-  public int[] typeInts;
-  public char[] typeChars;
+  public int[] ints;
+  public char[] chars;
   private final ArrayWriter writer;
+  private final DeclNodeWriter declNodeWriter;
+  private final RefNodeWriter refNodeWriter;
 
-  public IdentityHashMap<Type, Integer> typeIdentityMap;
-  public IdentityHashMap<ScopeNode, Integer> scopeIdentityMap;
+  public final IdentityHashMap<Type, Integer> typeIdentityMap;
+  public final IdentityHashMap<ScopeNode, Integer> scopeIdentityMap;
 
-  private StringBuilder refDeclStringBuilder;
-  private int refDeclFrom = 0;
+  private final StringBuilder refDeclStringBuilder;
 
   public ScopeGraphWriter(ScopeGraph graph) {
     this.graph = graph;
     writer = new ArrayWriter();
     refDeclStringBuilder = new StringBuilder();
+    typeIdentityMap = new IdentityHashMap<>();
+    scopeIdentityMap = new IdentityHashMap<>();
+    declNodeWriter = new DeclNodeWriter(writer, refDeclStringBuilder, typeIdentityMap);
+    refNodeWriter = new RefNodeWriter(writer, refDeclStringBuilder, typeIdentityMap);
   }
 
   public void toInts() {
     writeInts();
-    this.typeInts = writer.getInts();
+    this.ints = writer.getInts();
+    this.chars = refDeclStringBuilder.toString().toCharArray();
   }
 
   private void writeInts() {
@@ -42,6 +47,7 @@ public class ScopeGraphWriter {
 
     writeTypes();
     writeScopes();
+    writeAssociatedScopes();
   }
 
   private void writeTypes() {
@@ -49,6 +55,16 @@ public class ScopeGraphWriter {
 
     writeTypesNames();
     writeSupertypes();
+  }
+
+  private void writeAssociatedScopes() {
+    for (var entry: typeIdentityMap.entrySet()) {
+      if (entry.getKey().associatedScope == null) return;
+      Type type = entry.getKey();
+      int scopeInd = scopeIdentityMap.get(type.associatedScope);
+      writer.write(entry.getValue());
+      writer.write(scopeInd);
+    }
   }
 
   private void putTypes() {
@@ -67,19 +83,10 @@ public class ScopeGraphWriter {
 
   // [s_1, e_1, ..., s_n, e_n]
   private void writeTypesNames() {
-    StringBuilder sb = new StringBuilder();
-    int from = 0;
     for (var type: graph.typeMap.values()) {
-      sb.append(type.type);
-      writer.write(from, type.type.length());
-      if (type.associatedScope != null) writer.write(-1);
-      else {
-        int typeNum = scopeIdentityMap.get(type.associatedScope);
-        writer.write(typeNum);
-      }
-      from += type.type.length();
+      writer.write(refDeclStringBuilder.length(), type.type.length());
+      refDeclStringBuilder.append(type.type);
     }
-    this.typeChars = sb.toString().toCharArray();
   }
 
   // [sl = t_i.super.size(), t_i.super[0], ..., t_i.super[sl - 1]]
@@ -94,6 +101,7 @@ public class ScopeGraphWriter {
   }
 
   private void writeScopes() {
+    writer.write(scopeIdentityMap.size());
     writeScope(graph.root);
   }
 
@@ -102,7 +110,6 @@ public class ScopeGraphWriter {
   // member node -- 1
   // [sc_type, child.size(), decl.size(), ref.size(), imports.size()]
   private void writeScope(ScopeNode scope) {
-    putScope(scope);
     if (scope instanceof FakeNode) {
       writer.write(FAKE_NODE);
       return;
@@ -110,60 +117,15 @@ public class ScopeGraphWriter {
     else writer.write(BASE_NODE);
 
     writeScopeChildren(scope);
-    writeDecls(scope);
-    writer.write(scope.refList.size());
+    declNodeWriter.writeDeclNodes(scope);
+    refNodeWriter.writeRefs(scope);
     writer.write(scope.importTypes.size());
-    writer.write();
     scope.childList.forEach(this::writeScope);
   }
 
   private void writeScopeChildren(ScopeNode scope) {
     writer.write(scope.childList.size());
     scope.childList.forEach(it -> writer.write(scopeIdentityMap.get(it)));
-  }
-
-  private void writeDecls(ScopeNode scope) {
-    writer.write(scope.declList.size());
-    scope.declList.forEach(decl -> {
-      String name = decl.decl.name;
-      writer.write(refDeclFrom, name.length());
-      refDeclStringBuilder.append(decl.decl.name);
-    });
-  }
-
-  private void writeDeclBase(DeclNode node) {
-    String name = node.decl.name;
-    int typeNum = typeIdentityMap.get(node.type);
-    writer.write(refDeclFrom, name.length());
-    writer.write(typeNum);
-    refDeclStringBuilder.append(name);
-  }
-
-  private void writeArgDecl(ArgNode node) {
-    writer.write(ARG_DECL_NODE);
-    writeDeclBase(node);
-  }
-
-  private void writeCreatorDecl(CreatorNode node) {
-    writer.write(CREATOR_DECL_NODE);
-  }
-
-  private void writeDecl(DeclNode node) {
-    writer.write(BASE_DECL_NODE);
-    writeDeclBase(node);
-  }
-
-  private void writeFieldDecl(FieldNode node) {
-    writer.write(FIELD_DECL_NODE);
-  }
-
-  private void writeMethodDecl(MethodNode node) {
-    writer.write(METHOD_DECL_NODE);
-  }
-
-  private void writeVarNode(VarNode node) {
-    writer.write(VAR_DECL_NODE);
-    writeDeclBase(node);
   }
 
   int putType(Type type) {

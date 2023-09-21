@@ -31,9 +31,9 @@ public class Type {
     return false;
   }
 
-  public static Type UNKNOWN() {
-    return new Type(null);
-  }
+//  public static Type UNKNOWN() {
+//    return new Type(null);
+//  }
 
   @Override
   public String toString() {

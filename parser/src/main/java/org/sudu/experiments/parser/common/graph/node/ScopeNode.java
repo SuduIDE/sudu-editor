@@ -39,7 +39,7 @@ public class ScopeNode {
 
   public DeclNode resolve(RefNode ref, BiConsumer<RefNode, DeclNode> onResolve) {
     DeclNode node = resolveRec(this, ref, onResolve);
-    if (node != null) ref.updateType(node.type);
+    if (node != null && node.type != null) ref.type = node.type;
     onResolve.accept(ref, node);
     return node;
   }
@@ -157,7 +157,10 @@ public class ScopeNode {
       QualifiedRefNode qualifiedRef, BiConsumer<RefNode, DeclNode> onResolve
   ) {
     var begin = curScope.resolve(qualifiedRef.begin, onResolve);
-    if (begin == null || begin.type.associatedScope == null) return null;
+    if (begin == null ||
+        begin.type == null ||
+        begin.type.associatedScope == null
+    ) return null;
     return begin.type.associatedScope.resolve(qualifiedRef.cont, onResolve);
   }
 

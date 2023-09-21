@@ -8,10 +8,10 @@ import java.util.Objects;
 public class RefNode {
 
   public final Name decl;
-  public final Type type;
+  public Type type;
 
   public RefNode(Name decl) {
-    this(decl, Type.UNKNOWN());
+    this(decl, null);
   }
 
   public RefNode(Name decl, Type type) {
@@ -19,12 +19,12 @@ public class RefNode {
     this.type = type;
   }
 
-  public void updateType(Type another) {
-    if (another == null) return;
-    type.type = another.type;
-    type.supertypes = another.supertypes;
-    type.associatedScope = another.associatedScope;
-  }
+//  public void updateType(Type another) {
+//    if (another == null) return;
+//    type.type = another.type;
+//    type.supertypes = another.supertypes;
+//    type.associatedScope = another.associatedScope;
+//  }
 
   @Override
   public String toString() {

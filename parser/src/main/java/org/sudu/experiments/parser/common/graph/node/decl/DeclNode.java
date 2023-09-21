@@ -26,7 +26,7 @@ public class DeclNode {
 
   @Override
   public String toString() {
-    return decl.toString() + ": " + type.toString();
+    return decl.toString() + ": " + type;
   }
 
   @Override
