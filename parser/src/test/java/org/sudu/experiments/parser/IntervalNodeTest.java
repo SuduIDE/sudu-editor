@@ -2,6 +2,8 @@ package org.sudu.experiments.parser;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.sudu.experiments.arrays.ArrayReader;
+import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.IntervalNode;
 
 public class IntervalNodeTest {
