@@ -507,7 +507,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   private void drawGap(int firstLine, int lastLine, int docLen) {
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      LineDiff currentLineModel = diffModel != null && i < diffModel.length && diffModel[i] != null
+      LineDiff currentLineModel = diffModel != null && i < diffModel.length
           ? diffModel[i]
           : null;
       V4f gapColor = currentLineModel != null
