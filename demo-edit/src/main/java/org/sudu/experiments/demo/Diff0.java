@@ -3,6 +3,7 @@ package org.sudu.experiments.demo;
 import org.sudu.experiments.DprUtil;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.ui.Focusable;
 import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.worker.diff.DiffInfo;
@@ -31,6 +32,7 @@ public class Diff0 extends Scene1 implements
   private int modelFlags;
   private DiffInfo diffModel;
   static final float middleLineThicknessDp = 20;
+  static final float lineWidthDp = 1;
   private final V4i middleLine = new V4i();
 
   final V2i p11 = new V2i();
@@ -154,6 +156,7 @@ public class Diff0 extends Scene1 implements
 
   private void drawShader() {
     if (this.diffModel == null || this.diffModel.ranges == null) return;
+    int lineWidth = uiContext.toPx(lineWidthDp);
 
     int leftStartLine = editor1.getFirstLine();
     int leftLastLine = editor1.getLastLine();
@@ -181,21 +184,55 @@ public class Diff0 extends Scene1 implements
       p12.set(middleLine.x + middleLine.z, yRightStartPosition);
       p22.set(middleLine.x + middleLine.z, yRightLastPosition);
 
-      int y = Math.min(yLeftStartPosition, yRightStartPosition);
-      int w = Math.max(yLeftLastPosition, yRightLastPosition) - y;
+      int rectY = Math.min(yLeftStartPosition, yRightStartPosition);
+      int rectW = Math.max(yLeftLastPosition, yRightLastPosition) - rectY;
 
-      rect.set(middleLine.x, y, middleLine.z, w);
+      rect.set(middleLine.x, rectY, middleLine.z, rectW);
       rect.bgColor.set(ui.theme.lineNumber.bgColor);
       rect.color.set(ui.theme.diff.getDiffColor(ui.theme, range.type));
 
       var g = uiContext.graphics;
-      g.enableScissor(middleLine);
       g.enableBlend(true);
+      if (yLeftStartPosition == yLeftLastPosition) {
+        drawLeftLine(g, yLeftStartPosition, yRightStartPosition, lineWidth);
+      }
+      if (yRightStartPosition == yRightLastPosition) {
+        drawRightLine(g, yRightStartPosition, yLeftStartPosition, lineWidth);
+      }
+      g.enableScissor(middleLine);
       g.drawLineFill(rect.pos.x, rect.pos.y, rect.size,
           p11, p12, p21, p22, rect.color);
-      g.enableBlend(false);
       g.disableScissor();
+      g.enableBlend(false);
     }
+  }
+
+  private void drawLeftLine(
+      WglGraphics g,
+      int yLeftStartPosition, int yRightStartPosition, int lineWidth
+  ) {
+    V2i temp = uiContext.v2i1;
+    temp.set(middleLine.x - editor1.pos.x, lineWidth);
+    int y = yLeftStartPosition;
+    if (yRightStartPosition < yLeftStartPosition) {
+      y -= lineWidth;
+      p11.set(p11.x, p11.y - lineWidth);
+    } else p21.set(p21.x, p21.y + lineWidth);
+    g.drawRect(editor1.pos.x, y, temp, rect.color);
+  }
+
+  private void drawRightLine(
+      WglGraphics g,
+      int yRightStartPosition, int yLeftStartPosition, int lineWidth
+  ) {
+    V2i temp = uiContext.v2i1;
+    temp.set(editor2.size.x, lineWidth);
+    int y = yRightStartPosition;
+    if (yLeftStartPosition < yRightStartPosition) {
+      y -= lineWidth;
+      p12.set(p12.x, p12.y - lineWidth);
+    } else p22.set(p22.x, p22.y + lineWidth);
+    g.drawRect(middleLine.x + middleLine.z, y, temp, rect.color);
   }
 
   private void onDiffResult(Object[] result) {
