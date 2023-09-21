@@ -1,7 +1,7 @@
 package org.sudu.experiments.parser.common;
 
-import org.sudu.experiments.parser.ArrayReader;
-import org.sudu.experiments.parser.ArrayWriter;
+import org.sudu.experiments.arrays.ArrayReader;
+import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.Interval;
 
 import java.util.ArrayList;
