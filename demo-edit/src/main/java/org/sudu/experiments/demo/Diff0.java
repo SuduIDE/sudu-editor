@@ -30,7 +30,7 @@ public class Diff0 extends Scene1 implements
   final EditorUi ui;
   private int modelFlags;
   private DiffInfo diffModel;
-  static final float middleLineThicknessDp = 10;
+  static final float middleLineThicknessDp = 20;
   private final V4i middleLine = new V4i();
 
   final V2i p11 = new V2i();
@@ -133,7 +133,10 @@ public class Diff0 extends Scene1 implements
 
   private void openFile(FileHandle handle) {
     EditorComponent activeEditor = getActiveEditor();
-    if (activeEditor != null) activeEditor.openFile(handle);
+    if (activeEditor != null) {
+      activeEditor.openFile(handle);
+      diffModel = null;
+    }
   }
 
   public void sendToDiff() {
