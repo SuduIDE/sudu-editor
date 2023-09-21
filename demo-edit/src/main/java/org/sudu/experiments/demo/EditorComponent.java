@@ -542,11 +542,11 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
         diffModel != null ? -1 : caretLine, g, colors);
   }
 
-  private int getFirstLine() {
+  int getFirstLine() {
     return Math.min(vScrollPos / lineHeight, model.document.length() - 1);
   }
 
-  private int getLastLine() {
+  int getLastLine() {
     return Math.min((vScrollPos + editorHeight() - 1) / lineHeight, model.document.length() - 1);
   }
 
