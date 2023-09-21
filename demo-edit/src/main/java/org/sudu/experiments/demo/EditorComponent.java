@@ -761,7 +761,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       V2i sizeTmp = context.v2i1;
 
       sizeTmp.y = size.y - yPosition;
-      sizeTmp.x = mirrored ? editorWidth() + vLineW : editorWidth();
+      sizeTmp.x = mirrored ? editorWidth() + vLineW : editorWidth() + xOffset;
       int x = mirrored
           ? pos.x + vLineLeftDelta + scrollBarWidth() + vLineW - xOffset
           : pos.x + vLineX - xOffset;
