@@ -23,16 +23,22 @@ public class Diff0 extends Scene1 implements
     EditorUi.FontApi,
     InputListeners.ScrollHandler,
     InputListeners.CopyHandler,
-    InputListeners.PasteHandler
-{
+    InputListeners.PasteHandler {
 
   final EditorComponent editor1;
   final EditorComponent editor2;
   final EditorUi ui;
   private int modelFlags;
   private DiffInfo diffModel;
-  static final float middleLineThicknessDp = 10;
+  static final float middleLineThicknessDp = 20;
   private final V4i middleLine = new V4i();
+
+  final V2i p11 = new V2i();
+  final V2i p12 = new V2i();
+  final V2i p21 = new V2i();
+  final V2i p22 = new V2i();
+
+  DemoRect rect = new DemoRect();
 
   public Diff0(SceneApi api) {
     super(api);
@@ -108,19 +114,29 @@ public class Diff0 extends Scene1 implements
   }
 
   private void sync(EditorComponent from, EditorComponent to) {
-    int delta = 10 * from.lineHeight;
+    if (this.diffModel == null || this.diffModel.ranges == null) return;
+    boolean isLeft = from == editor1;
 
-    if (Math.abs(from.vScrollPos - to.vScrollPos) > delta) {
-      to.setVScrollPosSilent(Math.max(from.vScrollPos - delta,
-          Math.min(to.vScrollPos, from.vScrollPos + delta)));
-    }
+    int fromFirstLine = from.getFirstLine();
+    int fromLastLine = from.getLastLine();
+    int syncLine = (fromLastLine + fromFirstLine) / 2;
+    int linesDelta = syncLine - fromFirstLine;
 
-    to.setHScrollPosSilent(from.hScrollPos);
+    var fromRange = diffModel.range(syncLine, isLeft);
+
+    int rangeDelta = syncLine - (isLeft ? fromRange.fromL : fromRange.fromR);
+    int scrollDelta = from.vScrollPos - fromFirstLine * from.lineHeight;
+    int toRangeStart = isLeft ? fromRange.fromR : fromRange.fromL;
+    int toNewLine = (toRangeStart + rangeDelta - linesDelta);
+    to.setVScrollPosSilent(toNewLine * to.lineHeight + scrollDelta);
   }
 
   private void openFile(FileHandle handle) {
     EditorComponent activeEditor = getActiveEditor();
-    if (activeEditor != null) activeEditor.openFile(handle);
+    if (activeEditor != null) {
+      activeEditor.openFile(handle);
+      diffModel = null;
+    }
   }
 
   public void sendToDiff() {
@@ -134,6 +150,52 @@ public class Diff0 extends Scene1 implements
 
     api.window.sendToWorker(this::onDiffResult, DiffUtils.FIND_DIFFS,
           chars1, intervals1, chars2, intervals2);
+  }
+
+  private void drawShader() {
+    if (this.diffModel == null || this.diffModel.ranges == null) return;
+
+    int leftStartLine = editor1.getFirstLine();
+    int leftLastLine = editor1.getLastLine();
+    int rightStartLine = editor2.getFirstLine();
+    int rightLastLine = editor2.getLastLine();
+
+    int leftStartRangeInd = diffModel.rangeBinSearch(leftStartLine, true);
+    int leftLastRangeInd = diffModel.rangeBinSearch(leftLastLine, true);
+    int rightStartRangeInd = diffModel.rangeBinSearch(rightStartLine, false);
+    int rightLastRangeInd = diffModel.rangeBinSearch(rightLastLine, false);
+
+    for (int i = Math.min(leftStartRangeInd, rightStartRangeInd);
+         i <= Math.max(leftLastRangeInd, rightLastRangeInd); i++) {
+      var range = diffModel.ranges[i];
+      if (range.type == 0) continue;
+
+      int yLeftStartPosition = editor1.lineHeight * range.fromL - editor1.vScrollPos;
+      int yLeftLastPosition = yLeftStartPosition + range.lenL * editor1.lineHeight;
+
+      int yRightStartPosition = editor2.lineHeight * range.fromR - editor2.vScrollPos;
+      int yRightLastPosition = yRightStartPosition + range.lenR * editor2.lineHeight;
+
+      p11.set(middleLine.x, yLeftStartPosition);
+      p21.set(middleLine.x, yLeftLastPosition);
+      p12.set(middleLine.x + middleLine.z, yRightStartPosition);
+      p22.set(middleLine.x + middleLine.z, yRightLastPosition);
+
+      int y = Math.min(yLeftStartPosition, yRightStartPosition);
+      int w = Math.max(yLeftLastPosition, yRightLastPosition) - y;
+
+      rect.set(middleLine.x, y, middleLine.z, w);
+      rect.bgColor.set(ui.theme.lineNumber.bgColor);
+      rect.color.set(ui.theme.diff.getDiffColor(ui.theme, range.type));
+
+      var g = uiContext.graphics;
+      g.enableScissor(middleLine);
+      g.enableBlend(true);
+      g.drawLineFill(rect.pos.x, rect.pos.y, rect.size,
+          p11, p12, p21, p22, rect.color);
+      g.enableBlend(false);
+      g.disableScissor();
+    }
   }
 
   private void onDiffResult(Object[] result) {
@@ -199,6 +261,7 @@ public class Diff0 extends Scene1 implements
         size,
         ui.theme.editor.bg);
 
+    drawShader();
     ui.paint();
   }
 

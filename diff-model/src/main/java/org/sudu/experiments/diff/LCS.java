@@ -9,19 +9,19 @@ import java.util.List;
  */
 public class LCS<S> {
 
-  private final S[] N, M;
-  public List<Diff<S>> diffs;
+  private final S[] L, R;
+  public List<BaseRange<S>> ranges;
 
-  public LCS(S[] N, S[] M) {
-    this.N = N;
-    this.M = M;
+  public LCS(S[] L, S[] R) {
+    this.L = L;
+    this.R = R;
   }
 
   public int[][] countLCSMatrix() {
-    int[][] matrix = new int[N.length + 1][M.length + 1];
-    for (int i = 1; i < N.length + 1; i++) {
-      for (int j = 1; j < M.length + 1; j++) {
-        if (N[i - 1].equals(M[j - 1])) {
+    int[][] matrix = new int[L.length + 1][R.length + 1];
+    for (int i = 1; i < L.length + 1; i++) {
+      for (int j = 1; j < R.length + 1; j++) {
+        if (L[i - 1].equals(R[j - 1])) {
           matrix[i][j] = 1 + matrix[i - 1][j - 1];
         } else {
           matrix[i][j] = Math.max(matrix[i - 1][j], matrix[i][j - 1]);
@@ -32,12 +32,12 @@ public class LCS<S> {
   }
 
   public List<S> findCommon(int[][] matrix) {
-    int i = N.length, j = M.length;
+    int i = L.length, j = R.length;
     LinkedList<S> common = new LinkedList<>();
 
     while (i > 0 && j > 0) {
-      if (N[i - 1].equals(M[j - 1])) {
-        common.addFirst(N[i - 1]);
+      if (L[i - 1].equals(R[j - 1])) {
+        common.addFirst(L[i - 1]);
         i--;
         j--;
       } else {
@@ -49,51 +49,63 @@ public class LCS<S> {
   }
 
   public void countDiffs(List<S> common) {
-    this.diffs = new ArrayList<>();
-    int i = 0, j = 0, k = 0;
+    this.ranges = new ArrayList<>();
+    int commonPtr = 0,
+        leftPtr = 0,
+        rightPtr = 0;
 
-    Diff<S> currentEditDiff = new Diff<>();
-    while (i < common.size()
-        && j < N.length
-        && k < M.length
+    Diff<S> currentDiff = null;
+    CommonRange<S> currentCommon = null;
+    while (commonPtr < common.size()
+        && leftPtr < L.length
+        && rightPtr < R.length
     ) {
-      S cS = common.get(i);
-      S cN = N[j], cM = M[k];
-      if (cS.equals(cN) && cS.equals(cM)) {
-        i++;
-        j++;
-        k++;
-        if (currentEditDiff.isNotEmpty()) {
-          diffs.add(currentEditDiff);
-          currentEditDiff = new Diff<>();
-        }
-      } else if (cS.equals(cN)) {
-        currentEditDiff.diffM.add(cM);
-        k++;
-      } else if (cS.equals(cM)) {
-        currentEditDiff.diffN.add(cN);
-        j++;
+      S cS = common.get(commonPtr);
+      S cL = L[leftPtr], cR = R[rightPtr];
+      if (cS.equals(cL) && cS.equals(cR)) {
+        if (currentCommon == null) currentCommon = new CommonRange<>(leftPtr, rightPtr);
+        if (currentDiff != null) this.ranges.add(currentDiff);
+        commonPtr++;
+        leftPtr++;
+        rightPtr++;
+        currentCommon.length++;
+        currentDiff = null;
+        continue;
+      }
+      if (currentDiff == null) currentDiff = new Diff<>(leftPtr, rightPtr);
+      if (currentCommon != null) this.ranges.add(currentCommon);
+      currentCommon = null;
+
+      if (cS.equals(cL)) {
+        currentDiff.diffM.add(cR);
+        rightPtr++;
+      } else if (cS.equals(cR)) {
+        currentDiff.diffN.add(cL);
+        leftPtr++;
       } else {
-        currentEditDiff.diffN.add(N[j]);
-        currentEditDiff.diffM.add(M[k]);
-        j++;
-        k++;
+        currentDiff.diffN.add(L[leftPtr]);
+        currentDiff.diffM.add(R[rightPtr]);
+        leftPtr++;
+        rightPtr++;
       }
     }
-    for (; j < N.length && k < M.length; j++, k++) {
-      S cN = N[j], cM = M[k];
-      currentEditDiff.diffN.add(cN);
-      currentEditDiff.diffM.add(cM);
+    if (currentCommon != null) ranges.add(currentCommon);
+    if (currentDiff == null) currentDiff = new Diff<>(leftPtr, rightPtr);
+
+    for (; leftPtr < L.length && rightPtr < R.length; leftPtr++, rightPtr++) {
+      S cL = L[leftPtr], cR = R[rightPtr];
+      currentDiff.diffN.add(cL);
+      currentDiff.diffM.add(cR);
     }
-    for (; j < N.length; j++) {
-      S cN = N[j];
-      currentEditDiff.diffN.add(cN);
+    for (; leftPtr < L.length; leftPtr++) {
+      S cL = L[leftPtr];
+      currentDiff.diffN.add(cL);
     }
-    for (; k < M.length; k++) {
-      S cM = M[k];
-      currentEditDiff.diffM.add(cM);
+    for (; rightPtr < R.length; rightPtr++) {
+      S cR = R[rightPtr];
+      currentDiff.diffM.add(cR);
     }
-    if (currentEditDiff.isNotEmpty()) diffs.add(currentEditDiff);
+    if (currentDiff != null && currentDiff.isNotEmpty()) ranges.add(currentDiff);
   }
 
 }

@@ -127,6 +127,10 @@ public abstract class WglGraphics {
     return oldMode;
   }
 
+  public void enableScissor(V4i rect) {
+    enableScissor(rect.x, rect.y, rect.z, rect.w);
+  }
+
   public void enableScissor(V2i pos, V2i size) {
     enableScissor(pos.x, pos.y, size);
   }
@@ -134,9 +138,13 @@ public abstract class WglGraphics {
   // x, y - upper left, same coordinate system as drawRect
   // unlike webgl scissor coordinates which goes from lower left
   public void enableScissor(int x, int y, V2i size) {
+    enableScissor(x, y, size.x, size.y);
+  }
+
+  public void enableScissor(int x, int y, int z, int w) {
     scissorRequest = true;
     scissorSync = true;
-    scissor.set(x, y, size.x, size.y);
+    scissor.set(x, y, z, w);
     syncScissor();
   }
 
@@ -176,12 +184,12 @@ public abstract class WglGraphics {
   public void drawLineFill(
       int x, int y, V2i size,
       V2i p11, V2i p12, V2i p21, V2i p22,
-      V4f color1, V4f color2
+      V4f color
   ) {
     setShader(shLineFill);
     shLineFill.setPosition(gl, x, y, size, clientRect);
     shLineFill.setPoints(gl, p11, p12, p21, p22);
-    shLineFill.setColors(gl, color1, color2);
+    shLineFill.setColor(gl, color);
     drawRect();
   }
 

@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 public class DiffModel {
 
   public LineDiff[] lineDiffsN, lineDiffsM;
+  public List<BaseRange<CodeLineS>> linesRanges;
 
   public int[] findDiffs(
       char[] charsN, int[] intsN,
@@ -32,19 +33,21 @@ public class DiffModel {
     int[][] lcsMatrix = lcs.countLCSMatrix();
     List<CodeLineS> common = lcs.findCommon(lcsMatrix);
     lcs.countDiffs(common);
-    for (var diff: lcs.diffs) {
+    this.linesRanges = lcs.ranges;
+    for (var range: lcs.ranges) {
+      if (!(range instanceof Diff<CodeLineS> diff)) continue;
       if (diff.isDeletion()) handleDeletion(diff);
       else if (diff.isInsertion()) handleInsertion(diff);
       else if (diff.isEdition()) handleEdition(diff);
     }
   }
 
-  private List<Diff<CodeElementS>> findElementsDiff(CodeElementS[] linesN, CodeElementS[] linesM) {
+  private List<BaseRange<CodeElementS>> findElementsDiff(CodeElementS[] linesN, CodeElementS[] linesM) {
     LCS<CodeElementS> lcs = new LCS<>(linesN, linesM);
     int[][] lcsMatrix = lcs.countLCSMatrix();
     List<CodeElementS> common = lcs.findCommon(lcsMatrix);
     lcs.countDiffs(common);
-    return lcs.diffs;
+    return lcs.ranges;
   }
 
   private void handleDeletion(Diff<CodeLineS> diff) {
@@ -68,7 +71,8 @@ public class DiffModel {
     diff.diffM.forEach(line -> lineDiffsM[line.lineNum] = new LineDiff(LineDiff.EDITED, line.len()));
 
     var elementsDiffs = findElementsDiff(flatElements(diff.diffN), flatElements(diff.diffM));
-    elementsDiffs.forEach(elDiff -> {
+    elementsDiffs.forEach(elRange -> {
+      if (!(elRange instanceof Diff<CodeElementS> elDiff)) return;
       if (elDiff.isDeletion()) handleElemDeletion(elDiff);
       else if (elDiff.isInsertion()) handleElemInsertion(elDiff);
       else if (elDiff.isEdition()) handleElemEdition(elDiff);
@@ -123,6 +127,7 @@ public class DiffModel {
     ArrayWriter writer = new ArrayWriter();
     writeResults(writer, lineDiffsN);
     writeResults(writer, lineDiffsM);
+    writeRanges(writer);
     return writer.getInts();
   }
 
@@ -139,6 +144,19 @@ public class DiffModel {
         writer.write(diff[i].elementTypes.length);
         for(int type: diff[i].elementTypes) writer.write(type);
       }
+    }
+  }
+
+  private void writeRanges(ArrayWriter writer) {
+    writer.write(linesRanges.size());
+    for (var range: linesRanges) {
+      writer.write(range.fromL);
+      writer.write(range.lengthL());
+      writer.write(range.fromR);
+      writer.write(range.lengthR());
+      if (range instanceof Diff<CodeLineS> diff)
+        writer.write(diff.getType());
+      else writer.write(0);
     }
   }
 }

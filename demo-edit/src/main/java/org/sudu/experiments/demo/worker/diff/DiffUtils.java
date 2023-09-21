@@ -4,6 +4,7 @@ import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.demo.CodeLine;
 import org.sudu.experiments.demo.Document;
 import org.sudu.experiments.arrays.ArrayWriter;
+import org.sudu.experiments.demo.Range;
 import org.sudu.experiments.diff.DiffModel;
 import org.sudu.experiments.diff.LineDiff;
 
@@ -44,7 +45,11 @@ public class DiffUtils {
 
   public static DiffInfo readDiffInfo(int[] ints) {
     ArrayReader reader = new ArrayReader(ints);
-    return new DiffInfo(readLineDiffs(reader), readLineDiffs(reader));
+    return new DiffInfo(
+        readLineDiffs(reader),
+        readLineDiffs(reader),
+        readRanges(reader)
+    );
   }
 
   public static LineDiff[] readLineDiffs(ArrayReader reader) {
@@ -64,6 +69,20 @@ public class DiffUtils {
       }
     }
     return lineDiff;
+  }
+
+  public static DiffRange[] readRanges(ArrayReader reader) {
+    int len = reader.next();
+    DiffRange[] ranges = new DiffRange[len];
+    for (int i = 0; i < len; i++) {
+      int fromL = reader.next();
+      int lengthL = reader.next();
+      int fromR = reader.next();
+      int lengthR = reader.next();
+      int type = reader.next();
+      ranges[i] = new DiffRange(fromL, lengthL, fromR, lengthR, type);
+    }
+    return ranges;
   }
 
   public static void printInfo(DiffInfo info, Document docN, Document docM) {
