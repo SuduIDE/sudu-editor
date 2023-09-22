@@ -12,12 +12,13 @@ import java.util.stream.Collectors;
 // Base class for parsers, that parse all text in file
 public abstract class BaseFullParser extends BaseParser {
 
-  protected Map<Pos, Pos> usageToDefinition = new HashMap<>();
+  public Map<Pos, Pos> usageToDefinition = new HashMap<>();
 
-  protected int[] getInts(List<Interval> intervalList) {
+  protected int[] getInts(IntervalNode node) {
     int N = allTokens.get(allTokens.size() - 1).getLine();
     int M = 0;
-    int K = intervalList.size();
+    int[] nodeInts = node != null ? node.toInts() : new int[]{};
+    int K = nodeInts.length;
     int L = usageToDefinition.size();
 
     Map<Integer, List<Token>> tokensByLine = groupTokensByLine(allTokens);
@@ -29,11 +30,11 @@ public abstract class BaseFullParser extends BaseParser {
       M += filtered.size();
     }
 
-    writer = new ArrayWriter(3 + N + 4 * M + 3 * K + 4 * L);
+    writer = new ArrayWriter(3 + N + 4 * M + K + 4 * L);
     writer.write(N, K, L);
 
     writeTokens(N, tokensByLine);
-    writeIntervals(intervalList, 0);
+    writer.write(nodeInts);
     writeUsageToDefinitions(usageToDefinition);
 
     return writer.getInts();

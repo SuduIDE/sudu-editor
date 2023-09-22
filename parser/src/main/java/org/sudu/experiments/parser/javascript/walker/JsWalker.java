@@ -12,7 +12,7 @@ import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
 import static org.sudu.experiments.parser.javascript.parser.highlighting.JavaScriptLexerHighlighting.*;
 import static org.sudu.experiments.parser.ParserConstants.*;
 
-public class JavaScriptWalker extends JavaScriptParserBaseListener {
+public class JsWalker extends JavaScriptParserBaseListener {
 
   private final int[] tokenTypes;
   private final int[] tokenStyles;
@@ -20,7 +20,7 @@ public class JavaScriptWalker extends JavaScriptParserBaseListener {
 
   private int lastIntervalEnd = 0;
 
-  public JavaScriptWalker(int[] tokenTypes, int[] tokenStyles) {
+  public JsWalker(int[] tokenTypes, int[] tokenStyles) {
     this.tokenTypes = tokenTypes;
     this.tokenStyles = tokenStyles;
     intervals = new ArrayList<>();

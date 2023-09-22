@@ -4,7 +4,7 @@ public class GenerateParsers {
 
   private static final String baseGenPath = "parser/src/main/java/org/sudu/experiments/parser/";
   private static final String basePackageName = "org.sudu.experiments.parser";
-  private static final String baseGrammarPath = "parser/src/main/resources/grammar/";
+  private static final String baseGrammarPath = "parser-generator/src/main/resources/grammar/";
 
   private static final String javaGenPath = baseGenPath + "java/gen/";
   private static final String javaPackagePath = basePackageName + ".java.gen";
@@ -31,8 +31,6 @@ public class GenerateParsers {
   private static final String lightJsPackagePath = basePackageName + ".javascript.gen.light";
 
   public static void main(String[] args) {
-    System.out.println("");
-
     new Tool(new String[]{
         "-o",
         javaGenPath,

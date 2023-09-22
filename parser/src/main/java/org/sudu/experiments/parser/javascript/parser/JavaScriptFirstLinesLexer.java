@@ -4,11 +4,13 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.parser.common.BaseFullParser;
+import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.javascript.JsSplitRules;
 import org.sudu.experiments.parser.javascript.gen.light.LightJavaScriptLexer;
+import org.sudu.experiments.parser.javascript.parser.highlighting.JavaScriptLexerHighlighting;
 import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptLexerHighlighting;
 
 import java.util.Arrays;
-import java.util.List;
 
 public class JavaScriptFirstLinesLexer extends BaseFullParser {
 
@@ -18,7 +20,7 @@ public class JavaScriptFirstLinesLexer extends BaseFullParser {
 
     highlightTokens();
 
-    var result = getInts(List.of());
+    var result = getInts(null);
     System.out.println("Lexing viewport js time " + (System.currentTimeMillis() - parsingStartTime) + "ms");
     return result;
   }
@@ -35,21 +37,13 @@ public class JavaScriptFirstLinesLexer extends BaseFullParser {
   }
 
   @Override
-  protected boolean isMultilineToken(int tokenType) {
-    return tokenType == LightJavaScriptLexer.MultiLineComment
-        || tokenType == LightJavaScriptLexer.HtmlComment
-        || tokenType == LightJavaScriptLexer.CDataComment
-        || tokenType == LightJavaScriptLexer.StringLiteral;
-  }
-
-  @Override
-  protected boolean isComment(int tokenType) {
-    return LightJavaScriptLexerHighlighting.isComment(tokenType);
-  }
-
-  @Override
   protected Lexer initLexer(CharStream stream) {
     return new LightJavaScriptLexer(stream);
+  }
+
+  @Override
+  protected SplitRules initSplitRules() {
+    return new JsSplitRules();
   }
 
   @Override
@@ -58,4 +52,9 @@ public class JavaScriptFirstLinesLexer extends BaseFullParser {
     return type != LightJavaScriptLexer.LineTerminator
         && type != LightJavaScriptLexer.EOF;
   }
+
+  public static boolean isComment(int tokenType) {
+    return JavaScriptLexerHighlighting.isComment(tokenType);
+  }
+
 }

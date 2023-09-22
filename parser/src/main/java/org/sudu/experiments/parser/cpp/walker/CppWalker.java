@@ -3,6 +3,7 @@ package org.sudu.experiments.parser.cpp.walker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.common.Decl;
+import org.sudu.experiments.parser.common.TypedDecl;
 import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
 import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
 import org.sudu.experiments.parser.cpp.gen.CPP14ParserBaseListener;
@@ -39,11 +40,6 @@ public class CppWalker extends CPP14ParserBaseListener {
   @Override
   public void enterMemberSpecification(CPP14Parser.MemberSpecificationContext ctx) {
     super.enterMemberSpecification(ctx);
-    var classHead = (CPP14Parser.ClassSpecifierContext) ctx.parent;
-    var className = classHead.classHead().classHeadName().className();
-    var node = getIdentifier(className);
-    if (node != null) currentBlock.localVars.add(Decl.fromNode(node));
-
     int ind = cppClass.nestPos;
     cppClass = cppClass.nestedClasses.get(ind);
   }
@@ -58,14 +54,25 @@ public class CppWalker extends CPP14ParserBaseListener {
   @Override
   public void enterFunctionDefinition(CPP14Parser.FunctionDefinitionContext ctx) {
     super.enterFunctionDefinition(ctx);
+    boolean isFuncDef = ctx.declSpecifierSeq() != null;
+    boolean isConstructorDef = ctx.parent instanceof CPP14Parser.MemberdeclarationContext;
+    if (!isFuncDef && !isConstructorDef) return;
+
     var node = getIdentifier(ctx.declarator());
-    if (node != null) {
-      var token = node.getSymbol();
-      tokenTypes[token.getTokenIndex()] = TokenTypes.METHOD;
-    }
+    if (node == null) return;
+
+    var token = node.getSymbol();
+    tokenTypes[token.getTokenIndex()] = TokenTypes.METHOD;
+
+    String name = node.getText();
+    Pos pos = Pos.fromNode(node);
+    String type = isFuncDef ? getType(ctx.declSpecifierSeq()) : name;
+    var args = getMethodArguments(ctx.declarator());
+    var argsTypes = args.stream().map(it -> it.type).toList();
+
+    if (isFuncDef) currentBlock.methods.add(new CppMethod(name, pos, type, argsTypes));
 
     enterBlock();   // Args block
-    var args = getMethodArguments(ctx.declarator());
     currentBlock.localVars.addAll(args);
     enterBlock();   // Function body block
   }
@@ -94,25 +101,22 @@ public class CppWalker extends CPP14ParserBaseListener {
     super.exitSimpleDeclaration(ctx);
     if (isNotDeclaration(ctx)) return;
 
+    String type = getType(ctx.declSpecifierSeq());
     for (var initDecl: ctx.initDeclaratorList().initDeclarator()) {
       var node = getIdentifier(initDecl.declarator());
-      if (node != null) currentBlock.localVars.add(Decl.fromNode(node));
+      if (node == null) continue;
+      String name = node.getText();
+      Pos pos = Pos.fromNode(node);
+      currentBlock.localVars.add(new TypedDecl(name, pos, type));
     }
   }
 
   @Override
   public void exitFunctionDefinition(CPP14Parser.FunctionDefinitionContext ctx) {
     super.exitFunctionDefinition(ctx);
+    if (ctx.declSpecifierSeq() == null) return;
     exitBlock();
-    List<Decl> args = currentBlock.localVars;
     exitBlock();
-
-    if (!(ctx.parent instanceof CPP14Parser.MemberdeclarationContext)) {
-      var node = getIdentifier(ctx.declarator());
-      if (node == null) return;
-      CppMethod method = new CppMethod(node.getText(), Pos.fromNode(node), args);
-      currentBlock.methods.add(method);
-    }
   }
 
   @Override
@@ -137,10 +141,27 @@ public class CppWalker extends CPP14ParserBaseListener {
   }
 
   @Override
+  public void enterCompoundStatement(CPP14Parser.CompoundStatementContext ctx) {
+    super.enterCompoundStatement(ctx);
+    enterBlock();
+  }
+
+  @Override
+  public void exitCompoundStatement(CPP14Parser.CompoundStatementContext ctx) {
+    super.exitCompoundStatement(ctx);
+    exitBlock();
+  }
+
+  @Override
   public void enterForRangeDeclaration(CPP14Parser.ForRangeDeclarationContext ctx) {
     super.enterForRangeDeclaration(ctx);
     var node = getIdentifier(ctx.declarator());
-    if (node != null) currentBlock.localVars.add(Decl.fromNode(node));
+    if (node == null) return;
+
+    String name = node.getText();
+    Pos pos = Pos.fromNode(node);
+    String type = getType(ctx.declSpecifierSeq());
+    currentBlock.localVars.add(new TypedDecl(name, pos, type));
   }
 
   @Override
@@ -155,8 +176,29 @@ public class CppWalker extends CPP14ParserBaseListener {
     if (isInsideMethodDeclarationArgs(ctx)) isInsideParameters = false;
   }
 
-  public void visitIdentifier(TerminalNode node) {
-    if (isInsideParameters) return;
+  @Override
+  public void enterSimpleDeclaration(CPP14Parser.SimpleDeclarationContext ctx) {
+    super.enterSimpleDeclaration(ctx);
+    if (ctx.initDeclaratorList() == null ||
+    ctx.declSpecifierSeq() != null
+    ) return;
+
+    for (var initDecl: ctx.initDeclaratorList().initDeclarator()) {
+      var node = getIdentifier(initDecl.declarator());
+      markNode(node);
+    }
+  }
+
+  @Override
+  public void enterPrimaryExpression(CPP14Parser.PrimaryExpressionContext ctx) {
+    super.enterPrimaryExpression(ctx);
+    if (ctx.idExpression() == null) return;
+    var node = getIdentifier(ctx.idExpression());
+    markNode(node);
+  }
+
+  private void markNode(TerminalNode node) {
+    if (node == null) return;
 
     var token = node.getSymbol();
     int tokenInd = token.getTokenIndex();
@@ -202,8 +244,8 @@ public class CppWalker extends CPP14ParserBaseListener {
     var token = node.getSymbol();
     int type = token.getType();
     int ind = token.getTokenIndex();
-    if (type == CPP14Lexer.Identifier) visitIdentifier(node);
-    else if (isKeyword(type)) tokenTypes[ind] = KEYWORD;
+    /*if (type == CPP14Lexer.Identifier) visitIdentifier(node);
+    else*/ if (isKeyword(type)) tokenTypes[ind] = KEYWORD;
     else if (isNumeric(type)) tokenTypes[ind] = NUMERIC;
     else if (isBooleanLiteral(type)) tokenTypes[ind] = BOOLEAN;
     else if (isStringOrChar(type)) tokenTypes[ind] = STRING;
@@ -225,13 +267,16 @@ public class CppWalker extends CPP14ParserBaseListener {
     currentBlock.subBlock = null;
   }
 
-  static List<Decl> getArgList(CPP14Parser.ParameterDeclarationListContext ctx) {
-    List<Decl> result = new ArrayList<>();
-    for (var paramDecl : ctx.parameterDeclaration()) {
+  static List<TypedDecl> getArgList(CPP14Parser.ParameterDeclarationListContext ctx) {
+    List<TypedDecl> result = new ArrayList<>();
+    for (var paramDecl: ctx.parameterDeclaration()) {
       if (paramDecl.declarator() != null) {
-        var name = getIdentifier(paramDecl.declarator());
-        if (name == null) continue;
-        result.add(Decl.fromNode(name));
+        var node = getIdentifier(paramDecl.declarator());
+        if (node == null) continue;
+        String name = node.getText();
+        Pos pos = Pos.fromNode(node);
+        String type = getType(paramDecl.declSpecifierSeq());
+        result.add(new TypedDecl(name, pos, type));
       }
     }
     return result;
@@ -256,18 +301,46 @@ public class CppWalker extends CPP14ParserBaseListener {
     else return ctx.simpleTemplateId().templateName().Identifier();
   }
 
-  static List<Decl> getMethodArguments(CPP14Parser.DeclaratorContext declaratorContext) {
-    if (declaratorContext.pointerDeclarator() == null
-        || declaratorContext.pointerDeclarator().noPointerDeclarator() == null
-        || declaratorContext.pointerDeclarator().noPointerDeclarator().parametersAndQualifiers() == null)
-      return Collections.emptyList();
-    var params = declaratorContext.pointerDeclarator().noPointerDeclarator().parametersAndQualifiers().parameterDeclarationClause();
-    if (params == null) return Collections.emptyList();
-    return getArgList(params.parameterDeclarationList());
+  static List<TypedDecl> getMethodArguments(CPP14Parser.DeclaratorContext declaratorContext) {
+    CPP14Parser.ParametersAndQualifiersContext params;
+    if (declaratorContext.parametersAndQualifiers() != null) params = declaratorContext.parametersAndQualifiers();
+    else if (declaratorContext.pointerDeclarator() != null &&
+        declaratorContext.pointerDeclarator().noPointerDeclarator() != null &&
+        declaratorContext.pointerDeclarator().noPointerDeclarator().parametersAndQualifiers() != null) {
+      params = declaratorContext.pointerDeclarator().noPointerDeclarator().parametersAndQualifiers();
+    } else return Collections.emptyList();
+    if (params.parameterDeclarationClause() == null) return Collections.emptyList();
+
+    return getArgList(params.parameterDeclarationClause().parameterDeclarationList());
+  }
+
+  static List<String> getMethodArgumentsTypes(CPP14Parser.DeclaratorContext declaratorContext) {
+    return getMethodArguments(declaratorContext).stream().map(it -> it.type).toList();
+  }
+
+  static String getType(CPP14Parser.DeclSpecifierSeqContext ctx) {
+    for (var decl: ctx.declSpecifier()) {
+      if (decl.typeSpecifier() != null)
+        return getType(decl.typeSpecifier());
+    }
+    return null;
+  }
+
+  static String getType(CPP14Parser.TypeSpecifierContext ctx) {
+    return ctx.getText(); // todo
   }
 
   static boolean isNotDeclaration(CPP14Parser.SimpleDeclarationContext ctx) {
-    return ctx.initDeclaratorList() == null || ctx.declSpecifierSeq() == null;
+    return ctx.declSpecifierSeq() == null || ctx.initDeclaratorList() == null;
+  }
+
+  // foo() ->
+  static boolean isMethodCall(CPP14Parser.SimpleDeclarationContext ctx) {
+    if (ctx.declSpecifierSeq() != null ||
+        ctx.attributeSpecifierSeq() != null ||
+        ctx.initDeclaratorList() == null
+    ) return false;
+    return false;
   }
 
   static boolean isInsideMethodDeclarationArgs(CPP14Parser.ParametersAndQualifiersContext ctx) {

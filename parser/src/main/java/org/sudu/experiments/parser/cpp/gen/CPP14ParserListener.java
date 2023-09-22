@@ -1,4 +1,4 @@
-// Generated from parser/src/main/resources/grammar/cpp/CPP14Parser.g4 by ANTLR 4.12.0
+// Generated from parser-generator/src/main/resources/grammar/cpp/CPP14Parser.g4 by ANTLR 4.12.0
 package org.sudu.experiments.parser.cpp.gen;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -2109,17 +2109,6 @@ public interface CPP14ParserListener extends ParseTreeListener {
 	void exitLiteral(CPP14Parser.LiteralContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link CPP14Parser#translationUnitOrAny}.
-	 * @param ctx the parse tree
-	 */
-	void enterTranslationUnitOrAny(CPP14Parser.TranslationUnitOrAnyContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CPP14Parser#translationUnitOrAny}.
-	 * @param ctx the parse tree
-	 */
-	void exitTranslationUnitOrAny(CPP14Parser.TranslationUnitOrAnyContext ctx);
-
-	/**
 	 * Enter a parse tree produced by {@link CPP14Parser#unknownInterval}.
 	 * @param ctx the parse tree
 	 */
@@ -2129,6 +2118,17 @@ public interface CPP14ParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitUnknownInterval(CPP14Parser.UnknownIntervalContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link CPP14Parser#translationUnitOrAny}.
+	 * @param ctx the parse tree
+	 */
+	void enterTranslationUnitOrAny(CPP14Parser.TranslationUnitOrAnyContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CPP14Parser#translationUnitOrAny}.
+	 * @param ctx the parse tree
+	 */
+	void exitTranslationUnitOrAny(CPP14Parser.TranslationUnitOrAnyContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link CPP14Parser#anySeq}.

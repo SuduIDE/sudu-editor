@@ -1,6 +1,7 @@
 package org.sudu.experiments.parser.java.parser.highlighting;
 
 import org.antlr.v4.runtime.Token;
+import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 
 import java.util.List;
@@ -22,12 +23,27 @@ public class JavaLexerHighlighting {
       else if (isSemi(type)) tokenTypes[ind] = SEMI;
       else if (isAT(type)) tokenTypes[ind] = ANNOTATION;
       else if (isComment(token.getType())) tokenTypes[ind] = COMMENT;
+      else if (isJavadoc(token.getType())) tokenTypes[ind] = JAVADOC;
+      else if (isError(token.getType())) tokenTypes[ind] = ERROR;
+    }
+  }
+
+  public static void highlightCommentTokens(List<Token> allTokens, int[] tokenTypes) {
+    for (var token: allTokens) {
+      int ind = token.getTokenIndex();
+      if (JavaLexerHighlighting.isComment(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.COMMENT;
+      if (JavaLexerHighlighting.isJavadoc(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.JAVADOC;
+      if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
     }
   }
 
   public static boolean isComment(int type) {
     return type == JavaLexer.COMMENT
         || type == JavaLexer.LINE_COMMENT;
+  }
+
+  public static boolean isJavadoc(int type) {
+    return type == JavaLexer.JAVADOC;
   }
 
   // Tokens from MODULE to VAR can be used as identifiers
@@ -62,6 +78,14 @@ public class JavaLexerHighlighting {
 
   public static boolean isAT(int type) {
     return type == JavaLexer.AT;
+  }
+
+  public static boolean isError(int type) {
+    return type == JavaLexer.ERROR;
+  }
+
+  public static boolean isErrorToken(int type) {
+    return type == JavaLexer.ERROR;
   }
 
 }

@@ -821,7 +821,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     char[] chars = ((ArrayView) result[1]).chars();
     int type = ((ArrayView) result[2]).ints()[0];
 
-    model.document = ParserUtils.makeDocument(ints, chars);
+    ParserUtils.updateDocument(model.document, ints, chars);
 
     changeModelLanguage(Languages.getLanguage(type));
 
@@ -844,7 +844,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
 
-    model.document = ParserUtils.updateDocument(model.document, ints, chars, firstLinesParsed);
+    ParserUtils.updateDocument(model.document, ints, chars, firstLinesParsed);
     changeModelLanguage(Languages.getLanguage(type));
 
     window().setCursor(Cursor.arrow);
@@ -868,7 +868,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
 
-    ParserUtils.updateDocument(model.document, ints, chars);
+    ParserUtils.updateDocumentInterval(model.document, ints, chars);
 
     window().setCursor(Cursor.arrow);
     window().repaint();
@@ -881,7 +881,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (fileStructureParsed) return;
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
-    this.model.document = ParserUtils.makeDocument(ints, chars);
+    ParserUtils.updateDocument(model.document, ints, chars);
     firstLinesParsed = true;
     Debug.consoleInfo("First lines parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
   }
@@ -1043,10 +1043,11 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     Document document = model.document;
     Pos def = document.getDefinition(elementPos);
 
-    if (def != null) definition = document.getCodeElement(def);
+    if (def == null) def = elementPos;
 
-    List<Pos> usageList = document.getUsagesList(def != null ? def : elementPos);
+    List<Pos> usageList = document.getUsagesList(def);
     if (usageList != null) {
+      definition = document.getCodeElement(def);
       for (var usage : usageList) {
         usages.add(document.getCodeElement(usage));
       }
@@ -1419,7 +1420,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (model.document.currentVersion != iterativeVersion) return;
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
-    ParserUtils.updateDocument(model.document, ints, chars);
+    ParserUtils.updateDocumentInterval(model.document, ints, chars);
     model.document.onReparse();
   }
 

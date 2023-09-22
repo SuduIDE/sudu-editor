@@ -312,7 +312,8 @@ aliasDeclaration:
 	Using Identifier attributeSpecifierSeq? Assign theTypeId Semi;
 
 simpleDeclaration:
-	declSpecifierSeq? initDeclaratorList? Semi
+    initDeclaratorList Semi    // ???
+	| declSpecifierSeq? initDeclaratorList? Semi
 	| attributeSpecifierSeq declSpecifierSeq? initDeclaratorList Semi;
 
 staticAssertDeclaration:
@@ -823,14 +824,15 @@ literal:
 
 // Only for iterative parsing usage
 
-translationUnitOrAny:
-    translationUnit
-    | anySeq+?
-    ;
-
 unknownInterval
-    : (declaration | anySeq)+?
+    : declaration+?
+    | anySeq
     | EOF
     ;
 
-anySeq: .+;
+translationUnitOrAny
+    : translationUnit
+    | anySeq
+    ;
+
+anySeq: .+?;

@@ -8,17 +8,20 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.BaseIntervalParser;
+import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.javascript.JsSplitRules;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptLexer;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptParser;
 import org.sudu.experiments.parser.javascript.parser.highlighting.JavaScriptLexerHighlighting;
-import org.sudu.experiments.parser.javascript.walker.JavaScriptWalker;
+import org.sudu.experiments.parser.javascript.walker.JsWalker;
 
 import java.util.List;
 
 public class JavaScriptIntervalParser extends BaseIntervalParser {
 
   @Override
-  protected List<Interval> parseInterval(Interval interval) {
+  protected IntervalNode parseInterval(Interval interval) {
     JavaScriptParser parser = new JavaScriptParser(tokenStream);
     ParserRuleContext ruleContext;
 
@@ -28,7 +31,7 @@ public class JavaScriptIntervalParser extends BaseIntervalParser {
     };
     ParseTreeWalker walker = new ParseTreeWalker();
 
-    var classWalker = new JavaScriptWalker(tokenTypes, tokenStyles);
+    var classWalker = new JsWalker(tokenTypes, tokenStyles);
     walker.walk(classWalker, ruleContext);
     highlightTokens();
 
@@ -36,20 +39,7 @@ public class JavaScriptIntervalParser extends BaseIntervalParser {
       var compUnitInterval = new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.Java.COMP_UNIT);
       classWalker.intervals.add(0, compUnitInterval);
     }
-    return classWalker.intervals;
-  }
-
-  @Override
-  protected boolean isMultilineToken(int tokenType) {
-    return tokenType == JavaScriptLexer.MultiLineComment
-        || tokenType == JavaScriptLexer.HtmlComment
-        || tokenType == JavaScriptLexer.CDataComment
-        || tokenType == JavaScriptLexer.StringLiteral;
-  }
-
-  @Override
-  protected boolean isComment(int tokenType) {
-    return JavaScriptLexerHighlighting.isComment(tokenType);
+    return defaultIntervalNode();
   }
 
   @Override
@@ -58,9 +48,28 @@ public class JavaScriptIntervalParser extends BaseIntervalParser {
   }
 
   @Override
+  protected SplitRules initSplitRules() {
+    return new JsSplitRules();
+  }
+
+  @Override
   protected boolean tokenFilter(Token token) {
     int type = token.getType();
     return type != JavaScriptLexer.LineTerminator
         && type != JavaScriptLexer.EOF;
   }
+
+  @Override
+  protected void highlightTokens() {
+    for (var token: allTokens) {
+      int ind = token.getTokenIndex();
+      if (isComment(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.COMMENT;
+      if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
+    }
+  }
+
+  public static boolean isComment(int tokenType) {
+    return JavaScriptLexerHighlighting.isComment(tokenType);
+  }
+
 }

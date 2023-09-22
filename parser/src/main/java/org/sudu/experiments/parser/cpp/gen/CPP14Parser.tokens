@@ -143,6 +143,7 @@ Whitespace=142
 Newline=143
 BlockComment=144
 LineComment=145
+ERROR=146
 'alignas'=10
 'alignof'=11
 'asm'=12

@@ -47,7 +47,9 @@ public class DiffModelTest {
     int[] ints;
     JavaParser.parse(chars, result);
     ints = (int[]) result.get(0);
-    return ParserUtils.makeDocument(ints, chars);
+    Document document = new Document();
+    ParserUtils.updateDocument(document, ints, chars);
+    return document;
   }
 
   private String readFile(String filename) {

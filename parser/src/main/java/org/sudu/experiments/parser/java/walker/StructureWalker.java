@@ -1,22 +1,21 @@
 package org.sudu.experiments.parser.java.walker;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.java.gen.st.JavaStructureParser;
 import org.sudu.experiments.parser.java.gen.st.JavaStructureParserBaseListener;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Java.*;
 
 public class StructureWalker extends JavaStructureParserBaseListener {
 
-  public final List<Interval> intervals;
+  public IntervalNode node;
 
-  private int lastClassBodyEnd = -1;
+  private int lastIntervalEnd = -1;
 
-  public StructureWalker() {
-    intervals = new ArrayList<>();
+  public StructureWalker(IntervalNode node) {
+    this.node = node;
   }
 
   @Override
@@ -27,77 +26,103 @@ public class StructureWalker extends JavaStructureParserBaseListener {
   @Override
   public void enterPackageDeclaration(JavaStructureParser.PackageDeclarationContext ctx) {
     super.enterPackageDeclaration(ctx);
-    intervals.add(new Interval(ctx, PACKAGE));
+    addChild(ctx, PACKAGE);
   }
 
   @Override
   public void enterImportDeclaration(JavaStructureParser.ImportDeclarationContext ctx) {
     super.enterImportDeclaration(ctx);
-    intervals.add(new Interval(ctx, IMPORT));
+    addChild(ctx, IMPORT);
   }
 
   @Override
   public void enterTypeDeclaration(JavaStructureParser.TypeDeclarationContext ctx) {
     super.enterTypeDeclaration(ctx);
-    intervals.add(new Interval(ctx, TYPE_DECL));
+    addChild(ctx, TYPE_DECL);
+    enterChild();
+  }
+
+  @Override
+  public void exitTypeDeclaration(JavaStructureParser.TypeDeclarationContext ctx) {
+    super.exitTypeDeclaration(ctx);
+    exitChild();
   }
 
   @Override
   public void enterClassBodyDeclaration(JavaStructureParser.ClassBodyDeclarationContext ctx) {
     super.enterClassBodyDeclaration(ctx);
-    int end = ctx.stop.getStopIndex() + 1;
-    intervals.add(new Interval(lastClassBodyEnd, end, CLASS_BODY));
-    lastClassBodyEnd = end + 1;
+    addChild(ctx, CLASS_BODY);
+    enterChild();
+  }
+
+  @Override
+  public void exitClassBodyDeclaration(JavaStructureParser.ClassBodyDeclarationContext ctx) {
+    super.exitClassBodyDeclaration(ctx);
+    exitChild();
   }
 
   @Override
   public void enterClassBody(JavaStructureParser.ClassBodyContext ctx) {
     super.enterClassBody(ctx);
-    lastClassBodyEnd = ctx.LBRACE().getSymbol().getStartIndex() + 1;
+    lastIntervalEnd = ctx.LBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
   public void exitClassBody(JavaStructureParser.ClassBodyContext ctx) {
     super.exitClassBody(ctx);
-    lastClassBodyEnd = ctx.RBRACE().getSymbol().getStartIndex() + 1;
+    lastIntervalEnd = ctx.RBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
   public void enterEnumDeclaration(JavaStructureParser.EnumDeclarationContext ctx) {
     super.enterEnumDeclaration(ctx);
-    lastClassBodyEnd = ctx.anyBlock().LBRACE().getSymbol().getStartIndex() + 1;
+    lastIntervalEnd = ctx.anyBlock().LBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
   public void exitEnumDeclaration(JavaStructureParser.EnumDeclarationContext ctx) {
     super.exitEnumDeclaration(ctx);
-    lastClassBodyEnd = ctx.anyBlock().RBRACE().getSymbol().getStartIndex() + 1;
+    lastIntervalEnd = ctx.anyBlock().RBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
   public void enterRecordDeclaration(JavaStructureParser.RecordDeclarationContext ctx) {
     super.enterRecordDeclaration(ctx);
     if (ctx.parent instanceof JavaStructureParser.AnyBlockContext) return;
-    lastClassBodyEnd = ctx.recordBody().LBRACE().getSymbol().getStartIndex() + 1;
+    lastIntervalEnd = ctx.recordBody().LBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
   public void exitRecordDeclaration(JavaStructureParser.RecordDeclarationContext ctx) {
     super.exitRecordDeclaration(ctx);
     if (ctx.parent instanceof JavaStructureParser.AnyBlockContext) return;
-    lastClassBodyEnd = ctx.recordBody().RBRACE().getSymbol().getStartIndex() + 1;
+    lastIntervalEnd = ctx.recordBody().RBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
   public void enterAnnotationTypeDeclaration(JavaStructureParser.AnnotationTypeDeclarationContext ctx) {
     super.enterAnnotationTypeDeclaration(ctx);
-    lastClassBodyEnd = ctx.anyBlock().LBRACE().getSymbol().getStartIndex() + 1;
+    lastIntervalEnd = ctx.anyBlock().LBRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
   public void exitAnnotationTypeDeclaration(JavaStructureParser.AnnotationTypeDeclarationContext ctx) {
     super.exitAnnotationTypeDeclaration(ctx);
-    lastClassBodyEnd = ctx.anyBlock().RBRACE().getSymbol().getStartIndex() + 1;
+    lastIntervalEnd = ctx.anyBlock().RBRACE().getSymbol().getStartIndex() + 1;
+  }
+
+  private void addChild(ParserRuleContext ctx, int type) {
+    int end = ctx.stop.getStopIndex() + 1;
+    node.addChild(new Interval(lastIntervalEnd, end, type));
+    lastIntervalEnd = end;
+  }
+
+  private void enterChild() {
+    node = node.lastChild();
+  }
+
+  private void exitChild() {
+    node = node.parent;
   }
 
 }

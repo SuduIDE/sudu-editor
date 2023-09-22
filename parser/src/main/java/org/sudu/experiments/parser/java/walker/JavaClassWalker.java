@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.Decl;
+import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.JavaParserBaseListener;
@@ -32,58 +33,90 @@ public class JavaClassWalker extends JavaParserBaseListener {
   public double depthSum = 0;
   public int amount = 0;
 
-  public List<Interval> intervals;
+  public IntervalNode node;
+  public int intervalStart = 0;
 
   private int lastIntervalEnd = 0;
 
-  public JavaClassWalker() {
+  public JavaClassWalker(IntervalNode node) {
     dummy = new JavaClass(null, null, null);
     current = dummy;
-    intervals = new ArrayList<>();
     types = new ArrayList<>();
+    this.node = node;
   }
 
   @Override
   public void enterPackageDeclaration(JavaParser.PackageDeclarationContext ctx) {
     super.enterPackageDeclaration(ctx);
-    addInterval(ctx, PACKAGE);
+    addChild(ctx, PACKAGE);
   }
 
   @Override
   public void enterImportDeclaration(JavaParser.ImportDeclarationContext ctx) {
     super.enterImportDeclaration(ctx);
-    addInterval(ctx, IMPORT);
+    addChild(ctx, IMPORT);
+
+    var node = getLastNode(ctx.qualifiedName());
+    types.add(Decl.fromNode(node));
   }
 
   @Override
   public void enterTypeDeclaration(JavaParser.TypeDeclarationContext ctx) {
     super.enterTypeDeclaration(ctx);
-    addInterval(ctx, TYPE_DECL);
+    addChild(ctx, TYPE_DECL);
+    enterChild();
+  }
+
+  @Override
+  public void exitTypeDeclaration(JavaParser.TypeDeclarationContext ctx) {
+    super.exitTypeDeclaration(ctx);
+    exitChild();
   }
 
   @Override
   public void enterClassBodyDeclaration(JavaParser.ClassBodyDeclarationContext ctx) {
     super.enterClassBodyDeclaration(ctx);
     if (ctx.parent instanceof JavaParser.EnumBodyDeclarationsContext) return;
-    addInterval(ctx, CLASS_BODY);
+    addChild(ctx, CLASS_BODY);
+    enterChild();
+  }
+
+  @Override
+  public void exitClassBodyDeclaration(JavaParser.ClassBodyDeclarationContext ctx) {
+    super.exitClassBodyDeclaration(ctx);
+    exitChild();
   }
 
   @Override
   public void enterInterfaceBodyDeclaration(JavaParser.InterfaceBodyDeclarationContext ctx) {
     super.enterInterfaceBodyDeclaration(ctx);
-    addInterval(ctx, CLASS_BODY);
+    addChild(ctx, CLASS_BODY);
+    enterChild();
+  }
+
+  @Override
+  public void exitInterfaceBodyDeclaration(JavaParser.InterfaceBodyDeclarationContext ctx) {
+    super.exitInterfaceBodyDeclaration(ctx);
+    exitChild();
   }
 
   @Override
   public void enterAnnotationTypeElementDeclaration(JavaParser.AnnotationTypeElementDeclarationContext ctx) {
     super.enterAnnotationTypeElementDeclaration(ctx);
-    addInterval(ctx, UNKNOWN);
+    addChild(ctx, UNKNOWN);
+    enterChild();
+  }
+
+  @Override
+  public void exitAnnotationTypeElementDeclaration(JavaParser.AnnotationTypeElementDeclarationContext ctx) {
+    super.exitAnnotationTypeElementDeclaration(ctx);
+    exitChild();
   }
 
   @Override
   public void enterClassDeclaration(JavaParser.ClassDeclarationContext ctx) {
     super.enterClassDeclaration(ctx);
-    var id = getIdentifier(ctx.identifier());
+    var id = getNode(ctx.identifier());
     JavaClass clazz = new JavaClass(id.getText(), Pos.fromNode(id), current);
     current.nestedClasses.add(clazz);
     current = clazz;
@@ -96,7 +129,7 @@ public class JavaClassWalker extends JavaParserBaseListener {
   @Override
   public void enterInterfaceDeclaration(JavaParser.InterfaceDeclarationContext ctx) {
     super.enterInterfaceDeclaration(ctx);
-    var id = getIdentifier(ctx.identifier());
+    var id = getNode(ctx.identifier());
     JavaClass clazz = new JavaClass(id.getText(), Pos.fromNode(id), current);
     current.nestedClasses.add(clazz);
     current = clazz;
@@ -109,7 +142,7 @@ public class JavaClassWalker extends JavaParserBaseListener {
   @Override
   public void enterEnumDeclaration(JavaParser.EnumDeclarationContext ctx) {
     super.enterEnumDeclaration(ctx);
-    var id = getIdentifier(ctx.identifier());
+    var id = getNode(ctx.identifier());
     JavaClass clazz = new JavaClass(id.getText(), Pos.fromNode(id), current);
     current.nestedClasses.add(clazz);
     current = clazz;
@@ -122,7 +155,7 @@ public class JavaClassWalker extends JavaParserBaseListener {
   @Override
   public void enterRecordDeclaration(JavaParser.RecordDeclarationContext ctx) {
     super.enterRecordDeclaration(ctx);
-    var id = getIdentifier(ctx.identifier());
+    var id = getNode(ctx.identifier());
     JavaClass clazz = new JavaClass(id.getText(), Pos.fromNode(id), current);
     current.nestedClasses.add(clazz);
     current = clazz;
@@ -135,7 +168,7 @@ public class JavaClassWalker extends JavaParserBaseListener {
   @Override
   public void enterAnnotationTypeDeclaration(JavaParser.AnnotationTypeDeclarationContext ctx) {
     super.enterAnnotationTypeDeclaration(ctx);
-    var id = getIdentifier(ctx.identifier());
+    var id = getNode(ctx.identifier());
     JavaClass clazz = new JavaClass(id.getText(), Pos.fromNode(id), current);
     current.nestedClasses.add(clazz);
     current = clazz;
@@ -188,12 +221,11 @@ public class JavaClassWalker extends JavaParserBaseListener {
   @Override
   public void exitFieldDeclaration(JavaParser.FieldDeclarationContext ctx) {
     super.exitFieldDeclaration(ctx);
-    var variableDeclarators = ctx.variableDeclarators().variableDeclarator();
+    var variableDeclarators = getVarDeclarators(ctx.variableDeclarators());
+    String type = getType(ctx.typeType());
+    boolean isStatic = isStatic(getModifiers(ctx));
     for (var variableDeclarator : variableDeclarators) {
-      var variableDeclaratorId = variableDeclarator.variableDeclaratorId();
-      var node = getIdentifier(variableDeclaratorId.identifier());
-      boolean isStatic = isStatic(getModifiers(ctx));
-      addField(node, isStatic);
+      addField(variableDeclarator, type, isStatic);
     }
   }
 
@@ -201,9 +233,10 @@ public class JavaClassWalker extends JavaParserBaseListener {
   public void exitConstDeclaration(JavaParser.ConstDeclarationContext ctx) {
     super.exitConstDeclaration(ctx);
     var constantDeclarators = ctx.constantDeclarator();
+    var type = getType(ctx.typeType());
     for (var constantDeclarator : constantDeclarators) {
-      var node = getIdentifier(constantDeclarator.identifier());
-      addField(node, true);
+      var node = getNode(constantDeclarator.identifier());
+      addField(node, type, true);
     }
   }
 
@@ -211,70 +244,72 @@ public class JavaClassWalker extends JavaParserBaseListener {
   public void exitAnnotationConstantRest(JavaParser.AnnotationConstantRestContext ctx) {
     super.exitAnnotationConstantRest(ctx);
     var variableDeclarators = ctx.variableDeclarators().variableDeclarator();
-    for (var variableDeclarator : variableDeclarators) {
+    boolean isStatic = isStatic(getAnnotationMethodOrConstantRestModifiers((JavaParser.AnnotationMethodOrConstantRestContext) ctx.parent));
+    String type = getType(((JavaParser.AnnotationTypeElementRestContext) ctx.parent.parent).typeType());
+    for (var variableDeclarator: variableDeclarators) {
       var variableDeclaratorId = variableDeclarator.variableDeclaratorId();
-      var node = getIdentifier(variableDeclaratorId.identifier());
-      boolean isStatic = isStatic(getAnnotationMethodOrConstantRestModifiers((JavaParser.AnnotationMethodOrConstantRestContext) ctx.parent));
-      addField(node, isStatic);
+      var node = getNode(variableDeclaratorId.identifier());
+      addField(node, type, isStatic);
     }
   }
 
   @Override
   public void exitMethodDeclaration(JavaParser.MethodDeclarationContext ctx) {
     super.exitMethodDeclaration(ctx);
-    var node = getIdentifier(ctx.identifier());
+    var node = getNode(ctx.identifier());
     var isStatic = isStatic(getModifiers(ctx));
-    addMethod(node, isStatic, countNumberOfArgs(ctx.formalParameters()));
+    addMethod(node, getType(ctx.typeTypeOrVoid()), isStatic, getArgsTypes(ctx.formalParameters()));
   }
 
   @Override
   public void exitConstructorDeclaration(JavaParser.ConstructorDeclarationContext ctx) {
     super.exitConstructorDeclaration(ctx);
-    var node = getIdentifier(ctx.identifier());
-    addConstructor(node, countNumberOfArgs(ctx.formalParameters()));
+    var node = getNode(ctx.identifier());
+    addConstructor(node, getArgsTypes(ctx.formalParameters()));
   }
 
   @Override
   public void exitCompactConstructorDeclaration(JavaParser.CompactConstructorDeclarationContext ctx) {
     super.exitCompactConstructorDeclaration(ctx);
-    var node = getIdentifier(ctx.identifier());
-    addConstructor(node, 0);
+    var node = getNode(ctx.identifier());
+    addConstructor(node, List.of());
   }
 
   @Override
   public void exitAnnotationMethodRest(JavaParser.AnnotationMethodRestContext ctx) {
     super.exitAnnotationMethodRest(ctx);
-    var node = getIdentifier(ctx.identifier());
+    var node = getNode(ctx.identifier());
+    String type = getType(((JavaParser.AnnotationTypeElementRestContext) ctx.parent.parent).typeType());
     var isStatic = isStatic(getAnnotationMethodOrConstantRestModifiers((JavaParser.AnnotationMethodOrConstantRestContext) ctx.parent));
-    addMethod(node, isStatic, 0);
+    addMethod(node, type, isStatic, List.of());
   }
 
   @Override
   public void exitInterfaceCommonBodyDeclaration(JavaParser.InterfaceCommonBodyDeclarationContext ctx) {
     super.exitInterfaceCommonBodyDeclaration(ctx);
-    var node = getIdentifier(ctx.identifier());
-    addMethod(node, false, countNumberOfArgs(ctx.formalParameters()));
+    var node = getNode(ctx.identifier());
+    addMethod(node, getType(ctx.typeTypeOrVoid()), false, getArgsTypes(ctx.formalParameters()));
   }
 
-  private void addField(TerminalNode node, boolean isStatic) {
+  private void addField(TerminalNode node, String type, boolean isStatic) {
     var token = node.getSymbol();
     var pos = new Pos(token.getLine(), token.getCharPositionInLine());
     var text = token.getText();
-    current.fields.add(new JavaField(text, pos, isStatic));
+    current.fields.add(new JavaField(text, pos, type, isStatic));
   }
 
-  private void addMethod(TerminalNode node, boolean isStatic, int numOfArgs) {
+  private void addMethod(TerminalNode node, String type, boolean isStatic, List<String> argsTypes) {
     var token = node.getSymbol();
     var pos = new Pos(token.getLine(), token.getCharPositionInLine());
     var text = token.getText();
-    current.methods.add(new JavaMethod(text, pos, isStatic, numOfArgs));
+    current.methods.add(new JavaMethod(text, pos, type, isStatic, argsTypes));
   }
 
-  private void addConstructor(TerminalNode node, int numOfArgs) {
+  private void addConstructor(TerminalNode node, List<String> argsTypes) {
     var token = node.getSymbol();
     var pos = new Pos(token.getLine(), token.getCharPositionInLine());
     var text = token.getText();
-    current.constructors.add(new JavaConstructor(text, pos, numOfArgs));
+    current.constructors.add(new JavaConstructor(text, pos, argsTypes));
   }
 
   @Override
@@ -297,10 +332,18 @@ public class JavaClassWalker extends JavaParserBaseListener {
     amount++;
   }
 
-  private void addInterval(ParserRuleContext ctx, int type) {
+  private void addChild(ParserRuleContext ctx, int type) {
     int end = ctx.stop.getStopIndex() + 1;
-    intervals.add(new Interval(lastIntervalEnd, end, type));
+    node.addChild(new Interval(lastIntervalEnd + intervalStart, end + intervalStart, type));
     lastIntervalEnd = end;
+  }
+
+  private void enterChild() {
+    node = node.lastChild();
+  }
+
+  private void exitChild() {
+    node = node.parent;
   }
 
   public static boolean isStatic(List<String> list) {

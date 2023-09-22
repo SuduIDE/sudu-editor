@@ -29,6 +29,7 @@
     <module>graphics-test</module>
     <module>parser</module>
     <module>diff-model</module>
+    <module>parser-generator</module>
   </modules>
   <properties>
     <maven.compiler.source>17</maven.compiler.source>

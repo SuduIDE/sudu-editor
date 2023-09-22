@@ -11,30 +11,35 @@ import java.util.stream.Collectors;
 // Base class for parsers, that parse only fragment in random place in file
 public abstract class BaseIntervalParser extends BaseParser {
 
+  protected int intervalStart = 0;
+  protected int intervalStop = 0;
+
   public int[] parseInterval(String source, int[] interval) {
-    int intervalStart = interval[0];
-    int intervalStop = interval[1];
+    intervalStart = interval[0];
+    intervalStop = interval[1];
     int intervalType = interval[2];
     initLexer(source.substring(intervalStart, intervalStop));
 
     if (tokenErrorOccurred()) return makeErrorInts();
 
     Interval parsingInterval = new Interval(0, intervalStop - intervalStart, intervalType);
-    List<Interval> intervalList = parseInterval(parsingInterval);
+    IntervalNode intervalNode = parseInterval(parsingInterval);
 
-    expendIntervals(intervalList, parsingInterval);
-    return getVpInts(intervalStart, intervalStop, intervalList);
+    expendIntervals(intervalNode, parsingInterval);
+    return getVpInts(intervalStart, intervalStop, intervalNode);
   }
 
-  protected abstract List<Interval> parseInterval(Interval interval);
+  protected abstract IntervalNode parseInterval(Interval interval);
 
   // {intervalStart, intervalStop, N, K, }
-  protected int[] getVpInts(int intervalStart, int intervalStop, List<Interval> intervalList) {
+  protected int[] getVpInts(int intervalStart, int intervalStop, IntervalNode node) {
     int N = allTokens.get(allTokens.size() - 1).getLine();
     int M = 0;
-    int K = intervalList.size();
+    int[] nodeInts = node != null ? node.toInts() : new int[]{};
+    int K = nodeInts.length;
+
     Map<Integer, List<Token>> tokensByLine = groupTokensByLine(allTokens);
-    for (var entry : tokensByLine.entrySet()) {
+    for (var entry: tokensByLine.entrySet()) {
       var filtered = entry.getValue().stream()
           .filter(this::tokenFilter)
           .collect(Collectors.toList());
@@ -43,17 +48,18 @@ public abstract class BaseIntervalParser extends BaseParser {
       N = Math.max(N, entry.getKey());
     }
 
-    writer = new ArrayWriter(4 + N + 3 * K + 4 * M);
+    writer = new ArrayWriter(4 + N + K + 4 * M);
     writer.write(intervalStart, intervalStop, N, K);
 
     writeTokens(N, tokensByLine);
-    writeIntervals(intervalList, intervalStart);
+    writer.write(nodeInts);
 
     return writer.getInts();
   }
 
-  protected void expendIntervals(List<Interval> intervalList, Interval interval) {
-    if (intervalList.isEmpty()) {
+  protected void expendIntervals(IntervalNode node, Interval interval) {
+    // todo
+/*    if (intervalList.isEmpty()) {
       intervalList.add(interval);
       return;
     }
@@ -64,7 +70,7 @@ public abstract class BaseIntervalParser extends BaseParser {
       if (cur.stop > right.stop || (cur.stop == right.stop && cur.start > right.stop)) right = cur;
     }
     left.start = interval.start;
-    right.stop = interval.stop;
+    right.stop = interval.stop;*/
   }
 
   protected int[] makeErrorInts() {

@@ -1,6 +1,7 @@
 package org.sudu.experiments.parser.java.model;
 
-import org.sudu.experiments.parser.common.Decl;
+import org.sudu.experiments.parser.common.TypedDecl;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,7 +9,7 @@ public class JavaBlock {
 
   public JavaBlock innerBlock;
   public JavaBlock subBlock;
-  public List<Decl> localVars;
+  public List<TypedDecl> localVars;
 
   public JavaBlock(JavaBlock innerBlock) {
     this.innerBlock = innerBlock;
@@ -16,7 +17,7 @@ public class JavaBlock {
     this.localVars = new ArrayList<>();
   }
 
-  public Decl getLocalDecl(String declName) {
+  public TypedDecl getLocalDecl(String declName) {
     for (var local: localVars) {
       if (local.name.equals(declName)) return local;
     }

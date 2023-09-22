@@ -17,6 +17,7 @@ public interface ParserConstants {
     int ANNOTATION = 12;
     int TYPE = 13;
     int OPERATOR = 14;
+    int JAVADOC = STRING;
     int TYPES_LENGTH = OPERATOR + 1;
   }
 

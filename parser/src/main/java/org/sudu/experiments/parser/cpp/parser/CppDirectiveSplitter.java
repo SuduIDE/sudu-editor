@@ -18,10 +18,11 @@ import static org.sudu.experiments.parser.ParserConstants.*;
 
 public class CppDirectiveSplitter {
 
-  static List<Token> divideDirective(Token token) {
+  public static List<Token> divideDirective(Token token) {
     CPP14DirectiveLexer directiveLexer = new CPP14DirectiveLexer(CharStreams.fromString(token.getText()));
     var directiveStream = new CommonTokenStream(directiveLexer);
     directiveStream.fill();
+
     var allTokens = directiveStream.getTokens();
     var result = new ArrayList<Token>();
     int[] splitTokenTypes = new int[allTokens.size()];
@@ -31,9 +32,7 @@ public class CppDirectiveSplitter {
     var walker = new ParseTreeWalker();
     walker.walk(new DirectiveWalker(splitTokenTypes), directive);
 
-
-    int line = token.getLine() - 1;
-    int start = token.getStartIndex();
+    int line = token.getLine() - 1, start = token.getStartIndex();
     for (var splitToken : allTokens) {
       int ind = splitToken.getTokenIndex();
       if (splitToken.getType() == EOF) continue;
@@ -94,6 +93,7 @@ public class CppDirectiveSplitter {
     private void markToken(TerminalNode node, int type) {
       if (node == null) return;
       int ind = node.getSymbol().getTokenIndex();
+      if (ind < 0) return;
       splitTokenTypes[ind] = type;
     }
   }
