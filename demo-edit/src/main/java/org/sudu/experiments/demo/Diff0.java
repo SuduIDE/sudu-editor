@@ -32,7 +32,7 @@ public class Diff0 extends Scene1 implements
   private int modelFlags;
   private DiffInfo diffModel;
   static final float middleLineThicknessDp = 20;
-  static final float lineWidthDp = 1;
+  static final float lineWidthDp = 2;
   private final V4i middleLine = new V4i();
 
   final V2i p11 = new V2i();
