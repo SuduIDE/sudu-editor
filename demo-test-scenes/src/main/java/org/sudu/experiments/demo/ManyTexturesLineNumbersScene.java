@@ -1,6 +1,7 @@
 package org.sudu.experiments.demo;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.MouseEvent;
@@ -14,7 +15,7 @@ import java.util.function.Consumer;
 public class ManyTexturesLineNumbersScene extends Scene {
 
   final WglGraphics g;
-  private final LineNumbersComponent lineNumbers = new LineNumbersComponent();
+  private final LineNumbersComponent lineNumbers;
   private ScrollBar scrollBar;
   private V2i viewPortSize;
   private int scrollPos = 0;
@@ -26,12 +27,13 @@ public class ManyTexturesLineNumbersScene extends Scene {
 
   public ManyTexturesLineNumbersScene(SceneApi api) {
     super(api);
+    this.lineNumbers = new LineNumbersComponent(new UiContext(api));
     api.input.onMouse.add(new LineNumbersInputListener());
     api.input.onScroll.add(this::onMouseWheel);
     this.g = api.graphics;
     setCursor = SetCursor.wrap(api.window);
 
-    lineNumbers.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight, g);
+    lineNumbers.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight);
 
     scrollBar = new ScrollBar();
   }
@@ -49,16 +51,14 @@ public class ManyTexturesLineNumbersScene extends Scene {
     g.enableBlend(false);
 
     Debug.consoleInfo("scrollPos: " + scrollPos);
-
-    lineNumbers.update(scrollPos / lineHeight);
-    lineNumbers.draw(scrollPos, editorHeight(), colors, g);
+    int eh = editorHeight();
+    lineNumbers.draw(g, scrollPos, eh, 0, eh / lineHeight, -1, colors);
   }
 
   @Override
   public void onResize(V2i size, float dpr) {
     viewPortSize = size;
     lineNumbers.setPos(new V2i(0, 0), 50, editorHeight(), dpr);
-    lineNumbers.initTextures(g, editorHeight());
   }
 
   @Override

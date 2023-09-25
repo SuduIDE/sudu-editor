@@ -85,7 +85,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   int xOffset = CodeLineRenderer.initialOffset;
 
   // line numbers
-  LineNumbersComponent lineNumbers = new LineNumbersComponent();
+  LineNumbersComponent lineNumbers;
   //int lineNumLeftMargin = 10;
 
   boolean fileStructureParsed, firstLinesParsed;
@@ -104,6 +104,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   public EditorComponent(UiContext context, EditorUi ui) {
     this.context = context;
+    this.lineNumbers = new LineNumbersComponent(context);
     this.g = context.graphics;
     this.ui = ui;
 
@@ -206,7 +207,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   void toggleMirrored() {
     mirrored = !mirrored;
     lineNumbers.dispose();
-    lineNumbers = new LineNumbersComponent();
+    lineNumbers = new LineNumbersComponent(context);
     internalLayout(pos, size, context.dpr);
   }
 
@@ -306,7 +307,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int newPixelFontSize = DprUtil.toPx(virtualSize, context.dpr);
     int oldPixelFontSize = font == null ? 0 : font.iSize;
     if (newPixelFontSize != oldPixelFontSize || !Objects.equals(name, fontFamilyName)) {
-      lineNumbers.dispose();
       invalidateFont();
       setFont(name, newPixelFontSize);
       afterFontChanged();
@@ -558,8 +558,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private void updateLineNumbersFont() {
-    lineNumbers.setFont(fonts[0], lineHeight, g);
-    lineNumbers.initTextures(g, getFirstLine(), editorHeight());
+    lineNumbers.setFont(fonts[0], lineHeight);
   }
 
   private CodeLineRenderer lineRenderer(int i) {

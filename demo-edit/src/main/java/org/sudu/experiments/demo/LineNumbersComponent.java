@@ -2,71 +2,39 @@ package org.sudu.experiments.demo;
 
 import org.sudu.experiments.Canvas;
 import org.sudu.experiments.Disposable;
+import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.demo.ui.RegionTexture;
+import org.sudu.experiments.demo.ui.RegionTextureAllocator;
+import org.sudu.experiments.demo.ui.UiContext;
 import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.ToIntFunction;
 
 public class LineNumbersComponent implements Disposable {
-
-  private final int numberOfLines = EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
 
   private final V2i pos = new V2i();
   private final V2i size = new V2i();
   private FontDesk fontDesk;
   private int lineHeight;
-
-  private int textureHeight;
+  private int rightPad;
   private double devicePR;
 
-  private final List<LineNumbersTexture> textures = new ArrayList<>();
   private byte[] colors = new byte[0];
-  private Canvas textureCanvas;
-  private Canvas updateCanvas;
+  private LineNumbersRenderer[] view = new LineNumbersRenderer[0];
+  RegionTexture regionTexture = new RegionTexture(0);
+  private GL.Texture texture;
+  private final V2i textureSize = new V2i();
+  private final UiContext context;
 
-  private int curFirstLine;
-
-  public void update(int firstLine) {
-    if (firstLine == curFirstLine) return;
-
-    int numOfTextures = textures.size();
-    int updateOn = numOfTextures * numberOfLines;
-    int startTextureUpdate;
-    int endTextureUpdate;
-
-    if (curFirstLine < firstLine) {
-      startTextureUpdate = curFirstLine / numberOfLines;
-      endTextureUpdate = firstLine / numberOfLines;
-    } else {
-      endTextureUpdate = Math.max(0, (curFirstLine - 1) / numberOfLines);
-      startTextureUpdate = Math.max(0, (firstLine - 1) / numberOfLines);
-    }
-
-    if (endTextureUpdate - startTextureUpdate >= numOfTextures) {
-      updateToFirstLine(firstLine);
-      curFirstLine = firstLine;
-    } else {
-      if (curFirstLine < firstLine) {
-        for (int i = startTextureUpdate; i <= endTextureUpdate; i++) {
-          LineNumbersTexture texture = textures.get(i % numOfTextures);
-          curFirstLine = texture.updateTexture(
-              textureCanvas, updateCanvas,
-              curFirstLine, firstLine, updateOn, devicePR);
-        }
-      } else {
-        for (int i = endTextureUpdate; i >= startTextureUpdate; i--) {
-          LineNumbersTexture texture = textures.get(i % numOfTextures);
-          curFirstLine = texture.updateTexture(
-              textureCanvas, updateCanvas, curFirstLine,
-              firstLine, updateOn, devicePR);
-        }
-      }
-    }
+  public LineNumbersComponent(UiContext context) {
+    this.context = context;
   }
 
   public void setColors(byte[] c) {
@@ -80,35 +48,115 @@ public class LineNumbersComponent implements Disposable {
       WglGraphics g, EditorColorScheme colors
   ) {
     g.enableScissor(pos, size);
-    initTextures(g, firstLine, editorHeight);
-    update(firstLine);
-    draw(scrollPos, textHeight, colors, g);
+    draw(g, scrollPos, textHeight, firstLine, lastLine, caretLine, colors);
     drawBottom(textHeight, editorHeight, colors.lineNumber, g);
-
-    if (firstLine <= caretLine && caretLine <= lastLine) {
-      drawCaretLine(scrollPos, caretLine, colors.lineNumber, g);
-    }
     g.disableScissor();
   }
 
+  private void measure() {
+    Canvas mCanvas = context.mCanvas();
+    mCanvas.setFont(fontDesk);
+    var measureWithPad = RegionTextureAllocator.measuringWithWPad(mCanvas, fontDesk.WWidth);
+    rightPad = measureWithPad.applyAsInt("1");
+  }
+
   public void draw(
-      int scrollPos, int editorHeight,
-      EditorColorScheme colorScheme, WglGraphics g
+      WglGraphics g,
+      int scrollPos, int editorHeight, int firstLine,
+      int lastLine, int caretLine, EditorColorScheme colorScheme
   ) {
-    for (var text : textures) {
-      text.draw(pos, editorHeight, scrollPos, textures.size() * textureHeight, colorScheme, colors, g);
+    Canvas mCanvas = context.mCanvas();
+    mCanvas.setFont(fontDesk);
+    var measureWithPad = RegionTextureAllocator.measuringWithWPad(mCanvas, fontDesk.WWidth);
+    LineNumbersColors lineNumber = colorScheme.lineNumber;
+
+    g.drawRect(pos.x, pos.y, size, lineNumber.bgColor);
+
+    int cacheLines = Numbers.iDivRoundUp(editorHeight, lineHeight) + 30;
+
+    if (view.length < cacheLines) {
+      view = LineNumbersRenderer.reallocRenderLines(
+          cacheLines,
+          view,
+          firstLine,
+          lastLine,
+          regionTexture,
+          measureWithPad
+      );
+      textureSize.set(regionTexture.getTextureSize());
+      renderTexture(g);
+    }
+
+    if (view.length == 0) return;
+    checkCached(firstLine, lastLine, measureWithPad);
+
+    int yOffset = scrollPos % lineHeight;
+    int xBase = pos.x;
+    int padding = (int) (EditorConst.LINE_NUMBERS_RIGHT_PADDING * devicePR);
+
+    for (int i = firstLine; i <= lastLine; i++) {
+      LineNumbersRenderer item = itemRenderer(i);
+      int y = (i - firstLine) * lineHeight - yOffset;
+      int x = xBase + size.x - item.size.x + rightPad - padding;
+      V4f c;
+      V4f textColor;
+      if (i == caretLine) {
+        c = lineNumber.caretBgColor;
+        textColor = lineNumber.caretTextColor;
+      } else {
+        c = getItemColor(colorScheme, colors, i, lineNumber);
+        textColor = lineNumber.textColor;
+      }
+      drawBg(g, y, c);
+      item.size.set(item.size.x, lineHeight);
+      g.drawText(x, y, item.size, item.tContent, texture, textColor, c, 0);
     }
   }
 
-  private void drawCaretLine(
-      int scrollPos, int caretLine,
-      LineNumbersColors colorScheme, WglGraphics g
-  ) {
-    int caretTexture = (caretLine / numberOfLines) % textures.size();
+  private void drawBg(WglGraphics g, int y, V4f bgColor) {
+    V2i temp = context.v2i1;
+    temp.set(size.x, lineHeight);
+    g.drawRect(pos.x, y, temp, bgColor);
+  }
 
-    textures.get(caretTexture).drawCurrentLine(
-        g, pos, scrollPos,
-        textures.size() * textureHeight, caretLine, colorScheme);
+  private static V4f getItemColor(EditorColorScheme colorScheme, byte[] colors, int i, LineNumbersColors lineNumber) {
+    return i >= colors.length || colors[i] == 0
+        ? lineNumber.bgColor
+        : colorScheme.diff.getDiffColor(colorScheme, colors[i]);
+  }
+
+
+  private void checkCached(int firstLine, int lastLine, ToIntFunction<String> m) {
+    boolean rerender = false;
+    for (int i = firstLine; i <= lastLine; i++) {
+      LineNumbersRenderer item = itemRenderer(i);
+      if (item == null || item.num != i) {
+        LineNumbersRenderer.setNewItem(view, i, regionTexture, m);
+        rerender = true;
+      }
+    }
+
+    if (rerender) {
+      textureSize.set(regionTexture.getTextureSize());
+      renderTexture(context.graphics);
+    }
+  }
+
+  private void renderTexture(WglGraphics g) {
+    Canvas canvas = g.createCanvas(textureSize.x + 150, textureSize.y);
+    canvas.setFont(fontDesk);
+    float baseline = CodeLineRenderer.baselineShift(fontDesk, lineHeight);
+    for (var item: view) {
+      if (item == null) continue;
+      canvas.drawText(String.valueOf(item.num), item.tContent.x, baseline + item.tContent.y);
+    }
+    texture = Disposable.assign(texture, g.createTexture());
+    texture.setContent(canvas);
+    canvas.dispose();
+  }
+
+  private LineNumbersRenderer itemRenderer(int i) {
+    return view[i % view.length];
   }
 
   private void drawBottom(
@@ -122,64 +170,19 @@ public class LineNumbersComponent implements Disposable {
     }
   }
 
-  public void initTextures(WglGraphics g, int editorHeight) {
-    initTextures(g, 0, editorHeight);
-  }
-
-  public void initTextures(WglGraphics g, int firstLine, int editorHeight) {
-    int oldSize = textures.size();
-
-    while (textures.size() * textureHeight <= editorHeight + lineHeight) {
-      int number = textures.size();
-      V2i texturePos = new V2i(0, number * textureHeight);
-      LineNumbersTexture texture = new LineNumbersTexture(
-          texturePos,
-          numberOfLines,
-          size.x, lineHeight,
-          fontDesk
-      );
-      texture.createTexture(g);
-      textures.add(texture);
-    }
-    int newSize = textures.size();
-    if (newSize == oldSize) return;
-    updateToFirstLine(firstLine);
-  }
-
-  private void updateToFirstLine(int firstLine) {
-    int size = textures.size();
-    int numberOfFullScroll = firstLine / (size * numberOfLines);
-    int startNum = (numberOfFullScroll + 1) * size * numberOfLines;
-
-    for (LineNumbersTexture texture : textures) {
-      startNum = texture.initTexture(textureCanvas, startNum, firstLine, size, devicePR);
-    }
-  }
-
-  public void setFont(FontDesk font, int lineHeight, WglGraphics g) {
+  public void setFont(FontDesk font, int lineHeight) {
     this.fontDesk = font;
     this.lineHeight = lineHeight;
-    this.textureHeight = lineHeight * numberOfLines;
-
-    textureCanvas = Disposable.assign(
-        textureCanvas, g.createCanvas(size.x, textureHeight)
-    );
-    textureCanvas.setFont(fontDesk);
-    textureCanvas.setTextAlign(Canvas.TextAlign.RIGHT);
-
-    updateCanvas = Disposable.assign(
-        updateCanvas, g.createCanvas(size.x, lineHeight)
-    );
-    updateCanvas.setFont(fontDesk);
-    updateCanvas.setTextAlign(Canvas.TextAlign.RIGHT);
+    this.regionTexture = new RegionTexture(lineHeight);
+    measure();
   }
 
   @Override
   public void dispose() {
-    textures.forEach(LineNumbersTexture::dispose);
-    textures.clear();
-    textureCanvas = Disposable.assign(textureCanvas, null);
-    updateCanvas = Disposable.assign(updateCanvas, null);
+    texture = Disposable.assign(texture, null);
+    textureSize.set(0, 0);
+    regionTexture = null;
+    view = null;
   }
 
   public boolean onMouseMove(V2i position, SetCursor setCursor) {
