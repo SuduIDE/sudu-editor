@@ -3,7 +3,6 @@ package org.sudu.experiments.demo;
 import org.sudu.experiments.DprUtil;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.demo.ui.Focusable;
 import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
 import org.sudu.experiments.demo.worker.diff.DiffInfo;
@@ -11,7 +10,6 @@ import org.sudu.experiments.demo.worker.diff.DiffUtils;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4i;
 import org.sudu.experiments.worker.ArrayView;
 
 import java.util.Objects;
@@ -30,15 +28,9 @@ public class Diff0 extends Scene1 implements
   final EditorComponent editor2;
   final EditorUi ui;
   private int modelFlags;
-  private DiffInfo diffModel;
-  static final float middleLineThicknessDp = 20;
+  protected DiffInfo diffModel;
   static final float lineWidthDp = 2;
-  private final V4i middleLine = new V4i();
-
-  final V2i p11 = new V2i();
-  final V2i p12 = new V2i();
-  final V2i p21 = new V2i();
-  final V2i p22 = new V2i();
+  private final MiddleLine middleLine = new MiddleLine();
 
   DemoRect rect = new DemoRect();
 
@@ -154,87 +146,6 @@ public class Diff0 extends Scene1 implements
           chars1, intervals1, chars2, intervals2);
   }
 
-  private void drawShader() {
-    if (this.diffModel == null || this.diffModel.ranges == null) return;
-    int lineWidth = uiContext.toPx(lineWidthDp);
-
-    int leftStartLine = editor1.getFirstLine();
-    int leftLastLine = editor1.getLastLine();
-    int rightStartLine = editor2.getFirstLine();
-    int rightLastLine = editor2.getLastLine();
-
-    int leftStartRangeInd = diffModel.rangeBinSearch(leftStartLine, true);
-    int leftLastRangeInd = diffModel.rangeBinSearch(leftLastLine, true);
-    int rightStartRangeInd = diffModel.rangeBinSearch(rightStartLine, false);
-    int rightLastRangeInd = diffModel.rangeBinSearch(rightLastLine, false);
-
-    for (int i = Math.min(leftStartRangeInd, rightStartRangeInd);
-         i <= Math.max(leftLastRangeInd, rightLastRangeInd); i++) {
-      var range = diffModel.ranges[i];
-      if (range.type == 0) continue;
-
-      int yLeftStartPosition = editor1.lineHeight * range.fromL - editor1.vScrollPos;
-      int yLeftLastPosition = yLeftStartPosition + range.lenL * editor1.lineHeight;
-
-      int yRightStartPosition = editor2.lineHeight * range.fromR - editor2.vScrollPos;
-      int yRightLastPosition = yRightStartPosition + range.lenR * editor2.lineHeight;
-
-      p11.set(middleLine.x, yLeftStartPosition);
-      p21.set(middleLine.x, yLeftLastPosition);
-      p12.set(middleLine.x + middleLine.z, yRightStartPosition);
-      p22.set(middleLine.x + middleLine.z, yRightLastPosition);
-
-      int rectY = Math.min(yLeftStartPosition, yRightStartPosition);
-      int rectW = Math.max(yLeftLastPosition, yRightLastPosition) - rectY;
-
-      rect.set(middleLine.x, rectY, middleLine.z, rectW);
-      rect.bgColor.set(ui.theme.lineNumber.bgColor);
-      rect.color.set(ui.theme.diff.getDiffColor(ui.theme, range.type));
-
-      var g = uiContext.graphics;
-      g.enableBlend(true);
-      if (yLeftStartPosition == yLeftLastPosition) {
-        drawLeftLine(g, yLeftStartPosition, yRightStartPosition, lineWidth);
-      }
-      if (yRightStartPosition == yRightLastPosition) {
-        drawRightLine(g, yRightStartPosition, yLeftStartPosition, lineWidth);
-      }
-      g.enableScissor(middleLine);
-      g.drawLineFill(rect.pos.x, rect.pos.y, rect.size,
-          p11, p12, p21, p22, rect.color);
-      g.disableScissor();
-      g.enableBlend(false);
-    }
-  }
-
-  private void drawLeftLine(
-      WglGraphics g,
-      int yLeftStartPosition, int yRightStartPosition, int lineWidth
-  ) {
-    V2i temp = uiContext.v2i1;
-    temp.set(middleLine.x - editor1.pos.x, lineWidth);
-    int y = yLeftStartPosition;
-    if (yRightStartPosition < yLeftStartPosition) {
-      y -= lineWidth;
-      p11.set(p11.x, p11.y - lineWidth);
-    } else p21.set(p21.x, p21.y + lineWidth);
-    g.drawRect(editor1.pos.x, y, temp, rect.color);
-  }
-
-  private void drawRightLine(
-      WglGraphics g,
-      int yRightStartPosition, int yLeftStartPosition, int lineWidth
-  ) {
-    V2i temp = uiContext.v2i1;
-    temp.set(editor2.size.x, lineWidth);
-    int y = yRightStartPosition;
-    if (yLeftStartPosition < yRightStartPosition) {
-      y -= lineWidth;
-      p12.set(p12.x, p12.y - lineWidth);
-    } else p22.set(p22.x, p22.y + lineWidth);
-    g.drawRect(middleLine.x + middleLine.z, y, temp, rect.color);
-  }
-
   private void onDiffResult(Object[] result) {
     int[] reply = ((ArrayView) result[0]).ints();
 
@@ -289,16 +200,7 @@ public class Diff0 extends Scene1 implements
     super.paint();
     editor1.paint();
     editor2.paint();
-
-    // Draw middle line
-    V2i size = uiContext.v2i1;
-    size.set(middleLine.z, middleLine.w);
-    uiContext.graphics.drawRect(
-        middleLine.x, middleLine.y,
-        size,
-        ui.theme.editor.bg);
-
-    drawShader();
+    middleLine.draw(diffModel, uiContext, editor1, editor2, rect, ui.theme);
     ui.paint();
   }
 
@@ -330,12 +232,13 @@ public class Diff0 extends Scene1 implements
 
   protected void layout(V2i newSize, float dpr) {
     V2i pos = new V2i();
-    int px = DprUtil.toPx(middleLineThicknessDp, dpr);
+    int px = DprUtil.toPx(MiddleLine.middleLineThicknessDp, dpr);
     V2i size = new V2i(newSize.x / 2 - px / 2, newSize.y);
     editor1.setPos(pos, size, dpr);
     pos.x = newSize.x - newSize.x / 2 + px / 2;
     editor2.setPos(pos, size, dpr);
-    middleLine.set(size.x, pos.y, pos.x - size.x, size.y);
+    middleLine.pos.set(size.x, pos.y);
+    middleLine.size.set(pos.x - size.x, size.y);
   }
 
   public void applyTheme(EditorColorScheme theme) {
