@@ -130,7 +130,7 @@ public class LineNumbersComponent implements Disposable {
     boolean rerender = false;
     for (int i = firstLine; i <= lastLine; i++) {
       LineNumbersRenderer item = itemRenderer(i);
-      if (item == null || item.num != i) {
+      if (item == null || item.num != i+1) {
         LineNumbersRenderer.setNewItem(view, i, regionTexture, m);
         rerender = true;
       }
