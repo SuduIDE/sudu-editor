@@ -45,6 +45,7 @@ public class RefNodeWriter {
   private void writeRefName(RefNode node) {
     String name = node.decl.name;
     writer.write(declStringBuilder.length(), name.length());
+    writer.write(node.decl.position);
     writeType(node.type);
     declStringBuilder.append(name);
   }
@@ -60,6 +61,7 @@ public class RefNodeWriter {
 
   private void writeCreatorCall(CreatorCallNode creatorCallNode) {
     writer.write(CREATOR_CALL_NODE);
+    writeRefName(creatorCallNode);
     writeArgs(creatorCallNode.callArgs);
   }
 
@@ -70,6 +72,7 @@ public class RefNodeWriter {
 
   private void writeMethodCall(MethodCallNode methodCallNode) {
     writer.write(METHOD_CALL_NODE);
+    writeRefName(methodCallNode);
     writeArgs(methodCallNode.callArgs);
   }
 

@@ -48,7 +48,7 @@ public class DeclNodeReader {
     };
   }
 
-  private Name readDeclName() {
+  private Name readName() {
     int offset = reader.next(),
         count = reader.next();
     String name = new String(chars, offset, count);
@@ -63,39 +63,39 @@ public class DeclNodeReader {
   }
 
   private ArgNode readArgNode() {
-    Name name = readDeclName();
+    Name name = readName();
     Type type = readType();
     return new ArgNode(name, type);
   }
 
   private CreatorNode readCreatorDecl() {
-    Name name = readDeclName();
+    Name name = readName();
     Type type = readType();
     List<ArgNode> args = readArgs();
     return new CreatorNode(name, type, args);
   }
 
   private DeclNode readDecl() {
-    Name name = readDeclName();
+    Name name = readName();
     Type type = readType();
     return new DeclNode(name, type);
   }
 
   private FieldNode readFieldDecl() {
-    Name name = readDeclName();
+    Name name = readName();
     Type type = readType();
     return new FieldNode(name, type);
   }
 
   private MethodNode readMethodDecl() {
-    Name name = readDeclName();
+    Name name = readName();
     Type type = readType();
     List<ArgNode> args = readArgs();
     return new MethodNode(name, type, args);
   }
 
   private VarNode readVarNode() {
-    Name name = readDeclName();
+    Name name = readName();
     Type type = readType();
     return new VarNode(name, type);
   }
@@ -104,6 +104,7 @@ public class DeclNodeReader {
     int len = reader.next();
     List<ArgNode> result = new ArrayList<>();
     for (int i = 0; i < len; i++) {
+      reader.expect(ARG_DECL_NODE);
       result.add(readArgNode());
     }
     return result;

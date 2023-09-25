@@ -8,6 +8,7 @@ import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 import org.sudu.experiments.parser.common.graph.type.Type;
 
 import java.util.IdentityHashMap;
+import java.util.List;
 
 import static org.sudu.experiments.parser.common.graph.ScopeGraphConstants.Nodes.*;
 
@@ -59,8 +60,11 @@ public class ScopeGraphWriter {
 
   private void writeAssociatedScopes() {
     for (var entry: typeIdentityMap.entrySet()) {
-      if (entry.getKey().associatedScope == null) return;
       Type type = entry.getKey();
+      if (type.associatedScope == null) {
+        writer.write(-1);
+        continue;
+      }
       int scopeInd = scopeIdentityMap.get(type.associatedScope);
       writer.write(entry.getValue());
       writer.write(scopeInd);
@@ -108,24 +112,29 @@ public class ScopeGraphWriter {
   // fake node -- -1
   // base node -- 0
   // member node -- 1
-  // [sc_type, child.size(), decl.size(), ref.size(), imports.size()]
+  // [sc_ind, sc_type, decls, refs, imports, child_scopes]
   private void writeScope(ScopeNode scope) {
-    if (scope instanceof FakeNode) {
-      writer.write(FAKE_NODE);
-      return;
-    } else if (scope instanceof MemberNode) writer.write(MEMBER_NODE);
+    int scopeInd = scopeIdentityMap.get(scope);
+    writer.write(scopeInd);
+
+    if (scope instanceof FakeNode) writer.write(FAKE_NODE);
+    else if (scope instanceof MemberNode) writer.write(MEMBER_NODE);
     else writer.write(BASE_NODE);
 
-    writeScopeChildren(scope);
     declNodeWriter.writeDeclNodes(scope);
     refNodeWriter.writeRefs(scope);
-    writer.write(scope.importTypes.size());
-    scope.childList.forEach(this::writeScope);
+    writeImports(scope.importTypes);
+    writeScopeChildren(scope.childList);
   }
 
-  private void writeScopeChildren(ScopeNode scope) {
-    writer.write(scope.childList.size());
-    scope.childList.forEach(it -> writer.write(scopeIdentityMap.get(it)));
+  private void writeImports(List<Type> importTypes) {
+    writer.write(importTypes.size());
+    importTypes.forEach(type -> writer.write(typeIdentityMap.get(type)));
+  }
+
+  private void writeScopeChildren(List<ScopeNode> scopes) {
+    writer.write(scopes.size());
+    scopes.forEach(this::writeScope);
   }
 
   int putType(Type type) {

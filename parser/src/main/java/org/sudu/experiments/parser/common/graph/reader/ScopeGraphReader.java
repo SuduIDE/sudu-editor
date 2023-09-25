@@ -18,7 +18,10 @@ public class ScopeGraphReader {
 
   private Type[] types;
   private ScopeNode[] scopeNodes;
-  private int scopePtr = 0;
+  private DeclNodeReader declNodeReader;
+  private RefNodeReader refNodeReader;
+
+  public ScopeNode root;
 
   public ScopeGraphReader(
       int[] ints,
@@ -30,9 +33,11 @@ public class ScopeGraphReader {
 
   public void readFromInts() {
     readTypes();
+    readScopeRoot();
+    readAssociatedScopes();
   }
 
-  public void readTypes() {
+  private void readTypes() {
     int len = reader.next();
     types = new Type[len];
 
@@ -40,7 +45,7 @@ public class ScopeGraphReader {
     readSupertypes();
   }
 
-  public void readTypesNames() {
+  private void readTypesNames() {
     for (int i = 0; i < types.length; i++) {
       String name = nextString();
       types[i] = new Type(name);
@@ -48,29 +53,62 @@ public class ScopeGraphReader {
   }
 
   public void readSupertypes() {
-    for (Type type: types) {
-      int supersLen = reader.next();
-      List<Type> supertypes = new ArrayList<>();
-      for (int j = 0; j < supersLen; j++) {
-        int ind = reader.next();
-        supertypes.add(types[ind]);
-      }
-      type.supertypes = supertypes;
-    }
+    for (Type type: types) type.supertypes = readTypeList();
   }
 
-  void readScopes() {
+  private void readScopeRoot() {
     int len = reader.next();
     scopeNodes = new ScopeNode[len];
+    declNodeReader = new DeclNodeReader(reader, chars, types);
+    refNodeReader = new RefNodeReader(reader, chars, types);
+    root = readScope(null);
   }
 
-  ScopeNode readScope(ScopeNode parent) {
-    int type = reader.next();
-    if (type == FAKE_NODE) {
-      var scope = new FakeNode(parent);
-      scopeNodes[scopePtr++] = scope;
-      return scope;
+  private void readAssociatedScopes() {
+    for (int i = 0; i < types.length; i++) {
+      int typeInd = reader.next();
+      if (typeInd == -1) continue;
+      int scopeInd = reader.next();
+      var type = types[typeInd];
+      type.associatedScope = scopeNodes[scopeInd];
     }
+  }
+
+  private ScopeNode readScope(ScopeNode parent) {
+    int scopeInd = reader.next();
+    int scopeType = reader.next();
+
+    var declNodeList = declNodeReader.readDeclNodes();
+    ScopeNode scopeNode = switch (scopeType) {
+      case FAKE_NODE -> new FakeNode(parent);
+      case BASE_NODE -> new ScopeNode(parent);
+      case MEMBER_NODE -> new MemberNode(parent, declNodeList);
+      default -> throw new IllegalStateException("Unknown scope type: " + scopeType);
+    };
+
+    scopeNode.declList = declNodeList;
+    scopeNode.refList = refNodeReader.readRefNodes();
+    scopeNode.importTypes = readTypeList();
+    scopeNode.childList = readChildrenScopes(scopeNode);
+    scopeNodes[scopeInd] = scopeNode;
+    return scopeNode;
+  }
+
+  private List<Type> readTypeList() {
+    int len = reader.next();
+    List<Type> result = new ArrayList<>();
+    for (int i = 0; i < len; i++) {
+      int typeInd = reader.next();
+      result.add(types[typeInd]);
+    }
+    return result;
+  }
+
+  private List<ScopeNode> readChildrenScopes(ScopeNode parent) {
+    int len = reader.next();
+    List<ScopeNode> result = new ArrayList<>();
+    for (int i = 0; i < len; i++) result.add(readScope(parent));
+    return result;
   }
 
   private String nextString() {
