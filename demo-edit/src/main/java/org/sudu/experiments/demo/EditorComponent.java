@@ -143,14 +143,11 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (mirrored) {
       context.v2i1.set(pos.x + size.x - lineNumbersWidth(), pos.y);
     } else context.v2i1.set(this.pos);
+    doChangeFont(fontFamilyName, fontVirtualSize);
     lineNumbers.setPos(context.v2i1, lineNumbersWidth(), size.y, dpr);
 
     if (1<0) DebugHelper.dumpFontsSize(g);
     caret.setWidth(DprUtil.toPx(Caret.defaultWidth, dpr));
-
-    // Should be called if dpr changed
-    doChangeFont(fontFamilyName, fontVirtualSize);
-
   }
 
   private void toggleBlankLines() {
