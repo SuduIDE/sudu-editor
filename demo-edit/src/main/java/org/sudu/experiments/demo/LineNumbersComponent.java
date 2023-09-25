@@ -182,7 +182,7 @@ public class LineNumbersComponent implements Disposable {
     texture = Disposable.assign(texture, null);
     textureSize.set(0, 0);
     regionTexture = null;
-    view = null;
+    view = new LineNumbersRenderer[0];
   }
 
   public boolean onMouseMove(V2i position, SetCursor setCursor) {

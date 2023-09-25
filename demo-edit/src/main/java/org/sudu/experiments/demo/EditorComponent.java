@@ -151,7 +151,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     // Should be called if dpr changed
     doChangeFont(fontFamilyName, fontVirtualSize);
 
-    updateLineNumbersFont();
   }
 
   private void toggleBlankLines() {
@@ -307,6 +306,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int newPixelFontSize = DprUtil.toPx(virtualSize, context.dpr);
     int oldPixelFontSize = font == null ? 0 : font.iSize;
     if (newPixelFontSize != oldPixelFontSize || !Objects.equals(name, fontFamilyName)) {
+      lineNumbers.dispose();
       invalidateFont();
       setFont(name, newPixelFontSize);
       afterFontChanged();
