@@ -14,12 +14,12 @@ public class RefNodeReader {
 
   private final ArrayReader reader;
   private final char[] chars;
-  private final Type[] types;
+  private final List<Type> types;
 
   public RefNodeReader(
       ArrayReader reader,
       char[] chars,
-      Type[] types
+      List<Type> types
   ) {
     this.reader = reader;
     this.chars = chars;
@@ -38,6 +38,7 @@ public class RefNodeReader {
   public RefNode readRefNode() {
     int type = reader.next();
     return switch (type) {
+      case NULL -> null;
       case CREATOR_CALL_NODE -> readCreatorCall();
       case FIELD_REF_NODE -> readFieldRef();
       case METHOD_CALL_NODE -> readMethodCall();
@@ -61,7 +62,7 @@ public class RefNodeReader {
   private Type readType() {
     int typeInd = reader.next();
     if (typeInd == -1) return null;
-    return types[typeInd];
+    return types.get(typeInd);
   }
 
   private CreatorCallNode readCreatorCall() {

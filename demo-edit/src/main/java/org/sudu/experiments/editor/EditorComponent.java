@@ -819,8 +819,17 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
     int type = ((ArrayView) result[2]).ints()[0];
-
-    ParserUtils.updateDocument(model.document, ints, chars);
+    if (result.length >= 5) {
+      int[] graphInts = ((ArrayView) result[3]).ints();
+      char[] graphChars = ((ArrayView) result[4]).chars();
+      ParserUtils.updateDocument(model.document, ints, chars, graphInts, graphChars, false);
+      long from = System.currentTimeMillis();
+      model.document.scopeGraph.resolveAll(model.document::onResolve);
+      long to = System.currentTimeMillis();
+      System.out.println("Resolving all in " + (to - from) + " ms");
+    } else {
+      ParserUtils.updateDocument(model.document, ints, chars);
+    }
 
     changeModelLanguage(Languages.getLanguage(type));
 
@@ -1697,7 +1706,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   static String parseJobName(String language) {
     return language != null ? switch (language) {
-      case Languages.JAVA -> JavaParser.PARSE;
+      case Languages.JAVA -> JavaParser.PARSE_SCOPES;
       case Languages.CPP -> CppParser.PARSE;
       case Languages.JS -> JavaScriptParser.PARSE;
       default -> null;

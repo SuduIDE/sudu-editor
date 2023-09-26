@@ -34,9 +34,10 @@ public class MethodNode extends DeclNode {
 
   public boolean matchArgs(List<RefNode> callArgs) {
     for (int i = 0; i < args.size(); i++) {
-      var callType = callArgs.get(i).type;
+      var callArg = callArgs.get(i);
       var methodType = args.get(i).type;
-      if (!methodType.match(callType)) return false;
+      if (callArg == null || callArg.type == null) continue;
+      if (!callArg.type.match(methodType)) return false;
     }
     return true;
   }

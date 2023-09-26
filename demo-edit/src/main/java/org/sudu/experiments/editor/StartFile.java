@@ -26,6 +26,8 @@ public interface StartFile {
             
         @Deprecated
         private static void sum() {
+          G g = new G(12);
+          g.a;
         }
             
         @Deprecated
@@ -37,6 +39,13 @@ public interface StartFile {
             
         public int sumField(int field) {
           return field + this.field;
+        }
+        
+        public class G {
+          int a;
+          public G(int a) {
+            this.a = a;
+          }
         }
 
         public interface A {

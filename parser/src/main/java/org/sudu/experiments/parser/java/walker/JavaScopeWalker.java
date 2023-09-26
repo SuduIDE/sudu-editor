@@ -618,7 +618,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   }
 
   private TerminalNode getNode(JavaParser.CreatedNameContext ctx) {
-    return ctx.identifier() != null
+    return ctx.identifier() != null && !ctx.identifier().isEmpty()
         ? getNode(ctx.identifier(ctx.identifier().size() - 1))
         : (TerminalNode) ctx.primitiveType().getChild(0);
   }

@@ -6,13 +6,23 @@ import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
 import org.sudu.experiments.parser.common.graph.node.ref.RefNode;
 import org.sudu.experiments.parser.common.graph.type.Type;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 public class ScopeGraph {
 
   public ScopeNode root;
-  public Map<String, Type> typeMap;
+  public List<Type> types;
+
+  public ScopeGraph() {
+    types = new ArrayList<>();
+  }
+
+  public ScopeGraph(ScopeNode root, List<Type> types) {
+    this.root = root;
+    this.types = types;
+  }
 
   public void resolveAll(BiConsumer<RefNode, DeclNode> onResolve) {
     resolveAllRec(root, onResolve);
@@ -33,7 +43,7 @@ public class ScopeGraph {
 
   private void makeInsertDiffRec(ScopeNode curNode, int pos, int len) {
     for (var decl: curNode.declList) makeInsertDiff(decl.decl, pos, len);
-    for (var ref: curNode.refList) makeInsertDiff(ref.decl, pos, len);
+    for (var ref: curNode.refList) makeInsertDiff(ref.ref, pos, len);
     for (var child: curNode.getChildren()) makeInsertDiffRec(child, pos, len);
   }
 
@@ -43,9 +53,9 @@ public class ScopeGraph {
 
   private void makeDeleteDiffRec(ScopeNode curNode, int pos, int len) {
     for (var decl: curNode.declList) makeDeleteDiff(decl.decl, pos, len);
-    for (var ref: curNode.refList) makeDeleteDiff(ref.decl, pos, len);
+    for (var ref: curNode.refList) makeDeleteDiff(ref.ref, pos, len);
     curNode.declList.removeIf(it -> it.decl.position < 0);
-    curNode.refList.removeIf(it -> it.decl.position < 0);
+    curNode.refList.removeIf(it -> it.ref.position < 0);
     for (var child: curNode.getChildren()) makeDeleteDiffRec(child, pos, len);
   }
 

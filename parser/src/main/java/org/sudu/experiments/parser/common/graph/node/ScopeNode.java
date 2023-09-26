@@ -37,17 +37,30 @@ public class ScopeNode {
     return childList.get(i);
   }
 
-  public DeclNode resolve(RefNode ref, BiConsumer<RefNode, DeclNode> onResolve) {
-    DeclNode node = resolveRec(this, ref, onResolve);
+  public DeclNode resolve(
+      RefNode ref,
+      BiConsumer<RefNode, DeclNode> onResolve
+  ) {
+    return resolve(ref, onResolve, true);
+  }
+
+  public DeclNode resolve(
+      RefNode ref,
+      BiConsumer<RefNode, DeclNode> onResolve,
+      boolean readArgs
+  ) {
+    if (ref == null || ref instanceof TypeNode) return null;
+    DeclNode node = resolveRec(this, ref, onResolve, readArgs);
     if (node != null && node.type != null) ref.type = node.type;
-    onResolve.accept(ref, node);
+    if (!(ref instanceof QualifiedRefNode))onResolve.accept(ref, node);
     return node;
   }
 
   private static DeclNode resolveRec(
       ScopeNode curScope,
       RefNode ref,
-      BiConsumer<RefNode, DeclNode> onResolve
+      BiConsumer<RefNode, DeclNode> onResolve,
+      boolean readArgs
   ) {
     if (ref instanceof CreatorCallNode creatorCall) {
       resolveCallTypes(curScope, creatorCall, onResolve);
@@ -63,20 +76,36 @@ public class ScopeNode {
     if (ref instanceof FieldRefNode fieldRef) {
       return resolveField(curScope, fieldRef, onResolve);
     }
+    DeclNode decl = resolveVar(curScope, ref, onResolve, readArgs);
+    if (decl != null) return decl;
+
+    return curScope.parent != null
+        ? resolveRec(curScope.parent, ref, onResolve, true)
+        : null;
+  }
+
+  private static DeclNode resolveVar(
+      ScopeNode curScope,
+      RefNode ref,
+      BiConsumer<RefNode, DeclNode> onResolve,
+      boolean readArgs
+  ) {
     for (var decl: curScope.getDeclarations()) {
       if (decl.match(ref)) return decl;
-      if (decl instanceof MethodNode methodNode) {
+      if (readArgs && decl instanceof MethodNode methodNode) {
         for (var argNode: methodNode.args)
           if (argNode.match(ref)) return argNode;
       }
     }
+    return resolveImport(curScope, ref, onResolve, ScopeNode::resolveRec);
+  }
 
-    var resolved = resolveImport(curScope, ref, onResolve, ScopeNode::resolveRec);
-    if (resolved != null) return resolved;
-
-    return curScope.parent != null
-        ? resolveRec(curScope.parent, ref, onResolve)
-        : null;
+  private static DeclNode resolveRec(
+      ScopeNode curScope,
+      RefNode ref,
+      BiConsumer<RefNode, DeclNode> onResolve
+  ) {
+    return resolveRec(curScope, ref, onResolve, true);
   }
 
   private static void resolveCallTypes(
@@ -161,7 +190,7 @@ public class ScopeNode {
         begin.type == null ||
         begin.type.associatedScope == null
     ) return null;
-    return begin.type.associatedScope.resolve(qualifiedRef.cont, onResolve);
+    return begin.type.associatedScope.resolve(qualifiedRef.cont, onResolve, false);
   }
 
   public List<ScopeNode> getChildren() {

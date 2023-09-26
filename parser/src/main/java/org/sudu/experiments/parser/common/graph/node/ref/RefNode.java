@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class RefNode {
 
-  public final Name decl;
+  public final Name ref;
   public Type type;
 
   public RefNode(Name decl) {
@@ -15,7 +15,7 @@ public class RefNode {
   }
 
   public RefNode(Name decl, Type type) {
-    this.decl = decl;
+    this.ref = decl;
     this.type = type;
   }
 
@@ -28,7 +28,7 @@ public class RefNode {
 
   @Override
   public String toString() {
-    return decl + ": " + type;
+    return ref + ": " + type;
   }
 
   @Override
@@ -36,11 +36,11 @@ public class RefNode {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     RefNode refNode = (RefNode) o;
-    return Objects.equals(decl, refNode.decl) && Objects.equals(type, refNode.type);
+    return Objects.equals(ref, refNode.ref) && Objects.equals(type, refNode.type);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(decl, type);
+    return Objects.hash(ref, type);
   }
 }

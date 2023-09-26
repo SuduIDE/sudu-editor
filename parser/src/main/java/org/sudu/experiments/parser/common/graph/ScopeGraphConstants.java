@@ -9,6 +9,7 @@ public interface ScopeGraphConstants {
   }
 
   interface Decls {
+    int NULL = -1;
     int ARG_DECL_NODE = 1;
     int CREATOR_DECL_NODE = 2;
     int BASE_DECL_NODE = 3;
@@ -18,6 +19,7 @@ public interface ScopeGraphConstants {
   }
 
   interface Refs {
+    int NULL = -1;
     int CREATOR_CALL_NODE = 1;
     int FIELD_REF_NODE = 2;
     int METHOD_CALL_NODE = 3;

@@ -31,6 +31,7 @@ public class EditorWorker {
       case TestJobs.withInts -> TestJobs.withInts(array(a, 0).ints(), result);
       case KeywordParser.PARSE_KEYWORDS -> KeywordParser.parseChars(array(a, 0).chars(), result);
       case JavaParser.PARSE -> JavaParser.parse(array(a, 0).chars(), result);
+      case JavaParser.PARSE_SCOPES -> JavaParser.parseScopes(array(a, 0).chars(), result);
       case CppParser.PARSE -> CppParser.parse(array(a, 0).chars(), result);
       case JavaScriptParser.PARSE -> JavaScriptParser.parse(array(a, 0).chars(), result);
       case LineParser.PARSE -> LineParser.parse(array(a, 0).chars(), result);

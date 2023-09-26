@@ -10,6 +10,8 @@ import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.IntervalTree;
 import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.parser.common.graph.ScopeGraph;
+import org.sudu.experiments.parser.common.graph.reader.ScopeGraphReader;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,8 +30,17 @@ public abstract class ParserUtils {
     updateDocument(document, ints, chars, false);
   }
 
-  public static void updateDocument(Document document, int[] ints, char[] chars, boolean saveOldLines) {
-    ArrayReader reader = new ArrayReader(ints);
+  public static void updateDocument(Document document, int[] docInts, char[] docChars, boolean saveOldLines) {
+    updateDocument(document, docInts, docChars, null, null, saveOldLines);
+  }
+
+  public static void updateDocument(
+      Document document,
+      int[] docInts, char[] docChars,
+      int[] graphInts, char[] graphChars,
+      boolean saveOldLines
+  ) {
+    ArrayReader reader = new ArrayReader(docInts);
 
     int N = reader.next();
     int K = reader.next();
@@ -47,7 +58,7 @@ public abstract class ParserUtils {
         reader.skip(4 * len);
         continue;
       }
-      CodeElement[] elements = readElements(reader, chars, 0);
+      CodeElement[] elements = readElements(reader, docChars, 0);
       document.document[i] = new CodeLine(elements);
     }
 
@@ -58,6 +69,16 @@ public abstract class ParserUtils {
     ParserUtils.getUsageToDefMap(reader, L, document.usageToDef);
     ParserUtils.getDefToUsagesMap(document.usageToDef, document.defToUsages);
     reader.checkSize();
+
+    if (graphInts != null && graphChars != null){
+      document.scopeGraph = updateGraph(graphInts, graphChars);
+    }
+  }
+
+  public static ScopeGraph updateGraph(int[] graphInts, char[] graphChars) {
+    ScopeGraphReader reader = new ScopeGraphReader(graphInts, graphChars);
+    reader.readFromInts();
+    return new ScopeGraph(reader.root, reader.types);
   }
 
   public static void updateDocumentInterval(Document document, int[] ints, char[] chars) {

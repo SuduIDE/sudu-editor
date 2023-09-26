@@ -21,7 +21,9 @@ public class DeclNode {
   }
 
   public boolean match(RefNode ref) {
-    return decl.name.equals(ref.decl.name);
+    boolean nameMatch = ref.ref == null || ref.ref.match(decl);
+    boolean typeMatch = ref.type == null || ref.type.match(type);
+    return nameMatch && typeMatch;
   }
 
   @Override

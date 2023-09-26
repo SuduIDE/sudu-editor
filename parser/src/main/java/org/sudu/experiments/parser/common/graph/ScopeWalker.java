@@ -19,13 +19,14 @@ public class ScopeWalker {
   public IntervalNode currentNode;
   public Deque<Type> typeStack;
   public ScopeGraph graph;
+  public Map<String, Type> typeMap;
   public int newIntervalStart = 0;
 
   public ScopeWalker(IntervalNode node) {
     graph = new ScopeGraph();
     graph.root = currentScope = new ScopeNode(null);
     currentNode = node;
-    graph.typeMap = new HashMap<>();
+    typeMap = new HashMap<>();
     typeStack = new LinkedList<>();
   }
 
@@ -83,22 +84,26 @@ public class ScopeWalker {
 
   public Type getType(String typeString) {
     if (typeString == null || typeString.isBlank()) return null;
-    if (!graph.typeMap.containsKey(typeString))
-      graph.typeMap.put(typeString, new Type(typeString));
-    return graph.typeMap.get(typeString);
+    if (!typeMap.containsKey(typeString))
+      typeMap.put(typeString, new Type(typeString));
+    return typeMap.get(typeString);
   }
 
   public Type addType(String typeString, ScopeNode scopeNode) {
     if (typeString == null || typeString.isBlank()) return null;
     Type type;
-    if (graph.typeMap.containsKey(typeString)) {
-      type = graph.typeMap.get(typeString);
+    if (typeMap.containsKey(typeString)) {
+      type = typeMap.get(typeString);
       type.associatedScope = scopeNode;
     } else {
       type = new Type(typeString, scopeNode);
-      graph.typeMap.put(typeString, type);
+      typeMap.put(typeString, type);
     }
     return type;
+  }
+
+  public void updateTypes() {
+    graph.types = typeMap.values().stream().toList();
   }
 
   public void addInterval(ParserRuleContext ctx, int intervalType) {

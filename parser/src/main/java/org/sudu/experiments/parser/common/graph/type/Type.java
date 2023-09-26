@@ -26,7 +26,7 @@ public class Type {
     if (type == null || another == null || another.type == null) return true;
     if (type.equals(another.type)) return true;
     for (var supertype: supertypes) {
-      if (match(supertype)) return true;
+      if (supertype.match(another)) return true;
     }
     return false;
   }

@@ -14,12 +14,12 @@ public class DeclNodeReader {
 
   private final ArrayReader reader;
   private final char[] chars;
-  private final Type[] types;
+  private final List<Type> types;
 
   public DeclNodeReader(
       ArrayReader reader,
       char[] chars,
-      Type[] types
+      List<Type> types
   ) {
     this.reader = reader;
     this.chars = chars;
@@ -59,7 +59,7 @@ public class DeclNodeReader {
   private Type readType() {
     int typeInd = reader.next();
     if (typeInd == -1) return null;
-    return types[typeInd];
+    return types.get(typeInd);
   }
 
   private ArgNode readArgNode() {

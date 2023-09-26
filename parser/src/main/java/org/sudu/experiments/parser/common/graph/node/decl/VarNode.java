@@ -12,6 +12,6 @@ public class VarNode extends DeclNode {
 
   @Override
   public boolean match(RefNode ref) {
-    return super.match(ref) && decl.compareTo(ref.decl) < 0;
+    return super.match(ref) && decl.compareTo(ref.ref) < 0;
   }
 }

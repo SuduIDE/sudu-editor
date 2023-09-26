@@ -12,19 +12,19 @@ public class QualifiedRefNode extends RefNode {
   public RefNode begin, cont;
 
   public QualifiedRefNode(RefNode begin, RefNode cont) {
-    super(getDecl(cont));
+    super(begin.ref);
     this.begin = begin;
     this.cont = cont;
   }
 
   public static Name getDecl(RefNode cont) {
     if (cont instanceof QualifiedRefNode qualifiedRefNode) return getDecl(qualifiedRefNode.cont);
-    else return cont.decl;
+    else return cont.ref;
   }
 
   @Override
   public String toString() {
-    return begin.decl.name + "." + cont;
+    return begin.ref.name + "." + cont;
   }
 
   @Override

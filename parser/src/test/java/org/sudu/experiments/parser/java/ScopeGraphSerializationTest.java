@@ -22,7 +22,7 @@ public class ScopeGraphSerializationTest {
 
   @Test
   public void testFieldResolve() {
-    String source = readFile("java/TestQualifiedResolve.java");
+    String source = readFile("java/TestFieldResolve.java");
     var tokenStream = CharStreams.fromString(source);
     JavaLexer lexer = new JavaLexer(tokenStream);
     JavaParser parser = new JavaParser(new CommonTokenStream(lexer));
@@ -32,6 +32,7 @@ public class ScopeGraphSerializationTest {
 
     ParseTreeWalker walker = new ParseTreeWalker();
     walker.walk(scopeWalker, compUnit);
+    scopeWalker.scopeWalker.updateTypes();
 
     ScopeGraph fromGraph = scopeWalker.scopeWalker.graph;
     ScopeGraphWriter scopeGraphWriter = new ScopeGraphWriter(fromGraph);

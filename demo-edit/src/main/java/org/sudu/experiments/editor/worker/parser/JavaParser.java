@@ -12,6 +12,18 @@ import java.util.function.Consumer;
 
 public class JavaParser {
 
+  public static final String PARSE_SCOPES = "JavaParser.parseScopes";
+
+  public static void parseScopes(char[] chars, List<Object> result) {
+    var parser = new JavaFullParser();
+    int[] ints = parser.parseScopes(new String(chars));
+    result.add(ints);
+    result.add(chars);
+    result.add(new int[]{FileParser.JAVA_FILE});
+    result.add(parser.writer.ints);
+    result.add(parser.writer.chars);
+  }
+
   public static final String PARSE = "JavaParser.parse";
 
   public static void parse(char[] chars, List<Object> result) {

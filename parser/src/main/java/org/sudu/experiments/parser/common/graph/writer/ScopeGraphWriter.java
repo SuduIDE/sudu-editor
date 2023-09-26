@@ -52,7 +52,7 @@ public class ScopeGraphWriter {
   }
 
   private void writeTypes() {
-    writer.write(graph.typeMap.size());
+    writer.write(graph.types.size());
 
     writeTypesNames();
     writeSupertypes();
@@ -72,7 +72,7 @@ public class ScopeGraphWriter {
   }
 
   private void putTypes() {
-    graph.typeMap.values().forEach(this::putType);
+    graph.types.forEach(this::putType);
   }
 
   private void putScopes() {
@@ -87,7 +87,7 @@ public class ScopeGraphWriter {
 
   // [s_1, e_1, ..., s_n, e_n]
   private void writeTypesNames() {
-    for (var type: graph.typeMap.values()) {
+    for (var type: graph.types) {
       writer.write(refDeclStringBuilder.length(), type.type.length());
       refDeclStringBuilder.append(type.type);
     }
@@ -95,7 +95,7 @@ public class ScopeGraphWriter {
 
   // [sl = t_i.super.size(), t_i.super[0], ..., t_i.super[sl - 1]]
   private void writeSupertypes() {
-    for (var type: graph.typeMap.values()) {
+    for (var type: graph.types) {
       writer.write(type.supertypes.size());
       for (var supertype: type.supertypes) {
         var num = typeIdentityMap.get(supertype);

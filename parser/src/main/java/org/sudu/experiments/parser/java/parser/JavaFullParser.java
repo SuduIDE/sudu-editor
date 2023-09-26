@@ -8,11 +8,13 @@ import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.BaseFullParser;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
 import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.model.JavaClass;
 import org.sudu.experiments.parser.java.walker.JavaClassWalker;
+import org.sudu.experiments.parser.java.walker.JavaScopeWalker;
 import org.sudu.experiments.parser.java.walker.JavaWalker;
 
 import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting;
@@ -20,6 +22,40 @@ import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlightin
 public class JavaFullParser extends BaseFullParser {
 
   private JavaClass javaClass;
+  public ScopeGraphWriter writer;
+
+  public int[] parseScopes(String source) {
+    long parsingStartTime = System.currentTimeMillis();
+    initLexer(source);
+
+    JavaParser parser = new JavaParser(tokenStream);
+    parser.setErrorHandler(new ErrorHighlightingStrategy());
+    parser.removeErrorListeners();
+    parser.addErrorListener(parserRecognitionListener);
+
+    var compUnit = parser.compilationUnit();
+    JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes);
+
+    ParseTreeWalker walker = new ParseTreeWalker();
+    Interval compUnitInterval = new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.Java.COMP_UNIT);
+    IntervalNode compUnitNode = new IntervalNode(compUnitInterval);
+    JavaScopeWalker scopeWalker = new JavaScopeWalker(compUnitNode);
+
+    int[] result;
+    try {
+      walker.walk(scopeWalker, compUnit);
+      result = getInts(scopeWalker.scopeWalker.currentNode);
+    } catch (Exception e) {
+      e.printStackTrace();
+      result = getInts(defaultIntervalNode());
+    }
+    scopeWalker.scopeWalker.updateTypes();
+    writer = new ScopeGraphWriter(scopeWalker.scopeWalker.graph);
+    writer.toInts();
+
+    System.out.println("Parsing full java time: " + (System.currentTimeMillis() - parsingStartTime) + "ms");
+    return result;
+  }
 
   public int[] parse(String source) {
     long parsingStartTime = System.currentTimeMillis();

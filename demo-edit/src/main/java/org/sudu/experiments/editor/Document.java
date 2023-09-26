@@ -1,12 +1,22 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.Debug;
+import org.sudu.experiments.parser.ParserConstants;
+import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.IntervalTree;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.IntervalTree;
+import org.sudu.experiments.parser.common.Name;
 import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.parser.common.graph.ScopeGraph;
+import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
+import org.sudu.experiments.parser.common.graph.node.decl.FieldNode;
+import org.sudu.experiments.parser.common.graph.node.decl.MethodNode;
+import org.sudu.experiments.parser.common.graph.node.ref.RefNode;
+import org.sudu.experiments.parser.common.graph.node.ref.TypeNode;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -16,6 +26,7 @@ public class Document {
 
   public CodeLine[] document;
   public IntervalTree tree;
+  public ScopeGraph scopeGraph;
   public final Map<Pos, Pos> usageToDef = new HashMap<>();
   public final Map<Pos, List<Pos>> defToUsages = new HashMap<>();
   List<Diff[]> diffs = new ArrayList<>();
@@ -479,5 +490,30 @@ public class Document {
       else break;
     }
     return position + column;
+  }
+
+  public void onResolve(RefNode refNode, DeclNode declNode) {
+    Name ref = refNode.ref;
+    var refPos = getPositionAt(ref.position);
+    var refElem = line(refPos.line).getCodeElement(refPos.pos);
+    if (declNode == null) {
+      refElem.color = ParserConstants.TokenTypes.ERROR;
+      return;
+    }
+    int type = declNode instanceof FieldNode
+        ? ParserConstants.TokenTypes.FIELD
+        : ParserConstants.TokenTypes.DEFAULT;
+    int style = declNode instanceof MethodNode
+        ? ParserConstants.TokenStyles.BOLD
+        : ParserConstants.TokenStyles.NORMAL;
+
+    Name decl = declNode.decl;
+    var declPos = getPositionAt(decl.position);
+    usageToDef.put(refPos, declPos);
+    defToUsages.putIfAbsent(declPos, new ArrayList<>());
+    defToUsages.get(declPos).add(refPos);
+
+    refElem.color = type;
+    refElem.fontIndex = style;
   }
 }

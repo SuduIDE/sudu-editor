@@ -23,7 +23,7 @@ public class ScopeTest {
 
   @Test
   public void testFieldResolve() {
-    String source = readFile("java/TestQualifiedResolve.java");
+    String source = readFile("java/TestFieldResolve.java");
     var tokenStream = CharStreams.fromString(source);
     JavaLexer lexer = new JavaLexer(tokenStream);
     JavaParser parser = new JavaParser(new CommonTokenStream(lexer));
@@ -37,8 +37,6 @@ public class ScopeTest {
     ScopeGraph graph = scopeWalker.scopeWalker.graph;
     IntervalTree tree = new IntervalTree(scopeWalker.scopeWalker.currentNode);
 
-    ScopeGraphWriter writer = new ScopeGraphWriter(graph);
-    writer.toInts();
     graph.resolveAll((ref, decl) -> System.out.println(ref + " |-> " + decl));
 
     graph.root.print(0);
@@ -58,7 +56,7 @@ public class ScopeTest {
     if (!scope.declList.isEmpty()) System.out.println("Decls: ");
     for(var decl: scope.declList) printRef(source, decl.decl.position);
     if (!scope.refList.isEmpty()) System.out.println("Refs: ");
-    for(var decl: scope.refList) printRef(source, decl.decl.position);
+    for(var decl: scope.refList) printRef(source, decl.ref.position);
     if (!scope.declList.isEmpty() || !scope.refList.isEmpty()) System.out.println("__".repeat(20));
     for (var child: scope.getChildren()) printRec(child, source);
   }

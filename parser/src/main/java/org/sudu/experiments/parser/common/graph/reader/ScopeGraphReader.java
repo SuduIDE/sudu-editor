@@ -16,12 +16,12 @@ public class ScopeGraphReader {
   private final ArrayReader reader;
   private final char[] chars;
 
-  private Type[] types;
   private ScopeNode[] scopeNodes;
   private DeclNodeReader declNodeReader;
   private RefNodeReader refNodeReader;
 
   public ScopeNode root;
+  public List<Type> types;
 
   public ScopeGraphReader(
       int[] ints,
@@ -39,16 +39,15 @@ public class ScopeGraphReader {
 
   private void readTypes() {
     int len = reader.next();
-    types = new Type[len];
-
-    readTypesNames();
+    types = new ArrayList<>(len);
+    readTypesNames(len);
     readSupertypes();
   }
 
-  private void readTypesNames() {
-    for (int i = 0; i < types.length; i++) {
+  private void readTypesNames(int len) {
+    for (int i = 0; i < len; i++) {
       String name = nextString();
-      types[i] = new Type(name);
+      types.add(new Type(name));
     }
   }
 
@@ -65,11 +64,11 @@ public class ScopeGraphReader {
   }
 
   private void readAssociatedScopes() {
-    for (int i = 0; i < types.length; i++) {
+    for (int i = 0; i < types.size(); i++) {
       int typeInd = reader.next();
       if (typeInd == -1) continue;
       int scopeInd = reader.next();
-      var type = types[typeInd];
+      var type = types.get(typeInd);
       type.associatedScope = scopeNodes[scopeInd];
     }
   }
@@ -99,7 +98,7 @@ public class ScopeGraphReader {
     List<Type> result = new ArrayList<>();
     for (int i = 0; i < len; i++) {
       int typeInd = reader.next();
-      result.add(types[typeInd]);
+      result.add(types.get(typeInd));
     }
     return result;
   }

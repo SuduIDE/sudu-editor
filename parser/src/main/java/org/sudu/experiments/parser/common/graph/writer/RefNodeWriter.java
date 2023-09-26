@@ -7,6 +7,7 @@ import org.sudu.experiments.parser.common.graph.type.Type;
 
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Objects;
 
 import static org.sudu.experiments.parser.common.graph.ScopeGraphConstants.Refs.*;
 
@@ -39,13 +40,14 @@ public class RefNodeWriter {
     else if (refNode instanceof SuperNode superNode) writeSuperNode(superNode);
     else if (refNode instanceof ThisNode thisNode) writeThisNode(thisNode);
     else if (refNode instanceof TypeNode typeNode) writeTypeNode(typeNode);
-    else writeBaseRef(refNode);
+    else if (refNode != null) writeBaseRef(refNode);
+    else writer.write(NULL);
   }
 
   private void writeRefName(RefNode node) {
-    String name = node.decl.name;
+    String name = node.ref.name;
     writer.write(declStringBuilder.length(), name.length());
-    writer.write(node.decl.position);
+    writer.write(node.ref.position);
     writeType(node.type);
     declStringBuilder.append(name);
   }

@@ -14,6 +14,10 @@ public class Name implements Comparable<Name> {
     this.position = position;
   }
 
+  public boolean match(Name another) {
+    return name.equals(another.name);
+  }
+
   public static Name fromNode(TerminalNode node) {
     return new Name(node.getText(), node.getSymbol().getStartIndex());
   }
@@ -28,7 +32,7 @@ public class Name implements Comparable<Name> {
 
   @Override
   public String toString() {
-    return name;
+    return name + "(" + position + ")";
   }
 
   @Override
