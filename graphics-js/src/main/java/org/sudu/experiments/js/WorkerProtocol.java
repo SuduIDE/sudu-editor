@@ -35,7 +35,7 @@ public class WorkerProtocol {
     transferAndSend(worker, args, message, 2);
   }
 
-  static void execute(WorkerExecutor executor, JSArrayReader<?> array) {
+  static void execute(WorkerExecutor executor, JSArrayReader<JSObject> array) {
     if (array.getLength() >= 2) {
       JSObject taskId = array.get(0);
       String method = array.get(1).<JSString>cast().stringValue();
@@ -68,7 +68,7 @@ public class WorkerProtocol {
     context.postMessage(message, transfer);
   }
 
-  static Object[] toJava(JSArrayReader<?> array, int shift) {
+  static Object[] toJava(JSArrayReader<JSObject> array, int shift) {
     Object[] args = new Object[array.getLength() - shift];
     for (int i = 0; i < args.length; i++) {
       args[i] = bridgeToJava(array.get(i + shift));
