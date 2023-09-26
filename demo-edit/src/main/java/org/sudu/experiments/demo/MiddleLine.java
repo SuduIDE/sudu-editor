@@ -90,13 +90,11 @@ public class MiddleLine {
         drawRightLine(g, yRightStartPosition, yLeftStartPosition,
             lineWidth, uiContext, editor2, rect);
       }
-      g.enableScissor(pos, size);
       g.drawLineFill(
           rect.pos.x, rect.pos.y, rect.size,
           p11, p12,
           p21, p22, rect.color
       );
-      g.disableScissor();
       g.enableBlend(false);
     }
 
