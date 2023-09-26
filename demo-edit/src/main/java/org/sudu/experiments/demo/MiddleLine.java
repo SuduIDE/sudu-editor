@@ -48,46 +48,41 @@ public class MiddleLine {
     if (diffModel == null || diffModel.ranges == null) return;
     int lineWidth = uiContext.toPx(lineWidthDp);
 
-    int leftStartLine = editor1.getFirstLine();
-    int leftLastLine = editor1.getLastLine();
-    int rightStartLine = editor2.getFirstLine();
-    int rightLastLine = editor2.getLastLine();
+    int leftFirst = diffModel.rangeBinSearch(editor1.getFirstLine(), true);
+    int leftLast = diffModel.rangeBinSearch(editor1.getLastLine(), true);
+    int rightFirst = diffModel.rangeBinSearch(editor2.getFirstLine(), false);
+    int rightLast = diffModel.rangeBinSearch(editor2.getLastLine(), false);
 
-    int leftStartRangeInd = diffModel.rangeBinSearch(leftStartLine, true);
-    int leftLastRangeInd = diffModel.rangeBinSearch(leftLastLine, true);
-    int rightStartRangeInd = diffModel.rangeBinSearch(rightStartLine, false);
-    int rightLastRangeInd = diffModel.rangeBinSearch(rightLastLine, false);
+    int first = Math.min(leftFirst, rightFirst);
+    int last = Math.max(leftLast, rightLast);
 
-    for (int i = Math.min(leftStartRangeInd, rightStartRangeInd);
-         i <= Math.max(leftLastRangeInd, rightLastRangeInd); i++) {
+    if (first <= last) g.enableBlend(true);
+
+    for (int i = first; i <= last; i++) {
       var range = diffModel.ranges[i];
       if (range.type == 0) continue;
 
-      int yLeftStartPosition = editor1.lineHeight * range.fromL - editor1.vScrollPos;
-      int yLeftLastPosition = yLeftStartPosition + range.lenL * editor1.lineHeight;
+      int leftY0 = editor1.lineHeight * range.fromL - editor1.vScrollPos;
+      int leftY1 = leftY0 + range.lenL * editor1.lineHeight;
 
-      int yRightStartPosition = editor2.lineHeight * range.fromR - editor2.vScrollPos;
-      int yRightLastPosition = yRightStartPosition + range.lenR * editor2.lineHeight;
+      int rightY0 = editor2.lineHeight * range.fromR - editor2.vScrollPos;
+      int rightY1 = rightY0 + range.lenR * editor2.lineHeight;
 
-      setLinePos(
-          yLeftStartPosition, yLeftLastPosition,
-          yRightStartPosition, yRightLastPosition
-      );
+      setLinePos(leftY0, leftY1, rightY0, rightY1);
 
-      int rectY = Math.min(yLeftStartPosition, yRightStartPosition);
-      int rectW = Math.max(yLeftLastPosition, yRightLastPosition) - rectY;
+      int rectY0 = Math.max(Math.min(leftY0, rightY0), pos.y);
+      int rectY1 = Math.min(Math.max(leftY1, rightY1), pos.y + size.y);
 
-      rect.set(pos.x, rectY, size.x, rectW);
+      rect.set(pos.x, rectY0, size.x, rectY1 - rectY0);
       rect.bgColor.set(theme.lineNumber.bgColor);
       rect.color.set(theme.diff.getDiffColor(theme, range.type));
 
-      g.enableBlend(true);
-      if (yLeftStartPosition == yLeftLastPosition) {
-        drawLeftLine(g, yLeftStartPosition, yRightStartPosition,
+      if (leftY0 == leftY1) {
+        drawLeftLine(g, leftY0, rightY0,
             lineWidth, uiContext, editor1, rect);
       }
-      if (yRightStartPosition == yRightLastPosition) {
-        drawRightLine(g, yRightStartPosition, yLeftStartPosition,
+      if (rightY0 == rightY1) {
+        drawRightLine(g, rightY0, leftY0,
             lineWidth, uiContext, editor2, rect);
       }
       g.drawLineFill(
@@ -95,9 +90,8 @@ public class MiddleLine {
           p11, p12,
           p21, p22, rect.color
       );
-      g.enableBlend(false);
     }
-
+    if (first <= last) g.enableBlend(false);
   }
 
   private void drawLeftLine(
