@@ -27,11 +27,11 @@ public class DeclNodeWriter {
   }
 
   void writeDeclNodes(ScopeNode scope) {
-    writer.write(scope.declList.size());
-    scope.declList.forEach(this::writeDeclNode);
+    writer.write(scope.declarations.size());
+    scope.declarations.forEach(this::writeDeclNode);
   }
 
-  private void writeDeclNode(DeclNode declNode) {
+  void writeDeclNode(DeclNode declNode) {
     if (declNode instanceof MethodNode methodNode) writeMethodDecl(methodNode);
     else writeDecl(declNode);
   }

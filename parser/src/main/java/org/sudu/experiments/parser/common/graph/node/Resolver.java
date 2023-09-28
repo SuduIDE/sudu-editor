@@ -102,7 +102,7 @@ public class Resolver {
       ScopeNode curScope,
       QualifiedRefNode qualifiedRef
   ) {
-    resolve(curScope, qualifiedRef.begin);
+    var begin = resolve(curScope, qualifiedRef.begin);
     var type = qualifiedRef.begin.type;
     if (type == null || type.associatedScope == null) return null;
     return resolve(type.associatedScope, qualifiedRef.cont);

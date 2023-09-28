@@ -27,11 +27,11 @@ public class RefNodeWriter {
   }
 
   void writeRefs(ScopeNode scope) {
-    writer.write(scope.refList.size());
-    scope.refList.forEach(this::writeRefNode);
+    writer.write(scope.references.size());
+    scope.references.forEach(this::writeRefNode);
   }
 
-  private void writeRefNode(RefNode refNode) {
+  void writeRefNode(RefNode refNode) {
     if (refNode instanceof ExprRefNode exprRefNode) writeExprRef(exprRefNode);
     else if (refNode instanceof MethodCallNode methodCallNode) writeMethodCall(methodCallNode);
     else if (refNode instanceof QualifiedRefNode qualifiedRefNode) writeQualifiedRef(qualifiedRefNode);

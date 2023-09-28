@@ -10,7 +10,6 @@ import org.sudu.experiments.parser.common.IntervalTree;
 import org.sudu.experiments.parser.common.graph.ScopeGraph;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
-import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.walker.JavaScopeWalker;
@@ -53,11 +52,11 @@ public class ScopeTest {
   }
 
   private void printRec(ScopeNode scope, String source) {
-    if (!scope.declList.isEmpty()) System.out.println("Decls: ");
-    for(var decl: scope.declList) printRef(source, decl.decl.position);
-    if (!scope.refList.isEmpty()) System.out.println("Refs: ");
-    for(var decl: scope.refList) printRef(source, decl.ref.position);
-    if (!scope.declList.isEmpty() || !scope.refList.isEmpty()) System.out.println("__".repeat(20));
+    if (!scope.declarations.isEmpty()) System.out.println("Decls: ");
+    for(var decl: scope.declarations) printRef(source, decl.decl.position);
+    if (!scope.references.isEmpty()) System.out.println("Refs: ");
+    for(var decl: scope.references) printRef(source, decl.ref.position);
+    if (!scope.declarations.isEmpty() || !scope.references.isEmpty()) System.out.println("__".repeat(20));
     for (var child: scope.children) printRec(child, source);
   }
 
@@ -68,8 +67,8 @@ public class ScopeTest {
 
   void printDeclarations(ScopeNode scope) {
     if (scope instanceof FakeNode) return;
-    for (var decl: scope.declList) System.out.println(decl);
-    if (!scope.declList.isEmpty()) System.out.println();
+    for (var decl: scope.declarations) System.out.println(decl);
+    if (!scope.declarations.isEmpty()) System.out.println();
     for (var subScope: scope.children) printDeclarations(subScope);
   }
 

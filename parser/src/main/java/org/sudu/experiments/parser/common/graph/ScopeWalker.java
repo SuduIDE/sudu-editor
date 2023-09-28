@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
+import org.sudu.experiments.parser.common.graph.node.InferenceNode;
 import org.sudu.experiments.parser.common.graph.node.MemberNode;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 import org.sudu.experiments.parser.common.graph.node.decl.*;
@@ -117,24 +118,29 @@ public class ScopeWalker {
   }
 
   public void addToRoot(DeclNode decl) {
-    graph.root.declList.add(decl);
+    graph.root.declarations.add(decl);
   }
 
   public void addDecl(DeclNode node) {
-    currentScope.declList.add(node);
+    currentScope.declarations.add(node);
   }
 
   public void addDecls(List<DeclNode> nodes) {
-    currentScope.declList.addAll(nodes);
+    currentScope.declarations.addAll(nodes);
   }
 
   public RefNode addRef(RefNode ref) {
-    currentScope.refList.add(ref);
+    currentScope.references.add(ref);
     return ref;
   }
 
   public List<RefNode> addRefs(List<RefNode> refs) {
-    currentScope.refList.addAll(refs);
+    currentScope.references.addAll(refs);
     return refs;
   }
+
+  public void addInference(InferenceNode inference) {
+    currentScope.inferences.add(inference);
+  }
+
 }

@@ -21,7 +21,8 @@ public interface StartFile {
 
         public static void main(String[] args) {
           sum(a + a);
-          var g = new G(a + a);
+          var g = g(a + a);
+          g.a;
         }
             
         @Deprecated
@@ -39,6 +40,10 @@ public interface StartFile {
             
         public int sumField(int field) {
           return field + this.field;
+        }
+        
+        public G g(int a) {
+          return new G(a);
         }
         
         public class G {

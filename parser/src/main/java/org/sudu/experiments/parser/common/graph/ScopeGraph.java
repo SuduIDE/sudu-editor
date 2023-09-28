@@ -31,7 +31,7 @@ public class ScopeGraph {
   }
 
   private void resolveAllRec(ScopeNode current, Resolver resolver) {
-    for (var ref: current.refList) resolver.resolve(current, ref);
+    current.referenceWalk(ref -> resolver.resolve(current, ref));
     current.children.forEach(child -> resolveAllRec(child, resolver));
   }
 
@@ -44,8 +44,12 @@ public class ScopeGraph {
   }
 
   private void makeInsertDiffRec(ScopeNode curNode, int pos, int len) {
-    for (var decl: curNode.declList) makeInsertDiff(decl, pos, len);
-    for (var ref: curNode.refList) makeDiff(this::makeInsertDiff, ref, pos, len);
+    for (var decl: curNode.declarations) makeInsertDiff(decl, pos, len);
+    for (var ref: curNode.references) makeDiff(this::makeInsertDiff, ref, pos, len);
+    for (var infer: curNode.inferences) {
+      makeInsertDiff(infer.decl, pos, len);
+      makeDiff(this::makeInsertDiff, infer.ref, pos, len);
+    }
     for (var child: curNode.children) makeInsertDiffRec(child, pos, len);
   }
 
@@ -65,6 +69,7 @@ public class ScopeGraph {
       } else if (refNode instanceof QualifiedRefNode qualifiedRef) {
         makeDiff(diffFun, qualifiedRef.begin, pos, len);
         makeDiff(diffFun, qualifiedRef.cont, pos, len);
+        return;
       }
     }
     if (refNode != null && refNode.ref != null) diffFun.accept(refNode.ref, pos, len);
@@ -75,11 +80,14 @@ public class ScopeGraph {
   }
 
   private void makeDeleteDiffRec(ScopeNode curNode, int pos, int len) {
-    for (var decl: curNode.declList) makeDeleteDiff(decl.decl, pos, len);
-    for (var ref: curNode.refList) makeDiff(this::makeDeleteDiff, ref, pos, len);
-
-    curNode.declList.removeIf(it -> it.decl.position < 0);
-    curNode.refList.removeIf(it -> it.ref != null && it.ref.position < 0);
+    for (var decl: curNode.declarations) makeDeleteDiff(decl.decl, pos, len);
+    for (var ref: curNode.references) makeDiff(this::makeDeleteDiff, ref, pos, len);
+    for (var infer: curNode.inferences) {
+      makeDeleteDiff(infer.decl.decl, pos, len);
+      makeDiff(this::makeDeleteDiff, infer.ref, pos, len);
+    }
+    curNode.declarations.removeIf(it -> it.decl.position < 0);
+    curNode.references.removeIf(it -> it.ref != null && it.ref.position < 0);
     for (var child: curNode.children) makeDeleteDiffRec(child, pos, len);
   }
 

@@ -12,8 +12,9 @@ public class ScopeNode {
   public ScopeNode parent;
   public List<ScopeNode> children;
 
-  public List<RefNode> refList;
-  public List<DeclNode> declList;
+  public List<RefNode> references;
+  public List<DeclNode> declarations;
+  public List<InferenceNode> inferences;
   public List<Type> importTypes;
 
   public ScopeNode() {
@@ -22,23 +23,36 @@ public class ScopeNode {
   public ScopeNode(ScopeNode parent) {
     this.parent = parent;
     this.children = new ArrayList<>();
-    this.refList = new ArrayList<>();
-    this.declList = new ArrayList<>();
+    this.references = new ArrayList<>();
+    this.declarations = new ArrayList<>();
     this.importTypes = new ArrayList<>();
+    this.inferences = new ArrayList<>();
   }
 
   public ScopeNode getChild(int i) {
     return children.get(i);
   }
 
-  DeclNode declarationWalk(
+  public void referenceWalk(Function<RefNode, DeclNode> resolve) {
+    for (var infer: inferences) {
+      var resolved = resolve.apply(infer.ref);
+      if (resolved != null && resolved.type != null) {
+        infer.decl.type = resolved.type;
+      }
+    }
+    for (var ref: references) resolve.apply(ref);
+  }
+
+  public DeclNode declarationWalk(
       Predicate<DeclNode> matcher
   ) {
-    for (var decl: declList)
+    for (var decl: inferences)
+      if (matcher.test(decl.decl)) return decl.decl;
+    for (var decl: declarations)
       if (matcher.test(decl)) return decl;
     for (var subScope: children) {
       if (!(subScope instanceof MemberNode member)) continue;
-      for (var decl: member.declList)
+      for (var decl: member.declarations)
         if (matcher.test(decl)) return decl;
     }
     return null;

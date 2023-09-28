@@ -3,6 +3,7 @@ package org.sudu.experiments.parser.common.graph.writer;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.common.graph.ScopeGraph;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
+import org.sudu.experiments.parser.common.graph.node.InferenceNode;
 import org.sudu.experiments.parser.common.graph.node.MemberNode;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 import org.sudu.experiments.parser.common.graph.type.Type;
@@ -124,6 +125,7 @@ public class ScopeGraphWriter {
     declNodeWriter.writeDeclNodes(scope);
     refNodeWriter.writeRefs(scope);
     writeImports(scope.importTypes);
+    writeInferences(scope.inferences);
     writeScopeChildren(scope.children);
   }
 
@@ -135,6 +137,14 @@ public class ScopeGraphWriter {
   private void writeScopeChildren(List<ScopeNode> scopes) {
     writer.write(scopes.size());
     scopes.forEach(this::writeScope);
+  }
+
+  private void writeInferences(List<InferenceNode> inferences) {
+    writer.write(inferences.size());
+    for (var infer: inferences){
+      declNodeWriter.writeDeclNode(infer.decl);
+      refNodeWriter.writeRefNode(infer.ref);
+    }
   }
 
   int putType(Type type) {

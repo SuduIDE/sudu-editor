@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.sudu.experiments.parser.common.Name;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
+import org.sudu.experiments.parser.common.graph.node.InferenceNode;
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
 import org.sudu.experiments.parser.common.graph.node.decl.MethodNode;
 import org.sudu.experiments.parser.common.graph.node.ref.*;
@@ -268,17 +269,16 @@ public class JavaScopeWalker extends JavaParserBaseListener {
         scopeWalker.addDecl(decl);
         if (variableDeclarator.variableInitializer() != null &&
             variableDeclarator.variableInitializer().expression() != null
-        ) addRef(handleExpression(variableDeclarator.variableInitializer().expression()));
+        ) scopeWalker.addRef(handleExpression(variableDeclarator.variableInitializer().expression()));
       }
     }
     if (ctx.identifier() != null && ctx.expression() != null) {
-      // todo handle this case
+      var node = getNode(ctx.identifier());
       var ref = handleExpression(ctx.expression());
       var type = ref != null ? ref.type : null;
-      addRef(ref);
-      var node = getNode(ctx.identifier());
       var decl = new DeclNode(Name.fromNode(node), type, DeclNode.LOCAL_VAR);
-      scopeWalker.addDecl(decl);
+      mark(ctx.VAR(), TokenTypes.KEYWORD, TokenStyles.NORMAL);
+      scopeWalker.addInference(new InferenceNode(decl, ref));
     }
   }
 
@@ -286,7 +286,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   public void exitStatement(JavaParser.StatementContext ctx) {
     super.exitStatement(ctx);
     if (ctx.expression() != null && !ctx.expression().isEmpty()) {
-      addRef(handleExpression(ctx.expression(0)));
+      scopeWalker.addRef(handleExpression(ctx.expression(0)));
     }
   }
 
@@ -455,16 +455,10 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     return null;
   }
 
-  private RefNode addRef(RefNode ref) {
-    scopeWalker.addRef(ref);
-    return ref;
-  }
-
   private List<RefNode> handleExpressionList(JavaParser.ExpressionListContext ctx) {
-    var result = ctx.expression().stream()
+    return ctx.expression().stream()
         .map(this::handleExpression)
         .toList();
-    return result;
   }
 
   private MethodCallNode handleMethodCall(JavaParser.MethodCallContext ctx) {
@@ -538,8 +532,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   }
 
   private RefNode handleBooleanExpression(JavaParser.ExpressionContext ctx) {
-    addRef(handleExpression(ctx.expression(0)));
-    addRef(handleExpression(ctx.expression(1)));
+    scopeWalker.addRef(handleExpression(ctx.expression(0)));
+    scopeWalker.addRef(handleExpression(ctx.expression(1)));
     Name decl = new Name(null, ctx.getStart().getStartIndex());
     return new RefNode(decl, scopeWalker.getType("boolean"), RefNode.TYPE);
   }
@@ -562,8 +556,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
 
   private RefNode handleTernary(JavaParser.ExpressionContext ctx) {
     var result = handleExpression(ctx.expression(0));
-    addRef(handleExpression(ctx.expression(1)));
-    addRef(handleExpression(ctx.expression(2)));
+    scopeWalker.addRef(handleExpression(ctx.expression(1)));
+    scopeWalker.addRef(handleExpression(ctx.expression(2)));
     return result;
   }
 

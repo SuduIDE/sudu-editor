@@ -2,6 +2,7 @@ package org.sudu.experiments.parser.common.graph.reader;
 
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
+import org.sudu.experiments.parser.common.graph.node.InferenceNode;
 import org.sudu.experiments.parser.common.graph.node.MemberNode;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 import org.sudu.experiments.parser.common.graph.type.Type;
@@ -85,9 +86,10 @@ public class ScopeGraphReader {
       default -> throw new IllegalStateException("Unknown scope type: " + scopeType);
     };
 
-    scopeNode.declList = declNodeList;
-    scopeNode.refList = refNodeReader.readRefNodes();
+    scopeNode.declarations = declNodeList;
+    scopeNode.references = refNodeReader.readRefNodes();
     scopeNode.importTypes = readTypeList();
+    scopeNode.inferences = readInferences();
     scopeNode.children = readChildrenScopes(scopeNode);
     scopeNodes[scopeInd] = scopeNode;
     return scopeNode;
@@ -107,6 +109,17 @@ public class ScopeGraphReader {
     int len = reader.next();
     List<ScopeNode> result = new ArrayList<>();
     for (int i = 0; i < len; i++) result.add(readScope(parent));
+    return result;
+  }
+
+  private List<InferenceNode> readInferences() {
+    int len = reader.next();
+    List<InferenceNode> result = new ArrayList<>();
+    for (int i = 0; i < len; i++) {
+      var decl = declNodeReader.readDeclNode();
+      var ref = refNodeReader.readRefNode();
+      result.add(new InferenceNode(decl, ref));
+    }
     return result;
   }
 
