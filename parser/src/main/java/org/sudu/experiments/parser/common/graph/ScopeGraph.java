@@ -2,6 +2,7 @@ package org.sudu.experiments.parser.common.graph;
 
 import org.sudu.experiments.parser.common.Name;
 import org.sudu.experiments.parser.common.TriConsumer;
+import org.sudu.experiments.parser.common.graph.node.Resolver;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
 import org.sudu.experiments.parser.common.graph.node.ref.*;
@@ -26,12 +27,12 @@ public class ScopeGraph {
   }
 
   public void resolveAll(BiConsumer<RefNode, DeclNode> onResolve) {
-    resolveAllRec(root, onResolve);
+    resolveAllRec(root, new Resolver(onResolve));
   }
 
-  private void resolveAllRec(ScopeNode current, BiConsumer<RefNode, DeclNode> onResolve) {
-    for (var ref: current.refList) current.resolve(ref, onResolve);
-    current.childList.forEach(child -> resolveAllRec(child, onResolve));
+  private void resolveAllRec(ScopeNode current, Resolver resolver) {
+    for (var ref: current.refList) resolver.resolve(current, ref);
+    current.children.forEach(child -> resolveAllRec(child, resolver));
   }
 
   public void makeInsertDiff(int pos, int len) {
@@ -45,7 +46,7 @@ public class ScopeGraph {
   private void makeInsertDiffRec(ScopeNode curNode, int pos, int len) {
     for (var decl: curNode.declList) makeInsertDiff(decl, pos, len);
     for (var ref: curNode.refList) makeDiff(this::makeInsertDiff, ref, pos, len);
-    for (var child: curNode.getChildren()) makeInsertDiffRec(child, pos, len);
+    for (var child: curNode.children) makeInsertDiffRec(child, pos, len);
   }
 
   private void makeInsertDiff(DeclNode decl, int pos, int len) {
@@ -61,6 +62,9 @@ public class ScopeGraph {
     } else {
       if (refNode instanceof MethodCallNode callNode) {
         callNode.callArgs.forEach(args -> makeDiff(diffFun, args, pos, len));
+      } else if (refNode instanceof QualifiedRefNode qualifiedRef) {
+        makeDiff(diffFun, qualifiedRef.begin, pos, len);
+        makeDiff(diffFun, qualifiedRef.cont, pos, len);
       }
     }
     if (refNode != null && refNode.ref != null) diffFun.accept(refNode.ref, pos, len);
@@ -76,7 +80,7 @@ public class ScopeGraph {
 
     curNode.declList.removeIf(it -> it.decl.position < 0);
     curNode.refList.removeIf(it -> it.ref != null && it.ref.position < 0);
-    for (var child: curNode.getChildren()) makeDeleteDiffRec(child, pos, len);
+    for (var child: curNode.children) makeDeleteDiffRec(child, pos, len);
   }
 
   private void makeDeleteDiff(Name name, int pos, int len) {

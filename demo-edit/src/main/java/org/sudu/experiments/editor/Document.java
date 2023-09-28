@@ -7,8 +7,6 @@ import org.sudu.experiments.parser.common.IntervalTree;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.common.IntervalNode;
-import org.sudu.experiments.parser.common.IntervalTree;
 import org.sudu.experiments.parser.common.Name;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.common.graph.ScopeGraph;
@@ -28,6 +26,7 @@ public class Document {
   public final Map<Pos, Pos> usageToDef = new HashMap<>();
   public final Map<Pos, List<Pos>> defToUsages = new HashMap<>();
   List<Diff[]> diffs = new ArrayList<>();
+  public int[] linePrefixSum;
 
   int currentVersion;
   int lastParsedVersion;
@@ -497,9 +496,26 @@ public class Document {
     return position + column;
   }
 
+  public void countPrefixes() {
+    linePrefixSum = new int[document.length + 1];
+    for (int i = 0; i < document.length; i++) {
+      linePrefixSum[i + 1] = linePrefixSum[i] + line(i).totalStrLength + 1;
+    }
+  }
+
+  private Pos binarySearchPosAt(int offset) {
+    if (linePrefixSum == null) return getPositionAt(offset);
+    int lineInd = Arrays.binarySearch(linePrefixSum, offset);
+    if (lineInd < 0) lineInd = -lineInd - 1;
+    int len;
+    if (lineInd - 1 < 0) len = 0;
+    else len = linePrefixSum[lineInd - 1];
+    return new Pos(lineInd - 1, offset - len);
+  }
+
   public void onResolve(RefNode refNode, DeclNode declNode) {
     Name ref = refNode.ref;
-    var refPos = getPositionAt(ref.position);
+    var refPos = binarySearchPosAt(ref.position);
     var refElem = line(refPos.line).getCodeElement(refPos.pos);
     if (declNode == null) {
       refElem.color = ParserConstants.TokenTypes.ERROR;

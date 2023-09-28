@@ -88,7 +88,7 @@ public class ScopeGraphReader {
     scopeNode.declList = declNodeList;
     scopeNode.refList = refNodeReader.readRefNodes();
     scopeNode.importTypes = readTypeList();
-    scopeNode.childList = readChildrenScopes(scopeNode);
+    scopeNode.children = readChildrenScopes(scopeNode);
     scopeNodes[scopeInd] = scopeNode;
     return scopeNode;
   }

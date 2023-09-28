@@ -2,7 +2,6 @@ package org.sudu.experiments.parser.common.graph;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.common.Name;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
 import org.sudu.experiments.parser.common.graph.node.MemberNode;
@@ -32,25 +31,25 @@ public class ScopeWalker {
 
   public void enterScope() {
     ScopeNode newNode = new ScopeNode(currentScope);
-    currentScope.childList.add(newNode);
+    currentScope.children.add(newNode);
     currentScope = newNode;
   }
 
   public void enterMember(DeclNode node) {
     MemberNode newNode = new MemberNode(currentScope, node);
-    currentScope.childList.add(newNode);
+    currentScope.children.add(newNode);
     currentScope = newNode;
   }
 
   public <D extends DeclNode> void enterMember(List<D> nodes) {
     MemberNode newNode = new MemberNode(currentScope, nodes);
-    currentScope.childList.add(newNode);
+    currentScope.children.add(newNode);
     currentScope = newNode;
   }
 
   public void enterFakeScope() {
     FakeNode fakeNode = new FakeNode(currentScope);
-    currentScope.childList.add(fakeNode);
+    currentScope.children.add(fakeNode);
     currentScope = fakeNode;
   }
 

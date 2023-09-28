@@ -58,7 +58,7 @@ public class ScopeTest {
     if (!scope.refList.isEmpty()) System.out.println("Refs: ");
     for(var decl: scope.refList) printRef(source, decl.ref.position);
     if (!scope.declList.isEmpty() || !scope.refList.isEmpty()) System.out.println("__".repeat(20));
-    for (var child: scope.getChildren()) printRec(child, source);
+    for (var child: scope.children) printRec(child, source);
   }
 
   private void printRef(String source, int pos) {
@@ -70,7 +70,7 @@ public class ScopeTest {
     if (scope instanceof FakeNode) return;
     for (var decl: scope.declList) System.out.println(decl);
     if (!scope.declList.isEmpty()) System.out.println();
-    for (var subScope: scope.getChildren()) printDeclarations(subScope);
+    for (var subScope: scope.children) printDeclarations(subScope);
   }
 
   private String readFile(String filename) {

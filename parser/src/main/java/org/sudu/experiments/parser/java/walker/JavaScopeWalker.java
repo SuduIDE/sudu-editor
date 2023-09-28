@@ -15,7 +15,6 @@ import org.sudu.experiments.parser.java.gen.JavaParserBaseListener;
 import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Java.*;
 import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.UNKNOWN;
 import static org.sudu.experiments.parser.ParserConstants.*;
-import static org.sudu.experiments.parser.common.graph.node.ref.RefNode.TYPE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -531,8 +530,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
 
   private RefNode handlePrimary(JavaParser.PrimaryContext ctx) {
     if (ctx.expression() != null) return handleExpression(ctx.expression());
-//    if (ctx.THIS() != null) return new ThisNode(Name.fromNode(ctx.THIS()), scopeWalker.currentType());
-//    if (ctx.SUPER() != null) return new SuperNode(Name.fromNode(ctx.THIS()), scopeWalker.currentType());
+    if (ctx.THIS() != null) return new RefNode(Name.fromNode(ctx.THIS()), scopeWalker.currentType(), RefNode.THIS);
+    if (ctx.SUPER() != null) return new RefNode(Name.fromNode(ctx.SUPER()), scopeWalker.currentType(), RefNode.SUPER);
     if (ctx.literal() != null) return handleLiteral(ctx.literal());
     if (ctx.identifier() != null) return new RefNode(Name.fromNode(getNode(ctx.identifier())));
     return null;
@@ -542,13 +541,13 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     addRef(handleExpression(ctx.expression(0)));
     addRef(handleExpression(ctx.expression(1)));
     Name decl = new Name(null, ctx.getStart().getStartIndex());
-    return new RefNode(decl, scopeWalker.getType("boolean"), TYPE);
+    return new RefNode(decl, scopeWalker.getType("boolean"), RefNode.TYPE);
   }
 
   private RefNode handleLiteral(JavaParser.LiteralContext ctx) {
     var node = ctx.getStart();
     var type = getLiteralType(ctx);
-    return new RefNode(Name.fromToken(node), type, TYPE);
+    return new RefNode(Name.fromToken(node), type, RefNode.TYPE);
   }
 
   private Type getLiteralType(JavaParser.LiteralContext ctx) {

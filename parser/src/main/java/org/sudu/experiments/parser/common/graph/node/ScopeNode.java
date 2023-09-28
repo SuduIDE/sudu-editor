@@ -1,20 +1,16 @@
 package org.sudu.experiments.parser.common.graph.node;
 
-import org.sudu.experiments.parser.common.TriFunction;
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
-import org.sudu.experiments.parser.common.graph.node.decl.MethodNode;
 import org.sudu.experiments.parser.common.graph.node.ref.*;
 import org.sudu.experiments.parser.common.graph.type.Type;
 
 import java.util.*;
 import java.util.function.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ScopeNode {
 
   public ScopeNode parent;
-  public List<ScopeNode> childList;
+  public List<ScopeNode> children;
 
   public List<RefNode> refList;
   public List<DeclNode> declList;
@@ -25,138 +21,27 @@ public class ScopeNode {
 
   public ScopeNode(ScopeNode parent) {
     this.parent = parent;
-    this.childList = new ArrayList<>();
+    this.children = new ArrayList<>();
     this.refList = new ArrayList<>();
     this.declList = new ArrayList<>();
     this.importTypes = new ArrayList<>();
   }
 
   public ScopeNode getChild(int i) {
-    return childList.get(i);
+    return children.get(i);
   }
 
-  public DeclNode resolve(
-      RefNode ref,
-      BiConsumer<RefNode, DeclNode> onResolve
+  DeclNode declarationWalk(
+      Predicate<DeclNode> matcher
   ) {
-    return resolve(ref, onResolve, true);
-  }
-
-  public DeclNode resolve(
-      RefNode ref,
-      BiConsumer<RefNode, DeclNode> onResolve,
-      boolean readArgs
-  ) {
-    if (ref == null) return null;
-    DeclNode node = resolveRec(this, ref, onResolve, readArgs);
-    if (node != null && node.type != null) ref.type = node.type;
-    if (ref.refType != RefNode.TYPE &&
-        !(ref instanceof QualifiedRefNode) &&
-        !(ref instanceof ExprRefNode)
-    ) onResolve.accept(ref, node);
-    return node;
-  }
-
-  private static DeclNode resolveRec(
-      ScopeNode curScope,
-      RefNode ref,
-      BiConsumer<RefNode, DeclNode> onResolve,
-      boolean readArgs
-  ) {
-    if (ref instanceof ExprRefNode exprRefNode) {
-      exprRefNode.refNodes.forEach(expr -> curScope.resolve(expr, onResolve, true));
-      return null;
-    }
-    if (ref instanceof MethodCallNode methodCall) {
-      resolveCallTypes(curScope, methodCall, onResolve);
-      return resolveMethodCall(curScope, methodCall, onResolve);
-    }
-    if (ref instanceof QualifiedRefNode qualifiedRef) {
-      return resolveQualified(curScope, qualifiedRef, onResolve);
-    }
-    DeclNode decl = resolveVar(curScope, ref, onResolve, readArgs);
-    if (decl != null) return decl;
-
-    return curScope.parent != null
-        ? resolveRec(curScope.parent, ref, onResolve, true)
-        : null;
-  }
-
-  private static DeclNode resolveVar(
-      ScopeNode curScope,
-      RefNode ref,
-      BiConsumer<RefNode, DeclNode> onResolve,
-      boolean readArgs
-  ) {
-    for (var decl: curScope.getDeclarations()) {
-      if (decl.match(ref)) return decl;
-    }
-    return resolveImport(curScope, ref, onResolve, ScopeNode::resolveRec);
-  }
-
-  private static DeclNode resolveRec(
-      ScopeNode curScope,
-      RefNode ref,
-      BiConsumer<RefNode, DeclNode> onResolve
-  ) {
-    return resolveRec(curScope, ref, onResolve, true);
-  }
-
-  private static void resolveCallTypes(
-      ScopeNode curScope,
-      MethodCallNode methodCall,
-      BiConsumer<RefNode, DeclNode> onResolve
-  ) {
-    for (var arg: methodCall.callArgs) curScope.resolve(arg, onResolve);
-  }
-
-  private static MethodNode resolveMethodCall(
-      ScopeNode curScope,
-      MethodCallNode methodCall, BiConsumer<RefNode, DeclNode> onResolve
-  ) {
-    for (var methodNode: curScope.getMethodNodes()) {
-      if (methodNode.matchMethodCall(methodCall)) return methodNode;
-    }
-    MethodNode importResolve = resolveImport(curScope, methodCall, onResolve, ScopeNode::resolveMethodCall);
-    if (importResolve != null) return importResolve;
-
-    return curScope.parent != null
-        ? resolveMethodCall(curScope.parent, methodCall, onResolve)
-        : null;
-  }
-
-  private static <D extends DeclNode, R extends RefNode> D resolveImport(
-      ScopeNode curScope,
-      R refNode,
-      BiConsumer<RefNode, DeclNode> onResolve,
-      TriFunction<ScopeNode, R, BiConsumer<RefNode, DeclNode>, D> resolveFun
-  ) {
-    for (var importScope: curScope.importTypes) {
-      if (importScope.associatedScope == null) continue;
-      var importResolve = resolveFun.apply(importScope.associatedScope, refNode, onResolve);
-      if (importResolve != null) return importResolve;
+    for (var decl: declList)
+      if (matcher.test(decl)) return decl;
+    for (var subScope: children) {
+      if (!(subScope instanceof MemberNode member)) continue;
+      for (var decl: member.declList)
+        if (matcher.test(decl)) return decl;
     }
     return null;
-  }
-
-  private static DeclNode resolveQualified(
-      ScopeNode curScope,
-      QualifiedRefNode qualifiedRef, BiConsumer<RefNode, DeclNode> onResolve
-  ) {
-    var begin = curScope.resolve(qualifiedRef.begin, onResolve);
-    if (begin == null ||
-        begin.type == null ||
-        begin.type.associatedScope == null
-    ) return null;
-    return begin.type.associatedScope.resolve(qualifiedRef.cont, onResolve, false);
-  }
-
-  public List<ScopeNode> getChildren() {
-    return new ArrayList<>(childList);
-  }
-
-  public List<MemberNode> getMembers() {
-    return getMembersStream().toList();
   }
 
   public void print(int depth) {
@@ -164,38 +49,7 @@ public class ScopeNode {
     if (this instanceof FakeNode) System.out.println("F");
     else if (this instanceof MemberNode) System.out.println("M");
     else System.out.println("S");
-    for (var child: getChildren()) child.print(depth + 1);
-  }
-
-  public Stream<MemberNode> getMembersStream() {
-    return childList.stream()
-        .filter(it -> it instanceof MemberNode)
-        .map(it -> (MemberNode) it);
-  }
-
-  private Stream<MemberNode> getMembersStream(Predicate<MemberNode> predicate) {
-    return childList.stream()
-        .filter(it -> it instanceof MemberNode memberNode && predicate.test(memberNode))
-        .map(it -> (MemberNode) it);
-  }
-
-  private <R> Stream<R> getMembersStream(Predicate<MemberNode> predicate, Function<MemberNode, R> fun) {
-    return childList.stream()
-        .filter(it -> it instanceof MemberNode memberNode && predicate.test(memberNode))
-        .map(it -> fun.apply((MemberNode) it));
-  }
-
-  private Set<DeclNode> getDeclarations() {
-    Set<DeclNode> result = new HashSet<>(declList);
-    getMembersStream().forEach(member -> result.addAll(member.declList));
-    return result;
-  }
-
-  private Set<MethodNode> getMethodNodes() {
-    return getMembersStream(
-        it -> it.member instanceof MethodNode,
-        it -> (MethodNode) it.member
-    ).collect(Collectors.toSet());
+    for (var child: children) child.print(depth + 1);
   }
 
 }

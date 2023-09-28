@@ -6,7 +6,7 @@ public class FakeNode extends ScopeNode {
 
   public FakeNode(ScopeNode parent) {
     this.parent = parent;
-    this.childList = Collections.emptyList();
+    this.children = Collections.emptyList();
     this.refList = Collections.emptyList();
     this.declList = Collections.emptyList();
     this.importTypes = Collections.emptyList();

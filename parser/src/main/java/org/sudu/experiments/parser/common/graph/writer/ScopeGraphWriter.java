@@ -81,8 +81,8 @@ public class ScopeGraphWriter {
 
   private void putScopesRec(ScopeNode scopeNode) {
     putScope(scopeNode);
-    if (scopeNode.childList == null) return;
-    scopeNode.childList.forEach(this::putScopesRec);
+    if (scopeNode.children == null) return;
+    scopeNode.children.forEach(this::putScopesRec);
   }
 
   // [s_1, e_1, ..., s_n, e_n]
@@ -124,7 +124,7 @@ public class ScopeGraphWriter {
     declNodeWriter.writeDeclNodes(scope);
     refNodeWriter.writeRefs(scope);
     writeImports(scope.importTypes);
-    writeScopeChildren(scope.childList);
+    writeScopeChildren(scope.children);
   }
 
   private void writeImports(List<Type> importTypes) {

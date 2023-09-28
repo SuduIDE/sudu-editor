@@ -48,6 +48,7 @@ public abstract class ParserUtils {
 
     int documentLength = document.length();
 
+    int[] linePrefixSum = new int[N + 1];
     document.document = saveOldLines
         ? ArrayOp.resizeOrReturn(document.document, N)
         : new CodeLine[N];
@@ -56,13 +57,17 @@ public abstract class ParserUtils {
       if (saveOldLines && i < documentLength) {
         int len = reader.next();
         reader.skip(4 * len);
+        linePrefixSum[i + 1] = linePrefixSum[i] + document.line(i).totalStrLength + 1;
         continue;
       }
       CodeElement[] elements = readElements(reader, docChars, 0);
-      document.document[i] = new CodeLine(elements);
+      CodeLine line = new CodeLine(elements);
+      document.document[i] = line;
+      linePrefixSum[i + 1] = linePrefixSum[i] + document.line(i).totalStrLength + 1;
     }
 
     document.tree = new IntervalTree(IntervalNode.getNode(reader));
+    document.linePrefixSum = linePrefixSum;
 
     document.usageToDef.clear();
     document.defToUsages.clear();
@@ -70,7 +75,7 @@ public abstract class ParserUtils {
     ParserUtils.getDefToUsagesMap(document.usageToDef, document.defToUsages);
     reader.checkSize();
 
-    if (graphInts != null && graphChars != null){
+    if (graphInts != null && graphChars != null) {
       document.scopeGraph = updateGraph(graphInts, graphChars);
     }
   }

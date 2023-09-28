@@ -824,6 +824,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       char[] graphChars = ((ArrayView) result[4]).chars();
       ParserUtils.updateDocument(model.document, ints, chars, graphInts, graphChars, false);
       long from = System.currentTimeMillis();
+//      model.document.countPrefixes();
       model.document.scopeGraph.resolveAll(model.document::onResolve);
       long to = System.currentTimeMillis();
       System.out.println("Resolving all in " + (to - from) + " ms");

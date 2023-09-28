@@ -12,7 +12,7 @@ public class CodeLine {
   static boolean debug = false;
 
   CodeElement[] elements;
-  int totalStrLength;
+  public int totalStrLength;
 
   float[] fMeasure;
   int[] iMeasure;
