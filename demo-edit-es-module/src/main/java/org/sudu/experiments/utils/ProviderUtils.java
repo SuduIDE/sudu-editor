@@ -1,8 +1,9 @@
 package org.sudu.experiments.utils;
 
-import org.sudu.experiments.demo.DocumentHighlight;
-import org.sudu.experiments.demo.Location;
-import org.sudu.experiments.esm.*;
+import org.sudu.experiments.editor.DocumentHighlight;
+import org.sudu.experiments.editor.Location;
+import org.sudu.experiments.esm.JsDocumentHighlight;
+import org.sudu.experiments.esm.JsLocation;
 import org.sudu.experiments.js.JsArrayReader;
 
 public abstract class ProviderUtils {

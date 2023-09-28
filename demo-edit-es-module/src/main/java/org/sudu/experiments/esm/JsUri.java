@@ -1,13 +1,11 @@
 package org.sudu.experiments.esm;
 
-import org.sudu.experiments.demo.Uri;
+import org.sudu.experiments.editor.Uri;
 import org.sudu.experiments.js.JsHelper;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSString;
-
-import java.util.Objects;
 
 import static org.sudu.experiments.js.JsHelper.jsIf;
 

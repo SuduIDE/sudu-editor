@@ -1,6 +1,6 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.demo.Diff0;
+import org.sudu.experiments.editor.Diff0;
 import org.sudu.experiments.esm.JsCodeDiff;
 import org.sudu.experiments.esm.JsCodeEditor;
 import org.sudu.experiments.esm.JsITextModel;

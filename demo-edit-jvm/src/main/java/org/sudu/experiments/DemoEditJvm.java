@@ -1,7 +1,7 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.demo.TestSceneSelector;
-import org.sudu.experiments.demo.worker.EditorWorker;
+import org.sudu.experiments.editor.TestSceneSelector;
+import org.sudu.experiments.editor.worker.EditorWorker;
 import org.sudu.experiments.fonts.Codicon;
 import org.sudu.experiments.fonts.JetBrainsMono;
 import org.sudu.experiments.nativelib.AngleDll;

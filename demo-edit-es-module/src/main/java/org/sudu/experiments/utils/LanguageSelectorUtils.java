@@ -1,7 +1,7 @@
 package org.sudu.experiments.utils;
 
+import org.sudu.experiments.editor.LanguageSelector;
 import org.sudu.experiments.esm.JsLanguageFilter;
-import org.sudu.experiments.demo.LanguageSelector;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsArrayReader;
 import org.teavm.jso.JSObject;

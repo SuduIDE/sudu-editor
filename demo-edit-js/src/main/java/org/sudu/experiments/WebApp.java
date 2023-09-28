@@ -1,7 +1,8 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.demo.*;
 import org.sudu.experiments.demo.wasm.WasmDemo;
+import org.sudu.experiments.editor.DiffDemoJs;
+import org.sudu.experiments.editor.TestSceneSelector;
 import org.sudu.experiments.fonts.Codicon;
 import org.sudu.experiments.fonts.JetBrainsMono;
 import org.sudu.experiments.js.*;

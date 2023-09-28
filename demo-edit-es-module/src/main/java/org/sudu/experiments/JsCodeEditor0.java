@@ -1,6 +1,6 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.demo.*;
+import org.sudu.experiments.editor.*;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.parser.common.Pos;
@@ -27,7 +27,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
     this.args = args;
 
     this.window = new WebWindow(
-        DemoEdit0::new,
+        Editor0::new,
         JsCodeEditor0::onWebGlError,
         args.getContainerId().stringValue(),
         worker);
@@ -36,8 +36,8 @@ public class JsCodeEditor0 implements JsCodeEditor {
     if (args.hasReadonly()) setReadonly(args.getReadonly());
   }
 
-  private DemoEdit0 demoEdit0() {
-    return (DemoEdit0) window.scene();
+  private Editor0 demoEdit0() {
+    return (Editor0) window.scene();
   }
 
   @Override

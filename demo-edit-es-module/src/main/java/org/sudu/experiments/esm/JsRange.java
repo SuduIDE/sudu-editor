@@ -1,7 +1,7 @@
 package org.sudu.experiments.esm;
 
-import org.sudu.experiments.demo.Range;
-import org.sudu.experiments.demo.Selection;
+import org.sudu.experiments.editor.Range;
+import org.sudu.experiments.editor.Selection;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;

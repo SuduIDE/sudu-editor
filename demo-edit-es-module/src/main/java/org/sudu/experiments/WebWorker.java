@@ -1,6 +1,6 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.demo.worker.EditorWorker;
+import org.sudu.experiments.editor.worker.EditorWorker;
 import org.sudu.experiments.js.WorkerContext;
 
 public class WebWorker {
