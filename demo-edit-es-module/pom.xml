@@ -95,6 +95,8 @@
               <goal>compile</goal>
             </goals>
             <configuration>
+              <!-- see org.sudu.experiments.JsWorkerBuildPlugin -->
+              <properties><invokeMain>true</invokeMain></properties>
               <targetDirectory>${teavm.pre.module.js}</targetDirectory>
               <mainClass>${mainClass}</mainClass>
               <targetFileName>${module.js}</targetFileName>
@@ -111,7 +113,8 @@
               <goal>compile</goal>
             </goals>
             <configuration>
-              <properties><worker>true</worker></properties>
+              <!-- see org.sudu.experiments.JsWorkerBuildPlugin -->
+              <properties><invokeMain>true</invokeMain></properties>
               <targetDirectory>${moduleSrc}</targetDirectory>
               <targetFileName>${workerFile}</targetFileName>
               <mainClass>${workerClass}</mainClass>
