@@ -3,6 +3,7 @@ package org.sudu.experiments.parser.common;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.Objects;
+import java.util.function.BiConsumer;
 
 public class Pos implements Comparable<Pos> {
 

@@ -32,11 +32,7 @@ public class DeclNodeWriter {
   }
 
   private void writeDeclNode(DeclNode declNode) {
-    if (declNode instanceof ArgNode argNode) writeArgDecl(argNode);
-    else if (declNode instanceof CreatorNode creatorNode) writeCreatorDecl(creatorNode);
-    else if (declNode instanceof FieldNode fieldNode) writeFieldDecl(fieldNode);
-    else if (declNode instanceof MethodNode methodNode) writeMethodDecl(methodNode);
-    else if (declNode instanceof VarNode varNode) writeVarNode(varNode);
+    if (declNode instanceof MethodNode methodNode) writeMethodDecl(methodNode);
     else writeDecl(declNode);
   }
 
@@ -57,40 +53,21 @@ public class DeclNodeWriter {
     writer.write(typeNum);
   }
 
-  private void writeArgDecl(ArgNode node) {
-    writer.write(ARG_DECL_NODE);
-    writeDeclName(node);
-  }
-
-  private void writeCreatorDecl(CreatorNode node) {
-    writer.write(CREATOR_DECL_NODE);
-    writeDeclName(node);
-    writeArgs(node.args);
-  }
-
   private void writeDecl(DeclNode node) {
     writer.write(BASE_DECL_NODE);
     writeDeclName(node);
-  }
-
-  private void writeFieldDecl(FieldNode node) {
-    writer.write(FIELD_DECL_NODE);
-    writeDeclName(node);
+    writer.write(node.declType);
   }
 
   private void writeMethodDecl(MethodNode node) {
     writer.write(METHOD_DECL_NODE);
     writeDeclName(node);
-    writeArgs(node.args);
+    writer.write(node.callType);
+    writeArgs(node.argTypes);
   }
 
-  private void writeVarNode(VarNode node) {
-    writer.write(VAR_DECL_NODE);
-    writeDeclName(node);
-  }
-
-  private void writeArgs(List<ArgNode> argNodeList) {
-    writer.write(argNodeList.size());
-    argNodeList.forEach(this::writeArgDecl);
+  private void writeArgs(List<Type> typeList) {
+    writer.write(typeList.size());
+    typeList.forEach(this::writeType);
   }
 }

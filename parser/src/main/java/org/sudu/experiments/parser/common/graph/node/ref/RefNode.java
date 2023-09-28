@@ -7,24 +7,24 @@ import java.util.Objects;
 
 public class RefNode {
 
-  public final Name ref;
+  public Name ref;
   public Type type;
+  public int refType;
+  public static final int BASE = 1;
+  public static final int CALL = 2;
+  public static final int TYPE = 3;
+  public static final int THIS = 4;
+  public static final int SUPER = 5;
 
   public RefNode(Name decl) {
-    this(decl, null);
+    this(decl, null, BASE);
   }
 
-  public RefNode(Name decl, Type type) {
+  public RefNode(Name decl, Type type, int refType) {
     this.ref = decl;
     this.type = type;
+    this.refType = refType;
   }
-
-//  public void updateType(Type another) {
-//    if (another == null) return;
-//    type.type = another.type;
-//    type.supertypes = another.supertypes;
-//    type.associatedScope = another.associatedScope;
-//  }
 
   @Override
   public String toString() {

@@ -30,10 +30,6 @@ public class ScopeWalker {
     typeStack = new LinkedList<>();
   }
 
-  public void addVarDecl(Name decl, Type type) {
-    addDecl(new VarNode(decl, type));
-  }
-
   public void enterScope() {
     ScopeNode newNode = new ScopeNode(currentScope);
     currentScope.childList.add(newNode);
@@ -125,8 +121,12 @@ public class ScopeWalker {
     graph.root.declList.add(decl);
   }
 
-  private void addDecl(DeclNode node) {
+  public void addDecl(DeclNode node) {
     currentScope.declList.add(node);
+  }
+
+  public void addDecls(List<DeclNode> nodes) {
+    currentScope.declList.addAll(nodes);
   }
 
   public RefNode addRef(RefNode ref) {
@@ -134,4 +134,8 @@ public class ScopeWalker {
     return ref;
   }
 
+  public List<RefNode> addRefs(List<RefNode> refs) {
+    currentScope.refList.addAll(refs);
+    return refs;
+  }
 }

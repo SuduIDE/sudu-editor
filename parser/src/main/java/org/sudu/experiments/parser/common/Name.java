@@ -1,5 +1,6 @@
 package org.sudu.experiments.parser.common;
 
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.Objects;
@@ -19,7 +20,11 @@ public class Name implements Comparable<Name> {
   }
 
   public static Name fromNode(TerminalNode node) {
-    return new Name(node.getText(), node.getSymbol().getStartIndex());
+    return fromToken(node.getSymbol());
+  }
+
+  public static Name fromToken(Token token) {
+    return new Name(token.getText(), token.getStartIndex());
   }
 
   @Override

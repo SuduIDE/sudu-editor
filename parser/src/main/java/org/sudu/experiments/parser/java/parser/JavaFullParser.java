@@ -39,7 +39,7 @@ public class JavaFullParser extends BaseFullParser {
     ParseTreeWalker walker = new ParseTreeWalker();
     Interval compUnitInterval = new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.Java.COMP_UNIT);
     IntervalNode compUnitNode = new IntervalNode(compUnitInterval);
-    JavaScopeWalker scopeWalker = new JavaScopeWalker(compUnitNode);
+    JavaScopeWalker scopeWalker = new JavaScopeWalker(compUnitNode, tokenTypes, tokenStyles);
 
     int[] result;
     try {

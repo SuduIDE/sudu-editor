@@ -1,9 +1,7 @@
 package org.sudu.experiments.parser.common.graph.node;
 
 import org.sudu.experiments.parser.common.TriFunction;
-import org.sudu.experiments.parser.common.graph.node.decl.CreatorNode;
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
-import org.sudu.experiments.parser.common.graph.node.decl.FieldNode;
 import org.sudu.experiments.parser.common.graph.node.decl.MethodNode;
 import org.sudu.experiments.parser.common.graph.node.ref.*;
 import org.sudu.experiments.parser.common.graph.type.Type;
@@ -49,10 +47,13 @@ public class ScopeNode {
       BiConsumer<RefNode, DeclNode> onResolve,
       boolean readArgs
   ) {
-    if (ref == null || ref instanceof TypeNode) return null;
+    if (ref == null) return null;
     DeclNode node = resolveRec(this, ref, onResolve, readArgs);
     if (node != null && node.type != null) ref.type = node.type;
-    if (!(ref instanceof QualifiedRefNode))onResolve.accept(ref, node);
+    if (ref.refType != RefNode.TYPE &&
+        !(ref instanceof QualifiedRefNode) &&
+        !(ref instanceof ExprRefNode)
+    ) onResolve.accept(ref, node);
     return node;
   }
 
@@ -62,9 +63,9 @@ public class ScopeNode {
       BiConsumer<RefNode, DeclNode> onResolve,
       boolean readArgs
   ) {
-    if (ref instanceof CreatorCallNode creatorCall) {
-      resolveCallTypes(curScope, creatorCall, onResolve);
-      return resolveCreatorCall(curScope, creatorCall, onResolve);
+    if (ref instanceof ExprRefNode exprRefNode) {
+      exprRefNode.refNodes.forEach(expr -> curScope.resolve(expr, onResolve, true));
+      return null;
     }
     if (ref instanceof MethodCallNode methodCall) {
       resolveCallTypes(curScope, methodCall, onResolve);
@@ -72,9 +73,6 @@ public class ScopeNode {
     }
     if (ref instanceof QualifiedRefNode qualifiedRef) {
       return resolveQualified(curScope, qualifiedRef, onResolve);
-    }
-    if (ref instanceof FieldRefNode fieldRef) {
-      return resolveField(curScope, fieldRef, onResolve);
     }
     DeclNode decl = resolveVar(curScope, ref, onResolve, readArgs);
     if (decl != null) return decl;
@@ -92,10 +90,6 @@ public class ScopeNode {
   ) {
     for (var decl: curScope.getDeclarations()) {
       if (decl.match(ref)) return decl;
-      if (readArgs && decl instanceof MethodNode methodNode) {
-        for (var argNode: methodNode.args)
-          if (argNode.match(ref)) return argNode;
-      }
     }
     return resolveImport(curScope, ref, onResolve, ScopeNode::resolveRec);
   }
@@ -113,28 +107,7 @@ public class ScopeNode {
       MethodCallNode methodCall,
       BiConsumer<RefNode, DeclNode> onResolve
   ) {
-    for (var arg: methodCall.callArgs) {
-      if (!(arg instanceof TypeNode)) curScope.resolve(arg, onResolve);
-    }
-  }
-
-  private static CreatorNode resolveCreatorCall(
-      ScopeNode curScope,
-      CreatorCallNode creatorCall,
-      BiConsumer<RefNode, DeclNode> onResolve
-  ) {
-    var root = curScope;
-    while (root.parent != null) root = root.parent;
-
-    for (var creator: root.getCreatorNodes()) {
-      if (creator.matchCreatorCall(creatorCall)) return creator;
-    }
-    CreatorNode importResolve = resolveImport(curScope, creatorCall, onResolve, ScopeNode::resolveCreatorCall);
-    if (importResolve != null) return importResolve;
-
-    return curScope.parent != null
-        ? resolveCreatorCall(curScope.parent, creatorCall, onResolve)
-        : null;
+    for (var arg: methodCall.callArgs) curScope.resolve(arg, onResolve);
   }
 
   private static MethodNode resolveMethodCall(
@@ -149,21 +122,6 @@ public class ScopeNode {
 
     return curScope.parent != null
         ? resolveMethodCall(curScope.parent, methodCall, onResolve)
-        : null;
-  }
-
-  private static FieldNode resolveField(
-      ScopeNode curScope,
-      FieldRefNode fieldRef, BiConsumer<RefNode, DeclNode> onResolve
-  ) {
-    for (var fieldNode: curScope.getFieldNodes()) {
-      if (fieldNode.matchField(fieldRef)) return fieldNode;
-    }
-    FieldNode importResolve = resolveImport(curScope, fieldRef, onResolve, ScopeNode::resolveField);
-    if (importResolve != null) return importResolve;
-
-    return curScope.parent != null
-        ? resolveField(curScope.parent, fieldRef, onResolve)
         : null;
   }
 
@@ -238,20 +196,6 @@ public class ScopeNode {
         it -> it.member instanceof MethodNode,
         it -> (MethodNode) it.member
     ).collect(Collectors.toSet());
-  }
-
-  private Set<CreatorNode> getCreatorNodes() {
-    return getMembersStream(
-        it -> it.member instanceof CreatorNode,
-        it -> (CreatorNode) it.member
-    ).collect(Collectors.toSet());
-  }
-
-  private Set<FieldNode> getFieldNodes() {
-    return getMembersStream(it -> it.member instanceof FieldNode)
-        .flatMap(fields -> fields.declList.stream())
-        .map(it -> (FieldNode) it)
-        .collect(Collectors.toSet());
   }
 
 }

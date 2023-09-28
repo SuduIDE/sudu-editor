@@ -13,29 +13,37 @@ import java.util.*;
 
 public class MethodNode extends DeclNode {
 
-  public List<ArgNode> args;
+  public List<Type> argTypes;
+  public int callType;
+  public static final int METHOD = 1;
+  public static final int CREATOR = 2;
+  public static final int THIS = 3;
+  public static final int SUPER = 4;
+  public static final int THIS_CALL = 5;
+  public static final int SUPER_CALL = 6;
 
   public MethodNode(Name decl, Type type) {
-    this(decl, type, new ArrayList<>());
+    this(decl, type, METHOD, Collections.emptyList());
   }
 
-  public MethodNode(Name decl, Type type, List<ArgNode> args) {
-    super(decl, type);
-    this.args = args;
+  public MethodNode(Name decl, Type type, int callType, List<Type> args) {
+    super(decl, type, CALLABLE);
+    this.argTypes = args;
+    this.callType = callType;
   }
 
   public boolean matchMethodCall(RefNode ref) {
-    if (!(ref instanceof MethodCallNode methodCallNode) ||
-        !super.match(ref) ||
-        args.size() != methodCallNode.callArgs.size()
-    ) return false;
-    return matchArgs(methodCallNode.callArgs);
+    return ref instanceof MethodCallNode callRef
+        && callRef.callType == callType
+        && super.match(callRef)
+        && matchArgs(callRef.callArgs);
   }
 
   public boolean matchArgs(List<RefNode> callArgs) {
-    for (int i = 0; i < args.size(); i++) {
+    if (argTypes.size() != callArgs.size()) return false;
+    for (int i = 0; i < argTypes.size(); i++) {
       var callArg = callArgs.get(i);
-      var methodType = args.get(i).type;
+      var methodType = argTypes.get(i);
       if (callArg == null || callArg.type == null) continue;
       if (!callArg.type.match(methodType)) return false;
     }
@@ -48,11 +56,11 @@ public class MethodNode extends DeclNode {
     if (o == null || getClass() != o.getClass()) return false;
     if (!super.equals(o)) return false;
     MethodNode that = (MethodNode) o;
-    return Objects.equals(args, that.args);
+    return Objects.equals(argTypes, that.argTypes);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), args);
+    return Objects.hash(super.hashCode(), argTypes);
   }
 }

@@ -39,14 +39,10 @@ public class RefNodeReader {
     int type = reader.next();
     return switch (type) {
       case NULL -> null;
-      case CREATOR_CALL_NODE -> readCreatorCall();
-      case FIELD_REF_NODE -> readFieldRef();
       case METHOD_CALL_NODE -> readMethodCall();
       case QUALIFIED_CALL_NODE -> readQualified();
       case BASE_REF_NODE -> readBaseRef();
-      case SUPER_NODE -> readSuperNode();
-      case THIS_NODE -> readThisNode();
-      case TYPE_NODE -> readTypeNode();
+      case EXPR_NODE -> readExprNode();
       default -> throw new IllegalStateException("Unexpected ref node type: " + type);
     };
   }
@@ -65,24 +61,25 @@ public class RefNodeReader {
     return types.get(typeInd);
   }
 
-  private CreatorCallNode readCreatorCall() {
-    Name name = readName();
-    Type type = readType();
-    List<RefNode> args = readArgs();
-    return new CreatorCallNode(name, type, args);
-  }
+//  private CreatorCallNode readCreatorCall() {
+//    Name name = readName();
+//    Type type = readType();
+//    List<RefNode> args = readArgs();
+//    return new CreatorCallNode(name, type, args);
+//  }
 
-  private FieldRefNode readFieldRef() {
-    Name name = readName();
-    Type type = readType();
-    return new FieldRefNode(name, type);
-  }
+//  private FieldRefNode readFieldRef() {
+//    Name name = readName();
+//    Type type = readType();
+//    return new FieldRefNode(name, type);
+//  }
 
   private MethodCallNode readMethodCall() {
     Name name = readName();
     Type type = readType();
+    int callType = reader.next();
     List<RefNode> args = readArgs();
-    return new MethodCallNode(name, type, args);
+    return new MethodCallNode(name, type, callType, args);
   }
 
   private QualifiedRefNode readQualified() {
@@ -94,24 +91,13 @@ public class RefNodeReader {
   private RefNode readBaseRef() {
     Name name = readName();
     Type type = readType();
-    return new RefNode(name, type);
+    int refType = reader.next();
+    return new RefNode(name, type, refType);
   }
 
-  private SuperNode readSuperNode() {
-    Name name = readName();
-    Type type = readType();
-    return new SuperNode(name, type);
-  }
-
-  private ThisNode readThisNode() {
-    Name name = readName();
-    Type type = readType();
-    return new ThisNode(name, type);
-  }
-
-  private TypeNode readTypeNode() {
-    Type type = readType();
-    return new TypeNode(type);
+  private RefNode readExprNode() {
+    List<RefNode> refNodes = readArgs();
+    return new ExprRefNode(refNodes);
   }
 
   private List<RefNode> readArgs() {

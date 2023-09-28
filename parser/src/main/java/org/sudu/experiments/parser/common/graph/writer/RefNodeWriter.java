@@ -7,7 +7,6 @@ import org.sudu.experiments.parser.common.graph.type.Type;
 
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Objects;
 
 import static org.sudu.experiments.parser.common.graph.ScopeGraphConstants.Refs.*;
 
@@ -33,13 +32,9 @@ public class RefNodeWriter {
   }
 
   private void writeRefNode(RefNode refNode) {
-    if (refNode instanceof CreatorCallNode creatorCallNode) writeCreatorCall(creatorCallNode);
-    else if (refNode instanceof FieldRefNode fieldRefNode) writeFieldRef(fieldRefNode);
+    if (refNode instanceof ExprRefNode exprRefNode) writeExprRef(exprRefNode);
     else if (refNode instanceof MethodCallNode methodCallNode) writeMethodCall(methodCallNode);
     else if (refNode instanceof QualifiedRefNode qualifiedRefNode) writeQualifiedRef(qualifiedRefNode);
-    else if (refNode instanceof SuperNode superNode) writeSuperNode(superNode);
-    else if (refNode instanceof ThisNode thisNode) writeThisNode(thisNode);
-    else if (refNode instanceof TypeNode typeNode) writeTypeNode(typeNode);
     else if (refNode != null) writeBaseRef(refNode);
     else writer.write(NULL);
   }
@@ -61,20 +56,27 @@ public class RefNodeWriter {
     writer.write(typeNum);
   }
 
-  private void writeCreatorCall(CreatorCallNode creatorCallNode) {
-    writer.write(CREATOR_CALL_NODE);
-    writeRefName(creatorCallNode);
-    writeArgs(creatorCallNode.callArgs);
+//  private void writeCreatorCall(CreatorCallNode creatorCallNode) {
+//    writer.write(CREATOR_CALL_NODE);
+//    writeRefName(creatorCallNode);
+//    writeArgs(creatorCallNode.callArgs);
+//  }
+
+//  private void writeFieldRef(FieldRefNode fieldRefNode) {
+//    writer.write(FIELD_REF_NODE);
+//    writeRefName(fieldRefNode);
+//  }
+
+  private void writeExprRef(ExprRefNode exprRefNode) {
+    writer.write(EXPR_NODE);
+    writeArgs(exprRefNode.refNodes);
   }
 
-  private void writeFieldRef(FieldRefNode fieldRefNode) {
-    writer.write(FIELD_REF_NODE);
-    writeRefName(fieldRefNode);
-  }
 
   private void writeMethodCall(MethodCallNode methodCallNode) {
     writer.write(METHOD_CALL_NODE);
     writeRefName(methodCallNode);
+    writer.write(methodCallNode.callType);
     writeArgs(methodCallNode.callArgs);
   }
 
@@ -84,24 +86,10 @@ public class RefNodeWriter {
     writeRefNode(qualifiedRefNode.cont);
   }
 
-  private void writeSuperNode(SuperNode superNode) {
-    writer.write(SUPER_NODE);
-    writeRefName(superNode);
-  }
-
-  private void writeThisNode(ThisNode thisNode) {
-    writer.write(THIS_NODE);
-    writeRefName(thisNode);
-  }
-
-  private void writeTypeNode(TypeNode typeNode) {
-    writer.write(TYPE_NODE);
-    writeType(typeNode.type);
-  }
-
   private void writeBaseRef(RefNode refNode) {
     writer.write(BASE_REF_NODE);
     writeRefName(refNode);
+    writer.write(refNode.refType);
   }
 
   private void writeArgs(List<RefNode> args) {

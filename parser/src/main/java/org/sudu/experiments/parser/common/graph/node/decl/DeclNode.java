@@ -14,10 +14,17 @@ public class DeclNode {
 
   public Name decl;
   public Type type;
+  public int declType;
+  public static final int LOCAL_VAR = 1;
+  public static final int ARGUMENT = 2;
+  public static final int FIELD = 3;
+  public static final int CALLABLE = 4;
 
-  public DeclNode(Name decl, Type type) {
+
+  public DeclNode(Name decl, Type type, int declType) {
     this.decl = decl;
     this.type = type;
+    this.declType = declType;
   }
 
   public boolean match(RefNode ref) {
@@ -36,11 +43,13 @@ public class DeclNode {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     DeclNode declNode = (DeclNode) o;
-    return Objects.equals(decl, declNode.decl) && Objects.equals(type, declNode.type);
+    return Objects.equals(decl, declNode.decl)
+        && Objects.equals(type, declNode.type)
+        && Objects.equals(declType, declNode.declType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(decl, type);
+    return Objects.hash(decl, type, declType);
   }
 }

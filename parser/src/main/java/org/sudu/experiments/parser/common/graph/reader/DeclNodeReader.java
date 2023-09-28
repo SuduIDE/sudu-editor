@@ -38,12 +38,8 @@ public class DeclNodeReader {
   DeclNode readDeclNode() {
     int type = reader.next();
     return switch (type) {
-      case ARG_DECL_NODE -> readArgNode();
-      case CREATOR_DECL_NODE -> readCreatorDecl();
       case BASE_DECL_NODE -> readDecl();
-      case FIELD_DECL_NODE -> readFieldDecl();
       case METHOD_DECL_NODE -> readMethodDecl();
-      case VAR_DECL_NODE -> readVarNode();
       default -> throw new IllegalStateException("Unexpected type: " + type);
     };
   }
@@ -62,50 +58,26 @@ public class DeclNodeReader {
     return types.get(typeInd);
   }
 
-  private ArgNode readArgNode() {
-    Name name = readName();
-    Type type = readType();
-    return new ArgNode(name, type);
-  }
-
-  private CreatorNode readCreatorDecl() {
-    Name name = readName();
-    Type type = readType();
-    List<ArgNode> args = readArgs();
-    return new CreatorNode(name, type, args);
-  }
-
   private DeclNode readDecl() {
     Name name = readName();
     Type type = readType();
-    return new DeclNode(name, type);
-  }
-
-  private FieldNode readFieldDecl() {
-    Name name = readName();
-    Type type = readType();
-    return new FieldNode(name, type);
+    int declType = reader.next();
+    return new DeclNode(name, type, declType);
   }
 
   private MethodNode readMethodDecl() {
     Name name = readName();
     Type type = readType();
-    List<ArgNode> args = readArgs();
-    return new MethodNode(name, type, args);
+    int callType = reader.next();
+    List<Type> types = readTypeList();
+    return new MethodNode(name, type, callType, types);
   }
 
-  private VarNode readVarNode() {
-    Name name = readName();
-    Type type = readType();
-    return new VarNode(name, type);
-  }
-
-  private List<ArgNode> readArgs() {
+  private List<Type> readTypeList() {
     int len = reader.next();
-    List<ArgNode> result = new ArrayList<>();
+    List<Type> result = new ArrayList<>();
     for (int i = 0; i < len; i++) {
-      reader.expect(ARG_DECL_NODE);
-      result.add(readArgNode());
+      result.add(readType());
     }
     return result;
   }

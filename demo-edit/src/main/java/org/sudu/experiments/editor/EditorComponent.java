@@ -1429,6 +1429,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
     ParserUtils.updateDocumentInterval(model.document, ints, chars);
+    model.document.defToUsages.clear();
+    model.document.usageToDef.clear();
+    model.document.scopeGraph.resolveAll(model.document::onResolve);
     model.document.onReparse();
   }
 

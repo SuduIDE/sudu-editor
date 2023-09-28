@@ -28,6 +28,7 @@ public interface ScopeGraphConstants {
     int SUPER_NODE = 6;
     int THIS_NODE = 7;
     int TYPE_NODE = 8;
+    int EXPR_NODE = 9;
   }
 
 }

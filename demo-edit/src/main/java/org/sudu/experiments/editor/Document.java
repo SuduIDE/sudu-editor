@@ -13,10 +13,8 @@ import org.sudu.experiments.parser.common.Name;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.common.graph.ScopeGraph;
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
-import org.sudu.experiments.parser.common.graph.node.decl.FieldNode;
 import org.sudu.experiments.parser.common.graph.node.decl.MethodNode;
 import org.sudu.experiments.parser.common.graph.node.ref.RefNode;
-import org.sudu.experiments.parser.common.graph.node.ref.TypeNode;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -41,7 +39,7 @@ public class Document {
     tree = initialInterval();
   }
 
-  public Document(CodeLine ... data) {
+  public Document(CodeLine... data) {
     if (data.length == 0) throw new IllegalArgumentException();
     document = data;
     currentVersion = lastParsedVersion = 0;
@@ -77,7 +75,7 @@ public class Document {
   }
 
   public void invalidateFont() {
-    for (CodeLine codeLine : document) {
+    for (CodeLine codeLine: document) {
       codeLine.invalidateCache();
     }
   }
@@ -317,7 +315,7 @@ public class Document {
   public int getLineStartInd(int firstLine) {
     int result = 0;
     int lines = document.length;
-    for (int i = 0; i < firstLine;) {
+    for (int i = 0; i < firstLine; ) {
       result += strLength(i);
       if (++i < lines) result++;
     }
@@ -407,8 +405,13 @@ public class Document {
 
   void makeDiffOp(int line, int from, boolean isDelete, String change) {
     int posInDoc = getLineStartInd(line) + from;
-    if (isDelete) tree.makeDeleteDiff(posInDoc, change.length());
-    else tree.makeInsertDiff(posInDoc, change.length());
+    if (isDelete) {
+      tree.makeDeleteDiff(posInDoc, change.length());
+      scopeGraph.makeDeleteDiff(posInDoc, change.length());
+    } else {
+      tree.makeInsertDiff(posInDoc, change.length());
+      scopeGraph.makeInsertDiff(posInDoc, change.length());
+    }
   }
 
   public V2i undoLastDiff() {
@@ -429,6 +432,7 @@ public class Document {
     if (diff.isDelete) {
       insertLinesOp(diff.line, diff.pos, lines);
       tree.makeInsertDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
+      scopeGraph.makeInsertDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
 
     } else {
       Selection selection = new Selection();
@@ -442,6 +446,7 @@ public class Document {
 
       deleteSelectedOp(selection);
       tree.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
+      scopeGraph.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
 
     }
     return diff.caretReturn;
@@ -484,9 +489,9 @@ public class Document {
 
   public int getOffsetAt(int lineNumber, int column) {
     int position = 0;
-    for (int i = 0; i < lineNumber;) {
+    for (int i = 0; i < lineNumber; ) {
       position += document[i].totalStrLength;
-      if (++i < document.length) position ++;
+      if (++i < document.length) position++;
       else break;
     }
     return position + column;
@@ -500,7 +505,7 @@ public class Document {
       refElem.color = ParserConstants.TokenTypes.ERROR;
       return;
     }
-    int type = declNode instanceof FieldNode
+    int type = declNode.declType == DeclNode.FIELD
         ? ParserConstants.TokenTypes.FIELD
         : ParserConstants.TokenTypes.DEFAULT;
     int style = declNode instanceof MethodNode

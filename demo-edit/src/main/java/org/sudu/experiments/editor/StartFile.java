@@ -20,8 +20,8 @@ public interface StartFile {
         public int field;
 
         public static void main(String[] args) {
-          System.out.println(helloWorld + n);
           sum(a + a);
+          var g = new G(a + a);
         }
             
         @Deprecated
