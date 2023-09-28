@@ -3,8 +3,6 @@ package org.sudu.experiments.js;
 import org.sudu.experiments.worker.WorkerExecutor;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSArray;
-import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
@@ -29,13 +27,13 @@ public class WorkerProtocol {
   }
 
   public static void sendToWorker(WorkerContext worker, int id, String method, Object[] args) {
-    JSArray<JSObject> message = JSArray.create(args.length + 2);
+    JsArray<JSObject> message = JsArray.create(args.length + 2);
     message.set(0, JSNumber.valueOf(id));
     message.set(1, JSString.valueOf(method));
     transferAndSend(worker, args, message, 2);
   }
 
-  static void execute(WorkerExecutor executor, JSArrayReader<JSObject> array) {
+  static void execute(WorkerExecutor executor, JsArrayReader<JSObject> array) {
     if (array.getLength() >= 2) {
       JSObject taskId = array.get(0);
       String method = array.get(1).<JSString>cast().stringValue();
@@ -44,7 +42,7 @@ public class WorkerProtocol {
     } else throw new IllegalArgumentException();
   }
 
-  static void dispatchResult(Map<Integer, Consumer<Object[]>> handlers, JSArrayReader<JSObject> array) {
+  static void dispatchResult(Map<Integer, Consumer<Object[]>> handlers, JsArrayReader<JSObject> array) {
     if (array.getLength() >= 1) {
       int taskId = array.get(0).<JSNumber>cast().intValue();
       Consumer<Object[]> handler = handlers.remove(taskId);
@@ -53,13 +51,13 @@ public class WorkerProtocol {
   }
 
   private static void sendResults(WorkerContext context, Object[] result, JSObject taskId) {
-    JSArray<JSObject> message = JSArray.create(result.length + 1);
+    JsArray<JSObject> message = JsArray.create(result.length + 1);
     message.set(0, taskId);
     transferAndSend(context, result, message, 1);
   }
 
-  private static void transferAndSend(WorkerContext context, Object[] args, JSArray<JSObject> message, int start) {
-    JSArray<JSObject> transfer = JSArray.create();
+  private static void transferAndSend(WorkerContext context, Object[] args, JsArray<JSObject> message, int start) {
+    JsArray<JSObject> transfer = JsArray.create();
     for (int i = 0; i < args.length; i++) {
       JSObject value = bridgeToJs(args[i]);
       message.set(i + start, value);
@@ -68,7 +66,7 @@ public class WorkerProtocol {
     context.postMessage(message, transfer);
   }
 
-  static Object[] toJava(JSArrayReader<JSObject> array, int shift) {
+  static Object[] toJava(JsArrayReader<JSObject> array, int shift) {
     Object[] args = new Object[array.getLength() - shift];
     for (int i = 0; i < args.length; i++) {
       args[i] = bridgeToJava(array.get(i + shift));

@@ -2,15 +2,16 @@ package org.sudu.experiments.utils;
 
 import org.sudu.experiments.esm.JsLanguageFilter;
 import org.sudu.experiments.demo.LanguageSelector;
+import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.js.JsArrayReader;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSString;
 
 public abstract class LanguageSelectorUtils {
 
   public static LanguageSelector[] toSelectors(JSObject obj) {
-    if (JSArray.isArray(obj)) {
-      JSArray<?> jsArr = obj.cast();
+    if (JsArray.isArray(obj)) {
+      JsArrayReader<JSObject> jsArr = obj.cast();
       int jsArrLength = jsArr.getLength();
       LanguageSelector[] res = new LanguageSelector[jsArrLength];
       for (int i = 0; i < jsArrLength; i++) {

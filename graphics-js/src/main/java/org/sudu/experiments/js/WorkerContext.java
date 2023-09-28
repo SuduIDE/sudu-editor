@@ -4,7 +4,6 @@ import org.sudu.experiments.worker.WorkerExecutor;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
-import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.events.MessageEvent;
@@ -30,7 +29,7 @@ public abstract class WorkerContext implements JSObject {
   public abstract void onMessage(JSObject jsObject);
 
   public abstract void postMessage(JSObject message);
-  public abstract void postMessage(JSObject message, JSArrayReader<?> transfer);
+  public abstract void postMessage(JSObject message, JsArrayReader<?> transfer);
 
   public abstract void terminate();
 

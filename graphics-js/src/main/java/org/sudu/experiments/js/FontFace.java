@@ -4,8 +4,6 @@ import org.sudu.experiments.fonts.FontConfigJs;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
-import org.teavm.jso.core.JSArray;
-import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.html.HTMLDocument;
 
@@ -34,7 +32,7 @@ public abstract class FontFace implements JSObject {
     return create(family, source, createDescriptor(style, weight));
   }
 
-  public static void addToDocument(JSArrayReader<JSObject> fontFaces) {
+  public static void addToDocument(JsArrayReader<JSObject> fontFaces) {
     for (int i = 0; i < fontFaces.getLength(); i++) {
       FontFace font = fontFaces.get(i).cast();
       font.addToDocument();
@@ -59,8 +57,8 @@ public abstract class FontFace implements JSObject {
     addToDocument(HTMLDocument.current(), this);
   }
 
-  public static Promise<JSArrayReader<JSObject>> loadFonts(FontConfigJs[] fonts) {
-    JSArray<Promise<?>> array = JSArray.create();
+  public static Promise<JsArrayReader<JSObject>> loadFonts(FontConfigJs[] fonts) {
+    JsArray<Promise<?>> array = JsArray.create();
     for (FontConfigJs font : fonts) {
       var ff = FontFace.createWithStyleWeight(
           font.family, "url(" + font.file + ')',

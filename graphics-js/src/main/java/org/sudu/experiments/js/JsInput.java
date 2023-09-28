@@ -13,7 +13,6 @@ import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.browser.Window;
-import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.events.*;
 import org.teavm.jso.dom.html.HTMLDocument;
@@ -201,7 +200,7 @@ public class JsInput {
 
   private void onPaste(ClipboardEvent event) {
     if (focus() != element) return;
-    JSArrayReader<DataTransfer.Item> items = event.getClipboardData().getItems();
+    JsArrayReader<DataTransfer.Item> items = event.getClipboardData().getItems();
     for (int i = 0, n = items.getLength(); i < n; i++) {
       DataTransfer.Item item = items.get(i);
       if (item.isString() && item.isTextPlain()) {
@@ -289,7 +288,7 @@ public class JsInput {
   }
 
   interface DataTransfer extends JSObject {
-    @JSProperty JSArrayReader<Item> getItems();
+    @JSProperty JsArrayReader<Item> getItems();
     void setData(String format, String content);
 
     abstract class Item implements JSObject {

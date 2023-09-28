@@ -4,7 +4,6 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
-import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.dom.html.HTMLElement;
 
 public abstract class ResizeObserver implements JSObject {
@@ -42,17 +41,17 @@ public abstract class ResizeObserver implements JSObject {
       @JSProperty double getInlineSize();
     }
 
-    @JSProperty JSArrayReader<Size> getContentBoxSize();
+    @JSProperty JsArrayReader<Size> getContentBoxSize();
 
     String devicePixelContentBoxSize = "devicePixelContentBoxSize";
-    @JSProperty JSArrayReader<Size> getDevicePixelContentBoxSize();
+    @JSProperty JsArrayReader<Size> getDevicePixelContentBoxSize();
     @JSProperty DOMRect getContentRect();
     @JSProperty HTMLElement getTarget();
   }
 
   @JSFunctor
   public interface Callback extends JSObject {
-    void f(JSArrayReader<ResizeObserverEntry> entries, ResizeObserver observer);
+    void f(JsArrayReader<ResizeObserverEntry> entries, ResizeObserver observer);
   }
 
   interface Options extends JSObject {}

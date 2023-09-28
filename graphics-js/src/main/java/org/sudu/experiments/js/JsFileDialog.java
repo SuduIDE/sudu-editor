@@ -7,7 +7,6 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.browser.Window;
-import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.dom.html.HTMLDocument;
@@ -25,7 +24,7 @@ public class JsFileDialog {
   @SuppressWarnings("SpellCheckingInspection")
   interface Input extends HTMLInputElement {
     @JSProperty void setWebkitdirectory(boolean value);
-    @JSProperty JSArrayReader<FileSystemEntry> getWebkitEntries();
+    @JSProperty JsArrayReader<FileSystemEntry> getWebkitEntries();
     @JSProperty FileList getFiles();
   }
 
@@ -118,7 +117,7 @@ public class JsFileDialog {
   }
 
   static void readWebkitEntries(Consumer<FileHandle> onResul, Input input) {
-    JSArrayReader<FileSystemEntry> webkitEntries = input.getWebkitEntries();
+    JsArrayReader<FileSystemEntry> webkitEntries = input.getWebkitEntries();
     if (webkitEntries.getLength() > 0) {
       Debug.consoleInfo("webkitEntries.length = ", webkitEntries.getLength());
     }
@@ -160,5 +159,5 @@ public class JsFileDialog {
   public static native Promise<FileSystemDirectoryHandle> showDirectoryPicker();
 
   @JSBody(script = "return window.showOpenFilePicker();")
-  public static native Promise<JSArrayReader<FileSystemFileHandle>> showOpenFilePicker();
+  public static native Promise<JsArrayReader<FileSystemFileHandle>> showOpenFilePicker();
 }
