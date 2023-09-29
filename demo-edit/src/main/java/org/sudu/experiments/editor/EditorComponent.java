@@ -1429,14 +1429,16 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   public void iterativeParsing() {
     var node = model.document.tree.getReparseNode();
     if (node == null) return;
-    if (Languages.TEXT.equals(model.language())) {
+    String language = model.language();
+    if (language == null || Languages.TEXT.equals(language)) {
       model.document.onReparse();
-    }
-    int[] interval = new int[]{node.getStart(), node.getStop(), node.getType()};
-    char[] chars = model.document.getChars();
-    int[] type = new int[] {Languages.getType(model.language())};
+    } else {
+      int[] interval = new int[]{node.getStart(), node.getStop(), node.getType()};
+      char[] chars = model.document.getChars();
+      int[] type = new int[]{Languages.getType(language)};
 
-    window().sendToWorker(this::onFileIterativeParsed, FileParser.asyncIterativeParsing, chars, type, interval);
+      window().sendToWorker(this::onFileIterativeParsed, FileParser.asyncIterativeParsing, chars, type, interval);
+    }
   }
 
   public boolean onCopy(Consumer<String> setText, boolean isCut) {
