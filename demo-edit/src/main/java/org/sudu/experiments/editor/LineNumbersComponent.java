@@ -147,7 +147,7 @@ public class LineNumbersComponent implements Disposable {
     updateToFirstLine(firstLine);
   }
 
-  private void updateToFirstLine(int firstLine) {
+  void updateToFirstLine(int firstLine) {
     int size = textures.size();
     int numberOfFullScroll = firstLine / (size * numberOfLines);
     int startNum = (numberOfFullScroll + 1) * size * numberOfLines;

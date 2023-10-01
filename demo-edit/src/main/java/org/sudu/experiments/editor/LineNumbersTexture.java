@@ -1,12 +1,10 @@
 package org.sudu.experiments.editor;
 
-import org.sudu.experiments.Canvas;
-import org.sudu.experiments.Disposable;
-import org.sudu.experiments.GL;
-import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.*;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
@@ -73,6 +71,7 @@ public class LineNumbersTexture implements Disposable {
   ) {
     int height = textureSize.y;
     int yPos = ((texturePos.y - (scrollPos % fullTexturesSize)) + fullTexturesSize) % fullTexturesSize;
+    if (yPos == 0) yPos = fullTexturesSize - 1;
     LineNumbersColors lineNumber = colorScheme.lineNumber;
     int baseColorInd = (scrollPos + yPos) / lineHeight;
     if ((yPos + height) <= componentHeight) {
@@ -97,8 +96,9 @@ public class LineNumbersTexture implements Disposable {
     height = Math.min(height, componentHeight);
     rectSize.set(lineTexture.width(), lineHeight);
     int yLine = scrollPos % lineTexture.height() / lineHeight;
-    int upper = yLine + height / lineHeight;
-    if (height % lineHeight != 0) upper++;
+    int upper = yLine + Numbers.iDivRoundUp(height, lineHeight);
+    if (scrollPos % lineHeight != 0) upper++;
+    upper = Math.min(upper, numberOfLines);
     int base = yLine;
     int i = yLine;
     int prevColorInd = baseColorInd;

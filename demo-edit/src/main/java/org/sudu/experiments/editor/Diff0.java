@@ -210,6 +210,8 @@ public class Diff0 extends Scene1 implements
   public void increaseFont() {
     editor1.increaseFont();
     editor2.increaseFont();
+    editor1.updateLineNumbersFont();
+    editor2.updateLineNumbersFont();
   }
 
   @Override

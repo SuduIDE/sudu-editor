@@ -559,9 +559,11 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     return Math.min((vScrollPos + editorHeight() - 1) / lineHeight, model.document.length() - 1);
   }
 
-  private void updateLineNumbersFont() {
+  void updateLineNumbersFont() {
     lineNumbers.setFont(fonts[0], lineHeight, g);
-    lineNumbers.initTextures(g, getFirstLine(), editorHeight());
+    int fl = getFirstLine();
+    lineNumbers.initTextures(g, fl, editorHeight());
+    lineNumbers.updateToFirstLine(fl);
   }
 
   private CodeLineRenderer lineRenderer(int i) {
