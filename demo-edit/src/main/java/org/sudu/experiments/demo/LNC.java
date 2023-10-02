@@ -17,7 +17,7 @@ import org.sudu.experiments.math.V4f;
 
 import java.util.function.ToIntFunction;
 
-public class LineNumbersComponent implements Disposable {
+public class LNC implements Disposable {
 
   private final V2i pos = new V2i();
   private final V2i size = new V2i();
@@ -33,7 +33,7 @@ public class LineNumbersComponent implements Disposable {
   private final V2i textureSize = new V2i();
   private final UiContext context;
 
-  public LineNumbersComponent(UiContext context) {
+  public LNC(UiContext context) {
     this.context = context;
   }
 
