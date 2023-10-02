@@ -20,6 +20,7 @@ public interface EditorConst {
 
   float LINE_HEIGHT = 1.25f;
 
+  int LINE_NUMBERS_TEXTURE_SIZE = 20;
   int LINE_NUMBERS_RIGHT_PADDING = 25;
 
   double TYPING_STOP_TIME = 1./32.;

@@ -18,6 +18,7 @@ public class TestSceneSelector {
     return switch (name) {
       default -> Editor1::new;
       case "Diff" -> Diff0::new;
+      case "LNSlow" -> LNSlowDemo::new;
       case "Editor0" -> Editor0::new;
       case "DemoScene1", "test" -> DemoScene1::new;
       case "ToolbarDemo" -> ToolbarDemo::new;

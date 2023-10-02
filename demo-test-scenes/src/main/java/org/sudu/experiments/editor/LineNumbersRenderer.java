@@ -1,8 +1,8 @@
-package org.sudu.experiments.demo;
+package org.sudu.experiments.editor;
 
-import org.sudu.experiments.demo.ui.RegionTexture;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.ui.RegionTexture;
 
 import java.util.function.ToIntFunction;
 

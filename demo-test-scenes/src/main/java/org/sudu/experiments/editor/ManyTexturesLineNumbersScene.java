@@ -1,7 +1,10 @@
 package org.sudu.experiments.editor;
 
-import org.sudu.experiments.*;
-import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
+import org.sudu.experiments.Debug;
+import org.sudu.experiments.Scene;
+import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
@@ -28,13 +31,13 @@ public class ManyTexturesLineNumbersScene extends Scene {
 
   public ManyTexturesLineNumbersScene(SceneApi api) {
     super(api);
-    this.lineNumbers = new LineNumbersComponent(new UiContext(api));
+    this.lineNumbers = new LineNumbersComponent();
     api.input.onMouse.add(new LineNumbersInputListener());
     api.input.onScroll.add(this::onMouseWheel);
     this.g = api.graphics;
     setCursor = SetCursor.wrap(api.window);
 
-    lineNumbers.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight);
+    lineNumbers.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight, api.graphics);
 
     scrollBar = new ScrollBar();
   }
@@ -53,7 +56,7 @@ public class ManyTexturesLineNumbersScene extends Scene {
 
     Debug.consoleInfo("scrollPos: " + scrollPos);
     int eh = editorHeight();
-    lineNumbers.draw(g, scrollPos, eh, 0, eh / lineHeight, -1, colors);
+    lineNumbers.draw(scrollPos, eh, colors, g);
   }
 
   @Override

@@ -106,7 +106,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   public EditorComponent(UiContext context, EditorUi ui) {
     this.context = context;
-    this.lineNumbers = new LineNumbersComponent(context);
+    this.lineNumbers = new LineNumbersComponent();
     this.g = context.graphics;
     this.ui = ui;
 
@@ -145,8 +145,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (mirrored) {
       context.v2i1.set(pos.x + size.x - lineNumbersWidth(), pos.y);
     } else context.v2i1.set(this.pos);
-    doChangeFont(fontFamilyName, fontVirtualSize);
     lineNumbers.setPos(context.v2i1, lineNumbersWidth(), size.y, dpr);
+    doChangeFont(fontFamilyName, fontVirtualSize);
 
     if (1<0) DebugHelper.dumpFontsSize(g);
     caret.setWidth(DprUtil.toPx(Caret.defaultWidth, dpr));
@@ -205,7 +205,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   void toggleMirrored() {
     mirrored = !mirrored;
     lineNumbers.dispose();
-    lineNumbers = new LineNumbersComponent(context);
+    lineNumbers = new LineNumbersComponent();
     internalLayout(pos, size, context.dpr);
   }
 
@@ -557,7 +557,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private void updateLineNumbersFont() {
-    lineNumbers.setFont(fonts[0], lineHeight);
+    lineNumbers.setFont(fonts[0], lineHeight, context.graphics);
   }
 
   private CodeLineRenderer lineRenderer(int i) {

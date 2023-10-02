@@ -1,23 +1,24 @@
-package org.sudu.experiments.demo;
+package org.sudu.experiments.editor;
 
 import org.sudu.experiments.Canvas;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.demo.ui.RegionTexture;
-import org.sudu.experiments.demo.ui.RegionTextureAllocator;
-import org.sudu.experiments.demo.ui.UiContext;
-import org.sudu.experiments.demo.ui.colors.EditorColorScheme;
-import org.sudu.experiments.demo.ui.colors.LineNumbersColors;
+import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.ui.RegionTexture;
+import org.sudu.experiments.ui.RegionTextureAllocator;
+import org.sudu.experiments.ui.SetCursor;
+import org.sudu.experiments.ui.UiContext;
 
 import java.util.function.ToIntFunction;
 
-public class LNC implements Disposable {
+public class LineNumbersAllocator implements Disposable {
 
   private final V2i pos = new V2i();
   private final V2i size = new V2i();
@@ -33,7 +34,7 @@ public class LNC implements Disposable {
   private final V2i textureSize = new V2i();
   private final UiContext context;
 
-  public LNC(UiContext context) {
+  public LineNumbersAllocator(UiContext context) {
     this.context = context;
   }
 
