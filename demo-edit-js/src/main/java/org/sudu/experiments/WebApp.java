@@ -1,14 +1,14 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.demo.*;
 import org.sudu.experiments.demo.wasm.WasmDemo;
+import org.sudu.experiments.editor.DiffDemoJs;
+import org.sudu.experiments.editor.TestSceneSelector;
 import org.sudu.experiments.fonts.Codicon;
 import org.sudu.experiments.fonts.JetBrainsMono;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Window;
-import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSError;
 
 public class WebApp {
@@ -29,7 +29,7 @@ public class WebApp {
     }
   }
 
-  private void loadFonts(JSArrayReader<JSObject> fontFaces) {
+  private void loadFonts(JsArrayReader<JSObject> fontFaces) {
     FontFace.addToDocument(fontFaces);
     fontsLoaded = true;
     if (workerStarted != null) startApp(workerStarted);

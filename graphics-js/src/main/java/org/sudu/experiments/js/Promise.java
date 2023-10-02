@@ -5,7 +5,6 @@ import org.sudu.experiments.js.JsFunctions.Consumer;
 import org.sudu.experiments.js.JsFunctions.Function;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
 
@@ -37,17 +36,17 @@ public abstract class Promise<T extends JSObject> implements JSObject {
       params = {"iterable"},
       script = "return Promise.all(iterable);"
   )
-  public static native Promise<JSArrayReader<JSObject>> all(JSArrayReader<?> iterable);
+  public static native Promise<JsArrayReader<JSObject>> all(JsArrayReader<?> iterable);
 
-  public static Promise<JSArrayReader<JSObject>> all(JSObject[] array) {
+  public static Promise<JsArrayReader<JSObject>> all(JSObject[] array) {
     return all(JsHelper.toJsArray(array));
   }
 
-  public static Promise<JSArrayReader<JSObject>> all(JSObject a, JSObject b) {
+  public static Promise<JsArrayReader<JSObject>> all(JSObject a, JSObject b) {
     return all(JsHelper.toJsArray(a, b));
   }
 
-  public static Promise<JSArrayReader<JSObject>> all(JSObject a, JSObject b, JSObject c) {
+  public static Promise<JsArrayReader<JSObject>> all(JSObject a, JSObject b, JSObject c) {
     return all(JsHelper.toJsArray(a, b, c));
   }
 

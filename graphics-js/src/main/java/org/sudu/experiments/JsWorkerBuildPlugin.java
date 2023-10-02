@@ -14,12 +14,12 @@ import java.util.Properties;
 // JsWorkerBuildPlugin invokes MainClass.main() for web worker code
 public class JsWorkerBuildPlugin implements TeaVMPlugin, RendererListener {
 
-  private boolean worker;
+  private boolean invokeMain;
   private SourceWriter writer;
 
   @Override
   public void install(TeaVMHost host) {
-    worker = isTrue("worker", host.getProperties());
+    invokeMain = isTrue("invokeMain", host.getProperties());
     TeaVMJavaScriptHost jsHost = host.getExtension(TeaVMJavaScriptHost.class);
     if (jsHost != null) jsHost.add(this);
   }
@@ -37,8 +37,8 @@ public class JsWorkerBuildPlugin implements TeaVMPlugin, RendererListener {
 
   @Override
   public void complete() throws IOException {
-    if (worker) {
-      writer.append("main();").newLine();
+    if (invokeMain) {
+      writer.append("$rt_exports.main();").newLine();
     }
   }
 }

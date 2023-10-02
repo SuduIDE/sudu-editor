@@ -5,7 +5,6 @@ import org.sudu.experiments.math.Numbers;
 import org.teavm.jso.browser.AnimationFrameCallback;
 import org.teavm.jso.browser.Performance;
 import org.teavm.jso.browser.Window;
-import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.dom.events.Event;
@@ -73,7 +72,7 @@ public class WebWindow implements org.sudu.experiments.Window {
     return mainCanvas == HTMLDocument.current().getActiveElement();
   }
 
-  void onSizeObserved(JSArrayReader<ResizeObserver.ResizeObserverEntry> entries, ResizeObserver o) {
+  void onSizeObserved(JsArrayReader<ResizeObserver.ResizeObserverEntry> entries, ResizeObserver o) {
 //    JsHelper.consoleInfo("onSizeObserved: entries.length = ", entries.getLength());
     for (int i = 0, n = entries.getLength(); i < n; i++) {
       var entry = entries.get(i);

@@ -3,7 +3,6 @@ package org.sudu.experiments.js;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
-import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.ArrayBuffer;
 
@@ -53,8 +52,8 @@ public class WebAssembly {
       @JSProperty("module") JSString module();
     }
 
-    @JSProperty("exports") JSArrayReader<Export> exports();
-    @JSProperty("imports") JSArrayReader<Import> imports();
+    @JSProperty("exports") JsArrayReader<Export> exports();
+    @JSProperty("imports") JsArrayReader<Import> imports();
   }
 
   public interface Instance<Exports extends JSObject> extends JSObject {

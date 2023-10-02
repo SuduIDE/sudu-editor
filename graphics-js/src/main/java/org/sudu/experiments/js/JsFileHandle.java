@@ -1,6 +1,7 @@
 package org.sudu.experiments.js;
 
 import org.sudu.experiments.FileHandle;
+import org.teavm.jso.JSBody;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
@@ -109,12 +110,15 @@ public class JsFileHandle implements FileHandle {
         : FileHandle.toString(path, getName());
   }
 
+  @JSBody(params = {"str", "arg" }, script = "return str.split(arg);")
+  static native JsArrayReader<JSString> stringSplit(JSString str, JSString arg);
+
   static String[] splitPath(JSString path) {
     if (JSObjects.isUndefined(path) || path == null || path.getLength() == 0) return new String[0];
-    JSString[] split = path.split(JSString.valueOf("/"));
-    if (split.length == 0) return new String[0];
-    String[] strings = new String[split.length - 1];
-    for (int i = 0; i < strings.length; i++) strings[i] = split[i].stringValue();
+    JsArrayReader<JSString> split = stringSplit(path, JSString.valueOf("/"));
+    if (split.getLength() == 0) return new String[0];
+    String[] strings = new String[split.getLength() - 1];
+    for (int i = 0; i < strings.length; i++) strings[i] = split.get(i).stringValue();
     return strings;
   }
 }

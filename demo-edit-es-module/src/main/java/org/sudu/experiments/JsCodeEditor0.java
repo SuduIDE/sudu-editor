@@ -1,6 +1,6 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.demo.*;
+import org.sudu.experiments.editor.*;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.parser.common.Pos;
@@ -8,7 +8,6 @@ import org.sudu.experiments.utils.LanguageSelectorUtils;
 import org.sudu.experiments.utils.PromiseUtils;
 import org.sudu.experiments.utils.ProviderUtils;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
@@ -28,7 +27,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
     this.args = args;
 
     this.window = new WebWindow(
-        DemoEdit0::new,
+        Editor0::new,
         JsCodeEditor0::onWebGlError,
         args.getContainerId().stringValue(),
         worker);
@@ -37,8 +36,8 @@ public class JsCodeEditor0 implements JsCodeEditor {
     if (args.hasReadonly()) setReadonly(args.getReadonly());
   }
 
-  private DemoEdit0 demoEdit0() {
-    return (DemoEdit0) window.scene();
+  private Editor0 demoEdit0() {
+    return (Editor0) window.scene();
   }
 
   @Override
@@ -153,7 +152,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   static DefDeclProvider.Provider convert(JsDefinitionProvider provider) {
     return (model, line, column, onResult, onError) ->
-        PromiseUtils.<JSArray<JsLocation>>promiseOrT(
+        PromiseUtils.<JsArrayReader<JsLocation>>promiseOrT(
             provider.provideDefinition(
                 JsTextModel.fromJava(model),
                 JsPosition.fromJava(column, line),
@@ -164,7 +163,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   static DefDeclProvider.Provider convert(JsDeclarationProvider provider) {
     return (model, line, column, onResult, onError) ->
-        PromiseUtils.<JSArray<JsLocation>>promiseOrT(
+        PromiseUtils.<JsArrayReader<JsLocation>>promiseOrT(
             provider.provideDeclaration(
                 JsTextModel.fromJava(model),
                 JsPosition.fromJava(column, line),
@@ -175,7 +174,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   static ReferenceProvider.Provider convert(JsReferenceProvider provider) {
     return (model, line, column, includeDecl, onResult, onError) ->
-        PromiseUtils.<JSArray<JsLocation>>promiseOrT(
+        PromiseUtils.<JsArrayReader<JsLocation>>promiseOrT(
             provider.provideReferences(
                 JsTextModel.fromJava(model),
                 JsPosition.fromJava(column, line),
@@ -187,7 +186,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   static DocumentHighlightProvider.Provider convert(JsDocumentHighlightProvider provider) {
     return (model, line, column, onResult, onError) ->
-        PromiseUtils.<JSArray<JsDocumentHighlight>>promiseOrT(
+        PromiseUtils.<JsArrayReader<JsDocumentHighlight>>promiseOrT(
             provider.provideDocumentHighlights(
                 JsTextModel.fromJava(model),
                 JsPosition.fromJava(column, line),
@@ -196,9 +195,12 @@ public class JsCodeEditor0 implements JsCodeEditor {
             onError);
   }
 
-  static void acceptLocations(JSArray<JsLocation> jsArr, Consumer<Location[]> c, Consumer<String> onError) {
+  static void acceptLocations(
+      JsArrayReader<JsLocation> jsArr,
+      Consumer<Location[]> c, Consumer<String> onError
+  ) {
     if (JsHelper.jsIf(jsArr)) {
-      if (JSArray.isArray(jsArr)) {
+      if (JsArray.isArray(jsArr)) {
         c.accept(ProviderUtils.toLocations(jsArr));
       } else {
         onError.accept(errorNotArray);
@@ -208,9 +210,13 @@ public class JsCodeEditor0 implements JsCodeEditor {
     }
   }
 
-  static void acceptHighlight(JSArray<JsDocumentHighlight> jsArr, Consumer<DocumentHighlight[]> c, Consumer<String> onError) {
+  static void acceptHighlight(
+      JsArrayReader<JsDocumentHighlight> jsArr,
+      Consumer<DocumentHighlight[]> c,
+      Consumer<String> onError
+  ) {
     if (JsHelper.jsIf(jsArr)) {
-      if (JSArray.isArray(jsArr)) {
+      if (JsArray.isArray(jsArr)) {
         c.accept(ProviderUtils.toHighlights(jsArr));
       } else {
         onError.accept(errorNotArray);
