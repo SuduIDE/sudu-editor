@@ -208,6 +208,7 @@ public class Diff0 extends Scene1 implements
 
   @Override
   public void increaseFont() {
+    // Font updates are needed after all possible `sync` calls in increaseFont were made
     editor1.increaseFont();
     editor2.increaseFont();
     editor1.updateLineNumbersFont();

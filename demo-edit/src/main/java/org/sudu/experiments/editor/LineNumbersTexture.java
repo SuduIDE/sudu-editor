@@ -70,6 +70,8 @@ public class LineNumbersTexture implements Disposable {
       EditorColorScheme colorScheme, byte[] colors, WglGraphics g
   ) {
     int height = textureSize.y;
+    // yPos is 0 if scrollPos is 0, but instantly changes to ~fullTextureSize when scrolled.
+    // Manual set to `fullTextureSize - 1` makes yPos change more consistently
     int yPos = ((texturePos.y - (scrollPos % fullTexturesSize)) + fullTexturesSize) % fullTexturesSize;
     if (yPos == 0) yPos = fullTexturesSize - 1;
     LineNumbersColors lineNumber = colorScheme.lineNumber;

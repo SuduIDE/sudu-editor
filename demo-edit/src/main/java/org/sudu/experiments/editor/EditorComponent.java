@@ -561,9 +561,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   void updateLineNumbersFont() {
     lineNumbers.setFont(fonts[0], lineHeight, g);
-    int fl = getFirstLine();
-    lineNumbers.initTextures(g, fl, editorHeight());
-    lineNumbers.updateToFirstLine(fl);
+    lineNumbers.afterFontChanged(g, getFirstLine(), editorHeight());
   }
 
   private CodeLineRenderer lineRenderer(int i) {

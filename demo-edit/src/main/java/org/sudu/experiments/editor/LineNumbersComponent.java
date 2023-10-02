@@ -175,6 +175,11 @@ public class LineNumbersComponent implements Disposable {
     updateCanvas.setTextAlign(Canvas.TextAlign.RIGHT);
   }
 
+  public void afterFontChanged(WglGraphics g, int firstLine, int editorHeight) {
+    initTextures(g, firstLine, editorHeight);
+    updateToFirstLine(firstLine);
+  }
+
   @Override
   public void dispose() {
     textures.forEach(LineNumbersTexture::dispose);
