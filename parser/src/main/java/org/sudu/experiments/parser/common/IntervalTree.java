@@ -52,16 +52,25 @@ public class IntervalTree {
     }
 
     var newNodes = newTree.children;
+    var newScopes = newTree.scope.children;
     if (replaceNode == root) {
       this.root = newNodes.get(0);
       return;
     }
     if (replaceNode.parent != null) {
-      newNodes.forEach(it -> it.parent = replaceNode.parent);
+      var parent = replaceNode.parent;
+      var parentScope = replaceNode.scope.parent;
 
-      int ind = replaceNode.parent.children.indexOf(replaceNode);
-      replaceNode.parent.children.remove(ind);
-      replaceNode.parent.children.addAll(ind, newNodes);
+      newNodes.forEach(it -> it.parent = parent);
+      newScopes.forEach(it -> it.parent = parentScope);
+
+      int ind = parent.children.indexOf(replaceNode);
+      parent.children.remove(ind);
+      parent.children.addAll(ind, newNodes);
+
+      int scopeInd = parentScope.children.indexOf(replaceNode.scope);
+      parentScope.children.remove(scopeInd);
+      parentScope.children.addAll(scopeInd, newScopes);
     }
   }
 

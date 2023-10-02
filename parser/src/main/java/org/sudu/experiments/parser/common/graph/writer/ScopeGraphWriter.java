@@ -1,6 +1,7 @@
 package org.sudu.experiments.parser.common.graph.writer;
 
 import org.sudu.experiments.arrays.ArrayWriter;
+import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.graph.ScopeGraph;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
 import org.sudu.experiments.parser.common.graph.node.InferenceNode;
@@ -16,6 +17,7 @@ import static org.sudu.experiments.parser.common.graph.ScopeGraphConstants.Nodes
 public class ScopeGraphWriter {
 
   public final ScopeGraph graph;
+  public final IntervalNode node;
   public int[] ints;
   public char[] chars;
   private final ArrayWriter writer;
@@ -27,8 +29,12 @@ public class ScopeGraphWriter {
 
   private final StringBuilder refDeclStringBuilder;
 
-  public ScopeGraphWriter(ScopeGraph graph) {
+  public ScopeGraphWriter(
+      ScopeGraph graph,
+      IntervalNode node
+  ) {
     this.graph = graph;
+    this.node = node;
     writer = new ArrayWriter();
     refDeclStringBuilder = new StringBuilder();
     typeIdentityMap = new IdentityHashMap<>();
@@ -50,6 +56,7 @@ public class ScopeGraphWriter {
     writeTypes();
     writeScopes();
     writeAssociatedScopes();
+    writeIntervalNode();
   }
 
   private void writeTypes() {
@@ -62,7 +69,9 @@ public class ScopeGraphWriter {
   private void writeAssociatedScopes() {
     for (var entry: typeIdentityMap.entrySet()) {
       Type type = entry.getKey();
-      if (type.associatedScope == null) {
+      if (type.associatedScope == null ||
+          !scopeIdentityMap.containsKey(type.associatedScope)
+      ) {
         writer.write(-1);
         continue;
       }
@@ -145,6 +154,10 @@ public class ScopeGraphWriter {
       declNodeWriter.writeDeclNode(infer.decl);
       refNodeWriter.writeRefNode(infer.ref);
     }
+  }
+
+  private void writeIntervalNode() {
+    IntervalNode.writeInts(node, writer, scopeIdentityMap);
   }
 
   int putType(Type type) {

@@ -49,7 +49,11 @@ public class EditorWorker {
       case FileParser.asyncParseFile -> FileParser.asyncParseFile(file(a, 0), r);
       case FileParser.asyncParseFullFile -> FileParser.asyncParseFullFile(file(a, 0), r);
       case FileParser.asyncParseFirstLines -> FileParser.asyncParseFirstLines(file(a, 0), array(a, 1).ints(), r);
-      case FileParser.asyncIterativeParsing -> FileParser.asyncIterativeParsing(array(a, 0).chars(), array(a, 1).ints(), array(a,2).ints(), r);
+      case FileParser.asyncIterativeParsing -> FileParser.asyncIterativeParsing(
+          array(a, 0).chars(), array(a, 1).ints(),
+          array(a,2).ints(), array(a, 3).ints(),
+          array(a, 4).chars(), r
+      );
     }
   }
 

@@ -1,6 +1,7 @@
 package org.sudu.experiments.parser.common.graph.reader;
 
 import org.sudu.experiments.arrays.ArrayReader;
+import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
 import org.sudu.experiments.parser.common.graph.node.InferenceNode;
 import org.sudu.experiments.parser.common.graph.node.MemberNode;
@@ -21,7 +22,8 @@ public class ScopeGraphReader {
   private DeclNodeReader declNodeReader;
   private RefNodeReader refNodeReader;
 
-  public ScopeNode root;
+  public ScopeNode scopeRoot;
+  public IntervalNode intervalRoot;
   public List<Type> types;
 
   public ScopeGraphReader(
@@ -36,6 +38,7 @@ public class ScopeGraphReader {
     readTypes();
     readScopeRoot();
     readAssociatedScopes();
+    readIntervalNode();
   }
 
   private void readTypes() {
@@ -61,7 +64,7 @@ public class ScopeGraphReader {
     scopeNodes = new ScopeNode[len];
     declNodeReader = new DeclNodeReader(reader, chars, types);
     refNodeReader = new RefNodeReader(reader, chars, types);
-    root = readScope(null);
+    scopeRoot = readScope(null);
   }
 
   private void readAssociatedScopes() {
@@ -121,6 +124,10 @@ public class ScopeGraphReader {
       result.add(new InferenceNode(decl, ref));
     }
     return result;
+  }
+
+  private void readIntervalNode() {
+    intervalRoot = IntervalNode.readNode(reader, scopeNodes);
   }
 
   private String nextString() {

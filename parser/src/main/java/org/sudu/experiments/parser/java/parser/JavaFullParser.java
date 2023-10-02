@@ -39,18 +39,20 @@ public class JavaFullParser extends BaseFullParser {
     ParseTreeWalker walker = new ParseTreeWalker();
     Interval compUnitInterval = new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.Java.COMP_UNIT);
     IntervalNode compUnitNode = new IntervalNode(compUnitInterval);
-    JavaScopeWalker scopeWalker = new JavaScopeWalker(compUnitNode, tokenTypes, tokenStyles);
+    JavaScopeWalker scopeWalker = new JavaScopeWalker(compUnitNode, 0, tokenTypes, tokenStyles);
 
     int[] result;
+    IntervalNode node;
     try {
       walker.walk(scopeWalker, compUnit);
-      result = getInts(scopeWalker.scopeWalker.currentNode);
+      node = scopeWalker.scopeWalker.currentNode;
     } catch (Exception e) {
       e.printStackTrace();
-      result = getInts(defaultIntervalNode());
+      node = defaultIntervalNode();
     }
+    result = getInts(null);
     scopeWalker.scopeWalker.updateTypes();
-    writer = new ScopeGraphWriter(scopeWalker.scopeWalker.graph);
+    writer = new ScopeGraphWriter(scopeWalker.scopeWalker.graph, node);
     writer.toInts();
 
     System.out.println("Parsing full java time: " + (System.currentTimeMillis() - parsingStartTime) + "ms");

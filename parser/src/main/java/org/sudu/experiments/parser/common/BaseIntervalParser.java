@@ -3,6 +3,9 @@ package org.sudu.experiments.parser.common;
 import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.common.graph.reader.ScopeGraphReader;
+import org.sudu.experiments.parser.common.graph.type.Type;
+import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
 
 import java.util.List;
 import java.util.Map;
@@ -14,7 +17,10 @@ public abstract class BaseIntervalParser extends BaseParser {
   protected int intervalStart = 0;
   protected int intervalStop = 0;
 
-  public int[] parseInterval(String source, int[] interval) {
+  public int[] parseIntervalScope(
+      String source, int[] interval,
+      int[] graphInts, char[] graphChars
+  ) {
     intervalStart = interval[0];
     intervalStop = interval[1];
     int intervalType = interval[2];
@@ -23,13 +29,25 @@ public abstract class BaseIntervalParser extends BaseParser {
     if (tokenErrorOccurred()) return makeErrorInts();
 
     Interval parsingInterval = new Interval(0, intervalStop - intervalStart, intervalType);
-    IntervalNode intervalNode = parseInterval(parsingInterval);
+    List<Type> types = null;
+    if (graphInts != null && graphChars != null) {
+      var reader = new ScopeGraphReader(graphInts, graphChars);
+      reader.readFromInts();
+      types = reader.types;
+    }
+    IntervalNode intervalNode = parseInterval(parsingInterval, types);
 
-    expendIntervals(intervalNode, parsingInterval);
     return getVpInts(intervalStart, intervalStop, intervalNode);
   }
 
-  protected abstract IntervalNode parseInterval(Interval interval);
+  public int[] parseInterval(String source, int[] interval) {
+    return parseIntervalScope(source, interval, null, null);
+  }
+
+  protected abstract IntervalNode parseInterval(Interval interval, List<Type> types);
+  protected IntervalNode parseInterval(Interval interval) {
+    return parseInterval(interval, null);
+  };
 
   // {intervalStart, intervalStop, N, K, }
   protected int[] getVpInts(int intervalStart, int intervalStop, IntervalNode node) {
@@ -55,22 +73,6 @@ public abstract class BaseIntervalParser extends BaseParser {
     writer.write(nodeInts);
 
     return writer.getInts();
-  }
-
-  protected void expendIntervals(IntervalNode node, Interval interval) {
-    // todo
-/*    if (intervalList.isEmpty()) {
-      intervalList.add(interval);
-      return;
-    }
-    Interval left = intervalList.get(0);
-    Interval right = intervalList.get(0);
-    for (var cur: intervalList) {
-      if (cur.start < left.start || (cur.start == left.start && cur.stop < left.stop)) left = cur;
-      if (cur.stop > right.stop || (cur.stop == right.stop && cur.start > right.stop)) right = cur;
-    }
-    left.start = interval.start;
-    right.stop = interval.stop;*/
   }
 
   protected int[] makeErrorInts() {

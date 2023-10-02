@@ -5,17 +5,21 @@ import org.sudu.experiments.parser.common.TriConsumer;
 import org.sudu.experiments.parser.common.graph.node.Resolver;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
+import org.sudu.experiments.parser.common.graph.node.decl.MethodNode;
 import org.sudu.experiments.parser.common.graph.node.ref.*;
 import org.sudu.experiments.parser.common.graph.type.Type;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 public class ScopeGraph {
 
   public ScopeNode root;
   public List<Type> types;
+  public Map<String, Type> typeMap;
 
   public ScopeGraph() {
     types = new ArrayList<>();
@@ -27,6 +31,7 @@ public class ScopeGraph {
   }
 
   public void resolveAll(BiConsumer<RefNode, DeclNode> onResolve) {
+    if (root == null) return;
     resolveAllRec(root, new Resolver(onResolve));
   }
 
@@ -35,11 +40,52 @@ public class ScopeGraph {
     current.children.forEach(child -> resolveAllRec(child, resolver));
   }
 
+  public void updateType(ScopeNode current) {
+    for (var decl: current.declarations) updateDeclType(decl);
+    for (var ref: current.references) updateRefType(ref);
+    for (var infer: current.inferences) {
+      updateDeclType(infer.decl);
+      updateRefType(infer.ref);
+    }
+    current.children.forEach(this::updateType);
+  }
+
+  public void updateDeclType(DeclNode declNode) {
+    if (declNode != null && declNode.type != null)
+      declNode.type = typeMap.get(declNode.type.type);
+    if (declNode instanceof MethodNode methodNode) {
+      methodNode.argTypes.replaceAll(typeArg -> typeMap.get(typeArg.type));
+    }
+  }
+
+  public void updateRefType(RefNode refNode) {
+    if (refNode instanceof ExprRefNode exprRefNode) {
+      exprRefNode.refNodes.forEach(this::updateRefType);
+    } else {
+      if (refNode instanceof MethodCallNode callNode) {
+        callNode.callArgs.forEach(this::updateRefType);
+      } else if (refNode instanceof QualifiedRefNode qualifiedRef) {
+        updateRefType(qualifiedRef.begin);
+        updateRefType(qualifiedRef.cont);
+      }
+    }
+    if (refNode != null && refNode.type != null) {
+      refNode.type = typeMap.get(refNode.type.type);
+    }
+  }
+
+  public void buildTypeMap() {
+    typeMap = new HashMap<>();
+    for (var type: types) typeMap.put(type.type, type);
+  }
+
   public void makeInsertDiff(int pos, int len) {
+    if (root == null) return;
     makeInsertDiffRec(root, pos, len);
   }
 
   public void makeDeleteDiff(int pos, int len) {
+    if (root == null) return;
     makeDeleteDiffRec(root, pos, len);
   }
 
@@ -87,7 +133,7 @@ public class ScopeGraph {
       makeDiff(this::makeDeleteDiff, infer.ref, pos, len);
     }
     curNode.declarations.removeIf(it -> it.decl.position < 0);
-    curNode.references.removeIf(it -> it.ref != null && it.ref.position < 0);
+    curNode.references.removeIf(it -> it == null || (it.ref != null && it.ref.position < 0));
     for (var child: curNode.children) makeDeleteDiffRec(child, pos, len);
   }
 

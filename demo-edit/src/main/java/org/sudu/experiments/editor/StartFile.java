@@ -53,11 +53,26 @@ public interface StartFile {
           }
         }
 
-        public interface A {
+        public interface I {
           int sumField(int field);
-          
-          default void foo() {
-            sumField(10);
+
+          default void foo(int a) {
+            sumField(a);
+          }
+        }
+
+        public class C {
+          int field;
+        }
+
+        public class A extends C implements I {
+          public void a() {
+            foo(field);
+          }
+
+          @Override
+          public int sumField(int field) {
+            return 0;
           }
         }
       }

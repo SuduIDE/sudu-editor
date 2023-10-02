@@ -30,7 +30,11 @@ public class DeclNode {
   public boolean match(RefNode ref) {
     boolean nameMatch = ref.ref == null || ref.ref.match(decl);
     boolean typeMatch = ref.type == null || ref.type.match(type);
-    return nameMatch && typeMatch;
+    if (!(nameMatch && typeMatch)) return false;
+    if (declType == LOCAL_VAR) {
+      return ref.ref != null && decl.position < ref.ref.position;
+    }
+    return true;
   }
 
   @Override

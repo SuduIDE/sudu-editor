@@ -35,7 +35,7 @@ public class ScopeGraphSerializationTest {
     scopeWalker.scopeWalker.updateTypes();
 
     ScopeGraph fromGraph = scopeWalker.scopeWalker.graph;
-    ScopeGraphWriter scopeGraphWriter = new ScopeGraphWriter(fromGraph);
+    ScopeGraphWriter scopeGraphWriter = new ScopeGraphWriter(fromGraph, scopeWalker.scopeWalker.currentNode);
     scopeGraphWriter.toInts();
     int[] ints = scopeGraphWriter.ints;
     char[] chars = scopeGraphWriter.chars;
@@ -43,7 +43,7 @@ public class ScopeGraphSerializationTest {
     ScopeGraphReader reader = new ScopeGraphReader(ints, chars);
     reader.readFromInts();
     ScopeGraph toGraph = new ScopeGraph();
-    toGraph.root = reader.root;
+    toGraph.root = reader.scopeRoot;
 
     toGraph.resolveAll((ref, decl) -> System.out.println(ref + " |-> " + decl));
   }

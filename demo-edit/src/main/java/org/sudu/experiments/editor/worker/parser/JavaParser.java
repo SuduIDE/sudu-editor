@@ -60,18 +60,24 @@ public class JavaParser {
     result.add(chars);
   }
 
-  public static void parseInterval(char[] chars, int[] interval, Consumer<Object[]> result) {
+  public static void parseInterval(char[] chars, int[] interval, int[] graphInts, char[] graphChars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    parseInterval(chars, interval, list);
+    parseInterval(chars, interval, graphInts, graphChars, list);
     ArrayOp.sendArrayList(list, result);
   }
 
-  private static void parseInterval(char[] chars, int[] interval, List<Object> result) {
+  private static void parseInterval(
+      char[] chars, int[] interval,
+      int[] graphInts, char[] graphChars,
+      List<Object> result
+  ) {
     String source = new String(chars);
     JavaIntervalParser parser = new JavaIntervalParser();
-    int[] ints = parser.parseInterval(source, interval);
+    int[] ints = parser.parseIntervalScope(source, interval, graphInts, graphChars);
     result.add(ints);
     result.add(chars);
+    result.add(parser.writer.ints);
+    result.add(parser.writer.chars);
   }
 
 }

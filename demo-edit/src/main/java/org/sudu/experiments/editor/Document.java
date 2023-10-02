@@ -36,6 +36,7 @@ public class Document {
     document = CodeLine.singleElementLine("");
     currentVersion = lastParsedVersion = 0;
     tree = initialInterval();
+    scopeGraph = new ScopeGraph();
   }
 
   public Document(CodeLine... data) {
@@ -43,6 +44,7 @@ public class Document {
     document = data;
     currentVersion = lastParsedVersion = 0;
     tree = initialInterval();
+    scopeGraph = new ScopeGraph();
   }
 
   public Document(CodeLine[] data, IntervalNode node) {
@@ -50,11 +52,13 @@ public class Document {
     document = data;
     currentVersion = lastParsedVersion = 0;
     tree = new IntervalTree(node);
+    scopeGraph = new ScopeGraph();
   }
 
   public Document(int n) {
     this(TestText.document(n, false));
     tree = initialInterval();
+    scopeGraph = new ScopeGraph();
   }
 
   public Document(String[] text) {

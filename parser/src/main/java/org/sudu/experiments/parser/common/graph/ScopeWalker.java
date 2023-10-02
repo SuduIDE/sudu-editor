@@ -21,11 +21,13 @@ public class ScopeWalker {
   public ScopeGraph graph;
   public Map<String, Type> typeMap;
   public int newIntervalStart = 0;
+  public int offset = 0;
 
   public ScopeWalker(IntervalNode node) {
     graph = new ScopeGraph();
     graph.root = currentScope = new ScopeNode(null);
     currentNode = node;
+    node.scope = currentScope;
     typeMap = new HashMap<>();
     typeStack = new LinkedList<>();
   }
@@ -78,6 +80,10 @@ public class ScopeWalker {
     return typeStack.getLast();
   }
 
+  public void setTypes(List<Type> types) {
+    types.forEach(type -> typeMap.put(type.type, type));
+  }
+
   public Type getType(String typeString) {
     if (typeString == null || typeString.isBlank()) return null;
     if (!typeMap.containsKey(typeString))
@@ -103,9 +109,13 @@ public class ScopeWalker {
   }
 
   public void addInterval(ParserRuleContext ctx, int intervalType) {
+    addInterval(ctx, intervalType, currentScope);
+  }
+
+  public void addInterval(ParserRuleContext ctx, int intervalType, ScopeNode scopeNode) {
     int end = ctx.stop.getStopIndex() + 1;
-    Interval child = new Interval(newIntervalStart, end, intervalType);
-    currentNode.addChild(child, currentScope);
+    Interval child = new Interval(newIntervalStart + offset, end + offset, intervalType);
+    currentNode.addChild(child, scopeNode);
     newIntervalStart = end;
   }
 

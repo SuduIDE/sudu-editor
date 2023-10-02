@@ -66,7 +66,7 @@ public abstract class ParserUtils {
       linePrefixSum[i + 1] = linePrefixSum[i] + document.line(i).totalStrLength + 1;
     }
 
-    document.tree = new IntervalTree(IntervalNode.getNode(reader));
+    if (K != 0) document.tree = new IntervalTree(IntervalNode.getNode(reader));
     document.linePrefixSum = linePrefixSum;
 
     document.usageToDef.clear();
@@ -76,17 +76,26 @@ public abstract class ParserUtils {
     reader.checkSize();
 
     if (graphInts != null && graphChars != null) {
-      document.scopeGraph = updateGraph(graphInts, graphChars);
+      updateGraph(document, graphInts, graphChars);
     }
   }
 
-  public static ScopeGraph updateGraph(int[] graphInts, char[] graphChars) {
+  public static void updateGraph(Document document, int[] graphInts, char[] graphChars) {
     ScopeGraphReader reader = new ScopeGraphReader(graphInts, graphChars);
     reader.readFromInts();
-    return new ScopeGraph(reader.root, reader.types);
+    document.scopeGraph = new ScopeGraph(reader.scopeRoot, reader.types);
+    document.tree = new IntervalTree(reader.intervalRoot);
   }
 
   public static void updateDocumentInterval(Document document, int[] ints, char[] chars) {
+    updateDocumentInterval(document, ints, chars, null, null);
+  }
+
+  public static void updateDocumentInterval(
+      Document document,
+      int[] ints, char[] chars,
+      int[] graphInts, char[] graphChars
+  ) {
     if (ints.length == 1 && ints[0] == -1) return;
 
     ArrayReader reader = new ArrayReader(ints);
@@ -112,9 +121,15 @@ public abstract class ParserUtils {
       IntervalNode intervalNode = IntervalNode.getNode(reader);
       Interval oldInterval = new Interval(intervalStart, intervalStop, -1);
       document.tree.replaceInterval(oldInterval, intervalNode);
+    } else if (graphInts != null && graphChars != null) {
+      ScopeGraphReader graphReader = new ScopeGraphReader(graphInts, graphChars);
+      graphReader.readFromInts();
+      Interval oldInterval = new Interval(intervalStart, intervalStop, -1);
+      document.tree.replaceInterval(oldInterval, graphReader.intervalRoot);
+      document.scopeGraph.buildTypeMap();
+      document.scopeGraph.updateType(document.scopeGraph.root);
     }
     reader.checkSize();
-
   }
 
   public static CodeElement[] readElements(ArrayReader reader, char[] chars, int startDx) {

@@ -781,13 +781,13 @@ unknownInterval
       | importDeclaration
       | packageDeclaration
       )+?
-    | anySeq
+//    | anySeq
     | EOF
     ;
 
 compilationUnitOrAny
     : compilationUnit
-    | anySeq
+//    | anySeq
     ;
 
 anySeq: .+?;

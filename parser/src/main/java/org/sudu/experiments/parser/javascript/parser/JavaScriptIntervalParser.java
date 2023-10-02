@@ -10,6 +10,7 @@ import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.BaseIntervalParser;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.common.graph.type.Type;
 import org.sudu.experiments.parser.javascript.JsSplitRules;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptLexer;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptParser;
@@ -21,7 +22,7 @@ import java.util.List;
 public class JavaScriptIntervalParser extends BaseIntervalParser {
 
   @Override
-  protected IntervalNode parseInterval(Interval interval) {
+  protected IntervalNode parseInterval(Interval interval, List<Type> types) {
     JavaScriptParser parser = new JavaScriptParser(tokenStream);
     ParserRuleContext ruleContext;
 

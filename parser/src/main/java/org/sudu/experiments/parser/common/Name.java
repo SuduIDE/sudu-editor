@@ -19,12 +19,12 @@ public class Name implements Comparable<Name> {
     return name.equals(another.name);
   }
 
-  public static Name fromNode(TerminalNode node) {
-    return fromToken(node.getSymbol());
+  public static Name fromNode(TerminalNode node, int offset) {
+    return fromToken(node.getSymbol(), offset);
   }
 
-  public static Name fromToken(Token token) {
-    return new Name(token.getText(), token.getStartIndex());
+  public static Name fromToken(Token token, int offset) {
+    return new Name(token.getText(), token.getStartIndex() + offset);
   }
 
   @Override

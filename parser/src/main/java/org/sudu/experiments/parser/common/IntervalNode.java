@@ -6,6 +6,7 @@ import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -58,19 +59,23 @@ public class IntervalNode {
   }
 
   public static IntervalNode getNode(ArrayReader reader) {
-    return readNode(reader);
+    return readNode(reader, null);
   }
 
-  private static IntervalNode readNode(ArrayReader reader) {
+  public static IntervalNode readNode(
+      ArrayReader reader,
+      ScopeNode[] scopeNodes
+  ) {
     int start = reader.next(),
         stop = reader.next(),
         type = reader.next();
     int childCount = reader.next();
+    int scopeInd = reader.next();
 
     Interval interval = new Interval(start, stop, type);
-    IntervalNode node = new IntervalNode(interval);
+    IntervalNode node = new IntervalNode(interval, getScope(scopeNodes, scopeInd));
     for (int i = 0; i < childCount; i++) {
-      var child = readNode(reader);
+      var child = readNode(reader, scopeNodes);
       node.addChild(child);
     }
     return node;
@@ -78,18 +83,39 @@ public class IntervalNode {
 
   public int[] toInts() {
     ArrayWriter writer = new ArrayWriter();
-    writeInts(this, writer);
+    writeInts(this, writer, null);
     return writer.getInts();
   }
 
-  private static void writeInts(IntervalNode node, ArrayWriter writer) {
+  public static void writeInts(
+      IntervalNode node,
+      ArrayWriter writer,
+      IdentityHashMap<ScopeNode, Integer> scopeMap
+  ) {
     Interval interval = node.interval;
     List<IntervalNode> children = node.children;
 
     writer.write(interval.start, interval.stop, interval.intervalType);
     writer.write(children.size());
+    writer.write(getScopeInd(scopeMap, node));
 
-    for (var child: children) writeInts(child, writer);
+    for (var child: children) writeInts(child, writer, scopeMap);
+  }
+
+  private static int getScopeInd(
+      IdentityHashMap<ScopeNode, Integer> scopeMap,
+      IntervalNode node
+  ) {
+    if (scopeMap == null || node.scope == null || !scopeMap.containsKey(node.scope)) return -1;
+    else return scopeMap.get(node.scope);
+  }
+
+  private static ScopeNode getScope(
+      ScopeNode[] scopeNodes,
+      int scopeInd
+  ) {
+    if (scopeNodes == null || scopeInd < 0 || scopeInd > scopeNodes.length) return null;
+    return scopeNodes[scopeInd];
   }
 
   public int getStart() {
