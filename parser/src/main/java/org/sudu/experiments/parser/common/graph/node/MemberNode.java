@@ -10,6 +10,7 @@ public class MemberNode extends ScopeNode {
 
   public <D extends DeclNode> MemberNode(ScopeNode parent, List<D> members) {
     super(parent);
+    if (members.isEmpty()) throw new IllegalStateException("Member should contains at least 1 decl");
     this.member = members.get(0);
     this.declarations.addAll(members);
   }

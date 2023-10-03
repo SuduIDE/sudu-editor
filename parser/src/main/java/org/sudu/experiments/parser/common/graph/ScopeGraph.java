@@ -138,9 +138,6 @@ public class ScopeGraph {
   }
 
   private void makeDeleteDiff(Name name, int pos, int len) {
-    if (name.position >= pos) {
-      if (name.position < pos + len) name.position = -1;
-      else name.position -= len;
-    }
+    if (name.position >= pos) name.position -= len;
   }
 }
