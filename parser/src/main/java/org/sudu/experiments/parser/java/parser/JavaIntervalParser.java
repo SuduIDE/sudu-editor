@@ -7,7 +7,7 @@ import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.BaseIntervalParser;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
-import org.sudu.experiments.parser.common.graph.type.Type;
+import org.sudu.experiments.parser.common.graph.type.TypeMap;
 import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
 import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
@@ -15,7 +15,6 @@ import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting;
 import org.sudu.experiments.parser.java.walker.JavaScopeWalker;
 
-import java.util.List;
 
 import static org.sudu.experiments.parser.ParserConstants.*;
 
@@ -24,7 +23,7 @@ public class JavaIntervalParser extends BaseIntervalParser {
   public ScopeGraphWriter writer;
 
   @Override
-  protected IntervalNode parseInterval(Interval interval, List<Type> types) {
+  protected IntervalNode parseInterval(Interval interval, TypeMap typeMap) {
     JavaParser parser = new JavaParser(tokenStream);
     ParserRuleContext ruleContext;
     Interval initInterval;
@@ -40,11 +39,10 @@ public class JavaIntervalParser extends BaseIntervalParser {
     JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes);
     ParseTreeWalker walker = new ParseTreeWalker();
     JavaScopeWalker scopeWalker = new JavaScopeWalker(new IntervalNode(initInterval), intervalStart, tokenTypes, tokenStyles);
-    scopeWalker.scopeWalker.setTypes(types);
+    scopeWalker.scopeWalker.graph.typeMap = typeMap;
     scopeWalker.offset = intervalStart;
     walker.walk(scopeWalker, ruleContext);
 
-    scopeWalker.scopeWalker.updateTypes();
     var graph = scopeWalker.scopeWalker.graph;
     var node = scopeWalker.scopeWalker.currentNode;
     writer = new ScopeGraphWriter(graph, node);

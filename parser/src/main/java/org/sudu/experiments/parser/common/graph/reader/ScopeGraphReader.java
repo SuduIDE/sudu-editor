@@ -6,7 +6,7 @@ import org.sudu.experiments.parser.common.graph.node.FakeNode;
 import org.sudu.experiments.parser.common.graph.node.InferenceNode;
 import org.sudu.experiments.parser.common.graph.node.MemberNode;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
-import org.sudu.experiments.parser.common.graph.type.Type;
+import org.sudu.experiments.parser.common.graph.type.TypeMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,8 @@ public class ScopeGraphReader {
 
   public ScopeNode scopeRoot;
   public IntervalNode intervalRoot;
-  public List<Type> types;
+  public List<String> types;
+  public TypeMap typeMap;
 
   public ScopeGraphReader(
       int[] ints,
@@ -37,13 +38,13 @@ public class ScopeGraphReader {
   public void readFromInts() {
     readTypes();
     readScopeRoot();
-    readAssociatedScopes();
     readIntervalNode();
   }
 
   private void readTypes() {
     int len = reader.next();
-    types = new ArrayList<>(len);
+    typeMap = new TypeMap();
+    types = new ArrayList<>();
     readTypesNames(len);
     readSupertypes();
   }
@@ -51,12 +52,15 @@ public class ScopeGraphReader {
   private void readTypesNames(int len) {
     for (int i = 0; i < len; i++) {
       String name = nextString();
-      types.add(new Type(name));
+      typeMap.put(name, new ArrayList<>());
+      types.add(name);
     }
   }
 
   public void readSupertypes() {
-    for (Type type: types) type.supertypes = readTypeList();
+    for (var typeEntry: typeMap.entrySet()) {
+      typeEntry.getValue().addAll(readTypeList());
+    }
   }
 
   private void readScopeRoot() {
@@ -65,16 +69,6 @@ public class ScopeGraphReader {
     declNodeReader = new DeclNodeReader(reader, chars, types);
     refNodeReader = new RefNodeReader(reader, chars, types);
     scopeRoot = readScope(null);
-  }
-
-  private void readAssociatedScopes() {
-    for (int i = 0; i < types.size(); i++) {
-      int typeInd = reader.next();
-      if (typeInd == -1) continue;
-      int scopeInd = reader.next();
-      var type = types.get(typeInd);
-      type.associatedScope = scopeNodes[scopeInd];
-    }
   }
 
   private ScopeNode readScope(ScopeNode parent) {
@@ -93,14 +87,15 @@ public class ScopeGraphReader {
     scopeNode.references = refNodeReader.readRefNodes();
     scopeNode.importTypes = readTypeList();
     scopeNode.inferences = readInferences();
+    scopeNode.type = readScopeType();
     scopeNode.children = readChildrenScopes(scopeNode);
     scopeNodes[scopeInd] = scopeNode;
     return scopeNode;
   }
 
-  private List<Type> readTypeList() {
+  private List<String> readTypeList() {
     int len = reader.next();
-    List<Type> result = new ArrayList<>();
+    List<String> result = new ArrayList<>();
     for (int i = 0; i < len; i++) {
       int typeInd = reader.next();
       result.add(types.get(typeInd));
@@ -124,6 +119,12 @@ public class ScopeGraphReader {
       result.add(new InferenceNode(decl, ref));
     }
     return result;
+  }
+
+  private String readScopeType() {
+    int typeInd = reader.next();
+    if (typeInd == -1) return null;
+    return types.get(typeInd);
   }
 
   private void readIntervalNode() {

@@ -3,7 +3,6 @@ package org.sudu.experiments.parser.common.graph.reader;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.parser.common.Name;
 import org.sudu.experiments.parser.common.graph.node.decl.*;
-import org.sudu.experiments.parser.common.graph.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,12 +13,12 @@ public class DeclNodeReader {
 
   private final ArrayReader reader;
   private final char[] chars;
-  private final List<Type> types;
+  private final List<String> types;
 
   public DeclNodeReader(
       ArrayReader reader,
       char[] chars,
-      List<Type> types
+      List<String> types
   ) {
     this.reader = reader;
     this.chars = chars;
@@ -52,7 +51,7 @@ public class DeclNodeReader {
     return new Name(name, pos);
   }
 
-  private Type readType() {
+  private String readType() {
     int typeInd = reader.next();
     if (typeInd == -1) return null;
     return types.get(typeInd);
@@ -60,22 +59,22 @@ public class DeclNodeReader {
 
   private DeclNode readDecl() {
     Name name = readName();
-    Type type = readType();
+    String type = readType();
     int declType = reader.next();
     return new DeclNode(name, type, declType);
   }
 
   private MethodNode readMethodDecl() {
     Name name = readName();
-    Type type = readType();
+    String type = readType();
     int callType = reader.next();
-    List<Type> types = readTypeList();
+    List<String> types = readTypeList();
     return new MethodNode(name, type, callType, types);
   }
 
-  private List<Type> readTypeList() {
+  private List<String> readTypeList() {
     int len = reader.next();
-    List<Type> result = new ArrayList<>();
+    List<String> result = new ArrayList<>();
     for (int i = 0; i < len; i++) {
       result.add(readType());
     }

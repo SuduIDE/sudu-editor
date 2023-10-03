@@ -3,9 +3,8 @@ package org.sudu.experiments.parser.common.graph.writer;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 import org.sudu.experiments.parser.common.graph.node.ref.*;
-import org.sudu.experiments.parser.common.graph.type.Type;
 
-import java.util.IdentityHashMap;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.sudu.experiments.parser.common.graph.ScopeGraphConstants.Refs.*;
@@ -14,12 +13,12 @@ public class RefNodeWriter {
 
   private final ArrayWriter writer;
   private final StringBuilder declStringBuilder;
-  private final IdentityHashMap<Type, Integer> typeIdentityMap;
+  private final HashMap<String, Integer> typeIdentityMap;
 
   public RefNodeWriter(
       ArrayWriter writer,
       StringBuilder declStringBuilder,
-      IdentityHashMap<Type, Integer> typeIdentityMap
+      HashMap<String, Integer> typeIdentityMap
   ) {
     this.writer = writer;
     this.declStringBuilder = declStringBuilder;
@@ -47,25 +46,14 @@ public class RefNodeWriter {
     declStringBuilder.append(name);
   }
 
-  private void writeType(Type type) {
-    if (type == null || type.type == null) {
+  private void writeType(String type) {
+    if (type == null) {
       writer.write(-1);
       return;
     }
     int typeNum = typeIdentityMap.get(type);
     writer.write(typeNum);
   }
-
-//  private void writeCreatorCall(CreatorCallNode creatorCallNode) {
-//    writer.write(CREATOR_CALL_NODE);
-//    writeRefName(creatorCallNode);
-//    writeArgs(creatorCallNode.callArgs);
-//  }
-
-//  private void writeFieldRef(FieldRefNode fieldRefNode) {
-//    writer.write(FIELD_REF_NODE);
-//    writeRefName(fieldRefNode);
-//  }
 
   private void writeExprRef(ExprRefNode exprRefNode) {
     writer.write(EXPR_NODE);

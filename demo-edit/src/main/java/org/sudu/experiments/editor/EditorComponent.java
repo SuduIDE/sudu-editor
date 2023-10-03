@@ -1468,7 +1468,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       char[] graphChars;
       if (model.document.scopeGraph.root != null) {
         ScopeGraph oldGraph = model.document.scopeGraph;
-        ScopeGraph reparseGraph = new ScopeGraph(reparseNode.scope, oldGraph.types);
+        ScopeGraph reparseGraph = new ScopeGraph(reparseNode.scope, oldGraph.typeMap);
         ScopeGraphWriter writer = new ScopeGraphWriter(reparseGraph, reparseNode);
         writer.toInts();
         graphInts = writer.ints;

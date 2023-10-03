@@ -9,7 +9,6 @@ import org.sudu.experiments.parser.common.graph.node.MemberNode;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 import org.sudu.experiments.parser.common.graph.node.decl.*;
 import org.sudu.experiments.parser.common.graph.node.ref.RefNode;
-import org.sudu.experiments.parser.common.graph.type.Type;
 
 import java.util.*;
 
@@ -17,9 +16,7 @@ public class ScopeWalker {
 
   public ScopeNode currentScope;
   public IntervalNode currentNode;
-  public Deque<Type> typeStack;
   public ScopeGraph graph;
-  public Map<String, Type> typeMap;
   public int newIntervalStart = 0;
   public int offset = 0;
 
@@ -28,8 +25,6 @@ public class ScopeWalker {
     graph.root = currentScope = new ScopeNode(null);
     currentNode = node;
     node.scope = currentScope;
-    typeMap = new HashMap<>();
-    typeStack = new LinkedList<>();
   }
 
   public void enterScope() {
@@ -68,44 +63,25 @@ public class ScopeWalker {
     currentScope = currentScope.parent;
   }
 
-  public void enterType(Type type) {
-    typeStack.addLast(type);
-  }
-
-  public void exitType() {
-    typeStack.removeLast();
-  }
-
-  public Type currentType() {
-    return typeStack.getLast();
-  }
-
-  public void setTypes(List<Type> types) {
-    types.forEach(type -> typeMap.put(type.type, type));
-  }
-
-  public Type getType(String typeString) {
-    if (typeString == null || typeString.isBlank()) return null;
-    if (!typeMap.containsKey(typeString))
-      typeMap.put(typeString, new Type(typeString));
-    return typeMap.get(typeString);
-  }
-
-  public Type addType(String typeString, ScopeNode scopeNode) {
-    if (typeString == null || typeString.isBlank()) return null;
-    Type type;
-    if (typeMap.containsKey(typeString)) {
-      type = typeMap.get(typeString);
-      type.associatedScope = scopeNode;
-    } else {
-      type = new Type(typeString, scopeNode);
-      typeMap.put(typeString, type);
-    }
+  public String getType(String type) {
+    if (type == null || type.isBlank()) return null;
+    graph.typeMap.putIfAbsent(type, new ArrayList<>());
     return type;
   }
 
-  public void updateTypes() {
-    graph.types = typeMap.values().stream().toList();
+  public String associateType(String type, ScopeNode scopeNode) {
+    if (type == null || type.isBlank()) return null;
+    graph.typeMap.putIfAbsent(type, new ArrayList<>());
+    scopeNode.type = type;
+    return type;
+  }
+
+  public void addSupertype(String type, String supertype) {
+    graph.typeMap.get(type).add(supertype);
+  }
+
+  public void addSupertypes(String type, List<String> supertypes) {
+    graph.typeMap.get(type).addAll(supertypes);
   }
 
   public void addInterval(ParserRuleContext ctx, int intervalType) {

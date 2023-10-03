@@ -3,9 +3,8 @@ package org.sudu.experiments.parser.common.graph.writer;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 import org.sudu.experiments.parser.common.graph.node.decl.*;
-import org.sudu.experiments.parser.common.graph.type.Type;
 
-import java.util.IdentityHashMap;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.sudu.experiments.parser.common.graph.ScopeGraphConstants.Decls.*;
@@ -14,16 +13,16 @@ public class DeclNodeWriter {
 
   private final ArrayWriter writer;
   private final StringBuilder declStringBuilder;
-  private final IdentityHashMap<Type, Integer> typeIdentityMap;
+  private final HashMap<String, Integer> typeMap;
 
   public DeclNodeWriter(
       ArrayWriter writer,
       StringBuilder declStringBuilder,
-      IdentityHashMap<Type, Integer> typeIdentityMap
+      HashMap<String, Integer> typeIdentityMap
   ) {
     this.writer = writer;
     this.declStringBuilder = declStringBuilder;
-    this.typeIdentityMap = typeIdentityMap;
+    this.typeMap = typeIdentityMap;
   }
 
   void writeDeclNodes(ScopeNode scope) {
@@ -44,13 +43,9 @@ public class DeclNodeWriter {
     declStringBuilder.append(name);
   }
 
-  private void writeType(Type type) {
-    if (type == null || type.type == null) {
-      writer.write(-1);
-      return;
-    }
-    int typeNum = typeIdentityMap.get(type);
-    writer.write(typeNum);
+  private void writeType(String type) {
+    if (type == null) writer.write(-1);
+    else writer.write(typeMap.get(type));
   }
 
   private void writeDecl(DeclNode node) {
@@ -66,7 +61,7 @@ public class DeclNodeWriter {
     writeArgs(node.argTypes);
   }
 
-  private void writeArgs(List<Type> typeList) {
+  private void writeArgs(List<String> typeList) {
     writer.write(typeList.size());
     typeList.forEach(this::writeType);
   }

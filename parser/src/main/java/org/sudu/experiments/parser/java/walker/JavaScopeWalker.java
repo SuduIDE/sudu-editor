@@ -9,7 +9,6 @@ import org.sudu.experiments.parser.common.graph.node.InferenceNode;
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
 import org.sudu.experiments.parser.common.graph.node.decl.MethodNode;
 import org.sudu.experiments.parser.common.graph.node.ref.*;
-import org.sudu.experiments.parser.common.graph.type.Type;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.JavaParserBaseListener;
 
@@ -85,13 +84,12 @@ public class JavaScopeWalker extends JavaParserBaseListener {
 
     var node = getNode(ctx.identifier());
     String typeString = node.getText();
-    var type = scopeWalker.addType(typeString, scopeWalker.currentScope);
-    scopeWalker.enterType(type);
+    var type = scopeWalker.associateType(typeString, scopeWalker.currentScope);
 
     if (ctx.typeType() != null) {
       String supertypeString = getType(ctx.typeType());
       var supertype = scopeWalker.getType(supertypeString);
-      type.supertypes.add(supertype);
+      scopeWalker.addSupertype(type, supertype);
       scopeWalker.currentScope.importTypes.add(supertype);
     }
 
@@ -105,7 +103,6 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   public void exitClassDeclaration(JavaParser.ClassDeclarationContext ctx) {
     super.exitClassDeclaration(ctx);
     scopeWalker.exitScope();
-    scopeWalker.exitType();
 
     scopeWalker.newIntervalStart =
         ctx.classBody().RBRACE().getSymbol().getStartIndex() + 1;
@@ -162,8 +159,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
 
     var node = getNode(ctx.identifier());
     String typeString = node.getText();
-    var type = scopeWalker.addType(typeString, scopeWalker.currentScope);
-    scopeWalker.enterType(type);
+    var type = scopeWalker.associateType(typeString, scopeWalker.currentScope);
 
     addSupertypes(type, ctx.typeList());
 
@@ -175,7 +171,6 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   public void exitInterfaceDeclaration(JavaParser.InterfaceDeclarationContext ctx) {
     super.exitInterfaceDeclaration(ctx);
     scopeWalker.exitScope();
-    scopeWalker.exitType();
 
     scopeWalker.newIntervalStart =
         ctx.interfaceBody().RBRACE().getSymbol().getStartIndex() + 1;
@@ -329,7 +324,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
 
   public void handleField(JavaParser.FieldDeclarationContext ctx, boolean isStatic) {
     String typeString = getType(ctx.typeType());
-    Type type = scopeWalker.getType(typeString);
+    String type = scopeWalker.getType(typeString);
     List<TerminalNode> declarators = getVarDeclarators(ctx.variableDeclarators());
 
     List<DeclNode> fields = declarators.stream()
@@ -375,9 +370,9 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     TerminalNode node = getNode(ctx.identifier());
     Name decl = Name.fromNode(node, offset);
     String typeString = node.getText();
-    Type type = scopeWalker.getType(typeString);
+    String type = scopeWalker.getType(typeString);
     List<DeclNode> args = getArgsTypes(ctx.formalParameters());
-    List<Type> types = args.stream().map(arg -> arg.type).toList();
+    List<String> types = args.stream().map(arg -> arg.type).toList();
     var creator = new MethodNode(decl, type, MethodNode.CREATOR, types);
     scopeWalker.enterMember(creator);
     scopeWalker.addToRoot(creator);
@@ -393,9 +388,9 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     TerminalNode node = getNode(identifier);
     Name decl = Name.fromNode(node, offset);
     String typeString = getType(typeTypeOrVoid);
-    Type type = scopeWalker.getType(typeString);
+    String type = scopeWalker.getType(typeString);
     List<DeclNode> args = getArgsTypes(formalParameters);
-    List<Type> types = args.stream().map(arg -> arg.type).toList();
+    List<String> types = args.stream().map(arg -> arg.type).toList();
     scopeWalker.enterMember(new MethodNode(decl, type, MethodNode.METHOD, types));
     scopeWalker.enterScope();
     scopeWalker.addDecls(args);
@@ -443,7 +438,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   }
 
   private void addSupertypes(
-      Type type,
+      String type,
       List<JavaParser.TypeListContext> typeListContexts
   ) {
     if (typeListContexts != null && !typeListContexts.isEmpty()) {
@@ -452,7 +447,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
         String supertypeString = getType(typeType);
 
         var supertype = scopeWalker.getType(supertypeString);
-        type.supertypes.add(supertype);
+        scopeWalker.addSupertype(type, supertype);
         scopeWalker.currentScope.importTypes.add(supertype);
       }
     }
@@ -543,8 +538,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
 
   private RefNode handlePrimary(JavaParser.PrimaryContext ctx) {
     if (ctx.expression() != null) return handleExpression(ctx.expression());
-    if (ctx.THIS() != null) return new RefNode(Name.fromNode(ctx.THIS(), offset), scopeWalker.currentType(), RefNode.THIS);
-    if (ctx.SUPER() != null) return new RefNode(Name.fromNode(ctx.SUPER(), offset), scopeWalker.currentType(), RefNode.SUPER);
+    if (ctx.THIS() != null) return new RefNode(Name.fromNode(ctx.THIS(), offset), null, RefNode.THIS);
+    if (ctx.SUPER() != null) return new RefNode(Name.fromNode(ctx.SUPER(), offset), null, RefNode.SUPER);
     if (ctx.literal() != null) return handleLiteral(ctx.literal());
     if (ctx.identifier() != null) return new RefNode(Name.fromNode(getNode(ctx.identifier()), offset));
     return null;
@@ -563,7 +558,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     return new RefNode(Name.fromToken(node, offset), type, RefNode.TYPE);
   }
 
-  private Type getLiteralType(JavaParser.LiteralContext ctx) {
+  private String getLiteralType(JavaParser.LiteralContext ctx) {
     if (ctx.integerLiteral() != null) return scopeWalker.getType("int");
     if (ctx.floatLiteral() != null) return scopeWalker.getType("float");
     if (ctx.CHAR_LITERAL() != null) return scopeWalker.getType("char");
@@ -599,7 +594,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
       var list = ctx.formalParameterList();
       for (var formalParam: list.formalParameter()) {
         String typeString = getType(formalParam.typeType());
-        Type type = scopeWalker.getType(typeString);
+        String type = scopeWalker.getType(typeString);
 
         TerminalNode node = getNode(formalParam.variableDeclaratorId().identifier());
         Name decl = Name.fromNode(node, offset);
@@ -607,7 +602,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
       }
       if (list.lastFormalParameter() != null) {
         String typeString = getType(list.lastFormalParameter().typeType());
-        Type type = scopeWalker.getType(typeString);
+        String type = scopeWalker.getType(typeString);
 
         TerminalNode node = getNode(list.lastFormalParameter().variableDeclaratorId().identifier());
         Name decl = Name.fromNode(node, offset);

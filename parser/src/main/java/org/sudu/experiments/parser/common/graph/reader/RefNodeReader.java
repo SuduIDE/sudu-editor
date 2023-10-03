@@ -3,7 +3,6 @@ package org.sudu.experiments.parser.common.graph.reader;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.parser.common.Name;
 import org.sudu.experiments.parser.common.graph.node.ref.*;
-import org.sudu.experiments.parser.common.graph.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,12 +13,12 @@ public class RefNodeReader {
 
   private final ArrayReader reader;
   private final char[] chars;
-  private final List<Type> types;
+  private final List<String> types;
 
   public RefNodeReader(
       ArrayReader reader,
       char[] chars,
-      List<Type> types
+      List<String> types
   ) {
     this.reader = reader;
     this.chars = chars;
@@ -55,7 +54,7 @@ public class RefNodeReader {
     return new Name(name, pos);
   }
 
-  private Type readType() {
+  private String readType() {
     int typeInd = reader.next();
     if (typeInd == -1) return null;
     return types.get(typeInd);
@@ -76,7 +75,7 @@ public class RefNodeReader {
 
   private MethodCallNode readMethodCall() {
     Name name = readName();
-    Type type = readType();
+    String type = readType();
     int callType = reader.next();
     List<RefNode> args = readArgs();
     return new MethodCallNode(name, type, callType, args);
@@ -90,7 +89,7 @@ public class RefNodeReader {
 
   private RefNode readBaseRef() {
     Name name = readName();
-    Type type = readType();
+    String type = readType();
     int refType = reader.next();
     return new RefNode(name, type, refType);
   }

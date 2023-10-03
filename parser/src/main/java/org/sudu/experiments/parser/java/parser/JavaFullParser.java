@@ -51,7 +51,6 @@ public class JavaFullParser extends BaseFullParser {
       node = defaultIntervalNode();
     }
     result = getInts(null);
-    scopeWalker.scopeWalker.updateTypes();
     writer = new ScopeGraphWriter(scopeWalker.scopeWalker.graph, node);
     writer.toInts();
 

@@ -8,7 +8,7 @@ import org.sudu.experiments.parser.common.BaseIntervalParser;
 import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
-import org.sudu.experiments.parser.common.graph.type.Type;
+import org.sudu.experiments.parser.common.graph.type.TypeMap;
 import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
@@ -57,7 +57,7 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser {
   }
 
   @Override
-  protected IntervalNode parseInterval(Interval interval, List<Type> types) {
+  protected IntervalNode parseInterval(Interval interval, TypeMap typeMap) {
     var tokenSrc = getSubSource(interval);
     CommonTokenStream tokenStream = new CommonTokenSubStream(tokenSrc);
     tokenStream.fill();

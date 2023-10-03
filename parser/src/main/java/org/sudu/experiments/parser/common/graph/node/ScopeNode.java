@@ -2,7 +2,6 @@ package org.sudu.experiments.parser.common.graph.node;
 
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
 import org.sudu.experiments.parser.common.graph.node.ref.*;
-import org.sudu.experiments.parser.common.graph.type.Type;
 
 import java.util.*;
 import java.util.function.*;
@@ -15,7 +14,8 @@ public class ScopeNode {
   public List<RefNode> references;
   public List<DeclNode> declarations;
   public List<InferenceNode> inferences;
-  public List<Type> importTypes;
+  public List<String> importTypes;
+  public String type;
 
   public ScopeNode() {
   }

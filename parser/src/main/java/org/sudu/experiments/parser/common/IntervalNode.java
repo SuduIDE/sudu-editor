@@ -163,11 +163,14 @@ public class IntervalNode {
   }
 
   public IntervalNode merge(IntervalNode node) {
-    int start = Math.min(getStart(), node.getStart());
-    int stop = Math.max(getStop(), node.getStop());
+    int newStart = Math.min(getStart(), node.getStart());
+    int newStop = Math.max(getStop(), node.getStop());
+    ScopeNode newScope = this.scope != null
+        ? this.scope
+        : node.scope;
 
-    Interval newInterval = new Interval(start, stop, interval.intervalType);
-    IntervalNode newNode = new IntervalNode(newInterval, parent);
+    Interval newInterval = new Interval(newStart, newStop, interval.intervalType);
+    IntervalNode newNode = new IntervalNode(newInterval, parent, newScope);
     newNode.needReparse = true;
     return newNode;
   }

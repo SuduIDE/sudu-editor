@@ -12,7 +12,7 @@ public class QualifiedRefNode extends RefNode {
   public RefNode begin, cont;
 
   public QualifiedRefNode(RefNode begin, RefNode cont) {
-    super(begin.ref, null, -1);
+    super(begin.ref, begin.type, -1);
     this.begin = begin;
     this.cont = cont;
   }

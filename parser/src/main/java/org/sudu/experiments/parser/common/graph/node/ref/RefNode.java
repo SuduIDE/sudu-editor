@@ -1,14 +1,13 @@
 package org.sudu.experiments.parser.common.graph.node.ref;
 
 import org.sudu.experiments.parser.common.Name;
-import org.sudu.experiments.parser.common.graph.type.Type;
 
 import java.util.Objects;
 
 public class RefNode {
 
   public Name ref;
-  public Type type;
+  public String type;
   public int refType;
   public static final int BASE = 1;
   public static final int CALL = 2;
@@ -20,7 +19,7 @@ public class RefNode {
     this(decl, null, BASE);
   }
 
-  public RefNode(Name decl, Type type, int refType) {
+  public RefNode(Name decl, String type, int refType) {
     this.ref = decl;
     this.type = type;
     this.refType = refType;

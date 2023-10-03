@@ -7,8 +7,8 @@ import org.sudu.experiments.parser.common.graph.node.FakeNode;
 import org.sudu.experiments.parser.common.graph.node.InferenceNode;
 import org.sudu.experiments.parser.common.graph.node.MemberNode;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
-import org.sudu.experiments.parser.common.graph.type.Type;
 
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 
@@ -24,7 +24,7 @@ public class ScopeGraphWriter {
   private final DeclNodeWriter declNodeWriter;
   private final RefNodeWriter refNodeWriter;
 
-  public final IdentityHashMap<Type, Integer> typeIdentityMap;
+  public final HashMap<String, Integer> typeIdentityMap;
   public final IdentityHashMap<ScopeNode, Integer> scopeIdentityMap;
 
   private final StringBuilder refDeclStringBuilder;
@@ -37,7 +37,7 @@ public class ScopeGraphWriter {
     this.node = node;
     writer = new ArrayWriter();
     refDeclStringBuilder = new StringBuilder();
-    typeIdentityMap = new IdentityHashMap<>();
+    typeIdentityMap = new HashMap<>();
     scopeIdentityMap = new IdentityHashMap<>();
     declNodeWriter = new DeclNodeWriter(writer, refDeclStringBuilder, typeIdentityMap);
     refNodeWriter = new RefNodeWriter(writer, refDeclStringBuilder, typeIdentityMap);
@@ -55,34 +55,18 @@ public class ScopeGraphWriter {
 
     writeTypes();
     writeScopes();
-    writeAssociatedScopes();
     writeIntervalNode();
   }
 
   private void writeTypes() {
-    writer.write(graph.types.size());
+    writer.write(graph.typeMap.size());
 
     writeTypesNames();
     writeSupertypes();
   }
 
-  private void writeAssociatedScopes() {
-    for (var entry: typeIdentityMap.entrySet()) {
-      Type type = entry.getKey();
-      if (type.associatedScope == null ||
-          !scopeIdentityMap.containsKey(type.associatedScope)
-      ) {
-        writer.write(-1);
-        continue;
-      }
-      int scopeInd = scopeIdentityMap.get(type.associatedScope);
-      writer.write(entry.getValue());
-      writer.write(scopeInd);
-    }
-  }
-
   private void putTypes() {
-    graph.types.forEach(this::putType);
+    graph.typeMap.keySet().forEach(this::putType);
   }
 
   private void putScopes() {
@@ -97,17 +81,18 @@ public class ScopeGraphWriter {
 
   // [s_1, e_1, ..., s_n, e_n]
   private void writeTypesNames() {
-    for (var type: graph.types) {
-      writer.write(refDeclStringBuilder.length(), type.type.length());
-      refDeclStringBuilder.append(type.type);
+    for (var type: graph.typeMap.keySet()) {
+      writer.write(refDeclStringBuilder.length(), type.length());
+      refDeclStringBuilder.append(type);
     }
   }
 
   // [sl = t_i.super.size(), t_i.super[0], ..., t_i.super[sl - 1]]
   private void writeSupertypes() {
-    for (var type: graph.types) {
-      writer.write(type.supertypes.size());
-      for (var supertype: type.supertypes) {
+    for (var type: graph.typeMap.keySet()) {
+      var supertypes = graph.typeMap.get(type);
+      writer.write(supertypes.size());
+      for (var supertype: supertypes) {
         var num = typeIdentityMap.get(supertype);
         writer.write(num);
       }
@@ -135,10 +120,11 @@ public class ScopeGraphWriter {
     refNodeWriter.writeRefs(scope);
     writeImports(scope.importTypes);
     writeInferences(scope.inferences);
+    writeScopeType(scope.type);
     writeScopeChildren(scope.children);
   }
 
-  private void writeImports(List<Type> importTypes) {
+  private void writeImports(List<String> importTypes) {
     writer.write(importTypes.size());
     importTypes.forEach(type -> writer.write(typeIdentityMap.get(type)));
   }
@@ -150,17 +136,22 @@ public class ScopeGraphWriter {
 
   private void writeInferences(List<InferenceNode> inferences) {
     writer.write(inferences.size());
-    for (var infer: inferences){
+    for (var infer: inferences) {
       declNodeWriter.writeDeclNode(infer.decl);
       refNodeWriter.writeRefNode(infer.ref);
     }
+  }
+
+  private void writeScopeType(String type) {
+    if (type == null) writer.write(-1);
+    else writer.write(typeIdentityMap.get(type));
   }
 
   private void writeIntervalNode() {
     IntervalNode.writeInts(node, writer, scopeIdentityMap);
   }
 
-  int putType(Type type) {
+  int putType(String type) {
     if (typeIdentityMap.containsKey(type))
       return typeIdentityMap.get(type);
     else {

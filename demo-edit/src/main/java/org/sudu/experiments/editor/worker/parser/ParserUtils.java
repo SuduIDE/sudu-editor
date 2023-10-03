@@ -83,7 +83,7 @@ public abstract class ParserUtils {
   public static void updateGraph(Document document, int[] graphInts, char[] graphChars) {
     ScopeGraphReader reader = new ScopeGraphReader(graphInts, graphChars);
     reader.readFromInts();
-    document.scopeGraph = new ScopeGraph(reader.scopeRoot, reader.types);
+    document.scopeGraph = new ScopeGraph(reader.scopeRoot, reader.typeMap);
     document.tree = new IntervalTree(reader.intervalRoot);
   }
 
@@ -126,8 +126,7 @@ public abstract class ParserUtils {
       graphReader.readFromInts();
       Interval oldInterval = new Interval(intervalStart, intervalStop, -1);
       document.tree.replaceInterval(oldInterval, graphReader.intervalRoot);
-      document.scopeGraph.buildTypeMap();
-      document.scopeGraph.updateType(document.scopeGraph.root);
+      document.scopeGraph.typeMap = graphReader.typeMap;
     }
     reader.checkSize();
   }

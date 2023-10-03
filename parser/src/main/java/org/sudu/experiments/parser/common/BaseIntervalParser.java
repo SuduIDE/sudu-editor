@@ -4,8 +4,7 @@ import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.graph.reader.ScopeGraphReader;
-import org.sudu.experiments.parser.common.graph.type.Type;
-import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
+import org.sudu.experiments.parser.common.graph.type.TypeMap;
 
 import java.util.List;
 import java.util.Map;
@@ -29,13 +28,13 @@ public abstract class BaseIntervalParser extends BaseParser {
     if (tokenErrorOccurred()) return makeErrorInts();
 
     Interval parsingInterval = new Interval(0, intervalStop - intervalStart, intervalType);
-    List<Type> types = null;
+    TypeMap typeMap = null;
     if (graphInts != null && graphChars != null) {
       var reader = new ScopeGraphReader(graphInts, graphChars);
       reader.readFromInts();
-      types = reader.types;
+      typeMap = reader.typeMap;
     }
-    IntervalNode intervalNode = parseInterval(parsingInterval, types);
+    IntervalNode intervalNode = parseInterval(parsingInterval, typeMap);
 
     return getVpInts(intervalStart, intervalStop, intervalNode);
   }
@@ -44,7 +43,7 @@ public abstract class BaseIntervalParser extends BaseParser {
     return parseIntervalScope(source, interval, null, null);
   }
 
-  protected abstract IntervalNode parseInterval(Interval interval, List<Type> types);
+  protected abstract IntervalNode parseInterval(Interval interval, TypeMap typeMap);
   protected IntervalNode parseInterval(Interval interval) {
     return parseInterval(interval, null);
   };

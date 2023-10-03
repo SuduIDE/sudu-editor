@@ -1,7 +1,6 @@
 package org.sudu.experiments.parser.common.graph.node.ref;
 
 import org.sudu.experiments.parser.common.Name;
-import org.sudu.experiments.parser.common.graph.type.Type;
 
 import java.util.List;
 import java.util.Objects;
@@ -17,7 +16,7 @@ public class MethodCallNode extends RefNode {
     this(decl, null, METHOD, callArgs);
   }
 
-  public MethodCallNode(Name decl, Type type, int callType, List<RefNode> callArgs) {
+  public MethodCallNode(Name decl, String type, int callType, List<RefNode> callArgs) {
     super(decl, type, CALL);
     this.callType = callType;
     this.callArgs = callArgs;
