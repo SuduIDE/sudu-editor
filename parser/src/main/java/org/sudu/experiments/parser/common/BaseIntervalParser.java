@@ -36,6 +36,7 @@ public abstract class BaseIntervalParser extends BaseParser {
     }
     IntervalNode intervalNode = parseInterval(parsingInterval, typeMap);
 
+//    if (parserRecognitionListener.errorOccurred) return makeErrorInts();
     return getVpInts(intervalStart, intervalStop, intervalNode);
   }
 
@@ -47,6 +48,12 @@ public abstract class BaseIntervalParser extends BaseParser {
   protected IntervalNode parseInterval(Interval interval) {
     return parseInterval(interval, null);
   };
+  protected void normalize(List<IntervalNode> children) {
+    if (children.isEmpty()) return;
+    IntervalNode first = children.get(0), last = children.get(children.size() - 1);
+    first.interval.start = intervalStart;
+    last.interval.stop = intervalStop;
+  }
 
   // {intervalStart, intervalStop, N, K, }
   protected int[] getVpInts(int intervalStart, int intervalStop, IntervalNode node) {

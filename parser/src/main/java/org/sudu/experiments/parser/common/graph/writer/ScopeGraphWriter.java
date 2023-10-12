@@ -70,6 +70,7 @@ public class ScopeGraphWriter {
   }
 
   private void putScopes() {
+    if (graph.root == null) return;
     putScopesRec(graph.root);
   }
 
@@ -100,6 +101,10 @@ public class ScopeGraphWriter {
   }
 
   private void writeScopes() {
+    if (graph.root == null) {
+      writer.write(-1);
+      return;
+    }
     writer.write(scopeIdentityMap.size());
     writeScope(graph.root);
   }

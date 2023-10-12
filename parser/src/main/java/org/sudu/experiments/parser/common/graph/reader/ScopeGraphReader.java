@@ -65,6 +65,10 @@ public class ScopeGraphReader {
 
   private void readScopeRoot() {
     int len = reader.next();
+    if (len == -1) {
+      scopeRoot = null;
+      return;
+    }
     scopeNodes = new ScopeNode[len];
     declNodeReader = new DeclNodeReader(reader, chars, types);
     refNodeReader = new RefNodeReader(reader, chars, types);

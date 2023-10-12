@@ -780,7 +780,7 @@ unknownInterval
       | classOrInterfaceBodyDeclaration
       | importDeclaration
       | packageDeclaration
-      )+?
+      )+
 //    | anySeq
     | EOF
     ;

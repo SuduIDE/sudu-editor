@@ -825,11 +825,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       int[] graphInts = ((ArrayView) result[3]).ints();
       char[] graphChars = ((ArrayView) result[4]).chars();
       ParserUtils.updateDocument(model.document, ints, chars, graphInts, graphChars, false);
-      long from = System.currentTimeMillis();
-//      model.document.countPrefixes();
-      model.document.scopeGraph.resolveAll(model.document::onResolve);
-      long to = System.currentTimeMillis();
-      System.out.println("Resolving all in " + (to - from) + " ms");
+      resolveAll();
     } else {
       ParserUtils.updateDocument(model.document, ints, chars);
     }
@@ -842,6 +838,14 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (fullFileParseListener != null) {
       fullFileParseListener.accept(this);
     }
+  }
+
+  public void resolveAll() {
+    long from = System.currentTimeMillis();
+    if (model.document.linePrefixSum == null) model.document.countPrefixes();
+    model.document.scopeGraph.resolveAll(model.document::onResolve);
+    long to = System.currentTimeMillis();
+    System.out.println("Resolving all in " + (to - from) + " ms");
   }
 
   private void onFileStructureParsed(Object[] result) {
@@ -1447,7 +1451,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     model.document.defToUsages.clear();
     model.document.usageToDef.clear();
     model.document.countPrefixes();
-    model.document.scopeGraph.resolveAll(model.document::onResolve);
+    resolveAll();
     model.document.onReparse();
     computeUsages();
   }
@@ -1458,7 +1462,10 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       model.document.onReparse();
     } else {
       var reparseNode = model.document.tree.getReparseNode();
-      if (reparseNode == null) return;
+      if (reparseNode == null) {
+        resolveAll();
+        return;
+      }
 
       int[] interval = new int[]{reparseNode.getStart(), reparseNode.getStop(), reparseNode.getType()};
       char[] chars = model.document.getChars();

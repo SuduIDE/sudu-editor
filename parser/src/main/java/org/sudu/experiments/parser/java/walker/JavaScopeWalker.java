@@ -37,6 +37,11 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   }
 
   @Override
+  public void enterUnknownInterval(JavaParser.UnknownIntervalContext ctx) {
+    super.enterUnknownInterval(ctx);
+  }
+
+  @Override
   public void enterPackageDeclaration(JavaParser.PackageDeclarationContext ctx) {
     super.enterPackageDeclaration(ctx);
     scopeWalker.enterFakeScope();

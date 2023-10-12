@@ -57,22 +57,25 @@ public class IntervalTree {
       this.root.scope = newScopes.get(0);
       return;
     }
-    if (!newTree.children.isEmpty() && replaceNode.parent != null) {
+    replaceIntervalNode(replaceNode, newNodes);
+    replaceScopeNode(replaceNode, newScopes);
+  }
+
+  private static void replaceIntervalNode(IntervalNode replaceNode, List<IntervalNode> newNodes) {
+    if (!newNodes.isEmpty() && replaceNode.parent != null) {
       var parent = replaceNode.parent;
-
       newNodes.forEach(it -> it.parent = parent);
-
       int ind = parent.children.indexOf(replaceNode);
       parent.children.remove(ind);
       parent.children.addAll(ind, newNodes);
     }
-    replaceScopeNode(replaceNode, newScopes);
   }
 
   public void replaceScopeNode(IntervalNode replaceNode, List<ScopeNode> newScopes) {
     var parentScope = replaceNode.scope.parent;
     newScopes.forEach(it -> it.parent = parentScope);
     int scopeInd = parentScope.children.indexOf(replaceNode.scope);
+    if (scopeInd == -1) return;
     parentScope.children.remove(scopeInd);
     parentScope.children.addAll(scopeInd, newScopes);
   }
@@ -154,6 +157,7 @@ public class IntervalTree {
         curNode.setStop(-1);
       }
       curNode.children.clear();
+      curNode.scope.children.clear();
     } else {
       boolean containsStart = curNode.between(start);
       boolean containsEnd = curNode.between(start + size);
@@ -170,11 +174,11 @@ public class IntervalTree {
       for (var subInterval : curNode.children)
         makeDeleteDiff(subInterval, start, size);
 
-      curNode.children = updateChildren(curNode.children);
-      if (!updateFlag) {
+      boolean upd = curNode.children.stream().reduce(false, (acc, it) -> acc || it.needReparse, (b1, b2) -> b1 || b2);
+      if (!upd && !updateFlag) {
         curNode.needReparse = true;
-        updateFlag = true;
-      }
+      } else updateFlag = true;
+      curNode.children = updateChildren(curNode.children);
     }
   }
 

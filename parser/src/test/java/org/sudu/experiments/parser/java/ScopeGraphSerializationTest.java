@@ -32,7 +32,6 @@ public class ScopeGraphSerializationTest {
 
     ParseTreeWalker walker = new ParseTreeWalker();
     walker.walk(scopeWalker, compUnit);
-    scopeWalker.scopeWalker.updateTypes();
 
     ScopeGraph fromGraph = scopeWalker.scopeWalker.graph;
     ScopeGraphWriter scopeGraphWriter = new ScopeGraphWriter(fromGraph, scopeWalker.scopeWalker.currentNode);

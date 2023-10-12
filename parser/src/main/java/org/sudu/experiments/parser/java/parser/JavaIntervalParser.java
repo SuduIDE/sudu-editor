@@ -2,6 +2,7 @@ package org.sudu.experiments.parser.java.parser;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.sudu.experiments.parser.ErrorHighlightingStrategy;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.BaseIntervalParser;
@@ -25,6 +26,10 @@ public class JavaIntervalParser extends BaseIntervalParser {
   @Override
   protected IntervalNode parseInterval(Interval interval, TypeMap typeMap) {
     JavaParser parser = new JavaParser(tokenStream);
+    parser.setErrorHandler(new ErrorHighlightingStrategy());
+    parser.removeErrorListeners();
+    parser.addErrorListener(parserRecognitionListener);
+
     ParserRuleContext ruleContext;
     Interval initInterval;
 
@@ -45,6 +50,7 @@ public class JavaIntervalParser extends BaseIntervalParser {
 
     var graph = scopeWalker.scopeWalker.graph;
     var node = scopeWalker.scopeWalker.currentNode;
+    normalize(scopeWalker.scopeWalker.currentNode.children);
     writer = new ScopeGraphWriter(graph, node);
     writer.toInts();
     return null;

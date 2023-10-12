@@ -47,12 +47,8 @@ public class RefNodeWriter {
   }
 
   private void writeType(String type) {
-    if (type == null) {
-      writer.write(-1);
-      return;
-    }
-    int typeNum = typeIdentityMap.get(type);
-    writer.write(typeNum);
+    if (type == null) writer.write(-1);
+    else writer.write(typeIdentityMap.get(type));
   }
 
   private void writeExprRef(ExprRefNode exprRefNode) {

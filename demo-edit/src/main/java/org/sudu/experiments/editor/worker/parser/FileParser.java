@@ -129,7 +129,7 @@ public class FileParser {
 
   private static void parseFullJavaChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    JavaParser.parse(chars, list);
+    JavaParser.parseScopes(chars, list);
     list.add(new int[]{JAVA_FILE});
     ArrayOp.sendArrayList(list, result);
   }
