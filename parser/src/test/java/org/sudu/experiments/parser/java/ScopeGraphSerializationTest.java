@@ -41,10 +41,8 @@ public class ScopeGraphSerializationTest {
 
     ScopeGraphReader reader = new ScopeGraphReader(ints, chars);
     reader.readFromInts();
-    ScopeGraph toGraph = new ScopeGraph();
-    toGraph.root = reader.scopeRoot;
-
-    toGraph.resolveAll((ref, decl) -> System.out.println(ref + " |-> " + decl));
+    ScopeGraph toGraph = new ScopeGraph(reader.scopeRoot, reader.typeMap);
+    toGraph.resolveAll((ref, decl) -> {});
   }
 
   private String readFile(String filename) {

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.IntervalTree;
+import org.sudu.experiments.parser.common.graph.node.FakeNode;
 
 public class IntervalTreeTest {
 
@@ -23,14 +24,16 @@ public class IntervalTreeTest {
 */
 
   private IntervalNode getRoot() {
-    IntervalNode root = new IntervalNode(new Interval(0, 10, 0));
+    var rootScope = new FakeNode(null);
+    IntervalNode root = new IntervalNode(new Interval(0, 10, 0), rootScope);
 
     root.addChild(new Interval(0, 10, 1));
-    root.lastChild().addChild(new Interval(0, 4, 2));
-    root.lastChild().addChild(new Interval(4, 10, 2));
+    root.lastChild().addChild(new Interval(0, 4, 2), new FakeNode(rootScope));
+    var lastChildScope = new FakeNode(rootScope);
+    root.lastChild().addChild(new Interval(4, 10, 2), lastChildScope);
 
-    root.lastChild().lastChild().addChild(new Interval(4, 7, 3));
-    root.lastChild().lastChild().addChild(new Interval(7, 10, 3));
+    root.lastChild().lastChild().addChild(new Interval(4, 7, 3), new FakeNode(lastChildScope));
+    root.lastChild().lastChild().addChild(new Interval(7, 10, 3), new FakeNode(lastChildScope));
     return root;
   }
 
