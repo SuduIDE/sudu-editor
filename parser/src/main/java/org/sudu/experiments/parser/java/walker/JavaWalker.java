@@ -694,7 +694,7 @@ public class JavaWalker extends JavaParserBaseListener {
     ) return false;
     var expression = ctx.expression(0);
     return expression.primary() != null && expression.primary().THIS() != null
-        && ctx.bop != null;
+        && ctx.dot != null;
   }
 
   static boolean isTernary(JavaParser.ExpressionContext ctx) {

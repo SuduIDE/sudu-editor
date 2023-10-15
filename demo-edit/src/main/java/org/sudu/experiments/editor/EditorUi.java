@@ -340,6 +340,7 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
           ti("Int", theme.dialogItem.toolbarItemColors, editor::debugPrintDocumentIntervals),
           ti("Iter", theme.dialogItem.toolbarItemColors, editor::iterativeParsing),
           ti("VP", theme.dialogItem.toolbarItemColors, editor::parseViewport),
+          ti("Resolve", theme.dialogItem.toolbarItemColors, editor::resolveAll),
           ti("Rep", theme.dialogItem.toolbarItemColors, editor::parseFullFile));
     }
 

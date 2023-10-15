@@ -53,11 +53,14 @@ public class FileParser {
 
   public static final String asyncIterativeParsing = "asyncIterativeParsing";
 
-  public static void asyncIterativeParsing(char[] chars, int[] type, int[] interval, Consumer<Object[]> result) {
+  public static void asyncIterativeParsing(
+      char[] chars, int[] type, int[] interval,
+      int[] graphInts, char[] graphChars,
+      Consumer<Object[]> result) {
     switch (type[0]) {
-      case JAVA_FILE -> JavaParser.parseInterval(chars,interval, result);
-      case CPP_FILE -> CppParser.parseInterval(chars,interval, result);
-      case JS_FILE -> JavaScriptParser.parseInterval(chars,interval, result);
+      case JAVA_FILE -> JavaParser.parseInterval(chars, interval, graphInts, graphChars, result);
+      case CPP_FILE -> CppParser.parseInterval(chars, interval, result);
+      case JS_FILE -> JavaScriptParser.parseInterval(chars, interval, result);
     }
   }
 
@@ -126,7 +129,7 @@ public class FileParser {
 
   private static void parseFullJavaChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    JavaParser.parse(chars, list);
+    JavaParser.parseScopes(chars, list);
     list.add(new int[]{JAVA_FILE});
     ArrayOp.sendArrayList(list, result);
   }

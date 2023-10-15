@@ -3,8 +3,10 @@ package org.sudu.experiments.parser.common;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,20 +15,34 @@ public class IntervalNode {
   public Interval interval;
   public IntervalNode parent;
   public List<IntervalNode> children;
+  public ScopeNode scope;
   public boolean needReparse = false;
 
-  public IntervalNode(Interval interval, IntervalNode parent) {
+  public IntervalNode(Interval interval, IntervalNode parent, ScopeNode scope) {
     this.interval = interval;
     this.parent = parent;
     this.children = new ArrayList<>();
+    this.scope = scope;
+  }
+
+  public IntervalNode(Interval interval, ScopeNode scope) {
+    this(interval, null, scope);
+  }
+
+  public IntervalNode(Interval interval, IntervalNode parent) {
+    this(interval, parent, null);
   }
 
   public IntervalNode(Interval interval) {
-    this(interval, null);
+    this(interval, null, null);
+  }
+
+  public void addChild(Interval node, ScopeNode scope) {
+    children.add(new IntervalNode(node, this, scope));
   }
 
   public void addChild(Interval node) {
-    children.add(new IntervalNode(node, this));
+    children.add(new IntervalNode(node, this, null));
   }
 
   public void addChild(IntervalNode node) {
@@ -43,19 +59,23 @@ public class IntervalNode {
   }
 
   public static IntervalNode getNode(ArrayReader reader) {
-    return readNode(reader);
+    return readNode(reader, null);
   }
 
-  private static IntervalNode readNode(ArrayReader reader) {
+  public static IntervalNode readNode(
+      ArrayReader reader,
+      ScopeNode[] scopeNodes
+  ) {
     int start = reader.next(),
         stop = reader.next(),
         type = reader.next();
     int childCount = reader.next();
+    int scopeInd = reader.next();
 
     Interval interval = new Interval(start, stop, type);
-    IntervalNode node = new IntervalNode(interval);
+    IntervalNode node = new IntervalNode(interval, getScope(scopeNodes, scopeInd));
     for (int i = 0; i < childCount; i++) {
-      var child = readNode(reader);
+      var child = readNode(reader, scopeNodes);
       node.addChild(child);
     }
     return node;
@@ -63,18 +83,39 @@ public class IntervalNode {
 
   public int[] toInts() {
     ArrayWriter writer = new ArrayWriter();
-    writeInts(this, writer);
+    writeInts(this, writer, null);
     return writer.getInts();
   }
 
-  private static void writeInts(IntervalNode node, ArrayWriter writer) {
+  public static void writeInts(
+      IntervalNode node,
+      ArrayWriter writer,
+      IdentityHashMap<ScopeNode, Integer> scopeMap
+  ) {
     Interval interval = node.interval;
     List<IntervalNode> children = node.children;
 
     writer.write(interval.start, interval.stop, interval.intervalType);
     writer.write(children.size());
+    writer.write(getScopeInd(scopeMap, node));
 
-    for (var child: children) writeInts(child, writer);
+    for (var child: children) writeInts(child, writer, scopeMap);
+  }
+
+  private static int getScopeInd(
+      IdentityHashMap<ScopeNode, Integer> scopeMap,
+      IntervalNode node
+  ) {
+    if (scopeMap == null || node.scope == null || !scopeMap.containsKey(node.scope)) return -1;
+    else return scopeMap.get(node.scope);
+  }
+
+  private static ScopeNode getScope(
+      ScopeNode[] scopeNodes,
+      int scopeInd
+  ) {
+    if (scopeNodes == null || scopeInd < 0 || scopeInd > scopeNodes.length) return null;
+    return scopeNodes[scopeInd];
   }
 
   public int getStart() {
@@ -122,11 +163,11 @@ public class IntervalNode {
   }
 
   public IntervalNode merge(IntervalNode node) {
-    int start = Math.min(getStart(), node.getStart());
-    int stop = Math.max(getStop(), node.getStop());
-
-    Interval newInterval = new Interval(start, stop, interval.intervalType);
-    IntervalNode newNode = new IntervalNode(newInterval, parent);
+    int newStart = Math.min(getStart(), node.getStart());
+    int newStop = Math.max(getStop(), node.getStop());
+    var scope = this.scope != null ? this.scope : node.scope;
+    Interval newInterval = new Interval(newStart, newStop, interval.intervalType);
+    IntervalNode newNode = new IntervalNode(newInterval, parent, scope);
     newNode.needReparse = true;
     return newNode;
   }

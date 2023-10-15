@@ -2,48 +2,58 @@ package org.sudu.experiments.parser.java.parser;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.sudu.experiments.parser.ErrorHighlightingStrategy;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.common.BaseIntervalParser;
 import org.sudu.experiments.parser.ParserConstants;
+import org.sudu.experiments.parser.common.BaseIntervalParser;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.common.graph.type.TypeMap;
+import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
 import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting;
-import org.sudu.experiments.parser.java.walker.JavaClassWalker;
-import org.sudu.experiments.parser.java.walker.JavaWalker;
+import org.sudu.experiments.parser.java.walker.JavaScopeWalker;
+
 
 import static org.sudu.experiments.parser.ParserConstants.*;
 
-import java.util.HashMap;
-
 public class JavaIntervalParser extends BaseIntervalParser {
 
+  public ScopeGraphWriter writer;
+
   @Override
-  protected IntervalNode parseInterval(Interval interval) {
+  protected IntervalNode parseInterval(Interval interval, TypeMap typeMap) {
     JavaParser parser = new JavaParser(tokenStream);
+    parser.setErrorHandler(new ErrorHighlightingStrategy());
+    parser.removeErrorListeners();
+    parser.addErrorListener(parserRecognitionListener);
+
     ParserRuleContext ruleContext;
     Interval initInterval;
 
     if (interval.intervalType == IntervalTypes.Java.COMP_UNIT) {
       ruleContext = parser.compilationUnitOrAny();
-      initInterval = new Interval(0, fileSourceLength, IntervalTypes.Java.COMP_UNIT);
+      initInterval = new Interval(intervalStart, intervalStart + fileSourceLength, IntervalTypes.Java.COMP_UNIT);
     } else {
       ruleContext = parser.unknownInterval();
       initInterval = defaultInterval();
     }
 
+    JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes);
     ParseTreeWalker walker = new ParseTreeWalker();
+    JavaScopeWalker scopeWalker = new JavaScopeWalker(new IntervalNode(initInterval), intervalStart, tokenTypes, tokenStyles);
+    scopeWalker.scopeWalker.graph.typeMap = typeMap;
+    scopeWalker.offset = intervalStart;
+    walker.walk(scopeWalker, ruleContext);
 
-    var classWalker = new JavaClassWalker(new IntervalNode(initInterval));
-    classWalker.intervalStart = intervalStart;
-    walker.walk(classWalker, ruleContext);
-    var javaWalker = new JavaWalker(tokenTypes, tokenStyles, classWalker.dummy, classWalker.types, new HashMap<>());
-    walker.walk(javaWalker, ruleContext);
-    highlightTokens();
-
-    return classWalker.node;
+    var graph = scopeWalker.scopeWalker.graph;
+    var node = scopeWalker.scopeWalker.currentNode;
+    normalize(scopeWalker.scopeWalker.currentNode.children);
+    writer = new ScopeGraphWriter(graph, node);
+    writer.toInts();
+    return null;
   }
 
   @Override

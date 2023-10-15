@@ -18,6 +18,14 @@ public class ArrayReader {
     pointer += len;
   }
 
+  public int expect(int exp) {
+    int got = next();
+    if (got != exp) {
+      throw new IllegalStateException("Unexpected int: " + exp + " expected, but" + got + " got");
+    }
+    return got;
+  }
+
   public void checkSize() {
     if (pointer != source.length)
       System.err.println("Expected " + source.length + " ints to read, but " + pointer + " read");

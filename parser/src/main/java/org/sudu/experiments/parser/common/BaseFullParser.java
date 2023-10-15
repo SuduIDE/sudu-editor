@@ -14,6 +14,10 @@ public abstract class BaseFullParser extends BaseParser {
 
   public Map<Pos, Pos> usageToDefinition = new HashMap<>();
 
+  protected int[] getInts() {
+    return getInts(null);
+  }
+
   protected int[] getInts(IntervalNode node) {
     int N = allTokens.get(allTokens.size() - 1).getLine();
     int M = 0;

@@ -15,16 +15,15 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.*;
 import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.parser.common.graph.ScopeGraph;
+import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ScrollBar;
 import org.sudu.experiments.ui.SetCursor;
 import org.sudu.experiments.ui.UiContext;
 import org.sudu.experiments.worker.ArrayView;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
@@ -822,8 +821,14 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
     int type = ((ArrayView) result[2]).ints()[0];
-
-    ParserUtils.updateDocument(model.document, ints, chars);
+    if (result.length >= 5) {
+      int[] graphInts = ((ArrayView) result[3]).ints();
+      char[] graphChars = ((ArrayView) result[4]).chars();
+      ParserUtils.updateDocument(model.document, ints, chars, graphInts, graphChars, false);
+      resolveAll();
+    } else {
+      ParserUtils.updateDocument(model.document, ints, chars);
+    }
 
     changeModelLanguage(Languages.getLanguage(type));
 
@@ -833,6 +838,14 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (fullFileParseListener != null) {
       fullFileParseListener.accept(this);
     }
+  }
+
+  public void resolveAll() {
+    long from = System.currentTimeMillis();
+    if (model.document.linePrefixSum == null) model.document.countPrefixes();
+    model.document.scopeGraph.resolveAll(model.document::onResolve);
+    long to = System.currentTimeMillis();
+    System.out.println("Resolving all in " + (to - from) + " ms");
   }
 
   private void onFileStructureParsed(Object[] result) {
@@ -1037,6 +1050,12 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     Pos caretPos = new Pos(caretLine, caretCharPos);
     Pos elementPos = model.document.getElementStart(caretLine, caretCharPos);
     computeUsages(caretPos, elementPos);
+
+    if ((definition == null || usages.isEmpty()) && caretCharPos > 0) {
+      Pos prevCaretPos = new Pos(caretLine, caretCharPos - 1);
+      Pos prevElementPos = model.document.getElementStart(caretLine, caretCharPos - 1);
+      computeUsages(prevCaretPos, prevElementPos);
+    }
   }
 
   private void computeUsages(Pos caretPos, Pos elementPos) {
@@ -1422,22 +1441,50 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (model.document.currentVersion != iterativeVersion) return;
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
-    ParserUtils.updateDocumentInterval(model.document, ints, chars);
+    int[] graphInts = null;
+    char[] graphChars = null;
+    if (result.length >= 4) {
+      graphInts = ((ArrayView) result[2]).ints();
+      graphChars = ((ArrayView) result[3]).chars();
+    }
+    ParserUtils.updateDocumentInterval(model.document, ints, chars, graphInts, graphChars);
+    model.document.defToUsages.clear();
+    model.document.usageToDef.clear();
+    model.document.countPrefixes();
+    resolveAll();
     model.document.onReparse();
+    computeUsages();
   }
 
   public void iterativeParsing() {
-    var node = model.document.tree.getReparseNode();
-    if (node == null) return;
     String language = model.language();
     if (language == null || Languages.TEXT.equals(language)) {
       model.document.onReparse();
     } else {
-      int[] interval = new int[]{node.getStart(), node.getStop(), node.getType()};
+      var reparseNode = model.document.tree.getReparseNode();
+      if (reparseNode == null) {
+        resolveAll();
+        return;
+      }
+
+      int[] interval = new int[]{reparseNode.getStart(), reparseNode.getStop(), reparseNode.getType()};
       char[] chars = model.document.getChars();
       int[] type = new int[]{Languages.getType(language)};
 
-      window().sendToWorker(this::onFileIterativeParsed, FileParser.asyncIterativeParsing, chars, type, interval);
+      int[] graphInts;
+      char[] graphChars;
+      if (model.document.scopeGraph.root != null) {
+        ScopeGraph oldGraph = model.document.scopeGraph;
+        ScopeGraph reparseGraph = new ScopeGraph(reparseNode.scope, oldGraph.typeMap);
+        ScopeGraphWriter writer = new ScopeGraphWriter(reparseGraph, reparseNode);
+        writer.toInts();
+        graphInts = writer.ints;
+        graphChars = writer.chars;
+      } else {
+        graphInts = new int[]{};
+        graphChars = new char[]{};
+      }
+      window().sendToWorker(this::onFileIterativeParsed, FileParser.asyncIterativeParsing, chars, type, interval, graphInts, graphChars);
     }
   }
 
@@ -1700,7 +1747,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   static String parseJobName(String language) {
     return language != null ? switch (language) {
-      case Languages.JAVA -> JavaParser.PARSE;
+      case Languages.JAVA -> JavaParser.PARSE_SCOPES;
       case Languages.CPP -> CppParser.PARSE;
       case Languages.JS -> JavaScriptParser.PARSE;
       default -> null;

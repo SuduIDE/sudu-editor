@@ -1,26 +1,51 @@
-package org.sudu.experiments.parser.java;
+package sudu.editor;
 
-public class TestFieldResolve {
+/*
+ * This is multiplatform lightweight code editor
+ */
 
-  int field1, field2;
-  String field3;
-  Number field4;
+public class Main {
 
-  void foo(int field1) {
-    this.field1 = field1;
-    field1 = this.field1;
-    f(field1);
-    f(this.field1);
-    f(this.field1, this.field2);
-    f(field2, this.field1);
-    f(field2 + this.field1, 2 * this.field1);
-    boolean b = true
-        ? this.field1
-        : field2;
-    field3.toCharArray();
-    this.field3.toCharArray();
+  private static String helloWorld = "Hello,\tWorld\u3000";
+  private static char n = '\n';
+  private static int a;
+
+  public int field;
+
+  public static void main(String[] args) {
+    System.out.println(helloWorld + n);
+    sum(a + a);
   }
 
-  void f(int a) {}
-  void f(int a, int b) {}
+  @Deprecated
+  private static void sum() {
+    G g = new G(12);
+    g.a;
+  }
+
+  @Deprecated
+  private static int sum(int a) {
+    int b = 10;
+    int c = a + b;
+    return c;
+  }
+
+  public int sumField(int field) {
+    return field + this.field;
+  }
+
+  public class G {
+    int a;
+    public G(int a) {
+      this.a = a;
+    }
+  }
+
+  public interface A {
+    int sumField(int field);
+
+    default void foo() {
+      sumField(10);
+    }
+  }
 }

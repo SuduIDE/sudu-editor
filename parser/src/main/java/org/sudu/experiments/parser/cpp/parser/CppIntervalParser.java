@@ -9,6 +9,7 @@ import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.BaseIntervalParser;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.common.graph.type.TypeMap;
 import org.sudu.experiments.parser.cpp.CppSplitRules;
 import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
 import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
@@ -24,7 +25,7 @@ import static org.sudu.experiments.parser.ParserConstants.TokenTypes.COMMENT;
 public class CppIntervalParser extends BaseIntervalParser {
 
   @Override
-  protected IntervalNode parseInterval(Interval interval) {
+  protected IntervalNode parseInterval(Interval interval, TypeMap typeMap) {
     CPP14Parser parser = new CPP14Parser(tokenStream);
     ParserRuleContext ruleContext;
     Interval initInterval;

@@ -20,12 +20,15 @@ public interface StartFile {
         public int field;
 
         public static void main(String[] args) {
-          System.out.println(helloWorld + n);
           sum(a + a);
+          var g = g(a + a);
+          g.a;
         }
             
         @Deprecated
         private static void sum() {
+          G g = new G(12);
+          g.a;
         }
             
         @Deprecated
@@ -38,12 +41,38 @@ public interface StartFile {
         public int sumField(int field) {
           return field + this.field;
         }
+        
+        public G g(int a) {
+          return new G(a);
+        }
+        
+        public class G {
+          int a;
+          public G(int a) {
+            this.a = a;
+          }
+        }
 
-        public interface A {
+        public interface I {
           int sumField(int field);
-          
-          default void foo() {
-            sumField(10);
+
+          default void foo(int a) {
+            sumField(a);
+          }
+        }
+
+        public class C {
+          int field;
+        }
+
+        public class A extends C implements I {
+          public void a() {
+            foo(field);
+          }
+
+          @Override
+          public int sumField(int field) {
+            return 0;
           }
         }
       }

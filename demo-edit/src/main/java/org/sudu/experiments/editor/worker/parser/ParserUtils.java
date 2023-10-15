@@ -10,6 +10,8 @@ import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.IntervalTree;
 import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.parser.common.graph.ScopeGraph;
+import org.sudu.experiments.parser.common.graph.reader.ScopeGraphReader;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,12 +20,27 @@ import java.util.Map;
 
 public abstract class ParserUtils {
 
+  public static Document makeDocument(int[] ints, char[] chars) {
+    Document document = new Document();
+    updateDocument(document, ints, chars);
+    return document;
+  }
+
   public static void updateDocument(Document document, int[] ints, char[] chars) {
     updateDocument(document, ints, chars, false);
   }
 
-  public static void updateDocument(Document document, int[] ints, char[] chars, boolean saveOldLines) {
-    ArrayReader reader = new ArrayReader(ints);
+  public static void updateDocument(Document document, int[] docInts, char[] docChars, boolean saveOldLines) {
+    updateDocument(document, docInts, docChars, null, null, saveOldLines);
+  }
+
+  public static void updateDocument(
+      Document document,
+      int[] docInts, char[] docChars,
+      int[] graphInts, char[] graphChars,
+      boolean saveOldLines
+  ) {
+    ArrayReader reader = new ArrayReader(docInts);
 
     int N = reader.next();
     int K = reader.next();
@@ -31,6 +48,7 @@ public abstract class ParserUtils {
 
     int documentLength = document.length();
 
+    int[] linePrefixSum = new int[N + 1];
     document.document = saveOldLines
         ? ArrayOp.resizeOrReturn(document.document, N)
         : new CodeLine[N];
@@ -39,22 +57,45 @@ public abstract class ParserUtils {
       if (saveOldLines && i < documentLength) {
         int len = reader.next();
         reader.skip(4 * len);
+        linePrefixSum[i + 1] = linePrefixSum[i] + document.line(i).totalStrLength + 1;
         continue;
       }
-      CodeElement[] elements = readElements(reader, chars, 0);
-      document.document[i] = new CodeLine(elements);
+      CodeElement[] elements = readElements(reader, docChars, 0);
+      CodeLine line = new CodeLine(elements);
+      document.document[i] = line;
+      linePrefixSum[i + 1] = linePrefixSum[i] + document.line(i).totalStrLength + 1;
     }
 
-    document.tree = new IntervalTree(IntervalNode.getNode(reader));
+    if (K != 0) document.tree = new IntervalTree(IntervalNode.getNode(reader));
+    document.linePrefixSum = linePrefixSum;
 
     document.usageToDef.clear();
     document.defToUsages.clear();
     ParserUtils.getUsageToDefMap(reader, L, document.usageToDef);
     ParserUtils.getDefToUsagesMap(document.usageToDef, document.defToUsages);
     reader.checkSize();
+
+    if (graphInts != null && graphChars != null) {
+      updateGraph(document, graphInts, graphChars);
+    }
+  }
+
+  public static void updateGraph(Document document, int[] graphInts, char[] graphChars) {
+    ScopeGraphReader reader = new ScopeGraphReader(graphInts, graphChars);
+    reader.readFromInts();
+    document.scopeGraph = new ScopeGraph(reader.scopeRoot, reader.typeMap);
+    document.tree = new IntervalTree(reader.intervalRoot);
   }
 
   public static void updateDocumentInterval(Document document, int[] ints, char[] chars) {
+    updateDocumentInterval(document, ints, chars, null, null);
+  }
+
+  public static void updateDocumentInterval(
+      Document document,
+      int[] ints, char[] chars,
+      int[] graphInts, char[] graphChars
+  ) {
     if (ints.length == 1 && ints[0] == -1) return;
 
     ArrayReader reader = new ArrayReader(ints);
@@ -80,9 +121,14 @@ public abstract class ParserUtils {
       IntervalNode intervalNode = IntervalNode.getNode(reader);
       Interval oldInterval = new Interval(intervalStart, intervalStop, -1);
       document.tree.replaceInterval(oldInterval, intervalNode);
+    } else if (graphInts != null && graphChars != null) {
+      ScopeGraphReader graphReader = new ScopeGraphReader(graphInts, graphChars);
+      graphReader.readFromInts();
+      Interval oldInterval = new Interval(intervalStart, intervalStop, -1);
+      document.tree.replaceInterval(oldInterval, graphReader.intervalRoot);
+      document.scopeGraph.typeMap = graphReader.typeMap;
     }
     reader.checkSize();
-
   }
 
   public static CodeElement[] readElements(ArrayReader reader, char[] chars, int startDx) {

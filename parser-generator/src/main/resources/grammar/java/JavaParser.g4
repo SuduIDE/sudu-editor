@@ -590,7 +590,7 @@ methodCall
 
 expression
     : primary
-    | expression bop='.'
+    | expression dot='.'
       (
          identifier
        | methodCall
@@ -780,14 +780,14 @@ unknownInterval
       | classOrInterfaceBodyDeclaration
       | importDeclaration
       | packageDeclaration
-      )+?
-    | anySeq
+      )+
+//    | anySeq
     | EOF
     ;
 
 compilationUnitOrAny
     : compilationUnit
-    | anySeq
+//    | anySeq
     ;
 
 anySeq: .+?;

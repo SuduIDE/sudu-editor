@@ -1,6 +1,7 @@
 package org.sudu.experiments.parser.common;
 
 import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -20,7 +21,7 @@ public class IntervalTree {
   }
 
   public IntervalTree(Interval interval) {
-    this(new IntervalNode(interval, null));
+    this(new IntervalNode(interval));
   }
 
   public IntervalTree(IntervalNode node) {
@@ -47,22 +48,36 @@ public class IntervalTree {
   public void replaceInterval(Interval from, IntervalNode newTree) {
     var replaceNode = replaceIntervalRec(root, from);
     if (replaceNode == null) return;
-    if (newTree.children.isEmpty()) {
-      return;
-    }
 
+    var newScopes = newTree.scope.children;
     var newNodes = newTree.children;
+
     if (replaceNode == root) {
       this.root = newNodes.get(0);
+      this.root.scope = newScopes.get(0);
       return;
     }
-    if (replaceNode.parent != null) {
-      newNodes.forEach(it -> it.parent = replaceNode.parent);
+    replaceIntervalNode(replaceNode, newNodes);
+    replaceScopeNode(replaceNode, newScopes);
+  }
 
-      int ind = replaceNode.parent.children.indexOf(replaceNode);
-      replaceNode.parent.children.remove(ind);
-      replaceNode.parent.children.addAll(ind, newNodes);
+  private static void replaceIntervalNode(IntervalNode replaceNode, List<IntervalNode> newNodes) {
+    if (!newNodes.isEmpty() && replaceNode.parent != null) {
+      var parent = replaceNode.parent;
+      newNodes.forEach(it -> it.parent = parent);
+      int ind = parent.children.indexOf(replaceNode);
+      parent.children.remove(ind);
+      parent.children.addAll(ind, newNodes);
     }
+  }
+
+  public void replaceScopeNode(IntervalNode replaceNode, List<ScopeNode> newScopes) {
+    var parentScope = replaceNode.scope.parent;
+    newScopes.forEach(it -> it.parent = parentScope);
+    int scopeInd = parentScope.children.indexOf(replaceNode.scope);
+    if (scopeInd == -1) return;
+    parentScope.children.remove(scopeInd);
+    parentScope.children.addAll(scopeInd, newScopes);
   }
 
   private IntervalNode replaceIntervalRec(IntervalNode curNode, Interval oldNode) {
@@ -142,6 +157,7 @@ public class IntervalTree {
         curNode.setStop(-1);
       }
       curNode.children.clear();
+      curNode.scope.children.clear();
     } else {
       boolean containsStart = curNode.between(start);
       boolean containsEnd = curNode.between(start + size);
@@ -158,11 +174,11 @@ public class IntervalTree {
       for (var subInterval : curNode.children)
         makeDeleteDiff(subInterval, start, size);
 
-      curNode.children = updateChildren(curNode.children);
-      if (!updateFlag) {
+      boolean upd = curNode.children.stream().reduce(false, (acc, it) -> acc || it.needReparse, (b1, b2) -> b1 || b2);
+      if (!upd && !updateFlag) {
         curNode.needReparse = true;
-        updateFlag = true;
-      }
+      } else updateFlag = true;
+      curNode.children = updateChildren(curNode.children);
     }
   }
 
