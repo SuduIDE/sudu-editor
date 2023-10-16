@@ -302,6 +302,15 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   }
 
   @Override
+  public void enterStatement(JavaParser.StatementContext ctx) {
+    super.enterStatement(ctx);
+    if (ctx.IF() != null) {
+      var ref = handleExpression(ctx.parExpression().expression());
+      scopeWalker.addRef(ref);
+    }
+  }
+
+  @Override
   public void exitStatement(JavaParser.StatementContext ctx) {
     super.exitStatement(ctx);
     if (ctx.expression() != null && !ctx.expression().isEmpty()) {

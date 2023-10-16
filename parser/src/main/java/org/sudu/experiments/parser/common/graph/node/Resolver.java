@@ -8,6 +8,7 @@ import org.sudu.experiments.parser.common.graph.node.ref.MethodCallNode;
 import org.sudu.experiments.parser.common.graph.node.ref.QualifiedRefNode;
 import org.sudu.experiments.parser.common.graph.node.ref.RefNode;
 
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
@@ -49,7 +50,7 @@ public class Resolver {
       return null;
     }
     if (ref instanceof MethodCallNode methodCall) {
-      for (var arg: methodCall.callArgs) resolve(curScope, arg);
+      resolveCallArgs(curScope, methodCall);
       return resolveMethodCall(curScope, methodCall);
     }
     if (ref instanceof QualifiedRefNode qualifiedRef) {
@@ -58,15 +59,21 @@ public class Resolver {
     DeclNode decl = resolveVar(curScope, ref);
     if (decl != null) return decl;
 
+    if (curScope == null) return null;
     return curScope.parent != null
         ? resolveRec(curScope.parent, ref)
         : null;
+  }
+
+  private void resolveCallArgs(ScopeNode curScope, MethodCallNode methodCall) {
+    for (var arg: methodCall.callArgs) resolve(curScope, arg);
   }
 
   private DeclNode resolveVar(
       ScopeNode curScope,
       RefNode ref
   ) {
+    if (curScope == null) return null;
     var resolvedDecl = curScope.declarationWalk(decl -> decl.match(ref, graph.typeMap));
     return resolvedDecl != null
         ? resolvedDecl
@@ -77,6 +84,7 @@ public class Resolver {
       ScopeNode curScope,
       MethodCallNode methodCall
   ) {
+    if (curScope == null) return null;
     var resolvedDecl = curScope.declarationWalk(decl ->
         decl instanceof MethodNode methodNode
             && methodNode.matchMethodCall(methodCall, graph.typeMap)
@@ -109,11 +117,23 @@ public class Resolver {
       ScopeNode curScope,
       QualifiedRefNode qualifiedRef
   ) {
+    List<RefNode> flatten = qualifiedRef.flatten();
     resolve(curScope, qualifiedRef.begin);
     var type = qualifiedRef.begin.type;
     var assScope = getTypeScope(type);
-    if (assScope == null) return null;
-    return resolve(assScope, qualifiedRef.cont);
+    for (int i = 1; i < flatten.size(); i++) {
+      RefNode ref = flatten.get(i);
+      if (ref instanceof MethodCallNode methodCallNode){
+        resolveCallArgs(curScope, methodCallNode);
+        var decl = resolveMethodCall(assScope, methodCallNode);
+        onResolve.accept(methodCallNode, decl);
+      } else {
+        resolve(assScope, ref);
+        type = qualifiedRef.begin.type;
+        assScope = getTypeScope(type);
+      }
+    }
+    return null;
   }
 
   private ScopeNode getTypeScope(String type) {
