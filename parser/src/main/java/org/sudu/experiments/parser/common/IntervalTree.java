@@ -53,8 +53,11 @@ public class IntervalTree {
     var newNodes = newTree.children;
 
     if (replaceNode == root) {
+      newNodes.forEach(it -> it.parent = root);
+      newScopes.forEach(it -> it.parent = root.scope);
       this.root.children = newNodes;
-      this.root.scope = newScopes.get(0);
+      this.root.scope.children = newScopes;
+      this.root.needReparse = false;
       return;
     }
     replaceIntervalNode(replaceNode, newNodes);

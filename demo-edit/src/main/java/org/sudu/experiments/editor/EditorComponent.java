@@ -83,6 +83,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   int scrollDown, scrollUp;
   boolean drawTails = true;
   boolean drawGap = true;
+  boolean printResolveTime = false;
   int xOffset = CodeLineRenderer.initialOffset;
 
   // line numbers
@@ -114,6 +115,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     debugFlags[3] = this::toggleXOffset;
     debugFlags[4] = this::toggleMirrored;
     debugFlags[5] = () -> drawGap = !drawGap;
+    debugFlags[6] = () -> printResolveTime = !printResolveTime;
 
     // d2d is very bold, contrast makes font heavier
     applyContrast = context.window.getHost() != Host.Direct2D;
@@ -865,7 +867,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (model.document.linePrefixSum == null) model.document.countPrefixes();
     model.document.scopeGraph.resolveAll(model.document::onResolve);
     long to = System.currentTimeMillis();
-    System.out.println("Resolving all in " + (to - from) + " ms");
+    if (printResolveTime) System.out.println("Resolving all in " + (to - from) + " ms");
   }
 
   private void onFileStructureParsed(Object[] result) {
