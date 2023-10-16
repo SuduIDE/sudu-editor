@@ -144,6 +144,7 @@ public class ScopeGraphWriter {
     for (var infer: inferences) {
       declNodeWriter.writeDeclNode(infer.decl);
       refNodeWriter.writeRefNode(infer.ref);
+      writer.write(infer.inferenceType);
     }
   }
 

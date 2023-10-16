@@ -864,6 +864,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   public void resolveAll() {
     long from = System.currentTimeMillis();
+    model.document.usageToDef.clear();
+    model.document.defToUsages.clear();
     if (model.document.linePrefixSum == null) model.document.countPrefixes();
     model.document.scopeGraph.resolveAll(model.document::onResolve);
     long to = System.currentTimeMillis();

@@ -120,7 +120,8 @@ public class ScopeGraphReader {
     for (int i = 0; i < len; i++) {
       var decl = declNodeReader.readDeclNode();
       var ref = refNodeReader.readRefNode();
-      result.add(new InferenceNode(decl, ref));
+      var inferType = reader.next();
+      result.add(new InferenceNode(decl, ref, inferType));
     }
     return result;
   }

@@ -108,6 +108,7 @@ public class ScopeWalker {
   }
 
   public void addDecl(DeclNode node) {
+    if (node == null) return;
     currentScope.declarations.add(node);
   }
 
@@ -115,9 +116,9 @@ public class ScopeWalker {
     currentScope.declarations.addAll(nodes);
   }
 
-  public RefNode addRef(RefNode ref) {
+  public void addRef(RefNode ref) {
+    if (ref == null) return;
     currentScope.references.add(ref);
-    return ref;
   }
 
   public List<RefNode> addRefs(List<RefNode> refs) {

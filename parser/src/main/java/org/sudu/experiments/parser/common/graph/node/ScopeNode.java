@@ -2,6 +2,7 @@ package org.sudu.experiments.parser.common.graph.node;
 
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
 import org.sudu.experiments.parser.common.graph.node.ref.*;
+import org.sudu.experiments.parser.common.graph.type.TypeMap;
 
 import java.util.*;
 import java.util.function.*;
@@ -37,7 +38,8 @@ public class ScopeNode {
     for (var infer: inferences) {
       var resolved = resolve.apply(infer.ref);
       if (resolved != null && resolved.type != null) {
-        infer.decl.type = resolved.type;
+        if (infer.inferenceType == InferenceNode.INFERENCE) infer.decl.type = resolved.type;
+        else infer.decl.type = TypeMap.getArrayElemType(resolved.type);
       }
     }
     for (var ref: references) resolve.apply(ref);

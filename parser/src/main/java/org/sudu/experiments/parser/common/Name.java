@@ -1,5 +1,6 @@
 package org.sudu.experiments.parser.common;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -17,6 +18,10 @@ public class Name implements Comparable<Name> {
 
   public boolean match(Name another) {
     return name.equals(another.name);
+  }
+
+  public static Name fromRule(ParserRuleContext ctx, int offset) {
+    return new Name(ctx.getText(), ctx.getStart().getStartIndex() + offset);
   }
 
   public static Name fromNode(TerminalNode node, int offset) {

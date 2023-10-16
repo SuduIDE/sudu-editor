@@ -23,7 +23,9 @@ public class Resolver {
   }
 
   public DeclNode resolve(ScopeNode currentNode, RefNode ref) {
-    if (ref == null) return null;
+    if (ref == null ||
+        (ref instanceof MethodCallNode callNode && callNode.callType == MethodNode.ARRAY_CREATOR)
+    ) return null;
     if (ref.refType == RefNode.THIS ||
         ref.refType == RefNode.SUPER
     ) {
@@ -123,7 +125,7 @@ public class Resolver {
     var assScope = getTypeScope(type);
     for (int i = 1; i < flatten.size(); i++) {
       RefNode ref = flatten.get(i);
-      if (ref instanceof MethodCallNode methodCallNode){
+      if (ref instanceof MethodCallNode methodCallNode) {
         resolveCallArgs(curScope, methodCallNode);
         var decl = resolveMethodCall(assScope, methodCallNode);
         onResolve.accept(methodCallNode, decl);
