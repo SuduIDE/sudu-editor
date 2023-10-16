@@ -1487,6 +1487,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       var reparseNode = model.document.tree.getReparseNode();
       if (reparseNode == null) {
         resolveAll();
+        model.document.onReparse();
         return;
       }
 
