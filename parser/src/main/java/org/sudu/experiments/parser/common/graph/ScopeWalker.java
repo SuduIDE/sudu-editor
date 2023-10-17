@@ -121,9 +121,8 @@ public class ScopeWalker {
     currentScope.references.add(ref);
   }
 
-  public List<RefNode> addRefs(List<RefNode> refs) {
-    currentScope.references.addAll(refs);
-    return refs;
+  public void addRefs(List<RefNode> refs) {
+    refs.forEach(this::addRef);
   }
 
   public void addInference(InferenceNode inference) {

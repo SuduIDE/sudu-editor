@@ -395,6 +395,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
         .toList();
 
     scopeWalker.enterMember(fields);
+    var refs = getVarDeclaratorsRefs(ctx.variableDeclarators());
+    scopeWalker.addRefs(refs);
     mark(declarators.stream().map(it -> getNode(it.identifier())).toList(), TokenTypes.FIELD, isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL);
   }
 
@@ -546,7 +548,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
       List<RefNode> refs = ctx.expression().stream().map(this::handleExpression).toList();
       return new ExprRefNode(refs);
     }
-    System.err.println("Unsupported: " + ctx.getText());
+    System.err.println("Unsupported expression: " + ctx.getText());
     return null;
   }
 
@@ -597,6 +599,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     if (isArrayCreator) {
       scopeWalker.getType(typeString);
       typeString += getArrayType(ctx.arrayCreatorRest());
+      handleArrayCreator(ctx.arrayCreatorRest());
     }
     var type = scopeWalker.getType(typeString);
 
@@ -608,6 +611,11 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     else args = new ArrayList<>();
 
     return new MethodCallNode(decl, type, isArrayCreator ? MethodNode.ARRAY_CREATOR : MethodNode.CREATOR, args);
+  }
+
+  public void handleArrayCreator(JavaParser.ArrayCreatorRestContext ctx) {
+    var exprs = ctx.expression().stream().map(this::handleExpression).toList();
+    scopeWalker.addRefs(exprs);
   }
 
   private void handleQualifiedRec(JavaParser.ExpressionContext ctx, List<RefNode> refs) {
@@ -679,13 +687,20 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     for (var declarator: ctx.variableDeclarator()) {
       var rule = declarator.variableDeclaratorId();
       result.add(rule);
+    }
+    return result;
+  }
+
+  private List<RefNode> getVarDeclaratorsRefs(JavaParser.VariableDeclaratorsContext ctx) {
+    List<RefNode> result = new ArrayList<>();
+    for (var declarator: ctx.variableDeclarator()) {
       if (declarator.variableInitializer() != null) {
         var varInit = declarator.variableInitializer();
         if (varInit.arrayInitializer() != null) {
           // todo
         } else {
           var ref = handleExpression(varInit.expression());
-          scopeWalker.addRef(ref);
+          result.add(ref);
         }
       }
     }

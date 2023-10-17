@@ -30,6 +30,10 @@ public class ScopeNode {
     this.inferences = new ArrayList<>();
   }
 
+  public void removeInParent() {
+    parent.children.remove(this);
+  }
+
   public ScopeNode getChild(int i) {
     return children.get(i);
   }

@@ -166,8 +166,8 @@ public class IntervalTree {
         curNode.setStart(-1);
         curNode.setStop(-1);
       }
+      if (curNode.scope != null) curNode.scope.removeInParent();
       curNode.children.clear();
-      curNode.scope.children.clear();
     } else {
       boolean containsStart = curNode.between(start);
       boolean containsEnd = curNode.between(start + size);
@@ -207,7 +207,10 @@ public class IntervalTree {
         result.add(interval);
       } else {
         if (curNode == null) curNode = interval;
-        else curNode = curNode.merge(interval);
+        else {
+          curNode = curNode.merge(interval);
+          if (interval.scope != null) interval.scope.removeInParent();
+        }
       }
     }
     if (curNode != null) result.add(curNode);
