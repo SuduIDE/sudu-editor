@@ -162,11 +162,13 @@ public class IntervalTree {
       if (curNode == root) {
         curNode.setStart(0);
         curNode.setStop(0);
+        curNode.scope.children.clear();
       } else {
         curNode.setStart(-1);
         curNode.setStop(-1);
+        curNode.scope.removeInParent();
+        curNode.scope = null;
       }
-      if (curNode.scope != null) curNode.scope.removeInParent();
       curNode.children.clear();
     } else {
       boolean containsStart = curNode.between(start);

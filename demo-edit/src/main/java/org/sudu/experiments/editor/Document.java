@@ -520,6 +520,10 @@ public class Document {
   public void onResolve(RefNode refNode, DeclNode declNode) {
     Name ref = refNode.ref;
     var refPos = binarySearchPosAt(ref.position);
+    if (refPos.pos >= line(refPos.line).totalStrLength) {
+      refPos.line++;
+      refPos.pos = 0;
+    }
     var refElem = line(refPos.line).getCodeElement(refPos.pos);
     if (declNode == null) {
       refElem.color = ParserConstants.TokenTypes.ERROR;

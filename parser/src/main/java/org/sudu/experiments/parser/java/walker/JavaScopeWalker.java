@@ -343,7 +343,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
         mark(enhanced.VAR(), TokenTypes.KEYWORD, TokenStyles.NORMAL);
       } else {
         var type = enhanced.typeType().getText();
-        scopeWalker.addDecl(new DeclNode(declName, type, DeclNode.LOCAL_VAR));
+        scopeWalker.addDecl(new DeclNode(declName, scopeWalker.getType(type), DeclNode.LOCAL_VAR));
         scopeWalker.addRef(ref);
       }
     } else {
@@ -402,6 +402,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
 
   private void handleConst(JavaParser.ConstDeclarationContext ctx) {
     var type = ctx.typeType().getText();
+    type = scopeWalker.getType(type);
     var decls = new ArrayList<DeclNode>();
     for (var decl: ctx.constantDeclarator()) {
       var name = Name.fromRule(decl.identifier(), offset);
@@ -442,9 +443,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     String type = scopeWalker.getType(typeString);
     List<DeclNode> args = getArgsTypes(ctx.formalParameters());
     List<String> types = args.stream().map(arg -> arg.type).toList();
-    var creator = new MethodNode(decl, type, MethodNode.CREATOR, types);
-    scopeWalker.enterMember(creator);
-    scopeWalker.addToRoot(creator);
+    scopeWalker.enterMember(new MethodNode(decl, type, MethodNode.CREATOR, types));
     scopeWalker.enterScope();
     scopeWalker.addDecls(args);
   }
@@ -809,10 +808,6 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   }
 
   private String getType(JavaParser.TypeTypeContext ctx) {
-    return ctx.getText();
-  }
-
-  private String getType(JavaParser.ClassOrInterfaceTypeContext ctx) {
     return ctx.getText();
   }
 

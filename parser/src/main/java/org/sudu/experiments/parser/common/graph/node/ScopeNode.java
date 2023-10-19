@@ -31,7 +31,7 @@ public class ScopeNode {
   }
 
   public void removeInParent() {
-    parent.children.remove(this);
+    if (parent != null) parent.children.remove(this);
   }
 
   public ScopeNode getChild(int i) {

@@ -86,11 +86,20 @@ public class Resolver {
       ScopeNode curScope,
       MethodCallNode methodCall
   ) {
+    if (methodCall.callType == MethodNode.CREATOR) {
+      var scope = getTypeScope(methodCall.type);
+      if (scope == null) return null;
+      return (MethodNode) scope.declarationWalk(decl -> {
+        if (!(decl instanceof MethodNode creator)) return false;
+        return creator.matchMethodCall(methodCall, graph.typeMap);
+      });
+    }
+
     if (curScope == null) return null;
-    var resolvedDecl = curScope.declarationWalk(decl ->
-        decl instanceof MethodNode methodNode
-            && methodNode.matchMethodCall(methodCall, graph.typeMap)
-    );
+    var resolvedDecl = curScope.declarationWalk(decl -> {
+      if (!(decl instanceof MethodNode methodNode)) return false;
+      return methodNode.matchMethodCall(methodCall, graph.typeMap);
+    });
     if (resolvedDecl != null) return (MethodNode) resolvedDecl;
 
     MethodNode importResolve = resolveImport(curScope, methodCall, this::resolveMethodCall);
