@@ -20,8 +20,8 @@ public class JavaParser {
     result.add(ints);
     result.add(chars);
     result.add(new int[]{FileParser.JAVA_FILE});
-    result.add(parser.writer.ints);
-    result.add(parser.writer.chars);
+    result.add(parser.writer.graphInts);
+    result.add(parser.writer.graphChars);
   }
 
   public static final String PARSE = "JavaParser.parse";
@@ -76,8 +76,8 @@ public class JavaParser {
     int[] ints = parser.parseIntervalScope(source, interval, graphInts, graphChars);
     result.add(ints);
     result.add(chars);
-    result.add(parser.writer.ints);
-    result.add(parser.writer.chars);
+    result.add(parser.writer.graphInts);
+    result.add(parser.writer.graphChars);
   }
 
 }

@@ -83,7 +83,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   int scrollDown, scrollUp;
   boolean drawTails = true;
   boolean drawGap = true;
-  boolean printResolveTime = false;
+  boolean printResolveTime = true;
   int xOffset = CodeLineRenderer.initialOffset;
 
   // line numbers
@@ -834,6 +834,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private long parsingTimeStart;
+  private long resolveTimeStart;
 
   private void onFileParsed(Object[] result) {
     Debug.consoleInfo("onFileParsed");
@@ -847,7 +848,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       int[] graphInts = ((ArrayView) result[3]).ints();
       char[] graphChars = ((ArrayView) result[4]).chars();
       ParserUtils.updateDocument(model.document, ints, chars, graphInts, graphChars, false);
-      resolveAll();
+      resolveAll(Arrays.copyOf(graphInts, graphInts.length), Arrays.copyOf(graphChars, graphChars.length));
     } else {
       ParserUtils.updateDocument(model.document, ints, chars);
     }
@@ -862,14 +863,22 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     }
   }
 
+  public void onResolved(Object[] result) {
+    int[] ints = ((ArrayView) result[0]).ints();
+    model.document.onResolve(ints);
+    long time = System.currentTimeMillis();
+    if (printResolveTime) System.out.println("Resolved in " + (time - resolveTimeStart) + "ms");
+  }
+
   public void resolveAll() {
-    long from = System.currentTimeMillis();
-    model.document.usageToDef.clear();
-    model.document.defToUsages.clear();
-    if (model.document.linePrefixSum == null) model.document.countPrefixes();
-    model.document.scopeGraph.resolveAll(model.document::onResolve);
-    long to = System.currentTimeMillis();
-    if (printResolveTime) System.out.println("Resolving all in " + (to - from) + " ms");
+    ScopeGraphWriter writer = new ScopeGraphWriter(model.document.scopeGraph, null);
+    writer.toInts();
+    resolveAll(writer.graphInts, writer.graphChars);
+  }
+
+  public void resolveAll(int[] graphInts, char[] graphChars) {
+    resolveTimeStart = System.currentTimeMillis();
+    window().sendToWorker(this::onResolved, ScopeUtils.RESOLVE_ALL, graphInts, graphChars);
   }
 
   private void onFileStructureParsed(Object[] result) {
@@ -1506,8 +1515,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
         ScopeGraph reparseGraph = new ScopeGraph(reparseNode.scope, oldGraph.typeMap);
         ScopeGraphWriter writer = new ScopeGraphWriter(reparseGraph, reparseNode);
         writer.toInts();
-        graphInts = writer.ints;
-        graphChars = writer.chars;
+        graphInts = writer.graphInts;
+        graphChars = writer.graphChars;
       } else {
         graphInts = new int[]{};
         graphChars = new char[]{};

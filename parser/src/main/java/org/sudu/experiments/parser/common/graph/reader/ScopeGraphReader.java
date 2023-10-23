@@ -15,17 +15,15 @@ import static org.sudu.experiments.parser.common.graph.ScopeGraphConstants.Nodes
 
 public class ScopeGraphReader {
 
-  private final ArrayReader reader;
-  private final char[] chars;
-
-  private ScopeNode[] scopeNodes;
-  private DeclNodeReader declNodeReader;
-  private RefNodeReader refNodeReader;
-
   public ScopeNode scopeRoot;
   public IntervalNode intervalRoot;
-  public List<String> types;
   public TypeMap typeMap;
+  private final ArrayReader reader;
+  private final char[] chars;
+  private ScopeNode[] scopeNodes;
+  private List<String> types;
+  private DeclNodeReader declNodeReader;
+  private RefNodeReader refNodeReader;
 
   public ScopeGraphReader(
       int[] ints,
@@ -57,7 +55,7 @@ public class ScopeGraphReader {
     }
   }
 
-  public void readSupertypes() {
+  private void readSupertypes() {
     for (var typeEntry: typeMap.entrySet()) {
       typeEntry.getValue().addAll(readTypeList());
     }
@@ -133,6 +131,8 @@ public class ScopeGraphReader {
   }
 
   private void readIntervalNode() {
+    int flag = reader.next();
+    if (flag == -1) return;
     intervalRoot = IntervalNode.readNode(reader, scopeNodes);
   }
 
@@ -141,5 +141,4 @@ public class ScopeGraphReader {
         count = reader.next();
     return new String(chars, offset, count);
   }
-
 }

@@ -16,16 +16,16 @@ import static org.sudu.experiments.parser.common.graph.ScopeGraphConstants.Nodes
 
 public class ScopeGraphWriter {
 
-  public final ScopeGraph graph;
-  public final IntervalNode node;
-  public int[] ints;
-  public char[] chars;
+  public int[] graphInts;
+  public char[] graphChars;
+  private  final ScopeGraph graph;
+  private  final IntervalNode node;
   private final ArrayWriter writer;
   private final DeclNodeWriter declNodeWriter;
   private final RefNodeWriter refNodeWriter;
 
-  public final HashMap<String, Integer> typeIdentityMap;
-  public final IdentityHashMap<ScopeNode, Integer> scopeIdentityMap;
+  private  final HashMap<String, Integer> typeIdentityMap;
+  private  final IdentityHashMap<ScopeNode, Integer> scopeIdentityMap;
 
   private final StringBuilder refDeclStringBuilder;
 
@@ -45,8 +45,8 @@ public class ScopeGraphWriter {
 
   public void toInts() {
     writeInts();
-    this.ints = writer.getInts();
-    this.chars = refDeclStringBuilder.toString().toCharArray();
+    this.graphInts = writer.getInts();
+    this.graphChars = refDeclStringBuilder.toString().toCharArray();
   }
 
   private void writeInts() {
@@ -154,10 +154,15 @@ public class ScopeGraphWriter {
   }
 
   private void writeIntervalNode() {
+    if (node == null) {
+      writer.write(-1);
+      return;
+    }
+    writer.write(1);
     IntervalNode.writeInts(node, writer, scopeIdentityMap);
   }
 
-  int putType(String type) {
+  private int putType(String type) {
     if (typeIdentityMap.containsKey(type))
       return typeIdentityMap.get(type);
     else {
@@ -167,7 +172,7 @@ public class ScopeGraphWriter {
     }
   }
 
-  int putScope(ScopeNode scopeNode) {
+  private int putScope(ScopeNode scopeNode) {
     if (scopeIdentityMap.containsKey(scopeNode))
       return scopeIdentityMap.get(scopeNode);
     else {

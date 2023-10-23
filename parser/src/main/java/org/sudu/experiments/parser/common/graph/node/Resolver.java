@@ -23,8 +23,10 @@ public class Resolver {
   }
 
   public DeclNode resolve(ScopeNode currentNode, RefNode ref) {
-    if (ref == null ||
-        (ref instanceof MethodCallNode callNode && callNode.callType == MethodNode.ARRAY_CREATOR)
+    if (ref == null
+        || ref.refType == RefNode.TYPE
+        || (ref instanceof MethodCallNode callNode
+        && callNode.callType == MethodNode.ARRAY_CREATOR)
     ) return null;
     if (ref.refType == RefNode.THIS ||
         ref.refType == RefNode.SUPER
@@ -35,8 +37,7 @@ public class Resolver {
 
     DeclNode resolved = resolveRec(currentNode, ref);
     if (resolved != null && resolved.type != null) ref.type = resolved.type;
-    if (ref.refType != RefNode.TYPE &&
-        !(ref instanceof QualifiedRefNode) &&
+    if (!(ref instanceof QualifiedRefNode) &&
         !(ref instanceof ExprRefNode)
     ) onResolve.accept(ref, resolved);
 
@@ -148,7 +149,7 @@ public class Resolver {
   }
 
   private ScopeNode getTypeScope(String type) {
-    if (type == null) return null;
+    if (type == null || !graph.typeMap.containsKey(type)) return null;
     return getTypeScopeRec(graph.root, type);
   }
 

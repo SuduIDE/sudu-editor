@@ -1,6 +1,7 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.Debug;
+import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.IntervalNode;
 import org.sudu.experiments.parser.common.IntervalTree;
@@ -514,35 +515,39 @@ public class Document {
     int len;
     if (lineInd - 1 < 0) len = 0;
     else len = linePrefixSum[lineInd - 1];
-    return new Pos(lineInd - 1, offset - len);
+    Pos pos = new Pos(lineInd - 1, offset - len);
+    if (pos.pos >= line(pos.line).totalStrLength) {
+      pos.line++;
+      pos.pos = 0;
+    }
+    return pos;
   }
 
-  public void onResolve(RefNode refNode, DeclNode declNode) {
-    Name ref = refNode.ref;
-    var refPos = binarySearchPosAt(ref.position);
-    if (refPos.pos >= line(refPos.line).totalStrLength) {
-      refPos.line++;
-      refPos.pos = 0;
-    }
-    var refElem = line(refPos.line).getCodeElement(refPos.pos);
-    if (declNode == null) {
-      refElem.color = ParserConstants.TokenTypes.ERROR;
-      return;
-    }
-    int type = declNode.declType == DeclNode.FIELD
-        ? ParserConstants.TokenTypes.FIELD
-        : ParserConstants.TokenTypes.DEFAULT;
-    int style = declNode instanceof MethodNode
-        ? ParserConstants.TokenStyles.BOLD
-        : ParserConstants.TokenStyles.NORMAL;
+  public void onResolve(int[] resolveInts) {
+    ArrayReader reader = new ArrayReader(resolveInts);
+    usageToDef.clear();
+    defToUsages.clear();
+    countPrefixes();
+    while (reader.hasNext()) {
+      int refFlag = reader.next();
+      if (refFlag == -1) continue;
+      var refPos = binarySearchPosAt(reader.next());
+      var refElem = line(refPos.line).getCodeElement(refPos.pos);
 
-    Name decl = declNode.decl;
-    var declPos = getPositionAt(decl.position);
-    usageToDef.put(refPos, declPos);
-    defToUsages.putIfAbsent(declPos, new ArrayList<>());
-    defToUsages.get(declPos).add(refPos);
+      int declFlag = reader.next();
+      if (declFlag == -1) {
+        refElem.color = ParserConstants.TokenTypes.ERROR;
+        continue;
+      }
+      var declPos = binarySearchPosAt(reader.next());
+      var type = reader.next();
+      var style = reader.next();
 
-    refElem.color = type;
-    refElem.fontIndex = style;
+      usageToDef.put(refPos, declPos);
+      defToUsages.putIfAbsent(declPos, new ArrayList<>());
+      defToUsages.get(declPos).add(refPos);
+      refElem.color = type;
+      refElem.fontIndex = style;
+    }
   }
 }

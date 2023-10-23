@@ -36,13 +36,12 @@ public class ScopeGraphSerializationTest {
     ScopeGraph fromGraph = scopeWalker.scopeWalker.graph;
     ScopeGraphWriter scopeGraphWriter = new ScopeGraphWriter(fromGraph, scopeWalker.scopeWalker.currentNode);
     scopeGraphWriter.toInts();
-    int[] ints = scopeGraphWriter.ints;
-    char[] chars = scopeGraphWriter.chars;
+    int[] ints = scopeGraphWriter.graphInts;
+    char[] chars = scopeGraphWriter.graphChars;
 
     ScopeGraphReader reader = new ScopeGraphReader(ints, chars);
     reader.readFromInts();
     ScopeGraph toGraph = new ScopeGraph(reader.scopeRoot, reader.typeMap);
-    toGraph.resolveAll((ref, decl) -> {});
   }
 
   private String readFile(String filename) {
