@@ -8,7 +8,9 @@ import org.sudu.experiments.parser.common.graph.node.ref.MethodCallNode;
 import org.sudu.experiments.parser.common.graph.node.ref.QualifiedRefNode;
 import org.sudu.experiments.parser.common.graph.node.ref.RefNode;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
@@ -16,6 +18,7 @@ public class Resolver {
 
   public ScopeGraph graph;
   public BiConsumer<RefNode, DeclNode> onResolve;
+  private final Map<String, ScopeNode> typeCache = new HashMap<>();
 
   public Resolver(ScopeGraph graph, BiConsumer<RefNode, DeclNode> onResolve) {
     this.graph = graph;
@@ -150,7 +153,10 @@ public class Resolver {
 
   private ScopeNode getTypeScope(String type) {
     if (type == null || !graph.typeMap.containsKey(type)) return null;
-    return getTypeScopeRec(graph.root, type);
+    if (typeCache.containsKey(type)) return typeCache.get(type);
+    var scope = getTypeScopeRec(graph.root, type);
+    typeCache.put(type, scope);
+    return scope;
   }
 
   private String getThisType(ScopeNode current) {

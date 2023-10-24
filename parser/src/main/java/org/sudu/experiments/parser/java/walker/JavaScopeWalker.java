@@ -671,8 +671,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   }
 
   private RefNode handleTernary(JavaParser.ExpressionContext ctx) {
-    var result = handleExpression(ctx.expression(0));
-    scopeWalker.addRef(handleExpression(ctx.expression(1)));
+    scopeWalker.addRef(handleExpression(ctx.expression(0)));
+    var result = handleExpression(ctx.expression(1));
     scopeWalker.addRef(handleExpression(ctx.expression(2)));
     return result;
   }
