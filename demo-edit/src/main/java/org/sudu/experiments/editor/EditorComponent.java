@@ -1460,6 +1460,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     String language = model.language();
     if (language == null || Languages.TEXT.equals(language)) {
       model.document.onReparse();
+    } else if (Languages.ACTIVITY.equals(language)) {
+      parseFullFile();
+      model.document.onReparse();
     } else {
       var reparseNode = model.document.tree.getReparseNode();
       if (reparseNode == null) {
@@ -1750,6 +1753,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       case Languages.JAVA -> JavaParser.PARSE_SCOPES;
       case Languages.CPP -> CppParser.PARSE;
       case Languages.JS -> JavaScriptParser.PARSE;
+      case Languages.ACTIVITY -> ActivityParser.PARSE;
       default -> null;
     } : null;
   }
