@@ -11,6 +11,7 @@ public interface Languages {
   String JAVA = "java";
   String CPP = "cpp";
   String JS = "js";
+  String ACTIVITY = "activity";
 
   static String getLanguage(String lang) {
     return switch (lang.toLowerCase(Locale.ENGLISH)) {
@@ -18,6 +19,7 @@ public interface Languages {
       case "java" -> JAVA;
       case "cpp", "c++" -> CPP;
       case "js", "javascript" -> JS;
+      case "activity" -> ACTIVITY;
       default -> null;
     };
   }
@@ -32,6 +34,7 @@ public interface Languages {
         || path.endsWith(".h")) return CPP;
     if (path.endsWith(".java")) return JAVA;
     if (path.endsWith(".js")) return JS;
+    if (path.endsWith(".activity")) return ACTIVITY;
     return null;
   }
 
@@ -41,6 +44,7 @@ public interface Languages {
       case 1 -> JAVA;
       case 2 -> CPP;
       case 3 -> JS;
+      case 4 -> ACTIVITY;
       default -> null;
     };
   }
@@ -51,6 +55,7 @@ public interface Languages {
       case Languages.JAVA -> FileParser.JAVA_FILE;
       case Languages.CPP -> FileParser.CPP_FILE;
       case Languages.JS -> FileParser.JS_FILE;
+      case Languages.ACTIVITY -> FileParser.ACTIVITY_FILE;
       default -> -1;
     };
   }

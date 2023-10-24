@@ -27,8 +27,15 @@ public class GenerateParsers {
   private static final String jsPackagePath = basePackageName + ".javascript.gen";
   private static final String jsGrammarPath = baseGrammarPath + "javascript/";
 
+  private static final String activityPath = baseGenPath + "activity/gen/";
+  private static final String activityPackagePath = basePackageName + ".activity.gen";
+  private static final String activityGrammarPath = baseGrammarPath + "activity/";
+
+
   private static final String lightJsGenPath = baseGenPath + "javascript/gen/light/";
   private static final String lightJsPackagePath = basePackageName + ".javascript.gen.light";
+
+
 
   public static void main(String[] args) {
     new Tool(new String[]{
@@ -83,6 +90,17 @@ public class GenerateParsers {
         jsGrammarPath + "JavaScriptParser.g4"
     }).processGrammarsOnCommandLine();
 
+
+    new Tool(new String[]{
+            "-o",
+            activityPath,
+            "-package",
+            activityPackagePath,
+            activityGrammarPath + "ActivityLexer.g4",
+            activityGrammarPath + "ActivityParser.g4"
+    }).processGrammarsOnCommandLine();
+    
+    
     new Tool(new String[]{
         "-o",
         lightJsGenPath,

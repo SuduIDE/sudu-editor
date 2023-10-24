@@ -14,6 +14,7 @@ public class FileParser {
   public static final int JAVA_FILE = 1;
   public static final int CPP_FILE = 2;
   public static final int JS_FILE = 3;
+  public static final int ACTIVITY_FILE = 4;
 
   public static final String asyncParseFile = "asyncParseFile";
 
@@ -61,6 +62,7 @@ public class FileParser {
       case JAVA_FILE -> JavaParser.parseInterval(chars, interval, graphInts, graphChars, result);
       case CPP_FILE -> CppParser.parseInterval(chars, interval, result);
       case JS_FILE -> JavaScriptParser.parseInterval(chars, interval, result);
+      case ACTIVITY_FILE -> ActivityParser.parseInterval(chars, result);
     }
   }
 
@@ -81,6 +83,7 @@ public class FileParser {
       case ".java" -> parseJavaChars(chars, result);
       case ".cpp", ".cc", ".h" -> parseCppChars(chars, result);
       case ".js" -> parseJavaScriptChars(chars, result);
+      case ".activity" -> parseActivityChars(chars, result);
       default -> parseChars(chars, result);
     }
   }
@@ -90,6 +93,7 @@ public class FileParser {
       case ".java" -> parseFullJavaChars(chars, result);
       case ".cpp", ".cc", ".h" -> parseFullCppChars(chars, result);
       case ".js" -> parseFullJavaScriptChars(chars, result);
+      case ".activity" -> parseActivityChars(chars, result);
       default -> parseChars(chars, result);
     }
   }
@@ -145,6 +149,13 @@ public class FileParser {
     ArrayList<Object> list = new ArrayList<>();
     JavaScriptParser.parse(chars, list);
     list.add(new int[]{JS_FILE});
+    ArrayOp.sendArrayList(list, result);
+  }
+
+  private static void parseActivityChars(char[] chars, Consumer<Object[]> result) {
+    ArrayList<Object> list = new ArrayList<>();
+    ActivityParser.parse(chars, list);
+    list.add(new int[]{ACTIVITY_FILE});
     ArrayOp.sendArrayList(list, result);
   }
 }
