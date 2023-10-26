@@ -4,9 +4,8 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.ErrorHighlightingStrategy;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.ParserConstants;
-import org.sudu.experiments.parser.common.BaseIntervalParser;
-import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.base.BaseIntervalParser;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.graph.type.TypeMap;
 import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
@@ -19,7 +18,7 @@ import org.sudu.experiments.parser.java.walker.JavaScopeWalker;
 
 import static org.sudu.experiments.parser.ParserConstants.*;
 
-public class JavaIntervalParser extends BaseIntervalParser {
+public class JavaIntervalParser extends BaseIntervalParser<JavaParser> {
 
   public ScopeGraphWriter writer;
 
@@ -62,6 +61,11 @@ public class JavaIntervalParser extends BaseIntervalParser {
   }
 
   @Override
+  protected JavaParser initParser() {
+    return new JavaParser(tokenStream);
+  }
+
+  @Override
   protected boolean tokenFilter(Token token) {
     int type = token.getType();
     return type != JavaLexer.NEW_LINE
@@ -75,12 +79,12 @@ public class JavaIntervalParser extends BaseIntervalParser {
 
   @Override
   protected void highlightTokens() {
-    for (var token: allTokens) {
-      int ind = token.getTokenIndex();
-      if (JavaLexerHighlighting.isComment(token.getType())) tokenTypes[ind] = TokenTypes.COMMENT;
-      if (JavaLexerHighlighting.isJavadoc(token.getType())) tokenTypes[ind] = TokenTypes.JAVADOC;
-      if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
-    }
+    JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes);
+//    for (var token: allTokens) {
+//      int ind = token.getTokenIndex();
+//      if (JavaLexerHighlighting.isComment(token.getType())) tokenTypes[ind] = TokenTypes.COMMENT;
+//      if (JavaLexerHighlighting.isJavadoc(token.getType())) tokenTypes[ind] = TokenTypes.JAVADOC;
+//      if (JavaLexerHighlighting.isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
+//    }
   }
-
 }

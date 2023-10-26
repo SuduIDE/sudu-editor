@@ -29,10 +29,9 @@ public class CppParser {
   }
 
   private static void parseFirstLines(char[] chars, int[] lines, List<Object> result) {
-    String source = new String(chars);
     CppFirstLinesLexer parser = new CppFirstLinesLexer();
     int numOfLines = lines[0];
-    int[] ints = parser.parse(source, numOfLines);
+    int[] ints = parser.parse(chars, numOfLines);
     result.add(ints);
     result.add(chars);
   }

@@ -4,7 +4,6 @@ import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.Name;
 import org.sudu.experiments.parser.common.TriConsumer;
-import org.sudu.experiments.parser.common.graph.node.Resolver;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
 import org.sudu.experiments.parser.common.graph.node.decl.MethodNode;

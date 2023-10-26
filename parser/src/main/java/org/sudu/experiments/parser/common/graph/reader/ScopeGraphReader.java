@@ -1,7 +1,7 @@
 package org.sudu.experiments.parser.common.graph.reader;
 
 import org.sudu.experiments.arrays.ArrayReader;
-import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
 import org.sudu.experiments.parser.common.graph.node.InferenceNode;
 import org.sudu.experiments.parser.common.graph.node.MemberNode;

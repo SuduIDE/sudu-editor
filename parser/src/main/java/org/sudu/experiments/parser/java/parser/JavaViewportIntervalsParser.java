@@ -4,9 +4,9 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.CommonTokenSubStream;
-import org.sudu.experiments.parser.common.BaseIntervalParser;
 import org.sudu.experiments.parser.ParserConstants;
-import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.base.BaseIntervalParser;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.graph.type.TypeMap;
 import org.sudu.experiments.parser.java.JavaSplitRules;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Java.*;
 
-public class JavaViewportIntervalsParser extends BaseIntervalParser {
+public class JavaViewportIntervalsParser extends BaseIntervalParser<JavaParser> {
 
   // viewport - {leftInd, rightInd, firstLine}
   public int[] parseViewport(String source, int[] viewport, int[] intervals) {
@@ -138,6 +138,11 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser {
   @Override
   protected Lexer initLexer(CharStream stream) {
     return new JavaLexer(stream);
+  }
+
+  @Override
+  protected JavaParser initParser() {
+    return new JavaParser(tokenStream);
   }
 
   @Override

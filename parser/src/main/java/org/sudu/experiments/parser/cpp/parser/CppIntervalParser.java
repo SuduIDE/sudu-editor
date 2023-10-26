@@ -6,8 +6,8 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.common.BaseIntervalParser;
-import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.base.BaseIntervalParser;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.graph.type.TypeMap;
 import org.sudu.experiments.parser.cpp.CppSplitRules;
@@ -22,7 +22,7 @@ import java.util.HashMap;
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.ANNOTATION;
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.COMMENT;
 
-public class CppIntervalParser extends BaseIntervalParser {
+public class CppIntervalParser extends BaseIntervalParser<CPP14Parser> {
 
   @Override
   protected IntervalNode parseInterval(Interval interval, TypeMap typeMap) {
@@ -56,6 +56,11 @@ public class CppIntervalParser extends BaseIntervalParser {
   }
 
   @Override
+  protected CPP14Parser initParser() {
+    return new CPP14Parser(tokenStream);
+  }
+
+  @Override
   protected SplitRules initSplitRules() {
     return new CppSplitRules();
   }
@@ -84,11 +89,6 @@ public class CppIntervalParser extends BaseIntervalParser {
   public static boolean isComment(int tokenType) {
     return tokenType == CPP14Lexer.BlockComment
         || tokenType == CPP14Lexer.LineComment;
-  }
-
-  @Override
-  protected boolean isErrorToken(int tokenType) {
-    return tokenType == CPP14Lexer.ERROR;
   }
 
 }

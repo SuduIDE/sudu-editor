@@ -1,4 +1,4 @@
-package org.sudu.experiments.parser.common;
+package org.sudu.experiments.parser.common.tree;
 
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;

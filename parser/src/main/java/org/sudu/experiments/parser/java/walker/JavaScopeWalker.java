@@ -4,7 +4,7 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.sudu.experiments.parser.common.Name;
-import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.graph.node.InferenceNode;
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;

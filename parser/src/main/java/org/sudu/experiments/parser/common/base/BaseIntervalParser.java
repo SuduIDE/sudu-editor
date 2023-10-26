@@ -1,8 +1,10 @@
-package org.sudu.experiments.parser.common;
+package org.sudu.experiments.parser.common.base;
 
+import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.graph.reader.ScopeGraphReader;
 import org.sudu.experiments.parser.common.graph.type.TypeMap;
 
@@ -11,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 // Base class for parsers, that parse only fragment in random place in file
-public abstract class BaseIntervalParser extends BaseParser {
+public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P> {
 
   protected int intervalStart = 0;
   protected int intervalStop = 0;
@@ -36,7 +38,6 @@ public abstract class BaseIntervalParser extends BaseParser {
     }
     IntervalNode intervalNode = parseInterval(parsingInterval, typeMap);
 
-//    if (parserRecognitionListener.errorOccurred) return makeErrorInts();
     return getVpInts(intervalStart, intervalStop, intervalNode);
   }
 
@@ -45,9 +46,11 @@ public abstract class BaseIntervalParser extends BaseParser {
   }
 
   protected abstract IntervalNode parseInterval(Interval interval, TypeMap typeMap);
+
   protected IntervalNode parseInterval(Interval interval) {
     return parseInterval(interval, null);
-  };
+  }
+
   protected void normalize(List<IntervalNode> children) {
     if (children.isEmpty()) return;
     IntervalNode first = children.get(0), last = children.get(children.size() - 1);

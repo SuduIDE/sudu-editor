@@ -1,10 +1,9 @@
 package org.sudu.experiments.parser.javascript.parser;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.Lexer;
-import org.antlr.v4.runtime.Token;
-import org.sudu.experiments.parser.common.BaseFullParser;
+import org.antlr.v4.runtime.*;
+import org.sudu.experiments.parser.common.base.BaseFullParser;
 import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.javascript.JsSplitRules;
 import org.sudu.experiments.parser.javascript.gen.light.LightJavaScriptLexer;
 import org.sudu.experiments.parser.javascript.parser.highlighting.JavaScriptLexerHighlighting;
@@ -42,6 +41,11 @@ public class JavaScriptFirstLinesLexer extends BaseFullParser {
   }
 
   @Override
+  protected Parser initParser() {
+    return null;
+  }
+
+  @Override
   protected SplitRules initSplitRules() {
     return new JsSplitRules();
   }
@@ -51,6 +55,16 @@ public class JavaScriptFirstLinesLexer extends BaseFullParser {
     int type = token.getType();
     return type != LightJavaScriptLexer.LineTerminator
         && type != LightJavaScriptLexer.EOF;
+  }
+
+  @Override
+  protected ParserRuleContext getStartRule(Parser parser) {
+    return null;
+  }
+
+  @Override
+  protected IntervalNode walk(ParserRuleContext startRule) {
+    return null;
   }
 
   public static boolean isComment(int tokenType) {

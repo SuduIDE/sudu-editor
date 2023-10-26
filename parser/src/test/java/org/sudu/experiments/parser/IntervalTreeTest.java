@@ -2,8 +2,8 @@ package org.sudu.experiments.parser;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.sudu.experiments.parser.common.IntervalNode;
-import org.sudu.experiments.parser.common.IntervalTree;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
+import org.sudu.experiments.parser.common.tree.IntervalTree;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
 
 public class IntervalTreeTest {

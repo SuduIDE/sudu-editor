@@ -5,23 +5,21 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.ErrorHighlightingStrategy;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.ParserConstants;
-import org.sudu.experiments.parser.common.BaseFullParser;
-import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.base.BaseFullParser;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
 import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
-import org.sudu.experiments.parser.java.model.JavaClass;
 import org.sudu.experiments.parser.java.walker.JavaClassWalker;
 import org.sudu.experiments.parser.java.walker.JavaScopeWalker;
-import org.sudu.experiments.parser.java.walker.JavaWalker;
 
 import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting;
+import org.sudu.experiments.parser.java.walker.JavaWalker;
 
-public class JavaFullParser extends BaseFullParser {
+public class JavaFullParser extends BaseFullParser<JavaParser> {
 
-  private JavaClass javaClass;
   public ScopeGraphWriter writer;
 
   public int[] parseScopes(String source) {
@@ -58,56 +56,14 @@ public class JavaFullParser extends BaseFullParser {
     return result;
   }
 
-  public int[] parse(String source) {
-    long parsingStartTime = System.currentTimeMillis();
-    initLexer(source);
-
-    return parse(parsingStartTime);
-  }
-
-  public int[] parse(char[] source) {
-    long parsingStartTime = System.currentTimeMillis();
-    initLexer(source);
-
-    return parse(parsingStartTime);
-  }
-
-  private int[] parse(long parsingStartTime) {
-    JavaParser parser = new JavaParser(tokenStream);
-    parser.setErrorHandler(new ErrorHighlightingStrategy());
-    parser.removeErrorListeners();
-    parser.addErrorListener(parserRecognitionListener);
-
-    var compUnit = parser.compilationUnit();
-    if (parserErrorOccurred()) JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes);
-    else highlightTokens();
-
-    ParseTreeWalker walker = new ParseTreeWalker();
-    Interval compUnitInterval = new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.Java.COMP_UNIT);
-    var classWalker = new JavaClassWalker(new IntervalNode(compUnitInterval));
-    int[] result;
-
-    try {
-      walker.walk(classWalker, compUnit);
-
-      javaClass = classWalker.dummy;
-      var javaWalker = new JavaWalker(tokenTypes, tokenStyles, javaClass, classWalker.types, usageToDefinition);
-      walker.walk(javaWalker, compUnit);
-
-      result = getInts(classWalker.node);
-    } catch (Exception e) {
-      e.printStackTrace();
-      JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes);
-      result = getInts(defaultIntervalNode());
-    }
-
-    System.out.println("Parsing full java time: " + (System.currentTimeMillis() - parsingStartTime) + "ms");
-    return result;
-  }
-
   @Override
   protected Lexer initLexer(CharStream stream) {
     return new JavaLexer(stream);
+  }
+
+  @Override
+  protected JavaParser initParser() {
+    return new JavaParser(tokenStream);
   }
 
   @Override
@@ -123,17 +79,28 @@ public class JavaFullParser extends BaseFullParser {
   }
 
   @Override
-  protected boolean isErrorToken(int tokenType) {
-    return tokenType == JavaLexer.ERROR;
+  protected ParserRuleContext getStartRule(JavaParser parser) {
+    return parser.compilationUnit();
+  }
+
+  @Override
+  protected IntervalNode walk(ParserRuleContext startRule) {
+    ParseTreeWalker walker = new ParseTreeWalker();
+    var defaultInterval = defaultInterval();
+    defaultInterval.intervalType = ParserConstants.IntervalTypes.Java.COMP_UNIT;
+
+    var classWalker = new JavaClassWalker(defaultIntervalNode());
+    walker.walk(classWalker, startRule);
+
+    var javaClass = classWalker.dummy;
+    var types = classWalker.types;
+    var javaWalker = new JavaWalker(tokenTypes, tokenStyles, javaClass, types, usageToDefinition);
+    walker.walk(javaWalker, startRule);
+    return classWalker.node;
   }
 
   @Override
   protected void highlightTokens() {
     JavaLexerHighlighting.highlightCommentTokens(allTokens, tokenTypes);
   }
-
-  public JavaClass getJavaClass() {
-    return javaClass;
-  }
-
 }

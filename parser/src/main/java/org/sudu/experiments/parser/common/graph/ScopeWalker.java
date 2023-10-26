@@ -2,7 +2,7 @@ package org.sudu.experiments.parser.common.graph;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
 import org.sudu.experiments.parser.common.graph.node.InferenceNode;
 import org.sudu.experiments.parser.common.graph.node.MemberNode;

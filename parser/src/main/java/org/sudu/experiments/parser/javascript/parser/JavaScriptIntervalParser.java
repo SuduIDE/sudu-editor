@@ -7,17 +7,18 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.ParserConstants;
-import org.sudu.experiments.parser.common.BaseIntervalParser;
-import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.base.BaseIntervalParser;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.graph.type.TypeMap;
+import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting;
 import org.sudu.experiments.parser.javascript.JsSplitRules;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptLexer;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptParser;
 import org.sudu.experiments.parser.javascript.parser.highlighting.JavaScriptLexerHighlighting;
 import org.sudu.experiments.parser.javascript.walker.JsWalker;
 
-public class JavaScriptIntervalParser extends BaseIntervalParser {
+public class JavaScriptIntervalParser extends BaseIntervalParser<JavaScriptParser> {
 
   @Override
   protected IntervalNode parseInterval(Interval interval, TypeMap typeMap) {
@@ -47,6 +48,11 @@ public class JavaScriptIntervalParser extends BaseIntervalParser {
   }
 
   @Override
+  protected JavaScriptParser initParser() {
+    return null;
+  }
+
+  @Override
   protected SplitRules initSplitRules() {
     return new JsSplitRules();
   }
@@ -60,11 +66,7 @@ public class JavaScriptIntervalParser extends BaseIntervalParser {
 
   @Override
   protected void highlightTokens() {
-    for (var token: allTokens) {
-      int ind = token.getTokenIndex();
-      if (isComment(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.COMMENT;
-      if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
-    }
+    JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes);
   }
 
   public static boolean isComment(int tokenType) {

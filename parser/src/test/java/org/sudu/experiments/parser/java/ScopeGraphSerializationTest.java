@@ -5,7 +5,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.junit.jupiter.api.Test;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.graph.ScopeGraph;
 import org.sudu.experiments.parser.common.graph.reader.ScopeGraphReader;
 import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;

@@ -5,7 +5,7 @@ import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.Decl;
-import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.gen.JavaParserBaseListener;
