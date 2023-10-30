@@ -1,9 +1,12 @@
 package org.sudu.experiments.parser.common.base;
 
 import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.arrays.ArrayWriter;
-import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.ErrorHighlightingStrategy;
+import org.sudu.experiments.parser.common.graph.ScopeWalker;
+import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.graph.reader.ScopeGraphReader;
 import org.sudu.experiments.parser.common.graph.type.TypeMap;
@@ -15,41 +18,69 @@ import java.util.stream.Collectors;
 // Base class for parsers, that parse only fragment in random place in file
 public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P> {
 
-  protected int intervalStart = 0;
-  protected int intervalStop = 0;
+  protected int intervalStart;
+  protected int intervalStop;
+  protected int intervalType;
+  private ScopeGraphReader scopeReader;
+  private ScopeGraphWriter scopeWriter;
 
-  public int[] parseIntervalScope(
+  protected IntervalNode parseInterval() {
+    var parser = initParser();
+    parser.setErrorHandler(new ErrorHighlightingStrategy());
+    parser.removeErrorListeners();
+    parser.addErrorListener(parserRecognitionListener);
+
+    var intervalRule = getStartRule(parser);
+    var node = walk(intervalRule);
+
+    normalize(node.children);
+    return node;
+  }
+
+  protected IntervalNode parseIntervalScope() {
+    var parser = initParser();
+    parser.setErrorHandler(new ErrorHighlightingStrategy());
+    parser.removeErrorListeners();
+    parser.addErrorListener(parserRecognitionListener);
+
+    var intervalNode = defaultIntervalNode();
+    var intervalRule = getStartRule(parser);
+
+    ScopeWalker scopeWalker = new ScopeWalker(intervalNode);
+    scopeWalker.graph.typeMap = getTypeMap();
+    scopeWalker.offset = intervalStart;
+    walkScopes(intervalRule, scopeWalker);
+
+    normalize(scopeWalker.currentNode.children);
+    scopeWriter = new ScopeGraphWriter(scopeWalker.graph, scopeWalker.currentNode);
+    scopeWriter.toInts();
+    return null;
+  }
+
+  public int[] parseInterval(
       String source, int[] interval,
       int[] graphInts, char[] graphChars
   ) {
     intervalStart = interval[0];
     intervalStop = interval[1];
-    int intervalType = interval[2];
+    intervalType = interval[2];
+
     initLexer(source.substring(intervalStart, intervalStop));
+    highlightTokens();
 
-    if (tokenErrorOccurred()) return makeErrorInts();
+    initReader(graphInts, graphChars);
 
-    Interval parsingInterval = new Interval(0, intervalStop - intervalStart, intervalType);
-    TypeMap typeMap = null;
-    if (graphInts != null && graphChars != null) {
-      var reader = new ScopeGraphReader(graphInts, graphChars);
-      reader.readFromInts();
-      typeMap = reader.typeMap;
-    }
-    IntervalNode intervalNode = parseInterval(parsingInterval, typeMap);
+    IntervalNode parsedNode = graphInts == null || graphChars == null ?
+        parseInterval() : parseIntervalScope();
 
-    return getVpInts(intervalStart, intervalStop, intervalNode);
+    return getVpInts(intervalStart, intervalStop, parsedNode);
   }
 
   public int[] parseInterval(String source, int[] interval) {
-    return parseIntervalScope(source, interval, null, null);
+    return parseInterval(source, interval, null, null);
   }
 
-  protected abstract IntervalNode parseInterval(Interval interval, TypeMap typeMap);
-
-  protected IntervalNode parseInterval(Interval interval) {
-    return parseInterval(interval, null);
-  }
+  protected abstract void walkScopes(ParserRuleContext startRule, ScopeWalker scopeWalker);
 
   protected void normalize(List<IntervalNode> children) {
     if (children.isEmpty()) return;
@@ -82,6 +113,26 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
     writer.write(nodeInts);
 
     return writer.getInts();
+  }
+
+  public int[] getGraphInts() {
+    if (scopeWriter == null) return null;
+    return scopeWriter.graphInts;
+  }
+
+  public char[] getGraphChars() {
+    if (scopeWriter == null) return null;
+    return scopeWriter.graphChars;
+  }
+
+  private void initReader(int[] graphInts, char[] graphChars) {
+    if (graphInts == null || graphChars == null) return;
+    scopeReader = new ScopeGraphReader(graphInts, graphChars);
+    scopeReader.readFromInts();
+  }
+
+  protected TypeMap getTypeMap() {
+    return scopeReader.typeMap;
   }
 
   protected int[] makeErrorInts() {

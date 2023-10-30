@@ -49,7 +49,7 @@ public class IntervalTree {
     var replaceNode = replaceIntervalRec(root, from);
     if (replaceNode == null) return;
 
-    var newScopes = newTree.scope.children;
+    List<ScopeNode> newScopes = newTree.scope != null ? newTree.scope.children : List.of();
     var newNodes = newTree.children;
 
     if (replaceNode == root) {
@@ -79,6 +79,7 @@ public class IntervalTree {
   }
 
   public void replaceScopeNode(IntervalNode replaceNode, List<ScopeNode> newScopes) {
+    if (replaceNode.scope == null) return;
     var parentScope = replaceNode.scope.parent;
     newScopes.forEach(it -> it.parent = parentScope);
     int scopeInd = parentScope.children.indexOf(replaceNode.scope);

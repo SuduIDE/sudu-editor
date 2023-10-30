@@ -1,9 +1,13 @@
 package org.sudu.experiments.parser.java.parser;
 
-import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.Lexer;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.sudu.experiments.parser.common.base.BaseIntervalParser;
+import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.common.base.BaseFullScopeParser;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.java.JavaSplitRules;
@@ -11,9 +15,8 @@ import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
 import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting;
 import org.sudu.experiments.parser.java.walker.JavaScopeWalker;
-import static org.sudu.experiments.parser.ParserConstants.*;
 
-public class JavaIntervalParser extends BaseIntervalParser<JavaParser> {
+public class JavaFullScopesParser extends BaseFullScopeParser<JavaParser> {
 
   @Override
   protected Lexer initLexer(CharStream stream) {
@@ -26,11 +29,8 @@ public class JavaIntervalParser extends BaseIntervalParser<JavaParser> {
   }
 
   @Override
-  protected ParserRuleContext getStartRule(JavaParser parser) {
-    return switch (intervalType) {
-      case IntervalTypes.Java.COMP_UNIT -> parser.compilationUnitOrAny();
-      default -> parser.unknownInterval();
-    };
+  protected SplitRules initSplitRules() {
+    return new JavaSplitRules();
   }
 
   @Override
@@ -41,26 +41,22 @@ public class JavaIntervalParser extends BaseIntervalParser<JavaParser> {
   }
 
   @Override
-  protected SplitRules initSplitRules() {
-    return new JavaSplitRules();
-  }
-
-  @Override
   protected void highlightTokens() {
     JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes);
   }
 
   @Override
-  protected IntervalNode walk(ParserRuleContext startRule) {
-    throw new UnsupportedOperationException();
+  protected ParserRuleContext getStartRule(JavaParser parser) {
+    return parser.compilationUnit();
   }
 
   @Override
-  protected void walkScopes(ParserRuleContext startRule, ScopeWalker scopeWalker) {
-    ParseTreeWalker walker = new ParseTreeWalker();
-    JavaScopeWalker javaScopeWalker = new JavaScopeWalker(scopeWalker, intervalStart, tokenTypes, tokenStyles);
-    javaScopeWalker.offset = intervalStart;
-    walker.walk(javaScopeWalker, startRule);
+  protected IntervalNode walk(ParserRuleContext startRule) {
+    ParseTreeWalker treeWalker = new ParseTreeWalker();
+    var defaultInterval = defaultIntervalNode(ParserConstants.IntervalTypes.Java.COMP_UNIT);
+    scopeWalker = new ScopeWalker(defaultInterval);
+    var javaScopeWalker = new JavaScopeWalker(scopeWalker, 0, tokenTypes, tokenStyles);
+    treeWalker.walk(javaScopeWalker, startRule);
+    return scopeWalker.currentNode;
   }
-
 }

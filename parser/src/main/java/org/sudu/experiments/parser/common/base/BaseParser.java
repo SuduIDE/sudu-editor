@@ -13,6 +13,8 @@ import java.util.function.Supplier;
 
 public abstract class BaseParser<P extends Parser> {
 
+  protected static boolean printResult = true;
+
   protected int fileSourceLength;
   protected Supplier<String> fileSource;
   protected List<Token> allTokens;
@@ -28,6 +30,8 @@ public abstract class BaseParser<P extends Parser> {
 
   protected abstract Lexer initLexer(CharStream stream);
   protected abstract P initParser();
+  protected abstract ParserRuleContext getStartRule(P parser);
+  protected abstract IntervalNode walk(ParserRuleContext startRule);
   protected abstract SplitRules initSplitRules();
   protected abstract boolean tokenFilter(Token token);
   protected abstract void highlightTokens();
@@ -135,8 +139,16 @@ public abstract class BaseParser<P extends Parser> {
     return Collections.singletonList(token);
   }
 
+  protected Interval defaultInterval(int type) {
+    return new Interval(0, fileSourceLength, type);
+  }
+
   protected Interval defaultInterval() {
     return new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.UNKNOWN);
+  }
+
+  protected IntervalNode defaultIntervalNode(int type) {
+    return new IntervalNode(defaultInterval(type));
   }
 
   protected IntervalNode defaultIntervalNode() {

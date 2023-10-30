@@ -6,9 +6,9 @@ import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.CommonTokenSubStream;
 import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.base.BaseIntervalParser;
+import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
-import org.sudu.experiments.parser.common.graph.type.TypeMap;
 import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
@@ -56,8 +56,7 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser<JavaParser> 
     return intervalList;
   }
 
-  @Override
-  protected IntervalNode parseInterval(Interval interval, TypeMap typeMap) {
+  protected IntervalNode parseInterval(Interval interval) {
     var tokenSrc = getSubSource(interval);
     CommonTokenStream tokenStream = new CommonTokenSubStream(tokenSrc);
     tokenStream.fill();
@@ -146,6 +145,16 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser<JavaParser> 
   }
 
   @Override
+  protected ParserRuleContext getStartRule(JavaParser parser) {
+    return null;
+  }
+
+  @Override
+  protected IntervalNode walk(ParserRuleContext startRule) {
+    return null;
+  }
+
+  @Override
   protected boolean tokenFilter(Token token) {
     int type = token.getType();
     return type != JavaLexer.NEW_LINE
@@ -157,4 +166,8 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser<JavaParser> 
         || type == JavaLexer.LINE_COMMENT;
   }
 
+  @Override
+  protected void walkScopes(ParserRuleContext startRule, ScopeWalker scopeWalker) {
+
+  }
 }

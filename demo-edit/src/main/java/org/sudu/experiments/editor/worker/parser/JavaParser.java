@@ -1,10 +1,7 @@
 package org.sudu.experiments.editor.worker.parser;
 
 import org.sudu.experiments.math.ArrayOp;
-import org.sudu.experiments.parser.java.parser.JavaFirstLinesLexer;
-import org.sudu.experiments.parser.java.parser.JavaFullParser;
-import org.sudu.experiments.parser.java.parser.JavaIntervalParser;
-import org.sudu.experiments.parser.java.parser.JavaViewportIntervalsParser;
+import org.sudu.experiments.parser.java.parser.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,13 +12,13 @@ public class JavaParser {
   public static final String PARSE_SCOPES = "JavaParser.parseScopes";
 
   public static void parseScopes(char[] chars, List<Object> result) {
-    var parser = new JavaFullParser();
-    int[] ints = parser.parseScopes(new String(chars));
+    var parser = new JavaFullScopesParser();
+    int[] ints = parser.parse(chars);
     result.add(ints);
     result.add(chars);
     result.add(new int[]{FileParser.JAVA_FILE});
-    result.add(parser.writer.graphInts);
-    result.add(parser.writer.graphChars);
+    result.add(parser.getGraphInts());
+    result.add(parser.getGraphChars());
   }
 
   public static final String PARSE = "JavaParser.parse";
@@ -72,11 +69,11 @@ public class JavaParser {
   ) {
     String source = new String(chars);
     JavaIntervalParser parser = new JavaIntervalParser();
-    int[] ints = parser.parseIntervalScope(source, interval, graphInts, graphChars);
+    int[] ints = parser.parseInterval(source, interval, graphInts, graphChars);
     result.add(ints);
     result.add(chars);
-    result.add(parser.writer.graphInts);
-    result.add(parser.writer.graphChars);
+    result.add(parser.getGraphInts());
+    result.add(parser.getGraphChars());
   }
 
 }

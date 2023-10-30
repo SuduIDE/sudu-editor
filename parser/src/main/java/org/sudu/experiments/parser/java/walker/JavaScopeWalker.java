@@ -27,9 +27,9 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   public int offset = 0;
   private int[] tokenTypes, tokenStyles;
 
-  public JavaScopeWalker(IntervalNode node, int offset, int[] tokenTypes, int[] tokenStyles) {
-    scopeWalker = new ScopeWalker(node);
+  public JavaScopeWalker(ScopeWalker scopeWalker, int offset, int[] tokenTypes, int[] tokenStyles) {
     scopeWalker.offset = offset;
+    this.scopeWalker = scopeWalker;
     this.tokenTypes = tokenTypes;
     this.tokenStyles = tokenStyles;
   }

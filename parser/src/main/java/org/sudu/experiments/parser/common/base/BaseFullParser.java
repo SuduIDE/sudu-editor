@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> {
 
   public Map<Pos, Pos> usageToDefinition = new HashMap<>();
-  public static boolean printResult = true;
 
   public int[] parse(char[] source) {
     long parsingStartTime = System.currentTimeMillis();
@@ -74,6 +73,4 @@ public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> {
 
   // Tokens, that
   protected abstract boolean tokenFilter(Token token);
-  protected abstract ParserRuleContext getStartRule(P parser);
-  protected abstract IntervalNode walk(ParserRuleContext startRule);
 }
