@@ -43,9 +43,8 @@ public class CppParser {
   }
 
   private static void parseInterval(char[] chars, int[] interval, List<Object> result) {
-    String source = new String(chars);
     CppIntervalParser parser = new CppIntervalParser();
-    int[] ints = parser.parseInterval(source, interval);
+    int[] ints = parser.parseInterval(chars, interval);
     result.add(ints);
     result.add(chars);
   }

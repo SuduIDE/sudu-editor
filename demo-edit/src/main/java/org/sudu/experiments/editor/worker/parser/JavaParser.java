@@ -67,9 +67,8 @@ public class JavaParser {
       int[] graphInts, char[] graphChars,
       List<Object> result
   ) {
-    String source = new String(chars);
     JavaIntervalParser parser = new JavaIntervalParser();
-    int[] ints = parser.parseInterval(source, interval, graphInts, graphChars);
+    int[] ints = parser.parseInterval(chars, interval, graphInts, graphChars);
     result.add(ints);
     result.add(chars);
     result.add(parser.getGraphInts());

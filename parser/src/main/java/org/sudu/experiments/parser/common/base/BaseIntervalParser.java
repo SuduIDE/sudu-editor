@@ -11,6 +11,7 @@ import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.graph.reader.ScopeGraphReader;
 import org.sudu.experiments.parser.common.graph.type.TypeMap;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -58,14 +59,14 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
   }
 
   public int[] parseInterval(
-      String source, int[] interval,
+      char[] source, int[] interval,
       int[] graphInts, char[] graphChars
   ) {
     intervalStart = interval[0];
     intervalStop = interval[1];
     intervalType = interval[2];
 
-    initLexer(source.substring(intervalStart, intervalStop));
+    initLexer(Arrays.copyOfRange(source, intervalStart, intervalStop));
     highlightTokens();
 
     initReader(graphInts, graphChars);
@@ -76,7 +77,7 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
     return getVpInts(intervalStart, intervalStop, parsedNode);
   }
 
-  public int[] parseInterval(String source, int[] interval) {
+  public int[] parseInterval(char[] source, int[] interval) {
     return parseInterval(source, interval, null, null);
   }
 
