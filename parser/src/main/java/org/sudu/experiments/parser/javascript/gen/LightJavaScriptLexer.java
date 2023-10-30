@@ -1,5 +1,5 @@
-// Generated from parser-generator/src/main/resources/grammar/javascript/LightJavaScriptLexer.g4 by ANTLR 4.12.0
-package org.sudu.experiments.parser.javascript.gen.light;
+// Generated from parser-generator\src\main\resources\grammar\javascript\LightJavaScriptLexer.g4 by ANTLR 4.12.0
+package org.sudu.experiments.parser.javascript.gen;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;

@@ -1,7 +1,7 @@
 package org.sudu.experiments.parser.javascript.parser.highlighting;
 
 import org.antlr.v4.runtime.Token;
-import org.sudu.experiments.parser.javascript.gen.light.LightJavaScriptLexer;
+import org.sudu.experiments.parser.javascript.gen.LightJavaScriptLexer;
 
 import java.util.List;
 

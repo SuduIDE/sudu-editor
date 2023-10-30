@@ -9,6 +9,7 @@ import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
+import org.sudu.experiments.parser.java.model.JavaClass;
 import org.sudu.experiments.parser.java.walker.JavaClassWalker;
 import org.sudu.experiments.parser.java.parser.highlighting.JavaLexerHighlighting;
 import org.sudu.experiments.parser.java.walker.JavaWalker;
@@ -18,6 +19,8 @@ import org.sudu.experiments.parser.java.walker.JavaWalker;
  * Use JavaFullScopeParser instead
  */
 public class JavaFullParser extends BaseFullParser<JavaParser> {
+
+  protected JavaClass javaClass;
 
   @Override
   protected Lexer initLexer(CharStream stream) {
@@ -53,7 +56,7 @@ public class JavaFullParser extends BaseFullParser<JavaParser> {
     var classWalker = new JavaClassWalker(defaultInterval);
     walker.walk(classWalker, startRule);
 
-    var javaClass = classWalker.dummy;
+    javaClass = classWalker.dummy;
     var types = classWalker.types;
     var javaWalker = new JavaWalker(tokenTypes, tokenStyles, javaClass, types, usageToDefinition);
     walker.walk(javaWalker, startRule);
@@ -63,5 +66,9 @@ public class JavaFullParser extends BaseFullParser<JavaParser> {
   @Override
   protected void highlightTokens() {
     JavaLexerHighlighting.highlightCommentTokens(allTokens, tokenTypes);
+  }
+
+  public JavaClass getJavaClass() {
+    return javaClass;
   }
 }
