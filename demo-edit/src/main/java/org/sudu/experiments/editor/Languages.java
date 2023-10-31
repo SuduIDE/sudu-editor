@@ -1,6 +1,6 @@
 package org.sudu.experiments.editor;
 
-import org.sudu.experiments.editor.worker.parser.FileParser;
+import org.sudu.experiments.editor.worker.proxy.FileProxy;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -51,11 +51,11 @@ public interface Languages {
 
   static int getType(String lang) {
     return switch (lang) {
-      case Languages.TEXT -> FileParser.TEXT_FILE;
-      case Languages.JAVA -> FileParser.JAVA_FILE;
-      case Languages.CPP -> FileParser.CPP_FILE;
-      case Languages.JS -> FileParser.JS_FILE;
-      case Languages.ACTIVITY -> FileParser.ACTIVITY_FILE;
+      case Languages.TEXT -> FileProxy.TEXT_FILE;
+      case Languages.JAVA -> FileProxy.JAVA_FILE;
+      case Languages.CPP -> FileProxy.CPP_FILE;
+      case Languages.JS -> FileProxy.JS_FILE;
+      case Languages.ACTIVITY -> FileProxy.ACTIVITY_FILE;
       default -> -1;
     };
   }

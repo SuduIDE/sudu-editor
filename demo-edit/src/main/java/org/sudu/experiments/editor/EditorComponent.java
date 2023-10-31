@@ -7,7 +7,8 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.EditorUi.FontApi;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
-import org.sudu.experiments.editor.worker.parser.*;
+import org.sudu.experiments.editor.worker.parser.ParserUtils;
+import org.sudu.experiments.editor.worker.proxy.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -878,12 +879,12 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   public void resolveAll(int[] graphInts, char[] graphChars) {
     resolveTimeStart = System.currentTimeMillis();
-    window().sendToWorker(this::onResolved, ScopeUtils.RESOLVE_ALL, graphInts, graphChars);
+    window().sendToWorker(this::onResolved, ScopeProxy.RESOLVE_ALL, graphInts, graphChars);
   }
 
   private void onFileStructureParsed(Object[] result) {
     int type = ((ArrayView) result[2]).ints()[0];
-    if (type != FileParser.JAVA_FILE) {
+    if (type != FileProxy.JAVA_FILE) {
       onFileParsed(result);
       return;
     }
@@ -955,16 +956,16 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   private void sendFileToWorkers(FileHandle f) {
     String ext = f.getExtension();
-    int bigFileSize = FileParser.isJavaExtension(ext) ?
+    int bigFileSize = FileProxy.isJavaExtension(ext) ?
         EditorConst.FILE_SIZE_10_KB : EditorConst.FILE_SIZE_5_KB;
 
     f.getSize(size -> {
       if (size <= bigFileSize) {
-        window().sendToWorker(this::onFileParsed, FileParser.asyncParseFullFile, f);
+        window().sendToWorker(this::onFileParsed, FileProxy.asyncParseFullFile, f);
       } else {
-        window().sendToWorker(this::onFirstLinesParsed, FileParser.asyncParseFirstLines,
+        window().sendToWorker(this::onFirstLinesParsed, FileProxy.asyncParseFirstLines,
                 f, new int[]{EditorConst.FIRST_LINES});
-        window().sendToWorker(this::onFileStructureParsed, FileParser.asyncParseFile, f);
+        window().sendToWorker(this::onFileStructureParsed, FileProxy.asyncParseFile, f);
       }
     });
   }
@@ -1444,7 +1445,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   public void parseViewport() {
     if (Languages.JAVA.equals(model.language()))
-      window().sendToWorker(this::onVpParsed, JavaParser.PARSE_BYTES_JAVA_VIEWPORT,
+      window().sendToWorker(this::onVpParsed, JavaProxy.PARSE_VIEWPORT,
           model.document.getChars(), getViewport(), model.document.getIntervals() );
   }
 
@@ -1521,7 +1522,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
         graphInts = new int[]{};
         graphChars = new char[]{};
       }
-      window().sendToWorker(this::onFileIterativeParsed, FileParser.asyncIterativeParsing, chars, type, interval, graphInts, graphChars);
+      window().sendToWorker(this::onFileIterativeParsed, FileProxy.asyncIterativeParsing, chars, type, interval, graphInts, graphChars);
     }
   }
 
@@ -1784,10 +1785,10 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   static String parseJobName(String language) {
     return language != null ? switch (language) {
-      case Languages.JAVA -> JavaParser.PARSE_SCOPES;
-      case Languages.CPP -> CppParser.PARSE;
-      case Languages.JS -> JavaScriptParser.PARSE;
-      case Languages.ACTIVITY -> ActivityParser.PARSE;
+      case Languages.JAVA -> JavaProxy.PARSE_FULL_FILE_SCOPES;
+      case Languages.CPP -> CppProxy.PARSE_FULL_FILE;
+      case Languages.JS -> JavaScriptProxy.PARSE_FULL_FILE;
+      case Languages.ACTIVITY -> ActivityProxy.PARSE_FULL_FILE;
       default -> null;
     } : null;
   }

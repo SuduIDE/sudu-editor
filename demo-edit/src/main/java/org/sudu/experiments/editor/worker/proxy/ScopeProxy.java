@@ -1,10 +1,10 @@
-package org.sudu.experiments.editor.worker.parser;
+package org.sudu.experiments.editor.worker.proxy;
 
 import org.sudu.experiments.parser.common.graph.ScopeGraph;
 
 import java.util.List;
 
-public class ScopeUtils {
+public class ScopeProxy {
 
   public static final String RESOLVE_ALL = "ScopeUtils.resolveAll";
 

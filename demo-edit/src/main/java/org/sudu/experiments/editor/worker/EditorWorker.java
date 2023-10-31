@@ -3,13 +3,16 @@ package org.sudu.experiments.editor.worker;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.editor.worker.WorkerTest.TestJobs;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
-import org.sudu.experiments.editor.worker.parser.*;
+import org.sudu.experiments.editor.worker.parser.KeywordParser;
+import org.sudu.experiments.editor.worker.parser.LineParser;
+import org.sudu.experiments.editor.worker.proxy.*;
 import org.sudu.experiments.math.ArrayOp;
-import org.sudu.experiments.parser.common.graph.ScopeGraph;
 import org.sudu.experiments.worker.ArrayView;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
+
+import static org.sudu.experiments.editor.worker.proxy.FileProxy.*;
 
 public class EditorWorker {
   public static void execute(String method, Object[] a, Consumer<Object[]> onResult) {
@@ -31,15 +34,16 @@ public class EditorWorker {
       case TestJobs.withBytes -> TestJobs.withBytes(array(a, 0).bytes(), result);
       case TestJobs.withInts -> TestJobs.withInts(array(a, 0).ints(), result);
       case KeywordParser.PARSE_KEYWORDS -> KeywordParser.parseChars(array(a, 0).chars(), result);
-      case JavaParser.PARSE -> JavaParser.parse(array(a, 0).chars(), result);
-      case JavaParser.PARSE_SCOPES -> JavaParser.parseScopes(array(a, 0).chars(), result);
-      case CppParser.PARSE -> CppParser.parse(array(a, 0).chars(), result);
-      case JavaScriptParser.PARSE -> JavaScriptParser.parse(array(a, 0).chars(), result);
-      case ActivityParser.PARSE -> ActivityParser.parse(array(a, 0).chars(), result);
+      case JavaProxy.PARSE_FULL_FILE -> javaProxy.parseFullFile(array(a, 0).chars(), result);
+      case JavaProxy.PARSE_FULL_FILE_SCOPES -> javaProxy.parseFullFileScopes(array(a, 0).chars(), result);
+      case JavaProxy.PARSE_VIEWPORT -> javaProxy.parseViewport(array(a, 0).chars(), array(a, 1).ints(), array(a, 2).ints(), result);
+      case JavaProxy.PARSE_STRUCTURE -> javaProxy.parseStructure(array(a, 0).chars(), result);
+      case CppProxy.PARSE_FULL_FILE -> cppProxy.parseFullFile(array(a, 0).chars(), result);
+      case CppProxy.PARSE_FULL_FILE_SCOPES -> cppProxy.parseFullFileScopes(array(a, 0).chars(), result);
+      case JavaScriptProxy.PARSE_FULL_FILE -> javascriptProxy.parseFullFile(array(a, 0).chars(), result);
+      case ActivityProxy.PARSE_FULL_FILE -> activityProxy.parseFullFile(array(a, 0).chars(), result);
       case LineParser.PARSE -> LineParser.parse(array(a, 0).chars(), result);
-      case JavaParser.PARSE_BYTES_JAVA_VIEWPORT -> JavaParser.parseViewport(array(a, 0).chars(), array(a, 1).ints(), array(a, 2).ints(), result);
-      case JavaStructureParser.PARSE_STRUCTURE_JAVA -> JavaStructureParser.parseChars(array(a, 0).chars(), result);
-      case ScopeUtils.RESOLVE_ALL -> ScopeUtils.resolveAll(array(a, 0).ints(), array(a, 1).chars(), result);
+      case ScopeProxy.RESOLVE_ALL -> ScopeProxy.resolveAll(array(a, 0).ints(), array(a, 1).chars(), result);
       case DiffUtils.FIND_DIFFS -> DiffUtils.findDiffs(
           array(a, 0).chars(), array(a, 1).ints(),
           array(a, 2).chars(), array(a, 3).ints(), result);
@@ -49,10 +53,10 @@ public class EditorWorker {
   static void asyncMethod(String method, Object[] a, Consumer<Object[]> r) {
     switch (method) {
       case TestJobs.asyncWithFile -> TestJobs.asyncWithFile(file(a, 0), r);
-      case FileParser.asyncParseFile -> FileParser.asyncParseFile(file(a, 0), r);
-      case FileParser.asyncParseFullFile -> FileParser.asyncParseFullFile(file(a, 0), r);
-      case FileParser.asyncParseFirstLines -> FileParser.asyncParseFirstLines(file(a, 0), array(a, 1).ints(), r);
-      case FileParser.asyncIterativeParsing -> FileParser.asyncIterativeParsing(
+      case FileProxy.asyncParseFile -> FileProxy.asyncParseFile(file(a, 0), r);
+      case FileProxy.asyncParseFullFile -> FileProxy.asyncParseFullFile(file(a, 0), r);
+      case FileProxy.asyncParseFirstLines -> FileProxy.asyncParseFirstLines(file(a, 0), array(a, 1).ints(), r);
+      case FileProxy.asyncIterativeParsing -> FileProxy.asyncIterativeParsing(
           array(a, 0).chars(), array(a, 1).ints(),
           array(a,2).ints(), array(a, 3).ints(),
           array(a, 4).chars(), r

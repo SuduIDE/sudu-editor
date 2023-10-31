@@ -17,6 +17,7 @@ import org.sudu.experiments.parser.java.walker.JavaClassWalker;
 import org.sudu.experiments.parser.java.walker.JavaWalker;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,10 +27,10 @@ import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Java.*;
 public class JavaViewportIntervalsParser extends BaseIntervalParser<JavaParser> {
 
   // viewport - {leftInd, rightInd, firstLine}
-  public int[] parseViewport(String source, int[] viewport, int[] intervals) {
+  public int[] parseViewport(char[] source, int[] viewport, int[] intervals) {
     int vpStart = viewport[0];
     int vpEnd = viewport[1];
-    initLexer(source.substring(vpStart, vpEnd));
+    initLexer(Arrays.copyOfRange(source, vpStart, vpEnd));
 
     List<Interval> intervalList = makeIntervalList(intervals, vpStart, vpEnd);
 

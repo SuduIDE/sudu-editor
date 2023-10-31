@@ -1,20 +1,26 @@
-package org.sudu.experiments.editor.worker.parser;
+package org.sudu.experiments.editor.worker.proxy;
 
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.editor.worker.parser.LineParser;
 import org.sudu.experiments.math.ArrayOp;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-public class FileParser {
+public class FileProxy {
 
   public static final int TEXT_FILE = 0;
   public static final int JAVA_FILE = 1;
   public static final int CPP_FILE = 2;
   public static final int JS_FILE = 3;
   public static final int ACTIVITY_FILE = 4;
+
+  public static final JavaProxy javaProxy = new JavaProxy();
+  public static final CppProxy cppProxy = new CppProxy();
+  public static final JavaScriptProxy javascriptProxy = new JavaScriptProxy();
+  public static final ActivityProxy activityProxy = new ActivityProxy();
 
   public static final String asyncParseFile = "asyncParseFile";
 
@@ -24,7 +30,7 @@ public class FileParser {
           String source = new String(bytes, StandardCharsets.UTF_8).replace("\r", "");
           parseChars(file.getExtension(), source.toCharArray(), result);
         },
-        error -> parseChars(file.getExtension(), error.toCharArray(), result)
+        Debug::consoleInfo
     );
   }
 
@@ -59,10 +65,10 @@ public class FileParser {
       int[] graphInts, char[] graphChars,
       Consumer<Object[]> result) {
     switch (type[0]) {
-      case JAVA_FILE -> JavaParser.parseInterval(chars, interval, graphInts, graphChars, result);
-      case CPP_FILE -> CppParser.parseInterval(chars, interval, result);
-      case JS_FILE -> JavaScriptParser.parseInterval(chars, interval, result);
-      case ACTIVITY_FILE -> ActivityParser.parseInterval(chars, result);
+      case JAVA_FILE -> javaProxy.parseIntervalScope(chars, interval, graphInts, graphChars, result);
+      case CPP_FILE -> cppProxy.parseInterval(chars, interval, result);
+      case JS_FILE -> javascriptProxy.parseInterval(chars, interval, result);
+      case ACTIVITY_FILE -> activityProxy.parseInterval(chars, new int[]{}, result);
     }
   }
 
@@ -100,9 +106,9 @@ public class FileParser {
 
   private static void parseFirstLinesChars(String res, char[] chars, int[] lines, Consumer<Object[]> result) {
     switch (res) {
-      case ".java" -> JavaParser.parseFirstLines(chars, lines, result);
-      case ".cpp", ".cc", ".h" -> CppParser.parseFirstLines(chars, lines, result);
-      case ".js" -> JavaScriptParser.parseFirstLines(chars, lines, result);
+      case ".java" -> javaProxy.parseFirstLines(chars, lines, result);
+      case ".cpp", ".cc", ".h" -> cppProxy.parseFirstLines(chars, lines, result);
+      case ".js" -> javascriptProxy.parseFirstLines(chars, lines, result);
       default -> LineParser.parseFirstLines(chars, lines, result);
     }
   }
@@ -116,7 +122,7 @@ public class FileParser {
 
   private static void parseJavaChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    JavaStructureParser.parseChars(chars, list);
+    javaProxy.parseStructure(chars, list);
     list.add(new int[]{JAVA_FILE});
     ArrayOp.sendArrayList(list, result);
   }
@@ -133,28 +139,28 @@ public class FileParser {
 
   private static void parseFullJavaChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    JavaParser.parseScopes(chars, list);
+    javaProxy.parseFullFileScopes(chars, list);
     list.add(new int[]{JAVA_FILE});
     ArrayOp.sendArrayList(list, result);
   }
 
   private static void parseFullCppChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    CppParser.parse(chars, list);
+    cppProxy.parseFullFile(chars, list);
     list.add(new int[]{CPP_FILE});
     ArrayOp.sendArrayList(list, result);
   }
 
   private static void parseFullJavaScriptChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    JavaScriptParser.parse(chars, list);
+    javascriptProxy.parseFullFile(chars, list);
     list.add(new int[]{JS_FILE});
     ArrayOp.sendArrayList(list, result);
   }
 
   private static void parseActivityChars(char[] chars, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    ActivityParser.parse(chars, list);
+    activityProxy.parseFullFile(chars, list);
     list.add(new int[]{ACTIVITY_FILE});
     ArrayOp.sendArrayList(list, result);
   }
