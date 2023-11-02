@@ -2,6 +2,7 @@ package org.sudu.experiments.editor.worker.proxy;
 
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.editor.Languages;
 import org.sudu.experiments.editor.worker.parser.LineParser;
 import org.sudu.experiments.math.ArrayOp;
 
@@ -27,8 +28,10 @@ public class FileProxy {
   public static void asyncParseFile(FileHandle file, Consumer<Object[]> result) {
     file.readAsBytes(
         bytes -> {
-          String source = new String(bytes, StandardCharsets.UTF_8).replace("\r", "");
-          parseChars(file.getExtension(), source.toCharArray(), result);
+          char[] source = prepareChars(bytes);
+          String lang = Languages.languageFromFilename(file.getName());
+          BaseProxy proxy = getBaseProxy(Languages.getType(lang));
+          parseFileStructure(proxy, source, result);
         },
         Debug::consoleInfo
     );
@@ -39,8 +42,10 @@ public class FileProxy {
   public static void asyncParseFullFile(FileHandle file, Consumer<Object[]> result) {
     file.readAsBytes(
         bytes -> {
-          String source = new String(bytes, StandardCharsets.UTF_8).replace("\r", "");
-          parseFullChars(file.getExtension(), source.toCharArray(), result);
+          char[] source = prepareChars(bytes);
+          String lang = Languages.languageFromFilename(file.getName());
+          BaseProxy proxy = getBaseProxy(Languages.getType(lang));
+          parseFullFile(proxy, source, result);
         },
         Debug::consoleInfo
     );
@@ -51,8 +56,10 @@ public class FileProxy {
   public static void asyncParseFirstLines(FileHandle file, int[] lines, Consumer<Object[]> result) {
     file.readAsBytes(
         bytes -> {
-          String source = new String(bytes, StandardCharsets.UTF_8).replace("\r", "");
-          parseFirstLinesChars(file.getExtension(), source.toCharArray(), lines, result);
+          char[] source = prepareChars(bytes);
+          String lang = Languages.languageFromFilename(file.getName());
+          BaseProxy proxy = getBaseProxy(Languages.getType(lang));
+          parseFirstLines(proxy, source, lines, result);
         },
         Debug::consoleInfo
     );
@@ -63,105 +70,52 @@ public class FileProxy {
   public static void asyncIterativeParsing(
       char[] chars, int[] type, int[] interval,
       int[] graphInts, char[] graphChars,
-      Consumer<Object[]> result) {
-    switch (type[0]) {
-      case JAVA_FILE -> javaProxy.parseIntervalScope(chars, interval, graphInts, graphChars, result);
-      case CPP_FILE -> cppProxy.parseInterval(chars, interval, result);
-      case JS_FILE -> javascriptProxy.parseInterval(chars, interval, result);
-      case ACTIVITY_FILE -> activityProxy.parseInterval(chars, new int[]{}, result);
-    }
+      Consumer<Object[]> result
+  ) {
+    var proxy = getBaseProxy(type[0]);
+    if (proxy == javaProxy) javaProxy.parseIntervalScope(chars, interval, graphInts, graphChars, result);
+    else proxy.parseInterval(chars, interval, result);
+  }
+
+  public static void parseFirstLines(BaseProxy proxy, char[] source, int[] lines, Consumer<Object[]> result) {
+    ArrayList<Object> list = new ArrayList<>();
+    if (proxy == null) LineParser.parse(source, list);
+    else proxy.parseFirstLines(source, lines, list);
+    ArrayOp.sendArrayList(list, result);
+  }
+
+  public static void parseFileStructure(BaseProxy proxy, char[] source, Consumer<Object[]> result) {
+    ArrayList<Object> list = new ArrayList<>();
+    if (proxy == null) LineParser.parse(source, list);
+    else if (proxy == javaProxy) javaProxy.parseStructure(source, list);
+    else proxy.parseFullFile(source, list);
+    ArrayOp.sendArrayList(list, result);
+  }
+
+  public static void parseFullFile(BaseProxy proxy, char[] source, Consumer<Object[]> result) {
+    ArrayList<Object> list = new ArrayList<>();
+    if (proxy == null) LineParser.parse(source, list);
+    else proxy.parseFullFile(source, list);
+    ArrayOp.sendArrayList(list, result);
   }
 
   public static boolean isJavaExtension(String ext) {
     return ext.equals(".java");
   }
 
-  public static boolean isCppExtension(String ext) {
-    return ext.equals(".cpp") || ext.equals(".cc") || ext.equals(".h");
+  private static BaseProxy getBaseProxy(int type) {
+    return switch (type) {
+      case JAVA_FILE -> javaProxy;
+      case CPP_FILE -> cppProxy;
+      case JS_FILE -> javascriptProxy;
+      case ACTIVITY_FILE -> activityProxy;
+      default -> null;
+    };
   }
 
-  public static boolean isJsExtension(String ext) {
-    return ext.equals(".js");
-  }
-
-  private static void parseChars(String res, char[] chars, Consumer<Object[]> result) {
-    switch (res) {
-      case ".java" -> parseJavaChars(chars, result);
-      case ".cpp", ".cc", ".h" -> parseCppChars(chars, result);
-      case ".js" -> parseJavaScriptChars(chars, result);
-      case ".activity" -> parseActivityChars(chars, result);
-      default -> parseChars(chars, result);
-    }
-  }
-
-  private static void parseFullChars(String res, char[] chars, Consumer<Object[]> result) {
-    switch (res) {
-      case ".java" -> parseFullJavaChars(chars, result);
-      case ".cpp", ".cc", ".h" -> parseFullCppChars(chars, result);
-      case ".js" -> parseFullJavaScriptChars(chars, result);
-      case ".activity" -> parseActivityChars(chars, result);
-      default -> parseChars(chars, result);
-    }
-  }
-
-  private static void parseFirstLinesChars(String res, char[] chars, int[] lines, Consumer<Object[]> result) {
-    switch (res) {
-      case ".java" -> javaProxy.parseFirstLines(chars, lines, result);
-      case ".cpp", ".cc", ".h" -> cppProxy.parseFirstLines(chars, lines, result);
-      case ".js" -> javascriptProxy.parseFirstLines(chars, lines, result);
-      default -> LineParser.parseFirstLines(chars, lines, result);
-    }
-  }
-
-  private static void parseChars(char[] chars, Consumer<Object[]> result) {
-    ArrayList<Object> list = new ArrayList<>();
-    LineParser.parse(chars, list);
-    list.add(new int[]{TEXT_FILE});
-    ArrayOp.sendArrayList(list, result);
-  }
-
-  private static void parseJavaChars(char[] chars, Consumer<Object[]> result) {
-    ArrayList<Object> list = new ArrayList<>();
-    javaProxy.parseStructure(chars, list);
-    list.add(new int[]{JAVA_FILE});
-    ArrayOp.sendArrayList(list, result);
-  }
-
-  private static void parseCppChars(char[] chars, Consumer<Object[]> result) {
-    //todo structure cpp parsing
-    parseFullCppChars(chars, result);
-  }
-
-  private static void parseJavaScriptChars(char[] chars, Consumer<Object[]> result) {
-    //todo structure js parsing
-    parseFullJavaScriptChars(chars, result);
-  }
-
-  private static void parseFullJavaChars(char[] chars, Consumer<Object[]> result) {
-    ArrayList<Object> list = new ArrayList<>();
-    javaProxy.parseFullFileScopes(chars, list);
-    list.add(new int[]{JAVA_FILE});
-    ArrayOp.sendArrayList(list, result);
-  }
-
-  private static void parseFullCppChars(char[] chars, Consumer<Object[]> result) {
-    ArrayList<Object> list = new ArrayList<>();
-    cppProxy.parseFullFile(chars, list);
-    list.add(new int[]{CPP_FILE});
-    ArrayOp.sendArrayList(list, result);
-  }
-
-  private static void parseFullJavaScriptChars(char[] chars, Consumer<Object[]> result) {
-    ArrayList<Object> list = new ArrayList<>();
-    javascriptProxy.parseFullFile(chars, list);
-    list.add(new int[]{JS_FILE});
-    ArrayOp.sendArrayList(list, result);
-  }
-
-  private static void parseActivityChars(char[] chars, Consumer<Object[]> result) {
-    ArrayList<Object> list = new ArrayList<>();
-    activityProxy.parseFullFile(chars, list);
-    list.add(new int[]{ACTIVITY_FILE});
-    ArrayOp.sendArrayList(list, result);
+  private static char[] prepareChars(byte[] bytes) {
+    String src = new String(bytes, StandardCharsets.UTF_8);
+    src = src.replace("\r", "");
+    return src.toCharArray();
   }
 }

@@ -33,6 +33,7 @@ public class JavaProxy extends BaseProxy {
     int[] ints = new JavaFullStructureParser().parse(chars);
     result.add(ints);
     result.add(chars);
+    result.add(new int[]{languageType});
   }
 
   public static final String PARSE_FULL_FILE = "JavaProxy.parseFullFile";

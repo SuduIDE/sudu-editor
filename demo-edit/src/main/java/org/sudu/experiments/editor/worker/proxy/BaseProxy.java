@@ -20,13 +20,11 @@ public abstract class BaseProxy {
     this.languageName = languageName;
   }
 
-  public void parseFirstLines(char[] source, int[] lines, Consumer<Object[]> result) {
-    ArrayList<Object> list = new ArrayList<>();
+  public void parseFirstLines(char[] source, int[] lines, List<Object> result) {
     int numOfLines = lines[0];
     int[] ints = getFirstLinesLexer().parse(source, numOfLines);
-    list.add(ints);
-    list.add(source);
-    ArrayOp.sendArrayList(list, result);
+    result.add(ints);
+    result.add(source);
   }
 
   public void parseFullFile(char[] source, List<Object> result) {
