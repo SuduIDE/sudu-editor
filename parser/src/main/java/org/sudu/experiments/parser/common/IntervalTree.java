@@ -157,7 +157,9 @@ public class IntervalTree {
         curNode.setStop(-1);
       }
       curNode.children.clear();
-      curNode.scope.children.clear();
+
+      if (curNode.scope != null)
+        curNode.scope.children.clear();
     } else {
       boolean containsStart = curNode.between(start);
       boolean containsEnd = curNode.between(start + size);

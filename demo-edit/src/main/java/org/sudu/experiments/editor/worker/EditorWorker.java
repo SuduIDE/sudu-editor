@@ -35,6 +35,7 @@ public class EditorWorker {
       case CppParser.PARSE -> CppParser.parse(array(a, 0).chars(), result);
       case JavaScriptParser.PARSE -> JavaScriptParser.parse(array(a, 0).chars(), result);
       case ActivityParser.PARSE -> ActivityParser.parse(array(a, 0).chars(), result);
+      case ActivityParser.COMPUTE -> ActivityParser.compute(a, result);
       case LineParser.PARSE -> LineParser.parse(array(a, 0).chars(), result);
       case JavaParser.PARSE_BYTES_JAVA_VIEWPORT -> JavaParser.parseViewport(array(a, 0).chars(), array(a, 1).ints(), array(a, 2).ints(), result);
       case JavaStructureParser.PARSE_STRUCTURE_JAVA -> JavaStructureParser.parseChars(array(a, 0).chars(), result);

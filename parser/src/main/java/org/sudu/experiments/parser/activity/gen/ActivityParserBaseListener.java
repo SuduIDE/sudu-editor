@@ -17,13 +17,13 @@ public class ActivityParserBaseListener implements ActivityParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterProgram(ActivityParser.ProgramContext ctx) { }
+	@Override public void enterActivity(ActivityParser.ActivityContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitProgram(ActivityParser.ProgramContext ctx) { }
+	@Override public void exitActivity(ActivityParser.ActivityContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -82,13 +82,13 @@ public class ActivityParserBaseListener implements ActivityParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterExprlist(ActivityParser.ExprlistContext ctx) { }
+	@Override public void enterExprcomma(ActivityParser.ExprcommaContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitExprlist(ActivityParser.ExprlistContext ctx) { }
+	@Override public void exitExprcomma(ActivityParser.ExprcommaContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

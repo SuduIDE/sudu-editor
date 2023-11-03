@@ -8,29 +8,44 @@ import org.sudu.experiments.parser.ErrorHighlightingStrategy;
 import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.activity.gen.ActivityLexer;
 import org.sudu.experiments.parser.activity.gen.ActivityParser;
+import org.sudu.experiments.parser.activity.graph.Dag2Part;
+import org.sudu.experiments.parser.activity.graph.Node;
+import org.sudu.experiments.parser.activity.graph.stat.Activity;
 import org.sudu.experiments.parser.activity.walker.ActivityWalker;
 import org.sudu.experiments.parser.common.BaseFullParser;
 import org.sudu.experiments.parser.common.SplitRules;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class ActivityFullParser extends BaseFullParser {
+
+    private Activity activity;
+    private Dag2Part dag2;
+    private String mermaid1;
+    public String mermaid2;
+
     @Override
     protected Lexer initLexer(CharStream stream) {
         return new ActivityLexer(stream);
     }
 
-    public int[] parse(char[] source) {
+    public List<Object> parse(char[] source) {
         initLexer(source);
 
         ActivityParser parser = new ActivityParser(tokenStream);
         parser.setErrorHandler(new ErrorHighlightingStrategy());
 
-        var program = parser.program();
+        var program = parser.activity();
         var walker = new ActivityWalker(tokenTypes, tokenStyles, usageToDefinition);
         var parseTreeWalker = new ParseTreeWalker();
         parseTreeWalker.walk(walker, program);
+
+        activity = walker.getActivity();
+        System.out.println("READ new ACTIVITY:>>\r\n"+ activity);
+        dag2 = activity.toDag2();
+        mermaid2 = Node.printRecDag2(dag2.input);
 
         for (var token : allTokens) {
             if (token.getType() == ActivityLexer.ERROR) {
@@ -38,7 +53,12 @@ public class ActivityFullParser extends BaseFullParser {
             }
         }
 
-        return getInts(defaultIntervalNode());
+        var ret = new ArrayList<>();
+        ret.add(getInts(defaultIntervalNode()));
+        mermaid1 = walker.getActivity().toDag1();
+        ret.add(mermaid1);
+        ret.add(mermaid2);
+        return ret;
     }
 
     @Override

@@ -1,7 +1,7 @@
 parser grammar ActivityParser;
 options { tokenVocab=ActivityLexer; }
 
-program
+activity
     : ACTIVITY blocksemi EOF
     ;
 
@@ -17,12 +17,13 @@ stat: ID
     ;
 
 expr: ID
-    | INT
-    | LCURLY exprlist RCURLY
+    | LCURLY exprcomma RCURLY
     | LPAREN expr RPAREN
+    | '!' expr
     | expr 'and' expr
+    | expr 'xor' expr
     | expr 'or' expr
     ;
 
-exprlist: exprcons (',' exprcons)* ;
+exprcomma: exprcons (',' exprcons)* ;
 exprcons: ID (CONS ID)* ;

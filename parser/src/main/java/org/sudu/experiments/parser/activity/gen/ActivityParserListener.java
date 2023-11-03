@@ -8,15 +8,15 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface ActivityParserListener extends ParseTreeListener {
 	/**
-	 * Enter a parse tree produced by {@link ActivityParser#program}.
+	 * Enter a parse tree produced by {@link ActivityParser#activity}.
 	 * @param ctx the parse tree
 	 */
-	void enterProgram(ActivityParser.ProgramContext ctx);
+	void enterActivity(ActivityParser.ActivityContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link ActivityParser#program}.
+	 * Exit a parse tree produced by {@link ActivityParser#activity}.
 	 * @param ctx the parse tree
 	 */
-	void exitProgram(ActivityParser.ProgramContext ctx);
+	void exitActivity(ActivityParser.ActivityContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link ActivityParser#blocksemi}.
@@ -52,26 +52,26 @@ public interface ActivityParserListener extends ParseTreeListener {
 	void exitStat(ActivityParser.StatContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link ActivityParser#expr}.
+	 * Enter a parse tree produced by {@link ActivityParser}.
 	 * @param ctx the parse tree
 	 */
 	void enterExpr(ActivityParser.ExprContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link ActivityParser#expr}.
+	 * Exit a parse tree produced by {@link ActivityParser}.
 	 * @param ctx the parse tree
 	 */
 	void exitExpr(ActivityParser.ExprContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link ActivityParser#exprlist}.
+	 * Enter a parse tree produced by {@link ActivityParser#exprcomma}.
 	 * @param ctx the parse tree
 	 */
-	void enterExprlist(ActivityParser.ExprlistContext ctx);
+	void enterExprcomma(ActivityParser.ExprcommaContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link ActivityParser#exprlist}.
+	 * Exit a parse tree produced by {@link ActivityParser#exprcomma}.
 	 * @param ctx the parse tree
 	 */
-	void exitExprlist(ActivityParser.ExprlistContext ctx);
+	void exitExprcomma(ActivityParser.ExprcommaContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link ActivityParser#exprcons}.

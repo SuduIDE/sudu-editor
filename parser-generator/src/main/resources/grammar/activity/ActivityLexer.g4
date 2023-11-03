@@ -3,7 +3,8 @@ lexer grammar ActivityLexer;
 
 AND : 'and' ;
 OR : 'or' ;
-NOT : 'not' ;
+XOR : 'xor' ;
+NOT : '!' ;
 EQ : '=' ;
 COMMA : ',' ;
 SEMI : ';' ;

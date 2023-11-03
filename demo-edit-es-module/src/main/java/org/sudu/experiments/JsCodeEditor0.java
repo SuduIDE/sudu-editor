@@ -8,12 +8,17 @@ import org.sudu.experiments.utils.LanguageSelectorUtils;
 import org.sudu.experiments.utils.PromiseUtils;
 import org.sudu.experiments.utils.ProviderUtils;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
+import static org.sudu.experiments.js.JsHelper.unwrapStringArray;
+import static org.sudu.experiments.js.JsHelper.wrap;
+
 
 public class JsCodeEditor0 implements JsCodeEditor {
 
@@ -110,6 +115,11 @@ public class JsCodeEditor0 implements JsCodeEditor {
   @Override
   public JsITextModel getModel() {
     return JsTextModel.fromJava(editor.model());
+  }
+
+  @Override
+  public JSString getProperty(JSString key) {
+    return JSString.valueOf(editor.getProperty(key.stringValue()));
   }
 
   @Override
@@ -226,6 +236,27 @@ public class JsCodeEditor0 implements JsCodeEditor {
     }
   }
 
+  static String[] toStringArray(Object[] obj) {
+    var res = new String[obj.length];
+    for (int i=0; i<obj.length; i++) {
+      res[i] = obj[i].toString();
+    }
+    return res;
+  }
+
+  @Override
+  public Promise<JSArrayReader<JSString>> executeOnWorker(JSString method, JSArrayReader<JSString> args) {
+    var method0 = method.stringValue();
+    var args0 = unwrapStringArray(args);
+
+    return Promise.create((postResult, postError) -> {
+              window.sendToWorker((result) -> {
+                postResult.f(wrap(toStringArray(result)));
+              }, method0, (Object[]) args0);
+            });
+  }
+
+
   @Override
   public JsDisposable registerEditorOpener(JsCodeEditorOpener opener) {
     return JsDisposable.of(editor.registrations().openers.disposableAdd(
@@ -290,4 +321,6 @@ public class JsCodeEditor0 implements JsCodeEditor {
       return Promise.reject(FireFoxWarning.message);
     }
   }
+
+
 }

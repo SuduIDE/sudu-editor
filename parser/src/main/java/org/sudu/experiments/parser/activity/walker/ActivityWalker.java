@@ -6,9 +6,26 @@ import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.activity.gen.ActivityLexer;
 import org.sudu.experiments.parser.activity.gen.ActivityParser;
 import org.sudu.experiments.parser.activity.gen.ActivityParserBaseListener;
+import org.sudu.experiments.parser.activity.graph.stat.Activity;
+import org.sudu.experiments.parser.activity.graph.expr.BinaryExpr;
+import org.sudu.experiments.parser.activity.graph.expr.CommaExpr;
+import org.sudu.experiments.parser.activity.graph.stat.ComplexStat;
+import org.sudu.experiments.parser.activity.graph.expr.ConsExpr;
+import org.sudu.experiments.parser.activity.graph.IExpr;
+import org.sudu.experiments.parser.activity.graph.expr.ExprKind;
+import org.sudu.experiments.parser.activity.graph.stat.Id;
+import org.sudu.experiments.parser.activity.graph.stat.If;
+import org.sudu.experiments.parser.activity.graph.expr.NotExpr;
+import org.sudu.experiments.parser.activity.graph.stat.Repeat;
+import org.sudu.experiments.parser.activity.graph.stat.Schedule;
+import org.sudu.experiments.parser.activity.graph.stat.Select;
+import org.sudu.experiments.parser.activity.graph.IStat;
+import org.sudu.experiments.parser.activity.graph.stat.UnknownStat;
 import org.sudu.experiments.parser.common.Pos;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class ActivityWalker extends ActivityParserBaseListener {
@@ -17,8 +34,15 @@ public class ActivityWalker extends ActivityParserBaseListener {
   private Map<Pos, Pos> usageToDef;
   private Map<String, Pos> def = new HashMap<>();
 
-  private int exprStackCount = 0;
+  public Activity getActivity() {
+    return activity;
+  }
 
+  private Activity activity;
+  private LinkedList<IStat> statStack = new LinkedList<>();
+  private LinkedList<List<IStat>> containerOfStatStack = new LinkedList<>();
+
+  private LinkedList<IExpr> exprStack = new LinkedList<>();
 
   public ActivityWalker(int[] tokenTypes, int[] tokenStyles, Map<Pos, Pos> usageToDef) {
     this.tokenTypes = tokenTypes;
@@ -36,14 +60,148 @@ public class ActivityWalker extends ActivityParserBaseListener {
 
 
   @Override
+  public void enterActivity(ActivityParser.ActivityContext ctx) {
+    activity = new Activity();
+
+    statStack.add(activity);
+    containerOfStatStack.add(activity.block());
+  }
+
+  @Override
+  public void exitActivity(ActivityParser.ActivityContext ctx) {
+    statStack.removeLast();
+    containerOfStatStack.removeLast();
+
+    if (!statStack.isEmpty()) {
+      System.err.println("Stat Stack must be empty but still have "+statStack.size()+" elements");
+    }
+  }
+
+  @Override
   public void enterExpr(ActivityParser.ExprContext ctx) {
-    exprStackCount ++;
+    IExpr expr;
+    if (ctx.ID() != null) {
+      expr = new Id(ctx.ID().getText());
+    }
+
+    else if (ctx.LPAREN() != null) {
+      //special case of ( expr )
+      return;
+
+    } else if (ctx.AND() != null) {
+      expr = new BinaryExpr(ExprKind.And);
+
+    } else if (ctx.XOR() != null) {
+      expr = new BinaryExpr(ExprKind.Xor);
+
+    } else if (ctx.OR() != null) {
+      expr = new BinaryExpr(ExprKind.Or);
+
+    } else if (ctx.NOT() != null) {
+      expr = new NotExpr();
+
+    } else if (ctx.exprcomma() != null) {
+      CommaExpr comma = new CommaExpr();
+      expr = comma;
+      for (var consExpr : ctx.exprcomma().exprcons()) {
+        var cons = new ConsExpr();
+        for (var id: consExpr.ID()) {
+          cons.exprs.add(new Id(id.getText()));
+        }
+        comma.exprs.add(cons);
+      }
+    } else {
+      expr = new BinaryExpr(ExprKind.Unknown); //error
+      System.err.println("Unknown node");
+    }
+
+    exprStack.add(expr);
   }
 
   @Override
   public void exitExpr(ActivityParser.ExprContext ctx) {
-    exprStackCount --;
+    if (ctx.LPAREN() != null) {
+      //special case of ( expr )
+      return;
+    }
+
+    var expr = exprStack.removeLast();
+
+    if (exprStack.isEmpty()) {
+      var ifStat = (If)statStack.getLast();
+      ifStat.cond = expr;
+
+    } else if (exprStack.getLast() instanceof NotExpr parent) {
+      parent.innerExpr = expr;
+
+    } else if (exprStack.getLast() instanceof BinaryExpr parent) {
+      //try to flatten first
+      if (expr instanceof BinaryExpr binExpr && parent.kind == binExpr.kind) {
+        parent.list().addAll(binExpr.list());
+      } else {
+        parent.list().add(expr);
+      }
+
+    } else {
+      System.out.println("Illegal expr on top of expression stack: " + expr);
+    }
+
   }
+
+
+
+  @Override
+  public void enterStat(ActivityParser.StatContext ctx) {
+    super.enterStat(ctx);
+    if (ctx.ID() != null) { //terminal
+      var stat = new Id(ctx.ID().getText());
+      containerOfStatStack.getLast().add(stat);
+
+    } else if (ctx.IF() != null) {
+      var stat = new If();
+      containerOfStatStack.getLast().add(stat);
+
+      statStack.add(stat);
+      containerOfStatStack.add(stat.ifBlock);
+
+    } else { //Complex blocks
+      ComplexStat stat;
+      if (ctx.REPEAT() != null) {
+        var count = Integer.parseInt(ctx.INT().getText());
+        stat = new Repeat(count);
+
+      } else if (ctx.SCHEDULE() != null) {
+        stat = new Schedule();
+      }
+
+      else if (ctx.SELECT() != null) {
+        stat = new Select();
+      }
+
+      else {
+        stat = new UnknownStat();
+      }
+
+      containerOfStatStack.getLast().add(stat);
+
+      statStack.add(stat);
+      containerOfStatStack.add(stat.block());
+    }
+
+  }
+
+
+
+  @Override
+  public void exitStat(ActivityParser.StatContext ctx) {
+    super.exitStat(ctx);
+    if (ctx.ID() == null) {//when not terminal
+      statStack.removeLast();
+      containerOfStatStack.removeLast();
+    }
+  }
+
+
 
   @Override
   public void visitTerminal(TerminalNode node) {
@@ -65,12 +223,19 @@ public class ActivityWalker extends ActivityParserBaseListener {
       if (def.containsKey(id)) {
         usageToDef.put(pos, def.get(id));
         tokenTypes[index] = ParserConstants.TokenTypes.FIELD;
-      } else if (exprStackCount == 0) {
+      } else if (exprStack.isEmpty()) {
         tokenTypes[index] = ParserConstants.TokenTypes.FIELD;
         def.put(id, pos);
       } else {
         tokenTypes[index] = ParserConstants.TokenTypes.ERROR;
       }
+    }
+
+    //AST building logic
+    if (type == ActivityLexer.ELSE) {
+      var lastIf = (If) statStack.getLast();
+      containerOfStatStack.removeLast();
+      containerOfStatStack.add(lastIf.elseBlock);
     }
   }
 }
