@@ -34,17 +34,17 @@ public class If extends BaseStat {
     @Override
     public String toDag1() {
         StringBuilder acc = new StringBuilder();
-        acc.append(getUniqueId()+"{if}\r\n");
+        acc.append(getMermaidNodeId()+"{if}\r\n");
         IStat.toDag1Blocks(acc, ifBlock);
         IStat.toDag1Seq(acc, ifBlock);
 
         IStat.toDag1Blocks(acc, elseBlock);
         IStat.toDag1Seq(acc, elseBlock);
 
-        acc.append(getUniqueId()+"-->|\""+cond.toString()+"\"|"+ifBlock.get(0).getUniqueId()+"\r\n");
+        acc.append(getMermaidNodeId()+"-->|\""+cond.toString()+"\"|"+ifBlock.get(0).getMermaidNodeId()+"\r\n");
 
         if (!elseBlock.isEmpty())
-            acc.append(getUniqueId()+"-->|else|"+elseBlock.get(0).getUniqueId()+"\r\n");
+            acc.append(getMermaidNodeId()+"-->|else|"+elseBlock.get(0).getMermaidNodeId()+"\r\n");
 
         return acc.toString();
     }

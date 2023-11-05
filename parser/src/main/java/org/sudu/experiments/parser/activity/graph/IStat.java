@@ -9,7 +9,7 @@ import java.util.List;
 public interface IStat {
     void print(StringBuilder acc, int indent);
 
-    String getUniqueId();
+    String getMermaidNodeId();
 
     static void printBlock(StringBuilder acc, int indent, String delim, List<IStat> stat) {
         acc.append("{");
@@ -52,7 +52,7 @@ public interface IStat {
 
     static void toDag1Seq(StringBuilder acc, IStat from, String to) {
         for (var outputEdges: from.getOutputDag1()) {
-            acc.append(outputEdges.getFrom().getUniqueId());
+            acc.append(outputEdges.getFrom().getMermaidNodeId());
             acc.append("-->");
             if (!outputEdges.getLabel().isEmpty())
                 acc.append("|"+outputEdges.getLabel()+"|");
@@ -66,7 +66,7 @@ public interface IStat {
             return;
 
         for (int i=0; i < stat.size()-1; i++) {
-            toDag1Seq(acc, stat.get(i), stat.get(i+1).getUniqueId());
+            toDag1Seq(acc, stat.get(i), stat.get(i+1).getMermaidNodeId());
         }
     }
 

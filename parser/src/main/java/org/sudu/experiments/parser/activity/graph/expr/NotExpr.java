@@ -2,7 +2,6 @@ package org.sudu.experiments.parser.activity.graph.expr;
 
 import org.sudu.experiments.parser.activity.graph.IExpr;
 import org.sudu.experiments.parser.activity.graph.Path;
-import org.sudu.experiments.parser.activity.graph.expr.BinaryExpr;
 
 public class NotExpr implements IExpr {
     public IExpr innerExpr;
@@ -19,7 +18,7 @@ public class NotExpr implements IExpr {
     }
 
     @Override
-    public boolean check(Path path, int from) {
-        return !innerExpr.check(path, from);
+    public boolean check(String[] ids, int from, int to) {
+        return !innerExpr.check(ids, from, to);
     }
 }

@@ -18,13 +18,13 @@ public class CommaExpr implements IExpr {
     }
 
     @Override
-    public boolean check(Path path, int from) {
-        return checkPos(path, from) >= 0;
+    public boolean check(String[] ids, int from, int to) {
+        return checkPos(ids, from, to) >= 0;
     }
 
-    int checkPos(Path path, int from) {
+    int checkPos(String[] ids, int from, int to) {
         for (var e: exprs) {
-            from = e.checkPos(path, from);
+            from = e.checkPos(ids, from, to);
             if (from < 0)
                 return -1;
         }

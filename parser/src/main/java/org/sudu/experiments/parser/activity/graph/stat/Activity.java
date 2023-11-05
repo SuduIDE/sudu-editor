@@ -36,7 +36,7 @@ public class Activity extends ComplexStat {
         if (block.isEmpty()) {
             acc.append(INITIAL+"-->"+FINAL+"\r\n");
         } else {
-            acc.append(INITIAL+"-->"+block.get(0).getUniqueId()+"\r\n");
+            acc.append(INITIAL+"-->"+block.get(0).getMermaidNodeId()+"\r\n");
             var lastBlock = block.get(block.size()-1);
             IStat.toDag1Seq(acc, lastBlock, FINAL);
         }
@@ -50,7 +50,6 @@ public class Activity extends ComplexStat {
         var res = IStat.joinDag2(start, block);
         res = IStat.joinDag2(res, new Dag2Part(new TerminalNode(FINAL)));
         return res;
-
     }
 
 

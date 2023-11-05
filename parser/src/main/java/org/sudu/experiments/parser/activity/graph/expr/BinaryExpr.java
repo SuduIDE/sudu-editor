@@ -41,11 +41,11 @@ public class BinaryExpr implements IExpr {
     }
 
     @Override
-    public boolean check(Path path, int from) {
+    public boolean check(String[] ids, int from, int to) {
         switch (kind) {
             case And -> {
                 for (var expr: list) {
-                    if (!expr.check(path, from))
+                    if (!expr.check(ids, from, to))
                         return false;
                 }
                 return true;
@@ -53,13 +53,13 @@ public class BinaryExpr implements IExpr {
             case Xor -> {
                 var res = false;
                 for (var expr: list) {
-                    res ^= !expr.check(path, from);
+                    res ^= !expr.check(ids, from, to);
                 }
                 return res;
             }
             case Or -> {
                 for (var expr: list) {
-                    if (expr.check(path, from))
+                    if (expr.check(ids, from, to))
                         return true;
                 }
                 return false;

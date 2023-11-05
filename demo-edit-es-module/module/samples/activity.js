@@ -38,8 +38,61 @@ document.getElementById("doit").addEventListener('click', showMermaid)
 document.getElementById("testme").addEventListener('click', testme)
 
 async function testme() {
-    const res = await editor.executeOnWorker("ActivityParser.compute", ["arg1"]);
-    console.log(res);
+    await editor.executeOnWorker("ActivityParser.compute", ["calculate"]);
+    document.getElementById("paths").style.visibility="visible";
+    for (let k = 0; k <4; k++) {
+        const pp = await editor.executeOnWorker ("ActivityParser.compute", ["get", k.toString()]);
+
+        let e = document.getElementById("p"+k);
+        e.innerHTML=''
+        for (let i = 0; i < pp.length; i++) {
+            const p = document.createElement("div");
+            p.id = "p"+k+"-"+i
+            p.className = "path"
+            p.addEventListener("click", function(){ highlightPath(k, i); });
+            p.style.color='white'
+            p.innerText = pp[i];
+            e.appendChild(p)
+            console.log(pp[i]);
+        }
+    }
+}
+
+const theme = "%%{\n" +
+    "  init: {\n" +
+    "    'theme': 'dark',\n" +
+    "    'themeVariables': {\n" +
+    "      'primaryColor': '#BB2528',\n" +
+    "      'primaryTextColor': '#fff',\n" +
+    "      'primaryBorderColor': '#7C0000',\n" +
+    "      'lineColor': '#F8B229',\n" +
+    "      'secondaryColor': '#006100',\n" +
+    "      'tertiaryColor': '#fff'\n" +
+    "    }\n" +
+    "  }\n" +
+    "}%%"
+
+async function highlightPath(pathGroupIdx, idx) {
+    //highlight div
+    const allPaths = document.getElementsByClassName("path");
+    for (let i=0; i<allPaths.length; i++) {
+        allPaths[i].style.color = 'white'
+    }
+    document.getElementById("p" + pathGroupIdx + "-" + idx).style.color = 'red'
+
+    const mermaidText2 = await editor.executeOnWorker ("ActivityParser.compute",
+        ["highlight", pathGroupIdx.toString(), idx.toString()]
+    );
+    console.log(mermaidText2[0])
+
+    const drawDiagram2 = async function () {
+        let element = document.getElementById("mermaidPane2");
+        const graphDefinition = theme+"\n"+mermaidText2[0];
+        const { svg } = await mermaid.render('graphDiv1', graphDefinition);
+        element.innerHTML = svg;
+    };
+
+    await drawDiagram2();
 }
 
 async function showMermaid() {
@@ -48,19 +101,6 @@ async function showMermaid() {
 
     const drawDiagram = async function () {
         let element = document.getElementById("mermaidPane");
-        const theme = "%%{\n" +
-            "  init: {\n" +
-            "    'theme': 'dark',\n" +
-            "    'themeVariables': {\n" +
-            "      'primaryColor': '#BB2528',\n" +
-            "      'primaryTextColor': '#fff',\n" +
-            "      'primaryBorderColor': '#7C0000',\n" +
-            "      'lineColor': '#F8B229',\n" +
-            "      'secondaryColor': '#006100',\n" +
-            "      'tertiaryColor': '#fff'\n" +
-            "    }\n" +
-            "  }\n" +
-            "}%%"
         const graphDefinition = theme+"\n"+mermaidText;
         const { svg } = await mermaid.render('graphDiv', graphDefinition);
         element.innerHTML = svg;
@@ -69,19 +109,6 @@ async function showMermaid() {
 
     const drawDiagram2 = async function () {
         let element = document.getElementById("mermaidPane2");
-        const theme = "%%{\n" +
-            "  init: {\n" +
-            "    'theme': 'dark',\n" +
-            "    'themeVariables': {\n" +
-            "      'primaryColor': '#BB2528',\n" +
-            "      'primaryTextColor': '#fff',\n" +
-            "      'primaryBorderColor': '#7C0000',\n" +
-            "      'lineColor': '#F8B229',\n" +
-            "      'secondaryColor': '#006100',\n" +
-            "      'tertiaryColor': '#fff'\n" +
-            "    }\n" +
-            "  }\n" +
-            "}%%"
         const graphDefinition = theme+"\n"+mermaidText2;
         const { svg } = await mermaid.render('graphDiv1', graphDefinition);
         element.innerHTML = svg;

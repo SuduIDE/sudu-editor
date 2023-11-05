@@ -2,7 +2,6 @@ package org.sudu.experiments.parser.activity.graph.expr;
 
 import org.sudu.experiments.parser.activity.graph.IExpr;
 import org.sudu.experiments.parser.activity.graph.stat.Id;
-import org.sudu.experiments.parser.activity.graph.Path;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,14 +15,14 @@ public class ConsExpr implements IExpr {
     }
 
     @Override
-    public boolean check(Path path, int from) {
-        return checkPos(path, from) >= 0;
+    public boolean check(String[] ids, int from, int to) {
+        return checkPos(ids, from, to) >= 0;
     }
 
-    int checkPos(Path path, int from) {
-        outer: for (var i= from; i <= path.ids.size() - exprs.size(); i++) {
+    int checkPos(String[] ids, int from, int to) {
+        outer: for (var i= from; i <= to - exprs.size(); i++) {
             for (var j = 0; j < exprs.size(); j++) {
-                if (!exprs.get(j).name().equals(path.ids.get(i+j)))
+                if (!exprs.get(j).name().equals(ids[i+j]))
                     continue outer;
             }
             return i + exprs.size();

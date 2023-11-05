@@ -21,10 +21,8 @@ import java.util.List;
 
 public class ActivityFullParser extends BaseFullParser {
 
-    private Activity activity;
-    private Dag2Part dag2;
-    private String mermaid1;
-    public String mermaid2;
+    public Activity activity;
+    public Dag2Part dag2;
 
     @Override
     protected Lexer initLexer(CharStream stream) {
@@ -45,7 +43,7 @@ public class ActivityFullParser extends BaseFullParser {
         activity = walker.getActivity();
         System.out.println("READ new ACTIVITY:>>\r\n"+ activity);
         dag2 = activity.toDag2();
-        mermaid2 = Node.printRecDag2(dag2.input);
+        String mermaid2 = dag2.input.printRecDag2(null);
 
         for (var token : allTokens) {
             if (token.getType() == ActivityLexer.ERROR) {
@@ -55,7 +53,7 @@ public class ActivityFullParser extends BaseFullParser {
 
         var ret = new ArrayList<>();
         ret.add(getInts(defaultIntervalNode()));
-        mermaid1 = walker.getActivity().toDag1();
+        String mermaid1 = walker.getActivity().toDag1();
         ret.add(mermaid1);
         ret.add(mermaid2);
         return ret;

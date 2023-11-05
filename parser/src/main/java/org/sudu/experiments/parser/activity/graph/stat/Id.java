@@ -25,7 +25,7 @@ public class Id extends BaseStat implements IExpr {
 
     @Override
     public String toDag1() {
-        return getUniqueId()+"("+name+")";
+        return getMermaidNodeId()+"("+name+")";
     }
 
     @Override
@@ -39,13 +39,13 @@ public class Id extends BaseStat implements IExpr {
     }
 
     @Override
-    public boolean check(Path path, int from) {
-        return checkPos(path, from) >= 0;
+    public boolean check(String[] ids, int from, int to) {
+        return checkPos(ids, from, to) >= 0;
     }
 
-    int checkPos(Path path, int from) {
-        for (var i= from; i<path.ids.size(); i++)
-            if (path.ids.get(i).equals(this.name))
+    int checkPos(String[] ids, int from, int to) {
+        for (var i= from; i<to; i++)
+            if (ids[i].equals(this.name))
                 return i+1;
 
         return -1;
