@@ -828,11 +828,11 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
       String dag1 = new String(((ArrayView) result[3]).chars());
       properties.put("mermaid", dag1);
-      String dag2 = new String(((ArrayView) result[4]).chars());
-      properties.put("mermaid2", dag2);
+//      String dag2 = new String(((ArrayView) result[4]).chars());
+//      properties.put("mermaid2", dag2);
 
-      System.out.println("dag1 = " + dag1);
-      System.out.println("dag2 = " + dag2);
+//      System.out.println("dag1 = " + dag1);
+//      System.out.println("dag2 = " + dag2);
 
       ParserUtils.updateDocument(model.document, ints, chars);
     } else if (result.length >= 5) {

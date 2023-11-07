@@ -18,6 +18,7 @@ ACTIVITY : 'activity' ;
 SELECT : 'select';
 REPEAT : 'repeat';
 SCHEDULE : 'schedule';
+RANDOM : 'random';
 IF : 'if' ;
 ELSE : 'else';
 

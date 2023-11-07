@@ -11,6 +11,7 @@ import org.sudu.experiments.parser.activity.gen.ActivityParser;
 import org.sudu.experiments.parser.activity.graph.Dag2Part;
 import org.sudu.experiments.parser.activity.graph.Node;
 import org.sudu.experiments.parser.activity.graph.stat.Activity;
+import org.sudu.experiments.parser.activity.graph.stat.Random;
 import org.sudu.experiments.parser.activity.walker.ActivityWalker;
 import org.sudu.experiments.parser.common.BaseFullParser;
 import org.sudu.experiments.parser.common.SplitRules;
@@ -23,6 +24,10 @@ public class ActivityFullParser extends BaseFullParser {
 
     public Activity activity;
     public Dag2Part dag2;
+
+    public ActivityFullParser() {
+        Random.setGlobalSeedAndInitiateRandom(Random.getGlobalSeed());
+    }
 
     @Override
     protected Lexer initLexer(CharStream stream) {
@@ -43,7 +48,6 @@ public class ActivityFullParser extends BaseFullParser {
         activity = walker.getActivity();
         System.out.println("READ new ACTIVITY:>>\r\n"+ activity);
         dag2 = activity.toDag2();
-        String mermaid2 = dag2.input.printRecDag2(null);
 
         for (var token : allTokens) {
             if (token.getType() == ActivityLexer.ERROR) {
@@ -54,6 +58,7 @@ public class ActivityFullParser extends BaseFullParser {
         var ret = new ArrayList<>();
         ret.add(getInts(defaultIntervalNode()));
         String mermaid1 = walker.getActivity().toDag1();
+        String mermaid2 = dag2.input.printRecDag2(null);
         ret.add(mermaid1);
         ret.add(mermaid2);
         return ret;

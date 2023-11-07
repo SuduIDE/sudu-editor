@@ -16,6 +16,7 @@ import org.sudu.experiments.parser.activity.graph.expr.ExprKind;
 import org.sudu.experiments.parser.activity.graph.stat.Id;
 import org.sudu.experiments.parser.activity.graph.stat.If;
 import org.sudu.experiments.parser.activity.graph.expr.NotExpr;
+import org.sudu.experiments.parser.activity.graph.stat.Random;
 import org.sudu.experiments.parser.activity.graph.stat.Repeat;
 import org.sudu.experiments.parser.activity.graph.stat.Schedule;
 import org.sudu.experiments.parser.activity.graph.stat.Select;
@@ -176,6 +177,10 @@ public class ActivityWalker extends ActivityParserBaseListener {
 
       else if (ctx.SELECT() != null) {
         stat = new Select();
+
+      } else if (ctx.RANDOM() != null) {
+        var count = ctx.INT() != null ? Integer.parseInt(ctx.INT().getText()) : 1;
+        stat = new Random(count);
       }
 
       else {

@@ -13,6 +13,7 @@ stat: ID
     | REPEAT LPAREN INT RPAREN block
     | SELECT block
     | SCHEDULE block
+    | RANDOM (LPAREN INT RPAREN)? block
     | IF LPAREN expr RPAREN block (SEMI ELSE block)?
     ;
 
