@@ -1,9 +1,11 @@
-if (1) {
+
+
+
+
     let container = document.getElementById("editor")
 
     let canvas = document.createElement("canvas");
     let context = canvas.getContext('2d');
-    context.fillStyle = "green";
 
     let st = canvas.style;
     st.width = "100%";
@@ -17,6 +19,12 @@ if (1) {
                 console.log("w = " + size.inlineSize + ", h = " + size.blockSize);
                 canvas.width = size.inlineSize;
                 canvas.height = size.blockSize;
+                const ratio = window.devicePixelRatio;
+                canvas.style.width = ((1./32. + size.inlineSize) / ratio) + 'px';
+                canvas.style.height = ((1./32. + size.blockSize) /ratio) + 'px';
+                console.log("dpr = " + ratio)
+                console.log("st.w = " + canvas.style.width);
+                console.log("st.h = " + canvas.style.height);
                 context.fillStyle = "green";
                 context.fillRect(0, 0, size.inlineSize, size.blockSize);
             }
@@ -24,10 +32,3 @@ if (1) {
     });
     observer.observe(canvas, {box: "device-pixel-content-box"});
     container.appendChild(canvas)
-}
-
-if (0) {
-    const editorApi = await import("../src/editor.js");
-
-    editorApi.newEditor({containerId: "editor", workerUrl: "../src/worker.js"})
-}
