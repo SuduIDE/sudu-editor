@@ -14,7 +14,7 @@
 
 <body>
 
-<script type="module" charset="utf-8" src="example2.js"></script>
+<script type="module" charset="utf-8" src="bugSizing.js"></script>
 <!--<script type="module">-->
 <!--  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';-->
 <!--</script>-->
@@ -26,14 +26,43 @@
 <div style="height: 50%" >
   <div style="height:100%; width: 50%; float:left">
     <div id="editor" >
+
     </div>
-    <canvas
-       width=100 height=100
-       style="width: 100%; height: 100%; outline: none; cursor: text;"
-    ></canvas>
+    <div id="paths" style="height:100%; visibility: hidden">
+      <div style="padding-top: 1em">
+        <div style="color: orange;">
+          All branches covered:
+        </div>
+        <div id="p0">
+        </div>
+      </div>
+      <div style="padding-top: 1em">
+        <div style="color: orange;">
+          Combination of <span style="color: aqua">two</span> adjacent branches covered:
+        </div>
+        <div id="p1">
+        </div>
+
+      </div>
+      <div style="padding-top: 1em">
+        <div style="color: orange;">
+          Combination of <span style="color: aqua">three</span> adjacent branches covered:
+        </div>
+        <div id="p2">
+        </div>
+      </div>
+      <div style="padding-top: 1em">
+        <div style="color: orange;">
+          <span style="color: aqua">All</span> adjacent combinations covered:
+        </div>
+        <div id="p3">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="width: 50%; float:right">
   </div>
 </div>
-
 
 </body>
 </html>

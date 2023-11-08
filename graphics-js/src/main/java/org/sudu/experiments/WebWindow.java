@@ -152,12 +152,18 @@ public class WebWindow implements org.sudu.experiments.Window {
     requestNewFrame();
   }
 
+  static int resizeId;
+
+  static boolean change = true;
+
   private void onCanvasSizeChanged(int inlineSize, int blockSize) {
-    if (1 < 0) {
+    if (1 > 0) {
       JsHelper.consoleInfo("  onCanvasSizeChanged: ", JsHelper.WithId.get(canvasDiv));
       JsHelper.consoleInfo("    inlineSize =  ", inlineSize);
       JsHelper.consoleInfo("    blockSize =  ", blockSize);
+      JsHelper.consoleInfo("    resizeId =  ", resizeId);
     }
+    resizeId++;
     eventHandler.setClientRect(inlineSize, blockSize);
     mainCanvas.setWidth(inlineSize);
     mainCanvas.setHeight(blockSize);
@@ -168,11 +174,12 @@ public class WebWindow implements org.sudu.experiments.Window {
   }
 
   private void handleWindowResize(Event evt) {
-    if (1 < 0) {
+    if (1 > 0) {
       JsHelper.consoleInfo("handleWindowResize: ", JsHelper.WithId.get(canvasDiv));
       JsHelper.consoleInfo("  devicePixelRatio  = ", devicePixelRatio());
+      JsHelper.consoleInfo("    resizeId =  ", resizeId);
     }
-
+    resizeId++;
     scene.onResize(g.clientRect, devicePixelRatio());
     scene.paint();
   }
