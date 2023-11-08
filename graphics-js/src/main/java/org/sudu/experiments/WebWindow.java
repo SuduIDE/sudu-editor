@@ -169,10 +169,10 @@ public class WebWindow implements org.sudu.experiments.Window {
 
     mainCanvas.setWidth(inlineSize);
     mainCanvas.setHeight(blockSize);
-    double ratio = Window.current().getDevicePixelRatio();
-    double widthPx = (1. / 32. + inlineSize) / ratio;
-    double heightPx = (1. / 32. + blockSize) / ratio;
-    setStyleWHPx(mainCanvas.getStyle(), widthPx, heightPx);
+//    double ratio = Window.current().getDevicePixelRatio();
+//    double widthPx = (1. / 32. + inlineSize) / ratio;
+//    double heightPx = (1. / 32. + blockSize) / ratio;
+//    setStyleWHPx(mainCanvas.getStyle(), widthPx, heightPx);
     g.setViewPortAndClientRect(inlineSize, blockSize);
     scene.onResize(g.clientRect, devicePixelRatio());
     scene.paint();
