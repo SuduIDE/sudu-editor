@@ -3,6 +3,7 @@ package org.sudu.experiments.parser.activity.graph.stat;
 
 import org.sudu.experiments.parser.activity.graph.Dag2Part;
 import org.sudu.experiments.parser.activity.graph.IStat;
+import org.sudu.experiments.parser.activity.graph.Node;
 import org.sudu.experiments.parser.activity.graph.TerminalNode;
 
 public class Activity extends ComplexStat {
@@ -45,13 +46,20 @@ public class Activity extends ComplexStat {
     }
 
     @Override
-    public Dag2Part toDag2() {
+    public Dag2Part toDag2Part() {
         var start = new TerminalNode(INITIAL);
         var res = IStat.joinDag2(start, block);
         res = IStat.joinDag2(res, new Dag2Part(new TerminalNode(FINAL)));
         return res;
     }
 
+    private Node start = null;
+    public Node dag2(boolean forceRebuild) {
+        if (start == null || forceRebuild)
+            start = toDag2Part().input.simplify();
+
+        return start;
+    }
 
 }
 

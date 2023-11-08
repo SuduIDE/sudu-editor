@@ -3,6 +3,7 @@ package org.sudu.experiments.parser.activity.graph;
 import org.sudu.experiments.parser.activity.graph.stat.Id;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +43,54 @@ public abstract class Node {
         return "("+name()+")";
     }
 
+
+    private void countRec(HashMap<Node, Integer> incoming) {
+        if (incoming.containsKey(this)) {
+            incoming.put(this, incoming.get(this)+1);
+        } else {
+            incoming.put(this, 1);
+            for (var e: edges)
+                e.to.countRec(incoming);
+        }
+    }
+
+    private void simplifyRec(HashSet<Node> visited, HashMap<Node, Integer> incoming) {
+        if (!visited.add(this)) return;
+
+        var newEdges = new ArrayList<EdgeTo>();
+        boolean modified;
+        do {
+            modified = false;
+            for (var e : edges) {
+                Node n = e.to;
+                if (n instanceof EmptyNode && incoming.get(n) == 1 && e.expr == null) {
+                    newEdges.addAll(n.edges);
+                    modified = true;
+                } else if (n instanceof EmptyNode && n.edges.size() == 1 && n.edges.get(0).expr == null) {
+                    newEdges.add(new EdgeTo(n.edges.get(0).to, e.expr, e.elseBranch));
+                    modified = true;
+                } else {
+                    newEdges.add(e);
+                }
+            }
+            edges.clear();
+            edges.addAll(newEdges);
+            newEdges.clear();
+        } while (modified);
+
+        for (var e : edges) {
+            e.to.simplifyRec(visited, incoming);
+        }
+    }
+
+    public Node simplify() {
+        var incoming = new HashMap<Node, Integer>();
+        countRec(incoming);
+        simplifyRec(new HashSet<>(), incoming);
+
+        return this;
+    }
+
     private void innerRecDag2(PrintContext ctx) {
         if (!ctx.visited.add(this))
             return;
@@ -50,10 +99,6 @@ public abstract class Node {
         for (var e: edges) {
             var n = e.to;
 
-            //compress empty node
-            while (n instanceof EmptyNode && n.edges.size() == 1) {
-                n = n.edges.get(0).to;
-            }
             n.innerRecDag2(ctx);
 
             String label = e.expr == null ? "" : e.elseBranch ? "else" : ""+e.getLabel()+"";
@@ -90,7 +135,7 @@ public abstract class Node {
         return ctx.acc.toString();
     }
 
-    class PrintContext {
+    static class PrintContext {
         StringBuilder acc = new StringBuilder();
         Set<Node> visited = new HashSet<>();
 
@@ -98,7 +143,7 @@ public abstract class Node {
         int edgeNumber = 0;
     }
 
-    class RecContext {
+    static class RecContext {
         static final int MAX = 200;
 
         Node[] fullPath = new Node[MAX];
@@ -111,11 +156,6 @@ public abstract class Node {
     }
 
     private void recPaths(Paths paths, RecContext ctx, int fullCount, int idsCount, int branchCount, Node prev) {
-        if (this instanceof EmptyNode && edges.size() == 1) {
-            edges.get(0).to.recPaths(paths, ctx, fullCount, idsCount, branchCount, prev);
-            return;
-        }
-
         ctx.fullPath[fullCount++] = this;
         if (this instanceof Id id) {
             ctx.idsPath[idsCount] = this;
@@ -171,7 +211,7 @@ public abstract class Node {
     }
 
     static long adjacent(long edge1, long edge2, long edge3) {
-        return ((edge1 << 2*offset) + edge2) << 2*offset + edge3;
+        return (((edge1 << 2*offset) + edge2) << 2*offset) + edge3;
     }
 
 }

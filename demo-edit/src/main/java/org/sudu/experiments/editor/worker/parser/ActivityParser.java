@@ -7,7 +7,6 @@ import org.sudu.experiments.parser.activity.graph.stat.Random;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -46,7 +45,7 @@ public class ActivityParser {
         }
         if (args.length >= 1) {
             if (args[0].equals("calculate")) {
-                paths = parser.dag2.input.calculateTestPaths();
+                paths = parser.activity.dag2(false).calculateTestPaths();
 
             } else if (args[0].equals("get")) {
                 if (args.length < 2) {
@@ -75,18 +74,18 @@ public class ActivityParser {
                 }
                 var p = paths[i][j];
 
-                var mermaid = parser.dag2.input.printRecDag2(p);
+                var mermaid = parser.activity.dag2(false).printRecDag2(p);
                 result.add(mermaid);
 
             } else if (args[0].equals("dag2")) {
-                var mermaid = parser.dag2.input.printRecDag2(null);
+                var mermaid = parser.activity.dag2(false).printRecDag2(null);
                 result.add(mermaid);
 
             } else if (args[0].equals("seed")) {
                 int seed = Integer.parseInt(args[1].toString());
                 Random.setGlobalSeedAndInitiateRandom(seed);
                 System.out.println("Seed="+seed);
-                parser.dag2 = parser.activity.toDag2();
+                parser.activity.dag2(true);
 
             } else { //DEFAULT
                 System.out.println("Unknown action: " + args[0]);

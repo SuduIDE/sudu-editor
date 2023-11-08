@@ -43,7 +43,7 @@ public class Random extends ComplexStat {
         return res;
     }
 
-    public Dag2Part toDag2() {
+    public Dag2Part toDag2Part() {
         if (count <= 0 || count > block().size()) {
             count = 1;
         }
@@ -51,7 +51,7 @@ public class Random extends ComplexStat {
         Dag2Part res = null;
         var permutation = getRandomPermutation();
         for (int i=0; i<count; i++) {
-            res = IStat.joinDag2(res, block.get(permutation[i]).toDag2());
+            res = IStat.joinDag2(res, block.get(permutation[i]).toDag2Part());
         }
         System.out.println("seed="+globalSeed+" "+Arrays.toString(permutation));
         return res;

@@ -23,7 +23,6 @@ import java.util.List;
 public class ActivityFullParser extends BaseFullParser {
 
     public Activity activity;
-    public Dag2Part dag2;
 
     public ActivityFullParser() {
         Random.setGlobalSeedAndInitiateRandom(Random.getGlobalSeed());
@@ -47,7 +46,6 @@ public class ActivityFullParser extends BaseFullParser {
 
         activity = walker.getActivity();
         System.out.println("READ new ACTIVITY:>>\r\n"+ activity);
-        dag2 = activity.toDag2();
 
         for (var token : allTokens) {
             if (token.getType() == ActivityLexer.ERROR) {
@@ -58,7 +56,7 @@ public class ActivityFullParser extends BaseFullParser {
         var ret = new ArrayList<>();
         ret.add(getInts(defaultIntervalNode()));
         String mermaid1 = walker.getActivity().toDag1();
-        String mermaid2 = dag2.input.printRecDag2(null);
+        String mermaid2 = activity.dag2(false).printRecDag2(null);
         ret.add(mermaid1);
         ret.add(mermaid2);
         return ret;

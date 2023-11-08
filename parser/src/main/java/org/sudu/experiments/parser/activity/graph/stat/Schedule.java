@@ -28,7 +28,7 @@ public class Schedule extends ComplexStat {
     }
 
     @Override
-    public Dag2Part toDag2() {
+    public Dag2Part toDag2Part() {
         var start = Dag2Part.singleExit(new EmptyNode());
         ArrayList<EdgeFrom> output = new ArrayList<>();
 

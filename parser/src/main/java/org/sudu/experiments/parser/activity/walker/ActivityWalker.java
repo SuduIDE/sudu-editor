@@ -21,6 +21,7 @@ import org.sudu.experiments.parser.activity.graph.stat.Repeat;
 import org.sudu.experiments.parser.activity.graph.stat.Schedule;
 import org.sudu.experiments.parser.activity.graph.stat.Select;
 import org.sudu.experiments.parser.activity.graph.IStat;
+import org.sudu.experiments.parser.activity.graph.stat.Sequence;
 import org.sudu.experiments.parser.activity.graph.stat.UnknownStat;
 import org.sudu.experiments.parser.common.Pos;
 
@@ -129,8 +130,13 @@ public class ActivityWalker extends ActivityParserBaseListener {
     var expr = exprStack.removeLast();
 
     if (exprStack.isEmpty()) {
-      var ifStat = (If)statStack.getLast();
-      ifStat.cond = expr;
+      if (statStack.getLast() instanceof If ifStat) {
+        ifStat.cond = expr;
+      } else if (statStack.getLast() instanceof Select select) {
+        select.conditions.set(select.conditions.size() - 1, expr);
+      } else {
+        System.out.println("Parse error for condition: "+statStack.getLast());
+      }
 
     } else if (exprStack.getLast() instanceof NotExpr parent) {
       parent.innerExpr = expr;
@@ -149,7 +155,11 @@ public class ActivityWalker extends ActivityParserBaseListener {
 
   }
 
-
+  @Override
+  public void enterExprstat(ActivityParser.ExprstatContext ctx) {
+    var select = (Select)statStack.getLast();
+    select.conditions.add(null);
+  }
 
   @Override
   public void enterStat(ActivityParser.StatContext ctx) {
@@ -173,8 +183,11 @@ public class ActivityWalker extends ActivityParserBaseListener {
 
       } else if (ctx.SCHEDULE() != null) {
         stat = new Schedule();
-      }
 
+      } else if (ctx.SEQUENCE() != null) {
+        stat = new Sequence();
+
+      }
       else if (ctx.SELECT() != null) {
         stat = new Select();
 
@@ -235,6 +248,9 @@ public class ActivityWalker extends ActivityParserBaseListener {
         tokenTypes[index] = ParserConstants.TokenTypes.ERROR;
       }
     }
+
+    if (!exprStack.isEmpty())
+      tokenStyles[index] = ParserConstants.TokenStyles.ITALIC;
 
     //AST building logic
     if (type == ActivityLexer.ELSE) {

@@ -29,7 +29,7 @@ public class Id extends BaseStat implements IExpr {
     }
 
     @Override
-    public Dag2Part toDag2() {
+    public Dag2Part toDag2Part() {
         return Dag2Part.singleExit(new Id(name));
     }
 

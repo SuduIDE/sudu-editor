@@ -55,7 +55,7 @@ public class If extends BaseStat {
     }
 
     @Override
-    public Dag2Part toDag2() {
+    public Dag2Part toDag2Part() {
         var clone = new If();
         clone.cond = cond;
         clone.ifBlock.addAll(ifBlock);

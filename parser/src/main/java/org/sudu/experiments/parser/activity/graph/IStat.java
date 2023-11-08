@@ -116,11 +116,11 @@ public interface IStat {
     static Dag2Part joinDag2(Node node, List<IStat> tail) {
         var res = Dag2Part.singleExit(node);
         for (IStat part: tail) {
-            res = joinDag2(res, part.toDag2());
+            res = joinDag2(res, part.toDag2Part());
         }
         return res;
     }
 
 
-    Dag2Part toDag2();
+    Dag2Part toDag2Part();
 }

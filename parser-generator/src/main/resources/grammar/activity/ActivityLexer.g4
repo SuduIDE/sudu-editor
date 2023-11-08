@@ -12,12 +12,15 @@ LPAREN : '(' ;
 RPAREN : ')' ;
 LCURLY : '{' ;
 RCURLY : '}' ;
+LESSER : '<' ;
+GREATER: '>' ;
 CONS : '->' ;
 
 ACTIVITY : 'activity' ;
 SELECT : 'select';
 REPEAT : 'repeat';
 SCHEDULE : 'schedule';
+SEQUENCE : 'sequence';
 RANDOM : 'random';
 IF : 'if' ;
 ELSE : 'else';

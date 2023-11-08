@@ -41,6 +41,28 @@ public interface ActivityParserListener extends ParseTreeListener {
 	void exitBlock(ActivityParser.BlockContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link ActivityParser#condblock}.
+	 * @param ctx the parse tree
+	 */
+	void enterCondblock(ActivityParser.CondblockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ActivityParser#condblock}.
+	 * @param ctx the parse tree
+	 */
+	void exitCondblock(ActivityParser.CondblockContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link ActivityParser#exprstat}.
+	 * @param ctx the parse tree
+	 */
+	void enterExprstat(ActivityParser.ExprstatContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ActivityParser#exprstat}.
+	 * @param ctx the parse tree
+	 */
+	void exitExprstat(ActivityParser.ExprstatContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link ActivityParser#stat}.
 	 * @param ctx the parse tree
 	 */
@@ -52,10 +74,12 @@ public interface ActivityParserListener extends ParseTreeListener {
 	void exitStat(ActivityParser.StatContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link ActivityParser#expr}.
 	 * @param ctx the parse tree
 	 */
 	void enterExpr(ActivityParser.ExprContext ctx);
 	/**
+	 * Exit a parse tree produced by {@link ActivityParser#expr}.
 	 * @param ctx the parse tree
 	 */
 	void exitExpr(ActivityParser.ExprContext ctx);
