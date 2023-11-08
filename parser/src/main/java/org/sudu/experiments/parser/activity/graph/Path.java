@@ -13,14 +13,14 @@ public class Path implements Comparable<Path>{
 
     public boolean used;
 
-    public Path(Node.RecContext ctx, int idsCount, int nodesCount) {
-        this.nodes = new Node[nodesCount];
-        System.arraycopy(ctx.fullPath, 0, nodes, 0, nodesCount);
+    public Path(Node.RecContext ctx, int fullCount, int idsCount, int branchCount) {
+        this.nodes = new Node[fullCount];
+        System.arraycopy(ctx.fullPath, 0, nodes, 0, fullCount);
 
         this.ids = new String[idsCount];
         System.arraycopy(ctx.ids, 0, this.ids, 0, idsCount);
 
-        unvisited[0] = idsCount;
+        unvisited[0] = branchCount;
         visited[0] = new long[unvisited[0]];
         System.arraycopy(ctx.visited1, 0, visited[0], 0, unvisited[0]);
         Arrays.sort(visited[0], 0, unvisited[0]);

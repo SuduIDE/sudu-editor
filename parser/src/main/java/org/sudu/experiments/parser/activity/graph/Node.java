@@ -9,7 +9,7 @@ import java.util.Set;
 
 public abstract class Node {
     static int idIncrement = 0;
-    static final int offset = 16;
+    static final int offset = 10;
 
     private final int uniqueId;
 
@@ -62,7 +62,7 @@ public abstract class Node {
             int edgeN = ctx.edgeNumber++;
             ctx.acc.append(getMermaidNodeId()+"-->"+label+ n.getMermaidNodeId() +"\r\n");
 
-            if (ctx.markedEdge.contains(pair(this, n))) {
+            if (ctx.markedEdge.contains(edge(this, n))) {
                 ctx.acc.append("linkStyle "+edgeN+" stroke:red\r\n");
             }
         }
@@ -75,7 +75,7 @@ public abstract class Node {
         ctx.acc.append("flowchart TB\r\n");
         if (highlighted != null) {
             for (int i=1; i<highlighted.nodes.length; i++) {
-                ctx.markedEdge.add(pair(highlighted.nodes[i-1], highlighted.nodes[i]));
+                ctx.markedEdge.add(edge(highlighted.nodes[i-1], highlighted.nodes[i]));
             }
         }
 
@@ -110,39 +110,40 @@ public abstract class Node {
         String[] ids = new String[MAX];
     }
 
-    private void recPaths(Paths paths, RecContext ctx, int depth, int ids) {
+    private void recPaths(Paths paths, RecContext ctx, int fullCount, int idsCount, int branchCount, Node prev) {
         if (this instanceof EmptyNode && edges.size() == 1) {
-            edges.get(0).to.recPaths(paths, ctx, depth, ids);
+            edges.get(0).to.recPaths(paths, ctx, fullCount, idsCount, branchCount, prev);
             return;
         }
 
-        ctx.fullPath[depth++] = this;
+        ctx.fullPath[fullCount++] = this;
         if (this instanceof Id id) {
-            ctx.idsPath[ids] = this;
-            ctx.ids[ids++] = id.name();
+            ctx.idsPath[idsCount] = this;
+            ctx.ids[idsCount++] = id.name();
+        }
 
-            ctx.visited1[ids - 1] = this.getId();
-
-            if (ids >= 2)
-                ctx.visited2[ids - 2] = pair(ctx.idsPath[ids - 2], this);
-            if (ids >= 3)
-                ctx.visited3[ids - 3] = triple(ctx.idsPath[ids - 3], ctx.idsPath[ids - 2], this);
+        if (prev != null && prev.edges.size() > 1) { //branching
+            ctx.visited1[branchCount++] = edge(prev, this);
+            if (branchCount >= 2)
+                ctx.visited2[branchCount-2] = adjacent(ctx.visited1[branchCount-2], ctx.visited1[branchCount-1]);
+            if (branchCount >= 3)
+                ctx.visited3[branchCount-3] = adjacent(ctx.visited1[branchCount-3], ctx.visited1[branchCount-2], ctx.visited1[branchCount-1]);
         }
 
         if (edges.isEmpty()) { //final
-           paths.add(new Path(ctx, ids, depth));
+           paths.add(new Path(ctx, fullCount, idsCount, branchCount));
         }
 
         for (var e: edges) {
-            if (e.expr == null || e.expr.check(ctx.ids, 0, ids) ^ e.elseBranch)
-                e.to.recPaths(paths, ctx, depth, ids);
+            if (e.expr == null || e.expr.check(ctx.ids, 0, idsCount) ^ e.elseBranch)
+                e.to.recPaths(paths, ctx, fullCount, idsCount, branchCount, this);
         }
 
     }
 
     public Path[][] calculateTestPaths() {
         Paths paths = new Paths();
-        recPaths(paths, new RecContext(), 0, 0);
+        recPaths(paths, new RecContext(), 0, 0, 0, null);
         paths.process();
 
         var res = new Path[4][];
@@ -161,13 +162,18 @@ public abstract class Node {
         return res;
     }
 
-    static long pair(Node n1, Node n2) {
+    static long edge(Node n1, Node n2) {
         return (n1.getId() << offset) + n2.getId();
     }
 
-    static long triple(Node n1, Node n2, Node n3) {
-        return (((n1.getId() << offset) + n2.getId()) << offset) + n3.getId();
+    static long adjacent(long edge1, long edge2) {
+        return (edge1 << 2*offset) + edge2;
     }
+
+    static long adjacent(long edge1, long edge2, long edge3) {
+        return ((edge1 << 2*offset) + edge2) << 2*offset + edge3;
+    }
+
 }
 
 class Paths {
