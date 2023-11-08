@@ -18,9 +18,18 @@ public class D2dCanvas extends Canvas {
   // reference
   private long textFormatRef;
 
-  D2dCanvas(D2dFactory f, int w, int h, long pWicBitmap, long pD2D1RenderTarget) {
+  D2dCanvas(
+      D2dFactory f, int w, int h,
+      long pWicBitmap, long pD2D1RenderTarget,
+      boolean cleartype
+  ) {
+    super(cleartype);
     this.pWicBitmap = IUnknown.requireNonNull(pWicBitmap);
     this.pD2D1RenderTarget = IUnknown.requireNonNull(pD2D1RenderTarget);
+    if (cleartype) {
+      ID2D1RenderTarget.SetTextAntialiasMode(pD2D1RenderTarget,
+          D2d.D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE);
+    }
     factory = f;
     width = w;
     height = h;

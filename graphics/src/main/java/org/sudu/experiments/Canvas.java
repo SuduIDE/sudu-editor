@@ -5,9 +5,12 @@ import org.sudu.experiments.fonts.FontDesk;
 public abstract class Canvas implements GLApi.Canvas, Disposable, CanvasDebug {
 
   static int globalCounter;
+
+  public final boolean cleartype;
   protected int width, height;
 
-  public Canvas() {
+  public Canvas(boolean cleartype) {
+    this.cleartype = cleartype;
     globalCounter++;
   }
 

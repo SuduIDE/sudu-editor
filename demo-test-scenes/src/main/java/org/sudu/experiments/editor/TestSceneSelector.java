@@ -20,6 +20,7 @@ public class TestSceneSelector {
       case "Diff" -> Diff0::new;
       case "Editor0" -> Editor0::new;
       case "DemoScene1", "test" -> DemoScene1::new;
+      case "CleartypeColors" -> CleartypeColors::new;
       case "ToolbarDemo" -> ToolbarDemo::new;
       case "FindUsagesDemo" -> FindUsagesDemo::new;
       case "RegionTextureAllocatorDemo" -> RegionTextureAllocatorDemo::new;

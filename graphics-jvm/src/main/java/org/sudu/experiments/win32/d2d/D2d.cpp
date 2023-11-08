@@ -15,6 +15,7 @@
 #include "org_sudu_experiments_win32_d2d_IDWriteLocalizedStrings.h"
 #include "org_sudu_experiments_win32_d2d_IDWriteTextFormat.h"
 #include "org_sudu_experiments_win32_d2d_IDWriteTextLayout.h"
+#include "org_sudu_experiments_win32_d2d_IDWriteRenderingParams.h"
 #include "org_sudu_experiments_win32_d2d_IWICBitmap.h"
 #include "org_sudu_experiments_win32_d2d_IWICBitmapLock.h"
 #include "org_sudu_experiments_win32_d2d_IWICImagingFactory.h"
@@ -172,6 +173,65 @@ jint Java_org_sudu_experiments_win32_d2d_ID2D1RenderTarget_EndDraw(JNIEnv*, jcla
   return PD2D1RenderTarget(_this)->EndDraw();
 }
 
+void Java_org_sudu_experiments_win32_d2d_ID2D1RenderTarget_SetTextAntialiasMode(
+  JNIEnv*, jclass, jlong _this, jint mode
+) {
+  PD2D1RenderTarget(_this)->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE(mode));
+}
+
+jint Java_org_sudu_experiments_win32_d2d_ID2D1RenderTarget_GetTextAntialiasMode(
+  JNIEnv*, jclass, jlong _this
+) {
+  return PD2D1RenderTarget(_this)->GetTextAntialiasMode();
+}
+
+jlong Java_org_sudu_experiments_win32_d2d_ID2D1RenderTarget_GetTextRenderingParams(
+  JNIEnv*, jclass, jlong _this
+) {
+  IDWriteRenderingParams * params = 0;
+  PD2D1RenderTarget(_this)->GetTextRenderingParams(&params);
+  return jlong(params);
+}
+
+typedef IDWriteRenderingParams* PDWriteRenderingParams;
+
+void Java_org_sudu_experiments_win32_d2d_ID2D1RenderTarget_SetTextRenderingParams(
+  JNIEnv*, jclass, jlong _this, jlong renderingParams
+) {
+  PD2D1RenderTarget(_this)->SetTextRenderingParams(
+    PDWriteRenderingParams(renderingParams));
+}
+
+jint Java_org_sudu_experiments_win32_d2d_IDWriteRenderingParams_GetPixelGeometry(
+  JNIEnv*, jclass, jlong _this
+) {
+  return PDWriteRenderingParams(_this)->GetPixelGeometry();
+}
+
+jint Java_org_sudu_experiments_win32_d2d_IDWriteRenderingParams_GetRenderingMode(
+  JNIEnv*, jclass, jlong _this
+) {
+  return PDWriteRenderingParams(_this)->GetRenderingMode();
+}
+
+jfloat Java_org_sudu_experiments_win32_d2d_IDWriteRenderingParams_GetClearTypeLevel(
+  JNIEnv*, jclass, jlong _this
+) {
+  return PDWriteRenderingParams(_this)->GetClearTypeLevel();
+}
+
+jfloat Java_org_sudu_experiments_win32_d2d_IDWriteRenderingParams_GetEnhancedContrast(
+  JNIEnv*, jclass, jlong _this
+) {
+  return PDWriteRenderingParams(_this)->GetEnhancedContrast();
+}
+
+jfloat Java_org_sudu_experiments_win32_d2d_IDWriteRenderingParams_GetGamma(
+  JNIEnv*, jclass, jlong _this
+) {
+  return PDWriteRenderingParams(_this)->GetGamma();
+}
+
 jlong Java_org_sudu_experiments_win32_d2d_IDWriteFactory5_DWriteCreateFactory5(JNIEnv* j, jclass, jintArray pHR) {
   IUnknown* res[1] = { 0 };
   auto hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory5), res);
@@ -263,6 +323,38 @@ jint Java_org_sudu_experiments_win32_d2d_IDWriteFactory5_RegisterFontFileLoader(
 
 jint Java_org_sudu_experiments_win32_d2d_IDWriteFactory5_UnregisterFontFileLoader(JNIEnv*, jclass, jlong _this, jlong fontFileLoader) {
   return PDWriteFactory5(_this)->UnregisterFontFileLoader((IDWriteFontFileLoader*)fontFileLoader);
+}
+
+jlong Java_org_sudu_experiments_win32_d2d_IDWriteFactory5_CreateRenderingParams(
+  JNIEnv* j, jclass, jlong _this, jintArray pHR
+) {
+  IDWriteRenderingParams* r[1] = { 0 };
+  auto hr = PDWriteFactory5(_this)->CreateRenderingParams(r);
+  return toJava(j, pHR, hr, r[0]);
+}
+
+jlong Java_org_sudu_experiments_win32_d2d_IDWriteFactory5_CreateMonitorRenderingParams(
+  JNIEnv* j, jclass, jlong _this, jlong hMonitor, jintArray pHR
+) {
+  IDWriteRenderingParams* r[1] = { 0 };
+  auto hr = PDWriteFactory5(_this)->CreateMonitorRenderingParams(HMONITOR(hMonitor), r);
+  return toJava(j, pHR, hr, r[0]);
+}
+
+jlong Java_org_sudu_experiments_win32_d2d_IDWriteFactory5_CreateCustomRenderingParams(
+  JNIEnv *j, jclass, jlong _this, 
+  jfloat gamma, jfloat enhancedContrast, jfloat clearTypeLevel,
+  jint pixelGeometry, jint renderingMode,
+  jintArray pHR
+) {
+  IDWriteRenderingParams* r[1] = { 0 };
+  auto hr = PDWriteFactory5(_this)->CreateCustomRenderingParams(
+    gamma, enhancedContrast, clearTypeLevel,
+    DWRITE_PIXEL_GEOMETRY(pixelGeometry),
+    DWRITE_RENDERING_MODE(renderingMode),
+    r
+  );
+  return toJava(j, pHR, hr, r[0]);
 }
 
 typedef IDWriteInMemoryFontFileLoader* PDWriteInMemoryFontFileLoader;

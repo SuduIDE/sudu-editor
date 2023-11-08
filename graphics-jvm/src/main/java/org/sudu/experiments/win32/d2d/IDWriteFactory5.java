@@ -35,4 +35,23 @@ public class IDWriteFactory5 {
 
   public static native int RegisterFontFileLoader(long _this, long pDWriteInMemoryFontFileLoader);
   public static native int UnregisterFontFileLoader(long _this, long pDWriteInMemoryFontFileLoader);
+
+  // Creates a rendering parameters object with default settings for the primary monitor.
+  // returns IDWriteRenderingParams
+  public static native long CreateRenderingParams(long _this, int[] hr);
+
+  // Creates a rendering parameters object with default settings for the specified monitor.
+  // returns IDWriteRenderingParams
+  public static native long CreateMonitorRenderingParams(long _this, long hMonitor, int[] hr);
+
+  // Creates a rendering parameters object with the specified properties.
+  // returns IDWriteRenderingParams
+  // pixelGeometry one of D2d.DWRITE_PIXEL_GEOMETRY_*
+  // renderingMode one of D2d.DWRITE_RENDERING_MODE_*
+  public static native long CreateCustomRenderingParams(
+      long _this,
+      float gamma, float enhancedContrast, float clearTypeLevel,
+      int pixelGeometry, int renderingMode,
+      int[] hr
+  );
 }

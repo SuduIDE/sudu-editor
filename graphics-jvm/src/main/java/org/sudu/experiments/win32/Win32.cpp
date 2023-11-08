@@ -1,9 +1,11 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <shellapi.h>
+#include <shellscalingapi.h>
 #include <shlobj_core.h>
 #include <shobjidl_core.h>
 #include <commdlg.h>
+
 #include <stdint.h>
 
 #include "org_sudu_experiments_win32_Win32.h"
@@ -325,7 +327,11 @@ jlong Java_org_sudu_experiments_win32_Win32_GetFocus(JNIEnv*, jclass) {
   return jlong(GetFocus());
 }
 
-#include <shellscalingapi.h>
+static_assert(sizeof(HMONITOR) <= sizeof(jlong), "Fatal: sizeof(HMONITOR) > sizeof(jlong)");
+
+jlong Java_org_sudu_experiments_win32_Win32_MonitorFromWindow(JNIEnv*, jclass, jlong hWnd, jint dwFlags) {
+  return jlong(MonitorFromWindow(HWND(hWnd), DWORD(dwFlags)));
+}
 
 jint Java_org_sudu_experiments_win32_Win32_SetProcessDpiAwareness(JNIEnv*, jclass, jint value) {
   return SetProcessDpiAwareness(PROCESS_DPI_AWARENESS(value));

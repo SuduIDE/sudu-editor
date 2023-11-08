@@ -24,4 +24,11 @@ public class ID2D1RenderTarget {
       long brush);
 
   public static native int EndDraw(long _this);
+
+  public static native void SetTextAntialiasMode(long _this, int mode);
+  public static native int  GetTextAntialiasMode(long _this);
+
+  // returns IDWriteRenderingParams
+  public static native long GetTextRenderingParams(long _this);
+  public static native void SetTextRenderingParams(long _this, long pDWriteRenderingParams);
 }

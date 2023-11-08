@@ -54,7 +54,7 @@ public class WebWindow implements org.sudu.experiments.Window {
     mainCanvas = JsHelper.createMainCanvas(null);
     canvasDiv.appendChild(mainCanvas);
 
-    GLApi.Context gl = JsHelper.createContext(mainCanvas);
+    GLApi.Context gl = JsHelper.createWebglContext(mainCanvas);
 
     if (gl != null) {
       init(gl, factory);

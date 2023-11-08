@@ -11,6 +11,8 @@ public abstract class WglGraphics {
   public final CanvasFactory canvasFactory;
   public final Canvas mCanvas;
   public final GLApi.Context gl;
+  public final boolean cleartypeSupported;
+
   final GL.TextureContext tc;
   final int maxTextureSize;
   final boolean isWGL2;
@@ -18,8 +20,9 @@ public abstract class WglGraphics {
   final Shaders.ConstColor shConstColor;
   final Shaders.SimpleTexture shSimpleTexture;
   final Shaders.Shader2d shShowUV;
-  final Shaders.TextureShowAlpha shTextureShowAlpha;
+  final Shaders.TextureAlpha shTextureAlpha;
   final Shaders.Text shText;
+  final Shaders.TextClearType shTextCT;
   final Shaders.GrayIcon shGrayIcon;
   final Shaders.LineFill shLineFill;
   final Shaders.Shader2d[] all2dShaders;
@@ -34,16 +37,20 @@ public abstract class WglGraphics {
   private final V4i scissor = new V4i();
 
   public interface CanvasFactory {
-    Canvas create(int w, int h);
+    Canvas create(int w, int h, boolean cleartype);
   }
 
-  public WglGraphics(GLApi.Context gl, CanvasFactory canvasFactory) {
+  public WglGraphics(
+      GLApi.Context gl,
+      CanvasFactory canvasFactory,
+      boolean cleartypeSupported
+  ) {
     this.canvasFactory = canvasFactory;
-
+    this.cleartypeSupported = cleartypeSupported;
     String version = gl.getParameterString(gl.VERSION);
     Debug.consoleInfo("[Graphics] " + version);
     this.gl = gl;
-    mCanvas = canvasFactory.create(4, 4);
+    mCanvas = canvasFactory.create(4, 4, true);
     rectangle = GL.createRectangle(gl);
     isWGL2 = version.startsWith("WebGL 2");
     tc = new GL.TextureContext(gl);
@@ -55,8 +62,9 @@ public abstract class WglGraphics {
         shConstColor = new Shaders.ConstColor(gl),
         shSimpleTexture = new Shaders.SimpleTexture(gl),
         shShowUV = new Shaders.ShowUV(gl),
-        shTextureShowAlpha = new Shaders.TextureShowAlpha(gl),
+        shTextureAlpha = new Shaders.TextureAlpha(gl),
         shText = new Shaders.Text(gl),
+        shTextCT = new Shaders.TextClearType(gl),
         shGrayIcon = new Shaders.GrayIcon(gl),
         shLineFill = new Shaders.LineFill(gl)
     };
@@ -83,7 +91,11 @@ public abstract class WglGraphics {
   public abstract FontDesk fontDesk(String family, float size, int weight, int style);
 
   public final Canvas createCanvas(int w, int h) {
-    return canvasFactory.create(w, h);
+    return canvasFactory.create(w, h, false);
+  }
+
+  public final Canvas createCanvas(int w, int h, boolean cleartype) {
+    return canvasFactory.create(w, h, cleartype);
   }
 
   public void setViewPortAndClientRect(int w, int h) {
@@ -200,22 +212,36 @@ public abstract class WglGraphics {
     drawRect();
   }
 
-  public void drawRectShowAlpha(int x, int y, V2i size, GL.Texture texture, float contrast) {
-    setShader(shTextureShowAlpha);
-    shTextureShowAlpha.setPosition(gl, x, y, size, clientRect);
-    shTextureShowAlpha.setTexture(gl, texture);
-    shTextureShowAlpha.setContrast(gl, contrast);
+  public void drawAlpha(int x, int y, V2i size, GL.Texture texture, float contrast) {
+    setShader(shTextureAlpha);
+    shTextureAlpha.setPosition(gl, x, y, size, clientRect);
+    shTextureAlpha.setTexture(gl, texture);
+    shTextureAlpha.setContrast(gl, contrast);
     drawRect();
   }
 
-  public void drawText(int x, int y, V2i size, V4f texRect,
-                       GL.Texture texture, V4f color, V4f bgColor, float contrast
+  public void drawText(
+      int x, int y, V2i size, V4f texRect,
+      GL.Texture texture, V4f color, V4f bgColor, float contrast
   ) {
     setShader(shText);
     shText.setPosition(gl, x, y, size, clientRect);
     shText.setTexture(gl, texture);
     shText.setTextureRect(gl, texture, texRect);
-    shText.set(gl, color, bgColor, contrast);
+    shText.setColor(gl, color, bgColor);
+    shText.setContrast(gl, contrast);
+    drawRect();
+  }
+
+  public void drawTextCT(
+      int x, int y, V2i size, V4f texRect,
+      GL.Texture texture, V4f color, V4f bgColor
+  ) {
+    setShader(shTextCT);
+    shTextCT.setPosition(gl, x, y, size, clientRect);
+    shTextCT.setTexture(gl, texture);
+    shTextCT.setTextureRect(gl, texture, texRect);
+    shTextCT.setColor(gl, color, bgColor);
     drawRect();
   }
 

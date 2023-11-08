@@ -20,6 +20,7 @@ public class Diff0 extends Scene1 implements
     MouseListener,
     EditorTheme,
     EditorUi.FontApi,
+    EditorUi.CleartypeControl,
     InputListeners.ScrollHandler,
     InputListeners.CopyHandler,
     InputListeners.PasteHandler {
@@ -225,6 +226,15 @@ public class Diff0 extends Scene1 implements
   }
 
   @Override
+  public void enableCleartype(boolean en) {
+    if (uiContext.enableCleartype(en)) {
+      ui.enableCleartype(en);
+      editor1.enableCleartype(en);
+      editor2.enableCleartype(en);
+    }
+  }
+
+  @Override
   public void onResize(V2i newSize, float newDpr) {
     super.onResize(newSize, newDpr);
     layout(newSize, newDpr);
@@ -269,10 +279,10 @@ public class Diff0 extends Scene1 implements
 
   boolean onContextMenu(MouseEvent event) {
     if (uiContext.isFocused(editor1)) {
-      ui.showContextMenu(event, editor1, this, this, this::menuFonts);
+      ui.showContextMenu(event, editor1, this, this, this, this::menuFonts);
     }
     if (uiContext.isFocused(editor2)) {
-      ui.showContextMenu(event, editor2, this, this, this::menuFonts);
+      ui.showContextMenu(event, editor2, this, this, this, this::menuFonts);
     }
     return true;
   }

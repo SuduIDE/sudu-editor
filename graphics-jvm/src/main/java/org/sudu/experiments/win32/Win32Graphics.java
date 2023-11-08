@@ -4,7 +4,6 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.GL;
 import org.sudu.experiments.LazyInit;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.function.Consumer;
 
@@ -13,7 +12,7 @@ public class Win32Graphics extends WglGraphics {
   final D2dFactory canvasFactory;
 
   public Win32Graphics(D2dFactory canvasFactory) {
-    super(new Win32AngleGL(), canvasFactory);
+    super(new Win32AngleGL(), canvasFactory, true);
     this.canvasFactory = canvasFactory;
   }
 
@@ -34,11 +33,4 @@ public class Win32Graphics extends WglGraphics {
   public Win32AngleGL getAngleGl() {
     return (Win32AngleGL) gl;
   }
-
-  XorShiftRandom random;
-
-  XorShiftRandom random() {
-    return random != null ? random : (random = new XorShiftRandom());
-  }
-
 }

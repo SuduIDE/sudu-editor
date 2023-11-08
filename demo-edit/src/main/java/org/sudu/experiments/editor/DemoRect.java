@@ -43,8 +43,8 @@ public class DemoRect {
     g.drawRect(pos.x, pos.y, size, texture);
   }
 
-  public void draw(WglGraphics g, GL.Texture texture, int dx, int dy) {
-    g.drawRect(pos.x + dx, pos.y + dy, size, texture);
+  public void draw(WglGraphics g, int x, int y, GL.Texture texture) {
+    g.drawRect(x, y, size, texture);
   }
 
   public void drawGrayIcon(WglGraphics g, GL.Texture texture, int dx, int dy, float contrast) {

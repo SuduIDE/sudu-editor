@@ -14,7 +14,7 @@ import org.sudu.experiments.math.V2i;
 
 import java.util.Objects;
 
-public class Editor0 extends Scene1 implements EditorTheme {
+public class Editor0 extends Scene1 implements EditorTheme, EditorUi.CleartypeControl {
 
   final EditorComponent editor;
   final EditorUi ui;
@@ -39,6 +39,14 @@ public class Editor0 extends Scene1 implements EditorTheme {
     api.input.onContextMenu.add(this::onContextMenu);
 
     toggleDark();
+  }
+
+  @Override
+  public void enableCleartype(boolean en) {
+    if (uiContext.enableCleartype(en)) {
+      ui.enableCleartype(en);
+      editor.enableCleartype(en);
+    }
   }
 
   public Document document() {
@@ -105,7 +113,8 @@ public class Editor0 extends Scene1 implements EditorTheme {
   boolean onContextMenu(MouseEvent event) {
     if (uiContext.isFocused(editor)) {
       ui.showContextMenu(event, editor,
-          Editor0.this, editor, Editor0.this::menuFonts);
+          Editor0.this, editor, this,
+          Editor0.this::menuFonts);
     }
     return true;
   }

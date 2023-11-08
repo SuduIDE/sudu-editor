@@ -240,7 +240,7 @@ public interface GL {
 
   class ImageData {
 
-    enum Format { GRAYSCALE, RGBA }
+    public enum Format { GRAYSCALE, RGBA }
 
     public final Format format;
     public final byte[] data;

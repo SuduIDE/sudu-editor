@@ -46,7 +46,7 @@ public class JsHelper {
       boolean alpha
   );
 
-  public static GLApi.Context createContext(HTMLCanvasElement canvas) {
+  public static GLApi.Context createWebglContext(HTMLCanvasElement canvas) {
     JSObject attributes = canvasContextAttributes(false, false, true, true);
     return canvas.getContext("webgl2", attributes).cast();
   }

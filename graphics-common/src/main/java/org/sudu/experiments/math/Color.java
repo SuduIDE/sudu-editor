@@ -127,6 +127,10 @@ public class Color extends V4f {
       return fromHSV(h, s, v, result).setW(alpha);
     }
 
+    static double fixHue(double h) {
+      return h > 1 ? h - (int)h : h < 0 ? (h + 1 - (int) h) : h;
+    }
+
     static String toHexString(int r, int g, int b) {
       char[] data = new char[7];
       data[0] = '#';

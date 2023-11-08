@@ -15,18 +15,25 @@ import org.teavm.jso.dom.html.HTMLDocument;
 
 public class JsCanvas extends Canvas {
   public HTMLCanvasElement element;
-  public Context2D c2d;
+  final Context2D c2d;
   private JSString jsFont;
 
-  public JsCanvas(int width, int height) {
+  public JsCanvas(int width, int height, boolean cleartype) {
+    super(cleartype);
     this.width = width;
     this.height = height;
     element = HTMLDocument.current().createElement("canvas").cast();
     element.setWidth(width);
     element.setHeight(height);
 
-    c2d = element.getContext("2d").cast();
+    c2d = (cleartype
+        ? element.getContext("2d", canvasAttributesNoAlpha())
+        : element.getContext("2d")).cast();
+    c2d.setFillStyle("#FFFFFF");
   }
+
+  @JSBody(script = "return {alpha: false};")
+  static native JSObject canvasAttributesNoAlpha();
 
   @Override
   public void clear() {

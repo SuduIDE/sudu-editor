@@ -13,6 +13,7 @@ public class UiContext {
   public final SetCursor windowCursor;
   public final V2i windowSize = new V2i();
   public float dpr;
+  public boolean cleartype;
 
   private Focusable focused;
 
@@ -25,6 +26,7 @@ public class UiContext {
   public UiContext(SceneApi api) {
     this.graphics = api.graphics;
     this.window = api.window;
+    this.cleartype = graphics.cleartypeSupported;
     windowCursor = SetCursor.wrap(api.window);
     api.input.onFocus.add(this::sendFocusGain);
     api.input.onBlur.add(this::sendFocusLost);
@@ -99,5 +101,12 @@ public class UiContext {
 
   public int toPx(float value) {
     return DprUtil.toPx(value, dpr);
+  }
+
+  // returns true if changed
+  public boolean enableCleartype(boolean en) {
+    boolean changed = cleartype != en;
+    cleartype = en;
+    return changed;
   }
 }

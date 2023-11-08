@@ -90,6 +90,13 @@ public class Win32 {
   public static native int  GetDpiForWindow(long hWnd);
   public static native long GetFocus();
 
+  // HMONITOR
+  public static final int MONITOR_DEFAULTTONULL    = 0x00000000;
+  public static final int MONITOR_DEFAULTTOPRIMARY = 0x00000001;
+  public static final int MONITOR_DEFAULTTONEAREST = 0x00000002;
+
+  public static native long MonitorFromWindow(long hWnd, int dwFlags);
+
   public static native long GetCommandLineA();
   public static native long GetCommandLineW();
 

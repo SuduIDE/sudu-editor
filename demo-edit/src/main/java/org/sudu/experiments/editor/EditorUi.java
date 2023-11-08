@@ -11,10 +11,7 @@ import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.common.Pos;
-import org.sudu.experiments.ui.PopupMenu;
-import org.sudu.experiments.ui.ToolbarItem;
-import org.sudu.experiments.ui.ToolbarItemBuilder;
-import org.sudu.experiments.ui.UiContext;
+import org.sudu.experiments.ui.*;
 import org.sudu.experiments.ui.window.ScrollView;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
@@ -31,6 +28,8 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
   final WindowManager windowManager = new WindowManager();
 
   Window usagesWindow;
+
+  // popup is not controlled by WindowManager
   PopupMenu popupMenu;
   EditorColorScheme theme;
 
@@ -43,6 +42,10 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
     this.theme = theme;
     if (usagesWindow != null) usagesWindow.setTheme(theme.dialogItem);
     popupMenu.setTheme(theme.dialogItem, theme.popupMenuFont);
+  }
+
+  public void enableCleartype(boolean en) {
+    // todo implement enable/disable in windows and dialogs
   }
 
   void dispose() {
@@ -170,13 +173,14 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
       EditorComponent editor,
       ThemeApi themeApi,
       FontApi fontApi,
+      CleartypeControl cleartypeControl,
       Supplier<String[]> fonts
   ) {
     if (!popupMenu.isVisible()) {
       popupMenu.display(event.position,
           new PopupMenuBuilder(
               editor,
-              fonts, fontApi,
+              fonts, fontApi, cleartypeControl,
               themeApi).build(event.position),
           setEditFocus(editor));
     }
@@ -185,6 +189,10 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
   @Override
   public boolean onScroll(MouseEvent event, float dX, float dY) {
     return windowManager.onScroll(event, dX, dY);
+  }
+
+  public interface CleartypeControl {
+    void enableCleartype(boolean en);
   }
 
   public interface FontApi {
@@ -213,17 +221,20 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
     final EditorComponent editor;
     final Supplier<String[]> fonts;
     final FontApi fontApi;
+    final CleartypeControl cleartypeControl;
     final ThemeApi themeApi;
 
     PopupMenuBuilder(
         EditorComponent editor,
         Supplier<String[]> fonts,
         FontApi fontApi,
+        CleartypeControl cleartypeControl,
         ThemeApi themeApi
     ) {
       this.editor = editor;
       this.fonts = fonts;
       this.fontApi = fontApi;
+      this.cleartypeControl = cleartypeControl;
       this.themeApi = themeApi;
     }
 
@@ -232,20 +243,29 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
       gotoItems(eventPosition, tbb);
       cutCopyPaste(tbb);
-      if (1 < 0) tbb.addItem("old >", theme.dialogItem.toolbarItemColors, oldDev());
-      tbb.addItem("Settings >", theme.dialogItem.toolbarItemColors, settingsItems());
-      tbb.addItem("Development >", theme.dialogItem.toolbarItemColors, devItems());
+      ToolbarItemColors colors = theme.dialogItem.toolbarItemColors;
+      if (1 < 0) tbb.addItem("old >", colors, oldDev());
+      tbb.addItem("Settings >", colors, settingsItems());
+      tbb.addItem("Development >", colors, devItems());
       return tbb.supplier();
     }
 
+    private Supplier<ToolbarItem[]> cleartypeItems() {
+      ToolbarItemColors colors = theme.dialogItem.toolbarItemColors;
+      return ArrayOp.supplier(
+          ti("Greyscale", colors, () -> cleartypeControl.enableCleartype(false)),
+          ti("Subpixel", colors, () -> cleartypeControl.enableCleartype(true)));
+    }
+
     private void cutCopyPaste(ToolbarItemBuilder tbb) {
+      ToolbarItemColors colors = theme.dialogItem.toolbarItemColors;
       if (!editor.readonly) {
-        tbb.addItem("Cut", theme.dialogItem.toolbarItemColors, this::cutAction);
+        tbb.addItem("Cut", colors, this::cutAction);
       }
-      tbb.addItem("Copy", theme.dialogItem.toolbarItemColors, this::copyAction);
+      tbb.addItem("Copy", colors, this::copyAction);
 
       if (!editor.readonly && window().isReadClipboardTextSupported()) {
-        tbb.addItem("Paste", theme.dialogItem.toolbarItemColors, this::pasteAction);
+        tbb.addItem("Paste", colors, this::pasteAction);
       }
     }
 
@@ -278,16 +298,21 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
     private Supplier<ToolbarItem[]> settingsItems() {
       ToolbarItemBuilder tbb = new ToolbarItemBuilder();
-      tbb.addItem("Theme >", theme.dialogItem.toolbarItemColors, themes(), fireOnHover);
-      tbb.addItem("Font size >", theme.dialogItem.toolbarItemColors, fontSize());
-      tbb.addItem("Fonts >", theme.dialogItem.toolbarItemColors, fontSelect(), fireOnHover);
+      ToolbarItemColors colors = theme.dialogItem.toolbarItemColors;
+      tbb.addItem("Theme >", colors, themes(), fireOnHover);
+      tbb.addItem("Font size >", colors, fontSize());
+      tbb.addItem("Fonts >", colors, fontSelect(), fireOnHover);
+      if (editor.context.graphics.cleartypeSupported) {
+        tbb.addItem("Text antialiasing >", colors, cleartypeItems());
+      }
       return tbb.supplier();
     }
 
     private Supplier<ToolbarItem[]> devItems() {
       ToolbarItemBuilder tbb = new ToolbarItemBuilder();
-      tbb.addItem("parser >", theme.dialogItem.toolbarItemColors, parser());
-      tbb.addItem("open ...", theme.dialogItem.toolbarItemColors, this::showOpenFilePicker);
+      ToolbarItemColors colors = theme.dialogItem.toolbarItemColors;
+      tbb.addItem("parser >", colors, parser());
+      tbb.addItem("open ...", colors, this::showOpenFilePicker);
       return tbb.supplier();
     }
 
@@ -304,68 +329,65 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
       var declarationProvider = reg.findDeclarationProvider(language, scheme);
 
+      ToolbarItemColors colors = theme.dialogItem.toolbarItemColors;
       if (declarationProvider != null) {
-        tbb.addItem(
-            "Go to Declaration",
-            theme.dialogItem.toolbarItemColors,
+        tbb.addItem("Go to Declaration", colors,
             () -> findUsagesDefDecl(eventPosition, DefDeclProvider.Type.DECL));
       }
 
       var definitionProvider = reg.findDefinitionProvider(language, scheme);
 
       if (definitionProvider != null) {
-        tbb.addItem(
-            "Go to Definition",
-            theme.dialogItem.toolbarItemColors,
+        tbb.addItem("Go to Definition", colors,
             () -> findUsagesDefDecl(eventPosition, DefDeclProvider.Type.DEF));
       }
 
       var refProvider = reg.findReferenceProvider(language, scheme);
 
       if (refProvider != null) {
-        tbb.addItem(
-            "Go to References",
-            theme.dialogItem.toolbarItemColors,
+        tbb.addItem("Go to References", colors,
             () -> findUsages(eventPosition));
       }
 
-      tbb.addItem(
-          "Go to (local)",
-          theme.dialogItem.toolbarItemColors,
+      tbb.addItem("Go to (local)", colors,
           () -> findUsagesDefDecl(eventPosition, null));
     }
 
     private Supplier<ToolbarItem[]> parser() {
+      ToolbarItemColors colors = theme.dialogItem.toolbarItemColors;
       return ArrayOp.supplier(
-          ti("Int", theme.dialogItem.toolbarItemColors, editor::debugPrintDocumentIntervals),
-          ti("Iter", theme.dialogItem.toolbarItemColors, editor::iterativeParsing),
-          ti("VP", theme.dialogItem.toolbarItemColors, editor::parseViewport),
-          ti("Resolve", theme.dialogItem.toolbarItemColors, editor::resolveAll),
-          ti("Rep", theme.dialogItem.toolbarItemColors, editor::parseFullFile));
+          ti("Int", colors, editor::debugPrintDocumentIntervals),
+          ti("Iter", colors, editor::iterativeParsing),
+          ti("VP", colors, editor::parseViewport),
+          ti("Resolve", colors, editor::resolveAll),
+          ti("Rep", colors, editor::parseFullFile));
     }
 
     private Supplier<ToolbarItem[]> oldDev() {
+      ToolbarItemColors colors = theme.dialogItem.toolbarItemColors;
       return ArrayOp.supplier(
-          ti("↓ move", theme.dialogItem.toolbarItemColors, editor::moveDown),
-          ti("■ stop", theme.dialogItem.toolbarItemColors, editor::stopMove),
-          ti("↑ move", theme.dialogItem.toolbarItemColors, editor::moveUp),
-          ti("toggleContrast", theme.dialogItem.toolbarItemColors, editor::toggleContrast),
-          ti("toggleXOffset", theme.dialogItem.toolbarItemColors, editor::toggleXOffset),
-          ti("toggleTails", theme.dialogItem.toolbarItemColors, editor::toggleTails));
+          ti("↓ move", colors, editor::moveDown),
+          ti("■ stop", colors, editor::stopMove),
+          ti("↑ move", colors, editor::moveUp),
+          ti("toggleContrast", colors, editor::toggleContrast),
+          ti("toggleXOffset", colors, editor::toggleXOffset),
+          ti("toggleTails", colors, editor::toggleTails));
     }
 
     private Supplier<ToolbarItem[]> themes() {
+      ToolbarItemColors colors = theme.dialogItem.toolbarItemColors;
       return ArrayOp.supplier(
-          ti("Darcula", theme.dialogItem.toolbarItemColors, themeApi::toggleDarcula),
-          ti("Dark", theme.dialogItem.toolbarItemColors, themeApi::toggleDark),
-          ti("Light", theme.dialogItem.toolbarItemColors, themeApi::toggleLight)
+          ti("Darcula", colors, themeApi::toggleDarcula),
+          ti("Dark", colors, themeApi::toggleDark),
+          ti("Light", colors, themeApi::toggleLight)
       );
     }
 
     private Supplier<ToolbarItem[]> fontSize() {
+      ToolbarItemColors colors = theme.dialogItem.toolbarItemColors;
       return ArrayOp.supplier(
-          ti("↑ increase", theme.dialogItem.toolbarItemColors, fontApi::increaseFont),
-          ti("↓ decrease", theme.dialogItem.toolbarItemColors, fontApi::decreaseFont));
+          ti("↑ increase", colors, fontApi::increaseFont),
+          ti("↓ decrease", colors, fontApi::decreaseFont));
     }
 
     private Supplier<ToolbarItem[]> fontSelect() {

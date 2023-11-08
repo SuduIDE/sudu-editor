@@ -12,6 +12,7 @@ public class TestCanvas extends Canvas {
   int clearCalls = 0;
 
   public TestCanvas(Canvas testingCanvas) {
+    super(testingCanvas.cleartype);
     this.testingCanvas = testingCanvas;
   }
 

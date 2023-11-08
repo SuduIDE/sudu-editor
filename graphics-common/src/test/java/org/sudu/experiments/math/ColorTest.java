@@ -3,6 +3,8 @@ package org.sudu.experiments.math;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import static org.sudu.experiments.math.Color.Cvt.fixHue;
+
 class ColorTest {
 
   static String[] invalidColors() {
@@ -42,7 +44,7 @@ class ColorTest {
       String webString = Color.Cvt.toHexString(r, g, b);
       V4f fromRGB = Color.Cvt.fromRGB(r, g, b);
       Color fromString = new Color(webString);
-      Assertions.assertEquals(fromRGB, fromString);
+      Assertions.assertTrue(fromRGB.equals(fromString));
     }
   }
 
@@ -55,6 +57,22 @@ class ColorTest {
 
     c1.x += 1. / 1024;
     Assertions.assertNotEquals(c1, c2);
+  }
+
+  @Test
+  void testFixHue() {
+    Assertions.assertEquals(fixHue(0), 0);
+    Assertions.assertEquals(fixHue(1), 1);
+    XorShiftRandom rrr = new XorShiftRandom(777,888);
+
+    for (int i = 0; i < 1000; i++) {
+      double hNormal = rrr.nextDouble();
+      int hShift = rrr.nextInt(1024);
+      Assertions.assertEquals(fixHue(hNormal), hNormal);
+      Assertions.assertEquals(fixHue(hNormal + hShift), hNormal, 1. / 0x10000);
+      Assertions.assertEquals(fixHue(hNormal - hShift), hNormal, 1. / 0x10000);
+      Assertions.assertEquals(fixHue(-hNormal), 1 - hNormal, 1. / 0x100000);
+    }
   }
 }
 

@@ -15,21 +15,19 @@ import java.util.function.Consumer;
 public class DemoScene1 extends Scene {
   final Color editorBgColor = EditorColorScheme.darculaIdeaColorScheme().editor.bg;
   final V4f bgColor = new V4f(editorBgColor);
-  final TextRect demoRect = new TextRect(0, 0, 300, 300);
+  final V2i clientSize = new V2i();
+  final TextRect text1Rect = new TextRect();
+  final TextRect text2Rect = new TextRect();
   final DemoRect mouse = new DemoRect(0, 0, 3, 3);
-  final TextRect canvasRect1 = new TextRect(0, 0, 300, 300);
+  final TextRect textRect3 = new TextRect(0, 0, 300, 300);
   final Caret caret = new Caret();
   final String[] cursorNames = cursors();
   final DemoRect[] cursors = new DemoRect[cursorNames.length];
 
-  GL.Texture demoRectTexture;
-  GL.Texture canvas1Texture;
-  GL.Texture canvas2Texture;
+  GL.Texture textTextureCT, textTextureBW;
+  GL.Texture canvasTextureBW, canvasTextureCT;
   GL.Texture iconTexture;
 
-  Canvas textCanvas;
-
-  V2i drag;
 
   public DemoScene1(SceneApi api) {
     super(api);
@@ -42,32 +40,23 @@ public class DemoScene1 extends Scene {
     api.input.onContextMenu.add(this::onContextMenu);
     api.input.onScroll.add(this::onScroll);
 
-    demoRectTexture = svgTexture();
-    demoRect.setTextureRegionDefault(demoRectTexture);
-    demoRect.setSizeToTextureRegion();
-    demoRect.bgColor.set(editorBgColor);
-    demoRect.color.set(new Color(204, 120, 50));
+    textTextureCT = centerTextTexture(true);
+    textTextureBW = centerTextTexture(false);
+    applyToRect(text1Rect, textTextureCT);
+    applyToRect(text2Rect, textTextureBW);
 
-    String s = " HuaweЙ KeyModifiers 收件人 |";
 
-    textCanvas = g.createCanvas(255, 100);
-    textCanvas.setFont(Fonts.SegoeUI, 11);
-    System.out.println("textCanvas.getFont() = " + textCanvas.getFont());
+    canvasTextureBW = createTextTexture2(false);
+    canvasTextureCT = createTextTexture2(true);
 
-    textCanvas.measureText(s);
-    textCanvas.setFillColor(169, 183, 198);
-    drawSomeText(s, textCanvas);
+    textRect3.setTextureRegionDefault(canvasTextureBW);
+    textRect3.setSizeToTextureRegion();
 
-    canvas1Texture = g.createTexture();
-    canvas1Texture.setContent(textCanvas);
+    textRect3.setColor(new Color(169, 183, 198));
+    textRect3.setBgColor(editorBgColor);
 
-    canvasRect1.setTextureRegionDefault(canvas1Texture);
-    canvasRect1.setSizeToTextureRegion();
-
-    canvasRect1.setColor(new Color(255));
-    canvasRect1.setBgColor(editorBgColor);
-
-    canvas2Texture = g.createTexture();
+    text1Rect.color.set(1,1,1,1);
+    text1Rect.setBgColor(textRect3.bgColor);
 
     if (1 < 0) g.loadImage("img/icon16.png", t -> {
       System.out.println("t = " + t.width() + "x" + t.height());
@@ -76,6 +65,13 @@ public class DemoScene1 extends Scene {
     });
 
     mouse.bgColor.set(bgColor);
+  }
+
+  private void applyToRect(TextRect rect, GL.Texture texture) {
+    rect.setTextureRegionDefault(texture);
+    rect.setSizeToTextureRegion();
+//    rect.bgColor.set(editorBgColor);
+//    rect.color.set(new Color(204, 120, 50));
   }
 
   void layout(V2i clientRect, float dpr) {
@@ -90,18 +86,19 @@ public class DemoScene1 extends Scene {
     }
 
     mouse.pos.set(clientRect.x / 2 - 1, clientRect.y / 2 - 1);
-    demoRect.pos.set(
-        (clientRect.x - demoRect.size.x) / 2,
-        (clientRect.y - demoRect.size.y) / 2);
-    canvasRect1.pos.y = clientRect.y - canvasRect1.size.y;
+
+    text1Rect.pos.set(clientRect.x / 2 - text1Rect.size.x - 10, 50);
+    text2Rect.pos.set(clientRect.x / 2 + 10, 50);
+    clientSize.set(clientRect);
+//    canvasRect1.pos.y = clientRect.y - canvasRect1.size.y;
   }
 
   public void dispose() {
-    demoRectTexture = Disposable.assign(demoRectTexture, null);
-    canvas1Texture = Disposable.assign(canvas1Texture, null);
-    canvas2Texture = Disposable.assign(canvas2Texture, null);
+    textTextureCT = Disposable.assign(textTextureCT, null);
+    textTextureBW = Disposable.assign(textTextureBW, null);
+    canvasTextureBW = Disposable.assign(canvasTextureBW, null);
+    canvasTextureCT = Disposable.assign(canvasTextureCT, null);
     iconTexture = Disposable.assign(iconTexture, null);
-    textCanvas = Disposable.assign(textCanvas, null);
   }
 
   private void drawSomeText(String s, Canvas canvas) {
@@ -115,15 +112,37 @@ public class DemoScene1 extends Scene {
     Color.Cvt.fromHSV(Math.random(), .5 + Math.random() * .5, .5 + Math.random() * .5, 1, rect.color);
   }
 
-  private GL.Texture svgTexture() {
-    Canvas h = api.graphics.createCanvas(300, 300);
-    h.drawSvgSample();
+  private GL.Texture centerTextTexture(boolean cleartype) {
+    Canvas h = api.graphics.createCanvas(200, 100, cleartype);
+    // h.drawSvgSample();
     h.setFont(Fonts.CourierNew, 11);
-    h.setFillColor(187, 187, 187);
-    drawSomeText("jsCanvas.setFont(11, CourierNew);", h);
+    String text1 = "jsCanvas.setFont(11, CourierNew);";
+//    h.setFillColor(255, 255, 255);
+    h.drawText(text1, 0, 20);
+    h.setFillColor(255, 0, 0);
+    h.drawText(text1, .25f, 40);
+    h.setFillColor(0, 255, 0);
+    h.drawText(text1, .5f, 60);
+    h.setFillColor(0, 0, 255);
+    h.drawText(text1, .75f, 80);
     GL.Texture texture = api.graphics.createTexture();
     texture.setContent(h);
     h.dispose();
+    return texture;
+  }
+
+  private GL.Texture createTextTexture2(boolean cleartype) {
+    String s = " HuaweЙ KeyModifiers 收件人 |";
+    Canvas canvas = api.graphics.createCanvas(255, 100, cleartype);
+    canvas.setFont(Fonts.SegoeUI, 10);
+    System.out.println("canvas.getFont() = " + canvas.getFont());
+
+    canvas.measureText(s);
+    drawSomeText(s, canvas);
+
+    GL.Texture texture = api.graphics.createTexture();
+    texture.setContent(canvas);
+    canvas.dispose();
     return texture;
   }
 
@@ -148,14 +167,30 @@ public class DemoScene1 extends Scene {
       cursor.draw(g, 0, 0);
     }
 
-    demoRect.drawText(g, demoRectTexture, 0, 0, 0.5f);
+    textRect3.pos.y = clientSize.y - textRect3.size.y - 5;
+    textRect3.pos.x = 0;
 
-    GL.Texture texture = canvas1Texture;
+    g.enableBlend(false);
+    // drawText grayscale
     for (int i = 0, N = 7; i < N; i++) {
-      canvasRect1.drawText(g, texture,
-          i * (10 + 10 * canvasRect1.size.x / 15) + 5, -5,
+      textRect3.drawText(g, canvasTextureBW,
+          i * (10 + 10 * textRect3.size.x / 15) + 5, 0,
           1.f * i / N);
     }
+
+    textRect3.pos.y = clientSize.y - textRect3.size.y * 2 - 10;
+
+    // drawText clear type
+    for (int i = 0, N = 7; i < N; i++) {
+      GL.Texture texture = canvasTextureCT;
+      textRect3.pos.x = i * (10 + 10 * textRect3.size.x / 15) + 5;
+      textRect3.drawTextCT(g, texture);
+    }
+
+    text1Rect.drawTextCT(g, textTextureCT);
+    g.enableBlend(true);
+    text2Rect.draw(g, textTextureBW);
+    g.enableBlend(false);
 
     if (iconTexture != null) {
       mouse.drawGrayIcon(g, iconTexture, 0, 0, 0);
@@ -186,22 +221,16 @@ public class DemoScene1 extends Scene {
 
   boolean onScroll(MouseEvent event, float dX, float dY) {
     int change = (int) -dY / 10;
-    demoRect.size.x += change;
-    demoRect.size.y += change;
-    demoRect.pos.x -= change / 2;
-    demoRect.pos.y -= change / 2;
+    text1Rect.size.x += change;
+    text1Rect.size.y += change;
+    text1Rect.pos.x -= change / 2;
+    text1Rect.pos.y -= change / 2;
     return true;
   }
 
   class MyInputListener implements MouseListener {
     @Override
     public boolean onMouseMove(MouseEvent event) {
-      if (drag != null) {
-        V2i rcPos = demoRect.pos;
-        rcPos.x += event.position.x - drag.x;
-        rcPos.y += event.position.y - drag.y;
-        drag = event.position;
-      }
 
       int nextX = event.position.x - mouse.size.x; // 2;
       int nextY = event.position.y - mouse.size.y; // 2;
@@ -216,7 +245,7 @@ public class DemoScene1 extends Scene {
     @Override
     public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
       if (button == MouseListener.MOUSE_BUTTON_LEFT && clickCount == 2) {
-        setRandomColor(demoRect);
+        setRandomColor(text1Rect);
       }
 
       return true;
@@ -227,11 +256,18 @@ public class DemoScene1 extends Scene {
       System.out.println("mouseDown b=" + button);
       if (button == MouseListener.MOUSE_BUTTON_LEFT) {
         V2i p = event.position;
-        drag = demoRect.isInside(p) ? p : null;
+        V2i drag = text1Rect.isInside(p) ? p : null;
         caret.setPosition(p.x, p.y);
         caret.startDelay(api.window.timeNow());
+
+        return drag != null ? e -> {
+          V2i rcPos = text1Rect.pos;
+          rcPos.x += e.position.x - drag.x;
+          rcPos.y += e.position.y - drag.y;
+          drag.set(e.position);
+        } : Static.emptyConsumer;
       }
-      return Static.emptyConsumer;
+      return null;
     }
 
     @Override

@@ -15,9 +15,13 @@ public class WebGraphics extends WglGraphics {
   protected Runnable repaint;
 
   public WebGraphics(GLApi.Context gl, Runnable repaint) {
-    super(gl, JsCanvas::new);
+    super(gl, JsCanvas::new, isDesktop());
     this.repaint = repaint;
-//    setClientRect(clientRect);
+  }
+
+  // todo: implement
+  public static boolean isDesktop() {
+    return true;
   }
 
   public FontDesk fontDesk(String family, float size, int weight, int style) {

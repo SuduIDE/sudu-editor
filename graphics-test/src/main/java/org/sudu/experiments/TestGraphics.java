@@ -8,14 +8,14 @@ import java.util.function.Consumer;
 
 public class TestGraphics extends WglGraphics {
 
-  private WglGraphics testGraphics;
+  private final WglGraphics testGraphics;
 
   int totalDrawCalls = 0;
   int stepDrawCalls = 0;
   int createTextureCalls = 0;
 
   public TestGraphics(WglGraphics g) {
-    super(g.gl, g.canvasFactory);
+    super(g.gl, g.canvasFactory, g.cleartypeSupported);
     this.testGraphics = g;
   }
 

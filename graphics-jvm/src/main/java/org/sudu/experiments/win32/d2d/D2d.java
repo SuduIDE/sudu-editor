@@ -20,6 +20,27 @@ public interface D2d {
   int D2D1_ALPHA_MODE_STRAIGHT        = 2;
   int D2D1_ALPHA_MODE_IGNORE          = 3;
 
+  // D2D1_TEXT_ANTIALIAS_MODE
+  int D2D1_TEXT_ANTIALIAS_MODE_DEFAULT   = 0;
+  int D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE = 1;
+  int D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE = 2;
+  int D2D1_TEXT_ANTIALIAS_MODE_ALIASED   = 3;
+
+  // https://learn.microsoft.com/en-us/windows/win32/api/dwrite/ne-dwrite-dwrite_pixel_geometry
+  int DWRITE_PIXEL_GEOMETRY_FLAT = 0;
+  int DWRITE_PIXEL_GEOMETRY_RGB  = 1;
+  int DWRITE_PIXEL_GEOMETRY_BGR  = 2;
+
+  // https://learn.microsoft.com/en-us/windows/win32/api/dwrite/ne-dwrite-dwrite_rendering_mode
+  int DWRITE_RENDERING_MODE_DEFAULT           = 0;
+  int DWRITE_RENDERING_MODE_ALIASED           = 1;
+  int DWRITE_RENDERING_MODE_GDI_CLASSIC       = 2;
+  int DWRITE_RENDERING_MODE_GDI_NATURAL       = 3;
+  int DWRITE_RENDERING_MODE_NATURAL           = 4;
+  int DWRITE_RENDERING_MODE_NATURAL_SYMMETRIC = 5;
+
+
+  // https://learn.microsoft.com/en-us/windows/win32/api/dwrite/ne-dwrite-dwrite_font_weight
   int DWRITE_FONT_WEIGHT_THIN         = 100;
   int DWRITE_FONT_WEIGHT_EXTRA_LIGHT  = 200;
   int DWRITE_FONT_WEIGHT_LIGHT        = 300;
@@ -45,8 +66,6 @@ public interface D2d {
   int DWRITE_FONT_STRETCH_EXPANDED         = 7;
   int DWRITE_FONT_STRETCH_EXTRA_EXPANDED   = 8;
   int DWRITE_FONT_STRETCH_ULTRA_EXPANDED   = 9;
-
-  // IDWriteInMemoryFontFileLoader
 
   static String errorToString(int errorCode) {
     return switch (errorCode) {

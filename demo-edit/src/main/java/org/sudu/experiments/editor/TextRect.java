@@ -2,7 +2,6 @@ package org.sudu.experiments.editor;
 
 import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V4f;
 
 public class TextRect extends DemoRect {
@@ -32,17 +31,28 @@ public class TextRect extends DemoRect {
     g.drawText(pos.x + dx, pos.y + dy, size, textureRegion, texture, color, bgColor, contrast);
   }
 
+  public void drawTextCT(WglGraphics g, GL.Texture texture) {
+    g.drawTextCT(pos.x, pos.y, size, textureRegion, texture, color, bgColor);
+  }
+
+  public void drawTextCT(WglGraphics g, int x, int y, GL.Texture texture, boolean inverse) {
+    g.drawTextCT(x, y, size, textureRegion, texture,
+        inverse ? bgColor : color,
+        inverse ? color : bgColor);
+  }
+
   public void drawRectShowAlpha(WglGraphics g, GL.Texture texture, int dx, int dy, float contrast) {
-    g.drawRectShowAlpha(pos.x + dx, pos.y + dy, size, texture, contrast);
+    g.drawAlpha(pos.x + dx, pos.y + dy, size, texture, contrast);
   }
 
-  void setColor(Color c) {
+  public void drawText(WglGraphics g, int x, int y, GL.Texture texture, boolean inverse) {
+    g.drawText(x, y, size, textureRegion, texture,
+        inverse ? bgColor : color,
+        inverse ? color : bgColor, 1);
+  }
+
+  void setColor(V4f c) {
     color.set(c);
-  }
-
-  void setColors(Color cf, Color cb) {
-    color.set(cf);
-    bgColor.set(cb);
   }
 
   public void setColors(V4f cf, V4f cb) {
@@ -50,7 +60,7 @@ public class TextRect extends DemoRect {
     bgColor.set(cb);
   }
 
-  void setBgColor(Color c) {
+  void setBgColor(V4f c) {
     bgColor.set(c);
   }
 }

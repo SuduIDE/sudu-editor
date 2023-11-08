@@ -33,7 +33,14 @@ public class BmpWriter {
     pos = imageFileOffset;
     int bytesPerLine = GL.ImageData.bytesPerLine(image.width, image.format);
     for (int y = image.height - 1; y >= 0; pos += bytesPerLine, y--) {
-      System.arraycopy(data, y * bytesPerLine, bmp, pos, bytesPerLine);
+      int srcPos = y * bytesPerLine;
+      for (int x = 0; x < image.width; x++) {
+        int x4 = x * 4;
+        bmp[pos + x4]     = data[srcPos + x4 + 2];
+        bmp[pos + x4 + 1] = data[srcPos + x4 + 1];
+        bmp[pos + x4 + 2] = data[srcPos + x4];
+        bmp[pos + x4 + 3] = data[srcPos + x4 + 3];
+      }
     }
 
     return bmp;

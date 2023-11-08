@@ -248,7 +248,7 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
         size, Locale.noLocale, hr);
     if (textFormat == 0 || hr[0] < 0) {
       System.err.println("D2dCanvasFactory::createTextFormat failed" +
-          ", error = " + D2d.errorToString(hr[0]) + ", familyName = " + familyName);
+          ", error = " + errorString() + ", familyName = " + familyName);
     }
     return textFormat;
   }
@@ -262,13 +262,25 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
         : ID2D1Factory.CreateWicBitmapRenderTargetPre(pD2D1Factory, pWicBitmap, hr);
   }
 
-  @Override
   public D2dCanvas create(int w, int h) {
+    return create(w, h, false);
+  }
+
+  @Override
+  public D2dCanvas create(int w, int h, boolean cleartype) {
     long pWicBitmap = createBitmap(w, h);
     long pD2D1RenderTarget = createRenderTarget(pWicBitmap);
     if (pWicBitmap == 0 || pD2D1RenderTarget == 0) throw new RuntimeException(
-        "D2dCanvasFactory::createCanvas failed w=" + w + ", h=" + h + ", hr =" + D2d.errorToString(hr[0]));
-    return new D2dCanvas(this, w, h, pWicBitmap, pD2D1RenderTarget);
+        "D2dCanvasFactory::createCanvas failed w=" + w + ", h=" + h + ", hr =" + errorString());
+    return new D2dCanvas(this, w, h, pWicBitmap, pD2D1RenderTarget, cleartype);
+  }
+
+  public long createDefaultRenderingParams() {
+    return IDWriteFactory5.CreateRenderingParams(pDWriteFactory5, hr);
+  }
+
+  public long createMonitorRenderingParams(long hMonitor) {
+    return IDWriteFactory5.CreateMonitorRenderingParams(pDWriteFactory5, hMonitor, hr);
   }
 
   record Key(String family, float size, int weight, int style) {}

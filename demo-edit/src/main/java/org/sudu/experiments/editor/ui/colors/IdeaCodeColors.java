@@ -2,6 +2,8 @@ package org.sudu.experiments.editor.ui.colors;
 
 import org.sudu.experiments.math.Color;
 
+// todo: add import from XML
+
 public interface IdeaCodeColors {
 
   static CodeElementColor[] codeElementColorsDarcula() {
@@ -55,8 +57,8 @@ public interface IdeaCodeColors {
 
   enum ElementsLight {
     defaultText(Light.defaultText),
-    keyword(new Color(0x00, 0x31, 0xbf)),
-    field(new Color("#C44193")),
+    keyword(new Color("#0033b3")),
+    field(new Color("#871094" )),
     string(new Color("#3C7C16")),
     comma(Light.defaultText),
     error(new Color("#F93900")),
@@ -140,10 +142,10 @@ public interface IdeaCodeColors {
 
   interface Light {
     Color cursor = new Color(0);
-    Color defaultText = new Color(0x00, 0x00, 0x00);
+    Color defaultText = new Color(0x08, 0x08, 0x08);
     Color editNumbersVLine = new Color("#EBECF0");
     Color editBg = new Color(0xff, 0xff, 0xff);
-    Color editSelectedBg = new Color(0xa6, 0xd6, 0xff);
+    Color editSelectedBg = new Color("#A6D2FF");
     Color editFooterFill = new Color("#F8F9FB");
     Color usageBgColor = new Color("#edebfc");
     Color definitionBgColor = new Color("#FCE8F4");
