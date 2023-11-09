@@ -213,7 +213,7 @@ public class ActivityWalker extends ActivityParserBaseListener {
   @Override
   public void exitStat(ActivityParser.StatContext ctx) {
     super.exitStat(ctx);
-    if (ctx.ID() == null) {//when not terminal
+    if (ctx.ID() == null) { //when not terminal
       statStack.removeLast();
       containerOfStatStack.removeLast();
     }
@@ -231,9 +231,22 @@ public class ActivityWalker extends ActivityParserBaseListener {
 
       if (type == ActivityLexer.DEFAULT) {
         var select = (Select)statStack.getLast();
-        var e = new NotExpr();
-        select.conditions.
-        select.conditions.set(select.conditions.size() - 1, new NotExpr());
+
+        var or = new BinaryExpr(ExprKind.Or);
+        var defaultExpr = new NotExpr("default");
+        defaultExpr.innerExpr = or;
+        for (var cond: select.conditions) {
+          if (cond != null)
+            or.list().add(cond);
+        }
+
+        //default is possible only when previous branches are with conditions
+        if (or.list().size() > 0 && or.list().size() == select.conditions.size()) {
+          select.conditions.add(defaultExpr);
+        } else {
+          select.conditions.add(null);
+          tokenTypes[index] = ParserConstants.TokenTypes.ERROR;
+        }
       }
 
     } else if (type == ActivityLexer.INT) {

@@ -8,7 +8,7 @@ activity
 
 blocksemi: LCURLY stat (SEMI stat)* SEMI* RCURLY ;
 block: LCURLY stat ((','|';') stat)* RCURLY ;
-condblock: LCURLY exprstat ((','|';') exprstat)* RCURLY ;
+condblock: LCURLY exprstat ((','|';') exprstat)*  ((','|';') '(' 'default' ')' stat )? RCURLY ;
 
 exprstat: ('(' expr ')')? stat;
 

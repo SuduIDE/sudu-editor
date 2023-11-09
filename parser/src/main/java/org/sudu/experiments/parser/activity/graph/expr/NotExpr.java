@@ -5,13 +5,18 @@ import org.sudu.experiments.parser.activity.graph.Path;
 
 public class NotExpr implements IExpr {
     public IExpr innerExpr;
+    private String qualifier;
 
-    public NotExpr() {
+    public NotExpr() {}
+    public NotExpr(String qualifier) {
+        this.qualifier = qualifier;
     }
 
     @Override
     public String toString() {
-        if (innerExpr instanceof BinaryExpr) {
+        if (qualifier != null)
+            return qualifier;
+        else if (innerExpr instanceof BinaryExpr) {
             return "!("+innerExpr+")";
         } else
             return "!"+innerExpr;

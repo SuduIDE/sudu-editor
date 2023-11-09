@@ -22,6 +22,8 @@ REPEAT : 'repeat';
 SCHEDULE : 'schedule';
 SEQUENCE : 'sequence';
 RANDOM : 'random';
+DEFAULT : 'default';
+
 IF : 'if' ;
 ELSE : 'else';
 
