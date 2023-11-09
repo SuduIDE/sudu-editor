@@ -20,7 +20,7 @@ public class Dag2Part {
             return null;
 
         var res = new Dag2Part(node);
-        res.output.add(new EdgeFrom(node));
+        res.output.add(new EdgeFrom(node, null));
         return res;
     }
 }

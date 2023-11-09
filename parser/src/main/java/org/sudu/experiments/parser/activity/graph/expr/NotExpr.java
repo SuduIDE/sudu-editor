@@ -5,11 +5,14 @@ import org.sudu.experiments.parser.activity.graph.Path;
 
 public class NotExpr implements IExpr {
     public IExpr innerExpr;
-    private String qualifier;
+    private final String qualifier;
 
-    public NotExpr() {}
     public NotExpr(String qualifier) {
         this.qualifier = qualifier;
+    }
+    public NotExpr(String qualifier, IExpr expr) {
+        this.qualifier = qualifier;
+        this.innerExpr = expr;
     }
 
     @Override

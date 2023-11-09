@@ -67,7 +67,7 @@ public abstract class Node {
                     newEdges.addAll(n.edges);
                     modified = true;
                 } else if (n instanceof EmptyNode && n.edges.size() == 1 && n.edges.get(0).expr == null) {
-                    newEdges.add(new EdgeTo(n.edges.get(0).to, e.expr, e.elseBranch));
+                    newEdges.add(new EdgeTo(n.edges.get(0).to, e.expr));
                     modified = true;
                 } else {
                     newEdges.add(e);
@@ -101,7 +101,7 @@ public abstract class Node {
 
             n.innerRecDag2(ctx);
 
-            String label = e.expr == null ? "" : e.elseBranch ? "else" : ""+e.getLabel()+"";
+            String label = e.getLabel();
             if (!label.isEmpty()) label = "|\""+label+"\"|";
 
             int edgeN = ctx.edgeNumber++;
@@ -175,7 +175,7 @@ public abstract class Node {
         }
 
         for (var e: edges) {
-            if (e.expr == null || e.expr.check(ctx.ids, 0, idsCount) ^ e.elseBranch)
+            if (e.expr == null || e.expr.check(ctx.ids, 0, idsCount))
                 e.to.recPaths(paths, ctx, fullCount, idsCount, branchCount, this);
         }
 

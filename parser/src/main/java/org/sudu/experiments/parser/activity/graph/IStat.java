@@ -71,7 +71,7 @@ public interface IStat {
     }
 
     default List<EdgeFrom> getOutputDag1() {
-        return Collections.singletonList(new EdgeFrom((Node) this));
+        return Collections.singletonList(new EdgeFrom((Node) this, null));
     }
 
     String name();
@@ -98,7 +98,7 @@ public interface IStat {
 //            }
 
             for (var second: secondList) {
-                first.getFrom().edges.add(new EdgeTo(second, first.expr, first.isElseEdge));
+                first.getFrom().edges.add(new EdgeTo(second, first.expr));
             }
         }
 

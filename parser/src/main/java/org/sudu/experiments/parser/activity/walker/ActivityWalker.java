@@ -100,7 +100,7 @@ public class ActivityWalker extends ActivityParserBaseListener {
       expr = new BinaryExpr(ExprKind.Or);
 
     } else if (ctx.NOT() != null) {
-      expr = new NotExpr();
+      expr = new NotExpr(null);
 
     } else if (ctx.exprcomma() != null) {
       CommaExpr comma = new CommaExpr();
@@ -233,8 +233,7 @@ public class ActivityWalker extends ActivityParserBaseListener {
         var select = (Select)statStack.getLast();
 
         var or = new BinaryExpr(ExprKind.Or);
-        var defaultExpr = new NotExpr("default");
-        defaultExpr.innerExpr = or;
+        var defaultExpr = new NotExpr("default", or);
         for (var cond: select.conditions) {
           if (cond != null)
             or.list().add(cond);

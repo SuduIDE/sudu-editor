@@ -18,11 +18,8 @@ public class Select extends ComplexStat {
         for (var i=0; i<block.size(); i++) {
             var b = block.get(i);
             var c = conditions.get(i);
-            if (c == null) {
-                start.output.set(0, new EdgeFrom(start.input));
-            } else {
-                start.output.set(0, EdgeFrom.If(start.input, c));
-            }
+
+            start.output.set(0, new EdgeFrom(start.input, c));
 
             var part = b.toDag2Part();
             IStat.joinDag2(start, part);

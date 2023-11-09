@@ -6,6 +6,7 @@ import org.sudu.experiments.parser.activity.graph.EdgeFrom;
 import org.sudu.experiments.parser.activity.graph.EdgeTo;
 import org.sudu.experiments.parser.activity.graph.IExpr;
 import org.sudu.experiments.parser.activity.graph.IStat;
+import org.sudu.experiments.parser.activity.graph.expr.NotExpr;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,15 +66,15 @@ public class If extends BaseStat {
 
 
         var ifBranch = IStat.joinDag2(null, clone.ifBlock);
-        clone.edges.add(new EdgeTo(ifBranch.input, cond, false));
+        clone.edges.add(new EdgeTo(ifBranch.input, cond));
         output.addAll(ifBranch.output);
 
 
         if (elseBlock.isEmpty()) {
-            output.add(EdgeFrom.Else(clone, cond));
+            output.add(new EdgeFrom(clone, new NotExpr("else", cond)));
         } else {
             var elseBranch = IStat.joinDag2(null, clone.elseBlock);
-            clone.edges.add(new EdgeTo(elseBranch.input, cond, true));
+            clone.edges.add(new EdgeTo(elseBranch.input, new NotExpr("else", cond)));
             output.addAll(elseBranch.output);
         }
 
@@ -86,7 +87,7 @@ public class If extends BaseStat {
         res.addAll(ifBlock.get(ifBlock.size()-1).getOutputDag1());
 
         if (elseBlock.isEmpty()) {
-            res.add(EdgeFrom.Else(this, cond));
+            res.add(new EdgeFrom(this, new NotExpr("else", cond)));
         } else {
             res.addAll(elseBlock.get(elseBlock.size()-1).getOutputDag1());
         }
