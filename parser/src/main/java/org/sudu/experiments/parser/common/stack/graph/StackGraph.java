@@ -1,71 +1,68 @@
 package org.sudu.experiments.parser.common.stack.graph;
 
-import org.sudu.experiments.parser.common.stack.graph.edge.Edge;
-import org.sudu.experiments.parser.common.stack.graph.node.StackNode;
-
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class StackGraph {
 
-  List<StackNode> nodes;
-  Map<StackNode, List<Edge>> edges;
-  Stack<String> symbolStack;
-  List<StackNode> path;
-  static final boolean printStack = true;
+  List<StackNode> roots, nodes;
+  List<StackEdge> edges;
 
-  void lift(StackNode i) {
-    symbolStack.clear();
-    path.clear();
-    if (i.nodeType == StackNode.PUSH_NODE) {
-      path.add(i);
-      symbolStack.push(i.symbol);
-    } else if (i.nodeType == StackNode.SCOPE_NODE || i.nodeType == StackNode.ROOT_NODE) {
-      path.add(i);
-    }
-    resolve();
+  public StackGraph() {
+    this.roots = new ArrayList<>();
+    this.nodes = new ArrayList<>();
+    this.edges = new ArrayList<>();
   }
 
-  void resolve() {
-    if (printStack) printStack();
-    if (symbolStack.isEmpty()) return;
-    var i0 = path.get(0);
-    var i1 = path.get(path.size() - 1);
-    var x = symbolStack.peek();
-    if (!edges.containsKey(i1)) return;
-    for (var edge: edges.get(i1)) {
-      var i2 = edge.to;
-      if (resolve(i0, i1, i2, x)) {
-        resolve();
-        return;
+  void addNode(StackNode node) {
+    nodes.add(node);
+    if (node.nodeType == StackNode.ROOT_NODE) roots.add(node);
+  }
+
+  void addEdge(StackEdge edge) {
+    if (!nodes.contains(edge.from)) addNode(edge.from);
+    if (!nodes.contains(edge.to)) addNode(edge.to);
+    edge.from.outEdges.add(edge);
+    edge.to.inEdges.add(edge);
+    edges.add(edge);
+  }
+
+  void removeNode(StackNode node) {
+    for (var edge: node.outEdges) {
+      edge.to.inEdges.remove(edge);
+      edges.remove(edge);
+    }
+    for (var edge: node.inEdges) {
+      edge.from.outEdges.remove(edge);
+      edges.remove(edge);
+    }
+    nodes.remove(node);
+    roots.remove(node);
+  }
+
+  void removeEdge(StackEdge edge) {
+    edge.from.outEdges.remove(edge);
+    edge.to.inEdges.remove(edge);
+    edges.remove(edge);
+  }
+
+  void removeUnreachable() {
+    Map<StackNode, Boolean> visited = new IdentityHashMap<>();
+    for (var root: roots) markUnreachable(root, visited);
+    List<StackNode> forRemove = new ArrayList<>();
+    for (var node: nodes) {
+      if (!visited.containsKey(node)) {
+        forRemove.add(node);
       }
     }
-    System.out.println();
+    forRemove.forEach(this::removeNode);
   }
 
-  boolean resolve(StackNode i0, StackNode i1, StackNode i2, String x) {
-    if (i2.nodeType == StackNode.PUSH_NODE) {  // PUSH
-      path.add(i2);
-      symbolStack.push(i2.symbol);
-      return true;
-    } else if (i2.nodeType == StackNode.POP_NODE && x.equals(i2.symbol)) {   // POP
-      path.add(i2);
-      symbolStack.pop();
-      return true;
-    } else if (i1.nodeType == StackNode.ROOT_NODE && i2.nodeType == StackNode.ROOT_NODE && i1 != i2) {  // ROOT
-      path.add(i2);
-      return true;
-    } else if (i2.nodeType == StackNode.ROOT_NODE || i2.nodeType == StackNode.SCOPE_NODE) { // NOOP
-      path.add(i2);
-      return true;
+  private void markUnreachable(StackNode cur, Map<StackNode, Boolean> visited) {
+    visited.put(cur, true);
+    for (var out: cur.inEdges) {
+      if (visited.containsKey(out.from)) continue;
+      markUnreachable(out.from, visited);
     }
-    return false;
-  }
-
-  void printStack() {
-    var stackSymbols = new ArrayList<>(symbolStack.stream().filter(Objects::nonNull).toList());
-    Collections.reverse(stackSymbols);
-    System.out.println(stackSymbols.stream().collect(Collectors.joining("", "<", ">")));
   }
 
 }
