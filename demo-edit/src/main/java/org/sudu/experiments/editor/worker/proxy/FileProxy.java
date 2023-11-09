@@ -96,6 +96,7 @@ public class FileProxy {
   public static void parseFullFile(BaseProxy proxy, char[] source, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
     if (proxy == null) LineParser.parse(source, list);
+    else if (proxy == javaProxy) javaProxy.parseFullFileScopes(source, list);
     else proxy.parseFullFile(source, list);
     ArrayOp.sendArrayList(list, result);
   }

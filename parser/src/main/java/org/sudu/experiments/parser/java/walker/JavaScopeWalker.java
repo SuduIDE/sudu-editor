@@ -543,6 +543,17 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     if (ctx.creator() != null) return handleCreator(ctx.creator());
     if (ctx.getChildCount() == 1 && ctx.methodCall() != null)
       return handleMethodCall(ctx.methodCall());
+    if (ctx.INSTANCEOF() != null) {
+      var expr = handleExpression(ctx.expression(0));
+      if (expr == null) return new RefNode(null, "boolean", RefNode.TYPE);
+      else return new ExprRefNode(List.of(expr), "boolean");
+    }
+    if (isNonNullAndEmpty(ctx.typeType())) {
+      var type = getType(ctx.typeType(0));
+      var expr = handleExpression(ctx.expression(0));
+      if (expr == null) return new RefNode(null, type, RefNode.TYPE);
+      else return new ExprRefNode(List.of(expr), type);
+    }
     if (ctx.expression() != null && !ctx.expression().isEmpty()) {
       List<RefNode> refs = ctx.expression().stream().map(this::handleExpression).toList();
       return new ExprRefNode(refs);
