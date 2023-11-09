@@ -68,13 +68,14 @@ public class FileProxy {
   public static final String asyncIterativeParsing = "asyncIterativeParsing";
 
   public static void asyncIterativeParsing(
-      char[] chars, int[] type, int[] interval,
+      char[] chars, int[] type,
+      int[] interval, int[] version,
       int[] graphInts, char[] graphChars,
       Consumer<Object[]> result
   ) {
     var proxy = getBaseProxy(type[0]);
-    if (proxy == javaProxy) javaProxy.parseIntervalScope(chars, interval, graphInts, graphChars, result);
-    else proxy.parseInterval(chars, interval, result);
+    if (proxy == javaProxy) javaProxy.parseIntervalScope(chars, interval, version, graphInts, graphChars, result);
+    else proxy.parseInterval(chars, interval, version, result);
   }
 
   public static void parseFirstLines(BaseProxy proxy, char[] source, int[] lines, Consumer<Object[]> result) {

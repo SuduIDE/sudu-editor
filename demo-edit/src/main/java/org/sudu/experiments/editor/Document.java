@@ -463,7 +463,11 @@ public class Document {
   }
 
   public boolean needReparse(double timestamp) {
-    return (lastParsedVersion != currentVersion) && (timestamp - lastDiffTimestamp > EditorConst.TYPING_STOP_TIME);
+    return needReparse() && (timestamp - lastDiffTimestamp > EditorConst.TYPING_STOP_TIME);
+  }
+
+  public boolean needReparse() {
+    return (lastParsedVersion != currentVersion);
   }
 
   public void onReparse() {

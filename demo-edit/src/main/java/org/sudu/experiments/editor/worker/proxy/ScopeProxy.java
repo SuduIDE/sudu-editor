@@ -8,9 +8,10 @@ public class ScopeProxy {
 
   public static final String RESOLVE_ALL = "ScopeUtils.resolveAll";
 
-  public static void resolveAll(int[] graphInts, char[] graphChars, List<Object> result) {
+  public static void resolveAll(int[] graphInts, char[] graphChars, int[] lastParsedVersion, List<Object> result) {
     int[] ints = ScopeGraph.resolveFromInts(graphInts, graphChars);
     result.add(ints);
+    result.add(lastParsedVersion);
   }
 
 }

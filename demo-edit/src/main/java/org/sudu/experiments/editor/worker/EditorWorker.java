@@ -43,7 +43,7 @@ public class EditorWorker {
       case JavaScriptProxy.PARSE_FULL_FILE -> javascriptProxy.parseFullFile(array(a, 0).chars(), result);
       case ActivityProxy.PARSE_FULL_FILE -> activityProxy.parseFullFile(array(a, 0).chars(), result);
       case LineParser.PARSE -> LineParser.parse(array(a, 0).chars(), result);
-      case ScopeProxy.RESOLVE_ALL -> ScopeProxy.resolveAll(array(a, 0).ints(), array(a, 1).chars(), result);
+      case ScopeProxy.RESOLVE_ALL -> ScopeProxy.resolveAll(array(a, 0).ints(), array(a, 1).chars(), array(a, 2).ints(), result);
       case DiffUtils.FIND_DIFFS -> DiffUtils.findDiffs(
           array(a, 0).chars(), array(a, 1).ints(),
           array(a, 2).chars(), array(a, 3).ints(), result);
@@ -58,8 +58,9 @@ public class EditorWorker {
       case FileProxy.asyncParseFirstLines -> FileProxy.asyncParseFirstLines(file(a, 0), array(a, 1).ints(), r);
       case FileProxy.asyncIterativeParsing -> FileProxy.asyncIterativeParsing(
           array(a, 0).chars(), array(a, 1).ints(),
-          array(a,2).ints(), array(a, 3).ints(),
-          array(a, 4).chars(), r
+          array(a, 2).ints(),
+          array(a,3).ints(), array(a, 4).ints(),
+          array(a, 5).chars(), r
       );
     }
   }

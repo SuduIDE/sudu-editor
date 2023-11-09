@@ -44,16 +44,18 @@ public abstract class BaseProxy {
     result.add(parser.getGraphChars());
   }
 
-  public void parseInterval(char[] source, int[] interval, Consumer<Object[]> result) {
+  public void parseInterval(char[] source, int[] interval, int[] version, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
     int[] ints = getIntervalParser().parseInterval(source, interval);
     list.add(ints);
     list.add(source);
+    list.add(version);
     ArrayOp.sendArrayList(list, result);
   }
 
   public void parseIntervalScope(
       char[] source, int[] interval,
+      int[] version,
       int[] graphInts, char[] graphChars,
       Consumer<Object[]> result
   ) {
@@ -62,6 +64,7 @@ public abstract class BaseProxy {
     int[] ints = parser.parseInterval(source, interval, graphInts, graphChars);
     list.add(ints);
     list.add(source);
+    list.add(version);
     list.add(parser.getGraphInts());
     list.add(parser.getGraphChars());
     ArrayOp.sendArrayList(list, result);

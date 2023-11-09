@@ -866,6 +866,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   public void onResolved(Object[] result) {
     int[] ints = ((ArrayView) result[0]).ints();
+    int version = ((ArrayView) result[1]).ints()[0];
+    if (model.document.needReparse() || model.document.currentVersion != version) return;
     model.document.onResolve(ints);
     long time = System.currentTimeMillis();
     if (printResolveTime) System.out.println("Resolved in " + (time - resolveTimeStart) + "ms");
@@ -879,7 +881,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   public void resolveAll(int[] graphInts, char[] graphChars) {
     resolveTimeStart = System.currentTimeMillis();
-    window().sendToWorker(this::onResolved, ScopeProxy.RESOLVE_ALL, graphInts, graphChars);
+    var lastParsedVersion = model.document.currentVersion;
+    window().sendToWorker(this::onResolved, ScopeProxy.RESOLVE_ALL, graphInts, graphChars, new int[]{lastParsedVersion});
   }
 
   private void onFileStructureParsed(Object[] result) {
@@ -1472,22 +1475,22 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   public void onFileIterativeParsed(Object[] result) {
-    if (model.document.currentVersion != iterativeVersion) return;
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
+    int version = ((ArrayView) result[2]).ints()[0];
+    if (model.document.currentVersion != version) return;
     int[] graphInts = null;
     char[] graphChars = null;
-    if (result.length >= 4) {
-      graphInts = ((ArrayView) result[2]).ints();
-      graphChars = ((ArrayView) result[3]).chars();
+    if (result.length >= 5) {
+      graphInts = ((ArrayView) result[3]).ints();
+      graphChars = ((ArrayView) result[4]).chars();
     }
     ParserUtils.updateDocumentInterval(model.document, ints, chars, graphInts, graphChars);
     model.document.defToUsages.clear();
     model.document.usageToDef.clear();
     model.document.countPrefixes();
-    resolveAll();
     model.document.onReparse();
-    computeUsages();
+    resolveAll();
   }
 
   public void iterativeParsing() {
@@ -1522,7 +1525,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
         graphInts = new int[]{};
         graphChars = new char[]{};
       }
-      window().sendToWorker(this::onFileIterativeParsed, FileProxy.asyncIterativeParsing, chars, type, interval, graphInts, graphChars);
+      int version = model.document.currentVersion;
+      window().sendToWorker(this::onFileIterativeParsed, FileProxy.asyncIterativeParsing, chars, type, interval, new int[]{version}, graphInts, graphChars);
     }
   }
 
