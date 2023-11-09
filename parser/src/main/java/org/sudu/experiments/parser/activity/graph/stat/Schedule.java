@@ -16,7 +16,7 @@ public class Schedule extends ComplexStat {
         lst.set(j, s);
     }
 
-    private void  permutations(List<IStat> mutated, List<Dag2Part> acc, int pos) {
+    protected void  permutations(List<IStat> mutated, List<Dag2Part> acc, int pos) {
         if (pos == mutated.size()) {
             acc.add(IStat.joinDag2(null, mutated));
         }
@@ -33,7 +33,7 @@ public class Schedule extends ComplexStat {
         ArrayList<EdgeFrom> output = new ArrayList<>();
 
         ArrayList<Dag2Part> acc = new ArrayList<>();
-        permutations(new ArrayList(block), acc, 0);
+        permutations(new ArrayList<>(block), acc, 0);
 
         for (var b : acc) {
             IStat.joinDag2(start, b);

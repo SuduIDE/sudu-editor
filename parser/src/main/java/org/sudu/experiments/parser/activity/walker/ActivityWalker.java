@@ -229,6 +229,13 @@ public class ActivityWalker extends ActivityParserBaseListener {
     if (type >= ActivityLexer.ACTIVITY && type <= ActivityLexer.ELSE) {
       tokenTypes[index] = ParserConstants.TokenTypes.KEYWORD;
 
+      if (type == ActivityLexer.DEFAULT) {
+        var select = (Select)statStack.getLast();
+        var e = new NotExpr();
+        select.conditions.
+        select.conditions.set(select.conditions.size() - 1, new NotExpr());
+      }
+
     } else if (type == ActivityLexer.INT) {
       tokenTypes[index] = ParserConstants.TokenTypes.NUMERIC;
 
