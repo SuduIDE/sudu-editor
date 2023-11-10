@@ -60,10 +60,8 @@ public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListe
   @Override
   public void onDprChanged(float oldDpr, float newDpr) {
     FontDesk font = uiContext.fontDesk(consolas);
-    tbH.setFont(font);
-    tbV.setFont(font);
-    tbH.measure(uiContext);
-    tbV.measure(uiContext);
+    tbH.setFont(font, uiContext);
+    tbV.setFont(font, uiContext);
   }
 
   private void onEnterLeave(Toolbar tb) {
@@ -103,11 +101,10 @@ public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListe
   }
 
   private static void addAction(ToolbarItemBuilder tb, String action, Supplier<ToolbarItem[]> sub) {
-    ToolbarItemColors colors = rngToolButton();
     if (sub != null) {
-      tb.addItem(action, colors, sub);
+      tb.addItem(action, sub);
     } else {
-      tb.addItem(action, colors, () -> System.out.println(action));
+      tb.addItem(action, () -> System.out.println(action));
     }
   }
 

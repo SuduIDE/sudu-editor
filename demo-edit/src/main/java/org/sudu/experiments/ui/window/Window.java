@@ -324,4 +324,9 @@ public class Window {
   public int titleHeight() {
     return title.size.y + context.toPx(borderDrawDp);
   }
+
+  public void onTextRenderingSettingsChange() {
+    title.onTextRenderingSettingsChange();
+    content.onTextRenderingSettingsChange();
+  }
 }

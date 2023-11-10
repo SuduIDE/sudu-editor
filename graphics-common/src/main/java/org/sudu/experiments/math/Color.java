@@ -57,7 +57,12 @@ public class Color extends V4f {
 
   @Override
   public String toString() {
-    return "r:" + r + " , g: " + g + ", b: " + b;
+    StringBuilder sb = new StringBuilder()
+        .append("r:").append(r)
+        .append(", g: ").append(g)
+        .append(", b: ").append(b);
+    if (a != 255) sb.append(", a:").append(a);
+    return sb.toString();
   }
 
   @Override

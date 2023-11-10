@@ -1,7 +1,6 @@
 package org.sudu.experiments.ui;
 
 import org.sudu.experiments.Const;
-import org.sudu.experiments.editor.DemoRect;
 import org.sudu.experiments.editor.ui.colors.DialogItemColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
@@ -48,6 +47,12 @@ public class PopupMenu implements DprChangeListener, Focusable {
     context.setFocus(this);
   }
 
+  public void onTextRenderingSettingsChange() {
+    for (Toolbar toolbar : toolbars) {
+      toolbar.onTextRenderingSettingsChange();
+    }
+  }
+
   public void hide() {
     if (isVisible()) {
       context.removeFocus(this);
@@ -67,8 +72,7 @@ public class PopupMenu implements DprChangeListener, Focusable {
     popup.setLayoutVertical();
     popup.setItems(items.get());
     popup.setTheme(theme);
-    popup.setFont(font);
-    popup.measure(context);
+    popup.setFont(font, context);
 
     int x = parent != null ? relativeToParentPos(pos.x, parent, popup) : pos.x;
     setScreenLimitedPosition(popup, x, pos.y, context.windowSize);
@@ -77,14 +81,14 @@ public class PopupMenu implements DprChangeListener, Focusable {
       removePopupsAfter(popup);
       if (onEnter != null) onEnter.event(mouse, index, item);
       if (item.isSubmenu()) {
-        if (item.onEnter() != null) {
+        if (item.onEnter != null) {
           displaySubMenu(
               computeSubmenuPosition(item, popup),
-              item.subMenu(), popup, item.onEnter());
+              item.subMenu, popup, item.onEnter);
         } else {
           displaySubMenu(
               computeSubmenuPosition(item, popup),
-              item.subMenu(), popup);
+              item.subMenu, popup);
         }
       }
     });
@@ -101,8 +105,7 @@ public class PopupMenu implements DprChangeListener, Focusable {
   public void onDprChanged(float oldDpr, float newDpr) {
     font = context.fontDesk(uiFont);
     for (Toolbar toolbar : toolbars) {
-      toolbar.setFont(font);
-      toolbar.measure(context);
+      toolbar.setFont(font, context);
     }
   }
 
@@ -171,11 +174,11 @@ public class PopupMenu implements DprChangeListener, Focusable {
   }
 
   private static V2i computeSubmenuPosition(ToolbarItem parentItem, Toolbar parent) {
-    DemoRect view = parentItem.getView();
+    V2i parentPos = parentItem.pos;
     int border = parent.border();
     int margin = parent.margin();
     // TODO: Submenu position leaves a gap if it opens to the left of the parent
-    return new V2i(view.pos.x - border * 3 - margin, view.pos.y - border - margin);
+    return new V2i(parentPos.x - border * 3 - margin, parentPos.y - border - margin);
   }
 
   private void removePopupsAfter(Toolbar wall) {

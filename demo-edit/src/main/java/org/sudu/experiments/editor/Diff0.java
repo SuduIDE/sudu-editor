@@ -228,7 +228,7 @@ public class Diff0 extends Scene1 implements
   @Override
   public void enableCleartype(boolean en) {
     if (uiContext.enableCleartype(en)) {
-      ui.enableCleartype(en);
+      ui.onTextRenderingSettingsChange();
       editor1.enableCleartype(en);
       editor2.enableCleartype(en);
     }

@@ -48,7 +48,7 @@ public class TextRect extends DemoRect {
   public void drawText(WglGraphics g, int x, int y, GL.Texture texture, boolean inverse) {
     g.drawText(x, y, size, textureRegion, texture,
         inverse ? bgColor : color,
-        inverse ? color : bgColor, 1);
+        inverse ? color : bgColor, 0);
   }
 
   void setColor(V4f c) {

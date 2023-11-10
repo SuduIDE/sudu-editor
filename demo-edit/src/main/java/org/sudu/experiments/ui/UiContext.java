@@ -105,8 +105,11 @@ public class UiContext {
 
   // returns true if changed
   public boolean enableCleartype(boolean en) {
-    boolean changed = cleartype != en;
-    cleartype = en;
-    return changed;
+    if (cleartype != en) {
+      cleartype = en;
+      window.repaint();
+      return true;
+    }
+    return false;
   }
 }

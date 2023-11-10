@@ -9,21 +9,23 @@ public class ToolbarItemBuilder {
   static final ToolbarItem[] items0 = new ToolbarItem[0];
   private final ArrayList<ToolbarItem> list = new ArrayList<>();
 
-  public void addItem(String text, ToolbarItemColors colors, Runnable r) {
-    addItem(new ToolbarItem(r, text, colors));
+  public void addItem(String text, Runnable r) {
+    addItem(ti(text, r));
   }
 
-  public static ToolbarItem ti(String text, ToolbarItemColors colors, Runnable r) {
-    return new ToolbarItem(r, text, colors);
+  public static ToolbarItem ti(String text, Runnable r) {
+    return new ToolbarItem(r, text);
   }
 
-  public void addItem(String text, ToolbarItemColors colors, Supplier<ToolbarItem[]> submenu) {
-    addItem(text, colors, submenu, null);
+  public void addItem(String text, Supplier<ToolbarItem[]> submenu) {
+    addItem(text, submenu, null);
   }
 
-  public void addItem(String text, ToolbarItemColors colors,
-                      Supplier<ToolbarItem[]> submenu, Toolbar.HoverCallback onEnter) {
-    addItem(new ToolbarItem(null, text, colors, submenu, onEnter));
+  public void addItem(String text,
+                      Supplier<ToolbarItem[]> submenu,
+                      Toolbar.HoverCallback onEnter
+  ) {
+    addItem(new ToolbarItem(null, text, submenu, onEnter));
   }
 
   public void addItem(ToolbarItem item) {

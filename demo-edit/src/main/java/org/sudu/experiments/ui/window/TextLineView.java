@@ -21,7 +21,7 @@ public class TextLineView extends View {
   private UiFont uiFont;
   private FontDesk font;
   private float margin;
-  private boolean renderRequest;
+  private boolean textureRenderRequest;
 
   private int measured;
   private GL.Texture texture;
@@ -40,7 +40,7 @@ public class TextLineView extends View {
       font = null;
       setHeight(0);
     }
-    renderRequest = fontChange || titleChange || marginChange;
+    textureRenderRequest = fontChange || titleChange || marginChange;
     this.title = title;
     this.margin = margin;
     this.measured = 0;
@@ -59,7 +59,7 @@ public class TextLineView extends View {
 
     if (texture != null && width != texture.width()) {
       if (width < measured || texture.width() < measured) {
-        renderRequest = true;
+        textureRenderRequest = true;
       }
     }
   }
@@ -67,7 +67,7 @@ public class TextLineView extends View {
   public void draw(WglGraphics g, WindowColors theme) {
     if (sizeEmpty()) return;
     if (!isEmpty()) {
-      if (renderRequest || texture == null) {
+      if (textureRenderRequest || texture == null) {
         renderTexture(g);
       }
     }
@@ -75,8 +75,13 @@ public class TextLineView extends View {
     if (texture != null) {
       int width = texture.width();
       V4f textC = theme.windowTitleTextColor;
-      g.drawText(pos.x, pos.y, texture.size(), texRect, texture,
-          textC, bgColor, 0);
+      if (context.cleartype) {
+        g.drawTextCT(pos.x, pos.y, texture.size(),
+            texRect, texture, textC, bgColor);
+      } else {
+        g.drawText(pos.x, pos.y, texture.size(),
+            texRect, texture, textC, bgColor, 0);
+      }
       if (width < size.x) {
         drawBg(g, width, size.x - width, bgColor);
       }
@@ -110,7 +115,7 @@ public class TextLineView extends View {
   }
 
   private void renderTexture(WglGraphics g) {
-    renderRequest = false;
+    textureRenderRequest = false;
     requireFont();
     float lineHeightF = font.lineHeightF();
     float lrPadding = (lineHeightF + 5f) / 10;
@@ -118,7 +123,7 @@ public class TextLineView extends View {
     measured = margin + g.mCanvas.measurePx(font, title, lrPadding * 2);
     int width = Numbers.clamp(0, measured, size.x);
     if (width == 0) return;
-    Canvas canvas = g.createCanvas(width, size.y);
+    Canvas canvas = g.createCanvas(width, size.y, context.cleartype);
     canvas.setFont(font);
     canvas.drawText(title,
         margin + lrPadding,
@@ -133,8 +138,13 @@ public class TextLineView extends View {
     if (uiFont != null) {
       font = null;
       measured = 0;
-      renderRequest = true;
+      textureRenderRequest = true;
     }
+  }
+
+  @Override
+  protected void onTextRenderingSettingsChange() {
+    textureRenderRequest = true;
   }
 
   @Override

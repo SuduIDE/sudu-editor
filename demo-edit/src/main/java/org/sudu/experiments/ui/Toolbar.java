@@ -2,7 +2,6 @@ package org.sudu.experiments.ui;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.editor.DemoRect;
-import org.sudu.experiments.editor.TextRect;
 import org.sudu.experiments.editor.ui.colors.DialogItemColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.MouseEvent;
@@ -29,11 +28,13 @@ public class Toolbar {
   private GL.Texture texture;
   private int border, margin, textXPad;
   private int hoverItemId = -1;
+  private boolean textureDirty = true;
   boolean isVertical;
 
   private Runnable onClickOutside;
   private HoverCallback onEnter;
   private HoverCallback onLeave;
+  private ToolbarItemColors itemColors;
 
   public interface HoverCallback {
     void event(V2i mouse, int index, ToolbarItem item);
@@ -64,8 +65,9 @@ public class Toolbar {
     rect.bgColor.set(bgColor);
   }
 
-  public void setFont(FontDesk font) {
+  public void setFont(FontDesk font, UiContext context) {
     this.font = font;
+    measure(context);
     invalidateTexture();
   }
 
@@ -73,9 +75,11 @@ public class Toolbar {
     shadowParameters = dialogItemColors.shadowParameters;
     setBgColor(dialogItemColors.toolbarItemColors.bgColor);
     setFrameColor(dialogItemColors.windowColors.windowBorderColor);
-    for (int i = 0; i < items.length; i++) {
-      items[i].setTheme(dialogItemColors.toolbarItemColors);
-    }
+    itemColors = dialogItemColors.toolbarItemColors;
+  }
+
+  void onTextRenderingSettingsChange() {
+    invalidateTexture();
   }
 
   public void dispose() {
@@ -90,7 +94,7 @@ public class Toolbar {
     textureSize.set(0, 0);
   }
 
-  public void measure(UiContext uiContext) {
+  private void measure(UiContext uiContext) {
     Canvas mCanvas = uiContext.mCanvas();
     float devicePR = uiContext.dpr;
     Objects.requireNonNull(font);
@@ -105,11 +109,11 @@ public class Toolbar {
       int w = textXPad + m + textXPad;
       maxW = Math.max(maxW, w);
 
-      item.tRect.pos.x = tw;
-      item.tRect.pos.y = 0;
-      item.tRect.size.x = w;
-      item.tRect.size.y = textHeight;
-      item.tRect.textureRegion.set(tw, 0, w, textHeight);
+      item.pos.x = tw;
+      item.pos.y = 0;
+      item.size.x = w;
+      item.size.y = textHeight;
+      item.textureRegion.set(tw, 0, w, textHeight);
       tw += w;
     }
     textureSize.x = tw;
@@ -126,15 +130,14 @@ public class Toolbar {
     rect.pos.set(x, y);
     int localX = border + margin, localY = border + margin;
     for (ToolbarItem item : items) {
-      TextRect tRect = item.tRect;
-      tRect.pos.x = x + localX;
-      tRect.pos.y = y + localY;
+      item.pos.x = x + localX;
+      item.pos.y = y + localY;
       if (isVertical) {
-        if (tRect.size.y == 0) tRectWarning();
-        localY += tRect.size.y + border;
+        if (item.size.y == 0) tRectWarning();
+        localY += item.size.y + border;
       } else {
-        if (tRect.size.x == 0) tRectWarning();
-        localX += tRect.size.x + border;
+        if (item.size.x == 0) tRectWarning();
+        localX += item.size.x + border;
       }
     }
   }
@@ -150,31 +153,32 @@ public class Toolbar {
     return rect.size;
   }
 
-  private void renderTexture(WglGraphics g) {
-    Canvas canvas = g.createCanvas(textureSize.x, textureSize.y);
+  private void renderTexture(WglGraphics g, boolean cleartype) {
+    Canvas canvas = g.createCanvas(textureSize.x, textureSize.y, cleartype);
     canvas.setFont(font);
     int textMargin = font.lineHeight(textHeightScale * .5f - .5f);
     float baseline = textMargin + font.fAscent - (font.fAscent + font.fDescent) / 16;
 
     for (ToolbarItem item : items) {
-      canvas.drawText(item.text, item.tRect.textureRegion.x + textXPad, baseline);
+      canvas.drawText(item.text, item.textureRegion.x + textXPad, baseline);
     }
-    texture = Disposable.assign(texture, g.createTexture());
     texture.setContent(canvas);
+    textureDirty = false;
     canvas.dispose();
   }
 
   public void invalidateTexture() {
-    textureSize.set(0, 0);
+    textureDirty = true;
   }
 
   public void render(UiContext context) {
     WglGraphics g = context.graphics;
     if (items.length == 0) return;
-    if (texture == null || textureSize.x * textureSize.y == 0) {
+    if (texture == null) texture = g.createTexture();
+    if (textureDirty || textureSize.x * textureSize.y == 0) {
       if (textureSize.x * textureSize.y == 0) measure(context);
       if (textureSize.x * textureSize.y == 0) return;
-      renderTexture(g);
+      renderTexture(g, context.cleartype);
     }
 
     if (!rect.isEmpty()) {
@@ -188,16 +192,23 @@ public class Toolbar {
     }
 
     for (ToolbarItem item : items) {
-      item.tRect.drawText(g, texture, 0, 0, 0);
+      if (context.cleartype) {
+        g.drawTextCT(item.pos.x, item.pos.y, item.size,
+            item.textureRegion, texture,
+            itemColors.color, itemColors.bgColor(item.hover));
+      } else {
+        g.drawText(item.pos.x, item.pos.y, item.size,
+            item.textureRegion, texture,
+            itemColors.color, itemColors.bgColor(item.hover), 0);
+      }
     }
     if (isVertical) {
       for (ToolbarItem item : items) {
-        TextRect tRect = item.tRect;
-        v2i.x = rect.size.x - border * 2 - margin * 2 - tRect.size.x;
-        v2i.y = tRect.size.y;
+        v2i.x = rect.size.x - border * 2 - margin * 2 - item.size.x;
+        v2i.y = item.size.y;
         if (v2i.x > 0) {
-          g.drawRect(tRect.pos.x + tRect.size.x, tRect.pos.y,
-              v2i, tRect.bgColor);
+          g.drawRect(item.pos.x + item.size.x, item.pos.y,
+              v2i, itemColors.bgColor(item.hover));
         }
       }
     }
@@ -247,15 +258,14 @@ public class Toolbar {
   private int find(V2i pos) {
     for (int i = 0; i < items.length; i++) {
       ToolbarItem item = items[i];
-      TextRect tRect = item.tRect;
-      if (tRect.isInside(pos)) {
+      if (item.isInside(pos)) {
         return i;
       }
       if (isVertical) {
-        int x = tRect.pos.x + tRect.size.x;
-        int y = tRect.pos.y;
-        v2i.x = rect.size.x - border * 2 - tRect.size.x;
-        v2i.y = tRect.size.y;
+        int x = item.pos.x + item.size.x;
+        int y = item.pos.y;
+        v2i.x = rect.size.x - border * 2 - item.size.x;
+        v2i.y = item.size.y;
         if (Rect.isInside(pos, x, y, v2i)) {
           return i;
         }

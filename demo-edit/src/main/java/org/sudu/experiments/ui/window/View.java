@@ -13,8 +13,7 @@ public class View implements Disposable {
   public final V2i size = new V2i();
   public float dpr;
 
-  public void dispose() {
-  }
+  public void dispose() {}
 
   protected V2i minimalSize() {
     return new V2i(0,0);
@@ -56,14 +55,13 @@ public class View implements Disposable {
     return false;
   }
 
-  protected void onPosChange(V2i newPos) {
-  }
+  protected void onPosChange(V2i newPos) {}
 
-  protected void onSizeChange(V2i newSize) {
-  }
+  protected void onSizeChange(V2i newSize) {}
 
-  protected void onDprChange(float olDpr, float newDpr) {
-  }
+  protected void onDprChange(float olDpr, float newDpr) {}
+
+  protected void onTextRenderingSettingsChange() {}
 
   protected boolean onMouseClick(MouseEvent event, int button, int clickCount) {
     return false;

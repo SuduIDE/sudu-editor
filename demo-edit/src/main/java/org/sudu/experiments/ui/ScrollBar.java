@@ -50,18 +50,18 @@ public class ScrollBar {
     return null;
   }
 
-  public void setColor(Color scrollBarLine, Color scrollBarBg) {
+  public void setColor(V4f scrollBarLine, V4f scrollBarBg) {
     if (scrollBarLine == null || scrollBarBg == null) return;
     color1.set(scrollBarBg);
     color2.set(scrollBarLine);
   }
 
-  private boolean isColorSame(Color scrollBarLine, Color scrollBarBg) {
+  private boolean isColorSame(V4f scrollBarLine, V4f scrollBarBg) {
     if (scrollBarLine == null || scrollBarBg == null) return false;
     return color1.equals(scrollBarLine) && color2.equals(scrollBarBg);
   }
 
-  public void setColorIfNotSame(Color scrollBarLine, Color scrollBarBg) {
+  public void setColorIfNotSame(V4f scrollBarLine, V4f scrollBarBg) {
     if (!isColorSame(scrollBarLine, scrollBarBg)) {
       setColor(scrollBarLine, scrollBarBg);
     }

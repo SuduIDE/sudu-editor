@@ -13,4 +13,7 @@ public final class ToolbarItemColors {
     this.bgHighlight = bgHighlight;
   }
 
+  public V4f bgColor(boolean highlighted) {
+    return highlighted ? bgHighlight : bgColor;
+  }
 }

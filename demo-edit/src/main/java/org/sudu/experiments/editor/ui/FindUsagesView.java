@@ -172,12 +172,21 @@ public class FindUsagesView extends ScrollContent implements Focusable {
       V4f itemContent = hover ? theme.textCaretColor : theme.contentColor;
 
       int y1 = y + localY - scrollPos.y;
-      g.drawText(fileTX, y1, item.sizeFiles, item.tFiles,
-          texture, itemFile, itemBg, 0);
-      g.drawText(lineTX, y1, item.sizeLines, item.tLines,
-          texture, itemLine, itemBg, 0);
-      g.drawText(contentTX, y1, item.sizeContent, item.tContent,
-          texture, itemContent, itemBg, 0);
+      if (context.cleartype) {
+        g.drawTextCT(fileTX, y1, item.sizeFiles, item.tFiles,
+            texture, itemFile, itemBg);
+        g.drawTextCT(lineTX, y1, item.sizeLines, item.tLines,
+            texture, itemLine, itemBg);
+        g.drawTextCT(contentTX, y1, item.sizeContent, item.tContent,
+            texture, itemContent, itemBg);
+      } else {
+        g.drawText(fileTX, y1, item.sizeFiles, item.tFiles,
+            texture, itemFile, itemBg, 0);
+        g.drawText(lineTX, y1, item.sizeLines, item.tLines,
+            texture, itemLine, itemBg, 0);
+        g.drawText(contentTX, y1, item.sizeContent, item.tContent,
+            texture, itemContent, itemBg, 0);
+      }
 
       int fileX = fileTX + item.sizeFiles.x;
       v2i.set(Math.max(0, maxFileNameLen - item.sizeFiles.x), item.sizeFiles.y);
@@ -215,7 +224,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   }
 
   private void renderTexture(WglGraphics g) {
-    Canvas canvas = g.createCanvas(textureSize.x + 150, textureSize.y);
+    Canvas canvas = g.createCanvas(textureSize.x + 150, textureSize.y, context.cleartype);
     canvas.setFont(font);
     float baseline = font.fAscent - (font.fAscent + font.fDescent) / 16;
     for (var item: view) {
@@ -226,7 +235,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     fileNameCache.forEach(
         (fileName, v4f) -> canvas.drawText(fileName, v4f.content.x + textXPad, baseline + v4f.content.y)
     );
-    texture = Disposable.assign(texture, g.createTexture());
+    if (texture == null) texture = g.createTexture();
     texture.setContent(canvas);
     canvas.dispose();
   }

@@ -34,6 +34,12 @@ public class WindowManager implements MouseListener, DprChangeListener {
     }
   }
 
+  public void onTextRenderingSettingsChange() {
+    for (int i = 0; i < windows.size(); i++) {
+      windows.get(i).onTextRenderingSettingsChange();
+    }
+  }
+
   @Override
   public boolean onMouseMove(MouseEvent event) {
     for (int i = 0; i < windows.size(); i++) {

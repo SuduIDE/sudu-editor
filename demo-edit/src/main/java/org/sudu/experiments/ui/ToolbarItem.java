@@ -1,72 +1,48 @@
 package org.sudu.experiments.ui;
 
-import org.sudu.experiments.editor.DemoRect;
-import org.sudu.experiments.editor.TextRect;
+import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 
 import java.util.function.Supplier;
 
 public class ToolbarItem {
-  final TextRect tRect = new TextRect();
   final Runnable action;
-  ToolbarItemColors colors;
+
+  final V4f textureRegion = new V4f();
+  final V2i pos = new V2i();
+  final V2i size = new V2i();
+
   final Supplier<ToolbarItem[]> subMenu;
   final Toolbar.HoverCallback onEnter;
+  boolean hover;
   String text;
 
-  public ToolbarItem(Runnable r, String text, ToolbarItemColors colors) {
-    this(r, text, colors, null, null);
+  public ToolbarItem(Runnable r, String text) {
+    this(r, text, null, null);
   }
 
   public ToolbarItem(
       Runnable r,
       String text,
-      ToolbarItemColors colors,
       Supplier<ToolbarItem[]> submenu,
       Toolbar.HoverCallback onEnter
   ) {
     this.text = text;
-    this.colors = colors;
     this.onEnter = onEnter;
     action = r;
-    tRect.color.set(colors.color);
-    tRect.bgColor.set(colors.bgColor);
     subMenu = submenu;
-  }
-
-  public V2i getPos() {
-    return tRect.pos;
-  }
-
-  public DemoRect getView() {
-    return tRect;
   }
 
   public boolean isSubmenu() {
     return subMenu != null;
   }
 
-  public Toolbar.HoverCallback onEnter() {
-    return onEnter;
-  }
-
-  public Runnable action() {
-    return action;
-  }
-
-  public Supplier<ToolbarItem[]> subMenu() {
-    return subMenu;
-  }
-
   public void setHover(boolean b) {
-    tRect.bgColor.set(b ? colors.bgHighlight : colors.bgColor);
+    hover = b;
   }
 
-  public void setTheme(ToolbarItemColors toolbarItemColors) {
-    colors = toolbarItemColors;
-    tRect.setColors(
-        toolbarItemColors.color,
-        toolbarItemColors.bgColor
-    );
+  public boolean isInside(V2i p) {
+    return Rect.isInside(p, pos, size);
   }
 }

@@ -80,10 +80,7 @@ public class FindUsagesDemo extends Scene1 implements DprChangeListener {
   }
 
   private Supplier<ToolbarItem[]> items() {
-    return ArrayOp.supplier(
-        new ToolbarItem(this::openWindows, "newWindow",
-            popupMenu.theme().toolbarItemColors)
-    );
+    return ArrayOp.supplier(new ToolbarItem(this::openWindows, "newWindow"));
   }
 
   private void openWindows() {
@@ -154,10 +151,7 @@ public class FindUsagesDemo extends Scene1 implements DprChangeListener {
 
 
   private boolean onKey(KeyEvent event) {
-    if (event.isPressed && event.keyCode == KeyCode.SPACE) {
-      return true;
-    }
-    return false;
+    return event.isPressed && event.keyCode == KeyCode.SPACE;
   }
 
   @Override

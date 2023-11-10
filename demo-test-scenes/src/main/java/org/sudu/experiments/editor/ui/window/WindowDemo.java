@@ -30,6 +30,9 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
 
   private final WindowManager windowManager;
   private Window window1, window2;
+  final Color scrollBarLine = new Color(40, 40, 40, 200);
+  final Color scrollBarBg = new Color(43, 43, 43, 128);
+
 
   public WindowDemo(SceneApi api) {
     super(api);
@@ -87,9 +90,7 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
 
   private Supplier<ToolbarItem[]> items() {
     return ArrayOp.supplier(
-        new ToolbarItem(this::openWindows, "newWindow",
-            popupMenu.theme().toolbarItemColors)
-    );
+        new ToolbarItem(this::openWindows, "newWindow"));
   }
 
   private void openWindows() {
@@ -115,11 +116,15 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
     Window window = new Window(uiContext);
     ScrollContentDemo contentDemo = new ScrollContentDemo(v,
         s -> window.setTitle(title + ": " + s, titleFont, titleMargin));
-    window.setContent(scroll
-        ? new ScrollView(contentDemo, uiContext)
-        : contentDemo);
+    window.setContent(scroll ? newScrollView(contentDemo) : contentDemo);
     window.setTheme(Themes.darculaColorScheme());
     return window;
+  }
+
+  private ScrollView newScrollView(ScrollContentDemo contentDemo) {
+    ScrollView scrollView = new ScrollView(contentDemo, uiContext);
+    scrollView.setScrollColor(scrollBarLine, scrollBarBg);
+    return scrollView;
   }
 
   @Override

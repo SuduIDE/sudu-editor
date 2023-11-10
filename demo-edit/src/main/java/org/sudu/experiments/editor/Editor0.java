@@ -44,7 +44,7 @@ public class Editor0 extends Scene1 implements EditorTheme, EditorUi.CleartypeCo
   @Override
   public void enableCleartype(boolean en) {
     if (uiContext.enableCleartype(en)) {
-      ui.enableCleartype(en);
+      ui.onTextRenderingSettingsChange();
       editor.enableCleartype(en);
     }
   }
