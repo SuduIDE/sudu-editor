@@ -1,4 +1,4 @@
-// Generated from parser-generator/src/main/resources/grammar/cpp/CPP14Directive.g4 by ANTLR 4.12.0
+// Generated from parser-generator\src\main\resources\grammar\cpp\help\CPP14Directive.g4 by ANTLR 4.12.0
 package org.sudu.experiments.parser.cpp.gen.help;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;

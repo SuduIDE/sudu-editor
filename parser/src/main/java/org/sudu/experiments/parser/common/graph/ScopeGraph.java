@@ -1,11 +1,14 @@
 package org.sudu.experiments.parser.common.graph;
 
+import org.sudu.experiments.arrays.ArrayWriter;
+import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.Name;
 import org.sudu.experiments.parser.common.TriConsumer;
-import org.sudu.experiments.parser.common.graph.node.Resolver;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
+import org.sudu.experiments.parser.common.graph.node.decl.MethodNode;
 import org.sudu.experiments.parser.common.graph.node.ref.*;
+import org.sudu.experiments.parser.common.graph.reader.ScopeGraphReader;
 import org.sudu.experiments.parser.common.graph.type.TypeMap;
 
 import java.util.function.BiConsumer;
@@ -24,7 +27,38 @@ public class ScopeGraph {
     this.typeMap = typeMap;
   }
 
-  public void resolveAll(BiConsumer<RefNode, DeclNode> onResolve) {
+  // -1 -- null ref/decl
+  // ref |-> decl writes as [1, ref.pos, 1, decl.pos, type, style]
+  // ref |-> null  writes as [1, ref.pos, -1]
+  public static int[] resolveFromInts(int[] graphInts, char[] graphChars) {
+    var reader = new ScopeGraphReader(graphInts, graphChars);
+    reader.readFromInts();
+
+    ScopeGraph graph = new ScopeGraph(reader.scopeRoot, reader.typeMap);
+    ArrayWriter writer = new ArrayWriter();
+    BiConsumer<RefNode, DeclNode> onResolve = (ref, decl) -> {
+      if (ref == null || ref.ref == null) {
+        writer.write(-1);
+        return;
+      }
+      writer.write(1, ref.ref.position);
+      if (decl == null || decl.decl == null) {
+        writer.write(-1);
+      } else {
+        int type = decl.declType == DeclNode.FIELD
+            ? ParserConstants.TokenTypes.FIELD
+            : ParserConstants.TokenTypes.DEFAULT;
+        int style = decl instanceof MethodNode
+            ? ParserConstants.TokenStyles.BOLD
+            : ParserConstants.TokenStyles.NORMAL;
+        writer.write(1, decl.decl.position, type, style);
+      }
+    };
+    graph.resolveAll(onResolve);
+    return writer.getInts();
+  }
+
+  void resolveAll(BiConsumer<RefNode, DeclNode> onResolve) {
     if (root == null) return;
     resolveAllRec(root, new Resolver(this, onResolve));
   }

@@ -103,7 +103,7 @@ public class WalkerTest {
   public void testMethodResolve() {
     String source = readFile("java/TestMethodResolve.java");
     JavaFullParser parser = new JavaFullParser();
-    parser.parse(source);
+    parser.parse(source.toCharArray());
     JavaClass javaClass = parser.getJavaClass().nestedClasses.get(0);
 
     var usageToDefinition = parser.usageToDefinition;
@@ -169,7 +169,7 @@ public class WalkerTest {
   public void testMethodTypeResolve() {
     String source = readFile("java/TestMethodTypeResolve.java");
     JavaFullParser parser = new JavaFullParser();
-    parser.parse(source);
+    parser.parse(source.toCharArray());
     JavaClass javaClass = parser.getJavaClass().nestedClasses.get(0);
 
     var usageToDefinition = parser.usageToDefinition;
@@ -252,7 +252,7 @@ public class WalkerTest {
   public void testLocalVarsResolve() {
     String source = readFile("java/TestLocalVarsResolve.java");
     JavaFullParser parser = new JavaFullParser();
-    parser.parse(source);
+    parser.parse(source.toCharArray());
     JavaClass javaClass = parser.getJavaClass().nestedClasses.get(0);
 
     var usageToDefinition = parser.usageToDefinition;
@@ -351,7 +351,7 @@ public class WalkerTest {
   public void testConstructorsResolve() {
     String source = readFile("java/TestConstructorResolve.java");
     JavaFullParser parser = new JavaFullParser();
-    parser.parse(source);
+    parser.parse(source.toCharArray());
     JavaClass javaClass = parser.getJavaClass().nestedClasses.get(0);
 
     var usageToDefinition = parser.usageToDefinition;

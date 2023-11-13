@@ -1,7 +1,7 @@
 package org.sudu.experiments.parser.common.graph.reader;
 
 import org.sudu.experiments.arrays.ArrayReader;
-import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
 import org.sudu.experiments.parser.common.graph.node.InferenceNode;
 import org.sudu.experiments.parser.common.graph.node.MemberNode;
@@ -15,17 +15,15 @@ import static org.sudu.experiments.parser.common.graph.ScopeGraphConstants.Nodes
 
 public class ScopeGraphReader {
 
-  private final ArrayReader reader;
-  private final char[] chars;
-
-  private ScopeNode[] scopeNodes;
-  private DeclNodeReader declNodeReader;
-  private RefNodeReader refNodeReader;
-
   public ScopeNode scopeRoot;
   public IntervalNode intervalRoot;
-  public List<String> types;
   public TypeMap typeMap;
+  private final ArrayReader reader;
+  private final char[] chars;
+  private ScopeNode[] scopeNodes;
+  private List<String> types;
+  private DeclNodeReader declNodeReader;
+  private RefNodeReader refNodeReader;
 
   public ScopeGraphReader(
       int[] ints,
@@ -57,7 +55,7 @@ public class ScopeGraphReader {
     }
   }
 
-  public void readSupertypes() {
+  private void readSupertypes() {
     for (var typeEntry: typeMap.entrySet()) {
       typeEntry.getValue().addAll(readTypeList());
     }
@@ -120,7 +118,8 @@ public class ScopeGraphReader {
     for (int i = 0; i < len; i++) {
       var decl = declNodeReader.readDeclNode();
       var ref = refNodeReader.readRefNode();
-      result.add(new InferenceNode(decl, ref));
+      var inferType = reader.next();
+      result.add(new InferenceNode(decl, ref, inferType));
     }
     return result;
   }
@@ -132,6 +131,8 @@ public class ScopeGraphReader {
   }
 
   private void readIntervalNode() {
+    int flag = reader.next();
+    if (flag == -1) return;
     intervalRoot = IntervalNode.readNode(reader, scopeNodes);
   }
 
@@ -140,5 +141,4 @@ public class ScopeGraphReader {
         count = reader.next();
     return new String(chars, offset, count);
   }
-
 }

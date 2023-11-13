@@ -2,6 +2,7 @@ package org.sudu.experiments.editor.worker.parser;
 
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.arrays.ArrayWriter;
+import org.sudu.experiments.editor.worker.proxy.FileProxy;
 import org.sudu.experiments.math.ArrayOp;
 
 import java.util.ArrayList;
@@ -23,7 +24,7 @@ public class LineParser {
     int[] ints = parser.parseIntArray(source, Integer.MAX_VALUE);
     result.add(ints);
     result.add(chars);
-    result.add(new int[]{FileParser.TEXT_FILE});
+    result.add(new int[]{FileProxy.TEXT_FILE});
   }
 
   public static void parseFirstLines(char[] chars, int[] lines, Consumer<Object[]> result) {

@@ -3,32 +3,14 @@ package org.sudu.experiments.parser.cpp.parser;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Token;
-import org.sudu.experiments.parser.common.BaseFullParser;
+import org.sudu.experiments.parser.common.base.BaseFirstLinesLexer;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.cpp.CppSplitRules;
 import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
+import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
 import org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting;
 
-import java.util.Arrays;
-
-public class CppFirstLinesLexer extends BaseFullParser {
-
-  public int[] parse(String source, int numOfStrings) {
-    long parsingStartTime = System.currentTimeMillis();
-    initLexer(prepareString(source, numOfStrings));
-
-    highlightTokens();
-
-    var result = getInts(defaultIntervalNode());
-    System.out.println("Lexing viewport cpp time " + (System.currentTimeMillis() - parsingStartTime) + "ms");
-    return result;
-  }
-
-  private String prepareString(String source, int numOfStrings) {
-    String[] lines = source.split("\n", -1);
-    if (lines.length < numOfStrings) return source;
-    else return String.join("\n", Arrays.copyOf(lines, numOfStrings));
-  }
+public class CppFirstLinesLexer extends BaseFirstLinesLexer<CPP14Parser> {
 
   @Override
   protected void highlightTokens() {
@@ -51,10 +33,4 @@ public class CppFirstLinesLexer extends BaseFullParser {
     return type != CPP14Lexer.Newline
         && type != CPP14Lexer.EOF;
   }
-
-  @Override
-  protected boolean isErrorToken(int tokenType) {
-    return tokenType == CPP14Lexer.ERROR;
-  }
-
 }

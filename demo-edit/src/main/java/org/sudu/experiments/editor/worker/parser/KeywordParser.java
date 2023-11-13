@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+@Deprecated
 public class KeywordParser {
 
   StringTokenizer lineTokenizer;

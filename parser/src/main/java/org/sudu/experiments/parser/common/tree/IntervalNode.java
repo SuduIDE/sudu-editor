@@ -1,4 +1,4 @@
-package org.sudu.experiments.parser.common;
+package org.sudu.experiments.parser.common.tree;
 
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
@@ -165,7 +165,6 @@ public class IntervalNode {
   public IntervalNode merge(IntervalNode node) {
     int newStart = Math.min(getStart(), node.getStart());
     int newStop = Math.max(getStop(), node.getStop());
-    var scope = this.scope != null ? this.scope : node.scope;
     Interval newInterval = new Interval(newStart, newStop, interval.intervalType);
     IntervalNode newNode = new IntervalNode(newInterval, parent, scope);
     newNode.needReparse = true;

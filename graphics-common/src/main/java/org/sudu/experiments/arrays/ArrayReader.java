@@ -14,6 +14,10 @@ public class ArrayReader {
     return source[pointer++];
   }
 
+  public boolean hasNext() {
+    return pointer < source.length;
+  }
+
   public void skip(int len) {
     pointer += len;
   }

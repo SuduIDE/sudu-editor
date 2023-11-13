@@ -4,11 +4,11 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.CommonTokenSubStream;
-import org.sudu.experiments.parser.common.BaseIntervalParser;
 import org.sudu.experiments.parser.ParserConstants;
-import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.base.BaseIntervalParser;
+import org.sudu.experiments.parser.common.graph.ScopeWalker;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
-import org.sudu.experiments.parser.common.graph.type.TypeMap;
 import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
@@ -17,19 +17,20 @@ import org.sudu.experiments.parser.java.walker.JavaClassWalker;
 import org.sudu.experiments.parser.java.walker.JavaWalker;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Java.*;
 
-public class JavaViewportIntervalsParser extends BaseIntervalParser {
+public class JavaViewportIntervalsParser extends BaseIntervalParser<JavaParser> {
 
   // viewport - {leftInd, rightInd, firstLine}
-  public int[] parseViewport(String source, int[] viewport, int[] intervals) {
+  public int[] parseViewport(char[] source, int[] viewport, int[] intervals) {
     int vpStart = viewport[0];
     int vpEnd = viewport[1];
-    initLexer(source.substring(vpStart, vpEnd));
+    initLexer(Arrays.copyOfRange(source, vpStart, vpEnd));
 
     List<Interval> intervalList = makeIntervalList(intervals, vpStart, vpEnd);
 
@@ -56,8 +57,7 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser {
     return intervalList;
   }
 
-  @Override
-  protected IntervalNode parseInterval(Interval interval, TypeMap typeMap) {
+  protected IntervalNode parseInterval(Interval interval) {
     var tokenSrc = getSubSource(interval);
     CommonTokenStream tokenStream = new CommonTokenSubStream(tokenSrc);
     tokenStream.fill();
@@ -141,6 +141,21 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser {
   }
 
   @Override
+  protected JavaParser initParser() {
+    return new JavaParser(tokenStream);
+  }
+
+  @Override
+  protected ParserRuleContext getStartRule(JavaParser parser) {
+    return null;
+  }
+
+  @Override
+  protected IntervalNode walk(ParserRuleContext startRule) {
+    return null;
+  }
+
+  @Override
   protected boolean tokenFilter(Token token) {
     int type = token.getType();
     return type != JavaLexer.NEW_LINE
@@ -152,4 +167,8 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser {
         || type == JavaLexer.LINE_COMMENT;
   }
 
+  @Override
+  protected void walkScopes(ParserRuleContext startRule, ScopeWalker scopeWalker) {
+
+  }
 }

@@ -2,7 +2,7 @@ package org.sudu.experiments.parser.common.graph;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
 import org.sudu.experiments.parser.common.graph.node.InferenceNode;
 import org.sudu.experiments.parser.common.graph.node.MemberNode;
@@ -103,11 +103,8 @@ public class ScopeWalker {
     currentNode = currentNode.parent;
   }
 
-  public void addToRoot(DeclNode decl) {
-    graph.root.declarations.add(decl);
-  }
-
   public void addDecl(DeclNode node) {
+    if (node == null) return;
     currentScope.declarations.add(node);
   }
 
@@ -115,14 +112,13 @@ public class ScopeWalker {
     currentScope.declarations.addAll(nodes);
   }
 
-  public RefNode addRef(RefNode ref) {
+  public void addRef(RefNode ref) {
+    if (ref == null) return;
     currentScope.references.add(ref);
-    return ref;
   }
 
-  public List<RefNode> addRefs(List<RefNode> refs) {
-    currentScope.references.addAll(refs);
-    return refs;
+  public void addRefs(List<RefNode> refs) {
+    refs.forEach(this::addRef);
   }
 
   public void addInference(InferenceNode inference) {

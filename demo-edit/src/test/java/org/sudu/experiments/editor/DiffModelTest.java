@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.sudu.experiments.diff.DiffModel;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
-import org.sudu.experiments.editor.worker.parser.JavaParser;
+import org.sudu.experiments.editor.worker.proxy.JavaProxy;
 import org.sudu.experiments.editor.worker.parser.ParserUtils;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class DiffModelTest {
     List<Object> result = new ArrayList<>();
     char[] chars = text.toCharArray();
     int[] ints;
-    JavaParser.parse(chars, result);
+    new JavaProxy().parseFullFile(chars, result);
     ints = (int[]) result.get(0);
     Document document = new Document();
     ParserUtils.updateDocument(document, ints, chars);

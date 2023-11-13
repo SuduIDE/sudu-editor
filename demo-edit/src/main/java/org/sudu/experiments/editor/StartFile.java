@@ -23,6 +23,10 @@ public interface StartFile {
           sum(a + a);
           var g = g(a + a);
           g.a;
+          var array = new int[field];
+          for (var a: array) {
+            sum(a);
+          }
         }
             
         @Deprecated

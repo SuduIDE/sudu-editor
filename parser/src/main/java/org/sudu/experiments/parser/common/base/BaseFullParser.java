@@ -1,8 +1,12 @@
-package org.sudu.experiments.parser.common;
+package org.sudu.experiments.parser.common.base;
 
+import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.arrays.ArrayWriter;
-import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.ErrorHighlightingStrategy;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
+import org.sudu.experiments.parser.common.Pos;
 
 import java.util.HashMap;
 import java.util.List;
@@ -10,9 +14,32 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 // Base class for parsers, that parse all text in file
-public abstract class BaseFullParser extends BaseParser {
+public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> {
 
   public Map<Pos, Pos> usageToDefinition = new HashMap<>();
+
+  public int[] parse(char[] source) {
+    long parsingStartTime = System.currentTimeMillis();
+
+    initLexer(source);
+    var parser = initParser();
+    parser.setErrorHandler(new ErrorHighlightingStrategy());
+    parser.removeErrorListeners();
+    parser.addErrorListener(parserRecognitionListener);
+
+    var rule = getStartRule(parser);
+    highlightTokens();
+
+    int[] result;
+    try {
+      var node = walk(rule);
+      result = getInts(node);
+    } catch (Exception e) {
+      result = getInts(defaultIntervalNode());
+    }
+    if (printResult) System.out.println("Parsing done in: " + (System.currentTimeMillis() - parsingStartTime) + "ms");
+    return result;
+  }
 
   protected int[] getInts() {
     return getInts(null);
@@ -44,6 +71,6 @@ public abstract class BaseFullParser extends BaseParser {
     return writer.getInts();
   }
 
+  // Tokens, that
   protected abstract boolean tokenFilter(Token token);
-
 }

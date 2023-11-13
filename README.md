@@ -71,25 +71,23 @@ Note: we don't use git clone https://github.com/konsoletyper/teavm.git due to a 
    cd antlr4-teavm-compatible
    mvn install -DskipTests
    ```
-   6.1. If you need to edit grammars and generate parsers, you need to install ANTLR4.
-   The easiest way is installed antlr4-tools:
-   ```
-   pip install antlr4-tools
-   ```
+
+7. Run download fonts task:
+   `mvn package -am -pl :codicon -pl :fonts -f pom.xml`
 
    Now you can build the demo with
 
    `mvn package`
 
 
-7. To run desktop version one need to get libGLESv2.dll - Angle library. 
+8. To run desktop version one need to get libGLESv2.dll - Angle library. 
    One way of getting it is to run org.sudu.experiments.nativelib.CopyAngleToResources
    You may also need to build native parts of project with this maven command:
    `mvn package -am -pl graphics-jvm`
    After this steps you can simply run org.sudu.experiments.DemoEditJvm
 
 
-8. If you want to build ES module with its demo, you need Node.js version 18+. 
+9. If you want to build ES module with its demo, you need Node.js version 18+. 
    Steps:  
    1. Run maven task to build the module (any of "a" or "b")
       1. run IDEA run-configuration "Module package"

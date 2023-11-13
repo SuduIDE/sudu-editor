@@ -17,10 +17,11 @@ public class MethodNode extends DeclNode {
   public int callType;
   public static final int METHOD = 1;
   public static final int CREATOR = 2;
-  public static final int THIS = 3;
-  public static final int SUPER = 4;
-  public static final int THIS_CALL = 5;
-  public static final int SUPER_CALL = 6;
+  public static final int ARRAY_CREATOR = 3;
+  public static final int THIS = 4;
+  public static final int SUPER = 5;
+  public static final int THIS_CALL = 6;
+  public static final int SUPER_CALL = 7;
 
   public MethodNode(Name decl, String type) {
     this(decl, type, METHOD, Collections.emptyList());

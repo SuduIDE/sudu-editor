@@ -2,6 +2,8 @@ package org.sudu.experiments.parser.common.graph.node.ref;
 
 import org.sudu.experiments.parser.common.Name;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -17,9 +19,17 @@ public class QualifiedRefNode extends RefNode {
     this.cont = cont;
   }
 
-  public static Name getDecl(RefNode cont) {
-    if (cont instanceof QualifiedRefNode qualifiedRefNode) return getDecl(qualifiedRefNode.cont);
-    else return cont.ref;
+  public List<RefNode> flatten() {
+    List<RefNode> result = new ArrayList<>();
+    flatten(result);
+    return result;
+  }
+
+  protected void flatten(List<RefNode> result) {
+    if (!(begin instanceof QualifiedRefNode qualifiedRef)) result.add(begin);
+    else qualifiedRef.flatten(result);
+    if (!(cont instanceof QualifiedRefNode qualifiedRef)) result.add(cont);
+    else qualifiedRef.flatten(result);
   }
 
   @Override

@@ -1,6 +1,7 @@
 package org.sudu.experiments.editor.worker.parser;
 
 import org.junit.jupiter.api.Test;
+import org.sudu.experiments.editor.worker.proxy.JavaProxy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +14,8 @@ class JavaParserTest {
   @Test
   void parseChars() {
     List<Object> result = new ArrayList<>();
-    JavaParser.parse(new char[0], result);
+    var proxy = new JavaProxy();
+    proxy.parseFullFile(new char[0], result);
 
     for (Object o : result) {
       assertTrue(o.getClass().isArray());

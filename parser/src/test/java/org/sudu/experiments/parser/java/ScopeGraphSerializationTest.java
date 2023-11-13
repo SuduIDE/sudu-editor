@@ -5,7 +5,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.junit.jupiter.api.Test;
 import org.sudu.experiments.parser.Interval;
-import org.sudu.experiments.parser.common.IntervalNode;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.graph.ScopeGraph;
 import org.sudu.experiments.parser.common.graph.reader.ScopeGraphReader;
 import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
@@ -36,13 +36,12 @@ public class ScopeGraphSerializationTest {
     ScopeGraph fromGraph = scopeWalker.scopeWalker.graph;
     ScopeGraphWriter scopeGraphWriter = new ScopeGraphWriter(fromGraph, scopeWalker.scopeWalker.currentNode);
     scopeGraphWriter.toInts();
-    int[] ints = scopeGraphWriter.ints;
-    char[] chars = scopeGraphWriter.chars;
+    int[] ints = scopeGraphWriter.graphInts;
+    char[] chars = scopeGraphWriter.graphChars;
 
     ScopeGraphReader reader = new ScopeGraphReader(ints, chars);
     reader.readFromInts();
     ScopeGraph toGraph = new ScopeGraph(reader.scopeRoot, reader.typeMap);
-    toGraph.resolveAll((ref, decl) -> {});
   }
 
   private String readFile(String filename) {

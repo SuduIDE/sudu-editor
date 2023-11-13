@@ -1,19 +1,18 @@
 package org.sudu.experiments.parser.javascript.parser;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.Lexer;
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.ParserConstants;
-import org.sudu.experiments.parser.common.BaseFullParser;
+import org.sudu.experiments.parser.common.base.BaseFullParser;
 import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptLexer;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptParser;
 import org.sudu.experiments.parser.javascript.parser.highlighting.JavaScriptLexerHighlighting;
 import org.sudu.experiments.parser.javascript.walker.JsWalker;
 
-public class JavaScriptFullParser extends BaseFullParser {
+public class JavaScriptFullParser extends BaseFullParser<JavaScriptParser> {
 
   public int[] parse(String source) {
     long parsingTime = System.currentTimeMillis();
@@ -44,6 +43,11 @@ public class JavaScriptFullParser extends BaseFullParser {
   }
 
   @Override
+  protected JavaScriptParser initParser() {
+    return null;
+  }
+
+  @Override
   protected SplitRules initSplitRules() {
     return null;
   }
@@ -56,11 +60,20 @@ public class JavaScriptFullParser extends BaseFullParser {
   }
 
   @Override
+  protected ParserRuleContext getStartRule(JavaScriptParser parser) {
+    return null;
+  }
+
+  @Override
+  protected IntervalNode walk(ParserRuleContext startRule) {
+    return null;
+  }
+
+  @Override
   protected void highlightTokens() {
     for (var token: allTokens) {
       int ind = token.getTokenIndex();
       if (isComment(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.COMMENT;
-      if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
     }
   }
 

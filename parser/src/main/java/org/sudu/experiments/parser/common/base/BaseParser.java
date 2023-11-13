@@ -1,14 +1,19 @@
-package org.sudu.experiments.parser.common;
+package org.sudu.experiments.parser.common.base;
 
 import org.antlr.v4.runtime.*;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.*;
+import org.sudu.experiments.parser.common.tree.IntervalNode;
+import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.parser.common.SplitRules;
 
 import java.nio.CharBuffer;
 import java.util.*;
 import java.util.function.Supplier;
 
-public abstract class BaseParser {
+public abstract class BaseParser<P extends Parser> {
+
+  protected static boolean printResult = true;
 
   protected int fileSourceLength;
   protected Supplier<String> fileSource;
@@ -23,10 +28,13 @@ public abstract class BaseParser {
   protected ErrorRecognizerListener parserRecognitionListener;
   protected SplitRules splitRules;
 
-  protected boolean isErrorToken(int tokenType){return false;}
   protected abstract Lexer initLexer(CharStream stream);
+  protected abstract P initParser();
+  protected abstract ParserRuleContext getStartRule(P parser);
+  protected abstract IntervalNode walk(ParserRuleContext startRule);
   protected abstract SplitRules initSplitRules();
   protected abstract boolean tokenFilter(Token token);
+  protected abstract void highlightTokens();
 
   static <T> Supplier<T> supplier(T t) { return () -> t; }
 
@@ -131,15 +139,16 @@ public abstract class BaseParser {
     return Collections.singletonList(token);
   }
 
-  protected void highlightTokens() {
-    for (var token: allTokens) {
-      int ind = token.getTokenIndex();
-      if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
-    }
+  protected Interval defaultInterval(int type) {
+    return new Interval(0, fileSourceLength, type);
   }
 
   protected Interval defaultInterval() {
     return new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.UNKNOWN);
+  }
+
+  protected IntervalNode defaultIntervalNode(int type) {
+    return new IntervalNode(defaultInterval(type));
   }
 
   protected IntervalNode defaultIntervalNode() {
