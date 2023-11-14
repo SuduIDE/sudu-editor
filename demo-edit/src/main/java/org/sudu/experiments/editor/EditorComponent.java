@@ -105,7 +105,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   IntConsumer hScrollListener, vScrollListener;
   Consumer<EditorComponent> fullFileParseListener;
 
-  public EditorComponent(UiContext context, EditorUi ui) {
+  EditorComponent(UiContext context, EditorUi ui) {
     this.context = context;
     this.g = context.graphics;
     this.ui = ui;
@@ -209,6 +209,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   void toggleMirrored() {
     mirrored = !mirrored;
+    // todo: remove this since we call lineNumbers.dispose() in internalLayout
+    // todo: refactor
     lineNumbers.dispose();
     lineNumbers = new LineNumbersComponent();
     internalLayout(pos, size, context.dpr);
@@ -316,6 +318,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       CodeLine codeLine = line.line;
       if (codeLine != null) codeLine.contentDirty = true;
     }
+    lineNumbers.dispose();
+    updateLineNumbersFont();
   }
 
   private void doChangeFont(String name, int virtualSize) {
@@ -582,7 +586,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private void updateLineNumbersFont() {
-    lineNumbers.setFont(fonts[0], lineHeight, g);
+    lineNumbers.setFont(fonts[0], lineHeight, context.cleartype, g);
     lineNumbers.initTextures(g, getFirstLine(), editorHeight());
   }
 

@@ -36,7 +36,8 @@ public class ManyTexturesLineNumbersScene extends Scene {
     this.g = api.graphics;
     setCursor = SetCursor.wrap(api.window);
 
-    lineNumbers.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight, g);
+    lineNumbers.setFont(g.fontDesk(Fonts.Consolas, fontSize), lineHeight,
+        g.cleartypeSupported, g);
 
     scrollBar = new ScrollBar();
   }

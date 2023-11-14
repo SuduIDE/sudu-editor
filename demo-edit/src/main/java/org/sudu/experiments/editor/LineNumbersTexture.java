@@ -24,6 +24,8 @@ public class LineNumbersTexture implements Disposable {
 
   private final int baseline;
 
+  private boolean cleartype;
+
   public LineNumbersTexture(
     V2i texturePos,
     int numberOfLines,
@@ -64,6 +66,7 @@ public class LineNumbersTexture implements Disposable {
     }
 
     lineTexture.setContent(textureCanvas);
+    cleartype = textureCanvas.cleartype;
     return startNum;
   }
 
@@ -211,11 +214,19 @@ public class LineNumbersTexture implements Disposable {
   }
 
   private void draw(WglGraphics g, int yPos, V2i dXdY, V4f textColor, V4f bgColor) {
-    g.drawText(texturePos.x + dXdY.x, yPos + dXdY.y,
-      rectSize,
-      rectRegion,
-      lineTexture,
-      textColor, bgColor, 0f);
+    if (cleartype) {
+      g.drawTextCT(texturePos.x + dXdY.x, yPos + dXdY.y,
+          rectSize,
+          rectRegion,
+          lineTexture,
+          textColor, bgColor);
+    } else {
+      g.drawText(texturePos.x + dXdY.x, yPos + dXdY.y,
+          rectSize,
+          rectRegion,
+          lineTexture,
+          textColor, bgColor, 0f);
+    }
   }
 
   private int scrollDown(

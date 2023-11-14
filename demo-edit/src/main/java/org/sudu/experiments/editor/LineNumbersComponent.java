@@ -19,11 +19,11 @@ public class LineNumbersComponent implements Disposable {
 
   private final V2i pos = new V2i();
   private final V2i size = new V2i();
+  private double devicePR;
+
   private FontDesk fontDesk;
   private int lineHeight;
-
   private int textureHeight;
-  private double devicePR;
 
   private final List<LineNumbersTexture> textures = new ArrayList<>();
   private byte[] colors = new byte[0];
@@ -157,19 +157,19 @@ public class LineNumbersComponent implements Disposable {
     }
   }
 
-  public void setFont(FontDesk font, int lineHeight, WglGraphics g) {
+  public void setFont(FontDesk font, int lineHeight, boolean cleartype, WglGraphics g) {
     this.fontDesk = font;
     this.lineHeight = lineHeight;
     this.textureHeight = lineHeight * numberOfLines;
 
     textureCanvas = Disposable.assign(
-        textureCanvas, g.createCanvas(size.x, textureHeight)
+        textureCanvas, g.createCanvas(size.x, textureHeight, cleartype)
     );
     textureCanvas.setFont(fontDesk);
     textureCanvas.setTextAlign(Canvas.TextAlign.RIGHT);
 
     updateCanvas = Disposable.assign(
-        updateCanvas, g.createCanvas(size.x, lineHeight)
+        updateCanvas, g.createCanvas(size.x, lineHeight, cleartype)
     );
     updateCanvas.setFont(fontDesk);
     updateCanvas.setTextAlign(Canvas.TextAlign.RIGHT);
