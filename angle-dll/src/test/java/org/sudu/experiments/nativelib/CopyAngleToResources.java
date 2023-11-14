@@ -63,7 +63,9 @@ public class CopyAngleToResources {
       Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 
       Files.writeString(versionFile, versioString,
-          StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+          StandardOpenOption.WRITE,
+          StandardOpenOption.CREATE,
+          StandardOpenOption.TRUNCATE_EXISTING);
     }
   }
 
