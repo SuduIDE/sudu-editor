@@ -51,6 +51,8 @@ public class Diff0 extends Scene1 implements
     editor1.setFullFileParseListener(this::fullFileParseListener);
     editor2.setFullFileParseListener(this::fullFileParseListener);
 
+    highlightResolveErrors(false);
+
     uiContext.initFocus(editor1);
 
     api.input.onMouse.add(ui);
@@ -76,6 +78,11 @@ public class Diff0 extends Scene1 implements
     if ((modelFlags & 3) == 3) {
       sendToDiff();
     }
+  }
+
+  void highlightResolveErrors(boolean highlight) {
+    editor1.highlightResolveError(highlight);
+    editor2.highlightResolveError(highlight);
   }
 
   public boolean onCopy(Consumer<String> consumer, boolean b) {

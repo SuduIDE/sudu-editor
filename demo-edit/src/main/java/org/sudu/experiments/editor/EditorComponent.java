@@ -105,6 +105,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   IntConsumer hScrollListener, vScrollListener;
   Consumer<EditorComponent> fullFileParseListener;
 
+  private boolean highlightResolveError = true;
+
   EditorComponent(UiContext context, EditorUi ui) {
     this.context = context;
     this.g = context.graphics;
@@ -872,7 +874,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int[] ints = ((ArrayView) result[0]).ints();
     int version = ((ArrayView) result[1]).ints()[0];
     if (model.document.needReparse() || model.document.currentVersion != version) return;
-    model.document.onResolve(ints);
+    model.document.onResolve(ints, highlightResolveError);
     long time = System.currentTimeMillis();
     if (printResolveTime) System.out.println("Resolved in " + (time - resolveTimeStart) + "ms");
   }
@@ -1831,4 +1833,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       lineNumbers.setColors(null);
     }
   }
+
+  public void highlightResolveError(boolean highlight) {
+    highlightResolveError = highlight;
+  }
+
 }
