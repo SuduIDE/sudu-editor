@@ -7,6 +7,7 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.EditorUi.FontApi;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.worker.parser.LineParser;
 import org.sudu.experiments.editor.worker.parser.ParserUtils;
 import org.sudu.experiments.editor.worker.proxy.*;
 import org.sudu.experiments.fonts.FontDesk;
@@ -1797,6 +1798,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       case Languages.CPP -> CppProxy.PARSE_FULL_FILE;
       case Languages.JS -> JavaScriptProxy.PARSE_FULL_FILE;
       case Languages.ACTIVITY -> ActivityProxy.PARSE_FULL_FILE;
+      case Languages.TEXT -> LineParser.PARSE;
       default -> null;
     } : null;
   }
