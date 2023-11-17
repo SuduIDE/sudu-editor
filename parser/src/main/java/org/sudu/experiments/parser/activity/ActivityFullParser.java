@@ -32,7 +32,7 @@ public class ActivityFullParser extends BaseFullParser<ActivityParser> {
     return new SplitRules() {
       @Override
       public List<TokenSplitRule> getRules() {
-        return Collections.emptyList();
+        return List.of(makeRule(_1 -> true, super::splitTokenByLine));
       }
     };
   }

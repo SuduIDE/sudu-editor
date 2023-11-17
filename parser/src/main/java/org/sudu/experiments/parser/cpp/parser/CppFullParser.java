@@ -10,6 +10,7 @@ import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.cpp.CppSplitRules;
 import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
 import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
+import org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting;
 import org.sudu.experiments.parser.cpp.walker.CppWalker;
 import org.sudu.experiments.parser.cpp.walker.CppClassWalker;
 
@@ -60,11 +61,7 @@ public class CppFullParser extends BaseFullParser<CPP14Parser> {
 
   @Override
   protected void highlightTokens() {
-    for (var token: allTokens) {
-      int ind = token.getTokenIndex();
-      if (isComment(token.getType())) tokenTypes[ind] = COMMENT;
-      else if (isDirective(token.getType())) tokenTypes[ind] = ANNOTATION;
-    }
+    CppLexerHighlighting.highlightTokens(allTokens, tokenTypes);
   }
 
   public static boolean isDirective(int tokenType) {
