@@ -523,7 +523,7 @@ public class Document {
     return pos;
   }
 
-  public void onResolve(int[] resolveInts) {
+  public void onResolve(int[] resolveInts, boolean highlightErrors) {
     ArrayReader reader = new ArrayReader(resolveInts);
     usageToDef.clear();
     defToUsages.clear();
@@ -536,7 +536,7 @@ public class Document {
 
       int declFlag = reader.next();
       if (declFlag == -1) {
-        refElem.color = ParserConstants.TokenTypes.ERROR;
+        if (highlightErrors) refElem.color = ParserConstants.TokenTypes.ERROR;
         continue;
       }
       var declPos = binarySearchPosAt(reader.next());
