@@ -1,6 +1,7 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.SplitInfo;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.js.Fetch;
 import org.sudu.experiments.js.JsHelper;
@@ -29,7 +30,8 @@ public class DiffDemoJs extends Diff0 {
   }
 
   static void loadText(Consumer<Model> editor, String path, JSString text) {
-    String[] split = SplitJsText.split(text, Document.newLine);
-    editor.accept(new Model(split, new Uri(path)));
+    SplitInfo splitInfo = SplitJsText.split(text);
+    String[] lines = splitInfo.lines;
+    editor.accept(new Model(lines, new Uri(path)));
   }
 }
