@@ -30,6 +30,7 @@ public class FontDesk {
 
   public final Object platformFont;
 
+  // todo: move platformFont to subclass to avoid TeaVM JS Wrappers logic
   public FontDesk(
       String name, float size, int weight, int style,
       float ascent, float descent,
