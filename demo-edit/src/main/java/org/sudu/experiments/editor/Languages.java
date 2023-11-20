@@ -12,6 +12,10 @@ public interface Languages {
   String JS = "js";
   String ACTIVITY = "activity";
 
+  static String[] getAllLanguages() {
+    return new String[]{TEXT, JAVA, CPP, ACTIVITY};
+  }
+
   static String getLanguage(String lang) {
     return switch (lang.toLowerCase(Locale.ENGLISH)) {
       case "text", "txt", "plaintext" -> TEXT;

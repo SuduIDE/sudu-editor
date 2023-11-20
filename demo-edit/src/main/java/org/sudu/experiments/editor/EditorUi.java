@@ -242,6 +242,7 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
       cutCopyPaste(tbb);
       //noinspection ConstantValue
       if (1 < 0) tbb.addItem("old >", oldDev());
+      tbb.addItem("Language >", languageItems());
       tbb.addItem("Settings >", settingsItems());
       tbb.addItem("Development >", devItems());
       return tbb.supplier();
@@ -289,6 +290,17 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
       return text -> window().writeClipboardText(text,
           org.sudu.experiments.Const.emptyRunnable,
           onError("writeClipboardText error: "));
+    }
+
+    private Supplier<ToolbarItem[]> languageItems() {
+      ToolbarItemBuilder tbb = new ToolbarItemBuilder();
+      for (var lang: Languages.getAllLanguages()) {
+        tbb.addItem(lang, () -> {
+          editor.setLanguage(lang);
+          editor.parseFullFile();
+        });
+      }
+      return tbb.supplier();
     }
 
     private Supplier<ToolbarItem[]> settingsItems() {
