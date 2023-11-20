@@ -10,7 +10,7 @@ public interface SplitJsText {
 
   static SplitInfo split(JSString t) {
     String[] lines = new String[8];
-    int[] lineSeparators = new int[8];
+    byte[] lineSeparators = new byte[8];
     char[] buffer = new char[16];
     int column = 0, line = 0, length = t.getLength();
     for (int i = 0; i <= length; ++i) {
