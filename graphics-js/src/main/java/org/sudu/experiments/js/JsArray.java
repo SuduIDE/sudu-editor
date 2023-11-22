@@ -20,6 +20,8 @@ public abstract class JsArray<T extends JSObject> implements JsArrayReader<T> {
 
   public abstract T shift();
 
+  public abstract int indexOf(T value);
+
   @JSBody(script = "return new Array();")
   @NoSideEffects
   public static native <T extends JSObject> JsArray<T> create();
