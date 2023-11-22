@@ -3,7 +3,6 @@
 
 package org.sudu.experiments.editor;
 
-import org.sudu.experiments.Debug;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
@@ -91,15 +90,6 @@ public class Editor0 extends Scene1 implements EditorTheme, EditorUi.CleartypeCo
     Objects.requireNonNull(theme);
     ui.setTheme(theme);
     editor.setTheme(theme);
-  }
-
-  public void setTheme(String theme) {
-    switch (theme) {
-      case "light" -> toggleLight();
-      case "darcula" -> toggleDarcula();
-      case "dark" -> toggleDark();
-      default -> Debug.consoleInfo("unknown theme: " + theme);
-    }
   }
 
   boolean onKeyPress(KeyEvent event) {
