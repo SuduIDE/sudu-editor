@@ -127,7 +127,7 @@ public class JsHelper {
     }
   }
 
-  @JSBody(params = {"x"}, script = "return x ? true : false;")
+  @JSBody(params = {"x"}, script = "return x ? 1 : 0;")
   public static native boolean jsIf(JSObject x);
 
   public static String toString(JSString jsString, String orElse) {

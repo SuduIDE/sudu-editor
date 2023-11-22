@@ -20,7 +20,7 @@ public class WorkersPool {
   private final int[] freeWorkers;
   private int workerJobIdNext, freeWorkersCount;
 
-  static boolean debug;
+  static final boolean debug = false;
 
   public WorkersPool(JsArray<WorkerContext> workers) {
     this.workers = workers;
@@ -66,7 +66,8 @@ public class WorkersPool {
   final Function<Integer, Consumer<Object[]>> jobHandler = jobs::remove;
 
   private void onWorkerMessage(MessageEvent event, int index) {
-//    JsHelper.consoleInfo("onWorkerMessage: delayedJobs.size = ", delayedJobs.size());
+    if (debug) JsHelper.consoleInfo(
+        "onWorkerMessage: delayedJobs.size = ", delayedJobs.size());
     if (WorkerProtocol.isPing(event.getData()) && debug) {
       JsHelper.consoleInfo("  ping response from worker ", index);
     }

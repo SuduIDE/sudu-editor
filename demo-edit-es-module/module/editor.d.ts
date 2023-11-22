@@ -11,6 +11,10 @@ interface EditArgs {
     theme?: string
 
     readonly?: boolean
+
+    // number of worker threads for parsing and resolve
+    // default: 2
+    numThreads?: number
 }
 
 interface Uri {

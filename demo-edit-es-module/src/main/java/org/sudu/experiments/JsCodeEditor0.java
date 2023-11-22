@@ -19,13 +19,10 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   public static final String errorNotArray = "provided result is not an array";
 
-  private final EditArguments args;
   private final WebWindow window;
   private final EditorComponent editor;
 
-  public JsCodeEditor0(EditArguments args, JsArray<WorkerContext> workers) {
-    this.args = args;
-
+  public JsCodeEditor0(EditArgs args, JsArray<WorkerContext> workers) {
     this.window = new WebWindow(
         Editor0::new,
         JsCodeEditor0::onWebGlError,
@@ -280,12 +277,14 @@ public class JsCodeEditor0 implements JsCodeEditor {
     JsHelper.consoleInfo("FATAL: WebGL is not enabled in the browser");
   }
 
-  static Promise<JsCodeEditor> newEdit(EditArguments arguments) {
+  static Promise<JsCodeEditor> newEdit(EditArgs arguments) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
           WorkerContext.start(
               worker -> postResult.f(new JsCodeEditor0(arguments, worker)),
-              postError, arguments.workerUrl(), 2));
+              postError,
+              arguments.workerUrl(),
+              arguments.numWorkerThreads()));
     } else {
       return Promise.reject(FireFoxWarning.message);
     }

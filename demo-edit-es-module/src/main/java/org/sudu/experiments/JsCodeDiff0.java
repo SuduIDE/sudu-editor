@@ -12,15 +12,12 @@ import org.teavm.jso.core.JSString;
 public class JsCodeDiff0 implements JsCodeDiff {
 
   private final Diff0 diff;
-  private final JsCodeEditor.EditArguments args;
   private final WebWindow window;
 
   public JsCodeDiff0(
-      JsCodeEditor.EditArguments args,
+      JsCodeEditor.EditArgs args,
       JsArray<WorkerContext> workers
   ) {
-    this.args = args;
-
     this.window = new WebWindow(
         Diff0::new,
         JsCodeEditor0::onWebGlError,
@@ -89,12 +86,14 @@ public class JsCodeDiff0 implements JsCodeDiff {
     diff.setReadonly(flag.booleanValue());
   }
 
-  static Promise<JsCodeDiff> newDiff(JsCodeEditor.EditArguments arguments) {
+  static Promise<JsCodeDiff> newDiff(JsCodeEditor.EditArgs arguments) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
           WorkerContext.start(
               workers -> postResult.f(new JsCodeDiff0(arguments, workers)),
-              postError, arguments.workerUrl(), 2));
+              postError,
+              arguments.workerUrl(),
+              arguments.numWorkerThreads()));
     } else {
       return Promise.reject(FireFoxWarning.message);
     }

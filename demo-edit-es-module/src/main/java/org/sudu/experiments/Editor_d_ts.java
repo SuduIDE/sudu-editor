@@ -13,7 +13,7 @@ import org.teavm.jso.core.JSString;
 public interface Editor_d_ts {
 
   @JSFunctor interface EditorFactory extends JSObject {
-    Promise<JsCodeEditor> create(JsCodeEditor.EditArguments args);
+    Promise<JsCodeEditor> create(JsCodeEditor.EditArgs args);
 
     class Setter {
       @JSBody(params = {"f"}, script = "editorFactory = f;")
@@ -31,7 +31,7 @@ public interface Editor_d_ts {
   }
 
   @JSFunctor interface DiffFactory extends JSObject {
-    Promise<JsCodeDiff> create(JsCodeEditor.EditArguments args);
+    Promise<JsCodeDiff> create(JsCodeEditor.EditArgs args);
 
     class Setter {
       @JSBody(params = {"f"}, script = "diffFactory = f;")

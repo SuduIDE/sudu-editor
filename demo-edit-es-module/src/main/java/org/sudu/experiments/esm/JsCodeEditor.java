@@ -30,7 +30,7 @@ public interface JsCodeEditor extends JsDisposable {
 
   JsDisposable onDidChangeModel(JsFunctions.Consumer<JsIModelChangedEvent> f);
 
-  interface EditArguments extends JSObject {
+  interface EditArgs extends JSObject {
     @JSProperty JSString getContainerId();
 
     String workerUrlProperty = "workerUrl";
@@ -53,6 +53,14 @@ public interface JsCodeEditor extends JsDisposable {
     default JSString workerUrl() {
       return JSObjects.hasProperty(this, workerUrlProperty)
           ? getWorkerUrl() : JSString.valueOf("worker.js");
+    }
+
+    String numThreadsProperty = "numThreads";
+    @JSProperty double getNumThreads();
+
+    default int numWorkerThreads() {
+      return JSObjects.hasProperty(this, numThreadsProperty)
+          ? (int) getNumThreads() : 2;
     }
   }
 }
