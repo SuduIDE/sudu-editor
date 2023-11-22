@@ -5,10 +5,7 @@ import org.sudu.experiments.esm.JsCodeDiff;
 import org.sudu.experiments.esm.JsCodeEditor;
 import org.sudu.experiments.esm.JsITextModel;
 import org.sudu.experiments.esm.JsTextModel;
-import org.sudu.experiments.js.FireFoxWarning;
-import org.sudu.experiments.js.JsCanvas;
-import org.sudu.experiments.js.Promise;
-import org.sudu.experiments.js.WorkerContext;
+import org.sudu.experiments.js.*;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
 
@@ -18,14 +15,17 @@ public class JsCodeDiff0 implements JsCodeDiff {
   private final JsCodeEditor.EditArguments args;
   private final WebWindow window;
 
-  public JsCodeDiff0(JsCodeEditor.EditArguments args, WorkerContext worker) {
+  public JsCodeDiff0(
+      JsCodeEditor.EditArguments args,
+      JsArray<WorkerContext> workers
+  ) {
     this.args = args;
 
     this.window = new WebWindow(
         Diff0::new,
         JsCodeEditor0::onWebGlError,
         args.getContainerId().stringValue(),
-        worker);
+        workers);
     this.diff = (Diff0) window.scene();
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly()) setReadonly(args.getReadonly());
@@ -93,8 +93,8 @@ public class JsCodeDiff0 implements JsCodeDiff {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
           WorkerContext.start(
-              worker -> postResult.f(new JsCodeDiff0(arguments, worker)),
-              postError, arguments.workerUrl()));
+              workers -> postResult.f(new JsCodeDiff0(arguments, workers)),
+              postError, arguments.workerUrl(), 2));
     } else {
       return Promise.reject(FireFoxWarning.message);
     }

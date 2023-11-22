@@ -8,8 +8,8 @@ import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.events.MessageEvent;
 
-import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public abstract class WorkerContext implements JSObject {
 
@@ -34,23 +34,30 @@ public abstract class WorkerContext implements JSObject {
   public abstract void terminate();
 
   public static void start(
-      Consumer<WorkerContext> onStart,
+      JsFunctions.Consumer<JsArray<WorkerContext>> onStart,
       JsFunctions.Consumer<JSObject> error,
-      JSString url
+      JSString url, int count
   ) {
-    WorkerContext worker = newWorker(url);
-    worker.onMessage(message -> {
-      if (WorkerProtocol.isStarted(message.getData())) {
-        worker.onMessage((JSObject) null);
-        onStart.accept(worker);
-      } else {
-        error.f(JsHelper.newError("worker is not started"));
-      }
-    });
+    JsArray<WorkerContext> workers = JsArray.create();
+    for (int i = 0; i < count; i++) {
+      WorkerContext worker = newWorker(url);
+      worker.onMessage(message -> {
+        if (WorkerProtocol.isStarted(message.getData())) {
+          worker.onMessage((JSObject) null);
+          workers.push(worker);
+          if (workers.getLength() == count) onStart.f(workers);
+        } else {
+          error.f(JsHelper.newError("worker is not started"));
+        }
+      });
+    }
   }
 
-  public static void start(Consumer<WorkerContext> onStart, String url) {
-    start(onStart, WorkerContext::throwJsError, JSString.valueOf(url));
+  public static void start(
+      JsFunctions.Consumer<JsArray<WorkerContext>> onStart,
+      String url, int N
+  ) {
+    start(onStart, WorkerContext::throwJsError, JSString.valueOf(url), N);
   }
 
   static void throwJsError(JSObject jsError) {
@@ -71,7 +78,7 @@ public abstract class WorkerContext implements JSObject {
     } else throw new IllegalArgumentException();
   }
 
-  public static void onEdtMessage(Map<Integer, Consumer<Object[]>> handlers, JSObject message) {
+  public static void onEdtMessage(Function<Integer, Consumer<Object[]>> handlers, JSObject message) {
     if (WorkerProtocol.isPing(message)) {
 //      JsHelper.consoleInfo("App: hello from worker");
     } else if (WorkerProtocol.isArray(message)) {

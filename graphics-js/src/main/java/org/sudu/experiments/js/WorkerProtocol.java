@@ -6,8 +6,8 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
-import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class WorkerProtocol {
   static JSString started() { return JSString.valueOf("started"); }
@@ -42,10 +42,10 @@ public class WorkerProtocol {
     } else throw new IllegalArgumentException();
   }
 
-  static void dispatchResult(Map<Integer, Consumer<Object[]>> handlers, JsArrayReader<JSObject> array) {
+  static void dispatchResult(Function<Integer, Consumer<Object[]>> handlers, JsArrayReader<JSObject> array) {
     if (array.getLength() >= 1) {
       int taskId = array.get(0).<JSNumber>cast().intValue();
-      Consumer<Object[]> handler = handlers.remove(taskId);
+      Consumer<Object[]> handler = handlers.apply(taskId);
       handler.accept(toJava(array, 1));
     } else throw new IllegalArgumentException();
   }

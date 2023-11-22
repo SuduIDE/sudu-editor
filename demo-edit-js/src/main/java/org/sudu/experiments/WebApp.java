@@ -16,12 +16,12 @@ public class WebApp {
   public static final String preDiv = "panelDiv";
 
   boolean fontsLoaded;
-  WorkerContext workerStarted;
+  JsArray<WorkerContext> workers;
 
   public static void main(String[] args) {
     if (JsCanvas.checkFontMetricsAPI()) {
       WebApp webApp = new WebApp();
-      WorkerContext.start(webApp::setWorker, "teavm/worker.js");
+      WorkerContext.start(webApp::setWorkers, "teavm/worker.js", 3);
       FontFace.loadFonts(ArrayOp.add(JetBrainsMono.webConfig(), Codicon.webConfig()))
           .then(webApp::loadFonts, WebApp::fontLoadError);
     } else {
@@ -32,23 +32,23 @@ public class WebApp {
   private void loadFonts(JsArrayReader<JSObject> fontFaces) {
     FontFace.addToDocument(fontFaces);
     fontsLoaded = true;
-    if (workerStarted != null) startApp(workerStarted);
+    if (workers != null) startApp(workers);
   }
 
-  private void setWorker(WorkerContext worker) {
-    workerStarted = worker;
-    if (fontsLoaded) startApp(workerStarted);
+  private void setWorkers(JsArray<WorkerContext> workers) {
+    this.workers = workers;
+    if (fontsLoaded) startApp(workers);
   }
 
   static void fontLoadError(JSError error) {
     JsHelper.consoleInfo("font load error ", error);
   }
 
-  static void startApp(WorkerContext worker) {
+  static void startApp(JsArray<WorkerContext> workers) {
     var window = new WebWindow(
         WebApp::createScene,
         WebApp::onWebGlError,
-        "canvasDiv", worker);
+        "canvasDiv", workers);
     window.focus();
   }
 

@@ -23,14 +23,14 @@ public class JsCodeEditor0 implements JsCodeEditor {
   private final WebWindow window;
   private final EditorComponent editor;
 
-  public JsCodeEditor0(EditArguments args, WorkerContext worker) {
+  public JsCodeEditor0(EditArguments args, JsArray<WorkerContext> workers) {
     this.args = args;
 
     this.window = new WebWindow(
         Editor0::new,
         JsCodeEditor0::onWebGlError,
         args.getContainerId().stringValue(),
-        worker);
+        workers);
     editor = demoEdit0().editor();
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly()) setReadonly(args.getReadonly());
@@ -285,7 +285,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
       return Promise.create((postResult, postError) ->
           WorkerContext.start(
               worker -> postResult.f(new JsCodeEditor0(arguments, worker)),
-              postError, arguments.workerUrl()));
+              postError, arguments.workerUrl(), 2));
     } else {
       return Promise.reject(FireFoxWarning.message);
     }

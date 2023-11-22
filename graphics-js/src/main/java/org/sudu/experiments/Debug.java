@@ -13,8 +13,8 @@ public class Debug {
   @JSBody(params = {"s0", "n"}, script = "console.info(s0 + n);")
   public static native void consoleInfo(String s0, double n);
 
-  public static void consoleInfo(String s0, Object jsObject) {
-    JsHelper.consoleInfo(s0, (JSObject) jsObject);
+  public static void consoleInfo(String s0, JSObject jsObject) {
+    JsHelper.consoleInfo(s0, jsObject);
   }
 
   @JSBody(params = {"s0", "array"}, script = "console.info(s0 + array);")

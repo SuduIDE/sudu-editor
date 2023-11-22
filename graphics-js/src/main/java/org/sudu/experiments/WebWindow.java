@@ -9,12 +9,10 @@ import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
-import org.teavm.jso.dom.events.MessageEvent;
 import org.teavm.jso.dom.html.HTMLCanvasElement;
 import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
-import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -36,19 +34,16 @@ public class WebWindow implements org.sudu.experiments.Window {
   private Scene scene;
 
   // workers and jobs
-  private final WorkerContext worker;
-  private final TreeMap<Integer, Consumer<Object[]>> jobs = new TreeMap<>();
-  private int workerJobIdNext;
+  private final WorkersPool workers;
 
   public WebWindow(
       Function<SceneApi, Scene> factory,
       Runnable onWebGlError,
       String canvasDivId,
-      WorkerContext worker
+      JsArray<WorkerContext> workers
   ) {
-    this.worker = worker;
-    worker.onMessage(this::onWorkerMessage);
-    WorkerProtocol.sendPingToWorker(worker);
+    this.workers = new WorkersPool(workers);
+
 //    JsHelper.consoleInfo("starting web window on " + canvasDivId);
     canvasDiv = HTMLDocument.current().getElementById(canvasDivId);
     mainCanvas = JsHelper.createMainCanvas(null);
@@ -111,7 +106,7 @@ public class WebWindow implements org.sudu.experiments.Window {
       eventHandler.dispose();
       eventHandler = null;
     }
-    worker.terminate();
+    workers.terminateAll();
   }
 
   private void init(GLApi.Context gl, Function<SceneApi, Scene> sf) {
@@ -205,19 +200,9 @@ public class WebWindow implements org.sudu.experiments.Window {
     JsFileDialog.showOpenFilePicker(onResult);
   }
 
-  private void onWorkerMessage(MessageEvent event) {
-    WorkerContext.onEdtMessage(jobs, event.getData());
-  }
-
   @Override
   public void sendToWorker(Consumer<Object[]> handler, String method, Object... args) {
-    int id = nextId();
-    jobs.put(id, handler);
-    WorkerProtocol.sendToWorker(worker, id, method, args);
-  }
-
-  private int nextId() {
-    return ++workerJobIdNext;
+    workers.sendToWorker(handler, method, args);
   }
 
   @Override
