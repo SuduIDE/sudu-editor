@@ -555,7 +555,11 @@ public class JavaScopeWalker extends JavaParserBaseListener {
       else return new ExprRefNode(List.of(expr), type);
     }
     if (ctx.expression() != null && !ctx.expression().isEmpty()) {
-      List<RefNode> refs = ctx.expression().stream().map(this::handleExpression).toList();
+      List<RefNode> refs = new ArrayList<>();
+      for (var expr: ctx.expression()) {
+        refs.add(handleExpression(expr));
+      }
+//      List<RefNode> refs = ctx.expression().stream().map(this::handleExpression).toList();
       return new ExprRefNode(refs);
     }
     System.err.println("Unsupported expression: " + ctx.getText());
