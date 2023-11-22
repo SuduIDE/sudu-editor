@@ -141,10 +141,12 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   }
 
   private boolean isStatic(List<JavaParser.ModifierContext> modifiers) {
-    return modifiers.stream().anyMatch(
-        mod -> mod.classOrInterfaceModifier() != null
-            && mod.classOrInterfaceModifier().STATIC() != null
-    );
+    for (var mod: modifiers) {
+      if (mod.classOrInterfaceModifier() != null &&
+          mod.classOrInterfaceModifier().STATIC() != null
+      ) return true;
+    }
+    return false;
   }
 
   @Override
@@ -390,14 +392,18 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     String type = scopeWalker.getType(typeString);
     var declarators = getVarDeclarators(ctx.variableDeclarators());
 
-    List<DeclNode> fields = declarators.stream()
-        .map(decl -> new DeclNode(Name.fromRule(decl, offset), type, DeclNode.FIELD))
-        .toList();
+    List<DeclNode> fields = new ArrayList<>();
+    List<TerminalNode> forMark = new ArrayList<>();
+    for (var decl: declarators) {
+      fields.add(new DeclNode(Name.fromRule(decl, offset), type, DeclNode.FIELD));
+      forMark.add(getNode(decl.identifier()));
+    }
 
     scopeWalker.enterMember(fields);
     var refs = getVarDeclaratorsRefs(ctx.variableDeclarators());
     scopeWalker.addRefs(refs);
-    mark(declarators.stream().map(it -> getNode(it.identifier())).toList(), TokenTypes.FIELD, isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL);
+
+    mark(forMark, TokenTypes.FIELD, isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL);
   }
 
   private void handleConst(JavaParser.ConstDeclarationContext ctx) {
@@ -442,7 +448,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     String typeString = node.getText();
     String type = scopeWalker.getType(typeString);
     List<DeclNode> args = getArgsTypes(ctx.formalParameters());
-    List<String> types = args.stream().map(arg -> arg.type).toList();
+    List<String> types = new ArrayList<>();
+    for (var arg: args) types.add(arg.type);
     scopeWalker.enterMember(new MethodNode(decl, type, MethodNode.CREATOR, types));
     scopeWalker.enterScope();
     scopeWalker.addDecls(args);
@@ -458,7 +465,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     String typeString = getType(typeTypeOrVoid);
     String type = scopeWalker.getType(typeString);
     List<DeclNode> args = getArgsTypes(formalParameters);
-    List<String> types = args.stream().map(arg -> arg.type).toList();
+    List<String> types = new ArrayList<>();
+    for (var arg: args) types.add(arg.type);
     scopeWalker.enterMember(new MethodNode(decl, type, MethodNode.METHOD, types));
     scopeWalker.enterScope();
     scopeWalker.addDecls(args);
@@ -524,7 +532,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
       List<JavaParser.TypeListContext> typeListContexts
   ) {
     if (typeListContexts != null && !typeListContexts.isEmpty()) {
-      var typeTypeList = typeListContexts.stream().flatMap(typeList -> typeList.typeType().stream()).toList();
+      ArrayList<JavaParser.TypeTypeContext> typeTypeList = new ArrayList<>();
+      for (var typeList: typeListContexts) typeTypeList.addAll(typeList.typeType());
       for (var typeType: typeTypeList) {
         String supertypeString = getType(typeType);
 
@@ -559,7 +568,6 @@ public class JavaScopeWalker extends JavaParserBaseListener {
       for (var expr: ctx.expression()) {
         refs.add(handleExpression(expr));
       }
-//      List<RefNode> refs = ctx.expression().stream().map(this::handleExpression).toList();
       return new ExprRefNode(refs);
     }
     System.err.println("Unsupported expression: " + ctx.getText());
@@ -567,9 +575,9 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   }
 
   private List<RefNode> handleExpressionList(JavaParser.ExpressionListContext ctx) {
-    return ctx.expression().stream()
-        .map(this::handleExpression)
-        .toList();
+    List<RefNode> refs = new ArrayList<>();
+    for (var expr: ctx.expression()) refs.add(handleExpression(expr));
+    return refs;
   }
 
   private MethodCallNode handleMethodCall(JavaParser.MethodCallContext ctx) {
@@ -628,7 +636,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   }
 
   public void handleArrayCreator(JavaParser.ArrayCreatorRestContext ctx) {
-    var exprs = ctx.expression().stream().map(this::handleExpression).toList();
+    List<RefNode> exprs = new ArrayList<>();
+    for (var expr: ctx.expression()) exprs.add(handleExpression(expr));
     scopeWalker.addRefs(exprs);
   }
 
