@@ -108,7 +108,19 @@ public interface ArrayOp {
     return array.length == size ? array : Arrays.copyOf(array, size);
   }
 
+  static byte[] resizeOrReturn(byte[] array, int size) {
+    return array.length == size ? array : Arrays.copyOf(array, size);
+  }
+
   static <T> T[] addAt(T value, T[] data, int index) {
+    if (data.length == index) {
+      data = Arrays.copyOf(data, data.length * 2);
+    }
+    data[index] = value;
+    return data;
+  }
+
+  static byte[] addAt(byte value, byte[] data, int index) {
     if (data.length == index) {
       data = Arrays.copyOf(data, data.length * 2);
     }
