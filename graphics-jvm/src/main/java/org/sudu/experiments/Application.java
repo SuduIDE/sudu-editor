@@ -4,20 +4,19 @@ import org.sudu.experiments.fonts.FontResources;
 import org.sudu.experiments.win32.*;
 import org.sudu.experiments.worker.WorkerExecutor;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Application {
 
   public static void run(Function<SceneApi, Scene> sf, FontResources ... fontConfig) throws InterruptedException {
-    run(sf, WorkerExecutor.i(), sf.getClass().getName(), fontConfig);
+    run(sf, WorkerExecutor.i(), 0, sf.getClass().getName(), fontConfig);
   }
 
   public static void run(
       Function<SceneApi, Scene> sf,
-      WorkerExecutor workerExecutor,
+      WorkerExecutor workerExecutor, int numThreads,
       String title,
       FontResources ... fontConfig
   ) throws InterruptedException {
@@ -33,7 +32,8 @@ public class Application {
 
     Supplier<Win32Graphics> graphics = Win32Graphics.lazyInit(d2dCanvasFactory);
     EventQueue eventQueue = new EventQueue();
-    ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
+
+    ExecutorService ioExecutor = newThreadPool(numThreads);
 
     Win32Window window = new Win32Window(eventQueue, time, ioExecutor, workerExecutor);
 
@@ -50,6 +50,14 @@ public class Application {
 
     window.dispose();
     ioExecutor.shutdown();
+  }
+
+  static ExecutorService newThreadPool(int maxThreads) {
+    // to save memory we can use executor.allowCoreThreadTimeOut(true);
+    // to shutdown worker threads if no activity
+    return maxThreads <= 1
+        ? Executors.newSingleThreadExecutor()
+        : Executors.newFixedThreadPool(maxThreads);
   }
 
   static boolean loadFontConfig(FontResources[] config, D2dFactory factory) {

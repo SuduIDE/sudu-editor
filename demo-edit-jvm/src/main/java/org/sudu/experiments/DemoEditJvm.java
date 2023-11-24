@@ -17,7 +17,7 @@ public class DemoEditJvm {
         args.length > 0 ? args[0] : "default");
 
     Application.run(
-        selectScene, EditorWorker::execute,
+        selectScene, EditorWorker::execute, 3,
         "DemoEditJvm", JetBrainsMono.all(), Codicon.fontResource()
     );
   }
