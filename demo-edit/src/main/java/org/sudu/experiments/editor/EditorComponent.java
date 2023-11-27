@@ -92,7 +92,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   LineNumbersComponent lineNumbers = new LineNumbersComponent();
   //int lineNumLeftMargin = 10;
 
-  boolean fileStructureParsed, firstLinesParsed;
+  boolean fullFileParsed, fileStructureParsed, firstLinesParsed;
   String tabIndent = "  ";
 
   public boolean readonly = false;
@@ -107,6 +107,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   Consumer<EditorComponent> fullFileParseListener;
 
   private boolean highlightResolveError = true;
+  private final List<V2i> parsedVps = new ArrayList<>();
 
   EditorComponent(UiContext context, EditorUi ui) {
     this.context = context;
@@ -390,6 +391,11 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (model.document.needReparse(timestamp) && iterativeVersion != model.document.currentVersion) {
       iterativeVersion = model.document.currentVersion;
       iterativeParsing();
+    }
+
+    if (!fullFileParsed && fileStructureParsed) {
+      boolean vpParsed = parsedVps.stream().anyMatch(it -> it.x <= getFirstLine() && getLastLine() <= it.y);
+      if (!vpParsed) parseViewport();
     }
 
     int newVScrollPos = clampScrollPos(vScrollPos + scrollDown  -  scrollUp,
@@ -841,13 +847,14 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     return Math.min(Math.max(0, pos), maxScrollPos);
   }
 
-  private long parsingTimeStart;
+  private long parsingTimeStart, viewportParseStart;
   private long resolveTimeStart;
 
   private void onFileParsed(Object[] result) {
     Debug.consoleInfo("onFileParsed");
     fileStructureParsed = true;
     firstLinesParsed = true;
+    fullFileParsed = true;
 
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
@@ -893,12 +900,13 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private void onFileStructureParsed(Object[] result) {
+    if (fullFileParsed) return;
+    fileStructureParsed = true;
     int type = ((ArrayView) result[2]).ints()[0];
     if (type != FileProxy.JAVA_FILE) {
       onFileParsed(result);
       return;
     }
-    fileStructureParsed = true;
 
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
@@ -909,9 +917,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     window().setCursor(Cursor.arrow);
     window().repaint();
     Debug.consoleInfo("File structure parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
-
-    parseViewport();
-    parseFullFile();
   }
 
   private void changeModelLanguage(String languageFromParser) {
@@ -931,13 +936,13 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
     window().setCursor(Cursor.arrow);
     window().repaint();
-    Debug.consoleInfo("Viewport parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
+    Debug.consoleInfo("Viewport parsed in " + (System.currentTimeMillis() - viewportParseStart) + "ms");
   }
 
   private Window window() { return context.window; }
 
   private void onFirstLinesParsed(Object[] result) {
-    if (fileStructureParsed) return;
+    if (fileStructureParsed || fullFileParsed) return;
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
     ParserUtils.updateDocument(model.document, ints, chars);
@@ -951,6 +956,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     setCaretLinePos(0, 0, false);
     // f.readAsBytes(this::onFileLoad, System.err::println);
     parsingTimeStart = System.currentTimeMillis();
+    fullFileParsed = false;
     fileStructureParsed = false;
     firstLinesParsed = false;
     diffModel = null;
@@ -966,16 +972,24 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   private void sendFileToWorkers(FileHandle f) {
     String ext = f.getExtension();
-    int bigFileSize = FileProxy.isJavaExtension(ext) ?
-        EditorConst.FILE_SIZE_10_KB : EditorConst.FILE_SIZE_5_KB;
+    boolean isJava = FileProxy.isJavaExtension(ext);
+    int bigFileSize = isJava
+        ? EditorConst.FILE_SIZE_10_KB
+        : EditorConst.FILE_SIZE_5_KB;
 
     f.getSize(size -> {
       if (size <= bigFileSize) {
         window().sendToWorker(this::onFileParsed, FileProxy.asyncParseFullFile, f);
+      } else if (isJava) {
+        // Structure parsing is for java only
+        window().sendToWorker(this::onFirstLinesParsed, FileProxy.asyncParseFirstLines,
+            f, new int[]{EditorConst.FIRST_LINES});
+        window().sendToWorker(this::onFileStructureParsed, FileProxy.asyncParseFile, f);
+        window().sendToWorker(this::onFileParsed, FileProxy.asyncParseFullFile, f);
       } else {
         window().sendToWorker(this::onFirstLinesParsed, FileProxy.asyncParseFirstLines,
-                f, new int[]{EditorConst.FIRST_LINES});
-        window().sendToWorker(this::onFileStructureParsed, FileProxy.asyncParseFile, f);
+            f, new int[]{EditorConst.FIRST_LINES});
+        window().sendToWorker(this::onFileParsed, FileProxy.asyncParseFullFile, f);
       }
     });
   }
@@ -1454,19 +1468,15 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   public void parseViewport() {
-    if (Languages.JAVA.equals(model.language()))
+    if (Languages.JAVA.equals(model.language())) {
+      int firstLine = Math.max(0, getFirstLine() - EditorConst.VIEWPORT_OFFSET);
+      int lastLine = Math.min(model.document.length() - 1, getLastLine() + EditorConst.VIEWPORT_OFFSET);
+      parsedVps.add(new V2i(firstLine, lastLine));
+      int[] vpInts = new int[]{model.document.getLineStartInd(firstLine), model.document.getVpEnd(lastLine), firstLine};
+      viewportParseStart = System.currentTimeMillis();
       window().sendToWorker(this::onVpParsed, JavaProxy.PARSE_VIEWPORT,
-          model.document.getChars(), getViewport(), model.document.getIntervals() );
-  }
-
-  private int[] getViewport() {
-    int firstLine = getFirstLine();
-    int lastLine = getLastLine();
-
-    firstLine = Math.max(0, firstLine - EditorConst.VIEWPORT_OFFSET);
-    lastLine = Math.min(model.document.length() - 1, lastLine + EditorConst.VIEWPORT_OFFSET);
-
-    return new int[]{model.document.getLineStartInd(firstLine), model.document.getVpEnd(lastLine), firstLine};
+          model.document.getChars(), vpInts, model.document.getIntervals() );
+    }
   }
 
   public void parseFullFile() {
