@@ -13,6 +13,22 @@ public class StackGraph {
     this.edges = new ArrayList<>();
   }
 
+  void makeInsertDiff(int pos, int len) {
+    for (var edge: edges) {
+      if (edge.symbol != null && edge.symbol.position >= pos) {
+        edge.symbol.position += len;
+      }
+    }
+  }
+
+  void makeDeleteDiff(int pos, int len) {
+    for (var edge: edges) {
+      if (edge.symbol != null && edge.symbol.position >= pos) {
+        edge.symbol.position -= len;
+      }
+    }
+  }
+
   void addNode(StackNode node) {
     nodes.add(node);
     if (node.nodeType == StackNode.ROOT_NODE) roots.add(node);
