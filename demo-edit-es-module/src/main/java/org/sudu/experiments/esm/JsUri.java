@@ -6,6 +6,7 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSString;
+import org.teavm.jso.impl.JSWrapper;
 
 import static org.sudu.experiments.js.JsHelper.jsIf;
 
@@ -39,18 +40,22 @@ public abstract class JsUri implements JSObject {
 
   public static JsUri fromJava(Uri uri) {
     if (uri == null) return null;
-    if (uri.nativeObject != null) return (JsUri) uri.nativeObject;
-    return create(uri.scheme, uri.authority, uri.path, (JSObject) uri);
+    if (uri.nativeObject != null) {
+      return JSWrapper.directJavaToJs(uri.nativeObject).cast();
+    }
+    return create(
+        uri.scheme, uri.authority, uri.path,
+        JSWrapper.directJavaToJs(uri));
   }
 
   public Uri toJava() {
     if (!jsIf(this)) return null;
-    Object javaPeer = getJavaPeer();
+    Object javaPeer = JSWrapper.directJsToJava(getJavaPeer());
     if (javaPeer instanceof Uri uri) return uri;
     return new Uri(
         getSchemeOrNull(),
         getAuthorityOrNull(),
         getPathOrNull(),
-        this);
+        JSWrapper.directJsToJava(this));
   }
 }

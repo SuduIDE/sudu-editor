@@ -12,6 +12,7 @@ import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.html.HTMLCanvasElement;
 import org.teavm.jso.dom.html.HTMLDocument;
+import org.teavm.jso.impl.JSWrapper;
 
 public class JsCanvas extends Canvas {
   public HTMLCanvasElement element;
@@ -58,7 +59,7 @@ public class JsCanvas extends Canvas {
   }
 
   public void setFont(FontDesk font) {
-    setJsFont((JSString) font.platformFont);
+    setJsFont((JSString) JSWrapper.directJavaToJs(font.platformFont));
   }
 
   private void setJsFont(JSString font) {
@@ -118,7 +119,8 @@ public class JsCanvas extends Canvas {
     float spaceWidth = measureText(" ");
     float dotWidth = measureText(".");
     return new FontDesk(family, size, weight, style,
-        ascent, descent, spaceWidth, wWidth, dotWidth, platformFont);
+        ascent, descent, spaceWidth, wWidth, dotWidth,
+        JSWrapper.directJsToJava(platformFont));
   }
 
   @Override

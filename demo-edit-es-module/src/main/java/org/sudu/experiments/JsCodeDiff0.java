@@ -49,7 +49,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
       case "light" -> diff.toggleLight();
       case "darcula" -> diff.toggleDarcula();
       case "dark" -> diff.toggleDark();
-      default -> Debug.consoleInfo("unknown theme: " + theme);
+      default -> Debug.consoleInfo("unknown theme: ", theme);
     }
   }
 
