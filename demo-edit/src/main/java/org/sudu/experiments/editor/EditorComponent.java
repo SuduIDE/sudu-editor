@@ -31,6 +31,9 @@ import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
 public class EditorComponent implements Focusable, MouseListener, FontApi {
+  static final int weightRegular = FontDesk.WEIGHT_LIGHT;
+  static final int weightBold    = FontDesk.WEIGHT_SEMI_BOLD;
+
   final V2i pos = new V2i();
   final V2i size = new V2i();
 
@@ -291,13 +294,13 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   private void setFonts(String name, int size) {
     fonts[CodeElement.fontIndex(false, false)] =
-        g.fontDesk(name, size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
+        g.fontDesk(name, size, weightRegular, FontDesk.STYLE_NORMAL);
     fonts[CodeElement.fontIndex(false, true)] =
-        g.fontDesk(name, size, FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_ITALIC);
+        g.fontDesk(name, size, weightRegular, FontDesk.STYLE_ITALIC);
     fonts[CodeElement.fontIndex(true, false)] =
-        g.fontDesk(name, size, FontDesk.WEIGHT_BOLD, FontDesk.STYLE_NORMAL);
+        g.fontDesk(name, size, weightBold, FontDesk.STYLE_NORMAL);
     fonts[CodeElement.fontIndex(true, true)] =
-        g.fontDesk(name, size, FontDesk.WEIGHT_BOLD, FontDesk.STYLE_ITALIC);
+        g.fontDesk(name, size, weightBold, FontDesk.STYLE_ITALIC);
     font = fonts[CodeElement.fontIndex(false, false)];
   }
 

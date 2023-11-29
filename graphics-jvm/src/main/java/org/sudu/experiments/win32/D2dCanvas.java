@@ -29,6 +29,10 @@ public class D2dCanvas extends Canvas {
     if (cleartype) {
       ID2D1RenderTarget.SetTextAntialiasMode(pD2D1RenderTarget,
           D2d.D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE);
+      if (D2dFactory.useCustomCleartypeParameters) {
+        ID2D1RenderTarget.SetTextRenderingParams(
+            pD2D1RenderTarget, f.pDWriteRenderingParamsClearType);
+      }
     }
     factory = f;
     width = w;

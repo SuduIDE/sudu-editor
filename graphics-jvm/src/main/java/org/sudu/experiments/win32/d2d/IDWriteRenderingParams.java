@@ -2,6 +2,8 @@ package org.sudu.experiments.win32.d2d;
 
 import org.sudu.experiments.win32.IUnknown;
 
+// https://learn.microsoft.com/en-us/windows/win32/api/dwrite/nn-dwrite-idwriterenderingparams
+
 public class IDWriteRenderingParams extends IUnknown {
   public static native float GetClearTypeLevel(long _this);
   public static native float GetEnhancedContrast(long _this);

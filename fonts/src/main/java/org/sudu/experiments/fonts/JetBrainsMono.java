@@ -41,10 +41,14 @@ public interface JetBrainsMono {
 
   static FontConfigJs[] webConfig() {
     return new FontConfigJs[] {
-        webConfig(Regular, FontDesk.NORMAL, FontDesk.WEIGHT_REGULAR),
-        webConfig(Italic,  FontDesk.ITALIC, FontDesk.WEIGHT_REGULAR),
-        webConfig(Bold,       FontDesk.NORMAL, FontDesk.WEIGHT_BOLD),
-        webConfig(BoldItalic, FontDesk.ITALIC, FontDesk.WEIGHT_BOLD)
+        webConfig(Light,          FontDesk.NORMAL, FontDesk.WEIGHT_LIGHT),
+        webConfig(LightItalic,    FontDesk.ITALIC, FontDesk.WEIGHT_LIGHT),
+        webConfig(Regular,        FontDesk.NORMAL, FontDesk.WEIGHT_REGULAR),
+        webConfig(Italic,         FontDesk.ITALIC, FontDesk.WEIGHT_REGULAR),
+        webConfig(SemiBold,       FontDesk.NORMAL, FontDesk.WEIGHT_SEMI_BOLD),
+        webConfig(SemiBoldItalic, FontDesk.ITALIC, FontDesk.WEIGHT_SEMI_BOLD),
+        webConfig(Bold,           FontDesk.NORMAL, FontDesk.WEIGHT_BOLD),
+        webConfig(BoldItalic,     FontDesk.ITALIC, FontDesk.WEIGHT_BOLD)
     };
   }
 }

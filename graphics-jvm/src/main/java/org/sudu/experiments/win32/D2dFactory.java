@@ -14,6 +14,9 @@ import static org.sudu.experiments.win32.d2d.D2d.*;
 
 public class D2dFactory implements WglGraphics.CanvasFactory {
 
+  static final float clearTypeLevelFactor = 0.5f + 0*0.625f;
+  static final boolean useCustomCleartypeParameters = false;
+
   long pD2D1Factory;
   long pWicFactory;
   long pDWriteFactory5;
@@ -21,6 +24,7 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
   long pDWriteFontSetBuilder1;
   long pDWriteFontCollection1Custom;
   long pDWriteFontCollection1System;
+  long pDWriteRenderingParamsClearType;
 
   final int[] hr = new int[1];
   final float[] textLayoutMetrics = IDWriteTextLayout.newMetrics();
@@ -49,7 +53,24 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
         && Win32.hr(hr[0] = IDWriteFactory5.RegisterFontFileLoader(pDWriteFactory5, pDWriteInMemoryFontFileLoader))
         && t(pDWriteFontSetBuilder1 = IDWriteFactory5.CreateFontSetBuilder1(pDWriteFactory5, hr))
         && t(pDWriteFontCollection1System = IDWriteFactory5.GetSystemFontCollection(
-            pDWriteFactory5, false, false, hr));
+            pDWriteFactory5, false, false, hr))
+        && t(pDWriteRenderingParamsClearType = createMediumCleartypeRenderingParams());
+  }
+
+  private long createMediumCleartypeRenderingParams() {
+    long defaultParams = createDefaultRenderingParams();
+    if (defaultParams == 0) return 0;
+
+    float clearTypeLevel = IDWriteRenderingParams.GetClearTypeLevel(defaultParams);
+    // enhancedContrast factor does not change anything
+    long customParams = IDWriteFactory5.CreateCustomRenderingParams(pDWriteFactory5,
+        IDWriteRenderingParams.GetGamma(defaultParams),
+        IDWriteRenderingParams.GetEnhancedContrast(defaultParams),
+        clearTypeLevel * clearTypeLevelFactor,
+        IDWriteRenderingParams.GetPixelGeometry(defaultParams),
+        IDWriteRenderingParams.GetRenderingMode(defaultParams), hr);
+    IDWriteRenderingParams.release(defaultParams);
+    return customParams;
   }
 
   public void dispose() {
@@ -65,6 +86,7 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
     pDWriteFontCollection1System = IUnknown.safeRelease(pDWriteFontCollection1System);
     pDWriteFontSetBuilder1 = IUnknown.safeRelease(pDWriteFontSetBuilder1);
     pDWriteInMemoryFontFileLoader = IUnknown.safeRelease(pDWriteInMemoryFontFileLoader);
+    pDWriteRenderingParamsClearType = IUnknown.safeRelease(pDWriteRenderingParamsClearType);
     pDWriteFactory5 = IUnknown.safeRelease(pDWriteFactory5);
     pWicFactory = IUnknown.safeRelease(pWicFactory);
     pD2D1Factory = IUnknown.safeRelease(pD2D1Factory);
