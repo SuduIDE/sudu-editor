@@ -61,7 +61,7 @@ public class JsCanvas extends Canvas {
   }
 
   private void setJsFont(JSString font) {
-    if (!jsStrEquals(jsFont, font)) {
+    if (jsFont != font) {
       c2d.setFont(jsFont = font);
     }
   }
