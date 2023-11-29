@@ -5,7 +5,6 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSString;
-import org.teavm.jso.dom.html.HTMLDocument;
 
 public abstract class FontFace implements JSObject {
   @JSBody(

@@ -6,10 +6,8 @@ import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
-import org.teavm.jso.browser.Window;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
-import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
 import java.util.function.Consumer;
@@ -112,7 +110,7 @@ public class JsFileDialog {
 
     for (int i = 0; i < files.getLength(); i++) {
       FileHandle file = JsFileHandle.fromWebkitRelativeFile(files.item(i));
-      Window.setTimeout(() -> onResul.accept(file), 0);
+      JsWindow.setTimeout(() -> onResul.accept(file), 0);
     }
   }
 
@@ -124,7 +122,7 @@ public class JsFileDialog {
     for (int i = 0; i < webkitEntries.getLength(); i++) {
       FileSystemEntry entry = webkitEntries.get(i);
       // Debug.consoleInfo("[" + i +"] ", entry.getFilePath());
-      Window.setTimeout(() -> walkEntry(onResul, entry), 0);
+      JsWindow.setTimeout(() -> walkEntry(onResul, entry), 0);
     }
   }
 
@@ -146,13 +144,13 @@ public class JsFileDialog {
   }
 
   public static boolean directoryPickerSupported() {
-    return JSObjects.hasProperty(Window.current(), "showDirectoryPicker")
-        && JsHelper.strictEquals(Window.current().getTop(), Window.worker());
+    return JSObjects.hasProperty(JsWindow.current(), "showDirectoryPicker")
+        && JsHelper.strictEquals(JsWindow.current().getTop(), JsWindow.worker());
   }
 
   public static boolean showOpenFilePickerSupported() {
-    return JSObjects.hasProperty(Window.current(), "showOpenFilePicker")
-        && JsHelper.strictEquals(Window.current().getTop(), Window.worker());
+    return JSObjects.hasProperty(JsWindow.current(), "showOpenFilePicker")
+        && JsHelper.strictEquals(JsWindow.current().getTop(), JsWindow.worker());
   }
 
   @JSBody(script = "return window.showDirectoryPicker();")

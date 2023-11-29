@@ -12,10 +12,8 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
-import org.teavm.jso.browser.Window;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.events.*;
-import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.xml.Element;
 
@@ -32,7 +30,7 @@ public class JsInput {
   public JsInput(HTMLElement element, Runnable repaint) {
     this.element = element.cast();
     this.listeners = new InputListeners(repaint);
-    Window window = Window.current();
+    JsWindow window = JsWindow.current();
     this.disposer = Disposable.composite(
         addListener(element, "keydown", this::onKeyDown),
         addListener(element, "keyup", this::onKeyUp),
@@ -245,7 +243,7 @@ public class JsInput {
   }
 
   private MouseEvent mouseEvent(org.teavm.jso.dom.events.MouseEvent event) {
-    double devicePixelRatio = Window.current().getDevicePixelRatio();
+    double devicePixelRatio = JsWindow.current().getDevicePixelRatio();
     DOMRect rect = element.getBoundingClientRectD();
 
     V2i position = new V2i(

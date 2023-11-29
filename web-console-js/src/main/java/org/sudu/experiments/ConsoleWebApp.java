@@ -1,8 +1,8 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.js.HTMLDocument;
 import org.sudu.experiments.js.JsHelper;
 import org.teavm.jso.ajax.XMLHttpRequest;
-import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
 public class ConsoleWebApp {

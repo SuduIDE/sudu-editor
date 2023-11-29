@@ -4,19 +4,17 @@ import org.sudu.experiments.js.*;
 import org.sudu.experiments.math.Numbers;
 import org.teavm.jso.browser.AnimationFrameCallback;
 import org.teavm.jso.browser.Performance;
-import org.teavm.jso.browser.Window;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLCanvasElement;
-import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class WebWindow implements org.sudu.experiments.Window {
+public class WebWindow implements Window {
   public final TextDecoder decoderUTF16 = TextDecoder.createUTF16();
 
   final AnimationFrameCallback frameCallback = this::onAnimationFrame;
@@ -95,10 +93,10 @@ public class WebWindow implements org.sudu.experiments.Window {
   @SuppressWarnings("unused")
   public void dispose() {
     if (animationFrameRequest != 0) {
-      Window.cancelAnimationFrame(animationFrameRequest);
+      JsWindow.cancelAnimationFrame(animationFrameRequest);
       animationFrameRequest = 0;
     }
-    Window.current().removeEventListener("resize", handleWindowResize);
+    JsWindow.current().removeEventListener("resize", handleWindowResize);
 
     observer.disconnect();
     g.dispose();
@@ -114,7 +112,7 @@ public class WebWindow implements org.sudu.experiments.Window {
     g = new WebGraphics(gl, repaint);
     observer.observePixelsOrDefault(mainCanvas);
 
-    Window.current().addEventListener("resize", handleWindowResize);
+    JsWindow.current().addEventListener("resize", handleWindowResize);
 
     scene = sf.apply(api());
 //    JsHelper.consoleInfo("time start: ", timeNow());
@@ -131,7 +129,7 @@ public class WebWindow implements org.sudu.experiments.Window {
   }
 
   private void requestNewFrame() {
-    animationFrameRequest = Window.requestAnimationFrame(frameCallback);
+    animationFrameRequest = JsWindow.requestAnimationFrame(frameCallback);
   }
   public void repaint() {
     repaintRequested = true;
@@ -182,7 +180,7 @@ public class WebWindow implements org.sudu.experiments.Window {
   }
 
   public float devicePixelRatio() {
-    return (float) Window.current().getDevicePixelRatio();
+    return (float) JsWindow.current().getDevicePixelRatio();
   }
 
   @Override
@@ -228,6 +226,6 @@ public class WebWindow implements org.sudu.experiments.Window {
 
   @Override
   public void runLater(Runnable command) {
-    Window.setTimeout(command::run, 0);
+    JsWindow.setTimeout(command::run, 0);
   }
 }

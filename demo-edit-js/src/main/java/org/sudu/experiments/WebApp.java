@@ -8,7 +8,6 @@ import org.sudu.experiments.fonts.JetBrainsMono;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.browser.Window;
 import org.teavm.jso.core.JSError;
 
 public class WebApp {
@@ -53,7 +52,7 @@ public class WebApp {
   }
 
   static Scene createScene(SceneApi api) {
-    String hash = Window.current().getLocation().getHash();
+    String hash = JsWindow.current().getLocation().getHash();
     if ("#wasm".equals(hash)) return new WasmDemo(api);
     if ("#diffDemo".equals(hash)) return new DiffDemoJs(api);
     String name = hash.length() > 0 ? hash.substring(1) : "";

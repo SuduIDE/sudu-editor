@@ -1,12 +1,12 @@
 package org.sudu.experiments.js;
 
 import org.sudu.experiments.GLApi;
+import org.teavm.interop.NoSideEffects;
 import org.teavm.jso.*;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.css.CSSStyleDeclaration;
 import org.teavm.jso.dom.html.HTMLCanvasElement;
-import org.teavm.jso.dom.html.HTMLDocument;
 
 import java.util.Objects;
 
@@ -133,4 +133,10 @@ public class JsHelper {
   public static String toString(JSString jsString, String orElse) {
     return jsIf(jsString) ? jsString.stringValue() : orElse;
   }
+
+  @NoSideEffects
+  public static native JSObject directJavaToJs(Object obj);
+
+  @NoSideEffects
+  public static native Object directJsToJava(JSObject obj);
 }

@@ -137,7 +137,7 @@
               <goal>compile</goal>
             </goals>
             <configuration>
-              <!-- see org.sudu.experiments.JsWorkerBuildPlugin -->
+              <!-- see org.sudu.experiments.JsBuildPlugin -->
               <properties><invokeMain>true</invokeMain></properties>
               <targetDirectory>${project.build.directory}/generated/js/teavm</targetDirectory>
               <targetFileName>${workerFile}</targetFileName>
