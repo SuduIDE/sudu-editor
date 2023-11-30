@@ -8,6 +8,11 @@ import org.teavm.jso.browser.Location;
 import org.teavm.jso.browser.TimerHandler;
 import org.teavm.jso.browser.WindowEventTarget;
 
+// This class is almost the same as
+//   org.teavm.jso.browser.Window
+//   but it does not use JSArrayReader to avoid using JSWrapper
+// This allows to remove all JSWrapper logic from the program
+
 public abstract class JsWindow implements JSObject, WindowEventTarget {
   @JSProperty
   public abstract Location getLocation();

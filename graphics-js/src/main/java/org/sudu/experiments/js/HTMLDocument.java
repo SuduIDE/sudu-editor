@@ -8,6 +8,12 @@ import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.html.HTMLHeadElement;
 import org.teavm.jso.dom.xml.Document;
 
+// This class is almost the same as
+//   org.teavm.jso.dom.html.HTMLDocument
+//   but it does not use org.teavm.jso.browser.Window
+//   in order to avoid JSWrapper proxy linking.
+// See class JsWindow for more details.
+
 public abstract class HTMLDocument implements JSObject, Document, EventTarget {
 
   @Override
