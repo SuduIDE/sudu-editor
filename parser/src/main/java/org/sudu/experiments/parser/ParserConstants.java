@@ -45,6 +45,8 @@ public interface ParserConstants {
       int UNKNOWN = -1;
       int TRANS_UNIT = 0;
       int DECLARATION = 1;
+      int TYPE = 2;
+      int MEMBER = 3;
     }
 
     interface Js {

@@ -598,7 +598,7 @@ bracedInitList: LeftBrace (initializerList Comma?)? RightBrace;
 className: Identifier | simpleTemplateId;
 
 classSpecifier:
-	classHead LeftBrace memberSpecification? RightBrace;
+	classHead LeftBrace memberSpecificationList? RightBrace;
 
 classHead:
 	classKey attributeSpecifierSeq? (
@@ -614,8 +614,11 @@ classVirtSpecifier: Final;
 
 classKey: Class | Struct;
 
+memberSpecificationList: memberSpecification+;
+
 memberSpecification:
-	(memberdeclaration | accessSpecifier Colon)+;
+	memberdeclaration
+	| accessSpecifier Colon;
 
 memberdeclaration:
 	attributeSpecifierSeq? declSpecifierSeq? memberDeclaratorList? Semi

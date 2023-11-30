@@ -8,12 +8,12 @@ public class ExprRefNode extends RefNode {
   public List<RefNode> refNodes;
 
   public ExprRefNode(List<RefNode> refNodes) {
-    this(refNodes, refNodes.get(0).type);
+    this(refNodes, refNodes.isEmpty() ? null : refNodes.get(0).type);
   }
 
   public ExprRefNode(List<RefNode> refNodes, String type) {
     super(null, null, -1);
-    if (refNodes.isEmpty()) throw new IllegalArgumentException("Empty Expression");
+//    if (refNodes.isEmpty()) throw new IllegalArgumentException("Empty Expression");
     this.refNodes = new ArrayList<>();
     for (var expr: refNodes) {
       if (expr instanceof ExprRefNode exprRef) {

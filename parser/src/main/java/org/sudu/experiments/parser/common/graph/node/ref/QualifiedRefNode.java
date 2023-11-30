@@ -19,6 +19,22 @@ public class QualifiedRefNode extends RefNode {
     this.cont = cont;
   }
 
+  public QualifiedRefNode(List<RefNode> refs) {
+    super(null, null, -1);
+
+    var preLast = refs.get(refs.size() - 2);
+    var last = refs.get(refs.size() - 1);
+
+    var cur = new QualifiedRefNode(preLast, last);
+    for (int i = refs.size() - 3; i >= 0; i--) {
+      cur = new QualifiedRefNode(refs.get(i), cur);
+    }
+
+    this.begin = cur.begin;
+    this.cont = cur.cont;
+    this.ref = cur.ref;
+  }
+
   public List<RefNode> flatten() {
     List<RefNode> result = new ArrayList<>();
     flatten(result);
