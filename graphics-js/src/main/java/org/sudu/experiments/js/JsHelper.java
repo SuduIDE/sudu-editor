@@ -2,8 +2,6 @@ package org.sudu.experiments.js;
 
 import org.sudu.experiments.GLApi;
 import org.teavm.jso.*;
-import org.teavm.jso.core.JSArray;
-import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.css.CSSStyleDeclaration;
@@ -136,18 +134,18 @@ public class JsHelper {
     return jsIf(jsString) ? jsString.stringValue() : orElse;
   }
 
-  public static JSArray<JSString> wrap(String[] array) {
+  public static JsArray<JSString> wrap(String[] array) {
     if (array == null) {
       return null;
     }
-    JSArray<JSString> result = JSArray.create(array.length);
+    JsArray<JSString> result = JsArray.create(array.length);
     for (int i = 0; i < array.length; ++i) {
       result.set(i, JSString.valueOf(array[i]));
     }
     return result;
   }
 
-  public static String[] unwrapStringArray(JSArrayReader<JSString> array) {
+  public static String[] unwrapStringArray(JsArrayReader<JSString> array) {
     if (array == null) {
       return null;
     }

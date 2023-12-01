@@ -8,7 +8,6 @@ import org.sudu.experiments.utils.LanguageSelectorUtils;
 import org.sudu.experiments.utils.PromiseUtils;
 import org.sudu.experiments.utils.ProviderUtils;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
@@ -245,7 +244,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
   }
 
   @Override
-  public Promise<JSArrayReader<JSString>> executeOnWorker(JSString method, JSArrayReader<JSString> args) {
+  public Promise<JsArrayReader<JSString>> executeOnWorker(JSString method, JsArrayReader<JSString> args) {
     var method0 = method.stringValue();
     var args0 = unwrapStringArray(args);
 

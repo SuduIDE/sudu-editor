@@ -5,7 +5,6 @@ import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
-import org.teavm.jso.core.JSArrayReader;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
@@ -22,7 +21,7 @@ public interface JsCodeEditor extends JsDisposable {
   JsPosition getPosition();
   JsITextModel getModel();
 
-  Promise<JSArrayReader<JSString>> executeOnWorker(JSString method, JSArrayReader<JSString> args);
+  Promise<JsArrayReader<JSString>> executeOnWorker(JSString method, JsArrayReader<JSString> args);
 
   JSString getProperty(JSString key);
   JsDisposable registerDefinitionProvider(JSObject languageSelector, JsDefinitionProvider provider);
