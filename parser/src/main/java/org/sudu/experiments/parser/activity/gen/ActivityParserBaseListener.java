@@ -1,4 +1,4 @@
-// Generated from parser-generator\src\main\resources\grammar\activity\ActivityParser.g4 by ANTLR 4.12.0
+// Generated from parser-generator/src/main/resources/grammar/activity/ActivityParser.g4 by ANTLR 4.12.0
 package org.sudu.experiments.parser.activity.gen;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -17,13 +17,13 @@ public class ActivityParserBaseListener implements ActivityParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterProgram(ActivityParser.ProgramContext ctx) { }
+	@Override public void enterActivity(ActivityParser.ActivityContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitProgram(ActivityParser.ProgramContext ctx) { }
+	@Override public void exitActivity(ActivityParser.ActivityContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -56,6 +56,32 @@ public class ActivityParserBaseListener implements ActivityParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterCondblock(ActivityParser.CondblockContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCondblock(ActivityParser.CondblockContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterExprstat(ActivityParser.ExprstatContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExprstat(ActivityParser.ExprstatContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterStat(ActivityParser.StatContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -82,13 +108,13 @@ public class ActivityParserBaseListener implements ActivityParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterExprlist(ActivityParser.ExprlistContext ctx) { }
+	@Override public void enterExprcomma(ActivityParser.ExprcommaContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitExprlist(ActivityParser.ExprlistContext ctx) { }
+	@Override public void exitExprcomma(ActivityParser.ExprcommaContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

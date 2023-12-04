@@ -34,6 +34,8 @@ public class EditorWorker {
       case TestJobs.withInts -> TestJobs.withInts(array(a, 0).ints(), result);
       case TestJobs.fibonacci -> TestJobs.fibonacci(array(a, 0).ints(), result);
       case KeywordParser.PARSE_KEYWORDS -> KeywordParser.parseChars(array(a, 0).chars(), result);
+      case ActivityProxy.PARSE_FULL_FILE -> activityProxy.parseFullFile(array(a, 0).chars(), result);
+      case ActivityProxy.COMPUTE -> activityProxy.compute(a, result);
       case JavaProxy.PARSE_FULL_FILE -> javaProxy.parseFullFile(array(a, 0).chars(), result);
       case JavaProxy.PARSE_FULL_FILE_SCOPES -> javaProxy.parseFullFileScopes(array(a, 0).chars(), result);
       case JavaProxy.PARSE_VIEWPORT -> javaProxy.parseViewport(array(a, 0).chars(), array(a, 1).ints(), array(a, 2).ints(), result);
@@ -41,7 +43,6 @@ public class EditorWorker {
       case CppProxy.PARSE_FULL_FILE -> cppProxy.parseFullFile(array(a, 0).chars(), result);
       case CppProxy.PARSE_FULL_FILE_SCOPES -> cppProxy.parseFullFileScopes(array(a, 0).chars(), result);
       case JavaScriptProxy.PARSE_FULL_FILE -> javascriptProxy.parseFullFile(array(a, 0).chars(), result);
-      case ActivityProxy.PARSE_FULL_FILE -> activityProxy.parseFullFile(array(a, 0).chars(), result);
       case LineParser.PARSE -> LineParser.parse(array(a, 0).chars(), result);
       case ScopeProxy.RESOLVE_ALL -> ScopeProxy.resolveAll(array(a, 0).ints(), array(a, 1).chars(), array(a, 2).ints(), result);
       case DiffUtils.FIND_DIFFS -> DiffUtils.findDiffs(
