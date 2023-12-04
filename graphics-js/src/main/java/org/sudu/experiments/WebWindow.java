@@ -2,10 +2,12 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.math.Numbers;
+import org.teavm.jso.JSBody;
 import org.teavm.jso.browser.AnimationFrameCallback;
 import org.teavm.jso.browser.Performance;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
+import org.teavm.jso.dom.css.CSSStyleDeclaration;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLCanvasElement;
@@ -145,6 +147,11 @@ public class WebWindow implements Window {
     requestNewFrame();
   }
 
+  @JSBody(
+      params = {"style", "w", "h"},
+      script = "style.width = w + 'px'; style.height = h + 'px';")
+  static native void setStyleWHPx(CSSStyleDeclaration style, double w, double h);
+
   private void onCanvasSizeChanged(int inlineSize, int blockSize) {
     if (1 < 0) {
       JsHelper.consoleInfo("  onCanvasSizeChanged: ", JsHelper.WithId.get(canvasDiv));
@@ -152,9 +159,13 @@ public class WebWindow implements Window {
       JsHelper.consoleInfo("    blockSize =  ", blockSize);
     }
     eventHandler.setClientRect(inlineSize, blockSize);
+
     mainCanvas.setWidth(inlineSize);
     mainCanvas.setHeight(blockSize);
-
+//    double ratio = Window.current().getDevicePixelRatio();
+//    double widthPx = (1. / 32. + inlineSize) / ratio;
+//    double heightPx = (1. / 32. + blockSize) / ratio;
+//    setStyleWHPx(mainCanvas.getStyle(), widthPx, heightPx);
     g.setViewPortAndClientRect(inlineSize, blockSize);
     scene.onResize(g.clientRect, devicePixelRatio());
     scene.paint();

@@ -15,6 +15,10 @@ import org.teavm.jso.core.JSString;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import static org.sudu.experiments.js.JsHelper.unwrapStringArray;
+import static org.sudu.experiments.js.JsHelper.wrap;
+
+
 public class JsCodeEditor0 implements JsCodeEditor {
 
   public static final String errorNotArray = "provided result is not an array";
@@ -107,6 +111,11 @@ public class JsCodeEditor0 implements JsCodeEditor {
   @Override
   public JsITextModel getModel() {
     return JsTextModel.fromJava(editor.model());
+  }
+
+  @Override
+  public JSString getProperty(JSString key) {
+    return JSString.valueOf(editor.getProperty(key.stringValue()));
   }
 
   @Override
@@ -223,6 +232,27 @@ public class JsCodeEditor0 implements JsCodeEditor {
     }
   }
 
+  static String[] toStringArray(Object[] obj) {
+    var res = new String[obj.length];
+    for (int i=0; i<obj.length; i++) {
+      res[i] = obj[i].toString();
+    }
+    return res;
+  }
+
+  @Override
+  public Promise<JsArrayReader<JSString>> executeOnWorker(JSString method, JsArrayReader<JSString> args) {
+    var method0 = method.stringValue();
+    var args0 = unwrapStringArray(args);
+
+    return Promise.create((postResult, postError) -> {
+              window.sendToWorker((result) -> {
+                postResult.f(wrap(toStringArray(result)));
+              }, method0, (Object[]) args0);
+            });
+  }
+
+
   @Override
   public JsDisposable registerEditorOpener(JsCodeEditorOpener opener) {
     return JsDisposable.of(editor.registrations().openers.disposableAdd(
@@ -289,4 +319,6 @@ public class JsCodeEditor0 implements JsCodeEditor {
       return Promise.reject(FireFoxWarning.message);
     }
   }
+
+
 }

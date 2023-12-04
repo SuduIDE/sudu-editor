@@ -1,6 +1,8 @@
 package org.sudu.experiments.esm;
 
+import org.sudu.experiments.js.JsArrayReader;
 import org.sudu.experiments.js.JsFunctions;
+import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSBoolean;
@@ -18,6 +20,10 @@ public interface JsCodeEditor extends JsDisposable {
   void setPosition(JsPosition selectionOrPosition);
   JsPosition getPosition();
   JsITextModel getModel();
+
+  Promise<JsArrayReader<JSString>> executeOnWorker(JSString method, JsArrayReader<JSString> args);
+
+  JSString getProperty(JSString key);
   JsDisposable registerDefinitionProvider(JSObject languageSelector, JsDefinitionProvider provider);
   JsDisposable registerDeclarationProvider(JSObject languageSelector, JsDeclarationProvider provider);
   JsDisposable registerReferenceProvider(JSObject languageSelector, JsReferenceProvider provider);

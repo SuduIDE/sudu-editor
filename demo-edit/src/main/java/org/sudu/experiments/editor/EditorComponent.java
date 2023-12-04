@@ -112,7 +112,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   private boolean highlightResolveError = true;
   private final List<V2i> parsedVps = new ArrayList<>();
 
-  EditorComponent(UiContext context, EditorUi ui) {
+  final Map<String, String> properties = new HashMap<>();
+
+  public EditorComponent(UiContext context, EditorUi ui) {
     this.context = context;
     this.g = context.graphics;
     this.ui = ui;
@@ -862,7 +864,19 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
     int type = ((ArrayView) result[2]).ints()[0];
-    if (result.length >= 5) {
+
+    if (type == FileProxy.ACTIVITY_FILE) { //TODO hack to transfer special data, need to be refactored
+
+      String dag1 = new String(((ArrayView) result[3]).chars());
+      properties.put("mermaid", dag1);
+//      String dag2 = new String(((ArrayView) result[4]).chars());
+//      properties.put("mermaid2", dag2);
+
+//      System.out.println("dag1 = " + dag1);
+//      System.out.println("dag2 = " + dag2);
+
+      ParserUtils.updateDocument(model.document, ints, chars);
+    } else if (result.length >= 5) {
       int[] graphInts = ((ArrayView) result[3]).ints();
       char[] graphChars = ((ArrayView) result[4]).chars();
       ParserUtils.updateDocument(model.document, ints, chars, graphInts, graphChars, false);
@@ -1520,6 +1534,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     } else if (Languages.ACTIVITY.equals(language)) {
       parseFullFile();
       model.document.onReparse();
+    } else if (Languages.ACTIVITY.equals(language)) {
+      parseFullFile();
+      model.document.onReparse();
     } else {
       var reparseNode = model.document.tree.getReparseNode();
       if (reparseNode == null) {
@@ -1767,6 +1784,10 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   public Model model() { return model; }
+
+  public String getProperty(String key) {
+    return properties.get(key);
+  }
 
   private void onContentChange() {
     parsingTimeStart = System.currentTimeMillis();

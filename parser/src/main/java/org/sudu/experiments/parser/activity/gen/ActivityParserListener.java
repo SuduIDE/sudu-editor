@@ -1,4 +1,4 @@
-// Generated from parser-generator\src\main\resources\grammar\activity\ActivityParser.g4 by ANTLR 4.12.0
+// Generated from parser-generator/src/main/resources/grammar/activity/ActivityParser.g4 by ANTLR 4.12.0
 package org.sudu.experiments.parser.activity.gen;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -8,15 +8,15 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface ActivityParserListener extends ParseTreeListener {
 	/**
-	 * Enter a parse tree produced by {@link ActivityParser#program}.
+	 * Enter a parse tree produced by {@link ActivityParser#activity}.
 	 * @param ctx the parse tree
 	 */
-	void enterProgram(ActivityParser.ProgramContext ctx);
+	void enterActivity(ActivityParser.ActivityContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link ActivityParser#program}.
+	 * Exit a parse tree produced by {@link ActivityParser#activity}.
 	 * @param ctx the parse tree
 	 */
-	void exitProgram(ActivityParser.ProgramContext ctx);
+	void exitActivity(ActivityParser.ActivityContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link ActivityParser#blocksemi}.
@@ -41,6 +41,28 @@ public interface ActivityParserListener extends ParseTreeListener {
 	void exitBlock(ActivityParser.BlockContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link ActivityParser#condblock}.
+	 * @param ctx the parse tree
+	 */
+	void enterCondblock(ActivityParser.CondblockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ActivityParser#condblock}.
+	 * @param ctx the parse tree
+	 */
+	void exitCondblock(ActivityParser.CondblockContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link ActivityParser#exprstat}.
+	 * @param ctx the parse tree
+	 */
+	void enterExprstat(ActivityParser.ExprstatContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ActivityParser#exprstat}.
+	 * @param ctx the parse tree
+	 */
+	void exitExprstat(ActivityParser.ExprstatContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link ActivityParser#stat}.
 	 * @param ctx the parse tree
 	 */
@@ -63,15 +85,15 @@ public interface ActivityParserListener extends ParseTreeListener {
 	void exitExpr(ActivityParser.ExprContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link ActivityParser#exprlist}.
+	 * Enter a parse tree produced by {@link ActivityParser#exprcomma}.
 	 * @param ctx the parse tree
 	 */
-	void enterExprlist(ActivityParser.ExprlistContext ctx);
+	void enterExprcomma(ActivityParser.ExprcommaContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link ActivityParser#exprlist}.
+	 * Exit a parse tree produced by {@link ActivityParser#exprcomma}.
 	 * @param ctx the parse tree
 	 */
-	void exitExprlist(ActivityParser.ExprlistContext ctx);
+	void exitExprcomma(ActivityParser.ExprcommaContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link ActivityParser#exprcons}.

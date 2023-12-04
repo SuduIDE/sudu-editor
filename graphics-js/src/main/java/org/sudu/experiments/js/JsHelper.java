@@ -134,6 +134,28 @@ public class JsHelper {
     return jsIf(jsString) ? jsString.stringValue() : orElse;
   }
 
+  public static JsArray<JSString> wrap(String[] array) {
+    if (array == null) {
+      return null;
+    }
+    JsArray<JSString> result = JsArray.create(array.length);
+    for (int i = 0; i < array.length; ++i) {
+      result.set(i, JSString.valueOf(array[i]));
+    }
+    return result;
+  }
+
+  public static String[] unwrapStringArray(JsArrayReader<JSString> array) {
+    if (array == null) {
+      return null;
+    }
+    String[] result = new String[array.getLength()];
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = array.get(i).stringValue();
+    }
+    return result;
+  }
+
   @NoSideEffects
   public static native JSObject directJavaToJs(Object obj);
 

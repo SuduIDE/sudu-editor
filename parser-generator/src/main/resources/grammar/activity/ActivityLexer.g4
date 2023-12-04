@@ -3,7 +3,8 @@ lexer grammar ActivityLexer;
 
 AND : 'and' ;
 OR : 'or' ;
-NOT : 'not' ;
+XOR : 'xor' ;
+NOT : '!' ;
 EQ : '=' ;
 COMMA : ',' ;
 SEMI : ';' ;
@@ -11,12 +12,18 @@ LPAREN : '(' ;
 RPAREN : ')' ;
 LCURLY : '{' ;
 RCURLY : '}' ;
+LESSER : '<' ;
+GREATER: '>' ;
 CONS : '->' ;
 
 ACTIVITY : 'activity' ;
 SELECT : 'select';
 REPEAT : 'repeat';
 SCHEDULE : 'schedule';
+SEQUENCE : 'sequence';
+RANDOM : 'random';
+DEFAULT : 'default';
+
 IF : 'if' ;
 ELSE : 'else';
 
