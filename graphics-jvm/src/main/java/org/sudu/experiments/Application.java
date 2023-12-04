@@ -4,7 +4,6 @@ import org.sudu.experiments.fonts.FontResources;
 import org.sudu.experiments.win32.*;
 import org.sudu.experiments.worker.WorkerExecutor;
 
-import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -33,9 +32,8 @@ public class Application {
     Supplier<Win32Graphics> graphics = Win32Graphics.lazyInit(d2dCanvasFactory);
     EventQueue eventQueue = new EventQueue();
 
-    ExecutorService ioExecutor = newThreadPool(numThreads);
-
-    Win32Window window = new Win32Window(eventQueue, time, ioExecutor, workerExecutor);
+    Workers workers = new Workers(numThreads, workerExecutor);
+    Win32Window window = new Win32Window(eventQueue, time, workers);
 
     if (!window.init(title, sf, graphics, null)) {
       throw new RuntimeException("window.init failed");
@@ -49,15 +47,7 @@ public class Application {
     }
 
     window.dispose();
-    ioExecutor.shutdown();
-  }
-
-  static ExecutorService newThreadPool(int maxThreads) {
-    // to save memory we can use executor.allowCoreThreadTimeOut(true);
-    // to shutdown worker threads if no activity
-    return maxThreads <= 1
-        ? Executors.newSingleThreadExecutor()
-        : Executors.newFixedThreadPool(maxThreads);
+    workers.shutdown();
   }
 
   static boolean loadFontConfig(FontResources[] config, D2dFactory factory) {
@@ -71,5 +61,4 @@ public class Application {
     }
     return true;
   }
-
 }

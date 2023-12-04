@@ -1534,9 +1534,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     } else if (Languages.ACTIVITY.equals(language)) {
       parseFullFile();
       model.document.onReparse();
-    } else if (Languages.ACTIVITY.equals(language)) {
-      parseFullFile();
-      model.document.onReparse();
     } else {
       var reparseNode = model.document.tree.getReparseNode();
       if (reparseNode == null) {

@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 interface TestJobs {
+  int numDemoThreads = 3;
+
   String withString = "withString";
 
   static void withString(String string, List<Object> result) {
@@ -58,6 +60,26 @@ interface TestJobs {
 
   static int fibonacci(int arg) {
     return arg <= 2 ? 1 : fibonacci(arg - 1) + fibonacci(arg - 2);
+  }
+
+  String storageSet = "storageSet";
+  String storageGet = "storageGet";
+
+  class LocalStorage { int iValue; }
+
+  ThreadLocal<LocalStorage> storage = new ThreadLocal<>() {
+    @Override
+    protected LocalStorage initialValue() {
+      return new LocalStorage();
+    }
+  };
+
+  static void storageSet(int[] arg) {
+    storage.get().iValue = arg[0];
+  }
+
+  static void storageGet(List<Object> result) {
+    result.add(new int[]{storage.get().iValue});
   }
 
   String asyncWithFile = "asyncWithFile";

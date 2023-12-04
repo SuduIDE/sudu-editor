@@ -6,12 +6,10 @@ import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.win32.*;
-import org.sudu.experiments.worker.WorkerExecutor;
 import org.sudu.experiments.worker.WorkerProxy;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -24,8 +22,7 @@ public class Win32Window implements WindowPeer, Window {
   final InputListeners inputListeners = new InputListeners(repaint);
   final EventQueue eventQueue;
   final String config;
-  final Executor bgWorker;
-  final WorkerExecutor workerExecutor;
+  final Workers workers;
 
   private boolean repaintRequested = true;
   private boolean closed;
@@ -48,17 +45,16 @@ public class Win32Window implements WindowPeer, Window {
 
   enum State { MINIMIZED, NORMAL, MAXIMIZED }
 
-  public Win32Window(EventQueue eq, Win32Time t, Executor worker, WorkerExecutor workerExecutor) {
-    this(eq, "window", t, worker, workerExecutor);
+  public Win32Window(EventQueue eq, Win32Time t, Workers workers) {
+    this(eq, "window", t, workers);
   }
 
-  public Win32Window(EventQueue eq, String configName, Win32Time t, Executor worker, WorkerExecutor workerJobs) {
+  public Win32Window(EventQueue eq, String configName, Win32Time t, Workers workers) {
     eventQueue = eq;
     config = configName;
     time = t;
     inputState = new Win32InputState(t);
-    bgWorker = worker;
-    workerExecutor = workerJobs;
+    this.workers = workers;
   }
 
   @Override
@@ -344,7 +340,7 @@ public class Win32Window implements WindowPeer, Window {
   }
 
   public boolean addChild(String title, Function<SceneApi, Scene> sf) {
-    Win32Window child = new Win32Window(eventQueue, "child", time, bgWorker, workerExecutor);
+    Win32Window child = new Win32Window(eventQueue, "child", time, workers);
 
     if (!child.init(title, sf, angleWindow::graphics, Win32Window.this)) {
       System.err.println("Window.init failed");
@@ -386,7 +382,7 @@ public class Win32Window implements WindowPeer, Window {
   public void showDirectoryPicker(Consumer<FileHandle> onResult) {
     String result = Win32FileDialog.openFolderDialog(hWnd);
     if (result != null) {
-      PathWalk.walkFileTree(result, onResult, bgWorker, eventQueue);
+      PathWalk.walkFileTree(result, onResult, workers.bgWorker, eventQueue);
     }
   }
 
@@ -396,14 +392,22 @@ public class Win32Window implements WindowPeer, Window {
     String file = Win32FileDialog.openFileDialog(hWnd);
     onEnterExitSizeMove(hWnd, false);
     if (file != null) {
-      FileHandle fh = new JvmFileHandle(file, new String[0], bgWorker, eventQueue);
+      FileHandle fh = new JvmFileHandle(
+          file, new String[0], workers.bgWorker, eventQueue);
       eventQueue.execute(() -> onResult.accept(fh));
     }
   }
 
   @Override
   public void sendToWorker(Consumer<Object[]> handler, String method, Object... args) {
-    bgWorker.execute(WorkerProxy.job(workerExecutor, method, args, handler, eventQueue));
+    workers.bgWorker.execute(
+        WorkerProxy.job(workers.workerExecutor, method, args, handler, eventQueue));
+  }
+
+  @Override
+  public void sendToWorker(Consumer<Object[]> handler, int channel, String method, Object... args) {
+    workers.executeOnSingleThread(channel,
+        WorkerProxy.job(workers.workerExecutor, method, args, handler, eventQueue));
   }
 
   @Override

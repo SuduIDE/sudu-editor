@@ -134,7 +134,7 @@ public class JsHelper {
     return jsIf(jsString) ? jsString.stringValue() : orElse;
   }
 
-  public static JsArray<JSString> wrap(String[] array) {
+  public static JsArray<JSString> javaToJs(String[] array) {
     if (array == null) {
       return null;
     }
@@ -145,7 +145,7 @@ public class JsHelper {
     return result;
   }
 
-  public static String[] unwrapStringArray(JsArrayReader<JSString> array) {
+  public static String[] jsToJava(JsArrayReader<JSString> array) {
     if (array == null) {
       return null;
     }

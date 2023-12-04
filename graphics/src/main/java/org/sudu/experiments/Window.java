@@ -24,6 +24,7 @@ public interface Window {
   void showOpenFilePicker(Consumer<FileHandle> onResult);
 
   void sendToWorker(Consumer<Object[]> handler, String method, Object ... args);
+  void sendToWorker(Consumer<Object[]> handler, int ch, String method, Object ... args);
 
   void runLater(Runnable r);
 

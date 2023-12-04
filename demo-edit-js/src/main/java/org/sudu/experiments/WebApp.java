@@ -3,6 +3,7 @@ package org.sudu.experiments;
 import org.sudu.experiments.demo.wasm.WasmDemo;
 import org.sudu.experiments.editor.DiffDemoJs;
 import org.sudu.experiments.editor.TestSceneSelector;
+import org.sudu.experiments.editor.worker.EditorWorker;
 import org.sudu.experiments.fonts.Codicon;
 import org.sudu.experiments.fonts.JetBrainsMono;
 import org.sudu.experiments.js.*;
@@ -20,7 +21,8 @@ public class WebApp {
   public static void main(String[] args) {
     if (JsCanvas.checkFontMetricsAPI()) {
       WebApp webApp = new WebApp();
-      WorkerContext.start(webApp::setWorkers, "teavm/worker.js", 3);
+      WorkerContext.start(webApp::setWorkers, "teavm/worker.js",
+          EditorWorker.numDemoThreads());
       FontFace.loadFonts(ArrayOp.add(JetBrainsMono.webConfig(), Codicon.webConfig()))
           .then(webApp::loadFonts, WebApp::fontLoadError);
     } else {

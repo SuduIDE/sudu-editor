@@ -14,6 +14,7 @@ import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.UiFont;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static org.sudu.experiments.Const.emptyRunnable;
@@ -35,8 +36,39 @@ public class WorkerTest extends Scene1 {
     api.input.onContextMenu.add(this::onContextMenu);
 
     sendPrimitiveTasks(api.window);
+    sendStorageTasks(api.window);
 
     api.input.onKeyPress.add(new CtrlO(api, this::openDirectory, this::openFile));
+  }
+
+  private void sendStorageTasks(Window window) {
+    for (int i = 0; i < TestJobs.numDemoThreads; i++) {
+      sendToChannel(window, i, 0);
+    }
+  }
+
+  private static void sendToChannel(Window window, int ch, int counter) {
+    int[] arg = { ch * 100 + counter };
+    Consumer<Object[]> checkResult = r -> {
+      int[] ints = array(r, 0).ints();
+      int count = ints[0] % 100;
+      int channel = ints[0] / 100;
+      if (channel != ch) {
+        System.err.println("wrong channel worker reply: channel = "
+            + channel + ", expected " + ch);
+      }
+      if (counter != count) {
+        System.err.println("wrong channel worker reply: counter = "
+            + count + ", expected " + counter);
+      }
+      if (count < 10) {
+        sendToChannel(window, ch, counter + 1);
+      } else {
+        System.out.println("channel worker " + ch + " test passed");
+      }
+    };
+    window.sendToWorker(r -> {}, ch, TestJobs.storageSet, arg);
+    window.sendToWorker(checkResult, ch, TestJobs.storageGet);
   }
 
   private void sendPrimitiveTasks(Window window) {

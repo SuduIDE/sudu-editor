@@ -33,6 +33,8 @@ public class EditorWorker {
       case TestJobs.withBytes -> TestJobs.withBytes(array(a, 0).bytes(), result);
       case TestJobs.withInts -> TestJobs.withInts(array(a, 0).ints(), result);
       case TestJobs.fibonacci -> TestJobs.fibonacci(array(a, 0).ints(), result);
+      case TestJobs.storageSet -> TestJobs.storageSet(array(a, 0).ints());
+      case TestJobs.storageGet -> TestJobs.storageGet(result);
       case KeywordParser.PARSE_KEYWORDS -> KeywordParser.parseChars(array(a, 0).chars(), result);
       case ActivityProxy.PARSE_FULL_FILE -> activityProxy.parseFullFile(array(a, 0).chars(), result);
       case ActivityProxy.COMPUTE -> activityProxy.compute(a, result);
@@ -76,5 +78,9 @@ public class EditorWorker {
 
   static FileHandle file(Object[] args, int index) {
     return (FileHandle) args[index];
+  }
+
+  public static int numDemoThreads() {
+    return TestJobs.numDemoThreads;
   }
 }

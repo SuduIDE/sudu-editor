@@ -18,6 +18,7 @@ public class WorkersPool {
   private final JsArray<WorkerContext> workers;
   private final TreeMap<Integer, Consumer<Object[]>> jobs = new TreeMap<>();
   private final int[] freeWorkers;
+  private final int[] workersJobsQueueSize;
   private int workerJobIdNext, freeWorkersCount;
 
   static final boolean debug = false;
@@ -32,6 +33,7 @@ public class WorkersPool {
     }
     freeWorkersCount = 0;
     freeWorkers = new int[numWorkers];
+    workersJobsQueueSize = new int[numWorkers];
   }
 
   public void terminateAll() {
@@ -45,7 +47,13 @@ public class WorkersPool {
     return ++workerJobIdNext;
   }
 
-  public void sendToWorker(Consumer<Object[]> handler, String method, Object... args) {
+  public void sendToWorker(Consumer<Object[]> handler, int ch, String method, Object[] args) {
+    int index = ch < workers.getLength() ? ch : 0;
+    ++workersJobsQueueSize[index];
+    sendToWorkerIdx(handler, method, args, index);
+  }
+
+  public void sendToWorker(Consumer<Object[]> handler, String method, Object[] args) {
     if (freeWorkersCount > 0) {
       sendToWorkerIdx(handler, method, args, nextFreeWorker());
     } else {
@@ -71,18 +79,26 @@ public class WorkersPool {
     if (WorkerProtocol.isPing(event.getData()) && debug) {
       JsHelper.consoleInfo("  ping response from worker ", index);
     }
-    Job job = delayedJobs.pollFirst();
-    if (job != null) {
-      if (debug) {
-        JsHelper.consoleInfo("  reuse worker index ", index);
-        JsHelper.consoleInfo("  method ", JSString.valueOf(job.method));
-      }
-      sendToWorkerIdx(job.handler, job.method, job.args, index);
+    int jobQueueSize = workersJobsQueueSize[index];
+    if (jobQueueSize > 0) { // thread isn't idle yet
+      if (debug) JsHelper.consoleInfo("  jobQueueSize "
+          + jobQueueSize  + " -> "
+          + (jobQueueSize - 1) + ", index = ", index);
+      workersJobsQueueSize[index] = jobQueueSize - 1;
     } else {
-      freeWorkers[freeWorkersCount++] = index;
-      if (debug) {
-        JsHelper.consoleInfo("  add a free worker N ", index);
-        JsHelper.consoleInfo("  freeWorkersCount = ", freeWorkersCount);
+      Job job = delayedJobs.pollFirst();
+      if (job != null) {
+        if (debug) {
+          JsHelper.consoleInfo("  reuse worker index ", index);
+          JsHelper.consoleInfo("  method ", JSString.valueOf(job.method));
+        }
+        sendToWorkerIdx(job.handler, job.method, job.args, index);
+      } else {
+        freeWorkers[freeWorkersCount++] = index;
+        if (debug) {
+          JsHelper.consoleInfo("  add a free worker N ", index);
+          JsHelper.consoleInfo("  freeWorkersCount = ", freeWorkersCount);
+        }
       }
     }
     WorkerContext.onEdtMessage(jobHandler, event.getData());
