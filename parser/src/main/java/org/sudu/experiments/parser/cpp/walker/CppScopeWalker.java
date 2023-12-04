@@ -44,7 +44,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     super.enterDeclaration(ctx);
     if (ctx.functionDefinition() != null) handleFunction(ctx.functionDefinition(), false);
     else {
-      scopeWalker.enterScope();
+      scopeWalker.enterMember(List.of());
       scopeWalker.addInterval(ctx, DECLARATION);
       scopeWalker.enterInterval();
     }
@@ -66,7 +66,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     var typeStr = getIdentifier(className).getText();
     scopeWalker.newIntervalStart = scopeWalker.currentNode.getStart();
 
-    scopeWalker.enterScope();
+    scopeWalker.enterMember(List.of());
     scopeWalker.associateType(typeStr, scopeWalker.currentScope);
     scopeWalker.addInterval(ctx, TYPE);
     scopeWalker.enterInterval();
@@ -109,10 +109,9 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     var fields = new ArrayList<DeclNode>();
     var forMark = new ArrayList<TerminalNode>();
     for (var decl: member.memberDeclaratorList().memberDeclarator()) {
-      var node = getIdentifier(decl.declarator());
-      if (node == null) continue;
-      fields.add(new DeclNode(Name.fromNode(node, offset), type, DeclNode.FIELD));
-      forMark.add(node);
+      var name = handleDeclarator(decl.declarator());
+      fields.add(new DeclNode(name, type, DeclNode.FIELD));
+      forMark.add(getIdentifier(decl.declarator()));
     }
 
     scopeWalker.getType(type);
@@ -128,27 +127,22 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     var args = getMethodArguments(func.declarator());
     var argsTypes = new ArrayList<String>();
     for (var arg: args) argsTypes.add(scopeWalker.getType(arg.type));
-    var node = getIdentifier(func.declarator());
+    var name = handleDeclarator(func.declarator());
 
-    String name = node.getText();
-    String type = isConstructorDef ? name : getType(func.declSpecifierSeq());
-    int methodType = isMember
-        ? isConstructorDef ? MethodNode.CREATOR : MethodNode.METHOD
-        : MethodNode.LOCAL_VAR;
+    String type = isConstructorDef ? name.name : getType(func.declSpecifierSeq());
 
+    int methodType = isConstructorDef ? MethodNode.CREATOR : MethodNode.METHOD;
     scopeWalker.getType(type);
-    var method = new MethodNode(Name.fromNode(node, offset), type, methodType, argsTypes);
-    if (isMember) scopeWalker.enterMember(method);
-    else {
-      scopeWalker.enterScope();
-      scopeWalker.addDecl(method);
-    }
+    var method = new MethodNode(name, type, methodType, argsTypes);
+    if (!isMember) method.declType = DeclNode.LOCAL_VAR;
+
+    scopeWalker.enterMember(method);
     scopeWalker.addInterval(func, MEMBER);
     scopeWalker.enterInterval();
     scopeWalker.enterScope();
     scopeWalker.addDecls(args);
 
-    mark(node, TokenTypes.METHOD, TokenStyles.NORMAL);
+    mark(getIdentifier(func.declarator()), TokenTypes.METHOD, TokenStyles.NORMAL);
   }
 
   @Override
@@ -172,8 +166,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     boolean isInference = isDeclaration && type != null && type.equals("auto");
 
     for (var initDecl: ctx.initDeclaratorList().initDeclarator()) {
-      var node = getIdentifier(initDecl.declarator());
-      var name = Name.fromNode(node, offset);
+      var name = handleDeclarator(initDecl.declarator());
       if (isDeclaration && !isInference) scopeWalker.addDecl(new DeclNode(name, type, DeclNode.LOCAL_VAR));
       else scopeWalker.addRef(new RefNode(name));
 
@@ -191,7 +184,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     super.exitJumpStatement(ctx);
     if (ctx.expression() != null) {
       var ref = handleExpression(ctx.expression());
-      scopeWalker.addRef(ref);
+      scopeWalker.addRefs(ref);
     } else if (ctx.bracedInitList() != null) {
       var exprs = handleBracedInitList(ctx.bracedInitList());
       if (exprs.size() == 1) scopeWalker.addRef(exprs.get(0));
@@ -205,11 +198,30 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     scopeWalker.enterScope();
     if (ctx.condition() != null && ctx.condition().expression() != null) {
       var cond = handleExpression(ctx.condition().expression());
-      scopeWalker.addRef(cond);
+      scopeWalker.addRefs(cond);
     }
-    if (allNotNull(ctx.expression())) {
+    if (ctx.expression() != null) {
       var expr = handleExpression(ctx.expression());
-      scopeWalker.addRef(expr);
+      scopeWalker.addRefs(expr);
+    }
+    if (allNotNull(ctx.forRangeDeclaration(), ctx.forRangeInitializer())) {
+      var forRangeDecl = ctx.forRangeDeclaration();
+      var forRangeInit = ctx.forRangeInitializer();
+      var type = getType(forRangeDecl.declSpecifierSeq());
+      scopeWalker.getType(type);
+      var name = handleDeclarator(forRangeDecl.declarator());
+      var refs = forRangeInit.expression() != null
+          ? handleExpression(forRangeInit.expression())
+          : handleBracedInitList(forRangeInit.bracedInitList());
+      var decl = new DeclNode(name, type, DeclNode.LOCAL_VAR);
+      if (type != null && type.equals("auto")) {
+        var ref = refs.get(0);
+        decl.type = ref.type;
+        scopeWalker.addInference(new InferenceNode(decl, ref, InferenceNode.FOR_EACH));
+      } else {
+        scopeWalker.addDecl(decl);
+        scopeWalker.addRefs(refs);
+      }
     }
   }
 
@@ -220,11 +232,39 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   }
 
   @Override
+  public void enterStatement(CPP14Parser.StatementContext ctx) {
+    super.enterStatement(ctx);
+    if (ctx.parent instanceof CPP14Parser.SelectionStatementContext) scopeWalker.enterScope();
+  }
+
+  @Override
+  public void exitStatement(CPP14Parser.StatementContext ctx) {
+    super.exitStatement(ctx);
+    if (ctx.parent instanceof CPP14Parser.SelectionStatementContext) scopeWalker.exitScope();
+  }
+
+  @Override
+  public void enterSelectionStatement(CPP14Parser.SelectionStatementContext ctx) {
+    super.enterSelectionStatement(ctx);
+    scopeWalker.enterScope();
+    if (ctx.condition().expression() != null) {
+      var cond = handleExpression(ctx.condition().expression());
+      scopeWalker.addRefs(cond);
+    }
+  }
+
+  @Override
+  public void exitSelectionStatement(CPP14Parser.SelectionStatementContext ctx) {
+    super.exitSelectionStatement(ctx);
+    scopeWalker.exitScope();
+  }
+
+  @Override
   public void exitExpressionStatement(CPP14Parser.ExpressionStatementContext ctx) {
     super.exitExpressionStatement(ctx);
     if (ctx.expression() == null) return;
-    var ref = handleExpression(ctx.expression());
-    if (ref != null) scopeWalker.addRef(ref);
+    var refs = handleExpression(ctx.expression());
+    if (refs != null) scopeWalker.addRefs(refs);
   }
 
   RefNode handleInitializer(CPP14Parser.InitializerContext initializer) {
@@ -239,17 +279,8 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     else return new ExprRefNode(handleBracedInitList(braceOrEqualInitializer.bracedInitList()));
   }
 
-  RefNode handleExpression(CPP14Parser.ExpressionContext expr) {
-    return handleSingleOrList(expr.assignmentExpression(), this::handleAssExpression, refs -> {
-      RefNode firstNotNull = null;
-      boolean allNotNull = true;
-      for (var ref: refs) {
-        if (firstNotNull == null && ref != null) firstNotNull = ref;
-        if (ref == null) allNotNull = false;
-      }
-      if (!allNotNull) return firstNotNull;
-      return new QualifiedRefNode(refs);
-    });
+  List<RefNode> handleExpression(CPP14Parser.ExpressionContext expr) {
+    return handleExprList(expr.assignmentExpression(), this::handleAssExpression);
   }
 
   RefNode handleAssExpression(CPP14Parser.AssignmentExpressionContext assExpr) {
@@ -263,10 +294,12 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
 
   RefNode handleCondExpr(CPP14Parser.ConditionalExpressionContext condExpr) {
     if (allNotNull(condExpr.Question(), condExpr.expression(), condExpr.Colon(), condExpr.assignmentExpression())) {
-      var cond = handleOrExpr(condExpr.logicalOrExpression());
-      var expr1 = handleExpression(condExpr.expression());
-      var expr2 = handleAssExpression(condExpr.assignmentExpression());
-      return new ExprRefNode(List.of(cond, expr1, expr2), expr1.type);
+      List<RefNode> exprs = new ArrayList<>();
+      exprs.add(handleOrExpr(condExpr.logicalOrExpression()));
+      exprs.addAll(handleExpression(condExpr.expression()));
+      var expr = handleAssExpression(condExpr.assignmentExpression());
+      exprs.add(expr);
+      return new ExprRefNode(exprs, expr.type);
     } else return handleOrExpr(condExpr.logicalOrExpression());
   }
 
@@ -330,7 +363,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
 
   private RefNode handleUnaryExpression(CPP14Parser.UnaryExpressionContext unaryExpression) {
     if (unaryExpression.postfixExpression() != null)
-      return fromList(handlePostExpr(unaryExpression.postfixExpression()));
+      return new ExprRefNode(handlePostExpr(unaryExpression.postfixExpression()));
     else if (unaryExpression.unaryExpression() != null)
       return handleUnaryExpression(unaryExpression.unaryExpression());
     else if (unaryExpression.Sizeof() != null)
@@ -347,7 +380,15 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   private List<RefNode> handlePostExpr(CPP14Parser.PostfixExpressionContext postfixExpression) {
     if (postfixExpression.primaryExpression() != null)
       return List.of(handlePrimaryExpr(postfixExpression.primaryExpression()));
-    else if (allNotNull(postfixExpression.postfixExpression(), postfixExpression.LeftParen(), postfixExpression.RightParen())) {
+    else if (allNotNull(postfixExpression.postfixExpression(), postfixExpression.LeftBracket(), postfixExpression.RightBracket())) {
+      var refs = new ArrayList<>(handlePostExpr(postfixExpression.postfixExpression()));
+      if (postfixExpression.expression() != null)
+        refs.addAll(handleExpression(postfixExpression.expression()));
+      else
+        refs.addAll(handleBracedInitList(postfixExpression.bracedInitList()));
+
+      return refs;
+    } else if (allNotNull(postfixExpression.postfixExpression(), postfixExpression.LeftParen(), postfixExpression.RightParen())) {
       List<RefNode> callArgs = postfixExpression.expressionList() != null
           ? handleExpressionList(postfixExpression.expressionList())
           : List.of();
@@ -374,18 +415,16 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
       return result;
     } else if (allNotNull(postfixExpression.theTypeId(), postfixExpression.expression())) {
       var type = scopeWalker.getType(postfixExpression.theTypeId().getText());
-      RefNode refNode = handleExpression(postfixExpression.expression());
-      return List.of(new ExprRefNode(List.of(refNode), type));
+      List<RefNode> refNodes = handleExpression(postfixExpression.expression());
+      return List.of(new ExprRefNode(refNodes, type));
     } else if (allNotNull(postfixExpression.theTypeId(), postfixExpression.expression())) {
       var type = getType(postfixExpression.theTypeId());
-      var ref = handleExpression(postfixExpression.expression());
-      ref.type = type;
-      return List.of(ref);
+      var refs = handleExpression(postfixExpression.expression());
+      return List.of(new ExprRefNode(refs, type));
     } else if (postfixExpression.typeIdOfTheTypeId() != null) {
-      var ref = postfixExpression.theTypeId() != null
-          ? new RefNode(Name.fromRule(postfixExpression.theTypeId(), offset))
-          : handleExpression(postfixExpression.expression());
-      return List.of(new ExprRefNode(List.of(ref)));
+      if (postfixExpression.theTypeId() != null)
+        return List.of(new RefNode(Name.fromRule(postfixExpression.theTypeId(), offset)));
+      else return handleExpression(postfixExpression.expression());
     } else if (postfixExpression.postfixExpression() != null)
       return handlePostExpr(postfixExpression.postfixExpression());
     else throw new IllegalStateException(postfixExpression.getText());
@@ -395,7 +434,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     if (primaryExpression.literal() != null && !primaryExpression.literal().isEmpty())
       return handleLiteral(primaryExpression.literal(0));
     else if (primaryExpression.expression() != null)
-      return handleExpression(primaryExpression.expression());
+      return new ExprRefNode(handleExpression(primaryExpression.expression()));
     else if (primaryExpression.idExpression() != null)
       return handleIdExpression(primaryExpression.idExpression());
     else if (primaryExpression.This() != null)
@@ -471,7 +510,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   }
 
   private RefNode handleNoExceptExpr(CPP14Parser.NoExceptExpressionContext noExceptExpression) {
-    return handleExpression(noExceptExpression.expression());
+    return new ExprRefNode(handleExpression(noExceptExpression.expression()));
   }
 
   private RefNode handleSizeOf(CPP14Parser.TheTypeIdContext typeId) {
@@ -491,6 +530,27 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     else return collector.apply(handleExprList(rules, mapper));
   }
 
+
+  Name handleDeclarator(CPP14Parser.DeclaratorContext declarator) {
+    if (declarator.pointerDeclarator() != null) return handlePointerDeclarator(declarator.pointerDeclarator());
+    else return handleNoPointerDeclarator(declarator.noPointerDeclarator());
+  }
+
+  Name handlePointerDeclarator(CPP14Parser.PointerDeclaratorContext pointerDeclarator) {
+    return handleNoPointerDeclarator(pointerDeclarator.noPointerDeclarator());
+  }
+
+  Name handleNoPointerDeclarator(CPP14Parser.NoPointerDeclaratorContext noPointerDeclarator) {
+    if (noPointerDeclarator.declaratorid() != null) return Name.fromRule(noPointerDeclarator.declaratorid(), offset);
+    else if (noPointerDeclarator.noPointerDeclarator() != null) {
+      if (noPointerDeclarator.constantExpression() != null) {
+        var ref = handleCondExpr(noPointerDeclarator.constantExpression().conditionalExpression());
+        scopeWalker.addRef(ref);
+      }
+      return handleNoPointerDeclarator(noPointerDeclarator.noPointerDeclarator());
+    } else return handlePointerDeclarator(noPointerDeclarator.pointerDeclarator());
+  }
+
   List<DeclNode> getMethodArguments(CPP14Parser.DeclaratorContext declaratorContext) {
     CPP14Parser.ParametersAndQualifiersContext params;
     if (declaratorContext.parametersAndQualifiers() != null) params = declaratorContext.parametersAndQualifiers();
@@ -508,10 +568,9 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     List<DeclNode> result = new ArrayList<>();
     for (var paramDecl: ctx.parameterDeclaration()) {
       if (paramDecl.declarator() != null) {
-        var node = getIdentifier(paramDecl.declarator());
-        if (node == null) continue;
+        var name = handleDeclarator(paramDecl.declarator());
         String type = getType(paramDecl.declSpecifierSeq());
-        result.add(new DeclNode(Name.fromNode(node, offset), type, DeclNode.ARGUMENT));
+        result.add(new DeclNode(name, type, DeclNode.ARGUMENT));
       }
     }
     return result;

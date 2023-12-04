@@ -67,9 +67,10 @@ public class DeclNodeReader {
   private MethodNode readMethodDecl() {
     Name name = readName();
     String type = readType();
+    int declType = reader.next();
     int callType = reader.next();
     List<String> types = readTypeList();
-    return new MethodNode(name, type, callType, types);
+    return new MethodNode(name, type, declType, callType, types);
   }
 
   private List<String> readTypeList() {

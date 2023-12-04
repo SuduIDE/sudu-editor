@@ -1,6 +1,5 @@
 package org.sudu.experiments.parser.common.graph;
 
-import org.sudu.experiments.parser.common.graph.ScopeGraph;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
 import org.sudu.experiments.parser.common.graph.node.decl.MethodNode;

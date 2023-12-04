@@ -28,7 +28,11 @@ public class MethodNode extends DeclNode {
   }
 
   public MethodNode(Name decl, String type, int callType, List<String> args) {
-    super(decl, type, CALLABLE);
+    this(decl, type, CALLABLE, callType, args);
+  }
+
+  public MethodNode(Name decl, String type, int declType, int callType, List<String> args) {
+    super(decl, type, declType);
     this.argTypes = args;
     this.callType = callType;
   }

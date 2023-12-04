@@ -1843,7 +1843,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   static String parseJobName(String language) {
     return language != null ? switch (language) {
       case Languages.JAVA -> JavaProxy.PARSE_FULL_FILE_SCOPES;
-      case Languages.CPP -> CppProxy.PARSE_FULL_FILE;
+      case Languages.CPP -> CppProxy.PARSE_FULL_FILE_SCOPES;
       case Languages.JS -> JavaScriptProxy.PARSE_FULL_FILE;
       case Languages.ACTIVITY -> ActivityProxy.PARSE_FULL_FILE;
       case Languages.TEXT -> LineParser.PARSE;
