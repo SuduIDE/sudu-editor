@@ -44,7 +44,7 @@ const initialText = "activity {\n" +
 
 //LOCAL
 const editorApi = await import("../src/editor.js");
-const editor = await editorApi.newEditor({containerId: "editor", workerUrl: "../src/worker.js"});
+const editor = await editorApi.newEditor({containerId: "editor", workerUrl: "../src/worker.js", numThreads:1});
 
 
 
