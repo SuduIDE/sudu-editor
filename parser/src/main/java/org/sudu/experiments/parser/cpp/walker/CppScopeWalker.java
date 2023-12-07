@@ -15,7 +15,6 @@ import org.sudu.experiments.parser.common.graph.node.ref.RefNode;
 import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
 import org.sudu.experiments.parser.cpp.gen.CPP14ParserBaseListener;
 
-import java.sql.Ref;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -66,7 +65,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     var typeStr = getIdentifier(className).getText();
     scopeWalker.newIntervalStart = scopeWalker.currentNode.getStart();
 
-    scopeWalker.enterMember(List.of());
+//    scopeWalker.enterMember(List.of());
     scopeWalker.associateType(typeStr, scopeWalker.currentScope);
     scopeWalker.addInterval(ctx, TYPE);
     scopeWalker.enterInterval();
@@ -77,7 +76,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   @Override
   public void exitClassSpecifier(CPP14Parser.ClassSpecifierContext ctx) {
     super.exitClassSpecifier(ctx);
-    scopeWalker.exitScope();
+//    scopeWalker.exitScope();
     scopeWalker.exitInterval();
 
     scopeWalker.newIntervalStart = ctx.RightBrace().getSymbol().getStartIndex() + 1;
@@ -168,7 +167,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     for (var initDecl: ctx.initDeclaratorList().initDeclarator()) {
       var name = handleDeclarator(initDecl.declarator());
       if (isDeclaration && !isInference) scopeWalker.addDecl(new DeclNode(name, type, DeclNode.LOCAL_VAR));
-      else scopeWalker.addRef(new RefNode(name));
+      else if (!isInference) scopeWalker.addRef(new RefNode(name));
 
       if (initDecl.initializer() == null) continue;
       var initRef = handleInitializer(initDecl.initializer());
@@ -270,7 +269,8 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   RefNode handleInitializer(CPP14Parser.InitializerContext initializer) {
     if (initializer.braceOrEqualInitializer() != null)
       return handleBraceOrEqualInitializer(initializer.braceOrEqualInitializer());
-    else return new ExprRefNode(handleExpressionList(initializer.expressionList()));
+    else if (initializer.expressionList() != null) return new ExprRefNode(handleExpressionList(initializer.expressionList()));
+    return null;
   }
 
   private RefNode handleBraceOrEqualInitializer(CPP14Parser.BraceOrEqualInitializerContext braceOrEqualInitializer) {
@@ -363,7 +363,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
 
   private RefNode handleUnaryExpression(CPP14Parser.UnaryExpressionContext unaryExpression) {
     if (unaryExpression.postfixExpression() != null)
-      return new ExprRefNode(handlePostExpr(unaryExpression.postfixExpression()));
+      return handlePostExpr(unaryExpression.postfixExpression());
     else if (unaryExpression.unaryExpression() != null)
       return handleUnaryExpression(unaryExpression.unaryExpression());
     else if (unaryExpression.Sizeof() != null)
@@ -377,26 +377,49 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     else return handleDeleteExpression(unaryExpression.deleteExpression());
   }
 
-  private List<RefNode> handlePostExpr(CPP14Parser.PostfixExpressionContext postfixExpression) {
+  private RefNode handlePostExpr(CPP14Parser.PostfixExpressionContext postfixExpression) {
     if (postfixExpression.primaryExpression() != null)
-      return List.of(handlePrimaryExpr(postfixExpression.primaryExpression()));
-    else if (allNotNull(postfixExpression.postfixExpression(), postfixExpression.LeftBracket(), postfixExpression.RightBracket())) {
-      var refs = new ArrayList<>(handlePostExpr(postfixExpression.postfixExpression()));
+      return handlePrimaryExpr(postfixExpression.primaryExpression());
+
+    if (allNotNull(postfixExpression.postfixExpression(), postfixExpression.LeftBracket(), postfixExpression.RightBracket())) {
+      var refs = new ArrayList<>(List.of(handlePostExpr(postfixExpression.postfixExpression())));
+
       if (postfixExpression.expression() != null)
         refs.addAll(handleExpression(postfixExpression.expression()));
       else
         refs.addAll(handleBracedInitList(postfixExpression.bracedInitList()));
 
-      return refs;
-    } else if (allNotNull(postfixExpression.postfixExpression(), postfixExpression.LeftParen(), postfixExpression.RightParen())) {
+      return new ExprRefNode(refs, ExprRefNode.ARRAY_INDEX);
+    }
+
+    if (allNotNull(postfixExpression.postfixExpression(), postfixExpression.idExpression())) {
+      var prev = handlePostExpr(postfixExpression.postfixExpression());
+      var name = Name.fromRule(postfixExpression.idExpression(), offset);
+      RefNode curRef;
+
+      if (allNotNull(postfixExpression.LeftParen(), postfixExpression.LeftParen())) {
+        List<RefNode> callArgs = postfixExpression.expressionList() != null
+            ? handleExpressionList(postfixExpression.expressionList())
+            : List.of();
+        curRef = new MethodCallNode(name, callArgs);
+      } else curRef = new RefNode(name);
+
+      if (prev instanceof QualifiedRefNode qualifiedRef) {
+        var flat = qualifiedRef.flatten();
+        flat.add(curRef);
+        return new QualifiedRefNode(flat);
+      } else return new QualifiedRefNode(List.of(prev, curRef));
+    }
+
+    if (allNotNull(postfixExpression.postfixExpression(), postfixExpression.LeftParen(), postfixExpression.RightParen())) {
       List<RefNode> callArgs = postfixExpression.expressionList() != null
           ? handleExpressionList(postfixExpression.expressionList())
           : List.of();
-      var refNodes = new ArrayList<>(handlePostExpr(postfixExpression.postfixExpression()));
-      var last = refNodes.get(refNodes.size() - 1);
-      refNodes.set(refNodes.size() - 1, new MethodCallNode(last.ref, callArgs));
-      return refNodes;
-    } else if (oneNotNull(postfixExpression.typeNameSpecifier(), postfixExpression.simpleTypeSpecifier())
+      var ref = handlePostExpr(postfixExpression.postfixExpression());
+      return new MethodCallNode(ref.ref, callArgs);
+    }
+
+    if (oneNotNull(postfixExpression.typeNameSpecifier(), postfixExpression.simpleTypeSpecifier())
         && oneNotNull(postfixExpression.expressionList(), postfixExpression.bracedInitList())) {
       String type = postfixExpression.simpleTypeSpecifier() != null
           ? getType(postfixExpression.simpleTypeSpecifier())
@@ -408,26 +431,31 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
 
       var expr = new ExprRefNode(refs);
       expr.type = type;
-      return List.of(expr);
-    } else if (allNotNull(postfixExpression.postfixExpression(), postfixExpression.idExpression())) {
-      var result = new ArrayList<>(handlePostExpr(postfixExpression.postfixExpression()));
-      result.add(handleIdExpression(postfixExpression.idExpression()));
-      return result;
-    } else if (allNotNull(postfixExpression.theTypeId(), postfixExpression.expression())) {
+      return expr;
+    }
+
+    if (allNotNull(postfixExpression.theTypeId(), postfixExpression.expression())) {
       var type = scopeWalker.getType(postfixExpression.theTypeId().getText());
       List<RefNode> refNodes = handleExpression(postfixExpression.expression());
-      return List.of(new ExprRefNode(refNodes, type));
-    } else if (allNotNull(postfixExpression.theTypeId(), postfixExpression.expression())) {
+      return new ExprRefNode(refNodes, type);
+    }
+
+    if (allNotNull(postfixExpression.theTypeId(), postfixExpression.expression())) {
       var type = getType(postfixExpression.theTypeId());
       var refs = handleExpression(postfixExpression.expression());
-      return List.of(new ExprRefNode(refs, type));
-    } else if (postfixExpression.typeIdOfTheTypeId() != null) {
+      return new ExprRefNode(refs, type);
+    }
+
+    if (postfixExpression.typeIdOfTheTypeId() != null) {
       if (postfixExpression.theTypeId() != null)
-        return List.of(new RefNode(Name.fromRule(postfixExpression.theTypeId(), offset)));
-      else return handleExpression(postfixExpression.expression());
-    } else if (postfixExpression.postfixExpression() != null)
+        return new RefNode(Name.fromRule(postfixExpression.theTypeId(), offset));
+      else return new ExprRefNode(handleExpression(postfixExpression.expression()));
+    }
+
+    if (postfixExpression.postfixExpression() != null)
       return handlePostExpr(postfixExpression.postfixExpression());
-    else throw new IllegalStateException(postfixExpression.getText());
+
+    throw new IllegalStateException(postfixExpression.getText());
   }
 
   private RefNode handlePrimaryExpr(CPP14Parser.PrimaryExpressionContext primaryExpression) {
@@ -541,6 +569,10 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   }
 
   Name handleNoPointerDeclarator(CPP14Parser.NoPointerDeclaratorContext noPointerDeclarator) {
+    if (noPointerDeclarator.initializer() != null) {
+      var ref = handleInitializer(noPointerDeclarator.initializer());
+      scopeWalker.addRef(ref);
+    }
     if (noPointerDeclarator.declaratorid() != null) return Name.fromRule(noPointerDeclarator.declaratorid(), offset);
     else if (noPointerDeclarator.noPointerDeclarator() != null) {
       if (noPointerDeclarator.constantExpression() != null) {
