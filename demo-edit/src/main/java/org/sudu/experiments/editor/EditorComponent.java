@@ -909,6 +909,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int version = ((ArrayView) result[1]).ints()[0];
     if (model.document.needReparse() || model.document.currentVersion != version) return;
     model.document.onResolve(ints, highlightResolveError);
+    computeUsages();
     long time = System.currentTimeMillis();
     if (printResolveTime) System.out.println("Resolved in " + (time - resolveTimeStart) + "ms");
   }
@@ -1415,10 +1416,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       saveToNavStack();
       V2i eventPosition = event.position;
       Pos pos = computeCharPos(eventPosition);
-      Pos elementPos = model.document.getElementStart(pos.line, pos.pos);
 
       moveCaret(pos);
-      computeUsages(pos, elementPos);
+      computeUsages();
 
       if (!event.shift && !selection.isSelectionStarted) {
         selection.startPos.set(caretLine, caretCharPos);
