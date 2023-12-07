@@ -2,7 +2,6 @@ package org.sudu.experiments.editor.worker;
 
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
-import org.sudu.experiments.editor.worker.parser.KeywordParser;
 import org.sudu.experiments.editor.worker.parser.LineParser;
 import org.sudu.experiments.editor.worker.proxy.*;
 import org.sudu.experiments.math.ArrayOp;
@@ -35,7 +34,6 @@ public class EditorWorker {
       case TestJobs.fibonacci -> TestJobs.fibonacci(array(a, 0).ints(), result);
       case TestJobs.storageSet -> TestJobs.storageSet(array(a, 0).ints());
       case TestJobs.storageGet -> TestJobs.storageGet(result);
-      case KeywordParser.PARSE_KEYWORDS -> KeywordParser.parseChars(array(a, 0).chars(), result);
       case ActivityProxy.PARSE_FULL_FILE -> activityProxy.parseFullFile(array(a, 0).chars(), result);
       case ActivityProxy.COMPUTE -> activityProxy.compute(a, result);
       case JavaProxy.PARSE_FULL_FILE -> javaProxy.parseFullFile(array(a, 0).chars(), result);
