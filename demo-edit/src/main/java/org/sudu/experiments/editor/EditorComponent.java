@@ -114,7 +114,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   final Map<String, String> properties = new HashMap<>();
 
-  private static final int ACTIVITY_CHANNEL = 0;
+  public static final int ACTIVITY_CHANNEL = 0;
 
   public EditorComponent(UiContext context, EditorUi ui) {
     this.context = context;

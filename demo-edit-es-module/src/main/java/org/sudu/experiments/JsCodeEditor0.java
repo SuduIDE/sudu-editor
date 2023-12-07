@@ -248,7 +248,8 @@ public class JsCodeEditor0 implements JsCodeEditor {
       Consumer<Object[]> consumer = (result) -> {
         postResult.f(javaToJs(toStringArray(result)));
       };
-      window.sendToWorker(consumer, method0, (Object[]) args0);
+      window.sendToWorker(consumer, EditorComponent.ACTIVITY_CHANNEL,
+          method0, (Object[]) args0);
     });
   }
 
