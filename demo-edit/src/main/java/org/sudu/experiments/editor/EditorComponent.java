@@ -114,6 +114,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   final Map<String, String> properties = new HashMap<>();
 
+  public static final int ACTIVITY_CHANNEL = 0;
+
   public EditorComponent(UiContext context, EditorUi ui) {
     this.context = context;
     this.g = context.graphics;
@@ -988,14 +990,17 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private void sendFileToWorkers(FileHandle f) {
-    String ext = f.getExtension();
-    boolean isJava = FileProxy.isJavaExtension(ext);
+    String lang = Languages.languageFromFilename(f.getName());
+    boolean isJava = Objects.equals(lang, Languages.JAVA);
+    boolean isActivity = Objects.equals(lang, Languages.ACTIVITY);
     int bigFileSize = isJava
         ? EditorConst.FILE_SIZE_10_KB
         : EditorConst.FILE_SIZE_5_KB;
 
     f.getSize(size -> {
-      if (size <= bigFileSize) {
+      if (isActivity) {
+        window().sendToWorker(this::onFileParsed, ACTIVITY_CHANNEL, FileProxy.asyncParseFullFile, f);
+      } else if (size <= bigFileSize) {
         window().sendToWorker(this::onFileParsed, FileProxy.asyncParseFullFile, f);
       } else if (isJava) {
         // Structure parsing is for java only
@@ -1500,7 +1505,10 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     String parseJob = parseJobName(model.language());
     if (parseJob != null) {
       parsingTimeStart = System.currentTimeMillis();
-      window().sendToWorker(this::onFileParsed, parseJob, model.document.getChars());
+      if (parseJob.equals(ActivityProxy.PARSE_FULL_FILE))
+        window().sendToWorker(this::onFileParsed, ACTIVITY_CHANNEL, parseJob, model.document.getChars());
+      else
+        window().sendToWorker(this::onFileParsed, parseJob, model.document.getChars());
     } else {
       if (fullFileParseListener != null) {
         fullFileParseListener.accept(this);
