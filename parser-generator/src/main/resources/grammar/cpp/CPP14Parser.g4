@@ -831,13 +831,13 @@ literal:
 
 unknownInterval
     : declaration+?
-    | anySeq
+//    | anySeq
     | EOF
     ;
 
 translationUnitOrAny
     : translationUnit
-    | anySeq
+//    | anySeq
     ;
 
 anySeq: .+?;

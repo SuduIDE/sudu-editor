@@ -27,7 +27,7 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
 
   protected IntervalNode parseInterval() {
     var parser = initParser();
-    parser.setErrorHandler(new ErrorHighlightingStrategy());
+    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes));
     parser.removeErrorListeners();
     parser.addErrorListener(parserRecognitionListener);
 
@@ -40,7 +40,7 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
 
   protected IntervalNode parseIntervalScope() {
     var parser = initParser();
-    parser.setErrorHandler(new ErrorHighlightingStrategy());
+    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes));
     parser.removeErrorListeners();
     parser.addErrorListener(parserRecognitionListener);
 

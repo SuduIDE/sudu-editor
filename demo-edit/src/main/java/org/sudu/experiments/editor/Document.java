@@ -81,8 +81,18 @@ public class Document {
     return document[i].totalStrLength;
   }
 
-  public void setLine(int ind, CodeLine line) {
-    document[ind] = line;
+  public void setLine(int ind, CodeLine newLine) {
+    var oldLine = document[ind];
+    document[ind] = newLine;
+    if (oldLine.length() != newLine.length()) return;
+    for (int i = 0; i < oldLine.length(); i++) {
+      if (oldLine.elements[i].color == ParserConstants.TokenTypes.ERROR) continue;
+      if (oldLine.elements[i].color != ParserConstants.TokenTypes.DEFAULT &&
+          newLine.elements[i].color == ParserConstants.TokenTypes.DEFAULT) {
+        newLine.elements[i].color = oldLine.elements[i].color;
+        newLine.elements[i].fontIndex = oldLine.elements[i].fontIndex;
+      }
+    }
   }
 
   public void newLineOp(int caretLine, int caretCharPos) {

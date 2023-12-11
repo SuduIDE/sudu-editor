@@ -1,7 +1,6 @@
 package org.sudu.experiments.parser.common.base;
 
 import org.antlr.v4.runtime.Parser;
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.ErrorHighlightingStrategy;
@@ -23,7 +22,7 @@ public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> {
 
     initLexer(source);
     var parser = initParser();
-    parser.setErrorHandler(new ErrorHighlightingStrategy());
+    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes));
     parser.removeErrorListeners();
     parser.addErrorListener(parserRecognitionListener);
 

@@ -31,6 +31,8 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
 
   private final int[] tokenTypes, tokenStyles;
 
+  private boolean isInsideMethodParams = false;
+
   public CppScopeWalker(ScopeWalker scopeWalker, int offset, int[] tokenTypes, int[] tokenStyles) {
     scopeWalker.offset = offset;
     this.scopeWalker = scopeWalker;
@@ -126,7 +128,9 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     var args = getMethodArguments(func.declarator());
     var argsTypes = new ArrayList<String>();
     for (var arg: args) argsTypes.add(scopeWalker.getType(arg.type));
+    isInsideMethodParams = true;
     var name = handleDeclarator(func.declarator());
+    isInsideMethodParams = false;
 
     String type = isConstructorDef ? name.name : getType(func.declSpecifierSeq());
 
@@ -569,7 +573,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   }
 
   Name handleNoPointerDeclarator(CPP14Parser.NoPointerDeclaratorContext noPointerDeclarator) {
-    if (noPointerDeclarator.initializer() != null) {
+    if (!isInsideMethodParams && noPointerDeclarator.initializer() != null) {
       var ref = handleInitializer(noPointerDeclarator.initializer());
       scopeWalker.addRef(ref);
     }
@@ -585,15 +589,18 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
 
   List<DeclNode> getMethodArguments(CPP14Parser.DeclaratorContext declaratorContext) {
     CPP14Parser.ParametersAndQualifiersContext params;
-    if (declaratorContext.parametersAndQualifiers() != null) params = declaratorContext.parametersAndQualifiers();
+    if (declaratorContext.parametersAndQualifiers() != null)
+      return getArgList(declaratorContext.parametersAndQualifiers().parameterDeclarationClause().parameterDeclarationList());
     else if (declaratorContext.pointerDeclarator() != null &&
-        declaratorContext.pointerDeclarator().noPointerDeclarator() != null &&
-        declaratorContext.pointerDeclarator().noPointerDeclarator().parametersAndQualifiers() != null) {
-      params = declaratorContext.pointerDeclarator().noPointerDeclarator().parametersAndQualifiers();
-    } else return Collections.emptyList();
-    if (params.parameterDeclarationClause() == null) return Collections.emptyList();
-
-    return getArgList(params.parameterDeclarationClause().parameterDeclarationList());
+        declaratorContext.pointerDeclarator().noPointerDeclarator() != null) {
+      var noPointer = declaratorContext.pointerDeclarator().noPointerDeclarator();
+      if (declaratorContext.pointerDeclarator().noPointerDeclarator().parametersAndQualifiers() != null)
+        return getArgList(noPointer.parametersAndQualifiers().parameterDeclarationClause().parameterDeclarationList());
+      else if (declaratorContext.pointerDeclarator().noPointerDeclarator().initializer().expressionList() != null) {
+        return getArgList(noPointer.initializer().expressionList());
+      }
+    }
+    return Collections.emptyList();
   }
 
   List<DeclNode> getArgList(CPP14Parser.ParameterDeclarationListContext ctx) {
@@ -602,6 +609,19 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
       if (paramDecl.declarator() != null) {
         var name = handleDeclarator(paramDecl.declarator());
         String type = getType(paramDecl.declSpecifierSeq());
+        result.add(new DeclNode(name, type, DeclNode.ARGUMENT));
+      }
+    }
+    return result;
+  }
+
+  List<DeclNode> getArgList(CPP14Parser.ExpressionListContext ctx) {
+    var exprs = handleExpressionList(ctx);
+    List<DeclNode> result = new ArrayList<>();
+    for (var expr: exprs) {
+      if (expr instanceof ExprRefNode exprRef && exprRef.refNodes.size() >= 2){
+        var type = exprRef.refNodes.get(0).ref.name;
+        var name = exprRef.refNodes.get(1).ref;
         result.add(new DeclNode(name, type, DeclNode.ARGUMENT));
       }
     }

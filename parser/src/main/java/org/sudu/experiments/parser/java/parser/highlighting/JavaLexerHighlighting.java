@@ -24,7 +24,7 @@ public class JavaLexerHighlighting {
       else if (isAT(type)) tokenTypes[ind] = ANNOTATION;
       else if (isComment(token.getType())) tokenTypes[ind] = COMMENT;
       else if (isJavadoc(token.getType())) tokenTypes[ind] = JAVADOC;
-      else if (isError(token.getType())) tokenTypes[ind] = ERROR;
+      else if (isError(token.getType()) || token.getType() == -1) tokenTypes[ind] = ERROR;
     }
   }
 

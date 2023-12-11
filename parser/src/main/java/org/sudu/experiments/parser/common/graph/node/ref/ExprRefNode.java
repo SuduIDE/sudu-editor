@@ -4,6 +4,7 @@ import org.sudu.experiments.parser.common.graph.type.TypeMap;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ExprRefNode extends RefNode {
 
@@ -38,4 +39,8 @@ public class ExprRefNode extends RefNode {
         ? TypeMap.getArrayElemType(type) : type;
   }
 
+  @Override
+  public String toString() {
+    return refNodes.stream().map(it -> refNodes.toString()).collect(Collectors.joining(", ", "", ""));
+  }
 }
