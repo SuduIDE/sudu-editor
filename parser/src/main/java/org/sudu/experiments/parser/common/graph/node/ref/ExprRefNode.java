@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 
 public class ExprRefNode extends RefNode {
 
-  public static final int BASE_EXPRESSION = 6;
-  public static final int ARRAY_INDEX = 7;
+  public static final int BASE_EXPRESSION = 7;
+  public static final int ARRAY_INDEX = 8;
 
   public List<RefNode> refNodes;
 
@@ -18,7 +18,7 @@ public class ExprRefNode extends RefNode {
   }
 
   public ExprRefNode(List<RefNode> refNodes, int refType) {
-    this(refNodes, refNodes.isEmpty() ? null : refNodes.get(0).type, refType);
+    this(refNodes, refNodes.isEmpty() || refNodes.get(0) == null ? null : refNodes.get(0).type, refType);
   }
 
   public ExprRefNode(List<RefNode> refNodes, String type) {

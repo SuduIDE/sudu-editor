@@ -27,7 +27,7 @@ public class Resolver {
 
   public DeclNode resolve(ScopeNode currentNode, RefNode ref) {
     if (ref == null
-        || ref.refType == RefNode.TYPE
+        || ref.refType == RefNode.LITERAL
         || (ref instanceof MethodCallNode callNode
         && callNode.callType == MethodNode.ARRAY_CREATOR)
     ) return null;
@@ -62,6 +62,8 @@ public class Resolver {
     if (ref instanceof QualifiedRefNode qualifiedRef) {
       return resolveQualified(curScope, qualifiedRef);
     }
+    if (ref.refType == RefNode.TYPE) return resolveType(ref);
+
     DeclNode decl = resolveVar(curScope, ref);
     if (decl != null) return decl;
 
@@ -151,6 +153,20 @@ public class Resolver {
     return null;
   }
 
+  private DeclNode resolveType(RefNode ref) {
+    return resolveTypeRec(graph.root, ref);
+  }
+
+  private DeclNode resolveTypeRec(ScopeNode current, RefNode ref) {
+    DeclNode res = current.declarationWalk(decl -> decl.match(ref, graph.typeMap));
+    if (res != null) return res;
+    for (var child: current.children) {
+      res = resolveTypeRec(child, ref);
+      if (res != null) return res;
+    }
+    return null;
+  }
+
   private ScopeNode getTypeScope(String type) {
     if (type == null || !graph.typeMap.containsKey(type)) return null;
     if (typeCache.containsKey(type)) return typeCache.get(type);
@@ -159,19 +175,19 @@ public class Resolver {
     return scope;
   }
 
-  private String getThisType(ScopeNode current) {
-    while (current != null) {
-      if (current.type != null) return current.type;
-      current = current.parent;
-    }
-    return null;
-  }
-
   private ScopeNode getTypeScopeRec(ScopeNode current, String type) {
     if (current.type != null && current.type.equals(type)) return current;
     for (var child: current.children) {
       var res = getTypeScopeRec(child, type);
       if (res != null) return res;
+    }
+    return null;
+  }
+
+  private String getThisType(ScopeNode current) {
+    while (current != null) {
+      if (current.type != null) return current.type;
+      current = current.parent;
     }
     return null;
   }

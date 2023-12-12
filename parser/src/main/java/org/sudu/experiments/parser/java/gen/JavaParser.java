@@ -9027,7 +9027,7 @@ public class JavaParser extends Parser {
 						_localctx = new ExpressionContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
 						setState(1440);
-						if (!(precpred(_ctx, 6))) throw new FailedPredicateException(this, "precpred(_ctx, 6)");
+						if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
 						setState(1441);
 						((ExpressionContext)_localctx).bop = _input.LT(1);
 						_la = _input.LA(1);
@@ -9040,7 +9040,7 @@ public class JavaParser extends Parser {
 							consume();
 						}
 						setState(1442);
-						expression(6);
+						expression(1);
 						}
 						break;
 
@@ -9182,7 +9182,7 @@ public class JavaParser extends Parser {
 						_localctx = new ExpressionContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
 						setState(1471);
-						if (!(precpred(_ctx, 3))) throw new FailedPredicateException(this, "precpred(_ctx, 3)");
+						if (!(precpred(_ctx, 4))) throw new FailedPredicateException(this, "precpred(_ctx, 4)");
 						setState(1472);
 						match(COLONCOLON);
 						setState(1474);
@@ -11961,7 +11961,7 @@ public class JavaParser extends Parser {
 			return precpred(_ctx, 7);
 
 		case 11:
-			return precpred(_ctx, 6);
+			return precpred(_ctx, 1);
 
 		case 12:
 			return precpred(_ctx, 26);
@@ -11976,7 +11976,7 @@ public class JavaParser extends Parser {
 			return precpred(_ctx, 14);
 
 		case 16:
-			return precpred(_ctx, 3);
+			return precpred(_ctx, 4);
 		}
 		return true;
 	}
@@ -12932,8 +12932,8 @@ public class JavaParser extends Parser {
 		"\u0003\u00c6c\t\u059a\u059b\n\u0007\u0000\u0000\u059b\u059c\u0005\\\u0000"+
 		"\u0000\u059c\u059d\u0003\u00c6c\u0000\u059d\u059e\u0005]\u0000\u0000\u059e"+
 		"\u059f\u0003\u00c6c\u0007\u059f\u05c6\u0001\u0000\u0000\u0000\u05a0\u05a1"+
-		"\n\u0006\u0000\u0000\u05a1\u05a2\u0007\f\u0000\u0000\u05a2\u05c6\u0003"+
-		"\u00c6c\u0006\u05a3\u05a4\n\u001a\u0000\u0000\u05a4\u05b0\u0005V\u0000"+
+		"\n\u0001\u0000\u0000\u05a1\u05a2\u0007\f\u0000\u0000\u05a2\u05c6\u0003"+
+		"\u00c6c\u0001\u05a3\u05a4\n\u001a\u0000\u0000\u05a4\u05b0\u0005V\u0000"+
 		"\u0000\u05a5\u05b1\u0003\u00a2Q\u0000\u05a6\u05b1\u0003\u00c4b\u0000\u05a7"+
 		"\u05b1\u0005+\u0000\u0000\u05a8\u05aa\u0005\u001f\u0000\u0000\u05a9\u05ab"+
 		"\u0003\u00ecv\u0000\u05aa\u05a9\u0001\u0000\u0000\u0000\u05aa\u05ab\u0001"+
@@ -12949,7 +12949,7 @@ public class JavaParser extends Parser {
 		"\u0000\u0000\u05b9\u05ba\n\u000e\u0000\u0000\u05ba\u05bd\u0005\u001a\u0000"+
 		"\u0000\u05bb\u05be\u0003\u00f0x\u0000\u05bc\u05be\u0003\u00c8d\u0000\u05bd"+
 		"\u05bb\u0001\u0000\u0000\u0000\u05bd\u05bc\u0001\u0000\u0000\u0000\u05be"+
-		"\u05c6\u0001\u0000\u0000\u0000\u05bf\u05c0\n\u0003\u0000\u0000\u05c0\u05c2"+
+		"\u05c6\u0001\u0000\u0000\u0000\u05bf\u05c0\n\u0004\u0000\u0000\u05c0\u05c2"+
 		"\u0005z\u0000\u0000\u05c1\u05c3\u0003\u00f4z\u0000\u05c2\u05c1\u0001\u0000"+
 		"\u0000\u0000\u05c2\u05c3\u0001\u0000\u0000\u0000\u05c3\u05c4\u0001\u0000"+
 		"\u0000\u0000\u05c4\u05c6\u0003\u00a2Q\u0000\u05c5\u0574\u0001\u0000\u0000"+

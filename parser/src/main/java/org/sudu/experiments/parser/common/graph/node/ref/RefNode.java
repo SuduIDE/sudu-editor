@@ -11,9 +11,10 @@ public class RefNode {
   public int refType;
   public static final int BASE = 1;
   public static final int CALL = 2;
-  public static final int TYPE = 3;
+  public static final int LITERAL = 3;
   public static final int THIS = 4;
   public static final int SUPER = 5;
+  public static final int TYPE = 6;
 
   public RefNode(Name decl) {
     this(decl, null, BASE);

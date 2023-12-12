@@ -618,9 +618,6 @@ expression
     | expression bop='&&' expression
     | expression bop='||' expression
     | <assoc=right> expression bop='?' expression ':' expression
-    | <assoc=right> expression
-      bop=('=' | '+=' | '-=' | '*=' | '/=' | '&=' | '|=' | '^=' | '>>=' | '>>>=' | '<<=' | '%=')
-      expression
     | lambdaExpression // Java8
     | switchExpression // Java17
 
@@ -628,6 +625,10 @@ expression
     | expression '::' typeArguments? identifier
     | typeType '::' (typeArguments? identifier | NEW)
     | classType '::' typeArguments? NEW
+
+    | <assoc=right> expression
+      bop=('=' | '+=' | '-=' | '*=' | '/=' | '&=' | '|=' | '^=' | '>>=' | '>>>=' | '<<=' | '%=')
+      expression
     ;
 
 // Java17

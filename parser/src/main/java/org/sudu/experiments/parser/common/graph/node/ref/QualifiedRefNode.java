@@ -1,7 +1,5 @@
 package org.sudu.experiments.parser.common.graph.node.ref;
 
-import org.sudu.experiments.parser.common.Name;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -39,6 +37,11 @@ public class QualifiedRefNode extends RefNode {
     List<RefNode> result = new ArrayList<>();
     flatten(result);
     return result;
+  }
+
+  public void addLast(RefNode last) {
+    if (cont instanceof QualifiedRefNode qualifiedRef) qualifiedRef.addLast(last);
+    else this.cont = new QualifiedRefNode(cont, last);
   }
 
   protected void flatten(List<RefNode> result) {

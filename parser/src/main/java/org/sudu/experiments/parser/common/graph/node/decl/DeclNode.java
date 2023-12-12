@@ -19,6 +19,7 @@ public class DeclNode {
   public static final int ARGUMENT = 2;
   public static final int FIELD = 3;
   public static final int CALLABLE = 4;
+  public static final int TYPE = 5;
 
 
   public DeclNode(Name decl, String type, int declType) {
@@ -28,6 +29,7 @@ public class DeclNode {
   }
 
   public boolean match(RefNode ref, TypeMap typeMap) {
+    if (ref.refType == RefNode.TYPE && declType == TYPE) return ref.ref.match(decl);
     boolean nameMatch = ref.ref == null || ref.ref.match(decl);
     boolean typeMatch = ref.type == null || typeMap.matchType(type, ref.type);
     if (!(nameMatch && typeMatch)) return false;

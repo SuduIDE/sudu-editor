@@ -2,6 +2,7 @@ package org.sudu.experiments.parser.common.graph;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.common.Name;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.graph.node.FakeNode;
 import org.sudu.experiments.parser.common.graph.node.InferenceNode;
@@ -69,11 +70,12 @@ public class ScopeWalker {
     return type;
   }
 
-  public String associateType(String type, ScopeNode scopeNode) {
-    if (type == null || type.isBlank()) return null;
-    graph.typeMap.putIfAbsent(type, new ArrayList<>());
-    scopeNode.type = type;
-    return type;
+  public String associateType(Name type, ScopeNode scopeNode) {
+    if (type == null || type.name == null || type.name.isBlank()) return null;
+    graph.typeMap.putIfAbsent(type.name, new ArrayList<>());
+    scopeNode.type = type.name;
+    scopeNode.declarations.add(new DeclNode(type, null, DeclNode.TYPE));
+    return type.name;
   }
 
   public void addSupertype(String type, String supertype) {

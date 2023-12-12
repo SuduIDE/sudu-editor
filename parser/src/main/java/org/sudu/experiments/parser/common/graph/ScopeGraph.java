@@ -37,7 +37,9 @@ public class ScopeGraph {
     ScopeGraph graph = new ScopeGraph(reader.scopeRoot, reader.typeMap);
     ArrayWriter writer = new ArrayWriter();
     BiConsumer<RefNode, DeclNode> onResolve = (ref, decl) -> {
-      if (ref == null || ref.ref == null) {
+      if (ref == null || ref.ref == null || (
+          ref.refType == RefNode.TYPE && decl == null)
+      ) {
         writer.write(-1);
         return;
       }
