@@ -90,7 +90,6 @@ public class Document {
       if (oldLine.elements[i].color != ParserConstants.TokenTypes.DEFAULT &&
           newLine.elements[i].color == ParserConstants.TokenTypes.DEFAULT) {
         newLine.elements[i].color = oldLine.elements[i].color;
-        newLine.elements[i].fontIndex = oldLine.elements[i].fontIndex;
       }
     }
   }
