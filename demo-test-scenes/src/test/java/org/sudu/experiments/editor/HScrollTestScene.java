@@ -65,7 +65,7 @@ public class HScrollTestScene extends Scene {
     };
 
     codeLine = new CodeLine(codeElements);
-    codeLineRenderer = new CodeLineRenderer();
+    codeLineRenderer = new CodeLineRenderer(new CodeLineRenderer.Context(fontDesk));
 
     fontDesk[0] = g.fontDesk(Fonts.Consolas, fontSize);
     g.mCanvas.setFont(fontDesk[0]);
@@ -91,16 +91,16 @@ public class HScrollTestScene extends Scene {
     scrollBar.draw(g);
     g.enableBlend(false);
 
-    codeLineRenderer.updateTextureOnScroll(renderCanvas, fontDesk, fontDesk[0].iSize, scrollPosH);
+    codeLineRenderer.updateTextureOnScroll(renderCanvas, fontDesk[0].iSize, scrollPosH);
 
-    codeLineRenderer.draw(200, 0, g, new V4f(), new V2i(), 1f,
+    codeLineRenderer.draw(200, 0, g,
         viewportSize.x, fontSize, scrollPosH, colors, null,
-        null, usages, false, false, null, false);
+        null, usages, false, false, null);
 
     codeLineRenderer.drawDebug(300, 0, fontSize, g, debugColor, debugColorBg);
 
     if (needsUpdate) {
-      codeLineRenderer.updateTexture(codeLine, renderCanvas, fontDesk, g, fontDesk[0].iSize, viewportSize.x, scrollPosH);
+      codeLineRenderer.updateTexture(codeLine, renderCanvas, g, fontDesk[0].iSize, viewportSize.x, scrollPosH);
       needsUpdate = false;
     }
 

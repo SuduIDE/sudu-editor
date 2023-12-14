@@ -82,15 +82,6 @@ public class TestText {
     return doc;
   }
 
-  public static CodeLine generateLine() {
-    CodeElement[] words = words(new XorShiftRandom());
-    CodeElement[] spaces = spaces();
-    int min = words.length * 2 / 3;
-    int max = words.length * 3 / 2;
-    CodeElement[] line = generateLine(words, spaces, min, max, new XorShiftRandom());
-    return new CodeLine(line);
-  }
-
   private static CodeElement[] generateLine(
       CodeElement[] words, CodeElement[] spaces,
       int min, int max, XorShiftRandom r

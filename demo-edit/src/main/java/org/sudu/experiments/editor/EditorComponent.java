@@ -51,7 +51,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   int fontVirtualSize = EditorConst.DEFAULT_FONT_SIZE;
   String fontFamilyName = EditorConst.FONT;
   FontDesk font;
-  FontDesk[] fonts = new FontDesk[4];
+  final FontDesk[] fonts = new FontDesk[4];
   int lineHeight;
 
   Model model = new Model();
@@ -116,10 +116,13 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   public static final int ACTIVITY_CHANNEL = 0;
 
+  final CodeLineRenderer.Context lrContext;
+
   public EditorComponent(UiContext context, EditorUi ui) {
     this.context = context;
     this.g = context.graphics;
     this.ui = ui;
+    lrContext = new CodeLineRenderer.Context(fonts);
 
     debugFlags[0] = this::toggleContrast;
     debugFlags[1] = this::toggleBlankLines;
@@ -131,9 +134,16 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
     // d2d is very bold, contrast makes font heavier
     applyContrast = context.window.getHost() != Host.Direct2D;
+    setRenderingContextSetting(context);
+  }
+
+  private void setRenderingContextSetting(UiContext context) {
+    lrContext.contrast = applyContrast ? EditorConst.CONTRAST : 0;
+    lrContext.cleartype = context.cleartype;
   }
 
   void setPos(V2i pos, V2i size, float dpr) {
+    lrContext.setSinDpr(dpr);
     this.pos.set(pos);
     this.size.set(size);
 
@@ -229,6 +239,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   void toggleContrast() {
     applyContrast = !applyContrast;
+    lrContext.contrast = applyContrast ? EditorConst.CONTRAST : 0;
     Debug.consoleInfo("applyContrast = " + applyContrast);
   }
 
@@ -278,7 +289,10 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
     int fontLineHeight = font.lineHeight();
     lineHeight = Numbers.iRnd(fontLineHeight * EditorConst.LINE_HEIGHT);
-    caret.setHeight(font.caretHeight(lineHeight));
+    lrContext.lineHeight = lineHeight;
+    lrContext.underline = fonts[0].underlineShift(lineHeight);
+
+    caret.setHeight(fonts[0].caretHeight(lineHeight));
     createRenderingCanvas();
 
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
@@ -287,7 +301,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
         + ", caretHeight = " + caret.height());
 
     if (CodeLineRenderer.useTop) {
-      Debug.consoleInfo("topBase(font, lineHeight) = " + CodeLineRenderer.topBase(font, lineHeight));
+      Debug.consoleInfo("topBase(font, lineHeight) = " + CodeLineRenderer.topBase(fonts[0], lineHeight));
     }
   }
 
@@ -322,6 +336,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   public void enableCleartype(boolean en) {
+    lrContext.cleartype = context.cleartype;
+
     if (renderingCanvas.cleartype != context.cleartype) {
       createRenderingCanvas();
     }
@@ -441,24 +457,17 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     hScrollPos = clampScrollPos(hPos, maxHScrollPos());
   }
 
-  // temp vars
-  private final V4f tRegion = new V4f();
-
-
   public void paint() {
 
     int cacheLines = Numbers.iDivRoundUp(size.y, lineHeight) + EditorConst.MIN_CACHE_LINES;
     if (lines.length < cacheLines) {
-      lines = CodeLineRenderer.reallocRenderLines(
-          cacheLines, lines, firstLineRendered, lastLineRendered,
-          model.document);
+      lines = CodeLineRenderer.allocRenderLines(
+          cacheLines, lines, lrContext,
+          firstLineRendered, lastLineRendered, model.document);
     }
 
     g.enableBlend(false);
     g.enableScissor(pos, size);
-
-//    vScrollPos = Math.min(vScrollPos, maxVScrollPos());
-//    hScrollPos = Math.min(hScrollPos, maxHScrollPos());
 
     int caretVerticalOffset = (lineHeight - caret.height()) / 2;
     int caretX = caretPos - caret.width() / 2 - hScrollPos;
@@ -474,8 +483,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     firstLineRendered = firstLine;
     lastLineRendered = lastLine;
 
-    V2i sizeTmp = context.v2i1;
-      sizeTmp.set(editorWidth(), lineHeight);
     int dx = mirrored
         ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth()
         : pos.x + vLineX;
@@ -483,7 +490,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
       CodeLine nextLine = model.document.line(i);
       CodeLineRenderer line = lineRenderer(i);
-      line.updateTexture(nextLine, renderingCanvas, fonts, g,
+      line.updateTexture(nextLine, renderingCanvas, g,
           lineHeight, editorWidth(), hScrollPos);
       CodeLine lineContent = line.line;
 
@@ -493,15 +500,15 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
       LineDiff diff = diffModel == null ? null : diffModel[i];
       line.draw(
-          pos.y + yPosition, dx, g, tRegion, sizeTmp,
-          applyContrast ? EditorConst.CONTRAST : 0,
+          pos.y + yPosition, dx, g,
           editorWidth(), lineHeight, hScrollPos,
           colors, getSelLineSegment(i, lineContent),
           definition, usages,
           caretLine == i, diffModel != null,
-          diff, context.cleartype);
+          diff);
     }
 
+    V2i sizeTmp = context.v2i1;
     for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
       CodeLineRenderer line = lineRenderer(i);
       int yPosition = lineHeight * i - vScrollPos;

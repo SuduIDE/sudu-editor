@@ -4,16 +4,19 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.ui.colors.CodeElementColor;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.parser.ParserConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+
+import static org.sudu.experiments.editor.UnderlineConstants.*;
 
 class CodeLineRenderer implements Disposable {
   static boolean dumpMeasure;
@@ -22,15 +25,19 @@ class CodeLineRenderer implements Disposable {
   static final int initialOffset = 3;
   private int xOffset = initialOffset;
 
+  final Context context;
+  final ArrayList<GL.Texture> lineTextures = new ArrayList<>();
   CodeLine line;
-  List<GL.Texture> lineTextures = new ArrayList<>();
   int numOfTextures;
   int curFromTexture = 0;
+
+  CodeLineRenderer(Context context) {
+    this.context = context;
+  }
 
   public void updateTexture(
       CodeLine content,
       Canvas renderingCanvas,
-      FontDesk[] fonts,
       WglGraphics g,
       int lineHeight,
       int editorWidth,
@@ -39,7 +46,7 @@ class CodeLineRenderer implements Disposable {
     boolean lineChanged = line != content || line.contentDirty;
     if (lineChanged) {
       line = content;
-      content.measure(g.mCanvas, fonts);
+      content.measure(g.mCanvas, context.fonts);
     }
     int newNumOfTextures = countNumOfTextures(editorWidth);
     boolean needsResize = newNumOfTextures > numOfTextures;
@@ -53,11 +60,11 @@ class CodeLineRenderer implements Disposable {
       }
 
       renderingCanvas.setTopMode(useTop);
-      initNTextures(renderingCanvas, g, fonts, lineHeight, horScrollPos);
+      initNTextures(renderingCanvas, g, lineHeight, horScrollPos);
 
       line.contentDirty = false;
     }
-    updateTextureOnScroll(renderingCanvas, fonts, lineHeight, horScrollPos);
+    updateTextureOnScroll(renderingCanvas, lineHeight, horScrollPos);
   }
 
   static int topBase(FontDesk font, int lineHeight) {
@@ -72,7 +79,7 @@ class CodeLineRenderer implements Disposable {
     this.xOffset = xOffset;
   }
 
-  public void updateTextureOnScroll(Canvas renderingCanvas, FontDesk[] fonts, int lineHeight, int horScrollPos) {
+  public void updateTextureOnScroll(Canvas renderingCanvas, int lineHeight, int horScrollPos) {
     if (lineTextures.isEmpty()) return;
     if (horScrollPos > line.lineMeasure()) return;
 
@@ -81,21 +88,21 @@ class CodeLineRenderer implements Disposable {
 
     if (Math.abs(fromTexture - curFromTexture) >= numOfTextures) {
       for (int i = 0; i < numOfTextures; i++) {
-        drawOnTexture(renderingCanvas, lineHeight, fonts, fromTexture + i);
+        drawOnTexture(renderingCanvas, lineHeight, fromTexture + i);
       }
       curFromTexture = fromTexture;
       return;
     }
 
     for (; curFromTexture < fromTexture; curFromTexture++) {
-      drawOnTexture(renderingCanvas, lineHeight, fonts, curFromTexture + numOfTextures);
+      drawOnTexture(renderingCanvas, lineHeight, curFromTexture + numOfTextures);
     }
     for (; curFromTexture > fromTexture; curFromTexture--) {
-      drawOnTexture(renderingCanvas, lineHeight, fonts, (curFromTexture - 1));
+      drawOnTexture(renderingCanvas, lineHeight, (curFromTexture - 1));
     }
   }
 
-  public void drawOnTexture(Canvas renderingCanvas, int lineHeight, FontDesk[] fonts, int numberOfTexture) {
+  public void drawOnTexture(Canvas renderingCanvas, int lineHeight, int numberOfTexture) {
     renderingCanvas.clear();
 
     float[] fMeasure = line.fMeasure;
@@ -107,10 +114,13 @@ class CodeLineRenderer implements Disposable {
     float wordMeasure = curWord == 0 ? 0 : fMeasure[curWord - 1];
     float x = wordMeasure - offset + xOffset;
 
+    FontDesk[] fonts = context.fonts;
+
     for (; curWord < line.elements.length; curWord++) {
       CodeElement entry = line.get(curWord);
-      int yPos = useTop ? topBase(fonts[entry.fontIndex], lineHeight) : baselineShift(fonts[entry.fontIndex], lineHeight);
-      renderingCanvas.setFont(fonts[entry.fontIndex]);
+      FontDesk font = fonts[entry.fontIndex()];
+      int yPos = useTop ? topBase(font, lineHeight) : baselineShift(font, lineHeight);
+      renderingCanvas.setFont(font);
       renderingCanvas.drawText(entry.s, x, yPos);
       x = fMeasure[curWord] - offset + xOffset;
       if (x > TEXTURE_WIDTH) break;
@@ -121,8 +131,6 @@ class CodeLineRenderer implements Disposable {
   public void draw(
       int yPosition, int dx,
       WglGraphics g,
-      V4f region, V2i size,
-      float contrast,
       int editorWidth,
       int lineHeight,
       int horScrollPos,
@@ -132,8 +140,7 @@ class CodeLineRenderer implements Disposable {
       List<CodeElement> usages,
       boolean isCurrentLine,
       boolean isDiff,
-      LineDiff diff,
-      boolean cleartype
+      LineDiff diff
   ) {
     if (lineTextures.isEmpty()) return;
     if (numOfTextures == 0) return;
@@ -178,13 +185,12 @@ class CodeLineRenderer implements Disposable {
       }
 
       if (isFullSelected || isFullUnselected) {
-        region.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
-        size.set(drawWidth, lineHeight);
+        context.tRegion.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
+        context.size.set(drawWidth, lineHeight);
         drawWord(g,
-            xPos + dx, yPosition, size, region,
+            xPos + dx, yPosition,
             e, texture,
-            colors, elemBgColor, contrast, isFullSelected,
-            cleartype
+            colors, elemBgColor, isFullSelected
         );
       } else {
         selectedSegment.y = Math.min(selectedSegment.y, line.lineMeasure());
@@ -204,11 +210,18 @@ class CodeLineRenderer implements Disposable {
 
         int regionX = texturePos - curTexture * TEXTURE_WIDTH;
         drawSelected(g, xPos + dx, yPosition,
-            region, size, contrast,
             lineHeight, colors,
             texture, e,
-            drawWidth, pre, post, regionX, elemBgColor,
-            cleartype);
+            drawWidth, pre, post, regionX, elemBgColor
+        );
+      }
+
+      int underlineIndex =
+          e.color == ParserConstants.TokenTypes.ERROR
+              ? 1 : e.underlineIndex();
+
+      if (underlineIndex > 0) {
+        drawUnderline(xPos+ dx, yPosition, g, drawWidth, underlineIndex);
       }
 
       texturePos += drawWidth;
@@ -221,52 +234,76 @@ class CodeLineRenderer implements Disposable {
     }
   }
 
+  private void drawUnderline(int xPos, int yPos, WglGraphics g, int drawWidth, int underlineIndex) {
+    g.enableBlend(true);
+
+    V2i underlineSize = context.underlineSize;
+    underlineSize.x = drawWidth;
+
+    g.drawSin(
+        xPos, yPos + context.underline - context.underlineHBox,
+        underlineSize,
+        /* xPos + */ context.underlineOffset,
+        yPos + context.underline + context.underlineOffset,
+        context.underlineParams,
+        IdeaCodeColors.ElementsDark.error.v.colorF
+    );
+    g.enableBlend(false);
+  }
+
   private void drawSelected(
       WglGraphics g, int xPos, int yPosition,
-      V4f region, V2i size, float contrast,
       int lineHeight, EditorColorScheme colors,
       GL.Texture texture, CodeElement e,
       int drawWidth, int pre, int post, int regionX,
-      V4f elemBgColor,
-      boolean cleartype
+      V4f elemBgColor
   ) {
-    region.set(regionX, 0, drawWidth - pre, lineHeight);
-    size.set(drawWidth - pre, lineHeight);
-    drawWord(g, xPos, yPosition, size, region, e,
-        texture, colors, elemBgColor, contrast,
-        false, cleartype);
+    V4f tRegion = context.tRegion;
+    tRegion.set(regionX, 0, drawWidth - pre, lineHeight);
+    context.size.set(drawWidth - pre, lineHeight);
+    drawWord(g, xPos, yPosition, e,
+        texture, colors, elemBgColor,
+        false);
 
-    region.set(regionX + drawWidth - post, 0, post, lineHeight);
-    size.set(post, lineHeight);
-    drawWord(g, xPos + drawWidth - post, yPosition, size, region, e,
-        texture, colors, elemBgColor, contrast,
-        false, cleartype);
+    tRegion.set(regionX + drawWidth - post, 0, post, lineHeight);
+    context.size.set(post, lineHeight);
+    drawWord(g, xPos + drawWidth - post, yPosition, e,
+        texture, colors, elemBgColor,
+        false);
 
-    region.set(regionX + drawWidth - pre, 0, pre - post, lineHeight);
-    size.set(pre - post, lineHeight);
-    drawWord(g, xPos + drawWidth - pre, yPosition, size, region, e,
-        texture, colors, elemBgColor, contrast,
-        true, cleartype);
+    tRegion.set(regionX + drawWidth - pre, 0, pre - post, lineHeight);
+    context.size.set(pre - post, lineHeight);
+    drawWord(g, xPos + drawWidth - pre, yPosition, e,
+        texture, colors, elemBgColor,
+        true);
   }
 
   private void drawWord(
-      WglGraphics g, int xPos, int yPos, V2i size, V4f region,
+      WglGraphics g, int xPos, int yPos,
       CodeElement e, GL.Texture texture,
-      EditorColorScheme colors, V4f elemBgColor, float contrast, boolean isSelected,
-      boolean cleartype) {
+      EditorColorScheme colors, V4f elemBgColor, boolean isSelected) {
+    V2i size = context.size;
     if (size.x == 0 || size.y == 0) return;
+    V4f region = context.tRegion;
     if (region.w == 0 || region.z == 0) return;
 
     CodeElementColor c = colors.codeElement[e.color];
-    V4f bgColor = isSelected ? colors.editor.selectionBg : Objects.requireNonNullElse(elemBgColor, colors.bgColor(c.colorB));
-    if (cleartype) {
+    V4f bgColor = isSelected ? colors.editor.selectionBg :
+        requireNonNullElse(elemBgColor, colors.bgColor(c.colorB));
+
+    if (context.cleartype) {
       g.drawTextCT(xPos, yPos, size,
           region, texture, c.colorF, bgColor);
     } else {
       g.drawText(xPos, yPos, size,
           region, texture, c.colorF, bgColor,
-          contrast);
+          context.contrast);
     }
+  }
+
+  // we don't need to throw here
+  static <T> T requireNonNullElse(T obj, T defaultObj) {
+    return (obj != null) ? obj : defaultObj;
   }
 
   private int getWordIndex(int horScrollPos) {
@@ -296,7 +333,7 @@ class CodeLineRenderer implements Disposable {
     }
   }
 
-  private void initNTextures(Canvas renderingCanvas, WglGraphics g, FontDesk[] fonts, int lineHeight, int horScrollPos) {
+  private void initNTextures(Canvas renderingCanvas, WglGraphics g, int lineHeight, int horScrollPos) {
     curFromTexture = horScrollPos / TEXTURE_WIDTH;
 
     while (lineTextures.size() < numOfTextures) {
@@ -304,7 +341,7 @@ class CodeLineRenderer implements Disposable {
     }
 
     for (int i = 0; i < numOfTextures; i++) {
-      drawOnTexture(renderingCanvas, lineHeight, fonts, curFromTexture + i);
+      drawOnTexture(renderingCanvas, lineHeight, curFromTexture + i);
     }
   }
 
@@ -350,10 +387,10 @@ class CodeLineRenderer implements Disposable {
     g.drawRect(dx + lineEnd, yPos, size, editBgColor);
   }
 
-  static CodeLineRenderer[] reallocRenderLines(
+  static CodeLineRenderer[] allocRenderLines(
       int newSize,
-      CodeLineRenderer[] lines, int first, int last,
-      Document document
+      CodeLineRenderer[] lines, Context context,
+      int first, int last, Document document
   ) {
     CodeLineRenderer[] r = new CodeLineRenderer[newSize];
     int pSrc = 0;
@@ -372,13 +409,40 @@ class CodeLineRenderer implements Disposable {
         CodeLineRenderer v = pSrc < lines.length ? lines[pSrc++] : null;
         while (pSrc < lines.length && v == null) v = lines[pSrc++];
         if (v != null) { r[i] = v; lines[pSrc-1] = null; }
-        else r[i] = new CodeLineRenderer();
+        else r[i] = new CodeLineRenderer(context);
       }
     }
     for (; pSrc < lines.length; pSrc++) {
       CodeLineRenderer v = lines[pSrc];
       if (v != null) v.dispose();
     }
+
     return r;
+  }
+
+  static class Context {
+    final V4f tRegion = new V4f();
+    final V2i size = new V2i();
+    final V2i underlineSize = new V2i();
+    final V4f underlineParams = new V4f();
+    final FontDesk[] fonts;
+
+    float    contrast;
+    float    underlineOffset;
+    int      lineHeight, underline, underlineHBox;
+    boolean  cleartype;
+
+    Context(FontDesk[] fonts) {
+      this.fonts = fonts;
+      sinParamsDefault(underlineParams);
+    }
+
+    void setSinDpr(float dpr) {
+      sinParamsDefault(underlineParams);
+      scaleSinParams(underlineParams, dpr, underlineParams);
+      underlineOffset = UnderlineConstants.offset(underlineParams);
+      underlineHBox = UnderlineConstants.boxExtend(underlineParams);
+      underlineSize.set(0, underlineHBox * 2);
+    }
   }
 }

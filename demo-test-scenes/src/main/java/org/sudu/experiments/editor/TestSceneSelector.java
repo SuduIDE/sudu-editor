@@ -36,6 +36,7 @@ public class TestSceneSelector {
       case "LineShaderDemo1" -> LineShaderDemo1::new;
       case "LineShaderDemo2" -> LineShaderDemo2::new;
       case "WindowDemo" -> WindowDemo::new;
+      case "SinDemo" -> SinDemo::new;
 
 //      case "#wasm" -> new WasmDemo(api);
     };

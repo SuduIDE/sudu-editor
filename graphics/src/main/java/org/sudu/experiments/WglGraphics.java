@@ -25,6 +25,7 @@ public abstract class WglGraphics {
   final Shaders.TextClearType shTextCT;
   final Shaders.GrayIcon shGrayIcon;
   final Shaders.LineFill shLineFill;
+  final Shaders.Sin shSin;
   final Shaders.Shader2d[] all2dShaders;
   private GL.Mesh rectangle;
 
@@ -66,7 +67,8 @@ public abstract class WglGraphics {
         shText = new Shaders.Text(gl),
         shTextCT = new Shaders.TextClearType(gl),
         shGrayIcon = new Shaders.GrayIcon(gl),
-        shLineFill = new Shaders.LineFill(gl)
+        shLineFill = new Shaders.LineFill(gl),
+        shSin = new Shaders.Sin(gl)
     };
 
     gl.checkError("WebGraphics::ctor finish");
@@ -202,6 +204,18 @@ public abstract class WglGraphics {
     shLineFill.setPosition(gl, x, y, size, clientRect);
     shLineFill.setPoints(gl, p11, p12, p21, p22);
     shLineFill.setColor(gl, color);
+    drawRect();
+  }
+
+  // parameters: xScale, yScale, H, exp,
+  public void drawSin(
+      int x, int y, V2i size,
+      float x0, float y0, V4f parameters, V4f color
+  ) {
+    setShader(shSin);
+    shSin.setPosition(gl, x, y, size, clientRect);
+    shSin.set(gl, x0, y0, parameters);
+    shSin.setColor(gl, color);
     drawRect();
   }
 

@@ -547,7 +547,7 @@ public class Document {
       defToUsages.putIfAbsent(declPos, new ArrayList<>());
       defToUsages.get(declPos).add(refPos);
       refElem.color = type;
-      refElem.fontIndex = style;
+      refElem.style = style;
     }
   }
 }

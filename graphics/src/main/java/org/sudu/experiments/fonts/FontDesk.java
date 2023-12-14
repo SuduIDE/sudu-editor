@@ -86,6 +86,12 @@ public class FontDesk {
     return Numbers.iRnd((fAscent + fDescent) * scale);
   }
 
+  public int underlineShift(int editorLineHeight) {
+    float shift = (editorLineHeight + fAscent + fDescent) / 2 ;
+    // round up
+    return -(int)(-shift);
+  }
+
   public float uiBaseline() {
     return fAscent - (fAscent + fDescent) / 16;
   }

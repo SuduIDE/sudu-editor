@@ -27,4 +27,8 @@ public class Numbers {
   public static int clamp(int min, int value, int max) {
     return Math.max(min, Math.min(value, max));
   }
+
+  public static double log(double x, double base) {
+    return Math.log(x) / Math.log(base);
+  }
 }

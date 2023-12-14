@@ -118,7 +118,7 @@ public class CodeLine {
       String s1 = elem.s.substring(0, beginIndex);
       String s2 = elem.s.substring(endIndex);
       String newValue = s1.concat(s2);
-      elements[i] = new CodeElement(newValue, elem.color, elem.fontIndex);
+      elements[i] = new CodeElement(newValue, elem.color, elem.style);
     } else {
       CodeElement from = elements[i];
       CodeElement to = elements[j];
@@ -126,7 +126,7 @@ public class CodeLine {
       if (beginIndex != 0) {
         if (beginIndex != from.s.length()) {
           String newValue = from.s.substring(0, beginIndex);
-          elements[i] = new CodeElement(newValue, from.color, from.fontIndex);
+          elements[i] = new CodeElement(newValue, from.color, from.style);
         }
         i++;
       }
@@ -134,7 +134,7 @@ public class CodeLine {
       if (endIndex != to.s.length()) {
         if (endIndex != 0) {
           String newValue = to.s.substring(endIndex);
-          elements[j] = new CodeElement(newValue, to.color, to.fontIndex);
+          elements[j] = new CodeElement(newValue, to.color, to.style);
         }
       } else j++;
 
@@ -269,7 +269,7 @@ public class CodeLine {
         totalLength += entry.s.length();
         lengthCache[i] = totalLength;
 
-        measuringCanvas.setFont(fonts[entry.fontIndex]);
+        measuringCanvas.setFont(fonts[entry.fontIndex()]);
         float wordLength = measuringCanvas.measureText(entry.s);
         sumMeasure += wordLength;
         fMeasure[i] = sumMeasure;
@@ -356,7 +356,7 @@ public class CodeLine {
 
   private int[] buildGlyphMeasureCache(int entry, Canvas mCanvas, FontDesk[] fonts) {
     CodeElement element = elements[entry];
-    mCanvas.setFont(fonts[element.fontIndex]);
+    mCanvas.setFont(fonts[element.fontIndex()]);
     String s = element.s;
     int[] cache = new int[s.length() - 1];
     char[] chars = s.toCharArray();

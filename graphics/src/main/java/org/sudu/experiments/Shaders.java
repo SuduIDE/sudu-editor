@@ -244,6 +244,49 @@ public interface Shaders {
     }
   }
 
+  String psCodeSin = shaderHeader + psShaderPrecision + contrastCode +
+      """
+          layout(location = 0) out vec4 outColor;
+          uniform vec4 uColor;
+          uniform vec2 uBaseline;
+          uniform vec4 uScaleHExp;
+          in vec2 outScreenPos;
+          
+          void main() {
+            vec2 pt = outScreenPos;
+            float sX = uScaleHExp.x, sY = uScaleHExp.y;
+            float H = uScaleHExp.z;
+            float E = uScaleHExp.w;
+            float arg = (pt.x - uBaseline.x) * sX;
+            float sinA = sin(arg);
+            float vDist = abs(sinA * sY - uBaseline.y + pt.y);
+            float k = sqrt(1. + (1. - sinA * sinA) * sX * sX * sY * sY * 0.5);
+            float v = vDist / (H * k);
+            float alpha = pow(1. - clamp(v + .5, 0.0, 1.0), E);
+            outColor = vec4(uColor.xyz, alpha);
+          }""";
+
+  class Sin extends Shader2d {
+    final GLApi.UniformLocation uColor;
+    final GLApi.UniformLocation uBaseline, uScaleHExp;
+
+    Sin(GLApi.Context gl) {
+      super(gl, vsCode2d, psCodeSin, GL.VertexLayout.POS2_UV2);
+      uColor = gl.getUniformLocation(program, "uColor");
+      uBaseline = gl.getUniformLocation(program, "uBaseline");
+      uScaleHExp = gl.getUniformLocation(program, "uScaleHExp");
+    }
+
+    void setColor(GLApi.Context gl, V4f color) {
+      gl.uniform4f(uColor, color);
+    }
+
+    void set(GLApi.Context gl, float x0, float y0, V4f parameters) {
+      gl.uniform2f(uBaseline, x0, y0);
+      gl.uniform4f(uScaleHExp, parameters);
+    }
+  }
+
   class SimpleTexture extends Shader2d {
     final GLApi.UniformLocation sDiffuse;
 
