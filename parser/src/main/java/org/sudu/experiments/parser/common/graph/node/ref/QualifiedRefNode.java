@@ -1,8 +1,12 @@
 package org.sudu.experiments.parser.common.graph.node.ref;
 
+import org.sudu.experiments.parser.common.graph.node.NodeTypes;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static org.sudu.experiments.parser.common.graph.node.NodeTypes.*;
 
 /**
   ref.a
@@ -12,13 +16,13 @@ public class QualifiedRefNode extends RefNode {
   public RefNode begin, cont;
 
   public QualifiedRefNode(RefNode begin, RefNode cont) {
-    super(begin.ref, begin.type, -1);
+    super(begin.ref, begin.type, NodeTypes.RefTypes.QUALIFIED);
     this.begin = begin;
     this.cont = cont;
   }
 
   public QualifiedRefNode(List<RefNode> refs) {
-    super(null, null, -1);
+    super(null, null, RefTypes.QUALIFIED);
 
     var preLast = refs.get(refs.size() - 2);
     var last = refs.get(refs.size() - 1);

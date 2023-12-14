@@ -6,6 +6,7 @@ import org.sudu.experiments.parser.common.graph.node.ref.RefNode;
 import org.sudu.experiments.parser.common.graph.type.TypeMap;
 
 import java.util.*;
+import static org.sudu.experiments.parser.common.graph.node.NodeTypes.*;
 
 /**
  * int foo(int a, int b) {}
@@ -15,20 +16,13 @@ public class MethodNode extends DeclNode {
 
   public List<String> argTypes;
   public int callType;
-  public static final int METHOD = 1;
-  public static final int CREATOR = 2;
-  public static final int ARRAY_CREATOR = 3;
-  public static final int THIS = 4;
-  public static final int SUPER = 5;
-  public static final int THIS_CALL = 6;
-  public static final int SUPER_CALL = 7;
 
   public MethodNode(Name decl, String type) {
-    this(decl, type, METHOD, Collections.emptyList());
+    this(decl, type, MethodTypes.METHOD, Collections.emptyList());
   }
 
   public MethodNode(Name decl, String type, int callType, List<String> args) {
-    this(decl, type, CALLABLE, callType, args);
+    this(decl, type, DeclTypes.CALLABLE, callType, args);
   }
 
   public MethodNode(Name decl, String type, int declType, int callType, List<String> args) {

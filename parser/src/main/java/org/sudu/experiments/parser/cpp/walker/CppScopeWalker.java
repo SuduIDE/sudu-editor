@@ -23,6 +23,7 @@ import java.util.function.Function;
 
 import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Cpp.*;
 import static org.sudu.experiments.parser.ParserConstants.*;
+import static org.sudu.experiments.parser.common.graph.node.NodeTypes.*;
 
 public class CppScopeWalker extends CPP14ParserBaseListener {
 
@@ -64,11 +65,11 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   public void enterClassSpecifier(CPP14Parser.ClassSpecifierContext ctx) {
     super.enterClassSpecifier(ctx);
     var className = ctx.classHead().classHeadName().className();
-    var typeStr = getIdentifier(className).getText();
+    var typeName = Name.fromRule(className, offset);
     scopeWalker.newIntervalStart = scopeWalker.currentNode.getStart();
 
 //    scopeWalker.enterMember(List.of());
-    scopeWalker.associateType(typeStr, scopeWalker.currentScope);
+    scopeWalker.associateType(typeName, scopeWalker.currentScope);
     scopeWalker.addInterval(ctx, TYPE);
     scopeWalker.enterInterval();
 
@@ -107,11 +108,13 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
 
   private void handleFields(CPP14Parser.MemberSpecificationContext ctx, CPP14Parser.MemberdeclarationContext member) {
     var type = getType(member.declSpecifierSeq());
+
+
     var fields = new ArrayList<DeclNode>();
     var forMark = new ArrayList<TerminalNode>();
     for (var decl: member.memberDeclaratorList().memberDeclarator()) {
       var name = handleDeclarator(decl.declarator());
-      fields.add(new DeclNode(name, type, DeclNode.FIELD));
+      fields.add(new DeclNode(name, type, DeclTypes.FIELD));
       forMark.add(getIdentifier(decl.declarator()));
     }
 
@@ -134,10 +137,10 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
 
     String type = isConstructorDef ? name.name : getType(func.declSpecifierSeq());
 
-    int methodType = isConstructorDef ? MethodNode.CREATOR : MethodNode.METHOD;
+    int methodType = isConstructorDef ? MethodTypes.CREATOR : MethodTypes.METHOD;
     scopeWalker.getType(type);
     var method = new MethodNode(name, type, methodType, argsTypes);
-    if (!isMember) method.declType = DeclNode.LOCAL_VAR;
+    if (!isMember) method.declType = DeclTypes.LOCAL_VAR;
 
     scopeWalker.enterMember(method);
     scopeWalker.addInterval(func, MEMBER);
@@ -170,13 +173,13 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
 
     for (var initDecl: ctx.initDeclaratorList().initDeclarator()) {
       var name = handleDeclarator(initDecl.declarator());
-      if (isDeclaration && !isInference) scopeWalker.addDecl(new DeclNode(name, type, DeclNode.LOCAL_VAR));
+      if (isDeclaration && !isInference) scopeWalker.addDecl(new DeclNode(name, type, DeclTypes.LOCAL_VAR));
       else if (!isInference) scopeWalker.addRef(new RefNode(name));
 
       if (initDecl.initializer() == null) continue;
       var initRef = handleInitializer(initDecl.initializer());
       if (isInference) {
-        var decl = new DeclNode(name, initRef.type, DeclNode.LOCAL_VAR);
+        var decl = new DeclNode(name, initRef.type, DeclTypes.LOCAL_VAR);
         scopeWalker.addInference(new InferenceNode(decl, initRef));
       } else scopeWalker.addRef(initRef);
     }
@@ -216,7 +219,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
       var refs = forRangeInit.expression() != null
           ? handleExpression(forRangeInit.expression())
           : handleBracedInitList(forRangeInit.bracedInitList());
-      var decl = new DeclNode(name, type, DeclNode.LOCAL_VAR);
+      var decl = new DeclNode(name, type, DeclTypes.LOCAL_VAR);
       if (type != null && type.equals("auto")) {
         var ref = refs.get(0);
         decl.type = ref.type;
@@ -393,7 +396,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
       else
         refs.addAll(handleBracedInitList(postfixExpression.bracedInitList()));
 
-      return new ExprRefNode(refs, ExprRefNode.ARRAY_INDEX);
+      return new ExprRefNode(refs, RefTypes.ARRAY_INDEX);
     }
 
     if (allNotNull(postfixExpression.postfixExpression(), postfixExpression.idExpression())) {
@@ -470,7 +473,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     else if (primaryExpression.idExpression() != null)
       return handleIdExpression(primaryExpression.idExpression());
     else if (primaryExpression.This() != null)
-      return new RefNode(Name.fromNode(primaryExpression.This(), offset), null, RefNode.THIS);
+      return new RefNode(Name.fromNode(primaryExpression.This(), offset), null, RefTypes.THIS);
     else return handleLambdaExpression(primaryExpression.lambdaExpression());
   }
 
@@ -491,7 +494,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     else if (literal.StringLiteral() != null) type = "char*";
     else if (literal.BooleanLiteral() != null) type = "boolean";
     if (type != null) scopeWalker.getType(type);
-    return new RefNode(Name.fromNode(node, offset), type, RefNode.TYPE);
+    return new RefNode(Name.fromNode(node, offset), type, RefTypes.LITERAL);
   }
 
   private RefNode handleNewExpression(CPP14Parser.NewExpressionContext newExpression) {
@@ -503,7 +506,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     List<RefNode> callArgs = newExpression.newInitializer() != null
         ? handleNewInitializer(newExpression.newInitializer())
         : List.of();
-    return new MethodCallNode(name, name.name, MethodNode.CREATOR, callArgs);
+    return new MethodCallNode(name, name.name, MethodTypes.CREATOR, callArgs);
   }
 
   List<RefNode> handleNewInitializer(CPP14Parser.NewInitializerContext newInitializer) {
@@ -546,11 +549,11 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   }
 
   private RefNode handleSizeOf(CPP14Parser.TheTypeIdContext typeId) {
-    return new RefNode(Name.fromRule(typeId, offset), "int", RefNode.TYPE);
+    return new RefNode(Name.fromRule(typeId, offset), "int", RefTypes.LITERAL);
   }
 
   private RefNode handleAlignOf(CPP14Parser.TheTypeIdContext typeId) {
-    return new RefNode(Name.fromRule(typeId, offset), "boolean", RefNode.TYPE);
+    return new RefNode(Name.fromRule(typeId, offset), "boolean", RefTypes.LITERAL);
   }
 
   private <P extends ParserRuleContext> RefNode handleSingleOrList(
@@ -609,7 +612,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
       if (paramDecl.declarator() != null) {
         var name = handleDeclarator(paramDecl.declarator());
         String type = getType(paramDecl.declSpecifierSeq());
-        result.add(new DeclNode(name, type, DeclNode.ARGUMENT));
+        result.add(new DeclNode(name, type, DeclTypes.ARGUMENT));
       }
     }
     return result;
@@ -622,7 +625,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
       if (expr instanceof ExprRefNode exprRef && exprRef.refNodes.size() >= 2){
         var type = exprRef.refNodes.get(0).ref.name;
         var name = exprRef.refNodes.get(1).ref;
-        result.add(new DeclNode(name, type, DeclNode.ARGUMENT));
+        result.add(new DeclNode(name, type, DeclTypes.ARGUMENT));
       }
     }
     return result;

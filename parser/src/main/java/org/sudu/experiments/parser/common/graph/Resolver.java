@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
+import static org.sudu.experiments.parser.common.graph.node.NodeTypes.*;
+
 public class Resolver {
 
   public ScopeGraph graph;
@@ -27,12 +29,12 @@ public class Resolver {
 
   public DeclNode resolve(ScopeNode currentNode, RefNode ref) {
     if (ref == null
-        || ref.refType == RefNode.LITERAL
+        || ref.refType == RefTypes.LITERAL
         || (ref instanceof MethodCallNode callNode
-        && callNode.callType == MethodNode.ARRAY_CREATOR)
+        && callNode.callType == MethodTypes.ARRAY_CREATOR)
     ) return null;
-    if (ref.refType == RefNode.THIS ||
-        ref.refType == RefNode.SUPER
+    if (ref.refType == RefTypes.THIS ||
+        ref.refType == RefTypes.SUPER
     ) {
       ref.type = getThisType(currentNode);
       return null;
@@ -62,7 +64,7 @@ public class Resolver {
     if (ref instanceof QualifiedRefNode qualifiedRef) {
       return resolveQualified(curScope, qualifiedRef);
     }
-    if (ref.refType == RefNode.TYPE) return resolveType(ref);
+    if (ref.refType == RefTypes.TYPE_USAGE) return resolveType(ref);
 
     DeclNode decl = resolveVar(curScope, ref);
     if (decl != null) return decl;
@@ -92,7 +94,7 @@ public class Resolver {
       ScopeNode curScope,
       MethodCallNode methodCall
   ) {
-    if (methodCall.callType == MethodNode.CREATOR) {
+    if (methodCall.callType == MethodTypes.CREATOR) {
       var scope = getTypeScope(methodCall.type);
       if (scope == null) return null;
       return (MethodNode) scope.declarationWalk(decl -> {

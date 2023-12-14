@@ -5,16 +5,14 @@ import org.sudu.experiments.parser.common.graph.type.TypeMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import static org.sudu.experiments.parser.common.graph.node.NodeTypes.*;
 
 public class ExprRefNode extends RefNode {
-
-  public static final int BASE_EXPRESSION = 7;
-  public static final int ARRAY_INDEX = 8;
 
   public List<RefNode> refNodes;
 
   public ExprRefNode(List<RefNode> refNodes) {
-    this(refNodes, BASE_EXPRESSION);
+    this(refNodes, RefTypes.BASE_EXPRESSION);
   }
 
   public ExprRefNode(List<RefNode> refNodes, int refType) {
@@ -22,7 +20,7 @@ public class ExprRefNode extends RefNode {
   }
 
   public ExprRefNode(List<RefNode> refNodes, String type) {
-    this(refNodes, type, BASE_EXPRESSION);
+    this(refNodes, type, RefTypes.BASE_EXPRESSION);
   }
 
   public ExprRefNode(List<RefNode> refNodes, String type, int refType) {
@@ -35,7 +33,7 @@ public class ExprRefNode extends RefNode {
         this.refNodes.add(expr);
       }
     }
-    this.type = type != null && refType == ARRAY_INDEX
+    this.type = type != null && refType == RefTypes.ARRAY_INDEX
         ? TypeMap.getArrayElemType(type) : type;
   }
 

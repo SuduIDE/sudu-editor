@@ -13,6 +13,8 @@ import org.sudu.experiments.parser.common.graph.type.TypeMap;
 
 import java.util.function.BiConsumer;
 
+import static org.sudu.experiments.parser.common.graph.node.NodeTypes.*;
+
 public class ScopeGraph {
 
   public ScopeNode root;
@@ -38,7 +40,7 @@ public class ScopeGraph {
     ArrayWriter writer = new ArrayWriter();
     BiConsumer<RefNode, DeclNode> onResolve = (ref, decl) -> {
       if (ref == null || ref.ref == null || (
-          ref.refType == RefNode.TYPE && decl == null)
+          ref.refType == RefTypes.TYPE_USAGE && decl == null)
       ) {
         writer.write(-1);
         return;
@@ -47,7 +49,7 @@ public class ScopeGraph {
       if (decl == null || decl.decl == null) {
         writer.write(-1);
       } else {
-        int type = decl.declType == DeclNode.FIELD
+        int type = decl.declType == DeclTypes.FIELD
             ? ParserConstants.TokenTypes.FIELD
             : ParserConstants.TokenTypes.DEFAULT;
         int style = decl instanceof MethodNode
