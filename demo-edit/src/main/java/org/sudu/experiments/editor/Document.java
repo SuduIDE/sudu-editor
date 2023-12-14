@@ -86,10 +86,13 @@ public class Document {
     document[ind] = newLine;
     if (oldLine.length() != newLine.length()) return;
     for (int i = 0; i < oldLine.length(); i++) {
-      if (oldLine.elements[i].color == ParserConstants.TokenTypes.ERROR) continue;
-      if (oldLine.elements[i].color != ParserConstants.TokenTypes.DEFAULT &&
-          newLine.elements[i].color == ParserConstants.TokenTypes.DEFAULT) {
-        newLine.elements[i].color = oldLine.elements[i].color;
+      CodeElement oldElem = oldLine.elements[i];
+      CodeElement newElem = newLine.elements[i];
+      if (oldElem.color == ParserConstants.TokenTypes.ERROR) continue;
+      if (oldElem.color != ParserConstants.TokenTypes.DEFAULT &&
+          newElem.color == ParserConstants.TokenTypes.DEFAULT) {
+        newElem.color = oldElem.color;
+        newElem.style = oldElem.style;
       }
     }
   }
