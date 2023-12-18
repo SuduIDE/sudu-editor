@@ -19,6 +19,8 @@ public class ScopeGraph {
 
   public ScopeNode root;
   public TypeMap typeMap;
+  public static final boolean printResolveInfo = false;
+  public static int refs, decls;
 
   public ScopeGraph() {
     typeMap = new TypeMap();
@@ -64,11 +66,19 @@ public class ScopeGraph {
 
   void resolveAll(BiConsumer<RefNode, DeclNode> onResolve) {
     if (root == null) return;
-    resolveAllRec(root, new Resolver(this, onResolve));
+    refs = 0; decls = 0;
+    Resolver resolver = new Resolver(this, onResolve);
+    resolveAllRec(root, resolver);
+    if (printResolveInfo) System.out.println("Resolved " + refs + " refs to " + decls + " decls");
   }
 
   private void resolveAllRec(ScopeNode current, Resolver resolver) {
-    current.referenceWalk(ref -> resolver.resolve(current, ref));
+    current.referenceWalk(ref -> {
+      var decl = resolver.resolve(current, ref);
+      if (ref != null) refs++;
+      if (decl != null) decls++;
+      return decl;
+    });
     current.children.forEach(child -> resolveAllRec(child, resolver));
   }
 

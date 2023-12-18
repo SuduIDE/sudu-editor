@@ -96,6 +96,7 @@ public abstract class ParserUtils {
 
     int intervalStart = reader.next();
     int intervalStop = reader.next();
+    boolean success = reader.next() == 1;
     int N = reader.next();
     int K = reader.next();
 
@@ -108,7 +109,7 @@ public abstract class ParserUtils {
       CodeElement[] elements = readElements(reader, chars, intervalStart);
       if (i == 0) elements = ArrayOp.add(left, elements);
       if (i == N - 1) elements = ArrayOp.add(elements, right);
-      document.setLine(stLine.x + i, new CodeLine(elements));
+      document.setLine(stLine.x + i, new CodeLine(elements), success);
     }
 
     if (K != 0) {

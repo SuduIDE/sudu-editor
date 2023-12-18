@@ -499,7 +499,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
 
   private RefNode handleNewExpression(CPP14Parser.NewExpressionContext newExpression) {
     var name = Name.fromRule(
-        newExpression.newTypeId() == null
+        newExpression.newTypeId() != null
             ? newExpression.newTypeId()
             : newExpression.theTypeId(),
         offset);
@@ -632,7 +632,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   }
 
   void mark(TerminalNode node, int type, int style) {
-    if (tokenTypes == null || tokenStyles == null) return;
+    if (tokenTypes == null || tokenStyles == null || node == null) return;
     int ind = node.getSymbol().getTokenIndex();
     tokenTypes[ind] = type;
     tokenStyles[ind] = style;

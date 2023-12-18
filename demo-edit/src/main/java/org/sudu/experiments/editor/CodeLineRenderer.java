@@ -216,9 +216,7 @@ class CodeLineRenderer implements Disposable {
         );
       }
 
-      int underlineIndex =
-          e.color == ParserConstants.TokenTypes.ERROR
-              ? 1 : e.underlineIndex();
+      int underlineIndex = e.underlineIndex();
 
       if (underlineIndex > 0) {
         drawUnderline(xPos+ dx, yPosition, g, drawWidth, underlineIndex);

@@ -24,6 +24,7 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
   protected int intervalType;
   private ScopeGraphReader scopeReader;
   private ScopeGraphWriter scopeWriter;
+  protected boolean success = true;
 
   protected IntervalNode parseInterval() {
     var parser = initParser();
@@ -55,6 +56,8 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
     normalize(scopeWalker.currentNode.children);
     scopeWriter = new ScopeGraphWriter(scopeWalker.graph, scopeWalker.currentNode);
     scopeWriter.toInts();
+
+    this.success = this.parserRecognitionListener.errorOccurred;
     return null;
   }
 
@@ -74,6 +77,7 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
     IntervalNode parsedNode = graphInts == null || graphChars == null ?
         parseInterval() : parseIntervalScope();
 
+    this.success = !parserRecognitionListener.errorOccurred;
     return getVpInts(intervalStart, intervalStop, parsedNode);
   }
 
@@ -90,10 +94,11 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
     last.interval.stop = intervalStop;
   }
 
-  // {intervalStart, intervalStop, N, K, }
+  // {intervalStart, intervalStop, success, N, K, }
   protected int[] getVpInts(int intervalStart, int intervalStop, IntervalNode node) {
     int N = allTokens.get(allTokens.size() - 1).getLine();
     int M = 0;
+    int success = this.success ? 1 : -1;
     int[] nodeInts = node != null ? node.toInts() : new int[]{};
     int K = nodeInts.length;
 
@@ -107,8 +112,8 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
       N = Math.max(N, entry.getKey());
     }
 
-    writer = new ArrayWriter(4 + N + K + 4 * M);
-    writer.write(intervalStart, intervalStop, N, K);
+    writer = new ArrayWriter(5 + N + K + 4 * M);
+    writer.write(intervalStart, intervalStop, success, N, K);
 
     writeTokens(N, tokensByLine);
     writer.write(nodeInts);

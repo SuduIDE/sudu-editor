@@ -60,7 +60,8 @@ public class Resolver {
     }
     if (ref instanceof MethodCallNode methodCall) {
       resolveCallArgs(curScope, methodCall);
-      return resolveMethodCall(curScope, methodCall);
+      var result = resolveMethodCall(curScope, methodCall);
+      /*if (result != null) */return result;
     }
     if (ref instanceof QualifiedRefNode qualifiedRef) {
       return resolveQualified(curScope, qualifiedRef);

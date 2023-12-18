@@ -32,7 +32,8 @@ public class TypeMap extends HashMap<String, List<String>> {
         "Iterable<", "Collection<",
         "List<", "ArrayList<", "LinkedList<", "Vector<", "Stack<",
         "Set<", "SortedSet<", "TreeSet<", "HashSet<", "LinkedHashSet<",
-        "Queue<", "Deque<", "ArrayDeque<")
+        "Queue<", "Deque<", "ArrayDeque<",
+        "vector<")
     ) {
       int stInd = type.indexOf("<");
       int endInd = type.indexOf(">");

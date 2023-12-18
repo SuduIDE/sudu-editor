@@ -81,10 +81,10 @@ public class Document {
     return document[i].totalStrLength;
   }
 
-  public void setLine(int ind, CodeLine newLine) {
+  public void setLine(int ind, CodeLine newLine, boolean success) {
     var oldLine = document[ind];
     document[ind] = newLine;
-    if (oldLine.length() != newLine.length()) return;
+    if (success || oldLine.length() != newLine.length()) return;
     for (int i = 0; i < oldLine.length(); i++) {
       CodeElement oldElem = oldLine.elements[i];
       CodeElement newElem = newLine.elements[i];
@@ -527,7 +527,7 @@ public class Document {
 
       int declFlag = reader.next();
       if (declFlag == -1) {
-        if (highlightErrors) refElem.color = ParserConstants.TokenTypes.ERROR;
+        if (highlightErrors) refElem.style = ParserConstants.TokenStyles.error(refElem.style);
         continue;
       }
       var declPos = binarySearchPosAt(reader.next());
