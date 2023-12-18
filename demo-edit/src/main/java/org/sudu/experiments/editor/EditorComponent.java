@@ -910,8 +910,12 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (model.document.needReparse() || model.document.currentVersion != version) return;
     model.document.onResolve(ints, highlightResolveError);
     computeUsages();
-    long time = System.currentTimeMillis();
-    if (printResolveTime) System.out.println("Resolved in " + (time - resolveTimeStart) + "ms");
+    if (printResolveTime) {
+      long resolveTime = System.currentTimeMillis() - resolveTimeStart;
+      if (resolveTime >= EditorConst.BIG_RESOLVE_TIME_MS) {
+        System.out.println("Resolved in " + resolveTime + "ms");
+      }
+    }
   }
 
   public void resolveAll() {

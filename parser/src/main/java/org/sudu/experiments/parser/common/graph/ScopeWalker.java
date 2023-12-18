@@ -71,7 +71,7 @@ public class ScopeWalker {
     if (type == null || type.name == null || type.name.isBlank()) return null;
     graph.typeMap.putIfAbsent(type.name, new ArrayList<>());
     scopeNode.type = type.name;
-    scopeNode.declarations.add(new DeclNode(type, null, NodeTypes.DeclTypes.TYPE_DECL));
+    scopeNode.declarations.add(new DeclNode(type, type.name, NodeTypes.DeclTypes.TYPE_DECL));
     return type.name;
   }
 

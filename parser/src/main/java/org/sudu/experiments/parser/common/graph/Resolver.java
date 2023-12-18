@@ -20,7 +20,8 @@ public class Resolver {
 
   public ScopeGraph graph;
   public BiConsumer<RefNode, DeclNode> onResolve;
-  private final Map<String, ScopeNode> typeCache = new HashMap<>();
+  private final Map<String, DeclNode> typeUsageResolveCache = new HashMap<>();
+  private final Map<String, ScopeNode> typeResolveCache = new HashMap<>();
 
   public Resolver(ScopeGraph graph, BiConsumer<RefNode, DeclNode> onResolve) {
     this.graph = graph;
@@ -156,7 +157,13 @@ public class Resolver {
   }
 
   private DeclNode resolveType(RefNode ref) {
-    return resolveTypeRec(graph.root, ref);
+    if (typeUsageResolveCache.containsKey(ref.ref.name)) {
+      return typeUsageResolveCache.get(ref.ref.name);
+    } else {
+      var result = resolveTypeRec(graph.root, ref);
+      typeUsageResolveCache.put(ref.ref.name, result);
+      return result;
+    }
   }
 
   private DeclNode resolveTypeRec(ScopeNode current, RefNode ref) {
@@ -171,9 +178,9 @@ public class Resolver {
 
   private ScopeNode getTypeScope(String type) {
     if (type == null || !graph.typeMap.containsKey(type)) return null;
-    if (typeCache.containsKey(type)) return typeCache.get(type);
+    if (typeResolveCache.containsKey(type)) return typeResolveCache.get(type);
     var scope = getTypeScopeRec(graph.root, type);
-    typeCache.put(type, scope);
+    typeResolveCache.put(type, scope);
     return scope;
   }
 
