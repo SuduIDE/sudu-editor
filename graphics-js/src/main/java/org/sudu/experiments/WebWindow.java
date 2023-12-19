@@ -17,7 +17,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class WebWindow implements Window {
-  public final TextDecoder decoderUTF16 = TextDecoder.createUTF16();
 
   final AnimationFrameCallback frameCallback = this::onAnimationFrame;
   final Runnable repaint = this::repaint;
@@ -227,8 +226,9 @@ public class WebWindow implements Window {
 
   @Override
   public void writeClipboardText(String text, Runnable success, Consumer<Throwable> onError) {
-    JsClipboard.get().writeText(decoderUTF16.decode(text.toCharArray())).then(
-            v -> success.run(), onError(onError));
+    JsClipboard.get()
+        .writeText(TextDecoder.decodeUTF16(text.toCharArray()))
+        .then(v -> success.run(), onError(onError));
   }
 
   @Override

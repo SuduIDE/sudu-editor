@@ -4,6 +4,7 @@ import org.sudu.experiments.editor.Document;
 import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.SplitJsText;
+import org.sudu.experiments.js.TextDecoder;
 import org.teavm.jso.core.JSString;
 
 public class JsTextModel implements JsITextModel {
@@ -42,6 +43,11 @@ public class JsTextModel implements JsITextModel {
   @Override
   public JsPosition getPositionAt(int offset) {
     return JsPosition.fromJava(javaModel.document.getPositionAt(offset));
+  }
+
+  public JSString getText() {
+    char[] chars = javaModel.document.getChars();
+    return TextDecoder.decodeUTF16(chars);
   }
 
   @Override

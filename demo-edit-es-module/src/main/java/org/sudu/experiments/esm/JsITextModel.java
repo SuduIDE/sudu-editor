@@ -8,4 +8,5 @@ public interface JsITextModel extends JsDisposable {
   @JSProperty JSString getLanguage();
   int getOffsetAt(JsPosition position);
   JsPosition getPositionAt(int offset);
+  JSString getText();
 }

@@ -61,7 +61,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
   @Override
   public JSString getText() {
     char[] chars = editor.model().document.getChars();
-    return window.decoderUTF16.decode(chars);
+    return TextDecoder.decodeUTF16(chars);
   }
 
   @Override

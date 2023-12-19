@@ -50,6 +50,7 @@ interface ITextModel extends IDisposable {
     uri?: Uri
     getOffsetAt(position: IPosition): number
     getPositionAt(offset: number): IPosition
+    getText() : string
 }
 
 type ProviderValue<T> = T | undefined | null;
