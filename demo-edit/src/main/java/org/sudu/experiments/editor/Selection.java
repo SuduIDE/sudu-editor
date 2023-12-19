@@ -13,9 +13,13 @@ public class Selection {
   Selection() {}
 
   Selection(Selection selection) {
-    startPos.set(selection.startPos);
-    endPos.set(selection.endPos);
-    isSelectionStarted = selection.isSelectionStarted;
+    set(selection);
+  }
+
+  void set(Selection from) {
+    startPos.set(from.startPos);
+    endPos.set(from.endPos);
+    isSelectionStarted = from.isSelectionStarted;
   }
 
   void select(int caretLine, int caretCharPos) {

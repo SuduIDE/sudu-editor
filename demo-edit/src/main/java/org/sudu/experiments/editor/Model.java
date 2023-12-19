@@ -9,6 +9,7 @@ public class Model {
   public Object platformObject;
   private String docLanguage;
   private String languageFromFile;
+  final Selection selection = new Selection();
 
   public Model(String text, String language, Uri uri) {
     this(SplitText.split(text), language, uri);

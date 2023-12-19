@@ -57,7 +57,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   Model model = new Model();
   LineDiff[] diffModel;
   EditorRegistrations registrations = new EditorRegistrations();
-  Selection selection = new Selection();
+  Selection selection = model.selection;
   NavigationStack navStack = new NavigationStack();
 
   EditorColorScheme colors;
@@ -640,7 +640,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       );
       left.charInd += tabIndent.length();
       right.charInd += tabIndent.length();
-      setCaretPosWithSelection(caretCharPos + tabIndent.length(), false);
+      setCaretPosWithSelection(caretCharPos + tabIndent.length());
       updateDocumentDiffTimeStamp();
     } else {
       handleInsert(tabIndent);
@@ -660,7 +660,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
             caretLine, 0, true, indent, new Pos(caretLine, caretCharPos)
         );
         codeLine.delete(0, indent.length());
-        setCaretPosWithSelection(caretCharPos - indent.length(), false);
+        setCaretPosWithSelection(caretCharPos - indent.length());
       }
     }
     updateDocumentDiffTimeStamp();
@@ -693,7 +693,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       if (l == left.line) left.charInd = Math.max(0, left.charInd - indent.length());
       if (l == right.line) {
         right.charInd = Math.max(0, right.charInd - indent.length());
-        setCaretPosWithSelection(caretCharPos - indent.length(), false);
+        setCaretPosWithSelection(caretCharPos - indent.length());
       }
     }
     tabDiffHandler(lines, 0, true, changes, new Pos(prevCaretLine, prevCaretPos),
@@ -987,18 +987,26 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     setCaretLinePos(0, 0, false);
     // f.readAsBytes(this::onFileLoad, System.err::println);
     parsingTimeStart = System.currentTimeMillis();
-    fullFileParsed = false;
-    fileStructureParsed = false;
-    firstLinesParsed = false;
-    diffModel = null;
-    lineNumbers.setColors(null);
+    onNewModel();
 
     model = new Model(
         new String[] {""},
         new Uri("", "", f.getName(), null)
     );
+    selection = model.selection;
+
     setCaretLinePos(0, 0, false);
     sendFileToWorkers(f);
+  }
+
+  private void onNewModel() {
+    fullFileParsed = false;
+    fileStructureParsed = false;
+    firstLinesParsed = false;
+    diffModel = null;
+    externalHighlights = null;
+    lineNumbers.setColors(null);
+    clearUsages();
   }
 
   private void sendFileToWorkers(FileHandle f) {
@@ -1099,10 +1107,10 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     return true;
   }
 
-  void setCaretPosWithSelection(int charPos, boolean shift) {
+  void setCaretPosWithSelection(int charPos) {
     Selection prevSelection = new Selection(selection);
-    setCaretPos(charPos, shift);
-    selection = prevSelection;
+    setCaretPos(charPos, false);
+    selection.set(prevSelection);
   }
 
   private void adjustEditorScrollToCaret() {
@@ -1681,7 +1689,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     NavigationContext prev = navStack.getPrevCtx();
     if (prev == null) return true;
     setCaretLinePos(prev.getLine(), prev.getCharPos(), false);
-    selection = new Selection(prev.getSelection());
+    selection.set(prev.getSelection());
     return true;
   }
 
@@ -1689,7 +1697,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     NavigationContext curr = navStack.getNextCtx();
     if (curr == null) return true;
     setCaretLinePos(curr.getLine(), curr.getCharPos(), false);
-    selection = new Selection(curr.getSelection());
+    selection.set(curr.getSelection());
     return true;
   }
 
@@ -1786,11 +1794,16 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   public EditorRegistrations registrations() { return registrations; }
 
   public void setModel(Model model) {
-    externalHighlights = null;
-    clearUsages();
+    onNewModel();
+
     Model oldModel = this.model;
     this.model = model;
-    onContentChange();
+    this.selection = model.selection;
+    parsingTimeStart = System.currentTimeMillis();
+    String jobName = parseJobName(this.model.language());
+    if (jobName != null) {
+      window().sendToWorker(this::onFileParsed, jobName, getChars());
+    }
     registrations.fireModelChange(oldModel, model);
   }
 
