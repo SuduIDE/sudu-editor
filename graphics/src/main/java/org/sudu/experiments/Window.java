@@ -31,6 +31,8 @@ public interface Window {
   void readClipboardText(Consumer<String> success, Consumer<Throwable> onError);
   void writeClipboardText(String text, Runnable success, Consumer<Throwable> onError);
 
+  default boolean isClipboardSupported() { return true; }
+
   // firefox does not support read clipboard text
   // as result vscode.dev does not render "Paste" command there
   default boolean isReadClipboardTextSupported() { return true; }

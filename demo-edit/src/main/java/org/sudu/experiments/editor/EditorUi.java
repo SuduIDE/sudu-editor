@@ -255,13 +255,14 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
     }
 
     private void cutCopyPaste(ToolbarItemBuilder tbb) {
-      if (!editor.readonly) {
-        tbb.addItem("Cut", this::cutAction);
-      }
-      tbb.addItem("Copy", this::copyAction);
-
-      if (!editor.readonly && window().isReadClipboardTextSupported()) {
-        tbb.addItem("Paste", this::pasteAction);
+      if (window().isClipboardSupported()) {
+        if (!editor.readonly) {
+          tbb.addItem("Cut", this::cutAction);
+        }
+        tbb.addItem("Copy", this::copyAction);
+        if (!editor.readonly && window().isReadClipboardTextSupported()) {
+          tbb.addItem("Paste", this::pasteAction);
+        }
       }
     }
 

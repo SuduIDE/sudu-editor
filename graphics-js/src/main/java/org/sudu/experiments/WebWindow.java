@@ -220,20 +220,34 @@ public class WebWindow implements Window {
 
   @Override
   public void readClipboardText(Consumer<String> success, Consumer<Throwable> onError) {
-    JsClipboard.get().readText().then(
-            str -> success.accept(str.stringValue()), onError(onError));
+    if (JsClipboard.hasClipboard()) {
+      JsClipboard.get()
+          .readText()
+          .then(str -> success.accept(str.stringValue()), onError(onError));
+    } else {
+      onError.accept(new RuntimeException(JsClipboard.noClipboardDefined()));
+    }
   }
 
   @Override
   public void writeClipboardText(String text, Runnable success, Consumer<Throwable> onError) {
-    JsClipboard.get()
-        .writeText(TextDecoder.decodeUTF16(text.toCharArray()))
-        .then(v -> success.run(), onError(onError));
+    if (JsClipboard.hasClipboard()) {
+      JsClipboard.get()
+          .writeText(TextDecoder.decodeUTF16(text.toCharArray()))
+          .then(v -> success.run(), onError(onError));
+    } else {
+      onError.accept(new RuntimeException(JsClipboard.noClipboardDefined()));
+    }
   }
 
   @Override
   public boolean isReadClipboardTextSupported() {
     return JsClipboard.isReadTextSupported();
+  }
+
+  @Override
+  public boolean isClipboardSupported() {
+    return JsClipboard.hasClipboard();
   }
 
   static JsFunctions.Consumer<JSError> onError(Consumer<Throwable> onError) {
