@@ -1,7 +1,6 @@
 package org.sudu.experiments.parser.activity.graph.expr;
 
 import org.sudu.experiments.parser.activity.graph.IExpr;
-import org.sudu.experiments.parser.activity.graph.Path;
 
 import java.util.ArrayList;
 import java.util.List;
