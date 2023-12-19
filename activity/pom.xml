@@ -9,19 +9,6 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>parser-activity</artifactId>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.sudu</groupId>
-      <artifactId>parser-common</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sudu</groupId>
-      <artifactId>activity</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-  </dependencies>
+  <artifactId>activity</artifactId>
 
 </project>

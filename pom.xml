@@ -33,6 +33,7 @@
     <module>parser-generator</module>
     <module>parser-activity</module>
     <module>parser-common</module>
+    <module>activity</module>
   </modules>
   <properties>
     <maven.compiler.source>17</maven.compiler.source>
