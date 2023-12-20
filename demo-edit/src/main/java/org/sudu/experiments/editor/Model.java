@@ -3,7 +3,9 @@ package org.sudu.experiments.editor;
 public class Model {
 
   public final Uri uri;
-  public Document document;
+  public final Document document;
+  public final Selection selection = new Selection();
+
   public Object platformObject;
   private String docLanguage;
   private String languageFromFile;

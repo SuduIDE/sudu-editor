@@ -3,7 +3,6 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.parser.ParserConstants;
-import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.tree.IntervalTree;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
@@ -19,7 +18,7 @@ public class Document {
 
   public CodeLine[] document;
   public IntervalTree tree;
-  public ScopeGraph scopeGraph;
+  public ScopeGraph scopeGraph = new ScopeGraph();
   public final Map<Pos, Pos> usageToDef = new HashMap<>();
   public final Map<Pos, List<Pos>> defToUsages = new HashMap<>();
   List<Diff[]> diffs = new ArrayList<>();
@@ -30,36 +29,17 @@ public class Document {
   double lastDiffTimestamp;
 
   public Document() {
-    document = CodeLine.singleElementLine("");
-    currentVersion = lastParsedVersion = 0;
-    tree = initialInterval();
-    scopeGraph = new ScopeGraph();
+    this(CodeLine.emptyLine());
+  }
+
+  public Document(String[] text) {
+    this(CodeLine.makeLines(text));
   }
 
   public Document(CodeLine... data) {
     if (data.length == 0) throw new IllegalArgumentException();
     document = data;
-    currentVersion = lastParsedVersion = 0;
     tree = initialInterval();
-    scopeGraph = new ScopeGraph();
-  }
-
-  public Document(CodeLine[] data, IntervalNode node) {
-    if (data.length == 0) throw new IllegalArgumentException();
-    document = data;
-    currentVersion = lastParsedVersion = 0;
-    tree = new IntervalTree(node);
-    scopeGraph = new ScopeGraph();
-  }
-
-  public Document(int n) {
-    this(TestText.document(n, false));
-    tree = initialInterval();
-    scopeGraph = new ScopeGraph();
-  }
-
-  public Document(String[] text) {
-    this(CodeLine.makeLines(text));
   }
 
   private IntervalTree initialInterval() {
@@ -205,24 +185,23 @@ public class Document {
     }
     int len = lines.length - 1;
 
-    CodeLine[] splited = document[line].split(pos);
+    CodeLine[] pair = document[line].split(pos);
+    CodeLine splitA = pair[0];
+    CodeLine splitB = pair[1];
     CodeLine[] doc = Arrays.copyOf(document, document.length + len);
 
     for (int p = doc.length - 1; p - len > line; p--) {
       doc[p] = doc[p - len];
     }
-    splited[0].insertToEnd(lines[0]);
-    doc[line] = splited[0];
+    splitA.insertToEnd(lines[0]);
+    doc[line] = splitA;
     for (int i = 1; i < len; i++) {
-      CodeLine newLine;
-      if (!lines[i].isEmpty())
-        newLine = new CodeLine(new CodeElement(lines[i], 0, 0));
-      else
-        newLine = new CodeLine();
+      CodeLine newLine = lines[i].isEmpty()
+          ? new CodeLine() : new CodeLine(lines[i]);
       doc[line + i] = newLine;
     }
-    splited[1].insertToBegin(lines[len]);
-    doc[line + len] = splited[1];
+    splitB.insertToBegin(lines[len]);
+    doc[line + len] = splitB;
     document = doc;
   }
 

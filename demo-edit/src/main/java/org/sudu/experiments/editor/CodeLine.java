@@ -22,6 +22,10 @@ public class CodeLine {
   boolean contentDirty;
   boolean lengthDirty;
 
+  public CodeLine(String s) {
+    this(new CodeElement(s));
+  }
+
   public CodeLine(CodeElement ... data) {
     elements = data;
     int l = 0;
@@ -35,10 +39,10 @@ public class CodeLine {
   }
 
   static CodeLine[] makeLines(String[] text) {
-    if (text.length == 0) return singleElementLine("");
-    CodeLine[] cl = new CodeLine[text.length];
+    CodeLine[] cl = new CodeLine[Math.max(1, text.length)];
+    if (text.length == 0) cl[0] = emptyLine();
     for (int i = 0; i < text.length; i++) {
-      cl[i] = new CodeLine(new CodeElement(text[i]));
+      cl[i] = new CodeLine(text[i]);
     }
     return cl;
   }
@@ -459,8 +463,8 @@ public class CodeLine {
         : Arrays.toString(elements);
   }
 
-  static CodeLine[] singleElementLine(String s) {
-    return new CodeLine[]{new CodeLine(new CodeElement(s))};
+  static CodeLine emptyLine() {
+    return new CodeLine("");
   }
 
   public int toCharArray(char[] dst, int pos) {
