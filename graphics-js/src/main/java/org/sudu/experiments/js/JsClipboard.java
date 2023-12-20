@@ -8,21 +8,26 @@ import org.teavm.jso.core.JSString;
 
 public abstract class JsClipboard implements JSObject {
 
-    public static String noClipboardDefined() {
-        return "navigator.clipboard is undefined";
-    }
+  public static String noClipboardDefined() {
+    return "navigator.clipboard is undefined";
+  }
 
-    @JSBody(script = "return clipboard in navigator;")
-    public static native boolean hasClipboard();
+  @JSBody(script = "return navigator;")
+  public static native JSObject navigator();
 
-    @JSBody(script = "return navigator.clipboard;")
-    public static native JsClipboard get();
+  public static boolean hasClipboard() {
+    return JSObjects.hasProperty(navigator(), "clipboard");
+  }
 
-    public static boolean isReadTextSupported() {
-        return hasClipboard() &&
-            JSObjects.hasProperty(get(), "readText");
-    }
+  @JSBody(script = "return navigator.clipboard;")
+  public static native JsClipboard get();
 
-    public abstract Promise<?> writeText(JSString text);
-    public abstract Promise<JSString> readText();
+  public static boolean isReadTextSupported() {
+    return hasClipboard() &&
+        JSObjects.hasProperty(get(), "readText");
+  }
+
+  public abstract Promise<?> writeText(JSString text);
+
+  public abstract Promise<JSString> readText();
 }
