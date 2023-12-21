@@ -216,6 +216,8 @@ public class CodeLine {
   }
 
   private void insertAt(int ind, int pos, String value) {
+    // an empty string has no insertion effect
+    if (value.isEmpty()) return;
     if (elements.length == 0) {
       elements = new CodeElement[] {new CodeElement(value)};
     } else if (ind == 0 && pos == 0) {

@@ -366,6 +366,15 @@ class DocumentTest {
     Assertions.assertEquals(doc.document[0].makeString(), "This is an experimental project");
   }
 
+  @Test void testCodeLineInsertEmpty() {
+    String value = "abc 5";
+    CodeLine cl = new CodeLine(new CodeElement(value));
+
+    cl.insertToBegin("");
+    Assertions.assertEquals(1, cl.elements.length);
+    Assertions.assertEquals(value, cl.elements[0].s);
+  }
+
   @Test
   void insertLinesTest2() {
     Document doc = new Document(new CodeLine());
@@ -381,7 +390,7 @@ class DocumentTest {
     Assertions.assertEquals(doc.document[0].elements[0].s, "line 1");
     Assertions.assertEquals(doc.document[1].elements[0].s, "line 2");
     Assertions.assertEquals(doc.document[2].elements[0].s, "line 3");
-//    Assertions.assertEquals(doc.document[3].elements[0].s, "line 4");
+    Assertions.assertEquals(doc.document[3].elements[0].s, "line 4");
     Assertions.assertEquals(doc.document[4].elements[0].s, "line 5");
   }
 
