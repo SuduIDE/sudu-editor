@@ -74,7 +74,7 @@ public class FileProxy {
       Consumer<Object[]> result
   ) {
     var proxy = getBaseProxy(type[0]);
-    if (proxy == javaProxy) javaProxy.parseIntervalScope(chars, interval, version, graphInts, graphChars, result);
+    if (proxy == javaProxy || proxy == cppProxy) proxy.parseIntervalScope(chars, interval, version, graphInts, graphChars, result);
     else proxy.parseInterval(chars, interval, version, result);
   }
 
@@ -96,7 +96,7 @@ public class FileProxy {
   public static void parseFullFile(BaseProxy proxy, char[] source, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
     if (proxy == null) LineParser.parse(source, list);
-    else if (proxy == javaProxy) javaProxy.parseFullFileScopes(source, list);
+    else if (proxy == javaProxy || proxy == cppProxy) proxy.parseFullFileScopes(source, list);
     else proxy.parseFullFile(source, list);
     ArrayOp.sendArrayList(list, result);
   }

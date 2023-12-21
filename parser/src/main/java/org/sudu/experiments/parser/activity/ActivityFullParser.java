@@ -36,7 +36,7 @@ public class ActivityFullParser extends BaseFullParser<ActivityParser> {
   @Override
   protected ActivityParser initParser() {
     ActivityParser parser = new ActivityParser(tokenStream);
-    parser.setErrorHandler(new ErrorHighlightingStrategy());
+    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes));
     return parser;
   }
 

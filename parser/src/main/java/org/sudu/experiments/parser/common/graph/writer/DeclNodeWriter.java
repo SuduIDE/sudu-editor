@@ -57,6 +57,7 @@ public class DeclNodeWriter {
   private void writeMethodDecl(MethodNode node) {
     writer.write(METHOD_DECL_NODE);
     writeDeclName(node);
+    writer.write(node.declType);
     writer.write(node.callType);
     writeArgs(node.argTypes);
   }

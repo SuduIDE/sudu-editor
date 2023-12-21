@@ -81,8 +81,20 @@ public class Document {
     return document[i].totalStrLength;
   }
 
-  public void setLine(int ind, CodeLine line) {
-    document[ind] = line;
+  public void setLine(int ind, CodeLine newLine, boolean success) {
+    var oldLine = document[ind];
+    document[ind] = newLine;
+    if (success || oldLine.length() != newLine.length()) return;
+    for (int i = 0; i < oldLine.length(); i++) {
+      CodeElement oldElem = oldLine.elements[i];
+      CodeElement newElem = newLine.elements[i];
+      if (oldElem.color == ParserConstants.TokenTypes.ERROR) continue;
+      if (oldElem.color != ParserConstants.TokenTypes.DEFAULT &&
+          newElem.color == ParserConstants.TokenTypes.DEFAULT) {
+        newElem.color = oldElem.color;
+        newElem.style = oldElem.style;
+      }
+    }
   }
 
   public void newLineOp(int caretLine, int caretCharPos) {
@@ -515,7 +527,10 @@ public class Document {
 
       int declFlag = reader.next();
       if (declFlag == -1) {
-        if (highlightErrors) refElem.color = ParserConstants.TokenTypes.ERROR;
+        if (highlightErrors) {
+          refElem.color = ParserConstants.TokenTypes.DEFAULT;
+          refElem.style = ParserConstants.TokenStyles.error(refElem.style);
+        }
         continue;
       }
       var declPos = binarySearchPosAt(reader.next());

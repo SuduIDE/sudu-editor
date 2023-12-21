@@ -1,6 +1,5 @@
 package org.sudu.experiments.parser.common.graph;
 
-import org.sudu.experiments.parser.common.graph.ScopeGraph;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 import org.sudu.experiments.parser.common.graph.node.decl.DeclNode;
 import org.sudu.experiments.parser.common.graph.node.decl.MethodNode;
@@ -15,11 +14,14 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
+import static org.sudu.experiments.parser.common.graph.node.NodeTypes.*;
+
 public class Resolver {
 
   public ScopeGraph graph;
   public BiConsumer<RefNode, DeclNode> onResolve;
-  private final Map<String, ScopeNode> typeCache = new HashMap<>();
+  private final Map<String, DeclNode> typeUsageResolveCache = new HashMap<>();
+  private final Map<String, ScopeNode> typeResolveCache = new HashMap<>();
 
   public Resolver(ScopeGraph graph, BiConsumer<RefNode, DeclNode> onResolve) {
     this.graph = graph;
@@ -28,12 +30,12 @@ public class Resolver {
 
   public DeclNode resolve(ScopeNode currentNode, RefNode ref) {
     if (ref == null
-        || ref.refType == RefNode.TYPE
+        || ref.refType == RefTypes.LITERAL
         || (ref instanceof MethodCallNode callNode
-        && callNode.callType == MethodNode.ARRAY_CREATOR)
+        && callNode.callType == MethodTypes.ARRAY_CREATOR)
     ) return null;
-    if (ref.refType == RefNode.THIS ||
-        ref.refType == RefNode.SUPER
+    if (ref.refType == RefTypes.THIS ||
+        ref.refType == RefTypes.SUPER
     ) {
       ref.type = getThisType(currentNode);
       return null;
@@ -58,11 +60,14 @@ public class Resolver {
     }
     if (ref instanceof MethodCallNode methodCall) {
       resolveCallArgs(curScope, methodCall);
-      return resolveMethodCall(curScope, methodCall);
+      var result = resolveMethodCall(curScope, methodCall);
+      /*if (result != null) */return result;
     }
     if (ref instanceof QualifiedRefNode qualifiedRef) {
       return resolveQualified(curScope, qualifiedRef);
     }
+    if (ref.refType == RefTypes.TYPE_USAGE) return resolveType(ref);
+
     DeclNode decl = resolveVar(curScope, ref);
     if (decl != null) return decl;
 
@@ -91,7 +96,7 @@ public class Resolver {
       ScopeNode curScope,
       MethodCallNode methodCall
   ) {
-    if (methodCall.callType == MethodNode.CREATOR) {
+    if (methodCall.callType == MethodTypes.CREATOR) {
       var scope = getTypeScope(methodCall.type);
       if (scope == null) return null;
       return (MethodNode) scope.declarationWalk(decl -> {
@@ -152,20 +157,32 @@ public class Resolver {
     return null;
   }
 
-  private ScopeNode getTypeScope(String type) {
-    if (type == null || !graph.typeMap.containsKey(type)) return null;
-    if (typeCache.containsKey(type)) return typeCache.get(type);
-    var scope = getTypeScopeRec(graph.root, type);
-    typeCache.put(type, scope);
-    return scope;
+  private DeclNode resolveType(RefNode ref) {
+    if (typeUsageResolveCache.containsKey(ref.ref.name)) {
+      return typeUsageResolveCache.get(ref.ref.name);
+    } else {
+      var result = resolveTypeRec(graph.root, ref);
+      typeUsageResolveCache.put(ref.ref.name, result);
+      return result;
+    }
   }
 
-  private String getThisType(ScopeNode current) {
-    while (current != null) {
-      if (current.type != null) return current.type;
-      current = current.parent;
+  private DeclNode resolveTypeRec(ScopeNode current, RefNode ref) {
+    DeclNode res = current.declarationWalk(decl -> decl.match(ref, graph.typeMap));
+    if (res != null) return res;
+    for (var child: current.children) {
+      res = resolveTypeRec(child, ref);
+      if (res != null) return res;
     }
     return null;
+  }
+
+  private ScopeNode getTypeScope(String type) {
+    if (type == null || !graph.typeMap.containsKey(type)) return null;
+    if (typeResolveCache.containsKey(type)) return typeResolveCache.get(type);
+    var scope = getTypeScopeRec(graph.root, type);
+    typeResolveCache.put(type, scope);
+    return scope;
   }
 
   private ScopeNode getTypeScopeRec(ScopeNode current, String type) {
@@ -173,6 +190,14 @@ public class Resolver {
     for (var child: current.children) {
       var res = getTypeScopeRec(child, type);
       if (res != null) return res;
+    }
+    return null;
+  }
+
+  private String getThisType(ScopeNode current) {
+    while (current != null) {
+      if (current.type != null) return current.type;
+      current = current.parent;
     }
     return null;
   }

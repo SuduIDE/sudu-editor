@@ -1,10 +1,12 @@
 package org.sudu.experiments.parser.common.graph.node.ref;
 
-import org.sudu.experiments.parser.common.Name;
+import org.sudu.experiments.parser.common.graph.node.NodeTypes;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static org.sudu.experiments.parser.common.graph.node.NodeTypes.*;
 
 /**
   ref.a
@@ -14,15 +16,36 @@ public class QualifiedRefNode extends RefNode {
   public RefNode begin, cont;
 
   public QualifiedRefNode(RefNode begin, RefNode cont) {
-    super(begin.ref, begin.type, -1);
+    super(begin.ref, begin.type, NodeTypes.RefTypes.QUALIFIED);
     this.begin = begin;
     this.cont = cont;
+  }
+
+  public QualifiedRefNode(List<RefNode> refs) {
+    super(null, null, RefTypes.QUALIFIED);
+
+    var preLast = refs.get(refs.size() - 2);
+    var last = refs.get(refs.size() - 1);
+
+    var cur = new QualifiedRefNode(preLast, last);
+    for (int i = refs.size() - 3; i >= 0; i--) {
+      cur = new QualifiedRefNode(refs.get(i), cur);
+    }
+
+    this.begin = cur.begin;
+    this.cont = cur.cont;
+    this.ref = cur.ref;
   }
 
   public List<RefNode> flatten() {
     List<RefNode> result = new ArrayList<>();
     flatten(result);
     return result;
+  }
+
+  public void addLast(RefNode last) {
+    if (cont instanceof QualifiedRefNode qualifiedRef) qualifiedRef.addLast(last);
+    else this.cont = new QualifiedRefNode(cont, last);
   }
 
   protected void flatten(List<RefNode> result) {

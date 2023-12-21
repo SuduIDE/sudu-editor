@@ -4,8 +4,7 @@ import org.sudu.experiments.parser.common.Name;
 
 import java.util.List;
 import java.util.Objects;
-
-import static org.sudu.experiments.parser.common.graph.node.decl.MethodNode.METHOD;
+import static org.sudu.experiments.parser.common.graph.node.NodeTypes.*;
 
 public class MethodCallNode extends RefNode {
 
@@ -13,11 +12,11 @@ public class MethodCallNode extends RefNode {
   public int callType;
 
   public MethodCallNode(Name decl, List<RefNode> callArgs) {
-    this(decl, null, METHOD, callArgs);
+    this(decl, null, MethodTypes.METHOD, callArgs);
   }
 
   public MethodCallNode(Name decl, String type, int callType, List<RefNode> callArgs) {
-    super(decl, type, CALL);
+    super(decl, type, RefTypes.CALL);
     this.callType = callType;
     this.callArgs = callArgs;
   }

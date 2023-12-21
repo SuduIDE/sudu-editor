@@ -4,19 +4,20 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.IterativeParseTreeWalker;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.sudu.experiments.parser.common.base.BaseIntervalParser;
+import org.sudu.experiments.parser.ParserConstants;
+import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.common.base.BaseFullScopeParser;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
-import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.cpp.CppSplitRules;
 import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
 import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
 import org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting;
 import org.sudu.experiments.parser.cpp.walker.CppScopeWalker;
-import org.sudu.experiments.parser.ParserConstants.IntervalTypes;
 
-public class CppIntervalParser extends BaseIntervalParser<CPP14Parser> {
+public class CppFullScopesParser extends BaseFullScopeParser<CPP14Parser> {
 
   @Override
   protected Lexer initLexer(CharStream stream) {
@@ -30,15 +31,17 @@ public class CppIntervalParser extends BaseIntervalParser<CPP14Parser> {
 
   @Override
   protected ParserRuleContext getStartRule(CPP14Parser parser) {
-    return switch (intervalType) {
-      case IntervalTypes.Cpp.TRANS_UNIT -> parser.translationUnitOrAny();
-      default -> parser.unknownInterval();
-    };
+    return parser.translationUnit();
   }
 
   @Override
   protected IntervalNode walk(ParserRuleContext startRule) {
-    throw new UnsupportedOperationException();
+    ParseTreeWalker treeWalker = new IterativeParseTreeWalker();
+    var defaultInterval = defaultIntervalNode(ParserConstants.IntervalTypes.Cpp.TRANS_UNIT);
+    scopeWalker = new ScopeWalker(defaultInterval);
+    var cppScopeWalker = new CppScopeWalker(scopeWalker, 0, tokenTypes, tokenStyles);
+    treeWalker.walk(cppScopeWalker, startRule);
+    return scopeWalker.currentNode;
   }
 
   @Override
@@ -56,23 +59,5 @@ public class CppIntervalParser extends BaseIntervalParser<CPP14Parser> {
   @Override
   protected void highlightTokens() {
     CppLexerHighlighting.highlightTokens(allTokens, tokenTypes);
-  }
-
-  public static boolean isDirective(int tokenType) {
-    return tokenType == CPP14Lexer.Directive
-        || tokenType == CPP14Lexer.MultiLineMacro;
-  }
-
-  public static boolean isComment(int tokenType) {
-    return tokenType == CPP14Lexer.BlockComment
-        || tokenType == CPP14Lexer.LineComment;
-  }
-
-  @Override
-  protected void walkScopes(ParserRuleContext startRule, ScopeWalker scopeWalker) {
-    ParseTreeWalker treeWalker = new ParseTreeWalker();
-    CppScopeWalker cppScopeWalker = new CppScopeWalker(scopeWalker, intervalStart, tokenTypes, tokenStyles);
-    cppScopeWalker.offset = intervalStart;
-    treeWalker.walk(cppScopeWalker, startRule);
   }
 }

@@ -1902,6 +1902,19 @@ public class CPP14ParserBaseListener implements CPP14ParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterMemberSpecificationList(CPP14Parser.MemberSpecificationListContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitMemberSpecificationList(CPP14Parser.MemberSpecificationListContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterMemberSpecification(CPP14Parser.MemberSpecificationContext ctx) { }
 	/**
 	 * {@inheritDoc}

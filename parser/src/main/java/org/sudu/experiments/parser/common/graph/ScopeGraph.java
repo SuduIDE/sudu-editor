@@ -13,10 +13,14 @@ import org.sudu.experiments.parser.common.graph.type.TypeMap;
 
 import java.util.function.BiConsumer;
 
+import static org.sudu.experiments.parser.common.graph.node.NodeTypes.*;
+
 public class ScopeGraph {
 
   public ScopeNode root;
   public TypeMap typeMap;
+  public static final boolean printResolveInfo = false;
+  public static int refs, decls;
 
   public ScopeGraph() {
     typeMap = new TypeMap();
@@ -37,7 +41,9 @@ public class ScopeGraph {
     ScopeGraph graph = new ScopeGraph(reader.scopeRoot, reader.typeMap);
     ArrayWriter writer = new ArrayWriter();
     BiConsumer<RefNode, DeclNode> onResolve = (ref, decl) -> {
-      if (ref == null || ref.ref == null) {
+      if (ref == null || ref.ref == null || (
+          ref.refType == RefTypes.TYPE_USAGE && decl == null)
+      ) {
         writer.write(-1);
         return;
       }
@@ -45,7 +51,7 @@ public class ScopeGraph {
       if (decl == null || decl.decl == null) {
         writer.write(-1);
       } else {
-        int type = decl.declType == DeclNode.FIELD
+        int type = decl.declType == DeclTypes.FIELD
             ? ParserConstants.TokenTypes.FIELD
             : ParserConstants.TokenTypes.DEFAULT;
         int style = decl instanceof MethodNode
@@ -60,11 +66,19 @@ public class ScopeGraph {
 
   void resolveAll(BiConsumer<RefNode, DeclNode> onResolve) {
     if (root == null) return;
-    resolveAllRec(root, new Resolver(this, onResolve));
+    refs = 0; decls = 0;
+    Resolver resolver = new Resolver(this, onResolve);
+    resolveAllRec(root, resolver);
+    if (printResolveInfo) System.out.println("Resolved " + refs + " refs to " + decls + " decls");
   }
 
   private void resolveAllRec(ScopeNode current, Resolver resolver) {
-    current.referenceWalk(ref -> resolver.resolve(current, ref));
+    current.referenceWalk(ref -> {
+      var decl = resolver.resolve(current, ref);
+      if (ref != null) refs++;
+      if (decl != null) decls++;
+      return decl;
+    });
     current.children.forEach(child -> resolveAllRec(child, resolver));
   }
 

@@ -1603,6 +1603,17 @@ public interface CPP14ParserListener extends ParseTreeListener {
 	void exitClassKey(CPP14Parser.ClassKeyContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link CPP14Parser#memberSpecificationList}.
+	 * @param ctx the parse tree
+	 */
+	void enterMemberSpecificationList(CPP14Parser.MemberSpecificationListContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CPP14Parser#memberSpecificationList}.
+	 * @param ctx the parse tree
+	 */
+	void exitMemberSpecificationList(CPP14Parser.MemberSpecificationListContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link CPP14Parser#memberSpecification}.
 	 * @param ctx the parse tree
 	 */

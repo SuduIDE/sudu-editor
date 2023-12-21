@@ -24,4 +24,5 @@ public interface EditorConst {
   int LINE_NUMBERS_RIGHT_PADDING = 20;
 
   double TYPING_STOP_TIME = 1./32.;
+  int BIG_RESOLVE_TIME_MS = 100;
 }

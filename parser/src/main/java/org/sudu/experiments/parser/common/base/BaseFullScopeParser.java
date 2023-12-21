@@ -16,7 +16,7 @@ public abstract class BaseFullScopeParser<P extends Parser> extends BaseFullPars
 
     initLexer(source);
     var parser = initParser();
-    parser.setErrorHandler(new ErrorHighlightingStrategy());
+    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes));
     parser.removeErrorListeners();
     parser.addErrorListener(parserRecognitionListener);
 

@@ -22,7 +22,7 @@ public class CppLexerHighlighting {
       else if (isComment(token.getType())) tokenTypes[ind] = COMMENT;
       else if (isDirective(token.getType())) tokenTypes[ind] = ANNOTATION;
       else if (isOperator(token.getType())) tokenTypes[ind] = OPERATOR;
-      else if (isError(token.getType())) tokenTypes[ind] = ERROR;
+      else if (isError(token.getType()) || token.getType() == -1) tokenTypes[ind] = ERROR;
     }
   }
 

@@ -80,13 +80,14 @@ postfixExpression:
 	primaryExpression
 	| postfixExpression LeftBracket (expression | bracedInitList) RightBracket
 	| postfixExpression LeftParen expressionList? RightParen
+    | postfixExpression (Dot | Arrow) (
+        | idExpression LeftParen expressionList? RightParen
+        | Template? idExpression
+        | pseudoDestructorName
+    )
 	| (simpleTypeSpecifier | typeNameSpecifier) (
 		LeftParen expressionList? RightParen
 		| bracedInitList
-	)
-	| postfixExpression (Dot | Arrow) (
-		Template? idExpression
-		| pseudoDestructorName
 	)
 	| postfixExpression (PlusPlus | MinusMinus)
 	| (
@@ -501,7 +502,8 @@ pointerDeclarator: (pointerOperator Const?)* noPointerDeclarator;
 noPointerDeclarator:
 	declaratorid attributeSpecifierSeq?
 	| noPointerDeclarator (
-		parametersAndQualifiers
+	    initializer
+		| parametersAndQualifiers
 		| LeftBracket constantExpression? RightBracket attributeSpecifierSeq?
 	)
 	| LeftParen pointerDeclarator RightParen;
@@ -579,7 +581,7 @@ functionBody:
 
 initializer:
 	braceOrEqualInitializer
-	| LeftParen expressionList RightParen;
+	| LeftParen expressionList? RightParen;
 
 braceOrEqualInitializer:
 	Assign initializerClause
@@ -598,7 +600,7 @@ bracedInitList: LeftBrace (initializerList Comma?)? RightBrace;
 className: Identifier | simpleTemplateId;
 
 classSpecifier:
-	classHead LeftBrace memberSpecification? RightBrace;
+	classHead LeftBrace memberSpecificationList? RightBrace;
 
 classHead:
 	classKey attributeSpecifierSeq? (
@@ -614,8 +616,11 @@ classVirtSpecifier: Final;
 
 classKey: Class | Struct;
 
+memberSpecificationList: memberSpecification+;
+
 memberSpecification:
-	(memberdeclaration | accessSpecifier Colon)+;
+	memberdeclaration
+	| accessSpecifier Colon;
 
 memberdeclaration:
 	attributeSpecifierSeq? declSpecifierSeq? memberDeclaratorList? Semi
@@ -826,13 +831,13 @@ literal:
 
 unknownInterval
     : declaration+?
-    | anySeq
+//    | anySeq
     | EOF
     ;
 
 translationUnitOrAny
     : translationUnit
-    | anySeq
+//    | anySeq
     ;
 
 anySeq: .+?;

@@ -909,8 +909,13 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int version = ((ArrayView) result[1]).ints()[0];
     if (model.document.needReparse() || model.document.currentVersion != version) return;
     model.document.onResolve(ints, highlightResolveError);
-    long time = System.currentTimeMillis();
-    if (printResolveTime) System.out.println("Resolved in " + (time - resolveTimeStart) + "ms");
+    computeUsages();
+    if (printResolveTime) {
+      long resolveTime = System.currentTimeMillis() - resolveTimeStart;
+      if (resolveTime >= EditorConst.BIG_RESOLVE_TIME_MS) {
+        System.out.println("Resolved in " + resolveTime + "ms");
+      }
+    }
   }
 
   public void resolveAll() {
@@ -1415,10 +1420,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       saveToNavStack();
       V2i eventPosition = event.position;
       Pos pos = computeCharPos(eventPosition);
-      Pos elementPos = model.document.getElementStart(pos.line, pos.pos);
 
       moveCaret(pos);
-      computeUsages(pos, elementPos);
+      computeUsages();
 
       if (!event.shift && !selection.isSelectionStarted) {
         selection.startPos.set(caretLine, caretCharPos);
@@ -1843,7 +1847,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   static String parseJobName(String language) {
     return language != null ? switch (language) {
       case Languages.JAVA -> JavaProxy.PARSE_FULL_FILE_SCOPES;
-      case Languages.CPP -> CppProxy.PARSE_FULL_FILE;
+      case Languages.CPP -> CppProxy.PARSE_FULL_FILE_SCOPES;
       case Languages.JS -> JavaScriptProxy.PARSE_FULL_FILE;
       case Languages.ACTIVITY -> ActivityProxy.PARSE_FULL_FILE;
       case Languages.TEXT -> LineParser.PARSE;

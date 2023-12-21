@@ -26,6 +26,10 @@ public interface ParserConstants {
     int ITALIC = 1;
     int BOLD = 2;
     int ITALIC_BOLD = 3;
+    int ERROR = 4;
+    static int error(int style) {
+      return style | ERROR;
+    }
   }
 
   interface IntervalTypes {
@@ -45,6 +49,8 @@ public interface ParserConstants {
       int UNKNOWN = -1;
       int TRANS_UNIT = 0;
       int DECLARATION = 1;
+      int TYPE = 2;
+      int MEMBER = 3;
     }
 
     interface Js {

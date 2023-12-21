@@ -17,6 +17,7 @@ import org.sudu.experiments.parser.java.gen.JavaParserBaseListener;
 import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Java.*;
 import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.UNKNOWN;
 import static org.sudu.experiments.parser.ParserConstants.*;
+import static org.sudu.experiments.parser.common.graph.node.NodeTypes.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,14 +60,17 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   @Override
   public void enterImportDeclaration(JavaParser.ImportDeclarationContext ctx) {
     super.enterImportDeclaration(ctx);
-    scopeWalker.enterFakeScope();
+    var qualified = ctx.qualifiedName();
+    var identifier = qualified.identifier(qualified.identifier().size() - 1);
+    var type = Name.fromRule(identifier, offset);
+    scopeWalker.enterMember(new DeclNode(type, null, DeclTypes.TYPE_DECL));
     scopeWalker.addInterval(ctx, IMPORT);
   }
 
   @Override
   public void exitImportDeclaration(JavaParser.ImportDeclarationContext ctx) {
     super.exitImportDeclaration(ctx);
-    scopeWalker.exitFakeScope();
+    scopeWalker.exitScope();
   }
 
   @Override
@@ -89,13 +93,13 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     super.enterClassDeclaration(ctx);
     scopeWalker.enterScope();
 
-    var node = getNode(ctx.identifier());
-    String typeString = node.getText();
-    var type = scopeWalker.associateType(typeString, scopeWalker.currentScope);
+    var typeName = Name.fromRule(ctx.identifier(), offset);
+    var type = scopeWalker.associateType(typeName, scopeWalker.currentScope);
 
     if (ctx.typeType() != null) {
-      String supertypeString = getType(ctx.typeType());
-      var supertype = scopeWalker.getType(supertypeString);
+      Name supertypeName = getType(ctx.typeType());
+      addTypeUsage(ctx.typeType());
+      var supertype = scopeWalker.getType(supertypeName.name);
       scopeWalker.addSupertype(type, supertype);
       scopeWalker.currentScope.importTypes.add(supertype);
     }
@@ -166,9 +170,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     super.enterInterfaceDeclaration(ctx);
     scopeWalker.enterScope();
 
-    var node = getNode(ctx.identifier());
-    String typeString = node.getText();
-    var type = scopeWalker.associateType(typeString, scopeWalker.currentScope);
+    Name typeName = Name.fromRule(ctx.identifier(), offset);
+    var type = scopeWalker.associateType(typeName, scopeWalker.currentScope);
 
     addSupertypes(type, ctx.typeList());
 
@@ -288,11 +291,13 @@ public class JavaScopeWalker extends JavaParserBaseListener {
 
   private void handleLocalVariable(JavaParser.LocalVariableDeclarationContext ctx) {
     if (ctx.typeType() != null && ctx.variableDeclarators() != null) {
-      var typeString = getType(ctx.typeType());
-      var type = scopeWalker.getType(typeString);
+      var typeName = getType(ctx.typeType());
+      addTypeUsage(ctx.typeType());
+      var type = scopeWalker.getType(typeName.name);
+
       for (var variableDeclarator: ctx.variableDeclarators().variableDeclarator()) {
         var node = getNode(variableDeclarator);
-        var decl = new DeclNode(Name.fromNode(node, offset), type, DeclNode.LOCAL_VAR);
+        var decl = new DeclNode(Name.fromNode(node, offset), type, DeclTypes.LOCAL_VAR);
         scopeWalker.addDecl(decl);
         if (variableDeclarator.variableInitializer() != null &&
             variableDeclarator.variableInitializer().expression() != null
@@ -303,7 +308,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
       var node = getNode(ctx.identifier());
       var ref = handleExpression(ctx.expression());
       var type = ref != null ? ref.type : null;
-      var decl = new DeclNode(Name.fromNode(node, offset), type, DeclNode.LOCAL_VAR);
+      var decl = new DeclNode(Name.fromNode(node, offset), type, DeclTypes.LOCAL_VAR);
       mark(ctx.VAR(), TokenTypes.KEYWORD, TokenStyles.NORMAL);
       scopeWalker.addInference(new InferenceNode(decl, ref));
     }
@@ -340,12 +345,12 @@ public class JavaScopeWalker extends JavaParserBaseListener {
       var ref = handleExpression(enhanced.expression());
       if (enhanced.VAR() != null) {
         var type = ref != null ? TypeMap.getArrayElemType(ref.type) : null;
-        var decl = new DeclNode(declName, scopeWalker.getType(type), DeclNode.LOCAL_VAR);
+        var decl = new DeclNode(declName, scopeWalker.getType(type), DeclTypes.LOCAL_VAR);
         scopeWalker.addInference(new InferenceNode(decl, ref, InferenceNode.FOR_EACH));
         mark(enhanced.VAR(), TokenTypes.KEYWORD, TokenStyles.NORMAL);
       } else {
         var type = enhanced.typeType().getText();
-        scopeWalker.addDecl(new DeclNode(declName, scopeWalker.getType(type), DeclNode.LOCAL_VAR));
+        scopeWalker.addDecl(new DeclNode(declName, scopeWalker.getType(type), DeclTypes.LOCAL_VAR));
         scopeWalker.addRef(ref);
       }
     } else {
@@ -388,20 +393,21 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   }
 
   public void handleField(JavaParser.FieldDeclarationContext ctx, boolean isStatic) {
-    String typeString = getType(ctx.typeType());
-    String type = scopeWalker.getType(typeString);
+    Name typeName = getType(ctx.typeType());
+    String type = scopeWalker.getType(typeName.name);
     var declarators = getVarDeclarators(ctx.variableDeclarators());
 
     List<DeclNode> fields = new ArrayList<>();
     List<TerminalNode> forMark = new ArrayList<>();
     for (var decl: declarators) {
-      fields.add(new DeclNode(Name.fromRule(decl, offset), type, DeclNode.FIELD));
+      fields.add(new DeclNode(Name.fromRule(decl, offset), type, DeclTypes.FIELD));
       forMark.add(getNode(decl.identifier()));
     }
 
     scopeWalker.enterMember(fields);
     var refs = getVarDeclaratorsRefs(ctx.variableDeclarators());
     scopeWalker.addRefs(refs);
+    addTypeUsage(ctx.typeType());
 
     mark(forMark, TokenTypes.FIELD, isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL);
   }
@@ -416,7 +422,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
         var ref = handleExpression(decl.variableInitializer().expression());
         scopeWalker.addRef(ref);
       }
-      decls.add(new DeclNode(name, type, DeclNode.FIELD));
+      decls.add(new DeclNode(name, type, DeclTypes.FIELD));
       mark(getNode(decl.identifier()), TokenTypes.FIELD, TokenStyles.ITALIC);
     }
     scopeWalker.enterMember(decls);
@@ -442,17 +448,17 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   }
 
   public void handleConstructorDeclaration(JavaParser.ConstructorDeclarationContext ctx) {
-    super.enterConstructorDeclaration(ctx);
     TerminalNode node = getNode(ctx.identifier());
     Name decl = Name.fromNode(node, offset);
     String typeString = node.getText();
     String type = scopeWalker.getType(typeString);
-    List<DeclNode> args = getArgsTypes(ctx.formalParameters());
+    List<DeclNode> args = getArgs(ctx.formalParameters());
     List<String> types = new ArrayList<>();
     for (var arg: args) types.add(arg.type);
-    scopeWalker.enterMember(new MethodNode(decl, type, MethodNode.CREATOR, types));
+    scopeWalker.enterMember(new MethodNode(decl, type, MethodTypes.CREATOR, types));
     scopeWalker.enterScope();
     scopeWalker.addDecls(args);
+    addArgsTypesUsages(ctx.formalParameters());
   }
 
   private void addMethodDecl(
@@ -462,14 +468,16 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   ) {
     TerminalNode node = getNode(identifier);
     Name decl = Name.fromNode(node, offset);
-    String typeString = getType(typeTypeOrVoid);
-    String type = scopeWalker.getType(typeString);
-    List<DeclNode> args = getArgsTypes(formalParameters);
+    Name typeName = getType(typeTypeOrVoid);
+    String type = scopeWalker.getType(typeName.name);
+    List<DeclNode> args = getArgs(formalParameters);
     List<String> types = new ArrayList<>();
     for (var arg: args) types.add(arg.type);
-    scopeWalker.enterMember(new MethodNode(decl, type, MethodNode.METHOD, types));
+    scopeWalker.enterMember(new MethodNode(decl, type, MethodTypes.METHOD, types));
     scopeWalker.enterScope();
     scopeWalker.addDecls(args);
+    addTypeUsage(typeTypeOrVoid);
+    addArgsTypesUsages(formalParameters);
   }
 
   private void mark(TerminalNode node, int type, int style) {
@@ -535,9 +543,9 @@ public class JavaScopeWalker extends JavaParserBaseListener {
       ArrayList<JavaParser.TypeTypeContext> typeTypeList = new ArrayList<>();
       for (var typeList: typeListContexts) typeTypeList.addAll(typeList.typeType());
       for (var typeType: typeTypeList) {
-        String supertypeString = getType(typeType);
-
-        var supertype = scopeWalker.getType(supertypeString);
+        Name supertypeName = getType(typeType);
+        addTypeUsage(typeType);
+        var supertype = scopeWalker.getType(supertypeName.name);
         scopeWalker.addSupertype(type, supertype);
         scopeWalker.currentScope.importTypes.add(supertype);
       }
@@ -554,15 +562,28 @@ public class JavaScopeWalker extends JavaParserBaseListener {
       return handleMethodCall(ctx.methodCall());
     if (ctx.INSTANCEOF() != null) {
       var expr = handleExpression(ctx.expression(0));
-      if (expr == null) return new RefNode(null, "boolean", RefNode.TYPE);
+      if (expr == null) return new RefNode(null, "boolean", RefTypes.LITERAL);
       else return new ExprRefNode(List.of(expr), "boolean");
     }
     if (isNonNullAndEmpty(ctx.typeType())) {
-      var type = getType(ctx.typeType(0));
+      Name typeName = getType(ctx.typeType(0));
+      addTypeUsage(ctx.typeType(0));
       var expr = handleExpression(ctx.expression(0));
-      if (expr == null) return new RefNode(null, type, RefNode.TYPE);
-      else return new ExprRefNode(List.of(expr), type);
+      if (expr == null) return new RefNode(null, typeName.name, RefTypes.LITERAL);
+      else return new ExprRefNode(List.of(expr), typeName.name);
     }
+    if (isNonNullAndEmpty(ctx.expression()) && ctx.identifier() != null && ctx.COLONCOLON() != null) {
+      var first = handleExpression(ctx.expression(0));
+      var last = Name.fromRule(ctx.identifier(), offset);
+      if (first instanceof QualifiedRefNode qualifiedRef) {
+        qualifiedRef.addLast(new RefNode(last));
+        return first;
+      } else if (first != null) {
+        return new QualifiedRefNode(first, new RefNode(last));
+      }
+    }
+    if (ctx.lambdaExpression() != null) return null;  // will be handled in enterLambdaExpression
+    if (ctx.switchExpression() != null) return null;  // will be handled in enterSwitchExpression
     if (ctx.expression() != null && !ctx.expression().isEmpty()) {
       List<RefNode> refs = new ArrayList<>();
       for (var expr: ctx.expression()) {
@@ -572,6 +593,53 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     }
     System.err.println("Unsupported expression: " + ctx.getText());
     return null;
+  }
+
+  @Override
+  public void enterLambdaExpression(JavaParser.LambdaExpressionContext lambdaExpression) {
+    super.enterLambdaExpression(lambdaExpression);
+    scopeWalker.enterScope();
+    var params = lambdaExpression.lambdaParameters();
+    if (params.identifier() != null && !params.identifier().isEmpty()) {
+      for (var id: params.identifier()) {
+        var name = Name.fromRule(id, offset);
+        scopeWalker.addDecl(new DeclNode(name, null, DeclTypes.ARGUMENT));
+      }
+    } else if (params.formalParameterList() != null) {
+      var decls = getArgs(params.formalParameterList());
+      addArgsTypesUsages(params.formalParameterList());
+      scopeWalker.addDecls(decls);
+    }
+    if (lambdaExpression.lambdaBody().expression() != null) {
+      var ref = handleExpression(lambdaExpression.lambdaBody().expression());
+      scopeWalker.addRef(ref);
+    }
+  }
+
+  @Override
+  public void enterSwitchExpression(JavaParser.SwitchExpressionContext ctx) {
+    super.enterSwitchExpression(ctx);
+    scopeWalker.enterScope();
+    var expr = handleExpression(ctx.parExpression().expression());
+    scopeWalker.addRef(expr);
+    for (var rule: ctx.switchLabeledRule()) {
+      if (rule.expressionList() != null) {
+        var refs = handleExpressionList(rule.expressionList());
+        scopeWalker.addRefs(refs);
+      }
+    }
+  }
+
+  @Override
+  public void exitLambdaExpression(JavaParser.LambdaExpressionContext ctx) {
+    super.exitLambdaExpression(ctx);
+    scopeWalker.exitScope();
+  }
+
+  @Override
+  public void exitSwitchExpression(JavaParser.SwitchExpressionContext ctx) {
+    super.exitSwitchExpression(ctx);
+    scopeWalker.exitScope();
   }
 
   private List<RefNode> handleExpressionList(JavaParser.ExpressionListContext ctx) {
@@ -632,7 +700,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     ) args = handleExpressionList(ctx.classCreatorRest().arguments().expressionList());
     else args = new ArrayList<>();
 
-    return new MethodCallNode(decl, type, isArrayCreator ? MethodNode.ARRAY_CREATOR : MethodNode.CREATOR, args);
+    return new MethodCallNode(decl, type, isArrayCreator ? MethodTypes.ARRAY_CREATOR : MethodTypes.CREATOR, args);
   }
 
   public void handleArrayCreator(JavaParser.ArrayCreatorRestContext ctx) {
@@ -655,8 +723,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
 
   private RefNode handlePrimary(JavaParser.PrimaryContext ctx) {
     if (ctx.expression() != null) return handleExpression(ctx.expression());
-    if (ctx.THIS() != null) return new RefNode(Name.fromNode(ctx.THIS(), offset), null, RefNode.THIS);
-    if (ctx.SUPER() != null) return new RefNode(Name.fromNode(ctx.SUPER(), offset), null, RefNode.SUPER);
+    if (ctx.THIS() != null) return new RefNode(Name.fromNode(ctx.THIS(), offset), null, RefTypes.THIS);
+    if (ctx.SUPER() != null) return new RefNode(Name.fromNode(ctx.SUPER(), offset), null, RefTypes.SUPER);
     if (ctx.literal() != null) return handleLiteral(ctx.literal());
     if (ctx.identifier() != null) return new RefNode(Name.fromNode(getNode(ctx.identifier()), offset));
     return null;
@@ -666,13 +734,13 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     scopeWalker.addRef(handleExpression(ctx.expression(0)));
     scopeWalker.addRef(handleExpression(ctx.expression(1)));
     Name decl = new Name("", ctx.getStart().getStartIndex());
-    return new RefNode(decl, scopeWalker.getType("boolean"), RefNode.TYPE);
+    return new RefNode(decl, scopeWalker.getType("boolean"), RefTypes.LITERAL);
   }
 
   private RefNode handleLiteral(JavaParser.LiteralContext ctx) {
     var node = ctx.getStart();
     var type = getLiteralType(ctx);
-    return new RefNode(Name.fromToken(node, offset), type, RefNode.TYPE);
+    return new RefNode(Name.fromToken(node, offset), type, RefTypes.LITERAL);
   }
 
   private String getLiteralType(JavaParser.LiteralContext ctx) {
@@ -730,28 +798,44 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     return result;
   }
 
-  private List<DeclNode> getArgsTypes(JavaParser.FormalParametersContext ctx) {
-    List<DeclNode> result = new ArrayList<>();
-    if (ctx.formalParameterList() != null) {
-      var list = ctx.formalParameterList();
-      for (var formalParam: list.formalParameter()) {
-        String typeString = getType(formalParam.typeType());
-        String type = scopeWalker.getType(typeString);
+  private List<DeclNode> getArgs(JavaParser.FormalParametersContext ctx) {
+    return getArgs(ctx.formalParameterList());
+  }
 
+  private List<DeclNode> getArgs(JavaParser.FormalParameterListContext formalParameterList) {
+    List<DeclNode> result = new ArrayList<>();
+    if (formalParameterList != null) {
+      for (var formalParam: formalParameterList.formalParameter()) {
+        Name typeName = getType(formalParam.typeType());
+        String type = scopeWalker.getType(typeName.name);
         TerminalNode node = getNode(formalParam.variableDeclaratorId().identifier());
         Name decl = Name.fromNode(node, offset);
-        result.add(new DeclNode(decl, type, DeclNode.ARGUMENT));
+        result.add(new DeclNode(decl, type, DeclTypes.ARGUMENT));
       }
-      if (list.lastFormalParameter() != null) {
-        String typeString = getType(list.lastFormalParameter().typeType());
-        String type = scopeWalker.getType(typeString);
-
-        TerminalNode node = getNode(list.lastFormalParameter().variableDeclaratorId().identifier());
+      if (formalParameterList.lastFormalParameter() != null) {
+        Name typeName = getType(formalParameterList.lastFormalParameter().typeType());
+        String type = scopeWalker.getType(typeName.name);
+        TerminalNode node = getNode(formalParameterList.lastFormalParameter().variableDeclaratorId().identifier());
         Name decl = Name.fromNode(node, offset);
-        result.add(new DeclNode(decl, type, DeclNode.ARGUMENT));
+        result.add(new DeclNode(decl, type, DeclTypes.ARGUMENT));
       }
     }
     return result;
+  }
+
+  private void addArgsTypesUsages(JavaParser.FormalParametersContext ctx) {
+    addArgsTypesUsages(ctx.formalParameterList());
+  }
+
+  private void addArgsTypesUsages(JavaParser.FormalParameterListContext formalParameterList) {
+    if (formalParameterList != null) {
+      for (var formalParam: formalParameterList.formalParameter()) {
+        addTypeUsage(formalParam.typeType());
+      }
+      if (formalParameterList.lastFormalParameter() != null) {
+        addTypeUsage(formalParameterList.lastFormalParameter().typeType());
+      }
+    }
   }
 
   private boolean isStatic(JavaParser.FieldDeclarationContext ctx) {
@@ -825,14 +909,24 @@ public class JavaScopeWalker extends JavaParserBaseListener {
         : (TerminalNode) ctx.primitiveType().getChild(0);
   }
 
-  private String getType(JavaParser.TypeTypeOrVoidContext ctx) {
+  private Name getType(JavaParser.TypeTypeOrVoidContext ctx) {
     return ctx.typeType() != null
         ? getType(ctx.typeType())
-        : ctx.VOID().getText();
+        : Name.fromNode(ctx.VOID(), offset);
   }
 
-  private String getType(JavaParser.TypeTypeContext ctx) {
-    return ctx.getText();
+  private Name getType(JavaParser.TypeTypeContext ctx) {
+    return Name.fromRule(ctx, offset);
   }
 
+  private void addTypeUsage(JavaParser.TypeTypeOrVoidContext ctx) {
+    if (ctx.typeType() != null) addTypeUsage(ctx.typeType());
+  }
+
+  private void addTypeUsage(JavaParser.TypeTypeContext ctx) {
+    if (ctx.classOrInterfaceType() != null) {
+      Name name = Name.fromRule(ctx.classOrInterfaceType(), offset);
+      scopeWalker.addRef(new RefNode(name, null, RefTypes.TYPE_USAGE));
+    }
+  }
 }

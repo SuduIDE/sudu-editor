@@ -7,6 +7,7 @@ import org.sudu.experiments.parser.common.base.BaseFullScopeParser;
 import org.sudu.experiments.parser.common.base.BaseIntervalParser;
 import org.sudu.experiments.parser.cpp.parser.CppFirstLinesLexer;
 import org.sudu.experiments.parser.cpp.parser.CppFullParser;
+import org.sudu.experiments.parser.cpp.parser.CppFullScopesParser;
 import org.sudu.experiments.parser.cpp.parser.CppIntervalParser;
 
 import java.util.List;
@@ -34,7 +35,7 @@ public class CppProxy extends BaseProxy {
 
   @Override
   public BaseFullScopeParser<?> getFullScopeParser() {
-    throw new UnsupportedOperationException("Scope Graphs for C++ is in progress");
+    return new CppFullScopesParser();
   }
 
   @Override
