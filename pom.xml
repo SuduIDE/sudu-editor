@@ -30,6 +30,8 @@
     <module>parser</module>
     <module>diff-model</module>
     <module>parser-generator</module>
+    <module>parser-activity</module>
+    <module>parser-common</module>
   </modules>
   <properties>
     <maven.compiler.source>17</maven.compiler.source>

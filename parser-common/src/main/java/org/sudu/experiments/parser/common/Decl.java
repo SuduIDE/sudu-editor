@@ -2,7 +2,6 @@ package org.sudu.experiments.parser.common;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import java.io.IOException;
 import java.util.Objects;
 
 public class Decl implements Comparable<Decl> {

@@ -3,7 +3,6 @@ package org.sudu.experiments.parser.activity.graph.stat;
 import org.sudu.experiments.parser.activity.graph.BaseStat;
 import org.sudu.experiments.parser.activity.graph.Dag2Part;
 import org.sudu.experiments.parser.activity.graph.IExpr;
-import org.sudu.experiments.parser.activity.graph.Path;
 
 public class Id extends BaseStat implements IExpr {
     String name;
