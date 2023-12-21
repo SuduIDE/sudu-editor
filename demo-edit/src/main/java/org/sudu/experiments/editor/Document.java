@@ -527,7 +527,10 @@ public class Document {
 
       int declFlag = reader.next();
       if (declFlag == -1) {
-        if (highlightErrors) refElem.style = ParserConstants.TokenStyles.error(refElem.style);
+        if (highlightErrors) {
+          refElem.color = ParserConstants.TokenTypes.DEFAULT;
+          refElem.style = ParserConstants.TokenStyles.error(refElem.style);
+        }
         continue;
       }
       var declPos = binarySearchPosAt(reader.next());

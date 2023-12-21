@@ -394,7 +394,6 @@ public class JavaScopeWalker extends JavaParserBaseListener {
 
   public void handleField(JavaParser.FieldDeclarationContext ctx, boolean isStatic) {
     Name typeName = getType(ctx.typeType());
-    addTypeUsage(ctx.typeType());
     String type = scopeWalker.getType(typeName.name);
     var declarators = getVarDeclarators(ctx.variableDeclarators());
 
@@ -408,6 +407,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
     scopeWalker.enterMember(fields);
     var refs = getVarDeclaratorsRefs(ctx.variableDeclarators());
     scopeWalker.addRefs(refs);
+    addTypeUsage(ctx.typeType());
 
     mark(forMark, TokenTypes.FIELD, isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL);
   }
