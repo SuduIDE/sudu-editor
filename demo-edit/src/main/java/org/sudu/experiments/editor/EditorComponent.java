@@ -45,7 +45,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   Runnable[] debugFlags = new Runnable[10];
 
   final Caret caret = new Caret();
-  int caretLine, caretCharPos, caretPos;
   boolean hasFocus;
 
   int fontVirtualSize = EditorConst.DEFAULT_FONT_SIZE;
@@ -55,11 +54,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   int lineHeight;
 
   Model model = new Model();
-  LineDiff[] diffModel;
   EditorRegistrations registrations = new EditorRegistrations();
-  Selection selection = model.selection;
-  NavigationStack navStack = new NavigationStack();
-
   EditorColorScheme colors;
 
   Canvas renderingCanvas;
@@ -95,14 +90,10 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   LineNumbersComponent lineNumbers = new LineNumbersComponent();
   //int lineNumLeftMargin = 10;
 
-  boolean fullFileParsed, fileStructureParsed, firstLinesParsed;
   String tabIndent = "  ";
 
   public boolean readonly = false;
   boolean mirrored = false;
-
-  private CodeElement definition = null;
-  private final List<CodeElement> usages = new ArrayList<>();
   private ExternalHighlights externalHighlights;
 
   Consumer<String> onError = System.err::println;
@@ -112,7 +103,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   private boolean highlightResolveError = true;
   private final List<V2i> parsedVps = new ArrayList<>();
 
-  final Map<String, String> properties = new HashMap<>();
 
   public static final int ACTIVITY_CHANNEL = 0;
 
@@ -197,7 +187,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private void undoLastDiff() {
-    if (selection.isAreaSelected()) setSelectionToCaret();
+    if (selection().isAreaSelected()) setSelectionToCaret();
     var caretDiff = model.document.undoLastDiff();
     if (caretDiff == null) return;
     setCaretLinePos(caretDiff.x, caretDiff.y, false);
@@ -362,7 +352,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private void afterFontChanged() {
-    caretPos = caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, fonts);
+    model.caretPos = caretCodeLine().computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
     adjustEditorScrollToCaret();
   }
 
@@ -416,7 +406,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       iterativeParsing();
     }
 
-    if (!fullFileParsed && fileStructureParsed) {
+    if (!model.fullFileParsed && model.fileStructureParsed) {
       boolean vpParsed = parsedVps.stream().anyMatch(it -> it.x <= getFirstLine() && getLastLine() <= it.y);
       if (!vpParsed) parseViewport();
     }
@@ -470,11 +460,11 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     g.enableScissor(pos, size);
 
     int caretVerticalOffset = (lineHeight - caret.height()) / 2;
-    int caretX = caretPos - caret.width() / 2 - hScrollPos;
+    int caretX = model.caretPos - caret.width() / 2 - hScrollPos;
     int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth() : vLineX;
     caret.setPosition(
         dCaret + caretX,
-        caretVerticalOffset + caretLine * lineHeight - vScrollPos);
+        caretVerticalOffset + model.caretLine * lineHeight - vScrollPos);
     int docLen = model.document.length();
 
     int firstLine = getFirstLine();
@@ -498,13 +488,13 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
           nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * context.dpr));
       int yPosition = lineHeight * i - vScrollPos;
 
-      LineDiff diff = diffModel == null ? null : diffModel[i];
+      LineDiff diff = diffModel() == null ? null : diffModel()[i];
       line.draw(
           pos.y + yPosition, dx, g,
           editorWidth(), lineHeight, hScrollPos,
           colors, getSelLineSegment(i, lineContent),
-          definition, usages,
-          caretLine == i, diffModel != null,
+          model.definition, model.usages,
+          model.caretLine == i, diffModel() != null,
           diff);
     }
 
@@ -512,13 +502,13 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
       CodeLineRenderer line = lineRenderer(i);
       int yPosition = lineHeight * i - vScrollPos;
-      boolean isTailSelected = selection.isTailSelected(i);
+      boolean isTailSelected = selection().isTailSelected(i);
       Color tailColor = colors.editor.lineTailContent;
-      boolean isCurrentLine = caretLine == i && diffModel == null;
+      boolean isCurrentLine = model.caretLine == i && diffModel() == null;
 
       if (isTailSelected) tailColor = colors.editor.selectionBg;
-      else if (diffModel != null && i < diffModel.length && diffModel[i] != null) {
-        tailColor = (Color) colors.diff.getDiffColor(colors, diffModel[i].type);
+      else if (diffModel() != null && i < diffModel().length && diffModel()[i] != null) {
+        tailColor = (Color) colors.diff.getDiffColor(colors, diffModel()[i].type);
       }
       else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
 
@@ -557,16 +547,16 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   private void drawGap(int firstLine, int lastLine, int docLen) {
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      LineDiff currentLineModel = diffModel != null && i < diffModel.length
-          ? diffModel[i]
+      LineDiff currentLineModel = diffModel() != null && i < diffModel().length
+          ? diffModel()[i]
           : null;
       V4f gapColor = currentLineModel != null
           ? colors.diff.getDiffColor(colors, currentLineModel.type)
-          : diffModel == null
+          : diffModel() == null
           ? colors.editor.currentLineBg
           : colors.editor.bg;
 
-      if (caretLine == i || currentLineModel != null) {
+      if (model.caretLine == i || currentLineModel != null) {
         vLineSize.x = mirrored
             ? vLineLeftDelta + scrollBarWidth() + vLineW - xOffset
             : vLineLeftDelta - vLineW - xOffset;
@@ -583,7 +573,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private V2i getSelLineSegment(int lineInd, CodeLine line) {
-    V2i selLine = selection.getLine(lineInd);
+    V2i selLine = selection().getLine(lineInd);
     if (selLine != null) {
       if (selLine.y == -1) selLine.y = line.totalStrLength;
       selLine.x = line.computePixelLocation(selLine.x, g.mCanvas, fonts);
@@ -597,7 +587,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
 
     lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine,
-        diffModel != null ? -1 : caretLine, g, colors);
+        diffModel() != null ? -1 : model.caretLine, g, colors);
   }
 
   int getFirstLine() {
@@ -623,9 +613,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private boolean handleTabOp() {
-    if (selection.isAreaSelected()) {
-      Selection.SelPos left = selection.getLeftPos();
-      Selection.SelPos right = selection.getRightPos();
+    if (selection().isAreaSelected()) {
+      Selection.SelPos left = selection().getLeftPos();
+      Selection.SelPos right = selection().getRightPos();
       int size = right.line - left.line + 1;
       int[] lines = new int[size];
       String[] changes = new String[size];
@@ -635,12 +625,12 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
         changes[i++] = tabIndent;
       }
 
-      tabDiffHandler(lines, 0, false, changes, new Pos(caretLine, caretCharPos),
+      tabDiffHandler(lines, 0, false, changes, new Pos(model.caretLine, model.caretCharPos),
           (l, c) -> model.document.insertAt(l, 0, tabIndent)
       );
       left.charInd += tabIndent.length();
       right.charInd += tabIndent.length();
-      setCaretPosWithSelection(caretCharPos + tabIndent.length());
+      setCaretPosWithSelection(model.caretCharPos + tabIndent.length());
       updateDocumentDiffTimeStamp();
     } else {
       handleInsert(tabIndent);
@@ -649,18 +639,18 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private boolean handleShiftTabOp() {
-    if (selection.isAreaSelected()) {
+    if (selection().isAreaSelected()) {
       shiftTabSelection();
     } else {
-      CodeLine codeLine = model.document.line(caretLine);
+      CodeLine codeLine = model.document.line(model.caretLine);
       if (codeLine.elements.length > 0) {
         String indent = calculateTabIndent(codeLine);
         if (indent == null) return true;
         model.document.makeDiffWithCaretReturn(
-            caretLine, 0, true, indent, new Pos(caretLine, caretCharPos)
+            model.caretLine, 0, true, indent, new Pos(model.caretLine, model.caretCharPos)
         );
         codeLine.delete(0, indent.length());
-        setCaretPosWithSelection(caretCharPos - indent.length());
+        setCaretPosWithSelection(model.caretCharPos - indent.length());
       }
     }
     updateDocumentDiffTimeStamp();
@@ -668,13 +658,13 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private void shiftTabSelection() {
-    Selection.SelPos left = selection.getLeftPos();
-    Selection.SelPos right = selection.getRightPos();
+    Selection.SelPos left = selection().getLeftPos();
+    Selection.SelPos right = selection().getRightPos();
     int initSize = right.line - left.line + 1;
     int[] lines = new int[initSize];
     String[] changes = new String[initSize];
-    int prevCaretPos = caretCharPos;
-    int prevCaretLine = caretLine;
+    int prevCaretPos = model.caretCharPos;
+    int prevCaretLine = model.caretLine;
     int size = 0;
     for (int l = left.line; l <= right.line; l++) {
       CodeLine codeLine = model.document.line(l);
@@ -693,7 +683,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       if (l == left.line) left.charInd = Math.max(0, left.charInd - indent.length());
       if (l == right.line) {
         right.charInd = Math.max(0, right.charInd - indent.length());
-        setCaretPosWithSelection(caretCharPos - indent.length());
+        setCaretPosWithSelection(model.caretCharPos - indent.length());
       }
     }
     tabDiffHandler(lines, 0, true, changes, new Pos(prevCaretLine, prevCaretPos),
@@ -734,36 +724,36 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   boolean handleEnter() {
-    if (selection.isAreaSelected()) deleteSelectedArea();
-    model.document.line(caretLine).invalidateCache();
-    model.document.newLineOp(caretLine, caretCharPos);
+    if (selection().isAreaSelected()) deleteSelectedArea();
+    model.document.line(model.caretLine).invalidateCache();
+    model.document.newLineOp(model.caretLine, model.caretCharPos);
     updateDocumentDiffTimeStamp();
-    return setCaretLinePos(caretLine + 1, 0, false);
+    return setCaretLinePos(model.caretLine + 1, 0, false);
   }
 
   boolean handleDelete() {
-    if (selection.isAreaSelected()) deleteSelectedArea();
-    else model.document.deleteChar(caretLine, caretCharPos);
+    if (selection().isAreaSelected()) deleteSelectedArea();
+    else model.document.deleteChar(model.caretLine, model.caretCharPos);
     adjustEditorScrollToCaret();
     updateDocumentDiffTimeStamp();
     return true;
   }
 
   boolean handleBackspace() {
-    if (selection.isAreaSelected()) {
+    if (selection().isAreaSelected()) {
       deleteSelectedArea();
       return true;
     } else {
-      if (caretCharPos == 0 && caretLine == 0) return true;
+      if (model.caretCharPos == 0 && model.caretLine == 0) return true;
 
       int cLine, cPos;
-      if (caretCharPos == 0) {
-        cLine = caretLine - 1;
+      if (model.caretCharPos == 0) {
+        cLine = model.caretLine - 1;
         cPos = model.document.strLength(cLine);
         model.document.concatLines(cLine);
       } else {
-        cLine = caretLine;
-        cPos = caretCharPos - 1;
+        cLine = model.caretLine;
+        cPos = model.caretCharPos - 1;
         model.document.deleteChar(cLine, cPos);
       }
       updateDocumentDiffTimeStamp();
@@ -773,14 +763,14 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   boolean handleInsert(String s) {
     if (readonly) return false;
-    if (selection.isAreaSelected()) deleteSelectedArea();
+    if (selection().isAreaSelected()) deleteSelectedArea();
     String[] lines = s.replace("\r", "").split("\n", -1);
 
-    model.document.insertLines(caretLine, caretCharPos, lines);
+    model.document.insertLines(model.caretLine, model.caretCharPos, lines);
 
-    int newCaretLine = caretLine + lines.length - 1;
+    int newCaretLine = model.caretLine + lines.length - 1;
     int newCaretPos;
-    if (newCaretLine == caretLine) newCaretPos = caretCharPos + lines[0].length();
+    if (newCaretLine == model.caretLine) newCaretPos = model.caretCharPos + lines[0].length();
     else newCaretPos = lines[lines.length - 1].length();
 
     setCaretLinePos(newCaretLine, newCaretPos, false);
@@ -790,17 +780,17 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private void deleteSelectedArea() {
-    var leftPos = selection.getLeftPos();
-    model.document.deleteSelected(selection);
+    var leftPos = selection().getLeftPos();
+    model.document.deleteSelected(selection());
     setCaretLinePos(leftPos.line, leftPos.charInd, false);
     setSelectionToCaret();
     updateDocumentDiffTimeStamp();
   }
 
   private void setSelectionToCaret() {
-    selection.isSelectionStarted = false;
-    selection.startPos.set(caretLine, caretCharPos);
-    selection.endPos.set(caretLine, caretCharPos);
+    selection().isSelectionStarted = false;
+    selection().startPos.set(model.caretLine, model.caretCharPos);
+    selection().endPos.set(model.caretLine, model.caretCharPos);
   }
 
   int scrollBarWidth() {
@@ -861,63 +851,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     return Math.min(Math.max(0, pos), maxScrollPos);
   }
 
-  private long parsingTimeStart, viewportParseStart;
-  private long resolveTimeStart;
-
-  private void onFileParsed(Object[] result) {
-    Debug.consoleInfo("onFileParsed");
-    fileStructureParsed = true;
-    firstLinesParsed = true;
-    fullFileParsed = true;
-
-    int[] ints = ((ArrayView) result[0]).ints();
-    char[] chars = ((ArrayView) result[1]).chars();
-    int type = ((ArrayView) result[2]).ints()[0];
-
-    if (type == FileProxy.ACTIVITY_FILE) { //TODO hack to transfer special data, need to be refactored
-
-      String dag1 = new String(((ArrayView) result[3]).chars());
-      properties.put("mermaid", dag1);
-//      String dag2 = new String(((ArrayView) result[4]).chars());
-//      properties.put("mermaid2", dag2);
-
-//      System.out.println("dag1 = " + dag1);
-//      System.out.println("dag2 = " + dag2);
-
-      ParserUtils.updateDocument(model.document, ints, chars);
-    } else if (result.length >= 5) {
-      int[] graphInts = ((ArrayView) result[3]).ints();
-      char[] graphChars = ((ArrayView) result[4]).chars();
-      ParserUtils.updateDocument(model.document, ints, chars, graphInts, graphChars, false);
-      resolveAll(Arrays.copyOf(graphInts, graphInts.length), Arrays.copyOf(graphChars, graphChars.length));
-    } else {
-      ParserUtils.updateDocument(model.document, ints, chars);
-    }
-
-    changeModelLanguage(Languages.getLanguage(type));
-
-    window().setCursor(Cursor.arrow);
-    window().repaint();
-    Debug.consoleInfo("Full file parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
-    if (fullFileParseListener != null) {
-      fullFileParseListener.accept(this);
-    }
-  }
-
-  public void onResolved(Object[] result) {
-    int[] ints = ((ArrayView) result[0]).ints();
-    int version = ((ArrayView) result[1]).ints()[0];
-    if (model.document.needReparse() || model.document.currentVersion != version) return;
-    model.document.onResolve(ints, highlightResolveError);
-    computeUsages();
-    if (printResolveTime) {
-      long resolveTime = System.currentTimeMillis() - resolveTimeStart;
-      if (resolveTime >= EditorConst.BIG_RESOLVE_TIME_MS) {
-        System.out.println("Resolved in " + resolveTime + "ms");
-      }
-    }
-  }
-
   public void resolveAll() {
     ScopeGraphWriter writer = new ScopeGraphWriter(model.document.scopeGraph, null);
     writer.toInts();
@@ -925,85 +858,31 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   public void resolveAll(int[] graphInts, char[] graphChars) {
-    resolveTimeStart = System.currentTimeMillis();
+    model.resolveTimeStart = System.currentTimeMillis();
     var lastParsedVersion = model.document.currentVersion;
     window().sendToWorker(this::onResolved, ScopeProxy.RESOLVE_ALL, graphInts, graphChars, new int[]{lastParsedVersion});
   }
 
-  private void onFileStructureParsed(Object[] result) {
-    if (fullFileParsed) return;
-    fileStructureParsed = true;
-    int type = ((ArrayView) result[2]).ints()[0];
-    if (type != FileProxy.JAVA_FILE) {
-      onFileParsed(result);
-      return;
-    }
-
-    int[] ints = ((ArrayView) result[0]).ints();
-    char[] chars = ((ArrayView) result[1]).chars();
-
-    ParserUtils.updateDocument(model.document, ints, chars, firstLinesParsed);
-    changeModelLanguage(Languages.getLanguage(type));
-
-    window().setCursor(Cursor.arrow);
-    window().repaint();
-    Debug.consoleInfo("File structure parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
-  }
-
-  private void changeModelLanguage(String languageFromParser) {
-    String language = model.language();
-    if (!Objects.equals(language, languageFromParser)) {
-      Debug.consoleInfo("change model language: from = " + language + " to = " + languageFromParser);
-      model.setLanguage(languageFromParser);
-    }
-  }
-
-  private void onVpParsed(Object[] result) {
-//    Debug.consoleInfo("onVpParsed");
-    int[] ints = ((ArrayView) result[0]).ints();
-    char[] chars = ((ArrayView) result[1]).chars();
-
-    ParserUtils.updateDocumentInterval(model.document, ints, chars);
-
-    window().setCursor(Cursor.arrow);
-    window().repaint();
-    Debug.consoleInfo("Viewport parsed in " + (System.currentTimeMillis() - viewportParseStart) + "ms");
-  }
-
   private Window window() { return context.window; }
-
-  private void onFirstLinesParsed(Object[] result) {
-    if (fileStructureParsed || fullFileParsed) return;
-    int[] ints = ((ArrayView) result[0]).ints();
-    char[] chars = ((ArrayView) result[1]).chars();
-    ParserUtils.updateDocument(model.document, ints, chars);
-    firstLinesParsed = true;
-    Debug.consoleInfo("First lines parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
-  }
 
   void openFile(FileHandle f) {
     Debug.consoleInfo("opening file " + f.getName());
     window().setTitle(f.getName());
     setCaretLinePos(0, 0, false);
     // f.readAsBytes(this::onFileLoad, System.err::println);
-    parsingTimeStart = System.currentTimeMillis();
     onNewModel();
 
     model = new Model(
         new String[] {""},
         new Uri("", "", f.getName(), null)
     );
-    selection = model.selection;
+    model.parsingTimeStart = System.currentTimeMillis();
 
     setCaretLinePos(0, 0, false);
     sendFileToWorkers(f);
   }
 
   private void onNewModel() {
-    fullFileParsed = false;
-    fileStructureParsed = false;
-    firstLinesParsed = false;
-    diffModel = null;
     externalHighlights = null;
     lineNumbers.setColors(null);
     clearUsages();
@@ -1024,12 +903,12 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
         window().sendToWorker(this::onFileParsed, FileProxy.asyncParseFullFile, f);
       } else if (isJava) {
         // Structure parsing is for java only
-        window().sendToWorker(this::onFirstLinesParsed, FileProxy.asyncParseFirstLines,
+        window().sendToWorker(model::onFirstLinesParsed, FileProxy.asyncParseFirstLines,
             f, new int[]{EditorConst.FIRST_LINES});
         window().sendToWorker(this::onFileStructureParsed, FileProxy.asyncParseFile, f);
         window().sendToWorker(this::onFileParsed, FileProxy.asyncParseFullFile, f);
       } else {
-        window().sendToWorker(this::onFirstLinesParsed, FileProxy.asyncParseFirstLines,
+        window().sendToWorker(model::onFirstLinesParsed, FileProxy.asyncParseFirstLines,
             f, new int[]{EditorConst.FIRST_LINES});
         window().sendToWorker(this::onFileParsed, FileProxy.asyncParseFullFile, f);
       }
@@ -1044,7 +923,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     } else if (alt) {
       // todo: smart move to prev/next method start
     } else {
-      setCaretLine(caretLine + amount, shiftPressed);
+      setCaretLine(model.caretLine + amount, shiftPressed);
       adjustEditorVScrollToCaret();
     }
     return true;
@@ -1055,18 +934,18 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     var caretCodeLine = caretCodeLine();
     int newPos = ctrl
             ? shift < 0
-                ? caretCodeLine.prevPos(caretCharPos)
-                : caretCodeLine.nextPos(caretCharPos)
-            : caretCharPos + shift;
+                ? caretCodeLine.prevPos(model.caretCharPos)
+                : caretCodeLine.nextPos(model.caretCharPos)
+            : model.caretCharPos + shift;
 
     if (newPos > caretCodeLine.totalStrLength) { // goto next line
-      if (caretLine + 1 < model.document.length()) {
-        setCaretLinePos(caretLine + 1, 0, shiftPressed);
+      if (model.caretLine + 1 < model.document.length()) {
+        setCaretLinePos(model.caretLine + 1, 0, shiftPressed);
       }
     } else if (newPos < 0) {  // goto prev line
-      if (caretLine > 0) {
-        int pos = model.document.line(caretLine - 1).totalStrLength;
-        setCaretLinePos(caretLine - 1, pos, shiftPressed);
+      if (model.caretLine > 0) {
+        int pos = model.document.line(model.caretLine - 1).totalStrLength;
+        setCaretLinePos(model.caretLine - 1, pos, shiftPressed);
       }
     } else {
       setCaretPos(newPos, shiftPressed);
@@ -1076,41 +955,41 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private boolean shiftSelection(boolean shift) {
-    if (selection.isAreaSelected() && !shift) {
+    if (selection().isAreaSelected() && !shift) {
       setSelectionToCaret();
       adjustEditorScrollToCaret();
       return true;
     }
-    if (!shift || !selection.isAreaSelected()) setSelectionToCaret();
+    if (!shift || !selection().isAreaSelected()) setSelectionToCaret();
     return false;
   }
 
   private boolean setCaretLinePos(int line, int pos, boolean shift) {
-    caretCharPos = pos;
+    model.caretCharPos = pos;
     return setCaretLine(line, shift);
   }
 
   private boolean setCaretLine(int value, boolean shift) {
-    caretLine = Numbers.clamp(0, value, model.document.length() - 1);
-    return setCaretPos(caretCharPos, shift);
+    model.caretLine = Numbers.clamp(0, value, model.document.length() - 1);
+    return setCaretPos(model.caretCharPos, shift);
   }
 
   private boolean setCaretPos(int charPos, boolean shift) {
-    caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
-    caretPos = context.dpr == 0 ? 0
-        : caretCodeLine().computePixelLocation(caretCharPos, g.mCanvas, fonts);
+    model.caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
+    model.caretPos = context.dpr == 0 ? 0
+        : caretCodeLine().computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
     startBlinking();
     adjustEditorScrollToCaret();
-    if (shift) selection.isSelectionStarted = true;
-    selection.select(caretLine, caretCharPos);
-    selection.isSelectionStarted = false;
+    if (shift) selection().isSelectionStarted = true;
+    selection().select(model.caretLine, model.caretCharPos);
+    selection().isSelectionStarted = false;
     return true;
   }
 
   void setCaretPosWithSelection(int charPos) {
-    Selection prevSelection = new Selection(selection);
+    Selection prevSelection = new Selection(selection());
     setCaretPos(charPos, false);
-    selection.set(prevSelection);
+    selection().set(prevSelection);
   }
 
   private void adjustEditorScrollToCaret() {
@@ -1121,8 +1000,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   private void adjustEditorVScrollToCaret() {
     int editVisibleYMin = vScrollPos;
     int editVisibleYMax = vScrollPos + editorHeight();
-    int caretVisibleY0 = caretLine * lineHeight;
-    int caretVisibleY1 = caretLine * lineHeight + lineHeight;
+    int caretVisibleY0 = model.caretLine * lineHeight;
+    int caretVisibleY1 = model.caretLine * lineHeight + lineHeight;
 
     if (caretVisibleY0 < editVisibleYMin + lineHeight) {
       setVScrollPos(caretVisibleY0 - lineHeight);
@@ -1136,8 +1015,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
     int editVisibleXMin = hScrollPos;
     int editVisibleXMax = hScrollPos + editorWidth();
-    int caretVisibleX0 = caretPos;
-    int caretVisibleX1 = caretPos + xOffset;
+    int caretVisibleX0 = model.caretPos;
+    int caretVisibleX1 = model.caretPos + xOffset;
 
     if (caretVisibleX0 < editVisibleXMin + xOffset) {
       setHScrollPos(caretVisibleX0 - xOffset);
@@ -1146,40 +1025,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     }
   }
 
-  private void computeUsages() {
-    Pos caretPos = new Pos(caretLine, caretCharPos);
-    Pos elementPos = model.document.getElementStart(caretLine, caretCharPos);
-    computeUsages(caretPos, elementPos);
-
-    if ((definition == null || usages.isEmpty()) && caretCharPos > 0) {
-      Pos prevCaretPos = new Pos(caretLine, caretCharPos - 1);
-      Pos prevElementPos = model.document.getElementStart(caretLine, caretCharPos - 1);
-      computeUsages(prevCaretPos, prevElementPos);
-    }
-  }
-
-  private void computeUsages(Pos caretPos, Pos elementPos) {
-    clearUsages();
-
-    Document document = model.document;
-    Pos def = document.getDefinition(elementPos);
-
-    if (def == null) def = elementPos;
-
-    List<Pos> usageList = document.getUsagesList(def);
-    if (usageList != null) {
-      definition = document.getCodeElement(def);
-      for (var usage : usageList) {
-        usages.add(document.getCodeElement(usage));
-      }
-    }
-
-    useDocumentHighlightProvider(caretPos.line, caretPos.pos);
-  }
-
   private void applyHighlights() {
     clearUsages();
-    externalHighlights.buildUsages(model.document, usages);
+    externalHighlights.buildUsages(model.document, model.usages);
   }
 
   public void findUsages(V2i position, ReferenceProvider.Provider provider) {
@@ -1233,9 +1081,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   public final void gotoUsage(Pos defPos) {
     setCaretLinePos(defPos.line, defPos.pos, false);
-    int nextPos = caretCodeLine().nextPos(caretCharPos);
-    selection.endPos.set(caretLine, nextPos);
-    selection.startPos.set(caretLine, caretCharPos);
+    int nextPos = caretCodeLine().nextPos(model.caretCharPos);
+    selection().endPos.set(model.caretLine, nextPos);
+    selection().startPos.set(model.caretLine, model.caretCharPos);
   }
 
   void useDocumentHighlightProvider(int line, int column) {
@@ -1249,7 +1097,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   void setHighlights(Model saveModel, int line, int column, DocumentHighlight[] highlights) {
-    if (model != saveModel || caretLine != line || caretCharPos != column) return; // late reply
+    if (model != saveModel || model.caretLine != line || model.caretCharPos != column) return; // late reply
     externalHighlights = new ExternalHighlights(line, column, highlights);
     applyHighlights();
   }
@@ -1268,14 +1116,14 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   private void dragText(MouseEvent event) {
     Pos pos = computeCharPos(event.position);
     moveCaret(pos);
-    selection.select(caretLine, caretCharPos);
+    selection().select(model.caretLine, model.caretCharPos);
     adjustEditorScrollToCaret();
   }
 
   private void moveCaret(Pos pos) {
-    caretLine = pos.line;
-    caretCharPos = pos.pos;
-    caretPos = model.document.line(pos.line).computePixelLocation(caretCharPos, g.mCanvas, fonts);
+    model.caretLine = pos.line;
+    model.caretCharPos = pos.pos;
+    model.caretPos = model.document.line(pos.line).computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
     startBlinking();
   }
 
@@ -1322,8 +1170,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   private void updateSelectionViaRange(Range range) {
     setCaretLinePos(range.startLineNumber, range.startColumn, false);
-    selection.startPos.set(range.startLineNumber, range.startColumn);
-    selection.endPos.set(range.endLineNumber, range.endColumn);
+    selection().startPos.set(range.startLineNumber, range.startColumn);
+    selection().endPos.set(range.endLineNumber, range.endColumn);
   }
 
   void onClickText(MouseEvent event) {
@@ -1347,47 +1195,47 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   void onDoubleClickText(V2i eventPosition) {
     Pos pos = computeCharPos(eventPosition);
     CodeLine line = codeLine(pos.line);
-    int wordStart = line.getElementStart(caretCharPos);
-    int wordEnd = line.nextPos(caretCharPos);
+    int wordStart = line.getElementStart(model.caretCharPos);
+    int wordEnd = line.nextPos(model.caretCharPos);
     CodeElement elem = line.getCodeElement(wordStart);
 
     // Select line without tale if double-clicking the end of the line
     if (wordEnd - 1 == line.totalStrLength) {
-      selection.startPos.set(caretLine, line.getBlankStartLength());
-      selection.endPos.set(caretLine, line.totalStrLength);
+      selection().startPos.set(model.caretLine, line.getBlankStartLength());
+      selection().endPos.set(model.caretLine, line.totalStrLength);
       return;
     }
 
     // Select adjacent CodeElements if one ' ', or the whole line
     if (elem != null && elem.s.isBlank()) {
-      if (wordStart == caretCharPos) {
+      if (wordStart == model.caretCharPos) {
         wordStart = line.getElementStart(wordStart - 1);
         wordEnd = line.nextPos(wordStart);
-      } else if (wordEnd == caretCharPos) {
+      } else if (wordEnd == model.caretCharPos) {
         wordStart = line.getElementStart(wordEnd + 1);
         wordEnd = line.nextPos(wordStart);
       } else {
-        selection.selectLine(caretLine);
+        selection().selectLine(model.caretLine);
         return;
       }
     }
 
     // Select CodeElement that holds the caret inside
-    selection.startPos.set(caretLine, wordStart);
-    selection.isSelectionStarted = true;
-    setCaretLinePos(caretLine, wordEnd, false);
-    selection.isSelectionStarted = false;
+    selection().startPos.set(model.caretLine, wordStart);
+    selection().isSelectionStarted = true;
+    setCaretLinePos(model.caretLine, wordEnd, false);
+    selection().isSelectionStarted = false;
     saveToNavStack();
   }
 
   void onTripleClickText() {
-    selection.selectLine(caretLine);
-    navStack.pop();
+    selection().selectLine(model.caretLine);
+    model.navStack.pop();
     saveToNavStack();
   }
 
   CodeLine caretCodeLine() {
-    return model.document.line(caretLine);
+    return model.document.line(model.caretLine);
   }
 
   CodeLine codeLine(int n) {
@@ -1413,7 +1261,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   public boolean onMouseUp(MouseEvent event, int button) {
-    selection.isSelectionStarted = false;
+    selection().isSelectionStarted = false;
     return true;
   }
 
@@ -1432,12 +1280,12 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       moveCaret(pos);
       computeUsages();
 
-      if (!event.shift && !selection.isSelectionStarted) {
-        selection.startPos.set(caretLine, caretCharPos);
+      if (!event.shift && !selection().isSelectionStarted) {
+        selection().startPos.set(model.caretLine, model.caretCharPos);
       }
 
-      selection.isSelectionStarted = true;
-      selection.select(caretLine, caretCharPos);
+      selection().isSelectionStarted = true;
+      selection().select(model.caretLine, model.caretCharPos);
       return this::dragText;
     }
     return null;
@@ -1514,8 +1362,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       int lastLine = Math.min(model.document.length() - 1, getLastLine() + EditorConst.VIEWPORT_OFFSET);
       parsedVps.add(new V2i(firstLine, lastLine));
       int[] vpInts = new int[]{model.document.getLineStartInd(firstLine), model.document.getVpEnd(lastLine), firstLine};
-      viewportParseStart = System.currentTimeMillis();
-      window().sendToWorker(this::onVpParsed, JavaProxy.PARSE_VIEWPORT,
+      model.viewportParseStart = System.currentTimeMillis();
+      window().sendToWorker(model::onVpParsed, JavaProxy.PARSE_VIEWPORT,
           model.document.getChars(), vpInts, model.document.getIntervals() );
     }
   }
@@ -1523,7 +1371,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   public void parseFullFile() {
     String parseJob = parseJobName(model.language());
     if (parseJob != null) {
-      parsingTimeStart = System.currentTimeMillis();
+      model.parsingTimeStart = System.currentTimeMillis();
       if (parseJob.equals(ActivityProxy.PARSE_FULL_FILE))
         window().sendToWorker(this::onFileParsed, ACTIVITY_CHANNEL, parseJob, model.document.getChars());
       else
@@ -1593,24 +1441,24 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
   public boolean onCopy(Consumer<String> setText, boolean isCut) {
     if (isCut && readonly) return false;
-    var left = selection.getLeftPos();
+    var left = selection().getLeftPos();
     int line = left.line;
     String result;
 
-    if (!selection.isAreaSelected()) {
+    if (!selection().isAreaSelected()) {
       result = model.document.copyLine(line);
       int newLine = Math.min(model.document.length() - 1, line);
 
-      selection.endPos.set(newLine, 0);
+      selection().endPos.set(newLine, 0);
       if (line < model.document.length() - 1)
-        selection.startPos.set(newLine + 1, 0);
+        selection().startPos.set(newLine + 1, 0);
       else
-        selection.endPos.set(newLine, model.document.strLength(newLine));
+        selection().endPos.set(newLine, model.document.strLength(newLine));
 
       if (isCut) deleteSelectedArea();
       else setCaretLinePos(line, 0, false);
     } else {
-      result = model.document.copy(selection, isCut);
+      result = model.document.copy(selection(), isCut);
       if (isCut) {
         setCaretLinePos(left.line, left.charInd, false);
         setSelectionToCaret();
@@ -1667,37 +1515,37 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
           setCaretPos(caretCodeLine().totalStrLength, event.shift);
       default -> false;
     };
-    if (result && event.shift) selection.endPos.set(caretLine, caretCharPos);
+    if (result && event.shift) selection().endPos.set(model.caretLine, model.caretCharPos);
     if (result) computeUsages();
     return result;
   }
 
   void saveToNavStack() {
-    NavigationContext curr = navStack.getCurrentCtx();
-    if (curr != null && caretLine == curr.getLine() && caretCharPos == curr.getCharPos()) {
+    NavigationContext curr = model.navStack.getCurrentCtx();
+    if (curr != null && model.caretLine == curr.getLine() && model.caretCharPos == curr.getCharPos()) {
       return;
     }
-    navStack.add(new NavigationContext(
-        caretLine,
-        caretCharPos,
-        selection
+    model.navStack.add(new NavigationContext(
+        model.caretLine,
+        model.caretCharPos,
+        selection()
     ));
   }
 
   boolean navigateBack() {
     saveToNavStack();
-    NavigationContext prev = navStack.getPrevCtx();
+    NavigationContext prev = model.navStack.getPrevCtx();
     if (prev == null) return true;
     setCaretLinePos(prev.getLine(), prev.getCharPos(), false);
-    selection.set(prev.getSelection());
+    selection().set(prev.getSelection());
     return true;
   }
 
   boolean navigateForward() {
-    NavigationContext curr = navStack.getNextCtx();
+    NavigationContext curr = model.navStack.getNextCtx();
     if (curr == null) return true;
     setCaretLinePos(curr.getLine(), curr.getCharPos(), false);
-    selection.set(curr.getSelection());
+    selection().set(curr.getSelection());
     return true;
   }
 
@@ -1731,32 +1579,32 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (event.ctrl || event.alt) return false;
     if (event.key.equals("{")) {
       handleInsert("{}");
-      setCaretPos(caretCharPos - 1, false);
+      setCaretPos(model.caretCharPos - 1, false);
       return true;
     }
     if (event.key.equals("(")) {
       handleInsert("()");
-      setCaretPos(caretCharPos - 1, false);
+      setCaretPos(model.caretCharPos - 1, false);
       return true;
     }
     if (event.key.equals("[")) {
       handleInsert("[]");
-      setCaretPos(caretCharPos - 1, false);
+      setCaretPos(model.caretCharPos - 1, false);
       return true;
     }
     if (event.key.equals("<")) {
       handleInsert("<>");
-      setCaretPos(caretCharPos - 1, false);
+      setCaretPos(model.caretCharPos - 1, false);
       return true;
     }
     if (event.key.equals("\"")) {
       handleInsert("\"\"");
-      setCaretPos(caretCharPos - 1, false);
+      setCaretPos(model.caretCharPos - 1, false);
       return true;
     }
     if (event.key.equals("'")) {
       handleInsert("''");
-      setCaretPos(caretCharPos - 1, false);
+      setCaretPos(model.caretCharPos - 1, false);
       return true;
     }
     return false;
@@ -1765,8 +1613,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   public boolean selectAll() {
     int line = model.document.length() - 1;
     int charInd = model.document.strLength(line);
-    selection.startPos.set(0, 0);
-    selection.endPos.set(model.document.length() - 1, charInd);
+    selection().startPos.set(0, 0);
+    selection().endPos.set(model.document.length() - 1, charInd);
     return true;
   }
 
@@ -1778,8 +1626,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     setCaretLinePos(lineNumber, column, false);
   }
 
-  public int caretLine() { return caretLine; }
-  public int caretCharPos() { return caretCharPos; }
+  public int caretLine() { return model.caretLine; }
+  public int caretCharPos() { return model.caretCharPos; }
 
   public void setSelection(
       int endColumn,
@@ -1787,8 +1635,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       int startColumn,
       int startLineNumber
   ) {
-    selection.getLeftPos().set(startLineNumber,startColumn);
-    selection.getRightPos().set(endLineNumber, endColumn);
+    selection().getLeftPos().set(startLineNumber,startColumn);
+    selection().getRightPos().set(endLineNumber, endColumn);
   }
 
   public EditorRegistrations registrations() { return registrations; }
@@ -1798,8 +1646,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
 
     Model oldModel = this.model;
     this.model = model;
-    this.selection = model.selection;
-    parsingTimeStart = System.currentTimeMillis();
+    this.model.parsingTimeStart = System.currentTimeMillis();
     String jobName = parseJobName(this.model.language());
     if (jobName != null) {
       window().sendToWorker(this::onFileParsed, jobName, getChars());
@@ -1808,18 +1655,17 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   private void clearUsages() {
-    definition = null;
-    usages.clear();
+    model.clearUsages();
   }
 
   public Model model() { return model; }
 
   public String getProperty(String key) {
-    return properties.get(key);
+    return model.properties.get(key);
   }
 
   private void onContentChange() {
-    parsingTimeStart = System.currentTimeMillis();
+    this.model.parsingTimeStart = System.currentTimeMillis();
     String jobName = parseJobName(model.language());
     if (jobName != null) {
       window().sendToWorker(this::onFileParsed, jobName, getChars());
@@ -1884,12 +1730,15 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   public void setDiffModel(LineDiff[] lineDiffs) {
-    diffModel = lineDiffs;
-    System.out.println("setDiffModel");
-    if (diffModel != null) {
-      byte[] c = new byte[diffModel.length];
+    model.diffModel = lineDiffs;
+    updateLineNumbersColors();
+  }
+
+  public void updateLineNumbersColors() {
+    if (model.diffModel != null) {
+      byte[] c = new byte[model.diffModel.length];
       for (int i = 0; i < c.length; i++) {
-        LineDiff ld = diffModel[i];
+        LineDiff ld = model.diffModel[i];
         c[i] = ld != null ? (byte) ld.type : 0;
       }
       lineNumbers.setColors(c);
@@ -1903,4 +1752,35 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     highlightResolveError = highlight;
   }
 
+  public LineDiff[] diffModel() {
+    return model.diffModel;
+  }
+
+  public Selection selection() {
+    return model.selection;
+  }
+
+  private void computeUsages() {
+    model.computeUsages(this::useDocumentHighlightProvider);
+  }
+
+  void onFileParsed(Object[] result) {
+    model.onFileParsed(result, (ints, chars) -> {
+      model.resolveTimeStart = System.currentTimeMillis();
+      var lastParsedVersion = model.document.currentVersion;
+      window().sendToWorker(this::onResolved,  ScopeProxy.RESOLVE_ALL, ints, chars, new int[]{lastParsedVersion});
+    });
+  }
+
+  void onFileStructureParsed(Object[] result) {
+    model.onFileStructureParsed(result, (ints, chars) -> {
+      model.resolveTimeStart = System.currentTimeMillis();
+      var lastParsedVersion = model.document.currentVersion;
+      window().sendToWorker(this::onResolved, ScopeProxy.RESOLVE_ALL, ints, chars, new int[]{lastParsedVersion});
+    });
+  }
+
+  void onResolved(Object[] result) {
+    model.onResolved(result, this::useDocumentHighlightProvider);
+  }
 }
