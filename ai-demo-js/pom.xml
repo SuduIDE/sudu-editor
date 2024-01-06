@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>demo-edit-js</artifactId>
+  <artifactId>ai-demo-js</artifactId>
   <version>1.0-SNAPSHOT</version>
 
   <parent>
@@ -15,13 +15,13 @@
   </parent>
 
   <properties>
-    <mainClass>org.sudu.experiments.WebApp</mainClass>
+    <mainClass>org.sudu.experiments.AiDemoWebApp</mainClass>
     <workerClass>org.sudu.experiments.WebWorker</workerClass>
     <workerFile>worker.js</workerFile>
 
     <!-- compiler settings -->
     <teavm.sourceMaps>false</teavm.sourceMaps>
-    <teavm.debugInfo>false</teavm.debugInfo>
+    <teavm.debugInfo>true</teavm.debugInfo>
     <teavm.minifying>false</teavm.minifying>
     <teavm.optimizationLevel>SIMPLE</teavm.optimizationLevel>
 
@@ -37,13 +37,6 @@
         <teavm.optimizationLevel>ADVANCED</teavm.optimizationLevel>
       </properties>
     </profile>
-
-    <profile>
-      <id>module</id>
-      <properties>
-        <teavm.module>true</teavm.module>
-      </properties>
-    </profile>
   </profiles>
 
   <packaging>war</packaging>
@@ -52,12 +45,6 @@
     <dependency>
       <groupId>org.sudu</groupId>
       <artifactId>graphics-js</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.sudu</groupId>
-      <artifactId>wasm-test</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
 
@@ -74,7 +61,6 @@
       <scope>provided</scope>
     </dependency>
 
-    <!--suppress VulnerableLibrariesLocal -->
     <dependency>
       <groupId>org.teavm</groupId>
       <artifactId>teavm-classlib</artifactId>
@@ -88,24 +74,6 @@
       <version>${jupiter.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.sudu</groupId>
-      <artifactId>demo-test-scenes</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.sudu</groupId>
-      <artifactId>fonts</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.sudu</groupId>
-      <artifactId>codicon</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-
   </dependencies>
 
   <build>
@@ -150,7 +118,6 @@
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -170,11 +137,30 @@
         <configuration>
           <webResources>
             <resource><directory>${project.build.directory}/generated/js</directory></resource>
-            <resource><directory>${project.basedir}/../wasm-test/target/wasm</directory></resource>
-            <resource><directory>${project.basedir}/../fonts/src/main/resources</directory></resource>
+<!--            <resource><directory>${project.basedir}/../wasm-test/target/wasm</directory></resource>-->
             <resource>
-              <directory>${project.basedir}/../codicon/src/main/resources</directory>
-              <includes><include>**/*.ttf</include></includes>
+              <directory>
+                ${project.basedir}/../graphics-jvm/src/main/java/org/sudu/experiments/win32/d2d
+              </directory>
+              <includes>
+                <include>*.cpp</include>
+              </includes>
+            </resource>
+            <resource>
+              <directory>
+                ${project.basedir}/../graphics-jvm/src/main/java/org/sudu/experiments/win32
+              </directory>
+              <includes>
+                <include>*.cpp</include>
+              </includes>
+            </resource>
+            <resource>
+              <directory>
+                ${project.basedir}/../graphics-jvm/src/main/java/org/sudu/experiments/angle
+              </directory>
+              <includes>
+                <include>*.cpp</include>
+              </includes>
             </resource>
           </webResources>
           <packagingExcludes>WEB-INF/classes/,WEB-INF/lib/</packagingExcludes>
@@ -194,8 +180,8 @@
             <goals><goal>run</goal></goals>
             <configuration>
               <target>
-                <delete dir="target/demo-edit-js-1.0-SNAPSHOT/WEB-INF/classes" />
-                <delete dir="target/demo-edit-js-1.0-SNAPSHOT/WEB-INF/lib" />
+                <delete dir="target/console-js-1.0-SNAPSHOT/WEB-INF/classes" />
+                <delete dir="target/console-js-1.0-SNAPSHOT/WEB-INF/lib" />
               </target>
             </configuration>
           </execution>
@@ -203,5 +189,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>

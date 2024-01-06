@@ -12,5 +12,6 @@ public class Fetch {
   public interface Response extends JSObject {
     Promise<ArrayBuffer> arrayBuffer();
     Promise<JSString> text();
+    Promise<JSObject> json();
   }
 }

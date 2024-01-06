@@ -22,6 +22,10 @@ public abstract class HTMLDocument implements JSObject, Document, EventTarget {
   @Override
   public abstract HTMLElement getElementById(String elementId);
 
+  public static HTMLElement elementById(String elementId) {
+    return current().getElementById(elementId);
+  }
+
   @JSProperty
   public abstract HTMLBodyElement getBody();
 
