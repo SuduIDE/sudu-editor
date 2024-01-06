@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 public abstract class ParserUtils {
 
@@ -161,12 +162,13 @@ public abstract class ParserUtils {
     }
   }
 
+  static final Function<Pos, List<Pos>> mapFunc = key -> new ArrayList<>();
+
   public static void getDefToUsagesMap(Map<Pos, Pos> usageToDef, Map<Pos, List<Pos>> defMap) {
     for (var entry : usageToDef.entrySet()) {
       var usage = entry.getKey();
       var definition = entry.getValue();
-      defMap.putIfAbsent(definition, new ArrayList<>());
-      defMap.get(definition).add(usage);
+      defMap.computeIfAbsent(definition, mapFunc).add(usage);
     }
     for (var usages : defMap.values()) Collections.sort(usages);
   }
