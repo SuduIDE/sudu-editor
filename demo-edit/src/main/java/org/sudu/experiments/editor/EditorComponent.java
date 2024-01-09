@@ -7,7 +7,6 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.EditorUi.FontApi;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
-import org.sudu.experiments.editor.worker.parser.LineParser;
 import org.sudu.experiments.editor.worker.parser.ParserUtils;
 import org.sudu.experiments.editor.worker.proxy.*;
 import org.sudu.experiments.fonts.FontDesk;
@@ -24,13 +23,14 @@ import org.sudu.experiments.ui.ScrollBar;
 import org.sudu.experiments.ui.SetCursor;
 import org.sudu.experiments.ui.UiContext;
 import org.sudu.experiments.worker.ArrayView;
+import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
-public class EditorComponent implements Focusable, MouseListener, FontApi {
+public class EditorComponent implements Focusable, MouseListener, FontApi, Model.EditorToModel {
   static final int weightRegular = FontDesk.WEIGHT_LIGHT;
   static final int weightBold    = FontDesk.WEIGHT_SEMI_BOLD;
 
@@ -100,11 +100,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   IntConsumer hScrollListener, vScrollListener;
   Consumer<EditorComponent> fullFileParseListener;
 
-  private boolean highlightResolveError = true;
   private final List<V2i> parsedVps = new ArrayList<>();
-
-
-  public static final int ACTIVITY_CHANNEL = 0;
 
   final CodeLineRenderer.Context lrContext;
 
@@ -854,13 +850,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   public void resolveAll() {
     ScopeGraphWriter writer = new ScopeGraphWriter(model.document.scopeGraph, null);
     writer.toInts();
-    resolveAll(writer.graphInts, writer.graphChars);
-  }
-
-  public void resolveAll(int[] graphInts, char[] graphChars) {
-    model.resolveTimeStart = System.currentTimeMillis();
-    var lastParsedVersion = model.document.currentVersion;
-    window().sendToWorker(this::onResolved, ScopeProxy.RESOLVE_ALL, graphInts, graphChars, new int[]{lastParsedVersion});
+    model.requestResolve(writer.graphInts, writer.graphChars);
   }
 
   private Window window() { return context.window; }
@@ -885,20 +875,22 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   private void onNewModel() {
     externalHighlights = null;
     lineNumbers.setColors(null);
-    clearUsages();
+    // todo: remove later
+    model.clearUsages();
   }
 
   private void sendFileToWorkers(FileHandle f) {
     String lang = Languages.languageFromFilename(f.getName());
     boolean isJava = Objects.equals(lang, Languages.JAVA);
-    boolean isActivity = Objects.equals(lang, Languages.ACTIVITY);
     int bigFileSize = isJava
         ? EditorConst.FILE_SIZE_10_KB
         : EditorConst.FILE_SIZE_5_KB;
 
     f.getSize(size -> {
+      boolean isActivity = Objects.equals(lang, Languages.ACTIVITY);
       if (isActivity) {
-        window().sendToWorker(this::onFileParsed, ACTIVITY_CHANNEL, FileProxy.asyncParseFullFile, f);
+        window().sendToWorker(this::onFileParsed,
+            WorkerJobExecutor.ACTIVITY_CHANNEL, FileProxy.asyncParseFullFile, f);
       } else if (size <= bigFileSize) {
         window().sendToWorker(this::onFileParsed, FileProxy.asyncParseFullFile, f);
       } else if (isJava) {
@@ -1086,7 +1078,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     selection().startPos.set(model.caretLine, model.caretCharPos);
   }
 
-  void useDocumentHighlightProvider(int line, int column) {
+  public void useDocumentHighlightProvider(int line, int column) {
     var p = registrations.findDocumentHighlightProvider(model.language(), model.uriScheme());
     if (p != null) {
       Model saveModel = model;
@@ -1278,7 +1270,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       Pos pos = computeCharPos(eventPosition);
 
       moveCaret(pos);
-      computeUsages();
+      model.computeUsages();
 
       if (!event.shift && !selection().isSelectionStarted) {
         selection().startPos.set(model.caretLine, model.caretCharPos);
@@ -1327,7 +1319,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
 
     if (event.ctrl && event.keyCode == KeyCode.P) {
-      parseFullFile();
+      model.parseFullFile();
       return true;
     }
 
@@ -1369,18 +1361,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   public void parseFullFile() {
-    String parseJob = parseJobName(model.language());
-    if (parseJob != null) {
-      model.parsingTimeStart = System.currentTimeMillis();
-      if (parseJob.equals(ActivityProxy.PARSE_FULL_FILE))
-        window().sendToWorker(this::onFileParsed, ACTIVITY_CHANNEL, parseJob, model.document.getChars());
-      else
-        window().sendToWorker(this::onFileParsed, parseJob, model.document.getChars());
-    } else {
-      if (fullFileParseListener != null) {
-        fullFileParseListener.accept(this);
-      }
-    }
+    model.parseFullFile();
   }
 
   public void onFileIterativeParsed(Object[] result) {
@@ -1403,11 +1384,13 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   public void iterativeParsing() {
+    Debug.consoleInfo("EditorComponent::iterativeParsing");
+
     String language = model.language();
     if (language == null || Languages.TEXT.equals(language)) {
       model.document.onReparse();
     } else if (Languages.ACTIVITY.equals(language)) {
-      parseFullFile();
+      model.parseFullFile();
       model.document.onReparse();
     } else {
       var reparseNode = model.document.tree.getReparseNode();
@@ -1516,7 +1499,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
       default -> false;
     };
     if (result && event.shift) selection().endPos.set(model.caretLine, model.caretCharPos);
-    if (result) computeUsages();
+    if (result) model.computeUsages();
     return result;
   }
 
@@ -1642,15 +1625,13 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   public EditorRegistrations registrations() { return registrations; }
 
   public void setModel(Model model) {
+    // todo: remove model.clearUsages() from  onNewModel
     onNewModel();
 
     Model oldModel = this.model;
     this.model = model;
-    this.model.parsingTimeStart = System.currentTimeMillis();
-    String jobName = parseJobName(this.model.language());
-    if (jobName != null) {
-      window().sendToWorker(this::onFileParsed, jobName, getChars());
-    }
+    oldModel.setEditor(null, null);
+    model.setEditor(this, window());
     registrations.fireModelChange(oldModel, model);
   }
 
@@ -1664,16 +1645,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     return model.properties.get(key);
   }
 
-  private void onContentChange() {
-    this.model.parsingTimeStart = System.currentTimeMillis();
-    String jobName = parseJobName(model.language());
-    if (jobName != null) {
-      window().sendToWorker(this::onFileParsed, jobName, getChars());
-    }
-  }
-
   public void setLanguage(String language) {
     model.setLanguage(language);
+    model.parseFullFile();
   }
 
   public void revealLineInCenter(int lineNumber) {
@@ -1703,16 +1677,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     setVScrollPos((lineNumber - 2) * lineHeight);
   }
 
-  static String parseJobName(String language) {
-    return language != null ? switch (language) {
-      case Languages.JAVA -> JavaProxy.PARSE_FULL_FILE_SCOPES;
-      case Languages.CPP -> CppProxy.PARSE_FULL_FILE_SCOPES;
-      case Languages.JS -> JavaScriptProxy.PARSE_FULL_FILE;
-      case Languages.ACTIVITY -> ActivityProxy.PARSE_FULL_FILE;
-      case Languages.TEXT -> LineParser.PARSE;
-      default -> null;
-    } : null;
-  }
 
   public char[] getChars() {
     return model.document.getChars();
@@ -1749,7 +1713,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
   }
 
   public void highlightResolveError(boolean highlight) {
-    highlightResolveError = highlight;
+    model.highlightResolveError = highlight;
   }
 
   public LineDiff[] diffModel() {
@@ -1760,27 +1724,17 @@ public class EditorComponent implements Focusable, MouseListener, FontApi {
     return model.selection;
   }
 
-  private void computeUsages() {
-    model.computeUsages(this::useDocumentHighlightProvider);
-  }
-
   void onFileParsed(Object[] result) {
-    model.onFileParsed(result, (ints, chars) -> {
-      model.resolveTimeStart = System.currentTimeMillis();
-      var lastParsedVersion = model.document.currentVersion;
-      window().sendToWorker(this::onResolved,  ScopeProxy.RESOLVE_ALL, ints, chars, new int[]{lastParsedVersion});
-    });
+    model.onFileParsed(result);
   }
 
   void onFileStructureParsed(Object[] result) {
-    model.onFileStructureParsed(result, (ints, chars) -> {
-      model.resolveTimeStart = System.currentTimeMillis();
-      var lastParsedVersion = model.document.currentVersion;
-      window().sendToWorker(this::onResolved, ScopeProxy.RESOLVE_ALL, ints, chars, new int[]{lastParsedVersion});
-    });
+    model.onFileStructureParsed(result);
   }
 
-  void onResolved(Object[] result) {
-    model.onResolved(result, this::useDocumentHighlightProvider);
+  public void fireFullFileParsed() {
+    if (fullFileParseListener != null) {
+      fullFileParseListener.accept(this);
+    }
   }
 }

@@ -296,10 +296,7 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
     private Supplier<ToolbarItem[]> languageItems() {
       ToolbarItemBuilder tbb = new ToolbarItemBuilder();
       for (var lang: Languages.getAllLanguages()) {
-        tbb.addItem(lang, () -> {
-          editor.setLanguage(lang);
-          editor.parseFullFile();
-        });
+        tbb.addItem(lang, () -> editor.setLanguage(lang));
       }
       return tbb.supplier();
     }

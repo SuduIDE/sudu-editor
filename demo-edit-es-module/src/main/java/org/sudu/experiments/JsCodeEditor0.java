@@ -7,6 +7,7 @@ import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.utils.LanguageSelectorUtils;
 import org.sudu.experiments.utils.PromiseUtils;
 import org.sudu.experiments.utils.ProviderUtils;
+import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSObjects;
@@ -248,7 +249,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
       Consumer<Object[]> consumer = (result) -> {
         postResult.f(javaToJs(toStringArray(result)));
       };
-      window.sendToWorker(consumer, EditorComponent.ACTIVITY_CHANNEL,
+      window.sendToWorker(consumer, WorkerJobExecutor.ACTIVITY_CHANNEL,
           method0, (Object[]) args0);
     });
   }

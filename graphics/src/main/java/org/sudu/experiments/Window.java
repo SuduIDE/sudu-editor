@@ -1,9 +1,11 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.worker.WorkerJobExecutor;
+
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public interface Window {
+public interface Window extends WorkerJobExecutor {
   void setTitle(String title);
   void setCursor(String cursor);
 //  V2i getClientRect();
