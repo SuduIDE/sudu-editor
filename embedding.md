@@ -16,7 +16,7 @@ If you ready to add editor source files to you website then embedding is very ea
 
 Assume you have the following directory structure:
 
- - index.html - has a div with id "editorDiv" to place editor there
+ - index.html - has a div with id `"editorDiv"` to place editor there
  - main.js
  - src\
    - editor.js
@@ -55,8 +55,9 @@ To load from CDN please see loadFromCDN.js example.
 
 If you want to build the EDM editor module you can use 
 
-```mvn package package -am -pl demo-edit-es-module -P release```
+`mvn package package -am -pl demo-edit-es-module -P release`
 
-For detailed build instructions please see README.md.
+For detailed build instructions please see [README.md](README.md).
+You may also find the full api description here: [demo-edit-es-module/module/editor.d.ts](demo-edit-es-module/module/editor.d.ts)
 
 
