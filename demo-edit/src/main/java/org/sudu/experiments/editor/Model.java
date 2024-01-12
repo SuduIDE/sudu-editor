@@ -282,11 +282,7 @@ public class Model {
         : EditorConst.FILE_SIZE_5_KB;
     int langType = Languages.getType(lang);
     if (isActivity) {
-      executor.sendToWorker(
-          this::onFileParsed, WorkerJobExecutor.ACTIVITY_CHANNEL,
-          FileProxy.asyncParseFullFile, chars,
-          new int[]{langType});
-      fullFileParsed = ParseStatus.SENT;
+      sendActivity(chars, langType);
     } else if (size <= bigFileSize) {
       sendFull(chars, langType);
     } else if (isJava) {
@@ -298,6 +294,14 @@ public class Model {
       sendFirstLines(copyOf(chars), langType);
       sendFull(chars, langType);
     }
+  }
+
+  private void sendActivity(char[] chars, int langType) {
+    executor.sendToWorker(
+        this::onFileParsed, WorkerJobExecutor.ACTIVITY_CHANNEL,
+        FileProxy.asyncParseFullFile, chars,
+        new int[]{langType});
+    fullFileParsed = ParseStatus.SENT;
   }
 
   private void sendFirstLines(char[] chars, int langType) {
