@@ -1,6 +1,6 @@
 package org.sudu.experiments.esm;
 
-import org.sudu.experiments.editor.Document;
+import org.sudu.experiments.SplitInfo;
 import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.SplitJsText;
@@ -14,7 +14,7 @@ public class JsTextModel implements JsITextModel {
   public final JSString jsLanguage;
 
   public JsTextModel(JSString text, JSString language, JsUri uri) {
-    String[] split = SplitJsText.split(text, Document.newLine);
+    SplitInfo split = SplitJsText.split(text);
     String lang = JsHelper.toString(language, null);
     javaModel = new Model(split, lang, uri.toJava());
     javaModel.platformObject = this;

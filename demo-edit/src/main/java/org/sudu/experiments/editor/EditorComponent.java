@@ -7,8 +7,6 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.EditorUi.FontApi;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
-import org.sudu.experiments.editor.worker.parser.ParserUtils;
-import org.sudu.experiments.editor.worker.proxy.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -16,14 +14,10 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.*;
 import org.sudu.experiments.parser.common.Pos;
-import org.sudu.experiments.parser.common.graph.ScopeGraph;
-import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ScrollBar;
 import org.sudu.experiments.ui.SetCursor;
 import org.sudu.experiments.ui.UiContext;
-import org.sudu.experiments.worker.ArrayView;
-import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -74,8 +68,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
 
   ScrollBar vScroll = new ScrollBar();
   ScrollBar hScroll = new ScrollBar();
-  int vScrollPos = 0;
-  int hScrollPos = 0;
 
   int fullWidth = 0;
 
@@ -99,8 +91,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   Consumer<String> onError = System.err::println;
   IntConsumer hScrollListener, vScrollListener;
   Consumer<EditorComponent> fullFileParseListener;
-
-  private final List<V2i> parsedVps = new ArrayList<>();
+  int vScrollPos = 0;
 
   final CodeLineRenderer.Context lrContext;
 
@@ -402,10 +393,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
       iterativeParsing();
     }
 
-    if (!model.fullFileParsed && model.fileStructureParsed) {
-      boolean vpParsed = parsedVps.stream().anyMatch(it -> it.x <= getFirstLine() && getLastLine() <= it.y);
-      if (!vpParsed) parseViewport();
-    }
+    parseViewport();
 
     int newVScrollPos = clampScrollPos(vScrollPos + scrollDown  -  scrollUp,
         maxVScrollPos());
@@ -423,24 +411,26 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     int newVPos = clampScrollPos(vPos, maxVScrollPos());
     if (newVPos != vScrollPos) {
       vScrollPos = newVPos;
+      model.vScrollLine = (double) vScrollPos / lineHeight;
       if (vScrollListener != null) vScrollListener.accept(newVPos);
     }
   }
 
   void setVScrollPosSilent(int vPos) {
     vScrollPos = clampScrollPos(vPos, maxVScrollPos());
+    model.vScrollLine = (double) vScrollPos / lineHeight;
   }
 
   void setHScrollPos(int hPos) {
     int newHPos = clampScrollPos(hPos, maxHScrollPos());
-    if (newHPos != hScrollPos) {
-      hScrollPos = newHPos;
+    if (newHPos != model.hScrollPos) {
+      model.hScrollPos = newHPos;
       if (hScrollListener != null) hScrollListener.accept(newHPos);
     }
   }
 
   void setHScrollPosSilent(int hPos) {
-    hScrollPos = clampScrollPos(hPos, maxHScrollPos());
+    model.hScrollPos = clampScrollPos(hPos, maxHScrollPos());
   }
 
   public void paint() {
@@ -456,7 +446,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     g.enableScissor(pos, size);
 
     int caretVerticalOffset = (lineHeight - caret.height()) / 2;
-    int caretX = model.caretPos - caret.width() / 2 - hScrollPos;
+    int caretX = model.caretPos - caret.width() / 2 - model.hScrollPos;
     int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth() : vLineX;
     caret.setPosition(
         dCaret + caretX,
@@ -477,7 +467,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
       CodeLine nextLine = model.document.line(i);
       CodeLineRenderer line = lineRenderer(i);
       line.updateTexture(nextLine, renderingCanvas, g,
-          lineHeight, editorWidth(), hScrollPos);
+          lineHeight, editorWidth(), model.hScrollPos);
       CodeLine lineContent = line.line;
 
       fullWidth = Math.max(fullWidth,
@@ -487,7 +477,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
       LineDiff diff = diffModel() == null ? null : diffModel()[i];
       line.draw(
           pos.y + yPosition, dx, g,
-          editorWidth(), lineHeight, hScrollPos,
+          editorWidth(), lineHeight, model.hScrollPos,
           colors, getSelLineSegment(i, lineContent),
           model.definition, model.usages,
           model.caretLine == i, diffModel() != null,
@@ -509,7 +499,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
       else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
 
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
-          sizeTmp, hScrollPos, editorWidth(), tailColor);
+          sizeTmp, model.hScrollPos, editorWidth(), tailColor);
     }
 
     // draw bottom 5 invisible lines
@@ -813,7 +803,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
         editorHeight(), editorVirtualHeight(),
         x, scrollBarWidth());
     x = mirrored ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth() : pos.x + vLineX;
-    hScroll.layoutHorizontal(hScrollPos,
+    hScroll.layoutHorizontal(model.hScrollPos,
         x,
         editorWidth(), fullWidth,
         pos.y + editorHeight(), scrollBarWidth());
@@ -848,9 +838,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   }
 
   public void resolveAll() {
-    ScopeGraphWriter writer = new ScopeGraphWriter(model.document.scopeGraph, null);
-    writer.toInts();
-    model.requestResolve(writer.graphInts, writer.graphChars);
+    model.resolveAll();
   }
 
   private Window window() { return context.window; }
@@ -859,17 +847,14 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     Debug.consoleInfo("opening file " + f.getName());
     window().setTitle(f.getName());
     setCaretLinePos(0, 0, false);
-    // f.readAsBytes(this::onFileLoad, System.err::println);
-    onNewModel();
 
-    model = new Model(
-        new String[] {""},
-        new Uri("", "", f.getName(), null)
+    f.readAsText(
+        source -> {
+          Model newModel = new Model(source, new Uri(f.getName()));
+          setModel(newModel);
+        },
+        System.err::println
     );
-    model.parsingTimeStart = System.currentTimeMillis();
-
-    setCaretLinePos(0, 0, false);
-    sendFileToWorkers(f);
   }
 
   private void onNewModel() {
@@ -877,34 +862,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     lineNumbers.setColors(null);
     // todo: remove later
     model.clearUsages();
-  }
-
-  private void sendFileToWorkers(FileHandle f) {
-    String lang = Languages.languageFromFilename(f.getName());
-    boolean isJava = Objects.equals(lang, Languages.JAVA);
-    int bigFileSize = isJava
-        ? EditorConst.FILE_SIZE_10_KB
-        : EditorConst.FILE_SIZE_5_KB;
-
-    f.getSize(size -> {
-      boolean isActivity = Objects.equals(lang, Languages.ACTIVITY);
-      if (isActivity) {
-        window().sendToWorker(this::onFileParsed,
-            WorkerJobExecutor.ACTIVITY_CHANNEL, FileProxy.asyncParseFullFile, f);
-      } else if (size <= bigFileSize) {
-        window().sendToWorker(this::onFileParsed, FileProxy.asyncParseFullFile, f);
-      } else if (isJava) {
-        // Structure parsing is for java only
-        window().sendToWorker(model::onFirstLinesParsed, FileProxy.asyncParseFirstLines,
-            f, new int[]{EditorConst.FIRST_LINES});
-        window().sendToWorker(this::onFileStructureParsed, FileProxy.asyncParseFile, f);
-        window().sendToWorker(this::onFileParsed, FileProxy.asyncParseFullFile, f);
-      } else {
-        window().sendToWorker(model::onFirstLinesParsed, FileProxy.asyncParseFirstLines,
-            f, new int[]{EditorConst.FIRST_LINES});
-        window().sendToWorker(this::onFileParsed, FileProxy.asyncParseFullFile, f);
-      }
-    });
   }
 
   boolean arrowUpDown(int amount, boolean ctrl, boolean alt, boolean shiftPressed) {
@@ -1005,8 +962,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   private void adjustEditorHScrollToCaret() {
     int xOffset = Numbers.iRnd(context.dpr * EditorConst.CARET_X_OFFSET);
 
-    int editVisibleXMin = hScrollPos;
-    int editVisibleXMax = hScrollPos + editorWidth();
+    int editVisibleXMin = model.hScrollPos;
+    int editVisibleXMax = model.hScrollPos + editorWidth();
     int caretVisibleX0 = model.caretPos;
     int caretVisibleX1 = model.caretPos + xOffset;
 
@@ -1100,7 +1057,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
 
     int line = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, model.document.length() - 1);
     int offset = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth() : vLineX;
-    int documentXPosition = Math.max(0, localX - offset + hScrollPos);
+    int documentXPosition = Math.max(0, localX - offset + model.hScrollPos);
     int charPos = model.document.line(line).computeCharPos(documentXPosition, g.mCanvas, fonts);
     return new Pos(line, charPos);
   }
@@ -1248,7 +1205,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     int changeY = Numbers.iRnd(lineHeight * 4 * dY / 150);
     int changeX = Numbers.iRnd(dX);
     if (changeY != 0) setVScrollPos(vScrollPos + changeY);
-    if (changeX != 0) setHScrollPos(hScrollPos + changeX);
+    if (changeX != 0) setHScrollPos(model.hScrollPos + changeX);
     return true;
   }
 
@@ -1348,78 +1305,16 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     model.document.printIntervals();
   }
 
-  public void parseViewport() {
-    if (Languages.JAVA.equals(model.language())) {
-      int firstLine = Math.max(0, getFirstLine() - EditorConst.VIEWPORT_OFFSET);
-      int lastLine = Math.min(model.document.length() - 1, getLastLine() + EditorConst.VIEWPORT_OFFSET);
-      parsedVps.add(new V2i(firstLine, lastLine));
-      int[] vpInts = new int[]{model.document.getLineStartInd(firstLine), model.document.getVpEnd(lastLine), firstLine};
-      model.viewportParseStart = System.currentTimeMillis();
-      window().sendToWorker(model::onVpParsed, JavaProxy.PARSE_VIEWPORT,
-          model.document.getChars(), vpInts, model.document.getIntervals() );
-    }
+  void parseViewport() {
+    model.parseViewport(getFirstLine(), getLastLine());
   }
 
   public void parseFullFile() {
     model.parseFullFile();
   }
 
-  public void onFileIterativeParsed(Object[] result) {
-    int[] ints = ((ArrayView) result[0]).ints();
-    char[] chars = ((ArrayView) result[1]).chars();
-    int version = ((ArrayView) result[2]).ints()[0];
-    if (model.document.currentVersion != version) return;
-    int[] graphInts = null;
-    char[] graphChars = null;
-    if (result.length >= 5) {
-      graphInts = ((ArrayView) result[3]).ints();
-      graphChars = ((ArrayView) result[4]).chars();
-    }
-    ParserUtils.updateDocumentInterval(model.document, ints, chars, graphInts, graphChars);
-    model.document.defToUsages.clear();
-    model.document.usageToDef.clear();
-    model.document.countPrefixes();
-    model.document.onReparse();
-    resolveAll();
-  }
-
   public void iterativeParsing() {
-    Debug.consoleInfo("EditorComponent::iterativeParsing");
-
-    String language = model.language();
-    if (language == null || Languages.TEXT.equals(language)) {
-      model.document.onReparse();
-    } else if (Languages.ACTIVITY.equals(language)) {
-      model.parseFullFile();
-      model.document.onReparse();
-    } else {
-      var reparseNode = model.document.tree.getReparseNode();
-      if (reparseNode == null) {
-        resolveAll();
-        model.document.onReparse();
-        return;
-      }
-
-      int[] interval = new int[]{reparseNode.getStart(), reparseNode.getStop(), reparseNode.getType()};
-      char[] chars = model.document.getChars();
-      int[] type = new int[]{Languages.getType(language)};
-
-      int[] graphInts;
-      char[] graphChars;
-      if (model.document.scopeGraph.root != null) {
-        ScopeGraph oldGraph = model.document.scopeGraph;
-        ScopeGraph reparseGraph = new ScopeGraph(reparseNode.scope, oldGraph.typeMap);
-        ScopeGraphWriter writer = new ScopeGraphWriter(reparseGraph, reparseNode);
-        writer.toInts();
-        graphInts = writer.graphInts;
-        graphChars = writer.graphChars;
-      } else {
-        graphInts = new int[]{};
-        graphChars = new char[]{};
-      }
-      int version = model.document.currentVersion;
-      window().sendToWorker(this::onFileIterativeParsed, FileProxy.asyncIterativeParsing, chars, type, interval, new int[]{version}, graphInts, graphChars);
-    }
+    model.iterativeParsing();
   }
 
   public boolean onCopy(Consumer<String> setText, boolean isCut) {
@@ -1633,6 +1528,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     oldModel.setEditor(null, null);
     model.setEditor(this, window());
     registrations.fireModelChange(oldModel, model);
+    vScrollPos = Numbers.iRnd(model.vScrollLine * lineHeight);
   }
 
   private void clearUsages() {
@@ -1722,14 +1618,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
 
   public Selection selection() {
     return model.selection;
-  }
-
-  void onFileParsed(Object[] result) {
-    model.onFileParsed(result);
-  }
-
-  void onFileStructureParsed(Object[] result) {
-    model.onFileStructureParsed(result);
   }
 
   public void fireFullFileParsed() {

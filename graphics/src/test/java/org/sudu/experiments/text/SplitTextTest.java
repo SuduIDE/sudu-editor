@@ -1,4 +1,4 @@
-package org.sudu.experiments.editor;
+package org.sudu.experiments.text;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

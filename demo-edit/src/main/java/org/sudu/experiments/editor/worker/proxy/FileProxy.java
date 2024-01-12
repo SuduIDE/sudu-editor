@@ -1,8 +1,5 @@
 package org.sudu.experiments.editor.worker.proxy;
 
-import org.sudu.experiments.Debug;
-import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.editor.Languages;
 import org.sudu.experiments.editor.worker.parser.LineParser;
 import org.sudu.experiments.math.ArrayOp;
 
@@ -25,44 +22,27 @@ public class FileProxy {
 
   public static final String asyncParseFile = "asyncParseFile";
 
-  public static void asyncParseFile(FileHandle file, Consumer<Object[]> result) {
-    file.readAsBytes(
-        bytes -> {
-          char[] source = prepareChars(bytes);
-          String lang = Languages.languageFromFilename(file.getName());
-          BaseProxy proxy = getBaseProxy(Languages.getType(lang));
-          parseFileStructure(proxy, source, result);
-        },
-        Debug::consoleInfo
-    );
+  public static void asyncParseFile(char[] source, int[] lang, Consumer<Object[]> result) {
+    if (lang.length == 0) throw new IllegalArgumentException("Lang type is empty");
+    BaseProxy proxy = getBaseProxy(lang[0]);
+    parseFileStructure(proxy, source, result);
   }
 
   public static final String asyncParseFullFile = "asyncFullParseFile";
 
-  public static void asyncParseFullFile(FileHandle file, Consumer<Object[]> result) {
-    file.readAsBytes(
-        bytes -> {
-          char[] source = prepareChars(bytes);
-          String lang = Languages.languageFromFilename(file.getName());
-          BaseProxy proxy = getBaseProxy(Languages.getType(lang));
-          parseFullFile(proxy, source, result);
-        },
-        Debug::consoleInfo
-    );
+  public static void asyncParseFullFile(char[] source, int[] lang, Consumer<Object[]> result) {
+    if (lang.length == 0) throw new IllegalArgumentException("Lang type is empty");
+    BaseProxy proxy = getBaseProxy(lang[0]);
+    parseFullFile(proxy, source, result);
   }
 
   public static final String asyncParseFirstLines = "asyncParseFirstLines";
 
-  public static void asyncParseFirstLines(FileHandle file, int[] lines, Consumer<Object[]> result) {
-    file.readAsBytes(
-        bytes -> {
-          char[] source = prepareChars(bytes);
-          String lang = Languages.languageFromFilename(file.getName());
-          BaseProxy proxy = getBaseProxy(Languages.getType(lang));
-          parseFirstLines(proxy, source, lines, result);
-        },
-        Debug::consoleInfo
-    );
+  public static void asyncParseFirstLines(char[] source, int[] langAndLines, Consumer<Object[]> result) {
+    if (langAndLines.length < 2) throw new IllegalArgumentException("Lang type or number of lines is empty");
+    int lang = langAndLines[0], lines = langAndLines[1];
+    BaseProxy proxy = getBaseProxy(lang);
+    parseFirstLines(proxy, source, lines, result);
   }
 
   public static final String asyncIterativeParsing = "asyncIterativeParsing";
@@ -74,14 +54,15 @@ public class FileProxy {
       Consumer<Object[]> result
   ) {
     var proxy = getBaseProxy(type[0]);
-    if (proxy == javaProxy || proxy == cppProxy) proxy.parseIntervalScope(chars, interval, version, graphInts, graphChars, result);
+    if (proxy == javaProxy || proxy == cppProxy)
+      proxy.parseIntervalScope(chars, interval, version, graphInts, graphChars, result);
     else proxy.parseInterval(chars, interval, version, result);
   }
 
-  public static void parseFirstLines(BaseProxy proxy, char[] source, int[] lines, Consumer<Object[]> result) {
+  public static void parseFirstLines(BaseProxy proxy, char[] source, int numOfLines, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
     if (proxy == null) LineParser.parse(source, list);
-    else proxy.parseFirstLines(source, lines, list);
+    else proxy.parseFirstLines(source, numOfLines, list);
     ArrayOp.sendArrayList(list, result);
   }
 

@@ -20,8 +20,7 @@ public abstract class BaseProxy {
     this.languageName = languageName;
   }
 
-  public void parseFirstLines(char[] source, int[] lines, List<Object> result) {
-    int numOfLines = lines[0];
+  public void parseFirstLines(char[] source, int numOfLines, List<Object> result) {
     int[] ints = getFirstLinesLexer().parse(source, numOfLines);
     result.add(ints);
     result.add(source);

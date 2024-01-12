@@ -36,7 +36,7 @@
           <option name="pomFileName" value="pom.xml" />
           <option name="profilesMap">
             <map>
-              <entry key="release" value="false" />
+              <entry key="release" value="true" />
             </map>
           </option>
           <option name="projectsCmdOptionValues">

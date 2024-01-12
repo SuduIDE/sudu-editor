@@ -33,9 +33,15 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
     parser.addErrorListener(parserRecognitionListener);
 
     var intervalRule = getStartRule(parser);
-    var node = walk(intervalRule);
+    IntervalNode node = null;
 
-    normalize(node.children);
+    try {
+      node = walk(intervalRule);
+      normalize(node.children);
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
+    }
+
     return node;
   }
 
@@ -51,13 +57,17 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
     ScopeWalker scopeWalker = new ScopeWalker(intervalNode);
     scopeWalker.graph.typeMap = getTypeMap();
     scopeWalker.offset = intervalStart;
-    walkScopes(intervalRule, scopeWalker);
+
+    try {
+      walkScopes(intervalRule, scopeWalker);
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
+    }
 
     normalize(scopeWalker.currentNode.children);
     scopeWriter = new ScopeGraphWriter(scopeWalker.graph, scopeWalker.currentNode);
     scopeWriter.toInts();
 
-    this.success = this.parserRecognitionListener.errorOccurred;
     return null;
   }
 

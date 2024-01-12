@@ -565,7 +565,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
       if (expr == null) return new RefNode(null, "boolean", RefTypes.LITERAL);
       else return new ExprRefNode(List.of(expr), "boolean");
     }
-    if (isNonNullAndEmpty(ctx.typeType())) {
+    if (isNonNullAndEmpty(ctx.typeType()) && isNonNullAndEmpty(ctx.expression())) {
       Name typeName = getType(ctx.typeType(0));
       addTypeUsage(ctx.typeType(0));
       var expr = handleExpression(ctx.expression(0));
@@ -872,7 +872,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   }
 
   private boolean isBooleanBinOperation(JavaParser.ExpressionContext ctx) {
-    return ctx.getChildCount() == 3
+    return ctx != null
+        && ctx.getChildCount() == 3
         && (isNonNullAndEmpty(ctx.LT())
         || isNonNullAndEmpty(ctx.GT())
         || ctx.LE() != null
@@ -882,7 +883,8 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   }
 
   static boolean isTernary(JavaParser.ExpressionContext ctx) {
-    return ctx.getChildCount() == 5
+    return ctx != null &&
+        ctx.getChildCount() == 5
         && ctx.QUESTION() != null
         && ctx.COLON() != null;
   }

@@ -28,7 +28,7 @@ public interface Languages {
   }
 
   static String languageFromFilename(String path) {
-    if (path == null) return null;
+    if (path == null) return TEXT;
     if (path.endsWith(".cpp")
         || path.endsWith(".cc")
         || path.endsWith(".cxx")
@@ -53,13 +53,17 @@ public interface Languages {
   }
 
   static int getType(String lang) {
+    if (lang == null) return FileProxy.TEXT_FILE;
     return switch (lang) {
       case Languages.TEXT -> FileProxy.TEXT_FILE;
       case Languages.JAVA -> FileProxy.JAVA_FILE;
       case Languages.CPP -> FileProxy.CPP_FILE;
       case Languages.JS -> FileProxy.JS_FILE;
       case Languages.ACTIVITY -> FileProxy.ACTIVITY_FILE;
-      default -> throw new IllegalArgumentException("Illegal language: " + lang);
+      default -> {
+        System.err.println("Illegal language: " + lang);
+        yield FileProxy.TEXT_FILE;
+      }
     };
   }
 

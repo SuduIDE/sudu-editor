@@ -21,7 +21,7 @@
 
     <!-- compiler settings -->
     <teavm.sourceMaps>false</teavm.sourceMaps>
-    <teavm.debugInfo>true</teavm.debugInfo>
+    <teavm.debugInfo>false</teavm.debugInfo>
     <teavm.minifying>false</teavm.minifying>
     <teavm.optimizationLevel>SIMPLE</teavm.optimizationLevel>
 
@@ -160,6 +160,16 @@
               </directory>
               <includes>
                 <include>*.cpp</include>
+              </includes>
+            </resource>
+            <resource>
+              <directory>
+                ${project.basedir}/../demo-edit-es-module/module/src
+              </directory>
+              <targetPath>editor</targetPath>
+              <includes>
+                <include>editor.js</include>
+                <include>worker.js</include>
               </includes>
             </resource>
           </webResources>

@@ -25,7 +25,7 @@ public class AiDemoWebApp {
 
   public static void main(String[] args) {
     if (JsCanvas.checkFontMetricsAPI()) {
-      WorkerContext.start(AiDemoWebApp::startApp, "teavm/worker.js", 2);
+      WorkerContext.start(AiDemoWebApp::startApp, "teavm/worker.js", 3);
     } else {
       FireFoxWarning.display(codeEditDiv);
     }
@@ -46,6 +46,13 @@ public class AiDemoWebApp {
     }
   }
 
+  static void fetchModel(String fileName) {
+    Debug.consoleInfo("fetch model " + fileName);
+    Fetch.fetch(fileName)
+        .then(Fetch.Response::text)
+        .then(text -> putModel(fileName, text), JsHelper::onError);
+  }
+
   static void initFileList(JSString list) {
     var fileList = HTMLDocument.elementById("fileList");
     SplitInfo split = SplitJsText.split(list);
@@ -57,23 +64,19 @@ public class AiDemoWebApp {
       fileList.appendChild(btn);
 
       btn.addEventListener("click",  e -> {
-        if (requestMap.get(fileName) != null) {
-          Debug.consoleInfo("request in progress " + fileName);
-          return;
-        }
         selectedFile = fileName;
         Model model = modelMap.get(selectedFile);
-        if (model == null) {
-          Debug.consoleInfo("fetch model " + fileName);
-          Fetch.fetch(fileName)
-              .then(Fetch.Response::text)
-              .then(text -> putModel(fileName, text), JsHelper::onError);
-        } else {
-          Debug.consoleInfo("reuse model " + model.uri.path);
+        if (model != null) {
           doSetModel(model);
+        } else {
+          if (requestMap.get(fileName) != null) {
+            Debug.consoleInfo("request in progress " + fileName);
+          } else {
+            requestMap.put(fileName, fileName);
+            fetchModel(fileName);
+          }
         }
         respText1().setInnerText("clicked " + fileName);
-//        respText2().setInnerText("file " + fileName + " response text 2\nNewLine");
       });
     }
   }
@@ -93,10 +96,14 @@ public class AiDemoWebApp {
 
   static void startApp(JsArray<WorkerContext> workers) {
     fetchFileList();
+    if (HTMLDocument.current().getElementById(codeEditDiv) == null) {
+      System.err.println("no such element with id = " + codeEditDiv);
+      return;
+    }
     window = new WebWindow(
         api -> editor = new Editor0(api),
         AiDemoWebApp::onWebGlError,
-        "codeEdit", workers);
+        codeEditDiv, workers);
     window.focus();
   }
 

@@ -54,9 +54,9 @@ public class EditorWorker {
   static void asyncMethod(String method, Object[] a, Consumer<Object[]> r) {
     switch (method) {
       case TestJobs.asyncWithFile -> TestJobs.asyncWithFile(file(a, 0), r);
-      case FileProxy.asyncParseFile -> FileProxy.asyncParseFile(file(a, 0), r);
-      case FileProxy.asyncParseFullFile -> FileProxy.asyncParseFullFile(file(a, 0), r);
-      case FileProxy.asyncParseFirstLines -> FileProxy.asyncParseFirstLines(file(a, 0), array(a, 1).ints(), r);
+      case FileProxy.asyncParseFile -> FileProxy.asyncParseFile(array(a, 0).chars(), array(a, 1).ints(), r);
+      case FileProxy.asyncParseFullFile -> FileProxy.asyncParseFullFile(array(a, 0).chars(), array(a, 1).ints(), r);
+      case FileProxy.asyncParseFirstLines -> FileProxy.asyncParseFirstLines(array(a, 0).chars(), array(a, 1).ints(), r);
       case FileProxy.asyncIterativeParsing -> FileProxy.asyncIterativeParsing(
           array(a, 0).chars(), array(a, 1).ints(),
           array(a, 2).ints(),

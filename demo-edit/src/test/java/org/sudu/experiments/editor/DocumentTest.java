@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.text.SplitText;
 
 import java.util.ArrayList;
 import java.util.Arrays;

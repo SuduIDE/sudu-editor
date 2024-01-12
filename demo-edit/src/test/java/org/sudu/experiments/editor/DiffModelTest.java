@@ -6,6 +6,7 @@ import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.editor.worker.proxy.JavaProxy;
 import org.sudu.experiments.editor.worker.parser.ParserUtils;
+import org.sudu.experiments.text.SplitText;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -47,7 +48,7 @@ public class DiffModelTest {
     int[] ints;
     new JavaProxy().parseFullFile(chars, result);
     ints = (int[]) result.get(0);
-    Document document = new Document();
+    Document document = new Document(SplitText.split(text));
     ParserUtils.updateDocument(document, ints, chars);
     return document;
   }

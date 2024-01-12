@@ -137,4 +137,7 @@ public interface ArrayOp {
     return value;
   }
 
+  static char[] copyOf(char[] chars) {
+    return Arrays.copyOf(chars, chars.length);
+  }
 }
