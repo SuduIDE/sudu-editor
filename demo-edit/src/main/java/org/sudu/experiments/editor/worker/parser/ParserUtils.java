@@ -43,25 +43,23 @@ public abstract class ParserUtils {
 
     int documentLength = document.length();
 
-    int[] linePrefixSum = new int[N + 1];
-    if (document.document.length < N)
+    if (document.document.length < N) {
       document.document = ArrayOp.resizeOrReturn(document.document, N);
+    }
 
     for (int i = 0; i < N; i++) {
       if (saveOldLines && i < documentLength) {
         int len = reader.next();
         reader.skip(4 * len);
-        linePrefixSum[i + 1] = linePrefixSum[i] + document.line(i).totalStrLength + 1;
         continue;
       }
       CodeElement[] elements = readElements(reader, docChars, 0);
       CodeLine line = new CodeLine(elements);
       document.document[i] = line;
-      linePrefixSum[i + 1] = linePrefixSum[i] + document.line(i).totalStrLength + 1;
     }
+    document.countPrefixes();
 
     if (K != 0) document.tree = new IntervalTree(IntervalNode.getNode(reader));
-    document.linePrefixSum = linePrefixSum;
 
     document.usageToDef.clear();
     document.defToUsages.clear();
