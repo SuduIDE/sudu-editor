@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.ErrorHighlightingStrategy;
+import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
