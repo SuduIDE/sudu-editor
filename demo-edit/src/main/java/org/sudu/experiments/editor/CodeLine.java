@@ -309,11 +309,15 @@ public class CodeLine {
     return lengthCache;
   }
 
-  public void invalidateCache() {
+  public void invalidateMeasure() {
     measureDirty = true;
+    glyphMeasureCache = null;
+  }
+
+  public void invalidateCache() {
+    invalidateMeasure();
     contentDirty = true;
     lengthDirty = true;
-    glyphMeasureCache = null;
   }
 
   int[] ensureIMeasure(Canvas mCanvas, FontDesk[] fonts) {

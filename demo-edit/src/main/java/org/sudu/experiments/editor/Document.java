@@ -60,6 +60,12 @@ public class Document {
     }
   }
 
+  public void invalidateMeasure() {
+    for (CodeLine line : document) {
+      line.invalidateMeasure();
+    }
+  }
+
   public int length() {
     return document.length;
   }

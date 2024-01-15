@@ -265,6 +265,8 @@ public class Model {
     if (executor != null) {
       if (fullFileParsed == ParseStatus.NOT_PARSED) requestParseFile();
       // todo: execute eny pending jobs here
+    } else {
+      document.invalidateMeasure();
     }
   }
 
