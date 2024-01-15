@@ -11,12 +11,12 @@ public class MethodCallNode extends RefNode {
   public List<RefNode> callArgs;
   public int callType;
 
-  public MethodCallNode(Name decl, List<RefNode> callArgs) {
-    this(decl, null, MethodTypes.METHOD, callArgs);
+  public MethodCallNode(Name ref, List<RefNode> callArgs) {
+    this(ref, null, MethodTypes.METHOD, callArgs);
   }
 
-  public MethodCallNode(Name decl, String type, int callType, List<RefNode> callArgs) {
-    super(decl, type, RefTypes.CALL);
+  public MethodCallNode(Name ref, String type, int callType, List<RefNode> callArgs) {
+    super(ref, type, RefTypes.CALL);
     this.callType = callType;
     this.callArgs = callArgs;
   }

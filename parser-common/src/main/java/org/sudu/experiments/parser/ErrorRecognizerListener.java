@@ -8,7 +8,7 @@ public class ErrorRecognizerListener extends ConsoleErrorListener {
 
   @Override
   public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
-//    super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
+    System.err.println(line + ":" + charPositionInLine + " " + msg);
     errorOccurred = true;
   }
 

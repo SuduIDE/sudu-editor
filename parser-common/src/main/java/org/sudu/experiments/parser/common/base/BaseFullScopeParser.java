@@ -28,9 +28,11 @@ public abstract class BaseFullScopeParser<P extends Parser> extends BaseFullPars
     try {
       node = walk(rule);
     } catch (Exception e) {
+      System.err.println(e.getMessage());
       e.printStackTrace();
       node = defaultIntervalNode();
     }
+    if (parserErrorOccurred()) node = defaultIntervalNode();
 
     result = getInts(null);
     writer = new ScopeGraphWriter(scopeWalker.graph, node);

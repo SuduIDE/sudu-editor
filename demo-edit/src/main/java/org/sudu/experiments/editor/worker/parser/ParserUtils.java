@@ -123,6 +123,7 @@ public abstract class ParserUtils {
         graphReader.readFromInts();
         Interval oldInterval = new Interval(intervalStart, intervalStop, -1);
         document.tree.replaceInterval(oldInterval, graphReader.intervalRoot);
+        document.scopeGraph.root = document.tree.root.scope;
         document.scopeGraph.typeMap = graphReader.typeMap;
       }
     }

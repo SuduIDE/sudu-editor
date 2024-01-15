@@ -276,7 +276,8 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   RefNode handleInitializer(CPP14Parser.InitializerContext initializer) {
     if (initializer.braceOrEqualInitializer() != null)
       return handleBraceOrEqualInitializer(initializer.braceOrEqualInitializer());
-    else if (initializer.expressionList() != null) return new ExprRefNode(handleExpressionList(initializer.expressionList()));
+    else if (initializer.expressionList() != null)
+      return new ExprRefNode(handleExpressionList(initializer.expressionList()));
     return null;
   }
 
@@ -423,6 +424,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
           ? handleExpressionList(postfixExpression.expressionList())
           : List.of();
       var ref = handlePostExpr(postfixExpression.postfixExpression());
+      if (ref == null || ref.ref == null) return null;
       return new MethodCallNode(ref.ref, callArgs);
     }
 
@@ -478,7 +480,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   }
 
   private RefNode handleLambdaExpression(CPP14Parser.LambdaExpressionContext lambdaExpressionContext) {
-    throw new UnsupportedOperationException("");
+    return null;
   }
 
   private RefNode handleIdExpression(CPP14Parser.IdExpressionContext idExpression) {
@@ -597,10 +599,11 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     else if (declaratorContext.pointerDeclarator() != null &&
         declaratorContext.pointerDeclarator().noPointerDeclarator() != null) {
       var noPointer = declaratorContext.pointerDeclarator().noPointerDeclarator();
-      if (declaratorContext.pointerDeclarator().noPointerDeclarator().parametersAndQualifiers() != null)
-        return getArgList(noPointer.parametersAndQualifiers().parameterDeclarationClause().parameterDeclarationList());
-      else if (declaratorContext.pointerDeclarator().noPointerDeclarator().initializer().expressionList() != null) {
+      if (noPointer.initializer() != null && noPointer.initializer().expressionList() != null) {
         return getArgList(noPointer.initializer().expressionList());
+      } else if (noPointer.parametersAndQualifiers() != null &&
+          noPointer.parametersAndQualifiers().parameterDeclarationClause() != null) {
+        return getArgList(noPointer.parametersAndQualifiers().parameterDeclarationClause().parameterDeclarationList());
       }
     }
     return Collections.emptyList();
@@ -622,7 +625,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     var exprs = handleExpressionList(ctx);
     List<DeclNode> result = new ArrayList<>();
     for (var expr: exprs) {
-      if (expr instanceof ExprRefNode exprRef && exprRef.refNodes.size() >= 2){
+      if (expr instanceof ExprRefNode exprRef && exprRef.refNodes.size() >= 2) {
         var type = exprRef.refNodes.get(0).ref.name;
         var name = exprRef.refNodes.get(1).ref;
         result.add(new DeclNode(name, type, DeclTypes.ARGUMENT));

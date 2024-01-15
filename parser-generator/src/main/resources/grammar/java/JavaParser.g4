@@ -777,18 +777,17 @@ classOrInterfaceBodyDeclaration
     ;
 
 unknownInterval
-    : ( typeDeclaration
+    : compilationUnit
+    | ( typeDeclaration
       | classOrInterfaceBodyDeclaration
       | importDeclaration
       | packageDeclaration
       )+
-//    | anySeq
     | EOF
     ;
 
 compilationUnitOrAny
     : compilationUnit
-//    | anySeq
     ;
 
 anySeq: .+?;
