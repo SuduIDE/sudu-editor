@@ -174,8 +174,8 @@ public class DemoScene1 extends Scene {
     // drawText grayscale
     for (int i = 0, N = 7; i < N; i++) {
       textRect3.drawText(g, canvasTextureBW,
-          i * (10 + 10 * textRect3.size.x / 15) + 5, 0,
-          1.f * i / N);
+          i * (10 + 10 * textRect3.size.x / 15) + 5, 0
+      );
     }
 
     textRect3.pos.y = clientSize.y - textRect3.size.y * 2 - 10;
@@ -184,10 +184,10 @@ public class DemoScene1 extends Scene {
     for (int i = 0, N = 7; i < N; i++) {
       GL.Texture texture = canvasTextureCT;
       textRect3.pos.x = i * (10 + 10 * textRect3.size.x / 15) + 5;
-      textRect3.drawTextCT(g, texture);
+      textRect3.drawText(g, texture, true);
     }
 
-    text1Rect.drawTextCT(g, textTextureCT);
+    text1Rect.drawText(g, textTextureCT, true);
     g.enableBlend(true);
     text2Rect.draw(g, textTextureBW);
     g.enableBlend(false);

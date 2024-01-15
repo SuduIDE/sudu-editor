@@ -49,7 +49,7 @@ public class TestHelper {
     do {
       int x = 0;
       do {
-        demoRect.drawText(graphics, texture, x, y, 0.5f);
+        demoRect.drawText(graphics, texture, x, y);
         x += texture.width();
       } while (x < size.x);
       y += texture.height();

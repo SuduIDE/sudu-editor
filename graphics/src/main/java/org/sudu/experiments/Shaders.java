@@ -75,7 +75,7 @@ public interface Shaders {
           layout(location = 0) out vec4 outColor;
           uniform vec4 uColor;
           uniform vec4 uBgColor;
-          uniform vec2 uContrast;
+          uniform vec2 uTextPow;
           uniform sampler2D sDiffuse;
           in vec2 textureUV;
           void main() {
@@ -84,8 +84,7 @@ public interface Shaders {
             //    - alpha is identical
             float t = texture(sDiffuse, textureUV).a;
 //            if (t == 0.0) { discard; }
-            float text = mix(t, textContrast(t), uContrast.x);
-             
+            float text = pow(t, uTextPow.x);
             outColor = mix(uBgColor, uColor, text);
           }""";
 
@@ -95,10 +94,15 @@ public interface Shaders {
           uniform vec4 uColor;
           uniform vec4 uBgColor;
           uniform sampler2D sDiffuse;
+          uniform vec2 uTextPow;
           in vec2 textureUV;
           void main() {
             vec3 textRGB = texture(sDiffuse, textureUV).rgb;
-            vec3 mixColor = mix(uBgColor.rgb, uColor.rgb, textRGB);
+            vec3 textRGBp = vec3(
+              pow(textRGB.x, uTextPow.x),
+              pow(textRGB.y, uTextPow.x),
+              pow(textRGB.z, uTextPow.x));
+            vec3 mixColor = mix(uBgColor.rgb, uColor.rgb, textRGBp);
             // if (dot(textRGB, textRGB) == 0.0) outColor = uBgColor; else
             outColor = vec4(textRGB * 0.0 + mixColor * 1.0, 1.0);
           }""";
@@ -328,12 +332,23 @@ public interface Shaders {
   class Text0 extends SimpleTexture {
     final GLApi.UniformLocation uTexTransform;
     final GLApi.UniformLocation uColor, uBgColor;
+    final GLApi.UniformLocation uTextPow;
+    private float textPowCache;
 
     public Text0(GLApi.Context gl, String vs, String ps) {
       super(gl, vs, ps);
       uTexTransform = gl.getUniformLocation(program, "uTexTransform");
       uColor = gl.getUniformLocation(program, "uColor");
       uBgColor = gl.getUniformLocation(program, "uBgColor");
+      uTextPow = gl.getUniformLocation(program, "uTextPow");
+    }
+
+    void setPow(GLApi.Context gl, float pow) {
+      if (textPowCache != pow) {
+        textPowCache = pow;
+        System.out.println(getClass().getName() + ": set powCache = " + textPowCache);
+        gl.uniform2f(uTextPow, pow, 0);
+      }
     }
 
     void setColor(GLApi.Context gl, V4f color, V4f bgColor) {
@@ -351,16 +366,9 @@ public interface Shaders {
     }
   }
 
-  class Text extends Text0 {
-    final GLApi.UniformLocation uContrast;
-
-    Text(GLApi.Context gl) {
+  class TextGray extends Text0 {
+    TextGray(GLApi.Context gl) {
       super(gl, vsCode2dTexTransform, psCodeText);
-      uContrast = gl.getUniformLocation(program, "uContrast");
-    }
-
-    void setContrast(GLApi.Context gl, float contrast) {
-      gl.uniform2f(uContrast, contrast, 0);
     }
   }
 

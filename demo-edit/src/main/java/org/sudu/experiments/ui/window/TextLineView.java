@@ -75,13 +75,8 @@ public class TextLineView extends View {
     if (texture != null) {
       int width = texture.width();
       V4f textC = theme.windowTitleTextColor;
-      if (context.cleartype) {
-        g.drawTextCT(pos.x, pos.y, texture.size(),
-            texRect, texture, textC, bgColor);
-      } else {
-        g.drawText(pos.x, pos.y, texture.size(),
-            texRect, texture, textC, bgColor, 0);
-      }
+      g.drawText(pos.x, pos.y, texture.size(),
+          texRect, texture, textC, bgColor, context.cleartype);
       if (width < size.x) {
         drawBg(g, width, size.x - width, bgColor);
       }

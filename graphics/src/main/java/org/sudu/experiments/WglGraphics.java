@@ -21,7 +21,7 @@ public abstract class WglGraphics {
   final Shaders.SimpleTexture shSimpleTexture;
   final Shaders.Shader2d shShowUV;
   final Shaders.TextureAlpha shTextureAlpha;
-  final Shaders.Text shText;
+  final Shaders.TextGray shTextGray;
   final Shaders.TextClearType shTextCT;
   final Shaders.GrayIcon shGrayIcon;
   final Shaders.LineFill shLineFill;
@@ -37,6 +37,8 @@ public abstract class WglGraphics {
   private boolean scissorState, scissorRequest, scissorSync;
   private final V4i scissor = new V4i();
 
+  protected float ctTextPow, grTextPow;
+
   public interface CanvasFactory {
     Canvas create(int w, int h, boolean cleartype);
   }
@@ -44,7 +46,8 @@ public abstract class WglGraphics {
   public WglGraphics(
       GLApi.Context gl,
       CanvasFactory canvasFactory,
-      boolean cleartypeSupported
+      boolean cleartypeSupported,
+      float ctTextPw, float grTextPw
   ) {
     this.canvasFactory = canvasFactory;
     this.cleartypeSupported = cleartypeSupported;
@@ -56,6 +59,9 @@ public abstract class WglGraphics {
     isWGL2 = version.startsWith("WebGL 2");
     tc = new GL.TextureContext(gl);
 
+    ctTextPow = ctTextPw;
+    grTextPow = grTextPw;
+
     maxTextureSize = gl.getParameteri(gl.MAX_TEXTURE_SIZE);
     Debug.consoleInfo("[Graphics] maxTextureSize: " + maxTextureSize);
 
@@ -64,7 +70,7 @@ public abstract class WglGraphics {
         shSimpleTexture = new Shaders.SimpleTexture(gl),
         shShowUV = new Shaders.ShowUV(gl),
         shTextureAlpha = new Shaders.TextureAlpha(gl),
-        shText = new Shaders.Text(gl),
+        shTextGray = new Shaders.TextGray(gl),
         shTextCT = new Shaders.TextClearType(gl),
         shGrayIcon = new Shaders.GrayIcon(gl),
         shLineFill = new Shaders.LineFill(gl),
@@ -184,6 +190,14 @@ public abstract class WglGraphics {
     }
   }
 
+  public void setTextPow(float pow, boolean cleartype) {
+    if (cleartype) {
+      ctTextPow = pow;
+    } else {
+      grTextPow = pow;
+    }
+  }
+
   private void drawRect() {
     attributeMask = rectangle.draw(attributeMask);
   }
@@ -236,26 +250,16 @@ public abstract class WglGraphics {
 
   public void drawText(
       int x, int y, V2i size, V4f texRect,
-      GL.Texture texture, V4f color, V4f bgColor, float contrast
+      GL.Texture texture, V4f color, V4f bgColor,
+      boolean cleartype
   ) {
-    setShader(shText);
-    shText.setPosition(gl, x, y, size, clientRect);
-    shText.setTexture(gl, texture);
-    shText.setTextureRect(gl, texture, texRect);
-    shText.setColor(gl, color, bgColor);
-    shText.setContrast(gl, contrast);
-    drawRect();
-  }
-
-  public void drawTextCT(
-      int x, int y, V2i size, V4f texRect,
-      GL.Texture texture, V4f color, V4f bgColor
-  ) {
-    setShader(shTextCT);
-    shTextCT.setPosition(gl, x, y, size, clientRect);
-    shTextCT.setTexture(gl, texture);
-    shTextCT.setTextureRect(gl, texture, texRect);
-    shTextCT.setColor(gl, color, bgColor);
+    Shaders.Text0 shader = cleartype ? shTextCT : shTextGray;
+    setShader(shader);
+    shader.setPow(gl, cleartype ? ctTextPow : grTextPow);
+    shader.setPosition(gl, x, y, size, clientRect);
+    shader.setTexture(gl, texture);
+    shader.setTextureRect(gl, texture, texRect);
+    shader.setColor(gl, color, bgColor);
     drawRect();
   }
 

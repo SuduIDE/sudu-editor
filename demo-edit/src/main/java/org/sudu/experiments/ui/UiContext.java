@@ -112,4 +112,9 @@ public class UiContext {
     }
     return false;
   }
+
+  public void setFontPow(float pow) {
+    graphics.setTextPow(pow, cleartype);
+    window.repaint();
+  }
 }

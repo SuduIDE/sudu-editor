@@ -196,6 +196,7 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
     void increaseFont();
     void decreaseFont();
     void changeFont(String f);
+    void setFontPow(float p);
   }
 
   public interface ThemeApi {
@@ -316,6 +317,7 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
       ToolbarItemBuilder tbb = new ToolbarItemBuilder();
       tbb.addItem("parser >", parser());
       tbb.addItem("open ...", this::showOpenFilePicker);
+      tbb.addItem("font pow >", fontPow());
       return tbb.supplier();
     }
 
@@ -369,7 +371,6 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
           ti("↓ move", editor::moveDown),
           ti("■ stop", editor::stopMove),
           ti("↑ move", editor::moveUp),
-          ti("toggleContrast", editor::toggleContrast),
           ti("toggleXOffset", editor::toggleXOffset),
           ti("toggleTails", editor::toggleTails));
     }
@@ -386,6 +387,25 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
       return ArrayOp.supplier(
           ti("↑ increase", fontApi::increaseFont),
           ti("↓ decrease", fontApi::decreaseFont));
+    }
+
+    private Runnable fontPow(float pow) {
+      return () -> fontApi.setFontPow(pow);
+    }
+
+    private Supplier<ToolbarItem[]> fontPow() {
+      return () -> {
+        ToolbarItem[] items = new ToolbarItem[4 + 12];
+        for (int i = 0; i < 4; i++) {
+          float value = (5 + i) / 8.f;
+          items[i] = new ToolbarItem(fontPow(value), Float.toString(value));
+        }
+        for (int i = 0; i < 12; i++) {
+          float value = 1 + (1 + i) / 4.f;
+          items[4 + i] = new ToolbarItem(fontPow(value), Float.toString(value));
+        }
+        return items;
+      };
     }
 
     private Supplier<ToolbarItem[]> fontSelect() {

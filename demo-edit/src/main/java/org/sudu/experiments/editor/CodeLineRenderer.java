@@ -10,7 +10,6 @@ import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
-import org.sudu.experiments.parser.ParserConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -185,29 +184,22 @@ class CodeLineRenderer implements Disposable {
       }
 
       if (isFullSelected || isFullUnselected) {
+        CodeElementColor c = colors.codeElement[e.color];
+        V4f bgColor = isFullSelected ? colors.editor.selectionBg :
+            requireNonNullElse(elemBgColor, colors.bgColor(c.colorB));
         context.tRegion.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
         context.size.set(drawWidth, lineHeight);
-        drawWord(g,
-            xPos + dx, yPosition,
-            e, texture,
-            colors, elemBgColor, isFullSelected
-        );
+        context.drawText(g, texture, xPos + dx, yPosition, c.colorF, bgColor);
       } else {
         selectedSegment.y = Math.min(selectedSegment.y, line.lineMeasure());
-        int pre;
-        int post;
-
-        if (texturePos >= selectedSegment.x) {
-          pre = drawWidth;
-        } else {
-          pre = Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH) - selectedSegment.x - (isLastWord ? 0 : xOffset);
-        }
-        if (texturePos + drawWidth <= selectedSegment.y + (isLastWord ? 2 * xOffset : xOffset)) {
-          post = 0;
-        } else {
-          post = Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH) - selectedSegment.y - (isLastWord ? 0 : xOffset);
-        }
-
+        int pre = texturePos >= selectedSegment.x
+            ? drawWidth
+            : Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH)
+                - selectedSegment.x - (isLastWord ? 0 : xOffset);
+        int post = texturePos + drawWidth <= selectedSegment.y + (isLastWord ? 2 * xOffset : xOffset)
+            ? 0
+            : Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH)
+                - selectedSegment.y - (isLastWord ? 0 : xOffset);
         int regionX = texturePos - curTexture * TEXTURE_WIDTH;
         drawSelected(g, xPos + dx, yPosition,
             lineHeight, colors,
@@ -256,50 +248,28 @@ class CodeLineRenderer implements Disposable {
       int drawWidth, int pre, int post, int regionX,
       V4f elemBgColor
   ) {
+    CodeElementColor c = colors.codeElement[e.color];
+    V4f colorF = c.colorF;
+    V4f colorB = requireNonNullElse(elemBgColor, colors.bgColor(c.colorB));
+    V4f selColorB = colors.editor.selectionBg;
+
     V4f tRegion = context.tRegion;
+    V2i size = context.size;
     tRegion.set(regionX, 0, drawWidth - pre, lineHeight);
-    context.size.set(drawWidth - pre, lineHeight);
-    drawWord(g, xPos, yPosition, e,
-        texture, colors, elemBgColor,
-        false);
+    size.set(drawWidth - pre, lineHeight);
+    context.drawText(g, texture, xPos, yPosition, colorF, colorB);
 
     tRegion.set(regionX + drawWidth - post, 0, post, lineHeight);
-    context.size.set(post, lineHeight);
-    drawWord(g, xPos + drawWidth - post, yPosition, e,
-        texture, colors, elemBgColor,
-        false);
+    size.set(post, lineHeight);
+    context.drawText(g, texture, xPos + drawWidth - post, yPosition,
+        colorF, colorB);
 
     tRegion.set(regionX + drawWidth - pre, 0, pre - post, lineHeight);
-    context.size.set(pre - post, lineHeight);
-    drawWord(g, xPos + drawWidth - pre, yPosition, e,
-        texture, colors, elemBgColor,
-        true);
+    size.set(pre - post, lineHeight);
+    context.drawText(g, texture, xPos + drawWidth - pre, yPosition,
+        colorF, selColorB);
   }
 
-  private void drawWord(
-      WglGraphics g, int xPos, int yPos,
-      CodeElement e, GL.Texture texture,
-      EditorColorScheme colors, V4f elemBgColor, boolean isSelected) {
-    V2i size = context.size;
-    if (size.x == 0 || size.y == 0) return;
-    V4f region = context.tRegion;
-    if (region.w == 0 || region.z == 0) return;
-
-    CodeElementColor c = colors.codeElement[e.color];
-    V4f bgColor = isSelected ? colors.editor.selectionBg :
-        requireNonNullElse(elemBgColor, colors.bgColor(c.colorB));
-
-    if (context.cleartype) {
-      g.drawTextCT(xPos, yPos, size,
-          region, texture, c.colorF, bgColor);
-    } else {
-      g.drawText(xPos, yPos, size,
-          region, texture, c.colorF, bgColor,
-          context.contrast);
-    }
-  }
-
-  // we don't need to throw here
   static <T> T requireNonNullElse(T obj, T defaultObj) {
     return (obj != null) ? obj : defaultObj;
   }
@@ -362,7 +332,7 @@ class CodeLineRenderer implements Disposable {
       g.drawText(dx, yPosition + (lineH + 5) * i,
           new V2i(TEXTURE_WIDTH, lineH),
           new V4f(0, 0, TEXTURE_WIDTH, lineH),
-          texture, color, bgColor, 1f);
+          texture, color, bgColor, false);
     }
   }
 
@@ -425,13 +395,13 @@ class CodeLineRenderer implements Disposable {
     final V4f underlineParams = new V4f();
     final FontDesk[] fonts;
 
-    float    contrast;
     float    underlineOffset;
     int      lineHeight, underline, underlineHBox;
     boolean  cleartype;
 
-    Context(FontDesk[] fonts) {
+    Context(FontDesk[] fonts, boolean cleartype) {
       this.fonts = fonts;
+      this.cleartype = cleartype;
       sinParamsDefault(underlineParams);
     }
 
@@ -441,6 +411,14 @@ class CodeLineRenderer implements Disposable {
       underlineOffset = UnderlineConstants.offset(underlineParams);
       underlineHBox = UnderlineConstants.boxExtend(underlineParams);
       underlineSize.set(0, underlineHBox * 2);
+    }
+
+    void drawText(WglGraphics g, GL.Texture texture, int xPos, int yPos, V4f colorF, V4f bgColor) {
+      if (size.x == 0 || size.y == 0  ||
+          tRegion.w == 0 || tRegion.z == 0) return;
+
+      g.drawText(xPos, yPos, size, tRegion,
+          texture, colorF, bgColor, cleartype);
     }
   }
 }

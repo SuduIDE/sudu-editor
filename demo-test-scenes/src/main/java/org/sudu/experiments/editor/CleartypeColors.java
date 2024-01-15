@@ -135,11 +135,11 @@ public class CleartypeColors extends Scene {
 
     int y0 = text1Rect.pos.y;
     int y1 = clientSize.y * 3 / 4 - text1Rect.size.y / 2;
-    text1Rect.drawTextCT(g, text1Rect.pos.x, y0, textTextureCT, false);
-    text1Rect.drawTextCT(g, text1Rect.pos.x, y1, textTextureCT, true);
+    text1Rect.drawText(g, text1Rect.pos.x, y0, textTextureCT, false, true);
+    text1Rect.drawText(g, text1Rect.pos.x, y1, textTextureCT, true, true);
 //    g.enableBlend(true);
-    text2Rect.drawText(g, text2Rect.pos.x, y0, textTextureBW, false);
-    text2Rect.drawText(g, text2Rect.pos.x, y1, textTextureBW, true);
+    text2Rect.drawText(g, text2Rect.pos.x, y0, textTextureBW, false, false);
+    text2Rect.drawText(g, text2Rect.pos.x, y1, textTextureBW, true, false);
 //    g.enableBlend(false);
 
     g.checkError("paint complete ");

@@ -233,6 +233,11 @@ public class Diff0 extends Scene1 implements
   }
 
   @Override
+  public void setFontPow(float p) {
+    uiContext.setFontPow(p);
+  }
+
+  @Override
   public void enableCleartype(boolean en) {
     if (uiContext.enableCleartype(en)) {
       ui.onTextRenderingSettingsChange();

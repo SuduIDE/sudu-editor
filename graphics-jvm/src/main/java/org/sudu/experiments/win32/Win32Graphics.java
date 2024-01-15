@@ -12,7 +12,7 @@ public class Win32Graphics extends WglGraphics {
   final D2dFactory canvasFactory;
 
   public Win32Graphics(D2dFactory canvasFactory) {
-    super(new Win32AngleGL(), canvasFactory, true);
+    super(new Win32AngleGL(), canvasFactory, true, 1, 1);
     this.canvasFactory = canvasFactory;
   }
 

@@ -65,7 +65,7 @@ public class HScrollTestScene extends Scene {
     };
 
     codeLine = new CodeLine(codeElements);
-    codeLineRenderer = new CodeLineRenderer(new CodeLineRenderer.Context(fontDesk));
+    codeLineRenderer = new CodeLineRenderer(new CodeLineRenderer.Context(fontDesk, false));
 
     fontDesk[0] = g.fontDesk(Fonts.Consolas, fontSize);
     g.mCanvas.setFont(fontDesk[0]);
