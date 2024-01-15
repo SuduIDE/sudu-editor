@@ -9,9 +9,14 @@ public class Fetch {
   @JSBody(params = { "r" }, script = "return fetch(r);")
   public static native Promise<Response> fetch(String r);
 
+  public static Promise<JsBlob> fetchBlob(String r) {
+    return fetch(r).then(Response::blob);
+  }
+
   public interface Response extends JSObject {
     Promise<ArrayBuffer> arrayBuffer();
     Promise<JSString> text();
     Promise<JSObject> json();
+    Promise<JsBlob> blob();
   }
 }

@@ -8,7 +8,8 @@ const wp = fetch(path + workerJS).then(r => r.blob());
 const editorApi = await ep;
 const params = {
   containerId: "codeEdit",
-  workerUrl: URL.createObjectURL(await wp)
+  workerUrl: URL.createObjectURL(await wp),
+  numThreads: 3
 };
 const editor = await editorApi.newEditor(params);
 

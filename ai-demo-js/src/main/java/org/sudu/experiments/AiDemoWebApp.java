@@ -25,10 +25,17 @@ public class AiDemoWebApp {
 
   public static void main(String[] args) {
     if (JsCanvas.checkFontMetricsAPI()) {
-      WorkerContext.start(AiDemoWebApp::startApp, "teavm/worker.js", 3);
+      Fetch.fetchBlob("teavm/worker.js")
+          .then(AiDemoWebApp::start, JsHelper::onError);
     } else {
       FireFoxWarning.display(codeEditDiv);
     }
+  }
+
+  private static void start(JsBlob blob) {
+    WorkerContext.start(
+        AiDemoWebApp::startApp, e -> JsHelper.onError(e.cast()),
+        URL.createObjectURL(blob), 3);
   }
 
   static void fetchFileList() {
