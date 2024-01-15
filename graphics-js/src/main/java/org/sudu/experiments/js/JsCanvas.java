@@ -1,6 +1,7 @@
 package org.sudu.experiments.js;
 
 import org.sudu.experiments.Canvas;
+import org.sudu.experiments.Debug;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.Color;
 import org.teavm.jso.JSBody;
@@ -28,7 +29,8 @@ public class JsCanvas extends Canvas {
     c2d = (cleartype
         ? element.getContext("2d", canvasAttributesNoAlpha())
         : element.getContext("2d")).cast();
-    c2d.setFillStyle("#FFFFFF");
+    // default fillStyle = #000000
+    if (cleartype) c2d.setFillStyle("#FFFFFF");
   }
 
   @JSBody(script = "return {alpha: false};")
@@ -46,10 +48,6 @@ public class JsCanvas extends Canvas {
       case TextAlign.CENTER -> c2d.setTextAlign("center");
       case TextAlign.RIGHT -> c2d.setTextAlign("right");
     }
-  }
-
-  public void debugAddToDocument() {
-    HTMLDocument.current().getElementById("panelDiv").appendChild(element);
   }
 
   public void setFont(String font, float size, int weight, int style) {
