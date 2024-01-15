@@ -44,9 +44,8 @@ public abstract class ParserUtils {
     int documentLength = document.length();
 
     int[] linePrefixSum = new int[N + 1];
-    document.document = saveOldLines
-        ? ArrayOp.resizeOrReturn(document.document, N)
-        : new CodeLine[N];
+    if (document.document.length < N)
+      document.document = ArrayOp.resizeOrReturn(document.document, N);
 
     for (int i = 0; i < N; i++) {
       if (saveOldLines && i < documentLength) {
