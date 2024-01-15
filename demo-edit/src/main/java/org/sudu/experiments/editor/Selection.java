@@ -48,18 +48,19 @@ public class Selection {
       return endPos;
   }
 
+  boolean isEmpty() {
+    return startPos.line == endPos.line
+        && startPos.charInd == endPos.charInd;
+  }
+
   // y == -1 -> line is fully selected
   V2i getLine(int line) {
+    if (isEmpty()) return null;
     SelPos left = getLeftPos();
     SelPos right = getRightPos();
     if (left.line <= line && line <= right.line) {
-      int start;
-      if (line > left.line) start = 0;
-      else start = left.charInd;
-
-      int end;
-      if (line < right.line) end = -1;
-      else end = right.charInd;
+      int start = line > left.line ? 0 : left.charInd;
+      int end = line < right.line ? -1 : right.charInd;
       return new V2i(start, end);
     } else return null;
   }
@@ -105,7 +106,10 @@ public class Selection {
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      SelPos selPos = (SelPos) o;
+      return equals((SelPos) o);
+    }
+
+    public boolean equals(SelPos selPos) {
       return line == selPos.line && charInd == selPos.charInd;
     }
 
