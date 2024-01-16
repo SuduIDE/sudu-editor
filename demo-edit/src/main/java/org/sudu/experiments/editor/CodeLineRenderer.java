@@ -166,7 +166,6 @@ class CodeLineRenderer implements Disposable {
 
       int drawWidth = Math.min((curTexture + 1) * TEXTURE_WIDTH, pxLen) - texturePos;
       if (drawOnCurTexture && isLastWord) drawWidth += xOffset;
-      if (xPos + drawWidth > editorWidth) drawWidth = editorWidth - xPos;
 
       boolean isNotSelected = selectedSegment == null;
       boolean isFullUnselected = isNotSelected || isFullUnselected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
