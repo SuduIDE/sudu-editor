@@ -1,5 +1,5 @@
 const CDN = false
-const path = CDN ? "https://cdn.jsdelivr.net/npm/sudu-editor-tmp@0.0.9-beta7" : "./editor/"
+const path = CDN ? "https://cdn.jsdelivr.net/npm/sudu-editor-tmp@0.0.9-beta9" : "./editor/"
 const editorJs = "editor.js";
 const workerJS = "worker.js"
 
