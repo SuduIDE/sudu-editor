@@ -27,28 +27,22 @@ public class TextRect extends DemoRect {
     textureRegion.set(x, y, w, h);
   }
 
-  public void drawText(WglGraphics g, GL.Texture texture, int dx, int dy, float contrast) {
-    g.drawText(pos.x + dx, pos.y + dy, size, textureRegion, texture, color, bgColor, contrast);
+  public void drawText(WglGraphics g, GL.Texture texture, int dx, int dy) {
+    g.drawText(pos.x + dx, pos.y + dy, size, textureRegion, texture, color, bgColor, false);
   }
 
-  public void drawTextCT(WglGraphics g, GL.Texture texture) {
-    g.drawTextCT(pos.x, pos.y, size, textureRegion, texture, color, bgColor);
+  public void drawText(WglGraphics g, GL.Texture texture, boolean cleartype) {
+    g.drawText(pos.x, pos.y, size, textureRegion, texture, color, bgColor, cleartype);
   }
 
-  public void drawTextCT(WglGraphics g, int x, int y, GL.Texture texture, boolean inverse) {
-    g.drawTextCT(x, y, size, textureRegion, texture,
+  public void drawText(WglGraphics g, int x, int y, GL.Texture texture, boolean inverse, boolean cleartype) {
+    g.drawText(x, y, size, textureRegion, texture,
         inverse ? bgColor : color,
-        inverse ? color : bgColor);
+        inverse ? color : bgColor, cleartype);
   }
 
   public void drawRectShowAlpha(WglGraphics g, GL.Texture texture, int dx, int dy, float contrast) {
     g.drawAlpha(pos.x + dx, pos.y + dy, size, texture, contrast);
-  }
-
-  public void drawText(WglGraphics g, int x, int y, GL.Texture texture, boolean inverse) {
-    g.drawText(x, y, size, textureRegion, texture,
-        inverse ? bgColor : color,
-        inverse ? color : bgColor, 0);
   }
 
   void setColor(V4f c) {

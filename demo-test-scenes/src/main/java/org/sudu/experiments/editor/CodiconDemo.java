@@ -63,7 +63,7 @@ public class CodiconDemo extends Scene {
   public void paint() {
     WglGraphics g = api.graphics;
     g.clear(bgColor);
-    textRect.drawText(g, texture, 0, 0, 0.5f);
+    textRect.drawText(g, texture, 0, 0);
   }
 
   public void onResize(V2i size, float dpr) {

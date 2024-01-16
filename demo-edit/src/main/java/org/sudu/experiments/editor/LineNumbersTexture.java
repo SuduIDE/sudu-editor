@@ -214,20 +214,12 @@ public class LineNumbersTexture implements Disposable {
   }
 
   private void draw(WglGraphics g, int yPos, V2i dXdY, V4f textColor, V4f bgColor) {
-    if (cleartype) {
-      g.drawTextCT(texturePos.x + dXdY.x, yPos + dXdY.y,
-          rectSize,
-          rectRegion,
-          lineTexture,
-          textColor, bgColor);
-    } else {
-      g.drawText(texturePos.x + dXdY.x, yPos + dXdY.y,
-          rectSize,
-          rectRegion,
-          lineTexture,
-          textColor, bgColor, 0f);
-    }
-  }
+    g.drawText(texturePos.x + dXdY.x, yPos + dXdY.y,
+        rectSize,
+        rectRegion,
+        lineTexture,
+        textColor, bgColor, cleartype);
+}
 
   private int scrollDown(
       Canvas textureCanvas, Canvas updateCanvas,

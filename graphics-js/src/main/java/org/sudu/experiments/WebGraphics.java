@@ -15,7 +15,7 @@ public class WebGraphics extends WglGraphics {
   protected Runnable repaint;
 
   public WebGraphics(GLApi.Context gl, Runnable repaint) {
-    super(gl, JsCanvas::new, isDesktop());
+    super(gl, JsCanvas::new, isDesktop(), 3, 1);
     this.repaint = repaint;
   }
 

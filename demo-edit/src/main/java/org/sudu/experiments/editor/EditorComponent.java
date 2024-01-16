@@ -71,7 +71,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
 
   int fullWidth = 0;
 
-  boolean applyContrast, renderBlankLines = true;
+  boolean renderBlankLines = true;
   int scrollDown, scrollUp;
   boolean drawTails = true;
   boolean drawGap = true;
@@ -99,9 +99,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     this.context = context;
     this.g = context.graphics;
     this.ui = ui;
-    lrContext = new CodeLineRenderer.Context(fonts);
+    lrContext = new CodeLineRenderer.Context(fonts, context.cleartype);
 
-    debugFlags[0] = this::toggleContrast;
     debugFlags[1] = this::toggleBlankLines;
     debugFlags[2] = this::toggleTails;
     debugFlags[3] = this::toggleXOffset;
@@ -109,14 +108,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     debugFlags[5] = () -> drawGap = !drawGap;
     debugFlags[6] = () -> printResolveTime = !printResolveTime;
 
-    // d2d is very bold, contrast makes font heavier
-    applyContrast = context.window.getHost() != Host.Direct2D;
-    setRenderingContextSetting(context);
-  }
-
-  private void setRenderingContextSetting(UiContext context) {
-    lrContext.contrast = applyContrast ? EditorConst.CONTRAST : 0;
-    lrContext.cleartype = context.cleartype;
   }
 
   void setPos(V2i pos, V2i size, float dpr) {
@@ -214,12 +205,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     internalLayout(pos, size, context.dpr);
   }
 
-  void toggleContrast() {
-    applyContrast = !applyContrast;
-    lrContext.contrast = applyContrast ? EditorConst.CONTRAST : 0;
-    Debug.consoleInfo("applyContrast = " + applyContrast);
-  }
-
   private void toggleTopTextRenderMode() {
     CodeLineRenderer.useTop = !CodeLineRenderer.useTop;
     Debug.consoleInfo("CodeLineRenderer.useTop = " + CodeLineRenderer.useTop);
@@ -301,6 +286,11 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
 
   public void changeFont(String name) {
     changeFont(name, getFontVirtualSize());
+  }
+
+  @Override
+  public void setFontPow(float p) {
+    context.setFontPow(p);
   }
 
   public void changeFont(String name, int virtualSize) {

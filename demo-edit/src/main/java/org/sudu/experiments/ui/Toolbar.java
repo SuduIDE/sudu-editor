@@ -192,15 +192,9 @@ public class Toolbar {
     }
 
     for (ToolbarItem item : items) {
-      if (context.cleartype) {
-        g.drawTextCT(item.pos.x, item.pos.y, item.size,
-            item.textureRegion, texture,
-            itemColors.color, itemColors.bgColor(item.hover));
-      } else {
-        g.drawText(item.pos.x, item.pos.y, item.size,
-            item.textureRegion, texture,
-            itemColors.color, itemColors.bgColor(item.hover), 0);
-      }
+      g.drawText(item.pos.x, item.pos.y, item.size,
+          item.textureRegion, texture,
+          itemColors.color, itemColors.bgColor(item.hover), context.cleartype);
     }
     if (isVertical) {
       for (ToolbarItem item : items) {

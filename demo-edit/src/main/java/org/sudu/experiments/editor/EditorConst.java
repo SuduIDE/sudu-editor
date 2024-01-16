@@ -5,7 +5,6 @@ import org.sudu.experiments.fonts.Fonts;
 public interface EditorConst {
   String FONT = Fonts.Consolas;
 
-  float CONTRAST = .5f;
   int BLANK_LINES = 5;
   int TEXTURE_WIDTH = 1024;
   int RIGHT_PADDING = 40;

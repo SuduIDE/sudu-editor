@@ -127,7 +127,7 @@ public class RegionTextureAllocatorDemo extends Scene1 implements MouseListener 
     for (int i = 0; i < itemsName.size(); i++) {
       TextRect textRect = tItemsList.get(i);
       textRect.setColor(new Color(0));
-      textRect.drawText(g, texture, 0, 0, 0);
+      textRect.drawText(g, texture, 0, 0);
     }
   }
 

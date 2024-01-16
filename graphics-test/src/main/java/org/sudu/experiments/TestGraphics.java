@@ -15,7 +15,7 @@ public class TestGraphics extends WglGraphics {
   int createTextureCalls = 0;
 
   public TestGraphics(WglGraphics g) {
-    super(g.gl, g.canvasFactory, g.cleartypeSupported);
+    super(g.gl, g.canvasFactory, g.cleartypeSupported, g.ctTextPow, g.grTextPow);
     this.testGraphics = g;
   }
 
@@ -36,10 +36,10 @@ public class TestGraphics extends WglGraphics {
   }
 
   @Override
-  public void drawText(int x, int y, V2i size, V4f texRect, GL.Texture texture, V4f color, V4f bgColor, float contrast) {
+  public void drawText(int x, int y, V2i size, V4f texRect, GL.Texture texture, V4f color, V4f bgColor, boolean cleartype) {
     totalDrawCalls++;
     stepDrawCalls++;
-    testGraphics.drawText(x, y, size, texRect, texture, color, bgColor, contrast);
+    testGraphics.drawText(x, y, size, texRect, texture, color, bgColor, cleartype);
   }
 
   @Override

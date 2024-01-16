@@ -80,7 +80,7 @@ public class TextureRegionTestScene extends Scene {
 
     allRect.setColor(colors[0]);
     allRect.setBgColor(colors[1]);
-    allRect.drawText(g, texture, 400, 0, 1f);
+    allRect.drawText(g, texture, 400, 0);
 
     int midLine = scrollPos % textureSize;
     int downLine = Math.min(texture.height() - midLine, textureSize - fontSize);
@@ -90,14 +90,14 @@ public class TextureRegionTestScene extends Scene {
 
     upRect.setColor(colors[0]);
     upRect.setBgColor(colors[1]);
-    upRect.drawText(g, texture, 0, 0, 1f);
+    upRect.drawText(g, texture, 0, 0);
 
     TextRect downRect = new TextRect(0, downLine, texture.width(), texture.height() - downLine - fontSize);
     downRect.setTextureRegion(0, 0, texture.width(), texture.height() - downLine - fontSize);
 
     downRect.setColor(colors[1]);
     downRect.setBgColor(colors[0]);
-    downRect.drawText(g, texture, 0, 0, 1f);
+    downRect.drawText(g, texture, 0, 0);
   }
 
   public void onResize(V2i size, float dpr) {

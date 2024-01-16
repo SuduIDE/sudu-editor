@@ -69,7 +69,7 @@ public class RenderTexture extends Scene0 {
   public void paint() {
     super.paint();
 
-    demoRect.drawText(api.graphics, canvasTexture, 0, 0, 0.5f);
+    demoRect.drawText(api.graphics, canvasTexture, 0, 0);
     mouse.drawGrayIcon(api.graphics, mouseTexture, 0, 0, 0);
 
     api.graphics.checkError("paint complete ");
