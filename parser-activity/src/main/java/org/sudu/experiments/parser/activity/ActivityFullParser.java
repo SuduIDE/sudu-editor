@@ -54,7 +54,7 @@ public class ActivityFullParser extends BaseFullParser<ActivityParser> {
 
     var ret = new ArrayList<>();
     ret.add(getInts(defaultIntervalNode()));
-    String mermaid1 = walker.getActivity().toDag1();
+    String mermaid1 = activity.toDag1();
     String mermaid2 = activity.dag2(false).printRecDag2(null);
     ret.add(mermaid1);
     ret.add(mermaid2);

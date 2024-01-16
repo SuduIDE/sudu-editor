@@ -32,11 +32,6 @@ public abstract class Node {
 
     public final ArrayList<EdgeTo> edges = new ArrayList<>();
 
-
-
-
-
-
     public abstract String name();
 
     public String drawDagNode() {
@@ -95,32 +90,36 @@ public abstract class Node {
         if (!ctx.visited.add(this))
             return;
 
-        ctx.acc.append(getMermaidNodeId()+ drawDagNode() +"\r\n");
+        ctx.acc.append(getMermaidNodeId())
+            .append(drawDagNode()).append("\r\n");
+
         for (var e: edges) {
             var n = e.to;
 
             n.innerRecDag2(ctx);
 
             String label = e.getLabel();
-            if (!label.isEmpty()) label = "|\""+label+"\"|";
+            if (!label.isEmpty()) label = "|\"" + label + "\"|";
 
             int edgeN = ctx.edgeNumber++;
-            ctx.acc.append(getMermaidNodeId()+"-->"+label+ n.getMermaidNodeId() +"\r\n");
+            ctx.acc.append(getMermaidNodeId())
+                .append("-->")
+                .append(label).append(n.getMermaidNodeId())
+                .append("\r\n");
 
             if (ctx.markedEdge.contains(edge(this, n))) {
-                ctx.acc.append("linkStyle "+edgeN+" stroke:red\r\n");
+                ctx.acc.append("linkStyle ").append(edgeN)
+                    .append(" stroke:red\r\n");
             }
         }
     }
 
-
     public String printRecDag2(Path highlighted) {
-
         PrintContext ctx = new PrintContext();
         ctx.acc.append("flowchart TB\r\n");
         if (highlighted != null) {
-            for (int i=1; i<highlighted.nodes.length; i++) {
-                ctx.markedEdge.add(edge(highlighted.nodes[i-1], highlighted.nodes[i]));
+            for (int i = 1; i < highlighted.nodes.length; i++) {
+                ctx.markedEdge.add(edge(highlighted.nodes[i - 1], highlighted.nodes[i]));
             }
         }
 
@@ -128,7 +127,8 @@ public abstract class Node {
 
         if (highlighted != null) {
             for (var n: highlighted.nodes) {
-                ctx.acc.append("style "+n.getMermaidNodeId()+" stroke:red\r\n");
+                ctx.acc.append("style ").append(n.getMermaidNodeId())
+                    .append(" stroke:red\r\n");
             }
         }
 

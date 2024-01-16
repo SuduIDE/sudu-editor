@@ -54,6 +54,7 @@ public class Activity extends ComplexStat {
     }
 
     private Node start = null;
+
     public Node dag2(boolean forceRebuild) {
         if (start == null || forceRebuild)
             start = toDag2Part().input.simplify();
