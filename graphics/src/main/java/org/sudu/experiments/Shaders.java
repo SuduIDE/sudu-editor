@@ -346,7 +346,6 @@ public interface Shaders {
     void setPow(GLApi.Context gl, float pow) {
       if (textPowCache != pow) {
         textPowCache = pow;
-        System.out.println(getClass().getName() + ": set powCache = " + textPowCache);
         gl.uniform2f(uTextPow, pow, 0);
       }
     }
