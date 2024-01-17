@@ -395,14 +395,15 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
     private Supplier<ToolbarItem[]> fontPow() {
       return () -> {
-        ToolbarItem[] items = new ToolbarItem[4 + 12];
-        for (int i = 0; i < 4; i++) {
-          float value = (5 + i) / 8.f;
-          items[i] = new ToolbarItem(fontPow(value), Float.toString(value));
+        ToolbarItem[] items = new ToolbarItem[5 + 12];
+        int p = 0;
+        for (int i = 0; i < 5; i++) {
+          float value = (4 + i) / 8.f;
+          items[p++] = new ToolbarItem(fontPow(value), Float.toString(value));
         }
         for (int i = 0; i < 12; i++) {
           float value = 1 + (1 + i) / 4.f;
-          items[4 + i] = new ToolbarItem(fontPow(value), Float.toString(value));
+          items[p++] = new ToolbarItem(fontPow(value), Float.toString(value));
         }
         return items;
       };

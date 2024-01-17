@@ -115,6 +115,9 @@ public class UiContext {
 
   public void setFontPow(float pow) {
     graphics.setTextPow(pow, cleartype);
+    if (1<0) Debug.consoleInfo(cleartype
+        ? "text pow set for cleartype "
+        : "text pow set for grayscale ", pow);
     window.repaint();
   }
 }

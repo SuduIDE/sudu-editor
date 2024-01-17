@@ -12,10 +12,12 @@ import org.teavm.jso.dom.html.HTMLImageElement;
 import java.util.function.Consumer;
 
 public class WebGraphics extends WglGraphics {
+  static final float cleartypeTextPow = 2.25f;
+  static final float grayscaleTextPow = 0.625f;
   protected Runnable repaint;
 
   public WebGraphics(GLApi.Context gl, Runnable repaint) {
-    super(gl, JsCanvas::new, isDesktop(), 3, 1);
+    super(gl, JsCanvas::new, isDesktop(), cleartypeTextPow, grayscaleTextPow);
     this.repaint = repaint;
   }
 
