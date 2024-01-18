@@ -1,0 +1,11 @@
+activity {
+    repeat(2) {
+        select {A1, G1}
+    };
+    select {M1, N1};
+    select {
+       ({A1->A1} and M1) A1;
+       B1;
+       ({A1, G1} and N1) C1
+    }
+}

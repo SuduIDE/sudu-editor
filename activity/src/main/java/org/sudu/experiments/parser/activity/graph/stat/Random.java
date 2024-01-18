@@ -21,7 +21,7 @@ public class Random extends Schedule {
         random = new XorShiftRandom((int)globalSeed, (int)globalSeed);
     }
 
-    int count;
+    public int count;
 
     public Random(int count) {
         this.count = count;

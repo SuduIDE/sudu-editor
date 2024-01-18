@@ -1,0 +1,7 @@
+activity {
+    A1; B1; C1;
+    if (A1 and B1 or C1) {
+        select{T1}
+    };
+    else {F1};
+}

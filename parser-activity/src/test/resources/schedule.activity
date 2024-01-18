@@ -1,0 +1,5 @@
+activity {
+  schedule {
+    A1, B1, C1
+  }
+}

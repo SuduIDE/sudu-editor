@@ -4,7 +4,7 @@ import org.sudu.experiments.parser.activity.graph.Dag2Part;
 import org.sudu.experiments.parser.activity.graph.IStat;
 
 public class Repeat extends ComplexStat {
-    int count;
+    public int count;
 
     public Repeat(int count) {
         this.count = count;

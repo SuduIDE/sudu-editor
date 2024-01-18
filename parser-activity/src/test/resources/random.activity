@@ -1,0 +1,5 @@
+activity {
+  random(3) {
+    A1, B1, C1
+  }
+}
