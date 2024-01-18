@@ -18,7 +18,8 @@ import java.util.function.Consumer;
 
 public class HScrollTestScene extends Scene {
 
-  TestGraphics g;
+  final TestGraphics g = new TestGraphics();
+
   final int MAX_NUM = 150;
   final int dx = 50;
   final int fontSize = 20;
@@ -39,7 +40,6 @@ public class HScrollTestScene extends Scene {
 
   public HScrollTestScene(SceneApi api) {
     super(api);
-    g = new TestGraphics(api.graphics);
 
     api.input.onMouse.add(new HScrollInputListener());
     api.input.onScroll.add(this::onMouseWheel);
@@ -70,7 +70,7 @@ public class HScrollTestScene extends Scene {
     fontDesk[0] = g.fontDesk(Fonts.Consolas, fontSize);
     g.mCanvas.setFont(fontDesk[0]);
 
-    renderCanvas = new TestCanvas(g.createCanvas(EditorConst.TEXTURE_WIDTH, fontDesk[0].iSize));
+    renderCanvas = (TestCanvas) g.createCanvas(EditorConst.TEXTURE_WIDTH, fontDesk[0].iSize);
   }
 
   @Override
@@ -97,7 +97,7 @@ public class HScrollTestScene extends Scene {
         viewportSize.x, fontSize, scrollPosH, colors, null,
         null, usages, false, false, null);
 
-    codeLineRenderer.drawDebug(300, 0, fontSize, g, debugColor, debugColorBg);
+    drawDebug(300, 0);
 
     if (needsUpdate) {
       codeLineRenderer.updateTexture(codeLine, renderCanvas, g, fontDesk[0].iSize, viewportSize.x, scrollPosH);
@@ -112,10 +112,21 @@ public class HScrollTestScene extends Scene {
     Debug.consoleInfo("Canvas: ");
     renderCanvas.debug();
     Debug.consoleInfo("Graphics:");
-    g.debug();
+    g.testContext().debug();
     Debug.consoleInfo("Renderer:");
     codeLineRenderer.debug();
     Debug.consoleInfo("____________________");
+  }
+
+  void drawDebug(int yPosition, int dx) {
+    CodeLineRenderer clr = codeLineRenderer;
+    for (int i = 0, n = clr.numOfTextures; i < n; i++) {
+      var texture = clr.lineTextures.get(n);
+      g.drawText(dx, yPosition + (fontSize + 5) * i,
+          new V2i(CodeLineRenderer.TEXTURE_WIDTH, fontSize),
+          new V4f(0, 0, CodeLineRenderer.TEXTURE_WIDTH, fontSize),
+          texture, debugColor, debugColorBg, clr.context.cleartype);
+    }
   }
 
   @Override
@@ -171,4 +182,5 @@ public class HScrollTestScene extends Scene {
   int horizontalSize() {
     return horizontalSize - viewportSize.x;
   }
+
 }
