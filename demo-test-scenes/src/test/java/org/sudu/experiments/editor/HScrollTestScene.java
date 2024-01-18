@@ -91,7 +91,7 @@ public class HScrollTestScene extends Scene {
     scrollBar.draw(g);
     g.enableBlend(false);
 
-    codeLineRenderer.updateTextureOnScroll(renderCanvas, fontDesk[0].iSize, scrollPosH);
+    codeLineRenderer.updateTexture(codeLine, renderCanvas, g, fontDesk[0].iSize, viewportSize.x, scrollPosH);
 
     codeLineRenderer.draw(200, 0, g,
         viewportSize.x, fontSize, scrollPosH, colors, null,
@@ -99,10 +99,6 @@ public class HScrollTestScene extends Scene {
 
     drawDebug(300, 0);
 
-    if (needsUpdate) {
-      codeLineRenderer.updateTexture(codeLine, renderCanvas, g, fontDesk[0].iSize, viewportSize.x, scrollPosH);
-      needsUpdate = false;
-    }
 
     g.drawRect(scrollPosH, 0, new V2i(1, viewportSize.y), error);
 

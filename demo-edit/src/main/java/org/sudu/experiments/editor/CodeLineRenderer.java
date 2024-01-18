@@ -30,7 +30,7 @@ class CodeLineRenderer implements Disposable {
     this.textures = context.textures0;
   }
 
-  public void updateTexture(
+  void updateTexture(
       CodeLine content,
       Canvas renderingCanvas,
       WglGraphics g,
@@ -44,10 +44,11 @@ class CodeLineRenderer implements Disposable {
       content.measure(g.mCanvas, context.fonts);
     }
     int newSize = countNumOfTextures(editorWidth);
-    boolean needsResize = newSize > textures.length;
+    int oldSize = textures.length;
+    boolean needsResize = newSize > oldSize;
+    if (needsResize) allocateTextures(g, newSize);
 
     if (lineChanged || needsResize) {
-      if (needsResize) allocateTextures(g, newSize);
 
       if (dumpMeasure) {
         Debug.consoleInfo("fMeasure", content.fMeasure);
@@ -78,7 +79,7 @@ class CodeLineRenderer implements Disposable {
     this.xOffset = xOffset;
   }
 
-  public void updateTextureOnScroll(Canvas renderingCanvas, int lineHeight, int horScrollPos) {
+  void updateTextureOnScroll(Canvas renderingCanvas, int lineHeight, int horScrollPos) {
     int length = textures.length;
     if (length == 0) return;
     if (horScrollPos > line.lineMeasure()) return;
@@ -102,19 +103,18 @@ class CodeLineRenderer implements Disposable {
     }
   }
 
-  private void drawOnTexture(Canvas renderingCanvas, int lineHeight, int numberOfTexture) {
-    renderingCanvas.clear();
-
-    float[] fMeasure = line.fMeasure;
-    int offset = numberOfTexture * TEXTURE_WIDTH;
+  private void drawOnTexture(Canvas renderingCanvas, int lineHeight, int textureIndex) {
+    int offset = textureIndex * TEXTURE_WIDTH;
 
     int curWord = getWordIndex(offset);
     if (curWord >= line.elements.length) return;
 
+    float[] fMeasure = line.fMeasure;
     float wordMeasure = curWord == 0 ? 0 : fMeasure[curWord - 1];
     float x = wordMeasure - offset + xOffset;
-
     FontDesk[] fonts = context.fonts;
+
+    renderingCanvas.clear();
 
     for (; curWord < line.elements.length; curWord++) {
       CodeElement entry = line.get(curWord);
@@ -125,7 +125,7 @@ class CodeLineRenderer implements Disposable {
       x = fMeasure[curWord] - offset + xOffset;
       if (x > TEXTURE_WIDTH) break;
     }
-    textures[numberOfTexture % textures.length].setContent(renderingCanvas);
+    textures[textureIndex % textures.length].setContent(renderingCanvas);
   }
 
   public void draw(

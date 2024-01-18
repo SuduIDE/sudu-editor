@@ -453,24 +453,26 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
         ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth()
         : pos.x + vLineX;
 
+    int editorWidth = editorWidth();
+    LineDiff[] diffModel = diffModel();
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
       CodeLine nextLine = model.document.line(i);
       CodeLineRenderer line = lineRenderer(i);
       line.updateTexture(nextLine, renderingCanvas, g,
-          lineHeight, editorWidth(), model.hScrollPos);
+          lineHeight, editorWidth, model.hScrollPos);
       CodeLine lineContent = line.line;
 
       fullWidth = Math.max(fullWidth,
           nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * context.dpr));
       int yPosition = lineHeight * i - vScrollPos;
 
-      LineDiff diff = diffModel() == null ? null : diffModel()[i];
+      LineDiff diff = diffModel == null ? null : diffModel[i];
       line.draw(
           pos.y + yPosition, dx, g,
-          editorWidth(), lineHeight, model.hScrollPos,
+          editorWidth, lineHeight, model.hScrollPos,
           colors, getSelLineSegment(i, lineContent),
           model.definition, model.usages,
-          model.caretLine == i, diffModel() != null,
+          model.caretLine == i, diffModel != null,
           diff);
     }
 
@@ -480,16 +482,16 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
       int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection().isTailSelected(i);
       Color tailColor = colors.editor.lineTailContent;
-      boolean isCurrentLine = model.caretLine == i && diffModel() == null;
+      boolean isCurrentLine = model.caretLine == i && diffModel == null;
 
       if (isTailSelected) tailColor = colors.editor.selectionBg;
-      else if (diffModel() != null && i < diffModel().length && diffModel()[i] != null) {
-        tailColor = (Color) colors.diff.getDiffColor(colors, diffModel()[i].type);
+      else if (diffModel != null && i < diffModel.length && diffModel[i] != null) {
+        tailColor = (Color) colors.diff.getDiffColor(colors, diffModel[i].type);
       }
       else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
 
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
-          sizeTmp, model.hScrollPos, editorWidth(), tailColor);
+          sizeTmp, model.hScrollPos, editorWidth, tailColor);
     }
 
     // draw bottom 5 invisible lines
@@ -522,13 +524,14 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   }
 
   private void drawGap(int firstLine, int lastLine, int docLen) {
+    LineDiff[] diffModel = model.diffModel;
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      LineDiff currentLineModel = diffModel() != null && i < diffModel().length
-          ? diffModel()[i]
+      LineDiff currentLineModel = diffModel != null && i < diffModel.length
+          ? diffModel[i]
           : null;
       V4f gapColor = currentLineModel != null
           ? colors.diff.getDiffColor(colors, currentLineModel.type)
-          : diffModel() == null
+          : diffModel == null
           ? colors.editor.currentLineBg
           : colors.editor.bg;
 
