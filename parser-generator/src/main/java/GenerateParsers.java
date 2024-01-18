@@ -41,6 +41,9 @@ public class GenerateParsers {
   }
 
   private static void generate(String outputDir, String packageName, String[] grammarPaths) {
+    if (Arrays.stream(grammarPaths).anyMatch(path ->
+        Path.of(path).getFileName().toString().startsWith("Activity")
+    )) return;
     String[] args = new String[5 + grammarPaths.length];
     args[0] = "-o";
     args[1] = outputDir;
