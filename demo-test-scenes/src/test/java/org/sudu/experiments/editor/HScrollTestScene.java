@@ -120,8 +120,8 @@ public class HScrollTestScene extends Scene {
 
   void drawDebug(int yPosition, int dx) {
     CodeLineRenderer clr = codeLineRenderer;
-    for (int i = 0, n = clr.numOfTextures; i < n; i++) {
-      var texture = clr.lineTextures.get(n);
+    for (int i = 0, n = clr.getTexLength(); i < n; i++) {
+      var texture = clr.textures[n];
       g.drawText(dx, yPosition + (fontSize + 5) * i,
           new V2i(CodeLineRenderer.TEXTURE_WIDTH, fontSize),
           new V4f(0, 0, CodeLineRenderer.TEXTURE_WIDTH, fontSize),

@@ -6,12 +6,8 @@ import org.sudu.experiments.editor.ui.colors.CodeElementColor;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.fonts.FontDesk;
-import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.Numbers;
-import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.math.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,13 +21,13 @@ class CodeLineRenderer implements Disposable {
   private int xOffset = initialOffset;
 
   final Context context;
-  final ArrayList<GL.Texture> lineTextures = new ArrayList<>();
   CodeLine line;
-  int numOfTextures;
+  GL.Texture[] textures;
   int curFromTexture = 0;
 
   CodeLineRenderer(Context context) {
     this.context = context;
+    this.textures = context.textures0;
   }
 
   public void updateTexture(
@@ -47,11 +43,11 @@ class CodeLineRenderer implements Disposable {
       line = content;
       content.measure(g.mCanvas, context.fonts);
     }
-    int newNumOfTextures = countNumOfTextures(editorWidth);
-    boolean needsResize = newNumOfTextures > numOfTextures;
-    if (needsResize) numOfTextures = newNumOfTextures;
+    int newSize = countNumOfTextures(editorWidth);
+    boolean needsResize = newSize > textures.length;
 
     if (lineChanged || needsResize) {
+      if (needsResize) allocateTextures(g, newSize);
 
       if (dumpMeasure) {
         Debug.consoleInfo("fMeasure", content.fMeasure);
@@ -59,7 +55,11 @@ class CodeLineRenderer implements Disposable {
       }
 
       renderingCanvas.setTopMode(useTop);
-      initNTextures(renderingCanvas, g, lineHeight, horScrollPos);
+      curFromTexture = horScrollPos / TEXTURE_WIDTH;
+
+      for (int i = 0; i < newSize; i++) {
+        drawOnTexture(renderingCanvas, lineHeight, curFromTexture + i);
+      }
 
       line.contentDirty = false;
     }
@@ -79,14 +79,15 @@ class CodeLineRenderer implements Disposable {
   }
 
   public void updateTextureOnScroll(Canvas renderingCanvas, int lineHeight, int horScrollPos) {
-    if (lineTextures.isEmpty()) return;
+    int length = textures.length;
+    if (length == 0) return;
     if (horScrollPos > line.lineMeasure()) return;
 
     int fromTexture = horScrollPos / TEXTURE_WIDTH;
     if (fromTexture == curFromTexture) return;
 
-    if (Math.abs(fromTexture - curFromTexture) >= numOfTextures) {
-      for (int i = 0; i < numOfTextures; i++) {
+    if (Math.abs(fromTexture - curFromTexture) >= length) {
+      for (int i = 0; i < length; i++) {
         drawOnTexture(renderingCanvas, lineHeight, fromTexture + i);
       }
       curFromTexture = fromTexture;
@@ -94,14 +95,14 @@ class CodeLineRenderer implements Disposable {
     }
 
     for (; curFromTexture < fromTexture; curFromTexture++) {
-      drawOnTexture(renderingCanvas, lineHeight, curFromTexture + numOfTextures);
+      drawOnTexture(renderingCanvas, lineHeight, curFromTexture + length);
     }
     for (; curFromTexture > fromTexture; curFromTexture--) {
       drawOnTexture(renderingCanvas, lineHeight, (curFromTexture - 1));
     }
   }
 
-  public void drawOnTexture(Canvas renderingCanvas, int lineHeight, int numberOfTexture) {
+  private void drawOnTexture(Canvas renderingCanvas, int lineHeight, int numberOfTexture) {
     renderingCanvas.clear();
 
     float[] fMeasure = line.fMeasure;
@@ -124,7 +125,7 @@ class CodeLineRenderer implements Disposable {
       x = fMeasure[curWord] - offset + xOffset;
       if (x > TEXTURE_WIDTH) break;
     }
-    lineTextures.get(numberOfTexture % numOfTextures).setContent(renderingCanvas);
+    textures[numberOfTexture % textures.length].setContent(renderingCanvas);
   }
 
   public void draw(
@@ -141,8 +142,8 @@ class CodeLineRenderer implements Disposable {
       boolean isDiff,
       LineDiff diff
   ) {
-    if (lineTextures.isEmpty()) return;
-    if (numOfTextures == 0) return;
+    int tLength = textures.length;
+    if (tLength == 0) return;
     if (horScrollPos > line.lineMeasure()) return;
 
     int[] iMeasure = line.iMeasure;
@@ -158,7 +159,7 @@ class CodeLineRenderer implements Disposable {
       boolean isLastWord = i == words.length - 1;
       if (xPos >= editorWidth) break;
 
-      GL.Texture texture = lineTextures.get(curTexture % numOfTextures);
+      GL.Texture texture = textures[curTexture % tLength];
       CodeElement e = words[i];
       int pxLen = iMeasure[i] + xOffset;
 
@@ -300,39 +301,33 @@ class CodeLineRenderer implements Disposable {
     }
   }
 
-  private void initNTextures(Canvas renderingCanvas, WglGraphics g, int lineHeight, int horScrollPos) {
-    curFromTexture = horScrollPos / TEXTURE_WIDTH;
-
-    while (lineTextures.size() < numOfTextures) {
-      lineTextures.add(g.createTexture());
+  private void allocateTextures(WglGraphics g, int newSize) {
+    int length = textures.length;
+    if (length < newSize) {
+      textures = Arrays.copyOf(textures, newSize);
     }
 
-    for (int i = 0; i < numOfTextures; i++) {
-      drawOnTexture(renderingCanvas, lineHeight, curFromTexture + i);
+    for (int i = length; i < newSize; i++) {
+      textures[i] = g.createTexture();
     }
   }
 
   @Override
   public void dispose() {
+    for (GL.Texture lineTexture : textures) {
+      lineTexture.dispose();
+    }
+    textures = context.textures0;
     line = null;
-    lineTextures.forEach(GL.Texture::dispose);
-    lineTextures.clear();
   }
 
   public void debug() {
     Debug.consoleInfo("\tcurTexture: " + curFromTexture);
-    Debug.consoleInfo("\tnumOfTexture: " + numOfTextures);
-    Debug.consoleInfo("\tlineTextures.size(): " + lineTextures.size());
+    Debug.consoleInfo("\tnumOfTexture: " + getTexLength());
   }
 
-  public void drawDebug(int yPosition, int dx, int lineH, WglGraphics g, V4f color, V4f bgColor) {
-    for (int i = 0; i < lineTextures.size(); i++) {
-      var texture = lineTextures.get(i);
-      g.drawText(dx, yPosition + (lineH + 5) * i,
-          new V2i(TEXTURE_WIDTH, lineH),
-          new V4f(0, 0, TEXTURE_WIDTH, lineH),
-          texture, color, bgColor, false);
-    }
+  public int getTexLength() {
+    return textures.length;
   }
 
   public void drawTail(
@@ -393,6 +388,7 @@ class CodeLineRenderer implements Disposable {
     final V2i underlineSize = new V2i();
     final V4f underlineParams = new V4f();
     final FontDesk[] fonts;
+    final GL.Texture[] textures0 = new GL.Texture[0];
 
     float    underlineOffset;
     int      lineHeight, underline, underlineHBox;
