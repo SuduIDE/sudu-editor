@@ -3,7 +3,6 @@ package org.sudu.experiments.editor.worker.proxy;
 import org.sudu.experiments.editor.Languages;
 import org.sudu.experiments.parser.activity.ActivityFullParser;
 import org.sudu.experiments.parser.activity.graph.Path;
-import org.sudu.experiments.parser.activity.graph.stat.Random;
 import org.sudu.experiments.parser.common.base.BaseFirstLinesLexer;
 import org.sudu.experiments.parser.common.base.BaseFullParser;
 import org.sudu.experiments.parser.common.base.BaseFullScopeParser;
@@ -45,7 +44,7 @@ public class ActivityProxy extends BaseProxy {
     }
     if (args.length >= 1) {
       if (args[0].equals("calculate")) {
-        paths = parser.activity.dag2(false).calculateTestPaths();
+        paths = parser.activity.dag2().calculateTestPaths();
 
       } else if (args[0].equals("get")) {
         if (args.length < 2) {
@@ -74,19 +73,17 @@ public class ActivityProxy extends BaseProxy {
         }
         var p = paths[i][j];
 
-        var mermaid = parser.activity.dag2(false).printRecDag2(p);
+        var mermaid = parser.activity.dag2().printRecDag2(p);
         result.add(mermaid);
 
       } else if (args[0].equals("dag2")) {
-        var mermaid = parser.activity.dag2(false).printRecDag2(null);
+        var mermaid = parser.activity.dag2().printRecDag2(null);
         result.add(mermaid);
 
       } else if (args[0].equals("seed")) {
         int seed = Integer.parseInt(args[1].toString());
-        Random.setGlobalSeedAndInitiateRandom(seed);
+        parser.activity.setSeed(seed);
         System.out.println("Seed=" + seed);
-        parser.activity.dag2(true);
-
       } else { //DEFAULT
         System.out.println("Unknown action: " + args[0]);
       }

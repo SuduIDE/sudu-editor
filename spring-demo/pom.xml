@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+<!--	<parent>-->
+<!--		<groupId>org.springframework.boot</groupId>-->
+<!--		<artifactId>spring-boot-starter-parent</artifactId>-->
+<!--		<version>3.2.1</version>-->
+<!--		<relativePath/> &lt;!&ndash; lookup parent from repository &ndash;&gt;-->
+<!--	</parent>-->
+
+	<parent>
+		<groupId>org.sudu</groupId>
+		<artifactId>root-pom</artifactId>
+		<version>1.0-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<groupId>org.sudu.experiments</groupId>
+	<artifactId>spring-demo</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<name>web-demo</name>
+	<description>Activity web demo</description>
+	<properties>
+		<java.version>21</java.version>
+		<spring.version>3.2.1</spring.version>
+		<start-class>org.sudu.experiments.webdemo.WebDemoApplication</start-class>
+		<slf4j.version>2.0.9</slf4j.version>
+	</properties>
+	<dependencies>
+
+		<dependency>
+			<groupId>org.sudu</groupId>
+			<artifactId>parser-activity</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<resources>
+<!--			<resource>-->
+<!--				<directory>../ai-demo-js/target/ai-demo-js-1.0-SNAPSHOT</directory>-->
+<!--				<excludes>-->
+<!--					<exclude>**/*.jar</exclude>-->
+<!--					<exclude>**/*.class</exclude>-->
+<!--					<exclude>**/*.TeaVMPlugin</exclude>-->
+<!--					<exclude>**/WEB-INF/*</exclude>-->
+<!--				</excludes>-->
+<!--				<targetPath>static</targetPath>-->
+<!--			</resource>-->
+			<resource>
+				<directory>../demo-edit-es-module/module/src</directory>
+				<includes>
+					<include>editor.js</include>
+					<include>worker.js</include>
+				</includes>
+				<targetPath>static/editor</targetPath>
+			</resource>
+			<resource>
+				<directory>${basedir}/src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/application*.yml</include>
+					<include>**/application*.yaml</include>
+					<include>**/application*.properties</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>${basedir}/src/main/resources</directory>
+				<excludes>
+					<exclude>**/application*.yml</exclude>
+					<exclude>**/application*.yaml</exclude>
+					<exclude>**/application*.properties</exclude>
+				</excludes>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>${spring.version}</version>
+			</plugin>
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<configuration>
+						<archive>
+							<manifest>
+								<mainClass>${start-class}</mainClass>
+								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							</manifest>
+						</archive>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<configuration>
+						<propertiesEncoding>${project.build.sourceEncoding}</propertiesEncoding>
+						<delimiters>
+							<delimiter>${resource.delimiter}</delimiter>
+						</delimiters>
+						<useDefaultDelimiters>false</useDefaultDelimiters>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-maven-plugin</artifactId>
+					<executions>
+						<execution>
+							<id>repackage</id>
+							<goals>
+								<goal>repackage</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<mainClass>${start-class}</mainClass>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<configuration>
+						<keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
+						<createDependencyReducedPom>true</createDependencyReducedPom>
+						<filters>
+							<filter>
+								<artifact>*:*</artifact>
+								<excludes>
+									<exclude>META-INF/*.SF</exclude>
+									<exclude>META-INF/*.DSA</exclude>
+									<exclude>META-INF/*.RSA</exclude>
+								</excludes>
+							</filter>
+						</filters>
+					</configuration>
+					<dependencies>
+						<dependency>
+							<groupId>org.springframework.boot</groupId>
+							<artifactId>spring-boot-maven-plugin</artifactId>
+							<version>3.2.1</version>
+						</dependency>
+					</dependencies>
+					<executions>
+						<execution>
+							<phase>package</phase>
+							<goals>
+								<goal>shade</goal>
+							</goals>
+							<configuration>
+								<transformers>
+									<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+										<resource>META-INF/spring.handlers</resource>
+									</transformer>
+									<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+										<resource>META-INF/spring.schemas</resource>
+									</transformer>
+									<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+										<resource>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</resource>
+									</transformer>
+									<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+										<resource>META-INF/spring/org.springframework.boot.actuate.autoconfigure.web.ManagementContextConfiguration.imports</resource>
+									</transformer>
+									<transformer implementation="org.springframework.boot.maven.PropertiesMergingResourceTransformer">
+										<resource>META-INF/spring.factories</resource>
+									</transformer>
+									<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+									<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+										<mainClass>${start-class}</mainClass>
+									</transformer>
+								</transformers>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+
+			</plugins>
+		</pluginManagement>
+	</build>
+
+</project>

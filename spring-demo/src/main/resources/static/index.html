@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Activity editor</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <style>
+        html, body {
+            background-color: #2b2b2b;
+        }
+
+        /*#editor { position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; }*/
+    </style>
+</head>
+
+<body>
+
+<script type="module" charset="utf-8" src="activity.js"></script>
+<!--<script type="module">-->
+<!--  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';-->
+<!--</script>-->
+
+<button id="drawDag">Draw DAGs</button>
+<button id="calcPaths">Calculate paths</button>
+
+<span style='margin-right:1.25em; display:inline-block;'>&nbsp;</span>
+<button id="randomSeed">Generate random seed</button> <input type="text" id="seedText" value="42" size="2" />
+
+
+<div  >
+    <div style="width: 49%; float:left">
+        <div id="editor" style="height: 50vh" >
+
+        </div>
+        <div id="paths" style="visibility: hidden">
+            <div style="padding-top: 1em">
+                <div style="color: orange;">
+                    All branches covered:
+                </div>
+                <div id="p0">
+                </div> 
+            </div>
+            <div style="padding-top: 1em">
+                <div style="color: orange;">
+                    Combination of <span style="color: aqua">two</span> adjacent branches covered:
+                </div>
+                <div id="p1">
+                </div>
+
+            </div>
+            <div style="padding-top: 1em">
+                <div style="color: orange;">
+                    Combination of <span style="color: aqua">three</span> adjacent branches covered:
+                </div>
+                <div id="p2">
+                </div>
+            </div>
+            <div style="padding-top: 1em">
+                <div style="color: orange;">
+                    <span style="color: aqua">All</span> adjacent combinations covered:
+                </div>
+                <div id="p3">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="width: 50%; float:right">
+      <pre style="float:left; width: 50%;height: 100%; white-space: pre;" class="mermaid" id="mermaidPane">
+      </pre>
+        <pre style="float:right; width: 50%;height: 100%; white-space: pre;" class="mermaid" id="mermaidPane2">
+      </pre>
+    </div>
+</div>
+
+
+</body>
+</html>

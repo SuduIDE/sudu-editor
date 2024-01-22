@@ -152,7 +152,6 @@ public class ActivityWalker extends ActivityParserBaseListener {
     } else {
       System.out.println("Illegal expr on top of expression stack: " + expr);
     }
-
   }
 
   @Override
@@ -193,7 +192,7 @@ public class ActivityWalker extends ActivityParserBaseListener {
 
       } else if (ctx.RANDOM() != null) {
         var count = ctx.INT() != null ? Integer.parseInt(ctx.INT().getText()) : 1;
-        stat = new Random(count);
+        stat = new Random(activity.rng, count);
       }
 
       else {
@@ -205,10 +204,7 @@ public class ActivityWalker extends ActivityParserBaseListener {
       statStack.add(stat);
       containerOfStatStack.add(stat.block());
     }
-
   }
-
-
 
   @Override
   public void exitStat(ActivityParser.StatContext ctx) {
@@ -218,8 +214,6 @@ public class ActivityWalker extends ActivityParserBaseListener {
       containerOfStatStack.removeLast();
     }
   }
-
-
 
   @Override
   public void visitTerminal(TerminalNode node) {

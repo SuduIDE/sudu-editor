@@ -4,7 +4,6 @@ import org.sudu.experiments.editor.Editor0;
 import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.Uri;
 import org.sudu.experiments.js.*;
-import org.teavm.jso.ajax.XMLHttpRequest;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.html.HTMLButtonElement;
 import org.teavm.jso.dom.html.HTMLElement;
@@ -117,19 +116,5 @@ public class AiDemoWebApp {
   static void onWebGlError() {
     JsHelper.addPreText(codeEditDiv,
         "FATAL: WebGL is not enabled in the browser");
-  }
-
-  static void fetch() {
-    XMLHttpRequest request = XMLHttpRequest.create();
-    request.open("GET", "https://github.com/");
-    request.setRequestHeader("Access-Control-Request-Headers", "access-control-allow-origin");
-    request.setRequestHeader("Access-Control-Allow-Origin", "*");
-    request.setOnReadyStateChange(() -> {
-      int readyState = request.getReadyState();
-      Debug.consoleInfo("request.getReadyState: " + readyState);
-      String headers = request.getAllResponseHeaders();
-      Debug.consoleInfo("getAllResponseHeaders: " + headers);
-    });
-    request.send();
   }
 }

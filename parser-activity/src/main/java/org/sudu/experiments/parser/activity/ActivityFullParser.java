@@ -10,7 +10,6 @@ import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.activity.gen.ActivityLexer;
 import org.sudu.experiments.parser.activity.gen.ActivityParser;
 import org.sudu.experiments.parser.activity.graph.stat.Activity;
-import org.sudu.experiments.parser.activity.graph.stat.Random;
 import org.sudu.experiments.parser.activity.walker.ActivityWalker;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.base.BaseFullParser;
@@ -23,10 +22,6 @@ import java.util.List;
 public class ActivityFullParser extends BaseFullParser<ActivityParser> {
 
   public Activity activity;
-
-  public ActivityFullParser() {
-    Random.setGlobalSeedAndInitiateRandom(Random.getGlobalSeed());
-  }
 
   @Override
   protected Lexer initLexer(CharStream stream) {
@@ -42,6 +37,24 @@ public class ActivityFullParser extends BaseFullParser<ActivityParser> {
 
   public List<Object> parseActivity(char[] source) {
     initLexer(source);
+    parseInternal();
+//    System.out.println("READ new ACTIVITY:>>\r\n" + activity);
+
+    var ret = new ArrayList<>();
+    ret.add(getInts(defaultIntervalNode()));
+    String mermaid1 = activity.toDag1();
+    String mermaid2 = activity.dag2().printRecDag2(null);
+    ret.add(mermaid1);
+    ret.add(mermaid2);
+    return ret;
+  }
+
+  public void parseActivityServer(String source) {
+    initLexer(source);
+    parseInternal();
+  }
+
+  private void parseInternal() {
     ActivityParser parser = initParser();
 
     var program = getStartRule(parser);
@@ -50,15 +63,6 @@ public class ActivityFullParser extends BaseFullParser<ActivityParser> {
     parseTreeWalker.walk(walker, program);
 
     activity = walker.getActivity();
-    System.out.println("READ new ACTIVITY:>>\r\n" + activity);
-
-    var ret = new ArrayList<>();
-    ret.add(getInts(defaultIntervalNode()));
-    String mermaid1 = activity.toDag1();
-    String mermaid2 = activity.dag2(false).printRecDag2(null);
-    ret.add(mermaid1);
-    ret.add(mermaid2);
-    return ret;
   }
 
   @Override
