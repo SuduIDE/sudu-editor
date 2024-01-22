@@ -71,24 +71,13 @@ public class LineNumbersTexture implements Disposable {
   }
 
   public void draw(
-      V2i dXdY, int componentHeight, int scrollPos, int fullTexturesSize,
+      V2i dXdY, int yPos, int scrollPos,
       EditorColorScheme colorScheme, byte[] colors, WglGraphics g
   ) {
     int height = textureSize.y;
-    int yPos = ((texturePos.y - (scrollPos % fullTexturesSize)) + fullTexturesSize) % fullTexturesSize;
     LineNumbersColors lineNumber = colorScheme.lineNumber;
     int baseColorInd = (scrollPos + yPos) / lineHeight;
-    if ((yPos + height) <= componentHeight) {
-      drawFullTexture(dXdY, colorScheme, colors, g, height, baseColorInd, lineNumber, yPos);
-    } else {
-      if (yPos + height > componentHeight && yPos < componentHeight) {
-        drawBottomPart(dXdY, componentHeight, colorScheme, colors, g, yPos, baseColorInd, lineNumber);
-      }
-      if (yPos + height > fullTexturesSize) {
-        drawTopPart(dXdY, componentHeight, scrollPos, fullTexturesSize,
-            colorScheme, colors, g, height, yPos, lineNumber);
-      }
-    }
+    drawFullTexture(dXdY, colorScheme, colors, g, height, baseColorInd, lineNumber, yPos);
   }
 
   private void drawTopPart(

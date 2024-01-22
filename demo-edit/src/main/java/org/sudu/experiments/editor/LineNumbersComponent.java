@@ -96,8 +96,10 @@ public class LineNumbersComponent implements Disposable {
       int scrollPos, int editorHeight,
       EditorColorScheme colorScheme, WglGraphics g
   ) {
-    for (var text : textures) {
-      text.draw(pos, editorHeight, scrollPos, textures.size() * textureHeight, colorScheme, colors, g);
+    int curTexture = scrollPos / textureHeight;
+    for (int texturePos = -(scrollPos % textureHeight); texturePos < editorHeight; texturePos += textureHeight) {
+      textures.get(curTexture % textures.size()).draw(pos, texturePos, scrollPos, colorScheme, colors, g);
+      curTexture++;
     }
   }
 
