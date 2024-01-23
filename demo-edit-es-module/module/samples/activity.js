@@ -29,7 +29,7 @@ const initialText = "activity {\n" +
     "}";
 
 //CDN
-// const path = "https://cdn.jsdelivr.net/npm/sudu-editor-tmp@0.0.9-beta9"
+// const path = "https://cdn.jsdelivr.net/npm/sudu-editor-tmp@0.0.9-beta12"
 
 //LOCAL
 const path = "../src/";
