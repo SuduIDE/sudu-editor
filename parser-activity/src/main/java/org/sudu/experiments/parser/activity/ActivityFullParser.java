@@ -24,6 +24,7 @@ public class ActivityFullParser extends BaseFullParser<ActivityParser> {
 
   public Activity activity;
   public String dag1, dag2;
+  private static final boolean printActivity = false;
 
   public ActivityFullParser() {
     Random.setGlobalSeedAndInitiateRandom(Random.getGlobalSeed());
@@ -51,7 +52,7 @@ public class ActivityFullParser extends BaseFullParser<ActivityParser> {
     parseTreeWalker.walk(walker, program);
 
     activity = walker.getActivity();
-    System.out.println("READ new ACTIVITY:>>\r\n" + activity);
+    if (printActivity) System.out.println("READ new ACTIVITY:>>\r\n" + activity);
 
     var ret = new ArrayList<>();
     dag1 = activity.toDag1();

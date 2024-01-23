@@ -16,7 +16,7 @@ public class ActivityParserTest {
 
   @Test
   void testIdActivity() {
-    var activityChars = readFile("id.activity").toCharArray();
+    var activityChars = readFile("parsing/id.activity").toCharArray();
     var parser = new ActivityFullParser();
     var result = parser.parseActivity(activityChars);
     var activity = parser.activity;
@@ -30,7 +30,7 @@ public class ActivityParserTest {
 
   @Test
   void testSelectActivity() {
-    var activityChars = readFile("select.activity").toCharArray();
+    var activityChars = readFile("parsing/select.activity").toCharArray();
     var parser = new ActivityFullParser();
     var result = parser.parseActivity(activityChars);
     var activity = parser.activity;
@@ -51,7 +51,7 @@ public class ActivityParserTest {
 
   @Test
   void testSelectWithConditionsActivity() {
-    var activityChars = readFile("selectWithConditions.activity").toCharArray();
+    var activityChars = readFile("parsing/selectWithConditions.activity").toCharArray();
     var parser = new ActivityFullParser();
     var result = parser.parseActivity(activityChars);
     var activity = parser.activity;
@@ -78,7 +78,7 @@ public class ActivityParserTest {
 
   @Test
   void testIfActivity() {
-    var activityChars = readFile("if.activity").toCharArray();
+    var activityChars = readFile("parsing/if.activity").toCharArray();
     var parser = new ActivityFullParser();
     var result = parser.parseActivity(activityChars);
     var activity = parser.activity;
@@ -102,7 +102,7 @@ public class ActivityParserTest {
 
   @Test
   void testRepeat() {
-    var activityChars = readFile("repeat.activity").toCharArray();
+    var activityChars = readFile("parsing/repeat.activity").toCharArray();
     var parser = new ActivityFullParser();
     var result = parser.parseActivity(activityChars);
     var activity = parser.activity;
@@ -124,7 +124,7 @@ public class ActivityParserTest {
 
   @Test
   void testSequence() {
-    var activityChars = readFile("sequence.activity").toCharArray();
+    var activityChars = readFile("parsing/sequence.activity").toCharArray();
     var parser = new ActivityFullParser();
     var result = parser.parseActivity(activityChars);
     var activity = parser.activity;
@@ -145,7 +145,7 @@ public class ActivityParserTest {
 
   @Test
   void testSchedule() {
-    var activityChars = readFile("schedule.activity").toCharArray();
+    var activityChars = readFile("parsing/schedule.activity").toCharArray();
     var parser = new ActivityFullParser();
     var result = parser.parseActivity(activityChars);
     var activity = parser.activity;
@@ -166,7 +166,7 @@ public class ActivityParserTest {
 
   @Test
   void testRandom() {
-    var activityChars = readFile("random.activity").toCharArray();
+    var activityChars = readFile("parsing/random.activity").toCharArray();
     var parser = new ActivityFullParser();
     var result = parser.parseActivity(activityChars);
     var activity = parser.activity;
@@ -188,10 +188,13 @@ public class ActivityParserTest {
 
   @Test
   void testParse() {
-    var activityChars = readFile("a.activity").toCharArray();
+    var activityChars = readFile("parsing/select.activity").toCharArray();
     var parser = new ActivityFullParser();
     var result = parser.parseActivity(activityChars);
     var activity = parser.activity;
+    System.out.println(result.get(1));
+    System.out.println("---//---");
+    System.out.println(result.get(2));
   }
 
   private void checkResultListNotEmpty(List<Object> result) {
