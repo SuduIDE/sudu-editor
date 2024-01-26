@@ -37,7 +37,6 @@ public class Model {
   int caretLine, caretCharPos, caretPos;
   CodeElement definition = null;
   final List<CodeElement> usages = new ArrayList<>();
-  final Map<String, String> properties = new HashMap<>();
   final List<V2i> parsedVps = new ArrayList<>();
 
   int fullFileParsed = ParseStatus.NOT_PARSED;
@@ -108,20 +107,10 @@ public class Model {
 
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
+    // todo: may be remove this from message ?
     int type = ((ArrayView) result[2]).ints()[0];
 
-    if (type == FileProxy.ACTIVITY_FILE) { //TODO hack to transfer special data, need to be refactored
-
-      String dag1 = new String(((ArrayView) result[3]).chars());
-      properties.put("mermaid", dag1);
-//      String dag2 = new String(((ArrayView) result[4]).chars());
-//      properties.put("mermaid2", dag2);
-
-//      System.out.println("dag1 = " + dag1);
-//      System.out.println("dag2 = " + dag2);
-
-      ParserUtils.updateDocument(document, ints, chars);
-    } else if (result.length >= 5) {
+    if (result.length >= 5) {
       int[] graphInts = ((ArrayView) result[3]).ints();
       char[] graphChars = ((ArrayView) result[4]).chars();
       ParserUtils.updateDocument(document, ints, chars, graphInts, graphChars, false);
@@ -284,7 +273,7 @@ public class Model {
         : EditorConst.FILE_SIZE_5_KB;
     int langType = Languages.getType(lang);
     if (isActivity) {
-      sendActivity(chars, langType);
+      sendFull(chars, langType);
     } else if (size <= bigFileSize) {
       sendFull(chars, langType);
     } else if (isJava) {
@@ -296,14 +285,6 @@ public class Model {
       sendFirstLines(copyOf(chars), langType);
       sendFull(chars, langType);
     }
-  }
-
-  private void sendActivity(char[] chars, int langType) {
-    executor.sendToWorker(
-        this::onFileParsed, WorkerJobExecutor.ACTIVITY_CHANNEL,
-        FileProxy.asyncParseFullFile, chars,
-        new int[]{langType});
-    fullFileParsed = ParseStatus.SENT;
   }
 
   private void sendFirstLines(char[] chars, int langType) {
@@ -335,11 +316,7 @@ public class Model {
     String parseJob = parseJobName(language());
     if (parseJob != null) {
       parsingTimeStart = System.currentTimeMillis();
-      if (parseJob.equals(ActivityProxy.PARSE_FULL_FILE))
-        executor.sendToWorker(this::onFileParsed,
-            WorkerJobExecutor.ACTIVITY_CHANNEL, parseJob, document.getChars());
-      else
-        executor.sendToWorker(this::onFileParsed, parseJob, document.getChars());
+      executor.sendToWorker(this::onFileParsed, parseJob, document.getChars());
     } else {
       editor.fireFullFileParsed();
     }

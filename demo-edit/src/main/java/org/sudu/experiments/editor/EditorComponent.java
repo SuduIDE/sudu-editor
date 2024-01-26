@@ -1530,10 +1530,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
 
   public Model model() { return model; }
 
-  public String getProperty(String key) {
-    return model.properties.get(key);
-  }
-
   public void setLanguage(String language) {
     model.setLanguage(language);
     model.parseFullFile();

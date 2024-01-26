@@ -62,26 +62,6 @@ interface TestJobs {
     return arg <= 2 ? 1 : fibonacci(arg - 1) + fibonacci(arg - 2);
   }
 
-  String storageSet = "storageSet";
-  String storageGet = "storageGet";
-
-  class LocalStorage { int iValue; }
-
-  ThreadLocal<LocalStorage> storage = new ThreadLocal<>() {
-    @Override
-    protected LocalStorage initialValue() {
-      return new LocalStorage();
-    }
-  };
-
-  static void storageSet(int[] arg) {
-    storage.get().iValue = arg[0];
-  }
-
-  static void storageGet(List<Object> result) {
-    result.add(new int[]{storage.get().iValue});
-  }
-
   String asyncWithFile = "asyncWithFile";
 
   static void asyncWithFile(FileHandle file, Consumer<Object[]> result) {

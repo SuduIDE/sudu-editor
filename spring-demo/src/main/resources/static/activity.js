@@ -207,6 +207,5 @@ function applySeed() {
     console.log("there is no session to apply seed");
     return;
   }
-  pathsButton.style.visibility = "hidden";
   getMermaid();
 }

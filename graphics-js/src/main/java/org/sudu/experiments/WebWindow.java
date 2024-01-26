@@ -214,11 +214,6 @@ public class WebWindow implements Window {
   }
 
   @Override
-  public void sendToWorker(Consumer<Object[]> handler, int ch, String method, Object... args) {
-    workers.sendToWorker(handler, ch, method, args);
-  }
-
-  @Override
   public void readClipboardText(Consumer<String> success, Consumer<Throwable> onError) {
     if (JsClipboard.hasClipboard()) {
       JsClipboard.get()

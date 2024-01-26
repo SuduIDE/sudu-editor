@@ -6,7 +6,6 @@ import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.win32.*;
-import org.sudu.experiments.worker.WorkerProxy;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -400,14 +399,7 @@ public class Win32Window implements WindowPeer, Window {
 
   @Override
   public void sendToWorker(Consumer<Object[]> handler, String method, Object... args) {
-    workers.bgWorker.execute(
-        WorkerProxy.job(workers.workerExecutor, method, args, handler, eventQueue));
-  }
-
-  @Override
-  public void sendToWorker(Consumer<Object[]> handler, int channel, String method, Object... args) {
-    workers.executeOnSingleThread(channel,
-        WorkerProxy.job(workers.workerExecutor, method, args, handler, eventQueue));
+    workers.sendToWorker(handler, method, args, eventQueue);
   }
 
   @Override

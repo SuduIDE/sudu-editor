@@ -22,7 +22,8 @@ public class ConsExpr implements IExpr {
     int checkPos(String[] ids, int from, int to) {
         outer: for (var i= from; i <= to - exprs.size(); i++) {
             for (var j = 0; j < exprs.size(); j++) {
-                if (!exprs.get(j).name().equals(ids[i+j]))
+                if (!exprs.get(j).
+                    name().equals(ids[i+j]))
                     continue outer;
             }
             return i + exprs.size();

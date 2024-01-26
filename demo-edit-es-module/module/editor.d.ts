@@ -194,10 +194,6 @@ interface ICodeEditor {
 
     getModel(): ITextModel,
 
-    getProperty(key: string): string
-
-    executeOnWorker(method:String, args: String[]) : Promise<String[]>
-
     registerDefinitionProvider(languageSelector: LanguageSelector, provider: IDefinitionProvider): IDisposable,
     registerDeclarationProvider(languageSelector: LanguageSelector, provider: IDeclarationProvider): IDisposable;
     registerReferenceProvider(languageSelector: LanguageSelector, provider: IReferenceProvider): IDisposable,

@@ -1,7 +1,5 @@
 package org.sudu.experiments.webdemo;
 
-import org.sudu.experiments.parser.activity.ActivitySession;
-
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;

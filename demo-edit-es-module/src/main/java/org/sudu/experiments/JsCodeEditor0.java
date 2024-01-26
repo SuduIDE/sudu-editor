@@ -115,11 +115,6 @@ public class JsCodeEditor0 implements JsCodeEditor {
   }
 
   @Override
-  public JSString getProperty(JSString key) {
-    return JSString.valueOf(editor.getProperty(key.stringValue()));
-  }
-
-  @Override
   public JsDisposable registerDefinitionProvider(JSObject languageSelector, JsDefinitionProvider provider) {
     var defProvider = new DefDeclProvider(
         LanguageSelectorUtils.toSelectors(languageSelector),
@@ -233,29 +228,6 @@ public class JsCodeEditor0 implements JsCodeEditor {
     }
   }
 
-  static String[] toStringArray(Object[] obj) {
-    var res = new String[obj.length];
-    for (int i = 0; i < obj.length; i++) {
-      res[i] = obj[i].toString();
-    }
-    return res;
-  }
-
-  @Override
-  public Promise<JsArrayReader<JSString>> executeOnWorker(JSString method, JsArrayReader<JSString> args) {
-    var method0 = method.stringValue();
-    var args0 = jsToJava(args);
-
-    return Promise.create((postResult, postError) -> {
-      Consumer<Object[]> consumer = (result) -> {
-        postResult.f(javaToJs(toStringArray(result)));
-      };
-      window.sendToWorker(consumer, WorkerJobExecutor.ACTIVITY_CHANNEL,
-          method0, (Object[]) args0);
-    });
-  }
-
-
   @Override
   public JsDisposable registerEditorOpener(JsCodeEditorOpener opener) {
     return JsDisposable.of(editor.registrations().openers.disposableAdd(
@@ -322,6 +294,4 @@ public class JsCodeEditor0 implements JsCodeEditor {
       return Promise.reject(FireFoxWarning.message);
     }
   }
-
-
 }

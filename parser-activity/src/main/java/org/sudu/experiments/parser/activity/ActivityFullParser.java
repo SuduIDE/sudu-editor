@@ -15,7 +15,6 @@ import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.base.BaseFullParser;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,23 +34,10 @@ public class ActivityFullParser extends BaseFullParser<ActivityParser> {
     return parser;
   }
 
-  public List<Object> parseActivity(char[] source) {
+  public int[] parseActivity(char[] source) {
     initLexer(source);
     parseInternal();
-//    System.out.println("READ new ACTIVITY:>>\r\n" + activity);
-
-    var ret = new ArrayList<>();
-    ret.add(getInts(defaultIntervalNode()));
-    String mermaid1 = activity.toDag1();
-    String mermaid2 = activity.dag2().printRecDag2(null);
-    ret.add(mermaid1);
-    ret.add(mermaid2);
-    return ret;
-  }
-
-  public void parseActivityServer(String source) {
-    initLexer(source);
-    parseInternal();
+    return getInts(defaultIntervalNode());
   }
 
   private void parseInternal() {

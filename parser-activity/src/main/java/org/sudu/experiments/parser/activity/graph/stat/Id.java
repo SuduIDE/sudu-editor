@@ -1,7 +1,6 @@
 package org.sudu.experiments.parser.activity.graph.stat;
 
 import org.sudu.experiments.parser.activity.graph.BaseStat;
-import org.sudu.experiments.parser.activity.graph.Dag2Part;
 import org.sudu.experiments.parser.activity.graph.IExpr;
 
 public class Id extends BaseStat implements IExpr {
@@ -11,28 +10,12 @@ public class Id extends BaseStat implements IExpr {
         this.name = name;
     }
 
-    @Override
-    public void print(StringBuilder acc, int indent) {
-        acc.append(" ".repeat(indent));
-        acc.append(name);
-    }
-
-    @Override
+  @Override
     public String name() {
         return name;
     }
 
-    @Override
-    public String toDag1() {
-        return getMermaidNodeId()+"("+name+")";
-    }
-
-    @Override
-    public Dag2Part toDag2Part() {
-        return Dag2Part.singleExit(new Id(name));
-    }
-
-    @Override
+  @Override
     public String toString() {
         return name;
     }

@@ -31,25 +31,24 @@ import java.util.List;
 import java.util.Map;
 
 public class ActivityWalker extends ActivityParserBaseListener {
-  private final int[] tokenTypes;
-  private final int[] tokenStyles;
-  private Map<Pos, Pos> usageToDef;
-  private Map<String, Pos> def = new HashMap<>();
-
-  public Activity getActivity() {
-    return activity;
-  }
+  final int[] tokenTypes;
+  final int[] tokenStyles;
+  final Map<Pos, Pos> usageToDef;
+  final Map<String, Pos> def = new HashMap<>();
+  final LinkedList<IStat> statStack = new LinkedList<>();
+  final LinkedList<List<IStat>> containerOfStatStack = new LinkedList<>();
+  final LinkedList<IExpr> exprStack = new LinkedList<>();
 
   private Activity activity;
-  private LinkedList<IStat> statStack = new LinkedList<>();
-  private LinkedList<List<IStat>> containerOfStatStack = new LinkedList<>();
-
-  private LinkedList<IExpr> exprStack = new LinkedList<>();
 
   public ActivityWalker(int[] tokenTypes, int[] tokenStyles, Map<Pos, Pos> usageToDef) {
     this.tokenTypes = tokenTypes;
     this.tokenStyles = tokenStyles;
     this.usageToDef = usageToDef;
+  }
+
+  public Activity getActivity() {
+    return activity;
   }
 
   @Override
@@ -192,7 +191,7 @@ public class ActivityWalker extends ActivityParserBaseListener {
 
       } else if (ctx.RANDOM() != null) {
         var count = ctx.INT() != null ? Integer.parseInt(ctx.INT().getText()) : 1;
-        stat = new Random(activity.rng, count);
+        stat = new Random(count);
       }
 
       else {
