@@ -7,6 +7,7 @@ import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.*;
+import org.sudu.experiments.parser.ParserConstants;
 
 import java.util.Arrays;
 import java.util.List;
@@ -215,7 +216,9 @@ public class CodeLineRenderer implements Disposable {
         );
       }
 
-      int underlineIndex = e.underlineIndex();
+      int underlineIndex =
+          e.color == ParserConstants.TokenTypes.ERROR
+              ? 1 : e.underlineIndex();
 
       if (underlineIndex > 0) {
         drawUnderline(xPos+ dx, yPosition, g, drawWidth, underlineIndex);
