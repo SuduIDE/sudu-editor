@@ -6,7 +6,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.ErrorHighlightingStrategy;
-import org.sudu.experiments.parser.ParserConstants;
+import org.sudu.experiments.parser.Utils;
 import org.sudu.experiments.parser.activity.gen.ActivityLexer;
 import org.sudu.experiments.parser.activity.gen.ActivityParser;
 import org.sudu.experiments.parser.activity.graph.stat.Activity;
@@ -30,7 +30,7 @@ public class ActivityFullParser extends BaseFullParser<ActivityParser> {
   @Override
   protected ActivityParser initParser() {
     ActivityParser parser = new ActivityParser(tokenStream);
-    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes));
+    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes, tokenStyles));
     return parser;
   }
 
@@ -70,9 +70,8 @@ public class ActivityFullParser extends BaseFullParser<ActivityParser> {
   @Override
   protected void highlightTokens() {
     for (var token: allTokens) {
-      if (token.getType() == ActivityLexer.ERROR) {
-        tokenTypes[token.getTokenIndex()] = ParserConstants.TokenTypes.ERROR;
-      }
+      if (token.getType() == ActivityLexer.ERROR)
+        Utils.markError(tokenTypes, tokenStyles, token.getTokenIndex());
     }
   }
 

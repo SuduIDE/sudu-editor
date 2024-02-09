@@ -1,5 +1,7 @@
 package org.sudu.experiments.editor;
 
+import org.sudu.experiments.parser.ParserConstants;
+
 public class CodeElement {
   public String s;
 
@@ -35,6 +37,10 @@ public class CodeElement {
 
   final int setUnderlineIndex(int ul) {
     return (style & 0b11) + (ul << 2);
+  }
+
+  boolean isError() {
+    return color == ParserConstants.TokenTypes.ERROR || underlineIndex() > 0;
   }
 
   public CodeElement(String s, int color, boolean bold, boolean italic) {

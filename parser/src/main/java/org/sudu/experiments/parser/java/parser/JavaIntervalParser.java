@@ -47,7 +47,7 @@ public class JavaIntervalParser extends BaseIntervalParser<JavaParser> {
 
   @Override
   protected void highlightTokens() {
-    JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes);
+    JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes, tokenStyles);
   }
 
   @Override

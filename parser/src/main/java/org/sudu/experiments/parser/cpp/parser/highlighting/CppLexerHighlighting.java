@@ -1,6 +1,7 @@
 package org.sudu.experiments.parser.cpp.parser.highlighting;
 
 import org.antlr.v4.runtime.Token;
+import org.sudu.experiments.parser.Utils;
 import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
 
 import java.util.List;
@@ -9,7 +10,7 @@ import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
 
 public class CppLexerHighlighting {
 
-  public static void highlightTokens(List<Token> allTokens, int[] tokenTypes) {
+  public static void highlightTokens(List<Token> allTokens, int[] tokenTypes, int[] tokenStyles) {
     for (var token : allTokens) {
       int ind = token.getTokenIndex();
       int type = token.getType();
@@ -22,7 +23,7 @@ public class CppLexerHighlighting {
       else if (isComment(token.getType())) tokenTypes[ind] = COMMENT;
       else if (isDirective(token.getType())) tokenTypes[ind] = ANNOTATION;
       else if (isOperator(token.getType())) tokenTypes[ind] = OPERATOR;
-      else if (isError(token.getType()) || token.getType() == -1) tokenTypes[ind] = ERROR;
+      else if (isError(token.getType()) || token.getType() == -1) Utils.markError(tokenTypes, tokenStyles, ind);
     }
   }
 

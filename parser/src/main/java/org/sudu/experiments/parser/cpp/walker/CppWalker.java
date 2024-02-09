@@ -1,6 +1,7 @@
 package org.sudu.experiments.parser.cpp.walker;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.sudu.experiments.parser.Utils;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.common.Decl;
 import org.sudu.experiments.parser.common.TypedDecl;
@@ -206,7 +207,7 @@ public class CppWalker extends CPP14ParserBaseListener {
     Pos usagePos = Pos.fromNode(node);
     if (hasThis(node)) {
       boolean marked = markField(tokenInd, name, usagePos) || markMethod(tokenInd, name, usagePos);
-      if (!marked) tokenTypes[tokenInd] = ERROR;
+      if (!marked) Utils.markError(tokenTypes, tokenStyles, tokenInd);
       return;
     }
     if (markLocalVar(name, usagePos)) return;

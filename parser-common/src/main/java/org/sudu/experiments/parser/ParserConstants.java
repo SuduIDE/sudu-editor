@@ -22,11 +22,11 @@ public interface ParserConstants {
   }
 
   interface TokenStyles {
-    int NORMAL = 0;
-    int ITALIC = 1;
-    int BOLD = 2;
-    int ITALIC_BOLD = 3;
-    int ERROR = 4;
+    int NORMAL = 0;       // 0000
+    int ITALIC = 1;       // 0001
+    int BOLD = 2;         // 0010
+    int ITALIC_BOLD = 3;  // 0011
+    int ERROR = 4;        // 0100
     static int error(int style) {
       return style | ERROR;
     }

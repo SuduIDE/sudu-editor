@@ -55,7 +55,7 @@ public class CppIntervalParser extends BaseIntervalParser<CPP14Parser> {
 
   @Override
   protected void highlightTokens() {
-    CppLexerHighlighting.highlightTokens(allTokens, tokenTypes);
+    CppLexerHighlighting.highlightTokens(allTokens, tokenTypes, tokenStyles);
   }
 
   public static boolean isDirective(int tokenType) {

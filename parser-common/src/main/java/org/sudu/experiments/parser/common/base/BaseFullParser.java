@@ -22,7 +22,7 @@ public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> {
 
     initLexer(source);
     var parser = initParser();
-    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes));
+    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes, tokenStyles));
     parser.removeErrorListeners();
     parser.addErrorListener(parserRecognitionListener);
 

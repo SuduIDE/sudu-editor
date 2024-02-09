@@ -94,7 +94,7 @@ public class Document extends CodeLines {
     for (int i = 0; i < oldLine.length(); i++) {
       CodeElement oldElem = oldLine.elements[i];
       CodeElement newElem = newLine.elements[i];
-      if (oldElem.color == ParserConstants.TokenTypes.ERROR) continue;
+      if (oldElem.isError()) continue;
       if (oldElem.color != ParserConstants.TokenTypes.DEFAULT &&
           newElem.color == ParserConstants.TokenTypes.DEFAULT) {
         newElem.color = oldElem.color;
