@@ -148,6 +148,7 @@ public class WindowManager implements MouseListener, DprChangeListener {
   }
 
   public void dispose() {
+    setPopupMenu(null);
     for (int i = 0; i < windows.size(); i++) {
       windows.get(i).dispose();
     }

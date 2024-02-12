@@ -26,22 +26,14 @@ public class WindowDemo extends WindowScene implements DprChangeListener {
 
   static final int titleMargin = 3;
 
-  private final PopupMenu popupMenu;
-
   private Window window1, window2;
 
   public WindowDemo(SceneApi api) {
     super(api);
     uiContext.dprListeners.add(this);
     clearColor.set(new Color(43));
-
-    popupMenu = new PopupMenu(uiContext);
-    popupMenu.setTheme(Themes.darculaColorScheme(),
-        new UiFont("Consolas", 25));
-
     api.input.onKeyPress.add(this::onKey);
     api.input.onContextMenu.add(this::onContextMenu);
-    api.input.onMouse.add(TestHelper.popupMouseListener(popupMenu));
   }
 
   @Override
@@ -49,22 +41,12 @@ public class WindowDemo extends WindowScene implements DprChangeListener {
     if (oldDpr == 0) openWindows();
   }
 
-  @Override
-  public void dispose() {
-    super.dispose();
-    popupMenu.dispose();
-  }
-
-  @Override
-  public void paint() {
-    super.paint();
-    popupMenu.paint();
-  }
-
   private boolean onContextMenu(MouseEvent event) {
-    if (!popupMenu.isVisible()) {
-      popupMenu.display(event.position, items(), emptyRunnable);
-    }
+    var popupMenu = new PopupMenu(uiContext);
+    popupMenu.setTheme(Themes.darculaColorScheme(),
+        new UiFont("Consolas", 25));
+    windowManager.setPopupMenu(popupMenu);
+    popupMenu.display(event.position, items(), emptyRunnable);
     return true;
   }
 
