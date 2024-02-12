@@ -13,20 +13,20 @@ import org.sudu.experiments.math.V2i;
 
 import java.util.Objects;
 
-public class Editor0 extends Scene1 implements EditorTheme, EditorUi.CleartypeControl {
+public class Editor0 extends WindowScene implements EditorTheme, EditorUi.CleartypeControl {
 
   final EditorComponent editor;
   final EditorUi ui;
 
   public Editor0(SceneApi api) {
-    super(api);
+    super(api, false);
 
-    ui = new EditorUi(uiContext);
+    ui = new EditorUi(windowManager);
     editor = new EditorComponent(uiContext, ui);
     uiContext.initFocus(editor);
 
     api.input.onMouse.add(ui);
-    api.input.onScroll.add(ui);
+
     api.input.onMouse.add(editor);
 
     api.input.onKeyPress.add(this::onKeyPress);
@@ -43,6 +43,7 @@ public class Editor0 extends Scene1 implements EditorTheme, EditorUi.CleartypeCo
   @Override
   public void enableCleartype(boolean en) {
     if (uiContext.enableCleartype(en)) {
+      windowManager.onTextRenderingSettingsChange();
       ui.onTextRenderingSettingsChange();
       editor.enableCleartype(en);
     }
@@ -69,8 +70,9 @@ public class Editor0 extends Scene1 implements EditorTheme, EditorUi.CleartypeCo
 
   @Override
   public void paint() {
-    super.paint();
+    clear();
     editor.paint();
+    windowManager.draw(api.graphics);
     ui.paint();
   }
 
@@ -83,7 +85,7 @@ public class Editor0 extends Scene1 implements EditorTheme, EditorUi.CleartypeCo
   }
 
   protected void layout(V2i newSize, float dpr) {
-    editor.setPos(new V2i(), newSize, dpr);
+    editor.setPosition(editor.pos, newSize, dpr);
   }
 
   public void applyTheme(EditorColorScheme theme) {

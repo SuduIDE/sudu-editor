@@ -25,7 +25,7 @@ public class Editor1 extends Editor0 {
     if (fullscreen) {
       super.layout(newSize, dpr);
     } else {
-      editor.setPos(
+      editor.setPosition(
           new V2i(newSize.x / 10, newSize.y / 10),
           new V2i(newSize.x * 8 / 10, newSize.y * 8 / 10),
           dpr);

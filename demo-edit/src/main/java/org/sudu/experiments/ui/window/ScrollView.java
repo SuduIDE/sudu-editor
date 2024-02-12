@@ -6,11 +6,13 @@ import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.ScrollBar;
 import org.sudu.experiments.ui.SetCursor;
 import org.sudu.experiments.ui.UiContext;
 
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class ScrollView extends View {
 
@@ -20,8 +22,9 @@ public class ScrollView extends View {
 
   private ScrollContent content;
   private ScrollBar vScroll, hScroll;
+  private Runnable hListener, vListener;
   private float scrollWidth = 10;
-  private Color scrollBarLineToSet, scrollBarBgToSet;
+  private V4f sbLineColor, sbBackColor;
 
   public ScrollView(UiContext uiContext) {
     this(new ScrollContent(), uiContext.windowCursor);
@@ -43,30 +46,37 @@ public class ScrollView extends View {
     content = Disposable.assign(content, null);
   }
 
-  public void setContent(ScrollContent content) {
-    this.content = Disposable.assign(this.content, content);
-    content.setScrollView(this);
-    this.content.setPosition(pos, size, dpr);
+  public void setContent(ScrollContent newContent) {
+    if (content == newContent) return;
+    content.setScrollView(null);
+    content = Disposable.assign(content, newContent);
+    newContent.setScrollView(this);
+    newContent.setPosition(pos, size, dpr);
     if (dpr != 0) {
-      updateVirtualSize();
+      layoutScroll();
     }
   }
 
   public void setScrollColor(Color scrollBarLine, Color scrollBarBg) {
-    this.scrollBarLineToSet = scrollBarLine;
-    this.scrollBarBgToSet = scrollBarBg;
-    if (vScroll != null) vScroll.setColor(scrollBarLine, scrollBarBg);
-    if (hScroll != null) hScroll.setColor(scrollBarLine, scrollBarBg);
+    sbBackColor = scrollBarBg;
+    sbLineColor = scrollBarLine;
+    if (vScroll != null) vScroll.setColor(sbLineColor, sbBackColor);
+    if (hScroll != null) hScroll.setColor(sbLineColor, sbBackColor);
   }
 
   public ScrollContent content() {
     return content;
   }
 
-  protected void setPosition(V2i newPos, V2i newSize, float newDpr) {
+  public void setPosition(V2i newPos, V2i newSize, float newDpr) {
     super.setPosition(newPos, newSize, newDpr);
     content.setPosition(newPos, newSize, newDpr);
-    if (newDpr != 0) updateVirtualSize();
+    if (newDpr != 0) layoutScroll();
+  }
+
+  public void setListeners(Runnable hsListener, Runnable vsListener) {
+    hListener = hsListener;
+    vListener = vsListener;
   }
 
   public void setScrollWidth(float scrollWidth) {
@@ -74,13 +84,11 @@ public class ScrollView extends View {
   }
 
   public void setScrollPos(int x, int y) {
-    content.setScrollPos(x, y);
-    if (needHScroll()) layoutHScroll();
-    if (needVScroll()) layoutVScroll();
+    setScrollPosX(x);
+    setScrollPosY(y);
   }
 
-  private void updateVirtualSize() {
-    content.updateVirtualSize();
+  protected void layoutScroll() {
     content.limitScrollPos();
 
     if (needHScroll()) layoutHScroll();
@@ -115,26 +123,26 @@ public class ScrollView extends View {
   }
 
   private int scrollWidthPx() {
-    return DprUtil.toPx(scrollWidth, dpr);
+    return toPx(scrollWidth);
   }
 
   private ScrollBar ensureHScroll() {
     hScroll = (hScroll != null) ? hScroll : new ScrollBar();
-    ensureColor(hScroll);
+    setScrollColor(hScroll);
     return hScroll;
   }
 
   private ScrollBar ensureVScroll() {
     vScroll = (vScroll != null) ? vScroll : new ScrollBar();
-    ensureColor(vScroll);
+    setScrollColor(vScroll);
     return vScroll;
   }
 
-  private void ensureColor(ScrollBar scrollBar) {
-    scrollBar.setColorIfNotSame(scrollBarLineToSet, scrollBarBgToSet);
+  private void setScrollColor(ScrollBar scrollBar) {
+    scrollBar.setColor(sbLineColor, sbBackColor);
   }
 
-  protected void draw(WglGraphics graphics) {
+  public void draw(WglGraphics graphics) {
     content.draw(graphics);
     if (vScroll != null || hScroll != null) {
       graphics.enableBlend(true);
@@ -156,16 +164,38 @@ public class ScrollView extends View {
         || content.onMouseClick(event, button, clickCount);
   }
 
+  public void setScrollPosX(int hScrollPos) {
+    if (setHScrollPosSilent(hScrollPos) && hListener != null) {
+      hListener.run();
+    }
+  }
+
+  public void setScrollPosY(int vScrollPos) {
+    if (setVScrollPosSilent(vScrollPos) && vListener != null) {
+      vListener.run();
+    }
+  }
+
+  public boolean setHScrollPosSilent(int hScrollPos) {
+    boolean set = content.setScrollPosX(hScrollPos);
+    if (needHScroll()) layoutHScroll();
+    return set;
+  }
+
+  public boolean setVScrollPosSilent(int vScrollPos) {
+    boolean set = content.setScrollPosY(vScrollPos);
+    if (needVScroll()) layoutVScroll();
+    return set;
+  }
+
   private void onMoveScrollV(ScrollBar.Event event) {
     int vScrollPos = event.getPosition(content.virtualSize.y - size.y);
-    content.setScrollPosY(vScrollPos);
-    layoutVScroll();
+    setScrollPosY(vScrollPos);
   }
 
   private void onMoveScrollH(ScrollBar.Event event) {
     int hScrollPos = event.getPosition(content.virtualSize.x - size.x);
-    content.setScrollPosX(hScrollPos);
-    layoutHScroll();
+    setScrollPosX(hScrollPos);
   }
 
   protected Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
@@ -205,13 +235,11 @@ public class ScrollView extends View {
     }
 
     if (vScroll != null && changeY != 0) {
-      content.setScrollPosY(content.scrollPos.y + changeY);
-      layoutVScroll();
+      setScrollPosY(content.scrollPos.y + changeY);
     }
 
     if (hScroll != null && changeX != 0) {
-      content.setScrollPosX(content.scrollPos.x + changeX);
-      layoutHScroll();
+      setScrollPosX(content.scrollPos.x + changeX);
     }
 
     return true;

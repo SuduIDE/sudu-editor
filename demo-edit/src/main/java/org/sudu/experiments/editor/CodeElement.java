@@ -30,7 +30,11 @@ public class CodeElement {
   }
 
   final int underlineIndex() {
-    return style & 0b1100;
+    return (style & 0b1100) >> 2;
+  }
+
+  final int setUnderlineIndex(int ul) {
+    return (style & 0b11) + (ul << 2);
   }
 
   public CodeElement(String s, int color, boolean bold, boolean italic) {
@@ -41,11 +45,13 @@ public class CodeElement {
     return (bold ? 2 : 0) + (italic ? 1 : 0);
   }
 
-  public static boolean bold(int style) {
+  public boolean bold() {
     return (style & 2) != 0;
   }
 
-  public static boolean italic(int style) {
+  public void setBold(boolean b) { if (b) style |= 2; else style &= ~2; }
+
+  public boolean italic() {
     return (style & 1) != 0;
   }
 
@@ -62,8 +68,8 @@ public class CodeElement {
 
   public String toString() {
     StringBuilder b = new StringBuilder(s);
-    boolean bold = bold(style);
-    boolean italic = italic(style);
+    boolean bold = bold();
+    boolean italic = italic();
     if (bold || italic) b.append(" -");
     if (bold) b.append(" bold");
     if (italic) b.append(" italic");

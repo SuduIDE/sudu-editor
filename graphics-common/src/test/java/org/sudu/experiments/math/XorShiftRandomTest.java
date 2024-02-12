@@ -22,6 +22,23 @@ class XorShiftRandomTest {
   }
 
   @Test @Disabled
+  void testPoissonNumber() {
+    XorShiftRandom rrr = new XorShiftRandom((int) (Math.random() * 0x1000000), 0);
+
+    iterPoisson(rrr, 1);
+    iterPoisson(rrr, 17);
+  }
+
+  private static void iterPoisson(XorShiftRandom rrr, double frequency) {
+    int sum = 0, N = 1_000_000;
+    for (int i = 0; i < N; i++) {
+      sum += rrr.poissonNumber(frequency);
+    }
+    System.out.println("frequency = " + frequency);
+    System.out.println("sum/N = " + (double)sum / N);
+  }
+
+  @Test @Disabled
   void testSh() {
     Integer[] base = new Integer[20];
     for (int i = 0; i < base.length; i++) {

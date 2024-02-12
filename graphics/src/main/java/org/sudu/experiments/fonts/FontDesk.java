@@ -20,7 +20,7 @@ public class FontDesk {
   public final String name;
   public final String sStyle;
   public final float size;
-  public final int iSize;
+
   public final int weight;
   public final int style;
 
@@ -32,7 +32,6 @@ public class FontDesk {
 
   public final Object platformFont;
 
-  // todo: move platformFont to subclass to avoid TeaVM JS Wrappers logic
   public FontDesk(
       String name, float size, int weight, int style,
       float ascent, float descent,
@@ -41,7 +40,6 @@ public class FontDesk {
   ) {
     this.name = name;
     this.size = size;
-    this.iSize = iSize(size);
     this.weight = weight;
     this.style = style;
     this.fAscent = ascent;
@@ -100,14 +98,6 @@ public class FontDesk {
     return lineHeight();
 //    int caretOffer = lineHeight();
 //    return lineHeight - (lineHeight / 2 - caretOffer / 2) * 2;
-  }
-
-  static int iSize(float size) {
-    int iSize = (int)size;
-    if (iSize != size) {
-      Debug.consoleInfo("FontDesk::FontDesk iSize != size: " + size);
-    }
-    return iSize;
   }
 
   static boolean monospace(float spaceWidth, float WWidth, float dotWidth) {

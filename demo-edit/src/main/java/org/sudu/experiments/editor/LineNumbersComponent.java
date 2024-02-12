@@ -22,6 +22,7 @@ public class LineNumbersComponent implements Disposable {
   private double devicePR;
 
   private FontDesk fontDesk;
+  private boolean cleartype;
   private int lineHeight;
   private int textureHeight;
 
@@ -32,7 +33,7 @@ public class LineNumbersComponent implements Disposable {
 
   private int curFirstLine;
 
-  public void update(int firstLine) {
+  public void update(int firstLine, WglGraphics g) {
     if (firstLine == curFirstLine) return;
 
     int numOfTextures = textures.size();
@@ -52,6 +53,7 @@ public class LineNumbersComponent implements Disposable {
       updateToFirstLine(firstLine);
       curFirstLine = firstLine;
     } else {
+      ensureCanvas(g);
       if (curFirstLine < firstLine) {
         for (int i = startTextureUpdate; i <= endTextureUpdate; i++) {
           LineNumbersTexture texture = textures.get(i % numOfTextures);
@@ -82,7 +84,7 @@ public class LineNumbersComponent implements Disposable {
   ) {
     g.enableScissor(pos, size);
     initTextures(g, firstLine, editorHeight);
-    update(firstLine);
+    update(firstLine, g);
     draw(scrollPos, textHeight, colors, g);
     drawBottom(textHeight, editorHeight, colors.lineNumber, g);
 
@@ -146,6 +148,7 @@ public class LineNumbersComponent implements Disposable {
     }
     int newSize = textures.size();
     if (newSize == oldSize) return;
+    ensureCanvas(g);
     updateToFirstLine(firstLine);
   }
 
@@ -159,28 +162,35 @@ public class LineNumbersComponent implements Disposable {
     }
   }
 
-  public void setFont(FontDesk font, int lineHeight, boolean cleartype, WglGraphics g) {
+  public void setFont(FontDesk font, int lineHeight, boolean cleartype) {
     this.fontDesk = font;
     this.lineHeight = lineHeight;
     this.textureHeight = lineHeight * numberOfLines;
+    this.cleartype = cleartype;
+    disposeCanvas();
+  }
 
-    textureCanvas = Disposable.assign(
-        textureCanvas, g.createCanvas(size.x, textureHeight, cleartype)
-    );
-    textureCanvas.setFont(fontDesk);
-    textureCanvas.setTextAlign(Canvas.TextAlign.RIGHT);
-
-    updateCanvas = Disposable.assign(
-        updateCanvas, g.createCanvas(size.x, lineHeight, cleartype)
-    );
-    updateCanvas.setFont(fontDesk);
-    updateCanvas.setTextAlign(Canvas.TextAlign.RIGHT);
+  private void ensureCanvas(WglGraphics g) {
+    if (textureCanvas == null || textureCanvas.cleartype != cleartype) {
+      textureCanvas = g.createCanvas(size.x, textureHeight, cleartype);
+      textureCanvas.setFont(fontDesk);
+      textureCanvas.setTextAlign(Canvas.TextAlign.RIGHT);
+    }
+    if (updateCanvas == null || updateCanvas.cleartype != cleartype) {
+      updateCanvas = g.createCanvas(size.x, lineHeight, cleartype);
+      updateCanvas.setFont(fontDesk);
+      updateCanvas.setTextAlign(Canvas.TextAlign.RIGHT);
+    }
   }
 
   @Override
   public void dispose() {
     textures.forEach(LineNumbersTexture::dispose);
     textures.clear();
+    disposeCanvas();
+  }
+
+  private void disposeCanvas() {
     textureCanvas = Disposable.assign(textureCanvas, null);
     updateCanvas = Disposable.assign(updateCanvas, null);
   }

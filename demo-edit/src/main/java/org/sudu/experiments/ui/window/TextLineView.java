@@ -46,11 +46,14 @@ public class TextLineView extends View {
     this.measured = 0;
   }
 
-  public int computeAndSetHeight() {
+  public int computeHeight() {
     requireFont();
     int margin = context.toPx(this.margin);
-    setHeight(font.lineHeight() + margin * 2);
+    return font.lineHeight() + margin * 2;
+  }
 
+  public int computeAndSetHeight() {
+    setHeight(computeHeight());
     return size.y;
   }
 
@@ -145,5 +148,6 @@ public class TextLineView extends View {
   @Override
   public void dispose() {
     texture = Disposable.assign(texture, null);
+    font = null;
   }
 }

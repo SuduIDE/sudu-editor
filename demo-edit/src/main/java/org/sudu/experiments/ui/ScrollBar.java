@@ -12,8 +12,8 @@ public class ScrollBar {
   final V2i buttonSize = new V2i();
   final V2i bgPos = new V2i();
   final V2i bgSize = new V2i();
-  final V4f color1 = new V4f();
-  final V4f color2 = new V4f();
+  public final V4f cBack = new V4f();
+  public final V4f cLine = new V4f();
 
   public ScrollBar() {
   }
@@ -50,20 +50,17 @@ public class ScrollBar {
     return null;
   }
 
-  public void setColor(V4f scrollBarLine, V4f scrollBarBg) {
-    if (scrollBarLine == null || scrollBarBg == null) return;
-    color1.set(scrollBarBg);
-    color2.set(scrollBarLine);
-  }
-
-  private boolean isColorSame(V4f scrollBarLine, V4f scrollBarBg) {
-    if (scrollBarLine == null || scrollBarBg == null) return false;
-    return color1.equals(scrollBarLine) && color2.equals(scrollBarBg);
+  public void setColor(V4f line, V4f back) {
+    if (back != null) cBack.set(back);
+    if (line != null) cLine.set(line);
   }
 
   public void setColorIfNotSame(V4f scrollBarLine, V4f scrollBarBg) {
-    if (!isColorSame(scrollBarLine, scrollBarBg)) {
-      setColor(scrollBarLine, scrollBarBg);
+    if (scrollBarLine != null && !cBack.equals(scrollBarLine)) {
+      cBack.set(scrollBarLine);
+    }
+    if (scrollBarBg != null && !cLine.equals(scrollBarBg)) {
+      cLine.set(scrollBarBg);
     }
   }
 
@@ -174,12 +171,12 @@ public class ScrollBar {
   }
 
   public void drawBg(WglGraphics g) {
-    g.drawRect(bgPos.x, bgPos.y, bgSize, color1);
+    g.drawRect(bgPos.x, bgPos.y, bgSize, cBack);
   }
 
   public void drawButton(WglGraphics g) {
     buttonSize.x -= 2; buttonSize.y -= 2;
-    g.drawRect(buttonPos.x + 1, buttonPos.y + 1, buttonSize, color2);
+    g.drawRect(buttonPos.x + 1, buttonPos.y + 1, buttonSize, cLine);
     buttonSize.x += 2; buttonSize.y += 2;
   }
 

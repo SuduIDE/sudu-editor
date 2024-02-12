@@ -5,7 +5,6 @@ import org.sudu.experiments.diff.LineDiff;
 public class DiffInfo {
 
   public LineDiff[] lineDiffsL;
-
   public LineDiff[] lineDiffsR;
   public DiffRange[] ranges;
 
@@ -29,7 +28,7 @@ public class DiffInfo {
       int midFrom = isL ? midRange.fromL : midRange.fromR;
       int midLen = isL ? midRange.lenL : midRange.lenR;
 
-      if (midFrom <= midLen && midLen < midFrom + midLen) return mid;
+      if (midFrom <= lineKey && lineKey < midFrom + midLen) return mid;
       if (midFrom < lineKey) low = mid + 1;
       else if (midFrom > lineKey) high = mid - 1;
       else return mid;

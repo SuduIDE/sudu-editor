@@ -21,6 +21,10 @@ public abstract class Scene1 extends Scene {
 
   @Override
   public void paint() {
+    clear();
+  }
+
+  protected void clear() {
     api.graphics.clear(clearColor);
   }
 

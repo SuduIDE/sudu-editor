@@ -112,7 +112,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   }
 
   @Override
-  protected void draw(WglGraphics g) {
+  public void draw(WglGraphics g) {
     Canvas mCanvas = context.mCanvas();
     if (isEmpty()) return;
     requireFont();
@@ -245,8 +245,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     rect.pos.set(newPos);
   }
 
-  @Override
-  protected void updateVirtualSize() {
+  private void computeVirtualSize() {
     requireFont();
     int height = getLineHeight() * items.length + spacing * (items.length + 1);
     virtualSize.set(size.x, height);
@@ -263,7 +262,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   public V2i calculateSize(V2i position) {
     measure();
-    updateVirtualSize();
+    computeVirtualSize();
     int width = maxFileNameLen + maxLineLen + maxCodeContentLen;
     int oX = context.windowSize.x - position.x - context.toPx(5);
     int oY = context.windowSize.y - position.y - context.toPx(5);

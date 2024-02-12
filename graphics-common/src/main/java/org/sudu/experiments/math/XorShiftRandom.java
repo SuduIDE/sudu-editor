@@ -16,7 +16,7 @@ public class XorShiftRandom {
     for (int i = 0; i < 19; i++) next();
   }
 
-  public int next() {
+  int next() {
     int v = roll_2_7_3(seedA, seedB);
     seedA = seedB;
     seedB = v;
@@ -84,5 +84,18 @@ public class XorShiftRandom {
         next >>>= 8;
       }
     }
+  }
+
+  public int poissonNumber(double frequency) {
+    return poissonNumber(frequency, nextDouble());
+  }
+
+  static public int poissonNumber(double frequency, double next) {
+    double P = Math.exp(-frequency); // p[0]
+    double M = next - P;             // р.р. [0,1]
+    int k = 0;
+    for (; M >= 0; M -= P)           // average cycle length == frequency
+      P *= frequency / ++k;
+    return k;
   }
 }

@@ -1,14 +1,30 @@
 package org.sudu.experiments.ui;
 
+import org.sudu.experiments.fonts.FontDesk;
+
 import java.util.Objects;
 
 public class UiFont {
   public String familyName;
   public float size;
+  public int weightRegular;
+  public int weightBold;
 
   public UiFont(String familyName, float size) {
+    this(familyName, size, FontDesk.WEIGHT_LIGHT, FontDesk.WEIGHT_SEMI_BOLD);
+  }
+
+  public UiFont(String familyName, float size, boolean light) {
+    this(familyName, size,
+        light ? FontDesk.WEIGHT_LIGHT : FontDesk.WEIGHT_REGULAR,
+        light ? FontDesk.WEIGHT_SEMI_BOLD : FontDesk.WEIGHT_BOLD);
+  }
+
+  public UiFont(String familyName, float size, int weightRegular, int weightBold) {
     this.familyName = familyName;
     this.size = size;
+    this.weightRegular = weightRegular;
+    this.weightBold = weightBold;
   }
 
   @Override
@@ -19,6 +35,9 @@ public class UiFont {
   }
 
   public boolean equals(UiFont uiFont) {
-    return size == uiFont.size && Objects.equals(familyName, uiFont.familyName);
+    return size == uiFont.size
+        && weightRegular == uiFont.weightRegular
+        && weightBold == uiFont.weightBold
+        && Objects.equals(familyName, uiFont.familyName);
   }
 }

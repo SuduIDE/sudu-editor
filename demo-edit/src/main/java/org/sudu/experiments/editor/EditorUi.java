@@ -23,9 +23,8 @@ import java.util.function.Supplier;
 import static org.sudu.experiments.ui.ToolbarConst.fireOnHover;
 import static org.sudu.experiments.ui.ToolbarItemBuilder.ti;
 
-class EditorUi implements MouseListener, InputListeners.ScrollHandler {
-  final UiContext uiContext;
-  final WindowManager windowManager = new WindowManager();
+class EditorUi implements MouseListener {
+  final WindowManager windowManager;
 
   Window usagesWindow;
 
@@ -33,9 +32,9 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
   PopupMenu popupMenu;
   EditorColorScheme theme;
 
-  EditorUi(UiContext context) {
-    uiContext = context;
-    popupMenu = new PopupMenu(uiContext);
+  EditorUi(WindowManager wm) {
+    windowManager = wm;
+    popupMenu = new PopupMenu(wm.uiContext);
   }
 
   void setTheme(EditorColorScheme theme) {
@@ -46,7 +45,6 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
 
   public void onTextRenderingSettingsChange() {
     popupMenu.onTextRenderingSettingsChange();
-    windowManager.onTextRenderingSettingsChange();
   }
 
   void dispose() {
@@ -54,37 +52,30 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
     if (usagesWindow != null) {
       disposeUsagesWindow();
     }
-    windowManager.dispose();
   }
 
   void paint() {
-    windowManager.draw(uiContext.graphics);
     popupMenu.paint();
   }
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
-    return windowManager.onMouseMove(event)
-        || popupMenu.onMouseMove(event);
+    return popupMenu.onMouseMove(event);
   }
 
   @Override
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-    return windowManager.onMouseClick(event, button, clickCount)
-        || popupMenu.onMouseClick(event, button, clickCount);
+    return popupMenu.onMouseClick(event, button, clickCount);
   }
 
   @Override
   public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
-    var r = popupMenu.onMouseDown(event, button);
-    if (r != null) return r;
-    return windowManager.onMouseDown(event, button);
+    return popupMenu.onMouseDown(event, button);
   }
 
   @Override
   public boolean onMouseUp(MouseEvent event, int button) {
-    return windowManager.onMouseUp(event, button)
-        || popupMenu.onMouseUp(event, button);
+    return popupMenu.onMouseUp(event, button);
   }
 
   void showUsagesWindow(
@@ -122,8 +113,9 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
       String elementName
   ) {
     if (usagesWindow != null) disposeUsagesWindow();
+    UiContext uiContext = windowManager.uiContext;
     FindUsagesView usagesView = new FindUsagesView(uiContext, () -> {
-      uiContext.setFocus(editor);
+      windowManager.uiContext.setFocus(editor);
       disposeUsagesWindow();
     });
 
@@ -157,7 +149,7 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
   }
 
   Runnable setEditFocus(EditorComponent editor) {
-    return () -> uiContext.setFocus(editor);
+    return () -> windowManager.uiContext.setFocus(editor);
   }
 
   private Supplier<ToolbarItem[]> noDefOrUsagesPop() {
@@ -181,11 +173,6 @@ class EditorUi implements MouseListener, InputListeners.ScrollHandler {
               themeApi).build(event.position),
           setEditFocus(editor));
     }
-  }
-
-  @Override
-  public boolean onScroll(MouseEvent event, float dX, float dY) {
-    return windowManager.onScroll(event, dX, dY);
   }
 
   public interface CleartypeControl {

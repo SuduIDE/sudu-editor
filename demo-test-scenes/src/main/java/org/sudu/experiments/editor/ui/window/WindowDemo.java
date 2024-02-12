@@ -1,43 +1,37 @@
 package org.sudu.experiments.editor.ui.window;
 
 import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.editor.Scene1;
 import org.sudu.experiments.editor.TestHelper;
+import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.Themes;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.ui.*;
+import org.sudu.experiments.ui.DprChangeListener;
+import org.sudu.experiments.ui.PopupMenu;
+import org.sudu.experiments.ui.ToolbarItem;
+import org.sudu.experiments.ui.UiFont;
 import org.sudu.experiments.ui.window.ScrollView;
 import org.sudu.experiments.ui.window.Window;
-import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Supplier;
 
 import static org.sudu.experiments.Const.emptyRunnable;
 
-public class WindowDemo extends Scene1 implements DprChangeListener {
+public class WindowDemo extends WindowScene implements DprChangeListener {
 
   static final int titleMargin = 3;
 
   private final PopupMenu popupMenu;
 
-  private final WindowManager windowManager;
   private Window window1, window2;
-  final Color scrollBarLine = new Color(40, 40, 40, 200);
-  final Color scrollBarBg = new Color(43, 43, 43, 128);
-
 
   public WindowDemo(SceneApi api) {
     super(api);
-    windowManager = new WindowManager();
-    uiContext.dprListeners.add(windowManager);
     uiContext.dprListeners.add(this);
     clearColor.set(new Color(43));
 
@@ -48,18 +42,6 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
     api.input.onKeyPress.add(this::onKey);
     api.input.onContextMenu.add(this::onContextMenu);
     api.input.onMouse.add(TestHelper.popupMouseListener(popupMenu));
-    api.input.onMouse.add(windowManager);
-    api.input.onMouse.add(desktopMouse(uiContext.windowCursor));
-    api.input.onScroll.add(windowManager::onScroll);
-  }
-
-  static MouseListener desktopMouse(final SetCursor windowCursor) {
-    return new MouseListener() {
-      @Override
-      public boolean onMouseMove(MouseEvent event) {
-        return windowCursor.set(null);
-      }
-    };
   }
 
   @Override
@@ -69,15 +51,13 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
 
   @Override
   public void dispose() {
+    super.dispose();
     popupMenu.dispose();
-    windowManager.dispose();
   }
 
   @Override
   public void paint() {
     super.paint();
-    WglGraphics graphics = api.graphics;
-    windowManager.draw(graphics);
     popupMenu.paint();
   }
 
@@ -123,14 +103,13 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
 
   private ScrollView newScrollView(ScrollContentDemo contentDemo) {
     ScrollView scrollView = new ScrollView(contentDemo, uiContext);
-    scrollView.setScrollColor(scrollBarLine, scrollBarBg);
+    TestColors.apply(scrollView);
     return scrollView;
   }
 
   @Override
   public void onResize(V2i newSize, float newDpr) {
     super.onResize(newSize, newDpr);
-    windowManager.onResize(newSize, newDpr);
     layoutWindows();
   }
 
@@ -146,16 +125,10 @@ public class WindowDemo extends Scene1 implements DprChangeListener {
     );
   }
 
-
   private boolean onKey(KeyEvent event) {
     if (event.isPressed && event.keyCode == KeyCode.SPACE) {
       return true;
     }
     return false;
-  }
-
-  @Override
-  public boolean update(double timestamp) {
-    return windowManager.update(timestamp);
   }
 }

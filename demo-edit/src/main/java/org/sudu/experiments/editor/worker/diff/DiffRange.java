@@ -13,4 +13,8 @@ public class DiffRange {
     this.lenR = lenR;
     this.type = type;
   }
+
+  public final int toL() { return fromL + lenL; }
+
+  public final int toR() { return fromR + lenR; }
 }

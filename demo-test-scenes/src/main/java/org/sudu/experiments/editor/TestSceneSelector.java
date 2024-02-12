@@ -3,9 +3,11 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.Scene;
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.diff.DiffMiddleDemo;
+import org.sudu.experiments.ui.FileViewDemo;
 import org.sudu.experiments.editor.menu.FindUsagesDemo;
 import org.sudu.experiments.editor.menu.ToolbarDemo;
-import org.sudu.experiments.editor.ui.window.WindowDemo;
+import org.sudu.experiments.editor.ui.window.*;
 import org.sudu.experiments.editor.worker.WorkerTest;
 
 import java.util.function.Function;
@@ -36,7 +38,10 @@ public class TestSceneSelector {
       case "LineShaderDemo1" -> LineShaderDemo1::new;
       case "LineShaderDemo2" -> LineShaderDemo2::new;
       case "WindowDemo" -> WindowDemo::new;
+      case "WindowMinDemo" -> WindowMinDemo::new;
+      case "FileViewDemo" -> FileViewDemo::new;
       case "SinDemo" -> SinDemo::new;
+      case "DiffMiddleDemo" -> DiffMiddleDemo::new;
 
 //      case "#wasm" -> new WasmDemo(api);
     };

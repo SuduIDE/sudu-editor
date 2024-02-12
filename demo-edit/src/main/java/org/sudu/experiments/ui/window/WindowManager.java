@@ -6,6 +6,7 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.DprChangeListener;
+import org.sudu.experiments.ui.UiContext;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -16,9 +17,12 @@ import java.util.function.Consumer;
 @SuppressWarnings("ForLoopReplaceableByForEach")
 public class WindowManager implements MouseListener, DprChangeListener {
 
+  public final UiContext uiContext;
   private final ArrayList<Window> windows = new ArrayList<>();
 
-  public WindowManager() {}
+  public WindowManager(UiContext uiContext) {
+    this.uiContext = uiContext;
+  }
 
   public void addWindow(Window window) {
     windows.add(0, window);
@@ -60,7 +64,7 @@ public class WindowManager implements MouseListener, DprChangeListener {
 
   @Override
   public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
-//    System.out.println("onMouseDown(" + ++id + ") lock = " + dragLock);
+//    System.out.println("onMouseDown(" + ++id + ")");
     for (int i = 0; i < windows.size(); i++) {
       Consumer<MouseEvent> lock = windows.get(i).onMouseDown(event, button);
       if (lock != null) return lock;

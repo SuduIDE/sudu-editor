@@ -63,10 +63,15 @@ public class Window {
   }
 
   private void layoutTitle() {
+    if (context.dpr == 0) return;
     title.setWidth(content.size.x);
     title.setDprNoFire(context.dpr);
     int height = title.isEmpty() ? 0 : title.computeAndSetHeight();
     title.pos.set(content.pos.x, content.pos.y - height);
+  }
+
+  public int computeTitleHeight() {
+    return title.computeHeight();
   }
 
   void draw(WglGraphics g) {
@@ -151,11 +156,9 @@ public class Window {
         return handler;
       }
     }
-    var handler = title.hitTest(event.position)
-        ? MouseListener.Static.emptyConsumer : content.onMouseDown(event, button);
-    if (content == null) return null;
-    return handler != null ? handler : content.hitTest(event.position)
-        ? MouseListener.Static.emptyConsumer : null;
+    return title.hitTest(event.position) ? MouseListener.Static.emptyConsumer
+        : content.hitTest(event.position) ? content.onMouseDown(event, button)
+        : null;
   }
 
   boolean onMouseUp(MouseEvent event, int button) {

@@ -4,20 +4,42 @@ import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.UiContext;
+import org.sudu.experiments.ui.window.View;
 
 import static org.sudu.experiments.editor.Diff0.lineWidthDp;
 
-public class MiddleLine {
-  public static final int middleLineThicknessDp = 20;
-  public final V2i pos = new V2i();
-  public final V2i size = new V2i();
-  public final V2i p11 = new V2i();
-  public final V2i p12 = new V2i();
-  public final V2i p21 = new V2i();
-  public final V2i p22 = new V2i();
+public class MiddleLine extends View {
 
-  public MiddleLine() {
+  public static final int middleLineThicknessDp = 20;
+
+  public final UiContext uiContext;
+
+  final V2i p11 = new V2i();
+  final V2i p12 = new V2i();
+  final V2i p21 = new V2i();
+  final V2i p22 = new V2i();
+
+  private DiffInfo diffModel;
+  private DiffRef editor1, editor2;
+  private EditorColorScheme theme;
+
+  public MiddleLine(UiContext context) {
+    this.uiContext = context;
+  }
+
+  public void setModel(DiffInfo diffModel) {
+    this.diffModel = diffModel;
+  }
+
+  public void setLeftRight(DiffRef left, DiffRef right) {
+    editor1 = left;
+    editor2 = right;
+  }
+
+  public void setTheme(EditorColorScheme theme) {
+    this.theme = theme;
   }
 
   private void setLinePos(
@@ -30,65 +52,69 @@ public class MiddleLine {
     p22.set(pos.x + size.x, yRightLastPosition);
   }
 
-  void draw(
-      DiffInfo diffModel,
-      UiContext uiContext,
-      EditorComponent editor1,
-      EditorComponent editor2,
-      DemoRect rect,
-      EditorColorScheme theme
-  ) {
-    var g = uiContext.graphics;
+  void paint() {
+    draw(uiContext.graphics);
+  }
 
+  @Override
+  public void draw(WglGraphics g) {
     g.drawRect(
         pos.x, pos.y,
         size,
         theme.editor.bg);
 
-    if (diffModel == null || diffModel.ranges == null) return;
+    if (diffModel == null) return;
+
     int lineWidth = uiContext.toPx(lineWidthDp);
 
-    int leftFirst = diffModel.rangeBinSearch(editor1.getFirstLine(), true);
-    int leftLast = diffModel.rangeBinSearch(editor1.getLastLine(), true);
-    int rightFirst = diffModel.rangeBinSearch(editor2.getFirstLine(), false);
-    int rightLast = diffModel.rangeBinSearch(editor2.getLastLine(), false);
+    // todo: redesign later, last should be beyond the range
+    int lFirst = diffModel.rangeBinSearch(editor1.getFirstLine(), true);
+    int lLast = diffModel.rangeBinSearch(editor1.getLastLine(), true);
+    int rFirst = diffModel.rangeBinSearch(editor2.getFirstLine(), false);
+    int rLast = diffModel.rangeBinSearch(editor2.getLastLine(), false);
 
-    int first = Math.min(leftFirst, rightFirst);
-    int last = Math.max(leftLast, rightLast);
+    int first = Math.min(lFirst, rFirst);
+    int last = Math.max(lLast, rLast);
 
     if (first <= last) g.enableBlend(true);
+
+    V2i editor1Pos = editor1.pos();
+    V2i size2Size = editor2.size();
+
+    V2i rSize = uiContext.v2i2;
 
     for (int i = first; i <= last; i++) {
       var range = diffModel.ranges[i];
       if (range.type == 0) continue;
 
-      int leftY0 = editor1.lineHeight * range.fromL - editor1.vScrollPos;
-      int leftY1 = leftY0 + range.lenL * editor1.lineHeight;
+      int leftY0 = editor1.lineToPos(range.fromL);
+      int leftY1 = editor1.lineToPos(range.toL());
 
-      int rightY0 = editor2.lineHeight * range.fromR - editor2.vScrollPos;
-      int rightY1 = rightY0 + range.lenR * editor2.lineHeight;
+      int rightY0 = editor2.lineToPos(range.fromR);
+      int rightY1 = editor2.lineToPos(range.toR());
 
       setLinePos(leftY0, leftY1, rightY0, rightY1);
 
       int rectY0 = Math.max(Math.min(leftY0, rightY0), pos.y);
       int rectY1 = Math.min(Math.max(leftY1, rightY1), pos.y + size.y);
 
-      rect.set(pos.x, rectY0, size.x, rectY1 - rectY0);
-      rect.bgColor.set(theme.lineNumber.bgColor);
-      rect.color.set(theme.diff.getDiffColor(theme, range.type));
+      if (rectY1 <= rectY0) continue;
+      rSize.set(size.x, rectY1 - rectY0);
+
+      V4f color = theme.diff.getDiffColor(theme, range.type);
 
       if (leftY0 == leftY1) {
         drawLeftLine(g, leftY0, rightY0,
-            lineWidth, uiContext, editor1, rect);
+            lineWidth, editor1Pos, color);
       }
       if (rightY0 == rightY1) {
         drawRightLine(g, rightY0, leftY0,
-            lineWidth, uiContext, editor2, rect);
+            lineWidth, size2Size, color);
       }
       g.drawLineFill(
-          rect.pos.x, rect.pos.y, rect.size,
+          pos.x, rectY0, rSize,
           p11, p12,
-          p21, p22, rect.color
+          p21, p22, color
       );
     }
     if (first <= last) g.enableBlend(false);
@@ -99,18 +125,16 @@ public class MiddleLine {
       int yLeftStartPosition,
       int yRightStartPosition,
       int lineWidth,
-      UiContext uiContext,
-      EditorComponent editor,
-      DemoRect rect
+      V2i editorPos, V4f color
   ) {
     V2i temp = uiContext.v2i1;
-    temp.set(pos.x - editor.pos.x, lineWidth);
+    temp.set(pos.x - editorPos.x, lineWidth);
     int y = yLeftStartPosition;
     if (yRightStartPosition < yLeftStartPosition) {
       y -= lineWidth;
       p11.set(p11.x, p11.y - lineWidth);
     } else p21.set(p21.x, p21.y + lineWidth);
-    g.drawRect(editor.pos.x, y, temp, rect.color);
+    g.drawRect(editorPos.x, y, temp, color);
   }
 
   private void drawRightLine(
@@ -118,17 +142,15 @@ public class MiddleLine {
       int yRightStartPosition,
       int yLeftStartPosition,
       int lineWidth,
-      UiContext uiContext,
-      EditorComponent editor,
-      DemoRect rect
+      V2i editorSize, V4f color
   ) {
     V2i temp = uiContext.v2i1;
-    temp.set(editor.size.x, lineWidth);
+    temp.set(editorSize.x, lineWidth);
     int y = yRightStartPosition;
     if (yLeftStartPosition < yRightStartPosition) {
       y -= lineWidth;
       p12.set(p12.x, p12.y - lineWidth);
     } else p22.set(p22.x, p22.y + lineWidth);
-    g.drawRect(pos.x + size.x, y, temp, rect.color);
+    g.drawRect(pos.x + size.x, y, temp, color);
   }
 }

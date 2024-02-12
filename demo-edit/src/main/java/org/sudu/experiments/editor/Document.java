@@ -13,7 +13,7 @@ import org.sudu.experiments.parser.common.graph.ScopeGraph;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-public class Document {
+public class Document extends CodeLines {
   public static final char newLine = '\n';
 
   public CodeLine[] document;

@@ -74,7 +74,7 @@ class Win32InputState {
     int mouseBtn = mapMouseButton(btn);
 
     switch (state) {
-      case 0 -> {
+      case 0, 2 -> {
         Win32.SetCapture(hWnd);
         clickCounter.onMouseDown(event, mouseBtn);
         listeners.sendMouseDown(event, mouseBtn);

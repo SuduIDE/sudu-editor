@@ -72,7 +72,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
   }
 
   @Override
-  public void setFontSize(int fontSize) {
+  public void setFontSize(float fontSize) {
     editor.changeFont(editor.getFontFamily(), fontSize);
   }
 

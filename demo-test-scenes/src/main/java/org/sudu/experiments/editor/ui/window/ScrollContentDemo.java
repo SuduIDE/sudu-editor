@@ -25,11 +25,6 @@ public class ScrollContentDemo extends ScrollContent {
   }
 
   @Override
-  protected void updateVirtualSize() {
-    virtualSize.set(size.x * 3, size.y * 5);
-  }
-
-  @Override
   protected V2i minimalSize() {
     int px20 = DprUtil.toPx(20, dpr);
     return new V2i(px20, px20);
@@ -37,11 +32,12 @@ public class ScrollContentDemo extends ScrollContent {
 
   @Override
   protected void onSizeChange(V2i newSize) {
+    setVirtualSize(newSize.x * 3, newSize.y * 5);
     onSizeListener.accept(newSize);
   }
 
   @Override
-  protected void draw(WglGraphics g) {
+  public void draw(WglGraphics g) {
     super.draw(g);
     enableScissor(g);
     int step = DprUtil.toPx(30, dpr);

@@ -3,6 +3,7 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.DprUtil;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.diff.DiffSync;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
@@ -14,9 +15,8 @@ import org.sudu.experiments.worker.ArrayView;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
 
-public class Diff0 extends Scene1 implements
+public class Diff0 extends WindowScene implements
     MouseListener,
     EditorTheme,
     EditorUi.FontApi,
@@ -25,28 +25,27 @@ public class Diff0 extends Scene1 implements
     InputListeners.CopyHandler,
     InputListeners.PasteHandler {
 
+  static final float lineWidthDp = 2;
+
   final EditorComponent editor1;
   final EditorComponent editor2;
   final EditorUi ui;
   private int modelFlags;
   protected DiffInfo diffModel;
-  static final float lineWidthDp = 2;
-  private final MiddleLine middleLine = new MiddleLine();
+  final DiffSync diffSync;
 
-  DemoRect rect = new DemoRect();
+  final MiddleLine middleLine = new MiddleLine(uiContext);
 
   public Diff0(SceneApi api) {
-    super(api);
+    super(api, false);
 
-    ui = new EditorUi(uiContext);
+    ui = new EditorUi(windowManager);
     editor1 = new EditorComponent(uiContext, ui);
     editor2 = new EditorComponent(uiContext, ui);
-    editor1.setMirrored(true);
+    diffSync = new DiffSync(editor1, editor2);
 
-    IntConsumer leftScrollChanged = this::leftScrollChanged;
-    IntConsumer rightScrollChanged = this::rightScrollChanged;
-    editor1.setScrollListeners(leftScrollChanged, leftScrollChanged);
-    editor2.setScrollListeners(rightScrollChanged, rightScrollChanged);
+    editor1.setMirrored(true);
+    middleLine.setLeftRight(editor1, editor2);
 
     editor1.setFullFileParseListener(this::fullFileParseListener);
     editor2.setFullFileParseListener(this::fullFileParseListener);
@@ -56,10 +55,9 @@ public class Diff0 extends Scene1 implements
     uiContext.initFocus(editor1);
 
     api.input.onMouse.add(ui);
-
-    api.input.onScroll.add(ui);
     api.input.onScroll.add(this);
 
+    // dispatch between editors: move to WindowManager later
     api.input.onMouse.add(this);
 
     api.input.onKeyPress.add(this::onKeyPress);
@@ -107,48 +105,24 @@ public class Diff0 extends Scene1 implements
     };
   }
 
-  private void leftScrollChanged(int ignored) {
-    sync(editor1, editor2);
-  }
-
-  private void rightScrollChanged(int ignored) {
-    sync(editor2, editor1);
-  }
-
-  private void sync(EditorComponent from, EditorComponent to) {
-    if (this.diffModel == null || this.diffModel.ranges == null) return;
-    boolean isLeft = from == editor1;
-
-    int fromFirstLine = from.getFirstLine();
-    int fromLastLine = from.getLastLine();
-    int syncLine = (fromLastLine + fromFirstLine) / 2;
-    int linesDelta = syncLine - fromFirstLine;
-
-    var fromRange = diffModel.range(syncLine, isLeft);
-
-    int rangeDelta = syncLine - (isLeft ? fromRange.fromL : fromRange.fromR);
-    int scrollDelta = from.vScrollPos - fromFirstLine * from.lineHeight;
-    int toRangeStart = isLeft ? fromRange.fromR : fromRange.fromL;
-    int toNewLine = (toRangeStart + rangeDelta - linesDelta);
-    to.setVScrollPosSilent(toNewLine * to.lineHeight + scrollDelta);
-  }
-
   private void openFile(FileHandle handle) {
     EditorComponent activeEditor = getActiveEditor();
     if (activeEditor != null) {
       activeEditor.openFile(handle);
       diffModel = null;
+      diffSync.setModel(null);
+      middleLine.setModel(null);
     }
   }
 
   public void sendToDiff() {
     System.out.println("sendToDiff");
-    Model model1 = editor1.model;
-    Model model2 = editor2.model;
-    char[] chars1 = model1.document.getChars();
-    char[] chars2 = model2.document.getChars();
-    int[] intervals1 = DiffUtils.makeIntervals(model1.document);
-    int[] intervals2 = DiffUtils.makeIntervals(model2.document);
+    Document document1 = editor1.model.document;
+    Document document2 = editor2.model.document;
+    char[] chars1 = document1.getChars();
+    char[] chars2 = document2.getChars();
+    int[] intervals1 = DiffUtils.makeIntervals(document1);
+    int[] intervals2 = DiffUtils.makeIntervals(document2);
 
     api.window.sendToWorker(this::onDiffResult, DiffUtils.FIND_DIFFS,
           chars1, intervals1, chars2, intervals2);
@@ -160,6 +134,8 @@ public class Diff0 extends Scene1 implements
     diffModel = DiffUtils.readDiffInfo(reply);
     editor1.setDiffModel(diffModel.lineDiffsL);
     editor2.setDiffModel(diffModel.lineDiffsR);
+    diffSync.setModel(diffModel);
+    middleLine.setModel(diffModel);
   }
 
   private EditorComponent getActiveEditor() {
@@ -205,10 +181,11 @@ public class Diff0 extends Scene1 implements
 
   @Override
   public void paint() {
-    super.paint();
+    clear();
     editor1.paint();
     editor2.paint();
-    middleLine.draw(diffModel, uiContext, editor1, editor2, rect, ui.theme);
+    middleLine.paint();
+    windowManager.draw(api.graphics);
     ui.paint();
   }
 
@@ -240,6 +217,7 @@ public class Diff0 extends Scene1 implements
   @Override
   public void enableCleartype(boolean en) {
     if (uiContext.enableCleartype(en)) {
+      windowManager.onTextRenderingSettingsChange();
       ui.onTextRenderingSettingsChange();
       editor1.enableCleartype(en);
       editor2.enableCleartype(en);
@@ -256,19 +234,19 @@ public class Diff0 extends Scene1 implements
     V2i pos = new V2i();
     int px = DprUtil.toPx(MiddleLine.middleLineThicknessDp, dpr);
     V2i size = new V2i(newSize.x / 2 - px / 2, newSize.y);
-    editor1.setPos(pos, size, dpr);
+    editor1.setPosition(pos, size, dpr);
     pos.x = newSize.x - newSize.x / 2 + px / 2;
-    editor2.setPos(pos, size, dpr);
+    editor2.setPosition(pos, size, dpr);
     middleLine.pos.set(size.x, pos.y);
     middleLine.size.set(pos.x - size.x, size.y);
   }
 
   public void applyTheme(EditorColorScheme theme) {
-
     Objects.requireNonNull(theme);
     ui.setTheme(theme);
     editor1.setTheme(theme);
     editor2.setTheme(theme);
+    middleLine.setTheme(theme);
   }
 
   public void setFontFamily(String fontFamily) {

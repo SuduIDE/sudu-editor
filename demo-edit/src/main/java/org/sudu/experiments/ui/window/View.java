@@ -1,6 +1,7 @@
 package org.sudu.experiments.ui.window;
 
 import org.sudu.experiments.Disposable;
+import org.sudu.experiments.DprUtil;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Rect;
@@ -19,7 +20,7 @@ public class View implements Disposable {
     return new V2i(0,0);
   }
 
-  protected void setPosition(V2i newPos, V2i newSize, float newDpr) {
+  public void setPosition(V2i newPos, V2i newSize, float newDpr) {
     if (!pos.equals(newPos)) {
       onPosChange(newPos);
       pos.set(newPos);
@@ -35,11 +36,15 @@ public class View implements Disposable {
     dpr = newDpr;
   }
 
+  public int toPx(float value) {
+    return DprUtil.toPx(value, dpr);
+  }
+
   public boolean hitTest(V2i point) {
     return Rect.isInside(point, pos, size);
   }
 
-  protected void draw(WglGraphics g) {
+  public void draw(WglGraphics g) {
     g.drawRect(pos.x, pos.y, size, Colors.viewColor);
   }
 

@@ -31,8 +31,6 @@ public class HScrollTestScene extends Scene {
 
   CodeLineRenderer codeLineRenderer;
   CodeLine codeLine;
-  TestCanvas renderCanvas;
-  FontDesk[] fontDesk = new FontDesk[1];
 
   boolean needsUpdate = true;
 
@@ -65,12 +63,10 @@ public class HScrollTestScene extends Scene {
     };
 
     codeLine = new CodeLine(codeElements);
-    codeLineRenderer = new CodeLineRenderer(new CodeLineRenderer.Context(fontDesk, false));
-
-    fontDesk[0] = g.fontDesk(Fonts.Consolas, fontSize);
-    g.mCanvas.setFont(fontDesk[0]);
-
-    renderCanvas = (TestCanvas) g.createCanvas(EditorConst.TEXTURE_WIDTH, fontDesk[0].iSize);
+    codeLineRenderer = new CodeLineRenderer(new ClrContext(false));
+    FontDesk[] fonts = codeLineRenderer.context.fonts;
+    fonts[0] = g.fontDesk(Fonts.Consolas, fontSize);
+    g.mCanvas.setFont(fonts[0]);
   }
 
   @Override
@@ -91,7 +87,11 @@ public class HScrollTestScene extends Scene {
     scrollBar.draw(g);
     g.enableBlend(false);
 
-    codeLineRenderer.updateTexture(codeLine, renderCanvas, g, fontDesk[0].iSize, viewportSize.x, scrollPosH);
+    FontDesk[] fonts = codeLineRenderer.context.fonts;
+
+    int lineHeight = fonts[0].lineHeight();
+    codeLineRenderer.updateTexture(codeLine, g, lineHeight,
+        viewportSize.x, scrollPosH, 0, 0);
 
     codeLineRenderer.draw(200, 0, g,
         viewportSize.x, fontSize, scrollPosH, colors, null,
@@ -106,7 +106,6 @@ public class HScrollTestScene extends Scene {
     Debug.consoleInfo("lineMeasure: " + codeLine.lineMeasure());
     Debug.consoleInfo("textureWidth: " + EditorConst.TEXTURE_WIDTH);
     Debug.consoleInfo("Canvas: ");
-    renderCanvas.debug();
     Debug.consoleInfo("Graphics:");
     g.testContext().debug();
     Debug.consoleInfo("Renderer:");
@@ -133,7 +132,6 @@ public class HScrollTestScene extends Scene {
   @Override
   public void dispose() {
     g.dispose();
-    renderCanvas.dispose();
     codeLineRenderer.dispose();
   }
 

@@ -18,18 +18,19 @@ import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ScrollBar;
 import org.sudu.experiments.ui.SetCursor;
 import org.sudu.experiments.ui.UiContext;
+import org.sudu.experiments.ui.window.View;
 
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
 
-public class EditorComponent implements Focusable, MouseListener, FontApi, Model.EditorToModel {
-  static final int weightRegular = FontDesk.WEIGHT_LIGHT;
-  static final int weightBold    = FontDesk.WEIGHT_SEMI_BOLD;
-
-  final V2i pos = new V2i();
-  final V2i size = new V2i();
+public class EditorComponent extends View implements
+    Focusable,
+    MouseListener,
+    FontApi,
+    Model.EditorToModel,
+    DiffRef
+{
 
   final UiContext context;
   final WglGraphics g;
@@ -41,17 +42,15 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   final Caret caret = new Caret();
   boolean hasFocus;
 
-  int fontVirtualSize = EditorConst.DEFAULT_FONT_SIZE;
+  float fontVirtualSize = EditorConst.DEFAULT_FONT_SIZE;
   String fontFamilyName = EditorConst.FONT;
   FontDesk font;
-  final FontDesk[] fonts = new FontDesk[4];
-  int lineHeight;
+  final FontDesk[] fonts;
+  int lineHeight, scrollBarWidth;
 
   Model model = new Model();
   EditorRegistrations registrations = new EditorRegistrations();
   EditorColorScheme colors;
-
-  Canvas renderingCanvas;
 
   // render cache
   CodeLineRenderer[] lines = new CodeLineRenderer[0];
@@ -89,17 +88,18 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   private ExternalHighlights externalHighlights;
 
   Consumer<String> onError = System.err::println;
-  IntConsumer hScrollListener, vScrollListener;
+  Runnable hScrollListener, vScrollListener;
   Consumer<EditorComponent> fullFileParseListener;
   int vScrollPos = 0;
 
-  final CodeLineRenderer.Context lrContext;
+  final ClrContext lrContext;
 
-  public EditorComponent(UiContext context, EditorUi ui) {
+  EditorComponent(UiContext context, EditorUi ui) {
     this.context = context;
     this.g = context.graphics;
     this.ui = ui;
-    lrContext = new CodeLineRenderer.Context(fonts, context.cleartype);
+    lrContext = new ClrContext(context.cleartype);
+    fonts = lrContext.fonts;
 
     debugFlags[1] = this::toggleBlankLines;
     debugFlags[2] = this::toggleTails;
@@ -110,15 +110,19 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
 
   }
 
-  void setPos(V2i pos, V2i size, float dpr) {
-    lrContext.setSinDpr(dpr);
-    this.pos.set(pos);
-    this.size.set(size);
-
+  @Override
+  public void setPosition(V2i pos, V2i size, float dpr) {
+    super.setPosition(pos, size, dpr);
     internalLayout(pos, size, dpr);
   }
 
-  void setScrollListeners(IntConsumer hListener, IntConsumer vListener) {
+  @Override
+  protected void onDprChange(float olDpr, float newDpr) {
+    doChangeFont(fontFamilyName, fontVirtualSize);
+    lrContext.setSinDpr(newDpr);
+  }
+
+  public void setScrollListeners(Runnable hListener, Runnable vListener) {
     hScrollListener = hListener;
     vScrollListener = vListener;
   }
@@ -139,11 +143,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
 
     if (1<0) DebugHelper.dumpFontsSize(g);
     caret.setWidth(DprUtil.toPx(Caret.defaultWidth, dpr));
-
-    // Should be called if dpr changed
-    doChangeFont(fontFamilyName, fontVirtualSize);
-
-    updateLineNumbersFont();
   }
 
   private void toggleBlankLines() {
@@ -198,10 +197,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
 
   void toggleMirrored() {
     mirrored = !mirrored;
-    // todo: remove this since we call lineNumbers.dispose() in internalLayout
-    // todo: refactor
     lineNumbers.dispose();
     lineNumbers = new LineNumbersComponent();
+    updateLineNumbersFont();
     internalLayout(pos, size, context.dpr);
   }
 
@@ -212,12 +210,12 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   }
 
   public void increaseFont() {
-    changeFont(font.name, fontVirtualSize + 1);
+    changeFont(lrContext.font.name, fontVirtualSize + 1);
   }
 
   public void decreaseFont() {
     if (fontVirtualSize <= EditorConst.MIN_FONT_SIZE) return;
-    changeFont(font.name, fontVirtualSize - 1);
+    changeFont(lrContext.font.name, fontVirtualSize - 1);
   }
 
   void moveDown() {
@@ -238,7 +236,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     scrollUp = scrollDown = 0;
   }
 
-  public int getFontVirtualSize() {
+  public float getFontVirtualSize() {
     return fontVirtualSize;
   }
 
@@ -246,42 +244,22 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     return fontFamilyName;
   }
 
-  private void setFont(String name, int pixelSize) {
-    setFonts(name, pixelSize);
-
-    int fontLineHeight = font.lineHeight();
-    lineHeight = Numbers.iRnd(fontLineHeight * EditorConst.LINE_HEIGHT);
-    lrContext.lineHeight = lineHeight;
-    lrContext.underline = fonts[0].underlineShift(lineHeight);
-
-    caret.setHeight(fonts[0].caretHeight(lineHeight));
-    createRenderingCanvas();
+  private void setFont(String name, float pixelSize) {
+    lrContext.setFonts(name, pixelSize, g);
+    font = lrContext.font;
+    lineHeight = lrContext.setLineHeight(EditorConst.LINE_HEIGHT_MULTI, g);
+    scrollBarWidth = Numbers.iRnd(lrContext.font.WWidth);
+    caret.setHeight(lrContext.font.caretHeight(lineHeight));
 
     Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
-        + ", ascent+descent = " + fontLineHeight
+        + ", ascent+descent = " + lrContext.font.lineHeight()
         + ", lineHeight = " + lineHeight
         + ", caretHeight = " + caret.height());
 
     if (CodeLineRenderer.useTop) {
-      Debug.consoleInfo("topBase(font, lineHeight) = " + CodeLineRenderer.topBase(fonts[0], lineHeight));
+      Debug.consoleInfo("topBase(font, lineHeight) = "
+          + CodeLineRenderer.topBase(lrContext.font, lineHeight));
     }
-  }
-
-  private void createRenderingCanvas() {
-    renderingCanvas = Disposable.assign(renderingCanvas,
-        g.createCanvas(EditorConst.TEXTURE_WIDTH, lineHeight, context.cleartype));
-  }
-
-  private void setFonts(String name, int size) {
-    fonts[CodeElement.fontIndex(false, false)] =
-        g.fontDesk(name, size, weightRegular, FontDesk.STYLE_NORMAL);
-    fonts[CodeElement.fontIndex(false, true)] =
-        g.fontDesk(name, size, weightRegular, FontDesk.STYLE_ITALIC);
-    fonts[CodeElement.fontIndex(true, false)] =
-        g.fontDesk(name, size, weightBold, FontDesk.STYLE_NORMAL);
-    fonts[CodeElement.fontIndex(true, true)] =
-        g.fontDesk(name, size, weightBold, FontDesk.STYLE_ITALIC);
-    font = fonts[CodeElement.fontIndex(false, false)];
   }
 
   public void changeFont(String name) {
@@ -293,7 +271,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     context.setFontPow(p);
   }
 
-  public void changeFont(String name, int virtualSize) {
+  public void changeFont(String name, float virtualSize) {
     if (context.dpr != 0) {
       doChangeFont(name, virtualSize);
       window().repaint();
@@ -303,22 +281,17 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   }
 
   public void enableCleartype(boolean en) {
-    lrContext.cleartype = context.cleartype;
+    lrContext.enableCleartype(context.cleartype, g);
+    CodeLineRenderer.makeContentDirty(lines);
 
-    if (renderingCanvas.cleartype != context.cleartype) {
-      createRenderingCanvas();
-    }
-    for (CodeLineRenderer line : lines) {
-      CodeLine codeLine = line.line;
-      if (codeLine != null) codeLine.contentDirty = true;
-    }
     lineNumbers.dispose();
     updateLineNumbersFont();
   }
 
-  private void doChangeFont(String name, int virtualSize) {
-    int newPixelFontSize = DprUtil.toPx(virtualSize, context.dpr);
-    int oldPixelFontSize = font == null ? 0 : font.iSize;
+  private void doChangeFont(String name, float virtualSize) {
+    float newPixelFontSize = virtualSize * dpr;
+    float newPixelFontSize2 = DprUtil.toPx(virtualSize, dpr);
+    float oldPixelFontSize = lrContext.fontSize();
     if (newPixelFontSize != oldPixelFontSize || !Objects.equals(name, fontFamilyName)) {
       lineNumbers.dispose();
       invalidateFont();
@@ -336,17 +309,13 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   private void invalidateFont() {
 //    Debug.consoleInfo("invalidateFont");
 
-    for (CodeLineRenderer line : lines) {
-      line.dispose();
-    }
+    CodeLineRenderer.disposeLines(lines);
     model.document.invalidateFont();
   }
 
   public void dispose() {
-    for (CodeLineRenderer line : lines) {
-      line.dispose();
-    }
-    renderingCanvas = Disposable.assign(renderingCanvas, null);
+    CodeLineRenderer.disposeLines(lines);
+    lrContext.dispose();
     lineNumbers.dispose();
   }
 
@@ -363,7 +332,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   }
 
   int editorWidth() {
-    int t = mirrored ? scrollBarWidth() + vLineLeftDelta : 0;
+    int t = mirrored ? scrollBarWidth + vLineLeftDelta : 0;
     return Math.max(1, size.x - vLineX - t);
   }
 
@@ -388,7 +357,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     int newVScrollPos = clampScrollPos(vScrollPos + scrollDown  -  scrollUp,
         maxVScrollPos());
     boolean scrollMoving = vScrollPos != newVScrollPos;
-    if (scrollMoving) setVScrollPos(newVScrollPos);
+    if (scrollMoving) setScrollPosY(newVScrollPos);
 
     // repaint only if caret blinking
     // or animation in progress
@@ -397,31 +366,37 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
         || forceMaxFPS;
   }
 
-  void setVScrollPos(int vPos) {
+  void setScrollPosX(int hPos) {
+    if (setHScrollPosSilent(hPos) && hScrollListener != null) {
+      hScrollListener.run();
+    }
+  }
+
+  void setScrollPosY(int vPos) {
+    if (setVScrollPosSilent(vPos) && vScrollListener != null) {
+      vScrollListener.run();
+    }
+  }
+
+  public boolean setHScrollPosSilent(int hPos) {
+    int newHPos = clampScrollPos(hPos, maxHScrollPos());
+    boolean change = newHPos != model.hScrollPos;
+    if (change) model.hScrollPos = newHPos;
+    return change;
+  }
+
+  public boolean setVScrollPosSilent(int vPos) {
     int newVPos = clampScrollPos(vPos, maxVScrollPos());
-    if (newVPos != vScrollPos) {
+    boolean change = newVPos != vScrollPos;
+    if (change) {
       vScrollPos = newVPos;
       model.vScrollLine = (double) vScrollPos / lineHeight;
-      if (vScrollListener != null) vScrollListener.accept(newVPos);
     }
+    return change;
   }
 
-  void setVScrollPosSilent(int vPos) {
-    vScrollPos = clampScrollPos(vPos, maxVScrollPos());
-    model.vScrollLine = (double) vScrollPos / lineHeight;
-  }
-
-  void setHScrollPos(int hPos) {
-    int newHPos = clampScrollPos(hPos, maxHScrollPos());
-    if (newHPos != model.hScrollPos) {
-      model.hScrollPos = newHPos;
-      if (hScrollListener != null) hScrollListener.accept(newHPos);
-    }
-  }
-
-  void setHScrollPosSilent(int hPos) {
-    model.hScrollPos = clampScrollPos(hPos, maxHScrollPos());
-  }
+  @Override
+  public int lineHeight() { return lineHeight; }
 
   public void paint() {
 
@@ -437,7 +412,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
 
     int caretVerticalOffset = (lineHeight - caret.height()) / 2;
     int caretX = model.caretPos - caret.width() / 2 - model.hScrollPos;
-    int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth() : vLineX;
+    int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
     caret.setPosition(
         dCaret + caretX,
         caretVerticalOffset + model.caretLine * lineHeight - vScrollPos);
@@ -450,27 +425,27 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     lastLineRendered = lastLine;
 
     int dx = mirrored
-        ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth()
+        ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth
         : pos.x + vLineX;
 
     int editorWidth = editorWidth();
-    LineDiff[] diffModel = diffModel();
-    for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      CodeLine nextLine = model.document.line(i);
-      CodeLineRenderer line = lineRenderer(i);
-      line.updateTexture(nextLine, renderingCanvas, g,
-          lineHeight, editorWidth, model.hScrollPos);
-      CodeLine lineContent = line.line;
+    LineDiff[] diffModel = model.diffModel;
+    int rightPadding = toPx(EditorConst.RIGHT_PADDING);
 
-      fullWidth = Math.max(fullWidth,
-          nextLine.lineMeasure() + (int) (EditorConst.RIGHT_PADDING * context.dpr));
+    for (int i = firstLine; i <= lastLine && i < docLen; i++) {
+      CodeLine cLine = model.document.line(i);
+      CodeLineRenderer line = lineRenderer(i);
+      line.updateTexture(cLine, g, lineHeight, editorWidth, model.hScrollPos,
+          i, i % lines.length);
+
+      fullWidth = Math.max(fullWidth, cLine.lineMeasure() + rightPadding);
       int yPosition = lineHeight * i - vScrollPos;
 
       LineDiff diff = diffModel == null ? null : diffModel[i];
       line.draw(
           pos.y + yPosition, dx, g,
           editorWidth, lineHeight, model.hScrollPos,
-          colors, getSelLineSegment(i, lineContent),
+          colors, getSelLineSegment(i, cLine),
           model.definition, model.usages,
           model.caretLine == i, diffModel != null,
           diff);
@@ -498,7 +473,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     if (renderBlankLines) {
       int nextLine = Math.min(lastLine + 1, docLen);
       int yPosition = lineHeight * nextLine - vScrollPos;
-      drawDocumentBottom(yPosition);
+      drawDocumentBottom(yPosition, editorWidth);
     }
 
     drawVerticalLine();
@@ -537,7 +512,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
 
       if (model.caretLine == i || currentLineModel != null) {
         vLineSize.x = mirrored
-            ? vLineLeftDelta + scrollBarWidth() + vLineW - xOffset
+            ? vLineLeftDelta + scrollBarWidth + vLineW - xOffset
             : vLineLeftDelta - vLineW - xOffset;
         vLineSize.y = lineHeight;
         int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
@@ -569,17 +544,24 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
         diffModel() != null ? -1 : model.caretLine, g, colors);
   }
 
-  int getFirstLine() {
+  public int getFirstLine() {
     return Math.min(vScrollPos / lineHeight, model.document.length() - 1);
   }
 
-  int getLastLine() {
+  public int getLastLine() {
     return Math.min((vScrollPos + editorHeight() - 1) / lineHeight, model.document.length() - 1);
   }
 
+  public int lineToPos(int line) {
+    return lineHeight * line - vScrollPos;
+  }
+
+  public V2i pos() { return pos; }
+  public V2i size() { return size; }
+
   private void updateLineNumbersFont() {
-    lineNumbers.setFont(fonts[0], lineHeight, context.cleartype, g);
-    lineNumbers.initTextures(g, getFirstLine(), editorHeight());
+    lineNumbers.setFont(lrContext.font, lineHeight, context.cleartype);
+//    lineNumbers.initTextures(g, getFirstLine(), editorHeight());
   }
 
   private CodeLineRenderer lineRenderer(int i) {
@@ -772,34 +754,30 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     selection().endPos.set(model.caretLine, model.caretCharPos);
   }
 
-  int scrollBarWidth() {
-    return (int) font.WWidth;
-  }
-
-  private void drawDocumentBottom(int yPosition) {
+  private void drawDocumentBottom(int yPosition, int editorWidth) {
     if (yPosition < size.y) {
       V2i sizeTmp = context.v2i1;
 
       sizeTmp.y = size.y - yPosition;
-      sizeTmp.x = mirrored ? editorWidth() + vLineW : editorWidth() + xOffset;
+      sizeTmp.x = mirrored ? editorWidth + vLineW : editorWidth + xOffset;
       int x = mirrored
-          ? pos.x + vLineLeftDelta + scrollBarWidth() + vLineW - xOffset
+          ? pos.x + vLineLeftDelta + scrollBarWidth + vLineW - xOffset
           : pos.x + vLineX - xOffset;
       g.drawRect(x, pos.y + yPosition, sizeTmp, colors.editor.bg);
     }
   }
 
   private void layoutScrollbar() {
-    int x = mirrored ? pos.x + scrollBarWidth() : pos.x + size.x;
+    int x = mirrored ? pos.x + scrollBarWidth : pos.x + size.x;
     vScroll.layoutVertical(vScrollPos,
         pos.y,
         editorHeight(), editorVirtualHeight(),
-        x, scrollBarWidth());
-    x = mirrored ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth() : pos.x + vLineX;
+        x, scrollBarWidth);
+    x = mirrored ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth : pos.x + vLineX;
     hScroll.layoutHorizontal(model.hScrollPos,
         x,
         editorWidth(), fullWidth,
-        pos.y + editorHeight(), scrollBarWidth());
+        pos.y + editorHeight(), scrollBarWidth);
   }
 
   private void drawScrollBar() {
@@ -820,7 +798,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     int dx1 = mirrored ? size.x - lineNumbersWidth() - vLineW: vLineX - vLineLeftDelta;
     g.drawRect(pos.x + dx1, pos.y, vLineSize, colors.editor.numbersVLine);
     vLineSize.x = mirrored
-        ? vLineLeftDelta + scrollBarWidth() + vLineW - xOffset
+        ? vLineLeftDelta + scrollBarWidth + vLineW - xOffset
         : vLineLeftDelta - vLineW - xOffset;
     int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
     g.drawRect(pos.x + dx2, pos.y, vLineSize, colors.editor.bg);
@@ -861,7 +839,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     if (shiftSelection(shiftPressed)) return true;
     if (ctrl && alt) return true;
     if (ctrl) {  //  editorVScrollPos moves, caretLine does not change
-      setVScrollPos(vScrollPos + amount * lineHeight * 12 / 10);
+      setScrollPosY(vScrollPos + amount * lineHeight * 12 / 10);
     } else if (alt) {
       // todo: smart move to prev/next method start
     } else {
@@ -918,7 +896,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
 
   private boolean setCaretPos(int charPos, boolean shift) {
     model.caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
-    model.caretPos = context.dpr == 0 ? 0
+    model.caretPos = dpr == 0 ? 0
         : caretCodeLine().computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
     startBlinking();
     adjustEditorScrollToCaret();
@@ -946,9 +924,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     int caretVisibleY1 = model.caretLine * lineHeight + lineHeight;
 
     if (caretVisibleY0 < editVisibleYMin + lineHeight) {
-      setVScrollPos(caretVisibleY0 - lineHeight);
+      setScrollPosY(caretVisibleY0 - lineHeight);
     } else if (caretVisibleY1 > editVisibleYMax - lineHeight) {
-      setVScrollPos(caretVisibleY1 - editorHeight() + lineHeight);
+      setScrollPosY(caretVisibleY1 - editorHeight() + lineHeight);
     }
   }
 
@@ -961,9 +939,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     int caretVisibleX1 = model.caretPos + xOffset;
 
     if (caretVisibleX0 < editVisibleXMin + xOffset) {
-      setHScrollPos(caretVisibleX0 - xOffset);
+      setScrollPosX(caretVisibleX0 - xOffset);
     } else if (caretVisibleX1 > editVisibleXMax - xOffset) {
-      setHScrollPos(caretVisibleX1 - editorWidth() + xOffset);
+      setScrollPosX(caretVisibleX1 - editorWidth() + xOffset);
     }
   }
 
@@ -1049,7 +1027,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     int localY = eventPosition.y - pos.y;
 
     int line = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, model.document.length() - 1);
-    int offset = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth() : vLineX;
+    int offset = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
     int documentXPosition = Math.max(0, localX - offset + model.hScrollPos);
     int charPos = model.document.line(line).computeCharPos(documentXPosition, g.mCanvas, fonts);
     return new Pos(line, charPos);
@@ -1065,7 +1043,8 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   private void moveCaret(Pos pos) {
     model.caretLine = pos.line;
     model.caretCharPos = pos.pos;
-    model.caretPos = model.document.line(pos.line).computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
+    model.caretPos = model.document.line(pos.line)
+        .computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
     startBlinking();
   }
 
@@ -1187,18 +1166,18 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   // InputListener methods
 
   Consumer<ScrollBar.Event> vScrollHandler =
-      event -> setVScrollPos(event.getPosition(maxVScrollPos()));
+      event -> setScrollPosY(event.getPosition(maxVScrollPos()));
 
   Consumer<ScrollBar.Event> hScrollHandler =
-      event -> setHScrollPos(event.getPosition(maxHScrollPos()));
+      event -> setScrollPosX(event.getPosition(maxHScrollPos()));
 
 
   public boolean onScroll(float dX, float dY) {
     // chrome sends 150px, firefox send "6 lines"
     int changeY = Numbers.iRnd(lineHeight * 4 * dY / 150);
     int changeX = Numbers.iRnd(dX);
-    if (changeY != 0) setVScrollPos(vScrollPos + changeY);
-    if (changeX != 0) setHScrollPos(model.hScrollPos + changeX);
+    if (changeY != 0) setScrollPosY(vScrollPos + changeY);
+    if (changeX != 0) setScrollPosX(model.hScrollPos + changeX);
     return true;
   }
 
@@ -1342,9 +1321,9 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   }
 
   private boolean isInsideText(V2i position) {
-    int x = mirrored ? pos.x + vLineLeftDelta + vLineW + scrollBarWidth() : pos.x + vLineX;
+    int dx = mirrored ? vLineLeftDelta + vLineW + scrollBarWidth : vLineX;
     return Rect.isInside(position,
-        x, pos.y,
+        pos.x + dx, pos.y,
         editorWidth(), editorHeight());
   }
 
@@ -1538,7 +1517,7 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   public void revealLineInCenter(int lineNumber) {
     if (lineNumber <= 0) return;
     int computed = lineHeight * (lineNumber - (editorHeight() / (lineHeight * 2)) - 1);
-    setVScrollPos(computed);
+    setScrollPosY(computed);
   }
 
   public void revealLine(int lineNumber) {
@@ -1553,15 +1532,14 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
   }
 
   private void scrollDownToLine(int lineNumber) {
-    setVScrollPos(lineNumber > model.document.length()
+    setScrollPosY(lineNumber > model.document.length()
         ? maxVScrollPos()
         : (lineNumber + 1) * lineHeight - editorHeight());
   }
 
   private void scrollUpToLine(int lineNumber) {
-    setVScrollPos((lineNumber - 2) * lineHeight);
+    setScrollPosY((lineNumber - 2) * lineHeight);
   }
-
 
   public char[] getChars() {
     return model.document.getChars();
@@ -1571,11 +1549,6 @@ public class EditorComponent implements Focusable, MouseListener, FontApi, Model
     CodeElement codeElement = model.document.getCodeElement(startPos);
     if (codeElement != null) return codeElement.s;
     return "";
-  }
-
-  // remove later
-  public boolean hitTest(V2i point) {
-    return Rect.isInside(point, pos, size);
   }
 
   public void setDiffModel(LineDiff[] lineDiffs) {

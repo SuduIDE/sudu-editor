@@ -12,7 +12,7 @@ public interface JsCodeEditor extends JsDisposable {
   void setText(JSString t);
   JSString getText();
   void setFontFamily(JSString fontFamily);
-  void setFontSize(int fontSize);
+  void setFontSize(float fontSize);
   void setTheme(JSString theme);
   void setModel(JsITextModel model);
   void setPosition(JsPosition selectionOrPosition);

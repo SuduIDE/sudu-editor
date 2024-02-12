@@ -1,9 +1,8 @@
 package org.sudu.experiments.editor.menu;
 
 import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.editor.Scene1;
 import org.sudu.experiments.editor.TestHelper;
+import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.FindUsagesItemBuilder;
 import org.sudu.experiments.editor.ui.FindUsagesItemData;
 import org.sudu.experiments.editor.ui.FindUsagesView;
@@ -23,23 +22,19 @@ import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.UiFont;
 import org.sudu.experiments.ui.window.ScrollView;
 import org.sudu.experiments.ui.window.Window;
-import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Supplier;
 
 import static org.sudu.experiments.Const.emptyRunnable;
 
-public class FindUsagesDemo extends Scene1 implements DprChangeListener {
+public class FindUsagesDemo extends WindowScene implements DprChangeListener {
 
   private final PopupMenu popupMenu;
 
-  private final WindowManager windowManager;
   private Window window1;
 
   public FindUsagesDemo(SceneApi api) {
     super(api);
-    windowManager = new WindowManager();
-    uiContext.dprListeners.add(windowManager);
     uiContext.dprListeners.add(this);
     clearColor.set(new Color(43));
     popupMenu = new PopupMenu(uiContext);
@@ -49,8 +44,6 @@ public class FindUsagesDemo extends Scene1 implements DprChangeListener {
     api.input.onKeyPress.add(this::onKey);
     api.input.onContextMenu.add(this::onContextMenu);
     api.input.onMouse.add(TestHelper.popupMouseListener(popupMenu));
-    api.input.onMouse.add(windowManager);
-    api.input.onScroll.add(windowManager::onScroll);
   }
 
   @Override
@@ -60,15 +53,13 @@ public class FindUsagesDemo extends Scene1 implements DprChangeListener {
 
   @Override
   public void dispose() {
+    super.dispose();
     popupMenu.dispose();
-    windowManager.dispose();
   }
 
   @Override
   public void paint() {
     super.paint();
-    WglGraphics graphics = api.graphics;
-    windowManager.draw(graphics);
     popupMenu.paint();
   }
 
@@ -122,7 +113,6 @@ public class FindUsagesDemo extends Scene1 implements DprChangeListener {
   @Override
   public void onResize(V2i newSize, float newDpr) {
     super.onResize(newSize, newDpr);
-    windowManager.onResize(newSize, newDpr);
 //    findUsagesWindow.center(newSize);
     layoutWindows();
   }
@@ -154,8 +144,4 @@ public class FindUsagesDemo extends Scene1 implements DprChangeListener {
     return event.isPressed && event.keyCode == KeyCode.SPACE;
   }
 
-  @Override
-  public boolean update(double timestamp) {
-    return windowManager.update(timestamp);
-  }
 }

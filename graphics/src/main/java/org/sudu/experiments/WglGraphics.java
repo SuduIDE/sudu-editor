@@ -277,6 +277,12 @@ public abstract class WglGraphics {
     drawRect();
   }
 
+  public GL.Texture createTexture(Canvas content) {
+    GL.Texture texture = createTexture();
+    texture.setContent(content);
+    return texture;
+  }
+
   public GL.Texture createTexture() {
     return new GL.Texture(tc);
   }

@@ -12,28 +12,34 @@ public class ScrollContent extends View {
     this.scrollView = scrollView;
   }
 
-  protected void updateVirtualSize() {
-    virtualSize.set(
-        Math.max(virtualSize.x, size.x),
-        Math.max(virtualSize.y, size.y));
+  public void setVirtualSize(int w, int h) {
+    virtualSize.set(w, h);
   }
 
+  protected void layoutScroll() {
+    if (scrollView != null) {
+      scrollView.layoutScroll();
+    }
+  }
+
+  // after resize or set content
   protected void limitScrollPos() {
     scrollPos.x = limitScrollX(scrollPos.x);
     scrollPos.y = limitScrollY(scrollPos.y);
   }
 
-  public void setScrollPosX(int x) {
-    scrollPos.x = limitScrollX(x);
+  // after mouse events
+  public boolean setScrollPosX(int x) {
+    int px = scrollPos.x, nx = limitScrollX(x);
+    scrollPos.x = nx;
+    return px != nx;
   }
 
-  public void setScrollPosY(int y) {
-    scrollPos.y = limitScrollY(y);
-  }
-
-  public void setScrollPos(int x, int y) {
-    scrollPos.x = limitScrollX(x);
-    scrollPos.y = limitScrollY(y);
+  // after mouse events
+  public boolean setScrollPosY(int y) {
+    int py = scrollPos.y, ny = limitScrollY(y);
+    scrollPos.y = ny;
+    return py != ny;
   }
 
   private int limitScrollY(int y) {

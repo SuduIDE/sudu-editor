@@ -3,6 +3,8 @@ package org.sudu.experiments.ui;
 import org.sudu.experiments.*;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyEvent;
+import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
@@ -119,5 +121,18 @@ public class UiContext {
         ? "text pow set for cleartype "
         : "text pow set for grayscale ", pow);
     window.repaint();
+  }
+
+  public MouseListener desktopMouse() {
+    return desktopMouse(windowCursor);
+  }
+
+  public static MouseListener desktopMouse(SetCursor windowCursor) {
+    return new MouseListener() {
+      @Override
+      public boolean onMouseMove(MouseEvent event) {
+        return windowCursor.set(null);
+      }
+    };
   }
 }
