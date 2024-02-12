@@ -1,7 +1,6 @@
 package org.sudu.experiments.editor.ui.window;
 
 import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.editor.TestHelper;
 import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.Themes;
 import org.sudu.experiments.fonts.Fonts;
@@ -45,8 +44,8 @@ public class WindowDemo extends WindowScene implements DprChangeListener {
     var popupMenu = new PopupMenu(uiContext);
     popupMenu.setTheme(Themes.darculaColorScheme(),
         new UiFont("Consolas", 25));
+    popupMenu.setItems(event.position, items(), emptyRunnable);
     windowManager.setPopupMenu(popupMenu);
-    popupMenu.display(event.position, items(), emptyRunnable);
     return true;
   }
 
@@ -87,12 +86,6 @@ public class WindowDemo extends WindowScene implements DprChangeListener {
     ScrollView scrollView = new ScrollView(contentDemo, uiContext);
     TestColors.apply(scrollView);
     return scrollView;
-  }
-
-  @Override
-  public void onResize(V2i newSize, float newDpr) {
-    super.onResize(newSize, newDpr);
-    layoutWindows();
   }
 
   private void layoutWindows() {

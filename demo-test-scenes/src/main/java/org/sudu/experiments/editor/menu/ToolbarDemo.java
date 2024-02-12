@@ -2,8 +2,8 @@ package org.sudu.experiments.editor.menu;
 
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
-import org.sudu.experiments.editor.Scene1;
 import org.sudu.experiments.editor.TestHelper;
+import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.DialogColors;
 import org.sudu.experiments.editor.ui.colors.DialogItemColors;
 import org.sudu.experiments.editor.ui.colors.Themes;
@@ -18,22 +18,19 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.XorShiftRandom;
 import org.sudu.experiments.ui.*;
 
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListener {
+public class ToolbarDemo extends WindowScene implements MouseListener, DprChangeListener {
 
   final TestHelper.Cross c = new TestHelper.Cross();
 
   private final Toolbar tbH = new Toolbar();
   private final Toolbar tbV = new Toolbar();
 
-  private final PopupMenu popupMenu;
   private final UiFont consolas;
 
   public ToolbarDemo(SceneApi api) {
     super(api);
-    popupMenu = new PopupMenu(uiContext);
     uiContext.dprListeners.add(this);
 
     api.input.onKeyPress.add(this::onKeyPress);
@@ -42,7 +39,6 @@ public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListe
 
     tbV.setLayoutVertical();
     consolas = new UiFont("Consolas", 25);
-    popupMenu.setTheme(Themes.darculaColorScheme(), consolas);
     clearColor.set(new Color(43));
 
     DialogItemColors dark = Themes.darculaColorScheme();
@@ -110,9 +106,9 @@ public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListe
 
   @Override
   public void dispose() {
+    super.dispose();
     tbH.dispose();
     tbV.dispose();
-    popupMenu.dispose();
   }
 
   @Override
@@ -131,48 +127,36 @@ public class ToolbarDemo extends Scene1 implements MouseListener, DprChangeListe
 
   @Override
   public void paint() {
-    super.paint();
+    clear();
     WglGraphics graphics = api.graphics;
     graphics.enableBlend(true);
     c.draw(uiContext);
     tbH.render(uiContext);
     tbV.render(uiContext);
-    popupMenu.paint();
+    windowManager.draw();
     graphics.enableBlend(false);
   }
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
-    boolean r = popupMenu.onMouseMove(event);
     boolean tbHResult = tbH.onMouseMove(event.position, uiContext.windowCursor);
     boolean tbVResult = tbV.onMouseMove(event.position, uiContext.windowCursor);
-    return r || tbHResult || tbVResult;
-  }
-
-  @Override
-  public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
-    return popupMenu.onMouseDown(event, button);
-  }
-
-  @Override
-  public boolean onMouseUp(MouseEvent event, int button) {
-    return popupMenu.onMouseUp(event, button);
+    return tbHResult || tbVResult;
   }
 
   @Override
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-    boolean r = popupMenu.onMouseClick(event, button, clickCount);
     boolean tbHResult = tbH.onMouseClick(event.position, button, clickCount);
     boolean tbVResult = tbV.onMouseClick(event.position, button, clickCount);
-    return r || tbHResult || tbVResult;
+    return tbHResult || tbVResult;
   }
 
-  boolean onContextMenu(MouseEvent event) {
-    System.out.println("onContextMenu");
-    if (!popupMenu.isVisible()) {
-      popupMenu.display(event.position, items(4),
+  private boolean onContextMenu(MouseEvent event) {
+    var popupMenu = new PopupMenu(uiContext);
+    popupMenu.setTheme(Themes.darculaColorScheme(), consolas);
+    popupMenu.setItems(event.position, items(4),
           this::onPopupClosed);
-    }
+    windowManager.setPopupMenu(popupMenu);
     return true;
   }
 

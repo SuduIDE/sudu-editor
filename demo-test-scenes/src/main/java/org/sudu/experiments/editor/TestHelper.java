@@ -55,28 +55,4 @@ public class TestHelper {
       y += texture.height();
     } while (y < size.y);
   }
-
-  public static MouseListener popupMouseListener(PopupMenu popupMenu) {
-    return new MouseListener() {
-      @Override
-      public boolean onMouseMove(MouseEvent event) {
-        return popupMenu.onMouseMove(event);
-      }
-
-      @Override
-      public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-        return popupMenu.onMouseClick(event, button, clickCount);
-      }
-
-      @Override
-      public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
-        return popupMenu.onMouseDown(event, button);
-      }
-
-      @Override
-      public boolean onMouseUp(MouseEvent event, int button) {
-        return popupMenu.onMouseUp(event, button);
-      }
-    };
-  }
 }

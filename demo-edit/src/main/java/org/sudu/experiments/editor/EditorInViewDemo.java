@@ -47,6 +47,7 @@ public class EditorInViewDemo extends WindowScene implements
     Disposable.assign(inputRegistrations, null);
     ui.dispose();
     editor.dispose();
+    super.dispose();
   }
 
   @Override

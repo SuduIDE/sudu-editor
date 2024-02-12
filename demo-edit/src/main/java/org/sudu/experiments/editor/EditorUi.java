@@ -113,10 +113,15 @@ class EditorUi {
     usagesWindow = null;
   }
 
-  void displayNoUsagesPopup(V2i position, EditorComponent edit) {
-    popupMenu = new PopupMenu(windowManager.uiContext);
+  private PopupMenu newPopup() {
+    PopupMenu popupMenu = new PopupMenu(windowManager.uiContext);
     popupMenu.setTheme(theme.dialogItem, theme.popupMenuFont);
-    popupMenu.display(position, noDefOrUsagesPop(), setEditFocus(edit));
+    return popupMenu;
+  }
+
+  void displayNoUsagesPopup(V2i position, EditorComponent edit) {
+    popupMenu = newPopup();
+    popupMenu.setItems(position, noDefOrUsagesPop(), setEditFocus(edit));
     windowManager.setPopupMenu(popupMenu);
   }
 
@@ -137,9 +142,8 @@ class EditorUi {
       CleartypeControl cleartypeControl,
       Supplier<String[]> fonts
   ) {
-    popupMenu = new PopupMenu(windowManager.uiContext);
-    popupMenu.setTheme(theme.dialogItem, theme.popupMenuFont);
-    popupMenu.display(position,
+    popupMenu = newPopup();
+    popupMenu.setItems(position,
         new PopupMenuBuilder(
             editor,
             fonts, fontApi, cleartypeControl,

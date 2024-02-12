@@ -169,6 +169,7 @@ public class Diff0 extends WindowScene implements
     ui.dispose();
     editor1.dispose();
     editor2.dispose();
+    super.dispose();
   }
 
   @Override
@@ -184,7 +185,7 @@ public class Diff0 extends WindowScene implements
     editor1.paint();
     editor2.paint();
     middleLine.paint();
-    windowManager.draw(api.graphics);
+    windowManager.draw();
   }
 
   protected String[] menuFonts() { return Fonts.editorFonts(false); }

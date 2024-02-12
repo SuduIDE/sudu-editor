@@ -57,9 +57,9 @@ public class WindowManager implements MouseListener, DprChangeListener {
     windows.remove(window);
   }
 
-  public void draw(WglGraphics graphics) {
+  public void draw() {
     for (int i = windows.size() - 1; i >= 0; i--) {
-      windows.get(i).draw(graphics);
+      windows.get(i).draw(uiContext.graphics);
     }
     if (popupMenu != null) popupMenu.paint();
   }

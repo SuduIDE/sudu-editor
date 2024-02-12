@@ -131,7 +131,8 @@ public class UiContext {
     return new MouseListener() {
       @Override
       public boolean onMouseMove(MouseEvent event) {
-        return windowCursor.set(null);
+        windowCursor.set(null);
+        return false;
       }
     };
   }

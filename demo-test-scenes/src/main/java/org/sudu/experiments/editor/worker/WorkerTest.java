@@ -4,8 +4,7 @@ import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.Window;
 import org.sudu.experiments.editor.CtrlO;
-import org.sudu.experiments.editor.Scene1;
-import org.sudu.experiments.editor.TestHelper;
+import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.Themes;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.ArrayOp;
@@ -21,17 +20,10 @@ import static org.sudu.experiments.editor.worker.EditorWorker.array;
 import static org.sudu.experiments.editor.worker.EditorWorker.string;
 
 @SuppressWarnings({"PrimitiveArrayArgumentToVarargsMethod"})
-public class WorkerTest extends Scene1 {
-
-  private final PopupMenu popupMenu;
-
+public class WorkerTest extends WindowScene {
   public WorkerTest(SceneApi api) {
     super(api);
 
-    popupMenu = new PopupMenu(uiContext);
-    popupMenu.setTheme(Themes.darculaColorScheme(),
-        new UiFont("Consolas", 25));
-    api.input.onMouse.add(TestHelper.popupMouseListener(popupMenu));
     api.input.onContextMenu.add(this::onContextMenu);
 
     sendPrimitiveTasks(api.window);
@@ -50,21 +42,12 @@ public class WorkerTest extends Scene1 {
         TestJobs.withInts, new int[]{ 1,2,3,4,5 });
   }
 
-  @Override
-  public void dispose() {
-    popupMenu.dispose();
-  }
-
-  @Override
-  public void paint() {
-    super.paint();
-    popupMenu.paint();
-  }
-
   boolean onContextMenu(MouseEvent event) {
-    if (!popupMenu.isVisible()) {
-      popupMenu.display(event.position, menu(), emptyRunnable);
-    }
+    var popupMenu = new PopupMenu(uiContext);
+    popupMenu.setTheme(Themes.darculaColorScheme(),
+        new UiFont("Consolas", 25));
+    popupMenu.setItems(event.position, menu(), emptyRunnable);
+    windowManager.setPopupMenu(popupMenu);
     return true;
   }
 

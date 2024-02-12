@@ -30,7 +30,7 @@ public abstract class WindowScene extends Scene1 {
   @Override
   public void paint() {
     super.paint();
-    windowManager.draw(api.graphics);
+    windowManager.draw();
   }
 
   @Override

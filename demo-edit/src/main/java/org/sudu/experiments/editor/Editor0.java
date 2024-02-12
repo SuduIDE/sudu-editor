@@ -54,6 +54,7 @@ public class Editor0 extends WindowScene implements EditorTheme, EditorUi.Cleart
   public void dispose() {
     ui.dispose();
     editor.dispose();
+    super.dispose();
   }
 
   @Override
@@ -65,7 +66,7 @@ public class Editor0 extends WindowScene implements EditorTheme, EditorUi.Cleart
   public void paint() {
     clear();
     editor.paint();
-    windowManager.draw(api.graphics);
+    windowManager.draw();
   }
 
   protected String[] menuFonts() { return Fonts.editorFonts(false); }

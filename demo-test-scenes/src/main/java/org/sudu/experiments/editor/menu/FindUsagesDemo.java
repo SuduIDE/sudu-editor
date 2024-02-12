@@ -1,7 +1,6 @@
 package org.sudu.experiments.editor.menu;
 
 import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.editor.TestHelper;
 import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.FindUsagesItemBuilder;
 import org.sudu.experiments.editor.ui.FindUsagesItemData;
@@ -29,21 +28,15 @@ import static org.sudu.experiments.Const.emptyRunnable;
 
 public class FindUsagesDemo extends WindowScene implements DprChangeListener {
 
-  private final PopupMenu popupMenu;
-
   private Window window1;
+  UiFont titleFont = new UiFont(Fonts.SegoeUI, 15);
 
   public FindUsagesDemo(SceneApi api) {
     super(api);
     uiContext.dprListeners.add(this);
     clearColor.set(new Color(43));
-    popupMenu = new PopupMenu(uiContext);
-    popupMenu.setTheme(Themes.darculaColorScheme(),
-        new UiFont("Consolas", 25));
-
     api.input.onKeyPress.add(this::onKey);
     api.input.onContextMenu.add(this::onContextMenu);
-    api.input.onMouse.add(TestHelper.popupMouseListener(popupMenu));
   }
 
   @Override
@@ -51,22 +44,12 @@ public class FindUsagesDemo extends WindowScene implements DprChangeListener {
     if (oldDpr == 0) openWindows();
   }
 
-  @Override
-  public void dispose() {
-    super.dispose();
-    popupMenu.dispose();
-  }
-
-  @Override
-  public void paint() {
-    super.paint();
-    popupMenu.paint();
-  }
-
   private boolean onContextMenu(MouseEvent event) {
-    if (!popupMenu.isVisible()) {
-      popupMenu.display(event.position, items(), emptyRunnable);
-    }
+    var popupMenu = new PopupMenu(uiContext);
+    popupMenu.setTheme(Themes.darculaColorScheme(),
+        new UiFont("Consolas", 25));
+    popupMenu.setItems(event.position, items(), emptyRunnable);
+    windowManager.setPopupMenu(popupMenu);
     return true;
   }
 
@@ -89,14 +72,12 @@ public class FindUsagesDemo extends WindowScene implements DprChangeListener {
       w.dispose();
     }
   }
-  UiFont titleFont = new UiFont(Fonts.SegoeUI, 15);
 
   private Window newWindow() {
     EditorColorScheme editorColorScheme = EditorColorScheme.darculaIdeaColorScheme();
     DialogItemColors theme = editorColorScheme.dialogItem;
 
-    FindUsagesView view = new FindUsagesView(uiContext, () -> {
-    });
+    FindUsagesView view = new FindUsagesView(uiContext, () -> {});
     UiFont uiFont = new UiFont(Fonts.Consolas, 14);
     view.setItems(createItems());
     view.setTheme(theme, uiFont);
