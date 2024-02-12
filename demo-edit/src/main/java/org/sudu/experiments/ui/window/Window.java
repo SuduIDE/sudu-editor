@@ -19,15 +19,22 @@ public class Window {
   public static final float frameHitTestDp = 7;
   public static final float cornerSizeDp = 25;
   public static final float minVisibleDp = 5;
+  static final int bypassHitTest = 1;
 
   public final UiContext context;
   private final TextLineView title;
-  private View content = new View();
+  private View content;
   private DialogItemColors theme;
+  private int flags;
 
   public Window(UiContext context) {
+    this(context, new View());
+  }
+
+  public Window(UiContext context, View content) {
     this.context = context;
     title = new TextLineView(context);
+    this.content = content;
   }
 
   public void setTitle(String title, UiFont font, float margin) {
@@ -37,6 +44,18 @@ public class Window {
 
   public void setTheme(DialogItemColors theme) {
     this.theme = theme;
+  }
+
+  public void setBypassHitTest(boolean bypass) {
+    if (bypass) {
+      flags |= bypassHitTest;
+    } else {
+      flags &= ~bypassHitTest;
+    }
+  }
+
+  public boolean bypassHitTest() {
+    return (flags & bypassHitTest) != 0;
   }
 
   public void dispose() {
@@ -113,12 +132,16 @@ public class Window {
 
   public void onHostResize(V2i newSize, float newDpr) {}
 
+  private boolean contentHitTest(MouseEvent event) {
+    return bypassHitTest() || content.hitTest(event.position);
+  }
+
   boolean onMouseMove(MouseEvent event) {
-    return setCursor(event.position) || content.hitTest(event.position)
+    return setWindowCursor(event.position) || content.hitTest(event.position)
         && (content.onMouseMove(event) || context.windowCursor.set(null));
   }
 
-  private boolean setCursor(V2i position) {
+  private boolean setWindowCursor(V2i position) {
     if (title.hitTest(position))
       return context.windowCursor.set(null);
 
@@ -157,19 +180,19 @@ public class Window {
       }
     }
     return title.hitTest(event.position) ? MouseListener.Static.emptyConsumer
-        : content.hitTest(event.position) ? content.onMouseDown(event, button)
+        : contentHitTest(event) ? content.onMouseDown(event, button)
         : null;
   }
 
   boolean onMouseUp(MouseEvent event, int button) {
     return title.hitTest(event.position) ||
-        content.hitTest(event.position) && content.onMouseUp(event, button);
+        contentHitTest(event) && content.onMouseUp(event, button);
   }
 
   boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-    return title.hitTest(event.position) ||
-        content.hitTest(event.position) &&
-        content.onMouseClick(event, button, clickCount);
+    return title.hitTest(event.position) || frameHitTest(event.position) ||
+        contentHitTest(event) &&
+            content.onMouseClick(event, button, clickCount);
   }
 
   boolean onScroll(MouseEvent event, float dX, float dY) {
@@ -256,6 +279,16 @@ public class Window {
     }
 
     return null;
+  }
+
+  private boolean frameHitTest(V2i position) {
+    int frame = context.toPx(frameHitTestDp);
+    return hHit(position.x, frame) &&
+        (topFrameHitTest(position.y, frame)
+            || bottomFrameHitTest(position.y, frame)) ||
+        vHit(position.y, frame) &&
+            (leftFrameHitTest(position.x, frame)
+                || rightFrameHitTest(position.x, frame));
   }
 
   private Consumer<MouseEvent> resize(V2i mousePos, int xMode, int yMode) {

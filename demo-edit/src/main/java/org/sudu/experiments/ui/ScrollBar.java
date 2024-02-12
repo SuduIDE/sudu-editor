@@ -73,6 +73,7 @@ public class ScrollBar {
     }
 
     public int getPosition(int maxValue) {
+      if (maxPosition <= 0) return 0;
       return Numbers.iDivRound(position, maxValue, maxPosition);
     }
 
@@ -124,7 +125,7 @@ public class ScrollBar {
       int viewZMax, int buttonZSize,
       boolean isVertical
   ) {
-    if (viewVirtualSize <= viewSize) {
+    if (viewVirtualSize <= viewSize || viewSize <= buttonZSize * BUTTON_SIZE) {
       bgSize.set(0, 0);
       buttonSize.set(0, 0);
     } else {

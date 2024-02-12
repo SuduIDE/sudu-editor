@@ -85,4 +85,10 @@ public interface StartFile {
   static char[] getChars() {
     return START_CODE_JAVA.toCharArray();
   }
+
+  static void apply(EditorComponent editor) {
+    editor.setModel(new Model(
+        StartFile.START_CODE_JAVA, Languages.JAVA,
+        new Uri(StartFile.START_CODE_FILE)));
+  }
 }

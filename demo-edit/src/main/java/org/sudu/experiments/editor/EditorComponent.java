@@ -1,4 +1,3 @@
-// todo: highlight current line
 // todo: ctrl-left-right move by elements
 
 package org.sudu.experiments.editor;
@@ -8,10 +7,7 @@ import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.EditorUi.FontApi;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.FontDesk;
-import org.sudu.experiments.input.KeyCode;
-import org.sudu.experiments.input.KeyEvent;
-import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.input.MouseListener;
+import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.*;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.ui.Focusable;
@@ -58,9 +54,11 @@ public class EditorComponent extends View implements
 
   // layout
   static final int vLineXDp = 80;
+  static final int vLineWDp = 1;
+  static final int vLineLeftDeltaDp = 10;
+
   int vLineX;
   int vLineW;
-  static final int vLineWDp = 1;
   int vLineLeftDelta;
 
   V2i vLineSize = new V2i(1, 0);
@@ -110,6 +108,21 @@ public class EditorComponent extends View implements
 
   }
 
+  Disposable registerInput(InputListeners input, boolean inView) {
+    if (!inView) input.onMouse.add(this);
+    InputListeners.CopyHandler onCopy = this::onCopy;
+    InputListeners.PasteHandler onPaste = () -> this::handleInsert;
+    InputListeners.ScrollHandler onScroll = (e, dX, dY) -> this.onScroll(dX, dY);
+    input.onCopy.add(onCopy);
+    input.onPaste.add(onPaste);
+    input.onScroll.add(onScroll);
+    return () -> {
+      input.onCopy.remove(onCopy);
+      input.onPaste.remove(onPaste);
+      input.onScroll.remove(onScroll);
+    };
+  }
+
   @Override
   public void setPosition(V2i pos, V2i size, float dpr) {
     super.setPosition(pos, size, dpr);
@@ -134,7 +147,7 @@ public class EditorComponent extends View implements
   private void internalLayout(V2i pos, V2i size, float dpr) {
     vLineX = DprUtil.toPx(vLineXDp, dpr);
     vLineW = DprUtil.toPx(vLineWDp, dpr);
-    vLineLeftDelta = DprUtil.toPx(10, dpr);
+    vLineLeftDelta = DprUtil.toPx(vLineLeftDeltaDp, dpr);
 
     if (mirrored) {
       context.v2i1.set(pos.x + size.x - lineNumbersWidth(), pos.y);
@@ -280,7 +293,8 @@ public class EditorComponent extends View implements
     fontFamilyName = name;
   }
 
-  public void enableCleartype(boolean en) {
+  @Override
+  public void onTextRenderingSettingsChange() {
     lrContext.enableCleartype(context.cleartype, g);
     CodeLineRenderer.makeContentDirty(lines);
 
@@ -396,7 +410,15 @@ public class EditorComponent extends View implements
   }
 
   @Override
+  protected V2i minimalSize() {
+    return new V2i(lineNumbersWidth() + vLineW + vLineLeftDelta, lineHeight);
+  }
+
+  @Override
   public int lineHeight() { return lineHeight; }
+
+  @Override
+  public void draw(WglGraphics g) { paint(); }
 
   public void paint() {
 

@@ -10,9 +10,7 @@ public class Editor1 extends Editor0 {
 
   public Editor1(SceneApi api) {
     super(api);
-    editor.setModel(new Model(
-        StartFile.START_CODE_JAVA, Languages.JAVA,
-        new Uri(StartFile.START_CODE_FILE)));
+    StartFile.apply(editor);
   }
 
   @Override

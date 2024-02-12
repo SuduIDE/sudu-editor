@@ -25,16 +25,10 @@ public class Editor0 extends WindowScene implements EditorTheme, EditorUi.Cleart
     editor = new EditorComponent(uiContext, ui);
     uiContext.initFocus(editor);
 
-    api.input.onMouse.add(ui);
-
-    api.input.onMouse.add(editor);
-
     api.input.onKeyPress.add(this::onKeyPress);
     api.input.onKeyPress.add(new CtrlO(api, editor::openFile));
 
-    api.input.onCopy.add(editor::onCopy);
-    api.input.onPaste.add(() -> editor::handleInsert);
-    api.input.onScroll.add((e, dX, dY) -> editor.onScroll(dX, dY));
+    editor.registerInput(api.input, false);
     api.input.onContextMenu.add(this::onContextMenu);
 
     toggleDark();
@@ -44,8 +38,7 @@ public class Editor0 extends WindowScene implements EditorTheme, EditorUi.Cleart
   public void enableCleartype(boolean en) {
     if (uiContext.enableCleartype(en)) {
       windowManager.onTextRenderingSettingsChange();
-      ui.onTextRenderingSettingsChange();
-      editor.enableCleartype(en);
+      editor.onTextRenderingSettingsChange();
     }
   }
 
@@ -73,7 +66,6 @@ public class Editor0 extends WindowScene implements EditorTheme, EditorUi.Cleart
     clear();
     editor.paint();
     windowManager.draw(api.graphics);
-    ui.paint();
   }
 
   protected String[] menuFonts() { return Fonts.editorFonts(false); }
@@ -104,7 +96,7 @@ public class Editor0 extends WindowScene implements EditorTheme, EditorUi.Cleart
 
   boolean onContextMenu(MouseEvent event) {
     if (uiContext.isFocused(editor)) {
-      ui.showContextMenu(event, editor,
+      ui.showContextMenu(event.position, editor,
           Editor0.this, editor, this,
           Editor0.this::menuFonts);
     }

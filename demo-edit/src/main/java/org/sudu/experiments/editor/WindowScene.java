@@ -16,10 +16,10 @@ public abstract class WindowScene extends Scene1 {
     super(api);
     uiContext.dprListeners.add(windowManager);
     api.input.onMouse.add(windowManager);
+    api.input.onScroll.add(windowManager::onScroll);
     if (desktopMouse) {
       api.input.onMouse.add(uiContext.desktopMouse());
     }
-    api.input.onScroll.add(windowManager::onScroll);
   }
 
   @Override

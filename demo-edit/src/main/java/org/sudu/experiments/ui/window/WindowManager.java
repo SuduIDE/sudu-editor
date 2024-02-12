@@ -1,11 +1,14 @@
 package org.sudu.experiments.ui.window;
 
 
+import org.sudu.experiments.Disposable;
 import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.DprChangeListener;
+import org.sudu.experiments.ui.PopupMenu;
 import org.sudu.experiments.ui.UiContext;
 
 import java.util.ArrayList;
@@ -19,10 +22,32 @@ public class WindowManager implements MouseListener, DprChangeListener {
 
   public final UiContext uiContext;
   private final ArrayList<Window> windows = new ArrayList<>();
+  private PopupMenu popupMenu;
 
   public WindowManager(UiContext uiContext) {
     this.uiContext = uiContext;
   }
+
+  public void setPopupMenu(PopupMenu popup) {
+    if (popupMenu != popup) {
+      popupMenu = Disposable.assign(popupMenu, popup);
+    }
+  }
+
+  public void setPopupTheme(EditorColorScheme theme) {
+    if (popupMenu != null) {
+      popupMenu.setTheme(theme.dialogItem, theme.popupMenuFont);
+    }
+  }
+
+  public void hidePopupMenu() {
+    if (popupMenu != null) {
+      popupMenu.hide();
+      setPopupMenu(null);
+    }
+  }
+
+  public PopupMenu popupMenu() { return popupMenu; }
 
   public void addWindow(Window window) {
     windows.add(0, window);
@@ -36,9 +61,12 @@ public class WindowManager implements MouseListener, DprChangeListener {
     for (int i = windows.size() - 1; i >= 0; i--) {
       windows.get(i).draw(graphics);
     }
+    if (popupMenu != null) popupMenu.paint();
   }
 
   public void onTextRenderingSettingsChange() {
+    if (popupMenu != null)
+      popupMenu.onTextRenderingSettingsChange();
     for (int i = 0; i < windows.size(); i++) {
       windows.get(i).onTextRenderingSettingsChange();
     }
@@ -46,6 +74,9 @@ public class WindowManager implements MouseListener, DprChangeListener {
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
+    if (popupMenu != null && popupMenu.onMouseMove(event))
+      return true;
+
     for (int i = 0; i < windows.size(); i++) {
       if (windows.get(i).onMouseMove(event)) return true;
     }
@@ -54,6 +85,8 @@ public class WindowManager implements MouseListener, DprChangeListener {
 
   @Override
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
+    if (popupMenu != null && popupMenu.onMouseClick(event, button, clickCount))
+      return true;
     for (int i = 0; i < windows.size(); i++) {
       if (windows.get(i).onMouseClick(event, button, clickCount)) return true;
     }
@@ -65,6 +98,10 @@ public class WindowManager implements MouseListener, DprChangeListener {
   @Override
   public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
 //    System.out.println("onMouseDown(" + ++id + ")");
+    if (popupMenu != null) {
+      var r = popupMenu.onMouseDown(event, button);
+      if (r != null) return r;
+    }
     for (int i = 0; i < windows.size(); i++) {
       Consumer<MouseEvent> lock = windows.get(i).onMouseDown(event, button);
       if (lock != null) return lock;
@@ -74,6 +111,8 @@ public class WindowManager implements MouseListener, DprChangeListener {
 
   @Override
   public boolean onMouseUp(MouseEvent event, int button) {
+    if (popupMenu != null && popupMenu.onMouseUp(event, button))
+      return true;
     for (int i = 0; i < windows.size(); i++) {
       if (windows.get(i).onMouseUp(event, button)) return true;
     }

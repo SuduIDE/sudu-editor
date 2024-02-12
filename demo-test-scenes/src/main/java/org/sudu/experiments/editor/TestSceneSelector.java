@@ -39,6 +39,7 @@ public class TestSceneSelector {
       case "LineShaderDemo2" -> LineShaderDemo2::new;
       case "WindowDemo" -> WindowDemo::new;
       case "WindowMinDemo" -> WindowMinDemo::new;
+      case "EditorInViewDemo" -> EditorInViewDemo::new;
       case "FileViewDemo" -> FileViewDemo::new;
       case "SinDemo" -> SinDemo::new;
       case "DiffMiddleDemo" -> DiffMiddleDemo::new;

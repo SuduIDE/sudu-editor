@@ -11,6 +11,7 @@ import org.sudu.experiments.ui.window.Window;
 
 public class WindowMinDemo extends WindowScene implements DprChangeListener {
 
+  static final boolean withTitle = true;
   static final int titleMargin = 3;
 
   Window window;
@@ -22,13 +23,11 @@ public class WindowMinDemo extends WindowScene implements DprChangeListener {
 
     window = new Window(uiContext);
     window.setTheme(Themes.darculaColorScheme());
-    window.setTitle("WindowMinDemo", new UiFont("Consolas", 15), titleMargin);
+    if (withTitle) {
+      window.setTitle("WindowMinDemo",
+          new UiFont("Consolas", 15), titleMargin);
+    }
     windowManager.addWindow(window);
-  }
-
-  @Override
-  public void paint() {
-    super.paint();
   }
 
   @Override

@@ -5,9 +5,6 @@ import org.sudu.experiments.editor.ui.FindUsagesItemBuilder;
 import org.sudu.experiments.editor.ui.FindUsagesItemData;
 import org.sudu.experiments.editor.ui.FindUsagesView;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
-import org.sudu.experiments.input.InputListeners;
-import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.common.Pos;
@@ -23,59 +20,31 @@ import java.util.function.Supplier;
 import static org.sudu.experiments.ui.ToolbarConst.fireOnHover;
 import static org.sudu.experiments.ui.ToolbarItemBuilder.ti;
 
-class EditorUi implements MouseListener {
+class EditorUi {
   final WindowManager windowManager;
 
   Window usagesWindow;
-
-  // popup is not controlled by WindowManager
   PopupMenu popupMenu;
   EditorColorScheme theme;
 
   EditorUi(WindowManager wm) {
     windowManager = wm;
-    popupMenu = new PopupMenu(wm.uiContext);
   }
 
   void setTheme(EditorColorScheme theme) {
     this.theme = theme;
     if (usagesWindow != null) usagesWindow.setTheme(theme.dialogItem);
-    popupMenu.setTheme(theme.dialogItem, theme.popupMenuFont);
-  }
-
-  public void onTextRenderingSettingsChange() {
-    popupMenu.onTextRenderingSettingsChange();
+    windowManager.setPopupTheme(theme);
   }
 
   void dispose() {
-    popupMenu.dispose();
+    if (windowManager.popupMenu() == popupMenu) {
+      windowManager.setPopupMenu(null);
+    }
+    popupMenu = null;
     if (usagesWindow != null) {
       disposeUsagesWindow();
     }
-  }
-
-  void paint() {
-    popupMenu.paint();
-  }
-
-  @Override
-  public boolean onMouseMove(MouseEvent event) {
-    return popupMenu.onMouseMove(event);
-  }
-
-  @Override
-  public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-    return popupMenu.onMouseClick(event, button, clickCount);
-  }
-
-  @Override
-  public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
-    return popupMenu.onMouseDown(event, button);
-  }
-
-  @Override
-  public boolean onMouseUp(MouseEvent event, int button) {
-    return popupMenu.onMouseUp(event, button);
   }
 
   void showUsagesWindow(
@@ -123,6 +92,7 @@ class EditorUi implements MouseListener {
     usagesView.setTheme(theme.dialogItem, theme.usagesFont);
 
     usagesWindow = new Window(uiContext);
+    usagesWindow.setBypassHitTest(true);
     ScrollView scrollView = new ScrollView(usagesView, uiContext);
     scrollView.setScrollColor(theme.dialogItem.dialogScrollLine, theme.dialogItem.dialogScrollBg);
     usagesWindow.setContent(scrollView);
@@ -144,8 +114,10 @@ class EditorUi implements MouseListener {
   }
 
   void displayNoUsagesPopup(V2i position, EditorComponent edit) {
-    popupMenu.hide();
+    popupMenu = new PopupMenu(windowManager.uiContext);
+    popupMenu.setTheme(theme.dialogItem, theme.popupMenuFont);
     popupMenu.display(position, noDefOrUsagesPop(), setEditFocus(edit));
+    windowManager.setPopupMenu(popupMenu);
   }
 
   Runnable setEditFocus(EditorComponent editor) {
@@ -154,25 +126,26 @@ class EditorUi implements MouseListener {
 
   private Supplier<ToolbarItem[]> noDefOrUsagesPop() {
     return ArrayOp.supplier(
-        new ToolbarItem(popupMenu::hide, "No definition or usages"));
+        new ToolbarItem(windowManager::hidePopupMenu,
+            "No definition or usages"));
   }
 
   public void showContextMenu(
-      MouseEvent event,
-      EditorComponent editor,
+      V2i position, EditorComponent editor,
       ThemeApi themeApi,
       FontApi fontApi,
       CleartypeControl cleartypeControl,
       Supplier<String[]> fonts
   ) {
-    if (!popupMenu.isVisible()) {
-      popupMenu.display(event.position,
-          new PopupMenuBuilder(
-              editor,
-              fonts, fontApi, cleartypeControl,
-              themeApi).build(event.position),
-          setEditFocus(editor));
-    }
+    popupMenu = new PopupMenu(windowManager.uiContext);
+    popupMenu.setTheme(theme.dialogItem, theme.popupMenuFont);
+    popupMenu.display(position,
+        new PopupMenuBuilder(
+            editor,
+            fonts, fontApi, cleartypeControl,
+            themeApi).build(position),
+        setEditFocus(editor));
+    windowManager.setPopupMenu(popupMenu);
   }
 
   public interface CleartypeControl {
@@ -259,19 +232,19 @@ class EditorUi implements MouseListener {
     }
 
     private void pasteAction() {
-      popupMenu.hide();
+      windowManager.hidePopupMenu();
       window().readClipboardText(
           editor::handleInsert,
           onError("readClipboardText error: "));
     }
 
     private void cutAction() {
-      popupMenu.hide();
+      windowManager.hidePopupMenu();
       editor.onCopy(copyHandler(), true);
     }
 
     private void copyAction() {
-      popupMenu.hide();
+      windowManager.hidePopupMenu();
       editor.onCopy(copyHandler(), false);
     }
 
@@ -309,7 +282,7 @@ class EditorUi implements MouseListener {
     }
 
     void showOpenFilePicker() {
-      popupMenu.hide();
+      windowManager.hidePopupMenu();
       window().showOpenFilePicker(editor::openFile);
     }
 
@@ -413,12 +386,12 @@ class EditorUi implements MouseListener {
       String language = editor.model.language();
       String scheme = editor.model.uriScheme();
       ReferenceProvider.Provider provider = editor.registrations.findReferenceProvider(language, scheme);
-      popupMenu.hide();
+      windowManager.hidePopupMenu();
       editor.findUsages(eventPosition, provider);
     }
 
     private void findUsagesDefDecl(V2i eventPosition, DefDeclProvider.Type type) {
-      popupMenu.hide();
+      windowManager.hidePopupMenu();
       Model model = editor.model();
       String language = model.language();
       String scheme = model.uriScheme();

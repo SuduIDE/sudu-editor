@@ -1,6 +1,6 @@
 package org.sudu.experiments.ui;
 
-import org.sudu.experiments.Const;
+import org.sudu.experiments.Disposable;
 import org.sudu.experiments.editor.ui.colors.DialogItemColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
@@ -12,13 +12,15 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class PopupMenu implements DprChangeListener, Focusable {
+import static org.sudu.experiments.Const.emptyRunnable;
+
+public class PopupMenu implements DprChangeListener, Focusable, Disposable {
   private final UiContext context;
   private final ArrayList<Toolbar> toolbars = new ArrayList<>();
   private UiFont uiFont;
   private FontDesk font;
   private DialogItemColors theme;
-  private Runnable onClose = Const.emptyRunnable;
+  private Runnable onClose = emptyRunnable;
 
   public PopupMenu(UiContext context) {
     this.context = context;
@@ -58,7 +60,7 @@ public class PopupMenu implements DprChangeListener, Focusable {
       context.removeFocus(this);
       removePopupsAfter(null);
       onClose.run();
-      onClose = Const.emptyRunnable;
+      onClose = emptyRunnable;
     }
   }
 

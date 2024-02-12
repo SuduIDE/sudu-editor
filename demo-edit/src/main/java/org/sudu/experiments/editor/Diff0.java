@@ -54,7 +54,6 @@ public class Diff0 extends WindowScene implements
 
     uiContext.initFocus(editor1);
 
-    api.input.onMouse.add(ui);
     api.input.onScroll.add(this);
 
     // dispatch between editors: move to WindowManager later
@@ -186,7 +185,6 @@ public class Diff0 extends WindowScene implements
     editor2.paint();
     middleLine.paint();
     windowManager.draw(api.graphics);
-    ui.paint();
   }
 
   protected String[] menuFonts() { return Fonts.editorFonts(false); }
@@ -218,9 +216,8 @@ public class Diff0 extends WindowScene implements
   public void enableCleartype(boolean en) {
     if (uiContext.enableCleartype(en)) {
       windowManager.onTextRenderingSettingsChange();
-      ui.onTextRenderingSettingsChange();
-      editor1.enableCleartype(en);
-      editor2.enableCleartype(en);
+      editor1.onTextRenderingSettingsChange();
+      editor2.onTextRenderingSettingsChange();
     }
   }
 
@@ -269,10 +266,12 @@ public class Diff0 extends WindowScene implements
 
   boolean onContextMenu(MouseEvent event) {
     if (uiContext.isFocused(editor1)) {
-      ui.showContextMenu(event, editor1, this, this, this, this::menuFonts);
+      ui.showContextMenu(event.position, editor1,
+          this, this, this, this::menuFonts);
     }
     if (uiContext.isFocused(editor2)) {
-      ui.showContextMenu(event, editor2, this, this, this, this::menuFonts);
+      ui.showContextMenu(event.position, editor2,
+          this, this, this, this::menuFonts);
     }
     return true;
   }
