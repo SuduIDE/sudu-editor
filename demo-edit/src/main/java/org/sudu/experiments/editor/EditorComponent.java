@@ -109,17 +109,19 @@ public class EditorComponent extends View implements
   }
 
   Disposable registerInput(InputListeners input, boolean inView) {
-    if (!inView) input.onMouse.add(this);
+    MouseListener onMouse = inView ? null : this;
+    InputListeners.ScrollHandler onScroll = inView ? null : this::onScroll;
     InputListeners.CopyHandler onCopy = this::onCopy;
     InputListeners.PasteHandler onPaste = () -> this::handleInsert;
-    InputListeners.ScrollHandler onScroll = (e, dX, dY) -> this.onScroll(dX, dY);
+    if (onMouse!= null) input.onMouse.add(onMouse);
+    if (onScroll != null) input.onScroll.add(onScroll);
     input.onCopy.add(onCopy);
     input.onPaste.add(onPaste);
-    input.onScroll.add(onScroll);
     return () -> {
+      if (onMouse!= null) input.onMouse.remove(onMouse);
+      if (onScroll != null) input.onScroll.remove(onScroll);
       input.onCopy.remove(onCopy);
       input.onPaste.remove(onPaste);
-      input.onScroll.remove(onScroll);
     };
   }
 
@@ -1194,7 +1196,8 @@ public class EditorComponent extends View implements
       event -> setScrollPosX(event.getPosition(maxHScrollPos()));
 
 
-  public boolean onScroll(float dX, float dY) {
+  @Override
+  public boolean onScroll(MouseEvent event, float dX, float dY) {
     // chrome sends 150px, firefox send "6 lines"
     int changeY = Numbers.iRnd(lineHeight * 4 * dY / 150);
     int changeX = Numbers.iRnd(dX);

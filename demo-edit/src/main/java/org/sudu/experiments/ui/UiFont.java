@@ -11,7 +11,7 @@ public class UiFont {
   public int weightBold;
 
   public UiFont(String familyName, float size) {
-    this(familyName, size, FontDesk.WEIGHT_LIGHT, FontDesk.WEIGHT_SEMI_BOLD);
+    this(familyName, size, false);
   }
 
   public UiFont(String familyName, float size, boolean light) {

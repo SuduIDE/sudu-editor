@@ -84,7 +84,7 @@ public class View implements Disposable {
     return false;
   }
 
-  boolean onScroll(MouseEvent event, float dX, float dY) {
+  protected boolean onScroll(MouseEvent event, float dX, float dY) {
     return false;
   }
 

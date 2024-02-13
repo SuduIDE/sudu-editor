@@ -17,8 +17,8 @@ import java.util.Objects;
 public class TextLineView extends View {
 
   public final UiContext context;
-  private String title;
-  private UiFont uiFont;
+  UiFont uiFont;
+  private String text;
   private FontDesk font;
   private float margin;
   private boolean textureRenderRequest;
@@ -31,17 +31,20 @@ public class TextLineView extends View {
     this.context = context;
   }
 
-  public void setText(String title, UiFont uiFont, float margin) {
+  public void setText(String title) {
+    textureRenderRequest |= !Objects.equals(this.text, title);
+    this.text = title;
+  }
+
+  public void setFont(UiFont uiFont, float margin) {
     boolean fontChange = !Objects.equals(this.uiFont, uiFont);
-    boolean titleChange = !Objects.equals(this.title, title);
     boolean marginChange = margin != this.margin;
     if (fontChange) {
       this.uiFont = uiFont;
       font = null;
       setHeight(0);
     }
-    textureRenderRequest = fontChange || titleChange || marginChange;
-    this.title = title;
+    textureRenderRequest |= fontChange || marginChange;
     this.margin = margin;
     this.measured = 0;
   }
@@ -93,7 +96,7 @@ public class TextLineView extends View {
   }
 
   public boolean isEmpty() {
-    return uiFont == null || title == null || title.isEmpty();
+    return uiFont == null || text == null || text.isEmpty();
   }
 
   private void setHeight(int height) {
@@ -118,12 +121,12 @@ public class TextLineView extends View {
     float lineHeightF = font.lineHeightF();
     float lrPadding = (lineHeightF + 5f) / 10;
     int margin = context.toPx(this.margin);
-    measured = margin + g.mCanvas.measurePx(font, title, lrPadding * 2);
+    measured = margin + g.mCanvas.measurePx(font, text, lrPadding * 2);
     int width = Numbers.clamp(0, measured, size.x);
     if (width == 0) return;
     Canvas canvas = g.createCanvas(width, size.y, context.cleartype);
     canvas.setFont(font);
-    canvas.drawText(title,
+    canvas.drawText(text,
         margin + lrPadding,
         margin + font.uiBaseline());
     var t = texture != null ? texture : (texture = g.createTexture());

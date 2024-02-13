@@ -27,7 +27,7 @@ public class ToolbarDemo extends WindowScene implements MouseListener, DprChange
   private final Toolbar tbH = new Toolbar();
   private final Toolbar tbV = new Toolbar();
 
-  private final UiFont consolas;
+  private final UiFont consolas = new UiFont("Consolas", 25);
 
   public ToolbarDemo(SceneApi api) {
     super(api);
@@ -38,7 +38,6 @@ public class ToolbarDemo extends WindowScene implements MouseListener, DprChange
     api.input.onContextMenu.add(this::onContextMenu);
 
     tbV.setLayoutVertical();
-    consolas = new UiFont("Consolas", 25);
     clearColor.set(new Color(43));
 
     DialogItemColors dark = Themes.darculaColorScheme();

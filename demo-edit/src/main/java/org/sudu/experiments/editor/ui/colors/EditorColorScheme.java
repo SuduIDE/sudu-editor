@@ -12,9 +12,9 @@ public class EditorColorScheme {
   public final LineNumbersColors lineNumber;
   public final DiffColors diff;
 
-  public final UiFont windowTitleFont = new UiFont(Fonts.SegoeUI, 16);
   public final UiFont popupMenuFont = new UiFont(Fonts.SegoeUI, 17);
   public final UiFont usagesFont = new UiFont(Fonts.Consolas, 15);
+  public final UiFont fileViewFont = new UiFont(Fonts.SegoeUI, 15, false);
 
   public static EditorColorScheme darculaIdeaColorScheme() {
     return new EditorColorScheme(

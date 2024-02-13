@@ -29,7 +29,6 @@ import static org.sudu.experiments.Const.emptyRunnable;
 public class FindUsagesDemo extends WindowScene implements DprChangeListener {
 
   private Window window1;
-  UiFont titleFont = new UiFont(Fonts.SegoeUI, 15);
 
   public FindUsagesDemo(SceneApi api) {
     super(api);
@@ -87,7 +86,7 @@ public class FindUsagesDemo extends WindowScene implements DprChangeListener {
     scrollView.setScrollColor(theme.dialogScrollLine, theme.dialogScrollBg);
     window.setContent(scrollView);
     window.setTheme(theme);
-    window.setTitle("FindUsagesView1", titleFont, 2);
+    window.setTitle("FindUsagesDemo");
     return window;
   }
 
@@ -117,7 +116,7 @@ public class FindUsagesDemo extends WindowScene implements DprChangeListener {
         new V2i(newSize.x * 2 / 10, newSize.y * 4 / 10),
         new V2i(newSize.x * 7 / 10, newSize.y * 3 / 10)
     );
-    window1.setTitle("Window 1: " + window1.size().toString(), titleFont, 2);
+    window1.setTitle("Window 1: " + window1.size().toString());
   }
 
 

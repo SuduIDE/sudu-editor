@@ -225,7 +225,8 @@ public class ScrollView extends View {
     return a || b || content.onMouseMove(event);
   }
 
-  boolean onScroll(MouseEvent event, float dX, float dY) {
+  @Override
+  protected boolean onScroll(MouseEvent event, float dX, float dY) {
     if (!hitTest(event.position)) return false;
 
     int changeY = DprUtil.toPx(dY * .25f, dpr);

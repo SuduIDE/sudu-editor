@@ -2,7 +2,6 @@ package org.sudu.experiments.ui.window;
 
 
 import org.sudu.experiments.Disposable;
-import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
@@ -62,6 +61,12 @@ public class WindowManager implements MouseListener, DprChangeListener {
       windows.get(i).draw(uiContext.graphics);
     }
     if (popupMenu != null) popupMenu.paint();
+  }
+
+  public boolean enableCleartype(boolean en) {
+    boolean changed = uiContext.enableCleartype(en);
+    if (changed) onTextRenderingSettingsChange();
+    return changed;
   }
 
   public void onTextRenderingSettingsChange() {

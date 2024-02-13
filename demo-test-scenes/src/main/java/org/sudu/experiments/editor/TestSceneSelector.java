@@ -9,6 +9,7 @@ import org.sudu.experiments.editor.menu.FindUsagesDemo;
 import org.sudu.experiments.editor.menu.ToolbarDemo;
 import org.sudu.experiments.editor.ui.window.*;
 import org.sudu.experiments.editor.worker.WorkerTest;
+import org.sudu.experiments.ui.WindowDemo;
 
 import java.util.function.Function;
 
@@ -37,8 +38,8 @@ public class TestSceneSelector {
       case "CodiconDemo" -> CodiconDemo::new;
       case "LineShaderDemo1" -> LineShaderDemo1::new;
       case "LineShaderDemo2" -> LineShaderDemo2::new;
+      case "TwoWindowsDemo" -> TwoWindowsDemo::new;
       case "WindowDemo" -> WindowDemo::new;
-      case "WindowMinDemo" -> WindowMinDemo::new;
       case "EditorInViewDemo" -> EditorInViewDemo::new;
       case "FileViewDemo" -> FileViewDemo::new;
       case "SinDemo" -> SinDemo::new;

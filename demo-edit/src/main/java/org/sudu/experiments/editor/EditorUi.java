@@ -96,8 +96,8 @@ class EditorUi {
     ScrollView scrollView = new ScrollView(usagesView, uiContext);
     scrollView.setScrollColor(theme.dialogItem.dialogScrollLine, theme.dialogItem.dialogScrollBg);
     usagesWindow.setContent(scrollView);
-    usagesWindow.setTitle("Usages of " + elementName, theme.windowTitleFont, 4);
     usagesWindow.setTheme(theme.dialogItem);
+    usagesWindow.setTitle("Usages of " + elementName);
     windowManager.addWindow(usagesWindow);
     int minY = usagesWindow.titleHeight() + uiContext.toPx(2);
     V2i limitedPosition = usagesView.setLimitedPosition(position, minY);
@@ -167,15 +167,6 @@ class EditorUi {
     void toggleDarcula();
     void toggleLight();
     void toggleDark();
-
-    default void setTheme(String theme) {
-      switch (theme) {
-        case "light" -> toggleLight();
-        case "darcula" -> toggleDarcula();
-        case "dark" -> toggleDark();
-        default -> Debug.consoleInfo("unknown theme: " + theme);
-      }
-    }
   }
 
   class PopupMenuBuilder {

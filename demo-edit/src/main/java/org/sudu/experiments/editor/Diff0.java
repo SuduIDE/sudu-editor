@@ -215,8 +215,7 @@ public class Diff0 extends WindowScene implements
 
   @Override
   public void enableCleartype(boolean en) {
-    if (uiContext.enableCleartype(en)) {
-      windowManager.onTextRenderingSettingsChange();
+    if (windowManager.enableCleartype(en)) {
       editor1.onTextRenderingSettingsChange();
       editor2.onTextRenderingSettingsChange();
     }
@@ -330,8 +329,8 @@ public class Diff0 extends WindowScene implements
   public boolean onScroll(MouseEvent event, float dX, float dY) {
     boolean hit1 = editor1.hitTest(event.position);
     boolean hit2 = editor2.hitTest(event.position);
-    boolean b1 = hit1 && editor1.onScroll(dX, dY);
-    boolean b2 = hit2 && editor2.onScroll(dX, dY);
+    boolean b1 = hit1 && editor1.onScroll(event, dX, dY);
+    boolean b2 = hit2 && editor2.onScroll(event, dX, dY);
     return b1 || b2;
   }
 }

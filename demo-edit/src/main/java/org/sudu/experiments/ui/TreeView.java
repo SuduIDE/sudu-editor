@@ -61,10 +61,10 @@ public class TreeView extends ScrollContent implements Focusable {
     if (dpr != 0) updateVirtualSize();
   }
 
-  public void setTheme(EditorColorScheme colors, UiFont newFont) {
+  public void setTheme(EditorColorScheme colors) {
     theme = colors;
-    if (!Objects.equals(uiFont, newFont)) {
-      uiFont = newFont;
+    if (!Objects.equals(uiFont, colors.fileViewFont)) {
+      uiFont = colors.fileViewFont;
       if (dpr != 0) {
         changeFont();
       }

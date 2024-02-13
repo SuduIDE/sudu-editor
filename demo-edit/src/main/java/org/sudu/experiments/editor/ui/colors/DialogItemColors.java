@@ -1,14 +1,18 @@
 package org.sudu.experiments.editor.ui.colors;
 
 
+import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.ui.ShadowParameters;
 import org.sudu.experiments.ui.ToolbarItemColors;
+import org.sudu.experiments.ui.UiFont;
 import org.sudu.experiments.ui.WindowColors;
 
 public class DialogItemColors {
 
   public final ShadowParameters shadowParameters;
+  public final UiFont windowTitleFont = new UiFont(Fonts.SegoeUI, 16);
+  public final int windowTitleMargin = 3;
   public final WindowColors windowColors;
   public final FindUsagesItemColors findUsagesColors;
   public final ToolbarItemColors findUsagesColorsError;

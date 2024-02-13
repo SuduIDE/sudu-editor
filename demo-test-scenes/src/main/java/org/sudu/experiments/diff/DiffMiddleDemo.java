@@ -1,7 +1,7 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.editor.WindowScene;
+import org.sudu.experiments.ui.WindowDemo;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
@@ -11,27 +11,21 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.DprChangeListener;
+import org.sudu.experiments.ui.window.View;
 import org.sudu.experiments.ui.window.Window;
 
-public class DiffMiddleDemo extends WindowScene implements DprChangeListener {
+public class DiffMiddleDemo extends WindowDemo implements DprChangeListener {
 
   EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
-
-  DiffRootView rootView = new DiffRootView(uiContext);
-  Window window = new Window(uiContext);
+  DiffRootView rootView;
 
   public DiffMiddleDemo(SceneApi api) {
     super(api);
-    uiContext.dprListeners.add(this);
     clearColor.set(new Color(43));
 
     api.input.onContextMenu.add(this::onContextMenu);
     api.input.onKeyPress.add(this::onKeyPress);
 
-    setWindowTheme(window);
-    window.setContent(rootView);
-    windowManager.addWindow(window);
-    rootView.setTheme(theme);
   }
 
   private boolean onKeyPress(KeyEvent event) {
@@ -51,31 +45,19 @@ public class DiffMiddleDemo extends WindowScene implements DprChangeListener {
     return new DiffInfo(new LineDiff[0], new LineDiff[0], ranges);
   }
 
-  @Override
-  public void onDprChanged(float oldDpr, float newDpr) {
-    if (oldDpr == 0) {
-      layoutWindow(window);
-    }
-  }
-
   private boolean onContextMenu(MouseEvent event) {
     return true;
   }
 
-  @SuppressWarnings("unused")
-  private void disposeWindow(Window w) {
-    if (w != null) {
-      windowManager.removeWindow(w);
-      w.dispose();
-    }
+  @Override
+  protected View createContent() {
+    DiffRootView rootView = new DiffRootView(uiContext);
+    rootView.setTheme(theme);
+    return rootView;
   }
 
-  private void setWindowTheme(Window window) {
-    window.setTheme(theme.dialogItem);
-    window.setTitle("DiffMiddleLine", theme.windowTitleFont, 2);
-  }
-
-  private void layoutWindow(Window window) {
+  @Override
+  protected void initialWindowLayout(Window window) {
     V2i newSize = uiContext.windowSize;
     int titleHeight = window.computeTitleHeight();
     int screenH = newSize.y - titleHeight;

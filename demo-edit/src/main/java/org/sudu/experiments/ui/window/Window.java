@@ -37,13 +37,19 @@ public class Window {
     this.content = content;
   }
 
-  public void setTitle(String title, UiFont font, float margin) {
-    this.title.setText(title, font, margin);
+  public void setTitle(String text) {
+    title.setText(text);
+    layoutTitle();
+  }
+
+  public void setTitleFont(UiFont font, float margin) {
+    title.setFont(font, margin);
     layoutTitle();
   }
 
   public void setTheme(DialogItemColors theme) {
     this.theme = theme;
+    setTitleFont(theme.windowTitleFont, theme.windowTitleMargin);
   }
 
   public void setBypassHitTest(boolean bypass) {
@@ -77,12 +83,12 @@ public class Window {
   }
 
   public void setPosition(V2i pos, V2i size) {
-    content.setPosition(pos, size, content.dpr);
+    content.setPosition(pos, size, context.dpr);
     layoutTitle();
   }
 
   private void layoutTitle() {
-    if (context.dpr == 0) return;
+    if (context.dpr == 0 || title.uiFont == null) return;
     title.setWidth(content.size.x);
     title.setDprNoFire(context.dpr);
     int height = title.isEmpty() ? 0 : title.computeAndSetHeight();

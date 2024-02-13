@@ -21,13 +21,14 @@ import java.util.function.Supplier;
 
 import static org.sudu.experiments.Const.emptyRunnable;
 
-public class WindowDemo extends WindowScene implements DprChangeListener {
+public class TwoWindowsDemo extends WindowScene implements DprChangeListener {
 
-  static final int titleMargin = 3;
+  final int titleMargin = 3;
+  final UiFont titleFont = new UiFont(Fonts.SegoeUI, 20);
 
   private Window window1, window2;
 
-  public WindowDemo(SceneApi api) {
+  public TwoWindowsDemo(SceneApi api) {
     super(api);
     uiContext.dprListeners.add(this);
     clearColor.set(new Color(43));
@@ -71,14 +72,14 @@ public class WindowDemo extends WindowScene implements DprChangeListener {
       w.dispose();
     }
   }
-  UiFont titleFont = new UiFont(Fonts.SegoeUI, 20);
 
   private Window newWindow(float v, boolean scroll, String title) {
     Window window = new Window(uiContext);
     ScrollContentDemo contentDemo = new ScrollContentDemo(v,
-        s -> window.setTitle(title + ": " + s, titleFont, titleMargin));
+        s -> window.setTitle(title + ": " + s));
     window.setContent(scroll ? newScrollView(contentDemo) : contentDemo);
     window.setTheme(Themes.darculaColorScheme());
+    window.setTitleFont(titleFont, titleMargin);
     return window;
   }
 

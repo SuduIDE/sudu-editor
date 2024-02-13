@@ -1,48 +1,48 @@
 package org.sudu.experiments.ui;
 
 import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.XorShiftRandom;
 import org.sudu.experiments.ui.window.ScrollView;
+import org.sudu.experiments.ui.window.View;
 import org.sudu.experiments.ui.window.Window;
 
-public class FileViewDemo extends WindowScene implements DprChangeListener {
+public class FileViewDemo extends WindowDemo implements DprChangeListener {
 
   static final float filesAverage = 4;
   static final float foldersAverage = 3;
   static final int depth = 4;
 
-  static final float titleMargin = 3;
   static final boolean folderDoubleClick = false;
 
-  Window window;
-  FileTreeView view;
-  EditorColorScheme theme;
+  FileTreeView treeView;
+  EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
 
   public FileViewDemo(SceneApi api) {
     super(api);
-    uiContext.dprListeners.add(this);
     clearColor.set(new Color(43));
+  }
 
-    window = new Window(uiContext);
-    theme = EditorColorScheme.darkIdeaColorScheme();
-    window.setTheme(theme.dialogItem);
-    UiFont consolas15 = new UiFont("Consolas", 15);
-    UiFont segoeUI15 = new UiFont("Segoe UI", 15, false);
-    window.setTitle("FileViewDemo", segoeUI15, titleMargin);
-
-    view = new FileTreeView(uiContext);
+  @Override
+  protected View createContent() {
+    treeView = new FileTreeView(uiContext);
     var root = makeFolder("Project root", 0, depth,
-        view::updateModel, new XorShiftRandom());
-    view.setRoot(root);
-    view.setTheme(theme, segoeUI15);
+        treeView::updateModel, new XorShiftRandom());
+    System.out.println("root.countAll() = " + root.countAll());
+    treeView.setRoot(root);
+    treeView.setTheme(theme);
+    return treeView.applyTheme(new ScrollView(treeView, uiContext));
+  }
 
-    System.out.println("root.countAll() = " + view.root.countAll());
-    window.setContent(view.applyTheme(new ScrollView(view, uiContext)));
-    windowManager.addWindow(window);
+  @Override
+  protected void initialWindowLayout(Window window) {
+    V2i newSize = uiContext.windowSize;
+    window.setPosition(
+        new V2i(newSize.x / 30, newSize.y / 10),
+        new V2i(newSize.x * 3 / 10, newSize.y * 8 / 10)
+    );
   }
 
   static FileTreeNode makeFolder(String n, int d, int maxD, Runnable update, XorShiftRandom r) {
@@ -68,19 +68,5 @@ public class FileViewDemo extends WindowScene implements DprChangeListener {
     else folder.close();
 
     return folder;
-  }
-
-
-  @Override
-  public void onDprChanged(float oldDpr, float newDpr) {
-    if (oldDpr == 0) layoutWindows();
-  }
-
-  private void layoutWindows() {
-    V2i newSize = uiContext.windowSize;
-    window.setPosition(
-        new V2i(newSize.x / 30, newSize.y / 10),
-        new V2i(newSize.x * 3 / 10, newSize.y * 8 / 10)
-    );
   }
 }

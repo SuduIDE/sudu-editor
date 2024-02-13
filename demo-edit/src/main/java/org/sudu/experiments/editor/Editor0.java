@@ -36,8 +36,7 @@ public class Editor0 extends WindowScene implements EditorTheme, EditorUi.Cleart
 
   @Override
   public void enableCleartype(boolean en) {
-    if (uiContext.enableCleartype(en)) {
-      windowManager.onTextRenderingSettingsChange();
+    if (windowManager.enableCleartype(en)) {
       editor.onTextRenderingSettingsChange();
     }
   }
@@ -74,11 +73,7 @@ public class Editor0 extends WindowScene implements EditorTheme, EditorUi.Cleart
   @Override
   public void onResize(V2i newSize, float newDpr) {
     super.onResize(newSize, newDpr);
-    layout(newSize, newDpr);
-  }
-
-  protected void layout(V2i newSize, float dpr) {
-    editor.setPosition(editor.pos, newSize, dpr);
+    editor.setPosition(editor.pos, newSize, newDpr);
   }
 
   public void applyTheme(EditorColorScheme theme) {

@@ -83,7 +83,7 @@ public abstract class ViewArray extends View {
   }
 
   @Override
-  boolean onScroll(MouseEvent event, float dX, float dY) {
+  protected boolean onScroll(MouseEvent event, float dX, float dY) {
     boolean result = false;
     for (View view : views) {
       if (view.hitTest(event.position)) {
