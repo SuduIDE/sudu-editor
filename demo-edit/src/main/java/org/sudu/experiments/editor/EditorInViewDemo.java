@@ -77,7 +77,12 @@ public class EditorInViewDemo extends WindowScene implements
   }
 
   @Override
-  public void enableCleartype(boolean en) {}
+  public void enableCleartype(boolean en) {
+    if (uiContext.enableCleartype(en)) {
+      windowManager.onTextRenderingSettingsChange();
+      editor.onTextRenderingSettingsChange();
+    }
+  }
 
   boolean onContextMenu(MouseEvent event) {
     if (uiContext.isFocused(editor)) {

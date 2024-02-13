@@ -89,19 +89,21 @@ public class ScrollView extends View {
   protected void layoutScroll() {
     content.limitScrollPos();
 
-    if (needHScroll()) layoutHScroll();
+    int sButtonLength = scrollWidthPx() * ScrollBar.BUTTON_SIZE;
+
+    if (needHScroll(sButtonLength)) layoutHScroll();
     else hScroll = null;
 
-    if (needVScroll()) layoutVScroll();
+    if (needVScroll(sButtonLength)) layoutVScroll();
     else vScroll = null;
   }
 
-  private boolean needVScroll() {
-    return size.y > 0 && content.virtualSize.y > size.y;
+  private boolean needVScroll(int buttonLength) {
+    return size.y > buttonLength && content.virtualSize.y > size.y;
   }
 
-  private boolean needHScroll() {
-    return size.x > 0 && content.virtualSize.x > size.x;
+  private boolean needHScroll(int buttonLength) {
+    return size.x > buttonLength && content.virtualSize.x > size.x;
   }
 
   private void layoutHScroll() {
@@ -176,13 +178,15 @@ public class ScrollView extends View {
 
   public boolean setHScrollPosSilent(int hScrollPos) {
     boolean set = content.setScrollPosX(hScrollPos);
-    if (needHScroll()) layoutHScroll();
+    int buttonLength = scrollWidthPx() * ScrollBar.BUTTON_SIZE;
+    if (needHScroll(buttonLength)) layoutHScroll();
     return set;
   }
 
   public boolean setVScrollPosSilent(int vScrollPos) {
     boolean set = content.setScrollPosY(vScrollPos);
-    if (needVScroll()) layoutVScroll();
+    int buttonLength = scrollWidthPx() * ScrollBar.BUTTON_SIZE;
+    if (needVScroll(buttonLength)) layoutVScroll();
     return set;
   }
 
