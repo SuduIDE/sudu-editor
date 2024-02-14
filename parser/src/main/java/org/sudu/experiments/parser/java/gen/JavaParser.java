@@ -1,4 +1,4 @@
-// Generated from parser-generator\src\main\resources\grammar\java\JavaParser.g4 by ANTLR 4.12.0
+// Generated from parser-generator/src/main/resources/grammar/java/JavaParser.g4 by ANTLR 4.13.1
 package org.sudu.experiments.parser.java.gen;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
 public class JavaParser extends Parser {
-	static { RuntimeMetaData.checkVersion("4.12.0", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.13.1", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
