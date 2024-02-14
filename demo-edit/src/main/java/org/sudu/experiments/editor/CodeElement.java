@@ -40,7 +40,7 @@ public class CodeElement {
   }
 
   boolean isError() {
-    return color == ParserConstants.TokenTypes.ERROR || underlineIndex() > 0;
+    return color == ParserConstants.TokenTypes.ERROR;
   }
 
   public CodeElement(String s, int color, boolean bold, boolean italic) {
