@@ -637,6 +637,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   void mark(TerminalNode node, int type, int style) {
     if (tokenTypes == null || tokenStyles == null || node == null) return;
     int ind = node.getSymbol().getTokenIndex();
+    if (tokenTypes[ind] != TokenTypes.DEFAULT || tokenStyles[ind] != TokenStyles.NORMAL) return;
     tokenTypes[ind] = type;
     tokenStyles[ind] = style;
   }
