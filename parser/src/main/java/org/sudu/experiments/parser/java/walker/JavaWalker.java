@@ -3,6 +3,7 @@ package org.sudu.experiments.parser.java.walker;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.sudu.experiments.parser.Utils;
 import org.sudu.experiments.parser.common.Decl;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.java.gen.JavaParser;
@@ -326,8 +327,7 @@ public class JavaWalker extends JavaParserBaseListener {
     super.visitErrorNode(node);
     var token = node.getSymbol();
     int ind = token.getTokenIndex();
-    if (ind == -1) return;
-    tokenTypes[ind] = ERROR;
+    Utils.markError(tokenTypes, tokenStyles, ind);
   }
 
   void markFields(JavaParser.VariableDeclaratorsContext ctx, boolean isStatic) {
@@ -509,7 +509,7 @@ public class JavaWalker extends JavaParserBaseListener {
       tokenTypes[ind] = FIELD;
       tokenStyles[ind] = decl.isStatic ? TokenStyles.ITALIC : TokenStyles.NORMAL;
       usagesToDefs.put(pos, decl.position);
-    } else if (hasThis) tokenTypes[ind] = ERROR;
+    } else if (hasThis) Utils.markError(tokenTypes, tokenStyles, ind);
 
     return decl;
   }
@@ -526,7 +526,7 @@ public class JavaWalker extends JavaParserBaseListener {
       if (decl.isStatic) style |= TokenStyles.ITALIC;
       tokenStyles[ind] = style;
       usagesToDefs.put(pos, decl.position);
-    } else if (hasThis) tokenTypes[ind] = ERROR;
+    } else if (hasThis) Utils.markError(tokenTypes, tokenStyles, ind);
 
     return decl;
   }

@@ -58,6 +58,6 @@ public class CppFullScopesParser extends BaseFullScopeParser<CPP14Parser> {
 
   @Override
   protected void highlightTokens() {
-    CppLexerHighlighting.highlightTokens(allTokens, tokenTypes);
+    CppLexerHighlighting.highlightTokens(allTokens, tokenTypes, tokenStyles);
   }
 }

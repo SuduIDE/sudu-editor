@@ -14,7 +14,7 @@ public class CppFirstLinesLexer extends BaseFirstLinesLexer<CPP14Parser> {
 
   @Override
   protected void highlightTokens() {
-    CppLexerHighlighting.highlightTokens(allTokens, tokenTypes);
+    CppLexerHighlighting.highlightTokens(allTokens, tokenTypes, tokenStyles);
   }
 
   @Override

@@ -5,7 +5,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.ErrorHighlightingStrategy;
-import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
@@ -29,7 +28,7 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
 
   protected IntervalNode parseInterval() {
     var parser = initParser();
-    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes));
+    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes, tokenStyles));
     parser.removeErrorListeners();
     parser.addErrorListener(parserRecognitionListener);
 
@@ -48,7 +47,7 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
 
   protected IntervalNode parseIntervalScope() {
     var parser = initParser();
-    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes));
+    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes, tokenStyles));
     parser.removeErrorListeners();
     parser.addErrorListener(parserRecognitionListener);
 

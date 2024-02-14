@@ -55,7 +55,7 @@ public class JavaScriptIntervalParser extends BaseIntervalParser<JavaScriptParse
 
   @Override
   protected void highlightTokens() {
-    JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes);
+    JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes, tokenStyles);
   }
 
   public static boolean isComment(int tokenType) {

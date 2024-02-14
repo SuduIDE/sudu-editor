@@ -3,6 +3,7 @@ package org.sudu.experiments.parser.activity.walker;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.sudu.experiments.parser.ParserConstants;
+import org.sudu.experiments.parser.Utils;
 import org.sudu.experiments.parser.activity.gen.ActivityLexer;
 import org.sudu.experiments.parser.activity.gen.ActivityParser;
 import org.sudu.experiments.parser.activity.gen.ActivityParserBaseListener;
@@ -54,9 +55,7 @@ public class ActivityWalker extends ActivityParserBaseListener {
   @Override
   public void visitErrorNode(ErrorNode node) {
     int index = node.getSymbol().getTokenIndex();
-    if (index < 0) return;
-
-    tokenTypes[index] = ParserConstants.TokenTypes.ERROR;
+    Utils.markError(tokenTypes, tokenStyles, index);
   }
 
 
@@ -237,7 +236,7 @@ public class ActivityWalker extends ActivityParserBaseListener {
           select.conditions.add(defaultExpr);
         } else {
           select.conditions.add(null);
-          tokenTypes[index] = ParserConstants.TokenTypes.ERROR;
+          Utils.markError(tokenTypes, tokenStyles, index);
         }
       }
 
@@ -256,9 +255,7 @@ public class ActivityWalker extends ActivityParserBaseListener {
       } else if (exprStack.isEmpty()) {
         tokenTypes[index] = ParserConstants.TokenTypes.FIELD;
         def.put(id, pos);
-      } else {
-        tokenTypes[index] = ParserConstants.TokenTypes.ERROR;
-      }
+      } else Utils.markError(tokenTypes, tokenStyles, index);
     }
 
     if (!exprStack.isEmpty())

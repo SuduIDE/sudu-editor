@@ -4,10 +4,11 @@ import org.antlr.v4.runtime.*;
 
 public class ErrorHighlightingStrategy extends DefaultErrorStrategy {
 
-  private final int[] tokenTypes;
+  private final int[] tokenTypes, tokenStyles;
 
-  public ErrorHighlightingStrategy(int[] tokenTypes) {
+  public ErrorHighlightingStrategy(int[] tokenTypes, int[] tokenStyles) {
     this.tokenTypes = tokenTypes;
+    this.tokenStyles = tokenStyles;
     errorRecoveryMode = true;
   }
 
@@ -49,7 +50,7 @@ public class ErrorHighlightingStrategy extends DefaultErrorStrategy {
 
   private void markErrorToken(Parser recognizer) {
     int ind = recognizer.getCurrentToken().getTokenIndex();
-    tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
+    Utils.markError(tokenTypes, tokenStyles, ind);
   }
   
 }

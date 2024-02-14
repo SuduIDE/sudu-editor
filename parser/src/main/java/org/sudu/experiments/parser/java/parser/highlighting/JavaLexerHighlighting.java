@@ -2,6 +2,7 @@ package org.sudu.experiments.parser.java.parser.highlighting;
 
 import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.parser.ParserConstants;
+import org.sudu.experiments.parser.Utils;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 
 import java.util.List;
@@ -11,7 +12,7 @@ import static org.sudu.experiments.parser.ParserConstants.TokenTypes.COMMENT;
 
 public class JavaLexerHighlighting {
 
-  public static void highlightTokens(List<Token> allTokens, int[] tokenTypes) {
+  public static void highlightTokens(List<Token> allTokens, int[] tokenTypes, int[] tokenStyles) {
     for (var token : allTokens) {
       int ind = token.getTokenIndex();
       int type = token.getType();
@@ -24,16 +25,16 @@ public class JavaLexerHighlighting {
       else if (isAT(type)) tokenTypes[ind] = ANNOTATION;
       else if (isComment(token.getType())) tokenTypes[ind] = COMMENT;
       else if (isJavadoc(token.getType())) tokenTypes[ind] = JAVADOC;
-      else if (isError(token.getType()) || token.getType() == -1) tokenTypes[ind] = ERROR;
+      else if (isError(token.getType()) || token.getType() == -1) Utils.markError(tokenTypes, tokenStyles, ind);
     }
   }
 
-  public static void highlightCommentTokens(List<Token> allTokens, int[] tokenTypes) {
+  public static void highlightCommentTokens(List<Token> allTokens, int[] tokenTypes, int[] tokenStyles) {
     for (var token: allTokens) {
       int ind = token.getTokenIndex();
       if (JavaLexerHighlighting.isComment(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.COMMENT;
       if (JavaLexerHighlighting.isJavadoc(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.JAVADOC;
-      if (isErrorToken(token.getType())) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
+      if (isErrorToken(token.getType())) Utils.markError(tokenTypes, tokenStyles, ind);
     }
   }
 

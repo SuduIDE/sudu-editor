@@ -14,7 +14,7 @@ public class JavaFirstLinesLexer extends BaseFirstLinesLexer<JavaParser> {
 
   @Override
   protected void highlightTokens() {
-    JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes);
+    JavaLexerHighlighting.highlightTokens(allTokens, tokenTypes, tokenStyles);
   }
 
   @Override
