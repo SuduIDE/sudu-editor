@@ -13,7 +13,7 @@ public class GenerateParsers {
   private static final String basePackageName = "org.sudu.experiments.parser.";
   private static final Path grammarPath = Path.of("parser-generator/src/main/resources/grammar/");
 
-  private static final boolean generateActivity = true;
+  private static final boolean generateActivity = false;
 
   public static void main(String[] args) {
     walk(grammarPath);

@@ -375,7 +375,7 @@ public class Model {
       graphInts = ((ArrayView) result[3]).ints();
       graphChars = ((ArrayView) result[4]).chars();
     }
-    if (!language().equals(Languages.ACTIVITY)) {
+    if (!Languages.isFullReparseOnEdit(language())) {
       ParserUtils.updateDocumentInterval(document, ints, chars, graphInts, graphChars);
       document.defToUsages.clear();
       document.usageToDef.clear();

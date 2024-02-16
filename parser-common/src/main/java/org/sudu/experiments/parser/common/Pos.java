@@ -1,5 +1,6 @@
 package org.sudu.experiments.parser.common;
 
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.Objects;
@@ -15,6 +16,10 @@ public class Pos implements Comparable<Pos> {
 
   public static Pos fromNode(TerminalNode node) {
     var token = node.getSymbol();
+    return fromToken(token);
+  }
+
+  public static Pos fromToken(Token token) {
     return new Pos(token.getLine(), token.getCharPositionInLine());
   }
 

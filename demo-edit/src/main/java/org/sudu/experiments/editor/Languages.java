@@ -3,8 +3,6 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.editor.worker.proxy.FileProxy;
 
 import java.util.Locale;
-import java.util.Objects;
-import java.util.Set;
 
 public interface Languages {
 
@@ -13,6 +11,7 @@ public interface Languages {
   String CPP = "cpp";
   String JS = "js";
   String ACTIVITY = "activity";
+  String HTML = "html";
 
   static String[] getAllLanguages() {
     return new String[]{TEXT, JAVA, CPP, JS, ACTIVITY};
@@ -25,6 +24,7 @@ public interface Languages {
       case "cpp", "c++" -> CPP;
       case "js", "javascript" -> JS;
       case "activity" -> ACTIVITY;
+      case "html" -> HTML;
       default -> null;
     };
   }
@@ -40,6 +40,7 @@ public interface Languages {
     if (path.endsWith(".java")) return JAVA;
     if (path.endsWith(".js")) return JS;
     if (path.endsWith(".activity")) return ACTIVITY;
+    if (path.endsWith(".html")) return HTML;
     return TEXT;
   }
 
@@ -62,6 +63,7 @@ public interface Languages {
       case Languages.CPP -> FileProxy.CPP_FILE;
       case Languages.JS -> FileProxy.JS_FILE;
       case Languages.ACTIVITY -> FileProxy.ACTIVITY_FILE;
+      case Languages.HTML -> FileProxy.HTML_FILE;
       default -> {
         System.err.println("Illegal language: " + lang);
         yield FileProxy.TEXT_FILE;
@@ -70,7 +72,8 @@ public interface Languages {
   }
 
   static boolean isFullReparseOnEdit(String language) {
-    return Objects.equals(ACTIVITY, language);
+    return language.equals(ACTIVITY)
+        || language.equals(HTML);
   }
 
 }
