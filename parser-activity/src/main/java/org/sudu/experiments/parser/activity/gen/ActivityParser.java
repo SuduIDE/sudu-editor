@@ -1,15 +1,14 @@
-// Generated from parser-generator/src/main/resources/grammar/activity/ActivityParser.g4 by ANTLR 4.12.0
+// Generated from parser-generator/src/main/resources/grammar/activity/ActivityParser.g4 by ANTLR 4.13.1
 package org.sudu.experiments.parser.activity.gen;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.misc.*;
 import org.antlr.v4.runtime.tree.*;
 import java.util.List;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
 public class ActivityParser extends Parser {
-	static { RuntimeMetaData.checkVersion("4.12.0", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.13.1", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
@@ -131,7 +130,7 @@ public class ActivityParser extends Parser {
 			setState(19);
 			blocksemi();
 			setState(20);
-			match(Recognizer.EOF);
+			match(EOF);
 			}
 		}
 		catch (RecognitionException re) {

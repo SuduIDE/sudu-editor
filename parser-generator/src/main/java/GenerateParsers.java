@@ -13,6 +13,8 @@ public class GenerateParsers {
   private static final String basePackageName = "org.sudu.experiments.parser.";
   private static final Path grammarPath = Path.of("parser-generator/src/main/resources/grammar/");
 
+  private static final boolean generateActivity = true;
+
   public static void main(String[] args) {
     walk(grammarPath);
   }
@@ -41,7 +43,7 @@ public class GenerateParsers {
   }
 
   private static void generate(String outputDir, String packageName, String[] grammarPaths) {
-    if (Arrays.stream(grammarPaths).anyMatch(path ->
+    if (!generateActivity && Arrays.stream(grammarPaths).anyMatch(path ->
         Path.of(path).getFileName().toString().startsWith("Activity")
     )) return;
     String[] args = new String[5 + grammarPaths.length];
