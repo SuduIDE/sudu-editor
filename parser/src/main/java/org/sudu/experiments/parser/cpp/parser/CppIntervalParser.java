@@ -31,7 +31,8 @@ public class CppIntervalParser extends BaseIntervalParser<CPP14Parser> {
   @Override
   protected ParserRuleContext getStartRule(CPP14Parser parser) {
     return switch (intervalType) {
-      case IntervalTypes.Cpp.TRANS_UNIT -> parser.translationUnitOrAny();
+      case IntervalTypes.ERROR_ROOT,
+          IntervalTypes.Cpp.TRANS_UNIT -> parser.translationUnitOrAny();
       default -> parser.unknownInterval();
     };
   }

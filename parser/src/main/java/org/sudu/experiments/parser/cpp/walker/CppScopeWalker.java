@@ -21,8 +21,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Cpp.*;
 import static org.sudu.experiments.parser.ParserConstants.*;
+import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.*;
+import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Cpp.*;
 import static org.sudu.experiments.parser.common.graph.node.NodeTypes.*;
 
 public class CppScopeWalker extends CPP14ParserBaseListener {

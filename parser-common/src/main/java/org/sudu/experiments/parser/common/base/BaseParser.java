@@ -144,7 +144,7 @@ public abstract class BaseParser<P extends Parser> {
   }
 
   protected Interval defaultInterval() {
-    return new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.UNKNOWN);
+    return new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.ERROR_ROOT);
   }
 
   protected IntervalNode defaultIntervalNode(int type) {
