@@ -330,9 +330,6 @@ public class Model {
     String language = language();
     if (language == null || Languages.TEXT.equals(language)) {
       document.onReparse();
-    } else if (Languages.ACTIVITY.equals(language)) {
-      parseFullFile();
-      document.onReparse();
     } else {
       var reparseNode = document.tree.getReparseNode();
       if (reparseNode == null) {
@@ -378,12 +375,16 @@ public class Model {
       graphInts = ((ArrayView) result[3]).ints();
       graphChars = ((ArrayView) result[4]).chars();
     }
-    ParserUtils.updateDocumentInterval(document, ints, chars, graphInts, graphChars);
-    document.defToUsages.clear();
-    document.usageToDef.clear();
-    document.countPrefixes();
-    document.onReparse();
-    resolveAll();
+    if (!language().equals(Languages.ACTIVITY)) {
+      ParserUtils.updateDocumentInterval(document, ints, chars, graphInts, graphChars);
+      document.defToUsages.clear();
+      document.usageToDef.clear();
+      document.countPrefixes();
+      document.onReparse();
+      resolveAll();
+    } else {
+      ParserUtils.updateDocument(document, ints, chars);
+    }
   }
 
   static String parseJobName(String language) {

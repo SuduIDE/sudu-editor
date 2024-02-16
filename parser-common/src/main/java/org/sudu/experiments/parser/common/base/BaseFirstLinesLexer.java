@@ -20,7 +20,7 @@ public abstract class BaseFirstLinesLexer<P extends Parser> extends BaseFullPars
     highlightTokens();
 
     var result = getInts(defaultIntervalNode());
-    System.out.println("Lexing viewport cpp time " + (System.currentTimeMillis() - parsingStartTime) + "ms");
+    System.out.println("Lexing viewport time " + (System.currentTimeMillis() - parsingStartTime) + "ms");
     return result;
   }
 

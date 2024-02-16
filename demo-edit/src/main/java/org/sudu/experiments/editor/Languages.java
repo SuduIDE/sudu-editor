@@ -3,6 +3,8 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.editor.worker.proxy.FileProxy;
 
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
 
 public interface Languages {
 
@@ -13,7 +15,7 @@ public interface Languages {
   String ACTIVITY = "activity";
 
   static String[] getAllLanguages() {
-    return new String[]{TEXT, JAVA, CPP, ACTIVITY};
+    return new String[]{TEXT, JAVA, CPP, JS, ACTIVITY};
   }
 
   static String getLanguage(String lang) {
@@ -65,6 +67,10 @@ public interface Languages {
         yield FileProxy.TEXT_FILE;
       }
     };
+  }
+
+  static boolean isFullReparseOnEdit(String language) {
+    return Objects.equals(ACTIVITY, language);
   }
 
 }

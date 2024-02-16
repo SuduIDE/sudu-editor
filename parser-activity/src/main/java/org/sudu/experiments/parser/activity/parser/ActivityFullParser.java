@@ -1,4 +1,4 @@
-package org.sudu.experiments.parser.activity;
+package org.sudu.experiments.parser.activity.parser;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Lexer;
