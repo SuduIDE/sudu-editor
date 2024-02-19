@@ -91,7 +91,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   @Override
   public void enterClassDeclaration(JavaParser.ClassDeclarationContext ctx) {
     super.enterClassDeclaration(ctx);
-    scopeWalker.enterScope();
+    scopeWalker.enterMember(List.of());
 
     var typeName = Name.fromRule(ctx.identifier(), offset);
     var type = scopeWalker.associateType(typeName, scopeWalker.currentScope);
@@ -122,18 +122,18 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   @Override
   public void enterClassBodyDeclaration(JavaParser.ClassBodyDeclarationContext ctx) {
     super.enterClassBodyDeclaration(ctx);
-    if (ctx.parent instanceof JavaParser.EnumBodyDeclarationsContext) return;
+    boolean isEnumDecl = ctx.parent instanceof JavaParser.EnumBodyDeclarationsContext;
     if (isMember(ctx)) {
       addMember(ctx.memberDeclaration(), isStatic(ctx));
-      if (haveArgs(ctx.memberDeclaration())) {
+      if (haveArgs(ctx.memberDeclaration()) && !isEnumDecl) {
         scopeWalker.addInterval(ctx, CLASS_BODY, scopeWalker.currentScope.parent);
       }
     } else scopeWalker.enterScope();
 
-    if (!(isMember(ctx) && haveArgs(ctx.memberDeclaration()))) {
+    if (!(isMember(ctx) && haveArgs(ctx.memberDeclaration())) && !isEnumDecl) {
       scopeWalker.addInterval(ctx, CLASS_BODY);
     }
-    scopeWalker.enterInterval();
+    if (!isEnumDecl) scopeWalker.enterInterval();
   }
 
   private boolean isStatic(JavaParser.ClassBodyDeclarationContext ctx) {
@@ -156,13 +156,12 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   @Override
   public void exitClassBodyDeclaration(JavaParser.ClassBodyDeclarationContext ctx) {
     super.exitClassBodyDeclaration(ctx);
-    if (ctx.parent instanceof JavaParser.EnumBodyDeclarationsContext) return;
+    boolean isEnumDecl = ctx.parent instanceof JavaParser.EnumBodyDeclarationsContext;
     if (isMember(ctx)) {
       scopeWalker.exitMember();
       if (haveArgs(ctx.memberDeclaration())) scopeWalker.exitScope();
     } else scopeWalker.exitScope();
-
-    scopeWalker.exitInterval();
+    if (!isEnumDecl) scopeWalker.exitInterval();
   }
 
   @Override
@@ -212,8 +211,26 @@ public class JavaScopeWalker extends JavaParserBaseListener {
   @Override
   public void enterEnumDeclaration(JavaParser.EnumDeclarationContext ctx) {
     super.enterEnumDeclaration(ctx);
-    scopeWalker.enterScope();
+    var enumTypeName = Name.fromRule(ctx.identifier(), offset);
+    var enumType = enumTypeName.name;
+
+    if (ctx.typeList() != null) addSupertypes(enumType, List.of(ctx.typeList()));
+
+    scopeWalker.enterMember(List.of());
     scopeWalker.newIntervalStart = ctx.LBRACE().getSymbol().getStartIndex() + 1;
+    scopeWalker.associateType(enumTypeName, scopeWalker.currentScope);
+
+    if (ctx.enumConstants() != null) {
+      for (var enumConst: ctx.enumConstants().enumConstant()) {
+        var constName = Name.fromRule(enumConst.identifier(), offset);
+        scopeWalker.addDecl(new DeclNode(constName, enumType, DeclTypes.FIELD));
+        mark(getNode(enumConst.identifier()), TokenTypes.FIELD, TokenStyles.NORMAL);
+        if (enumConst.arguments() != null && enumConst.arguments().expressionList() != null) {
+          var exprs = handleExpressionList(enumConst.arguments().expressionList());
+          scopeWalker.addRefs(exprs);
+        }
+      }
+    }
   }
 
   @Override
@@ -657,7 +674,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
       var node = getNode(ctx.identifier());
       return new MethodCallNode(Name.fromNode(node, offset), args);
     } else if (ctx.THIS() != null) {
-      // todo
+      return new MethodCallNode(Name.fromNode(ctx.THIS(), offset), null, MethodTypes.CREATOR, args);
     } else if (ctx.SUPER() != null) {
       // todo
     }
@@ -836,31 +853,6 @@ public class JavaScopeWalker extends JavaParserBaseListener {
         addTypeUsage(formalParameterList.lastFormalParameter().typeType());
       }
     }
-  }
-
-  private boolean isStatic(JavaParser.FieldDeclarationContext ctx) {
-    if (ctx.parent instanceof JavaParser.MemberDeclarationContext memberDeclaration) {
-      return isStatic(memberDeclaration);
-    }
-    return false;
-  }
-
-  private boolean isStatic(JavaParser.MemberDeclarationContext ctx) {
-    if (ctx.parent instanceof JavaParser.ClassBodyDeclarationContext classBodyDeclaration) {
-      return classBodyDeclaration.STATIC() != null;
-    }
-    return false;
-  }
-
-  private boolean hasThis(JavaParser.ExpressionContext ctx) {
-    if (ctx.getChildCount() < 3
-        || ctx.expression() == null
-        || ctx.expression().isEmpty()
-    ) return false;
-    var expression = ctx.expression(0);
-    return expression.primary() != null
-        && expression.primary().THIS() != null
-        && ctx.dot != null;
   }
 
   private boolean isQualified(JavaParser.ExpressionContext ctx) {
