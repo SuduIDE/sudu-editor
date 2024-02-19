@@ -37,11 +37,21 @@ public class WindowDemo extends WindowScene implements DprChangeListener {
     window.setTheme(theme);
   }
 
+  protected void setWindowTitle(String title) {
+    window.setTitle(title);
+  }
+
+  protected boolean windowFrameHitTest(V2i position) {
+    return window.frameHitTest(position);
+  }
+
   protected void initialWindowLayout(Window window) {
     V2i newSize = uiContext.windowSize;
+    int titleHeight = withTitle() ? window.computeTitleHeight() : 0;
+    int screenH = newSize.y - titleHeight;
     window.setPosition(
-        new V2i(newSize.x / 10, newSize.y / 10),
-        new V2i(newSize.x * 6 / 10, newSize.y * 6 / 10)
+        new V2i(newSize.x / 20, titleHeight + screenH / 20),
+        new V2i(newSize.x * 9 / 10, screenH * 9 / 10)
     );
   }
 

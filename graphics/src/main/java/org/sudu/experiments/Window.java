@@ -22,7 +22,7 @@ public interface Window extends WorkerJobExecutor {
 
   Host getHost();
 
-  void showDirectoryPicker(Consumer<FileHandle> onResult);
+  void showDirectoryPicker(Consumer<DirectoryHandle> onResult);
   void showOpenFilePicker(Consumer<FileHandle> onResult);
 
   void sendToWorker(Consumer<Object[]> handler, String method, Object ... args);

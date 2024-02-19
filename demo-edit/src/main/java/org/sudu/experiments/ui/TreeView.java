@@ -74,7 +74,7 @@ public class TreeView extends ScrollContent implements Focusable {
   @Override
   protected void onDprChange(float olDpr, float newDpr) {
     clrContext.setSinDpr(newDpr);
-    changeFont();
+    if (uiFont != null) changeFont();
   }
 
   private void changeFont() {
@@ -94,18 +94,18 @@ public class TreeView extends ScrollContent implements Focusable {
     g.drawRect(pos.x, pos.y, size, bg);
     Objects.requireNonNull(clrContext.font);
     int lineHeight = clrContext.lineHeight;
+    int docLen = model.lines.length;
+    if (docLen == 0) return;
 
-    int cacheLines = Numbers.iDivRoundUp(size.y, lineHeight) + EditorConst.MIN_CACHE_LINES;
+    int cacheLines = Math.min(docLen,
+        Numbers.iDivRoundUp(size.y, lineHeight) + EditorConst.MIN_CACHE_LINES);
     if (lines.length < cacheLines) {
       lines = CodeLineRenderer.allocRenderLines(
           cacheLines, lines, clrContext,
           firstLineRendered, lastLineRendered, model);
     }
 
-    g.enableBlend(false);
     g.enableScissor(pos, size);
-
-    int docLen = model.lines.length;
 
     int firstLine = getLine(scrollPos.y, lineHeight, docLen - 1);
     int lastLine = getLine(scrollPos.y + size.y - 1, lineHeight, docLen - 1);

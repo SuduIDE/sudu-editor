@@ -116,17 +116,23 @@ class EditorUi {
   private PopupMenu newPopup() {
     PopupMenu popupMenu = new PopupMenu(windowManager.uiContext);
     popupMenu.setTheme(theme.dialogItem, theme.popupMenuFont);
+    popupMenu.onClose(windowManager.uiContext.captureAndRestoreFocus());
     return popupMenu;
   }
 
-  void displayNoUsagesPopup(V2i position, EditorComponent edit) {
-    popupMenu = newPopup();
-    popupMenu.setItems(position, noDefOrUsagesPop(), setEditFocus(edit));
+  public void displayPopup(V2i pos, Supplier<ToolbarItem[]> actions) {
+    var popup = newPopup();
+    popup.setItems(pos, actions);
+    popupMenu = popup;
     windowManager.setPopupMenu(popupMenu);
   }
 
-  Runnable setEditFocus(EditorComponent editor) {
-    return () -> windowManager.uiContext.setFocus(editor);
+  public void hidePopup() {
+    windowManager.hidePopupMenu();
+  }
+
+  void displayNoUsagesPopup(V2i position) {
+    displayPopup(position, noDefOrUsagesPop());
   }
 
   private Supplier<ToolbarItem[]> noDefOrUsagesPop() {
@@ -135,21 +141,18 @@ class EditorUi {
             "No definition or usages"));
   }
 
-  public void showContextMenu(
+  public void showEditorMenu(
       V2i position, EditorComponent editor,
-      ThemeApi themeApi,
+      ThemeControl themeApi,
       FontApi fontApi,
       CleartypeControl cleartypeControl,
       Supplier<String[]> fonts
   ) {
-    popupMenu = newPopup();
-    popupMenu.setItems(position,
+    displayPopup(position,
         new PopupMenuBuilder(
             editor,
             fonts, fontApi, cleartypeControl,
-            themeApi).build(position),
-        setEditFocus(editor));
-    windowManager.setPopupMenu(popupMenu);
+            themeApi).build(position));
   }
 
   public interface CleartypeControl {
@@ -163,26 +166,20 @@ class EditorUi {
     void setFontPow(float p);
   }
 
-  public interface ThemeApi {
-    void toggleDarcula();
-    void toggleLight();
-    void toggleDark();
-  }
-
   class PopupMenuBuilder {
 
     final EditorComponent editor;
     final Supplier<String[]> fonts;
     final FontApi fontApi;
     final CleartypeControl cleartypeControl;
-    final ThemeApi themeApi;
+    final ThemeControl themeApi;
 
     PopupMenuBuilder(
         EditorComponent editor,
         Supplier<String[]> fonts,
         FontApi fontApi,
         CleartypeControl cleartypeControl,
-        ThemeApi themeApi
+        ThemeControl themeApi
     ) {
       this.editor = editor;
       this.fonts = fonts;

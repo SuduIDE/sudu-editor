@@ -55,15 +55,4 @@ public class DiffMiddleDemo extends WindowDemo implements DprChangeListener {
     rootView.setTheme(theme);
     return rootView;
   }
-
-  @Override
-  protected void initialWindowLayout(Window window) {
-    V2i newSize = uiContext.windowSize;
-    int titleHeight = window.computeTitleHeight();
-    int screenH = newSize.y - titleHeight;
-    window.setPosition(
-        new V2i(newSize.x / 20, titleHeight + screenH / 20),
-        new V2i(newSize.x * 9 / 10, screenH * 9 / 10)
-    );
-  }
 }

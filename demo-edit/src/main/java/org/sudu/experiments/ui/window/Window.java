@@ -287,7 +287,7 @@ public class Window {
     return null;
   }
 
-  private boolean frameHitTest(V2i position) {
+  public boolean frameHitTest(V2i position) {
     int frame = context.toPx(frameHitTestDp);
     return hHit(position.x, frame) &&
         (topFrameHitTest(position.y, frame)

@@ -229,8 +229,8 @@ public class ScrollView extends View {
   protected boolean onScroll(MouseEvent event, float dX, float dY) {
     if (!hitTest(event.position)) return false;
 
-    int changeY = DprUtil.toPx(dY * .25f, dpr);
-    int changeX = DprUtil.toPx(dX * .25f, dpr);
+    int changeY = DprUtil.toPx(dY * .5f, dpr);
+    int changeX = DprUtil.toPx(dX * .5f, dpr);
 
     if (event.shift) {
       changeX += changeY;
@@ -249,7 +249,7 @@ public class ScrollView extends View {
   }
 
   @Override
-  protected V2i minimalSize() {
+  public V2i minimalSize() {
     int sizePx = scrollWidthPx();
     V2i minimalSize = content.minimalSize();
     minimalSize.x = Math.max(minimalSize.x, sizePx);

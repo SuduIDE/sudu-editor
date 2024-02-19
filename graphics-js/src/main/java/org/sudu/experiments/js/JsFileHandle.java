@@ -1,12 +1,15 @@
 package org.sudu.experiments.js;
 
 import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.FsItem;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.ArrayBuffer;
 
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
@@ -106,8 +109,13 @@ public class JsFileHandle implements FileHandle {
   @Override
   public String toString() {
     return jsFile != null
-        ? FileHandle.toString(path, getName(), jsFileSize())
-        : FileHandle.toString(path, getName());
+        ? FsItem.toString(path, getName(), jsFileSize())
+        : FsItem.fullPath(path, getName());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(getName()) * 31 + Arrays.hashCode(path);
   }
 
   @JSBody(params = {"str", "arg" }, script = "return str.split(arg);")

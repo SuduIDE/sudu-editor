@@ -88,6 +88,11 @@ public class UiContext {
     return focused;
   }
 
+  public Runnable captureAndRestoreFocus() {
+    Focusable focusSave = focused;
+    return () -> setFocus(focusSave);
+  }
+
   public Canvas mCanvas() { return graphics.mCanvas; }
 
   public void requireWindowVisible() {

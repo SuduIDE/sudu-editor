@@ -28,7 +28,7 @@ public class WorkerTest extends WindowScene {
 
     sendPrimitiveTasks(api.window);
 
-    api.input.onKeyPress.add(new CtrlO(api, this::openDirectory, this::openFile));
+    api.input.onKeyPress.add(new CtrlO(api, this::openFile));
   }
 
   private void sendPrimitiveTasks(Window window) {
@@ -78,12 +78,6 @@ public class WorkerTest extends WindowScene {
     api.window.sendToWorker(this::bytesResult, TestJobs.asyncWithFile, fileHandle);
   }
 
-  private void openDirectory(FileHandle fileHandle) {
-    System.err.println("todo: add directory worker test " + fileHandle);
-    throw new UnsupportedOperationException();
-  }
-
-  
   void stringResult(Object[] args) {
     System.out.println("WorkerTest: \n  got " + args[0]);
     System.out.println("  methodWithStringResult = " + string(args, 1));

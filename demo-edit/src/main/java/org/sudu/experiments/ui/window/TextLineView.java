@@ -50,6 +50,7 @@ public class TextLineView extends View {
   }
 
   public int computeHeight() {
+    if (isEmpty()) return 0;
     requireFont();
     int margin = context.toPx(this.margin);
     return font.lineHeight() + margin * 2;
@@ -96,7 +97,7 @@ public class TextLineView extends View {
   }
 
   public boolean isEmpty() {
-    return uiFont == null || text == null || text.isEmpty();
+    return uiFont == null || text == null;
   }
 
   private void setHeight(int height) {

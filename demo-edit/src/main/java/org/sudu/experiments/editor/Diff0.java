@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 
 public class Diff0 extends WindowScene implements
     MouseListener,
-    EditorTheme,
+    ThemeControl,
     EditorUi.FontApi,
     EditorUi.CleartypeControl,
     InputListeners.ScrollHandler,
@@ -266,11 +266,11 @@ public class Diff0 extends WindowScene implements
 
   boolean onContextMenu(MouseEvent event) {
     if (uiContext.isFocused(editor1)) {
-      ui.showContextMenu(event.position, editor1,
+      ui.showEditorMenu(event.position, editor1,
           this, this, this, this::menuFonts);
     }
     if (uiContext.isFocused(editor2)) {
-      ui.showContextMenu(event.position, editor2,
+      ui.showEditorMenu(event.position, editor2,
           this, this, this, this::menuFonts);
     }
     return true;

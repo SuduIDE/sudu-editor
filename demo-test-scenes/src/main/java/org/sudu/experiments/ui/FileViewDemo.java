@@ -28,9 +28,8 @@ public class FileViewDemo extends WindowDemo implements DprChangeListener {
   @Override
   protected View createContent() {
     treeView = new FileTreeView(uiContext);
-    var root = makeFolder("Project root", 0, depth,
-        treeView::updateModel, new XorShiftRandom());
-    System.out.println("root.countAll() = " + root.countAll());
+    var root = randomFolder("Project root", depth, treeView::updateModel);
+    System.out.println("FileTreeView model size = " + root.countAll());
     treeView.setRoot(root);
     treeView.setTheme(theme);
     return treeView.applyTheme(new ScrollView(treeView, uiContext));
@@ -45,6 +44,10 @@ public class FileViewDemo extends WindowDemo implements DprChangeListener {
     );
   }
 
+  public static FileTreeNode randomFolder(String n, int maxD, Runnable update) {
+    return makeFolder(n, 0, maxD, update, new XorShiftRandom());
+  }
+
   static FileTreeNode makeFolder(String n, int d, int maxD, Runnable update, XorShiftRandom r) {
     int folders = d < maxD ? 1 + r.poissonNumber(foldersAverage - 1) : 0;
     int files = d <= maxD ? 1 + r.poissonNumber(filesAverage - 1) : 0;
@@ -56,7 +59,10 @@ public class FileViewDemo extends WindowDemo implements DprChangeListener {
 
     for (int i = 0; i < files; i++) {
       FileTreeNode f = new FileTreeNode("ClassFile " + i, d);
-      f.onDblClick(() -> System.out.println("open file " + f.value()));
+      f.onDblClick(() ->
+          System.out.println("open file " + f.name())
+      );
+
       if (r.nextFloat() < .25f) f.setBold(true);
       ch[folders + i] = f;
     }

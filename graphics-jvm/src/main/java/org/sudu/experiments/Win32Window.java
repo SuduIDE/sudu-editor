@@ -378,10 +378,14 @@ public class Win32Window implements WindowPeer, Window {
   }
 
   @Override
-  public void showDirectoryPicker(Consumer<FileHandle> onResult) {
+  public void showDirectoryPicker(Consumer<DirectoryHandle> onResult) {
+    onEnterExitSizeMove(hWnd, true);
     String result = Win32FileDialog.openFolderDialog(hWnd);
+    onEnterExitSizeMove(hWnd, false);
     if (result != null) {
-      PathWalk.walkFileTree(result, onResult, workers.bgWorker, eventQueue);
+      var dir = new JvmDirectoryHandle(
+          result, new String[0], workers.bgWorker, eventQueue);
+      onResult.accept(dir);
     }
   }
 

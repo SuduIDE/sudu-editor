@@ -1,6 +1,7 @@
 package org.sudu.experiments.js;
 
 import org.sudu.experiments.Debug;
+import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.JSBody;
@@ -8,8 +9,10 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
+import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class JsFileDialog {
@@ -26,17 +29,16 @@ public class JsFileDialog {
     @JSProperty FileList getFiles();
   }
 
-  public static void showDirectoryPicker(Consumer<FileHandle> onResul) {
+  public static void showDirectoryPicker(Consumer<DirectoryHandle> onResult) {
     if (directoryPickerSupported()) {
       JsFunctions.Consumer<JSError> onError = JsFileDialog::onDirectoryPickerError;
       showDirectoryPicker().then(
           result -> {
             JsHelper.consoleInfo("showDirectoryPicker result: ", result.getName());
-            walkDirIterator(result.values(), onResul, onError,
-                new String[] { result.getName().stringValue() });
+            onResult.accept(new JsDirectoryHandle(result, onError));
           }, onError);
     } else {
-      displayInputElementDialog(onResul, true);
+      displayInputElementDialog(null, onResult);
     }
   }
 
@@ -47,45 +49,12 @@ public class JsFileDialog {
         array -> {
           for (int i = 0, l = array.getLength(); i < l; i++) {
             FileSystemFileHandle handle = array.get(i);
-            handle.getFile().then(
-                jsFile -> onResul.accept(new JsFileHandle(handle, jsFile)),
-                onError);
+            onResul.accept(new JsFileHandle(handle, null));
           }
         }, onError
       );
     } else {
-      displayInputElementDialog(onResul, false);
-    }
-  }
-
-  static void walkDirIterator(
-      JsAsyncIterator<FileSystemHandle> values,
-      Consumer<FileHandle> onResult,
-      JsFunctions.Consumer<JSError> onError,
-      String[] path
-  ) {
-    values.next().then(r -> {
-      if (!r.getDone()) {
-        walkDirIterator(values, onResult, onError, path);
-        walkHandle(r.getValue(), onResult, onError, path);
-      }
-    }, onError);
-  }
-
-  static void walkHandle(
-      FileSystemHandle handle,
-      Consumer<FileHandle> onResult,
-      JsFunctions.Consumer<JSError> onError,
-      String[] path
-  ) {
-    if (handle.isFile()) {
-      FileSystemFileHandle fileHandle = handle.cast();
-      fileHandle.getFile().then(file -> onResult.accept(
-          new JsFileHandle(fileHandle, file, path)), onError);
-    } else {
-      FileSystemDirectoryHandle dir = handle.cast();
-      walkDirIterator(dir.values(), onResult, onError,
-          ArrayOp.add(path, dir.getName().stringValue()));
+      displayInputElementDialog(onResul, null);
     }
   }
 
@@ -93,14 +62,14 @@ public class JsFileDialog {
     JsHelper.consoleInfo("JsFileDialog: ", e);
   }
 
-  static void displayInputElementDialog(Consumer<FileHandle> onResul, boolean directory) {
+  static void displayInputElementDialog(Consumer<FileHandle> file, Consumer<DirectoryHandle> dir) {
     Debug.consoleInfo("openFileDialog....");
     Input input = HTMLDocument.current().createElement("input").cast();
     input.setType("file");
-    if (directory) input.setWebkitdirectory(true);
+    if (dir != null) input.setWebkitdirectory(true);
     input.addEventListener("change", e -> {
-      readWebkitEntries(onResul, input);
-      readFileEntries(onResul, input);
+//      readWebkitEntries(onResul, input);
+//      readFileEntries(onResul, input);
     });
     input.click();
   }

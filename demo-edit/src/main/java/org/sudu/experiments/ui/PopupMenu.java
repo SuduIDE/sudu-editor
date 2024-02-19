@@ -38,11 +38,19 @@ public class PopupMenu implements DprChangeListener, Focusable, Disposable {
   public DialogItemColors theme() { return theme; }
 
   public void setItems(V2i mousePos, Supplier<ToolbarItem[]> actions, Runnable onClose) {
+    onClose(onClose);
+    setItems(mousePos, actions);
+  }
+
+  public void onClose(Runnable onClose) {
+    this.onClose = onClose;
+  }
+
+  public void setItems(V2i mousePos, Supplier<ToolbarItem[]> actions) {
     context.requireWindowVisible();
     if (uiFont == null || isVisible()) {
       throw new IllegalArgumentException();
     }
-    this.onClose = onClose;
     font = context.fontDesk(uiFont);
     Toolbar rootMenu = displaySubMenu(mousePos, actions, null);
     rootMenu.onClickOutside(this::hide);

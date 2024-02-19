@@ -10,7 +10,14 @@ public abstract class ViewArray extends View {
 
   protected View[] views;
 
+  protected ViewArray() {}
+
   protected ViewArray(View ... views) {
+    setViews(views);
+  }
+
+  protected void setViews(View ... views) {
+    if (this.views != null) throw new UnsupportedOperationException();
     this.views = views;
   }
 
@@ -46,7 +53,13 @@ public abstract class ViewArray extends View {
 
   @Override
   protected boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-    return super.onMouseClick(event, button, clickCount);
+    boolean result = false;
+    for (View view : views) {
+      if (view.hitTest(event.position)) {
+        result |= view.onMouseClick(event, button, clickCount);
+      }
+    }
+    return result;
   }
 
   @Override

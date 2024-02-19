@@ -25,7 +25,7 @@ public class ScrollContentDemo extends ScrollContent {
   }
 
   @Override
-  protected V2i minimalSize() {
+  public V2i minimalSize() {
     int px20 = DprUtil.toPx(20, dpr);
     return new V2i(px20, px20);
   }

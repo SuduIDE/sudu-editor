@@ -13,7 +13,7 @@ import org.sudu.experiments.math.V2i;
 
 import java.util.Objects;
 
-public class Editor0 extends WindowScene implements EditorTheme, EditorUi.CleartypeControl {
+public class Editor0 extends WindowScene implements ThemeControl, EditorUi.CleartypeControl {
 
   final EditorComponent editor;
   final EditorUi ui;
@@ -92,9 +92,9 @@ public class Editor0 extends WindowScene implements EditorTheme, EditorUi.Cleart
 
   boolean onContextMenu(MouseEvent event) {
     if (uiContext.isFocused(editor)) {
-      ui.showContextMenu(event.position, editor,
-          Editor0.this, editor, this,
-          Editor0.this::menuFonts);
+      ui.showEditorMenu(event.position, editor,
+          this, editor, this,
+          this::menuFonts);
     }
     return true;
   }

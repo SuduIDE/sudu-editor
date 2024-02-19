@@ -9,25 +9,17 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 
-public class JvmFileHandle implements FileHandle {
+public class JvmFileHandle extends JvmFsHandle implements FileHandle {
 
   static final Function<byte[], String> asUtf8String = b -> new String(b, StandardCharsets.UTF_8);
   static final Function<byte[], byte[]> identity = b -> b;
 
-  private final Path path;
-  private final String[] rPath;
-  private final Executor bgWorker;
-  private final Executor edt;
-
   public JvmFileHandle(String path, String[] rPath, Executor bgWorker, Executor edt) {
-    this(Path.of(path), rPath, bgWorker, edt);
+    super(path, rPath, bgWorker, edt);
   }
 
   public JvmFileHandle(Path path, String[] rPath, Executor bgWorker, Executor edt) {
-    this.path = path;
-    this.rPath = rPath;
-    this.bgWorker = bgWorker;
-    this.edt = edt;
+    super(path, rPath, bgWorker, edt);
   }
 
   // Returns a handle to same file, but with specified event thread
@@ -54,16 +46,6 @@ public class JvmFileHandle implements FileHandle {
   }
 
   @Override
-  public String getName() {
-    return path.getFileName().toString();
-  }
-
-  @Override
-  public String[] getPath() {
-    return rPath;
-  }
-
-  @Override
   public void readAsText(Consumer<String> consumer, Consumer<String> onError) {
     read(consumer, onError, asUtf8String);
   }
@@ -87,6 +69,6 @@ public class JvmFileHandle implements FileHandle {
 
   @Override
   public String toString() {
-    return FileHandle.toString(rPath, getName(), getFileSize());
+    return FsItem.toString(rPath, getName(), getFileSize());
   }
 }

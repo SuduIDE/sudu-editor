@@ -106,6 +106,7 @@ public class EditorComponent extends View implements
     debugFlags[5] = () -> drawGap = !drawGap;
     debugFlags[6] = () -> printResolveTime = !printResolveTime;
 
+    model.setEditor(this, window());
   }
 
   Disposable registerInput(InputListeners input, boolean inView) {
@@ -151,10 +152,11 @@ public class EditorComponent extends View implements
     vLineW = DprUtil.toPx(vLineWDp, dpr);
     vLineLeftDelta = DprUtil.toPx(vLineLeftDeltaDp, dpr);
 
-    if (mirrored) {
-      context.v2i1.set(pos.x + size.x - lineNumbersWidth(), pos.y);
-    } else context.v2i1.set(this.pos);
-    lineNumbers.setPos(context.v2i1, lineNumbersWidth(), size.y, dpr);
+    int lineNumbersX = mirrored ? pos.x + size.x - lineNumbersWidth() : pos.x;
+
+    context.v2i1.set(lineNumbersX, pos.y);
+    lineNumbers.setPos(context.v2i1,
+        Math.min(lineNumbersWidth(), size.x), size.y, dpr);
 
     if (1<0) DebugHelper.dumpFontsSize(g);
     caret.setWidth(DprUtil.toPx(Caret.defaultWidth, dpr));
@@ -368,7 +370,7 @@ public class EditorComponent extends View implements
       iterativeParsing();
     }
 
-    parseViewport();
+    if (lineHeight != 0) parseViewport();
 
     int newVScrollPos = clampScrollPos(vScrollPos + scrollDown  -  scrollUp,
         maxVScrollPos());
@@ -412,7 +414,7 @@ public class EditorComponent extends View implements
   }
 
   @Override
-  protected V2i minimalSize() {
+  public V2i minimalSize() {
     return new V2i(lineNumbersWidth() + vLineW + vLineLeftDelta, lineHeight);
   }
 
@@ -1003,7 +1005,7 @@ public class EditorComponent extends View implements
 
     List<Pos> usages = model.document.defToUsages.get(startPos);
     if (usages == null || usages.isEmpty()) {
-      ui.displayNoUsagesPopup(position, this);
+      ui.displayNoUsagesPopup(position);
     } else {
       ui.showUsagesWindow(position, usages, this, elementName);
     }
@@ -1015,7 +1017,7 @@ public class EditorComponent extends View implements
       pos.add(new Pos(loc.range.startLineNumber, loc.range.startColumn));
     }
     if (pos.isEmpty()) {
-      ui.displayNoUsagesPopup(position, this);
+      ui.displayNoUsagesPopup(position);
     } else {
       Pos charPos = computeCharPos(position);
       Pos startPos = model.document.getElementStart(charPos.line, charPos.pos);
@@ -1094,7 +1096,7 @@ public class EditorComponent extends View implements
 
   private void gotoDefinition(V2i position, Location[] locs, String elementName) {
     switch (locs.length) {
-      case 0 -> ui.displayNoUsagesPopup(position,this);
+      case 0 -> ui.displayNoUsagesPopup(position);
       case 1 -> gotoDefinition(locs[0]);
       default -> ui.showUsagesWindow(position, locs, this, elementName);
     }

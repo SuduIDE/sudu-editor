@@ -199,7 +199,7 @@ public class WebWindow implements Window {
   }
 
   @Override
-  public void showDirectoryPicker(Consumer<FileHandle> onResult) {
+  public void showDirectoryPicker(Consumer<DirectoryHandle> onResult) {
     JsFileDialog.showDirectoryPicker(onResult);
   }
 

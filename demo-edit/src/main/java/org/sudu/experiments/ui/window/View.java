@@ -16,7 +16,7 @@ public class View implements Disposable {
 
   public void dispose() {}
 
-  protected V2i minimalSize() {
+  public V2i minimalSize() {
     return new V2i(0,0);
   }
 

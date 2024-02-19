@@ -7,6 +7,7 @@ import org.sudu.experiments.ui.UiFont;
 
 public class EditorColorScheme {
   public final EditorColors editor;
+  public final FileTreeViewTheme fileTreeView;
   public final DialogItemColors dialogItem;
   public final CodeElementColor[] codeElement;
   public final LineNumbersColors lineNumber;
@@ -19,6 +20,7 @@ public class EditorColorScheme {
   public static EditorColorScheme darculaIdeaColorScheme() {
     return new EditorColorScheme(
         EditorColors.darculaIdeaColorScheme(),
+        FileTreeViewTheme.darculaIdea(),
         IdeaCodeColors.codeElementColorsDarcula(),
         LineNumbersColors.darcula(),
         Themes.darculaColorScheme(),
@@ -29,6 +31,7 @@ public class EditorColorScheme {
   public static EditorColorScheme darkIdeaColorScheme() {
     return new EditorColorScheme(
         EditorColors.darkIdeaColorScheme(),
+        FileTreeViewTheme.darkIdea(),
         IdeaCodeColors.codeElementColorsDark(),
         LineNumbersColors.dark(),
         Themes.darkColorScheme(),
@@ -39,6 +42,7 @@ public class EditorColorScheme {
   public static EditorColorScheme lightIdeaColorScheme() {
     return new EditorColorScheme(
         EditorColors.lightIdeaColorScheme(),
+        FileTreeViewTheme.lightIdea(),
         IdeaCodeColors.codeElementColorsLight(),
         LineNumbersColors.light(),
         Themes.lightColorScheme(),
@@ -47,13 +51,14 @@ public class EditorColorScheme {
   }
 
   private EditorColorScheme(
-      EditorColors editor,
+      EditorColors editor, FileTreeViewTheme fileTreeView,
       CodeElementColor[] codeElement,
       LineNumbersColors lineNumber,
       DialogItemColors dialogItem,
       DiffColors diff
   ) {
     this.editor = editor;
+    this.fileTreeView = fileTreeView;
     this.codeElement = codeElement;
     this.lineNumber = lineNumber;
     if (codeElement.length < ParserConstants.TokenTypes.TYPES_LENGTH) {
