@@ -129,8 +129,9 @@ public class ProjectViewDemo extends WindowDemo implements
   @Override
   public void folderOpened(DirectoryNode node) {
     node.closeOnClick();
-    if (node.childrenLength() > 0)
+    if (node.childrenLength() > 0) {
       view.treeView.updateModel();
+    }
   }
 
   @Override

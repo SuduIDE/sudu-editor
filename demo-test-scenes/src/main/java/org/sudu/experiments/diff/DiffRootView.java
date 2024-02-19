@@ -5,35 +5,38 @@ import org.sudu.experiments.editor.MiddleLine;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.ui.FileTreeDiffRef;
+import org.sudu.experiments.ui.FileTreeView;
 import org.sudu.experiments.ui.UiContext;
+import org.sudu.experiments.ui.window.ScrollView;
 import org.sudu.experiments.ui.window.ViewArray;
 
 class DiffRootView extends ViewArray {
 
+  FileTreeView left, right;
+  ScrollView leftScrollView, rightScrollView;
   MiddleLine middleLine;
-  DiffSidePane left, right;
   DiffSync diffSync;
 
   DiffRootView(UiContext uiContext) {
-    this(
-        new DiffSidePane(uiContext),
-        new MiddleLine(uiContext),
-        new DiffSidePane(uiContext));
-  }
-
-  DiffRootView(DiffSidePane left, MiddleLine middleView, DiffSidePane right) {
-    super(left, middleView, right);
-    this.middleLine = middleView;
-    this.left = left;
-    this.right = right;
-    middleView.setLeftRight(left.diffRef, right.diffRef);
-    diffSync = new DiffSync(left.diffRef, right.diffRef);
+    left = new FileTreeView(uiContext);
+    right = new FileTreeView(uiContext);
+    leftScrollView = new ScrollView(left, uiContext);
+    rightScrollView = new ScrollView(right, uiContext);
+    middleLine = new MiddleLine(uiContext);
+    var leftDiffRef = new FileTreeDiffRef(leftScrollView, left);
+    var rightDiffRef = new FileTreeDiffRef(rightScrollView, right);
+    middleLine.setLeftRight(leftDiffRef, rightDiffRef);
+    diffSync = new DiffSync(leftDiffRef, rightDiffRef);
+    setViews(leftScrollView, middleLine, rightScrollView);
   }
 
   public void setTheme(EditorColorScheme theme) {
     middleLine.setTheme(theme);
     left.setTheme(theme);
+    left.applyTheme(leftScrollView);
     right.setTheme(theme);
+    right.applyTheme(rightScrollView);
   }
 
   public void setModel(DiffInfo diffInfo) {
@@ -48,11 +51,11 @@ class DiffRootView extends ViewArray {
     int x2 = size.x - x1;
     V2i chPos = new V2i(pos);
     V2i chSize = new V2i(x1, size.y);
-    views[0].setPosition(chPos, chSize, dpr);
+    leftScrollView.setPosition(chPos, chSize, dpr);
     chPos.x = pos.x + x2;
-    views[2].setPosition(chPos, chSize, dpr);
+    rightScrollView.setPosition(chPos, chSize, dpr);
     chPos.x = pos.x + x1;
     chSize.x = x2 - x1;
-    views[1].setPosition(chPos, chSize, dpr);
+    middleLine.setPosition(chPos, chSize, dpr);
   }
 }

@@ -1,7 +1,6 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.ui.WindowDemo;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
@@ -9,10 +8,11 @@ import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.DprChangeListener;
+import org.sudu.experiments.ui.WindowDemo;
 import org.sudu.experiments.ui.window.View;
-import org.sudu.experiments.ui.window.Window;
+
+import static org.sudu.experiments.ui.FileViewDemo.randomFolder;
 
 public class DiffMiddleDemo extends WindowDemo implements DprChangeListener {
 
@@ -36,7 +36,7 @@ public class DiffMiddleDemo extends WindowDemo implements DprChangeListener {
     return false;
   }
 
-  private DiffInfo testModel() {
+  static DiffInfo testModel() {
     DiffRange[] ranges = new DiffRange[4];
     ranges[0] = new DiffRange(1, 3, 4, 5, 1);
     ranges[1] = new DiffRange(5, 6, 10, 2, 2);
@@ -51,8 +51,15 @@ public class DiffMiddleDemo extends WindowDemo implements DprChangeListener {
 
   @Override
   protected View createContent() {
-    DiffRootView rootView = new DiffRootView(uiContext);
+    rootView = new DiffRootView(uiContext);
     rootView.setTheme(theme);
+    var leftDir = randomFolder(
+        "Project root", 4, rootView.left::updateModel);
+    var rightDir = randomFolder(
+        "Project root", 4, rootView.right::updateModel);
+    rootView.left.setRoot(leftDir);
+    rootView.right.setRoot(rightDir);
+    rootView.setModel(testModel());
     return rootView;
   }
 }

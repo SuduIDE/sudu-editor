@@ -24,7 +24,6 @@ class EditorUi {
   final WindowManager windowManager;
 
   Window usagesWindow;
-  PopupMenu popupMenu;
   EditorColorScheme theme;
 
   EditorUi(WindowManager wm) {
@@ -38,10 +37,6 @@ class EditorUi {
   }
 
   void dispose() {
-    if (windowManager.popupMenu() == popupMenu) {
-      windowManager.setPopupMenu(null);
-    }
-    popupMenu = null;
     if (usagesWindow != null) {
       disposeUsagesWindow();
     }
@@ -114,17 +109,13 @@ class EditorUi {
   }
 
   private PopupMenu newPopup() {
-    PopupMenu popupMenu = new PopupMenu(windowManager.uiContext);
-    popupMenu.setTheme(theme.dialogItem, theme.popupMenuFont);
-    popupMenu.onClose(windowManager.uiContext.captureAndRestoreFocus());
-    return popupMenu;
+    return windowManager.newPopup(theme.dialogItem, theme.popupMenuFont);
   }
 
   public void displayPopup(V2i pos, Supplier<ToolbarItem[]> actions) {
     var popup = newPopup();
     popup.setItems(pos, actions);
-    popupMenu = popup;
-    windowManager.setPopupMenu(popupMenu);
+    windowManager.setPopupMenu(popup);
   }
 
   public void hidePopup() {

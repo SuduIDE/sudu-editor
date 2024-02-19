@@ -2,6 +2,7 @@ package org.sudu.experiments.ui.window;
 
 
 import org.sudu.experiments.Disposable;
+import org.sudu.experiments.editor.ui.colors.DialogItemColors;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
@@ -9,6 +10,7 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.DprChangeListener;
 import org.sudu.experiments.ui.PopupMenu;
 import org.sudu.experiments.ui.UiContext;
+import org.sudu.experiments.ui.UiFont;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -25,6 +27,13 @@ public class WindowManager implements MouseListener, DprChangeListener {
 
   public WindowManager(UiContext uiContext) {
     this.uiContext = uiContext;
+  }
+
+  public PopupMenu newPopup(DialogItemColors theme, UiFont f) {
+    PopupMenu popupMenu = new PopupMenu(uiContext);
+    popupMenu.setTheme(theme, f);
+    popupMenu.onClose(uiContext.captureAndRestoreFocus());
+    return popupMenu;
   }
 
   public void setPopupMenu(PopupMenu popup) {
