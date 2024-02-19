@@ -5,11 +5,11 @@ import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 
-public abstract class FullIntervalParser<P extends Parser> extends BaseIntervalParser<P> {
+public abstract class FullIntervalParser<T extends Parser, P extends BaseFullParser<T>> extends BaseIntervalParser<T> {
 
-  protected final BaseFullParser<P> fullParser;
+  protected final P fullParser;
 
-  protected FullIntervalParser(BaseFullParser<P> fullParser) {
+  protected FullIntervalParser(P fullParser) {
     this.fullParser = fullParser;
   }
 
@@ -29,12 +29,12 @@ public abstract class FullIntervalParser<P extends Parser> extends BaseIntervalP
   }
 
   @Override
-  protected P initParser() {
+  protected T initParser() {
     return null;
   }
 
   @Override
-  protected ParserRuleContext getStartRule(P parser) {
+  protected ParserRuleContext getStartRule(T parser) {
     return null;
   }
 
