@@ -55,6 +55,14 @@ public class FontDesk {
 //    debug(dotWidth);
   }
 
+  public int baselineShift(int lineHeight) {
+    return topBase(lineHeight) + iAscent;
+  }
+
+  public int topBase(int lineHeight) {
+    return (lineHeight - lineHeight()) / 2;
+  }
+
   private void debug(float dotWidth) {
     Debug.consoleInfo("new FontDesk: font " + name
         + ", size " + size + ", style = " + sStyle + ", weight " + weight);

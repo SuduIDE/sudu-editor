@@ -18,6 +18,10 @@ public class DirectoryNode extends FileTreeNode {
     void folderOpened(DirectoryNode node);
     void folderClosed(DirectoryNode node);
 
+    default void applyFileIcon(FileTreeNode f, String fileName) {
+      f.iconFile();
+    }
+
     default Runnable open(FileHandle file, FileTreeNode node) {
       return () -> openFile(file, node);
     }
@@ -32,7 +36,7 @@ public class DirectoryNode extends FileTreeNode {
     this.dir = dir;
     this.handler = handler;
     readOnClick();
-    arrowRight();
+    close();
   }
 
   public void readOnClick() {
@@ -66,7 +70,9 @@ public class DirectoryNode extends FileTreeNode {
 
       @Override
       public void onFile(FileHandle file) {
-        var f = new FileTreeNode(file.getName(), depth + 1);
+        String fileName = file.getName();
+        var f = new FileTreeNode(fileName, depth + 1);
+        handler.applyFileIcon(f, fileName);
         f.onDblClick = handler.open(file, f);
         fList.add(f);
       }

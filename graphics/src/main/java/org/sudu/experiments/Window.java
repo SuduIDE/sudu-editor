@@ -11,7 +11,7 @@ public interface Window extends WorkerJobExecutor {
 //  V2i getClientRect();
 //  V2i getScreenRect();
   double timeNow();
-//  double devicePixelRatio();
+//  float devicePixelRatio();
   void repaint();
 
   boolean hasFocus();

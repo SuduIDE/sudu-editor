@@ -1,22 +1,22 @@
 package org.sudu.experiments.ui;
 
 import org.sudu.experiments.editor.CodeLine;
+import org.sudu.experiments.ui.fonts.Codicons;
 
 public class TreeNode {
-  public static final int allowRight = 1;
-  public static final int allowDown = 2;
 
   public Runnable onClick, onClickArrow, onDblClick;
 
   public CodeLine line;
   public int depth;
-  public int arrow;
+  public char arrow;
+  public char icon;
 
   public TreeNode(String v, int d) {
-    this(v, d, 0);
+    this(v, d, (char) 0);
   }
 
-  public TreeNode(String v, int d, int ar) {
+  public TreeNode(String v, int d, char ar) {
     line = new CodeLine(v);
     depth = d;
     arrow = ar;
@@ -31,15 +31,43 @@ public class TreeNode {
   }
 
   public void arrowDown() {
-    arrow = allowDown;
+    arrow = Codicons.chevron_down;
+  }
+
+  public boolean isOpened() {
+    return arrow == Codicons.chevron_down;
   }
 
   public void arrowRight() {
-    arrow = allowRight;
+    arrow = Codicons.chevron_right;
   }
 
   public void clearArrow() {
     arrow = 0;
+  }
+
+  public void iconFolder() {
+    icon = Codicons.folder;
+  }
+
+  public void iconFile() {
+    icon = Codicons.file;
+  }
+
+  public void iconFileCode() {
+    icon = Codicons.file_code;
+  }
+
+  public void iconFileBinary() {
+    icon = Codicons.file_binary;
+  }
+
+  public void iconFolderOpened() {
+    icon = Codicons.folder_opened;
+  }
+
+  public void clearIcon() {
+    icon = 0;
   }
 
   public void onClick(Runnable h) {

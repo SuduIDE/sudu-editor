@@ -6,25 +6,31 @@ import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.ui.fonts.Codicons;
 import org.sudu.experiments.ui.window.ScrollContent;
 
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import static org.sudu.experiments.ui.fonts.Codicons.*;
+
 public class TreeView extends ScrollContent implements Focusable {
 
-  static final float leftGapDp = 15;
-  static final float treeShiftDp = 10;
-  static final float shiftDp = 8;
+  static final float leftGapDp = 4;
+  static final float treeShiftDp = 1;  // recursive treeShiftDp + arrowWidth
+  static final float betweenIcons1 = 3;
+  static final float betweenIcons2 = 5;
+  static final float iconLift = 1;
 
   static final char cRArrow = '˃';
   static final char cDArrow = '˅';
-  static final int arrowOffset = 2;
+  static final int iconTextureMargin = 1;
 
   final UiContext uiContext;
   final ClrContext clrContext;
@@ -33,11 +39,15 @@ public class TreeView extends ScrollContent implements Focusable {
 
   CodeLineRenderer[] lines = new CodeLineRenderer[0];
   EditorColorScheme theme;
-  UiFont uiFont;
+  UiFont uiFont, uiIcons;
   int firstLineRendered, lastLineRendered;
   int selectedLine = -1;
 
+  FontDesk iconsFont;
   GL.Texture arrowR, arrowD;
+  GL.Texture folder, folderOpened;
+  GL.Texture file, fileCode, fileBinary;
+  int iconWidth, arrowWidth;
 
   public TreeView(UiContext uiContext) {
     this.uiContext = uiContext;
@@ -48,12 +58,49 @@ public class TreeView extends ScrollContent implements Focusable {
   public void dispose() {
     CodeLineRenderer.disposeLines(lines);
     clrContext.dispose();
-    disposeArrows();
+    disposeIcons();
   }
 
-  private void disposeArrows() {
+  private void loadIcons() {
+    iconsFont = uiContext.fontDesk(uiIcons);
+    arrowR = Disposable.assign(arrowR, renderIcon(chevron_right));
+    arrowD = Disposable.assign(arrowD, renderIcon(chevron_down));
+    folder = Disposable.assign(folder, renderIcon(Codicons.folder));
+    folderOpened = Disposable.assign(folderOpened, renderIcon(folder_opened));
+    file = Disposable.assign(file, renderIcon(Codicons.file));
+    fileCode = Disposable.assign(fileCode, renderIcon(file_code));
+    fileBinary = Disposable.assign(fileBinary, renderIcon(file_binary));
+    iconWidth = Math.max(Math.max(Math.max(Math.max(
+        folder.width(),
+        folderOpened.width()),
+        file.width()),
+        fileBinary.width()),
+        fileBinary.width());
+
+    arrowWidth = Math.max(arrowD.width(), arrowR.width());
+  }
+
+  private void disposeIcons() {
     arrowR = Disposable.assign(arrowR, null);
     arrowD = Disposable.assign(arrowD, null);
+    folder = Disposable.assign(folder, null);
+    folderOpened = Disposable.assign(folderOpened, null);
+    file = Disposable.assign(file, null);
+    fileCode = Disposable.assign(fileCode, null);
+    fileBinary = Disposable.assign(fileBinary, null);
+  }
+
+  private GL.Texture getIcon(int arrow) {
+    return switch (arrow) {
+      case Codicons.chevron_right -> arrowR;
+      case Codicons.chevron_down -> arrowD;
+      case Codicons.folder -> folder;
+      case Codicons.folder_opened -> folderOpened;
+      case Codicons.file -> file;
+      case Codicons.file_code -> fileCode;
+      case Codicons.file_binary -> fileBinary;
+      default -> null;
+    };
   }
 
   public void setModel(TreeNode[] list) {
@@ -63,8 +110,11 @@ public class TreeView extends ScrollContent implements Focusable {
 
   public void setTheme(EditorColorScheme colors) {
     theme = colors;
-    if (!Objects.equals(uiFont, colors.fileViewFont)) {
+    boolean sameFont1 = Objects.equals(uiFont, colors.fileViewFont);
+    boolean sameFont2 = Objects.equals(uiIcons, colors.fileViewIcons);
+    if (!sameFont1 || !sameFont2) {
       uiFont = colors.fileViewFont;
+      uiIcons = colors.fileViewIcons;
       if (dpr != 0) {
         changeFont();
       }
@@ -118,12 +168,15 @@ public class TreeView extends ScrollContent implements Focusable {
     int hScrollPos = 0;
 
     int leftGap = toPx(leftGapDp);
-    int treeShift = toPx(treeShiftDp);
-    int afterArrowShift = toPx(shiftDp);
-    int arrowWidth = Math.max(arrowD.width(), arrowR.width());
+    int treeShift = toPx(treeShiftDp) + arrowWidth;
+    int iconMargin1Px = toPx(betweenIcons1);
+    int iconMargin2Px = toPx(betweenIcons2);
+    int iconLiftPx = toPx(iconLift);
 
     int virtualSizeX = 0;
     int startX = pos.x - scrollPos.x;
+    int scrollW = toPx(1) +
+        (scrollView != null ? scrollView.scrollWidthPx() : 0);
 
     for (int i = firstLine; i <= lastLine; i++) {
       TreeNode mLine = model.lines[i];
@@ -135,7 +188,7 @@ public class TreeView extends ScrollContent implements Focusable {
       int yPosition = lineHeight * i - scrollPos.y;
 
       LineDiff diff = null;
-      int shift = leftGap + (treeShift + arrowWidth) * mLine.depth;
+      int shift = leftGap + treeShift * mLine.depth;
 
       boolean selected = selectedLine == i;
       if (selected) {
@@ -144,31 +197,39 @@ public class TreeView extends ScrollContent implements Focusable {
         g.drawRect(pos.x, pos.y + y, uiContext.v2i1, theme.editor.currentLineBg);
       }
 
-      var arrow = switch (mLine.arrow) {
-        case TreeNode.allowRight -> arrowR;
-        case TreeNode.allowDown -> arrowD;
-        default -> null;
-      };
+      var arrow = getIcon(mLine.arrow);
+      var icon = getIcon(mLine.icon);
 
       if (arrow != null) {
         var color = theme.codeElement[0];
-        clrContext.tRegion.set(0, 0, arrow.width(), arrow.height());
-        clrContext.size.set(arrow.size());
-        clrContext.drawText(g, arrow,
-            startX + shift,
-            pos.y + yPosition,
-            color.colorF,
-            selected ? theme.editor.currentLineBg : bg);
+        int arrowX = startX + shift;
+        drawIcon(g, arrow,
+            arrowX,
+            pos.y + yPosition - iconLiftPx,
+            selected ? theme.editor.currentLineBg : bg,
+            color.colorF);
+      }
+
+      if (icon != null) {
+        var color = theme.codeElement[0];
+        int iconX = startX + shift + arrowWidth + iconMargin1Px;
+        drawIcon(g, icon,
+            iconX,
+            pos.y + yPosition - iconLiftPx,
+            selected ? theme.editor.currentLineBg : bg,
+            color.colorF);
       }
 
       int lineMeasure = mLine.line.lineMeasure();
+      int textShift = shift + arrowWidth + iconMargin1Px
+          + iconWidth + iconMargin2Px;
       virtualSizeX = Math.max(virtualSizeX,
-          shift + arrowWidth + afterArrowShift + lineMeasure);
+          textShift + lineMeasure + scrollW);
 
       line.draw(
           pos.y + yPosition,
-          startX +  shift + arrowWidth + afterArrowShift, g,
-          width, lineHeight, hScrollPos,
+          startX + textShift,
+          g, width, lineHeight, hScrollPos,
           theme, null,
           null, null,
           selected, false,
@@ -180,6 +241,16 @@ public class TreeView extends ScrollContent implements Focusable {
       layoutScroll();
     }
     g.disableScissor();
+  }
+
+  private void drawIcon(
+      WglGraphics g, GL.Texture icon,
+      int xPos, int yPos, V4f bgColor, V4f colorF
+  ) {
+    clrContext.tRegion.set(0, 0, icon.width(), icon.height());
+    clrContext.size.set(icon.size());
+    clrContext.drawText(g, icon, xPos, yPos,
+        colorF, bgColor);
   }
 
   @Override
@@ -236,11 +307,14 @@ public class TreeView extends ScrollContent implements Focusable {
   private void setFontInternal() {
     clrContext.setFonts(uiFont, dpr, uiContext.graphics);
     clrContext.setLineHeight(EditorConst.LINE_HEIGHT_MULTI, uiContext.graphics);
-    disposeArrows();
-    arrowR = Disposable.assign(arrowR, clrContext.renderSmallString(
-        String.valueOf(cRArrow), arrowOffset, uiContext.graphics));
-    arrowD = Disposable.assign(arrowD, clrContext.renderSmallString(
-        String.valueOf(cDArrow), arrowOffset, uiContext.graphics));
+    disposeIcons();
+    loadIcons();
+  }
+
+  private GL.Texture renderIcon(char icon) {
+    return uiContext.graphics.renderTexture(
+        String.valueOf(icon), iconsFont,
+        iconTextureMargin, clrContext.lineHeight, clrContext.cleartype);
   }
 
   static int getLine(int y, int lineHeight, int maxLine) {

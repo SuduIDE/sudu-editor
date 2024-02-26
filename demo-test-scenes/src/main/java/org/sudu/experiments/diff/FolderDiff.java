@@ -108,6 +108,8 @@ public class FolderDiff extends WindowDemo implements DprChangeListener {
     rootView.setTheme(theme);
     var modelLeft = new FileTreeNode(selectLeftText, 0);
     var modelRight = new FileTreeNode(selectRightText, 0);
+    modelLeft.iconFolderOpened();
+    modelRight.iconFolderOpened();
     modelLeft.onClick = this::selectLeft;
     modelRight.onClick = this::selectRight;
     rootView.left.setRoot(modelLeft);

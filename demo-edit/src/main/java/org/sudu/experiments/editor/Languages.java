@@ -40,7 +40,9 @@ public interface Languages {
     if (path.endsWith(".java")) return JAVA;
     if (path.endsWith(".js")) return JS;
     if (path.endsWith(".activity")) return ACTIVITY;
-    if (path.endsWith(".html")) return HTML;
+    if (path.endsWith(".html")
+        || path.endsWith(".xml")) return HTML;
+
     return TEXT;
   }
 

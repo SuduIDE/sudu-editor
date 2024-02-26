@@ -106,6 +106,20 @@ public abstract class WglGraphics {
     return canvasFactory.create(w, h, cleartype);
   }
 
+  public GL.Texture renderTexture(
+      String s, FontDesk font,
+      int lrMargin, int height, boolean cleartype
+  ) {
+    mCanvas.setFont(font);
+    int measured = mCanvas.measurePx(s);
+    Canvas canvas = createCanvas(measured + lrMargin * 2, height, cleartype);
+    canvas.setFont(font);
+    canvas.drawText(s, lrMargin, font.baselineShift(height));
+    GL.Texture texture = createTexture(canvas);
+    canvas.dispose();
+    return texture;
+  }
+
   public void setViewPortAndClientRect(int w, int h) {
     clientRect.set(w, h);
     gl.viewport(0, 0, clientRect.x, clientRect.y);

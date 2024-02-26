@@ -30,10 +30,6 @@ public class FileTreeNode extends TreeNode {
     children = ch;
   }
 
-  protected boolean isOpened() {
-    return arrow == allowDown;
-  }
-
   TreeNode[] getModel() {
     TreeNode[] model = new TreeNode[count()];
     int idx = getModel(model, 0);
@@ -73,24 +69,11 @@ public class FileTreeNode extends TreeNode {
 
   public void open() {
     arrowDown();
+    iconFolderOpened();
   }
 
   public void close() {
     arrowRight();
-  }
-
-  public Runnable toggle(Runnable update) {
-    return () -> {
-      if (isOpened()) close();
-      else open();
-      update.run();
-    };
-  }
-
-  public void toggleOnCLick(Runnable updateRoot, boolean doubleClick) {
-    Runnable toggle = toggle(updateRoot);
-    onClickArrow(toggle);
-    if (doubleClick) onDblClick(toggle);
-    else onClick(toggle);
+    iconFolder();
   }
 }

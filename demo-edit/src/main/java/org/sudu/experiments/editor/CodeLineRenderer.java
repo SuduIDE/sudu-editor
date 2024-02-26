@@ -7,7 +7,6 @@ import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.*;
-import org.sudu.experiments.parser.ParserConstants;
 
 import java.util.Arrays;
 import java.util.List;
@@ -71,14 +70,6 @@ public class CodeLineRenderer implements Disposable {
     updateTextureOnScroll(renderingCanvas, lineHeight, horScrollPos);
   }
 
-  public static int topBase(FontDesk font, int lineHeight) {
-    return (lineHeight - font.lineHeight()) / 2;
-  }
-
-  public static int baselineShift(FontDesk font, int lineHeight) {
-    return topBase(font, lineHeight) + font.iAscent;
-  }
-
   public void setXOffset(int xOffset) {
     this.xOffset = xOffset;
   }
@@ -123,7 +114,9 @@ public class CodeLineRenderer implements Disposable {
     for (; curWord < line.elements.length; curWord++) {
       CodeElement entry = line.get(curWord);
       FontDesk font = fonts[entry.fontIndex()];
-      int yPos = useTop ? topBase(font, lineHeight) : baselineShift(font, lineHeight);
+      int yPos = useTop
+          ? font.topBase(lineHeight)
+          : font.baselineShift(lineHeight);
       renderingCanvas.setFont(font);
       renderingCanvas.drawText(entry.s, x, yPos);
       x = fMeasure[curWord] - offset + xOffset;

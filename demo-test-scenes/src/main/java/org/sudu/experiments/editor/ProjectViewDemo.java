@@ -4,6 +4,7 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.ui.FileTreeNode;
 import org.sudu.experiments.ui.ToolbarItem;
@@ -35,6 +36,7 @@ public class ProjectViewDemo extends WindowDemo implements
   protected View createContent() {
     view = new ProjectView(windowManager, this, true);
     var model = new FileTreeNode("Open project...", 0);
+    model.iconFolderOpened();
     model.onClick = this::openFolder;
     view.treeView.setRoot(model);
     return view;
@@ -73,7 +75,15 @@ public class ProjectViewDemo extends WindowDemo implements
 
   @Override
   protected void initialWindowLayout(Window window) {
-    super.initialWindowLayout(window);
+    V2i newSize = uiContext.windowSize;
+    int titleHeight = withTitle() ? window.computeTitleHeight() : 0;
+    int screenH = newSize.y - titleHeight;
+    int px5dp = uiContext.toPx(5);
+    window.setPosition(
+        new V2i(px5dp, px5dp + titleHeight),
+        new V2i(newSize.x - px5dp * 2,
+            screenH - px5dp * 2)
+    );
     toggleDark();
   }
 
@@ -141,5 +151,16 @@ public class ProjectViewDemo extends WindowDemo implements
       view.treeView.updateModel();
     }
     node.readOnClick();
+  }
+
+  @SuppressWarnings("StringEquality")
+  @Override
+  public void applyFileIcon(FileTreeNode f, String fileName) {
+    String language = Languages.languageFromFilename(fileName);
+    if (language == Languages.TEXT) {
+      f.iconFile();
+    } else {
+      f.iconFileCode();
+    }
   }
 }

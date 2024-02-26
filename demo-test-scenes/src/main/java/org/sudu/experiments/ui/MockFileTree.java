@@ -17,21 +17,37 @@ public class MockFileTree {
     }
 
     for (int i = 0; i < files; i++) {
-      FileTreeNode f = new FileTreeNode("ClassFile " + i, d);
+      FileTreeNode f = new FileTreeNode("ClassFile " + i, d + 1);
       f.onDblClick(() ->
           System.out.println("open file " + f.name())
       );
-
+      int ic = (d + 1 + i) % 3;
+      switch (ic) {
+        case 0 -> f.iconFile();
+        case 1 -> f.iconFileCode();
+        case 2 -> f.iconFileBinary();
+      }
       if (r.nextFloat() < .25f) f.setBold(true);
       ch[folders + i] = f;
     }
 
     FileTreeNode folder = new FileTreeNode(n, d, ch);
-    folder.toggleOnCLick(update, FileViewDemo.folderDoubleClick);
+    toggleOnCLick(folder, update, FileViewDemo.folderDoubleClick);
 
     if (d + d <= maxD) folder.open();
     else folder.close();
 
     return folder;
+  }
+
+  static void toggleOnCLick(FileTreeNode n, Runnable updateRoot, boolean doubleClick) {
+    Runnable toggle = () -> {
+      if (n.isOpened()) n.close();
+      else n.open();
+      updateRoot.run();
+    };
+    n.onClickArrow(toggle);
+    if (doubleClick) n.onDblClick(toggle);
+    else n.onClick(toggle);
   }
 }

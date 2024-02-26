@@ -37,7 +37,7 @@ public class LineNumbersTexture implements Disposable {
     this.numberOfLines = numberOfLines;
     this.lineHeight = lineHeight;
     this.textureSize = new V2i(textureWidth, this.numberOfLines * lineHeight);
-    this.baseline = CodeLineRenderer.baselineShift(fontDesk, lineHeight);
+    this.baseline = fontDesk.baselineShift(lineHeight);
   }
 
   public int updateTexture(

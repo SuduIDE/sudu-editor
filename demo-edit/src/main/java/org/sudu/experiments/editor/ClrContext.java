@@ -81,16 +81,4 @@ public class ClrContext {
     g.drawText(xPos, yPos, size, tRegion,
         texture, colorF, bgColor, cleartype);
   }
-
-  public GL.Texture renderSmallString(String s, int lrMargin, WglGraphics g) {
-    renderingCanvas.setFont(font);
-    int measured = renderingCanvas.measurePx(s);
-    Canvas canvas = g.createCanvas(measured + lrMargin * 2, lineHeight, cleartype);
-    canvas.setFont(font);
-    canvas.drawText(s, lrMargin, CodeLineRenderer.baselineShift(font, lineHeight));
-    GL.Texture texture = g.createTexture(canvas);
-    canvas.dispose();
-    return texture;
-  }
-
 }

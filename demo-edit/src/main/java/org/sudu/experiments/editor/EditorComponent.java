@@ -274,8 +274,8 @@ public class EditorComponent extends View implements
         + ", caretHeight = " + caret.height());
 
     if (CodeLineRenderer.useTop) {
-      Debug.consoleInfo("topBase(font, lineHeight) = "
-          + CodeLineRenderer.topBase(lrContext.font, lineHeight));
+      Debug.consoleInfo("font.topBase(lineHeight) = "
+          + lrContext.font.topBase(lineHeight));
     }
   }
 

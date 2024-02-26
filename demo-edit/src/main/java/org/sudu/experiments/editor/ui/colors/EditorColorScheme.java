@@ -15,7 +15,8 @@ public class EditorColorScheme {
 
   public final UiFont popupMenuFont = new UiFont(Fonts.SegoeUI, 17);
   public final UiFont usagesFont = new UiFont(Fonts.Consolas, 15);
-  public final UiFont fileViewFont = new UiFont(Fonts.SegoeUI, 15, false);
+  public final UiFont fileViewFont = new UiFont(Fonts.SegoeUI, 15);
+  public final UiFont fileViewIcons = new UiFont(Fonts.codicon, 15);
 
   public static EditorColorScheme darculaIdeaColorScheme() {
     return new EditorColorScheme(

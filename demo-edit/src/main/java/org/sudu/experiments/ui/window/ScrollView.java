@@ -122,7 +122,7 @@ public class ScrollView extends View {
         scrollWidthPx());
   }
 
-  private int scrollWidthPx() {
+  public int scrollWidthPx() {
     return toPx(scrollWidth);
   }
 
