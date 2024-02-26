@@ -58,7 +58,7 @@ public class TreeView extends ScrollContent implements Focusable {
 
   public void setModel(TreeNode[] list) {
     model = new TreeModel(list);
-    if (dpr != 0) updateVirtualSize();
+    if (dpr != 0) updateVirtualHeight();
   }
 
   public void setTheme(EditorColorScheme colors) {
@@ -80,11 +80,12 @@ public class TreeView extends ScrollContent implements Focusable {
   private void changeFont() {
     CodeLineRenderer.makeContentDirty(lines);
     setFontInternal();
-    updateVirtualSize();
+    updateVirtualHeight();
   }
 
-  private void updateVirtualSize() {
-    setVirtualSize(0, model.lines.length * clrContext.lineHeight);
+  private void updateVirtualHeight() {
+    setVirtualSize(virtualSize.x,
+        model.lines.length * clrContext.lineHeight);
     layoutScroll();
   }
 
@@ -121,6 +122,9 @@ public class TreeView extends ScrollContent implements Focusable {
     int afterArrowShift = toPx(shiftDp);
     int arrowWidth = Math.max(arrowD.width(), arrowR.width());
 
+    int virtualSizeX = 0;
+    int startX = pos.x - scrollPos.x;
+
     for (int i = firstLine; i <= lastLine; i++) {
       TreeNode mLine = model.lines[i];
       CodeLineRenderer line = lines[i % lines.length];
@@ -151,15 +155,19 @@ public class TreeView extends ScrollContent implements Focusable {
         clrContext.tRegion.set(0, 0, arrow.width(), arrow.height());
         clrContext.size.set(arrow.size());
         clrContext.drawText(g, arrow,
-            pos.x + shift,
+            startX + shift,
             pos.y + yPosition,
             color.colorF,
             selected ? theme.editor.currentLineBg : bg);
       }
 
+      int lineMeasure = mLine.line.lineMeasure();
+      virtualSizeX = Math.max(virtualSizeX,
+          shift + arrowWidth + afterArrowShift + lineMeasure);
+
       line.draw(
           pos.y + yPosition,
-          pos.x + shift + arrowWidth + afterArrowShift, g,
+          startX +  shift + arrowWidth + afterArrowShift, g,
           width, lineHeight, hScrollPos,
           theme, null,
           null, null,
@@ -167,6 +175,10 @@ public class TreeView extends ScrollContent implements Focusable {
           diff);
     }
 
+    if (virtualSize.x != virtualSizeX) {
+      virtualSize.x = virtualSizeX;
+      layoutScroll();
+    }
     g.disableScissor();
   }
 

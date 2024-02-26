@@ -66,6 +66,7 @@ public class ProjectViewDemo extends WindowDemo implements
     System.out.println("fileHandle = " + dir);
     var root = new DirectoryNode(dir, this);
     view.treeView.setRoot(root);
+    root.onClickArrow.run();
     setWindowTitle(FsItem.fullPath(dir.getPath(), dir.getName()
         .concat(" - project view")));
   }
