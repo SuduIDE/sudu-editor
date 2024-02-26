@@ -379,18 +379,26 @@ public class Win32Window implements WindowPeer, Window {
 
   @Override
   public void showDirectoryPicker(Consumer<DirectoryHandle> onResult) {
+    eventQueue.execute(() -> folderDialog(onResult));
+  }
+
+  private void folderDialog(Consumer<DirectoryHandle> onResult) {
     onEnterExitSizeMove(hWnd, true);
     String result = Win32FileDialog.openFolderDialog(hWnd);
     onEnterExitSizeMove(hWnd, false);
     if (result != null) {
       var dir = new JvmDirectoryHandle(
           result, new String[0], workers.bgWorker, eventQueue);
-      onResult.accept(dir);
+      eventQueue.execute(() -> onResult.accept(dir));
     }
   }
 
   @Override
   public void showOpenFilePicker(Consumer<FileHandle> onResult) {
+    eventQueue.execute(() -> fileDialog(onResult));
+  }
+
+  private void fileDialog(Consumer<FileHandle> onResult) {
     onEnterExitSizeMove(hWnd, true);
     String file = Win32FileDialog.openFileDialog(hWnd);
     onEnterExitSizeMove(hWnd, false);
