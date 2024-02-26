@@ -9,10 +9,9 @@ import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.ui.DprChangeListener;
+import org.sudu.experiments.ui.MockFileTree;
 import org.sudu.experiments.ui.WindowDemo;
 import org.sudu.experiments.ui.window.View;
-
-import static org.sudu.experiments.ui.FileViewDemo.randomFolder;
 
 public class DiffMiddleDemo extends WindowDemo implements DprChangeListener {
 
@@ -30,7 +29,7 @@ public class DiffMiddleDemo extends WindowDemo implements DprChangeListener {
 
   private boolean onKeyPress(KeyEvent event) {
     if (event.keyCode == KeyCode.SPACE) {
-      rootView.setModel(testModel());
+      rootView.setDiffModel(testModel());
       return true;
     }
     return false;
@@ -53,13 +52,13 @@ public class DiffMiddleDemo extends WindowDemo implements DprChangeListener {
   protected View createContent() {
     rootView = new DiffRootView(uiContext);
     rootView.setTheme(theme);
-    var leftDir = randomFolder(
+    var leftDir = MockFileTree.randomFolder(
         "Project root", 4, rootView.left::updateModel);
-    var rightDir = randomFolder(
+    var rightDir = MockFileTree.randomFolder(
         "Project root", 4, rootView.right::updateModel);
     rootView.left.setRoot(leftDir);
     rootView.right.setRoot(rightDir);
-    rootView.setModel(testModel());
+    rootView.setDiffModel(testModel());
     return rootView;
   }
 }

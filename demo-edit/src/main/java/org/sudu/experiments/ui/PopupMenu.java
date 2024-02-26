@@ -52,7 +52,7 @@ public class PopupMenu implements DprChangeListener, Focusable, Disposable {
       throw new IllegalArgumentException();
     }
     font = context.fontDesk(uiFont);
-    Toolbar rootMenu = displaySubMenu(mousePos, actions, null);
+    Toolbar rootMenu = displaySubMenu(mousePos, actions, null, null);
     rootMenu.onClickOutside(this::hide);
     context.setFocus(this);
   }
@@ -91,24 +91,13 @@ public class PopupMenu implements DprChangeListener, Focusable, Disposable {
       removePopupsAfter(popup);
       if (onEnter != null) onEnter.event(mouse, index, item);
       if (item.isSubmenu()) {
-        if (item.onEnter != null) {
-          displaySubMenu(
-              computeSubmenuPosition(item, popup),
-              item.subMenu, popup, item.onEnter);
-        } else {
-          displaySubMenu(
-              computeSubmenuPosition(item, popup),
-              item.subMenu, popup);
-        }
+        V2i subPos = computeSubmenuPosition(item, popup);
+        displaySubMenu(subPos, item.subMenu, popup, item.onEnter);
       }
     });
 
     toolbars.add(popup);
     return popup;
-  }
-
-  private Toolbar displaySubMenu(V2i pos, Supplier<ToolbarItem[]> items, Toolbar parent) {
-    return displaySubMenu(pos, items, parent, null);
   }
 
   @Override

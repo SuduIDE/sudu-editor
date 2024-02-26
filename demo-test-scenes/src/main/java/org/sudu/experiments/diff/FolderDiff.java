@@ -29,7 +29,7 @@ public class FolderDiff extends WindowDemo implements DprChangeListener {
     api.input.onContextMenu.add(this::onContextMenu);
   }
 
-    private boolean onContextMenu(MouseEvent event) {
+  private boolean onContextMenu(MouseEvent event) {
     if (rootView != null) {
       PopupMenu popup = newPopup();
       popup.setItems(event.position, actions(event.position));
@@ -112,7 +112,7 @@ public class FolderDiff extends WindowDemo implements DprChangeListener {
     modelRight.onClick = this::selectRight;
     rootView.left.setRoot(modelLeft);
     rootView.right.setRoot(modelRight);
-    rootView.setModel(DiffMiddleDemo.testModel());
+    rootView.setDiffModel(DiffMiddleDemo.testModel());
     return rootView;
   }
 }

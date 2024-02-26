@@ -39,7 +39,7 @@ class DiffRootView extends ViewArray {
     right.applyTheme(rightScrollView);
   }
 
-  public void setModel(DiffInfo diffInfo) {
+  public void setDiffModel(DiffInfo diffInfo) {
     diffSync.setModel(diffInfo);
     middleLine.setModel(diffInfo);
   }

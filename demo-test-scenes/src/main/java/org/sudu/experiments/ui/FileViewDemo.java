@@ -4,7 +4,6 @@ import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.XorShiftRandom;
 import org.sudu.experiments.ui.window.ScrollView;
 import org.sudu.experiments.ui.window.View;
 import org.sudu.experiments.ui.window.Window;
@@ -28,7 +27,8 @@ public class FileViewDemo extends WindowDemo implements DprChangeListener {
   @Override
   protected View createContent() {
     treeView = new FileTreeView(uiContext);
-    var root = randomFolder("Project root", depth, treeView::updateModel);
+    var root = MockFileTree.randomFolder(
+        "Project root", depth, treeView::updateModel);
     System.out.println("FileTreeView model size = " + root.countAll());
     treeView.setRoot(root);
     treeView.setTheme(theme);
@@ -42,37 +42,5 @@ public class FileViewDemo extends WindowDemo implements DprChangeListener {
         new V2i(newSize.x / 30, newSize.y / 10),
         new V2i(newSize.x * 3 / 10, newSize.y * 8 / 10)
     );
-  }
-
-  public static FileTreeNode randomFolder(String n, int maxD, Runnable update) {
-    return makeFolder(n, 0, maxD, update, new XorShiftRandom());
-  }
-
-  static FileTreeNode makeFolder(String n, int d, int maxD, Runnable update, XorShiftRandom r) {
-    int folders = d < maxD ? 1 + r.poissonNumber(foldersAverage - 1) : 0;
-    int files = d <= maxD ? 1 + r.poissonNumber(filesAverage - 1) : 0;
-
-    FileTreeNode[] ch = new FileTreeNode[folders + files];
-    for (int i = 0; i < folders; i++) {
-      ch[i] = makeFolder("Folder " + i, d + 1, maxD, update, r);
-    }
-
-    for (int i = 0; i < files; i++) {
-      FileTreeNode f = new FileTreeNode("ClassFile " + i, d);
-      f.onDblClick(() ->
-          System.out.println("open file " + f.name())
-      );
-
-      if (r.nextFloat() < .25f) f.setBold(true);
-      ch[folders + i] = f;
-    }
-
-    FileTreeNode folder = new FileTreeNode(n, d, ch);
-    folder.toggleOnCLick(update, folderDoubleClick);
-
-    if (d + d <= maxD) folder.open();
-    else folder.close();
-
-    return folder;
   }
 }
