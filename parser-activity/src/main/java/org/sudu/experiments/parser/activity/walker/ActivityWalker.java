@@ -7,28 +7,9 @@ import org.sudu.experiments.parser.Utils;
 import org.sudu.experiments.parser.activity.gen.ActivityLexer;
 import org.sudu.experiments.parser.activity.gen.ActivityParser;
 import org.sudu.experiments.parser.activity.gen.ActivityParserBaseListener;
-import org.sudu.experiments.parser.activity.graph.stat.Activity;
-import org.sudu.experiments.parser.activity.graph.expr.BinaryExpr;
-import org.sudu.experiments.parser.activity.graph.expr.CommaExpr;
-import org.sudu.experiments.parser.activity.graph.stat.ComplexStat;
-import org.sudu.experiments.parser.activity.graph.expr.ConsExpr;
-import org.sudu.experiments.parser.activity.graph.IExpr;
-import org.sudu.experiments.parser.activity.graph.expr.ExprKind;
-import org.sudu.experiments.parser.activity.graph.stat.Id;
-import org.sudu.experiments.parser.activity.graph.stat.If;
-import org.sudu.experiments.parser.activity.graph.expr.NotExpr;
-import org.sudu.experiments.parser.activity.graph.stat.Random;
-import org.sudu.experiments.parser.activity.graph.stat.Repeat;
-import org.sudu.experiments.parser.activity.graph.stat.Schedule;
-import org.sudu.experiments.parser.activity.graph.stat.Select;
-import org.sudu.experiments.parser.activity.graph.IStat;
-import org.sudu.experiments.parser.activity.graph.stat.Sequence;
-import org.sudu.experiments.parser.activity.graph.stat.UnknownStat;
 import org.sudu.experiments.parser.common.Pos;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 public class ActivityWalker extends ActivityParserBaseListener {
@@ -36,11 +17,6 @@ public class ActivityWalker extends ActivityParserBaseListener {
   final int[] tokenStyles;
   final Map<Pos, Pos> usageToDef;
   final Map<String, Pos> def = new HashMap<>();
-  final LinkedList<IStat> statStack = new LinkedList<>();
-  final LinkedList<List<IStat>> containerOfStatStack = new LinkedList<>();
-  final LinkedList<IExpr> exprStack = new LinkedList<>();
-
-  private Activity activity;
 
   public ActivityWalker(int[] tokenTypes, int[] tokenStyles, Map<Pos, Pos> usageToDef) {
     this.tokenTypes = tokenTypes;
@@ -48,169 +24,10 @@ public class ActivityWalker extends ActivityParserBaseListener {
     this.usageToDef = usageToDef;
   }
 
-  public Activity getActivity() {
-    return activity;
-  }
-
   @Override
   public void visitErrorNode(ErrorNode node) {
     int index = node.getSymbol().getTokenIndex();
     Utils.markError(tokenTypes, tokenStyles, index);
-  }
-
-
-  @Override
-  public void enterActivity(ActivityParser.ActivityContext ctx) {
-    activity = new Activity();
-
-    statStack.add(activity);
-    containerOfStatStack.add(activity.block());
-  }
-
-  @Override
-  public void exitActivity(ActivityParser.ActivityContext ctx) {
-    statStack.removeLast();
-    containerOfStatStack.removeLast();
-
-    if (!statStack.isEmpty()) {
-      System.err.println("Stat Stack must be empty but still have "+statStack.size()+" elements");
-    }
-  }
-
-  @Override
-  public void enterExpr(ActivityParser.ExprContext ctx) {
-    IExpr expr;
-    if (ctx.ID() != null) {
-      expr = new Id(ctx.ID().getText());
-    }
-
-    else if (ctx.LPAREN() != null) {
-      //special case of ( expr )
-      return;
-
-    } else if (ctx.AND() != null) {
-      expr = new BinaryExpr(ExprKind.And);
-
-    } else if (ctx.XOR() != null) {
-      expr = new BinaryExpr(ExprKind.Xor);
-
-    } else if (ctx.OR() != null) {
-      expr = new BinaryExpr(ExprKind.Or);
-
-    } else if (ctx.NOT() != null) {
-      expr = new NotExpr(null);
-
-    } else if (ctx.exprcomma() != null) {
-      CommaExpr comma = new CommaExpr();
-      expr = comma;
-      for (var consExpr : ctx.exprcomma().exprcons()) {
-        var cons = new ConsExpr();
-        for (var id: consExpr.ID()) {
-          cons.exprs.add(new Id(id.getText()));
-        }
-        comma.exprs.add(cons);
-      }
-    } else {
-      expr = new BinaryExpr(ExprKind.Unknown); //error
-      System.err.println("Unknown node");
-    }
-
-    exprStack.add(expr);
-  }
-
-  @Override
-  public void exitExpr(ActivityParser.ExprContext ctx) {
-    if (ctx.LPAREN() != null) {
-      //special case of ( expr )
-      return;
-    }
-
-    var expr = exprStack.removeLast();
-
-    if (exprStack.isEmpty()) {
-      if (statStack.getLast() instanceof If ifStat) {
-        ifStat.cond = expr;
-      } else if (statStack.getLast() instanceof Select select) {
-        select.conditions.set(select.conditions.size() - 1, expr);
-      } else {
-        System.out.println("Parse error for condition: "+statStack.getLast());
-      }
-
-    } else if (exprStack.getLast() instanceof NotExpr parent) {
-      parent.innerExpr = expr;
-
-    } else if (exprStack.getLast() instanceof BinaryExpr parent) {
-      //try to flatten first
-      if (expr instanceof BinaryExpr binExpr && parent.kind == binExpr.kind) {
-        parent.list().addAll(binExpr.list());
-      } else {
-        parent.list().add(expr);
-      }
-
-    } else {
-      System.out.println("Illegal expr on top of expression stack: " + expr);
-    }
-  }
-
-  @Override
-  public void enterExprstat(ActivityParser.ExprstatContext ctx) {
-    var select = (Select)statStack.getLast();
-    select.conditions.add(null);
-  }
-
-  @Override
-  public void enterStat(ActivityParser.StatContext ctx) {
-    super.enterStat(ctx);
-    if (ctx.ID() != null) { //terminal
-      var stat = new Id(ctx.ID().getText());
-      containerOfStatStack.getLast().add(stat);
-
-    } else if (ctx.IF() != null) {
-      var stat = new If();
-      containerOfStatStack.getLast().add(stat);
-
-      statStack.add(stat);
-      containerOfStatStack.add(stat.ifBlock);
-
-    } else { //Complex blocks
-      ComplexStat stat;
-      if (ctx.REPEAT() != null) {
-        var count = Integer.parseInt(ctx.INT().getText());
-        stat = new Repeat(count);
-
-      } else if (ctx.SCHEDULE() != null) {
-        stat = new Schedule();
-
-      } else if (ctx.SEQUENCE() != null) {
-        stat = new Sequence();
-
-      }
-      else if (ctx.SELECT() != null) {
-        stat = new Select();
-
-      } else if (ctx.RANDOM() != null) {
-        var count = ctx.INT() != null ? Integer.parseInt(ctx.INT().getText()) : 1;
-        stat = new Random(count);
-      }
-
-      else {
-        stat = new UnknownStat();
-      }
-
-      containerOfStatStack.getLast().add(stat);
-
-      statStack.add(stat);
-      containerOfStatStack.add(stat.block());
-    }
-  }
-
-  @Override
-  public void exitStat(ActivityParser.StatContext ctx) {
-    super.exitStat(ctx);
-    if (ctx.ID() == null) { //when not terminal
-      statStack.removeLast();
-      containerOfStatStack.removeLast();
-    }
   }
 
   @Override
@@ -222,21 +39,17 @@ public class ActivityWalker extends ActivityParserBaseListener {
       tokenTypes[index] = ParserConstants.TokenTypes.KEYWORD;
 
       if (type == ActivityLexer.DEFAULT) {
-        var select = (Select)statStack.getLast();
+        var condBlock = (ActivityParser.CondblockContext) node.getParent();
 
-        var or = new BinaryExpr(ExprKind.Or);
-        var defaultExpr = new NotExpr("default", or);
-        for (var cond: select.conditions) {
-          if (cond != null)
-            or.list().add(cond);
+        boolean flag = true;
+        for (int i = 0; i < condBlock.exprstat().size() - 1; i++) {
+          var cond = condBlock.exprstat(i);
+          flag &= cond.expr() != null;
         }
 
-        //default is possible only when previous branches are with conditions
-        if (or.list().size() > 0 && or.list().size() == select.conditions.size()) {
-          select.conditions.add(defaultExpr);
-        } else {
-          select.conditions.add(null);
+        if (!flag) {
           Utils.markError(tokenTypes, tokenStyles, index);
+          Utils.printError(node, "default is possible only when previous branches are with conditions");
         }
       }
 
@@ -249,23 +62,19 @@ public class ActivityWalker extends ActivityParserBaseListener {
     } else if (type == ActivityLexer.ID) {
       var id = node.getText();
       var pos = Pos.fromNode(node);
+      boolean isUnderExpr = node.getParent() instanceof ActivityParser.ExprContext
+          || node.getParent() instanceof ActivityParser.ExprconsContext;
+
       if (def.containsKey(id)) {
         usageToDef.put(pos, def.get(id));
         tokenTypes[index] = ParserConstants.TokenTypes.FIELD;
-      } else if (exprStack.isEmpty()) {
+      } else if (!isUnderExpr) {
         tokenTypes[index] = ParserConstants.TokenTypes.FIELD;
         def.put(id, pos);
-      } else Utils.markError(tokenTypes, tokenStyles, index);
-    }
-
-    if (!exprStack.isEmpty())
-      tokenStyles[index] = ParserConstants.TokenStyles.ITALIC;
-
-    //AST building logic
-    if (type == ActivityLexer.ELSE) {
-      var lastIf = (If) statStack.getLast();
-      containerOfStatStack.removeLast();
-      containerOfStatStack.add(lastIf.elseBlock);
+      } else {
+        Utils.markError(tokenTypes, tokenStyles, index);
+        Utils.printError(node, node.getText() + " is not declared");
+      }
     }
   }
 }

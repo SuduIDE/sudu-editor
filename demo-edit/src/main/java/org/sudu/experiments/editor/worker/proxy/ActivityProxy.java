@@ -1,7 +1,8 @@
 package org.sudu.experiments.editor.worker.proxy;
 
 import org.sudu.experiments.editor.Languages;
-import org.sudu.experiments.parser.activity.ActivityFullParser;
+import org.sudu.experiments.parser.activity.parser.ActivityFullParser;
+import org.sudu.experiments.parser.activity.parser.ActivityIterativeParser;
 import org.sudu.experiments.parser.common.base.BaseFirstLinesLexer;
 import org.sudu.experiments.parser.common.base.BaseFullParser;
 import org.sudu.experiments.parser.common.base.BaseFullScopeParser;
@@ -43,6 +44,6 @@ public class ActivityProxy extends BaseProxy {
 
   @Override
   public BaseIntervalParser<?> getIntervalParser() {
-    throw new UnsupportedOperationException();
+    return new ActivityIterativeParser();
   }
 }

@@ -1,4 +1,4 @@
-// Generated from parser-generator\src\main\resources\grammar\java\st\JavaStructureParser.g4 by ANTLR 4.12.0
+// Generated from parser-generator/src/main/resources/grammar/java/st/JavaStructureParser.g4 by ANTLR 4.13.1
 package org.sudu.experiments.parser.java.gen.st;
 
 import org.antlr.v4.runtime.ParserRuleContext;

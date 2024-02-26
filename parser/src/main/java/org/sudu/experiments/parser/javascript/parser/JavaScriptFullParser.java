@@ -12,6 +12,7 @@ import org.sudu.experiments.parser.javascript.gen.JavaScriptParser;
 import org.sudu.experiments.parser.javascript.parser.highlighting.JavaScriptLexerHighlighting;
 import org.sudu.experiments.parser.javascript.walker.JsWalker;
 
+// todo fix
 public class JavaScriptFullParser extends BaseFullParser<JavaScriptParser> {
 
   public int[] parse(String source) {

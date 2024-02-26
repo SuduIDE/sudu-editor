@@ -40,6 +40,7 @@ public class EditorWorker {
       case CppProxy.PARSE_FULL_FILE -> cppProxy.parseFullFile(array(a, 0).chars(), result);
       case CppProxy.PARSE_FULL_FILE_SCOPES -> cppProxy.parseFullFileScopes(array(a, 0).chars(), result);
       case JavaScriptProxy.PARSE_FULL_FILE -> javascriptProxy.parseFullFile(array(a, 0).chars(), result);
+      case HtmlProxy.PARSE_FULL_FILE -> htmlProxy.parseFullFile(array(a, 0).chars(), result);
       case LineParser.PARSE -> LineParser.parse(array(a, 0).chars(), result);
       case ScopeProxy.RESOLVE_ALL -> ScopeProxy.resolveAll(array(a, 0).ints(), array(a, 1).chars(), array(a, 2).ints(), result);
       case DiffUtils.FIND_DIFFS -> DiffUtils.findDiffs(

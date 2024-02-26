@@ -28,7 +28,8 @@ public class JavaIntervalParser extends BaseIntervalParser<JavaParser> {
   @Override
   protected ParserRuleContext getStartRule(JavaParser parser) {
     return switch (intervalType) {
-      case IntervalTypes.Java.COMP_UNIT -> parser.compilationUnitOrAny();
+      case IntervalTypes.ERROR_ROOT,
+          IntervalTypes.Java.COMP_UNIT -> parser.compilationUnitOrAny();
       default -> parser.unknownInterval();
     };
   }

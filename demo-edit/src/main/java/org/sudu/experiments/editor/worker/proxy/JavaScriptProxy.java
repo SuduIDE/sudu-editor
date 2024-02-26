@@ -6,8 +6,8 @@ import org.sudu.experiments.parser.common.base.BaseFullParser;
 import org.sudu.experiments.parser.common.base.BaseFullScopeParser;
 import org.sudu.experiments.parser.common.base.BaseIntervalParser;
 import org.sudu.experiments.parser.javascript.parser.JavaScriptFirstLinesLexer;
-import org.sudu.experiments.parser.javascript.parser.JavaScriptFullParser;
 import org.sudu.experiments.parser.javascript.parser.JavaScriptIntervalParser;
+import org.sudu.experiments.parser.javascript.parser.JavaScriptLightParser;
 
 public class JavaScriptProxy extends BaseProxy {
 
@@ -25,7 +25,7 @@ public class JavaScriptProxy extends BaseProxy {
 
   @Override
   public BaseFullParser<?> getFullParser() {
-    return new JavaScriptFullParser();
+    return new JavaScriptLightParser();
   }
 
   @Override

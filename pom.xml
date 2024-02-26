@@ -51,6 +51,7 @@
     <maven.warplugin.version>3.4.0</maven.warplugin.version>
 
     <maven.plugin.validation>DEFAULT</maven.plugin.validation>
+    <antlr.version>4.13.2-SNAPSHOT</antlr.version>
   </properties>
 
 </project>

@@ -1,4 +1,4 @@
-package org.sudu.experiments.parser.activity;
+package org.sudu.experiments.parser.activity.parser;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Lexer;
@@ -9,7 +9,6 @@ import org.sudu.experiments.parser.ErrorHighlightingStrategy;
 import org.sudu.experiments.parser.Utils;
 import org.sudu.experiments.parser.activity.gen.ActivityLexer;
 import org.sudu.experiments.parser.activity.gen.ActivityParser;
-import org.sudu.experiments.parser.activity.graph.stat.Activity;
 import org.sudu.experiments.parser.activity.walker.ActivityWalker;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.base.BaseFullParser;
@@ -19,8 +18,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class ActivityFullParser extends BaseFullParser<ActivityParser> {
-
-  public Activity activity;
 
   @Override
   protected Lexer initLexer(CharStream stream) {
@@ -47,8 +44,6 @@ public class ActivityFullParser extends BaseFullParser<ActivityParser> {
     var walker = new ActivityWalker(tokenTypes, tokenStyles, usageToDefinition);
     var parseTreeWalker = new ParseTreeWalker();
     parseTreeWalker.walk(walker, program);
-
-    activity = walker.getActivity();
   }
 
   @Override

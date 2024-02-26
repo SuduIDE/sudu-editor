@@ -21,8 +21,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Cpp.*;
 import static org.sudu.experiments.parser.ParserConstants.*;
+import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.*;
+import static org.sudu.experiments.parser.ParserConstants.IntervalTypes.Cpp.*;
 import static org.sudu.experiments.parser.common.graph.node.NodeTypes.*;
 
 public class CppScopeWalker extends CPP14ParserBaseListener {
@@ -380,8 +381,8 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
       return handleAlignOf(unaryExpression.theTypeId());
     else if (unaryExpression.noExceptExpression() != null)
       return handleNoExceptExpr(unaryExpression.noExceptExpression());
-    else if (unaryExpression.newExpression() != null)
-      return handleNewExpression(unaryExpression.newExpression());
+    else if (unaryExpression.newExpression_() != null)
+      return handleNewExpression(unaryExpression.newExpression_());
     else return handleDeleteExpression(unaryExpression.deleteExpression());
   }
 
@@ -499,19 +500,19 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     return new RefNode(Name.fromNode(node, offset), type, RefTypes.LITERAL);
   }
 
-  private RefNode handleNewExpression(CPP14Parser.NewExpressionContext newExpression) {
+  private RefNode handleNewExpression(CPP14Parser.NewExpression_Context newExpression) {
     var name = Name.fromRule(
         newExpression.newTypeId() != null
             ? newExpression.newTypeId()
             : newExpression.theTypeId(),
         offset);
-    List<RefNode> callArgs = newExpression.newInitializer() != null
-        ? handleNewInitializer(newExpression.newInitializer())
+    List<RefNode> callArgs = newExpression.newInitializer_() != null
+        ? handleNewInitializer(newExpression.newInitializer_())
         : List.of();
     return new MethodCallNode(name, name.name, MethodTypes.CREATOR, callArgs);
   }
 
-  List<RefNode> handleNewInitializer(CPP14Parser.NewInitializerContext newInitializer) {
+  List<RefNode> handleNewInitializer(CPP14Parser.NewInitializer_Context newInitializer) {
     if (newInitializer.bracedInitList() != null) return handleBracedInitList(newInitializer.bracedInitList());
     else if (newInitializer.expressionList() != null) return handleExpressionList(newInitializer.expressionList());
     else return List.of();
@@ -637,6 +638,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   void mark(TerminalNode node, int type, int style) {
     if (tokenTypes == null || tokenStyles == null || node == null) return;
     int ind = node.getSymbol().getTokenIndex();
+    if (tokenTypes[ind] != TokenTypes.DEFAULT || tokenStyles[ind] != TokenStyles.NORMAL) return;
     tokenTypes[ind] = type;
     tokenStyles[ind] = style;
   }

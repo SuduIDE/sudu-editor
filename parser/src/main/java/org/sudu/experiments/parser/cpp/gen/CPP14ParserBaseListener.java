@@ -1,4 +1,4 @@
-// Generated from parser-generator\src\main\resources\grammar\cpp\CPP14Parser.g4 by ANTLR 4.12.0
+// Generated from parser-generator/src/main/resources/grammar/cpp/CPP14Parser.g4 by ANTLR 4.13.1
 package org.sudu.experiments.parser.cpp.gen;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -290,13 +290,13 @@ public class CPP14ParserBaseListener implements CPP14ParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterNewExpression(CPP14Parser.NewExpressionContext ctx) { }
+	@Override public void enterNewExpression_(CPP14Parser.NewExpression_Context ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitNewExpression(CPP14Parser.NewExpressionContext ctx) { }
+	@Override public void exitNewExpression_(CPP14Parser.NewExpression_Context ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -329,13 +329,13 @@ public class CPP14ParserBaseListener implements CPP14ParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterNewDeclarator(CPP14Parser.NewDeclaratorContext ctx) { }
+	@Override public void enterNewDeclarator_(CPP14Parser.NewDeclarator_Context ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitNewDeclarator(CPP14Parser.NewDeclaratorContext ctx) { }
+	@Override public void exitNewDeclarator_(CPP14Parser.NewDeclarator_Context ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -355,13 +355,13 @@ public class CPP14ParserBaseListener implements CPP14ParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterNewInitializer(CPP14Parser.NewInitializerContext ctx) { }
+	@Override public void enterNewInitializer_(CPP14Parser.NewInitializer_Context ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitNewInitializer(CPP14Parser.NewInitializerContext ctx) { }
+	@Override public void exitNewInitializer_(CPP14Parser.NewInitializer_Context ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -875,13 +875,13 @@ public class CPP14ParserBaseListener implements CPP14ParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterEmptyDeclaration(CPP14Parser.EmptyDeclarationContext ctx) { }
+	@Override public void enterEmptyDeclaration_(CPP14Parser.EmptyDeclaration_Context ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitEmptyDeclaration(CPP14Parser.EmptyDeclarationContext ctx) { }
+	@Override public void exitEmptyDeclaration_(CPP14Parser.EmptyDeclaration_Context ctx) { }
 
 	/**
 	 * {@inheritDoc}

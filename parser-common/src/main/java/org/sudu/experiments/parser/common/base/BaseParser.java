@@ -61,7 +61,6 @@ public abstract class BaseParser<P extends Parser> {
     fileSource = source;
     fileSourceLength = sourceLength;
     tokenRecognitionListener = new ErrorRecognizerListener();
-    parserRecognitionListener = new ErrorRecognizerListener();
 
     Lexer lexer = initLexer(stream);
     lexer.addErrorListener(tokenRecognitionListener);
@@ -72,6 +71,7 @@ public abstract class BaseParser<P extends Parser> {
     allTokens = tokenStream.getTokens();
     tokenTypes = new int[allTokens.size()];
     tokenStyles = new int[allTokens.size()];
+    parserRecognitionListener = new ErrorMarkListener(tokenTypes, tokenStyles);
 
     this.splitRules = initSplitRules();
   }
@@ -144,7 +144,7 @@ public abstract class BaseParser<P extends Parser> {
   }
 
   protected Interval defaultInterval() {
-    return new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.UNKNOWN);
+    return new Interval(0, fileSourceLength, ParserConstants.IntervalTypes.ERROR_ROOT);
   }
 
   protected IntervalNode defaultIntervalNode(int type) {

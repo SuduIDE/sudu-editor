@@ -1,4 +1,9 @@
-a.activity
 AngleGL.cpp
 D2d.cpp
 Win32.cpp
+a.activity
+AsmWriter.cpp
+ClangdLSPServer.cpp
+CodeCompletionStrings.h
+OMPContext.cpp
+ProjectAware.cpp

@@ -35,6 +35,7 @@ public interface ParserConstants {
   interface IntervalTypes {
 
     int UNKNOWN = -1;
+    int ERROR_ROOT = -2;
 
     interface Java {
       int COMP_UNIT = 0;
@@ -46,7 +47,6 @@ public interface ParserConstants {
     }
 
     interface Cpp {
-      int UNKNOWN = -1;
       int TRANS_UNIT = 0;
       int DECLARATION = 1;
       int TYPE = 2;
@@ -54,7 +54,6 @@ public interface ParserConstants {
     }
 
     interface Js {
-      int UNKNOWN = -1;
       int PROGRAM = 0;
       int SRC_ELEM = 1;
     }
