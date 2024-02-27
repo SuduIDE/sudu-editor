@@ -8,19 +8,20 @@ import java.util.concurrent.Executor;
 
 class JvmDirectoryHandle extends JvmFsHandle implements DirectoryHandle {
 
-  JvmDirectoryHandle(String path, String[] rPath, Executor bgWorker, Executor edt) {
-    super(path, rPath, bgWorker, edt);
+  JvmDirectoryHandle(String path, Path root, Executor bgWorker, Executor edt) {
+    super(path, root, bgWorker, edt);
   }
 
-  JvmDirectoryHandle(Path path, String[] rPath, Executor bgWorker, Executor edt) {
-    super(path, rPath, bgWorker, edt);
+  JvmDirectoryHandle(Path path, Path root, Executor bgWorker, Executor edt) {
+    super(path, root, bgWorker, edt);
   }
 
   // Returns a handle to same file, but with specified event thread
   // If edt argument is null then the background worker's bus is used
   public JvmDirectoryHandle withEdt(Executor edt) {
     return this.edt == edt ? this :
-        new JvmDirectoryHandle(path, rPath, bgWorker, edt != null ? edt : bgWorker);
+        new JvmDirectoryHandle(path, root, bgWorker,
+            edt != null ? edt : bgWorker);
   }
 
   @Override
@@ -42,13 +43,11 @@ class JvmDirectoryHandle extends JvmFsHandle implements DirectoryHandle {
       @Override
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
         if (attrs.isDirectory()) {
-          var dh = new JvmDirectoryHandle(
-              file, toRPath(file, path), bgWorker, edt);
+          var dh = new JvmDirectoryHandle(file, root, bgWorker, edt);
           sendBack(dh, reader, edt);
         }
         if (attrs.isRegularFile()) {
-          var fh = new JvmFileHandle(
-              file, toRPath(file, path), bgWorker, edt);
+          var fh = new JvmFileHandle(file, root, bgWorker, edt);
           sendBack(fh, reader, edt);
         }
         return FileVisitResult.CONTINUE;
@@ -84,15 +83,7 @@ class JvmDirectoryHandle extends JvmFsHandle implements DirectoryHandle {
 
   @Override
   public String toString() {
-    return FsItem.fullPath(rPath, getName());
+    return FsItem.fullPath(getPath(), getName());
   }
 
-  static String[] toRPath(Path file, Path start) {
-    Path relativize = start.relativize(file);
-    int nameCount = relativize.getNameCount();
-    String[] rPath = new String[nameCount];
-    rPath[0] = start.getFileName().toString();
-    for (int i = 1; i < rPath.length; i++) rPath[i] = relativize.getName(i - 1).toString();
-    return rPath;
-  }
 }

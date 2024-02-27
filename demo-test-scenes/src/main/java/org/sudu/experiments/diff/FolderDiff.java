@@ -1,7 +1,6 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.DirectoryHandle;
-import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.input.MouseEvent;
@@ -10,6 +9,7 @@ import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.*;
 import org.sudu.experiments.ui.fs.DirectoryNode;
+import org.sudu.experiments.ui.fs.FileNode;
 import org.sudu.experiments.ui.window.View;
 
 import java.util.function.Supplier;
@@ -21,6 +21,7 @@ public class FolderDiff extends WindowDemo implements DprChangeListener {
 
   EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
   DiffRootView rootView;
+  DirectoryNode leftRoot, rightRoot;
 
   public FolderDiff(SceneApi api) {
     super(api);
@@ -44,42 +45,51 @@ public class FolderDiff extends WindowDemo implements DprChangeListener {
 
   private Supplier<ToolbarItem[]> actions(V2i pos) {
     if (rootView.left.hitTest(pos)) {
-      return select(rootView.left, selectLeftText);
+      return select(true, selectLeftText);
     } else if (rootView.right.hitTest(pos)) {
-      return select(rootView.right, selectRightText);
+      return select(false, selectRightText);
     }
     return selectLR();
 
   }
-  private Supplier<ToolbarItem[]> select(FileTreeView treeView, String t) {
+  private Supplier<ToolbarItem[]> select(boolean left, String t) {
     return ArrayOp.supplier(
-        new ToolbarItem(() -> selectFolder(treeView), t));
+        new ToolbarItem(() -> selectFolder(left), t));
   }
 
   private Supplier<ToolbarItem[]> selectLR() {
     return ArrayOp.supplier(
         new ToolbarItem(() ->
-            selectFolder(rootView.left), selectLeftText),
+            selectFolder(true), selectLeftText),
         new ToolbarItem(() ->
-            selectFolder(rootView.right), selectRightText));
+            selectFolder(false), selectRightText));
   }
 
-  private void open(DirectoryHandle dir, FileTreeView treeView) {
+
+  private void open(DirectoryHandle dir, boolean left) {
+    FileTreeView treeView = left ? rootView.left : rootView.right;
     windowManager.hidePopupMenu();
     System.out.println("open dir = " + dir.getFullPath());
 
     DirectoryNode.Handler handler = new DirectoryNode.Handler() {
       @Override
-      public void openFile(FileHandle file, FileTreeNode node) {
-        System.out.println("opening file ... " + file.getFullPath());
+      public void openFile(FileNode node) {
+        System.out.println("opening file ... " +
+            node.file.getFullPath());
       }
 
       @Override
       public void folderOpened(DirectoryNode node) {
         node.closeOnClick();
+        System.out.println("folderOpened " + node.dir.toString());
+        DirectoryNode oppositeDir = findOppositeDir(node.dir);
+        if (oppositeDir != null && oppositeDir.isClosed()) {
+          oppositeDir.onClick.run();
+        }
         if (node.childrenLength() > 0) {
           treeView.updateModel();
         }
+        // update diff model
       }
 
       @Override
@@ -88,19 +98,32 @@ public class FolderDiff extends WindowDemo implements DprChangeListener {
           treeView.updateModel();
         }
         node.readOnClick();
+        DirectoryNode oppositeDir = findOppositeDir(node.dir);
+        if (oppositeDir != null && oppositeDir.isOpened()) {
+          oppositeDir.onClick.run();
+        }
+      }
+
+      DirectoryNode findOppositeDir(DirectoryHandle handle) {
+        var dir = left ? rightRoot : leftRoot;
+        if (dir == null) return null;
+        for (String s : handle.getPath()) {
+          var subDir = dir.findSubDir(s);
+          if (subDir == null) return null;
+          dir = subDir;
+        }
+        return dir.findSubDir(handle.getName());
       }
     };
     var root = new DirectoryNode(dir, handler);
+    if (left) leftRoot = root; else rightRoot = root;
     root.onClick.run();
     treeView.setRoot(root);
   }
 
-  private void selectFolder(FileTreeView treeView) {
-    api.window.showDirectoryPicker(dir -> open(dir, treeView));
+  private void selectFolder(boolean left) {
+    api.window.showDirectoryPicker(dir -> open(dir, left));
   }
-
-  private void selectLeft() { selectFolder(rootView.left); }
-  private void selectRight() { selectFolder(rootView.right); }
 
   @Override
   protected View createContent() {
@@ -110,8 +133,8 @@ public class FolderDiff extends WindowDemo implements DprChangeListener {
     var modelRight = new FileTreeNode(selectRightText, 0);
     modelLeft.iconFolderOpened();
     modelRight.iconFolderOpened();
-    modelLeft.onClick = this::selectLeft;
-    modelRight.onClick = this::selectRight;
+    modelLeft.onClick = () -> selectFolder(true);
+    modelRight.onClick = () -> selectFolder(false);
     rootView.left.setRoot(modelLeft);
     rootView.right.setRoot(modelRight);
     rootView.setDiffModel(DiffMiddleDemo.testModel());

@@ -7,6 +7,7 @@ import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.win32.*;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.function.Consumer;
@@ -387,8 +388,10 @@ public class Win32Window implements WindowPeer, Window {
     String result = Win32FileDialog.openFolderDialog(hWnd);
     onEnterExitSizeMove(hWnd, false);
     if (result != null) {
+      Path folderPath = Path.of(result);
       var dir = new JvmDirectoryHandle(
-          result, new String[0], workers.bgWorker, eventQueue);
+          folderPath, folderPath,
+          workers.bgWorker, eventQueue);
       eventQueue.execute(() -> onResult.accept(dir));
     }
   }
@@ -403,8 +406,9 @@ public class Win32Window implements WindowPeer, Window {
     String file = Win32FileDialog.openFileDialog(hWnd);
     onEnterExitSizeMove(hWnd, false);
     if (file != null) {
+      Path path = Path.of(file);
       FileHandle fh = new JvmFileHandle(
-          file, new String[0], workers.bgWorker, eventQueue);
+          path, path, workers.bgWorker, eventQueue);
       eventQueue.execute(() -> onResult.accept(fh));
     }
   }

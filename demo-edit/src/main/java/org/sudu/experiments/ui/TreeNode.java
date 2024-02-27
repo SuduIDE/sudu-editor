@@ -38,6 +38,10 @@ public class TreeNode {
     return arrow == Codicons.chevron_down;
   }
 
+  public boolean isClosed() {
+    return arrow == Codicons.chevron_right;
+  }
+
   public void arrowRight() {
     arrow = Codicons.chevron_right;
   }

@@ -14,19 +14,19 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
   static final Function<byte[], String> asUtf8String = b -> new String(b, StandardCharsets.UTF_8);
   static final Function<byte[], byte[]> identity = b -> b;
 
-  public JvmFileHandle(String path, String[] rPath, Executor bgWorker, Executor edt) {
-    super(path, rPath, bgWorker, edt);
+  public JvmFileHandle(String path, Path root, Executor bgWorker, Executor edt) {
+    super(path, root, bgWorker, edt);
   }
 
-  public JvmFileHandle(Path path, String[] rPath, Executor bgWorker, Executor edt) {
-    super(path, rPath, bgWorker, edt);
+  public JvmFileHandle(Path path, Path root, Executor bgWorker, Executor edt) {
+    super(path, root, bgWorker, edt);
   }
 
   // Returns a handle to same file, but with specified event thread
   // If edt argument is null then the background worker's bus is used
   public JvmFileHandle withEdt(Executor edt) {
     return this.edt == edt ? this :
-        new JvmFileHandle(path, rPath, bgWorker, edt != null ? edt : bgWorker);
+        new JvmFileHandle(path, root, bgWorker, edt != null ? edt : bgWorker);
   }
 
   @Override
@@ -69,6 +69,6 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
 
   @Override
   public String toString() {
-    return FsItem.toString(rPath, getName(), getFileSize());
+    return FsItem.toString(getPath(), getName(), getFileSize());
   }
 }

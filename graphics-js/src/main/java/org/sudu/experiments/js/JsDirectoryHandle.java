@@ -16,7 +16,7 @@ class JsDirectoryHandle implements DirectoryHandle {
       FileSystemDirectoryHandle handle,
       JsFunctions.Consumer<JSError> onError
   ) {
-    this(handle, onError, new String[0]);
+    this(handle, onError, new String[0], new String[0]);
   }
 
   JsDirectoryHandle(
@@ -24,9 +24,18 @@ class JsDirectoryHandle implements DirectoryHandle {
       JsFunctions.Consumer<JSError> onError,
       String[] path
   ) {
+    this(handle, onError, path, null);
+  }
+
+  JsDirectoryHandle(
+      FileSystemDirectoryHandle handle,
+      JsFunctions.Consumer<JSError> onError,
+      String[] path, String[] chPath
+  ) {
     fsDirectory = handle;
     this.onError = onError;
     this.path = path;
+    this.chPath = chPath;
   }
 
   @Override

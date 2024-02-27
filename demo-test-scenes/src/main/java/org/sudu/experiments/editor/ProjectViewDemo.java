@@ -10,6 +10,7 @@ import org.sudu.experiments.ui.FileTreeNode;
 import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.WindowDemo;
 import org.sudu.experiments.ui.fs.DirectoryNode;
+import org.sudu.experiments.ui.fs.FileNode;
 import org.sudu.experiments.ui.window.View;
 import org.sudu.experiments.ui.window.Window;
 
@@ -93,12 +94,14 @@ public class ProjectViewDemo extends WindowDemo implements
   }
 
   @Override
-  public void openFile(FileHandle file, FileTreeNode node) {
+  public void openFile(FileNode node) {
+    FileHandle file = node.file;
     selectedFile = file;
     Model model = modelMap.get(selectedFile);
     if (model != null) {
       doSetModel(model);
     } else {
+      System.out.println("request new model, file = " + file);
       String fullPath = requestMap.get(file);
       if (fullPath != null) {
         Debug.consoleInfo("request in progress " + file);

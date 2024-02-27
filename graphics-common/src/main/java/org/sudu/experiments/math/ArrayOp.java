@@ -12,6 +12,12 @@ public interface ArrayOp {
     return s;
   }
 
+  static <T> T[] add(T[] a, T[] b, T[] res) {
+    System.arraycopy(a, 0, res, 0, a.length);
+    System.arraycopy(b, 0, res, a.length, b.length);
+    return res;
+  }
+
   static <T> T[] segment(T[] a, int pos, T[] target) {
     System.arraycopy(a, pos, target, 0, target.length);
     return target;

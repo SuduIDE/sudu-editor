@@ -126,7 +126,8 @@ public class JsFileHandle implements FileHandle {
     JsArrayReader<JSString> split = stringSplit(path, JSString.valueOf("/"));
     if (split.getLength() == 0) return new String[0];
     String[] strings = new String[split.getLength() - 1];
-    for (int i = 0; i < strings.length; i++) strings[i] = split.get(i).stringValue();
+    for (int i = 0; i < strings.length; i++)
+      strings[i] = split.get(i).stringValue();
     return strings;
   }
 }

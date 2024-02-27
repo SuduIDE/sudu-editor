@@ -76,4 +76,23 @@ public class FileTreeNode extends TreeNode {
     arrowRight();
     iconFolder();
   }
+
+  public static <T extends FileTreeNode> T bs(T[] a, String key) {
+    int low = 0;
+    int high = a.length - 1;
+
+    while (low <= high) {
+      int mid = (low + high) >>> 1;
+      T midNode = a[mid];
+      int cmp = midNode.name().compareTo(key);
+
+      if (cmp < 0)
+        low = mid + 1;
+      else if (cmp > 0)
+        high = mid - 1;
+      else
+        return midNode;
+    }
+    return null;
+  }
 }
