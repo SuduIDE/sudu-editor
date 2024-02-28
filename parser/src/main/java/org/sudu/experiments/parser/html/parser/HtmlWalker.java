@@ -3,6 +3,7 @@ package org.sudu.experiments.parser.html.parser;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.Utils;
 import org.sudu.experiments.parser.common.Pos;
@@ -15,7 +16,8 @@ public class HtmlWalker extends HTMLParserBaseListener {
 
   final int[] tokenTypes, tokenStyles;
   final Map<Pos, Pos> usageToDefinition;
-  LinkedList<Token> tagStack = new LinkedList<>();
+  Token[] tagStack = new Token[10];
+  int stackPtr = 0;
 
   public HtmlWalker(int[] tokenTypes, int[] tokenStyles, Map<Pos, Pos> usageToDefinition) {
     this.tokenTypes = tokenTypes;
@@ -39,7 +41,7 @@ public class HtmlWalker extends HTMLParserBaseListener {
           mark(ctx.TAG_NAME(), ParserConstants.TokenTypes.ERROR, ParserConstants.TokenStyles.NORMAL);
         }
       } else if (ctx.TAG_SLASH_CLOSE() == null) {
-        tagStack.addLast(tag);
+        ArrayOp.addAt(tag, tagStack, stackPtr++);
         mark(tag, ParserConstants.TokenTypes.ANNOTATION, ParserConstants.TokenStyles.NORMAL);
       } else {
         mark(tag, ParserConstants.TokenTypes.ANNOTATION, ParserConstants.TokenStyles.NORMAL);
@@ -48,12 +50,13 @@ public class HtmlWalker extends HTMLParserBaseListener {
   }
 
   Token searchForTag(String tag) {
-    LinkedList<Token> stackCopy = (LinkedList<Token>) tagStack.clone();
-    while (!tagStack.isEmpty()) {
-      var popTag = tagStack.removeLast();
+    int oldPtr = stackPtr;
+    while (stackPtr > 0) {
+      var popTag = tagStack[stackPtr - 1];
+      stackPtr--;
       if (popTag.getText().equals(tag)) return popTag;
     }
-    tagStack = stackCopy;
+    stackPtr = oldPtr;
     return null;
   }
 
