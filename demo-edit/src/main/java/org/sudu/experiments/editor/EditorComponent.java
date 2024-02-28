@@ -857,8 +857,6 @@ public class EditorComponent extends View implements
   private void onNewModel() {
     externalHighlights = null;
     lineNumbers.setColors(null);
-    // todo: remove later
-    model.clearUsages();
   }
 
   boolean arrowUpDown(int amount, boolean ctrl, boolean alt, boolean shiftPressed) {
@@ -1030,6 +1028,7 @@ public class EditorComponent extends View implements
     int nextPos = caretCodeLine().nextPos(model.caretCharPos);
     selection().endPos.set(model.caretLine, nextPos);
     selection().startPos.set(model.caretLine, model.caretCharPos);
+    model.computeUsages();
   }
 
   public void useDocumentHighlightProvider(int line, int column) {
