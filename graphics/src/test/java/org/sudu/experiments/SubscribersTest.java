@@ -31,6 +31,34 @@ class SubscribersTest {
     assertEquals(3, array.length);
   }
 
+  @Test void testAddAt() {
+    Subscribers<Integer> list = new Subscribers<>(new Integer[0]);
+    list.add(3);
+    list.add(0, 1);
+    list.add(1, 2);
+    list.add(3, 4);
+    list.add(0, 0);
+    Integer[] array = list.array();
+    assertEquals(5, array.length);
+    for (int i = 0; i < array.length; i++) {
+      assertEquals(array[i], i);
+    }
+    list.moveToFront(1);
+    Integer[] array2 = list.array();
+    assertEquals(array2[0], 1);
+    assertEquals(array2[1], 0);
+    assertEquals(array2[2], 2);
+
+    list.moveToFront(4);
+    Integer[] array3 = list.array();
+    assertEquals(array3[0], 4);
+    assertEquals(array3[1], 1);
+    assertEquals(array3[2], 0);
+    assertEquals(array3[3], 2);
+    assertEquals(array3[4], 3);
+
+  }
+
   @Test void test100() {
     Subscribers<Integer> list = new Subscribers<>(new Integer[0]);
 

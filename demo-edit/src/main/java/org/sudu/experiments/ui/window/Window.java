@@ -23,6 +23,7 @@ public class Window {
 
   public final UiContext context;
   private final TextLineView title;
+  private SystemMenu systemMenu;
   private View content;
   private DialogItemColors theme;
   private int flags;
@@ -35,6 +36,14 @@ public class Window {
     this.context = context;
     title = new TextLineView(context);
     this.content = content;
+  }
+
+  public void setOnClose(Runnable onClose) {
+    if (systemMenu == null) {
+      systemMenu = new SystemMenu();
+      if (theme != null) systemMenu.setTheme(theme);
+    }
+    systemMenu.onClose = onClose;
   }
 
   public void setTitle(String text) {
@@ -50,6 +59,8 @@ public class Window {
   public void setTheme(DialogItemColors theme) {
     this.theme = theme;
     setTitleFont(theme.windowTitleFont, theme.windowTitleMargin);
+    if (systemMenu != null)
+      systemMenu.setTheme(theme);
   }
 
   public void setBypassHitTest(boolean bypass) {
@@ -67,6 +78,7 @@ public class Window {
   public void dispose() {
     title.dispose();
     content = Disposable.assign(content, null);
+    if (systemMenu != null) systemMenu.dispose();
   }
 
   public void setContent(View newContent) {
@@ -80,6 +92,8 @@ public class Window {
     content.setPosition(content.pos, content.size, newDpr);
     title.onDprChange();
     layoutTitle();
+    if (systemMenu != null)
+      systemMenu.onDprChanged();
   }
 
   public void setPosition(V2i pos, V2i size) {
@@ -93,6 +107,7 @@ public class Window {
     title.setDprNoFire(context.dpr);
     int height = title.isEmpty() ? 0 : title.computeAndSetHeight();
     title.pos.set(content.pos.x, content.pos.y - height);
+    if (systemMenu != null) systemMenu.pos.set(title.pos);
   }
 
   public int computeTitleHeight() {
@@ -102,6 +117,9 @@ public class Window {
   void draw(WglGraphics g) {
     content.draw(g);
     title.draw(g, theme.windowColors);
+    if (systemMenu != null) {
+      systemMenu.draw(context, title, theme.windowColors);
+    }
     drawFrameAndShadow(g);
   }
 
@@ -143,13 +161,18 @@ public class Window {
   }
 
   boolean onMouseMove(MouseEvent event) {
-    return setWindowCursor(event.position) || content.hitTest(event.position)
+    return overTitleFrame(event.position) || content.hitTest(event.position)
         && (content.onMouseMove(event) || context.windowCursor.set(null));
   }
 
-  private boolean setWindowCursor(V2i position) {
-    if (title.hitTest(position))
+  private boolean overTitleFrame(V2i position) {
+    if (title.hitTest(position)) {
+      if (systemMenu != null)
+        systemMenu.onMouseMove(position);
       return context.windowCursor.set(null);
+    }
+    if (systemMenu != null)
+      systemMenu.hover = false;
 
     int frame = context.toPx(frameHitTestDp);
     int corner = context.toPx(cornerSizeDp);
@@ -179,15 +202,23 @@ public class Window {
   }
 
   Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
+    V2i position = event.position;
     if (button == MouseListener.MOUSE_BUTTON_LEFT) {
-      var handler = dragHitTest(event.position);
-      if (handler != null) {
+      var handler = dragFrameTest(position);
+      if (handler != null)
         return handler;
+
+      if (title.hitTest(position)) {
+        if (systemMenu != null && systemMenu.hitTest(position)) {
+          systemMenu.onClose.run();
+          return MouseListener.Static.emptyConsumer;
+        } else {
+          return dragWindow(position);
+        }
       }
     }
-    return title.hitTest(event.position) ? MouseListener.Static.emptyConsumer
-        : contentHitTest(event) ? content.onMouseDown(event, button)
-        : null;
+
+    return contentHitTest(event) ? content.onMouseDown(event, button) : null;
   }
 
   boolean onMouseUp(MouseEvent event, int button) {
@@ -260,11 +291,7 @@ public class Window {
     return 0;
   }
 
-  private Consumer<MouseEvent> dragHitTest(V2i position) {
-    if (!title.sizeEmpty() && title.hitTest(position)) {
-      return dragWindow(position);
-    }
-
+  private Consumer<MouseEvent> dragFrameTest(V2i position) {
     int frame = context.toPx(frameHitTestDp);
     int corner = context.toPx(cornerSizeDp);
 
@@ -370,5 +397,10 @@ public class Window {
   public void onTextRenderingSettingsChange() {
     title.onTextRenderingSettingsChange();
     content.onTextRenderingSettingsChange();
+  }
+
+  public void close() {
+    if (systemMenu == null) throw new NullPointerException();
+    systemMenu.onClose.run();
   }
 }

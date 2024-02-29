@@ -12,6 +12,7 @@ public class DialogItemColors {
 
   public final ShadowParameters shadowParameters;
   public final UiFont windowTitleFont = new UiFont(Fonts.SegoeUI, 16);
+  public final UiFont windowTitleIcons = new UiFont(Fonts.codicon, 16);
   public final int windowTitleMargin = 3;
   public final WindowColors windowColors;
   public final FindUsagesItemColors findUsagesColors;

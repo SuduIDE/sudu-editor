@@ -103,7 +103,9 @@ public class UiContext {
   }
 
   public FontDesk fontDesk(UiFont font) {
-    return graphics.fontDesk(font.familyName, font.size, dpr);
+    return graphics.fontDesk(
+        font.familyName, font.size * dpr,
+        font.weightRegular, FontDesk.STYLE_NORMAL);
   }
 
   public int toPx(float value) {

@@ -43,7 +43,6 @@ public class TreeView extends ScrollContent implements Focusable {
   int firstLineRendered, lastLineRendered;
   int selectedLine = -1;
 
-  FontDesk iconsFont;
   GL.Texture arrowR, arrowD;
   GL.Texture folder, folderOpened;
   GL.Texture file, fileCode, fileBinary;
@@ -62,14 +61,14 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   private void loadIcons() {
-    iconsFont = uiContext.fontDesk(uiIcons);
-    arrowR = Disposable.assign(arrowR, renderIcon(chevron_right));
-    arrowD = Disposable.assign(arrowD, renderIcon(chevron_down));
-    folder = Disposable.assign(folder, renderIcon(Codicons.folder));
-    folderOpened = Disposable.assign(folderOpened, renderIcon(folder_opened));
-    file = Disposable.assign(file, renderIcon(Codicons.file));
-    fileCode = Disposable.assign(fileCode, renderIcon(file_code));
-    fileBinary = Disposable.assign(fileBinary, renderIcon(file_binary));
+    FontDesk iconsFont = uiContext.fontDesk(uiIcons);
+    arrowR = Disposable.assign(arrowR, renderIcon(chevron_right, iconsFont));
+    arrowD = Disposable.assign(arrowD, renderIcon(chevron_down, iconsFont));
+    folder = Disposable.assign(folder, renderIcon(Codicons.folder, iconsFont));
+    folderOpened = Disposable.assign(folderOpened, renderIcon(folder_opened, iconsFont));
+    file = Disposable.assign(file, renderIcon(Codicons.file, iconsFont));
+    fileCode = Disposable.assign(fileCode, renderIcon(file_code, iconsFont));
+    fileBinary = Disposable.assign(fileBinary, renderIcon(file_binary, iconsFont));
     iconWidth = Math.max(Math.max(Math.max(Math.max(
         folder.width(),
         folderOpened.width()),
@@ -311,10 +310,10 @@ public class TreeView extends ScrollContent implements Focusable {
     loadIcons();
   }
 
-  private GL.Texture renderIcon(char icon) {
+  private GL.Texture renderIcon(char icon, FontDesk font) {
     return uiContext.graphics.renderTexture(
-        String.valueOf(icon), iconsFont,
-        iconTextureMargin, clrContext.lineHeight, clrContext.cleartype);
+        String.valueOf(icon), font, iconTextureMargin,
+        clrContext.lineHeight, clrContext.cleartype);
   }
 
   static int getLine(int y, int lineHeight, int maxLine) {

@@ -19,6 +19,7 @@ public class ToolbarItem {
   boolean hover;
   String text;
 
+  // todo: add auto-closable ToolbarItem
   public ToolbarItem(Runnable r, String text) {
     this(r, text, null, null);
   }

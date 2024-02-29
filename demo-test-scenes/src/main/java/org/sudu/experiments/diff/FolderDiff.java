@@ -2,7 +2,11 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.editor.ProjectViewDemo;
+import org.sudu.experiments.editor.WindowScene;
+import org.sudu.experiments.editor.ui.colors.DialogItemColors;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.ui.colors.Themes;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Color;
@@ -11,10 +15,11 @@ import org.sudu.experiments.ui.*;
 import org.sudu.experiments.ui.fs.DirectoryNode;
 import org.sudu.experiments.ui.fs.FileNode;
 import org.sudu.experiments.ui.window.View;
+import org.sudu.experiments.ui.window.Window;
 
 import java.util.function.Supplier;
 
-public class FolderDiff extends WindowDemo implements DprChangeListener {
+public class FolderDiff extends WindowScene implements DprChangeListener {
 
   public static final String selectRightText = "Select right...";
   public static final String selectLeftText = "Select left...";
@@ -25,22 +30,29 @@ public class FolderDiff extends WindowDemo implements DprChangeListener {
 
   public FolderDiff(SceneApi api) {
     super(api);
+    uiContext.dprListeners.add(this);
     clearColor.set(new Color(43));
 
     api.input.onContextMenu.add(this::onContextMenu);
   }
 
   private boolean onContextMenu(MouseEvent event) {
+    PopupMenu popup = windowManager.newPopup(theme.dialogItem, theme.popupMenuFont);
     if (rootView != null) {
-      PopupMenu popup = newPopup();
       popup.setItems(event.position, actions(event.position));
-      windowManager.setPopupMenu(popup);
+    } else {
+      popup.setItems(event.position, newWindowMenu());
     }
+    windowManager.setPopupMenu(popup);
     return true;
   }
 
-  private PopupMenu newPopup() {
-    return windowManager.newPopup(theme.dialogItem, theme.popupMenuFont);
+  private Supplier<ToolbarItem[]> newWindowMenu() {
+    return ArrayOp.supplier(
+        new ToolbarItem(() -> {
+          windowManager.hidePopupMenu();
+          newDiffWindow();
+        }, "new Diff window"));
   }
 
   private Supplier<ToolbarItem[]> actions(V2i pos) {
@@ -64,7 +76,6 @@ public class FolderDiff extends WindowDemo implements DprChangeListener {
         new ToolbarItem(() ->
             selectFolder(false), selectRightText));
   }
-
 
   private void open(DirectoryHandle dir, boolean left) {
     FileTreeView treeView = left ? rootView.left : rootView.right;
@@ -125,7 +136,28 @@ public class FolderDiff extends WindowDemo implements DprChangeListener {
     api.window.showDirectoryPicker(dir -> open(dir, left));
   }
 
+  private void newDiffWindow() {
+    Window window = new Window(uiContext, createContent());
+    DialogItemColors theme1 = Themes.darculaColorScheme();
+    window.setTheme(theme1);
+    window.setTitle(getClass().getSimpleName());
+    ProjectViewDemo.largeWindowLayout(window);
+    windowManager.addWindow(window);
+    window.setOnClose(() -> destroyWindow(window));
+  }
+
+  private void destroyWindow(Window window) {
+    windowManager.removeWindow(window);
+    window.dispose();
+    rootView = null;
+    leftRoot = rightRoot = null;
+  }
+
   @Override
+  public void onDprChanged(float oldDpr, float newDpr) {
+    if (oldDpr == 0) newDiffWindow();
+  }
+
   protected View createContent() {
     rootView = new DiffRootView(uiContext);
     rootView.setTheme(theme);

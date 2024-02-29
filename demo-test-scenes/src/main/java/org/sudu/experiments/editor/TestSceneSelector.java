@@ -39,7 +39,7 @@ public class TestSceneSelector {
       case "CodiconDemo" -> CodiconDemo::new;
       case "LineShaderDemo1" -> LineShaderDemo1::new;
       case "LineShaderDemo2" -> LineShaderDemo2::new;
-      case "TwoWindowsDemo" -> TwoWindowsDemo::new;
+      case "WindowsDemo" -> WindowsDemo::new;
       case "WindowDemo" -> WindowDemo::new;
       case "EditorInViewDemo" -> EditorInViewDemo::new;
       case "ProjectViewDemo" -> ProjectViewDemo::new;

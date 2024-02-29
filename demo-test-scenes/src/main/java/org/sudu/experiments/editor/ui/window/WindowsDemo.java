@@ -10,6 +10,7 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.XorShiftRandom;
 import org.sudu.experiments.ui.DprChangeListener;
 import org.sudu.experiments.ui.PopupMenu;
 import org.sudu.experiments.ui.ToolbarItem;
@@ -17,18 +18,19 @@ import org.sudu.experiments.ui.UiFont;
 import org.sudu.experiments.ui.window.ScrollView;
 import org.sudu.experiments.ui.window.Window;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static org.sudu.experiments.Const.emptyRunnable;
 
-public class TwoWindowsDemo extends WindowScene implements DprChangeListener {
+public class WindowsDemo extends WindowScene implements DprChangeListener {
 
   final int titleMargin = 3;
   final UiFont titleFont = new UiFont(Fonts.SegoeUI, 20);
+  final XorShiftRandom r = new XorShiftRandom();
+  int n = 1;
 
-  private Window window1, window2;
-
-  public TwoWindowsDemo(SceneApi api) {
+  public WindowsDemo(SceneApi api) {
     super(api);
     uiContext.dprListeners.add(this);
     clearColor.set(new Color(43));
@@ -52,34 +54,47 @@ public class TwoWindowsDemo extends WindowScene implements DprChangeListener {
 
   private Supplier<ToolbarItem[]> items() {
     return ArrayOp.supplier(
-        new ToolbarItem(this::openWindows, "newWindow"));
+        new ToolbarItem(this::addWindow, "addWindow"));
+  }
+
+  private void addWindow() {
+    windowManager.hidePopupMenu();
+    windowManager.addWindow(newWindow());
   }
 
   private void openWindows() {
-    disposeWindow(window1);
-    disposeWindow(window2);
-
-    window1 = newWindow(.5f, false, "Window 1");
-    window2 = newWindow(1, true, "Window 2");
-    windowManager.addWindow(window1);
-    windowManager.addWindow(window2);
-    layoutWindows();
+    windowManager.addWindow(newWindow());
+    Window noScroll = newWindow(.5f, false, "Window 1");
+    V2i screen = uiContext.windowSize;
+    windowManager.addWindow(noScroll).setPosition(
+        new V2i(screen.x / 10, screen.y / 10),
+        new V2i(screen.x * 6 / 10, screen.y * 6 / 10)
+    );
   }
 
-  private void disposeWindow(Window w) {
-    if (w != null) {
-      windowManager.removeWindow(w);
-      w.dispose();
-    }
+  private Window newWindow() {
+    Window window = newWindow(1, true, "Window " + ++n);
+    V2i screen = uiContext.windowSize;
+    int x = screen.x / 10  + r.nextInt(screen.x / 10);
+    int y = screen.y / 20  + r.nextInt(screen.y / 20);
+    int w = screen.x * 7 / 10  + r.nextInt(screen.x / 10);
+    int h = screen.y * 7 / 10  + r.nextInt(screen.y / 10);
+    window.setPosition(new V2i(x, y), new V2i(w, h));
+    return window;
   }
 
   private Window newWindow(float v, boolean scroll, String title) {
     Window window = new Window(uiContext);
-    ScrollContentDemo contentDemo = new ScrollContentDemo(v,
-        s -> window.setTitle(title + ": " + s));
+    Consumer<V2i> sizeListener = title != null
+        ? s -> window.setTitle(title + ": " + s) : s -> {};
+    ScrollContentDemo contentDemo = new ScrollContentDemo(v, sizeListener);
     window.setContent(scroll ? newScrollView(contentDemo) : contentDemo);
     window.setTheme(Themes.darculaColorScheme());
     window.setTitleFont(titleFont, titleMargin);
+    window.setOnClose(() -> {
+      windowManager.removeWindow(window);
+      window.dispose();
+    });
     return window;
   }
 
@@ -89,21 +104,10 @@ public class TwoWindowsDemo extends WindowScene implements DprChangeListener {
     return scrollView;
   }
 
-  private void layoutWindows() {
-    V2i newSize = uiContext.windowSize;
-    window2.setPosition(
-        new V2i(newSize.x * 2 / 10, newSize.y * 2 / 10),
-        new V2i(newSize.x * 7 / 10, newSize.y * 7 / 10)
-    );
-    window1.setPosition(
-        new V2i(newSize.x / 10, newSize.y / 10),
-        new V2i(newSize.x * 6 / 10, newSize.y * 6 / 10)
-    );
-  }
-
   private boolean onKey(KeyEvent event) {
-    if (event.isPressed && event.keyCode == KeyCode.SPACE) {
-      return true;
+    if (event.isPressed && event.keyCode == KeyCode.ESC) {
+      Window top = windowManager.topWindow();
+      if (top != null) top.close();
     }
     return false;
   }

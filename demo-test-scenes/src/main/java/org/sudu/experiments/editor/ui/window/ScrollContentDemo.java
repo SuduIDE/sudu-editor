@@ -2,6 +2,8 @@ package org.sudu.experiments.editor.ui.window;
 
 import org.sudu.experiments.DprUtil;
 import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
@@ -68,7 +70,7 @@ public class ScrollContentDemo extends ScrollContent {
   }
 
   @Override
-  protected void onPosChange(V2i newPos) {
-//    System.out.println("onPosChange: " + newPos);
+  protected Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
+    return MouseListener.Static.emptyConsumer;
   }
 }
