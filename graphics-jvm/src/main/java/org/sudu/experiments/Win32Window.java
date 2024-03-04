@@ -176,19 +176,7 @@ public class Win32Window implements WindowPeer, Window {
     inputListeners.clear();
     scene = null;
     currentCursor = null;
-    if (contextIsRoot) reportLostResources();
-  }
-
-  static void reportLostResources() {
-    if (GL.Texture.globalCounter != 0 || Canvas.globalCounter != 1) {
-      System.out.println("[window] dispose:");
-      if (GL.Texture.globalCounter != 0) {
-        System.out.println("\tGL.Texture.globalCounter = " + GL.Texture.globalCounter);
-      }
-      if (Canvas.globalCounter != 1) {
-        System.out.println("Canvas.globalCounter = " + Canvas.globalCounter);
-      }
-    }
+    if (contextIsRoot) GL.reportLostResources();
   }
 
   private SceneApi api() {

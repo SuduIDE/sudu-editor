@@ -383,4 +383,15 @@ public interface GL {
     return new Mesh(gl, VertexLayout.POS2_UV2, vbData, index);
   }
 
+  static void reportLostResources() {
+    if (Texture.globalCounter != 0 || Canvas.globalCounter != 1) {
+      System.out.println("[GL] reportLostResources:");
+      if (Texture.globalCounter != 0) {
+        System.out.println("\tGL.Texture.globalCounter = " + Texture.globalCounter);
+      }
+      if (Canvas.globalCounter != 1) {
+        System.out.println("\tCanvas.globalCounter = " + Canvas.globalCounter);
+      }
+    }
+  }
 }
