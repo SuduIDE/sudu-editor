@@ -92,8 +92,8 @@ public class EditorComponent extends View implements
 
   final ClrContext lrContext;
 
-  EditorComponent(UiContext context, EditorUi ui) {
-    this.context = context;
+  public EditorComponent(EditorUi ui) {
+    this.context = ui.windowManager.uiContext;
     this.g = context.graphics;
     this.ui = ui;
     lrContext = new ClrContext(context.cleartype);
@@ -109,21 +109,25 @@ public class EditorComponent extends View implements
     model.setEditor(this, window());
   }
 
-  Disposable registerInput(InputListeners input, boolean inView) {
-    MouseListener onMouse = inView ? null : this;
-    InputListeners.ScrollHandler onScroll = inView ? null : this::onScroll;
+  Disposable registerCopyPaste(InputListeners input) {
     InputListeners.CopyHandler onCopy = this::onCopy;
     InputListeners.PasteHandler onPaste = () -> this::handleInsert;
-    if (onMouse!= null) input.onMouse.add(onMouse);
-    if (onScroll != null) input.onScroll.add(onScroll);
     input.onCopy.add(onCopy);
     input.onPaste.add(onPaste);
     return () -> {
-      if (onMouse!= null) input.onMouse.remove(onMouse);
-      if (onScroll != null) input.onScroll.remove(onScroll);
       input.onCopy.remove(onCopy);
       input.onPaste.remove(onPaste);
     };
+  }
+
+  /*Disposable*/ void registerMouseScroll(InputListeners input) {
+    InputListeners.ScrollHandler onScroll = this::onScroll;
+    input.onMouse.add(this);
+    input.onScroll.add(onScroll);
+//    return () -> {
+//      input.onMouse.remove(this);
+//      input.onScroll.remove(onScroll);
+//    };
   }
 
   @Override
@@ -143,7 +147,7 @@ public class EditorComponent extends View implements
     vScrollListener = vListener;
   }
 
-  void setFullFileParseListener(Consumer<EditorComponent> listener) {
+  public void setFullFileParseListener(Consumer<EditorComponent> listener) {
     fullFileParseListener = listener;
   }
 
@@ -188,7 +192,7 @@ public class EditorComponent extends View implements
     updateDocumentDiffTimeStamp();
   }
 
-  void setTheme(EditorColorScheme theme) {
+  public void setTheme(EditorColorScheme theme) {
     colors = theme;
     caret.setColor(theme.editor.cursor);
     vScroll.setColor(theme.editor.scrollBarLine, theme.editor.scrollBarBg);
@@ -208,7 +212,7 @@ public class EditorComponent extends View implements
     Debug.consoleInfo("drawTails = " + drawTails);
   }
 
-  void setMirrored(boolean b) {
+  public void setMirrored(boolean b) {
     mirrored = b;
   }
 
@@ -748,7 +752,7 @@ public class EditorComponent extends View implements
     }
   }
 
-  boolean handleInsert(String s) {
+  public boolean handleInsert(String s) {
     if (readonly) return false;
     if (selection().isAreaSelected()) deleteSelectedArea();
     String[] lines = s.replace("\r", "").split("\n", -1);
@@ -840,15 +844,15 @@ public class EditorComponent extends View implements
 
   private Window window() { return context.window; }
 
-  void openFile(FileHandle f) {
+  public void openFile(FileHandle f, Runnable onComplete) {
     Debug.consoleInfo("opening file " + f.getName());
-    window().setTitle(f.getName());
     setCaretLinePos(0, 0, false);
 
     f.readAsText(
         source -> {
           Model newModel = new Model(source, new Uri(f.getName()));
           setModel(newModel);
+          onComplete.run();
         },
         System.err::println
     );

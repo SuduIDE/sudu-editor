@@ -57,6 +57,10 @@ public class DirectoryNode extends FileTreeNode {
     return FileTreeNode.bs(folders, what);
   }
 
+  public FileNode findFile(String what) {
+    return FileTreeNode.bs(files, what);
+  }
+
   public void readOnClick() {
     onClick = this::readDirectory;
     onClickArrow = onClick;

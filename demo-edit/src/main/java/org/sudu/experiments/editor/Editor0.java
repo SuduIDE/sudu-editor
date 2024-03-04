@@ -3,6 +3,7 @@
 
 package org.sudu.experiments.editor;
 
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
@@ -22,16 +23,21 @@ public class Editor0 extends WindowScene implements ThemeControl, EditorUi.Clear
     super(api, false);
 
     ui = new EditorUi(windowManager);
-    editor = new EditorComponent(uiContext, ui);
+    editor = new EditorComponent(ui);
     uiContext.initFocus(editor);
 
     api.input.onKeyPress.add(this::onKeyPress);
-    api.input.onKeyPress.add(new CtrlO(api, editor::openFile));
+    api.input.onKeyPress.add(new CtrlO(api, this::openFile));
 
-    editor.registerInput(api.input, false);
+    editor.registerMouseScroll(api.input);
+    editor.registerCopyPaste(api.input);
     api.input.onContextMenu.add(this::onContextMenu);
 
     toggleDark();
+  }
+
+  void openFile(FileHandle f) {
+    editor.openFile(f, () -> api.window.setTitle(f.getFullPath()));
   }
 
   @Override

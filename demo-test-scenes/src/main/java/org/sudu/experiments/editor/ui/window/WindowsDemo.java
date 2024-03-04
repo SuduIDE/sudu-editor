@@ -54,11 +54,12 @@ public class WindowsDemo extends WindowScene implements DprChangeListener {
 
   private Supplier<ToolbarItem[]> items() {
     return ArrayOp.supplier(
-        new ToolbarItem(this::addWindow, "addWindow"));
+        new ToolbarItem(
+            windowManager.hidePopupMenuThen(this::addWindow),
+            "addWindow"));
   }
 
   private void addWindow() {
-    windowManager.hidePopupMenu();
     windowManager.addWindow(newWindow());
   }
 

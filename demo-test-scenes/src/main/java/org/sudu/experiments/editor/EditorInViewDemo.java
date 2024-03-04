@@ -33,7 +33,11 @@ public class EditorInViewDemo extends WindowDemo implements
   }
 
   private void openFile(FileHandle f) {
-    if (editor != null) editor.openFile(f);
+    if (editor != null) {
+      editor.openFile(f,
+          () -> api.window.setTitle(f.getFullPath())
+      );
+    }
   }
 
   @Override
@@ -45,13 +49,13 @@ public class EditorInViewDemo extends WindowDemo implements
 
   @Override
   public boolean update(double timestamp) {
-    return editor.update(timestamp);
+    return editor != null && editor.update(timestamp);
   }
 
   @Override
   protected View createContent() {
-    editor = new EditorComponent(uiContext, ui);
-    inputRegistrations = editor.registerInput(api.input, true);
+    editor = new EditorComponent(ui);
+    inputRegistrations = editor.registerCopyPaste(api.input);
     StartFile.apply(editor);
     uiContext.initFocus(editor);
     return editor;

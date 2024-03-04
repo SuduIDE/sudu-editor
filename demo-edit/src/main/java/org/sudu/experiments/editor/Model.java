@@ -259,11 +259,22 @@ public class Model {
     }
   }
 
+  private void setParsed() {
+    fileStructureParsed = ParseStatus.PARSED;
+    firstLinesParsed = ParseStatus.PARSED;
+    fullFileParsed = ParseStatus.PARSED;
+    if (editor != null) editor.fireFullFileParsed();
+  }
+
   void requestParseFile() {
     if (executor == null) return;
     this.parsingTimeStart = System.currentTimeMillis();
 
     String lang = language();
+    if (Objects.equals(lang, Languages.TEXT)) {
+      setParsed();
+      return;
+    }
     boolean isJava = Objects.equals(lang, Languages.JAVA);
     boolean isActivity = Objects.equals(lang, Languages.ACTIVITY);
     char[] chars = document.getChars();
@@ -393,7 +404,7 @@ public class Model {
       case Languages.CPP -> CppProxy.PARSE_FULL_FILE_SCOPES;
       case Languages.JS -> JavaScriptProxy.PARSE_FULL_FILE;
       case Languages.ACTIVITY -> ActivityProxy.PARSE_FULL_FILE;
-      case Languages.TEXT -> LineParser.PARSE;
+//      case Languages.TEXT -> LineParser.PARSE;
       default -> null;
     } : null;
   }

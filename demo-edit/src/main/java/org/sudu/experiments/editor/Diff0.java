@@ -11,7 +11,6 @@ import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.Focusable;
-import org.sudu.experiments.worker.ArrayView;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -33,6 +32,7 @@ public class Diff0 extends WindowScene implements
   private int modelFlags;
   protected DiffInfo diffModel;
   final DiffSync diffSync;
+  String leftFile, rightFile;
 
   final MiddleLine middleLine = new MiddleLine(uiContext);
 
@@ -40,8 +40,8 @@ public class Diff0 extends WindowScene implements
     super(api, false);
 
     ui = new EditorUi(windowManager);
-    editor1 = new EditorComponent(uiContext, ui);
-    editor2 = new EditorComponent(uiContext, ui);
+    editor1 = new EditorComponent(ui);
+    editor2 = new EditorComponent(ui);
     diffSync = new DiffSync(editor1, editor2);
 
     editor1.setMirrored(true);
@@ -107,30 +107,32 @@ public class Diff0 extends WindowScene implements
   private void openFile(FileHandle handle) {
     EditorComponent activeEditor = getActiveEditor();
     if (activeEditor != null) {
-      activeEditor.openFile(handle);
+      activeEditor.openFile(handle, () -> onOpen(activeEditor, handle));
       diffModel = null;
       diffSync.setModel(null);
       middleLine.setModel(null);
     }
   }
 
-  public void sendToDiff() {
-    System.out.println("sendToDiff");
-    Document document1 = editor1.model.document;
-    Document document2 = editor2.model.document;
-    char[] chars1 = document1.getChars();
-    char[] chars2 = document2.getChars();
-    int[] intervals1 = DiffUtils.makeIntervals(document1);
-    int[] intervals2 = DiffUtils.makeIntervals(document2);
-
-    api.window.sendToWorker(this::onDiffResult, DiffUtils.FIND_DIFFS,
-          chars1, intervals1, chars2, intervals2);
+  void onOpen(EditorComponent activeEditor, FileHandle handle) {
+    String name = handle.getName();
+    if (activeEditor == editor1) leftFile = name; else rightFile = name;
+    if (leftFile != null && rightFile != null) {
+      api.window.setTitle(handle.getName());
+    } else {
+      if (leftFile != null) api.window.setTitle(leftFile);
+      if (rightFile != null) api.window.setTitle(rightFile);
+    }
   }
 
-  private void onDiffResult(Object[] result) {
-    int[] reply = ((ArrayView) result[0]).ints();
+  public void sendToDiff() {
+    System.out.println("sendToDiff");
+    DiffUtils.findDiffs(editor1.model.document, editor2.model.document,
+        this::onDiffResult, api.window);
+  }
 
-    diffModel = DiffUtils.readDiffInfo(reply);
+  private void onDiffResult(DiffInfo result) {
+    diffModel = result;
     editor1.setDiffModel(diffModel.lineDiffsL);
     editor2.setDiffModel(diffModel.lineDiffsR);
     diffSync.setModel(diffModel);

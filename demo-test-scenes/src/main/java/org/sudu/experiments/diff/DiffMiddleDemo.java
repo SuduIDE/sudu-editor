@@ -16,7 +16,7 @@ import org.sudu.experiments.ui.window.View;
 public class DiffMiddleDemo extends WindowDemo implements DprChangeListener {
 
   EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
-  DiffRootView rootView;
+  FolderDiffRootView rootView;
 
   public DiffMiddleDemo(SceneApi api) {
     super(api);
@@ -50,8 +50,8 @@ public class DiffMiddleDemo extends WindowDemo implements DprChangeListener {
 
   @Override
   protected View createContent() {
-    rootView = new DiffRootView(uiContext);
-    rootView.setTheme(theme);
+    rootView = new FolderDiffRootView(uiContext);
+    rootView.applyTheme(theme);
     var leftDir = MockFileTree.randomFolder(
         "Project root", 4, rootView.left::updateModel);
     var rightDir = MockFileTree.randomFolder(

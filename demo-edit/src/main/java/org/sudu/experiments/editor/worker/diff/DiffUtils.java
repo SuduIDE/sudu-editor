@@ -6,8 +6,11 @@ import org.sudu.experiments.diff.DiffModel;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.editor.Document;
+import org.sudu.experiments.worker.ArrayView;
+import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class DiffUtils {
 
@@ -111,5 +114,25 @@ public class DiffUtils {
     else if (diff.type == LineDiff.INSERTED) return String.format("%4d+ %.40s", ind + 1, line);
     else if (diff.type == LineDiff.EDITED) return String.format("%4d# %.40s", ind + 1, line);
     return String.format("%4d  %.40s", ind + 1, line);
+  }
+
+  public static void findDiffs(
+      Document document1,
+      Document document2,
+      Consumer<DiffInfo> result,
+      WorkerJobExecutor window
+  ) {
+    char[] chars1 = document1.getChars();
+    char[] chars2 = document2.getChars();
+    int[] intervals1 = makeIntervals(document1);
+    int[] intervals2 = makeIntervals(document2);
+
+    window.sendToWorker(
+        r -> {
+          int[] reply = ((ArrayView) r[0]).ints();
+          DiffInfo model = readDiffInfo(reply);
+          result.accept(model);
+        }, FIND_DIFFS,
+        chars1, intervals1, chars2, intervals2);
   }
 }

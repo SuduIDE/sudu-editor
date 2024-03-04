@@ -4,6 +4,7 @@ import org.sudu.experiments.Cursor;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.DialogItemColors;
+import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.V2i;
@@ -12,6 +13,7 @@ import org.sudu.experiments.ui.UiFont;
 import org.sudu.experiments.ui.WindowPaint;
 
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class Window {
 
@@ -22,6 +24,10 @@ public class Window {
   static final int bypassHitTest = 1;
 
   public final UiContext context;
+
+  private Predicate<V2i> onContextMenu;
+  private InputListeners.CopyHandler onCopy;
+  private InputListeners.PasteHandler onPaste;
   private final TextLineView title;
   private SystemMenu systemMenu;
   private View content;
@@ -45,6 +51,13 @@ public class Window {
     }
     systemMenu.onClose = onClose;
   }
+
+  public void setContextMenu(Predicate<V2i> onContextMenu) {
+    this.onContextMenu = onContextMenu;
+  }
+
+  public void onCopy(InputListeners.CopyHandler h) { onCopy = h; }
+  public void onPaste(InputListeners.PasteHandler h) { onPaste = h; }
 
   public void setTitle(String text) {
     title.setText(text);
@@ -157,7 +170,11 @@ public class Window {
   public void onHostResize(V2i newSize, float newDpr) {}
 
   private boolean contentHitTest(MouseEvent event) {
-    return bypassHitTest() || content.hitTest(event.position);
+    return contentHitTest(event.position);
+  }
+
+  private boolean contentHitTest(V2i pos) {
+    return bypassHitTest() || content.hitTest(pos);
   }
 
   boolean onMouseMove(MouseEvent event) {
@@ -230,6 +247,16 @@ public class Window {
     return title.hitTest(event.position) || frameHitTest(event.position) ||
         contentHitTest(event) &&
             content.onMouseClick(event, button, clickCount);
+  }
+
+  boolean pickTest(V2i position) {
+    return title.hitTest(position)
+        || frameHitTest(position)
+        || contentHitTest(position);
+  }
+
+  boolean onContextMenu(V2i position) {
+    return onContextMenu != null && onContextMenu.test(position);
   }
 
   boolean onScroll(MouseEvent event, float dX, float dY) {

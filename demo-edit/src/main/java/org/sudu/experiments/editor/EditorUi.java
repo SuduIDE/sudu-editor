@@ -1,5 +1,6 @@
 package org.sudu.experiments.editor;
 
+import org.sudu.experiments.Const;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.editor.ui.FindUsagesItemBuilder;
 import org.sudu.experiments.editor.ui.FindUsagesItemData;
@@ -20,13 +21,13 @@ import java.util.function.Supplier;
 import static org.sudu.experiments.ui.ToolbarConst.fireOnHover;
 import static org.sudu.experiments.ui.ToolbarItemBuilder.ti;
 
-class EditorUi {
-  final WindowManager windowManager;
+public class EditorUi {
+  public final WindowManager windowManager;
 
   Window usagesWindow;
   EditorColorScheme theme;
 
-  EditorUi(WindowManager wm) {
+  public EditorUi(WindowManager wm) {
     windowManager = wm;
   }
 
@@ -108,14 +109,9 @@ class EditorUi {
     usagesWindow = null;
   }
 
-  private PopupMenu newPopup() {
-    return windowManager.newPopup(theme.dialogItem, theme.popupMenuFont);
-  }
-
   public void displayPopup(V2i pos, Supplier<ToolbarItem[]> actions) {
-    var popup = newPopup();
-    popup.setItems(pos, actions);
-    windowManager.setPopupMenu(popup);
+    windowManager.showPopup(
+        theme.dialogItem, theme.popupMenuFont, pos, actions);
   }
 
   public void hidePopup() {
@@ -265,8 +261,9 @@ class EditorUi {
     }
 
     void showOpenFilePicker() {
-      windowManager.hidePopupMenu();
-      window().showOpenFilePicker(editor::openFile);
+      window().showOpenFilePicker(
+          windowManager.hidePopupMenuThen(
+              f -> editor.openFile(f, Const.emptyRunnable)));
     }
 
     private void gotoItems(V2i eventPosition, ToolbarItemBuilder tbb) {

@@ -26,7 +26,7 @@ public class ProjectView extends ViewArray implements
     treeView = new FileTreeView(wm.uiContext);
     treeScrollView = new ScrollView(treeView, wm.uiContext);
     split = new ViewFill();
-    editor = new EditorComponent(wm.uiContext, ui);
+    editor = new EditorComponent(ui);
     themeControl = tc;
     setViews(treeScrollView, split, editor);
 //    ui.windowManager.uiContext.initFocus(editor);

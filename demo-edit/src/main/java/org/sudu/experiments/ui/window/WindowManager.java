@@ -8,13 +8,10 @@ import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.ui.DprChangeListener;
-import org.sudu.experiments.ui.PopupMenu;
-import org.sudu.experiments.ui.UiContext;
-import org.sudu.experiments.ui.UiFont;
+import org.sudu.experiments.ui.*;
 
-import java.util.ArrayList;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 // manages list of active windows,
 //      pass input evens,
@@ -30,11 +27,15 @@ public class WindowManager implements MouseListener, DprChangeListener {
     this.uiContext = uiContext;
   }
 
-  public PopupMenu newPopup(DialogItemColors theme, UiFont f) {
-    PopupMenu popupMenu = new PopupMenu(uiContext);
-    popupMenu.setTheme(theme, f);
-    popupMenu.onClose(uiContext.captureAndRestoreFocus());
-    return popupMenu;
+  public void showPopup(
+      DialogItemColors theme, UiFont f,
+      V2i pos, Supplier<ToolbarItem[]> actions
+  ) {
+    PopupMenu p = new PopupMenu(uiContext);
+    p.setTheme(theme, f);
+    p.onClose(uiContext.captureAndRestoreFocus());
+    p.setItems(pos, actions);
+    setPopupMenu(p);
   }
 
   public void setPopupMenu(PopupMenu popup) {
@@ -47,6 +48,20 @@ public class WindowManager implements MouseListener, DprChangeListener {
     if (popupMenu != null) {
       popupMenu.setTheme(theme.dialogItem, theme.popupMenuFont);
     }
+  }
+
+  public Runnable hidePopupMenuThen(Runnable r) {
+    return () -> {
+      hidePopupMenu();
+      r.run();
+    };
+  }
+
+  public <T> Consumer<T> hidePopupMenuThen(Consumer<T> consumer) {
+    return t -> {
+      hidePopupMenu();
+      consumer.accept(t);
+    };
   }
 
   public void hidePopupMenu() {
@@ -121,7 +136,7 @@ public class WindowManager implements MouseListener, DprChangeListener {
       Window win = ws[i];
       Consumer<MouseEvent> lock = win.onMouseDown(event, button);
       if (lock != null) {
-        if (win != topWindow()) {
+        if (button == MOUSE_BUTTON_LEFT && win != topWindow()) {
           int index = windows.find(win);
           if (index >= 0) windows.moveToFront(index);
         }
@@ -177,5 +192,19 @@ public class WindowManager implements MouseListener, DprChangeListener {
 
   public Window topWindow() {
     return windows.length() > 0 ? windows.get(0) : null;
+  }
+
+  public Window pickWindow(V2i pos) {
+    for (int i = 0, n = windows.length(); i < n; i++) {
+      if (windows.get(i).pickTest(pos))
+        return windows.get(i);
+    }
+    return null;
+  }
+
+  public boolean onContextMenu(MouseEvent mouseEvent) {
+    V2i position = mouseEvent.position;
+    Window window = pickWindow(position);
+    return window != null && window.onContextMenu(position);
   }
 }

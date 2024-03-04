@@ -41,10 +41,6 @@ public class WindowDemo extends WindowScene implements DprChangeListener {
     window.setTitle(title);
   }
 
-  protected boolean windowFrameHitTest(V2i position) {
-    return window.frameHitTest(position);
-  }
-
   protected void initialWindowLayout(Window window) {
     V2i newSize = uiContext.windowSize;
     int titleHeight = withTitle() ? window.computeTitleHeight() : 0;
