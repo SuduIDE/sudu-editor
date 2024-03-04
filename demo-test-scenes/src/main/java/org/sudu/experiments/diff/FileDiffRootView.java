@@ -1,6 +1,5 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.editor.EditorComponent;
 import org.sudu.experiments.editor.EditorUi;
 import org.sudu.experiments.editor.MiddleLine;
@@ -37,21 +36,6 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     editor1.setMirrored(true);
     diffSync = new DiffSync(editor1, editor2);
     setViews(editor1, middleLine, editor2);
-  }
-
-  void selectFile(boolean left) {
-    ui.windowManager.uiContext.window.showOpenFilePicker(
-        ui.windowManager.hidePopupMenuThen(
-            file -> open(file, left)
-        )
-    );
-  }
-
-  public void open(FileHandle file, boolean left) {
-    var ed = left ? editor1 : editor2;
-    ed.openFile(file,
-        () -> System.out.println(
-            "opened file = " + file.getFullPath()));
   }
 
   private void fullFileParseListener(EditorComponent editor) {

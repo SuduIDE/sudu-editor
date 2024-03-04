@@ -69,14 +69,22 @@ public class FileDiffWindow extends DiffWindow0 {
 
   private Supplier<ToolbarItem[]> select(boolean left, String t) {
     return ArrayOp.supplier(
-        new ToolbarItem(() -> rootView.selectFile(left), t));
+        new ToolbarItem(() -> selectFile(left), t));
   }
 
   private Supplier<ToolbarItem[]> selectLR() {
     return ArrayOp.supplier(
         new ToolbarItem(() ->
-            rootView.selectFile(true), UiText.selectLeftText),
+            selectFile(true), UiText.selectLeftText),
         new ToolbarItem(() ->
-            rootView.selectFile(false), UiText.selectRightText));
+            selectFile(false), UiText.selectRightText));
+  }
+
+  private void selectFile(boolean left) {
+    windowManager.uiContext.window.showOpenFilePicker(
+        windowManager.hidePopupMenuThen(
+            file -> open(file, left)
+        )
+    );
   }
 }
