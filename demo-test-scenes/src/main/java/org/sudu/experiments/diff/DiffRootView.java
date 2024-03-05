@@ -1,11 +1,26 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.DprUtil;
+import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.MiddleLine;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.ui.UiContext;
 import org.sudu.experiments.ui.window.ViewArray;
 
-public abstract class DiffRootView extends ViewArray {
+abstract class DiffRootView extends ViewArray {
+  final MiddleLine middleLine;
+
+  DiffRootView(UiContext uiContext) {
+    middleLine = new MiddleLine(uiContext);
+  }
+
+  @Override
+  public void draw(WglGraphics g) {
+    views[0].draw(g);
+    views[2].draw(g);
+    // middle line
+    views[1].draw(g);
+  }
 
   @Override
   protected void layoutViews() {

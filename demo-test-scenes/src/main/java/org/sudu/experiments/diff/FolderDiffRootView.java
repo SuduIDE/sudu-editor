@@ -1,6 +1,5 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.editor.MiddleLine;
 import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
@@ -13,15 +12,15 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
 
   FileTreeView left, right;
   ScrollView leftScrollView, rightScrollView;
-  MiddleLine middleLine;
   DiffSync diffSync;
 
   FolderDiffRootView(UiContext uiContext) {
+    super(uiContext);
+
     left = new FileTreeView(uiContext);
     right = new FileTreeView(uiContext);
     leftScrollView = new ScrollView(left, uiContext);
     rightScrollView = new ScrollView(right, uiContext);
-    middleLine = new MiddleLine(uiContext);
     var leftDiffRef = new FileTreeDiffRef(leftScrollView, left);
     var rightDiffRef = new FileTreeDiffRef(rightScrollView, right);
     middleLine.setLeftRight(leftDiffRef, rightDiffRef);

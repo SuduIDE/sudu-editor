@@ -507,7 +507,6 @@ public class EditorComponent extends View implements
     }
 
     drawVerticalLine();
-    drawLineNumbers(firstLine, lastLine);
 
     if (drawGap) drawGap(firstLine, lastLine, docLen);
 
@@ -519,6 +518,8 @@ public class EditorComponent extends View implements
     drawScrollBar();
 
     g.disableScissor();
+
+    drawLineNumbers(firstLine, lastLine);
 
 //    g.checkError("paint complete");
     if (0>1) {

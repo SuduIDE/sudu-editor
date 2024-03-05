@@ -2,7 +2,6 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.editor.EditorComponent;
 import org.sudu.experiments.editor.EditorUi;
-import org.sudu.experiments.editor.MiddleLine;
 import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
@@ -16,15 +15,14 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
   final EditorComponent editor1;
   final EditorComponent editor2;
 
-  final MiddleLine middleLine;
   final DiffSync diffSync;
 
   DiffInfo diffModel;
   private int modelFlags;
 
   FileDiffRootView(WindowManager wm) {
+    super(wm.uiContext);
     ui = new EditorUi(wm);
-    middleLine = new MiddleLine(wm.uiContext);
     editor1 = new EditorComponent(ui);
     editor2 = new EditorComponent(ui);
     middleLine.setLeftRight(editor1, editor2);

@@ -79,7 +79,9 @@ public class MiddleLine extends View {
     if (first <= last) g.enableBlend(true);
 
     V2i editor1Pos = editor1.pos();
-    V2i size2Size = editor2.size();
+    V2i editor1Size = editor1.size();
+    V2i editor2Size = editor2.size();
+    V2i editor2Pos = editor2.pos();
 
     V2i rSize = uiContext.v2i2;
 
@@ -104,12 +106,12 @@ public class MiddleLine extends View {
       V4f color = theme.diff.getDiffColor(theme, range.type);
 
       if (leftY0 == leftY1) {
-        drawLeftLine(g, leftY0, rightY0,
-            lineWidth, editor1Pos, color);
+        drawLine(g, leftY0, rightY0, lineWidth,
+            editor1Pos.x, editor1Size.x, color, p11, p21);
       }
       if (rightY0 == rightY1) {
-        drawRightLine(g, rightY0, leftY0,
-            lineWidth, size2Size, color);
+        drawLine(g, rightY0, leftY0, lineWidth,
+            editor2Pos.x, editor2Size.x, color, p12, p22);
       }
       g.drawLineFill(
           pos.x, rectY0, rSize,
@@ -120,37 +122,21 @@ public class MiddleLine extends View {
     if (first <= last) g.enableBlend(false);
   }
 
-  private void drawLeftLine(
+  private void drawLine(
       WglGraphics g,
-      int yLeftStartPosition,
-      int yRightStartPosition,
-      int lineWidth,
-      V2i editorPos, V4f color
+      int yLeftStartPosition, int yRightStartPosition,
+      int lineWidth, int editorPos, int editorSize,
+      V4f color, V2i p11, V2i p21
   ) {
     V2i temp = uiContext.v2i1;
-    temp.set(pos.x - editorPos.x, lineWidth);
+    temp.set(editorSize, lineWidth);
     int y = yLeftStartPosition;
     if (yRightStartPosition < yLeftStartPosition) {
       y -= lineWidth;
-      p11.set(p11.x, p11.y - lineWidth);
-    } else p21.set(p21.x, p21.y + lineWidth);
-    g.drawRect(editorPos.x, y, temp, color);
-  }
-
-  private void drawRightLine(
-      WglGraphics g,
-      int yRightStartPosition,
-      int yLeftStartPosition,
-      int lineWidth,
-      V2i editorSize, V4f color
-  ) {
-    V2i temp = uiContext.v2i1;
-    temp.set(editorSize.x, lineWidth);
-    int y = yRightStartPosition;
-    if (yLeftStartPosition < yRightStartPosition) {
-      y -= lineWidth;
-      p12.set(p12.x, p12.y - lineWidth);
-    } else p22.set(p22.x, p22.y + lineWidth);
-    g.drawRect(pos.x + size.x, y, temp, color);
+      p11.y = p11.y - lineWidth;
+    } else {
+      p21.y = p21.y + lineWidth;
+    }
+    g.drawRect(editorPos, y, temp, color);
   }
 }
