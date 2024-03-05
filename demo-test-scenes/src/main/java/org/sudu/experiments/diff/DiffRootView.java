@@ -15,25 +15,19 @@ abstract class DiffRootView extends ViewArray {
   }
 
   @Override
-  public void draw(WglGraphics g) {
-    views[0].draw(g);
-    views[2].draw(g);
-    // middle line
-    views[1].draw(g);
-  }
-
-  @Override
   protected void layoutViews() {
     int px = DprUtil.toPx(MiddleLine.middleLineThicknessDp, dpr);
-    int x1 = size.x / 2 - px / 2;
-    int x2 = size.x - x1;
+    int edSize = (size.x - px) / 2;
     V2i chPos = new V2i(pos);
-    V2i chSize = new V2i(x1, size.y);
+    V2i chSize = new V2i(edSize, size.y);
+    // edLeft
     views[0].setPosition(chPos, chSize, dpr);
-    chPos.x = pos.x + x2;
-    views[2].setPosition(chPos, chSize, dpr);
-    chPos.x = pos.x + x1;
-    chSize.x = x2 - x1;
+    chPos.x = pos.x + size.x - edSize;
+    // edRight
     views[1].setPosition(chPos, chSize, dpr);
+    chSize.x = size.x - edSize - edSize;
+    chPos.x = pos.x + edSize;
+    // middle
+    views[2].setPosition(chPos, chSize, dpr);
   }
 }

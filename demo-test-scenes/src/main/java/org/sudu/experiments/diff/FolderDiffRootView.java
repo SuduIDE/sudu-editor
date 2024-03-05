@@ -25,7 +25,7 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
     var rightDiffRef = new FileTreeDiffRef(rightScrollView, right);
     middleLine.setLeftRight(leftDiffRef, rightDiffRef);
     diffSync = new DiffSync(leftDiffRef, rightDiffRef);
-    setViews(leftScrollView, middleLine, rightScrollView);
+    setViews(leftScrollView, rightScrollView, middleLine);
   }
 
   public void applyTheme(EditorColorScheme theme) {

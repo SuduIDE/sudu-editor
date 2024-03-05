@@ -33,7 +33,7 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     editor2.highlightResolveError(false);
     editor1.setMirrored(true);
     diffSync = new DiffSync(editor1, editor2);
-    setViews(editor1, middleLine, editor2);
+    setViews(editor1, editor2, middleLine);
   }
 
   private void fullFileParseListener(EditorComponent editor) {
