@@ -583,7 +583,7 @@ public class EditorComponent extends View implements
   }
 
   public int lineToPos(int line) {
-    return lineHeight * line - vScrollPos;
+    return lineHeight * line - vScrollPos + pos.y;
   }
 
   public V2i pos() { return pos; }

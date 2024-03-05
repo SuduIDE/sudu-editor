@@ -31,7 +31,7 @@ public class FolderDiffWindow extends DiffWindow0 {
     modelRight.onClick = () -> selectFolder(false);
     rootView.left.setRoot(modelLeft);
     rootView.right.setRoot(modelRight);
-    rootView.setDiffModel(DiffMiddleDemo.testModel());
+//    rootView.setDiffModel(DiffMiddleDemo.testModel());
     windowManager.addWindow(createWindow(rootView));
   }
 

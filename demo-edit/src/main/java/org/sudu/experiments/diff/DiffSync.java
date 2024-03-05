@@ -31,7 +31,9 @@ public class DiffSync {
     var fromRange = model.range(syncLine, isLeft);
 
     int rangeDelta = syncLine - (isLeft ? fromRange.fromL : fromRange.fromR);
-    int scrollDelta = -from.lineToPos(fromFirstLine);
+    // this used to be
+    //      lineHeight * line - vScrollPos;
+    int scrollDelta = -(from.lineToPos(fromFirstLine) - from.pos().y);
     int toRangeStart = isLeft ? fromRange.fromR : fromRange.fromL;
     int toNewLine = (toRangeStart + rangeDelta - linesDelta);
     to.setVScrollPosSilent(toNewLine * to.lineHeight() + scrollDelta);
