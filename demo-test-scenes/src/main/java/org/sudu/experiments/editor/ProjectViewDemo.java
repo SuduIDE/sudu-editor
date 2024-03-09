@@ -1,10 +1,10 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.diff.WindowLayouts;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.ArrayOp;
-import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.ui.FileTreeNode;
 import org.sudu.experiments.ui.ToolbarItem;
@@ -76,20 +76,8 @@ public class ProjectViewDemo extends WindowDemo implements
 
   @Override
   protected void initialWindowLayout(Window window) {
-    largeWindowLayout(window);
+    WindowLayouts.largeWindowLayout(window);
     toggleDark();
-  }
-
-  public static void largeWindowLayout(Window window) {
-    V2i newSize = window.context.windowSize;
-    int titleHeight = window.computeTitleHeight();
-    int screenH = newSize.y - titleHeight;
-    int px5dp = window.context.toPx(5);
-    window.setPosition(
-        new V2i(px5dp, px5dp + titleHeight),
-        new V2i(newSize.x - px5dp * 2,
-            screenH - px5dp * 2)
-    );
   }
 
   public void applyTheme(EditorColorScheme theme) {

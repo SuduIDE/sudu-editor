@@ -1,6 +1,5 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.editor.ProjectViewDemo;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.ToolbarItem;
@@ -23,7 +22,7 @@ abstract class DiffWindow0 {
     Window window = new Window(windowManager.uiContext, view);
     window.setTheme(theme.dialogItem);
     window.setTitle(getClass().getSimpleName());
-    ProjectViewDemo.largeWindowLayout(window);
+    WindowLayouts.largeWindowLayout(window);
     window.setOnClose(() -> destroyWindow(window));
     window.setContextMenu(this::onContextMenu);
     return window;
