@@ -3,6 +3,7 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Color;
@@ -21,6 +22,8 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
     api.input.onContextMenu.add(this::onContextMenu);
   }
 
+  protected String[] menuFonts() { return Fonts.editorFonts(true); }
+
   private boolean onContextMenu(MouseEvent event) {
     var actions = ArrayOp.supplier(
         new ToolbarItem(
@@ -37,11 +40,11 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
   }
 
   private void newFolderWindow() {
-    new FolderDiffWindow(theme, windowManager);
+    new FolderDiffWindow(theme, windowManager, this::menuFonts);
   }
 
   private void newFileWindow() {
-    new FileDiffWindow(theme, windowManager);
+    new FileDiffWindow(theme, windowManager, this::menuFonts);
   }
 
   @Override

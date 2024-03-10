@@ -76,7 +76,7 @@ public class ProjectViewDemo extends WindowDemo implements
 
   @Override
   protected void initialWindowLayout(Window window) {
-    WindowLayouts.largeWindowLayout(window);
+    WindowLayouts.largeWindowLayout(window, 0);
     toggleDark();
   }
 

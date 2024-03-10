@@ -105,4 +105,11 @@ public abstract class ViewArray extends View {
     }
     return result;
   }
+
+  @Override
+  protected void onTextRenderingSettingsChange() {
+    for (View view : views) {
+      view.onTextRenderingSettingsChange();
+    }
+  }
 }

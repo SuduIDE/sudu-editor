@@ -11,20 +11,30 @@ import java.util.function.Supplier;
 
 abstract class DiffWindow0 {
   final WindowManager windowManager;
+  final Supplier<String[]> fonts;
   EditorColorScheme theme;
 
-  DiffWindow0(WindowManager windowManager, EditorColorScheme theme) {
+  DiffWindow0(
+      WindowManager windowManager,
+      EditorColorScheme theme,
+      Supplier<String[]> fonts
+  ) {
     this.windowManager = windowManager;
     this.theme = theme;
+    this.fonts = fonts;
   }
 
   Window createWindow(View view) {
+    return createWindow(view, 0);
+  }
+
+  Window createWindow(View view, float dpOff) {
     Window window = new Window(windowManager.uiContext, view);
     window.setTheme(theme.dialogItem);
     window.setTitle(getClass().getSimpleName());
-    WindowLayouts.largeWindowLayout(window);
     window.setOnClose(() -> destroyWindow(window));
     window.setContextMenu(this::onContextMenu);
+    WindowLayouts.largeWindowLayout(window, dpOff);
     return window;
   }
 

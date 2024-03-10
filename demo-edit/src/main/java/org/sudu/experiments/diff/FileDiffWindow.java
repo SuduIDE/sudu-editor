@@ -2,6 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.editor.EditorComponent;
+import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
@@ -12,20 +13,31 @@ import org.sudu.experiments.ui.window.WindowManager;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class FileDiffWindow extends DiffWindow0 {
-
+public class FileDiffWindow extends DiffWindow0
+    implements ThemeControl
+{
   FileDiffRootView rootView;
   Window window;
   String leftFile, rightFile;
 
-  public FileDiffWindow(EditorColorScheme theme, WindowManager wm) {
-    super(wm, theme);
+  public FileDiffWindow(
+      EditorColorScheme theme,
+      WindowManager wm,
+      Supplier<String[]> fonts
+  ) {
+    super(wm, theme, fonts);
     rootView = new FileDiffRootView(windowManager);
     rootView.applyTheme(this.theme);
-    window = createWindow(rootView);
+    window = createWindow(rootView, 30);
     window.onCopy(this::onCopy);
     window.onPaste(this::onPaste);
     windowManager.addWindow(window);
+  }
+
+  @Override
+  public void applyTheme(EditorColorScheme theme) {
+    window.setTheme(theme.dialogItem);
+    rootView.applyTheme(theme);
   }
 
   private Consumer<String> onPaste() {
@@ -59,25 +71,38 @@ public class FileDiffWindow extends DiffWindow0 {
   }
 
   protected Supplier<ToolbarItem[]> popupActions(V2i pos) {
-    if (rootView.editor1.hitTest(pos)) {
-      return select(true, UiText.selectLeftText);
-    } else if (rootView.editor2.hitTest(pos)) {
-      return select(false, UiText.selectRightText);
+    var e1 = rootView.editor1;
+    var e2 = rootView.editor2;
+    boolean h1 = e1.hitTest(pos);
+    boolean h2 = e2.hitTest(pos);
+
+    if (h1 || h2) {
+      var t = h1 ? UiText.selectLeftText : UiText.selectRightText;
+      return edMenu(pos, h1 ? e1 : e2, opener(h1, t));
     }
     return selectLR();
   }
 
-  private Supplier<ToolbarItem[]> select(boolean left, String t) {
-    return ArrayOp.supplier(
-        new ToolbarItem(() -> selectFile(left), t));
+  private Supplier<ToolbarItem[]> edMenu(
+      V2i pos,
+      EditorComponent editor,
+      ToolbarItem opener) {
+    return rootView.ui.builder(
+        editor, fonts,
+        this,
+        rootView.fontApi(),
+        windowManager::enableCleartype
+    ).build(pos, opener);
+  }
+
+  private ToolbarItem opener(boolean left, String t) {
+    return new ToolbarItem(() -> selectFile(left), t);
   }
 
   private Supplier<ToolbarItem[]> selectLR() {
     return ArrayOp.supplier(
-        new ToolbarItem(() ->
-            selectFile(true), UiText.selectLeftText),
-        new ToolbarItem(() ->
-            selectFile(false), UiText.selectRightText));
+        opener(true, UiText.selectLeftText),
+        opener(false, UiText.selectRightText));
   }
 
   private void selectFile(boolean left) {

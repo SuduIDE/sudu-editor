@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 interface TestJobs {
-  int numDemoThreads = 3;
+  int numDemoThreads = 6;
 
   String withString = "withString";
 

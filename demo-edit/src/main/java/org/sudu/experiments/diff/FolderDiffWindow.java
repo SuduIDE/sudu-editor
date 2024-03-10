@@ -8,6 +8,7 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.FileTreeNode;
 import org.sudu.experiments.ui.FileTreeView;
 import org.sudu.experiments.ui.ToolbarItem;
+import org.sudu.experiments.ui.TreeNode;
 import org.sudu.experiments.ui.fs.DirectoryNode;
 import org.sudu.experiments.ui.fs.FileNode;
 import org.sudu.experiments.ui.window.WindowManager;
@@ -19,8 +20,12 @@ public class FolderDiffWindow extends DiffWindow0 {
   FolderDiffRootView rootView;
   DirectoryNode leftRoot, rightRoot;
 
-  public FolderDiffWindow(EditorColorScheme theme, WindowManager wm) {
-    super(wm, theme);
+  public FolderDiffWindow(
+      EditorColorScheme theme,
+      WindowManager wm,
+      Supplier<String[]> fonts
+  ) {
+    super(wm, theme, fonts);
     rootView = new FolderDiffRootView(windowManager.uiContext);
     rootView.applyTheme(theme);
     var modelLeft = new FileTreeNode(UiText.selectLeftText, 0);
@@ -72,9 +77,11 @@ public class FolderDiffWindow extends DiffWindow0 {
       public void openFile(FileNode node) {
         System.out.println("opening file ... " +
             node.file.getFullPath());
-        var window = new FileDiffWindow(theme, windowManager);
+        var window = new FileDiffWindow(theme, windowManager, fonts);
         window.open(node.file, left);
         FileNode oppositeFile = findOppositeFile(node.file);
+        setOppositeSel(oppositeFile);
+
         if (oppositeFile != null)
           window.open(oppositeFile.file, !left);
       }
@@ -84,6 +91,8 @@ public class FolderDiffWindow extends DiffWindow0 {
         node.closeOnClick();
         System.out.println("folderOpened " + node.dir.toString());
         DirectoryNode oppositeDir = findOppositeDir(node.dir);
+
+        setOppositeSel(oppositeDir);
         if (oppositeDir != null && oppositeDir.isClosed()) {
           oppositeDir.onClick.run();
         }
@@ -93,6 +102,10 @@ public class FolderDiffWindow extends DiffWindow0 {
         // update diff model
       }
 
+      private void setOppositeSel(TreeNode oppositeDir) {
+        (left ? rootView.right : rootView.left).setSelected(oppositeDir);
+      }
+
       @Override
       public void folderClosed(DirectoryNode node) {
         if (node.childrenLength() > 0) {
@@ -100,6 +113,7 @@ public class FolderDiffWindow extends DiffWindow0 {
         }
         node.readOnClick();
         DirectoryNode oppositeDir = findOppositeDir(node.dir);
+        setOppositeSel(oppositeDir);
         if (oppositeDir != null && oppositeDir.isOpened()) {
           oppositeDir.onClick.run();
         }

@@ -2,6 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.editor.EditorComponent;
 import org.sudu.experiments.editor.EditorUi;
+import org.sudu.experiments.editor.FontApi2;
 import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
@@ -36,6 +37,10 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     setViews(editor1, editor2, middleLine);
   }
 
+  public EditorUi.FontApi fontApi() {
+    return new FontApi2(editor1, editor2, ui.windowManager.uiContext);
+  }
+
   private void fullFileParseListener(EditorComponent editor) {
     if (editor1 == editor) modelFlags |= 1;
     if (editor2 == editor) modelFlags |= 2;
@@ -46,6 +51,7 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
 
   @Override
   public void applyTheme(EditorColorScheme theme) {
+    ui.setTheme(theme);
     middleLine.setTheme(theme);
     editor1.setTheme(theme);
     editor2.setTheme(theme);

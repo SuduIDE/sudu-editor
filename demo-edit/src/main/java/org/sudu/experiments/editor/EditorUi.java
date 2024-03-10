@@ -31,7 +31,7 @@ public class EditorUi {
     windowManager = wm;
   }
 
-  void setTheme(EditorColorScheme theme) {
+  public void setTheme(EditorColorScheme theme) {
     this.theme = theme;
     if (usagesWindow != null) usagesWindow.setTheme(theme.dialogItem);
     windowManager.setPopupTheme(theme);
@@ -136,10 +136,21 @@ public class EditorUi {
       Supplier<String[]> fonts
   ) {
     displayPopup(position,
-        new PopupMenuBuilder(
-            editor,
-            fonts, fontApi, cleartypeControl,
-            themeApi).build(position));
+        builder(editor, fonts, themeApi,
+            fontApi, cleartypeControl).build(position));
+  }
+
+  public PopupMenuBuilder builder(
+      EditorComponent editor,
+      Supplier<String[]> fonts,
+      ThemeControl themeApi,
+      FontApi fontApi,
+      CleartypeControl cleartypeControl
+  ) {
+    return new PopupMenuBuilder(
+        editor,
+        fonts, fontApi, cleartypeControl,
+        themeApi);
   }
 
   public interface CleartypeControl {
@@ -153,7 +164,7 @@ public class EditorUi {
     void setFontPow(float p);
   }
 
-  class PopupMenuBuilder {
+  public class PopupMenuBuilder {
 
     final EditorComponent editor;
     final Supplier<String[]> fonts;
@@ -161,7 +172,7 @@ public class EditorUi {
     final CleartypeControl cleartypeControl;
     final ThemeControl themeApi;
 
-    PopupMenuBuilder(
+    public PopupMenuBuilder(
         EditorComponent editor,
         Supplier<String[]> fonts,
         FontApi fontApi,
@@ -175,17 +186,22 @@ public class EditorUi {
       this.themeApi = themeApi;
     }
 
-    Supplier<ToolbarItem[]> build(V2i eventPosition) {
+    public Supplier<ToolbarItem[]> build(V2i eventPosition, ToolbarItem opener) {
       ToolbarItemBuilder tbb = new ToolbarItemBuilder();
 
       gotoItems(eventPosition, tbb);
       cutCopyPaste(tbb);
+      if (opener != null) tbb.addItem(opener);
       //noinspection ConstantValue
       if (1 < 0) tbb.addItem("old >", oldDev());
       tbb.addItem("Language >", languageItems());
       tbb.addItem("Settings >", settingsItems());
-      tbb.addItem("Development >", devItems());
+      tbb.addItem("Development >", devItems(opener == null));
       return tbb.supplier();
+    }
+
+    public Supplier<ToolbarItem[]> build(V2i eventPosition) {
+      return build(eventPosition, null);
     }
 
     private Supplier<ToolbarItem[]> cleartypeItems() {
@@ -252,10 +268,11 @@ public class EditorUi {
       return tbb.supplier();
     }
 
-    private Supplier<ToolbarItem[]> devItems() {
+    private Supplier<ToolbarItem[]> devItems(boolean showPicker) {
       ToolbarItemBuilder tbb = new ToolbarItemBuilder();
       tbb.addItem("parser >", parser());
-      tbb.addItem("open ...", this::showOpenFilePicker);
+      if (showPicker)
+        tbb.addItem("open ...", this::showOpenFilePicker);
       tbb.addItem("font pow >", fontPow(), fireOnHover);
       return tbb.supplier();
     }

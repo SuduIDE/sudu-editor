@@ -41,7 +41,7 @@ public class TreeView extends ScrollContent implements Focusable {
   EditorColorScheme theme;
   UiFont uiFont, uiIcons;
   int firstLineRendered, lastLineRendered;
-  int selectedLine = -1;
+  TreeNode selectedLine;
 
   GL.Texture arrowR, arrowD;
   GL.Texture folder, folderOpened;
@@ -138,6 +138,11 @@ public class TreeView extends ScrollContent implements Focusable {
     layoutScroll();
   }
 
+
+  public void setSelected(TreeNode l) {
+    selectedLine = l;
+  }
+
   @Override
   public void draw(WglGraphics g) {
     V4f bg = theme.editor.bg;
@@ -189,7 +194,7 @@ public class TreeView extends ScrollContent implements Focusable {
       LineDiff diff = null;
       int shift = leftGap + treeShift * mLine.depth;
 
-      boolean selected = selectedLine == i;
+      boolean selected = selectedLine == mLine;
       if (selected) {
         int y = i * lineHeight - scrollPos.y;
         uiContext.v2i1.set(size.x, lineHeight);
@@ -278,7 +283,7 @@ public class TreeView extends ScrollContent implements Focusable {
         if (arrowClicked(event, line)) {
           if (mLine.onClickArrow != null) mLine.onClickArrow.run();
         } else {
-          selectedLine = line;
+          selectedLine = mLine;
           if (mLine.onClick != null) mLine.onClick.run();
         }
       }
