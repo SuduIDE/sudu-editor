@@ -51,24 +51,24 @@ public class DiffModel {
   }
 
   private void handleDeletion(Diff<CodeLineS> diff) {
-    diff.diffN.forEach(line -> lineDiffsN[line.lineNum] = new LineDiff(LineDiff.DELETED));
+    diff.diffN.forEach(line -> lineDiffsN[line.lineNum] = new LineDiff(DiffTypes.DELETED));
   }
 
   private void handleElemDeletion(Diff<CodeElementS> diff) {
-    diff.diffN.forEach(elem -> lineDiffsN[elem.lineNum].elementTypes[elem.elemNum] = LineDiff.DELETED);
+    diff.diffN.forEach(elem -> lineDiffsN[elem.lineNum].elementTypes[elem.elemNum] = DiffTypes.DELETED);
   }
 
   private void handleInsertion(Diff<CodeLineS> diff) {
-    diff.diffM.forEach(line -> lineDiffsM[line.lineNum] = new LineDiff(LineDiff.INSERTED));
+    diff.diffM.forEach(line -> lineDiffsM[line.lineNum] = new LineDiff(DiffTypes.INSERTED));
   }
 
   private void handleElemInsertion(Diff<CodeElementS> diff) {
-    diff.diffM.forEach(elem -> lineDiffsM[elem.lineNum].elementTypes[elem.elemNum] = LineDiff.INSERTED);
+    diff.diffM.forEach(elem -> lineDiffsM[elem.lineNum].elementTypes[elem.elemNum] = DiffTypes.INSERTED);
   }
 
   private void handleEdition(Diff<CodeLineS> diff) {
-    diff.diffN.forEach(line -> lineDiffsN[line.lineNum] = new LineDiff(LineDiff.EDITED, line.len()));
-    diff.diffM.forEach(line -> lineDiffsM[line.lineNum] = new LineDiff(LineDiff.EDITED, line.len()));
+    diff.diffN.forEach(line -> lineDiffsN[line.lineNum] = new LineDiff(DiffTypes.EDITED, line.len()));
+    diff.diffM.forEach(line -> lineDiffsM[line.lineNum] = new LineDiff(DiffTypes.EDITED, line.len()));
 
     var elementsDiffs = findElementsDiff(flatElements(diff.diffN), flatElements(diff.diffM));
     elementsDiffs.forEach(elRange -> {
@@ -80,8 +80,8 @@ public class DiffModel {
   }
 
   private void handleElemEdition(Diff<CodeElementS> diff) {
-    diff.diffN.forEach(elem -> lineDiffsN[elem.lineNum].elementTypes[elem.elemNum] = LineDiff.EDITED);
-    diff.diffM.forEach(elem -> lineDiffsM[elem.lineNum].elementTypes[elem.elemNum] = LineDiff.EDITED);
+    diff.diffN.forEach(elem -> lineDiffsN[elem.lineNum].elementTypes[elem.elemNum] = DiffTypes.EDITED);
+    diff.diffM.forEach(elem -> lineDiffsM[elem.lineNum].elementTypes[elem.elemNum] = DiffTypes.EDITED);
   }
 
   private CodeElementS[] flatElements(CodeLineS[] lines) {

@@ -1,5 +1,6 @@
 package org.sudu.experiments.editor.ui.colors;
 
+import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V4f;
@@ -50,10 +51,10 @@ public class DiffColors {
   public V4f getDiffColor(EditorColorScheme colors, int elementType, int lineType) {
     if (elementType != 0) lineType = elementType;
     return switch (lineType) {
-      case LineDiff.DELETED -> colors.diff.deletedBgColor;
-      case LineDiff.INSERTED -> colors.diff.insertedBgColor;
-      case LineDiff.EDITED ->
-          elementType == LineDiff.EDITED ? colors.diff.editedBgColor : colors.diff.editedBgPaleColor;
+      case DiffTypes.DELETED -> colors.diff.deletedBgColor;
+      case DiffTypes.INSERTED -> colors.diff.insertedBgColor;
+      case DiffTypes.EDITED ->
+          elementType == DiffTypes.EDITED ? colors.diff.editedBgColor : colors.diff.editedBgPaleColor;
       default -> colors.editor.bg;
     };
   }

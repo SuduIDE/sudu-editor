@@ -3,6 +3,7 @@ package org.sudu.experiments.editor.worker.diff;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffModel;
+import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.editor.Document;
@@ -110,9 +111,9 @@ public class DiffUtils {
     if (line.length() < 40) line = line + " ".repeat(40 - line.length());
 
     if (diff == null) return String.format("%4d  %.40s", ind + 1, line);
-    else if (diff.type == LineDiff.DELETED) return String.format("%4d- %.40s", ind + 1, line);
-    else if (diff.type == LineDiff.INSERTED) return String.format("%4d+ %.40s", ind + 1, line);
-    else if (diff.type == LineDiff.EDITED) return String.format("%4d# %.40s", ind + 1, line);
+    else if (diff.type == DiffTypes.DELETED) return String.format("%4d- %.40s", ind + 1, line);
+    else if (diff.type == DiffTypes.INSERTED) return String.format("%4d+ %.40s", ind + 1, line);
+    else if (diff.type == DiffTypes.EDITED) return String.format("%4d# %.40s", ind + 1, line);
     return String.format("%4d  %.40s", ind + 1, line);
   }
 

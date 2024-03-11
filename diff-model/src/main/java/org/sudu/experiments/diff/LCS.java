@@ -21,7 +21,7 @@ public class LCS<S> {
     int[][] matrix = new int[L.length + 1][R.length + 1];
     for (int i = 1; i < L.length + 1; i++) {
       for (int j = 1; j < R.length + 1; j++) {
-        if (L[i - 1].equals(R[j - 1])) {
+        if (equals(L[i - 1], R[j - 1])) {
           matrix[i][j] = 1 + matrix[i - 1][j - 1];
         } else {
           matrix[i][j] = Math.max(matrix[i - 1][j], matrix[i][j - 1]);
@@ -36,7 +36,7 @@ public class LCS<S> {
     LinkedList<S> common = new LinkedList<>();
 
     while (i > 0 && j > 0) {
-      if (L[i - 1].equals(R[j - 1])) {
+      if (equals(L[i - 1], R[j - 1])) {
         common.addFirst(L[i - 1]);
         i--;
         j--;
@@ -62,7 +62,7 @@ public class LCS<S> {
     ) {
       S cS = common.get(commonPtr);
       S cL = L[leftPtr], cR = R[rightPtr];
-      if (cS.equals(cL) && cS.equals(cR)) {
+      if (equals(cS, cL) && equals(cS, cR)) {
         if (currentCommon == null) currentCommon = new CommonRange<>(leftPtr, rightPtr);
         if (currentDiff != null) this.ranges.add(currentDiff);
         commonPtr++;
@@ -76,10 +76,10 @@ public class LCS<S> {
       if (currentCommon != null) this.ranges.add(currentCommon);
       currentCommon = null;
 
-      if (cS.equals(cL)) {
+      if (equals(cS, cL)) {
         currentDiff.diffM.add(cR);
         rightPtr++;
-      } else if (cS.equals(cR)) {
+      } else if (equals(cS, cR)) {
         currentDiff.diffN.add(cL);
         leftPtr++;
       } else {
@@ -108,4 +108,11 @@ public class LCS<S> {
     if (currentDiff != null && currentDiff.isNotEmpty()) ranges.add(currentDiff);
   }
 
+  public void countAll() {
+    countDiffs(findCommon(countLCSMatrix()));
+  }
+
+  protected boolean equals(S a, S b) {
+    return a.equals(b);
+  }
 }

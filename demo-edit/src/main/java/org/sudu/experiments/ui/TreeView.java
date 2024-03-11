@@ -107,6 +107,10 @@ public class TreeView extends ScrollContent implements Focusable {
     if (dpr != 0) updateVirtualHeight();
   }
 
+  public TreeNode[] model() {
+    return model.lines;
+  }
+
   public void setTheme(EditorColorScheme colors) {
     theme = colors;
     boolean sameFont1 = Objects.equals(uiFont, colors.fileViewFont);
@@ -191,11 +195,16 @@ public class TreeView extends ScrollContent implements Focusable {
 
       int yPosition = lineHeight * i - scrollPos.y;
 
-      LineDiff diff = null;
+      LineDiff diff = mLine.status != null ? new LineDiff(mLine.status.diffType) : null;
+      var bgLineColor = diff == null ? null : theme.diff.getDiffColor(theme, diff.type);
       int shift = leftGap + treeShift * mLine.depth;
 
       boolean selected = selectedLine == mLine;
-      if (selected) {
+      if (diff != null) {
+        int y = i * lineHeight - scrollPos.y;
+        uiContext.v2i1.set(size.x, lineHeight);
+        g.drawRect(pos.x, pos.y + y, uiContext.v2i1, bgLineColor);
+      } else if (selected) {
         int y = i * lineHeight - scrollPos.y;
         uiContext.v2i1.set(size.x, lineHeight);
         g.drawRect(pos.x, pos.y + y, uiContext.v2i1, theme.editor.currentLineBg);
@@ -209,8 +218,9 @@ public class TreeView extends ScrollContent implements Focusable {
         int arrowX = startX + shift;
         drawIcon(g, arrow,
             arrowX,
-            pos.y + yPosition - iconLiftPx,
-            selected ? theme.editor.currentLineBg : bg,
+            pos.y + yPosition,
+            diff != null ? bgLineColor :
+                selected ? theme.editor.currentLineBg : bg,
             color.colorF);
       }
 
@@ -219,8 +229,9 @@ public class TreeView extends ScrollContent implements Focusable {
         int iconX = startX + shift + arrowWidth + iconMargin1Px;
         drawIcon(g, icon,
             iconX,
-            pos.y + yPosition - iconLiftPx,
-            selected ? theme.editor.currentLineBg : bg,
+            pos.y + yPosition,
+            diff != null ? bgLineColor :
+                selected ? theme.editor.currentLineBg : bg,
             color.colorF);
       }
 
@@ -236,7 +247,7 @@ public class TreeView extends ScrollContent implements Focusable {
           g, width, lineHeight, hScrollPos,
           theme, null,
           null, null,
-          selected, false,
+          selected, diff != null,
           diff);
     }
 

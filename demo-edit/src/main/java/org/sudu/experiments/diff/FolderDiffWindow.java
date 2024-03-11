@@ -3,15 +3,21 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.editor.EditorWindow;
+import org.sudu.experiments.diff.folder.DiffStatus;
+import org.sudu.experiments.diff.folder.PropTypes;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.ui.FileTreeNode;
+import org.sudu.experiments.ui.FileTreeView;
+import org.sudu.experiments.ui.ToolbarItem;
+import org.sudu.experiments.ui.TreeNode;
+import org.sudu.experiments.ui.fs.DiffHandler;
 import org.sudu.experiments.ui.*;
 import org.sudu.experiments.ui.fs.DirectoryNode;
 import org.sudu.experiments.ui.fs.FileNode;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
-
 import java.util.function.Supplier;
 
 public class FolderDiffWindow extends ToolWindow0 {
@@ -86,7 +92,22 @@ public class FolderDiffWindow extends ToolWindow0 {
     windowManager.hidePopupMenu();
     System.out.println("open dir = " + dir.getFullPath());
 
-    DirectoryNode.Handler handler = new DirectoryNode.Handler() {
+    DirectoryNode.Handler handler = getHandler(left, treeView);
+    var root = new DirectoryNode(dir, handler);
+    if (left) leftRoot = root; else rightRoot = root;
+    root.onClick.run();
+    treeView.setRoot(root);
+
+    if (leftRoot != null && rightRoot == null) window.setTitle(leftRoot.name());
+    if (leftRoot == null && rightRoot != null) window.setTitle(rightRoot.name());
+    if (leftRoot != null && rightRoot != null)
+      window.setTitle(leftRoot.name() + " ↔ " + rightRoot.name());
+    root.folders();
+    updateDiffModel();
+  }
+
+  private DirectoryNode.Handler getHandler(boolean left, FileTreeView treeView) {
+    return new DirectoryNode.Handler() {
       @Override
       public void openFile(FileNode node) {
         System.out.println("opening file ... " +
@@ -113,10 +134,14 @@ public class FolderDiffWindow extends ToolWindow0 {
         if (oppositeDir != null && oppositeDir.isClosed()) {
           oppositeDir.onClick.run();
         }
+        updateView(node);
+      }
+
+      @Override
+      public void updateView(DirectoryNode node) {
         if (node.childrenLength() > 0) {
           treeView.updateModel();
         }
-        // update diff model
       }
 
       private void setOppositeSel(TreeNode oppositeDir) {
@@ -157,15 +182,36 @@ public class FolderDiffWindow extends ToolWindow0 {
         return dir != null ? dir.findFile(handle.getName()) : null;
       }
     };
-    var root = new DirectoryNode(dir, handler);
-    if (left) leftRoot = root; else rightRoot = root;
-    root.onClick.run();
-    treeView.setRoot(root);
+  }
 
-    if (leftRoot != null && rightRoot == null) window.setTitle(leftRoot.name());
-    if (leftRoot == null && rightRoot != null) window.setTitle(rightRoot.name());
-    if (leftRoot != null && rightRoot != null)
-      window.setTitle(leftRoot.name() + " ↔ " + rightRoot.name());
+  private void updateDiffModel() {
+    if (leftRoot == null || rightRoot == null) return;
+    if (leftRoot.name().equals(rightRoot.name())) {
+      leftRoot.status = new DiffStatus(null);
+      rightRoot.status = new DiffStatus(null);
+      compare(leftRoot, rightRoot);
+    } else {
+      leftRoot.status = new DiffStatus(null);
+      leftRoot.status.diffType = DiffTypes.EDITED;
+      leftRoot.status.propagation = PropTypes.PROP_DOWN;
+      rightRoot.status = new DiffStatus(null);
+      rightRoot.status.diffType = DiffTypes.EDITED;
+      rightRoot.status.propagation = PropTypes.PROP_DOWN;
+    }
+  }
+
+  private void compare(TreeNode left, TreeNode right) {
+    if (left instanceof DirectoryNode leftDir &&
+        right instanceof DirectoryNode rightDir) {
+      DiffHandler handler = new DiffHandler(this::compare);
+      var leftReader = new DirectoryNode.DiffReader(leftDir, handler, true);
+      var rightReader = new DirectoryNode.DiffReader(rightDir, handler, false);
+      leftDir.dir.read(leftReader);
+      rightDir.dir.read(rightReader);
+    } else if (left instanceof FileNode leftFile
+        && right instanceof FileNode rightFile) {
+      // compare files
+    }
   }
 
   private void selectFolder(boolean left) {
