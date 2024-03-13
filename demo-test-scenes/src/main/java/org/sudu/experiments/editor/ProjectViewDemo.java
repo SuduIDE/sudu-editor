@@ -23,9 +23,10 @@ public class ProjectViewDemo extends WindowDemo implements
     DirectoryNode.Handler
 {
   ProjectView view;
-  FileHandle selectedFile = null;
-  Map<FileHandle, Model> modelMap = new HashMap<>();
-  Map<FileHandle, String> requestMap = new HashMap<>();
+
+  String selectedFile;
+  Map<String, Model> modelMap = new HashMap<>();
+  Map<String, String> requestMap = new HashMap<>();
 
   public ProjectViewDemo(SceneApi api) {
     super(api);
@@ -64,14 +65,21 @@ public class ProjectViewDemo extends WindowDemo implements
     api.window.showDirectoryPicker(this::openDirectory);
   }
 
+  void clearRequestMap() {
+    for (Map.Entry<String, String> e : requestMap.entrySet()) {
+      requestMap.replace(e.getKey(), null);
+    }
+  }
+
   private void openDirectory(DirectoryHandle dir) {
     view.ui.hidePopup();
-    System.out.println("fileHandle = " + dir);
+    modelMap.clear();
+    clearRequestMap();
+    System.out.println("openDirectory: " + dir);
     var root = new DirectoryNode(dir, this);
     view.treeView.setRoot(root);
     root.onClickArrow.run();
-    setWindowTitle(FsItem.fullPath(dir.getPath(), dir.getName()
-        .concat(" - project view")));
+    setWindowTitle(dir.getFullPath().concat(" - project view"));
   }
 
   @Override
@@ -88,40 +96,41 @@ public class ProjectViewDemo extends WindowDemo implements
   @Override
   public void openFile(FileNode node) {
     FileHandle file = node.file;
-    selectedFile = file;
+    String fullPath = file.getFullPath();
+    selectedFile = fullPath;
     Model model = modelMap.get(selectedFile);
     if (model != null) {
       doSetModel(model);
     } else {
-      System.out.println("request new model, file = " + file);
-      String fullPath = requestMap.get(file);
-      if (fullPath != null) {
-        Debug.consoleInfo("request in progress " + file);
+      System.out.println("request new model, file = " + fullPath);
+      if (requestMap.containsKey(fullPath)) {
+        Debug.consoleInfo("request in progress " + fullPath);
       } else {
-        fetchModel(file);
+        fetchModel(file, fullPath);
       }
     }
   }
 
-  private void putModel(FileHandle file, String text, String path) {
+  private void putModel(String fullPath, String text) {
     SplitInfo splitInfo = SplitText.splitInfo(text);
-    var model = new Model(splitInfo.lines, new Uri(path));
-    modelMap.put(file, model);
-    if (Objects.equals(selectedFile, file)) {
+    var model = new Model(splitInfo.lines, new Uri(fullPath));
+    modelMap.put(fullPath, model);
+    if (Objects.equals(selectedFile, fullPath)) {
       doSetModel(model);
     }
   }
 
-  private void fetchModel(FileHandle file) {
-    requestMap.put(file, file.getFullPath());
+  private void fetchModel(FileHandle file, String fullPath) {
+    requestMap.put(fullPath, fullPath);
     file.readAsText(
         text -> {
-          String path = requestMap.remove(file);
-          putModel(file, text, path);
+          requestMap.remove(fullPath);
+          putModel(fullPath, text);
         },
         error -> {
-          String path = requestMap.remove(file);
-          System.err.println("Error fetching file " + path + ": " + error);
+          requestMap.remove(fullPath);
+          System.err.println(
+              "Error fetching file " + fullPath + ": " + error);
         }
     );
   }
@@ -138,6 +147,8 @@ public class ProjectViewDemo extends WindowDemo implements
     if (node.childrenLength() > 0) {
       view.treeView.updateModel();
     }
+    if (node.folders().length == 1 && node.files().length == 0)
+      node.folders()[0].onClick.run();
   }
 
   @Override
