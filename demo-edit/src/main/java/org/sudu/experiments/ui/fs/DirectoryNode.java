@@ -128,7 +128,7 @@ public class DirectoryNode extends FileTreeNode {
           files = fList.toArray(fn0);
           Arrays.sort(folders, cmp);
           Arrays.sort(files, cmp);
-          if (status != null && status.children != null) {
+          if (status.children != null) {
             for (int i = 0; i < folders.length; i++) folders[i].status = status.children[i];
             for (int i = 0; i < files.length; i++) files[i].status = status.children[folders.length + i];
           }
@@ -149,9 +149,9 @@ public class DirectoryNode extends FileTreeNode {
     public FileNode[] files = new FileNode[1];
     int ptrD = 0, ptrF = 0;
     boolean left;
-    DiffHandler diffHandler;
+    FolderDiffHandler diffHandler;
 
-    public DiffReader(DirectoryNode from, DiffHandler diffHandler, boolean left) {
+    public DiffReader(DirectoryNode from, FolderDiffHandler diffHandler, boolean left) {
       this.from = from;
       this.diffHandler = diffHandler;
       this.left = left;
@@ -175,8 +175,8 @@ public class DirectoryNode extends FileTreeNode {
     @Override
     public void onComplete() {
       FileTreeNode[] children = new FileTreeNode[ptrD + ptrF];
-      Arrays.sort(folders, cmp);
-      Arrays.sort(files, cmp);
+      Arrays.sort(folders, 0, ptrD, cmp);
+      Arrays.sort(files, 0, ptrF, cmp);
       System.arraycopy(folders, 0, children, 0, ptrD);
       System.arraycopy(files, 0, children, ptrD, ptrF);
       if (from.folders != null && from.files != null) {

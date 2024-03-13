@@ -12,8 +12,9 @@ import org.sudu.experiments.ui.FileTreeNode;
 import org.sudu.experiments.ui.FileTreeView;
 import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.TreeNode;
-import org.sudu.experiments.ui.fs.DiffHandler;
 import org.sudu.experiments.ui.*;
+import org.sudu.experiments.ui.fs.FileDiffHandler;
+import org.sudu.experiments.ui.fs.FolderDiffHandler;
 import org.sudu.experiments.ui.fs.DirectoryNode;
 import org.sudu.experiments.ui.fs.FileNode;
 import org.sudu.experiments.ui.window.Window;
@@ -203,15 +204,17 @@ public class FolderDiffWindow extends ToolWindow0 {
   private void compare(TreeNode left, TreeNode right) {
     if (left instanceof DirectoryNode leftDir &&
         right instanceof DirectoryNode rightDir) {
-      DiffHandler handler = new DiffHandler(this::compare);
+      var handler = new FolderDiffHandler(this::compare);
       var leftReader = new DirectoryNode.DiffReader(leftDir, handler, true);
       var rightReader = new DirectoryNode.DiffReader(rightDir, handler, false);
       leftDir.dir.read(leftReader);
       rightDir.dir.read(rightReader);
     } else if (left instanceof FileNode leftFile
         && right instanceof FileNode rightFile) {
-      // compare files
-    }
+      var handler = new FileDiffHandler(leftFile, rightFile);
+      leftFile.file.readAsBytes(handler::sendLeft, System.err::println);
+      rightFile.file.readAsBytes(handler::sendRight, System.err::println);
+    } else throw new IllegalArgumentException("TreeNodes left & right should have same type");
   }
 
   private void selectFolder(boolean left) {

@@ -10,12 +10,12 @@ import org.sudu.experiments.diff.folder.TreeS;
 import org.sudu.experiments.ui.TreeNode;
 import java.util.function.BiConsumer;
 
-public class DiffHandler {
+public class FolderDiffHandler {
   DirectoryNode left, right;
   TreeNode[] leftChildren, rightChildren;
   BiConsumer<TreeNode, TreeNode> compare;
 
-  public DiffHandler(BiConsumer<TreeNode, TreeNode> compare) {
+  public FolderDiffHandler(BiConsumer<TreeNode, TreeNode> compare) {
     this.compare = compare;
   }
 
