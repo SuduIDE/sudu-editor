@@ -28,4 +28,11 @@ public class DiffStatus {
     this.rangeId = ctx.nextId();
     if (parent != null) parent.markUp(diffType, ctx);
   }
+
+  public void markDown(int diffType) {
+    this.diffType = diffType;
+    this.propagation = PROP_DOWN;
+    if (parent != null) this.rangeId = parent.rangeId;
+    if (children != null) for (var child: children) child.markDown(diffType);
+  }
 }

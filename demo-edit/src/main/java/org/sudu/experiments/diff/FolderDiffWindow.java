@@ -207,9 +207,11 @@ public class FolderDiffWindow extends ToolWindow0 {
       leftRoot.status = new DiffStatus(null);
       leftRoot.status.diffType = DiffTypes.EDITED;
       leftRoot.status.propagation = PropTypes.PROP_DOWN;
+      leftRoot.markDown(DiffTypes.EDITED);
       rightRoot.status = new DiffStatus(null);
       rightRoot.status.diffType = DiffTypes.EDITED;
       rightRoot.status.propagation = PropTypes.PROP_DOWN;
+      rightRoot.markDown(DiffTypes.EDITED);
       rootView.left.updateModel();
       rootView.right.updateModel();
     }

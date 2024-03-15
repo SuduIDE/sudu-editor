@@ -129,13 +129,15 @@ public class DirectoryNode extends FileTreeNode {
           files = fList.toArray(fn0);
           Arrays.sort(folders, cmp);
           Arrays.sort(files, cmp);
-          if (status.children != null) {
-            for (int i = 0; i < folders.length; i++) folders[i].status = status.children[i];
-            for (int i = 0; i < files.length; i++) files[i].status = status.children[folders.length + i];
-          }
-          var nodes = ArrayOp.add(folders, files,
+          var children = ArrayOp.add(folders, files,
               new FileTreeNode[folders.length + files.length]);
-          setContent(nodes);
+          if (status.children != null) {
+            for (int i = 0; i < children.length; i++) children[i].status = status.children[i];
+          } else {
+            status.children = new DiffStatus[children.length];
+            for (int i = 0; i < children.length; i++) status.children[i] = children[i].status;
+          }
+          setContent(children);
         }
         open();
         handler.folderOpened(DirectoryNode.this);
@@ -188,7 +190,6 @@ public class DirectoryNode extends FileTreeNode {
       }
       if (left) diffHandler.sendLeft(from, children);
       else diffHandler.sendRight(from, children);
-      from.handler.updateView(from);
     }
   }
 }

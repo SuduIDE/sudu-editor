@@ -2,6 +2,8 @@ package org.sudu.experiments.ui;
 
 import java.util.Comparator;
 
+import static org.sudu.experiments.diff.folder.PropTypes.PROP_DOWN;
+
 public class FileTreeNode extends TreeNode {
 
   public static final FileTreeNode[] ch0 = new FileTreeNode[0];
@@ -94,5 +96,11 @@ public class FileTreeNode extends TreeNode {
         return midNode;
     }
     return null;
+  }
+  public void markDown(int diffType) {
+    status.diffType = diffType;
+    status.propagation = PROP_DOWN;
+    if (status.parent != null) status.rangeId = status.parent.rangeId;
+    for (var child : children) child.markDown(diffType);
   }
 }

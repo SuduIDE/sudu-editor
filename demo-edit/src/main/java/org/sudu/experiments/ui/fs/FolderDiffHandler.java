@@ -90,6 +90,7 @@ public class FolderDiffHandler {
       if (parent.propagation == PropTypes.PROP_DOWN) {
         result[i].propagation = PropTypes.PROP_DOWN;
         result[i].diffType = parent.diffType;
+        result[i].rangeId = parent.rangeId;
       }
     }
     return result;

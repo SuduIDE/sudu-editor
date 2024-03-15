@@ -160,9 +160,7 @@ public class ProjectViewWindow extends ToolWindow0
   @Override
   public void folderOpened(DirectoryNode node) {
     node.closeOnClick();
-    if (node.childrenLength() > 0) {
-      view.treeView.updateModel();
-    }
+    updateView(node);
     if (node.folders().length == 1 && node.files().length == 0)
       node.folders()[0].onClick.run();
   }
@@ -173,6 +171,13 @@ public class ProjectViewWindow extends ToolWindow0
       view.treeView.updateModel();
     }
     node.readOnClick();
+  }
+
+  @Override
+  public void updateView(DirectoryNode node) {
+    if (node.childrenLength() > 0) {
+      view.treeView.updateModel();
+    }
   }
 
   @SuppressWarnings("StringEquality")
