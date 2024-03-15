@@ -244,7 +244,6 @@ public class FolderDiffWindow extends ToolWindow0 {
     int ptr = 0;
     int lP = 0, rP = 0;
     while (lP < left.length && rP < right.length) {
-      // handle DEFAULT or EDITED
       if (left[lP].status.diffType == right[rP].status.diffType &&
           left[lP].status.rangeId == right[rP].status.rangeId
       ) {
@@ -255,54 +254,102 @@ public class FolderDiffWindow extends ToolWindow0 {
             && left[lP].status.rangeId == rangeId
             && right[rP].status.rangeId == rangeId
         ) {
-          lP++; lenL++;
-          rP++; lenR++;
+          lP++;
+          lenL++;
+          rP++;
+          lenR++;
         }
         while (lP < left.length && left[lP].status.rangeId == rangeId) {
-          lP++; lenL++;
+          lP++;
+          lenL++;
         }
         while (rP < right.length && right[rP].status.rangeId == rangeId) {
-          rP++; lenR++;
+          rP++;
+          lenR++;
         }
         var range = new DiffRange(lP - lenL, lenL, rP - lenR, lenR, diffType);
         ranges = ArrayOp.addAt(range, ranges, ptr++);
+        continue;
       }
-      // handle DELETED
-      else if (left[lP].status.diffType == DiffTypes.DELETED) {
-        int rangeId = left[lP].status.rangeId;
-        int len = 0;
-        while (lP < left.length && left[lP].status.rangeId == rangeId) {
-          lP++;
-          len++;
+
+      boolean leftDepth = left[lP].status.depth > right[rP].status.depth;
+      if (leftDepth) {
+        DiffRange range = handleDeleted(left, lP, rP);
+        if (range != null) {
+          lP += range.lenL;
+          ranges = ArrayOp.addAt(range, ranges, ptr++);
+          continue;
         }
-        var range = new DiffRange(lP - len, len, rP, 0, DiffTypes.DELETED);
-        ranges = ArrayOp.addAt(range, ranges, ptr++);
-      }
-      // handle INSERTED
-      else if (right[rP].status.diffType == DiffTypes.INSERTED) {
-        int rangeId = right[rP].status.rangeId;
-        int len = 0;
-        while (rP < right.length && right[rP].status.rangeId == rangeId) {
-          rP++;
-          len++;
+        range = handleInserted(right, rP, lP);
+        if (range != null) {
+          rP += range.lenR;
+          ranges = ArrayOp.addAt(range, ranges, ptr++);
+          continue;
         }
-        var range = new DiffRange(lP, 0, rP - len, len, DiffTypes.INSERTED);
-        ranges = ArrayOp.addAt(range, ranges, ptr++);
       } else {
-        if (left[lP].status.diffType == DiffTypes.DEFAULT || left[lP].status.diffType == DiffTypes.EDITED) {
-          var range = new DiffRange(lP, 1, rP, 0, left[lP].status.diffType);
+        DiffRange range = handleInserted(right, rP, lP);
+        if (range != null) {
+          rP += range.lenR;
           ranges = ArrayOp.addAt(range, ranges, ptr++);
-          lP++;
-        } else if (right[rP].status.diffType == DiffTypes.DEFAULT || right[rP].status.diffType == DiffTypes.EDITED) {
-          var range = new DiffRange(lP, 0, rP, 1, right[rP].status.diffType);
-          ranges = ArrayOp.addAt(range, ranges, ptr++);
-          rP++;
-        } else {
-          throw new IllegalStateException();
+          continue;
         }
+        range = handleDeleted(left, lP, rP);
+        if (range != null) {
+          lP += range.lenL;
+          ranges = ArrayOp.addAt(range, ranges, ptr++);
+          continue;
+        }
+      }
+
+      if (left[lP].status.diffType == DiffTypes.DEFAULT || left[lP].status.diffType == DiffTypes.EDITED) {
+        var range = new DiffRange(lP, 1, rP, 0, left[lP].status.diffType);
+        ranges = ArrayOp.addAt(range, ranges, ptr++);
+        lP++;
+      } else if (right[rP].status.diffType == DiffTypes.DEFAULT || right[rP].status.diffType == DiffTypes.EDITED) {
+        var range = new DiffRange(lP, 0, rP, 1, right[rP].status.diffType);
+        ranges = ArrayOp.addAt(range, ranges, ptr++);
+        rP++;
+      } else {
+        throw new IllegalStateException();
       }
     }
+    while (lP < left.length) {
+      var range = new DiffRange(lP, 1, rP, 0, left[lP].status.diffType);
+      ranges = ArrayOp.addAt(range, ranges, ptr++);
+      lP++;
+    }
+    while (rP < right.length) {
+      var range = new DiffRange(lP, 0, rP, 1, right[rP].status.diffType);
+      ranges = ArrayOp.addAt(range, ranges, ptr++);
+      rP++;
+    }
     return new DiffInfo(null, null, Arrays.copyOf(ranges, ptr));
+  }
+
+  private DiffRange handleDeleted(TreeNode[] left, int lP, int rP) {
+    if (left[lP].status.diffType == DiffTypes.DELETED) {
+      int rangeId = left[lP].status.rangeId;
+      int len = 0;
+      while (lP < left.length && left[lP].status.rangeId == rangeId) {
+        lP++;
+        len++;
+      }
+      return new DiffRange(lP - len, len, rP, 0, DiffTypes.DELETED);
+    }
+    return null;
+  }
+
+  private DiffRange handleInserted(TreeNode[] right, int rP, int lP) {
+    if (right[rP].status.diffType == DiffTypes.INSERTED) {
+      int rangeId = right[rP].status.rangeId;
+      int len = 0;
+      while (rP < right.length && right[rP].status.rangeId == rangeId) {
+        rP++;
+        len++;
+      }
+      return new DiffRange(lP, 0, rP - len, len, DiffTypes.INSERTED);
+    }
+    return null;
   }
 
   private void selectFolder(boolean left) {
@@ -329,6 +376,7 @@ public class FolderDiffWindow extends ToolWindow0 {
       left.status.markUp(DiffTypes.EDITED, ctx);
       ctx.set(rangeId + 1);
       right.status.markUp(DiffTypes.EDITED, ctx);
+      updateDiffInfo();
     }
   }
 }

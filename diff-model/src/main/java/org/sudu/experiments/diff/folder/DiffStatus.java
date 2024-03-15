@@ -11,6 +11,7 @@ public class DiffStatus {
   public int diffType = DiffTypes.DEFAULT;
   public int propagation = NO_PROP;
   public int rangeId;
+  public int depth;
 
   public DiffStatus() {
 
@@ -18,6 +19,7 @@ public class DiffStatus {
 
   public DiffStatus(DiffStatus parent) {
     this.parent = parent;
+    if (parent != null) this.depth = parent.depth + 1;
   }
 
   public void markUp(int diffType, RangeCtx ctx) {
