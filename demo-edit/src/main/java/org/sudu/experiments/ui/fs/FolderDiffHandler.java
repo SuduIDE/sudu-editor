@@ -6,6 +6,7 @@ import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LCS;
 import org.sudu.experiments.diff.folder.DiffStatus;
 import org.sudu.experiments.diff.folder.PropTypes;
+import org.sudu.experiments.diff.folder.RangeCtx;
 import org.sudu.experiments.diff.folder.TreeS;
 import org.sudu.experiments.ui.TreeNode;
 import java.util.function.BiConsumer;
@@ -14,9 +15,11 @@ public class FolderDiffHandler {
   DirectoryNode left, right;
   TreeNode[] leftChildren, rightChildren;
   BiConsumer<TreeNode, TreeNode> compare;
+  RangeCtx ctx;
 
-  public FolderDiffHandler(BiConsumer<TreeNode, TreeNode> compare) {
+  public FolderDiffHandler(BiConsumer<TreeNode, TreeNode> compare, RangeCtx ctx) {
     this.compare = compare;
+    this.ctx = ctx;
   }
 
   public void sendLeft(DirectoryNode left, TreeNode[] children) {
@@ -46,27 +49,37 @@ public class FolderDiffHandler {
     boolean changed = false;
     for (var range : lcs.ranges) {
       if (range instanceof CommonRange<TreeS> common) {
+        int rangeId = ctx.nextId();
         for (int i = 0; i < common.length; i++) {
           int l = common.fromL + i,
               r = common.fromR + i;
+          leftChildren[l].status.rangeId = rangeId;
+          rightChildren[r].status.rangeId = rangeId;
           compare.accept(leftChildren[l], rightChildren[r]);
         }
       } else if (range instanceof Diff<TreeS> diff) {
         changed = true;
+        int rangeId = ctx.nextId();
         for (int i = 0; i < diff.lengthL(); i++) {
           var status = leftChildren[diff.fromL + i].status;
           status.diffType = DiffTypes.DELETED;
           status.propagation = PropTypes.PROP_DOWN;
-        } for (int i = 0; i < diff.lengthR(); i++) {
+          status.rangeId = rangeId;
+        }
+        rangeId = ctx.nextId();
+        for (int i = 0; i < diff.lengthR(); i++) {
           var status = rightChildren[diff.fromR + i].status;
           status.diffType = DiffTypes.INSERTED;
           status.propagation = PropTypes.PROP_DOWN;
+          status.rangeId = rangeId;
         }
       }
     }
     if (changed) {
-      left.status.markUp(DiffTypes.EDITED);
-      right.status.markUp(DiffTypes.EDITED);
+      int rangeId = ctx.nextId();
+      left.status.markUp(DiffTypes.EDITED, ctx);
+      ctx.set(rangeId + 1);
+      right.status.markUp(DiffTypes.EDITED, ctx);
     }
   }
 

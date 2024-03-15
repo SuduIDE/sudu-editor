@@ -1,16 +1,18 @@
 package org.sudu.experiments.ui.fs;
 
-import org.sudu.experiments.diff.DiffTypes;
+import org.sudu.experiments.math.ArrayOp;
+
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 public class FileDiffHandler {
 
-  FileNode left, right;
   byte[] leftText, rightText;
+  Consumer<Object[]> r;
 
-  public FileDiffHandler(FileNode left, FileNode right) {
-    this.left = left;
-    this.right = right;
+  public FileDiffHandler(Consumer<Object[]> r) {
+    this.r = r;
   }
 
   public void sendLeft(byte[] left) {
@@ -24,9 +26,9 @@ public class FileDiffHandler {
   }
 
   public void compare() {
-    if (!Arrays.equals(leftText, rightText)) {
-      left.status.markUp(DiffTypes.EDITED);
-      right.status.markUp(DiffTypes.EDITED);
-    }
+    ArrayList<Object> result = new ArrayList<>();
+    if (Arrays.equals(leftText, rightText)) result.add(new int[]{1});
+    else result.add(new int[]{0});
+    ArrayOp.sendArrayList(result, r);
   }
 }

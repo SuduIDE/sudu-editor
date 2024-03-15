@@ -117,6 +117,7 @@ public class DirectoryNode extends FileTreeNode {
           f.status = new DiffStatus(status);
           f.status.propagation = status.propagation;
           f.status.diffType = status.diffType;
+          f.status.rangeId = status.rangeId;
         }
         fList.add(f);
       }

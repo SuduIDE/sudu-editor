@@ -10,6 +10,7 @@ public class DiffStatus {
   public DiffStatus[] children;
   public int diffType = DiffTypes.DEFAULT;
   public int propagation = NO_PROP;
+  public int rangeId;
 
   public DiffStatus() {
 
@@ -19,9 +20,10 @@ public class DiffStatus {
     this.parent = parent;
   }
 
-  public void markUp(int diffType) {
+  public void markUp(int diffType, RangeCtx ctx) {
     this.diffType = diffType;
     this.propagation = PROP_UP;
-    if (parent != null) parent.markUp(diffType);
+    this.rangeId = ctx.nextId();
+    if (parent != null) parent.markUp(diffType, ctx);
   }
 }

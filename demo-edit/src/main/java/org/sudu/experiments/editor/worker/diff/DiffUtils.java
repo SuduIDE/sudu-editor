@@ -1,5 +1,6 @@
 package org.sudu.experiments.editor.worker.diff;
 
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffModel;
@@ -7,6 +8,7 @@ import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.editor.Document;
+import org.sudu.experiments.ui.fs.FileDiffHandler;
 import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
@@ -25,6 +27,17 @@ public class DiffUtils {
     DiffModel model = new DiffModel();
     int[] ints = model.findDiffs(charsN, intsN, charsM, intsM);
     result.add(ints);
+  }
+
+  public static final String CMP_FILES = "asyncDiffUtils.compareFiles";
+
+  public static void compareFiles(
+      FileHandle left, FileHandle right,
+      Consumer<Object[]> r
+  ) {
+    FileDiffHandler handler = new FileDiffHandler(r);
+    left.readAsBytes(handler::sendLeft, System.err::println);
+    right.readAsBytes(handler::sendRight, System.err::println);
   }
 
   public static int[] makeIntervals(Document document) {
