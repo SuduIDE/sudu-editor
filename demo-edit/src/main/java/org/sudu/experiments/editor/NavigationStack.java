@@ -28,6 +28,7 @@ public class NavigationStack {
   }
 
   public void pop() {
+    if (isEmpty()) return;
     if (current == size - 1) current--;
     st[--size] = null;
   }
@@ -51,4 +52,7 @@ public class NavigationStack {
     return st[++current];
   }
 
+  public boolean isEmpty() {
+    return size == 0;
+  }
 }
