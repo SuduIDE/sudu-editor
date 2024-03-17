@@ -152,6 +152,9 @@ public class FolderDiffWindow extends ToolWindow0 {
         if (node.childrenLength() > 0) {
           treeView.updateModel();
         }
+        if (node.folders().length == 1 && node.files().length == 0) {
+          node.folders()[0].onClick.run();
+        }
       }
 
       private void setOppositeSel(TreeNode oppositeDir) {
