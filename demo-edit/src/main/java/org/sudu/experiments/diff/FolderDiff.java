@@ -1,6 +1,7 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.editor.ProjectViewWindow;
 import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
@@ -22,7 +23,7 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
     api.input.onContextMenu.add(this::onContextMenu);
   }
 
-  protected String[] menuFonts() { return Fonts.editorFonts(true); }
+  static String[] menuFonts() { return Fonts.editorFonts(true); }
 
   private boolean onContextMenu(MouseEvent event) {
     var actions = ArrayOp.supplier(
@@ -31,7 +32,10 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
             UiText.newFolderWindow),
         new ToolbarItem(
             windowManager.hidePopupMenuThen(this::newFileWindow),
-            UiText.newFileWindow)
+            UiText.newFileWindow),
+        new ToolbarItem(
+            windowManager.hidePopupMenuThen(this::newProjectView),
+            UiText.newProjectView)
         );
     windowManager.showPopup(
         theme.dialogItem, theme.popupMenuFont,
@@ -40,11 +44,15 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
   }
 
   private void newFolderWindow() {
-    new FolderDiffWindow(theme, windowManager, this::menuFonts);
+    new FolderDiffWindow(theme, windowManager, FolderDiff::menuFonts);
   }
 
   private void newFileWindow() {
-    new FileDiffWindow(theme, windowManager, this::menuFonts);
+    new FileDiffWindow(theme, windowManager, FolderDiff::menuFonts);
+  }
+
+  private void newProjectView() {
+    new ProjectViewWindow(windowManager, theme, FolderDiff::menuFonts);
   }
 
   @Override

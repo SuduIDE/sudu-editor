@@ -5,17 +5,14 @@ import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.ui.FileTreeNode;
-import org.sudu.experiments.ui.FileTreeView;
-import org.sudu.experiments.ui.ToolbarItem;
-import org.sudu.experiments.ui.TreeNode;
+import org.sudu.experiments.ui.*;
 import org.sudu.experiments.ui.fs.DirectoryNode;
 import org.sudu.experiments.ui.fs.FileNode;
 import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Supplier;
 
-public class FolderDiffWindow extends DiffWindow0 {
+public class FolderDiffWindow extends ToolWindow0 {
 
   FolderDiffRootView rootView;
   DirectoryNode leftRoot, rightRoot;
@@ -40,7 +37,7 @@ public class FolderDiffWindow extends DiffWindow0 {
     windowManager.addWindow(createWindow(rootView));
   }
 
-  void dispose() {
+  protected void dispose() {
     rootView = null;
     leftRoot = rightRoot = null;
   }

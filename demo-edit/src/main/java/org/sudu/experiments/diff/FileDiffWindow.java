@@ -2,10 +2,10 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.editor.EditorComponent;
-import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.ui.ToolWindow0;
 import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
@@ -13,9 +13,7 @@ import org.sudu.experiments.ui.window.WindowManager;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class FileDiffWindow extends DiffWindow0
-    implements ThemeControl
-{
+public class FileDiffWindow extends ToolWindow0 {
   FileDiffRootView rootView;
   Window window;
   String leftFile, rightFile;
@@ -66,7 +64,7 @@ public class FileDiffWindow extends DiffWindow0
     }
   }
 
-  void dispose() {
+  protected void dispose() {
     rootView = null;
   }
 

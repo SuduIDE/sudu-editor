@@ -5,4 +5,5 @@ public interface UiText {
   String selectLeftText = "Select left...";
   String newFolderWindow = "new folder diff window";
   String newFileWindow = "new file diff window";
+  String newProjectView = "new project view";
 }

@@ -1,20 +1,21 @@
-package org.sudu.experiments.diff;
+package org.sudu.experiments.ui;
 
+import org.sudu.experiments.diff.WindowLayouts;
+import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.window.View;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Supplier;
 
-abstract class DiffWindow0 {
-  final WindowManager windowManager;
-  final Supplier<String[]> fonts;
-  EditorColorScheme theme;
+public abstract class ToolWindow0 implements ThemeControl {
+  protected final WindowManager windowManager;
+  protected final Supplier<String[]> fonts;
+  protected EditorColorScheme theme;
 
-  DiffWindow0(
+  protected ToolWindow0(
       WindowManager windowManager,
       EditorColorScheme theme,
       Supplier<String[]> fonts
@@ -24,21 +25,29 @@ abstract class DiffWindow0 {
     this.fonts = fonts;
   }
 
-  Window createWindow(View view) {
+  public void applyTheme(EditorColorScheme theme) {
+    this.theme = theme;
+  }
+
+  protected Window createWindow(View view) {
     return createWindow(view, 0);
   }
 
-  Window createWindow(View view, float dpOff) {
+  protected Window createWindow(View view, float dpOff) {
+    return createWindow(view, getClass().getSimpleName(), dpOff);
+  }
+
+  protected Window createWindow(View view, String title, float dpOff) {
     Window window = new Window(windowManager.uiContext, view);
     window.setTheme(theme.dialogItem);
-    window.setTitle(getClass().getSimpleName());
+    window.setTitle(title);
     window.setOnClose(() -> destroyWindow(window));
     window.setContextMenu(this::onContextMenu);
     WindowLayouts.largeWindowLayout(window, dpOff);
     return window;
   }
 
-  abstract void dispose();
+  protected abstract void dispose();
 
   private void destroyWindow(Window window) {
     windowManager.removeWindow(window);
@@ -50,7 +59,7 @@ abstract class DiffWindow0 {
     return null;
   }
 
-  boolean onContextMenu(V2i pos) {
+  protected boolean onContextMenu(V2i pos) {
     var actions = popupActions(pos);
     if (actions != null)
       windowManager.showPopup(

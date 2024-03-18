@@ -187,6 +187,8 @@ public class EditorUi {
     }
 
     public Supplier<ToolbarItem[]> build(V2i eventPosition, ToolbarItem opener) {
+      boolean developer = false;
+
       ToolbarItemBuilder tbb = new ToolbarItemBuilder();
 
       gotoItems(eventPosition, tbb);
@@ -196,7 +198,9 @@ public class EditorUi {
       if (1 < 0) tbb.addItem("old >", oldDev());
       tbb.addItem("Language >", languageItems());
       tbb.addItem("Settings >", settingsItems());
-      tbb.addItem("Development >", devItems(opener == null));
+      if (developer) {
+        tbb.addItem("Development >", devItems(opener == null));
+      }
       return tbb.supplier();
     }
 

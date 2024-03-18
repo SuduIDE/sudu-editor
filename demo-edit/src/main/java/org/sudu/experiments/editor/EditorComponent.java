@@ -272,10 +272,10 @@ public class EditorComponent extends View implements
     scrollBarWidth = Numbers.iRnd(lrContext.font.WWidth);
     caret.setHeight(lrContext.font.caretHeight(lineHeight));
 
-    Debug.consoleInfo("Set editor font to: " + name + " " + pixelSize
-        + ", ascent+descent = " + lrContext.font.lineHeight()
+    Debug.consoleInfo("editor font: " + name + " " + pixelSize
+//        + ", ascent+descent = " + lrContext.font.lineHeight()
         + ", lineHeight = " + lineHeight
-        + ", caretHeight = " + caret.height());
+        /* + ", caretHeight = " + caret.height() */ );
 
     if (CodeLineRenderer.useTop) {
       Debug.consoleInfo("font.topBase(lineHeight) = "
