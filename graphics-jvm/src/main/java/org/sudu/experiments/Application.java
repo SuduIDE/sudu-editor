@@ -10,13 +10,12 @@ import java.util.function.Supplier;
 public class Application {
 
   public static void run(Function<SceneApi, Scene> sf, FontResources ... fontConfig) throws InterruptedException {
-    run(sf, WorkerExecutor.i(), 0, sf.getClass().getName(), fontConfig);
+    run(sf, WorkerExecutor.i(), 0, fontConfig);
   }
 
   public static void run(
       Function<SceneApi, Scene> sf,
       WorkerExecutor workerExecutor, int numThreads,
-      String title,
       FontResources ... fontConfig
   ) throws InterruptedException {
     Win32Time time = new Win32Time();
@@ -35,7 +34,7 @@ public class Application {
     Workers workers = new Workers(numThreads, workerExecutor);
     Win32Window window = new Win32Window(eventQueue, time, workers);
 
-    if (!window.init(title, sf, graphics, null)) {
+    if (!window.init(sf, graphics, null)) {
       throw new RuntimeException("window.init failed");
     }
 

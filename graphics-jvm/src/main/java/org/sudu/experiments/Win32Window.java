@@ -67,13 +67,11 @@ public class Win32Window implements WindowPeer, Window {
   }
 
   public boolean init(
-      String windowTitle,
       Function<SceneApi, Scene> sf,
       Supplier<Win32Graphics> graphics,
       Win32Window mainWindow
   ) {
-    title = windowTitle;
-    hWnd = Win32.CreateWindow(this, windowTitle,
+    hWnd = Win32.CreateWindow(this, "",
         Win32.CW_USEDEFAULT, Win32.CW_USEDEFAULT,
         Win32.CW_USEDEFAULT, Win32.CW_USEDEFAULT,
         Win32.GetModuleHandle0(), 2000);
@@ -111,6 +109,7 @@ public class Win32Window implements WindowPeer, Window {
     }
 
     scene = sf.apply(api());
+    setTitle(scene.getClass().getSimpleName());
     scene.onResize(angleSurfaceSize, devicePixelRatio());
 
     return renderFirst(maximized);
@@ -330,7 +329,7 @@ public class Win32Window implements WindowPeer, Window {
   public boolean addChild(String title, Function<SceneApi, Scene> sf) {
     Win32Window child = new Win32Window(eventQueue, "child", time, workers);
 
-    if (!child.init(title, sf, angleWindow::graphics, Win32Window.this)) {
+    if (!child.init(sf, angleWindow::graphics, Win32Window.this)) {
       System.err.println("Window.init failed");
       return false;
     }

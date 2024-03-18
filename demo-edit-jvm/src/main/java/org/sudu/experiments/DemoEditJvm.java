@@ -18,7 +18,7 @@ public class DemoEditJvm {
 
     Application.run(
         selectScene, EditorWorker::execute, EditorWorker.numDemoThreads(),
-        "DemoEditJvm", JetBrainsMono.all(), Codicon.fontResource()
+        JetBrainsMono.all(), Codicon.fontResource()
     );
   }
 
