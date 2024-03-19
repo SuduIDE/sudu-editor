@@ -1,6 +1,6 @@
 package org.sudu.experiments.worker;
 
-import org.sudu.experiments.JvmFileHandle;
+import org.sudu.experiments.JvmFsHandle;
 
 import java.util.Objects;
 import java.util.concurrent.Executor;
@@ -32,7 +32,7 @@ public class WorkerProxy {
     if (arg instanceof byte[] bytes) return new Array(bytes, null, null);
     if (arg instanceof char[] chars) return new Array(null, chars, null);
     if (arg instanceof int[] ints) return new Array(null, null, ints);
-    if (arg instanceof JvmFileHandle file) return file.withEdt(edt);
+    if (arg instanceof JvmFsHandle file) return file.withEdt(edt);
     throw new IllegalArgumentException();
   }
 

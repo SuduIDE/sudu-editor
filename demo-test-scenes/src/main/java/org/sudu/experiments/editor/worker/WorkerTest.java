@@ -8,16 +8,15 @@ import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.Themes;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.ArrayOp;
-import org.sudu.experiments.ui.PopupMenu;
 import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.UiFont;
 
 import java.util.Arrays;
 import java.util.function.Supplier;
 
-import static org.sudu.experiments.Const.emptyRunnable;
 import static org.sudu.experiments.editor.worker.EditorWorker.array;
 import static org.sudu.experiments.editor.worker.EditorWorker.string;
+import static org.sudu.experiments.editor.worker.EditorWorker.file;
 
 @SuppressWarnings({"PrimitiveArrayArgumentToVarargsMethod"})
 public class WorkerTest extends WindowScene {
@@ -38,16 +37,15 @@ public class WorkerTest extends WindowScene {
         TestJobs.withChars, new char[]{ 1,2,3,4,5 });
     window.sendToWorker(this::bytesResult,
         TestJobs.withBytes, new byte[]{ 1,2,3,4,5 });
-    window.sendToWorker(this::intsResult,
+    window.sendToWorker(this::integersResult,
         TestJobs.withInts, new int[]{ 1,2,3,4,5 });
   }
 
   boolean onContextMenu(MouseEvent event) {
-    var popupMenu = new PopupMenu(uiContext);
-    popupMenu.setTheme(Themes.darculaColorScheme(),
-        new UiFont("Consolas", 25));
-    popupMenu.setItems(event.position, menu(), emptyRunnable);
-    windowManager.setPopupMenu(popupMenu);
+    windowManager.showPopup(
+        Themes.darculaColorScheme(),
+        new UiFont("Consolas", 25),
+        event.position, menu());
     return true;
   }
 
@@ -75,7 +73,8 @@ public class WorkerTest extends WindowScene {
   }
 
   private void openFile(FileHandle fileHandle) {
-    api.window.sendToWorker(this::bytesResult, TestJobs.asyncWithFile, fileHandle);
+    api.window.sendToWorker(
+        WorkerTest::fileResult, TestJobs.asyncWithFile, fileHandle);
   }
 
   void stringResult(Object[] args) {
@@ -84,24 +83,40 @@ public class WorkerTest extends WindowScene {
   }
 
   void charsResult(Object[] args) {
-    System.out.println("WorkerTest: \n  got " + args[0]);
+    System.out.println("charsResult: \n  got " + args[0]);
     char[] chars = array(args, 1).chars();
     System.out.println("  methodWithCharsResult: " + args[1] +
         ", chars = " + Arrays.toString(chars));
   }
 
   void bytesResult(Object[] args) {
-    System.out.println("WorkerTest: \n  got " + args[0]);
+    System.out.println("bytesResult: \n  got " + args[0]);
     byte[] bytes = array(args, 1).bytes();
     System.out.println("  methodWithBytesResult: " + args[1] +
         ", bytes = " + Arrays.toString(bytes));
   }
 
-  void intsResult(Object[] args) {
-    System.out.println("WorkerTest: \n  got " + args[0]);
+  void integersResult(Object[] args) {
+    System.out.println("integersResult: \n  got " + args[0]);
     int[] ints = array(args, 1).ints();
-    System.out.println("methodWithIntsResult: " + args[1] +
-        ", ints = " + Arrays.toString(ints)
+    System.out.println("  " + args[1] +
+        ", integers = " + Arrays.toString(ints)
     );
+  }
+
+  public static void fileResult(Object[] args) {
+    Object name = args[0];
+    FileHandle file = file(args, 1);
+    byte[] content = array(args, 2).bytes();
+
+    printFileResult(name, file, content);
+  }
+
+  public static void printFileResult(Object name, FileHandle file, byte[] content) {
+    System.out.println("fileResult" +
+        ": \"" + name + "\", file " + file);
+
+    System.out.println("  content: " + content.length
+        + " bytes, hash = " + Arrays.hashCode(content));
   }
 }

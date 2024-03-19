@@ -24,11 +24,15 @@ public class JsFileHandle implements FileHandle {
     return new JsFileHandle(null, jsFile, splitPath(jsFile.getWebkitRelativePath()));
   }
 
-  public JsFileHandle(FileSystemFileHandle fileHandle, JsFile jsFile) {
-    this(fileHandle, jsFile, new String[0]);
+  public JsFileHandle(FileSystemFileHandle fileHandle) {
+    this(fileHandle, new String[0]);
   }
 
-  public JsFileHandle(FileSystemFileHandle fileHandle, JsFile jsFile, String[] path) {
+  public JsFileHandle(FileSystemFileHandle fileHandle, String[] path) {
+    this(fileHandle, null, path);
+  }
+
+  private JsFileHandle(FileSystemFileHandle fileHandle, JsFile jsFile, String[] path) {
     this.fileHandle = fileHandle;
     this.jsFile = jsFile;
     this.path = path;
@@ -109,7 +113,8 @@ public class JsFileHandle implements FileHandle {
   @Override
   public String toString() {
     return jsFile != null
-        ? FsItem.toString(path, getName(), jsFileSize())
+        ? FsItem.toString(getClass().getSimpleName(),
+            path, getName(), false)
         : FsItem.fullPath(path, getName());
   }
 

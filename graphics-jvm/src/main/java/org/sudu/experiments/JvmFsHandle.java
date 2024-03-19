@@ -3,7 +3,7 @@ package org.sudu.experiments;
 import java.nio.file.Path;
 import java.util.concurrent.Executor;
 
-class JvmFsHandle implements FsItem {
+public abstract class JvmFsHandle implements FsItem {
   final Path path, root;
   final Executor bgWorker;
   final Executor edt;
@@ -20,6 +20,20 @@ class JvmFsHandle implements FsItem {
     this.edt = edt;
   }
 
+  // Returns a handle to same fs reference,
+  // but with specified event thread
+  // If edt argument is null then the background worker's bus is used
+  public final JvmFsHandle withEdt(Executor edt) {
+    return this.edt == edt ? this :
+        ctor(edt != null ? edt : bgWorker);
+  }
+
+  protected final boolean isOnWorker() {
+    return edt == bgWorker;
+  }
+
+  protected abstract JvmFsHandle ctor(Executor edt);
+
   public String getName() {
     return path.getFileName().toString();
   }
@@ -28,6 +42,12 @@ class JvmFsHandle implements FsItem {
     if (rPath == null)
       rPath = toRPath(path, root);
     return rPath;
+  }
+
+  @Override
+  public String toString() {
+    return FsItem.toString(getClass().getSimpleName(),
+        getPath(), getName(), isOnWorker());
   }
 
   static String[] toRPath(Path file, Path start) {

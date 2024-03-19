@@ -1,5 +1,6 @@
 package org.sudu.experiments.editor.worker;
 
+import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.editor.worker.parser.LineParser;
@@ -52,6 +53,7 @@ public class EditorWorker {
   static void asyncMethod(String method, Object[] a, Consumer<Object[]> r) {
     switch (method) {
       case TestJobs.asyncWithFile -> TestJobs.asyncWithFile(file(a, 0), r);
+      case TestJobs.asyncWithDir -> TestJobs.asyncWithDir(dir(a, 0), r);
       case FileProxy.asyncParseFile -> FileProxy.asyncParseFile(array(a, 0).chars(), array(a, 1).ints(), r);
       case FileProxy.asyncParseFullFile -> FileProxy.asyncParseFullFile(array(a, 0).chars(), array(a, 1).ints(), r);
       case FileProxy.asyncParseFirstLines -> FileProxy.asyncParseFirstLines(array(a, 0).chars(), array(a, 1).ints(), r);
@@ -64,16 +66,20 @@ public class EditorWorker {
     }
   }
 
-  static ArrayView array(Object[] args, int index) {
+  public static ArrayView array(Object[] args, int index) {
     return (ArrayView) args[index];
   }
 
-  static String string(Object[] args, int index) {
+  public static String string(Object[] args, int index) {
     return (String) args[index];
   }
 
-  static FileHandle file(Object[] args, int index) {
+  public static FileHandle file(Object[] args, int index) {
     return (FileHandle) args[index];
+  }
+
+  public static DirectoryHandle dir(Object[] args, int index) {
+    return (DirectoryHandle) args[index];
   }
 
   public static int numDemoThreads() {

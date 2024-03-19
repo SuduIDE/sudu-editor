@@ -6,6 +6,7 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -56,64 +57,77 @@ public class WorkerProtocol {
     transferAndSend(context, result, message, 1);
   }
 
-  private static void transferAndSend(WorkerContext context, Object[] args, JsArray<JSObject> message, int start) {
+  private static void transferAndSend(
+      WorkerContext context, Object[] args,
+      JsArray<JSObject> message, int start
+  ) {
     JsArray<JSObject> transfer = JsArray.create();
-    for (int i = 0; i < args.length; i++) {
-      JSObject value = bridgeToJs(args[i]);
-      message.set(i + start, value);
+    for (Object arg : args) {
+      int end = bridgeToJs(arg, message, start);
+      JSObject value = message.get(start);
+      start = end;
       if (isArrayBuffer(value)) transfer.push(value);
     }
     context.postMessage(message, transfer);
   }
 
   static Object[] toJava(JsArrayReader<JSObject> array, int shift) {
-    Object[] args = new Object[array.getLength() - shift];
-    for (int i = 0; i < args.length; i++) {
-      args[i] = bridgeToJava(array.get(i + shift));
+    int arrayLength = array.getLength();
+    Object[] args = new Object[arrayLength - shift];
+    int ptr = 0;
+    for (int i = shift; i < arrayLength;) {
+      i = bridgeToJava(array, i, args, ptr++);
     }
-    return args;
+    return ptr == args.length ? args : Arrays.copyOf(args, ptr);
   }
 
   // JS <-> Java bridges:
   //   JSString <-> String
   //   char[], byte[], int[] <-> ArrayBuffer <-> ArrayView
-  static Object bridgeToJava(JSObject jsObject) {
+  static int bridgeToJava(
+      JsArrayReader<JSObject> array,
+      int arrayIndex, Object[] r, int idx
+  ) {
+    JSObject jsObject = array.get(arrayIndex++);
     if (JSString.isInstance(jsObject)) {
-      return jsObject.<JSString>cast().stringValue();
+      r[idx] = jsObject.<JSString>cast().stringValue();
+    } else if (isArrayBuffer(jsObject)) {
+      r[idx] = new JsArrayView(jsObject.cast());
+    } else if (isFile(jsObject)) {
+      r[idx] = JsFileHandle.fromWebkitRelativeFile(jsObject.cast());
+    } else if (isFileSystemFileHandle(jsObject)) {
+      String[] path = JsDirectoryHandle.toPath(array.get(arrayIndex++).cast());
+      r[idx] = new JsFileHandle(jsObject.cast(), path);
+    } else if (isFileSystemDirectoryHandle(jsObject)) {
+      JSString jsPath = array.get(arrayIndex++).cast();
+      r[idx] = new JsDirectoryHandle(jsObject.cast(), jsPath);
     }
-    if (isArrayBuffer(jsObject)) {
-      return new JsArrayView(jsObject.cast());
-    }
-    if (isFile(jsObject)) {
-      return new JsFileHandle(null, jsObject.cast());
-    }
-    if (isFileSystemFileHandle(jsObject)) {
-      return new JsFileHandle(jsObject.cast(), null);
-    }
-    return null;
+    return arrayIndex;
   }
 
-  static JSObject bridgeToJs(Object javaObject) {
+  static int bridgeToJs(Object javaObject, JsArray<JSObject> message, int idx) {
     if (javaObject instanceof String javaString) {
-      return JSString.valueOf(javaString);
-    }
-    if (javaObject instanceof byte[] byteArray) {
-      return JsMemoryAccess.bufferView(byteArray).getBuffer();
-    }
-    if (javaObject instanceof char[] charArray) {
-      return JsMemoryAccess.bufferView(charArray).getBuffer();
-    }
-    if (javaObject instanceof int[] intArray) {
-      return JsMemoryAccess.bufferView(intArray).getBuffer();
-    }
-    if (javaObject instanceof JsFileHandle jsFileHandle) {
-      return jsFileHandle.fileHandle != null
-          ? jsFileHandle.fileHandle : jsFileHandle.jsFile;
-    }
-
-    throw new IllegalArgumentException(
-        "Illegal argument javaObject instanceof " + javaObject.getClass().getName()
+      message.set(idx++, JSString.valueOf(javaString));
+    } else if (javaObject instanceof byte[] byteArray) {
+      message.set(idx++, JsMemoryAccess.bufferView(byteArray).getBuffer());
+    } else if (javaObject instanceof char[] charArray) {
+      message.set(idx++, JsMemoryAccess.bufferView(charArray).getBuffer());
+    } else if (javaObject instanceof int[] intArray) {
+      message.set(idx++, JsMemoryAccess.bufferView(intArray).getBuffer());
+    } else if (javaObject instanceof JsFileHandle jsFile) {
+      if (jsFile.fileHandle != null) {
+        message.set(idx++, jsFile.fileHandle);
+        message.set(idx++, JsDirectoryHandle.pathToJSString(jsFile.path));
+      } else {
+        message.set(idx++, jsFile.jsFile);
+      }
+    } else if (javaObject instanceof JsDirectoryHandle jsDir) {
+      message.set(idx++, jsDir.fsDirectory);
+      message.set(idx++, JsDirectoryHandle.pathToJSString(jsDir.path));
+    } else throw new IllegalArgumentException(
+        "Illegal argument sent to worker " + javaObject.getClass().getName()
     );
+    return idx;
   }
 
   @JSBody(params = "data", script = "return data instanceof Array;")
@@ -127,4 +141,7 @@ public class WorkerProtocol {
 
   @JSBody(params = "data", script = "return data instanceof FileSystemFileHandle;")
   static native boolean isFileSystemFileHandle(JSObject data);
+
+  @JSBody(params = "data", script = "return data instanceof FileSystemDirectoryHandle;")
+  static native boolean isFileSystemDirectoryHandle(JSObject data);
 }

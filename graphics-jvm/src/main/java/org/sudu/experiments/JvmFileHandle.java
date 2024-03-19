@@ -22,11 +22,8 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
     super(path, root, bgWorker, edt);
   }
 
-  // Returns a handle to same file, but with specified event thread
-  // If edt argument is null then the background worker's bus is used
-  public JvmFileHandle withEdt(Executor edt) {
-    return this.edt == edt ? this :
-        new JvmFileHandle(path, root, bgWorker, edt != null ? edt : bgWorker);
+  protected JvmFileHandle ctor(Executor edt) {
+    return new JvmFileHandle(path, root, bgWorker, edt);
   }
 
   @Override
@@ -55,20 +52,38 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
     read(consumer, onError, identity);
   }
 
-  <T> void read(Consumer<T> consumer, Consumer<String> onError, Function<byte[], T> transform) {
-    bgWorker.execute(() -> {
-      try {
-        byte[] allBytes = Files.readAllBytes(path);
-        T apply = transform.apply(allBytes);
-        edt.execute(() -> consumer.accept(apply));
-      } catch (IOException e) {
-        onError.accept(e.getMessage());
-      }
-    });
+  <T> void read(
+      Consumer<T> consumer,
+      Consumer<String> onError,
+      Function<byte[], T> transform
+  ) {
+    if (isOnWorker()) {
+      read0(consumer, onError, transform);
+    } else {
+      bgWorker.execute(() -> read0(consumer, onError, transform));
+    }
   }
 
-  @Override
-  public String toString() {
-    return FsItem.toString(getPath(), getName(), getFileSize());
+  <T> void read0(
+      Consumer<T> consumer,
+      Consumer<String> onError,
+      Function<byte[], T> transform
+  ) {
+    try {
+      byte[] allBytes = Files.readAllBytes(path);
+      T apply = transform.apply(allBytes);
+      if (isOnWorker()) {
+        consumer.accept(apply);
+      } else {
+        edt.execute(() -> consumer.accept(apply));
+      }
+    } catch (IOException e) {
+      String message = e.getMessage();
+      if (isOnWorker()) {
+        onError.accept(message);
+      } else {
+        edt.execute(() -> onError.accept(message));
+      }
+    }
   }
 }

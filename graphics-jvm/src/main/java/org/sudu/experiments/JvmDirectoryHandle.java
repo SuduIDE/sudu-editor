@@ -16,12 +16,9 @@ class JvmDirectoryHandle extends JvmFsHandle implements DirectoryHandle {
     super(path, root, bgWorker, edt);
   }
 
-  // Returns a handle to same file, but with specified event thread
-  // If edt argument is null then the background worker's bus is used
-  public JvmDirectoryHandle withEdt(Executor edt) {
-    return this.edt == edt ? this :
-        new JvmDirectoryHandle(path, root, bgWorker,
-            edt != null ? edt : bgWorker);
+  @Override
+  protected JvmFsHandle ctor(Executor edt) {
+    return new JvmDirectoryHandle(path, root, bgWorker, edt);
   }
 
   @Override
@@ -44,25 +41,44 @@ class JvmDirectoryHandle extends JvmFsHandle implements DirectoryHandle {
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
         if (attrs.isDirectory()) {
           var dh = new JvmDirectoryHandle(file, root, bgWorker, edt);
-          sendBack(dh, reader, edt);
+          if (isOnWorker()) {
+            reader.onDirectory(dh);
+          } else {
+            sendBack(dh, reader, edt);
+          }
+
         }
         if (attrs.isRegularFile()) {
           var fh = new JvmFileHandle(file, root, bgWorker, edt);
-          sendBack(fh, reader, edt);
+          if (isOnWorker()) {
+            reader.onFile(fh);
+          } else {
+            sendBack(fh, reader, edt);
+          }
         }
         return FileVisitResult.CONTINUE;
       }
     };
 
-    bgWorker.execute(() -> {
-      try {
-        Files.walkFileTree(
-            path, EnumSet.noneOf(FileVisitOption.class), 1, visitor);
+    if (isOnWorker()) {
+      walk(reader, visitor);
+    } else {
+      bgWorker.execute(() -> walk(reader, visitor));
+    }
+  }
+
+  private void walk(Reader reader, SimpleFileVisitor<Path> visitor) {
+    try {
+      Files.walkFileTree(
+          path, EnumSet.noneOf(FileVisitOption.class), 1, visitor);
+      if (isOnWorker()) {
+        reader.onComplete();
+      } else {
         sendComplete(reader, edt);
-      } catch (IOException e) {
-        System.err.println("Files.walkFileTree error: " + e.getMessage());
       }
-    });
+    } catch (IOException e) {
+      System.err.println("Files.walkFileTree error: " + e.getMessage());
+    }
   }
 
   static String msg(Path dir, IOException exc, String title) {
@@ -79,11 +95,6 @@ class JvmDirectoryHandle extends JvmFsHandle implements DirectoryHandle {
 
   static void sendBack(JvmDirectoryHandle dh, Reader reader, Executor edt) {
     edt.execute(() -> reader.onDirectory(dh));
-  }
-
-  @Override
-  public String toString() {
-    return FsItem.fullPath(getPath(), getName());
   }
 
 }

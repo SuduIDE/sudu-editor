@@ -1,5 +1,6 @@
 package org.sudu.experiments.editor.worker;
 
+import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.math.ArrayOp;
 
@@ -8,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-interface TestJobs {
+public interface TestJobs {
   int numDemoThreads = 6;
 
   String withString = "withString";
@@ -66,10 +67,17 @@ interface TestJobs {
 
   static void asyncWithFile(FileHandle file, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    list.add("file " + file.getName());
+    list.add(file.toString());
+    list.add(file);
     file.readAsBytes(
         bytes -> sendFileResult(result, list, bytes),
         error -> sendFileResult(result, list, utf(error)));
+  }
+
+  String asyncWithDir = "asyncWithDir";
+
+  static void asyncWithDir(DirectoryHandle dir, Consumer<Object[]> result) {
+    dir.read(new TestWalker(dir, result));
   }
 
   static byte[] utf(String error) {

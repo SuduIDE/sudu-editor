@@ -3,16 +3,13 @@ package org.sudu.experiments.js;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
-import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
-import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class JsFileDialog {
@@ -31,12 +28,11 @@ public class JsFileDialog {
 
   public static void showDirectoryPicker(Consumer<DirectoryHandle> onResult) {
     if (directoryPickerSupported()) {
-      JsFunctions.Consumer<JSError> onError = JsFileDialog::onDirectoryPickerError;
       showDirectoryPicker().then(
           result -> {
             JsHelper.consoleInfo("showDirectoryPicker result: ", result.getName());
-            onResult.accept(new JsDirectoryHandle(result, onError));
-          }, onError);
+            onResult.accept(new JsDirectoryHandle(result));
+          }, JsDirectoryHandle.onError);
     } else {
       displayInputElementDialog(null, onResult);
     }
@@ -49,7 +45,7 @@ public class JsFileDialog {
         array -> {
           for (int i = 0, l = array.getLength(); i < l; i++) {
             FileSystemFileHandle handle = array.get(i);
-            onResul.accept(new JsFileHandle(handle, null));
+            onResul.accept(new JsFileHandle(handle));
           }
         }, onError
       );
