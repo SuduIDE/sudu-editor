@@ -13,8 +13,12 @@ public interface ArrayOp {
   }
 
   static <T> T[] add(T[] a, T[] b, T[] res) {
-    System.arraycopy(a, 0, res, 0, a.length);
-    System.arraycopy(b, 0, res, a.length, b.length);
+    return add(a, a.length, b, b.length, res);
+  }
+
+  static <T> T[] add(T[] a, int aTo, T[] b, int bTo, T[] res) {
+    System.arraycopy(a, 0, res, 0, aTo);
+    System.arraycopy(b, 0, res, aTo, bTo);
     return res;
   }
 

@@ -1,5 +1,7 @@
 package org.sudu.experiments.ui;
 
+import org.sudu.experiments.diff.folder.DiffStatus;
+
 import java.util.Comparator;
 
 import static org.sudu.experiments.diff.folder.PropTypes.PROP_DOWN;
@@ -9,7 +11,7 @@ public class FileTreeNode extends TreeNode {
   public static final FileTreeNode[] ch0 = new FileTreeNode[0];
   public static final Comparator<FileTreeNode> cmp = FileTreeNode::compare;
 
-  FileTreeNode[] children = ch0;
+  public FileTreeNode[] children = ch0;
 
   public FileTreeNode(String v, int d) {
     super(v, d);
@@ -102,5 +104,9 @@ public class FileTreeNode extends TreeNode {
     status.propagation = PROP_DOWN;
     if (status.parent != null) status.rangeId = status.parent.rangeId;
     for (var child : children) child.markDown(diffType);
+  }
+
+  public void updStatus(DiffStatus[] statuses) {
+    for (int i = 0; i < children.length; i++) children[i].status = statuses[i];
   }
 }

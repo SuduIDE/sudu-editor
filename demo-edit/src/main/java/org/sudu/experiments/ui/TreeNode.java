@@ -1,7 +1,6 @@
 package org.sudu.experiments.ui;
 
 import org.sudu.experiments.diff.folder.DiffStatus;
-import org.sudu.experiments.diff.folder.TreeS;
 import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.ui.fonts.Codicons;
 

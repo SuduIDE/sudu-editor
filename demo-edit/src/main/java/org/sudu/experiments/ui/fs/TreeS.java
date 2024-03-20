@@ -1,11 +1,20 @@
-package org.sudu.experiments.diff.folder;
+package org.sudu.experiments.ui.fs;
+
+import org.sudu.experiments.FsItem;
 
 import java.util.Objects;
 
 public class TreeS {
 
+  public FsItem item;
   public String name;
   public boolean isFolder;
+  public int diffType;
+
+  public TreeS(FsItem item, boolean isFolder) {
+    this(item.getName(), isFolder);
+    this.item = item;
+  }
 
   public TreeS(String name, boolean isFolder) {
     this.name = name;

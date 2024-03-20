@@ -33,7 +33,7 @@ public class WorkerProxy {
     if (arg instanceof char[] chars) return new Array(null, chars, null);
     if (arg instanceof int[] ints) return new Array(null, null, ints);
     if (arg instanceof JvmFsHandle file) return file.withEdt(edt);
-    throw new IllegalArgumentException();
+    throw new IllegalArgumentException(arg.getClass().toString());
   }
 
   @SuppressWarnings("ClassCanBeRecord")

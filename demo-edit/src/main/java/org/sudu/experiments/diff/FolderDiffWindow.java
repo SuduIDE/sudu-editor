@@ -2,6 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.FsItem;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.diff.folder.DiffStatus;
 import org.sudu.experiments.diff.folder.PropTypes;
@@ -145,15 +146,15 @@ public class FolderDiffWindow extends ToolWindow0 {
         }
         updateView(node);
         updateDiffInfo();
+        if (node.folders().length == 1 && node.files().length == 0) {
+          node.folders()[0].onClick.run();
+        }
       }
 
       @Override
       public void updateView(DirectoryNode node) {
         if (node.childrenLength() > 0) {
           treeView.updateModel();
-        }
-        if (node.folders().length == 1 && node.files().length == 0) {
-          node.folders()[0].onClick.run();
         }
       }
 
@@ -224,11 +225,7 @@ public class FolderDiffWindow extends ToolWindow0 {
     if (left instanceof DirectoryNode leftDir &&
         right instanceof DirectoryNode rightDir
     ) {
-      var handler = new FolderDiffHandler(this::compare, ctx);
-      var leftReader = new DirectoryNode.DiffReader(leftDir, handler, true);
-      var rightReader = new DirectoryNode.DiffReader(rightDir, handler, false);
-      leftDir.dir.read(leftReader);
-      rightDir.dir.read(rightReader);
+      compareFolders(leftDir, rightDir);
     } else if (left instanceof FileNode leftFile
         && right instanceof FileNode rightFile
     ) {
@@ -370,6 +367,14 @@ public class FolderDiffWindow extends ToolWindow0 {
     );
   }
 
+  private void compareFolders(DirectoryNode left, DirectoryNode right) {
+    windowManager.uiContext.window.sendToWorker(
+        result -> onFoldersCompares(left, right, result),
+        DiffUtils.CMP_FOLDERS,
+        left.dir, right.dir
+    );
+  }
+
   private void onFilesCompares(FileNode left, FileNode right, Object[] result) {
     if (result.length != 1) return;
     boolean equals = ((ArrayView) result[0]).ints()[0] == 1;
@@ -383,5 +388,102 @@ public class FolderDiffWindow extends ToolWindow0 {
       right.status.markUp(DiffTypes.EDITED, ctx);
       updateDiffInfo();
     }
+  }
+
+  private void onFoldersCompares(DirectoryNode left, DirectoryNode right, Object[] result) {
+    if (result.length == 0) return;
+    int[] ints = ((ArrayView) result[0]).ints();
+    int leftLen = ints[0], rightLen = ints[1];
+    int[] leftTypes = Arrays.copyOfRange(ints, 2, 2 + leftLen);
+    int[] rightTypes = Arrays.copyOfRange(ints, 2 + leftLen, 2 + leftLen + rightLen);
+    FsItem[] leftItems = Arrays.copyOfRange(result, 1, 1 + leftLen, FsItem[].class);
+    FsItem[] rightItems = Arrays.copyOfRange(result, 1 + leftLen, 1 + leftLen + rightLen, FsItem[].class);
+
+    left.status.children = new DiffStatus[leftLen];
+    right.status.children = new DiffStatus[rightLen];
+    for (int i = 0; i < leftLen; i++) left.status.children[i] = new DiffStatus(left.status);
+    for (int i = 0; i < rightLen; i++) right.status.children[i] = new DiffStatus(right.status);
+
+    int lP = 0, rP = 0;
+    while (lP < leftLen && rP < rightLen) {
+      int id = ctx.nextId();
+      if (leftTypes[lP] == DiffTypes.DEFAULT &&
+          rightTypes[rP] == DiffTypes.DEFAULT
+      ) {
+        while (lP < leftLen && rP < rightLen &&
+            leftTypes[lP] == DiffTypes.DEFAULT &&
+            rightTypes[rP] == DiffTypes.DEFAULT
+        ) {
+          left.status.children[lP].diffType = DiffTypes.DEFAULT;
+          left.status.children[lP].rangeId = id;
+          right.status.children[rP].diffType = DiffTypes.DEFAULT;
+          right.status.children[rP].rangeId = id;
+          if (leftItems[lP] instanceof DirectoryHandle leftDir &&
+              rightItems[rP] instanceof DirectoryHandle rightDir
+          ) {
+            var leftNode = new DirectoryNode(leftDir, left.handler);
+            leftNode.status = left.status.children[lP];
+            var rightNode = new DirectoryNode(rightDir, right.handler);
+            rightNode.status = right.status.children[rP];
+            compare(leftNode, rightNode);
+          } else if (leftItems[lP] instanceof FileHandle leftFile
+              && rightItems[rP] instanceof FileHandle rightFile) {
+            var leftNode = new FileNode(leftFile.getName(), left.depth + 1, leftFile);
+            leftNode.status = left.status.children[lP];
+            var rightNode = new FileNode(rightFile.getName(), right.depth + 1, rightFile);
+            rightNode.status = right.status.children[rP];
+            compare(leftNode, rightNode);
+          } else throw new IllegalStateException();
+          lP++;
+          rP++;
+        }
+      }
+      else if (leftTypes[lP] == DiffTypes.DELETED) {
+        while (lP < leftLen && leftTypes[lP] == DiffTypes.DELETED) {
+          left.status.children[lP].diffType = DiffTypes.DELETED;
+          left.status.children[lP].rangeId = id;
+          left.status.children[lP].markDown(DiffTypes.DELETED);
+          left.status.markUp(DiffTypes.EDITED, ctx);
+          lP++;
+        }
+      } else if (rightTypes[rP] == DiffTypes.INSERTED) {
+        while (rP < rightLen && rightTypes[rP] == DiffTypes.INSERTED) {
+          right.status.children[rP].diffType = DiffTypes.INSERTED;
+          right.status.children[rP].rangeId = id;
+          right.status.children[rP].markDown(DiffTypes.INSERTED);
+          right.status.markUp(DiffTypes.EDITED, ctx);
+          rP++;
+        }
+      } else throw new IllegalStateException();
+    }
+    while (lP < leftLen) {
+      int leftDiff = ints[2 + lP];
+      int id = ctx.nextId();
+      if (leftDiff == DiffTypes.DELETED) {
+        while (lP < leftLen && ints[2 + lP] == DiffTypes.DELETED) {
+          left.status.children[lP].diffType = DiffTypes.DELETED;
+          left.status.children[lP].rangeId = id;
+          left.status.markDown(DiffTypes.DELETED);
+          left.status.markUp(DiffTypes.DELETED, ctx);
+          lP++;
+        }
+      } else lP++;
+    }
+    while (rP < rightLen) {
+      int rightDiff = ints[2 + leftLen + rP];
+      int id = ctx.nextId();
+      if (rightDiff == DiffTypes.INSERTED) {
+        while (rP < rightLen && ints[2 + leftLen + rP] == DiffTypes.INSERTED) {
+          right.status.children[rP].diffType = DiffTypes.INSERTED;
+          right.status.children[rP].rangeId = id;
+          right.status.markDown(DiffTypes.INSERTED);
+          right.status.markUp(DiffTypes.INSERTED, ctx);
+          rP++;
+        }
+      } else rP++;
+    }
+    if (left.childrenLength() != 0) left.updStatus(left.status.children);
+    if (right.childrenLength() != 0) right.updStatus(right.status.children);
+    updateDiffInfo();
   }
 }
