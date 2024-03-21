@@ -30,7 +30,6 @@ public class Editor0 extends WindowScene implements ThemeControl, EditorUi.Clear
     api.input.onKeyPress.add(new CtrlO(api, this::openFile));
 
     editor.registerMouseScroll(api.input);
-    editor.registerCopyPaste(api.input);
     api.input.onContextMenu.add(this::onContextMenu);
 
     toggleDark();
@@ -64,7 +63,8 @@ public class Editor0 extends WindowScene implements ThemeControl, EditorUi.Clear
 
   @Override
   public boolean update(double timestamp) {
-    return editor.update(timestamp);
+    boolean wmUpdate = super.update(timestamp);
+    return editor.update(timestamp) | wmUpdate;
   }
 
   @Override

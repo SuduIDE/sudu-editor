@@ -2,13 +2,19 @@ package org.sudu.experiments.ui;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
-public class UiContext {
+import java.util.function.Consumer;
+
+public class UiContext implements
+    InputListeners.CopyHandler,
+    InputListeners.PasteHandler
+{
 
   public final WglGraphics graphics;
   public final Window window;
@@ -32,6 +38,8 @@ public class UiContext {
     windowCursor = SetCursor.wrap(api.window);
     api.input.onFocus.add(this::sendFocusGain);
     api.input.onBlur.add(this::sendFocusLost);
+    api.input.onCopy.add(this);
+    api.input.onPaste.add(this);
   }
 
   public void onResize(V2i newSize, float newDpr) {
@@ -142,5 +150,15 @@ public class UiContext {
         return false;
       }
     };
+  }
+
+  public boolean onCopy(Consumer<String> setText, boolean isCut) {
+    return focused != null && focused.onCopy(setText, isCut);
+  }
+
+  // paste handler
+  @Override
+  public Consumer<String> get() {
+    return focused != null ? focused.onPaste() : null;
   }
 }

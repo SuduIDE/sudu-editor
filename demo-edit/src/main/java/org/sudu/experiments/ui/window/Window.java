@@ -26,8 +26,7 @@ public class Window {
   public final UiContext context;
 
   private Predicate<V2i> onContextMenu;
-  private InputListeners.CopyHandler onCopy;
-  private InputListeners.PasteHandler onPaste;
+  private Runnable onFocus, onBlur;
   private final TextLineView title;
   private SystemMenu systemMenu;
   private View content;
@@ -56,8 +55,16 @@ public class Window {
     this.onContextMenu = onContextMenu;
   }
 
-  public void onCopy(InputListeners.CopyHandler h) { onCopy = h; }
-  public void onPaste(InputListeners.PasteHandler h) { onPaste = h; }
+  public void onFocus(Runnable h) { onFocus = h; }
+  public void onBlur(Runnable h) { onBlur = h; }
+
+  void focus() {
+    if (onFocus != null) onFocus.run();
+  }
+
+  void blur() {
+    if (onBlur != null) onBlur.run();
+  }
 
   public void setTitle(String text) {
     title.setText(text);

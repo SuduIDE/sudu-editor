@@ -8,12 +8,14 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.*;
 import org.sudu.experiments.ui.fs.DirectoryNode;
 import org.sudu.experiments.ui.fs.FileNode;
+import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Supplier;
 
 public class FolderDiffWindow extends ToolWindow0 {
 
+  Window window;
   FolderDiffRootView rootView;
   DirectoryNode leftRoot, rightRoot;
 
@@ -34,12 +36,26 @@ public class FolderDiffWindow extends ToolWindow0 {
     rootView.left.setRoot(modelLeft);
     rootView.right.setRoot(modelRight);
 //    rootView.setDiffModel(DiffMiddleDemo.testModel());
-    windowManager.addWindow(createWindow(rootView));
+    window = createWindow(rootView);
+    window.onFocus(this::onFocus);
+    window.onBlur(this::onBlur);
+    windowManager.addWindow(window);
   }
 
   protected void dispose() {
+    window = null;
     rootView = null;
     leftRoot = rightRoot = null;
+  }
+
+  private void onBlur() {
+//    var f = windowManager.uiContext.focused();
+//    if (rootView.editor1 == f || rootView.editor2 == f)
+//      focusSave = f;
+  }
+
+  private void onFocus() {
+    windowManager.uiContext.setFocus(null);
   }
 
   protected Supplier<ToolbarItem[]> popupActions(V2i pos) {
@@ -141,6 +157,11 @@ public class FolderDiffWindow extends ToolWindow0 {
     if (left) leftRoot = root; else rightRoot = root;
     root.onClick.run();
     treeView.setRoot(root);
+
+    if (leftRoot != null && rightRoot == null) window.setTitle(leftRoot.name());
+    if (leftRoot == null && rightRoot != null) window.setTitle(rightRoot.name());
+    if (leftRoot != null && rightRoot != null)
+      window.setTitle(leftRoot.name() + " ↔ " + rightRoot.name());
   }
 
   private void selectFolder(boolean left) {

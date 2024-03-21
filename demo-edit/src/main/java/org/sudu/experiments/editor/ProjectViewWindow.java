@@ -9,6 +9,7 @@ import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.ui.FileTreeNode;
+import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ToolWindow0;
 import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.fs.DirectoryNode;
@@ -29,6 +30,7 @@ public class ProjectViewWindow extends ToolWindow0
   String selectedFile;
   Map<String, Model> modelMap = new HashMap<>();
   Map<String, String> requestMap = new HashMap<>();
+  Focusable focusSave;
 
   public ProjectViewWindow(
       WindowManager windowManager,
@@ -43,7 +45,18 @@ public class ProjectViewWindow extends ToolWindow0
     model.onClick = this::openFolder;
     view.treeView.setRoot(model);
     window = createWindow(view, "Project view", 0);
+    window.onFocus(this::onFocus);
+    window.onBlur(this::onBlur);
     windowManager.addWindow(window);
+  }
+
+  private void onFocus() {
+    windowManager.uiContext.setFocus(focusSave);
+  }
+
+  private void onBlur() {
+    var f = windowManager.uiContext.focused();
+    focusSave = view.editor == f ? f : null;
   }
 
   @Override

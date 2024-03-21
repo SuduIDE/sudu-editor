@@ -176,9 +176,10 @@ public class Diff0 extends WindowScene implements
 
   @Override
   public boolean update(double timestamp) {
+    boolean sp = super.update(timestamp);
     boolean u1 = editor1.update(timestamp);
     boolean u2 = editor2.update(timestamp);
-    return u1 || u2;
+    return u1 | u2 | sp;
   }
 
   @Override

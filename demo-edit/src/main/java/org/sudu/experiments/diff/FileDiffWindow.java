@@ -5,6 +5,7 @@ import org.sudu.experiments.editor.EditorComponent;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ToolWindow0;
 import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.window.Window;
@@ -17,6 +18,7 @@ public class FileDiffWindow extends ToolWindow0 {
   FileDiffRootView rootView;
   Window window;
   String leftFile, rightFile;
+  Focusable focusSave;
 
   public FileDiffWindow(
       EditorColorScheme theme,
@@ -27,25 +29,24 @@ public class FileDiffWindow extends ToolWindow0 {
     rootView = new FileDiffRootView(windowManager);
     rootView.applyTheme(this.theme);
     window = createWindow(rootView, 30);
-    window.onCopy(this::onCopy);
-    window.onPaste(this::onPaste);
+    window.onFocus(this::onFocus);
+    window.onBlur(this::onBlur);
     windowManager.addWindow(window);
+  }
+
+  private void onBlur() {
+    var f = windowManager.uiContext.focused();
+    focusSave = (rootView.editor1 == f || rootView.editor2 == f) ? f : null;
+  }
+
+  private void onFocus() {
+    windowManager.uiContext.setFocus(focusSave);
   }
 
   @Override
   public void applyTheme(EditorColorScheme theme) {
     window.setTheme(theme.dialogItem);
     rootView.applyTheme(theme);
-  }
-
-  private Consumer<String> onPaste() {
-    EditorComponent ed = rootView.editor1;
-    return ed::handleInsert;
-  }
-
-  boolean onCopy(Consumer<String> setText, boolean isCut) {
-    EditorComponent ed = rootView.editor1;
-    return ed.onCopy(setText, isCut);
   }
 
   public void open(FileHandle f, boolean left) {
@@ -65,6 +66,7 @@ public class FileDiffWindow extends ToolWindow0 {
   }
 
   protected void dispose() {
+    window = null;
     rootView = null;
   }
 

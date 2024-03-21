@@ -72,12 +72,19 @@ public class WindowManager implements MouseListener, DprChangeListener {
   }
 
   public Window addWindow(Window window) {
+    if (windows.length() > 0)
+      windows.get(0).blur();
     windows.add(0, window);
+    window.focus();
     return window;
   }
 
   public void removeWindow(Window window) {
+    boolean isTop = topWindow() == window;
+    if (isTop) window.blur();
     windows.remove(window);
+    if (windows.length() > 0)
+      windows.get(0).focus();
   }
 
   public void draw() {
@@ -138,7 +145,11 @@ public class WindowManager implements MouseListener, DprChangeListener {
       if (lock != null) {
         if (button == MOUSE_BUTTON_LEFT && win != topWindow()) {
           int index = windows.find(win);
-          if (index >= 0) windows.moveToFront(index);
+          if (index > 0) {
+            windows.get(0).blur();
+            windows.moveToFront(index);
+            windows.get(0).focus();
+          }
         }
         return lock;
       }

@@ -109,17 +109,6 @@ public class EditorComponent extends View implements
     model.setEditor(this, window());
   }
 
-  Disposable registerCopyPaste(InputListeners input) {
-    InputListeners.CopyHandler onCopy = this::onCopy;
-    InputListeners.PasteHandler onPaste = () -> this::handleInsert;
-    input.onCopy.add(onCopy);
-    input.onPaste.add(onPaste);
-    return () -> {
-      input.onCopy.remove(onCopy);
-      input.onPaste.remove(onPaste);
-    };
-  }
-
   /*Disposable*/ void registerMouseScroll(InputListeners input) {
     InputListeners.ScrollHandler onScroll = this::onScroll;
     input.onMouse.add(this);
@@ -1218,6 +1207,9 @@ public class EditorComponent extends View implements
   }
 
   public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
+    if (!context.isFocused(this))
+      context.setFocus(this);
+
     if (button == MOUSE_BUTTON_LEFT) {
       var lock = vScroll.onMouseDown(event.position, vScrollHandler, true);
       if (lock != null) return lock;
@@ -1349,6 +1341,11 @@ public class EditorComponent extends View implements
 
     setText.accept(result);
     return true;
+  }
+
+  @Override
+  public Consumer<String> onPaste() {
+    return this::handleInsert;
   }
 
   private boolean isInsideText(V2i position) {

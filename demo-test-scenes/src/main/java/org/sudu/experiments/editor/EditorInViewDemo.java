@@ -1,6 +1,5 @@
 package org.sudu.experiments.editor;
 
-import org.sudu.experiments.Disposable;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -21,7 +20,6 @@ public class EditorInViewDemo extends WindowDemo implements
 {
   EditorUi ui;
   EditorComponent editor;
-  Disposable inputRegistrations;
 
   public EditorInViewDemo(SceneApi api) {
     super(api);
@@ -42,20 +40,13 @@ public class EditorInViewDemo extends WindowDemo implements
 
   @Override
   public void dispose() {
-    Disposable.assign(inputRegistrations, null);
     ui.dispose();
     super.dispose();
   }
 
   @Override
-  public boolean update(double timestamp) {
-    return editor != null && editor.update(timestamp);
-  }
-
-  @Override
   protected View createContent() {
     editor = new EditorComponent(ui);
-    inputRegistrations = editor.registerCopyPaste(api.input);
     StartFile.apply(editor);
     uiContext.initFocus(editor);
     return editor;
