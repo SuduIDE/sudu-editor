@@ -141,18 +141,21 @@ public class WindowManager implements MouseListener, DprChangeListener {
     Window[] ws = windows.array();
     for (int i = 0; i < ws.length; i++) {
       Window win = ws[i];
-      Consumer<MouseEvent> lock = win.onMouseDown(event, button);
-      if (lock != null) {
-        if (button == MOUSE_BUTTON_LEFT && win != topWindow()) {
-          int index = windows.find(win);
-          if (index > 0) {
-            windows.get(0).blur();
-            windows.moveToFront(index);
-            windows.get(0).focus();
-          }
+      var lock = win.onMouseDownFrame(event.position, button);
+      boolean hit = lock != null || win.contentHitTest(event);
+      boolean toTop = button == MOUSE_BUTTON_LEFT && win != topWindow() && hit;
+      if (toTop) {
+        int index = windows.find(win);
+        if (index > 0) {
+          windows.get(0).blur();
+          windows.moveToFront(index);
+          windows.get(0).focus();
         }
-        return lock;
       }
+      if (lock == null && hit)
+        lock = win.onMouseDownContent(event, button);
+      if (lock != null || toTop)
+        return lock;
     }
     return null;
   }

@@ -1615,4 +1615,11 @@ public class EditorComponent extends View implements
       fullFileParseListener.accept(this);
     }
   }
+
+  @Override
+  public String toString() {
+    Uri uri = model().uri;
+    String s = super.toString();
+    return uri != null ? s + " - " + uri.path : s;
+  }
 }

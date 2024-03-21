@@ -4,7 +4,6 @@ import org.sudu.experiments.Cursor;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.DialogItemColors;
-import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.V2i;
@@ -176,7 +175,7 @@ public class Window {
 
   public void onHostResize(V2i newSize, float newDpr) {}
 
-  private boolean contentHitTest(MouseEvent event) {
+  boolean contentHitTest(MouseEvent event) {
     return contentHitTest(event.position);
   }
 
@@ -225,8 +224,7 @@ public class Window {
         v > 0 ? Cursor.nesw_resize : frameCursor;
   }
 
-  Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
-    V2i position = event.position;
+  Consumer<MouseEvent> onMouseDownFrame(V2i position, int button) {
     if (button == MouseListener.MOUSE_BUTTON_LEFT) {
       var handler = dragFrameTest(position);
       if (handler != null)
@@ -241,8 +239,11 @@ public class Window {
         }
       }
     }
+    return null;
+  }
 
-    return contentHitTest(event) ? content.onMouseDown(event, button) : null;
+  Consumer<MouseEvent> onMouseDownContent(MouseEvent event, int button) {
+    return content.onMouseDown(event, button);
   }
 
   boolean onMouseUp(MouseEvent event, int button) {
