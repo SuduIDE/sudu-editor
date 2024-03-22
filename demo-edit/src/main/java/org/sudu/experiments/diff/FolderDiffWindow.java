@@ -138,7 +138,7 @@ public class FolderDiffWindow extends ToolWindow0 {
       public void folderOpened(DirectoryNode node) {
         node.closeOnClick();
         System.out.println("folderOpened " + node.dir.toString());
-        DirectoryNode oppositeDir = findOppositeDir(node.dir);
+        DirectoryNode oppositeDir = findOppositeDir(node);
 
         setOppositeSel(oppositeDir);
         if (oppositeDir != null && oppositeDir.isClosed()) {
@@ -168,12 +168,18 @@ public class FolderDiffWindow extends ToolWindow0 {
           treeView.updateModel();
         }
         node.readOnClick();
-        DirectoryNode oppositeDir = findOppositeDir(node.dir);
+        DirectoryNode oppositeDir = findOppositeDir(node);
         setOppositeSel(oppositeDir);
         if (oppositeDir != null && oppositeDir.isOpened()) {
           oppositeDir.onClick.run();
         }
         updateDiffInfo();
+      }
+
+      DirectoryNode findOppositeDir(DirectoryNode node) {
+        if ((left && node == leftRoot) || (!left && node == rightRoot))
+          return left ? rightRoot : leftRoot;
+        return findOppositeDir(node.dir);
       }
 
       DirectoryNode findOppositeDir0(String[] path) {
@@ -188,9 +194,7 @@ public class FolderDiffWindow extends ToolWindow0 {
       }
 
       DirectoryNode findOppositeDir(DirectoryHandle handle) {
-        String[] path = handle.getPath();
-        if (path.length == 0) return left ? rightRoot : leftRoot;
-        var dir = findOppositeDir0(path);
+        var dir = findOppositeDir0(handle.getPath());
         return dir != null ? dir.findSubDir(handle.getName()) : null;
       }
 
