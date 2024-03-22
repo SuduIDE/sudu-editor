@@ -188,7 +188,9 @@ public class FolderDiffWindow extends ToolWindow0 {
       }
 
       DirectoryNode findOppositeDir(DirectoryHandle handle) {
-        var dir = findOppositeDir0(handle.getPath());
+        String[] path = handle.getPath();
+        if (path.length == 0) return left ? rightRoot : leftRoot;
+        var dir = findOppositeDir0(path);
         return dir != null ? dir.findSubDir(handle.getName()) : null;
       }
 
@@ -360,6 +362,8 @@ public class FolderDiffWindow extends ToolWindow0 {
   }
 
   private void compareFiles(FileNode left, FileNode right) {
+    left.iconRefresh();
+    right.iconRefresh();
     windowManager.uiContext.window.sendToWorker(
         result -> onFilesCompares(left, right, result),
         DiffUtils.CMP_FILES,
@@ -368,6 +372,8 @@ public class FolderDiffWindow extends ToolWindow0 {
   }
 
   private void compareFolders(DirectoryNode left, DirectoryNode right) {
+    left.iconRefresh();
+    right.iconRefresh();
     windowManager.uiContext.window.sendToWorker(
         result -> onFoldersCompares(left, right, result),
         DiffUtils.CMP_FOLDERS,
@@ -376,6 +382,8 @@ public class FolderDiffWindow extends ToolWindow0 {
   }
 
   private void onFilesCompares(FileNode left, FileNode right, Object[] result) {
+    left.iconFile();
+    right.iconFile();
     if (result.length != 1) return;
     boolean equals = ((ArrayView) result[0]).ints()[0] == 1;
     if (!equals) {
@@ -485,5 +493,9 @@ public class FolderDiffWindow extends ToolWindow0 {
     if (left.childrenLength() != 0) left.updStatus(left.status.children);
     if (right.childrenLength() != 0) right.updStatus(right.status.children);
     updateDiffInfo();
+    if (left.childrenLength() == 0) left.iconFolder();
+    else left.iconFolderOpened();
+    if (right.childrenLength() == 0) right.iconFolder();
+    else right.iconFolderOpened();
   }
 }

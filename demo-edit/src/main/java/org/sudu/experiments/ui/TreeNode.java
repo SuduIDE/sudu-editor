@@ -72,6 +72,10 @@ public class TreeNode {
     icon = Codicons.folder_opened;
   }
 
+  public void iconRefresh() {
+    icon = Codicons.refresh;
+  }
+
   public void clearIcon() {
     icon = 0;
   }
