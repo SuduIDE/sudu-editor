@@ -1,6 +1,7 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ProjectViewWindow;
 import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -35,8 +36,11 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
             UiText.newFileWindow),
         new ToolbarItem(
             windowManager.hidePopupMenuThen(this::newProjectView),
-            UiText.newProjectView)
-        );
+            UiText.newProjectView),
+        new ToolbarItem(
+            windowManager.hidePopupMenuThen(this::newEditorWindow),
+            UiText.newEditorWindow)
+    );
     windowManager.showPopup(
         theme.dialogItem, theme.popupMenuFont,
         event.position, actions);
@@ -48,11 +52,15 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
   }
 
   private void newFileWindow() {
-    new FileDiffWindow(theme, windowManager, FolderDiff::menuFonts);
+    new FileDiffWindow(windowManager, theme, FolderDiff::menuFonts);
   }
 
   private void newProjectView() {
     new ProjectViewWindow(windowManager, theme, FolderDiff::menuFonts);
+  }
+
+  private void newEditorWindow() {
+    new EditorWindow(windowManager, theme, FolderDiff::menuFonts);
   }
 
   @Override

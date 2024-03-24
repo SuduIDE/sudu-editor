@@ -44,6 +44,7 @@ public class TestSceneSelector {
       case "WindowDemo" -> WindowDemo::new;
       case "EditorInViewDemo" -> EditorInViewDemo::new;
       case "ProjectViewDemo" -> ProjectViewDemo::new;
+      case "EditorWindowDemo" -> EditorWindowDemo::new;
       case "FileViewDemo" -> FileViewDemo::new;
       case "SinDemo" -> SinDemo::new;
       case "DiffMiddleDemo" -> DiffMiddleDemo::new;

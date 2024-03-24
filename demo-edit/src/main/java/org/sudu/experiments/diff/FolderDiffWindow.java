@@ -2,6 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
@@ -90,13 +91,16 @@ public class FolderDiffWindow extends ToolWindow0 {
       public void openFile(FileNode node) {
         System.out.println("opening file ... " +
             node.file.getFullPath());
-        var window = new FileDiffWindow(theme, windowManager, fonts);
-        window.open(node.file, left);
         FileNode oppositeFile = findOppositeFile(node.file);
-        setOppositeSel(oppositeFile);
-
-        if (oppositeFile != null)
+        if (oppositeFile != null) {
+          setOppositeSel(oppositeFile);
+          var window = new FileDiffWindow(windowManager, theme, fonts);
+          window.open(node.file, left);
           window.open(oppositeFile.file, !left);
+        } else {
+          var window = new EditorWindow(windowManager, theme, fonts);
+          window.open(node.file);
+        }
       }
 
       @Override

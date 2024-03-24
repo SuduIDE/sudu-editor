@@ -11,7 +11,6 @@ import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
 
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class FileDiffWindow extends ToolWindow0 {
@@ -21,8 +20,8 @@ public class FileDiffWindow extends ToolWindow0 {
   Focusable focusSave;
 
   public FileDiffWindow(
-      EditorColorScheme theme,
       WindowManager wm,
+      EditorColorScheme theme,
       Supplier<String[]> fonts
   ) {
     super(wm, theme, fonts);
