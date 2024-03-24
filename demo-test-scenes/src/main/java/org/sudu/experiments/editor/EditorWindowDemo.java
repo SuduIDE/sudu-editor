@@ -2,7 +2,6 @@ package org.sudu.experiments.editor;
 
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.Subscribers;
 import org.sudu.experiments.diff.UiText;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
@@ -14,7 +13,6 @@ import org.sudu.experiments.ui.ToolbarItem;
 
 public class EditorWindowDemo extends WindowScene implements DprChangeListener {
   EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
-  Subscribers<EditorWindow> windows = new Subscribers<>(new EditorWindow[0]);
 
   public EditorWindowDemo(SceneApi api) {
     super(api, true);
@@ -24,24 +22,9 @@ public class EditorWindowDemo extends WindowScene implements DprChangeListener {
     api.input.onContextMenu.add(this::onContextMenu);
   }
 
-  EditorWindow findFocused() {
-    var f = uiContext.focused();
-    for (int i = 0; i < windows.length(); i++) {
-      EditorWindow window = windows.get(i);
-      if (window.editor == f)
-        return window;
-    }
-    return null;
-  }
-
   private void openFile(FileHandle fileHandle) {
-    var ew = findFocused();
-    if (ew != null) {
-      ew.open(fileHandle);
-    } else {
-      EditorWindow w = newEditorWindow();
-      w.open(fileHandle);
-    }
+    EditorWindow w = newEditorWindow();
+    w.open(fileHandle);
   }
 
   private boolean onContextMenu(MouseEvent event) {
@@ -63,8 +46,6 @@ public class EditorWindowDemo extends WindowScene implements DprChangeListener {
 
   private EditorWindow newEditorWindow() {
     var w = new EditorWindow(windowManager, theme, EditorWindowDemo::menuFonts);
-    windows.add(w);
-    w.onDestroy = windows::remove;
     w.focus();
     return w;
   }

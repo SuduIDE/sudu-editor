@@ -91,6 +91,7 @@ public class EditorComponent extends View implements
   int vScrollPos = 0;
 
   final ClrContext lrContext;
+  InputListeners.KeyHandler onKey;
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -1265,8 +1266,13 @@ public class EditorComponent extends View implements
     return setCursor.setDefault();
   }
 
+  public void onKey(InputListeners.KeyHandler onKey) {
+    this.onKey = onKey;
+  }
+
   public boolean onKeyPress(KeyEvent event) {
 //    Debug.consoleInfo("EditorComponent::onKey: "+ event.toString());
+    if (onKey != null && onKey.handleKey(event)) return true;
 
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
 
@@ -1378,8 +1384,10 @@ public class EditorComponent extends View implements
 
   private boolean handleNavigation(KeyEvent event) {
     boolean result = switch (event.keyCode) {
-      case KeyCode.ARROW_UP -> arrowUpDown(-1, event.ctrl, event.alt, event.shift);
-      case KeyCode.ARROW_DOWN -> arrowUpDown(1, event.ctrl, event.alt, event.shift);
+      case KeyCode.ARROW_UP ->
+          arrowUpDown(-1, event.ctrl, event.alt, event.shift);
+      case KeyCode.ARROW_DOWN ->
+          arrowUpDown(1, event.ctrl, event.alt, event.shift);
       case KeyCode.PAGE_UP -> pgUp(event);
       case KeyCode.PAGE_DOWN -> pgDown(event);
       case KeyCode.ARROW_LEFT ->
@@ -1388,12 +1396,15 @@ public class EditorComponent extends View implements
       case KeyCode.ARROW_RIGHT ->
           event.ctrl && event.alt ? navigateForward() :
               moveCaretLeftRight(1, event.ctrl, event.shift);
-      case KeyCode.HOME -> shiftSelection(event.shift) || setCaretPos(0, event.shift);
+      case KeyCode.HOME ->
+          shiftSelection(event.shift)
+              || setCaretPos(0, event.shift);
       case KeyCode.END -> shiftSelection(event.shift) ||
           setCaretPos(caretCodeLine().totalStrLength, event.shift);
       default -> false;
     };
-    if (result && event.shift) selection().endPos.set(model.caretLine, model.caretCharPos);
+    if (result && event.shift)
+      selection().endPos.set(model.caretLine, model.caretCharPos);
     if (result) model.computeUsages();
     return result;
   }

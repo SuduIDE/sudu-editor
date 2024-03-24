@@ -26,8 +26,8 @@ public class CtrlO implements InputListeners.KeyHandler {
   }
 
   @Override
-  public boolean test(KeyEvent event) {
-    if (event.ctrl && event.keyCode == KeyCode.O) {
+  public boolean handleKey(KeyEvent event) {
+    if (test(event)) {
       if (openDirectory != null && event.shift) {
         window.showDirectoryPicker(openDirectory);
       } else {
@@ -36,5 +36,9 @@ public class CtrlO implements InputListeners.KeyHandler {
       return true;
     }
     return false;
+  }
+
+  public static boolean test(KeyEvent event) {
+    return event.ctrl && event.keyCode == KeyCode.O;
   }
 }

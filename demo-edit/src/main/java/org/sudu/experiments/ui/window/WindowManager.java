@@ -147,9 +147,7 @@ public class WindowManager implements MouseListener, DprChangeListener {
       if (toTop) {
         int index = windows.find(win);
         if (index > 0) {
-          windows.get(0).blur();
-          windows.moveToFront(index);
-          windows.get(0).focus();
+          moveToFront(index);
         }
       }
       if (lock == null && hit)
@@ -158,6 +156,18 @@ public class WindowManager implements MouseListener, DprChangeListener {
         return lock;
     }
     return null;
+  }
+
+  private void moveToFront(int index) {
+    windows.get(0).blur();
+    windows.moveToFront(index);
+    windows.get(0).focus();
+  }
+
+  public void nextWindow() {
+    int length = windows.length();
+    if (length > 1)
+      moveToFront(length - 1);
   }
 
   @Override

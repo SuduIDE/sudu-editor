@@ -2,6 +2,9 @@ package org.sudu.experiments.editor;
 
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.input.InputListeners;
+import org.sudu.experiments.input.KeyCode;
+import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ToolWindow0;
@@ -12,7 +15,7 @@ import org.sudu.experiments.ui.window.WindowManager;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class EditorWindow extends ToolWindow0 {
+public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandler {
   Window window;
   EditorUi ui;
   EditorComponent editor;
@@ -30,6 +33,7 @@ public class EditorWindow extends ToolWindow0 {
     window = createWindow(editor, 25);
     window.onFocus(this::onFocus);
     window.onBlur(this::onBlur);
+    editor.onKey(this);
     applyTheme(theme);
     windowManager.addWindow(window);
   }
@@ -39,8 +43,11 @@ public class EditorWindow extends ToolWindow0 {
   }
 
   private void onBlur() {
-    var f = windowManager.uiContext.focused();
-    focusSave = (editor == f) ? editor : null;
+    focusSave = (editor == focused()) ? editor : null;
+  }
+
+  private Focusable focused() {
+    return windowManager.uiContext.focused();
   }
 
   private void onFocus() {
@@ -65,11 +72,15 @@ public class EditorWindow extends ToolWindow0 {
   }
 
   protected void dispose() {
+    if (focused() == editor)
+      windowManager.uiContext.setFocus(null);
     if (onDestroy != null)
       onDestroy.accept(this);
     window = null;
     editor = null;
     ui = null;
+    focusSave = null;
+    onDestroy = null;
   }
 
   protected Supplier<ToolbarItem[]> popupActions(V2i pos) {
@@ -80,9 +91,23 @@ public class EditorWindow extends ToolWindow0 {
     ).build(pos, opener);
   }
 
-  private void selectFile() {
+  public void selectFile() {
     windowManager.uiContext.window.showOpenFilePicker(
         windowManager.hidePopupMenuThen(this::open)
     );
+  }
+
+  @Override
+  public boolean handleKey(KeyEvent event) {
+    if (CtrlO.test(event)) {
+      selectFile();
+      return true;
+    }
+    if (event.keyCode == KeyCode.ESC) {
+      if (event.noMods()) window.close();
+      else windowManager.nextWindow();
+      return true;
+    }
+    return false;
   }
 }

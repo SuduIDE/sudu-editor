@@ -17,4 +17,6 @@ public class KeyModifiers {
   public boolean controlOnly() {
     return ctrl && !shift && !alt && !meta;
   }
+
+  public boolean noMods() { return !ctrl && !shift && !alt && !meta; }
 }

@@ -66,8 +66,8 @@ public class InputListeners {
     repaint.run();
     var toSend = e.isPressed ? onKeyPress : onKeyRelease;
 
-    for (Predicate<KeyEvent> listener : toSend.array()) {
-      boolean value = listener.test(e);
+    for (KeyHandler listener : toSend.array()) {
+      boolean value = listener.handleKey(e);
       if (value || e.prevented) return value;
     }
 
@@ -158,7 +158,9 @@ public class InputListeners {
 
   public interface ContextMenuHandler extends Predicate<MouseEvent> {}
 
-  public interface KeyHandler extends Predicate<KeyEvent> {}
+  public interface KeyHandler {
+    boolean handleKey(KeyEvent event);
+  }
 
   public interface ScrollHandler {
     boolean onScroll(MouseEvent event, float dX, float dY);
