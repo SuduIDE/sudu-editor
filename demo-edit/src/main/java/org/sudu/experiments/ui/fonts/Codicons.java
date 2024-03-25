@@ -16,4 +16,5 @@ public interface Codicons {
   char file             = '\uEA7B';
   char file_binary      = '\uEAE8';
   char file_code        = '\uEAE9';
+  char refresh          = '\uEB37';
 }

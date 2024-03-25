@@ -13,10 +13,10 @@ public class Diff<S> extends BaseRange<S> {
   }
 
   public int getType() {
-    if (isDeletion()) return LineDiff.DELETED;
-    else if (isInsertion()) return LineDiff.INSERTED;
-    else if (isEdition()) return LineDiff.EDITED;
-    else return LineDiff.DEFAULT;
+    if (isDeletion()) return DiffTypes.DELETED;
+    else if (isInsertion()) return DiffTypes.INSERTED;
+    else if (isEdition()) return DiffTypes.EDITED;
+    else return DiffTypes.DEFAULT;
   }
 
   public boolean isDeletion() {

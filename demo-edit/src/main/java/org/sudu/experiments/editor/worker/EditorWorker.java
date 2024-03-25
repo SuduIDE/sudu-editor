@@ -63,6 +63,8 @@ public class EditorWorker {
           array(a,3).ints(), array(a, 4).ints(),
           array(a, 5).chars(), r
       );
+      case DiffUtils.CMP_FILES -> DiffUtils.compareFiles(file(a, 0), file(a, 1), r);
+      case DiffUtils.CMP_FOLDERS -> DiffUtils.compareFolders(dir(a, 0), dir(a, 1), r);
     }
   }
 

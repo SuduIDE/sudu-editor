@@ -1,11 +1,16 @@
 package org.sudu.experiments.editor.worker.diff;
 
+import org.sudu.experiments.DirectoryHandle;
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffModel;
+import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.editor.Document;
+import org.sudu.experiments.ui.fs.FileDiffHandler;
+import org.sudu.experiments.ui.fs.FolderDiffHandler;
 import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
@@ -24,6 +29,28 @@ public class DiffUtils {
     DiffModel model = new DiffModel();
     int[] ints = model.findDiffs(charsN, intsN, charsM, intsM);
     result.add(ints);
+  }
+
+  public static final String CMP_FILES = "asyncDiffUtils.compareFiles";
+
+  public static void compareFiles(
+      FileHandle left, FileHandle right,
+      Consumer<Object[]> r
+  ) {
+    FileDiffHandler handler = new FileDiffHandler(r);
+    left.readAsBytes(handler::sendLeft, System.err::println);
+    right.readAsBytes(handler::sendRight, System.err::println);
+  }
+
+  public static final String CMP_FOLDERS = "asyncDiffUtils.compareFolders";
+
+  public static void compareFolders(
+      DirectoryHandle left, DirectoryHandle right,
+      Consumer<Object[]> r
+  ) {
+    FolderDiffHandler handler = new FolderDiffHandler(r);
+    left.read(new DiffReader(handler, true));
+    right.read(new DiffReader(handler, false));
   }
 
   public static int[] makeIntervals(Document document) {
@@ -110,9 +137,9 @@ public class DiffUtils {
     if (line.length() < 40) line = line + " ".repeat(40 - line.length());
 
     if (diff == null) return String.format("%4d  %.40s", ind + 1, line);
-    else if (diff.type == LineDiff.DELETED) return String.format("%4d- %.40s", ind + 1, line);
-    else if (diff.type == LineDiff.INSERTED) return String.format("%4d+ %.40s", ind + 1, line);
-    else if (diff.type == LineDiff.EDITED) return String.format("%4d# %.40s", ind + 1, line);
+    else if (diff.type == DiffTypes.DELETED) return String.format("%4d- %.40s", ind + 1, line);
+    else if (diff.type == DiffTypes.INSERTED) return String.format("%4d+ %.40s", ind + 1, line);
+    else if (diff.type == DiffTypes.EDITED) return String.format("%4d# %.40s", ind + 1, line);
     return String.format("%4d  %.40s", ind + 1, line);
   }
 
