@@ -3,6 +3,7 @@ package org.sudu.experiments.ui;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -195,7 +196,7 @@ public class TreeView extends ScrollContent implements Focusable {
 
       int yPosition = lineHeight * i - scrollPos.y;
 
-      LineDiff diff = mLine.status != null ? new LineDiff(mLine.status.diffType) : null;
+      LineDiff diff = mLine.status != null && mLine.status.diffType != DiffTypes.DEFAULT ? new LineDiff(mLine.status.diffType) : null;
       var bgLineColor = diff == null ? null : theme.diff.getDiffColor(theme, diff.type);
       int shift = leftGap + treeShift * mLine.depth;
 

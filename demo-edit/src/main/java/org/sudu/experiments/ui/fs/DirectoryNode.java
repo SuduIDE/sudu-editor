@@ -99,7 +99,7 @@ public class DirectoryNode extends FileTreeNode {
       @Override
       public void onDirectory(DirectoryHandle dir) {
         var d = new DirectoryNode(dir, depth + 1, handler);
-        if (status.propagation == PropTypes.PROP_DOWN) {
+        if (status != null && status.propagation == PropTypes.PROP_DOWN) {
           d.status = new DiffStatus(status);
           d.status.propagation = status.propagation;
           d.status.diffType = status.diffType;
@@ -113,7 +113,7 @@ public class DirectoryNode extends FileTreeNode {
         var f = new FileNode(fileName, depth + 1, file);
         handler.applyFileIcon(f, fileName);
         f.onDblClick = handler.open(f);
-        if (status.propagation == PropTypes.PROP_DOWN) {
+        if (status != null && status.propagation == PropTypes.PROP_DOWN) {
           f.status = new DiffStatus(status);
           f.status.propagation = status.propagation;
           f.status.diffType = status.diffType;
