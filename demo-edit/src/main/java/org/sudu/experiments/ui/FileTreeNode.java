@@ -11,7 +11,7 @@ public class FileTreeNode extends TreeNode {
   public static final FileTreeNode[] ch0 = new FileTreeNode[0];
   public static final Comparator<FileTreeNode> cmp = FileTreeNode::compare;
 
-  public FileTreeNode[] children = ch0;
+  FileTreeNode[] children = ch0;
 
   public FileTreeNode(String v, int d) {
     super(v, d);

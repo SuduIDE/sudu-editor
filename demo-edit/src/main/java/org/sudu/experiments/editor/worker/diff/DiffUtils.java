@@ -48,9 +48,8 @@ public class DiffUtils {
       DirectoryHandle left, DirectoryHandle right,
       Consumer<Object[]> r
   ) {
-    FolderDiffHandler handler = new FolderDiffHandler(r);
-    left.read(new DiffReader(handler, true));
-    right.read(new DiffReader(handler, false));
+    FolderDiffHandler handler = new FolderDiffHandler(left, right, r);
+    handler.read();
   }
 
   public static int[] makeIntervals(Document document) {
