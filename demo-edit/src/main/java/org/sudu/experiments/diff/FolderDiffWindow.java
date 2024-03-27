@@ -3,9 +3,9 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
-import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.diff.folder.DiffStatus;
-import org.sudu.experiments.diff.folder.PropTypes;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.diff.folder.RangeCtx;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
@@ -205,70 +205,68 @@ public class FolderDiffWindow extends ToolWindow0 {
   private void compareRootFolders() {
     if (leftRoot == null || rightRoot == null) return;
     ctx.clear();
-    if (leftRoot.name().equals(rightRoot.name())) {
-      leftRoot.status = new DiffStatus(null);
-      rightRoot.status = new DiffStatus(null);
-      compare(leftRoot, rightRoot);
-    } else {
-      // left & right roots are not equals
-      leftRoot.status = new DiffStatus(null);
-      leftRoot.status.diffType = DiffTypes.EDITED;
-      leftRoot.status.propagation = PropTypes.PROP_DOWN;
-      leftRoot.markDown(DiffTypes.EDITED);
-      rightRoot.status = new DiffStatus(null);
-      rightRoot.status.diffType = DiffTypes.EDITED;
-      rightRoot.status.propagation = PropTypes.PROP_DOWN;
-      rightRoot.markDown(DiffTypes.EDITED);
+    var leftRootModel = rootView.left.model = new FolderDiffModel(null);
+    var rightRootModel = rootView.right.model = new FolderDiffModel(null);
+    if (!leftRoot.name().equals(rightRoot.name())) {
+      rootView.left.model.status.diffType = DiffTypes.EDITED;
+      rootView.right.model.status.diffType = DiffTypes.EDITED;
       rootView.left.updateModel();
       rootView.right.updateModel();
     }
+    compare(leftRoot, rightRoot, leftRootModel, rightRootModel);
   }
 
-  private void compare(TreeNode left, TreeNode right) {
+  private void compare(
+      TreeNode left, TreeNode right,
+      FolderDiffModel leftModel, FolderDiffModel rightModel
+  ) {
     if (left instanceof DirectoryNode leftDir &&
         right instanceof DirectoryNode rightDir
     ) {
-      compareFolders(leftDir, rightDir);
+      compareFolders(leftDir, rightDir, leftModel, rightModel);
     } else if (left instanceof FileNode leftFile
         && right instanceof FileNode rightFile
     ) {
-      compareFiles(leftFile, rightFile);
+      compareFiles(leftFile, rightFile, leftModel, rightModel);
     } else throw new IllegalArgumentException("TreeNodes left & right should have same type");
     updateDiffInfo();
   }
 
   private void updateDiffInfo() {
     if (rootView.left == null || rootView.right == null) return;
+    rootView.left.updateModel();
+    rootView.right.updateModel();
     rootView.setDiffModel(getDiffInfo());
   }
 
   public DiffInfo getDiffInfo() {
-    var left = rootView.left.model();
-    var right = rootView.right.model();
+    var left = rootView.left.statuses();
+    var right = rootView.right.statuses();
+    System.out.println();
     DiffRange[] ranges = new DiffRange[1];
     int ptr = 0;
     int lP = 0, rP = 0;
     while (lP < left.length && rP < right.length) {
-      if (left[lP].status.diffType == right[rP].status.diffType &&
-          left[lP].status.rangeId == right[rP].status.rangeId
+      if (left[lP].diffType == right[rP].diffType &&
+          left[lP].rangeId == right[rP].rangeId
       ) {
-        int diffType = left[lP].status.diffType;
-        int rangeId = left[lP].status.rangeId;
+        int diffType = left[lP].diffType;
+        int rangeId = left[lP].rangeId;
         int lenL = 0, lenR = 0;
         while (lP < left.length && rP < right.length
-            && left[lP].status.rangeId == rangeId
-            && right[rP].status.rangeId == rangeId
+            && left[lP].rangeId == rangeId
+            && right[rP].rangeId == rangeId
         ) {
           lP++;
           lenL++;
           rP++;
           lenR++;
         }
-        while (lP < left.length && left[lP].status.rangeId == rangeId) {
+        while (lP < left.length && left[lP].rangeId == rangeId) {
           lP++;
           lenL++;
         }
-        while (rP < right.length && right[rP].status.rangeId == rangeId) {
+        while (rP < right.length && right[rP].rangeId == rangeId) {
           rP++;
           lenR++;
         }
@@ -277,7 +275,7 @@ public class FolderDiffWindow extends ToolWindow0 {
         continue;
       }
 
-      boolean leftDepth = left[lP].status.depth > right[rP].status.depth;
+      boolean leftDepth = left[lP].depth > right[rP].depth;
       if (leftDepth) {
         DiffRange range = handleDeleted(left, lP, rP);
         if (range != null) {
@@ -306,12 +304,12 @@ public class FolderDiffWindow extends ToolWindow0 {
         }
       }
 
-      if (left[lP].status.diffType == DiffTypes.DEFAULT || left[lP].status.diffType == DiffTypes.EDITED) {
-        var range = new DiffRange(lP, 1, rP, 0, left[lP].status.diffType);
+      if (left[lP].diffType == DiffTypes.DEFAULT || left[lP].diffType == DiffTypes.EDITED) {
+        var range = new DiffRange(lP, 1, rP, 0, left[lP].diffType);
         ranges = ArrayOp.addAt(range, ranges, ptr++);
         lP++;
-      } else if (right[rP].status.diffType == DiffTypes.DEFAULT || right[rP].status.diffType == DiffTypes.EDITED) {
-        var range = new DiffRange(lP, 0, rP, 1, right[rP].status.diffType);
+      } else if (right[rP].diffType == DiffTypes.DEFAULT || right[rP].diffType == DiffTypes.EDITED) {
+        var range = new DiffRange(lP, 0, rP, 1, right[rP].diffType);
         ranges = ArrayOp.addAt(range, ranges, ptr++);
         rP++;
       } else {
@@ -319,23 +317,23 @@ public class FolderDiffWindow extends ToolWindow0 {
       }
     }
     while (lP < left.length) {
-      var range = new DiffRange(lP, 1, rP, 0, left[lP].status.diffType);
+      var range = new DiffRange(lP, 1, rP, 0, left[lP].diffType);
       ranges = ArrayOp.addAt(range, ranges, ptr++);
       lP++;
     }
     while (rP < right.length) {
-      var range = new DiffRange(lP, 0, rP, 1, right[rP].status.diffType);
+      var range = new DiffRange(lP, 0, rP, 1, right[rP].diffType);
       ranges = ArrayOp.addAt(range, ranges, ptr++);
       rP++;
     }
     return new DiffInfo(null, null, Arrays.copyOf(ranges, ptr));
   }
 
-  private DiffRange handleDeleted(TreeNode[] left, int lP, int rP) {
-    if (left[lP].status.diffType == DiffTypes.DELETED) {
-      int rangeId = left[lP].status.rangeId;
+  private DiffRange handleDeleted(DiffStatus[] left, int lP, int rP) {
+    if (left[lP].diffType == DiffTypes.DELETED) {
+      int rangeId = left[lP].rangeId;
       int len = 0;
-      while (lP < left.length && left[lP].status.rangeId == rangeId) {
+      while (lP < left.length && left[lP].rangeId == rangeId) {
         lP++;
         len++;
       }
@@ -344,11 +342,11 @@ public class FolderDiffWindow extends ToolWindow0 {
     return null;
   }
 
-  private DiffRange handleInserted(TreeNode[] right, int rP, int lP) {
-    if (right[rP].status.diffType == DiffTypes.INSERTED) {
-      int rangeId = right[rP].status.rangeId;
+  private DiffRange handleInserted(DiffStatus[] right, int rP, int lP) {
+    if (right[rP].diffType == DiffTypes.INSERTED) {
+      int rangeId = right[rP].rangeId;
       int len = 0;
-      while (rP < right.length && right[rP].status.rangeId == rangeId) {
+      while (rP < right.length && right[rP].rangeId == rangeId) {
         rP++;
         len++;
       }
@@ -362,44 +360,52 @@ public class FolderDiffWindow extends ToolWindow0 {
         dir -> open(dir, left));
   }
 
-  private void compareFiles(FileNode left, FileNode right) {
+  private void compareFiles(FileNode left, FileNode right, FolderDiffModel leftModel, FolderDiffModel rightModel) {
     left.iconRefresh();
     right.iconRefresh();
     windowManager.uiContext.window.sendToWorker(
-        result -> onFilesCompares(left, right, result),
+        result -> onFilesCompared(left, right, leftModel, rightModel, result),
         DiffUtils.CMP_FILES,
         left.file, right.file
     );
   }
 
-  private void compareFolders(DirectoryNode left, DirectoryNode right) {
+  private void compareFolders(
+      DirectoryNode left, DirectoryNode right,
+      FolderDiffModel leftModel, FolderDiffModel rightModel
+  ) {
     left.iconRefresh();
     right.iconRefresh();
     windowManager.uiContext.window.sendToWorker(
-        result -> onFoldersCompares(left, right, result),
+        result -> onFoldersCompared(left, right, leftModel, rightModel, result),
         DiffUtils.CMP_FOLDERS,
         left.dir, right.dir
     );
   }
 
-  private void onFilesCompares(FileNode left, FileNode right, Object[] result) {
+  private void onFilesCompared(
+      FileNode left, FileNode right,
+      FolderDiffModel leftModel, FolderDiffModel rightModel,
+      Object[] result
+  ) {
     left.iconFile();
     right.iconFile();
     if (result.length != 1) return;
     boolean equals = ((ArrayView) result[0]).ints()[0] == 1;
     if (!equals) {
       int rangeId = ctx.nextId();
-      left.status.rangeId = rangeId;
-      right.status.rangeId = rangeId;
-      rangeId = ctx.nextId();
-      left.status.markUp(DiffTypes.EDITED, ctx);
-      ctx.set(rangeId + 1);
-      right.status.markUp(DiffTypes.EDITED, ctx);
+      leftModel.status.rangeId = rangeId;
+      rightModel.status.rangeId = rangeId;
+      ctx.markUp(leftModel, rightModel);
       updateDiffInfo();
     }
   }
 
-  private void onFoldersCompares(DirectoryNode left, DirectoryNode right, Object[] result) {
+  private void onFoldersCompared(
+      DirectoryNode left, DirectoryNode right,
+      FolderDiffModel leftModel, FolderDiffModel rightModel,
+      Object[] result
+  ) {
     if (result.length == 0) return;
     int[] ints = ((ArrayView) result[0]).ints();
     int leftLen = ints[0], rightLen = ints[1];
@@ -408,46 +414,45 @@ public class FolderDiffWindow extends ToolWindow0 {
     FsItem[] leftItems = Arrays.copyOfRange(result, 1, 1 + leftLen, FsItem[].class);
     FsItem[] rightItems = Arrays.copyOfRange(result, 1 + leftLen, 1 + leftLen + rightLen, FsItem[].class);
 
-    left.status.children = new DiffStatus[leftLen];
-    right.status.children = new DiffStatus[rightLen];
-    for (int i = 0; i < leftLen; i++) left.status.children[i] = new DiffStatus(left.status);
-    for (int i = 0; i < rightLen; i++) right.status.children[i] = new DiffStatus(right.status);
+    leftModel.setChildren(leftLen);
+    rightModel.setChildren(rightLen);
 
     int lP = 0, rP = 0;
     boolean changed = true;
     while (changed) {
       changed = false;
-      int id = ctx.nextId();
       while (lP < leftLen && rP < rightLen &&
           leftTypes[lP] == DiffTypes.DEFAULT &&
           rightTypes[rP] == DiffTypes.DEFAULT
       ) {
+        int id = ctx.nextId();
         changed = true;
-        left.status.children[lP].rangeId = id;
-        right.status.children[rP].rangeId = id;
-        sendCompare(left, right, leftItems, lP++, rightItems, rP++);
+        leftModel.childStatus(lP).rangeId = id;
+        rightModel.childStatus(rP).rangeId = id;
+        sendCompare(left, right, leftModel, rightModel, leftItems, lP++, rightItems, rP++);
       }
       if (changed) continue;
+      int id = ctx.nextId();
       while (lP < leftLen && leftTypes[lP] == DiffTypes.DELETED) {
         changed = true;
-        left.status.children[lP].diffType = DiffTypes.DELETED;
-        left.status.children[lP].rangeId = id;
-        left.status.children[lP].markDown(DiffTypes.DELETED);
-        left.status.markUp(DiffTypes.EDITED, ctx);
+        leftModel.childStatus(lP).diffType = DiffTypes.DELETED;
+        leftModel.childStatus(lP).rangeId = id;
+        leftModel.child(lP).markDown(DiffTypes.DELETED);
         lP++;
       }
-      if (changed) continue;
+      if (changed) {
+        ctx.markUp(leftModel, rightModel);
+        continue;
+      }
       while (rP < rightLen && rightTypes[rP] == DiffTypes.INSERTED) {
         changed = true;
-        right.status.children[rP].diffType = DiffTypes.INSERTED;
-        right.status.children[rP].rangeId = id;
-        right.status.children[rP].markDown(DiffTypes.INSERTED);
-        right.status.markUp(DiffTypes.EDITED, ctx);
+        rightModel.childStatus(rP).diffType = DiffTypes.INSERTED;
+        rightModel.childStatus(rP).rangeId = id;
+        rightModel.child(rP).markDown(DiffTypes.INSERTED);
         rP++;
       }
+      if (changed) ctx.markUp(leftModel, rightModel);
     }
-    if (left.childrenLength() != 0) left.updStatus(left.status.children);
-    if (right.childrenLength() != 0) right.updStatus(right.status.children);
     updateDiffInfo();
     if (left.childrenLength() == 0) left.iconFolder();
     else left.iconFolderOpened();
@@ -457,24 +462,33 @@ public class FolderDiffWindow extends ToolWindow0 {
 
   private void sendCompare(
       DirectoryNode left, DirectoryNode right,
+      FolderDiffModel leftModel, FolderDiffModel rightModel,
       FsItem[] leftItems, int lP,
       FsItem[] rightItems, int rP
   ) {
     if (leftItems[lP] instanceof DirectoryHandle leftDir &&
         rightItems[rP] instanceof DirectoryHandle rightDir
     ) {
-      var leftNode = new DirectoryNode(leftDir, left.handler);
-      leftNode.status = left.status.children[lP];
-      var rightNode = new DirectoryNode(rightDir, right.handler);
-      rightNode.status = right.status.children[rP];
-      compare(leftNode, rightNode);
+      var leftNode = getDirNode(left, leftDir, lP);
+      var rightNode = getDirNode(right, rightDir, rP);
+      compare(leftNode, rightNode, leftModel.child(lP), rightModel.child(rP));
     } else if (leftItems[lP] instanceof FileHandle leftFile
         && rightItems[rP] instanceof FileHandle rightFile) {
-      var leftNode = new FileNode(leftFile.getName(), left.depth + 1, leftFile);
-      leftNode.status = left.status.children[lP];
-      var rightNode = new FileNode(rightFile.getName(), right.depth + 1, rightFile);
-      rightNode.status = right.status.children[rP];
-      compare(leftNode, rightNode);
+      var leftNode = getFileNode(left, leftFile, lP);
+      var rightNode = getFileNode(right, rightFile, rP);
+      compare(leftNode, rightNode, leftModel.child(lP), rightModel.child(rP));
     } else throw new IllegalStateException();
+  }
+
+  private DirectoryNode getDirNode(DirectoryNode node, DirectoryHandle dir, int p) {
+    return node.childrenLength() > 0
+        ? node.folders()[p]
+        : new DirectoryNode(dir, node.handler);
+  }
+
+  private FileNode getFileNode(DirectoryNode node, FileHandle handle, int p) {
+    return node.childrenLength() > 0
+        ? node.files()[p - node.folders().length]
+        : new FileNode(handle.getName(), node.depth + 1, handle);
   }
 }

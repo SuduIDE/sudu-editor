@@ -2,8 +2,6 @@ package org.sudu.experiments.ui.fs;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.diff.folder.DiffStatus;
-import org.sudu.experiments.diff.folder.PropTypes;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.ui.FileTreeNode;
 
@@ -99,11 +97,6 @@ public class DirectoryNode extends FileTreeNode {
       @Override
       public void onDirectory(DirectoryHandle dir) {
         var d = new DirectoryNode(dir, depth + 1, handler);
-        if (status != null && status.propagation == PropTypes.PROP_DOWN) {
-          d.status = new DiffStatus(status);
-          d.status.propagation = status.propagation;
-          d.status.diffType = status.diffType;
-        }
         dList.add(d);
       }
 
@@ -113,12 +106,6 @@ public class DirectoryNode extends FileTreeNode {
         var f = new FileNode(fileName, depth + 1, file);
         handler.applyFileIcon(f, fileName);
         f.onDblClick = handler.open(f);
-        if (status != null && status.propagation == PropTypes.PROP_DOWN) {
-          f.status = new DiffStatus(status);
-          f.status.propagation = status.propagation;
-          f.status.diffType = status.diffType;
-          f.status.rangeId = status.rangeId;
-        }
         fList.add(f);
       }
 
@@ -131,12 +118,6 @@ public class DirectoryNode extends FileTreeNode {
           Arrays.sort(files, cmp);
           var children = ArrayOp.add(folders, files,
               new FileTreeNode[folders.length + files.length]);
-          if (status.children != null) {
-            for (int i = 0; i < children.length; i++) children[i].status = status.children[i];
-          } else {
-            status.children = new DiffStatus[children.length];
-            for (int i = 0; i < children.length; i++) status.children[i] = children[i].status;
-          }
           setContent(children);
         }
         open();

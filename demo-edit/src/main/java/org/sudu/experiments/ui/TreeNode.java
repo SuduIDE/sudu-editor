@@ -1,6 +1,5 @@
 package org.sudu.experiments.ui;
 
-import org.sudu.experiments.diff.folder.DiffStatus;
 import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.ui.fonts.Codicons;
 
@@ -12,7 +11,6 @@ public class TreeNode {
   public int depth;
   public char arrow;
   public char icon;
-  public DiffStatus status = new DiffStatus();
 
   public TreeNode(String v, int d) {
     this(v, d, (char) 0);
