@@ -1,6 +1,7 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
@@ -15,6 +16,8 @@ public class ClrContext {
   public final V2i size = new V2i();
   public final V2i underlineSize = new V2i();
   public final V4f underlineParams = new V4f();
+  public final LineDiff ld = new LineDiff(0);
+
   final FontDesk[] fonts = new FontDesk[4];
   final GL.Texture[] textures0 = new GL.Texture[0];
 
