@@ -18,7 +18,7 @@ public class RangeCtx {
     curCtxId = 0;
   }
 
-  public void markUp(DiffStatus left, DiffStatus right) {
+  public void markUp(FolderDiffModel left, FolderDiffModel right) {
     int rangeId = this.nextId();
     left.markUp(DiffTypes.EDITED, this);
     this.set(rangeId + 1);
