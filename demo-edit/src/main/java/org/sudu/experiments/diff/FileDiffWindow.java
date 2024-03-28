@@ -1,8 +1,11 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.editor.CtrlO;
 import org.sudu.experiments.editor.EditorComponent;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.input.KeyCode;
+import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.Focusable;
@@ -13,7 +16,9 @@ import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Supplier;
 
-public class FileDiffWindow extends ToolWindow0 {
+public class FileDiffWindow extends ToolWindow0
+    implements Focusable
+{
   FileDiffRootView rootView;
   Window window;
   String leftFile, rightFile;
@@ -31,11 +36,19 @@ public class FileDiffWindow extends ToolWindow0 {
     window.onFocus(this::onFocus);
     window.onBlur(this::onBlur);
     windowManager.addWindow(window);
+
+    rootView.editor1.onKey(this);
+    rootView.editor2.onKey(this);
+    windowManager.uiContext.setFocus(this);
   }
 
   private void onBlur() {
     var f = windowManager.uiContext.focused();
-    focusSave = (rootView.editor1 == f || rootView.editor2 == f) ? f : null;
+    focusSave = isMyFocus(f) ? f : null;
+  }
+
+  private boolean isMyFocus(Focusable f) {
+    return rootView.editor1 == f || rootView.editor2 == f || this == f;
   }
 
   private void onFocus() {
@@ -65,6 +78,10 @@ public class FileDiffWindow extends ToolWindow0 {
   }
 
   protected void dispose() {
+    if (isMyFocus(windowManager.uiContext.focused())) {
+      windowManager.uiContext.setFocus(null);
+    }
+
     window = null;
     rootView = null;
   }
@@ -110,5 +127,22 @@ public class FileDiffWindow extends ToolWindow0 {
             file -> open(file, left)
         )
     );
+  }
+
+  @Override
+  public boolean onKeyPress(KeyEvent event) {
+    if (CtrlO.test(event)) {
+      var f = windowManager.uiContext.focused();
+      if (rootView.editor1 == f || rootView.editor2 == f) {
+        selectFile(rootView.editor1 == f);
+      }
+      return true;
+    }
+    if (event.keyCode == KeyCode.ESC) {
+      if (event.noMods()) window.close();
+      else windowManager.nextWindow();
+      return true;
+    }
+    return false;
   }
 }

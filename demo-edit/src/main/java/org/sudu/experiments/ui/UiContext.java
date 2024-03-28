@@ -77,9 +77,11 @@ public class UiContext implements
   }
 
   public void setFocus(Focusable f) {
-    sendFocusLost();
-    focused = f;
-    sendFocusGain();
+    if (focused != f) {
+      sendFocusLost();
+      focused = f;
+      sendFocusGain();
+    }
   }
 
   public void removeFocus(Focusable f) {

@@ -98,7 +98,7 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
   }
 
   @Override
-  public boolean handleKey(KeyEvent event) {
+  public boolean onKeyPress(KeyEvent event) {
     if (CtrlO.test(event)) {
       selectFile();
       return true;

@@ -44,10 +44,12 @@ public class ProjectViewWindow extends ToolWindow0
     model.iconFolderOpened();
     model.onClick = this::openFolder;
     view.treeView.setRoot(model);
+    view.treeView.setSelected0();
     window = createWindow(view, "Project view", 0);
     window.onFocus(this::onFocus);
     window.onBlur(this::onBlur);
     windowManager.addWindow(window);
+    windowManager.uiContext.setFocus(view.treeView);
   }
 
   private void onFocus() {
@@ -93,6 +95,7 @@ public class ProjectViewWindow extends ToolWindow0
     view.treeView.setRoot(root);
     root.onClickArrow.run();
     window.setTitle(dir.getFullPath().concat(" - project view"));
+    windowManager.uiContext.setFocus(view.treeView);
   }
 
   @Override

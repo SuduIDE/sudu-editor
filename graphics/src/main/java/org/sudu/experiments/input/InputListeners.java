@@ -67,7 +67,7 @@ public class InputListeners {
     var toSend = e.isPressed ? onKeyPress : onKeyRelease;
 
     for (KeyHandler listener : toSend.array()) {
-      boolean value = listener.handleKey(e);
+      boolean value = listener.onKeyPress(e);
       if (value || e.prevented) return value;
     }
 
@@ -159,7 +159,7 @@ public class InputListeners {
   public interface ContextMenuHandler extends Predicate<MouseEvent> {}
 
   public interface KeyHandler {
-    boolean handleKey(KeyEvent event);
+    boolean onKeyPress(KeyEvent event);
   }
 
   public interface ScrollHandler {

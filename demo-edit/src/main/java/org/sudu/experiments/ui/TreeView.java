@@ -9,6 +9,7 @@ import org.sudu.experiments.diff.folder.DiffStatus;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
@@ -106,6 +107,8 @@ public class TreeView extends ScrollContent implements Focusable {
 
   public void setModel(TreeModel model) {
     this.model = model;
+    if (!model.contains(selectedLine))
+      selectedLine = null;
     if (dpr != 0) updateVirtualHeight();
   }
 
@@ -148,6 +151,9 @@ public class TreeView extends ScrollContent implements Focusable {
     layoutScroll();
   }
 
+  public void setSelected0() {
+    selectedLine = model.lines.length > 0 ? model.lines[0] : null;
+  }
 
   public void setSelected(TreeNode l) {
     selectedLine = l;
@@ -292,7 +298,12 @@ public class TreeView extends ScrollContent implements Focusable {
     return true;
   }
 
+  public void focus() {
+    uiContext.setFocus(this);
+  }
+
   protected Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
+    focus();
     int lineHeight = clrContext.lineHeight;
     int viewY = event.position.y - pos.y + scrollPos.y;
     int line = viewY / lineHeight;
@@ -308,12 +319,6 @@ public class TreeView extends ScrollContent implements Focusable {
       }
     }
     return MouseListener.Static.emptyConsumer;
-  }
-
- // todo add keyboard processing
-  @Override
-  public boolean onKeyPress(KeyEvent event) {
-    return false;
   }
 
   private boolean arrowClicked(MouseEvent event, int line) {
@@ -359,5 +364,95 @@ public class TreeView extends ScrollContent implements Focusable {
 
     public CodeLine line(int i) { return lines[i].line; }
     public DiffStatus status(int i) { return statuses[i]; }
+
+    public boolean contains(TreeNode n) {
+      for (TreeNode line : lines) {
+        if (line == n) return true;
+      }
+      return false;
+    }
+  }
+
+  // focusable
+  @Override
+  public boolean onKeyPress(KeyEvent event) {
+    return switch (event.keyCode) {
+      case KeyCode.ARROW_DOWN -> moveDown();
+      case KeyCode.ARROW_UP -> moveUp();
+      case KeyCode.ARROW_RIGHT -> openIfClosedElseMoveDown();
+      case KeyCode.ARROW_LEFT -> closeIfOpened();
+      case KeyCode.ENTER -> enterSelected();
+      default -> false;
+    };
+  }
+
+  private boolean enterSelected() {
+    if (selectedLine != null) {
+      var r = selectedLine.onEnter();
+      if (r != null)
+        r.run();
+    }
+    return true;
+  }
+
+  private boolean closeIfOpened() {
+    if (selectedLine != null && selectedLine.isOpened())
+      selectedLine.onClickArrow.run();
+    return true;
+  }
+
+  private boolean openIfClosedElseMoveDown() {
+    if (selectedLine != null && selectedLine.isClosed())
+      selectedLine.onClickArrow.run();
+    else
+      return moveDown();
+    return true;
+  }
+
+  private boolean moveUp() {
+    int idx = selectedIndex() - 1;
+    int index = idx >= 0 ? idx : model.lines.length - 1;
+    selectedLine = model.lines[index];
+    checkScroll(index);
+    return true;
+  }
+
+  private boolean moveDown() {
+    int idx = selectedIndex() + 1;
+    int index = idx > 0 && idx < model.lines.length ? idx : 0;
+    selectedLine = model.lines[index];
+    checkScroll(index);
+    return true;
+  }
+
+  private int selectedIndex() {
+    TreeNode[] lines = model.lines;
+    TreeNode sLine = selectedLine;
+    for (int i = 0, l = lines.length; i < l; i++) {
+      if (sLine == lines[i]) return i;
+    }
+    return -1;
+  }
+
+  private void checkScroll(int index) {
+    int lineHeight = clrContext.lineHeight;
+    int y = index * lineHeight;
+    if (y < scrollPos.y) {
+      setScrollPosY(y);
+      layoutScroll();
+    }
+    if (y + lineHeight > scrollPos.y + size.y) {
+      setScrollPosY(y + lineHeight - size.y);
+      layoutScroll();
+    }
+  }
+
+  @Override
+  public boolean onCopy(Consumer<String> setText, boolean isCut) {
+    if (selectedLine != null) {
+      setText.accept(selectedLine.value());
+      return true;
+    }
+    return false;
   }
 }

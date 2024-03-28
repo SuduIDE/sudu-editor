@@ -128,6 +128,7 @@ public class FolderDiffWindow extends ToolWindow0 {
         } else {
           var window = new EditorWindow(windowManager, theme, fonts);
           window.open(node.file);
+          window.focus();
         }
       }
 

@@ -89,4 +89,9 @@ public class TreeNode {
   public void onClickArrow(Runnable h) {
     onClickArrow = h;
   }
+
+  public Runnable onEnter() {
+    return onClick != null ? onClick :
+        onDblClick != null ? onDblClick : onClickArrow;
+  }
 }

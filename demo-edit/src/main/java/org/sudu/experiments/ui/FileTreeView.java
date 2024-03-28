@@ -19,6 +19,7 @@ public class FileTreeView extends TreeView {
     this.root = root;
     this.model = new FolderDiffModel(null);
     updateModel();
+    setSelected0();
   }
 
   public ScrollView applyTheme(ScrollView view) {

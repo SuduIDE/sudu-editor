@@ -60,7 +60,7 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
   }
 
   private void newEditorWindow() {
-    new EditorWindow(windowManager, theme, FolderDiff::menuFonts);
+    new EditorWindow(windowManager, theme, FolderDiff::menuFonts).focus();
   }
 
   @Override

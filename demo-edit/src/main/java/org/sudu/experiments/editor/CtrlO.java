@@ -26,7 +26,7 @@ public class CtrlO implements InputListeners.KeyHandler {
   }
 
   @Override
-  public boolean handleKey(KeyEvent event) {
+  public boolean onKeyPress(KeyEvent event) {
     if (test(event)) {
       if (openDirectory != null && event.shift) {
         window.showDirectoryPicker(openDirectory);
