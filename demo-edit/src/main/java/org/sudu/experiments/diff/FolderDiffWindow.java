@@ -3,7 +3,6 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
-import org.sudu.experiments.diff.folder.DiffStatus;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.diff.folder.RangeCtx;
@@ -210,8 +209,8 @@ public class FolderDiffWindow extends ToolWindow0 {
     var leftRootModel = rootView.left.model = new FolderDiffModel(null);
     var rightRootModel = rootView.right.model = new FolderDiffModel(null);
     if (!leftRoot.name().equals(rightRoot.name())) {
-      rootView.left.model.status.diffType = DiffTypes.EDITED;
-      rootView.right.model.status.diffType = DiffTypes.EDITED;
+      rootView.left.model.diffType = DiffTypes.EDITED;
+      rootView.right.model.diffType = DiffTypes.EDITED;
       rootView.left.updateModel();
       rootView.right.updateModel();
     }
@@ -242,9 +241,8 @@ public class FolderDiffWindow extends ToolWindow0 {
   }
 
   public DiffInfo getDiffInfo() {
-    var left = rootView.left.statuses();
-    var right = rootView.right.statuses();
-    // System.out.println();
+    var left = rootView.left.model();
+    var right = rootView.right.model();
     DiffRange[] ranges = new DiffRange[1];
     int ptr = 0;
     int lP = 0, rP = 0;
@@ -331,7 +329,7 @@ public class FolderDiffWindow extends ToolWindow0 {
     return new DiffInfo(null, null, Arrays.copyOf(ranges, ptr));
   }
 
-  private DiffRange handleDeleted(DiffStatus[] left, int lP, int rP) {
+  private DiffRange handleDeleted(TreeNode[] left, int lP, int rP) {
     if (left[lP].diffType == DiffTypes.DELETED) {
       int rangeId = left[lP].rangeId;
       int len = 0;
@@ -344,7 +342,7 @@ public class FolderDiffWindow extends ToolWindow0 {
     return null;
   }
 
-  private DiffRange handleInserted(DiffStatus[] right, int rP, int lP) {
+  private DiffRange handleInserted(TreeNode[] right, int rP, int lP) {
     if (right[rP].diffType == DiffTypes.INSERTED) {
       int rangeId = right[rP].rangeId;
       int len = 0;
@@ -396,8 +394,8 @@ public class FolderDiffWindow extends ToolWindow0 {
     boolean equals = ((ArrayView) result[0]).ints()[0] == 1;
     if (!equals) {
       int rangeId = ctx.nextId();
-      leftModel.status.rangeId = rangeId;
-      rightModel.status.rangeId = rangeId;
+      leftModel.rangeId = rangeId;
+      rightModel.rangeId = rangeId;
       ctx.markUp(leftModel, rightModel);
       updateDiffInfo();
     }
@@ -429,16 +427,16 @@ public class FolderDiffWindow extends ToolWindow0 {
       ) {
         int id = ctx.nextId();
         changed = true;
-        leftModel.childStatus(lP).rangeId = id;
-        rightModel.childStatus(rP).rangeId = id;
+        leftModel.child(lP).rangeId = id;
+        rightModel.child(rP).rangeId = id;
         sendCompare(left, right, leftModel, rightModel, leftItems, lP++, rightItems, rP++);
       }
       if (changed) continue;
       int id = ctx.nextId();
       while (lP < leftLen && leftTypes[lP] == DiffTypes.DELETED) {
         changed = true;
-        leftModel.childStatus(lP).diffType = DiffTypes.DELETED;
-        leftModel.childStatus(lP).rangeId = id;
+        leftModel.child(lP).diffType = DiffTypes.DELETED;
+        leftModel.child(lP).rangeId = id;
         leftModel.child(lP).markDown(DiffTypes.DELETED);
         lP++;
       }
@@ -448,8 +446,8 @@ public class FolderDiffWindow extends ToolWindow0 {
       }
       while (rP < rightLen && rightTypes[rP] == DiffTypes.INSERTED) {
         changed = true;
-        rightModel.childStatus(rP).diffType = DiffTypes.INSERTED;
-        rightModel.childStatus(rP).rangeId = id;
+        rightModel.child(rP).diffType = DiffTypes.INSERTED;
+        rightModel.child(rP).rangeId = id;
         rightModel.child(rP).markDown(DiffTypes.INSERTED);
         rP++;
       }

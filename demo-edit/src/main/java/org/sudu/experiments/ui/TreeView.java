@@ -5,7 +5,6 @@ import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
-import org.sudu.experiments.diff.folder.DiffStatus;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.FontDesk;
@@ -105,8 +104,8 @@ public class TreeView extends ScrollContent implements Focusable {
     };
   }
 
-  public void setModel(TreeModel model) {
-    this.model = model;
+  public void setModel(TreeNode[] lines) {
+    this.model = new TreeModel(lines);
     if (!model.contains(selectedLine))
       selectedLine = null;
     if (dpr != 0) updateVirtualHeight();
@@ -114,10 +113,6 @@ public class TreeView extends ScrollContent implements Focusable {
 
   public TreeNode[] model() {
     return model.lines;
-  }
-
-  public DiffStatus[] statuses() {
-    return model.statuses;
   }
 
   public void setTheme(EditorColorScheme colors) {
@@ -200,7 +195,7 @@ public class TreeView extends ScrollContent implements Focusable {
 
     for (int i = firstLine; i <= lastLine; i++) {
       TreeNode mLine = model.lines[i];
-      var status = model.status(i);
+      var diffType = mLine.diffType;
       CodeLineRenderer line = lines[i % lines.length];
 
       line.updateTexture(mLine.line, g,
@@ -208,8 +203,8 @@ public class TreeView extends ScrollContent implements Focusable {
 
       int yPosition = lineHeight * i - scrollPos.y;
 
-      LineDiff diff = status != null && status.diffType != DiffTypes.DEFAULT
-          ? clrContext.ld.seType(status.diffType) : null;
+      LineDiff diff = diffType != DiffTypes.DEFAULT
+          ? clrContext.ld.seType(diffType) : null;
       var bgLineColor = diff == null ? null : theme.diff.getDiffColor(theme, diff.type);
       int shift = leftGap + treeShift * mLine.depth;
 
@@ -351,19 +346,16 @@ public class TreeView extends ScrollContent implements Focusable {
 
   static class TreeModel extends CodeLines {
     TreeNode[] lines;
-    DiffStatus[] statuses;
 
     public TreeModel() {
-      this(new TreeNode[]{}, new DiffStatus[]{});
+      this(new TreeNode[]{});
     }
 
-    public TreeModel(TreeNode[] lines, DiffStatus[] statuses) {
+    public TreeModel(TreeNode[] lines) {
       this.lines = lines;
-      this.statuses = statuses;
     }
 
     public CodeLine line(int i) { return lines[i].line; }
-    public DiffStatus status(int i) { return statuses[i]; }
 
     public boolean contains(TreeNode n) {
       for (TreeNode line : lines) {
