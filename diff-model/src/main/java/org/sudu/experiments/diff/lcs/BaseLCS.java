@@ -1,52 +1,23 @@
-package org.sudu.experiments.diff;
+package org.sudu.experiments.diff.lcs;
+
+import org.sudu.experiments.diff.BaseRange;
+import org.sudu.experiments.diff.CommonRange;
+import org.sudu.experiments.diff.Diff;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
-/**
- * @param <S> can be CodeElementS or CodeLineS
- */
-public class LCS<S> {
+public abstract class BaseLCS<S> {
 
-  private final S[] L, R;
+  protected final S[] L, R;
   public List<BaseRange<S>> ranges;
 
-  public LCS(S[] L, S[] R) {
+  public BaseLCS(S[] L, S[] R) {
     this.L = L;
     this.R = R;
   }
 
-  public int[][] countLCSMatrix() {
-    int[][] matrix = new int[L.length + 1][R.length + 1];
-    for (int i = 1; i < L.length + 1; i++) {
-      for (int j = 1; j < R.length + 1; j++) {
-        if (equals(L[i - 1], R[j - 1])) {
-          matrix[i][j] = 1 + matrix[i - 1][j - 1];
-        } else {
-          matrix[i][j] = Math.max(matrix[i - 1][j], matrix[i][j - 1]);
-        }
-      }
-    }
-    return matrix;
-  }
-
-  public List<S> findCommon(int[][] matrix) {
-    int i = L.length, j = R.length;
-    LinkedList<S> common = new LinkedList<>();
-
-    while (i > 0 && j > 0) {
-      if (equals(L[i - 1], R[j - 1])) {
-        common.addFirst(L[i - 1]);
-        i--;
-        j--;
-      } else {
-        if (matrix[i - 1][j] > matrix[i][j - 1]) i--;
-        else j--;
-      }
-    }
-    return new ArrayList<>(common);
-  }
+  public abstract List<S> findCommon();
 
   public void countDiffs(List<S> common) {
     this.ranges = new ArrayList<>();
@@ -109,7 +80,7 @@ public class LCS<S> {
   }
 
   public void countAll() {
-    countDiffs(findCommon(countLCSMatrix()));
+    countDiffs(findCommon());
   }
 
   protected boolean equals(S a, S b) {

@@ -21,13 +21,12 @@ public class CodeElementS {
 
   @Override
   public int hashCode() {
-    return Objects.hash(s);
+    return s.hashCode();
   }
 
   @Override
   public String toString() {
     return "(" + (lineNum + 1) + ": " + (elemNum + 1) + ") " + s;
-
   }
 
 }

@@ -4,8 +4,8 @@ import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.Diff;
+import org.sudu.experiments.diff.DiffModel;
 import org.sudu.experiments.diff.DiffTypes;
-import org.sudu.experiments.diff.LCS;
 import org.sudu.experiments.math.ArrayOp;
 
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ public class FolderDiffHandler {
     var leftC = leftChildren;
     var rightC = rightChildren;
 
-    var lcs = new LCS<>(leftC, rightC);
+    var lcs = DiffModel.getLCS(leftC, rightC);
     lcs.countAll();
     for (var range : lcs.ranges) {
       if (range instanceof Diff<TreeS> diff) {

@@ -2,6 +2,8 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
+import org.sudu.experiments.diff.lcs.HirschbergLCS;
+import org.sudu.experiments.diff.lcs.LCS;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,10 +31,8 @@ public class DiffModel {
     prepare(docN);
     prepare(docM);
 
-    LCS<CodeLineS> lcs = new LCS<>(docN, docM);
-    int[][] lcsMatrix = lcs.countLCSMatrix();
-    List<CodeLineS> common = lcs.findCommon(lcsMatrix);
-    lcs.countDiffs(common);
+    LCS<CodeLineS> lcs = getLCS(docN, docM);
+    lcs.countAll();
     this.linesRanges = lcs.ranges;
     for (var range: lcs.ranges) {
       if (!(range instanceof Diff<CodeLineS> diff)) continue;
@@ -43,10 +43,8 @@ public class DiffModel {
   }
 
   private List<BaseRange<CodeElementS>> findElementsDiff(CodeElementS[] linesN, CodeElementS[] linesM) {
-    LCS<CodeElementS> lcs = new LCS<>(linesN, linesM);
-    int[][] lcsMatrix = lcs.countLCSMatrix();
-    List<CodeElementS> common = lcs.findCommon(lcsMatrix);
-    lcs.countDiffs(common);
+    LCS<CodeElementS> lcs = getLCS(linesN, linesM);
+    lcs.countAll();
     return lcs.ranges;
   }
 
@@ -158,5 +156,10 @@ public class DiffModel {
         writer.write(diff.getType());
       else writer.write(0);
     }
+  }
+
+  public static <S> LCS<S> getLCS(S[] L, S[] R) {
+    if (((long) L.length * R.length) >= 1000 * 1000) return new HirschbergLCS<>(L, R);
+    return new LCS<>(L, R);
   }
 }
