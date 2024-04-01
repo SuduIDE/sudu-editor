@@ -14,14 +14,14 @@ public class LCS<S> extends BaseLCS<S> {
     super(L, R);
   }
 
-  public int[][] countLCSMatrix() {
-    int[][] matrix = new int[L.length + 1][R.length + 1];
+  public short[][] countLCSMatrix() {
+    short[][] matrix = new short[L.length + 1][R.length + 1];
     for (int i = 1; i < L.length + 1; i++) {
       for (int j = 1; j < R.length + 1; j++) {
         if (equals(L[i - 1], R[j - 1])) {
-          matrix[i][j] = 1 + matrix[i - 1][j - 1];
+          matrix[i][j] = (short) (1 + matrix[i - 1][j - 1]);
         } else {
-          matrix[i][j] = Math.max(matrix[i - 1][j], matrix[i][j - 1]);
+          matrix[i][j] = (short) Math.max(matrix[i - 1][j], matrix[i][j - 1]);
         }
       }
     }
@@ -29,7 +29,7 @@ public class LCS<S> extends BaseLCS<S> {
   }
 
   public List<S> findCommon() {
-    int[][] matrix = countLCSMatrix();
+    short[][] matrix = countLCSMatrix();
     int i = L.length, j = R.length;
     LinkedList<S> common = new LinkedList<>();
 

@@ -1,32 +1,31 @@
 package org.sudu.experiments.diff;
 
-import java.util.Objects;
-
 public class CodeElementS {
 
   public String s;
   public int lineNum, elemNum;
+  private final int hash;
 
   public CodeElementS(String s) {
     this.s = s;
+    this.hash = s.hashCode();
   }
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (o == null || this.hashCode() != o.hashCode() || getClass() != o.getClass()) return false;
     CodeElementS that = (CodeElementS) o;
-    return Objects.equals(s, that.s);
+    return s.equals(that.s);
   }
 
   @Override
   public int hashCode() {
-    return s.hashCode();
+    return hash;
   }
 
   @Override
   public String toString() {
     return "(" + (lineNum + 1) + ": " + (elemNum + 1) + ") " + s;
   }
-
 }

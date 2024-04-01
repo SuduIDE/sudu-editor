@@ -159,7 +159,9 @@ public class DiffModel {
   }
 
   public static <S> LCS<S> getLCS(S[] L, S[] R) {
-    if (((long) L.length * R.length) >= 1000 * 1000) return new HirschbergLCS<>(L, R);
+    if ((L.length > Short.MAX_VALUE && R.length > Short.MAX_VALUE) ||
+        ((long) L.length * R.length) >= 1_000_000_000
+    ) return new HirschbergLCS<>(L, R);
     return new LCS<>(L, R);
   }
 }
