@@ -13,7 +13,7 @@ public abstract class WglGraphics {
   public final GLApi.Context gl;
   public final boolean cleartypeSupported;
 
-  final GL.TextureContext tc;
+  public final GL.TextureContext tc;
   final int maxTextureSize;
   final boolean isWGL2;
 
@@ -78,6 +78,18 @@ public abstract class WglGraphics {
     };
 
     gl.checkError("WebGraphics::ctor finish");
+  }
+
+  public void reportLostResources() {
+    if (tc.counter != 0 || Canvas.globalCounter != 1) {
+      System.out.println("[GL] reportLostResources:");
+      if (tc.counter != 0) {
+        System.out.println("\tTexture.counter = " + tc.counter);
+      }
+      if (Canvas.globalCounter != 1) {
+        System.out.println("\tCanvas.globalCounter = " + Canvas.globalCounter);
+      }
+    }
   }
 
   public void dispose() {

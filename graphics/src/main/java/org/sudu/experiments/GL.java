@@ -113,31 +113,46 @@ public interface GL {
 
   class TextureContext {
     final GLApi.Context gl;
+    int counter, memory;
 
     TextureContext(GLApi.Context gl) {
       this.gl = gl;
     }
+
+    public String string() {
+      StringBuilder sb = new StringBuilder().append("#tCnt = ")
+          .append(counter).append(", #tMem = ");
+      int kb = memory >>> 10;
+      int mb = kb >>> 10;
+      int k = kb - mb * 1024;
+
+      if (mb > 0) {
+        sb.append(mb).append("m");
+      }
+      return sb.append(k).append("k").toString();
+    }
   }
 
   class Texture implements Disposable {
-    static int globalCounter;
-
     final TextureContext ctx;
     GLApi.Texture texture;
     final V2i size = new V2i();
+    int memory;
 
     Texture(TextureContext ctx) {
       this.ctx = ctx;
       texture = ctx.gl.createTexture();
-      globalCounter++;
+      ctx.counter++;
     }
 
     @Override
     public void dispose() {
       if (texture != null) {
-        globalCounter--;
+        ctx.counter--;
+        ctx.memory -= memory;
         ctx.gl.deleteTexture(texture);
         texture = null;
+        memory = 0;
       }
     }
 
@@ -151,6 +166,15 @@ public interface GL {
     public int height() { return size.y; }
 
     public V2i size() { return size; }
+
+    public static int memory(int w, int h, int internalformat) {
+      int bpp = switch (internalformat) {
+        case GLApi.Context.RGBA8 -> 4;
+        case GLApi.Context.R8 -> 1;
+        default -> 0;
+      };
+      return w * h * bpp;
+    }
 
     public void allocate(int width, int height) {
       allocate(width, height, GLApi.Context.RGBA8);
@@ -185,12 +209,17 @@ public interface GL {
     private void checkSizeAndAllocate(int newWidth, int newHeight, int internalformat) {
       if (size.x == 0 || size.y == 0) {
         allocate(newWidth, newHeight, internalformat);
+        memory = memory(size.x, size.y, internalformat);
+        ctx.memory += memory;
       } else {
         if (size.equals(newWidth, newHeight)) {
           bind();
         } else {
+          ctx.memory -= memory;
           getNewHandle();
           allocate(newWidth, newHeight, internalformat);
+          memory = memory(size.x, size.y, internalformat);
+          ctx.memory += memory;
         }
       }
     }
@@ -381,17 +410,5 @@ public interface GL {
     float[] vbData = { 1, -1, 1,1, /**/ 1,1, 1,0, /**/ -1,-1, 0,1, /**/ -1,1, 0,0  };
     char[] index = { 0, 1, 2, /**/ 1, 2, 3, /**/  /* 0, 2, 1, */ /**/ /* 1, 3, 2 */ };
     return new Mesh(gl, VertexLayout.POS2_UV2, vbData, index);
-  }
-
-  static void reportLostResources() {
-    if (Texture.globalCounter != 0 || Canvas.globalCounter != 1) {
-      System.out.println("[GL] reportLostResources:");
-      if (Texture.globalCounter != 0) {
-        System.out.println("\tGL.Texture.globalCounter = " + Texture.globalCounter);
-      }
-      if (Canvas.globalCounter != 1) {
-        System.out.println("\tCanvas.globalCounter = " + Canvas.globalCounter);
-      }
-    }
   }
 }

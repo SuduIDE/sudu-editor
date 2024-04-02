@@ -122,8 +122,10 @@ public class Win32Window implements WindowPeer, Window {
   }
 
   private void updateFps(double fps) {
-    int drawCalls = angleWindow.graphics().getAngleGl().getDrawCallCount();
-    String t = title + " - " + Numbers.iRnd(fps) + "fps, " + drawCalls + " drawCalls";
+    Win32Graphics graphics = angleWindow.graphics();
+    int drawCalls = graphics.getAngleGl().getDrawCallCount();
+    String t = title + " - " + Numbers.iRnd(fps) + "fps, "
+        + drawCalls + " #dCalls, " + graphics.tc.string();
     Win32.SetWindowTextW(hWnd, CString.toChar16CString(t));
   }
 
@@ -166,16 +168,19 @@ public class Win32Window implements WindowPeer, Window {
 
   public void dispose() {
     disposeChildren();
-    boolean contextIsRoot = angleWindow.isRootContext();
-    angleWindow.dispose();
-    hWnd = Win32.DestroyWindow(hWnd) ? 0 : -1;
-    if (hWnd != 0) System.err.println("DesktopWindow.dispose: destroyWindow failed");
-    windowSize.set(0,0);
+
     scene.dispose();
     inputListeners.clear();
     scene = null;
     currentCursor = null;
-    if (contextIsRoot) GL.reportLostResources();
+
+    boolean contextIsRoot = angleWindow.isRootContext();
+    if (contextIsRoot)
+      angleWindow.graphics().reportLostResources();
+    angleWindow.dispose();
+    hWnd = Win32.DestroyWindow(hWnd) ? 0 : -1;
+    if (hWnd != 0) System.err.println("DesktopWindow.dispose: destroyWindow failed");
+    windowSize.set(0,0);
   }
 
   private SceneApi api() {
