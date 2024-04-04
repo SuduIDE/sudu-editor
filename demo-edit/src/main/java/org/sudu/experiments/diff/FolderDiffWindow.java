@@ -243,7 +243,7 @@ public class FolderDiffWindow extends ToolWindow0 {
   public DiffInfo getDiffInfo() {
     var left = rootView.left.statuses();
     var right = rootView.right.statuses();
-    System.out.println();
+    // System.out.println();
     DiffRange[] ranges = new DiffRange[1];
     int ptr = 0;
     int lP = 0, rP = 0;
