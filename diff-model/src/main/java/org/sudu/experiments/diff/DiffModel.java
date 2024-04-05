@@ -2,8 +2,9 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
-import org.sudu.experiments.diff.lcs.HirschbergLCS;
 import org.sudu.experiments.diff.lcs.LCS;
+import org.sudu.experiments.diff.lcs.HirschbergLCS;
+import org.sudu.experiments.diff.lcs.DPLCS;
 
 import java.util.Arrays;
 import java.util.List;
@@ -161,7 +162,11 @@ public class DiffModel {
   public static <S> LCS<S> getLCS(S[] L, S[] R) {
     if ((L.length > Short.MAX_VALUE && R.length > Short.MAX_VALUE) ||
         ((long) L.length * R.length) >= 1_000_000_000
-    ) return new HirschbergLCS<>(L, R);
-    return new LCS<>(L, R);
+    ) {
+//      System.out.println("Hirschberg for L.len = " + L.length + ", R.len = " + R.length);
+      return new HirschbergLCS<>(L, R);
+    }
+//    System.out.println("DP LCS for L.len = " + L.length + ", R.len = " + R.length);
+    return new DPLCS<>(L, R);
   }
 }

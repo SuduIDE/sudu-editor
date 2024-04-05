@@ -9,7 +9,7 @@ import java.util.List;
  * Space complexity – O(n + m)
  * Take less memory than LCS. Have same time complexity as LCS, but practically is slower
  */
-public class HirschbergLCS<S> extends LCS<S>{
+public class HirschbergLCS<S> extends LCS<S> {
 
   public HirschbergLCS(S[] L, S[] R) {
     super(L, R);

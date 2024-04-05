@@ -1,48 +1,89 @@
 package org.sudu.experiments.diff.lcs;
 
+import org.sudu.experiments.diff.BaseRange;
+import org.sudu.experiments.diff.CommonRange;
+import org.sudu.experiments.diff.Diff;
+
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
-/**
- * Time complexity – O(nm)
- * Space complexity – O(nm)
- */
-public class LCS<S> extends BaseLCS<S> {
+public abstract class LCS<S> {
+
+  protected final S[] L, R;
+  public List<BaseRange<S>> ranges;
 
   public LCS(S[] L, S[] R) {
-    super(L, R);
+    this.L = L;
+    this.R = R;
   }
 
-  public short[][] countLCSMatrix() {
-    short[][] matrix = new short[L.length + 1][R.length + 1];
-    for (int i = 1; i < L.length + 1; i++) {
-      for (int j = 1; j < R.length + 1; j++) {
-        if (equals(L[i - 1], R[j - 1])) {
-          matrix[i][j] = (short) (1 + matrix[i - 1][j - 1]);
-        } else {
-          matrix[i][j] = (short) Math.max(matrix[i - 1][j], matrix[i][j - 1]);
-        }
+  public abstract List<S> findCommon();
+
+  public void countDiffs(List<S> common) {
+    this.ranges = new ArrayList<>();
+    int commonPtr = 0,
+        leftPtr = 0,
+        rightPtr = 0;
+
+    Diff<S> currentDiff = null;
+    CommonRange<S> currentCommon = null;
+    while (commonPtr < common.size()
+        && leftPtr < L.length
+        && rightPtr < R.length
+    ) {
+      S cS = common.get(commonPtr);
+      S cL = L[leftPtr], cR = R[rightPtr];
+      if (equals(cS, cL) && equals(cS, cR)) {
+        if (currentCommon == null) currentCommon = new CommonRange<>(leftPtr, rightPtr);
+        if (currentDiff != null) this.ranges.add(currentDiff);
+        commonPtr++;
+        leftPtr++;
+        rightPtr++;
+        currentCommon.length++;
+        currentDiff = null;
+        continue;
       }
-    }
-    return matrix;
-  }
+      if (currentDiff == null) currentDiff = new Diff<>(leftPtr, rightPtr);
+      if (currentCommon != null) this.ranges.add(currentCommon);
+      currentCommon = null;
 
-  public List<S> findCommon() {
-    short[][] matrix = countLCSMatrix();
-    int i = L.length, j = R.length;
-    LinkedList<S> common = new LinkedList<>();
-
-    while (i > 0 && j > 0) {
-      if (equals(L[i - 1], R[j - 1])) {
-        common.addFirst(L[i - 1]);
-        i--;
-        j--;
+      if (equals(cS, cL)) {
+        currentDiff.diffM.add(cR);
+        rightPtr++;
+      } else if (equals(cS, cR)) {
+        currentDiff.diffN.add(cL);
+        leftPtr++;
       } else {
-        if (matrix[i - 1][j] > matrix[i][j - 1]) i--;
-        else j--;
+        currentDiff.diffN.add(L[leftPtr]);
+        currentDiff.diffM.add(R[rightPtr]);
+        leftPtr++;
+        rightPtr++;
       }
     }
-    return new ArrayList<>(common);
+    if (currentCommon != null) ranges.add(currentCommon);
+    if (currentDiff == null) currentDiff = new Diff<>(leftPtr, rightPtr);
+
+    for (; leftPtr < L.length && rightPtr < R.length; leftPtr++, rightPtr++) {
+      S cL = L[leftPtr], cR = R[rightPtr];
+      currentDiff.diffN.add(cL);
+      currentDiff.diffM.add(cR);
+    }
+    for (; leftPtr < L.length; leftPtr++) {
+      S cL = L[leftPtr];
+      currentDiff.diffN.add(cL);
+    }
+    for (; rightPtr < R.length; rightPtr++) {
+      S cR = R[rightPtr];
+      currentDiff.diffM.add(cR);
+    }
+    if (currentDiff != null && currentDiff.isNotEmpty()) ranges.add(currentDiff);
+  }
+
+  public void countAll() {
+    countDiffs(findCommon());
+  }
+
+  protected boolean equals(S a, S b) {
+    return a.equals(b);
   }
 }
