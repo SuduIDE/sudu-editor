@@ -94,16 +94,35 @@ public class JsFileHandle implements FileHandle {
   }
 
   @Override
-  public void readAsBytes(Consumer<byte[]> consumer, Consumer<String> onError) {
+  public void readAsBytes(
+      Consumer<byte[]> consumer, Consumer<String> onError,
+      int begin, int length
+  ) {
     JsFunctions.Consumer<JSError> onJsError = wrapError(onError);
-    JsFunctions.Consumer<ArrayBuffer> onBuffer = jsArrayBuffer
-        -> consumer.accept(JsMemoryAccess.toByteArray(jsArrayBuffer));
+    JsFunctions.Consumer<ArrayBuffer> onBuffer = toJava(consumer);
     if (jsFile != null) {
-      jsFile.arrayBuffer().then(onBuffer, onJsError);
+      readBlob(begin, length, onBuffer, onJsError, jsFile);
     } else {
       fileHandle.getFile().then(
-          file -> file.arrayBuffer().then(onBuffer, onJsError), onJsError);
+          file -> readBlob(begin, length, onBuffer, onJsError, file),
+          onJsError
+      );
     }
+  }
+
+  private void readBlob(
+      int begin, int length,
+      JsFunctions.Consumer<ArrayBuffer> onBuffer,
+      JsFunctions.Consumer<JSError> onJsError, JsFile file
+  ) {
+    JsBlob blob = length < 0 ? begin == 0 ? file : file.slice(begin)
+        : file.slice(begin, begin + length);
+    blob.arrayBuffer().then(onBuffer, onJsError);
+  }
+
+  static JsFunctions.Consumer<ArrayBuffer> toJava(Consumer<byte[]> consumer) {
+    return jsArrayBuffer -> consumer.accept(
+        JsMemoryAccess.toByteArray(jsArrayBuffer));
   }
 
   static JsFunctions.Consumer<JSError> wrapError(Consumer<String> onError) {

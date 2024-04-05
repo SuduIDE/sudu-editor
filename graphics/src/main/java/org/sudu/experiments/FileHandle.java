@@ -8,5 +8,10 @@ public interface FileHandle extends FsItem {
 
   void readAsText(Consumer<String> consumer, Consumer<String> onError);
 
-  void readAsBytes(Consumer<byte[]> consumer, Consumer<String> onError);
+  default void readAsBytes(Consumer<byte[]> consumer, Consumer<String> onError) {
+    readAsBytes(consumer, onError, 0, -1);
+  }
+
+  void readAsBytes(Consumer<byte[]> consumer, Consumer<String> onError,
+      int begin, int length);
 }
