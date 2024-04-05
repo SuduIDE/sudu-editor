@@ -4,9 +4,9 @@ import java.util.Arrays;
 
 public class CodeLineS {
 
-  public CodeElementS[] elements;
-  public int lineNum;
+  public final CodeElementS[] elements;
   private final int hash;
+  public int lineNum;
 
   public CodeLineS(CodeElementS[] elements) {
     this.elements = elements;

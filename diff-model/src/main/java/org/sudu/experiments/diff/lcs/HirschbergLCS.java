@@ -17,8 +17,8 @@ public class HirschbergLCS<S> extends LCS<S> {
 
   @Override
   public List<S> findCommon() {
-    List<S> result = new ArrayList<>();
-    findCommon(0, L.length, 0, R.length, result);
+    List<S> result = new ArrayList<>(minLen / 2);
+    findCommon(start, L.length - end, start, R.length - end, result);
     return result;
   }
 

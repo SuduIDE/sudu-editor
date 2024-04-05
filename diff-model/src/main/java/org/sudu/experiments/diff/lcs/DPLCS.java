@@ -14,11 +14,31 @@ public class DPLCS<S> extends LCS<S> {
     super(L, R);
   }
 
+  @Override
+   protected List<S> findCommon() {
+    short[][] matrix = countLCSMatrix();
+    int i = L.length - end, j = R.length - end;
+    LinkedList<S> common = new LinkedList<>();
+
+    while (i > start && j > start) {
+      if (equals(L[i - 1], R[j - 1])) {
+        common.addFirst(L[i - 1]);
+        i--;
+        j--;
+      } else {
+        if (matrix[i - 1 - start][j - start] > matrix[i - start][j - 1 - start]) i--;
+        else j--;
+      }
+    }
+    return new ArrayList<>(common);
+  }
+
   public short[][] countLCSMatrix() {
-    short[][] matrix = new short[L.length + 1][R.length + 1];
-    for (int i = 1; i < L.length + 1; i++) {
-      for (int j = 1; j < R.length + 1; j++) {
-        if (equals(L[i - 1], R[j - 1])) {
+    int d = start + end;
+    short[][] matrix = new short[L.length + 1 - d][R.length + 1 - d];
+    for (int i = 1; i < L.length + 1 - d; i++) {
+      for (int j = 1; j < R.length + 1 - d; j++) {
+        if (equals(L[start + i - 1], R[start + j - 1])) {
           matrix[i][j] = (short) (1 + matrix[i - 1][j - 1]);
         } else {
           matrix[i][j] = (short) Math.max(matrix[i - 1][j], matrix[i][j - 1]);
@@ -26,23 +46,5 @@ public class DPLCS<S> extends LCS<S> {
       }
     }
     return matrix;
-  }
-
-  public List<S> findCommon() {
-    short[][] matrix = countLCSMatrix();
-    int i = L.length, j = R.length;
-    LinkedList<S> common = new LinkedList<>();
-
-    while (i > 0 && j > 0) {
-      if (equals(L[i - 1], R[j - 1])) {
-        common.addFirst(L[i - 1]);
-        i--;
-        j--;
-      } else {
-        if (matrix[i - 1][j] > matrix[i][j - 1]) i--;
-        else j--;
-      }
-    }
-    return new ArrayList<>(common);
   }
 }

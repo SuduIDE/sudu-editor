@@ -2,9 +2,9 @@ package org.sudu.experiments.diff;
 
 public class CodeElementS {
 
-  public String s;
-  public int lineNum, elemNum;
+  public final String s;
   private final int hash;
+  public int lineNum, elemNum;
 
   public CodeElementS(String s) {
     this.s = s;

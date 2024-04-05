@@ -10,26 +10,38 @@ import java.util.List;
 public abstract class LCS<S> {
 
   protected final S[] L, R;
+  protected int minLen;
+  protected int lLen, rLen;
+  protected int start = 0, end = 0;
   public List<BaseRange<S>> ranges;
 
   public LCS(S[] L, S[] R) {
     this.L = L;
     this.R = R;
+    this.lLen = L.length;
+    this.rLen = R.length;
+    this.minLen = Math.min(lLen, rLen);
   }
 
-  public abstract List<S> findCommon();
+  public void preprocess() {
+    for (;start < minLen && equals(L[start], R[start]); start++);
+    for (;end < minLen - start && equals(L[lLen - end - 1], R[rLen - end - 1]); end++);
+  }
+
+  protected abstract List<S> findCommon();
 
   public void countDiffs(List<S> common) {
     this.ranges = new ArrayList<>();
     int commonPtr = 0,
-        leftPtr = 0,
-        rightPtr = 0;
+        leftPtr = start,
+        rightPtr = start;
 
     Diff<S> currentDiff = null;
     CommonRange<S> currentCommon = null;
+    if (start != 0) ranges.add(new CommonRange<>(0, 0, start));
     while (commonPtr < common.size()
-        && leftPtr < L.length
-        && rightPtr < R.length
+        && leftPtr < L.length - end
+        && rightPtr < R.length - end
     ) {
       S cS = common.get(commonPtr);
       S cL = L[leftPtr], cR = R[rightPtr];
@@ -63,23 +75,25 @@ public abstract class LCS<S> {
     if (currentCommon != null) ranges.add(currentCommon);
     if (currentDiff == null) currentDiff = new Diff<>(leftPtr, rightPtr);
 
-    for (; leftPtr < L.length && rightPtr < R.length; leftPtr++, rightPtr++) {
+    for (; leftPtr < L.length - end && rightPtr < R.length - end; leftPtr++, rightPtr++) {
       S cL = L[leftPtr], cR = R[rightPtr];
       currentDiff.diffN.add(cL);
       currentDiff.diffM.add(cR);
     }
-    for (; leftPtr < L.length; leftPtr++) {
+    for (; leftPtr < L.length - end; leftPtr++) {
       S cL = L[leftPtr];
       currentDiff.diffN.add(cL);
     }
-    for (; rightPtr < R.length; rightPtr++) {
+    for (; rightPtr < R.length - end; rightPtr++) {
       S cR = R[rightPtr];
       currentDiff.diffM.add(cR);
     }
     if (currentDiff != null && currentDiff.isNotEmpty()) ranges.add(currentDiff);
+    if (end != 0) ranges.add(new CommonRange<>(lLen - end, rLen - end, end));
   }
 
   public void countAll() {
+    preprocess();
     countDiffs(findCommon());
   }
 
