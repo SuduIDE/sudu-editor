@@ -2,9 +2,10 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
-import org.sudu.experiments.diff.lcs.LCS;
-import org.sudu.experiments.diff.lcs.HirschbergLCS;
 import org.sudu.experiments.diff.lcs.DPLCS;
+import org.sudu.experiments.diff.lcs.HirschbergLCS;
+import org.sudu.experiments.diff.lcs.HuntSzymanskiLCS;
+import org.sudu.experiments.diff.lcs.LCS;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +15,8 @@ public class DiffModel {
 
   public LineDiff[] lineDiffsN, lineDiffsM;
   public List<BaseRange<CodeLineS>> linesRanges;
+  public static final int BIG_MATRIX_AREA = 1_000_000_000;
+  public static final float BIG_RATIO = 1.15f;
 
   public int[] findDiffs(
       char[] charsN, int[] intsN,
@@ -160,9 +163,13 @@ public class DiffModel {
   }
 
   public static <S> LCS<S> getLCS(S[] L, S[] R) {
-    if ((L.length > Short.MAX_VALUE && R.length > Short.MAX_VALUE) ||
-        ((long) L.length * R.length) >= 1_000_000_000
-    ) {
+    int lLen = L.length, rLen = R.length;
+    int maxLen = Math.max(lLen, rLen), minLen = Math.min(lLen, rLen);
+    if ((float) maxLen / minLen >= BIG_RATIO) {
+//    System.out.println("Hunt-Szymanski LCS for L.len = " + L.length + ", R.len = " + R.length);
+      return new HuntSzymanskiLCS<>(L, R);
+    }
+    if (maxLen > Short.MAX_VALUE || ((long) L.length * R.length) >= BIG_MATRIX_AREA) {
 //      System.out.println("Hirschberg for L.len = " + L.length + ", R.len = " + R.length);
       return new HirschbergLCS<>(L, R);
     }
