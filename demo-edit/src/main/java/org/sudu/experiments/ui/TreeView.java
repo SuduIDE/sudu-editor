@@ -47,7 +47,7 @@ public class TreeView extends ScrollContent implements Focusable {
 
   GL.Texture arrowR, arrowD;
   GL.Texture folder, folderOpened;
-  GL.Texture file, fileCode, fileBinary;
+  GL.Texture file, fileCode, fileBinary, fileOnWorker;
   int iconWidth, arrowWidth;
 
   public TreeView(UiContext uiContext) {
@@ -77,6 +77,7 @@ public class TreeView extends ScrollContent implements Focusable {
         file.width()),
         fileBinary.width()),
         fileBinary.width());
+    fileOnWorker = Disposable.assign(fileOnWorker, renderIcon(refresh, iconsFont));
 
     arrowWidth = Math.max(arrowD.width(), arrowR.width());
   }
@@ -100,6 +101,7 @@ public class TreeView extends ScrollContent implements Focusable {
       case Codicons.file -> file;
       case Codicons.file_code -> fileCode;
       case Codicons.file_binary -> fileBinary;
+      case Codicons.refresh -> fileOnWorker;
       default -> null;
     };
   }
