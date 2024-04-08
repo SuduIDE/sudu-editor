@@ -1,5 +1,6 @@
 package org.sudu.experiments.ui.fs;
 
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.math.ArrayOp;
 
 import java.util.ArrayList;
@@ -8,11 +9,24 @@ import java.util.function.Consumer;
 
 public class FileDiffHandler {
 
+  private static final int LENGTH = 16 * 1024;
+
   byte[] leftText, rightText;
   Consumer<Object[]> r;
+  FileHandle left, right;
+  int start = 0;
 
-  public FileDiffHandler(Consumer<Object[]> r) {
+  public FileDiffHandler(Consumer<Object[]> r, FileHandle left, FileHandle right) {
     this.r = r;
+    this.left = left;
+    this.right = right;
+  }
+
+  public void beginCompare() {
+    this.leftText = null;
+    this.rightText = null;
+    left.readAsBytes(this::sendLeft, System.err::println, start, LENGTH);
+    right.readAsBytes(this::sendRight, System.err::println, start, LENGTH);
   }
 
   public void sendLeft(byte[] left) {
@@ -25,10 +39,19 @@ public class FileDiffHandler {
     if (this.leftText != null) compare();
   }
 
-  public void compare() {
-    ArrayList<Object> result = new ArrayList<>();
-    if (Arrays.equals(leftText, rightText)) result.add(new int[]{1});
-    else result.add(new int[]{0});
-    ArrayOp.sendArrayList(result, r);
+  private void compare() {
+    boolean equals = Arrays.equals(leftText, rightText);
+    if (!equals) {
+      ArrayList<Object> result = new ArrayList<>();
+      result.add(new int[]{0});
+      ArrayOp.sendArrayList(result, r);
+    } else if (leftText.length < LENGTH) {
+      ArrayList<Object> result = new ArrayList<>();
+      result.add(new int[]{1});
+      ArrayOp.sendArrayList(result, r);
+    } else {
+      start += LENGTH;
+      beginCompare();
+    }
   }
 }
