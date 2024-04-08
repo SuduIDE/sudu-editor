@@ -246,28 +246,25 @@ public class FolderDiffWindow extends ToolWindow0 {
     int ptr = 0;
     int lP = 0, rP = 0;
     while (lP < left.length && rP < right.length) {
-      if (left[lP].diffType == right[rP].diffType &&
-          left[lP].rangeId == right[rP].rangeId
-      ) {
-        int diffType = left[lP].diffType;
-        int rangeId = left[lP].rangeId;
-        int lenL = 0, lenR = 0;
-        while (lP < left.length && rP < right.length
-            && left[lP].rangeId == rangeId
-            && right[rP].rangeId == rangeId
-            && left[lP].diffType == diffType
-            && right[rP].diffType == diffType
-        ) {
-          lP++;
-          lenL++;
-          rP++;
-          lenR++;
-        }
-        while (lP < left.length && left[lP].rangeId == rangeId && left[lP].diffType == diffType) {
+      boolean changed = false;
+      int diffType = left[lP].diffType;
+      int leftDiff;
+      int lenL = 0, lenR = 0;
+      while (lP < left.length && rP < right.length
+          && (leftDiff = left[lP].diffType) == right[rP].diffType
+          && leftDiff == diffType) {
+        changed = true;
+        lP++;
+        lenL++;
+        rP++;
+        lenR++;
+      }
+      if (changed) {
+        while (lP < left.length && left[lP].diffType == diffType) {
           lP++;
           lenL++;
         }
-        while (rP < right.length && right[rP].rangeId == rangeId && right[rP].diffType == diffType) {
+        while (rP < right.length && right[rP].diffType == diffType) {
           rP++;
           lenR++;
         }
@@ -275,7 +272,6 @@ public class FolderDiffWindow extends ToolWindow0 {
         ranges = ArrayOp.addAt(range, ranges, ptr++);
         continue;
       }
-
       boolean leftDepth = left[lP].depth > right[rP].depth;
       if (leftDepth) {
         DiffRange range = handleDeleted(left, lP, rP);
@@ -304,7 +300,6 @@ public class FolderDiffWindow extends ToolWindow0 {
           continue;
         }
       }
-
       if (left[lP].diffType == DiffTypes.DEFAULT || left[lP].diffType == DiffTypes.EDITED) {
         var range = new DiffRange(lP, 1, rP, 0, left[lP].diffType);
         ranges = ArrayOp.addAt(range, ranges, ptr++);
