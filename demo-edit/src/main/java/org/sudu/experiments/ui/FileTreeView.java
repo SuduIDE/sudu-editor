@@ -5,20 +5,18 @@ import org.sudu.experiments.ui.window.ScrollView;
 
 public class FileTreeView extends TreeView {
   FileTreeNode root;
-  public FolderDiffModel model;
 
   public FileTreeView(UiContext uiContext) {
     super(uiContext);
   }
 
-  public void updateModel() {
+  public void updateModel(FolderDiffModel model) {
     setModel(root.getModel(model));
   }
 
   public void setRoot(FileTreeNode root) {
     this.root = root;
-    this.model = new FolderDiffModel(null);
-    updateModel();
+    updateModel(FolderDiffModel.getDefault());
     setSelected0();
   }
 

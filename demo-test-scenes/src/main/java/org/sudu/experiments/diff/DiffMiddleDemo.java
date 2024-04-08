@@ -1,6 +1,7 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
@@ -53,9 +54,9 @@ public class DiffMiddleDemo extends WindowDemo implements DprChangeListener {
     rootView = new FolderDiffRootView(uiContext);
     rootView.applyTheme(theme);
     var leftDir = MockFileTree.randomFolder(
-        "Project root", 4, rootView.left::updateModel);
+        "Project root", 4, () -> rootView.left.updateModel(FolderDiffModel.getDefault()));
     var rightDir = MockFileTree.randomFolder(
-        "Project root", 4, rootView.right::updateModel);
+        "Project root", 4, () -> rootView.right.updateModel(FolderDiffModel.getDefault()));
     rootView.left.setRoot(leftDir);
     rootView.right.setRoot(rightDir);
     rootView.setDiffModel(testModel());

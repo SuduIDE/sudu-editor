@@ -38,4 +38,11 @@ public class FolderDiffModel {
     if (parent != null) rangeId = parent.rangeId;
     if (children != null) for (var child: children) child.markDown(diffType);
   }
+
+  public static FolderDiffModel getDefault() {
+    var model = new FolderDiffModel(null);
+    model.propagation = PROP_DOWN;
+    model.diffType = DiffTypes.DEFAULT;
+    return model;
+  }
 }
