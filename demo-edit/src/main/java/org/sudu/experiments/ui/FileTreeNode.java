@@ -1,5 +1,6 @@
 package org.sudu.experiments.ui;
 
+import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 
 import java.util.Comparator;
@@ -63,15 +64,16 @@ public class FileTreeNode extends TreeNode {
   }
 
   private int getModel(TreeNode[] t, FolderDiffModel model, int idx) {
-    boolean isDownProp = model.children == null || model.propagation == PROP_DOWN;
+    boolean noChildren = model.children == null;
+    boolean isDownProp = model.propagation == PROP_DOWN;
     this.rangeId = model.rangeId;
     this.diffType = model.diffType;
     t[idx++] = this;
     if (isOpened()) {
       for (int i = 0; i < children.length; i++) {
-        idx = isDownProp
-            ? children[i].getModel(t, model.rangeId, model.diffType, idx)
-            : children[i].getModel(t, model.child(i), idx);
+        if (isDownProp) idx = children[i].getModel(t, model.rangeId, model.diffType, idx);
+        else if (noChildren) idx = children[i].getModel(t, model.rangeId, DiffTypes.DEFAULT, idx);
+        else idx = children[i].getModel(t, model.child(i), idx);
       }
     }
     return idx;

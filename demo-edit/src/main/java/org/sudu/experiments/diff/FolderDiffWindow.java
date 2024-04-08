@@ -204,14 +204,15 @@ public class FolderDiffWindow extends ToolWindow0 {
   private void compareRootFolders() {
     if (leftRoot == null || rightRoot == null) return;
     ctx.clear();
-    leftModel = FolderDiffModel.getDefault();
-    rightModel = FolderDiffModel.getDefault();
+    leftModel = new FolderDiffModel(null);
+    rightModel = new FolderDiffModel(null);
     if (!leftRoot.name().equals(rightRoot.name())) {
       leftModel.diffType = DiffTypes.EDITED;
       rightModel.diffType = DiffTypes.EDITED;
       rootView.left.updateModel(leftModel);
       rootView.right.updateModel(rightModel);
     }
+    updateDiffInfo();
     compare(leftRoot, rightRoot, leftModel, rightModel);
   }
 
@@ -254,17 +255,19 @@ public class FolderDiffWindow extends ToolWindow0 {
         while (lP < left.length && rP < right.length
             && left[lP].rangeId == rangeId
             && right[rP].rangeId == rangeId
+            && left[lP].diffType == diffType
+            && right[rP].diffType == diffType
         ) {
           lP++;
           lenL++;
           rP++;
           lenR++;
         }
-        while (lP < left.length && left[lP].rangeId == rangeId) {
+        while (lP < left.length && left[lP].rangeId == rangeId && left[lP].diffType == diffType) {
           lP++;
           lenL++;
         }
-        while (rP < right.length && right[rP].rangeId == rangeId) {
+        while (rP < right.length && right[rP].rangeId == rangeId && right[rP].diffType == diffType) {
           rP++;
           lenR++;
         }
