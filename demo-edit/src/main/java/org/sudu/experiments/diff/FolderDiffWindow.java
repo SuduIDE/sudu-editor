@@ -248,6 +248,7 @@ public class FolderDiffWindow extends ToolWindow0 {
     while (lP < left.length && rP < right.length) {
       boolean changed = false;
       int diffType = left[lP].diffType;
+      int rangeId = left[lP].rangeId;
       int leftDiff;
       int lenL = 0, lenR = 0;
       while (lP < left.length && rP < right.length
@@ -260,13 +261,24 @@ public class FolderDiffWindow extends ToolWindow0 {
         lenR++;
       }
       if (changed) {
-        while (lP < left.length && left[lP].diffType == diffType) {
-          lP++;
-          lenL++;
-        }
-        while (rP < right.length && right[rP].diffType == diffType) {
-          rP++;
-          lenR++;
+        if (diffType == DiffTypes.DEFAULT) {
+          while (lP < left.length && left[lP].rangeId == rangeId) {
+            lP++;
+            lenL++;
+          }
+          while (rP < right.length && right[rP].rangeId == rangeId) {
+            rP++;
+            lenR++;
+          }
+        } else {
+          while (lP < left.length && left[lP].diffType == DiffTypes.EDITED) {
+            lP++;
+            lenL++;
+          }
+          while (rP < right.length && right[rP].diffType == DiffTypes.EDITED) {
+            rP++;
+            lenR++;
+          }
         }
         var range = new DiffRange(lP - lenL, lenL, rP - lenR, lenR, diffType);
         ranges = ArrayOp.addAt(range, ranges, ptr++);
