@@ -74,9 +74,11 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
     try (SeekableByteChannel ch = Files.newByteChannel(path)) {
       if (position != 0)
         ch.position(position);
-      if (length < 0)
-        length = intSize(ch.size());
-      T apply = readChannel(transform, length, ch);
+      int avl = intSize(ch.size() - position);
+      int readL = length < 0 ? avl : Math.min(length, avl);
+      T apply = avl <= 0
+          ? transform.apply(new byte[0])
+          : readChannel(transform, readL, ch);
       if (isOnWorker()) {
         consumer.accept(apply);
       } else {

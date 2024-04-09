@@ -8,21 +8,27 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
-public class FileTest {
+public class FileTestGen {
   public static void main(String[] args) throws IOException {
     Path path = Path.of("temp", "filename");
     System.out.println("path.toAbsolutePath() = " + path.toAbsolutePath());
     Files.createDirectories(path.getParent());
     XorShiftRandom xr = new XorShiftRandom(1,2);
-    byte[] data = new byte[1024*1024*64];
+    int tailSize = 1234;
+    byte[] data = new byte[1024*1024*64 + tailSize];
     xr.fill(data);
     Files.write(path, data);
 
     byte[] kb16 = new byte[16*1024];
-    int[] hash = new int[data.length / kb16.length];
+    byte[] tail = new byte[tailSize];
+    int[] hash = new int[data.length / kb16.length + 1];
     for (int i = 0; i < hash.length; i++) {
-      System.arraycopy(data, kb16.length * i, kb16, 0, kb16.length);
-      hash[i] = Arrays.hashCode(kb16);
+      int srcPos = kb16.length * i;
+      byte[] t = srcPos + kb16.length <= data.length ? kb16 : tail;
+      if (srcPos + t.length > data.length)
+        throw new RuntimeException();
+      System.arraycopy(data, srcPos, t, 0, t.length);
+      hash[i] = Arrays.hashCode(t);
     }
 
     StringBuilder sb = new StringBuilder(16 * hash.length);
