@@ -37,7 +37,6 @@ public class DiffModelBuilder {
       leftModel.diffType = DiffTypes.EDITED;
       rightModel.diffType = DiffTypes.EDITED;
     }
-    updateDiffInfo.run();
     compare(leftRoot, rightRoot, leftModel, rightModel);
   }
 

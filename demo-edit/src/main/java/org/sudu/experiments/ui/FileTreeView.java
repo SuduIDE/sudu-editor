@@ -10,6 +10,10 @@ public class FileTreeView extends TreeView {
     super(uiContext);
   }
 
+  public void updateModel() {
+    setModel(root.getModel(FolderDiffModel.getDefault()));
+  }
+
   public void updateModel(FolderDiffModel model) {
     setModel(root.getModel(model));
   }

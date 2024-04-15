@@ -2,10 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
-import org.sudu.experiments.diff.lcs.DPLCS;
-import org.sudu.experiments.diff.lcs.HirschbergLCS;
-import org.sudu.experiments.diff.lcs.HuntSzymanskiLCS;
-import org.sudu.experiments.diff.lcs.LCS;
+import org.sudu.experiments.diff.lcs.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,8 +32,10 @@ public class DiffModel {
     prepare(docN);
     prepare(docM);
 
+//    long time = System.currentTimeMillis();
     LCS<CodeLineS> lcs = getLCS(docN, docM);
     lcs.countAll();
+//    System.out.println("Counted in " + (System.currentTimeMillis() - time) + " ms\n");
     this.linesRanges = lcs.ranges;
     for (var range: lcs.ranges) {
       if (!(range instanceof Diff<CodeLineS> diff)) continue;
@@ -47,8 +46,10 @@ public class DiffModel {
   }
 
   private List<BaseRange<CodeElementS>> findElementsDiff(CodeElementS[] linesN, CodeElementS[] linesM) {
+//    long time = System.currentTimeMillis();
     LCS<CodeElementS> lcs = getLCS(linesN, linesM);
     lcs.countAll();
+//    System.out.println("Counted in " + (System.currentTimeMillis() - time) + " ms\n");
     return lcs.ranges;
   }
 
