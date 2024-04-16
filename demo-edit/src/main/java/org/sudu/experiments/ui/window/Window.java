@@ -20,7 +20,9 @@ public class Window {
   public static final float frameHitTestDp = 7;
   public static final float cornerSizeDp = 25;
   public static final float minVisibleDp = 5;
-  static final int bypassHitTest = 1;
+
+  static final int bypassHitTestFlag = 1;
+  static final int fullscreenFlag = 2;
 
   public final UiContext context;
 
@@ -82,16 +84,24 @@ public class Window {
       systemMenu.setTheme(theme);
   }
 
+  void setFlag(int flag) {
+    flags |= flag;
+  }
+
+  int getFlag(int flag) {
+    return flags & flag;
+  }
+
   public void setBypassHitTest(boolean bypass) {
     if (bypass) {
-      flags |= bypassHitTest;
+      flags |= bypassHitTestFlag;
     } else {
-      flags &= ~bypassHitTest;
+      flags &= ~bypassHitTestFlag;
     }
   }
 
   public boolean bypassHitTest() {
-    return (flags & bypassHitTest) != 0;
+    return (flags & bypassHitTestFlag) != 0;
   }
 
   public void dispose() {
@@ -135,21 +145,27 @@ public class Window {
 
   void draw(WglGraphics g) {
     content.draw(g);
-    title.draw(g, theme.windowColors);
-    if (systemMenu != null) {
-      systemMenu.draw(context, title, theme.windowColors);
+    if (content.pos.y > 0) {
+      title.draw(g, theme.windowColors);
+      if (systemMenu != null) {
+        systemMenu.draw(context, title, theme.windowColors);
+      }
     }
     drawFrameAndShadow(g);
   }
 
   private void drawFrameAndShadow(WglGraphics g) {
-    g.enableBlend(true);
+    if (isInFullscreen())
+      return;
+
     int border = context.toPx(borderDrawDp);
     boolean noTitle = title.sizeEmpty();
     V2i temp = context.v2i1;
     V2i size = context.v2i2;
     int titleHeight = noTitle ? 0 : title.size.y;
     size.set(content.size.x, content.size.y + titleHeight);
+
+    g.enableBlend(true);
 
     WindowPaint.drawInnerFrame(g,
         size, noTitle ? content.pos : title.pos,
@@ -173,7 +189,11 @@ public class Window {
     return content.size;
   }
 
-  public void onHostResize(V2i newSize, float newDpr) {}
+  public void onHostResize(V2i newSize, float newDpr) {
+    if (isInFullscreen()) {
+      alignToHostWindow();
+    }
+  }
 
   boolean contentHitTest(MouseEvent event) {
     return contentHitTest(event.position);
@@ -437,5 +457,20 @@ public class Window {
   public void close() {
     if (systemMenu == null) throw new NullPointerException();
     systemMenu.onClose.run();
+  }
+
+  public boolean isInFullscreen() {
+    return getFlag(fullscreenFlag) != 0;
+  }
+
+  public void fullscreen() {
+    setFlag(fullscreenFlag);
+    alignToHostWindow();
+  }
+
+  private void alignToHostWindow() {
+    V2i windowSize = context.windowSize;
+    context.v2i1.set(0,0);
+    setPosition(context.v2i1, windowSize);
   }
 }

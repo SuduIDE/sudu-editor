@@ -4,6 +4,7 @@ import org.sudu.experiments.Debug;
 import org.sudu.experiments.Scene;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.diff.DiffMiddleDemo;
+import org.sudu.experiments.diff.FolderDiffScene;
 import org.sudu.experiments.diff.FolderTransferDemo;
 import org.sudu.experiments.diff.FolderDiff;
 import org.sudu.experiments.ui.FileViewDemo;
@@ -50,6 +51,7 @@ public class TestSceneSelector {
       case "DiffMiddleDemo" -> DiffMiddleDemo::new;
       case "FolderTransferDemo" -> FolderTransferDemo::new;
       case "FolderDiff" -> FolderDiff::new;
+      case "FolderDiffScene" -> FolderDiffScene::new;
 
 //      case "#wasm" -> new WasmDemo(api);
     };

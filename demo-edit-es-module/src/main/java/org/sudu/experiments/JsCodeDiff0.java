@@ -1,31 +1,34 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.editor.Diff0;
-import org.sudu.experiments.esm.JsCodeDiff;
-import org.sudu.experiments.esm.JsCodeEditor;
-import org.sudu.experiments.esm.JsITextModel;
-import org.sudu.experiments.esm.JsTextModel;
+import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
 
 public class JsCodeDiff0 implements JsCodeDiff {
 
-  private final Diff0 diff;
+  private Diff0 diff;
   private final WebWindow window;
 
   public JsCodeDiff0(
-      JsCodeEditor.EditArgs args,
+      EditArgs args,
       JsArray<WorkerContext> workers
   ) {
     this.window = new WebWindow(
         Diff0::new,
-        JsCodeEditor0::onWebGlError,
+        WebGLError::onWebGlError,
         args.getContainerId().stringValue(),
         workers);
     this.diff = (Diff0) window.scene();
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly()) setReadonly(args.getReadonly());
+  }
+
+  @Override
+  public void dispose() {
+    diff = null;
+    window.dispose();
   }
 
   @Override
@@ -39,7 +42,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
   }
 
   @Override
-  public void setFontSize(int fontSize) {
+  public void setFontSize(float fontSize) {
     diff.setFontSize(fontSize);
   }
 
@@ -86,7 +89,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
     diff.setReadonly(flag.booleanValue());
   }
 
-  static Promise<JsCodeDiff> newDiff(JsCodeEditor.EditArgs arguments) {
+  static Promise<JsCodeDiff> newDiff(EditArgs arguments) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
           WorkerContext.start(

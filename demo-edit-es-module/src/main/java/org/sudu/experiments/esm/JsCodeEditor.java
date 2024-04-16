@@ -7,13 +7,11 @@ import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
-public interface JsCodeEditor extends JsDisposable {
+public interface JsCodeEditor extends JsThemeTarget {
+  void dispose();
   void focus();
   void setText(JSString t);
   JSString getText();
-  void setFontFamily(JSString fontFamily);
-  void setFontSize(float fontSize);
-  void setTheme(JSString theme);
   void setModel(JsITextModel model);
   void setPosition(JsPosition selectionOrPosition);
   JsPosition getPosition();
@@ -31,37 +29,4 @@ public interface JsCodeEditor extends JsDisposable {
 
   JsDisposable onDidChangeModel(JsFunctions.Consumer<JsIModelChangedEvent> f);
 
-  interface EditArgs extends JSObject {
-    @JSProperty JSString getContainerId();
-
-    String workerUrlProperty = "workerUrl";
-    @JSProperty JSString getWorkerUrl();
-
-    String themeProperty = "theme";
-    @JSProperty JSString getTheme();
-
-    default boolean hasTheme() {
-      return JSObjects.hasProperty(this, themeProperty);
-    }
-
-    String readonlyProperty = "readonly";
-    @JSProperty JSBoolean getReadonly();
-
-    default boolean hasReadonly() {
-      return JSObjects.hasProperty(this, readonlyProperty);
-    }
-
-    default JSString workerUrl() {
-      return JSObjects.hasProperty(this, workerUrlProperty)
-          ? getWorkerUrl() : JSString.valueOf("worker.js");
-    }
-
-    String numThreadsProperty = "numThreads";
-    @JSProperty double getNumThreads();
-
-    default int numWorkerThreads() {
-      return JSObjects.hasProperty(this, numThreadsProperty)
-          ? (int) getNumThreads() : 2;
-    }
-  }
 }

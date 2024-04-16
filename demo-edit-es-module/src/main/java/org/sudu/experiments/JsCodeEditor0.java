@@ -7,7 +7,6 @@ import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.utils.LanguageSelectorUtils;
 import org.sudu.experiments.utils.PromiseUtils;
 import org.sudu.experiments.utils.ProviderUtils;
-import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSObjects;
@@ -15,9 +14,6 @@ import org.teavm.jso.core.JSString;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-
-import static org.sudu.experiments.js.JsHelper.jsToJava;
-import static org.sudu.experiments.js.JsHelper.javaToJs;
 
 public class JsCodeEditor0 implements JsCodeEditor {
 
@@ -29,7 +25,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
   public JsCodeEditor0(EditArgs args, JsArray<WorkerContext> workers) {
     this.window = new WebWindow(
         Editor0::new,
-        JsCodeEditor0::onWebGlError,
+        WebGLError::onWebGlError,
         args.getContainerId().stringValue(),
         workers);
     editor = demoEdit0().editor();
@@ -276,10 +272,6 @@ public class JsCodeEditor0 implements JsCodeEditor {
             JsUri.fromJava(oldModel.uri),
             JsUri.fromJava(newModel.uri)
         ));
-  }
-
-  static void onWebGlError() {
-    JsHelper.consoleInfo("FATAL: WebGL is not enabled in the browser");
   }
 
   static Promise<JsCodeEditor> newEdit(EditArgs arguments) {

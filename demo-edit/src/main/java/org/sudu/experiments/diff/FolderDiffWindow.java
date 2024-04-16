@@ -29,6 +29,7 @@ import java.util.function.Supplier;
 public class FolderDiffWindow extends ToolWindow0 {
 
   Window window;
+  Focusable focusSave;
   FolderDiffRootView rootView;
   DirectoryNode leftRoot, rightRoot;
   RangeCtx ctx = new RangeCtx();
@@ -63,13 +64,13 @@ public class FolderDiffWindow extends ToolWindow0 {
   }
 
   private void onBlur() {
-//    var f = windowManager.uiContext.focused();
-//    if (rootView.editor1 == f || rootView.editor2 == f)
-//      focusSave = f;
+    var f = windowManager.uiContext.focused();
+    if (rootView.left == f || rootView.right == f)
+      focusSave = f;
   }
 
   private void onFocus() {
-    windowManager.uiContext.setFocus(null);
+    windowManager.uiContext.setFocus(focusSave);
   }
 
   protected Supplier<ToolbarItem[]> popupActions(V2i pos) {

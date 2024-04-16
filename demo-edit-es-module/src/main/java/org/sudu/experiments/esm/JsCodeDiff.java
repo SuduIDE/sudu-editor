@@ -4,11 +4,9 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
 
-public interface JsCodeDiff extends JSObject {
+public interface JsCodeDiff extends JsThemeTarget {
     void focus();
-    void setFontFamily(JSString fontFamily);
-    void setFontSize(int fontSize);
-    void setTheme(JSString theme);
+    void dispose();
     void setLeftModel(JsITextModel model);
     void setRightModel(JsITextModel model);
     JsITextModel getLeftModel();

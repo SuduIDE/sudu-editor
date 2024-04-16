@@ -254,7 +254,7 @@ public class Diff0 extends WindowScene implements
     editor2.changeFont(fontFamily, editor2.getFontVirtualSize());
   }
 
-  public void setFontSize(int fontSize) {
+  public void setFontSize(float fontSize) {
     editor1.changeFont(editor1.getFontFamily(), fontSize);
     editor2.changeFont(editor2.getFontFamily(), fontSize);
   }

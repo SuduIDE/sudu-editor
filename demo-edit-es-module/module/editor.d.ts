@@ -15,6 +15,8 @@ interface EditArgs {
     // number of worker threads for parsing and resolve
     // default: 2
     numThreads?: number
+
+    codiconUrl?: string
 }
 
 interface Uri {
@@ -153,15 +155,19 @@ type LanguageSelector = string | ILanguageFilter | Array<string | ILanguageFilte
 //     return true;
 // }
 
-interface ICodeDiff {
-    focus(): void,
-
+interface HasTheme {
     setFontFamily(fontFamily: string): void,
 
     setFontSize(fontSize: number): void,
 
-    setTheme(theme: string): void,
+    setTheme(theme: string): void
+}
 
+interface Focusable {
+    focus(): void
+}
+
+interface ICodeDiff extends HasTheme, Focusable {
     setLeftModel(model: ITextModel): void,
 
     setRightModel(model: ITextModel): void,
@@ -173,18 +179,10 @@ interface ICodeDiff {
     setReadonly(flag: boolean): void
 }
 
-interface ICodeEditor {
-    focus(): void,
-
+interface ICodeEditor extends HasTheme, Focusable {
     setText(text: string): void,
 
     getText(): string,
-
-    setFontFamily(fontFamily: string): void,
-
-    setFontSize(fontSize: number): void,
-
-    setTheme(theme: string): void,
 
     setModel(model: ITextModel): void,
 
@@ -213,8 +211,11 @@ interface ICodeEditor {
     onDidChangeModel: IEvent<IModelChangedEvent>
 }
 
-
 interface EditView extends ICodeEditor, IDisposable {}
+
+interface IFolderDiff extends HasTheme, Focusable {}
+
+interface FolderDiffView extends IFolderDiff, IDisposable {}
 
 export function newEditor(args: EditArgs): Promise<EditView>
 
@@ -222,3 +223,4 @@ export function newTextModel(text: string, language?: string, uri?: Uri): ITextM
 
 export function newCodeDiff(args: EditArgs): Promise<ICodeDiff>
 
+export function newFolderDiff(args: EditArgs): Promise<FolderDiffView>

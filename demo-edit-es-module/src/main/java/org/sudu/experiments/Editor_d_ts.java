@@ -1,5 +1,6 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.diff.JsFolderDiff0;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSBody;
@@ -13,7 +14,7 @@ import org.teavm.jso.core.JSString;
 public interface Editor_d_ts {
 
   @JSFunctor interface EditorFactory extends JSObject {
-    Promise<JsCodeEditor> create(JsCodeEditor.EditArgs args);
+    Promise<JsCodeEditor> create(EditArgs args);
 
     class Setter {
       @JSBody(params = {"f"}, script = "editorFactory = f;")
@@ -31,7 +32,7 @@ public interface Editor_d_ts {
   }
 
   @JSFunctor interface DiffFactory extends JSObject {
-    Promise<JsCodeDiff> create(JsCodeEditor.EditArgs args);
+    Promise<JsCodeDiff> create(EditArgs args);
 
     class Setter {
       @JSBody(params = {"f"}, script = "diffFactory = f;")
@@ -39,9 +40,19 @@ public interface Editor_d_ts {
     }
   }
 
+  @JSFunctor interface FolderDiffFactory extends JSObject {
+    Promise<JsFolderDiff> create(EditArgs args);
+
+    class Setter {
+      @JSBody(params = {"f"}, script = "newFolderDiffView = f;")
+      public static native void set(FolderDiffFactory f);
+    }
+  }
+
   static void main(String[] args) {
     EditorFactory.Setter.setApi(JsCodeEditor0::newEdit);
     TextModelFactory.Setter.setModel(JsTextModel::new);
     DiffFactory.Setter.setDiff(JsCodeDiff0::newDiff);
+    FolderDiffFactory.Setter.set(JsFolderDiff0::newDiff);
   }
 }

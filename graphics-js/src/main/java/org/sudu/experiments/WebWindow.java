@@ -41,6 +41,13 @@ public class WebWindow implements Window {
       String canvasDivId,
       JsArray<WorkerContext> workers
   ) {
+    this(canvasDivId, workers);
+    if (!init(factory))
+      onWebGlError.run();
+  }
+
+  // this ctor requires init after call
+  public WebWindow(String canvasDivId, JsArray<WorkerContext> workers) {
     this.workers = new WorkersPool(workers);
 
 //    JsHelper.consoleInfo("starting web window on " + canvasDivId);
@@ -51,9 +58,11 @@ public class WebWindow implements Window {
     GLApi.Context gl = JsHelper.createWebglContext(mainCanvas);
 
     if (gl != null) {
-      init(gl, factory);
-    } else {
-      onWebGlError.run();
+      eventHandler = new JsInput(mainCanvas, repaint);
+      g = new WebGraphics(gl, repaint);
+      observer.observePixelsOrDefault(mainCanvas);
+
+      JsWindow.current().addEventListener("resize", handleWindowResize);
     }
   }
 
@@ -108,16 +117,13 @@ public class WebWindow implements Window {
     workers.terminateAll();
   }
 
-  private void init(GLApi.Context gl, Function<SceneApi, Scene> sf) {
-    eventHandler = new JsInput(mainCanvas, repaint);
-    g = new WebGraphics(gl, repaint);
-    observer.observePixelsOrDefault(mainCanvas);
-
-    JsWindow.current().addEventListener("resize", handleWindowResize);
-
-    scene = sf.apply(api());
+  public boolean init(Function<SceneApi, Scene> sf) {
+    if (g != null) {
+      scene = sf.apply(api());
 //    JsHelper.consoleInfo("time start: ", timeNow());
-    requestNewFrame();
+      requestNewFrame();
+    }
+    return g != null;
   }
 
   @Override
