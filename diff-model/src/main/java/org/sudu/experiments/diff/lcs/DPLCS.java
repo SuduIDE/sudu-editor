@@ -1,44 +1,40 @@
 package org.sudu.experiments.diff.lcs;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * Time complexity – O(nm)
  * Space complexity – O(nm)
  */
-public class DPLCS<S> extends LCS<S> {
+public class DPLCS extends LCS {
 
-  public DPLCS(S[] L, S[] R) {
+  public DPLCS(int[][] L, int[][] R) {
     super(L, R);
   }
 
   @Override
-   protected List<S> findCommon() {
+   protected int[] findCommon() {
     short[][] matrix = countLCSMatrix();
-    int i = L.length - end, j = R.length - end;
-    LinkedList<S> common = new LinkedList<>();
+    int i = lLen, j = rLen;
+    int ptr = matrix[i][j];
+    int[] common = new int[ptr];
 
-    while (i > start && j > start) {
-      if (equals(L[i - 1], R[j - 1])) {
-        common.addFirst(L[i - 1]);
+    while (i > 0 && j > 0) {
+      if (valL(i - 1) == valR(j - 1)) {
+        common[--ptr] = indL(i - 1);
         i--;
         j--;
       } else {
-        if (matrix[i - 1 - start][j - start] > matrix[i - start][j - 1 - start]) i--;
+        if (matrix[i - 1][j] > matrix[i][j - 1]) i--;
         else j--;
       }
     }
-    return new ArrayList<>(common);
+    return common;
   }
 
   public short[][] countLCSMatrix() {
-    int d = start + end;
-    short[][] matrix = new short[L.length + 1 - d][R.length + 1 - d];
-    for (int i = 1; i < L.length + 1 - d; i++) {
-      for (int j = 1; j < R.length + 1 - d; j++) {
-        if (equals(L[start + i - 1], R[start + j - 1])) {
+    short[][] matrix = new short[lLen + 1][rLen + 1];
+    for (int i = 1; i < lLen + 1; i++) {
+      for (int j = 1; j < rLen + 1; j++) {
+        if (valL(i - 1) == valR(j - 1)) {
           matrix[i][j] = (short) (1 + matrix[i - 1][j - 1]);
         } else {
           matrix[i][j] = (short) Math.max(matrix[i - 1][j], matrix[i][j - 1]);

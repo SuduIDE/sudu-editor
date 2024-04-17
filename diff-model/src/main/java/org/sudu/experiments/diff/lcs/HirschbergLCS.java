@@ -1,5 +1,6 @@
 package org.sudu.experiments.diff.lcs;
 
+import org.sudu.experiments.diff.utils.Utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,29 +10,29 @@ import java.util.List;
  * Space complexity – O(n + m)
  * Take less memory than LCS. Have same time complexity as LCS, but practically is slower
  */
-public class HirschbergLCS<S> extends LCS<S> {
+public class HirschbergLCS extends LCS {
 
-  public HirschbergLCS(S[] L, S[] R) {
+  public HirschbergLCS(int[][] L, int[][] R) {
     super(L, R);
   }
 
   @Override
-  public List<S> findCommon() {
-    List<S> result = new ArrayList<>(minLen / 2);
-    findCommon(start, L.length - end, start, R.length - end, result);
-    return result;
+  public int[] findCommon() {
+    List<Integer> result = new ArrayList<>(minLen / 2);
+    findCommon(0, lLen, 0, rLen, result);
+    return Utils.toIntArray(result);
   }
 
   private void findCommon(
       int fromL, int toL,
       int fromR, int toR,
-      List<S> answer
+      List<Integer> answer
   ) {
     int lenL = toL - fromL;
     int lenR = toR - fromR;
     if (lenL == 0) return;
     if (lenL == 1) {
-      if (contains(R, L[fromL], fromR, toR)) answer.add(L[fromL]);
+      if (contains(valL(fromL), fromR, toR)) answer.add(indL(fromL));
       return;
     }
     int m = fromL + lenL / 2;
@@ -46,7 +47,7 @@ public class HirschbergLCS<S> extends LCS<S> {
       }
     }
     findCommon(fromL, m, fromR, fromR + k, answer);
-    findCommon(m, toL,fromR + k, toR, answer);
+    findCommon(m, toL, fromR + k, toR, answer);
   }
 
   private int[] computeLCS(
@@ -60,9 +61,7 @@ public class HirschbergLCS<S> extends LCS<S> {
     int[] curr = new int[m + 1];
     for (int i = 1; i < n + 1; i++) {
       for (int j = 1; j < m + 1; j++) {
-        S l = L[fromL + i - 1];
-        S r = R[fromR + j - 1];
-        if (equals(l, r)) curr[j] = 1 + prev[j - 1];
+        if (valL(fromL + i - 1) == valR(fromR + j - 1)) curr[j] = 1 + prev[j - 1];
         else curr[j] = Math.max(prev[j], curr[j - 1]);
       }
       prev = Arrays.copyOf(curr, curr.length);
@@ -81,9 +80,7 @@ public class HirschbergLCS<S> extends LCS<S> {
     int[] curr = new int[m + 1];
     for (int i = 1; i < n + 1; i++) {
       for (int j = 1; j < m + 1; j++) {
-        S l = L[toL - i];
-        S r = R[toR - j];
-        if (equals(l, r)) curr[j] = 1 + prev[j - 1];
+        if (valL(toL - i) == valR(toR - j)) curr[j] = 1 + prev[j - 1];
         else curr[j] = Math.max(prev[j], curr[j - 1]);
       }
       prev = Arrays.copyOf(curr, curr.length);
@@ -91,8 +88,8 @@ public class HirschbergLCS<S> extends LCS<S> {
     return prev;
   }
 
-  private boolean contains(S[] arr, S elem, int from, int to) {
-    for (int i = from; i < to; i++) if (equals(arr[i], elem)) return true;
+  private boolean contains(int elem, int from, int to) {
+    for (int i = from; i < to; i++) if (valR(i) == elem) return true;
     return false;
   }
 }

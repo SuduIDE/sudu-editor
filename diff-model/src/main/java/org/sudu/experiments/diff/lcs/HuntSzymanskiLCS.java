@@ -1,5 +1,6 @@
 package org.sudu.experiments.diff.lcs;
 
+import org.sudu.experiments.diff.utils.Utils;
 import java.util.*;
 
 /**
@@ -8,24 +9,30 @@ import java.util.*;
  * r - number of matches of sequences. r = n*n in worst case
  * Works well if the sequences are very different
  */
-public class HuntSzymanskiLCS<S> extends LCS<S> {
+public class HuntSzymanskiLCS extends LCS {
 
-  public HuntSzymanskiLCS(S[] L, S[] R) {
+  private final int maxElem;
+
+  public HuntSzymanskiLCS(int[][] L, int[][] R, int maxElem) {
     super(L, R);
+    this.maxElem = maxElem;
   }
 
   @Override
-  protected List<S> findCommon() {
-    Map<S, List<Integer>> rMatchList = getMatchList();
+  protected int[] findCommon() {
+    List<Integer>[] rMatchList = getMatchList();
+    int start = 0;
+    int end = 0;
     int[] thresh = new int[minLen - start - end + 1];
     Link[] linkL = new Link[minLen - start - end + 1];
     Arrays.fill(thresh,rLen - end);
     thresh[0] = -1;
     int t = 0, m = 0;
 
-    for (int ind = start; ind < L.length - end; ind++) {
-      S elem = L[ind];
-      var yIndices = rMatchList.getOrDefault(elem, Collections.emptyList());
+    for (int ind = start; ind < lLen - end; ind++) {
+      int elem = valL(ind);
+      var yIndices = rMatchList[elem];
+      if (yIndices == null) continue;
       for (int i = yIndices.size() - 1; i >= 0; i--) {
         int yInd = yIndices.get(i);
         int kStart = bisectLeft(thresh, yInd, 1, t);
@@ -40,24 +47,27 @@ public class HuntSzymanskiLCS<S> extends LCS<S> {
         }
       }
     }
-    return new ArrayList<>(fillResult(linkL[m]));
+    return Utils.toIntArray(fillResult(linkL[m]));
   }
 
-  private LinkedList<S> fillResult(Link linkL) {
-    LinkedList<S> common = new LinkedList<>();
+  private LinkedList<Integer> fillResult(Link linkL) {
+    LinkedList<Integer> common = new LinkedList<>();
     var cur = linkL;
     while (cur != null) {
-      common.addFirst(L[cur.ind]);
+      common.addFirst(indL(cur.ind));
       cur = cur.link;
     }
     return common;
   }
 
-  private Map<S, List<Integer>> getMatchList() {
-    Map<S, List<Integer>> rMatchList = new HashMap<>();
+  private List<Integer>[] getMatchList() {
+    int start = 0;
+    int end = 0;
+    List<Integer>[] rMatchList = new List[maxElem];
     for (int i = start; i < rLen - end; i++) {
-      rMatchList.putIfAbsent(R[i], new ArrayList<>());
-      rMatchList.get(R[i]).add(i);
+      int val = valR(i);
+      if (rMatchList[val] == null) rMatchList[val] = new ArrayList<>();
+      rMatchList[val].add(i);
     }
     return rMatchList;
   }

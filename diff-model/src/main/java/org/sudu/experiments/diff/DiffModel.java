@@ -3,6 +3,8 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.lcs.*;
+import org.sudu.experiments.diff.utils.Enumerator;
+import org.sudu.experiments.diff.utils.Utils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,11 +35,9 @@ public class DiffModel {
     prepare(docM);
 
 //    long time = System.currentTimeMillis();
-    LCS<CodeLineS> lcs = getLCS(docN, docM);
-    lcs.countAll();
+    linesRanges = countRanges(docN, docM);
 //    System.out.println("Counted in " + (System.currentTimeMillis() - time) + " ms\n");
-    this.linesRanges = lcs.ranges;
-    for (var range: lcs.ranges) {
+    for (var range: linesRanges) {
       if (!(range instanceof Diff<CodeLineS> diff)) continue;
       if (diff.isDeletion()) handleDeletion(diff);
       else if (diff.isInsertion()) handleInsertion(diff);
@@ -45,12 +45,11 @@ public class DiffModel {
     }
   }
 
-  private List<BaseRange<CodeElementS>> findElementsDiff(CodeElementS[] linesN, CodeElementS[] linesM) {
-//    long time = System.currentTimeMillis();
-    LCS<CodeElementS> lcs = getLCS(linesN, linesM);
-    lcs.countAll();
+  private List<BaseRange<CodeElementS>> findElementsDiff(CodeElementS[] elemsN, CodeElementS[] elemsM) {
+    long time = System.currentTimeMillis();
+    var elemsRanges = countRanges(elemsN, elemsM);
 //    System.out.println("Counted in " + (System.currentTimeMillis() - time) + " ms\n");
-    return lcs.ranges;
+    return elemsRanges;
   }
 
   private void handleDeletion(Diff<CodeLineS> diff) {
@@ -163,18 +162,28 @@ public class DiffModel {
     }
   }
 
-  public static <S> LCS<S> getLCS(S[] L, S[] R) {
+  public static <S> List<BaseRange<S>> countRanges(S[] L, S[] R) {
+    var enumerator = new Enumerator<S>();
+    var discardedLR = Utils.dropUnique(
+        enumerator.enumerate(L, 0, 0),
+        enumerator.enumerate(R, 0, 0)
+    );
+    LCS lcs = getLCS(discardedLR[0], discardedLR[1], enumerator.counter);
+    return lcs.countRanges(L, R);
+  }
+
+  public static LCS getLCS(int[][] L, int[][] R, int maxElem) {
     int lLen = L.length, rLen = R.length;
     int maxLen = Math.max(lLen, rLen), minLen = Math.min(lLen, rLen);
     if ((float) maxLen / minLen >= BIG_RATIO) {
-//    System.out.println("Hunt-Szymanski LCS for L.len = " + L.length + ", R.len = " + R.length);
-      return new HuntSzymanskiLCS<>(L, R);
+//      System.out.println("Hunt-Szymanski LCS for L.len = " + L.length + ", R.len = " + R.length);
+      return new HuntSzymanskiLCS(L, R, maxElem);
     }
     if (maxLen > Short.MAX_VALUE || ((long) L.length * R.length) >= BIG_MATRIX_AREA) {
 //      System.out.println("Hirschberg for L.len = " + L.length + ", R.len = " + R.length);
-      return new HirschbergLCS<>(L, R);
+      return new HirschbergLCS(L, R);
     }
 //    System.out.println("DP LCS for L.len = " + L.length + ", R.len = " + R.length);
-    return new DPLCS<>(L, R);
+    return new DPLCS(L, R);
   }
 }

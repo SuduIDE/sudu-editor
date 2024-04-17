@@ -7,47 +7,43 @@ import org.sudu.experiments.diff.Diff;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class LCS<S> {
+public abstract class LCS {
 
-  protected final S[] L, R;
+  private final int[][] L, R;
+  protected final int lLen, rLen;
   protected int minLen;
-  protected int lLen, rLen;
-  protected int start = 0, end = 0;
-  public List<BaseRange<S>> ranges;
 
-  public LCS(S[] L, S[] R) {
+  public LCS(int[][] L, int[][] R) {
     this.L = L;
     this.R = R;
-    this.lLen = L.length;
-    this.rLen = R.length;
+    this.lLen = this.L.length;
+    this.rLen = this.R.length;
     this.minLen = Math.min(lLen, rLen);
   }
 
-  public void preprocess() {
-    for (;start < minLen && equals(L[start], R[start]); start++);
-    for (;end < minLen - start && equals(L[lLen - end - 1], R[rLen - end - 1]); end++);
-  }
+  // return indices of L sequence
+  protected abstract int[] findCommon();
 
-  protected abstract List<S> findCommon();
-
-  public void countDiffs(List<S> common) {
-    this.ranges = new ArrayList<>();
+  public <S> List<BaseRange<S>> countRanges(S[] objL, S[] objR) {
+    int[] common = findCommon();
+    List<BaseRange<S>> ranges = new ArrayList<>();
     int commonPtr = 0,
-        leftPtr = start,
-        rightPtr = start;
+        leftPtr = 0,
+        rightPtr = 0;
 
     Diff<S> currentDiff = null;
     CommonRange<S> currentCommon = null;
-    if (start != 0) ranges.add(new CommonRange<>(0, 0, start));
-    while (commonPtr < common.size()
-        && leftPtr < L.length - end
-        && rightPtr < R.length - end
+
+    while (commonPtr < common.length
+        && leftPtr < objL.length
+        && rightPtr < objR.length
     ) {
-      S cS = common.get(commonPtr);
-      S cL = L[leftPtr], cR = R[rightPtr];
-      if (equals(cS, cL) && equals(cS, cR)) {
+      S cS = objL[common[commonPtr]];
+      S cL = objL[leftPtr], cR = objR[rightPtr];
+
+      if (equals(cL, cR)) {
         if (currentCommon == null) currentCommon = new CommonRange<>(leftPtr, rightPtr);
-        if (currentDiff != null) this.ranges.add(currentDiff);
+        if (currentDiff != null) ranges.add(currentDiff);
         commonPtr++;
         leftPtr++;
         rightPtr++;
@@ -56,18 +52,18 @@ public abstract class LCS<S> {
         continue;
       }
       if (currentDiff == null) currentDiff = new Diff<>(leftPtr, rightPtr);
-      if (currentCommon != null) this.ranges.add(currentCommon);
+      if (currentCommon != null) ranges.add(currentCommon);
       currentCommon = null;
 
       if (equals(cS, cL)) {
-        currentDiff.diffM.add(cR);
+        currentDiff.diffM.add(objR[rightPtr]);
         rightPtr++;
       } else if (equals(cS, cR)) {
-        currentDiff.diffN.add(cL);
+        currentDiff.diffN.add(objL[leftPtr]);
         leftPtr++;
       } else {
-        currentDiff.diffN.add(L[leftPtr]);
-        currentDiff.diffM.add(R[rightPtr]);
+        currentDiff.diffN.add(objL[leftPtr]);
+        currentDiff.diffM.add(objR[rightPtr]);
         leftPtr++;
         rightPtr++;
       }
@@ -75,29 +71,36 @@ public abstract class LCS<S> {
     if (currentCommon != null) ranges.add(currentCommon);
     if (currentDiff == null) currentDiff = new Diff<>(leftPtr, rightPtr);
 
-    for (; leftPtr < L.length - end && rightPtr < R.length - end; leftPtr++, rightPtr++) {
-      S cL = L[leftPtr], cR = R[rightPtr];
+    for (; leftPtr < objL.length && rightPtr < objR.length; leftPtr++, rightPtr++) {
+      S cL = objL[leftPtr], cR = objR[rightPtr];
       currentDiff.diffN.add(cL);
       currentDiff.diffM.add(cR);
     }
-    for (; leftPtr < L.length - end; leftPtr++) {
-      S cL = L[leftPtr];
+    for (; leftPtr < objL.length; leftPtr++) {
+      S cL = objL[leftPtr];
       currentDiff.diffN.add(cL);
     }
-    for (; rightPtr < R.length - end; rightPtr++) {
-      S cR = R[rightPtr];
+    for (; rightPtr < objR.length; rightPtr++) {
+      S cR = objR[rightPtr];
       currentDiff.diffM.add(cR);
     }
     if (currentDiff != null && currentDiff.isNotEmpty()) ranges.add(currentDiff);
-    if (end != 0) ranges.add(new CommonRange<>(lLen - end, rLen - end, end));
+    return ranges;
   }
 
-  public void countAll() {
-    preprocess();
-    countDiffs(findCommon());
-  }
-
-  protected boolean equals(S a, S b) {
+  protected <S> boolean equals(S a, S b) {
     return a.equals(b);
+  }
+
+  protected int valL(int ind) {
+    return L[ind][0];
+  }
+
+  protected int valR(int ind) {
+    return R[ind][0];
+  }
+
+  protected int indL(int ind) {
+    return L[ind][1];
   }
 }

@@ -44,9 +44,8 @@ public class FolderDiffHandler {
     var leftC = leftChildren;
     var rightC = rightChildren;
 
-    var lcs = DiffModel.getLCS(leftC, rightC);
-    lcs.countAll();
-    for (var range : lcs.ranges) {
+    var ranges = DiffModel.countRanges(leftC, rightC);
+    for (var range : ranges) {
       if (range instanceof Diff<TreeS> diff) {
         for (int i = 0; i < diff.lengthL(); i++)
           leftChildren[diff.fromL + i].diffType = DiffTypes.DELETED;
