@@ -8,7 +8,7 @@ import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.UiContext;
 import org.sudu.experiments.ui.window.View;
 
-import static org.sudu.experiments.editor.Diff0.lineWidthDp;
+import static org.sudu.experiments.diff.Diff0.lineWidthDp;
 
 public class MiddleLine extends View {
 
@@ -52,7 +52,7 @@ public class MiddleLine extends View {
     p22.set(pos.x + size.x, yRightLastPosition);
   }
 
-  void paint() {
+  public void paint() {
     draw(uiContext.graphics);
   }
 

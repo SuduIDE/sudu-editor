@@ -167,7 +167,13 @@ interface Focusable {
     focus(): void
 }
 
-interface ICodeDiff extends HasTheme, Focusable {
+interface EditorBase {
+    setReadonly(flag: boolean): void,
+    disconnectFromDom() : void
+    reconnectToDom(containerId?: string) : void
+}
+
+interface ICodeDiff extends EditorBase, HasTheme, Focusable {
     setLeftModel(model: ITextModel): void,
 
     setRightModel(model: ITextModel): void,
@@ -175,11 +181,11 @@ interface ICodeDiff extends HasTheme, Focusable {
     getLeftModel(): ITextModel,
 
     getRightModel(): ITextModel,
-
-    setReadonly(flag: boolean): void
 }
 
-interface ICodeEditor extends HasTheme, Focusable {
+interface CodeDiffView extends ICodeDiff, IDisposable {}
+
+interface ICodeEditor extends EditorBase, HasTheme, Focusable {
     setText(text: string): void,
 
     getText(): string,
@@ -206,21 +212,19 @@ interface ICodeEditor extends HasTheme, Focusable {
 
     revealPosition(position: IPosition): void
 
-    setReadonly(flag: boolean): void
-
     onDidChangeModel: IEvent<IModelChangedEvent>
 }
 
 interface EditView extends ICodeEditor, IDisposable {}
 
-interface IFolderDiff extends HasTheme, Focusable {}
+interface IFolderDiff extends EditorBase, HasTheme, Focusable {}
 
 interface FolderDiffView extends IFolderDiff, IDisposable {}
 
-export function newEditor(args: EditArgs): Promise<EditView>
-
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
 
-export function newCodeDiff(args: EditArgs): Promise<ICodeDiff>
+export function newEditor(args: EditArgs): Promise<EditView>
+
+export function newCodeDiff(args: EditArgs): Promise<CodeDiffView>
 
 export function newFolderDiff(args: EditArgs): Promise<FolderDiffView>

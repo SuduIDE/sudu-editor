@@ -2,7 +2,6 @@ package org.sudu.experiments.esm;
 
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
-import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
@@ -23,7 +22,7 @@ public interface EditArgs extends JSObject {
   String readonlyProperty = "readonly";
 
   @JSProperty
-  JSBoolean getReadonly();
+  boolean getReadonly();
 
   String numThreadsProperty = "numThreads";
 

@@ -52,10 +52,8 @@ public class InputListeners {
     repaint.run();
   }
 
+  // can be: mouseDown then focusEvent
   public void sendFocusEvent() {
-    if (dragLock != null) {
-      System.err.println("sendFocusEvent: dragLock != null " + dragLock);
-    }
     for (Runnable listener : onFocus.array()) {
       listener.run();
     }

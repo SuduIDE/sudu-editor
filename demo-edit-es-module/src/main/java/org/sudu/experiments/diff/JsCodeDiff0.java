@@ -1,39 +1,55 @@
-package org.sudu.experiments;
+package org.sudu.experiments.diff;
 
-import org.sudu.experiments.editor.Diff0;
+import org.sudu.experiments.Debug;
+import org.sudu.experiments.WebGLError;
+import org.sudu.experiments.WebWindow;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
-import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
 
 public class JsCodeDiff0 implements JsCodeDiff {
 
+  public final WebWindow window;
   private Diff0 diff;
-  private final WebWindow window;
 
   public JsCodeDiff0(
       EditArgs args,
       JsArray<WorkerContext> workers
   ) {
     this.window = new WebWindow(
-        Diff0::new,
-        WebGLError::onWebGlError,
-        args.getContainerId().stringValue(),
-        workers);
+        Diff0::new, WebGLError::onWebGlError,
+        args.getContainerId(), workers);
     this.diff = (Diff0) window.scene();
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly()) setReadonly(args.getReadonly());
   }
 
   @Override
-  public void dispose() {
-    diff = null;
+  public final void dispose() {
     window.dispose();
+    diff = null;
+  }
+
+  @Override
+  public void disconnectFromDom() {
+    window.disconnectFromDom();
+  }
+
+  @Override
+  public void reconnectToDom(JSString containedId) {
+    window.connectToDom(containedId);
   }
 
   @Override
   public void focus() {
+    if (1<0)
+      JsHelper.consoleInfo("setting focus to ", window.canvasDivId());
     window.focus();
+  }
+
+  @Override
+  public void setReadonly(boolean flag) {
+    diff.setReadonly(flag);
   }
 
   @Override
@@ -84,12 +100,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
     return JsTextModel.fromJava(diff.getRightModel());
   }
 
-  @Override
-  public void setReadonly(JSBoolean flag) {
-    diff.setReadonly(flag.booleanValue());
-  }
-
-  static Promise<JsCodeDiff> newDiff(EditArgs arguments) {
+  public static Promise<JsCodeDiff> newDiff(EditArgs arguments) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
           WorkerContext.start(

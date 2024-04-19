@@ -2,6 +2,7 @@ package org.sudu.experiments.editor;
 
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.SplitInfo;
+import org.sudu.experiments.diff.Diff0;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.js.Fetch;
 import org.sudu.experiments.js.JsHelper;

@@ -7,11 +7,13 @@ import org.teavm.jso.browser.AnimationFrameCallback;
 import org.teavm.jso.browser.Performance;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
+import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.css.CSSStyleDeclaration;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLCanvasElement;
 import org.teavm.jso.dom.html.HTMLElement;
+import org.teavm.jso.dom.xml.Node;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -20,11 +22,11 @@ public class WebWindow implements Window {
 
   final AnimationFrameCallback frameCallback = this::onAnimationFrame;
   final Runnable repaint = this::repaint;
-  final HTMLElement canvasDiv;
   final HTMLCanvasElement mainCanvas;
   final ResizeObserver observer = ResizeObserver.create(this::onSizeObserved);
   final EventListener<Event> handleWindowResize = this::handleWindowResize;
 
+  private JSString canvasDivId;
   private JsInput eventHandler;
   private WebGraphics g;
   private boolean repaintRequested = true;
@@ -41,29 +43,72 @@ public class WebWindow implements Window {
       String canvasDivId,
       JsArray<WorkerContext> workers
   ) {
+    this(factory, onWebGlError, JSString.valueOf(canvasDivId), workers);
+  }
+
+  public WebWindow(
+      Function<SceneApi, Scene> factory,
+      Runnable onWebGlError,
+      JSString canvasDivId,
+      JsArray<WorkerContext> workers
+  ) {
     this(canvasDivId, workers);
     if (!init(factory))
       onWebGlError.run();
   }
 
   // this ctor requires init after call
-  public WebWindow(String canvasDivId, JsArray<WorkerContext> workers) {
+  public WebWindow(JSString canvasDivId, JsArray<WorkerContext> workers) {
+    this.canvasDivId = canvasDivId;
     this.workers = new WorkersPool(workers);
 
 //    JsHelper.consoleInfo("starting web window on " + canvasDivId);
-    canvasDiv = HTMLDocument.current().getElementById(canvasDivId);
     mainCanvas = JsHelper.createMainCanvas(null);
-    canvasDiv.appendChild(mainCanvas);
-
     GLApi.Context gl = JsHelper.createWebglContext(mainCanvas);
 
     if (gl != null) {
+      connectToDom(canvasDivId);
       eventHandler = new JsInput(mainCanvas, repaint);
       g = new WebGraphics(gl, repaint);
       observer.observePixelsOrDefault(mainCanvas);
 
       JsWindow.current().addEventListener("resize", handleWindowResize);
     }
+  }
+
+  public JSString canvasDivId() {
+    return canvasDivId;
+  }
+
+  public void disconnectFromDom() {
+    Node parentNode = mainCanvas.getParentNode();
+    if (parentNode != null) {
+      parentNode.removeChild(mainCanvas);
+      g.clientRect.set(0, 0);
+      JsWindow.cancelAnimationFrame(animationFrameRequest);
+    } else {
+      System.err.println("disconnectFromDom: called on already disconnected");
+    }
+  }
+
+  public void connectToDom(JSString containerId) {
+    Node parentNode = mainCanvas.getParentNode();
+    if (parentNode == null) {
+      if (JsHelper.jsIf(containerId)) {
+        this.canvasDivId = containerId;
+      }
+      var canvasDiv = canvasDiv();
+      if (canvasDiv != null) {
+        canvasDiv.appendChild(mainCanvas);
+        requestNewFrame();
+      }
+    } else {
+      System.err.println("connectToDom: called on already connected");
+    }
+  }
+
+  private HTMLElement canvasDiv() {
+    return HTMLDocument.current().getElementById(canvasDivId);
   }
 
   public void focus() {
@@ -159,31 +204,34 @@ public class WebWindow implements Window {
 
   private void onCanvasSizeChanged(int inlineSize, int blockSize) {
     if (1 < 0) {
-      JsHelper.consoleInfo("  onCanvasSizeChanged: ", JsHelper.WithId.get(canvasDiv));
+      JsHelper.consoleInfo("  onCanvasSizeChanged: ", canvasDivId);
       JsHelper.consoleInfo("    inlineSize =  ", inlineSize);
       JsHelper.consoleInfo("    blockSize =  ", blockSize);
     }
     eventHandler.setClientRect(inlineSize, blockSize);
 
-    mainCanvas.setWidth(inlineSize);
-    mainCanvas.setHeight(blockSize);
-//    double ratio = Window.current().getDevicePixelRatio();
-//    double widthPx = (1. / 32. + inlineSize) / ratio;
-//    double heightPx = (1. / 32. + blockSize) / ratio;
-//    setStyleWHPx(mainCanvas.getStyle(), widthPx, heightPx);
+    boolean visible = inlineSize != 0 && blockSize != 0;
+    if (visible) {
+      mainCanvas.setWidth(inlineSize);
+      mainCanvas.setHeight(blockSize);
+    }
     g.setViewPortAndClientRect(inlineSize, blockSize);
     scene.onResize(g.clientRect, devicePixelRatio());
-    scene.paint();
+    if (visible) {
+      scene.paint();
+    }
   }
 
   private void handleWindowResize(Event evt) {
     if (1 < 0) {
-      JsHelper.consoleInfo("handleWindowResize: ", JsHelper.WithId.get(canvasDiv));
+      JsHelper.consoleInfo("handleWindowResize: ", canvasDivId);
       JsHelper.consoleInfo("  devicePixelRatio  = ", devicePixelRatio());
     }
 
     scene.onResize(g.clientRect, devicePixelRatio());
-    scene.paint();
+    if (g.clientRect.x * g.clientRect.y != 0) {
+      scene.paint();
+    }
   }
 
   public void setCursor(String cursor) {

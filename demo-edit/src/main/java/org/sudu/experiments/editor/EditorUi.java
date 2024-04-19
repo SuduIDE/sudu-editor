@@ -37,7 +37,7 @@ public class EditorUi {
     windowManager.setPopupTheme(theme);
   }
 
-  void dispose() {
+  public void dispose() {
     if (usagesWindow != null) {
       disposeUsagesWindow();
     }

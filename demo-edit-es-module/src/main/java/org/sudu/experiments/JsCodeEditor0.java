@@ -8,7 +8,6 @@ import org.sudu.experiments.utils.LanguageSelectorUtils;
 import org.sudu.experiments.utils.PromiseUtils;
 import org.sudu.experiments.utils.ProviderUtils;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
@@ -19,34 +18,41 @@ public class JsCodeEditor0 implements JsCodeEditor {
 
   public static final String errorNotArray = "provided result is not an array";
 
-  private final WebWindow window;
+  public final WebWindow window;
   private final EditorComponent editor;
 
   public JsCodeEditor0(EditArgs args, JsArray<WorkerContext> workers) {
-    this.window = new WebWindow(
-        Editor0::new,
-        WebGLError::onWebGlError,
-        args.getContainerId().stringValue(),
-        workers);
+    window = new WebWindow(Editor0::new, WebGLError::onWebGlError,
+        args.getContainerId(), workers);
     editor = demoEdit0().editor();
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly()) setReadonly(args.getReadonly());
   }
 
-  private Editor0 demoEdit0() {
-    return (Editor0) window.scene();
+  @Override
+  public void disconnectFromDom() {
+    window.disconnectFromDom();
   }
 
   @Override
-  public void dispose() {
-    window.dispose();
+  public void reconnectToDom(JSString containedId) {
+    window.connectToDom(containedId);
   }
 
   @Override
   public void focus() {
-    if (1<0) JsHelper.consoleInfo("setting focus to ",
-        JsHelper.WithId.get(window.canvasDiv));
+    if (1<0)
+      JsHelper.consoleInfo("setting focus to ", window.canvasDivId());
     window.focus();
+  }
+
+  @Override
+  public final void dispose() {
+    window.dispose();
+  }
+
+  private Editor0 demoEdit0() {
+    return (Editor0) window.scene();
   }
 
   @Override
@@ -255,8 +261,8 @@ public class JsCodeEditor0 implements JsCodeEditor {
   }
 
   @Override
-  public void setReadonly(JSBoolean flag) {
-    editor.readonly = flag.booleanValue();
+  public void setReadonly(boolean flag) {
+    editor.readonly = flag;
   }
 
   @Override

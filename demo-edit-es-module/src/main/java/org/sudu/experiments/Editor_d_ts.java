@@ -1,5 +1,6 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.diff.JsCodeDiff0;
 import org.sudu.experiments.diff.JsFolderDiff0;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.Promise;

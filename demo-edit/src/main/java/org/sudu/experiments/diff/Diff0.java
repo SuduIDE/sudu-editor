@@ -1,9 +1,9 @@
-package org.sudu.experiments.editor;
+package org.sudu.experiments.diff;
 
 import org.sudu.experiments.DprUtil;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
-import org.sudu.experiments.diff.DiffSync;
+import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
@@ -24,7 +24,7 @@ public class Diff0 extends WindowScene implements
     InputListeners.CopyHandler,
     InputListeners.PasteHandler {
 
-  static final float lineWidthDp = 2;
+  public static final float lineWidthDp = 2;
 
   final EditorComponent editor1;
   final EditorComponent editor2;
@@ -127,7 +127,9 @@ public class Diff0 extends WindowScene implements
 
   public void sendToDiff() {
     System.out.println("sendToDiff");
-    DiffUtils.findDiffs(editor1.model.document, editor2.model.document,
+    DiffUtils.findDiffs(
+        editor1.model().document,
+        editor2.model().document,
         this::onDiffResult, api.window);
   }
 

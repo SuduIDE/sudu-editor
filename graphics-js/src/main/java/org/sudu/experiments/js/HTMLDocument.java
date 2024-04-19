@@ -2,6 +2,7 @@ package org.sudu.experiments.js;
 
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
+import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.events.EventTarget;
 import org.teavm.jso.dom.html.HTMLBodyElement;
 import org.teavm.jso.dom.html.HTMLElement;
@@ -21,6 +22,8 @@ public abstract class HTMLDocument implements JSObject, Document, EventTarget {
 
   @Override
   public abstract HTMLElement getElementById(String elementId);
+
+  public abstract HTMLElement getElementById(JSString elementId);
 
   public static HTMLElement elementById(String elementId) {
     return current().getElementById(elementId);

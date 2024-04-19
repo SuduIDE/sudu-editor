@@ -31,4 +31,6 @@ public class FolderDiffScene extends WindowScene {
       w.window.fullscreen();
     }
   }
+
+  public void setReadonly(boolean flag) {}
 }

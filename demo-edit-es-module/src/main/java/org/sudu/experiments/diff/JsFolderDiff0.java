@@ -15,8 +15,8 @@ import org.teavm.jso.core.JSString;
 
 public class JsFolderDiff0 implements JsFolderDiff {
 
+  public final WebWindow window;
   private FolderDiffScene folderDiff;
-  final WebWindow window;
 
   static void start(
       EditArgs arguments,
@@ -25,7 +25,7 @@ public class JsFolderDiff0 implements JsFolderDiff {
       JsFunctions.Consumer<JSObject> postError
   ) {
     var window = new WebWindow(
-        arguments.getContainerId().stringValue(), workers);
+        arguments.getContainerId(), workers);
     if (window.init(FolderDiffScene::new)) {
       postResult.f(new JsFolderDiff0(window, arguments));
     } else {
@@ -40,15 +40,32 @@ public class JsFolderDiff0 implements JsFolderDiff {
   }
 
   @Override
-  public void dispose() {
+  public final void dispose() {
+    window.dispose();
     System.out.println("debug: JsFolderDiff disposed");
     folderDiff = null;
-    window.dispose();
+  }
+
+  @Override
+  public void disconnectFromDom() {
+    window.disconnectFromDom();
+  }
+
+  @Override
+  public void reconnectToDom(JSString containedId) {
+    window.connectToDom(containedId);
   }
 
   @Override
   public void focus() {
+    if (1<0)
+      JsHelper.consoleInfo("setting focus to ", window.canvasDivId());
     window.focus();
+  }
+
+  @Override
+  public void setReadonly(boolean flag) {
+    folderDiff.setReadonly(flag);
   }
 
   @Override
