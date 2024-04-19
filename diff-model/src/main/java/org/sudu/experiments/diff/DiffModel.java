@@ -2,11 +2,14 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
-import org.sudu.experiments.diff.lcs.*;
+import org.sudu.experiments.diff.lcs.LCS;
+import org.sudu.experiments.diff.lcs.MyersLCS;
 import org.sudu.experiments.diff.utils.Enumerator;
 import org.sudu.experiments.diff.utils.Utils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -21,10 +24,13 @@ public class DiffModel {
       char[] charsN, int[] intsN,
       char[] charsM, int[] intsM
   ) {
+    long time = System.currentTimeMillis();
     var docN = readLines(charsN, intsN);
     var docM = readLines(charsM, intsM);
     findLinesDiff(docN, docM);
-    return writeResults();
+    var ints = writeResults();
+    System.out.println("Counted document diff in " + (System.currentTimeMillis() - time) + " ms");
+    return ints;
   }
 
   void findLinesDiff(CodeLineS[] docN, CodeLineS[] docM) {
@@ -34,9 +40,7 @@ public class DiffModel {
     prepare(docN);
     prepare(docM);
 
-//    long time = System.currentTimeMillis();
     linesRanges = countRanges(docN, docM);
-//    System.out.println("Counted in " + (System.currentTimeMillis() - time) + " ms\n");
     for (var range: linesRanges) {
       if (!(range instanceof Diff<CodeLineS> diff)) continue;
       if (diff.isDeletion()) handleDeletion(diff);
@@ -46,10 +50,7 @@ public class DiffModel {
   }
 
   private List<BaseRange<CodeElementS>> findElementsDiff(CodeElementS[] elemsN, CodeElementS[] elemsM) {
-    long time = System.currentTimeMillis();
-    var elemsRanges = countRanges(elemsN, elemsM);
-//    System.out.println("Counted in " + (System.currentTimeMillis() - time) + " ms\n");
-    return elemsRanges;
+    return countRanges(elemsN, elemsM);
   }
 
   private void handleDeletion(Diff<CodeLineS> diff) {
@@ -144,7 +145,7 @@ public class DiffModel {
       if (diff[i].elementTypes == null) writer.write(-1);
       else {
         writer.write(diff[i].elementTypes.length);
-        for(int type: diff[i].elementTypes) writer.write(type);
+        for (int type: diff[i].elementTypes) writer.write(type);
       }
     }
   }
@@ -163,27 +164,56 @@ public class DiffModel {
   }
 
   public static <S> List<BaseRange<S>> countRanges(S[] L, S[] R) {
+    long time = System.currentTimeMillis();
+    int lLen = L.length, rLen = R.length;
+    int minLen = Math.min(lLen, rLen);
+
+    int start = 0, endCut = 0;
+    for (; start < minLen && L[start].equals(R[start]); start++) ;
+    for (; endCut < minLen - start && L[lLen - endCut - 1].equals(R[rLen - endCut - 1]); endCut++) ;
+    if (lLen == rLen && start == minLen) return singleCommon(minLen);
+
     var enumerator = new Enumerator<S>();
-    var discardedLR = Utils.dropUnique(
-        enumerator.enumerate(L, 0, 0),
-        enumerator.enumerate(R, 0, 0)
-    );
-    LCS lcs = getLCS(discardedLR[0], discardedLR[1], enumerator.counter);
-    return lcs.countRanges(L, R);
+    var prepL = enumerator.enumerate(L, start, endCut);
+    var prepR = enumerator.enumerate(R, start, endCut);
+    var discardedLR = Utils.dropUnique(prepL, prepR, enumerator.counter);
+    if (discardedLR[0].length == 0 && discardedLR[1].length == 0) return fastDiff(L, R, start, endCut);
+
+    LCS lcs = getLCS(discardedLR[0], discardedLR[1]);
+    var ranges = lcs.countRanges(L, R, start, endCut);
+    System.out.println("Counted in " + (System.currentTimeMillis() - time) + " ms\n");
+    return ranges;
   }
 
-  public static LCS getLCS(int[][] L, int[][] R, int maxElem) {
-    int lLen = L.length, rLen = R.length;
-    int maxLen = Math.max(lLen, rLen), minLen = Math.min(lLen, rLen);
-    if ((float) maxLen / minLen >= BIG_RATIO) {
+  public static LCS getLCS(int[][] L, int[][] R) {
+    System.out.println("Myers LCS for L.len = " + L.length + ", R.len = " + R.length);
+    return new MyersLCS(L, R);
+//    int lLen = L.length, rLen = R.length;
+//    int maxLen = Math.max(lLen, rLen), minLen = Math.min(lLen, rLen);
+//    if ((float) maxLen / minLen >= BIG_RATIO) {
 //      System.out.println("Hunt-Szymanski LCS for L.len = " + L.length + ", R.len = " + R.length);
-      return new HuntSzymanskiLCS(L, R, maxElem);
-    }
-    if (maxLen > Short.MAX_VALUE || ((long) L.length * R.length) >= BIG_MATRIX_AREA) {
+//      return new HuntSzymanskiLCS(L, R, maxElem);
+//    }
+//    if (maxLen > Short.MAX_VALUE || ((long) L.length * R.length) >= BIG_MATRIX_AREA) {
 //      System.out.println("Hirschberg for L.len = " + L.length + ", R.len = " + R.length);
-      return new HirschbergLCS(L, R);
-    }
+//      return new HirschbergLCS(L, R);
+//    }
 //    System.out.println("DP LCS for L.len = " + L.length + ", R.len = " + R.length);
-    return new DPLCS(L, R);
+//    return new DPLCS(L, R);
+  }
+
+  private static <S> List<BaseRange<S>> singleCommon(int len) {
+    return Collections.singletonList(new CommonRange<>(0, 0, len));
+  }
+
+  private static <S> List<BaseRange<S>> fastDiff(S[] L, S[] R, int start, int endCut) {
+    var ranges = new ArrayList<BaseRange<S>>();
+    if (start != 0) ranges.add(new CommonRange<>(0, 0, start));
+    Diff<S> diff = new Diff<>(start, start);
+    diff.diffN.addAll(Arrays.asList(Arrays.copyOfRange(L, start, L.length - endCut)));
+    diff.diffM.addAll(Arrays.asList(Arrays.copyOfRange(R, start, R.length - endCut)));
+    ranges.add(diff);
+    if (endCut != 0) ranges.add(new CommonRange<>(L.length - endCut, R.length - endCut, endCut));
+    return ranges;
   }
 }

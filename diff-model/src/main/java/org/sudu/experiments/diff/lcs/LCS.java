@@ -9,7 +9,7 @@ import java.util.List;
 
 public abstract class LCS {
 
-  private final int[][] L, R;
+  protected final int[][] L, R;
   protected final int lLen, rLen;
   protected int minLen;
 
@@ -24,19 +24,24 @@ public abstract class LCS {
   // return indices of L sequence
   protected abstract int[] findCommon();
 
-  public <S> List<BaseRange<S>> countRanges(S[] objL, S[] objR) {
-    int[] common = findCommon();
+  public <S> List<BaseRange<S>> countRanges(
+      S[] objL, S[] objR,
+      int start, int endCut
+  ) {
     List<BaseRange<S>> ranges = new ArrayList<>();
+    if (start != 0) ranges.add(new CommonRange<>(0, 0, start));
+
+    int[] common = findCommon();
     int commonPtr = 0,
-        leftPtr = 0,
-        rightPtr = 0;
+        leftPtr = start,
+        rightPtr = start;
 
     Diff<S> currentDiff = null;
     CommonRange<S> currentCommon = null;
 
     while (commonPtr < common.length
-        && leftPtr < objL.length
-        && rightPtr < objR.length
+        && leftPtr < objL.length - endCut
+        && rightPtr < objR.length - endCut
     ) {
       S cS = objL[common[commonPtr]];
       S cL = objL[leftPtr], cR = objR[rightPtr];
@@ -71,20 +76,21 @@ public abstract class LCS {
     if (currentCommon != null) ranges.add(currentCommon);
     if (currentDiff == null) currentDiff = new Diff<>(leftPtr, rightPtr);
 
-    for (; leftPtr < objL.length && rightPtr < objR.length; leftPtr++, rightPtr++) {
+    for (; leftPtr < objL.length - endCut && rightPtr < objR.length - endCut; leftPtr++, rightPtr++) {
       S cL = objL[leftPtr], cR = objR[rightPtr];
       currentDiff.diffN.add(cL);
       currentDiff.diffM.add(cR);
     }
-    for (; leftPtr < objL.length; leftPtr++) {
+    for (; leftPtr < objL.length - endCut; leftPtr++) {
       S cL = objL[leftPtr];
       currentDiff.diffN.add(cL);
     }
-    for (; rightPtr < objR.length; rightPtr++) {
+    for (; rightPtr < objR.length - endCut; rightPtr++) {
       S cR = objR[rightPtr];
       currentDiff.diffM.add(cR);
     }
     if (currentDiff != null && currentDiff.isNotEmpty()) ranges.add(currentDiff);
+    if (endCut != 0) ranges.add(new CommonRange<>(L.length - endCut, R.length - endCut, endCut));
     return ranges;
   }
 

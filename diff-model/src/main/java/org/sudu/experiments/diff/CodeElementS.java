@@ -3,7 +3,7 @@ package org.sudu.experiments.diff;
 public class CodeElementS {
 
   public final String s;
-  private final int hash;
+  final int hash;
   public int lineNum, elemNum;
 
   public CodeElementS(String s) {

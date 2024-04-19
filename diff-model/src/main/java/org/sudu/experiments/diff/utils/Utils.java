@@ -1,13 +1,8 @@
 package org.sudu.experiments.diff.utils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class Utils {
-
-  public static Comparator<int[]> CMP = Comparator.comparing(a -> a[0]);
 
   public static int[] toIntArray(List<Integer> list) {
     int[] result = new int[list.size()];
@@ -23,26 +18,17 @@ public class Utils {
     return result;
   }
 
-  public static int[][][] dropUnique(int[][] intsL, int[][] intsR) {
-    int[][] preparedL = removeUnique(intsR, intsL);
-    int[][] preparedR = removeUnique(preparedL, intsR);
+  public static int[][][] dropUnique(int[][] intsL, int[][] intsR, int maxEnum) {
+    int[][] preparedL = removeUnique(intsR, intsL, maxEnum);
+    int[][] preparedR = removeUnique(preparedL, intsR, maxEnum);
     return new int[][][] {preparedL, preparedR};
   }
 
-  private static int[][] removeUnique(int[][] needed, int[][] toRemove) {
-    int[][] sortedNeeded = createSorted(needed);
+  private static int[][] removeUnique(int[][] needed, int[][] toRemove, int maxEnum) {
+    BitSet presented = new BitSet(maxEnum);
+    for (var need: needed) presented.set(need[0]);
     List<int[]> notUnique = new ArrayList<>();
-    for (int[] elem : toRemove) {
-      if (Arrays.binarySearch(sortedNeeded, elem, CMP) >= 0) {
-        notUnique.add(elem);
-      }
-    }
+    for (int[] elem : toRemove) if (presented.get(elem[0])) notUnique.add(elem);
     return Utils.toIntIntArray(notUnique);
-  }
-
-  private static int[][] createSorted(int[][] ints) {
-    int[][] sorted = Arrays.copyOf(ints, ints.length);
-    Arrays.sort(sorted, CMP);
-    return sorted;
   }
 }
