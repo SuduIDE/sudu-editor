@@ -55,7 +55,7 @@ bar();
   }
 
   CodeLineS l(String... elements) {
-    return l(Arrays.stream(elements).map(CodeElementS::new).toArray(CodeElementS[]::new));
+    return l(Arrays.stream(elements).map(this::e).toArray(CodeElementS[]::new));
   }
 
   CodeLineS l(CodeElementS... elements) {

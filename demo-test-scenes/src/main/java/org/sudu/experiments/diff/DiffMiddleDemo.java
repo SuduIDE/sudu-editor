@@ -52,10 +52,8 @@ public class DiffMiddleDemo extends WindowDemo implements DprChangeListener {
   protected View createContent() {
     rootView = new FolderDiffRootView(uiContext);
     rootView.applyTheme(theme);
-    var leftDir = MockFileTree.randomFolder(
-        "Project root", 4, rootView.left::updateModel);
-    var rightDir = MockFileTree.randomFolder(
-        "Project root", 4, rootView.right::updateModel);
+    var leftDir = MockFileTree.randomFolder("Project root", 4, rootView.left::updateModel);
+    var rightDir = MockFileTree.randomFolder("Project root", 4, rootView.right::updateModel);
     rootView.left.setRoot(leftDir);
     rootView.right.setRoot(rightDir);
     rootView.setDiffModel(testModel());

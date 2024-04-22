@@ -4,11 +4,13 @@ import java.util.Arrays;
 
 public class CodeLineS {
 
-  public CodeElementS[] elements;
+  public final CodeElementS[] elements;
+  private final int hash;
   public int lineNum;
 
   public CodeLineS(CodeElementS[] elements) {
     this.elements = elements;
+    this.hash = Arrays.hashCode(elements);
   }
 
   public int len() {
@@ -18,14 +20,14 @@ public class CodeLineS {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (o == null || this.hashCode() != o.hashCode() || getClass() != o.getClass()) return false;
     CodeLineS codeLine = (CodeLineS) o;
     return Arrays.equals(elements, codeLine.elements);
   }
 
   @Override
   public int hashCode() {
-    return Arrays.hashCode(elements);
+    return hash;
   }
 
   @Override

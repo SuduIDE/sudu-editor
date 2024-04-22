@@ -1,17 +1,19 @@
 package org.sudu.experiments.diff.folder;
 
+import org.sudu.experiments.diff.DiffTypes;
+
 import static org.sudu.experiments.diff.folder.PropTypes.*;
 
 public class FolderDiffModel {
 
   FolderDiffModel parent;
   public FolderDiffModel[] children;
-  public DiffStatus status;
+  public int propagation = NO_PROP;
+  public int diffType = DiffTypes.DEFAULT;
+  public int rangeId;
 
   public FolderDiffModel(FolderDiffModel parent) {
     this.parent = parent;
-    this.status = new DiffStatus();
-    if (parent != null) status.depth = parent.status.depth + 1;
   }
 
   public void setChildren(int len) {
@@ -23,21 +25,24 @@ public class FolderDiffModel {
     return children[i];
   }
 
-  public DiffStatus childStatus(int i) {
-    return children[i].status;
-  }
-
   public void markUp(int diffType, RangeCtx ctx) {
-    status.diffType = diffType;
-    status.propagation = PROP_UP;
-    status.rangeId = ctx.nextId();
+    propagation = PROP_UP;
+    this.diffType = diffType;
+    rangeId = ctx.nextId();
     if (parent != null) parent.markUp(diffType, ctx);
   }
 
   public void markDown(int diffType) {
-    status.diffType = diffType;
-    status.propagation = PROP_DOWN;
-    if (parent != null) status.rangeId = parent.status.rangeId;
+    propagation = PROP_DOWN;
+    this.diffType = diffType;
+    if (parent != null) rangeId = parent.rangeId;
     if (children != null) for (var child: children) child.markDown(diffType);
+  }
+
+  public static FolderDiffModel getDefault() {
+    var model = new FolderDiffModel(null);
+    model.propagation = PROP_DOWN;
+    model.diffType = DiffTypes.DEFAULT;
+    return model;
   }
 }

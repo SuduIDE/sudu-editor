@@ -4,6 +4,7 @@ import org.sudu.experiments.Debug;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SplitInfo;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
@@ -161,26 +162,21 @@ public class ProjectViewWindow extends ToolWindow0
   }
 
   @Override
-  public void folderOpened(DirectoryNode node) {
-    node.closeOnClick();
-    updateView(node);
+  public void folderOpened(DirectoryNode node, FolderDiffModel model) {
+    node.closeOnClick(model);
+    if (node.childrenLength() > 0) {
+      view.treeView.updateModel(model);
+    }
     if (node.folders().length == 1 && node.files().length == 0)
       node.folders()[0].onClick.run();
   }
 
   @Override
-  public void folderClosed(DirectoryNode node) {
+  public void folderClosed(DirectoryNode node, FolderDiffModel model) {
     if (node.childrenLength() > 0) {
-      view.treeView.updateModel();
+      view.treeView.updateModel(model);
     }
-    node.readOnClick();
-  }
-
-  @Override
-  public void updateView(DirectoryNode node) {
-    if (node.childrenLength() > 0) {
-      view.treeView.updateModel();
-    }
+    node.readOnClick(model);
   }
 
   @SuppressWarnings("StringEquality")

@@ -1,6 +1,7 @@
 package org.sudu.experiments.ui;
 
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
@@ -28,7 +29,7 @@ public class FileViewDemo extends WindowDemo implements DprChangeListener {
   protected View createContent() {
     treeView = new FileTreeView(uiContext);
     var root = MockFileTree.randomFolder(
-        "Project root", depth, treeView::updateModel);
+        "Project root", depth, () -> treeView.updateModel(FolderDiffModel.getDefault()));
     System.out.println("FileTreeView model size = " + root.countAll());
     treeView.setRoot(root);
     treeView.setTheme(theme);

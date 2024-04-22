@@ -33,4 +33,9 @@ public class TreeS {
   public int hashCode() {
     return Objects.hash(name, isFolder);
   }
+
+  @Override
+  public String toString() {
+    return name;
+  }
 }

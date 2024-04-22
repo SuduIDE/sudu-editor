@@ -11,6 +11,7 @@ public class TreeNode {
   public int depth;
   public char arrow;
   public char icon;
+  public int diffType, rangeId;
 
   public TreeNode(String v, int d) {
     this(v, d, (char) 0);

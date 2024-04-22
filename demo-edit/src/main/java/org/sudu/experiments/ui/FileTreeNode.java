@@ -1,6 +1,6 @@
 package org.sudu.experiments.ui;
 
-import org.sudu.experiments.diff.folder.DiffStatus;
+import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 
 import java.util.Comparator;
@@ -35,13 +35,12 @@ public class FileTreeNode extends TreeNode {
     children = ch;
   }
 
-  TreeView.TreeModel getModel(FolderDiffModel model) {
+  TreeNode[] getModel(FolderDiffModel model) {
     int cnt = count();
     TreeNode[] lines = new TreeNode[cnt];
-    DiffStatus[] statuses = new DiffStatus[cnt];
-    int idx = getModel(lines, statuses, model, 0);
+    int idx = getModel(lines, model, 0);
     if (idx != lines.length) throw new RuntimeException();
-    return new TreeView.TreeModel(lines, statuses);
+    return lines;
   }
 
   public int childrenLength() {
@@ -64,29 +63,29 @@ public class FileTreeNode extends TreeNode {
     return n;
   }
 
-  private int getModel(TreeNode[] t, DiffStatus[] s, FolderDiffModel model, int idx) {
-    DiffStatus status = model != null ? model.status : null;
-    boolean isDownProp = model == null || model.children == null || status == null || status.propagation == PROP_DOWN;
-    t[idx] = this;
-    s[idx] = status;
-    idx++;
+  private int getModel(TreeNode[] t, FolderDiffModel model, int idx) {
+    boolean noChildren = model.children == null;
+    boolean isDownProp = model.propagation == PROP_DOWN;
+    this.rangeId = model.rangeId;
+    this.diffType = model.diffType;
+    t[idx++] = this;
     if (isOpened()) {
       for (int i = 0; i < children.length; i++) {
-        idx = isDownProp
-            ? children[i].getModel(t, s, status, idx)
-            : children[i].getModel(t, s, model.child(i), idx);
+        if (isDownProp) idx = children[i].getModel(t, model.rangeId, model.diffType, idx);
+        else if (noChildren) idx = children[i].getModel(t, model.rangeId, DiffTypes.DEFAULT, idx);
+        else idx = children[i].getModel(t, model.child(i), idx);
       }
     }
     return idx;
   }
 
-  private int getModel(TreeNode[] t, DiffStatus[] s, DiffStatus prop, int idx) {
-    t[idx] = this;
-    s[idx] = prop;
-    idx++;
+  private int getModel(TreeNode[] t, int rangeId, int diffType, int idx) {
+    this.rangeId = rangeId;
+    this.diffType = diffType;
+    t[idx++] = this;
     if (isOpened()) {
       for (var child: children) {
-        idx = child.getModel(t, s, prop, idx);
+        idx = child.getModel(t, rangeId, diffType, idx);
       }
     }
     return idx;
