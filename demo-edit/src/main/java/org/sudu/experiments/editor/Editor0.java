@@ -26,7 +26,6 @@ public class Editor0 extends WindowScene implements ThemeControl, EditorUi.Clear
     editor = new EditorComponent(ui);
     uiContext.initFocus(editor);
 
-    api.input.onKeyPress.add(this::onKeyPress);
     api.input.onKeyPress.add(new CtrlO(api, this::openFile));
 
     editor.registerMouseScroll(api.input);
@@ -86,14 +85,6 @@ public class Editor0 extends WindowScene implements ThemeControl, EditorUi.Clear
     Objects.requireNonNull(theme);
     ui.setTheme(theme);
     editor.setTheme(theme);
-  }
-
-  boolean onKeyPress(KeyEvent event) {
-    if (event.keyCode == KeyCode.F10) {
-      api.window.addChild("child", Editor0::new);
-      return true;
-    }
-    return false;
   }
 
   boolean onContextMenu(MouseEvent event) {

@@ -1272,14 +1272,12 @@ public class EditorComponent extends View implements
 
   public boolean onKeyPress(KeyEvent event) {
 //    Debug.consoleInfo("EditorComponent::onKey: "+ event.toString());
-    if (onKey != null && onKey.onKeyPress(event)) return true;
+    if (onKey != null) {
+      if (onKey.onKeyPress(event)) return true;
+      if (event.prevented) return false;
+    }
 
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
-
-    if(1<0) if (event.ctrl && event.keyCode == KeyCode.P) {
-      model.parseFullFile();
-      return true;
-    }
 
     if (!readonly && event.ctrl && event.keyCode == KeyCode.Z) {
       undoLastDiff();

@@ -307,4 +307,9 @@ public class WebWindow implements Window {
   public void runLater(Runnable command) {
     JsWindow.setTimeout(command::run, 0);
   }
+
+  public boolean addChild(String title, Function<SceneApi, Scene> sf) {
+    Debug.consoleInfo("Window.addChild is not for web");
+    return false;
+  }
 }
