@@ -1276,7 +1276,7 @@ public class EditorComponent extends View implements
 
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
 
-    if (event.ctrl && event.keyCode == KeyCode.P) {
+    if(1<0) if (event.ctrl && event.keyCode == KeyCode.P) {
       model.parseFullFile();
       return true;
     }
