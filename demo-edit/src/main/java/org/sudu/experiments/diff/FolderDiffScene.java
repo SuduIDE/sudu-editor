@@ -20,7 +20,13 @@ public class FolderDiffScene extends WindowScene {
     return Fonts.editorFonts(false);
   }
 
-  public ThemeControl themeControl() { return w; }
+  public void setTheme(String t) {
+    EditorColorScheme tm = ThemeControl.resolveTheme(t);
+    if (tm != null) {
+      theme = tm;
+      if (w != null) w.applyTheme(tm);
+    }
+  }
 
   @Override
   public void onResize(V2i newSize, float newDpr) {

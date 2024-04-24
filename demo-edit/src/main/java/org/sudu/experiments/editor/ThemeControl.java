@@ -7,12 +7,21 @@ public interface ThemeControl {
   void applyTheme(EditorColorScheme theme);
 
   default void setTheme(String theme) {
-    switch (theme) {
-      case "light" -> toggleLight();
-      case "darcula" -> toggleDarcula();
-      case "dark" -> toggleDark();
-      default -> Debug.consoleInfo("unknown theme: " + theme);
+    var t = resolveTheme(theme);
+    if (t != null) {
+      applyTheme(t);
+    } else {
+      Debug.consoleInfo("unknown theme: " + theme);
     }
+  }
+
+  static EditorColorScheme resolveTheme(String name) {
+    return switch (name) {
+      case "light" -> EditorColorScheme.lightIdeaColorScheme();
+      case "darcula" -> EditorColorScheme.darculaIdeaColorScheme();
+      case "dark" -> EditorColorScheme.darkIdeaColorScheme();
+      default -> null;
+    };
   }
 
   default void toggleDarcula() {
