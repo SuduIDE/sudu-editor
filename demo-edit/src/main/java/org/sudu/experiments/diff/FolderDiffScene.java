@@ -7,7 +7,7 @@ import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.math.V2i;
 
-public class FolderDiffScene extends WindowScene {
+public class FolderDiffScene extends WindowScene implements ThemeControl {
    EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
 
    FolderDiffWindow w;
@@ -20,12 +20,10 @@ public class FolderDiffScene extends WindowScene {
     return Fonts.editorFonts(false);
   }
 
-  public void setTheme(String t) {
-    EditorColorScheme tm = ThemeControl.resolveTheme(t);
-    if (tm != null) {
-      theme = tm;
-      if (w != null) w.applyTheme(tm);
-    }
+  @Override
+  public void applyTheme(EditorColorScheme t) {
+      theme = t;
+      if (w != null) w.applyTheme(t);
   }
 
   @Override

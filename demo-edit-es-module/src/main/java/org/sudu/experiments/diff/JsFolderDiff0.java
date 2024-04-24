@@ -3,7 +3,6 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.JsLauncher;
 import org.sudu.experiments.WebGLError;
 import org.sudu.experiments.WebWindow;
-import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.fonts.FontConfigJs;
 import org.sudu.experiments.fonts.FontDesk;
