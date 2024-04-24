@@ -38,9 +38,7 @@ public class DiffUtils {
       Consumer<Object[]> r
   ) {
     FileDiffHandler handler = new FileDiffHandler(r, left, right);
-    while (!handler.finishCompare) {
-      if (handler.needsCompare) handler.beginCompare();
-    }
+    handler.beginCompare();
   }
 
   public static final String CMP_FOLDERS = "asyncDiffUtils.compareFolders";

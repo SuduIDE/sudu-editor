@@ -9,24 +9,20 @@ import java.util.function.Consumer;
 
 public class FileDiffHandler {
 
-  private static final int LENGTH = 16 * 1024;
+  private static final int LENGTH = 32 * 1024;
 
   byte[] leftText, rightText;
   Consumer<Object[]> r;
   FileHandle left, right;
   int start = 0;
-  public boolean finishCompare = false;
-  public boolean needsCompare;
 
   public FileDiffHandler(Consumer<Object[]> r, FileHandle left, FileHandle right) {
     this.r = r;
     this.left = left;
     this.right = right;
-    this.needsCompare = true;
   }
 
   public void beginCompare() {
-    this.needsCompare = false;
     this.leftText = null;
     this.rightText = null;
     left.readAsBytes(this::sendLeft, System.err::println, start, LENGTH);
@@ -49,15 +45,13 @@ public class FileDiffHandler {
       ArrayList<Object> result = new ArrayList<>();
       result.add(new int[]{0});
       ArrayOp.sendArrayList(result, r);
-      finishCompare = true;
     } else if (leftText.length < LENGTH) {
       ArrayList<Object> result = new ArrayList<>();
       result.add(new int[]{1});
       ArrayOp.sendArrayList(result, r);
-      finishCompare = true;
     } else {
       start += LENGTH;
-      needsCompare = true;
+      beginCompare();
     }
   }
 }
