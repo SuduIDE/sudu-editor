@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 
 public class FileDiffHandler {
 
-  private static final int LENGTH = 32 * 1024;
+  private static final int LENGTH = 16 * 1024;
 
   byte[] leftText, rightText;
   Consumer<Object[]> r;
