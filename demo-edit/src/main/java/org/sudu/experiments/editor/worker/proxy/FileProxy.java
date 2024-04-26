@@ -1,6 +1,6 @@
 package org.sudu.experiments.editor.worker.proxy;
 
-import org.sudu.experiments.editor.worker.parser.LineParser;
+import org.sudu.experiments.editor.worker.parser.ElementParser;
 import org.sudu.experiments.math.ArrayOp;
 
 import java.nio.charset.StandardCharsets;
@@ -63,14 +63,14 @@ public class FileProxy {
 
   public static void parseFirstLines(BaseProxy proxy, char[] source, int numOfLines, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    if (proxy == null) LineParser.parse(source, list);
+    if (proxy == null) ElementParser.parse(source, list);
     else proxy.parseFirstLines(source, numOfLines, list);
     ArrayOp.sendArrayList(list, result);
   }
 
   public static void parseFileStructure(BaseProxy proxy, char[] source, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    if (proxy == null) LineParser.parse(source, list);
+    if (proxy == null) ElementParser.parse(source, list);
     else if (proxy == javaProxy) javaProxy.parseStructure(source, list);
     else proxy.parseFullFile(source, list);
     ArrayOp.sendArrayList(list, result);
@@ -78,7 +78,7 @@ public class FileProxy {
 
   public static void parseFullFile(BaseProxy proxy, char[] source, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    if (proxy == null) LineParser.parse(source, list);
+    if (proxy == null) ElementParser.parse(source, list);
     else if (proxy == javaProxy || proxy == cppProxy) proxy.parseFullFileScopes(source, list);
     else proxy.parseFullFile(source, list);
     ArrayOp.sendArrayList(list, result);
