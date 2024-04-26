@@ -19,8 +19,7 @@ public class DiffModel {
 
   public LineDiff[] lineDiffsN, lineDiffsM;
   public List<BaseRange<CodeLineS>> linesRanges;
-  public static final int BIG_MATRIX_AREA = 1_000_000_000;
-  public static final float BIG_RATIO = 1.15f;
+  public static final boolean PRINT_LCS_TIME = true;
 
   public int[] findDiffs(
       char[] charsN, int[] intsN,
@@ -31,7 +30,7 @@ public class DiffModel {
     var docM = readLines(charsM, intsM);
     findLinesDiff(docN, docM);
     var ints = writeResults();
-    System.out.println("Counted document diff in " + (System.currentTimeMillis() - time) + " ms");
+    if (PRINT_LCS_TIME) System.out.println("Counted document diff in " + (System.currentTimeMillis() - time) + " ms");
     return ints;
   }
 
@@ -191,30 +190,18 @@ public class DiffModel {
 
     LCS lcs = getLCS.apply(discardedLR[0], discardedLR[1]);
     var ranges = lcs.countRanges(L, R, start, endCut);
-    System.out.println("Counted in " + (System.currentTimeMillis() - time) + " ms\n");
+    if (PRINT_LCS_TIME) System.out.println("Counted in " + (System.currentTimeMillis() - time) + " ms\n");
     return ranges;
   }
 
   public static DummyLCS getDummyLCS(int[][] L, int[][] R) {
-    System.out.println("Dummy LCS for L.len = " + L.length + ", R.len = " + R.length);
+    if (PRINT_LCS_TIME) System.out.println("Dummy LCS for L.len = " + L.length + ", R.len = " + R.length);
     return new DummyLCS(L, R);
   }
 
   public static MyersLCS getMyersLCS(int[][] L, int[][] R) {
-    System.out.println("Myers LCS for L.len = " + L.length + ", R.len = " + R.length);
+    if (PRINT_LCS_TIME) System.out.println("Myers LCS for L.len = " + L.length + ", R.len = " + R.length);
     return new MyersLCS(L, R);
-//    int lLen = L.length, rLen = R.length;
-//    int maxLen = Math.max(lLen, rLen), minLen = Math.min(lLen, rLen);
-//    if ((float) maxLen / minLen >= BIG_RATIO) {
-//      System.out.println("Hunt-Szymanski LCS for L.len = " + L.length + ", R.len = " + R.length);
-//      return new HuntSzymanskiLCS(L, R, maxElem);
-//    }
-//    if (maxLen > Short.MAX_VALUE || ((long) L.length * R.length) >= BIG_MATRIX_AREA) {
-//      System.out.println("Hirschberg for L.len = " + L.length + ", R.len = " + R.length);
-//      return new HirschbergLCS(L, R);
-//    }
-//    System.out.println("DP LCS for L.len = " + L.length + ", R.len = " + R.length);
-//    return new DPLCS(L, R);
   }
 
   private static <S> List<BaseRange<S>> singleCommon(int len) {

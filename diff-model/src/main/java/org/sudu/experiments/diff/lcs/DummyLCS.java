@@ -13,7 +13,7 @@ public class DummyLCS extends LCS {
   @Override
   protected int[] findCommon() {
     int[] common = new int[L.length];
-    for (int i = 0; i < L.length; i++) common[i] = valL(i);
+    for (int i = 0; i < L.length; i++) common[i] = indL(i);
     return common;
   }
 }
