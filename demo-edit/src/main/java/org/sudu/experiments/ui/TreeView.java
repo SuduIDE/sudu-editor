@@ -90,6 +90,7 @@ public class TreeView extends ScrollContent implements Focusable {
     file = Disposable.assign(file, null);
     fileCode = Disposable.assign(fileCode, null);
     fileBinary = Disposable.assign(fileBinary, null);
+    fileOnWorker = Disposable.assign(fileOnWorker, null);
   }
 
   private GL.Texture getIcon(int arrow) {
