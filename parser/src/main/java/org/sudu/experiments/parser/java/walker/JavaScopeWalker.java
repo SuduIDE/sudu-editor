@@ -608,7 +608,7 @@ public class JavaScopeWalker extends JavaParserBaseListener {
       }
       return new ExprRefNode(refs);
     }
-    System.err.println("Unsupported expression: " + ctx.getText());
+    if (1 < 0) System.err.println("Unsupported expression: " + ctx.getText());
     return null;
   }
 
