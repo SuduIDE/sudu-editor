@@ -69,6 +69,7 @@ public class FileTreeNode extends TreeNode {
     this.rangeId = model.rangeId;
     this.diffType = model.diffType;
     t[idx++] = this;
+    chooseIcon(this, model);
     if (isOpened()) {
       for (int i = 0; i < children.length; i++) {
         if (isDownProp) idx = children[i].getModel(t, model.rangeId, model.diffType, idx);
@@ -77,6 +78,13 @@ public class FileTreeNode extends TreeNode {
       }
     }
     return idx;
+  }
+
+  private static void chooseIcon(FileTreeNode node, FolderDiffModel model) {
+    if (node.childrenLength() == 0 && !model.compared) node.iconRefresh();
+    else if (node.childrenLength() != 0) node.iconFolderOpened();
+    else if (!model.isFile()) node.iconFolder();
+    else node.iconFile();
   }
 
   private int getModel(TreeNode[] t, int rangeId, int diffType, int idx) {

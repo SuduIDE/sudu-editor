@@ -8,6 +8,8 @@ public class FolderDiffModel {
 
   FolderDiffModel parent;
   public FolderDiffModel[] children;
+  int childrenComparedCnt;
+  public boolean compared;
   public int propagation = NO_PROP;
   public int diffType = DiffTypes.DEFAULT;
   public int rangeId;
@@ -18,7 +20,33 @@ public class FolderDiffModel {
 
   public void setChildren(int len) {
     children = new FolderDiffModel[len];
+    this.childrenComparedCnt = 0;
     for (int i = 0; i < len; i++) children[i] = new FolderDiffModel(this);
+    if (len == 0) {
+      compared = true;
+      if (parent != null) parent.childCompared();
+    }
+  }
+
+  public void itemCompared() {
+    this.compared = true;
+    if (parent == null) throw new IllegalStateException("File must have a parent");
+    parent.childCompared();
+  }
+
+  public void childCompared() {
+    childrenComparedCnt++;
+    if (!isFullyCompared()) return;
+    compared = true;
+    if (parent != null) parent.childCompared();
+  }
+
+  public boolean isFullyCompared() {
+    return children.length == childrenComparedCnt;
+  }
+
+  public boolean isFile() {
+    return children == null;
   }
 
   public FolderDiffModel child(int i) {
@@ -43,6 +71,7 @@ public class FolderDiffModel {
     var model = new FolderDiffModel(null);
     model.propagation = PROP_DOWN;
     model.diffType = DiffTypes.DEFAULT;
+    model.compared = true;
     return model;
   }
 }

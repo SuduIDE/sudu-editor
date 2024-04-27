@@ -162,10 +162,8 @@ public class DiffModelBuilder {
   }
 
   void compareFiles(FileNode left, FileNode right, FolderDiffModel leftModel, FolderDiffModel rightModel) {
-    left.iconRefresh();
-    right.iconRefresh();
     executor.sendToWorker(
-        result -> onFilesCompared(left, right, leftModel, rightModel, result),
+        result -> onFilesCompared(leftModel, rightModel, result),
         DiffUtils.CMP_FILES,
         left.file, right.file
     );
@@ -175,8 +173,6 @@ public class DiffModelBuilder {
       DirectoryNode left, DirectoryNode right,
       FolderDiffModel leftModel, FolderDiffModel rightModel
   ) {
-    left.iconRefresh();
-    right.iconRefresh();
     executor.sendToWorker(
         result -> onFoldersCompared(left, right, leftModel, rightModel, result),
         DiffUtils.CMP_FOLDERS,
@@ -185,12 +181,11 @@ public class DiffModelBuilder {
   }
 
   void onFilesCompared(
-      FileNode left, FileNode right,
       FolderDiffModel leftModel, FolderDiffModel rightModel,
       Object[] result
   ) {
-    left.iconFile();
-    right.iconFile();
+    leftModel.itemCompared();
+    rightModel.itemCompared();
     if (result.length != 1) return;
     boolean equals = ((ArrayView) result[0]).ints()[0] == 1;
     if (!equals) {
@@ -198,8 +193,8 @@ public class DiffModelBuilder {
       leftModel.rangeId = rangeId;
       rightModel.rangeId = rangeId;
       rangeCtx.markUp(leftModel, rightModel);
-      updateDiffInfo.run();
     }
+    updateDiffInfo.run();
   }
 
   void onFoldersCompared(
@@ -239,6 +234,7 @@ public class DiffModelBuilder {
         leftModel.child(lP).diffType = DiffTypes.DELETED;
         leftModel.child(lP).rangeId = id;
         leftModel.child(lP).markDown(DiffTypes.DELETED);
+        leftModel.child(lP).itemCompared();
         lP++;
       }
       if (changed) {
@@ -250,15 +246,12 @@ public class DiffModelBuilder {
         rightModel.child(rP).diffType = DiffTypes.INSERTED;
         rightModel.child(rP).rangeId = id;
         rightModel.child(rP).markDown(DiffTypes.INSERTED);
+        rightModel.child(rP).itemCompared();
         rP++;
       }
       if (changed) rangeCtx.markUp(leftModel, rightModel);
     }
     updateDiffInfo.run();
-    if (left.childrenLength() == 0) left.iconFolder();
-    else left.iconFolderOpened();
-    if (right.childrenLength() == 0) right.iconFolder();
-    else right.iconFolderOpened();
   }
 
   void sendCompare(
