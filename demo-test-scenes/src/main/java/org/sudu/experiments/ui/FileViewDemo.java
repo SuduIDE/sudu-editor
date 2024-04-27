@@ -29,7 +29,7 @@ public class FileViewDemo extends WindowDemo implements DprChangeListener {
   protected View createContent() {
     treeView = new FileTreeView(uiContext);
     var root = MockFileTree.randomFolder(
-        "Project root", depth, () -> treeView.updateModel(FolderDiffModel.getDefault()));
+        "Project root", depth, () -> treeView.updateModel(FolderDiffModel.DEFAULT));
     System.out.println("FileTreeView model size = " + root.countAll());
     treeView.setRoot(root);
     treeView.setTheme(theme);

@@ -48,8 +48,8 @@ public class FolderDiffWindow extends ToolWindow0 {
     window.onFocus(this::onFocus);
     window.onBlur(this::onBlur);
     windowManager.addWindow(window);
-    leftModel = FolderDiffModel.getDefault();
-    rightModel = FolderDiffModel.getDefault();
+    leftModel = FolderDiffModel.DEFAULT;
+    rightModel = FolderDiffModel.DEFAULT;
     builder = new DiffModelBuilder(this::updateDiffInfo, window.context.window);
   }
 
@@ -130,8 +130,8 @@ public class FolderDiffWindow extends ToolWindow0 {
       }
 
       @Override
-      public void folderOpened(DirectoryNode node, FolderDiffModel model) {
-        node.closeOnClick(model);
+      public void folderOpened(DirectoryNode node) {
+        node.closeOnClick();
         System.out.println("folderOpened " + node.dir.toString());
         DirectoryNode oppositeDir = findOppositeDir(node);
 
@@ -140,7 +140,7 @@ public class FolderDiffWindow extends ToolWindow0 {
           oppositeDir.onClick.run();
         }
         if (node.childrenLength() > 0) {
-          treeView.updateModel(model);
+          treeView.updateModel();
         }
         updateDiffInfo();
         if (node.folders().length == 1 && node.files().length == 0) {
@@ -153,11 +153,11 @@ public class FolderDiffWindow extends ToolWindow0 {
       }
 
       @Override
-      public void folderClosed(DirectoryNode node, FolderDiffModel model) {
+      public void folderClosed(DirectoryNode node) {
         if (node.childrenLength() > 0) {
-          treeView.updateModel(model);
+          treeView.updateModel();
         }
-        node.readOnClick(model);
+        node.readOnClick();
         DirectoryNode oppositeDir = findOppositeDir(node);
         setOppositeSel(oppositeDir);
         if (oppositeDir != null && oppositeDir.isOpened()) {

@@ -67,7 +67,9 @@ public class FolderDiffModel {
     if (children != null) for (var child: children) child.markDown(diffType);
   }
 
-  public static FolderDiffModel getDefault() {
+  public static final FolderDiffModel DEFAULT = getDefault();
+
+  private static FolderDiffModel getDefault() {
     var model = new FolderDiffModel(null);
     model.propagation = PROP_DOWN;
     model.diffType = DiffTypes.DEFAULT;

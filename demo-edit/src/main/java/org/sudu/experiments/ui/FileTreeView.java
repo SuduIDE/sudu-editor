@@ -11,7 +11,7 @@ public class FileTreeView extends TreeView {
   }
 
   public void updateModel() {
-    setModel(root.getModel(FolderDiffModel.getDefault()));
+    setModel(root.getModel(FolderDiffModel.DEFAULT));
   }
 
   public void updateModel(FolderDiffModel model) {
@@ -20,7 +20,7 @@ public class FileTreeView extends TreeView {
 
   public void setRoot(FileTreeNode root) {
     this.root = root;
-    updateModel(FolderDiffModel.getDefault());
+    updateModel(FolderDiffModel.DEFAULT);
     setSelected0();
   }
 
