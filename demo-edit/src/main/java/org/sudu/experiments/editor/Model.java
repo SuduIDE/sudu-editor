@@ -267,6 +267,10 @@ public class Model {
 
   void requestParseFile() {
     if (executor == null) return;
+    if (isEmpty()) {
+      setParsed();
+      return;
+    }
     this.parsingTimeStart = System.currentTimeMillis();
 
     String lang = language();
@@ -424,6 +428,12 @@ public class Model {
             document.getChars(), vpInts, document.getIntervals() );
       }
     }
+  }
+
+  private boolean isEmpty() {
+    return document.length() == 1
+        && document.line(0).length() == 1
+        && document.line(0).get(0).length() == 0;
   }
 
   private boolean isVpParsed(int editorFirstLine, int editorLastLine) {
