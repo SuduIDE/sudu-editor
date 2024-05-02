@@ -41,7 +41,7 @@ public class HtmlWalker extends HTMLParserBaseListener {
           mark(ctx.TAG_NAME(), ParserConstants.TokenTypes.ERROR, ParserConstants.TokenStyles.NORMAL);
         }
       } else if (ctx.TAG_SLASH_CLOSE() == null) {
-        ArrayOp.addAt(tag, tagStack, stackPtr++);
+        tagStack = ArrayOp.addAt(tag, tagStack, stackPtr++);
         mark(tag, ParserConstants.TokenTypes.ANNOTATION, ParserConstants.TokenStyles.NORMAL);
       } else {
         mark(tag, ParserConstants.TokenTypes.ANNOTATION, ParserConstants.TokenStyles.NORMAL);

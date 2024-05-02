@@ -2,7 +2,6 @@ package org.sudu.experiments.ui.fs;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.ui.FileTreeNode;
 
@@ -23,9 +22,9 @@ public class DirectoryNode extends FileTreeNode {
   public interface Handler {
     void openFile(FileNode file);
 
-    void folderOpened(DirectoryNode node, FolderDiffModel model);
+    void folderOpened(DirectoryNode node);
 
-    void folderClosed(DirectoryNode node, FolderDiffModel model);
+    void folderClosed(DirectoryNode node);
 
     default void applyFileIcon(FileTreeNode f, String fileName) {
       f.iconFile();
@@ -44,7 +43,7 @@ public class DirectoryNode extends FileTreeNode {
     super(dir.getName(), d);
     this.dir = dir;
     this.handler = handler;
-    readOnClick(FolderDiffModel.getDefault());
+    readOnClick();
     close();
   }
 
@@ -68,25 +67,25 @@ public class DirectoryNode extends FileTreeNode {
     return FileTreeNode.bs(files, what);
   }
 
-  public void readOnClick(FolderDiffModel model) {
-    onClick = () -> readDirectory(model);
+  public void readOnClick() {
+    onClick = this::readDirectory;
     onClickArrow = onClick;
     setContent(ch0);
   }
 
-  public void closeOnClick(FolderDiffModel model) {
-    onClick = () -> closeFolder(model);
+  public void closeOnClick() {
+    onClick = this::closeFolder;
     onClickArrow = onClick;
   }
 
-  private void closeFolder(FolderDiffModel model) {
+  private void closeFolder() {
     close();
-    handler.folderClosed(this, model);
+    handler.folderClosed(this);
     folders = dn0;
     files = fn0;
   }
 
-  private void readDirectory(FolderDiffModel model) {
+  private void readDirectory() {
     System.out.println("readDirectory: " + name());
     dir.read(new DirectoryHandle.Reader() {
 
@@ -120,7 +119,7 @@ public class DirectoryNode extends FileTreeNode {
           setContent(children);
         }
         open();
-        handler.folderOpened(DirectoryNode.this, model);
+        handler.folderOpened(DirectoryNode.this);
       }
     });
   }

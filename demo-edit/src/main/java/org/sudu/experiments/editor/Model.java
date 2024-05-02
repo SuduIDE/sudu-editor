@@ -3,7 +3,6 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.SplitInfo;
 import org.sudu.experiments.diff.LineDiff;
-import org.sudu.experiments.editor.worker.parser.LineParser;
 import org.sudu.experiments.editor.worker.parser.ParseStatus;
 import org.sudu.experiments.editor.worker.parser.ParserUtils;
 import org.sudu.experiments.editor.worker.proxy.*;
@@ -271,10 +270,6 @@ public class Model {
     this.parsingTimeStart = System.currentTimeMillis();
 
     String lang = language();
-    if (Objects.equals(lang, Languages.TEXT)) {
-      setParsed();
-      return;
-    }
     boolean isJava = Objects.equals(lang, Languages.JAVA);
     boolean isActivity = Objects.equals(lang, Languages.ACTIVITY);
     char[] chars = document.getChars();

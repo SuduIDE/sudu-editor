@@ -6,10 +6,11 @@ import java.util.Objects;
 
 public class TreeS {
 
+  public final String name;
+  public final boolean isFolder;
   public FsItem item;
-  public String name;
-  public boolean isFolder;
   public int diffType;
+  private final int hash;
 
   public TreeS(FsItem item, boolean isFolder) {
     this(item.getName(), isFolder);
@@ -19,6 +20,7 @@ public class TreeS {
   public TreeS(String name, boolean isFolder) {
     this.name = name;
     this.isFolder = isFolder;
+    this.hash = Objects.hash(name, isFolder);
   }
 
   @Override
@@ -31,7 +33,7 @@ public class TreeS {
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, isFolder);
+    return hash;
   }
 
   @Override

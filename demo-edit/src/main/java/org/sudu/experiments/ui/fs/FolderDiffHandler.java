@@ -44,7 +44,7 @@ public class FolderDiffHandler {
     var leftC = leftChildren;
     var rightC = rightChildren;
 
-    var ranges = DiffModel.countRanges(leftC, rightC);
+    var ranges = DiffModel.countFolderRanges(leftC, rightC);
     for (var range : ranges) {
       if (range instanceof Diff<TreeS> diff) {
         for (int i = 0; i < diff.lengthL(); i++)

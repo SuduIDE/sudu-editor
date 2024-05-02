@@ -3,7 +3,7 @@ package org.sudu.experiments.editor.worker;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
-import org.sudu.experiments.editor.worker.parser.LineParser;
+import org.sudu.experiments.editor.worker.parser.ElementParser;
 import org.sudu.experiments.editor.worker.proxy.*;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.worker.ArrayView;
@@ -42,7 +42,7 @@ public class EditorWorker {
       case CppProxy.PARSE_FULL_FILE_SCOPES -> cppProxy.parseFullFileScopes(array(a, 0).chars(), result);
       case JavaScriptProxy.PARSE_FULL_FILE -> javascriptProxy.parseFullFile(array(a, 0).chars(), result);
       case HtmlProxy.PARSE_FULL_FILE -> htmlProxy.parseFullFile(array(a, 0).chars(), result);
-      case LineParser.PARSE -> LineParser.parse(array(a, 0).chars(), result);
+      case ElementParser.PARSE -> ElementParser.parse(array(a, 0).chars(), result);
       case ScopeProxy.RESOLVE_ALL -> ScopeProxy.resolveAll(array(a, 0).ints(), array(a, 1).chars(), array(a, 2).ints(), result);
       case DiffUtils.FIND_DIFFS -> DiffUtils.findDiffs(
           array(a, 0).chars(), array(a, 1).ints(),
