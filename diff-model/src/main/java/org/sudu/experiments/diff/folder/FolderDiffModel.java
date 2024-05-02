@@ -63,6 +63,7 @@ public class FolderDiffModel {
   public void markDown(int diffType) {
     propagation = PROP_DOWN;
     this.diffType = diffType;
+    this.compared = true;
     if (parent != null) rangeId = parent.rangeId;
     if (children != null) for (var child: children) child.markDown(diffType);
   }

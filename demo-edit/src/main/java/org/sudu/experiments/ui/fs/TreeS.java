@@ -26,9 +26,9 @@ public class TreeS {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (o == null || hashCode() != o.hashCode() || getClass() != o.getClass()) return false;
     TreeS treeS = (TreeS) o;
-    return isFolder == treeS.isFolder && Objects.equals(name, treeS.name);
+    return isFolder == treeS.isFolder && name.equals(treeS.name);
   }
 
   @Override
