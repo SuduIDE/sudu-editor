@@ -24,8 +24,8 @@
       <id>downloadFont</id>
       <properties>
         <codicon.version>0.0.35</codicon.version>
-        <cdnPathNPM>https://cdn.jsdelivr.net/npm/@vscode/codicons@${codicon.version}/dist/</cdnPathNPM>
-        <cdnPath>https://microsoft.github.io/vscode-codicons/dist/</cdnPath>
+        <cdnPath>https://cdn.jsdelivr.net/npm/@vscode/codicons@${codicon.version}/dist/</cdnPath>
+        <cdnPath2>https://microsoft.github.io/vscode-codicons/dist/</cdnPath2>
         <dest>${project.basedir}/src/main/resources/fonts</dest>
         <f1>${cdnPath}codicon.ttf</f1>
         <f2>${cdnPath}codicon.css</f2>
