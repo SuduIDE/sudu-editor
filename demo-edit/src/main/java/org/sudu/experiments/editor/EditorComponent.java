@@ -10,6 +10,7 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.*;
 import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ScrollBar;
 import org.sudu.experiments.ui.SetCursor;
@@ -88,6 +89,7 @@ public class EditorComponent extends View implements
   Consumer<String> onError = System.err::println;
   Runnable hScrollListener, vScrollListener;
   Consumer<EditorComponent> fullFileParseListener;
+  Consumer<EditorComponent> iterativeParseFileListener;
   int vScrollPos = 0;
 
   final ClrContext lrContext;
@@ -139,6 +141,10 @@ public class EditorComponent extends View implements
 
   public void setFullFileParseListener(Consumer<EditorComponent> listener) {
     fullFileParseListener = listener;
+  }
+
+  public void setIterativeParseFileListener(Consumer<EditorComponent> listener) {
+    iterativeParseFileListener = listener;
   }
 
   private void internalLayout(V2i pos, V2i size, float dpr) {
@@ -461,7 +467,7 @@ public class EditorComponent extends View implements
       fullWidth = Math.max(fullWidth, cLine.lineMeasure() + rightPadding);
       int yPosition = lineHeight * i - vScrollPos;
 
-      LineDiff diff = diffModel == null ? null : diffModel[i];
+      LineDiff diff = diffModel == null || i >= diffModel.length ? null : diffModel[i];
       line.draw(
           pos.y + yPosition, dx, g,
           editorWidth, lineHeight, model.hScrollPos,
@@ -746,7 +752,7 @@ public class EditorComponent extends View implements
   public boolean handleInsert(String s) {
     if (readonly) return false;
     if (selection().isAreaSelected()) deleteSelectedArea();
-    String[] lines = s.replace("\r", "").split("\n", -1);
+    String[] lines = SplitText.split(s);
 
     model.document.insertLines(model.caretLine, model.caretCharPos, lines);
 
@@ -1622,6 +1628,13 @@ public class EditorComponent extends View implements
   public void fireFullFileParsed() {
     if (fullFileParseListener != null) {
       fullFileParseListener.accept(this);
+    }
+  }
+
+  @Override
+  public void fireFileIterativeParsed() {
+    if (iterativeParseFileListener != null) {
+      iterativeParseFileListener.accept(this);
     }
   }
 

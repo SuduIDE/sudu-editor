@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 // Base class for parsers, that parse all text in file
-public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> {
+public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> implements IntParser {
 
   public Map<Pos, Pos> usageToDefinition = new HashMap<>();
 

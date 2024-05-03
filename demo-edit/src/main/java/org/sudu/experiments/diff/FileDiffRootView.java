@@ -28,8 +28,11 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     editor2 = new EditorComponent(ui);
     middleLine.setLeftRight(editor1, editor2);
     Consumer<EditorComponent> parseListener = this::fullFileParseListener;
+    Consumer<EditorComponent> iterativeParseListener = this::iterativeParseFileListener;
     editor1.setFullFileParseListener(parseListener);
+    editor1.setIterativeParseFileListener(iterativeParseListener);
     editor2.setFullFileParseListener(parseListener);
+    editor2.setIterativeParseFileListener(iterativeParseListener);
     editor1.highlightResolveError(false);
     editor2.highlightResolveError(false);
     editor1.setMirrored(true);
@@ -47,6 +50,10 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     if ((modelFlags & 3) == 3) {
       sendToDiff();
     }
+  }
+
+  private void iterativeParseFileListener(EditorComponent editor) {
+    fullFileParseListener(editor);
   }
 
   @Override

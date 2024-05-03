@@ -338,36 +338,33 @@ public class Model {
     }
 
     String language = language();
-    if (language == null || Languages.TEXT.equals(language)) {
+    var reparseNode = document.tree.getReparseNode();
+    if (reparseNode == null) {
+      resolveAll();
       document.onReparse();
-    } else {
-      var reparseNode = document.tree.getReparseNode();
-      if (reparseNode == null) {
-        resolveAll();
-        document.onReparse();
-        return;
-      }
-
-      int[] interval = new int[]{reparseNode.getStart(), reparseNode.getStop(), reparseNode.getType()};
-      char[] chars = document.getChars();
-      int[] type = new int[]{Languages.getType(language)};
-
-      int[] graphInts;
-      char[] graphChars;
-      if (document.scopeGraph.root != null) {
-        ScopeGraph oldGraph = document.scopeGraph;
-        ScopeGraph reparseGraph = new ScopeGraph(reparseNode.scope, oldGraph.typeMap);
-        ScopeGraphWriter writer = new ScopeGraphWriter(reparseGraph, reparseNode);
-        writer.toInts();
-        graphInts = writer.graphInts;
-        graphChars = writer.graphChars;
-      } else {
-        graphInts = new int[]{};
-        graphChars = new char[]{};
-      }
-      int version = document.currentVersion;
-      executor.sendToWorker(this::onFileIterativeParsed, FileProxy.asyncIterativeParsing, chars, type, interval, new int[]{version}, graphInts, graphChars);
+      if (editor != null) editor.fireFileIterativeParsed();
+      return;
     }
+
+    int[] interval = new int[]{reparseNode.getStart(), reparseNode.getStop(), reparseNode.getType()};
+    char[] chars = document.getChars();
+    int[] type = new int[]{Languages.getType(language)};
+
+    int[] graphInts;
+    char[] graphChars;
+    if (document.scopeGraph.root != null) {
+      ScopeGraph oldGraph = document.scopeGraph;
+      ScopeGraph reparseGraph = new ScopeGraph(reparseNode.scope, oldGraph.typeMap);
+      ScopeGraphWriter writer = new ScopeGraphWriter(reparseGraph, reparseNode);
+      writer.toInts();
+      graphInts = writer.graphInts;
+      graphChars = writer.graphChars;
+    } else {
+      graphInts = new int[]{};
+      graphChars = new char[]{};
+    }
+    int version = document.currentVersion;
+    executor.sendToWorker(this::onFileIterativeParsed, FileProxy.asyncIterativeParsing, chars, type, interval, new int[]{version}, graphInts, graphChars);
   }
 
   void onFileIterativeParsed(Object[] result) {
@@ -395,6 +392,7 @@ public class Model {
     } else {
       ParserUtils.updateDocument(document, ints, chars);
     }
+    if (editor != null) editor.fireFileIterativeParsed();
   }
 
   static String parseJobName(String language) {
@@ -403,8 +401,8 @@ public class Model {
       case Languages.CPP -> CppProxy.PARSE_FULL_FILE_SCOPES;
       case Languages.JS -> JavaScriptProxy.PARSE_FULL_FILE;
       case Languages.ACTIVITY -> ActivityProxy.PARSE_FULL_FILE;
-//      case Languages.TEXT -> LineParser.PARSE;
-      default -> null;
+      case Languages.HTML -> HtmlProxy.PARSE_FULL_FILE;
+      default -> TextProxy.PARSE_FULL_FILE;
     } : null;
   }
 
@@ -442,6 +440,9 @@ public class Model {
 
   interface EditorToModel {
     void useDocumentHighlightProvider(int line, int column);
+
     void fireFullFileParsed();
+
+    void fireFileIterativeParsed();
   }
 }
