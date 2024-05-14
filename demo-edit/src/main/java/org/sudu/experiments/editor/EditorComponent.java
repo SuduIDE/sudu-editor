@@ -3,6 +3,7 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.EditorUi.FontApi;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -479,7 +480,7 @@ public class EditorComponent extends View implements
           editorWidth, lineHeight, model.hScrollPos,
           colors, getSelLineSegment(i, cLine),
           model.definition, model.usages,
-          model.caretLine == i, diffModel != null,
+          model.caretLine == i,
           diff);
     }
 
@@ -489,10 +490,10 @@ public class EditorComponent extends View implements
       int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection().isTailSelected(i);
       Color tailColor = colors.editor.lineTailContent;
-      boolean isCurrentLine = model.caretLine == i && diffModel == null;
+      boolean isCurrentLine = model.caretLine == i;
 
       if (isTailSelected) tailColor = colors.editor.selectionBg;
-      else if (diffModel != null && i < diffModel.length && diffModel[i] != null) {
+      else if (diffModel != null && i < diffModel.length && diffModel[i] != null && !diffModel[i].isDefault()) {
         tailColor = (Color) colors.diff.getDiffColor(colors, diffModel[i].type);
       }
       else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
@@ -572,9 +573,13 @@ public class EditorComponent extends View implements
   private void drawLineNumbers(int firstLine, int lastLine) {
     int editorBottom = size.y;
     int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
-
-    lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine,
-        diffModel() != null ? -1 : model.caretLine, g, colors);
+    var diff = diffModel() != null
+        ? diffModel()[model.caretLine]
+        : null;
+    int caretLine = diff != null && !diff.isDefault()
+        ? -1
+        : model.caretLine;
+    lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine, caretLine, g, colors);
   }
 
   public int getFirstLine() {
