@@ -57,11 +57,19 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
   }
 
   private void iterativeParseFileListener(EditorComponent editor, int start, int stop) {
+    if (diffModel == null) return;
     boolean isL = editor == editor1;
     int startLine = editor.model().document.getLine(start).x;
     int stopLine = editor.model().document.getLine(stop).x;
-    var fromRange = diffModel.range(startLine, isL);
-    var toRange = diffModel.range(stopLine, isL);
+    var fromRangeInd = diffModel.rangeBinSearch(startLine, isL);
+    var toRangeInd = diffModel.rangeBinSearch(stopLine, isL);
+
+    if (fromRangeInd != 0 && diffModel.ranges[fromRangeInd].type != DiffTypes.DEFAULT) fromRangeInd--;
+    if (toRangeInd != diffModel.rangeCount() - 1 && diffModel.ranges[toRangeInd].type != DiffTypes.DEFAULT) toRangeInd++;
+
+    var fromRange = diffModel.ranges[fromRangeInd];
+    var toRange = diffModel.ranges[toRangeInd];
+
     sendIntervalToDiff(fromRange.fromL, toRange.toL(), fromRange.fromR, toRange.toR());
   }
 
@@ -73,11 +81,11 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
   }
 
   private void onInsertDiffMadeListener(Diff diff, boolean isL) {
-    diffModel.insertAt(diff.line, diff.lineCount(), isL);
+    if (diffModel != null) diffModel.insertAt(diff.line, diff.lineCount(), isL);
   }
 
   private void onDeleteDiffMadeListener(Diff diff, boolean isL) {
-    diffModel.deleteAt(diff.line, diff.lineCount(), isL);
+    if (diffModel != null) diffModel.deleteAt(diff.line, diff.lineCount(), isL);
   }
 
   @Override

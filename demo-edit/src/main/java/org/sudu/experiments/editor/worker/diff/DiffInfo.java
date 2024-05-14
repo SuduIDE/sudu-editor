@@ -1,7 +1,9 @@
 package org.sudu.experiments.editor.worker.diff;
 
+import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import java.util.ArrayList;
+import java.util.List;
 
 public class DiffInfo {
 
@@ -23,6 +25,9 @@ public class DiffInfo {
     int low = 0;
     int high = ranges.length - 1;
 
+    // The last range interval right border is inclusive
+    if (isL && ranges[high].toL() == lineKey) return high;
+    if (!isL && ranges[high].toR() == lineKey) return high;
     while (low <= high) {
       int mid = (low + high) >>> 1;
       var midRange = ranges[mid];
@@ -90,9 +95,29 @@ public class DiffInfo {
     }
     while (i < ranges.length && (range = ranges[i]).toL() != toL && range.toR() != toR) i++;
     if (i < ranges.length) i++;
-    while (i < ranges.length) newRanges.add(ranges[i++]);
+    while (i < ranges.length) merge(newRanges, ranges[i++]);
     this.ranges = newRanges.toArray(DiffRange[]::new);
-    System.out.println();
+  }
+
+  public int rangeCount() {
+    return ranges.length;
+  }
+
+  private void merge(List<DiffRange> ranges, DiffRange newRange) {
+    DiffRange left = ranges.get(ranges.size() - 1);
+    int leftType = left.type, rightType = newRange.type;
+    if (leftType == DiffTypes.DEFAULT) {
+      if (rightType == DiffTypes.DEFAULT) {
+        left.lenL += newRange.lenL;
+        left.lenR += newRange.lenR;
+      } else ranges.add(newRange);
+    } else {
+      if (rightType != DiffTypes.DEFAULT) {
+        left.lenL += newRange.lenL;
+        left.lenR += newRange.lenR;
+        left.type = DiffTypes.EDITED;
+      } else ranges.add(newRange);
+    }
   }
 
   private void updateDeleteRanges(

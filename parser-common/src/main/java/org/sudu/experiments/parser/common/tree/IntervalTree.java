@@ -59,7 +59,7 @@ public class IntervalTree {
       newNodes.forEach(it -> it.parent = root);
       newScopes.forEach(it -> it.parent = root.scope);
       this.root.children = newNodes;
-      this.root.scope.children = newScopes;
+      if (this.root.scope != null) this.root.scope.children = newScopes;
       this.root.needReparse = false;
       return;
     }

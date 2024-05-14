@@ -90,7 +90,7 @@ public abstract class LCS {
       currentDiff.diffM.add(cR);
     }
     if (currentDiff != null && currentDiff.isNotEmpty()) ranges.add(currentDiff);
-    if (endCut != 0) ranges.add(new CommonRange<>(L.length - endCut, R.length - endCut, endCut));
+    if (endCut != 0) ranges.add(new CommonRange<>(objL.length - endCut, objR.length - endCut, endCut));
     return ranges;
   }
 
