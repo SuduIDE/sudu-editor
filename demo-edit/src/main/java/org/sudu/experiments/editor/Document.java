@@ -27,6 +27,7 @@ public class Document extends CodeLines {
   int currentVersion;
   int lastParsedVersion;
   double lastDiffTimestamp;
+  public BiConsumer<Diff, Boolean> onDiffMade;
 
   public Document() {
     this(CodeLine.emptyLine());
@@ -71,7 +72,11 @@ public class Document extends CodeLines {
   }
 
   public int getFullLength() {
-    return getLineStartInd(length());
+    return getIntervalLength(0, document.length);
+  }
+
+  public int getIntervalLength(int fromLine, int toLine) {
+    return getLineStartInd(fromLine, toLine);
   }
 
   public void clear() {
@@ -310,9 +315,13 @@ public class Document extends CodeLines {
   }
 
   public int getLineStartInd(int firstLine) {
+    return getLineStartInd(0, firstLine);
+  }
+
+  public int getLineStartInd(int fromLine, int firstLine) {
     int result = 0;
     int lines = document.length;
-    for (int i = 0; i < firstLine; ) {
+    for (int i = fromLine; i < firstLine; ) {
       result += strLength(i);
       if (++i < lines) result++;
     }
@@ -338,11 +347,14 @@ public class Document extends CodeLines {
   }
 
   public char[] getChars() {
-    char[] dst = new char[getFullLength()];
-    int docLength = document.length;
-    for (int i = 0, pos = 0; i < docLength; ) {
+    return getChars(0, document.length);
+  }
+
+  public char[] getChars(int fromLine, int toLine) {
+    char[] dst = new char[getIntervalLength(fromLine, toLine)];
+    for (int i = fromLine, pos = 0; i < toLine; ) {
       pos = document[i].toCharArray(dst, pos);
-      if (++i < docLength) dst[pos++] = newLine;
+      if (++i < toLine) dst[pos++] = newLine;
     }
     return dst;
   }
@@ -360,10 +372,14 @@ public class Document extends CodeLines {
   }
 
   public void makeDiff(int line, int from, boolean isDelete, String change) {
+    makeDiff(new Diff(line, from, isDelete, change));
+  }
+
+  public void makeDiff(Diff diff) {
     currentVersion++;
 
-    diffs.add(ArrayOp.array(new Diff(line, from, isDelete, change)));
-    makeDiffOp(line, from, isDelete, change);
+    diffs.add(ArrayOp.array(diff));
+    makeDiffOp(diff);
   }
 
   public void makeDiffWithCaretReturn(
@@ -375,8 +391,9 @@ public class Document extends CodeLines {
   ) {
     currentVersion++;
 
-    diffs.add(ArrayOp.array(new Diff(line, from, isDelete, change, caretPos.line, caretPos.pos)));
-    makeDiffOp(line, from, isDelete, change);
+    var diff = new Diff(line, from, isDelete, change, caretPos.line, caretPos.pos);
+    diffs.add(ArrayOp.array(diff));
+    makeDiffOp(diff);
   }
 
   public void makeComplexDiff(
@@ -395,20 +412,22 @@ public class Document extends CodeLines {
     }
     diffs.add(temp);
     for (int i = 0; i < lines.length; i++) {
-      makeDiffOp(lines[i], from[i], areDeletes[i], changes[i]);
+      Diff diff = new Diff(lines[i], from[i], areDeletes[i], changes[i]);
+      makeDiffOp(diff);
       editorAction.accept(lines[i], changes[i]);
     }
   }
 
-  void makeDiffOp(int line, int from, boolean isDelete, String change) {
-    int posInDoc = getLineStartInd(line) + from;
-    if (isDelete) {
-      tree.makeDeleteDiff(posInDoc, change.length());
-      scopeGraph.makeDeleteDiff(posInDoc, change.length());
+  void makeDiffOp(Diff diff) {
+    int posInDoc = getLineStartInd(diff.line) + diff.pos;
+    if (diff.isDelete) {
+      tree.makeDeleteDiff(posInDoc, diff.change.length());
+      scopeGraph.makeDeleteDiff(posInDoc, diff.change.length());
     } else {
-      tree.makeInsertDiff(posInDoc, change.length());
-      scopeGraph.makeInsertDiff(posInDoc, change.length());
+      tree.makeInsertDiff(posInDoc, diff.change.length());
+      scopeGraph.makeInsertDiff(posInDoc, diff.change.length());
     }
+    onDiffMade.accept(diff, false);
   }
 
   public V2i undoLastDiff() {
@@ -444,8 +463,8 @@ public class Document extends CodeLines {
       deleteSelectedOp(selection);
       tree.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
       scopeGraph.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
-
     }
+    onDiffMade.accept(diff, true);
     return diff.caretReturn;
   }
 

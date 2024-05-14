@@ -1,12 +1,11 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.editor.EditorComponent;
-import org.sudu.experiments.editor.EditorUi;
-import org.sudu.experiments.editor.FontApi2;
-import org.sudu.experiments.editor.ThemeControl;
+import org.sudu.experiments.editor.*;
+import org.sudu.experiments.editor.Diff;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
+import org.sudu.experiments.parser.common.TriConsumer;
 import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Consumer;
@@ -28,14 +27,19 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     editor2 = new EditorComponent(ui);
     middleLine.setLeftRight(editor1, editor2);
     Consumer<EditorComponent> parseListener = this::fullFileParseListener;
-    Consumer<EditorComponent> iterativeParseListener = this::iterativeParseFileListener;
+    TriConsumer<EditorComponent, Integer, Integer> iterativeParseListener = this::iterativeParseFileListener;
+
     editor1.setFullFileParseListener(parseListener);
     editor1.setIterativeParseFileListener(iterativeParseListener);
+    editor1.setOnDiffMadeListener(this::onDiffMadeListener);
+    editor1.highlightResolveError(false);
+    editor1.setMirrored(true);
+
     editor2.setFullFileParseListener(parseListener);
     editor2.setIterativeParseFileListener(iterativeParseListener);
-    editor1.highlightResolveError(false);
+    editor2.setOnDiffMadeListener(this::onDiffMadeListener);
     editor2.highlightResolveError(false);
-    editor1.setMirrored(true);
+
     diffSync = new DiffSync(editor1, editor2);
     setViews(editor1, editor2, middleLine);
   }
@@ -52,8 +56,28 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     }
   }
 
-  private void iterativeParseFileListener(EditorComponent editor) {
-    fullFileParseListener(editor);
+  private void iterativeParseFileListener(EditorComponent editor, int start, int stop) {
+    boolean isL = editor == editor1;
+    int startLine = editor.model().document.getLine(start).x;
+    int stopLine = editor.model().document.getLine(stop).x;
+    var fromRange = diffModel.range(startLine, isL);
+    var toRange = diffModel.range(stopLine, isL);
+    sendIntervalToDiff(fromRange.fromL, toRange.toL(), fromRange.fromR, toRange.toR());
+  }
+
+  private void onDiffMadeListener(EditorComponent editor, Diff diff, boolean isUndo) {
+    boolean isDelete = diff.isDelete ^ isUndo;
+    boolean isL = editor == editor1;
+    if (isDelete) onDeleteDiffMadeListener(diff, isL);
+    else onInsertDiffMadeListener(diff, isL);
+  }
+
+  private void onInsertDiffMadeListener(Diff diff, boolean isL) {
+    diffModel.insertAt(diff.line, diff.lineCount(), isL);
+  }
+
+  private void onDeleteDiffMadeListener(Diff diff, boolean isL) {
+    diffModel.deleteAt(diff.line, diff.lineCount(), isL);
   }
 
   @Override
@@ -73,11 +97,33 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     middleLine.setModel(diffModel);
   }
 
+  public void updateDiffModel(
+      int fromL, int toL,
+      int fromR, int toR,
+      DiffInfo updateInfo
+  ) {
+    diffModel.updateDiffInfo(fromL, toL, fromR, toR, updateInfo);
+    setDiffModel(diffModel);
+  }
+
   private void sendToDiff() {
     DiffUtils.findDiffs(
         editor1.model().document,
         editor2.model().document,
         this::setDiffModel,
         ui.windowManager.uiContext.window);
+  }
+
+  private void sendIntervalToDiff(
+      int fromL, int toL,
+      int fromR, int toR
+  ) {
+    DiffUtils.findIntervalDiffs(
+        editor1.model().document,
+        editor2.model().document,
+        (upd) -> updateDiffModel(fromL, toL, fromR, toR, upd),
+        ui.windowManager.uiContext.window,
+        fromL, toL, fromR, toR
+    );
   }
 }

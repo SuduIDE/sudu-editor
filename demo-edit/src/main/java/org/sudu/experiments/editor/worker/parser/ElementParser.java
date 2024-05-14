@@ -58,6 +58,7 @@ public class ElementParser implements IntParser, FirstLinesIntLexer {
         lines.add(new ArrayList<>());
       }
     }
+    if (wordStart != source.length) addToLast(lines, wordStart, source.length, 0, 0);
 
     ArrayWriter writer = new ArrayWriter();
     writer.write(lines.size(), 0, 0);

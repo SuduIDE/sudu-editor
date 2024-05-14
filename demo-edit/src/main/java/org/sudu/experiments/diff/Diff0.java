@@ -79,7 +79,7 @@ public class Diff0 extends WindowScene implements
     }
   }
 
-  void iterativeParseFileListener(EditorComponent editor) {
+  void iterativeParseFileListener(EditorComponent editor, int start, int stop) {
     fullFileParseListener(editor); // todo? not send full file to lcs
   }
 

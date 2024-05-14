@@ -74,6 +74,7 @@ public class Model {
     this.uri = uri;
     docLanguage = language;
     document = new Document(text);
+    document.onDiffMade = this::onDiffMade;
   }
 
   String languageFromFile() {
@@ -342,11 +343,12 @@ public class Model {
     if (reparseNode == null) {
       resolveAll();
       document.onReparse();
-      if (editor != null) editor.fireFileIterativeParsed();
+      if (editor != null) editor.fireFullFileParsed();
       return;
     }
 
-    int[] interval = new int[]{reparseNode.getStart(), reparseNode.getStop(), reparseNode.getType()};
+    int start = reparseNode.getStart(), stop = reparseNode.getStop();
+    int[] interval = new int[]{start, stop, reparseNode.getType()};
     char[] chars = document.getChars();
     int[] type = new int[]{Languages.getType(language)};
 
@@ -364,10 +366,12 @@ public class Model {
       graphChars = new char[]{};
     }
     int version = document.currentVersion;
-    executor.sendToWorker(this::onFileIterativeParsed, FileProxy.asyncIterativeParsing, chars, type, interval, new int[]{version}, graphInts, graphChars);
+    executor.sendToWorker(res -> onFileIterativeParsed(res, start, stop), FileProxy.asyncIterativeParsing,
+        chars, type, interval, new int[]{version}, graphInts, graphChars
+    );
   }
 
-  void onFileIterativeParsed(Object[] result) {
+  void onFileIterativeParsed(Object[] result, int start, int stop) {
     if (debug) {
       Debug.consoleInfo(getFileName() + "/Model::onFileIterativeParsed");
     }
@@ -392,7 +396,7 @@ public class Model {
     } else {
       ParserUtils.updateDocument(document, ints, chars);
     }
-    if (editor != null) editor.fireFileIterativeParsed();
+    if (editor != null) editor.fireFileIterativeParsed(start, stop);
   }
 
   static String parseJobName(String language) {
@@ -438,11 +442,16 @@ public class Model {
     return parsedVps.stream().anyMatch(it -> it.x <= editorFirstLine && editorLastLine <= it.y);
   }
 
+  private void onDiffMade(Diff diff, boolean isUndo) {
+    if (editor != null) editor.onDiffMade(diff, isUndo);
+  }
+
   interface EditorToModel {
     void useDocumentHighlightProvider(int line, int column);
 
     void fireFullFileParsed();
 
-    void fireFileIterativeParsed();
+    void fireFileIterativeParsed(int start, int stop);
+    void onDiffMade(Diff diff, boolean isUndo);
   }
 }

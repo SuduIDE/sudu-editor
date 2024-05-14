@@ -10,6 +10,7 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.*;
 import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.parser.common.TriConsumer;
 import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ScrollBar;
@@ -89,7 +90,8 @@ public class EditorComponent extends View implements
   Consumer<String> onError = System.err::println;
   Runnable hScrollListener, vScrollListener;
   Consumer<EditorComponent> fullFileParseListener;
-  Consumer<EditorComponent> iterativeParseFileListener;
+  TriConsumer<EditorComponent, Integer, Integer> iterativeParseFileListener;
+  TriConsumer<EditorComponent, Diff, Boolean> onDiffMadeListener;
   int vScrollPos = 0;
 
   final ClrContext lrContext;
@@ -143,8 +145,12 @@ public class EditorComponent extends View implements
     fullFileParseListener = listener;
   }
 
-  public void setIterativeParseFileListener(Consumer<EditorComponent> listener) {
+  public void setIterativeParseFileListener(TriConsumer<EditorComponent, Integer, Integer> listener) {
     iterativeParseFileListener = listener;
+  }
+
+  public void setOnDiffMadeListener(TriConsumer<EditorComponent, Diff, Boolean> listener) {
+    onDiffMadeListener = listener;
   }
 
   private void internalLayout(V2i pos, V2i size, float dpr) {
@@ -1632,9 +1638,16 @@ public class EditorComponent extends View implements
   }
 
   @Override
-  public void fireFileIterativeParsed() {
+  public void fireFileIterativeParsed(int start, int stop) {
     if (iterativeParseFileListener != null) {
-      iterativeParseFileListener.accept(this);
+      iterativeParseFileListener.accept(this, start, stop);
+    }
+  }
+
+  @Override
+  public void onDiffMade(Diff diff, boolean isUndo) {
+    if (onDiffMadeListener != null) {
+      onDiffMadeListener.accept(this, diff, isUndo);
     }
   }
 
