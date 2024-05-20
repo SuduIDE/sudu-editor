@@ -61,8 +61,8 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     boolean isL = editor == editor1;
     int startLine = editor.model().document.getLine(start).x;
     int stopLine = editor.model().document.getLine(stop).x;
-    var fromRangeInd = diffModel.rangeBinSearch(startLine, isL);
-    var toRangeInd = diffModel.rangeBinSearch(stopLine, isL);
+    var fromRangeInd = diffModel.leftBS(startLine, isL);
+    var toRangeInd = diffModel.rightBS(stopLine, isL);
 
     if (fromRangeInd != 0 && diffModel.ranges[fromRangeInd].type != DiffTypes.DEFAULT) fromRangeInd--;
     if (toRangeInd != diffModel.rangeCount() - 1 && diffModel.ranges[toRangeInd].type != DiffTypes.DEFAULT) toRangeInd++;

@@ -573,8 +573,9 @@ public class EditorComponent extends View implements
   private void drawLineNumbers(int firstLine, int lastLine) {
     int editorBottom = size.y;
     int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
-    var diff = diffModel() != null
-        ? diffModel()[model.caretLine]
+    var diffModel = diffModel();
+    var diff = diffModel != null && model.caretLine < diffModel.length
+        ? diffModel[model.caretLine]
         : null;
     int caretLine = diff != null && !diff.isDefault()
         ? -1

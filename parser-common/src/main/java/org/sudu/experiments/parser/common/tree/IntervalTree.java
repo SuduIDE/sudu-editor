@@ -176,6 +176,8 @@ public class IntervalTree {
         }
       }
       curNode.children.clear();
+      curNode.needReparse = true;
+      updateFlag = true;
     } else {
       boolean containsStart = curNode.between(start);
       boolean containsEnd = curNode.between(start + size);

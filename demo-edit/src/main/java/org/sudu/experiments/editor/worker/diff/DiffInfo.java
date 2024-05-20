@@ -25,9 +25,11 @@ public class DiffInfo {
     int low = 0;
     int high = ranges.length - 1;
 
-    // The last range interval right border is inclusive
-    if (isL && ranges[high].toL() == lineKey) return high;
-    if (!isL && ranges[high].toR() == lineKey) return high;
+    if (high != 0) {
+      // The last range interval right border is inclusive
+      if (isL && ranges[high - 1].toL() == lineKey) return high;
+      if (!isL && ranges[high - 1].toR() == lineKey) return high;
+    }
     while (low <= high) {
       int mid = (low + high) >>> 1;
       var midRange = ranges[mid];
@@ -40,6 +42,29 @@ public class DiffInfo {
       else return mid;
     }
     return Math.min(low, ranges.length - 1);
+  }
+
+  // TODO add left & right bin search
+  public int leftBS(int lineKey, boolean isL) {
+    int ind = rangeBinSearch(lineKey, isL);
+    while (ind - 1 >= 0) {
+      var range = ranges[ind - 1];
+      int len = isL ? range.lenL : range.lenR;
+      if (len == 0) ind--;
+      else break;
+    }
+    return ind;
+  }
+
+  public int rightBS(int lineKey, boolean isL) {
+    int ind = rangeBinSearch(lineKey, isL);
+    while (ind + 1 < ranges.length) {
+      var range = ranges[ind + 1];
+      int len = isL ? range.lenL : range.lenR;
+      if (len == 0) ind++;
+      else break;
+    }
+    return ind;
   }
 
   public void insertAt(int lineKey, int lines, boolean isL) {
@@ -93,7 +118,7 @@ public class DiffInfo {
       nRange.fromR += fromR;
       newRanges.add(nRange);
     }
-    while (i < ranges.length && (range = ranges[i]).toL() != toL && range.toR() != toR) i++;
+    while (i < ranges.length && !((range = ranges[i]).toL() == toL && range.toR() == toR)) i++;
     if (i < ranges.length) i++;
     while (i < ranges.length) merge(newRanges, ranges[i++]);
     this.ranges = newRanges.toArray(DiffRange[]::new);
