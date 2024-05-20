@@ -138,15 +138,14 @@ public class Document extends CodeLines {
 
   private void concatLinesOp(int caretLine) {
     CodeLine newLine = CodeLine.concat(document[caretLine], document[caretLine + 1]);
-    CodeLine[] doc = deleteLineOp(caretLine);
-    doc[caretLine] = newLine;
-    document = doc;
+    deleteLineOp(caretLine);
+    document[caretLine] = newLine;
   }
 
   public void deleteLine(int caretLine) {
     String deleted = line(caretLine).makeString().concat("\n");
     if (document.length > 1) {
-      document = deleteLineOp(caretLine);
+      deleteLineOp(caretLine);
     } else {
       document[0].delete(0);
     }
@@ -158,24 +157,26 @@ public class Document extends CodeLines {
     return document[caretLine].makeString().concat("\n");
   }
 
-  private CodeLine[] deleteLineOp(int caretLine) {
+  private void deleteLineOp(int caretLine) {
     if (caretLine >= document.length || caretLine < 0) throw new RuntimeException();
     CodeLine[] doc = new CodeLine[document.length - 1];
     ArrayOp.remove(document, caretLine, doc);
-    return doc;
+    document = doc;
   }
 
   public void deleteLines(int fromLine, int toLine) {
-    document = deleteLinesOp(fromLine, toLine);
+    Diff diff = new Diff(fromLine, 0, true, new String(getChars(fromLine, toLine)));
+    deleteLinesOp(fromLine, toLine);
+    makeDiff(diff);
   }
 
-  private CodeLine[] deleteLinesOp(int fromLine, int toLine) {
+  private void deleteLinesOp(int fromLine, int toLine) {
     if (fromLine >= document.length || fromLine < 0) throw new RuntimeException();
     if (toLine > document.length || toLine < 0) throw new RuntimeException();
 
     CodeLine[] doc = new CodeLine[document.length - toLine + fromLine];
     ArrayOp.remove(document, fromLine, toLine, doc);
-    return doc;
+    document = doc;
   }
 
   public void deleteChar(int caretLine, int caretCharPos) {
@@ -280,7 +281,7 @@ public class Document extends CodeLines {
     } else {
       document[leftPos.line].delete(leftPos.charInd);
       document[rightPos.line].delete(0, rightPos.charInd);
-      deleteLines(leftPos.line + 1, rightPos.line);
+      deleteLinesOp(leftPos.line + 1, rightPos.line);
       concatLinesOp(leftPos.line);
     }
   }
@@ -342,6 +343,17 @@ public class Document extends CodeLines {
     return new String(getChars());
   }
 
+  public String lineToString(int line) {
+    return new String(getChars(line, line + 1));
+  }
+
+  public String[] linesToStrings(int fromLine, int toLine) {
+    String[] result = new String[toLine - fromLine + 1];
+    for (int i = fromLine; i < toLine; i++) result[i - fromLine] = lineToString(i);
+    result[result.length - 1] = String.valueOf(newLine);
+    return result;
+  }
+
   public CodeElement getCodeElement(Pos pos) {
     return line(pos.line).getCodeElement(pos.pos);
   }
@@ -354,7 +366,7 @@ public class Document extends CodeLines {
     char[] dst = new char[getIntervalLength(fromLine, toLine)];
     for (int i = fromLine, pos = 0; i < toLine; ) {
       pos = document[i].toCharArray(dst, pos);
-      if (++i < toLine) dst[pos++] = newLine;
+      if (++i < length()) dst[pos++] = newLine;
     }
     return dst;
   }

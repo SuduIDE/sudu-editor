@@ -1,10 +1,12 @@
 package org.sudu.experiments.diff;
 
+import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.Diff;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
+import org.sudu.experiments.editor.worker.diff.DiffRange;
 import org.sudu.experiments.parser.common.TriConsumer;
 import org.sudu.experiments.ui.window.WindowManager;
 
@@ -71,6 +73,22 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     var toRange = diffModel.ranges[toRangeInd];
 
     sendIntervalToDiff(fromRange.fromL, toRange.toL(), fromRange.fromR, toRange.toR());
+  }
+
+  public void applyDiff(DiffRange range, boolean isL) {
+    if (range.type == DiffTypes.DEFAULT) return;
+    var oldModel = isL ? editor1.model() : editor2.model();
+    int fromOld = isL ? range.fromL : range.fromR;
+    int toOld = isL ? range.toL() : range.toR();
+
+    var newModel = !isL ? editor1.model() : editor2.model();
+    int fromNew = !isL ? range.fromL : range.fromR;
+    int toNew = !isL ? range.toL() : range.toR();
+
+    var oldLines = oldModel.document.linesToStrings(fromOld, toOld);
+    newModel.document.deleteLines(fromNew, toNew + 1);
+    newModel.document.insertLines(fromNew, 0, oldLines);
+    System.out.println();
   }
 
   private void onDiffMadeListener(EditorComponent editor, Diff diff, boolean isUndo) {

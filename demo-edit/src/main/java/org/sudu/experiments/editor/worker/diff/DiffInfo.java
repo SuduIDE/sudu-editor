@@ -44,7 +44,6 @@ public class DiffInfo {
     return Math.min(low, ranges.length - 1);
   }
 
-  // TODO add left & right bin search
   public int leftBS(int lineKey, boolean isL) {
     int ind = rangeBinSearch(lineKey, isL);
     while (ind - 1 >= 0) {
