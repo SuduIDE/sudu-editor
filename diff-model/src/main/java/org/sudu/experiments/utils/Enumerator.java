@@ -1,4 +1,4 @@
-package org.sudu.experiments.diff.utils;
+package org.sudu.experiments.utils;
 
 import java.util.HashMap;
 import java.util.Map;

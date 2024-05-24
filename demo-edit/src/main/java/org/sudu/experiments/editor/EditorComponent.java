@@ -3,7 +3,6 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.EditorUi.FontApi;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;

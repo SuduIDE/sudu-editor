@@ -16,6 +16,10 @@ import org.sudu.experiments.ui.fs.DirectoryNode;
 import org.sudu.experiments.ui.fs.FileNode;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
+
+import java.lang.ref.PhantomReference;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.function.Supplier;
 
 public class FolderDiffWindow extends ToolWindow0 {

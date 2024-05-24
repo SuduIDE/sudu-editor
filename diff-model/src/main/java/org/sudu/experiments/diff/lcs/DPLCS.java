@@ -11,15 +11,15 @@ public class DPLCS extends LCS {
   }
 
   @Override
-   protected int[] findCommon() {
+   public int[][] findCommon() {
     short[][] matrix = countLCSMatrix();
     int i = lLen, j = rLen;
     int ptr = matrix[i][j];
-    int[] common = new int[ptr];
+    int[][] common = new int[ptr][2];
 
     while (i > 0 && j > 0) {
       if (valL(i - 1) == valR(j - 1)) {
-        common[--ptr] = indL(i - 1);
+        common[--ptr] = L[i - 1];
         i--;
         j--;
       } else {

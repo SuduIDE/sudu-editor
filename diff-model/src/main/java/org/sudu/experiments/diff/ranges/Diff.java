@@ -1,4 +1,6 @@
-package org.sudu.experiments.diff;
+package org.sudu.experiments.diff.ranges;
+
+import org.sudu.experiments.diff.DiffTypes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +18,7 @@ public class Diff<S> extends BaseRange<S> {
     if (isDeletion()) return DiffTypes.DELETED;
     else if (isInsertion()) return DiffTypes.INSERTED;
     else if (isEdition()) return DiffTypes.EDITED;
-    else return DiffTypes.DEFAULT;
+    else throw new IllegalStateException();
   }
 
   public boolean isDeletion() {

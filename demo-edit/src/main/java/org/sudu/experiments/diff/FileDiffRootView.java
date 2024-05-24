@@ -1,6 +1,5 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.Diff;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
