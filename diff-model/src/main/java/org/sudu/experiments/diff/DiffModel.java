@@ -19,7 +19,7 @@ public class DiffModel {
 
   public LineDiff[] lineDiffsN, lineDiffsM;
   public List<BaseRange<CodeLineS>> linesRanges;
-  public static final boolean PRINT_LCS_TIME = true;
+  public static final boolean PRINT_LCS_TIME = false;
 
   public int[] findDiffs(
       char[] charsN, int[] intsN,

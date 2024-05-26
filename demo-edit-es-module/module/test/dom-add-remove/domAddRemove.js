@@ -1,11 +1,6 @@
 import { newCodeDiff, newTextModel } from "../../src/editor.js";
 import {initialTextJava, workerUrl} from "../utils.js";
 
-function test1(editor) {
-    let model = newTextModel(initialTextJava, "java", "urlNew")
-    editor.setModel(model);
-}
-
 function main() {
   newCodeDiff({containerId: "editor", workerUrl: "./../" + workerUrl, readonly: true})
         .then(run, error => console.error(error));

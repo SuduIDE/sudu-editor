@@ -22,13 +22,22 @@ public class DiffModelBuilder {
   public Runnable updateDiffInfo;
   public RangeCtx rangeCtx = new RangeCtx();
   public WorkerJobExecutor executor;
+  final boolean scanFileContent;
 
   public DiffModelBuilder(Runnable updateDiffInfo, WorkerJobExecutor executor) {
-    this.updateDiffInfo = updateDiffInfo;
-    this.executor = executor;
+    this(updateDiffInfo, executor, true);
   }
 
-  void compareRoots(
+  public DiffModelBuilder(
+      Runnable updateDiffInfo,
+      WorkerJobExecutor executor,
+      boolean scanFileContent) {
+    this.updateDiffInfo = updateDiffInfo;
+    this.executor = executor;
+    this.scanFileContent = scanFileContent;
+  }
+
+  public void compareRoots(
       DirectoryNode leftRoot, DirectoryNode rightRoot,
       FolderDiffModel leftModel, FolderDiffModel rightModel
   ) {
@@ -53,9 +62,7 @@ public class DiffModelBuilder {
     ) {
       compareFiles(leftFile, rightFile, leftModel, rightModel);
     } else throw new IllegalArgumentException("TreeNodes left & right should have same type");
-    updateDiffInfo.run();
   }
-
 
   DiffInfo getDiffInfo(
       TreeNode[] left, TreeNode[] right
@@ -162,11 +169,22 @@ public class DiffModelBuilder {
   }
 
   void compareFiles(FileNode left, FileNode right, FolderDiffModel leftModel, FolderDiffModel rightModel) {
-    executor.sendToWorker(
-        result -> onFilesCompared(leftModel, rightModel, result),
-        DiffUtils.CMP_FILES,
-        left.file, right.file
-    );
+    if (scanFileContent) {
+      executor.sendToWorker(
+          result -> onFilesCompared(leftModel, rightModel, result),
+          DiffUtils.CMP_FILES,
+          left.file, right.file
+      );
+    } else {
+      new SizeScanner(left.file, right.file) {
+        @Override
+        protected void onComplete(int sizeL, int sizeR) {
+          leftModel.itemCompared();
+          rightModel.itemCompared();
+          onFilesCompared(leftModel, rightModel, sizeL == sizeR);
+        }
+      };
+    }
   }
 
   void compareFolders(
@@ -188,6 +206,10 @@ public class DiffModelBuilder {
     rightModel.itemCompared();
     if (result.length != 1) return;
     boolean equals = ((ArrayView) result[0]).ints()[0] == 1;
+    onFilesCompared(leftModel, rightModel, equals);
+  }
+
+  void onFilesCompared(FolderDiffModel leftModel, FolderDiffModel rightModel, boolean equals) {
     if (!equals) {
       int rangeId = rangeCtx.nextId();
       leftModel.rangeId = rangeId;

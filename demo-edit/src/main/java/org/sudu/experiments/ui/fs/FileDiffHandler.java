@@ -9,7 +9,11 @@ import java.util.function.Consumer;
 
 public class FileDiffHandler {
 
-  private static final int LENGTH = 16 * 1024;
+  private static final int maxToRead = 128 * 1024 * 1024;
+  private static final int maxArraySize = 32 * 1024 * 1024;
+  private static final int minArraySize = 16 * 1024;
+
+  int readLength = minArraySize;
 
   byte[] leftText, rightText;
   Consumer<Object[]> r;
@@ -25,8 +29,8 @@ public class FileDiffHandler {
   public void beginCompare() {
     this.leftText = null;
     this.rightText = null;
-    left.readAsBytes(this::sendLeft, System.err::println, start, LENGTH);
-    right.readAsBytes(this::sendRight, System.err::println, start, LENGTH);
+    left.readAsBytes(this::sendLeft, System.err::println, start, readLength);
+    right.readAsBytes(this::sendRight, System.err::println, start, readLength);
   }
 
   public void sendLeft(byte[] left) {
@@ -41,17 +45,32 @@ public class FileDiffHandler {
 
   private void compare() {
     boolean equals = Arrays.equals(leftText, rightText);
+    int leftLength = leftText.length;
     if (!equals) {
       ArrayList<Object> result = new ArrayList<>();
       result.add(new int[]{0});
       ArrayOp.sendArrayList(result, r);
-    } else if (leftText.length < LENGTH) {
-      ArrayList<Object> result = new ArrayList<>();
-      result.add(new int[]{1});
-      ArrayOp.sendArrayList(result, r);
     } else {
-      start += LENGTH;
-      beginCompare();
+      if (leftLength < readLength || start >= maxToRead) {
+        if (start == maxToRead) {
+          System.err.println("max size hit: \n" +
+              "\tl=" + left.getFullPath() + "\n" +
+              "\tr=" + right.getFullPath());
+        }
+        ArrayList<Object> result = new ArrayList<>();
+        result.add(new int[]{1});
+        ArrayOp.sendArrayList(result, r);
+      } else {
+        start += readLength;
+        if (readLength * 2 <= maxArraySize) {
+          readLength *= 2;
+          if (readLength >= maxArraySize / 2) {
+            int m = readLength / 1024 / 1024;
+            System.err.println(left.getName() + ": readLength = " + m + "M");
+          }
+        }
+        beginCompare();
+      }
     }
   }
 }

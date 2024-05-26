@@ -7,4 +7,13 @@ public interface DiffTypes {
   int INSERTED = 2;
   int EDITED = 3;
 
+  static String name(int type) {
+    return switch (type) {
+      case DEFAULT -> "DEFAULT";
+      case DELETED -> "DELETED";
+      case INSERTED -> "INSERTED";
+      case EDITED -> "EDITED";
+      default -> null;
+    };
+  }
 }

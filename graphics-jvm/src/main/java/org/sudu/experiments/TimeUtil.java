@@ -16,6 +16,11 @@ public interface TimeUtil {
         t0 = t1;
         return dT * nsToS;
       }
+
+      @Override
+      public String toString() {
+        return toString3(getAsDouble());
+      }
     };
   }
 
