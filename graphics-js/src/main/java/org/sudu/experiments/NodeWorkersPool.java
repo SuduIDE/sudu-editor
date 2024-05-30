@@ -1,6 +1,7 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.js.*;
+import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.js.JsMessagePort;
 
 public class NodeWorkersPool extends WorkersPool {
   public NodeWorkersPool(JsArray<JsMessagePort> workers) {
@@ -16,7 +17,7 @@ public class NodeWorkersPool extends WorkersPool {
 
   public void terminateAll() {
     for (int i = 0; i < workers.getLength(); ++i) {
-      workers.get(i).<WebWorkerContext>cast().terminate();
+      workers.get(i).<JsMessagePort>cast().close();
       workers.set(i, null);
     }
   }
