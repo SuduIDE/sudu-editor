@@ -9,6 +9,8 @@ target/
 /webpack-test/package-lock.json
 /demo-edit-es-module/module/src/editor.js
 /demo-edit-es-module/module/src/worker.js
+/filediff-node-module/module/src/editor.mjs
+/filediff-node-module/module/src/worker.mjs
 /demo-edit-es-module/webpack-test/package-lock.json
 /demo-edit-es-module/webpack-test/sudu-editor-sample/dist/
 node_modules

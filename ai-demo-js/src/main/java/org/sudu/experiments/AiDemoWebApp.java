@@ -32,7 +32,7 @@ public class AiDemoWebApp {
   }
 
   private static void start(JsBlob blob) {
-    WorkerContext.start(
+    WebWorkerContext.start(
         AiDemoWebApp::startApp, e -> JsHelper.onError(e.cast()),
         URL.createObjectURL(blob), 3);
   }
@@ -100,7 +100,7 @@ public class AiDemoWebApp {
     return HTMLDocument.elementById("respText1");
   }
 
-  static void startApp(JsArray<WorkerContext> workers) {
+  static void startApp(JsArray<WebWorkerContext> workers) {
     fetchFileList();
     if (HTMLDocument.current().getElementById(codeEditDiv) == null) {
       System.err.println("no such element with id = " + codeEditDiv);

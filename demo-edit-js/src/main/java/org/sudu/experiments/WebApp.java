@@ -16,12 +16,12 @@ public class WebApp {
   public static final String preDiv = "panelDiv";
 
   boolean fontsLoaded;
-  JsArray<WorkerContext> workers;
+  JsArray<WebWorkerContext> workers;
 
   public static void main(String[] args) {
     if (JsCanvas.checkFontMetricsAPI()) {
       WebApp webApp = new WebApp();
-      WorkerContext.start(webApp::setWorkers, "teavm/worker.js",
+      WebWorkerContext.start(webApp::setWorkers, "teavm/worker.js",
           EditorWorker.numDemoThreads());
       FontFace.loadFonts(ArrayOp.add(JetBrainsMono.webConfig(), Codicon.webConfig()))
           .then(webApp::loadFonts, WebApp::fontLoadError);
@@ -36,7 +36,7 @@ public class WebApp {
     if (workers != null) startApp(workers);
   }
 
-  private void setWorkers(JsArray<WorkerContext> workers) {
+  private void setWorkers(JsArray<WebWorkerContext> workers) {
     this.workers = workers;
     if (fontsLoaded) startApp(workers);
   }
@@ -45,7 +45,7 @@ public class WebApp {
     JsHelper.consoleInfo("font load error ", error);
   }
 
-  static void startApp(JsArray<WorkerContext> workers) {
+  static void startApp(JsArray<WebWorkerContext> workers) {
     var window = new WebWindow(
         WebApp::createScene,
         WebApp::onWebGlError,

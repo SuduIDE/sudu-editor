@@ -2,7 +2,7 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
-import org.sudu.experiments.js.WorkerContext;
+import org.sudu.experiments.js.WebWorkerContext;
 import org.sudu.experiments.js.WorkerProtocol;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.events.MessageEvent;
@@ -15,14 +15,14 @@ import java.util.function.Function;
 public class WorkersPool {
 
   private final LinkedList<Job> delayedJobs = new LinkedList<>();
-  private final JsArray<WorkerContext> workers;
+  private final JsArray<WebWorkerContext> workers;
   private final TreeMap<Integer, Consumer<Object[]>> jobs = new TreeMap<>();
   private final int[] freeWorkers;
   private int workerJobIdNext, freeWorkersCount;
 
   static final boolean debug = false;
 
-  public WorkersPool(JsArray<WorkerContext> workers) {
+  public WorkersPool(JsArray<WebWorkerContext> workers) {
     this.workers = workers;
     int numWorkers = workers.getLength();
     for (int i = 0; i < numWorkers; ++i) {
@@ -85,7 +85,7 @@ public class WorkersPool {
         JsHelper.consoleInfo("  freeWorkersCount = ", freeWorkersCount);
       }
     }
-    WorkerContext.onEdtMessage(jobHandler, event.getData());
+    WorkerProtocol.onEdtMessage(jobHandler, event.getData());
   }
 
   static class Job {

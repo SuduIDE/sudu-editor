@@ -1,0 +1,5 @@
+"use strict";
+
+import { parentPort } from 'node:worker_threads';
+
+global.parentPort = parentPort;

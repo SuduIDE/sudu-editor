@@ -21,7 +21,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
   public final WebWindow window;
   private final EditorComponent editor;
 
-  public JsCodeEditor0(EditArgs args, JsArray<WorkerContext> workers) {
+  public JsCodeEditor0(EditArgs args, JsArray<WebWorkerContext> workers) {
     window = new WebWindow(Editor0::new, WebGLError::onWebGlError,
         args.getContainerId(), workers);
     editor = demoEdit0().editor();
@@ -283,7 +283,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
   static Promise<JsCodeEditor> newEdit(EditArgs arguments) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
-          WorkerContext.start(
+          WebWorkerContext.start(
               worker -> postResult.f(new JsCodeEditor0(arguments, worker)),
               postError,
               arguments.workerUrl(),

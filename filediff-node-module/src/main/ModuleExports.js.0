@@ -1,0 +1,6 @@
+"use strict";
+
+import { Worker } from 'node:worker_threads';
+
+global.Worker = Worker;
+

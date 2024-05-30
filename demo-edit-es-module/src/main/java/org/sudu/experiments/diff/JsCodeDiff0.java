@@ -14,7 +14,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
 
   public JsCodeDiff0(
       EditArgs args,
-      JsArray<WorkerContext> workers
+      JsArray<WebWorkerContext> workers
   ) {
     this.window = new WebWindow(
         Diff0::new, WebGLError::onWebGlError,
@@ -103,7 +103,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
   public static Promise<JsCodeDiff> newDiff(EditArgs arguments) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
-          WorkerContext.start(
+          WebWorkerContext.start(
               workers -> postResult.f(new JsCodeDiff0(arguments, workers)),
               postError,
               arguments.workerUrl(),

@@ -11,9 +11,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class WorkerProtocol {
-  static JSString started() { return JSString.valueOf("started"); }
+  public static JSString started() { return JSString.valueOf("started"); }
 
-  static boolean isStarted(JSObject obj) {
+  public static boolean isStarted(JSObject obj) {
     return JsHelper.strictEquals(obj, started());
   }
 
@@ -23,23 +23,23 @@ public class WorkerProtocol {
     return JsHelper.strictEquals(obj, ping());
   }
 
-  public static void sendPingToWorker(WorkerContext worker) {
+  public static void sendPingToWorker(JsMessagePort0 worker) {
     worker.postMessage(ping());
   }
 
-  public static void sendToWorker(WorkerContext worker, int id, String method, Object[] args) {
+  public static void sendToWorker(JsMessagePort0 worker, int id, String method, Object[] args) {
     JsArray<JSObject> message = JsArray.create(args.length + 2);
     message.set(0, JSNumber.valueOf(id));
     message.set(1, JSString.valueOf(method));
     transferAndSend(worker, args, message, 2);
   }
 
-  static void execute(WorkerExecutor executor, JsArrayReader<JSObject> array) {
+  static void execute(WorkerExecutor executor, JsArrayReader<JSObject> array, JsMessagePort0 port) {
     if (array.getLength() >= 2) {
       JSObject taskId = array.get(0);
       String method = array.get(1).<JSString>cast().stringValue();
       executor.execute(method, toJava(array, 2),
-          results -> sendResults(WorkerContext.self(), results, taskId));
+          results -> sendResults(port, results, taskId));
     } else throw new IllegalArgumentException();
   }
 
@@ -51,14 +51,14 @@ public class WorkerProtocol {
     } else throw new IllegalArgumentException();
   }
 
-  private static void sendResults(WorkerContext context, Object[] result, JSObject taskId) {
+  private static void sendResults(JsMessagePort0 context, Object[] result, JSObject taskId) {
     JsArray<JSObject> message = JsArray.create(result.length + 1);
     message.set(0, taskId);
     transferAndSend(context, result, message, 1);
   }
 
   private static void transferAndSend(
-      WorkerContext context, Object[] args,
+      JsMessagePort0 context, Object[] args,
       JsArray<JSObject> message, int start
   ) {
     JsArray<JSObject> transfer = JsArray.create();
@@ -144,4 +144,22 @@ public class WorkerProtocol {
 
   @JSBody(params = "data", script = "return data instanceof FileSystemDirectoryHandle;")
   static native boolean isFileSystemDirectoryHandle(JSObject data);
+
+  public static void onWorkerMessage(WorkerExecutor executor, JSObject message, JsMessagePort0 port) {
+    if (isPing(message)) {
+//      JsHelper.consoleInfo("Worker: hello");
+      port.postMessage(ping());
+    } else if (isArray(message)) {
+      execute(executor, message.cast(), port);
+    } else throw new IllegalArgumentException();
+  }
+
+  public static void onEdtMessage(Function<Integer, Consumer<Object[]>> handlers, JSObject message) {
+    if (isPing(message)) {
+//      JsHelper.consoleInfo("App: hello from worker");
+    } else if (isArray(message)) {
+//      JsHelper.consoleInfo("App: message from worker = ", message);
+      dispatchResult(handlers, message.cast());
+    } else throw new IllegalArgumentException();
+  }
 }
