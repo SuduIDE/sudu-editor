@@ -35,7 +35,7 @@ public class WebWindow implements Window {
   private Scene scene;
 
   // workers and jobs
-  private final WorkersPool workers;
+  private final WebWorkersPool workers;
 
   public WebWindow(
       Function<SceneApi, Scene> factory,
@@ -60,7 +60,7 @@ public class WebWindow implements Window {
   // this ctor requires init after call
   public WebWindow(JSString canvasDivId, JsArray<WebWorkerContext> workers) {
     this.canvasDivId = canvasDivId;
-    this.workers = new WorkersPool(workers);
+    this.workers = new WebWorkersPool(workers);
 
 //    JsHelper.consoleInfo("starting web window on " + canvasDivId);
     mainCanvas = JsHelper.createMainCanvas(null);

@@ -1,45 +1,36 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.js.JsArray;
-import org.sudu.experiments.js.JsHelper;
-import org.sudu.experiments.js.WebWorkerContext;
-import org.sudu.experiments.js.WorkerProtocol;
+import org.sudu.experiments.js.*;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
-import org.teavm.jso.dom.events.MessageEvent;
 
 import java.util.LinkedList;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class WorkersPool {
+public abstract class WorkersPool {
 
+  protected final JsArray<? extends JsMessagePort0> workers;
   private final LinkedList<Job> delayedJobs = new LinkedList<>();
-  private final JsArray<WebWorkerContext> workers;
   private final TreeMap<Integer, Consumer<Object[]>> jobs = new TreeMap<>();
   private final int[] freeWorkers;
   private int workerJobIdNext, freeWorkersCount;
 
   static final boolean debug = false;
 
-  public WorkersPool(JsArray<WebWorkerContext> workers) {
+  public WorkersPool(JsArray<? extends JsMessagePort0> workers) {
     this.workers = workers;
     int numWorkers = workers.getLength();
     for (int i = 0; i < numWorkers; ++i) {
-      final int workerIndex = i;
-      workers.get(i).onMessage(message -> onWorkerMessage(message, workerIndex));
+      setMessageHandler(i);
       WorkerProtocol.sendPingToWorker(workers.get(i));
     }
     freeWorkersCount = 0;
     freeWorkers = new int[numWorkers];
   }
 
-  public void terminateAll() {
-    for (int i = 0; i < workers.getLength(); ++i) {
-      workers.get(i).terminate();
-      workers.set(i, null);
-    }
-  }
+  protected abstract void setMessageHandler(int index);
 
   private int nextId() {
     return ++workerJobIdNext;
@@ -65,10 +56,10 @@ public class WorkersPool {
 
   final Function<Integer, Consumer<Object[]>> jobHandler = jobs::remove;
 
-  private void onWorkerMessage(MessageEvent event, int index) {
+  protected void onWorkerMessage(JSObject data, int index) {
     if (debug) JsHelper.consoleInfo(
         "onWorkerMessage: delayedJobs.size = ", delayedJobs.size());
-    if (WorkerProtocol.isPing(event.getData()) && debug) {
+    if (WorkerProtocol.isPing(data) && debug) {
       JsHelper.consoleInfo("  ping response from worker ", index);
     }
     Job job = delayedJobs.pollFirst();
@@ -85,7 +76,7 @@ public class WorkersPool {
         JsHelper.consoleInfo("  freeWorkersCount = ", freeWorkersCount);
       }
     }
-    WorkerProtocol.onEdtMessage(jobHandler, event.getData());
+    WorkerProtocol.onEdtMessage(jobHandler, data);
   }
 
   static class Job {
