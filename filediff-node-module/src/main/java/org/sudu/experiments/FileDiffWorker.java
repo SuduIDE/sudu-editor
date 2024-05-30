@@ -1,7 +1,8 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
-import org.sudu.experiments.js.JsMessagePort;
+import org.sudu.experiments.js.NodeWorker;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.worker.ArrayView;
 
@@ -11,7 +12,7 @@ import java.util.function.Consumer;
 public class FileDiffWorker {
 
   public static void main(String[] args) {
-    JsMessagePort.workerMain(FileDiffWorker::execute);
+    NodeWorker.workerMain(FileDiffWorker::execute);
   }
 
   public static void execute(String method, Object[] a, Consumer<Object[]> onResult) {
@@ -26,6 +27,13 @@ public class FileDiffWorker {
 
   static void syncMethod(String method, Object[] a, ArrayList<Object> result) {
     switch (method) {
+      case "foo" -> result.add("foo");
+      case TestJobs.withString -> TestJobs.withString(string(a, 0), result);
+      case TestJobs.withChars -> TestJobs.withChars(array(a, 0).chars(), result);
+      case TestJobs.withBytes -> TestJobs.withBytes(array(a, 0).bytes(), result);
+      case TestJobs.withInts -> TestJobs.withInts(array(a, 0).ints(), result);
+      case TestJobs.fibonacci -> TestJobs.fibonacci(array(a, 0).ints(), result);
+
       default -> System.out.println("syncMethod = " + method);
     }
   }
