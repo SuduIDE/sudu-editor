@@ -62,7 +62,7 @@ public interface FileDiffNodeMain {
   static Promise<JSObject> moduleFactory(JSString workerUrl, int numThreads) {
     int nT = numThreads < 1 || numThreads > 10 ? 5 : numThreads;
     if (numThreads != nT)
-      JsHelper.consoleInfo("wrong number of threads", numThreads);
+      JsHelper.consoleInfo("wrong number of threads: ", numThreads);
 
     return Promise.create(
         (postResult, postError) -> NodeWorkersPool.start(

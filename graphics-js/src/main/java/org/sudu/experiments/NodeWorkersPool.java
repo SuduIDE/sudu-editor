@@ -34,14 +34,23 @@ public class NodeWorkersPool extends WorkersPool {
   ) {
     JsArray<NodeWorker> workers = JsArray.create();
     for (int i = 0; i < count; i++) {
+      JsHelper.consoleInfo("odeWorker.Native.newWorker(url) ", i);
+
       NodeWorker worker = NodeWorker.Native.newWorker(url);
-      JsFunctions.Consumer<JSObject> handler = message -> {
-        if (WorkerProtocol.isStarted(message)) {
-          workers.push(worker);
-          if (workers.getLength() == count)
-            onStart.f(workers);
-        } else {
-          error.f(JsHelper.newError("worker is not started"));
+      int finalIndex = i;
+      JsFunctions.Consumer<JSObject> handler = new JsFunctions.Consumer<>() {
+        int n;
+
+        @Override
+        public void f(JSObject message) {
+          JsHelper.consoleInfo("NodeWorker " + finalIndex + " message: " + ++n + ": ", message);
+          if (WorkerProtocol.isStarted(message)) {
+            workers.push(worker);
+            if (workers.getLength() == count)
+              onStart.f(workers);
+          } else {
+            error.f(JsHelper.newError("worker is not started"));
+          }
         }
       };
       worker.onMessageOnce(handler);

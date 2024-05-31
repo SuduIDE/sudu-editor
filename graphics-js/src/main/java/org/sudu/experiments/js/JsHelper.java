@@ -112,7 +112,7 @@ public class JsHelper {
   @JSBody(params = {"n"}, script = "return String(n);")
   public static native String jsDoubleToString(double n);
 
-  @JSBody(params = {"arg"}, script = "return new JSError(arg);")
+  @JSBody(params = {"arg"}, script = "return new Error(arg);")
   public static native JSError newError(String arg);
 
   public interface Error extends JSObject {
