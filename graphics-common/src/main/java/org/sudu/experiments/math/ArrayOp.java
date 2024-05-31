@@ -150,4 +150,8 @@ public interface ArrayOp {
   static char[] copyOf(char[] chars) {
     return Arrays.copyOf(chars, chars.length);
   }
+
+  static <T> boolean contains(T[] array, T item) {
+    return indexOf(array, item) != -1;
+  }
 }

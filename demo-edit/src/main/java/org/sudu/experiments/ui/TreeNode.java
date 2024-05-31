@@ -3,6 +3,8 @@ package org.sudu.experiments.ui;
 import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.ui.fonts.Codicons;
 
+import java.util.Objects;
+
 public class TreeNode {
 
   public Runnable onClick, onClickArrow, onDblClick;
@@ -94,5 +96,10 @@ public class TreeNode {
   public Runnable onEnter() {
     return onClick != null ? onClick :
         onDblClick != null ? onDblClick : onClickArrow;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(value());
   }
 }

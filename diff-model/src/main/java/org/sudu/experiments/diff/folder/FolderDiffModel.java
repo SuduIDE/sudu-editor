@@ -28,17 +28,19 @@ public class FolderDiffModel {
     }
   }
 
-  public void itemCompared() {
+  // returns true if parent is fully compared
+  public boolean itemCompared() {
     this.compared = true;
     if (parent == null) throw new IllegalStateException("File must have a parent");
-    parent.childCompared();
+    return parent.childCompared();
   }
 
-  public void childCompared() {
+  public boolean childCompared() {
     childrenComparedCnt++;
-    if (!isFullyCompared()) return;
+    if (!isFullyCompared()) return false;
     compared = true;
     if (parent != null) parent.childCompared();
+    return true;
   }
 
   public boolean isFullyCompared() {
