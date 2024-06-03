@@ -6,16 +6,16 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
 public interface NodeWorker extends JsMessagePort0 {
-  void on(String msg, JsFunctions.Consumer<JSObject> handler, JSObject options);
-  void close();
+  void on(String msg, JsFunctions.Consumer<JSObject> handler);
+  void once(String msg, JsFunctions.Consumer<JSObject> handler);
   void terminate();
 
   default void onMessage(JsFunctions.Consumer<JSObject> handler) {
-    on("message", handler, null);
+    on("message", handler);
   }
 
   default void onMessageOnce(JsFunctions.Consumer<JSObject> handler) {
-    on("message", handler, Native.once());
+    once("message", handler);
   }
 
   class Native {
@@ -28,12 +28,9 @@ public interface NodeWorker extends JsMessagePort0 {
   }
 
   static void workerMain(WorkerExecutor executor) {
-    Native.parentPort().onMessage(e -> {
-      JsHelper.consoleInfo("workerMain: message ", e);
-      WorkerProtocol.onWorkerMessage(executor, e, Native.parentPort());
-    });
+    Native.parentPort().onMessage(e ->
+      WorkerProtocol.onWorkerMessage(executor, e, Native.parentPort())
+    );
     Native.parentPort().postMessage(WorkerProtocol.started());
   }
-
-
 }
