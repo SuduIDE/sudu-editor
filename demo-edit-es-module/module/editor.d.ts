@@ -221,6 +221,13 @@ interface IFolderDiff extends EditorBase, HasTheme, Focusable {}
 
 interface FolderDiffView extends IFolderDiff, IDisposable {}
 
+type Message = Array<String | Uint8Array | Uint16Array>
+
+interface Channel {
+    sendMessage(message: Message): void
+    onMessage?: (message: Message) => void
+}
+
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
 
 export function newEditor(args: EditArgs): Promise<EditView>
@@ -228,3 +235,5 @@ export function newEditor(args: EditArgs): Promise<EditView>
 export function newCodeDiff(args: EditArgs): Promise<CodeDiffView>
 
 export function newFolderDiff(args: EditArgs): Promise<FolderDiffView>
+
+export function newRemoteFolderDiff(args: EditArgs, channel: Channel): Promise<FolderDiffView>

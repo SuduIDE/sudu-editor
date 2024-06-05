@@ -1,7 +1,17 @@
+type Message = Array<string | Uint8Array | Uint16Array>
 
-interface DiffModule {
-    terminateWorkers(): void;
-    fib(n: string): Promise<number>;
+interface Channel {
+    sendMessage(message: Message): void
+    onMessage?: (message: Message) => void
 }
 
-export function moduleFactory(text: string, nThreads: number): Promise<DiffModule>
+interface DiffEngine {
+    terminateWorkers(): void;
+    fib(n: string): Promise<number>;
+    startFolderDiff(leftPath: string, rightPath: string, channel: Channel): void;
+}
+
+export function createDiffEngine(
+  workerUrl: string,
+  nThreads: number
+): Promise<DiffEngine>
