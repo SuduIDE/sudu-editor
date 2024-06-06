@@ -60,6 +60,12 @@
 
     <dependency>
       <groupId>org.sudu</groupId>
+      <artifactId>filediff-node-module</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sudu</groupId>
       <artifactId>demo-edit</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
@@ -147,6 +153,29 @@
               </target>
             </configuration>
           </execution>
+          <execution>
+            <id>copy-diffEngine</id>
+            <phase>process-classes</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <target>
+                <copy todir="module/src">
+                  <fileset dir="${basedir}/../filediff-node-module/module/src/" includes="*.mjs" />
+                </copy>
+              </target>
+            </configuration>
+          </execution> <execution>
+            <id>copy-diffEngine-dts</id>
+            <phase>process-classes</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <target>
+                <copy todir="module">
+                  <fileset file="${basedir}/../filediff-node-module/module/diff.d.ts"/>
+                </copy>
+              </target>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
 
@@ -174,6 +203,10 @@
               </excludes>
             </fileset>
             <fileset><directory>webpack-test/sudu-editor-sample/dist</directory></fileset>
+            <fileset>
+              <directory>module</directory>
+              <includes><include>diff.d.ts</include></includes>
+            </fileset>
           </filesets>
         </configuration>
     </plugin>

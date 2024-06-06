@@ -5,6 +5,11 @@
   "author": "Kirill Prazdnikov",
   "license": "MIT",
   "main": "./src/editor.js",
-  "files": [ "editor.d.ts", "./src/editor.js", "./src/worker.js", "./src/loader.js" ],
+  "files": [
+    "editor.d.ts",
+    "./src/editor.js", "./src/worker.js", "./src/loader.js",
+    "diff.d.ts",
+    "./src/diffEngine.mjs", "./src/diffEngineWorker.mjs"
+  ],
   "typings": "./editor.d.ts"
 }
