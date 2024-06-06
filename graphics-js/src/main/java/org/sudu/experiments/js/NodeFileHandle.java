@@ -18,24 +18,14 @@ public class NodeFileHandle implements FileHandle {
   final int fileHandle;
   final String[] path;
 
-  public NodeFileHand
-  le(int h, String[] path) {
+  public NodeFileHandle(int h, String[] path) {
     this.fileHandle = h;
     this.path = path;
   }
 
   @Override
   public void getSize(IntConsumer result) {
-    if (jsFile != null) {
-      result.accept(intSize(jsFile.getSize()));
-    } else {
-      fileHandle.getFile().then(
-          f -> result.accept(intSize(f.getSize())),
-          error -> {
-            System.err.println(error.getMessage());
-            result.accept(0);
-          });
-    }
+
   }
 
   private int jsFileSize() {
@@ -58,7 +48,7 @@ public class NodeFileHandle implements FileHandle {
   }
 
   private JSString jsName() {
-    return fileHandle != null ? fileHandle.getName() : jsFile.getName();
+//    return fileHandle != null ? fileHandle.getName() : jsFile.getName();
   }
 
   @Override
@@ -68,15 +58,15 @@ public class NodeFileHandle implements FileHandle {
 
   @Override
   public void readAsText(Consumer<String> consumer, Consumer<String> onError) {
-    JsFunctions.Consumer<JSError> onJsError = wrapError(onError);
-    JsFunctions.Consumer<JSString> onString = jsString
-        -> consumer.accept(jsString.stringValue());
-    if (jsFile != null) {
-      jsFile.text().then(onString, onJsError);
-    } else {
-      fileHandle.getFile().then(
-          file -> file.text().then(onString, onJsError), onJsError);
-    }
+//    JsFunctions.Consumer<JSError> onJsError = wrapError(onError);
+//    JsFunctions.Consumer<JSString> onString = jsString
+//        -> consumer.accept(jsString.stringValue());
+//    if (jsFile != null) {
+//      jsFile.text().then(onString, onJsError);
+//    } else {
+//      fileHandle.getFile().then(
+//          file -> file.text().then(onString, onJsError), onJsError);
+//    }
   }
 
   @Override
@@ -84,16 +74,16 @@ public class NodeFileHandle implements FileHandle {
       Consumer<byte[]> consumer, Consumer<String> onError,
       int begin, int length
   ) {
-    JsFunctions.Consumer<JSError> onJsError = wrapError(onError);
-    JsFunctions.Consumer<ArrayBuffer> onBuffer = toJava(consumer);
-    if (jsFile != null) {
-      readBlob(begin, length, onBuffer, onJsError, jsFile);
-    } else {
-      fileHandle.getFile().then(
-          file -> readBlob(begin, length, onBuffer, onJsError, file),
-          onJsError
-      );
-    }
+//    JsFunctions.Consumer<JSError> onJsError = wrapError(onError);
+//    JsFunctions.Consumer<ArrayBuffer> onBuffer = toJava(consumer);
+//    if (jsFile != null) {
+//      readBlob(begin, length, onBuffer, onJsError, jsFile);
+//    } else {
+//      fileHandle.getFile().then(
+//          file -> readBlob(begin, length, onBuffer, onJsError, file),
+//          onJsError
+//      );
+//    }
   }
 
   private void readBlob(
@@ -126,19 +116,6 @@ public class NodeFileHandle implements FileHandle {
   @Override
   public int hashCode() {
     return Objects.hashCode(getName()) * 31 + Arrays.hashCode(path);
-  }
-
-  @JSBody(params = {"str", "arg" }, script = "return str.split(arg);")
-  static native JsArrayReader<JSString> stringSplit(JSString str, JSString arg);
-
-  static String[] splitPath(JSString path) {
-    if (JSObjects.isUndefined(path) || path == null || path.getLength() == 0) return new String[0];
-    JsArrayReader<JSString> split = stringSplit(path, JSString.valueOf("/"));
-    if (split.getLength() == 0) return new String[0];
-    String[] strings = new String[split.getLength() - 1];
-    for (int i = 0; i < strings.length; i++)
-      strings[i] = split.get(i).stringValue();
-    return strings;
   }
 }
 

@@ -4,11 +4,14 @@ import org.sudu.experiments.GLApi;
 import org.teavm.interop.NoSideEffects;
 import org.teavm.jso.*;
 import org.teavm.jso.core.JSError;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.css.CSSStyleDeclaration;
 import org.teavm.jso.dom.html.HTMLCanvasElement;
+import org.teavm.jso.typedarrays.ArrayBuffer;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class JsHelper {
 
@@ -66,6 +69,28 @@ public class JsHelper {
 
   public static void onError(JSError error) {
     consoleInfo("on error ", JSString.valueOf(error.getMessage()));
+  }
+
+  static String[] splitPath(JSString path) {
+    if (JSObjects.isUndefined(path) || path == null || path.getLength() == 0) return new String[0];
+    JsArrayReader<JSString> split = stringSplit(path, JSString.valueOf("/"));
+    if (split.getLength() == 0) return new String[0];
+    String[] strings = new String[split.getLength() - 1];
+    for (int i = 0; i < strings.length; i++)
+      strings[i] = split.get(i).stringValue();
+    return strings;
+  }
+
+  @JSBody(params = {"str", "arg" }, script = "return str.split(arg);")
+  static native JsArrayReader<JSString> stringSplit(JSString str, JSString arg);
+
+  static JsFunctions.Consumer<ArrayBuffer> toJava(Consumer<byte[]> consumer) {
+    return jsArrayBuffer -> consumer.accept(
+        JsMemoryAccess.toByteArray(jsArrayBuffer));
+  }
+
+  static JsFunctions.Consumer<JSError> wrapError(Consumer<String> onError) {
+    return jsError -> onError.accept(jsError.getMessage());
   }
 
   interface HTMLElement extends org.teavm.jso.dom.html.HTMLElement {
