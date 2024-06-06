@@ -19,13 +19,13 @@
     <workerClass>org.sudu.experiments.FileDiffWorker</workerClass>
 
     <moduleSrc>module/src</moduleSrc>
-    <worker.js>worker.mjs</worker.js>
-    <module.js>module.mjs</module.js>
+    <diffEngineWorker.js>diffEngineWorker.mjs</diffEngineWorker.js>
+    <diffEngine.js>diffEngine.mjs</diffEngine.js>
 
-    <module.template.prefix>src/main/ModuleExports.js.0</module.template.prefix>
-    <module.template.suffix>src/main/ModuleExports.js.1</module.template.suffix>
-    <worker.template.prefix>src/main/Worker.js.0</worker.template.prefix>
-    <worker.template.suffix>src/main/Worker.js.1</worker.template.suffix>
+    <diffEngine.prefix>src/main/diffEngineImports.js.0</diffEngine.prefix>
+    <diffEngine.suffix>src/main/diffEngineExports.js.0</diffEngine.suffix>
+    <diffEngineWorker.prefix>src/main/diffEngineWorkerImports.js.0</diffEngineWorker.prefix>
+    <diffEngineWorker.suffix>src/main/diffEngineWorkerExports.js.0</diffEngineWorker.suffix>
     <teavm.pre.module.js>${project.build.directory}/generated</teavm.pre.module.js>
 
     <!-- compiler settings -->
@@ -91,7 +91,7 @@
         <version>${teavm.version}</version>
         <executions>
           <execution>
-            <id>editor-es-module</id>
+            <id>diffEngine-js</id>
             <goals>
               <goal>compile</goal>
             </goals>
@@ -100,7 +100,7 @@
               <properties><invokeMain>true</invokeMain></properties>
               <targetDirectory>${teavm.pre.module.js}</targetDirectory>
               <mainClass>${mainClass}</mainClass>
-              <targetFileName>${module.js}</targetFileName>
+              <targetFileName>${diffEngine.js}</targetFileName>
               <minifying>${teavm.minifying}</minifying>
               <debugInformationGenerated>${teavm.debugInfo}</debugInformationGenerated>
               <sourceMapsGenerated>${teavm.sourceMaps}</sourceMapsGenerated>
@@ -109,7 +109,7 @@
             </configuration>
           </execution>
           <execution>
-            <id>web-worker</id>
+            <id>diffEngine-worker-js</id>
             <goals>
               <goal>compile</goal>
             </goals>
@@ -117,7 +117,7 @@
               <!-- see org.sudu.experiments.JsBuildPlugin -->
               <properties><invokeMain>true</invokeMain></properties>
               <targetDirectory>${teavm.pre.module.js}</targetDirectory>
-              <targetFileName>${worker.js}</targetFileName>
+              <targetFileName>${diffEngineWorker.js}</targetFileName>
               <mainClass>${workerClass}</mainClass>
               <minifying>${teavm.minifying}</minifying>
               <debugInformationGenerated>${teavm.debugInfo}</debugInformationGenerated>
@@ -135,19 +135,19 @@
         <version>3.1.0</version>
         <executions>
           <execution>
-            <id>generate-es-module</id>
+            <id>diffEngine-es-module</id>
             <phase>process-classes</phase>
             <goals><goal>run</goal></goals>
             <configuration>
               <target>
-                <concat destfile="${moduleSrc}/${module.js}" overwrite="yes">
-                  <fileset file="${module.template.prefix}"/>
-                  <fileset file="${teavm.pre.module.js}/${module.js}"/>
-                  <fileset file="${module.template.suffix}"/>
+                <concat destfile="${moduleSrc}/${diffEngine.js}" overwrite="yes">
+                  <fileset file="${diffEngine.prefix}"/>
+                  <fileset file="${teavm.pre.module.js}/${diffEngine.js}"/>
+                  <fileset file="${diffEngine.suffix}"/>
                 </concat>
-                <concat destfile="${moduleSrc}/${worker.js}" overwrite="yes">
-                  <fileset file="${worker.template.prefix}"/>
-                  <fileset file="${teavm.pre.module.js}/${worker.js}"/>
+                <concat destfile="${moduleSrc}/${diffEngineWorker.js}" overwrite="yes">
+                  <fileset file="${diffEngineWorker.prefix}"/>
+                  <fileset file="${teavm.pre.module.js}/${diffEngineWorker.js}"/>
 <!--                  <fileset file="${worker.template.suffix}"/>-->
                 </concat>
               </target>
