@@ -1,5 +1,4 @@
-﻿
-import { createDiffEngine } from "../src/module.mjs";
+﻿import { createDiffEngine } from "../src/module.mjs";
 
 let module = await createDiffEngine("../src/worker.mjs");
 
@@ -11,23 +10,14 @@ function channel() {
 }
 
 console.log("got module: ", module.constructor.name);
+
 module.fib(5).then(
     msg => console.log("got foo result: " + msg)
 );
 
-const args = process.argv;
-
-if (args.length < 3) {
-  console.log("usage node script folder")
-} else {
-  const dirname = args[2];
+if (process.argv.length > 2) {
+  const dirname = process.argv[2];
   module.testFS(dirname);
 }
 
 module.startFolderDiff("left", "right", channel());
-
-
-
-
-
-
