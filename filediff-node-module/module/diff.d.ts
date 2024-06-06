@@ -5,10 +5,12 @@ interface Channel {
     onMessage?: (message: Message) => void
 }
 
+// see org.sudu.experiments.FileDiffNodeMain.DiffEngineJs
 interface DiffEngine {
     terminateWorkers(): void;
     fib(n: string): Promise<number>;
     startFolderDiff(leftPath: string, rightPath: string, channel: Channel): void;
+    testFS(path: string): void;
 }
 
 export function createDiffEngine(

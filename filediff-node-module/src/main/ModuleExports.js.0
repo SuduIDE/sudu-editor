@@ -1,6 +1,8 @@
 "use strict";
 
 import { Worker } from 'node:worker_threads';
+import fs from 'node:fs';
 
 global.Worker = Worker;
+global.fs = fs;
 

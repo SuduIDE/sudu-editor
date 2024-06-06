@@ -30,7 +30,7 @@ function traverseDir(dirName) {
       let fd = fs.openSync(child, O_RDONLY);
       let read = 0, total = 0;
       do {
-        read = fs.readSync(fd, readBuffer, 0, readBuffer.byteLength);
+        read = fs.readSync(fd, readBuffer, 0, readBuffer.byteLength, 0);
         if (read > 0) total += read;
       } while(read > 0);
       fs.closeSync(fd);
