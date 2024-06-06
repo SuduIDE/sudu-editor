@@ -1,6 +1,6 @@
-﻿import { createDiffEngine } from "../src/module.mjs";
+﻿import { createDiffEngine } from "../src/diffEngine.mjs";
 
-let module = await createDiffEngine("../src/worker.mjs");
+let module = await createDiffEngine("../src/diffEngineWorker.mjs");
 
 function channel() {
   return {
