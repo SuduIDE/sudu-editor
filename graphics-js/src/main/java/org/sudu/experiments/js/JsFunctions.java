@@ -15,4 +15,8 @@ public interface JsFunctions {
   @JSFunctor interface BiConsumer<T extends JSObject, U extends JSObject> extends JSObject {
     void f(T t, U u);
   }
+
+  @JSFunctor interface Runnable extends JSObject {
+    void f();
+  }
 }

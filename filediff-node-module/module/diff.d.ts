@@ -10,7 +10,7 @@ interface DiffEngine {
     terminateWorkers(): void;
     fib(n: string): Promise<number>;
     startFolderDiff(leftPath: string, rightPath: string, channel: Channel): void;
-    testFS(path: string): void;
+    testFS(path: string, onComplete: () => void): void;
 }
 
 export function createDiffEngine(

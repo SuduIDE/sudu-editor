@@ -11,13 +11,18 @@ function channel() {
 
 console.log("got module: ", module.constructor.name);
 
-module.fib(5).then(
+const fibFuture = module.fib(5).then(
     msg => console.log("got foo result: " + msg)
 );
 
 if (process.argv.length > 2) {
   const dirname = process.argv[2];
   module.testFS(dirname);
+} else {
+  console.log("not running testFS");
 }
 
 module.startFolderDiff("left", "right", channel());
+
+await fibFuture;
+module.terminateWorkers();

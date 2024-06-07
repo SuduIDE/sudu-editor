@@ -46,11 +46,13 @@ interface NodeFs extends JSObject {
   void closeSync(int handle);
 }
 
-
 public abstract class Fs implements NodeFs {
   @JSBody(script = "return fs")
   public static native Fs fs();
 
   @JSBody(script = "return {throwIfNoEntry: false};")
   public static native JSObject lStatNoThrow();
+
+  @JSBody(params = {"dir", "file"}, script = "return dir + path.sep + file;")
+  public static native JSString concatPath(JSString dir, JSString file);
 }
