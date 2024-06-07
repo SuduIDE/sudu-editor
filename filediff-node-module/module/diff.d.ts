@@ -7,7 +7,7 @@ interface Channel {
 
 // see org.sudu.experiments.FileDiffNodeMain.DiffEngineJs
 interface DiffEngine {
-    terminateWorkers(): void;
+    dispose(): void;
     fib(n: string): Promise<number>;
     startFolderDiff(leftPath: string, rightPath: string, channel: Channel): void;
     testFS(path: string, onComplete: () => void): void;
