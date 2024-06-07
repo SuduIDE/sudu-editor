@@ -6,7 +6,7 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
 public interface DiffEngineJs extends JSObject {
-  void terminateWorkers();
+  void dispose();
 
   Promise<JSString> fib(int n);
 

@@ -47,7 +47,11 @@ public abstract class WorkersPool {
   private void sendToWorkerIdx(Consumer<Object[]> handler, String method, Object[] args, int index) {
     int id = nextId();
     jobs.put(id, handler);
-    WorkerProtocol.sendToWorker(workers.get(index), id, method, args);
+    JsMessagePort0 worker = workers.get(index);
+    if (worker != null)
+      WorkerProtocol.sendToWorker(worker, id, method, args);
+    else
+      JsHelper.consoleError("sendToWorker after shutdown, method = ", JSString.valueOf(method));
   }
 
   private int nextFreeWorker() {

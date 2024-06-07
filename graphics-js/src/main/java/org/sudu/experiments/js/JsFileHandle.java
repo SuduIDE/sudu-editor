@@ -50,11 +50,6 @@ public class JsFileHandle implements FileHandle {
     }
   }
 
-  private int jsFileSize() {
-    double jsFileSize = jsFile.getSize();
-    return intSize(jsFileSize);
-  }
-
   private int intSize(double jsSize) {
     int result = (int) jsSize;
     if (result != jsSize) {

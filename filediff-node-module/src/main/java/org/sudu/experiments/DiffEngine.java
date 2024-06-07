@@ -3,8 +3,8 @@ package org.sudu.experiments;
 import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.Fs;
+import org.sudu.experiments.js.node.NodeFileHandle;
 import org.teavm.jso.core.JSString;
-import org.teavm.jso.typedarrays.Uint8Array;
 
 import static org.sudu.experiments.editor.worker.EditorWorker.array;
 
@@ -16,7 +16,7 @@ public class DiffEngine implements DiffEngineJs {
   }
 
   @Override
-  public void terminateWorkers() {
+  public void dispose() {
     pool.terminateAll();
   }
 
@@ -57,6 +57,8 @@ public class DiffEngine implements DiffEngineJs {
     }
   }
 
+  static final class PInt { public int value; }
+
   void traverseDir(JSString dirName) {
     JsHelper.consoleInfo("dirName: ", dirName);
 
@@ -66,7 +68,6 @@ public class DiffEngine implements DiffEngineJs {
       JsHelper.consoleInfo("  [" + i + "]", content.get(i));
     }
 
-    Uint8Array readBuffer = Uint8Array.create(1024 * 64);
     for (int i = 0; i < content.getLength(); i++) {
       JSString file = content.get(i);
       JSString child = Fs.concatPath(dirName, file);
@@ -74,15 +75,20 @@ public class DiffEngine implements DiffEngineJs {
       if (stats.isDirectory()) {
         traverseDir(child);
       } else {
-        int fd = fs.openSync(child, Fs.fs().constants().O_RDONLY());
-        System.out.println("fd = " + fd);
-        int read = 0, total = 0;
+        var fh = new NodeFileHandle(child.stringValue(), new String[0]);
+        System.out.println("fd = " + fh);
+        int read = 1024 * 64, total = 0;
+        PInt pResult = new PInt();
         do {
-          read = fs.readSync(fd,
-              readBuffer, 0, readBuffer.getByteLength(), total);
-          if (read > 0) total += read;
-        } while(read > 0);
-        fs.closeSync(fd);
+          fh.readAsBytes(
+              bytes -> pResult.value = bytes.length,
+              System.err::println, total, read
+          );
+          if (pResult.value > 0) {
+            total += pResult.value;
+            read *= 2;
+          }
+        } while(pResult.value > 0);
         JsHelper.consoleInfo("  read file " + file.stringValue() + " => " + total + " bytes");
       }
     }

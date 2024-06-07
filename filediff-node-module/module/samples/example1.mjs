@@ -25,4 +25,4 @@ if (process.argv.length > 2) {
 module.startFolderDiff("left", "right", channel());
 
 await fibFuture;
-module.terminateWorkers();
+module.dispose();
