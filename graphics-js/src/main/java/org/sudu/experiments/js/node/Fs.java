@@ -2,6 +2,7 @@ package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.js.JsArray;
 import org.teavm.jso.JSBody;
+import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSString;
@@ -44,6 +45,11 @@ interface NodeFs extends JSObject {
       ArrayBufferView buffer, int bufferOffset,
       int bytesToRead, double position);
   void closeSync(int handle);
+
+  @JSFunctor interface ReadCallback extends JSObject {
+    void f(JSObject error, JSString result);
+  }
+  void readFile(JSString name, JSString encoding, ReadCallback callback);
 }
 
 public abstract class Fs implements NodeFs {
@@ -55,4 +61,16 @@ public abstract class Fs implements NodeFs {
 
   @JSBody(params = {"dir", "file"}, script = "return dir + path.sep + file;")
   public static native JSString concatPath(JSString dir, JSString file);
+
+  @JSBody(script = "path.sep.charAt(0);")
+  public static native JSString pathSepChar();
+
+  @JSBody(params = {"file"}, script = "return path.basename(file);")
+  public static native JSString pathBasename(JSString file);
+
+  @JSBody(params = {"file"}, script = "return path.dirname(file);")
+  public static native JSString pathDirname(JSString file);
+
+  @JSBody(params = {"error"}, script = "return error.cause;")
+  public static native String errorCause(JSObject error);
 }

@@ -89,7 +89,7 @@ public class JsHelper {
         JsMemoryAccess.toByteArray(jsArrayBuffer));
   }
 
-  static JsFunctions.Consumer<JSError> wrapError(Consumer<String> onError) {
+  public static JsFunctions.Consumer<JSError> wrapError(Consumer<String> onError) {
     return jsError -> onError.accept(jsError.getMessage());
   }
 

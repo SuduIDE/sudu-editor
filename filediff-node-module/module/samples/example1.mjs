@@ -17,7 +17,9 @@ const fibFuture = module.fib(5).then(
 
 if (process.argv.length > 2) {
   const dirname = process.argv[2];
-  module.testFS(dirname);
+  module.testFS(dirname, () => {
+    console.log("testFs.onComplete");
+  });
 } else {
   console.log("not running testFS");
 }

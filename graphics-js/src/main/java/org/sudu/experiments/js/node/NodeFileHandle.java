@@ -1,8 +1,10 @@
 package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
+import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
@@ -13,13 +15,22 @@ import java.util.function.IntConsumer;
 
 public class NodeFileHandle implements FileHandle {
 
-  final String pathName;
+  final String name;
   final String[] path;
+  JSString jsPath;
   NodeFs.Stats stats;
 
-  public NodeFileHandle(String pathName, String[] path) {
-    this.pathName = pathName;
+  public NodeFileHandle(String name, String[] path) {
+    this.name = name;
     this.path = path;
+  }
+
+  public NodeFileHandle(JSString jsPath) {
+    this.jsPath = jsPath;
+    this.name = Fs.pathBasename(jsPath).stringValue();
+    this.path = new String[] {
+        Fs.pathDirname(jsPath).stringValue()
+    };
   }
 
   @Override
@@ -27,10 +38,18 @@ public class NodeFileHandle implements FileHandle {
     result.accept(intSize());
   }
 
+  private JSString jsPath() {
+    if (jsPath == null) {
+      jsPath = JSString.valueOf(name);
+      for (int i = path.length - 1; i >= 0; i--) {
+        jsPath = Fs.concatPath(JSString.valueOf(path[i]), jsPath);
+      }
+    }
+    return jsPath;
+  }
+
   private NodeFs.Stats stats() {
-    return stats == null
-        ? (stats = Fs.fs().lstatSync(JSString.valueOf(pathName)))
-        : stats;
+    return stats == null ? (stats = Fs.fs().lstatSync(jsPath())) : stats;
   }
 
   private int intSize() {
@@ -38,7 +57,7 @@ public class NodeFileHandle implements FileHandle {
     int result = (int) jsSize;
     if (result != jsSize) {
       JsHelper.consoleError(
-          "File is too large: " + pathName + ", size = ",
+          "File is too large: " + name + ", size = ",
           JSNumber.valueOf(jsSize));
       return 0;
     }
@@ -47,7 +66,7 @@ public class NodeFileHandle implements FileHandle {
 
   @Override
   public String getName() {
-    return pathName;
+    return name;
   }
 
   @Override
@@ -57,15 +76,13 @@ public class NodeFileHandle implements FileHandle {
 
   @Override
   public void readAsText(Consumer<String> consumer, Consumer<String> onError) {
-//    JsFunctions.Consumer<JSError> onJsError = wrapError(onError);
-//    JsFunctions.Consumer<JSString> onString = jsString
-//        -> consumer.accept(jsString.stringValue());
-//    if (jsFile != null) {
-//      jsFile.text().then(onString, onJsError);
-//    } else {
-//      fileHandle.getFile().then(
-//          file -> file.text().then(onString, onJsError), onJsError);
-//    }
+    Fs.fs().readFile(jsPath(), JSString.valueOf("utf8"), (error, jsString) -> {
+      if (error != null) {
+        onError.accept(Fs.errorCause(error));
+      } else {
+        consumer.accept(jsString.stringValue());
+      }
+    });
   }
 
   @Override
@@ -75,21 +92,10 @@ public class NodeFileHandle implements FileHandle {
   ) {
     int fileSize = intSize();
     if (begin <= fileSize) {
-      length = Math.min(length, fileSize - begin);
+      if (length < 0) length = fileSize;
+      else length = Math.min(length, fileSize - begin);
       if (length > 0) {
-        Fs fs = Fs.fs();
-        try {
-          int h = fs.openSync(JSString.valueOf(pathName), fs.constants().O_RDONLY());
-          byte[] bytes = new byte[length];
-          fs.readSync(
-              h,
-              JsMemoryAccess.uInt8View(bytes), 0, length,
-              begin);
-          fs.closeSync(h);
-          consumer.accept(bytes);
-        } catch (Exception e) {
-          onError.accept(e.getMessage());
-        }
+        doRead(consumer, onError, begin, length);
       } else {
         consumer.accept(new byte[0]);
       }
@@ -98,14 +104,31 @@ public class NodeFileHandle implements FileHandle {
     }
   }
 
+  private void doRead(Consumer<byte[]> consumer, Consumer<String> onError, int begin, int length) {
+    Fs fs = Fs.fs();
+    try {
+      int h = fs.openSync(jsPath(), fs.constants().O_RDONLY());
+      byte[] bytes = new byte[length];
+      int numRead = fs.readSync(h, JsMemoryAccess.uInt8View(bytes), 0, length, begin);
+      fs.closeSync(h);
+      if (numRead != bytes.length) {
+        JsHelper.consoleError("read file error, numRead != bytes.length: ", jsPath());
+        bytes = Arrays.copyOf(bytes, numRead);
+      }
+      consumer.accept(bytes);
+    } catch (Exception e) {
+      onError.accept(e.getMessage());
+    }
+  }
+
   @Override
   public String toString() {
-    return pathName;
+    return name;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(pathName) * 31 + Arrays.hashCode(path);
+    return Objects.hashCode(name) * 31 + Arrays.hashCode(path);
   }
 }
 
