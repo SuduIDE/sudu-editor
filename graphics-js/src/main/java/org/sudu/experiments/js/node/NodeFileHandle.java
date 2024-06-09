@@ -1,10 +1,8 @@
 package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
-import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
@@ -26,7 +24,12 @@ public class NodeFileHandle implements FileHandle {
   }
 
   public NodeFileHandle(JSString jsPath) {
+    this(jsPath, null);
+  }
+
+  public NodeFileHandle(JSString jsPath, NodeFs.Stats stats) {
     this.jsPath = jsPath;
+    this.stats = stats;
     this.name = Fs.pathBasename(jsPath).stringValue();
     this.path = new String[] {
         Fs.pathDirname(jsPath).stringValue()
@@ -39,12 +42,8 @@ public class NodeFileHandle implements FileHandle {
   }
 
   private JSString jsPath() {
-    if (jsPath == null) {
-      jsPath = JSString.valueOf(name);
-      for (int i = path.length - 1; i >= 0; i--) {
-        jsPath = Fs.concatPath(JSString.valueOf(path[i]), jsPath);
-      }
-    }
+    if (jsPath == null)
+      jsPath = Fs.concatPath(name, path);
     return jsPath;
   }
 

@@ -73,4 +73,12 @@ public abstract class Fs implements NodeFs {
 
   @JSBody(params = {"error"}, script = "return error.cause;")
   public static native String errorCause(JSObject error);
+
+  public static JSString concatPath(String name, String[] path) {
+    JSString jsPath = JSString.valueOf(name);
+    for (int i = path.length - 1; i >= 0; i--) {
+      jsPath = concatPath(JSString.valueOf(path[i]), jsPath);
+    }
+    return jsPath;
+  }
 }

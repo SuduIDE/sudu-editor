@@ -1,9 +1,9 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.node.Fs;
+import org.sudu.experiments.js.node.NodeDirectoryHandle;
 import org.sudu.experiments.js.node.NodeFileHandle;
 import org.teavm.jso.core.JSString;
 
@@ -16,10 +16,8 @@ public class FsTest {
     var stats = fs.lstatSync(path, Fs.lStatNoThrow());
     JsHelper.consoleInfo("stats = ", stats);
     if (stats.isDirectory()) {
-      FsTest r = new FsTest();
-      r.traverseDir(path);
-      JsHelper.consoleInfo("traverseDir done");
-      onComplete.f();
+      NodeDirectoryHandle dh = new NodeDirectoryHandle(path);
+      new Traverser(() -> JsHelper.consoleInfo("traverseDir done")).go(dh);
     } else {
       JsHelper.consoleInfo("reading file as string", path);
       NodeFileHandle fh = new NodeFileHandle(path);
@@ -31,25 +29,34 @@ public class FsTest {
     }
   }
 
-  void traverseDir(JSString dirName) {
-    JsHelper.consoleInfo("dirName: ", dirName);
+  static class Traverser implements DirectoryHandle.Reader {
+    final Runnable onComplete;
+    int requests;
 
-    Fs fs = Fs.fs();
-    JsArray<JSString> content = fs.readdirSync(dirName);
-    for (int i = 0; i < content.getLength(); i++) {
-      JsHelper.consoleInfo("  [" + i + "]", content.get(i));
+    Traverser(Runnable onComplete) {
+      this.onComplete = onComplete;
     }
 
-    for (int i = 0; i < content.getLength(); i++) {
-      JSString file = content.get(i);
-      JSString child = Fs.concatPath(dirName, file);
-      var stats = fs.lstatSync(child);
-      if (stats.isDirectory()) {
-        traverseDir(child);
-      } else {
-        var fh = new NodeFileHandle(child);
-        System.out.println("fd = " + fh);
-        fh.getSize(size -> readFileTest(fh, size));
+    void go(DirectoryHandle h) {
+      onDirectory(h);
+    }
+
+    @Override
+    public void onDirectory(DirectoryHandle dir) {
+      requests++;
+      dir.read(this);
+    }
+
+    @Override
+    public void onFile(FileHandle file) {
+      file.getSize(size -> readFileTest(file, size));
+    }
+
+    @Override
+    public void onComplete() {
+      requests--;
+      if (requests == 0) {
+        onComplete.run();
       }
     }
   }
@@ -57,7 +64,7 @@ public class FsTest {
   static class FileReader {
     byte[] bytes;
 
-    void readFull(NodeFileHandle fh) {
+    void readFull(FileHandle fh) {
       int read = 1024 * 64, total = 0;
       for (; ; ) {
         fh.readAsBytes(
@@ -77,7 +84,7 @@ public class FsTest {
     }
   }
 
-  private void readFileTest(NodeFileHandle fh, int size) {
+  static void readFileTest(FileHandle fh, int size) {
     if (size < 1024) {
       fh.readAsText(
           text -> JsHelper.consoleInfo("  readAsText " + fh.getName() + " => " + text.length() + " chars"),
