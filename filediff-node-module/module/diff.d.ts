@@ -15,6 +15,6 @@ interface DiffEngine {
 }
 
 export function createDiffEngine(
-  workerUrl: string,
+  workerUrl: string | URL,
   nThreads: number
 ): Promise<DiffEngine>
