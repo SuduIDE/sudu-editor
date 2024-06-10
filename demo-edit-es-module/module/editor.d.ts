@@ -1,9 +1,10 @@
 // java reflection of this file is located at
 // demo-edit-es-module/src/main/java/org/sudu/experiments/EditJsApi.java
 
-import { Channel } from "./common";
+import { Channel, Message } from "./common";
+export { Channel, Message }
 
-interface EditArgs {
+export interface EditArgs {
     containerId: string
 
     // default value for workerUrl is "worker.js"
@@ -49,7 +50,7 @@ export interface IModelChangedEvent {
     readonly newModelUrl: Uri | null;
 }
 
-interface ITextModel extends IDisposable {
+export interface ITextModel extends IDisposable {
     language?: string
     uri?: Uri
     getOffsetAt(position: IPosition): number
@@ -175,7 +176,7 @@ interface EditorBase {
     reconnectToDom(containerId?: string) : void
 }
 
-interface ICodeDiff extends EditorBase, HasTheme, Focusable {
+export interface ICodeDiff extends EditorBase, HasTheme, Focusable {
     setLeftModel(model: ITextModel): void,
 
     setRightModel(model: ITextModel): void,
@@ -187,7 +188,7 @@ interface ICodeDiff extends EditorBase, HasTheme, Focusable {
 
 interface CodeDiffView extends ICodeDiff, IDisposable {}
 
-interface ICodeEditor extends EditorBase, HasTheme, Focusable {
+export interface ICodeEditor extends EditorBase, HasTheme, Focusable {
     setText(text: string): void,
 
     getText(): string,
@@ -219,9 +220,9 @@ interface ICodeEditor extends EditorBase, HasTheme, Focusable {
 
 interface EditView extends ICodeEditor, IDisposable {}
 
-interface IFolderDiff extends EditorBase, HasTheme, Focusable {}
+export interface IFolderDiff extends EditorBase, HasTheme, Focusable {}
 
-interface FolderDiffView extends IFolderDiff, IDisposable {}
+export interface FolderDiffView extends IFolderDiff, IDisposable {}
 
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
 
