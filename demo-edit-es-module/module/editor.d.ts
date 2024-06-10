@@ -5,7 +5,7 @@ interface EditArgs {
     containerId: string
 
     // default value for workerUrl is "worker.js"
-    workerUrl?: string
+    workerUrl?: string | URL
 
     // themes: "dark", "light"
     theme?: string
