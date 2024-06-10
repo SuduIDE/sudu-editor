@@ -172,6 +172,7 @@
               <target>
                 <copy todir="module">
                   <fileset file="${basedir}/../filediff-node-module/module/diff.d.ts"/>
+                  <fileset file="${basedir}/../filediff-node-module/module/common.d.ts"/>
                 </copy>
               </target>
             </configuration>
@@ -205,7 +206,10 @@
             <fileset><directory>webpack-test/sudu-editor-sample/dist</directory></fileset>
             <fileset>
               <directory>module</directory>
-              <includes><include>diff.d.ts</include></includes>
+              <includes>
+                <include>diff.d.ts</include>
+                <include>common.d.ts</include>
+              </includes>
             </fileset>
           </filesets>
         </configuration>

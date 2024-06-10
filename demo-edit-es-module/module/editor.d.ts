@@ -1,6 +1,8 @@
 // java reflection of this file is located at
 // demo-edit-es-module/src/main/java/org/sudu/experiments/EditJsApi.java
 
+import { Channel } from "./common";
+
 interface EditArgs {
     containerId: string
 
@@ -220,13 +222,6 @@ interface EditView extends ICodeEditor, IDisposable {}
 interface IFolderDiff extends EditorBase, HasTheme, Focusable {}
 
 interface FolderDiffView extends IFolderDiff, IDisposable {}
-
-type Message = Array<String | Uint8Array | Uint16Array>
-
-interface Channel {
-    sendMessage(message: Message): void
-    onMessage?: (message: Message) => void
-}
 
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
 

@@ -1,9 +1,4 @@
-type Message = Array<string | Uint8Array | Uint16Array>
-
-interface Channel {
-    sendMessage(message: Message): void
-    onMessage?: (message: Message) => void
-}
+import { Channel } from './common'
 
 // see org.sudu.experiments.FileDiffNodeMain.DiffEngineJs
 interface DiffEngine {

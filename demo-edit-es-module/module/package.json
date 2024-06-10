@@ -17,7 +17,7 @@
   "files": [
     "editor.d.ts",
     "./src/editor.js", "./src/worker.js", "./src/loader.js",
-    "diff.d.ts",
+    "diff.d.ts","common.d.ts",
     "./src/diffEngine.mjs", "./src/diffEngineWorker.mjs"
   ]
 }

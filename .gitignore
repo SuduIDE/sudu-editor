@@ -20,3 +20,4 @@ node_modules
 /fonts/src/main/resources/fonts/
 /codicon/src/main/resources/fonts/
 /demo-edit-es-module/module/diff.d.ts
+/demo-edit-es-module/module/common.d.ts
