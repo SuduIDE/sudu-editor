@@ -41,7 +41,7 @@ public class DiffEngineWorker {
   static void asyncMethod(String method, Object[] a, Consumer<Object[]> r) {
     switch (method) {
       case TestJobs.asyncWithFile -> TestJobs.asyncWithFile(file(a, 0), r);
-      case TestJobs.asyncWithDir -> TestJobs.asyncWithFile(file(a, 0), r);
+      case TestJobs.asyncWithDir -> TestJobs.asyncWithDir(dir(a, 0), r);
       case DiffUtils.CMP_FILES -> DiffUtils.compareFiles(file(a, 0), file(a, 1), r);
       case DiffUtils.CMP_FOLDERS -> DiffUtils.compareFolders(dir(a, 0), dir(a, 1), r);
       default -> System.out.println("asyncMethod = " + method);

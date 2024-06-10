@@ -1,8 +1,11 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.node.NodeDirectoryHandle;
 import org.sudu.experiments.worker.WorkerJobExecutor;
+
+import java.util.function.Consumer;
 
 public class FolderDiffTestNode {
 
@@ -10,6 +13,7 @@ public class FolderDiffTestNode {
   private final NodeDirectoryHandle dir2;
   private final WorkerJobExecutor executor;
   private final JsFunctions.Runnable onComplete;
+  private int completed;
 
   public FolderDiffTestNode(
       NodeDirectoryHandle dir1,
@@ -24,11 +28,9 @@ public class FolderDiffTestNode {
   }
 
   public void scan() {
-//    executor.sendToWorker(
-//        result -> {},
-//
-//    );
-    onComplete.f();
+    Consumer<Object[]> handler = this::dirResult;
+    executor.sendToWorker(handler, TestJobs.asyncWithDir, dir1);
+    executor.sendToWorker(handler, TestJobs.asyncWithDir, dir2);
   }
 
   private void dirResult(Object[] objects) {
@@ -37,6 +39,9 @@ public class FolderDiffTestNode {
           "objects[" + i + "] = " +
               objects[i].getClass().getSimpleName() + ": " +
               objects[i]);
+    }
+    if (++completed == 2) {
+      onComplete.f();
     }
   }
 }
