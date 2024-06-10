@@ -1,6 +1,6 @@
 import { Channel } from './common'
 
-// see org.sudu.experiments.FileDiffNodeMain.DiffEngineJs
+// java class: org.sudu.experiments.DiffEngineJs
 interface DiffEngine {
     dispose(): void;
     fib(n: string): Promise<number>;
