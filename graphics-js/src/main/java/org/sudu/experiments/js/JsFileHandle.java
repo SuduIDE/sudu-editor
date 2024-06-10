@@ -2,9 +2,7 @@ package org.sudu.experiments.js;
 
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
-import org.teavm.jso.JSBody;
 import org.teavm.jso.core.JSError;
-import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.ArrayBuffer;
 
@@ -21,7 +19,7 @@ public class JsFileHandle implements FileHandle {
   final String[] path;
 
   public static FileHandle fromWebkitRelativeFile(JsFile jsFile) {
-    return new JsFileHandle(null, jsFile, splitPath(jsFile.getWebkitRelativePath()));
+    return new JsFileHandle(null, jsFile, JsHelper.splitPath(jsFile.getWebkitRelativePath()));
   }
 
   public JsFileHandle(FileSystemFileHandle fileHandle) {
@@ -52,11 +50,6 @@ public class JsFileHandle implements FileHandle {
     }
   }
 
-  private int jsFileSize() {
-    double jsFileSize = jsFile.getSize();
-    return intSize(jsFileSize);
-  }
-
   private int intSize(double jsSize) {
     int result = (int) jsSize;
     if (result != jsSize) {
@@ -82,7 +75,7 @@ public class JsFileHandle implements FileHandle {
 
   @Override
   public void readAsText(Consumer<String> consumer, Consumer<String> onError) {
-    JsFunctions.Consumer<JSError> onJsError = wrapError(onError);
+    JsFunctions.Consumer<JSError> onJsError = JsHelper.wrapError(onError);
     JsFunctions.Consumer<JSString> onString = jsString
         -> consumer.accept(jsString.stringValue());
     if (jsFile != null) {
@@ -98,8 +91,8 @@ public class JsFileHandle implements FileHandle {
       Consumer<byte[]> consumer, Consumer<String> onError,
       int begin, int length
   ) {
-    JsFunctions.Consumer<JSError> onJsError = wrapError(onError);
-    JsFunctions.Consumer<ArrayBuffer> onBuffer = toJava(consumer);
+    JsFunctions.Consumer<JSError> onJsError = JsHelper.wrapError(onError);
+    JsFunctions.Consumer<ArrayBuffer> onBuffer = JsHelper.toJava(consumer);
     if (jsFile != null) {
       readBlob(begin, length, onBuffer, onJsError, jsFile);
     } else {
@@ -120,15 +113,6 @@ public class JsFileHandle implements FileHandle {
     blob.arrayBuffer().then(onBuffer, onJsError);
   }
 
-  static JsFunctions.Consumer<ArrayBuffer> toJava(Consumer<byte[]> consumer) {
-    return jsArrayBuffer -> consumer.accept(
-        JsMemoryAccess.toByteArray(jsArrayBuffer));
-  }
-
-  static JsFunctions.Consumer<JSError> wrapError(Consumer<String> onError) {
-    return jsError -> onError.accept(jsError.getMessage());
-  }
-
   @Override
   public String toString() {
     return jsFile != null
@@ -142,17 +126,5 @@ public class JsFileHandle implements FileHandle {
     return Objects.hashCode(getName()) * 31 + Arrays.hashCode(path);
   }
 
-  @JSBody(params = {"str", "arg" }, script = "return str.split(arg);")
-  static native JsArrayReader<JSString> stringSplit(JSString str, JSString arg);
-
-  static String[] splitPath(JSString path) {
-    if (JSObjects.isUndefined(path) || path == null || path.getLength() == 0) return new String[0];
-    JsArrayReader<JSString> split = stringSplit(path, JSString.valueOf("/"));
-    if (split.getLength() == 0) return new String[0];
-    String[] strings = new String[split.getLength() - 1];
-    for (int i = 0; i < strings.length; i++)
-      strings[i] = split.get(i).stringValue();
-    return strings;
-  }
 }
 

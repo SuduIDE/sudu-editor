@@ -1,0 +1,9 @@
+"use strict";
+
+import { parentPort } from 'node:worker_threads';
+import fs from 'node:fs';
+import path from 'node:path';
+
+global.parentPort = parentPort;
+global.fs = fs;
+global.path = path;

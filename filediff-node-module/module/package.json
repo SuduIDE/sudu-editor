@@ -1,0 +1,10 @@
+{
+  "name": "filediff-node-module",
+  "version": "0.0.1-beta",
+  "description": "Sudu Editor built on Java",
+  "author": "Kirill Prazdnikov",
+  "license": "MIT",
+  "main": "./src/module.mjs",
+  "files": [ "./diff.d.ts", "./src/module.mjs", "./src/worker.mjs" ],
+  "typings": "./diff.d.ts"
+}

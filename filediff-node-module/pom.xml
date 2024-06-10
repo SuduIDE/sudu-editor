@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>demo-edit-es-module</artifactId>
+  <artifactId>filediff-node-module</artifactId>
   <version>1.0-SNAPSHOT</version>
 
   <parent>
@@ -15,16 +15,17 @@
   </parent>
 
   <properties>
-    <mainClass>org.sudu.experiments.Editor_d_ts</mainClass>
-    <workerClass>org.sudu.experiments.WebWorker</workerClass>
-    <workerFileTemp>workerOut.js</workerFileTemp>
+    <mainClass>org.sudu.experiments.DiffEngineModule</mainClass>
+    <workerClass>org.sudu.experiments.DiffEngineWorker</workerClass>
 
     <moduleSrc>module/src</moduleSrc>
-    <workerFile>worker.js</workerFile>
-    <module.js>module.js</module.js>
+    <diffEngineWorker.js>diffEngineWorker.mjs</diffEngineWorker.js>
+    <diffEngine.js>diffEngine.mjs</diffEngine.js>
 
-    <module.template.prefix>src/main/ES6moduleExport.template.js.0</module.template.prefix>
-    <module.template.suffix>src/main/ES6moduleExport.template.js.1</module.template.suffix>
+    <diffEngine.prefix>src/main/diffEngineImports.js.0</diffEngine.prefix>
+    <diffEngine.suffix>src/main/diffEngineExports.js.0</diffEngine.suffix>
+    <diffEngineWorker.prefix>src/main/diffEngineWorkerImports.js.0</diffEngineWorker.prefix>
+    <diffEngineWorker.suffix>src/main/diffEngineWorkerExports.js.0</diffEngineWorker.suffix>
     <teavm.pre.module.js>${project.build.directory}/generated</teavm.pre.module.js>
 
     <!-- compiler settings -->
@@ -60,12 +61,6 @@
 
     <dependency>
       <groupId>org.sudu</groupId>
-      <artifactId>filediff-node-module</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.sudu</groupId>
       <artifactId>demo-edit</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
@@ -96,7 +91,7 @@
         <version>${teavm.version}</version>
         <executions>
           <execution>
-            <id>editor-es-module</id>
+            <id>diffEngine-js</id>
             <goals>
               <goal>compile</goal>
             </goals>
@@ -105,7 +100,7 @@
               <properties><invokeMain>true</invokeMain></properties>
               <targetDirectory>${teavm.pre.module.js}</targetDirectory>
               <mainClass>${mainClass}</mainClass>
-              <targetFileName>${module.js}</targetFileName>
+              <targetFileName>${diffEngine.js}</targetFileName>
               <minifying>${teavm.minifying}</minifying>
               <debugInformationGenerated>${teavm.debugInfo}</debugInformationGenerated>
               <sourceMapsGenerated>${teavm.sourceMaps}</sourceMapsGenerated>
@@ -114,15 +109,15 @@
             </configuration>
           </execution>
           <execution>
-            <id>web-worker</id>
+            <id>diffEngine-worker-js</id>
             <goals>
               <goal>compile</goal>
             </goals>
             <configuration>
               <!-- see org.sudu.experiments.JsBuildPlugin -->
               <properties><invokeMain>true</invokeMain></properties>
-              <targetDirectory>${moduleSrc}</targetDirectory>
-              <targetFileName>${workerFile}</targetFileName>
+              <targetDirectory>${teavm.pre.module.js}</targetDirectory>
+              <targetFileName>${diffEngineWorker.js}</targetFileName>
               <mainClass>${workerClass}</mainClass>
               <minifying>${teavm.minifying}</minifying>
               <debugInformationGenerated>${teavm.debugInfo}</debugInformationGenerated>
@@ -140,39 +135,21 @@
         <version>3.1.0</version>
         <executions>
           <execution>
-            <id>generate-es-module</id>
+            <id>diffEngine-es-module</id>
             <phase>process-classes</phase>
             <goals><goal>run</goal></goals>
             <configuration>
               <target>
-                <concat destfile="${moduleSrc}/editor.js" overwrite="yes">
-                  <fileset file="${module.template.prefix}"/>
-                  <fileset file="${teavm.pre.module.js}/${module.js}"/>
-                  <fileset file="${module.template.suffix}"/>
+                <concat destfile="${moduleSrc}/${diffEngine.js}" overwrite="yes">
+                  <fileset file="${diffEngine.prefix}"/>
+                  <fileset file="${teavm.pre.module.js}/${diffEngine.js}"/>
+                  <fileset file="${diffEngine.suffix}"/>
                 </concat>
-              </target>
-            </configuration>
-          </execution>
-          <execution>
-            <id>copy-diffEngine</id>
-            <phase>process-classes</phase>
-            <goals><goal>run</goal></goals>
-            <configuration>
-              <target>
-                <copy todir="module/src">
-                  <fileset dir="${basedir}/../filediff-node-module/module/src/" includes="*.mjs" />
-                </copy>
-              </target>
-            </configuration>
-          </execution> <execution>
-            <id>copy-diffEngine-dts</id>
-            <phase>process-classes</phase>
-            <goals><goal>run</goal></goals>
-            <configuration>
-              <target>
-                <copy todir="module">
-                  <fileset file="${basedir}/../filediff-node-module/module/diff.d.ts"/>
-                </copy>
+                <concat destfile="${moduleSrc}/${diffEngineWorker.js}" overwrite="yes">
+                  <fileset file="${diffEngineWorker.prefix}"/>
+                  <fileset file="${teavm.pre.module.js}/${diffEngineWorker.js}"/>
+<!--                  <fileset file="${worker.template.suffix}"/>-->
+                </concat>
               </target>
             </configuration>
           </execution>
@@ -198,15 +175,8 @@
           <filesets>
             <fileset>
               <directory>module/src</directory>
-              <excludes>
-                <exclude>loader.js</exclude>
-              </excludes>
             </fileset>
             <fileset><directory>webpack-test/sudu-editor-sample/dist</directory></fileset>
-            <fileset>
-              <directory>module</directory>
-              <includes><include>diff.d.ts</include></includes>
-            </fileset>
           </filesets>
         </configuration>
     </plugin>

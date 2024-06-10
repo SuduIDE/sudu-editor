@@ -6,13 +6,13 @@ import org.teavm.jso.JSObject;
 public abstract class JsLauncher {
 
   boolean fontsLoaded;
-  private JsArray<WorkerContext> workers;
+  private JsArray<WebWorkerContext> workers;
 
   public JsLauncher(boolean waitFonts) {
     fontsLoaded = !waitFonts;
   }
 
-  public void onWorkersStart(JsArray<WorkerContext> workers) {
+  public void onWorkersStart(JsArray<WebWorkerContext> workers) {
     this.workers = workers;
     if (fontsLoaded) launch(workers);
   }
@@ -23,5 +23,5 @@ public abstract class JsLauncher {
     if (workers != null) launch(workers);
   }
 
-  public abstract void launch(JsArray<WorkerContext> workers);
+  public abstract void launch(JsArray<WebWorkerContext> workers);
 }

@@ -17,7 +17,7 @@ public class TestWalker implements DirectoryHandle.Reader {
     this.result = result;
     list.add(dir.toString());
     list.add(dir);
-    System.out.println("Thread.currentThread() = " + currentThread);
+    System.out.println("TestWalker: Thread.currentThread() = " + currentThread);
   }
 
   @Override

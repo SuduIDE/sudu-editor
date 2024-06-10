@@ -35,13 +35,13 @@ public class WebWindow implements Window {
   private Scene scene;
 
   // workers and jobs
-  private final WorkersPool workers;
+  private final WebWorkersPool workers;
 
   public WebWindow(
       Function<SceneApi, Scene> factory,
       Runnable onWebGlError,
       String canvasDivId,
-      JsArray<WorkerContext> workers
+      JsArray<WebWorkerContext> workers
   ) {
     this(factory, onWebGlError, JSString.valueOf(canvasDivId), workers);
   }
@@ -50,7 +50,7 @@ public class WebWindow implements Window {
       Function<SceneApi, Scene> factory,
       Runnable onWebGlError,
       JSString canvasDivId,
-      JsArray<WorkerContext> workers
+      JsArray<WebWorkerContext> workers
   ) {
     this(canvasDivId, workers);
     if (!init(factory))
@@ -58,9 +58,9 @@ public class WebWindow implements Window {
   }
 
   // this ctor requires init after call
-  public WebWindow(JSString canvasDivId, JsArray<WorkerContext> workers) {
+  public WebWindow(JSString canvasDivId, JsArray<WebWorkerContext> workers) {
     this.canvasDivId = canvasDivId;
-    this.workers = new WorkersPool(workers);
+    this.workers = new WebWorkersPool(workers);
 
 //    JsHelper.consoleInfo("starting web window on " + canvasDivId);
     mainCanvas = JsHelper.createMainCanvas(null);

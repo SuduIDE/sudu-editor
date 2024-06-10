@@ -4,7 +4,20 @@
   "description": "Sudu Editor built on Java",
   "author": "Kirill Prazdnikov",
   "license": "MIT",
-  "main": "./src/editor.js",
-  "files": [ "editor.d.ts", "./src/editor.js", "./src/worker.js", "./src/loader.js" ],
-  "typings": "./editor.d.ts"
+  "exports": {
+    ".": {
+      "types": "./editor.d.ts",
+      "default": "./src/editor.js"
+    },
+    "./engine": {
+      "types": "./diff.d.ts",
+      "default": "./src/diffEngine.mjs"
+    }
+  },
+  "files": [
+    "editor.d.ts",
+    "./src/editor.js", "./src/worker.js", "./src/loader.js",
+    "diff.d.ts",
+    "./src/diffEngine.mjs", "./src/diffEngineWorker.mjs"
+  ]
 }

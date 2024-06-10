@@ -5,6 +5,7 @@ import org.sudu.experiments.WebGLError;
 import org.sudu.experiments.WebWindow;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 public class JsCodeDiff0 implements JsCodeDiff {
@@ -14,7 +15,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
 
   public JsCodeDiff0(
       EditArgs args,
-      JsArray<WorkerContext> workers
+      JsArray<WebWorkerContext> workers
   ) {
     this.window = new WebWindow(
         Diff0::new, WebGLError::onWebGlError,
@@ -76,8 +77,10 @@ public class JsCodeDiff0 implements JsCodeDiff {
   public void setLeftModel(JsITextModel model) {
     if (model instanceof JsTextModel jsTextModel) {
       diff.setLeftModel(jsTextModel.javaModel);
+    } else if (JSObjects.isUndefined(model)) {
+      throw new IllegalArgumentException("left model is undefined");
     } else {
-      throw new IllegalArgumentException("bad model");
+      throw new IllegalArgumentException("bad left model");
     }
   }
 
@@ -85,8 +88,10 @@ public class JsCodeDiff0 implements JsCodeDiff {
   public void setRightModel(JsITextModel model) {
     if (model instanceof JsTextModel jsTextModel) {
       diff.setRightModel(jsTextModel.javaModel);
+    } else if (JSObjects.isUndefined(model)) {
+      throw new IllegalArgumentException("right model is undefined");
     } else {
-      throw new IllegalArgumentException("bad model");
+      throw new IllegalArgumentException("bad right model");
     }
   }
 
@@ -103,7 +108,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
   public static Promise<JsCodeDiff> newDiff(EditArgs arguments) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
-          WorkerContext.start(
+          WebWorkerContext.start(
               workers -> postResult.f(new JsCodeDiff0(arguments, workers)),
               postError,
               arguments.workerUrl(),

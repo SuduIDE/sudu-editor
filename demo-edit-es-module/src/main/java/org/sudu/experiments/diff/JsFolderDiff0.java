@@ -19,7 +19,7 @@ public class JsFolderDiff0 implements JsFolderDiff {
 
   static void start(
       EditArgs arguments,
-      JsArray<WorkerContext> workers,
+      JsArray<WebWorkerContext> workers,
       JsFunctions.Consumer<JsFolderDiff> postResult,
       JsFunctions.Consumer<JSObject> postError
   ) {
@@ -90,7 +90,7 @@ public class JsFolderDiff0 implements JsFolderDiff {
       boolean loadCodicon = arguments.hasCodiconUrl();
       var l = new JsLauncher(loadCodicon) {
         @Override
-        public void launch(JsArray<WorkerContext> workers) {
+        public void launch(JsArray<WebWorkerContext> workers) {
           start(arguments, workers, postResult, postError);
         }
       };
@@ -101,7 +101,7 @@ public class JsFolderDiff0 implements JsFolderDiff {
             .then(l::onFontsLoaded,
                 e -> postError.f(e.cast()));
       }
-      WorkerContext.start(
+      WebWorkerContext.start(
           l::onWorkersStart,
           postError,
           arguments.workerUrl(),

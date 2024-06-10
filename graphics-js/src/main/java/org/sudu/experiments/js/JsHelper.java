@@ -4,11 +4,14 @@ import org.sudu.experiments.GLApi;
 import org.teavm.interop.NoSideEffects;
 import org.teavm.jso.*;
 import org.teavm.jso.core.JSError;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.css.CSSStyleDeclaration;
 import org.teavm.jso.dom.html.HTMLCanvasElement;
+import org.teavm.jso.typedarrays.ArrayBuffer;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class JsHelper {
 
@@ -68,6 +71,28 @@ public class JsHelper {
     consoleInfo("on error ", JSString.valueOf(error.getMessage()));
   }
 
+  static String[] splitPath(JSString path) {
+    if (JSObjects.isUndefined(path) || path == null || path.getLength() == 0) return new String[0];
+    JsArrayReader<JSString> split = stringSplit(path, JSString.valueOf("/"));
+    if (split.getLength() == 0) return new String[0];
+    String[] strings = new String[split.getLength() - 1];
+    for (int i = 0; i < strings.length; i++)
+      strings[i] = split.get(i).stringValue();
+    return strings;
+  }
+
+  @JSBody(params = {"str", "arg" }, script = "return str.split(arg);")
+  static native JsArrayReader<JSString> stringSplit(JSString str, JSString arg);
+
+  static JsFunctions.Consumer<ArrayBuffer> toJava(Consumer<byte[]> consumer) {
+    return jsArrayBuffer -> consumer.accept(
+        JsMemoryAccess.toByteArray(jsArrayBuffer));
+  }
+
+  public static JsFunctions.Consumer<JSError> wrapError(Consumer<String> onError) {
+    return jsError -> onError.accept(jsError.getMessage());
+  }
+
   interface HTMLElement extends org.teavm.jso.dom.html.HTMLElement {
     @JSMethod("getBoundingClientRect")
     DOMRect getBoundingClientRectD();
@@ -81,6 +106,9 @@ public class JsHelper {
 
   @JSBody(params = {"s0", "obj"}, script = "console.info(s0 + obj);")
   public static native void consoleInfo(String s0, JSObject obj);
+
+  @JSBody(params = {"s0", "obj"}, script = "console.error(s0 + obj);")
+  public static native void consoleError(String s0, JSObject obj);
 
   @JSBody(params = {"s", "d"}, script = "console.info(s + d);")
   public static native void consoleInfo(String s, double d);
@@ -112,7 +140,7 @@ public class JsHelper {
   @JSBody(params = {"n"}, script = "return String(n);")
   public static native String jsDoubleToString(double n);
 
-  @JSBody(params = {"arg"}, script = "return new JSError(arg);")
+  @JSBody(params = {"arg"}, script = "return new Error(arg);")
   public static native JSError newError(String arg);
 
   public interface Error extends JSObject {
