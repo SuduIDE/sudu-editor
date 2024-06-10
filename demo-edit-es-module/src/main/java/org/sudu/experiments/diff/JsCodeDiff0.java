@@ -77,7 +77,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
     if (model instanceof JsTextModel jsTextModel) {
       diff.setLeftModel(jsTextModel.javaModel);
     } else {
-      throw new IllegalArgumentException("bad model");
+      throw new IllegalArgumentException("bad left model");
     }
   }
 
@@ -86,7 +86,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
     if (model instanceof JsTextModel jsTextModel) {
       diff.setRightModel(jsTextModel.javaModel);
     } else {
-      throw new IllegalArgumentException("bad model");
+      throw new IllegalArgumentException("bad right model");
     }
   }
 

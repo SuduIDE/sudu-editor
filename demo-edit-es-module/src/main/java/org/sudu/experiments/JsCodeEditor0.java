@@ -88,7 +88,7 @@ public class JsCodeEditor0 implements JsCodeEditor {
     if (model instanceof JsTextModel jsTextModel) {
       editor.setModel(jsTextModel.javaModel);
     } else {
-      throw new IllegalArgumentException("bad model");
+      throw new IllegalArgumentException("bad editor model");
     }
   }
 
