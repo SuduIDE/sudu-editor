@@ -15,4 +15,9 @@ public class FileNode extends FileTreeNode {
   public String toString() {
     return file.toString();
   }
+
+  @Override
+  protected void defaultIcon() {
+    this.iconFile();
+  }
 }

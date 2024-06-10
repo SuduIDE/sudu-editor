@@ -38,6 +38,10 @@ public class DiffModelBuilder {
     this.scanFileContent = scanFileContent;
   }
 
+  public void compareRoots(DirectoryNode leftRoot, DirectoryNode rightRoot) {
+    compareRoots(leftRoot, rightRoot, new FolderDiffModel(null), new FolderDiffModel(null));
+  }
+
   public void compareRoots(
       DirectoryNode leftRoot, DirectoryNode rightRoot,
       FolderDiffModel leftModel, FolderDiffModel rightModel
@@ -224,7 +228,7 @@ public class DiffModelBuilder {
       rightModel.rangeId = rangeId;
       rangeCtx.markUp(leftModel, rightModel);
     }
-    if (needUpdate) updateDiffInfo.accept(needUpdate, leftNode, rightNode);
+    updateDiffInfo.accept(needUpdate, leftNode, rightNode);
   }
 
   void onFoldersCompared(
@@ -232,6 +236,9 @@ public class DiffModelBuilder {
       FolderDiffModel leftModel, FolderDiffModel rightModel,
       Object[] result
   ) {
+    // result = ints + leftItems + rightItems
+    // result[0] = [leftLen, rightLen] + leftTypes[leftLen] + rightTypes[rightLen]
+
     if (result.length == 0) return;
     int[] ints = ((ArrayView) result[0]).ints();
     int leftLen = ints[0], rightLen = ints[1];

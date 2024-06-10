@@ -38,16 +38,11 @@ public class FolderDiffHandler {
   }
 
   private void compare() {
-    var commons = DiffModel.countFolderCommon(leftChildren, rightChildren);
-    BitSet leftCommon = commons[0], rightCommon = commons[1];
+    countDiffs();
+    onCompared();
+  }
 
-    for (int i = 0; i < leftChildren.length; i++) {
-      if (!leftCommon.get(i)) leftChildren[i].diffType = DiffTypes.DELETED;
-    }
-    for (int i = 0; i < rightChildren.length; i++) {
-      if (!rightCommon.get(i)) rightChildren[i].diffType = DiffTypes.INSERTED;
-    }
-
+  protected void onCompared() {
     ArrayWriter writer = new ArrayWriter();
     writer.write(leftChildren.length);
     writer.write(rightChildren.length);
@@ -58,6 +53,18 @@ public class FolderDiffHandler {
     for (var child: leftChildren) result.add(child.item);
     for (var child: rightChildren) result.add(child.item);
     ArrayOp.sendArrayList(result, r);
+  }
+
+  protected void countDiffs() {
+    var commons = DiffModel.countFolderCommon(leftChildren, rightChildren);
+    BitSet leftCommon = commons[0], rightCommon = commons[1];
+
+    for (int i = 0; i < leftChildren.length; i++) {
+      if (!leftCommon.get(i)) leftChildren[i].diffType = DiffTypes.DELETED;
+    }
+    for (int i = 0; i < rightChildren.length; i++) {
+      if (!rightCommon.get(i)) rightChildren[i].diffType = DiffTypes.INSERTED;
+    }
   }
 
   public class DiffReader implements DirectoryHandle.Reader {

@@ -1,6 +1,10 @@
 package org.sudu.experiments.diff.folder;
 
+import org.sudu.experiments.arrays.ArrayReader;
+import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
+import java.util.Arrays;
+import java.util.Objects;
 
 import static org.sudu.experiments.diff.folder.PropTypes.*;
 
@@ -16,6 +20,16 @@ public class FolderDiffModel {
 
   public FolderDiffModel(FolderDiffModel parent) {
     this.parent = parent;
+  }
+
+  public void update(FolderDiffModel newModel) {
+    this.children = newModel.children;
+    this.childrenComparedCnt = newModel.childrenComparedCnt;
+    this.compared = newModel.compared;
+    this.propagation = newModel.propagation;
+    this.diffType = newModel.diffType;
+    this.rangeId = newModel.rangeId;
+    if (compared && parent != null) parent.childCompared();
   }
 
   public void setChildren(int len) {
@@ -78,5 +92,62 @@ public class FolderDiffModel {
     model.diffType = DiffTypes.DEFAULT;
     model.compared = true;
     return model;
+  }
+
+  public static int[] toInts(FolderDiffModel model) {
+    ArrayWriter writer = new ArrayWriter();
+    writeInts(model, writer);
+    return writer.getInts();
+  }
+
+  private static void writeInts(FolderDiffModel model, ArrayWriter writer) {
+    writer.write(model.propagation);
+    writer.write(model.diffType);
+    writer.write(model.rangeId);
+    writer.write(model.childrenComparedCnt);
+    writer.write(model.compared ? 1 : 0);
+    if (model.children == null) writer.write(-1);
+    else {
+      writer.write(model.children.length);
+      for (var child: model.children) writeInts(child, writer);
+    }
+  }
+
+  public static FolderDiffModel fromInts(int[] ints) {
+    return fromInts(new ArrayReader(ints), null);
+  }
+
+  private static FolderDiffModel fromInts(ArrayReader reader, FolderDiffModel parent) {
+    FolderDiffModel model = new FolderDiffModel(parent);
+    model.propagation = reader.next();
+    model.diffType = reader.next();
+    model.rangeId = reader.next();
+    model.childrenComparedCnt = reader.next();
+    model.compared = reader.next() == 1;
+    int childrenLen = reader.next();
+    if (childrenLen != -1) {
+      var children = new FolderDiffModel[childrenLen];
+      for (int i = 0; i < childrenLen; i++) children[i] = fromInts(reader, model);
+      model.children = children;
+    }
+    return model;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    FolderDiffModel that = (FolderDiffModel) o;
+    return childrenComparedCnt == that.childrenComparedCnt
+        && compared == that.compared
+        && propagation == that.propagation
+        && diffType == that.diffType
+        && rangeId == that.rangeId
+        && Objects.deepEquals(children, that.children);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(Arrays.hashCode(children), childrenComparedCnt, compared, propagation, diffType, rangeId);
   }
 }

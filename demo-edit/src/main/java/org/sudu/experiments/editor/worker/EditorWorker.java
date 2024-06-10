@@ -6,6 +6,7 @@ import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.editor.worker.proxy.*;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.worker.ArrayView;
+import org.sudu.experiments.diff.update.Collector;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -64,6 +65,7 @@ public class EditorWorker {
       );
       case DiffUtils.CMP_FILES -> DiffUtils.compareFiles(file(a, 0), file(a, 1), r);
       case DiffUtils.CMP_FOLDERS -> DiffUtils.compareFolders(dir(a, 0), dir(a, 1), r);
+      case Collector.COLLECT -> Collector.collect(dir(a, 0), dir(a, 1), r);
     }
   }
 

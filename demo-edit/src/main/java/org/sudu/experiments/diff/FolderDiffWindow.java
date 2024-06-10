@@ -3,6 +3,7 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.update.DiffModelUpdater;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
@@ -204,7 +205,12 @@ public class FolderDiffWindow extends ToolWindow0 {
     startTime = System.currentTimeMillis();
     leftModel = new FolderDiffModel(null);
     rightModel = new FolderDiffModel(null);
-    builder.compareRoots(leftRoot, rightRoot, leftModel, rightModel);
+    DiffModelUpdater updateHandler = new DiffModelUpdater(
+        leftModel, rightModel,
+        leftRoot.dir, rightRoot.dir,
+        window.context.window, this::updateDiffInfo
+    );
+    updateHandler.beginCompare();
   }
 
   private boolean needUpdate(TreeNode left, TreeNode right) {
@@ -229,9 +235,11 @@ public class FolderDiffWindow extends ToolWindow0 {
     var right = rootView.right.model();
     rootView.setDiffModel(builder.getDiffInfo(left, right));
     window.context.window.repaint();
-    if (PRINT_STAT && leftModel.compared && rightModel.compared) {
-      System.out.println("Compared in " + (System.currentTimeMillis() - startTime) + " ms");
-      System.out.println("Total updates " + updateCnt);
+    if (leftModel.compared && rightModel.compared) {
+      if (PRINT_STAT) {
+        System.out.println("Compared in " + (System.currentTimeMillis() - startTime) + " ms");
+        System.out.println("Total updates " + updateCnt);
+      }
     }
   }
 

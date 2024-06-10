@@ -69,34 +69,37 @@ public class FileTreeNode extends TreeNode {
     this.rangeId = model.rangeId;
     this.diffType = model.diffType;
     t[idx++] = this;
-    chooseIcon(this, model);
-    if (isOpened()) {
+    setIcon(this, model);
+    if (childrenLength() != 0) {
       for (int i = 0; i < children.length; i++) {
-        if (isDownProp) idx = children[i].getModel(t, model.rangeId, model.diffType, idx);
-        else if (noChildren) idx = children[i].getModel(t, model.rangeId, DiffTypes.DEFAULT, idx);
+        if (isDownProp) idx = children[i].getModel(t, model.rangeId, model.diffType, idx, model.compared);
+        else if (noChildren) idx = children[i].getModel(t, model.rangeId, DiffTypes.DEFAULT, idx, model.compared);
         else idx = children[i].getModel(t, model.child(i), idx);
       }
     }
     return idx;
   }
 
-  private static void chooseIcon(FileTreeNode node, FolderDiffModel model) {
-    if (node.childrenLength() == 0 && !model.compared) node.iconRefresh();
-    else if (node.childrenLength() != 0) node.iconFolderOpened();
-    else if (!model.isFile()) node.iconFolder();
-    else node.iconFile();
-  }
-
-  private int getModel(TreeNode[] t, int rangeId, int diffType, int idx) {
+  private int getModel(TreeNode[] t, int rangeId, int diffType, int idx, boolean compared) {
     this.rangeId = rangeId;
     this.diffType = diffType;
     t[idx++] = this;
-    if (isOpened()) {
+    setIcon(this, compared);
+    if (childrenLength() != 0) {
       for (var child: children) {
-        idx = child.getModel(t, rangeId, diffType, idx);
+        idx = child.getModel(t, rangeId, diffType, idx, compared);
       }
     }
     return idx;
+  }
+
+  private static void setIcon(FileTreeNode node, FolderDiffModel model) {
+    setIcon(node, model.compared);
+  }
+
+  private static void setIcon(FileTreeNode node, boolean compared) {
+    if (node.childrenLength() == 0 && !compared) node.iconRefresh();
+    else node.defaultIcon();
   }
 
   public void open() {
@@ -127,4 +130,6 @@ public class FileTreeNode extends TreeNode {
     }
     return null;
   }
+
+  protected void defaultIcon() {}
 }
