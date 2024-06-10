@@ -15,7 +15,7 @@ import org.teavm.jso.core.JSString;
 public class JsFolderDiff0 implements JsFolderDiff {
 
   public final WebWindow window;
-  private FolderDiffScene folderDiff;
+  protected FolderDiffScene folderDiff;
 
   static void start(
       EditArgs arguments,
@@ -32,7 +32,7 @@ public class JsFolderDiff0 implements JsFolderDiff {
     }
   }
 
-  private JsFolderDiff0(WebWindow window, EditArgs args) {
+  protected JsFolderDiff0(WebWindow window, EditArgs args) {
     this.window = window;
     this.folderDiff = (FolderDiffScene) window.scene();
     if (args.hasTheme()) setTheme(args.getTheme());

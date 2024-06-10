@@ -195,14 +195,14 @@ public class FolderDiffWindow extends ToolWindow0 {
     };
   }
 
-  private void compareRootFolders() {
+  protected void compareRootFolders() {
     if (leftRoot == null || rightRoot == null) return;
     leftModel = new FolderDiffModel(null);
     rightModel = new FolderDiffModel(null);
     builder.compareRoots(leftRoot, rightRoot, leftModel, rightModel);
   }
 
-  private void updateDiffInfo() {
+  protected void updateDiffInfo() {
     if (rootView.left == null || rootView.right == null) return;
     rootView.left.updateModel(leftModel);
     rootView.right.updateModel(rightModel);
