@@ -5,14 +5,19 @@
   "author": "Kirill Prazdnikov",
   "license": "MIT",
   "exports": {
-    ".": "./src/editor.js",
-    "./engine": "./src/diffEngine.mjs"
+    ".": {
+      "types": "./editor.d.ts",
+      "default": "./src/editor.js"
+    },
+    "./engine": {
+      "types": "./diff.d.ts",
+      "default": "./src/diffEngine.mjs"
+    }
   },
   "files": [
     "editor.d.ts",
     "./src/editor.js", "./src/worker.js", "./src/loader.js",
     "diff.d.ts",
     "./src/diffEngine.mjs", "./src/diffEngineWorker.mjs"
-  ],
-  "typings": "./editor.d.ts"
+  ]
 }
