@@ -11,6 +11,7 @@ interface DiffEngine {
     fib(n: string): Promise<number>;
     startFolderDiff(leftPath: string, rightPath: string, channel: Channel): void;
     testFS(path: string, onComplete: () => void): void;
+    testFS2(path1: string, path2: string, onComplete: () => void): void;
 }
 
 export function createDiffEngine(

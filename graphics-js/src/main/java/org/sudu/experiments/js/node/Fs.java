@@ -81,4 +81,9 @@ public abstract class Fs implements NodeFs {
     }
     return jsPath;
   }
+
+  public static boolean isDirectory(JSString path) {
+    Stats stats = fs().lstatSync(path, lStatNoThrow());
+    return stats != null && stats.isDirectory();
+  }
 }

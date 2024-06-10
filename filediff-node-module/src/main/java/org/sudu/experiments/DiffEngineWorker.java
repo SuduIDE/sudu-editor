@@ -9,10 +9,10 @@ import org.sudu.experiments.worker.ArrayView;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-public class FileDiffWorker {
+public class DiffEngineWorker {
 
   public static void main(String[] args) {
-    NodeWorker.workerMain(FileDiffWorker::execute);
+    NodeWorker.workerMain(DiffEngineWorker::execute);
   }
 
   public static void execute(String method, Object[] a, Consumer<Object[]> onResult) {
@@ -40,6 +40,8 @@ public class FileDiffWorker {
 
   static void asyncMethod(String method, Object[] a, Consumer<Object[]> r) {
     switch (method) {
+      case TestJobs.asyncWithFile -> TestJobs.asyncWithFile(file(a, 0), r);
+      case TestJobs.asyncWithDir -> TestJobs.asyncWithFile(file(a, 0), r);
       case DiffUtils.CMP_FILES -> DiffUtils.compareFiles(file(a, 0), file(a, 1), r);
       case DiffUtils.CMP_FOLDERS -> DiffUtils.compareFolders(dir(a, 0), dir(a, 1), r);
       default -> System.out.println("asyncMethod = " + method);

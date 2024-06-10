@@ -15,11 +15,18 @@ const fibFuture = module.fib(5).then(
     msg => console.log("got foo result: " + msg)
 );
 
-if (process.argv.length > 2) {
+if (process.argv.length == 3) {
   const dirname = process.argv[2];
   module.testFS(dirname, () => {
     console.log("testFs.onComplete");
   });
+} else if (process.argv.length == 4) {
+  const dir1 = process.argv[2];
+  const dir2 = process.argv[3];
+  module.testFS2(dir1, dir2, () => {
+    console.log("testFS2.onComplete");
+  });
+
 } else {
   console.log("not running testFS");
 }

@@ -15,8 +15,8 @@
   </parent>
 
   <properties>
-    <mainClass>org.sudu.experiments.FileDiffNodeMain</mainClass>
-    <workerClass>org.sudu.experiments.FileDiffWorker</workerClass>
+    <mainClass>org.sudu.experiments.DiffEngineModule</mainClass>
+    <workerClass>org.sudu.experiments.DiffEngineWorker</workerClass>
 
     <moduleSrc>module/src</moduleSrc>
     <diffEngineWorker.js>diffEngineWorker.mjs</diffEngineWorker.js>

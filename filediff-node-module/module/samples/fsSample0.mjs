@@ -1,5 +1,5 @@
 ﻿import fs from 'node:fs';
-import path from 'path';
+import path from 'node:path';
 
 const noThrow = { throwIfNoEntry: false };
 const O_RDONLY = fs.constants.O_RDONLY;

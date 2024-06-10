@@ -6,7 +6,7 @@ import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
-public interface FileDiffNodeMain {
+public interface DiffEngineModule {
 
   @JSFunctor interface ModuleFactory extends JSObject {
     Promise<JSObject> f(JSString url, int numThreads);
@@ -18,7 +18,7 @@ public interface FileDiffNodeMain {
   }
 
   static void main(String[] args) {
-    ModuleFactory.Setter.setApi(FileDiffNodeMain::moduleFactory);
+    ModuleFactory.Setter.setApi(DiffEngineModule::moduleFactory);
   }
 
   static Promise<JSObject> moduleFactory(JSString workerUrl, int numThreads) {

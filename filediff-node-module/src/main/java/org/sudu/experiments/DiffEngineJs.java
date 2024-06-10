@@ -13,4 +13,5 @@ public interface DiffEngineJs extends JSObject {
   void startFolderDiff(JSString leftPath, JSString rightPath, Channel channel);
 
   void testFS(JSString path, JsFunctions.Runnable onComplete);
+  void testFS2(JSString path1, JSString path2, JsFunctions.Runnable onComplete);
 }
