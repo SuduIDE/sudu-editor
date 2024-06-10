@@ -5,6 +5,7 @@ import org.sudu.experiments.WebGLError;
 import org.sudu.experiments.WebWindow;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 public class JsCodeDiff0 implements JsCodeDiff {
@@ -76,6 +77,8 @@ public class JsCodeDiff0 implements JsCodeDiff {
   public void setLeftModel(JsITextModel model) {
     if (model instanceof JsTextModel jsTextModel) {
       diff.setLeftModel(jsTextModel.javaModel);
+    } else if (JSObjects.isUndefined(model)) {
+      throw new IllegalArgumentException("left model is undefined");
     } else {
       throw new IllegalArgumentException("bad left model");
     }
@@ -85,6 +88,8 @@ public class JsCodeDiff0 implements JsCodeDiff {
   public void setRightModel(JsITextModel model) {
     if (model instanceof JsTextModel jsTextModel) {
       diff.setRightModel(jsTextModel.javaModel);
+    } else if (JSObjects.isUndefined(model)) {
+      throw new IllegalArgumentException("right model is undefined");
     } else {
       throw new IllegalArgumentException("bad right model");
     }

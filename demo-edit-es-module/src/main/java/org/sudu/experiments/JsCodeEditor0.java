@@ -87,6 +87,8 @@ public class JsCodeEditor0 implements JsCodeEditor {
   public void setModel(JsITextModel model) {
     if (model instanceof JsTextModel jsTextModel) {
       editor.setModel(jsTextModel.javaModel);
+    } else if (JSObjects.isUndefined(model)) {
+      throw new IllegalArgumentException("editor model is undefined");
     } else {
       throw new IllegalArgumentException("bad editor model");
     }
