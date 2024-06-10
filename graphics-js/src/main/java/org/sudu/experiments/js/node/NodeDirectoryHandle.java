@@ -21,9 +21,13 @@ public class NodeDirectoryHandle implements DirectoryHandle {
     };
   }
 
+  JSString jsPath() {
+    return Fs.concatPath(name, path);
+  }
+
   @Override
   public void read(Reader reader) {
-    JSString jsPath = Fs.concatPath(name, path);
+    JSString jsPath = jsPath();
     Fs fs = Fs.fs();
     JsArray<JSString> content = fs.readdirSync(jsPath);
     String[] childPath = ArrayOp.add(path, name);

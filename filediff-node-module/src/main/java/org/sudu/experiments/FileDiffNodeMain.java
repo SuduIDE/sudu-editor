@@ -27,7 +27,7 @@ public interface FileDiffNodeMain {
       JsHelper.consoleInfo("wrong number of threads: ", numThreads);
 
     return Promise.create(
-        (postResult, postError) -> NodeWorkersPool.start(
+        (postResult, postError) -> NodeWorker.start(
             array -> postResult.f(new DiffEngine(array)),
             postError, workerUrl, nT));
   }

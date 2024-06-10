@@ -32,6 +32,8 @@ public abstract class WebWorkerContext implements JsMessagePort0 {
       JsFunctions.Consumer<JSObject> error,
       JSString url, int count
   ) {
+    WorkerProtocol.bridge = new WebWorkersBridge();
+
     JsArray<WebWorkerContext> workers = JsArray.create();
     for (int i = 0; i < count; i++) {
       WebWorkerContext worker = newWorker(url);
@@ -59,6 +61,7 @@ public abstract class WebWorkerContext implements JsMessagePort0 {
   }
 
   public static void workerMain(WorkerExecutor executor) {
+    WorkerProtocol.bridge = new WebWorkersBridge();
     self().onMessage(e -> WorkerProtocol.onWorkerMessage(executor, e.getData(), self()));
     self().postMessage(WorkerProtocol.started());
   }

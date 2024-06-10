@@ -41,7 +41,7 @@ public class NodeFileHandle implements FileHandle {
     result.accept(intSize());
   }
 
-  private JSString jsPath() {
+  JSString jsPath() {
     if (jsPath == null)
       jsPath = Fs.concatPath(name, path);
     return jsPath;

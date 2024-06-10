@@ -11,6 +11,17 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class WorkerProtocol {
+
+  public interface PlatformBridge {
+    int toJs(Object javaObject, JsArray<JSObject> message, int idx);
+    int toJava(
+        JSObject jsObject,
+        JsArrayReader<JSObject> array, int arrayIndex,
+        Object[] r, int idx);
+  }
+
+  public static PlatformBridge bridge;
+
   public static JSString started() { return JSString.valueOf("started"); }
 
   public static boolean isStarted(JSObject obj) {
@@ -93,14 +104,8 @@ public class WorkerProtocol {
       r[idx] = jsObject.<JSString>cast().stringValue();
     } else if (isArrayBuffer(jsObject)) {
       r[idx] = new JsArrayView(jsObject.cast());
-    } else if (isFile(jsObject)) {
-      r[idx] = JsFileHandle.fromWebkitRelativeFile(jsObject.cast());
-    } else if (isFileSystemFileHandle(jsObject)) {
-      String[] path = JsDirectoryHandle.toPath(array.get(arrayIndex++).cast());
-      r[idx] = new JsFileHandle(jsObject.cast(), path);
-    } else if (isFileSystemDirectoryHandle(jsObject)) {
-      JSString jsPath = array.get(arrayIndex++).cast();
-      r[idx] = new JsDirectoryHandle(jsObject.cast(), jsPath);
+    } else {
+      arrayIndex = bridge.toJava(jsObject, array, arrayIndex, r, idx);
     }
     return arrayIndex;
   }
@@ -114,19 +119,9 @@ public class WorkerProtocol {
       message.set(idx++, JsMemoryAccess.bufferView(charArray).getBuffer());
     } else if (javaObject instanceof int[] intArray) {
       message.set(idx++, JsMemoryAccess.bufferView(intArray).getBuffer());
-    } else if (javaObject instanceof JsFileHandle jsFile) {
-      if (jsFile.fileHandle != null) {
-        message.set(idx++, jsFile.fileHandle);
-        message.set(idx++, JsDirectoryHandle.pathToJSString(jsFile.path));
-      } else {
-        message.set(idx++, jsFile.jsFile);
-      }
-    } else if (javaObject instanceof JsDirectoryHandle jsDir) {
-      message.set(idx++, jsDir.fsDirectory);
-      message.set(idx++, JsDirectoryHandle.pathToJSString(jsDir.path));
-    } else throw new IllegalArgumentException(
-        "Illegal argument sent to worker " + javaObject.getClass().getName()
-    );
+    } else {
+      idx = bridge.toJs(javaObject, message, idx);
+    }
     return idx;
   }
 
@@ -135,15 +130,6 @@ public class WorkerProtocol {
 
   @JSBody(params = "data", script = "return data instanceof ArrayBuffer;")
   static native boolean isArrayBuffer(JSObject data);
-
-  @JSBody(params = "data", script = "return data instanceof File;")
-  static native boolean isFile(JSObject data);
-
-  @JSBody(params = "data", script = "return data instanceof FileSystemFileHandle;")
-  static native boolean isFileSystemFileHandle(JSObject data);
-
-  @JSBody(params = "data", script = "return data instanceof FileSystemDirectoryHandle;")
-  static native boolean isFileSystemDirectoryHandle(JSObject data);
 
   public static void onWorkerMessage(WorkerExecutor executor, JSObject message, JsMessagePort0 port) {
     if (isPing(message)) {
