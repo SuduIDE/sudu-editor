@@ -5,19 +5,21 @@ import org.sudu.experiments.FsItem;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.RangeCtx;
-import org.sudu.experiments.diff.update.CollectConsumer;
+import org.sudu.experiments.diff.update.CollectDto;
+
+import java.util.function.Consumer;
 
 public class FolderDiffUpdateHandler extends FolderDiffHandler {
 
   private final FolderDiffModel leftModel, rightModel;
-  private final CollectConsumer collect;
+  private final Consumer<CollectDto> collect;
   private final RangeCtx rangeCtx;
   private final Runnable onCompared;
 
   public FolderDiffUpdateHandler(
       DirectoryHandle left, DirectoryHandle right,
       FolderDiffModel leftModel, FolderDiffModel rightModel,
-      RangeCtx rangeCtx, CollectConsumer collect,
+      RangeCtx rangeCtx, Consumer<CollectDto> collect,
       Runnable onCompared
   ) {
     super(left, right, null);
@@ -46,9 +48,9 @@ public class FolderDiffUpdateHandler extends FolderDiffHandler {
         changed = true;
         leftModel.child(lP).rangeId = id;
         rightModel.child(rP).rangeId = id;
-        collect.accept(
+        collect.accept(new CollectDto(
             leftModel.child(lP), rightModel.child(rP),
-            leftItem(lP), rightItem(rP)
+            leftItem(lP), rightItem(rP))
         );
         lP++;
         rP++;

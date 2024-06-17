@@ -3,7 +3,10 @@ package org.sudu.experiments.diff.folder;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
+import org.sudu.experiments.parser.common.Pair;
+
 import java.util.Arrays;
+import java.util.IdentityHashMap;
 import java.util.Objects;
 
 import static org.sudu.experiments.diff.folder.PropTypes.*;
@@ -100,12 +103,22 @@ public class FolderDiffModel {
     return writer.getInts();
   }
 
-  private static void writeInts(FolderDiffModel model, ArrayWriter writer) {
+  public static void writeInts(FolderDiffModel model, ArrayWriter writer) {
+    writeInts(model, writer, new IdentityHashMap<>());
+  }
+
+  public static void writeInts(
+      FolderDiffModel model, ArrayWriter writer,
+      IdentityHashMap<FolderDiffModel, Integer> modelToIntMap
+  ) {
     writer.write(model.propagation);
     writer.write(model.diffType);
     writer.write(model.rangeId);
     writer.write(model.childrenComparedCnt);
     writer.write(model.compared ? 1 : 0);
+    Integer ind = null;
+    if (!model.compared) ind = modelToIntMap.get(model);
+    writer.write(ind == null ? -1 : ind);
     if (model.children == null) writer.write(-1);
     else {
       writer.write(model.children.length);
@@ -117,13 +130,23 @@ public class FolderDiffModel {
     return fromInts(new ArrayReader(ints), null);
   }
 
-  private static FolderDiffModel fromInts(ArrayReader reader, FolderDiffModel parent) {
+  public static FolderDiffModel fromInts(ArrayReader reader, FolderDiffModel parent) {
+    return fromInts(reader, parent, null);
+  }
+
+  public static FolderDiffModel fromInts(
+      ArrayReader reader,
+      FolderDiffModel parent,
+      Pair<?, FolderDiffModel>[] models
+  ) {
     FolderDiffModel model = new FolderDiffModel(parent);
     model.propagation = reader.next();
     model.diffType = reader.next();
     model.rangeId = reader.next();
     model.childrenComparedCnt = reader.next();
     model.compared = reader.next() == 1;
+    int ind = reader.next();
+    if (ind != -1 && models != null) models[ind].second = model;
     int childrenLen = reader.next();
     if (childrenLen != -1) {
       var children = new FolderDiffModel[childrenLen];

@@ -42,12 +42,12 @@ public class DiffModelUpdater {
 
   public void onCompared(
       FolderDiffModel leftModel, FolderDiffModel rightModel,
-      Object[] results
+      Object[] result
   ) {
-    var updLeftModel = FolderDiffModel.fromInts(((ArrayView)results[0]).ints());
-    var updRightModel = FolderDiffModel.fromInts(((ArrayView)results[1]).ints());
-    leftModel.update(updLeftModel);
-    rightModel.update(updRightModel);
+    int[] ints = ((ArrayView) result[0]).ints();
+    var updateDto = UpdateDto.fromInts(ints, result);
+    leftModel.update(updateDto.leftRoot);
+    rightModel.update(updateDto.rightRoot);
     updateInfo.run();
   }
 }
