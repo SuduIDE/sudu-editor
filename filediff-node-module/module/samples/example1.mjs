@@ -49,6 +49,15 @@ if (process.argv.length === 3) {
     mayBeExit();
   });
 
+} else if (process.argv.length === 5) {
+  const dir1 = process.argv[2];
+  const dir2 = process.argv[3];
+  jobCount++;
+  module.testDiff(dir1, dir2, () => {
+    console.log("testDiff.onComplete");
+    mayBeExit();
+  });
+
 } else {
   console.log("not running testFS");
 }

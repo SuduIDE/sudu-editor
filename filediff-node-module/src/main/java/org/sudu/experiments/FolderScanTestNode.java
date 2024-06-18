@@ -6,11 +6,11 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.function.Consumer;
 
-public class FolderDiffTestNode extends FolderDiffTestNode0 {
+public class FolderScanTestNode extends FolderDiffTestNode0 {
 
   private int completed;
 
-  public FolderDiffTestNode(
+  public FolderScanTestNode(
       DirectoryHandle dir1,
       DirectoryHandle dir2,
       WorkerJobExecutor executor,
@@ -19,7 +19,7 @@ public class FolderDiffTestNode extends FolderDiffTestNode0 {
     super(dir1, dir2, executor, onComplete);
   }
 
-  public void test() {
+  public void scan() {
     Consumer<Object[]> handler = this::dirResult;
     executor.sendToWorker(handler, TestJobs.asyncWithDir, dir1);
     executor.sendToWorker(handler, TestJobs.asyncWithDir, dir2);

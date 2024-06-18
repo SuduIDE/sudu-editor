@@ -1,6 +1,5 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.update.UpdateDto;
@@ -156,9 +155,25 @@ public class DiffEngine implements DiffEngineJs {
     NodeDirectoryHandle dir1 = new NodeDirectoryHandle(path1);
     NodeDirectoryHandle dir2 = new NodeDirectoryHandle(path2);
 
-    new FolderDiffTestNode(
+    new FolderScanTestNode(
         dir1, dir2, pool, onComplete
     ).scan();
+  }
+
+  @Override
+  public void testDiff(JSString path1, JSString path2, JsFunctions.Runnable onComplete) {
+    if (notDir(path1) || notDir(path2)) {
+      onComplete.f();
+      return;
+    }
+    NodeDirectoryHandle dir1 = new NodeDirectoryHandle(path1);
+    NodeDirectoryHandle dir2 = new NodeDirectoryHandle(path2);
+
+    JsHelper.consoleInfo("testDiff path1 = ", path1);
+    JsHelper.consoleInfo("testDiff path2 = ", path2);
+    new FolderDiffTestNode(
+        dir1, dir2, pool, onComplete
+    ).test();
   }
 
   static boolean notDir(JSString path) {
