@@ -51,12 +51,11 @@ public class DiffUtils {
     handler.read();
   }
 
-  public static int[] makeIntervals(Document document) {
+  public static int[] makeIntervals(Document document, int fromLine, int toLine) {
     ArrayWriter writer = new ArrayWriter();
-    int N = document.length();
-    writer.write(N);
+    writer.write(toLine - fromLine);
     int offset = 0;
-    for (int i = 0; i < N; i++) {
+    for (int i = fromLine; i < toLine; i++) {
       CodeLine line = document.line(i);
       int Mi = line.length();
       writer.write(Mi);
@@ -68,6 +67,10 @@ public class DiffUtils {
       offset++;
     }
     return writer.getInts();
+  }
+
+  public static int[] makeIntervals(Document document) {
+    return makeIntervals(document, 0, document.length());
   }
 
   public static DiffInfo readDiffInfo(int[] ints) {
@@ -152,6 +155,27 @@ public class DiffUtils {
     int[] intervals1 = makeIntervals(document1);
     int[] intervals2 = makeIntervals(document2);
 
+    window.sendToWorker(
+        r -> {
+          int[] reply = ((ArrayView) r[0]).ints();
+          DiffInfo model = readDiffInfo(reply);
+          result.accept(model);
+        }, FIND_DIFFS,
+        chars1, intervals1, chars2, intervals2);
+  }
+
+  public static void findIntervalDiffs(
+      Document document1,
+      Document document2,
+      Consumer<DiffInfo> result,
+      WorkerJobExecutor window,
+      int fromL, int toL,
+      int fromR, int toR
+  ) {
+    char[] chars1 = document1.getChars(fromL, toL);
+    char[] chars2 = document2.getChars(fromR, toR);
+    int[] intervals1 = makeIntervals(document1, fromL, toL);
+    int[] intervals2 = makeIntervals(document2, fromR, toR);
     window.sendToWorker(
         r -> {
           int[] reply = ((ArrayView) r[0]).ints();

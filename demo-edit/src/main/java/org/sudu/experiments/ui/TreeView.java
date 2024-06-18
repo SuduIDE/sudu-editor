@@ -259,7 +259,7 @@ public class TreeView extends ScrollContent implements Focusable {
           g, width, lineHeight, hScrollPos,
           theme, null,
           null, null,
-          selected, diff != null,
+          selected,
           diff);
     }
 

@@ -1,8 +1,8 @@
 package org.sudu.experiments.diff.lcs;
 
-import org.sudu.experiments.diff.BaseRange;
-import org.sudu.experiments.diff.CommonRange;
-import org.sudu.experiments.diff.Diff;
+import org.sudu.experiments.diff.ranges.BaseRange;
+import org.sudu.experiments.diff.ranges.CommonRange;
+import org.sudu.experiments.diff.ranges.Diff;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,8 +21,8 @@ public abstract class LCS {
     this.minLen = Math.min(lLen, rLen);
   }
 
-  // return indices of L sequence
-  protected abstract int[] findCommon();
+  // return values & indices of L sequence
+  public abstract int[][] findCommon();
 
   public <S> List<BaseRange<S>> countRanges(
       S[] objL, S[] objR,
@@ -31,7 +31,7 @@ public abstract class LCS {
     List<BaseRange<S>> ranges = new ArrayList<>();
     if (start != 0) ranges.add(new CommonRange<>(0, 0, start));
 
-    int[] common = findCommon();
+    int[][] common = findCommon();
     int commonPtr = 0,
         leftPtr = start,
         rightPtr = start;
@@ -39,11 +39,8 @@ public abstract class LCS {
     Diff<S> currentDiff = null;
     CommonRange<S> currentCommon = null;
 
-    while (commonPtr < common.length
-        && leftPtr < objL.length - endCut
-        && rightPtr < objR.length - endCut
-    ) {
-      S cS = objL[common[commonPtr]];
+    while (commonPtr < common.length) {
+      S cS = objL[common[commonPtr][1]];
       S cL = objL[leftPtr], cR = objR[rightPtr];
 
       if (equals(cL, cR)) {
@@ -60,27 +57,18 @@ public abstract class LCS {
       if (currentCommon != null) ranges.add(currentCommon);
       currentCommon = null;
 
-      if (equals(cS, cL)) {
-        currentDiff.diffM.add(objR[rightPtr]);
-        rightPtr++;
-      } else if (equals(cS, cR)) {
+      if (!equals(cS, cL)) {
         currentDiff.diffN.add(objL[leftPtr]);
         leftPtr++;
-      } else {
-        currentDiff.diffN.add(objL[leftPtr]);
+      }
+      if (!equals(cS, cR)) {
         currentDiff.diffM.add(objR[rightPtr]);
-        leftPtr++;
         rightPtr++;
       }
     }
     if (currentCommon != null) ranges.add(currentCommon);
     if (currentDiff == null) currentDiff = new Diff<>(leftPtr, rightPtr);
 
-    for (; leftPtr < objL.length - endCut && rightPtr < objR.length - endCut; leftPtr++, rightPtr++) {
-      S cL = objL[leftPtr], cR = objR[rightPtr];
-      currentDiff.diffN.add(cL);
-      currentDiff.diffM.add(cR);
-    }
     for (; leftPtr < objL.length - endCut; leftPtr++) {
       S cL = objL[leftPtr];
       currentDiff.diffN.add(cL);
@@ -90,7 +78,7 @@ public abstract class LCS {
       currentDiff.diffM.add(cR);
     }
     if (currentDiff != null && currentDiff.isNotEmpty()) ranges.add(currentDiff);
-    if (endCut != 0) ranges.add(new CommonRange<>(L.length - endCut, R.length - endCut, endCut));
+    if (endCut != 0) ranges.add(new CommonRange<>(objL.length - endCut, objR.length - endCut, endCut));
     return ranges;
   }
 
@@ -104,9 +92,5 @@ public abstract class LCS {
 
   protected int valR(int ind) {
     return R[ind][0];
-  }
-
-  protected int indL(int ind) {
-    return L[ind][1];
   }
 }

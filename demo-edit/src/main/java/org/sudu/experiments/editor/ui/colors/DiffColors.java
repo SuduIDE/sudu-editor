@@ -1,7 +1,6 @@
 package org.sudu.experiments.editor.ui.colors;
 
 import org.sudu.experiments.diff.DiffTypes;
-import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V4f;
 

@@ -1,6 +1,6 @@
 package org.sudu.experiments.diff.lcs;
 
-import org.sudu.experiments.diff.utils.Utils;
+import org.sudu.experiments.utils.Utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,22 +17,22 @@ public class HirschbergLCS extends LCS {
   }
 
   @Override
-  public int[] findCommon() {
-    List<Integer> result = new ArrayList<>(minLen / 2);
+  public int[][] findCommon() {
+    List<int[]> result = new ArrayList<>(minLen / 2);
     findCommon(0, lLen, 0, rLen, result);
-    return Utils.toIntArray(result);
+    return Utils.toIntIntArray(result);
   }
 
   private void findCommon(
       int fromL, int toL,
       int fromR, int toR,
-      List<Integer> answer
+      List<int[]> answer
   ) {
     int lenL = toL - fromL;
     int lenR = toR - fromR;
     if (lenL == 0) return;
     if (lenL == 1) {
-      if (contains(valL(fromL), fromR, toR)) answer.add(indL(fromL));
+      if (contains(valL(fromL), fromR, toR)) answer.add(L[fromL]);
       return;
     }
     int m = fromL + lenL / 2;

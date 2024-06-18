@@ -123,4 +123,10 @@ public class DirectoryNode extends FileTreeNode {
       }
     });
   }
+
+  @Override
+  protected void defaultIcon() {
+    if (isOpened()) this.iconFolderOpened();
+    else this.iconFolder();
+  }
 }

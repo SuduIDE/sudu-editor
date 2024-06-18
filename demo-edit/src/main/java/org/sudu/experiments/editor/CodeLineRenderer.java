@@ -136,7 +136,6 @@ public class CodeLineRenderer implements Disposable {
       CodeElement def,
       List<CodeElement> usages,
       boolean isCurrentLine,
-      boolean isDiff,
       LineDiff diff
   ) {
     int tLength = textures.length;
@@ -172,7 +171,7 @@ public class CodeLineRenderer implements Disposable {
           && isFullSelected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
 
       V4f elemBgColor = null;
-      if (isCurrentLine && !isDiff) elemBgColor = colors.editor.currentLineBg;
+      if (isCurrentLine/* && !isDiff*/) elemBgColor = colors.editor.currentLineBg;
       if (e == def) elemBgColor = colors.editor.definitionBg;
       if (usages != null && usages.contains(e)) {
         elemBgColor = colors.editor.usageBg;

@@ -41,7 +41,7 @@ class FolderDiffTest implements WorkerJobExecutor {
     var rightH = dir(right);
     leftRoot = new DirectoryNode(leftH, null);
     rightRoot = new DirectoryNode(rightH, null);
-    var builder = new DiffModelBuilder(this::updateDiffInfo, this, content);
+    var builder = new DiffModelBuilder((_1, _2, _3) -> updateDiffInfo(), this, content);
 
     builder.compareRoots(
         leftRoot, rightRoot,

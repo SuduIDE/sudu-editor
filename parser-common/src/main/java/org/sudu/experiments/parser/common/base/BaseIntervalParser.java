@@ -13,8 +13,6 @@ import org.sudu.experiments.parser.common.graph.type.TypeMap;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 // Base class for parsers, that parse only fragment in random place in file
 public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P> {
@@ -107,20 +105,43 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
   // {intervalStart, intervalStop, success, N, K, }
   protected int[] getVpInts(int intervalStart, int intervalStop, IntervalNode node) {
     int N = allTokens.get(allTokens.size() - 1).getLine();
-    int M = 0;
+    int M;
     int success = this.success ? 1 : -1;
     int[] nodeInts = node != null ? node.toInts() : new int[]{};
     int K = nodeInts.length;
 
-    Map<Integer, List<Token>> tokensByLine = groupTokensByLine(allTokens);
-    for (var entry: tokensByLine.entrySet()) {
-      var filtered = entry.getValue().stream()
-          .filter(this::tokenFilter)
-          .collect(Collectors.toList());
-      entry.setValue(filtered);
-      M += filtered.size();
-      N = Math.max(N, entry.getKey());
+    List<Token>[] tokensByLine = groupTokensByLine(allTokens, N);
+    N = tokensByLine.length;
+    M = filter(tokensByLine);
+
+    writer = new ArrayWriter(5 + N + K + 4 * M);
+    writer.write(intervalStart, intervalStop, success, N, K);
+
+    writeTokens(N, tokensByLine);
+    writer.write(nodeInts);
+
+    return writer.getInts();
+  }
+
+  protected int[] getVpIntsWithLinesIntervalNode(int intervalStart, int intervalStop) {
+    int N = allTokens.get(allTokens.size() - 1).getLine();
+    int M;
+    int success = this.success ? 1 : -1;
+    int K;
+
+    List<Token>[] tokensByLine = groupTokensByLine(allTokens, N);
+    N = tokensByLine.length;
+    M = filter(tokensByLine);
+
+    var node = getLinesIntervalNode(tokensByLine);
+    node.interval.start += intervalStart;
+    node.interval.stop += intervalStart;
+    for (var child: node.children) {
+      child.interval.start += intervalStart;
+      child.interval.stop += intervalStart;
     }
+    int[] nodeInts = node.toInts();
+    K = nodeInts.length;
 
     writer = new ArrayWriter(5 + N + K + 4 * M);
     writer.write(intervalStart, intervalStop, success, N, K);

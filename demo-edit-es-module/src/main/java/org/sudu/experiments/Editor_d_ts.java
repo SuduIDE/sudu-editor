@@ -2,6 +2,7 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.diff.JsCodeDiff0;
 import org.sudu.experiments.diff.JsFolderDiff0;
+import org.sudu.experiments.diff.JsRemoteFolderDiff0;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSBody;
@@ -50,10 +51,20 @@ public interface Editor_d_ts {
     }
   }
 
+  @JSFunctor interface RemoteFolderDiffFactory extends JSObject {
+    Promise<JsFolderDiff> create(EditArgs args, Channel channel);
+
+    class Setter {
+      @JSBody(params = {"f"}, script = "newRemoteFolderDiffView = f;")
+      public static native void set(RemoteFolderDiffFactory f);
+    }
+  }
+
   static void main(String[] args) {
     EditorFactory.Setter.setApi(JsCodeEditor0::newEdit);
     TextModelFactory.Setter.setModel(JsTextModel::new);
     DiffFactory.Setter.setDiff(JsCodeDiff0::newDiff);
     FolderDiffFactory.Setter.set(JsFolderDiff0::newDiff);
+    RemoteFolderDiffFactory.Setter.set(JsRemoteFolderDiff0::newDiff);
   }
 }

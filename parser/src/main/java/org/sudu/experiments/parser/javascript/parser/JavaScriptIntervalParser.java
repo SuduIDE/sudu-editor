@@ -12,14 +12,19 @@ import org.sudu.experiments.parser.javascript.JsSplitRules;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptParser;
 import org.sudu.experiments.parser.javascript.gen.LightJavaScriptLexer;
 import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptLexerHighlighting;
+import java.util.Arrays;
 
 public class JavaScriptIntervalParser extends BaseIntervalParser<JavaScriptParser> {
 
   @Override
   public int[] parseInterval(char[] source, int[] interval, int[] graphInts, char[] graphChars) {
-    initLexer(source);
+    intervalStart = interval[0];
+    intervalStop = interval[1];
+    intervalType = interval[2];
+
+    initLexer(Arrays.copyOfRange(source, intervalStart, intervalStop));
     highlightTokens();
-    return getVpInts(intervalStart, intervalStop, defaultIntervalNode());
+    return getVpIntsWithLinesIntervalNode(intervalStart, intervalStop);
   }
 
   @Override

@@ -15,6 +15,7 @@ function channel() {
     sendMessage: function(m) {
       console.log("sendMessage: ", m);
       this.onMessageHandler(m);
+      mayBeExit()
     },
     set onMessage(handler) {
       this.onMessageHandler = handler;
@@ -52,5 +53,9 @@ if (process.argv.length === 3) {
   console.log("not running testFS");
 }
 
-// jobCount++;
-module.startFolderDiff("left", "right", channel());
+jobCount++
+module.startFolderDiff(
+    "../../../../test-diff\\sudu-editor-old",
+    "../../../../test-diff\\sudu-editor-new",
+    channel()
+)
