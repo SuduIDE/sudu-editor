@@ -14,6 +14,7 @@ public interface DiffEngineJs extends JSObject {
 
   void testFS(JSString path, JsFunctions.Runnable onComplete);
   void testFS2(JSString path1, JSString path2, JsFunctions.Runnable onComplete);
-  void testDiff(JSString path1, JSString path2, JsFunctions.Runnable onComplete);
+  void testDiff(JSString path1, JSString path2, boolean content,
+                JsFunctions.Runnable onComplete);
 
 }

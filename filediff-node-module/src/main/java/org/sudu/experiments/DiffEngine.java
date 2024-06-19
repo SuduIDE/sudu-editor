@@ -9,6 +9,7 @@ import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeDirectoryHandle;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
@@ -161,7 +162,10 @@ public class DiffEngine implements DiffEngineJs {
   }
 
   @Override
-  public void testDiff(JSString path1, JSString path2, JsFunctions.Runnable onComplete) {
+  public void testDiff(
+      JSString path1, JSString path2, boolean content,
+      JsFunctions.Runnable onComplete
+  ) {
     if (notDir(path1) || notDir(path2)) {
       onComplete.f();
       return;
@@ -171,8 +175,9 @@ public class DiffEngine implements DiffEngineJs {
 
     JsHelper.consoleInfo("testDiff path1 = ", path1);
     JsHelper.consoleInfo("testDiff path2 = ", path2);
+    JsHelper.consoleInfo("compare with content = ", JSBoolean.valueOf(content));
     new FolderDiffTestNode(
-        dir1, dir2, pool, onComplete
+        dir1, dir2, pool, onComplete, content
     ).test();
   }
 

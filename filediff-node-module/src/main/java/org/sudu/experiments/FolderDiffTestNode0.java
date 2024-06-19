@@ -1,10 +1,7 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.worker.WorkerJobExecutor;
-
-import java.util.function.Consumer;
 
 public class FolderDiffTestNode0 {
 

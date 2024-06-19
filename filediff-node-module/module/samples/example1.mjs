@@ -62,9 +62,3 @@ if (process.argv.length === 3) {
   console.log("not running testFS");
 }
 
-jobCount++
-module.startFolderDiff(
-    "../../../../test-diff\\sudu-editor-old",
-    "../../../../test-diff\\sudu-editor-new",
-    channel()
-)
