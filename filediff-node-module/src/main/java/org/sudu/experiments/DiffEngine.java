@@ -32,7 +32,7 @@ public class DiffEngine implements DiffEngineJs {
   }
 
   @Override
-  public Promise<JSString> fib(int n) {
+  public Promise<JSString> testFib(int n) {
     return Promise.create((postResult, postError) -> {
       pool.sendToWorker(
           result -> {

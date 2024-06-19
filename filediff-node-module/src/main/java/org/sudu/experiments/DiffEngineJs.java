@@ -8,7 +8,7 @@ import org.teavm.jso.core.JSString;
 public interface DiffEngineJs extends JSObject {
   void dispose();
 
-  Promise<JSString> fib(int n);
+  Promise<JSString> testFib(int n);
 
   void startFolderDiff(JSString leftPath, JSString rightPath, Channel channel);
 
