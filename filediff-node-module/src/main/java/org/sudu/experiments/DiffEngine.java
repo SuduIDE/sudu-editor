@@ -2,6 +2,8 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.tests.FolderDiffTest;
+import org.sudu.experiments.diff.tests.FolderScanTest;
 import org.sudu.experiments.diff.update.UpdateDto;
 import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.js.*;
@@ -156,8 +158,8 @@ public class DiffEngine implements DiffEngineJs {
     NodeDirectoryHandle dir1 = new NodeDirectoryHandle(path1);
     NodeDirectoryHandle dir2 = new NodeDirectoryHandle(path2);
 
-    new FolderScanTestNode(
-        dir1, dir2, pool, onComplete
+    new FolderScanTest(
+        dir1, dir2, pool, onComplete::f
     ).scan();
   }
 
@@ -173,17 +175,20 @@ public class DiffEngine implements DiffEngineJs {
     NodeDirectoryHandle dir1 = new NodeDirectoryHandle(path1);
     NodeDirectoryHandle dir2 = new NodeDirectoryHandle(path2);
 
-    JsHelper.consoleInfo("testDiff path1 = ", path1);
-    JsHelper.consoleInfo("testDiff path2 = ", path2);
-    JsHelper.consoleInfo("compare with content = ", JSBoolean.valueOf(content));
-    new FolderDiffTestNode(
-        dir1, dir2, pool, onComplete, content
-    ).test();
+    JsHelper.consoleInfo("testDiff:", path1);
+    JsHelper.consoleInfo("  path1 = ", path1);
+    JsHelper.consoleInfo("  path2 = ", path2);
+    JsHelper.consoleInfo("  content = ", JSBoolean.valueOf(content));
+    JsTime jsTime = new JsTime();
+    new FolderDiffTest(
+        dir1, dir2, content, pool,
+        jsTime, onComplete::f
+    ).scan();
   }
 
   static boolean notDir(JSString path) {
     if (!Fs.isDirectory(path)) {
-      JsHelper.consoleError("path is not a directory ", path);
+      JsHelper.consoleError("path is not a directory: ", path);
       return true;
     }
     return false;

@@ -1,20 +1,21 @@
-package org.sudu.experiments;
+package org.sudu.experiments.diff.tests;
 
-import org.sudu.experiments.js.JsFunctions;
+import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
-public class FolderDiffTestNode0 {
+public class DirectoryTest {
 
   final DirectoryHandle dir1;
   final DirectoryHandle dir2;
   final WorkerJobExecutor executor;
-  final JsFunctions.Runnable onComplete;
 
-  public FolderDiffTestNode0(
+  final Runnable onComplete;
+
+  public DirectoryTest(
       DirectoryHandle dir1,
       DirectoryHandle dir2,
       WorkerJobExecutor executor,
-      JsFunctions.Runnable onComplete
+      Runnable onComplete
   ) {
     this.dir1 = dir1;
     this.dir2 = dir2;
