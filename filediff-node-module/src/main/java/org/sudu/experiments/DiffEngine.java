@@ -159,7 +159,7 @@ public class DiffEngine implements DiffEngineJs {
     NodeDirectoryHandle dir2 = new NodeDirectoryHandle(path2);
 
     new FolderScanTest(
-        dir1, dir2, pool, onComplete::f
+        dir1, dir2, pool, JsFunctions.wrap(onComplete)
     ).scan();
   }
 
@@ -175,14 +175,14 @@ public class DiffEngine implements DiffEngineJs {
     NodeDirectoryHandle dir1 = new NodeDirectoryHandle(path1);
     NodeDirectoryHandle dir2 = new NodeDirectoryHandle(path2);
 
-    JsHelper.consoleInfo("testDiff:", path1);
+    JsHelper.consoleInfo("testDiff: ", path1);
     JsHelper.consoleInfo("  path1 = ", path1);
     JsHelper.consoleInfo("  path2 = ", path2);
     JsHelper.consoleInfo("  content = ", JSBoolean.valueOf(content));
     JsTime jsTime = new JsTime();
     new FolderDiffTest(
         dir1, dir2, content, pool,
-        jsTime, onComplete::f
+        jsTime, JsFunctions.wrap(onComplete)
     ).scan();
   }
 

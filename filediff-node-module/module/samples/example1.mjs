@@ -54,9 +54,11 @@ function testFS2(dir1, dir2) {
   });
 }
 
+const diffWithContent = true;
+
 function testDiff(dir1, dir2) {
   jobCount++;
-  module.testDiff(dir1, dir2, () => {
+  module.testDiff(dir1, dir2, diffWithContent, () => {
     console.log("testDiff.onComplete");
     mayBeExit();
   });

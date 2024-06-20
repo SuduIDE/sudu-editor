@@ -19,4 +19,10 @@ public interface JsFunctions {
   @JSFunctor interface Runnable extends JSObject {
     void f();
   }
+
+  // methodRef !== lambda (C) TeaVM
+  @SuppressWarnings("Convert2MethodRef")
+  static java.lang.Runnable wrap(Runnable r) {
+    return () -> r.f();
+  }
 }
