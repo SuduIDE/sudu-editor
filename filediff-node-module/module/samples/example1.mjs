@@ -1,4 +1,15 @@
-﻿import { createDiffEngine } from "../src/diffEngine.mjs";
+﻿import {
+  createDiffEngine,
+  setLogLevel,
+  setLogOutput
+} from "../src/diffEngine.mjs";
+
+function logHandler(logLevel, text) {
+  console.log("Logging at level " + logLevel + ": " + text);
+}
+
+setLogOutput(logHandler);
+setLogLevel(5);
 
 let module = await createDiffEngine("../src/diffEngineWorker.mjs");
 

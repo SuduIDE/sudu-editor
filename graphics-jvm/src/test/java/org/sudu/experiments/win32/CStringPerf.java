@@ -4,6 +4,7 @@ import org.sudu.experiments.CString;
 import org.sudu.experiments.TimeUtil;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.XorShiftRandom;
+import org.sudu.experiments.text.TextFormat;
 
 public class CStringPerf {
 
@@ -26,9 +27,9 @@ public class CStringPerf {
     while (true) {
       experiment(r1, r2, r3, r);
 
-      System.out.println("toChar16CString time:" + TimeUtil.toString3(arraysTime));
-      System.out.println("toChar16 charAt time:" + TimeUtil.toString3(charAtTime));
-      System.out.println("toChar16 concat time:" + TimeUtil.toString3(concatTime));
+      System.out.println("toChar16CString time:" + TextFormat.toString3(arraysTime));
+      System.out.println("toChar16 charAt time:" + TextFormat.toString3(charAtTime));
+      System.out.println("toChar16 concat time:" + TextFormat.toString3(concatTime));
     }
   }
 
