@@ -3,7 +3,9 @@ package org.sudu.experiments.js;
 import org.teavm.interop.NoSideEffects;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSIndexer;
+import org.teavm.jso.JSMethod;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSString;
 
 public abstract class JsArray<T extends JSObject> implements JsArrayReader<T> {
 
@@ -21,6 +23,9 @@ public abstract class JsArray<T extends JSObject> implements JsArrayReader<T> {
   public abstract T shift();
 
   public abstract int indexOf(T value);
+
+  @JSMethod("toString")
+  public abstract JSString toJsString();
 
   @JSBody(script = "return new Array();")
   @NoSideEffects

@@ -20,6 +20,7 @@ public interface DiffEngineModule {
   static void main(String[] args) {
     ModuleFactory.Setter.setApi(DiffEngineModule::moduleFactory);
     LoggingJs.Setter.set();
+    ChannelTest.publishChannelTest();
   }
 
   static Promise<JSObject> moduleFactory(JSString workerUrl, int numThreads) {

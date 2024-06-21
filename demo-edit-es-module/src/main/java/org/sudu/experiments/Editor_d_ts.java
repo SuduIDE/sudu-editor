@@ -1,9 +1,6 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.diff.ChannelTest;
-import org.sudu.experiments.diff.JsCodeDiff0;
-import org.sudu.experiments.diff.JsFolderDiff0;
-import org.sudu.experiments.diff.JsRemoteFolderDiff0;
+import org.sudu.experiments.diff.*;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSBody;
@@ -61,23 +58,6 @@ public interface Editor_d_ts {
     }
   }
 
-  interface ChannelTestApi extends JSObject {
-    void foo();
-  }
-
-  @JSFunctor interface ChannelTestApiFactory extends JSObject {
-    Promise<ChannelTestApi> create(Channel channel);
-
-    class Setter {
-      @JSBody(params = {"f"}, script = "newRemoteChannelTest = f;")
-      public static native void set(ChannelTestApiFactory f);
-    }
-  }
-
-  static Promise<ChannelTestApi> createChannelTestApi(Channel channel) {
-    return Promise.resolve(new ChannelTest(channel));
-  }
-
   static void main(String[] args) {
     LoggingJs.Setter.set();
     EditorFactory.Setter.setApi(JsCodeEditor0::newEdit);
@@ -85,6 +65,6 @@ public interface Editor_d_ts {
     DiffFactory.Setter.setDiff(JsCodeDiff0::newDiff);
     FolderDiffFactory.Setter.set(JsFolderDiff0::newDiff);
     RemoteFolderDiffFactory.Setter.set(JsRemoteFolderDiff0::newDiff);
-    ChannelTestApiFactory.Setter.set(Editor_d_ts::createChannelTestApi);
+    ChannelTest.publishChannelTest();
   }
 }

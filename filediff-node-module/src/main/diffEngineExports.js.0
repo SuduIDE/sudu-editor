@@ -2,3 +2,4 @@
 export const createDiffEngine = global.createDiffEngine;
 export const setLogLevel = global.setLogLevel;
 export const setLogOutput = global.setLogOutput;
+export const newRemoteChannelTest = global.newRemoteChannelTest;

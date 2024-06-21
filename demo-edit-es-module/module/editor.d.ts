@@ -233,9 +233,3 @@ export function newCodeDiff(args: EditArgs): Promise<CodeDiffView>
 export function newFolderDiff(args: EditArgs): Promise<FolderDiffView>
 
 export function newRemoteFolderDiff(args: EditArgs, channel: Channel): Promise<FolderDiffView>
-
-export interface ChannelTestApi {
-  foo() : void;
-}
-
-export function newRemoteChannelTest(channel: Channel): Promise<ChannelTestApi>
