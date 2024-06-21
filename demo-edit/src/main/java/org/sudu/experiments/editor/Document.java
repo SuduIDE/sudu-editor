@@ -439,7 +439,7 @@ public class Document extends CodeLines {
       tree.makeInsertDiff(posInDoc, diff.change.length());
       scopeGraph.makeInsertDiff(posInDoc, diff.change.length());
     }
-    onDiffMade.accept(diff, false);
+    onDiffMade(diff, false);
   }
 
   public V2i undoLastDiff() {
@@ -476,7 +476,7 @@ public class Document extends CodeLines {
       tree.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
       scopeGraph.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
     }
-    onDiffMade.accept(diff, true);
+    onDiffMade(diff, true);
     return diff.caretReturn;
   }
 
@@ -580,5 +580,9 @@ public class Document extends CodeLines {
       refElem.color = type;
       refElem.style = style;
     }
+  }
+
+  private void onDiffMade(Diff diff, boolean isDelete) {
+    if (this.onDiffMade != null) onDiffMade.accept(diff, isDelete);
   }
 }
