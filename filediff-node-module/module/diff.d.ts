@@ -2,7 +2,7 @@ import { Channel } from './common'
 export { setLogLevel, setLogOutput, newRemoteChannelTest, LogLevel } from './common';
 
 // java class: org.sudu.experiments.DiffEngineJs
-interface DiffEngine {
+export interface DiffEngine {
     dispose(): void;
 
     startFolderDiff(leftPath: string, rightPath: string, channel: Channel): void;
