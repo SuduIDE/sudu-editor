@@ -3,7 +3,7 @@
 
 import { Channel, Message } from "./common";
 export { Channel, Message }
-export { setLogLevel, setLogOutput, newRemoteChannelTest } from './common';
+export { setLogLevel, setLogOutput, newRemoteChannelTest, LogLevel } from './common';
 
 export interface EditArgs {
     containerId: string
