@@ -1,5 +1,5 @@
 import { Channel } from './common'
-export { setLogLevel, setLogOutput, newRemoteChannelTest, LogLevel, Channel } from './common';
+export { Channel, Message, setLogLevel, setLogOutput, newRemoteChannelTest, LogLevel, ChannelTestApi } from './common';
 
 // java class: org.sudu.experiments.DiffEngineJs
 export interface DiffEngine {

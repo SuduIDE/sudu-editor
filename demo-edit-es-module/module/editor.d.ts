@@ -1,9 +1,8 @@
 // java reflection of this file is located at
 // demo-edit-es-module/src/main/java/org/sudu/experiments/EditJsApi.java
 
-import { Channel, Message } from "./common";
-export { Channel, Message }
-export { setLogLevel, setLogOutput, newRemoteChannelTest, LogLevel } from './common';
+import { Channel } from "./common";
+export { Channel, Message, setLogLevel, setLogOutput, newRemoteChannelTest, LogLevel, ChannelTestApi } from './common';
 
 export interface EditArgs {
     containerId: string
