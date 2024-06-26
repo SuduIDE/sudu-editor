@@ -1,11 +1,8 @@
 package org.sudu.experiments.editor.worker;
 
-import org.sudu.experiments.DirectoryHandle;
-import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.editor.worker.proxy.*;
 import org.sudu.experiments.math.ArrayOp;
-import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.diff.update.Collector;
 
 import java.util.ArrayList;
@@ -28,61 +25,45 @@ public class EditorWorker {
 
   static void syncMethod(String method, Object[] a, ArrayList<Object> result) {
     switch (method) {
-      case TestJobs.withString -> TestJobs.withString(string(a, 0), result);
-      case TestJobs.withChars -> TestJobs.withChars(array(a, 0).chars(), result);
-      case TestJobs.withBytes -> TestJobs.withBytes(array(a, 0).bytes(), result);
-      case TestJobs.withInts -> TestJobs.withInts(array(a, 0).ints(), result);
-      case TestJobs.fibonacci -> TestJobs.fibonacci(array(a, 0).ints(), result);
-      case ActivityProxy.PARSE_FULL_FILE -> activityProxy.parseFullFile(array(a, 0).chars(), result);
-      case JavaProxy.PARSE_FULL_FILE -> javaProxy.parseFullFile(array(a, 0).chars(), result);
-      case JavaProxy.PARSE_FULL_FILE_SCOPES -> javaProxy.parseFullFileScopes(array(a, 0).chars(), result);
-      case JavaProxy.PARSE_VIEWPORT -> javaProxy.parseViewport(array(a, 0).chars(), array(a, 1).ints(), array(a, 2).ints(), result);
-      case JavaProxy.PARSE_STRUCTURE -> javaProxy.parseStructure(array(a, 0).chars(), result);
-      case CppProxy.PARSE_FULL_FILE -> cppProxy.parseFullFile(array(a, 0).chars(), result);
-      case CppProxy.PARSE_FULL_FILE_SCOPES -> cppProxy.parseFullFileScopes(array(a, 0).chars(), result);
-      case JavaScriptProxy.PARSE_FULL_FILE -> javascriptProxy.parseFullFile(array(a, 0).chars(), result);
-      case HtmlProxy.PARSE_FULL_FILE -> htmlProxy.parseFullFile(array(a, 0).chars(), result);
-      case TextProxy.PARSE_FULL_FILE -> textProxy.parseFullFile(array(a, 0).chars(), result);
-      case ScopeProxy.RESOLVE_ALL -> ScopeProxy.resolveAll(array(a, 0).ints(), array(a, 1).chars(), array(a, 2).ints(), result);
+      case TestJobs.withString -> TestJobs.withString(ArgsCast.string(a, 0), result);
+      case TestJobs.withChars -> TestJobs.withChars(ArgsCast.array(a, 0).chars(), result);
+      case TestJobs.withBytes -> TestJobs.withBytes(ArgsCast.array(a, 0).bytes(), result);
+      case TestJobs.withInts -> TestJobs.withInts(ArgsCast.array(a, 0).ints(), result);
+      case TestJobs.fibonacci -> TestJobs.fibonacci(ArgsCast.array(a, 0).ints(), result);
+      case ActivityProxy.PARSE_FULL_FILE -> activityProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
+      case JavaProxy.PARSE_FULL_FILE -> javaProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
+      case JavaProxy.PARSE_FULL_FILE_SCOPES -> javaProxy.parseFullFileScopes(ArgsCast.array(a, 0).chars(), result);
+      case JavaProxy.PARSE_VIEWPORT -> javaProxy.parseViewport(ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(), ArgsCast.array(a, 2).ints(), result);
+      case JavaProxy.PARSE_STRUCTURE -> javaProxy.parseStructure(ArgsCast.array(a, 0).chars(), result);
+      case CppProxy.PARSE_FULL_FILE -> cppProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
+      case CppProxy.PARSE_FULL_FILE_SCOPES -> cppProxy.parseFullFileScopes(ArgsCast.array(a, 0).chars(), result);
+      case JavaScriptProxy.PARSE_FULL_FILE -> javascriptProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
+      case HtmlProxy.PARSE_FULL_FILE -> htmlProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
+      case TextProxy.PARSE_FULL_FILE -> textProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
+      case ScopeProxy.RESOLVE_ALL -> ScopeProxy.resolveAll(ArgsCast.array(a, 0).ints(), ArgsCast.array(a, 1).chars(), ArgsCast.array(a, 2).ints(), result);
       case DiffUtils.FIND_DIFFS -> DiffUtils.findDiffs(
-          array(a, 0).chars(), array(a, 1).ints(),
-          array(a, 2).chars(), array(a, 3).ints(), result);
+          ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(),
+          ArgsCast.array(a, 2).chars(), ArgsCast.array(a, 3).ints(), result);
     }
   }
 
   static void asyncMethod(String method, Object[] a, Consumer<Object[]> r) {
     switch (method) {
-      case TestJobs.asyncWithFile -> TestJobs.asyncWithFile(file(a, 0), r);
-      case TestJobs.asyncWithDir -> TestJobs.asyncWithDir(dir(a, 0), r);
-      case FileProxy.asyncParseFile -> FileProxy.asyncParseFile(array(a, 0).chars(), array(a, 1).ints(), r);
-      case FileProxy.asyncParseFullFile -> FileProxy.asyncParseFullFile(array(a, 0).chars(), array(a, 1).ints(), r);
-      case FileProxy.asyncParseFirstLines -> FileProxy.asyncParseFirstLines(array(a, 0).chars(), array(a, 1).ints(), r);
+      case TestJobs.asyncWithFile -> TestJobs.asyncWithFile(ArgsCast.file(a, 0), r);
+      case TestJobs.asyncWithDir -> TestJobs.asyncWithDir(ArgsCast.dir(a, 0), r);
+      case FileProxy.asyncParseFile -> FileProxy.asyncParseFile(ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(), r);
+      case FileProxy.asyncParseFullFile -> FileProxy.asyncParseFullFile(ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(), r);
+      case FileProxy.asyncParseFirstLines -> FileProxy.asyncParseFirstLines(ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(), r);
       case FileProxy.asyncIterativeParsing -> FileProxy.asyncIterativeParsing(
-          array(a, 0).chars(), array(a, 1).ints(),
-          array(a, 2).ints(),
-          array(a,3).ints(), array(a, 4).ints(),
-          array(a, 5).chars(), r
+          ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(),
+          ArgsCast.array(a, 2).ints(),
+          ArgsCast.array(a,3).ints(), ArgsCast.array(a, 4).ints(),
+          ArgsCast.array(a, 5).chars(), r
       );
-      case DiffUtils.CMP_FILES -> DiffUtils.compareFiles(file(a, 0), file(a, 1), r);
-      case DiffUtils.CMP_FOLDERS -> DiffUtils.compareFolders(dir(a, 0), dir(a, 1), r);
-      case Collector.COLLECT -> Collector.collect(dir(a, 0), dir(a, 1), r);
+      case DiffUtils.CMP_FILES -> DiffUtils.compareFiles(ArgsCast.file(a, 0), ArgsCast.file(a, 1), r);
+      case DiffUtils.CMP_FOLDERS -> DiffUtils.compareFolders(ArgsCast.dir(a, 0), ArgsCast.dir(a, 1), r);
+      case Collector.COLLECT -> Collector.collect(ArgsCast.dir(a, 0), ArgsCast.dir(a, 1), r);
     }
-  }
-
-  public static ArrayView array(Object[] args, int index) {
-    return (ArrayView) args[index];
-  }
-
-  public static String string(Object[] args, int index) {
-    return (String) args[index];
-  }
-
-  public static FileHandle file(Object[] args, int index) {
-    return (FileHandle) args[index];
-  }
-
-  public static DirectoryHandle dir(Object[] args, int index) {
-    return (DirectoryHandle) args[index];
   }
 
   public static int numDemoThreads() {

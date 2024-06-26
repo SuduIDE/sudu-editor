@@ -19,7 +19,7 @@ import org.teavm.jso.typedarrays.Uint16Array;
 
 import java.util.Arrays;
 
-import static org.sudu.experiments.editor.worker.EditorWorker.array;
+import static org.sudu.experiments.editor.worker.ArgsCast.array;
 
 public class DiffEngine implements DiffEngineJs {
   final NodeWorkersPool pool;

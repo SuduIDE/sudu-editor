@@ -1,7 +1,7 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.diff.tests.FolderDiffTest;
-import org.sudu.experiments.editor.worker.EditorWorker;
+import org.sudu.experiments.editor.worker.FileDiffWorker;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.nio.file.Files;
@@ -18,7 +18,7 @@ class FolderDiffTestJvm implements WorkerJobExecutor {
   static final int DUMP_STATS_CALLS_DELTA = 2000;
   static int numThreads = 3;
 
-  final Workers workers = new Workers(numThreads, EditorWorker::execute);
+  final Workers workers = new Workers(numThreads, FileDiffWorker::execute);
   final EventQueue edt = new EventQueue();
 
   final Map<String, MethodStat> handlers = new HashMap<>();

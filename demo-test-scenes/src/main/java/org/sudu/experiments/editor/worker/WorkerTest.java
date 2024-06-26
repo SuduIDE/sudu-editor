@@ -14,9 +14,9 @@ import org.sudu.experiments.ui.UiFont;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
-import static org.sudu.experiments.editor.worker.EditorWorker.array;
-import static org.sudu.experiments.editor.worker.EditorWorker.string;
-import static org.sudu.experiments.editor.worker.EditorWorker.file;
+import static org.sudu.experiments.editor.worker.ArgsCast.array;
+import static org.sudu.experiments.editor.worker.ArgsCast.string;
+import static org.sudu.experiments.editor.worker.ArgsCast.file;
 
 @SuppressWarnings({"PrimitiveArrayArgumentToVarargsMethod"})
 public class WorkerTest extends WindowScene {
