@@ -2,6 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.Debug;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.ui.window.WindowManager;
@@ -27,7 +28,10 @@ public class RemoteFolderDiffWindow extends FolderDiffWindow {
 
   @Override
   protected void compareRootFolders() {
-    super.compareRootFolders();
+    if (leftRoot == null || rightRoot == null) return;
+    leftModel = new FolderDiffModel(null);
+    rightModel = new FolderDiffModel(null);
+//    super.compareRootFolders();
     JsArray<JSObject> arr = JsArray.create();
     arr.push(JSString.valueOf("Start comparing root folders"));
     channel.sendMessage(arr);

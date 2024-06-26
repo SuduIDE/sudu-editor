@@ -9,19 +9,6 @@ function mayBeExit() {
     module.dispose();
 }
 
-function channel() {
-  return {
-    onMessageHandler : null,
-    sendMessage: function(m) {
-      console.log("sendMessage: ", m);
-      this.onMessageHandler(m);
-    },
-    set onMessage(handler) {
-      this.onMessageHandler = handler;
-      console.log("setOnMessage: ", handler); }
-  };
-}
-
 console.log("got module: ", module.constructor.name);
 
 jobCount++;
@@ -51,6 +38,3 @@ if (process.argv.length === 3) {
 } else {
   console.log("not running testFS");
 }
-
-// jobCount++;
-module.startFolderDiff("left", "right", channel());

@@ -20,9 +20,11 @@ public class FolderDiffModel {
   public int propagation = NO_PROP;
   public int diffType = DiffTypes.DEFAULT;
   public int rangeId;
+  public int depth;
 
   public FolderDiffModel(FolderDiffModel parent) {
     this.parent = parent;
+    if (parent != null) depth = parent.depth + 1;
   }
 
   public void update(FolderDiffModel newModel) {
@@ -116,13 +118,12 @@ public class FolderDiffModel {
     writer.write(model.rangeId);
     writer.write(model.childrenComparedCnt);
     writer.write(model.compared ? 1 : 0);
-    Integer ind = null;
-    if (!model.compared) ind = modelToIntMap.get(model);
-    writer.write(ind == null ? -1 : ind);
+    int ind = modelToIntMap.getOrDefault(model, -1);
+    writer.write(ind);
     if (model.children == null) writer.write(-1);
     else {
       writer.write(model.children.length);
-      for (var child: model.children) writeInts(child, writer);
+      for (var child: model.children) writeInts(child, writer, modelToIntMap);
     }
   }
 
@@ -146,11 +147,11 @@ public class FolderDiffModel {
     model.childrenComparedCnt = reader.next();
     model.compared = reader.next() == 1;
     int ind = reader.next();
-    if (ind != -1 && models != null) models[ind].second = model;
+    if (ind != -1) models[ind].second = model;
     int childrenLen = reader.next();
     if (childrenLen != -1) {
       var children = new FolderDiffModel[childrenLen];
-      for (int i = 0; i < childrenLen; i++) children[i] = fromInts(reader, model);
+      for (int i = 0; i < childrenLen; i++) children[i] = fromInts(reader, model, models);
       model.children = children;
     }
     return model;
@@ -172,5 +173,17 @@ public class FolderDiffModel {
   @Override
   public int hashCode() {
     return Objects.hash(Arrays.hashCode(children), childrenComparedCnt, compared, propagation, diffType, rangeId);
+  }
+
+  public String infoString() {
+    return "FolderDiffModel{" +
+        "parent=" + parent +
+        ", childrenComparedCnt=" + childrenComparedCnt +
+        ", children.length=" + (children != null ? children.length : 0) +
+        ", compared=" + compared +
+        ", propagation=" + propagation +
+        ", diffType=" + diffType +
+        ", rangeId=" + rangeId +
+        "}";
   }
 }

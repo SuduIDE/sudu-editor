@@ -19,9 +19,9 @@ public class Collector {
   private final RangeCtx rangeCtx;
   private final FolderDiffModel leftAcc, rightAcc;
   private final Consumer<Object[]> r;
-  private final Queue<CollectDto> collectQueue;
+  private final List<CollectDto> remain;
 
-  private static final int MAX_IN_COMPARING = 10;
+  private static final int MAX_DEPTH = 5;
   private int inComparing = 0;
 
   public Collector(FolderDiffModel left, FolderDiffModel right, Consumer<Object[]> r) {
@@ -29,7 +29,7 @@ public class Collector {
     this.rightAcc = right;
     this.rangeCtx = new RangeCtx();
     this.r = r;
-    this.collectQueue = new LinkedList<>();
+    this.remain = new LinkedList<>();
   }
 
   public static final String COLLECT = "asyncCollector.collect";
@@ -45,7 +45,7 @@ public class Collector {
   }
 
   private void collect(CollectDto dto) {
-    if (inComparing >= MAX_IN_COMPARING) collectQueue.add(dto);
+    if (!dto.isFile() && depthCheck(dto.leftModel, dto.rightModel)) remain.add(dto);
     else compare(dto.leftModel, dto.rightModel, dto.leftItem, dto.rightItem);
   }
 
@@ -53,17 +53,17 @@ public class Collector {
       FolderDiffModel leftModel, FolderDiffModel rightModel,
       FsItem leftItem, FsItem rightItem
   ) {
-    if (++inComparing > MAX_IN_COMPARING) throw new IllegalStateException();
+    ++inComparing;
     if (leftItem instanceof DirectoryHandle leftDir &&
         rightItem instanceof DirectoryHandle rightDir
-    ) collectFolders(leftModel, rightModel, leftDir, rightDir);
+    ) compareFolders(leftModel, rightModel, leftDir, rightDir);
     else if (leftItem instanceof FileHandle leftFile
         && rightItem instanceof FileHandle rightFile
-    ) collectFiles(leftModel, rightModel, leftFile, rightFile);
+    ) compareFiles(leftModel, rightModel, leftFile, rightFile);
     else throw new IllegalArgumentException();
   }
 
-  public void collectFolders(
+  public void compareFolders(
       FolderDiffModel leftModel, FolderDiffModel rightModel,
       DirectoryHandle leftDir, DirectoryHandle rightDir
   ) {
@@ -76,7 +76,7 @@ public class Collector {
     handler.read();
   }
 
-  public void collectFiles(
+  public void compareFiles(
       FolderDiffModel leftModel, FolderDiffModel rightModel,
       FileHandle leftFile, FileHandle rightFile
   ) {
@@ -90,14 +90,21 @@ public class Collector {
 
   private void onItemCompared() {
     if (--inComparing < 0) throw new IllegalStateException();
-    var dto = collectQueue.poll();
-    if (leftAcc.compared && rightAcc.compared && dto == null) onFullyCompared();
-    if (dto != null) collect(dto);
+    if (leftAcc.compared && rightAcc.compared) {
+      if (inComparing != 0) throw new IllegalStateException();
+      else onFullyCompared();
+    }
+    if (inComparing == 0) onFullyCompared();
   }
 
   private void onFullyCompared() {
-    Object[] result = new Object[1 + 2 * collectQueue.size()];
-    result[0] = UpdateDto.toInts(leftAcc, rightAcc, collectQueue, result);
+    Object[] result = new Object[1 + 2 * remain.size()];
+    result[0] = UpdateDto.toInts(leftAcc, rightAcc, remain, result);
     ArrayOp.sendArrayList(new ArrayList<>(Arrays.asList(result)), r);
+  }
+
+  private boolean depthCheck(FolderDiffModel left, FolderDiffModel right) {
+    if (left.depth != right.depth || left.depth > MAX_DEPTH) throw new IllegalStateException();
+    return left.depth == MAX_DEPTH;
   }
 }

@@ -1,5 +1,6 @@
 package org.sudu.experiments.diff.update;
 
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 
@@ -16,5 +17,9 @@ public class CollectDto {
     this.rightModel = rightModel;
     this.leftItem = leftItem;
     this.rightItem = rightItem;
+  }
+
+  public boolean isFile() {
+    return leftItem instanceof FileHandle && rightItem instanceof FileHandle;
   }
 }

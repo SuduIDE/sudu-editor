@@ -6,44 +6,43 @@ import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.parser.common.Pair;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.IdentityHashMap;
-import java.util.Queue;
 
 public class UpdateDto {
 
   public FolderDiffModel leftRoot, rightRoot;
 
-  private Pair<FsItem, FolderDiffModel>[] leftRemainModels;
-  private Pair<FsItem, FolderDiffModel>[] rightRemainModels;
+  public Pair<FsItem, FolderDiffModel>[] leftRemainModels;
+  public Pair<FsItem, FolderDiffModel>[] rightRemainModels;
 
   public static int[] toInts(
       FolderDiffModel leftRoot, FolderDiffModel rightRoot,
-      Queue<CollectDto> dtoQueue, Object[] result
+      List<CollectDto> dtoList, Object[] result
   ) {
     ArrayWriter writer = new ArrayWriter();
-    writeInts(leftRoot, rightRoot, dtoQueue, result, writer);
+    writeInts(leftRoot, rightRoot, dtoList, result, writer);
     return writer.getInts();
   }
 
   public static void writeInts(
       FolderDiffModel leftRoot, FolderDiffModel rightRoot,
-      Queue<CollectDto> dtoQueue, Object[] result,
+      List<CollectDto> dtoList, Object[] result,
       ArrayWriter writer
   ) {
-    int length = dtoQueue.size();
+    int length = dtoList.size();
     writer.write(length);
 
     IdentityHashMap<FolderDiffModel, Integer> leftModelToInt = new IdentityHashMap<>();
     IdentityHashMap<FolderDiffModel, Integer> rightModelToInt = new IdentityHashMap<>();
 
-    int i = 0;
-    while (!dtoQueue.isEmpty()) {
-      var dto = dtoQueue.remove();
+    for (int i = 0; i < dtoList.size(); i++) {
+      var dto = dtoList.get(i);
       result[1 + i] = dto.leftItem;
       result[1 + length + i] = dto.rightItem;
       leftModelToInt.put(dto.leftModel, i);
       rightModelToInt.put(dto.rightModel, i);
-      i++;
     }
 
     FolderDiffModel.writeInts(leftRoot, writer, leftModelToInt);
@@ -71,5 +70,15 @@ public class UpdateDto {
     dto.rightRoot = FolderDiffModel.fromInts(reader, null, dto.rightRemainModels);
 
     return dto;
+  }
+
+  @Override
+  public String toString() {
+    return "UpdateDto{" +
+        "leftRoot=" + leftRoot +
+        ", rightRoot=" + rightRoot +
+        ", leftRemainModels=" + Arrays.toString(leftRemainModels) +
+        ", rightRemainModels=" + Arrays.toString(rightRemainModels) +
+        "}";
   }
 }
