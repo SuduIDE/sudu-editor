@@ -25,6 +25,7 @@ interface NodeFs extends JSObject {
   interface Stats extends JSObject {
     boolean isDirectory();
     boolean isFile();
+    boolean isSymbolicLink();
     @JSProperty("size") double size();
   }
 

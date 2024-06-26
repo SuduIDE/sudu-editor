@@ -1,10 +1,7 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.diff.DiffModelBuilder;
-import org.sudu.experiments.diff.DiffTypes;
-import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.tests.FolderDiffTest;
 import org.sudu.experiments.editor.worker.EditorWorker;
-import org.sudu.experiments.ui.fs.DirectoryNode;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.nio.file.Files;
@@ -16,36 +13,30 @@ import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.Function;
 
-class FolderDiffTest implements WorkerJobExecutor {
+class FolderDiffTestJvm implements WorkerJobExecutor {
   static final DoubleSupplier time = TimeUtil.dt();
-  public static final int DUMP_STATS_CALLS_DELTA = 2000;
+  static final int DUMP_STATS_CALLS_DELTA = 2000;
   static int numThreads = 3;
 
   final Workers workers = new Workers(numThreads, EditorWorker::execute);
   final EventQueue edt = new EventQueue();
-  final Path leftPath;
-  final Path rightPath;
-  final boolean content;
 
-  boolean running = true;
-  DirectoryNode leftRoot, rightRoot;
-  FolderDiffModel leftModel = new FolderDiffModel(null);
-  FolderDiffModel rightModel = new FolderDiffModel(null);
-  int updateDiffInfoCounter, jobNo;
+  final Map<String, MethodStat> handlers = new HashMap<>();
+  int jobNo;
 
-  FolderDiffTest(Path left, Path right, boolean content) {
-    this.leftPath = left;
-    this.rightPath = right;
-    this.content = content;
+  FolderDiffTest test;
+
+  FolderDiffTestJvm(Path left, Path right, boolean content) {
     var leftH = dir(left);
     var rightH = dir(right);
-    leftRoot = new DirectoryNode(leftH, null);
-    rightRoot = new DirectoryNode(rightH, null);
-    var builder = new DiffModelBuilder((_1, _2, _3) -> updateDiffInfo(), this, content);
 
-    builder.compareRoots(
-        leftRoot, rightRoot,
-        leftModel, rightModel);
+    test = new FolderDiffTest(leftH, rightH, content,
+        this, time, this::onComplete);
+    test.scan();
+  }
+
+  private void onComplete() {
+    dumpStats();
   }
 
   JvmDirectoryHandle dir(Path path) {
@@ -54,38 +45,11 @@ class FolderDiffTest implements WorkerJobExecutor {
   }
 
   private void run() throws InterruptedException {
-    while (running) {
+    while (test.running()) {
       edt.execute();
       Thread.sleep(1);
     }
     workers.shutdown();
-  }
-
-  private void dumpResult() {
-    String r = "" +
-        "updateDiffInfo #calls = " + updateDiffInfoCounter + '\n'
-        + "leftModel:\n"
-        + "  .compared = " + leftModel.compared + '\n'
-        + "  .diffType = " + DiffTypes.name(leftModel.diffType) + '\n'
-        + "rightModel:\n"
-        + "  .compared = " + rightModel.compared + '\n'
-        + "  .diffType = " + DiffTypes.name(rightModel.diffType) + '\n'
-        + "time: " + time + "s\n";
-    System.out.print(r);
-  }
-
-  private void updateDiffInfo() {
-    ++updateDiffInfoCounter;
-    if (running) {
-      if (leftModel.compared && rightModel.compared) {
-        System.out.println("Finished" + (content ? " scan with content: " : ": "));
-        dumpStats();
-        dumpResult();
-        running = false;
-      }
-    } else {
-      System.err.println("updateDiffInfo after Finished, updateDiffInfoCounter = " + updateDiffInfoCounter);
-    }
   }
 
   public static void main(String[] args) throws InterruptedException {
@@ -96,9 +60,10 @@ class FolderDiffTest implements WorkerJobExecutor {
       boolean d2 = Files.isDirectory(p2);
       boolean content = args.length == 3 && args[2].equals("content");
       if (d1 && d2) {
-        System.out.println("path1: " + p1);
-        System.out.println("path2: " + p2);
-        new FolderDiffTest(p1, p2, content).run();
+        System.out.println("  path1 = " + p1);
+        System.out.println("  path2 = " + p2);
+        System.out.println("  content = " + content);
+        new FolderDiffTestJvm(p1, p2, content).run();
       } else {
         System.err.println(
             "path is not a directory: " + (d1 ? p2 : p1));
@@ -143,8 +108,6 @@ class FolderDiffTest implements WorkerJobExecutor {
       sb.append(" } }");
     }
   }
-
-  final Map<String, MethodStat> handlers = new HashMap<>();
 
   @Override
   public void sendToWorker(Consumer<Object[]> handler, String method, Object... args) {

@@ -110,6 +110,9 @@ public class JsHelper {
   @JSBody(params = {"s0", "obj"}, script = "console.error(s0 + obj);")
   public static native void consoleError(String s0, JSObject obj);
 
+  @JSBody(params = {"s0"}, script = "console.error(s0);")
+  public static native void consoleError(String s0);
+
   @JSBody(params = {"s", "d"}, script = "console.info(s + d);")
   public static native void consoleInfo(String s, double d);
 

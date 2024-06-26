@@ -18,3 +18,9 @@ export const enum LogLevel {
 export function setLogLevel(logLevel: LogLevel): void;
 
 export function setLogOutput(logHandler: (logLevel: LogLevel, text: string)=>void): void;
+
+export interface ChannelTestApi {
+    foo() : void;
+}
+
+export function newRemoteChannelTest(channel: Channel): Promise<ChannelTestApi>

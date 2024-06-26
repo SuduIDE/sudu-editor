@@ -3,6 +3,7 @@ package org.sudu.experiments.js.node;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.core.JSString;
 
@@ -40,8 +41,19 @@ public class NodeDirectoryHandle implements DirectoryHandle {
         reader.onDirectory(
             new NodeDirectoryHandle(file.stringValue(), childPath));
       } else {
-        reader.onFile(
-            new NodeFileHandle(file.stringValue(), childPath));
+        if (stats.isFile()) {
+          reader.onFile(
+              new NodeFileHandle(file.stringValue(), childPath));
+        } else {
+          boolean symbolicLink = stats.isSymbolicLink();
+          if (symbolicLink) {
+            JsHelper.consoleInfo("symbolicLink: " +
+                Fs.concatPath(file.stringValue(), childPath));
+          } else {
+            JsHelper.consoleError("bad file: " +
+                Fs.concatPath(file.stringValue(), childPath));
+          }
+        }
       }
     }
     reader.onComplete();

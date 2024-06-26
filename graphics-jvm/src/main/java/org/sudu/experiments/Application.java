@@ -1,6 +1,7 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.fonts.FontResources;
+import org.sudu.experiments.text.TextFormat;
 import org.sudu.experiments.win32.*;
 import org.sudu.experiments.worker.WorkerExecutor;
 
@@ -54,8 +55,8 @@ public class Application {
       System.out.println("[Fonts] Loading fonts ...");
       double[] times = factory.loadFontConfig(config, TimeUtil.dt());
       if (times != null && times.length == 2) {
-        System.out.println("[Fonts]   loadResources: " + TimeUtil.toString3(times[0]) + " ms");
-        System.out.println("[Fonts]   d2dAddFontFiles: " + TimeUtil.toString3(times[1]) + " ms");
+        System.out.println("[Fonts]   loadResources: " + TextFormat.toString3(times[0]) + " ms");
+        System.out.println("[Fonts]   d2dAddFontFiles: " + TextFormat.toString3(times[1]) + " ms");
       }
     }
     return true;

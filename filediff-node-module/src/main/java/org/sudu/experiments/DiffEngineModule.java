@@ -19,10 +19,12 @@ public interface DiffEngineModule {
 
   static void main(String[] args) {
     ModuleFactory.Setter.setApi(DiffEngineModule::moduleFactory);
+    LoggingJs.Setter.set();
+    ChannelTest.publishChannelTest();
   }
 
   static Promise<JSObject> moduleFactory(JSString workerUrl, int numThreads) {
-    int nT = numThreads < 1 || numThreads > 10 ? 5 : numThreads;
+    int nT = numThreads < 1 || numThreads > 10 ? 3 : numThreads;
     if (numThreads != nT)
       JsHelper.consoleInfo("wrong number of threads: ", numThreads);
 

@@ -1,6 +1,7 @@
 package org.sudu.experiments;
 
 import org.junit.jupiter.api.Assertions;
+import org.sudu.experiments.text.TextFormat;
 import org.sudu.experiments.win32.Helper;
 import org.sudu.experiments.win32.Win32;
 
@@ -81,8 +82,8 @@ public class CStringTest {
 
   static void report(String N, String x, String y, long t1, long t2, long t3) {
     System.out.println(N);
-    System.out.println(x + TimeUtil.toString3(TimeUtil.nsToS * (t2 - t1)));
-    System.out.println(y + TimeUtil.toString3(TimeUtil.nsToS * (t3 - t2)));
+    System.out.println(x + TextFormat.toString3(TimeUtil.nsToS * (t2 - t1)));
+    System.out.println(y + TextFormat.toString3(TimeUtil.nsToS * (t3 - t2)));
   }
 
   static void testArrayRegion() {

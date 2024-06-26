@@ -2,14 +2,16 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.tests.FolderDiffTest;
+import org.sudu.experiments.diff.tests.FolderScanTest;
 import org.sudu.experiments.diff.update.UpdateDto;
 import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeDirectoryHandle;
-import org.sudu.experiments.js.node.NodeFileHandle;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
@@ -32,7 +34,7 @@ public class DiffEngine implements DiffEngineJs {
   }
 
   @Override
-  public Promise<JSString> fib(int n) {
+  public Promise<JSString> testFib(int n) {
     return Promise.create((postResult, postError) -> {
       pool.sendToWorker(
           result -> {
@@ -49,10 +51,10 @@ public class DiffEngine implements DiffEngineJs {
   public void startFolderDiff(JSString leftPath, JSString rightPath, Channel channel) {
     JsHelper.consoleInfo("Starting folder diff ");
 
-    if (notDir(leftPath))
-      throw new IllegalArgumentException("Left path " + leftPath.stringValue() + " should be directory");
-    if (notDir(rightPath))
-      throw new IllegalArgumentException("Right path " + rightPath.stringValue() + " should be directory");
+    if (DiffEngine.notDir(leftPath))
+      throw new IllegalArgumentException(leftPath.stringValue() + " should be directory");
+    if (DiffEngine.notDir(rightPath))
+      throw new IllegalArgumentException(rightPath.stringValue() + " should be directory");
 
     DirectoryHandle leftHandle = new NodeDirectoryHandle(leftPath);
     DirectoryHandle rightHandle = new NodeDirectoryHandle(rightPath);
@@ -67,21 +69,11 @@ public class DiffEngine implements DiffEngineJs {
           Object[] result = new Object[jsResult.getLength()];
           result[0] = ints;
           for (int i = 1; i < result.length; i++) {
-            JSString path = jsResult.get(i).cast();
-            result[i] = isDir(path)
-                ? new NodeDirectoryHandle(path)
-                : new NodeFileHandle(path);
+            result[i] = new NodeDirectoryHandle(jsResult.get(i).cast());
           }
           var updateDto = UpdateDto.fromInts(ints, result);
           leftModelRoot.update(updateDto.leftRoot);
           rightModelRoot.update(updateDto.rightRoot);
-          JsHelper.consoleInfo("Left Root: " + leftModelRoot.infoString());
-          JsHelper.consoleInfo("Right Root: " + rightModelRoot.infoString());
-
-          System.out.println("Left remain: ");
-          for (var p: updateDto.leftRemainModels) JsHelper.consoleInfo("  " + p.first.getFullPath());
-          System.out.println("Right remain: ");
-          for (var p: updateDto.rightRemainModels) JsHelper.consoleInfo("  " + p.first.getFullPath());
 
           if (leftModelRoot.compared && rightModelRoot.compared) {
             JsHelper.consoleInfo("Roots compared");
@@ -166,20 +158,39 @@ public class DiffEngine implements DiffEngineJs {
     NodeDirectoryHandle dir1 = new NodeDirectoryHandle(path1);
     NodeDirectoryHandle dir2 = new NodeDirectoryHandle(path2);
 
-    new FolderDiffTestNode(
-        dir1, dir2, pool, onComplete
+    new FolderScanTest(
+        dir1, dir2, pool, JsFunctions.wrap(onComplete)
+    ).scan();
+  }
+
+  @Override
+  public void testDiff(
+      JSString path1, JSString path2, boolean content,
+      JsFunctions.Runnable onComplete
+  ) {
+    if (notDir(path1) || notDir(path2)) {
+      onComplete.f();
+      return;
+    }
+    NodeDirectoryHandle dir1 = new NodeDirectoryHandle(path1);
+    NodeDirectoryHandle dir2 = new NodeDirectoryHandle(path2);
+
+    JsHelper.consoleInfo("testDiff: ");
+    JsHelper.consoleInfo("  path1 = ", path1);
+    JsHelper.consoleInfo("  path2 = ", path2);
+    JsHelper.consoleInfo("  content = ", JSBoolean.valueOf(content));
+    JsTime jsTime = new JsTime();
+    new FolderDiffTest(
+        dir1, dir2, content, pool,
+        jsTime, JsFunctions.wrap(onComplete)
     ).scan();
   }
 
   static boolean notDir(JSString path) {
-    if (!isDir(path)) {
-      JsHelper.consoleError("path is not a directory ", path);
+    if (!Fs.isDirectory(path)) {
+      JsHelper.consoleError("path is not a directory: ", path);
       return true;
     }
     return false;
-  }
-
-  static boolean isDir(JSString path) {
-    return Fs.isDirectory(path);
   }
 }

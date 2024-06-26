@@ -1,6 +1,6 @@
 package org.sudu.experiments.win32;
 
-import org.sudu.experiments.TimeUtil;
+import org.sudu.experiments.text.TextFormat;
 
 public class Win32Time {
   double frequency = Win32.GetPerformanceFrequency();
@@ -12,6 +12,6 @@ public class Win32Time {
   }
 
   public void printTime(String title) {
-    System.out.println("[Time] " + title + TimeUtil.toString3(now()));
+    System.out.println("[Time] " + title + TextFormat.toString3(now()));
   }
 }
