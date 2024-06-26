@@ -29,7 +29,7 @@ llvm-project: 133.586 Files, 13.366 Folders
         time: 4.138s
         time: 4.074s
 
-    graalvm native exe -> 10% **slower** then java 21
+    graalvm native exe -> 10% slower then java 21
         time: 4.504s
         time: 4.542s
         time: 4.569s
@@ -41,3 +41,19 @@ llvm-project: 133.586 Files, 13.366 Folders
         time: 15.189s
         time: 15.325s
 
+
+memory test: extreme large project 
+  chromium: 34000 folders, 407669 files, 3.3 gb
+  (scanning 2 times: 6.6 gb total)
+
+graalvm native image:
+    peak private bytes: 400 - 600 mb
+    time: 31.079s
+
+java:
+    Peak private bytes, 2.15 gb
+    time: 29.536s
+
+node:
+    Peak private bytes, 1.1 - 1.3 gb
+    time: 66.666s 

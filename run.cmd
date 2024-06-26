@@ -5,8 +5,10 @@ set dir=.\
 set dir1=D:\Github\llvm-project-a
 set dir2=D:\Github\llvm-project-b
 
-rem set dir1=%dir%
-rem set dir2=%dir%
+set dir3=D:\chromium-main
+
+set dir1=%dir3%
+set dir2=%dir3%
 
 set cp=%dir%\demo-edit-jvm\target\classes;%dir%\graphics-jvm\target\classes;%dir%\graphics\target\classes;%dir%\graphics-common\target\classes;%dir%\angle-dll\target\classes;%dir%\demo-edit\target\classes;%dir%\parser\target\classes;%dir%\parser-common\target\classes;C:\Users\Kirill\.m2\repository\org\antlr\antlr4-runtime-teavm-compatible\4.13.2-SNAPSHOT\antlr4-runtime-teavm-compatible-4.13.2-SNAPSHOT.jar;%dir%\diff-model\target\classes;%dir%\parser-activity\target\classes;%dir%\fonts\target\classes;%dir%\codicon\target\classes;%dir%\demo-test-scenes\target\classes
 
