@@ -46,20 +46,15 @@ public class FileDiffHandler {
   private void compare() {
     boolean equals = Arrays.equals(leftText, rightText);
     int leftLength = leftText.length;
-    if (!equals) {
-      ArrayList<Object> result = new ArrayList<>();
-      result.add(new int[]{0});
-      ArrayOp.sendArrayList(result, r);
-    } else {
+    if (!equals) onCompared(false);
+    else {
       if (leftLength < readLength || start >= maxToRead) {
         if (start == maxToRead) {
           System.err.println("max size hit: \n" +
               "\tl=" + left.getFullPath() + "\n" +
               "\tr=" + right.getFullPath());
         }
-        ArrayList<Object> result = new ArrayList<>();
-        result.add(new int[]{1});
-        ArrayOp.sendArrayList(result, r);
+        onCompared(true);
       } else {
         start += readLength;
         if (readLength * 2 <= maxArraySize) {
@@ -72,5 +67,11 @@ public class FileDiffHandler {
         beginCompare();
       }
     }
+  }
+
+  protected void onCompared(boolean equals) {
+    ArrayList<Object> result = new ArrayList<>();
+    result.add(new int[]{equals ? 1 : 0});
+    ArrayOp.sendArrayList(result, r);
   }
 }

@@ -17,4 +17,9 @@ public class DiffRange {
   public final int toL() { return fromL + lenL; }
 
   public final int toR() { return fromR + lenR; }
+
+  @Override
+  public String toString() {
+    return String.format("[%d: %d) |-> [%d: %d)", fromL, fromL + lenL, fromR, fromR + lenR);
+  }
 }

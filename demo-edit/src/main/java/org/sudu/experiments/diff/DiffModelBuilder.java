@@ -9,6 +9,7 @@ import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.parser.common.TriConsumer;
 import org.sudu.experiments.ui.TreeNode;
 import org.sudu.experiments.ui.fs.DirectoryNode;
 import org.sudu.experiments.ui.fs.FileNode;
@@ -19,22 +20,26 @@ import java.util.Arrays;
 
 public class DiffModelBuilder {
 
-  public Runnable updateDiffInfo;
+  public TriConsumer<Boolean, TreeNode, TreeNode> updateDiffInfo;
   public RangeCtx rangeCtx = new RangeCtx();
   public WorkerJobExecutor executor;
   final boolean scanFileContent;
 
-  public DiffModelBuilder(Runnable updateDiffInfo, WorkerJobExecutor executor) {
+  public DiffModelBuilder(TriConsumer<Boolean, TreeNode, TreeNode> updateDiffInfo, WorkerJobExecutor executor) {
     this(updateDiffInfo, executor, true);
   }
 
   public DiffModelBuilder(
-      Runnable updateDiffInfo,
-      WorkerJobExecutor executor,
-      boolean scanFileContent) {
+      TriConsumer<Boolean, TreeNode, TreeNode> updateDiffInfo,
+      WorkerJobExecutor executor, boolean scanFileContent
+  ) {
     this.updateDiffInfo = updateDiffInfo;
     this.executor = executor;
     this.scanFileContent = scanFileContent;
+  }
+
+  public void compareRoots(DirectoryNode leftRoot, DirectoryNode rightRoot) {
+    compareRoots(leftRoot, rightRoot, new FolderDiffModel(null), new FolderDiffModel(null));
   }
 
   public void compareRoots(
@@ -171,7 +176,7 @@ public class DiffModelBuilder {
   void compareFiles(FileNode left, FileNode right, FolderDiffModel leftModel, FolderDiffModel rightModel) {
     if (scanFileContent) {
       executor.sendToWorker(
-          result -> onFilesCompared(leftModel, rightModel, result),
+          result -> onFilesCompared(left, right, leftModel, rightModel, result),
           DiffUtils.CMP_FILES,
           left.file, right.file
       );
@@ -181,7 +186,7 @@ public class DiffModelBuilder {
         protected void onComplete(int sizeL, int sizeR) {
           leftModel.itemCompared();
           rightModel.itemCompared();
-          onFilesCompared(leftModel, rightModel, sizeL == sizeR);
+          onFilesCompared(left, right, leftModel, rightModel, sizeL == sizeR, false);
         }
       };
     }
@@ -199,24 +204,31 @@ public class DiffModelBuilder {
   }
 
   void onFilesCompared(
+      FileNode leftNode, FileNode rightNode,
       FolderDiffModel leftModel, FolderDiffModel rightModel,
       Object[] result
   ) {
-    leftModel.itemCompared();
-    rightModel.itemCompared();
+    boolean needUpdate = false;
+    needUpdate |= leftModel.itemCompared();
+    needUpdate |= rightModel.itemCompared();
     if (result.length != 1) return;
     boolean equals = ((ArrayView) result[0]).ints()[0] == 1;
-    onFilesCompared(leftModel, rightModel, equals);
+    onFilesCompared(leftNode, rightNode, leftModel, rightModel, equals, needUpdate);
   }
 
-  void onFilesCompared(FolderDiffModel leftModel, FolderDiffModel rightModel, boolean equals) {
+  void onFilesCompared(
+      FileNode leftNode, FileNode rightNode,
+      FolderDiffModel leftModel, FolderDiffModel rightModel,
+      boolean equals, boolean needUpdate
+  ) {
     if (!equals) {
+      needUpdate = true;
       int rangeId = rangeCtx.nextId();
       leftModel.rangeId = rangeId;
       rightModel.rangeId = rangeId;
       rangeCtx.markUp(leftModel, rightModel);
     }
-    updateDiffInfo.run();
+    updateDiffInfo.accept(needUpdate, leftNode, rightNode);
   }
 
   void onFoldersCompared(
@@ -224,6 +236,9 @@ public class DiffModelBuilder {
       FolderDiffModel leftModel, FolderDiffModel rightModel,
       Object[] result
   ) {
+    // result = ints + leftItems + rightItems
+    // result[0] = [leftLen, rightLen] + leftTypes[leftLen] + rightTypes[rightLen]
+
     if (result.length == 0) return;
     int[] ints = ((ArrayView) result[0]).ints();
     int leftLen = ints[0], rightLen = ints[1];
@@ -235,6 +250,7 @@ public class DiffModelBuilder {
     leftModel.setChildren(leftLen);
     rightModel.setChildren(rightLen);
 
+    boolean needUpdate = false;
     int lP = 0, rP = 0;
     boolean changed = true;
     while (changed) {
@@ -261,9 +277,11 @@ public class DiffModelBuilder {
       }
       if (changed) {
         rangeCtx.markUp(leftModel, rightModel);
+        needUpdate = true;
         continue;
       }
       while (rP < rightLen && rightTypes[rP] == DiffTypes.INSERTED) {
+        needUpdate = true;
         changed = true;
         rightModel.child(rP).diffType = DiffTypes.INSERTED;
         rightModel.child(rP).rangeId = id;
@@ -271,9 +289,12 @@ public class DiffModelBuilder {
         rightModel.child(rP).itemCompared();
         rP++;
       }
-      if (changed) rangeCtx.markUp(leftModel, rightModel);
+      if (changed) {
+        rangeCtx.markUp(leftModel, rightModel);
+        needUpdate = true;
+      }
     }
-    updateDiffInfo.run();
+    updateDiffInfo.accept(needUpdate, left, right);
   }
 
   void sendCompare(

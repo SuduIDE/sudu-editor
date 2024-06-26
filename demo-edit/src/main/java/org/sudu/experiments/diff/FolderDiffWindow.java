@@ -3,6 +3,7 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.update.DiffModelUpdater;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
@@ -16,6 +17,10 @@ import org.sudu.experiments.ui.fs.DirectoryNode;
 import org.sudu.experiments.ui.fs.FileNode;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class FolderDiffWindow extends ToolWindow0 {
@@ -26,6 +31,10 @@ public class FolderDiffWindow extends ToolWindow0 {
   DirectoryNode leftRoot, rightRoot;
   FolderDiffModel leftModel, rightModel;
   DiffModelBuilder builder;
+  private static final boolean PRINT_STAT = true;
+  private int updateCnt = 0;
+  private long startTime;
+  private Set<TreeNode> leftModelSet, rightModelSet;
 
   public FolderDiffWindow(
       EditorColorScheme theme,
@@ -50,7 +59,7 @@ public class FolderDiffWindow extends ToolWindow0 {
     windowManager.addWindow(window);
     leftModel = FolderDiffModel.DEFAULT;
     rightModel = FolderDiffModel.DEFAULT;
-    builder = new DiffModelBuilder(this::updateDiffInfo, window.context.window);
+    builder = new DiffModelBuilder(this::checkedUpdate, window.context.window);
   }
 
   protected void dispose() {
@@ -139,9 +148,7 @@ public class FolderDiffWindow extends ToolWindow0 {
         if (oppositeDir != null && oppositeDir.isClosed()) {
           oppositeDir.onClick.run();
         }
-        if (node.childrenLength() > 0) {
-          treeView.updateModel();
-        }
+        if (node.childrenLength() > 0) updateModel(treeView);
         updateDiffInfo();
         if (node.folders().length == 1 && node.files().length == 0) {
           node.folders()[0].onClick.run();
@@ -154,9 +161,7 @@ public class FolderDiffWindow extends ToolWindow0 {
 
       @Override
       public void folderClosed(DirectoryNode node) {
-        if (node.childrenLength() > 0) {
-          treeView.updateModel();
-        }
+        if (node.childrenLength() > 0) updateModel(treeView);
         node.readOnClick();
         DirectoryNode oppositeDir = findOppositeDir(node);
         setOppositeSel(oppositeDir);
@@ -195,20 +200,53 @@ public class FolderDiffWindow extends ToolWindow0 {
     };
   }
 
-  private void compareRootFolders() {
+  protected void compareRootFolders() {
     if (leftRoot == null || rightRoot == null) return;
+    startTime = System.currentTimeMillis();
     leftModel = new FolderDiffModel(null);
     rightModel = new FolderDiffModel(null);
-    builder.compareRoots(leftRoot, rightRoot, leftModel, rightModel);
+    DiffModelUpdater updateHandler = new DiffModelUpdater(
+        leftModel, rightModel,
+        leftRoot.dir, rightRoot.dir,
+        window.context.window, this::updateDiffInfo
+    );
+    updateHandler.beginCompare();
   }
 
-  private void updateDiffInfo() {
+  private boolean needUpdate(TreeNode left, TreeNode right) {
+    return leftModelSet.contains(left) || rightModelSet.contains(right);
+  }
+
+  private void checkedUpdate(
+      boolean needUpdate,
+      TreeNode leftNode, TreeNode rightNode
+  ) {
     if (rootView.left == null || rootView.right == null) return;
+    if (needUpdate || needUpdate(leftNode, rightNode)) updateDiffInfo();
+  }
+
+
+  protected void updateDiffInfo() {
+    if (rootView.left == null || rootView.right == null) return;
+    updateCnt++;
     rootView.left.updateModel(leftModel);
     rootView.right.updateModel(rightModel);
     var left = rootView.left.model();
     var right = rootView.right.model();
     rootView.setDiffModel(builder.getDiffInfo(left, right));
+    window.context.window.repaint();
+    if (leftModel.compared && rightModel.compared) {
+      if (PRINT_STAT) {
+        System.out.println("Compared in " + (System.currentTimeMillis() - startTime) + " ms");
+        System.out.println("Total updates " + updateCnt);
+      }
+    }
+  }
+
+  private void updateModel(FileTreeView fileTreeView) {
+    fileTreeView.updateModel();
+    leftModelSet = new HashSet<>(Arrays.asList(rootView.left.model()));
+    rightModelSet = new HashSet<>(Arrays.asList(rootView.right.model()));
   }
 
   private void selectFolder(boolean left) {

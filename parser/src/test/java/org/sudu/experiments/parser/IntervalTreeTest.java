@@ -93,7 +93,7 @@ public class IntervalTreeTest {
     Assertions.assertEquals(0, root.lastChild().getStart());
     Assertions.assertEquals(4, root.lastChild().getStop());
     Assertions.assertEquals(1, root.lastChild().children.size());
-    Assertions.assertTrue(root.lastChild().needReparse);
+    Assertions.assertFalse(root.lastChild().needReparse);
 
     Assertions.assertEquals(0, root.lastChild().lastChild().getStart());
     Assertions.assertEquals(4, root.lastChild().lastChild().getStop());
@@ -110,7 +110,7 @@ public class IntervalTreeTest {
 
     Assertions.assertEquals(0, root.getStart());
     Assertions.assertEquals(0, root.getStop());
-    Assertions.assertFalse(root.needReparse);
+    Assertions.assertTrue(root.needReparse);
   }
 
 }

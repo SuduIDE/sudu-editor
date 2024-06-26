@@ -1,6 +1,6 @@
 package org.sudu.experiments.webdemo;
 
-import org.sudu.experiments.math.XorShiftRandom;
+//import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,11 +28,11 @@ public class SessionManager {
   }
 
   static String rngString(int sessionId, int salt, int l) {
-    XorShiftRandom xr = new XorShiftRandom(sessionId + 1, salt);
+//    XorShiftRandom xr = new XorShiftRandom(sessionId + 1, salt);
     char[] r = new char[l];
     int chars = 'z' - 'a' + 1;
     for (int i = 0; i < l; i++) {
-      int nextInt = xr.nextInt(chars + chars + 10);
+      int nextInt = (int) (Math.random() * (chars + chars + 10));
       int nChar = nextInt < chars ? 'a' + nextInt
           : nextInt < chars * 2 ? 'A' + nextInt - chars
           : nextInt + '0' - chars * 2;

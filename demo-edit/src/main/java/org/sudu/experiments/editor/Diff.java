@@ -3,9 +3,9 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.math.V2i;
 
 public class Diff {
-  int line, pos;
+  public int line, pos;
+  public boolean isDelete;
   V2i caretReturn;
-  boolean isDelete;
   String change;
 
   public Diff(int line, int pos, boolean isDelete, String change) {
@@ -22,6 +22,17 @@ public class Diff {
     this.caretReturn = new V2i(caretLine, caretPos);
     this.isDelete = isDelete;
     this.change = change;
+  }
+
+  public int length() {
+    return change.length();
+  }
+
+  public int lineCount() {
+    int lineCnt = 0;
+    for (int i = 0; i < change.length(); i++)
+      if (change.charAt(i) == '\n') lineCnt++;
+    return lineCnt;
   }
 
   private V2i makeCaretReturnPos(int line, int pos, boolean isDelete, String change) {

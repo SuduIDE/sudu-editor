@@ -1,10 +1,7 @@
 package org.sudu.experiments.editor.worker.proxy;
 
 import org.sudu.experiments.math.ArrayOp;
-import org.sudu.experiments.parser.common.base.BaseFirstLinesLexer;
-import org.sudu.experiments.parser.common.base.BaseFullParser;
-import org.sudu.experiments.parser.common.base.BaseFullScopeParser;
-import org.sudu.experiments.parser.common.base.BaseIntervalParser;
+import org.sudu.experiments.parser.common.base.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,9 +66,8 @@ public abstract class BaseProxy {
     ArrayOp.sendArrayList(list, result);
   }
 
-  public abstract BaseFirstLinesLexer<?> getFirstLinesLexer();
-
-  public abstract BaseFullParser<?> getFullParser();
+  public abstract FirstLinesIntLexer getFirstLinesLexer();
+  public abstract IntParser getFullParser();
   public abstract BaseFullScopeParser<?> getFullScopeParser();
   public abstract BaseIntervalParser<?> getIntervalParser();
 

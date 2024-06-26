@@ -75,7 +75,8 @@ public interface Languages {
 
   static boolean isFullReparseOnEdit(String language) {
     return language.equals(ACTIVITY)
-        || language.equals(HTML);
+        || language.equals(HTML)
+        || language.equals(TEXT);
   }
 
 }

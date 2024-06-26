@@ -22,14 +22,14 @@ public class MyersLCS extends LCS {
   }
 
   @Override
-  protected int[] findCommon() {
+  public int[][] findCommon() {
     int threshold = 20000 + 10 * (int) Math.sqrt(lLen + rLen);
     lcs(0, lLen, 0, rLen, Math.min(threshold, lLen + rLen));
 
-    int[] res = new int[bitsetLen];
+    int[][] res = new int[bitsetLen][2];
     int ptr = 0;
     for (int i = 0; i < lLen; i++) {
-      if (common.get(i)) res[ptr++] = indL(i);
+      if (common.get(i)) res[ptr++] = L[i];
     }
     if (ptr == bitsetLen) return res;
     else return Arrays.copyOf(res, ptr);

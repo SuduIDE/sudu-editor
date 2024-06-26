@@ -1,6 +1,5 @@
 package org.sudu.experiments.editor.worker.proxy;
 
-import org.sudu.experiments.editor.worker.parser.ElementParser;
 import org.sudu.experiments.math.ArrayOp;
 
 import java.nio.charset.StandardCharsets;
@@ -21,6 +20,7 @@ public class FileProxy {
   public static final JavaScriptProxy javascriptProxy = new JavaScriptProxy();
   public static final ActivityProxy activityProxy = new ActivityProxy();
   public static final HtmlProxy htmlProxy = new HtmlProxy();
+  public static final TextProxy textProxy = new TextProxy();
 
   public static final String asyncParseFile = "asyncParseFile";
 
@@ -63,23 +63,23 @@ public class FileProxy {
 
   public static void parseFirstLines(BaseProxy proxy, char[] source, int numOfLines, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    if (proxy == null) ElementParser.parse(source, list);
-    else proxy.parseFirstLines(source, numOfLines, list);
+    /*if (proxy == null) ElementParser.parse(source, list);
+    else */proxy.parseFirstLines(source, numOfLines, list);
     ArrayOp.sendArrayList(list, result);
   }
 
   public static void parseFileStructure(BaseProxy proxy, char[] source, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    if (proxy == null) ElementParser.parse(source, list);
-    else if (proxy == javaProxy) javaProxy.parseStructure(source, list);
+    /*if (proxy == null) ElementParser.parse(source, list);
+    else */if (proxy == javaProxy) javaProxy.parseStructure(source, list);
     else proxy.parseFullFile(source, list);
     ArrayOp.sendArrayList(list, result);
   }
 
   public static void parseFullFile(BaseProxy proxy, char[] source, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
-    if (proxy == null) ElementParser.parse(source, list);
-    else if (proxy == javaProxy || proxy == cppProxy) proxy.parseFullFileScopes(source, list);
+    /*if (proxy == null) ElementParser.parse(source, list);
+    else */if (proxy == javaProxy || proxy == cppProxy) proxy.parseFullFileScopes(source, list);
     else proxy.parseFullFile(source, list);
     ArrayOp.sendArrayList(list, result);
   }
@@ -95,7 +95,7 @@ public class FileProxy {
       case JS_FILE -> javascriptProxy;
       case ACTIVITY_FILE -> activityProxy;
       case HTML_FILE -> htmlProxy;
-      default -> null;
+      default -> textProxy;
     };
   }
 

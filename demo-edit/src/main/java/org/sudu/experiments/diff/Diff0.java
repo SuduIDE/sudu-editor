@@ -48,7 +48,9 @@ public class Diff0 extends WindowScene implements
     middleLine.setLeftRight(editor1, editor2);
 
     editor1.setFullFileParseListener(this::fullFileParseListener);
+    editor1.setIterativeParseFileListener(this::iterativeParseFileListener);
     editor2.setFullFileParseListener(this::fullFileParseListener);
+    editor2.setIterativeParseFileListener(this::iterativeParseFileListener);
 
     highlightResolveErrors(false);
 
@@ -77,6 +79,10 @@ public class Diff0 extends WindowScene implements
     }
   }
 
+  void iterativeParseFileListener(EditorComponent editor, int start, int stop) {
+    fullFileParseListener(editor); // todo? not send full file to lcs
+  }
+
   void highlightResolveErrors(boolean highlight) {
     editor1.highlightResolveError(highlight);
     editor2.highlightResolveError(highlight);
@@ -100,7 +106,7 @@ public class Diff0 extends WindowScene implements
     return s -> {
       editor.handleInsert(s);
       editor.setDiffModel(null);
-      editor.parseFullFile();
+//      editor.parseFullFile();
     };
   }
 

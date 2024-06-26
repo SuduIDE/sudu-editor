@@ -1,4 +1,4 @@
-package org.sudu.experiments.diff;
+package org.sudu.experiments.diff.ranges;
 
 public abstract class BaseRange<S> {
 

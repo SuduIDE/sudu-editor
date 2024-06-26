@@ -1,5 +1,6 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.diff.update.Collector;
 import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.js.NodeWorker;
@@ -44,6 +45,7 @@ public class DiffEngineWorker {
       case TestJobs.asyncWithDir -> TestJobs.asyncWithDir(dir(a, 0), r);
       case DiffUtils.CMP_FILES -> DiffUtils.compareFiles(file(a, 0), file(a, 1), r);
       case DiffUtils.CMP_FOLDERS -> DiffUtils.compareFolders(dir(a, 0), dir(a, 1), r);
+      case Collector.COLLECT -> Collector.collect(dir(a, 0), dir(a, 1), r);
       default -> System.out.println("asyncMethod = " + method);
     }
   }

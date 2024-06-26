@@ -25,7 +25,13 @@
       <version>1.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
-<!--    <dependency>-->
+      <dependency>
+          <groupId>org.sudu</groupId>
+          <artifactId>parser-common</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <scope>compile</scope>
+      </dependency>
+      <!--    <dependency>-->
 <!--      <groupId>semilocalduplicatedetection</groupId>-->
 <!--      <artifactId>GeneralSemiLocalSubsequenceProblem</artifactId>-->
 <!--      <version>1.0-SNAPSHOT</version>-->

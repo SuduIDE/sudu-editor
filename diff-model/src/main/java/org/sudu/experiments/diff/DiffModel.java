@@ -5,21 +5,22 @@ import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.lcs.DummyLCS;
 import org.sudu.experiments.diff.lcs.LCS;
 import org.sudu.experiments.diff.lcs.MyersLCS;
-import org.sudu.experiments.diff.utils.Enumerator;
-import org.sudu.experiments.diff.utils.Utils;
+import org.sudu.experiments.diff.ranges.BaseRange;
+import org.sudu.experiments.diff.ranges.CommonRange;
+import org.sudu.experiments.diff.ranges.Diff;
+import org.sudu.experiments.utils.Enumerator;
+import org.sudu.experiments.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class DiffModel {
 
   public LineDiff[] lineDiffsN, lineDiffsM;
   public List<BaseRange<CodeLineS>> linesRanges;
-  public static final boolean PRINT_LCS_TIME = false;
+  private static final boolean PRINT_LCS_TIME = false;
 
   public int[] findDiffs(
       char[] charsN, int[] intsN,
@@ -88,19 +89,19 @@ public class DiffModel {
     diff.diffM.forEach(elem -> lineDiffsM[elem.lineNum].elementTypes[elem.elemNum] = DiffTypes.EDITED);
   }
 
-  private CodeElementS[] flatElements(CodeLineS[] lines) {
+  private static CodeElementS[] flatElements(CodeLineS[] lines) {
     return flatElements(Arrays.stream(lines));
   }
 
-  private CodeElementS[] flatElements(List<CodeLineS> lines) {
+  public static CodeElementS[] flatElements(List<CodeLineS> lines) {
     return flatElements(lines.stream());
   }
 
-  private CodeElementS[] flatElements(Stream<CodeLineS> stream) {
+  private static CodeElementS[] flatElements(Stream<CodeLineS> stream) {
     return stream.flatMap(it -> Arrays.stream(it.elements)).toArray(CodeElementS[]::new);
   }
 
-  private void prepare(CodeLineS[] doc) {
+  public static void prepare(CodeLineS[] doc) {
     for (int i = 0; i < doc.length; i++) {
       doc[i].lineNum = i;
       for (int j = 0; j < doc[i].elements.length; j++) {
@@ -168,8 +169,19 @@ public class DiffModel {
     return countRanges(L, R, DiffModel::getMyersLCS);
   }
 
-  public static <S> List<BaseRange<S>> countFolderRanges(S[] L, S[] R) {
-    return countRanges(L, R, DiffModel::getDummyLCS);
+  public static <S> BitSet[] countFolderCommon(S[] L, S[] R) {
+    Enumerator<S> enumerator = new Enumerator<>(L);
+    int[] rightEnum = enumerator.enumerate(R);
+
+    BitSet leftCommon = new BitSet();
+    BitSet rightCommon = new BitSet();
+    for (int i = 0; i < rightEnum.length; i++) {
+      int rightNode = rightEnum[i];
+      if (rightNode >= L.length) continue;
+      leftCommon.set(rightNode);
+      rightCommon.set(i);
+    }
+    return new BitSet[]{leftCommon, rightCommon};
   }
 
   public static <S> List<BaseRange<S>> countRanges(S[] L, S[] R, BiFunction<int[][], int[][], LCS> getLCS) {
@@ -183,8 +195,8 @@ public class DiffModel {
     if (lLen == rLen && start == minLen) return singleCommon(minLen);
 
     var enumerator = new Enumerator<S>();
-    var prepL = enumerator.enumerate(L, start, endCut);
-    var prepR = enumerator.enumerate(R, start, endCut);
+    var prepL = enumerator.enumerateWithPositions(L, start, endCut);
+    var prepR = enumerator.enumerateWithPositions(R, start, endCut);
     var discardedLR = Utils.dropUnique(prepL, prepR, enumerator.counter);
     if (discardedLR[0].length == 0 && discardedLR[1].length == 0) return fastDiff(L, R, start, endCut);
 

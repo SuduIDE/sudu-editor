@@ -10,6 +10,8 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.*;
 import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.parser.common.TriConsumer;
+import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ScrollBar;
 import org.sudu.experiments.ui.SetCursor;
@@ -88,6 +90,8 @@ public class EditorComponent extends View implements
   Consumer<String> onError = System.err::println;
   Runnable hScrollListener, vScrollListener;
   Consumer<EditorComponent> fullFileParseListener;
+  TriConsumer<EditorComponent, Integer, Integer> iterativeParseFileListener;
+  TriConsumer<EditorComponent, Diff, Boolean> onDiffMadeListener;
   int vScrollPos = 0;
 
   final ClrContext lrContext;
@@ -139,6 +143,14 @@ public class EditorComponent extends View implements
 
   public void setFullFileParseListener(Consumer<EditorComponent> listener) {
     fullFileParseListener = listener;
+  }
+
+  public void setIterativeParseFileListener(TriConsumer<EditorComponent, Integer, Integer> listener) {
+    iterativeParseFileListener = listener;
+  }
+
+  public void setOnDiffMadeListener(TriConsumer<EditorComponent, Diff, Boolean> listener) {
+    onDiffMadeListener = listener;
   }
 
   private void internalLayout(V2i pos, V2i size, float dpr) {
@@ -461,13 +473,13 @@ public class EditorComponent extends View implements
       fullWidth = Math.max(fullWidth, cLine.lineMeasure() + rightPadding);
       int yPosition = lineHeight * i - vScrollPos;
 
-      LineDiff diff = diffModel == null ? null : diffModel[i];
+      LineDiff diff = diffModel == null || i >= diffModel.length ? null : diffModel[i];
       line.draw(
           pos.y + yPosition, dx, g,
           editorWidth, lineHeight, model.hScrollPos,
           colors, getSelLineSegment(i, cLine),
           model.definition, model.usages,
-          model.caretLine == i, diffModel != null,
+          model.caretLine == i,
           diff);
     }
 
@@ -477,10 +489,10 @@ public class EditorComponent extends View implements
       int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection().isTailSelected(i);
       Color tailColor = colors.editor.lineTailContent;
-      boolean isCurrentLine = model.caretLine == i && diffModel == null;
+      boolean isCurrentLine = model.caretLine == i;
 
       if (isTailSelected) tailColor = colors.editor.selectionBg;
-      else if (diffModel != null && i < diffModel.length && diffModel[i] != null) {
+      else if (diffModel != null && i < diffModel.length && diffModel[i] != null && !diffModel[i].isDefault()) {
         tailColor = (Color) colors.diff.getDiffColor(colors, diffModel[i].type);
       }
       else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
@@ -560,9 +572,14 @@ public class EditorComponent extends View implements
   private void drawLineNumbers(int firstLine, int lastLine) {
     int editorBottom = size.y;
     int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
-
-    lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine,
-        diffModel() != null ? -1 : model.caretLine, g, colors);
+    var diffModel = diffModel();
+    var diff = diffModel != null && model.caretLine < diffModel.length
+        ? diffModel[model.caretLine]
+        : null;
+    int caretLine = diff != null && !diff.isDefault()
+        ? -1
+        : model.caretLine;
+    lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine, caretLine, g, colors);
   }
 
   public int getFirstLine() {
@@ -746,7 +763,7 @@ public class EditorComponent extends View implements
   public boolean handleInsert(String s) {
     if (readonly) return false;
     if (selection().isAreaSelected()) deleteSelectedArea();
-    String[] lines = s.replace("\r", "").split("\n", -1);
+    String[] lines = SplitText.split(s);
 
     model.document.insertLines(model.caretLine, model.caretCharPos, lines);
 
@@ -1622,6 +1639,20 @@ public class EditorComponent extends View implements
   public void fireFullFileParsed() {
     if (fullFileParseListener != null) {
       fullFileParseListener.accept(this);
+    }
+  }
+
+  @Override
+  public void fireFileIterativeParsed(int start, int stop) {
+    if (iterativeParseFileListener != null) {
+      iterativeParseFileListener.accept(this, start, stop);
+    }
+  }
+
+  @Override
+  public void onDiffMade(Diff diff, boolean isUndo) {
+    if (onDiffMadeListener != null) {
+      onDiffMadeListener.accept(this, diff, isUndo);
     }
   }
 

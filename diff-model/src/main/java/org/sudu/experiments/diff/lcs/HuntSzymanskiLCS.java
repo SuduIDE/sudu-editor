@@ -1,6 +1,6 @@
 package org.sudu.experiments.diff.lcs;
 
-import org.sudu.experiments.diff.utils.Utils;
+import org.sudu.experiments.utils.Utils;
 import java.util.*;
 
 /**
@@ -19,7 +19,7 @@ public class HuntSzymanskiLCS extends LCS {
   }
 
   @Override
-  protected int[] findCommon() {
+  public int[][] findCommon() {
     List<Integer>[] rMatchList = getMatchList();
     int start = 0;
     int end = 0;
@@ -47,14 +47,14 @@ public class HuntSzymanskiLCS extends LCS {
         }
       }
     }
-    return Utils.toIntArray(fillResult(linkL[m]));
+    return Utils.toIntIntArray(fillResult(linkL[m]));
   }
 
-  private LinkedList<Integer> fillResult(Link linkL) {
-    LinkedList<Integer> common = new LinkedList<>();
+  private LinkedList<int[]> fillResult(Link linkL) {
+    LinkedList<int[]> common = new LinkedList<>();
     var cur = linkL;
     while (cur != null) {
-      common.addFirst(indL(cur.ind));
+      common.addFirst(L[cur.ind]);
       cur = cur.link;
     }
     return common;

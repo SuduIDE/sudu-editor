@@ -2,6 +2,7 @@ package org.sudu.experiments.parser.common.base;
 
 import org.antlr.v4.runtime.*;
 import org.sudu.experiments.arrays.ArrayWriter;
+import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.parser.*;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.Pos;
@@ -91,9 +92,9 @@ public abstract class BaseParser<P extends Parser> {
     tokenStyles = new int[1];
   }
 
-  protected void writeTokens(int N, Map<Integer, List<Token>> tokensByLine) {
+  protected void writeTokens(int N, List<Token>[] tokensByLine) {
     for (int i = 0; i < N; i++) {
-      var tokensOnLine = tokensByLine.getOrDefault(i + 1, Collections.emptyList());
+      var tokensOnLine = tokensByLine[i];
       writer.write(tokensOnLine.size());
       for (var token: tokensOnLine) {
         int start = token.getStartIndex();
@@ -120,16 +121,32 @@ public abstract class BaseParser<P extends Parser> {
     }
   }
 
-  protected Map<Integer, List<Token>> groupTokensByLine(List<Token> allTokens) {
-    Map<Integer, List<Token>> lineToTokens = new HashMap<>();
+  protected List<Token>[] groupTokensByLine(List<Token> allTokens, int N) {
+    List<Token>[] lineToTokens = new List[N];
     for (var token : allTokens) {
       for (var splitted : splitToken(token)) {
-        int line = splitted.getLine();
-        if (!lineToTokens.containsKey(line)) lineToTokens.put(line, new ArrayList<>());
-        lineToTokens.get(line).add(splitted);
+        int line = splitted.getLine() - 1;
+        if (line >= lineToTokens.length) lineToTokens = ArrayOp.resizeOrReturn(lineToTokens, line + 1);
+        if (lineToTokens[line] == null) lineToTokens[line] = new ArrayList<>();
+        lineToTokens[line].add(splitted);
       }
     }
     return lineToTokens;
+  }
+
+  protected int filter(List<Token>[] tokensByLine) {
+    int M = 0;
+    int N = tokensByLine.length;
+    for (int i = 0; i < N; i++) {
+      if (tokensByLine[i] != null) {
+        var filtered = tokensByLine[i].stream()
+            .filter(this::tokenFilter)
+            .toList();
+        tokensByLine[i] = filtered;
+        M += filtered.size();
+      } else tokensByLine[i] = Collections.emptyList();
+    }
+    return M;
   }
 
   protected List<Token> splitToken(Token token) {
@@ -155,4 +172,16 @@ public abstract class BaseParser<P extends Parser> {
     return new IntervalNode(defaultInterval());
   }
 
+  protected IntervalNode getLinesIntervalNode(List<Token>[] tokensByLine) {
+    IntervalNode root = defaultIntervalNode();
+    int lineStart = 0;
+    for (var line: tokensByLine) {
+      if (line.isEmpty()) continue;
+      int lineStop = line.get(line.size() - 1).getStopIndex() + 1;
+      root.addChild(new Interval(lineStart, lineStop, 0));
+      lineStart = lineStop;
+    }
+    if (root.children.isEmpty()) root.addChild(defaultInterval());
+    return root;
+  }
 }

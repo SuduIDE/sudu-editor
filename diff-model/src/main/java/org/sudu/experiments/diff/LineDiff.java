@@ -19,4 +19,7 @@ public class LineDiff {
     this.elementTypes = new int[lineLen];
   }
 
+  public boolean isDefault() {
+    return type == DiffTypes.DEFAULT;
+  }
 }

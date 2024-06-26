@@ -6,13 +6,14 @@ import org.sudu.experiments.parser.common.tree.IntervalNode;
 
 import java.util.Arrays;
 
-public abstract class BaseFirstLinesLexer<P extends Parser> extends BaseFullParser<P> {
+public abstract class BaseFirstLinesLexer<P extends Parser> extends BaseFullParser<P> implements FirstLinesIntLexer {
 
   @Override
   public int[] parse(char[] source) {
     return parse(source, Integer.MAX_VALUE);
   }
 
+  @Override
   public int[] parse(char[] chars, int numOfLines) {
     long parsingStartTime = System.currentTimeMillis();
     initLexer(prepareChars(chars, numOfLines));

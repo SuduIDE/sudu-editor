@@ -17,33 +17,10 @@ public class JavaScriptLightParser extends BaseFullParser<JavaScriptParser> {
     long parsingTime = System.currentTimeMillis();
     initLexer(source);
     highlightTokens();
-    var result = getInts(defaultIntervalNode());
+    var result = getIntsWithLinesIntervalNode();
     System.out.println("Light lexing js time: " + (System.currentTimeMillis() - parsingTime) + "ms");
     return result;
   }
-
-//  public int[] parse(String source) {
-//    long parsingTime = System.currentTimeMillis();
-//
-//    initLexer(source);
-//
-//    JavaScriptParser parser = new JavaScriptParser(tokenStream);
-//
-//    var program = parser.program();
-//    ParseTreeWalker walker = new ParseTreeWalker();
-//
-//    highlightTokens();
-//
-//    JsWalker jsWalker = new JsWalker(tokenTypes, tokenStyles);
-//    walker.walk(jsWalker, program);
-//
-//    jsWalker.intervals.add(new Interval(0, source.length(), ParserConstants.IntervalTypes.Js.PROGRAM));
-//
-//    //todo
-//    var result = getInts(null);
-//    System.out.println("Parsing full js time: " + (System.currentTimeMillis() - parsingTime) + "ms");
-//    return result;
-//  }
 
   @Override
   protected Lexer initLexer(CharStream stream) {
