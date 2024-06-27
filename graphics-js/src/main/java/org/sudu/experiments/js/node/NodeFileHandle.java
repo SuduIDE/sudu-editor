@@ -64,6 +64,11 @@ public class NodeFileHandle implements FileHandle {
   }
 
   @Override
+  public void syncAccess(Consumer<SyncAccess> consumer, Consumer<String> onError) {
+    onError.accept("not implemented yet");
+  }
+
+  @Override
   public String getName() {
     return name;
   }

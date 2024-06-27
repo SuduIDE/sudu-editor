@@ -5,7 +5,11 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -15,6 +19,8 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
 
   static final Function<byte[], String> asUtf8String = b -> new String(b, StandardCharsets.UTF_8);
   static final Function<byte[], byte[]> identity = b -> b;
+  static final Set<OpenOption> none = Collections.emptySet();
+  static final FileAttribute[] noAttributes = new FileAttribute[0];
 
   public JvmFileHandle(Path path, Path root, Executor bgWorker, Executor edt) {
     super(path, root, bgWorker, edt);
@@ -35,7 +41,7 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
       if (size > (int) size) throw new IOException("size > (int)size");
       return (int) size;
     } catch (IOException e) {
-      System.err.println(e.getMessage());
+      print(e);
       return 0;
     }
   }
@@ -70,8 +76,7 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
       Function<byte[], T> transform,
       int position, int length
   ) {
-
-    try (SeekableByteChannel ch = Files.newByteChannel(path)) {
+    try (SeekableByteChannel ch = openByteChannel()) {
       if (position != 0)
         ch.position(position);
       int avl = intSize(ch.size() - position);
@@ -94,6 +99,10 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
     }
   }
 
+  SeekableByteChannel openByteChannel() throws IOException {
+    return Files.newByteChannel(path, none, noAttributes);
+  }
+
   static <T> T readChannel(
       Function<byte[], T> transform, int length, SeekableByteChannel ch
   ) throws IOException {
@@ -107,5 +116,21 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
     if (iSize != size)
       throw new IOException("file too large");
     return iSize;
+  }
+
+  @Override
+  public void syncAccess(
+      Consumer<FileHandle.SyncAccess> h,
+      Consumer<String> onError
+  ) {
+    try {
+      h.accept(new JvmSyncAccess(openByteChannel()));
+    } catch (IOException e) {
+      onError.accept(e.getMessage());
+    }
+  }
+
+  static void print(IOException e) {
+    System.err.println(e.getMessage());
   }
 }
