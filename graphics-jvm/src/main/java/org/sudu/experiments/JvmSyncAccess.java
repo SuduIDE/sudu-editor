@@ -40,4 +40,14 @@ class JvmSyncAccess implements FileHandle.SyncAccess {
     }
     return 0;
   }
+
+  @Override
+  public int hashCode() {
+    return ch.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return ch.toString();
+  }
 }

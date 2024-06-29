@@ -80,12 +80,11 @@ public class Collector {
       FolderDiffModel leftModel, FolderDiffModel rightModel,
       FileHandle leftFile, FileHandle rightFile
   ) {
-    FileDiffHandler handler = new FileDiffUpdateHandler(
+    new FileDiffUpdateHandler(
         leftFile, rightFile,
         leftModel, rightModel,
         rangeCtx, this::onItemCompared
     );
-    handler.beginCompare();
   }
 
   private void onItemCompared() {

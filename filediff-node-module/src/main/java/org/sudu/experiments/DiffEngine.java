@@ -181,7 +181,7 @@ public class DiffEngine implements DiffEngineJs {
     JsHelper.consoleInfo("  content = ", JSBoolean.valueOf(content));
     JsTime jsTime = new JsTime();
     new FolderDiffTest(
-        dir1, dir2, content, pool,
+        dir1, dir2, content, false, pool,
         jsTime, JsFunctions.wrap(onComplete)
     ).scan();
   }

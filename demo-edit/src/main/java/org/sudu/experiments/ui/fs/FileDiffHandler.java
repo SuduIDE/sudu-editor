@@ -1,11 +1,8 @@
 package org.sudu.experiments.ui.fs;
 
 import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.math.ArrayOp;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.function.Consumer;
 
 public class FileDiffHandler {
 
@@ -16,11 +13,11 @@ public class FileDiffHandler {
   int readLength = minArraySize;
 
   byte[] leftText, rightText;
-  Consumer<Object[]> r;
+  DiffResult r;
   FileHandle left, right;
   int start = 0;
 
-  public FileDiffHandler(Consumer<Object[]> r, FileHandle left, FileHandle right) {
+  public FileDiffHandler(DiffResult r, FileHandle left, FileHandle right) {
     this.r = r;
     this.left = left;
     this.right = right;
@@ -46,7 +43,7 @@ public class FileDiffHandler {
   private void compare() {
     boolean equals = Arrays.equals(leftText, rightText);
     int leftLength = leftText.length;
-    if (!equals) onCompared(false);
+    if (!equals) r.onCompared(false);
     else {
       if (leftLength < readLength || start >= maxToRead) {
         if (start == maxToRead) {
@@ -54,7 +51,7 @@ public class FileDiffHandler {
               "\tl=" + left.getFullPath() + "\n" +
               "\tr=" + right.getFullPath());
         }
-        onCompared(true);
+        r.onCompared(true);
       } else {
         start += readLength;
         if (readLength * 2 <= maxArraySize) {
@@ -67,11 +64,5 @@ public class FileDiffHandler {
         beginCompare();
       }
     }
-  }
-
-  protected void onCompared(boolean equals) {
-    ArrayList<Object> result = new ArrayList<>();
-    result.add(new int[]{equals ? 1 : 0});
-    ArrayOp.sendArrayList(result, r);
   }
 }

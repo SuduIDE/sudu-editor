@@ -23,23 +23,31 @@ public class DiffModelBuilder {
   public TriConsumer<Boolean, TreeNode, TreeNode> updateDiffInfo;
   public RangeCtx rangeCtx = new RangeCtx();
   public WorkerJobExecutor executor;
-  final boolean scanFileContent;
+  final boolean scanFileContent, syncAccess;
 
-  public DiffModelBuilder(TriConsumer<Boolean, TreeNode, TreeNode> updateDiffInfo, WorkerJobExecutor executor) {
-    this(updateDiffInfo, executor, true);
+  public DiffModelBuilder(
+      TriConsumer<Boolean, TreeNode, TreeNode> updateDiffInfo,
+      WorkerJobExecutor executor
+  ) {
+    this(updateDiffInfo, executor, true, false);
   }
 
   public DiffModelBuilder(
       TriConsumer<Boolean, TreeNode, TreeNode> updateDiffInfo,
-      WorkerJobExecutor executor, boolean scanFileContent
+      WorkerJobExecutor executor,
+      boolean scanFileContent,
+      boolean syncAccess
   ) {
     this.updateDiffInfo = updateDiffInfo;
     this.executor = executor;
     this.scanFileContent = scanFileContent;
+    this.syncAccess = syncAccess;
   }
 
   public void compareRoots(DirectoryNode leftRoot, DirectoryNode rightRoot) {
-    compareRoots(leftRoot, rightRoot, new FolderDiffModel(null), new FolderDiffModel(null));
+    compareRoots(leftRoot, rightRoot,
+        new FolderDiffModel(null),
+        new FolderDiffModel(null));
   }
 
   public void compareRoots(
