@@ -146,24 +146,6 @@ public class DiffEngine implements DiffEngineJs {
   }
 
   @Override
-  public void testFS2(JSString path1, JSString path2, JsFunctions.Runnable onComplete) {
-    if (notDir(path1) || notDir(path2)) {
-      onComplete.f();
-      return;
-    }
-
-    JsHelper.consoleInfo("testFS2 path1 = ", path1);
-    JsHelper.consoleInfo("testFS2 path2 = ", path2);
-
-    NodeDirectoryHandle dir1 = new NodeDirectoryHandle(path1);
-    NodeDirectoryHandle dir2 = new NodeDirectoryHandle(path2);
-
-    new FolderScanTest(
-        dir1, dir2, pool, JsFunctions.wrap(onComplete)
-    ).scan();
-  }
-
-  @Override
   public void testDiff(
       JSString path1, JSString path2,
       boolean content,

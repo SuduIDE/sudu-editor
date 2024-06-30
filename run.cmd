@@ -1,4 +1,5 @@
-﻿set mjs=filediff-node-module\module\samples\example1.mjs
+
+set mjs=filediff-node-module\module\samples\example1.mjs
 
 set dir=.\
 
@@ -18,9 +19,17 @@ set nativeExe=demo-edit-jvm\target\FolderDiffTestJvm.exe
 
 mkdir logs
 
-node %mjs% %dir1% %dir2% > logs\dry_n 2>&1
-%jjj% -cp %cp% org.sudu.experiments.FolderDiffTestJvm %dir1% %dir2% content > logs\dry_j 2>&1
-%nativeExe% %dir1% %dir2% content > logs\dry_graal 2>&1
+node %mjs% %dir1% %dir2% content > logs\dry_n1 2>&1
+node %mjs% %dir1% %dir2% content sync > logs\dry_n1s 2>&1
+node %mjs% %dir1% %dir2% content > logs\dry_n2 2>&1
+node %mjs% %dir1% %dir2% content sync > logs\dry_n2s 2>&1
+rem %jjj% -cp %cp% org.sudu.experiments.FolderDiffTestJvm %dir1% %dir2% content > logs\dry_j1 2>&1
+rem %jjj% -cp %cp% org.sudu.experiments.FolderDiffTestJvm %dir1% %dir2% content sync > logs\dry_js1 2>&1
+rem %jjj% -cp %cp% org.sudu.experiments.FolderDiffTestJvm %dir1% %dir2% content > logs\dry_j2 2>&1
+rem %jjj% -cp %cp% org.sudu.experiments.FolderDiffTestJvm %dir1% %dir2% content sync> logs\dry_js2 2>&1
+rem %nativeExe% %dir1% %dir2% content > logs\dry_graal 2>&1
+
+exit
 
 FOR %%i IN (0,1,2,3) DO (
   node %mjs% %dir1% %dir2% > logs\nrun%%i 2>&1
