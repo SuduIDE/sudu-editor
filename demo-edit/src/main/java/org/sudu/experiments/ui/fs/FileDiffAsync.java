@@ -4,7 +4,7 @@ import org.sudu.experiments.FileHandle;
 
 import java.util.Arrays;
 
-public class FileDiffHandler {
+public class FileDiffAsync {
 
   private static final int maxToRead = 128 * 1024 * 1024;
   private static final int maxArraySize = 32 * 1024 * 1024;
@@ -17,13 +17,14 @@ public class FileDiffHandler {
   FileHandle left, right;
   int start = 0;
 
-  public FileDiffHandler(DiffResult r, FileHandle left, FileHandle right) {
+  public FileDiffAsync(DiffResult r, FileHandle left, FileHandle right) {
     this.r = r;
     this.left = left;
     this.right = right;
+    requestNext();
   }
 
-  public void beginCompare() {
+  private void requestNext() {
     this.leftText = null;
     this.rightText = null;
     left.readAsBytes(this::sendLeft, System.err::println, start, readLength);
@@ -61,7 +62,7 @@ public class FileDiffHandler {
             System.err.println(left.getName() + ": readLength = " + m + "M");
           }
         }
-        beginCompare();
+        requestNext();
       }
     }
   }

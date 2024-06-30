@@ -6,6 +6,8 @@ import org.sudu.experiments.diff.folder.RangeCtx;
 
 public class FileDiffUpdateHandler {
 
+  static boolean syncScan = true;
+
   private final FolderDiffModel leftModel, rightModel;
   private final RangeCtx rangeCtx;
   private final Runnable onCompared;
@@ -19,8 +21,11 @@ public class FileDiffUpdateHandler {
     this.rightModel = rightModel;
     this.rangeCtx = rangeCtx;
     this.onCompared = onCompared;
-    var h = new FileDiffHandler(this::onCompared, left, right);
-    h.beginCompare();
+    DiffResult onComplete = this::onCompared;
+    if (syncScan)
+      new FileDiffSync(onComplete, left, right);
+    else
+      new FileDiffAsync(onComplete, left, right);
   }
 
   void onCompared(boolean equals) {

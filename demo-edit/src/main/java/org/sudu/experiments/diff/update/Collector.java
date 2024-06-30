@@ -6,7 +6,6 @@ import org.sudu.experiments.FsItem;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.RangeCtx;
 import org.sudu.experiments.math.ArrayOp;
-import org.sudu.experiments.ui.fs.FileDiffHandler;
 import org.sudu.experiments.ui.fs.FileDiffUpdateHandler;
 import org.sudu.experiments.ui.fs.FolderDiffHandler;
 import org.sudu.experiments.ui.fs.FolderDiffUpdateHandler;

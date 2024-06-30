@@ -10,7 +10,7 @@ import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.editor.Document;
 import org.sudu.experiments.ui.fs.DiffResult;
-import org.sudu.experiments.ui.fs.FileDiffHandler;
+import org.sudu.experiments.ui.fs.FileDiffAsync;
 import org.sudu.experiments.ui.fs.FileDiffSync;
 import org.sudu.experiments.ui.fs.FolderDiffHandler;
 import org.sudu.experiments.worker.ArrayView;
@@ -18,7 +18,6 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 public class DiffUtils {
 
@@ -45,8 +44,7 @@ public class DiffUtils {
       FileHandle left, FileHandle right,
       Consumer<Object[]> r
   ) {
-    new FileDiffHandler(send(r), left, right)
-        .beginCompare();
+    new FileDiffAsync(send(r), left, right);
   }
 
   public static final String CMP_FILES_SYNC = "asyncCompareFilesSync";
