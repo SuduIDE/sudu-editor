@@ -54,7 +54,7 @@ public class FileDiffSync {
       // todo: add diff only in line separators
       return false;
     }
-    int iSize = (int) Math.max(lSize, Integer.MAX_VALUE);
+    int iSize = (int) Math.min(lSize, Integer.MAX_VALUE);
     if (iSize != lSize) {
       System.err.println("File is too large to analyze: " + lSize);
       return true;

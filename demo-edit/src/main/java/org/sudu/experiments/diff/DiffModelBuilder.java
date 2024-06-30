@@ -44,12 +44,6 @@ public class DiffModelBuilder {
     this.syncAccess = syncAccess;
   }
 
-  public void compareRoots(DirectoryNode leftRoot, DirectoryNode rightRoot) {
-    compareRoots(leftRoot, rightRoot,
-        new FolderDiffModel(null),
-        new FolderDiffModel(null));
-  }
-
   public void compareRoots(
       DirectoryNode leftRoot, DirectoryNode rightRoot,
       FolderDiffModel leftModel, FolderDiffModel rightModel

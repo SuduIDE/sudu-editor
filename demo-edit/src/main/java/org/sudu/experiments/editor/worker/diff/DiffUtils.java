@@ -39,7 +39,7 @@ public class DiffUtils {
         new Object[]{new int[]{equals ? 1 : 0}});
   }
 
-  public static final String CMP_FILES = "compareFiles";
+  public static final String CMP_FILES = "asyncCompareFiles";
 
   public static void compareFiles(
       FileHandle left, FileHandle right,
@@ -49,7 +49,7 @@ public class DiffUtils {
         .beginCompare();
   }
 
-  public static final String CMP_FILES_SYNC = "compareFilesSync";
+  public static final String CMP_FILES_SYNC = "asyncCompareFilesSync";
 
   public static void compareFilesSync(
       FileHandle left, FileHandle right,
@@ -58,7 +58,7 @@ public class DiffUtils {
     new FileDiffSync(send(r), left, right);
   }
 
-  public static final String CMP_FOLDERS = "compareFolders";
+  public static final String CMP_FOLDERS = "asyncCompareFolders";
 
   public static void compareFolders(
       DirectoryHandle left, DirectoryHandle right,

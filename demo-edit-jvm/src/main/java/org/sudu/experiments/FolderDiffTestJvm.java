@@ -67,6 +67,7 @@ class FolderDiffTestJvm implements WorkerJobExecutor {
         System.out.println("  path1 = " + p1);
         System.out.println("  path2 = " + p2);
         System.out.println("  content = " + content);
+        System.out.println("  sync = " + sync);
         new FolderDiffTestJvm(p1, p2, content, sync).run();
       } else {
         System.err.println(
