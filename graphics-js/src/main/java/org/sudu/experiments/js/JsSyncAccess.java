@@ -5,16 +5,17 @@ import org.teavm.jso.typedarrays.Int8Array;
 
 import org.sudu.experiments.js.FileSystemSyncAccessHandle.Js;
 
-public class FileSyncAccess implements FileHandle.SyncAccess {
-  final FileSystemSyncAccessHandle handle;
+public class JsSyncAccess implements FileHandle.SyncAccess {
+  FileSystemSyncAccessHandle handle;
 
-  public FileSyncAccess(FileSystemSyncAccessHandle handle) {
+  public JsSyncAccess(FileSystemSyncAccessHandle handle) {
     this.handle = handle;
   }
 
   @Override
   public void close() {
     handle.close();
+    handle = null;
   }
 
   @Override
@@ -24,7 +25,7 @@ public class FileSyncAccess implements FileHandle.SyncAccess {
 
   @Override
   public double read(byte[] buf, double filePos) {
-    Int8Array buffer = JsMemoryAccess.bufferView(buf);
+  Int8Array buffer = JsMemoryAccess.bufferView(buf);
     return filePos == 0 ? handle.read(buffer)
         : handle.read(buffer, Js.options(filePos));
   }

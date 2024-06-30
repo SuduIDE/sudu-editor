@@ -165,7 +165,9 @@ public class DiffEngine implements DiffEngineJs {
 
   @Override
   public void testDiff(
-      JSString path1, JSString path2, boolean content,
+      JSString path1, JSString path2,
+      boolean content,
+      boolean sync,
       JsFunctions.Runnable onComplete
   ) {
     if (notDir(path1) || notDir(path2)) {
@@ -179,9 +181,10 @@ public class DiffEngine implements DiffEngineJs {
     JsHelper.consoleInfo("  path1 = ", path1);
     JsHelper.consoleInfo("  path2 = ", path2);
     JsHelper.consoleInfo("  content = ", JSBoolean.valueOf(content));
+    JsHelper.consoleInfo("  sync = ", JSBoolean.valueOf(sync));
     JsTime jsTime = new JsTime();
     new FolderDiffTest(
-        dir1, dir2, content, false, pool,
+        dir1, dir2, content, sync, pool,
         jsTime, JsFunctions.wrap(onComplete)
     ).scan();
   }

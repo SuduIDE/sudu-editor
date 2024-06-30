@@ -57,7 +57,7 @@ public class JsFileHandle implements FileHandle {
   ) {
     if (fileHandle != null) {
       fileHandle.createSyncAccessHandle().then(
-          sa -> consumer.accept(new FileSyncAccess(sa)),
+          sa -> consumer.accept(new JsSyncAccess(sa)),
           jsError -> onError.accept(jsError.getMessage())
       );
     } else {
