@@ -11,6 +11,7 @@ import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.editor.Document;
 import org.sudu.experiments.ui.fs.DiffResult;
 import org.sudu.experiments.ui.fs.FileDiffHandler;
+import org.sudu.experiments.ui.fs.FileDiffSync;
 import org.sudu.experiments.ui.fs.FolderDiffHandler;
 import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
@@ -54,8 +55,7 @@ public class DiffUtils {
       FileHandle left, FileHandle right,
       Consumer<Object[]> r
   ) {
-    new FileDiffHandler(send(r), left, right)
-        .beginCompare();
+    new FileDiffSync(send(r), left, right);
   }
 
   public static final String CMP_FOLDERS = "compareFolders";

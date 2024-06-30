@@ -7,14 +7,10 @@ import org.sudu.experiments.FileHandle.SyncAccess;
 
 public class FileDiffSync {
 
-  private static final int maxToRead = 128 * 1024 * 1024;
-  private static final int maxArraySize = 32 * 1024 * 1024;
-  private static final int minArraySize = 16 * 1024;
+  static final int maxArraySize = 2 * 1024 * 1024;
 
-  byte[] leftText, rightText;
   DiffResult result;
   SyncAccess left, right;
-  int start = 0;
 
   public FileDiffSync(DiffResult r, FileHandle left, FileHandle right) {
     result = r;
@@ -24,14 +20,31 @@ public class FileDiffSync {
 
   private void sendLeft(SyncAccess left) {
     this.left = left;
-    if (this.right != null)
-      result.onCompared(compare());
+    if (this.right != null) compareAndClose();
   }
 
   public void sendRight(SyncAccess right) {
     this.right = right;
-    if (this.left != null)
-      result.onCompared(compare());
+    if (this.left != null) compareAndClose();
+  }
+
+  private void compareAndClose() {
+    try {
+      boolean equals = compare();
+      result.onCompared(equals);
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
+      result.onCompared(false);
+    } finally {
+      close(left);
+      close(right);
+    }
+  }
+
+  private void close(SyncAccess file) {
+    try { file.close(); } catch (Exception e) {
+      System.err.println(e.getMessage());
+    }
   }
 
   private boolean compare() {
@@ -46,27 +59,19 @@ public class FileDiffSync {
       System.err.println("File is too large to analyze: " + lSize);
       return true;
     }
-    boolean equals = Arrays.equals(leftText, rightText);
-    int leftLength = leftText.length;
-    if (!equals) result.onCompared(false);
-    else {
-      if (leftLength < readLength || start >= maxToRead) {
-        if (start == maxToRead) {
-          System.err.println("max size hit: \n" +
-              "\tl=" + left.getFullPath() + "\n" +
-              "\tr=" + right.getFullPath());
-        }
-        result.onCompared(true);
-      } else {
-        start += readLength;
-        if (readLength * 2 <= maxArraySize) {
-          readLength *= 2;
-          if (readLength >= maxArraySize / 2) {
-            int m = readLength / 1024 / 1024;
-            System.err.println(left.getName() + ": readLength = " + m + "M");
-          }
-        }
-      }
+    byte[] leftText = new byte[Math.min(iSize, maxArraySize)];
+    byte[] rightText = new byte[leftText.length];
+    for (double pos = 0; pos < iSize; ) {
+      int lRead = (int) left.read(leftText, pos);
+      int rRead = (int) right.read(rightText, pos);
+      if (lRead != rRead) return false;
+      if (lRead == 0) return true;
+      boolean equals = Arrays.equals(
+          leftText, 0, lRead,
+          rightText, 0, rRead);
+      if (!equals) return false;
+      pos += lRead;
     }
+    return true;
   }
 }

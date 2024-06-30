@@ -181,11 +181,14 @@ public class DiffModelBuilder {
     return null;
   }
 
-  void compareFiles(FileNode left, FileNode right, FolderDiffModel leftModel, FolderDiffModel rightModel) {
+  void compareFiles(
+      FileNode left, FileNode right,
+      FolderDiffModel leftModel, FolderDiffModel rightModel
+  ) {
     if (scanFileContent) {
       executor.sendToWorker(
           result -> onFilesCompared(left, right, leftModel, rightModel, result),
-          DiffUtils.CMP_FILES,
+          syncAccess ? DiffUtils.CMP_FILES_SYNC : DiffUtils.CMP_FILES,
           left.file, right.file
       );
     } else {
