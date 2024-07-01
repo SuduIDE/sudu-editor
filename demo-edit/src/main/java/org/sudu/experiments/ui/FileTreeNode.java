@@ -12,7 +12,7 @@ public class FileTreeNode extends TreeNode {
   public static final FileTreeNode[] ch0 = new FileTreeNode[0];
   public static final Comparator<FileTreeNode> cmp = FileTreeNode::compare;
 
-  FileTreeNode[] children = ch0;
+  protected FileTreeNode[] children = ch0;
 
   public FileTreeNode(String v, int d) {
     super(v, d);
@@ -113,8 +113,12 @@ public class FileTreeNode extends TreeNode {
   }
 
   public static <T extends FileTreeNode> T bs(T[] a, String key) {
+    return bs(a, a.length, key);
+  }
+
+  public static <T extends FileTreeNode> T bs(T[] a, int length, String key) {
     int low = 0;
-    int high = a.length - 1;
+    int high = length - 1;
 
     while (low <= high) {
       int mid = (low + high) >>> 1;

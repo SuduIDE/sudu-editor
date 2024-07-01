@@ -2,9 +2,7 @@ package org.sudu.experiments.update;
 
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.DirectoryHandle;
-import org.sudu.experiments.FsItem;
-import org.sudu.experiments.diff.folder.FolderDiffModel;
-import org.sudu.experiments.diff.update.Collector;
+import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.worker.ArrayView;
@@ -13,13 +11,13 @@ import org.teavm.jso.core.JSString;
 
 public class DiffModelChannelUpdater {
 
-  public final FolderDiffModel leftRootAcc, rightRootAcc;
+  public final RemoteFolderDiffModel leftRootAcc, rightRootAcc;
   public final DirectoryHandle leftDir, rightDir;
   private final WorkerJobExecutor executor;
   private final Channel channel;
 
   public DiffModelChannelUpdater(
-      FolderDiffModel leftRoot, FolderDiffModel rightRoot,
+      RemoteFolderDiffModel leftRoot, RemoteFolderDiffModel rightRoot,
       DirectoryHandle leftDir, DirectoryHandle rightDir,
       WorkerJobExecutor executor, Channel channel
   ) {
@@ -49,10 +47,9 @@ public class DiffModelChannelUpdater {
     var jsResult = JsArray.create(result.length);
     int[] ints = ((ArrayView) result[0]).ints();
     jsResult.set(0, JsMemoryAccess.bufferView(ints));
-
     for (int i = 1; i < result.length; i++) {
-      var dir = ((FsItem) result[i]).getFullPath();
-      jsResult.set(i, JSString.valueOf(dir));
+      String path = (String) result[i];
+      jsResult.set(i, JSString.valueOf(path));
     }
     channel.sendMessage(jsResult);
   }

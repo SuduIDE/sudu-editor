@@ -13,7 +13,7 @@ import static org.sudu.experiments.diff.folder.PropTypes.*;
 
 public class FolderDiffModel {
 
-  FolderDiffModel parent;
+  public FolderDiffModel parent;
   public FolderDiffModel[] children;
   int childrenComparedCnt;
   public boolean compared;

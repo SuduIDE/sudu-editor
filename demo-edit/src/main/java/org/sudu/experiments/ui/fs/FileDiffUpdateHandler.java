@@ -1,18 +1,19 @@
 package org.sudu.experiments.ui.fs;
 
 import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.diff.folder.RangeCtx;
 
 public class FileDiffUpdateHandler extends FileDiffHandler {
 
-  private final FolderDiffModel leftModel, rightModel;
+  private final RemoteFolderDiffModel leftModel, rightModel;
   private final RangeCtx rangeCtx;
   private final Runnable onCompared;
 
   public FileDiffUpdateHandler(
       FileHandle left, FileHandle right,
-      FolderDiffModel leftModel, FolderDiffModel rightModel,
+      RemoteFolderDiffModel leftModel,
+      RemoteFolderDiffModel rightModel,
       RangeCtx rangeCtx, Runnable onCompared
   ) {
     super(null, left, right);

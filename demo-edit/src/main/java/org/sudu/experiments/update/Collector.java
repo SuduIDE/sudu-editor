@@ -1,9 +1,9 @@
-package org.sudu.experiments.diff.update;
+package org.sudu.experiments.update;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
-import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.diff.folder.RangeCtx;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.ui.fs.FileDiffHandler;
@@ -17,19 +17,21 @@ import java.util.function.Consumer;
 public class Collector {
 
   private final RangeCtx rangeCtx;
-  private final FolderDiffModel leftAcc, rightAcc;
+  private final RemoteFolderDiffModel leftAcc, rightAcc;
   private final Consumer<Object[]> r;
-  private final List<CollectDto> remain;
 
-  private static final int MAX_DEPTH = 5;
+  private static final int MAX_DEPTH = Integer.MAX_VALUE;
   private int inComparing = 0;
 
-  public Collector(FolderDiffModel left, FolderDiffModel right, Consumer<Object[]> r) {
+  public Collector(
+      RemoteFolderDiffModel left,
+      RemoteFolderDiffModel right,
+      Consumer<Object[]> r
+  ) {
     this.leftAcc = left;
     this.rightAcc = right;
     this.rangeCtx = new RangeCtx();
     this.r = r;
-    this.remain = new LinkedList<>();
   }
 
   public static final String COLLECT = "asyncCollector.collect";
@@ -38,19 +40,19 @@ public class Collector {
       FsItem leftItem, FsItem rightItem,
       Consumer<Object[]> r
   ) {
-    var leftAcc = new FolderDiffModel(null);
-    var rightAcc = new FolderDiffModel(null);
+    var leftAcc = new RemoteFolderDiffModel(null, leftItem.getName());
+    var rightAcc = new RemoteFolderDiffModel(null, rightItem.getName());
     Collector collector = new Collector(leftAcc, rightAcc, r);
     collector.compare(leftAcc, rightAcc, leftItem, rightItem);
   }
 
   private void collect(CollectDto dto) {
-    if (!dto.isFile() && depthCheck(dto.leftModel, dto.rightModel)) remain.add(dto);
-    else compare(dto.leftModel, dto.rightModel, dto.leftItem, dto.rightItem);
+    if (!depthCheck(dto.leftModel, dto.rightModel))
+      compare(dto.leftModel, dto.rightModel, dto.leftItem, dto.rightItem);
   }
 
   private void compare(
-      FolderDiffModel leftModel, FolderDiffModel rightModel,
+      RemoteFolderDiffModel leftModel, RemoteFolderDiffModel rightModel,
       FsItem leftItem, FsItem rightItem
   ) {
     ++inComparing;
@@ -64,7 +66,7 @@ public class Collector {
   }
 
   public void compareFolders(
-      FolderDiffModel leftModel, FolderDiffModel rightModel,
+      RemoteFolderDiffModel leftModel, RemoteFolderDiffModel rightModel,
       DirectoryHandle leftDir, DirectoryHandle rightDir
   ) {
     FolderDiffHandler handler = new FolderDiffUpdateHandler(
@@ -77,8 +79,10 @@ public class Collector {
   }
 
   public void compareFiles(
-      FolderDiffModel leftModel, FolderDiffModel rightModel,
-      FileHandle leftFile, FileHandle rightFile
+      RemoteFolderDiffModel leftModel,
+      RemoteFolderDiffModel rightModel,
+      FileHandle leftFile,
+      FileHandle rightFile
   ) {
     FileDiffHandler handler = new FileDiffUpdateHandler(
         leftFile, rightFile,
@@ -98,12 +102,14 @@ public class Collector {
   }
 
   private void onFullyCompared() {
-    Object[] result = new Object[1 + 2 * remain.size()];
-    result[0] = UpdateDto.toInts(leftAcc, rightAcc, remain, result);
-    ArrayOp.sendArrayList(new ArrayList<>(Arrays.asList(result)), r);
+    ArrayList<Object> result = new ArrayList<>();
+    result.add(null);
+    var ints = UpdateDto.toInts(leftAcc, rightAcc, result);
+    result.set(0, ints);
+    ArrayOp.sendArrayList(result, r);
   }
 
-  private boolean depthCheck(FolderDiffModel left, FolderDiffModel right) {
+  private boolean depthCheck(RemoteFolderDiffModel left, RemoteFolderDiffModel right) {
     if (left.depth != right.depth || left.depth > MAX_DEPTH) throw new IllegalStateException();
     return left.depth == MAX_DEPTH;
   }

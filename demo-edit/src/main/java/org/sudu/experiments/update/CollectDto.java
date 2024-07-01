@@ -1,16 +1,17 @@
-package org.sudu.experiments.diff.update;
+package org.sudu.experiments.update;
 
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
-import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 
 public class CollectDto {
 
-  public FolderDiffModel leftModel, rightModel;
+  public RemoteFolderDiffModel leftModel, rightModel;
   public FsItem leftItem, rightItem;
 
   public CollectDto(
-      FolderDiffModel leftModel, FolderDiffModel rightModel,
+      RemoteFolderDiffModel leftModel,
+      RemoteFolderDiffModel rightModel,
       FsItem leftItem, FsItem rightItem
   ) {
     this.leftModel = leftModel;

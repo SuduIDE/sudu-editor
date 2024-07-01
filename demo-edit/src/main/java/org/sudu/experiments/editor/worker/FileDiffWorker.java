@@ -1,8 +1,8 @@
 package org.sudu.experiments.editor.worker;
 
-import org.sudu.experiments.diff.update.Collector;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.update.Collector;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
