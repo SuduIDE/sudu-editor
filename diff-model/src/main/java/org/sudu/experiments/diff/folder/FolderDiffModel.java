@@ -16,10 +16,11 @@ public class FolderDiffModel {
   public FolderDiffModel parent;
   public FolderDiffModel[] children;
   public int childrenComparedCnt;
-  public boolean compared;
-  public boolean isFile;
-  public int propagation = NO_PROP;
-  public int diffType = DiffTypes.DEFAULT;
+  public int flags; // 0 - compared; 1 - is File; 2,3 - propagation; 4,5 - diffType
+//  public boolean compared;
+//  public boolean isFile;
+//  public int propagation = NO_PROP;
+//  public int diffType = DiffTypes.DEFAULT;
   public int rangeId;
   public int depth;
 
@@ -31,17 +32,14 @@ public class FolderDiffModel {
   public void update(FolderDiffModel newModel) {
     this.children = newModel.children;
     this.childrenComparedCnt = newModel.childrenComparedCnt;
-    this.compared = newModel.compared;
-    this.propagation = newModel.propagation;
-    this.diffType = newModel.diffType;
+    this.flags = newModel.flags;
     this.rangeId = newModel.rangeId;
-    this.isFile = newModel.isFile;
-    if (compared && parent != null) parent.childCompared();
+    if (this.isCompared() && parent != null) parent.childCompared();
   }
 
   // returns true if parent is fully compared
   public boolean itemCompared() {
-    this.compared = true;
+    setCompared(true);
     if (parent == null) throw new IllegalStateException("File must have a parent");
     return parent.childCompared();
   }
@@ -49,7 +47,7 @@ public class FolderDiffModel {
   public boolean childCompared() {
     childrenComparedCnt++;
     if (!isFullyCompared()) return false;
-    compared = true;
+    setCompared(true);
     if (parent != null) parent.childCompared();
     return true;
   }
@@ -63,27 +61,61 @@ public class FolderDiffModel {
   }
 
   public void markUp(int diffType, RangeCtx ctx) {
-    propagation = PROP_UP;
-    this.diffType = diffType;
+    setPropagation(PROP_UP);
+    setDiffType(diffType);
     rangeId = ctx.nextId();
     if (parent != null) parent.markUp(diffType, ctx);
   }
 
   public void markDown(int diffType) {
-    propagation = PROP_DOWN;
-    this.diffType = diffType;
-    this.compared = true;
+    setPropagation(PROP_DOWN);
+    setDiffType(diffType);
+    setCompared(true);
     if (parent != null) rangeId = parent.rangeId;
     if (children != null) for (var child: children) child.markDown(diffType);
+  }
+
+  public void setCompared(boolean compared) {
+    int bit = compared ? 1 : 0;
+    flags = flags & (~0b1) | bit;
+  }
+
+  public void setIsFile(boolean isFile) {
+    int bit = isFile ? 1 : 0;
+    flags = flags & (~(0b1 << 1)) | (bit << 1);
+  }
+
+  public void setPropagation(int propagation) {
+    flags = flags & (~(0b11 << 2)) | (propagation << 2);
+  }
+
+  public void setDiffType(int diffType) {
+    flags = flags & (~(0b11 << 4)) | (diffType << 4);
+  }
+
+  public boolean isCompared() {
+    return (flags & 0b1) == 1;
+  }
+
+  public boolean isFile() {
+    return ((flags >> 1) & 0b1) == 1;
+  }
+
+  public int getPropagation() {
+    return (flags >> 2) & 0b11;
+  }
+
+  public int getDiffType() {
+    return (flags >> 4) & 0b11;
   }
 
   public static final FolderDiffModel DEFAULT = getDefault();
 
   private static FolderDiffModel getDefault() {
     var model = new FolderDiffModel(null);
-    model.propagation = PROP_DOWN;
-    model.diffType = DiffTypes.DEFAULT;
-    model.compared = true;
+    model.setPropagation(PROP_DOWN);
+    model.setDiffType(DiffTypes.DEFAULT);
+    model.setCompared(true);
     return model;
   }
 
@@ -101,12 +133,9 @@ public class FolderDiffModel {
       FolderDiffModel model, ArrayWriter writer,
       IdentityHashMap<FolderDiffModel, Integer> modelToIntMap
   ) {
-    writer.write(model.propagation);
-    writer.write(model.diffType);
+    writer.write(model.flags);
     writer.write(model.rangeId);
     writer.write(model.childrenComparedCnt);
-    writer.write(model.compared ? 1 : 0);
-    writer.write(model.isFile ? 1 : 0);
     int ind = modelToIntMap.getOrDefault(model, -1);
     writer.write(ind);
     if (model.children == null) writer.write(-1);
@@ -130,12 +159,9 @@ public class FolderDiffModel {
       Pair<?, FolderDiffModel>[] models
   ) {
     FolderDiffModel model = new FolderDiffModel(parent);
-    model.propagation = reader.next();
-    model.diffType = reader.next();
+    model.flags = reader.next();
     model.rangeId = reader.next();
     model.childrenComparedCnt = reader.next();
-    model.compared = reader.next() == 1;
-    model.isFile = reader.next() == 1;
     int ind = reader.next();
     if (ind != -1) models[ind].second = model;
     int childrenLen = reader.next();
@@ -153,16 +179,14 @@ public class FolderDiffModel {
     if (o == null || getClass() != o.getClass()) return false;
     FolderDiffModel that = (FolderDiffModel) o;
     return childrenComparedCnt == that.childrenComparedCnt
-        && compared == that.compared
-        && propagation == that.propagation
-        && diffType == that.diffType
+        && flags == that.flags
         && rangeId == that.rangeId
         && Objects.deepEquals(children, that.children);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(Arrays.hashCode(children), childrenComparedCnt, compared, propagation, diffType, rangeId);
+    return Objects.hash(Arrays.hashCode(children), childrenComparedCnt, flags, rangeId);
   }
 
   public String infoString() {
@@ -170,9 +194,9 @@ public class FolderDiffModel {
         "parent=" + parent +
         ", childrenComparedCnt=" + childrenComparedCnt +
         ", children.length=" + (children != null ? children.length : 0) +
-        ", compared=" + compared +
-        ", propagation=" + propagation +
-        ", diffType=" + diffType +
+        ", compared=" + isCompared() +
+        ", propagation=" + getPropagation() +
+        ", diffType=" + getDiffType() +
         ", rangeId=" + rangeId +
         "}";
   }

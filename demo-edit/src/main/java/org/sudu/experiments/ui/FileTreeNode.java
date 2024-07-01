@@ -65,15 +65,15 @@ public class FileTreeNode extends TreeNode {
 
   private int getModel(TreeNode[] t, FolderDiffModel model, int idx) {
     boolean noChildren = model.children == null;
-    boolean isDownProp = model.propagation == PROP_DOWN;
+    boolean isDownProp = model.getPropagation() == PROP_DOWN;
     this.rangeId = model.rangeId;
-    this.diffType = model.diffType;
+    this.diffType = model.getDiffType();
     t[idx++] = this;
     setIcon(this, model);
     if (childrenLength() != 0) {
       for (int i = 0; i < children.length; i++) {
-        if (isDownProp) idx = children[i].getModel(t, model.rangeId, model.diffType, idx, model.compared);
-        else if (noChildren) idx = children[i].getModel(t, model.rangeId, DiffTypes.DEFAULT, idx, model.compared);
+        if (isDownProp) idx = children[i].getModel(t, model.rangeId, model.getDiffType(), idx, model.isCompared());
+        else if (noChildren) idx = children[i].getModel(t, model.rangeId, DiffTypes.DEFAULT, idx, model.isCompared());
         else idx = children[i].getModel(t, model.child(i), idx);
       }
     }
@@ -94,7 +94,7 @@ public class FileTreeNode extends TreeNode {
   }
 
   private static void setIcon(FileTreeNode node, FolderDiffModel model) {
-    setIcon(node, model.compared);
+    setIcon(node, model.isCompared());
   }
 
   private static void setIcon(FileTreeNode node, boolean compared) {

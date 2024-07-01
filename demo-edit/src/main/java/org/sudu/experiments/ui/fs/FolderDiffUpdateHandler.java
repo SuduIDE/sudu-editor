@@ -36,10 +36,10 @@ public class FolderDiffUpdateHandler extends FolderDiffHandler {
     parent.childrenComparedCnt = 0;
     for (int i = 0; i < len; i++) {
       parent.children[i] = new RemoteFolderDiffModel(parent, paths[i].name);
-      parent.child(i).isFile = !paths[i].isFolder;
+      parent.child(i).setIsFile(!paths[i].isFolder);
     }
     if (len == 0) {
-      parent.compared = true;
+      parent.setCompared(true);
       if (parent.parent != null) parent.childCompared();
     }
   }
@@ -73,7 +73,7 @@ public class FolderDiffUpdateHandler extends FolderDiffHandler {
       int id = rangeCtx.nextId();
       while (lP < leftLen && leftDiff(lP) == DiffTypes.DELETED) {
         changed = true;
-        leftModel.child(lP).diffType = DiffTypes.DELETED;
+        leftModel.child(lP).setDiffType(DiffTypes.DELETED);
         leftModel.child(lP).rangeId = id;
         leftModel.child(lP).markDown(DiffTypes.DELETED);
         leftModel.child(lP).itemCompared();
@@ -85,7 +85,7 @@ public class FolderDiffUpdateHandler extends FolderDiffHandler {
       }
       while (rP < rightLen && rightDiff(rP) == DiffTypes.INSERTED) {
         changed = true;
-        rightModel.child(rP).diffType = DiffTypes.INSERTED;
+        rightModel.child(rP).setDiffType(DiffTypes.INSERTED);
         rightModel.child(rP).rangeId = id;
         rightModel.child(rP).markDown(DiffTypes.INSERTED);
         rightModel.child(rP).itemCompared();
