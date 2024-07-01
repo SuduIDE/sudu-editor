@@ -17,7 +17,7 @@ public abstract class RemoteHandle {
 
     for (int i = 0; i < childLen; i++) {
       var child = model.child(i);
-      if (child.isFile) {
+      if (child.isFile()) {
         var file = new RemoteFileNode(child, this);
         files = ArrayOp.addAt(file, files, filePtr++);
       } else {
@@ -30,10 +30,6 @@ public abstract class RemoteHandle {
     files = Arrays.copyOf(files, filePtr);
     Arrays.sort(folders, FileTreeNode.cmp);
     Arrays.sort(files, FileTreeNode.cmp);
-
-    System.out.println("folders: " + Arrays.toString(folders));
-    System.out.println("files: " + Arrays.toString(files));
-    System.out.println();
 
     var children = new RemoteFileTreeNode[childLen];
     System.arraycopy(folders, 0, children, 0, folderPtr);

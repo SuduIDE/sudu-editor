@@ -236,7 +236,7 @@ public class FolderDiffWindow extends ToolWindow0 {
     var right = rootView.right.model();
     rootView.setDiffModel(DiffModelBuilder.getDiffInfo(left, right));
     window.context.window.repaint();
-    if (leftModel.compared && rightModel.compared) {
+    if (leftModel.isCompared() && rightModel.isCompared()) {
       if (PRINT_STAT) {
         System.out.println("Compared in " + (System.currentTimeMillis() - startTime) + " ms");
         System.out.println("Total updates " + updateCnt);

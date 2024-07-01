@@ -92,7 +92,7 @@ public class Collector {
 
   private void onItemCompared() {
     if (--inComparing < 0) throw new IllegalStateException();
-    if (leftAcc.compared && rightAcc.compared) {
+    if (leftAcc.isCompared() && rightAcc.isCompared()) {
       if (inComparing != 0) throw new IllegalStateException();
       else onFullyCompared();
     }

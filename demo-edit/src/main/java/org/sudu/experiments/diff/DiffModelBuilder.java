@@ -52,8 +52,8 @@ public class DiffModelBuilder {
   ) {
     rangeCtx.clear();
     if (!leftRoot.name().equals(rightRoot.name())) {
-      leftModel.diffType = DiffTypes.EDITED;
-      rightModel.diffType = DiffTypes.EDITED;
+      leftModel.setDiffType(DiffTypes.EDITED);
+      rightModel.setDiffType(DiffTypes.EDITED);
     }
     compare(leftRoot, rightRoot, leftModel, rightModel);
   }
@@ -242,10 +242,10 @@ public class DiffModelBuilder {
     parent.childrenComparedCnt = 0;
     for (int i = 0; i < len; i++) {
       parent.children[i] = new FolderDiffModel(parent);
-      parent.child(i).isFile = items[i] instanceof FileHandle;
+      parent.child(i).setIsFile(items[i] instanceof FileHandle);
     }
     if (len == 0) {
-      parent.compared = true;
+      parent.setCompared(true);
       if (parent.parent != null) parent.childCompared();
     }
   }
@@ -287,7 +287,7 @@ public class DiffModelBuilder {
       int id = rangeCtx.nextId();
       while (lP < leftLen && leftTypes[lP] == DiffTypes.DELETED) {
         changed = true;
-        leftModel.child(lP).diffType = DiffTypes.DELETED;
+        leftModel.child(lP).setDiffType(DiffTypes.DELETED);
         leftModel.child(lP).rangeId = id;
         leftModel.child(lP).markDown(DiffTypes.DELETED);
         leftModel.child(lP).itemCompared();
@@ -301,7 +301,7 @@ public class DiffModelBuilder {
       while (rP < rightLen && rightTypes[rP] == DiffTypes.INSERTED) {
         needUpdate = true;
         changed = true;
-        rightModel.child(rP).diffType = DiffTypes.INSERTED;
+        rightModel.child(rP).setDiffType(DiffTypes.INSERTED);
         rightModel.child(rP).rangeId = id;
         rightModel.child(rP).markDown(DiffTypes.INSERTED);
         rightModel.child(rP).itemCompared();

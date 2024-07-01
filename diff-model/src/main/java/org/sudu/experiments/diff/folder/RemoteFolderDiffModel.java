@@ -35,9 +35,9 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
 
   private static RemoteFolderDiffModel getDefault() {
     var model = new RemoteFolderDiffModel(null, "");
-    model.propagation = PROP_DOWN;
-    model.diffType = DiffTypes.DEFAULT;
-    model.compared = true;
+    model.setPropagation(PROP_DOWN);
+    model.setDiffType(DiffTypes.DEFAULT);
+    model.setCompared(true);
     return model;
   }
 
@@ -55,12 +55,9 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
       ArrayList<String> pathList,
       ArrayWriter writer
   ) {
-    writer.write(model.propagation);
-    writer.write(model.diffType);
+    writer.write(model.flags);
     writer.write(model.rangeId);
     writer.write(model.childrenComparedCnt);
-    writer.write(model.compared ? 1 : 0);
-    writer.write(model.isFile ? 1 : 0);
 
     writer.write(pathList.size());
     pathList.add(model.path);
@@ -82,12 +79,9 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
       RemoteFolderDiffModel parent
   ) {
     RemoteFolderDiffModel model = new RemoteFolderDiffModel(parent, null);
-    model.propagation = reader.next();
-    model.diffType = reader.next();
+    model.flags = reader.next();
     model.rangeId = reader.next();
     model.childrenComparedCnt = reader.next();
-    model.compared = reader.next() == 1;
-    model.isFile = reader.next() == 1;
 
     int pathInd = reader.next();
     model.path = paths[pathInd];

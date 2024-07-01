@@ -52,7 +52,7 @@ public class FolderDiffTest extends DirectoryTest {
       System.out.println("updateDiffInfoCounter = " + updateDiffInfoCounter);
     }
     if (running) {
-      if (leftModel.compared && rightModel.compared) {
+      if (leftModel.isCompared() && rightModel.isCompared()) {
         System.out.println("Finished" + (content ? " scan with content: " : ": "));
         dumpResult();
         running = false;
@@ -67,11 +67,11 @@ public class FolderDiffTest extends DirectoryTest {
     String r = "" +
         "updateDiffInfo #calls = " + updateDiffInfoCounter + '\n'
         + "leftModel:\n"
-        + "  .compared = " + leftModel.compared + '\n'
-        + "  .diffType = " + DiffTypes.name(leftModel.diffType) + '\n'
+        + "  .compared = " + leftModel.isCompared() + '\n'
+        + "  .diffType = " + DiffTypes.name(leftModel.getDiffType()) + '\n'
         + "rightModel:\n"
-        + "  .compared = " + rightModel.compared + '\n'
-        + "  .diffType = " + DiffTypes.name(rightModel.diffType) + '\n'
+        + "  .compared = " + rightModel.isCompared() + '\n'
+        + "  .diffType = " + DiffTypes.name(rightModel.getDiffType()) + '\n'
         + "time: " + time + "s\n";
     System.out.print(r);
   }
