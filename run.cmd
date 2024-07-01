@@ -18,14 +18,21 @@ set jjj=%USERPROFILE%\.jdks\openjdk-21.0.2\bin\java.exe
 set nativeExe=demo-edit-jvm\target\FolderDiffTestJvm.exe
 
 mkdir logs
+rem goto :graal
 
 call :CallNode logs\dry_n0 %dir1% %dir2%
-rem call :CallNode logs\dry_n1 %dir1% %dir2%
-rem call :CallNode logs\dry_n1s %dir1% %dir2% sync
+call :CallNode logs\dry_n1 %dir1% %dir2%
+call :CallNode logs\dry_n1s %dir1% %dir2% sync
 
-call :CallJava logs\dry_j0 %dir1% %dir2% sync
+call :CallJava logs\dry_j0 %dir1% %dir2% 
+call :CallJava logs\dry_j1 %dir1% %dir2% 
+call :CallJava logs\dry_j1s %dir1% %dir2% sync
 
-rem call :CallGraalNative logs\dry_g0 %dir1% %dir2% sync
+:graal
+
+call :CallGraalNative logs\dry_g0 %dir1% %dir2% 
+call :CallGraalNative logs\dry_g1 %dir1% %dir2% 
+call :CallGraalNative logs\dry_g1s %dir1% %dir2% sync
 
 exit
 
