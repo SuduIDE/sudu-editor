@@ -11,11 +11,6 @@ export interface DiffEngine {
 
     testFS(path: string, onComplete: () => void): void;
 
-    testFS2(
-        path1: string, path2: string,
-        onComplete: () => void
-    ): void;
-
     testDiff(
         path1: string, path2: string, withContent: boolean,
         onComplete: () => void
