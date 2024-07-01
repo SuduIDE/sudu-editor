@@ -17,18 +17,6 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
     this.path = path;
   }
 
-  public void setChildren(int len, String[] paths) {
-    if (len != paths.length)
-      throw new IllegalArgumentException("Paths should have length " + len);
-    children = new RemoteFolderDiffModel[len];
-    this.childrenComparedCnt = 0;
-    for (int i = 0; i < len; i++) children[i] = new RemoteFolderDiffModel(this, paths[i]);
-    if (len == 0) {
-      compared = true;
-      if (parent != null) parent.childCompared();
-    }
-  }
-
   public void update(RemoteFolderDiffModel newModel) {
     super.update(newModel);
     this.path = newModel.path;
@@ -72,6 +60,7 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
     writer.write(model.rangeId);
     writer.write(model.childrenComparedCnt);
     writer.write(model.compared ? 1 : 0);
+    writer.write(model.isFile ? 1 : 0);
 
     writer.write(pathList.size());
     pathList.add(model.path);
@@ -98,6 +87,7 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
     model.rangeId = reader.next();
     model.childrenComparedCnt = reader.next();
     model.compared = reader.next() == 1;
+    model.isFile = reader.next() == 1;
 
     int pathInd = reader.next();
     model.path = paths[pathInd];
@@ -105,7 +95,7 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
     int childrenLen = reader.next();
     if (childrenLen != -1) {
       var children = new RemoteFolderDiffModel[childrenLen];
-      for (int i = 0; i < childrenLen; i++) children[i] = fromInts(reader, paths, model/*, models*/);
+      for (int i = 0; i < childrenLen; i++) children[i] = fromInts(reader, paths, model);
       model.children = children;
     }
     return model;

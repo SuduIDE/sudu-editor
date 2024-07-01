@@ -5,17 +5,14 @@ import org.sudu.experiments.ui.FileTreeNode;
 
 public class RemoteDirectoryNode extends RemoteFileTreeNode {
 
-  public final RemoteFolderDiffModel model;
-  public final RemoteDirectoryHandle handle;
   public int folderCnt;
 
   public RemoteDirectoryNode(
       RemoteFolderDiffModel model,
-      RemoteDirectoryHandle handle
+      RemoteHandle handle
   ) {
-    super(model);
-    this.model = model;
-    this.handle = handle;
+    super(model, handle);
+    iconFolder();
     onClick = this::onClick;
   }
 
@@ -26,24 +23,24 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
 
   public void openDir() {
     doOpen();
-    var opposite = handle.getOpposite(this);
+    var opposite = handle.getOppositeDir(this);
     if (opposite != null) opposite.doOpen();
   }
 
   public void closeDir() {
     doClose();
-    var opposite = handle.getOpposite(this);
+    var opposite = handle.getOppositeDir(this);
     if (opposite != null) opposite.doClose();
   }
 
   public void doOpen() {
-    handle.open(this);
+    handle.openDir(this);
     handle.updateView();
     super.iconFolderOpened();
   }
 
   public void doClose() {
-    handle.close(this);
+    handle.closeDir(this);
     handle.updateView();
     super.iconFolder();
   }
@@ -57,6 +54,15 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
   }
 
   public RemoteDirectoryNode findSubDir(String path) {
-    return (RemoteDirectoryNode) FileTreeNode.bs(children, folderCnt, path);
+    return (RemoteDirectoryNode) FileTreeNode.bs(children, 0, folderCnt, path);
+  }
+
+  public RemoteFileNode findSubFile(String path) {
+    return (RemoteFileNode) FileTreeNode.bs(children, folderCnt, childrenLength(), path);
+  }
+
+  @Override
+  public String toString() {
+    return ">" + name();
   }
 }

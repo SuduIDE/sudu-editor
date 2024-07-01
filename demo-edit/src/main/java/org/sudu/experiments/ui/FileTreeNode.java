@@ -113,12 +113,12 @@ public class FileTreeNode extends TreeNode {
   }
 
   public static <T extends FileTreeNode> T bs(T[] a, String key) {
-    return bs(a, a.length, key);
+    return bs(a, 0, a.length, key);
   }
 
-  public static <T extends FileTreeNode> T bs(T[] a, int length, String key) {
-    int low = 0;
-    int high = length - 1;
+  public static <T extends FileTreeNode> T bs(T[] a, int from, int to, String key) {
+    int low = from;
+    int high = to - 1;
 
     while (low <= high) {
       int mid = (low + high) >>> 1;

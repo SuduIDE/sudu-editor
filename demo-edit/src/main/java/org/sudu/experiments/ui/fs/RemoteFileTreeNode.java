@@ -5,11 +5,19 @@ import org.sudu.experiments.ui.FileTreeNode;
 
 public class RemoteFileTreeNode extends FileTreeNode {
 
-  public RemoteFileTreeNode(RemoteFolderDiffModel model) {
+  public RemoteFolderDiffModel model;
+  public RemoteHandle handle;
+
+  public RemoteFileTreeNode(
+      RemoteFolderDiffModel model,
+      RemoteHandle handle
+  ) {
     this(model.path, model.depth);
+    this.model = model;
+    this.handle = handle;
   }
 
-  public RemoteFileTreeNode(String v, int d) {
+  private RemoteFileTreeNode(String v, int d) {
     super(v, d);
   }
 }
