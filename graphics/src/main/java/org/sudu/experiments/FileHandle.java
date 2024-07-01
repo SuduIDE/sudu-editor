@@ -4,6 +4,16 @@ import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
 public interface FileHandle extends FsItem {
+  interface SyncAccess {
+    void close();
+    double getSize();
+    double read(byte[] buf, double filePos);
+  }
+
+  void syncAccess(
+      Consumer<SyncAccess> consumer,
+      Consumer<String> onError);
+
   void getSize(IntConsumer result);
 
   void readAsText(Consumer<String> consumer, Consumer<String> onError);

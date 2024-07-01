@@ -26,12 +26,14 @@ class FolderDiffTestJvm implements WorkerJobExecutor {
 
   FolderDiffTest test;
 
-  FolderDiffTestJvm(Path left, Path right, boolean content) {
+  FolderDiffTestJvm(
+      Path left, Path right,
+      boolean content) {
     var leftH = dir(left);
     var rightH = dir(right);
 
-    test = new FolderDiffTest(leftH, rightH, content,
-        this, time, this::onComplete);
+    test = new FolderDiffTest(leftH, rightH,
+        content, this, time, this::onComplete);
     test.scan();
   }
 
@@ -53,12 +55,12 @@ class FolderDiffTestJvm implements WorkerJobExecutor {
   }
 
   public static void main(String[] args) throws InterruptedException {
-    if (args.length == 2 || args.length == 3) {
+    if (args.length >= 2 && args.length <= 4) {
       Path p1 = Path.of(args[0]);
       Path p2 = Path.of(args[1]);
       boolean d1 = Files.isDirectory(p1);
       boolean d2 = Files.isDirectory(p2);
-      boolean content = args.length == 3 && args[2].equals("content");
+      boolean content = args.length >= 3 && args[2].equals("content");
       if (d1 && d2) {
         System.out.println("  path1 = " + p1);
         System.out.println("  path2 = " + p2);

@@ -24,10 +24,11 @@ public class FolderDiffTest extends DirectoryTest {
   public FolderDiffTest(
       DirectoryHandle dir1,
       DirectoryHandle dir2,
-      boolean content, WorkerJobExecutor executor,
+      boolean content,
+      WorkerJobExecutor executor,
       DoubleSupplier time,
       Runnable onComplete
-      ) {
+  ) {
     super(dir1, dir2, executor, onComplete);
     this.content = content;
     this.time = time;

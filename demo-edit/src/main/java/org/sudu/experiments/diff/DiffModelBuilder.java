@@ -25,13 +25,17 @@ public class DiffModelBuilder {
   public WorkerJobExecutor executor;
   final boolean scanFileContent;
 
-  public DiffModelBuilder(TriConsumer<Boolean, TreeNode, TreeNode> updateDiffInfo, WorkerJobExecutor executor) {
+  public DiffModelBuilder(
+      TriConsumer<Boolean, TreeNode, TreeNode> updateDiffInfo,
+      WorkerJobExecutor executor
+  ) {
     this(updateDiffInfo, executor, true);
   }
 
   public DiffModelBuilder(
       TriConsumer<Boolean, TreeNode, TreeNode> updateDiffInfo,
-      WorkerJobExecutor executor, boolean scanFileContent
+      WorkerJobExecutor executor,
+      boolean scanFileContent
   ) {
     this.updateDiffInfo = updateDiffInfo;
     this.executor = executor;
@@ -173,7 +177,10 @@ public class DiffModelBuilder {
     return null;
   }
 
-  void compareFiles(FileNode left, FileNode right, FolderDiffModel leftModel, FolderDiffModel rightModel) {
+  void compareFiles(
+      FileNode left, FileNode right,
+      FolderDiffModel leftModel, FolderDiffModel rightModel
+  ) {
     if (scanFileContent) {
       executor.sendToWorker(
           result -> onFilesCompared(left, right, leftModel, rightModel, result),

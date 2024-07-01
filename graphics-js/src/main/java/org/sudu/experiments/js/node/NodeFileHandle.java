@@ -64,6 +64,16 @@ public class NodeFileHandle implements FileHandle {
   }
 
   @Override
+  public void syncAccess(Consumer<SyncAccess> consumer, Consumer<String> onError) {
+    try {
+      int handle = openSync(Fs.fs());
+      consumer.accept(new NodeSyncAccess(stats(), handle));
+    } catch (Exception e) {
+      onError.accept(e.getMessage());
+    }
+  }
+
+  @Override
   public String getName() {
     return name;
   }
@@ -106,7 +116,7 @@ public class NodeFileHandle implements FileHandle {
   private void doRead(Consumer<byte[]> consumer, Consumer<String> onError, int begin, int length) {
     Fs fs = Fs.fs();
     try {
-      int h = fs.openSync(jsPath(), fs.constants().O_RDONLY());
+      int h = openSync(fs);
       byte[] bytes = new byte[length];
       int numRead = fs.readSync(h, JsMemoryAccess.uInt8View(bytes), 0, length, begin);
       fs.closeSync(h);
@@ -118,6 +128,10 @@ public class NodeFileHandle implements FileHandle {
     } catch (Exception e) {
       onError.accept(e.getMessage());
     }
+  }
+
+  private int openSync(Fs fs) {
+    return fs.openSync(jsPath(), fs.constants().O_RDONLY());
   }
 
   @Override

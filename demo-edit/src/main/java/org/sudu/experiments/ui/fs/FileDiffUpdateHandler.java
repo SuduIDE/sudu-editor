@@ -4,7 +4,7 @@ import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.RangeCtx;
 
-public class FileDiffUpdateHandler extends FileDiffHandler {
+public class FileDiffUpdateHandler {
 
   private final FolderDiffModel leftModel, rightModel;
   private final RangeCtx rangeCtx;
@@ -15,15 +15,14 @@ public class FileDiffUpdateHandler extends FileDiffHandler {
       FolderDiffModel leftModel, FolderDiffModel rightModel,
       RangeCtx rangeCtx, Runnable onCompared
   ) {
-    super(null, left, right);
     this.leftModel = leftModel;
     this.rightModel = rightModel;
     this.rangeCtx = rangeCtx;
     this.onCompared = onCompared;
+    new FileCompare(this::onCompared, left, right);
   }
 
-  @Override
-  protected void onCompared(boolean equals) {
+  void onCompared(boolean equals) {
     leftModel.itemCompared();
     rightModel.itemCompared();
     if (!equals) {

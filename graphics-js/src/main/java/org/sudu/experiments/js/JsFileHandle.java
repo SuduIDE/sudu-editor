@@ -50,6 +50,21 @@ public class JsFileHandle implements FileHandle {
     }
   }
 
+  @Override
+  public void syncAccess(
+      Consumer<SyncAccess> consumer,
+      Consumer<String> onError
+  ) {
+    if (fileHandle != null) {
+      fileHandle.createSyncAccessHandle().then(
+          sa -> consumer.accept(new JsSyncAccess(sa)),
+          jsError -> onError.accept(jsError.getMessage())
+      );
+    } else {
+      onError.accept("no file handle");
+    }
+  }
+
   private int intSize(double jsSize) {
     int result = (int) jsSize;
     if (result != jsSize) {

@@ -46,7 +46,7 @@ console.log("got module: ", module.constructor.name);
 
 function testFib() {
   jobCount++;
-  const fibFuture = module.fib(5).then(
+  const fibFuture = module.testFib(5).then(
       msg => {
         console.log("got foo result: " + msg);
         mayBeExit();
@@ -54,22 +54,13 @@ function testFib() {
   );
 }
 
-function testFS2(dir1, dir2) {
+function testDiff(dir1, dir2, content) {
   jobCount++;
-  module.testFS2(dir1, dir2, () => {
-    console.log("testFS2.onComplete");
-    mayBeExit();
-  });
-}
-
-const diffWithContent = true;
-
-function testDiff(dir1, dir2) {
-  jobCount++;
-  module.testDiff(dir1, dir2, diffWithContent, () => {
+  const onComplete = () => {
     console.log("testDiff.onComplete");
     mayBeExit();
-  });
+  };
+  module.testDiff(dir1, dir2, content, onComplete);
 }
 
 function testFS(dirname) {
@@ -89,19 +80,11 @@ function runTest() {
     case 3:
       const dirname = args[2];
       return testFS(dirname);
-    case 4:
+    case 4: case 5:
       const dir1 = args[2];
       const dir2 = args[3];
-      return testDiff(dir1, dir2);
-    case 5:
-      const testId = args[2];
-      switch (testId) {
-        case "testFS2":
-          const dir1 = args[3];
-          const dir2 = args[4];
-          return testFS2(dir1, dir2);
-        default: return "unknown test id " + testId;
-      }
+      const content = args.length >= 5 && "content" === args[4];
+      return testDiff(dir1, dir2, content);
     default:
       return "not running any test";
   }

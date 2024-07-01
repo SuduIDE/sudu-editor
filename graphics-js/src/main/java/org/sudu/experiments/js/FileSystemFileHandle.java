@@ -5,7 +5,6 @@ import org.teavm.jso.JSObject;
 public interface FileSystemFileHandle extends FileSystemHandle {
   Promise<JsFile> getFile();
 
-
   interface FileSystemWritableFileStream extends JSObject { }
   Promise<FileSystemWritableFileStream> createWritable();
 

@@ -2,7 +2,7 @@
   <configuration default="false" name="FolderDiffTestJvm" type="Application" factoryName="Application" nameIsGenerated="true">
     <option name="MAIN_CLASS_NAME" value="org.sudu.experiments.FolderDiffTestJvm" />
     <module name="demo-edit-jvm" />
-    <option name="PROGRAM_PARAMETERS" value="D:\Github\portable_ui_experiment D:\Github\portable_ui_experiment content" />
+    <option name="PROGRAM_PARAMETERS" value="D:\Github\sudu-edit D:\Github\sudu-edit content sync" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="org.sudu.experiments.diff.tests.*" />
