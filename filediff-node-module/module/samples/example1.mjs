@@ -54,16 +54,13 @@ function testFib() {
   );
 }
 
-function testDiff(dir1, dir2, content, sync) {
+function testDiff(dir1, dir2, content) {
   jobCount++;
   const onComplete = () => {
     console.log("testDiff.onComplete");
     mayBeExit();
   };
-  module.testDiff(
-      dir1, dir2,
-      content, sync,
-      onComplete);
+  module.testDiff(dir1, dir2, content, onComplete);
 }
 
 function testFS(dirname) {
@@ -83,14 +80,11 @@ function runTest() {
     case 3:
       const dirname = args[2];
       return testFS(dirname);
-    case 4: case 5: case 6:
+    case 4: case 5:
       const dir1 = args[2];
       const dir2 = args[3];
-      const content =
-          args.length <= 4 || "content" === args[4];
-      const sync =
-          args.length > 5 && "sync" === args[5];
-      return testDiff(dir1, dir2, content, sync);
+      const content = args.length >= 5 && "content" === args[4];
+      return testDiff(dir1, dir2, content);
     default:
       return "not running any test";
   }

@@ -23,25 +23,23 @@ public class DiffModelBuilder {
   public TriConsumer<Boolean, TreeNode, TreeNode> updateDiffInfo;
   public RangeCtx rangeCtx = new RangeCtx();
   public WorkerJobExecutor executor;
-  final boolean scanFileContent, syncAccess;
+  final boolean scanFileContent;
 
   public DiffModelBuilder(
       TriConsumer<Boolean, TreeNode, TreeNode> updateDiffInfo,
       WorkerJobExecutor executor
   ) {
-    this(updateDiffInfo, executor, true, false);
+    this(updateDiffInfo, executor, true);
   }
 
   public DiffModelBuilder(
       TriConsumer<Boolean, TreeNode, TreeNode> updateDiffInfo,
       WorkerJobExecutor executor,
-      boolean scanFileContent,
-      boolean syncAccess
+      boolean scanFileContent
   ) {
     this.updateDiffInfo = updateDiffInfo;
     this.executor = executor;
     this.scanFileContent = scanFileContent;
-    this.syncAccess = syncAccess;
   }
 
   public void compareRoots(
@@ -182,8 +180,7 @@ public class DiffModelBuilder {
     if (scanFileContent) {
       executor.sendToWorker(
           result -> onFilesCompared(left, right, leftModel, rightModel, result),
-          syncAccess ? DiffUtils.CMP_FILES_SYNC : DiffUtils.CMP_FILES,
-          left.file, right.file
+          DiffUtils.CMP_FILES, left.file, right.file
       );
     } else {
       new SizeScanner(left.file, right.file) {

@@ -3,29 +3,49 @@ package org.sudu.experiments.ui.fs;
 import org.sudu.experiments.FileHandle;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
+
 import org.sudu.experiments.FileHandle.SyncAccess;
 
-public class FileDiffSync {
+public class FileCompare {
 
   static final int maxArraySize = 2 * 1024 * 1024;
 
   DiffResult result;
   SyncAccess left, right;
+  String error;
 
-  public FileDiffSync(DiffResult r, FileHandle left, FileHandle right) {
+  public FileCompare(DiffResult r, FileHandle left, FileHandle right) {
     result = r;
-    left.syncAccess(this::sendLeft, System.err::println);
-    right.syncAccess(this::sendRight, System.err::println);
+    Consumer<String> onError = this::onError;
+    left.syncAccess(this::leftAccess, onError);
+    right.syncAccess(this::rightAccess, onError);
   }
 
-  private void sendLeft(SyncAccess left) {
-    this.left = left;
-    if (this.right != null) compareAndClose();
+  private void onError(String error) {
+    System.err.println(error);
+    this.error = error;
+    if (left != null) left = close(left);
+    if (right != null) right = close(right);
+    result.onCompared(false);
   }
 
-  public void sendRight(SyncAccess right) {
-    this.right = right;
-    if (this.left != null) compareAndClose();
+  private void leftAccess(SyncAccess l) {
+    if (error == null) {
+      left = l;
+      if (right != null) compareAndClose();
+    } else {
+      l.close();
+    }
+  }
+
+  private void rightAccess(SyncAccess r) {
+    if (error == null) {
+      right = r;
+      if (left != null) compareAndClose();
+    } else {
+      r.close();
+    }
   }
 
   private void compareAndClose() {
@@ -36,15 +56,16 @@ public class FileDiffSync {
       System.err.println(e.getMessage());
       result.onCompared(false);
     } finally {
-      close(left);
-      close(right);
+      left = close(left);
+      right = close(right);
     }
   }
 
-  private void close(SyncAccess file) {
+  private SyncAccess close(SyncAccess file) {
     try { file.close(); } catch (Exception e) {
       System.err.println(e.getMessage());
     }
+    return null;
   }
 
   private boolean compare() {

@@ -3,7 +3,6 @@ package org.sudu.experiments;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.tests.FolderDiffTest;
-import org.sudu.experiments.diff.tests.FolderScanTest;
 import org.sudu.experiments.diff.update.UpdateDto;
 import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.js.*;
@@ -149,7 +148,6 @@ public class DiffEngine implements DiffEngineJs {
   public void testDiff(
       JSString path1, JSString path2,
       boolean content,
-      boolean sync,
       JsFunctions.Runnable onComplete
   ) {
     if (notDir(path1) || notDir(path2)) {
@@ -163,10 +161,9 @@ public class DiffEngine implements DiffEngineJs {
     JsHelper.consoleInfo("  path1 = ", path1);
     JsHelper.consoleInfo("  path2 = ", path2);
     JsHelper.consoleInfo("  content = ", JSBoolean.valueOf(content));
-    JsHelper.consoleInfo("  sync = ", JSBoolean.valueOf(sync));
     JsTime jsTime = new JsTime();
     new FolderDiffTest(
-        dir1, dir2, content, sync, pool,
+        dir1, dir2, content, pool,
         jsTime, JsFunctions.wrap(onComplete)
     ).scan();
   }

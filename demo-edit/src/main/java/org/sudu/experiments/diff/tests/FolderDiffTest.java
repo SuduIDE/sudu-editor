@@ -13,9 +13,9 @@ public class FolderDiffTest extends DirectoryTest {
 
   final DoubleSupplier time;
 
-  private final boolean content, sync;
+  private final boolean content;
 
-  boolean running = true;
+  private boolean running = true;
   DirectoryNode leftRoot, rightRoot;
   FolderDiffModel leftModel = new FolderDiffModel(null);
   FolderDiffModel rightModel = new FolderDiffModel(null);
@@ -25,14 +25,12 @@ public class FolderDiffTest extends DirectoryTest {
       DirectoryHandle dir1,
       DirectoryHandle dir2,
       boolean content,
-      boolean sync,
       WorkerJobExecutor executor,
       DoubleSupplier time,
       Runnable onComplete
   ) {
     super(dir1, dir2, executor, onComplete);
     this.content = content;
-    this.sync = sync;
     this.time = time;
   }
 
@@ -41,7 +39,7 @@ public class FolderDiffTest extends DirectoryTest {
     rightRoot = new DirectoryNode(dir2, null);
     var builder = new DiffModelBuilder(
         (_1, _2, _3) -> updateDiffInfo(),
-        executor, content, sync);
+        executor, content);
     builder.compareRoots(
         leftRoot, rightRoot,
         leftModel, rightModel);

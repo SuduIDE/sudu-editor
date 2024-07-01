@@ -28,13 +28,12 @@ class FolderDiffTestJvm implements WorkerJobExecutor {
 
   FolderDiffTestJvm(
       Path left, Path right,
-      boolean content, boolean sync) {
+      boolean content) {
     var leftH = dir(left);
     var rightH = dir(right);
 
     test = new FolderDiffTest(leftH, rightH,
-        content, sync,
-        this, time, this::onComplete);
+        content, this, time, this::onComplete);
     test.scan();
   }
 
@@ -62,13 +61,11 @@ class FolderDiffTestJvm implements WorkerJobExecutor {
       boolean d1 = Files.isDirectory(p1);
       boolean d2 = Files.isDirectory(p2);
       boolean content = args.length >= 3 && args[2].equals("content");
-      boolean sync = args.length == 4 && args[3].equals("sync");
       if (d1 && d2) {
         System.out.println("  path1 = " + p1);
         System.out.println("  path2 = " + p2);
         System.out.println("  content = " + content);
-        System.out.println("  sync = " + sync);
-        new FolderDiffTestJvm(p1, p2, content, sync).run();
+        new FolderDiffTestJvm(p1, p2, content).run();
       } else {
         System.err.println(
             "path is not a directory: " + (d1 ? p2 : p1));
