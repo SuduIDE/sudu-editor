@@ -3,22 +3,23 @@ package org.sudu.experiments.ui.fs;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.diff.DiffTypes;
-import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.RangeCtx;
-import org.sudu.experiments.diff.update.CollectDto;
+import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
+import org.sudu.experiments.update.CollectDto;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class FolderDiffUpdateHandler extends FolderDiffHandler {
 
-  private final FolderDiffModel leftModel, rightModel;
+  private final RemoteFolderDiffModel leftModel, rightModel;
   private final Consumer<CollectDto> collect;
   private final RangeCtx rangeCtx;
   private final Runnable onCompared;
 
   public FolderDiffUpdateHandler(
       DirectoryHandle left, DirectoryHandle right,
-      FolderDiffModel leftModel, FolderDiffModel rightModel,
+      RemoteFolderDiffModel leftModel, RemoteFolderDiffModel rightModel,
       RangeCtx rangeCtx, Consumer<CollectDto> collect,
       Runnable onCompared
   ) {
@@ -33,8 +34,10 @@ public class FolderDiffUpdateHandler extends FolderDiffHandler {
   @Override
   protected void onCompared() {
     int leftLen = leftChildren.length, rightLen = rightChildren.length;
-    leftModel.setChildren(leftLen);
-    rightModel.setChildren(rightLen);
+    String[] leftPaths = Arrays.stream(leftChildren).map(c -> c.item.getName()).toArray(String[]::new);
+    String[] rightPaths = Arrays.stream(rightChildren).map(c -> c.item.getName()).toArray(String[]::new);
+    leftModel.setChildren(leftLen, leftPaths);
+    rightModel.setChildren(rightLen, rightPaths);
 
     boolean changed = true;
     int lP = 0, rP = 0;

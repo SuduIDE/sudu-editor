@@ -3,7 +3,6 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
-import org.sudu.experiments.diff.update.DiffModelUpdater;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
@@ -17,6 +16,7 @@ import org.sudu.experiments.ui.fs.DirectoryNode;
 import org.sudu.experiments.ui.fs.FileNode;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
+import org.sudu.experiments.update.DiffModelUpdater;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -120,7 +120,7 @@ public class FolderDiffWindow extends ToolWindow0 {
     compareRootFolders();
   }
 
-  private DirectoryNode.Handler getHandler(boolean left, FileTreeView treeView) {
+  protected DirectoryNode.Handler getHandler(boolean left, FileTreeView treeView) {
     return new DirectoryNode.Handler() {
       @Override
       public void openFile(FileNode node) {
@@ -234,7 +234,7 @@ public class FolderDiffWindow extends ToolWindow0 {
     rootView.right.updateModel(rightModel);
     var left = rootView.left.model();
     var right = rootView.right.model();
-    rootView.setDiffModel(builder.getDiffInfo(left, right));
+    rootView.setDiffModel(DiffModelBuilder.getDiffInfo(left, right));
     window.context.window.repaint();
     if (leftModel.compared && rightModel.compared) {
       if (PRINT_STAT) {

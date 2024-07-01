@@ -55,4 +55,11 @@ public class ArrayWriter {
     return result.length == pointer ? result : Arrays.copyOf(result, pointer);
   }
 
+  public int getPointer() {
+    return pointer;
+  }
+
+  public void writeAtPos(int pos, int value) {
+    result[pos] = value;
+  }
 }

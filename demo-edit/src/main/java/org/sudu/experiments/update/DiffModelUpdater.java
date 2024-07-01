@@ -1,4 +1,4 @@
-package org.sudu.experiments.diff.update;
+package org.sudu.experiments.update;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.diff.folder.FolderDiffModel;

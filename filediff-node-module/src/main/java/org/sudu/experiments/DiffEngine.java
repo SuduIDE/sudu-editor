@@ -1,8 +1,8 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.diff.DiffTypes;
-import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.diff.tests.FolderDiffTest;
+import org.sudu.experiments.diff.tests.FolderScanTest;
 import org.sudu.experiments.diff.update.UpdateDto;
 import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.js.*;
@@ -50,36 +50,22 @@ public class DiffEngine implements DiffEngineJs {
   public void startFolderDiff(JSString leftPath, JSString rightPath, Channel channel) {
     JsHelper.consoleInfo("Starting folder diff ");
 
-    if (DiffEngine.notDir(leftPath))
-      throw new IllegalArgumentException(leftPath.stringValue() + " should be directory");
-    if (DiffEngine.notDir(rightPath))
-      throw new IllegalArgumentException(rightPath.stringValue() + " should be directory");
+    leftPath = preparePath(leftPath);
+    rightPath = preparePath(rightPath);
+
+    if (notDir(leftPath))
+      throw new IllegalArgumentException("Left path " + leftPath.stringValue() + " should be directory");
+    if (notDir(rightPath))
+      throw new IllegalArgumentException("Right path " + rightPath.stringValue() + " should be directory");
+
+    JsHelper.consoleInfo("DiffEngine LeftPath: ", leftPath);
+    JsHelper.consoleInfo("DiffEngine RightPath: ", rightPath);
 
     DirectoryHandle leftHandle = new NodeDirectoryHandle(leftPath);
     DirectoryHandle rightHandle = new NodeDirectoryHandle(rightPath);
 
-    FolderDiffModel leftModelRoot = new FolderDiffModel(null);
-    FolderDiffModel rightModelRoot = new FolderDiffModel(null);
-
-    channel.setOnMessage(
-        jsResult -> {
-          JsHelper.consoleInfo("Got update batch from channel");
-          var ints = JsMemoryAccess.toJavaArray((Int32Array) jsResult.get(0).cast());
-          Object[] result = new Object[jsResult.getLength()];
-          result[0] = ints;
-          for (int i = 1; i < result.length; i++) {
-            result[i] = new NodeDirectoryHandle(jsResult.get(i).cast());
-          }
-          var updateDto = UpdateDto.fromInts(ints, result);
-          leftModelRoot.update(updateDto.leftRoot);
-          rightModelRoot.update(updateDto.rightRoot);
-
-          if (leftModelRoot.compared && rightModelRoot.compared) {
-            JsHelper.consoleInfo("Roots compared");
-            if (leftModelRoot.diffType == DiffTypes.EDITED) JsHelper.consoleInfo("EDITED");
-          }
-        }
-    );
+    RemoteFolderDiffModel leftModelRoot = new RemoteFolderDiffModel(null, leftPath.stringValue());
+    RemoteFolderDiffModel rightModelRoot = new RemoteFolderDiffModel(null, rightPath.stringValue());
 
     DiffModelChannelUpdater updater = new DiffModelChannelUpdater(
         leftModelRoot, rightModelRoot,
@@ -169,10 +155,22 @@ public class DiffEngine implements DiffEngineJs {
   }
 
   static boolean notDir(JSString path) {
-    if (!Fs.isDirectory(path)) {
-      JsHelper.consoleError("path is not a directory: ", path);
+    if (!isDir(path)) {
+      JsHelper.consoleError("path is not a directory ", path);
       return true;
     }
     return false;
+  }
+
+  public static boolean isDir(JSString path) {
+    return Fs.isDirectory(path);
+  }
+
+  static JSString preparePath(JSString jsString) {
+    String result = jsString.stringValue();
+    if (result.startsWith("file:///")) result = result.substring("file:///".length());
+    return JSString.valueOf(
+        result.replace("%3A", ":")
+    );
   }
 }

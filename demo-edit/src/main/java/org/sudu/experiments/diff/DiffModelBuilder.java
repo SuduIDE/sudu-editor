@@ -73,9 +73,7 @@ public class DiffModelBuilder {
     } else throw new IllegalArgumentException("TreeNodes left & right should have same type");
   }
 
-  DiffInfo getDiffInfo(
-      TreeNode[] left, TreeNode[] right
-  ) {
+  public static DiffInfo getDiffInfo(TreeNode[] left, TreeNode[] right) {
     DiffRange[] ranges = new DiffRange[1];
     int ptr = 0;
     int lP = 0, rP = 0;
@@ -151,7 +149,7 @@ public class DiffModelBuilder {
     return new DiffInfo(null, null, Arrays.copyOf(ranges, ptr));
   }
 
-  DiffRange handleDeleted(TreeNode[] left, int lP, int rP) {
+  public static DiffRange handleDeleted(TreeNode[] left, int lP, int rP) {
     if (left[lP].diffType == DiffTypes.DELETED) {
       int rangeId = left[lP].rangeId;
       int len = 0;
@@ -164,7 +162,7 @@ public class DiffModelBuilder {
     return null;
   }
 
-  DiffRange handleInserted(TreeNode[] right, int rP, int lP) {
+  public static DiffRange handleInserted(TreeNode[] right, int rP, int lP) {
     if (right[rP].diffType == DiffTypes.INSERTED) {
       int rangeId = right[rP].rangeId;
       int len = 0;
