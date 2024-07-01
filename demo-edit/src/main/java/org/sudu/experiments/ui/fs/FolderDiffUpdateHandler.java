@@ -7,7 +7,6 @@ import org.sudu.experiments.diff.folder.RangeCtx;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.update.CollectDto;
 
-import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class FolderDiffUpdateHandler extends FolderDiffHandler {
@@ -31,13 +30,25 @@ public class FolderDiffUpdateHandler extends FolderDiffHandler {
     this.onCompared = onCompared;
   }
 
+  static void setChildren(RemoteFolderDiffModel parent, TreeS[] paths) {
+    int len = paths.length;
+    parent.children = new RemoteFolderDiffModel[paths.length];
+    parent.childrenComparedCnt = 0;
+    for (int i = 0; i < len; i++) {
+      parent.children[i] = new RemoteFolderDiffModel(parent, paths[i].name);
+      parent.child(i).isFile = !paths[i].isFolder;
+    }
+    if (len == 0) {
+      parent.compared = true;
+      if (parent.parent != null) parent.childCompared();
+    }
+  }
+
   @Override
   protected void onCompared() {
     int leftLen = leftChildren.length, rightLen = rightChildren.length;
-    String[] leftPaths = Arrays.stream(leftChildren).map(c -> c.item.getName()).toArray(String[]::new);
-    String[] rightPaths = Arrays.stream(rightChildren).map(c -> c.item.getName()).toArray(String[]::new);
-    leftModel.setChildren(leftLen, leftPaths);
-    rightModel.setChildren(rightLen, rightPaths);
+    setChildren(leftModel, leftChildren);
+    setChildren(rightModel, rightChildren);
 
     boolean changed = true;
     int lP = 0, rP = 0;

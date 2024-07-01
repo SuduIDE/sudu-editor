@@ -15,8 +15,9 @@ public class FolderDiffModel {
 
   public FolderDiffModel parent;
   public FolderDiffModel[] children;
-  int childrenComparedCnt;
+  public int childrenComparedCnt;
   public boolean compared;
+  public boolean isFile;
   public int propagation = NO_PROP;
   public int diffType = DiffTypes.DEFAULT;
   public int rangeId;
@@ -34,17 +35,8 @@ public class FolderDiffModel {
     this.propagation = newModel.propagation;
     this.diffType = newModel.diffType;
     this.rangeId = newModel.rangeId;
+    this.isFile = newModel.isFile;
     if (compared && parent != null) parent.childCompared();
-  }
-
-  public void setChildren(int len) {
-    children = new FolderDiffModel[len];
-    this.childrenComparedCnt = 0;
-    for (int i = 0; i < len; i++) children[i] = new FolderDiffModel(this);
-    if (len == 0) {
-      compared = true;
-      if (parent != null) parent.childCompared();
-    }
   }
 
   // returns true if parent is fully compared
@@ -64,10 +56,6 @@ public class FolderDiffModel {
 
   public boolean isFullyCompared() {
     return children.length == childrenComparedCnt;
-  }
-
-  public boolean isFile() {
-    return children == null;
   }
 
   public FolderDiffModel child(int i) {
@@ -118,6 +106,7 @@ public class FolderDiffModel {
     writer.write(model.rangeId);
     writer.write(model.childrenComparedCnt);
     writer.write(model.compared ? 1 : 0);
+    writer.write(model.isFile ? 1 : 0);
     int ind = modelToIntMap.getOrDefault(model, -1);
     writer.write(ind);
     if (model.children == null) writer.write(-1);
@@ -146,6 +135,7 @@ public class FolderDiffModel {
     model.rangeId = reader.next();
     model.childrenComparedCnt = reader.next();
     model.compared = reader.next() == 1;
+    model.isFile = reader.next() == 1;
     int ind = reader.next();
     if (ind != -1) models[ind].second = model;
     int childrenLen = reader.next();

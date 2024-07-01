@@ -229,6 +229,20 @@ public class DiffModelBuilder {
     updateDiffInfo.accept(needUpdate, leftNode, rightNode);
   }
 
+  static void setChildren(FolderDiffModel parent, FsItem[] items) {
+    int len = items.length;
+    parent.children = new FolderDiffModel[len];
+    parent.childrenComparedCnt = 0;
+    for (int i = 0; i < len; i++) {
+      parent.children[i] = new FolderDiffModel(parent);
+      parent.child(i).isFile = items[i] instanceof FileHandle;
+    }
+    if (len == 0) {
+      parent.compared = true;
+      if (parent.parent != null) parent.childCompared();
+    }
+  }
+
   void onFoldersCompared(
       DirectoryNode left, DirectoryNode right,
       FolderDiffModel leftModel, FolderDiffModel rightModel,
@@ -244,9 +258,8 @@ public class DiffModelBuilder {
     int[] rightTypes = Arrays.copyOfRange(ints, 2 + leftLen, 2 + leftLen + rightLen);
     FsItem[] leftItems = Arrays.copyOfRange(result, 1, 1 + leftLen, FsItem[].class);
     FsItem[] rightItems = Arrays.copyOfRange(result, 1 + leftLen, 1 + leftLen + rightLen, FsItem[].class);
-
-    leftModel.setChildren(leftLen);
-    rightModel.setChildren(rightLen);
+    setChildren(leftModel, leftItems);
+    setChildren(rightModel, rightItems);
 
     boolean needUpdate = false;
     int lP = 0, rP = 0;

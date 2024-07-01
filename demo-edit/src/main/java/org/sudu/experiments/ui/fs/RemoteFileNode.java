@@ -4,11 +4,17 @@ import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 
 public class RemoteFileNode extends RemoteFileTreeNode {
 
-  RemoteFolderDiffModel model;
+  public RemoteFileNode(
+      RemoteFolderDiffModel model,
+      RemoteHandle handle
+  ) {
+    super(model, handle);
+    iconFile();
+    onClick = () -> handle.openFile(this);
+  }
 
-  public RemoteFileNode(RemoteFolderDiffModel model) {
-    super(model);
-    this.model = model;
-    onClick = () -> System.out.println("Want to read file " + model.path);
+  @Override
+  public String toString() {
+    return "-" + name();
   }
 }

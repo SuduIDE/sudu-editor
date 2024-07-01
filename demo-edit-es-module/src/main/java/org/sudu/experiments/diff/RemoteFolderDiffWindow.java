@@ -9,8 +9,9 @@ import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.ui.FileTreeNode;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ToolWindow0;
-import org.sudu.experiments.ui.fs.RemoteDirectoryHandle;
+import org.sudu.experiments.ui.fs.RemoteHandle;
 import org.sudu.experiments.ui.fs.RemoteDirectoryNode;
+import org.sudu.experiments.ui.fs.RemoteFileNode;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
 import org.sudu.experiments.update.UpdateDto;
@@ -120,28 +121,46 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     setRoots(leftModel, rightModel);
   }
 
-  private RemoteDirectoryHandle getHandle(boolean left) {
-    return new RemoteDirectoryHandle() {
+  private RemoteHandle getHandle(boolean left) {
+    return new RemoteHandle() {
       @Override
       public void updateView() {
         updateDiffInfo();
       }
 
       @Override
-      public RemoteDirectoryNode getOpposite(RemoteDirectoryNode node) {
-        var root = left ? rightRoot : leftRoot;
+      public void openFile(RemoteFileNode node) {
+        JsHelper.consoleInfo("Trying to open file " + node.name());
         var treeView = left ? rootView.right : rootView.left;
+        var opposite = getOppositeFile(node);
+        if (opposite != null) treeView.setSelected(opposite);
+      }
+
+      @Override
+      public RemoteDirectoryNode getOppositeDir(RemoteDirectoryNode node) {
+        var treeView = left ? rootView.right : rootView.left;
+        var opposite = getOppositeDir(node.model);
+        if (opposite != null) treeView.setSelected(opposite);
+        return opposite;
+      }
+
+      @Override
+      public RemoteFileNode getOppositeFile(RemoteFileNode node) {
+        var dir = getOppositeDir(node.model.parent());
+        if (dir == null) return null;
+        return dir.findSubFile(node.name());
+      }
+
+      private RemoteDirectoryNode getOppositeDir(RemoteFolderDiffModel model) {
+        var root = left ? rightRoot : leftRoot;
         Deque<String> deque = new LinkedList<>();
-        var curModel = node.model;
+        var curModel = model;
         while (curModel != null) {
           deque.addFirst(curModel.path);
           curModel = curModel.parent();
         }
         deque.removeFirst();
-
-        var opposite = getOpposite(root, deque);
-        treeView.setSelected(opposite);
-        return opposite;
+        return getOpposite(root, deque);
       }
 
       private RemoteDirectoryNode getOpposite(RemoteDirectoryNode current, Deque<String> deque) {

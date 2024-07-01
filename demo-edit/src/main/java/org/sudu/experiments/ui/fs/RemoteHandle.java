@@ -5,29 +5,35 @@ import org.sudu.experiments.ui.FileTreeNode;
 
 import java.util.Arrays;
 
-public abstract class RemoteDirectoryHandle {
+public abstract class RemoteHandle {
 
-  public void open(RemoteDirectoryNode node) {
+  public void openDir(RemoteDirectoryNode node) {
     var model = node.model;
     int childLen = model.children.length;
     int folderPtr = 0, filePtr = 0;
+
     RemoteDirectoryNode[] folders = new RemoteDirectoryNode[1];
     RemoteFileNode[] files = new RemoteFileNode[1];
 
     for (int i = 0; i < childLen; i++) {
       var child = model.child(i);
-      if (child.isFile()) {
-        var file = new RemoteFileNode(child);
+      if (child.isFile) {
+        var file = new RemoteFileNode(child, this);
         files = ArrayOp.addAt(file, files, filePtr++);
       } else {
         var folder = new RemoteDirectoryNode(child, this);
         folders = ArrayOp.addAt(folder, folders, folderPtr++);
       }
     }
+
     folders = Arrays.copyOf(folders, folderPtr);
     files = Arrays.copyOf(files, filePtr);
     Arrays.sort(folders, FileTreeNode.cmp);
     Arrays.sort(files, FileTreeNode.cmp);
+
+    System.out.println("folders: " + Arrays.toString(folders));
+    System.out.println("files: " + Arrays.toString(files));
+    System.out.println();
 
     var children = new RemoteFileTreeNode[childLen];
     System.arraycopy(folders, 0, children, 0, folderPtr);
@@ -37,12 +43,13 @@ public abstract class RemoteDirectoryHandle {
     node.folderCnt = folders.length;
   }
 
-  public void close(RemoteDirectoryNode node) {
+  public void closeDir(RemoteDirectoryNode node) {
     node.setChildren(FileTreeNode.ch0);
     node.folderCnt = 0;
   }
 
   public abstract void updateView();
-  public abstract RemoteDirectoryNode getOpposite(RemoteDirectoryNode node);
-
+  public abstract void openFile(RemoteFileNode node);
+  public abstract RemoteDirectoryNode getOppositeDir(RemoteDirectoryNode node);
+  public abstract RemoteFileNode getOppositeFile(RemoteFileNode node);
 }
