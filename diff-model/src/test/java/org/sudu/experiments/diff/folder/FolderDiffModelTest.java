@@ -14,8 +14,9 @@ public class FolderDiffModelTest {
     parent.childrenComparedCnt = 0;
     for (int i = 0; i < len; i++) parent.children[i] = new FolderDiffModel(parent);
     if (len == 0) {
-      parent.setCompared(true);
-      if (parent.parent != null) parent.childCompared();
+      parent.itemCompared();
+//      parent.setCompared(true);
+//      if (parent.parent != null) parent.childCompared();
     }
   }
 

@@ -2,8 +2,6 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.diff.tests.FolderDiffTest;
-import org.sudu.experiments.diff.tests.FolderScanTest;
-import org.sudu.experiments.diff.update.UpdateDto;
 import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.Fs;

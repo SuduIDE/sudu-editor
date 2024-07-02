@@ -9,6 +9,7 @@ import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.ui.FileTreeNode;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ToolWindow0;
+import org.sudu.experiments.ui.fs.RemoteFileTreeNode;
 import org.sudu.experiments.ui.fs.RemoteHandle;
 import org.sudu.experiments.ui.fs.RemoteDirectoryNode;
 import org.sudu.experiments.ui.fs.RemoteFileNode;
@@ -131,16 +132,14 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       @Override
       public void openFile(RemoteFileNode node) {
         JsHelper.consoleInfo("Trying to open file " + node.name());
-        var treeView = left ? rootView.right : rootView.left;
         var opposite = getOppositeFile(node);
-        if (opposite != null) treeView.setSelected(opposite);
+        if (opposite != null) setSelected(node, opposite);
       }
 
       @Override
       public RemoteDirectoryNode getOppositeDir(RemoteDirectoryNode node) {
-        var treeView = left ? rootView.right : rootView.left;
         var opposite = getOppositeDir(node.model);
-        if (opposite != null) treeView.setSelected(opposite);
+        if (opposite != null) setSelected(node, opposite);
         return opposite;
       }
 
@@ -169,6 +168,16 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         var subNode = current.findSubDir(path);
         if (subNode == null) return null;
         else return getOpposite(subNode, deque);
+      }
+
+      private void setSelected(RemoteFileTreeNode node, RemoteFileTreeNode opposite) {
+        if (left) {
+          rootView.left.setSelected(node);
+          rootView.right.setSelected(opposite);
+        } else {
+          rootView.right.setSelected(node);
+          rootView.left.setSelected(opposite);
+        }
       }
     };
   }

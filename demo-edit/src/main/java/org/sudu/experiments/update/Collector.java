@@ -6,9 +6,7 @@ import org.sudu.experiments.FsItem;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.diff.folder.RangeCtx;
 import org.sudu.experiments.math.ArrayOp;
-import org.sudu.experiments.ui.fs.FileDiffUpdateHandler;
-import org.sudu.experiments.ui.fs.FolderDiffHandler;
-import org.sudu.experiments.ui.fs.FolderDiffUpdateHandler;
+import org.sudu.experiments.ui.fs.*;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -71,10 +69,34 @@ public class Collector {
     FolderDiffHandler handler = new FolderDiffUpdateHandler(
         leftDir, rightDir,
         leftModel, rightModel,
-        rangeCtx, this::collect,
+        rangeCtx,
+        this::collect,
+        this::readFolder,
         this::onItemCompared
     );
     handler.read();
+  }
+
+  private void readFolder(ReadDto readDto) {
+    ++inComparing;
+    readDto.dirHandle.read(new DiffReader(children -> onRead(readDto, children)));
+  }
+
+  private void onRead(ReadDto readDto, TreeS[] children) {
+    var model = readDto.model;
+    FolderDiffUpdateHandler.setChildren(readDto.model, children);
+    for (int i = 0; i < children.length; i++) {
+      var child = model.child(i);
+      child.setDiffType(readDto.diffType);
+      child.rangeId = readDto.rangeId;
+      if (child.isFile()) {
+        child.itemCompared();
+      } else {
+        var childDto = new ReadDto(child, (DirectoryHandle) children[i].item, readDto.diffType, readDto.rangeId);
+        readFolder(childDto);
+      }
+    }
+    onItemCompared();
   }
 
   public void compareFiles(
@@ -91,11 +113,8 @@ public class Collector {
   }
 
   private void onItemCompared() {
-    if (--inComparing < 0) throw new IllegalStateException();
-    if (leftAcc.isCompared() && rightAcc.isCompared()) {
-      if (inComparing != 0) throw new IllegalStateException();
-      else onFullyCompared();
-    }
+    if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
+    if (leftAcc.isCompared() && rightAcc.isCompared()) onFullyCompared();
     if (inComparing == 0) onFullyCompared();
   }
 

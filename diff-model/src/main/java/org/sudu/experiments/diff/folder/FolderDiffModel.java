@@ -16,11 +16,11 @@ public class FolderDiffModel {
   public FolderDiffModel parent;
   public FolderDiffModel[] children;
   public int childrenComparedCnt;
-  public int flags; // 0 - compared; 1 - is File; 2,3 - propagation; 4,5 - diffType
-//  public boolean compared;
-//  public boolean isFile;
-//  public int propagation = NO_PROP;
-//  public int diffType = DiffTypes.DEFAULT;
+  int flags;
+  // 0 - compared;
+  // 1 - is File;
+  // 2,3 - propagation;
+  // 4,5 - diffType
   public int rangeId;
   public int depth;
 
@@ -39,6 +39,7 @@ public class FolderDiffModel {
 
   // returns true if parent is fully compared
   public boolean itemCompared() {
+    if (isCompared()) throw new IllegalStateException("File is already compared");
     setCompared(true);
     if (parent == null) throw new IllegalStateException("File must have a parent");
     return parent.childCompared();
@@ -53,6 +54,8 @@ public class FolderDiffModel {
   }
 
   public boolean isFullyCompared() {
+    if (childrenComparedCnt > children.length)
+      throw new IllegalStateException("childrenComparedCnt cannot be greater than children.length");
     return children.length == childrenComparedCnt;
   }
 

@@ -245,8 +245,9 @@ public class DiffModelBuilder {
       parent.child(i).setIsFile(items[i] instanceof FileHandle);
     }
     if (len == 0) {
-      parent.setCompared(true);
-      if (parent.parent != null) parent.childCompared();
+      parent.itemCompared();
+//      parent.setCompared(true);
+//      if (parent.parent != null) parent.childCompared();
     }
   }
 
