@@ -19,7 +19,7 @@ public class FileDiffUpdateHandler {
     this.rightModel = rightModel;
     this.rangeCtx = rangeCtx;
     this.onCompared = onCompared;
-    new FileCompare(this::onCompared, left, right);
+    FileCompare.compare(this::onCompared, left, right);
   }
 
   void onCompared(boolean equals) {

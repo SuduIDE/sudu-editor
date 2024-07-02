@@ -51,17 +51,26 @@ public class JsFileHandle implements FileHandle {
   }
 
   @Override
+  public boolean hasSyncAccess() {
+    return false;
+  }
+
+  @Override
   public void syncAccess(
       Consumer<SyncAccess> consumer,
       Consumer<String> onError
   ) {
-    if (fileHandle != null) {
-      fileHandle.createSyncAccessHandle().then(
-          sa -> consumer.accept(new JsSyncAccess(sa)),
-          jsError -> onError.accept(jsError.getMessage())
-      );
+    if (true) {
+      throw new RuntimeException();
     } else {
-      onError.accept("no file handle");
+      if (fileHandle != null) {
+        fileHandle.createSyncAccessHandle().then(
+            sa -> consumer.accept(new JsSyncAccess(sa)),
+            jsError -> onError.accept(jsError.getMessage())
+        );
+      } else {
+        onError.accept("no file handle");
+      }
     }
   }
 

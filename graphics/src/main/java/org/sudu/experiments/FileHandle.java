@@ -10,6 +10,9 @@ public interface FileHandle extends FsItem {
     double read(byte[] buf, double filePos);
   }
 
+  // web does not provide sync access to host fs ;/
+  default boolean hasSyncAccess() { return true; }
+
   void syncAccess(
       Consumer<SyncAccess> consumer,
       Consumer<String> onError);
