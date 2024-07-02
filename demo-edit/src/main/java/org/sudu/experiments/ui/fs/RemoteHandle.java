@@ -37,6 +37,7 @@ public abstract class RemoteHandle {
 
     node.setChildren(children);
     node.folderCnt = folders.length;
+    if (children.length == 1 && children[0] instanceof RemoteDirectoryNode singleDir) singleDir.openDir();
   }
 
   public void closeDir(RemoteDirectoryNode node) {

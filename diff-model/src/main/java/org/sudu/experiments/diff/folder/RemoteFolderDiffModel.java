@@ -94,4 +94,18 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
     }
     return model;
   }
+
+  @Override
+  public String infoString() {
+    return "RemoteFolderDiffModel{" +
+        "path='" + path +
+        "', parent=" + parent +
+        ", childrenComparedCnt=" + childrenComparedCnt +
+        ", children.length=" + (children != null ? children.length : 0) +
+        ", compared=" + isCompared() +
+        ", propagation=" + getPropagation() +
+        ", diffType=" + getDiffType() +
+        ", rangeId=" + rangeId +
+        "}";
+  }
 }

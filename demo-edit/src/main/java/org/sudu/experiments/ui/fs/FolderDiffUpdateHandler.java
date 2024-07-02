@@ -6,6 +6,7 @@ import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.RangeCtx;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.update.CollectDto;
+import org.sudu.experiments.update.ReadDto;
 
 import java.util.function.Consumer;
 
@@ -13,24 +14,28 @@ public class FolderDiffUpdateHandler extends FolderDiffHandler {
 
   private final RemoteFolderDiffModel leftModel, rightModel;
   private final Consumer<CollectDto> collect;
+  private final Consumer<ReadDto> read;
   private final RangeCtx rangeCtx;
   private final Runnable onCompared;
 
   public FolderDiffUpdateHandler(
       DirectoryHandle left, DirectoryHandle right,
       RemoteFolderDiffModel leftModel, RemoteFolderDiffModel rightModel,
-      RangeCtx rangeCtx, Consumer<CollectDto> collect,
+      RangeCtx rangeCtx,
+      Consumer<CollectDto> collect,
+      Consumer<ReadDto> read,
       Runnable onCompared
   ) {
     super(left, right, null);
     this.leftModel = leftModel;
     this.rightModel = rightModel;
     this.collect = collect;
+    this.read = read;
     this.rangeCtx = rangeCtx;
     this.onCompared = onCompared;
   }
 
-  static void setChildren(RemoteFolderDiffModel parent, TreeS[] paths) {
+  public static void setChildren(RemoteFolderDiffModel parent, TreeS[] paths) {
     int len = paths.length;
     parent.children = new RemoteFolderDiffModel[paths.length];
     parent.childrenComparedCnt = 0;
@@ -39,8 +44,7 @@ public class FolderDiffUpdateHandler extends FolderDiffHandler {
       parent.child(i).setIsFile(!paths[i].isFolder);
     }
     if (len == 0) {
-      parent.setCompared(true);
-      if (parent.parent != null) parent.childCompared();
+      parent.itemCompared();
     }
   }
 
@@ -75,8 +79,12 @@ public class FolderDiffUpdateHandler extends FolderDiffHandler {
         changed = true;
         leftModel.child(lP).setDiffType(DiffTypes.DELETED);
         leftModel.child(lP).rangeId = id;
-        leftModel.child(lP).markDown(DiffTypes.DELETED);
-        leftModel.child(lP).itemCompared();
+        if (!leftModel.child(lP).isFile()) {
+          var readDto = new ReadDto(leftModel.child(lP), (DirectoryHandle) leftItem(lP), DiffTypes.DELETED, id);
+          read.accept(readDto);
+        } else {
+          leftModel.child(lP).itemCompared();
+        }
         lP++;
       }
       if (changed) {
@@ -87,8 +95,12 @@ public class FolderDiffUpdateHandler extends FolderDiffHandler {
         changed = true;
         rightModel.child(rP).setDiffType(DiffTypes.INSERTED);
         rightModel.child(rP).rangeId = id;
-        rightModel.child(rP).markDown(DiffTypes.INSERTED);
-        rightModel.child(rP).itemCompared();
+        if (!rightModel.child(rP).isFile()) {
+          var readDto = new ReadDto(rightModel.child(rP), (DirectoryHandle) rightItem(rP), DiffTypes.INSERTED, id);
+          read.accept(readDto);
+        } else {
+          rightModel.child(rP).itemCompared();
+        }
         rP++;
       }
       if (changed) rangeCtx.markUp(leftModel, rightModel);
