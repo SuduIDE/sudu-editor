@@ -43,6 +43,7 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
 
     diffSync = new DiffSync(editor1, editor2);
     setViews(editor1, editor2, middleLine);
+    setEmptyDiffModel();
   }
 
   public EditorUi.FontApi fontApi() {
@@ -111,6 +112,18 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     middleLine.setTheme(theme);
     editor1.setTheme(theme);
     editor2.setTheme(theme);
+  }
+
+  public void setEmptyDiffModel() {
+    var leftLine = new LineDiff(DiffTypes.DEFAULT);
+    var rightLine = new LineDiff(DiffTypes.DEFAULT);
+    var range = new DiffRange(0, 1, 0, 1, DiffTypes.DEFAULT);
+    var diffInfo = new DiffInfo(
+        new LineDiff[]{leftLine},
+        new LineDiff[]{rightLine},
+        new DiffRange[]{range}
+    );
+    setDiffModel(diffInfo);
   }
 
   public void setDiffModel(DiffInfo diffInfo) {
