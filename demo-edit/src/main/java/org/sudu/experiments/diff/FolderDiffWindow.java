@@ -33,7 +33,7 @@ public class FolderDiffWindow extends ToolWindow0 {
   DiffModelBuilder builder;
   private static final boolean PRINT_STAT = true;
   private int updateCnt = 0;
-  private long startTime;
+  private double startTime;
   private Set<TreeNode> leftModelSet, rightModelSet;
 
   public FolderDiffWindow(
@@ -203,7 +203,8 @@ public class FolderDiffWindow extends ToolWindow0 {
 
   protected void compareRootFolders() {
     if (leftRoot == null || rightRoot == null) return;
-    startTime = System.currentTimeMillis();
+    startTime = window.context.window.timeNow();
+    System.out.println("startTime = " + startTime);
     leftModel = new FolderDiffModel(null);
     rightModel = new FolderDiffModel(null);
     DiffModelUpdater updateHandler = new DiffModelUpdater(
@@ -238,7 +239,8 @@ public class FolderDiffWindow extends ToolWindow0 {
     window.context.window.repaint();
     if (leftModel.isCompared() && rightModel.isCompared()) {
       if (PRINT_STAT) {
-        System.out.println("Compared in " + (System.currentTimeMillis() - startTime) + " ms");
+        int ms = (int) (1000. * (window.context.window.timeNow() - startTime));
+        System.out.println("Compared in " + ms + " ms");
         System.out.println("Total updates " + updateCnt);
       }
     }

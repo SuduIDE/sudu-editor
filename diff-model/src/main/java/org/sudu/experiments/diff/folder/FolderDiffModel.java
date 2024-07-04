@@ -118,7 +118,7 @@ public class FolderDiffModel {
     var model = new FolderDiffModel(null);
     model.setPropagation(PROP_DOWN);
     model.setDiffType(DiffTypes.DEFAULT);
-    model.setCompared(true);
+    model.setCompared(false);
     return model;
   }
 
