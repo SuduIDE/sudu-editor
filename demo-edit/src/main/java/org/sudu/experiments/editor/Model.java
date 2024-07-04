@@ -239,7 +239,7 @@ public class Model {
     if (executor != null) {
       resolveTimeStart = System.currentTimeMillis();
       var lastParsedVersion = document.currentVersion;
-      executor.sendToWorker(this::onResolved,
+      executor.sendToWorker(true, this::onResolved,
           ScopeProxy.RESOLVE_ALL, ints, chars,
           new int[]{lastParsedVersion}
       );
@@ -299,19 +299,22 @@ public class Model {
   }
 
   private void sendFirstLines(char[] chars, int langType) {
-    executor.sendToWorker(this::onFirstLinesParsed, FileProxy.asyncParseFirstLines,
+    executor.sendToWorker(true, this::onFirstLinesParsed,
+        FileProxy.asyncParseFirstLines,
         chars, new int[]{langType, EditorConst.FIRST_LINES});
     firstLinesParsed = ParseStatus.SENT;
   }
 
   private void sendStructure(char[] chars, int langType) {
-    executor.sendToWorker(this::onFileStructureParsed, FileProxy.asyncParseFile,
+    executor.sendToWorker(true, this::onFileStructureParsed,
+        FileProxy.asyncParseFile,
         chars, new int[]{langType});
     fileStructureParsed = ParseStatus.SENT;
   }
 
   private void sendFull(char[] chars, int langType) {
-    executor.sendToWorker(this::onFileParsed, FileProxy.asyncParseFullFile,
+    executor.sendToWorker(true, this::onFileParsed,
+        FileProxy.asyncParseFullFile,
         chars, new int[]{langType});
     fullFileParsed = ParseStatus.SENT;
   }
@@ -327,7 +330,8 @@ public class Model {
     String parseJob = parseJobName(language());
     if (parseJob != null) {
       parsingTimeStart = System.currentTimeMillis();
-      executor.sendToWorker(this::onFileParsed, parseJob, document.getChars());
+      executor.sendToWorker(true, this::onFileParsed,
+          parseJob, document.getChars());
     } else {
       editor.fireFullFileParsed();
     }
@@ -366,7 +370,8 @@ public class Model {
       graphChars = new char[]{};
     }
     int version = document.currentVersion;
-    executor.sendToWorker(res -> onFileIterativeParsed(res, start, stop), FileProxy.asyncIterativeParsing,
+    executor.sendToWorker(true,
+        res -> onFileIterativeParsed(res, start, stop), FileProxy.asyncIterativeParsing,
         chars, type, interval, new int[]{version}, graphInts, graphChars
     );
   }
@@ -426,7 +431,8 @@ public class Model {
         parsedVps.add(new V2i(firstLine, lastLine));
         int[] vpInts = new int[]{document.getLineStartInd(firstLine), document.getVpEnd(lastLine), firstLine};
         viewportParseStart = System.currentTimeMillis();
-        executor.sendToWorker(this::onVpParsed, JavaProxy.PARSE_VIEWPORT,
+        executor.sendToWorker(true, this::onVpParsed,
+            JavaProxy.PARSE_VIEWPORT,
             document.getChars(), vpInts, document.getIntervals() );
       }
     }

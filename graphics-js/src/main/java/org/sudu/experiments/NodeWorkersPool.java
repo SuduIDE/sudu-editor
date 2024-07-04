@@ -2,9 +2,8 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.NodeWorker;
-import org.sudu.experiments.worker.WorkerJobExecutor;
 
-public class NodeWorkersPool extends WorkersPool implements WorkerJobExecutor {
+public class NodeWorkersPool extends WorkersPool {
   public NodeWorkersPool(JsArray<NodeWorker> workers) {
     super(workers);
   }

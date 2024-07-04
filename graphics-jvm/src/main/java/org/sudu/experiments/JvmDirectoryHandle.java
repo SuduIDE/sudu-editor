@@ -6,6 +6,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.concurrent.Executor;
 
+// JvmDirectoryHandle reads synchronously on worker threads
+// and asynchronously on EDT
 class JvmDirectoryHandle extends JvmFsHandle implements DirectoryHandle {
 
   JvmDirectoryHandle(String path, Path root, Executor bgWorker, Executor edt) {
@@ -18,7 +20,7 @@ class JvmDirectoryHandle extends JvmFsHandle implements DirectoryHandle {
 
   @Override
   protected JvmFsHandle ctor(Executor edt) {
-    return new JvmDirectoryHandle(path, root, bgWorker, edt);
+    return new JvmDirectoryHandle(path, root, bgWorkerHi, edt);
   }
 
   @Override
@@ -40,7 +42,7 @@ class JvmDirectoryHandle extends JvmFsHandle implements DirectoryHandle {
       @Override
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
         if (attrs.isDirectory()) {
-          var dh = new JvmDirectoryHandle(file, root, bgWorker, edt);
+          var dh = new JvmDirectoryHandle(file, root, bgWorkerHi, edt);
           if (isOnWorker()) {
             reader.onDirectory(dh);
           } else {
@@ -49,7 +51,7 @@ class JvmDirectoryHandle extends JvmFsHandle implements DirectoryHandle {
 
         }
         if (attrs.isRegularFile()) {
-          var fh = new JvmFileHandle(file, root, bgWorker, edt);
+          var fh = new JvmFileHandle(file, root, bgWorkerHi, edt);
           if (isOnWorker()) {
             reader.onFile(fh);
           } else {
@@ -63,7 +65,9 @@ class JvmDirectoryHandle extends JvmFsHandle implements DirectoryHandle {
     if (isOnWorker()) {
       walk(reader, visitor);
     } else {
-      bgWorker.execute(() -> walk(reader, visitor));
+      bgWorkerHi.execute(() ->
+          walk(reader, visitor)
+      );
     }
   }
 

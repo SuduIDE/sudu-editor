@@ -32,7 +32,7 @@ public class Application {
     Supplier<Win32Graphics> graphics = Win32Graphics.lazyInit(d2dCanvasFactory);
     EventQueue eventQueue = new EventQueue();
 
-    Workers workers = new Workers(numThreads, workerExecutor);
+    Workers workers = new Workers(numThreads, workerExecutor, eventQueue);
     Win32Window window = new Win32Window(eventQueue, time, workers);
 
     if (!window.init(sf, graphics, null)) {

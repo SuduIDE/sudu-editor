@@ -15,6 +15,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 
+// JvmFileHandle reads synchronously on worker threads
+// use SyncAccess for many small reads
 public class JvmFileHandle extends JvmFsHandle implements FileHandle {
 
   static final Function<byte[], String> asUtf8String = b -> new String(b, StandardCharsets.UTF_8);
@@ -27,7 +29,7 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
   }
 
   protected JvmFileHandle ctor(Executor edt) {
-    return new JvmFileHandle(path, root, bgWorker, edt);
+    return new JvmFileHandle(path, root, bgWorkerHi, edt);
   }
 
   @Override
@@ -65,7 +67,7 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
     if (isOnWorker()) {
       read0(consumer, onError, transform, begin, length);
     } else {
-      bgWorker.execute(
+      bgWorkerHi.execute(
           () -> read0(consumer, onError, transform, begin, length));
     }
   }

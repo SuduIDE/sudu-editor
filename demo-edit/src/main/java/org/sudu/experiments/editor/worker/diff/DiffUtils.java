@@ -160,7 +160,7 @@ public class DiffUtils {
     int[] intervals1 = makeIntervals(document1);
     int[] intervals2 = makeIntervals(document2);
 
-    window.sendToWorker(
+    window.sendToWorker(true,
         r -> {
           int[] reply = ((ArrayView) r[0]).ints();
           DiffInfo model = readDiffInfo(reply);
@@ -181,7 +181,7 @@ public class DiffUtils {
     char[] chars2 = document2.getChars(fromR, toR);
     int[] intervals1 = makeIntervals(document1, fromL, toL);
     int[] intervals2 = makeIntervals(document2, fromR, toR);
-    window.sendToWorker(
+    window.sendToWorker(true,
         r -> {
           int[] reply = ((ArrayView) r[0]).ints();
           DiffInfo model = readDiffInfo(reply);

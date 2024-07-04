@@ -2,6 +2,7 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.math.Numbers;
+import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.browser.AnimationFrameCallback;
 import org.teavm.jso.browser.Performance;
@@ -263,8 +264,8 @@ public class WebWindow implements Window {
   }
 
   @Override
-  public void sendToWorker(Consumer<Object[]> handler, String method, Object... args) {
-    workers.sendToWorker(handler, method, args);
+  public WorkerJobExecutor worker() {
+    return workers;
   }
 
   @Override

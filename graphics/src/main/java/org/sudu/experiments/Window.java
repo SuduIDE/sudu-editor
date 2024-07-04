@@ -5,7 +5,7 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public interface Window extends WorkerJobExecutor {
+public interface Window {
   void setTitle(String title);
   void setCursor(String cursor);
 
@@ -22,7 +22,7 @@ public interface Window extends WorkerJobExecutor {
   void showDirectoryPicker(Consumer<DirectoryHandle> onResult);
   void showOpenFilePicker(Consumer<FileHandle> onResult);
 
-  void sendToWorker(Consumer<Object[]> handler, String method, Object ... args);
+  WorkerJobExecutor worker();
 
   void runLater(Runnable r);
 

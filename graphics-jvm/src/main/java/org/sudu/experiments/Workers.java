@@ -1,24 +1,33 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.worker.WorkerExecutor;
+import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.sudu.experiments.worker.WorkerProxy;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
-public class Workers {
-  final ExecutorService bgWorker;
+public class Workers implements WorkerJobExecutor {
+  final ExecutorService bgWorkerLo;
+  final ExecutorService bgWorkerHi;
+  final EventQueue eventQueue;
   final WorkerExecutor workerExecutor;
 
-  public Workers(int numThreads, WorkerExecutor workerExecutor) {
-    this.bgWorker = newThreadPool(numThreads);
+  public Workers(
+      int numThreads,
+      WorkerExecutor workerExecutor,
+      EventQueue eventQueue
+  ) {
+    this.bgWorkerLo = newThreadPool(numThreads);
+    this.bgWorkerHi = newThreadPool(numThreads);
+    this.eventQueue = eventQueue;
     this.workerExecutor = workerExecutor;
   }
 
   public void shutdown() {
-    bgWorker.shutdown();
+    bgWorkerLo.shutdown();
+    bgWorkerHi.shutdown();
   }
 
   static ExecutorService newThreadPool(int maxThreads) {
@@ -29,11 +38,12 @@ public class Workers {
         : Executors.newFixedThreadPool(maxThreads);
   }
 
-  void sendToWorker(
-      Consumer<Object[]> handler, String method, Object[] args,
-      Executor eventQueue
+  @Override
+  public void sendToWorker(
+      boolean priority,
+      Consumer<Object[]> handler, String method, Object[] args
   ) {
-    bgWorker.execute(
+    (priority ? bgWorkerHi : bgWorkerLo).execute(
         WorkerProxy.job(
             workerExecutor, method, args, handler, eventQueue));
   }

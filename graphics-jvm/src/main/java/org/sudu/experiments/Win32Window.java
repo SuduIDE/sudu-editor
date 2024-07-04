@@ -6,6 +6,7 @@ import org.sudu.experiments.input.InputListeners;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.win32.*;
+import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -383,7 +384,7 @@ public class Win32Window implements WindowPeer, Window {
       Path folderPath = Path.of(result);
       var dir = new JvmDirectoryHandle(
           folderPath, folderPath,
-          workers.bgWorker, eventQueue);
+          workers.bgWorkerHi, eventQueue);
       eventQueue.execute(() -> onResult.accept(dir));
     }
   }
@@ -400,14 +401,14 @@ public class Win32Window implements WindowPeer, Window {
     if (file != null) {
       Path path = Path.of(file);
       FileHandle fh = new JvmFileHandle(
-          path, path, workers.bgWorker, eventQueue);
+          path, path, workers.bgWorkerLo, eventQueue);
       eventQueue.execute(() -> onResult.accept(fh));
     }
   }
 
   @Override
-  public void sendToWorker(Consumer<Object[]> handler, String method, Object... args) {
-    workers.sendToWorker(handler, method, args, eventQueue);
+  public WorkerJobExecutor worker() {
+    return workers;
   }
 
   @Override

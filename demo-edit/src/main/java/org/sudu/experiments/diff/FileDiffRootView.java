@@ -136,7 +136,7 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
         editor1.model().document,
         editor2.model().document,
         this::setDiffModel,
-        ui.windowManager.uiContext.window);
+        ui.windowManager.uiContext.window.worker());
   }
 
   private void sendIntervalToDiff(
@@ -147,7 +147,7 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
         editor1.model().document,
         editor2.model().document,
         (upd) -> updateDiffModel(fromL, toL, fromR, toR, upd),
-        ui.windowManager.uiContext.window,
+        ui.windowManager.uiContext.window.worker(),
         fromL, toL, fromR, toR
     );
   }

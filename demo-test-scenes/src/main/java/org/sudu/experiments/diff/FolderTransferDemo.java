@@ -114,7 +114,7 @@ public class FolderTransferDemo extends WindowDemo implements DprChangeListener 
 
   private void openDir(DirectoryHandle dir) {
     System.out.println("dir = " + dir);
-    uiContext.window.sendToWorker(
+    uiContext.window.worker().sendToWorker(
         this::dirResult, TestJobs.asyncWithDir, dir
     );
   }
@@ -135,7 +135,7 @@ public class FolderTransferDemo extends WindowDemo implements DprChangeListener 
 
   private void openFile(FileHandle file) {
     System.out.println("openFile: " + file);
-    uiContext.window.sendToWorker(
+    uiContext.window.worker().sendToWorker(
         WorkerTest::fileResult, TestJobs.asyncWithFile, file
     );
   }

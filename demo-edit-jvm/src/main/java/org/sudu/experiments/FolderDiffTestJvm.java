@@ -18,8 +18,8 @@ class FolderDiffTestJvm implements WorkerJobExecutor {
   static final int DUMP_STATS_CALLS_DELTA = 2000;
   static int numThreads = 3;
 
-  final Workers workers = new Workers(numThreads, FileDiffWorker::execute);
   final EventQueue edt = new EventQueue();
+  final Workers workers = new Workers(numThreads, FileDiffWorker::execute, edt);
 
   final Map<String, MethodStat> handlers = new HashMap<>();
   int jobNo;
@@ -43,7 +43,7 @@ class FolderDiffTestJvm implements WorkerJobExecutor {
 
   JvmDirectoryHandle dir(Path path) {
     return new JvmDirectoryHandle(
-        path, path, workers.bgWorker, edt);
+        path, path, workers.bgWorkerHi, edt);
   }
 
   private void run() throws InterruptedException {
@@ -112,7 +112,10 @@ class FolderDiffTestJvm implements WorkerJobExecutor {
   }
 
   @Override
-  public void sendToWorker(Consumer<Object[]> handler, String method, Object... args) {
+  public void sendToWorker(
+      boolean priority,
+      Consumer<Object[]> handler, String method, Object... args
+  ) {
     ++jobNo;
 
     var stat = handlers.computeIfAbsent(method, MethodStat::new);
@@ -122,7 +125,7 @@ class FolderDiffTestJvm implements WorkerJobExecutor {
       dumpStats();
     }
 
-    workers.sendToWorker(handler, method, args, edt);
+    workers.sendToWorker(priority, handler, method, args);
   }
 
   void dumpStats() {

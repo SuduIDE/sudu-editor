@@ -1,6 +1,7 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.js.*;
+import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
@@ -9,10 +10,11 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class WorkersPool {
+public abstract class WorkersPool implements WorkerJobExecutor {
 
   protected final JsArray<? extends JsMessagePort0> workers;
-  private final LinkedList<Job> delayedJobs = new LinkedList<>();
+  private final LinkedList<Job> delayedJobsL = new LinkedList<>();
+  private final LinkedList<Job> delayedJobsH = new LinkedList<>();
   private final TreeMap<Integer, Consumer<Object[]>> jobs = new TreeMap<>();
   private final int[] freeWorkers;
   private int workerJobIdNext, freeWorkersCount;
@@ -36,11 +38,15 @@ public abstract class WorkersPool {
     return ++workerJobIdNext;
   }
 
-  public void sendToWorker(Consumer<Object[]> handler, String method, Object... args) {
+  public void sendToWorker(
+      boolean priority,
+      Consumer<Object[]> handler, String method, Object... args
+  ) {
     if (freeWorkersCount > 0) {
       sendToWorkerIdx(handler, method, args, nextFreeWorker());
     } else {
-      delayedJobs.addLast(new Job(handler, method, args));
+      (priority ? delayedJobsH : delayedJobsL)
+          .addLast(new Job(handler, method, args));
     }
   }
 
@@ -62,11 +68,13 @@ public abstract class WorkersPool {
 
   protected void onWorkerMessage(JSObject data, int index) {
     if (debug) JsHelper.consoleInfo(
-        "onWorkerMessage: delayedJobs.size = ", delayedJobs.size());
+        "onWorkerMessage: delayedJobs.size = ", delayedJobsL.size() + delayedJobsH.size());
     if (WorkerProtocol.isPing(data) && debug) {
       JsHelper.consoleInfo("  ping response from worker ", index);
     }
-    Job job = delayedJobs.pollFirst();
+    Job job = delayedJobsH.pollFirst();
+    if (job == null)
+      job = delayedJobsL.pollFirst();
     if (job != null) {
       if (debug) {
         JsHelper.consoleInfo("  reuse worker index ", index);

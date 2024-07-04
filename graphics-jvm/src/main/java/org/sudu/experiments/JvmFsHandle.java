@@ -5,18 +5,18 @@ import java.util.concurrent.Executor;
 
 public abstract class JvmFsHandle implements FsItem {
   final Path path, root;
-  final Executor bgWorker;
+  final Executor bgWorkerHi;
   final Executor edt;
   private String[] rPath;
 
-  JvmFsHandle(String path, Path root, Executor bgWorker, Executor edt) {
-    this(Path.of(path), root, bgWorker, edt);
+  JvmFsHandle(String path, Path root, Executor bgWorkerHi, Executor edt) {
+    this(Path.of(path), root, bgWorkerHi, edt);
   }
 
-  JvmFsHandle(Path path, Path root, Executor bgWorker, Executor edt) {
+  JvmFsHandle(Path path, Path root, Executor bgWorkerHi, Executor edt) {
     this.path = path;
     this.root = root;
-    this.bgWorker = bgWorker;
+    this.bgWorkerHi = bgWorkerHi;
     this.edt = edt;
   }
 
@@ -25,11 +25,11 @@ public abstract class JvmFsHandle implements FsItem {
   // If edt argument is null then the background worker's bus is used
   public final JvmFsHandle withEdt(Executor edt) {
     return this.edt == edt ? this :
-        ctor(edt != null ? edt : bgWorker);
+        ctor(edt != null ? edt : bgWorkerHi);
   }
 
   protected final boolean isOnWorker() {
-    return edt == bgWorker;
+    return edt == bgWorkerHi;
   }
 
   protected abstract JvmFsHandle ctor(Executor edt);

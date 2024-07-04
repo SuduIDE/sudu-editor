@@ -136,7 +136,7 @@ public class Diff0 extends WindowScene implements
     DiffUtils.findDiffs(
         editor1.model().document,
         editor2.model().document,
-        this::onDiffResult, api.window);
+        this::onDiffResult, api.window.worker());
   }
 
   private void onDiffResult(DiffInfo result) {

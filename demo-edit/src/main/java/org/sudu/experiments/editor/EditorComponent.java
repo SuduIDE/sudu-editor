@@ -111,7 +111,7 @@ public class EditorComponent extends View implements
     debugFlags[5] = () -> drawGap = !drawGap;
     debugFlags[6] = () -> printResolveTime = !printResolveTime;
 
-    model.setEditor(this, window());
+    model.setEditor(this, window().worker());
   }
 
   /*Disposable*/ void registerMouseScroll(InputListeners input) {
@@ -1552,7 +1552,7 @@ public class EditorComponent extends View implements
     Model oldModel = this.model;
     this.model = model;
     oldModel.setEditor(null, null);
-    model.setEditor(this, window());
+    model.setEditor(this, window().worker());
     registrations.fireModelChange(oldModel, model);
     vScrollPos = Numbers.iRnd(model.vScrollLine * lineHeight);
   }

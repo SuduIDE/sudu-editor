@@ -10,6 +10,7 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.UiFont;
+import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.Arrays;
 import java.util.function.Supplier;
@@ -25,19 +26,19 @@ public class WorkerTest extends WindowScene {
 
     api.input.onContextMenu.add(this::onContextMenu);
 
-    sendPrimitiveTasks(api.window);
+    sendPrimitiveTasks(api.window.worker());
 
     api.input.onKeyPress.add(new CtrlO(api, this::openFile));
   }
 
-  private void sendPrimitiveTasks(Window window) {
-    window.sendToWorker(this::stringResult,
+  private void sendPrimitiveTasks(WorkerJobExecutor e) {
+    e.sendToWorker(this::stringResult,
         TestJobs.withString, "hello string");
-    window.sendToWorker(this::charsResult,
+    e.sendToWorker(this::charsResult,
         TestJobs.withChars, new char[]{ 1,2,3,4,5 });
-    window.sendToWorker(this::bytesResult,
+    e.sendToWorker(this::bytesResult,
         TestJobs.withBytes, new byte[]{ 1,2,3,4,5 });
-    window.sendToWorker(this::integersResult,
+    e.sendToWorker(this::integersResult,
         TestJobs.withInts, new int[]{ 1,2,3,4,5 });
   }
 
@@ -61,7 +62,7 @@ public class WorkerTest extends WindowScene {
 
   private void callFibonacci(int n, int times) {
     for (int i = 0; i < times; i++) {
-      api.window.sendToWorker(r -> fibResult(r, n),
+      api.window.worker().sendToWorker(r -> fibResult(r, n),
           TestJobs.fibonacci, new int[]{ n });
     }
   }
@@ -73,7 +74,7 @@ public class WorkerTest extends WindowScene {
   }
 
   private void openFile(FileHandle fileHandle) {
-    api.window.sendToWorker(
+    api.window.worker().sendToWorker(
         WorkerTest::fileResult, TestJobs.asyncWithFile, fileHandle);
   }
 

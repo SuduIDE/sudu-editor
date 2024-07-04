@@ -59,7 +59,8 @@ public class FolderDiffWindow extends ToolWindow0 {
     windowManager.addWindow(window);
     leftModel = FolderDiffModel.DEFAULT;
     rightModel = FolderDiffModel.DEFAULT;
-    builder = new DiffModelBuilder(this::checkedUpdate, window.context.window);
+    builder = new DiffModelBuilder(this::checkedUpdate,
+        window.context.window.worker());
   }
 
   protected void dispose() {
@@ -208,7 +209,7 @@ public class FolderDiffWindow extends ToolWindow0 {
     DiffModelUpdater updateHandler = new DiffModelUpdater(
         leftModel, rightModel,
         leftRoot.dir, rightRoot.dir,
-        window.context.window, this::updateDiffInfo
+        window.context.window.worker(), this::updateDiffInfo
     );
     updateHandler.beginCompare();
   }
