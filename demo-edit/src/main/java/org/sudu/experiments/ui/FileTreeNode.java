@@ -49,7 +49,7 @@ public class FileTreeNode extends TreeNode {
 
   private int count() {
     int n = 1;
-    if (isOpened()) {
+    if (childrenLength() != 0) {
       for (FileTreeNode child : children)
         n += child.count();
     }
