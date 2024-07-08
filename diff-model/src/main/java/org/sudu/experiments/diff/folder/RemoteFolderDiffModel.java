@@ -12,7 +12,7 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
 
   public String path;
 
-  public RemoteFolderDiffModel(RemoteFolderDiffModel parent, String path) {
+  public RemoteFolderDiffModel(FolderDiffModel parent, String path) {
     super(parent);
     this.path = path;
   }

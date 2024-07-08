@@ -9,12 +9,11 @@ public class RemoteFileNode extends RemoteFileTreeNode {
       RemoteHandle handle
   ) {
     super(model, handle);
-    iconFile();
     onClick = () -> handle.openFile(this);
   }
 
   @Override
-  public String toString() {
-    return "-" + name();
+  protected void defaultIcon() {
+    iconFile();
   }
 }

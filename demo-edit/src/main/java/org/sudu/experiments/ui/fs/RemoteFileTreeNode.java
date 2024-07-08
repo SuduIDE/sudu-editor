@@ -15,6 +15,7 @@ public class RemoteFileTreeNode extends FileTreeNode {
     this(model.path, model.depth);
     this.model = model;
     this.handle = handle;
+    defaultIcon();
   }
 
   private RemoteFileTreeNode(String v, int d) {

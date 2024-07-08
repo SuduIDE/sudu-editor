@@ -5,9 +5,10 @@ import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
-import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.core.JSString;
+
+import java.util.Arrays;
 
 public class DiffModelChannelUpdater {
 
@@ -30,22 +31,14 @@ public class DiffModelChannelUpdater {
   }
 
   public void beginCompare() {
-    compare(leftDir, rightDir);
-  }
-
-  public void compare(
-      DirectoryHandle leftDir, DirectoryHandle rightDir
-  ) {
-    executor.sendToWorker(
-        this::onCompared,
-        Collector.COLLECT,
-        leftDir, rightDir
-    );
+    var collector = new Collector(leftRootAcc, rightRootAcc, executor, this::onCompared);
+    collector.compare(leftRootAcc, rightRootAcc, leftDir, rightDir);
   }
 
   public void onCompared(Object[] result) {
     var jsResult = JsArray.create(result.length);
-    int[] ints = ((ArrayView) result[0]).ints();
+    System.out.println("onCompared: " + Arrays.toString(result));
+    int[] ints = (int[]) result[0];
     jsResult.set(0, JsMemoryAccess.bufferView(ints));
     for (int i = 1; i < result.length; i++) {
       String path = (String) result[i];

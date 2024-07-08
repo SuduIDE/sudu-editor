@@ -3,6 +3,7 @@ package org.sudu.experiments.ui.fs;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.diff.DiffTypes;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.RangeCtx;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.update.CollectDto;
@@ -35,7 +36,7 @@ public class FolderDiffUpdateHandler extends FolderDiffHandler {
     this.onCompared = onCompared;
   }
 
-  public static void setChildren(RemoteFolderDiffModel parent, TreeS[] paths) {
+  public static void setChildren(FolderDiffModel parent, TreeS[] paths) {
     int len = paths.length;
     parent.children = new RemoteFolderDiffModel[paths.length];
     parent.childrenComparedCnt = 0;
@@ -43,9 +44,7 @@ public class FolderDiffUpdateHandler extends FolderDiffHandler {
       parent.children[i] = new RemoteFolderDiffModel(parent, paths[i].name);
       parent.child(i).setIsFile(!paths[i].isFolder);
     }
-    if (len == 0) {
-      parent.itemCompared();
-    }
+    if (len == 0) parent.itemCompared();
   }
 
   @Override

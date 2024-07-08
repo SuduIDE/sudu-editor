@@ -62,7 +62,8 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
   }
 
   @Override
-  public String toString() {
-    return ">" + name();
+  protected void defaultIcon() {
+    if (isOpened()) iconFolderOpened();
+    else iconFolder();
   }
 }

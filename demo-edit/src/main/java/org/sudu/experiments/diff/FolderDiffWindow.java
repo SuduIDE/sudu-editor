@@ -2,7 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
@@ -29,7 +29,7 @@ public class FolderDiffWindow extends ToolWindow0 {
   Focusable focusSave;
   FolderDiffRootView rootView;
   DirectoryNode leftRoot, rightRoot;
-  FolderDiffModel leftModel, rightModel;
+  RemoteFolderDiffModel leftModel, rightModel;
   DiffModelBuilder builder;
   private static final boolean PRINT_STAT = true;
   private int updateCnt = 0;
@@ -57,10 +57,9 @@ public class FolderDiffWindow extends ToolWindow0 {
     window.onFocus(this::onFocus);
     window.onBlur(this::onBlur);
     windowManager.addWindow(window);
-    leftModel = FolderDiffModel.DEFAULT;
-    rightModel = FolderDiffModel.DEFAULT;
-    builder = new DiffModelBuilder(this::checkedUpdate,
-        window.context.window.worker());
+    leftModel = RemoteFolderDiffModel.REMOTE_DEFAULT;
+    rightModel = RemoteFolderDiffModel.REMOTE_DEFAULT;
+    builder = new DiffModelBuilder(this::checkedUpdate, window.context.window.worker());
   }
 
   protected void dispose() {
@@ -205,8 +204,8 @@ public class FolderDiffWindow extends ToolWindow0 {
     if (leftRoot == null || rightRoot == null) return;
     startTime = window.context.window.timeNow();
     System.out.println("startTime = " + startTime);
-    leftModel = new FolderDiffModel(null);
-    rightModel = new FolderDiffModel(null);
+    leftModel = new RemoteFolderDiffModel(null, "");
+    rightModel = new RemoteFolderDiffModel(null, "");
     DiffModelUpdater updateHandler = new DiffModelUpdater(
         leftModel, rightModel,
         leftRoot.dir, rightRoot.dir,

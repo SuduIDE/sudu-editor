@@ -7,11 +7,13 @@ import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffModel;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
+import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.editor.Document;
 import org.sudu.experiments.ui.fs.DiffResult;
 import org.sudu.experiments.ui.fs.FileCompare;
 import org.sudu.experiments.ui.fs.FolderDiffHandler;
+import org.sudu.experiments.ui.fs.ReadFolderHandler;
 import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
@@ -54,6 +56,17 @@ public class DiffUtils {
   ) {
     FolderDiffHandler handler = new FolderDiffHandler(left, right, r);
     handler.read();
+  }
+
+  public static final String READ_FOLDER = "asyncReadFolder";
+
+  public static void readFolder(
+      DirectoryHandle folder, int[] ints,
+      Consumer<Object[]> r
+  ) {
+    var model = new RemoteFolderDiffModel(null, folder.getName());
+    var reader = new ReadFolderHandler(model, folder, ints[0], ints[1], r);
+    reader.beginRead();
   }
 
   public static int[] makeIntervals(Document document, int fromLine, int toLine) {
