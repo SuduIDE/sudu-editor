@@ -10,7 +10,6 @@ import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.editor.Document;
-import org.sudu.experiments.ui.fs.DiffResult;
 import org.sudu.experiments.ui.fs.FileCompare;
 import org.sudu.experiments.ui.fs.FolderDiffHandler;
 import org.sudu.experiments.ui.fs.ReadFolderHandler;
@@ -34,18 +33,13 @@ public class DiffUtils {
     result.add(ints);
   }
 
-  static DiffResult send(Consumer<Object[]> r) {
-    return equals -> r.accept(
-        new Object[]{new int[]{equals ? 1 : 0}});
-  }
-
   public static final String CMP_FILES = "asyncCompareFiles";
 
   public static void compareFiles(
       FileHandle left, FileHandle right,
       Consumer<Object[]> r
   ) {
-    FileCompare.compare(send(r), left, right);
+    FileCompare.compare(r, left, right);
   }
 
   public static final String CMP_FOLDERS = "asyncCompareFolders";
