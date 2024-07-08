@@ -31,6 +31,7 @@ public class FolderDiffModel {
 
   public void update(FolderDiffModel newModel) {
     this.children = newModel.children;
+    for (var child: children) child.parent = this;
     this.childrenComparedCnt = newModel.childrenComparedCnt;
     this.flags = newModel.flags;
     this.rangeId = newModel.rangeId;
@@ -73,7 +74,6 @@ public class FolderDiffModel {
   public void markDown(int diffType) {
     setPropagation(PROP_DOWN);
     setDiffType(diffType);
-    setCompared(true);
     if (parent != null) rangeId = parent.rangeId;
     if (children != null) for (var child: children) child.markDown(diffType);
   }

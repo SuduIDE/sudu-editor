@@ -3,6 +3,7 @@ package org.sudu.experiments.ui.fs;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.update.Collector;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -47,7 +48,7 @@ public class ReadFolderHandler {
       RemoteFolderDiffModel model,
       TreeS[] children
   ) {
-    FolderDiffUpdateHandler.setChildren(model, children);
+    Collector.setChildren(model, children);
     for (int i = 0; i < children.length; i++) {
       var child = model.child(i);
       child.setDiffType(diffType);

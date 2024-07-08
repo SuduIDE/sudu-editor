@@ -8,8 +8,6 @@ import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.core.JSString;
 
-import java.util.Arrays;
-
 public class DiffModelChannelUpdater {
 
   public final RemoteFolderDiffModel leftRootAcc, rightRootAcc;
@@ -37,7 +35,6 @@ public class DiffModelChannelUpdater {
 
   public void onCompared(Object[] result) {
     var jsResult = JsArray.create(result.length);
-    System.out.println("onCompared: " + Arrays.toString(result));
     int[] ints = (int[]) result[0];
     jsResult.set(0, JsMemoryAccess.bufferView(ints));
     for (int i = 1; i < result.length; i++) {

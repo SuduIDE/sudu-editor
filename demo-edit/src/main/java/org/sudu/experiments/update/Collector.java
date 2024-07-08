@@ -4,10 +4,12 @@ import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.diff.DiffTypes;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.diff.folder.RangeCtx;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.ui.fs.TreeS;
 import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
@@ -62,6 +64,17 @@ public class Collector {
     for (int i = 0; i < len; i++) {
       parent.children[i] = new RemoteFolderDiffModel(parent, paths[i].getName());
       parent.child(i).setIsFile(paths[i] instanceof FileHandle);
+    }
+    if (len == 0) parent.itemCompared();
+  }
+
+  public static void setChildren(FolderDiffModel parent, TreeS[] paths) {
+    int len = paths.length;
+    parent.children = new RemoteFolderDiffModel[paths.length];
+    parent.childrenComparedCnt = 0;
+    for (int i = 0; i < len; i++) {
+      parent.children[i] = new RemoteFolderDiffModel(parent, paths[i].name);
+      parent.child(i).setIsFile(!paths[i].isFolder);
     }
     if (len == 0) parent.itemCompared();
   }
@@ -196,7 +209,6 @@ public class Collector {
 
   private void onItemCompared() {
     if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
-//    if (leftAcc.isCompared() && rightAcc.isCompared()) onFullyCompared();
     if (inComparing == 0) onFullyCompared();
   }
 

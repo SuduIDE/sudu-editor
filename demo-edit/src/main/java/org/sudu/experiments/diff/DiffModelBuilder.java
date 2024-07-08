@@ -136,6 +136,14 @@ public class DiffModelBuilder {
         throw new IllegalStateException();
       }
     }
+    if (lP < left.length) {
+      var range = handleDeleted(left, lP, rP);
+      if (range != null) ranges = ArrayOp.addAt(range, ranges, ptr++);
+    }
+    if (rP < right.length) {
+      var range = handleInserted(right, rP, lP);
+      if (range != null) ranges = ArrayOp.addAt(range, ranges, ptr++);
+    }
     while (lP < left.length) {
       var range = new DiffRange(lP, 1, rP, 0, left[lP].diffType);
       ranges = ArrayOp.addAt(range, ranges, ptr++);
@@ -244,11 +252,7 @@ public class DiffModelBuilder {
       parent.children[i] = new FolderDiffModel(parent);
       parent.child(i).setIsFile(items[i] instanceof FileHandle);
     }
-    if (len == 0) {
-      parent.itemCompared();
-//      parent.setCompared(true);
-//      if (parent.parent != null) parent.childCompared();
-    }
+    if (len == 0) parent.itemCompared();
   }
 
   void onFoldersCompared(
