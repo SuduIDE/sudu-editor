@@ -28,7 +28,7 @@
       <id>native-FolderDiffTestJvm</id>
 
       <properties>
-        <mainClass>org.sudu.experiments.CollectorFolderDiffTestJvm</mainClass>
+        <mainClass>org.sudu.experiments.FolderDiffTestJvm</mainClass>
         <executable>FolderDiffTestJvm</executable>
       </properties>
 

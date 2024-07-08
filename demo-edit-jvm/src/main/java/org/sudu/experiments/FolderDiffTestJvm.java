@@ -1,20 +1,21 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.diff.tests.FolderDiffTest;
+import org.sudu.experiments.diff.tests.CollectorFolderDiffTest;
 
 import java.nio.file.Path;
 
 class FolderDiffTestJvm extends BaseDiffTest {
 
-  FolderDiffTest test;
+  CollectorFolderDiffTest test;
 
   FolderDiffTestJvm(
       Path left, Path right,
-      boolean content) {
+      boolean content
+  ) {
     var leftH = dir(left);
     var rightH = dir(right);
 
-    test = new FolderDiffTest(leftH, rightH,
+    test = new CollectorFolderDiffTest(leftH, rightH,
         content, this, time, this::onComplete);
     test.scan();
   }

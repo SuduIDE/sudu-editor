@@ -30,7 +30,6 @@ public class FolderDiffWindow extends ToolWindow0 {
   FolderDiffRootView rootView;
   DirectoryNode leftRoot, rightRoot;
   RemoteFolderDiffModel leftModel, rightModel;
-  DiffModelBuilder builder;
   private static final boolean PRINT_STAT = true;
   private int updateCnt = 0;
   private double startTime;
@@ -59,7 +58,6 @@ public class FolderDiffWindow extends ToolWindow0 {
     windowManager.addWindow(window);
     leftModel = RemoteFolderDiffModel.REMOTE_DEFAULT;
     rightModel = RemoteFolderDiffModel.REMOTE_DEFAULT;
-    builder = new DiffModelBuilder(this::checkedUpdate, window.context.window.worker());
   }
 
   protected void dispose() {
