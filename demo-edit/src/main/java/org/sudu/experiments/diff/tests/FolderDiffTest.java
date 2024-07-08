@@ -54,9 +54,9 @@ public class FolderDiffTest extends DirectoryTest {
     if (running) {
       if (leftModel.isCompared() && rightModel.isCompared()) {
         System.out.println("Finished" + (content ? " scan with content: " : ": "));
+        onComplete.run();
         dumpResult();
         running = false;
-        onComplete.run();
       }
     } else {
       System.err.println("updateDiffInfo after Finished, updateDiffInfoCounter = " + updateDiffInfoCounter);
