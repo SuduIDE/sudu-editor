@@ -15,6 +15,7 @@ set cp=%dir%\demo-edit-jvm\target\classes;%dir%\graphics-jvm\target\classes;%dir
 
 set javaExe=%USERPROFILE%\.jdks\openjdk-21.0.2\bin\java.exe
 set javaCmd=%javaExe% -cp %cp% org.sudu.experiments.FolderDiffTestJvm
+set javaCmd2=%javaExe% -cp %cp% org.sudu.experiments.CollectorFolderDiffTestJvm
 
 set nativeExe=demo-edit-jvm\target\FolderDiffTestJvm.exe
 
@@ -26,8 +27,14 @@ call :CallNode logs\dry_n1 %dir1% %dir2%
 
 :java
 
-call :CallJava logs\dry_j0 %dir1% %dir2% 
-call :CallJava logs\dry_j1 %dir1% %dir2% 
+call :CallJava1 logs\dry_j1_0 %dir1% %dir2%
+call :CallJava2 logs\dry_j2_0 %dir1% %dir2%
+call :CallJava1 logs\dry_j1_1 %dir1% %dir2%
+call :CallJava2 logs\dry_j2_1 %dir1% %dir2%
+call :CallJava1 logs\dry_j1_2 %dir1% %dir2%
+call :CallJava2 logs\dry_j2_2 %dir1% %dir2%
+
+exit
 
 :graal
 
@@ -38,8 +45,9 @@ exit
 
 FOR %%i IN (0,1,2,3) DO (
   call :CallNode        logs\nrun%%i %dir1% %dir2% 
-  call :CallJava        logs\jrun%%i %dir1% %dir2% 
-  call :CallGraalNative logs\graalrun%%i %dir1% %dir2% 
+  call :CallJava1       logs\jrun1%%i %dir1% %dir2%
+  call :CallJava2       logs\jrun2%%i %dir1% %dir2%
+  call :CallGraalNative logs\graalrun%%i %dir1% %dir2%
 )
 
 :CallNode
@@ -50,6 +58,10 @@ EXIT /B 0
 %nativeExe% %~2 %~3 content %~4 > %~1 2>&1
 EXIT /B 0
 
-:CallJava
+:CallJava1
 %javaCmd% %~2 %~3 content %~4 > %~1 2>&1
+EXIT /B 0
+
+:CallJava2
+%javaCmd2% %~2 %~3 content %~4 > %~1 2>&1
 EXIT /B 0

@@ -49,6 +49,7 @@ public class CollectorFolderDiffTest extends DirectoryTest {
     var updDto = UpdateDto.fromInts((int[]) result[0], result);
     System.out.println(updDto.leftRoot.infoString());
     System.out.println(updDto.rightRoot.infoString());
+    onComplete.run();
     dumpResult();
     running = false;
   }
