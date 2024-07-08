@@ -18,10 +18,28 @@ public abstract class BaseDiffTest implements WorkerJobExecutor {
   protected static int numThreads = 3;
 
   protected final EventQueue edt = new EventQueue();
-  protected final Workers workers = new Workers(numThreads, FileDiffWorker::execute, edt);
+  protected final Workers workers;
 
-  protected final Map<String, CollectorFolderDiffTestJvm.MethodStat> handlers = new HashMap<>();
-  protected int jobNo;
+  private final Map<String, MethodStat> handlers = new HashMap<>();
+  private int jobNo, jobsDone;
+
+  BaseDiffTest(int numThreads) {
+    workers = new Workers(numThreads, FileDiffWorker::execute, edt);
+  }
+
+  BaseDiffTest() {
+    this(numThreads);
+  }
+
+  protected abstract boolean running();
+
+  final void run() throws InterruptedException {
+    while (running()) {
+      edt.execute();
+      Thread.sleep(1);
+    }
+    workers.shutdown();
+  }
 
   protected void onComplete() {
     dumpStats();
@@ -36,6 +54,7 @@ public abstract class BaseDiffTest implements WorkerJobExecutor {
 
   static final class MethodStat {
     static final Function<Class<?>, PInt> f = c -> new PInt();
+    static final Function<String, MethodStat> n = MethodStat::new;
 
     final String name;
     final Map<Class<?>, PInt> map = new HashMap<>();
@@ -75,20 +94,27 @@ public abstract class BaseDiffTest implements WorkerJobExecutor {
   ) {
     ++jobNo;
 
-    var stat = handlers.computeIfAbsent(method, MethodStat::new);
+    var stat = handlers.computeIfAbsent(method, MethodStat.n);
     stat.addCall(handler.getClass());
 
     if (jobNo % DUMP_STATS_CALLS_DELTA == 0) {
       dumpStats();
     }
 
-    workers.sendToWorker(priority, handler, method, args);
+    Consumer<Object[]> h = r -> {
+      jobsDone++;
+      handler.accept(r);
+    };
+
+    workers.sendToWorker(priority, h, method, args);
   }
 
   void dumpStats() {
     StringBuilder sb = new StringBuilder();
     final int mapSize = handlers.size();
-    sb.append("jobs ").append(jobNo).append(", handlers: \n");
+    sb.append("jobs ").append(jobNo)
+        .append(", incomplete ").append(jobNo - jobsDone)
+        .append(", handlers: \n");
     handlers.forEach(
         new BiConsumer<>() {
           int cnt;
@@ -102,4 +128,34 @@ public abstract class BaseDiffTest implements WorkerJobExecutor {
     );
     System.out.print(sb.append('\n'));
   }
+
+  interface Ctor {
+    BaseDiffTest n(Path left, Path right, boolean content);
+  }
+
+  static void run(
+      String[] args,
+      Ctor ctor, Class<?> cls
+  ) throws InterruptedException {
+    if (args.length >= 2 && args.length <= 4) {
+      Path p1 = Path.of(args[0]);
+      Path p2 = Path.of(args[1]);
+      boolean d1 = Files.isDirectory(p1);
+      boolean d2 = Files.isDirectory(p2);
+      boolean content = args.length >= 3 && args[2].equals("content");
+      if (d1 && d2) {
+        System.out.println("  path1 = " + p1);
+        System.out.println("  path2 = " + p2);
+        System.out.println("  content = " + content);
+        ctor.n(p1, p2, content).run();
+      } else {
+        System.err.println(
+            "path is not a directory: " + (d1 ? p2 : p1));
+      }
+    } else {
+      System.out.println("Usage: " + cls.getSimpleName()
+          + " <path1> <path2> [content]");
+    }
+  }
+
 }
