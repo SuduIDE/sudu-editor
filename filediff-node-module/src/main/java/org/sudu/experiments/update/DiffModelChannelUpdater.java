@@ -14,22 +14,27 @@ public class DiffModelChannelUpdater {
   public final DirectoryHandle leftDir, rightDir;
   private final WorkerJobExecutor executor;
   private final Channel channel;
+  private final boolean scanFileContent;
 
   public DiffModelChannelUpdater(
       RemoteFolderDiffModel leftRoot, RemoteFolderDiffModel rightRoot,
       DirectoryHandle leftDir, DirectoryHandle rightDir,
+      boolean scanFileContent,
       WorkerJobExecutor executor, Channel channel
   ) {
     this.leftRootAcc = leftRoot;
     this.rightRootAcc = rightRoot;
     this.leftDir = leftDir;
     this.rightDir = rightDir;
+    this.scanFileContent = scanFileContent;
     this.executor = executor;
     this.channel = channel;
   }
 
   public void beginCompare() {
-    var collector = new Collector(leftRootAcc, rightRootAcc, executor, this::onCompared);
+    var collector = new Collector(
+        leftRootAcc, rightRootAcc, scanFileContent,
+        executor, this::onCompared);
     collector.compare(leftRootAcc, rightRootAcc, leftDir, rightDir);
   }
 

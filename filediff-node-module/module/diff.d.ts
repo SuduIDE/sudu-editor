@@ -5,6 +5,7 @@ export { Channel, Message, setLogLevel, setLogOutput, newRemoteChannelTest, LogL
 export interface DiffEngine {
     dispose(): void;
 
+    // todo add boolean content
     startFolderDiff(leftPath: string, rightPath: string, channel: Channel): void;
 
     testFib(n: string): Promise<number>;

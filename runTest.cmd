@@ -8,8 +8,8 @@ set dir2=D:\Github\llvm-project-b
 
 set dir3=D:\chromium-main
 
-set dir1=%dir%
-set dir2=%dir%
+set dir1=%dir3%
+set dir2=%dir3%
 
 set cp=%dir%\demo-edit-jvm\target\classes;%dir%\graphics-jvm\target\classes;%dir%\graphics\target\classes;%dir%\graphics-common\target\classes;%dir%\angle-dll\target\classes;%dir%\demo-edit\target\classes;%dir%\parser\target\classes;%dir%\parser-common\target\classes;C:\Users\Kirill\.m2\repository\org\antlr\antlr4-runtime-teavm-compatible\4.13.2-SNAPSHOT\antlr4-runtime-teavm-compatible-4.13.2-SNAPSHOT.jar;%dir%\diff-model\target\classes;%dir%\parser-activity\target\classes;%dir%\fonts\target\classes;%dir%\codicon\target\classes;%dir%\demo-test-scenes\target\classes
 
@@ -20,33 +20,18 @@ set javaCmd2=%javaExe% -cp %cp% org.sudu.experiments.CollectorFolderDiffTestJvm
 set nativeExe=demo-edit-jvm\target\FolderDiffTestJvm.exe
 
 mkdir logs
-goto :java
+
+call :CallGraalNative logs\dry_g00 %dir1% %dir2%
 
 call :CallNode logs\dry_n0 %dir1% %dir2%
-call :CallNode logs\dry_n1 %dir1% %dir2%
-
-:java
-
-call :CallJava1 logs\dry_j1_0 %dir1% %dir2%
-call :CallJava2 logs\dry_j2_0 %dir1% %dir2%
-call :CallJava1 logs\dry_j1_1 %dir1% %dir2%
-call :CallJava2 logs\dry_j2_1 %dir1% %dir2%
-call :CallJava1 logs\dry_j1_2 %dir1% %dir2%
-call :CallJava2 logs\dry_j2_2 %dir1% %dir2%
-
-exit
-
-:graal
-
-call :CallGraalNative logs\dry_g0 %dir1% %dir2% 
-call :CallGraalNative logs\dry_g1 %dir1% %dir2% 
+call :CallJava2 logs\dry_j_0 %dir1% %dir2%
+call :CallGraalNative logs\dry_g0 %dir1% %dir2%
 
 exit
 
 FOR %%i IN (0,1,2,3) DO (
   call :CallNode        logs\nrun%%i %dir1% %dir2% 
-  call :CallJava1       logs\jrun1%%i %dir1% %dir2%
-  call :CallJava2       logs\jrun2%%i %dir1% %dir2%
+  call :CallJava2       logs\jrun%%i %dir1% %dir2%
   call :CallGraalNative logs\graalrun%%i %dir1% %dir2%
 )
 

@@ -26,10 +26,8 @@ public class DiffModelUpdater {
 
   public void beginCompare() {
     Collector collector = new Collector(
-        leftRootAcc,
-        rightRootAcc,
-        executor,
-        this::onCompared
+        leftRootAcc, rightRootAcc, true,
+        executor, this::onCompared
     );
     collector.beginCompare(leftDir, rightDir);
   }

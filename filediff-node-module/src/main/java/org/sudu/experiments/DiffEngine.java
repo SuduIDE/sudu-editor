@@ -1,7 +1,7 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
-import org.sudu.experiments.diff.tests.FolderDiffTest;
+import org.sudu.experiments.diff.tests.CollectorFolderDiffTest;
 import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.Fs;
@@ -47,6 +47,7 @@ public class DiffEngine implements DiffEngineJs {
   @Override
   public void startFolderDiff(JSString leftPath, JSString rightPath, Channel channel) {
     JsHelper.consoleInfo("Starting folder diff ");
+    boolean scanFileContent = true;
 
     leftPath = preparePath(leftPath);
     rightPath = preparePath(rightPath);
@@ -67,7 +68,7 @@ public class DiffEngine implements DiffEngineJs {
 
     DiffModelChannelUpdater updater = new DiffModelChannelUpdater(
         leftModelRoot, rightModelRoot,
-        leftHandle, rightHandle,
+        leftHandle, rightHandle, scanFileContent,
         pool, channel
     );
     updater.beginCompare();
@@ -146,7 +147,7 @@ public class DiffEngine implements DiffEngineJs {
     JsHelper.consoleInfo("  path2 = ", path2);
     JsHelper.consoleInfo("  content = ", JSBoolean.valueOf(content));
     JsTime jsTime = new JsTime();
-    new FolderDiffTest(
+    new CollectorFolderDiffTest(
         dir1, dir2, content, pool,
         jsTime, JsFunctions.wrap(onComplete)
     ).scan();

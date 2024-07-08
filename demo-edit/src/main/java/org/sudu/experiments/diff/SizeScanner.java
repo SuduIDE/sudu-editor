@@ -2,11 +2,11 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.FileHandle;
 
-abstract class SizeScanner {
+public abstract class SizeScanner {
 
   int sl, sr, cnt;
 
-  SizeScanner(FileHandle l, FileHandle r) {
+  public SizeScanner(FileHandle l, FileHandle r) {
     l.getSize(sizeL -> { sl = sizeL; tryFire(); });
     r.getSize(sizeR -> { sr = sizeR; tryFire(); });
   }

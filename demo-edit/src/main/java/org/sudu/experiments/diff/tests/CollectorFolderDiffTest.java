@@ -39,7 +39,10 @@ public class CollectorFolderDiffTest extends DirectoryTest {
     rightRoot = new DirectoryNode(dir2, null);
     leftModel = new RemoteFolderDiffModel(null, dir1.getName());
     rightModel = new RemoteFolderDiffModel(null, dir2.getName());
-    var collector = new Collector(leftModel, rightModel, executor, this::onComplete);
+    var collector = new Collector(
+        leftModel, rightModel, content,
+        executor, this::onComplete
+    );
     collector.beginCompare(dir1, dir2);
   }
 
