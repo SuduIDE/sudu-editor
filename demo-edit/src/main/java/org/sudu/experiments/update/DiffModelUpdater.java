@@ -29,6 +29,7 @@ public class DiffModelUpdater {
         leftRootAcc, rightRootAcc, true,
         executor, this::onCompared
     );
+    collector.setUpdate(updateInfo);
     collector.beginCompare(leftDir, rightDir);
   }
 

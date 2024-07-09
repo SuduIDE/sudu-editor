@@ -25,6 +25,7 @@ public class Collector {
   private final WorkerJobExecutor executor;
   private final Consumer<Object[]> r;
   private final boolean scanFileContent;
+  private Runnable update;
 
   private static final int MAX_DEPTH = Integer.MAX_VALUE;
   private int inComparing = 0;
@@ -111,6 +112,7 @@ public class Collector {
     setChildren(rightModel, rightItem);
 
     boolean changed = true;
+    boolean needUpdate = false;
     int lP = 0, rP = 0;
     while (changed) {
       changed = false;
@@ -142,6 +144,7 @@ public class Collector {
       }
       if (changed) {
         rangeCtx.markUp(leftModel, rightModel);
+        needUpdate = true;
         continue;
       }
       while (rP < rightLen && rightDiff[rP] == DiffTypes.INSERTED) {
@@ -156,9 +159,12 @@ public class Collector {
         }
         rP++;
       }
-      if (changed) rangeCtx.markUp(leftModel, rightModel);
+      if (changed) {
+        rangeCtx.markUp(leftModel, rightModel);
+        needUpdate = true;
+      }
     }
-    onItemCompared();
+    onItemCompared(needUpdate);
   }
 
   public void compareFiles(
@@ -203,9 +209,10 @@ public class Collector {
       rightModel.rangeId = rangeId;
       rangeCtx.markUp(leftModel, rightModel);
     }
-    leftModel.itemCompared();
-    rightModel.itemCompared();
-    onItemCompared();
+    boolean needUpdate = false;
+    needUpdate |= leftModel.itemCompared();
+    needUpdate |= rightModel.itemCompared();
+    onItemCompared(needUpdate);
   }
 
   private void readFolder(ReadDto readDto) {
@@ -226,12 +233,13 @@ public class Collector {
     for (int i = 0; i < paths.length; i++) paths[i] = (String) result[i + 1];
     var updModel = RemoteFolderDiffModel.fromInts(ints, paths);
     model.update(updModel);
-    onItemCompared();
+    onItemCompared(true);
   }
 
-  private void onItemCompared() {
+  private void onItemCompared(boolean needUpdate) {
     if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
     if (inComparing == 0) onFullyCompared();
+    else update(needUpdate);
   }
 
   private void onFullyCompared() {
@@ -240,6 +248,14 @@ public class Collector {
     var ints = UpdateDto.toInts(leftAcc, rightAcc, result);
     result.set(0, ints);
     ArrayOp.sendArrayList(result, r);
+  }
+
+  public void setUpdate(Runnable update) {
+    this.update = update;
+  }
+
+  private void update(boolean needUpdate) {
+    if (needUpdate && update != null) update.run();
   }
 
   private boolean depthCheck(RemoteFolderDiffModel left, RemoteFolderDiffModel right) {
