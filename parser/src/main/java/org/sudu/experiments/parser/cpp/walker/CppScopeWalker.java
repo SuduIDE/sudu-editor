@@ -509,7 +509,8 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     List<RefNode> callArgs = newExpression.newInitializer_() != null
         ? handleNewInitializer(newExpression.newInitializer_())
         : List.of();
-    return new MethodCallNode(name, name.name, MethodTypes.CREATOR, callArgs);
+    var creatorType = scopeWalker.getType(name.name);
+    return new MethodCallNode(name, creatorType, MethodTypes.CREATOR, callArgs);
   }
 
   List<RefNode> handleNewInitializer(CPP14Parser.NewInitializer_Context newInitializer) {
