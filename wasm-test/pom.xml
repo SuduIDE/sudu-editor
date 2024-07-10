@@ -20,7 +20,51 @@
 
   <profiles>
     <profile>
-      <id>release</id>
+      <id>wasm-compile</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>3.1.0</version>
+            <executions>
+              <execution>
+                <id>create-wasm-dir</id>
+                <phase>initialize</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <target><mkdir dir="target/wasm"/></target>
+                </configuration>
+              </execution>
+              <execution>
+                <id>build-wasm-module</id>
+                <phase>generate-resources</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <target>
+                    <exec executable="clang">
+                      <arg value="--target=wasm32"/>
+                      <arg value="-nostdlib"/>
+                      <arg value="-fno-builtin"/>
+                      <arg value="-Wl,--no-entry"/>
+                      <arg value="-Wl,--export-dynamic"/>
+                      <arg value="-Wl,--import-undefined"/>
+                      <arg value="-O3"/>
+                      <arg value="-flto"/>
+                      <arg value="-Wl,--lto-O3"/>
+                      <arg value="-o"/>
+                      <arg value="${project.build.wasmTarget}"/>
+                      <arg value="@cppList"/>
+                    </exec>
+                  </target>
+                </configuration>
+              </execution>
+
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+
       <properties>
       </properties>
     </profile>
@@ -85,29 +129,6 @@
             </configuration>
           </execution>
 
-          <execution>
-            <id>build-wasm-module</id>
-            <phase>generate-resources</phase>
-            <goals><goal>run</goal></goals>
-            <configuration>
-            <target>
-              <exec executable="clang">
-                <arg value="--target=wasm32"/>
-                <arg value="-nostdlib"/>
-                <arg value="-fno-builtin"/>
-                <arg value="-Wl,--no-entry"/>
-                <arg value="-Wl,--export-dynamic"/>
-                <arg value="-Wl,--import-undefined"/>
-                <arg value="-O3"/>
-                <arg value="-flto"/>
-                <arg value="-Wl,--lto-O3"/>
-                <arg value="-o"/>
-                <arg value="${project.build.wasmTarget}"/>
-                <arg value="@cppList"/>
-              </exec>
-            </target>
-            </configuration>
-          </execution>
 
 <!--          <execution>-->
 <!--            <id>dis-assemble-wasm</id>-->
@@ -126,5 +147,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>
