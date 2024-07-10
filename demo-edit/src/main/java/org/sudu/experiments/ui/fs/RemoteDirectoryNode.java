@@ -25,6 +25,7 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
     doOpen();
     var opposite = handle.getOppositeDir(this);
     if (opposite != null) opposite.doOpen();
+    if (children.length == 1 && children[0] instanceof RemoteDirectoryNode singleDir) singleDir.openDir();
   }
 
   public void closeDir() {

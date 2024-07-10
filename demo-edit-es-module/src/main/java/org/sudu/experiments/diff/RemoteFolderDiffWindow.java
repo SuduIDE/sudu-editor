@@ -1,11 +1,11 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Channel;
+import org.sudu.experiments.JsIntArrayReader;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
-import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.ui.FileTreeNode;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ToolWindow0;
@@ -33,6 +33,10 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   RemoteFolderDiffModel leftModel, rightModel;
 
   protected Channel channel;
+  private final long startTime;
+
+  private boolean inUpdating = false;
+  private JsArray<JSObject> lastUpdate;
 
   public RemoteFolderDiffWindow(
       EditorColorScheme theme,
@@ -56,6 +60,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     windowManager.addWindow(window);
     leftModel = RemoteFolderDiffModel.REMOTE_DEFAULT;
     rightModel = RemoteFolderDiffModel.REMOTE_DEFAULT;
+    startTime = System.currentTimeMillis();
     this.channel = channel;
     this.channel.setOnMessage(this::onChannelMessage);
     JsHelper.consoleInfo("RemoteFolderDiffWindow created!");
@@ -77,20 +82,45 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     windowManager.uiContext.setFocus(focusSave);
   }
 
-  private void setRoots(
+  private void update(JsArray<JSObject> jsResult) {
+    lastUpdate = null;
+    inUpdating = true;
+
+    Int32Array ints = jsResult.get(0).cast();
+    var dto = fromJsInts(ints, jsResult);
+    leftModel = dto.leftRoot;
+    rightModel = dto.rightRoot;
+    updateRoots(leftModel, rightModel);
+  }
+
+  private void updateRoots(
       RemoteFolderDiffModel leftModel,
       RemoteFolderDiffModel rightModel
   ) {
-    this.leftRoot = new RemoteDirectoryNode(leftModel, getHandle(true));
-    this.rightRoot = new RemoteDirectoryNode(rightModel, getHandle(false));
+    if (leftRoot == null && rightRoot == null) {
+      this.leftModel = leftModel;
+      this.rightModel = rightModel;
 
-    rootView.left.setRoot(leftRoot);
-    rootView.right.setRoot(rightRoot);
-    window.setTitle(leftRoot.name() + " <-> " + rightRoot.name());
+      this.leftRoot = new RemoteDirectoryNode(this.leftModel, getHandle(true));
+      this.rightRoot = new RemoteDirectoryNode(this.rightModel, getHandle(false));
 
-    leftRoot.doOpen();
-    rightRoot.doOpen();
+      rootView.left.setRoot(leftRoot);
+      rootView.right.setRoot(rightRoot);
+      window.setTitle(leftRoot.name() + " <-> " + rightRoot.name());
+
+      leftRoot.doOpen();
+      rightRoot.doOpen();
+    } else {
+      this.leftModel.update(leftModel);
+      this.rightModel.update(rightModel);
+      this.leftRoot.update(leftModel);
+      this.rightRoot.update(rightModel);
+    }
     window.context.window.repaint();
+    updateDiffInfo();
+    if (lastUpdate != null) {
+      update(lastUpdate);
+    } else inUpdating = false;
   }
 
   protected void updateDiffInfo() {
@@ -105,21 +135,14 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private void onChannelMessage(
       JsArray<JSObject> jsResult
   ) {
-    JsHelper.consoleInfo("Got update batch from channel");
-    var ints = JsMemoryAccess.toJavaArray((Int32Array) jsResult.get(0).cast());
-
-    Object[] result = new Object[jsResult.getLength()];
-    result[0] = ints;
-
-    for (int i = 1; i < result.length; i++) {
-      JSString path = jsResult.get(i).cast();
-      result[i] = path.stringValue();
+    if (inUpdating) {
+      lastUpdate = jsResult;
+      JsHelper.consoleInfo("Skipped update batch");
+      return;
     }
-
-    var dto = UpdateDto.fromInts(ints, result);
-    leftModel = dto.leftRoot;
-    rightModel = dto.rightRoot;
-    setRoots(leftModel, rightModel);
+    JsHelper.consoleInfo("Got update batch from channel");
+    update(jsResult);
+    JsHelper.consoleInfo("Updated in " + (System.currentTimeMillis() - startTime) + "ms");
   }
 
   private RemoteHandle getHandle(boolean left) {
@@ -180,5 +203,23 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         }
       }
     };
+  }
+
+  private static UpdateDto fromJsInts(Int32Array ints, JsArray<JSObject> result) {
+    JsIntArrayReader reader = new JsIntArrayReader(ints);
+    return fromJsInts(reader, result);
+  }
+
+  private static UpdateDto fromJsInts(JsIntArrayReader reader, JsArray<JSObject> result) {
+    UpdateDto dto = new UpdateDto();
+    int pathLen = reader.next();
+
+    String[] paths = new String[pathLen];
+    for (int i = 0; i < pathLen; i++) paths[i] = ((JSString) result.get(i + 1)).stringValue();
+
+    dto.leftRoot = RemoteFolderDiffModel.fromInts(reader, paths, null);
+    dto.rightRoot = RemoteFolderDiffModel.fromInts(reader, paths, null);
+
+    return dto;
   }
 }

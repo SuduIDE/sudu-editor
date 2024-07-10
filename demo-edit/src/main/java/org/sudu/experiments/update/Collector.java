@@ -23,25 +23,26 @@ public class Collector {
   private final RangeCtx rangeCtx;
   private final RemoteFolderDiffModel leftAcc, rightAcc;
   private final WorkerJobExecutor executor;
-  private final Consumer<Object[]> r;
   private final boolean scanFileContent;
+
+  private Consumer<Object[]> sendResult;
+  private Consumer<Object[]> onComplete;
   private Runnable update;
 
-  private static final int MAX_DEPTH = Integer.MAX_VALUE;
+  private static final int CMP_SIZE = 2500;
   private int inComparing = 0;
+  private int compared = 0;
 
   public Collector(
       RemoteFolderDiffModel left,
       RemoteFolderDiffModel right,
       boolean scanFileContent,
-      WorkerJobExecutor executor,
-      Consumer<Object[]> r
+      WorkerJobExecutor executor
   ) {
     this.leftAcc = left;
     this.rightAcc = right;
     this.rangeCtx = new RangeCtx();
     this.executor = executor;
-    this.r = r;
     this.scanFileContent = scanFileContent;
   }
 
@@ -237,29 +238,44 @@ public class Collector {
   }
 
   private void onItemCompared(boolean needUpdate) {
+    ++compared;
     if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
-    if (inComparing == 0) onFullyCompared();
-    else update(needUpdate);
+    if (inComparing == 0) onComplete();
+    else {
+      update(needUpdate);
+      sendResult();
+    }
   }
 
-  private void onFullyCompared() {
+  private void sendResult() {
+    if (sendResult != null && compared % CMP_SIZE == 0) send(sendResult);
+  }
+
+  private void onComplete() {
+    if (onComplete != null) send(onComplete);
+  }
+
+  private void send(Consumer<Object[]> send) {
     ArrayList<Object> result = new ArrayList<>();
     result.add(null);
     var ints = UpdateDto.toInts(leftAcc, rightAcc, result);
     result.set(0, ints);
-    ArrayOp.sendArrayList(result, r);
+    ArrayOp.sendArrayList(result, send);
   }
 
   public void setUpdate(Runnable update) {
     this.update = update;
   }
 
-  private void update(boolean needUpdate) {
-    if (needUpdate && update != null) update.run();
+  public void setSendResult(Consumer<Object[]> sendResult) {
+    this.sendResult = sendResult;
   }
 
-  private boolean depthCheck(RemoteFolderDiffModel left, RemoteFolderDiffModel right) {
-    if (left.depth != right.depth || left.depth > MAX_DEPTH) throw new IllegalStateException();
-    return left.depth == MAX_DEPTH;
+  public void setOnComplete(Consumer<Object[]> onComplete) {
+    this.onComplete = onComplete;
+  }
+
+  private void update(boolean needUpdate) {
+    if (needUpdate && update != null) update.run();
   }
 }

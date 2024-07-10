@@ -26,18 +26,12 @@ public class DiffModelUpdater {
 
   public void beginCompare() {
     Collector collector = new Collector(
-        leftRootAcc, rightRootAcc, true,
-        executor, this::onCompared
+        leftRootAcc, rightRootAcc,
+        true,
+        executor
     );
     collector.setUpdate(updateInfo);
+    collector.setOnComplete((res) -> updateInfo.run());
     collector.beginCompare(leftDir, rightDir);
-  }
-
-  public void onCompared(Object[] result) {
-    int[] ints = (int[]) result[0];
-    var updateDto = UpdateDto.fromInts(ints, result);
-    leftRootAcc.update(updateDto.leftRoot);
-    rightRootAcc.update(updateDto.rightRoot);
-    updateInfo.run();
   }
 }

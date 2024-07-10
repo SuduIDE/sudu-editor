@@ -21,4 +21,14 @@ public class RemoteFileTreeNode extends FileTreeNode {
   private RemoteFileTreeNode(String v, int d) {
     super(v, d);
   }
+
+  public void update(RemoteFolderDiffModel model) {
+    this.model = model;
+    if (childrenLength() != 0) {
+      for (int i = 0; i < childrenLength(); i++) {
+        var updModel = model.child(i);
+        ((RemoteFileTreeNode) (children[i])).update(updModel);
+      }
+    }
+  }
 }
