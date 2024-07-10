@@ -19,28 +19,22 @@ set javaCmd=%javaExe% -cp %cp% org.sudu.experiments.FolderDiffTestJvm
 set nativeExe=demo-edit-jvm\target\FolderDiffTestJvm.exe
 
 mkdir logs
-goto :java
+
+call :CallGraalNative logs\dry_g00 %dir1% %dir2%
 
 call :CallNode logs\dry_n0 %dir1% %dir2%
-call :CallNode logs\dry_n1 %dir1% %dir2%
-
-:java
-
-call :CallJava logs\dry_j0 %dir1% %dir2% 
-call :CallJava logs\dry_j1 %dir1% %dir2% 
-
-:graal
-
-call :CallGraalNative logs\dry_g0 %dir1% %dir2% 
-call :CallGraalNative logs\dry_g1 %dir1% %dir2% 
+call :CallJava logs\dry_j_0 %dir1% %dir2%
+call :CallGraalNative logs\dry_g0 %dir1% %dir2%
 
 exit
 
 FOR %%i IN (0,1,2,3) DO (
   call :CallNode        logs\nrun%%i %dir1% %dir2% 
-  call :CallJava        logs\jrun%%i %dir1% %dir2% 
-  call :CallGraalNative logs\graalrun%%i %dir1% %dir2% 
+  call :CallJava        logs\jrun%%i %dir1% %dir2%
+  call :CallGraalNative logs\graalrun%%i %dir1% %dir2%
 )
+
+exit
 
 :CallNode
 node %mjs% %~2 %~3 content %~4 > %~1 2>&1

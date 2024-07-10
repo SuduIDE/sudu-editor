@@ -2,8 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.diff.folder.FolderDiffModel;
-import org.sudu.experiments.diff.update.DiffModelUpdater;
+import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
@@ -17,6 +16,7 @@ import org.sudu.experiments.ui.fs.DirectoryNode;
 import org.sudu.experiments.ui.fs.FileNode;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
+import org.sudu.experiments.update.DiffModelUpdater;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -29,11 +29,10 @@ public class FolderDiffWindow extends ToolWindow0 {
   Focusable focusSave;
   FolderDiffRootView rootView;
   DirectoryNode leftRoot, rightRoot;
-  FolderDiffModel leftModel, rightModel;
-  DiffModelBuilder builder;
+  RemoteFolderDiffModel leftModel, rightModel;
   private static final boolean PRINT_STAT = true;
   private int updateCnt = 0;
-  private long startTime;
+  private double startTime;
   private Set<TreeNode> leftModelSet, rightModelSet;
 
   public FolderDiffWindow(
@@ -57,10 +56,8 @@ public class FolderDiffWindow extends ToolWindow0 {
     window.onFocus(this::onFocus);
     window.onBlur(this::onBlur);
     windowManager.addWindow(window);
-    leftModel = FolderDiffModel.DEFAULT;
-    rightModel = FolderDiffModel.DEFAULT;
-    builder = new DiffModelBuilder(this::checkedUpdate,
-        window.context.window.worker());
+    leftModel = RemoteFolderDiffModel.REMOTE_DEFAULT;
+    rightModel = RemoteFolderDiffModel.REMOTE_DEFAULT;
   }
 
   protected void dispose() {
@@ -120,7 +117,7 @@ public class FolderDiffWindow extends ToolWindow0 {
     compareRootFolders();
   }
 
-  private DirectoryNode.Handler getHandler(boolean left, FileTreeView treeView) {
+  protected DirectoryNode.Handler getHandler(boolean left, FileTreeView treeView) {
     return new DirectoryNode.Handler() {
       @Override
       public void openFile(FileNode node) {
@@ -203,9 +200,10 @@ public class FolderDiffWindow extends ToolWindow0 {
 
   protected void compareRootFolders() {
     if (leftRoot == null || rightRoot == null) return;
-    startTime = System.currentTimeMillis();
-    leftModel = new FolderDiffModel(null);
-    rightModel = new FolderDiffModel(null);
+    startTime = window.context.window.timeNow();
+    System.out.println("startTime = " + startTime);
+    leftModel = new RemoteFolderDiffModel(null, "");
+    rightModel = new RemoteFolderDiffModel(null, "");
     DiffModelUpdater updateHandler = new DiffModelUpdater(
         leftModel, rightModel,
         leftRoot.dir, rightRoot.dir,
@@ -234,11 +232,12 @@ public class FolderDiffWindow extends ToolWindow0 {
     rootView.right.updateModel(rightModel);
     var left = rootView.left.model();
     var right = rootView.right.model();
-    rootView.setDiffModel(builder.getDiffInfo(left, right));
+    rootView.setDiffModel(DiffModelBuilder.getDiffInfo(left, right));
     window.context.window.repaint();
-    if (leftModel.compared && rightModel.compared) {
+    if (leftModel.isCompared() && rightModel.isCompared()) {
       if (PRINT_STAT) {
-        System.out.println("Compared in " + (System.currentTimeMillis() - startTime) + " ms");
+        int ms = (int) (1000. * (window.context.window.timeNow() - startTime));
+        System.out.println("Compared in " + ms + " ms");
         System.out.println("Total updates " + updateCnt);
       }
     }

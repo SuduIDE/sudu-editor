@@ -8,18 +8,30 @@ import static org.sudu.experiments.diff.DiffTypes.INSERTED;
 
 public class FolderDiffModelTest {
 
+  private static void setChildren(FolderDiffModel parent, int len) {
+    parent.setIsFile(true);
+    parent.children = new FolderDiffModel[len];
+    parent.childrenComparedCnt = 0;
+    for (int i = 0; i < len; i++) parent.children[i] = new FolderDiffModel(parent);
+    if (len == 0) {
+      parent.itemCompared();
+//      parent.setCompared(true);
+//      if (parent.parent != null) parent.childCompared();
+    }
+  }
+
   @Test
   public void serializeTest() {
     var root = new FolderDiffModel(null);
-    root.setChildren(3);
+    setChildren(root, 3);
     root.rangeId = 4;
     root.child(0).itemCompared();
-    root.child(0).diffType = INSERTED;
+    root.child(0).setDiffType(INSERTED);
     root.child(0).rangeId = 1;
-    root.child(1).setChildren(2);
+    setChildren(root.child(1), 2);
     root.child(1).rangeId = 2;
     root.child(2).itemCompared();
-    root.child(2).diffType = EDITED;
+    root.child(2).setDiffType(EDITED);
     root.child(2).rangeId = 3;
 
     int[] serialized = FolderDiffModel.toInts(root);

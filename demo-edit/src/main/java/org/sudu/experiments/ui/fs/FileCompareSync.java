@@ -11,11 +11,11 @@ class FileCompareSync {
 
   static final int maxArraySize = 2 * 1024 * 1024;
 
-  DiffResult result;
+  Consumer<Object[]> result;
   SyncAccess left, right;
   String error;
 
-  FileCompareSync(DiffResult r, FileHandle left, FileHandle right) {
+  FileCompareSync(Consumer<Object[]> r, FileHandle left, FileHandle right) {
     result = r;
     Consumer<String> onError = this::onError;
     left.syncAccess(this::leftAccess, onError);
@@ -27,7 +27,7 @@ class FileCompareSync {
     this.error = error;
     if (left != null) left = close(left);
     if (right != null) right = close(right);
-    result.onCompared(false);
+    FileCompare.send(result, false);
   }
 
   private void leftAccess(SyncAccess l) {
@@ -51,10 +51,10 @@ class FileCompareSync {
   private void compareAndClose() {
     try {
       boolean equals = compare();
-      result.onCompared(equals);
+      FileCompare.send(result, equals);
     } catch (Exception e) {
       System.err.println(e.getMessage());
-      result.onCompared(false);
+      FileCompare.send(result, false);
     } finally {
       left = close(left);
       right = close(right);

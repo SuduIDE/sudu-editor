@@ -11,7 +11,7 @@ class FileCompareAsync {
   static final int maxArraySize = 16 * 1024 * 1024;
   static final int minArraySize = 64 * 1024;
 
-  DiffResult result;
+  Consumer<Object[]> result;
   FileHandle left, right;
   Consumer<String> onError = this::onError;
   Consumer<byte[]> sendLeft = this::sendLeft;
@@ -22,7 +22,7 @@ class FileCompareAsync {
   int filePos = 0;
 
   FileCompareAsync(
-      DiffResult result,
+      Consumer<Object[]> result,
       FileHandle left, FileHandle right
   ) {
     this.result = result;
@@ -38,7 +38,7 @@ class FileCompareAsync {
 
   private void onError(String cause) {
     System.err.println(cause);
-    result.onCompared(false);
+    FileCompare.send(result, false);
     leftText = rightText = null;
   }
 
@@ -60,7 +60,7 @@ class FileCompareAsync {
     leftText = null;
     rightText = null;
     if (!equals) {
-      result.onCompared(false);
+      FileCompare.send(result, false);
     } else {
       if (eof || filePos >= maxToRead) {
         if (filePos == maxToRead) {
@@ -69,7 +69,7 @@ class FileCompareAsync {
               "\tr=" + right.getFullPath());
         }
 
-        result.onCompared(true);
+        FileCompare.send(result, true);
       } else {
         filePos += readLength;
         if (readLength * 4 <= maxArraySize) {

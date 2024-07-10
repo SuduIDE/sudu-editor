@@ -9,6 +9,10 @@ public class ArgsCast {
     return (ArrayView) args[index];
   }
 
+  public static int[] intArray(Object[] args, int index) {
+    return ((ArrayView) args[index]).ints();
+  }
+
   public static String string(Object[] args, int index) {
     return (String) args[index];
   }

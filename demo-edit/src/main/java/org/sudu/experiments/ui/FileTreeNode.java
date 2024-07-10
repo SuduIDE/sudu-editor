@@ -12,7 +12,7 @@ public class FileTreeNode extends TreeNode {
   public static final FileTreeNode[] ch0 = new FileTreeNode[0];
   public static final Comparator<FileTreeNode> cmp = FileTreeNode::compare;
 
-  FileTreeNode[] children = ch0;
+  protected FileTreeNode[] children = ch0;
 
   public FileTreeNode(String v, int d) {
     super(v, d);
@@ -49,7 +49,7 @@ public class FileTreeNode extends TreeNode {
 
   private int count() {
     int n = 1;
-    if (isOpened()) {
+    if (childrenLength() != 0) {
       for (FileTreeNode child : children)
         n += child.count();
     }
@@ -65,15 +65,15 @@ public class FileTreeNode extends TreeNode {
 
   private int getModel(TreeNode[] t, FolderDiffModel model, int idx) {
     boolean noChildren = model.children == null;
-    boolean isDownProp = model.propagation == PROP_DOWN;
+    boolean isDownProp = model.getPropagation() == PROP_DOWN;
     this.rangeId = model.rangeId;
-    this.diffType = model.diffType;
+    this.diffType = model.getDiffType();
     t[idx++] = this;
     setIcon(this, model);
     if (childrenLength() != 0) {
       for (int i = 0; i < children.length; i++) {
-        if (isDownProp) idx = children[i].getModel(t, model.rangeId, model.diffType, idx, model.compared);
-        else if (noChildren) idx = children[i].getModel(t, model.rangeId, DiffTypes.DEFAULT, idx, model.compared);
+        if (isDownProp) idx = children[i].getModel(t, model.rangeId, model.getDiffType(), idx, model.isCompared());
+        else if (noChildren) idx = children[i].getModel(t, model.rangeId, DiffTypes.DEFAULT, idx, model.isCompared());
         else idx = children[i].getModel(t, model.child(i), idx);
       }
     }
@@ -94,7 +94,7 @@ public class FileTreeNode extends TreeNode {
   }
 
   private static void setIcon(FileTreeNode node, FolderDiffModel model) {
-    setIcon(node, model.compared);
+    setIcon(node, model.isCompared());
   }
 
   private static void setIcon(FileTreeNode node, boolean compared) {
@@ -113,8 +113,12 @@ public class FileTreeNode extends TreeNode {
   }
 
   public static <T extends FileTreeNode> T bs(T[] a, String key) {
-    int low = 0;
-    int high = a.length - 1;
+    return bs(a, 0, a.length, key);
+  }
+
+  public static <T extends FileTreeNode> T bs(T[] a, int from, int to, String key) {
+    int low = from;
+    int high = to - 1;
 
     while (low <= high) {
       int mid = (low + high) >>> 1;

@@ -3,7 +3,6 @@ package org.sudu.experiments.editor.worker;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.editor.worker.proxy.*;
 import org.sudu.experiments.math.ArrayOp;
-import org.sudu.experiments.diff.update.Collector;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -62,7 +61,7 @@ public class EditorWorker {
       );
       case DiffUtils.CMP_FILES -> DiffUtils.compareFiles(ArgsCast.file(a, 0), ArgsCast.file(a, 1), r);
       case DiffUtils.CMP_FOLDERS -> DiffUtils.compareFolders(ArgsCast.dir(a, 0), ArgsCast.dir(a, 1), r);
-      case Collector.COLLECT -> Collector.collect(ArgsCast.dir(a, 0), ArgsCast.dir(a, 1), r);
+      case DiffUtils.READ_FOLDER -> DiffUtils.readFolder(ArgsCast.dir(a, 0), ArgsCast.array(a, 1).ints(), r);
     }
   }
 
