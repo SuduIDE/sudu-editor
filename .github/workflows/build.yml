@@ -82,21 +82,27 @@ jobs:
         if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           cd $GITHUB_WORKSPACE/sudu-editor 
-          mvn package -am -pl demo-edit-es-module
-
+          mvn package -am -pl :codicon -pl :fonts -P downloadFont
+          mvn package -am -pl demo-edit-js,demo-edit-es-module -P release
+      -
+        name: Upload Sudu Editor to OBS
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        run: |
+          ./obsutil rm -r -f obs://${{ vars.WEBAPP_OBS_NAME }}
+          ./obsutil cp -r -f --flat $GITHUB_WORKSPACE/sudu-editor/demo-edit-js/target/demo-edit-js-1.0-SNAPSHOT/ obs://${{ vars.WEBAPP_OBS_NAME }}/
       -
         name: Upload release artifacts to OBS
         if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
-          
+
           ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/editor.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
           ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/worker.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
           ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/loader.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
       -
         name: Maven Sudu Editor
         run: |
-          cd $GITHUB_WORKSPACE/sudu-editor 
+          cd $GITHUB_WORKSPACE/sudu-editor
           mvn package -am -pl demo-edit-es-module -P release
       -
         name: Upload artifacts to OBS
