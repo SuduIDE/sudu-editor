@@ -10,8 +10,6 @@ import org.teavm.jso.core.JSString;
 
 class JsDirectoryHandle implements DirectoryHandle {
 
-  static final JsFunctions.Consumer<JSError> onError = JsDirectoryHandle::onError;
-
   final FileSystemDirectoryHandle fsDirectory;
   final String[] path;
   private String[] chPath;
@@ -68,6 +66,8 @@ class JsDirectoryHandle implements DirectoryHandle {
   private class AsyncIterator implements
       JsFunctions.Consumer<JsIterator.Result<FileSystemHandle>> {
 
+    @SuppressWarnings("Convert2MethodRef")
+    final JsFunctions.Consumer<JSError> onError = error -> onError(error);
     final JsAsyncIterator<FileSystemHandle> values;
     final Reader reader;
 
@@ -80,6 +80,13 @@ class JsDirectoryHandle implements DirectoryHandle {
 
     private void iterate() {
       values.next().then(this, onError);
+    }
+
+    private void onError(JSError error) {
+      JsHelper.consoleInfo("JsDirectoryHandle onError:");
+      JsHelper.consoleInfo("  name  = ", fsDirectory.getName());
+      JsHelper.consoleInfo("  error = ", error);
+      reader.onComplete();
     }
 
     @Override
@@ -117,10 +124,6 @@ class JsDirectoryHandle implements DirectoryHandle {
 
   public String toString() {
     return FsItem.fullPath(path, getName());
-  }
-
-  static void onError(JSError e) {
-    JsHelper.consoleInfo("JsDirectoryHandle: ", e);
   }
 
   @JSBody(params = {"a", "b"}, script = "return a + '/' + b;")

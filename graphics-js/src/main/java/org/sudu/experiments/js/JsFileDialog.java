@@ -32,7 +32,9 @@ public class JsFileDialog {
           result -> {
             JsHelper.consoleInfo("showDirectoryPicker result: ", result.getName());
             onResult.accept(new JsDirectoryHandle(result));
-          }, JsDirectoryHandle.onError);
+          },
+          error -> JsHelper.consoleInfo("showDirectoryPicker error: ", error)
+      );
     } else {
       displayInputElementDialog(null, onResult);
     }
