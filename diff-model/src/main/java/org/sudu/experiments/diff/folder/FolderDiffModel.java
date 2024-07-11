@@ -40,10 +40,12 @@ public class FolderDiffModel {
 
   // returns true if parent is fully compared
   public boolean itemCompared() {
-    if (isCompared()) throw new IllegalStateException("File is already compared");
+    if (isCompared())
+      throw new IllegalStateException("File is already compared");
     setCompared(true);
-    if (parent == null) throw new IllegalStateException("File must have a parent");
-    return parent.childCompared();
+//    if (parent == null)
+//      System.err.println("File must have a parent");
+    return parent == null || parent.childCompared();
   }
 
   public boolean childCompared() {
