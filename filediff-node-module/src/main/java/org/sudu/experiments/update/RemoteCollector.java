@@ -5,30 +5,34 @@ import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.SizeScanner;
-import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
+import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.ui.fs.TreeS;
 import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.function.Consumer;
 
-public class Collector {
+public class RemoteCollector {
 
-  private final FolderDiffModel leftAcc, rightAcc;
+  private final RemoteFolderDiffModel leftAcc, rightAcc;
   private final WorkerJobExecutor executor;
   private final boolean scanFileContent;
 
-  private Runnable onComplete;
-  private Runnable update;
+  private Consumer<Object[]> sendResult;
+  private Consumer<Object[]> onComplete;
 
+  private static final int CMP_SIZE = 2500;
   private int inComparing = 0;
+  private int compared = 0;
 
-  public Collector(
-      FolderDiffModel left,
-      FolderDiffModel right,
+  public RemoteCollector(
+      RemoteFolderDiffModel left,
+      RemoteFolderDiffModel right,
       boolean scanFileContent,
       WorkerJobExecutor executor
   ) {
@@ -43,8 +47,8 @@ public class Collector {
   }
 
   public void compare(
-      FolderDiffModel leftModel,
-      FolderDiffModel rightModel,
+      RemoteFolderDiffModel leftModel,
+      RemoteFolderDiffModel rightModel,
       FsItem leftItem,
       FsItem rightItem
   ) {
@@ -58,22 +62,22 @@ public class Collector {
     else throw new IllegalArgumentException();
   }
 
-  public static void setChildren(FolderDiffModel parent, FsItem[] paths) {
+  public static void setChildren(RemoteFolderDiffModel parent, FsItem[] paths) {
     int len = paths.length;
-    parent.children = new FolderDiffModel[paths.length];
+    parent.children = new RemoteFolderDiffModel[paths.length];
     parent.childrenComparedCnt = 0;
     for (int i = 0; i < len; i++) {
-      parent.children[i] = new FolderDiffModel(parent);
+      parent.children[i] = new RemoteFolderDiffModel(parent, paths[i].getName());
       parent.child(i).setIsFile(paths[i] instanceof FileHandle);
     }
     if (len == 0) parent.itemCompared();
   }
 
+
+
   public void compareFolders(
-      FolderDiffModel leftModel,
-      FolderDiffModel rightModel,
-      DirectoryHandle leftDir,
-      DirectoryHandle rightDir
+      RemoteFolderDiffModel leftModel, RemoteFolderDiffModel rightModel,
+      DirectoryHandle leftDir, DirectoryHandle rightDir
   ) {
     executor.sendToWorker(
         result -> onFoldersCompared(leftModel, rightModel, result),
@@ -83,8 +87,7 @@ public class Collector {
   }
 
   private void onFoldersCompared(
-      FolderDiffModel leftModel,
-      FolderDiffModel rightModel,
+      RemoteFolderDiffModel leftModel, RemoteFolderDiffModel rightModel,
       Object[] result
   ) {
     if (result.length == 0) return;
@@ -99,7 +102,6 @@ public class Collector {
     setChildren(rightModel, rightItem);
 
     boolean changed = true;
-    boolean needUpdate = false;
     int lP = 0, rP = 0;
     while (changed) {
       changed = false;
@@ -115,34 +117,42 @@ public class Collector {
       if (changed) continue;
       while (lP < leftLen && leftDiff[lP] == DiffTypes.DELETED) {
         changed = true;
-        leftModel.child(lP).markDown(DiffTypes.DELETED);
-        leftModel.child(lP).itemCompared();
+        leftModel.child(lP).setDiffType(DiffTypes.DELETED);
+        if (!leftModel.child(lP).isFile()) {
+          var readDto = new ReadDto(leftModel.child(lP), (DirectoryHandle) leftItem[lP], DiffTypes.DELETED);
+          readFolder(readDto);
+        } else {
+          leftModel.child(lP).itemCompared();
+        }
         lP++;
       }
       if (changed) {
         leftModel.markUp(DiffTypes.EDITED);
         rightModel.markUp(DiffTypes.EDITED);
-        needUpdate = true;
         continue;
       }
       while (rP < rightLen && rightDiff[rP] == DiffTypes.INSERTED) {
         changed = true;
-        rightModel.child(rP).itemCompared();
-        rightModel.child(rP).markDown(DiffTypes.INSERTED);
+        rightModel.child(rP).setDiffType(DiffTypes.INSERTED);
+        if (!rightModel.child(rP).isFile()) {
+          var readDto = new ReadDto(rightModel.child(rP), (DirectoryHandle) rightItem[rP], DiffTypes.INSERTED);
+          readFolder(readDto);
+        } else {
+          rightModel.child(rP).itemCompared();
+        }
         rP++;
       }
       if (changed) {
         leftModel.markUp(DiffTypes.EDITED);
         rightModel.markUp(DiffTypes.EDITED);
-        needUpdate = true;
       }
     }
-    onItemCompared(needUpdate);
+    onItemCompared();
   }
 
   public void compareFiles(
-      FolderDiffModel leftModel,
-      FolderDiffModel rightModel,
+      RemoteFolderDiffModel leftModel,
+      RemoteFolderDiffModel rightModel,
       FileHandle leftFile,
       FileHandle rightFile
   ) {
@@ -163,8 +173,8 @@ public class Collector {
   }
 
   private void onFilesCompared(
-      FolderDiffModel leftModel,
-      FolderDiffModel rightModel,
+      RemoteFolderDiffModel leftModel,
+      RemoteFolderDiffModel rightModel,
       Object[] result
   ) {
     boolean equals = ArgsCast.intArray(result, 0)[0] == 1;
@@ -172,31 +182,67 @@ public class Collector {
   }
 
   private void onFilesCompared(
-      FolderDiffModel leftModel,
-      FolderDiffModel rightModel,
+      RemoteFolderDiffModel leftModel,
+      RemoteFolderDiffModel rightModel,
       boolean equals
   ) {
     if (!equals) {
       leftModel.markUp(DiffTypes.EDITED);
       rightModel.markUp(DiffTypes.EDITED);
     }
-    boolean needUpdate = false;
-    needUpdate |= leftModel.itemCompared();
-    needUpdate |= rightModel.itemCompared();
-    onItemCompared(needUpdate);
+    leftModel.itemCompared();
+    rightModel.itemCompared();
   }
 
-  private void onItemCompared(boolean needUpdate) {
+  private void readFolder(ReadDto readDto) {
+    ++inComparing;
+    executor.sendToWorker(
+        result -> onFolderRead(readDto.model, result),
+        DiffUtils.READ_FOLDER,
+        readDto.dirHandle, new int[] {readDto.diffType}
+    );
+  }
+
+  private void onFolderRead(
+      RemoteFolderDiffModel model,
+      Object[] result
+  ) {
+    int[] ints = ArgsCast.intArray(result, 0);
+    String[] paths = new String[result.length - 1];
+    for (int i = 0; i < paths.length; i++) paths[i] = (String) result[i + 1];
+    var updModel = RemoteFolderDiffModel.fromInts(ints, paths);
+    model.update(updModel);
+  }
+
+  private void onItemCompared() {
+    ++compared;
     if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
-    if (inComparing == 0) onComplete.run();
-    else if (needUpdate) update.run();
+    if (inComparing == 0) onComplete();
+    else sendResult();
   }
 
-  public void setUpdate(Runnable update) {
-    this.update = update;
+  private void sendResult() {
+    if (sendResult != null && compared % CMP_SIZE == 0) send(sendResult);
   }
 
-  public void setOnComplete(Runnable onComplete) {
+  private void onComplete() {
+    if (onComplete != null) send(onComplete);
+  }
+
+  private void send(Consumer<Object[]> send) {
+    ArrayList<Object> result = new ArrayList<>();
+    result.add(null);
+    var ints = UpdateDto.toInts(leftAcc, rightAcc, result);
+    result.set(0, ints);
+    ArrayOp.sendArrayList(result, send);
+  }
+
+  public void setSendResult(Consumer<Object[]> sendResult) {
+    this.sendResult = sendResult;
+  }
+
+  public void setOnComplete(Consumer<Object[]> onComplete) {
     this.onComplete = onComplete;
   }
+
 }

@@ -1,20 +1,23 @@
 package org.sudu.experiments.update;
 
 import org.sudu.experiments.DirectoryHandle;
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 public class DiffModelUpdater {
 
-  public final RemoteFolderDiffModel leftRootAcc, rightRootAcc;
+  public final FolderDiffModel leftRootAcc, rightRootAcc;
   public final DirectoryHandle leftDir, rightDir;
   private final WorkerJobExecutor executor;
   private final Runnable updateInfo;
 
   public DiffModelUpdater(
-      RemoteFolderDiffModel leftRoot, RemoteFolderDiffModel rightRoot,
-      DirectoryHandle leftDir, DirectoryHandle rightDir,
-      WorkerJobExecutor executor, Runnable updateInfo
+      FolderDiffModel leftRoot,
+      FolderDiffModel rightRoot,
+      DirectoryHandle leftDir,
+      DirectoryHandle rightDir,
+      WorkerJobExecutor executor,
+      Runnable updateInfo
   ) {
     this.leftRootAcc = leftRoot;
     this.rightRootAcc = rightRoot;
@@ -31,7 +34,7 @@ public class DiffModelUpdater {
         executor
     );
     collector.setUpdate(updateInfo);
-    collector.setOnComplete((res) -> updateInfo.run());
+    collector.setOnComplete(updateInfo);
     collector.beginCompare(leftDir, rightDir);
   }
 }

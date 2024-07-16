@@ -61,6 +61,12 @@ public class FolderDiffModel {
     if (parent != null) parent.markUp(diffType);
   }
 
+  public void markDown(int diffType) {
+    setPropagation(PROP_DOWN);
+    setDiffType(diffType);
+    if (children != null) for (var child: children) child.markDown(diffType);
+  }
+
   public void setCompared(boolean compared) {
     int bit = compared ? 1 : 0;
     flags = flags & (~0b1) | bit;

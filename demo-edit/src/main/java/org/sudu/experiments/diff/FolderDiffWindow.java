@@ -2,7 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
@@ -17,6 +17,7 @@ import org.sudu.experiments.ui.fs.DirectoryNode;
 import org.sudu.experiments.ui.fs.FileNode;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
+import org.sudu.experiments.update.Collector;
 import org.sudu.experiments.update.DiffModelUpdater;
 
 import java.util.Arrays;
@@ -30,7 +31,7 @@ public class FolderDiffWindow extends ToolWindow0 {
   Focusable focusSave;
   FolderDiffRootView rootView;
   DirectoryNode leftRoot, rightRoot;
-  RemoteFolderDiffModel leftModel, rightModel;
+  FolderDiffModel leftModel, rightModel;
   private static final boolean PRINT_STAT = true;
   private int updateCnt = 0;
   private double startTime;
@@ -57,8 +58,8 @@ public class FolderDiffWindow extends ToolWindow0 {
     window.onFocus(this::onFocus);
     window.onBlur(this::onBlur);
     windowManager.addWindow(window);
-    leftModel = RemoteFolderDiffModel.REMOTE_DEFAULT;
-    rightModel = RemoteFolderDiffModel.REMOTE_DEFAULT;
+    leftModel = FolderDiffModel.DEFAULT;
+    rightModel = FolderDiffModel.DEFAULT;
   }
 
   protected void dispose() {
@@ -205,8 +206,8 @@ public class FolderDiffWindow extends ToolWindow0 {
     if (leftRoot == null || rightRoot == null) return;
     startTime = window.context.window.timeNow();
     System.out.println("startTime = " + startTime);
-    leftModel = new RemoteFolderDiffModel(null, "");
-    rightModel = new RemoteFolderDiffModel(null, "");
+    leftModel = new FolderDiffModel(null);
+    rightModel = new FolderDiffModel(null);
     DiffModelUpdater updateHandler = new DiffModelUpdater(
         leftModel, rightModel,
         leftRoot.dir, rightRoot.dir,

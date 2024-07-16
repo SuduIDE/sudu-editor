@@ -50,10 +50,7 @@ public class CollectorFolderDiffTest extends DirectoryTest {
 
   public boolean running() { return running; }
 
-  private void onComplete(Object[] result) {
-    var updDto = UpdateDto.fromInts((int[]) result[0], result);
-    System.out.println(updDto.leftRoot.infoString());
-    System.out.println(updDto.rightRoot.infoString());
+  private void onComplete() {
     onComplete.run();
     dumpResult();
     running = false;

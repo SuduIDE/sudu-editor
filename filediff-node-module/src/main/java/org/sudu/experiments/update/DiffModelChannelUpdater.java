@@ -33,14 +33,14 @@ public class DiffModelChannelUpdater {
   }
 
   public void beginCompare() {
-    var collector = new Collector(
+    var collector = new RemoteCollector(
         leftRootAcc, rightRootAcc,
         scanFileContent,
         executor
     );
     collector.setSendResult(this::onCompared);
     collector.setOnComplete(this::onCompared);
-    collector.compare(leftRootAcc, rightRootAcc, leftDir, rightDir);
+    collector.beginCompare(leftDir, rightDir);
   }
 
   public void onCompared(Object[] result) {
