@@ -6,6 +6,7 @@ import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.FileTreeNode;
 import org.sudu.experiments.ui.FileTreeView;
@@ -111,8 +112,10 @@ public class FolderDiffWindow extends ToolWindow0 {
 
     if (leftRoot != null && rightRoot == null) window.setTitle(leftRoot.name());
     if (leftRoot == null && rightRoot != null) window.setTitle(rightRoot.name());
-    if (leftRoot != null && rightRoot != null)
-      window.setTitle(leftRoot.name() + " ↔ " + rightRoot.name());
+    if (leftRoot != null && rightRoot != null) {
+      var title = leftRoot.name() + " ↔ " + rightRoot.name() + " - in progress ...";
+      window.setTitle(title);
+    }
     root.folders();
     compareRootFolders();
   }
@@ -236,9 +239,14 @@ public class FolderDiffWindow extends ToolWindow0 {
     window.context.window.repaint();
     if (leftModel.isCompared() && rightModel.isCompared()) {
       if (PRINT_STAT) {
-        int ms = (int) (1000. * (window.context.window.timeNow() - startTime));
+        double dT = window.context.window.timeNow() - startTime;
+        int ms = Numbers.iRnd(1000 * dT);
         System.out.println("Compared in " + ms + " ms");
         System.out.println("Total updates " + updateCnt);
+        int s = Numbers.iRnd(dT + .5);
+        var title = leftRoot.name() + " ↔ " + rightRoot.name()
+            + " - finished in " + s + " seconds";
+        window.setTitle(title);
       }
     }
   }
