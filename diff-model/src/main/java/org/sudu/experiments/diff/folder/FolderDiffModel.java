@@ -17,10 +17,10 @@ public class FolderDiffModel {
   public FolderDiffModel[] children;
   public int childrenComparedCnt;
   int flags;
-  // 0 - compared;
-  // 1 - is File;
-  // 2,3 - propagation;
-  // 4,5 - diffType
+  // compared     0b...00000(0|1)
+  // isFile       0b...0000(0|1)0
+  // propagation  0b...00(00|01|10)00
+  // diffType     0b...(00|01|10|11)0000
   public int rangeId;
   public int depth;
 
@@ -40,11 +40,8 @@ public class FolderDiffModel {
 
   // returns true if parent is fully compared
   public boolean itemCompared() {
-    if (isCompared())
-      throw new IllegalStateException("File is already compared");
+    if (isCompared()) System.err.println("File is already compared");
     setCompared(true);
-//    if (parent == null)
-//      System.err.println("File must have a parent");
     return parent == null || parent.childCompared();
   }
 
@@ -58,7 +55,7 @@ public class FolderDiffModel {
 
   public boolean isFullyCompared() {
     if (childrenComparedCnt > children.length)
-      throw new IllegalStateException("childrenComparedCnt cannot be greater than children.length");
+      System.err.println("childrenComparedCnt cannot be greater than children.length");
     return children.length == childrenComparedCnt;
   }
 
@@ -78,6 +75,10 @@ public class FolderDiffModel {
     setDiffType(diffType);
     if (parent != null) rangeId = parent.rangeId;
     if (children != null) for (var child: children) child.markDown(diffType);
+  }
+
+  public boolean noChildren() {
+    return children == null || children.length == 0;
   }
 
   public void setCompared(boolean compared) {
@@ -121,60 +122,6 @@ public class FolderDiffModel {
     model.setPropagation(PROP_DOWN);
     model.setDiffType(DiffTypes.DEFAULT);
     model.setCompared(true);
-    return model;
-  }
-
-  public static int[] toInts(FolderDiffModel model) {
-    ArrayWriter writer = new ArrayWriter();
-    writeInts(model, writer);
-    return writer.getInts();
-  }
-
-  public static void writeInts(FolderDiffModel model, ArrayWriter writer) {
-    writeInts(model, writer, new IdentityHashMap<>());
-  }
-
-  public static void writeInts(
-      FolderDiffModel model, ArrayWriter writer,
-      IdentityHashMap<FolderDiffModel, Integer> modelToIntMap
-  ) {
-    writer.write(model.flags);
-    writer.write(model.rangeId);
-    writer.write(model.childrenComparedCnt);
-    int ind = modelToIntMap.getOrDefault(model, -1);
-    writer.write(ind);
-    if (model.children == null) writer.write(-1);
-    else {
-      writer.write(model.children.length);
-      for (var child: model.children) writeInts(child, writer, modelToIntMap);
-    }
-  }
-
-  public static FolderDiffModel fromInts(int[] ints) {
-    return fromInts(new ArrayReader(ints), null);
-  }
-
-  public static FolderDiffModel fromInts(ArrayReader reader, FolderDiffModel parent) {
-    return fromInts(reader, parent, null);
-  }
-
-  public static FolderDiffModel fromInts(
-      ArrayReader reader,
-      FolderDiffModel parent,
-      Pair<?, FolderDiffModel>[] models
-  ) {
-    FolderDiffModel model = new FolderDiffModel(parent);
-    model.flags = reader.next();
-    model.rangeId = reader.next();
-    model.childrenComparedCnt = reader.next();
-    int ind = reader.next();
-    if (ind != -1) models[ind].second = model;
-    int childrenLen = reader.next();
-    if (childrenLen != -1) {
-      var children = new FolderDiffModel[childrenLen];
-      for (int i = 0; i < childrenLen; i++) children[i] = fromInts(reader, model, models);
-      model.children = children;
-    }
     return model;
   }
 

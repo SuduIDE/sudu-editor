@@ -5,7 +5,7 @@ import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.arrays.IntsReader;
 import org.sudu.experiments.diff.DiffTypes;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import static org.sudu.experiments.diff.folder.PropTypes.*;
 
@@ -44,7 +44,7 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
 
   public static int[] toInts(
       RemoteFolderDiffModel model,
-      ArrayList<String> pathList
+      List<String> pathList
   ) {
     ArrayWriter writer = new ArrayWriter();
     writeInts(model, pathList, writer);
@@ -53,7 +53,7 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
 
   public static void writeInts(
       RemoteFolderDiffModel model,
-      ArrayList<String> pathList,
+      List<String> pathList,
       ArrayWriter writer
   ) {
     writer.write(model.flags);

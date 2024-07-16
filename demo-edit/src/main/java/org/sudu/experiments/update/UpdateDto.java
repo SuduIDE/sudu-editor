@@ -29,7 +29,7 @@ public class UpdateDto {
     int pathLenPtr = writer.getPointer();
     writer.write(-1);
 
-    ArrayList<String> paths = new ArrayList<>();
+    List<String> paths = new ArrayList<>();
     RemoteFolderDiffModel.writeInts(leftRoot, paths, writer);
     RemoteFolderDiffModel.writeInts(rightRoot, paths, writer);
 

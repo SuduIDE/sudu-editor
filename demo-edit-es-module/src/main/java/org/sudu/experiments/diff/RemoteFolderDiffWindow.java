@@ -6,7 +6,7 @@ import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
-import org.sudu.experiments.ui.FileTreeNode;
+import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ToolWindow0;
 import org.sudu.experiments.ui.fs.RemoteFileTreeNode;
@@ -20,8 +20,7 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
-import java.util.Deque;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class RemoteFolderDiffWindow extends ToolWindow0 {
@@ -35,8 +34,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   protected Channel channel;
   private final long startTime;
 
-  private boolean inUpdating = false;
-  private JsArray<JSObject> lastUpdate;
+  private boolean updatedRoots = false;
 
   public RemoteFolderDiffWindow(
       EditorColorScheme theme,
@@ -47,23 +45,26 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     super(wm, theme, fonts);
     rootView = new FolderDiffRootView(windowManager.uiContext);
     rootView.applyTheme(theme);
-    var modelLeft = new FileTreeNode(UiText.empty, 0);
-    var modelRight = new FileTreeNode(UiText.empty, 0);
-    modelLeft.iconFolderOpened();
-    modelRight.iconFolderOpened();
 
-    rootView.left.setRoot(modelLeft);
-    rootView.right.setRoot(modelRight);
+    leftModel = new RemoteFolderDiffModel(null, "");
+    rightModel = new RemoteFolderDiffModel(null, "");
+    leftRoot = new RemoteDirectoryNode(leftModel, getHandle(true, () -> leftModel));
+    rightRoot = new RemoteDirectoryNode(rightModel, getHandle(false, () -> rightModel));
+
+    rootView.left.setRoot(leftRoot);
+    rootView.right.setRoot(rightRoot);
+
     window = createWindow(rootView);
     window.onFocus(this::onFocus);
     window.onBlur(this::onBlur);
     windowManager.addWindow(window);
-    leftModel = RemoteFolderDiffModel.REMOTE_DEFAULT;
-    rightModel = RemoteFolderDiffModel.REMOTE_DEFAULT;
+
     startTime = System.currentTimeMillis();
+
     this.channel = channel;
     this.channel.setOnMessage(this::onChannelMessage);
     JsHelper.consoleInfo("RemoteFolderDiffWindow created!");
+    System.out.println("RemoteFolderDiffWindow:" + channel.toString());
   }
 
   protected void dispose() {
@@ -83,44 +84,19 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private void update(JsArray<JSObject> jsResult) {
-    lastUpdate = null;
-    inUpdating = true;
-
     Int32Array ints = jsResult.get(0).cast();
     var dto = fromJsInts(ints, jsResult);
-    leftModel = dto.leftRoot;
-    rightModel = dto.rightRoot;
-    updateRoots(leftModel, rightModel);
-  }
+    leftModel.update(dto.leftRoot);
+    rightModel.update(dto.rightRoot);
 
-  private void updateRoots(
-      RemoteFolderDiffModel leftModel,
-      RemoteFolderDiffModel rightModel
-  ) {
-    if (leftRoot == null && rightRoot == null) {
-      this.leftModel = leftModel;
-      this.rightModel = rightModel;
-
-      this.leftRoot = new RemoteDirectoryNode(this.leftModel, getHandle(true));
-      this.rightRoot = new RemoteDirectoryNode(this.rightModel, getHandle(false));
-
-      rootView.left.setRoot(leftRoot);
-      rootView.right.setRoot(rightRoot);
+    if (!updatedRoots) {
+      updatedRoots = true;
       window.setTitle(leftRoot.name() + " <-> " + rightRoot.name());
-
       leftRoot.doOpen();
       rightRoot.doOpen();
-    } else {
-      this.leftModel.update(leftModel);
-      this.rightModel.update(rightModel);
-      this.leftRoot.update(leftModel);
-      this.rightRoot.update(rightModel);
     }
     window.context.window.repaint();
     updateDiffInfo();
-    if (lastUpdate != null) {
-      update(lastUpdate);
-    } else inUpdating = false;
   }
 
   protected void updateDiffInfo() {
@@ -135,17 +111,15 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private void onChannelMessage(
       JsArray<JSObject> jsResult
   ) {
-    if (inUpdating) {
-      lastUpdate = jsResult;
-      JsHelper.consoleInfo("Skipped update batch");
-      return;
-    }
     JsHelper.consoleInfo("Got update batch from channel");
     update(jsResult);
     JsHelper.consoleInfo("Updated in " + (System.currentTimeMillis() - startTime) + "ms");
   }
 
-  private RemoteHandle getHandle(boolean left) {
+  private RemoteHandle getHandle(
+      boolean left,
+      Supplier<RemoteFolderDiffModel> modelSupplier
+  ) {
     return new RemoteHandle() {
       @Override
       public void updateView() {
@@ -153,24 +127,74 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       }
 
       @Override
+      public void openDir(RemoteDirectoryNode node) {
+        var model = getModel();
+        if (model.children == null) return;
+
+        int foldersLen = 0;
+        int childLen = model.children.length;
+
+        var children = new RemoteFileTreeNode[childLen];
+        int childPtr = 0;
+
+        for (int i = 0; i < childLen; i++) {
+          RemoteFileTreeNode childNode;
+          var child = model.child(i);
+          if (child.isFile()) {
+            childNode = new RemoteFileNode(child, getHandle(left, getModel(i)));
+          } else {
+            foldersLen++;
+            childNode = new RemoteDirectoryNode(child, getHandle(left, getModel(i)));
+          }
+          children = ArrayOp.addAt(childNode, children, childPtr++);
+        }
+        node.setChildren(children);
+        node.folderCnt = foldersLen;
+
+        var array = JsArray.create();
+        array.push(JSString.valueOf("Opened: " + node.value()));
+        channel.sendMessage(array);
+      }
+
+      @Override
       public void openFile(RemoteFileNode node) {
         JsHelper.consoleInfo("Trying to open file " + node.name());
         var opposite = getOppositeFile(node);
         if (opposite != null) setSelected(node, opposite);
+        var array = JsArray.create();
+        array.push(JSString.valueOf("Opened: " + node.value()));
+        channel.sendMessage(array);
+      }
+
+      @Override
+      public void closeDir(RemoteDirectoryNode node) {
+        super.closeDir(node);
+        var array = JsArray.create();
+        array.push(JSString.valueOf("Closed: " + node.value()));
+        channel.sendMessage(array);
       }
 
       @Override
       public RemoteDirectoryNode getOppositeDir(RemoteDirectoryNode node) {
-        var opposite = getOppositeDir(node.model);
+        var opposite = getOppositeDir(node.model());
         if (opposite != null) setSelected(node, opposite);
         return opposite;
       }
 
       @Override
       public RemoteFileNode getOppositeFile(RemoteFileNode node) {
-        var dir = getOppositeDir(node.model.parent());
+        var dir = getOppositeDir(node.model().parent());
         if (dir == null) return null;
         return dir.findSubFile(node.name());
+      }
+
+      @Override
+      public RemoteFolderDiffModel getModel() {
+        return modelSupplier.get();
+      }
+
+      private Supplier<RemoteFolderDiffModel> getModel(int i) {
+        return () -> getModel().child(i);
       }
 
       private RemoteDirectoryNode getOppositeDir(RemoteFolderDiffModel model) {

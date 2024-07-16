@@ -2,6 +2,7 @@ package org.sudu.experiments.ui;
 
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.editor.CodeLine;
 
 import java.util.Comparator;
 
@@ -77,6 +78,7 @@ public class FileTreeNode extends TreeNode {
         else idx = children[i].getModel(t, model.child(i), idx);
       }
     }
+    if (needLineUpdate()) this.line = new CodeLine(this.value());
     return idx;
   }
 
@@ -136,4 +138,8 @@ public class FileTreeNode extends TreeNode {
   }
 
   protected void defaultIcon() {}
+
+  protected boolean needLineUpdate() {
+    return false;
+  }
 }

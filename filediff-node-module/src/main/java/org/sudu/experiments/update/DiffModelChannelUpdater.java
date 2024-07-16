@@ -29,6 +29,7 @@ public class DiffModelChannelUpdater {
     this.scanFileContent = scanFileContent;
     this.executor = executor;
     this.channel = channel;
+    this.channel.setOnMessage(jsArray -> System.out.println(jsArray.toString()));
   }
 
   public void beginCompare() {
@@ -38,6 +39,7 @@ public class DiffModelChannelUpdater {
         executor
     );
     collector.setSendResult(this::onCompared);
+    collector.setOnComplete(this::onCompared);
     collector.compare(leftRootAcc, rightRootAcc, leftDir, rightDir);
   }
 
