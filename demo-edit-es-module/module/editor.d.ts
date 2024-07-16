@@ -224,6 +224,11 @@ export interface IFolderDiff extends EditorBase, HasTheme, Focusable {}
 
 export interface FolderDiffView extends IFolderDiff, IDisposable {}
 
+export interface RemoteFolderDiffView extends FolderDiffView {
+    getState(): any
+    applyState(state: any): void
+}
+
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
 
 export function newEditor(args: EditArgs): Promise<EditView>
@@ -232,4 +237,4 @@ export function newCodeDiff(args: EditArgs): Promise<CodeDiffView>
 
 export function newFolderDiff(args: EditArgs): Promise<FolderDiffView>
 
-export function newRemoteFolderDiff(args: EditArgs, channel: Channel): Promise<FolderDiffView>
+export function newRemoteFolderDiff(args: EditArgs, channel: Channel): Promise<RemoteFolderDiffView>
