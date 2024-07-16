@@ -314,7 +314,6 @@ public class EditorComponent extends View implements
 
   private void doChangeFont(String name, float virtualSize) {
     float newPixelFontSize = virtualSize * dpr;
-    float newPixelFontSize2 = DprUtil.toPx(virtualSize, dpr);
     float oldPixelFontSize = lrContext.fontSize();
     if (newPixelFontSize != oldPixelFontSize || !Objects.equals(name, fontFamilyName)) {
       lineNumbers.dispose();
