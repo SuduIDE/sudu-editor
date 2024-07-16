@@ -12,7 +12,7 @@ public class ReadFolderHandler {
 
   public final RemoteFolderDiffModel rootModel;
   public final DirectoryHandle rootHandle;
-  private final int diffType, rangeId;
+  private final int diffType;
   private final Consumer<Object[]> r;
   private int readCnt = 0;
 
@@ -20,19 +20,16 @@ public class ReadFolderHandler {
       RemoteFolderDiffModel rootModel,
       DirectoryHandle rootHandle,
       int diffType,
-      int rangeId,
       Consumer<Object[]> r
   ) {
     this.rootModel = rootModel;
     this.rootHandle = rootHandle;
     this.diffType = diffType;
-    this.rangeId = rangeId;
     this.r = r;
   }
 
   public void beginRead() {
     rootModel.setDiffType(diffType);
-    rootModel.rangeId = rangeId;
     read(rootModel, rootHandle);
   }
 
@@ -52,7 +49,6 @@ public class ReadFolderHandler {
     for (int i = 0; i < children.length; i++) {
       var child = model.child(i);
       child.setDiffType(diffType);
-      child.rangeId = rangeId;
       if (!child.isFile()) {
         read(child, (DirectoryHandle) children[i].item);
       } else child.itemCompared();

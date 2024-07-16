@@ -9,9 +9,10 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
 
   public RemoteDirectoryNode(
       RemoteFolderDiffModel model,
-      RemoteHandle handle
+      RemoteHandle handle,
+      int depth
   ) {
-    super(model, handle);
+    super(model, handle, depth);
     iconFolder();
     onClick = this::onClick;
   }

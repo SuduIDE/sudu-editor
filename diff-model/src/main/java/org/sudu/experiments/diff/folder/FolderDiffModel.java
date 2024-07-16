@@ -1,12 +1,8 @@
 package org.sudu.experiments.diff.folder;
 
-import org.sudu.experiments.arrays.ArrayReader;
-import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
-import org.sudu.experiments.parser.common.Pair;
 
 import java.util.Arrays;
-import java.util.IdentityHashMap;
 import java.util.Objects;
 
 import static org.sudu.experiments.diff.folder.PropTypes.*;
@@ -21,12 +17,9 @@ public class FolderDiffModel {
   // isFile       0b...0000(0|1)0
   // propagation  0b...00(00|01|10)00
   // diffType     0b...(00|01|10|11)0000
-  public int rangeId;
-  public int depth;
 
   public FolderDiffModel(FolderDiffModel parent) {
     this.parent = parent;
-    if (parent != null) depth = parent.depth + 1;
   }
 
   public void update(FolderDiffModel newModel) {
@@ -34,7 +27,6 @@ public class FolderDiffModel {
     for (var child: children) child.parent = this;
     this.childrenComparedCnt = newModel.childrenComparedCnt;
     this.flags = newModel.flags;
-    this.rangeId = newModel.rangeId;
     if (this.isCompared() && parent != null) parent.childCompared();
   }
 
@@ -63,22 +55,10 @@ public class FolderDiffModel {
     return children[i];
   }
 
-  public void markUp(int diffType, RangeCtx ctx) {
+  public void markUp(int diffType) {
     setPropagation(PROP_UP);
     setDiffType(diffType);
-    rangeId = ctx.nextId();
-    if (parent != null) parent.markUp(diffType, ctx);
-  }
-
-  public void markDown(int diffType) {
-    setPropagation(PROP_DOWN);
-    setDiffType(diffType);
-    if (parent != null) rangeId = parent.rangeId;
-    if (children != null) for (var child: children) child.markDown(diffType);
-  }
-
-  public boolean noChildren() {
-    return children == null || children.length == 0;
+    if (parent != null) parent.markUp(diffType);
   }
 
   public void setCompared(boolean compared) {
@@ -132,13 +112,12 @@ public class FolderDiffModel {
     FolderDiffModel that = (FolderDiffModel) o;
     return childrenComparedCnt == that.childrenComparedCnt
         && flags == that.flags
-        && rangeId == that.rangeId
         && Objects.deepEquals(children, that.children);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(Arrays.hashCode(children), childrenComparedCnt, flags, rangeId);
+    return Objects.hash(Arrays.hashCode(children), childrenComparedCnt, flags);
   }
 
   public String infoString() {
@@ -149,7 +128,6 @@ public class FolderDiffModel {
         ", compared=" + isCompared() +
         ", propagation=" + getPropagation() +
         ", diffType=" + getDiffType() +
-        ", rangeId=" + rangeId +
         "}";
   }
 }

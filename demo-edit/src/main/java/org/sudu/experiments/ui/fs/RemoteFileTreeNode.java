@@ -9,9 +9,10 @@ public class RemoteFileTreeNode extends FileTreeNode {
 
   public RemoteFileTreeNode(
       RemoteFolderDiffModel model,
-      RemoteHandle handle
+      RemoteHandle handle,
+      int depth
   ) {
-    this(model.path, model.depth);
+    this(model.path, depth);
     this.handle = handle;
     defaultIcon();
   }

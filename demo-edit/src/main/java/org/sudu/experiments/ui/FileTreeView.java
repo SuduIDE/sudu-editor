@@ -1,7 +1,6 @@
 package org.sudu.experiments.ui;
 
 import org.sudu.experiments.diff.folder.FolderDiffModel;
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.ui.window.ScrollView;
 
 public class FileTreeView extends TreeView {

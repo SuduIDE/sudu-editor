@@ -67,14 +67,13 @@ public class FileTreeNode extends TreeNode {
   private int getModel(TreeNode[] t, FolderDiffModel model, int idx) {
     boolean noChildren = model.children == null;
     boolean isDownProp = model.getPropagation() == PROP_DOWN;
-    this.rangeId = model.rangeId;
     this.diffType = model.getDiffType();
     t[idx++] = this;
     setIcon(this, model);
     if (childrenLength() != 0) {
       for (int i = 0; i < children.length; i++) {
-        if (isDownProp) idx = children[i].getModel(t, model.rangeId, model.getDiffType(), idx, model.isCompared());
-        else if (noChildren) idx = children[i].getModel(t, model.rangeId, DiffTypes.DEFAULT, idx, model.isCompared());
+        if (isDownProp) idx = children[i].getModel(t, model.getDiffType(), idx, model.isCompared());
+        else if (noChildren) idx = children[i].getModel(t, DiffTypes.DEFAULT, idx, model.isCompared());
         else idx = children[i].getModel(t, model.child(i), idx);
       }
     }
@@ -82,14 +81,13 @@ public class FileTreeNode extends TreeNode {
     return idx;
   }
 
-  private int getModel(TreeNode[] t, int rangeId, int diffType, int idx, boolean compared) {
-    this.rangeId = rangeId;
+  private int getModel(TreeNode[] t, int diffType, int idx, boolean compared) {
     this.diffType = diffType;
     t[idx++] = this;
     setIcon(this, compared);
     if (childrenLength() != 0) {
       for (var child: children) {
-        idx = child.getModel(t, rangeId, diffType, idx, compared);
+        idx = child.getModel(t, diffType, idx, compared);
       }
     }
     return idx;

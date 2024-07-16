@@ -6,9 +6,10 @@ public class RemoteFileNode extends RemoteFileTreeNode {
 
   public RemoteFileNode(
       RemoteFolderDiffModel model,
-      RemoteHandle handle
+      RemoteHandle handle,
+      int depth
   ) {
-    super(model, handle);
+    super(model, handle, depth);
     onClick = () -> handle.openFile(this);
   }
 

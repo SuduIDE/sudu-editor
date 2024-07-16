@@ -48,8 +48,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
     leftModel = new RemoteFolderDiffModel(null, "");
     rightModel = new RemoteFolderDiffModel(null, "");
-    leftRoot = new RemoteDirectoryNode(leftModel, getHandle(true, () -> leftModel));
-    rightRoot = new RemoteDirectoryNode(rightModel, getHandle(false, () -> rightModel));
+    leftRoot = new RemoteDirectoryNode(leftModel, getHandle(true, () -> leftModel), 0);
+    rightRoot = new RemoteDirectoryNode(rightModel, getHandle(false, () -> rightModel), 0);
 
     rootView.left.setRoot(leftRoot);
     rootView.right.setRoot(rightRoot);
@@ -141,10 +141,10 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
           RemoteFileTreeNode childNode;
           var child = model.child(i);
           if (child.isFile()) {
-            childNode = new RemoteFileNode(child, getHandle(left, getModel(i)));
+            childNode = new RemoteFileNode(child, getHandle(left, getModel(i)), node.depth + 1);
           } else {
             foldersLen++;
-            childNode = new RemoteDirectoryNode(child, getHandle(left, getModel(i)));
+            childNode = new RemoteDirectoryNode(child, getHandle(left, getModel(i)), node.depth + 1);
           }
           children = ArrayOp.addAt(childNode, children, childPtr++);
         }

@@ -7,7 +7,6 @@ import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.SizeScanner;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
-import org.sudu.experiments.diff.folder.RangeCtx;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.math.ArrayOp;
@@ -20,7 +19,6 @@ import java.util.function.Consumer;
 
 public class Collector {
 
-  private final RangeCtx rangeCtx;
   private final RemoteFolderDiffModel leftAcc, rightAcc;
   private final WorkerJobExecutor executor;
   private final boolean scanFileContent;
@@ -41,7 +39,6 @@ public class Collector {
   ) {
     this.leftAcc = left;
     this.rightAcc = right;
-    this.rangeCtx = new RangeCtx();
     this.executor = executor;
     this.scanFileContent = scanFileContent;
   }
@@ -121,22 +118,17 @@ public class Collector {
           leftDiff[lP] == DiffTypes.DEFAULT &&
           rightDiff[rP] == DiffTypes.DEFAULT
       ) {
-        int id = rangeCtx.nextId();
         changed = true;
-        leftModel.child(lP).rangeId = id;
-        rightModel.child(rP).rangeId = id;
         compare(leftModel.child(lP), rightModel.child(rP), leftItem[lP], rightItem[rP]);
         lP++;
         rP++;
       }
       if (changed) continue;
-      int id = rangeCtx.nextId();
       while (lP < leftLen && leftDiff[lP] == DiffTypes.DELETED) {
         changed = true;
         leftModel.child(lP).setDiffType(DiffTypes.DELETED);
-        leftModel.child(lP).rangeId = id;
         if (!leftModel.child(lP).isFile()) {
-          var readDto = new ReadDto(leftModel.child(lP), (DirectoryHandle) leftItem[lP], DiffTypes.DELETED, id);
+          var readDto = new ReadDto(leftModel.child(lP), (DirectoryHandle) leftItem[lP], DiffTypes.DELETED);
           readFolder(readDto);
         } else {
           leftModel.child(lP).itemCompared();
@@ -144,16 +136,16 @@ public class Collector {
         lP++;
       }
       if (changed) {
-        rangeCtx.markUp(leftModel, rightModel);
+        leftModel.markUp(DiffTypes.EDITED);
+        rightModel.markUp(DiffTypes.EDITED);
         needUpdate = true;
         continue;
       }
       while (rP < rightLen && rightDiff[rP] == DiffTypes.INSERTED) {
         changed = true;
         rightModel.child(rP).setDiffType(DiffTypes.INSERTED);
-        rightModel.child(rP).rangeId = id;
         if (!rightModel.child(rP).isFile()) {
-          var readDto = new ReadDto(rightModel.child(rP), (DirectoryHandle) rightItem[rP], DiffTypes.INSERTED, id);
+          var readDto = new ReadDto(rightModel.child(rP), (DirectoryHandle) rightItem[rP], DiffTypes.INSERTED);
           readFolder(readDto);
         } else {
           rightModel.child(rP).itemCompared();
@@ -161,7 +153,8 @@ public class Collector {
         rP++;
       }
       if (changed) {
-        rangeCtx.markUp(leftModel, rightModel);
+        leftModel.markUp(DiffTypes.EDITED);
+        rightModel.markUp(DiffTypes.EDITED);
         needUpdate = true;
       }
     }
@@ -205,10 +198,8 @@ public class Collector {
       boolean equals
   ) {
     if (!equals) {
-      int rangeId = rangeCtx.nextId();
-      leftModel.rangeId = rangeId;
-      rightModel.rangeId = rangeId;
-      rangeCtx.markUp(leftModel, rightModel);
+      leftModel.markUp(DiffTypes.EDITED);
+      rightModel.markUp(DiffTypes.EDITED);
     }
     boolean needUpdate = false;
     needUpdate |= leftModel.itemCompared();
