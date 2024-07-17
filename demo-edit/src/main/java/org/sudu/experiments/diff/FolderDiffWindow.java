@@ -34,6 +34,7 @@ public class FolderDiffWindow extends ToolWindow0 {
   private static final boolean PRINT_STAT = true;
   private int updateCnt = 0;
   private double startTime;
+  private boolean titleSet;
   private Set<TreeNode> leftModelSet, rightModelSet;
 
   public FolderDiffWindow(
@@ -110,14 +111,12 @@ public class FolderDiffWindow extends ToolWindow0 {
     root.onClick.run();
     treeView.setRoot(root);
 
-    if (leftRoot != null && rightRoot == null) window.setTitle(leftRoot.name());
-    if (leftRoot == null && rightRoot != null) window.setTitle(rightRoot.name());
-    if (leftRoot != null && rightRoot != null) {
-      var title = leftRoot.name() + " ↔ " + rightRoot.name() + " - in progress ...";
-      window.setTitle(title);
-    }
-    root.folders();
-    compareRootFolders();
+    if (leftRoot != null && rightRoot == null)
+      window.setTitle(leftRoot.name());
+    if (leftRoot == null && rightRoot != null)
+      window.setTitle(rightRoot.name());
+    if (leftRoot != null && rightRoot != null)
+      compareRootFolders();
   }
 
   protected DirectoryNode.Handler getHandler(boolean left, FileTreeView treeView) {
@@ -150,7 +149,7 @@ public class FolderDiffWindow extends ToolWindow0 {
           oppositeDir.onClick.run();
         }
         if (node.childrenLength() > 0) updateModel(treeView);
-        updateDiffInfo();
+        updateDiffInfo(0, 0);
         if (node.folders().length == 1 && node.files().length == 0) {
           node.folders()[0].onClick.run();
         }
@@ -169,7 +168,7 @@ public class FolderDiffWindow extends ToolWindow0 {
         if (oppositeDir != null && oppositeDir.isOpened()) {
           oppositeDir.onClick.run();
         }
-        updateDiffInfo();
+        updateDiffInfo(0, 0);
       }
 
       DirectoryNode findOppositeDir(DirectoryNode node) {
@@ -202,15 +201,20 @@ public class FolderDiffWindow extends ToolWindow0 {
   }
 
   protected void compareRootFolders() {
-    if (leftRoot == null || rightRoot == null) return;
     startTime = window.context.window.timeNow();
     System.out.println("startTime = " + startTime);
+
+    var title = leftRoot.name() + " ↔ " + rightRoot.name() + " - scan in progress ...";
+    window.setTitle(title);
+    titleSet = false;
+
     leftModel = new RemoteFolderDiffModel(null, "");
     rightModel = new RemoteFolderDiffModel(null, "");
     DiffModelUpdater updateHandler = new DiffModelUpdater(
         leftModel, rightModel,
         leftRoot.dir, rightRoot.dir,
-        window.context.window.worker(), this::updateDiffInfo
+        window.context.window.worker(),
+        this::updateDiffInfo
     );
     updateHandler.beginCompare();
   }
@@ -224,11 +228,10 @@ public class FolderDiffWindow extends ToolWindow0 {
       TreeNode leftNode, TreeNode rightNode
   ) {
     if (rootView.left == null || rootView.right == null) return;
-    if (needUpdate || needUpdate(leftNode, rightNode)) updateDiffInfo();
+    if (needUpdate || needUpdate(leftNode, rightNode)) updateDiffInfo(0, 0);
   }
 
-
-  protected void updateDiffInfo() {
+  protected void updateDiffInfo(int foldersCompared, int filesCompared) {
     if (rootView.left == null || rootView.right == null) return;
     updateCnt++;
     rootView.left.updateModel(leftModel);
@@ -237,16 +240,20 @@ public class FolderDiffWindow extends ToolWindow0 {
     var right = rootView.right.model();
     rootView.setDiffModel(DiffModelBuilder.getDiffInfo(left, right));
     window.context.window.repaint();
-    if (leftModel.isCompared() && rightModel.isCompared()) {
-      if (PRINT_STAT) {
-        double dT = window.context.window.timeNow() - startTime;
-        int ms = Numbers.iRnd(1000 * dT);
-        System.out.println("Compared in " + ms + " ms");
-        System.out.println("Total updates " + updateCnt);
-        int s = Numbers.iRnd(dT + .5);
+    if (leftRoot != null && rightRoot != null
+        && leftModel.isCompared() && rightModel.isCompared()
+    ) {
+      double dT = window.context.window.timeNow() - startTime;
+      if (!titleSet) {
         var title = leftRoot.name() + " ↔ " + rightRoot.name()
-            + " - finished in " + s + " seconds";
+            + " - finished in " + Numbers.iRnd(dT) + "s, " +
+            "foldersCompared: " + foldersCompared + ", filesCompared: " + filesCompared;
         window.setTitle(title);
+        titleSet = true;
+      }
+      if (PRINT_STAT) {
+        System.out.println("Compared in " + Numbers.iRnd(1000 * dT) + " ms");
+        System.out.println("Total updates " + updateCnt);
       }
     }
   }

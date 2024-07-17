@@ -260,7 +260,7 @@ public class TreeView extends ScrollContent implements Focusable {
           theme, null,
           null, null,
           selected,
-          diff);
+          selected ? null : diff);
     }
 
     if (virtualSize.x != virtualSizeX) {

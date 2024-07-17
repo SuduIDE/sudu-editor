@@ -20,13 +20,15 @@ import java.util.function.Consumer;
 
 public class Collector {
 
+  protected int foldersCompared = 0, filesCompared = 0;
+  protected Consumer<Object[]> onComplete;
+
   private final RangeCtx rangeCtx;
   private final RemoteFolderDiffModel leftAcc, rightAcc;
   private final WorkerJobExecutor executor;
   private final boolean scanFileContent;
 
   private Consumer<Object[]> sendResult;
-  private Consumer<Object[]> onComplete;
   private Runnable update;
 
   private static final int CMP_SIZE = 2500;
@@ -101,6 +103,7 @@ public class Collector {
       RemoteFolderDiffModel leftModel, RemoteFolderDiffModel rightModel,
       Object[] result
   ) {
+    foldersCompared++;
     if (result.length == 0) return;
     int[] ints = ((ArrayView) result[0]).ints();
     int leftLen = ints[0], rightLen = ints[1];
@@ -204,6 +207,7 @@ public class Collector {
       RemoteFolderDiffModel rightModel,
       boolean equals
   ) {
+    filesCompared++;
     if (!equals) {
       int rangeId = rangeCtx.nextId();
       leftModel.rangeId = rangeId;
@@ -251,8 +255,9 @@ public class Collector {
     if (sendResult != null && compared % CMP_SIZE == 0) send(sendResult);
   }
 
-  private void onComplete() {
-    if (onComplete != null) send(onComplete);
+  protected void onComplete() {
+    if (onComplete != null)
+      send(onComplete);
   }
 
   private void send(Consumer<Object[]> send) {
@@ -277,5 +282,20 @@ public class Collector {
 
   private void update(boolean needUpdate) {
     if (needUpdate && update != null) update.run();
+  }
+
+  public static class Collector1 extends Collector {
+    public Collector1(
+        RemoteFolderDiffModel left, RemoteFolderDiffModel right,
+        boolean scanFileContent, WorkerJobExecutor executor
+    ) {
+      super(left, right, scanFileContent, executor);
+    }
+
+    @Override
+    protected void onComplete() {
+      if (onComplete != null)
+        onComplete.accept(new Object[]{new int[] {foldersCompared, filesCompared}});
+    }
   }
 }

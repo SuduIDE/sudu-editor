@@ -14,12 +14,16 @@ import org.sudu.experiments.ui.WindowDemo;
 import java.util.function.Function;
 
 public class TestSceneSelector {
+  static Function<SceneApi, Scene> defaultScene() {
+    return FolderDiff::new;
+  }
+
   public static Function<SceneApi, Scene> selectScene(String name) {
     if (name.length() > 0) {
       Debug.consoleInfo("selectScene " + name);
     }
     return switch (name) {
-      default -> Editor1::new;
+      default -> defaultScene();
       case "Diff" -> Diff0::new;
       case "Editor0" -> Editor0::new;
       case "DemoScene1", "test" -> DemoScene1::new;
