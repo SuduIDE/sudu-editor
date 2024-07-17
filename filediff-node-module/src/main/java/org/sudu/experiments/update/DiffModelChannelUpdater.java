@@ -10,33 +10,32 @@ import org.teavm.jso.core.JSString;
 
 public class DiffModelChannelUpdater {
 
-  public final RemoteFolderDiffModel leftRootAcc, rightRootAcc;
+  public final RemoteFolderDiffModel root;
   public final DirectoryHandle leftDir, rightDir;
   private final WorkerJobExecutor executor;
   private final Channel channel;
   private final boolean scanFileContent;
 
   public DiffModelChannelUpdater(
-      RemoteFolderDiffModel leftRoot, RemoteFolderDiffModel rightRoot,
+      RemoteFolderDiffModel root,
       DirectoryHandle leftDir, DirectoryHandle rightDir,
       boolean scanFileContent,
       WorkerJobExecutor executor, Channel channel
   ) {
-    this.leftRootAcc = leftRoot;
-    this.rightRootAcc = rightRoot;
+    this.root = root;
     this.leftDir = leftDir;
     this.rightDir = rightDir;
     this.scanFileContent = scanFileContent;
     this.executor = executor;
     this.channel = channel;
-    this.channel.setOnMessage(jsArray -> System.out.println(jsArray.toString()));
+//    this.channel.setOnMessage(jsArray -> System.out.println(jsArray.toString()));
   }
 
   public void beginCompare() {
     var collector = new RemoteCollector(
-        leftRootAcc, rightRootAcc,
-        scanFileContent,
-        executor
+        root,
+        leftDir.getName(), rightDir.getName(),
+        scanFileContent, executor
     );
     collector.setSendResult(this::onCompared);
     collector.setOnComplete(this::onCompared);

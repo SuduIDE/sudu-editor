@@ -12,17 +12,15 @@ public class UpdateDto {
 
   public static int[] toInts(
       RemoteFolderDiffModel leftRoot,
-      RemoteFolderDiffModel rightRoot,
       List<Object> result
   ) {
     ArrayWriter writer = new ArrayWriter();
-    writeInts(leftRoot, rightRoot, result, writer);
+    writeInts(leftRoot, result, writer);
     return writer.getInts();
   }
 
   public static void writeInts(
       RemoteFolderDiffModel leftRoot,
-      RemoteFolderDiffModel rightRoot,
       List<Object> result,
       ArrayWriter writer
   ) {
@@ -31,7 +29,6 @@ public class UpdateDto {
 
     List<String> paths = new ArrayList<>();
     RemoteFolderDiffModel.writeInts(leftRoot, paths, writer);
-    RemoteFolderDiffModel.writeInts(rightRoot, paths, writer);
 
     writer.writeAtPos(pathLenPtr, paths.size());
     result.addAll(paths);

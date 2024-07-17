@@ -1,6 +1,5 @@
 package org.sudu.experiments.ui.fs;
 
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.ui.FileTreeNode;
 
 public class RemoteDirectoryNode extends RemoteFileTreeNode {
@@ -8,11 +7,11 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
   public int folderCnt;
 
   public RemoteDirectoryNode(
-      RemoteFolderDiffModel model,
+      String path,
       RemoteHandle handle,
       int depth
   ) {
-    super(model, handle, depth);
+    super(path, handle, depth);
     iconFolder();
     onClick = this::onClick;
   }

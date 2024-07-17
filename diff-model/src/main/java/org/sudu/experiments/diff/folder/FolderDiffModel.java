@@ -1,6 +1,7 @@
 package org.sudu.experiments.diff.folder;
 
 import org.sudu.experiments.diff.DiffTypes;
+import org.sudu.experiments.diff.ItemKind;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -13,11 +14,11 @@ public class FolderDiffModel {
   public FolderDiffModel[] children;
   public int childrenComparedCnt;
   int flags;
-  // compared     0b...00000(0|1)
-  // isFile       0b...0000(0|1)0
-  // propagation  0b...00(00|01|10)00
-  // diffType     0b...(00|01|10|11)0000
-
+  // compared     0b...0000000x   x  = (0|1)
+  // isFile       0b...000000x0   x  = (0|1)
+  // propagation  0b...0000xx00   xx = (00|01|10)
+  // diffType     0b...00xx0000   xx = (00|01|10|11)
+  // itemKind     0b...xx000000   xx = (00|01|10|11)
   public FolderDiffModel(FolderDiffModel parent) {
     this.parent = parent;
   }
@@ -72,10 +73,10 @@ public class FolderDiffModel {
     flags = flags & (~0b1) | bit;
   }
 
-  public void setIsFile(boolean isFile) {
-    int bit = isFile ? 1 : 0;
-    flags = flags & (~(0b1 << 1)) | (bit << 1);
-  }
+//  public void setIsFile(boolean isFile) {
+//    int bit = isFile ? 1 : 0;
+//    flags = flags & (~(0b1 << 1)) | (bit << 1);
+//  }
 
   public void setPropagation(int propagation) {
     flags = flags & (~(0b11 << 2)) | (propagation << 2);
@@ -85,12 +86,16 @@ public class FolderDiffModel {
     flags = flags & (~(0b11 << 4)) | (diffType << 4);
   }
 
+  public void setItemKind(int itemKind) {
+    flags = flags & (~(0b11 << 6)) | (itemKind << 6);
+  }
+
   public boolean isCompared() {
     return (flags & 0b1) == 1;
   }
 
   public boolean isFile() {
-    return ((flags >> 1) & 0b1) == 1;
+    return getItemKind() == ItemKind.FILE;
   }
 
   public int getPropagation() {
@@ -99,6 +104,39 @@ public class FolderDiffModel {
 
   public int getDiffType() {
     return (flags >> 4) & 0b11;
+  }
+
+  public int getItemKind() {
+    return (flags >> 6) & 0b11;
+  }
+
+  public int nextInd(int ind, int filter) {
+    switch (filter) {
+      case ModelFilter.NO_FILTER -> {
+        return ind;
+      }
+      case ModelFilter.LEFT -> {
+        while (ind < children.length) {
+          if (child(ind).isLeft()) return ind;
+          ind++;
+        }
+      }
+      case ModelFilter.RIGHT -> {
+        while (ind < children.length) {
+          if (child(ind).isRight()) return ind;
+          ind++;
+        }
+      }
+    }
+    return -1;
+  }
+
+  public boolean isLeft() {
+    return getDiffType() != DiffTypes.INSERTED;
+  }
+
+  public boolean isRight() {
+    return getDiffType() != DiffTypes.DELETED;
   }
 
   public static final FolderDiffModel DEFAULT = getDefault();

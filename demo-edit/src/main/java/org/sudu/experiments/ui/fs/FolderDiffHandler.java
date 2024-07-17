@@ -37,16 +37,20 @@ public class FolderDiffHandler {
   }
 
   private void compare() {
-    countDiffs();
-    onCompared();
+    var merged = countDiffs();
+    onCompared(merged);
   }
 
-  protected void onCompared() {
+  protected void onCompared(TreeS[] merged) {
     ArrayWriter writer = new ArrayWriter();
+
+    // Write diff types
+    writer.write(merged.length);
     writer.write(leftChildren.length);
     writer.write(rightChildren.length);
-    for (var child: leftChildren) writer.write(child.diffType);
-    for (var child: rightChildren) writer.write(child.diffType);
+    for (var child: merged) writer.write(child.diffType);
+
+    // Write fs items
     var result = new ArrayList<>();
     result.add(writer.getInts());
     for (var child: leftChildren) result.add(child.item);
@@ -54,15 +58,39 @@ public class FolderDiffHandler {
     ArrayOp.sendArrayList(result, r);
   }
 
-  protected void countDiffs() {
-    var commons = DiffModel.countFolderCommon(leftChildren, rightChildren);
-    BitSet leftCommon = commons[0], rightCommon = commons[1];
+  protected TreeS[] countDiffs() {
+    var result = DiffModel.countFolderCommon(leftChildren, rightChildren);
+    int commonLen = result.first;
+    int leftLen = leftChildren.length;
+    int rightLen = rightChildren.length;
+    var commons = result.second;
 
-    for (int i = 0; i < leftChildren.length; i++) {
-      if (!leftCommon.get(i)) leftChildren[i].diffType = DiffTypes.DELETED;
+    BitSet leftCommon = commons[0], rightCommon = commons[1];
+    int mergedLen = leftChildren.length + rightChildren.length - commonLen;
+    TreeS[] merged = new TreeS[mergedLen];
+    int mP = 0;
+    int lP = 0, rP = 0;
+
+    while (lP < leftLen && rP < rightLen) {
+      if (!leftCommon.get(lP)) {
+        merged[mP] = leftChildren[lP++];
+        merged[mP++].diffType = DiffTypes.DELETED;
+      } else if (!rightCommon.get(rP)) {
+        merged[mP] = rightChildren[rP++];
+        merged[mP++].diffType = DiffTypes.INSERTED;
+      } else {
+        merged[mP++] = leftChildren[lP];
+        lP++; rP++;
+      }
     }
-    for (int i = 0; i < rightChildren.length; i++) {
-      if (!rightCommon.get(i)) rightChildren[i].diffType = DiffTypes.INSERTED;
+    while (lP < leftLen) {
+      merged[mP] = leftChildren[lP++];
+      merged[mP++].diffType = DiffTypes.DELETED;
     }
+    while (rP < rightLen) {
+      merged[mP] = rightChildren[rP++];
+      merged[mP++].diffType = DiffTypes.INSERTED;
+    }
+    return merged;
   }
 }

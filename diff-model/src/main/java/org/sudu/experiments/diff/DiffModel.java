@@ -8,6 +8,7 @@ import org.sudu.experiments.diff.lcs.MyersLCS;
 import org.sudu.experiments.diff.ranges.BaseRange;
 import org.sudu.experiments.diff.ranges.CommonRange;
 import org.sudu.experiments.diff.ranges.Diff;
+import org.sudu.experiments.parser.common.Pair;
 import org.sudu.experiments.utils.Enumerator;
 import org.sudu.experiments.utils.Utils;
 
@@ -169,19 +170,21 @@ public class DiffModel {
     return countRanges(L, R, DiffModel::getMyersLCS);
   }
 
-  public static <S> BitSet[] countFolderCommon(S[] L, S[] R) {
+  public static <S> Pair<Integer, BitSet[]> countFolderCommon(S[] L, S[] R) {
     Enumerator<S> enumerator = new Enumerator<>(L);
     int[] rightEnum = enumerator.enumerate(R);
 
     BitSet leftCommon = new BitSet();
     BitSet rightCommon = new BitSet();
+    int commonLen = 0;
     for (int i = 0; i < rightEnum.length; i++) {
       int rightNode = rightEnum[i];
       if (rightNode >= L.length) continue;
       leftCommon.set(rightNode);
       rightCommon.set(i);
+      commonLen++;
     }
-    return new BitSet[]{leftCommon, rightCommon};
+    return new Pair<>(commonLen, new BitSet[]{leftCommon, rightCommon});
   }
 
   public static <S> List<BaseRange<S>> countRanges(S[] L, S[] R, BiFunction<int[][], int[][], LCS> getLCS) {

@@ -2,7 +2,6 @@ package org.sudu.experiments.ui;
 
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
-import org.sudu.experiments.editor.CodeLine;
 
 import java.util.Comparator;
 
@@ -36,10 +35,10 @@ public class FileTreeNode extends TreeNode {
     children = ch;
   }
 
-  TreeNode[] getModel(FolderDiffModel model) {
+  TreeNode[] getModel(FolderDiffModel model, int filter) {
     int cnt = count();
     TreeNode[] lines = new TreeNode[cnt];
-    int idx = getModel(lines, model, 0);
+    int idx = getModel(lines, model, filter, 0);
     if (idx != lines.length) throw new RuntimeException();
     return lines;
   }
@@ -64,20 +63,22 @@ public class FileTreeNode extends TreeNode {
     return n;
   }
 
-  private int getModel(TreeNode[] t, FolderDiffModel model, int idx) {
+  private int getModel(TreeNode[] t, FolderDiffModel model, int filter, int idx) {
     boolean noChildren = model.children == null;
     boolean isDownProp = model.getPropagation() == PROP_DOWN;
     this.diffType = model.getDiffType();
     t[idx++] = this;
     setIcon(this, model);
+    int mP = 0;
     if (childrenLength() != 0) {
-      for (int i = 0; i < children.length; i++) {
-        if (isDownProp) idx = children[i].getModel(t, model.getDiffType(), idx, model.isCompared());
-        else if (noChildren) idx = children[i].getModel(t, DiffTypes.DEFAULT, idx, model.isCompared());
-        else idx = children[i].getModel(t, model.child(i), idx);
+      for (FileTreeNode child : children) {
+        mP = model.nextInd(mP, filter);
+        if (isDownProp) idx = child.getModel(t, model.getDiffType(), idx, model.isCompared());
+        else if (noChildren) idx = child.getModel(t, DiffTypes.DEFAULT, idx, model.isCompared());
+        else idx = child.getModel(t, model.child(mP), filter, idx);
+        mP++;
       }
     }
-    if (needLineUpdate()) this.line = new CodeLine(this.value());
     return idx;
   }
 

@@ -1,6 +1,7 @@
 package org.sudu.experiments.ui.fs;
 
 import org.sudu.experiments.DirectoryHandle;
+import org.sudu.experiments.diff.ItemKind;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.math.ArrayOp;
 
@@ -46,7 +47,10 @@ public class ReadFolderHandler {
     parent.childrenComparedCnt = 0;
     for (int i = 0; i < len; i++) {
       parent.children[i] = new RemoteFolderDiffModel(parent, paths[i].name);
-      parent.child(i).setIsFile(!paths[i].isFolder);
+      int kind = paths[i].isFolder
+          ? ItemKind.FOLDER
+          : ItemKind.FILE;
+      parent.child(i).setItemKind(kind);
     }
     if (len == 0) parent.itemCompared();
   }

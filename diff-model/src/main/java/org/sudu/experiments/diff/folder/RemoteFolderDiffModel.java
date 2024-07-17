@@ -2,7 +2,6 @@ package org.sudu.experiments.diff.folder;
 
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
-import org.sudu.experiments.arrays.IntsReader;
 import org.sudu.experiments.diff.DiffTypes;
 
 import java.util.List;
@@ -74,7 +73,7 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
   }
 
   public static RemoteFolderDiffModel fromInts(
-      IntsReader reader,
+      ArrayReader reader,
       String[] paths,
       RemoteFolderDiffModel parent
   ) {

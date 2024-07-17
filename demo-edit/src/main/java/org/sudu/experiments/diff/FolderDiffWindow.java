@@ -3,6 +3,7 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
@@ -232,8 +233,8 @@ public class FolderDiffWindow extends ToolWindow0 {
   protected void updateDiffInfo() {
     if (rootView.left == null || rootView.right == null) return;
     updateCnt++;
-    rootView.left.updateModel(leftModel);
-    rootView.right.updateModel(rightModel);
+    rootView.left.updateModel(leftModel, ModelFilter.NO_FILTER);
+    rootView.right.updateModel(rightModel, ModelFilter.NO_FILTER);
     var left = rootView.left.model();
     var right = rootView.right.model();
     rootView.setDiffModel(DiffModelBuilder.getDiffInfo(left, right));

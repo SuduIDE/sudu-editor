@@ -1,11 +1,9 @@
 package org.sudu.experiments.ui.fs;
 
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
-
 public class RemoteFileNode extends RemoteFileTreeNode {
 
   public RemoteFileNode(
-      RemoteFolderDiffModel model,
+      String model,
       RemoteHandle handle,
       int depth
   ) {
