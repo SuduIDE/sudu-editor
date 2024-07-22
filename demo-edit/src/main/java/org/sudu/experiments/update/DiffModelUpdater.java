@@ -6,21 +6,19 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 
 public class DiffModelUpdater {
 
-  public final FolderDiffModel leftRootAcc, rightRootAcc;
+  public final FolderDiffModel root;
   public final DirectoryHandle leftDir, rightDir;
   private final WorkerJobExecutor executor;
   private final Runnable updateInfo;
 
   public DiffModelUpdater(
-      FolderDiffModel leftRoot,
-      FolderDiffModel rightRoot,
+      FolderDiffModel root,
       DirectoryHandle leftDir,
       DirectoryHandle rightDir,
       WorkerJobExecutor executor,
       Runnable updateInfo
   ) {
-    this.leftRootAcc = leftRoot;
-    this.rightRootAcc = rightRoot;
+    this.root = root;
     this.leftDir = leftDir;
     this.rightDir = rightDir;
     this.executor = executor;
@@ -28,11 +26,7 @@ public class DiffModelUpdater {
   }
 
   public void beginCompare() {
-    Collector collector = new Collector(
-        leftRootAcc, rightRootAcc,
-        true,
-        executor
-    );
+    Collector collector = new Collector(root, true, executor);
     collector.setUpdate(updateInfo);
     collector.setOnComplete(updateInfo);
     collector.beginCompare(leftDir, rightDir);

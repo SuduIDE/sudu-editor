@@ -2,10 +2,9 @@ package org.sudu.experiments.diff.tests;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.diff.DiffTypes;
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.ui.fs.DirectoryNode;
 import org.sudu.experiments.update.Collector;
-import org.sudu.experiments.update.UpdateDto;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.function.DoubleSupplier;
@@ -18,8 +17,7 @@ public class CollectorFolderDiffTest extends DirectoryTest {
 
   boolean running = true;
   DirectoryNode leftRoot, rightRoot;
-  RemoteFolderDiffModel leftModel;
-  RemoteFolderDiffModel rightModel;
+  FolderDiffModel root;
 
   public CollectorFolderDiffTest(
       DirectoryHandle dir1,
@@ -37,13 +35,13 @@ public class CollectorFolderDiffTest extends DirectoryTest {
   public void scan() {
     leftRoot = new DirectoryNode(dir1, null);
     rightRoot = new DirectoryNode(dir2, null);
-    leftModel = new RemoteFolderDiffModel(null, dir1.getName());
-    rightModel = new RemoteFolderDiffModel(null, dir2.getName());
+    root = new FolderDiffModel(null);
     var collector = new Collector(
-        leftModel, rightModel,
+        root,
         content,
         executor
     );
+    collector.setUpdate(() -> {});
     collector.setOnComplete(this::onComplete);
     collector.beginCompare(dir1, dir2);
   }
@@ -59,11 +57,11 @@ public class CollectorFolderDiffTest extends DirectoryTest {
   private void dumpResult() {
     String r = ""
         + "leftModel:\n"
-        + "  .compared = " + leftModel.isCompared() + '\n'
-        + "  .diffType = " + DiffTypes.name(leftModel.getDiffType()) + '\n'
+        + "  .compared = " + root.isCompared() + '\n'
+        + "  .diffType = " + DiffTypes.name(root.getDiffType()) + '\n'
         + "rightModel:\n"
-        + "  .compared = " + rightModel.isCompared() + '\n'
-        + "  .diffType = " + DiffTypes.name(rightModel.getDiffType()) + '\n'
+        + "  .compared = " + root.isCompared() + '\n'
+        + "  .diffType = " + DiffTypes.name(root.getDiffType()) + '\n'
         + "time: " + time + "s\n";
     System.out.print(r);
   }

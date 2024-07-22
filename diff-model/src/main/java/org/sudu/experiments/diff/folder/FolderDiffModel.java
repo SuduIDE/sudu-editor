@@ -174,4 +174,8 @@ public class FolderDiffModel {
         ", diffType=" + getDiffType() +
         "}";
   }
+
+  public String value() {
+    return DiffTypes.name(getDiffType());
+  }
 }

@@ -135,9 +135,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         int childPtr = 0;
 
         int filter = left ? ModelFilter.LEFT : ModelFilter.RIGHT;
-
-        int mP = model.nextInd(0, filter);
+        int mP = 0;
         while (mP >= 0) {
+          mP = model.nextInd(mP, filter);
           RemoteFileTreeNode childNode;
           var child = model.child(mP);
           if (child.isFile()) {

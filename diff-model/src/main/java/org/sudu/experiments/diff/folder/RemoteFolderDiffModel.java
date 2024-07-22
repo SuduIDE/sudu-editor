@@ -93,6 +93,11 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
     return model;
   }
 
+//  @Override
+//  public String value() {
+//    return path + " " + super.value();
+//  }
+
   @Override
   public String infoString() {
     return "RemoteFolderDiffModel{" +

@@ -14,9 +14,10 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.*;
 
+// TODO Remove copypasta
 public class Collector {
 
-  private final FolderDiffModel leftAcc, rightAcc;
+  private final FolderDiffModel root;
   private final WorkerJobExecutor executor;
   private final boolean scanFileContent;
 
@@ -26,131 +27,123 @@ public class Collector {
   private int inComparing = 0;
 
   public Collector(
-      FolderDiffModel left,
-      FolderDiffModel right,
+      FolderDiffModel root,
       boolean scanFileContent,
       WorkerJobExecutor executor
   ) {
-    this.leftAcc = left;
-    this.rightAcc = right;
+    this.root = root;
     this.executor = executor;
     this.scanFileContent = scanFileContent;
   }
 
   public void beginCompare(FsItem leftItem, FsItem rightItem) {
-    compare(leftAcc, rightAcc, leftItem, rightItem);
+    compare(root, leftItem, rightItem);
   }
 
   public void compare(
-      FolderDiffModel leftModel,
-      FolderDiffModel rightModel,
+      FolderDiffModel root,
       FsItem leftItem,
       FsItem rightItem
   ) {
     ++inComparing;
     if (leftItem instanceof DirectoryHandle leftDir &&
         rightItem instanceof DirectoryHandle rightDir
-    ) compareFolders(leftModel, rightModel, leftDir, rightDir);
+    ) compareFolders(root, leftDir, rightDir);
     else if (leftItem instanceof FileHandle leftFile
         && rightItem instanceof FileHandle rightFile
-    ) compareFiles(leftModel, rightModel, leftFile, rightFile);
+    ) compareFiles(root, leftFile, rightFile);
     else throw new IllegalArgumentException();
   }
 
-  public static void setChildren(FolderDiffModel parent, FsItem[] paths) {
-    int len = paths.length;
-    parent.children = new FolderDiffModel[paths.length];
-    parent.childrenComparedCnt = 0;
-    for (int i = 0; i < len; i++) {
-      parent.children[i] = new FolderDiffModel(parent);
-      int kind = paths[i] instanceof DirectoryHandle
-          ? ItemKind.FOLDER
-          : ItemKind.FILE;
-      parent.child(i).setItemKind(kind);
-    }
-    if (len == 0) parent.itemCompared();
-  }
-
   public void compareFolders(
-      FolderDiffModel leftModel,
-      FolderDiffModel rightModel,
+      FolderDiffModel root,
       DirectoryHandle leftDir,
       DirectoryHandle rightDir
   ) {
     executor.sendToWorker(
-        result -> onFoldersCompared(leftModel, rightModel, result),
+        result -> onFoldersCompared(root, result),
         DiffUtils.CMP_FOLDERS,
         leftDir, rightDir
     );
   }
 
   private void onFoldersCompared(
-      FolderDiffModel leftModel,
-      FolderDiffModel rightModel,
+      FolderDiffModel model,
       Object[] result
   ) {
     if (result.length == 0) return;
     int[] ints = ((ArrayView) result[0]).ints();
-    int leftLen = ints[0], rightLen = ints[1];
-    int[] leftDiff = Arrays.copyOfRange(ints, 2, 2 + leftLen);
-    int[] rightDiff = Arrays.copyOfRange(ints, 2 + leftLen, 2 + leftLen + rightLen);
+
+    int commonLen = ints[0];
+    int leftLen = ints[1];
+    int rightLen = ints[2];
+
+    int[] diffs = Arrays.copyOfRange(ints, 3, 3 + commonLen);
     FsItem[] leftItem = Arrays.copyOfRange(result, 1, 1 + leftLen, FsItem[].class);
     FsItem[] rightItem = Arrays.copyOfRange(result, 1 + leftLen, 1 + leftLen + rightLen, FsItem[].class);
 
-    setChildren(leftModel, leftItem);
-    setChildren(rightModel, rightItem);
+    int len = diffs.length;
+    model.children = new FolderDiffModel[len];
+    model.childrenComparedCnt = 0;
 
-    boolean changed = true;
-    boolean needUpdate = false;
     int lP = 0, rP = 0;
-    while (changed) {
-      changed = false;
-      while (lP < leftLen && rP < rightLen &&
-          leftDiff[lP] == DiffTypes.DEFAULT &&
-          rightDiff[rP] == DiffTypes.DEFAULT
-      ) {
-        changed = true;
-        compare(leftModel.child(lP), rightModel.child(rP), leftItem[lP], rightItem[rP]);
+    int mP = 0;
+    boolean edited = false;
+    boolean needUpdate = false;
+
+    while (mP < len) {
+      if (diffs[mP] == DiffTypes.DELETED) {
+        edited = true;
+        model.children[mP] = new FolderDiffModel(model);
+        int kind = leftItem[lP] instanceof DirectoryHandle
+            ? ItemKind.FOLDER
+            : ItemKind.FILE;
+        model.child(mP).setItemKind(kind);
+        model.child(mP).setDiffType(DiffTypes.DELETED);
+        model.child(mP).markDown(DiffTypes.DELETED);
+        model.child(mP).itemCompared();
+        mP++;
+        lP++;
+      } else if (diffs[mP] == DiffTypes.INSERTED) {
+        edited = true;
+        model.children[mP] = new FolderDiffModel(model);
+        int kind = rightItem[rP] instanceof DirectoryHandle
+            ? ItemKind.FOLDER
+            : ItemKind.FILE;
+        model.child(mP).setItemKind(kind);
+        model.child(mP).setDiffType(DiffTypes.INSERTED);
+        model.child(mP).markDown(DiffTypes.INSERTED);
+        model.child(mP).itemCompared();
+        mP++;
+        rP++;
+      } else {
+        model.children[mP] = new FolderDiffModel(model);
+        int kind = leftItem[lP] instanceof DirectoryHandle
+            ? ItemKind.FOLDER
+            : ItemKind.FILE;
+        model.child(mP).setItemKind(kind);
+        compare(model.child(mP), leftItem[lP], rightItem[rP]);
+        mP++;
         lP++;
         rP++;
       }
-      if (changed) continue;
-      while (lP < leftLen && leftDiff[lP] == DiffTypes.DELETED) {
-        changed = true;
-        leftModel.child(lP).markDown(DiffTypes.DELETED);
-        leftModel.child(lP).itemCompared();
-        lP++;
-      }
-      if (changed) {
-        leftModel.markUp(DiffTypes.EDITED);
-        rightModel.markUp(DiffTypes.EDITED);
-        needUpdate = true;
-        continue;
-      }
-      while (rP < rightLen && rightDiff[rP] == DiffTypes.INSERTED) {
-        changed = true;
-        rightModel.child(rP).itemCompared();
-        rightModel.child(rP).markDown(DiffTypes.INSERTED);
-        rP++;
-      }
-      if (changed) {
-        leftModel.markUp(DiffTypes.EDITED);
-        rightModel.markUp(DiffTypes.EDITED);
-        needUpdate = true;
-      }
+    }
+    if (len == 0) model.itemCompared();
+    if (edited) {
+      model.markUp(DiffTypes.EDITED);
+      needUpdate = model.getDiffType() == DiffTypes.DEFAULT;
     }
     onItemCompared(needUpdate);
   }
 
   public void compareFiles(
-      FolderDiffModel leftModel,
-      FolderDiffModel rightModel,
+      FolderDiffModel model,
       FileHandle leftFile,
       FileHandle rightFile
   ) {
     if (scanFileContent) {
       executor.sendToWorker(
-          result -> onFilesCompared(leftModel, rightModel, result),
+          result -> onFilesCompared(model, result),
           DiffUtils.CMP_FILES,
           leftFile, rightFile
       );
@@ -158,34 +151,26 @@ public class Collector {
       new SizeScanner(leftFile, rightFile) {
         @Override
         protected void onComplete(int sizeL, int sizeR) {
-          onFilesCompared(leftModel, rightModel, sizeL == sizeR);
+          onFilesCompared(model, sizeL == sizeR);
         }
       };
     }
   }
 
   private void onFilesCompared(
-      FolderDiffModel leftModel,
-      FolderDiffModel rightModel,
+      FolderDiffModel model,
       Object[] result
   ) {
     boolean equals = ArgsCast.intArray(result, 0)[0] == 1;
-    onFilesCompared(leftModel, rightModel, equals);
+    onFilesCompared(model, equals);
   }
 
   private void onFilesCompared(
-      FolderDiffModel leftModel,
-      FolderDiffModel rightModel,
+      FolderDiffModel model,
       boolean equals
   ) {
-    if (!equals) {
-      leftModel.markUp(DiffTypes.EDITED);
-      rightModel.markUp(DiffTypes.EDITED);
-    }
-    boolean needUpdate = false;
-    needUpdate |= leftModel.itemCompared();
-    needUpdate |= rightModel.itemCompared();
-    onItemCompared(needUpdate);
+    if (!equals) model.markUp(DiffTypes.EDITED);
+    onItemCompared(model.itemCompared());
   }
 
   private void onItemCompared(boolean needUpdate) {

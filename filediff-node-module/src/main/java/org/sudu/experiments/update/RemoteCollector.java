@@ -108,8 +108,8 @@ public class RemoteCollector {
             ? ItemKind.FOLDER
             : ItemKind.FILE;
         model.child(mP).setItemKind(kind);
-        model.child(mP).setDiffType(DiffTypes.INSERTED);
-        read(model.child(mP), leftItem[lP], DiffTypes.INSERTED);
+        model.child(mP).setDiffType(DiffTypes.DELETED);
+        read(model.child(mP), leftItem[lP], DiffTypes.DELETED);
         mP++;
         lP++;
       } else if (diffs[mP] == DiffTypes.INSERTED) {
@@ -119,8 +119,8 @@ public class RemoteCollector {
             ? ItemKind.FOLDER
             : ItemKind.FILE;
         model.child(mP).setItemKind(kind);
-        model.child(mP).setDiffType(DiffTypes.DELETED);
-        read(model.child(mP), rightItem[rP], DiffTypes.DELETED);
+        model.child(mP).setDiffType(DiffTypes.INSERTED);
+        read(model.child(mP), rightItem[rP], DiffTypes.INSERTED);
         mP++;
         rP++;
       } else {

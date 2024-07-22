@@ -69,13 +69,18 @@ public class FileTreeNode extends TreeNode {
     this.diffType = model.getDiffType();
     t[idx++] = this;
     setIcon(this, model);
-    int mP = 0;
     if (childrenLength() != 0) {
-      for (FileTreeNode child : children) {
+      int mP = 0;
+      for (FileTreeNode child: children) {
+        if (noChildren) {
+          idx = child.getModel(t, DiffTypes.DEFAULT, idx, model.isCompared());
+          continue;
+        } else if (isDownProp) {
+          idx = child.getModel(t, model.getDiffType(), idx, model.isCompared());
+          continue;
+        }
         mP = model.nextInd(mP, filter);
-        if (isDownProp) idx = child.getModel(t, model.getDiffType(), idx, model.isCompared());
-        else if (noChildren) idx = child.getModel(t, DiffTypes.DEFAULT, idx, model.isCompared());
-        else idx = child.getModel(t, model.child(mP), filter, idx);
+        idx = child.getModel(t, model.child(mP), filter, idx);
         mP++;
       }
     }
@@ -136,7 +141,8 @@ public class FileTreeNode extends TreeNode {
     return null;
   }
 
-  protected void defaultIcon() {}
+  protected void defaultIcon() {
+  }
 
   protected boolean needLineUpdate() {
     return false;
