@@ -15,4 +15,14 @@ public class RemoteFileNode extends RemoteFileTreeNode {
   protected void defaultIcon() {
     iconFile();
   }
+
+  @Override
+  public boolean isClosed() {
+    return true;
+  }
+
+  @Override
+  public boolean isOpened() {
+    return false;
+  }
 }

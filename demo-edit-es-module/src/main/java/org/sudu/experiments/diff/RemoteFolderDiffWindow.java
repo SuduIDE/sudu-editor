@@ -9,6 +9,7 @@ import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.protocol.BackendMessage;
+import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ToolWindow0;
 import org.sudu.experiments.ui.fs.RemoteFileTreeNode;
@@ -161,7 +162,17 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         if (opposite != null) setSelected(node, opposite);
         var array = JsArray.create();
         array.push(JSString.valueOf("Opened: " + node.value()));
-//        channel.sendMessage(array);
+      }
+
+      @Override
+      public void sendModel() {
+        var result = FrontendMessage.serialize(
+            leftRoot,
+            rightRoot,
+            rootModel,
+            "Some search query"
+        );
+        channel.sendMessage(result);
       }
 
       @Override
@@ -169,7 +180,6 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         super.closeDir(node);
         var array = JsArray.create();
         array.push(JSString.valueOf("Closed: " + node.value()));
-//        channel.sendMessage(array);
       }
 
       @Override

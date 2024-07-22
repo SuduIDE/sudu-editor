@@ -19,6 +19,7 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
   public void onClick() {
     if (isOpened()) closeDir();
     else openDir();
+    handle.sendModel();
   }
 
   public void openDir() {
@@ -48,6 +49,11 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
 
   public boolean isOpened() {
     return children != FileTreeNode.ch0;
+  }
+
+  @Override
+  public boolean isClosed() {
+    return children == FileTreeNode.ch0;
   }
 
   public void setChildren(FileTreeNode[] children) {

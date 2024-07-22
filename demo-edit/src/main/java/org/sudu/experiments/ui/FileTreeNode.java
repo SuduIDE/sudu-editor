@@ -43,6 +43,10 @@ public class FileTreeNode extends TreeNode {
     return lines;
   }
 
+  public FileTreeNode child(int ind) {
+    return children[ind];
+  }
+
   public int childrenLength() {
     return children.length;
   }
@@ -142,9 +146,5 @@ public class FileTreeNode extends TreeNode {
   }
 
   protected void defaultIcon() {
-  }
-
-  protected boolean needLineUpdate() {
-    return false;
   }
 }

@@ -131,6 +131,11 @@ public class FolderDiffModel {
     return -1;
   }
 
+  public boolean isBoth() {
+    int diffType = getDiffType();
+    return diffType == DiffTypes.DEFAULT || diffType == DiffTypes.EDITED;
+  }
+
   public boolean isLeft() {
     return getDiffType() != DiffTypes.INSERTED;
   }

@@ -9,8 +9,10 @@ import org.sudu.experiments.diff.SizeScanner;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
+import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.protocol.BackendMessage;
+import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
@@ -20,7 +22,7 @@ import java.util.function.Consumer;
 public class RemoteCollector {
 
   private final RemoteFolderDiffModel root;
-  private final String leftRootName, rightRootName;
+  private final DirectoryHandle leftHandle, rightHandle;
 
   private final WorkerJobExecutor executor;
   private final boolean scanFileContent;
@@ -32,25 +34,36 @@ public class RemoteCollector {
   private int inComparing = 0;
   private int compared = 0;
 
+  private boolean firstMessageSent = false;
+
+  private FrontendMessage lastFrontendMessage;
+
   public RemoteCollector(
       RemoteFolderDiffModel root,
-      String leftRootName,
-      String rightRootName,
+      DirectoryHandle leftHandle,
+      DirectoryHandle rightHandle,
       boolean scanFileContent,
       WorkerJobExecutor executor
   ) {
     this.root = root;
-    this.leftRootName = leftRootName;
-    this.rightRootName = rightRootName;
+    this.leftHandle = leftHandle;
+    this.rightHandle = rightHandle;
     this.executor = executor;
     this.scanFileContent = scanFileContent;
   }
 
-  public void beginCompare(FsItem leftItem, FsItem rightItem) {
-    compare(root, leftItem, rightItem);
+  public void beginCompare() {
+    compare(root, leftHandle, rightHandle);
   }
 
-  public void compare(
+  public void onMessageGot(FrontendMessage message) {
+    lastFrontendMessage = message;
+    JsHelper.consoleInfo("Got frontend message:");
+    JsHelper.consoleInfo(message.toString());
+    sendResult();
+  }
+
+  private void compare(
       RemoteFolderDiffModel model,
       FsItem leftItem,
       FsItem rightItem
@@ -65,7 +78,7 @@ public class RemoteCollector {
     else throw new IllegalArgumentException();
   }
 
-  public void compareFolders(
+  private void compareFolders(
       RemoteFolderDiffModel model,
       DirectoryHandle leftDir,
       DirectoryHandle rightDir
@@ -140,7 +153,7 @@ public class RemoteCollector {
     onItemCompared();
   }
 
-  public void compareFiles(
+  private void compareFiles(
       RemoteFolderDiffModel model,
       FileHandle leftFile,
       FileHandle rightFile
@@ -220,7 +233,11 @@ public class RemoteCollector {
   }
 
   private void sendResult() {
-    if (sendResult != null && compared % CMP_SIZE == 0) send(sendResult);
+    if (firstMessageSent) return;
+    if (sendResult != null && compared % CMP_SIZE == 0) {
+      firstMessageSent = true;
+      send(sendResult);
+    }
   }
 
   private void onComplete() {
@@ -228,6 +245,8 @@ public class RemoteCollector {
   }
 
   private void send(Consumer<Object[]> send) {
+    String leftRootName = leftHandle.getName();
+    String rightRootName = rightHandle.getName();
     ArrayOp.sendArrayList(
         BackendMessage.serialize(root, leftRootName, rightRootName),
         send

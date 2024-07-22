@@ -63,12 +63,12 @@ public class DiffEngine implements DiffEngineJs {
     DirectoryHandle leftHandle = new NodeDirectoryHandle(leftPath);
     DirectoryHandle rightHandle = new NodeDirectoryHandle(rightPath);
 
-    RemoteFolderDiffModel leftModelRoot = new RemoteFolderDiffModel(null, leftHandle.getName());
-    RemoteFolderDiffModel rightModelRoot = new RemoteFolderDiffModel(null, rightHandle.getName());
+    RemoteFolderDiffModel root = new RemoteFolderDiffModel(null, "");
 
     DiffModelChannelUpdater updater = new DiffModelChannelUpdater(
-        leftModelRoot,
-        leftHandle, rightHandle, scanFileContent,
+        root,
+        leftHandle, rightHandle,
+        scanFileContent,
         pool, channel
     );
     updater.beginCompare();

@@ -4,17 +4,17 @@ import org.sudu.experiments.Channel;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
+import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.worker.WorkerJobExecutor;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
 public class DiffModelChannelUpdater {
 
-  public final RemoteFolderDiffModel root;
-  public final DirectoryHandle leftDir, rightDir;
-  private final WorkerJobExecutor executor;
+  private final RemoteCollector collector;
   private final Channel channel;
-  private final boolean scanFileContent;
 
   public DiffModelChannelUpdater(
       RemoteFolderDiffModel root,
@@ -22,24 +22,20 @@ public class DiffModelChannelUpdater {
       boolean scanFileContent,
       WorkerJobExecutor executor, Channel channel
   ) {
-    this.root = root;
-    this.leftDir = leftDir;
-    this.rightDir = rightDir;
-    this.scanFileContent = scanFileContent;
-    this.executor = executor;
+    this.collector = new RemoteCollector(
+        root,
+        leftDir, rightDir,
+        scanFileContent,
+        executor
+    );
     this.channel = channel;
-//    this.channel.setOnMessage(jsArray -> System.out.println(jsArray.toString()));
+    this.channel.setOnMessage(this::onMessage);
   }
 
   public void beginCompare() {
-    var collector = new RemoteCollector(
-        root,
-        leftDir.getName(), rightDir.getName(),
-        scanFileContent, executor
-    );
     collector.setSendResult(this::onCompared);
     collector.setOnComplete(this::onCompared);
-    collector.beginCompare(leftDir, rightDir);
+    collector.beginCompare();
   }
 
   public void onCompared(Object[] result) {
@@ -51,5 +47,10 @@ public class DiffModelChannelUpdater {
       jsResult.set(i, JSString.valueOf(path));
     }
     channel.sendMessage(jsResult);
+  }
+
+  public void onMessage(JsArray<JSObject> jsArray) {
+    FrontendMessage message = FrontendMessage.deserialize(jsArray);
+    collector.onMessageGot(message);
   }
 }

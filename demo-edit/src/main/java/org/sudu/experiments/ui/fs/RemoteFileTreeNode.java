@@ -25,13 +25,12 @@ public class RemoteFileTreeNode extends FileTreeNode {
     return handle.getModel();
   }
 
-  @Override
-  public String value() {
-    return model().path;
+  public RemoteFileTreeNode child(int ind) {
+    return (RemoteFileTreeNode) super.child(ind);
   }
 
   @Override
-  protected boolean needLineUpdate() {
-    return true;
+  public String value() {
+    return model().path;
   }
 }
