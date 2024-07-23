@@ -13,7 +13,7 @@ public class FolderDiffModel {
   public FolderDiffModel parent;
   public FolderDiffModel[] children;
   public int childrenComparedCnt;
-  int flags;
+  public int flags;
   // compared     0b...0000000x   x  = (0|1)
   // isFile       0b...000000x0   x  = (0|1)
   // propagation  0b...0000xx00   xx = (00|01|10)
@@ -95,7 +95,10 @@ public class FolderDiffModel {
   }
 
   public boolean isFile() {
-    return getItemKind() == ItemKind.FILE;
+    int itemKind = getItemKind();
+    return itemKind == ItemKind.FILE
+        || (isLeft() && itemKind == ItemKind.LEFT_ONLY_FILE)
+        || (isRight() && itemKind == ItemKind.RIGHT_ONLY_FILE);
   }
 
   public int getPropagation() {

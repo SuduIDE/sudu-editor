@@ -76,16 +76,15 @@ public class FileTreeNode extends TreeNode {
     if (childrenLength() != 0) {
       int mP = 0;
       for (FileTreeNode child: children) {
-        if (isDownProp) {
+        if (isDownProp && noChildren) {
           idx = child.getModel(t, model.getDiffType(), idx, model.isCompared());
-          continue;
         } else if (noChildren) {
           idx = child.getModel(t, DiffTypes.DEFAULT, idx, model.isCompared());
-          continue;
+        } else {
+          mP = model.nextInd(mP, filter);
+          idx = child.getModel(t, model.child(mP), filter, idx);
+          mP++;
         }
-        mP = model.nextInd(mP, filter);
-        idx = child.getModel(t, model.child(mP), filter, idx);
-        mP++;
       }
     }
     return idx;

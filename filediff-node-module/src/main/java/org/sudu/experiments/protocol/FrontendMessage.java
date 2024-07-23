@@ -7,18 +7,28 @@ import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.ui.fs.RemoteFileTreeNode;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSString;
-import org.teavm.jso.typedarrays.Int32Array;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static org.sudu.experiments.protocol.JsCast.ints;
+import static org.sudu.experiments.protocol.JsCast.jsString;
 
 // Also known as FrontendViewState
 public class FrontendMessage {
 
   public FrontendTreeNode openedFolders;
   public String searchQuery;
+
+  public static final FrontendMessage EMPTY;
+
+  static {
+    EMPTY = new FrontendMessage();
+    EMPTY.openedFolders = new FrontendTreeNode();
+    EMPTY.openedFolders.name = "";
+    EMPTY.searchQuery = "";
+  }
 
   public static JsArray<JSObject> serialize(
       RemoteFileTreeNode leftRoot,
@@ -37,11 +47,11 @@ public class FrontendMessage {
     writer.writeAtPos(pathLenInd, paths.size());
 
     var ints = writer.getInts();
-    result.set(0, JsMemoryAccess.bufferView(ints));;
+    result.set(0, JsMemoryAccess.bufferView(ints));
     for (int i = 0; i < paths.size(); i++)
-      result.set(1 + i, JSString.valueOf(paths.get(i)));
+      result.set(1 + i, jsString(paths.get(i)));
 
-    result.set(1 + paths.size(), JSString.valueOf(searchQuery));
+    result.set(1 + paths.size(), jsString(searchQuery));
     return result;
   }
 
@@ -95,20 +105,17 @@ public class FrontendMessage {
     }
   }
 
-  public static FrontendMessage deserialize(JsArray<JSObject> result) {
-    Int32Array jsInts = result.get(0).cast();
-    ArrayReader reader = new ArrayReader(JsMemoryAccess.toJavaArray(jsInts));
+  public static FrontendMessage deserialize(JsArray<JSObject> jsArray) {
+    ArrayReader reader = new ArrayReader(ints(jsArray, 0));
     int pathsLen = reader.next();
 
     String[] paths = new String[pathsLen];
-    for (int i = 0; i < pathsLen; i++) {
-      JSString jsString = result.get(1 + i).cast();
-      paths[i] = jsString.stringValue();
-    }
+    for (int i = 0; i < pathsLen; i++)
+      paths[i] = JsCast.string(jsArray, 1 + i);
 
     FrontendMessage message = new FrontendMessage();
     message.openedFolders = deserialize(reader, paths);
-    message.searchQuery = ((JSString) result.get(1 + pathsLen).cast()).stringValue();
+    message.searchQuery = JsCast.string(jsArray, 1 + pathsLen);
     return message;
   }
 

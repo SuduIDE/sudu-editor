@@ -29,6 +29,10 @@ public class TreeNode {
     return line.get(0).s;
   }
 
+  public void setLine(String line) {
+    this.line = new CodeLine(line);
+  }
+
   public void setBold(boolean b) {
     line.get(0).setBold(b);
   }

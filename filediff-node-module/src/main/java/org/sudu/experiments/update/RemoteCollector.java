@@ -9,12 +9,11 @@ import org.sudu.experiments.diff.SizeScanner;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
-import org.sudu.experiments.js.JsHelper;
-import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
-import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
+import org.teavm.jso.JSObject;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -27,16 +26,18 @@ public class RemoteCollector {
   private final WorkerJobExecutor executor;
   private final boolean scanFileContent;
 
-  private Consumer<Object[]> sendResult;
-  private Consumer<Object[]> onComplete;
+  private Consumer<JsArray<JSObject>> sendResult;
+  private Consumer<JsArray<JSObject>> onComplete;
 
   private static final int CMP_SIZE = 1250;
   private int inComparing = 0;
   private int compared = 0;
 
   private boolean firstMessageSent = false;
+  private boolean lastMessageSent = false;
 
   private FrontendMessage lastFrontendMessage;
+  private final long startTime;
 
   public RemoteCollector(
       RemoteFolderDiffModel root,
@@ -50,6 +51,7 @@ public class RemoteCollector {
     this.rightHandle = rightHandle;
     this.executor = executor;
     this.scanFileContent = scanFileContent;
+    this.startTime = System.currentTimeMillis();
   }
 
   public void beginCompare() {
@@ -57,10 +59,10 @@ public class RemoteCollector {
   }
 
   public void onMessageGot(FrontendMessage message) {
+    long time = System.currentTimeMillis() - startTime;
+    System.out.println("RemoteCollector got frontend message in " + time + "ms");
     lastFrontendMessage = message;
-    JsHelper.consoleInfo("Got frontend message:");
-    JsHelper.consoleInfo(message.toString());
-    sendResult();
+    if (sendResult != null) sendResult();
   }
 
   private void compare(
@@ -94,8 +96,7 @@ public class RemoteCollector {
       RemoteFolderDiffModel model,
       Object[] result
   ) {
-    if (result.length == 0) return;
-    int[] ints = ((ArrayView) result[0]).ints();
+    int[] ints = ArgsCast.intArray(result, 0);
 
     int commonLen = ints[0];
     int leftLen = ints[1];
@@ -229,35 +230,50 @@ public class RemoteCollector {
     ++compared;
     if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
     if (inComparing == 0) onComplete();
-    else sendResult();
+    else sendFirstMessage();
+  }
+
+  private void sendFirstMessage() {
+    if (sendResult == null || firstMessageSent) return;
+    if (compared % CMP_SIZE == 0) {
+      firstMessageSent = true;
+      System.out.println("RemoteCollector::sendFirstMessage");
+      send(sendResult, FrontendMessage.EMPTY);
+    }
   }
 
   private void sendResult() {
-    if (firstMessageSent) return;
-    if (sendResult != null && compared % CMP_SIZE == 0) {
-      firstMessageSent = true;
-      send(sendResult);
+    if (sendResult == null || lastMessageSent) return;
+    if (lastFrontendMessage != null) {
+      System.out.println("RemoteCollector::sendResult");
+      send(sendResult, lastFrontendMessage);
     }
   }
 
   private void onComplete() {
-    if (onComplete != null) send(onComplete);
+    if (onComplete != null) {
+      lastMessageSent = true;
+      System.out.println("RemoteCollector::onComplete");
+      send(onComplete, null);
+    }
   }
 
-  private void send(Consumer<Object[]> send) {
+  private void send(Consumer<JsArray<JSObject>> send, FrontendMessage message) {
+    System.out.println("inComparing: " + inComparing);
     String leftRootName = leftHandle.getName();
     String rightRootName = rightHandle.getName();
-    ArrayOp.sendArrayList(
-        BackendMessage.serialize(root, leftRootName, rightRootName),
-        send
-    );
+    var jsArray = BackendMessage.serialize(root, message, leftRootName, rightRootName);
+    send.accept(jsArray);
+
+    long time = System.currentTimeMillis() - startTime;
+    System.out.println("RemoteCollector send backend message in " + time + "ms");
   }
 
-  public void setSendResult(Consumer<Object[]> sendResult) {
+  public void setSendResult(Consumer<JsArray<JSObject>> sendResult) {
     this.sendResult = sendResult;
   }
 
-  public void setOnComplete(Consumer<Object[]> onComplete) {
+  public void setOnComplete(Consumer<JsArray<JSObject>> onComplete) {
     this.onComplete = onComplete;
   }
 }

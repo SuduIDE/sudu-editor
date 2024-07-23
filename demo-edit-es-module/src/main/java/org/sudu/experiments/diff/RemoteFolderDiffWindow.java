@@ -3,13 +3,13 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
-import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
+import org.sudu.experiments.protocol.FrontendState;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ToolWindow0;
 import org.sudu.experiments.ui.fs.RemoteFileTreeNode;
@@ -19,7 +19,6 @@ import org.sudu.experiments.ui.fs.RemoteFileNode;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSString;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -36,6 +35,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private final long startTime;
 
   private boolean updatedRoots = false;
+
+  String searchString = "*";
 
   public RemoteFolderDiffWindow(
       EditorColorScheme theme,
@@ -85,12 +86,12 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private void update(JsArray<JSObject> jsResult) {
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
-    leftRoot.line = new CodeLine(msg.leftRootName);
-    rightRoot.line = new CodeLine(msg.rightRootName);
 
     if (!updatedRoots) {
       updatedRoots = true;
-      window.setTitle(leftRoot.name() + " <-> " + rightRoot.name());
+      leftRoot.setLine(msg.leftRootName);
+      rightRoot.setLine(msg.rightRootName);
+      window.setTitle(msg.leftRootName + " <-> " + msg.rightRootName);
       leftRoot.doOpen();
       rightRoot.doOpen();
     }
@@ -107,12 +108,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     ));
   }
 
-  private void onChannelMessage(
-      JsArray<JSObject> jsResult
-  ) {
-    JsHelper.consoleInfo("Got update batch from channel");
+  private void onChannelMessage(JsArray<JSObject> jsResult) {
     update(jsResult);
-    JsHelper.consoleInfo("Updated in " + (System.currentTimeMillis() - startTime) + "ms");
+    JsHelper.consoleInfo("Got frontend message in " + (System.currentTimeMillis() - startTime) + "ms");
   }
 
   private RemoteHandle getHandle(
@@ -160,8 +158,6 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         JsHelper.consoleInfo("Trying to open file " + node.name());
         var opposite = getOppositeFile(node);
         if (opposite != null) setSelected(node, opposite);
-        var array = JsArray.create();
-        array.push(JSString.valueOf("Opened: " + node.value()));
       }
 
       @Override
@@ -170,7 +166,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
             leftRoot,
             rightRoot,
             rootModel,
-            "Some search query"
+            searchString
         );
         channel.sendMessage(result);
       }
@@ -178,8 +174,6 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       @Override
       public void closeDir(RemoteDirectoryNode node) {
         super.closeDir(node);
-        var array = JsArray.create();
-        array.push(JSString.valueOf("Closed: " + node.value()));
       }
 
       @Override
@@ -235,5 +229,21 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         }
       }
     };
+  }
+
+  private void serializeFrontendState() {
+    int leftSelected = rootView.left.getSelectedInd();
+    int rightSelected = rootView.right.getSelectedInd();
+    JsArray<JSObject> serialized = FrontendState.serialize(
+        0,
+        leftSelected,
+        rightSelected,
+        leftRoot,
+        rightRoot,
+        rootModel,
+        searchString
+    );
+    FrontendState state = FrontendState.deserialize(serialized);
+    System.out.println(state);
   }
 }

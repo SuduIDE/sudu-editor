@@ -24,6 +24,8 @@ public abstract class JsArray<T extends JSObject> implements JsArrayReader<T> {
 
   public abstract int indexOf(T value);
 
+  public abstract JsArray<T> slice(int from, int to);
+
   @JSMethod("toString")
   public abstract JSString toJsString();
 

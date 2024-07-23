@@ -3,7 +3,9 @@ package org.sudu.experiments.diff.folder;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
+import org.sudu.experiments.diff.ItemKind;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.sudu.experiments.diff.folder.PropTypes.*;
@@ -93,21 +95,16 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
     return model;
   }
 
-//  @Override
-//  public String value() {
-//    return path + " " + super.value();
-//  }
-
   @Override
-  public String infoString() {
-    return "RemoteFolderDiffModel{" +
-        "path='" + path +
-        "', parent=" + parent +
-        ", childrenComparedCnt=" + childrenComparedCnt +
-        ", children.length=" + (children != null ? children.length : 0) +
-        ", compared=" + isCompared() +
-        ", propagation=" + getPropagation() +
-        ", diffType=" + getDiffType() +
+  public String toString() {
+    return "{" +
+        "\"path\":\"" + path + '\"' +
+        ", \"children\":" + Arrays.toString(children) +
+        ", \"childrenComparedCnt\":" + childrenComparedCnt +
+        ", \"compared\":" + isCompared() +
+        ", \"propagation\":\"" + PropTypes.name(getPropagation()) + "\"" +
+        ", \"diffType\":\"" + DiffTypes.name(getDiffType()) + "\"" +
+        ", \"itemKind\":\"" + ItemKind.name(getItemKind()) + "\"" +
         "}";
   }
 }

@@ -28,9 +28,4 @@ public class RemoteFileTreeNode extends FileTreeNode {
   public RemoteFileTreeNode child(int ind) {
     return (RemoteFileTreeNode) super.child(ind);
   }
-
-  @Override
-  public String value() {
-    return model().path;
-  }
 }
