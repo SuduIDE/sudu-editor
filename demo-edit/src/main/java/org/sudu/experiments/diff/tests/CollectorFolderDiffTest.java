@@ -48,7 +48,7 @@ public class CollectorFolderDiffTest extends DirectoryTest {
 
   public boolean running() { return running; }
 
-  private void onComplete() {
+  private void onComplete(int foldersCompared, int filesCompared) {
     onComplete.run();
     dumpResult();
     running = false;

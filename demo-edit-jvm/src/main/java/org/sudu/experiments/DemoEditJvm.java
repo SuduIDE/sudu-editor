@@ -14,7 +14,7 @@ public class DemoEditJvm {
     SuduDll.require();
 
     var selectScene = TestSceneSelector.selectScene(
-        args.length > 0 ? args[0] : "default");
+        args.length > 0 ? args[0] : "");
 
     Application.run(
         selectScene, EditorWorker::execute, EditorWorker.numDemoThreads(),

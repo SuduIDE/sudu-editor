@@ -17,11 +17,13 @@ import java.util.*;
 // TODO Remove copypasta
 public class Collector {
 
+  protected int foldersCompared = 0, filesCompared = 0;
+  protected DiffModelUpdater.Listener onComplete;
+
   private final FolderDiffModel root;
   private final WorkerJobExecutor executor;
   private final boolean scanFileContent;
 
-  private Runnable onComplete;
   private Runnable update;
 
   private int inComparing = 0;
@@ -71,7 +73,7 @@ public class Collector {
       FolderDiffModel model,
       Object[] result
   ) {
-    if (result.length == 0) return;
+    foldersCompared++;
     int[] ints = ((ArrayView) result[0]).ints();
 
     int commonLen = ints[0];
@@ -161,6 +163,7 @@ public class Collector {
       FolderDiffModel model,
       Object[] result
   ) {
+    filesCompared++;
     boolean equals = ArgsCast.intArray(result, 0)[0] == 1;
     onFilesCompared(model, equals);
   }
@@ -175,7 +178,7 @@ public class Collector {
 
   private void onItemCompared(boolean needUpdate) {
     if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
-    if (inComparing == 0) onComplete.run();
+    if (inComparing == 0) onComplete.onComplete(foldersCompared, filesCompared);
     else if (needUpdate) update.run();
   }
 
@@ -183,7 +186,7 @@ public class Collector {
     this.update = update;
   }
 
-  public void setOnComplete(Runnable onComplete) {
+  public void setOnComplete(DiffModelUpdater.Listener onComplete) {
     this.onComplete = onComplete;
   }
 }
