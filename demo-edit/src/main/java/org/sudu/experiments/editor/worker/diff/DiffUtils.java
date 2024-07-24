@@ -59,7 +59,7 @@ public class DiffUtils {
       Consumer<Object[]> r
   ) {
     var model = new RemoteFolderDiffModel(null, folder.getName());
-    var reader = new ReadFolderHandler(model, folder, ints[0], r);
+    var reader = new ReadFolderHandler(model, folder, ints[0], ints[1], r);
     reader.beginRead();
   }
 

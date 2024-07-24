@@ -4,7 +4,6 @@ import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.diff.DiffTypes;
-import org.sudu.experiments.diff.ItemKind;
 import org.sudu.experiments.diff.SizeScanner;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
@@ -81,6 +80,7 @@ public class Collector {
     int rightLen = ints[2];
 
     int[] diffs = Arrays.copyOfRange(ints, 3, 3 + commonLen);
+    int[] kinds = Arrays.copyOfRange(ints, 3 + commonLen, 3 + 2 * commonLen);
     FsItem[] leftItem = Arrays.copyOfRange(result, 1, 1 + leftLen, FsItem[].class);
     FsItem[] rightItem = Arrays.copyOfRange(result, 1 + leftLen, 1 + leftLen + rightLen, FsItem[].class);
 
@@ -94,12 +94,10 @@ public class Collector {
     boolean needUpdate = false;
 
     while (mP < len) {
+      int kind = kinds[mP];
       if (diffs[mP] == DiffTypes.DELETED) {
         edited = true;
         model.children[mP] = new FolderDiffModel(model);
-        int kind = leftItem[lP] instanceof DirectoryHandle
-            ? ItemKind.FOLDER
-            : ItemKind.FILE;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.DELETED);
         model.child(mP).markDown(DiffTypes.DELETED);
@@ -109,9 +107,6 @@ public class Collector {
       } else if (diffs[mP] == DiffTypes.INSERTED) {
         edited = true;
         model.children[mP] = new FolderDiffModel(model);
-        int kind = rightItem[rP] instanceof DirectoryHandle
-            ? ItemKind.FOLDER
-            : ItemKind.FILE;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.INSERTED);
         model.child(mP).markDown(DiffTypes.INSERTED);
@@ -120,9 +115,6 @@ public class Collector {
         rP++;
       } else {
         model.children[mP] = new FolderDiffModel(model);
-        int kind = leftItem[lP] instanceof DirectoryHandle
-            ? ItemKind.FOLDER
-            : ItemKind.FILE;
         model.child(mP).setItemKind(kind);
         compare(model.child(mP), leftItem[lP], rightItem[rP]);
         mP++;

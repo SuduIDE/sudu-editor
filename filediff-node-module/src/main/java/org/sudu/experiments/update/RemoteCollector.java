@@ -4,7 +4,6 @@ import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.diff.DiffTypes;
-import org.sudu.experiments.diff.ItemKind;
 import org.sudu.experiments.diff.SizeScanner;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
@@ -31,7 +30,10 @@ public class RemoteCollector {
 
   private static final int CMP_SIZE = 1250;
   private int inComparing = 0;
+
   private int compared = 0;
+  private int foldersCompared = 0;
+  private int filesCompared = 0;
 
   private boolean firstMessageSent = false;
   private boolean lastMessageSent = false;
@@ -96,6 +98,7 @@ public class RemoteCollector {
       RemoteFolderDiffModel model,
       Object[] result
   ) {
+    foldersCompared++;
     int[] ints = ArgsCast.intArray(result, 0);
 
     int commonLen = ints[0];
@@ -103,6 +106,7 @@ public class RemoteCollector {
     int rightLen = ints[2];
 
     int[] diffs = Arrays.copyOfRange(ints, 3, 3 + commonLen);
+    int[] kinds = Arrays.copyOfRange(ints, 3 + commonLen, 3 + 2 * commonLen);
     FsItem[] leftItem = Arrays.copyOfRange(result, 1, 1 + leftLen, FsItem[].class);
     FsItem[] rightItem = Arrays.copyOfRange(result, 1 + leftLen, 1 + leftLen + rightLen, FsItem[].class);
 
@@ -115,33 +119,25 @@ public class RemoteCollector {
     boolean edited = false;
 
     while (mP < len) {
+      int kind = kinds[mP];
       if (diffs[mP] == DiffTypes.DELETED) {
         edited = true;
         model.children[mP] = new RemoteFolderDiffModel(model, leftItem[lP].getName());
-        int kind = leftItem[lP] instanceof DirectoryHandle
-            ? ItemKind.FOLDER
-            : ItemKind.FILE;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.DELETED);
-        read(model.child(mP), leftItem[lP], DiffTypes.DELETED);
+        read(model.child(mP), leftItem[lP]);
         mP++;
         lP++;
       } else if (diffs[mP] == DiffTypes.INSERTED) {
         edited = true;
         model.children[mP] = new RemoteFolderDiffModel(model, rightItem[rP].getName());
-        int kind = rightItem[rP] instanceof DirectoryHandle
-            ? ItemKind.FOLDER
-            : ItemKind.FILE;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.INSERTED);
-        read(model.child(mP), rightItem[rP], DiffTypes.INSERTED);
+        read(model.child(mP), rightItem[rP]);
         mP++;
         rP++;
       } else {
         model.children[mP] = new RemoteFolderDiffModel(model, leftItem[lP].getName());
-        int kind = leftItem[lP] instanceof DirectoryHandle
-            ? ItemKind.FOLDER
-            : ItemKind.FILE;
         model.child(mP).setItemKind(kind);
         compare(model.child(mP), leftItem[lP], rightItem[rP]);
         mP++;
@@ -187,30 +183,23 @@ public class RemoteCollector {
       RemoteFolderDiffModel model,
       boolean equals
   ) {
+    filesCompared++;
     if (!equals) model.markUp(DiffTypes.EDITED);
     model.itemCompared();
     onItemCompared();
   }
 
-  private void read(
-      RemoteFolderDiffModel model,
-      FsItem handle,
-      int diffType
-  ) {
-    if (handle instanceof DirectoryHandle dirHandle) readFolder(model, dirHandle, diffType);
+  private void read(RemoteFolderDiffModel model, FsItem handle) {
+    if (handle instanceof DirectoryHandle dirHandle) readFolder(model, dirHandle);
     else model.itemCompared();
   }
 
-  private void readFolder(
-      RemoteFolderDiffModel model,
-      DirectoryHandle dirHandle,
-      int diffType
-  ) {
+  private void readFolder(RemoteFolderDiffModel model, DirectoryHandle dirHandle) {
     ++inComparing;
     executor.sendToWorker(
         result -> onFolderRead(model, result),
         DiffUtils.READ_FOLDER,
-        dirHandle, new int[]{diffType}
+        dirHandle, new int[]{model.getDiffType(), model.getItemKind()}
     );
   }
 
@@ -234,10 +223,11 @@ public class RemoteCollector {
   }
 
   private void sendFirstMessage() {
-    if (sendResult == null || firstMessageSent) return;
+    if (sendResult == null || firstMessageSent || lastMessageSent) return;
     if (compared % CMP_SIZE == 0) {
       firstMessageSent = true;
       System.out.println("RemoteCollector::sendFirstMessage");
+      System.out.println("Folders compared: " + foldersCompared + ", files compared: " + filesCompared);
       send(sendResult, FrontendMessage.EMPTY);
     }
   }
@@ -246,6 +236,7 @@ public class RemoteCollector {
     if (sendResult == null || lastMessageSent) return;
     if (lastFrontendMessage != null) {
       System.out.println("RemoteCollector::sendResult");
+      System.out.println("Folders compared: " + foldersCompared + ", files compared: " + filesCompared);
       send(sendResult, lastFrontendMessage);
     }
   }
@@ -254,6 +245,7 @@ public class RemoteCollector {
     if (onComplete != null) {
       lastMessageSent = true;
       System.out.println("RemoteCollector::onComplete");
+      System.out.println("Folders compared: " + foldersCompared + ", files compared: " + filesCompared);
       send(onComplete, null);
     }
   }

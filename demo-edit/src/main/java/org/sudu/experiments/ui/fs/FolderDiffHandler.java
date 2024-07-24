@@ -4,7 +4,9 @@ import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffModel;
 import org.sudu.experiments.diff.DiffTypes;
+import org.sudu.experiments.diff.ItemKind;
 import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.parser.common.Pair;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -37,28 +39,6 @@ public class FolderDiffHandler {
   }
 
   private void compare() {
-    var merged = countDiffs();
-    onCompared(merged);
-  }
-
-  protected void onCompared(TreeS[] merged) {
-    ArrayWriter writer = new ArrayWriter();
-
-    // Write diff types
-    writer.write(merged.length);
-    writer.write(leftChildren.length);
-    writer.write(rightChildren.length);
-    for (var child: merged) writer.write(child.diffType);
-
-    // Write fs items
-    var result = new ArrayList<>();
-    result.add(writer.getInts());
-    for (var child: leftChildren) result.add(child.item);
-    for (var child: rightChildren) result.add(child.item);
-    ArrayOp.sendArrayList(result, r);
-  }
-
-  protected TreeS[] countDiffs() {
     var result = DiffModel.countFolderCommon(leftChildren, rightChildren);
     int commonLen = result.first;
     int leftLen = leftChildren.length;
@@ -68,29 +48,88 @@ public class FolderDiffHandler {
     BitSet leftCommon = commons[0], rightCommon = commons[1];
     int mergedLen = leftChildren.length + rightChildren.length - commonLen;
     TreeS[] merged = new TreeS[mergedLen];
+    int[] kinds = new int[mergedLen];
     int mP = 0;
     int lP = 0, rP = 0;
 
+    // item name  -> (folder, file)
+    Map<String, Pair<Integer, Integer>> nameToIndices = new HashMap<>();
+
     while (lP < leftLen && rP < rightLen) {
       if (!leftCommon.get(lP)) {
-        merged[mP] = leftChildren[lP++];
-        merged[mP++].diffType = DiffTypes.DELETED;
+        var child = leftChildren[lP++];
+        merged[mP] = child;
+        merged[mP].diffType = DiffTypes.DELETED;
+        mark(nameToIndices, child, mP++);
       } else if (!rightCommon.get(rP)) {
-        merged[mP] = rightChildren[rP++];
-        merged[mP++].diffType = DiffTypes.INSERTED;
+        var child = rightChildren[rP++];
+        merged[mP] = child;
+        merged[mP].diffType = DiffTypes.INSERTED;
+        mark(nameToIndices, child, mP++);
       } else {
-        merged[mP++] = leftChildren[lP];
+        var child = leftChildren[lP];
+        merged[mP] = child;
+        kinds[mP++] = child.isFolder ? ItemKind.FOLDER : ItemKind.FILE;
         lP++; rP++;
       }
     }
     while (lP < leftLen) {
-      merged[mP] = leftChildren[lP++];
-      merged[mP++].diffType = DiffTypes.DELETED;
+      var child = leftChildren[lP++];
+      merged[mP] = child;
+      merged[mP].diffType = DiffTypes.DELETED;
+      mark(nameToIndices, child, mP++);
     }
     while (rP < rightLen) {
-      merged[mP] = rightChildren[rP++];
-      merged[mP++].diffType = DiffTypes.INSERTED;
+      var child = rightChildren[rP++];
+      merged[mP] = child;
+      merged[mP].diffType = DiffTypes.INSERTED;
+      mark(nameToIndices, child, mP++);
     }
-    return merged;
+
+    for (var pair: nameToIndices.values()) {
+      if (pair.first == -1) {
+        int i = pair.second;
+        kinds[i] = ItemKind.FILE;
+      } else if (pair.second == -1) {
+        int i = pair.first;
+        kinds[i] = ItemKind.FOLDER;
+      } else {
+        int folderInd = pair.first;
+        int fileInd = pair.second;
+        boolean left = merged[fileInd].diffType == DiffTypes.DELETED;
+        if (left) {
+          kinds[folderInd] = ItemKind.LEFT_ONLY_FILE;
+          kinds[fileInd] = ItemKind.LEFT_ONLY_FILE;
+        } else {
+          kinds[folderInd] = ItemKind.RIGHT_ONLY_FILE;
+          kinds[fileInd] = ItemKind.RIGHT_ONLY_FILE;
+        }
+      }
+    }
+    onCompared(merged, kinds);
+  }
+
+  private void mark(Map<String, Pair<Integer, Integer>> map, TreeS item, int mP) {
+    map.putIfAbsent(item.name, new Pair<>(-1, -1));
+    if (item.isFolder) map.get(item.name).first = mP;
+    else map.get(item.name).second = mP;
+  }
+
+  protected void onCompared(TreeS[] merged, int[] kinds) {
+    ArrayWriter writer = new ArrayWriter();
+
+    // Write diff types
+    writer.write(merged.length);
+    writer.write(leftChildren.length);
+    writer.write(rightChildren.length);
+    for (var child: merged) writer.write(child.diffType);
+    writer.write(kinds);
+
+    // Write fs items
+    var result = new ArrayList<>();
+    result.add(writer.getInts());
+    for (var child: leftChildren) result.add(child.item);
+    for (var child: rightChildren) result.add(child.item);
+    ArrayOp.sendArrayList(result, r);
   }
 }

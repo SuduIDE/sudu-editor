@@ -13,6 +13,7 @@ public class ReadFolderHandler {
   public final RemoteFolderDiffModel rootModel;
   public final DirectoryHandle rootHandle;
   private final int diffType;
+  private final int itemKind;
   private final Consumer<Object[]> r;
   private int readCnt = 0;
 
@@ -20,16 +21,19 @@ public class ReadFolderHandler {
       RemoteFolderDiffModel rootModel,
       DirectoryHandle rootHandle,
       int diffType,
+      int itemKind,
       Consumer<Object[]> r
   ) {
     this.rootModel = rootModel;
     this.rootHandle = rootHandle;
     this.diffType = diffType;
+    this.itemKind = itemKind;
     this.r = r;
   }
 
   public void beginRead() {
     rootModel.setDiffType(diffType);
+    rootModel.setItemKind(itemKind);
     read(rootModel, rootHandle);
   }
 
