@@ -217,12 +217,12 @@ public class ScrollView extends View {
         || content.onMouseUp(event, button);
   }
 
-  protected boolean onMouseMove(MouseEvent event) {
+  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
     boolean a = vScroll != null &&
         vScroll.onMouseMove(event.position, windowCursor);
     boolean b = hScroll != null &&
         hScroll.onMouseMove(event.position, windowCursor);
-    return a || b || content.onMouseMove(event);
+    return a || b || content.onMouseMove(event, setCursor);
   }
 
   @Override

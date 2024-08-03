@@ -27,13 +27,14 @@ public class LineNumbersTexture implements Disposable {
   private boolean cleartype;
 
   public LineNumbersTexture(
-    V2i texturePos,
-    int numberOfLines,
-    int textureWidth,
-    int lineHeight,
-    FontDesk fontDesk
+      int texturePosY,
+      int numberOfLines,
+      int textureWidth,
+      int lineHeight,
+      FontDesk fontDesk
   ) {
-    this.texturePos = texturePos;
+
+    this.texturePos = new V2i(0, texturePosY);
     this.numberOfLines = numberOfLines;
     this.lineHeight = lineHeight;
     this.textureSize = new V2i(textureWidth, this.numberOfLines * lineHeight);
@@ -42,7 +43,7 @@ public class LineNumbersTexture implements Disposable {
 
   public int updateTexture(
       Canvas textureCanvas, Canvas updateCanvas,
-      int curFirstLine, int firstLine, int updateOn, double devicePR
+      int curFirstLine, int firstLine, int updateOn, float devicePR
   ) {
     if (firstLine > curFirstLine)
       return scrollDown(textureCanvas, updateCanvas, firstLine, updateOn, curFirstLine, devicePR);
@@ -54,7 +55,12 @@ public class LineNumbersTexture implements Disposable {
     if (lineTexture == null) lineTexture = g.createTexture();
   }
 
-  public int initTexture(Canvas textureCanvas, int startNum, int toNum, int texturesSize, double devicePR) {
+  public int initTexture(
+      Canvas textureCanvas,
+      int startNum, int toNum,
+      int texturesSize,
+      float devicePR
+  ) {
     textureCanvas.clear();
 
     for (int i = 0; i < numberOfLines; i++) {
@@ -126,14 +132,15 @@ public class LineNumbersTexture implements Disposable {
       int scrollPos, int fullTexturesSize, int caretLine,
       LineNumbersColors colorScheme
   ) {
+    int caretShift = caretLine % numberOfLines;
     int height = textureSize.y;
     int yPos = ((texturePos.y - (scrollPos % fullTexturesSize)) + fullTexturesSize) % fullTexturesSize;
     if (yPos + height > fullTexturesSize) yPos = -(scrollPos % lineTexture.height());
-    yPos += (caretLine % numberOfLines) * lineHeight;
+    yPos += caretShift * lineHeight;
     if (yPos < -lineHeight) yPos += fullTexturesSize;
 
     rectSize.set(textureSize.x, lineHeight);
-    rectRegion.set(0, (caretLine % numberOfLines) * lineHeight, textureSize.x, lineHeight);
+    rectRegion.set(0, caretShift * lineHeight, textureSize.x, lineHeight);
 
     draw(g, yPos, dXdY, colorScheme.caretTextColor, colorScheme.caretBgColor);
   }
@@ -148,7 +155,7 @@ public class LineNumbersTexture implements Disposable {
 
   private int scrollDown(
       Canvas textureCanvas, Canvas updateCanvas,
-      int firstLine, int updateOn, int curFirstLine, double devicePR
+      int firstLine, int updateOn, int curFirstLine, float devicePR
   ) {
     int stNum = (curFirstLine / numberOfLines) * numberOfLines;
     int endNum = stNum + numberOfLines;
@@ -181,7 +188,7 @@ public class LineNumbersTexture implements Disposable {
 
   private int scrollUp(
       Canvas textureCanvas, Canvas updateCanvas,
-      int firstLine, int updateOn, int curFirstLine, double devicePR
+      int firstLine, int updateOn, int curFirstLine, float devicePR
   ) {
     int stNum = (curFirstLine / numberOfLines) * numberOfLines;
     int endNum = stNum + numberOfLines;
@@ -212,9 +219,9 @@ public class LineNumbersTexture implements Disposable {
     return curFirstLine;
   }
 
-  private void drawLine(Canvas canvas, String lineNumber, int yPos, double devicePR) {
+  private void drawLine(Canvas canvas, String lineNumber, int yPos, float devicePR) {
     int padding = EditorConst.LINE_NUMBERS_RIGHT_PADDING;
-    canvas.drawText(lineNumber, (float) (textureSize.x - padding * devicePR), yPos);
+    canvas.drawText(lineNumber, textureSize.x - padding * devicePR, yPos);
   }
 
   @Override

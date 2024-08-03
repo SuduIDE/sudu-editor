@@ -7,6 +7,7 @@ import org.sudu.experiments.editor.ui.colors.DialogItemColors;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.ui.SetCursor;
 import org.sudu.experiments.ui.UiContext;
 import org.sudu.experiments.ui.UiFont;
 import org.sudu.experiments.ui.WindowPaint;
@@ -203,9 +204,9 @@ public class Window {
     return bypassHitTest() || content.hitTest(pos);
   }
 
-  boolean onMouseMove(MouseEvent event) {
+  boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
     return overTitleFrame(event.position) || content.hitTest(event.position)
-        && (content.onMouseMove(event) || context.windowCursor.set(null));
+        && (content.onMouseMove(event, setCursor) || context.windowCursor.set(null));
   }
 
   private boolean overTitleFrame(V2i position) {

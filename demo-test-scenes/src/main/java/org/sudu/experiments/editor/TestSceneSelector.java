@@ -4,6 +4,7 @@ import org.sudu.experiments.Debug;
 import org.sudu.experiments.Scene;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.diff.*;
+import org.sudu.experiments.ui.MergeButtonsTest;
 import org.sudu.experiments.ui.FileViewDemo;
 import org.sudu.experiments.editor.menu.FindUsagesDemo;
 import org.sudu.experiments.editor.menu.ToolbarDemo;
@@ -26,13 +27,13 @@ public class TestSceneSelector {
       default -> defaultScene();
       case "Diff" -> Diff0::new;
       case "Editor0" -> Editor0::new;
+      case "Editor1" -> Editor1::new;
       case "DemoScene1", "test" -> DemoScene1::new;
       case "CleartypeColors" -> CleartypeColors::new;
       case "ToolbarDemo" -> ToolbarDemo::new;
       case "FindUsagesDemo" -> FindUsagesDemo::new;
       case "RegionTextureAllocatorDemo" -> RegionTextureAllocatorDemo::new;
-      case "ManyTexturesLineNumbersScene", "many"
-          -> ManyTexturesLineNumbersScene::new;
+      case "LineNumbersTest" -> LineNumbersTest::new;
       case "SelectFileTest" -> SelectFileTest::new;
       case "WorkerTest" -> WorkerTest::new;
       case "RenderTexture" -> RenderTexture::new;
@@ -44,6 +45,8 @@ public class TestSceneSelector {
       case "LineShaderDemo2" -> LineShaderDemo2::new;
       case "WindowsDemo" -> WindowsDemo::new;
       case "WindowDemo" -> WindowDemo::new;
+      case "MergeButtonsTest" -> MergeButtonsTest::new;
+      case "VScrollTest" -> VScrollTest::new;
       case "EditorInViewDemo" -> EditorInViewDemo::new;
       case "ProjectViewDemo" -> ProjectViewDemo::new;
       case "EditorWindowDemo" -> EditorWindowDemo::new;

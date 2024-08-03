@@ -1,6 +1,7 @@
 package org.sudu.experiments.editor.ui.window;
 
 import org.sudu.experiments.math.Color;
+import org.sudu.experiments.ui.ScrollBar;
 import org.sudu.experiments.ui.window.ScrollView;
 
 public interface TestColors {
@@ -10,5 +11,9 @@ public interface TestColors {
   static ScrollView apply(ScrollView v) {
     v.setScrollColor(scrollBarLine, scrollBarBg);
     return v;
+  }
+
+  static void apply(ScrollBar sb) {
+    sb.setColor(scrollBarLine, scrollBarBg);
   }
 }

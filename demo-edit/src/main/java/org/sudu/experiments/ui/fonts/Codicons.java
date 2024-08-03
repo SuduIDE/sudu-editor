@@ -3,6 +3,8 @@ package org.sudu.experiments.ui.fonts;
 // see full icons set here https://microsoft.github.io/vscode-codicons/dist/codicon.html
 // name to char mapping: https://microsoft.github.io/vscode-codicons/dist/codicon.css
 public interface Codicons {
+  String typeface = "codicon";
+
   char chevron_down     = '\uEAB4';
   char chevron_right    = '\uEAB6';
   char chrome_close     = '\uEAB8';
