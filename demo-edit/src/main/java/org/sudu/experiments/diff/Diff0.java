@@ -139,7 +139,7 @@ public class Diff0 extends WindowScene implements
         this::onDiffResult, api.window.worker());
   }
 
-  private void onDiffResult(DiffInfo result) {
+  protected void onDiffResult(DiffInfo result) {
     diffModel = result;
     editor1.setDiffModel(diffModel.lineDiffsL);
     editor2.setDiffModel(diffModel.lineDiffsR);

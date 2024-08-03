@@ -6,7 +6,8 @@ public class MergeButtonsTestModel {
   public int[] lines;
   public Runnable[] actions;
 
-  public MergeButtonsTestModel(int n, int docLines) {
+  public MergeButtonsTestModel(int docLines) {
+    int n = docLines / 4;
     actions = new Runnable[n];
     lines = new int[n];
     XorShiftRandom rand = new XorShiftRandom();

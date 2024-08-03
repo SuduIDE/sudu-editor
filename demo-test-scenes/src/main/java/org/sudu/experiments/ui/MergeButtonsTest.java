@@ -41,7 +41,7 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
     api.input.onScroll.add(this::onMouseWheel);
 
     int n = 10;
-    MergeButtonsTestModel m = new MergeButtonsTestModel(n, docLines);
+    MergeButtonsTestModel m = new MergeButtonsTestModel(docLines);
     buttons.setModel(m.actions, m.lines);
   }
 

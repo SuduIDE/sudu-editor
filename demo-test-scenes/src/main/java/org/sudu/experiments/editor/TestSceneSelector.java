@@ -25,7 +25,8 @@ public class TestSceneSelector {
     }
     return switch (name) {
       default -> defaultScene();
-      case "Diff" -> Diff0::new;
+      case "Diff0", "Diff" -> Diff0::new;
+      case "Diff1" -> Diff1::new;
       case "Editor0" -> Editor0::new;
       case "Editor1" -> Editor1::new;
       case "DemoScene1", "test" -> DemoScene1::new;

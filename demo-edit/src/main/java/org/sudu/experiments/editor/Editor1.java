@@ -17,8 +17,7 @@ public class Editor1 extends Editor0 {
   }
 
   private void setMergeModel() {
-    MergeButtonsTestModel m = new MergeButtonsTestModel(
-        document().length() / 4, document().length());
+    var m = new MergeButtonsTestModel(document().length());
     editor.setMergeButtons(m.actions, m.lines);
   }
 

@@ -1694,7 +1694,8 @@ public class EditorComponent extends View implements
     int w = Math.min(
         Numbers.iDivRound(lineHeight, 15, 16),
         lineNumbers.size.x);
-    int x = lineNumbers.pos.x + lineNumbers.size.x - w;
+    int x = mirrored ? lineNumbers.pos.x
+        : lineNumbers.pos.x + lineNumbers.size.x - w;
     mergeButtons.setPosition(x, lineNumbers.pos.y, w, lineNumbers.size.y, dpr);
     mergeButtons.setScrollPos(vScrollPos);
   }
