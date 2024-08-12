@@ -865,6 +865,13 @@ public class EditorComponent extends View implements
     );
   }
 
+  public void openFile(String source, String name, Runnable onComplete) {
+    setCaretLinePos(0, 0, false);
+    Model newModel = new Model(source, new Uri(name));
+    setModel(newModel);
+    onComplete.run();
+  }
+
   private void onNewModel() {
     externalHighlights = null;
     lineNumbers.setColors(null);

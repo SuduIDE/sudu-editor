@@ -3,9 +3,11 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
+import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
+import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
@@ -18,9 +20,13 @@ import org.sudu.experiments.ui.fs.RemoteDirectoryNode;
 import org.sudu.experiments.ui.fs.RemoteFileNode;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
+import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSString;
+import org.teavm.jso.typedarrays.Int32Array;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class RemoteFolderDiffWindow extends ToolWindow0 {
@@ -37,6 +43,10 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private boolean updatedRoots = false;
 
   String searchString = "*";
+
+  private final int MAP_SIZE = 100;
+  private final Consumer<String>[] openFileMap = new Consumer[MAP_SIZE];
+  private int keyCnt = 0;
 
   public RemoteFolderDiffWindow(
       EditorColorScheme theme,
@@ -83,6 +93,16 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     windowManager.uiContext.setFocus(focusSave);
   }
 
+  private void openFile(JsArray<JSObject> jsResult) {
+    int key = ((Int32Array) jsResult.pop()).get(0);
+    var openFileRun = openFileMap[key];
+    if (openFileRun != null && jsResult.getLength() != 0) {
+      String source = ((JSString) jsResult.get(0)).stringValue();
+      openFileRun.accept(source);
+      openFileMap[key] = null;
+    }
+  }
+
   private void update(JsArray<JSObject> jsResult) {
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
@@ -109,8 +129,12 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private void onChannelMessage(JsArray<JSObject> jsResult) {
-    update(jsResult);
-    JsHelper.consoleInfo("Got frontend message in " + (System.currentTimeMillis() - startTime) + "ms");
+    Int32Array array = jsResult.pop().cast();
+    switch (array.get(0)) {
+      case DiffModelChannelUpdater.FRONTEND_MESSAGE -> update(jsResult);
+      case DiffModelChannelUpdater.OPEN_FILE -> openFile(jsResult);
+    }
+    JsHelper.consoleInfo("Got message in " + (System.currentTimeMillis() - startTime) + "ms");
   }
 
   private RemoteHandle getHandle(
@@ -157,6 +181,17 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         JsHelper.consoleInfo("Trying to open file " + node.name());
         var opposite = getOppositeFile(node);
         if (opposite != null) setSelected(node, opposite);
+        if (opposite != null) {
+          var window = new FileDiffWindow(windowManager, theme, fonts);
+          openFileMap[keyCnt] = (source) -> window.open(source, node.name(), left);
+          sendOpenFile(node, left);
+          openFileMap[keyCnt] = (source) -> window.open(source, opposite.name(), !left);
+          sendOpenFile(opposite, !left);
+        } else {
+          var window = new EditorWindow(windowManager, theme, fonts);
+          openFileMap[keyCnt] = (source) -> window.open(source, node.name());
+          sendOpenFile(node, left);
+        }
       }
 
       @Override
@@ -167,6 +202,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
             rootModel,
             searchString
         );
+        result.push(DiffModelChannelUpdater.FRONTEND_MESSAGE_ARRAY);
         channel.sendMessage(result);
       }
 
@@ -228,6 +264,16 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         }
       }
     };
+  }
+
+  private void sendOpenFile(RemoteFileNode node, boolean left) {
+    var result = JsArray.create();
+    var path = node.getFullPath(left ? leftRoot.name() : rightRoot.name());
+    result.push(JsMemoryAccess.bufferView(new int[]{keyCnt}));
+    result.push(JSString.valueOf(path));
+    result.push(DiffModelChannelUpdater.OPEN_FILE_ARRAY);
+    channel.sendMessage(result);
+    keyCnt = (keyCnt + 1) % MAP_SIZE;
   }
 
   private void serializeFrontendState() {

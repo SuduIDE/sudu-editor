@@ -20,6 +20,8 @@ public abstract class JsArray<T extends JSObject> implements JsArrayReader<T> {
 
   public abstract int push(T a, T b, T c, T d);
 
+  public abstract T pop();
+
   public abstract T shift();
 
   public abstract int indexOf(T value);

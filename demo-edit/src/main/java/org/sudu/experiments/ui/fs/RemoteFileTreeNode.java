@@ -28,4 +28,8 @@ public class RemoteFileTreeNode extends FileTreeNode {
   public RemoteFileTreeNode child(int ind) {
     return (RemoteFileTreeNode) super.child(ind);
   }
+
+  public String getFullPath(String root) {
+    return model().getFullPath(root);
+  }
 }

@@ -252,9 +252,10 @@ public class RemoteCollector {
 
   private void send(Consumer<JsArray<JSObject>> send, FrontendMessage message) {
     System.out.println("inComparing: " + inComparing);
-    String leftRootName = leftHandle.getName();
-    String rightRootName = rightHandle.getName();
+    String leftRootName = leftHandle.getFullPath();
+    String rightRootName = rightHandle.getFullPath();
     var jsArray = BackendMessage.serialize(root, message, leftRootName, rightRootName);
+    jsArray.push(DiffModelChannelUpdater.FRONTEND_MESSAGE_ARRAY);
     send.accept(jsArray);
 
     long time = System.currentTimeMillis() - startTime;
