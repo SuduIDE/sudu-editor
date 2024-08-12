@@ -14,6 +14,7 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
     super(path, handle, depth);
     iconFolder();
     onClick = this::onClick;
+    close();
   }
 
   public void onClick() {
@@ -38,13 +39,13 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
   public void doOpen() {
     handle.openDir(this);
     handle.updateView();
-    super.iconFolderOpened();
+    super.open();
   }
 
   public void doClose() {
     handle.closeDir(this);
     handle.updateView();
-    super.iconFolder();
+    super.close();
   }
 
   public boolean isOpened() {

@@ -53,7 +53,7 @@ public class FileTreeNode extends TreeNode {
 
   private int count() {
     int n = 1;
-    if (childrenLength() != 0) {
+    if (isOpened()) {
       for (FileTreeNode child : children)
         n += child.count();
     }
@@ -73,7 +73,7 @@ public class FileTreeNode extends TreeNode {
     this.diffType = model.getDiffType();
     t[idx++] = this;
     setIcon(this, model);
-    if (childrenLength() != 0) {
+    if (isOpened()) {
       int mP = 0;
       for (FileTreeNode child: children) {
         if (isDownProp && noChildren) {
@@ -94,7 +94,7 @@ public class FileTreeNode extends TreeNode {
     this.diffType = diffType;
     t[idx++] = this;
     setIcon(this, compared);
-    if (childrenLength() != 0) {
+    if (isOpened()) {
       for (var child: children) {
         idx = child.getModel(t, diffType, idx, compared);
       }
