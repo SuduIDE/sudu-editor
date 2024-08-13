@@ -139,7 +139,7 @@ public class Diff0 extends WindowScene implements
         this::onDiffResult, api.window.worker());
   }
 
-  private void onDiffResult(DiffInfo result) {
+  protected void onDiffResult(DiffInfo result) {
     diffModel = result;
     editor1.setDiffModel(diffModel.lineDiffsL);
     editor2.setDiffModel(diffModel.lineDiffsR);
@@ -289,8 +289,9 @@ public class Diff0 extends WindowScene implements
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
-    boolean b1 = editor1.hitTest(event.position) && editor1.onMouseMove(event);
-    boolean b2 = editor2.hitTest(event.position) && editor2.onMouseMove(event);
+    var cur = uiContext.windowCursor;
+    boolean b1 = editor1.hitTest(event.position) && editor1.onMouseMove(event, cur);
+    boolean b2 = editor2.hitTest(event.position) && editor2.onMouseMove(event, cur);
     return b1 || b2;
   }
 

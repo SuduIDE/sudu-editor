@@ -84,4 +84,13 @@ public class ClrContext {
     g.drawText(xPos, yPos, size, tRegion,
         texture, colorF, bgColor, cleartype);
   }
+
+  public void drawIcon(
+      WglGraphics g, GL.Texture icon,
+      int xPos, int yPos, V4f bgColor, V4f colorF
+  ) {
+    tRegion.set(0, 0, icon.width(), icon.height());
+    size.set(icon.size());
+    drawText(g, icon, xPos, yPos, colorF, bgColor);
+  }
 }

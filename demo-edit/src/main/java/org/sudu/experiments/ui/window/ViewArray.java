@@ -3,6 +3,7 @@ package org.sudu.experiments.ui.window;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.ui.SetCursor;
 
 import java.util.function.Consumer;
 
@@ -85,11 +86,11 @@ public abstract class ViewArray extends View {
   }
 
   @Override
-  protected boolean onMouseMove(MouseEvent event) {
+  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
     boolean result = false;
     for (View view : views) {
       if (view.hitTest(event.position)) {
-        result |= view.onMouseMove(event);
+        result |= view.onMouseMove(event, setCursor);
       }
     }
     return result;

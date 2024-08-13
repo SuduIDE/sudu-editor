@@ -1,6 +1,7 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.editor.test.MergeButtonsTestModel;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -11,7 +12,13 @@ public class Editor1 extends Editor0 {
     super(api);
     StartFile.apply(editor);
 
+    setMergeModel();
     api.input.onKeyPress.add(this::onKeyPress);
+  }
+
+  private void setMergeModel() {
+    var m = new MergeButtonsTestModel(document().length());
+    editor.setMergeButtons(m.actions, m.lines);
   }
 
   boolean onKeyPress(KeyEvent event) {

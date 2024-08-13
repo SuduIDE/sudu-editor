@@ -6,6 +6,7 @@ import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.ui.SetCursor;
 
 import java.util.function.Consumer;
 
@@ -44,6 +45,10 @@ public class View implements Disposable {
     return Rect.isInside(point, pos, size);
   }
 
+  public int right() {
+    return pos.x + size.x;
+  }
+
   public void draw(WglGraphics g) {
     g.drawRect(pos.x, pos.y, size, Colors.viewColor);
   }
@@ -80,7 +85,7 @@ public class View implements Disposable {
     return false;
   }
 
-  protected boolean onMouseMove(MouseEvent event) {
+  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
     return false;
   }
 
