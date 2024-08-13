@@ -112,9 +112,10 @@ public class WindowManager implements MouseListener, DprChangeListener {
   public boolean onMouseMove(MouseEvent event) {
     if (popupMenu != null && popupMenu.onMouseMove(event))
       return true;
+    var setCursor = uiContext.windowCursor;
 
     for (Window window : windows.array())
-      if (window.onMouseMove(event))
+      if (window.onMouseMove(event, setCursor))
         return true;
     return false;
   }

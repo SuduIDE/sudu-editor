@@ -235,7 +235,7 @@ public class TreeView extends ScrollContent implements Focusable {
       if (arrow != null) {
         var color = theme.codeElement[0];
         int arrowX = startX + shift;
-        drawIcon(g, arrow,
+        clrContext.drawIcon(g, arrow,
             arrowX,
             pos.y + yPosition,
             diff != null ? bgLineColor :
@@ -246,7 +246,7 @@ public class TreeView extends ScrollContent implements Focusable {
       if (icon != null) {
         var color = theme.codeElement[0];
         int iconX = startX + shift + arrowWidth + iconMargin1Px;
-        drawIcon(g, icon,
+        clrContext.drawIcon(g, icon,
             iconX,
             pos.y + yPosition,
             diff != null ? bgLineColor :
@@ -275,16 +275,6 @@ public class TreeView extends ScrollContent implements Focusable {
       layoutScroll();
     }
     g.disableScissor();
-  }
-
-  private void drawIcon(
-      WglGraphics g, GL.Texture icon,
-      int xPos, int yPos, V4f bgColor, V4f colorF
-  ) {
-    clrContext.tRegion.set(0, 0, icon.width(), icon.height());
-    clrContext.size.set(icon.size());
-    clrContext.drawText(g, icon, xPos, yPos,
-        colorF, bgColor);
   }
 
   @Override
@@ -347,7 +337,7 @@ public class TreeView extends ScrollContent implements Focusable {
   private GL.Texture renderIcon(char icon, FontDesk font) {
     return uiContext.graphics.renderTexture(
         String.valueOf(icon), font, iconTextureMargin,
-        clrContext.lineHeight, clrContext.cleartype);
+        clrContext.lineHeight, 0, clrContext.cleartype);
   }
 
   static int getLine(int y, int lineHeight, int maxLine) {

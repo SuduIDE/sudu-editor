@@ -79,6 +79,7 @@ public class EditorComponent extends View implements
 
   // line numbers
   LineNumbersComponent lineNumbers = new LineNumbersComponent();
+  MergeButtons mergeButtons;
   //int lineNumLeftMargin = 10;
 
   String tabIndent = "  ";
@@ -160,9 +161,11 @@ public class EditorComponent extends View implements
 
     int lineNumbersX = mirrored ? pos.x + size.x - lineNumbersWidth() : pos.x;
 
-    context.v2i1.set(lineNumbersX, pos.y);
-    lineNumbers.setPos(context.v2i1,
+    lineNumbers.setPosition(lineNumbersX, pos.y,
         Math.min(lineNumbersWidth(), size.x), size.y, dpr);
+    if (mergeButtons != null) {
+      layoutMergeButtons();
+    }
 
     if (1<0) DebugHelper.dumpFontsSize(g);
     caret.setWidth(DprUtil.toPx(Caret.defaultWidth, dpr));
@@ -224,6 +227,8 @@ public class EditorComponent extends View implements
     lineNumbers = new LineNumbersComponent();
     updateLineNumbersFont();
     internalLayout(pos, size, context.dpr);
+    if (mergeButtons != null && lineHeight != 0)
+      setMergeButtonsFont();
   }
 
   private void toggleTopTextRenderMode() {
@@ -309,6 +314,9 @@ public class EditorComponent extends View implements
     CodeLineRenderer.makeContentDirty(lines);
 
     lineNumbers.dispose();
+    if (mergeButtons != null) {
+      mergeButtons.onTextRenderingSettingsChange();
+    }
     updateLineNumbersFont();
   }
 
@@ -319,14 +327,14 @@ public class EditorComponent extends View implements
       lineNumbers.dispose();
       invalidateFont();
       setFont(name, newPixelFontSize);
-      afterFontChanged();
+      model.caretPos = caretCodeLine().computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
+      if (mergeButtons != null) {
+        setMergeButtonsFont();
+        layoutMergeButtons();
+      }
+      adjustEditorScrollToCaret();
       updateLineNumbersFont();
     }
-  }
-
-  private void afterFontChanged() {
-    model.caretPos = caretCodeLine().computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
-    adjustEditorScrollToCaret();
   }
 
   private void invalidateFont() {
@@ -340,6 +348,7 @@ public class EditorComponent extends View implements
     CodeLineRenderer.disposeLines(lines);
     lrContext.dispose();
     lineNumbers.dispose();
+    mergeButtons = Disposable.assign(mergeButtons, null);
   }
 
   int editorVirtualHeight() {
@@ -521,6 +530,12 @@ public class EditorComponent extends View implements
     g.disableScissor();
 
     drawLineNumbers(firstLine, lastLine);
+    if (mergeButtons != null) {
+      mergeButtons.setScrollPos(vScrollPos);
+      mergeButtons.draw(
+          firstLine, lastLine, model.caretLine,
+          g, colors, lrContext);
+    }
 
 //    g.checkError("paint complete");
     if (0>1) {
@@ -578,7 +593,7 @@ public class EditorComponent extends View implements
     int caretLine = diff != null && !diff.isDefault()
         ? -1
         : model.caretLine;
-    lineNumbers.draw(editorBottom, textHeight, vScrollPos, firstLine, lastLine, caretLine, g, colors);
+    lineNumbers.draw(textHeight, vScrollPos, firstLine, lastLine, caretLine, g, colors);
   }
 
   public int getFirstLine() {
@@ -598,7 +613,6 @@ public class EditorComponent extends View implements
 
   private void updateLineNumbersFont() {
     lineNumbers.setFont(lrContext.font, lineHeight, context.cleartype);
-//    lineNumbers.initTextures(g, getFirstLine(), editorHeight());
   }
 
   private CodeLineRenderer lineRenderer(int i) {
@@ -875,6 +889,7 @@ public class EditorComponent extends View implements
   private void onNewModel() {
     externalHighlights = null;
     lineNumbers.setColors(null);
+    if (mergeButtons != null) mergeButtons.setColors(lineNumbers.colors());
   }
 
   boolean arrowUpDown(int amount, boolean ctrl, boolean alt, boolean shiftPressed) {
@@ -1226,6 +1241,8 @@ public class EditorComponent extends View implements
   }
 
   public boolean onMouseUp(MouseEvent event, int button) {
+    if (mergeButtons != null && mergeButtons.onMouseUp(event, button))
+      return true;
     selection().isSelectionStarted = false;
     return true;
   }
@@ -1235,11 +1252,18 @@ public class EditorComponent extends View implements
       context.setFocus(this);
 
     if (button == MOUSE_BUTTON_LEFT) {
+      if (mergeButtons != null) {
+        var lock = mergeButtons.onMouseDown(event, button, context.windowCursor);
+        if (lock != null) return lock;
+      }
       var lock = vScroll.onMouseDown(event.position, vScrollHandler, true);
       if (lock != null) return lock;
 
       lock = hScroll.onMouseDown(event.position, hScrollHandler, false);
       if (lock != null) return lock;
+
+      if (lineNumbers.hitTest(event.position))
+        return MouseListener.Static.emptyConsumer;
 
       saveToNavStack();
       V2i eventPosition = event.position;
@@ -1259,8 +1283,15 @@ public class EditorComponent extends View implements
     return null;
   }
 
+  private boolean hitMergeButtons(V2i pos) {
+    return mergeButtons != null && mergeButtons.hitTest(pos);
+  }
+
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
     if (button == MOUSE_BUTTON_LEFT) {
+      if (lineNumbers.hitTest(event.position)
+          || hitMergeButtons(event.position))
+        return true;
       switch (clickCount) {
         case 1 -> onClickText(event);
         case 2 -> onDoubleClickText(event.position);
@@ -1270,11 +1301,17 @@ public class EditorComponent extends View implements
     return true;
   }
 
+  @Override
   public boolean onMouseMove(MouseEvent event) {
-    SetCursor setCursor = context.windowCursor;
+    return onMouseMove(event, context.windowCursor);
+  }
+
+  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
     if (vScroll.onMouseMove(event.position, setCursor)) return true;
     if (hScroll.onMouseMove(event.position, setCursor)) return true;
-    if (lineNumbers.onMouseMove(event.position, setCursor)) return true;
+    if (mergeButtons != null &&
+        mergeButtons.onMouseMove(event, setCursor)) return true;
+    if (lineNumbers.onMouseMove(event, setCursor)) return true;
 
     if (isInsideText(event.position)) {
       if (event.ctrl) {
@@ -1624,9 +1661,11 @@ public class EditorComponent extends View implements
         c[i] = ld != null ? (byte) ld.type : 0;
       }
       lineNumbers.setColors(c);
+      if (mergeButtons != null) mergeButtons.setColors(c);
     } else {
       System.out.println("deleteDiffModel");
       lineNumbers.setColors(null);
+      if (mergeButtons != null) mergeButtons.setColors(lineNumbers.colors());
     }
   }
 
@@ -1667,5 +1706,30 @@ public class EditorComponent extends View implements
     Uri uri = model().uri;
     String s = super.toString();
     return uri != null ? s + " - " + uri.path : s;
+  }
+
+  private void setMergeButtonsFont() {
+    mergeButtons.setFont(lineHeight, !mirrored);
+  }
+
+  private void layoutMergeButtons() {
+    int w = Math.min(
+        Numbers.iDivRound(lineHeight, 15, 16),
+        lineNumbers.size.x);
+    int x = mirrored ? lineNumbers.pos.x
+        : lineNumbers.pos.x + lineNumbers.size.x - w;
+    mergeButtons.setPosition(x, lineNumbers.pos.y, w, lineNumbers.size.y, dpr);
+    mergeButtons.setScrollPos(vScrollPos);
+  }
+
+  public void setMergeButtons(Runnable[] actions, int[] lines) {
+     if (mergeButtons == null) {
+       mergeButtons = new MergeButtons();
+       if (dpr != 0)
+         setMergeButtonsFont();
+       layoutMergeButtons();
+     }
+     mergeButtons.setModel(actions, lines);
+     mergeButtons.setColors(lineNumbers.colors());
   }
 }

@@ -23,7 +23,7 @@ public class WindowSizeTestScene extends Scene0 {
 
   @Override
   public void dispose() {
-    disposable = Disposable.dispose(disposable);
+    disposable.dispose();
     super.dispose();
   }
 

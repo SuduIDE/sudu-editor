@@ -48,7 +48,7 @@ public class SystemMenu {
     close = Disposable.assign(close,
         c.graphics.renderTexture(
             String.valueOf(Codicons.chrome_close),
-            iconsFont, 0, lineHeight, false));
+            iconsFont, 0, lineHeight, 0, false));
   }
 
   public void draw(UiContext c, View title, WindowColors wc) {
