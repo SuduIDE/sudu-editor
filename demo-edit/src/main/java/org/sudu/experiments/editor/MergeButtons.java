@@ -11,6 +11,7 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.*;
 import org.sudu.experiments.ui.SetCursor;
+import org.sudu.experiments.ui.WindowPaint;
 import org.sudu.experiments.ui.fonts.Codicons;
 
 import java.util.function.Consumer;
@@ -28,6 +29,7 @@ public class MergeButtons implements Disposable {
   private GL.Texture texture;
 
   private final V2i bSize = new V2i();
+  private final V2i debug = new V2i();
   private int lineHeight, scrollPos;
   private int firstLine, lastLine;
   private int selectedBtLine = -1, selectedBtIndex = -1;
@@ -74,6 +76,8 @@ public class MergeButtons implements Disposable {
     LineNumbersColors lnColors = scheme.lineNumber;
     if (drawBg) {
       g.drawRect(pos.x, pos.y, size, lnColors.bgColor);
+    } else {
+//      WindowPaint.drawInnerFrame(g, size, pos, scheme.diff.deletedBgColor, -1, c.size);
     }
     this.firstLine = firstLine;
     this.lastLine = lastLine;
@@ -99,6 +103,8 @@ public class MergeButtons implements Disposable {
             g, texture, x, y,
             bgColor, lnColors.textColor
         );
+        debug.set(x, y);
+        WindowPaint.drawInnerFrame(g, bSize, debug, scheme.diff.deletedBgColor, -1, c.size);
         if (++bIndex == lines.length) break;
         nextBt = lines[bIndex];
       }
