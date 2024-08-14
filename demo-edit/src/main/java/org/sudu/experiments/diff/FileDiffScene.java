@@ -1,6 +1,7 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.editor.EditorComponent;
 import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -18,6 +19,14 @@ public class FileDiffScene extends WindowScene implements ThemeControl {
 
   public String[] menuFonts() {
     return Fonts.editorFonts(true);
+  }
+
+  protected EditorComponent left() {
+    return w.rootView.editor1;
+  }
+
+  protected EditorComponent right() {
+    return w.rootView.editor2;
   }
 
   @Override

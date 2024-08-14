@@ -2,7 +2,7 @@ package org.sudu.experiments.editor;
 
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.SplitInfo;
-import org.sudu.experiments.diff.Diff0;
+import org.sudu.experiments.diff.FileDiffScene;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.js.Fetch;
 import org.sudu.experiments.js.JsHelper;
@@ -11,16 +11,16 @@ import org.teavm.jso.core.JSString;
 
 import java.util.function.Consumer;
 
-public class DiffDemoJs extends Diff0 {
+public class DiffDemoJs extends FileDiffScene {
   public DiffDemoJs(SceneApi api) {
     super(api);
     setReadonly(true);
-    load(this::setLeftModel, "ClassL.java");
-    load(this::setRightModel, "ClassR.java");
+    load(model -> left().setModel(model), "ClassL.java");
+    load(model -> right().setModel(model), "ClassR.java");
   }
 
   @Override
-  protected String[] menuFonts() {
+  public String[] menuFonts() {
     return Fonts.editorFonts(true);
   }
 
