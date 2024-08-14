@@ -115,7 +115,7 @@ public class MergeButtons implements Disposable {
 
   private boolean buttonHitTest(V2i e, int lNumber) {
     int x = pos.x + 2;
-    int y = lNumber * lineHeight - scrollPos;
+    int y = pos.y + lNumber * lineHeight - scrollPos;
     int size = lineHeight;
     return Rect.isInside(e, x,y, size, size);
   }
