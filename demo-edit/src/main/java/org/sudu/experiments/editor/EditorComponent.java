@@ -555,13 +555,12 @@ public class EditorComponent extends View implements
       LineDiff currentLineModel = diffModel != null && i < diffModel.length
           ? diffModel[i]
           : null;
-      V4f gapColor = currentLineModel != null
-          ? colors.diff.getDiffColor(colors, currentLineModel.type)
-          : diffModel == null
-          ? colors.editor.currentLineBg
-          : colors.editor.bg;
 
       if (model.caretLine == i || currentLineModel != null) {
+        V4f gapColor =
+            currentLineModel != null && currentLineModel.type != 0
+                ? colors.diff.getDiffColor(colors, currentLineModel.type)
+                : colors.editor.currentLineBg;
         vLineSize.x = mirrored
             ? vLineLeftDelta + scrollBarWidth + vLineW - xOffset
             : vLineLeftDelta - vLineW - xOffset;
@@ -850,10 +849,10 @@ public class EditorComponent extends View implements
   private void drawVerticalLine() {
     vLineSize.y = size.y;
     vLineSize.x = vLineW;
-    int dx1 = mirrored
+    int drawLineX = mirrored
         ? size.x - lineNumbers.width() - vLineW
         : vLineX - vLineLeftDelta;
-    g.drawRect(pos.x + dx1, pos.y, vLineSize, colors.editor.numbersVLine);
+    g.drawRect(pos.x + drawLineX, pos.y, vLineSize, colors.editor.numbersVLine);
     vLineSize.x = mirrored
         ? vLineLeftDelta + scrollBarWidth + vLineW - xOffset
         : vLineLeftDelta - vLineW - xOffset;
