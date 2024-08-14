@@ -90,7 +90,7 @@ public class MergeButtons implements Disposable {
     int x = pos.x + 2;
     for (int l = firstLine; l <= lastLine ; l++) {
       if (nextBt == l) {
-        int y = l * lineHeight - scrollPos;
+        int y = pos.y + l * lineHeight - scrollPos;
         bSize.set(lineHeight, lineHeight);
 //        var bg = selectedBtLine == l ? lnColors.caretBgColor : lnColors.bgColor;
         V4f bgColor = LineNumbersComponent.getItemColor(scheme, colors, l);
