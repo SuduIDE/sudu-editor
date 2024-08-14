@@ -12,6 +12,7 @@ import org.sudu.experiments.parser.common.graph.ScopeGraph;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 public class Document extends CodeLines {
   public static final char newLine = '\n';
@@ -153,6 +154,28 @@ public class Document extends CodeLines {
     makeDiff(caretLine, 0, true, deleted);
   }
 
+  public void applyChange(int fromLine, int toLine, CodeLine[] newLines) {
+    deleteLines(fromLine, toLine);
+    if (newLines.length == 0) return;
+
+    CodeLine[] newDocument = new CodeLine[document.length + newLines.length];
+    System.arraycopy(document, 0, newDocument, 0, fromLine);
+    System.arraycopy(newLines, 0, newDocument, fromLine, newLines.length);
+    System.arraycopy(document, fromLine, newDocument, fromLine + newLines.length, document.length - fromLine);
+
+    this.document = newDocument;
+
+    String inserted = Arrays.stream(newLines)
+        .map(CodeLine::makeString)
+        .collect(Collectors.joining("\n", "", "\n"));
+    Diff diff = new Diff(fromLine, 0, false, inserted);
+    makeDiff(diff);
+  }
+
+  public CodeLine[] getLines(int fromLine, int toLine) {
+    return Arrays.copyOfRange(document, fromLine, toLine);
+  }
+
   public String copyLine(int caretLine) {
     return document[caretLine].makeString().concat("\n");
   }
@@ -165,6 +188,7 @@ public class Document extends CodeLines {
   }
 
   public void deleteLines(int fromLine, int toLine) {
+    if (fromLine >= toLine) return;
     Diff diff = new Diff(fromLine, 0, true, new String(getChars(fromLine, toLine)));
     deleteLinesOp(fromLine, toLine);
     makeDiff(diff);
@@ -350,7 +374,7 @@ public class Document extends CodeLines {
   public String[] linesToStrings(int fromLine, int toLine) {
     String[] result = new String[toLine - fromLine + 1];
     for (int i = fromLine; i < toLine; i++) result[i - fromLine] = lineToString(i);
-    result[result.length - 1] = String.valueOf(newLine);
+    result[result.length - 1] = "";
     return result;
   }
 

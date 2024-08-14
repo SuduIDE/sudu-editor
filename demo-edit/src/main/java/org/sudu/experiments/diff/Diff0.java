@@ -49,8 +49,10 @@ public class Diff0 extends WindowScene implements
 
     editor1.setFullFileParseListener(this::fullFileParseListener);
     editor1.setIterativeParseFileListener(this::iterativeParseFileListener);
+    editor1.setOnDiffMadeListener(this::onDiffMadeListener);
     editor2.setFullFileParseListener(this::fullFileParseListener);
     editor2.setIterativeParseFileListener(this::iterativeParseFileListener);
+    editor2.setOnDiffMadeListener(this::onDiffMadeListener);
 
     highlightResolveErrors(false);
 
@@ -132,7 +134,6 @@ public class Diff0 extends WindowScene implements
   }
 
   public void sendToDiff() {
-    System.out.println("sendToDiff");
     DiffUtils.findDiffs(
         editor1.model().document,
         editor2.model().document,
@@ -344,5 +345,42 @@ public class Diff0 extends WindowScene implements
     boolean b1 = hit1 && editor1.onScroll(event, dX, dY);
     boolean b2 = hit2 && editor2.onScroll(event, dX, dY);
     return b1 || b2;
+  }
+
+  private void sendIntervalToDiff(
+      int fromL, int toL,
+      int fromR, int toR
+  ) {
+    DiffUtils.findIntervalDiffs(
+        editor1.model().document,
+        editor2.model().document,
+        (upd) -> updateDiffModel(fromL, toL, fromR, toR, upd),
+        ui.windowManager.uiContext.window.worker(),
+        fromL, toL, fromR, toR
+    );
+  }
+
+  public void updateDiffModel(
+      int fromL, int toL,
+      int fromR, int toR,
+      DiffInfo updateInfo
+  ) {
+    diffModel.updateDiffInfo(fromL, toL, fromR, toR, updateInfo);
+    onDiffResult(diffModel);
+  }
+
+  private void onDiffMadeListener(EditorComponent editor, Diff diff, boolean isUndo) {
+    boolean isDelete = diff.isDelete ^ isUndo;
+    boolean isL = editor == editor1;
+    if (isDelete) onDeleteDiffMadeListener(diff, isL);
+    else onInsertDiffMadeListener(diff, isL);
+  }
+
+  private void onInsertDiffMadeListener(Diff diff, boolean isL) {
+    if (diffModel != null) diffModel.insertAt(diff.line, diff.lineCount(), isL);
+  }
+
+  private void onDeleteDiffMadeListener(Diff diff, boolean isL) {
+    if (diffModel != null) diffModel.deleteAt(diff.line, diff.lineCount(), isL);
   }
 }
