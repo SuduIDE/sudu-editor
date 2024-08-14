@@ -4,6 +4,7 @@ import org.sudu.experiments.Cursor;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
@@ -35,6 +36,8 @@ public class MergeButtons implements Disposable {
   private int selectedBtLine = -1, selectedBtIndex = -1;
   private final boolean drawBg;
   private boolean toLeft;
+
+  static final boolean drawFrames = false;
 
   public MergeButtons() {this.drawBg = false;}
 
@@ -83,33 +86,51 @@ public class MergeButtons implements Disposable {
     this.lastLine = lastLine;
     if (lines == null) return;
     int bIndex = findBIndex(firstLine);
-    if (bIndex == lines.length) return;
 
     if (texture == null) {
       texture = renderIcon(g, c.cleartype);
     }
 
     g.enableScissor(pos, size);
-    int nextBt = lines[bIndex];
-    int x = pos.x + 2;
+    int nextBt = bIndex < lines.length ? lines[bIndex] : -1;
+    int x = pos.x;
+    bSize.set(lineHeight, lineHeight);
     for (int l = firstLine; l <= lastLine ; l++) {
+      int y = pos.y + l * lineHeight - scrollPos;
+      byte color = l < colors.length ? colors[l] : 0;
+
+      V4f bgColor = color != 0 ? scheme.diff.getDiffColor(scheme, color) :
+          l == caretLine ? scheme.lineNumber.caretBgColor
+              : scheme.lineNumber.bgColor;
       if (nextBt == l) {
-        int y = pos.y + l * lineHeight - scrollPos;
-        bSize.set(lineHeight, lineHeight);
 //        var bg = selectedBtLine == l ? lnColors.caretBgColor : lnColors.bgColor;
-        V4f bgColor = LineNumbersComponent.getItemColor(scheme, colors, l);
 //        g.drawRect(x, y, bSize, bg);
         c.drawIcon(
             g, texture, x, y,
             bgColor, lnColors.textColor
         );
-        debug.set(x, y);
-        WindowPaint.drawInnerFrame(g, bSize, debug, scheme.diff.deletedBgColor, -1, c.size);
-        if (++bIndex == lines.length) break;
-        nextBt = lines[bIndex];
+        if (drawFrames) {
+          debug.set(x, y);
+          WindowPaint.drawInnerFrame(g, bSize, debug, scheme.diff.deletedBgColor, -1, c.size);
+        }
+        if (++bIndex < lines.length)
+          nextBt = lines[bIndex];
+      } else {
+        g.drawRect(x, y, bSize, bgColor);
       }
     }
     g.disableScissor();
+    int y = (lastLine + 1) * lineHeight - scrollPos;
+    if (y < size.y) {
+      bSize.y = size.y - y;
+      V4f bgColor = scheme.diff.getDiffColor(scheme, DiffTypes.DEFAULT);
+      g.drawRect(x,pos.y + y, bSize, bgColor);
+      if (drawFrames) {
+        debug.set(x, pos.y+y);
+        WindowPaint.drawInnerFrame(g, bSize, debug, scheme.diff.deletedBgColor, -1, c.size);
+      }
+    }
+//    WindowPaint.drawInnerFrame(g, size, pos, scheme.diff.deletedBgColor, -1, c.size);
   }
 
   private int findBIndex(int firstLine) {
@@ -120,7 +141,7 @@ public class MergeButtons implements Disposable {
   }
 
   private boolean buttonHitTest(V2i e, int lNumber) {
-    int x = pos.x + 2;
+    int x = pos.x;
     int y = pos.y + lNumber * lineHeight - scrollPos;
     int size = lineHeight;
     return Rect.isInside(e, x,y, size, size);

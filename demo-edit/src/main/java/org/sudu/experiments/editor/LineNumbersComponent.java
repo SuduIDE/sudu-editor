@@ -46,6 +46,10 @@ public class LineNumbersComponent implements Disposable {
     this.dpr = dpr;
   }
 
+  public int width() {
+    return size.x;
+  }
+
   private void update(int firstLine, WglGraphics g) {
     if (firstLine == curFirstLine) return;
 
