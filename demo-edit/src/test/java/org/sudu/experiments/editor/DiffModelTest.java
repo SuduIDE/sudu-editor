@@ -27,8 +27,8 @@ public class DiffModelTest {
   }
 
   public void compareDocuments(boolean printResults) {
-    var docL = parse(readFile("ClassR.java"));
-    var docR = parse(readFile("ClassL.java"));
+    var docL = parse(readFile("classR.java"));
+    var docR = parse(readFile("classL.java"));
 
     DiffModel model = new DiffModel();
     char[] charsL = docL.getChars();

@@ -12,11 +12,15 @@ import org.teavm.jso.core.JSString;
 import java.util.function.Consumer;
 
 public class DiffDemoJs extends FileDiffScene {
+
+  public static final String classL = "classL.java";
+  public static final String classR = "classR.java";
+
   public DiffDemoJs(SceneApi api) {
     super(api);
     setReadonly(true);
-    load(model -> left().setModel(model), "ClassL.java");
-    load(model -> right().setModel(model), "ClassR.java");
+    load(model -> left().setModel(model), classL);
+    load(model -> right().setModel(model), classR);
   }
 
   @Override
