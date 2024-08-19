@@ -107,9 +107,8 @@ public class DiffInfo {
 
     ArrayList<DiffRange> newRanges = new ArrayList<>();
     int i = 0;
-    DiffRange range;
-    while (i < ranges.length && (range = ranges[i]).fromL != fromL && range.fromR != fromR) {
-      newRanges.add(range);
+    while (i < ranges.length && !(ranges[i].fromL == fromL && ranges[i].fromR == fromR)) {
+      newRanges.add(ranges[i]);
       i++;
     }
     for (var nRange: updInfo.ranges) {
@@ -117,7 +116,7 @@ public class DiffInfo {
       nRange.fromR += fromR;
       newRanges.add(nRange);
     }
-    while (i < ranges.length && !((range = ranges[i]).toL() == toL && range.toR() == toR)) i++;
+    while (i < ranges.length && !(ranges[i].toL() == toL && ranges[i].toR() == toR)) i++;
     if (i < ranges.length) i++;
     while (i < ranges.length) merge(newRanges, ranges[i++]);
     this.ranges = newRanges.toArray(DiffRange[]::new);

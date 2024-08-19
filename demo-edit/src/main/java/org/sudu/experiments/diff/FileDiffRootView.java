@@ -119,7 +119,6 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
 
     var toModel = !isL ? editor1.model() : editor2.model();
     toModel.document.applyChange(toStartLine, toEndLine, lines);
-    sendToDiff();
   }
 
   private void onDiffMadeListener(EditorComponent editor, Diff diff, boolean isUndo) {
