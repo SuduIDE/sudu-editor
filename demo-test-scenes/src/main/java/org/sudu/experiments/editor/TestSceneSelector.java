@@ -55,7 +55,7 @@ public class TestSceneSelector {
       case "FolderTransferDemo" -> FolderTransferDemo::new;
       case "FolderDiff" -> FolderDiff::new;
       case "FolderDiffScene" -> FolderDiffScene::new;
-      case "FileDiffScene" -> FileDiffScene::new;
+      case "FileDiff" -> FileDiff::new;
 
 //      case "#wasm" -> new WasmDemo(api);
     };

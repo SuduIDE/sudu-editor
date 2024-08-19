@@ -8,12 +8,12 @@ import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.math.V2i;
 
-public class FileDiffScene extends WindowScene implements ThemeControl {
+public class FileDiff extends WindowScene implements ThemeControl {
   EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
 
   protected FileDiffWindow w;
 
-  public FileDiffScene(SceneApi api) {
+  public FileDiff(SceneApi api) {
     super(api, false);
     w = new FileDiffWindow(windowManager, theme, this::menuFonts);
   }

@@ -8,9 +8,9 @@ import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.math.V2i;
 
 public class FolderDiffScene extends WindowScene implements ThemeControl {
-   EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
+  EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
 
-   FolderDiffWindow w;
+  FolderDiffWindow w;
 
   public FolderDiffScene(SceneApi api) {
     super(api, false);

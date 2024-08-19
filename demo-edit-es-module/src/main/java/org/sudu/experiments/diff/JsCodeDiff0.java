@@ -17,7 +17,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
       EditArgs args
   ) {
     this.window = ww;
-    this.w = ((FileDiffScene) window.scene()).w;
+    this.w = ((FileDiff) window.scene()).w;
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly()) setReadonly(args.getReadonly());
   }
@@ -100,7 +100,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
   public static Promise<JsCodeDiff> newDiff(EditArgs arguments) {
     return JsLauncher.start(
         arguments,
-        FileDiffScene::new,
+        FileDiff::new,
         JsCodeDiff0::new
     );
   }
