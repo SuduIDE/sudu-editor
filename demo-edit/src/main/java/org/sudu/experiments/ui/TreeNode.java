@@ -13,7 +13,7 @@ public class TreeNode {
   public int depth;
   public char arrow;
   public char icon;
-  public int diffType, rangeId;
+  public int diffType;
 
   public TreeNode(String v, int d) {
     this(v, d, (char) 0);
@@ -27,6 +27,10 @@ public class TreeNode {
 
   public String value() {
     return line.get(0).s;
+  }
+
+  public void setLine(String line) {
+    this.line = new CodeLine(line);
   }
 
   public void setBold(boolean b) {

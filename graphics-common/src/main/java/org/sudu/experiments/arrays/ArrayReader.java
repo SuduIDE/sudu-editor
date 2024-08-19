@@ -1,6 +1,6 @@
 package org.sudu.experiments.arrays;
 
-public class ArrayReader implements IntsReader {
+public class ArrayReader {
 
   private final int[] source;
   private int pointer;

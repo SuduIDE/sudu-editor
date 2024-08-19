@@ -66,8 +66,16 @@ public class FileDiffWindow extends ToolWindow0
     ed.openFile(f, () -> updateTitle(f, left));
   }
 
+  public void open(String source, String name, boolean left) {
+    var ed = left ? rootView.editor1 : rootView.editor2;
+    ed.openFile(source, name, () -> updateTitle(name, left));
+  }
+
   void updateTitle(FileHandle handle, boolean left) {
-    String name = handle.getFullPath();
+    updateTitle(handle.getFullPath(), left);
+  }
+
+  void updateTitle(String name, boolean left) {
     if (left) leftFile = name; else rightFile = name;
     if (leftFile != null && rightFile != null) {
       window.setTitle(name);

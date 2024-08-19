@@ -2,7 +2,8 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
@@ -19,9 +20,6 @@ import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
 import org.sudu.experiments.update.DiffModelUpdater;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Supplier;
 
 public class FolderDiffWindow extends ToolWindow0 {
@@ -30,12 +28,11 @@ public class FolderDiffWindow extends ToolWindow0 {
   Focusable focusSave;
   FolderDiffRootView rootView;
   DirectoryNode leftRoot, rightRoot;
-  RemoteFolderDiffModel leftModel, rightModel;
+  FolderDiffModel root;
   private static final boolean PRINT_STAT = true;
   private int updateCnt = 0;
   private double startTime;
   private boolean titleSet;
-  private Set<TreeNode> leftModelSet, rightModelSet;
 
   public FolderDiffWindow(
       EditorColorScheme theme,
@@ -58,8 +55,7 @@ public class FolderDiffWindow extends ToolWindow0 {
     window.onFocus(this::onFocus);
     window.onBlur(this::onBlur);
     windowManager.addWindow(window);
-    leftModel = RemoteFolderDiffModel.REMOTE_DEFAULT;
-    rightModel = RemoteFolderDiffModel.REMOTE_DEFAULT;
+    root = FolderDiffModel.DEFAULT;
   }
 
   protected void dispose() {
@@ -208,10 +204,9 @@ public class FolderDiffWindow extends ToolWindow0 {
     window.setTitle(title);
     titleSet = false;
 
-    leftModel = new RemoteFolderDiffModel(null, "");
-    rightModel = new RemoteFolderDiffModel(null, "");
+    root = new FolderDiffModel(null);
     DiffModelUpdater updateHandler = new DiffModelUpdater(
-        leftModel, rightModel,
+        root,
         leftRoot.dir, rightRoot.dir,
         window.context.window.worker(),
         this::updateDiffInfo
@@ -219,30 +214,17 @@ public class FolderDiffWindow extends ToolWindow0 {
     updateHandler.beginCompare();
   }
 
-  private boolean needUpdate(TreeNode left, TreeNode right) {
-    return leftModelSet.contains(left) || rightModelSet.contains(right);
-  }
-
-  private void checkedUpdate(
-      boolean needUpdate,
-      TreeNode leftNode, TreeNode rightNode
-  ) {
-    if (rootView.left == null || rootView.right == null) return;
-    if (needUpdate || needUpdate(leftNode, rightNode)) updateDiffInfo(0, 0);
-  }
-
   protected void updateDiffInfo(int foldersCompared, int filesCompared) {
     if (rootView.left == null || rootView.right == null) return;
+    if (leftRoot == null || rightRoot == null) return;
     updateCnt++;
-    rootView.left.updateModel(leftModel);
-    rootView.right.updateModel(rightModel);
+    rootView.left.updateModel(root, ModelFilter.LEFT);
+    rootView.right.updateModel(root, ModelFilter.RIGHT);
     var left = rootView.left.model();
     var right = rootView.right.model();
     rootView.setDiffModel(DiffModelBuilder.getDiffInfo(left, right));
     window.context.window.repaint();
-    if (leftRoot != null && rightRoot != null
-        && leftModel.isCompared() && rightModel.isCompared()
-    ) {
+    if (root.isCompared()) {
       double dT = window.context.window.timeNow() - startTime;
       if (!titleSet) {
         var title = leftRoot.name() + " ↔ " + rightRoot.name()
@@ -259,9 +241,7 @@ public class FolderDiffWindow extends ToolWindow0 {
   }
 
   private void updateModel(FileTreeView fileTreeView) {
-    fileTreeView.updateModel();
-    leftModelSet = new HashSet<>(Arrays.asList(rootView.left.model()));
-    rightModelSet = new HashSet<>(Arrays.asList(rootView.right.model()));
+    fileTreeView.updateModel(root, fileTreeView == rootView.left ? ModelFilter.LEFT : ModelFilter.RIGHT);
   }
 
   private void selectFolder(boolean left) {

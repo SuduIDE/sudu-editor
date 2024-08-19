@@ -66,8 +66,16 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
     editor.openFile(f, () -> updateTitle(f));
   }
 
+  public void open(String source, String name) {
+    editor.context.setFocus(editor);
+    editor.openFile(source, name, () -> updateTitle(name));
+  }
+
   void updateTitle(FileHandle handle) {
-    String name = handle.getFullPath();
+    updateTitle(handle.getFullPath());
+  }
+
+  void updateTitle(String name) {
     window.setTitle(name);
   }
 

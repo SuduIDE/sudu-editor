@@ -1,7 +1,7 @@
 package org.sudu.experiments.update;
 
 import org.sudu.experiments.DirectoryHandle;
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 public class DiffModelUpdater {
@@ -10,18 +10,19 @@ public class DiffModelUpdater {
     void onComplete(int foldersCompared, int filesCompared);
   }
 
-  public final RemoteFolderDiffModel leftRootAcc, rightRootAcc;
+  public final FolderDiffModel root;
   public final DirectoryHandle leftDir, rightDir;
   private final WorkerJobExecutor executor;
   private final Listener updateInfo;
 
   public DiffModelUpdater(
-      RemoteFolderDiffModel leftRoot, RemoteFolderDiffModel rightRoot,
-      DirectoryHandle leftDir, DirectoryHandle rightDir,
-      WorkerJobExecutor executor, Listener updateInfo
+      FolderDiffModel root,
+      DirectoryHandle leftDir,
+      DirectoryHandle rightDir,
+      WorkerJobExecutor executor,
+      Listener updateInfo
   ) {
-    this.leftRootAcc = leftRoot;
-    this.rightRootAcc = rightRoot;
+    this.root = root;
     this.leftDir = leftDir;
     this.rightDir = rightDir;
     this.executor = executor;
@@ -29,8 +30,8 @@ public class DiffModelUpdater {
   }
 
   public void beginCompare() {
-    Collector collector = new Collector.Collector1(
-        leftRootAcc, rightRootAcc,
+    Collector collector = new Collector(
+        root,
         true,
         executor
     );
@@ -43,8 +44,7 @@ public class DiffModelUpdater {
     updateInfo.onComplete(0,0);
   }
 
-  private void onComplete(Object[] data) {
-    int[] stats = (int[]) data[0];
-    updateInfo.onComplete(stats[0], stats[1]);
+  private void onComplete(int foldersCompared, int filesCompared) {
+    updateInfo.onComplete(foldersCompared, filesCompared);
   }
 }

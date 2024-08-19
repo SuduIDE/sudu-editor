@@ -3,9 +3,7 @@ package org.sudu.experiments.parser.common.tree;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class IntervalTree {
 
@@ -181,6 +179,7 @@ public class IntervalTree {
     } else {
       boolean containsStart = curNode.between(start);
       boolean containsEnd = curNode.between(start + size);
+      boolean noChildren = curNode.children.size() == 0;
 
       if (containsStart && containsEnd) {
         curNode.updateStop(-size);
@@ -190,14 +189,11 @@ public class IntervalTree {
         curNode.setStart(start);
         curNode.updateStop(-size);
       } else return;
-
-      for (var subInterval: curNode.children)
-        makeDeleteDiff(subInterval, start, size);
-
-      boolean upd = curNode.children.stream().reduce(false, (acc, it) -> acc || it.needReparse, (b1, b2) -> b1 || b2);
-      if (!upd && !updateFlag) {
-        curNode.needReparse = true;
-      } else updateFlag = true;
+      if (noChildren) curNode.needReparse = true;
+      else {
+        for (var subInterval: curNode.children)
+          makeDeleteDiff(subInterval, start, size);
+      }
       curNode.children = updateChildren(curNode.children);
     }
   }

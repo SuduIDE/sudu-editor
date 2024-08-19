@@ -95,9 +95,8 @@ public class DiffModelBuilder {
 
   static DiffRange handleDeleted(TreeNode[] left, int lP, int rP) {
     if (left[lP].diffType == DiffTypes.DELETED) {
-      int rangeId = left[lP].rangeId;
       int len = 0;
-      while (lP < left.length && left[lP].rangeId == rangeId) {
+      while (lP < left.length && left[lP].diffType == DiffTypes.DELETED) {
         lP++;
         len++;
       }
@@ -108,9 +107,8 @@ public class DiffModelBuilder {
 
   static DiffRange handleInserted(TreeNode[] right, int rP, int lP) {
     if (right[rP].diffType == DiffTypes.INSERTED) {
-      int rangeId = right[rP].rangeId;
       int len = 0;
-      while (rP < right.length && right[rP].rangeId == rangeId) {
+      while (rP < right.length && right[rP].diffType == DiffTypes.INSERTED) {
         rP++;
         len++;
       }

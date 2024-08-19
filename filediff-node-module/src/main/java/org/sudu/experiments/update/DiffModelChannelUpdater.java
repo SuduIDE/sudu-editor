@@ -5,50 +5,78 @@ import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
+import org.sudu.experiments.js.node.NodeFileHandle;
+import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.worker.WorkerJobExecutor;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
+import org.teavm.jso.typedarrays.Int32Array;
 
 public class DiffModelChannelUpdater {
 
-  public final RemoteFolderDiffModel leftRootAcc, rightRootAcc;
-  public final DirectoryHandle leftDir, rightDir;
-  private final WorkerJobExecutor executor;
+  private final RemoteCollector collector;
   private final Channel channel;
-  private final boolean scanFileContent;
+
+  public static final int FRONTEND_MESSAGE = 0;
+  public static final int OPEN_FILE = 1;
+  public static final Int32Array FRONTEND_MESSAGE_ARRAY = JsMemoryAccess.bufferView(new int[]{FRONTEND_MESSAGE});
+  public static final Int32Array OPEN_FILE_ARRAY = JsMemoryAccess.bufferView(new int[]{OPEN_FILE});
 
   public DiffModelChannelUpdater(
-      RemoteFolderDiffModel leftRoot, RemoteFolderDiffModel rightRoot,
+      RemoteFolderDiffModel root,
       DirectoryHandle leftDir, DirectoryHandle rightDir,
       boolean scanFileContent,
       WorkerJobExecutor executor, Channel channel
   ) {
-    this.leftRootAcc = leftRoot;
-    this.rightRootAcc = rightRoot;
-    this.leftDir = leftDir;
-    this.rightDir = rightDir;
-    this.scanFileContent = scanFileContent;
-    this.executor = executor;
-    this.channel = channel;
-  }
-
-  public void beginCompare() {
-    var collector = new Collector(
-        leftRootAcc, rightRootAcc,
+    this.collector = new RemoteCollector(
+        root,
+        leftDir, rightDir,
         scanFileContent,
         executor
     );
-    collector.setSendResult(this::onCompared);
-    collector.compare(leftRootAcc, rightRootAcc, leftDir, rightDir);
+    this.channel = channel;
+    this.channel.setOnMessage(this::onMessage);
   }
 
-  public void onCompared(Object[] result) {
-    var jsResult = JsArray.create(result.length);
-    int[] ints = (int[]) result[0];
-    jsResult.set(0, JsMemoryAccess.bufferView(ints));
-    for (int i = 1; i < result.length; i++) {
-      String path = (String) result[i];
-      jsResult.set(i, JSString.valueOf(path));
+  public void beginCompare() {
+    collector.setSendResult(channel::sendMessage);
+    collector.setOnComplete(channel::sendMessage);
+    collector.beginCompare();
+  }
+
+  public void onMessage(JsArray<JSObject> jsArray) {
+    Int32Array intArray = jsArray.pop().cast();
+    switch (intArray.get(0)) {
+      case FRONTEND_MESSAGE -> onFrontendMessage(jsArray);
+      case OPEN_FILE -> onOpenFile(jsArray);
     }
-    channel.sendMessage(jsResult);
+  }
+
+  private void onFrontendMessage(JsArray<JSObject> jsArray) {
+    FrontendMessage message = FrontendMessage.deserialize(jsArray);
+    collector.onMessageGot(message);
+  }
+
+  private void onOpenFile(JsArray<JSObject> jsArray) {
+    JSString jsPath = jsArray.pop().cast();
+    Int32Array key = jsArray.pop().cast();
+
+    JsArray<JSObject> result = JsArray.create();
+
+    var fileHandle = new NodeFileHandle(jsPath);
+    fileHandle.readAsText(
+        source -> {
+          result.push(JSString.valueOf(source));
+          result.push(key);
+          result.push(OPEN_FILE_ARRAY);
+          channel.sendMessage(result);
+        },
+        error -> {
+          System.err.println(error);
+          result.push(key);
+          result.push(OPEN_FILE_ARRAY);
+          channel.sendMessage(result);
+        }
+    );
   }
 }

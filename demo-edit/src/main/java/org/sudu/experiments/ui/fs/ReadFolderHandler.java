@@ -1,9 +1,9 @@
 package org.sudu.experiments.ui.fs;
 
 import org.sudu.experiments.DirectoryHandle;
+import org.sudu.experiments.diff.ItemKind;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.math.ArrayOp;
-import org.sudu.experiments.update.Collector;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -12,7 +12,8 @@ public class ReadFolderHandler {
 
   public final RemoteFolderDiffModel rootModel;
   public final DirectoryHandle rootHandle;
-  private final int diffType, rangeId;
+  private final int diffType;
+  private final int itemKind;
   private final Consumer<Object[]> r;
   private int readCnt = 0;
 
@@ -20,19 +21,19 @@ public class ReadFolderHandler {
       RemoteFolderDiffModel rootModel,
       DirectoryHandle rootHandle,
       int diffType,
-      int rangeId,
+      int itemKind,
       Consumer<Object[]> r
   ) {
     this.rootModel = rootModel;
     this.rootHandle = rootHandle;
     this.diffType = diffType;
-    this.rangeId = rangeId;
+    this.itemKind = itemKind;
     this.r = r;
   }
 
   public void beginRead() {
     rootModel.setDiffType(diffType);
-    rootModel.rangeId = rangeId;
+    rootModel.setItemKind(itemKind);
     read(rootModel, rootHandle);
   }
 
@@ -44,15 +45,28 @@ public class ReadFolderHandler {
     handle.read(new DiffReader(children -> onFolderRead(model, children)));
   }
 
+  public static void setChildren(RemoteFolderDiffModel parent, TreeS[] paths) {
+    int len = paths.length;
+    parent.children = new RemoteFolderDiffModel[paths.length];
+    parent.childrenComparedCnt = 0;
+    for (int i = 0; i < len; i++) {
+      parent.children[i] = new RemoteFolderDiffModel(parent, paths[i].name);
+      int kind = paths[i].isFolder
+          ? ItemKind.FOLDER
+          : ItemKind.FILE;
+      parent.child(i).setItemKind(kind);
+    }
+    if (len == 0) parent.itemCompared();
+  }
+
   public void onFolderRead(
       RemoteFolderDiffModel model,
       TreeS[] children
   ) {
-    Collector.setChildren(model, children);
+    setChildren(model, children);
     for (int i = 0; i < children.length; i++) {
       var child = model.child(i);
       child.setDiffType(diffType);
-      child.rangeId = rangeId;
       if (!child.isFile()) {
         read(child, (DirectoryHandle) children[i].item);
       } else child.itemCompared();

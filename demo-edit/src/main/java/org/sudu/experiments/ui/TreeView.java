@@ -157,6 +157,13 @@ public class TreeView extends ScrollContent implements Focusable {
     selectedLine = l;
   }
 
+  public int getSelectedInd() {
+    var model = model();
+    for (int i = 0; i < model.length; i++)
+      if (model[i] == selectedLine) return i;
+    return -1;
+  }
+
   @Override
   public void draw(WglGraphics g) {
     V4f bg = theme.editor.bg;

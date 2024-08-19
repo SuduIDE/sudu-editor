@@ -2,10 +2,11 @@ package org.sudu.experiments.diff.folder;
 
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
-import org.sudu.experiments.arrays.IntsReader;
 import org.sudu.experiments.diff.DiffTypes;
+import org.sudu.experiments.diff.ItemKind;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.sudu.experiments.diff.folder.PropTypes.*;
 
@@ -32,6 +33,19 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
     return (RemoteFolderDiffModel) parent;
   }
 
+  public String getFullPath(String root) {
+    StringBuilder sb = new StringBuilder(root);
+    collectFullPath(sb);
+    return sb.toString();
+  }
+
+  private void collectFullPath(StringBuilder sb) {
+    if (parent != null) {
+      parent().collectFullPath(sb);
+      sb.append("/").append(path);
+    }
+  }
+
   public static final RemoteFolderDiffModel REMOTE_DEFAULT = getDefault();
 
   private static RemoteFolderDiffModel getDefault() {
@@ -44,7 +58,7 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
 
   public static int[] toInts(
       RemoteFolderDiffModel model,
-      ArrayList<String> pathList
+      List<String> pathList
   ) {
     ArrayWriter writer = new ArrayWriter();
     writeInts(model, pathList, writer);
@@ -53,11 +67,10 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
 
   public static void writeInts(
       RemoteFolderDiffModel model,
-      ArrayList<String> pathList,
+      List<String> pathList,
       ArrayWriter writer
   ) {
     writer.write(model.flags);
-    writer.write(model.rangeId);
     writer.write(model.childrenComparedCnt);
 
     writer.write(pathList.size());
@@ -75,13 +88,12 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
   }
 
   public static RemoteFolderDiffModel fromInts(
-      IntsReader reader,
+      ArrayReader reader,
       String[] paths,
       RemoteFolderDiffModel parent
   ) {
     RemoteFolderDiffModel model = new RemoteFolderDiffModel(parent, null);
     model.flags = reader.next();
-    model.rangeId = reader.next();
     model.childrenComparedCnt = reader.next();
 
     int pathInd = reader.next();
@@ -97,16 +109,15 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
   }
 
   @Override
-  public String infoString() {
-    return "RemoteFolderDiffModel{" +
-        "path='" + path +
-        "', parent=" + parent +
-        ", childrenComparedCnt=" + childrenComparedCnt +
-        ", children.length=" + (children != null ? children.length : 0) +
-        ", compared=" + isCompared() +
-        ", propagation=" + getPropagation() +
-        ", diffType=" + getDiffType() +
-        ", rangeId=" + rangeId +
+  public String toString() {
+    return "{" +
+        "\"path\":\"" + path + '\"' +
+        ", \"children\":" + Arrays.toString(children) +
+        ", \"childrenComparedCnt\":" + childrenComparedCnt +
+        ", \"compared\":" + isCompared() +
+        ", \"propagation\":\"" + PropTypes.name(getPropagation()) + "\"" +
+        ", \"diffType\":\"" + DiffTypes.name(getDiffType()) + "\"" +
+        ", \"itemKind\":\"" + ItemKind.name(getItemKind()) + "\"" +
         "}";
   }
 }

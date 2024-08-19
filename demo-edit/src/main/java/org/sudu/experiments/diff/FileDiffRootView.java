@@ -2,6 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.Diff;
+import org.sudu.experiments.editor.test.MergeButtonsTestModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
@@ -75,20 +76,19 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     sendIntervalToDiff(fromRange.fromL, toRange.toL(), fromRange.fromR, toRange.toR());
   }
 
-  public void applyDiff(DiffRange range, boolean isL) {
+  private void applyDiff(DiffRange range, boolean isL) {
     if (range.type == DiffTypes.DEFAULT) return;
-    var oldModel = isL ? editor1.model() : editor2.model();
-    int fromOld = isL ? range.fromL : range.fromR;
-    int toOld = isL ? range.toL() : range.toR();
+    var fromModel = isL ? editor1.model() : editor2.model();
+    int fromStartLine = isL ? range.fromL : range.fromR;
+    int fromEndLine = isL ? range.toL() : range.toR();
+    var lines = fromModel.document.getLines(fromStartLine, fromEndLine);
 
-    var newModel = !isL ? editor1.model() : editor2.model();
-    int fromNew = !isL ? range.fromL : range.fromR;
-    int toNew = !isL ? range.toL() : range.toR();
+    int toStartLine = !isL ? range.fromL : range.fromR;
+    int toEndLine = !isL ? range.toL() : range.toR();
 
-    var oldLines = oldModel.document.linesToStrings(fromOld, toOld);
-    newModel.document.deleteLines(fromNew, toNew + 1);
-    newModel.document.insertLines(fromNew, 0, oldLines);
-    System.out.println();
+    var toModel = !isL ? editor1.model() : editor2.model();
+    toModel.document.applyChange(toStartLine, toEndLine, lines);
+    sendToDiff();
   }
 
   private void onDiffMadeListener(EditorComponent editor, Diff diff, boolean isUndo) {
@@ -127,12 +127,16 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
   }
 
   public void setDiffModel(DiffInfo diffInfo) {
-//    System.out.println("setDiffModel diffInfo = " + diffInfo);
     diffModel = diffInfo;
     editor1.setDiffModel(diffModel.lineDiffsL);
     editor2.setDiffModel(diffModel.lineDiffsR);
     diffSync.setModel(diffModel);
     middleLine.setModel(diffModel);
+
+    var pair = MergeButtonsTestModel.getModels(diffInfo, this::applyDiff);
+    MergeButtonsTestModel m1 = pair[0], m2 = pair[1];
+    editor1.setMergeButtons(m1.actions, m1.lines);
+    editor2.setMergeButtons(m2.actions, m2.lines);
   }
 
   public void updateDiffModel(

@@ -1,6 +1,7 @@
 package org.sudu.experiments.ui;
 
 import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.ui.window.ScrollView;
 
 public class FileTreeView extends TreeView {
@@ -11,16 +12,16 @@ public class FileTreeView extends TreeView {
   }
 
   public void updateModel() {
-    setModel(root.getModel(FolderDiffModel.DEFAULT));
+    setModel(root.getModel(FolderDiffModel.DEFAULT, ModelFilter.NO_FILTER));
   }
 
-  public void updateModel(FolderDiffModel model) {
-    setModel(root.getModel(model));
+  public void updateModel(FolderDiffModel model, int filter) {
+    setModel(root.getModel(model, filter));
   }
 
   public void setRoot(FileTreeNode root) {
     this.root = root;
-    updateModel(FolderDiffModel.DEFAULT);
+    updateModel();
     setSelected0();
   }
 

@@ -1,6 +1,5 @@
 package org.sudu.experiments.ui.fs;
 
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.ui.FileTreeNode;
 
 public class RemoteDirectoryNode extends RemoteFileTreeNode {
@@ -8,17 +7,20 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
   public int folderCnt;
 
   public RemoteDirectoryNode(
-      RemoteFolderDiffModel model,
-      RemoteHandle handle
+      String path,
+      RemoteHandle handle,
+      int depth
   ) {
-    super(model, handle);
+    super(path, handle, depth);
     iconFolder();
     onClick = this::onClick;
+    close();
   }
 
   public void onClick() {
     if (isOpened()) closeDir();
     else openDir();
+    handle.sendModel();
   }
 
   public void openDir() {
@@ -37,17 +39,22 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
   public void doOpen() {
     handle.openDir(this);
     handle.updateView();
-    super.iconFolderOpened();
+    super.open();
   }
 
   public void doClose() {
     handle.closeDir(this);
     handle.updateView();
-    super.iconFolder();
+    super.close();
   }
 
   public boolean isOpened() {
     return children != FileTreeNode.ch0;
+  }
+
+  @Override
+  public boolean isClosed() {
+    return children == FileTreeNode.ch0;
   }
 
   public void setChildren(FileTreeNode[] children) {

@@ -5,15 +5,14 @@ import org.sudu.experiments.ui.FileTreeNode;
 
 public class RemoteFileTreeNode extends FileTreeNode {
 
-  public RemoteFolderDiffModel model;
   public RemoteHandle handle;
 
   public RemoteFileTreeNode(
-      RemoteFolderDiffModel model,
-      RemoteHandle handle
+      String path,
+      RemoteHandle handle,
+      int depth
   ) {
-    this(model.path, model.depth);
-    this.model = model;
+    this(path, depth);
     this.handle = handle;
     defaultIcon();
   }
@@ -22,13 +21,15 @@ public class RemoteFileTreeNode extends FileTreeNode {
     super(v, d);
   }
 
-  public void update(RemoteFolderDiffModel model) {
-    this.model = model;
-    if (childrenLength() != 0) {
-      for (int i = 0; i < childrenLength(); i++) {
-        var updModel = model.child(i);
-        ((RemoteFileTreeNode) (children[i])).update(updModel);
-      }
-    }
+  public RemoteFolderDiffModel model() {
+    return handle.getModel();
+  }
+
+  public RemoteFileTreeNode child(int ind) {
+    return (RemoteFileTreeNode) super.child(ind);
+  }
+
+  public String getFullPath(String root) {
+    return model().getFullPath(root);
   }
 }
