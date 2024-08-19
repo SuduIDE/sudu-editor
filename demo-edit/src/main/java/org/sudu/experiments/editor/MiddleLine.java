@@ -8,9 +8,8 @@ import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.UiContext;
 import org.sudu.experiments.ui.window.View;
 
-import static org.sudu.experiments.diff.Diff0.lineWidthDp;
-
 public class MiddleLine extends View {
+  public static final float lineWidthDp = 2;
 
   public static final int middleLineThicknessDp = 20;
 

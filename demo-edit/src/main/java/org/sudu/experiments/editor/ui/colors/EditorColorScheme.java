@@ -18,6 +18,10 @@ public class EditorColorScheme {
   public final UiFont fileViewFont = new UiFont(Fonts.SegoeUI, 15);
   public final UiFont fileViewIcons = new UiFont(Fonts.codicon, 15);
 
+  public Color error() {
+    return codeElement[ParserConstants.TokenTypes.ERROR].colorF;
+  }
+
   public static EditorColorScheme darculaIdeaColorScheme() {
     return new EditorColorScheme(
         EditorColors.darculaIdeaColorScheme(),

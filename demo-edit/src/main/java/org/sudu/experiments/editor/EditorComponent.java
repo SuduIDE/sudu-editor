@@ -62,6 +62,7 @@ public class EditorComponent extends View implements
   int vLineX;
   int vLineW;
   int vLineLeftDelta;
+  int mergeWidth;
 
   V2i vLineSize = new V2i(1, 0);
 
@@ -128,7 +129,7 @@ public class EditorComponent extends View implements
   @Override
   public void setPosition(V2i pos, V2i size, float dpr) {
     super.setPosition(pos, size, dpr);
-    internalLayout(pos, size, dpr);
+    internalLayout();
   }
 
   @Override
@@ -154,18 +155,20 @@ public class EditorComponent extends View implements
     onDiffMadeListener = listener;
   }
 
-  private void internalLayout(V2i pos, V2i size, float dpr) {
-    vLineX = DprUtil.toPx(vLineXDp, dpr);
+  private void internalLayout() {
+    boolean hasMerge = mergeButtons != null;
+    mergeWidth = (hasMerge && !mirrored) ? mergeWidth() : 0;
+    vLineX = DprUtil.toPx(vLineXDp, dpr) + mergeWidth;
     vLineW = DprUtil.toPx(vLineWDp, dpr);
     vLineLeftDelta = DprUtil.toPx(vLineLeftDeltaDp, dpr);
 
-    int lineNumbersX = mirrored ? pos.x + size.x - lineNumbersWidth() : pos.x;
+    int lineNumbersWidth = lineNumbersWidth();
+    int lineNumbersX = mirrored ? pos.x + size.x - lineNumbersWidth : pos.x;
 
     lineNumbers.setPosition(lineNumbersX, pos.y,
-        Math.min(lineNumbersWidth(), size.x), size.y, dpr);
-    if (mergeButtons != null) {
+        Math.min(lineNumbersWidth, size.x), size.y, dpr);
+    if (hasMerge)
       layoutMergeButtons();
-    }
 
     if (1<0) DebugHelper.dumpFontsSize(g);
     caret.setWidth(DprUtil.toPx(Caret.defaultWidth, dpr));
@@ -226,7 +229,7 @@ public class EditorComponent extends View implements
     lineNumbers.dispose();
     lineNumbers = new LineNumbersComponent();
     updateLineNumbersFont();
-    internalLayout(pos, size, context.dpr);
+    internalLayout();
     if (mergeButtons != null && lineHeight != 0)
       setMergeButtonsFont();
   }
@@ -369,7 +372,8 @@ public class EditorComponent extends View implements
   }
 
   int lineNumbersWidth() {
-    return mirrored ? vLineX : vLineX - vLineLeftDelta;
+    return
+        mirrored ? vLineX : vLineX - vLineLeftDelta - mergeWidth;
   }
 
   int editorHeight() {
@@ -551,13 +555,12 @@ public class EditorComponent extends View implements
       LineDiff currentLineModel = diffModel != null && i < diffModel.length
           ? diffModel[i]
           : null;
-      V4f gapColor = currentLineModel != null
-          ? colors.diff.getDiffColor(colors, currentLineModel.type)
-          : diffModel == null
-          ? colors.editor.currentLineBg
-          : colors.editor.bg;
 
       if (model.caretLine == i || currentLineModel != null) {
+        V4f gapColor =
+            currentLineModel != null && currentLineModel.type != 0
+                ? colors.diff.getDiffColor(colors, currentLineModel.type)
+                : colors.editor.currentLineBg;
         vLineSize.x = mirrored
             ? vLineLeftDelta + scrollBarWidth + vLineW - xOffset
             : vLineLeftDelta - vLineW - xOffset;
@@ -846,8 +849,10 @@ public class EditorComponent extends View implements
   private void drawVerticalLine() {
     vLineSize.y = size.y;
     vLineSize.x = vLineW;
-    int dx1 = mirrored ? size.x - lineNumbersWidth() - vLineW: vLineX - vLineLeftDelta;
-    g.drawRect(pos.x + dx1, pos.y, vLineSize, colors.editor.numbersVLine);
+    int drawLineX = mirrored
+        ? size.x - lineNumbers.width() - vLineW
+        : vLineX - vLineLeftDelta;
+    g.drawRect(pos.x + drawLineX, pos.y, vLineSize, colors.editor.numbersVLine);
     vLineSize.x = mirrored
         ? vLineLeftDelta + scrollBarWidth + vLineW - xOffset
         : vLineLeftDelta - vLineW - xOffset;
@@ -1713,13 +1718,14 @@ public class EditorComponent extends View implements
   }
 
   private void layoutMergeButtons() {
-    int w = Math.min(
-        Numbers.iDivRound(lineHeight, 15, 16),
-        lineNumbers.size.x);
     int x = mirrored ? lineNumbers.pos.x
-        : lineNumbers.pos.x + lineNumbers.size.x - w;
-    mergeButtons.setPosition(x, lineNumbers.pos.y, w, lineNumbers.size.y, dpr);
+        : lineNumbers.pos.x + lineNumbers.size.x;
+    mergeButtons.setPosition(x, lineNumbers.pos.y, mergeWidth(), lineNumbers.size.y, dpr);
     mergeButtons.setScrollPos(vScrollPos);
+  }
+
+  private int mergeWidth() {
+    return Numbers.iDivRound(lineHeight, 15, 16);
   }
 
   public void setMergeButtons(Runnable[] actions, int[] lines) {
@@ -1727,7 +1733,7 @@ public class EditorComponent extends View implements
        mergeButtons = new MergeButtons();
        if (dpr != 0)
          setMergeButtonsFont();
-       layoutMergeButtons();
+       internalLayout();
      }
      mergeButtons.setModel(actions, lines);
      mergeButtons.setColors(lineNumbers.colors());

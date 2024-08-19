@@ -1,7 +1,11 @@
 import {newTextModel, newCodeDiff} from "../../src/editor.js";
 import {initialTextJava, workerUrl} from "../utils.js";
+const codiconUrl = "../../../../codicon/src/main/resources/fonts/codicon.ttf";
 
-const editorArgs = {containerId: "editor", workerUrl: "./../" + workerUrl};
+const editorArgs = {
+    containerId: "editor", workerUrl: "./../" + workerUrl,
+    codiconUrl : codiconUrl
+};
 
 function main() {
     newCodeDiff(editorArgs).then(
@@ -10,7 +14,7 @@ function main() {
             diff1.setLeftModel(model1)
             let model2 = newTextModel(secondTextJava, "java", "url2")
             diff1.setRightModel(model2)
-            diff1.setReadonly(true)
+            // diff1.setReadonly(true)
         }
     )
 }

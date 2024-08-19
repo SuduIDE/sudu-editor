@@ -1,39 +1,17 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.Channel;
-import org.sudu.experiments.JsLauncher;
-import org.sudu.experiments.WebGLError;
-import org.sudu.experiments.WebWindow;
+import org.sudu.experiments.*;
 import org.sudu.experiments.esm.EditArgs;
 import org.sudu.experiments.esm.JsFolderDiff;
-import org.sudu.experiments.fonts.FontConfigJs;
-import org.sudu.experiments.fonts.FontDesk;
-import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.js.*;
-import org.sudu.experiments.math.ArrayOp;
-import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
+
+import java.util.function.Function;
 
 public class JsRemoteFolderDiff0 implements JsFolderDiff {
 
   public final WebWindow window;
   protected RemoteFolderDiffScene folderDiff;
-
-  static void start(
-      EditArgs arguments,
-      JsArray<WebWorkerContext> workers,
-      JsFunctions.Consumer<JsFolderDiff> postResult,
-      JsFunctions.Consumer<JSObject> postError,
-      Channel channel
-  ) {
-    var window = new WebWindow(
-        arguments.getContainerId(), workers);
-    if (window.init(api -> new RemoteFolderDiffScene(api, channel))) {
-      postResult.f(new JsRemoteFolderDiff0(window, arguments));
-    } else {
-      postError.f(JSString.valueOf(WebGLError.text));
-    }
-  }
 
   protected JsRemoteFolderDiff0(WebWindow window, EditArgs args) {
     this.window = window;
@@ -85,36 +63,12 @@ public class JsRemoteFolderDiff0 implements JsFolderDiff {
     folderDiff.setTheme(theme.stringValue());
   }
 
-  public static Promise<JsFolderDiff> newDiff(EditArgs arguments, Channel channel) {
-    if (!JsCanvas.checkFontMetricsAPI())
-      return Promise.reject(FireFoxWarning.message);
-
-    return Promise.create((postResult, postError) -> {
-      boolean loadCodicon = arguments.hasCodiconUrl();
-      var l = new JsLauncher(loadCodicon) {
-        @Override
-        public void launch(JsArray<WebWorkerContext> workers) {
-          start(arguments, workers, postResult, postError, channel);
-        }
-      };
-
-      if (loadCodicon) {
-        var url = arguments.getCodiconUrl().stringValue();
-        FontFace.loadFonts(codiconFontConfig(url))
-            .then(l::onFontsLoaded,
-                e -> postError.f(e.cast()));
-      }
-      WebWorkerContext.start(
-          l::onWorkersStart,
-          postError,
-          arguments.workerUrl(),
-          arguments.numWorkerThreads());
-    });
+  static Function<SceneApi, Scene> sf(Channel channel) {
+    return api -> new RemoteFolderDiffScene(api, channel);
   }
 
-  static FontConfigJs[] codiconFontConfig(String filename) {
-    return ArrayOp.array(
-        new FontConfigJs(Fonts.codicon, filename,
-            FontDesk.NORMAL, FontDesk.WEIGHT_REGULAR));
+  public static Promise<JsFolderDiff> newDiff(EditArgs arguments, Channel channel) {
+    return JsLauncher.start(arguments,
+        sf(channel), JsRemoteFolderDiff0::new);
   }
 }

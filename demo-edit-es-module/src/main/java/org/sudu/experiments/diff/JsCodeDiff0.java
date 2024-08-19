@@ -1,7 +1,6 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.Debug;
-import org.sudu.experiments.WebGLError;
+import org.sudu.experiments.JsLauncher;
 import org.sudu.experiments.WebWindow;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
@@ -11,16 +10,14 @@ import org.teavm.jso.core.JSString;
 public class JsCodeDiff0 implements JsCodeDiff {
 
   public final WebWindow window;
-  private Diff0 diff;
+  private FileDiffWindow w;
 
   public JsCodeDiff0(
-      EditArgs args,
-      JsArray<WebWorkerContext> workers
+      WebWindow ww,
+      EditArgs args
   ) {
-    this.window = new WebWindow(
-        Diff0::new, WebGLError::onWebGlError,
-        args.getContainerId(), workers);
-    this.diff = (Diff0) window.scene();
+    this.window = ww;
+    this.w = ((FileDiffScene) window.scene()).w;
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly()) setReadonly(args.getReadonly());
   }
@@ -28,7 +25,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
   @Override
   public final void dispose() {
     window.dispose();
-    diff = null;
+    w = null;
   }
 
   @Override
@@ -50,33 +47,28 @@ public class JsCodeDiff0 implements JsCodeDiff {
 
   @Override
   public void setReadonly(boolean flag) {
-    diff.setReadonly(flag);
+    w.rootView.setReadonly(flag);
   }
 
   @Override
   public void setFontFamily(JSString fontFamily) {
-    diff.setFontFamily(fontFamily.stringValue());
+    w.rootView.setFontFamily(fontFamily.stringValue());
   }
 
   @Override
   public void setFontSize(float fontSize) {
-    diff.setFontSize(fontSize);
+    w.rootView.setFontSize(fontSize);
   }
 
   @Override
   public void setTheme(JSString theme) {
-    switch (theme.stringValue()) {
-      case "light" -> diff.toggleLight();
-      case "darcula" -> diff.toggleDarcula();
-      case "dark" -> diff.toggleDark();
-      default -> Debug.consoleInfo("unknown theme: ", theme);
-    }
+    w.setTheme(theme.stringValue());
   }
 
   @Override
   public void setLeftModel(JsITextModel model) {
     if (model instanceof JsTextModel jsTextModel) {
-      diff.setLeftModel(jsTextModel.javaModel);
+      w.rootView.setLeftModel(jsTextModel.javaModel);
     } else if (JSObjects.isUndefined(model)) {
       throw new IllegalArgumentException("left model is undefined");
     } else {
@@ -87,7 +79,7 @@ public class JsCodeDiff0 implements JsCodeDiff {
   @Override
   public void setRightModel(JsITextModel model) {
     if (model instanceof JsTextModel jsTextModel) {
-      diff.setRightModel(jsTextModel.javaModel);
+      w.rootView.setRightModel(jsTextModel.javaModel);
     } else if (JSObjects.isUndefined(model)) {
       throw new IllegalArgumentException("right model is undefined");
     } else {
@@ -97,24 +89,19 @@ public class JsCodeDiff0 implements JsCodeDiff {
 
   @Override
   public JsITextModel getLeftModel() {
-    return JsTextModel.fromJava(diff.getLeftModel());
+    return JsTextModel.fromJava(w.rootView.getLeftModel());
   }
 
   @Override
   public JsITextModel getRightModel() {
-    return JsTextModel.fromJava(diff.getRightModel());
+    return JsTextModel.fromJava(w.rootView.getRightModel());
   }
 
   public static Promise<JsCodeDiff> newDiff(EditArgs arguments) {
-    if (JsCanvas.checkFontMetricsAPI()) {
-      return Promise.create((postResult, postError) ->
-          WebWorkerContext.start(
-              workers -> postResult.f(new JsCodeDiff0(arguments, workers)),
-              postError,
-              arguments.workerUrl(),
-              arguments.numWorkerThreads()));
-    } else {
-      return Promise.reject(FireFoxWarning.message);
-    }
+    return JsLauncher.start(
+        arguments,
+        FileDiffScene::new,
+        JsCodeDiff0::new
+    );
   }
 }
