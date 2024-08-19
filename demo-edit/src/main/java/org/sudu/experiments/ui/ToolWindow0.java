@@ -43,7 +43,8 @@ public abstract class ToolWindow0 implements ThemeControl {
     window.setTitle(title);
     window.setOnClose(() -> destroyWindow(window));
     window.setContextMenu(this::onContextMenu);
-    WindowLayouts.largeWindowLayout(window, dpOff);
+    if (window.context.dpr != 0)
+      WindowLayouts.largeWindowLayout(window, dpOff);
     return window;
   }
 
