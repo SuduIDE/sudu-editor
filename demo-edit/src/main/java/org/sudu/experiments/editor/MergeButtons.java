@@ -40,7 +40,7 @@ public class MergeButtons implements Disposable {
   private boolean toLeft;
   private FontDesk font;
 
-  static final boolean drawFrames = false;
+  static final boolean drawFrames = true;
 
   public MergeButtons() {this.drawBg = false;}
 
@@ -231,6 +231,11 @@ public class MergeButtons implements Disposable {
     int margin = DprUtil.toPx(iconTextureMargin, dpr);
     char icon = toLeft ? arrowL : arrowR;
     return mCanvas.measurePx(font, String.valueOf(icon), margin * 2);
+  }
+
+  public int measure(FontDesk font, Canvas mCanvas, float dpr) {
+    char icon = toLeft ? arrowL : arrowR;
+    return mCanvas.measurePx(font, String.valueOf(icon), 1);
   }
 
   @Override

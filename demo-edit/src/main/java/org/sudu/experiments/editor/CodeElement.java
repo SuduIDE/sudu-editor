@@ -50,6 +50,9 @@ public class CodeElement {
     this(s, color, fontIndex(bold, italic));
   }
 
+  public static final int italic = 1;
+  public static final int bold = 2;
+
   public static int fontIndex(boolean bold, boolean italic) {
     return (bold ? 2 : 0) + (italic ? 1 : 0);
   }
