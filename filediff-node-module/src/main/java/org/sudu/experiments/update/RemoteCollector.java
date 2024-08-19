@@ -28,17 +28,19 @@ public class RemoteCollector {
   private Consumer<JsArray<JSObject>> sendResult;
   private Consumer<JsArray<JSObject>> onComplete;
 
-  private static final int CMP_SIZE = 1250;
+  private static final long SEND_FIRST_MSG_MS = 500;
+  private static final long SEND_MSG_MS = 2000;
+
   private int inComparing = 0;
 
-  private int compared = 0;
   private int foldersCompared = 0;
   private int filesCompared = 0;
 
   private boolean firstMessageSent = false;
   private boolean lastMessageSent = false;
 
-  private FrontendMessage lastFrontendMessage;
+  private FrontendMessage lastFrontendMessage = FrontendMessage.EMPTY;
+  private long lastMessageSentTime;
   private final long startTime;
 
   public RemoteCollector(
@@ -53,7 +55,7 @@ public class RemoteCollector {
     this.rightHandle = rightHandle;
     this.executor = executor;
     this.scanFileContent = scanFileContent;
-    this.startTime = System.currentTimeMillis();
+    this.startTime = this.lastMessageSentTime = System.currentTimeMillis();
   }
 
   public void beginCompare() {
@@ -64,7 +66,7 @@ public class RemoteCollector {
     long time = System.currentTimeMillis() - startTime;
     System.out.println("RemoteCollector got frontend message in " + time + "ms");
     lastFrontendMessage = message;
-    if (sendResult != null) sendResult();
+    if (sendResult != null) sendMessage();
   }
 
   private void compare(
@@ -216,38 +218,30 @@ public class RemoteCollector {
   }
 
   private void onItemCompared() {
-    ++compared;
     if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
     if (inComparing == 0) onComplete();
-    else sendFirstMessage();
-  }
-
-  private void sendFirstMessage() {
-    if (sendResult == null || firstMessageSent || lastMessageSent) return;
-    if (compared % CMP_SIZE == 0) {
-      firstMessageSent = true;
-      System.out.println("RemoteCollector::sendFirstMessage");
-      System.out.println("Folders compared: " + foldersCompared + ", files compared: " + filesCompared);
-      send(sendResult, FrontendMessage.EMPTY);
+    else {
+      if (sendResult == null || lastMessageSent) return;
+      long time = firstMessageSent ? RemoteCollector.SEND_MSG_MS : RemoteCollector.SEND_FIRST_MSG_MS;
+      if (getTimeDelta() >= time) {
+        sendMessage();
+      }
     }
   }
 
-  private void sendResult() {
-    if (sendResult == null || lastMessageSent) return;
-    if (lastFrontendMessage != null) {
-      System.out.println("RemoteCollector::sendResult");
-      System.out.println("Folders compared: " + foldersCompared + ", files compared: " + filesCompared);
-      send(sendResult, lastFrontendMessage);
-    }
+  private void sendMessage() {
+    firstMessageSent = true;
+    System.out.println("RemoteCollector::sendMessage");
+    System.out.println("Folders compared: " + foldersCompared + ", files compared: " + filesCompared);
+    send(sendResult, lastFrontendMessage);
   }
 
   private void onComplete() {
-    if (onComplete != null) {
-      lastMessageSent = true;
-      System.out.println("RemoteCollector::onComplete");
-      System.out.println("Folders compared: " + foldersCompared + ", files compared: " + filesCompared);
-      send(onComplete, null);
-    }
+    if (onComplete == null) return;
+    lastMessageSent = true;
+    System.out.println("RemoteCollector::onComplete");
+    System.out.println("Folders compared: " + foldersCompared + ", files compared: " + filesCompared);
+    send(onComplete, null);
   }
 
   private void send(Consumer<JsArray<JSObject>> send, FrontendMessage message) {
@@ -258,8 +252,13 @@ public class RemoteCollector {
     jsArray.push(DiffModelChannelUpdater.FRONTEND_MESSAGE_ARRAY);
     send.accept(jsArray);
 
-    long time = System.currentTimeMillis() - startTime;
+    this.lastMessageSentTime = System.currentTimeMillis();
+    long time = lastMessageSentTime - startTime;
     System.out.println("RemoteCollector send backend message in " + time + "ms");
+  }
+
+  private long getTimeDelta() {
+    return System.currentTimeMillis() - lastMessageSentTime;
   }
 
   public void setSendResult(Consumer<JsArray<JSObject>> sendResult) {
