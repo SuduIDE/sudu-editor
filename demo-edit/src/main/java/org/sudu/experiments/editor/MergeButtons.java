@@ -233,12 +233,6 @@ public class MergeButtons implements Disposable {
     return mCanvas.measurePx(font, String.valueOf(icon), margin * 2);
   }
 
-  public int measure(FontDesk font, Canvas mCanvas, float dpr) {
-    int margin = DprUtil.toPx(iconTextureMargin, dpr);
-    char icon = toLeft ? arrowL : arrowR;
-    return mCanvas.measurePx(font, String.valueOf(icon), margin * 2);
-  }
-
   @Override
   public void dispose() {
     texture = Disposable.dispose(texture);
