@@ -22,4 +22,9 @@ public class LineDiff {
   public boolean isDefault() {
     return type == DiffTypes.DEFAULT;
   }
+
+  @Override
+  public String toString() {
+    return DiffTypes.name(type);
+  }
 }
