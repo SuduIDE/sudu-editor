@@ -189,7 +189,10 @@ public class Document extends CodeLines {
 
   public void deleteLines(int fromLine, int toLine) {
     if (fromLine >= toLine) return;
-    Diff diff = new Diff(fromLine, 0, true, new String(getChars(fromLine, toLine)));
+    StringBuilder deletedSB = new StringBuilder();
+    deletedSB.append(new String(getChars(fromLine, toLine)));
+    if (toLine == length()) deletedSB.append(newLine);
+    Diff diff = new Diff(fromLine, 0, true, deletedSB.toString());
     deleteLinesOp(fromLine, toLine);
     makeDiff(diff);
   }
