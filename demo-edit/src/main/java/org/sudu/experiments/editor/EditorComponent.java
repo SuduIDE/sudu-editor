@@ -229,9 +229,9 @@ public class EditorComponent extends View implements
     lineNumbers.dispose();
     lineNumbers = new LineNumbersComponent();
     updateLineNumbersFont();
-    internalLayout();
     if (mergeButtons != null && lineHeight != 0)
       setMergeButtonsFont();
+    internalLayout();
   }
 
   private void toggleTopTextRenderMode() {
@@ -331,10 +331,9 @@ public class EditorComponent extends View implements
       invalidateFont();
       setFont(name, newPixelFontSize);
       model.caretPos = caretCodeLine().computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
-      if (mergeButtons != null) {
+      if (mergeButtons != null)
         setMergeButtonsFont();
-        layoutMergeButtons();
-      }
+      internalLayout();
       adjustEditorScrollToCaret();
       updateLineNumbersFont();
     }
@@ -1714,26 +1713,28 @@ public class EditorComponent extends View implements
   }
 
   private void setMergeButtonsFont() {
-    mergeButtons.setFont(lineHeight, !mirrored);
+    mergeButtons.setFont(lineHeight, !mirrored, fonts[CodeElement.bold]);
   }
 
   private void layoutMergeButtons() {
     int x = mirrored ? lineNumbers.pos.x
         : lineNumbers.pos.x + lineNumbers.size.x;
-    mergeButtons.setPosition(x, lineNumbers.pos.y, mergeWidth(), lineNumbers.size.y, dpr);
+    int mWidth = mergeWidth();
+    mergeButtons.setPosition(x, lineNumbers.pos.y, mWidth, lineNumbers.size.y, dpr);
     mergeButtons.setScrollPos(vScrollPos);
   }
 
   private int mergeWidth() {
-    return Numbers.iDivRound(lineHeight, 15, 16);
+    return mergeButtons.measure(fonts[CodeElement.bold], g.mCanvas, dpr);
   }
 
   public void setMergeButtons(Runnable[] actions, int[] lines) {
      if (mergeButtons == null) {
        mergeButtons = new MergeButtons();
-       if (dpr != 0)
+       if (dpr != 0) {
          setMergeButtonsFont();
-       internalLayout();
+         internalLayout();
+       }
      }
      mergeButtons.setModel(actions, lines);
      mergeButtons.setColors(lineNumbers.colors());

@@ -3,6 +3,9 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.parser.ParserConstants;
 
 public class CodeElement {
+  public static final int italic = 1;
+  public static final int bold = 2;
+
   public String s;
 
   // color values: org.sudu.experiments.parser.ParserConstants.TokenTypes

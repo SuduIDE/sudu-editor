@@ -1,9 +1,6 @@
 package org.sudu.experiments.editor;
 
-import org.sudu.experiments.Cursor;
-import org.sudu.experiments.Disposable;
-import org.sudu.experiments.GL;
-import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.*;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.ui.colors.LineNumbersColors;
@@ -18,6 +15,11 @@ import org.sudu.experiments.ui.fonts.Codicons;
 import java.util.function.Consumer;
 
 public class MergeButtons implements Disposable {
+
+  static final char arrowL = '≪';
+  static final char arrowR = '≫';
+  static final char arrowR1 = '→';
+  static final char arrowL1 = '←';
 
   public final V2i pos = new V2i();
   public final V2i size = new V2i();
@@ -36,6 +38,7 @@ public class MergeButtons implements Disposable {
   private int selectedBtLine = -1, selectedBtIndex = -1;
   private final boolean drawBg;
   private boolean toLeft;
+  private FontDesk font;
 
   static final boolean drawFrames = false;
 
@@ -51,11 +54,11 @@ public class MergeButtons implements Disposable {
     this.dpr = dpr;
   }
 
-  public void setFont(int lineHeight, boolean rtl) {
+  public void setFont(int lineHeight, boolean rtl, FontDesk font) {
     this.lineHeight = lineHeight;
     this.toLeft = rtl;
-    System.out.println("MergeButtons.setFont " +
-        lineHeight);
+    this.font = font;
+//    System.out.println("MergeButtons.setFont " + font.name + " lh=" + lineHeight);
     texture = Disposable.dispose(texture);
   }
 
@@ -79,8 +82,6 @@ public class MergeButtons implements Disposable {
     LineNumbersColors lnColors = scheme.lineNumber;
     if (drawBg) {
       g.drawRect(pos.x, pos.y, size, lnColors.bgColor);
-    } else {
-//      WindowPaint.drawInnerFrame(g, size, pos, scheme.diff.deletedBgColor, -1, c.size);
     }
     this.firstLine = firstLine;
     this.lastLine = lastLine;
@@ -94,7 +95,7 @@ public class MergeButtons implements Disposable {
     g.enableScissor(pos, size);
     int nextBt = bIndex < lines.length ? lines[bIndex] : -1;
     int x = pos.x;
-    bSize.set(lineHeight, lineHeight);
+    bSize.set(texture.width(), lineHeight);
     for (int l = firstLine; l <= lastLine ; l++) {
       int y = pos.y + l * lineHeight - scrollPos;
       byte color = l < colors.length ? colors[l] : 0;
@@ -107,7 +108,7 @@ public class MergeButtons implements Disposable {
 //        g.drawRect(x, y, bSize, bg);
         c.drawIcon(
             g, texture, x, y,
-            bgColor, lnColors.textColor
+            bgColor, lnColors.caretTextColor
         );
         if (drawFrames) {
           debug.set(x, y);
@@ -130,7 +131,9 @@ public class MergeButtons implements Disposable {
         WindowPaint.drawInnerFrame(g, bSize, debug, scheme.diff.deletedBgColor, -1, c.size);
       }
     }
-//    WindowPaint.drawInnerFrame(g, size, pos, scheme.diff.deletedBgColor, -1, c.size);
+    if (drawFrames) {
+      WindowPaint.drawInnerFrame(g, size, pos, scheme.diff.deletedBgColor, -1, c.size);
+    }
   }
 
   private int findBIndex(int firstLine) {
@@ -211,12 +214,23 @@ public class MergeButtons implements Disposable {
   }
 
   private GL.Texture renderIcon(WglGraphics g, boolean cleartype) {
-    char icon = toLeft ? Codicons.chevron_left : Codicons.chevron_right;
-    FontDesk font = fontDesk(g, lineHeight);
-    int yOffset = -Numbers.iDivRound(lastLine, 3, 32);
-    return g.renderTexture(
-        String.valueOf(icon), font, iconTextureMargin,
+//    char icon = toLeft ? Codicons.chevron_left : Codicons.chevron_right;
+//    FontDesk font = fontDesk(g, lineHeight);
+//    int yOffset = -Numbers.iDivRound(lastLine, 3, 32);
+    char icon = toLeft ? arrowL : arrowR;
+    int yOffset = 0;
+    int margin = DprUtil.toPx(iconTextureMargin, dpr);
+    GL.Texture t = g.renderTexture(
+        String.valueOf(icon), font, margin,
         lineHeight, yOffset, cleartype);
+//    System.out.println("MergeButtons.renderIcon: t.w=" + t.width() + ", w = " + size.x);
+    return t;
+  }
+
+  public int measure(FontDesk font, Canvas mCanvas, float dpr) {
+    int margin = DprUtil.toPx(iconTextureMargin, dpr);
+    char icon = toLeft ? arrowL : arrowR;
+    return mCanvas.measurePx(font, String.valueOf(icon), margin * 2);
   }
 
   @Override

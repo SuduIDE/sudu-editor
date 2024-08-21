@@ -6,15 +6,18 @@ import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ClrContext;
 import org.sudu.experiments.editor.MergeButtons;
-import org.sudu.experiments.editor.test.MergeButtonsTestModel;
+import org.sudu.experiments.editor.test.MergeButtonsModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.ui.window.TestColors;
+import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.function.Consumer;
 
@@ -32,6 +35,7 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
   private int lineHeight = 0;
   private int docLines = 100;
   private int virtualSize;
+  private FontDesk font;
 
   public MergeButtonsTest(SceneApi api) {
     super(api);
@@ -42,9 +46,27 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
     api.input.onScroll.add(this::onMouseWheel);
     api.input.onKeyPress.add(this::onKey);
 
-    var m = new MergeButtonsTestModel(docLines);
+    var m = new TestModel(docLines);
     buttons.setModel(m.actions, m.lines);
     buttons.setColors(new byte[docLines]);
+  }
+
+  static class TestModel extends MergeButtonsModel {
+    public TestModel(int docLines) {
+      super(docLines);
+      int n = docLines / 4;
+      XorShiftRandom rand = new XorShiftRandom();
+      int space = docLines / (1 + n);
+      for (int i = 0, pi = 0; i < n; i++) {
+        lines[i] = pi;
+        actions[i] = action(pi);
+        pi += 1 + rand.nextInt(space);
+      }
+    }
+  }
+
+  static Runnable action(int pi) {
+    return () -> System.out.println("Runnable #" + pi);
   }
 
   @Override
@@ -55,7 +77,7 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
 
   private boolean onKey(KeyEvent keyEvent) {
     if (keyEvent.keyCode == KeyCode.SPACE) {
-      buttons.setFont(lineHeight, toLeft = !toLeft);
+      buttons.setFont(lineHeight, toLeft = !toLeft, font);
       return true;
     }
     return false;
@@ -79,11 +101,12 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
     int left = DprUtil.toPx(20, dpr);
     buttons.setPosition(left, top, w, size.y / 2, dpr);
 
+    font = api.graphics.fontDesk(Fonts.Consolas, 20, dpr);
     int _20 = DprUtil.toPx(20, dpr);
-    lineHeight = _20;
+    lineHeight = font.lineHeight();
     virtualSize = docLines * lineHeight;
 
-    buttons.setFont(lineHeight, toLeft);
+    buttons.setFont(lineHeight, toLeft, font);
   }
 
   final ClrContext ctx = new ClrContext(true);

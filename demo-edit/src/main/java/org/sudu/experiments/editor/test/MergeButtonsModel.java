@@ -6,21 +6,21 @@ import org.sudu.experiments.editor.worker.diff.DiffRange;
 
 import java.util.function.BiConsumer;
 
-public class MergeButtonsTestModel {
+public class MergeButtonsModel {
   public int[] lines;
   public Runnable[] actions;
 
-  public MergeButtonsTestModel(int n) {
+  public MergeButtonsModel(int n) {
     actions = new Runnable[n];
     lines = new int[n];
   }
 
-  public static MergeButtonsTestModel[] getModels(DiffInfo diffInfo, BiConsumer<DiffRange, Boolean> applyDiff) {
+  public static MergeButtonsModel[] getModels(DiffInfo diffInfo, BiConsumer<DiffRange, Boolean> applyDiff) {
     int n = 0;
     for (var range: diffInfo.ranges) if (range.type != DiffTypes.DEFAULT) n++;
 
-    var left = new MergeButtonsTestModel(n);
-    var right = new MergeButtonsTestModel(n);
+    var left = new MergeButtonsModel(n);
+    var right = new MergeButtonsModel(n);
     int i = 0;
     for (var range: diffInfo.ranges) {
       if (range.type == DiffTypes.DEFAULT) continue;
@@ -30,10 +30,6 @@ public class MergeButtonsTestModel {
       right.actions[i] = () -> applyDiff.accept(range, false);
       i++;
     }
-    return new MergeButtonsTestModel[]{left, right};
-  }
-
-  static Runnable action(int pi) {
-    return () -> System.out.println("Runnable #" + pi);
+    return new MergeButtonsModel[]{left, right};
   }
 }

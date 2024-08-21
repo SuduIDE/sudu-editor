@@ -123,8 +123,8 @@ public abstract class WglGraphics {
       int lrMargin, int height, int yOffset, boolean cleartype
   ) {
     mCanvas.setFont(font);
-    int measured = mCanvas.measurePx(s);
-    Canvas canvas = createCanvas(measured + lrMargin * 2, height, cleartype);
+    int measured = mCanvas.measurePx(s, lrMargin * 2);
+    Canvas canvas = createCanvas(measured, height, cleartype);
     canvas.setFont(font);
     canvas.drawText(s, lrMargin, font.baselineShift(height) + yOffset);
     GL.Texture texture = createTexture(canvas);
