@@ -61,7 +61,7 @@ jobs:
           key: sudu-editor-cache
       -
         name: Install OBSUtil
-        if: github.event_name == 'push' && github.ref_type == 'tag'
+#        if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           curl -O https://obs-community-intl.obs.ap-southeast-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz
           tar -z -x -v --strip-components 1 --wildcards -f obsutil_linux_amd64.tar.gz obsutil*/obsutil
@@ -86,7 +86,7 @@ jobs:
           mvn package -am -pl demo-edit-js,demo-edit-es-module -P release
       -
         name: Upload Sudu Editor to OBS
-        if: github.event_name == 'push' && github.ref_type == 'tag'
+#        if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           ./obsutil rm -r -f obs://${{ vars.WEBAPP_OBS_NAME }}
           
