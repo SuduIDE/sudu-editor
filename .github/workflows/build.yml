@@ -61,7 +61,7 @@ jobs:
           key: sudu-editor-cache
       -
         name: Install OBSUtil
-#        if: github.event_name == 'push' && github.ref_type == 'tag'
+        if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           curl -O https://obs-community-intl.obs.ap-southeast-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz
           tar -z -x -v --strip-components 1 --wildcards -f obsutil_linux_amd64.tar.gz obsutil*/obsutil
@@ -86,27 +86,16 @@ jobs:
           mvn package -am -pl demo-edit-js,demo-edit-es-module -P release
       -
         name: Upload Sudu Editor to OBS
-#        if: github.event_name == 'push' && github.ref_type == 'tag'
-        run: |
-          LOG_FILE="obsutil_download_`date +%H:%M:%S`.log"
-          ./obsutil cp -r -f --flat $GITHUB_WORKSPACE/sudu-editor/demo-edit-js/target/demo-edit-js-1.0-SNAPSHOT/ obs://${{ vars.WEBAPP_OBS_NAME }}/ > ${LOG_FILE} 2>&1
-          FAIL_COUNT=$(grep "Failed count:" ${LOG_FILE} | awk '{print $NF}')
-          TASK_ID=$(grep "Task id:" ${LOG_FILE} | awk '{print $NF}')
-          RETRY_COUNT=0
-          MAX_RETRY=10
-          while [[ ${FAIL_COUNT} -gt 0 && ${RETRY_COUNT} -lt ${MAX_RETRY} ]];
-          do
-            sleep 5s
-            RETRY_COUNT=$(expr ${RETRY_COUNT} + 1)
-            echo -e "[WARN] obsutil task ${TASK_ID} fail for ${FAIL_COUNT} objects, retry ${RETRY_COUNT}"
-            ./obsutil cp -r -f --flat -recover=${TASK_ID} > ${LOG_FILE} 2>&1
-            FAIL_COUNT=$(grep "Failed count:" ${LOG_FILE} | awk '{print $NF}')
-            TASK_ID=$(grep "Task id:" ${LOG_FILE} | awk '{print $NF}')
-          done
-          if [[ ${FAIL_COUNT} -gt 0 ]]; then
-           echo -e "[WARN] obsutil task ${TASK_ID} failed for ${MAX_RETRY} times"
-          fi
-          rm ${LOG_FILE}
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        uses: nick-fields/retry@v3
+        id: retry
+        with:
+          max_attempts: 10
+          timeout_minutes: 5
+          retry_on: error
+          command: |
+            ./obsutil rm -r -f obs://${{ vars.WEBAPP_OBS_NAME }}
+            ./obsutil cp -r -f --flat $GITHUB_WORKSPACE/sudu-editor/demo-edit-js/target/demo-edit-js-1.0-SNAPSHOT/ obs://${{ vars.WEBAPP_OBS_NAME }}/
       -
         name: Upload release artifacts to OBS
         if: github.event_name == 'push' && github.ref_type == 'tag'
