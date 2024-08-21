@@ -88,9 +88,7 @@ jobs:
         name: Upload Sudu Editor to OBS
 #        if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
-          ./obsutil rm -r -f obs://${{ vars.WEBAPP_OBS_NAME }}
-          
-          LOG_FILE="obsutil_download_$(date +%H:%M:%S).log"
+          LOG_FILE="obsutil_download_`date +%H:%M:%S`.log"
           ./obsutil cp -r -f --flat $GITHUB_WORKSPACE/sudu-editor/demo-edit-js/target/demo-edit-js-1.0-SNAPSHOT/ obs://${{ vars.WEBAPP_OBS_NAME }}/ > ${LOG_FILE} 2>&1
           FAIL_COUNT=$(grep "Failed count:" ${LOG_FILE} | awk '{print $NF}')
           TASK_ID=$(grep "Task id:" ${LOG_FILE} | awk '{print $NF}')
@@ -99,11 +97,11 @@ jobs:
           while [[ ${FAIL_COUNT} -gt 0 && ${RETRY_COUNT} -lt ${MAX_RETRY} ]];
           do
             sleep 5s
+            RETRY_COUNT=$(expr ${RETRY_COUNT} + 1)
             echo -e "[WARN] obsutil task ${TASK_ID} fail for ${FAIL_COUNT} objects, retry ${RETRY_COUNT}"
             ./obsutil cp -r -f --flat -recover=${TASK_ID} > ${LOG_FILE} 2>&1
             FAIL_COUNT=$(grep "Failed count:" ${LOG_FILE} | awk '{print $NF}')
             TASK_ID=$(grep "Task id:" ${LOG_FILE} | awk '{print $NF}')
-            RETRY_COUNT=$(expr ${RETRY_COUNT} + 1)
           done
           if [[ ${FAIL_COUNT} -gt 0 ]]; then
            echo -e "[WARN] obsutil task ${TASK_ID} failed for ${MAX_RETRY} times"
