@@ -87,9 +87,15 @@ jobs:
       -
         name: Upload Sudu Editor to OBS
         if: github.event_name == 'push' && github.ref_type == 'tag'
-        run: |
-          ./obsutil rm -r -f obs://${{ vars.WEBAPP_OBS_NAME }}
-          ./obsutil cp -r -f --flat $GITHUB_WORKSPACE/sudu-editor/demo-edit-js/target/demo-edit-js-1.0-SNAPSHOT/ obs://${{ vars.WEBAPP_OBS_NAME }}/
+        uses: nick-fields/retry@v3
+        id: retry
+        with:
+          max_attempts: 10
+          timeout_minutes: 5
+          retry_on: error
+          command: |
+            ./obsutil rm -r -f obs://${{ vars.WEBAPP_OBS_NAME }}
+            ./obsutil cp -r -f --flat $GITHUB_WORKSPACE/sudu-editor/demo-edit-js/target/demo-edit-js-1.0-SNAPSHOT/ obs://${{ vars.WEBAPP_OBS_NAME }}/
       -
         name: Upload release artifacts to OBS
         if: github.event_name == 'push' && github.ref_type == 'tag'
