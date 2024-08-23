@@ -212,7 +212,8 @@ public class TreeView extends ScrollContent implements Focusable {
 
       LineDiff diff = diffType != DiffTypes.DEFAULT
           ? clrContext.ld.seType(diffType) : null;
-      var bgLineColor = diff == null ? null : theme.diff.getDiffColor(theme, diff.type);
+      var bgLineColor = diff == null ? null :
+          theme.diff.getDiffColor(theme, diff.type);
       int shift = leftGap + treeShift * mLine.depth;
 
       boolean selected = selectedLine == mLine;
@@ -225,7 +226,8 @@ public class TreeView extends ScrollContent implements Focusable {
         int y = i * lineHeight - scrollPos.y;
         int indent = toPx(selectionBackgroundMargin);
         uiContext.v2i1.set(size.x - indent * 2, lineHeight);
-        g.drawRect(pos.x + indent, pos.y + y, uiContext.v2i1, theme.editor.currentLineBg);
+        g.drawRect(pos.x + indent, pos.y + y,
+            uiContext.v2i1, theme.editor.currentLineBg);
       }
 
       var arrow = getIcon(mLine.arrow);
@@ -237,7 +239,8 @@ public class TreeView extends ScrollContent implements Focusable {
         clrContext.drawIcon(g, arrow,
             arrowX,
             pos.y + yPosition,
-                selected ? theme.editor.currentLineBg : diff != null ? bgLineColor : bg,
+            selected ? theme.editor.currentLineBg :
+                diff != null ? bgLineColor : bg,
             color.colorF);
       }
 
@@ -247,7 +250,8 @@ public class TreeView extends ScrollContent implements Focusable {
         clrContext.drawIcon(g, icon,
             iconX,
             pos.y + yPosition,
-                selected ? theme.editor.currentLineBg : diff != null ? bgLineColor : bg,
+            selected ? theme.editor.currentLineBg :
+                diff != null ? bgLineColor : bg,
             color.colorF);
       }
 
