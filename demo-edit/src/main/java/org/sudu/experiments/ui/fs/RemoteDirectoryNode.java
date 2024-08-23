@@ -14,6 +14,7 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
     super(path, handle, depth);
     iconFolder();
     onClick = this::onClick;
+    onClickArrow = onClick;
     close();
   }
 
