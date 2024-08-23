@@ -206,10 +206,6 @@ public class TreeView extends ScrollContent implements Focusable {
     for (int i = firstLine; i <= lastLine; i++) {
       TreeNode mLine = model.lines[i];
       var diffType = mLine.diffType;
-      CodeLineRenderer line = lines[i % lines.length];
-
-      line.updateTexture(mLine.line, g,
-          lineHeight, width, hScrollPos, i, i % lines.length);
 
       int yPosition = lineHeight * i - scrollPos.y;
 
@@ -254,12 +250,18 @@ public class TreeView extends ScrollContent implements Focusable {
             color.colorF);
       }
 
-      int lineMeasure = mLine.line.lineMeasure();
+      CodeLine cl = mLine.line;
+      if (cl.totalStrLength == 0)
+        continue;
+
+      CodeLineRenderer line = lines[i % lines.length];
+      int lineMeasure = line.updateTexture(cl, g,
+          lineHeight, width, hScrollPos, i, i % lines.length);
+
       int textShift = shift + arrowWidth + iconMargin1Px
           + iconWidth + iconMargin2Px;
       virtualSizeX = Math.max(virtualSizeX,
           textShift + lineMeasure + scrollW);
-
       line.draw(
           pos.y + yPosition,
           startX + textShift,
@@ -388,17 +390,20 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   private boolean closeIfOpened() {
-    if (selectedLine != null && selectedLine.isOpened())
+    if (selectedLine != null && selectedLine.isOpened()
+        && selectedLine.onClickArrow != null)
       selectedLine.onClickArrow.run();
     return true;
   }
 
   private boolean openIfClosedElseMoveDown() {
-    if (selectedLine != null && selectedLine.isClosed())
-      selectedLine.onClickArrow.run();
-    else
+    if (selectedLine != null && selectedLine.isClosed()) {
+      if (selectedLine.onClickArrow != null)
+        selectedLine.onClickArrow.run();
+      return true;
+    } else {
       return moveDown();
-    return true;
+    }
   }
 
   private boolean moveUp() {

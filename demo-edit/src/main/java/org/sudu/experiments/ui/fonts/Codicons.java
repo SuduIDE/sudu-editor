@@ -20,4 +20,6 @@ public interface Codicons {
   char file_binary      = '\uEAE8';
   char file_code        = '\uEAE9';
   char refresh          = '\uEB37';
+  char arrow_left       = '\uEA9b';
+  char arrow_right      = '\uEA9C';
 }

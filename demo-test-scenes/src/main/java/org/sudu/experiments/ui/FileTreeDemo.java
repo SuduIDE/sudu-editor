@@ -10,10 +10,11 @@ import org.sudu.experiments.ui.window.ScrollView;
 import org.sudu.experiments.ui.window.View;
 import org.sudu.experiments.ui.window.Window;
 
-public class FileViewDemo extends WindowDemo implements DprChangeListener {
+public class FileTreeDemo extends WindowDemo implements DprChangeListener {
 
   static final float filesAverage = 4;
   static final float foldersAverage = 3;
+  static final float betweenSpaces = 4;
   static final int depth = 4;
 
   static final boolean folderDoubleClick = false;
@@ -21,7 +22,7 @@ public class FileViewDemo extends WindowDemo implements DprChangeListener {
   FileTreeView treeView;
   EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
 
-  public FileViewDemo(SceneApi api) {
+  public FileTreeDemo(SceneApi api) {
     super(api);
     clearColor.set(new Color(43));
   }
@@ -30,7 +31,8 @@ public class FileViewDemo extends WindowDemo implements DprChangeListener {
   protected View createContent() {
     treeView = new FileTreeView(uiContext);
     var root = MockFileTree.randomFolder(
-        "Project root", depth, () -> treeView.updateModel(FolderDiffModel.DEFAULT, ModelFilter.NO_FILTER));
+        "Project root", depth,
+        () -> treeView.updateModel(FolderDiffModel.DEFAULT, ModelFilter.NO_FILTER));
     System.out.println("FileTreeView model size = " + root.countAll());
     treeView.setRoot(root);
     treeView.setTheme(theme);

@@ -478,12 +478,14 @@ public class EditorComponent extends View implements
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
       CodeLine cLine = model.document.line(i);
       CodeLineRenderer line = lineRenderer(i);
-      line.updateTexture(cLine, g, lineHeight, editorWidth, model.hScrollPos,
+
+      int lineMeasure = line.updateTexture(
+          cLine, g, lineHeight, editorWidth, model.hScrollPos,
           i, i % lines.length);
 
-      fullWidth = Math.max(fullWidth, cLine.lineMeasure() + rightPadding);
-      int yPosition = lineHeight * i - vScrollPos;
+      fullWidth = Math.max(fullWidth, lineMeasure + rightPadding);
 
+      int yPosition = lineHeight * i - vScrollPos;
       LineDiff diff = diffModel == null || i >= diffModel.length ? null : diffModel[i];
       line.draw(
           pos.y + yPosition, dx, g,

@@ -28,7 +28,8 @@ public class CodeLineRenderer implements Disposable {
     this.textures = context.textures0;
   }
 
-  public void updateTexture(
+  // returns lineMeasure()
+  public int updateTexture(
       CodeLine content,
       WglGraphics g,
       int lineHeight,
@@ -41,7 +42,8 @@ public class CodeLineRenderer implements Disposable {
       line = content;
       content.measure(g.mCanvas, context.fonts);
     }
-    int newSize = countNumOfTextures(editorWidth, content.lineMeasure());
+    int lineMeasure = content.lineMeasure();
+    int newSize = countNumOfTextures(editorWidth, lineMeasure);
     int oldSize = textures.length;
     boolean needsResize = newSize > oldSize;
     if (needsResize) allocateTextures(g, newSize);
@@ -68,6 +70,7 @@ public class CodeLineRenderer implements Disposable {
       line.contentDirty = false;
     }
     updateTextureOnScroll(renderingCanvas, lineHeight, horScrollPos);
+    return lineMeasure;
   }
 
   public void setXOffset(int xOffset) {
@@ -138,9 +141,9 @@ public class CodeLineRenderer implements Disposable {
       boolean isCurrentLine,
       LineDiff diff
   ) {
-    int tLength = textures.length;
-    if (tLength == 0) return;
-    if (horScrollPos > line.lineMeasure()) return;
+    int lineMeasure = line.lineMeasure();
+    if (lineMeasure == 0 || horScrollPos >= lineMeasure)
+      return;
 
     int[] iMeasure = line.iMeasure;
     CodeElement[] words = line.elements;
@@ -150,6 +153,7 @@ public class CodeLineRenderer implements Disposable {
 
     int texturePos = horScrollPos;
     int xPos = -xOffset;
+    int tLength = textures.length;
 
     for (int i = curWord; i < words.length; i++) {
       boolean isLastWord = i == words.length - 1;
@@ -191,7 +195,7 @@ public class CodeLineRenderer implements Disposable {
         context.size.set(drawWidth, lineHeight);
         context.drawText(g, texture, xPos + dx, yPosition, c.colorF, bgColor);
       } else {
-        selectedSegment.y = Math.min(selectedSegment.y, line.lineMeasure());
+        selectedSegment.y = Math.min(selectedSegment.y, lineMeasure);
         int pre = texturePos >= selectedSegment.x
             ? drawWidth
             : Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH)

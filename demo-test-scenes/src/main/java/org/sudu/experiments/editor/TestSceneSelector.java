@@ -4,8 +4,8 @@ import org.sudu.experiments.Debug;
 import org.sudu.experiments.Scene;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.diff.*;
+import org.sudu.experiments.ui.FileTreeDemo;
 import org.sudu.experiments.ui.MergeButtonsTest;
-import org.sudu.experiments.ui.FileViewDemo;
 import org.sudu.experiments.editor.menu.FindUsagesDemo;
 import org.sudu.experiments.editor.menu.ToolbarDemo;
 import org.sudu.experiments.editor.ui.window.*;
@@ -49,7 +49,7 @@ public class TestSceneSelector {
       case "EditorInViewDemo" -> EditorInViewDemo::new;
       case "ProjectViewDemo" -> ProjectViewDemo::new;
       case "EditorWindowDemo" -> EditorWindowDemo::new;
-      case "FileViewDemo" -> FileViewDemo::new;
+      case "FileTreeDemo" -> FileTreeDemo::new;
       case "SinDemo" -> SinDemo::new;
       case "DiffMiddleDemo" -> DiffMiddleDemo::new;
       case "FolderTransferDemo" -> FolderTransferDemo::new;
