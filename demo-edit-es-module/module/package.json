@@ -1,5 +1,5 @@
 {
-  "name": "sudu-editor-tmp",
+  "name": "@sudu-ide/editor",
   "version": "0.0.9-beta-something",
   "description": "Sudu Editor built on Java",
   "author": "Kirill Prazdnikov",
