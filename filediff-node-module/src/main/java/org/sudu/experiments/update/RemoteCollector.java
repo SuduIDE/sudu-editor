@@ -10,6 +10,7 @@ import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.worker.WorkerJobExecutor;
@@ -36,8 +37,8 @@ public class RemoteCollector {
 
   private int inComparing = 0;
 
-  private int foldersCompared = 0;
-  private int filesCompared = 0;
+  private int foldersCompared = 0, filesCompared;
+  private int lastFoldersCompared = 0, lastFilesCompared = 0;
 
   private boolean firstMessageSent = false;
   private boolean lastMessageSent = false;
@@ -62,6 +63,8 @@ public class RemoteCollector {
   }
 
   public void beginCompare() {
+    String beginMsg = "Begin comparing" + leftHandle.getName() + " ↔ " + rightHandle.getName();
+    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf(beginMsg));
     compare(root, leftHandle, rightHandle);
   }
 
@@ -233,18 +236,29 @@ public class RemoteCollector {
   }
 
   private void sendMessage() {
+    if (sendResult == null) return;
     firstMessageSent = true;
-    LoggingJs.Static.logger.log(LoggingJs.DEBUG, JSString.valueOf("RemoteCollector::sendMessage"));
-    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf("Folders compared: " + foldersCompared + ", files compared: " + filesCompared));
     send(sendResult, lastFrontendMessage);
+
+    this.lastMessageSentTime = Performance.now();
+    if (lastFilesCompared == filesCompared && lastFoldersCompared == foldersCompared) return;
+    String progressMsg = "Sent message in " + Numbers.iRnd(lastMessageSentTime - startTime) + "ms, " +
+        "foldersCompared: " + foldersCompared + ", filesCompared: " + filesCompared;
+    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf(progressMsg));
+    lastFilesCompared = filesCompared;
+    lastFoldersCompared = foldersCompared;
   }
 
   private void onComplete() {
     if (onComplete == null) return;
     lastMessageSent = true;
-    LoggingJs.Static.logger.log(LoggingJs.DEBUG, JSString.valueOf("RemoteCollector::onComplete"));
-    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf("Folders compared: " + foldersCompared + ", files compared: " + filesCompared));
     send(onComplete, null);
+
+    this.lastMessageSentTime = Performance.now();
+    String completeMsg = leftHandle.getName() + " ↔ " + rightHandle.getName() +
+        " - finished in " + Numbers.iRnd(lastMessageSentTime - startTime) + "ms, " +
+        "foldersCompared: " + foldersCompared + ", filesCompared: " + filesCompared;
+    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf(completeMsg));
   }
 
   private void send(Consumer<JsArray<JSObject>> send, FrontendMessage message) {
@@ -254,10 +268,6 @@ public class RemoteCollector {
     var jsArray = BackendMessage.serialize(root, message, leftRootName, rightRootName);
     jsArray.push(DiffModelChannelUpdater.FRONTEND_MESSAGE_ARRAY);
     send.accept(jsArray);
-
-    this.lastMessageSentTime = Performance.now();
-    double time = lastMessageSentTime - startTime;
-    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf("RemoteCollector send backend message in " + time + "ms"));
   }
 
   private double getTimeDelta() {
