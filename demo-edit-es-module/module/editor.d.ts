@@ -223,7 +223,7 @@ interface EditView extends ICodeEditor, IDisposable {}
 export interface IFolderDiff extends EditorBase, HasTheme, Focusable {}
 
 export interface FolderDiffView extends IFolderDiff, IDisposable {
-    getIsReady(): boolean
+    isReady(): boolean
     onIsReadyChanged: IEvent<boolean>
 }
 
