@@ -222,7 +222,9 @@ interface EditView extends ICodeEditor, IDisposable {}
 
 export interface IFolderDiff extends EditorBase, HasTheme, Focusable {}
 
-export interface FolderDiffView extends IFolderDiff, IDisposable {}
+export interface FolderDiffView extends IFolderDiff, IDisposable {
+    ready: Promise<void>
+}
 
 export interface RemoteFolderDiffView extends FolderDiffView {
     getState(): any
