@@ -2,13 +2,25 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.esm.EditArgs;
+import org.sudu.experiments.esm.JsDisposable;
 import org.sudu.experiments.esm.JsFolderDiff;
 import org.sudu.experiments.js.*;
+import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 
-public class JsRemoteFolderDiff0 implements JsFolderDiff {
+interface JsRemoteFolderDiff extends JsFolderDiff {
+  JSObject getState();
+  void applyState(JSObject state);
+
+  boolean isReady();
+  JsDisposable onReady(JsFunctions.Consumer<JSBoolean> callback);
+}
+
+public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
 
   public final WebWindow window;
   protected RemoteFolderDiffScene folderDiff;
@@ -61,6 +73,31 @@ public class JsRemoteFolderDiff0 implements JsFolderDiff {
   @Override
   public void setTheme(JSString theme) {
     folderDiff.setTheme(theme.stringValue());
+  }
+
+  @Override
+  public JSObject getState() {
+    return JSString.valueOf("state");
+  }
+
+  @Override
+  public void applyState(JSObject state) {
+    Debug.consoleInfo("JsRemoteFolderDiff.applyState: ", state);
+  }
+
+  static IntConsumer toJava(JsFunctions.Consumer<JSBoolean> callback) {
+    return i -> callback.f(JSBoolean.valueOf(i != 0));
+  }
+
+  @Override
+  public boolean isReady() {
+    return folderDiff.w.finished;
+  }
+
+  @Override
+  public JsDisposable onReady(JsFunctions.Consumer<JSBoolean> callback) {
+    var d = folderDiff.w.stateListeners.disposableAdd(toJava(callback));
+    return JsDisposable.of(d);
   }
 
   static Function<SceneApi, Scene> sf(Channel channel) {

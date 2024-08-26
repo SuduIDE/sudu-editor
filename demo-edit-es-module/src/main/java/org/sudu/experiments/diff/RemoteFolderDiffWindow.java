@@ -1,6 +1,8 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Channel;
+import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.Subscribers;
 import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.EditorWindow;
@@ -26,10 +28,12 @@ import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 public class RemoteFolderDiffWindow extends ToolWindow0 {
+
+  public final Subscribers<IntConsumer> stateListeners =
+      new Subscribers<>(new IntConsumer[0]);
 
   Window window;
   Focusable focusSave;
@@ -41,6 +45,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private final long startTime;
 
   private boolean updatedRoots = false;
+  boolean finished = false;
 
   String searchString = "*";
 
@@ -117,6 +122,17 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     }
     window.context.window.repaint();
     updateDiffInfo();
+    if (rootModel.isCompared()) {
+      fireFinished();
+    }
+  }
+
+  private void fireFinished() {
+    LoggingJs.Static.logger.log(LoggingJs.INFO,
+        JSString.valueOf("RemoteFolderDiff finished"));
+    finished = true;
+    for (IntConsumer listener : stateListeners.array())
+      listener.accept(1);
   }
 
   protected void updateDiffInfo() {

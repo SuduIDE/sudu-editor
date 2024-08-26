@@ -12,11 +12,11 @@ public class RemoteFolderDiffScene extends WindowScene implements ThemeControl {
 
   EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
   RemoteFolderDiffWindow w;
-  protected Channel channel;
 
   public RemoteFolderDiffScene(SceneApi api, Channel channel) {
     super(api, false);
-    this.channel = channel;
+    w = new RemoteFolderDiffWindow(theme, windowManager,
+        this::menuFonts, channel);
   }
 
   public String[] menuFonts() {
@@ -26,7 +26,7 @@ public class RemoteFolderDiffScene extends WindowScene implements ThemeControl {
   @Override
   public void applyTheme(EditorColorScheme t) {
     theme = t;
-    if (w != null) w.applyTheme(t);
+    w.applyTheme(t);
   }
 
   @Override
@@ -34,7 +34,6 @@ public class RemoteFolderDiffScene extends WindowScene implements ThemeControl {
     boolean init = windowManager.uiContext.dpr == 0;
     super.onResize(newSize, newDpr);
     if (init) {
-      w = new RemoteFolderDiffWindow(theme, windowManager, this::menuFonts, channel);
       w.window.fullscreen();
     }
   }
