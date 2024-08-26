@@ -224,7 +224,7 @@ export interface IFolderDiff extends EditorBase, HasTheme, Focusable {}
 
 export interface FolderDiffView extends IFolderDiff, IDisposable {
     isReady(): boolean
-    onIsReadyChanged: IEvent<boolean>
+    onReadyChanged: IEvent<boolean>
 }
 
 export interface RemoteFolderDiffView extends FolderDiffView {
