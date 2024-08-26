@@ -49,9 +49,6 @@ public class DiffEngine implements DiffEngineJs {
     JsHelper.consoleInfo("Starting folder diff ");
     boolean scanFileContent = true;
 
-    leftPath = preparePath(leftPath);
-    rightPath = preparePath(rightPath);
-
     if (notDir(leftPath))
       throw new IllegalArgumentException("Left path " + leftPath.stringValue() + " should be directory");
     if (notDir(rightPath))
@@ -165,11 +162,4 @@ public class DiffEngine implements DiffEngineJs {
     return Fs.isDirectory(path);
   }
 
-  static JSString preparePath(JSString jsString) {
-    String result = jsString.stringValue();
-    if (result.startsWith("file:///")) result = result.substring("file:///".length());
-    return JSString.valueOf(
-        result.replace("%3A", ":")
-    );
-  }
 }
