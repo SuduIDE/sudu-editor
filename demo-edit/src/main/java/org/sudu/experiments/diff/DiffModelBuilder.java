@@ -16,9 +16,9 @@ public class DiffModelBuilder {
 
     int i = 0;
     while (i < left.length) {
-      int diffType = left[i].diffType;
       int begin = i;
-      while (i < left.length && diffType == left[i].diffType) i++;
+      while (i < left.length && left[begin].diffType == left[i].diffType) i++;
+      int diffType = left[begin].diffType == DiffTypes.DEFAULT ? DiffTypes.DEFAULT : DiffTypes.FOLDER_ALIGN_DIFF_TYPE;
       var range = new DiffRange(begin, i - begin, begin, i - begin, diffType);
       ranges = ArrayOp.addAt(range, ranges, ptr++);
     }

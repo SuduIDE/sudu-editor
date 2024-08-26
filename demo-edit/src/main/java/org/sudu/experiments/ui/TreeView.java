@@ -211,7 +211,7 @@ public class TreeView extends ScrollContent implements Focusable {
       int yPosition = lineHeight * i - scrollPos.y;
 
       LineDiff diff = diffType != DiffTypes.DEFAULT
-          ? clrContext.ld.seType(diffType) : null;
+          ? clrContext.ld.seType(DiffTypes.FOLDER_ALIGN_DIFF_TYPE) : null;
       var bgLineColor = diff == null ? null :
           theme.diff.getDiffColor(theme, diff.type);
       int shift = leftGap + treeShift * mLine.depth;
