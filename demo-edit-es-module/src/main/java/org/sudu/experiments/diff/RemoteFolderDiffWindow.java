@@ -119,6 +119,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       window.setTitle(msg.leftRootName + " <-> " + msg.rightRootName);
       leftRoot.doOpen();
       rightRoot.doOpen();
+      updateDiffInfo();
     }
     window.context.window.repaint();
     updateDiffInfo();
@@ -136,8 +137,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   protected void updateDiffInfo() {
-    rootView.left.updateModel(rootModel, ModelFilter.LEFT);
-    rootView.right.updateModel(rootModel, ModelFilter.RIGHT);
+    rootView.left.updateModel(rootModel, rightRoot, ModelFilter.LEFT);
+    rootView.right.updateModel(rootModel, leftRoot, ModelFilter.RIGHT);
     rootView.setDiffModel(DiffModelBuilder.getDiffInfo(
         rootView.left.model(),
         rootView.right.model()

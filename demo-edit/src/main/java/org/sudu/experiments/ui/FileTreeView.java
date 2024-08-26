@@ -12,11 +12,15 @@ public class FileTreeView extends TreeView {
   }
 
   public void updateModel() {
-    setModel(root.getModel(FolderDiffModel.DEFAULT, ModelFilter.NO_FILTER));
+    updateModel(FolderDiffModel.DEFAULT, null, ModelFilter.NO_FILTER);
   }
 
   public void updateModel(FolderDiffModel model, int filter) {
-    setModel(root.getModel(model, filter));
+    updateModel(model, null, filter);
+  }
+
+  public void updateModel(FolderDiffModel model, FileTreeNode another, int filter) {
+    setModel(root.getModel(model, another, filter));
   }
 
   public void setRoot(FileTreeNode root) {

@@ -8,7 +8,7 @@ public class RemoteFileNode extends RemoteFileTreeNode {
       int depth
   ) {
     super(model, handle, depth);
-    onDblClick = () -> handle.openFile(this);
+    onDblClick = onClickArrow = () -> handle.openFile(this);
   }
 
   @Override

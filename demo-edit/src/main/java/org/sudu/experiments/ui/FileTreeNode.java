@@ -1,11 +1,8 @@
 package org.sudu.experiments.ui;
 
-import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 
 import java.util.Comparator;
-
-import static org.sudu.experiments.diff.folder.PropTypes.PROP_DOWN;
 
 public class FileTreeNode extends TreeNode {
 
@@ -35,11 +32,11 @@ public class FileTreeNode extends TreeNode {
     children = ch;
   }
 
-  TreeNode[] getModel(FolderDiffModel model, int filter) {
-    int cnt = count();
+  TreeNode[] getModel(FolderDiffModel model, FileTreeNode another, int filter) {
+    int cnt = count(model, another, filter);
     TreeNode[] lines = new TreeNode[cnt];
-    int idx = getModel(lines, model, filter, 0);
-    if (idx != lines.length) throw new RuntimeException();
+    int idx = getModel(lines, model, another, filter, 0);
+    if (idx != lines.length) throw new RuntimeException("Wrong number of lines: " + idx + ", expected: " + lines.length);
     return lines;
   }
 
@@ -67,23 +64,53 @@ public class FileTreeNode extends TreeNode {
     return n;
   }
 
-  private int getModel(TreeNode[] t, FolderDiffModel model, int filter, int idx) {
-    boolean noChildren = model.children == null;
-    boolean isDownProp = model.getPropagation() == PROP_DOWN;
+  public int count(FolderDiffModel model, FileTreeNode another, int filter) {
+    int n = 1;
+    if (isOpened()) {
+      if (model.children == null) return count();
+
+      int i = 0, j = 0;
+      for (var child : model.children) {
+        if (child.matchFilter(filter)) {
+          if (!child.isBoth()) n += children[i++].count(child, null, filter);
+          else n += children[i++].count(child, childOrNull(another, j++), filter);
+        } else {
+          var anotherChild = childOrNull(another, j);
+          if (anotherChild == null) n++;
+          else n += anotherChild.count();
+        }
+      }
+    }
+    return n;
+  }
+
+  private int getModel(TreeNode[] t, FolderDiffModel model, FileTreeNode another, int filter, int idx) {
     this.diffType = model.getDiffType();
     t[idx++] = this;
     setIcon(this, model);
     if (isOpened()) {
-      int mP = 0;
-      for (FileTreeNode child: children) {
-        if (isDownProp && noChildren) {
+      if (model.children == null) {
+        for (FileTreeNode child: children) {
           idx = child.getModel(t, model.getDiffType(), idx, model.isCompared());
-        } else if (noChildren) {
-          idx = child.getModel(t, DiffTypes.DEFAULT, idx, model.isCompared());
-        } else {
-          mP = model.nextInd(mP, filter);
-          idx = child.getModel(t, model.child(mP), filter, idx);
-          mP++;
+        }
+      } else {
+        int i = 0, j = 0;
+        for (FolderDiffModel child: model.children) {
+          if (child.matchFilter(filter)) {
+            if (!child.isBoth()) {
+              idx = children[i++].getModel(t, child, null, filter, idx);
+            } else {
+              idx = children[i++].getModel(t, child, childOrNull(another, j++), filter, idx);
+            }
+          } else {
+            var anotherChild = childOrNull(another, j);
+            if (anotherChild == null) {
+              t[idx++] = empty(child.getDiffType());
+              j++;
+            } else {
+              idx = another.child(j++).getEmptyModel(t, child.getDiffType(), idx);
+            }
+          }
         }
       }
     }
@@ -100,6 +127,26 @@ public class FileTreeNode extends TreeNode {
       }
     }
     return idx;
+  }
+
+  private int getEmptyModel(TreeNode[] t, int diffType, int idx) {
+    t[idx++] = empty(diffType);
+    if (isOpened()) {
+      for (var child: children) {
+        idx = child.getEmptyModel(t, diffType, idx);
+      }
+    }
+    return idx;
+  }
+
+  private static FileTreeNode empty(int diffType) {
+    FileTreeNode empty = new FileTreeNode("", 0);
+    empty.diffType = diffType;
+    return empty;
+  }
+
+  private static FileTreeNode childOrNull(FileTreeNode another, int j) {
+    return another == null || j >= another.childrenLength() ? null : another.child(j);
   }
 
   private static void setIcon(FileTreeNode node, FolderDiffModel model) {
