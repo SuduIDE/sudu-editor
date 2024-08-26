@@ -46,7 +46,7 @@ public class ElementParser implements IntParser, FirstLinesIntLexer {
         if (wordStart != i) addToLast(lines, wordStart, i, 0, 0);
         wordStart = i + 1;
         if (lines.size() >= numOfLines) break;
-        lines.add(new ArrayList<>());
+        addNewLine(lines, wordStart);
       } else if (c == '\r') {
         if (wordStart != i) addToLast(lines, wordStart, i, 0, 0);
         wordStart = i + 1;
@@ -55,10 +55,15 @@ public class ElementParser implements IntParser, FirstLinesIntLexer {
           i++;
         }
         if (lines.size() >= numOfLines) break;
-        lines.add(new ArrayList<>());
+        addNewLine(lines, wordStart);
       }
     }
-    if (wordStart != source.length) addToLast(lines, wordStart, source.length, 0, 0);
+    if (wordStart != source.length) {
+      addToLast(lines, wordStart, source.length, 0, 0);
+    } else {
+      var last = lines.get(lines.size() - 1);
+      if (last.isEmpty()) addToLast(lines, wordStart, wordStart, 0, 0);
+    }
 
     ArrayWriter writer = new ArrayWriter();
     writer.write(lines.size(), 0, 0);
@@ -73,6 +78,12 @@ public class ElementParser implements IntParser, FirstLinesIntLexer {
   private static void addToLast(List<List<Integer>> list, Integer... elems) {
     var last = list.get(list.size() - 1);
     last.addAll(Arrays.asList(elems));
+  }
+
+  private static void addNewLine(List<List<Integer>> list, int wordStart) {
+    var last = list.get(list.size() - 1);
+    if (last.isEmpty()) addToLast(list, wordStart, wordStart, 0, 0);
+    list.add(new ArrayList<>());
   }
 
   private static final BitSet DELIMS = initDelimBitSet();

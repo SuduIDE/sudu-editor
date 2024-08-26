@@ -1,6 +1,7 @@
 package org.sudu.experiments.parser.common.tree;
 
 import org.sudu.experiments.parser.Interval;
+import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.graph.node.ScopeNode;
 
 import java.util.*;
@@ -123,8 +124,13 @@ public class IntervalTree {
   }
 
   public void makeInsertDiff(int start, int size) {
-    updateFlag = false;
-    makeInsertDiff(root, start, size);
+    if (root.children.size() == 0) {
+      root.updateStop(start + size);
+      root.needReparse = true;
+    } else {
+      updateFlag = false;
+      makeInsertDiff(root, start, size);
+    }
   }
 
   private void makeInsertDiff(IntervalNode curNode, int start, int size) {
@@ -189,13 +195,22 @@ public class IntervalTree {
         curNode.setStart(start);
         curNode.updateStop(-size);
       } else return;
-      if (noChildren) curNode.needReparse = true;
+      if (noChildren || checkNeedReparse(curNode, start)) curNode.needReparse = true;
       else {
         for (var subInterval: curNode.children)
           makeDeleteDiff(subInterval, start, size);
       }
       curNode.children = updateChildren(curNode.children);
     }
+  }
+
+  private boolean checkNeedReparse(IntervalNode curNode, int start) {
+    if (curNode.children.size() == 0) return true;
+    if (curNode.getType() == ParserConstants.IntervalTypes.Java.TYPE_DECL) {
+      var first = curNode.children.get(0);
+      return first.getStart() > start;
+    }
+    return false;
   }
 
   private List<IntervalNode> updateChildren(List<IntervalNode> children) {
@@ -221,27 +236,6 @@ public class IntervalTree {
     }
     if (curNode != null) result.add(curNode);
     return result;
-  }
-
-  private void alignChildren(List<IntervalNode> children) {
-    for (int i = 1; i < children.size(); i++) {
-      var prev = children.get(i - 1);
-      var cur = children.get(i);
-      cur.setStart(prev.getStop());
-    }
-  }
-
-  private void addNodeRec(IntervalNode curNode, IntervalNode node) {
-    if (curNode.containsInterval(node)) {
-      for (var subNode: curNode.children) {
-        if (subNode.containsInterval(node)) {
-          addNodeRec(subNode, node);
-          return;
-        }
-      }
-      curNode.children.add(node);
-      node.parent = curNode;
-    }
   }
 
   public void printIntervals(String source) {

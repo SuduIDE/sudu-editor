@@ -400,6 +400,7 @@ public class Model {
       resolveAll();
     } else {
       ParserUtils.updateDocument(document, ints, chars);
+      document.onReparse();
     }
     if (editor != null) editor.fireFileIterativeParsed(start, stop);
   }

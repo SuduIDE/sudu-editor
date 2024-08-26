@@ -3,6 +3,7 @@ package org.sudu.experiments.editor.test;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
+import org.sudu.experiments.math.Numbers;
 
 import java.util.function.BiConsumer;
 
@@ -24,12 +25,16 @@ public class MergeButtonsModel {
     int i = 0;
     for (var range: diffInfo.ranges) {
       if (range.type == DiffTypes.DEFAULT) continue;
-      left.lines[i] = range.fromL;
+      left.lines[i] = line(range.fromL, diffInfo.lineDiffsL.length);
       left.actions[i] = () -> applyDiff.accept(range, true);
-      right.lines[i] = range.fromR;
+      right.lines[i] = line(range.fromR, diffInfo.lineDiffsR.length);
       right.actions[i] = () -> applyDiff.accept(range, false);
       i++;
     }
     return new MergeButtonsModel[]{left, right};
+  }
+
+  private static int line(int line, int docLen) {
+    return Numbers.clamp(0, line, docLen - 1);
   }
 }
