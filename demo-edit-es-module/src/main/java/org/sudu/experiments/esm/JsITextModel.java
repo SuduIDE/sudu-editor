@@ -1,5 +1,6 @@
 package org.sudu.experiments.esm;
 
+import org.sudu.experiments.js.JsDisposable;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSString;
 

@@ -2,7 +2,6 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.esm.EditArgs;
-import org.sudu.experiments.esm.JsDisposable;
 import org.sudu.experiments.esm.JsFolderDiff;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;

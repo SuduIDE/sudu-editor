@@ -45,7 +45,7 @@ public class DiffEngine implements DiffEngineJs {
   }
 
   @Override
-  public void startFolderDiff(JSString leftPath, JSString rightPath, Channel channel) {
+  public JsDisposable startFolderDiff(JSString leftPath, JSString rightPath, Channel channel) {
     JsHelper.consoleInfo("Starting folder diff ");
     boolean scanFileContent = true;
 
@@ -69,6 +69,8 @@ public class DiffEngine implements DiffEngineJs {
         pool, channel
     );
     updater.beginCompare();
+
+    return JsDisposable.of(updater);
   }
 
   /*

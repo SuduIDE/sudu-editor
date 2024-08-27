@@ -2,6 +2,8 @@ package org.sudu.experiments.update;
 
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.DirectoryHandle;
+import org.sudu.experiments.Disposable;
+import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
@@ -12,7 +14,7 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
-public class DiffModelChannelUpdater {
+public class DiffModelChannelUpdater implements Disposable {
 
   private final RemoteCollector collector;
   private final Channel channel;
@@ -38,6 +40,13 @@ public class DiffModelChannelUpdater {
     this.channel.setOnMessage(this::onMessage);
   }
 
+  @Override
+  public void dispose() {
+    LoggingJs.Static.logger.log(LoggingJs.INFO,
+        JSString.valueOf("DiffModelChannelUpdater.dispose"));
+    // todo: shutdown all activity
+  }
+
   public void beginCompare() {
     collector.setSendResult(channel::sendMessage);
     collector.setOnComplete(channel::sendMessage);
@@ -61,17 +70,17 @@ public class DiffModelChannelUpdater {
     JSString jsPath = jsArray.pop().cast();
     Int32Array key = jsArray.pop().cast();
 
-    JsArray<JSObject> result = JsArray.create();
-
     var fileHandle = new NodeFileHandle(jsPath);
     fileHandle.readAsText(
         source -> {
+          var result = JsArray.create();
           result.push(JSString.valueOf(source));
           result.push(key);
           result.push(OPEN_FILE_ARRAY);
           channel.sendMessage(result);
         },
         error -> {
+          var result = JsArray.create();
           System.err.println(error);
           result.push(key);
           result.push(OPEN_FILE_ARRAY);
