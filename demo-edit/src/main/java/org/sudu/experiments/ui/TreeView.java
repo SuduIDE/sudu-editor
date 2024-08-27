@@ -379,7 +379,7 @@ public class TreeView extends ScrollContent implements Focusable {
       case KeyCode.ARROW_DOWN -> moveDown();
       case KeyCode.ARROW_UP -> moveUp();
       case KeyCode.ARROW_RIGHT -> openIfClosedElseMoveDown();
-      case KeyCode.ARROW_LEFT -> closeIfOpened();
+      case KeyCode.ARROW_LEFT -> closeIfOpenedElseMoveToParent();
       case KeyCode.ENTER -> enterSelected();
       default -> false;
     };
@@ -394,11 +394,14 @@ public class TreeView extends ScrollContent implements Focusable {
     return true;
   }
 
-  private boolean closeIfOpened() {
-    if (selectedLine != null && selectedLine.isOpened()
-        && selectedLine.onClickArrow != null)
-      selectedLine.onClickArrow.run();
-    return true;
+  private boolean closeIfOpenedElseMoveToParent() {
+    if (selectedLine != null && selectedLine.isOpened()){
+      if(selectedLine.onClickArrow != null)
+        selectedLine.onClickArrow.run();
+      return true;
+    } else {
+      return moveToParent();
+    }
   }
 
   private boolean openIfClosedElseMoveDown() {
@@ -409,6 +412,21 @@ public class TreeView extends ScrollContent implements Focusable {
     } else {
       return moveDown();
     }
+  }
+
+  private boolean moveToParent() {
+    int idx = selectedIndex();
+    if(idx < 0) return false;
+    int parentDepth = model.lines[idx].depth - 1;
+    if(parentDepth < 0) return false;
+    for(idx--; idx >= 0; idx--){
+      if(model.lines[idx].depth == parentDepth) {
+        selectedLine = model.lines[idx];
+        checkScroll(idx);
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean moveUp() {
