@@ -45,6 +45,7 @@ public class TreeView extends ScrollContent implements Focusable {
   UiFont uiFont, uiIcons;
   int firstLineRendered, lastLineRendered;
   TreeNode selectedLine;
+  Consumer<Integer> onSelectedLineChanged;
 
   GL.Texture arrowR, arrowD;
   GL.Texture folder, folderOpened;
@@ -317,6 +318,7 @@ public class TreeView extends ScrollContent implements Focusable {
           if (mLine.onClickArrow != null) mLine.onClickArrow.run();
         } else {
           selectedLine = mLine;
+          onSelectedLineChanged(line);
           if (mLine.onClick != null) mLine.onClick.run();
         }
       }
@@ -435,6 +437,7 @@ public class TreeView extends ScrollContent implements Focusable {
     if(idx < 0) return false;
     selectedLine = model.lines[idx];
     checkScroll(idx);
+    onSelectedLineChanged(idx);
     return true;
   }
 
@@ -443,6 +446,7 @@ public class TreeView extends ScrollContent implements Focusable {
     if(idx >= model.lines.length) return false;
     selectedLine = model.lines[idx];
     checkScroll(idx);
+    onSelectedLineChanged(idx);
     return true;
   }
 
@@ -455,7 +459,7 @@ public class TreeView extends ScrollContent implements Focusable {
     return -1;
   }
 
-  private void checkScroll(int index) {
+  public void checkScroll(int index) {
     int lineHeight = clrContext.lineHeight;
     int y = index * lineHeight;
     if (y < scrollPos.y) {
@@ -466,6 +470,14 @@ public class TreeView extends ScrollContent implements Focusable {
       setScrollPosY(y + lineHeight - size.y);
       layoutScroll();
     }
+  }
+
+  public void setOnSelectedLineChanged(Consumer<Integer> onSelectedLineChanged) {
+    this.onSelectedLineChanged = onSelectedLineChanged;
+  }
+
+  private void onSelectedLineChanged(int newInd) {
+    if (onSelectedLineChanged != null) onSelectedLineChanged.accept(newInd);
   }
 
   @Override
