@@ -75,7 +75,7 @@ public class FileTreeNode extends TreeNode {
           if (!child.isBoth()) n += children[i++].count(child, null, filter);
           else n += children[i++].count(child, childOrNull(another, j++), filter);
         } else {
-          var anotherChild = childOrNull(another, j);
+          var anotherChild = childOrNull(another, j++);
           if (anotherChild == null) n++;
           else n += anotherChild.count();
         }
@@ -103,13 +103,11 @@ public class FileTreeNode extends TreeNode {
               idx = children[i++].getModel(t, child, childOrNull(another, j++), filter, idx);
             }
           } else {
-            var anotherChild = childOrNull(another, j);
-            if (anotherChild == null) {
+            var anotherChild = childOrNull(another, j++);
+            if (anotherChild == null)
               t[idx++] = empty(child.getDiffType());
-              j++;
-            } else {
-              idx = another.child(j++).getEmptyModel(t, child.getDiffType(), idx);
-            }
+            else
+              idx = anotherChild.getEmptyModel(t, child.getDiffType(), idx);
           }
         }
       }
