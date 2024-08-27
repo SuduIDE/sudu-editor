@@ -17,7 +17,7 @@ interface JsRemoteFolderDiff extends JsFolderDiff {
   void applyState(JSObject state);
 
   boolean isReady();
-  JsDisposable onReady(JsFunctions.Consumer<JSBoolean> callback);
+  JsDisposable onReadyChanged(JsFunctions.Consumer<JSBoolean> callback);
 }
 
 public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
@@ -95,7 +95,7 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
   }
 
   @Override
-  public JsDisposable onReady(JsFunctions.Consumer<JSBoolean> callback) {
+  public JsDisposable onReadyChanged(JsFunctions.Consumer<JSBoolean> callback) {
     var d = folderDiff.w.stateListeners.disposableAdd(toJava(callback));
     return JsDisposable.of(d);
   }
