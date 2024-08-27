@@ -1,12 +1,10 @@
-import { Channel } from './common'
-export { Channel, Message, setLogLevel, setLogOutput, newRemoteChannelTest, LogLevel, ChannelTestApi } from './common';
+import { Channel, IDisposable } from './common'
+export { Channel, Message, setLogLevel, setLogOutput, newRemoteChannelTest, LogLevel, ChannelTestApi, IDisposable } from './common';
 
 // java class: org.sudu.experiments.DiffEngineJs
-export interface DiffEngine {
-    dispose(): void;
-
+export interface DiffEngine extends IDisposable {
     // todo add boolean content
-    startFolderDiff(leftPath: string, rightPath: string, channel: Channel): void;
+    startFolderDiff(leftPath: string, rightPath: string, channel: Channel): IDisposable;
 
     testFib(n: string): Promise<number>;
 
