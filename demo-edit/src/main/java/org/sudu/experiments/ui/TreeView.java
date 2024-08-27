@@ -50,6 +50,7 @@ public class TreeView extends ScrollContent implements Focusable {
   GL.Texture folder, folderOpened;
   GL.Texture file, fileCode, fileBinary, fileOnWorker;
   int iconWidth, arrowWidth;
+  boolean hasFocus;
 
   public TreeView(UiContext uiContext) {
     this.uiContext = uiContext;
@@ -216,7 +217,7 @@ public class TreeView extends ScrollContent implements Focusable {
           theme.diff.getDiffColor(theme, diff.type);
       int shift = leftGap + treeShift * mLine.depth;
 
-      boolean selected = selectedLine == mLine;
+      boolean selected = hasFocus && selectedLine == mLine;
       if (diff != null) {
         int y = i * lineHeight - scrollPos.y;
         uiContext.v2i1.set(size.x, lineHeight);
@@ -474,5 +475,17 @@ public class TreeView extends ScrollContent implements Focusable {
       return true;
     }
     return false;
+  }
+
+  @Override
+  public void onFocusGain() {
+    Focusable.super.onFocusGain();
+    hasFocus = true;
+  }
+
+  @Override
+  public void onFocusLost() {
+    Focusable.super.onFocusLost();
+    hasFocus = false;
   }
 }
