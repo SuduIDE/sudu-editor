@@ -431,17 +431,17 @@ public class TreeView extends ScrollContent implements Focusable {
 
   private boolean moveUp() {
     int idx = selectedIndex() - 1;
-    int index = idx >= 0 ? idx : model.lines.length - 1;
-    selectedLine = model.lines[index];
-    checkScroll(index);
+    if(idx < 0) return false;
+    selectedLine = model.lines[idx];
+    checkScroll(idx);
     return true;
   }
 
   private boolean moveDown() {
     int idx = selectedIndex() + 1;
-    int index = idx > 0 && idx < model.lines.length ? idx : 0;
-    selectedLine = model.lines[index];
-    checkScroll(index);
+    if(idx >= model.lines.length) return false;
+    selectedLine = model.lines[idx];
+    checkScroll(idx);
     return true;
   }
 
