@@ -145,6 +145,6 @@ jobs:
           echo "::notice::version \"${NEW_VERSION}\""
           cd $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module
           npm version ${NEW_VERSION}
-          npm publish
+          npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
