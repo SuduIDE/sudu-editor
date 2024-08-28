@@ -43,7 +43,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   RemoteFolderDiffModel rootModel;
 
   protected Channel channel;
-  private final long startTime;
+  private final double startTime;
 
   private boolean updatedRoots = false;
   boolean finished = false;
@@ -76,7 +76,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     window.onBlur(this::onBlur);
     windowManager.addWindow(window);
 
-    startTime = System.currentTimeMillis();
+    startTime = Performance.now();
 
     this.channel = channel;
     this.channel.setOnMessage(this::onChannelMessage);
