@@ -66,7 +66,7 @@ public class FrontendMessage {
     paths.add(model.path);
     writer.write(pathInd);
 
-    if (leftNode.isClosed() && rightNode.isClosed())
+    if (leftNode.isClosed() || rightNode.isClosed() || model.children == null)
       writer.write(-1);
     else {
       writer.write(model.children.length);
@@ -97,7 +97,7 @@ public class FrontendMessage {
     paths.add(model.path);
     writer.write(pathInd);
 
-    if (node.isClosed()) writer.write(-1);
+    if (node.isClosed() || model.children == null) writer.write(-1);
     else {
       writer.write(model.children.length);
       for (int i = 0; i < model.children.length; i++)
