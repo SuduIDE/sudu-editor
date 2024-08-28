@@ -111,9 +111,14 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   public void setModel(TreeNode[] lines) {
-    this.model = new TreeModel(lines);
-    if (!model.contains(selectedLine))
-      selectedLine = null;
+    if (selectedLine != null && selectedLine.isEmpty()) {
+      int ind = this.model.indexOf(selectedLine);
+      if (ind != -1) selectedLine = lines[ind];
+      this.model = new TreeModel(lines);
+    } else {
+      this.model = new TreeModel(lines);
+      if (!model.contains(selectedLine)) selectedLine = null;
+    }
     if (dpr != 0) updateVirtualHeight();
   }
 
@@ -368,10 +373,15 @@ public class TreeView extends ScrollContent implements Focusable {
     public CodeLine line(int i) { return lines[i].line; }
 
     public boolean contains(TreeNode n) {
-      for (TreeNode line : lines) {
-        if (line == n) return true;
+      return indexOf(n) >= 0;
+    }
+
+    public int indexOf(TreeNode n) {
+      if (n == null) return -1;
+      for (int i = 0; i < lines.length; i++) {
+        if (lines[i] == n) return i;
       }
-      return false;
+      return -1;
     }
   }
 
