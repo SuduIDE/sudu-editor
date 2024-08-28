@@ -21,4 +21,8 @@ public class NodeWorkersPool extends WorkersPool {
       workers.set(i, null);
     }
   }
+
+  public int workersLength() {
+    return workers.getLength();
+  }
 }

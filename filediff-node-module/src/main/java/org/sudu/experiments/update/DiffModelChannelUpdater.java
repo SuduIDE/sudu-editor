@@ -1,23 +1,19 @@
 package org.sudu.experiments.update;
 
-import org.sudu.experiments.Channel;
-import org.sudu.experiments.DirectoryHandle;
-import org.sudu.experiments.Disposable;
-import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.*;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.js.node.NodeFileHandle;
 import org.sudu.experiments.protocol.FrontendMessage;
-import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
 public class DiffModelChannelUpdater implements Disposable {
 
-  private final RemoteCollector collector;
-  private final Channel channel;
+  private RemoteCollector collector;
+  private Channel channel;
 
   public static final int FRONTEND_MESSAGE = 0;
   public static final int OPEN_FILE = 1;
@@ -28,7 +24,7 @@ public class DiffModelChannelUpdater implements Disposable {
       RemoteFolderDiffModel root,
       DirectoryHandle leftDir, DirectoryHandle rightDir,
       boolean scanFileContent,
-      WorkerJobExecutor executor, Channel channel
+      NodeWorkersPool executor, Channel channel
   ) {
     this.collector = new RemoteCollector(
         root,
@@ -42,9 +38,10 @@ public class DiffModelChannelUpdater implements Disposable {
 
   @Override
   public void dispose() {
-    LoggingJs.Static.logger.log(LoggingJs.INFO,
-        JSString.valueOf("DiffModelChannelUpdater.dispose"));
-    // todo: shutdown all activity
+    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf("DiffModelChannelUpdater.dispose"));
+    collector.dispose();
+    collector = null;
+    channel = null;
   }
 
   public void beginCompare() {
