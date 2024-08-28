@@ -7,6 +7,8 @@ public interface DiffTypes {
   int INSERTED = 2;
   int EDITED = 3;
 
+  int FOLDER_ALIGN_DIFF_TYPE = INSERTED;
+
   static String name(int type) {
     return switch (type) {
       case DEFAULT -> "DEFAULT";

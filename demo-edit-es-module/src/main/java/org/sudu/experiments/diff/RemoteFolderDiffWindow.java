@@ -8,9 +8,9 @@ import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.js.JsArray;
-import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.math.ArrayOp;
+import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.FrontendState;
@@ -24,6 +24,7 @@ import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.browser.Performance;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
@@ -42,7 +43,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   RemoteFolderDiffModel rootModel;
 
   protected Channel channel;
-  private final long startTime;
+  private final double startTime;
 
   private boolean updatedRoots = false;
   boolean finished = false;
@@ -75,11 +76,10 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     window.onBlur(this::onBlur);
     windowManager.addWindow(window);
 
-    startTime = System.currentTimeMillis();
+    startTime = Performance.now();
 
     this.channel = channel;
     this.channel.setOnMessage(this::onChannelMessage);
-    JsHelper.consoleInfo("RemoteFolderDiffWindow created!");
   }
 
   protected void dispose() {
@@ -119,6 +119,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       window.setTitle(msg.leftRootName + " <-> " + msg.rightRootName);
       leftRoot.doOpen();
       rightRoot.doOpen();
+      updateDiffInfo();
     }
     window.context.window.repaint();
     updateDiffInfo();
@@ -136,8 +137,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   protected void updateDiffInfo() {
-    rootView.left.updateModel(rootModel, ModelFilter.LEFT);
-    rootView.right.updateModel(rootModel, ModelFilter.RIGHT);
+    rootView.left.updateModel(rootModel, rightRoot, ModelFilter.LEFT);
+    rootView.right.updateModel(rootModel, leftRoot, ModelFilter.RIGHT);
     rootView.setDiffModel(DiffModelBuilder.getDiffInfo(
         rootView.left.model(),
         rootView.right.model()
@@ -150,7 +151,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       case DiffModelChannelUpdater.FRONTEND_MESSAGE -> update(jsResult);
       case DiffModelChannelUpdater.OPEN_FILE -> openFile(jsResult);
     }
-    JsHelper.consoleInfo("Got message in " + (System.currentTimeMillis() - startTime) + "ms");
+    LoggingJs.Static.logger.log(LoggingJs.INFO,
+        JSString.valueOf("Got message in " + Numbers.iRnd(Performance.now() - startTime) + "ms")
+    );
   }
 
   private RemoteHandle getHandle(
@@ -194,7 +197,6 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
       @Override
       public void openFile(RemoteFileNode node) {
-        JsHelper.consoleInfo("Trying to open file " + node.name());
         var opposite = getOppositeFile(node);
         if (opposite != null) setSelected(node, opposite);
         if (opposite != null) {

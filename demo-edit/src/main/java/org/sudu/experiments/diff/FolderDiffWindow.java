@@ -101,7 +101,7 @@ public class FolderDiffWindow extends ToolWindow0 {
     windowManager.hidePopupMenu();
     System.out.println("open dir = " + dir.getFullPath());
 
-    DirectoryNode.Handler handler = getHandler(left, treeView);
+    DirectoryNode.Handler handler = getHandler(left);
     var root = new DirectoryNode(dir, handler);
     if (left) leftRoot = root; else rightRoot = root;
     root.onClick.run();
@@ -115,7 +115,7 @@ public class FolderDiffWindow extends ToolWindow0 {
       compareRootFolders();
   }
 
-  protected DirectoryNode.Handler getHandler(boolean left, FileTreeView treeView) {
+  protected DirectoryNode.Handler getHandler(boolean left) {
     return new DirectoryNode.Handler() {
       @Override
       public void openFile(FileNode node) {
@@ -144,7 +144,7 @@ public class FolderDiffWindow extends ToolWindow0 {
         if (oppositeDir != null && oppositeDir.isClosed()) {
           oppositeDir.onClick.run();
         }
-        if (node.childrenLength() > 0) updateModel(treeView);
+        if (node.childrenLength() > 0) updateModel();
         updateDiffInfo(0, 0);
         if (node.folders().length == 1 && node.files().length == 0) {
           node.folders()[0].onClick.run();
@@ -157,7 +157,7 @@ public class FolderDiffWindow extends ToolWindow0 {
 
       @Override
       public void folderClosed(DirectoryNode node) {
-        if (node.childrenLength() > 0) updateModel(treeView);
+        if (node.childrenLength() > 0) updateModel();
         node.readOnClick();
         DirectoryNode oppositeDir = findOppositeDir(node);
         setOppositeSel(oppositeDir);
@@ -218,8 +218,7 @@ public class FolderDiffWindow extends ToolWindow0 {
     if (rootView.left == null || rootView.right == null) return;
     if (leftRoot == null || rightRoot == null) return;
     updateCnt++;
-    rootView.left.updateModel(root, ModelFilter.LEFT);
-    rootView.right.updateModel(root, ModelFilter.RIGHT);
+    updateModel();
     var left = rootView.left.model();
     var right = rootView.right.model();
     rootView.setDiffModel(DiffModelBuilder.getDiffInfo(left, right));
@@ -240,8 +239,13 @@ public class FolderDiffWindow extends ToolWindow0 {
     }
   }
 
-  private void updateModel(FileTreeView fileTreeView) {
-    fileTreeView.updateModel(root, fileTreeView == rootView.left ? ModelFilter.LEFT : ModelFilter.RIGHT);
+  private void updateModel() {
+    rootView.left.updateModel(root, rightRoot, ModelFilter.LEFT);
+    rootView.right.updateModel(root, leftRoot, ModelFilter.RIGHT);
+    rootView.setDiffModel(DiffModelBuilder.getDiffInfo(
+        rootView.left.model(),
+        rootView.right.model()
+    ));
   }
 
   private void selectFolder(boolean left) {

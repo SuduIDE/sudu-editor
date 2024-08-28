@@ -6,6 +6,7 @@ import org.sudu.experiments.FsItem;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.SizeScanner;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.worker.ArrayView;
@@ -101,7 +102,8 @@ public class Collector {
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.DELETED);
         model.child(mP).markDown(DiffTypes.DELETED);
-        model.child(mP).itemCompared();
+        read(model.child(mP), leftItem[lP]);
+//        model.child(mP).itemCompared();
         mP++;
         lP++;
       } else if (diffs[mP] == DiffTypes.INSERTED) {
@@ -110,7 +112,8 @@ public class Collector {
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.INSERTED);
         model.child(mP).markDown(DiffTypes.INSERTED);
-        model.child(mP).itemCompared();
+        read(model.child(mP), rightItem[rP]);
+//        model.child(mP).itemCompared();
         mP++;
         rP++;
       } else {
@@ -166,6 +169,32 @@ public class Collector {
   ) {
     if (!equals) model.markUp(DiffTypes.EDITED);
     onItemCompared(model.itemCompared());
+  }
+
+  private void read(FolderDiffModel model, FsItem handle) {
+    if (handle instanceof DirectoryHandle dirHandle) readFolder(model, dirHandle);
+    else model.itemCompared();
+  }
+
+  private void readFolder(FolderDiffModel model, DirectoryHandle dirHandle) {
+    ++inComparing;
+    executor.sendToWorker(
+        result -> onFolderRead(model, result),
+        DiffUtils.READ_FOLDER,
+        dirHandle, new int[]{model.getDiffType(), model.getItemKind()}
+    );
+  }
+
+  private void onFolderRead(
+      FolderDiffModel model,
+      Object[] result
+  ) {
+    int[] ints = ArgsCast.intArray(result, 0);
+    String[] paths = new String[result.length - 1];
+    for (int i = 0; i < paths.length; i++) paths[i] = (String) result[i + 1];
+    var updModel = RemoteFolderDiffModel.fromInts(ints, paths);
+    model.update(updModel);
+    onItemCompared(false);
   }
 
   private void onItemCompared(boolean needUpdate) {

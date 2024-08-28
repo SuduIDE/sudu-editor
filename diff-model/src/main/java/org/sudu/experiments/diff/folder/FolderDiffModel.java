@@ -147,6 +147,14 @@ public class FolderDiffModel {
     return getDiffType() != DiffTypes.DELETED;
   }
 
+  public boolean matchFilter(int filter) {
+    return switch (filter) {
+      case ModelFilter.LEFT -> isLeft();
+      case ModelFilter.RIGHT -> isRight();
+      default -> true;
+    };
+  }
+
   public static final FolderDiffModel DEFAULT = getDefault();
 
   private static FolderDiffModel getDefault() {

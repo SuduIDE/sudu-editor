@@ -102,6 +102,10 @@ public class TreeNode {
         onDblClick != null ? onDblClick : onClickArrow;
   }
 
+  public boolean isEmpty() {
+    return value().isEmpty();
+  }
+
   @Override
   public int hashCode() {
     return Objects.hashCode(value());

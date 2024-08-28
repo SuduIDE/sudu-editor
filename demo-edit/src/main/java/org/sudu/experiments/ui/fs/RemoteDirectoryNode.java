@@ -29,23 +29,23 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
     var opposite = handle.getOppositeDir(this);
     if (opposite != null) opposite.doOpen();
     if (children.length == 1 && children[0] instanceof RemoteDirectoryNode singleDir) singleDir.openDir();
+    handle.updateView();
   }
 
   public void closeDir() {
     doClose();
     var opposite = handle.getOppositeDir(this);
     if (opposite != null) opposite.doClose();
+    handle.updateView();
   }
 
   public void doOpen() {
     handle.openDir(this);
-    handle.updateView();
     super.open();
   }
 
   public void doClose() {
     handle.closeDir(this);
-    handle.updateView();
     super.close();
   }
 

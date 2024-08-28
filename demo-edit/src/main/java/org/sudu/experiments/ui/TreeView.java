@@ -45,11 +45,13 @@ public class TreeView extends ScrollContent implements Focusable {
   UiFont uiFont, uiIcons;
   int firstLineRendered, lastLineRendered;
   TreeNode selectedLine;
+  Consumer<Integer> onSelectedLineChanged;
 
   GL.Texture arrowR, arrowD;
   GL.Texture folder, folderOpened;
   GL.Texture file, fileCode, fileBinary, fileOnWorker;
   int iconWidth, arrowWidth;
+  boolean hasFocus;
 
   public TreeView(UiContext uiContext) {
     this.uiContext = uiContext;
@@ -109,9 +111,14 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   public void setModel(TreeNode[] lines) {
-    this.model = new TreeModel(lines);
-    if (!model.contains(selectedLine))
-      selectedLine = null;
+    if (selectedLine != null && selectedLine.isEmpty()) {
+      int ind = this.model.indexOf(selectedLine);
+      if (ind != -1) selectedLine = lines[ind];
+      this.model = new TreeModel(lines);
+    } else {
+      this.model = new TreeModel(lines);
+      if (!model.contains(selectedLine)) selectedLine = null;
+    }
     if (dpr != 0) updateVirtualHeight();
   }
 
@@ -211,12 +218,12 @@ public class TreeView extends ScrollContent implements Focusable {
       int yPosition = lineHeight * i - scrollPos.y;
 
       LineDiff diff = diffType != DiffTypes.DEFAULT
-          ? clrContext.ld.seType(diffType) : null;
+          ? clrContext.ld.seType(DiffTypes.FOLDER_ALIGN_DIFF_TYPE) : null;
       var bgLineColor = diff == null ? null :
           theme.diff.getDiffColor(theme, diff.type);
       int shift = leftGap + treeShift * mLine.depth;
 
-      boolean selected = selectedLine == mLine;
+      boolean selected = hasFocus && selectedLine == mLine;
       if (diff != null) {
         int y = i * lineHeight - scrollPos.y;
         uiContext.v2i1.set(size.x, lineHeight);
@@ -316,6 +323,7 @@ public class TreeView extends ScrollContent implements Focusable {
           if (mLine.onClickArrow != null) mLine.onClickArrow.run();
         } else {
           selectedLine = mLine;
+          onSelectedLineChanged(line);
           if (mLine.onClick != null) mLine.onClick.run();
         }
       }
@@ -365,10 +373,15 @@ public class TreeView extends ScrollContent implements Focusable {
     public CodeLine line(int i) { return lines[i].line; }
 
     public boolean contains(TreeNode n) {
-      for (TreeNode line : lines) {
-        if (line == n) return true;
+      return indexOf(n) >= 0;
+    }
+
+    public int indexOf(TreeNode n) {
+      if (n == null) return -1;
+      for (int i = 0; i < lines.length; i++) {
+        if (lines[i] == n) return i;
       }
-      return false;
+      return -1;
     }
   }
 
@@ -434,6 +447,7 @@ public class TreeView extends ScrollContent implements Focusable {
     if(idx < 0) return false;
     selectedLine = model.lines[idx];
     checkScroll(idx);
+    onSelectedLineChanged(idx);
     return true;
   }
 
@@ -442,6 +456,7 @@ public class TreeView extends ScrollContent implements Focusable {
     if(idx >= model.lines.length) return false;
     selectedLine = model.lines[idx];
     checkScroll(idx);
+    onSelectedLineChanged(idx);
     return true;
   }
 
@@ -454,7 +469,7 @@ public class TreeView extends ScrollContent implements Focusable {
     return -1;
   }
 
-  private void checkScroll(int index) {
+  public void checkScroll(int index) {
     int lineHeight = clrContext.lineHeight;
     int y = index * lineHeight;
     if (y < scrollPos.y) {
@@ -467,6 +482,14 @@ public class TreeView extends ScrollContent implements Focusable {
     }
   }
 
+  public void setOnSelectedLineChanged(Consumer<Integer> onSelectedLineChanged) {
+    this.onSelectedLineChanged = onSelectedLineChanged;
+  }
+
+  private void onSelectedLineChanged(int newInd) {
+    if (onSelectedLineChanged != null) onSelectedLineChanged.accept(newInd);
+  }
+
   @Override
   public boolean onCopy(Consumer<String> setText, boolean isCut) {
     if (selectedLine != null) {
@@ -474,5 +497,17 @@ public class TreeView extends ScrollContent implements Focusable {
       return true;
     }
     return false;
+  }
+
+  @Override
+  public void onFocusGain() {
+    Focusable.super.onFocusGain();
+    hasFocus = true;
+  }
+
+  @Override
+  public void onFocusLost() {
+    Focusable.super.onFocusLost();
+    hasFocus = false;
   }
 }
