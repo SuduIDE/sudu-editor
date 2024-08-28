@@ -10,13 +10,13 @@ import org.sudu.experiments.math.V2i;
 
 public class RemoteFolderDiffScene extends WindowScene implements ThemeControl {
 
-  EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
   RemoteFolderDiffWindow w;
 
   public RemoteFolderDiffScene(SceneApi api, Channel channel) {
     super(api, false);
-    w = new RemoteFolderDiffWindow(theme, windowManager,
-        this::menuFonts, channel);
+    w = new RemoteFolderDiffWindow(
+        EditorColorScheme.darkIdeaColorScheme(),
+        windowManager, this::menuFonts, channel);
   }
 
   public String[] menuFonts() {
@@ -25,7 +25,6 @@ public class RemoteFolderDiffScene extends WindowScene implements ThemeControl {
 
   @Override
   public void applyTheme(EditorColorScheme t) {
-    theme = t;
     w.applyTheme(t);
   }
 

@@ -6,3 +6,5 @@ const editor = await editorApi.newFolderDiff({    // newFolderDiff
 });
 
 editor.focus();
+
+// editor.setTheme('light')

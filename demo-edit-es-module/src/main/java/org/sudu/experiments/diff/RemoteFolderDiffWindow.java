@@ -82,6 +82,13 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     this.channel.setOnMessage(this::onChannelMessage);
   }
 
+  @Override
+  public void applyTheme(EditorColorScheme theme) {
+    super.applyTheme(theme);
+    window.setTheme(theme.dialogItem);
+    rootView.applyTheme(theme);
+  }
+
   protected void dispose() {
     window = null;
     rootView = null;
