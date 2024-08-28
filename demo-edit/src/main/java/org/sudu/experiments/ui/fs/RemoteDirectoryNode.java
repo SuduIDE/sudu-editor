@@ -49,15 +49,6 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
     super.close();
   }
 
-  public boolean isOpened() {
-    return children != FileTreeNode.ch0;
-  }
-
-  @Override
-  public boolean isClosed() {
-    return children == FileTreeNode.ch0;
-  }
-
   public void setChildren(FileTreeNode[] children) {
     this.children = children;
   }

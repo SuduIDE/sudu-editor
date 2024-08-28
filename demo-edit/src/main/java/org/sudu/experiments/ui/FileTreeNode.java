@@ -105,7 +105,7 @@ public class FileTreeNode extends TreeNode {
           } else {
             var anotherChild = childOrNull(another, j++);
             if (anotherChild == null)
-              t[idx++] = empty(child.getDiffType());
+              t[idx++] = empty(child.getDiffType(), depth);
             else
               idx = anotherChild.getEmptyModel(t, child.getDiffType(), idx);
           }
@@ -128,7 +128,7 @@ public class FileTreeNode extends TreeNode {
   }
 
   private int getEmptyModel(TreeNode[] t, int diffType, int idx) {
-    t[idx++] = empty(diffType);
+    t[idx++] = empty(diffType, depth);
     if (isOpened()) {
       for (var child: children) {
         idx = child.getEmptyModel(t, diffType, idx);
@@ -137,8 +137,8 @@ public class FileTreeNode extends TreeNode {
     return idx;
   }
 
-  private static FileTreeNode empty(int diffType) {
-    FileTreeNode empty = new FileTreeNode("", 0);
+  private static FileTreeNode empty(int diffType, int depth) {
+    FileTreeNode empty = new FileTreeNode("", depth);
     empty.diffType = diffType;
     return empty;
   }
