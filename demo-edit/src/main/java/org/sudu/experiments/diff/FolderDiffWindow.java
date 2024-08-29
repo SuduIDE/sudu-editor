@@ -58,6 +58,13 @@ public class FolderDiffWindow extends ToolWindow0 {
     root = FolderDiffModel.DEFAULT;
   }
 
+  @Override
+  public void applyTheme(EditorColorScheme theme) {
+    super.applyTheme(theme);
+    window.setTheme(theme.dialogItem);
+    rootView.applyTheme(theme);
+  }
+
   protected void dispose() {
     window = null;
     rootView = null;

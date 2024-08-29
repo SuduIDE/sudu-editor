@@ -59,7 +59,7 @@ public class JsFolderDiff0 implements JsFolderDiff {
 
   @Override
   public void setTheme(JSString theme) {
-    folderDiff.setTheme(theme.stringValue());
+    folderDiff.w.setTheme(theme.stringValue());
   }
 
   public static Promise<JsFolderDiff> newDiff(EditArgs arguments) {
