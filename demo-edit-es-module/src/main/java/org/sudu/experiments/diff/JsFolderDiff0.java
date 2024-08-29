@@ -5,16 +5,17 @@ import org.sudu.experiments.JsLauncher;
 import org.sudu.experiments.WebWindow;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
+import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
 
 public class JsFolderDiff0 implements JsFolderDiff {
 
   public final WebWindow window;
-  protected FolderDiffScene folderDiff;
+  protected FolderDiffScene scene;
 
   protected JsFolderDiff0(WebWindow window, EditArgs args) {
     this.window = window;
-    this.folderDiff = (FolderDiffScene) window.scene();
+    this.scene = (FolderDiffScene) window.scene();
     if (args.hasTheme()) setTheme(args.getTheme());
   }
 
@@ -22,7 +23,19 @@ public class JsFolderDiff0 implements JsFolderDiff {
   public final void dispose() {
     window.dispose();
     System.out.println("debug: JsFolderDiff disposed");
-    folderDiff = null;
+    scene = null;
+  }
+
+  @Override
+  public boolean isReady() {
+    return scene.w.finished;
+  }
+
+  @Override
+  public JsDisposable onReadyChanged(JsFunctions.Consumer<JSBoolean> callback) {
+    var d = scene.w.rootView.stateListeners.disposableAdd(
+        JsFolderDiff.toJava(callback));
+    return JsDisposable.of(d);
   }
 
   @Override
@@ -44,7 +57,7 @@ public class JsFolderDiff0 implements JsFolderDiff {
 
   @Override
   public void setReadonly(boolean flag) {
-    folderDiff.setReadonly(flag);
+    scene.setReadonly(flag);
   }
 
   @Override
@@ -59,7 +72,7 @@ public class JsFolderDiff0 implements JsFolderDiff {
 
   @Override
   public void setTheme(JSString theme) {
-    folderDiff.w.setTheme(theme.stringValue());
+    scene.w.setTheme(theme.stringValue());
   }
 
   public static Promise<JsFolderDiff> newDiff(EditArgs arguments) {

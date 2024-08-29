@@ -1,5 +1,6 @@
 package org.sudu.experiments.diff;
 
+import org.sudu.experiments.Subscribers;
 import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
@@ -8,7 +9,12 @@ import org.sudu.experiments.ui.FileTreeView;
 import org.sudu.experiments.ui.UiContext;
 import org.sudu.experiments.ui.window.ScrollView;
 
+import java.util.function.IntConsumer;
+
 class FolderDiffRootView extends DiffRootView implements ThemeControl {
+
+  public final Subscribers<IntConsumer> stateListeners =
+      new Subscribers<>(new IntConsumer[0]);
 
   FileTreeView left, right;
   ScrollView leftScrollView, rightScrollView;
@@ -42,5 +48,10 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
   public void setDiffModel(DiffInfo diffInfo) {
     diffSync.setModel(diffInfo);
     middleLine.setModel(diffInfo);
+  }
+
+  public void fireFinished() {
+    for (IntConsumer listener : stateListeners.array())
+      listener.accept(1);
   }
 }

@@ -15,8 +15,6 @@ interface JsRemoteFolderDiff extends JsFolderDiff {
   JSObject getState();
   void applyState(JSObject state);
 
-  boolean isReady();
-  JsDisposable onReadyChanged(JsFunctions.Consumer<JSBoolean> callback);
 }
 
 public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
@@ -84,10 +82,6 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
     Debug.consoleInfo("JsRemoteFolderDiff.applyState: ", state);
   }
 
-  static IntConsumer toJava(JsFunctions.Consumer<JSBoolean> callback) {
-    return i -> callback.f(JSBoolean.valueOf(i != 0));
-  }
-
   @Override
   public boolean isReady() {
     return folderDiff.w.finished;
@@ -95,8 +89,13 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
 
   @Override
   public JsDisposable onReadyChanged(JsFunctions.Consumer<JSBoolean> callback) {
-    var d = folderDiff.w.stateListeners.disposableAdd(toJava(callback));
+    var d = rootView().stateListeners.disposableAdd(
+        JsFolderDiff.toJava(callback));
     return JsDisposable.of(d);
+  }
+
+  private FolderDiffRootView rootView() {
+    return folderDiff.w.rootView;
   }
 
   static Function<SceneApi, Scene> sf(Channel channel) {

@@ -24,15 +24,17 @@ import java.util.function.Supplier;
 
 public class FolderDiffWindow extends ToolWindow0 {
 
+  private static final boolean PRINT_STAT = true;
+
   Window window;
   Focusable focusSave;
   FolderDiffRootView rootView;
   DirectoryNode leftRoot, rightRoot;
   FolderDiffModel root;
-  private static final boolean PRINT_STAT = true;
+  boolean finished;
+
   private int updateCnt = 0;
   private double startTime;
-  private boolean titleSet;
 
   public FolderDiffWindow(
       EditorColorScheme theme,
@@ -209,7 +211,7 @@ public class FolderDiffWindow extends ToolWindow0 {
 
     var title = leftRoot.name() + " ↔ " + rightRoot.name() + " - scan in progress ...";
     window.setTitle(title);
-    titleSet = false;
+    finished = false;
 
     root = new FolderDiffModel(null);
     DiffModelUpdater updateHandler = new DiffModelUpdater(
@@ -232,12 +234,13 @@ public class FolderDiffWindow extends ToolWindow0 {
     window.context.window.repaint();
     if (root.isCompared()) {
       double dT = window.context.window.timeNow() - startTime;
-      if (!titleSet) {
+      if (!finished) {
         var title = leftRoot.name() + " ↔ " + rightRoot.name()
             + " - finished in " + Numbers.iRnd(dT) + "s, " +
             "foldersCompared: " + foldersCompared + ", filesCompared: " + filesCompared;
         window.setTitle(title);
-        titleSet = true;
+        finished = true;
+        rootView.fireFinished();
       }
       if (PRINT_STAT) {
         System.out.println("Compared in " + Numbers.iRnd(1000 * dT) + " ms");

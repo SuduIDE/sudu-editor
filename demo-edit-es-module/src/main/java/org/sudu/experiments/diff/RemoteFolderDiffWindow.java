@@ -33,9 +33,6 @@ import java.util.function.*;
 
 public class RemoteFolderDiffWindow extends ToolWindow0 {
 
-  public final Subscribers<IntConsumer> stateListeners =
-      new Subscribers<>(new IntConsumer[0]);
-
   Window window;
   Focusable focusSave;
   FolderDiffRootView rootView;
@@ -131,17 +128,13 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     window.context.window.repaint();
     updateDiffInfo();
     if (rootModel.isCompared()) {
-      fireFinished();
+      finished = true;
+      LoggingJs.Static.logger.log(LoggingJs.INFO,
+          JSString.valueOf("RemoteFolderDiff finished"));
+      rootView.fireFinished();
     }
   }
 
-  private void fireFinished() {
-    LoggingJs.Static.logger.log(LoggingJs.INFO,
-        JSString.valueOf("RemoteFolderDiff finished"));
-    finished = true;
-    for (IntConsumer listener : stateListeners.array())
-      listener.accept(1);
-  }
 
   protected void updateDiffInfo() {
     rootView.left.updateModel(rootModel, rightRoot, ModelFilter.LEFT);
