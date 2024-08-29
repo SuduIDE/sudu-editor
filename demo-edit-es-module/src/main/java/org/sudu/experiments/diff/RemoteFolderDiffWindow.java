@@ -302,8 +302,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private void serializeFrontendState() {
-    int leftSelected = rootView.left.getSelectedInd();
-    int rightSelected = rootView.right.getSelectedInd();
+    int leftSelected = rootView.left.selectedIndex();
+    int rightSelected = rootView.right.selectedIndex();
     JsArray<JSObject> serialized = FrontendState.serialize(
         0,
         leftSelected,

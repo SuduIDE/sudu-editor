@@ -44,7 +44,7 @@ public class TreeView extends ScrollContent implements Focusable {
   EditorColorScheme theme;
   UiFont uiFont, uiIcons;
   int firstLineRendered, lastLineRendered;
-  TreeNode selectedLine;
+  int selectedIndex = -1;
   Consumer<Integer> onSelectedLineChanged;
 
   GL.Texture arrowR, arrowD;
@@ -63,6 +63,10 @@ public class TreeView extends ScrollContent implements Focusable {
     CodeLineRenderer.disposeLines(lines);
     clrContext.dispose();
     disposeIcons();
+  }
+
+  public TreeNode selectedLine() {
+    return selectedIndex < 0 ? null : model.lines[selectedIndex];
   }
 
   private void loadIcons() {
@@ -111,14 +115,17 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   public void setModel(TreeNode[] lines) {
-    if (selectedLine != null && selectedLine.isEmpty()) {
-      int ind = this.model.indexOf(selectedLine);
-      if (ind != -1) selectedLine = lines[ind];
-      this.model = new TreeModel(lines);
-    } else {
-      this.model = new TreeModel(lines);
-      if (!model.contains(selectedLine)) selectedLine = null;
-    }
+    TreeNode selectedLine = selectedLine();
+    model = new TreeModel(lines);
+
+    boolean keepSelectedIndex =
+        selectedLine != null && selectedLine.isEmpty();
+
+    if (keepSelectedIndex)
+      selectedIndex = Math.min(selectedIndex, lines.length - 1);
+    else
+      selectedIndex = model.indexOf(selectedLine);
+
     if (dpr != 0) updateVirtualHeight();
   }
 
@@ -158,18 +165,15 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   public void setSelected0() {
-    selectedLine = model.lines.length > 0 ? model.lines[0] : null;
+    selectedIndex = model.lines.length > 0 ? 0 : -1;
   }
 
   public void setSelected(TreeNode l) {
-    selectedLine = l;
+    selectedIndex = model.indexOf(l);
   }
 
-  public int getSelectedInd() {
-    var model = model();
-    for (int i = 0; i < model.length; i++)
-      if (model[i] == selectedLine) return i;
-    return -1;
+  public int selectedIndex() {
+   return selectedIndex;
   }
 
   @Override
@@ -223,7 +227,7 @@ public class TreeView extends ScrollContent implements Focusable {
           theme.diff.getDiffColor(theme, diff.type);
       int shift = leftGap + treeShift * mLine.depth;
 
-      boolean selected = hasFocus && selectedLine == mLine;
+      boolean selected = hasFocus && selectedIndex == i;
       if (diff != null) {
         int y = i * lineHeight - scrollPos.y;
         uiContext.v2i1.set(size.x, lineHeight);
@@ -322,7 +326,7 @@ public class TreeView extends ScrollContent implements Focusable {
         if (arrowClicked(event, line)) {
           if (mLine.onClickArrow != null) mLine.onClickArrow.run();
         } else {
-          selectedLine = mLine;
+          selectedIndex = line;
           onSelectedLineChanged(line);
           if (mLine.onClick != null) mLine.onClick.run();
         }
@@ -399,8 +403,8 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   private boolean enterSelected() {
-    if (selectedLine != null) {
-      var r = selectedLine.onEnter();
+    if (selectedIndex >= 0) {
+      var r = selectedLine().onEnter();
       if (r != null)
         r.run();
     }
@@ -408,6 +412,7 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   private boolean closeIfOpenedElseMoveToParent() {
+    TreeNode selectedLine = selectedLine();
     if (selectedLine != null && selectedLine.isOpened()){
       if(selectedLine.onClickArrow != null)
         selectedLine.onClickArrow.run();
@@ -418,6 +423,7 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   private boolean openIfClosedElseMoveDown() {
+    TreeNode selectedLine = selectedLine();
     if (selectedLine != null && selectedLine.isClosed()) {
       if (selectedLine.onClickArrow != null)
         selectedLine.onClickArrow.run();
@@ -428,14 +434,15 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   private boolean moveToParent() {
-    int idx = selectedIndex();
-    if(idx < 0) return false;
+    int idx = selectedIndex;
+    if (idx < 0) return false;
     int parentDepth = model.lines[idx].depth - 1;
-    if(parentDepth < 0) return false;
-    for(idx--; idx >= 0; idx--){
+    if (parentDepth < 0) return false;
+    for (idx--; idx >= 0; idx--) {
       if(model.lines[idx].depth == parentDepth) {
-        selectedLine = model.lines[idx];
+        selectedIndex = idx;
         checkScroll(idx);
+        onSelectedLineChanged(idx);
         return true;
       }
     }
@@ -443,30 +450,21 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   private boolean moveUp() {
-    int idx = selectedIndex() - 1;
+    int idx = selectedIndex - 1;
     if(idx < 0) return false;
-    selectedLine = model.lines[idx];
+    selectedIndex = idx;
     checkScroll(idx);
     onSelectedLineChanged(idx);
     return true;
   }
 
   private boolean moveDown() {
-    int idx = selectedIndex() + 1;
+    int idx = selectedIndex + 1;
     if(idx >= model.lines.length) return false;
-    selectedLine = model.lines[idx];
+    selectedIndex = idx;
     checkScroll(idx);
     onSelectedLineChanged(idx);
     return true;
-  }
-
-  private int selectedIndex() {
-    TreeNode[] lines = model.lines;
-    TreeNode sLine = selectedLine;
-    for (int i = 0, l = lines.length; i < l; i++) {
-      if (sLine == lines[i]) return i;
-    }
-    return -1;
   }
 
   public void checkScroll(int index) {
@@ -492,8 +490,8 @@ public class TreeView extends ScrollContent implements Focusable {
 
   @Override
   public boolean onCopy(Consumer<String> setText, boolean isCut) {
-    if (selectedLine != null) {
-      setText.accept(selectedLine.value());
+    if (selectedLine() != null) {
+      setText.accept(selectedLine().value());
       return true;
     }
     return false;
