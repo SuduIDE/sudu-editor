@@ -1,10 +1,14 @@
 import { Channel, IDisposable } from './common'
 export { Channel, Message, setLogLevel, setLogOutput, newRemoteChannelTest, LogLevel, ChannelTestApi, IDisposable } from './common';
 
+export interface AsyncShutdown {
+    shutdown(): Promise<void>;
+}
+
 // java class: org.sudu.experiments.DiffEngineJs
 export interface DiffEngine extends IDisposable {
     // todo add boolean content
-    startFolderDiff(leftPath: string, rightPath: string, channel: Channel): IDisposable;
+    startFolderDiff(leftPath: string, rightPath: string, channel: Channel): AsyncShutdown;
 
     testFib(n: string): Promise<number>;
 
