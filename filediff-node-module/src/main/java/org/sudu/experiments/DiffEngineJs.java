@@ -1,6 +1,5 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.js.JsDisposable;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSObject;
@@ -11,7 +10,7 @@ public interface DiffEngineJs extends JSObject {
 
   Promise<JSString> testFib(int n);
 
-  JsDisposable startFolderDiff(JSString leftPath, JSString rightPath, Channel channel);
+  AsyncShutdown startFolderDiff(JSString leftPath, JSString rightPath, Channel channel);
 
   void testFS(JSString path, JsFunctions.Runnable onComplete);
 

@@ -10,7 +10,7 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
-public class DiffModelChannelUpdater implements Disposable {
+public class DiffModelChannelUpdater {
 
   private RemoteCollector collector;
   private Channel channel;
@@ -36,10 +36,9 @@ public class DiffModelChannelUpdater implements Disposable {
     this.channel.setOnMessage(this::onMessage);
   }
 
-  @Override
-  public void dispose() {
+  public void shutdown(Runnable onComplete) {
     LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf("DiffModelChannelUpdater.dispose"));
-    collector.dispose();
+    collector.shutdown(onComplete);
     collector = null;
     channel = null;
   }

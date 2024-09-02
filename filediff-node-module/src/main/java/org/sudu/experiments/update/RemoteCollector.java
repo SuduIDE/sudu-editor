@@ -30,6 +30,7 @@ public class RemoteCollector {
 
   private Consumer<JsArray<JSObject>> sendResult;
   private Consumer<JsArray<JSObject>> onComplete;
+  private Runnable onShutdown;
 
   private static final double SEND_FIRST_MSG_MS = 500;
   private static final double SEND_MSG_MS = 2000;
@@ -42,6 +43,7 @@ public class RemoteCollector {
 
   private boolean firstMessageSent = false;
   private boolean lastMessageSent = false;
+  private boolean isShutdown = false;
 
   private FrontendMessage lastFrontendMessage = FrontendMessage.EMPTY;
   private double lastMessageSentTime;
@@ -236,7 +238,8 @@ public class RemoteCollector {
   private void onItemCompared() {
     if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
     if (--sentToWorker < 0) throw new IllegalStateException("inComparing cannot be negative");
-    if (inComparing == 0) onComplete();
+    if (isShutdown) shutdown();
+    else if (inComparing == 0) onComplete();
     else {
       sendTaskToWorker();
       if (sendResult == null || lastMessageSent) return;
@@ -302,11 +305,19 @@ public class RemoteCollector {
     this.onComplete = onComplete;
   }
 
-  public void dispose() {
+  public void shutdown(Runnable onShutdown) {
+    this.isShutdown = true;
+    this.onShutdown = onShutdown;
+    sendToWorkerQueue.clear();
+    shutdown();
+  }
+
+  private void shutdown() {
+    if (sentToWorker != 0) return;
     root = null;
     leftHandle = rightHandle = null;
-    sendToWorkerQueue.clear();
     lastFrontendMessage = null;
     sendResult = onComplete = null;
+    onShutdown.run();
   }
 }
