@@ -1,5 +1,6 @@
 package org.sudu.experiments.ui.fs;
 
+import org.sudu.experiments.parser.common.Pair;
 import org.sudu.experiments.ui.FileTreeNode;
 
 public class RemoteDirectoryNode extends RemoteFileTreeNode {
@@ -19,24 +20,28 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
   }
 
   public void onClick() {
-    if (isOpened()) closeDir();
-    else openDir();
+    Pair<RemoteFileTreeNode, RemoteFileTreeNode> result = isOpened()
+        ? closeDir()
+        : openDir();
     handle.sendModel();
+    handle.updateView();
+    handle.setSelected(result.first, result.second);
   }
 
-  public void openDir() {
+  public Pair<RemoteFileTreeNode, RemoteFileTreeNode> openDir() {
     doOpen();
     var opposite = handle.getOppositeDir(this);
     if (opposite != null) opposite.doOpen();
-    if (children.length == 1 && children[0] instanceof RemoteDirectoryNode singleDir) singleDir.openDir();
-    handle.updateView();
+    if (children.length == 1 && children[0] instanceof RemoteDirectoryNode singleDir) return singleDir.openDir();
+    return Pair.of(this, opposite);
   }
 
-  public void closeDir() {
+  public Pair<RemoteFileTreeNode, RemoteFileTreeNode> closeDir() {
     doClose();
     var opposite = handle.getOppositeDir(this);
     if (opposite != null) opposite.doClose();
     handle.updateView();
+    return Pair.of(this, opposite);
   }
 
   public void doOpen() {

@@ -2,7 +2,6 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.LoggingJs;
-import org.sudu.experiments.Subscribers;
 import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.EditorWindow;
@@ -231,9 +230,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
       @Override
       public RemoteDirectoryNode getOppositeDir(RemoteDirectoryNode node) {
-        var opposite = getOppositeDir(node.model());
-        if (opposite != null) setSelected(node, opposite);
-        return opposite;
+        return getOppositeDir(node.model());
       }
 
       @Override
@@ -272,7 +269,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         else return getOpposite(subNode, deque);
       }
 
-      private void setSelected(RemoteFileTreeNode node, RemoteFileTreeNode opposite) {
+      public void setSelected(RemoteFileTreeNode node, RemoteFileTreeNode opposite) {
         if (left) {
           rootView.left.setSelected(node);
           rootView.right.setSelected(opposite);
