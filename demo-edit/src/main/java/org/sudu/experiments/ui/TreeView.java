@@ -24,12 +24,12 @@ import static org.sudu.experiments.ui.fonts.Codicons.*;
 
 public class TreeView extends ScrollContent implements Focusable {
 
-  static final float leftGapDp = 4;
   static final float treeShiftDp = 1;  // recursive treeShiftDp + arrowWidth
   static final float betweenIcons1 = 3;
   static final float betweenIcons2 = 5;
   static final float iconLift = 1;
   static final float selectionBackgroundMargin = 10;
+  static final float leftGapDpDefault = 4;
 
   static final char cRArrow = '˃';
   static final char cDArrow = '˅';
@@ -37,6 +37,8 @@ public class TreeView extends ScrollContent implements Focusable {
 
   final UiContext uiContext;
   final ClrContext clrContext;
+
+  float leftGapDp = leftGapDpDefault;
 
   TreeModel model = new TreeModel();
 
@@ -126,7 +128,7 @@ public class TreeView extends ScrollContent implements Focusable {
     else
       selectedIndex = model.indexOf(selectedLine);
 
-    if (dpr != 0) updateVirtualHeight();
+    if (dpr != 0) layout();
   }
 
   public TreeNode[] model() {
@@ -140,25 +142,28 @@ public class TreeView extends ScrollContent implements Focusable {
     if (!sameFont1 || !sameFont2) {
       uiFont = colors.fileViewFont;
       uiIcons = colors.fileViewIcons;
-      if (dpr != 0) {
+      if (dpr != 0)
         changeFont();
-      }
     }
   }
 
   @Override
   protected void onDprChange(float olDpr, float newDpr) {
     clrContext.setSinDpr(newDpr);
-    if (uiFont != null) changeFont();
+    if (uiFont != null)
+      changeFont();
   }
 
-  private void changeFont() {
+  protected void changeFont() {
     CodeLineRenderer.makeContentDirty(lines);
-    setFontInternal();
-    updateVirtualHeight();
+    clrContext.setFonts(uiFont, dpr, uiContext.graphics);
+    clrContext.setLineHeight(EditorConst.LINE_HEIGHT_MULTI, uiContext.graphics);
+    disposeIcons();
+    loadIcons();
+    layout();
   }
 
-  private void updateVirtualHeight() {
+  void layout() {
     setVirtualSize(virtualSize.x,
         model.lines.length * clrContext.lineHeight);
     layoutScroll();
@@ -346,13 +351,6 @@ public class TreeView extends ScrollContent implements Focusable {
     return x0 <= event.position.x && event.position.x < x1;
   }
 
-  private void setFontInternal() {
-    clrContext.setFonts(uiFont, dpr, uiContext.graphics);
-    clrContext.setLineHeight(EditorConst.LINE_HEIGHT_MULTI, uiContext.graphics);
-    disposeIcons();
-    loadIcons();
-  }
-
   private GL.Texture renderIcon(char icon, FontDesk font) {
     return uiContext.graphics.renderTexture(
         String.valueOf(icon), font, iconTextureMargin,
@@ -398,6 +396,8 @@ public class TreeView extends ScrollContent implements Focusable {
       case KeyCode.ARROW_RIGHT -> openIfClosedElseMoveDown();
       case KeyCode.ARROW_LEFT -> closeIfOpenedElseMoveToParent();
       case KeyCode.ENTER -> enterSelected();
+      case KeyCode.PAGE_UP -> event.ctrl && ++leftGapDp > 0;
+      case KeyCode.PAGE_DOWN -> event.ctrl && --leftGapDp > 0;
       default -> false;
     };
   }

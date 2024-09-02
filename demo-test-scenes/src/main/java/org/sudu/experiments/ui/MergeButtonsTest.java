@@ -46,28 +46,12 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
     api.input.onScroll.add(this::onMouseWheel);
     api.input.onKeyPress.add(this::onKey);
 
-    var m = new TestModel(docLines);
+    var m = new MergeButtonsModel.TestModel(docLines);
     buttons.setModel(m.actions, m.lines);
     buttons.setColors(new byte[docLines]);
   }
 
-  static class TestModel extends MergeButtonsModel {
-    public TestModel(int docLines) {
-      super(docLines);
-      int n = docLines / 4;
-      XorShiftRandom rand = new XorShiftRandom();
-      int space = docLines / (1 + n);
-      for (int i = 0, pi = 0; i < n; i++) {
-        lines[i] = pi;
-        actions[i] = action(pi);
-        pi += 1 + rand.nextInt(space);
-      }
-    }
-  }
 
-  static Runnable action(int pi) {
-    return () -> System.out.println("Runnable #" + pi);
-  }
 
   @Override
   public void dispose() {

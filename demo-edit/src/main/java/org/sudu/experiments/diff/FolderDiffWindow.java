@@ -5,6 +5,7 @@ import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.editor.EditorWindow;
+import org.sudu.experiments.editor.test.MergeButtonsModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Numbers;
@@ -25,6 +26,7 @@ import java.util.function.Supplier;
 public class FolderDiffWindow extends ToolWindow0 {
 
   private static final boolean PRINT_STAT = true;
+  private static final boolean dummyMergeButtons = false;
 
   Window window;
   Focusable focusSave;
@@ -256,6 +258,18 @@ public class FolderDiffWindow extends ToolWindow0 {
         rootView.left.model(),
         rootView.right.model()
     ));
+    if (dummyMergeButtons) {
+      dummyMergeButtons(rootView.left, true);
+      dummyMergeButtons(rootView.right, false);
+    }
+  }
+
+  void dummyMergeButtons(FileTreeView treeView, boolean left) {
+    int length = treeView.model().length;
+    var m = new MergeButtonsModel.TestModel(length);
+    treeView.enableMergeButtons(
+        m.actions, m.lines, new byte[length], left
+    );
   }
 
   private void selectFolder(boolean left) {

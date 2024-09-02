@@ -41,6 +41,10 @@ public class View implements Disposable {
     return DprUtil.toPx(value, dpr);
   }
 
+  public float toDp(int px) {
+    return dpr != 0 ? px / dpr : 0;
+  }
+
   public boolean hitTest(V2i point) {
     return Rect.isInside(point, pos, size);
   }
