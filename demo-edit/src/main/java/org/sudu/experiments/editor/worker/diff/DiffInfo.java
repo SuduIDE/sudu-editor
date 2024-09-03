@@ -116,8 +116,7 @@ public class DiffInfo {
       nRange.fromR += fromR;
       newRanges.add(nRange);
     }
-    while (i < ranges.length && !(ranges[i].toL() == toL && ranges[i].toR() == toR)) i++;
-    if (i < ranges.length) i++;
+    while (i < ranges.length && ranges[i].toL() <= toL && ranges[i].toR() <= toR) i++;
     while (i < ranges.length) merge(newRanges, ranges[i++]);
     this.ranges = newRanges.toArray(DiffRange[]::new);
   }

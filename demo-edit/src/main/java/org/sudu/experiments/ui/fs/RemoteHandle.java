@@ -14,6 +14,7 @@ public abstract class RemoteHandle {
   public abstract void openDir(RemoteDirectoryNode node);
   public abstract void openFile(RemoteFileNode node);
   public abstract void sendModel();
+  public abstract void setSelected(RemoteFileTreeNode node, RemoteFileTreeNode opposite);
   public abstract RemoteDirectoryNode getOppositeDir(RemoteDirectoryNode node);
   public abstract RemoteFileNode getOppositeFile(RemoteFileNode node);
   public abstract RemoteFolderDiffModel getModel();
