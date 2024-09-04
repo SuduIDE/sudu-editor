@@ -1,6 +1,7 @@
 package org.sudu.experiments.editor.test;
 
 import org.sudu.experiments.diff.DiffTypes;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
 import org.sudu.experiments.math.Numbers;
@@ -33,6 +34,52 @@ public class MergeButtonsModel {
       i++;
     }
     return new MergeButtonsModel[]{left, right};
+  }
+
+  public static MergeButtonsModel[] getFolderModels(
+      DiffInfo diffInfo,
+      FolderDiffModel[] leftDiffs,
+      FolderDiffModel[] rightDiffs,
+      byte[] leftColors,
+      byte[] rightColors,
+      BiConsumer<int[], Boolean> applyDiff
+  ) {
+    int n = 0, m = 0;
+    for (var line: diffInfo.lineDiffsL) if (line.type != DiffTypes.DEFAULT) n++;
+    for (var line: diffInfo.lineDiffsR) if (line.type != DiffTypes.DEFAULT) m++;
+
+    var left = new MergeButtonsModel(n);
+    for (int lineInd = 0, modelInd = 0; lineInd < diffInfo.lineDiffsL.length; lineInd++) {
+      var leftLine = diffInfo.lineDiffsL[lineInd];
+      if (leftLine.type == DiffTypes.DEFAULT) continue;
+      left.lines[modelInd] = line(lineInd, diffInfo.lineDiffsL.length);
+      var leftModel = leftDiffs[lineInd];
+      left.actions[modelInd] = () -> applyDiff(leftModel, true, applyDiff);
+      leftColors[lineInd] = DiffTypes.FOLDER_ALIGN_DIFF_TYPE;
+      modelInd++;
+    }
+
+    var right = new MergeButtonsModel(m);
+    for (int lineInd = 0, modelInd = 0; lineInd < diffInfo.lineDiffsR.length; lineInd++) {
+      var rightLine = diffInfo.lineDiffsR[lineInd];
+      if (rightLine.type == DiffTypes.DEFAULT) continue;
+      right.lines[modelInd] = line(lineInd, diffInfo.lineDiffsR.length);
+      var rightModel = rightDiffs[lineInd];
+      right.actions[modelInd] = () -> applyDiff(rightModel, false, applyDiff);
+      rightColors[lineInd] = DiffTypes.FOLDER_ALIGN_DIFF_TYPE;
+      modelInd++;
+    }
+    return new MergeButtonsModel[]{left, right};
+  }
+
+  private static void applyDiff(
+      FolderDiffModel model,
+      boolean left,
+      BiConsumer<int[], Boolean> applyDiff
+  ) {
+    if (applyDiff == null) return;
+    var path = model.getPathFromRoot();
+    applyDiff.accept(path, left);
   }
 
   private static int line(int line, int docLen) {

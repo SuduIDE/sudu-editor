@@ -60,6 +60,7 @@ public class DiffUtils {
   ) {
     var model = new RemoteFolderDiffModel(null, folder.getName());
     var reader = new ReadFolderHandler(model, folder, ints[0], ints[1], r);
+    model.posInParent = ints[2];
     reader.beginRead();
   }
 

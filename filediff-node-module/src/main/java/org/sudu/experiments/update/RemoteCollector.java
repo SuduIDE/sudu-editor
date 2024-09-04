@@ -81,6 +81,26 @@ public class RemoteCollector {
     if (sendResult != null) sendMessage();
   }
 
+  public void applyDiff(int[] path, boolean left) {
+    var model = root.findNode(path);
+    int diffType = model.getDiffType();
+    if (diffType == DiffTypes.DEFAULT) return;
+
+    boolean isDeleteDiff = (left && diffType == DiffTypes.INSERTED) || (!left && diffType == DiffTypes.DELETED);
+    boolean isInsertDiff = (left && diffType == DiffTypes.DELETED) || (!left && diffType == DiffTypes.INSERTED);
+
+    if (isDeleteDiff) {
+      var node = lastFrontendMessage.findNode(path);
+      var parentNode = lastFrontendMessage.findParentNode(path);
+      model.deleteItem();
+      if (node != null && parentNode != null) parentNode.deleteItem(node);
+    } else if (isInsertDiff) {
+      model.insertItem();
+    } else {
+      model.editItem(left);
+    }
+  }
+
   private void compare(
       RemoteFolderDiffModel model,
       FsItem leftItem,
@@ -139,6 +159,7 @@ public class RemoteCollector {
       if (diffs[mP] == DiffTypes.DELETED) {
         edited = true;
         model.children[mP] = new RemoteFolderDiffModel(model, leftItem[lP].getName());
+        model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.DELETED);
         read(model.child(mP), leftItem[lP]);
@@ -147,6 +168,7 @@ public class RemoteCollector {
       } else if (diffs[mP] == DiffTypes.INSERTED) {
         edited = true;
         model.children[mP] = new RemoteFolderDiffModel(model, rightItem[rP].getName());
+        model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.INSERTED);
         read(model.child(mP), rightItem[rP]);
@@ -154,6 +176,7 @@ public class RemoteCollector {
         rP++;
       } else {
         model.children[mP] = new RemoteFolderDiffModel(model, leftItem[lP].getName());
+        model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         compare(model.child(mP), leftItem[lP], rightItem[rP]);
         mP++;
@@ -217,7 +240,7 @@ public class RemoteCollector {
     Runnable task = () -> executor.sendToWorker(
         result -> onFolderRead(model, result),
         DiffUtils.READ_FOLDER,
-        dirHandle, new int[]{model.getDiffType(), model.getItemKind()}
+        dirHandle, new int[]{model.getDiffType(), model.getItemKind(), model.posInParent}
     );
     sendToWorkerQueue.addLast(task);
     sendTaskToWorker();

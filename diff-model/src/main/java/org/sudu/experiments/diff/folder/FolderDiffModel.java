@@ -1,5 +1,6 @@
 package org.sudu.experiments.diff.folder;
 
+import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.ItemKind;
 
@@ -19,6 +20,8 @@ public class FolderDiffModel {
   // propagation  0b...0000xx00   xx = (00|01|10)
   // diffType     0b...00xx0000   xx = (00|01|10|11)
   // itemKind     0b...xx000000   xx = (00|01|10|11)
+  public int posInParent = -1;
+
   public FolderDiffModel(FolderDiffModel parent) {
     this.parent = parent;
   }
@@ -28,6 +31,7 @@ public class FolderDiffModel {
     for (var child: children) child.parent = this;
     this.childrenComparedCnt = newModel.childrenComparedCnt;
     this.flags = newModel.flags;
+    this.posInParent = newModel.posInParent;
     if (this.isCompared() && parent != null) parent.childCompared();
   }
 
@@ -155,6 +159,43 @@ public class FolderDiffModel {
     };
   }
 
+  public void deleteItem() {
+    if (parent == null) throw new RuntimeException("Parent can't be null");
+    var newChildren = new FolderDiffModel[parent.children.length - 1];
+    for (int i = 0, j = 0; i < parent.children.length; i++) {
+      var child = parent.child(i);
+      if (this == child) continue;
+      newChildren[j++] = child;
+    }
+    parent.childrenComparedCnt--;
+    parent.children = newChildren;
+  }
+
+  public void insertItem() {
+    this.setDiffType(DiffTypes.DEFAULT);
+    if (children == null) return;
+    for (var child: children) child.insertItem();
+  }
+
+  public void editItem(boolean left) {
+    int diffType = getDiffType();
+    if (getDiffType() == DiffTypes.DEFAULT) return;
+    if ((left && diffType == DiffTypes.DELETED) || (!left && diffType == DiffTypes.INSERTED)) this.insertItem();
+    if ((left && diffType == DiffTypes.INSERTED) || (!left && diffType == DiffTypes.DELETED)) this.deleteItem();
+    if (children == null) return;
+    for (var child: children) child.editItem(left);
+  }
+
+  public FolderDiffModel findNode(int[] path) {
+    return findNode(path, 0);
+  }
+
+  private FolderDiffModel findNode(int[] path, int ind) {
+    if (ind == path.length) return this;
+    if (children == null || path[ind] >= children.length) return null;
+    return children[path[ind]].findNode(path, ind + 1);
+  }
+
   public static final FolderDiffModel DEFAULT = getDefault();
 
   private static FolderDiffModel getDefault() {
@@ -163,6 +204,19 @@ public class FolderDiffModel {
     model.setDiffType(DiffTypes.DEFAULT);
     model.setCompared(true);
     return model;
+  }
+
+  public int[] getPathFromRoot() {
+    var writer = new ArrayWriter();
+    writePathFromRoot(writer);
+    return writer.getInts();
+  }
+
+  private void writePathFromRoot(ArrayWriter writer) {
+    if (parent != null) {
+      parent.writePathFromRoot(writer);
+      writer.write(posInParent);
+    }
   }
 
   @Override

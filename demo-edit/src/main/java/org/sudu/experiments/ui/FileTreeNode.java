@@ -32,12 +32,14 @@ public class FileTreeNode extends TreeNode {
     children = ch;
   }
 
-  TreeNode[] getModel(FolderDiffModel model, FileTreeNode another, int filter) {
+  TreeView.TreeModel getModel(FolderDiffModel model, FileTreeNode another, int filter) {
     int cnt = count(model, another, filter);
     TreeNode[] lines = new TreeNode[cnt];
-    int idx = getModel(lines, model, another, filter, 0);
-    if (idx != lines.length) throw new RuntimeException("Wrong number of lines: " + idx + ", expected: " + lines.length);
-    return lines;
+    FolderDiffModel[] models = new FolderDiffModel[cnt];
+    int idx = getModel(lines, models, model, another, filter, 0);
+    if (idx != lines.length)
+      throw new RuntimeException("Wrong number of lines: " + idx + ", expected: " + lines.length);
+    return new TreeView.TreeModel(lines, models);
   }
 
   public FileTreeNode child(int ind) {
@@ -72,8 +74,9 @@ public class FileTreeNode extends TreeNode {
       int i = 0, j = 0;
       for (var child : model.children) {
         if (child.matchFilter(filter)) {
-          if (!child.isBoth()) n += children[i++].count(child, null, filter);
-          else n += children[i++].count(child, childOrNull(another, j++), filter);
+          n += !child.isBoth()
+              ? children[i++].count(child, null, filter)
+              : children[i++].count(child, childOrNull(another, j++), filter);
         } else {
           var anotherChild = childOrNull(another, j++);
           if (anotherChild == null) n++;
@@ -84,30 +87,26 @@ public class FileTreeNode extends TreeNode {
     return n;
   }
 
-  private int getModel(TreeNode[] t, FolderDiffModel model, FileTreeNode another, int filter, int idx) {
-    this.diffType = model.getDiffType();
-    t[idx++] = this;
+  private int getModel(TreeNode[] t, FolderDiffModel[] m, FolderDiffModel model, FileTreeNode another, int filter, int idx) {
+    diffType = model.getDiffType();
+    t[idx] = this;
+    m[idx++] = model;
     setIcon(this, model);
     if (isOpened()) {
       if (model.children == null) {
-        for (FileTreeNode child: children) {
-          idx = child.getModel(t, model.getDiffType(), idx, model.isCompared());
-        }
+        for (FileTreeNode child: children)
+          idx = child.getModel(t, diffType, idx, model.isCompared());
       } else {
         int i = 0, j = 0;
         for (FolderDiffModel child: model.children) {
           if (child.matchFilter(filter)) {
-            if (!child.isBoth()) {
-              idx = children[i++].getModel(t, child, null, filter, idx);
-            } else {
-              idx = children[i++].getModel(t, child, childOrNull(another, j++), filter, idx);
-            }
+            idx = !child.isBoth()
+                ? children[i++].getModel(t, m, child, null, filter, idx)
+                : children[i++].getModel(t, m, child, childOrNull(another, j++), filter, idx);
           } else {
             var anotherChild = childOrNull(another, j++);
-            if (anotherChild == null)
-              t[idx++] = empty(child.getDiffType(), depth);
-            else
-              idx = anotherChild.getEmptyModel(t, child.getDiffType(), idx);
+            if (anotherChild == null) t[idx++] = empty(child.getDiffType(), depth);
+            else idx = anotherChild.getEmptyModel(t, m, child.getDiffType(), idx);
           }
         }
       }
@@ -120,19 +119,18 @@ public class FileTreeNode extends TreeNode {
     t[idx++] = this;
     setIcon(this, compared);
     if (isOpened()) {
-      for (var child: children) {
+      for (var child: children)
         idx = child.getModel(t, diffType, idx, compared);
-      }
     }
     return idx;
   }
 
-  private int getEmptyModel(TreeNode[] t, int diffType, int idx) {
-    t[idx++] = empty(diffType, depth);
+  private int getEmptyModel(TreeNode[] t, FolderDiffModel[] m, FolderDiffModel model, int idx) {
+    t[idx] = empty(model.getDiffType(), depth);
+    m[idx++] = model;
     if (isOpened()) {
-      for (var child: children) {
-        idx = child.getEmptyModel(t, diffType, idx);
-      }
+      for (int i = 0; i < children.length; i++)
+        idx = child(i).getEmptyModel(t, m, model.child(i), idx);
     }
     return idx;
   }

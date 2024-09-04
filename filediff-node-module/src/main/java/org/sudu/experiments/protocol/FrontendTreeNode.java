@@ -8,6 +8,26 @@ public class FrontendTreeNode {
   public String name;
   public FrontendTreeNode[] children;
 
+  FrontendTreeNode findNode(int[] path) {
+    return findNode(path, 0);
+  }
+
+  private FrontendTreeNode findNode(int[] path, int ind) {
+    if (ind == path.length) return this;
+    if (children == null || path[ind] >= children.length) return null;
+    return children[path[ind]].findNode(path, ind + 1);
+  }
+
+  public void deleteItem(FrontendTreeNode node) {
+    FrontendTreeNode[] newChildren = new FrontendTreeNode[children.length - 1];
+    int i = 0;
+    for (var child: children) {
+      if (child == node) continue;
+      newChildren[i++] = child;
+    }
+    this.children = newChildren;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

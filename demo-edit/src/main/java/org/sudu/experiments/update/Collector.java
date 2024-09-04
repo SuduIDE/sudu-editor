@@ -99,25 +99,26 @@ public class Collector {
       if (diffs[mP] == DiffTypes.DELETED) {
         edited = true;
         model.children[mP] = new FolderDiffModel(model);
+        model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.DELETED);
         model.child(mP).markDown(DiffTypes.DELETED);
         read(model.child(mP), leftItem[lP]);
-//        model.child(mP).itemCompared();
         mP++;
         lP++;
       } else if (diffs[mP] == DiffTypes.INSERTED) {
         edited = true;
         model.children[mP] = new FolderDiffModel(model);
+        model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.INSERTED);
         model.child(mP).markDown(DiffTypes.INSERTED);
         read(model.child(mP), rightItem[rP]);
-//        model.child(mP).itemCompared();
         mP++;
         rP++;
       } else {
         model.children[mP] = new FolderDiffModel(model);
+        model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         compare(model.child(mP), leftItem[lP], rightItem[rP]);
         mP++;

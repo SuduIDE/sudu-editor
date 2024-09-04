@@ -16,6 +16,7 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.FrontendState;
+import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ToolWindow0;
 import org.sudu.experiments.ui.fs.RemoteDirectoryNode;
@@ -164,6 +165,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         rootView.left.model(),
         rootView.right.model()
     ));
+    rootView.setMergeButtons(this::sendApplyDiff);
   }
 
   private void onChannelMessage(JsArray<JSObject> jsResult) {
@@ -208,6 +210,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
             foldersLen++;
             childNode = new RemoteDirectoryNode(child.path, getHandle(left, getModel(mP)), node.depth + 1);
           }
+          childNode.posInParent = childPtr;
           children = ArrayOp.addAt(childNode, children, childPtr++);
           mP = model.nextInd(mP + 1, filter);
         }
@@ -370,6 +373,14 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     result.push(DiffModelChannelUpdater.OPEN_FILE_ARRAY);
     channel.sendMessage(result);
     keyCnt = (keyCnt + 1) % MAP_SIZE;
+  }
+
+  private void sendApplyDiff(int[] path, boolean left) {
+    var result = JsArray.create();
+    result.set(0, JsCast.jsInts(path));
+    result.set(1, JsCast.jsInts(left ? 0 : 1));
+    result.push(DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
+    channel.sendMessage(result);
   }
 
   private void serializeFrontendState() {

@@ -6,6 +6,7 @@ import org.sudu.experiments.ui.FileTreeNode;
 public class RemoteFileTreeNode extends FileTreeNode {
 
   public RemoteHandle handle;
+  public int posInParent = -1;
 
   public RemoteFileTreeNode(
       String path,

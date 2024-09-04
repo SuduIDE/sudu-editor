@@ -54,6 +54,7 @@ public class ReadFolderHandler {
       int kind = paths[i].isFolder
           ? ItemKind.FOLDER
           : ItemKind.FILE;
+      parent.child(i).posInParent = i;
       parent.child(i).setItemKind(kind);
     }
     if (len == 0) parent.itemCompared();

@@ -6,6 +6,8 @@ import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.js.node.NodeFileHandle;
 import org.sudu.experiments.protocol.FrontendMessage;
+import org.sudu.experiments.protocol.JsCast;
+import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
@@ -17,8 +19,10 @@ public class DiffModelChannelUpdater {
 
   public static final int FRONTEND_MESSAGE = 0;
   public static final int OPEN_FILE = 1;
+  public static final int APPLY_DIFF = 2;
   public static final Int32Array FRONTEND_MESSAGE_ARRAY = JsMemoryAccess.bufferView(new int[]{FRONTEND_MESSAGE});
   public static final Int32Array OPEN_FILE_ARRAY = JsMemoryAccess.bufferView(new int[]{OPEN_FILE});
+  public static final Int32Array APPLY_DIFF_ARRAY = JsMemoryAccess.bufferView(new int[]{APPLY_DIFF});
 
   public DiffModelChannelUpdater(
       RemoteFolderDiffModel root,
@@ -54,6 +58,7 @@ public class DiffModelChannelUpdater {
     switch (intArray.get(0)) {
       case FRONTEND_MESSAGE -> onFrontendMessage(jsArray);
       case OPEN_FILE -> onOpenFile(jsArray);
+      case APPLY_DIFF -> onApplyDiff(jsArray);
     }
   }
 
@@ -83,5 +88,11 @@ public class DiffModelChannelUpdater {
           channel.sendMessage(result);
         }
     );
+  }
+
+  private void onApplyDiff(JsArray<JSObject> jsArray) {
+    int[] path = JsCast.ints(jsArray, 0);
+    boolean left = JsCast.ints(jsArray, 1)[0] == 0;
+    collector.applyDiff(path, left);
   }
 }
