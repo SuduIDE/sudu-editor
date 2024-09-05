@@ -9,13 +9,6 @@ import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.Function;
-import java.util.function.IntConsumer;
-
-interface JsRemoteFolderDiff extends JsFolderDiff {
-  JSObject getState();
-  void applyState(JSObject state);
-
-}
 
 public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
 
@@ -91,6 +84,21 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
   public JsDisposable onReadyChanged(JsFunctions.Consumer<JSBoolean> callback) {
     var d = rootView().stateListeners.disposableAdd(
         JsFolderDiff.toJava(callback));
+    return JsDisposable.of(d);
+  }
+
+  @Override
+  public JsFolderDiffViewSelection getSelected() {
+    var s = folderDiff.w.getSelected();
+    return JsFolderDiffViewSelection.H.create(s);
+  }
+
+  @Override
+  public JsDisposable onSelectionChanged(
+      JsFunctions.Consumer<JsFolderDiffViewSelection> callback
+  ) {
+    var h = JsFolderDiffViewSelection.H.toJava(callback);
+    var d = rootView().selectionListeners.disposableAdd(h);
     return JsDisposable.of(d);
   }
 

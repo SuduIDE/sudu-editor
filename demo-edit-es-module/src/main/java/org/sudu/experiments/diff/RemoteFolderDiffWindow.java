@@ -134,7 +134,6 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     }
   }
 
-
   protected void updateDiffInfo() {
     rootView.left.updateModel(rootModel, rightRoot, ModelFilter.LEFT);
     rootView.right.updateModel(rootModel, leftRoot, ModelFilter.RIGHT);
@@ -305,5 +304,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     );
     FrontendState state = FrontendState.deserialize(serialized);
     System.out.println(state);
+  }
+
+  public FolderDiffRootView.Selection getSelected() {
+    return rootView.getSelection();
   }
 }
