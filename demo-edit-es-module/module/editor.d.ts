@@ -230,9 +230,19 @@ export interface FolderDiffView extends IFolderDiff, IDisposable {
     onReadyChanged: IEvent<boolean>
 }
 
+export interface FolderDiffViewSelection {
+    // relativePath does not include root folder.
+    // For root folder relativePath is empty
+    relativePath: string
+    isLeft: boolean
+    isFolder: boolean
+}
+
 export interface RemoteFolderDiffView extends FolderDiffView {
     getState(): any
     applyState(state: any): void
+    getSelected(): FolderDiffViewSelection | undefined
+    onSelectionChanged: IEvent<FolderDiffViewSelection | undefined>
 }
 
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
