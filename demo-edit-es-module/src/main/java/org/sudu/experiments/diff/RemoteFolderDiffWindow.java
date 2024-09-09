@@ -310,12 +310,23 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     System.out.println(state);
   }
 
-  public FolderDiffRootView.Selection getSelected(boolean left) {
-
+  public FolderDiffRootView.Selection getSelected() {
+    return getSelected(rootView.left.isFocused());
   }
 
-  public FolderDiffRootView.Selection getSelected() {
-    return null;
+  public FolderDiffRootView.Selection getSelected(boolean left) {
+    var root = left ? rootView.left : rootView.right;
+    if (root.selectedIndex() < 0) return null;
+    var node = root.model()[root.selectedIndex()];
+    if (node.isEmpty() || !(node instanceof RemoteFileTreeNode remoteNode)) return null;
+    String path = getFullPath(remoteNode, left);
+    boolean isFolder = remoteNode instanceof RemoteDirectoryNode;
+    return new FolderDiffRootView.Selection(path, left, isFolder);
+  }
+
+  private String getFullPath(RemoteFileTreeNode node, boolean left) {
+    var rootPath = left ? leftRoot.name() : rightRoot.name();
+    return node.getFullPath(rootPath);
   }
 
   void leftSelectedChanged(int idx) {
@@ -327,6 +338,4 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     rootView.left.checkScroll(idx);
     rootView.fireSelectionChanged(getSelected(false));
   }
-
-
 }

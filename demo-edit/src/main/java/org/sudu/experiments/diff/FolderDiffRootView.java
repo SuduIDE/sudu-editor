@@ -35,7 +35,6 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
     middleLine.setLeftRight(leftDiffRef, rightDiffRef);
     diffSync = new DiffSync(leftDiffRef, rightDiffRef);
     setViews(leftScrollView, rightScrollView, middleLine);
-
   }
 
   public void applyTheme(EditorColorScheme theme) {
@@ -70,6 +69,15 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
       this.path = path;
       this.isLeft = isLeft;
       this.isFolder = isFolder;
+    }
+
+    @Override
+    public String toString() {
+      return "{" +
+          "\"path\": \"" + path + "\"" +
+          ", \"isLeft\": " + isLeft +
+          ", \"isFolder\": " + isFolder +
+          "}";
     }
   }
 
