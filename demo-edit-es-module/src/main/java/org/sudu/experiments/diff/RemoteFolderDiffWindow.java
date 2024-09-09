@@ -76,6 +76,10 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
     this.channel = channel;
     this.channel.setOnMessage(this::onChannelMessage);
+
+    rootView.left.setOnSelectedLineChanged(this::leftSelectedChanged);
+    rootView.right.setOnSelectedLineChanged(this::rightSelectedChanged);
+
   }
 
   @Override
@@ -306,7 +310,23 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     System.out.println(state);
   }
 
-  public FolderDiffRootView.Selection getSelected() {
-    return rootView.getSelection();
+  public FolderDiffRootView.Selection getSelected(boolean left) {
+
   }
+
+  public FolderDiffRootView.Selection getSelected() {
+    return null;
+  }
+
+  void leftSelectedChanged(int idx) {
+    rootView.right.checkScroll(idx);
+    rootView.fireSelectionChanged(getSelected(true));
+  }
+
+  void rightSelectedChanged(int idx) {
+    rootView.left.checkScroll(idx);
+    rootView.fireSelectionChanged(getSelected(false));
+  }
+
+
 }
