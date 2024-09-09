@@ -30,6 +30,8 @@ import org.teavm.jso.typedarrays.Int32Array;
 import java.util.*;
 import java.util.function.*;
 
+import static org.sudu.experiments.diff.FolderDiffRootView.Selection;
+
 public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   Window window;
@@ -76,6 +78,10 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
     this.channel = channel;
     this.channel.setOnMessage(this::onChannelMessage);
+
+    rootView.left.setOnSelectedLineChanged(this::leftSelectedChanged);
+    rootView.right.setOnSelectedLineChanged(this::rightSelectedChanged);
+
   }
 
   @Override
@@ -133,7 +139,6 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       rootView.fireFinished();
     }
   }
-
 
   protected void updateDiffInfo() {
     rootView.left.updateModel(rootModel, rightRoot, ModelFilter.LEFT);
@@ -305,5 +310,35 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     );
     FrontendState state = FrontendState.deserialize(serialized);
     System.out.println(state);
+  }
+
+  public FolderDiffRootView.Selection getSelected() {
+    return getSelected(rootView.left.isFocused());
+  }
+
+  public FolderDiffRootView.Selection getSelected(boolean left) {
+    var root = left ? rootView.left : rootView.right;
+    if (root.selectedIndex() < 0) return null;
+    var node = root.model()[root.selectedIndex()];
+    if (node.isEmpty()) return new Selection(null, left, false);
+
+    String path = getFullPath((RemoteFileTreeNode) node, left);
+    boolean isFolder = node instanceof RemoteDirectoryNode;
+    return new Selection(path, left, isFolder);
+  }
+
+  private String getFullPath(RemoteFileTreeNode node, boolean left) {
+    var rootPath = left ? leftRoot.name() : rightRoot.name();
+    return node.getFullPath(rootPath);
+  }
+
+  void leftSelectedChanged(int idx) {
+    rootView.right.checkScroll(idx);
+    rootView.fireSelectionChanged(getSelected(true));
+  }
+
+  void rightSelectedChanged(int idx) {
+    rootView.left.checkScroll(idx);
+    rootView.fireSelectionChanged(getSelected(false));
   }
 }

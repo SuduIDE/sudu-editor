@@ -320,6 +320,10 @@ public class TreeView extends ScrollContent implements Focusable {
     uiContext.setFocus(this);
   }
 
+  public boolean isFocused() {
+    return uiContext.isFocused(this);
+  }
+
   protected Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
     focus();
     int lineHeight = clrContext.lineHeight;
@@ -335,6 +339,11 @@ public class TreeView extends ScrollContent implements Focusable {
           onSelectedLineChanged(line);
           if (mLine.onClick != null) mLine.onClick.run();
         }
+      }
+    } else if (button == MouseListener.MOUSE_BUTTON_RIGHT) {
+      if (line >= 0 && line < model.lines.length) {
+        selectedIndex = line;
+        onSelectedLineChanged(line);
       }
     }
     return MouseListener.Static.emptyConsumer;

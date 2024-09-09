@@ -16,6 +16,9 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
   public final Subscribers<IntConsumer> stateListeners =
       new Subscribers<>(new IntConsumer[0]);
 
+  public final Subscribers<SelectionListener> selectionListeners =
+      new Subscribers<>(new SelectionListener[0]);
+
   FileTreeView left, right;
   ScrollView leftScrollView, rightScrollView;
   DiffSync diffSync;
@@ -32,9 +35,6 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
     middleLine.setLeftRight(leftDiffRef, rightDiffRef);
     diffSync = new DiffSync(leftDiffRef, rightDiffRef);
     setViews(leftScrollView, rightScrollView, middleLine);
-
-    left.setOnSelectedLineChanged(right::checkScroll);
-    right.setOnSelectedLineChanged(left::checkScroll);
   }
 
   public void applyTheme(EditorColorScheme theme) {
@@ -53,5 +53,35 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
   public void fireFinished() {
     for (IntConsumer listener : stateListeners.array())
       listener.accept(1);
+  }
+
+  void fireSelectionChanged(Selection s) {
+    for (SelectionListener listener : selectionListeners.array())
+      listener.accept(s);
+  }
+
+  public static class Selection {
+    public String path;
+    public boolean isLeft;
+    public boolean isFolder;
+
+    public Selection(String path, boolean isLeft, boolean isFolder) {
+      this.path = path;
+      this.isLeft = isLeft;
+      this.isFolder = isFolder;
+    }
+
+    @Override
+    public String toString() {
+      return "{" +
+          "\"path\": \"" + path + "\"" +
+          ", \"isLeft\": " + isLeft +
+          ", \"isFolder\": " + isFolder +
+          "}";
+    }
+  }
+
+  public interface SelectionListener {
+    void accept(Selection selection);
   }
 }
