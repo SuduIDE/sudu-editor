@@ -2,6 +2,7 @@ package org.sudu.experiments.js;
 
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSString;
 
 public interface JsFunctions {
   @JSFunctor interface Function<T extends JSObject, R extends JSObject> extends JSObject {
@@ -22,7 +23,16 @@ public interface JsFunctions {
 
   // methodRef !== lambda (C) TeaVM
   @SuppressWarnings("Convert2MethodRef")
-  static java.lang.Runnable wrap(Runnable r) {
+  static java.lang.Runnable toJava(Runnable r) {
     return () -> r.f();
   }
+
+  static Consumer<JSString> toJs(java.util.function.Consumer<String> consumer) {
+    return jsString-> consumer.accept(jsString.stringValue());
+  }
+
+  static java.util.function.Consumer<String> toJava(Consumer<JSString> consumer) {
+    return s-> consumer.f(JSString.valueOf(s));
+  }
+
 }

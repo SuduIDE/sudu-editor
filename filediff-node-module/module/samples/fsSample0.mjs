@@ -45,7 +45,7 @@ const args = process.argv;
 
 if (args.length < 3) {
   console.log("usage node script folder")
-} else {
+} else if (args.length === 3) {
 
   const dirname = args[2];
 
@@ -60,4 +60,11 @@ if (args.length < 3) {
 
   let dT = (performance.now() - start);
   console.log("dT = ", dT);
+} else if (args.length === 4) {
+  const fileName = args[2];
+  const string = args[3];
+
+  console.log("args[2] = ", fileName);
+  console.log("args[3] = ", string);
+
 }

@@ -19,13 +19,16 @@ setLogLevel(5);
 
 const diffEngineWorker = path.join(__dirname, "../src/diffEngineWorker.mjs")
 
-let module = await createDiffEngine(diffEngineWorker, nThreads);
+let diffEngine = await createDiffEngine(diffEngineWorker, nThreads);
+let module = diffEngine.testApi();
+
+console.log("got module: ", module.constructor.name);
 
 let jobCount = 0;
 
 function mayBeExit() {
-  if (--jobCount === 0)
-    module.dispose();
+  if (--jobCount <= 0)
+    diffEngine.dispose();
 }
 
 function channel() {
@@ -41,8 +44,6 @@ function channel() {
       console.log("setOnMessage: ", handler); }
   };
 }
-
-console.log("got module: ", module.constructor.name);
 
 function testFib() {
   jobCount++;
@@ -71,21 +72,90 @@ function testFS(dirname) {
   });
 }
 
+function testFileWrite(file, content) {
+  jobCount++;
+  module.testFileWrite(file, content,
+      () => {
+        console.log("testFileWrite.onComplete");
+        mayBeExit();
+      },
+      (errorString) => {
+        console.log("testFileWrite.onError: ", errorString);
+        mayBeExit();
+      }
+  )
+}
+
+function testFileCopy(src, dest) {
+  jobCount++;
+  module.testFileCopy(src, dest,
+      () => {
+        console.log("testFileCopy.onComplete");
+        mayBeExit();
+      },
+      (errorString) => {
+        console.log("testFileWrite.onError: ", errorString);
+        mayBeExit();
+      }
+  )
+}
+
+function testDirCopy(src, dest) {
+  jobCount++;
+  module.testDirCopy(src, dest,
+      () => {
+        console.log("testFileCopy.onComplete");
+        mayBeExit();
+      },
+      (errorString) => {
+        console.log("testFileWrite.onError: ", errorString);
+        mayBeExit();
+      }
+  )
+}
+
 let args = process.argv;
 
 function runTest() {
-  switch (args.length) {
-    case 2:
+  const cmd = args[2];
+  switch (cmd) {
+    case "fib":
       return testFib();
-    case 3:
-      const dirname = args[2];
+    case "testFS":
+      const dirname = args[3];
+      console.log("dirname", dirname);
       return testFS(dirname);
-    case 4: case 5:
-      const dir1 = args[2];
-      const dir2 = args[3];
-      const content = args.length >= 5 && "content" === args[4];
+    case "testDiff":
+      const dir1 = args[3];
+      const dir2 = args[4];
+      const content = args.length >= 5 && "content" === args[5];
+      console.log("dir1", dir1);
+      console.log("dir2", dir2);
+      console.log("content", content);
       return testDiff(dir1, dir2, content);
+    case "testFileWrite": {
+      const file = args[3];
+      const string = args[4];
+      console.log("file", file);
+      console.log("string", string);
+      return testFileWrite(file, string);
+    }
+    case "testFileCopy": {
+      const src = args[3];
+      const dest = args[4];
+      console.log("src", src);
+      console.log("dest", dest);
+      return testFileCopy(src, dest);
+    }
+    case "testDirCopy": {
+      const src = args[3];
+      const dest = args[4];
+      console.log("testDirCopy: src", src);
+      console.log("testDirCopy: dest", dest);
+      return testDirCopy(src, dest);
+    }
     default:
+      mayBeExit();
       return "not running any test";
   }
 }

@@ -150,6 +150,9 @@ public class JsHelper {
     @JSProperty JSString getMessage();
   }
 
+  @JSBody(params = "error", script = "return error.message;")
+  public static native JSString message(JSError error);
+
   public interface WithId extends JSObject {
     @JSProperty JSString getId();
 

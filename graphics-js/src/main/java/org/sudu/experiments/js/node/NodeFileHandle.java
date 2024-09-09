@@ -135,6 +135,34 @@ public class NodeFileHandle implements FileHandle {
   }
 
   @Override
+  public void writeText(String text, Runnable onComplete, Consumer<String> onError) {
+    Fs.fs().writeFile(
+        jsPath(), JSString.valueOf(text), JSString.valueOf("utf-8"),
+        error -> {
+          if (error == null) {
+            onComplete.run();
+          } else {
+            onError.accept(error.getMessage());
+          }
+        }
+    );
+  }
+
+  @Override
+  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
+    Fs.fs().copyFile(
+        jsPath(), JSString.valueOf(path), 0,
+        error -> {
+          if (error == null) {
+            onComplete.run();
+          } else {
+            onError.accept(JsHelper.message(error).stringValue());
+          }
+        }
+    );
+  }
+
+  @Override
   public String toString() {
     return name;
   }
@@ -142,6 +170,10 @@ public class NodeFileHandle implements FileHandle {
   @Override
   public int hashCode() {
     return Objects.hashCode(name) * 31 + Arrays.hashCode(path);
+  }
+
+  public boolean isFile() {
+    return stats().isFile();
   }
 }
 

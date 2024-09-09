@@ -1,5 +1,7 @@
 package org.sudu.experiments;
 
+import java.util.function.Consumer;
+
 public interface DirectoryHandle extends FsItem {
 
   interface Reader {
@@ -8,4 +10,6 @@ public interface DirectoryHandle extends FsItem {
     default void onComplete() {}
   }
   void read(Reader reader);
+
+  void copyTo(String path,  Runnable onComplete, Consumer<String> onError);
 }

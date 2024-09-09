@@ -8,6 +8,8 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 
+import java.util.function.Consumer;
+
 class JsDirectoryHandle implements DirectoryHandle {
 
   final FileSystemDirectoryHandle fsDirectory;
@@ -124,6 +126,11 @@ class JsDirectoryHandle implements DirectoryHandle {
 
   public String toString() {
     return FsItem.fullPath(path, getName());
+  }
+
+  @Override
+  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
+    onError.accept("not implemented");
   }
 
   @JSBody(params = {"a", "b"}, script = "return a + '/' + b;")

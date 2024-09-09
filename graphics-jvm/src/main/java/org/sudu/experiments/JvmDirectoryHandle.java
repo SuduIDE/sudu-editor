@@ -5,6 +5,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 // JvmDirectoryHandle reads synchronously on worker threads
 // and asynchronously on EDT
@@ -83,6 +84,11 @@ class JvmDirectoryHandle extends JvmFsHandle implements DirectoryHandle {
     } catch (IOException e) {
       System.err.println("Files.walkFileTree error: " + e.getMessage());
     }
+  }
+
+  @Override
+  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
+    onError.accept("not implemented");
   }
 
   static String msg(Path dir, IOException exc, String title) {

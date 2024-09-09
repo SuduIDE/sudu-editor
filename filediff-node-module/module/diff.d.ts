@@ -5,11 +5,7 @@ export interface AsyncShutdown {
     shutdown(): Promise<void>;
 }
 
-// java class: org.sudu.experiments.DiffEngineJs
-export interface DiffEngine extends IDisposable {
-    // todo add boolean content
-    startFolderDiff(leftPath: string, rightPath: string, channel: Channel): AsyncShutdown;
-
+export interface DiffTestApi {
     testFib(n: string): Promise<number>;
 
     testFS(path: string, onComplete: () => void): void;
@@ -18,6 +14,31 @@ export interface DiffEngine extends IDisposable {
         path1: string, path2: string, withContent: boolean,
         onComplete: () => void
     ): void;
+
+    testFileWrite(
+        path: string, content: string,
+        onComplete: () => void,
+        onError: (error: string) => void
+    ) : void;
+
+    testFileCopy(
+        pathFrom: string, pathTo: string,
+        onComplete: () => void,
+        onError: (error: string) => void
+    ) : void;
+
+    testDirCopy(
+        pathFrom: string, pathTo: string,
+        onComplete: () => void,
+        onError: (error: string) => void
+    ) : void;
+}
+
+// java class: org.sudu.experiments.DiffEngineJs
+export interface DiffEngine extends IDisposable {
+    // todo add boolean content
+    startFolderDiff(leftPath: string, rightPath: string, channel: Channel): AsyncShutdown;
+    testApi() : DiffTestApi;
 }
 
 export function createDiffEngine(

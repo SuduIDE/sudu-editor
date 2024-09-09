@@ -3,8 +3,11 @@ package org.sudu.experiments.js.node;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.core.JSString;
+
+import java.util.function.Consumer;
 
 public class NodeDirectoryHandle implements DirectoryHandle {
   final String name;
@@ -56,6 +59,21 @@ public class NodeDirectoryHandle implements DirectoryHandle {
       }
     }
     reader.onComplete();
+  }
+
+  @Override
+  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
+    Fs.fs().cp(
+        jsPath(), JSString.valueOf(path),
+        Fs.cpOptions(true),
+        error -> {
+          if (error == null) {
+            onComplete.run();
+          } else {
+            onError.accept(JsHelper.message(error).stringValue());
+          }
+        }
+    );
   }
 
   @Override

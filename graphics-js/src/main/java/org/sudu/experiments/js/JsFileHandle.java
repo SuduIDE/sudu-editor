@@ -100,8 +100,7 @@ public class JsFileHandle implements FileHandle {
   @Override
   public void readAsText(Consumer<String> consumer, Consumer<String> onError) {
     JsFunctions.Consumer<JSError> onJsError = JsHelper.wrapError(onError);
-    JsFunctions.Consumer<JSString> onString = jsString
-        -> consumer.accept(jsString.stringValue());
+    JsFunctions.Consumer<JSString> onString = JsFunctions.toJs(consumer);
     if (jsFile != null) {
       jsFile.text().then(onString, onJsError);
     } else {
@@ -135,6 +134,16 @@ public class JsFileHandle implements FileHandle {
     JsBlob blob = length < 0 ? begin == 0 ? file : file.slice(begin)
         : file.slice(begin, begin + length);
     blob.arrayBuffer().then(onBuffer, onJsError);
+  }
+
+  @Override
+  public void writeText(String text, Runnable onComplete, Consumer<String> onError) {
+    onError.accept("not implemented");
+  }
+
+  @Override
+  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
+    onError.accept("not implemented");
   }
 
   @Override
