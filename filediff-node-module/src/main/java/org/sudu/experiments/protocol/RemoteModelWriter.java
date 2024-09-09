@@ -51,7 +51,9 @@ public interface RemoteModelWriter {
     if (model.children == null || remainDepth == 0) writer.write(-1);
     else {
       writer.write(model.children.length);
-      for (var child: model.children)
+      if (model.children.length == 1)
+        writeInts(model.child(0), pathList, remainDepth, writer);
+      else for (var child: model.children)
         writeInts((RemoteFolderDiffModel) child, pathList, remainDepth - 1, writer);
     }
   }
