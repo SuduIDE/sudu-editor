@@ -1,9 +1,6 @@
 package org.sudu.experiments.update;
 
-import org.sudu.experiments.DirectoryHandle;
-import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.FsItem;
-import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.*;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.SizeScanner;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
@@ -13,46 +10,53 @@ import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
-import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
 import org.teavm.jso.core.JSString;
 
 import java.util.Arrays;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.function.Consumer;
 
 public class RemoteCollector {
 
-  private final RemoteFolderDiffModel root;
-  private final DirectoryHandle leftHandle, rightHandle;
+  private RemoteFolderDiffModel root;
+  private DirectoryHandle leftHandle, rightHandle;
 
-  private final WorkerJobExecutor executor;
+  private final NodeWorkersPool executor;
+  private final int workerSize;
   private final boolean scanFileContent;
 
   private Consumer<JsArray<JSObject>> sendResult;
   private Consumer<JsArray<JSObject>> onComplete;
+  private Runnable onShutdown;
 
   private static final double SEND_FIRST_MSG_MS = 500;
   private static final double SEND_MSG_MS = 2000;
 
   private int inComparing = 0;
+  private int sentToWorker = 0;
 
   private int foldersCompared = 0, filesCompared;
   private int lastFoldersCompared = 0, lastFilesCompared = 0;
 
   private boolean firstMessageSent = false;
   private boolean lastMessageSent = false;
+  private boolean isShutdown = false;
 
   private FrontendMessage lastFrontendMessage = FrontendMessage.EMPTY;
   private double lastMessageSentTime;
   private final double startTime;
+
+  private final Deque<Runnable> sendToWorkerQueue;
 
   public RemoteCollector(
       RemoteFolderDiffModel root,
       DirectoryHandle leftHandle,
       DirectoryHandle rightHandle,
       boolean scanFileContent,
-      WorkerJobExecutor executor
+      NodeWorkersPool executor
   ) {
     this.root = root;
     this.leftHandle = leftHandle;
@@ -60,6 +64,8 @@ public class RemoteCollector {
     this.executor = executor;
     this.scanFileContent = scanFileContent;
     this.startTime = this.lastMessageSentTime = Performance.now();
+    sendToWorkerQueue = new LinkedList<>();
+    workerSize = executor.workersLength();
   }
 
   public void beginCompare() {
@@ -95,11 +101,13 @@ public class RemoteCollector {
       DirectoryHandle leftDir,
       DirectoryHandle rightDir
   ) {
-    executor.sendToWorker(
+    Runnable task = () -> executor.sendToWorker(
         result -> onFoldersCompared(model, result),
         DiffUtils.CMP_FOLDERS,
         leftDir, rightDir
     );
+    sendToWorkerQueue.addLast(task);
+    sendTaskToWorker();
   }
 
   private void onFoldersCompared(
@@ -164,11 +172,13 @@ public class RemoteCollector {
       FileHandle rightFile
   ) {
     if (scanFileContent) {
-      executor.sendToWorker(
+      Runnable task = () -> executor.sendToWorker(
           result -> onFilesCompared(model, result),
           DiffUtils.CMP_FILES,
           leftFile, rightFile
       );
+      sendToWorkerQueue.addLast(task);
+      sendTaskToWorker();
     } else {
       new SizeScanner(leftFile, rightFile) {
         @Override
@@ -204,11 +214,13 @@ public class RemoteCollector {
 
   private void readFolder(RemoteFolderDiffModel model, DirectoryHandle dirHandle) {
     ++inComparing;
-    executor.sendToWorker(
+    Runnable task = () -> executor.sendToWorker(
         result -> onFolderRead(model, result),
         DiffUtils.READ_FOLDER,
         dirHandle, new int[]{model.getDiffType(), model.getItemKind()}
     );
+    sendToWorkerQueue.addLast(task);
+    sendTaskToWorker();
   }
 
   private void onFolderRead(
@@ -225,13 +237,24 @@ public class RemoteCollector {
 
   private void onItemCompared() {
     if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
-    if (inComparing == 0) onComplete();
+    if (--sentToWorker < 0) throw new IllegalStateException("inComparing cannot be negative");
+    if (isShutdown) shutdown();
+    else if (inComparing == 0) onComplete();
     else {
+      sendTaskToWorker();
       if (sendResult == null || lastMessageSent) return;
       double time = firstMessageSent
           ? RemoteCollector.SEND_MSG_MS
           : RemoteCollector.SEND_FIRST_MSG_MS;
       if (getTimeDelta() >= time) sendMessage();
+    }
+  }
+
+  private void sendTaskToWorker() {
+    if (sentToWorker < workerSize && !sendToWorkerQueue.isEmpty()) {
+      var task = sendToWorkerQueue.removeFirst();
+      sentToWorker++;
+      task.run();
     }
   }
 
@@ -280,5 +303,21 @@ public class RemoteCollector {
 
   public void setOnComplete(Consumer<JsArray<JSObject>> onComplete) {
     this.onComplete = onComplete;
+  }
+
+  public void shutdown(Runnable onShutdown) {
+    this.isShutdown = true;
+    this.onShutdown = onShutdown;
+    sendToWorkerQueue.clear();
+    shutdown();
+  }
+
+  private void shutdown() {
+    if (sentToWorker != 0) return;
+    root = null;
+    leftHandle = rightHandle = null;
+    lastFrontendMessage = null;
+    sendResult = onComplete = null;
+    onShutdown.run();
   }
 }
