@@ -318,9 +318,10 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     var root = left ? rootView.left : rootView.right;
     if (root.selectedIndex() < 0) return null;
     var node = root.model()[root.selectedIndex()];
-    if (node.isEmpty() || !(node instanceof RemoteFileTreeNode remoteNode)) return null;
-    String path = getFullPath(remoteNode, left);
-    boolean isFolder = remoteNode instanceof RemoteDirectoryNode;
+    if (node.isEmpty()) return new FolderDiffRootView.Selection(null, left, false);
+
+    String path = getFullPath((RemoteFileTreeNode) node, left);
+    boolean isFolder = node instanceof RemoteDirectoryNode;
     return new FolderDiffRootView.Selection(path, left, isFolder);
   }
 

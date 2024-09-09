@@ -340,6 +340,11 @@ public class TreeView extends ScrollContent implements Focusable {
           if (mLine.onClick != null) mLine.onClick.run();
         }
       }
+    } else if (button == MouseListener.MOUSE_BUTTON_RIGHT) {
+      if (line >= 0 && line < model.lines.length) {
+        selectedIndex = line;
+        onSelectedLineChanged(line);
+      }
     }
     return MouseListener.Static.emptyConsumer;
   }
