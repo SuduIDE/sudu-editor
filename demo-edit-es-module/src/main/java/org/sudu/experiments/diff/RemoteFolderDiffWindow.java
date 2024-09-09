@@ -322,14 +322,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     var node = root.model()[root.selectedIndex()];
     if (node.isEmpty()) return new Selection(null, left, false);
 
-    String path = getFullPath((RemoteFileTreeNode) node, left);
+    String path = ((RemoteFileTreeNode) node).getRelativePath();
     boolean isFolder = node instanceof RemoteDirectoryNode;
     return new Selection(path, left, isFolder);
-  }
-
-  private String getFullPath(RemoteFileTreeNode node, boolean left) {
-    var rootPath = left ? leftRoot.name() : rightRoot.name();
-    return node.getFullPath(rootPath);
   }
 
   void leftSelectedChanged(int idx) {

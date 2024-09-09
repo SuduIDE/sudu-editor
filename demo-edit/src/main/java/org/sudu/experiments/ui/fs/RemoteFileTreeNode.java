@@ -32,4 +32,10 @@ public class RemoteFileTreeNode extends FileTreeNode {
   public String getFullPath(String root) {
     return model().getFullPath(root);
   }
+
+  public String getRelativePath() {
+    StringBuilder sb = new StringBuilder();
+    model().collectPathFromRoot(sb);
+    return sb.toString();
+  }
 }
