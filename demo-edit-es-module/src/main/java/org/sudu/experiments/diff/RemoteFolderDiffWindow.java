@@ -30,6 +30,8 @@ import org.teavm.jso.typedarrays.Int32Array;
 import java.util.*;
 import java.util.function.*;
 
+import static org.sudu.experiments.diff.FolderDiffRootView.Selection;
+
 public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   Window window;
@@ -318,11 +320,11 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     var root = left ? rootView.left : rootView.right;
     if (root.selectedIndex() < 0) return null;
     var node = root.model()[root.selectedIndex()];
-    if (node.isEmpty()) return new FolderDiffRootView.Selection(null, left, false);
+    if (node.isEmpty()) return new Selection(null, left, false);
 
     String path = getFullPath((RemoteFileTreeNode) node, left);
     boolean isFolder = node instanceof RemoteDirectoryNode;
-    return new FolderDiffRootView.Selection(path, left, isFolder);
+    return new Selection(path, left, isFolder);
   }
 
   private String getFullPath(RemoteFileTreeNode node, boolean left) {
