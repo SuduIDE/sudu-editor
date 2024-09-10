@@ -74,10 +74,22 @@ public class EditorColorScheme {
   }
 
   public CodeLineColorScheme editorCodeLineScheme() {
-    return new CodeLineColorScheme(editor.currentLineBg, editor.definitionBg, editor.usageBg, editor.selectionBg, editor.bg, codeElement, diff);
+    return new CodeLineColorScheme(
+        editor.currentLineBg,
+        editor.definitionBg,
+        editor.usageBg,
+        editor.selectionBg,
+        editor.bg,
+        codeElement, diff);
   }
 
   public CodeLineColorScheme treeViewCodeLineScheme() {
-    return new CodeLineColorScheme(fileTreeView.selectedBg, editor.definitionBg, editor.usageBg, editor.selectionBg, editor.bg, codeElement, diff);
+    return new CodeLineColorScheme(
+        fileTreeView.selectedBg,
+        editor.definitionBg,
+        editor.usageBg,
+        editor.selectionBg,
+        editor.bg,
+        codeElement, diff);
   }
 }

@@ -177,8 +177,9 @@ public class CodeLineRenderer implements Disposable {
           && isFullSelected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
 
       V4f elemBgColor = null;
-      if (overrideBg != null) elemBgColor = overrideBg;
-      else {
+      if (overrideBg != null) {
+        elemBgColor = overrideBg;
+      } else {
         if (isCurrentLine/* && !isDiff*/) elemBgColor = colors.currentLineBg;
         if (e == def) elemBgColor = colors.definitionBg;
         if (usages != null && usages.contains(e)) {

@@ -14,7 +14,11 @@ public class CodeLineColorScheme {
   public final CodeElementColor[] codeElement;
   public final DiffColors diff;
 
-    public CodeLineColorScheme(Color currentLineBg, Color definitionBg, Color usageBg, Color selectionBg, Color defaultBg, CodeElementColor[] codeElement, DiffColors diff) {
+    public CodeLineColorScheme(
+        Color currentLineBg, Color definitionBg, Color usageBg,
+        Color selectionBg, Color defaultBg,
+        CodeElementColor[] codeElement, DiffColors diff
+    ) {
         this.currentLineBg = currentLineBg;
         this.definitionBg = definitionBg;
         this.usageBg = usageBg;
