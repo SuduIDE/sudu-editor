@@ -15,7 +15,7 @@ public abstract class Fs implements NodeFs {
   @JSBody(params = {"dir", "file"}, script = "return dir + path.sep + file;")
   public static native JSString concatPath(JSString dir, JSString file);
 
-  @JSBody(script = "path.sep.charAt(0);")
+  @JSBody(script = "return path.sep.charAt(0);")
   public static native JSString pathSepChar();
 
   @JSBody(params = {"file"}, script = "return path.basename(file);")
