@@ -155,7 +155,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       case DiffModelChannelUpdater.FRONTEND_MESSAGE -> update(jsResult);
       case DiffModelChannelUpdater.OPEN_FILE -> openFile(jsResult);
     }
-    LoggingJs.Static.logger.log(LoggingJs.INFO,
+    LoggingJs.Static.logger.log(LoggingJs.TRACE,
         JSString.valueOf("Got message in " + Numbers.iRnd(Performance.now() - startTime) + "ms")
     );
   }

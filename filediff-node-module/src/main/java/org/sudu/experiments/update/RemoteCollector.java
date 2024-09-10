@@ -76,7 +76,7 @@ public class RemoteCollector {
 
   public void onMessageGot(FrontendMessage message) {
     double time = Performance.now() - startTime;
-    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf("RemoteCollector got frontend message in " + time + "ms"));
+    LoggingJs.Static.logger.log(LoggingJs.TRACE, JSString.valueOf("RemoteCollector got frontend message in " + time + "ms"));
     lastFrontendMessage = message;
     if (sendResult != null) sendMessage();
   }
@@ -267,7 +267,7 @@ public class RemoteCollector {
     if (lastFilesCompared == filesCompared && lastFoldersCompared == foldersCompared) return;
     String progressMsg = "Sent message in " + Numbers.iRnd(lastMessageSentTime - startTime) + "ms, " +
         "foldersCompared: " + foldersCompared + ", filesCompared: " + filesCompared;
-    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf(progressMsg));
+    LoggingJs.Static.logger.log(LoggingJs.TRACE, JSString.valueOf(progressMsg));
     lastFilesCompared = filesCompared;
     lastFoldersCompared = foldersCompared;
   }
@@ -285,7 +285,7 @@ public class RemoteCollector {
   }
 
   private void send(Consumer<JsArray<JSObject>> send, FrontendMessage message) {
-    LoggingJs.Static.logger.log(LoggingJs.DEBUG, JSString.valueOf("inComparing: " + inComparing));
+    LoggingJs.Static.logger.log(LoggingJs.TRACE, JSString.valueOf("inComparing: " + inComparing));
     String leftRootName = leftHandle.getFullPath();
     String rightRootName = rightHandle.getFullPath();
     var jsArray = BackendMessage.serialize(root, message, leftRootName, rightRootName);
