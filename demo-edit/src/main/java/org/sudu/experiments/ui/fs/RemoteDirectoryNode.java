@@ -25,7 +25,6 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
         : openDir();
     handle.sendModel();
     handle.updateView();
-    handle.setSelected(result.first, result.second);
   }
 
   public Pair<RemoteFileTreeNode, RemoteFileTreeNode> openDir() {

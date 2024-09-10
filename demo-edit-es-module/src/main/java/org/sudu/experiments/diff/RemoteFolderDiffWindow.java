@@ -202,7 +202,6 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       @Override
       public void openFile(RemoteFileNode node) {
         var opposite = getOppositeFile(node);
-        if (opposite != null) setSelected(node, opposite);
         if (opposite != null) {
           var window = new FileDiffWindow(windowManager, theme, fonts);
           openFileMap[keyCnt] = (source) -> window.open(source, node.name(), left);
@@ -273,16 +272,6 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         var subNode = current.findSubDir(path);
         if (subNode == null) return null;
         else return getOpposite(subNode, deque);
-      }
-
-      public void setSelected(RemoteFileTreeNode node, RemoteFileTreeNode opposite) {
-        if (left) {
-          rootView.left.setSelected(node);
-          rootView.right.setSelected(opposite);
-        } else {
-          rootView.right.setSelected(node);
-          rootView.left.setSelected(opposite);
-        }
       }
     };
   }
