@@ -17,4 +17,11 @@ public class ColorOp {
   public static Color lerp(Color color1, Color color2, float factor) {
     return lerp(color1, color2, factor, new Color(0, 0, 0, 0));
   }
+
+  public static Color blend(Color background, Color color) {
+    Color r = lerp(background, color, color.w);
+    r.a = background.a;
+    r.w = background.w;
+    return r;
+  }
 }

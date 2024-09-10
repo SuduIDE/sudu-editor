@@ -1,19 +1,21 @@
 package org.sudu.experiments.ui;
 
+import org.sudu.experiments.Cursor;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.*;
+import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
+import org.sudu.experiments.editor.ui.colors.DiffColors;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
-import org.sudu.experiments.math.Numbers;
-import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.math.*;
 import org.sudu.experiments.ui.fonts.Codicons;
 import org.sudu.experiments.ui.window.ScrollContent;
 
@@ -44,9 +46,13 @@ public class TreeView extends ScrollContent implements Focusable {
 
   CodeLineRenderer[] lines = new CodeLineRenderer[0];
   EditorColorScheme theme;
+  CodeLineColorScheme codeLineScheme;
+  Color hoverOverBackground;
+  DiffColors hoverOverDiff;
   UiFont uiFont, uiIcons;
   int firstLineRendered, lastLineRendered;
   int selectedIndex = -1;
+  int hoveredIndex = -1;
   Consumer<Integer> onSelectedLineChanged;
 
   GL.Texture arrowR, arrowD;
@@ -137,6 +143,7 @@ public class TreeView extends ScrollContent implements Focusable {
 
   public void setTheme(EditorColorScheme colors) {
     theme = colors;
+    codeLineScheme = colors.treeViewCodeLineScheme();
     boolean sameFont1 = Objects.equals(uiFont, colors.fileViewFont);
     boolean sameFont2 = Objects.equals(uiIcons, colors.fileViewIcons);
     if (!sameFont1 || !sameFont2) {
@@ -145,6 +152,8 @@ public class TreeView extends ScrollContent implements Focusable {
       if (dpr != 0)
         changeFont();
     }
+    hoverOverBackground = ColorOp.blend(codeLineScheme.defaultBg, colors.fileTreeView.hoveredBg);
+    hoverOverDiff = colors.diff.blendWith(colors.fileTreeView.hoveredBg);
   }
 
   @Override
@@ -169,6 +178,12 @@ public class TreeView extends ScrollContent implements Focusable {
     layoutScroll();
   }
 
+  public void clearSelection() {
+    if (selectedIndex < 0) return;
+    selectedIndex = -1;
+    onSelectedLineChanged(selectedIndex);
+  }
+
   public void setSelected0() {
     selectedIndex = model.lines.length > 0 ? 0 : -1;
   }
@@ -183,7 +198,7 @@ public class TreeView extends ScrollContent implements Focusable {
 
   @Override
   public void draw(WglGraphics g) {
-    V4f bg = theme.editor.bg;
+    var bg = theme.editor.bg;
     g.drawRect(pos.x, pos.y, size, bg);
     Objects.requireNonNull(clrContext.font);
     int lineHeight = clrContext.lineHeight;
@@ -232,18 +247,32 @@ public class TreeView extends ScrollContent implements Focusable {
           theme.diff.getDiffColor(theme, diff.type);
       int shift = leftGap + treeShift * mLine.depth;
 
-      boolean selected = hasFocus && selectedIndex == i;
+      boolean selected = selectedIndex == i;
+      boolean hovered = hoveredIndex == i;
       if (diff != null) {
         int y = i * lineHeight - scrollPos.y;
         uiContext.v2i1.set(size.x, lineHeight);
         g.drawRect(pos.x, pos.y + y, uiContext.v2i1, bgLineColor);
       }
-      if (selected) {
+
+      var background = selected ?
+          hasFocus ?
+              theme.fileTreeView.selectedBg :
+              theme.fileTreeView.inactiveSelectedBg
+          : hovered ? diff != null ?
+            hoverOverDiff.getDiffColor(diff.type, hoverOverBackground) :
+            hoverOverBackground
+          : diff != null ? bgLineColor : bg;
+
+      var foreground = selected && hasFocus ?
+          theme.fileTreeView.selectedText : theme.codeElement[0].colorF;
+
+      if (selected || hovered) {
         int y = i * lineHeight - scrollPos.y;
         int indent = toPx(selectionBackgroundMargin);
-        uiContext.v2i1.set(size.x - indent * 2, lineHeight);
-        g.drawRect(pos.x + indent, pos.y + y,
-            uiContext.v2i1, theme.editor.currentLineBg);
+        uiContext.v2i1.set(size.x - indent, lineHeight);
+        g.drawRect(pos.x, pos.y + y,
+            uiContext.v2i1, background);
       }
 
       var arrow = getIcon(mLine.arrow);
@@ -255,9 +284,8 @@ public class TreeView extends ScrollContent implements Focusable {
         clrContext.drawIcon(g, arrow,
             arrowX,
             pos.y + yPosition,
-            selected ? theme.editor.currentLineBg :
-                diff != null ? bgLineColor : bg,
-            color.colorF);
+            background,
+            foreground);
       }
 
       if (icon != null) {
@@ -266,9 +294,8 @@ public class TreeView extends ScrollContent implements Focusable {
         clrContext.drawIcon(g, icon,
             iconX,
             pos.y + yPosition,
-            selected ? theme.editor.currentLineBg :
-                diff != null ? bgLineColor : bg,
-            color.colorF);
+            background,
+            foreground);
       }
 
       CodeLine cl = mLine.line;
@@ -287,9 +314,10 @@ public class TreeView extends ScrollContent implements Focusable {
           pos.y + yPosition,
           startX + textShift,
           g, width, lineHeight, hScrollPos,
-          theme, null,
+          codeLineScheme, null,
           null, null,
           selected,
+          background, foreground,
           selected ? null : diff);
     }
 
@@ -300,12 +328,32 @@ public class TreeView extends ScrollContent implements Focusable {
     g.disableScissor();
   }
 
+  private int getLineNumber(MouseEvent event) {
+    return getLineNumber(event.position);
+  }
+
+  private int getLineNumber(V2i position) {
+    int lineHeight = clrContext.lineHeight;
+    int viewY = position.y - pos.y + scrollPos.y;
+    return viewY / lineHeight;
+  }
+
+  @Override
+  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
+    int line = getLineNumber(event);
+    if (line >= 0 && line < model.lines.length) {
+      hoveredIndex = line;
+      return setCursor.set(Cursor.pointer);
+    } else {
+      hoveredIndex = -1;
+      return setCursor.setDefault();
+    }
+  }
+
   @Override
   protected boolean onMouseClick(MouseEvent event, int button, int clickCount) {
     if (button == MouseListener.MOUSE_BUTTON_LEFT && clickCount == 2) {
-      int lineHeight = clrContext.lineHeight;
-      int viewY = event.position.y - pos.y + scrollPos.y;
-      int line = viewY / lineHeight;
+      int line = getLineNumber(event);
       if (line >= 0 && line < model.lines.length) {
         TreeNode mLine = model.lines[line];
         if (!arrowClicked(event, line) && mLine.onDblClick != null) {
@@ -326,9 +374,7 @@ public class TreeView extends ScrollContent implements Focusable {
 
   protected Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
     focus();
-    int lineHeight = clrContext.lineHeight;
-    int viewY = event.position.y - pos.y + scrollPos.y;
-    int line = viewY / lineHeight;
+    int line = getLineNumber(event);
     if (button == MouseListener.MOUSE_BUTTON_LEFT) {
       if (line >= 0 && line < model.lines.length) {
         TreeNode mLine = model.lines[line];
@@ -516,5 +562,15 @@ public class TreeView extends ScrollContent implements Focusable {
   public void onFocusLost() {
     Focusable.super.onFocusLost();
     hasFocus = false;
+  }
+
+  public boolean onContextMenu(V2i pos) {
+    int line = getLineNumber(pos);
+    if (line >= 0 && line < model.lines.length && line != selectedIndex) {
+      selectedIndex = line;
+      hoveredIndex = line;
+      onSelectedLineChanged(line);
+    }
+    return false;
   }
 }

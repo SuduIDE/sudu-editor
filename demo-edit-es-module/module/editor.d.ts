@@ -2,7 +2,10 @@
 // demo-edit-es-module/src/main/java/org/sudu/experiments/EditJsApi.java
 
 import { Channel, IDisposable } from "./common";
-export { Channel, Message, setLogLevel, setLogOutput, newRemoteChannelTest, LogLevel, ChannelTestApi, IDisposable } from './common';
+
+export {
+    Channel, Message, setLogLevel, setLogOutput, newRemoteChannelTest, LogLevel, ChannelTestApi, IDisposable
+} from './common';
 
 export interface EditArgs {
     containerId: string
@@ -58,7 +61,7 @@ export interface ITextModel extends IDisposable {
     uri?: Uri
     getOffsetAt(position: IPosition): number
     getPositionAt(offset: number): IPosition
-    getText() : string
+    getText(): string
 }
 
 type ProviderValue<T> = T | undefined | null;
@@ -175,8 +178,8 @@ interface Focusable {
 
 interface EditorBase {
     setReadonly(flag: boolean): void,
-    disconnectFromDom() : void
-    reconnectToDom(containerId?: string) : void
+    disconnectFromDom(): void
+    reconnectToDom(containerId?: string): void
 }
 
 export interface ICodeDiff extends EditorBase, HasTheme, Focusable {
@@ -189,7 +192,8 @@ export interface ICodeDiff extends EditorBase, HasTheme, Focusable {
     getRightModel(): ITextModel,
 }
 
-interface CodeDiffView extends ICodeDiff, IDisposable {}
+interface CodeDiffView extends ICodeDiff, IDisposable {
+}
 
 export interface ICodeEditor extends EditorBase, HasTheme, Focusable {
     setText(text: string): void,
@@ -221,9 +225,11 @@ export interface ICodeEditor extends EditorBase, HasTheme, Focusable {
     onDidChangeModel: IEvent<IModelChangedEvent>
 }
 
-interface EditView extends ICodeEditor, IDisposable {}
+interface EditView extends ICodeEditor, IDisposable {
+}
 
-export interface IFolderDiff extends EditorBase, HasTheme, Focusable {}
+export interface IFolderDiff extends EditorBase, HasTheme, Focusable {
+}
 
 export interface FolderDiffView extends IFolderDiff, IDisposable {
     isReady(): boolean

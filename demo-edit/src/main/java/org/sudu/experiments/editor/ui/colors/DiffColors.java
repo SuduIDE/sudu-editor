@@ -2,17 +2,17 @@ package org.sudu.experiments.editor.ui.colors;
 
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.math.ColorOp;
 
 public class DiffColors {
-  public final V4f deletedBgColor;
-  public final V4f insertedBgColor;
-  public final V4f editedBgColor;
-  public final V4f editedBgPaleColor;
+  public final Color deletedBgColor;
+  public final Color insertedBgColor;
+  public final Color editedBgColor;
+  public final Color editedBgPaleColor;
 
   DiffColors(
-      V4f deletedBgColor, V4f insertedBgColor,
-      V4f editedBgColor, V4f editedBgPaleColor
+      Color deletedBgColor, Color insertedBgColor,
+      Color editedBgColor, Color editedBgPaleColor
   ) {
     this.deletedBgColor = deletedBgColor;
     this.insertedBgColor = insertedBgColor;
@@ -47,18 +47,31 @@ public class DiffColors {
     );
   }
 
-  public V4f getDiffColor(EditorColorScheme colors, int elementType, int lineType) {
+  public Color getDiffColor(int elementType, int lineType, Color defaultBg) {
     if (elementType != 0) lineType = elementType;
     return switch (lineType) {
-      case DiffTypes.DELETED -> colors.diff.deletedBgColor;
-      case DiffTypes.INSERTED -> colors.diff.insertedBgColor;
+      case DiffTypes.DELETED -> deletedBgColor;
+      case DiffTypes.INSERTED -> insertedBgColor;
       case DiffTypes.EDITED ->
-          elementType == DiffTypes.EDITED ? colors.diff.editedBgColor : colors.diff.editedBgPaleColor;
-      default -> colors.editor.bg;
+          elementType == DiffTypes.EDITED ? editedBgColor : editedBgPaleColor;
+      default -> defaultBg;
     };
   }
 
-  public V4f getDiffColor(EditorColorScheme colors, int lineType) {
-    return getDiffColor(colors, 0, lineType);
+  public Color getDiffColor(int lineType, Color defaultBg) {
+    return getDiffColor(0, lineType, defaultBg);
+  }
+
+  public Color getDiffColor(EditorColorScheme colorScheme, int lineType) {
+    return getDiffColor(lineType, colorScheme.editor.bg);
+  }
+
+  public DiffColors blendWith(Color color) {
+    return new DiffColors(
+            ColorOp.blend(deletedBgColor, color),
+            ColorOp.blend(insertedBgColor, color),
+            ColorOp.blend(editedBgColor, color),
+            ColorOp.blend(editedBgPaleColor, color)
+    );
   }
 }

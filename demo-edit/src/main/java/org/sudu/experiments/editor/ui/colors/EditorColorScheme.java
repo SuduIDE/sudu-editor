@@ -73,7 +73,23 @@ public class EditorColorScheme {
     this.diff = diff;
   }
 
-  public Color bgColor(Color bg) {
-    return bg != null ? bg : editor.bg;
+  public CodeLineColorScheme editorCodeLineScheme() {
+    return new CodeLineColorScheme(
+        editor.currentLineBg,
+        editor.definitionBg,
+        editor.usageBg,
+        editor.selectionBg,
+        editor.bg,
+        codeElement, diff);
+  }
+
+  public CodeLineColorScheme treeViewCodeLineScheme() {
+    return new CodeLineColorScheme(
+        fileTreeView.selectedBg,
+        editor.definitionBg,
+        editor.usageBg,
+        editor.selectionBg,
+        editor.bg,
+        codeElement, diff);
   }
 }

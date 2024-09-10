@@ -1,6 +1,7 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.fonts.FontDesk;
@@ -34,7 +35,8 @@ public class HScrollTestScene extends Scene {
 
   boolean needsUpdate = true;
 
-  final EditorColorScheme colors = EditorColorScheme.darculaIdeaColorScheme();
+  final CodeLineColorScheme colors =
+      EditorColorScheme.darculaIdeaColorScheme().editorCodeLineScheme();
 
   public HScrollTestScene(SceneApi api) {
     super(api);
@@ -95,7 +97,7 @@ public class HScrollTestScene extends Scene {
 
     codeLineRenderer.draw(200, 0, g,
         viewportSize.x, fontSize, scrollPosH, colors, null,
-        null, usages, false, null);
+        null, usages, false, null, null, null);
 
     drawDebug(300, 0);
 

@@ -5,6 +5,7 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.*;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.EditorUi.FontApi;
+import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.*;
@@ -49,6 +50,7 @@ public class EditorComponent extends View implements
   Model model = new Model();
   EditorRegistrations registrations = new EditorRegistrations();
   EditorColorScheme colors;
+  CodeLineColorScheme codeLineColors;
 
   // render cache
   CodeLineRenderer[] lines = new CodeLineRenderer[0];
@@ -202,6 +204,7 @@ public class EditorComponent extends View implements
 
   public void setTheme(EditorColorScheme theme) {
     colors = theme;
+    codeLineColors = colors.editorCodeLineScheme();
     caret.setColor(theme.editor.cursor);
     vScroll.setColor(theme.editor.scrollBarLine, theme.editor.scrollBarBg);
     hScroll.setColor(theme.editor.scrollBarLine, theme.editor.scrollBarBg);
@@ -490,10 +493,10 @@ public class EditorComponent extends View implements
       line.draw(
           pos.y + yPosition, dx, g,
           editorWidth, lineHeight, model.hScrollPos,
-          colors, getSelLineSegment(i, cLine),
+          codeLineColors, getSelLineSegment(i, cLine),
           model.definition, model.usages,
-          model.caretLine == i,
-          diff);
+          model.caretLine == i, null, null,
+              diff);
     }
 
     V2i sizeTmp = context.v2i1;

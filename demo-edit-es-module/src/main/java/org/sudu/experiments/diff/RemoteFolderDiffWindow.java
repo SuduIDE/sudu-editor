@@ -10,6 +10,7 @@ import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Numbers;
+import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.FrontendState;
@@ -68,6 +69,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
     rootView.left.setRoot(leftRoot);
     rootView.right.setRoot(rightRoot);
+    rootView.right.clearSelection();
 
     window = createWindow(rootView);
     window.onFocus(this::onFocus);
@@ -319,12 +321,27 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   void leftSelectedChanged(int idx) {
-    rootView.right.checkScroll(idx);
+    if (idx >= 0) {
+      rootView.right.checkScroll(idx);
+      rootView.right.clearSelection();
+    }
     rootView.fireSelectionChanged(getSelected(true));
   }
 
   void rightSelectedChanged(int idx) {
-    rootView.left.checkScroll(idx);
+    if (idx >= 0) {
+      rootView.left.checkScroll(idx);
+      rootView.left.clearSelection();
+    }
     rootView.fireSelectionChanged(getSelected(false));
+  }
+
+  @Override
+  protected boolean onContextMenu(V2i pos) {
+    if (rootView.left.hitTest(pos))
+      return rootView.left.onContextMenu(pos);
+    if (rootView.right.hitTest(pos))
+      return rootView.right.onContextMenu(pos);
+    return false;
   }
 }
