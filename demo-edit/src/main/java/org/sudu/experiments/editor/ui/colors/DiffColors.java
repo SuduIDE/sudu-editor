@@ -10,8 +10,8 @@ public class DiffColors {
   public final Color editedBgPaleColor;
 
   DiffColors(
-          Color deletedBgColor, Color insertedBgColor,
-          Color editedBgColor, Color editedBgPaleColor
+      Color deletedBgColor, Color insertedBgColor,
+      Color editedBgColor, Color editedBgPaleColor
   ) {
     this.deletedBgColor = deletedBgColor;
     this.insertedBgColor = insertedBgColor;
