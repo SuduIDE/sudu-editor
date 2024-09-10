@@ -2,17 +2,16 @@ package org.sudu.experiments.editor.ui.colors;
 
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.V4f;
 
 public class DiffColors {
-  public final V4f deletedBgColor;
-  public final V4f insertedBgColor;
-  public final V4f editedBgColor;
-  public final V4f editedBgPaleColor;
+  public final Color deletedBgColor;
+  public final Color insertedBgColor;
+  public final Color editedBgColor;
+  public final Color editedBgPaleColor;
 
   DiffColors(
-      V4f deletedBgColor, V4f insertedBgColor,
-      V4f editedBgColor, V4f editedBgPaleColor
+          Color deletedBgColor, Color insertedBgColor,
+          Color editedBgColor, Color editedBgPaleColor
   ) {
     this.deletedBgColor = deletedBgColor;
     this.insertedBgColor = insertedBgColor;
@@ -47,7 +46,7 @@ public class DiffColors {
     );
   }
 
-  public V4f getDiffColor(int elementType, int lineType, Color defaultBg) {
+  public Color getDiffColor(int elementType, int lineType, Color defaultBg) {
     if (elementType != 0) lineType = elementType;
     return switch (lineType) {
       case DiffTypes.DELETED -> deletedBgColor;
@@ -58,11 +57,11 @@ public class DiffColors {
     };
   }
 
-  public V4f getDiffColor(int lineType, Color defaultBg) {
+  public Color getDiffColor(int lineType, Color defaultBg) {
     return getDiffColor(0, lineType, defaultBg);
   }
 
-  public V4f getDiffColor(EditorColorScheme colorScheme, int lineType) {
+  public Color getDiffColor(EditorColorScheme colorScheme, int lineType) {
     return getDiffColor(lineType, colorScheme.editor.bg);
   }
 }

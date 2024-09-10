@@ -1,5 +1,6 @@
 package org.sudu.experiments.ui;
 
+import org.sudu.experiments.Cursor;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
@@ -49,6 +50,7 @@ public class TreeView extends ScrollContent implements Focusable {
   UiFont uiFont, uiIcons;
   int firstLineRendered, lastLineRendered;
   int selectedIndex = -1;
+  int hoveredIndex = -1;
   Consumer<Integer> onSelectedLineChanged;
 
   GL.Texture arrowR, arrowD;
@@ -186,7 +188,7 @@ public class TreeView extends ScrollContent implements Focusable {
 
   @Override
   public void draw(WglGraphics g) {
-    V4f bg = theme.editor.bg;
+    var bg = theme.editor.bg;
     g.drawRect(pos.x, pos.y, size, bg);
     Objects.requireNonNull(clrContext.font);
     int lineHeight = clrContext.lineHeight;
@@ -236,17 +238,22 @@ public class TreeView extends ScrollContent implements Focusable {
       int shift = leftGap + treeShift * mLine.depth;
 
       boolean selected = hasFocus && selectedIndex == i;
+      boolean hovered = hoveredIndex == i;
       if (diff != null) {
         int y = i * lineHeight - scrollPos.y;
         uiContext.v2i1.set(size.x, lineHeight);
         g.drawRect(pos.x, pos.y + y, uiContext.v2i1, bgLineColor);
       }
-      if (selected) {
+      var bgColor = selected ? theme.fileTreeView.selectedBg :
+              hovered ? theme.editor.currentLineBg :
+              diff != null ? bgLineColor : bg;
+
+      if (selected || hovered) {
         int y = i * lineHeight - scrollPos.y;
         int indent = toPx(selectionBackgroundMargin);
         uiContext.v2i1.set(size.x - indent * 2, lineHeight);
         g.drawRect(pos.x + indent, pos.y + y,
-            uiContext.v2i1, theme.fileTreeView.selectedBg);
+            uiContext.v2i1, bgColor);
       }
 
       var arrow = getIcon(mLine.arrow);
@@ -258,8 +265,7 @@ public class TreeView extends ScrollContent implements Focusable {
         clrContext.drawIcon(g, arrow,
             arrowX,
             pos.y + yPosition,
-            selected ? theme.fileTreeView.selectedBg :
-                diff != null ? bgLineColor : bg,
+            bgColor,
             color.colorF);
       }
 
@@ -269,8 +275,7 @@ public class TreeView extends ScrollContent implements Focusable {
         clrContext.drawIcon(g, icon,
             iconX,
             pos.y + yPosition,
-            selected ? theme.fileTreeView.selectedBg :
-                diff != null ? bgLineColor : bg,
+            bgColor,
             color.colorF);
       }
 
@@ -293,6 +298,7 @@ public class TreeView extends ScrollContent implements Focusable {
           codeLineScheme, null,
           null, null,
           selected,
+          bgColor,
           selected ? null : diff);
     }
 
@@ -303,12 +309,28 @@ public class TreeView extends ScrollContent implements Focusable {
     g.disableScissor();
   }
 
+  private int getLineNumber(MouseEvent event) {
+    int lineHeight = clrContext.lineHeight;
+    int viewY = event.position.y - pos.y + scrollPos.y;
+    return viewY / lineHeight;
+  }
+
+  @Override
+  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
+    int line = getLineNumber(event);
+    if (line >= 0 && line < model.lines.length) {
+      hoveredIndex = line;
+      return setCursor.set(Cursor.pointer);
+    } else {
+      hoveredIndex = -1;
+      return setCursor.setDefault();
+    }
+  }
+
   @Override
   protected boolean onMouseClick(MouseEvent event, int button, int clickCount) {
     if (button == MouseListener.MOUSE_BUTTON_LEFT && clickCount == 2) {
-      int lineHeight = clrContext.lineHeight;
-      int viewY = event.position.y - pos.y + scrollPos.y;
-      int line = viewY / lineHeight;
+      int line = getLineNumber(event);
       if (line >= 0 && line < model.lines.length) {
         TreeNode mLine = model.lines[line];
         if (!arrowClicked(event, line) && mLine.onDblClick != null) {
@@ -329,9 +351,7 @@ public class TreeView extends ScrollContent implements Focusable {
 
   protected Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
     focus();
-    int lineHeight = clrContext.lineHeight;
-    int viewY = event.position.y - pos.y + scrollPos.y;
-    int line = viewY / lineHeight;
+    int line = getLineNumber(event);
     if (button == MouseListener.MOUSE_BUTTON_LEFT) {
       if (line >= 0 && line < model.lines.length) {
         TreeNode mLine = model.lines[line];

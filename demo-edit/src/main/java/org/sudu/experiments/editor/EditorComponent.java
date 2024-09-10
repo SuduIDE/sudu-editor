@@ -495,7 +495,7 @@ public class EditorComponent extends View implements
           editorWidth, lineHeight, model.hScrollPos,
           codeLineColors, getSelLineSegment(i, cLine),
           model.definition, model.usages,
-          model.caretLine == i,
+          model.caretLine == i, null,
           diff);
     }
 
