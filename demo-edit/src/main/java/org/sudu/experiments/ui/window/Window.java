@@ -273,7 +273,12 @@ public class Window {
   }
 
   boolean onMouseClick(MouseEvent event, int button, int clickCount) {
-    return title.hitTest(event.position) || frameHitTest(event.position) ||
+    boolean hitTitle = title.hitTest(event.position);
+    if (hitTitle && clickCount == 2) {
+      maximize();
+      return true;
+    }
+    return hitTitle || frameHitTest(event.position) ||
         contentHitTest(event) &&
             content.onMouseClick(event, button, clickCount);
   }
@@ -473,5 +478,12 @@ public class Window {
     V2i windowSize = context.windowSize;
     context.v2i1.set(0,0);
     setPosition(context.v2i1, windowSize);
+  }
+
+  public void maximize() {
+    int titleHeight = title.computeHeight();
+    V2i windowSize = context.windowSize;
+    setPosition(new V2i(0, titleHeight),
+        new V2i(windowSize.x, windowSize.y - titleHeight));
   }
 }

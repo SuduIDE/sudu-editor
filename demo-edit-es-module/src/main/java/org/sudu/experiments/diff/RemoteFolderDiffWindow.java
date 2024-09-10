@@ -209,6 +209,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
           sendOpenFile(node, left);
           openFileMap[keyCnt] = (source) -> window.open(source, opposite.name(), !left);
           sendOpenFile(opposite, !left);
+          window.window.maximize();
         } else {
           var window = new EditorWindow(windowManager, theme, fonts);
           openFileMap[keyCnt] = (source) -> window.open(source, node.name());
