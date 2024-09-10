@@ -140,6 +140,7 @@ public class CodeLineRenderer implements Disposable {
       CodeElement def,
       List<CodeElement> usages,
       boolean isCurrentLine,
+      Color overrideBg,
       LineDiff diff
   ) {
     int lineMeasure = line.lineMeasure();
@@ -176,16 +177,19 @@ public class CodeLineRenderer implements Disposable {
           && isFullSelected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
 
       V4f elemBgColor = null;
-      if (isCurrentLine/* && !isDiff*/) elemBgColor = colors.currentLineBg;
-      if (e == def) elemBgColor = colors.definitionBg;
-      if (usages != null && usages.contains(e)) {
-        elemBgColor = colors.usageBg;
-      }
-      if (diff != null) {
-        int elementType = diff.elementTypes == null
-            ? 0 : i < diff.elementTypes.length
-            ? diff.elementTypes[i] : 0;
-        elemBgColor = colors.diff.getDiffColor(elementType, diff.type, colors.defaultBg);
+      if (overrideBg != null) elemBgColor = overrideBg;
+      else {
+        if (isCurrentLine/* && !isDiff*/) elemBgColor = colors.currentLineBg;
+        if (e == def) elemBgColor = colors.definitionBg;
+        if (usages != null && usages.contains(e)) {
+          elemBgColor = colors.usageBg;
+        }
+        if (diff != null) {
+          int elementType = diff.elementTypes == null
+                  ? 0 : i < diff.elementTypes.length
+                  ? diff.elementTypes[i] : 0;
+          elemBgColor = colors.diff.getDiffColor(elementType, diff.type, colors.defaultBg);
+        }
       }
 
       if (isFullSelected || isFullUnselected) {
