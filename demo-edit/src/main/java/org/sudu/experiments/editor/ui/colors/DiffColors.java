@@ -47,18 +47,22 @@ public class DiffColors {
     );
   }
 
-  public V4f getDiffColor(EditorColorScheme colors, int elementType, int lineType) {
+  public V4f getDiffColor(int elementType, int lineType, Color defaultBg) {
     if (elementType != 0) lineType = elementType;
     return switch (lineType) {
-      case DiffTypes.DELETED -> colors.diff.deletedBgColor;
-      case DiffTypes.INSERTED -> colors.diff.insertedBgColor;
+      case DiffTypes.DELETED -> deletedBgColor;
+      case DiffTypes.INSERTED -> insertedBgColor;
       case DiffTypes.EDITED ->
-          elementType == DiffTypes.EDITED ? colors.diff.editedBgColor : colors.diff.editedBgPaleColor;
-      default -> colors.editor.bg;
+          elementType == DiffTypes.EDITED ? editedBgColor : editedBgPaleColor;
+      default -> defaultBg;
     };
   }
 
-  public V4f getDiffColor(EditorColorScheme colors, int lineType) {
-    return getDiffColor(colors, 0, lineType);
+  public V4f getDiffColor(int lineType, Color defaultBg) {
+    return getDiffColor(0, lineType, defaultBg);
+  }
+
+  public V4f getDiffColor(EditorColorScheme colorScheme, int lineType) {
+    return getDiffColor(lineType, colorScheme.editor.bg);
   }
 }
