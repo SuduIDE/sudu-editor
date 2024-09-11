@@ -76,6 +76,13 @@ public class Color extends V4f {
         r == color.r && g == color.g && b == color.b && a == color.a;
   }
 
+  void computeRgba() {
+    r = (int) (x * 255 + .5f);
+    g = (int) (y * 255 + .5f);
+    b = (int) (z * 255 + .5f);
+    a = (int) (w * 255 + .5f);
+  }
+
   public interface Cvt {
     static V4f gray(int value) {
       return fromRGBA(value, value, value, 255);
