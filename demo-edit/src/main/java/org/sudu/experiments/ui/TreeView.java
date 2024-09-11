@@ -15,7 +15,7 @@ import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Numbers;
-import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.fonts.Codicons;
 import org.sudu.experiments.ui.window.ScrollContent;
 
@@ -237,15 +237,16 @@ public class TreeView extends ScrollContent implements Focusable {
           theme.diff.getDiffColor(theme, diff.type);
       int shift = leftGap + treeShift * mLine.depth;
 
-      boolean selected = hasFocus && selectedIndex == i;
+      boolean selected = selectedIndex == i;
       boolean hovered = hoveredIndex == i;
       if (diff != null) {
         int y = i * lineHeight - scrollPos.y;
         uiContext.v2i1.set(size.x, lineHeight);
         g.drawRect(pos.x, pos.y + y, uiContext.v2i1, bgLineColor);
       }
-      var bgColor = selected ? theme.fileTreeView.selectedBg :
-              hovered ? theme.editor.currentLineBg :
+
+      var bgColor = selected ? (hasFocus ? theme.fileTreeView.selectedBg : theme.fileTreeView.inactiveSelectedBg) :
+              hovered ? theme.fileTreeView.hoveredBg :
               diff != null ? bgLineColor : bg;
 
       if (selected || hovered) {
@@ -310,8 +311,12 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   private int getLineNumber(MouseEvent event) {
+    return getLineNumber(event.position);
+  }
+
+  private int getLineNumber(V2i position) {
     int lineHeight = clrContext.lineHeight;
-    int viewY = event.position.y - pos.y + scrollPos.y;
+    int viewY = position.y - pos.y + scrollPos.y;
     return viewY / lineHeight;
   }
 
@@ -539,5 +544,14 @@ public class TreeView extends ScrollContent implements Focusable {
   public void onFocusLost() {
     Focusable.super.onFocusLost();
     hasFocus = false;
+  }
+
+  public boolean onContextMenu(V2i pos) {
+    int line = getLineNumber(pos);
+    if (line >= 0 && line < model.lines.length && line != selectedIndex) {
+      selectedIndex = line;
+      onSelectedLineChanged(line);
+    }
+    return false;
   }
 }

@@ -10,6 +10,7 @@ import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Numbers;
+import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.FrontendState;
@@ -326,5 +327,14 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   void rightSelectedChanged(int idx) {
     rootView.left.checkScroll(idx);
     rootView.fireSelectionChanged(getSelected(false));
+  }
+
+  @Override
+  protected boolean onContextMenu(V2i pos) {
+    if(rootView.left.hitTest(pos))
+      return rootView.left.onContextMenu(pos);
+    if(rootView.right.hitTest(pos))
+      return rootView.right.onContextMenu(pos);
+    return false;
   }
 }
