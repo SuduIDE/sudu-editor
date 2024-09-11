@@ -140,7 +140,7 @@ public class CodeLineRenderer implements Disposable {
       CodeElement def,
       List<CodeElement> usages,
       boolean isCurrentLine,
-      Color overrideBg,
+      V4f overrideBg,
       LineDiff diff
   ) {
     int lineMeasure = line.lineMeasure();
