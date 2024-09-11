@@ -556,6 +556,7 @@ public class TreeView extends ScrollContent implements Focusable {
     int line = getLineNumber(pos);
     if (line >= 0 && line < model.lines.length && line != selectedIndex) {
       selectedIndex = line;
+      hoveredIndex = line;
       onSelectedLineChanged(line);
     }
     return false;
