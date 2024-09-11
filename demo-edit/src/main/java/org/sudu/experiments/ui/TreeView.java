@@ -8,12 +8,15 @@ import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
+import org.sudu.experiments.editor.ui.colors.DiffColors;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
+import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.ColorOp;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.fonts.Codicons;
@@ -47,6 +50,8 @@ public class TreeView extends ScrollContent implements Focusable {
   CodeLineRenderer[] lines = new CodeLineRenderer[0];
   EditorColorScheme theme;
   CodeLineColorScheme codeLineScheme;
+  Color hoverOverBackground;
+  DiffColors hoverOverDiff;
   UiFont uiFont, uiIcons;
   int firstLineRendered, lastLineRendered;
   int selectedIndex = -1;
@@ -150,6 +155,8 @@ public class TreeView extends ScrollContent implements Focusable {
       if (dpr != 0)
         changeFont();
     }
+    hoverOverBackground = ColorOp.blend(codeLineScheme.defaultBg, colors.fileTreeView.hoveredBg);
+    hoverOverDiff = colors.diff.blendWith(colors.fileTreeView.hoveredBg);
   }
 
   @Override
@@ -246,7 +253,7 @@ public class TreeView extends ScrollContent implements Focusable {
       }
 
       var bgColor = selected ? (hasFocus ? theme.fileTreeView.selectedBg : theme.fileTreeView.inactiveSelectedBg) :
-              hovered ? theme.fileTreeView.hoveredBg :
+              hovered ? (diff != null ? hoverOverDiff.getDiffColor(diff.type, hoverOverBackground) : hoverOverBackground) :
               diff != null ? bgLineColor : bg;
 
       if (selected || hovered) {

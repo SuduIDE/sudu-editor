@@ -2,6 +2,7 @@ package org.sudu.experiments.editor.ui.colors;
 
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.ColorOp;
 
 public class DiffColors {
   public final Color deletedBgColor;
@@ -63,5 +64,14 @@ public class DiffColors {
 
   public Color getDiffColor(EditorColorScheme colorScheme, int lineType) {
     return getDiffColor(lineType, colorScheme.editor.bg);
+  }
+
+  public DiffColors blendWith(Color color) {
+    return new DiffColors(
+            ColorOp.blend(deletedBgColor, color),
+            ColorOp.blend(insertedBgColor, color),
+            ColorOp.blend(editedBgColor, color),
+            ColorOp.blend(editedBgPaleColor, color)
+    );
   }
 }
