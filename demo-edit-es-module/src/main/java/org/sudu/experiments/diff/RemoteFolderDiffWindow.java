@@ -331,9 +331,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   @Override
   protected boolean onContextMenu(V2i pos) {
-    if(rootView.left.hitTest(pos))
+    if (rootView.left.hitTest(pos))
       return rootView.left.onContextMenu(pos);
-    if(rootView.right.hitTest(pos))
+    if (rootView.right.hitTest(pos))
       return rootView.right.onContextMenu(pos);
     return false;
   }
