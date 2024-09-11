@@ -40,8 +40,8 @@ public class RemoteFileTreeNode extends FileTreeNode {
     return sb.toString();
   }
 
-  public FileTreeNode[] getChildren() {
-    return children;
+  public RemoteFileTreeNode[] getChildren() {
+    return (RemoteFileTreeNode[]) children;
   }
 
   public void setChildren(FileTreeNode[] children) {

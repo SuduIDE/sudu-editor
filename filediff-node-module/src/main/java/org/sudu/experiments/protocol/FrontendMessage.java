@@ -43,7 +43,7 @@ public class FrontendMessage {
   }
 
   public void collectPath(int[] path, ArrayWriter pathWriter, FolderDiffModel root, boolean left) {
-    openedFolders.collectPath(path, pathWriter, root, left ? ModelFilter.RIGHT : ModelFilter.LEFT);
+    openedFolders.collectPath(path, pathWriter, root, left ? ModelFilter.LEFT : ModelFilter.RIGHT);
   }
 
   public static JsArray<JSObject> serialize(

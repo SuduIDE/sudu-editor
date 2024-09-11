@@ -327,8 +327,6 @@ public class RemoteCollector {
     String rightRootName = rightHandle.getFullPath();
     var backendMessage = lastMessageSent ? null : lastFrontendMessage;
     var jsArray = BackendMessage.serialize(root, backendMessage, leftRootName, rightRootName);
-    jsArray.push(JsCast.jsInts(left ? 1 : 0));
-    jsArray.push(JsCast.jsInts(changePath));
     jsArray.push(DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
     sendResult.accept(jsArray);
   }

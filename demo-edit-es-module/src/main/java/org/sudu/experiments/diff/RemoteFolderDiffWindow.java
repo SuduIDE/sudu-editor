@@ -159,38 +159,65 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private void onDiffApplied(JsArray<JSObject> jsResult) {
-    int[] changePath = JsCast.ints(jsResult.pop());
-    boolean left = JsCast.ints(jsResult.pop())[0] == 1;
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
-    if (changePath.length != 0) {
-      System.out.println(Arrays.toString(changePath));
-      var parent = left ? rightRoot : leftRoot;
-      var node = parent.child(changePath[0]);
-      onDiffApplied(parent, node, left, changePath, 1);
-    }
+    updateNodes(leftRoot, rightRoot, rootModel);
     updateDiffInfo();
   }
 
-  private void onDiffApplied(
-      RemoteDirectoryNode parent,
-      RemoteFileTreeNode node,
-      boolean left,
-      int[] changePath,
-      int ind
+  private void updateNodes(
+      RemoteDirectoryNode left,
+      RemoteDirectoryNode right,
+      RemoteFolderDiffModel model
   ) {
-    if (ind < changePath.length) {
-      System.out.println(parent.value());
-      onDiffApplied((RemoteDirectoryNode) node, node.child(changePath[ind]), left, changePath, ind + 1);
-      return;
+    // todo fix open deep folders
+    HashSet<String> opened = new HashSet<>();
+    for (var child: left.getChildren()) {
+      if (!child.isOpened()) continue;
+      opened.add(child.name());
     }
-    // todo rewrite
-    var oppositeParent = parent.getOppositeDir();
-    parent.openDir();
-    System.out.println(parent.getRelativePath());
-    if (oppositeParent != null) {
-      System.out.println(oppositeParent.getRelativePath());
-      oppositeParent.openDir();
+    for (var child: right.getChildren()) {
+      if (!child.isOpened()) continue;
+      opened.add(child.name());
+    }
+    left.doOpen();
+    right.doOpen();
+    int l = 0, r = 0;
+    for (var child: model.children) {
+      if (child.isBoth()) {
+        var leftChild = left.child(l);
+        var rightChild = right.child(r);
+        boolean isOpened = opened.contains(leftChild.name()) || opened.contains(rightChild.name());
+        if (isOpened
+            && leftChild instanceof RemoteDirectoryNode leftDir
+            && rightChild instanceof RemoteDirectoryNode rightDir
+        ) updateNodes(leftDir, rightDir, (RemoteFolderDiffModel) child);
+        l++;
+        r++;
+      } else if (child.isLeft()) {
+        var leftChild = left.child(l);
+        boolean isOpened = opened.contains(leftChild.name());
+        if (isOpened && leftChild instanceof RemoteDirectoryNode leftDir) updateNode(leftDir);
+        l++;
+      } else if (child.isRight()) {
+        var rightChild = right.child(r);
+        boolean isOpened = opened.contains(rightChild.name());
+        if (isOpened && rightChild instanceof RemoteDirectoryNode rightDir) updateNode(rightDir);
+        r++;
+      }
+    }
+  }
+
+  private void updateNode(RemoteDirectoryNode node) {
+    HashSet<String> opened = new HashSet<>();
+    for (var child: node.getChildren()) {
+      if (!child.isOpened()) continue;
+      opened.add(child.name());
+    }
+    node.doOpen();
+    for (var child: node.getChildren()) {
+      if (!(opened.contains(child.name()) && child instanceof RemoteDirectoryNode dirNode)) continue;
+      updateNode(dirNode);
     }
   }
 

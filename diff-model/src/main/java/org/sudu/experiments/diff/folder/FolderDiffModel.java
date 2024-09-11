@@ -175,8 +175,17 @@ public class FolderDiffModel {
   // todo change parent status after diff applying
   public void insertItem() {
     this.setDiffType(DiffTypes.DEFAULT);
-    if (children == null) return;
-    for (var child: children) child.insertItem();
+    if (children != null) for (var child: children) child.insertItem();
+    if (parent != null) parent.afterInsert();
+  }
+
+  public void afterInsert() {
+    int diffType = getDiffType();
+    System.out.println(((RemoteFolderDiffModel)this).path + ",  " + DiffTypes.name(getDiffType()));
+    if (diffType == DiffTypes.INSERTED || diffType == DiffTypes.DELETED) {
+      setDiffType(DiffTypes.EDITED);
+      if (parent != null) parent.afterInsert();
+    }
   }
 
   // todo change parent status after diff applying
