@@ -178,6 +178,12 @@ public class TreeView extends ScrollContent implements Focusable {
     layoutScroll();
   }
 
+  public void clearSelection() {
+    if(selectedIndex < 0) return;
+    selectedIndex = -1;
+    onSelectedLineChanged(selectedIndex);
+  }
+
   public void setSelected0() {
     selectedIndex = model.lines.length > 0 ? 0 : -1;
   }
@@ -258,8 +264,8 @@ public class TreeView extends ScrollContent implements Focusable {
       if (selected || hovered) {
         int y = i * lineHeight - scrollPos.y;
         int indent = toPx(selectionBackgroundMargin);
-        uiContext.v2i1.set(size.x - indent * 2, lineHeight);
-        g.drawRect(pos.x + indent, pos.y + y,
+        uiContext.v2i1.set(size.x - indent, lineHeight);
+        g.drawRect(pos.x, pos.y + y,
             uiContext.v2i1, background);
       }
 

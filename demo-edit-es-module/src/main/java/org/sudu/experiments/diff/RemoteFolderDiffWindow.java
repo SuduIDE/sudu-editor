@@ -320,12 +320,18 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   void leftSelectedChanged(int idx) {
-    rootView.right.checkScroll(idx);
+    if(idx >= 0) {
+      rootView.right.checkScroll(idx);
+      rootView.right.clearSelection();
+    }
     rootView.fireSelectionChanged(getSelected(true));
   }
 
   void rightSelectedChanged(int idx) {
-    rootView.left.checkScroll(idx);
+    if(idx >= 0) {
+      rootView.left.checkScroll(idx);
+      rootView.left.clearSelection();
+    }
     rootView.fireSelectionChanged(getSelected(false));
   }
 
