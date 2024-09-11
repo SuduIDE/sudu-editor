@@ -2,6 +2,8 @@ package org.sudu.experiments.protocol;
 
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
@@ -38,6 +40,10 @@ public class FrontendMessage {
   public FrontendTreeNode findParentNode(int[] path) {
     if (path.length - 1 < 0) return null;
     return findNode(Arrays.copyOf(path, path.length - 1));
+  }
+
+  public void collectPath(int[] path, ArrayWriter pathWriter, FolderDiffModel root, boolean left) {
+    openedFolders.collectPath(path, pathWriter, root, left ? ModelFilter.RIGHT : ModelFilter.LEFT);
   }
 
   public static JsArray<JSObject> serialize(

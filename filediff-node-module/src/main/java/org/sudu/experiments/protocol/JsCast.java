@@ -9,7 +9,11 @@ import org.teavm.jso.typedarrays.Int32Array;
 public interface JsCast {
 
   static int[] ints(JsArray<JSObject> jsArray, int ind) {
-    return JsMemoryAccess.toJavaArray((Int32Array) jsArray.get(ind));
+    return ints(jsArray.get(ind));
+  }
+
+  static int[] ints(JSObject intArray) {
+    return JsMemoryAccess.toJavaArray(intArray.<Int32Array>cast());
   }
 
   static Int32Array jsInts(int... array) {

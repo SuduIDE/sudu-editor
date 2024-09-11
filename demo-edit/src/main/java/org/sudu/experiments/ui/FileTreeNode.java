@@ -106,7 +106,7 @@ public class FileTreeNode extends TreeNode {
           } else {
             var anotherChild = childOrNull(another, j++);
             if (anotherChild == null) t[idx++] = empty(child.getDiffType(), depth);
-            else idx = anotherChild.getEmptyModel(t, m, child.getDiffType(), idx);
+            else idx = anotherChild.getEmptyModel(t, m, child, idx);
           }
         }
       }

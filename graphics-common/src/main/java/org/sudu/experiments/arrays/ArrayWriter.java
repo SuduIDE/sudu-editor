@@ -62,4 +62,9 @@ public class ArrayWriter {
   public void writeAtPos(int pos, int value) {
     result[pos] = value;
   }
+
+  public void clear() {
+    result = new int[initialCapacity == 0 ? 16 : initialCapacity];
+    pointer = 0;
+  }
 }

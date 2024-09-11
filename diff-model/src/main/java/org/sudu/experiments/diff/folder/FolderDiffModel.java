@@ -159,6 +159,7 @@ public class FolderDiffModel {
     };
   }
 
+  // todo change parent status after diff applying
   public void deleteItem() {
     if (parent == null) throw new RuntimeException("Parent can't be null");
     var newChildren = new FolderDiffModel[parent.children.length - 1];
@@ -171,17 +172,20 @@ public class FolderDiffModel {
     parent.children = newChildren;
   }
 
+  // todo change parent status after diff applying
   public void insertItem() {
     this.setDiffType(DiffTypes.DEFAULT);
     if (children == null) return;
     for (var child: children) child.insertItem();
   }
 
+  // todo change parent status after diff applying
   public void editItem(boolean left) {
     int diffType = getDiffType();
     if (getDiffType() == DiffTypes.DEFAULT) return;
     if ((left && diffType == DiffTypes.DELETED) || (!left && diffType == DiffTypes.INSERTED)) this.insertItem();
-    if ((left && diffType == DiffTypes.INSERTED) || (!left && diffType == DiffTypes.DELETED)) this.deleteItem();
+//    if ((left && diffType == DiffTypes.INSERTED) || (!left && diffType == DiffTypes.DELETED)) this.deleteItem();
+    if (isFile()) setDiffType(DiffTypes.DEFAULT);
     if (children == null) return;
     for (var child: children) child.editItem(left);
   }

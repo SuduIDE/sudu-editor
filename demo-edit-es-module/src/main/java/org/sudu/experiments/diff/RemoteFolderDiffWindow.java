@@ -147,7 +147,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       window.setTitle(msg.leftRootName + " <-> " + msg.rightRootName);
       leftRoot.doOpen();
       rightRoot.doOpen();
-      updateDiffInfo();
+      sendFrontendModel();
     }
     window.context.window.repaint();
     updateDiffInfo();
@@ -155,6 +155,42 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       finished = true;
       LoggingJs.log(LoggingJs.INFO, "RemoteFolderDiff finished");
       rootView.fireFinished();
+    }
+  }
+
+  private void onDiffApplied(JsArray<JSObject> jsResult) {
+    int[] changePath = JsCast.ints(jsResult.pop());
+    boolean left = JsCast.ints(jsResult.pop())[0] == 1;
+    var msg = BackendMessage.deserialize(jsResult);
+    rootModel.update(msg.root);
+    if (changePath.length != 0) {
+      System.out.println(Arrays.toString(changePath));
+      var parent = left ? rightRoot : leftRoot;
+      var node = parent.child(changePath[0]);
+      onDiffApplied(parent, node, left, changePath, 1);
+    }
+    updateDiffInfo();
+  }
+
+  private void onDiffApplied(
+      RemoteDirectoryNode parent,
+      RemoteFileTreeNode node,
+      boolean left,
+      int[] changePath,
+      int ind
+  ) {
+    if (ind < changePath.length) {
+      System.out.println(parent.value());
+      onDiffApplied((RemoteDirectoryNode) node, node.child(changePath[ind]), left, changePath, ind + 1);
+      return;
+    }
+    // todo rewrite
+    var oppositeParent = parent.getOppositeDir();
+    parent.openDir();
+    System.out.println(parent.getRelativePath());
+    if (oppositeParent != null) {
+      System.out.println(oppositeParent.getRelativePath());
+      oppositeParent.openDir();
     }
   }
 
@@ -173,6 +209,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     switch (array.get(0)) {
       case DiffModelChannelUpdater.FRONTEND_MESSAGE -> update(jsResult);
       case DiffModelChannelUpdater.OPEN_FILE -> openFile(jsResult);
+      case DiffModelChannelUpdater.APPLY_DIFF -> onDiffApplied(jsResult);
     }
     LoggingJs.log(LoggingJs.TRACE,
         "Got message in " + Numbers.iRnd(Performance.now() - startTime) + "ms"
@@ -231,14 +268,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
       @Override
       public void sendModel() {
-        var result = FrontendMessage.serialize(
-            leftRoot,
-            rightRoot,
-            rootModel,
-            searchString
-        );
-        result.push(DiffModelChannelUpdater.FRONTEND_MESSAGE_ARRAY);
-        channel.sendMessage(result);
+        sendFrontendModel();
       }
 
       @Override
@@ -363,6 +393,17 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     ActiveWindow r = new ActiveWindow(window, c);
     windows.add(r);
     window.setOnClose(() -> onWindowClosed(r));
+  }
+
+  private void sendFrontendModel() {
+    var result = FrontendMessage.serialize(
+        leftRoot,
+        rightRoot,
+        rootModel,
+        searchString
+    );
+    result.push(DiffModelChannelUpdater.FRONTEND_MESSAGE_ARRAY);
+    channel.sendMessage(result);
   }
 
   private void sendOpenFile(RemoteFileNode node, boolean left) {

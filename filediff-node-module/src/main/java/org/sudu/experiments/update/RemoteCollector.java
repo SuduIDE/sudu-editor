@@ -1,6 +1,7 @@
 package org.sudu.experiments.update;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.SizeScanner;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
@@ -10,13 +11,12 @@ import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
+import org.sudu.experiments.protocol.JsCast;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
 import org.teavm.jso.core.JSString;
 
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class RemoteCollector {
@@ -89,16 +89,20 @@ public class RemoteCollector {
     boolean isDeleteDiff = (left && diffType == DiffTypes.INSERTED) || (!left && diffType == DiffTypes.DELETED);
     boolean isInsertDiff = (left && diffType == DiffTypes.DELETED) || (!left && diffType == DiffTypes.INSERTED);
 
+    ArrayWriter pathWriter = new ArrayWriter();
+    lastFrontendMessage.collectPath(path, pathWriter, root, left);
+
     if (isDeleteDiff) {
       var node = lastFrontendMessage.findNode(path);
       var parentNode = lastFrontendMessage.findParentNode(path);
-      model.deleteItem();
       if (node != null && parentNode != null) parentNode.deleteItem(node);
+      model.deleteItem();
     } else if (isInsertDiff) {
       model.insertItem();
     } else {
       model.editItem(left);
     }
+    sendApplied(pathWriter.getInts(), left);
   }
 
   private void compare(
@@ -314,6 +318,19 @@ public class RemoteCollector {
     var jsArray = BackendMessage.serialize(root, message, leftRootName, rightRootName);
     jsArray.push(DiffModelChannelUpdater.FRONTEND_MESSAGE_ARRAY);
     send.accept(jsArray);
+  }
+
+  private void sendApplied(int[] changePath, boolean left) {
+    LoggingJs.Static.logger.log(LoggingJs.DEBUG, JSString.valueOf("Send applied model"));
+    if (sendResult == null) return;
+    String leftRootName = leftHandle.getFullPath();
+    String rightRootName = rightHandle.getFullPath();
+    var backendMessage = lastMessageSent ? null : lastFrontendMessage;
+    var jsArray = BackendMessage.serialize(root, backendMessage, leftRootName, rightRootName);
+    jsArray.push(JsCast.jsInts(left ? 1 : 0));
+    jsArray.push(JsCast.jsInts(changePath));
+    jsArray.push(DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
+    sendResult.accept(jsArray);
   }
 
   private double getTimeDelta() {

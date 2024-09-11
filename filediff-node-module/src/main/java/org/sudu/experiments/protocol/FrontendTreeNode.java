@@ -1,5 +1,8 @@
 package org.sudu.experiments.protocol;
 
+import org.sudu.experiments.arrays.ArrayWriter;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
+
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -16,6 +19,29 @@ public class FrontendTreeNode {
     if (ind == path.length) return this;
     if (children == null || path[ind] >= children.length) return null;
     return children[path[ind]].findNode(path, ind + 1);
+  }
+
+  public void collectPath(int[] path, ArrayWriter pathWriter, FolderDiffModel model, int filter) {
+    collectPath(path, pathWriter, model, filter, 0);
+  }
+
+  private void collectPath(int[] path, ArrayWriter pathWriter, FolderDiffModel model, int filter, int ind) {
+    if (ind == path.length) return;
+    if (children == null || path[ind] >= children.length) {
+      pathWriter.clear();
+      return;
+    }
+
+    var node = children[path[ind]];
+    int nodeInd = 0;
+    for (int i = 0; i < children.length; i++) {
+      var nodeChild = children[i];
+      var modelChild = model.child(i);
+      if (nodeChild == node) break;
+      if (modelChild.matchFilter(filter)) nodeInd++;
+    }
+    pathWriter.write(nodeInd);
+    node.collectPath(path, pathWriter, model.child(path[ind]), filter, ind + 1);
   }
 
   public void deleteItem(FrontendTreeNode node) {
