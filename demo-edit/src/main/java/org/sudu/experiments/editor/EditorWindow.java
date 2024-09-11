@@ -118,4 +118,8 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
     }
     return false;
   }
+
+  public void maximize() {
+    window.maximize();
+  }
 }

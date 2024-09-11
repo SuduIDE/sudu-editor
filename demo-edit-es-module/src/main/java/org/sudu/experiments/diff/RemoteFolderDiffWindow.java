@@ -213,6 +213,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
           var window = new EditorWindow(windowManager, theme, fonts);
           openFileMap[keyCnt] = (source) -> window.open(source, node.name());
           sendOpenFile(node, left);
+          window.maximize();
         }
       }
 
