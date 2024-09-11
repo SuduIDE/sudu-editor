@@ -4,7 +4,6 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.ui.colors.CodeElementColor;
 import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
-import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.*;
@@ -130,18 +129,18 @@ public class CodeLineRenderer implements Disposable {
   }
 
   public void draw(
-      int yPosition, int dx,
-      WglGraphics g,
-      int editorWidth,
-      int lineHeight,
-      int horScrollPos,
-      CodeLineColorScheme colors,
-      V2i selectedSegment,
-      CodeElement def,
-      List<CodeElement> usages,
-      boolean isCurrentLine,
-      V4f overrideBg,
-      LineDiff diff
+          int yPosition, int dx,
+          WglGraphics g,
+          int editorWidth,
+          int lineHeight,
+          int horScrollPos,
+          CodeLineColorScheme colors,
+          V2i selectedSegment,
+          CodeElement def,
+          List<CodeElement> usages,
+          boolean isCurrentLine,
+          V4f overrideBackground, V4f overrideForeground,
+          LineDiff diff
   ) {
     int lineMeasure = line.lineMeasure();
     if (lineMeasure == 0 || horScrollPos >= lineMeasure)
@@ -177,8 +176,8 @@ public class CodeLineRenderer implements Disposable {
           && isFullSelected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
 
       V4f elemBgColor = null;
-      if (overrideBg != null) {
-        elemBgColor = overrideBg;
+      if (overrideBackground != null) {
+        elemBgColor = overrideBackground;
       } else {
         if (isCurrentLine/* && !isDiff*/) elemBgColor = colors.currentLineBg;
         if (e == def) elemBgColor = colors.definitionBg;
@@ -199,7 +198,8 @@ public class CodeLineRenderer implements Disposable {
             requireNonNullElse(elemBgColor, c.colorB != null ? c.colorB : colors.defaultBg);
         context.tRegion.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
         context.size.set(drawWidth, lineHeight);
-        context.drawText(g, texture, xPos + dx, yPosition, c.colorF, bgColor);
+        V4f foreground = overrideForeground != null ? overrideForeground : c.colorF;
+        context.drawText(g, texture, xPos + dx, yPosition, foreground, bgColor);
       } else {
         selectedSegment.y = Math.min(selectedSegment.y, lineMeasure);
         int pre = texturePos >= selectedSegment.x
@@ -214,7 +214,7 @@ public class CodeLineRenderer implements Disposable {
         drawSelected(g, xPos + dx, yPosition,
             lineHeight, colors,
             texture, e,
-            drawWidth, pre, post, regionX, elemBgColor
+            drawWidth, pre, post, regionX, elemBgColor, overrideForeground
         );
       }
 
@@ -256,10 +256,11 @@ public class CodeLineRenderer implements Disposable {
       int lineHeight, CodeLineColorScheme colors,
       GL.Texture texture, CodeElement e,
       int drawWidth, int pre, int post, int regionX,
-      V4f elemBgColor
+      V4f elemBgColor,
+      V4f overrideForeground
   ) {
     CodeElementColor c = colors.codeElement[e.color];
-    V4f colorF = c.colorF;
+    V4f colorF = overrideForeground != null ? overrideForeground : c.colorF;
     V4f colorB = requireNonNullElse(elemBgColor, c.colorB != null ? c.colorB : colors.defaultBg);
     V4f selColorB = colors.selectionBg;
 

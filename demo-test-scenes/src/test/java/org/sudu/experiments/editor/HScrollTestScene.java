@@ -96,7 +96,7 @@ public class HScrollTestScene extends Scene {
 
     codeLineRenderer.draw(200, 0, g,
         viewportSize.x, fontSize, scrollPosH, colors, null,
-        null, usages, false, null, null);
+        null, usages, false, null, null, null);
 
     drawDebug(300, 0);
 

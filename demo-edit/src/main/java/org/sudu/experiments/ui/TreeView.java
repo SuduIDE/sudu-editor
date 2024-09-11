@@ -15,10 +15,7 @@ import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
-import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.ColorOp;
-import org.sudu.experiments.math.Numbers;
-import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.*;
 import org.sudu.experiments.ui.fonts.Codicons;
 import org.sudu.experiments.ui.window.ScrollContent;
 
@@ -252,16 +249,18 @@ public class TreeView extends ScrollContent implements Focusable {
         g.drawRect(pos.x, pos.y + y, uiContext.v2i1, bgLineColor);
       }
 
-      var bgColor = selected ? (hasFocus ? theme.fileTreeView.selectedBg : theme.fileTreeView.inactiveSelectedBg) :
+      var background = selected ? (hasFocus ? theme.fileTreeView.selectedBg : theme.fileTreeView.inactiveSelectedBg) :
               hovered ? (diff != null ? hoverOverDiff.getDiffColor(diff.type, hoverOverBackground) : hoverOverBackground) :
               diff != null ? bgLineColor : bg;
+
+      var foreground = selected && hasFocus ? theme.fileTreeView.selectedText : theme.codeElement[0].colorF;
 
       if (selected || hovered) {
         int y = i * lineHeight - scrollPos.y;
         int indent = toPx(selectionBackgroundMargin);
         uiContext.v2i1.set(size.x - indent * 2, lineHeight);
         g.drawRect(pos.x + indent, pos.y + y,
-            uiContext.v2i1, bgColor);
+            uiContext.v2i1, background);
       }
 
       var arrow = getIcon(mLine.arrow);
@@ -273,8 +272,8 @@ public class TreeView extends ScrollContent implements Focusable {
         clrContext.drawIcon(g, arrow,
             arrowX,
             pos.y + yPosition,
-            bgColor,
-            color.colorF);
+            background,
+            foreground);
       }
 
       if (icon != null) {
@@ -283,8 +282,8 @@ public class TreeView extends ScrollContent implements Focusable {
         clrContext.drawIcon(g, icon,
             iconX,
             pos.y + yPosition,
-            bgColor,
-            color.colorF);
+            background,
+            foreground);
       }
 
       CodeLine cl = mLine.line;
@@ -300,14 +299,14 @@ public class TreeView extends ScrollContent implements Focusable {
       virtualSizeX = Math.max(virtualSizeX,
           textShift + lineMeasure + scrollW);
       line.draw(
-          pos.y + yPosition,
-          startX + textShift,
-          g, width, lineHeight, hScrollPos,
-          codeLineScheme, null,
-          null, null,
-          selected,
-          bgColor,
-          selected ? null : diff);
+              pos.y + yPosition,
+              startX + textShift,
+              g, width, lineHeight, hScrollPos,
+              codeLineScheme, null,
+              null, null,
+              selected,
+              background, foreground,
+              selected ? null : diff);
     }
 
     if (virtualSize.x != virtualSizeX) {
