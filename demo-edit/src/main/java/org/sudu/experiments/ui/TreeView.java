@@ -179,7 +179,7 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   public void clearSelection() {
-    if(selectedIndex < 0) return;
+    if (selectedIndex < 0) return;
     selectedIndex = -1;
     onSelectedLineChanged(selectedIndex);
   }
