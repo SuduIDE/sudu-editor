@@ -29,6 +29,7 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
     left = new FileTreeView(uiContext);
     right = new FileTreeView(uiContext);
     leftScrollView = new ScrollView(left, uiContext);
+    leftScrollView.setVerticalScrollVisibility(false);
     rightScrollView = new ScrollView(right, uiContext);
     var leftDiffRef = new FileTreeDiffRef(leftScrollView, left);
     var rightDiffRef = new FileTreeDiffRef(rightScrollView, right);
