@@ -23,6 +23,8 @@ public class ScrollView extends View {
   private Runnable hListener, vListener;
   private float scrollWidth = 10;
   private V4f sbLineColor, sbBackColor;
+  private boolean vScrollVisible = true;
+  private boolean hScrollVisible = true;
 
   public ScrollView(UiContext uiContext) {
     this(new ScrollContent(), uiContext.windowCursor);
@@ -30,6 +32,14 @@ public class ScrollView extends View {
 
   public ScrollView(ScrollContent content, UiContext uiContext) {
     this(content, uiContext.windowCursor);
+  }
+
+  public void setVerticalScrollVisibility(boolean isVisible) {
+    vScrollVisible = isVisible;
+  }
+
+  public void setHorizontalScrollVisible(boolean isVisible) {
+    hScrollVisible = isVisible;
   }
 
   public ScrollView(ScrollContent content, SetCursor setCursor) {
@@ -144,14 +154,14 @@ public class ScrollView extends View {
 
   public void draw(WglGraphics graphics) {
     content.draw(graphics);
-    if (vScroll != null || hScroll != null) {
-      graphics.enableBlend(true);
-      if (vScroll != null) vScroll.drawBg(graphics);
-      if (hScroll != null) hScroll.drawBg(graphics);
-      if (vScroll != null) vScroll.drawButton(graphics);
-      if (hScroll != null) hScroll.drawButton(graphics);
-      graphics.enableBlend(false);
-    }
+    if (vScroll == null && hScroll == null) return;
+    if (!vScrollVisible && !hScrollVisible) return;
+    graphics.enableBlend(true);
+    if (vScrollVisible && vScroll != null) vScroll.drawBg(graphics);
+    if (hScrollVisible && hScroll != null) hScroll.drawBg(graphics);
+    if (vScrollVisible && vScroll != null) vScroll.drawButton(graphics);
+    if (hScrollVisible && hScroll != null) hScroll.drawButton(graphics);
+    graphics.enableBlend(false);
   }
 
   private boolean scrollHitTest(V2i position) {
