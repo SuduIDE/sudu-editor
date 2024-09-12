@@ -129,18 +129,18 @@ public class CodeLineRenderer implements Disposable {
   }
 
   public void draw(
-          int yPosition, int dx,
-          WglGraphics g,
-          int editorWidth,
-          int lineHeight,
-          int horScrollPos,
-          CodeLineColorScheme colors,
-          V2i selectedSegment,
-          CodeElement def,
-          List<CodeElement> usages,
-          boolean isCurrentLine,
-          V4f overrideBackground, V4f overrideForeground,
-          LineDiff diff
+      int yPosition, int dx,
+      WglGraphics g,
+      int editorWidth,
+      int lineHeight,
+      int horScrollPos,
+      CodeLineColorScheme colors,
+      V2i selectedSegment,
+      CodeElement def,
+      List<CodeElement> usages,
+      boolean isCurrentLine,
+      V4f overrideBackground, V4f overrideForeground,
+      LineDiff diff
   ) {
     int lineMeasure = line.lineMeasure();
     if (lineMeasure == 0 || horScrollPos >= lineMeasure)
@@ -186,8 +186,8 @@ public class CodeLineRenderer implements Disposable {
         }
         if (diff != null) {
           int elementType = diff.elementTypes == null
-                  ? 0 : i < diff.elementTypes.length
-                  ? diff.elementTypes[i] : 0;
+              ? 0 : i < diff.elementTypes.length
+              ? diff.elementTypes[i] : 0;
           elemBgColor = colors.diff.getDiffColor(elementType, diff.type, colors.defaultBg);
         }
       }
@@ -205,11 +205,11 @@ public class CodeLineRenderer implements Disposable {
         int pre = texturePos >= selectedSegment.x
             ? drawWidth
             : Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH)
-                - selectedSegment.x - (isLastWord ? 0 : xOffset);
+            - selectedSegment.x - (isLastWord ? 0 : xOffset);
         int post = texturePos + drawWidth <= selectedSegment.y + (isLastWord ? 2 * xOffset : xOffset)
             ? 0
             : Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH)
-                - selectedSegment.y - (isLastWord ? 0 : xOffset);
+            - selectedSegment.y - (isLastWord ? 0 : xOffset);
         int regionX = texturePos - curTexture * TEXTURE_WIDTH;
         drawSelected(g, xPos + dx, yPosition,
             lineHeight, colors,
@@ -221,7 +221,7 @@ public class CodeLineRenderer implements Disposable {
       int underlineIndex = e.underlineIndex();
 
       if (underlineIndex > 0) {
-        drawUnderline(xPos+ dx, yPosition, g, drawWidth, underlineIndex);
+        drawUnderline(xPos + dx, yPosition, g, drawWidth, underlineIndex);
       }
 
       texturePos += drawWidth;
