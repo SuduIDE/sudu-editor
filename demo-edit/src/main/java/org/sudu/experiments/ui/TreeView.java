@@ -255,11 +255,17 @@ public class TreeView extends ScrollContent implements Focusable {
         g.drawRect(pos.x, pos.y + y, uiContext.v2i1, bgLineColor);
       }
 
-      var background = selected ? (hasFocus ? theme.fileTreeView.selectedBg : theme.fileTreeView.inactiveSelectedBg) :
-              hovered ? (diff != null ? hoverOverDiff.getDiffColor(diff.type, hoverOverBackground) : hoverOverBackground) :
-              diff != null ? bgLineColor : bg;
+      var background = selected ?
+          hasFocus ?
+              theme.fileTreeView.selectedBg :
+              theme.fileTreeView.inactiveSelectedBg
+          : hovered ? diff != null ?
+            hoverOverDiff.getDiffColor(diff.type, hoverOverBackground) :
+            hoverOverBackground
+          : diff != null ? bgLineColor : bg;
 
-      var foreground = selected && hasFocus ? theme.fileTreeView.selectedText : theme.codeElement[0].colorF;
+      var foreground = selected && hasFocus ?
+          theme.fileTreeView.selectedText : theme.codeElement[0].colorF;
 
       if (selected || hovered) {
         int y = i * lineHeight - scrollPos.y;
@@ -305,14 +311,14 @@ public class TreeView extends ScrollContent implements Focusable {
       virtualSizeX = Math.max(virtualSizeX,
           textShift + lineMeasure + scrollW);
       line.draw(
-              pos.y + yPosition,
-              startX + textShift,
-              g, width, lineHeight, hScrollPos,
-              codeLineScheme, null,
-              null, null,
-              selected,
-              background, foreground,
-              selected ? null : diff);
+          pos.y + yPosition,
+          startX + textShift,
+          g, width, lineHeight, hScrollPos,
+          codeLineScheme, null,
+          null, null,
+          selected,
+          background, foreground,
+          selected ? null : diff);
     }
 
     if (virtualSize.x != virtualSizeX) {
