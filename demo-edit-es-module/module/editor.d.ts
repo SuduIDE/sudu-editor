@@ -13,8 +13,7 @@ export interface EditArgs {
     // default value for workerUrl is "worker.js"
     workerUrl?: string | URL
 
-    // themes: "dark", "light"
-    theme?: string
+    theme?: Theme
 
     readonly?: boolean
 
@@ -164,12 +163,30 @@ type LanguageSelector = string | ILanguageFilter | Array<string | ILanguageFilte
 //     return true;
 // }
 
+export enum ThemeColor {
+    TreeViewBackground = 0,
+    DefaultForeground = 1,
+    SelectedItemBackground = 2,
+    SelectedItemForeground = 3,
+    HoveredItemBackground = 4,
+    InactiveSelectionBackground = 5,
+    ChangedItemBackground = 6
+}
+
+type BaseTheme = 'dark' | 'light'
+
+type Theme = {
+    [color in ThemeColor]?: string;
+} & {
+    baseTheme: BaseTheme;
+} | BaseTheme;
+
 interface HasTheme {
     setFontFamily(fontFamily: string): void,
 
     setFontSize(fontSize: number): void,
 
-    setTheme(theme: string): void
+    setTheme(theme: Theme): void
 }
 
 interface Focusable {
