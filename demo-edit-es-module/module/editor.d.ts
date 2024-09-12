@@ -242,6 +242,9 @@ export interface FolderDiffViewSelection {
     relativePath: string
     isLeft: boolean
     isFolder: boolean
+
+    // whether selected element exists only in current diff side
+    isOrphan: boolean
 }
 
 export interface RemoteFolderDiffView extends FolderDiffView {

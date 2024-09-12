@@ -8,25 +8,30 @@ import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSString;
 
 public interface JsFolderDiffViewSelection extends JSObject {
-  @JSProperty JSString getRelativePath();
-  @JSProperty boolean getIsLeft();
-  @JSProperty boolean getIsFolder();
+  @JSProperty
+  JSString getRelativePath();
+
+  @JSProperty
+  boolean getIsLeft();
+
+  @JSProperty
+  boolean getIsFolder();
 
   class H {
     @JSBody(
-        params = {"path", "isLeft", "isFolder"},
-        script = "return { relativePath:path, isLeft:isLeft, isFolder:isFolder };"
+        params = {"path", "isLeft", "isFolder", "isOrphan"},
+        script = "return { relativePath:path, isLeft:isLeft, isFolder:isFolder, isOrphan:isOrphan };"
     )
     @NoSideEffects
     public static native JsFolderDiffViewSelection create(
-        JSString path, boolean isLeft, boolean isFolder
+        JSString path, boolean isLeft, boolean isFolder, boolean isOrphan
     );
 
     public static JsFolderDiffViewSelection create(
         FolderDiffRootView.Selection s
     ) {
       return s != null
-          ? create(JSString.valueOf(s.path), s.isLeft, s.isFolder)
+          ? create(JSString.valueOf(s.path), s.isLeft, s.isFolder, s.isOrphan)
           : null;
     }
 
