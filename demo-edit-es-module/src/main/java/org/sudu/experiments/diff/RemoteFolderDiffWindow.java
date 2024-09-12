@@ -69,6 +69,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
     rootView.left.setRoot(leftRoot);
     rootView.right.setRoot(rightRoot);
+    rootView.right.clearSelection();
 
     window = createWindow(rootView);
     window.onFocus(this::onFocus);
