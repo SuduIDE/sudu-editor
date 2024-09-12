@@ -64,11 +64,13 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
     public String path;
     public boolean isLeft;
     public boolean isFolder;
+    public boolean isOrphan;
 
-    public Selection(String path, boolean isLeft, boolean isFolder) {
+    public Selection(String path, boolean isLeft, boolean isFolder, boolean isOrphan) {
       this.path = path;
       this.isLeft = isLeft;
       this.isFolder = isFolder;
+      this.isOrphan = isOrphan;
     }
 
     @Override
@@ -77,6 +79,7 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
           "\"path\": \"" + path + "\"" +
           ", \"isLeft\": " + isLeft +
           ", \"isFolder\": " + isFolder +
+          ", \"isOrphan\": " + isOrphan +
           "}";
     }
   }

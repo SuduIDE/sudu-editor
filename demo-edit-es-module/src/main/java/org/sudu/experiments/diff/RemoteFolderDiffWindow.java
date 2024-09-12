@@ -16,10 +16,10 @@ import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.FrontendState;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ToolWindow0;
-import org.sudu.experiments.ui.fs.RemoteFileTreeNode;
-import org.sudu.experiments.ui.fs.RemoteHandle;
 import org.sudu.experiments.ui.fs.RemoteDirectoryNode;
 import org.sudu.experiments.ui.fs.RemoteFileNode;
+import org.sudu.experiments.ui.fs.RemoteFileTreeNode;
+import org.sudu.experiments.ui.fs.RemoteHandle;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
@@ -313,11 +313,13 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     var root = left ? rootView.left : rootView.right;
     if (root.selectedIndex() < 0) return null;
     var node = root.model()[root.selectedIndex()];
-    if (node.isEmpty()) return new Selection(null, left, false);
+    if (node.isEmpty()) return new Selection(null, left, false, false);
 
     String path = ((RemoteFileTreeNode) node).getRelativePath();
     boolean isFolder = node instanceof RemoteDirectoryNode;
-    return new Selection(path, left, isFolder);
+    int diffType = ((RemoteFileTreeNode) node).model().getDiffType();
+    boolean isOrphan = diffType == DiffTypes.INSERTED || diffType == DiffTypes.DELETED;
+    return new Selection(path, left, isFolder, isOrphan);
   }
 
   void leftSelectedChanged(int idx) {
