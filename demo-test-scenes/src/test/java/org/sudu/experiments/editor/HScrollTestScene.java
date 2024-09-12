@@ -35,7 +35,8 @@ public class HScrollTestScene extends Scene {
 
   boolean needsUpdate = true;
 
-  final CodeLineColorScheme colors = EditorColorScheme.darculaIdeaColorScheme().editorCodeLineScheme();
+  final CodeLineColorScheme colors =
+      EditorColorScheme.darculaIdeaColorScheme().editorCodeLineScheme();
 
   public HScrollTestScene(SceneApi api) {
     super(api);
