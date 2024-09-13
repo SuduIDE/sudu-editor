@@ -24,6 +24,7 @@ public class Window {
 
   static final int bypassHitTestFlag = 1;
   static final int fullscreenFlag = 2;
+  static final int maximizedFlag = 4;
 
   public final UiContext context;
 
@@ -87,6 +88,10 @@ public class Window {
 
   void setFlag(int flag) {
     flags |= flag;
+  }
+
+  void clearFlag(int flag) {
+    flags &= ~flag;
   }
 
   int getFlag(int flag) {
@@ -156,7 +161,7 @@ public class Window {
   }
 
   private void drawFrameAndShadow(WglGraphics g) {
-    if (isInFullscreen())
+    if (isFullscreenOrMaximized())
       return;
 
     int border = context.toPx(borderDrawDp);
@@ -191,8 +196,12 @@ public class Window {
   }
 
   public void onHostResize(V2i newSize, float newDpr) {
-    if (isInFullscreen()) {
-      alignToHostWindow();
+    if (isFullscreenOrMaximized()) {
+      if (isFullscreen()) {
+        layoutFullscreen();
+      } else {
+        layoutMaximized();
+      }
     }
   }
 
@@ -447,6 +456,7 @@ public class Window {
       int mY = Math.min(context.windowSize.y - diffTy - visibility,
           Math.max(visibility - diffTy - title.size.y, event.position.y));
       newPos.set(mX + diffCx, mY + diffCy);
+      clearFlag(maximizedFlag);
       setPosition(newPos, content.size);
     };
   }
@@ -465,22 +475,35 @@ public class Window {
     systemMenu.onClose.run();
   }
 
-  public boolean isInFullscreen() {
+  public boolean isFullscreen() {
     return getFlag(fullscreenFlag) != 0;
+  }
+
+  public boolean isMaximized() {
+    return getFlag(maximizedFlag) != 0;
+  }
+
+  public boolean isFullscreenOrMaximized() {
+    return getFlag(fullscreenFlag | maximizedFlag) != 0;
   }
 
   public void fullscreen() {
     setFlag(fullscreenFlag);
-    alignToHostWindow();
+    layoutFullscreen();
   }
 
-  private void alignToHostWindow() {
+  private void layoutFullscreen() {
     V2i windowSize = context.windowSize;
     context.v2i1.set(0,0);
     setPosition(context.v2i1, windowSize);
   }
 
   public void maximize() {
+    setFlag(maximizedFlag);
+    layoutMaximized();
+  }
+
+  private void layoutMaximized() {
     int titleHeight = title.computeHeight();
     V2i windowSize = context.windowSize;
     setPosition(new V2i(0, titleHeight),
