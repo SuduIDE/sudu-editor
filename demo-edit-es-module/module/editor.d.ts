@@ -173,9 +173,9 @@ export enum ThemeColor {
     ChangedItemBackground = 6
 }
 
-type BaseTheme = 'dark' | 'light'
+export type BaseTheme = 'dark' | 'light'
 
-type Theme = {
+export type Theme = {
     [color in ThemeColor]?: string;
 } & {
     baseTheme: BaseTheme;
