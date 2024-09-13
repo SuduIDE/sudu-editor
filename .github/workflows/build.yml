@@ -91,7 +91,7 @@ jobs:
         id: retry
         with:
           max_attempts: 10
-          timeout_minutes: 10
+          timeout_minutes: 5
           retry_on: any
           command: |
             ./obsutil rm -r -f obs://${{ vars.WEBAPP_OBS_NAME }}
