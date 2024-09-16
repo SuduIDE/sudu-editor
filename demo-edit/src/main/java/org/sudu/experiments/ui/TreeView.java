@@ -193,7 +193,7 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   public int selectedIndex() {
-   return selectedIndex;
+    return selectedIndex;
   }
 
   @Override
@@ -338,6 +338,10 @@ public class TreeView extends ScrollContent implements Focusable {
     return viewY / lineHeight;
   }
 
+  public void onMouseLeave() {
+    hoveredIndex = -1;
+  }
+
   @Override
   public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
     int line = getLineNumber(event);
@@ -468,8 +472,8 @@ public class TreeView extends ScrollContent implements Focusable {
 
   private boolean closeIfOpenedElseMoveToParent() {
     TreeNode selectedLine = selectedLine();
-    if (selectedLine != null && selectedLine.isOpened()){
-      if(selectedLine.onClickArrow != null)
+    if (selectedLine != null && selectedLine.isOpened()) {
+      if (selectedLine.onClickArrow != null)
         selectedLine.onClickArrow.run();
       return true;
     } else {
@@ -506,7 +510,7 @@ public class TreeView extends ScrollContent implements Focusable {
 
   private boolean moveUp() {
     int idx = selectedIndex - 1;
-    if(idx < 0) return false;
+    if (idx < 0) return false;
     selectedIndex = idx;
     checkScroll(idx);
     onSelectedLineChanged(idx);
@@ -515,7 +519,7 @@ public class TreeView extends ScrollContent implements Focusable {
 
   private boolean moveDown() {
     int idx = selectedIndex + 1;
-    if(idx >= model.lines.length) return false;
+    if (idx >= model.lines.length) return false;
     selectedIndex = idx;
     checkScroll(idx);
     onSelectedLineChanged(idx);

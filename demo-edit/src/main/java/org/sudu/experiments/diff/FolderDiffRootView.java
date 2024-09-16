@@ -4,8 +4,10 @@ import org.sudu.experiments.Subscribers;
 import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
+import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.ui.FileTreeDiffRef;
 import org.sudu.experiments.ui.FileTreeView;
+import org.sudu.experiments.ui.SetCursor;
 import org.sudu.experiments.ui.UiContext;
 import org.sudu.experiments.ui.window.ScrollView;
 
@@ -87,5 +89,21 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
 
   public interface SelectionListener {
     void accept(Selection selection);
+  }
+
+  @Override
+  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
+    if (left.hitTest(event.position)) {
+      left.onMouseMove(event, setCursor);
+    } else {
+      left.onMouseLeave();
+    }
+
+    if (right.hitTest(event.position)) {
+      right.onMouseMove(event, setCursor);
+    } else {
+      right.onMouseLeave();
+    }
+    return true;
   }
 }
