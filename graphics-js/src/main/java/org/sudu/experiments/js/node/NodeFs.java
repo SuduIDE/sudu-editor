@@ -70,7 +70,7 @@ public interface NodeFs extends JSObject {
 
   JSBoolean existsSync(JSString name);
 
-  void mkdirSync(JSString name, NodeMkDirOptions options);
+  void mkdirSync(JSString name, JSObject options);
 
   int openSync(JSString name, int mode);
 
@@ -101,4 +101,6 @@ public interface NodeFs extends JSObject {
   void cp(
       JSString src, JSString dest, JSObject options,
       JsFunctions.Consumer<JSError> callback);
+
+  void rmdir(JSString name, JsFunctions.Consumer<JSError> callback);
 }

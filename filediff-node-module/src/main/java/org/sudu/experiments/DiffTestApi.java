@@ -135,7 +135,7 @@ public class DiffTestApi implements JsDiffTestApi {
       JsFunctions.Consumer<JSString> onError
   ) {
     Fs.fs().cp(
-        src, dest, Fs.cpOptions(true),
+        src, dest, Fs.cpOptions(true, true),
         error -> {
           if (error == null) {
             onComplete.f();

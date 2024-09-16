@@ -11,7 +11,6 @@ import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.node.Fs;
-import org.sudu.experiments.js.node.NodeMkDirOptions;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
@@ -110,7 +109,8 @@ public class RemoteCollector {
       if (!isDeleteDiff) copyFile(model, left, callback(this::sendApplied));
       else removeFile(model, left, callback(this::sendApplied));
     } else {
-
+      if (!isDeleteDiff) copyFolder(model, left, callback(this::sendApplied));
+      else removeFolder(model, left, callback(this::sendApplied));
     }
   }
 
@@ -127,7 +127,7 @@ public class RemoteCollector {
     String toParent = model.parent().getFullPath(!left ? leftHandle.getFullPath() : rightHandle.getFullPath());
 
     if (!Fs.fs().existsSync(JSString.valueOf(toParent)).booleanValue()) {
-      Fs.fs().mkdirSync(JSString.valueOf(toParent), NodeMkDirOptions.create(true));
+      Fs.fs().mkdirSync(JSString.valueOf(toParent), Fs.mkdirOptions(true));
     }
 
     Fs.fs().copyFile(
@@ -141,6 +141,28 @@ public class RemoteCollector {
   private void removeFile(RemoteFolderDiffModel model, boolean left, JsFunctions.Consumer<JSError> callback) {
     String from = model.getFullPath(!left ? leftHandle.getFullPath() : rightHandle.getFullPath());
     Fs.fs().unlink(JSString.valueOf(from), callback);
+  }
+
+  private void copyFolder(RemoteFolderDiffModel model, boolean left, JsFunctions.Consumer<JSError> callback) {
+    String from = model.getFullPath(left ? leftHandle.getFullPath() : rightHandle.getFullPath());
+    String to = model.getFullPath(!left ? leftHandle.getFullPath() : rightHandle.getFullPath());
+    String toParent = model.parent().getFullPath(!left ? leftHandle.getFullPath() : rightHandle.getFullPath());
+
+    if (!Fs.fs().existsSync(JSString.valueOf(toParent)).booleanValue()) {
+      Fs.fs().mkdirSync(JSString.valueOf(toParent), Fs.mkdirOptions(true));
+    }
+
+    Fs.fs().cp(
+        JSString.valueOf(from),
+        JSString.valueOf(to),
+        Fs.cpOptions(true, true),
+        callback
+    );
+  }
+
+  private void removeFolder(RemoteFolderDiffModel model, boolean left, JsFunctions.Consumer<JSError> callback) {
+    String from = model.getFullPath(!left ? leftHandle.getFullPath() : rightHandle.getFullPath());
+    Fs.fs().rmdir(JSString.valueOf(from), callback);
   }
 
   private void compare(

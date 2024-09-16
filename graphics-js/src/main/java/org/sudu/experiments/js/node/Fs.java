@@ -28,9 +28,12 @@ public abstract class Fs implements NodeFs {
   public static native String errorCause(JSObject error);
 
   @JSBody(
-      params = {"recursive"},
-      script = "return {recursive : recursive};")
-  public static native JSObject cpOptions(boolean recursive);
+      params = {"force", "recursive"},
+      script = "return {force: force, recursive: recursive};")
+  public static native JSObject cpOptions(boolean force, boolean recursive);
+
+  @JSBody(params = {"recursive"}, script = "return {recursive: recursive};")
+  public static native JSObject mkdirOptions(boolean recursive);
 
   public static JSString concatPath(String name, String[] path) {
     JSString jsPath = JSString.valueOf(name);

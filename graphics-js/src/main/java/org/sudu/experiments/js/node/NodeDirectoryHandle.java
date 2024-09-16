@@ -65,7 +65,7 @@ public class NodeDirectoryHandle implements DirectoryHandle {
   public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
     Fs.fs().cp(
         jsPath(), JSString.valueOf(path),
-        Fs.cpOptions(true),
+        Fs.cpOptions(true, true),
         error -> {
           if (error == null) {
             onComplete.run();
