@@ -36,7 +36,9 @@ public class FileTreeNode extends TreeNode {
     int cnt = count(model, another, filter);
     TreeNode[] lines = new TreeNode[cnt];
     int idx = getModel(lines, model, another, filter, 0);
-    if (idx != lines.length) throw new RuntimeException("Wrong number of lines: " + idx + ", expected: " + lines.length);
+    if (idx != lines.length)
+      throw new RuntimeException(
+          "Wrong number of lines: " + idx + ", expected: " + lines.length);
     return lines;
   }
 

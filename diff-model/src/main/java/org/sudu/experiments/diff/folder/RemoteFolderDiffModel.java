@@ -12,6 +12,7 @@ import static org.sudu.experiments.diff.folder.PropTypes.*;
 
 public class RemoteFolderDiffModel extends FolderDiffModel {
 
+  public static char pathSeparator = '/';
   public String path;
 
   public RemoteFolderDiffModel(FolderDiffModel parent, String path) {
@@ -34,7 +35,7 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
   }
 
   public String getFullPath(String root) {
-    StringBuilder sb = new StringBuilder(root).append("/");
+    StringBuilder sb = new StringBuilder(root).append(pathSeparator);
     collectPathFromRoot(sb);
     return sb.toString();
   }
@@ -42,7 +43,7 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
   public void collectPathFromRoot(StringBuilder sb) {
     if (parent != null) {
       parent().collectPathFromRoot(sb);
-      if (parent.parent != null) sb.append("/");  // because root path is empty
+      if (parent.parent != null) sb.append(pathSeparator);  // because root path is empty
     }
     sb.append(path);
   }

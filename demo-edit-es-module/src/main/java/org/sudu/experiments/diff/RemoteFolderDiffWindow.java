@@ -130,8 +130,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
     if (!updatedRoots) {
       updatedRoots = true;
-      leftRoot.setLine(msg.leftRootName);
-      rightRoot.setLine(msg.rightRootName);
+      leftRoot.setLine(fixPathVisual(msg.leftRootName));
+      rightRoot.setLine(fixPathVisual(msg.rightRootName));
       window.setTitle(msg.leftRootName + " <-> " + msg.rightRootName);
       leftRoot.doOpen();
       rightRoot.doOpen();
@@ -145,6 +145,11 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
           JSString.valueOf("RemoteFolderDiff finished"));
       rootView.fireFinished();
     }
+  }
+
+  static String fixPathVisual(String path) {
+    int index = path.indexOf('\\');
+    return index > 0 ? path.replace('/', '\\') : path;
   }
 
   protected void updateDiffInfo() {
