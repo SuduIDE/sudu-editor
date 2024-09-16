@@ -22,6 +22,7 @@ public class EditorColorScheme {
   public final UiFont popupMenuFont;
   public final UiFont usagesFont;
   public final UiFont fileViewFont;
+  public final UiFont treeViewFont;
   public final UiFont fileViewIcons;
   public final UiFont editorFont;
 
@@ -74,7 +75,8 @@ public class EditorColorScheme {
         new UiFont(defaultUsagesFont, defaultFontSize),
         new UiFont(defaultFont, defaultFontSize),
         new UiFont(Fonts.codicon, defaultFontSize),
-        new UiFont(EditorConst.FONT, EditorConst.DEFAULT_FONT_SIZE)
+        new UiFont(EditorConst.FONT, EditorConst.DEFAULT_FONT_SIZE),
+        new UiFont(defaultFont, defaultFontSize)
     );
   }
 
@@ -88,7 +90,8 @@ public class EditorColorScheme {
       UiFont usagesFont,
       UiFont fileViewFont,
       UiFont fileViewIcons,
-      UiFont editorFont
+      UiFont editorFont,
+      UiFont treeViewFont
   ) {
     this.editor = editor;
     this.fileTreeView = fileTreeView;
@@ -105,6 +108,7 @@ public class EditorColorScheme {
     this.fileViewFont = fileViewFont;
     this.fileViewIcons = fileViewIcons;
     this.editorFont = editorFont;
+    this.treeViewFont = treeViewFont;
   }
 
   public EditorColorScheme withFontSize(float fontSize) {
@@ -114,7 +118,8 @@ public class EditorColorScheme {
         usagesFont.withSize(fontSize),
         fileViewFont.withSize(fontSize),
         fileViewIcons.withSize(fontSize),
-        editorFont.withSize(fontSize));
+        editorFont.withSize(fontSize),
+        treeViewFont.withSize(fontSize));
   }
 
   public CodeLineColorScheme editorCodeLineScheme() {
