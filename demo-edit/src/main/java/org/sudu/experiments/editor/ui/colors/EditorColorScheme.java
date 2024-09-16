@@ -1,5 +1,6 @@
 package org.sudu.experiments.editor.ui.colors;
 
+import org.sudu.experiments.editor.EditorConst;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.parser.ParserConstants;
@@ -13,10 +14,16 @@ public class EditorColorScheme {
   public final LineNumbersColors lineNumber;
   public final DiffColors diff;
 
-  public final UiFont popupMenuFont = new UiFont(Fonts.SegoeUI, 17);
-  public final UiFont usagesFont = new UiFont(Fonts.Consolas, 15);
-  public final UiFont fileViewFont = new UiFont(Fonts.SegoeUI, 15);
-  public final UiFont fileViewIcons = new UiFont(Fonts.codicon, 15);
+  private static final float defaultFontSize = 15;
+  private static final float defaultMenuFontSize = 17;
+  private static final String defaultFont = Fonts.SegoeUI;
+  private static final String defaultUsagesFont = Fonts.Consolas;
+
+  public final UiFont popupMenuFont;
+  public final UiFont usagesFont;
+  public final UiFont fileViewFont;
+  public final UiFont fileViewIcons;
+  public final UiFont editorFont;
 
   public Color error() {
     return codeElement[ParserConstants.TokenTypes.ERROR].colorF;
@@ -62,6 +69,27 @@ public class EditorColorScheme {
       DialogItemColors dialogItem,
       DiffColors diff
   ) {
+    this(editor, fileTreeView, codeElement, lineNumber, dialogItem, diff,
+        new UiFont(defaultFont, defaultMenuFontSize),
+        new UiFont(defaultUsagesFont, defaultFontSize),
+        new UiFont(defaultFont, defaultFontSize),
+        new UiFont(Fonts.codicon, defaultFontSize),
+        new UiFont(EditorConst.FONT, EditorConst.DEFAULT_FONT_SIZE)
+        );
+  }
+
+  private EditorColorScheme(
+      EditorColors editor, FileTreeViewTheme fileTreeView,
+      CodeElementColor[] codeElement,
+      LineNumbersColors lineNumber,
+      DialogItemColors dialogItem,
+      DiffColors diff,
+      UiFont popupMenuFont,
+      UiFont usagesFont,
+      UiFont fileViewFont,
+      UiFont fileViewIcons,
+      UiFont editorFont
+  ) {
     this.editor = editor;
     this.fileTreeView = fileTreeView;
     this.codeElement = codeElement;
@@ -71,6 +99,17 @@ public class EditorColorScheme {
     }
     this.dialogItem = dialogItem;
     this.diff = diff;
+
+    this.popupMenuFont = popupMenuFont;
+    this.usagesFont = usagesFont;
+    this.fileViewFont = fileViewFont;
+    this.fileViewIcons = fileViewIcons;
+    this.editorFont = editorFont;
+  }
+
+  public EditorColorScheme withFontSize(float fontSize) {
+    return new EditorColorScheme(editor, fileTreeView, codeElement, lineNumber, dialogItem, diff,
+        popupMenuFont.withSize(fontSize), usagesFont.withSize(fontSize), fileViewFont.withSize(fontSize), fileViewIcons.withSize(fontSize), editorFont.withSize(fontSize));
   }
 
   public CodeLineColorScheme editorCodeLineScheme() {

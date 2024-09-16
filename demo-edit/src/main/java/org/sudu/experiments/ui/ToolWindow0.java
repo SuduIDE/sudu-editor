@@ -14,6 +14,7 @@ public abstract class ToolWindow0 implements ThemeControl {
   protected final WindowManager windowManager;
   protected final Supplier<String[]> fonts;
   protected EditorColorScheme theme;
+  protected Runnable onClose;
 
   protected ToolWindow0(
       WindowManager windowManager,
@@ -23,6 +24,14 @@ public abstract class ToolWindow0 implements ThemeControl {
     this.windowManager = windowManager;
     this.theme = theme;
     this.fonts = fonts;
+  }
+
+  public void setOnClose(Runnable onClose) {
+    this.onClose = onClose;
+  }
+
+  public EditorColorScheme getTheme() {
+    return theme;
   }
 
   public void applyTheme(EditorColorScheme theme) {
@@ -50,7 +59,10 @@ public abstract class ToolWindow0 implements ThemeControl {
 
   protected abstract void dispose();
 
-  private void destroyWindow(Window window) {
+  protected void destroyWindow(Window window) {
+    if (onClose != null) {
+      onClose.run();
+    }
     windowManager.removeWindow(window);
     window.dispose();
     dispose();

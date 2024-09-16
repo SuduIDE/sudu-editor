@@ -1,8 +1,10 @@
 package org.sudu.experiments.diff;
 
+import org.sudu.experiments.Debug;
 import org.sudu.experiments.JsLauncher;
 
 import org.sudu.experiments.WebWindow;
+import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.core.JSBoolean;
@@ -12,6 +14,7 @@ public class JsFolderDiff0 implements JsFolderDiff {
 
   public final WebWindow window;
   protected FolderDiffScene scene;
+  private float overrideFontSize = 0;
 
   protected JsFolderDiff0(WebWindow window, EditArgs args) {
     this.window = window;
@@ -65,14 +68,23 @@ public class JsFolderDiff0 implements JsFolderDiff {
 //    diff.setFontFamily(fontFamily.stringValue());
   }
 
+
   @Override
   public void setFontSize(float fontSize) {
-//    diff.setFontSize(fontSize);
+    overrideFontSize = fontSize;
+    var theme = scene.w.getTheme().withFontSize(fontSize);
+    scene.applyTheme(theme);
   }
 
   @Override
-  public void setTheme(JSString theme) {
-    scene.w.setTheme(theme.stringValue());
+  public void setTheme(JSString themeStr) {
+    var theme = ThemeControl.resolveTheme(themeStr.stringValue());
+    if (theme != null) {
+      if(overrideFontSize > 0) theme = theme.withFontSize(overrideFontSize);
+      scene.applyTheme(theme);
+    } else {
+      Debug.consoleInfo("unknown theme: " + theme);
+    }
   }
 
   public static Promise<JsFolderDiff> newDiff(EditArgs arguments) {

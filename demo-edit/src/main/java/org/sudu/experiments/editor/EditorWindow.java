@@ -56,6 +56,7 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
 
   @Override
   public void applyTheme(EditorColorScheme theme) {
+    super.applyTheme(theme);
     window.setTheme(theme.dialogItem);
     ui.setTheme(theme);
     editor.setTheme(theme);

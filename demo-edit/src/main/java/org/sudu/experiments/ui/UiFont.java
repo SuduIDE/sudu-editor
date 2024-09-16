@@ -40,4 +40,8 @@ public class UiFont {
         && weightBold == uiFont.weightBold
         && Objects.equals(familyName, uiFont.familyName);
   }
+
+  public UiFont withSize(float fontSize) {
+    return new UiFont(familyName, fontSize, weightRegular, weightBold);
+  }
 }

@@ -57,6 +57,7 @@ public class FileDiffWindow extends ToolWindow0
 
   @Override
   public void applyTheme(EditorColorScheme theme) {
+    super.applyTheme(theme);
     window.setTheme(theme.dialogItem);
     rootView.applyTheme(theme);
   }

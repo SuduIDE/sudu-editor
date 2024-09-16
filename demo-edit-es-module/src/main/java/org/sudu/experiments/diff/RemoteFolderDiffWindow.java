@@ -53,6 +53,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private final Consumer<String>[] openFileMap = new Consumer[MAP_SIZE];
   private int keyCnt = 0;
 
+  private final ArrayList<ToolWindow0> windows = new ArrayList<>();
+
   public RemoteFolderDiffWindow(
       EditorColorScheme theme,
       WindowManager wm,
@@ -91,6 +93,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     super.applyTheme(theme);
     window.setTheme(theme.dialogItem);
     rootView.applyTheme(theme);
+    for (ToolWindow0 window : windows) {
+      window.applyTheme(theme);
+    }
   }
 
   protected void dispose() {
@@ -206,6 +211,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         var opposite = getOppositeFile(node);
         if (opposite != null) {
           var window = new FileDiffWindow(windowManager, theme, fonts);
+          addWindow(window);
           openFileMap[keyCnt] = (source) -> window.open(source, node.name(), left);
           sendOpenFile(node, left);
           openFileMap[keyCnt] = (source) -> window.open(source, opposite.name(), !left);
@@ -213,6 +219,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
           window.window.maximize();
         } else {
           var window = new EditorWindow(windowManager, theme, fonts);
+          addWindow(window);
           openFileMap[keyCnt] = (source) -> window.open(source, node.name());
           sendOpenFile(node, left);
           window.maximize();
@@ -277,6 +284,11 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         else return getOpposite(subNode, deque);
       }
     };
+  }
+
+  private void addWindow(ToolWindow0 window) {
+    windows.add(window);
+    window.setOnClose(() -> windows.remove(window));
   }
 
   private void sendOpenFile(RemoteFileNode node, boolean left) {
