@@ -93,15 +93,17 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
 
   @Override
   public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
-    if (this.left.hitTest(event.position))
-      this.left.onMouseMove(event, setCursor);
-    else
-      this.left.onMouseLeave();
+    if (left.hitTest(event.position)) {
+      left.onMouseMove(event, setCursor);
+    } else {
+      left.onMouseLeave();
+    }
 
-    if (this.right.hitTest(event.position))
-      this.right.onMouseMove(event, setCursor);
-    else
-      this.right.onMouseLeave();
+    if (right.hitTest(event.position)) {
+      right.onMouseMove(event, setCursor);
+    } else {
+      right.onMouseLeave();
+    }
     return true;
   }
 }
