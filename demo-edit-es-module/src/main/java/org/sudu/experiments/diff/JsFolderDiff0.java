@@ -80,7 +80,8 @@ public class JsFolderDiff0 implements JsFolderDiff {
   public void setTheme(JSString themeStr) {
     var theme = ThemeControl.resolveTheme(themeStr.stringValue());
     if (theme != null) {
-      if(overrideFontSize > 0) theme = theme.withFontSize(overrideFontSize);
+      if (overrideFontSize > 0)
+        theme = theme.withFontSize(overrideFontSize);
       scene.applyTheme(theme);
     } else {
       Debug.consoleInfo("unknown theme: " + theme);

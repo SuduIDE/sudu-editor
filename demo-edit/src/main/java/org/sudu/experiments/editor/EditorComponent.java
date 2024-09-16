@@ -208,7 +208,7 @@ public class EditorComponent extends View implements
     caret.setColor(theme.editor.cursor);
     vScroll.setColor(theme.editor.scrollBarLine, theme.editor.scrollBarBg);
     hScroll.setColor(theme.editor.scrollBarLine, theme.editor.scrollBarBg);
-    if(fontVirtualSize != theme.editorFont.size || !fontFamilyName.equals(theme.editorFont.familyName)) {
+    if (!theme.editorFont.equals(fontFamilyName, fontVirtualSize)) {
       changeFont(theme.editorFont.familyName, theme.editorFont.size);
     }
   }

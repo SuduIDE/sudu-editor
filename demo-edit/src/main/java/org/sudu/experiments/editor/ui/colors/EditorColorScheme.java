@@ -75,7 +75,7 @@ public class EditorColorScheme {
         new UiFont(defaultFont, defaultFontSize),
         new UiFont(Fonts.codicon, defaultFontSize),
         new UiFont(EditorConst.FONT, EditorConst.DEFAULT_FONT_SIZE)
-        );
+    );
   }
 
   private EditorColorScheme(
@@ -108,8 +108,13 @@ public class EditorColorScheme {
   }
 
   public EditorColorScheme withFontSize(float fontSize) {
-    return new EditorColorScheme(editor, fileTreeView, codeElement, lineNumber, dialogItem, diff,
-        popupMenuFont.withSize(fontSize), usagesFont.withSize(fontSize), fileViewFont.withSize(fontSize), fileViewIcons.withSize(fontSize), editorFont.withSize(fontSize));
+    return new EditorColorScheme(editor, fileTreeView, codeElement,
+        lineNumber, dialogItem, diff,
+        popupMenuFont.withSize(fontSize),
+        usagesFont.withSize(fontSize),
+        fileViewFont.withSize(fontSize),
+        fileViewIcons.withSize(fontSize),
+        editorFont.withSize(fontSize));
   }
 
   public CodeLineColorScheme editorCodeLineScheme() {

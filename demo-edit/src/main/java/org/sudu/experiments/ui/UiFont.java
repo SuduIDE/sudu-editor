@@ -41,6 +41,10 @@ public class UiFont {
         && Objects.equals(familyName, uiFont.familyName);
   }
 
+  public boolean equals(String family, float newSize) {
+    return size == newSize && familyName.equals(family);
+  }
+
   public UiFont withSize(float fontSize) {
     return new UiFont(familyName, fontSize, weightRegular, weightBold);
   }
