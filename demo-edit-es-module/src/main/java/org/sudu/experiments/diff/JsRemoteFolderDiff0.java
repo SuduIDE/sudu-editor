@@ -1,6 +1,8 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.editor.ThemeControl;
+import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.esm.EditArgs;
 import org.sudu.experiments.esm.JsFolderDiff;
 import org.sudu.experiments.js.*;
@@ -14,6 +16,8 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
 
   public final WebWindow window;
   protected RemoteFolderDiffScene folderDiff;
+
+  private float overrideFontSize = 0;
 
   protected JsRemoteFolderDiff0(WebWindow window, EditArgs args) {
     this.window = window;
@@ -57,12 +61,21 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
 
   @Override
   public void setFontSize(float fontSize) {
-//    diff.setFontSize(fontSize);
+    overrideFontSize = fontSize;
+    var theme = folderDiff.getTheme().withFontSize(fontSize);
+    folderDiff.applyTheme(theme);
   }
 
   @Override
-  public void setTheme(JSString theme) {
-    folderDiff.setTheme(theme.stringValue());
+  public void setTheme(JSString themeStr) {
+    var theme = ThemeControl.resolveTheme(themeStr.stringValue());
+    if (theme != null) {
+      if (overrideFontSize > 0)
+        theme = theme.withFontSize(overrideFontSize);
+      folderDiff.applyTheme(theme);
+    } else {
+      Debug.consoleInfo("unknown theme: " + theme);
+    }
   }
 
   @Override

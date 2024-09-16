@@ -7,7 +7,7 @@ import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.math.V2i;
 
-public class FolderDiffScene extends WindowScene {
+public class FolderDiffScene extends WindowScene implements ThemeControl {
 
   FolderDiffWindow w;
 
@@ -31,4 +31,13 @@ public class FolderDiffScene extends WindowScene {
   }
 
   public void setReadonly(boolean flag) {}
+
+  @Override
+  public void applyTheme(EditorColorScheme theme) {
+    w.applyTheme(theme);
+  }
+
+  public EditorColorScheme getTheme() {
+    return w.getTheme();
+  }
 }

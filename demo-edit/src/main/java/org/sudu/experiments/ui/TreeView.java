@@ -147,7 +147,7 @@ public class TreeView extends ScrollContent implements Focusable {
     boolean sameFont1 = Objects.equals(uiFont, colors.fileViewFont);
     boolean sameFont2 = Objects.equals(uiIcons, colors.fileViewIcons);
     if (!sameFont1 || !sameFont2) {
-      uiFont = colors.fileViewFont;
+      uiFont = colors.treeViewFont;
       uiIcons = colors.fileViewIcons;
       if (dpr != 0)
         changeFont();

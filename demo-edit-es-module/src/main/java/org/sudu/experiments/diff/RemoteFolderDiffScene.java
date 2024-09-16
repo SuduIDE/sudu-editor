@@ -28,6 +28,10 @@ public class RemoteFolderDiffScene extends WindowScene implements ThemeControl {
     w.applyTheme(t);
   }
 
+  public EditorColorScheme getTheme() {
+    return w.getTheme();
+  }
+
   @Override
   public void onResize(V2i newSize, float newDpr) {
     boolean init = windowManager.uiContext.dpr == 0;
