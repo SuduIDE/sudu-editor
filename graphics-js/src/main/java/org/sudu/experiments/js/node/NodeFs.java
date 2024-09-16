@@ -2,9 +2,8 @@ package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsFunctions;
-import org.teavm.jso.JSFunctor;
-import org.teavm.jso.JSObject;
-import org.teavm.jso.JSProperty;
+import org.teavm.jso.*;
+import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.ArrayBufferView;
@@ -29,6 +28,15 @@ public interface NodeFs extends JSObject {
 
     @JSProperty("O_APPEND")
     int O_APPEND();
+
+    @JSProperty("COPYFILE_EXCL")
+    int COPYFILE_EXCL();
+
+    @JSProperty("COPYFILE_FICLONE")
+    int COPYFILE_FICLONE();
+
+    @JSProperty("COPYFILE_FICLONE_FORCE")
+    int COPYFILE_FICLONE_FORCE();
   }
 
   // https://nodejs.org/api/fs.html#class-fsstats
@@ -60,6 +68,10 @@ public interface NodeFs extends JSObject {
 
   JsArray<JSString> readdirSync(JSString string, JSObject options);
 
+  JSBoolean existsSync(JSString name);
+
+  void mkdirSync(JSString name, NodeMkDirOptions options);
+
   int openSync(JSString name, int mode);
 
   int readSync(
@@ -83,6 +95,8 @@ public interface NodeFs extends JSObject {
   void copyFile(
       JSString src, JSString dest, int mode,
       JsFunctions.Consumer<JSError> callback);
+
+  void unlink(JSString name, JsFunctions.Consumer<JSError> callback);
 
   void cp(
       JSString src, JSString dest, JSObject options,

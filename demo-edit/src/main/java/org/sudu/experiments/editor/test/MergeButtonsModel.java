@@ -42,7 +42,7 @@ public class MergeButtonsModel {
       FolderDiffModel[] rightDiffs,
       byte[] leftColors,
       byte[] rightColors,
-      BiConsumer<int[], Boolean> applyDiff
+      BiConsumer<FolderDiffModel, Boolean> applyDiff
   ) {
     int n = 0, m = 0;
     for (var line: diffInfo.lineDiffsL) if (line.type != DiffTypes.DEFAULT) n++;
@@ -75,11 +75,10 @@ public class MergeButtonsModel {
   private static void applyDiff(
       FolderDiffModel model,
       boolean left,
-      BiConsumer<int[], Boolean> applyDiff
+      BiConsumer<FolderDiffModel, Boolean> applyDiff
   ) {
     if (applyDiff == null) return;
-    var path = model.getPathFromRoot();
-    applyDiff.accept(path, left);
+    applyDiff.accept(model, left);
   }
 
   private static int line(int line, int docLen) {

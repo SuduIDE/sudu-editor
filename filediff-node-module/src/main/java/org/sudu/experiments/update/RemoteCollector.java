@@ -8,12 +8,16 @@ import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.js.JsFunctions;
+import org.sudu.experiments.js.JsHelper;
+import org.sudu.experiments.js.node.Fs;
+import org.sudu.experiments.js.node.NodeMkDirOptions;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
-import org.sudu.experiments.protocol.JsCast;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
+import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 
 import java.util.*;
@@ -82,7 +86,7 @@ public class RemoteCollector {
   }
 
   public void applyDiff(int[] path, boolean left) {
-    var model = root.findNode(path);
+    var model = (RemoteFolderDiffModel) root.findNode(path);
     int diffType = model.getDiffType();
     if (diffType == DiffTypes.DEFAULT) return;
 
@@ -102,7 +106,41 @@ public class RemoteCollector {
     } else {
       model.editItem(left);
     }
-    sendApplied(pathWriter.getInts(), left);
+    if (model.isFile()) {
+      if (!isDeleteDiff) copyFile(model, left, callback(this::sendApplied));
+      else removeFile(model, left, callback(this::sendApplied));
+    } else {
+
+    }
+  }
+
+  private JsFunctions.Consumer<JSError> callback(Runnable onComplete) {
+    return err -> {
+      if (err == null) onComplete.run();
+      else LoggingJs.Static.logger.log(LoggingJs.ERROR, JsHelper.getMessage(err));
+    };
+  }
+
+  private void copyFile(RemoteFolderDiffModel model, boolean left, JsFunctions.Consumer<JSError> callback) {
+    String from = model.getFullPath(left ? leftHandle.getFullPath() : rightHandle.getFullPath());
+    String to = model.getFullPath(!left ? leftHandle.getFullPath() : rightHandle.getFullPath());
+    String toParent = model.parent().getFullPath(!left ? leftHandle.getFullPath() : rightHandle.getFullPath());
+
+    if (!Fs.fs().existsSync(JSString.valueOf(toParent)).booleanValue()) {
+      Fs.fs().mkdirSync(JSString.valueOf(toParent), NodeMkDirOptions.create(true));
+    }
+
+    Fs.fs().copyFile(
+        JSString.valueOf(from),
+        JSString.valueOf(to),
+        0,
+        callback
+    );
+  }
+
+  private void removeFile(RemoteFolderDiffModel model, boolean left, JsFunctions.Consumer<JSError> callback) {
+    String from = model.getFullPath(!left ? leftHandle.getFullPath() : rightHandle.getFullPath());
+    Fs.fs().unlink(JSString.valueOf(from), callback);
   }
 
   private void compare(
@@ -320,7 +358,7 @@ public class RemoteCollector {
     send.accept(jsArray);
   }
 
-  private void sendApplied(int[] changePath, boolean left) {
+  private void sendApplied() {
     LoggingJs.Static.logger.log(LoggingJs.DEBUG, JSString.valueOf("Send applied model"));
     if (sendResult == null) return;
     String leftRootName = leftHandle.getFullPath();

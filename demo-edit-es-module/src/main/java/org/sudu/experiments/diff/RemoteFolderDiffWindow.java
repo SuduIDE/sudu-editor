@@ -2,6 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.Subscribers;
 import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
@@ -443,7 +444,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     keyCnt = (keyCnt + 1) % MAP_SIZE;
   }
 
-  private void sendApplyDiff(int[] path, boolean left) {
+  private void sendApplyDiff(FolderDiffModel model, boolean left) {
+    int[] path = model.getPathFromRoot();
     var result = JsArray.create();
     result.set(0, JsCast.jsInts(path));
     result.set(1, JsCast.jsInts(left ? 0 : 1));

@@ -1,6 +1,7 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Subscribers;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.editor.test.MergeButtonsModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -53,7 +54,7 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
     middleLine.setModel(diffInfo);
   }
 
-  public void setMergeButtons(BiConsumer<int[], Boolean> applyDiff) {
+  public void setMergeButtons(BiConsumer<FolderDiffModel, Boolean> applyDiff) {
     var diffInfo = diffSync.model;
     var leftColors = new byte[left.model().length];
     var rightColors = new byte[right.model().length];
