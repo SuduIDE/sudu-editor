@@ -1697,6 +1697,7 @@ public class EditorComponent extends View implements
     if (fullFileParseListener != null) {
       fullFileParseListener.accept(this);
     }
+    window().repaint();
   }
 
   @Override
@@ -1704,6 +1705,7 @@ public class EditorComponent extends View implements
     if (iterativeParseFileListener != null) {
       iterativeParseFileListener.accept(this, start, stop);
     }
+    window().repaint();
   }
 
   @Override
@@ -1711,6 +1713,7 @@ public class EditorComponent extends View implements
     if (onDiffMadeListener != null) {
       onDiffMadeListener.accept(this, diff, isUndo);
     }
+    window().repaint();
   }
 
   @Override
