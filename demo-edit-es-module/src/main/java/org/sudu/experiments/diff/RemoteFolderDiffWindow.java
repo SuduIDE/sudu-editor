@@ -130,8 +130,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
     if (!updatedRoots) {
       updatedRoots = true;
-      leftRoot.setLine(msg.leftRootName);
-      rightRoot.setLine(msg.rightRootName);
+      leftRoot.setLine(replaceSlashes(msg.leftRootName));
+      rightRoot.setLine(replaceSlashes(msg.rightRootName));
       window.setTitle(msg.leftRootName + " <-> " + msg.rightRootName);
       leftRoot.doOpen();
       rightRoot.doOpen();
@@ -348,6 +348,15 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       rootView.left.clearSelection();
     }
     rootView.fireSelectionChanged(getSelected(false));
+  }
+
+  String replaceSlashes(String path) {
+    int slInd = path.indexOf('/');
+    if (slInd == -1) return path;
+    int revSlInd = path.indexOf('\\');
+    if (revSlInd == -1) return path;
+    char delim = slInd < revSlInd ? '/' : '\\';
+    return path.replace('/', delim).replace('\\', delim);
   }
 
   @Override
