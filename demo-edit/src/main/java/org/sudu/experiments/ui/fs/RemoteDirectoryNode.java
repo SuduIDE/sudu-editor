@@ -1,6 +1,5 @@
 package org.sudu.experiments.ui.fs;
 
-import org.sudu.experiments.parser.common.Pair;
 import org.sudu.experiments.ui.FileTreeNode;
 
 public class RemoteDirectoryNode extends RemoteFileTreeNode {
@@ -20,27 +19,25 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
   }
 
   public void onClick() {
-    Pair<RemoteFileTreeNode, RemoteFileTreeNode> result = isOpened()
-        ? closeDir()
-        : openDir();
+    if (isOpened()) closeDir();
+    else openDir();
     handle.sendModel();
     handle.updateView();
   }
 
-  public Pair<RemoteFileTreeNode, RemoteFileTreeNode> openDir() {
+  public void openDir() {
+//    if (model() == null || model().children == null) return;
     doOpen();
     var opposite = handle.getOppositeDir(this);
     if (opposite != null) opposite.doOpen();
-    if (children.length == 1 && children[0] instanceof RemoteDirectoryNode singleDir) return singleDir.openDir();
-    return Pair.of(this, opposite);
+    if (children.length == 1 && children[0] instanceof RemoteDirectoryNode singleDir) singleDir.openDir();
   }
 
-  public Pair<RemoteFileTreeNode, RemoteFileTreeNode> closeDir() {
+  public void closeDir() {
     doClose();
     var opposite = handle.getOppositeDir(this);
     if (opposite != null) opposite.doClose();
     handle.updateView();
-    return Pair.of(this, opposite);
   }
 
   public void doOpen() {
@@ -69,5 +66,16 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
   protected void defaultIcon() {
     if (isOpened()) iconFolderOpened();
     else iconFolder();
+  }
+
+  // todo open isOpened dirs with empty children when updating model
+  @Override
+  public boolean isOpened() {
+    return super.isOpened() && children != FileTreeNode.ch0;
+  }
+
+  @Override
+  public boolean isClosed() {
+    return super.isClosed() || children == FileTreeNode.ch0;
   }
 }
