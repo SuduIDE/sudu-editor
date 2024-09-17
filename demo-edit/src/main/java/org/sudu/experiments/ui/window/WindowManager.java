@@ -22,6 +22,8 @@ public class WindowManager implements MouseListener, DprChangeListener {
   public final UiContext uiContext;
   private final Subscribers<Window> windows = new Subscribers<>(new Window[0]);
   private PopupMenu popupMenu;
+  int lastMouseWindow = -1;
+  final V2i lastMousePosition = new V2i();
 
   public WindowManager(UiContext uiContext) {
     this.uiContext = uiContext;
@@ -74,14 +76,38 @@ public class WindowManager implements MouseListener, DprChangeListener {
   public Window addWindow(Window window) {
     if (windows.length() > 0)
       windows.get(0).blur();
+    if (lastMouseWindow >= 0) {
+      if (window.pickTest(lastMousePosition)) {
+        fireMouseLeave();
+      } else {
+        ++lastMouseWindow;
+        System.out.println("lastMouseWindow = " + lastMouseWindow);
+      }
+    }
     windows.add(0, window);
     window.focus();
     return window;
   }
 
+  private void fireMouseLeave() {
+    if (lastMouseWindow >= 0) {
+      windows.get(lastMouseWindow).fireMouseLeave();
+      lastMouseWindow = -1;
+    }
+  }
+
   public void removeWindow(Window window) {
     boolean isTop = topWindow() == window;
-    if (isTop) window.blur();
+    if (isTop) {
+      if (lastMouseWindow == 0) {
+        window.fireMouseLeave();
+        lastMouseWindow = -1;
+      }
+      window.blur();
+    }
+    int index = windows.find(window);
+    if (lastMouseWindow > index)
+      --lastMouseWindow;
     windows.remove(window);
     if (windows.length() > 0)
       windows.get(0).focus();
@@ -110,13 +136,28 @@ public class WindowManager implements MouseListener, DprChangeListener {
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
-    if (popupMenu != null && popupMenu.onMouseMove(event))
-      return true;
+    if (popupMenu != null)
+      popupMenu.onMouseMove(event);
     var setCursor = uiContext.windowCursor;
-
-    for (Window window : windows.array())
-      if (window.onMouseMove(event, setCursor))
-        return true;
+    lastMousePosition.set(event.position);
+    Window[] array = windows.array();
+    int hitIndex = -1, i = 0;
+    for (; i < array.length; i++) {
+      Window window = array[i];
+      var hit = window.onMouseMove(event, setCursor);
+      if (hit) {
+        hitIndex = i;
+        break;
+      }
+    }
+    if (lastMouseWindow != hitIndex) {
+      if (lastMouseWindow >= 0) {
+        windows.get(lastMouseWindow).fireMouseLeave();
+      }
+      lastMouseWindow = hitIndex;
+    }
+    if (hitIndex < 0)
+      uiContext.window.setCursor(null);
     return false;
   }
 
@@ -144,7 +185,7 @@ public class WindowManager implements MouseListener, DprChangeListener {
       Window win = ws[i];
       var lock = win.onMouseDownFrame(event.position, button);
       boolean hit = lock != null || win.contentHitTest(event);
-      boolean toTop = button == MOUSE_BUTTON_LEFT && win != topWindow() && hit;
+      boolean toTop = button == MOUSE_BUTTON_LEFT && i != 0 && hit;
       if (toTop) {
         int index = windows.find(win);
         if (index > 0) {
@@ -161,6 +202,18 @@ public class WindowManager implements MouseListener, DprChangeListener {
 
   private void moveToFront(int index) {
     windows.get(0).blur();
+
+    if (lastMouseWindow == index) {
+      lastMouseWindow = 0;
+    } else if (lastMouseWindow >= 0) {
+      var t = windows.get(index).pickTest(lastMousePosition);
+      if (t) {
+        fireMouseLeave();
+      } else {
+        if (lastMouseWindow < index)
+          ++lastMouseWindow;
+      }
+    }
     windows.moveToFront(index);
     windows.get(0).focus();
   }

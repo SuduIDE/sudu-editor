@@ -161,7 +161,11 @@ public class MergeButtons implements Disposable {
         }
       }
     }
-    return hitTest(event.position) && setCursor.setDefault();
+    return setCursor.setDefault();
+  }
+
+  public void onMouseLeave() {
+    selectedBtLine = -1;
   }
 
   public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button, SetCursor setCursor) {

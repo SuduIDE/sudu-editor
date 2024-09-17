@@ -8,13 +8,11 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.ScrollBar;
 import org.sudu.experiments.ui.SetCursor;
-import org.sudu.experiments.ui.UiContext;
 
 import java.util.function.Consumer;
 
 public class ScrollView extends View {
 
-  private final SetCursor windowCursor;
   private final Consumer<ScrollBar.Event> vScrollHandler = this::onMoveScrollV;
   private final Consumer<ScrollBar.Event> hScrollHandler = this::onMoveScrollH;
 
@@ -26,26 +24,19 @@ public class ScrollView extends View {
   private boolean vScrollVisible = true;
   private boolean hScrollVisible = true;
 
-  public ScrollView(UiContext uiContext) {
-    this(new ScrollContent(), uiContext.windowCursor);
-  }
+//  public ScrollView() { this(new ScrollContent()); }
 
-  public ScrollView(ScrollContent content, UiContext uiContext) {
-    this(content, uiContext.windowCursor);
-  }
-
-  public void setVerticalScrollVisibility(boolean isVisible) {
-    vScrollVisible = isVisible;
-  }
-
-  public void setHorizontalScrollVisible(boolean isVisible) {
-    hScrollVisible = isVisible;
-  }
-
-  public ScrollView(ScrollContent content, SetCursor setCursor) {
+  public ScrollView(ScrollContent content) {
     this.content = content;
-    windowCursor = setCursor;
     content.setScrollView(this);
+  }
+
+  public void setVerticalScrollVisibility(boolean visible) {
+    vScrollVisible = visible;
+  }
+
+  public void setHorizontalScrollVisible(boolean visible) {
+    hScrollVisible = visible;
   }
 
   @Override
@@ -80,6 +71,11 @@ public class ScrollView extends View {
     super.setPosition(newPos, newSize, newDpr);
     content.setPosition(newPos, newSize, newDpr);
     if (newDpr != 0) layoutScroll();
+  }
+
+  @Override
+  protected void onMouseLeaveWindow() {
+    content.onMouseLeaveWindow();
   }
 
   public void setListeners(Runnable hsListener, Runnable vsListener) {
@@ -227,12 +223,12 @@ public class ScrollView extends View {
         || content.onMouseUp(event, button);
   }
 
-  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
-    boolean a = vScroll != null &&
-        vScroll.onMouseMove(event.position, windowCursor);
-    boolean b = hScroll != null &&
-        hScroll.onMouseMove(event.position, windowCursor);
-    return a || b || content.onMouseMove(event, setCursor);
+  public void onMouseMove(MouseEvent event, SetCursor setter) {
+    V2i position = event.position;
+    var v = vScroll != null && vScroll.onMouseMove(position, setter);
+    var h = hScroll != null && hScroll.onMouseMove(position, setter);
+    if (!(h | v))
+      content.onMouseMove(event, setter);
   }
 
   @Override

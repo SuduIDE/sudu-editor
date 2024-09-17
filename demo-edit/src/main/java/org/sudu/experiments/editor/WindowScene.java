@@ -19,7 +19,7 @@ public abstract class WindowScene extends Scene1 {
     api.input.onScroll.add(windowManager::onScroll);
     api.input.onContextMenu.add(windowManager::onContextMenu);
     if (desktopMouse) {
-      api.input.onMouse.add(uiContext.desktopMouse());
+//      api.input.onMouse.add(uiContext.desktopMouse());
     }
   }
 

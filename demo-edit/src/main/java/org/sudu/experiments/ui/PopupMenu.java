@@ -117,13 +117,9 @@ public class PopupMenu implements DprChangeListener, Focusable, Disposable {
     }
   }
 
-  public boolean onMouseMove(MouseEvent e) {
-    boolean r = false;
-    for (int i = toolbars.size() - 1; i >= 0; --i) {
-      r = toolbars.get(i).onMouseMove(e.position, context.windowCursor);
-      if (r) break;
-    }
-    return r;
+  public void onMouseMove(MouseEvent e) {
+    for (int i = toolbars.size() - 1; i >= 0; --i)
+      toolbars.get(i).onMouseMove(e.position, context.windowCursor);
   }
 
   public boolean onMouseClick(MouseEvent e, int button, int clickCount) {

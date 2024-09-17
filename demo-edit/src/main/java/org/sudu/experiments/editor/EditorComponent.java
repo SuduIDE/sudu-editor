@@ -1315,27 +1315,44 @@ public class EditorComponent extends View implements
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
-    return onMouseMove(event, context.windowCursor);
+    onMouseMove(event, context.windowCursor);
+    return false;
   }
 
-  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
-    if (vScroll.onMouseMove(event.position, setCursor)) return true;
-    if (hScroll.onMouseMove(event.position, setCursor)) return true;
-    if (mergeButtons != null &&
-        mergeButtons.onMouseMove(event, setCursor)) return true;
-    if (lineNumbers.onMouseMove(event, setCursor)) return true;
+  @Override
+  protected void onMouseLeaveWindow() {
+    if (mergeButtons != null)
+      mergeButtons.onMouseLeave();
+    // lineNumbers.onMouseLeave();
+  }
 
-    if (isInsideText(event.position)) {
-      if (event.ctrl) {
-        Pos pos = computeCharPos(event.position);
-        model.document.moveToElementStart(pos);
-        if (model.document.hasDefOrUsagesForElementPos(pos)) {
-          return setCursor.set(Cursor.pointer);
+  public void onMouseMove(MouseEvent event, SetCursor setCursor) {
+    V2i mousePos = event.position;
+    var scroll = vScroll.onMouseMove(mousePos, setCursor)
+        | hScroll.onMouseMove(mousePos, setCursor);
+
+    if (scroll) {
+      onMouseLeaveWindow();
+    } else {
+      var mb = mergeButtons != null
+          && mergeButtons.onMouseMove(event, setCursor)
+          || lineNumbers.onMouseMove(event, setCursor);
+
+      if (!mb && hitTest(mousePos)) {
+        if (isInsideText(mousePos)) {
+          if (event.ctrl) {
+            Pos pos = computeCharPos(mousePos);
+            model.document.moveToElementStart(pos);
+            boolean hasUsage = model.document.hasDefOrUsagesForElementPos(pos);
+            setCursor.set(hasUsage ? Cursor.pointer : Cursor.text);
+          } else {
+            setCursor.set(Cursor.text);
+          }
+        } else {
+          setCursor.setDefault();
         }
       }
-      return setCursor.set(Cursor.text);
     }
-    return setCursor.setDefault();
   }
 
   public void onKey(InputListeners.KeyHandler onKey) {

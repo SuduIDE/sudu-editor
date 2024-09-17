@@ -89,9 +89,9 @@ public class View implements Disposable {
     return false;
   }
 
-  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
-    return false;
-  }
+  public void onMouseMove(MouseEvent event, SetCursor setCursor) {}
+
+  protected void onMouseLeaveWindow() {}
 
   protected boolean onScroll(MouseEvent event, float dX, float dY) {
     return false;

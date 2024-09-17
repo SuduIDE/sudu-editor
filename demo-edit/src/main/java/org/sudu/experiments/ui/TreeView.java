@@ -338,19 +338,24 @@ public class TreeView extends ScrollContent implements Focusable {
     return viewY / lineHeight;
   }
 
-  public void onMouseLeave() {
+  public void onMouseLeaveWindow() {
     hoveredIndex = -1;
   }
 
   @Override
-  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
+  public void onMouseMove(MouseEvent event, SetCursor setCursor) {
+    boolean hit = hitTest(event.position);
+    if (!hit) {
+      if (hoveredIndex >= 0) hoveredIndex = -1;
+      return;
+    }
     int line = getLineNumber(event);
     if (line >= 0 && line < model.lines.length) {
       hoveredIndex = line;
-      return setCursor.set(Cursor.pointer);
+      setCursor.set(Cursor.pointer);
     } else {
       hoveredIndex = -1;
-      return setCursor.setDefault();
+      setCursor.setDefault();
     }
   }
 

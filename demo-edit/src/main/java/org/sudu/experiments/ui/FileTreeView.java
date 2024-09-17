@@ -117,10 +117,9 @@ public class FileTreeView extends TreeView {
   }
 
   @Override
-  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
+  public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     if (mergeButtons != null)
-      if (mergeButtons.onMouseMove(event, setCursor))
-        return true;
-    return super.onMouseMove(event, setCursor);
+      mergeButtons.onMouseMove(event, setCursor);
+    super.onMouseMove(event, setCursor);
   }
 }

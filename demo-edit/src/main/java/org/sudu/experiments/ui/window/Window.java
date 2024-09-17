@@ -29,7 +29,7 @@ public class Window {
   public final UiContext context;
 
   private Predicate<V2i> onContextMenu;
-  private Runnable onFocus, onBlur;
+  private Runnable onFocus, onBlur, onMouseLeave;
   private final TextLineView title;
   private SystemMenu systemMenu;
   private View content;
@@ -60,13 +60,23 @@ public class Window {
 
   public void onFocus(Runnable h) { onFocus = h; }
   public void onBlur(Runnable h) { onBlur = h; }
+  public void onMouseLeave(Runnable h) { onMouseLeave = h; }
 
   void focus() {
-    if (onFocus != null) onFocus.run();
+    if (onFocus != null)
+      onFocus.run();
   }
 
   void blur() {
-    if (onBlur != null) onBlur.run();
+    if (onBlur != null)
+      onBlur.run();
+  }
+
+  void fireMouseLeave() {
+    content.onMouseLeaveWindow();
+    title.onMouseLeaveWindow();
+    if (onMouseLeave != null)
+      onMouseLeave.run();
   }
 
   public void setTitle(String text) {
@@ -214,8 +224,10 @@ public class Window {
   }
 
   boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
-    return overTitleFrame(event.position) || content.hitTest(event.position)
-        && (content.onMouseMove(event, setCursor) || context.windowCursor.set(null));
+    boolean t = overTitleFrame(event.position);
+    boolean c = content.hitTest(event.position);
+    content.onMouseMove(event, setCursor);
+    return t || c;
   }
 
   private boolean overTitleFrame(V2i position) {
@@ -256,7 +268,7 @@ public class Window {
 
   Consumer<MouseEvent> onMouseDownFrame(V2i position, int button) {
     if (button == MouseListener.MOUSE_BUTTON_LEFT) {
-      var handler = dragFrameTest(position);
+      var handler = dragFrame(position);
       if (handler != null)
         return handler;
 
@@ -361,7 +373,7 @@ public class Window {
     return 0;
   }
 
-  private Consumer<MouseEvent> dragFrameTest(V2i position) {
+  private Consumer<MouseEvent> dragFrame(V2i position) {
     int frame = context.toPx(frameHitTestDp);
     int corner = context.toPx(cornerSizeDp);
 

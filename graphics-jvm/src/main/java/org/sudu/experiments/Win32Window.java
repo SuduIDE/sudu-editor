@@ -10,6 +10,7 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -18,6 +19,7 @@ import java.util.function.Supplier;
 public class Win32Window implements WindowPeer, Window {
 
   static boolean debugContext = AppPreferences.getInt("debugContext", 0) != 0;
+  static boolean debugMousePointer = true;
 
   final Runnable repaint = this::repaint;
   final InputListeners inputListeners = new InputListeners(repaint);
@@ -230,9 +232,15 @@ public class Win32Window implements WindowPeer, Window {
     angleWindow.swapInterval(vSync ? 1 : 0);
   }
 
+  int cursorModCount;
+  final Exception[] modCalls = new Exception[3];
+
   @SuppressWarnings("StringEquality")
   public void setCursor(String cursor) {
     if (currentCursor != cursor) {
+      if (debugMousePointer && cursorModCount < modCalls.length)
+        modCalls[cursorModCount] = new Exception();
+      cursorModCount++;
       currentCursor = cursor;
       currentCursorHandle = Win32Cursors.toWin32(cursor);
       Win32.SetCursor(currentCursorHandle);
@@ -287,12 +295,21 @@ public class Win32Window implements WindowPeer, Window {
     }
 
     switch (msg) {
-      case WM_SIZE -> onWindowResize(Win32.LOWORD(lParam), Win32.HIWORD(lParam), wParamToState((int) wParam));
+      case WM_SIZE -> onWindowResize(
+          Win32.LOWORD(lParam), Win32.HIWORD(lParam),
+          wParamToState((int) wParam));
       case WM_MOVE -> onWindowMove(Win32.LOWORD(lParam), Win32.HIWORD(lParam));
       case WM_ENTERSIZEMOVE, WM_EXITSIZEMOVE
           -> onEnterExitSizeMove(hWnd, msg == WM_ENTERSIZEMOVE);
 
-      case WM_MOUSEMOVE -> inputState.onMouseMove(lParam, windowSize, inputListeners);
+      case WM_MOUSEMOVE -> {
+        cursorModCount = 0;
+        inputState.onMouseMove(lParam, windowSize, inputListeners);
+        if (cursorModCount > 1)
+          System.err.println("cursorModCount = " + cursorModCount);
+        if (debugMousePointer && cursorModCount > 0)
+          Arrays.fill(modCalls, null);
+      }
 
       case WM_MOUSEWHEEL, WM_MOUSEHWHEEL -> inputState.onMouseWheel(
           lParam, wParam, windowSize, hWnd,
@@ -309,7 +326,8 @@ public class Win32Window implements WindowPeer, Window {
       case WM_SYSKEYUP, WM_SYSKEYDOWN ->
           inputState.onKey(hWnd, msg, wParam, lParam, inputListeners);
       case WM_KEYUP, WM_KEYDOWN, WM_CHAR -> {
-        if (inputState.onKey(hWnd, msg, wParam, lParam, inputListeners)) return 0;
+        if (inputState.onKey(hWnd, msg, wParam, lParam, inputListeners))
+          return 0;
       }
 
       // focus
