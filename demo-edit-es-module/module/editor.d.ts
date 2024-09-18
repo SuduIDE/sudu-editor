@@ -163,7 +163,7 @@ type LanguageSelector = string | ILanguageFilter | Array<string | ILanguageFilte
 //     return true;
 // }
 
-export enum ThemeColor {
+export const enum ThemeColor {
     TreeViewBackground = 0,
     DefaultForeground = 1,
     SelectedItemBackground = 2,
