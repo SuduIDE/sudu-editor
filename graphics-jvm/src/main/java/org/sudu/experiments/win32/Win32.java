@@ -81,6 +81,8 @@ public class Win32 {
   public static native long SetTimer(long hWnd, long nIDEvent, int uElapse, long lpTimerFunc);
   public static native boolean KillTimer(long hWnd, long nIDEvent);
 
+
+
   public static native long LoadCursorW(long hInstance, long lpCursorName);
   public static native long SetCursor(long hCursor);
 

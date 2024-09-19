@@ -54,6 +54,11 @@ public interface WindowPeer {
 
   int WM_TOUCH                = 0x0240;
 
+  int WM_MOUSEHOVER           = 0x02A1;
+  int WM_MOUSELEAVE           = 0x02A3;
+  int WM_NCMOUSEHOVER         = 0x02A0;
+  int WM_NCMOUSELEAVE         = 0x02A2;
+
   // WM_SIZE args
   int SIZE_MINIMIZED = 1;
   int SIZE_MAXIMIZED = 2;
@@ -89,6 +94,10 @@ public interface WindowPeer {
       case WM_TOUCH -> "WM_TOUCH";
       case WM_MOUSEWHEEL -> "WM_MOUSEWHEEL";
       case WM_MOUSEHWHEEL -> "WM_MOUSEHWHEEL";
+      case WM_MOUSEHOVER -> "WM_MOUSEHOVER";
+      case WM_MOUSELEAVE -> "WM_MOUSELEAVE";
+      case WM_NCMOUSEHOVER -> "WM_NCMOUSEHOVER";
+      case WM_NCMOUSELEAVE -> "WM_NCMOUSELEAVE";
       default -> "WM_".concat(Integer.toHexString(wm));
     };
   }
