@@ -253,7 +253,10 @@ export interface FolderDiffView extends IFolderDiff, IDisposable {
     onReadyChanged: IEvent<boolean>
 }
 
-export interface FolderDiffViewSelection {
+export interface DiffSelection {
+}
+
+export interface FolderDiffSelection extends DiffSelection {
     // relativePath does not include root folder.
     // For root folder relativePath is empty
     relativePath: string
@@ -264,11 +267,35 @@ export interface FolderDiffViewSelection {
     isOrphan: boolean
 }
 
+export interface FileDiffSelection extends DiffSelection {
+}
+
+export interface DiffViewController {
+    getViewType(): 'folderDiff' | 'fileDiff'
+    getSelection(): FolderDiffSelection | FileDiffSelection | undefined
+
+    canNavigateUp(): boolean
+    navigateUp(): void
+
+    canNavigateDown(): boolean
+    navigateDown(): void
+}
+
+export interface FolderDiffViewController extends DiffViewController {
+    getViewType(): 'folderDiff'
+    getSelection(): FolderDiffSelection | undefined
+}
+
+export interface FileDiffViewController extends DiffViewController {
+    getViewType(): 'fileDiff'
+    getSelection(): FileDiffSelection | undefined
+}
+
 export interface RemoteFolderDiffView extends FolderDiffView {
     getState(): any
     applyState(state: any): void
-    getSelected(): FolderDiffViewSelection | undefined
-    onSelectionChanged: IEvent<FolderDiffViewSelection | undefined>
+    getController(): DiffViewController;
+    onControllerUpdate: IEvent<FolderDiffViewController | FileDiffViewController>
 }
 
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
