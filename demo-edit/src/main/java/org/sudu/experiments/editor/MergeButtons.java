@@ -103,13 +103,15 @@ public class MergeButtons implements Disposable {
       byte color = l < colors.length ? colors[l] : 0;
 
       V4f bgColor = color != 0 ? scheme.diff.getDiffColor(scheme, color) :
-          l == caretLine ? scheme.lineNumber.caretBgColor : scheme.lineNumber.bgColor;
+          l == caretLine ? scheme.lineNumber.caretBgColor :
+              scheme.lineNumber.bgColor;
       if (nextBt == l) {
         var bg = bgColor;
         if (selectedBtLine == l) {
-          bg = color != 0 ? scheme.hoverColors().diff.getDiffColor(scheme, color) :
-              l == caretLine ? scheme.hoverColors().caretBgColor
-                  : scheme.hoverColors().bgColor;
+          var hoverColors = scheme.hoverColors();
+          bg = color != 0 ? hoverColors.diff.getDiffColor(scheme, color) :
+              l == caretLine ? hoverColors.caretBgColor :
+                  hoverColors.bgColor;
         }
         c.drawIcon(
             g, texture, x, y,
@@ -117,7 +119,8 @@ public class MergeButtons implements Disposable {
         );
         if (drawFrames) {
           debug.set(x, y);
-          WindowPaint.drawInnerFrame(g, bSize, debug, scheme.diff.deletedBgColor, -1, c.size);
+          WindowPaint.drawInnerFrame(g, bSize, debug,
+              scheme.diff.deletedBgColor, -1, c.size);
         }
         if (++bIndex < lines.length)
           nextBt = lines[bIndex];
@@ -133,11 +136,13 @@ public class MergeButtons implements Disposable {
       g.drawRect(x, pos.y + y, bSize, bgColor);
       if (drawFrames) {
         debug.set(x, pos.y + y);
-        WindowPaint.drawInnerFrame(g, bSize, debug, scheme.diff.deletedBgColor, -1, c.size);
+        WindowPaint.drawInnerFrame(g, bSize, debug,
+            scheme.diff.deletedBgColor, -1, c.size);
       }
     }
     if (drawFrames) {
-      WindowPaint.drawInnerFrame(g, size, pos, scheme.diff.deletedBgColor, -1, c.size);
+      WindowPaint.drawInnerFrame(g, size, pos,
+          scheme.diff.deletedBgColor, -1, c.size);
     }
   }
 

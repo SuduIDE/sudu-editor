@@ -147,7 +147,10 @@ public class EditorColorScheme {
   public BackgroundWithHoverColors hoverColors() {
     if (hoverColors == null) {
       var hoverColor = fileTreeView.hoveredBg;
-      hoverColors = new BackgroundWithHoverColors(diff.blendWith(hoverColor), ColorOp.blend(editor.bg, hoverColor), ColorOp.blend(lineNumber.caretBgColor, hoverColor));
+      hoverColors = new BackgroundWithHoverColors(
+          diff.blendWith(hoverColor),
+          ColorOp.blend(editor.bg, hoverColor),
+          ColorOp.blend(lineNumber.caretBgColor, hoverColor));
     }
     return hoverColors;
   }
