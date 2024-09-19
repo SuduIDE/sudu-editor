@@ -298,6 +298,13 @@ export interface RemoteFolderDiffView extends FolderDiffView {
     onControllerUpdate: IEvent<FolderDiffViewController | FileDiffViewController>
 }
 
+export interface RemoteCodeDiffView extends CodeDiffView {
+    getState(): any
+    applyState(state: any): void
+    getController(): FileDiffViewController;
+    onControllerUpdate: IEvent<FileDiffViewController>
+}
+
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
 
 export function newEditor(args: EditArgs): Promise<EditView>
@@ -307,3 +314,5 @@ export function newCodeDiff(args: EditArgs): Promise<CodeDiffView>
 export function newFolderDiff(args: EditArgs): Promise<FolderDiffView>
 
 export function newRemoteFolderDiff(args: EditArgs, channel: Channel): Promise<RemoteFolderDiffView>
+
+export function newRemoteCodeDiff(args: EditArgs, channel: Channel): Promise<RemoteCodeDiffView>
