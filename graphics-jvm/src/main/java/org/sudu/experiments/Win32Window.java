@@ -36,6 +36,7 @@ public class Win32Window implements WindowPeer, Window {
 
   // platform windows
   long hWnd, timerId;
+  boolean mouseTracking;
   int windowDpi;
   AngleWindow angleWindow;
   V2i angleSurfaceSize = new V2i();
@@ -304,6 +305,8 @@ public class Win32Window implements WindowPeer, Window {
 
       case WM_MOUSEMOVE -> {
         cursorModCount = 0;
+        if (!mouseTracking)
+          mouseTracking = trackMouseLeave()
         inputState.onMouseMove(lParam, windowSize, inputListeners);
         if (cursorModCount > 1)
           System.err.println("cursorModCount = " + cursorModCount);
