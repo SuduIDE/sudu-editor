@@ -281,9 +281,16 @@ export interface DiffViewController {
     navigateDown(): void
 }
 
+export enum DiffType {
+    Same = 0, Added = 1, Deleted = 2, Modified = 3
+}
+
 export interface FolderDiffViewController extends DiffViewController {
     getViewType(): 'folderDiff'
     getSelection(): FolderDiffSelection | undefined
+
+    getDiffFilter(): DiffType[]
+    applyDiffFilter(filters: DiffType[]): void
 }
 
 export interface FileDiffViewController extends DiffViewController {
