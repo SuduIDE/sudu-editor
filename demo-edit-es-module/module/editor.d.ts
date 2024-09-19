@@ -194,12 +194,15 @@ interface Focusable {
 }
 
 interface EditorBase {
-    setReadonly(flag: boolean): void,
     disconnectFromDom(): void
     reconnectToDom(containerId?: string): void
 }
 
-export interface ICodeDiff extends EditorBase, HasTheme, Focusable {
+export interface TwoPanelDiff {
+    setReadonly(rightReadonly: boolean, leftReadonly: boolean): void
+}
+
+export interface ICodeDiff extends EditorBase, HasTheme, Focusable, TwoPanelDiff {
     setLeftModel(model: ITextModel): void,
 
     setRightModel(model: ITextModel): void,
@@ -213,6 +216,8 @@ interface CodeDiffView extends ICodeDiff, IDisposable {
 }
 
 export interface ICodeEditor extends EditorBase, HasTheme, Focusable {
+    setReadonly(flag: boolean): void,
+
     setText(text: string): void,
 
     getText(): string,
@@ -245,18 +250,15 @@ export interface ICodeEditor extends EditorBase, HasTheme, Focusable {
 interface EditView extends ICodeEditor, IDisposable {
 }
 
-export interface IFolderDiff extends EditorBase, HasTheme, Focusable {
-}
-
-export interface FolderDiffView extends IFolderDiff, IDisposable {
+export interface IFolderDiff extends EditorBase, HasTheme, TwoPanelDiff, Focusable {
     isReady(): boolean
     onReadyChanged: IEvent<boolean>
 }
 
-export interface DiffSelection {
+export interface FolderDiffView extends IFolderDiff, IDisposable {
 }
 
-export interface FolderDiffSelection extends DiffSelection {
+export interface FolderDiffSelection {
     // relativePath does not include root folder.
     // For root folder relativePath is empty
     relativePath: string
@@ -267,7 +269,7 @@ export interface FolderDiffSelection extends DiffSelection {
     isOrphan: boolean
 }
 
-export interface FileDiffSelection extends DiffSelection {
+export interface FileDiffSelection {
 }
 
 export interface DiffViewController {
