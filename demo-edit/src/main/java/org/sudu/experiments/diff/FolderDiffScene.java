@@ -12,7 +12,7 @@ public class FolderDiffScene extends WindowScene implements ThemeControl {
   FolderDiffWindow w;
 
   public FolderDiffScene(SceneApi api) {
-    super(api, false);
+    super(api);
     var theme = EditorColorScheme.darkIdeaColorScheme();
     w = new FolderDiffWindow(theme, windowManager, this::menuFonts);
   }

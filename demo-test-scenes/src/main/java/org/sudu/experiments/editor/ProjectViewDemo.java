@@ -14,7 +14,7 @@ public class ProjectViewDemo extends WindowScene implements DprChangeListener {
   EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
 
   public ProjectViewDemo(SceneApi api) {
-    super(api, true);
+    super(api);
     uiContext.dprListeners.add(this);
     clearColor.set(new Color(43));
     api.input.onContextMenu.add(this::onContextMenu);

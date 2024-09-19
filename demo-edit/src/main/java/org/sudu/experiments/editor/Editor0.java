@@ -7,8 +7,6 @@ import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
-import org.sudu.experiments.input.KeyCode;
-import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.V2i;
 
@@ -20,7 +18,7 @@ public class Editor0 extends WindowScene implements ThemeControl, EditorUi.Clear
   final EditorUi ui;
 
   public Editor0(SceneApi api) {
-    super(api, false);
+    super(api);
 
     ui = new EditorUi(windowManager);
     editor = new EditorComponent(ui);

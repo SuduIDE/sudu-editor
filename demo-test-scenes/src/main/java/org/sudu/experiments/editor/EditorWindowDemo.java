@@ -15,7 +15,7 @@ public class EditorWindowDemo extends WindowScene implements DprChangeListener {
   EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
 
   public EditorWindowDemo(SceneApi api) {
-    super(api, true);
+    super(api);
     uiContext.dprListeners.add(this);
     clearColor.set(new Color(43));
     api.input.onKeyPress.add(new CtrlO(api, this::openFile));

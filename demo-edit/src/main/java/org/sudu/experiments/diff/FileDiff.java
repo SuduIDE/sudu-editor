@@ -14,7 +14,7 @@ public class FileDiff extends WindowScene implements ThemeControl {
   protected FileDiffWindow w;
 
   public FileDiff(SceneApi api) {
-    super(api, false);
+    super(api);
     w = new FileDiffWindow(windowManager, theme, this::menuFonts);
   }
 
