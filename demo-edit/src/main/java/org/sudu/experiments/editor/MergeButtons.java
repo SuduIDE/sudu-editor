@@ -104,11 +104,10 @@ public class MergeButtons implements Disposable {
           l == caretLine ? scheme.lineNumber.caretBgColor
               : scheme.lineNumber.bgColor;
       if (nextBt == l) {
-//        var bg = selectedBtLine == l ? lnColors.caretBgColor : lnColors.bgColor;
-//        g.drawRect(x, y, bSize, bg);
+        var bg = selectedBtLine == l ? lnColors.caretBgColor : lnColors.bgColor;
         c.drawIcon(
             g, texture, x, y,
-            bgColor, lnColors.caretTextColor
+            bg, lnColors.caretTextColor
         );
         if (drawFrames) {
           debug.set(x, y);
