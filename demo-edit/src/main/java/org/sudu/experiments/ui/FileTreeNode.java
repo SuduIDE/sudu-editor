@@ -189,4 +189,8 @@ public class FileTreeNode extends TreeNode {
 
   protected void defaultIcon() {
   }
+
+  public FileTreeNode[] getChildren() {
+    return children;
+  }
 }

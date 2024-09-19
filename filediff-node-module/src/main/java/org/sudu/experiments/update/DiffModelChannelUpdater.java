@@ -3,12 +3,14 @@ package org.sudu.experiments.update;
 import org.sudu.experiments.*;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
+import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeFileHandle;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.JsCast;
-import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
@@ -20,9 +22,11 @@ public class DiffModelChannelUpdater {
   public static final int FRONTEND_MESSAGE = 0;
   public static final int OPEN_FILE = 1;
   public static final int APPLY_DIFF = 2;
+  public static final int FILE_SAVE = 3;
   public static final Int32Array FRONTEND_MESSAGE_ARRAY = JsMemoryAccess.bufferView(new int[]{FRONTEND_MESSAGE});
   public static final Int32Array OPEN_FILE_ARRAY = JsMemoryAccess.bufferView(new int[]{OPEN_FILE});
   public static final Int32Array APPLY_DIFF_ARRAY = JsMemoryAccess.bufferView(new int[]{APPLY_DIFF});
+  public static final Int32Array FILE_SAVE_ARRAY = JsMemoryAccess.bufferView(new int[]{FILE_SAVE});
 
   public DiffModelChannelUpdater(
       RemoteFolderDiffModel root,
@@ -59,6 +63,7 @@ public class DiffModelChannelUpdater {
       case FRONTEND_MESSAGE -> onFrontendMessage(jsArray);
       case OPEN_FILE -> onOpenFile(jsArray);
       case APPLY_DIFF -> onApplyDiff(jsArray);
+      case FILE_SAVE -> onFileSave(jsArray);
     }
   }
 
@@ -94,5 +99,16 @@ public class DiffModelChannelUpdater {
     int[] path = JsCast.ints(jsArray, 0);
     boolean left = JsCast.ints(jsArray, 1)[0] == 0;
     collector.applyDiff(path, left);
+  }
+
+  private void onFileSave(JsArray<JSObject> jsArray) {
+    JSString path = jsArray.get(0).cast();
+    JSString source = jsArray.get(1).cast();
+    Fs.fs().writeFile(path, source, JSString.valueOf("UTF-8"), this::onFileSaved);
+  }
+
+  private void onFileSaved(JSError error) {
+    if (error != null) System.err.println(JsHelper.getMessage(error));
+    else System.out.println("Saved");
   }
 }

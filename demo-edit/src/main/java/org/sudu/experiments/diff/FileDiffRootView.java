@@ -22,6 +22,8 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
   DiffInfo diffModel;
   private int modelFlags;
 
+  Consumer<String> onLeftDiffMade, onRightDiffMade;
+
   FileDiffRootView(WindowManager wm) {
     super(wm.uiContext);
     ui = new EditorUi(wm);
@@ -91,8 +93,11 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
   }
 
   private void iterativeParseFileListener(EditorComponent editor, int start, int stop) {
-    if (diffModel == null) return;
     boolean isL = editor == editor1;
+    if (isL) onLeftDiffMade();
+    else onRightDiffMade();
+
+    if (diffModel == null) return;
     int startLine = editor.model().document.getLine(start).x;
     int stopLine = editor.model().document.getLine(stop).x;
     var fromRangeInd = diffModel.leftBS(startLine, isL);
@@ -197,6 +202,22 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
         ui.windowManager.uiContext.window.worker(),
         fromL, toL, fromR, toR
     );
+  }
+
+  public void setOnDiffMade(
+      Consumer<String> onLeftDiffMade,
+      Consumer<String> onRightDiffMade
+  ) {
+    this.onLeftDiffMade = onLeftDiffMade;
+    this.onRightDiffMade = onRightDiffMade;
+  }
+
+  private void onLeftDiffMade() {
+    if (onLeftDiffMade != null) onLeftDiffMade.accept(new String(editor1.getChars()));
+  }
+
+  private void onRightDiffMade() {
+    if (onRightDiffMade != null) onRightDiffMade.accept(new String(editor2.getChars()));
   }
 
   public boolean canNavigateUp() {
