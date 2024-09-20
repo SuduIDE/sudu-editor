@@ -2,7 +2,6 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.editor.ThemeControl;
-import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.esm.EditArgs;
 import org.sudu.experiments.esm.JsFolderDiff;
 import org.sudu.experiments.js.*;
@@ -19,10 +18,13 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
 
   private float overrideFontSize = 0;
 
+  final JsFolderDiffViewController0 controller;
+
   protected JsRemoteFolderDiff0(WebWindow window, EditArgs args) {
     this.window = window;
     this.folderDiff = (RemoteFolderDiffScene) window.scene();
     if (args.hasTheme()) setTheme(args.getTheme());
+    controller = new JsFolderDiffViewController0();
   }
 
   @Override
@@ -101,19 +103,31 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
   }
 
   @Override
-  public JsFolderDiffViewSelection getSelected() {
-    var s = folderDiff.w.getSelected();
-    return JsFolderDiffViewSelection.H.create(s);
+  public JsDiffViewController getController() {
+    return controller;
   }
 
   @Override
-  public JsDisposable onSelectionChanged(
-      JsFunctions.Consumer<JsFolderDiffViewSelection> callback
+  public JsDisposable onControllerUpdate(
+      JsFunctions.Consumer<JsDiffViewController> callback
   ) {
-    var h = JsFolderDiffViewSelection.H.toJava(callback);
-    var d = rootView().selectionListeners.disposableAdd(h);
-    return JsDisposable.of(d);
+    return JsDisposable.empty();
   }
+
+  //  @Override
+//  public JsFolderDiffSelection getSelected() {
+//    var s = folderDiff.w.getSelected();
+//    return JsFolderDiffSelection.H.create(s);
+//  }
+
+//  @Override
+//  public JsDisposable onSelectionChanged(
+//      JsFunctions.Consumer<JsFolderDiffSelection> callback
+//  ) {
+//    var h = JsFolderDiffSelection.H.toJava(callback);
+//    var d = rootView().selectionListeners.disposableAdd(h);
+//    return JsDisposable.of(d);
+//  }
 
   private FolderDiffRootView rootView() {
     return folderDiff.w.rootView;

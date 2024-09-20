@@ -9,9 +9,17 @@ interface JsRemoteFolderDiff extends JsFolderDiff {
   JSObject getState();
   void applyState(JSObject state);
 
-  JsFolderDiffViewSelection getSelected();
+  // getController(): FolderDiffViewController | FileDiffViewController;
+  JsDiffViewController getController();
 
-  JsDisposable onSelectionChanged(
-      JsFunctions.Consumer<JsFolderDiffViewSelection> callback
+  // onControllerUpdate: IEvent<FolderDiffViewController | FileDiffViewController>
+  JsDisposable onControllerUpdate(
+      JsFunctions.Consumer<JsDiffViewController> callback
   );
+
+//  JsFolderDiffSelection getSelected();
+
+//  JsDisposable onSelectionChanged(
+//      JsFunctions.Consumer<JsFolderDiffSelection> callback
+//  );
 }

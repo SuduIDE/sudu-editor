@@ -303,7 +303,7 @@ export interface FileDiffViewController extends DiffViewController {
 export interface RemoteFolderDiffView extends FolderDiffView {
     getState(): any
     applyState(state: any): void
-    getController(): DiffViewController;
+    getController(): FolderDiffViewController | FileDiffViewController;
     onControllerUpdate: IEvent<FolderDiffViewController | FileDiffViewController>
 }
 
