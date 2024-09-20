@@ -105,6 +105,10 @@ class Win32InputState {
     listeners.sendMouseMove(createMouseEvent(lParam, windowSize));
   }
 
+  void onMouseLeave(V2i windowSize, InputListeners listeners) {
+    listeners.sendMouseMove(createMouseEvent(-1, -1, windowSize));
+  }
+
   static int GET_WHEEL_DELTA_WPARAM(long wParam) { return (short) Win32.HIWORD(wParam); }
 
   void onMouseWheel(
@@ -128,6 +132,10 @@ class Win32InputState {
   private MouseEvent createMouseEvent(long lParam, V2i windowSize) {
     int mouseX = Win32.GET_X_LPARAM(lParam);
     int mouseY = Win32.GET_Y_LPARAM(lParam);
+    return createMouseEvent(mouseX, mouseY, windowSize);
+  }
+
+  private MouseEvent createMouseEvent(int mouseX, int mouseY, V2i windowSize) {
     return new MouseEvent(
         new V2i(mouseX, mouseY), new V2i(windowSize), ctrl, alt, shift, meta);
   }

@@ -103,8 +103,6 @@ public class JsInput {
 
   private void onMouseEnter(org.teavm.jso.dom.events.MouseEvent event) {
     debug("onMouseEnter");
-
-    if (clientRect == null) return;
   }
 
   private void onMouseLeave(org.teavm.jso.dom.events.MouseEvent event) {

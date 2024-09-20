@@ -182,6 +182,8 @@ public class Win32Window implements WindowPeer, Window {
     if (contextIsRoot)
       angleWindow.graphics().reportLostResources();
     angleWindow.dispose();
+    if (mouseTracking)
+      mouseTracking = !trackMouseLeave(false);
     hWnd = Win32.DestroyWindow(hWnd) ? 0 : -1;
     if (hWnd != 0) System.err.println("DesktopWindow.dispose: destroyWindow failed");
     windowSize.set(0,0);
@@ -306,7 +308,7 @@ public class Win32Window implements WindowPeer, Window {
       case WM_MOUSEMOVE -> {
         cursorModCount = 0;
         if (!mouseTracking)
-          mouseTracking = trackMouseLeave()
+          mouseTracking = trackMouseLeave(true);
         inputState.onMouseMove(lParam, windowSize, inputListeners);
         if (cursorModCount > 1)
           System.err.println("cursorModCount = " + cursorModCount);
@@ -314,10 +316,14 @@ public class Win32Window implements WindowPeer, Window {
           Arrays.fill(modCalls, null);
       }
 
+      case WindowPeer.WM_MOUSELEAVE -> {
+        mouseTracking = false;
+        inputState.onMouseLeave(windowSize, inputListeners);
+      }
+
       case WM_MOUSEWHEEL, WM_MOUSEHWHEEL -> inputState.onMouseWheel(
           lParam, wParam, windowSize, hWnd,
           inputListeners, msg == WM_MOUSEWHEEL);
-
       case WM_SETCURSOR -> {
         if (Win32HitTest.hitClient(lParam)) {
           Win32.SetCursor(currentCursorHandle);
@@ -339,6 +345,12 @@ public class Win32Window implements WindowPeer, Window {
       case WM_SETFOCUS -> onSetFocus();
     }
     return Win32.DefWindowProcW(hWnd, msg, wParam, lParam);
+  }
+
+  private boolean trackMouseLeave(boolean enable) {
+    return Win32.TrackMouseEvent(
+        Win32.TME_LEAVE | (enable ? 0 : Win32.TME_CANCEL),
+        hWnd, Win32.HOVER_DEFAULT);
   }
 
   public GL.ImageData readPixels() {
