@@ -14,7 +14,7 @@ public class EditorColorScheme {
   public final CodeElementColor[] codeElement;
   public final LineNumbersColors lineNumber;
   public final DiffColors diff;
-  private BackgroundWithHoverColors hoverColors;
+  public final BackgroundHoverColors hoverColors;
 
   private static final float defaultFontSize = 15;
   private static final float defaultMenuFontSize = 17;
@@ -111,6 +111,14 @@ public class EditorColorScheme {
     this.fileViewIcons = fileViewIcons;
     this.editorFont = editorFont;
     this.treeViewFont = treeViewFont;
+
+    var hoverColor = fileTreeView.hoveredBg;
+    this.hoverColors = new BackgroundHoverColors(
+        diff.blendWith(hoverColor),
+        ColorOp.blend(editor.bg, hoverColor),
+        ColorOp.blend(lineNumber.caretBgColor,
+            hoverColor)
+    );
   }
 
   public EditorColorScheme withFontSize(float fontSize) {
@@ -142,16 +150,5 @@ public class EditorColorScheme {
         editor.selectionBg,
         editor.bg,
         codeElement, diff);
-  }
-
-  public BackgroundWithHoverColors hoverColors() {
-    if (hoverColors == null) {
-      var hoverColor = fileTreeView.hoveredBg;
-      hoverColors = new BackgroundWithHoverColors(
-          diff.blendWith(hoverColor),
-          ColorOp.blend(editor.bg, hoverColor),
-          ColorOp.blend(lineNumber.caretBgColor, hoverColor));
-    }
-    return hoverColors;
   }
 }

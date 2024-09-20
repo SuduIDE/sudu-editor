@@ -108,7 +108,7 @@ public class MergeButtons implements Disposable {
       if (nextBt == l) {
         var bg = bgColor;
         if (selectedBtLine == l) {
-          var hoverColors = scheme.hoverColors();
+          var hoverColors = scheme.hoverColors;
           bg = color != 0 ? hoverColors.diff.getDiffColor(scheme, color) :
               l == caretLine ? hoverColors.caretBgColor :
                   hoverColors.bgColor;
