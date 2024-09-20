@@ -154,8 +154,4 @@ public class FileDiffWindow extends ToolWindow0
     }
     return false;
   }
-
-  public void setReadonly(boolean b) {
-    rootView.setReadonly(b);
-  }
 }

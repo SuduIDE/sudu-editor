@@ -7,7 +7,6 @@ public interface JsBaseControl extends JsThemeTarget  {
 
   void focus();
 
-  void setReadonly(boolean flag);
 
   void disconnectFromDom();
   void reconnectToDom(JSString containedId);

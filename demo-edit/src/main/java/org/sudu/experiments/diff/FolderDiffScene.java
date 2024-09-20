@@ -30,7 +30,7 @@ public class FolderDiffScene extends WindowScene implements ThemeControl {
     }
   }
 
-  public void setReadonly(boolean flag) {}
+  public void setReadonly(boolean rightReadonly, boolean leftReadonly) {}
 
   @Override
   public void applyTheme(EditorColorScheme theme) {

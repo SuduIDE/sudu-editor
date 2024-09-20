@@ -13,4 +13,6 @@ public interface JsFolderDiff extends JsBaseControl {
   static IntConsumer toJava(JsFunctions.Consumer<JSBoolean> callback) {
     return i -> callback.f(JSBoolean.valueOf(i != 0));
   }
+
+  void setReadonly(boolean rightReadonly, boolean leftReadonly);
 }

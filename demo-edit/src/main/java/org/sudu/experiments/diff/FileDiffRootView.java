@@ -73,9 +73,9 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     return editor2.model();
   }
 
-  public void setReadonly(boolean f) {
-    editor1.readonly = f;
-    editor2.readonly = f;
+  public void setReadonly(boolean rightReadonly, boolean leftReadonly) {
+    editor1.readonly = leftReadonly;
+    editor2.readonly = rightReadonly;
   }
 
   public EditorUi.FontApi fontApi() {

@@ -28,7 +28,8 @@ public class JsRemoteCodeDiff0 implements JsRemoteCodeDiff {
     this.w = ((RemoteFileDiffScene) window.scene()).w;
     controller = new JsFileDiffViewController0();
     if (args.hasTheme()) setTheme(args.getTheme());
-    if (args.hasReadonly()) setReadonly(args.getReadonly());
+    if (args.hasReadonly())
+      setReadonly(args.getReadonly(), args.getReadonly());
   }
 
   @Override
@@ -55,8 +56,8 @@ public class JsRemoteCodeDiff0 implements JsRemoteCodeDiff {
   }
 
   @Override
-  public void setReadonly(boolean flag) {
-    w.rootView.setReadonly(flag);
+  public void setReadonly(boolean rightReadonly, boolean leftReadonly) {
+    w.rootView.setReadonly(rightReadonly, leftReadonly);
   }
 
   @Override

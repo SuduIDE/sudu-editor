@@ -12,6 +12,7 @@ public interface JsCodeEditor extends JsBaseControl {
   void setPosition(JsPosition selectionOrPosition);
   JsPosition getPosition();
   JsITextModel getModel();
+  void setReadonly(boolean flag);
 
   JsDisposable registerDefinitionProvider(JSObject languageSelector, JsDefinitionProvider provider);
   JsDisposable registerDeclarationProvider(JSObject languageSelector, JsDeclarationProvider provider);

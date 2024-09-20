@@ -41,5 +41,5 @@ public class RemoteFolderDiffScene extends WindowScene implements ThemeControl {
     }
   }
 
-  public void setReadonly(boolean flag) {}
+  public void setReadonly(boolean rightReadonly, boolean leftReadonly) {}
 }

@@ -19,7 +19,8 @@ public class JsCodeDiff0 implements JsCodeDiff {
     this.window = ww;
     this.w = ((FileDiff) window.scene()).w;
     if (args.hasTheme()) setTheme(args.getTheme());
-    if (args.hasReadonly()) setReadonly(args.getReadonly());
+    if (args.hasReadonly())
+      setReadonly(args.getReadonly(), args.getReadonly());
   }
 
   @Override
@@ -46,8 +47,9 @@ public class JsCodeDiff0 implements JsCodeDiff {
   }
 
   @Override
-  public void setReadonly(boolean flag) {
-    w.rootView.setReadonly(flag);
+  public void setReadonly(boolean rightReadonly, boolean leftReadonly) {
+    JsHelper.consoleInfo("JsCodeDiff0.setReadonly");
+//    w.rootView.setReadonly(flag);
   }
 
   @Override

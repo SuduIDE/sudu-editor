@@ -52,8 +52,8 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
   }
 
   @Override
-  public void setReadonly(boolean flag) {
-    folderDiff.setReadonly(flag);
+  public void setReadonly(boolean rightReadonly, boolean leftReadonly) {
+    folderDiff.setReadonly(rightReadonly, leftReadonly);
   }
 
   @Override
