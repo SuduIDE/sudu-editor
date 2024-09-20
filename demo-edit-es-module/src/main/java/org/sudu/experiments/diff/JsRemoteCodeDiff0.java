@@ -1,7 +1,6 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.JsLauncher;
-import org.sudu.experiments.WebWindow;
+import org.sudu.experiments.*;
 import org.sudu.experiments.esm.EditArgs;
 import org.sudu.experiments.esm.JsITextModel;
 import org.sudu.experiments.esm.JsTextModel;
@@ -11,6 +10,8 @@ import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.Promise;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
+
+import java.util.function.Function;
 
 public class JsRemoteCodeDiff0 implements JsRemoteCodeDiff {
 
@@ -24,7 +25,7 @@ public class JsRemoteCodeDiff0 implements JsRemoteCodeDiff {
       EditArgs args
   ) {
     this.window = ww;
-    this.w = ((FileDiff) window.scene()).w;
+    this.w = ((RemoteFileDiffScene) window.scene()).w;
     controller = new JsFileDiffViewController0();
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly()) setReadonly(args.getReadonly());
@@ -117,10 +118,16 @@ public class JsRemoteCodeDiff0 implements JsRemoteCodeDiff {
     return JsDisposable.empty();
   }
 
-  public static Promise<JsCodeDiff> newDiff(EditArgs arguments) {
+  static Function<SceneApi, Scene> sf(Channel channel) {
+    return api -> new RemoteFileDiffScene(api, channel);
+  }
+
+  public static Promise<JsRemoteCodeDiff> create(
+      EditArgs arguments, Channel channel
+  ) {
     return JsLauncher.start(
         arguments,
-        FileDiff::new,
+        sf(channel),
         JsRemoteCodeDiff0::new
     );
   }

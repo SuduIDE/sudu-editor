@@ -5,7 +5,7 @@ import org.sudu.experiments.js.JsDisposable;
 import org.sudu.experiments.js.JsFunctions;
 import org.teavm.jso.JSObject;
 
-interface JsRemoteFolderDiff extends JsFolderDiff {
+public interface JsRemoteFolderDiff extends JsFolderDiff {
   JSObject getState();
   void applyState(JSObject state);
 

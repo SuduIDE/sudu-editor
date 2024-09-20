@@ -137,7 +137,9 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
     return api -> new RemoteFolderDiffScene(api, channel);
   }
 
-  public static Promise<JsFolderDiff> newDiff(EditArgs arguments, Channel channel) {
+  public static Promise<JsRemoteFolderDiff> newDiff(
+      EditArgs arguments, Channel channel
+  ) {
     return JsLauncher.start(arguments,
         sf(channel), JsRemoteFolderDiff0::new);
   }
