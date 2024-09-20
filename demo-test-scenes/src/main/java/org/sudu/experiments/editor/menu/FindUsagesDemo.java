@@ -82,7 +82,7 @@ public class FindUsagesDemo extends WindowScene implements DprChangeListener {
     view.setTheme(theme, uiFont);
 
     Window window = new Window(uiContext);
-    ScrollView scrollView = new ScrollView(view, uiContext);
+    ScrollView scrollView = new ScrollView(view);
     scrollView.setScrollColor(theme.dialogScrollLine, theme.dialogScrollBg);
     window.setContent(scrollView);
     window.setTheme(theme);

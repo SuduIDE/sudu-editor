@@ -299,6 +299,14 @@ jboolean Java_org_sudu_experiments_win32_Win32_KillTimer(JNIEnv *, jclass, jlong
   return KillTimer(HWND(hWnd), nIDEvent);
 }
 
+jboolean Java_org_sudu_experiments_win32_Win32_TrackMouseEvent(
+  JNIEnv *, jclass, jint dwFlags, jlong hWnd, jint dwHoverTime
+) {
+  TRACKMOUSEEVENT tme = { sizeof(TRACKMOUSEEVENT),
+    dwFlags, HWND(hWnd), dwHoverTime };
+  return TrackMouseEvent(&tme);
+}
+
 jlong Java_org_sudu_experiments_win32_Win32_LoadCursorW(JNIEnv *, jclass, jlong hInstance, jlong lpCursorName) {
   return jlong(LoadCursorW(HINSTANCE(hInstance), LPCWSTR(lpCursorName)));
 }

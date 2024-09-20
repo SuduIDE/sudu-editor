@@ -42,7 +42,9 @@ public class MergeButtons implements Disposable {
 
   static final boolean drawFrames = false;
 
-  public MergeButtons() {this.drawBg = false;}
+  public MergeButtons() {
+    this.drawBg = false;
+  }
 
   public MergeButtons(boolean drawBg) {
     this.drawBg = drawBg;
@@ -96,23 +98,29 @@ public class MergeButtons implements Disposable {
     int nextBt = bIndex < lines.length ? lines[bIndex] : -1;
     int x = pos.x;
     bSize.set(texture.width(), lineHeight);
-    for (int l = firstLine; l <= lastLine ; l++) {
+    for (int l = firstLine; l <= lastLine; l++) {
       int y = pos.y + l * lineHeight - scrollPos;
       byte color = l < colors.length ? colors[l] : 0;
 
       V4f bgColor = color != 0 ? scheme.diff.getDiffColor(scheme, color) :
-          l == caretLine ? scheme.lineNumber.caretBgColor
-              : scheme.lineNumber.bgColor;
+          l == caretLine ? scheme.lineNumber.caretBgColor :
+              scheme.lineNumber.bgColor;
       if (nextBt == l) {
-//        var bg = selectedBtLine == l ? lnColors.caretBgColor : lnColors.bgColor;
-//        g.drawRect(x, y, bSize, bg);
+        var bg = bgColor;
+        if (selectedBtLine == l) {
+          var hoverColors = scheme.hoverColors;
+          bg = color != 0 ? hoverColors.diff.getDiffColor(scheme, color) :
+              l == caretLine ? hoverColors.caretBgColor :
+                  hoverColors.bgColor;
+        }
         c.drawIcon(
             g, texture, x, y,
-            bgColor, lnColors.caretTextColor
+            bg, lnColors.caretTextColor
         );
         if (drawFrames) {
           debug.set(x, y);
-          WindowPaint.drawInnerFrame(g, bSize, debug, scheme.diff.deletedBgColor, -1, c.size);
+          WindowPaint.drawInnerFrame(g, bSize, debug,
+              scheme.diff.deletedBgColor, -1, c.size);
         }
         if (++bIndex < lines.length)
           nextBt = lines[bIndex];
@@ -125,14 +133,16 @@ public class MergeButtons implements Disposable {
     if (y < size.y) {
       bSize.y = size.y - y;
       V4f bgColor = scheme.diff.getDiffColor(scheme, DiffTypes.DEFAULT);
-      g.drawRect(x,pos.y + y, bSize, bgColor);
+      g.drawRect(x, pos.y + y, bSize, bgColor);
       if (drawFrames) {
-        debug.set(x, pos.y+y);
-        WindowPaint.drawInnerFrame(g, bSize, debug, scheme.diff.deletedBgColor, -1, c.size);
+        debug.set(x, pos.y + y);
+        WindowPaint.drawInnerFrame(g, bSize, debug,
+            scheme.diff.deletedBgColor, -1, c.size);
       }
     }
     if (drawFrames) {
-      WindowPaint.drawInnerFrame(g, size, pos, scheme.diff.deletedBgColor, -1, c.size);
+      WindowPaint.drawInnerFrame(g, size, pos,
+          scheme.diff.deletedBgColor, -1, c.size);
     }
   }
 
@@ -147,7 +157,7 @@ public class MergeButtons implements Disposable {
     int x = pos.x;
     int y = pos.y + lNumber * lineHeight - scrollPos;
     int size = lineHeight;
-    return Rect.isInside(e, x,y, size, size);
+    return Rect.isInside(e, x, y, size, size);
   }
 
   public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
@@ -161,7 +171,11 @@ public class MergeButtons implements Disposable {
         }
       }
     }
-    return hitTest(event.position) && setCursor.setDefault();
+    return setCursor.setDefault();
+  }
+
+  public void onMouseLeave() {
+    selectedBtLine = -1;
   }
 
   public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button, SetCursor setCursor) {

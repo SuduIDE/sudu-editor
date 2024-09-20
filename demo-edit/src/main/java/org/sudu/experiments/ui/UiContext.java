@@ -140,20 +140,6 @@ public class UiContext implements
     window.repaint();
   }
 
-  public MouseListener desktopMouse() {
-    return desktopMouse(windowCursor);
-  }
-
-  public static MouseListener desktopMouse(SetCursor windowCursor) {
-    return new MouseListener() {
-      @Override
-      public boolean onMouseMove(MouseEvent event) {
-        windowCursor.set(null);
-        return false;
-      }
-    };
-  }
-
   public boolean onCopy(Consumer<String> setText, boolean isCut) {
     return focused != null && focused.onCopy(setText, isCut);
   }

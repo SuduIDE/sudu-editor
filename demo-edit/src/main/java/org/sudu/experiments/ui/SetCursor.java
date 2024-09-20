@@ -2,19 +2,23 @@ package org.sudu.experiments.ui;
 
 import org.sudu.experiments.Window;
 
-public interface SetCursor {
+public class SetCursor {
+  final Window window;
 
-  // returns true
-  boolean set(String value);
+  public SetCursor(Window window) {
+    this.window = window;
+  }
 
-  default boolean setDefault() {
+  public boolean set(String cursor) {
+    window.setCursor(cursor);
+    return true;
+  }
+
+  public final boolean setDefault() {
     return set(null);
   }
 
-  static SetCursor wrap(Window window) {
-    return cursor -> {
-      window.setCursor(cursor);
-      return true;
-    };
+  public static SetCursor wrap(Window window) {
+    return new SetCursor(window);
   }
 }

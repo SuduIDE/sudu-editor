@@ -3,6 +3,7 @@ package org.sudu.experiments.editor.ui.colors;
 import org.sudu.experiments.editor.EditorConst;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.ColorOp;
 import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.ui.UiFont;
 
@@ -13,6 +14,7 @@ public class EditorColorScheme {
   public final CodeElementColor[] codeElement;
   public final LineNumbersColors lineNumber;
   public final DiffColors diff;
+  public final BackgroundHoverColors hoverColors;
 
   private static final float defaultFontSize = 15;
   private static final float defaultMenuFontSize = 17;
@@ -109,6 +111,14 @@ public class EditorColorScheme {
     this.fileViewIcons = fileViewIcons;
     this.editorFont = editorFont;
     this.treeViewFont = treeViewFont;
+
+    var hoverColor = fileTreeView.hoveredBg;
+    this.hoverColors = new BackgroundHoverColors(
+        diff.blendWith(hoverColor),
+        ColorOp.blend(editor.bg, hoverColor),
+        ColorOp.blend(lineNumber.caretBgColor,
+            hoverColor)
+    );
   }
 
   public EditorColorScheme withFontSize(float fontSize) {

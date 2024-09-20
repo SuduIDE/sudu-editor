@@ -36,7 +36,7 @@ public class FileTreeDemo extends WindowDemo implements DprChangeListener {
     System.out.println("FileTreeView model size = " + root.countAll());
     treeView.setRoot(root);
     treeView.setTheme(theme);
-    return treeView.applyTheme(new ScrollView(treeView, uiContext));
+    return treeView.applyTheme(new ScrollView(treeView));
   }
 
   @Override

@@ -8,7 +8,6 @@ import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
-import org.sudu.experiments.editor.ui.colors.DiffColors;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
@@ -47,8 +46,6 @@ public class TreeView extends ScrollContent implements Focusable {
   CodeLineRenderer[] lines = new CodeLineRenderer[0];
   EditorColorScheme theme;
   CodeLineColorScheme codeLineScheme;
-  Color hoverOverBackground;
-  DiffColors hoverOverDiff;
   UiFont uiFont, uiIcons;
   int firstLineRendered, lastLineRendered;
   int selectedIndex = -1;
@@ -152,8 +149,6 @@ public class TreeView extends ScrollContent implements Focusable {
       if (dpr != 0)
         changeFont();
     }
-    hoverOverBackground = ColorOp.blend(codeLineScheme.defaultBg, colors.fileTreeView.hoveredBg);
-    hoverOverDiff = colors.diff.blendWith(colors.fileTreeView.hoveredBg);
   }
 
   @Override
@@ -260,8 +255,8 @@ public class TreeView extends ScrollContent implements Focusable {
               theme.fileTreeView.selectedBg :
               theme.fileTreeView.inactiveSelectedBg
           : hovered ? diff != null ?
-            hoverOverDiff.getDiffColor(diff.type, hoverOverBackground) :
-            hoverOverBackground
+            theme.hoverColors.diff.getDiffColor(diff.type, theme.hoverColors.bgColor) :
+            theme.hoverColors.bgColor
           : diff != null ? bgLineColor : bg;
 
       var foreground = selected && hasFocus ?
@@ -338,19 +333,24 @@ public class TreeView extends ScrollContent implements Focusable {
     return viewY / lineHeight;
   }
 
-  public void onMouseLeave() {
+  public void onMouseLeaveWindow() {
     hoveredIndex = -1;
   }
 
   @Override
-  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
+  public void onMouseMove(MouseEvent event, SetCursor setCursor) {
+    boolean hit = hitTest(event.position);
+    if (!hit) {
+      if (hoveredIndex >= 0) hoveredIndex = -1;
+      return;
+    }
     int line = getLineNumber(event);
     if (line >= 0 && line < model.lines.length) {
       hoveredIndex = line;
-      return setCursor.set(Cursor.pointer);
+      setCursor.set(Cursor.pointer);
     } else {
       hoveredIndex = -1;
-      return setCursor.setDefault();
+      setCursor.setDefault();
     }
   }
 

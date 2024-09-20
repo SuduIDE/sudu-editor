@@ -81,6 +81,15 @@ public class Win32 {
   public static native long SetTimer(long hWnd, long nIDEvent, int uElapse, long lpTimerFunc);
   public static native boolean KillTimer(long hWnd, long nIDEvent);
 
+  public static final int TME_HOVER      = 0x00000001;
+  public static final int TME_LEAVE      = 0x00000002;
+  public static final int TME_NONCLIENT  = 0x00000010;
+  public static final int TME_QUERY      = 0x40000000;
+  public static final int TME_CANCEL     = 0x80000000;
+  public static final int HOVER_DEFAULT  = 0xFFFFFFFF;
+
+  public static native boolean TrackMouseEvent(int dwFlags, long hWnd, int dwHoverTime);
+
   public static native long LoadCursorW(long hInstance, long lpCursorName);
   public static native long SetCursor(long hCursor);
 

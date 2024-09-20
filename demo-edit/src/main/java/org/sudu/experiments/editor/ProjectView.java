@@ -24,7 +24,7 @@ public class ProjectView extends ViewArray implements
   public ProjectView(WindowManager wm, ThemeControl tc, boolean jbFonts) {
     ui = new EditorUi(wm);
     treeView = new FileTreeView(wm.uiContext);
-    treeScrollView = new ScrollView(treeView, wm.uiContext);
+    treeScrollView = new ScrollView(treeView);
     split = new ViewFill();
     editor = new EditorComponent(ui);
     themeControl = tc;

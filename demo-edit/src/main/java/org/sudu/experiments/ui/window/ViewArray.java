@@ -86,14 +86,15 @@ public abstract class ViewArray extends View {
   }
 
   @Override
-  public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
-    boolean result = false;
-    for (View view : views) {
-      if (view.hitTest(event.position)) {
-        result |= view.onMouseMove(event, setCursor);
-      }
-    }
-    return result;
+  public void onMouseMove(MouseEvent event, SetCursor setCursor) {
+    for (View view : views)
+      view.onMouseMove(event, setCursor);
+  }
+
+  @Override
+  public void onMouseLeaveWindow() {
+    for (View view : views)
+      view.onMouseLeaveWindow();
   }
 
   @Override

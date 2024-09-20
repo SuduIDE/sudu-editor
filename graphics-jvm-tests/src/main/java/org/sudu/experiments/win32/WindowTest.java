@@ -33,6 +33,7 @@ public class WindowTest {
     static boolean destroyed = false;
     static boolean opened = true;
     static int id;
+    static boolean tracking;
 
     public static void main(String[] args) throws InterruptedException {
       Helper.loadDlls();
@@ -50,10 +51,19 @@ public class WindowTest {
 
       Win32.DeleteClassGlobalRef();
     }
+
+    static boolean track(long hWnd, boolean enable) {
+      return Win32.TrackMouseEvent(
+          Win32.TME_LEAVE | (enable ? 0 : Win32.TME_CANCEL),
+          hWnd, Win32.HOVER_DEFAULT);
+    }
+
     static long windowProc(long hWnd, int msg, long wParam, long lParam) {
       if (msg == WindowPeer.WM_MOUSEMOVE) {
-        System.out.println(
-            (++id) + ": WM_MOUSEMOVE = " + Win32.GET_X_LPARAM(lParam) + ", " + Win32.GET_Y_LPARAM(lParam));
+        if (!tracking) tracking = track(hWnd, true);
+        if (1<0) System.out.println(
+            (++id) + ": WM_MOUSEMOVE = " + Win32.GET_X_LPARAM(lParam)
+                + ", " + Win32.GET_Y_LPARAM(lParam));
         return Win32.DefWindowProcW(hWnd, msg, wParam, lParam);
       }
 
@@ -68,10 +78,21 @@ public class WindowTest {
           System.out.println("WindowPeer.WM_CLOSE");
         }
         case WindowPeer.WM_DESTROY -> {
+          if (tracking) {
+            tracking = false;
+            var trackStopped = track(hWnd, false);
+            System.out.println("tracking stopped = " + trackStopped);
+          }
           destroyed = true;
           System.out.println("WindowPeer.WM_DESTROY");
         }
         case WindowPeer.WM_SETCURSOR -> {
+          return Win32.DefWindowProcW(hWnd, msg, wParam, lParam);
+        }
+
+        case WindowPeer.WM_MOUSELEAVE -> {
+          tracking = false;
+          System.out.println("WindowPeer.WM_MOUSELEAVE");
           return Win32.DefWindowProcW(hWnd, msg, wParam, lParam);
         }
       }

@@ -162,7 +162,8 @@ public class TextureRegionTestScene extends Scene {
 
     @Override
     public boolean onMouseMove(MouseEvent event) {
-      return scrollBar.onMouseMove(event.position, SetCursor.wrap(api.window));
+      scrollBar.onMouseMove(event.position, SetCursor.wrap(api.window));
+      return false;
     }
   }
 }

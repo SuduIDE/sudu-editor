@@ -13,7 +13,7 @@ public class RemoteFolderDiffScene extends WindowScene implements ThemeControl {
   RemoteFolderDiffWindow w;
 
   public RemoteFolderDiffScene(SceneApi api, Channel channel) {
-    super(api, false);
+    super(api);
     w = new RemoteFolderDiffWindow(
         EditorColorScheme.darkIdeaColorScheme(),
         windowManager, this::menuFonts, channel);

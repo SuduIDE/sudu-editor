@@ -11,10 +11,7 @@ import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.XorShiftRandom;
-import org.sudu.experiments.ui.DprChangeListener;
-import org.sudu.experiments.ui.PopupMenu;
-import org.sudu.experiments.ui.ToolbarItem;
-import org.sudu.experiments.ui.UiFont;
+import org.sudu.experiments.ui.*;
 import org.sudu.experiments.ui.window.ScrollView;
 import org.sudu.experiments.ui.window.Window;
 
@@ -100,7 +97,7 @@ public class WindowsDemo extends WindowScene implements DprChangeListener {
   }
 
   private ScrollView newScrollView(ScrollContentDemo contentDemo) {
-    ScrollView scrollView = new ScrollView(contentDemo, uiContext);
+    ScrollView scrollView = new ScrollView(contentDemo);
     TestColors.apply(scrollView);
     return scrollView;
   }

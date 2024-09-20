@@ -9,18 +9,11 @@ public abstract class WindowScene extends Scene1 {
   protected final WindowManager windowManager = new WindowManager(uiContext);
 
   public WindowScene(SceneApi api) {
-    this(api, true);
-  }
-
-  public WindowScene(SceneApi api, boolean desktopMouse) {
     super(api);
     uiContext.dprListeners.add(windowManager);
     api.input.onMouse.add(windowManager);
     api.input.onScroll.add(windowManager::onScroll);
     api.input.onContextMenu.add(windowManager::onContextMenu);
-    if (desktopMouse) {
-      api.input.onMouse.add(uiContext.desktopMouse());
-    }
   }
 
   @Override

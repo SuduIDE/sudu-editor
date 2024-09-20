@@ -89,7 +89,7 @@ public class EditorUi {
 
     usagesWindow = new Window(uiContext);
     usagesWindow.setBypassHitTest(true);
-    ScrollView scrollView = new ScrollView(usagesView, uiContext);
+    ScrollView scrollView = new ScrollView(usagesView);
     scrollView.setScrollColor(theme.dialogItem.dialogScrollLine, theme.dialogItem.dialogScrollBg);
     usagesWindow.setContent(scrollView);
     usagesWindow.setTheme(theme.dialogItem);

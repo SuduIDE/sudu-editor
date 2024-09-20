@@ -8,6 +8,7 @@ import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.math.XorShiftRandom;
+import org.sudu.experiments.ui.SetCursor;
 import org.sudu.experiments.ui.window.ScrollContent;
 
 import java.util.function.Consumer;
@@ -72,5 +73,19 @@ public class ScrollContentDemo extends ScrollContent {
   @Override
   protected Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
     return MouseListener.Static.emptyConsumer;
+  }
+
+  static int id;
+
+  @Override
+  protected void onMouseLeaveWindow() {
+    System.out.println("[" + (++id) + "] " +
+        "ScrollContentDemo.onMouseLeaveWindow: " + this);
+  }
+
+  @Override
+  public void onMouseMove(MouseEvent event, SetCursor setCursor) {
+    if (hitTest(event.position))
+      setCursor.set(null);
   }
 }

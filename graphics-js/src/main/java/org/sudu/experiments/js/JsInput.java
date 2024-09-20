@@ -37,6 +37,8 @@ public class JsInput {
         addListener(element, "mousemove", this::onMouseMove),
         addListener(element, "mousedown", this::onMouseDown),
         addListener(element, "mouseup", this::onMouseUp),
+        addListener(element, "mouseenter", this::onMouseEnter),
+        addListener(element, "mouseleave", this::onMouseLeave),
         // todo add onMouseWheelOnWindow
         addListener(element, "wheel", this::onMouseWheelOnElement),
         addListener(element, "click", this::onClick),
@@ -88,14 +90,29 @@ public class JsInput {
   }
 
   static void debug(String string, int btn) {
-    if (debug) Debug.consoleInfo(string + btn);
+    if (debug) Debug.consoleInfo(string, btn);
   }
 
   private void onMouseMove(org.teavm.jso.dom.events.MouseEvent event) {
     if (clientRect == null) return;
     MouseEvent mouseEvent = mouseEvent(event);
+    debug("mousemove position = " + event.getClientX() + ' ' + event.getClientY());
     listeners.sendMouseMove(mouseEvent);
     stopEvent(event);
+  }
+
+  private void onMouseEnter(org.teavm.jso.dom.events.MouseEvent event) {
+    debug("onMouseEnter");
+  }
+
+  private void onMouseLeave(org.teavm.jso.dom.events.MouseEvent event) {
+    debug("onMouseLeave");
+
+    if (clientRect == null) return;
+    MouseEvent mouseEvent = mouseEvent(event);
+    mouseEvent.position.x = -1;
+    mouseEvent.position.y = -1;
+    listeners.sendMouseMove(mouseEvent);
   }
 
   // mouse down events are not stopped to propagate in order to
