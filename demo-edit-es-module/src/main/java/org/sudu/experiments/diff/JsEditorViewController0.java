@@ -1,20 +1,17 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.js.JsArray;
-import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
-public class JsFolderDiffViewController0 implements JsFolderDiffViewController {
+public class JsEditorViewController0 implements JsFileDiffViewController {
 
   @Override
   public JSString getViewType() {
-    return JSString.valueOf("folderDiff");
+    return JSString.valueOf("editor");
   }
 
   @Override
-  public JsFolderDiffSelection getSelection() {
+  public JsDiffSelection getSelection() {
     return JSObjects.undefined().cast();
   }
 
@@ -33,12 +30,4 @@ public class JsFolderDiffViewController0 implements JsFolderDiffViewController {
 
   @Override
   public void navigateDown() {}
-
-  @Override
-  public JsArray<JSNumber> getDiffFilter() {
-    return JsArray.create();
-  }
-
-  @Override
-  public void applyDiffFilter(JsArray<JSNumber> diffFilter) {}
 }

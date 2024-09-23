@@ -4,6 +4,13 @@ import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 public class JsFileDiffViewController0 implements JsFileDiffViewController {
+
+  final FileDiffWindow w;
+
+  public JsFileDiffViewController0(FileDiffWindow w) {
+    this.w = w;
+  }
+
   @Override
   public JSString getViewType() {
     return JSString.valueOf("fileDiff");
@@ -16,17 +23,21 @@ public class JsFileDiffViewController0 implements JsFileDiffViewController {
 
   @Override
   public boolean canNavigateUp() {
-    return false;
+    return w.rootView.canNavigateUp();
   }
 
   @Override
-  public void navigateUp() {}
+  public void navigateUp() {
+    w.rootView.navigateUp();
+  }
 
   @Override
   public boolean canNavigateDown() {
-    return false;
+    return w.rootView.canNavigateDown();
   }
 
   @Override
-  public void navigateDown() {}
+  public void navigateDown() {
+    w.rootView.navigateDown();
+  }
 }

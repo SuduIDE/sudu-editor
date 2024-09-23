@@ -26,7 +26,7 @@ public class JsRemoteCodeDiff0 implements JsRemoteCodeDiff {
   ) {
     this.window = ww;
     this.w = ((RemoteFileDiffScene) window.scene()).w;
-    controller = new JsFileDiffViewController0();
+    controller = new JsFileDiffViewController0(w);
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly())
       setReadonly(args.getReadonly(), args.getReadonly());

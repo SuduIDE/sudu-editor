@@ -30,7 +30,7 @@ public interface JsFolderDiffSelection extends JsDiffSelection {
     );
 
     public static JsFolderDiffSelection create(
-        FolderDiffRootView.Selection s
+        FolderDiffSelection s
     ) {
       return s != null
           ? create(JSString.valueOf(s.path), s.isLeft, s.isFolder, s.isOrphan)

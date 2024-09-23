@@ -273,7 +273,7 @@ export interface FileDiffSelection {
 }
 
 export interface DiffViewController {
-    getViewType(): 'folderDiff' | 'fileDiff'
+    getViewType(): 'folderDiff' | 'fileDiff' | 'editor'
     getSelection(): FolderDiffSelection | FileDiffSelection | undefined
 
     canNavigateUp(): boolean

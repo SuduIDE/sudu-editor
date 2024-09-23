@@ -5,7 +5,7 @@ import org.teavm.jso.core.JSString;
 
 // base class for JS FolderDiffViewController or FileDiffViewController
 public interface JsDiffViewController extends JSObject {
-  // returns 'folderDiff' | 'fileDiff'
+  // returns 'folderDiff' | 'fileDiff' | 'editor'
   JSString getViewType();
 
   // getSelection(): FolderDiffSelection | FileDiffSelection | undefined

@@ -18,13 +18,10 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
 
   private float overrideFontSize = 0;
 
-  final JsFolderDiffViewController0 controller;
-
   protected JsRemoteFolderDiff0(WebWindow window, EditArgs args) {
     this.window = window;
     this.folderDiff = (RemoteFolderDiffScene) window.scene();
     if (args.hasTheme()) setTheme(args.getTheme());
-    controller = new JsFolderDiffViewController0();
   }
 
   @Override
@@ -104,7 +101,7 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
 
   @Override
   public JsDiffViewController getController() {
-    return controller;
+    return folderDiff.w.controller;
   }
 
   @Override

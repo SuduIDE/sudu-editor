@@ -56,36 +56,12 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
       listener.accept(1);
   }
 
-  void fireSelectionChanged(Selection s) {
+  void fireSelectionChanged(FolderDiffSelection s) {
     for (SelectionListener listener : selectionListeners.array())
       listener.accept(s);
   }
 
-  public static class Selection {
-    public String path;
-    public boolean isLeft;
-    public boolean isFolder;
-    public boolean isOrphan;
-
-    public Selection(String path, boolean isLeft, boolean isFolder, boolean isOrphan) {
-      this.path = path;
-      this.isLeft = isLeft;
-      this.isFolder = isFolder;
-      this.isOrphan = isOrphan;
-    }
-
-    @Override
-    public String toString() {
-      return "{" +
-          "\"path\": \"" + path + "\"" +
-          ", \"isLeft\": " + isLeft +
-          ", \"isFolder\": " + isFolder +
-          ", \"isOrphan\": " + isOrphan +
-          "}";
-    }
-  }
-
   public interface SelectionListener {
-    void accept(Selection selection);
+    void accept(FolderDiffSelection selection);
   }
 }

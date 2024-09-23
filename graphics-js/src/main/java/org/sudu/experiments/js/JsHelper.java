@@ -4,6 +4,7 @@ import org.sudu.experiments.GLApi;
 import org.teavm.interop.NoSideEffects;
 import org.teavm.jso.*;
 import org.teavm.jso.core.JSError;
+import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.css.CSSStyleDeclaration;
@@ -188,6 +189,22 @@ public class JsHelper {
       result[i] = array.get(i).stringValue();
     }
     return result;
+  }
+
+  public static int[] toJavaIntArray(JsArray<JSNumber> array) {
+    int[] r = new int[array.getLength()];
+    for (int i = 0; i < r.length; ++i) {
+      r[i] = array.get(i).intValue();
+    }
+    return r;
+  }
+
+  public static JsArray<JSNumber> toJs(int[] array) {
+    JsArray<JSNumber> r = JsArray.create(array.length);
+    for (int i = 0; i < array.length; ++i) {
+      r.set(i, JSNumber.valueOf(array[i]));
+    }
+    return r;
   }
 
   @NoSideEffects

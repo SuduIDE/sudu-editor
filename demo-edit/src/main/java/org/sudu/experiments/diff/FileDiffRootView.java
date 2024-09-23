@@ -12,7 +12,9 @@ import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Consumer;
 
-class FileDiffRootView extends DiffRootView implements ThemeControl {
+class FileDiffRootView extends DiffRootView
+    implements ThemeControl
+{
   final EditorUi ui;
   final EditorComponent editor1;
   final EditorComponent editor2;
@@ -197,5 +199,21 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
         ui.windowManager.uiContext.window.worker(),
         fromL, toL, fromR, toR
     );
+  }
+
+  public boolean canNavigateUp() {
+    return false;
+  }
+
+  public void navigateUp() {
+
+  }
+
+  public boolean canNavigateDown() {
+    return false;
+  }
+
+  public void navigateDown() {
+
   }
 }
