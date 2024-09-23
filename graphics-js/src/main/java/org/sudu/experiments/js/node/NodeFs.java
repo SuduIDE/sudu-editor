@@ -2,11 +2,14 @@ package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsFunctions;
+import org.sudu.experiments.js.JsHelper;
 import org.teavm.jso.*;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.ArrayBufferView;
+
+import java.util.function.Consumer;
 
 public interface NodeFs extends JSObject {
   @JSProperty("constants")
@@ -102,5 +105,29 @@ public interface NodeFs extends JSObject {
       JSString src, JSString dest, JSObject options,
       JsFunctions.Consumer<JSError> callback);
 
-  void rmdir(JSString name, JsFunctions.Consumer<JSError> callback);
+  // todo rewrite to rm?
+  void rmdir(JSString name, JSObject options, JsFunctions.Consumer<JSError> callback);
+
+  static JsFunctions.Consumer<JSError> callback(Runnable onComplete, Consumer<String> onError) {
+    return error -> {
+      if (error == null) {
+        onComplete.run();
+      } else {
+        onError.accept(JsHelper.getMessage(error).stringValue());
+      }
+    };
+  }
+
+  // todo rewrite parent path searching
+  static String parent(String path) {
+    int slIndex = path.lastIndexOf('/');
+    int revSlInd = path.lastIndexOf('\\');
+    if (slIndex == -1 && revSlInd == -1) {
+      return null;
+    } else {
+      int ind = Math.max(slIndex, revSlInd);
+      System.out.println(path.substring(0, ind));
+      return path.substring(0, ind);
+    }
+  }
 }

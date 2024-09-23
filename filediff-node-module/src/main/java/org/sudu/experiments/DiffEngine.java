@@ -1,10 +1,10 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeDirectoryHandle;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
+import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.teavm.jso.core.JSString;
 
 public class DiffEngine implements DiffEngineJs {
@@ -35,11 +35,11 @@ public class DiffEngine implements DiffEngineJs {
     DirectoryHandle leftHandle = new NodeDirectoryHandle(leftPath);
     DirectoryHandle rightHandle = new NodeDirectoryHandle(rightPath);
 
-    RemoteFolderDiffModel root = new RemoteFolderDiffModel(null, "");
+    ItemFolderDiffModel root = new ItemFolderDiffModel(null, "");
+    root.items = new FsItem[]{leftHandle, rightHandle};
 
     DiffModelChannelUpdater updater = new DiffModelChannelUpdater(
         root,
-        leftHandle, rightHandle,
         scanFileContent,
         pool, channel
     );

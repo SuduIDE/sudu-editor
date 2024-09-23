@@ -150,16 +150,20 @@ public class NodeFileHandle implements FileHandle {
 
   @Override
   public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
-    Fs.fs().copyFile(
-        jsPath(), JSString.valueOf(path), 0,
-        error -> {
-          if (error == null) {
-            onComplete.run();
-          } else {
-            onError.accept(JsHelper.message(error).stringValue());
-          }
-        }
-    );
+    var from = jsPath();
+    var to = JSString.valueOf(path);
+    var toParent = JSString.valueOf(NodeFs.parent(path));
+
+    if (!Fs.fs().existsSync(toParent).booleanValue()) {
+      Fs.fs().mkdirSync(toParent, Fs.mkdirOptions(true));
+    }
+    Fs.fs().copyFile(from, to, 0, NodeFs.callback(onComplete, onError));
+  }
+
+  @Override
+  public void remove(Runnable onComplete, Consumer<String> onError) {
+    JSString path = jsPath();
+    Fs.fs().unlink(path, NodeFs.callback(onComplete, onError));
   }
 
   @Override

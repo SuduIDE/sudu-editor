@@ -91,6 +91,11 @@ class JvmDirectoryHandle extends JvmFsHandle implements DirectoryHandle {
     onError.accept("not implemented");
   }
 
+  @Override
+  public void remove(Runnable onComplete, Consumer<String> onError) {
+    onError.accept("not implemented");
+  }
+
   static String msg(Path dir, IOException exc, String title) {
     return title + exc.getMessage() + ", path = " + dir;
   }

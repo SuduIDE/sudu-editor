@@ -142,6 +142,11 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
     onError.accept("not implemented");
   }
 
+  @Override
+  public void remove(Runnable onComplete, Consumer<String> onError) {
+    onError.accept("not implemented");
+  }
+
   static void print(IOException e) {
     System.err.println(e.getMessage());
   }

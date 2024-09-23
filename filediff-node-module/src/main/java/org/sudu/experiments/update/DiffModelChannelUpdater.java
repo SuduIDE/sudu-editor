@@ -1,7 +1,7 @@
 package org.sudu.experiments.update;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
+import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
@@ -29,14 +29,12 @@ public class DiffModelChannelUpdater {
   public static final Int32Array FILE_SAVE_ARRAY = JsMemoryAccess.bufferView(new int[]{FILE_SAVE});
 
   public DiffModelChannelUpdater(
-      RemoteFolderDiffModel root,
-      DirectoryHandle leftDir, DirectoryHandle rightDir,
+      ItemFolderDiffModel root,
       boolean scanFileContent,
       NodeWorkersPool executor, Channel channel
   ) {
     this.collector = new RemoteCollector(
         root,
-        leftDir, rightDir,
         scanFileContent,
         executor
     );
@@ -104,6 +102,7 @@ public class DiffModelChannelUpdater {
   private void onFileSave(JsArray<JSObject> jsArray) {
     JSString path = jsArray.get(0).cast();
     JSString source = jsArray.get(1).cast();
+    // todo remove fs
     Fs.fs().writeFile(path, source, JSString.valueOf("UTF-8"), this::onFileSaved);
   }
 

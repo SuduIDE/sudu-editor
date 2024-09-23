@@ -1,8 +1,9 @@
 package org.sudu.experiments.ui.fs;
 
 import org.sudu.experiments.DirectoryHandle;
+import org.sudu.experiments.FsItem;
 import org.sudu.experiments.diff.ItemKind;
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
+import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.math.ArrayOp;
 
 import java.util.ArrayList;
@@ -10,7 +11,7 @@ import java.util.function.Consumer;
 
 public class ReadFolderHandler {
 
-  public final RemoteFolderDiffModel rootModel;
+  public final ItemFolderDiffModel rootModel;
   public final DirectoryHandle rootHandle;
   private final int diffType;
   private final int itemKind;
@@ -18,7 +19,7 @@ public class ReadFolderHandler {
   private int readCnt = 0;
 
   public ReadFolderHandler(
-      RemoteFolderDiffModel rootModel,
+      ItemFolderDiffModel rootModel,
       DirectoryHandle rootHandle,
       int diffType,
       int itemKind,
@@ -38,19 +39,19 @@ public class ReadFolderHandler {
   }
 
   public void read(
-      RemoteFolderDiffModel model,
+      ItemFolderDiffModel model,
       DirectoryHandle handle
   ) {
     ++readCnt;
     handle.read(new DiffReader(children -> onFolderRead(model, children)));
   }
 
-  public static void setChildren(RemoteFolderDiffModel parent, TreeS[] paths) {
+  public static void setChildren(ItemFolderDiffModel parent, TreeS[] paths) {
     int len = paths.length;
-    parent.children = new RemoteFolderDiffModel[paths.length];
+    parent.children = new ItemFolderDiffModel[paths.length];
     parent.childrenComparedCnt = 0;
     for (int i = 0; i < len; i++) {
-      parent.children[i] = new RemoteFolderDiffModel(parent, paths[i].name);
+      parent.children[i] = new ItemFolderDiffModel(parent, paths[i].name);
       int kind = paths[i].isFolder
           ? ItemKind.FOLDER
           : ItemKind.FILE;
@@ -61,13 +62,14 @@ public class ReadFolderHandler {
   }
 
   public void onFolderRead(
-      RemoteFolderDiffModel model,
+      ItemFolderDiffModel model,
       TreeS[] children
   ) {
     setChildren(model, children);
     for (int i = 0; i < children.length; i++) {
       var child = model.child(i);
       child.setDiffType(diffType);
+      child.items = new FsItem[] {children[i].item};
       if (!child.isFile()) {
         read(child, (DirectoryHandle) children[i].item);
       } else child.itemCompared();
@@ -76,9 +78,12 @@ public class ReadFolderHandler {
     if (readCnt <= 0) {
       ArrayList<Object> result = new ArrayList<>();
       ArrayList<String> paths = new ArrayList<>();
-      int[] ints = RemoteFolderDiffModel.toInts(rootModel, paths);
+      ArrayList<FsItem> fsItems = new ArrayList<>();
+      int[] ints = ItemFolderDiffModel.toInts(rootModel, paths, fsItems);
       result.add(ints);
+      result.add(new int[] {paths.size(), fsItems.size()});
       result.addAll(paths);
+      result.addAll(fsItems);
       ArrayOp.sendArrayList(result, r);
     }
   }

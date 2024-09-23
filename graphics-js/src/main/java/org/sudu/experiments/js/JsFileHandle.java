@@ -147,6 +147,11 @@ public class JsFileHandle implements FileHandle {
   }
 
   @Override
+  public void remove(Runnable onComplete, Consumer<String> onError) {
+    onError.accept("not implemented");
+  }
+
+  @Override
   public String toString() {
     return jsFile != null
         ? FsItem.toString(getClass().getSimpleName(),
