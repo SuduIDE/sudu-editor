@@ -56,8 +56,8 @@ public class JsRemoteCodeDiff0 implements JsRemoteCodeDiff {
   }
 
   @Override
-  public void setReadonly(boolean rightReadonly, boolean leftReadonly) {
-    w.rootView.setReadonly(rightReadonly, leftReadonly);
+  public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
+    w.rootView.setReadonly(leftReadonly, rightReadonly);
   }
 
   @Override

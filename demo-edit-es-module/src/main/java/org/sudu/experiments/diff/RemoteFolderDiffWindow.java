@@ -367,4 +367,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       return rootView.right.onContextMenu(pos);
     return false;
   }
+
+  public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
+
+  }
 }

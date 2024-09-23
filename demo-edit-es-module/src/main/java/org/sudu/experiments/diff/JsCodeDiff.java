@@ -10,5 +10,5 @@ public interface JsCodeDiff extends JsBaseControl {
     JsITextModel getLeftModel();
     JsITextModel getRightModel();
 
-    void setReadonly(boolean rightReadonly, boolean leftReadonly);
+    void setReadonly(boolean leftReadonly, boolean rightReadonly);
 }

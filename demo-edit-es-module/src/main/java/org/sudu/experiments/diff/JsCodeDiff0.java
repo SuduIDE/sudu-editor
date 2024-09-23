@@ -47,9 +47,9 @@ public class JsCodeDiff0 implements JsCodeDiff {
   }
 
   @Override
-  public void setReadonly(boolean rightReadonly, boolean leftReadonly) {
+  public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
     JsHelper.consoleInfo("JsCodeDiff0.setReadonly");
-//    w.rootView.setReadonly(flag);
+    w.rootView.setReadonly(leftReadonly, rightReadonly);
   }
 
   @Override

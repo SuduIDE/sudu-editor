@@ -40,6 +40,4 @@ public class RemoteFolderDiffScene extends WindowScene implements ThemeControl {
       w.window.fullscreen();
     }
   }
-
-  public void setReadonly(boolean rightReadonly, boolean leftReadonly) {}
 }

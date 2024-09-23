@@ -60,8 +60,8 @@ public class JsFolderDiff0 implements JsFolderDiff {
 
 
   @Override
-  public void setReadonly(boolean rightReadonly, boolean leftReadonly) {
-    scene.setReadonly(rightReadonly, leftReadonly);
+  public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
+    scene.setReadonly(leftReadonly, rightReadonly);
   }
 
   @Override

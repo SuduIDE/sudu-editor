@@ -199,7 +199,7 @@ interface EditorBase {
 }
 
 export interface TwoPanelDiff {
-    setReadonly(rightReadonly: boolean, leftReadonly: boolean): void
+    setReadonly(leftReadonly: boolean, rightReadonly: boolean): void
 }
 
 export interface ICodeDiff extends EditorBase, HasTheme, Focusable, TwoPanelDiff {

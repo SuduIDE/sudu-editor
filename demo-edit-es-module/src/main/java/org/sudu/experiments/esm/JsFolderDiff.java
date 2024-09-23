@@ -14,5 +14,5 @@ public interface JsFolderDiff extends JsBaseControl {
     return i -> callback.f(JSBoolean.valueOf(i != 0));
   }
 
-  void setReadonly(boolean rightReadonly, boolean leftReadonly);
+  void setReadonly(boolean leftReadonly, boolean rightReadonly);
 }
