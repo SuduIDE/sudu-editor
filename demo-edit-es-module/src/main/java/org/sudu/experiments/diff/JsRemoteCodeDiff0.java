@@ -4,10 +4,12 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.esm.EditArgs;
 import org.sudu.experiments.esm.JsITextModel;
 import org.sudu.experiments.esm.JsTextModel;
+import org.sudu.experiments.esm.ThemeImport;
 import org.sudu.experiments.js.JsDisposable;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.Promise;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
@@ -71,8 +73,10 @@ public class JsRemoteCodeDiff0 implements JsRemoteCodeDiff {
   }
 
   @Override
-  public void setTheme(JSString theme) {
-    w.setTheme(theme.stringValue());
+  public void setTheme(JSObject theme) {
+    var t = ThemeImport.fromJs(theme);
+    if (t != null)
+      w.applyTheme(t);
   }
 
   @Override

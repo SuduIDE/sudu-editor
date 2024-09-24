@@ -173,7 +173,7 @@ export const enum ThemeColor {
     ChangedItemBackground = 6
 }
 
-export type BaseTheme = 'dark' | 'light'
+export type BaseTheme = 'dark' | 'light' | 'darcula';
 
 export type Theme = {
     [color in ThemeColor]?: string;

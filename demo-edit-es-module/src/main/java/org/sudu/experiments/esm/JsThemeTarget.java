@@ -6,5 +6,5 @@ import org.teavm.jso.core.JSString;
 public interface JsThemeTarget extends JSObject  {
   void setFontFamily(JSString fontFamily);
   void setFontSize(float fontSize);
-  void setTheme(JSString theme);
+  void setTheme(JSObject theme);
 }

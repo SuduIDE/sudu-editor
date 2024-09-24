@@ -83,6 +83,7 @@ public class JsHelper {
   }
 
   @JSBody(params = {"str", "arg" }, script = "return str.split(arg);")
+  @NoSideEffects
   static native JsArrayReader<JSString> stringSplit(JSString str, JSString arg);
 
   static JsFunctions.Consumer<ArrayBuffer> toJava(Consumer<byte[]> consumer) {
@@ -124,27 +125,43 @@ public class JsHelper {
   public static native void consoleInfo(String s0, JSObject obj1, String s2, JSObject obj3);
 
   @JSBody(params = {"obj"}, script = "return obj[Symbol.toStringTag];")
+  @NoSideEffects
   public static native String toStringTag(JSObject obj);
 
   @JSBody(params = {"obj"}, script = "return obj[Symbol.toStringTag];")
+  @NoSideEffects
   public static native JSString jsToStringTag(JSObject obj);
 
+  @JSBody(params = { "object", "name" }, script = "return name in object;")
+  @NoSideEffects
+  public static native boolean hasProperty(JSObject object, String name);
+
+  @JSBody(params = { "object", "name" }, script = "return object[name];")
+  @NoSideEffects
+  public static native <T extends JSObject> T getProperty(JSObject object, String name);
+
   @JSBody(params = {"a", "b"}, script = "return a === b;")
+  @NoSideEffects
   public static native boolean strictEquals(JSObject a, JSObject b);
 
   @JSBody(params = {"array"}, script = "return array;")
+  @NoSideEffects
   public static native JsArray<JSObject> toJsArray(@JSByRef JSObject ... array);
 
   @JSBody(params = {"a", "b"}, script = "return [a, b];")
+  @NoSideEffects
   public static native JsArray<JSObject> toJsArray(JSObject a, JSObject b);
 
   @JSBody(params = {"a", "b", "c"}, script = "return [a, b, c];")
+  @NoSideEffects
   public static native JsArray<JSObject> toJsArray(JSObject a, JSObject b, JSObject c);
 
   @JSBody(params = {"n"}, script = "return String(n);")
+  @NoSideEffects
   public static native String jsDoubleToString(double n);
 
   @JSBody(params = {"arg"}, script = "return new Error(arg);")
+  @NoSideEffects
   public static native JSError newError(String arg);
 
   public interface Error extends JSObject {
@@ -152,17 +169,11 @@ public class JsHelper {
   }
 
   @JSBody(params = "error", script = "return error.message;")
+  @NoSideEffects
   public static native JSString message(JSError error);
 
-  public interface WithId extends JSObject {
-    @JSProperty JSString getId();
-
-    static JSString get(JSObject o) {
-      return o.<WithId>cast().getId();
-    }
-  }
-
   @JSBody(params = {"x"}, script = "return x ? 1 : 0;")
+  @NoSideEffects
   public static native boolean jsIf(JSObject x);
 
   public static String toString(JSString jsString, String orElse) {

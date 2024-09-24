@@ -1,9 +1,9 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.esm.EditArgs;
 import org.sudu.experiments.esm.JsFolderDiff;
+import org.sudu.experiments.esm.ThemeImport;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
@@ -62,16 +62,16 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
   @Override
   public void setFontSize(float fontSize) {
     overrideFontSize = fontSize;
-    var theme = folderDiff.getTheme().withFontSize(fontSize);
+    var theme = folderDiff.getTheme().withFontModified(fontSize);
     folderDiff.applyTheme(theme);
   }
 
   @Override
-  public void setTheme(JSString themeStr) {
-    var theme = ThemeControl.resolveTheme(themeStr.stringValue());
+  public void setTheme(JSObject jsTheme) {
+    var theme = ThemeImport.fromJs(jsTheme);
     if (theme != null) {
       if (overrideFontSize > 0)
-        theme = theme.withFontSize(overrideFontSize);
+        theme = theme.withFontModified(overrideFontSize);
       folderDiff.applyTheme(theme);
     } else {
       Debug.consoleInfo("unknown theme: " + theme);

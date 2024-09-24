@@ -79,8 +79,10 @@ public class JsCodeEditor0 implements JsCodeEditor {
   }
 
   @Override
-  public void setTheme(JSString theme) {
-    demoEdit0().setTheme(theme.stringValue());
+  public void setTheme(JSObject theme) {
+    var t = ThemeImport.fromJs(theme);
+    if (t != null)
+      demoEdit0().applyTheme(t);
   }
 
   @Override

@@ -4,6 +4,7 @@ import org.sudu.experiments.JsLauncher;
 import org.sudu.experiments.WebWindow;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
@@ -63,8 +64,10 @@ public class JsCodeDiff0 implements JsCodeDiff {
   }
 
   @Override
-  public void setTheme(JSString theme) {
-    w.setTheme(theme.stringValue());
+  public void setTheme(JSObject theme) {
+    var t = ThemeImport.fromJs(theme);
+    if (t != null)
+      w.applyTheme(t);
   }
 
   @Override

@@ -121,8 +121,9 @@ public class EditorColorScheme {
     );
   }
 
-  public EditorColorScheme withFontSize(float fontSize) {
-    return new EditorColorScheme(editor, fileTreeView, codeElement,
+  public EditorColorScheme withFontModified(float fontSize) {
+    return new EditorColorScheme(
+        editor, fileTreeView, codeElement,
         lineNumber, dialogItem, diff,
         popupMenuFont.withSize(fontSize),
         usagesFont.withSize(fontSize),
