@@ -2,6 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.Subscribers;
 import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.EditorWindow;
@@ -31,8 +32,6 @@ import org.teavm.jso.typedarrays.Int32Array;
 import java.util.*;
 import java.util.function.*;
 
-import static org.sudu.experiments.diff.FolderDiffRootView.Selection;
-
 public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   Window window;
@@ -53,7 +52,12 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private final Consumer<String>[] openFileMap = new Consumer[MAP_SIZE];
   private int keyCnt = 0;
 
-  private final ArrayList<ToolWindow0> windows = new ArrayList<>();
+  final ArrayList<ActiveWindow> windows = new ArrayList<>();
+
+  final JsFolderDiffController0 controller;
+
+  final Subscribers<DiffViewEventListener> controllerListeners =
+      new Subscribers<>(new DiffViewEventListener[0]);
 
   public RemoteFolderDiffWindow(
       EditorColorScheme theme,
@@ -86,6 +90,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     rootView.left.setOnSelectedLineChanged(this::leftSelectedChanged);
     rootView.right.setOnSelectedLineChanged(this::rightSelectedChanged);
 
+    controller = new JsFolderDiffController0(this);
   }
 
   @Override
@@ -93,8 +98,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     super.applyTheme(theme);
     window.setTheme(theme.dialogItem);
     rootView.applyTheme(theme);
-    for (ToolWindow0 window : windows) {
-      window.applyTheme(theme);
+    for (ActiveWindow r : windows) {
+      r.window.applyTheme(theme);
     }
   }
 
@@ -112,6 +117,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   private void onFocus() {
     windowManager.uiContext.setFocus(focusSave);
+    fireControllerEvent(controller);
   }
 
   private void openFile(JsArray<JSObject> jsResult) {
@@ -210,19 +216,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       public void openFile(RemoteFileNode node) {
         var opposite = getOppositeFile(node);
         if (opposite != null) {
-          var window = new FileDiffWindow(windowManager, theme, fonts);
-          addWindow(window);
-          openFileMap[keyCnt] = (source) -> window.open(source, node.name(), left);
-          sendOpenFile(node, left);
-          openFileMap[keyCnt] = (source) -> window.open(source, opposite.name(), !left);
-          sendOpenFile(opposite, !left);
-          window.window.maximize();
+          newCodeDiff(node, opposite, left);
         } else {
-          var window = new EditorWindow(windowManager, theme, fonts);
-          addWindow(window);
-          openFileMap[keyCnt] = (source) -> window.open(source, node.name());
-          sendOpenFile(node, left);
-          window.maximize();
+          newEditor(node, left);
         }
       }
 
@@ -286,9 +282,59 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     };
   }
 
-  private void addWindow(ToolWindow0 window) {
-    windows.add(window);
-    window.setOnClose(() -> windows.remove(window));
+  private void newEditor(RemoteFileNode node, boolean left) {
+    var window = new EditorWindow(windowManager, theme, fonts);
+    window.onControllerEvent(this::onWindowEvent);
+    addWindow(window, new JsEditorViewController0());
+    openFileMap[keyCnt] = (source) -> window.open(source, node.name());
+    sendOpenFile(node, left);
+    window.maximize();
+  }
+
+  private void newCodeDiff(RemoteFileNode node, RemoteFileNode opposite, boolean left) {
+    var window = new FileDiffWindow(windowManager, theme, fonts);
+    window.onEvent = this::onWindowEvent;
+    addWindow(window, new JsFileDiffViewController0(window));
+    openFileMap[keyCnt] = (source) -> window.open(source, node.name(), left);
+    sendOpenFile(node, left);
+    openFileMap[keyCnt] = (source) -> window.open(source, opposite.name(), !left);
+    sendOpenFile(opposite, !left);
+    window.window.maximize();
+  }
+
+  JsDiffViewController find(ToolWindow0 w) {
+    //noinspection ForLoopReplaceableByForEach
+    for (int i = 0, size = windows.size(); i < size; i++) {
+      ActiveWindow r = windows.get(i);
+      if (r.window == w)
+        return r.controller;
+    }
+    return null;
+  }
+
+  private void onWindowEvent(ToolWindow0 diffWindow) {
+    var controller = find(diffWindow);
+    fireControllerEvent(controller);
+  }
+
+  private void onWindowClosed(ActiveWindow r) {
+    LoggingJs.log(LoggingJs.DEBUG,
+        "RemoteFolderDiffWindow.onWindowClosed: "
+            + r.window.getClass().getSimpleName());
+    windows.remove(r);
+    if (r.window instanceof FileDiffWindow fileDiff) {
+      LoggingJs.log(LoggingJs.DEBUG,
+          "closed fileDiff = " + fileDiff);
+    } else if (r.window instanceof EditorWindow editor) {
+      LoggingJs.log(LoggingJs.DEBUG,
+          "closed editor = " + editor);
+    }
+  }
+
+  void addWindow(ToolWindow0 window, JsDiffViewController c) {
+    ActiveWindow r = new ActiveWindow(window, c);
+    windows.add(r);
+    window.setOnClose(() -> onWindowClosed(r));
   }
 
   private void sendOpenFile(RemoteFileNode node, boolean left) {
@@ -317,21 +363,21 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     System.out.println(state);
   }
 
-  public FolderDiffRootView.Selection getSelected() {
+  public FolderDiffSelection getSelected() {
     return getSelected(rootView.left.isFocused());
   }
 
-  public FolderDiffRootView.Selection getSelected(boolean left) {
+  public FolderDiffSelection getSelected(boolean left) {
     var root = left ? rootView.left : rootView.right;
     if (root.selectedIndex() < 0) return null;
     var node = root.model()[root.selectedIndex()];
-    if (node.isEmpty()) return new Selection(null, left, false, false);
+    if (node.isEmpty()) return new FolderDiffSelection(null, left, false, false);
 
     String path = ((RemoteFileTreeNode) node).getRelativePath();
     boolean isFolder = node instanceof RemoteDirectoryNode;
     int diffType = ((RemoteFileTreeNode) node).model().getDiffType();
     boolean isOrphan = diffType == DiffTypes.INSERTED || diffType == DiffTypes.DELETED;
-    return new Selection(path, left, isFolder, isOrphan);
+    return new FolderDiffSelection(path, left, isFolder, isOrphan);
   }
 
   void leftSelectedChanged(int idx) {
@@ -366,5 +412,57 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     if (rootView.right.hitTest(pos))
       return rootView.right.onContextMenu(pos);
     return false;
+  }
+
+  public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
+    // TODO
+  }
+
+  public boolean canNavigateUp() {
+    // TODO
+    return false;
+  }
+
+  public boolean canNavigateDown() {
+    // TODO
+    return false;
+  }
+
+  public void navigateUp() {
+    // TODO
+  }
+
+  public void navigateDown() {
+    // TODO
+  }
+
+  public void applyDiffFilter(int[] filters) {
+    // TODO
+  }
+
+  public int[] getDiffFilter() {
+    // TODO
+    return new int[0];
+  }
+
+  public void refresh() {
+    // TODO
+  }
+
+  void fireControllerEvent(JsDiffViewController source) {
+    var list = controllerListeners.array();
+    for (var listener : list) {
+      listener.onEvent(source);
+    }
+  }
+
+  static class ActiveWindow {
+    ToolWindow0 window;
+    JsDiffViewController controller;
+
+    ActiveWindow(ToolWindow0 window, JsDiffViewController controller) {
+      this.window = window;
+      this.controller = controller;
+    }
   }
 }

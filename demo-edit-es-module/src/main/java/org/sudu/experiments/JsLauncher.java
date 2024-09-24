@@ -35,10 +35,14 @@ public abstract class JsLauncher {
 
   abstract void launch(JsArray<WebWorkerContext> workers);
 
+  public interface ControlFactory <T extends JsBaseControl> {
+    T apply(WebWindow w, EditArgs u);
+  }
+
   public static <T extends JsBaseControl> Promise<T> start(
       EditArgs arguments,
       Function<SceneApi, Scene> sf,
-      BiFunction<WebWindow, EditArgs, T> rf
+      ControlFactory<T> rf
   ) {
     if (!JsCanvas.checkFontMetricsAPI())
       return Promise.reject(FireFoxWarning.message);

@@ -20,7 +20,7 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
   EditorUi ui;
   EditorComponent editor;
   Focusable focusSave;
-  Consumer<EditorWindow> onDestroy;
+  Consumer<EditorWindow> onControllerEvent;
 
   public EditorWindow(
       WindowManager wm,
@@ -38,6 +38,10 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
     windowManager.addWindow(window);
   }
 
+  public void onControllerEvent(Consumer<EditorWindow> handler) {
+    onControllerEvent = handler;
+  }
+
   public void focus() {
     windowManager.uiContext.setFocus(editor);
   }
@@ -52,6 +56,8 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
 
   private void onFocus() {
     windowManager.uiContext.setFocus(focusSave);
+    if (onControllerEvent != null)
+      onControllerEvent.accept(this);
   }
 
   @Override
@@ -83,13 +89,10 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
   protected void dispose() {
     if (focused() == editor)
       windowManager.uiContext.setFocus(null);
-    if (onDestroy != null)
-      onDestroy.accept(this);
     window = null;
     editor = null;
     ui = null;
     focusSave = null;
-    onDestroy = null;
   }
 
   protected Supplier<ToolbarItem[]> popupActions(V2i pos) {

@@ -58,9 +58,10 @@ public class JsFolderDiff0 implements JsFolderDiff {
     window.focus();
   }
 
+
   @Override
-  public void setReadonly(boolean flag) {
-    scene.setReadonly(flag);
+  public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
+    scene.setReadonly(leftReadonly, rightReadonly);
   }
 
   @Override

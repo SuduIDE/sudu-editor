@@ -14,6 +14,7 @@ import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class FileDiffWindow extends ToolWindow0
@@ -23,6 +24,7 @@ public class FileDiffWindow extends ToolWindow0
   Window window;
   String leftFile, rightFile;
   Focusable focusSave;
+  Consumer<FileDiffWindow> onEvent;
 
   public FileDiffWindow(
       WindowManager wm,
@@ -53,6 +55,7 @@ public class FileDiffWindow extends ToolWindow0
 
   private void onFocus() {
     windowManager.uiContext.setFocus(focusSave);
+    if (onEvent != null) onEvent.accept(this);
   }
 
   @Override
@@ -153,9 +156,5 @@ public class FileDiffWindow extends ToolWindow0
       return true;
     }
     return false;
-  }
-
-  public void setReadonly(boolean b) {
-    rootView.setReadonly(b);
   }
 }

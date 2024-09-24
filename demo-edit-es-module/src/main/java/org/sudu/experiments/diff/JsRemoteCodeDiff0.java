@@ -1,23 +1,32 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.JsLauncher;
-import org.sudu.experiments.WebWindow;
-import org.sudu.experiments.esm.*;
-import org.sudu.experiments.js.*;
+import org.sudu.experiments.*;
+import org.sudu.experiments.esm.EditArgs;
+import org.sudu.experiments.esm.JsITextModel;
+import org.sudu.experiments.esm.JsTextModel;
+import org.sudu.experiments.js.JsDisposable;
+import org.sudu.experiments.js.JsFunctions;
+import org.sudu.experiments.js.JsHelper;
+import org.sudu.experiments.js.Promise;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
-public class JsCodeDiff0 implements JsCodeDiff {
+import java.util.function.Function;
+
+public class JsRemoteCodeDiff0 implements JsRemoteCodeDiff {
 
   public final WebWindow window;
   private FileDiffWindow w;
 
-  public JsCodeDiff0(
+  final JsFileDiffViewController0 controller;
+
+  public JsRemoteCodeDiff0(
       WebWindow ww,
       EditArgs args
   ) {
     this.window = ww;
-    this.w = ((FileDiff) window.scene()).w;
+    this.w = ((RemoteFileDiffScene) window.scene()).w;
+    controller = new JsFileDiffViewController0(w);
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly())
       setReadonly(args.getReadonly(), args.getReadonly());
@@ -48,7 +57,6 @@ public class JsCodeDiff0 implements JsCodeDiff {
 
   @Override
   public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
-    JsHelper.consoleInfo("JsCodeDiff0.setReadonly");
     w.rootView.setReadonly(leftReadonly, rightReadonly);
   }
 
@@ -99,11 +107,29 @@ public class JsCodeDiff0 implements JsCodeDiff {
     return JsTextModel.fromJava(w.rootView.getRightModel());
   }
 
-  public static Promise<JsCodeDiff> newDiff(EditArgs arguments) {
+  @Override
+  public JsFileDiffViewController getController() {
+    return controller;
+  }
+
+  @Override
+  public JsDisposable onControllerUpdate(
+      JsFunctions.Consumer<JsFileDiffViewController> callback
+  ) {
+    return JsDisposable.empty();
+  }
+
+  static Function<SceneApi, Scene> sf(Channel channel) {
+    return api -> new RemoteFileDiffScene(api, channel);
+  }
+
+  public static Promise<JsRemoteCodeDiff> create(
+      EditArgs arguments, Channel channel
+  ) {
     return JsLauncher.start(
         arguments,
-        FileDiff::new,
-        JsCodeDiff0::new
+        sf(channel),
+        JsRemoteCodeDiff0::new
     );
   }
 }

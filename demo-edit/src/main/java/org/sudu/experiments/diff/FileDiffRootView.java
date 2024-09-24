@@ -73,9 +73,9 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     return editor2.model();
   }
 
-  public void setReadonly(boolean f) {
-    editor1.readonly = f;
-    editor2.readonly = f;
+  public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
+    editor1.readonly = leftReadonly;
+    editor2.readonly = rightReadonly;
   }
 
   public EditorUi.FontApi fontApi() {
@@ -197,5 +197,27 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
         ui.windowManager.uiContext.window.worker(),
         fromL, toL, fromR, toR
     );
+  }
+
+  public boolean canNavigateUp() {
+    // TODO
+    return false;
+  }
+
+  public void navigateUp() {
+    // TODO
+  }
+
+  public boolean canNavigateDown() {
+    // TODO
+    return false;
+  }
+
+  public void navigateDown() {
+    // TODO
+  }
+
+  public void refresh() {
+    // TODO
   }
 }

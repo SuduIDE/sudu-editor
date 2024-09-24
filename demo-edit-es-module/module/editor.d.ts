@@ -194,12 +194,15 @@ interface Focusable {
 }
 
 interface EditorBase {
-    setReadonly(flag: boolean): void,
     disconnectFromDom(): void
     reconnectToDom(containerId?: string): void
 }
 
-export interface ICodeDiff extends EditorBase, HasTheme, Focusable {
+export interface TwoPanelDiff {
+    setReadonly(leftReadonly: boolean, rightReadonly: boolean): void
+}
+
+export interface ICodeDiff extends EditorBase, HasTheme, Focusable, TwoPanelDiff {
     setLeftModel(model: ITextModel): void,
 
     setRightModel(model: ITextModel): void,
@@ -213,6 +216,8 @@ interface CodeDiffView extends ICodeDiff, IDisposable {
 }
 
 export interface ICodeEditor extends EditorBase, HasTheme, Focusable {
+    setReadonly(flag: boolean): void,
+
     setText(text: string): void,
 
     getText(): string,
@@ -245,15 +250,15 @@ export interface ICodeEditor extends EditorBase, HasTheme, Focusable {
 interface EditView extends ICodeEditor, IDisposable {
 }
 
-export interface IFolderDiff extends EditorBase, HasTheme, Focusable {
-}
-
-export interface FolderDiffView extends IFolderDiff, IDisposable {
+export interface IFolderDiff extends EditorBase, HasTheme, TwoPanelDiff, Focusable {
     isReady(): boolean
     onReadyChanged: IEvent<boolean>
 }
 
-export interface FolderDiffViewSelection {
+export interface FolderDiffView extends IFolderDiff, IDisposable {
+}
+
+export interface FolderDiffSelection {
     // relativePath does not include root folder.
     // For root folder relativePath is empty
     relativePath: string
@@ -264,11 +269,51 @@ export interface FolderDiffViewSelection {
     isOrphan: boolean
 }
 
+export interface FileDiffSelection {
+}
+
+export interface DiffViewController {
+    getViewType(): 'folderDiff' | 'fileDiff' | 'editor'
+    getSelection(): FolderDiffSelection | FileDiffSelection | undefined
+
+    canNavigateUp(): boolean
+    navigateUp(): void
+
+    canNavigateDown(): boolean
+    navigateDown(): void
+
+    refresh(): void
+}
+
+export enum DiffType {
+    Same = 0, Added = 1, Deleted = 2, Modified = 3
+}
+
+export interface FolderDiffViewController extends DiffViewController {
+    getViewType(): 'folderDiff'
+    getSelection(): FolderDiffSelection | undefined
+
+    getDiffFilter(): DiffType[]
+    applyDiffFilter(filters: DiffType[]): void
+}
+
+export interface FileDiffViewController extends DiffViewController {
+    getViewType(): 'fileDiff'
+    getSelection(): FileDiffSelection | undefined
+}
+
 export interface RemoteFolderDiffView extends FolderDiffView {
     getState(): any
     applyState(state: any): void
-    getSelected(): FolderDiffViewSelection | undefined
-    onSelectionChanged: IEvent<FolderDiffViewSelection | undefined>
+    getController(): FolderDiffViewController | FileDiffViewController;
+    onControllerUpdate: IEvent<FolderDiffViewController | FileDiffViewController>
+}
+
+export interface RemoteCodeDiffView extends CodeDiffView {
+    getState(): any
+    applyState(state: any): void
+    getController(): FileDiffViewController;
+    onControllerUpdate: IEvent<FileDiffViewController>
 }
 
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
@@ -280,3 +325,5 @@ export function newCodeDiff(args: EditArgs): Promise<CodeDiffView>
 export function newFolderDiff(args: EditArgs): Promise<FolderDiffView>
 
 export function newRemoteFolderDiff(args: EditArgs, channel: Channel): Promise<RemoteFolderDiffView>
+
+export function newRemoteCodeDiff(args: EditArgs, channel: Channel): Promise<RemoteCodeDiffView>

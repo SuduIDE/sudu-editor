@@ -31,12 +31,12 @@ public interface Editor_d_ts {
     }
   }
 
-  @JSFunctor interface DiffFactory extends JSObject {
+  @JSFunctor interface CodeDiffFactory extends JSObject {
     Promise<JsCodeDiff> create(EditArgs args);
 
     class Setter {
       @JSBody(params = {"f"}, script = "diffFactory = f;")
-      public static native void setDiff(DiffFactory f);
+      public static native void setDiff(CodeDiffFactory f);
     }
   }
 
@@ -50,7 +50,7 @@ public interface Editor_d_ts {
   }
 
   @JSFunctor interface RemoteFolderDiffFactory extends JSObject {
-    Promise<JsFolderDiff> create(EditArgs args, Channel channel);
+    Promise<JsRemoteFolderDiff> create(EditArgs args, Channel channel);
 
     class Setter {
       @JSBody(params = {"f"}, script = "newRemoteFolderDiffView = f;")
@@ -58,11 +58,21 @@ public interface Editor_d_ts {
     }
   }
 
+  @JSFunctor interface RemoteCodeDiffFactory extends JSObject {
+    Promise<JsRemoteCodeDiff> create(EditArgs args, Channel channel);
+
+    class Setter {
+      @JSBody(params = {"f"}, script = "newRemoteCodeDiff = f;")
+      public static native void set(RemoteCodeDiffFactory f);
+    }
+  }
+
   static void main(String[] args) {
     LoggingJs.Setter.set();
     EditorFactory.Setter.setApi(JsCodeEditor0::newEdit);
     TextModelFactory.Setter.setModel(JsTextModel::new);
-    DiffFactory.Setter.setDiff(JsCodeDiff0::newDiff);
+    CodeDiffFactory.Setter.setDiff(JsCodeDiff0::newDiff);
+    RemoteCodeDiffFactory.Setter.set(JsRemoteCodeDiff0::create);
     FolderDiffFactory.Setter.set(JsFolderDiff0::newDiff);
     RemoteFolderDiffFactory.Setter.set(JsRemoteFolderDiff0::newDiff);
     ChannelTest.publishChannelTest();

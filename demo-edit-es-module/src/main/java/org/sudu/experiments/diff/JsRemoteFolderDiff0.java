@@ -2,7 +2,6 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.editor.ThemeControl;
-import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.esm.EditArgs;
 import org.sudu.experiments.esm.JsFolderDiff;
 import org.sudu.experiments.js.*;
@@ -15,13 +14,14 @@ import java.util.function.Function;
 public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
 
   public final WebWindow window;
-  protected RemoteFolderDiffScene folderDiff;
+  protected RemoteFolderDiffWindow folderDiff;
 
   private float overrideFontSize = 0;
 
   protected JsRemoteFolderDiff0(WebWindow window, EditArgs args) {
     this.window = window;
-    this.folderDiff = (RemoteFolderDiffScene) window.scene();
+    var scene = (RemoteFolderDiffScene) window.scene();
+    this.folderDiff = scene.w;
     if (args.hasTheme()) setTheme(args.getTheme());
   }
 
@@ -50,8 +50,8 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
   }
 
   @Override
-  public void setReadonly(boolean flag) {
-    folderDiff.setReadonly(flag);
+  public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
+    folderDiff.setReadonly(leftReadonly, rightReadonly);
   }
 
   @Override
@@ -90,7 +90,7 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
 
   @Override
   public boolean isReady() {
-    return folderDiff.w.finished;
+    return folderDiff.finished;
   }
 
   @Override
@@ -101,29 +101,46 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
   }
 
   @Override
-  public JsFolderDiffViewSelection getSelected() {
-    var s = folderDiff.w.getSelected();
-    return JsFolderDiffViewSelection.H.create(s);
+  public JsDiffViewController getController() {
+    return folderDiff.controller;
+  }
+
+  @Override
+  public JsDisposable onControllerUpdate(
+      JsFunctions.Consumer<JsDiffViewController> callback
+  ) {
+    var d = folderDiff.controllerListeners.disposableAdd(
+        JsDiffViewController.toJava(callback)
+    );
+    return JsDisposable.of(d);
+  }
+
+  @Override
+  public JsFolderDiffSelection getSelected() {
+    var s = folderDiff.getSelected();
+    return JsFolderDiffSelection.H.create(s);
   }
 
   @Override
   public JsDisposable onSelectionChanged(
-      JsFunctions.Consumer<JsFolderDiffViewSelection> callback
+      JsFunctions.Consumer<JsFolderDiffSelection> callback
   ) {
-    var h = JsFolderDiffViewSelection.H.toJava(callback);
+    var h = JsFolderDiffSelection.H.toJava(callback);
     var d = rootView().selectionListeners.disposableAdd(h);
     return JsDisposable.of(d);
   }
 
   private FolderDiffRootView rootView() {
-    return folderDiff.w.rootView;
+    return folderDiff.rootView;
   }
 
   static Function<SceneApi, Scene> sf(Channel channel) {
     return api -> new RemoteFolderDiffScene(api, channel);
   }
 
-  public static Promise<JsFolderDiff> newDiff(EditArgs arguments, Channel channel) {
+  public static Promise<JsRemoteFolderDiff> newDiff(
+      EditArgs arguments, Channel channel
+  ) {
     return JsLauncher.start(arguments,
         sf(channel), JsRemoteFolderDiff0::new);
   }

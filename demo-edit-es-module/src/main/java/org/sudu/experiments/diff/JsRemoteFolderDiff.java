@@ -5,13 +5,23 @@ import org.sudu.experiments.js.JsDisposable;
 import org.sudu.experiments.js.JsFunctions;
 import org.teavm.jso.JSObject;
 
-interface JsRemoteFolderDiff extends JsFolderDiff {
+public interface JsRemoteFolderDiff extends JsFolderDiff {
   JSObject getState();
   void applyState(JSObject state);
 
-  JsFolderDiffViewSelection getSelected();
+  // getController(): FolderDiffViewController | FileDiffViewController;
+  JsDiffViewController getController();
 
+  // onControllerUpdate: IEvent<FolderDiffViewController | FileDiffViewController>
+  JsDisposable onControllerUpdate(
+      JsFunctions.Consumer<JsDiffViewController> callback
+  );
+
+  @Deprecated
+  JsFolderDiffSelection getSelected();
+
+  @Deprecated
   JsDisposable onSelectionChanged(
-      JsFunctions.Consumer<JsFolderDiffViewSelection> callback
+      JsFunctions.Consumer<JsFolderDiffSelection> callback
   );
 }

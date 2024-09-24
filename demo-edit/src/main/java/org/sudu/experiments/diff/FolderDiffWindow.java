@@ -276,4 +276,8 @@ public class FolderDiffWindow extends ToolWindow0 {
     windowManager.uiContext.window.showDirectoryPicker(
         dir -> open(dir, left));
   }
+
+  public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
+    // todo
+  }
 }
