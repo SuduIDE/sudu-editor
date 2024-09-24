@@ -16,4 +16,6 @@ public interface JsDiffViewController extends JSObject {
 
   boolean canNavigateDown();
   void navigateDown();
+
+  void refresh();
 }

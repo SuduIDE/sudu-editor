@@ -53,4 +53,9 @@ public class JsFolderDiffController0 implements JsFolderDiffController {
   public void applyDiffFilter(JsArray<JSNumber> diffFilter) {
     w.applyDiffFilter(JsHelper.toJavaIntArray(diffFilter));
   }
+
+  @Override
+  public void refresh() {
+    w.refresh();
+  }
 }

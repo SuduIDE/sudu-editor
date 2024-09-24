@@ -281,6 +281,8 @@ export interface DiffViewController {
 
     canNavigateDown(): boolean
     navigateDown(): void
+
+    refresh(): void
 }
 
 export enum DiffType {

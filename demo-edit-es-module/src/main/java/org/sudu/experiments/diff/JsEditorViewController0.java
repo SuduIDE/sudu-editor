@@ -30,4 +30,9 @@ public class JsEditorViewController0 implements JsFileDiffViewController {
 
   @Override
   public void navigateDown() {}
+
+  @Override
+  public void refresh() {
+    // TODO
+  }
 }

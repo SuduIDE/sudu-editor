@@ -396,24 +396,38 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
-
+    // TODO
   }
 
   public boolean canNavigateUp() {
-    return false;
-  }
-  public boolean canNavigateDown() {
+    // TODO
     return false;
   }
 
-  public void navigateUp() {}
-  public void navigateDown() {}
+  public boolean canNavigateDown() {
+    // TODO
+    return false;
+  }
+
+  public void navigateUp() {
+    // TODO
+  }
+
+  public void navigateDown() {
+    // TODO
+  }
 
   public void applyDiffFilter(int[] javaIntArray) {
+    // TODO
   }
 
   public int[] getDiffFilter() {
+    // TODO
     return new int[0];
+  }
+
+  public void refresh() {
+    // TODO
   }
 
   void fireControllerEvent(JsDiffViewController source) {

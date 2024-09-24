@@ -40,4 +40,9 @@ public class JsFileDiffViewController0 implements JsFileDiffViewController {
   public void navigateDown() {
     w.rootView.navigateDown();
   }
+
+  @Override
+  public void refresh() {
+    w.rootView.refresh();
+  }
 }

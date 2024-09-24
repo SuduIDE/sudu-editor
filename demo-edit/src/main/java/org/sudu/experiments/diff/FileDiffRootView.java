@@ -202,18 +202,24 @@ class FileDiffRootView extends DiffRootView
   }
 
   public boolean canNavigateUp() {
+    // TODO
     return false;
   }
 
   public void navigateUp() {
-
+    // TODO
   }
 
   public boolean canNavigateDown() {
+    // TODO
     return false;
   }
 
   public void navigateDown() {
+    // TODO
+  }
 
+  public void refresh() {
+    // TODO
   }
 }
