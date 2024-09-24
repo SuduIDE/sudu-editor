@@ -92,7 +92,7 @@ jobs:
         with:
           max_attempts: 10
           timeout_minutes: 5
-          retry_on: error
+          retry_on: any
           command: |
             ./obsutil rm -r -f obs://${{ vars.WEBAPP_OBS_NAME }}
             ./obsutil cp -r -f --flat $GITHUB_WORKSPACE/sudu-editor/demo-edit-js/target/demo-edit-js-1.0-SNAPSHOT/ obs://${{ vars.WEBAPP_OBS_NAME }}/
