@@ -1,6 +1,5 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.js.JsFunctions;
 import org.teavm.interop.NoSideEffects;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSProperty;
@@ -35,12 +34,6 @@ public interface JsFolderDiffSelection extends JsDiffSelection {
       return s != null
           ? create(JSString.valueOf(s.path), s.isLeft, s.isFolder, s.isOrphan)
           : null;
-    }
-
-    static FolderDiffRootView.SelectionListener toJava(
-        JsFunctions.Consumer<JsFolderDiffSelection> callback
-    ) {
-      return s -> callback.f(create(s));
     }
   }
 }

@@ -115,21 +115,6 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
     return JsDisposable.of(d);
   }
 
-  @Override
-  public JsFolderDiffSelection getSelected() {
-    var s = folderDiff.getSelected();
-    return JsFolderDiffSelection.H.create(s);
-  }
-
-  @Override
-  public JsDisposable onSelectionChanged(
-      JsFunctions.Consumer<JsFolderDiffSelection> callback
-  ) {
-    var h = JsFolderDiffSelection.H.toJava(callback);
-    var d = rootView().selectionListeners.disposableAdd(h);
-    return JsDisposable.of(d);
-  }
-
   private FolderDiffRootView rootView() {
     return folderDiff.rootView;
   }

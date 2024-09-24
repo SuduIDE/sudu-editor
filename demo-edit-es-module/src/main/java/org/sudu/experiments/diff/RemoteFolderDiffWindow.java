@@ -386,6 +386,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       rootView.right.clearSelection();
     }
     rootView.fireSelectionChanged(getSelected(true));
+    fireControllerEvent(controller);
   }
 
   void rightSelectedChanged(int idx) {
@@ -394,6 +395,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       rootView.left.clearSelection();
     }
     rootView.fireSelectionChanged(getSelected(false));
+    fireControllerEvent(controller);
   }
 
   String replaceSlashes(String path) {
@@ -451,6 +453,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   void fireControllerEvent(JsDiffViewController source) {
     var list = controllerListeners.array();
+//    System.out.println("RemoteFolderDiffWindow.fireControllerEvent: " + list.length + " listeners");
     for (var listener : list) {
       listener.onEvent(source);
     }

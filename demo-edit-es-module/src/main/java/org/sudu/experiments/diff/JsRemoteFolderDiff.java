@@ -16,12 +16,4 @@ public interface JsRemoteFolderDiff extends JsFolderDiff {
   JsDisposable onControllerUpdate(
       JsFunctions.Consumer<JsDiffViewController> callback
   );
-
-  @Deprecated
-  JsFolderDiffSelection getSelected();
-
-  @Deprecated
-  JsDisposable onSelectionChanged(
-      JsFunctions.Consumer<JsFolderDiffSelection> callback
-  );
 }
