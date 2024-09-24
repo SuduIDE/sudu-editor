@@ -16,6 +16,10 @@ import org.teavm.jso.core.JSString;
   int DEBUG = 5;
   int TRACE = 6;
 
+  static void log(int level, String message) {
+    Static.logger.log(level, JSString.valueOf(message));
+  }
+
   class Static {
     public static int level;
     public static LoggingJs logger;
