@@ -313,7 +313,7 @@ export interface RemoteFolderDiffView extends FolderDiffView {
     applyState(state: any): void
     getController(): FolderDiffViewController | FileDiffViewController;
     onControllerUpdate: IEvent<FolderDiffViewController | FileDiffViewController>
-    setExternalFileOpener(opener: ExternalFileOpener): void
+    setExternalFileOpener(opener: ExternalFileOpener | null): void
 }
 
 export interface RemoteCodeDiffView extends CodeDiffView {
