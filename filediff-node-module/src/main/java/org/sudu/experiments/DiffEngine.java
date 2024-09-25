@@ -20,7 +20,7 @@ public class DiffEngine implements DiffEngineJs {
   }
 
   @Override
-  public AsyncShutdown startFolderDiff(JSString leftPath, JSString rightPath, Channel channel) {
+  public JsFolderDiffSession startFolderDiff(JSString leftPath, JSString rightPath, Channel channel) {
     JsHelper.consoleInfo("Starting folder diff ");
     boolean scanFileContent = true;
 
@@ -44,9 +44,19 @@ public class DiffEngine implements DiffEngineJs {
         pool, channel
     );
     updater.beginCompare();
-    return () -> Promise.create((ok, fail) ->
-        updater.shutdown(() -> ok.f(null))
-    );
+    return new JsFolderDiffSession0(updater);
+  }
+
+  @Override
+  public JsFileDiffSession startFileDiff(
+      JSString leftPath, JSString rightPath,
+      Channel channel,
+      JsFolderDiffSession parent
+  ) {
+    JsHelper.consoleInfo("Starting new file diff ");
+    JsHelper.consoleInfo("  LeftPath: ", leftPath);
+    JsHelper.consoleInfo("  RightPath: ", rightPath);
+    return new JsFileDiffSession0();
   }
 
   static boolean notDir(JSString path) {
