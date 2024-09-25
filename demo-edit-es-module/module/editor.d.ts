@@ -302,11 +302,18 @@ export interface FileDiffViewController extends DiffViewController {
     getSelection(): FileDiffSelection | undefined
 }
 
+export interface ExternalFileOpener {
+    // All paths are absolute
+    openCodeDiff(leftPath: string, rightPath: string): void
+    openCodeEditor(path: string): void
+}
+
 export interface RemoteFolderDiffView extends FolderDiffView {
     getState(): any
     applyState(state: any): void
     getController(): FolderDiffViewController | FileDiffViewController;
     onControllerUpdate: IEvent<FolderDiffViewController | FileDiffViewController>
+    setExternalFileOpener(opener: ExternalFileOpener | null): void
 }
 
 export interface RemoteCodeDiffView extends CodeDiffView {

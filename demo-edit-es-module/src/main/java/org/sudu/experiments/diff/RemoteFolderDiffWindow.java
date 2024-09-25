@@ -7,6 +7,7 @@ import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.esm.JsExternalFileOpener;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.math.ArrayOp;
@@ -60,6 +61,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   final Subscribers<DiffViewEventListener> controllerListeners =
       new Subscribers<>(new DiffViewEventListener[0]);
+
+  JsExternalFileOpener opener;
 
   public RemoteFolderDiffWindow(
       EditorColorScheme theme,
@@ -284,25 +287,41 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private void newEditor(RemoteFileNode node, boolean left) {
-    var window = new EditorWindow(windowManager, theme, fonts);
-    window.onControllerEvent(this::onWindowEvent);
-    addWindow(window, new JsEditorViewController0());
-    openFileMap[keyCnt] = (source) -> window.open(source, node.name());
-    sendOpenFile(node, left);
-    window.maximize();
-    onWindowEvent(window);
+    if (opener == null) {
+      var window = new EditorWindow(windowManager, theme, fonts);
+      window.onControllerEvent(this::onWindowEvent);
+      addWindow(window, new JsEditorViewController0());
+      openFileMap[keyCnt] = (source) -> window.open(source, node.name());
+      sendOpenFile(node, left);
+      window.maximize();
+      onWindowEvent(window);
+    } else {
+      var path = getFullPath(node, left);
+      opener.openCodeEditor(JSString.valueOf(path));
+    }
   }
 
   private void newCodeDiff(RemoteFileNode node, RemoteFileNode opposite, boolean left) {
-    var window = new FileDiffWindow(windowManager, theme, fonts);
-    window.onEvent = this::onWindowEvent;
-    addWindow(window, new JsFileDiffViewController0(window));
-    openFileMap[keyCnt] = (source) -> window.open(source, node.name(), left);
-    sendOpenFile(node, left);
-    openFileMap[keyCnt] = (source) -> window.open(source, opposite.name(), !left);
-    sendOpenFile(opposite, !left);
-    window.window.maximize();
-    onWindowEvent(window);
+    if (opener == null) {
+      var window = new FileDiffWindow(windowManager, theme, fonts);
+      window.onEvent = this::onWindowEvent;
+      addWindow(window, new JsFileDiffViewController0(window));
+      openFileMap[keyCnt] = (source) -> window.open(source, node.name(), left);
+      sendOpenFile(node, left);
+      openFileMap[keyCnt] = (source) -> window.open(source, opposite.name(), !left);
+      sendOpenFile(opposite, !left);
+      window.window.maximize();
+      onWindowEvent(window);
+    } else {
+      var lPath = getFullPath(node, left);
+      var rPath = getFullPath(opposite, !left);
+      opener.openCodeDiff(
+          JSString.valueOf(lPath), JSString.valueOf(rPath));
+    }
+  }
+
+  private String getFullPath(RemoteFileNode node, boolean left) {
+    return node.getFullPath(left ? leftRoot.name() : rightRoot.name());
   }
 
   JsDiffViewController find(ToolWindow0 w) {
@@ -345,7 +364,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   private void sendOpenFile(RemoteFileNode node, boolean left) {
     var result = JsArray.create();
-    var path = node.getFullPath(left ? leftRoot.name() : rightRoot.name());
+    var path = getFullPath(node, left);
     result.push(JsMemoryAccess.bufferView(new int[]{keyCnt}));
     result.push(JSString.valueOf(path));
     result.push(DiffModelChannelUpdater.OPEN_FILE_ARRAY);

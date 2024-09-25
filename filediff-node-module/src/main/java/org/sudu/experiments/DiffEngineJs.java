@@ -6,7 +6,21 @@ import org.teavm.jso.core.JSString;
 public interface DiffEngineJs extends JSObject {
   void dispose();
 
-  AsyncShutdown startFolderDiff(JSString leftPath, JSString rightPath, Channel channel);
+  JsFolderDiffSession startFolderDiff(
+      JSString leftPath, JSString rightPath,
+      Channel channel);
+
+  //     startFileDiff(
+  //        leftPath: string, rightPath: string,
+  //        channel: Channel,
+  //        folderDiff?: FolderDiffSession
+  //    ): FileDiffSession;
+
+  JsFileDiffSession startFileDiff(
+      JSString leftPath, JSString rightPath,
+      Channel channel,
+      JsFolderDiffSession parent
+  );
 
   JsDiffTestApi testApi();
 }
