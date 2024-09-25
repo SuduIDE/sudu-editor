@@ -44,18 +44,27 @@ public class FileDiffWindow extends ToolWindow0
     windowManager.uiContext.setFocus(this);
   }
 
-  private void onBlur() {
-    var f = windowManager.uiContext.focused();
-    focusSave = isMyFocus(f) ? f : null;
+  void fireEvent() {
+    if (onEvent != null)
+      onEvent.accept(this);
   }
 
   private boolean isMyFocus(Focusable f) {
     return rootView.editor1 == f || rootView.editor2 == f || this == f;
   }
 
+  private boolean isMyFocus() {
+    return isMyFocus(windowManager.uiContext.focused());
+  }
+
+  private void onBlur() {
+    var f = windowManager.uiContext.focused();
+    focusSave = isMyFocus(f) ? f : null;
+  }
+
   private void onFocus() {
     windowManager.uiContext.setFocus(focusSave);
-    if (onEvent != null) onEvent.accept(this);
+    fireIfModelReady();
   }
 
   @Override
@@ -67,12 +76,24 @@ public class FileDiffWindow extends ToolWindow0
 
   public void open(FileHandle f, boolean left) {
     var ed = left ? rootView.editor1 : rootView.editor2;
-    ed.openFile(f, () -> updateTitle(f, left));
+    ed.openFile(f, () -> {
+      updateTitle(f, left);
+      if (isMyFocus())
+        fireIfModelReady();
+    });
   }
 
   public void open(String source, String name, boolean left) {
     var ed = left ? rootView.editor1 : rootView.editor2;
-    ed.openFile(source, name, () -> updateTitle(name, left));
+    ed.openFile(source, name);
+    updateTitle(name, left);
+    if (isMyFocus())
+      fireIfModelReady();
+  }
+
+  private void fireIfModelReady() {
+    if (leftFile != null && rightFile != null)
+      fireEvent();
   }
 
   void updateTitle(FileHandle handle, boolean left) {
@@ -90,7 +111,7 @@ public class FileDiffWindow extends ToolWindow0
   }
 
   protected void dispose() {
-    if (isMyFocus(windowManager.uiContext.focused())) {
+    if (isMyFocus()) {
       windowManager.uiContext.setFocus(null);
     }
 

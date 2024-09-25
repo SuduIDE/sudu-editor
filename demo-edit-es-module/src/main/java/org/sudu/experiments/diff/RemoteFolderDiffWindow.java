@@ -34,6 +34,8 @@ import java.util.function.*;
 
 public class RemoteFolderDiffWindow extends ToolWindow0 {
 
+  static boolean debug;
+
   Window window;
   Focusable focusSave;
   FolderDiffRootView rootView;
@@ -147,8 +149,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     updateDiffInfo();
     if (rootModel.isCompared()) {
       finished = true;
-      LoggingJs.Static.logger.log(LoggingJs.INFO,
-          JSString.valueOf("RemoteFolderDiff finished"));
+      LoggingJs.log(LoggingJs.INFO, "RemoteFolderDiff finished");
       rootView.fireFinished();
     }
   }
@@ -168,8 +169,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       case DiffModelChannelUpdater.FRONTEND_MESSAGE -> update(jsResult);
       case DiffModelChannelUpdater.OPEN_FILE -> openFile(jsResult);
     }
-    LoggingJs.Static.logger.log(LoggingJs.TRACE,
-        JSString.valueOf("Got message in " + Numbers.iRnd(Performance.now() - startTime) + "ms")
+    LoggingJs.log(LoggingJs.TRACE,
+        "Got message in " + Numbers.iRnd(Performance.now() - startTime) + "ms"
     );
   }
 
@@ -289,6 +290,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     openFileMap[keyCnt] = (source) -> window.open(source, node.name());
     sendOpenFile(node, left);
     window.maximize();
+    onWindowEvent(window);
   }
 
   private void newCodeDiff(RemoteFileNode node, RemoteFileNode opposite, boolean left) {
@@ -300,6 +302,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     openFileMap[keyCnt] = (source) -> window.open(source, opposite.name(), !left);
     sendOpenFile(opposite, !left);
     window.window.maximize();
+    onWindowEvent(window);
   }
 
   JsDiffViewController find(ToolWindow0 w) {
@@ -313,20 +316,23 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private void onWindowEvent(ToolWindow0 diffWindow) {
+    if (debug) LoggingJs.debug(
+        "onWindowEvent: " + diffWindow.getClass().getSimpleName());
+
     var controller = find(diffWindow);
     fireControllerEvent(controller);
   }
 
   private void onWindowClosed(ActiveWindow r) {
-    LoggingJs.log(LoggingJs.DEBUG,
+    if (debug) LoggingJs.debug(
         "RemoteFolderDiffWindow.onWindowClosed: "
             + r.window.getClass().getSimpleName());
     windows.remove(r);
     if (r.window instanceof FileDiffWindow fileDiff) {
-      LoggingJs.log(LoggingJs.DEBUG,
+      if (debug) LoggingJs.debug(
           "closed fileDiff = " + fileDiff);
     } else if (r.window instanceof EditorWindow editor) {
-      LoggingJs.log(LoggingJs.DEBUG,
+      if (debug) LoggingJs.debug(
           "closed editor = " + editor);
     }
   }
@@ -453,7 +459,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   void fireControllerEvent(JsDiffViewController source) {
     var list = controllerListeners.array();
-//    System.out.println("RemoteFolderDiffWindow.fireControllerEvent: " + list.length + " listeners");
+    if (debug) LoggingJs.debug(
+        "fireControllerEvent: " + list.length + " listeners");
     for (var listener : list) {
       listener.onEvent(source);
     }

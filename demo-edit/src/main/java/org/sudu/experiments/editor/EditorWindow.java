@@ -42,12 +42,22 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
     onControllerEvent = handler;
   }
 
+  void fireControllerEvent() {
+    if (onControllerEvent != null)
+      onControllerEvent.accept(this);
+  }
+
+  private boolean isMyFocus() {
+    return editor == focused();
+  }
+
   public void focus() {
+    System.out.println("EditorWindow.focus");
     windowManager.uiContext.setFocus(editor);
   }
 
   private void onBlur() {
-    focusSave = (editor == focused()) ? editor : null;
+    focusSave = isMyFocus() ? editor : null;
   }
 
   private Focusable focused() {
@@ -56,8 +66,7 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
 
   private void onFocus() {
     windowManager.uiContext.setFocus(focusSave);
-    if (onControllerEvent != null)
-      onControllerEvent.accept(this);
+    fireControllerEvent();
   }
 
   @Override
@@ -75,7 +84,11 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
 
   public void open(String source, String name) {
     editor.context.setFocus(editor);
-    editor.openFile(source, name, () -> updateTitle(name));
+    editor.openFile(source, name);
+    updateTitle(name);
+    System.out.println("open file: name = " + name + ", isMyFocus = " + isMyFocus());
+    if (isMyFocus())
+      fireControllerEvent();
   }
 
   void updateTitle(FileHandle handle) {

@@ -879,23 +879,19 @@ public class EditorComponent extends View implements
 
   public void openFile(FileHandle f, Runnable onComplete) {
     Debug.consoleInfo("opening file " + f.getName());
-    setCaretLinePos(0, 0, false);
-
     f.readAsText(
         source -> {
-          Model newModel = new Model(source, new Uri(f.getName()));
-          setModel(newModel);
+          openFile(source, f.getFullPath());
           onComplete.run();
         },
         System.err::println
     );
   }
 
-  public void openFile(String source, String name, Runnable onComplete) {
+  public void openFile(String source, String name) {
     setCaretLinePos(0, 0, false);
     Model newModel = new Model(source, new Uri(name));
     setModel(newModel);
-    onComplete.run();
   }
 
   private void onNewModel() {
