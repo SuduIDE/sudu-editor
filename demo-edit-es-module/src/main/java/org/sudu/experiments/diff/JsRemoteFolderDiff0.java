@@ -2,6 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.esm.EditArgs;
+import org.sudu.experiments.esm.JsExternalFileOpener;
 import org.sudu.experiments.esm.JsFolderDiff;
 import org.sudu.experiments.esm.ThemeImport;
 import org.sudu.experiments.js.*;
@@ -30,6 +31,11 @@ public class JsRemoteFolderDiff0 implements JsRemoteFolderDiff {
     window.dispose();
     System.out.println("debug: JsFolderDiff disposed");
     folderDiff = null;
+  }
+
+  @Override
+  public void setExternalFileOpener(JsExternalFileOpener opener) {
+    folderDiff.opener = opener;
   }
 
   @Override
