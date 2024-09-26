@@ -205,7 +205,6 @@ public class FolderDiffModel {
   }
 
   public void updateItem() {
-    if (getDiffType() == DiffTypes.DEFAULT) return;
     boolean haveChanges = false;
     if (children != null) {
       for (var child: children) {
@@ -214,11 +213,11 @@ public class FolderDiffModel {
           break;
         }
       }
-      if (!haveChanges) {
-        setDiffType(DiffTypes.DEFAULT);
-        if (parent != null) parent.updateItem();
-      } else setDiffType(DiffTypes.EDITED);
-    }
+    } else haveChanges = getDiffType() != DiffTypes.DEFAULT;
+    if (!haveChanges) {
+      setDiffType(DiffTypes.DEFAULT);
+      if (parent != null) parent.updateItem();
+    } else setDiffType(DiffTypes.EDITED);
   }
 
   public FolderDiffModel findNode(int[] path) {

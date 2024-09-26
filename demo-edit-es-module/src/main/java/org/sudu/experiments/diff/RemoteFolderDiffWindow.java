@@ -403,9 +403,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       addWindow(window, new JsEditorViewController0());
       openFileMap[keyCnt] = (source) -> window.open(source, node.name());
       sendOpenFile(node, left);
-      Consumer<String> onDiffMade = left ?
-          (src) -> fileDiffMade(node.getFullPath(leftRoot.name()), src) :
-          (src) -> fileDiffMade(node.getFullPath(rightRoot.name()), src);
+      Consumer<String> onDiffMade = (src) -> fileDiffMade(node.model(), left, src);
       window.setDiffMade(onDiffMade);
       window.maximize();
       window.setReadonly(left ? rootView.leftReadonly : rootView.rightReadonly);
@@ -425,12 +423,12 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       sendOpenFile(node, left);
       openFileMap[keyCnt] = (source) -> window.open(source, opposite.name(), !left);
       sendOpenFile(opposite, !left);
-      Consumer<String> onLeftDiff = left ?
-          (src) -> fileDiffMade(node.getFullPath(leftRoot.name()), src) :
-          (src) -> fileDiffMade(opposite.getFullPath(leftRoot.name()), src);
-      Consumer<String> onRightDiff = !left ?
-          (src) -> fileDiffMade(node.getFullPath(rightRoot.name()), src) :
-          (src) -> fileDiffMade(opposite.getFullPath(rightRoot.name()), src);
+      Consumer<String> onLeftDiff = left
+          ? (src) -> fileDiffMade(node.model(), true, src)
+          : (src) -> fileDiffMade(opposite.model(), true, src);
+      Consumer<String> onRightDiff = !left
+          ? (src) -> fileDiffMade(node.model(), false, src)
+          : (src) -> fileDiffMade(opposite.model(), false, src);
       window.setOnDiffMade(onLeftDiff, onRightDiff);
       window.rootView.setReadonly(rootView.leftReadonly, rootView.rightReadonly);
       window.window.maximize();
@@ -515,6 +513,16 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     channel.sendMessage(result);
   }
 
+  void fileDiffMade(FolderDiffModel model, boolean left, String source) {
+    int[] path = model.getPathFromRoot();
+    var result = JsArray.create();
+    result.set(0, JsCast.jsInts(path));
+    result.set(1, JsCast.jsInts(left ? 0 : 1));
+    result.set(2, JsCast.jsString(source));
+    result.push(DiffModelChannelUpdater.FILE_SAVE_ARRAY);
+    channel.sendMessage(result);
+  }
+
   private void serializeFrontendState() {
     int leftSelected = rootView.left.selectedIndex();
     int rightSelected = rootView.right.selectedIndex();
@@ -546,14 +554,6 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     int diffType = ((RemoteFileTreeNode) node).model().getDiffType();
     boolean isOrphan = diffType == DiffTypes.INSERTED || diffType == DiffTypes.DELETED;
     return new FolderDiffSelection(path, left, isFolder, isOrphan);
-  }
-
-  void fileDiffMade(String path, String source) {
-    JsArray<JSObject> jsArray = JsArray.create();
-    jsArray.push(JSString.valueOf(path));
-    jsArray.push(JSString.valueOf(source));
-    jsArray.push(DiffModelChannelUpdater.FILE_SAVE_ARRAY);
-    channel.sendMessage(jsArray);
   }
 
   void leftSelectedChanged(int idx) {

@@ -138,13 +138,7 @@ public class NodeFileHandle implements FileHandle {
   public void writeText(String text, Runnable onComplete, Consumer<String> onError) {
     Fs.fs().writeFile(
         jsPath(), JSString.valueOf(text), JSString.valueOf("utf-8"),
-        error -> {
-          if (error == null) {
-            onComplete.run();
-          } else {
-            onError.accept(error.getMessage());
-          }
-        }
+        NodeFs.callback(onComplete, onError)
     );
   }
 

@@ -111,6 +111,12 @@ public class RemoteCollector {
     }
   }
 
+  public void fileSave(int[] path, boolean left, String source) {
+    var model = (ItemFolderDiffModel) root.findNode(path);
+    var item = (FileHandle) (left ? model.left() : model.right());
+    item.writeText(source, () -> cmpFilesAndSend(model), this::onError);
+  }
+
   private void copyFile(ItemFolderDiffModel model, boolean left) {
     if (!(model.item() instanceof FileHandle fileItem)) return;
     String to = model.getFullPath(!left ? leftHandle().getFullPath() : rightHandle().getFullPath());
@@ -131,6 +137,21 @@ public class RemoteCollector {
   private void removeFolder(ItemFolderDiffModel model) {
     if (!(model.item() instanceof DirectoryHandle dirItem)) return;
     dirItem.remove(this::sendApplied, this::onError);
+  }
+
+  private void cmpFilesAndSend(ItemFolderDiffModel model) {
+    Consumer<Object[]> onCompared = result -> {
+      boolean equals = ArgsCast.intArray(result, 0)[0] == 1;
+      if (equals) model.setDiffType(DiffTypes.DEFAULT);
+      else model.setDiffType(DiffTypes.EDITED);
+      model.updateItem();
+      sendMessage();
+    };
+    executor.sendToWorker(
+        onCompared,
+        DiffUtils.CMP_FILES,
+        model.left(), model.right()
+    );
   }
 
   private void onError(String error) {

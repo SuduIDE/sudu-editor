@@ -3,14 +3,11 @@ package org.sudu.experiments.update;
 import org.sudu.experiments.*;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.js.JsArray;
-import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
-import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeFileHandle;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.JsCast;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
@@ -103,18 +100,14 @@ public class DiffModelChannelUpdater {
   }
 
   private void onFileSave(JsArray<JSObject> jsArray) {
-    JSString path = jsArray.get(0).cast();
-    JSString source = jsArray.get(1).cast();
-    // todo remove fs
-    Fs.fs().writeFile(path, source, JSString.valueOf("UTF-8"), this::onFileSaved);
+    System.out.println("DiffModelChannelUpdater.onFileSave");
+    int[] path = JsCast.ints(jsArray, 0);
+    boolean left = JsCast.ints(jsArray, 1)[0] == 0;
+    String source = JsCast.string(jsArray, 2);
+    collector.fileSave(path, left, source);
   }
 
   private void onRefresh() {
     collector.refresh();
-  }
-
-  private void onFileSaved(JSError error) {
-    if (error != null) System.err.println(JsHelper.getMessage(error));
-    else System.out.println("Saved");
   }
 }
