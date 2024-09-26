@@ -280,6 +280,6 @@ public class FolderDiffWindow extends ToolWindow0 {
   }
 
   public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
-    // todo
+    rootView.setReadonly(leftReadonly, rightReadonly);
   }
 }

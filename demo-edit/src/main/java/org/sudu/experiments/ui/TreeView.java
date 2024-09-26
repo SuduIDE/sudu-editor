@@ -584,4 +584,8 @@ public class TreeView extends ScrollContent implements Focusable {
     }
     return false;
   }
+
+  public void setSelectedIndex(int selectedIndex) {
+    this.selectedIndex = selectedIndex;
+  }
 }

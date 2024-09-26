@@ -190,6 +190,10 @@ public class EditorComponent extends View implements
     hasFocus = false;
   }
 
+  public boolean isFocused() {
+    return hasFocus;
+  }
+
   private void startBlinking() {
     caret.startDelay(window().timeNow());
   }

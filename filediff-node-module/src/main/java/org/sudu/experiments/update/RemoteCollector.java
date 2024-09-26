@@ -68,6 +68,12 @@ public class RemoteCollector {
     compare(root);
   }
 
+  public void refresh() {
+    sendToWorkerQueue.clear();
+    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf("Refresh"));
+    beginCompare();
+  }
+
   public void onMessageGot(FrontendMessage message) {
     double time = Performance.now() - startTime;
     LoggingJs.Static.logger.log(LoggingJs.TRACE, JSString.valueOf("RemoteCollector got frontend message in " + time + "ms"));

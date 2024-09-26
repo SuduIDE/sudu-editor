@@ -146,6 +146,10 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
     this.onDiffMade = onDiffMade;
   }
 
+  public void setReadonly(boolean readonly) {
+    editor.readonly = readonly;
+  }
+
   void onDiffMade() {
     if (onDiffMade != null) onDiffMade.accept(new String(editor.getChars()));
   }

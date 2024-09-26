@@ -24,6 +24,7 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
 
   FileTreeView left, right;
   ScrollView leftScrollView, rightScrollView;
+  boolean leftReadonly, rightReadonly;
   DiffSync diffSync;
 
   FolderDiffRootView(UiContext uiContext) {
@@ -58,7 +59,16 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
     var diffInfo = diffSync.model;
     var leftColors = new byte[left.model().length];
     var rightColors = new byte[right.model().length];
-    var models = MergeButtonsModel.getFolderModels(diffInfo, left.diffModel(), right.diffModel(), leftColors, rightColors, applyDiff);
+    var models = MergeButtonsModel.getFolderModels(
+        diffInfo,
+        left.diffModel(),
+        right.diffModel(),
+        leftColors,
+        rightColors,
+        leftReadonly,
+        rightReadonly,
+        applyDiff
+    );
     left.enableMergeButtons(models[0].actions, models[0].lines, leftColors, true);
     right.enableMergeButtons(models[1].actions, models[1].lines, rightColors, false);
   }
@@ -71,6 +81,11 @@ class FolderDiffRootView extends DiffRootView implements ThemeControl {
   void fireSelectionChanged(FolderDiffSelection s) {
     for (SelectionListener listener : selectionListeners.array())
       listener.accept(s);
+  }
+
+  public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
+    this.leftReadonly = leftReadonly;
+    this.rightReadonly = rightReadonly;
   }
 
   public interface SelectionListener {

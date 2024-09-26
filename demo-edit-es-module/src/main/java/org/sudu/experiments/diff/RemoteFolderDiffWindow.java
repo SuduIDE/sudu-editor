@@ -18,6 +18,7 @@ import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.FrontendState;
 import org.sudu.experiments.protocol.JsCast;
+import org.sudu.experiments.ui.FileTreeView;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ToolWindow0;
 import org.sudu.experiments.ui.fs.RemoteDirectoryNode;
@@ -407,6 +408,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
           (src) -> fileDiffMade(node.getFullPath(rightRoot.name()), src);
       window.setDiffMade(onDiffMade);
       window.maximize();
+      window.setReadonly(left ? rootView.leftReadonly : rootView.rightReadonly);
       onWindowEvent(window);
     } else {
       var path = getFullPath(node, left);
@@ -430,6 +432,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
           (src) -> fileDiffMade(node.getFullPath(rightRoot.name()), src) :
           (src) -> fileDiffMade(opposite.getFullPath(rightRoot.name()), src);
       window.setOnDiffMade(onLeftDiff, onRightDiff);
+      window.rootView.setReadonly(rootView.leftReadonly, rootView.rightReadonly);
       window.window.maximize();
       onWindowEvent(window);
     } else {
@@ -589,26 +592,78 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     return false;
   }
 
+  private FileTreeView getFocused() {
+    return rootView.left.isFocused()
+        ? rootView.left
+        : rootView.right.isFocused()
+        ? rootView.right
+        : null;
+  }
+
   public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
-    // TODO
+    rootView.setReadonly(leftReadonly, rightReadonly);
   }
 
   public boolean canNavigateUp() {
-    // TODO
-    return false;
+    return canNavigate(true);
   }
 
   public boolean canNavigateDown() {
-    // TODO
+    return canNavigate(false);
+  }
+
+  private boolean canNavigate(boolean up) {
+    var focused = getFocused();
+    if (focused == null) return false;
+    int selectedInd = focused.selectedIndex();
+    if (selectedInd < 0) return false;
+    var diffInfo = rootView.diffSync.model;
+    boolean left = focused == rootView.left;
+    var lines = left ? diffInfo.lineDiffsL : diffInfo.lineDiffsR;
+    if (up) {
+      for (int i = selectedInd; i >= 0; i--) {
+        if (lines[i].type != DiffTypes.DEFAULT) return true;
+      }
+    } else {
+      for (int i = selectedInd; i < lines.length; i++) {
+        if (lines[i].type != DiffTypes.DEFAULT) return true;
+      }
+    }
     return false;
   }
 
   public void navigateUp() {
-    // TODO
+    var focused = getFocused();
+    if (focused == null) return;
+    int selectedIndex = getNavigateInd(focused, true);
+    if (selectedIndex < 0) return;
+    focused.setSelectedIndex(selectedIndex);
   }
 
   public void navigateDown() {
-    // TODO
+    var focused = getFocused();
+    if (focused == null) return;
+    int selectedIndex = getNavigateInd(focused, false);
+    if (selectedIndex < 0) return;
+    focused.setSelectedIndex(selectedIndex);
+  }
+
+  private int getNavigateInd(FileTreeView focused, boolean up) {
+    int selectedInd = focused.selectedIndex();
+    if (selectedInd < 0) return -1;
+    var diffInfo = rootView.diffSync.model;
+    boolean left = focused == rootView.left;
+    var lines = left ? diffInfo.lineDiffsL : diffInfo.lineDiffsR;
+    if (up) {
+      for (int i = selectedInd; i >= 0; i--) {
+        if (lines[i].type != DiffTypes.DEFAULT) return i;
+      }
+    } else {
+      for (int i = selectedInd; i < lines.length; i++) {
+        if (lines[i].type != DiffTypes.DEFAULT) return i;
+      }
+    }
+    return -1;
   }
 
   public void applyDiffFilter(int[] filters) {
@@ -621,7 +676,10 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   public void refresh() {
-    // TODO
+    updatedRoots = false;
+    var result = JsArray.create();
+    result.push(DiffModelChannelUpdater.REFRESH_ARRAY);
+    channel.sendMessage(result);
   }
 
   void fireControllerEvent(JsDiffViewController source) {
