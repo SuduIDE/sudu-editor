@@ -50,8 +50,12 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
     super.close();
   }
 
-  public void setChildren(FileTreeNode[] children) {
-    this.children = children;
+  public RemoteDirectoryNode getOppositeDir() {
+    return handle.getOppositeDir(this);
+  }
+
+  public RemoteFileTreeNode findSubItem(String path, boolean isFolder) {
+    return isFolder ? findSubDir(path) : findSubFile(path);
   }
 
   public RemoteDirectoryNode findSubDir(String path) {

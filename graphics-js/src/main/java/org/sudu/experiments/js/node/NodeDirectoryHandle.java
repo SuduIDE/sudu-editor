@@ -3,7 +3,6 @@ package org.sudu.experiments.js.node;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.js.JsArray;
-import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.core.JSString;
 
@@ -63,17 +62,21 @@ public class NodeDirectoryHandle implements DirectoryHandle {
 
   @Override
   public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
-    Fs.fs().cp(
-        jsPath(), JSString.valueOf(path),
-        Fs.cpOptions(true),
-        error -> {
-          if (error == null) {
-            onComplete.run();
-          } else {
-            onError.accept(JsHelper.message(error).stringValue());
-          }
-        }
-    );
+    JSString from = jsPath();
+    JSString to = JSString.valueOf(path);
+    JSString toParent = JSString.valueOf(NodeFs.parent(path));
+
+    if (!Fs.fs().existsSync(toParent).booleanValue()) {
+      Fs.fs().mkdirSync(toParent, Fs.mkdirOptions(true));
+    }
+    Fs.fs().cp(from, to, Fs.cpOptions(true, true), NodeFs.callback(onComplete, onError));
+  }
+
+  @Override
+  public void remove(Runnable onComplete, Consumer<String> onError) {
+    JSString from = jsPath();
+    System.out.println("Remove path: " + from.stringValue());
+    Fs.fs().rmdir(from, Fs.mkdirOptions(true), NodeFs.callback(onComplete, onError));
   }
 
   @Override

@@ -172,6 +172,18 @@ public class JsHelper {
   @NoSideEffects
   public static native JSString message(JSError error);
 
+  public static JSString getMessage(JSError error) {
+    return JSString.valueOf(error.getMessage());
+  }
+
+  public interface WithId extends JSObject {
+    @JSProperty JSString getId();
+
+    static JSString get(JSObject o) {
+      return o.<WithId>cast().getId();
+    }
+  }
+
   @JSBody(params = {"x"}, script = "return x ? 1 : 0;")
   @NoSideEffects
   public static native boolean jsIf(JSObject x);

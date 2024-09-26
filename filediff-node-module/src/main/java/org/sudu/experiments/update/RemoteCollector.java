@@ -1,9 +1,10 @@
 package org.sudu.experiments.update;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.SizeScanner;
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
+import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.js.JsArray;
@@ -14,15 +15,12 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
 import org.teavm.jso.core.JSString;
 
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class RemoteCollector {
 
-  private RemoteFolderDiffModel root;
-  private DirectoryHandle leftHandle, rightHandle;
+  private ItemFolderDiffModel root;
 
   private final NodeWorkersPool executor;
   private final int workerSize;
@@ -52,15 +50,11 @@ public class RemoteCollector {
   private final Deque<Runnable> sendToWorkerQueue;
 
   public RemoteCollector(
-      RemoteFolderDiffModel root,
-      DirectoryHandle leftHandle,
-      DirectoryHandle rightHandle,
+      ItemFolderDiffModel root,
       boolean scanFileContent,
       NodeWorkersPool executor
   ) {
     this.root = root;
-    this.leftHandle = leftHandle;
-    this.rightHandle = rightHandle;
     this.executor = executor;
     this.scanFileContent = scanFileContent;
     this.startTime = this.lastMessageSentTime = Performance.now();
@@ -69,9 +63,15 @@ public class RemoteCollector {
   }
 
   public void beginCompare() {
-    String beginMsg = "Begin comparing" + leftHandle.getName() + " ↔ " + rightHandle.getName();
+    String beginMsg = "Begin comparing" + leftHandle().getName() + " ↔ " + rightHandle().getName();
     LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf(beginMsg));
-    compare(root, leftHandle, rightHandle);
+    compare(root);
+  }
+
+  public void refresh() {
+    sendToWorkerQueue.clear();
+    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf("Refresh"));
+    beginCompare();
   }
 
   public void onMessageGot(FrontendMessage message) {
@@ -81,23 +81,96 @@ public class RemoteCollector {
     if (sendResult != null) sendMessage();
   }
 
-  private void compare(
-      RemoteFolderDiffModel model,
-      FsItem leftItem,
-      FsItem rightItem
-  ) {
+  public void applyDiff(int[] path, boolean left) {
+    var model = (ItemFolderDiffModel) root.findNode(path);
+    int diffType = model.getDiffType();
+    if (diffType == DiffTypes.DEFAULT) return;
+
+    boolean isDeleteDiff = (left && diffType == DiffTypes.INSERTED) || (!left && diffType == DiffTypes.DELETED);
+    boolean isInsertDiff = (left && diffType == DiffTypes.DELETED) || (!left && diffType == DiffTypes.INSERTED);
+
+    ArrayWriter pathWriter = new ArrayWriter();
+    lastFrontendMessage.collectPath(path, pathWriter, root, left);
+
+    if (isDeleteDiff) {
+      var node = lastFrontendMessage.findNode(path);
+      var parentNode = lastFrontendMessage.findParentNode(path);
+      if (node != null && parentNode != null) parentNode.deleteItem(node);
+      model.deleteItem();
+    } else if (isInsertDiff) {
+      model.insertItem();
+    } else {
+      model.editItem(left);
+    }
+    if (model.isFile()) {
+      if (!isDeleteDiff) copyFile(model, left);
+      else removeFile(model);
+    } else {
+      if (!isDeleteDiff) copyFolder(model, left);
+      else removeFolder(model);
+    }
+  }
+
+  public void fileSave(int[] path, boolean left, String source) {
+    var model = (ItemFolderDiffModel) root.findNode(path);
+    var item = (FileHandle) (left ? model.left() : model.right());
+    item.writeText(source, () -> cmpFilesAndSend(model), this::onError);
+  }
+
+  private void copyFile(ItemFolderDiffModel model, boolean left) {
+    if (!(model.item() instanceof FileHandle fileItem)) return;
+    String to = model.getFullPath(!left ? leftHandle().getFullPath() : rightHandle().getFullPath());
+    fileItem.copyTo(to, this::sendApplied, this::onError);
+  }
+
+  private void removeFile(ItemFolderDiffModel model) {
+    if (!(model.item() instanceof FileHandle fileItem)) return;
+    fileItem.remove(this::sendApplied, this::onError);
+  }
+
+  private void copyFolder(ItemFolderDiffModel model, boolean left) {
+    if (!(model.item() instanceof DirectoryHandle dirItem)) return;
+    String to = model.getFullPath(!left ? leftHandle().getFullPath() : rightHandle().getFullPath());
+    dirItem.copyTo(to, this::sendApplied, this::onError);
+  }
+
+  private void removeFolder(ItemFolderDiffModel model) {
+    if (!(model.item() instanceof DirectoryHandle dirItem)) return;
+    dirItem.remove(this::sendApplied, this::onError);
+  }
+
+  private void cmpFilesAndSend(ItemFolderDiffModel model) {
+    Consumer<Object[]> onCompared = result -> {
+      boolean equals = ArgsCast.intArray(result, 0)[0] == 1;
+      if (equals) model.setDiffType(DiffTypes.DEFAULT);
+      else model.setDiffType(DiffTypes.EDITED);
+      model.updateItem();
+      sendMessage();
+    };
+    executor.sendToWorker(
+        onCompared,
+        DiffUtils.CMP_FILES,
+        model.left(), model.right()
+    );
+  }
+
+  private void onError(String error) {
+    LoggingJs.Static.logger.log(LoggingJs.ERROR, JSString.valueOf(error));
+  }
+
+  private void compare(ItemFolderDiffModel model) {
     ++inComparing;
-    if (leftItem instanceof DirectoryHandle leftDir &&
-        rightItem instanceof DirectoryHandle rightDir
+    if (model.left() instanceof DirectoryHandle leftDir &&
+        model.right() instanceof DirectoryHandle rightDir
     ) compareFolders(model, leftDir, rightDir);
-    else if (leftItem instanceof FileHandle leftFile
-        && rightItem instanceof FileHandle rightFile
+    else if (model.left() instanceof FileHandle leftFile
+        && model.right() instanceof FileHandle rightFile
     ) compareFiles(model, leftFile, rightFile);
     else throw new IllegalArgumentException();
   }
 
   private void compareFolders(
-      RemoteFolderDiffModel model,
+      ItemFolderDiffModel model,
       DirectoryHandle leftDir,
       DirectoryHandle rightDir
   ) {
@@ -111,7 +184,7 @@ public class RemoteCollector {
   }
 
   private void onFoldersCompared(
-      RemoteFolderDiffModel model,
+      ItemFolderDiffModel model,
       Object[] result
   ) {
     foldersCompared++;
@@ -127,7 +200,7 @@ public class RemoteCollector {
     FsItem[] rightItem = Arrays.copyOfRange(result, 1 + leftLen, 1 + leftLen + rightLen, FsItem[].class);
 
     int len = diffs.length;
-    model.children = new RemoteFolderDiffModel[len];
+    model.children = new ItemFolderDiffModel[len];
     model.childrenComparedCnt = 0;
 
     int lP = 0, rP = 0;
@@ -138,24 +211,30 @@ public class RemoteCollector {
       int kind = kinds[mP];
       if (diffs[mP] == DiffTypes.DELETED) {
         edited = true;
-        model.children[mP] = new RemoteFolderDiffModel(model, leftItem[lP].getName());
+        model.children[mP] = new ItemFolderDiffModel(model, leftItem[lP].getName());
+        model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.DELETED);
-        read(model.child(mP), leftItem[lP]);
+        model.child(mP).items = new FsItem[]{leftItem[lP]};
+        read(model.child(mP));
         mP++;
         lP++;
       } else if (diffs[mP] == DiffTypes.INSERTED) {
         edited = true;
-        model.children[mP] = new RemoteFolderDiffModel(model, rightItem[rP].getName());
+        model.children[mP] = new ItemFolderDiffModel(model, rightItem[rP].getName());
+        model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.INSERTED);
-        read(model.child(mP), rightItem[rP]);
+        model.child(mP).items = new FsItem[]{rightItem[rP]};
+        read(model.child(mP));
         mP++;
         rP++;
       } else {
-        model.children[mP] = new RemoteFolderDiffModel(model, leftItem[lP].getName());
+        model.children[mP] = new ItemFolderDiffModel(model, leftItem[lP].getName());
+        model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
-        compare(model.child(mP), leftItem[lP], rightItem[rP]);
+        model.child(mP).items = new FsItem[]{leftItem[lP], rightItem[rP]};
+        compare(model.child(mP));
         mP++;
         lP++;
         rP++;
@@ -167,7 +246,7 @@ public class RemoteCollector {
   }
 
   private void compareFiles(
-      RemoteFolderDiffModel model,
+      ItemFolderDiffModel model,
       FileHandle leftFile,
       FileHandle rightFile
   ) {
@@ -190,7 +269,7 @@ public class RemoteCollector {
   }
 
   private void onFilesCompared(
-      RemoteFolderDiffModel model,
+      ItemFolderDiffModel model,
       Object[] result
   ) {
     boolean equals = ArgsCast.intArray(result, 0)[0] == 1;
@@ -198,7 +277,7 @@ public class RemoteCollector {
   }
 
   private void onFilesCompared(
-      RemoteFolderDiffModel model,
+      ItemFolderDiffModel model,
       boolean equals
   ) {
     filesCompared++;
@@ -207,30 +286,33 @@ public class RemoteCollector {
     onItemCompared();
   }
 
-  private void read(RemoteFolderDiffModel model, FsItem handle) {
-    if (handle instanceof DirectoryHandle dirHandle) readFolder(model, dirHandle);
+  private void read(ItemFolderDiffModel model) {
+    if (model.item() instanceof DirectoryHandle dirHandle) readFolder(model, dirHandle);
     else model.itemCompared();
   }
 
-  private void readFolder(RemoteFolderDiffModel model, DirectoryHandle dirHandle) {
+  private void readFolder(ItemFolderDiffModel model, DirectoryHandle dirHandle) {
     ++inComparing;
     Runnable task = () -> executor.sendToWorker(
         result -> onFolderRead(model, result),
         DiffUtils.READ_FOLDER,
-        dirHandle, new int[]{model.getDiffType(), model.getItemKind()}
+        dirHandle, new int[]{model.getDiffType(), model.getItemKind(), model.posInParent}
     );
     sendToWorkerQueue.addLast(task);
     sendTaskToWorker();
   }
 
   private void onFolderRead(
-      RemoteFolderDiffModel model,
+      ItemFolderDiffModel model,
       Object[] result
   ) {
     int[] ints = ArgsCast.intArray(result, 0);
-    String[] paths = new String[result.length - 1];
-    for (int i = 0; i < paths.length; i++) paths[i] = (String) result[i + 1];
-    var updModel = RemoteFolderDiffModel.fromInts(ints, paths);
+    int[] sizes = ArgsCast.intArray(result, 1);
+    String[] paths = new String[sizes[0]];
+    FsItem[] fsItems = new FsItem[sizes[1]];
+    for (int i = 0; i < paths.length; i++) paths[i] = (String) result[i + 2];
+    for (int i = 0; i < fsItems.length; i++) fsItems[i] = (FsItem) result[sizes[0] + i + 2];
+    var updModel = ItemFolderDiffModel.fromInts(ints, paths, fsItems);
     model.update(updModel);
     onItemCompared();
   }
@@ -278,7 +360,7 @@ public class RemoteCollector {
     send(onComplete, null);
 
     this.lastMessageSentTime = Performance.now();
-    String completeMsg = leftHandle.getName() + " ↔ " + rightHandle.getName() +
+    String completeMsg = leftHandle().getName() + " ↔ " + rightHandle().getName() +
         " - finished in " + Numbers.iRnd(lastMessageSentTime - startTime) + "ms, " +
         "foldersCompared: " + foldersCompared + ", filesCompared: " + filesCompared;
     LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf(completeMsg));
@@ -286,11 +368,22 @@ public class RemoteCollector {
 
   private void send(Consumer<JsArray<JSObject>> send, FrontendMessage message) {
     LoggingJs.Static.logger.log(LoggingJs.TRACE, JSString.valueOf("inComparing: " + inComparing));
-    String leftRootName = leftHandle.getFullPath();
-    String rightRootName = rightHandle.getFullPath();
+    String leftRootName = leftHandle().getFullPath();
+    String rightRootName = rightHandle().getFullPath();
     var jsArray = BackendMessage.serialize(root, message, leftRootName, rightRootName);
     jsArray.push(DiffModelChannelUpdater.FRONTEND_MESSAGE_ARRAY);
     send.accept(jsArray);
+  }
+
+  private void sendApplied() {
+    LoggingJs.Static.logger.log(LoggingJs.DEBUG, JSString.valueOf("Send applied model"));
+    if (sendResult == null) return;
+    String leftRootName = leftHandle().getFullPath();
+    String rightRootName = rightHandle().getFullPath();
+    var backendMessage = lastMessageSent ? null : lastFrontendMessage;
+    var jsArray = BackendMessage.serialize(root, backendMessage, leftRootName, rightRootName);
+    jsArray.push(DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
+    sendResult.accept(jsArray);
   }
 
   private double getTimeDelta() {
@@ -315,9 +408,16 @@ public class RemoteCollector {
   private void shutdown() {
     if (sentToWorker != 0) return;
     root = null;
-    leftHandle = rightHandle = null;
     lastFrontendMessage = null;
     sendResult = onComplete = null;
     onShutdown.run();
+  }
+
+  private DirectoryHandle leftHandle() {
+    return (DirectoryHandle) root.items[0];
+  }
+
+  private DirectoryHandle rightHandle() {
+    return (DirectoryHandle) root.items[1];
   }
 }

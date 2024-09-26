@@ -6,6 +6,7 @@ import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -119,9 +120,9 @@ public class TreeView extends ScrollContent implements Focusable {
     };
   }
 
-  public void setModel(TreeNode[] lines) {
+  void setModel(TreeModel model) {
     TreeNode selectedLine = selectedLine();
-    model = new TreeModel(lines);
+    this.model = model;
 
     boolean keepSelectedIndex =
         selectedLine != null && selectedLine.isEmpty();
@@ -136,6 +137,10 @@ public class TreeView extends ScrollContent implements Focusable {
 
   public TreeNode[] model() {
     return model.lines;
+  }
+
+  public FolderDiffModel[] diffModel() {
+    return model.models;
   }
 
   public void setTheme(EditorColorScheme colors) {
@@ -422,13 +427,15 @@ public class TreeView extends ScrollContent implements Focusable {
 
   static class TreeModel extends CodeLines {
     TreeNode[] lines;
+    FolderDiffModel[] models;
 
     public TreeModel() {
-      this(new TreeNode[]{});
+      this(new TreeNode[]{}, new FolderDiffModel[]{});
     }
 
-    public TreeModel(TreeNode[] lines) {
+    public TreeModel(TreeNode[] lines, FolderDiffModel[] models) {
       this.lines = lines;
+      this.models = models;
     }
 
     public CodeLine line(int i) { return lines[i].line; }
@@ -576,5 +583,9 @@ public class TreeView extends ScrollContent implements Focusable {
       onSelectedLineChanged(line);
     }
     return false;
+  }
+
+  public void setSelectedIndex(int selectedIndex) {
+    this.selectedIndex = selectedIndex;
   }
 }

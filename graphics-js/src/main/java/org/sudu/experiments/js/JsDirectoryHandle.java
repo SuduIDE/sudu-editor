@@ -133,6 +133,11 @@ class JsDirectoryHandle implements DirectoryHandle {
     onError.accept("not implemented");
   }
 
+  @Override
+  public void remove(Runnable onComplete, Consumer<String> onError) {
+    onError.accept("not implemented");
+  }
+
   @JSBody(params = {"a", "b"}, script = "return a + '/' + b;")
   @NoSideEffects
   public static native JSString add(JSString a, JSString  b);

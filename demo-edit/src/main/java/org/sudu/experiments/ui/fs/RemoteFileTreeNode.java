@@ -5,7 +5,8 @@ import org.sudu.experiments.ui.FileTreeNode;
 
 public class RemoteFileTreeNode extends FileTreeNode {
 
-  public RemoteHandle handle;
+  protected RemoteHandle handle;
+  public int posInParent = -1;
 
   public RemoteFileTreeNode(
       String path,
@@ -37,5 +38,17 @@ public class RemoteFileTreeNode extends FileTreeNode {
     StringBuilder sb = new StringBuilder();
     model().collectPathFromRoot(sb);
     return sb.toString();
+  }
+
+  public RemoteFileTreeNode[] getChildren() {
+    return (RemoteFileTreeNode[]) children;
+  }
+
+  public void setChildren(FileTreeNode[] children) {
+    this.children = children;
+  }
+
+  public void setHandle(RemoteHandle handle) {
+    this.handle = handle;
   }
 }

@@ -110,4 +110,9 @@ public class TreeNode {
   public int hashCode() {
     return Objects.hashCode(value());
   }
+
+  @Override
+  public String toString() {
+    return value();
+  }
 }

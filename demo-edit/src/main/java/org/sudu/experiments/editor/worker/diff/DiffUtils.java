@@ -2,12 +2,13 @@ package org.sudu.experiments.editor.worker.diff;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.FsItem;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffModel;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
+import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.editor.Document;
 import org.sudu.experiments.ui.fs.FileCompare;
@@ -58,8 +59,10 @@ public class DiffUtils {
       DirectoryHandle folder, int[] ints,
       Consumer<Object[]> r
   ) {
-    var model = new RemoteFolderDiffModel(null, folder.getName());
+    var model = new ItemFolderDiffModel(null, folder.getName());
+    model.items = new FsItem[]{folder};
     var reader = new ReadFolderHandler(model, folder, ints[0], ints[1], r);
+    model.posInParent = ints[2];
     reader.beginRead();
   }
 

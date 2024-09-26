@@ -8,8 +8,6 @@ import org.sudu.experiments.diff.ItemKind;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.sudu.experiments.diff.folder.PropTypes.*;
-
 public class RemoteFolderDiffModel extends FolderDiffModel {
 
   public String path;
@@ -45,16 +43,6 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
       if (parent.parent != null) sb.append("/");  // because root path is empty
     }
     sb.append(path);
-  }
-
-  public static final RemoteFolderDiffModel REMOTE_DEFAULT = getDefault();
-
-  private static RemoteFolderDiffModel getDefault() {
-    var model = new RemoteFolderDiffModel(null, "");
-    model.setPropagation(PROP_DOWN);
-    model.setDiffType(DiffTypes.DEFAULT);
-    model.setCompared(true);
-    return model;
   }
 
   public static int[] toInts(
@@ -103,7 +91,10 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
     int childrenLen = reader.next();
     if (childrenLen != -1) {
       var children = new RemoteFolderDiffModel[childrenLen];
-      for (int i = 0; i < childrenLen; i++) children[i] = fromInts(reader, paths, model);
+      for (int i = 0; i < childrenLen; i++) {
+        children[i] = fromInts(reader, paths, model);
+        children[i].posInParent = i;
+      }
       model.children = children;
     }
     return model;

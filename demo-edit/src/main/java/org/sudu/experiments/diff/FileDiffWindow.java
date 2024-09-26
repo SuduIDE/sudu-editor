@@ -178,4 +178,8 @@ public class FileDiffWindow extends ToolWindow0
     }
     return false;
   }
+
+  public void setOnDiffMade(Consumer<String> onLeftDiffMade, Consumer<String> onRightDiffMade) {
+    rootView.setOnDiffMade(onLeftDiffMade, onRightDiffMade);
+  }
 }

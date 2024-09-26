@@ -22,6 +22,8 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
   DiffInfo diffModel;
   private int modelFlags;
 
+  Consumer<String> onLeftDiffMade, onRightDiffMade;
+
   FileDiffRootView(WindowManager wm) {
     super(wm.uiContext);
     ui = new EditorUi(wm);
@@ -91,8 +93,11 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
   }
 
   private void iterativeParseFileListener(EditorComponent editor, int start, int stop) {
-    if (diffModel == null) return;
     boolean isL = editor == editor1;
+    if (isL) onLeftDiffMade();
+    else onRightDiffMade();
+
+    if (diffModel == null) return;
     int startLine = editor.model().document.getLine(start).x;
     int stopLine = editor.model().document.getLine(stop).x;
     var fromRangeInd = diffModel.leftBS(startLine, isL);
@@ -163,7 +168,7 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     diffSync.setModel(diffModel);
     middleLine.setModel(diffModel);
 
-    var pair = MergeButtonsModel.getModels(diffInfo, this::applyDiff);
+    var pair = MergeButtonsModel.getModels(diffInfo, editor1.readonly, editor2.readonly, this::applyDiff);
     MergeButtonsModel m1 = pair[0], m2 = pair[1];
     editor1.setMergeButtons(m1.actions, m1.lines);
     editor2.setMergeButtons(m2.actions, m2.lines);
@@ -199,25 +204,85 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     );
   }
 
+  public void setOnDiffMade(
+      Consumer<String> onLeftDiffMade,
+      Consumer<String> onRightDiffMade
+  ) {
+    this.onLeftDiffMade = onLeftDiffMade;
+    this.onRightDiffMade = onRightDiffMade;
+  }
+
+  private void onLeftDiffMade() {
+    if (onLeftDiffMade != null) onLeftDiffMade.accept(new String(editor1.getChars()));
+  }
+
+  private void onRightDiffMade() {
+    if (onRightDiffMade != null) onRightDiffMade.accept(new String(editor2.getChars()));
+  }
+
+  private EditorComponent getFocused() {
+    return editor1.isFocused()
+        ? editor1
+        : editor2.isFocused()
+        ? editor2
+        : null;
+  }
+
   public boolean canNavigateUp() {
-    // TODO
+    var focused = getFocused();
+    if (focused == null) return false;
+    int lineInd = focused.caretLine();
+    boolean left = focused == editor1;
+    int rangeInd = diffModel.rangeBinSearch(lineInd, left);
+    for (int i = rangeInd; i >= 0; i--) {
+      if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return true;
+    }
     return false;
   }
 
   public void navigateUp() {
-    // TODO
+    var focused = getFocused();
+    if (focused == null) return;
+    int lineInd = focused.caretLine();
+    boolean left = focused == editor1;
+    int rangeInd = diffModel.rangeBinSearch(lineInd, left);
+    for (int i = rangeInd; i >= 0; i--) {
+      if (diffModel.ranges[i].type != DiffTypes.DEFAULT) {
+        var range = diffModel.ranges[i];
+        focused.setPosition(left ? range.fromL : range.fromR, 0);
+        return;
+      }
+    }
   }
 
   public boolean canNavigateDown() {
-    // TODO
+    var focused = getFocused();
+    if (focused == null) return false;
+    int lineInd = focused.caretLine();
+    boolean left = focused == editor1;
+    int rangeInd = diffModel.rangeBinSearch(lineInd, left);
+    for (int i = rangeInd; i < diffModel.ranges.length; i++) {
+      if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return true;
+    }
     return false;
   }
 
   public void navigateDown() {
-    // TODO
+    var focused = getFocused();
+    if (focused == null) return;
+    int lineInd = focused.caretLine();
+    boolean left = focused == editor1;
+    int rangeInd = diffModel.rangeBinSearch(lineInd, left);
+    for (int i = rangeInd; i < diffModel.ranges.length; i++) {
+      if (diffModel.ranges[i].type != DiffTypes.DEFAULT) {
+        var range = diffModel.ranges[i];
+        focused.setPosition(left ? range.fromL : range.fromR, 0);
+        return;
+      }
+    }
   }
 
   public void refresh() {
-    // TODO
+    sendToDiff();
   }
 }

@@ -2,6 +2,8 @@ package org.sudu.experiments.protocol;
 
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
@@ -9,6 +11,7 @@ import org.sudu.experiments.ui.fs.RemoteFileTreeNode;
 import org.teavm.jso.JSObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,6 +31,19 @@ public class FrontendMessage {
     EMPTY.openedFolders = new FrontendTreeNode();
     EMPTY.openedFolders.name = "";
     EMPTY.searchQuery = "";
+  }
+
+  public FrontendTreeNode findNode(int[] path) {
+    return openedFolders.findNode(path);
+  }
+
+  public FrontendTreeNode findParentNode(int[] path) {
+    if (path.length - 1 < 0) return null;
+    return findNode(Arrays.copyOf(path, path.length - 1));
+  }
+
+  public void collectPath(int[] path, ArrayWriter pathWriter, FolderDiffModel root, boolean left) {
+    openedFolders.collectPath(path, pathWriter, root, left ? ModelFilter.LEFT : ModelFilter.RIGHT);
   }
 
   public static JsArray<JSObject> serialize(

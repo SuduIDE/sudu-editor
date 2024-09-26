@@ -12,6 +12,10 @@ public class DiffModelBuilder {
   // left.length == right.length
   public static DiffInfo getDiffInfo(TreeNode[] left, TreeNode[] right) {
     DiffRange[] ranges = new DiffRange[1];
+    LineDiff[] leftLines = new LineDiff[left.length];
+    LineDiff[] rightLines = new LineDiff[right.length];
+    for (int i = 0; i < left.length; i++) leftLines[i] = new LineDiff(left[i].diffType);
+    for (int i = 0; i < right.length; i++) rightLines[i] = new LineDiff(right[i].diffType);
     int ptr = 0;
 
     int i = 0;
@@ -22,6 +26,6 @@ public class DiffModelBuilder {
       var range = new DiffRange(begin, i - begin, begin, i - begin, diffType);
       ranges = ArrayOp.addAt(range, ranges, ptr++);
     }
-    return new DiffInfo(null, null, Arrays.copyOf(ranges, ptr));
+    return new DiffInfo(leftLines, rightLines, Arrays.copyOf(ranges, ptr));
   }
 }
