@@ -54,6 +54,10 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
     return handle.getOppositeDir(this);
   }
 
+  public RemoteFileTreeNode findSubItem(String path, boolean isFolder) {
+    return isFolder ? findSubDir(path) : findSubFile(path);
+  }
+
   public RemoteDirectoryNode findSubDir(String path) {
     return (RemoteDirectoryNode) FileTreeNode.bs(children, 0, folderCnt, path);
   }

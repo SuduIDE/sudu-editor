@@ -171,7 +171,6 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       RemoteDirectoryNode right,
       RemoteFolderDiffModel model
   ) {
-    // todo fix open deep folders
     HashSet<String> opened = new HashSet<>();
     for (var child: left.getChildren()) {
       if (!child.isOpened()) continue;
@@ -181,45 +180,89 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       if (!child.isOpened()) continue;
       opened.add(child.name());
     }
-    left.doOpen();
-    right.doOpen();
-    int l = 0, r = 0;
-    for (var child: model.children) {
+    var leftChildren = new RemoteFileTreeNode[1];
+    var rightChildren = new RemoteFileTreeNode[1];
+    int lp = 0, rp = 0;
+    int leftFolderCnt = 0;
+    int rightFolderCnt = 0;
+    for (int i = 0; i < model.children.length; i++) {
+      var child = model.child(i);
+      String path = child.path;
+      boolean isFolder = !child.isFile();
+      boolean isOpened = opened.contains(path);
+      if (child.isLeft()) {
+        if (isFolder) leftFolderCnt++;
+        leftChildren[lp] = findUpdateNode(left, path, isFolder, isOpened);
+        leftChildren[lp++].setHandle(getHandle(true, childModel(left.model(), i)));
+      }
+      if (child.isRight()) {
+        if (isFolder) rightFolderCnt++;
+        rightChildren[rp] = findUpdateNode(right, path, isFolder, isOpened);
+        rightChildren[rp++].setHandle(getHandle(false, childModel(right.model(), i)));
+      }
+      if (!isOpened) continue;
       if (child.isBoth()) {
-        var leftChild = left.child(l);
-        var rightChild = right.child(r);
-        boolean isOpened = opened.contains(leftChild.name()) || opened.contains(rightChild.name());
-        if (isOpened
-            && leftChild instanceof RemoteDirectoryNode leftDir
-            && rightChild instanceof RemoteDirectoryNode rightDir
-        ) updateNodes(leftDir, rightDir, (RemoteFolderDiffModel) child);
-        l++;
-        r++;
+        var leftChild = leftChildren[lp - 1];
+        var rightChild = rightChildren[rp - 1];
+        if (leftChild instanceof RemoteDirectoryNode leftDir &&
+            rightChild instanceof RemoteDirectoryNode rightDir
+        ) updateNodes(leftDir, rightDir, child);
       } else if (child.isLeft()) {
-        var leftChild = left.child(l);
-        boolean isOpened = opened.contains(leftChild.name());
-        if (isOpened && leftChild instanceof RemoteDirectoryNode leftDir) updateNode(leftDir);
-        l++;
-      } else if (child.isRight()) {
-        var rightChild = right.child(r);
-        boolean isOpened = opened.contains(rightChild.name());
-        if (isOpened && rightChild instanceof RemoteDirectoryNode rightDir) updateNode(rightDir);
-        r++;
+        var leftChild = leftChildren[lp - 1];
+        if (leftChild instanceof RemoteDirectoryNode leftDir) updateNode(leftDir, child, true);
+      } else {
+        var rightChild = rightChildren[rp - 1];
+        if (rightChild instanceof RemoteDirectoryNode rightDir) updateNode(rightDir, child, false);
       }
     }
+    left.setChildren(Arrays.copyOf(leftChildren, lp));
+    left.folderCnt = leftFolderCnt;
+    right.setChildren(Arrays.copyOf(rightChildren, rp));
+    right.folderCnt = rightFolderCnt;
   }
 
-  private void updateNode(RemoteDirectoryNode node) {
+  private void updateNode(
+      RemoteDirectoryNode node,
+      RemoteFolderDiffModel model,
+      boolean left
+  ) {
     HashSet<String> opened = new HashSet<>();
     for (var child: node.getChildren()) {
       if (!child.isOpened()) continue;
       opened.add(child.name());
     }
-    node.doOpen();
-    for (var child: node.getChildren()) {
-      if (!(opened.contains(child.name()) && child instanceof RemoteDirectoryNode dirNode)) continue;
-      updateNode(dirNode);
+    var children = new RemoteFileTreeNode[1];
+    int p = 0;
+    node.folderCnt = 0;
+    for (int i = 0; i < model.children.length; i++) {
+      var child = model.child(i);
+      String path = child.path;
+      boolean isFolder = !model.isFile();
+      boolean isOpened = opened.contains(path);
+      if (isFolder) node.folderCnt++;
+      children[p] = findUpdateNode(node, path, isFolder, isOpened);
+      children[p++].setHandle(getHandle(left, childModel(node.model(), i)));
+      if (isOpened) continue;
+      if (children[p - 1] instanceof RemoteDirectoryNode dirNode) updateNode(dirNode, child, left);
     }
+    children = Arrays.copyOf(children, p);
+    node.setChildren(children);
+  }
+
+  private static RemoteFileTreeNode findUpdateNode(
+      RemoteDirectoryNode node,
+      String path,
+      boolean isFolder,
+      boolean isOpened
+  ) {
+    var leftNode = node.findSubItem(path, isFolder);
+    var updNode =  leftNode != null
+        ? leftNode
+        : isFolder
+        ? new RemoteDirectoryNode(path, null, node.depth + 1)
+        : new RemoteFileNode(path, null, node.depth + 1);
+    if (isOpened) updNode.open();
+    return updNode;
   }
 
   protected void updateDiffInfo() {
@@ -322,7 +365,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       }
 
       private Supplier<RemoteFolderDiffModel> getModel(int i) {
-        return () -> getModel().child(i);
+        return childModel(getModel(), i);
       }
 
       private RemoteDirectoryNode getOppositeDir(RemoteFolderDiffModel model) {
@@ -347,6 +390,10 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     };
   }
 
+  private static Supplier<RemoteFolderDiffModel> childModel(RemoteFolderDiffModel parent, int i) {
+    return () -> parent.child(i);
+  }
+
   private void newEditor(RemoteFileNode node, boolean left) {
     if (opener == null) {
       var window = new EditorWindow(windowManager, theme, fonts);
@@ -354,7 +401,6 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       addWindow(window, new JsEditorViewController0());
       openFileMap[keyCnt] = (source) -> window.open(source, node.name());
       sendOpenFile(node, left);
-      window.setOnDiffMade(onLeftDiff, onRightDiff);
       Consumer<String> onDiffMade = left ?
           (src) -> fileDiffMade(node.getFullPath(leftRoot.name()), src) :
           (src) -> fileDiffMade(node.getFullPath(rightRoot.name()), src);

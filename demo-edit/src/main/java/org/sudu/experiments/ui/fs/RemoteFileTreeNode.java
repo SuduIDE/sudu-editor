@@ -47,4 +47,8 @@ public class RemoteFileTreeNode extends FileTreeNode {
   public void setChildren(FileTreeNode[] children) {
     this.children = children;
   }
+
+  public void setHandle(RemoteHandle handle) {
+    this.handle = handle;
+  }
 }

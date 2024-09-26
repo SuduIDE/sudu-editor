@@ -170,13 +170,17 @@ public class FolderDiffModel {
     }
     parent.childrenComparedCnt--;
     parent.children = newChildren;
+    parent.updateItem();
   }
 
   // todo change parent status after diff applying
   public void insertItem() {
     this.setDiffType(DiffTypes.DEFAULT);
     if (children != null) for (var child: children) child.insertItem();
-    if (parent != null) parent.afterInsert();
+    if (parent != null) {
+      parent.afterInsert();
+      parent.updateItem();
+    }
   }
 
   public void afterInsert() {
@@ -197,6 +201,24 @@ public class FolderDiffModel {
     if (isFile()) setDiffType(DiffTypes.DEFAULT);
     if (children == null) return;
     for (var child: children) child.editItem(left);
+    updateItem();
+  }
+
+  public void updateItem() {
+    if (getDiffType() == DiffTypes.DEFAULT) return;
+    boolean haveChanges = false;
+    if (children != null) {
+      for (var child: children) {
+        if (child.getDiffType() != DiffTypes.DEFAULT) {
+          haveChanges = true;
+          break;
+        }
+      }
+      if (!haveChanges) {
+        setDiffType(DiffTypes.DEFAULT);
+        if (parent != null) parent.updateItem();
+      } else setDiffType(DiffTypes.EDITED);
+    }
   }
 
   public FolderDiffModel findNode(int[] path) {
