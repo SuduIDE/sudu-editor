@@ -22,5 +22,12 @@ public interface DiffEngineJs extends JSObject {
       JsFolderDiffSession parent
   );
 
+//  startFileEdit(
+//      path: string,
+//      channel: Channel
+//  ): FileDiffSession;
+
+  JsFileDiffSession startFileEdit(JSString path, Channel channel);
+
   JsDiffTestApi testApi();
 }

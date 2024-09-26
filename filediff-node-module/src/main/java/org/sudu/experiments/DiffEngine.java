@@ -53,9 +53,16 @@ public class DiffEngine implements DiffEngineJs {
       Channel channel,
       JsFolderDiffSession parent
   ) {
-    JsHelper.consoleInfo("Starting new file diff ");
+    JsHelper.consoleInfo("Starting new file diff ...");
     JsHelper.consoleInfo("  LeftPath: ", leftPath);
     JsHelper.consoleInfo("  RightPath: ", rightPath);
+    return new JsFileDiffSession0();
+  }
+
+  @Override
+  public JsFileDiffSession startFileEdit(JSString path, Channel channel) {
+    JsHelper.consoleInfo("Starting file edit ...");
+    JsHelper.consoleInfo("  path: ", path);
     return new JsFileDiffSession0();
   }
 
