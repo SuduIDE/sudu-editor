@@ -24,6 +24,8 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
 
   Consumer<String> onLeftDiffMade, onRightDiffMade;
 
+  boolean firstDiffRevealed = false;
+
   FileDiffRootView(WindowManager wm) {
     super(wm.uiContext);
     ui = new EditorUi(wm);
@@ -159,6 +161,7 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
         new DiffRange[]{range}
     );
     setDiffModel(diffInfo);
+    firstDiffRevealed = false;
   }
 
   public void setDiffModel(DiffInfo diffInfo) {
@@ -172,6 +175,8 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     MergeButtonsModel m1 = pair[0], m2 = pair[1];
     editor1.setMergeButtons(m1.actions, m1.lines);
     editor2.setMergeButtons(m2.actions, m2.lines);
+
+    if (!firstDiffRevealed) revealFirstDiff();
   }
 
   public void updateDiffModel(
@@ -220,6 +225,16 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     if (onRightDiffMade != null) onRightDiffMade.accept(new String(editor2.getChars()));
   }
 
+  private void revealFirstDiff() {
+    firstDiffRevealed = true;
+    for (var range: diffModel.ranges) {
+      if (range.type == DiffTypes.DEFAULT) continue;
+      editor1.setPosition(0, range.fromL);
+      editor2.setPosition(0, range.fromR);
+      break;
+    }
+  }
+
   private EditorComponent getFocused() {
     return editor1.isFocused()
         ? editor1
@@ -249,7 +264,7 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     for (int i = rangeInd; i >= 0; i--) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) {
         var range = diffModel.ranges[i];
-        focused.setPosition(left ? range.fromL : range.fromR, 0);
+        focused.setPosition(0, left ? range.fromL : range.fromR);
         return;
       }
     }
@@ -276,7 +291,7 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     for (int i = rangeInd; i < diffModel.ranges.length; i++) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) {
         var range = diffModel.ranges[i];
-        focused.setPosition(left ? range.fromL : range.fromR, 0);
+        focused.setPosition(0, left ? range.fromL : range.fromR);
         return;
       }
     }
