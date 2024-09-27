@@ -139,7 +139,7 @@ type SelectionOrPosition = IRange | IPosition;
 
 interface ICodeEditorOpener {
     openCodeEditor(
-        source: ICodeEditorView,
+        source: IEditorView,
         resource: Uri,
         selectionOrPosition?: SelectionOrPosition
     ): boolean | Promise<boolean>;
@@ -202,7 +202,7 @@ export interface TwoPanelDiff {
     setReadonly(leftReadonly: boolean, rightReadonly: boolean): void
 }
 
-export interface ICodeEditorView extends View, HasTheme, Focusable {
+export interface IEditorView extends View, HasTheme, Focusable {
     setText(text: string): void,
 
     getText(): string,
@@ -228,7 +228,7 @@ export interface ICodeEditorView extends View, HasTheme, Focusable {
     revealPosition(position: IPosition): void
 }
 
-interface CodeEditorView extends ICodeEditorView, IDisposable {
+interface EditorView extends IEditorView, IDisposable {
     setReadonly(flag: boolean): void
 
     setModel(model: ITextModel): void
@@ -236,13 +236,13 @@ interface CodeEditorView extends ICodeEditorView, IDisposable {
     onDidChangeModel: IEvent<IModelChangedEvent>
 }
 
-export interface ICodeDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
+export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
     getLeftModel(): ITextModel,
 
     getRightModel(): ITextModel,
 }
 
-interface CodeDiffView extends ICodeDiffView, IDisposable {
+interface FileDiffView extends IFileDiffView, IDisposable {
     setLeftModel(model: ITextModel): void,
 
     setRightModel(model: ITextModel): void,
@@ -307,8 +307,8 @@ export interface EditorViewController extends ViewController {
 
 export interface ExternalFileOpener {
     // All paths are absolute
-    openCodeDiff(leftPath: string, rightPath: string): void
-    openCodeEditor(path: string): void
+    openFileDiff(leftPath: string, rightPath: string): void
+    openEditor(path: string): void
 }
 
 export interface RemoteFolderDiffView extends IFolderDiffView, IDisposable {
@@ -319,14 +319,14 @@ export interface RemoteFolderDiffView extends IFolderDiffView, IDisposable {
     setExternalFileOpener(opener: ExternalFileOpener | null): void
 }
 
-export interface RemoteCodeDiffView extends ICodeDiffView, IDisposable {
+export interface RemoteFileDiffView extends IFileDiffView, IDisposable {
     getState(): any
     applyState(state: any): void
-    getController(): EditorViewController;
-    onControllerUpdate: IEvent<EditorViewController>
+    getController(): FileDiffViewController;
+    onControllerUpdate: IEvent<FileDiffViewController>
 }
 
-export interface RemoteCodeEditorView extends ICodeEditorView, IDisposable {
+export interface RemoteEditorView extends IEditorView, IDisposable {
     getState(): any
     applyState(state: any): void
     getController(): EditorViewController;
@@ -335,14 +335,14 @@ export interface RemoteCodeEditorView extends ICodeEditorView, IDisposable {
 
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
 
-export function newEditor(args: EditArgs): Promise<CodeEditorView>
+export function newEditor(args: EditArgs): Promise<EditorView>
 
-export function newCodeDiff(args: EditArgs): Promise<CodeDiffView>
+export function newFileDiff(args: EditArgs): Promise<FileDiffView>
 
 export function newFolderDiff(args: EditArgs): Promise<FolderDiffView>
 
 export function newRemoteFolderDiff(args: EditArgs, channel: Channel): Promise<RemoteFolderDiffView>
 
-export function newRemoteCodeDiff(args: EditArgs, channel: Channel): Promise<RemoteCodeDiffView>
+export function newRemoteFileDiff(args: EditArgs, channel: Channel): Promise<RemoteFileDiffView>
 
-export function newRemoteEditor(args: EditArgs, channel: Channel): Promise<RemoteCodeEditorView>
+export function newRemoteEditor(args: EditArgs, channel: Channel): Promise<RemoteEditorView>
