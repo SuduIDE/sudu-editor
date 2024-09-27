@@ -181,7 +181,7 @@ export type Theme = {
   baseTheme: BaseTheme;
 } | BaseTheme;
 
-interface HasTheme {
+export interface HasTheme {
   setFontFamily(fontFamily: string): void,
 
   setFontSize(fontSize: number): void,
@@ -189,11 +189,11 @@ interface HasTheme {
   setTheme(theme: Theme): void
 }
 
-interface Focusable {
+export interface Focusable {
   focus(): void
 }
 
-interface View {
+export interface View {
   disconnectFromDom(): void
   reconnectToDom(containerId?: string): void
 }
@@ -228,7 +228,7 @@ export interface IEditorView extends View, HasTheme, Focusable {
   revealPosition(position: IPosition): void
 }
 
-interface EditorView extends IEditorView, IDisposable {
+export interface EditorView extends IEditorView, IDisposable {
   setReadonly(flag: boolean): void
 
   setModel(model: ITextModel): void
@@ -242,7 +242,7 @@ export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
   getRightModel(): ITextModel,
 }
 
-interface FileDiffView extends IFileDiffView, IDisposable {
+export interface FileDiffView extends IFileDiffView, IDisposable {
   setLeftModel(model: ITextModel): void,
 
   setRightModel(model: ITextModel): void,
