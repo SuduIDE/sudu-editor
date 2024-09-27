@@ -2,7 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.teavm.jso.core.JSString;
 
-public interface JsFileDiffViewController extends JsDiffViewController {
+public interface JsFileDiffViewController extends JsViewController {
   // returns 'fileDiff'
   JSString getViewType();
 

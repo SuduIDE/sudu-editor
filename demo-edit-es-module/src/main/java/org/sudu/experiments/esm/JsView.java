@@ -2,7 +2,9 @@ package org.sudu.experiments.esm;
 
 import org.teavm.jso.core.JSString;
 
-public interface JsBaseControl extends JsThemeTarget  {
+
+// View Focusable Disposable HasTheme
+public interface JsView extends JsHasTheme {
   void dispose();
   void focus();
   void disconnectFromDom();

@@ -139,7 +139,7 @@ type SelectionOrPosition = IRange | IPosition;
 
 interface ICodeEditorOpener {
     openCodeEditor(
-        source: ICodeEditor,
+        source: ICodeEditorView,
         resource: Uri,
         selectionOrPosition?: SelectionOrPosition
     ): boolean | Promise<boolean>;
@@ -193,7 +193,7 @@ interface Focusable {
     focus(): void
 }
 
-interface EditorBase {
+interface View {
     disconnectFromDom(): void
     reconnectToDom(containerId?: string): void
 }
@@ -202,39 +202,22 @@ export interface TwoPanelDiff {
     setReadonly(leftReadonly: boolean, rightReadonly: boolean): void
 }
 
-export interface ICodeDiff extends EditorBase, HasTheme, Focusable, TwoPanelDiff {
-    setLeftModel(model: ITextModel): void,
-
-    setRightModel(model: ITextModel): void,
-
-    getLeftModel(): ITextModel,
-
-    getRightModel(): ITextModel,
-}
-
-interface CodeDiffView extends ICodeDiff, IDisposable {
-}
-
-export interface ICodeEditor extends EditorBase, HasTheme, Focusable {
-    setReadonly(flag: boolean): void,
-
+export interface ICodeEditorView extends View, HasTheme, Focusable {
     setText(text: string): void,
 
     getText(): string,
-
-    setModel(model: ITextModel): void,
 
     setPosition(position: IPosition): void
 
     getPosition(): IPosition
 
-    getModel(): ITextModel,
+    getModel(): ITextModel
 
-    registerDefinitionProvider(languageSelector: LanguageSelector, provider: IDefinitionProvider): IDisposable,
-    registerDeclarationProvider(languageSelector: LanguageSelector, provider: IDeclarationProvider): IDisposable;
-    registerReferenceProvider(languageSelector: LanguageSelector, provider: IReferenceProvider): IDisposable,
+    registerDefinitionProvider(languageSelector: LanguageSelector, provider: IDefinitionProvider): IDisposable
+    registerDeclarationProvider(languageSelector: LanguageSelector, provider: IDeclarationProvider): IDisposable
+    registerReferenceProvider(languageSelector: LanguageSelector, provider: IReferenceProvider): IDisposable
 
-    registerDocumentHighlightProvider(languageSelector: LanguageSelector, provider: IDocumentHighlightProvider): IDisposable,
+    registerDocumentHighlightProvider(languageSelector: LanguageSelector, provider: IDocumentHighlightProvider): IDisposable
 
     registerEditorOpener(opener: ICodeEditorOpener): IDisposable
 
@@ -243,19 +226,34 @@ export interface ICodeEditor extends EditorBase, HasTheme, Focusable {
     revealLine(line: number): void
 
     revealPosition(position: IPosition): void
+}
+
+interface CodeEditorView extends ICodeEditorView, IDisposable {
+    setReadonly(flag: boolean): void
+
+    setModel(model: ITextModel): void
 
     onDidChangeModel: IEvent<IModelChangedEvent>
 }
 
-interface EditView extends ICodeEditor, IDisposable {
+export interface ICodeDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
+    getLeftModel(): ITextModel,
+
+    getRightModel(): ITextModel,
 }
 
-export interface IFolderDiff extends EditorBase, HasTheme, TwoPanelDiff, Focusable {
+interface CodeDiffView extends ICodeDiffView, IDisposable {
+    setLeftModel(model: ITextModel): void,
+
+    setRightModel(model: ITextModel): void,
+}
+
+export interface IFolderDiffView extends View, HasTheme, TwoPanelDiff, Focusable {
     isReady(): boolean
     onReadyChanged: IEvent<boolean>
 }
 
-export interface FolderDiffView extends IFolderDiff, IDisposable {
+export interface FolderDiffView extends IFolderDiffView, IDisposable {
 }
 
 export interface FolderDiffSelection {
@@ -272,7 +270,7 @@ export interface FolderDiffSelection {
 export interface FileDiffSelection {
 }
 
-export interface DiffViewController {
+export interface ViewController {
     getViewType(): 'folderDiff' | 'fileDiff' | 'editor'
     getSelection(): FolderDiffSelection | FileDiffSelection | undefined
 
@@ -289,7 +287,7 @@ export enum DiffType {
     Same = 0, Added = 1, Deleted = 2, Modified = 3
 }
 
-export interface FolderDiffViewController extends DiffViewController {
+export interface FolderDiffViewController extends ViewController {
     getViewType(): 'folderDiff'
     getSelection(): FolderDiffSelection | undefined
 
@@ -297,9 +295,14 @@ export interface FolderDiffViewController extends DiffViewController {
     applyDiffFilter(filters: DiffType[]): void
 }
 
-export interface FileDiffViewController extends DiffViewController {
+export interface FileDiffViewController extends ViewController {
     getViewType(): 'fileDiff'
     getSelection(): FileDiffSelection | undefined
+}
+
+export interface EditorViewController extends ViewController {
+    getViewType(): 'editor'
+    getSelection(): undefined
 }
 
 export interface ExternalFileOpener {
@@ -308,24 +311,31 @@ export interface ExternalFileOpener {
     openCodeEditor(path: string): void
 }
 
-export interface RemoteFolderDiffView extends FolderDiffView {
+export interface RemoteFolderDiffView extends IFolderDiffView, IDisposable {
     getState(): any
     applyState(state: any): void
-    getController(): FolderDiffViewController | FileDiffViewController;
-    onControllerUpdate: IEvent<FolderDiffViewController | FileDiffViewController>
+    getController(): FolderDiffViewController | FileDiffViewController | EditorViewController;
+    onControllerUpdate: IEvent<FolderDiffViewController | FileDiffViewController | EditorViewController>
     setExternalFileOpener(opener: ExternalFileOpener | null): void
 }
 
-export interface RemoteCodeDiffView extends CodeDiffView {
+export interface RemoteCodeDiffView extends ICodeDiffView, IDisposable {
     getState(): any
     applyState(state: any): void
-    getController(): FileDiffViewController;
-    onControllerUpdate: IEvent<FileDiffViewController>
+    getController(): EditorViewController;
+    onControllerUpdate: IEvent<EditorViewController>
+}
+
+export interface RemoteCodeEditorView extends ICodeEditorView, IDisposable {
+    getState(): any
+    applyState(state: any): void
+    getController(): EditorViewController;
+    onControllerUpdate: IEvent<EditorViewController>
 }
 
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
 
-export function newEditor(args: EditArgs): Promise<EditView>
+export function newEditor(args: EditArgs): Promise<CodeEditorView>
 
 export function newCodeDiff(args: EditArgs): Promise<CodeDiffView>
 
@@ -334,3 +344,5 @@ export function newFolderDiff(args: EditArgs): Promise<FolderDiffView>
 export function newRemoteFolderDiff(args: EditArgs, channel: Channel): Promise<RemoteFolderDiffView>
 
 export function newRemoteCodeDiff(args: EditArgs, channel: Channel): Promise<RemoteCodeDiffView>
+
+export function newRemoteEditor(args: EditArgs, channel: Channel): Promise<RemoteCodeEditorView>

@@ -14,7 +14,7 @@ import org.teavm.jso.core.JSString;
 public interface Editor_d_ts {
 
   @JSFunctor interface EditorFactory extends JSObject {
-    Promise<JsCodeEditor> create(EditArgs args);
+    Promise<JsICodeEditorView> create(EditArgs args);
 
     class Setter {
       @JSBody(params = {"f"}, script = "editorFactory = f;")
@@ -32,7 +32,7 @@ public interface Editor_d_ts {
   }
 
   @JSFunctor interface CodeDiffFactory extends JSObject {
-    Promise<JsCodeDiff> create(EditArgs args);
+    Promise<JsCodeDiffView> create(EditArgs args);
 
     class Setter {
       @JSBody(params = {"f"}, script = "diffFactory = f;")
@@ -41,7 +41,7 @@ public interface Editor_d_ts {
   }
 
   @JSFunctor interface FolderDiffFactory extends JSObject {
-    Promise<JsFolderDiff> create(EditArgs args);
+    Promise<JsIFolderDiffView> create(EditArgs args);
 
     class Setter {
       @JSBody(params = {"f"}, script = "newFolderDiffView = f;")
@@ -50,7 +50,7 @@ public interface Editor_d_ts {
   }
 
   @JSFunctor interface RemoteFolderDiffFactory extends JSObject {
-    Promise<JsRemoteFolderDiff> create(EditArgs args, Channel channel);
+    Promise<JsRemoteFolderDiffView> create(EditArgs args, Channel channel);
 
     class Setter {
       @JSBody(params = {"f"}, script = "newRemoteFolderDiffView = f;")
@@ -59,7 +59,7 @@ public interface Editor_d_ts {
   }
 
   @JSFunctor interface RemoteCodeDiffFactory extends JSObject {
-    Promise<JsRemoteCodeDiff> create(EditArgs args, Channel channel);
+    Promise<JsRemoteCodeDiffView> create(EditArgs args, Channel channel);
 
     class Setter {
       @JSBody(params = {"f"}, script = "newRemoteCodeDiff = f;")
@@ -67,14 +67,25 @@ public interface Editor_d_ts {
     }
   }
 
+  @JSFunctor interface RemoteEditorFactory extends JSObject {
+    Promise<JsRemoteCodeEditorView> create(EditArgs args, Channel channel);
+
+    class Setter {
+      @JSBody(params = {"f"}, script = "newRemoteEditor = f;")
+      public static native void set(RemoteEditorFactory f);
+    }
+  }
+
   static void main(String[] args) {
     LoggingJs.Setter.set();
-    EditorFactory.Setter.setApi(JsCodeEditor0::newEdit);
+    EditorFactory.Setter.setApi(JsCodeEditor::newEdit);
     TextModelFactory.Setter.setModel(JsTextModel::new);
-    CodeDiffFactory.Setter.setDiff(JsCodeDiff0::newDiff);
-    RemoteCodeDiffFactory.Setter.set(JsRemoteCodeDiff0::create);
-    FolderDiffFactory.Setter.set(JsFolderDiff0::newDiff);
-    RemoteFolderDiffFactory.Setter.set(JsRemoteFolderDiff0::newDiff);
+    CodeDiffFactory.Setter.setDiff(JsCodeDiff::newDiff);
+    RemoteCodeDiffFactory.Setter.set(JsRemoteCodeDiff::create);
+    FolderDiffFactory.Setter.set(JsFolderDiff::newDiff);
+    RemoteFolderDiffFactory.Setter.set(JsRemoteFolderDiff::newDiff);
+    RemoteEditorFactory.Setter.set(JsRemoteCodeEditor::create);
+
     ChannelTest.publishChannelTest();
   }
 }

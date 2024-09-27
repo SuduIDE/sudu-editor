@@ -10,13 +10,13 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
 
-public class JsFolderDiff0 implements JsFolderDiff {
+public class JsFolderDiff implements JsIFolderDiffView {
 
   public final WebWindow window;
   protected FolderDiffScene scene;
   private float overrideFontSize = 0;
 
-  protected JsFolderDiff0(WebWindow window, EditArgs args) {
+  protected JsFolderDiff(WebWindow window, EditArgs args) {
     this.window = window;
     this.scene = (FolderDiffScene) window.scene();
     if (args.hasTheme()) setTheme(args.getTheme());
@@ -37,7 +37,7 @@ public class JsFolderDiff0 implements JsFolderDiff {
   @Override
   public JsDisposable onReadyChanged(JsFunctions.Consumer<JSBoolean> callback) {
     var d = scene.w.rootView.stateListeners.disposableAdd(
-        JsFolderDiff.toJava(callback));
+        JsIFolderDiffView.toJava(callback));
     return JsDisposable.of(d);
   }
 
@@ -89,10 +89,10 @@ public class JsFolderDiff0 implements JsFolderDiff {
     }
   }
 
-  public static Promise<JsFolderDiff> newDiff(EditArgs arguments) {
+  public static Promise<JsIFolderDiffView> newDiff(EditArgs arguments) {
     return JsLauncher.start(
         arguments,
         FolderDiffScene::new,
-        JsFolderDiff0::new);
+        JsFolderDiff::new);
   }
 }

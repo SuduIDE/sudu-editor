@@ -62,8 +62,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   final JsFolderDiffController0 controller;
 
-  final Subscribers<DiffViewEventListener> controllerListeners =
-      new Subscribers<>(new DiffViewEventListener[0]);
+  final Subscribers<ViewEventListener> controllerListeners =
+      new Subscribers<>(new ViewEventListener[0]);
 
   JsExternalFileOpener opener;
 
@@ -445,7 +445,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     return node.getFullPath(left ? leftRoot.name() : rightRoot.name());
   }
 
-  JsDiffViewController find(ToolWindow0 w) {
+  JsViewController find(ToolWindow0 w) {
     //noinspection ForLoopReplaceableByForEach
     for (int i = 0, size = windows.size(); i < size; i++) {
       ActiveWindow r = windows.get(i);
@@ -477,7 +477,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     }
   }
 
-  void addWindow(ToolWindow0 window, JsDiffViewController c) {
+  void addWindow(ToolWindow0 window, JsViewController c) {
     ActiveWindow r = new ActiveWindow(window, c);
     windows.add(r);
     window.setOnClose(() -> onWindowClosed(r));
@@ -682,7 +682,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     channel.sendMessage(result);
   }
 
-  void fireControllerEvent(JsDiffViewController source) {
+  void fireControllerEvent(JsViewController source) {
     var list = controllerListeners.array();
     if (debug) LoggingJs.debug(
         "fireControllerEvent: " + list.length + " listeners");
@@ -693,9 +693,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   static class ActiveWindow {
     ToolWindow0 window;
-    JsDiffViewController controller;
+    JsViewController controller;
 
-    ActiveWindow(ToolWindow0 window, JsDiffViewController controller) {
+    ActiveWindow(ToolWindow0 window, JsViewController controller) {
       this.window = window;
       this.controller = controller;
     }

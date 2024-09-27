@@ -4,8 +4,7 @@ import org.sudu.experiments.js.JsFunctions;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
-// base class for JS FolderDiffViewController or FileDiffViewController
-public interface JsDiffViewController extends JSObject {
+public interface JsViewController extends JSObject {
   // returns 'folderDiff' | 'fileDiff' | 'editor'
   JSString getViewType();
 
@@ -21,8 +20,8 @@ public interface JsDiffViewController extends JSObject {
   void refresh();
 
   @SuppressWarnings("Convert2MethodRef")
-  static DiffViewEventListener toJava(
-      JsFunctions.Consumer<JsDiffViewController> callback
+  static ViewEventListener toJava(
+      JsFunctions.Consumer<JsViewController> callback
   ) {
     return item -> callback.f(item);
   }

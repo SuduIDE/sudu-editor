@@ -3,7 +3,7 @@ package org.sudu.experiments.diff;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
-public class JsEditorViewController0 implements JsFileDiffViewController {
+public class JsEditorViewController0 implements JsEditorViewController {
 
   @Override
   public JSString getViewType() {

@@ -1,7 +1,7 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.esm.EditArgs;
-import org.sudu.experiments.esm.JsBaseControl;
+import org.sudu.experiments.esm.JsView;
 import org.sudu.experiments.fonts.FontConfigJs;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.fonts.Fonts;
@@ -10,7 +10,6 @@ import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public abstract class JsLauncher {
@@ -35,11 +34,11 @@ public abstract class JsLauncher {
 
   abstract void launch(JsArray<WebWorkerContext> workers);
 
-  public interface ControlFactory <T extends JsBaseControl> {
+  public interface ControlFactory <T extends JsView> {
     T apply(WebWindow w, EditArgs u);
   }
 
-  public static <T extends JsBaseControl> Promise<T> start(
+  public static <T extends JsView> Promise<T> start(
       EditArgs arguments,
       Function<SceneApi, Scene> sf,
       ControlFactory<T> rf
