@@ -13,12 +13,12 @@ import org.teavm.jso.core.JSString;
 public class JsFolderDiff implements JsIFolderDiffView {
 
   public final WebWindow window;
-  protected FolderDiffScene scene;
+  protected FolderDiffWindow w;
   private float overrideFontSize = 0;
 
   protected JsFolderDiff(WebWindow window, EditArgs args) {
     this.window = window;
-    this.scene = (FolderDiffScene) window.scene();
+    this.w = ((FolderDiffScene) window.scene()).w;
     if (args.hasTheme()) setTheme(args.getTheme());
   }
 
@@ -26,17 +26,27 @@ public class JsFolderDiff implements JsIFolderDiffView {
   public final void dispose() {
     window.dispose();
     System.out.println("debug: JsFolderDiff disposed");
-    scene = null;
+    w = null;
+  }
+
+  @Override
+  public JsViewController getController() {
+    return null;
+  }
+
+  @Override
+  public JsDisposable onControllerUpdate(JsFunctions.Consumer<JsViewController> callback) {
+    return JsDisposable.empty();
   }
 
   @Override
   public boolean isReady() {
-    return scene.w.finished;
+    return w.finished;
   }
 
   @Override
   public JsDisposable onReadyChanged(JsFunctions.Consumer<JSBoolean> callback) {
-    var d = scene.w.rootView.stateListeners.disposableAdd(
+    var d = w.rootView.stateListeners.disposableAdd(
         JsIFolderDiffView.toJava(callback));
     return JsDisposable.of(d);
   }
@@ -61,7 +71,7 @@ public class JsFolderDiff implements JsIFolderDiffView {
 
   @Override
   public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
-    scene.setReadonly(leftReadonly, rightReadonly);
+    w.setReadonly(leftReadonly, rightReadonly);
   }
 
   @Override
@@ -73,8 +83,8 @@ public class JsFolderDiff implements JsIFolderDiffView {
   @Override
   public void setFontSize(float fontSize) {
     overrideFontSize = fontSize;
-    var theme = scene.w.getTheme().withFontModified(fontSize);
-    scene.applyTheme(theme);
+    var theme = w.getTheme().withFontModified(fontSize);
+    w.applyTheme(theme);
   }
 
   @Override
@@ -83,7 +93,7 @@ public class JsFolderDiff implements JsIFolderDiffView {
     if (theme != null) {
       if (overrideFontSize > 0)
         theme = theme.withFontModified(overrideFontSize);
-      scene.applyTheme(theme);
+      w.applyTheme(theme);
     } else {
       Debug.consoleInfo("unknown theme: " + theme);
     }
