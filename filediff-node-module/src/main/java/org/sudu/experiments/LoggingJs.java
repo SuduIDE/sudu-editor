@@ -20,6 +20,14 @@ import org.teavm.jso.core.JSString;
     Static.logger.log(level, JSString.valueOf(message));
   }
 
+  static void error(String message) {
+    Static.logger.log(ERROR, JSString.valueOf(message));
+  }
+
+  static void error(JSString message) {
+    Static.logger.log(ERROR, message);
+  }
+
   static void debug(String message) {
     Static.logger.log(DEBUG, JSString.valueOf(message));
   }

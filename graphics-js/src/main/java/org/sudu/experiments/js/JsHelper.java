@@ -172,6 +172,9 @@ public class JsHelper {
   @NoSideEffects
   public static native JSString message(JSError error);
 
+  @JSBody(params = {"left", "right"}, script = "return left + right;")
+  public static native JSString concat(String left, JSObject right);
+
   public static JSString getMessage(JSError error) {
     return JSString.valueOf(error.getMessage());
   }

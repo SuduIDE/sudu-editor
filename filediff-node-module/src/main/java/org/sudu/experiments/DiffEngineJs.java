@@ -17,7 +17,7 @@ public interface DiffEngineJs extends JSObject {
   //    ): FileDiffSession;
 
   JsFileDiffSession startFileDiff(
-      JSString leftPath, JSString rightPath,
+      JSObject leftInput, JSObject rightInput,
       Channel channel,
       JsFolderDiffSession parent
   );

@@ -5,6 +5,7 @@ import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeDirectoryHandle;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
 public class DiffEngine implements DiffEngineJs {
@@ -47,15 +48,41 @@ public class DiffEngine implements DiffEngineJs {
     return new JsFolderDiffSession0(updater);
   }
 
-  @Override
   public JsFileDiffSession startFileDiff(
-      JSString leftPath, JSString rightPath,
+      JSObject leftInput, JSObject rightInput,
       Channel channel,
       JsFolderDiffSession parent
   ) {
     JsHelper.consoleInfo("Starting new file diff ...");
-    JsHelper.consoleInfo("  LeftPath: ", leftPath);
-    JsHelper.consoleInfo("  RightPath: ", rightPath);
+
+    boolean isLeftFile = JsFileInputFile.isInstance(leftInput);
+    boolean isRightFile = JsFileInputFile.isInstance(rightInput);
+    boolean isLeftText = JsFileInputContent.isInstance(leftInput);
+    boolean isRightText = JsFileInputContent.isInstance(rightInput);
+    boolean validatedLeft = isLeftFile ^ isLeftText;
+    boolean validatedRight = isRightFile ^ isRightText;
+
+    if (!validatedLeft)
+      LoggingJs.error(JsHelper.concat(
+          "startFileDiff: left input is invalid ", leftInput));
+
+    if (!validatedRight)
+      LoggingJs.error(JsHelper.concat(
+          "startFileDiff: right input is invalid ", rightInput));
+
+    if (!validatedLeft || !validatedRight)
+      return null;
+
+    JSString leftStr = isLeftFile
+        ? JsFileInputFile.getPath(leftInput)
+        : JsFileInputContent.getContent(leftInput);
+
+    JSString rightStr = isLeftFile
+        ? JsFileInputFile.getPath(rightInput)
+        : JsFileInputContent.getContent(rightInput);
+
+    JsHelper.consoleInfo("  left: ", leftStr);
+    JsHelper.consoleInfo("  right: ", rightStr);
     return new JsFileDiffSession0();
   }
 

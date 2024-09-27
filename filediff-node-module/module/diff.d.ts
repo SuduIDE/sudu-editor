@@ -45,13 +45,15 @@ export interface FolderDiffSession extends AsyncShutdown {
 export interface FileDiffSession extends AsyncShutdown {
 }
 
+export type FileInput = { path: string } | { content: string }
+
 // java class: org.sudu.experiments.DiffEngineJs
 export interface DiffEngine extends IDisposable {
   // todo add boolean content
   startFolderDiff(leftPath: string, rightPath: string, channel: Channel): FolderDiffSession;
 
   startFileDiff(
-    leftPath: string, rightPath: string,
+    left: FileInput, right: FileInput,
     channel: Channel,
     folderDiff?: FolderDiffSession
   ): FileDiffSession;
