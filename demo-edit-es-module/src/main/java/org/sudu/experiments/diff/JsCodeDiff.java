@@ -8,7 +8,7 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
-public class JsCodeDiff implements JsCodeDiffView {
+public class JsCodeDiff implements JsFileDiffView {
 
   public final WebWindow window;
   private FileDiffWindow w;
@@ -102,7 +102,7 @@ public class JsCodeDiff implements JsCodeDiffView {
     return JsTextModel.fromJava(w.rootView.getRightModel());
   }
 
-  public static Promise<JsCodeDiffView> newDiff(EditArgs arguments) {
+  public static Promise<JsFileDiffView> newDiff(EditArgs arguments) {
     return JsLauncher.start(
         arguments,
         FileDiff::new,

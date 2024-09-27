@@ -16,7 +16,7 @@ import org.teavm.jso.core.JSString;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class JsCodeEditor implements JsCodeEditorView {
+public class JsCodeEditor implements JsEditorView {
 
   public static final String errorNotArray = "provided result is not an array";
 
@@ -266,7 +266,7 @@ public class JsCodeEditor implements JsCodeEditorView {
   }
 
   static JsDisposable rEdOpener(
-      JsCodeEditorOpener opener, EditorComponent editor, JsICodeEditorView source
+      JsCodeEditorOpener opener, EditorComponent editor, JsIEditorView source
   ) {
     return JsDisposable.of(editor.registrations().openers.disposableAdd(
         (uri, selection, pos) -> opener.openCodeEditor(
@@ -316,7 +316,7 @@ public class JsCodeEditor implements JsCodeEditorView {
         ));
   }
 
-  public static Promise<JsICodeEditorView> newEdit(EditArgs arguments) {
+  public static Promise<JsIEditorView> newEdit(EditArgs arguments) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
           WebWorkerContext.start(

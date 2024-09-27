@@ -1,11 +1,10 @@
 package org.sudu.experiments.esm;
 
 import org.sudu.experiments.js.JsDisposable;
-import org.sudu.experiments.js.JsFunctions;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
-public interface JsICodeEditorView extends JsView {
+public interface JsIEditorView extends JsView {
   void setText(JSString t);
   JSString getText();
   void setPosition(JsPosition selectionOrPosition);

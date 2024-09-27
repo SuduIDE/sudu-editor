@@ -11,7 +11,7 @@ import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
-public class JsRemoteCodeEditor implements JsRemoteCodeEditorView {
+public class JsRemoteCodeEditor implements JsRemoteEditorView {
   public final WebWindow window;
   private final EditorComponent editor;
   JsEditorViewController controller;
@@ -168,7 +168,7 @@ public class JsRemoteCodeEditor implements JsRemoteCodeEditorView {
     // todo: also set hScroll position here
   }
 
-  public static Promise<JsRemoteCodeEditorView> create(EditArgs arguments, Channel channel) {
+  public static Promise<JsRemoteEditorView> create(EditArgs arguments, Channel channel) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
           WebWorkerContext.start(
