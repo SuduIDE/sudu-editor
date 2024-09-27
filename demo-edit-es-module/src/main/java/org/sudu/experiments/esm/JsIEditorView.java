@@ -1,5 +1,6 @@
 package org.sudu.experiments.esm;
 
+import org.sudu.experiments.diff.JsEditorViewController;
 import org.sudu.experiments.js.JsDisposable;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
@@ -20,4 +21,6 @@ public interface JsIEditorView extends JsView {
   void revealLineInCenter(int line);
   void revealLine(int line);
   void revealPosition(JsPosition position);
+
+  JsEditorViewController getController();
 }

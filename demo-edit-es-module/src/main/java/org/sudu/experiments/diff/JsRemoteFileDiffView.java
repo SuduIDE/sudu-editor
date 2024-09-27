@@ -11,9 +11,4 @@ public interface JsRemoteFileDiffView extends JsIFileDiffView {
     void applyState(JSObject state);
     // getController(): FileDiffViewController;
     JsFileDiffViewController getController();
-
-    // onControllerUpdate: IEvent<FileDiffViewController>
-    JsDisposable onControllerUpdate(
-        JsFunctions.Consumer<JsFileDiffViewController> callback
-    );
 }

@@ -6,6 +6,7 @@ import org.sudu.experiments.WebGLError;
 import org.sudu.experiments.WebWindow;
 import org.sudu.experiments.diff.JsEditorViewController;
 import org.sudu.experiments.diff.JsEditorViewController0;
+import org.sudu.experiments.diff.JsViewController;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;
@@ -54,7 +55,7 @@ public class JsRemoteCodeEditor implements JsRemoteEditorView {
   }
 
   @Override
-  public JsDisposable onControllerUpdate(JsFunctions.Consumer<JsEditorViewController> callback) {
+  public JsDisposable onControllerUpdate(JsFunctions.Consumer<JsViewController> callback) {
     return JsDisposable.empty();
   }
 

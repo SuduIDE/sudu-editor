@@ -105,7 +105,7 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
 
   @Override
   public JsDisposable onControllerUpdate(
-      JsFunctions.Consumer<JsFileDiffViewController> callback
+      JsFunctions.Consumer<JsViewController> callback
   ) {
     return JsDisposable.empty();
   }

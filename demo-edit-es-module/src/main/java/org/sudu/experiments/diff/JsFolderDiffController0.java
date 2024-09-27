@@ -5,7 +5,7 @@ import org.sudu.experiments.js.JsHelper;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
-public class JsFolderDiffController0 implements JsFolderDiffController {
+public class JsFolderDiffController0 implements JsFolderDiffViewController {
 
   RemoteFolderDiffWindow w;
 
