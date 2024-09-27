@@ -3,9 +3,12 @@ package org.sudu.experiments;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeDirectoryHandle;
+import org.sudu.experiments.js.node.NodeFileHandle;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
+import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.teavm.jso.JSObject;
+import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.teavm.jso.core.JSString;
 
 public class DiffEngine implements DiffEngineJs {
@@ -83,6 +86,15 @@ public class DiffEngine implements DiffEngineJs {
 
     JsHelper.consoleInfo("  left: ", leftStr);
     JsHelper.consoleInfo("  right: ", rightStr);
+
+    if (isLeftFile && isRightFile) {
+      FileHandle leftHandle = new NodeFileHandle(leftStr);
+      FileHandle rightHandle = new NodeFileHandle(rightStr);
+      FileDiffChannelUpdater updater = new FileDiffChannelUpdater(leftHandle, rightHandle, channel);
+      updater.beginCompare();
+    } else {
+
+    }
     return new JsFileDiffSession0();
   }
 
@@ -103,6 +115,10 @@ public class DiffEngine implements DiffEngineJs {
 
   static boolean isDir(JSString path) {
     return Fs.isDirectory(path);
+  }
+
+  static boolean notFile(JSString path) {
+    return !Fs.isFile(path);
   }
 
   @Override
