@@ -12,6 +12,7 @@ public class JsCodeDiff implements JsFileDiffView {
 
   public final WebWindow window;
   private FileDiffWindow w;
+  private JsFileDiffViewController controller;
 
   public JsCodeDiff(
       WebWindow ww,
@@ -19,6 +20,7 @@ public class JsCodeDiff implements JsFileDiffView {
   ) {
     this.window = ww;
     this.w = ((FileDiff) window.scene()).w;
+    controller = new JsFileDiffViewController0(w);
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly())
       setReadonly(args.getReadonly(), args.getReadonly());
@@ -28,6 +30,16 @@ public class JsCodeDiff implements JsFileDiffView {
   public final void dispose() {
     window.dispose();
     w = null;
+  }
+
+  @Override
+  public JsViewController getController() {
+    return controller;
+  }
+
+  @Override
+  public JsDisposable onControllerUpdate(JsFunctions.Consumer<JsViewController> callback) {
+    return JsDisposable.empty();
   }
 
   @Override
