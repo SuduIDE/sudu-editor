@@ -196,6 +196,9 @@ export interface Focusable {
 export interface View {
   disconnectFromDom(): void
   reconnectToDom(containerId?: string): void
+
+  getController(): ViewController;
+  onControllerUpdate: IEvent<ViewController>
 }
 
 export interface TwoPanelDiff {
@@ -226,6 +229,9 @@ export interface IEditorView extends View, HasTheme, Focusable {
   revealLine(line: number): void
 
   revealPosition(position: IPosition): void
+
+  getController(): EditorViewController;
+  onControllerUpdate: IEvent<EditorViewController>
 }
 
 export interface EditorView extends IEditorView, IDisposable {
@@ -237,9 +243,12 @@ export interface EditorView extends IEditorView, IDisposable {
 }
 
 export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
-  getLeftModel(): ITextModel,
+  getLeftModel(): ITextModel
 
-  getRightModel(): ITextModel,
+  getRightModel(): ITextModel
+
+  getController(): FileDiffViewController;
+  onControllerUpdate: IEvent<FileDiffViewController>
 }
 
 export interface FileDiffView extends IFileDiffView, IDisposable {
@@ -251,6 +260,9 @@ export interface FileDiffView extends IFileDiffView, IDisposable {
 export interface IFolderDiffView extends View, HasTheme, TwoPanelDiff, Focusable {
   isReady(): boolean
   onReadyChanged: IEvent<boolean>
+
+  getController(): FolderDiffViewController | FileDiffViewController | EditorViewController;
+  onControllerUpdate: IEvent<FolderDiffViewController | FileDiffViewController | EditorViewController>
 }
 
 export interface FolderDiffView extends IFolderDiffView, IDisposable {
@@ -314,23 +326,17 @@ export interface ExternalFileOpener {
 export interface RemoteFolderDiffView extends IFolderDiffView, IDisposable {
   getState(): any
   applyState(state: any): void
-  getController(): FolderDiffViewController | FileDiffViewController | EditorViewController;
-  onControllerUpdate: IEvent<FolderDiffViewController | FileDiffViewController | EditorViewController>
   setExternalFileOpener(opener: ExternalFileOpener | null): void
 }
 
 export interface RemoteFileDiffView extends IFileDiffView, IDisposable {
   getState(): any
   applyState(state: any): void
-  getController(): FileDiffViewController;
-  onControllerUpdate: IEvent<FileDiffViewController>
 }
 
 export interface RemoteEditorView extends IEditorView, IDisposable {
   getState(): any
   applyState(state: any): void
-  getController(): EditorViewController;
-  onControllerUpdate: IEvent<EditorViewController>
 }
 
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
