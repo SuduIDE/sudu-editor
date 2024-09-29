@@ -3,11 +3,11 @@ package org.sudu.experiments.editor.ui.colors;
 import org.sudu.experiments.math.Color;
 
 public class FileTreeViewTheme {
-  public final Color bg;
-  public final Color selectedBg;
-  public final Color selectedText;
-  public final Color inactiveSelectedBg;
-  public final Color hoveredBg;
+  public Color bg;
+  public Color selectedBg;
+  public Color selectedText;
+  public Color inactiveSelectedBg;
+  public Color hoveredBg;
 
   public FileTreeViewTheme(
       Color bg, Color selectedBg, Color selectedText,

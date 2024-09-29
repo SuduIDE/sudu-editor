@@ -2,30 +2,18 @@ package org.sudu.experiments.esm;
 
 import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.js.JsArrayReader;
 import org.sudu.experiments.js.JsHelper;
+import org.sudu.experiments.math.Color;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
 /*
-
-  export const enum ThemeColor {
-      TreeViewBackground = 0,
-      DefaultForeground = 1,
-      SelectedItemBackground = 2,
-      SelectedItemForeground = 3,
-      HoveredItemBackground = 4,
-      InactiveSelectionBackground = 5,
-      ChangedItemBackground = 6
-  }
-
-  export type BaseTheme = 'dark' | 'light' | 'darcula';
-
   export type Theme = {
       [color in ThemeColor]?: string;
   } & {
       baseTheme: BaseTheme;
   } | BaseTheme;
-
 */
 
 public interface ThemeImport {
@@ -50,8 +38,16 @@ public interface ThemeImport {
       return null;
     }
 
+    JsArrayReader<JSString> rdr = t.cast();
+    for (int i = 0; i < EditorColorScheme.LastIndex; i++) {
+      JSString v = rdr.get(i);
+      if (v != null) {
+        JsHelper.consoleInfo("import color " + i + ' ', v);
+        var c = new Color(v.stringValue());
+        theme.modify(i, c);
+      }
+    }
+
     return theme;
   }
-
-
 }
