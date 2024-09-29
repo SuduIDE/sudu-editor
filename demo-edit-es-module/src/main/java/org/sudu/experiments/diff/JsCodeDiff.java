@@ -8,10 +8,11 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
-public class JsCodeDiff implements JsCodeDiffView {
+public class JsCodeDiff implements JsFileDiffView {
 
   public final WebWindow window;
   private FileDiffWindow w;
+  private JsFileDiffViewController controller;
 
   public JsCodeDiff(
       WebWindow ww,
@@ -19,6 +20,7 @@ public class JsCodeDiff implements JsCodeDiffView {
   ) {
     this.window = ww;
     this.w = ((FileDiff) window.scene()).w;
+    controller = new JsFileDiffViewController0(w);
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly())
       setReadonly(args.getReadonly(), args.getReadonly());
@@ -28,6 +30,16 @@ public class JsCodeDiff implements JsCodeDiffView {
   public final void dispose() {
     window.dispose();
     w = null;
+  }
+
+  @Override
+  public JsViewController getController() {
+    return controller;
+  }
+
+  @Override
+  public JsDisposable onControllerUpdate(JsFunctions.Consumer<JsViewController> callback) {
+    return JsDisposable.empty();
   }
 
   @Override
@@ -102,7 +114,7 @@ public class JsCodeDiff implements JsCodeDiffView {
     return JsTextModel.fromJava(w.rootView.getRightModel());
   }
 
-  public static Promise<JsCodeDiffView> newDiff(EditArgs arguments) {
+  public static Promise<JsFileDiffView> newDiff(EditArgs arguments) {
     return JsLauncher.start(
         arguments,
         FileDiff::new,

@@ -14,7 +14,7 @@ import org.teavm.jso.core.JSString;
 public interface Editor_d_ts {
 
   @JSFunctor interface EditorFactory extends JSObject {
-    Promise<JsICodeEditorView> create(EditArgs args);
+    Promise<JsIEditorView> create(EditArgs args);
 
     class Setter {
       @JSBody(params = {"f"}, script = "editorFactory = f;")
@@ -32,7 +32,7 @@ public interface Editor_d_ts {
   }
 
   @JSFunctor interface CodeDiffFactory extends JSObject {
-    Promise<JsCodeDiffView> create(EditArgs args);
+    Promise<JsFileDiffView> create(EditArgs args);
 
     class Setter {
       @JSBody(params = {"f"}, script = "diffFactory = f;")
@@ -59,7 +59,7 @@ public interface Editor_d_ts {
   }
 
   @JSFunctor interface RemoteCodeDiffFactory extends JSObject {
-    Promise<JsRemoteCodeDiffView> create(EditArgs args, Channel channel);
+    Promise<JsRemoteFileDiffView> create(EditArgs args, Channel channel);
 
     class Setter {
       @JSBody(params = {"f"}, script = "newRemoteCodeDiff = f;")
@@ -68,7 +68,7 @@ public interface Editor_d_ts {
   }
 
   @JSFunctor interface RemoteEditorFactory extends JSObject {
-    Promise<JsRemoteCodeEditorView> create(EditArgs args, Channel channel);
+    Promise<JsRemoteEditorView> create(EditArgs args, Channel channel);
 
     class Setter {
       @JSBody(params = {"f"}, script = "newRemoteEditor = f;")
@@ -84,7 +84,7 @@ public interface Editor_d_ts {
     RemoteCodeDiffFactory.Setter.set(JsRemoteCodeDiff::create);
     FolderDiffFactory.Setter.set(JsFolderDiff::newDiff);
     RemoteFolderDiffFactory.Setter.set(JsRemoteFolderDiff::newDiff);
-    RemoteEditorFactory.Setter.set(JsRemoteCodeEditor::create);
+    RemoteEditorFactory.Setter.set(JsRemoteEditor::create);
 
     ChannelTest.publishChannelTest();
   }

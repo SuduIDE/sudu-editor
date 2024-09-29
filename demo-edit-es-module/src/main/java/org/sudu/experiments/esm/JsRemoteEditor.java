@@ -6,18 +6,19 @@ import org.sudu.experiments.WebGLError;
 import org.sudu.experiments.WebWindow;
 import org.sudu.experiments.diff.JsEditorViewController;
 import org.sudu.experiments.diff.JsEditorViewController0;
+import org.sudu.experiments.diff.JsViewController;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
-public class JsRemoteCodeEditor implements JsRemoteCodeEditorView {
+public class JsRemoteEditor implements JsRemoteEditorView {
   public final WebWindow window;
   private final EditorComponent editor;
   JsEditorViewController controller;
   Channel channel;
 
-  public JsRemoteCodeEditor(
+  public JsRemoteEditor(
       EditArgs args, JsArray<WebWorkerContext> workers, Channel channel
   ) {
     this.channel = channel;
@@ -54,7 +55,7 @@ public class JsRemoteCodeEditor implements JsRemoteCodeEditorView {
   }
 
   @Override
-  public JsDisposable onControllerUpdate(JsFunctions.Consumer<JsEditorViewController> callback) {
+  public JsDisposable onControllerUpdate(JsFunctions.Consumer<JsViewController> callback) {
     return JsDisposable.empty();
   }
 
@@ -168,11 +169,11 @@ public class JsRemoteCodeEditor implements JsRemoteCodeEditorView {
     // todo: also set hScroll position here
   }
 
-  public static Promise<JsRemoteCodeEditorView> create(EditArgs arguments, Channel channel) {
+  public static Promise<JsRemoteEditorView> create(EditArgs arguments, Channel channel) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
           WebWorkerContext.start(
-              worker -> postResult.f(new JsRemoteCodeEditor(arguments, worker, channel)),
+              worker -> postResult.f(new JsRemoteEditor(arguments, worker, channel)),
               postError,
               arguments.workerUrl(),
               arguments.numWorkerThreads()));

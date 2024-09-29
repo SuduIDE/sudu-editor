@@ -3,6 +3,9 @@ package org.sudu.experiments.esm;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.WebGLError;
 import org.sudu.experiments.WebWindow;
+import org.sudu.experiments.diff.JsEditorViewController;
+import org.sudu.experiments.diff.JsEditorViewController0;
+import org.sudu.experiments.diff.JsViewController;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.parser.common.Pos;
@@ -16,17 +19,19 @@ import org.teavm.jso.core.JSString;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class JsCodeEditor implements JsCodeEditorView {
+public class JsCodeEditor implements JsEditorView {
 
   public static final String errorNotArray = "provided result is not an array";
 
   public final WebWindow window;
   private final EditorComponent editor;
+  JsEditorViewController controller;
 
   public JsCodeEditor(EditArgs args, JsArray<WebWorkerContext> workers) {
     window = new WebWindow(Editor0::new, WebGLError::onWebGlError,
         args.getContainerId(), workers);
     editor = demoEdit0().editor();
+    controller = new JsEditorViewController0();
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly()) setReadonly(args.getReadonly());
   }
@@ -39,6 +44,17 @@ public class JsCodeEditor implements JsCodeEditorView {
   @Override
   public void reconnectToDom(JSString containedId) {
     window.connectToDom(containedId);
+  }
+
+
+  @Override
+  public JsEditorViewController getController() {
+    return controller;
+  }
+
+  @Override
+  public JsDisposable onControllerUpdate(JsFunctions.Consumer<JsViewController> callback) {
+    return JsDisposable.empty();
   }
 
   @Override
@@ -266,7 +282,7 @@ public class JsCodeEditor implements JsCodeEditorView {
   }
 
   static JsDisposable rEdOpener(
-      JsCodeEditorOpener opener, EditorComponent editor, JsICodeEditorView source
+      JsCodeEditorOpener opener, EditorComponent editor, JsIEditorView source
   ) {
     return JsDisposable.of(editor.registrations().openers.disposableAdd(
         (uri, selection, pos) -> opener.openCodeEditor(
@@ -316,7 +332,7 @@ public class JsCodeEditor implements JsCodeEditorView {
         ));
   }
 
-  public static Promise<JsICodeEditorView> newEdit(EditArgs arguments) {
+  public static Promise<JsIEditorView> newEdit(EditArgs arguments) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
           WebWorkerContext.start(

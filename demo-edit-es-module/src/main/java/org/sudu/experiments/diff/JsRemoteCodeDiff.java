@@ -14,7 +14,7 @@ import org.teavm.jso.core.JSString;
 
 import java.util.function.Function;
 
-public class JsRemoteCodeDiff implements JsRemoteCodeDiffView {
+public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
 
   public final WebWindow window;
   private FileDiffWindow w;
@@ -105,7 +105,7 @@ public class JsRemoteCodeDiff implements JsRemoteCodeDiffView {
 
   @Override
   public JsDisposable onControllerUpdate(
-      JsFunctions.Consumer<JsFileDiffViewController> callback
+      JsFunctions.Consumer<JsViewController> callback
   ) {
     return JsDisposable.empty();
   }
@@ -114,7 +114,7 @@ public class JsRemoteCodeDiff implements JsRemoteCodeDiffView {
     return api -> new RemoteFileDiffScene(api, channel);
   }
 
-  public static Promise<JsRemoteCodeDiffView> create(
+  public static Promise<JsRemoteFileDiffView> create(
       EditArgs arguments, Channel channel
   ) {
     return JsLauncher.start(

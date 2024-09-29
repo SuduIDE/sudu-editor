@@ -4,7 +4,7 @@ import org.sudu.experiments.js.JsArray;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
-public interface JsFolderDiffController extends JsViewController {
+public interface JsFolderDiffViewController extends JsViewController {
   // returns 'folderDiff'
   JSString getViewType();
 

@@ -1,6 +1,6 @@
 package org.sudu.experiments.esm;
 
-public interface JsCodeDiffView extends JsICodeDiffView {
+public interface JsFileDiffView extends JsIFileDiffView {
   void setLeftModel(JsITextModel model);
   void setRightModel(JsITextModel model);
 }

@@ -5,7 +5,7 @@ import org.teavm.jso.core.JSString;
 
 public interface JsExternalFileOpener extends JSObject {
   // openCodeDiff(leftPath: string, rightPath: string): void
-  void openCodeDiff(JSString leftPath, JSString rightPath);
+  void openFileDiff(JSString leftPath, JSString rightPath);
   // openCodeEditor(path: string): void
-  void openCodeEditor(JSString path);
+  void openFileEditor(JSString path);
 }
