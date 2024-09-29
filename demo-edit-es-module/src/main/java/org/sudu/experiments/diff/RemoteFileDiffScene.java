@@ -3,21 +3,20 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.editor.EditorComponent;
-import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.math.V2i;
 
-public class RemoteFileDiffScene extends WindowScene implements ThemeControl {
+public class RemoteFileDiffScene extends WindowScene{
   final Channel channel;
-  EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
 
   protected FileDiffWindow w;
 
   public RemoteFileDiffScene(SceneApi api, Channel channel) {
     super(api);
     this.channel = channel;
+    var theme = EditorColorScheme.darkIdeaColorScheme();
     w = new FileDiffWindow(windowManager, theme, this::menuFonts);
   }
 
@@ -31,12 +30,6 @@ public class RemoteFileDiffScene extends WindowScene implements ThemeControl {
 
   protected EditorComponent right() {
     return w.rootView.editor2;
-  }
-
-  @Override
-  public void applyTheme(EditorColorScheme t) {
-      theme = t;
-      if (w != null) w.applyTheme(t);
   }
 
   @Override

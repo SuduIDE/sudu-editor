@@ -2,7 +2,6 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Subscribers;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
-import org.sudu.experiments.editor.ThemeControl;
 import org.sudu.experiments.editor.test.MergeButtonsModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
@@ -14,7 +13,7 @@ import org.sudu.experiments.ui.window.ScrollView;
 import java.util.function.BiConsumer;
 import java.util.function.IntConsumer;
 
-class FolderDiffRootView extends DiffRootView implements ThemeControl {
+class FolderDiffRootView extends DiffRootView {
 
   public final Subscribers<IntConsumer> stateListeners =
       new Subscribers<>(new IntConsumer[0]);

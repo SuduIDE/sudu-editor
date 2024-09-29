@@ -12,7 +12,7 @@ import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Consumer;
 
-class FileDiffRootView extends DiffRootView implements ThemeControl {
+class FileDiffRootView extends DiffRootView {
   final EditorUi ui;
   final EditorComponent editor1;
   final EditorComponent editor2;
@@ -143,7 +143,6 @@ class FileDiffRootView extends DiffRootView implements ThemeControl {
     if (diffModel != null) diffModel.deleteAt(diff.line, diff.lineCount(), isL);
   }
 
-  @Override
   public void applyTheme(EditorColorScheme theme) {
     ui.setTheme(theme);
     middleLine.setTheme(theme);
