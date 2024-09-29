@@ -3,17 +3,17 @@ package org.sudu.experiments.editor.ui.colors;
 import org.sudu.experiments.math.Color;
 
 public class EditorColors {
-  public final Color cursor;
-  public final Color bg;
-  public final Color numbersVLine;
-  public final Color footerFill;
-  public final Color lineTailContent;
-  public final Color selectionBg;
-  public final Color definitionBg;
-  public final Color usageBg;
-  public final Color scrollBarBg;
-  public final Color scrollBarLine;
-  public final Color currentLineBg;
+  public Color cursor;
+  public Color bg;
+  public Color numbersVLine;
+  public Color footerFill;
+  public Color lineTailContent;
+  public Color selectionBg;
+  public Color definitionBg;
+  public Color usageBg;
+  public Color scrollBarBg;
+  public Color scrollBarLine;
+  public Color currentLineBg;
 
   private EditorColors(
       Color cursor,

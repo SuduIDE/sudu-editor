@@ -5,10 +5,10 @@ import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.ColorOp;
 
 public class DiffColors {
-  public final Color deletedBgColor;
-  public final Color insertedBgColor;
-  public final Color editedBgColor;
-  public final Color editedBgPaleColor;
+  public Color deletedBgColor;
+  public Color insertedBgColor;
+  public Color editedBgColor;
+  public Color editedBgPaleColor;
 
   DiffColors(
       Color deletedBgColor, Color insertedBgColor,

@@ -8,6 +8,15 @@ import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.ui.UiFont;
 
 public class EditorColorScheme {
+  public static final int TreeViewBackground = 0;
+  public static final int DefaultForeground = 1;
+  public static final int SelectedItemBackground = 2;
+  public static final int SelectedItemForeground = 3;
+  public static final int HoveredItemBackground = 4;
+  public static final int InactiveSelectionBackground = 5;
+  public static final int ChangedItemBackground = 6;
+  public static final int LastIndex = ChangedItemBackground + 1;
+
   public final EditorColors editor;
   public final FileTreeViewTheme fileTreeView;
   public final DialogItemColors dialogItem;
@@ -151,5 +160,24 @@ public class EditorColorScheme {
         editor.selectionBg,
         editor.bg,
         codeElement, diff);
+  }
+
+  public void modify(int m, Color c) {
+    switch (m) {
+      case TreeViewBackground ->
+          editor.bg = c;
+      case DefaultForeground ->
+          codeElement[0].colorF = c;
+      case SelectedItemBackground ->
+          fileTreeView.selectedBg = c;
+      case SelectedItemForeground ->
+          fileTreeView.selectedText = c;
+      case HoveredItemBackground ->
+          fileTreeView.hoveredBg = c;
+      case InactiveSelectionBackground ->
+          fileTreeView.inactiveSelectedBg = c;
+      case ChangedItemBackground ->
+          diff.editedBgColor = c;
+    }
   }
 }
