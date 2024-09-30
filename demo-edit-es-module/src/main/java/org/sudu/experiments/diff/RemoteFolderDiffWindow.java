@@ -275,6 +275,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         rootView.right.model()
     ));
     rootView.setMergeButtons(this::sendApplyDiff);
+    window.context.window.repaint();
   }
 
   private void onChannelMessage(JsArray<JSObject> jsResult) {
