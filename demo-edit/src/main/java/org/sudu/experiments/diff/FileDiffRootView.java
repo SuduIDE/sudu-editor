@@ -187,7 +187,7 @@ class FileDiffRootView extends DiffRootView {
     setDiffModel(diffModel);
   }
 
-  private void sendToDiff() {
+  protected void sendToDiff() {
     DiffUtils.findDiffs(
         editor1.model().document,
         editor2.model().document,
@@ -195,7 +195,7 @@ class FileDiffRootView extends DiffRootView {
         ui.windowManager.uiContext.window.worker());
   }
 
-  private void sendIntervalToDiff(
+  protected void sendIntervalToDiff(
       int fromL, int toL,
       int fromR, int toR
   ) {

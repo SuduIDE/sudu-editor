@@ -2,6 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.ui.window.WindowManager;
@@ -9,6 +10,8 @@ import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.teavm.jso.JSObject;
 
 import java.util.function.Supplier;
+
+import static org.sudu.experiments.editor.worker.diff.DiffUtils.readDiffInfo;
 
 public class RemoteFileDiffWindow extends FileDiffWindow {
 
@@ -20,7 +23,8 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
       Supplier<String[]> fonts,
       Channel channel
   ) {
-    super(wm, theme, fonts, (_wm) -> new RemoteFileDiffRootView(_wm, channel));
+//    super(wm, theme, fonts, (_wm) -> new RemoteFileDiffRootView(_wm, channel));
+    super(wm, theme, fonts);
     this.channel = channel;
     this.channel.setOnMessage(this::onMessage);
   }
@@ -29,6 +33,7 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     int type = JsCast.ints(jsArray.pop())[0];
     switch (type) {
       case FileDiffChannelUpdater.FILE_READ -> onFileOpen(jsArray);
+      case FileDiffChannelUpdater.SEND_DIFF -> onDiffSent(jsArray);
     }
   }
 
@@ -37,5 +42,11 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     String name = JsCast.string(jsArray, 1);
     boolean left = JsCast.ints(jsArray, 2)[0] == 1;
     open(source, name, left);
+  }
+
+  private void onDiffSent(JsArray<JSObject> jsArray) {
+    int[] modelInts = JsCast.ints(jsArray, 0);
+    DiffInfo model = readDiffInfo(modelInts);
+    rootView.setDiffModel(model);
   }
 }
