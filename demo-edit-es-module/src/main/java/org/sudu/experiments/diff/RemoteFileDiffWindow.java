@@ -8,6 +8,7 @@ import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.ui.window.WindowManager;
 import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSString;
 
 import java.util.function.Supplier;
 
@@ -27,6 +28,18 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     super(wm, theme, fonts);
     this.channel = channel;
     this.channel.setOnMessage(this::onMessage);
+    this.rootView.setOnDiffMade(
+        src -> saveFile(true, src),
+        src -> saveFile(false, src)
+    );
+  }
+
+  private void saveFile(boolean left, String source) {
+    JsArray<JSObject> jsArray = JsArray.create();
+    jsArray.push(JSString.valueOf(source));
+    jsArray.push(JsCast.jsInts(left ? 1 : 0));
+    jsArray.push(FileDiffChannelUpdater.FILE_SAVE_MESSAGE);
+    channel.sendMessage(jsArray);
   }
 
   private void onMessage(JsArray<JSObject> jsArray) {

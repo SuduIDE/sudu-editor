@@ -31,7 +31,6 @@ public class DiffUtils {
   ) {
     DiffModel model = new DiffModel();
     int[] ints = model.findDiffs(charsN, intsN, charsM, intsM);
-    System.out.println("Ints: " + ints);
     result.add(ints);
   }
 

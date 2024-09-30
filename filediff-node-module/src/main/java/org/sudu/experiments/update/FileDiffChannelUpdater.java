@@ -21,9 +21,11 @@ public class FileDiffChannelUpdater {
   private final Channel channel;
 
   public final static int FILE_READ = 0;
-  public final static int SEND_DIFF = 1;
-  public final static int SEND_INT_DIFF = 2;
+  public final static int FILE_SAVE = 1;
+  public final static int SEND_DIFF = 2;
+  public final static int SEND_INT_DIFF = 3;
   public final static Int32Array FILE_READ_MESSAGE = JsCast.jsInts(FILE_READ);
+  public final static Int32Array FILE_SAVE_MESSAGE = JsCast.jsInts(FILE_SAVE);
   public final static Int32Array SEND_DIFF_MESSAGE = JsCast.jsInts(SEND_DIFF);
   public final static Int32Array SEND_INT_DIFF_MESSAGE = JsCast.jsInts(SEND_INT_DIFF);
 
@@ -44,17 +46,28 @@ public class FileDiffChannelUpdater {
     int type = JsCast.ints(jsArray.pop())[0];
     switch (type) {
       case SEND_DIFF -> onSendDiff(jsArray);
+      case FILE_SAVE -> onFileSave(jsArray);
       case SEND_INT_DIFF -> onSendIntervalDiff(jsArray);
     }
   }
 
+  private void onFileSave(JsArray<JSObject> jsArray) {
+    String source = JsCast.string(jsArray, 0);
+    boolean left = JsCast.ints(jsArray, 1)[0] == 1;
+    if (left) {
+      leftHandle.writeText(source, () -> {/* todo */}, this::onError);
+    } else {
+      rightHandle.writeText(source, () -> {/* todo */}, this::onError);
+    }
+  }
+
+  // todo finish writing in future
   private void onSendDiff(JsArray<JSObject> jsArray) {
     String src1 = JsCast.string(jsArray, 0);
     String src2 = JsCast.string(jsArray, 1);
     int[] intervals1 = JsCast.ints(jsArray, 2);
     int[] intervals2 = JsCast.ints(jsArray, 3);
     executor.sendToWorker((result) -> {
-      System.out.println("Result: " + Arrays.toString(result));
       JsArray<JSObject> jsResult = JsArray.create();
       int[] modelInts = ((ArrayView) result[0]).ints();
       jsResult.set(0, JsCast.jsInts(modelInts));
