@@ -15,6 +15,7 @@ import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class FileDiffWindow extends ToolWindow0
@@ -31,8 +32,17 @@ public class FileDiffWindow extends ToolWindow0
       EditorColorScheme theme,
       Supplier<String[]> fonts
   ) {
+    this(wm, theme, fonts, FileDiffRootView::new);
+  }
+
+  FileDiffWindow(
+      WindowManager wm,
+      EditorColorScheme theme,
+      Supplier<String[]> fonts,
+      Function<WindowManager, FileDiffRootView> rootSupplier
+  ) {
     super(wm, theme, fonts);
-    rootView = new FileDiffRootView(windowManager);
+    rootView = rootSupplier.apply(windowManager);
     rootView.applyTheme(this.theme);
     window = createWindow(rootView, 30);
     window.onFocus(this::onFocus);

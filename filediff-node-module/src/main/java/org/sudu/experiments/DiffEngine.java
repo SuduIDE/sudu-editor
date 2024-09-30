@@ -4,9 +4,11 @@ import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeDirectoryHandle;
 import org.sudu.experiments.js.node.NodeFileHandle;
+import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.update.FileDiffChannelUpdater;
+import org.sudu.experiments.update.FileEditChannelUpdater;
 import org.teavm.jso.JSObject;
 import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.teavm.jso.core.JSString;
@@ -87,21 +89,37 @@ public class DiffEngine implements DiffEngineJs {
     JsHelper.consoleInfo("  left: ", leftStr);
     JsHelper.consoleInfo("  right: ", rightStr);
 
+    FileDiffChannelUpdater updater = new FileDiffChannelUpdater(channel);
     if (isLeftFile && isRightFile) {
       FileHandle leftHandle = new NodeFileHandle(leftStr);
       FileHandle rightHandle = new NodeFileHandle(rightStr);
-      FileDiffChannelUpdater updater = new FileDiffChannelUpdater(leftHandle, rightHandle, channel);
-      updater.beginCompare();
+      updater.beginCompare(leftHandle, rightHandle);
     } else {
-
+      updater.sendMessage(true, leftStr);
+      updater.sendMessage(false, rightStr);
     }
     return new JsFileDiffSession0();
   }
 
   @Override
-  public JsFileDiffSession startFileEdit(JSString path, Channel channel) {
+  public JsFileDiffSession startFileEdit(JSString input, Channel channel) {
     JsHelper.consoleInfo("Starting file edit ...");
-    JsHelper.consoleInfo("  path: ", path);
+
+    boolean isFile = JsFileInputFile.isInstance(input);
+
+    JSString str = isFile
+        ? JsFileInputFile.getPath(input)
+        : JsFileInputContent.getContent(input);
+
+    JsHelper.consoleInfo("  input: ", str);
+
+    FileEditChannelUpdater updater = new FileEditChannelUpdater(channel);
+    if (isFile) {
+      FileHandle handle = new NodeFileHandle(str);
+      updater.beginCompare(handle);
+    } else {
+      updater.sendMessage(str);
+    }
     return new JsFileDiffSession0();
   }
 
