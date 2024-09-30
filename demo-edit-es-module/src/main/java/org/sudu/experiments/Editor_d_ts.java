@@ -17,7 +17,7 @@ public interface Editor_d_ts {
     Promise<JsIEditorView> create(EditArgs args);
 
     class Setter {
-      @JSBody(params = {"f"}, script = "editorFactory = f;")
+      @JSBody(params = {"f"}, script = "newEditor = f;")
       public static native void setApi(EditorFactory f);
     }
   }
@@ -26,17 +26,17 @@ public interface Editor_d_ts {
     JsITextModel create(JSString value, JSString language, JsUri uri);
 
     class Setter {
-      @JSBody(params = {"f"}, script = "modelFactory = f;")
+      @JSBody(params = {"f"}, script = "newTextModel = f;")
       public static native void setModel(TextModelFactory f);
     }
   }
 
-  @JSFunctor interface CodeDiffFactory extends JSObject {
+  @JSFunctor interface FileDiffFactory extends JSObject {
     Promise<JsFileDiffView> create(EditArgs args);
 
     class Setter {
-      @JSBody(params = {"f"}, script = "diffFactory = f;")
-      public static native void setDiff(CodeDiffFactory f);
+      @JSBody(params = {"f"}, script = "newFileDiff = f;")
+      public static native void setDiff(FileDiffFactory f);
     }
   }
 
@@ -44,7 +44,7 @@ public interface Editor_d_ts {
     Promise<JsIFolderDiffView> create(EditArgs args);
 
     class Setter {
-      @JSBody(params = {"f"}, script = "newFolderDiffView = f;")
+      @JSBody(params = {"f"}, script = "newFolderDiff = f;")
       public static native void set(FolderDiffFactory f);
     }
   }
@@ -53,17 +53,17 @@ public interface Editor_d_ts {
     Promise<JsRemoteFolderDiffView> create(EditArgs args, Channel channel);
 
     class Setter {
-      @JSBody(params = {"f"}, script = "newRemoteFolderDiffView = f;")
+      @JSBody(params = {"f"}, script = "newRemoteFolderDiff = f;")
       public static native void set(RemoteFolderDiffFactory f);
     }
   }
 
-  @JSFunctor interface RemoteCodeDiffFactory extends JSObject {
+  @JSFunctor interface RemoteFileDiffFactory extends JSObject {
     Promise<JsRemoteFileDiffView> create(EditArgs args, Channel channel);
 
     class Setter {
-      @JSBody(params = {"f"}, script = "newRemoteCodeDiff = f;")
-      public static native void set(RemoteCodeDiffFactory f);
+      @JSBody(params = {"f"}, script = "newRemoteFileDiff = f;")
+      public static native void set(RemoteFileDiffFactory f);
     }
   }
 
@@ -80,8 +80,8 @@ public interface Editor_d_ts {
     LoggingJs.Setter.set();
     EditorFactory.Setter.setApi(JsCodeEditor::newEdit);
     TextModelFactory.Setter.setModel(JsTextModel::new);
-    CodeDiffFactory.Setter.setDiff(JsCodeDiff::newDiff);
-    RemoteCodeDiffFactory.Setter.set(JsRemoteCodeDiff::create);
+    FileDiffFactory.Setter.setDiff(JsCodeDiff::newDiff);
+    RemoteFileDiffFactory.Setter.set(JsRemoteCodeDiff::create);
     FolderDiffFactory.Setter.set(JsFolderDiff::newDiff);
     RemoteFolderDiffFactory.Setter.set(JsRemoteFolderDiff::newDiff);
     RemoteEditorFactory.Setter.set(JsRemoteEditor::create);

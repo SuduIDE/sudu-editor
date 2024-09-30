@@ -410,7 +410,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       onWindowEvent(window);
     } else {
       var path = getFullPath(node, left);
-      opener.openFileEditor(JSString.valueOf(path));
+      opener.openEditor(JSString.valueOf(path));
     }
   }
 

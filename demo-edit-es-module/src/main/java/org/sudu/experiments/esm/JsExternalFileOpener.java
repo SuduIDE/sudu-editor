@@ -7,5 +7,5 @@ public interface JsExternalFileOpener extends JSObject {
   // openCodeDiff(leftPath: string, rightPath: string): void
   void openFileDiff(JSString leftPath, JSString rightPath);
   // openCodeEditor(path: string): void
-  void openFileEditor(JSString path);
+  void openEditor(JSString path);
 }
