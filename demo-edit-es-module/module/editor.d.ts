@@ -295,7 +295,7 @@ export interface ViewController {
   refresh(): void
 }
 
-export enum DiffType {
+export const enum DiffType {
   Same = 0, Added = 1, Deleted = 2, Modified = 3
 }
 
