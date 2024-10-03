@@ -4,6 +4,7 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
+import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.js.node.NodeFileHandle;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.JsCast;
@@ -42,7 +43,7 @@ public class DiffModelChannelUpdater {
   }
 
   public void shutdown(Runnable onComplete) {
-    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf("DiffModelChannelUpdater.dispose"));
+    LoggingJs.info("DiffModelChannelUpdater.dispose");
     collector.shutdown(onComplete);
     collector = null;
     channel = null;

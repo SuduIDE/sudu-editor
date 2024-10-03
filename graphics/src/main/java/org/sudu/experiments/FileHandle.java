@@ -5,7 +5,7 @@ import java.util.function.IntConsumer;
 
 public interface FileHandle extends FsItem {
   interface SyncAccess {
-    void close();
+    boolean close();
     double getSize();
     double read(byte[] buf, double filePos);
   }

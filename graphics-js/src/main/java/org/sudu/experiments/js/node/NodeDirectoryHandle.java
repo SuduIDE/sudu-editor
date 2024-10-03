@@ -64,9 +64,13 @@ public class NodeDirectoryHandle implements DirectoryHandle {
   public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
     JSString from = jsPath();
     JSString to = JSString.valueOf(path);
-    JSString toParent = JSString.valueOf(NodeFs.parent(path));
+    JSString toParent = Fs.pathDirname(to);
 
-    if (!Fs.fs().existsSync(toParent).booleanValue()) {
+//    LoggingJs.debug("copyTo: to, toParent");
+//    LoggingJs.debug(to);
+//    LoggingJs.debug(toParent);
+
+    if (!Fs.fs().existsSync(toParent)) {
       Fs.fs().mkdirSync(toParent, Fs.mkdirOptions(true));
     }
     Fs.fs().cp(from, to, Fs.cpOptions(true, true), NodeFs.callback(onComplete, onError));

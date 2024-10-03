@@ -12,11 +12,13 @@ class JvmSyncAccess implements FileHandle.SyncAccess {
   }
 
   @Override
-  public void close() {
+  public boolean close() {
     try {
       ch.close();
+      return true;
     } catch (IOException e) {
       JvmFileHandle.print(e);
+      return false;
     }
   }
 

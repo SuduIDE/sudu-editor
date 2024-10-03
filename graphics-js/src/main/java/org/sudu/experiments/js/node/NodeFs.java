@@ -4,8 +4,6 @@ import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.teavm.jso.*;
-import org.teavm.jso.core.JSBoolean;
-import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.ArrayBufferView;
 
@@ -71,7 +69,7 @@ public interface NodeFs extends JSObject {
 
   JsArray<JSString> readdirSync(JSString string, JSObject options);
 
-  JSBoolean existsSync(JSString name);
+  boolean existsSync(JSString name);
 
   void mkdirSync(JSString name, JSObject options);
 
@@ -82,7 +80,7 @@ public interface NodeFs extends JSObject {
       ArrayBufferView buffer, int bufferOffset,
       int bytesToRead, double position);
 
-  void closeSync(int handle);
+  int closeSync(int handle);
 
   @JSFunctor
   interface ReadCallback extends JSObject {
@@ -93,41 +91,31 @@ public interface NodeFs extends JSObject {
 
   void writeFile(
       JSString name, JSString content, JSString encoding,
-      JsFunctions.Consumer<JSError> callback);
+      JsFunctions.Consumer<JSObject> callback);
 
   void copyFile(
       JSString src, JSString dest, int mode,
-      JsFunctions.Consumer<JSError> callback);
+      JsFunctions.Consumer<JSObject> callback);
 
-  void unlink(JSString name, JsFunctions.Consumer<JSError> callback);
+  void copyFileSync(JSString src, JSString dest, int mode);
+
+  void unlink(JSString name, JsFunctions.Consumer<JSObject> callback);
+  void unlinkSync(JSString name);
 
   void cp(
       JSString src, JSString dest, JSObject options,
-      JsFunctions.Consumer<JSError> callback);
+      JsFunctions.Consumer<JSObject> callback);
 
   // todo rewrite to rm?
-  void rmdir(JSString name, JSObject options, JsFunctions.Consumer<JSError> callback);
+  void rmdir(JSString name, JSObject options, JsFunctions.Consumer<JSObject> callback);
 
-  static JsFunctions.Consumer<JSError> callback(Runnable onComplete, Consumer<String> onError) {
+  static JsFunctions.Consumer<JSObject> callback(Runnable onComplete, Consumer<String> onError) {
     return error -> {
       if (error == null) {
         onComplete.run();
       } else {
-        onError.accept(JsHelper.getMessage(error).stringValue());
+        onError.accept(JsHelper.jsToString(error).stringValue());
       }
     };
-  }
-
-  // todo rewrite parent path searching
-  static String parent(String path) {
-    int slIndex = path.lastIndexOf('/');
-    int revSlInd = path.lastIndexOf('\\');
-    if (slIndex == -1 && revSlInd == -1) {
-      return null;
-    } else {
-      int ind = Math.max(slIndex, revSlInd);
-      System.out.println(path.substring(0, ind));
-      return path.substring(0, ind);
-    }
   }
 }

@@ -67,7 +67,7 @@ public class NodeFileHandle implements FileHandle {
   public void syncAccess(Consumer<SyncAccess> consumer, Consumer<String> onError) {
     try {
       int handle = openSync(Fs.fs());
-      consumer.accept(new NodeSyncAccess(stats(), handle));
+      consumer.accept(new NodeSyncAccess(stats(), handle, jsPath()));
     } catch (Exception e) {
       onError.accept(e.getMessage());
     }
@@ -146,18 +146,48 @@ public class NodeFileHandle implements FileHandle {
   public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
     var from = jsPath();
     var to = JSString.valueOf(path);
-    var toParent = JSString.valueOf(NodeFs.parent(path));
+    JSString toParent = Fs.pathDirname(to);
+    Fs fs = Fs.fs();
 
-    if (!Fs.fs().existsSync(toParent).booleanValue()) {
-      Fs.fs().mkdirSync(toParent, Fs.mkdirOptions(true));
+//    if (debug) JsHelper.consoleInfo(
+//        JsHelper.concat(
+//            JsHelper.concat("file copy: ", from),
+//            JsHelper.concat(" -> ", to)));
+
+    if (!fs.existsSync(toParent)) {
+      fs.mkdirSync(toParent, Fs.mkdirOptions(true));
     }
-    Fs.fs().copyFile(from, to, 0, NodeFs.callback(onComplete, onError));
+
+    if (fs.existsSync(to)) {
+      try {
+        fs.unlinkSync(to);
+      } catch (Exception e) {
+        onError.accept(e.getMessage());
+      }
+    }
+
+    doCopy(onComplete, onError, from, to);
+  }
+
+  static void doCopy(Runnable onComplete, Consumer<String> onError, JSString from, JSString to) {
+    try {
+      Fs.fs().copyFileSync(from, to, 0);
+      onComplete.run();
+    } catch (Exception e) {
+      String message = e.getMessage();
+      onError.accept(message);
+    }
   }
 
   @Override
   public void remove(Runnable onComplete, Consumer<String> onError) {
     JSString path = jsPath();
-    Fs.fs().unlink(path, NodeFs.callback(onComplete, onError));
+    try {
+      Fs.fs().unlinkSync(path);
+      onComplete.run();
+    } catch (Exception e) {
+      onError.accept(e.getMessage());
+    }
   }
 
   @Override

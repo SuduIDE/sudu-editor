@@ -25,9 +25,8 @@ class FileCompareSync {
   private void onError(String error) {
     System.err.println(error);
     this.error = error;
-    if (left != null) left = close(left);
-    if (right != null) right = close(right);
-    FileCompare.send(result, false);
+    closeAll(false);
+    FileCompare.send(result, error);
   }
 
   private void leftAccess(SyncAccess l) {
@@ -49,23 +48,30 @@ class FileCompareSync {
   }
 
   private void compareAndClose() {
+    boolean equals = false;
     try {
-      boolean equals = compare();
-      FileCompare.send(result, equals);
+      equals = compare();
     } catch (Exception e) {
-      System.err.println(e.getMessage());
-      FileCompare.send(result, false);
+      error = e.getMessage();
+      System.err.println(error);
     } finally {
-      left = close(left);
-      right = close(right);
+      closeAll(true);
+    }
+    if (error != null) {
+      FileCompare.send(result, error);
+    } else {
+      FileCompare.send(result, equals, "FileCompareSync");
     }
   }
 
-  private SyncAccess close(SyncAccess file) {
-    try { file.close(); } catch (Exception e) {
-      System.err.println(e.getMessage());
+  private void closeAll(boolean emitError) {
+    boolean c1 = left == null || left.close();
+    boolean c2 = right == null || right.close();;
+    left = null;
+    right = null;
+    if (emitError && (!c1 || !c2)) {
+      error = "error closing files: left = " + c1 + ", right = " + c2;
     }
-    return null;
   }
 
   private boolean compare() {

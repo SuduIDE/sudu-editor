@@ -13,9 +13,10 @@ public class JsSyncAccess implements FileHandle.SyncAccess {
   }
 
   @Override
-  public void close() {
+  public boolean close() {
     handle.close();
     handle = null;
+    return true;
   }
 
   @Override

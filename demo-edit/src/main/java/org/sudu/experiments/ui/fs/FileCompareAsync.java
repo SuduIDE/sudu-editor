@@ -38,7 +38,7 @@ class FileCompareAsync {
 
   private void onError(String cause) {
     System.err.println(cause);
-    FileCompare.send(result, false);
+    FileCompare.send(result, cause);
     leftText = rightText = null;
   }
 

@@ -1,9 +1,6 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.js.JsArray;
-import org.sudu.experiments.js.JsHelper;
-import org.sudu.experiments.js.JsMemoryAccess;
-import org.sudu.experiments.js.Promise;
+import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 

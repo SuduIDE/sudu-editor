@@ -144,6 +144,10 @@ public class JsHelper {
   @NoSideEffects
   public static native boolean strictEquals(JSObject a, JSObject b);
 
+  @JSBody(params = {"a"}, script = "return typeof a;")
+  @NoSideEffects
+  public static native JSString typeof(JSObject a);
+
   @JSBody(params = {"array"}, script = "return array;")
   @NoSideEffects
   public static native JsArray<JSObject> toJsArray(@JSByRef JSObject ... array);
@@ -160,6 +164,10 @@ public class JsHelper {
   @NoSideEffects
   public static native String jsDoubleToString(double n);
 
+  @JSBody(params = {"x"}, script = "return String(x);")
+  @NoSideEffects
+  public static native JSString jsToString(JSObject x);
+
   @JSBody(params = {"arg"}, script = "return new Error(arg);")
   @NoSideEffects
   public static native JSError newError(String arg);
@@ -174,6 +182,9 @@ public class JsHelper {
 
   @JSBody(params = {"left", "right"}, script = "return left + right;")
   public static native JSString concat(String left, JSObject right);
+
+  @JSBody(params = {"left", "right"}, script = "return left + right;")
+  public static native JSString concat(JSString left, JSObject right);
 
   public static JSString getMessage(JSError error) {
     return JSString.valueOf(error.getMessage());

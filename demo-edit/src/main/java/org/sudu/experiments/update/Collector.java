@@ -9,6 +9,7 @@ import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
+import org.sudu.experiments.ui.fs.FileCompare;
 import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
@@ -160,7 +161,7 @@ public class Collector {
       Object[] result
   ) {
     filesCompared++;
-    boolean equals = ArgsCast.intArray(result, 0)[0] == 1;
+    boolean equals = FileCompare.isEquals(result);
     onFilesCompared(model, equals);
   }
 

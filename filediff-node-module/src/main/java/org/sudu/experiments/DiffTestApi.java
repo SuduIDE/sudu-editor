@@ -104,7 +104,7 @@ public class DiffTestApi implements JsDiffTestApi {
           if (error == null) {
             onComplete.f();
           } else {
-            onError.f(JsHelper.message(error));
+            onError.f(JsHelper.jsToString(error));
           }
         }
     );
@@ -122,7 +122,7 @@ public class DiffTestApi implements JsDiffTestApi {
           if (error == null) {
             onComplete.f();
           } else {
-            onError.f(JsHelper.message(error));
+            onError.f(JsHelper.jsToString(error));
           }
         }
     );
@@ -140,7 +140,7 @@ public class DiffTestApi implements JsDiffTestApi {
           if (error == null) {
             onComplete.f();
           } else {
-            onError.f(JsHelper.message(error));
+            onError.f(JsHelper.jsToString(error));
           }
         }
     );

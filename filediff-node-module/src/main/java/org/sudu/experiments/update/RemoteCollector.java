@@ -8,12 +8,13 @@ import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
+import org.sudu.experiments.ui.fs.FileCompare;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
-import org.teavm.jso.core.JSString;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -63,20 +64,21 @@ public class RemoteCollector {
   }
 
   public void beginCompare() {
-    String beginMsg = "Begin comparing" + leftHandle().getName() + " ↔ " + rightHandle().getName();
-    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf(beginMsg));
+    String beginMsg = "Begin comparing " + leftHandle().getName() +
+        " ↔ " + rightHandle().getName();
+    LoggingJs.info(beginMsg);
     compare(root);
   }
 
   public void refresh() {
     sendToWorkerQueue.clear();
-    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf("Refresh"));
+    LoggingJs.info("Refresh");
     beginCompare();
   }
 
   public void onMessageGot(FrontendMessage message) {
     double time = Performance.now() - startTime;
-    LoggingJs.Static.logger.log(LoggingJs.TRACE, JSString.valueOf("RemoteCollector got frontend message in " + time + "ms"));
+    LoggingJs.trace("RemoteCollector got frontend message in " + time + "ms");
     lastFrontendMessage = message;
     if (sendResult != null) sendMessage();
   }
@@ -114,34 +116,64 @@ public class RemoteCollector {
   public void fileSave(int[] path, boolean left, String source) {
     var model = (ItemFolderDiffModel) root.findNode(path);
     var item = (FileHandle) (left ? model.left() : model.right());
-    item.writeText(source, () -> cmpFilesAndSend(model), this::onError);
+    LoggingJs.debug("fileSave " + item);
+    item.writeText(source, () -> cmpFilesAndSend(model, item), this::onError);
   }
 
   private void copyFile(ItemFolderDiffModel model, boolean left) {
+    LoggingJs.debug("copyFile " + model + ", left = " + left);
     if (!(model.item() instanceof FileHandle fileItem)) return;
     String to = model.getFullPath(!left ? leftHandle().getFullPath() : rightHandle().getFullPath());
-    fileItem.copyTo(to, this::sendApplied, this::onError);
+    LoggingJs.debug("copyFile " + fileItem + " -> " + to);
+
+    fileItem.copyTo(to, () -> sendApplied1(fileItem, to), this::onError);
+  }
+
+  private void sendApplied1(FileHandle fileItem, String to) {
+    LoggingJs.debug("copyFile complete " + fileItem + " -> " + to);
+    sendApplied();
+  }
+
+  static class ReadCompare {
+    String a,b;
+
+    void onString(String s) {
+      if (a == null) a = s;
+      else b = s;
+
+      if (a != null && b != null) {
+        LoggingJs.debug("ReadCompare: " + a.equals(b));
+      }
+    }
   }
 
   private void removeFile(ItemFolderDiffModel model) {
     if (!(model.item() instanceof FileHandle fileItem)) return;
+    LoggingJs.debug("removeFile " + fileItem);
+
     fileItem.remove(this::sendApplied, this::onError);
   }
 
   private void copyFolder(ItemFolderDiffModel model, boolean left) {
     if (!(model.item() instanceof DirectoryHandle dirItem)) return;
     String to = model.getFullPath(!left ? leftHandle().getFullPath() : rightHandle().getFullPath());
+    LoggingJs.debug("copyFolder " + dirItem + " -> " + to);
     dirItem.copyTo(to, this::sendApplied, this::onError);
   }
 
   private void removeFolder(ItemFolderDiffModel model) {
     if (!(model.item() instanceof DirectoryHandle dirItem)) return;
+    LoggingJs.debug("remove folder " + dirItem);
     dirItem.remove(this::sendApplied, this::onError);
   }
 
-  private void cmpFilesAndSend(ItemFolderDiffModel model) {
+  private void cmpFilesAndSend(ItemFolderDiffModel model, FileHandle item) {
+    LoggingJs.debug("file write complete: " + item);
     Consumer<Object[]> onCompared = result -> {
-      boolean equals = ArgsCast.intArray(result, 0)[0] == 1;
+      String message = FileCompare.message(result);
+      if (message != null)
+        LoggingJs.debug("cmpFilesAndSend message: " + message);
+      boolean equals = FileCompare.isEquals(result);
       if (equals) model.setDiffType(DiffTypes.DEFAULT);
       else model.setDiffType(DiffTypes.EDITED);
       model.updateItem();
@@ -155,7 +187,8 @@ public class RemoteCollector {
   }
 
   private void onError(String error) {
-    LoggingJs.Static.logger.log(LoggingJs.ERROR, JSString.valueOf(error));
+    // todo -> invoke .error when fixed
+    LoggingJs.debug(error);
   }
 
   private void compare(ItemFolderDiffModel model) {
@@ -272,7 +305,10 @@ public class RemoteCollector {
       ItemFolderDiffModel model,
       Object[] result
   ) {
-    boolean equals = ArgsCast.intArray(result, 0)[0] == 1;
+    boolean equals = FileCompare.isEquals(result);
+    String message = FileCompare.message(result);
+    if (message != null)
+      LoggingJs.debug("onFilesCompared message: " + message);
     onFilesCompared(model, equals);
   }
 
@@ -349,7 +385,7 @@ public class RemoteCollector {
     if (lastFilesCompared == filesCompared && lastFoldersCompared == foldersCompared) return;
     String progressMsg = "Sent message in " + Numbers.iRnd(lastMessageSentTime - startTime) + "ms, " +
         "foldersCompared: " + foldersCompared + ", filesCompared: " + filesCompared;
-    LoggingJs.Static.logger.log(LoggingJs.TRACE, JSString.valueOf(progressMsg));
+    LoggingJs.trace(progressMsg);
     lastFilesCompared = filesCompared;
     lastFoldersCompared = foldersCompared;
   }
@@ -363,11 +399,11 @@ public class RemoteCollector {
     String completeMsg = leftHandle().getName() + " ↔ " + rightHandle().getName() +
         " - finished in " + Numbers.iRnd(lastMessageSentTime - startTime) + "ms, " +
         "foldersCompared: " + foldersCompared + ", filesCompared: " + filesCompared;
-    LoggingJs.Static.logger.log(LoggingJs.INFO, JSString.valueOf(completeMsg));
+    LoggingJs.info(completeMsg);
   }
 
   private void send(Consumer<JsArray<JSObject>> send, FrontendMessage message) {
-    LoggingJs.Static.logger.log(LoggingJs.TRACE, JSString.valueOf("inComparing: " + inComparing));
+    LoggingJs.debug("inComparing: " + inComparing);
     String leftRootName = leftHandle().getFullPath();
     String rightRootName = rightHandle().getFullPath();
     var jsArray = BackendMessage.serialize(root, message, leftRootName, rightRootName);
@@ -376,7 +412,7 @@ public class RemoteCollector {
   }
 
   private void sendApplied() {
-    LoggingJs.Static.logger.log(LoggingJs.DEBUG, JSString.valueOf("Send applied model"));
+    LoggingJs.debug("Send applied model");
     if (sendResult == null) return;
     String leftRootName = leftHandle().getFullPath();
     String rightRootName = rightHandle().getFullPath();
