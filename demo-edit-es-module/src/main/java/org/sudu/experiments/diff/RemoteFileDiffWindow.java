@@ -28,7 +28,7 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     super(wm, theme, fonts);
     this.channel = channel;
     this.channel.setOnMessage(this::onMessage);
-    this.rootView.setOnDiffMade(
+    this.setOnDiffMade(
         src -> saveFile(true, src),
         src -> saveFile(false, src)
     );
@@ -36,8 +36,8 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
 
   private void saveFile(boolean left, String source) {
     JsArray<JSObject> jsArray = JsArray.create();
-    jsArray.push(JSString.valueOf(source));
-    jsArray.push(JsCast.jsInts(left ? 1 : 0));
+    jsArray.set(0, JSString.valueOf(source));
+    jsArray.set(1, JsCast.jsInts(left ? 1 : 0));
     jsArray.push(FileDiffChannelUpdater.FILE_SAVE_MESSAGE);
     channel.sendMessage(jsArray);
   }

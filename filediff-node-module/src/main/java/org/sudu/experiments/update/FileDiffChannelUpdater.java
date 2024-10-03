@@ -12,8 +12,6 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
-import java.util.Arrays;
-
 public class FileDiffChannelUpdater {
 
   private FileHandle leftHandle, rightHandle;

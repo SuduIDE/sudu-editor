@@ -73,13 +73,12 @@ public class NodeDirectoryHandle implements DirectoryHandle {
     if (!Fs.fs().existsSync(toParent)) {
       Fs.fs().mkdirSync(toParent, Fs.mkdirOptions(true));
     }
-    Fs.fs().cp(from, to, Fs.cpOptions(true, true), NodeFs.callback(onComplete, onError));
+    Fs.fs().cp(from, to, Fs.cpOptions(false, true), NodeFs.callback(onComplete, onError));
   }
 
   @Override
   public void remove(Runnable onComplete, Consumer<String> onError) {
     JSString from = jsPath();
-    System.out.println("Remove path: " + from.stringValue());
     Fs.fs().rmdir(from, Fs.mkdirOptions(true), NodeFs.callback(onComplete, onError));
   }
 

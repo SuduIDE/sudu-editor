@@ -185,7 +185,6 @@ public class FolderDiffModel {
 
   public void afterInsert() {
     int diffType = getDiffType();
-    System.out.println(((RemoteFolderDiffModel)this).path + ",  " + DiffTypes.name(getDiffType()));
     if (diffType == DiffTypes.INSERTED || diffType == DiffTypes.DELETED) {
       setDiffType(DiffTypes.EDITED);
       if (parent != null) parent.afterInsert();
@@ -198,9 +197,8 @@ public class FolderDiffModel {
     if (getDiffType() == DiffTypes.DEFAULT) return;
     if ((left && diffType == DiffTypes.DELETED) || (!left && diffType == DiffTypes.INSERTED)) this.insertItem();
 //    if ((left && diffType == DiffTypes.INSERTED) || (!left && diffType == DiffTypes.DELETED)) this.deleteItem();
-    if (isFile()) setDiffType(DiffTypes.DEFAULT);
-    if (children == null) return;
-    for (var child: children) child.editItem(left);
+    if (getDiffType() == DiffTypes.EDITED && isFile()) setDiffType(DiffTypes.DEFAULT);
+    if (children != null) for (var child: children) child.editItem(left);
     updateItem();
   }
 

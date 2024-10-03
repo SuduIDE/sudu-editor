@@ -435,10 +435,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       window.window.maximize();
       onWindowEvent(window);
     } else {
-      var lPath = getFullPath(node, left);
-      var rPath = getFullPath(opposite, !left);
-      opener.openFileDiff(
-          JSString.valueOf(lPath), JSString.valueOf(rPath));
+      var lPath = left ? getFullPath(node, true) : getFullPath(opposite, true);
+      var rPath = !left ? getFullPath(node, false) : getFullPath(opposite, false);
+      opener.openFileDiff(JSString.valueOf(lPath), JSString.valueOf(rPath));
     }
   }
 
