@@ -43,9 +43,9 @@ public class FileDiffChannelUpdater {
   private void onMessage(JsArray<JSObject> jsArray) {
     int type = JsCast.ints(jsArray.pop())[0];
     switch (type) {
-      case SEND_DIFF -> onSendDiff(jsArray);
+//      case SEND_DIFF -> onSendDiff(jsArray);
       case FILE_SAVE -> onFileSave(jsArray);
-      case SEND_INT_DIFF -> onSendIntervalDiff(jsArray);
+//      case SEND_INT_DIFF -> onSendIntervalDiff(jsArray);
     }
   }
 
@@ -60,24 +60,24 @@ public class FileDiffChannelUpdater {
   }
 
   // todo finish writing in future
-  private void onSendDiff(JsArray<JSObject> jsArray) {
-    String src1 = JsCast.string(jsArray, 0);
-    String src2 = JsCast.string(jsArray, 1);
-    int[] intervals1 = JsCast.ints(jsArray, 2);
-    int[] intervals2 = JsCast.ints(jsArray, 3);
-    executor.sendToWorker((result) -> {
-      JsArray<JSObject> jsResult = JsArray.create();
-      int[] modelInts = ((ArrayView) result[0]).ints();
-      jsResult.set(0, JsCast.jsInts(modelInts));
-      jsResult.push(SEND_DIFF_MESSAGE);
-      channel.sendMessage(jsResult);
-    }, DiffUtils.FIND_DIFFS, src1.toCharArray(), intervals1, src2.toCharArray(), intervals2);
-  }
-
-  private void onSendIntervalDiff(JsArray<JSObject> jsArray) {
-
-  }
-
+//  private void onSendDiff(JsArray<JSObject> jsArray) {
+//    String src1 = JsCast.string(jsArray, 0);
+//    String src2 = JsCast.string(jsArray, 1);
+//    int[] intervals1 = JsCast.ints(jsArray, 2);
+//    int[] intervals2 = JsCast.ints(jsArray, 3);
+//    executor.sendToWorker((result) -> {
+//      JsArray<JSObject> jsResult = JsArray.create();
+//      int[] modelInts = ((ArrayView) result[0]).ints();
+//      jsResult.set(0, JsCast.jsInts(modelInts));
+//      jsResult.push(SEND_DIFF_MESSAGE);
+//      channel.sendMessage(jsResult);
+//    }, DiffUtils.FIND_DIFFS, src1.toCharArray(), intervals1, src2.toCharArray(), intervals2);
+//  }
+//
+//  private void onSendIntervalDiff(JsArray<JSObject> jsArray) {
+//
+//  }
+//
   public void sendFileRead(boolean left, JSString source) {
     JsArray<JSObject> jsArray = JsArray.create();
     jsArray.set(0, source);
