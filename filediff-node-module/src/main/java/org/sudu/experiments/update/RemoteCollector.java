@@ -152,6 +152,10 @@ public class RemoteCollector {
 
   private void cmpFilesAndSend(ItemFolderDiffModel model, FileHandle item) {
     LoggingJs.debug("file write complete: " + item);
+    cmpFilesAndSend(model);
+  }
+
+  private void cmpFilesAndSend(ItemFolderDiffModel model) {
     Consumer<Object[]> onCompared = result -> {
       String message = FileCompare.message(result);
       if (message != null)
@@ -350,6 +354,22 @@ public class RemoteCollector {
     }
   }
 
+  // todo rewrite model searching by its fullPath string
+  public void onRemoteFileSave(boolean left, String fullPath) {
+    String rootPath = replaceSlashes(left ? leftHandle().getFullPath() : rightHandle().getFullPath());
+    String preparedPath = replaceSlashes(fullPath);
+    if (preparedPath.startsWith(rootPath)) {
+      preparedPath = preparedPath.substring(rootPath.length() + 1);
+      String[] path = preparedPath.split("/", -1);
+      ItemFolderDiffModel model = (ItemFolderDiffModel) root.getByPath(path, 0, left);
+      if (model != null) {
+        cmpFilesAndSend(model);
+      } else {
+        LoggingJs.error("RemoteCollector.onRemoteFileSave: can't find model by path: " + fullPath);
+      }
+    }
+  }
+
   private void sendTaskToWorker() {
     if (sentToWorker < workerSize && !sendToWorkerQueue.isEmpty()) {
       var task = sendToWorkerQueue.removeFirst();
@@ -437,5 +457,9 @@ public class RemoteCollector {
 
   private DirectoryHandle rightHandle() {
     return (DirectoryHandle) root.items[1];
+  }
+
+  private String replaceSlashes(String path) {
+    return path.replace('\\', '/');
   }
 }

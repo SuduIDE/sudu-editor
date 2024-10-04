@@ -45,6 +45,18 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
     sb.append(path);
   }
 
+  public RemoteFolderDiffModel getByPath(String[] path, int ind, boolean left) {
+    if (ind == path.length) return this;
+    boolean isFile = ind + 1 == path.length;
+    for (int i = 0; i < children.length; i++) {
+      var child = child(i);
+      if ((left && !child.isLeft()) || (!left && !child.isRight())) continue;
+      if (isFile != child.isFile()) continue;
+      if (child.path.equals(path[ind])) return child.getByPath(path, ind + 1, left);
+    }
+    return null;
+  }
+
   public static int[] toInts(
       RemoteFolderDiffModel model,
       List<String> pathList
