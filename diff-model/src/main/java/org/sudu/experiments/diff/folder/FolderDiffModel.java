@@ -175,31 +175,28 @@ public class FolderDiffModel {
 
   // todo change parent status after diff applying
   public void insertItem() {
-    this.setDiffType(DiffTypes.DEFAULT);
-    if (children != null) for (var child: children) child.insertItem();
-    if (parent != null) {
-      parent.afterInsert();
-      parent.updateItem();
+    if (isFile()) setDiffType(DiffTypes.DEFAULT);
+    else if (children != null) {
+      for (var child: children) child.insertItem();
     }
-  }
-
-  public void afterInsert() {
-    int diffType = getDiffType();
-    if (diffType == DiffTypes.INSERTED || diffType == DiffTypes.DELETED) {
-      setDiffType(DiffTypes.EDITED);
-      if (parent != null) parent.afterInsert();
-    }
+    updateItem();
   }
 
   // todo change parent status after diff applying
   public void editItem(boolean left) {
     int diffType = getDiffType();
-    if (getDiffType() == DiffTypes.DEFAULT) return;
-    if ((left && diffType == DiffTypes.DELETED) || (!left && diffType == DiffTypes.INSERTED)) this.insertItem();
+    if (diffType == DiffTypes.DEFAULT) return;
+    if (diffType == DiffTypes.EDITED) {
+      if (isFile()) {
+        setDiffType(DiffTypes.DEFAULT);
+        updateItem();
+      } else if (children != null) {
+        for (var child: children) child.editItem(left);
+      }
+    } else {
+      if ((left && diffType == DiffTypes.DELETED) || (!left && diffType == DiffTypes.INSERTED)) this.insertItem();
 //    if ((left && diffType == DiffTypes.INSERTED) || (!left && diffType == DiffTypes.DELETED)) this.deleteItem();
-    if (getDiffType() == DiffTypes.EDITED && isFile()) setDiffType(DiffTypes.DEFAULT);
-    if (children != null) for (var child: children) child.editItem(left);
-    updateItem();
+    }
   }
 
   public void updateItem() {
@@ -212,10 +209,8 @@ public class FolderDiffModel {
         }
       }
     } else haveChanges = getDiffType() != DiffTypes.DEFAULT;
-    if (!haveChanges) {
-      setDiffType(DiffTypes.DEFAULT);
-      if (parent != null) parent.updateItem();
-    } else setDiffType(DiffTypes.EDITED);
+    setDiffType(haveChanges ? DiffTypes.EDITED : DiffTypes.DEFAULT);
+    if (parent != null) parent.updateItem();
   }
 
   public FolderDiffModel findNode(int[] path) {
