@@ -87,7 +87,8 @@ public class DiffEngine implements DiffEngineJs {
     JsHelper.consoleInfo("  left: ", leftStr);
     JsHelper.consoleInfo("  right: ", rightStr);
 
-    FileDiffChannelUpdater updater = new FileDiffChannelUpdater(channel, pool);
+    FileDiffChannelUpdater updater
+        = new FileDiffChannelUpdater(channel, ((JsFolderDiffSession0) parent).updater, pool);
     if (isLeftFile && isRightFile) {
       FileHandle leftHandle = new NodeFileHandle(leftStr);
       FileHandle rightHandle = new NodeFileHandle(rightStr);

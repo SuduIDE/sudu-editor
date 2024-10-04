@@ -111,4 +111,8 @@ public class DiffModelChannelUpdater {
   private void onRefresh() {
     collector.refresh();
   }
+
+  public void onRemoteFileSave(boolean left, String fullPath) {
+    collector.onRemoteFileSave(left, fullPath);
+  }
 }

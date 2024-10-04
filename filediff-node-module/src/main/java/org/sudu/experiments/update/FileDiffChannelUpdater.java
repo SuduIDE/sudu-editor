@@ -3,10 +3,8 @@ package org.sudu.experiments.update;
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.LoggingJs;
-import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.protocol.JsCast;
-import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
@@ -17,6 +15,7 @@ public class FileDiffChannelUpdater {
   private FileHandle leftHandle, rightHandle;
   private WorkerJobExecutor executor;
   private final Channel channel;
+  private final DiffModelChannelUpdater updater;
 
   public final static int FILE_READ = 0;
   public final static int FILE_SAVE = 1;
@@ -27,15 +26,21 @@ public class FileDiffChannelUpdater {
   public final static Int32Array SEND_DIFF_MESSAGE = JsCast.jsInts(SEND_DIFF);
   public final static Int32Array SEND_INT_DIFF_MESSAGE = JsCast.jsInts(SEND_INT_DIFF);
 
-  public FileDiffChannelUpdater(Channel channel, WorkerJobExecutor executor) {
+  public FileDiffChannelUpdater(
+      Channel channel,
+      DiffModelChannelUpdater updater,
+      WorkerJobExecutor executor
+  ) {
     this.executor = executor;
     this.channel = channel;
     this.channel.setOnMessage(this::onMessage);
+    this.updater = updater;
   }
 
   public void beginCompare(FileHandle leftHandle, FileHandle rightHandle) {
     this.leftHandle = leftHandle;
     this.rightHandle = rightHandle;
+    System.out.println("FileDiffChannelUpdater.beginCompare");
     leftHandle.readAsText((str) -> sendFileRead(true, str), this::onError);
     rightHandle.readAsText((str) -> sendFileRead(false, str), this::onError);
   }
@@ -53,9 +58,9 @@ public class FileDiffChannelUpdater {
     String source = JsCast.string(jsArray, 0);
     boolean left = JsCast.ints(jsArray, 1)[0] == 1;
     if (left) {
-      leftHandle.writeText(source, () -> {/* todo */}, this::onError);
+      leftHandle.writeText(source, () -> onFileWrite(true, leftHandle.getFullPath()), this::onError);
     } else {
-      rightHandle.writeText(source, () -> {/* todo */}, this::onError);
+      rightHandle.writeText(source, () -> onFileWrite(false, rightHandle.getFullPath()), this::onError);
     }
   }
 
@@ -78,6 +83,11 @@ public class FileDiffChannelUpdater {
 //
 //  }
 //
+
+  private void onFileWrite(boolean left, String fullPath) {
+    updater.onRemoteFileSave(left, fullPath);
+  }
+
   public void sendFileRead(boolean left, JSString source) {
     JsArray<JSObject> jsArray = JsArray.create();
     jsArray.set(0, source);
