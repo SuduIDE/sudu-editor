@@ -283,6 +283,7 @@ class FileDiffRootView extends DiffRootView {
     editor1.revealLineInCenter(range.fromL);
     editor2.setPosition(0, range.fromR);
     editor2.revealLineInCenter(range.fromR);
+    ui.windowManager.uiContext.window.repaint();
     if (showNavigateLog) {
       System.out.println("Navigated down on lines " + (range.fromL + 1) + " and " + (range.fromR + 1));
     }
