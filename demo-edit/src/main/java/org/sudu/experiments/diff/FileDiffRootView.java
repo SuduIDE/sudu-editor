@@ -25,6 +25,7 @@ class FileDiffRootView extends DiffRootView {
   Consumer<String> onLeftDiffMade, onRightDiffMade;
 
   boolean firstDiffRevealed = false;
+  private static final boolean showNavigateLog = true;
 
   FileDiffRootView(WindowManager wm) {
     super(wm.uiContext);
@@ -229,22 +230,14 @@ class FileDiffRootView extends DiffRootView {
     for (var range: diffModel.ranges) {
       if (range.type == DiffTypes.DEFAULT) continue;
       editor1.setPosition(0, range.fromL);
+      editor1.revealLineInCenter(range.fromL);
       editor2.setPosition(0, range.fromR);
+      editor2.revealLineInCenter(range.fromR);
       break;
     }
   }
 
-  private EditorComponent getFocused() {
-    return editor1.isFocused()
-        ? editor1
-        : editor2.isFocused()
-        ? editor2
-        : null;
-  }
-
-  public boolean canNavigateUp() {
-    var focused = getFocused();
-    if (focused == null) return false;
+  public boolean canNavigateUp(EditorComponent focused) {
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
     int rangeInd = diffModel.rangeBinSearch(lineInd, left);
@@ -254,24 +247,26 @@ class FileDiffRootView extends DiffRootView {
     return false;
   }
 
-  public void navigateUp() {
-    var focused = getFocused();
-    if (focused == null) return;
+  public void navigateUp(EditorComponent focused) {
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
     int rangeInd = diffModel.rangeBinSearch(lineInd, left);
     for (int i = rangeInd - 1; i >= 0; i--) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) {
         var range = diffModel.ranges[i];
-        focused.setPosition(0, left ? range.fromL : range.fromR);
+        int newLineInd = left ? range.fromL : range.fromR;
+        focused.setPosition(0, newLineInd);
+        focused.revealLineInCenter(newLineInd);
+        if (showNavigateLog) {
+          System.out.println("Navigated up on line " + (newLineInd + 1) +
+              " in " + (left ? "left" : "right") + " editor");
+        }
         return;
       }
     }
   }
 
-  public boolean canNavigateDown() {
-    var focused = getFocused();
-    if (focused == null) return false;
+  public boolean canNavigateDown(EditorComponent focused) {
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
     int rangeInd = diffModel.rangeBinSearch(lineInd, left);
@@ -281,16 +276,20 @@ class FileDiffRootView extends DiffRootView {
     return false;
   }
 
-  public void navigateDown() {
-    var focused = getFocused();
-    if (focused == null) return;
+  public void navigateDown(EditorComponent focused) {
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
     int rangeInd = diffModel.rangeBinSearch(lineInd, left);
     for (int i = rangeInd + 1; i < diffModel.ranges.length; i++) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) {
         var range = diffModel.ranges[i];
-        focused.setPosition(0, left ? range.fromL : range.fromR);
+        int newLineInd =  left ? range.fromL : range.fromR;
+        focused.setPosition(0, newLineInd);
+        focused.revealLineInCenter(newLineInd);
+        if (showNavigateLog) {
+          System.out.println("Navigated down on line " + (newLineInd + 1) +
+              " in " + (left ? "left" : "right") + " editor");
+        }
         return;
       }
     }

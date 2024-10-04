@@ -192,4 +192,30 @@ public class FileDiffWindow extends ToolWindow0
   public void setOnDiffMade(Consumer<String> onLeftDiffMade, Consumer<String> onRightDiffMade) {
     rootView.setOnDiffMade(onLeftDiffMade, onRightDiffMade);
   }
+
+  public boolean canNavigateDown() {
+    return rootView.canNavigateDown(focused());
+  }
+
+  public void navigateDown() {
+    rootView.navigateDown(focused());
+  }
+
+  public boolean canNavigateUp() {
+    return rootView.canNavigateUp(focused());
+  }
+
+  public void navigateUp() {
+    rootView.navigateUp(focused());
+  }
+
+  EditorComponent focused() {
+    var f = windowManager.uiContext.focused();
+    if (f == rootView.editor1)
+      return rootView.editor1;
+    if (f == rootView.editor2)
+      return rootView.editor2;
+    return focusSave == rootView.editor2
+        ? rootView.editor2 : rootView.editor1;
+  }
 }

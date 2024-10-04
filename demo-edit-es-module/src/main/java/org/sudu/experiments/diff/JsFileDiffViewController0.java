@@ -23,22 +23,22 @@ public class JsFileDiffViewController0 implements JsFileDiffViewController {
 
   @Override
   public boolean canNavigateUp() {
-    return w.rootView.canNavigateUp();
+    return w.canNavigateUp();
   }
 
   @Override
   public void navigateUp() {
-    w.rootView.navigateUp();
+    w.navigateUp();
   }
 
   @Override
   public boolean canNavigateDown() {
-    return w.rootView.canNavigateDown();
+    return w.canNavigateDown();
   }
 
   @Override
   public void navigateDown() {
-    w.rootView.navigateDown();
+    w.navigateDown();
   }
 
   @Override
