@@ -125,7 +125,7 @@ public class RemoteCollector {
 
   private void copyFile(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
     LoggingJs.debug("copyFile " + model + ", left = " + left);
-    if (!(model.item() instanceof FileHandle fileItem)) return;
+    if (!(model.item(left) instanceof FileHandle fileItem)) return;
     String to = model.getFullPath(!left ? leftHandle().getFullPath() : rightHandle().getFullPath());
     LoggingJs.debug("copyFile " + fileItem + " -> " + to);
     fileItem.copyTo(to, onComplete, this::onError);
