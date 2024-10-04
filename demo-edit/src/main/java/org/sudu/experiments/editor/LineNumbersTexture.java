@@ -119,7 +119,7 @@ public class LineNumbersTexture implements Disposable {
   void drawCurrentLine(
       WglGraphics g, V2i dXdY,
       int scrollPos, int fullTexturesSize, int caretLine,
-      LineNumbersColors colorScheme
+      LineNumbersColors colorScheme, V4f caretBgColor
   ) {
     int caretShift = caretLine % numberOfLines;
     int height = textureSize.y;
@@ -131,7 +131,7 @@ public class LineNumbersTexture implements Disposable {
     rectSize.set(textureSize.x, lineHeight);
     rectRegion.set(0, caretShift * lineHeight, textureSize.x, lineHeight);
 
-    draw(g, yPos, dXdY, colorScheme.caretTextColor, colorScheme.caretBgColor);
+    draw(g, yPos, dXdY, colorScheme.caretTextColor, caretBgColor);
   }
 
   private void draw(WglGraphics g, int yPos, V2i dXdY, V4f textColor, V4f bgColor) {

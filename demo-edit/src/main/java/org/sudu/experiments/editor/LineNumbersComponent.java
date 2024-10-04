@@ -112,18 +112,21 @@ public class LineNumbersComponent implements Disposable {
     drawBottom(textHeight, size.y, scheme.lineNumber, g);
 
     if (firstLine <= caretLine && caretLine <= lastLine) {
-      drawCaretLine(scrollPos, caretLine, scheme.lineNumber, g);
+      var bgColor = getItemColor(scheme, colors, caretLine);
+      drawCaretLine(scrollPos, caretLine, scheme.lineNumber, g, bgColor);
     }
     g.disableScissor();
   }
 
   private void drawCaretLine(
       int scrollPos, int caretLine,
-      LineNumbersColors colorScheme, WglGraphics g
+      LineNumbersColors colorScheme, WglGraphics g,
+      V4f bgColor
   ) {
     texture(caretLine / numberOfLines).drawCurrentLine(
         g, pos, scrollPos,
-        textures.length * textureHeight, caretLine, colorScheme);
+        textures.length * textureHeight,
+        caretLine, colorScheme, bgColor);
   }
 
   private void drawBottom(
