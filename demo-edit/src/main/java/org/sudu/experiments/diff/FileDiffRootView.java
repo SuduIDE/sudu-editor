@@ -229,10 +229,7 @@ class FileDiffRootView extends DiffRootView {
     firstDiffRevealed = true;
     for (var range: diffModel.ranges) {
       if (range.type == DiffTypes.DEFAULT) continue;
-      editor1.setPosition(0, range.fromL);
-      editor1.revealLineInCenter(range.fromL);
-      editor2.setPosition(0, range.fromR);
-      editor2.revealLineInCenter(range.fromR);
+      setPositionsAtRange(range);
       break;
     }
   }
@@ -241,7 +238,7 @@ class FileDiffRootView extends DiffRootView {
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
     int rangeInd = diffModel.rangeBinSearch(lineInd, left);
-    for (int i = rangeInd; i >= 0; i--) {
+    for (int i = rangeInd - 1; i >= 0; i--) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return true;
     }
     return false;
@@ -253,14 +250,7 @@ class FileDiffRootView extends DiffRootView {
     int rangeInd = diffModel.rangeBinSearch(lineInd, left);
     for (int i = rangeInd - 1; i >= 0; i--) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) {
-        var range = diffModel.ranges[i];
-        int newLineInd = left ? range.fromL : range.fromR;
-        focused.setPosition(0, newLineInd);
-        focused.revealLineInCenter(newLineInd);
-        if (showNavigateLog) {
-          System.out.println("Navigated up on line " + (newLineInd + 1) +
-              " in " + (left ? "left" : "right") + " editor");
-        }
+        setPositionsAtRange(diffModel.ranges[i]);
         return;
       }
     }
@@ -270,7 +260,7 @@ class FileDiffRootView extends DiffRootView {
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
     int rangeInd = diffModel.rangeBinSearch(lineInd, left);
-    for (int i = rangeInd; i < diffModel.ranges.length; i++) {
+    for (int i = rangeInd + 1; i < diffModel.ranges.length; i++) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return true;
     }
     return false;
@@ -282,16 +272,19 @@ class FileDiffRootView extends DiffRootView {
     int rangeInd = diffModel.rangeBinSearch(lineInd, left);
     for (int i = rangeInd + 1; i < diffModel.ranges.length; i++) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) {
-        var range = diffModel.ranges[i];
-        int newLineInd =  left ? range.fromL : range.fromR;
-        focused.setPosition(0, newLineInd);
-        focused.revealLineInCenter(newLineInd);
-        if (showNavigateLog) {
-          System.out.println("Navigated down on line " + (newLineInd + 1) +
-              " in " + (left ? "left" : "right") + " editor");
-        }
+        setPositionsAtRange(diffModel.ranges[i]);
         return;
       }
+    }
+  }
+
+  private void setPositionsAtRange(DiffRange range) {
+    editor1.setPosition(0, range.fromL);
+    editor1.revealLineInCenter(range.fromL);
+    editor2.setPosition(0, range.fromR);
+    editor2.revealLineInCenter(range.fromR);
+    if (showNavigateLog) {
+      System.out.println("Navigated down on lines " + (range.fromL + 1) + " and " + (range.fromR + 1));
     }
   }
 
