@@ -66,7 +66,7 @@ import org.teavm.jso.core.JSString;
           level -> Static.level = level,
           logger -> {
             Static.logger = logger;
-            logger.log(Static.level, JSString.valueOf("Current level " + Static.level));
+            logger.log(INFO, JSString.valueOf("Current level " + Static.level));
           }
       );
     }

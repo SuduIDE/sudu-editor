@@ -16,8 +16,8 @@ public class ChannelTest implements ChannelTestApi {
   void onMessage(JsArray<JSObject> array) {
     var l = LoggingJs.Static.logger;
     if (l != null) {
-      l.log(LoggingJs.INFO, JSString.valueOf("ChannelTest.onMessage: "));
-      l.log(LoggingJs.INFO, array.toJsString());
+      l.log(LoggingJs.INFO, JsHelper.concat(
+          "ChannelTest.onMessage: ", array.toJsString()));
     } else {
       JsHelper.consoleInfo("ChannelTest.onMessage: ", array);
     }

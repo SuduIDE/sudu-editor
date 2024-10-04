@@ -155,7 +155,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     updateDiffInfo();
     if (rootModel.isCompared()) {
       finished = true;
-      LoggingJs.log(LoggingJs.INFO, "RemoteFolderDiff finished");
+      LoggingJs.info("RemoteFolderDiff finished");
       rootView.fireFinished();
     }
   }
@@ -285,7 +285,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       case DiffModelChannelUpdater.OPEN_FILE -> openFile(jsResult);
       case DiffModelChannelUpdater.APPLY_DIFF -> onDiffApplied(jsResult);
     }
-    LoggingJs.log(LoggingJs.TRACE,
+    LoggingJs.trace(
         "Got message in " + Numbers.iRnd(Performance.now() - startTime) + "ms"
     );
   }

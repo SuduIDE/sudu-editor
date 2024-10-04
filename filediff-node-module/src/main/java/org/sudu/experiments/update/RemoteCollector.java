@@ -131,24 +131,6 @@ public class RemoteCollector {
     fileItem.copyTo(to, onComplete, this::onError);
   }
 
-  private void sendApplied1(FileHandle fileItem, String to) {
-    LoggingJs.debug("copyFile complete " + fileItem + " -> " + to);
-    sendApplied();
-  }
-
-  static class ReadCompare {
-    String a,b;
-
-    void onString(String s) {
-      if (a == null) a = s;
-      else b = s;
-
-      if (a != null && b != null) {
-        LoggingJs.debug("ReadCompare: " + a.equals(b));
-      }
-    }
-  }
-
   private void removeFile(ItemFolderDiffModel model, Runnable onComplete) {
     if (!(model.item() instanceof FileHandle fileItem)) return;
     LoggingJs.debug("removeFile " + fileItem);
@@ -188,8 +170,7 @@ public class RemoteCollector {
   }
 
   private void onError(String error) {
-    // todo -> invoke .error when fixed
-    LoggingJs.debug(error);
+    LoggingJs.error(error);
   }
 
   private void compare(ItemFolderDiffModel model) {
