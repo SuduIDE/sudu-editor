@@ -94,22 +94,25 @@ public class RemoteCollector {
     ArrayWriter pathWriter = new ArrayWriter();
     lastFrontendMessage.collectPath(path, pathWriter, root, left);
 
-    if (isDeleteDiff) {
-      var node = lastFrontendMessage.findNode(path);
-      var parentNode = lastFrontendMessage.findParentNode(path);
-      if (node != null && parentNode != null) parentNode.deleteItem(node);
-      model.deleteItem();
-    } else if (isInsertDiff) {
-      model.insertItem();
-    } else {
-      model.editItem(left);
-    }
+    Runnable updateModel = () -> {
+      if (isDeleteDiff) {
+        var node = lastFrontendMessage.findNode(path);
+        var parentNode = lastFrontendMessage.findParentNode(path);
+        if (node != null && parentNode != null) parentNode.deleteItem(node);
+        model.deleteItem();
+      } else if (isInsertDiff) {
+        model.insertItem();
+      } else {
+        model.editItem(left);
+      }
+      sendApplied();
+    };
     if (model.isFile()) {
-      if (!isDeleteDiff) copyFile(model, left);
-      else removeFile(model);
+      if (!isDeleteDiff) copyFile(model, left, updateModel);
+      else removeFile(model, updateModel);
     } else {
-      if (!isDeleteDiff) copyFolder(model, left);
-      else removeFolder(model);
+      if (!isDeleteDiff) copyFolder(model, left, updateModel);
+      else removeFolder(model, updateModel);
     }
   }
 
@@ -120,13 +123,12 @@ public class RemoteCollector {
     item.writeText(source, () -> cmpFilesAndSend(model, item), this::onError);
   }
 
-  private void copyFile(ItemFolderDiffModel model, boolean left) {
+  private void copyFile(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
     LoggingJs.debug("copyFile " + model + ", left = " + left);
     if (!(model.item() instanceof FileHandle fileItem)) return;
     String to = model.getFullPath(!left ? leftHandle().getFullPath() : rightHandle().getFullPath());
     LoggingJs.debug("copyFile " + fileItem + " -> " + to);
-
-    fileItem.copyTo(to, () -> sendApplied1(fileItem, to), this::onError);
+    fileItem.copyTo(to, onComplete, this::onError);
   }
 
   private void sendApplied1(FileHandle fileItem, String to) {
@@ -147,24 +149,23 @@ public class RemoteCollector {
     }
   }
 
-  private void removeFile(ItemFolderDiffModel model) {
+  private void removeFile(ItemFolderDiffModel model, Runnable onComplete) {
     if (!(model.item() instanceof FileHandle fileItem)) return;
     LoggingJs.debug("removeFile " + fileItem);
-
-    fileItem.remove(this::sendApplied, this::onError);
+    fileItem.remove(onComplete, this::onError);
   }
 
-  private void copyFolder(ItemFolderDiffModel model, boolean left) {
-    if (!(model.item() instanceof DirectoryHandle dirItem)) return;
+  private void copyFolder(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
+    if (!(model.item(left) instanceof DirectoryHandle dirItem)) return;
     String to = model.getFullPath(!left ? leftHandle().getFullPath() : rightHandle().getFullPath());
     LoggingJs.debug("copyFolder " + dirItem + " -> " + to);
-    dirItem.copyTo(to, this::sendApplied, this::onError);
+    dirItem.copyTo(to, onComplete, this::onError);
   }
 
-  private void removeFolder(ItemFolderDiffModel model) {
+  private void removeFolder(ItemFolderDiffModel model, Runnable onComplete) {
     if (!(model.item() instanceof DirectoryHandle dirItem)) return;
     LoggingJs.debug("remove folder " + dirItem);
-    dirItem.remove(this::sendApplied, this::onError);
+    dirItem.remove(onComplete, this::onError);
   }
 
   private void cmpFilesAndSend(ItemFolderDiffModel model, FileHandle item) {

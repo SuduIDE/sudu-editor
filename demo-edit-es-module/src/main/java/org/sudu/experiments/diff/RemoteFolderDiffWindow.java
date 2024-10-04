@@ -435,10 +435,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       window.window.maximize();
       onWindowEvent(window);
     } else {
-      var lPath = getFullPath(node, left);
-      var rPath = getFullPath(opposite, !left);
-      opener.openFileDiff(
-          JSString.valueOf(lPath), JSString.valueOf(rPath));
+      var lPath = left ? getFullPath(node, true) : getFullPath(opposite, true);
+      var rPath = !left ? getFullPath(node, false) : getFullPath(opposite, false);
+      opener.openFileDiff(JSString.valueOf(lPath), JSString.valueOf(rPath));
     }
   }
 
@@ -622,11 +621,11 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     boolean left = focused == rootView.left;
     var lines = left ? diffInfo.lineDiffsL : diffInfo.lineDiffsR;
     if (up) {
-      for (int i = selectedInd; i >= 0; i--) {
+      for (int i = selectedInd - 1; i >= 0; i--) {
         if (lines[i].type != DiffTypes.DEFAULT) return true;
       }
     } else {
-      for (int i = selectedInd; i < lines.length; i++) {
+      for (int i = selectedInd + 1; i < lines.length; i++) {
         if (lines[i].type != DiffTypes.DEFAULT) return true;
       }
     }

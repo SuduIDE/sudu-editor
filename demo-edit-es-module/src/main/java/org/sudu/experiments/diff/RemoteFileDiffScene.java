@@ -11,13 +11,13 @@ import org.sudu.experiments.math.V2i;
 public class RemoteFileDiffScene extends WindowScene{
   final Channel channel;
 
-  protected FileDiffWindow w;
+  protected RemoteFileDiffWindow w;
 
   public RemoteFileDiffScene(SceneApi api, Channel channel) {
     super(api);
     this.channel = channel;
     var theme = EditorColorScheme.darkIdeaColorScheme();
-    w = new FileDiffWindow(windowManager, theme, this::menuFonts);
+    w = new RemoteFileDiffWindow(windowManager, theme, this::menuFonts, channel);
   }
 
   public String[] menuFonts() {

@@ -23,6 +23,10 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     return left();
   }
 
+  public FsItem item(boolean left) {
+    return items.length < 2 || left ? left() : right();
+  }
+
   public FsItem left() {
     return items[0];
   }

@@ -187,7 +187,7 @@ class FileDiffRootView extends DiffRootView {
     setDiffModel(diffModel);
   }
 
-  private void sendToDiff() {
+  protected void sendToDiff() {
     DiffUtils.findDiffs(
         editor1.model().document,
         editor2.model().document,
@@ -195,7 +195,7 @@ class FileDiffRootView extends DiffRootView {
         ui.windowManager.uiContext.window.worker());
   }
 
-  private void sendIntervalToDiff(
+  protected void sendIntervalToDiff(
       int fromL, int toL,
       int fromR, int toR
   ) {
@@ -260,7 +260,7 @@ class FileDiffRootView extends DiffRootView {
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
     int rangeInd = diffModel.rangeBinSearch(lineInd, left);
-    for (int i = rangeInd; i >= 0; i--) {
+    for (int i = rangeInd - 1; i >= 0; i--) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) {
         var range = diffModel.ranges[i];
         focused.setPosition(0, left ? range.fromL : range.fromR);
@@ -287,7 +287,7 @@ class FileDiffRootView extends DiffRootView {
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
     int rangeInd = diffModel.rangeBinSearch(lineInd, left);
-    for (int i = rangeInd; i < diffModel.ranges.length; i++) {
+    for (int i = rangeInd + 1; i < diffModel.ranges.length; i++) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) {
         var range = diffModel.ranges[i];
         focused.setPosition(0, left ? range.fromL : range.fromR);
