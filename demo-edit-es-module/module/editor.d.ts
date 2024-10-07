@@ -193,12 +193,45 @@ export interface Focusable {
   focus(): void
 }
 
+export type DialogOption = {
+  title: string
+  isEnabled: boolean
+}
+
+export type DialogState = {
+  options: DialogOption[]
+}
+
+export type DialogButton = {
+  title: string
+  isDefault?: boolean
+  isEnabled: (state: DialogState) => boolean
+}
+
+export type DialogInput = {
+  title: string
+  text: string
+  options: DialogOption[]
+  buttons: DialogButton[]
+}
+
+export type DialogResult = {
+  button: DialogButton
+  options: DialogOption[]
+}
+
+export interface ExternalDialogProvider {
+  showModalDialog(input: DialogInput): Promise<DialogResult | null>
+}
+
 export interface View {
   disconnectFromDom(): void
   reconnectToDom(containerId?: string): void
 
   getController(): ViewController;
   onControllerUpdate: IEvent<ViewController>
+
+  setExternalDialogProvider(opener: ExternalDialogProvider | null): void
 }
 
 export interface TwoPanelDiff {
