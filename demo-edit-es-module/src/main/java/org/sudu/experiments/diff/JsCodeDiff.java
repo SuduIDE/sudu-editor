@@ -114,6 +114,9 @@ public class JsCodeDiff implements JsFileDiffView {
     return JsTextModel.fromJava(w.rootView.getRightModel());
   }
 
+  @Override
+  public void setExternalDialogProvider(JsExternalDialogProvider opener) {}
+
   public static Promise<JsFileDiffView> newDiff(EditArgs arguments) {
     return JsLauncher.start(
         arguments,
