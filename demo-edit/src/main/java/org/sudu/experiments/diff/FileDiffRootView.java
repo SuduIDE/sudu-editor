@@ -237,7 +237,7 @@ class FileDiffRootView extends DiffRootView {
   public boolean canNavigateUp(EditorComponent focused) {
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
-    int rangeInd = diffModel.rangeBinSearch(lineInd, left);
+    int rangeInd = diffModel.rightBS(lineInd, left);
     for (int i = rangeInd - 1; i >= 0; i--) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return true;
     }
@@ -247,7 +247,7 @@ class FileDiffRootView extends DiffRootView {
   public void navigateUp(EditorComponent focused) {
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
-    int rangeInd = diffModel.rangeBinSearch(lineInd, left);
+    int rangeInd = diffModel.rightBS(lineInd, left);
     for (int i = rangeInd - 1; i >= 0; i--) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) {
         setPositionsAtRange(diffModel.ranges[i]);
@@ -285,7 +285,7 @@ class FileDiffRootView extends DiffRootView {
     editor2.revealLineInCenter(range.fromR);
     ui.windowManager.uiContext.window.repaint();
     if (showNavigateLog) {
-      System.out.println("Navigated down on lines " + (range.fromL + 1) + " and " + (range.fromR + 1));
+      System.out.println("Navigated on lines " + (range.fromL + 1) + " and " + (range.fromR + 1));
     }
   }
 
