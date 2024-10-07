@@ -344,4 +344,7 @@ public class JsCodeEditor implements JsEditorView {
       return Promise.reject(FireFoxWarning.message);
     }
   }
+
+  @Override
+  public void setExternalDialogProvider(JsExternalDialogProvider opener) {}
 }

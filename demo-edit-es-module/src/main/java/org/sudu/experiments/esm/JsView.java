@@ -19,4 +19,6 @@ public interface JsView extends JsHasTheme {
   JsDisposable onControllerUpdate(
       JsFunctions.Consumer<JsViewController> callback
   );
+
+  void setExternalDialogProvider(JsExternalDialogProvider opener);
 }

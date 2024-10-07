@@ -1,10 +1,7 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.esm.EditArgs;
-import org.sudu.experiments.esm.JsITextModel;
-import org.sudu.experiments.esm.JsTextModel;
-import org.sudu.experiments.esm.ThemeImport;
+import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.JsDisposable;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
@@ -109,6 +106,9 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
   ) {
     return JsDisposable.empty();
   }
+
+  @Override
+  public void setExternalDialogProvider(JsExternalDialogProvider opener) {}
 
   static Function<SceneApi, Scene> sf(Channel channel) {
     return api -> new RemoteFileDiffScene(api, channel);

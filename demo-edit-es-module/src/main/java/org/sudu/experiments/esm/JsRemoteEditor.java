@@ -181,4 +181,7 @@ public class JsRemoteEditor implements JsRemoteEditorView {
       return Promise.reject(FireFoxWarning.message);
     }
   }
+
+  @Override
+  public void setExternalDialogProvider(JsExternalDialogProvider opener) {}
 }

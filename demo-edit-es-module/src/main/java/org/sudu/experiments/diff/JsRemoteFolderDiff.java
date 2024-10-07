@@ -1,10 +1,7 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.esm.EditArgs;
-import org.sudu.experiments.esm.JsExternalFileOpener;
-import org.sudu.experiments.esm.JsIFolderDiffView;
-import org.sudu.experiments.esm.ThemeImport;
+import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
@@ -120,6 +117,9 @@ public class JsRemoteFolderDiff implements JsRemoteFolderDiffView {
     );
     return JsDisposable.of(d);
   }
+
+  @Override
+  public void setExternalDialogProvider(JsExternalDialogProvider opener) {}
 
   private FolderDiffRootView rootView() {
     return folderDiff.rootView;
