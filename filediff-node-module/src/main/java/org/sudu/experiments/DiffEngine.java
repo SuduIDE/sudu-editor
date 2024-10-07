@@ -80,7 +80,7 @@ public class DiffEngine implements DiffEngineJs {
         ? JsFileInputFile.getPath(leftInput)
         : JsFileInputContent.getContent(leftInput);
 
-    JSString rightStr = isLeftFile
+    JSString rightStr = isRightFile
         ? JsFileInputFile.getPath(rightInput)
         : JsFileInputContent.getContent(rightInput);
 
