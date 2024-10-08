@@ -24,8 +24,16 @@ import org.teavm.jso.core.JSString;
     Static.logger.log(INFO, JSString.valueOf(message));
   }
 
+  static void info(JSString message) {
+    Static.logger.log(INFO, message);
+  }
+
   static void trace(String message) {
     Static.logger.log(TRACE, JSString.valueOf(message));
+  }
+
+  static void trace(JSString message) {
+    Static.logger.log(TRACE, message);
   }
 
   static void error(String message) {

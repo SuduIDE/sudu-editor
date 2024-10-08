@@ -85,7 +85,8 @@ public class FileDiffChannelUpdater {
 //
 
   private void onFileWrite(boolean left, String fullPath) {
-    updater.onRemoteFileSave(left, fullPath);
+    if (updater != null)
+      updater.onRemoteFileSave(left, fullPath);
   }
 
   public void sendFileRead(boolean left, JSString source) {

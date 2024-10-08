@@ -56,7 +56,7 @@ public class DiffEngine implements DiffEngineJs {
       Channel channel,
       JsFolderDiffSession parent
   ) {
-    JsHelper.consoleInfo("Starting new file diff ...");
+    LoggingJs.info("Starting new file diff ...");
 
     boolean isLeftFile = JsFileInputFile.isInstance(leftInput);
     boolean isRightFile = JsFileInputFile.isInstance(rightInput);
@@ -84,11 +84,16 @@ public class DiffEngine implements DiffEngineJs {
         ? JsFileInputFile.getPath(rightInput)
         : JsFileInputContent.getContent(rightInput);
 
-    JsHelper.consoleInfo("  left: ", leftStr);
-    JsHelper.consoleInfo("  right: ", rightStr);
+    LoggingJs.info(JsHelper.concat("  left: ", leftStr));
+    LoggingJs.info(JsHelper.concat("  right: ",rightStr));
 
+    LoggingJs.info("  parent instanceof JsFolderDiffSession0: " +
+        (parent instanceof JsFolderDiffSession0));
+
+    DiffModelChannelUpdater parentUpdater =
+        JsHelper.jsIf(parent) ? ((JsFolderDiffSession0) parent).updater : null;
     FileDiffChannelUpdater updater
-        = new FileDiffChannelUpdater(channel, ((JsFolderDiffSession0) parent).updater, pool);
+        = new FileDiffChannelUpdater(channel, parentUpdater, pool);
     if (isLeftFile && isRightFile) {
       FileHandle leftHandle = new NodeFileHandle(leftStr);
       FileHandle rightHandle = new NodeFileHandle(rightStr);
