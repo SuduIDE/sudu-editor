@@ -170,7 +170,12 @@ export const enum ThemeColor {
   SelectedItemForeground = 3,
   HoveredItemBackground = 4,
   InactiveSelectionBackground = 5,
-  ChangedItemBackground = 6
+  CurrentLineBackground = 6,
+  DeletedRegionBackground = 7,
+  DeletedTextBackground = 8,
+  InsertedRegionBackground = 9,
+  InsertedTextBackground = 10,
+  PanelHeaderBackground = 11
 }
 
 export type BaseTheme = 'dark' | 'light' | 'darcula';
