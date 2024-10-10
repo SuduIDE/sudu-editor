@@ -18,7 +18,7 @@ public class JsNative {
       params = {"title", "isDefault"},
       script =
           "return {title:title, isDefault:isDefault, " +
-              "isEnabled: state => true };"
+              "isEnabled: state => {return true;} };"
   )
   public static native JsDialogButton createButton(
       String title,
