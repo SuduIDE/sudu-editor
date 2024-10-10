@@ -5,10 +5,10 @@ import org.sudu.experiments.math.V4f;
 
 public class LineNumbersColors {
 
-  public final Color textColor;
-  public final Color bgColor;
-  public final Color caretTextColor;
-  public final Color caretBgColor;
+  public Color textColor;
+  public Color bgColor;
+  public Color caretTextColor;
+  public Color caretBgColor;
 
   public static LineNumbersColors darcula() {
     return new LineNumbersColors(

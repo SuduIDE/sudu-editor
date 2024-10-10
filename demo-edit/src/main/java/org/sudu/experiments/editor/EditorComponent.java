@@ -511,12 +511,12 @@ public class EditorComponent extends View implements
       CodeLineRenderer line = lineRenderer(i);
       int yPosition = lineHeight * i - vScrollPos;
       boolean isTailSelected = selection().isTailSelected(i);
-      Color tailColor = colors.editor.lineTailContent;
+      V4f tailColor = colors.editor.bg;
       boolean isCurrentLine = model.caretLine == i;
 
       if (isTailSelected) tailColor = colors.editor.selectionBg;
       else if (diffModel != null && i < diffModel.length && diffModel[i] != null && !diffModel[i].isDefault()) {
-        tailColor = (Color) colors.diff.getDiffColor(colors, diffModel[i].type);
+        tailColor = colors.diff.getDiffColor(colors, diffModel[i].type);
       }
       else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
 

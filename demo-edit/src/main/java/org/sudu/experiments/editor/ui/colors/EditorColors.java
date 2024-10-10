@@ -7,7 +7,6 @@ public class EditorColors {
   public Color bg;
   public Color numbersVLine;
   public Color footerFill;
-  public Color lineTailContent;
   public Color selectionBg;
   public Color definitionBg;
   public Color usageBg;
@@ -20,7 +19,6 @@ public class EditorColors {
       Color bg,
       Color numbersVLine,
       Color footerFill,
-      Color lineTailContent,
       Color selectionBg,
       Color definitionBg,
       Color usageBg,
@@ -32,7 +30,6 @@ public class EditorColors {
     this.bg = bg;
     this.numbersVLine = numbersVLine;
     this.footerFill = footerFill;
-    this.lineTailContent = lineTailContent;
     this.selectionBg = selectionBg;
     this.definitionBg = definitionBg;
     this.usageBg = usageBg;
@@ -47,7 +44,6 @@ public class EditorColors {
         new Color(IdeaCodeColors.Darcula.editBg),
         new Color(IdeaCodeColors.Darcula.editNumbersVLine),
         new Color(IdeaCodeColors.Darcula.editFooterFill),
-        new Color(IdeaCodeColors.Darcula.editBg),
         new Color(IdeaCodeColors.Darcula.editSelectedBg),
         new Color(IdeaCodeColors.Darcula.definitionBgColor),
         new Color(IdeaCodeColors.Darcula.usageBgColor),
@@ -63,7 +59,6 @@ public class EditorColors {
         new Color(IdeaCodeColors.Dark.editBg),
         new Color(IdeaCodeColors.Dark.editNumbersVLine),
         new Color(IdeaCodeColors.Dark.editFooterFill),
-        new Color(IdeaCodeColors.Dark.editBg),
         new Color(IdeaCodeColors.Dark.editSelectedBg),
         new Color(IdeaCodeColors.Dark.definitionBgColor),
         new Color(IdeaCodeColors.Dark.usageBgColor),
@@ -79,7 +74,6 @@ public class EditorColors {
         new Color(IdeaCodeColors.Light.editBg),
         new Color(IdeaCodeColors.Light.editNumbersVLine),
         new Color(IdeaCodeColors.Light.editFooterFill),
-        new Color(IdeaCodeColors.Light.editBg),
         new Color(IdeaCodeColors.Light.editSelectedBg),
         new Color(IdeaCodeColors.Light.definitionBgColor),
         new Color(IdeaCodeColors.Light.usageBgColor),

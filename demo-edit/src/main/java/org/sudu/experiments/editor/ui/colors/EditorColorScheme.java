@@ -164,8 +164,10 @@ public class EditorColorScheme {
 
   public void modify(int m, Color c) {
     switch (m) {
-      case TreeViewBackground ->
-          editor.bg = c;
+      case TreeViewBackground -> {
+        editor.bg = c;
+        lineNumber.bgColor = editor.bg;
+      }
       case DefaultForeground ->
           codeElement[0].colorF = c;
       case SelectedItemBackground ->

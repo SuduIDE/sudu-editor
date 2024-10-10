@@ -341,7 +341,7 @@ public class CodeLineRenderer implements Disposable {
       V2i size,
       int editorHScrollPos,
       int editorWidth,
-      Color editBgColor
+      V4f editBgColor
   ) {
     int lineMeasure = line.lineMeasure();
     if (lineMeasure != 0) lineMeasure += xOffset;
