@@ -166,18 +166,25 @@ public class EditorColorScheme {
     switch (m) {
       case TreeViewBackground -> {
         editor.bg = c;
-        lineNumber.bgColor = editor.bg;
+        lineNumber.bgColor = c;
+        hoverColors.bgColor = c;
       }
       case DefaultForeground ->
           codeElement[0].colorF = c;
-      case SelectedItemBackground ->
-          fileTreeView.selectedBg = c;
+      case SelectedItemBackground -> {
+        fileTreeView.selectedBg = c;
+        hoverColors.bgColor = c;
+
+      }
       case SelectedItemForeground ->
-          fileTreeView.selectedText = c;
+          fileTreeView.selectedText =c;
       case HoveredItemBackground ->
           fileTreeView.hoveredBg = c;
-      case InactiveSelectionBackground ->
-          fileTreeView.inactiveSelectedBg = c;
+//              hoverColors.caretBgColor = c;
+      case InactiveSelectionBackground -> {
+        fileTreeView.inactiveSelectedBg = c;
+//        System.out.println("InactiveSelectionBackground = " + c);
+      }
       case ChangedItemBackground ->
           diff.editedBgColor = c;
     }
