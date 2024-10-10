@@ -12,7 +12,6 @@ import java.util.function.Consumer;
 public class ReadFolderHandler {
 
   public final ItemFolderDiffModel rootModel;
-  public final DirectoryHandle rootHandle;
   private final int diffType;
   private final int itemKind;
   private final Consumer<Object[]> r;
@@ -20,13 +19,11 @@ public class ReadFolderHandler {
 
   public ReadFolderHandler(
       ItemFolderDiffModel rootModel,
-      DirectoryHandle rootHandle,
       int diffType,
       int itemKind,
       Consumer<Object[]> r
   ) {
     this.rootModel = rootModel;
-    this.rootHandle = rootHandle;
     this.diffType = diffType;
     this.itemKind = itemKind;
     this.r = r;
@@ -35,15 +32,13 @@ public class ReadFolderHandler {
   public void beginRead() {
     rootModel.setDiffType(diffType);
     rootModel.setItemKind(itemKind);
-    read(rootModel, rootHandle);
+    read(rootModel);
   }
 
-  public void read(
-      ItemFolderDiffModel model,
-      DirectoryHandle handle
-  ) {
+  public void read(ItemFolderDiffModel model) {
     ++readCnt;
-    handle.read(new DiffReader(children -> onFolderRead(model, children)));
+    var dirHandle = (DirectoryHandle) model.item();
+    dirHandle.read(new DiffReader(children -> onFolderRead(model, children)));
   }
 
   public static void setChildren(ItemFolderDiffModel parent, TreeS[] paths) {
@@ -69,9 +64,9 @@ public class ReadFolderHandler {
     for (int i = 0; i < children.length; i++) {
       var child = model.child(i);
       child.setDiffType(diffType);
-      child.items = new FsItem[] {children[i].item};
+      child.setItem(children[i].item);
       if (!child.isFile()) {
-        read(child, (DirectoryHandle) children[i].item);
+        read(child);
       } else child.itemCompared();
     }
     --readCnt;
