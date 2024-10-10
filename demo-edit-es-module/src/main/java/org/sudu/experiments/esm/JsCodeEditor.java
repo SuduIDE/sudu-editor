@@ -346,5 +346,5 @@ public class JsCodeEditor implements JsEditorView {
   }
 
   @Override
-  public void setExternalDialogProvider(JsExternalDialogProvider opener) {}
+  public void setExternalDialogProvider(JsDialogProvider opener) {}
 }

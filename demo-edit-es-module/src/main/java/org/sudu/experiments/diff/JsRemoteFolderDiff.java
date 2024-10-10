@@ -119,7 +119,9 @@ public class JsRemoteFolderDiff implements JsRemoteFolderDiffView {
   }
 
   @Override
-  public void setExternalDialogProvider(JsExternalDialogProvider opener) {}
+  public void setExternalDialogProvider(JsDialogProvider provider) {
+    folderDiff.dialogProvider = provider;
+  }
 
   private FolderDiffRootView rootView() {
     return folderDiff.rootView;

@@ -81,7 +81,6 @@ public class WindowManager implements MouseListener, DprChangeListener {
         fireMouseLeave();
       } else {
         ++lastMouseWindow;
-        System.out.println("lastMouseWindow = " + lastMouseWindow);
       }
     }
     windows.add(0, window);

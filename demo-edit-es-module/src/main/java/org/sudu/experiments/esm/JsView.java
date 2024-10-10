@@ -20,5 +20,5 @@ public interface JsView extends JsHasTheme {
       JsFunctions.Consumer<JsViewController> callback
   );
 
-  void setExternalDialogProvider(JsExternalDialogProvider opener);
+  void setExternalDialogProvider(JsDialogProvider opener);
 }

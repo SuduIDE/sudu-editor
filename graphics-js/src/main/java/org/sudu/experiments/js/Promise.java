@@ -38,10 +38,6 @@ public abstract class Promise<T extends JSObject> implements JSObject {
   )
   public static native Promise<JsArrayReader<JSObject>> all(JsArrayReader<?> iterable);
 
-  public static Promise<JsArrayReader<JSObject>> all(JSObject[] array) {
-    return all(JsHelper.toJsArray(array));
-  }
-
   public static Promise<JsArrayReader<JSObject>> all(JSObject a, JSObject b) {
     return all(JsHelper.toJsArray(a, b));
   }

@@ -108,7 +108,7 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
   }
 
   @Override
-  public void setExternalDialogProvider(JsExternalDialogProvider opener) {}
+  public void setExternalDialogProvider(JsDialogProvider opener) {}
 
   static Function<SceneApi, Scene> sf(Channel channel) {
     return api -> new RemoteFileDiffScene(api, channel);

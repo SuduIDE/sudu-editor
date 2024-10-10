@@ -8,7 +8,9 @@ import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.esm.JsDialogProvider;
 import org.sudu.experiments.esm.JsExternalFileOpener;
+import org.sudu.experiments.esm.dlg.FsDialogs;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.math.ArrayOp;
@@ -66,6 +68,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       new Subscribers<>(new ViewEventListener[0]);
 
   JsExternalFileOpener opener;
+  JsDialogProvider dialogProvider;
 
   public RemoteFolderDiffWindow(
       EditorColorScheme theme,
@@ -274,7 +277,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         rootView.left.model(),
         rootView.right.model()
     ));
-    rootView.setMergeButtons(this::sendApplyDiff);
+    rootView.setMergeButtons(this::askApplyDiff);
     window.context.window.repaint();
   }
 
@@ -502,6 +505,18 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     result.push(DiffModelChannelUpdater.OPEN_FILE_ARRAY);
     channel.sendMessage(result);
     keyCnt = (keyCnt + 1) % MAP_SIZE;
+  }
+
+  private void askApplyDiff(FolderDiffModel model, boolean left) {
+    if (dialogProvider != null) {
+      RemoteFolderDiffModel remoteModel = (RemoteFolderDiffModel) model;
+      String fromPath = remoteModel.getFullPath(left ? leftRoot.name() : rightRoot.name());
+      String toPath = remoteModel.getFullPath(!left ? leftRoot.name() : rightRoot.name());
+      FsDialogs.showDlg(dialogProvider, fromPath, toPath,
+          () -> sendApplyDiff(model, left));
+    } else {
+      sendApplyDiff(model, left);
+    }
   }
 
   private void sendApplyDiff(FolderDiffModel model, boolean left) {

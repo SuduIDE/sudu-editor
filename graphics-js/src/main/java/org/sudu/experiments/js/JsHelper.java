@@ -148,13 +148,9 @@ public class JsHelper {
   @NoSideEffects
   public static native JSString typeof(JSObject a);
 
-  @JSBody(params = {"array"}, script = "return array;")
-  @NoSideEffects
-  public static native JsArray<JSObject> toJsArray(@JSByRef JSObject ... array);
-
   @JSBody(params = {"a", "b"}, script = "return [a, b];")
   @NoSideEffects
-  public static native JsArray<JSObject> toJsArray(JSObject a, JSObject b);
+  public static native <T extends JSObject> JsArray<T> toJsArray(T a, T b);
 
   @JSBody(params = {"a", "b", "c"}, script = "return [a, b, c];")
   @NoSideEffects
