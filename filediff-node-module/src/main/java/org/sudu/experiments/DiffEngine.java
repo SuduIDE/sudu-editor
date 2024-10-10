@@ -40,7 +40,7 @@ public class DiffEngine implements DiffEngineJs {
     DirectoryHandle rightHandle = new NodeDirectoryHandle(rightPath);
 
     ItemFolderDiffModel root = new ItemFolderDiffModel(null, "");
-    root.items = new FsItem[]{leftHandle, rightHandle};
+    root.setItems(leftHandle, rightHandle);
 
     DiffModelChannelUpdater updater = new DiffModelChannelUpdater(
         root,
