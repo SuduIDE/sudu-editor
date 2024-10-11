@@ -147,8 +147,16 @@ public class FolderDiffModel {
     return getDiffType() != DiffTypes.INSERTED;
   }
 
+  public boolean isLeftOnly() {
+    return getDiffType() == DiffTypes.DELETED;
+  }
+
   public boolean isRight() {
     return getDiffType() != DiffTypes.DELETED;
+  }
+
+  public boolean isRightOnly() {
+    return getDiffType() == DiffTypes.INSERTED;
   }
 
   public boolean matchFilter(int filter) {

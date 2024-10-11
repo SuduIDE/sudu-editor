@@ -40,7 +40,7 @@ public class DiffEngine implements DiffEngineJs {
     DirectoryHandle rightHandle = new NodeDirectoryHandle(rightPath);
 
     ItemFolderDiffModel root = new ItemFolderDiffModel(null, "");
-    root.items = new FsItem[]{leftHandle, rightHandle};
+    root.setItems(leftHandle, rightHandle);
 
     DiffModelChannelUpdater updater = new DiffModelChannelUpdater(
         root,
@@ -85,21 +85,27 @@ public class DiffEngine implements DiffEngineJs {
         : JsFileInputContent.getContent(rightInput);
 
     LoggingJs.info(JsHelper.concat("  left: ", leftStr));
-    LoggingJs.info(JsHelper.concat("  right: ",rightStr));
+    LoggingJs.info(JsHelper.concat("  right: ", rightStr));
 
     LoggingJs.info("  parent instanceof JsFolderDiffSession0: " +
         (parent instanceof JsFolderDiffSession0));
 
     DiffModelChannelUpdater parentUpdater =
         JsHelper.jsIf(parent) ? ((JsFolderDiffSession0) parent).updater : null;
+
     FileDiffChannelUpdater updater
         = new FileDiffChannelUpdater(channel, parentUpdater, pool);
-    if (isLeftFile && isRightFile) {
+
+    if (isLeftFile) {
       FileHandle leftHandle = new NodeFileHandle(leftStr);
-      FileHandle rightHandle = new NodeFileHandle(rightStr);
-      updater.beginCompare(leftHandle, rightHandle);
+      updater.compareLeft(leftHandle);
     } else {
       updater.sendFileRead(true, leftStr);
+    }
+    if (isRightFile) {
+      FileHandle rightHandle = new NodeFileHandle(rightStr);
+      updater.compareRight(rightHandle);
+    } else {
       updater.sendFileRead(false, rightStr);
     }
     return new JsFileDiffSession0();

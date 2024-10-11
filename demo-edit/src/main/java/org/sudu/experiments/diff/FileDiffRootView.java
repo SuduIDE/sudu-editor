@@ -64,10 +64,12 @@ class FileDiffRootView extends DiffRootView {
 
   public void setLeftModel(Model m) {
     editor1.setModel(m);
+    sendToDiff(true);
   }
 
   public void setRightModel(Model m) {
     editor2.setModel(m);
+    sendToDiff(true);
   }
 
   public Model getLeftModel() {
@@ -91,7 +93,7 @@ class FileDiffRootView extends DiffRootView {
     if (editor1 == editor) modelFlags |= 1;
     if (editor2 == editor) modelFlags |= 2;
     if ((modelFlags & 3) == 3) {
-      sendToDiff();
+      sendToDiff(false);
     }
   }
 
@@ -103,8 +105,8 @@ class FileDiffRootView extends DiffRootView {
     if (diffModel == null) return;
     int startLine = editor.model().document.getLine(start).x;
     int stopLine = editor.model().document.getLine(stop).x;
-    var fromRangeInd = diffModel.leftBS(startLine, isL);
-    var toRangeInd = diffModel.rightBS(stopLine, isL);
+    var fromRangeInd = diffModel.leftNotEmptyBS(startLine, isL);
+    var toRangeInd = diffModel.rightNotEmptyBS(stopLine, isL);
 
     if (fromRangeInd != 0 && diffModel.ranges[fromRangeInd].type != DiffTypes.DEFAULT) fromRangeInd--;
     if (toRangeInd != diffModel.rangeCount() - 1 && diffModel.ranges[toRangeInd].type != DiffTypes.DEFAULT) toRangeInd++;
@@ -188,10 +190,11 @@ class FileDiffRootView extends DiffRootView {
     setDiffModel(diffModel);
   }
 
-  protected void sendToDiff() {
+  protected void sendToDiff(boolean cmpOnlyLines) {
     DiffUtils.findDiffs(
         editor1.model().document,
         editor2.model().document,
+        cmpOnlyLines,
         this::setDiffModel,
         ui.windowManager.uiContext.window.worker());
   }
@@ -237,7 +240,7 @@ class FileDiffRootView extends DiffRootView {
   public boolean canNavigateUp(EditorComponent focused) {
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
-    int rangeInd = diffModel.rightBS(lineInd, left);
+    int rangeInd = diffModel.leftBS(lineInd, left);
     for (int i = rangeInd - 1; i >= 0; i--) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return true;
     }
@@ -247,7 +250,7 @@ class FileDiffRootView extends DiffRootView {
   public void navigateUp(EditorComponent focused) {
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
-    int rangeInd = diffModel.rightBS(lineInd, left);
+    int rangeInd = diffModel.leftBS(lineInd, left);
     for (int i = rangeInd - 1; i >= 0; i--) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) {
         setPositionsAtRange(diffModel.ranges[i]);
@@ -290,6 +293,6 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void refresh() {
-    sendToDiff();
+    sendToDiff(false);
   }
 }
