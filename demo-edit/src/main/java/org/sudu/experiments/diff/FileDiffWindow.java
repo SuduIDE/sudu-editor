@@ -102,8 +102,10 @@ public class FileDiffWindow extends ToolWindow0
   }
 
   private void fireIfModelReady() {
-    if (leftFile != null && rightFile != null)
+    if (leftFile != null && rightFile != null) {
+      rootView.sendToDiff(true);
       fireEvent();
+    }
   }
 
   void updateTitle(FileHandle handle, boolean left) {

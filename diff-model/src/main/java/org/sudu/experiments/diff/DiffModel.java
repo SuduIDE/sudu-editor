@@ -14,13 +14,13 @@ import org.sudu.experiments.utils.Utils;
 
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class DiffModel {
 
   public LineDiff[] lineDiffsN, lineDiffsM;
   public List<BaseRange<CodeLineS>> linesRanges;
+  public boolean compareLinesOnly = false;
   private static final boolean PRINT_LCS_TIME = false;
 
   public int[] findDiffs(
@@ -75,6 +75,7 @@ public class DiffModel {
   private void handleEdition(Diff<CodeLineS> diff) {
     diff.diffN.forEach(line -> lineDiffsN[line.lineNum] = new LineDiff(DiffTypes.EDITED, line.len()));
     diff.diffM.forEach(line -> lineDiffsM[line.lineNum] = new LineDiff(DiffTypes.EDITED, line.len()));
+    if (compareLinesOnly) return;
 
     var elementsDiffs = findElementsDiff(flatElements(diff.diffN), flatElements(diff.diffM));
     elementsDiffs.forEach(elRange -> {

@@ -27,11 +27,13 @@ public class DiffUtils {
   public static void findDiffs(
       char[] charsN, int[] intsN,
       char[] charsM, int[] intsM,
+      int[] ints,
       List<Object> result
   ) {
     DiffModel model = new DiffModel();
-    int[] ints = model.findDiffs(charsN, intsN, charsM, intsM);
-    result.add(ints);
+    model.compareLinesOnly = ints[0] == 1;
+    int[] resultInts = model.findDiffs(charsN, intsN, charsM, intsM);
+    result.add(resultInts);
   }
 
   public static final String CMP_FILES = "asyncCompareFiles";
@@ -189,6 +191,7 @@ public class DiffUtils {
   public static void findDiffs(
       Document document1,
       Document document2,
+      boolean cmpOnlyLines,
       Consumer<DiffInfo> result,
       WorkerJobExecutor window
   ) {
@@ -203,7 +206,7 @@ public class DiffUtils {
           DiffInfo model = readDiffInfo(reply);
           result.accept(model);
         }, FIND_DIFFS,
-        chars1, intervals1, chars2, intervals2);
+        chars1, intervals1, chars2, intervals2, new int[] {cmpOnlyLines ? 1 : 0});
   }
 
   public static void findIntervalDiffs(
@@ -224,6 +227,6 @@ public class DiffUtils {
           DiffInfo model = readDiffInfo(reply);
           result.accept(model);
         }, FIND_DIFFS,
-        chars1, intervals1, chars2, intervals2);
+        chars1, intervals1, chars2, intervals2, new int[] {1});
   }
 }
