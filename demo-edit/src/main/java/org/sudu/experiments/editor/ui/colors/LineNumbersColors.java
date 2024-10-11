@@ -13,9 +13,9 @@ public class LineNumbersColors {
   public static LineNumbersColors darcula() {
     return new LineNumbersColors(
         new Color("#606366"),
-        new Color("#2B2B2B"),
+        new Color(IdeaCodeColors.Darcula.editBg),
         new Color("#A4A3A3"),
-        new Color("#323232")
+        new Color(IdeaCodeColors.Darcula.caretBg)
     );
   }
 
@@ -24,16 +24,16 @@ public class LineNumbersColors {
         new Color("#4B5059"),
         new Color(IdeaCodeColors.Dark.editBg),
         new Color("#A1A3AB"),
-        new Color("#26282E")
+        new Color(IdeaCodeColors.Dark.caretBg)
     );
   }
 
   public static LineNumbersColors light() {
     return new LineNumbersColors(
         new Color("#AEB3C2"),
-        new Color("#FFFFFF"),
+        new Color(IdeaCodeColors.Light.editBg),
         new Color("#767A8A"),
-        new Color("#F5F8FE")
+        new Color(IdeaCodeColors.Light.caretBg)
     );
   }
 

@@ -7,6 +7,7 @@ import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.EditorUi.FontApi;
 import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.ui.colors.MergeButtonsColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.*;
@@ -51,6 +52,7 @@ public class EditorComponent extends View implements
   EditorRegistrations registrations = new EditorRegistrations();
   EditorColorScheme colors;
   CodeLineColorScheme codeLineColors;
+  MergeButtonsColors mbColors;
 
   // render cache
   CodeLineRenderer[] lines = new CodeLineRenderer[0];
@@ -209,6 +211,8 @@ public class EditorComponent extends View implements
   public void setTheme(EditorColorScheme theme) {
     colors = theme;
     codeLineColors = colors.editorCodeLineScheme();
+    if (mbColors != null)
+      mbColors = colors.codeDiffMergeButtons();
     caret.setColor(theme.editor.cursor);
     vScroll.setColor(theme.editor.scrollBarLine, theme.editor.scrollBarBg);
     hScroll.setColor(theme.editor.scrollBarLine, theme.editor.scrollBarBg);
@@ -549,7 +553,7 @@ public class EditorComponent extends View implements
       mergeButtons.setScrollPos(vScrollPos);
       mergeButtons.draw(
           firstLine, lastLine, model.caretLine,
-          g, colors, lrContext);
+          g, mbColors, colors.diff, lrContext);
     }
 
 //    g.checkError("paint complete");
@@ -895,7 +899,8 @@ public class EditorComponent extends View implements
   private void onNewModel() {
     externalHighlights = null;
     lineNumbers.setColors(null);
-    if (mergeButtons != null) mergeButtons.setColors(lineNumbers.colors());
+    if (mergeButtons != null)
+      mergeButtons.setColors(lineNumbers.colors());
   }
 
   boolean arrowUpDown(int amount, boolean ctrl, boolean alt, boolean shiftPressed) {
@@ -1753,6 +1758,7 @@ public class EditorComponent extends View implements
   public void setMergeButtons(Runnable[] actions, int[] lines) {
      if (mergeButtons == null) {
        mergeButtons = new MergeButtons();
+       mbColors = colors.codeDiffMergeButtons();
        if (dpr != 0) {
          setMergeButtonsFont();
          internalLayout();

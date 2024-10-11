@@ -4,6 +4,8 @@ import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.ModelFilter;
 import org.sudu.experiments.editor.MergeButtons;
+import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.ui.colors.MergeButtonsColors;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.ui.window.ScrollView;
 
@@ -12,6 +14,7 @@ import java.util.function.Consumer;
 public class FileTreeView extends TreeView {
   FileTreeNode root;
   MergeButtons mergeButtons;
+  MergeButtonsColors mbColors;
   int mbWidth;
   boolean isLeft;
 
@@ -26,6 +29,13 @@ public class FileTreeView extends TreeView {
       mergeButtons.dispose();
       mergeButtons = null;
     }
+  }
+
+  @Override
+  public void setTheme(EditorColorScheme colors) {
+    super.setTheme(colors);
+    if (mbColors != null)
+      mbColors = theme.fileTreeMergeButtons();
   }
 
   public void updateModel() {
@@ -48,6 +58,7 @@ public class FileTreeView extends TreeView {
     isLeft = left;
     if (mergeButtons == null) {
       mergeButtons = new MergeButtons();
+      mbColors = theme.fileTreeMergeButtons();
       if (dpr != 0) {
         applyMergeButtonsFont();
       }
@@ -95,7 +106,7 @@ public class FileTreeView extends TreeView {
       mergeButtons.setPosition(xPos, pos.y, mbWidth, size.y, dpr);
       mergeButtons.draw(
           firstLineRendered, lastLineRendered, selectedIndex,
-          g, theme, clrContext);
+          g, mbColors, theme.diff, clrContext);
     }
   }
 

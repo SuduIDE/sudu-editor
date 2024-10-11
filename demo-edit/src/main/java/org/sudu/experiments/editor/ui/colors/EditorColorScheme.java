@@ -184,6 +184,22 @@ public class EditorColorScheme {
     }
   }
 
+  public MergeButtonsColors codeDiffMergeButtons() {
+    return new MergeButtonsColors(
+        lineNumber.caretTextColor,
+        lineNumber.bgColor,
+        lineNumber.caretBgColor
+    );
+  }
+
+  public MergeButtonsColors fileTreeMergeButtons() {
+    return new MergeButtonsColors(
+        fileTreeView.selectedText,
+        fileTreeView.bg,
+        fileTreeView.selectedBg
+    );
+  }
+
   private void recomputeHoverColors() {
     var hoverColor = fileTreeView.hoveredBg;
     hoverColors = new BackgroundHoverColors(

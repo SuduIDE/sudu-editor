@@ -1,7 +1,9 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.editor.ui.colors.DiffColors;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.ui.colors.MergeButtonsColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
@@ -77,11 +79,14 @@ public class MergeButtons implements Disposable {
 
   public void draw(
       int firstLine, int lastLine, int caretLine,
-      WglGraphics g, EditorColorScheme scheme, ClrContext c
+      WglGraphics g,
+      MergeButtonsColors theme,
+      DiffColors diffColors,
+      ClrContext c
   ) {
 //    var hoverColors = scheme.hoverColors;
-    var lnColors = scheme.lineNumber;
-    var diffColors = scheme.diff;
+    var lnColors = theme;
+   //  var diffColors = scheme.diff;
     if (drawBg) {
       g.drawRect(pos.x, pos.y, size, lnColors.bgColor);
     }
@@ -103,7 +108,7 @@ public class MergeButtons implements Disposable {
       byte color = l < colors.length ? colors[l] : 0;
 
       V4f bgColor = color != 0 ?
-          diffColors.getDiffColor(scheme, color) :
+          diffColors.getDiffColor(color, lnColors.bgColor) :
             l == caretLine ?
 //              scheme.error() :
               lnColors.caretBgColor :
@@ -111,13 +116,13 @@ public class MergeButtons implements Disposable {
       if (nextBt == l) {
         var bg = bgColor;
         if (selectedBtLine == l) {
-          bg = color != 0 ? diffColors.getDiffColor(scheme, color) :
+          bg = color != 0 ? diffColors.getDiffColor(color, lnColors.bgColor) :
               l == caretLine ? lnColors.caretBgColor :
                   lnColors.bgColor;
         }
         c.drawIcon(
             g, texture, x, y,
-            bg, lnColors.caretTextColor
+            bg, lnColors.textColor
         );
         if (drawFrames) {
           debug.set(x, y);
