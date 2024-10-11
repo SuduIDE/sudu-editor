@@ -42,7 +42,8 @@ public class EditorWorker {
       case ScopeProxy.RESOLVE_ALL -> ScopeProxy.resolveAll(ArgsCast.array(a, 0).ints(), ArgsCast.array(a, 1).chars(), ArgsCast.array(a, 2).ints(), result);
       case DiffUtils.FIND_DIFFS -> DiffUtils.findDiffs(
           ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(),
-          ArgsCast.array(a, 2).chars(), ArgsCast.array(a, 3).ints(), result);
+          ArgsCast.array(a, 2).chars(), ArgsCast.array(a, 3).ints(),
+          ArgsCast.array(a, 4).ints(), result);
     }
   }
 

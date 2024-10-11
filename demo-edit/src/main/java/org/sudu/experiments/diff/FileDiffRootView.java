@@ -64,10 +64,12 @@ class FileDiffRootView extends DiffRootView {
 
   public void setLeftModel(Model m) {
     editor1.setModel(m);
+    sendToDiff(true);
   }
 
   public void setRightModel(Model m) {
     editor2.setModel(m);
+    sendToDiff(true);
   }
 
   public Model getLeftModel() {
@@ -91,7 +93,7 @@ class FileDiffRootView extends DiffRootView {
     if (editor1 == editor) modelFlags |= 1;
     if (editor2 == editor) modelFlags |= 2;
     if ((modelFlags & 3) == 3) {
-      sendToDiff();
+      sendToDiff(false);
     }
   }
 
@@ -188,10 +190,11 @@ class FileDiffRootView extends DiffRootView {
     setDiffModel(diffModel);
   }
 
-  protected void sendToDiff() {
+  protected void sendToDiff(boolean cmpOnlyLines) {
     DiffUtils.findDiffs(
         editor1.model().document,
         editor2.model().document,
+        cmpOnlyLines,
         this::setDiffModel,
         ui.windowManager.uiContext.window.worker());
   }
@@ -290,6 +293,6 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void refresh() {
-    sendToDiff();
+    sendToDiff(false);
   }
 }
