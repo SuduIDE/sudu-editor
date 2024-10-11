@@ -44,7 +44,8 @@ public class DiffInfo {
     return Math.min(low, ranges.length - 1);
   }
 
-  public int leftBS(int lineKey, boolean isL) {
+  // Return first not empty range to the left of range of lineKey
+  public int leftNotEmptyBS(int lineKey, boolean isL) {
     int ind = rangeBinSearch(lineKey, isL);
     while (ind - 1 >= 0) {
       var range = ranges[ind - 1];
@@ -55,12 +56,24 @@ public class DiffInfo {
     return ind;
   }
 
-  public int rightBS(int lineKey, boolean isL) {
+  // Return first not empty range to the right of range of lineKey
+  public int rightNotEmptyBS(int lineKey, boolean isL) {
     int ind = rangeBinSearch(lineKey, isL);
     while (ind + 1 < ranges.length) {
       var range = ranges[ind + 1];
       int len = isL ? range.lenL : range.lenR;
       if (len == 0) ind++;
+      else break;
+    }
+    return ind;
+  }
+
+  public int leftBS(int lineKey, boolean isL) {
+    int ind = rangeBinSearch(lineKey, isL);
+    while (ind - 1 >= 0) {
+      var range = ranges[ind - 1];
+      int start = isL ? range.fromL : range.fromR;
+      if (start == lineKey) ind--;
       else break;
     }
     return ind;
