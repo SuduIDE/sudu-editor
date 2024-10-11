@@ -37,11 +37,13 @@ public class FileDiffChannelUpdater {
     this.updater = updater;
   }
 
-  public void beginCompare(FileHandle leftHandle, FileHandle rightHandle) {
+  public void compareLeft(FileHandle leftHandle) {
     this.leftHandle = leftHandle;
-    this.rightHandle = rightHandle;
-    System.out.println("FileDiffChannelUpdater.beginCompare");
     leftHandle.readAsText((str) -> sendFileRead(true, str), this::onError);
+  }
+
+  public void compareRight(FileHandle rightHandle) {
+    this.rightHandle = rightHandle;
     rightHandle.readAsText((str) -> sendFileRead(false, str), this::onError);
   }
 
@@ -92,10 +94,16 @@ public class FileDiffChannelUpdater {
   public void sendFileRead(boolean left, JSString source) {
     JsArray<JSObject> jsArray = JsArray.create();
     jsArray.set(0, source);
-    jsArray.set(1, JSString.valueOf(left ? leftHandle.getName() : rightHandle.getName()));
+    jsArray.set(1, JSString.valueOf(name(left)));
     jsArray.set(2, JsCast.jsInts(left ? 1 : 0));
     jsArray.push(FILE_READ_MESSAGE);
     channel.sendMessage(jsArray);
+  }
+
+  public String name(boolean left) {
+    var handle = left ? leftHandle : rightHandle;
+    if (handle == null) return "";
+    else return handle.getName();
   }
 
   private void sendFileRead(boolean left, String source) {

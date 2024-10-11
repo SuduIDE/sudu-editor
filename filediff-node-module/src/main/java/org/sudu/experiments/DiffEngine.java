@@ -62,19 +62,6 @@ public class DiffEngine implements DiffEngineJs {
     boolean isRightFile = JsFileInputFile.isInstance(rightInput);
     boolean isLeftText = JsFileInputContent.isInstance(leftInput);
     boolean isRightText = JsFileInputContent.isInstance(rightInput);
-    boolean validatedLeft = isLeftFile ^ isLeftText;
-    boolean validatedRight = isRightFile ^ isRightText;
-
-    if (!validatedLeft)
-      LoggingJs.error(JsHelper.concat(
-          "startFileDiff: left input is invalid ", leftInput));
-
-    if (!validatedRight)
-      LoggingJs.error(JsHelper.concat(
-          "startFileDiff: right input is invalid ", rightInput));
-
-    if (!validatedLeft || !validatedRight)
-      return null;
 
     JSString leftStr = isLeftFile
         ? JsFileInputFile.getPath(leftInput)
@@ -85,21 +72,27 @@ public class DiffEngine implements DiffEngineJs {
         : JsFileInputContent.getContent(rightInput);
 
     LoggingJs.info(JsHelper.concat("  left: ", leftStr));
-    LoggingJs.info(JsHelper.concat("  right: ",rightStr));
+    LoggingJs.info(JsHelper.concat("  right: ", rightStr));
 
     LoggingJs.info("  parent instanceof JsFolderDiffSession0: " +
         (parent instanceof JsFolderDiffSession0));
 
     DiffModelChannelUpdater parentUpdater =
         JsHelper.jsIf(parent) ? ((JsFolderDiffSession0) parent).updater : null;
+
     FileDiffChannelUpdater updater
         = new FileDiffChannelUpdater(channel, parentUpdater, pool);
-    if (isLeftFile && isRightFile) {
+
+    if (isLeftFile) {
       FileHandle leftHandle = new NodeFileHandle(leftStr);
-      FileHandle rightHandle = new NodeFileHandle(rightStr);
-      updater.beginCompare(leftHandle, rightHandle);
-    } else {
+      updater.compareLeft(leftHandle);
+    } else if (isLeftText) {
       updater.sendFileRead(true, leftStr);
+    }
+    if (isRightFile) {
+      FileHandle rightHandle = new NodeFileHandle(rightStr);
+      updater.compareRight(rightHandle);
+    } else if (isRightText) {
       updater.sendFileRead(false, rightStr);
     }
     return new JsFileDiffSession0();
