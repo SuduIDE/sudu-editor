@@ -23,7 +23,7 @@ public class RemoteFileTreeNode extends FileTreeNode {
   }
 
   public RemoteFolderDiffModel model() {
-    return handle.getModel();
+    return handle.getModelSupplier().get();
   }
 
   public RemoteFileTreeNode child(int ind) {
