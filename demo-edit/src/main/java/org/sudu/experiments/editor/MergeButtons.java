@@ -1,9 +1,7 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
-import org.sudu.experiments.editor.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
@@ -81,7 +79,9 @@ public class MergeButtons implements Disposable {
       int firstLine, int lastLine, int caretLine,
       WglGraphics g, EditorColorScheme scheme, ClrContext c
   ) {
-    LineNumbersColors lnColors = scheme.lineNumber;
+//    var hoverColors = scheme.hoverColors;
+    var lnColors = scheme.lineNumber;
+    var diffColors = scheme.diff;
     if (drawBg) {
       g.drawRect(pos.x, pos.y, size, lnColors.bgColor);
     }
@@ -102,16 +102,18 @@ public class MergeButtons implements Disposable {
       int y = pos.y + l * lineHeight - scrollPos;
       byte color = l < colors.length ? colors[l] : 0;
 
-      V4f bgColor = color != 0 ? scheme.diff.getDiffColor(scheme, color) :
-          l == caretLine ? scheme.lineNumber.caretBgColor :
-              scheme.lineNumber.bgColor;
+      V4f bgColor = color != 0 ?
+          diffColors.getDiffColor(scheme, color) :
+            l == caretLine ?
+//              scheme.error() :
+              lnColors.caretBgColor :
+              lnColors.bgColor;
       if (nextBt == l) {
         var bg = bgColor;
         if (selectedBtLine == l) {
-          var hoverColors = scheme.hoverColors;
-          bg = color != 0 ? hoverColors.diff.getDiffColor(scheme, color) :
-              l == caretLine ? hoverColors.caretBgColor :
-                  hoverColors.bgColor;
+          bg = color != 0 ? diffColors.getDiffColor(scheme, color) :
+              l == caretLine ? lnColors.caretBgColor :
+                  lnColors.bgColor;
         }
         c.drawIcon(
             g, texture, x, y,
@@ -120,7 +122,7 @@ public class MergeButtons implements Disposable {
         if (drawFrames) {
           debug.set(x, y);
           WindowPaint.drawInnerFrame(g, bSize, debug,
-              scheme.diff.deletedBgColor, -1, c.size);
+              diffColors.deletedBgColor, -1, c.size);
         }
         if (++bIndex < lines.length)
           nextBt = lines[bIndex];
@@ -132,17 +134,17 @@ public class MergeButtons implements Disposable {
     int y = (lastLine + 1) * lineHeight - scrollPos;
     if (y < size.y) {
       bSize.y = size.y - y;
-      V4f bgColor = scheme.diff.getDiffColor(scheme, DiffTypes.DEFAULT);
+      V4f bgColor = lnColors.bgColor;
       g.drawRect(x, pos.y + y, bSize, bgColor);
       if (drawFrames) {
         debug.set(x, pos.y + y);
         WindowPaint.drawInnerFrame(g, bSize, debug,
-            scheme.diff.deletedBgColor, -1, c.size);
+            diffColors.deletedBgColor, -1, c.size);
       }
     }
     if (drawFrames) {
       WindowPaint.drawInnerFrame(g, size, pos,
-          scheme.diff.deletedBgColor, -1, c.size);
+          diffColors.deletedBgColor, -1, c.size);
     }
   }
 

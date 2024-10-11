@@ -22,7 +22,7 @@ public class LineNumbersColors {
   public static LineNumbersColors dark() {
     return new LineNumbersColors(
         new Color("#4B5059"),
-        new Color("#1E1F22"),
+        new Color(IdeaCodeColors.Dark.editBg),
         new Color("#A1A3AB"),
         new Color("#26282E")
     );

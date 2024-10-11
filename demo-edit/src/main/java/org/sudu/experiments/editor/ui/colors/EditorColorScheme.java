@@ -23,7 +23,7 @@ public class EditorColorScheme {
   public final CodeElementColor[] codeElement;
   public final LineNumbersColors lineNumber;
   public final DiffColors diff;
-  public final BackgroundHoverColors hoverColors;
+  public BackgroundHoverColors hoverColors;
 
   private static final float defaultFontSize = 15;
   private static final float defaultMenuFontSize = 17;
@@ -120,14 +120,7 @@ public class EditorColorScheme {
     this.fileViewIcons = fileViewIcons;
     this.editorFont = editorFont;
     this.treeViewFont = treeViewFont;
-
-    var hoverColor = fileTreeView.hoveredBg;
-    this.hoverColors = new BackgroundHoverColors(
-        diff.blendWith(hoverColor),
-        ColorOp.blend(editor.bg, hoverColor),
-        ColorOp.blend(lineNumber.caretBgColor,
-            hoverColor)
-    );
+    recomputeHoverColors();
   }
 
   public EditorColorScheme withFontModified(float fontSize) {
@@ -167,13 +160,14 @@ public class EditorColorScheme {
       case TreeViewBackground -> {
         editor.bg = c;
         lineNumber.bgColor = c;
-        hoverColors.bgColor = c;
+        recomputeHoverColors();
+//        hoverColors.bgColor = c;
       }
       case DefaultForeground ->
           codeElement[0].colorF = c;
       case SelectedItemBackground -> {
         fileTreeView.selectedBg = c;
-        hoverColors.bgColor = c;
+//        hoverColors.bgColor = c;
 
       }
       case SelectedItemForeground ->
@@ -188,5 +182,15 @@ public class EditorColorScheme {
       case ChangedItemBackground ->
           diff.editedBgColor = c;
     }
+  }
+
+  private void recomputeHoverColors() {
+    var hoverColor = fileTreeView.hoveredBg;
+    hoverColors = new BackgroundHoverColors(
+        diff.blendWith(hoverColor),
+        ColorOp.blend(editor.bg, hoverColor),
+        ColorOp.blend(lineNumber.caretBgColor,
+            hoverColor)
+    );
   }
 }
