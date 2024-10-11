@@ -227,6 +227,6 @@ public class DiffUtils {
           DiffInfo model = readDiffInfo(reply);
           result.accept(model);
         }, FIND_DIFFS,
-        chars1, intervals1, chars2, intervals2, new int[] {1});
+        chars1, intervals1, chars2, intervals2, new int[] {0});
   }
 }
