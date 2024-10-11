@@ -3,6 +3,8 @@ package org.sudu.experiments.ui.fs;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.ui.FileTreeNode;
 
+import java.util.function.Supplier;
+
 public abstract class RemoteHandle {
 
   public void closeDir(RemoteDirectoryNode node) {
@@ -16,5 +18,5 @@ public abstract class RemoteHandle {
   public abstract void sendModel();
   public abstract RemoteDirectoryNode getOppositeDir(RemoteDirectoryNode node);
   public abstract RemoteFileNode getOppositeFile(RemoteFileNode node);
-  public abstract RemoteFolderDiffModel getModel();
+  public abstract Supplier<RemoteFolderDiffModel> getModelSupplier();
 }
