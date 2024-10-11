@@ -6,7 +6,7 @@ import org.sudu.experiments.FsItem;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.SizeScanner;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
-import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
+import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.ui.fs.FileCompare;
@@ -192,9 +192,12 @@ public class Collector {
       Object[] result
   ) {
     int[] ints = ArgsCast.intArray(result, 0);
-    String[] paths = new String[result.length - 1];
-    for (int i = 0; i < paths.length; i++) paths[i] = (String) result[i + 1];
-    var updModel = RemoteFolderDiffModel.fromInts(ints, paths);
+    int[] sizes = ArgsCast.intArray(result, 1);
+    String[] paths = new String[sizes[0]];
+    FsItem[] items = new FsItem[sizes[1]];
+    for (int i = 0; i < sizes[0]; i++) paths[i] = (String) result[i + 2];
+    for (int i = 0; i < sizes[1]; i++) items[i] = (FsItem) result[sizes[0] + i + 2];
+    var updModel = ItemFolderDiffModel.fromInts(ints, paths, items);
     model.update(updModel);
     onItemCompared(false);
   }
