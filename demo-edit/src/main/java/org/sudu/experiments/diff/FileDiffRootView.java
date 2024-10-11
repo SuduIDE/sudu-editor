@@ -103,8 +103,8 @@ class FileDiffRootView extends DiffRootView {
     if (diffModel == null) return;
     int startLine = editor.model().document.getLine(start).x;
     int stopLine = editor.model().document.getLine(stop).x;
-    var fromRangeInd = diffModel.leftBS(startLine, isL);
-    var toRangeInd = diffModel.rightBS(stopLine, isL);
+    var fromRangeInd = diffModel.leftNotEmptyBS(startLine, isL);
+    var toRangeInd = diffModel.rightNotEmptyBS(stopLine, isL);
 
     if (fromRangeInd != 0 && diffModel.ranges[fromRangeInd].type != DiffTypes.DEFAULT) fromRangeInd--;
     if (toRangeInd != diffModel.rangeCount() - 1 && diffModel.ranges[toRangeInd].type != DiffTypes.DEFAULT) toRangeInd++;
@@ -237,7 +237,7 @@ class FileDiffRootView extends DiffRootView {
   public boolean canNavigateUp(EditorComponent focused) {
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
-    int rangeInd = diffModel.rightBS(lineInd, left);
+    int rangeInd = diffModel.leftBS(lineInd, left);
     for (int i = rangeInd - 1; i >= 0; i--) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return true;
     }
@@ -247,7 +247,7 @@ class FileDiffRootView extends DiffRootView {
   public void navigateUp(EditorComponent focused) {
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
-    int rangeInd = diffModel.rightBS(lineInd, left);
+    int rangeInd = diffModel.leftBS(lineInd, left);
     for (int i = rangeInd - 1; i >= 0; i--) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) {
         setPositionsAtRange(diffModel.ranges[i]);
