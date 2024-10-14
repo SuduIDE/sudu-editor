@@ -117,18 +117,18 @@ public class FolderDiffModel {
     return (flags >> 6) & 0b11;
   }
 
-  public int nextInd(int ind, int filter) {
-    switch (filter) {
-      case ModelFilter.NO_FILTER -> {
+  public int nextInd(int ind, int side) {
+    switch (side) {
+      case FolderDiffSide.BOTH -> {
         return ind;
       }
-      case ModelFilter.LEFT -> {
+      case FolderDiffSide.LEFT -> {
         while (ind < children.length) {
           if (child(ind).isLeft()) return ind;
           ind++;
         }
       }
-      case ModelFilter.RIGHT -> {
+      case FolderDiffSide.RIGHT -> {
         while (ind < children.length) {
           if (child(ind).isRight()) return ind;
           ind++;
@@ -159,10 +159,10 @@ public class FolderDiffModel {
     return getDiffType() == DiffTypes.INSERTED;
   }
 
-  public boolean matchFilter(int filter) {
-    return switch (filter) {
-      case ModelFilter.LEFT -> isLeft();
-      case ModelFilter.RIGHT -> isRight();
+  public boolean matchSide(int side) {
+    return switch (side) {
+      case FolderDiffSide.LEFT -> isLeft();
+      case FolderDiffSide.RIGHT -> isRight();
       default -> true;
     };
   }
