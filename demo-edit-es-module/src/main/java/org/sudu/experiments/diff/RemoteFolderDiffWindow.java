@@ -4,7 +4,7 @@ import org.sudu.experiments.Channel;
 import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.Subscribers;
-import org.sudu.experiments.diff.folder.ModelFilter;
+import org.sudu.experiments.diff.folder.FolderDiffSide;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -271,8 +271,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   protected void updateDiffInfo() {
-    rootView.left.updateModel(rootModel, rightRoot, ModelFilter.LEFT);
-    rootView.right.updateModel(rootModel, leftRoot, ModelFilter.RIGHT);
+    rootView.left.updateModel(rootModel, rightRoot, FolderDiffSide.LEFT);
+    rootView.right.updateModel(rootModel, leftRoot, FolderDiffSide.RIGHT);
     rootView.setDiffModel(DiffModelBuilder.getDiffInfo(
         rootView.left.model(),
         rootView.right.model()
@@ -313,8 +313,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         var children = new RemoteFileTreeNode[1];
         int childPtr = 0;
 
-        int filter = left ? ModelFilter.LEFT : ModelFilter.RIGHT;
-        int mP = model.nextInd(0, filter);
+        int side = left ? FolderDiffSide.LEFT : FolderDiffSide.RIGHT;
+        int mP = model.nextInd(0, side);
         while (mP >= 0) {
           RemoteFileTreeNode childNode;
           var child = model.child(mP);
@@ -327,7 +327,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
           }
           childNode.posInParent = childPtr;
           children = ArrayOp.addAt(childNode, children, childPtr++);
-          mP = model.nextInd(mP + 1, filter);
+          mP = model.nextInd(mP + 1, side);
         }
         children = Arrays.copyOf(children, childPtr);
         node.setChildren(children);

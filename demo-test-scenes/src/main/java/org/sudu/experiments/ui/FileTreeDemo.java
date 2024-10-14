@@ -2,7 +2,7 @@ package org.sudu.experiments.ui;
 
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
-import org.sudu.experiments.diff.folder.ModelFilter;
+import org.sudu.experiments.diff.folder.FolderDiffSide;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
@@ -32,7 +32,7 @@ public class FileTreeDemo extends WindowDemo implements DprChangeListener {
     treeView = new FileTreeView(uiContext);
     var root = MockFileTree.randomFolder(
         "Project root", depth,
-        () -> treeView.updateModel(FolderDiffModel.DEFAULT, ModelFilter.NO_FILTER));
+        () -> treeView.updateModel(FolderDiffModel.DEFAULT, FolderDiffSide.BOTH));
     System.out.println("FileTreeView model size = " + root.countAll());
     treeView.setRoot(root);
     treeView.setTheme(theme);

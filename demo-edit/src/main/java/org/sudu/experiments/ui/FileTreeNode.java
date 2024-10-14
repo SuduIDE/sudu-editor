@@ -32,11 +32,11 @@ public class FileTreeNode extends TreeNode {
     children = ch;
   }
 
-  TreeView.TreeModel getModel(FolderDiffModel model, FileTreeNode another, int filter) {
-    int cnt = count(model, another, filter);
+  TreeView.TreeModel getModel(FolderDiffModel model, FileTreeNode another, int side) {
+    int cnt = count(model, another, side);
     TreeNode[] lines = new TreeNode[cnt];
     FolderDiffModel[] models = new FolderDiffModel[cnt];
-    int idx = getModel(lines, models, model, another, filter, 0);
+    int idx = getModel(lines, models, model, another, side, 0);
     if (idx != lines.length)
       throw new RuntimeException("Wrong number of lines: " + idx + ", expected: " + lines.length);
     return new TreeView.TreeModel(lines, models);
@@ -66,17 +66,17 @@ public class FileTreeNode extends TreeNode {
     return n;
   }
 
-  public int count(FolderDiffModel model, FileTreeNode another, int filter) {
+  public int count(FolderDiffModel model, FileTreeNode another, int side) {
     int n = 1;
     if (isOpened()) {
       if (model.children == null) return count();
 
       int i = 0, j = 0;
       for (var child : model.children) {
-        if (child.matchFilter(filter)) {
+        if (child.matchSide(side)) {
           n += !child.isBoth()
-              ? children[i++].count(child, null, filter)
-              : children[i++].count(child, childOrNull(another, j++), filter);
+              ? children[i++].count(child, null, side)
+              : children[i++].count(child, childOrNull(another, j++), side);
         } else {
           var anotherChild = childOrNull(another, j++);
           if (anotherChild == null) n++;
@@ -87,7 +87,7 @@ public class FileTreeNode extends TreeNode {
     return n;
   }
 
-  private int getModel(TreeNode[] t, FolderDiffModel[] m, FolderDiffModel model, FileTreeNode another, int filter, int idx) {
+  private int getModel(TreeNode[] t, FolderDiffModel[] m, FolderDiffModel model, FileTreeNode another, int side, int idx) {
     diffType = model.getDiffType();
     t[idx] = this;
     m[idx++] = model;
@@ -99,10 +99,10 @@ public class FileTreeNode extends TreeNode {
       } else {
         int i = 0, j = 0;
         for (FolderDiffModel child: model.children) {
-          if (child.matchFilter(filter)) {
+          if (child.matchSide(side)) {
             idx = !child.isBoth()
-                ? children[i++].getModel(t, m, child, null, filter, idx)
-                : children[i++].getModel(t, m, child, childOrNull(another, j++), filter, idx);
+                ? children[i++].getModel(t, m, child, null, side, idx)
+                : children[i++].getModel(t, m, child, childOrNull(another, j++), side, idx);
           } else {
             var anotherChild = childOrNull(another, j++);
             if (anotherChild == null) t[idx++] = empty(child.getDiffType(), depth);

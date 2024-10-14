@@ -3,7 +3,7 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
-import org.sudu.experiments.diff.folder.ModelFilter;
+import org.sudu.experiments.diff.folder.FolderDiffSide;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.test.MergeButtonsModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -253,8 +253,8 @@ public class FolderDiffWindow extends ToolWindow0 {
   }
 
   private void updateModel() {
-    rootView.left.updateModel(root, rightRoot, ModelFilter.LEFT);
-    rootView.right.updateModel(root, leftRoot, ModelFilter.RIGHT);
+    rootView.left.updateModel(root, rightRoot, FolderDiffSide.LEFT);
+    rootView.right.updateModel(root, leftRoot, FolderDiffSide.RIGHT);
     rootView.setDiffModel(DiffModelBuilder.getDiffInfo(
         rootView.left.model(),
         rootView.right.model()
