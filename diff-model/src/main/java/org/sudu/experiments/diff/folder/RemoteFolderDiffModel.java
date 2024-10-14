@@ -5,7 +5,9 @@ import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.ItemKind;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 
 public class RemoteFolderDiffModel extends FolderDiffModel {
@@ -53,6 +55,28 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
       if ((left && !child.isLeft()) || (!left && !child.isRight())) continue;
       if (isFile != child.isFile()) continue;
       if (child.path.equals(path[ind])) return child.getByPath(path, ind + 1, left);
+    }
+    return null;
+  }
+
+  public RemoteFolderDiffModel applyFilter(BitSet filterSet, RemoteFolderDiffModel parent) {
+    boolean matchFilter = filterSet.get(getDiffType());
+    if (isFile() || children == null) return matchFilter ? this : null;
+    List<RemoteFolderDiffModel> filteredChildren = new ArrayList<>();
+    var filteredNode = new RemoteFolderDiffModel(parent(), path);
+    for (int i = 0; i < children.length; i++) {
+      var child = child(i);
+      var filteredChild = child.applyFilter(filterSet, filteredNode);
+      if (filteredChild == null) continue;
+      filteredChildren.add(filteredChild);
+    }
+    if (matchFilter || !filteredChildren.isEmpty()) {
+      filteredNode.parent = parent;
+      filteredNode.setDiffType(getDiffType());
+      filteredNode.setCompared(isCompared());
+      filteredNode.setItemKind(getItemKind());
+      filteredNode.children = filteredChildren.toArray(RemoteFolderDiffModel[]::new);
+      return filteredNode;
     }
     return null;
   }

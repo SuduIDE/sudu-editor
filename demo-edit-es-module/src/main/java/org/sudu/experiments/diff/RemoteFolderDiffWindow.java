@@ -170,6 +170,13 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     updateDiffInfo();
   }
 
+  private void onFiltersApplied(JsArray<JSObject> jsResult) {
+    var msg = BackendMessage.deserialize(jsResult);
+    rootModel.update(msg.root);
+    updateNodes(leftRoot, rightRoot, rootModel);
+    updateDiffInfo();
+  }
+
   private void updateNodes(
       RemoteDirectoryNode left,
       RemoteDirectoryNode right,
@@ -287,6 +294,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       case DiffModelChannelUpdater.FRONTEND_MESSAGE -> update(jsResult);
       case DiffModelChannelUpdater.OPEN_FILE -> openFile(jsResult);
       case DiffModelChannelUpdater.APPLY_DIFF -> onDiffApplied(jsResult);
+      case DiffModelChannelUpdater.APPLY_FILTERS -> onFiltersApplied(jsResult);
     }
     LoggingJs.trace(
         "Got message in " + Numbers.iRnd(Performance.now() - startTime) + "ms"
@@ -679,6 +687,11 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   public void applyDiffFilter(int[] filters) {
+    System.out.println("filters = " + Arrays.toString(filters));
+    JsArray<JSObject> jsArray = JsArray.create();
+    jsArray.set(0, JsCast.jsInts(filters));
+    jsArray.push(DiffModelChannelUpdater.APPLY_FILTERS_ARRAY);
+    channel.sendMessage(jsArray);
     // TODO
   }
 

@@ -6,6 +6,7 @@ import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.SizeScanner;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
+import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.js.JsArray;
@@ -51,6 +52,9 @@ public class RemoteCollector {
   private final double startTime;
 
   private final Deque<Runnable> sendToWorkerQueue;
+
+  private final BitSet lastFilters = new BitSet();
+  private int lastFiltersLength = 0;
 
   public RemoteCollector(
       ItemFolderDiffModel root,
@@ -444,7 +448,10 @@ public class RemoteCollector {
     LoggingJs.debug("inComparing: " + inComparing);
     String leftRootName = leftHandle().getFullPath();
     String rightRootName = rightHandle().getFullPath();
-    var jsArray = BackendMessage.serialize(root, message, leftRootName, rightRootName);
+    var backendMessage = filteredBackendModel();
+    var frontendMessage = filteredFrontendMessage(message, backendMessage);
+    System.out.println("backendMessage = " + backendMessage);
+    var jsArray = BackendMessage.serialize(backendMessage, null, leftRootName, rightRootName);
     jsArray.push(DiffModelChannelUpdater.FRONTEND_MESSAGE_ARRAY);
     send.accept(jsArray);
   }
@@ -454,10 +461,41 @@ public class RemoteCollector {
     if (sendResult == null) return;
     String leftRootName = leftHandle().getFullPath();
     String rightRootName = rightHandle().getFullPath();
-    var backendMessage = lastMessageSent ? null : lastFrontendMessage;
-    var jsArray = BackendMessage.serialize(root, backendMessage, leftRootName, rightRootName);
+    var backendMessage = filteredBackendModel();
+    var frontendMessage = filteredFrontendMessage(lastMessageSent ? null : lastFrontendMessage, backendMessage);
+    var jsArray = BackendMessage.serialize(backendMessage, null, leftRootName, rightRootName);
     jsArray.push(DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
     sendResult.accept(jsArray);
+  }
+
+  public RemoteFolderDiffModel filteredBackendModel() {
+    if (lastFiltersLength == 4 || lastFiltersLength == 0) {  // all filters applied
+      return root;
+    } else {
+      var filtered = root.applyFilter(lastFilters, null);
+      if (filtered == null) {
+        filtered = new RemoteFolderDiffModel(null, "");
+        filtered.setCompared(root.isCompared());
+        filtered.setItemKind(root.getItemKind());
+      }
+      return filtered;
+    }
+  }
+
+  public FrontendMessage filteredFrontendMessage(FrontendMessage message, RemoteFolderDiffModel filtered) {
+    if (message == null || message == FrontendMessage.EMPTY) return message;
+    if (lastFiltersLength == 4 || lastFiltersLength == 0) {  // all filters applied
+      return message;
+    } else {
+      return null;
+    }
+  }
+
+  public void applyFilters(int[] filters) {
+    lastFilters.clear();
+    lastFiltersLength = filters.length;
+    for (var filter: filters) lastFilters.set(filter);
+    sendMessage();
   }
 
   private double getTimeDelta() {

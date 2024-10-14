@@ -168,17 +168,4 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
       }
     }
   }
-
-  private ItemFolderDiffModel child(String path, boolean file) {
-    for (int i = 0; i < children.length; i++) {
-      var child = child(i);
-      if (path.equals(child.path) && child.isFile() == file) return this;
-    }
-    return null;
-  }
-
-  @Override
-  public String toString() {
-    return path;
-  }
 }
