@@ -198,7 +198,7 @@ public class TreeView extends ScrollContent implements Focusable {
 
   @Override
   public void draw(WglGraphics g) {
-    var bg = theme.editor.bg;
+    var bg = theme.fileTreeView.bg;
     g.drawRect(pos.x, pos.y, size, bg);
     Objects.requireNonNull(clrContext.font);
     int lineHeight = clrContext.lineHeight;
@@ -265,7 +265,8 @@ public class TreeView extends ScrollContent implements Focusable {
           : diff != null ? bgLineColor : bg;
 
       var foreground = selected && hasFocus ?
-          theme.fileTreeView.selectedText : theme.codeElement[0].colorF;
+          theme.fileTreeView.selectedText :
+          theme.fileTreeView.text;
 
       if (selected || hovered) {
         int y = i * lineHeight - scrollPos.y;

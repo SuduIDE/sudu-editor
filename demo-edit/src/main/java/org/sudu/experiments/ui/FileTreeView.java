@@ -106,7 +106,7 @@ public class FileTreeView extends TreeView {
       mergeButtons.setPosition(xPos, pos.y, mbWidth, size.y, dpr);
       mergeButtons.draw(
           firstLineRendered, lastLineRendered, selectedIndex,
-          g, mbColors, theme.diff, clrContext);
+          g, mbColors, theme.diff, clrContext, hasFocus);
     }
   }
 

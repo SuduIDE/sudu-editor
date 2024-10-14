@@ -211,7 +211,7 @@ public class EditorComponent extends View implements
   public void setTheme(EditorColorScheme theme) {
     colors = theme;
     codeLineColors = colors.editorCodeLineScheme();
-    if (mbColors != null)
+    if (colors != null)
       mbColors = colors.codeDiffMergeButtons();
     caret.setColor(theme.editor.cursor);
     vScroll.setColor(theme.editor.scrollBarLine, theme.editor.scrollBarBg);
@@ -553,7 +553,7 @@ public class EditorComponent extends View implements
       mergeButtons.setScrollPos(vScrollPos);
       mergeButtons.draw(
           firstLine, lastLine, model.caretLine,
-          g, mbColors, colors.diff, lrContext);
+          g, mbColors, colors.diff, lrContext, hasFocus);
     }
 
 //    g.checkError("paint complete");
@@ -1758,7 +1758,8 @@ public class EditorComponent extends View implements
   public void setMergeButtons(Runnable[] actions, int[] lines) {
      if (mergeButtons == null) {
        mergeButtons = new MergeButtons();
-       mbColors = colors.codeDiffMergeButtons();
+       if (colors != null)
+         mbColors = colors.codeDiffMergeButtons();
        if (dpr != 0) {
          setMergeButtonsFont();
          internalLayout();

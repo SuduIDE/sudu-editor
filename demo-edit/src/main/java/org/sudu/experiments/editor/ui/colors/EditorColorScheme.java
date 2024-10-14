@@ -158,8 +158,9 @@ public class EditorColorScheme {
   public void modify(int m, Color c) {
     switch (m) {
       case TreeViewBackground -> {
-        editor.bg = c;
-        lineNumber.bgColor = c;
+//        editor.bg = c;
+//        lineNumber.bgColor = c;
+        fileTreeView.bg = c;
         recomputeHoverColors();
 //        hoverColors.bgColor = c;
       }
@@ -188,15 +189,17 @@ public class EditorColorScheme {
     return new MergeButtonsColors(
         lineNumber.caretTextColor,
         lineNumber.bgColor,
+        lineNumber.caretBgColor,
         lineNumber.caretBgColor
     );
   }
 
   public MergeButtonsColors fileTreeMergeButtons() {
     return new MergeButtonsColors(
-        fileTreeView.selectedText,
+        fileTreeView.text,
         fileTreeView.bg,
-        fileTreeView.selectedBg
+        fileTreeView.selectedBg,
+        fileTreeView.inactiveSelectedBg
     );
   }
 

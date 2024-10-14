@@ -2,7 +2,6 @@ package org.sudu.experiments.editor;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.editor.ui.colors.DiffColors;
-import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.ui.colors.MergeButtonsColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.MouseEvent;
@@ -82,13 +81,12 @@ public class MergeButtons implements Disposable {
       WglGraphics g,
       MergeButtonsColors theme,
       DiffColors diffColors,
-      ClrContext c
+      ClrContext c, boolean hasFocus
   ) {
 //    var hoverColors = scheme.hoverColors;
-    var lnColors = theme;
-   //  var diffColors = scheme.diff;
+    //  var diffColors = scheme.diff;
     if (drawBg) {
-      g.drawRect(pos.x, pos.y, size, lnColors.bgColor);
+      g.drawRect(pos.x, pos.y, size, theme.bgColor);
     }
     this.firstLine = firstLine;
     this.lastLine = lastLine;
@@ -108,21 +106,20 @@ public class MergeButtons implements Disposable {
       byte color = l < colors.length ? colors[l] : 0;
 
       V4f bgColor = color != 0 ?
-          diffColors.getDiffColor(color, lnColors.bgColor) :
-            l == caretLine ?
+          diffColors.getDiffColor(color, theme.bgColor) :
+//            l == caretLine ?
 //              scheme.error() :
-              lnColors.caretBgColor :
-              lnColors.bgColor;
+//              theme.selectedBg :
+              theme.bgColor;
       if (nextBt == l) {
         var bg = bgColor;
         if (selectedBtLine == l) {
-          bg = color != 0 ? diffColors.getDiffColor(color, lnColors.bgColor) :
-              l == caretLine ? lnColors.caretBgColor :
-                  lnColors.bgColor;
+          bg = color != 0 ? diffColors.getDiffColor(color, theme.bgColor) :
+              theme.bg(l == caretLine, hasFocus);
         }
         c.drawIcon(
             g, texture, x, y,
-            bg, lnColors.textColor
+            bg, theme.textColor
         );
         if (drawFrames) {
           debug.set(x, y);
@@ -139,7 +136,7 @@ public class MergeButtons implements Disposable {
     int y = (lastLine + 1) * lineHeight - scrollPos;
     if (y < size.y) {
       bSize.y = size.y - y;
-      V4f bgColor = lnColors.bgColor;
+      V4f bgColor = theme.bgColor;
       g.drawRect(x, pos.y + y, bSize, bgColor);
       if (drawFrames) {
         debug.set(x, pos.y + y);
