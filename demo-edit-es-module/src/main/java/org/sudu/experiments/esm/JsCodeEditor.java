@@ -101,6 +101,7 @@ public class JsCodeEditor implements JsEditorView {
     var t = ThemeImport.fromJs(theme);
     if (t != null)
       demoEdit0().applyTheme(t);
+    window.repaint();
   }
 
   @Override
