@@ -157,10 +157,10 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
       child.setItem(left, item);
       child.updateFsItems(left, reader, items, paths);
     } else {
-      int filter = left ? ModelFilter.LEFT : ModelFilter.RIGHT;
+      int side = left ? FolderDiffSide.LEFT : FolderDiffSide.RIGHT;
       int mP = 0;
       for (int i = 0; i < len; i++) {
-        mP = nextInd(mP, filter);
+        mP = nextInd(mP, side);
         var child = child(mP);
         child.setItem(left, item);
         child.updateFsItems(left, reader, items, paths);

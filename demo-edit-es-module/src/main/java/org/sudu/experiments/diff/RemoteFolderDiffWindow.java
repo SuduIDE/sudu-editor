@@ -4,7 +4,7 @@ import org.sudu.experiments.Channel;
 import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.Subscribers;
-import org.sudu.experiments.diff.folder.ModelFilter;
+import org.sudu.experiments.diff.folder.FolderDiffSide;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -197,12 +197,12 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       if (child.isLeft()) {
         if (isFolder) leftFolderCnt++;
         leftChildren[lp] = findUpdateNode(left, path, isFolder, isOpened);
-        leftChildren[lp++].setHandle(getHandle(true, childModel(left.model(), i)));
+        leftChildren[lp++].setHandle(getHandle(true, childModel(left.getModelSupplier(), i)));
       }
       if (child.isRight()) {
         if (isFolder) rightFolderCnt++;
         rightChildren[rp] = findUpdateNode(right, path, isFolder, isOpened);
-        rightChildren[rp++].setHandle(getHandle(false, childModel(right.model(), i)));
+        rightChildren[rp++].setHandle(getHandle(false, childModel(right.getModelSupplier(), i)));
       }
       if (!isOpened) continue;
       if (child.isBoth()) {
@@ -245,7 +245,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       boolean isOpened = opened.contains(path);
       if (isFolder) folderCnt++;
       children[p] = findUpdateNode(node, path, isFolder, isOpened);
-      children[p++].setHandle(getHandle(left, childModel(node.model(), i)));
+      children[p++].setHandle(getHandle(left, childModel(node.getModelSupplier(), i)));
       if (isOpened) continue;
       if (children[p - 1] instanceof RemoteDirectoryNode dirNode) updateNode(dirNode, child, left);
     }
@@ -271,8 +271,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   protected void updateDiffInfo() {
-    rootView.left.updateModel(rootModel, rightRoot, ModelFilter.LEFT);
-    rootView.right.updateModel(rootModel, leftRoot, ModelFilter.RIGHT);
+    rootView.left.updateModel(rootModel, rightRoot, FolderDiffSide.LEFT);
+    rootView.right.updateModel(rootModel, leftRoot, FolderDiffSide.RIGHT);
     rootView.setDiffModel(DiffModelBuilder.getDiffInfo(
         rootView.left.model(),
         rootView.right.model()
@@ -305,7 +305,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
       @Override
       public void openDir(RemoteDirectoryNode node) {
-        var model = getModel();
+        var model = node.model();
         if (model.children == null) return;
 
         int foldersLen = 0;
@@ -313,20 +313,21 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         var children = new RemoteFileTreeNode[1];
         int childPtr = 0;
 
-        int filter = left ? ModelFilter.LEFT : ModelFilter.RIGHT;
-        int mP = model.nextInd(0, filter);
+        int side = left ? FolderDiffSide.LEFT : FolderDiffSide.RIGHT;
+        int mP = model.nextInd(0, side);
         while (mP >= 0) {
           RemoteFileTreeNode childNode;
           var child = model.child(mP);
+          var handle = getHandle(left, childModel(modelSupplier, mP));
           if (child.isFile()) {
-            childNode = new RemoteFileNode(child.path, getHandle(left, getModel(mP)), node.depth + 1);
+            childNode = new RemoteFileNode(child.path, handle, node.depth + 1);
           } else {
             foldersLen++;
-            childNode = new RemoteDirectoryNode(child.path, getHandle(left, getModel(mP)), node.depth + 1);
+            childNode = new RemoteDirectoryNode(child.path, handle, node.depth + 1);
           }
           childNode.posInParent = childPtr;
           children = ArrayOp.addAt(childNode, children, childPtr++);
-          mP = model.nextInd(mP + 1, filter);
+          mP = model.nextInd(mP + 1, side);
         }
         children = Arrays.copyOf(children, childPtr);
         node.setChildren(children);
@@ -366,12 +367,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       }
 
       @Override
-      public RemoteFolderDiffModel getModel() {
-        return modelSupplier.get();
-      }
-
-      private Supplier<RemoteFolderDiffModel> getModel(int i) {
-        return childModel(getModel(), i);
+      public Supplier<RemoteFolderDiffModel> getModelSupplier() {
+        return modelSupplier;
       }
 
       private RemoteDirectoryNode getOppositeDir(RemoteFolderDiffModel model) {
@@ -396,8 +393,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     };
   }
 
-  private static Supplier<RemoteFolderDiffModel> childModel(RemoteFolderDiffModel parent, int i) {
-    return () -> parent.child(i);
+  private static Supplier<RemoteFolderDiffModel> childModel(Supplier<RemoteFolderDiffModel> parent, int i) {
+    return () -> parent.get().child(i);
   }
 
   private void newEditor(RemoteFileNode node, boolean left) {
