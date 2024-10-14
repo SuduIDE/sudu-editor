@@ -14,8 +14,14 @@ public class EditorColorScheme {
   public static final int SelectedItemForeground = 3;
   public static final int HoveredItemBackground = 4;
   public static final int InactiveSelectionBackground = 5;
-  public static final int ChangedItemBackground = 6;
-  public static final int LastIndex = ChangedItemBackground + 1;
+  public static final int CurrentLineBackground = 6;
+  public static final int DeletedRegionBackground = 7;
+  public static final int DeletedTextBackground = 8;
+  public static final int InsertedRegionBackground = 9;
+  public static final int InsertedTextBackground = 10;
+  public static final int PanelHeaderBackground = 11;
+
+  public static final int LastIndex = PanelHeaderBackground + 1;
 
   public final EditorColors editor;
   public final FileTreeViewTheme fileTreeView;
@@ -160,28 +166,43 @@ public class EditorColorScheme {
       case TreeViewBackground -> {
 //        editor.bg = c;
 //        lineNumber.bgColor = c;
+        System.out.println("TreeViewBackground set to " + c);
         fileTreeView.bg = c;
+
+        // todo separate editor bg and treeView bg
+        editor.bg = c;
         recomputeHoverColors();
-//        hoverColors.bgColor = c;
       }
       case DefaultForeground ->
-          codeElement[0].colorF = c;
+          fileTreeView.text = c;
       case SelectedItemBackground -> {
         fileTreeView.selectedBg = c;
-//        hoverColors.bgColor = c;
-
+        recomputeHoverColors();
       }
       case SelectedItemForeground ->
           fileTreeView.selectedText =c;
-      case HoveredItemBackground ->
-          fileTreeView.hoveredBg = c;
-//              hoverColors.caretBgColor = c;
+      case HoveredItemBackground -> {
+        fileTreeView.hoveredBg = c;
+        recomputeHoverColors();
+      }
       case InactiveSelectionBackground -> {
         fileTreeView.inactiveSelectedBg = c;
-//        System.out.println("InactiveSelectionBackground = " + c);
       }
-      case ChangedItemBackground ->
-          diff.editedBgColor = c;
+      case CurrentLineBackground ->
+          editor.currentLineBg = c;
+//      case DeletedRegionBackground -> {
+//        System.out.println("DeletedRegionBackground = " + c);
+//        diff.deletedBgColor = ColorOp.blend(
+//            editor.bg, c);
+      //  recomputeHoverColors();
+//      }
+
+//      case DeletedTextBackground -> {
+//        System.out.println("DeletedRegionBackground = " + c);
+//        diff.deletedBgColor = ColorOp.blend(
+//            editor.bg, c);
+//      }
+
     }
   }
 
@@ -207,9 +228,8 @@ public class EditorColorScheme {
     var hoverColor = fileTreeView.hoveredBg;
     hoverColors = new BackgroundHoverColors(
         diff.blendWith(hoverColor),
-        ColorOp.blend(editor.bg, hoverColor),
-        ColorOp.blend(lineNumber.caretBgColor,
-            hoverColor)
+        ColorOp.blend(fileTreeView.bg, hoverColor),
+        ColorOp.blend(fileTreeView.selectedBg, hoverColor)
     );
   }
 }
