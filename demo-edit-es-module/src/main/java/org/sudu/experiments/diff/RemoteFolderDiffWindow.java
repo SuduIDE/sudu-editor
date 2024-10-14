@@ -197,12 +197,12 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       if (child.isLeft()) {
         if (isFolder) leftFolderCnt++;
         leftChildren[lp] = findUpdateNode(left, path, isFolder, isOpened);
-        leftChildren[lp++].setHandle(getHandle(true, childModel(left.handle.getModelSupplier(), i)));
+        leftChildren[lp++].setHandle(getHandle(true, childModel(left.getModelSupplier(), i)));
       }
       if (child.isRight()) {
         if (isFolder) rightFolderCnt++;
         rightChildren[rp] = findUpdateNode(right, path, isFolder, isOpened);
-        rightChildren[rp++].setHandle(getHandle(false, childModel(right.handle.getModelSupplier(), i)));
+        rightChildren[rp++].setHandle(getHandle(false, childModel(right.getModelSupplier(), i)));
       }
       if (!isOpened) continue;
       if (child.isBoth()) {
@@ -245,7 +245,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       boolean isOpened = opened.contains(path);
       if (isFolder) folderCnt++;
       children[p] = findUpdateNode(node, path, isFolder, isOpened);
-      children[p++].setHandle(getHandle(left, childModel(node.handle.getModelSupplier(), i)));
+      children[p++].setHandle(getHandle(left, childModel(node.getModelSupplier(), i)));
       if (isOpened) continue;
       if (children[p - 1] instanceof RemoteDirectoryNode dirNode) updateNode(dirNode, child, left);
     }

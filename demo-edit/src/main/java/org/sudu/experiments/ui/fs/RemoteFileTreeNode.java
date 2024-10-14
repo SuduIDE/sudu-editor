@@ -3,6 +3,8 @@ package org.sudu.experiments.ui.fs;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.ui.FileTreeNode;
 
+import java.util.function.Supplier;
+
 public class RemoteFileTreeNode extends FileTreeNode {
 
   protected RemoteHandle handle;
@@ -24,6 +26,10 @@ public class RemoteFileTreeNode extends FileTreeNode {
 
   public RemoteFolderDiffModel model() {
     return handle.getModelSupplier().get();
+  }
+
+  public Supplier<RemoteFolderDiffModel> getModelSupplier() {
+    return handle.getModelSupplier();
   }
 
   public RemoteFileTreeNode child(int ind) {
