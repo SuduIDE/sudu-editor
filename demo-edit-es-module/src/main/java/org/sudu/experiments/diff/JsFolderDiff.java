@@ -97,6 +97,7 @@ public class JsFolderDiff implements JsIFolderDiffView {
     } else {
       Debug.consoleInfo("unknown theme: " + theme);
     }
+    window.repaint();
   }
 
   @Override

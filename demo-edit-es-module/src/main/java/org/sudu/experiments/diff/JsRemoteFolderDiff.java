@@ -79,6 +79,7 @@ public class JsRemoteFolderDiff implements JsRemoteFolderDiffView {
     } else {
       Debug.consoleInfo("unknown theme: " + theme);
     }
+    window.repaint();
   }
 
   @Override

@@ -83,6 +83,7 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
     var t = ThemeImport.fromJs(theme);
     if (t != null)
       w.applyTheme(t);
+    window.repaint();
   }
 
   @Override
