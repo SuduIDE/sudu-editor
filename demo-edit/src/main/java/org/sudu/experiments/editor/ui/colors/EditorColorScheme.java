@@ -171,6 +171,7 @@ public class EditorColorScheme {
 
         // todo separate editor bg and treeView bg
         editor.bg = c;
+        lineNumber.bgColor = c;
         recomputeHoverColors();
       }
       case DefaultForeground ->
