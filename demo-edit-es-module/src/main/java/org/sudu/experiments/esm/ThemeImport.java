@@ -42,7 +42,7 @@ public interface ThemeImport {
     for (int i = 0; i < EditorColorScheme.LastIndex; i++) {
       JSString v = rdr.get(i);
       if (v != null) {
-        JsHelper.consoleInfo("import color " + i + ' ', v);
+//        JsHelper.consoleInfo("import color " + i + ' ', v);
         var c = new Color(v.stringValue());
         theme.modify(i, c);
       }
