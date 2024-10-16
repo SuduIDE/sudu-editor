@@ -179,7 +179,8 @@ export const enum ThemeColor {
   EditorBackground = 12,
   AddedResourceForeground = 13,
   DeletedResourceForeground = 14,
-  ModifiedResourceForeground = 15
+  ModifiedResourceForeground = 15,
+  PanelHeaderForeground = 16
 }
 
 export type BaseTheme = 'dark' | 'light' | 'darcula';
