@@ -67,7 +67,7 @@ public class MergeButtonsModel {
         left.lines[modelInd] = line(lineInd, diffInfo.lineDiffsL.length);
         var leftModel = leftDiffs[lineInd];
         left.actions[modelInd] = () -> applyDiff(leftModel, true, applyDiff);
-        leftColors[lineInd] = DiffTypes.FOLDER_ALIGN_DIFF_TYPE;
+        leftColors[lineInd] = (byte) diffInfo.lineDiffsL[lineInd].type;  //DiffTypes.FOLDER_ALIGN_DIFF_TYPE;
         modelInd++;
       }
     } else {
@@ -84,7 +84,7 @@ public class MergeButtonsModel {
         right.lines[modelInd] = line(lineInd, diffInfo.lineDiffsR.length);
         var rightModel = rightDiffs[lineInd];
         right.actions[modelInd] = () -> applyDiff(rightModel, false, applyDiff);
-        rightColors[lineInd] = DiffTypes.FOLDER_ALIGN_DIFF_TYPE;
+        rightColors[lineInd] = (byte) diffInfo.lineDiffsR[lineInd].type;  //DiffTypes.FOLDER_ALIGN_DIFF_TYPE;
         modelInd++;
       }
     } else {
