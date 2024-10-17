@@ -5,20 +5,23 @@ import org.sudu.experiments.math.Color;
 public class FileTreeViewTheme {
   public Color bg;
   public Color selectedBg;
-  public Color text;
+  public Color textColor;
+  public DiffColors textDiffColors;
   public Color selectedText;
   public Color inactiveSelectedBg;
   public Color hoveredBg;
 
   public FileTreeViewTheme(
       Color bg, Color selectedBg,
-      Color text,
+      Color textColor,
       Color selectedText,
-      Color inactiveSelectedBg, Color hoveredBg
+      Color inactiveSelectedBg, Color hoveredBg,
+      DiffColors textDiffColors
   ) {
     this.bg = bg;
     this.selectedBg = selectedBg;
-    this.text = text;
+    this.textColor = textColor;
+    this.textDiffColors = textDiffColors;
     this.selectedText = selectedText;
     this.inactiveSelectedBg = inactiveSelectedBg;
     this.hoveredBg = hoveredBg;
@@ -31,7 +34,8 @@ public class FileTreeViewTheme {
         new Color("#BBBBBB"),
         new Color("#DEDEDE"),
         new Color("#0D293E"),
-        new Color("#ffffff11"));
+        new Color("#ffffff11"),
+        DiffColors.fileTreeDarcula());
   }
 
   public static FileTreeViewTheme darkIdea() {
@@ -41,7 +45,8 @@ public class FileTreeViewTheme {
         new Color("#DFE1E5"),
         new Color("#DFE1E5"),
         new Color("#43454A"),
-        new Color("#ffffff11"));
+        new Color("#ffffff11"),
+        DiffColors.fileTreeDark());
   }
 
   public static FileTreeViewTheme lightIdea() {
@@ -51,6 +56,8 @@ public class FileTreeViewTheme {
         new Color("#000000"),
         new Color("#000000"),
         new Color("#DFE1E5"),
-        new Color("#00000011"));
+        new Color("#00000011"),
+        DiffColors.fileTreeLight()
+    );
   }
 }

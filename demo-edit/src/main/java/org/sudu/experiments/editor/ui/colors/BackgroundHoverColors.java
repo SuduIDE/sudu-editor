@@ -15,4 +15,8 @@ public class BackgroundHoverColors {
     this.bgColor = bgColor;
     this.caretBgColor = caretBgWithHover;
   }
+
+  public Color getDiffColor(int type) {
+    return diff.getDiffColor(type, bgColor);
+  }
 }

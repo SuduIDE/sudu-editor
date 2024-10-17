@@ -80,7 +80,6 @@ public class MergeButtons implements Disposable {
       int firstLine, int lastLine, int caretLine,
       WglGraphics g,
       MergeButtonsColors theme,
-      DiffColors diffColors,
       ClrContext c, boolean hasFocus
   ) {
 //    var hoverColors = scheme.hoverColors;
@@ -101,30 +100,31 @@ public class MergeButtons implements Disposable {
     int nextBt = bIndex < lines.length ? lines[bIndex] : -1;
     int x = pos.x;
     bSize.set(texture.width(), lineHeight);
+
+    var bgColors = theme.bgColors;
+    var textColors = theme.textColors;
+
     for (int l = firstLine; l <= lastLine; l++) {
       int y = pos.y + l * lineHeight - scrollPos;
-      byte color = l < colors.length ? colors[l] : 0;
+      byte diffType = l < colors.length ? colors[l] : 0;
 
-      V4f bgColor = color != 0 ?
-          diffColors.getDiffColor(color, theme.bgColor) :
+      V4f bgColor = diffType != 0 && bgColors != null ?
+          bgColors.getDiffColor(diffType, null) :
 //            l == caretLine ?
 //              scheme.error() :
 //              theme.selectedBg :
               theme.bgColor;
       if (nextBt == l) {
-        var bg = bgColor;
-        if (selectedBtLine == l) {
-          bg = color != 0 ? diffColors.getDiffColor(color, theme.bgColor) :
-              theme.bg(l == caretLine, hasFocus);
-        }
-        c.drawIcon(
-            g, texture, x, y,
-            bg, theme.textColor
-        );
+        var textColor = diffType != 0 && textColors != null ?
+            textColors.getDiffColor(diffType, null) : theme.textColor;
+        var bg = selectedBtLine == l && diffType == 0 ?
+            theme.bg(l == caretLine, hasFocus) : bgColor;
+        c.drawIcon(g, texture, x, y, bg, textColor);
+
         if (drawFrames) {
           debug.set(x, y);
           WindowPaint.drawInnerFrame(g, bSize, debug,
-              diffColors.deletedBgColor, -1, c.size);
+              theme.textColor, -1, c.size);
         }
         if (++bIndex < lines.length)
           nextBt = lines[bIndex];
@@ -141,12 +141,12 @@ public class MergeButtons implements Disposable {
       if (drawFrames) {
         debug.set(x, pos.y + y);
         WindowPaint.drawInnerFrame(g, bSize, debug,
-            diffColors.deletedBgColor, -1, c.size);
+            theme.textColor, -1, c.size);
       }
     }
     if (drawFrames) {
       WindowPaint.drawInnerFrame(g, size, pos,
-          diffColors.deletedBgColor, -1, c.size);
+          theme.textColor, -1, c.size);
     }
   }
 

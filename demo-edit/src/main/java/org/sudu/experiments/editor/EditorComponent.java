@@ -520,7 +520,7 @@ public class EditorComponent extends View implements
 
       if (isTailSelected) tailColor = colors.editor.selectionBg;
       else if (diffModel != null && i < diffModel.length && diffModel[i] != null && !diffModel[i].isDefault()) {
-        tailColor = colors.diff.getDiffColor(colors, diffModel[i].type);
+        tailColor = colors.codeDiffBg.getDiffColor(colors, diffModel[i].type);
       }
       else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
 
@@ -553,7 +553,7 @@ public class EditorComponent extends View implements
       mergeButtons.setScrollPos(vScrollPos);
       mergeButtons.draw(
           firstLine, lastLine, model.caretLine,
-          g, mbColors, colors.diff, lrContext, hasFocus);
+          g, mbColors, lrContext, hasFocus);
     }
 
 //    g.checkError("paint complete");
@@ -574,7 +574,7 @@ public class EditorComponent extends View implements
       if (model.caretLine == i || currentLineModel != null) {
         V4f gapColor =
             currentLineModel != null && currentLineModel.type != 0
-                ? colors.diff.getDiffColor(colors, currentLineModel.type)
+                ? colors.codeDiffBg.getDiffColor(colors, currentLineModel.type)
                 : colors.editor.currentLineBg;
         vLineSize.x = mirrored
             ? vLineLeftDelta + scrollBarWidth + vLineW - xOffset

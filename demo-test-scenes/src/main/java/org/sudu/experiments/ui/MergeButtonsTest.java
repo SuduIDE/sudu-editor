@@ -18,7 +18,6 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.function.Consumer;
 
@@ -106,7 +105,7 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
     int lastLine = Numbers.iDivRoundUp(scrollPos + controlHeight, lineHeight);
     buttons.draw(
         firstLine, lastLine, (firstLine + lastLine) / 2,
-        api.graphics, mColors, colors.diff, ctx, true);
+        api.graphics, mColors, ctx, true);
 
     drawScrollBar(api.graphics);
   }

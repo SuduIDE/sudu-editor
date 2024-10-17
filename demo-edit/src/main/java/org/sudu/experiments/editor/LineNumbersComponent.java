@@ -37,7 +37,8 @@ public class LineNumbersComponent implements Disposable {
   static V4f getItemColor(EditorColorScheme colorScheme, byte[] colors, int i) {
     return i >= colors.length || colors[i] == 0
         ? colorScheme.lineNumber.bgColor
-        : colorScheme.diff.getDiffColor(colorScheme, colors[i]);
+        : colorScheme.codeDiffBg.getDiffColor(
+            colors[i], colorScheme.lineNumber.bgColor);
   }
 
   public void setPosition(int x, int y, int width, int height, float dpr) {
