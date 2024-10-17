@@ -2,7 +2,7 @@ package org.sudu.experiments.ui;
 
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
-import org.sudu.experiments.diff.folder.ModelFilter;
+import org.sudu.experiments.diff.folder.FolderDiffSide;
 import org.sudu.experiments.editor.MergeButtons;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.ui.window.ScrollView;
@@ -29,15 +29,15 @@ public class FileTreeView extends TreeView {
   }
 
   public void updateModel() {
-    updateModel(FolderDiffModel.DEFAULT, null, ModelFilter.NO_FILTER);
+    updateModel(FolderDiffModel.DEFAULT, null, FolderDiffSide.BOTH);
   }
 
-  public void updateModel(FolderDiffModel model, int filter) {
-    updateModel(model, null, filter);
+  public void updateModel(FolderDiffModel model, int side) {
+    updateModel(model, null, side);
   }
 
-  public void updateModel(FolderDiffModel model, FileTreeNode another, int filter) {
-    setModel(root.getModel(model, another, filter));
+  public void updateModel(FolderDiffModel model, FileTreeNode another, int side) {
+    setModel(root.getModel(model, another, side));
   }
 
   int scrollWidth() {

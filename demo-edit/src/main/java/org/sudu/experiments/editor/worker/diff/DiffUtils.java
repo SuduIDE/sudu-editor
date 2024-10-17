@@ -11,12 +11,12 @@ import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.editor.Document;
-import org.sudu.experiments.ui.fs.FileCompare;
-import org.sudu.experiments.ui.fs.FolderDiffHandler;
-import org.sudu.experiments.ui.fs.ReadFolderHandler;
+import org.sudu.experiments.ui.fs.*;
 import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -27,11 +27,13 @@ public class DiffUtils {
   public static void findDiffs(
       char[] charsN, int[] intsN,
       char[] charsM, int[] intsM,
+      int[] ints,
       List<Object> result
   ) {
     DiffModel model = new DiffModel();
-    int[] ints = model.findDiffs(charsN, intsN, charsM, intsM);
-    result.add(ints);
+    model.compareLinesOnly = ints[0] == 1;
+    int[] resultInts = model.findDiffs(charsN, intsN, charsM, intsM);
+    result.add(resultInts);
   }
 
   public static final String CMP_FILES = "asyncCompareFiles";
@@ -56,14 +58,41 @@ public class DiffUtils {
   public static final String READ_FOLDER = "asyncReadFolder";
 
   public static void readFolder(
-      DirectoryHandle folder, int[] ints,
+      DirectoryHandle folder,
+      int[] ints,
       Consumer<Object[]> r
   ) {
     var model = new ItemFolderDiffModel(null, folder.getName());
-    model.items = new FsItem[]{folder};
-    var reader = new ReadFolderHandler(model, folder, ints[0], ints[1], r);
+    int diffType = ints[0];
+    int itemKind = ints[1];
+    model.setDiffType(diffType);
+    model.setItem(folder);
+    var reader = new ReadFolderHandler(model, diffType, itemKind, r);
     model.posInParent = ints[2];
     reader.beginRead();
+  }
+
+  public static final String REREAD_FOLDER = "asyncRereadFolder";
+
+  public static void rereadFolder(
+      DirectoryHandle handle,
+      int[] ints, char[] chars,
+      Consumer<Object[]> r
+  ) {
+    ArrayReader reader = new ArrayReader(ints);
+    LinkedList<TreeS> paths = new LinkedList<>();
+    int len = reader.next();
+    for (int i = 0; i < len; i++) {
+      int offset = reader.next();
+      int count = reader.next();
+      boolean isFolder = reader.next() == 1;
+      paths.add(new TreeS(new String(chars, offset, count), isFolder));
+    }
+
+    ArrayWriter writer = new ArrayWriter();
+    ArrayList<FsItem> items = new ArrayList<>();
+    var leftReader = new RereadFolderHandler(handle, items, writer, paths, r);
+    leftReader.beginRead();
   }
 
   public static int[] makeIntervals(Document document, int fromLine, int toLine) {
@@ -162,6 +191,7 @@ public class DiffUtils {
   public static void findDiffs(
       Document document1,
       Document document2,
+      boolean cmpOnlyLines,
       Consumer<DiffInfo> result,
       WorkerJobExecutor window
   ) {
@@ -176,7 +206,7 @@ public class DiffUtils {
           DiffInfo model = readDiffInfo(reply);
           result.accept(model);
         }, FIND_DIFFS,
-        chars1, intervals1, chars2, intervals2);
+        chars1, intervals1, chars2, intervals2, new int[] {cmpOnlyLines ? 1 : 0});
   }
 
   public static void findIntervalDiffs(
@@ -197,6 +227,6 @@ public class DiffUtils {
           DiffInfo model = readDiffInfo(reply);
           result.accept(model);
         }, FIND_DIFFS,
-        chars1, intervals1, chars2, intervals2);
+        chars1, intervals1, chars2, intervals2, new int[] {0});
   }
 }

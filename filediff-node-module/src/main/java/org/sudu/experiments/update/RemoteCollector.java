@@ -1,6 +1,7 @@
 package org.sudu.experiments.update;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.SizeScanner;
@@ -13,6 +14,7 @@ import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.ui.fs.FileCompare;
+import org.sudu.experiments.worker.ArrayView;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
 
@@ -105,7 +107,8 @@ public class RemoteCollector {
       } else {
         model.editItem(left);
       }
-      sendApplied();
+      if (isDeleteDiff) sendApplied();
+      else updateModelItems(model, left);
     };
     if (model.isFile()) {
       if (!isDeleteDiff) copyFile(model, left, updateModel);
@@ -114,6 +117,39 @@ public class RemoteCollector {
       if (!isDeleteDiff) copyFolder(model, left, updateModel);
       else removeFolder(model, updateModel);
     }
+  }
+
+  private void updateModelItems(ItemFolderDiffModel model, boolean left) {
+    Deque<ItemFolderDiffModel> updModelPath = new LinkedList<>();
+    var updModel = model.findNeedUpdate(updModelPath);
+
+    int st = 0;
+    StringBuilder sb = new StringBuilder();
+    ArrayWriter writer = new ArrayWriter();
+    writer.write(updModelPath.size());
+    for (var item: updModelPath) {
+      String path = item.path;
+      writer.write(st, path.length(), !item.isFile() ? 1 : 0);
+      sb.append(path);
+      st += path.length();
+    }
+
+    executor.sendToWorker(true,
+        (res) -> updateNode(updModel, !left, updModelPath, res),
+        DiffUtils.REREAD_FOLDER,
+        updModel.item(!left), writer.getInts(), sb.toString().toCharArray()
+    );
+  }
+
+  private void updateNode(ItemFolderDiffModel updModel, boolean left, Deque<ItemFolderDiffModel> updModelPath, Object[] result) {
+    int[] ints = ((ArrayView) result[0]).ints();
+    ArrayReader reader = new ArrayReader(ints);
+    Deque<FsItem> items = new LinkedList<>();
+    for (int i = 1; i < result.length; i++) {
+      items.add((FsItem) result[i]);
+    }
+    updModel.updateFsItems(left, reader, items, updModelPath);
+    sendApplied();
   }
 
   public void fileSave(int[] path, boolean left, String source) {
@@ -234,7 +270,7 @@ public class RemoteCollector {
         model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.DELETED);
-        model.child(mP).items = new FsItem[]{leftItem[lP]};
+        model.child(mP).setItem(leftItem[lP]);
         read(model.child(mP));
         mP++;
         lP++;
@@ -244,7 +280,7 @@ public class RemoteCollector {
         model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.INSERTED);
-        model.child(mP).items = new FsItem[]{rightItem[rP]};
+        model.child(mP).setItem(rightItem[rP]);
         read(model.child(mP));
         mP++;
         rP++;
@@ -252,7 +288,7 @@ public class RemoteCollector {
         model.children[mP] = new ItemFolderDiffModel(model, leftItem[lP].getName());
         model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
-        model.child(mP).items = new FsItem[]{leftItem[lP], rightItem[rP]};
+        model.child(mP).setItems(leftItem[lP], rightItem[rP]);
         compare(model.child(mP));
         mP++;
         lP++;
