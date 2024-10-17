@@ -213,16 +213,23 @@ public class EditorColorScheme {
         lineNumber.bgColor = c;
       }
 
+      case EditorForeground -> {
+        codeElement[0].colorF = c;
+      }
+
       case DeletedRegionBackground -> {}
       case DeletedTextBackground -> {}
       case InsertedRegionBackground -> {}
       case InsertedTextBackground -> {}
 
-      case AddedResourceForeground -> {
+      case AddedResourceForeground ->
+        fileTreeView.textDiffColors.insertedColor = c;
 
-      }
-      case DeletedResourceForeground -> {}
-      case ModifiedResourceForeground -> {}
+      case DeletedResourceForeground ->
+          fileTreeView.textDiffColors.deletedColor = c;
+
+      case ModifiedResourceForeground ->
+          fileTreeView.textDiffColors.editedColor = c;
 
 //      case DeletedRegionBackground -> {
 //        System.out.println("DeletedRegionBackground = " + c);

@@ -23,7 +23,7 @@ public class LineNumbersTest extends Scene0 {
   private final LineNumbersComponent lineNumbers = new LineNumbersComponent();
   private final ScrollBar scrollBar = new ScrollBar();
   private final Consumer<ScrollBar.Event> vScrollHandler = this::onScrollEvent;
-  EditorColorScheme colors = EditorColorScheme.darculaIdeaColorScheme();
+  EditorColorScheme colors = EditorColorScheme.darkIdeaColorScheme();
 
   private int scrollPos = 0;
   private int lineHeight = 20;

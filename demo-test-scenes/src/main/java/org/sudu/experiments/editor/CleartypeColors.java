@@ -1,7 +1,7 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.MouseEvent;
@@ -17,7 +17,7 @@ public class CleartypeColors extends Scene {
   public static final String text = " Cleartype text test: 3.14159265358979," +
       " IDE编码//背后就是莫斯科，我们已无退路。不抛弃、不放弃。\n";
 
-  final Color editorBgColor = EditorColorScheme.darculaIdeaColorScheme().editor.bg;
+  final Color editorBgColor = IdeaCodeColors.Dark.editBg;
   final V4f bgColor = new V4f(editorBgColor);
   final V2i clientSize = new V2i();
   final V2i cSizeHalf = new V2i();
