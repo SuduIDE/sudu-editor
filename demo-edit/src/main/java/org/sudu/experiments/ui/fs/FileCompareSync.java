@@ -60,7 +60,7 @@ class FileCompareSync {
     if (error != null) {
       FileCompare.send(result, error);
     } else {
-      FileCompare.send(result, equals, "FileCompareSync");
+      FileCompare.send(result, equals);
     }
   }
 
