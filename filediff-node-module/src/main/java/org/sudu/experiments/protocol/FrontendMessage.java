@@ -23,6 +23,7 @@ public class FrontendMessage {
 
   public FrontendTreeNode openedFolders;
   public String searchQuery;
+  public boolean filtered;
 
   public static final FrontendMessage EMPTY;
 
@@ -30,7 +31,9 @@ public class FrontendMessage {
     EMPTY = new FrontendMessage();
     EMPTY.openedFolders = new FrontendTreeNode();
     EMPTY.openedFolders.name = "";
+    EMPTY.openedFolders.isFile = false;
     EMPTY.searchQuery = "";
+    EMPTY.filtered = false;
   }
 
   public FrontendTreeNode findNode(int[] path) {
@@ -50,6 +53,7 @@ public class FrontendMessage {
       RemoteFileTreeNode leftRoot,
       RemoteFileTreeNode rightRoot,
       RemoteFolderDiffModel root,
+      boolean filtered,
       String searchQuery
   ) {
     JsArray<JSObject> result = JsArray.create();
@@ -58,6 +62,7 @@ public class FrontendMessage {
     ArrayWriter writer = new ArrayWriter();
     int pathLenInd = writer.getPointer();
     writer.write(-1);
+    writer.write(filtered ? 1 : 0);
 
     serialize(leftRoot, rightRoot, root, writer, paths);
     writer.writeAtPos(pathLenInd, paths.size());
@@ -81,6 +86,7 @@ public class FrontendMessage {
     var pathInd = paths.size();
     paths.add(model.path);
     writer.write(pathInd);
+    writer.write(model.isFile() ? 1 : 0);
 
     if (leftNode.isClosed() || rightNode.isClosed() || model.children == null)
       writer.write(-1);
@@ -112,6 +118,7 @@ public class FrontendMessage {
     var pathInd = paths.size();
     paths.add(model.path);
     writer.write(pathInd);
+    writer.write(model.isFile() ? 1 : 0);
 
     if (node.isClosed() || model.children == null) writer.write(-1);
     else {
@@ -130,6 +137,7 @@ public class FrontendMessage {
       paths[i] = JsCast.string(jsArray, 1 + i);
 
     FrontendMessage message = new FrontendMessage();
+    message.filtered = reader.next() == 1;
     message.openedFolders = deserialize(reader, paths);
     message.searchQuery = JsCast.string(jsArray, 1 + pathsLen);
     return message;
@@ -137,10 +145,12 @@ public class FrontendMessage {
 
   public static FrontendTreeNode deserialize(ArrayReader reader, String[] paths) {
     int ind = reader.next();
+    boolean isFile = reader.next() == 1;
     int childLen = reader.next();
 
     FrontendTreeNode node = new FrontendTreeNode();
     node.name = paths[ind];
+    node.isFile = isFile;
     if (childLen != -1) {
       node.children = new FrontendTreeNode[childLen];
       for (int i = 0; i < childLen; i++)

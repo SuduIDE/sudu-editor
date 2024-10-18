@@ -22,11 +22,13 @@ public class DiffModelChannelUpdater {
   public static final int APPLY_DIFF = 2;
   public static final int FILE_SAVE = 3;
   public static final int REFRESH = 4;
+  public static final int APPLY_FILTERS = 5;
   public static final Int32Array FRONTEND_MESSAGE_ARRAY = JsMemoryAccess.bufferView(new int[]{FRONTEND_MESSAGE});
   public static final Int32Array OPEN_FILE_ARRAY = JsMemoryAccess.bufferView(new int[]{OPEN_FILE});
   public static final Int32Array APPLY_DIFF_ARRAY = JsMemoryAccess.bufferView(new int[]{APPLY_DIFF});
   public static final Int32Array FILE_SAVE_ARRAY = JsMemoryAccess.bufferView(new int[]{FILE_SAVE});
   public static final Int32Array REFRESH_ARRAY = JsMemoryAccess.bufferView(new int[]{REFRESH});
+  public static final Int32Array APPLY_FILTERS_ARRAY = JsMemoryAccess.bufferView(new int[]{APPLY_FILTERS});
 
   public DiffModelChannelUpdater(
       ItemFolderDiffModel root,
@@ -63,6 +65,7 @@ public class DiffModelChannelUpdater {
       case APPLY_DIFF -> onApplyDiff(jsArray);
       case FILE_SAVE -> onFileSave(jsArray);
       case REFRESH -> onRefresh();
+      case APPLY_FILTERS -> applyFilters(jsArray);
     }
   }
 
@@ -110,6 +113,12 @@ public class DiffModelChannelUpdater {
 
   private void onRefresh() {
     collector.refresh();
+  }
+
+  private void applyFilters(JsArray<JSObject> jsArray) {
+    System.out.println("DiffModelChannelUpdater.applyFilters");
+    int[] filters = JsCast.ints(jsArray, 0);
+    collector.applyFilters(filters);
   }
 
   public void onRemoteFileSave(boolean left, String fullPath) {

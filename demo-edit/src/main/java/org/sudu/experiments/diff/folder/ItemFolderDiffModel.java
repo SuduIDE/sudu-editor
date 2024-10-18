@@ -90,6 +90,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   ) {
     writer.write(model.flags);
     writer.write(model.childrenComparedCnt);
+    writer.write(model.posInParent);
 
     writer.write(pathList.size());
     pathList.add(model.path);
@@ -121,6 +122,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     ItemFolderDiffModel model = new ItemFolderDiffModel(parent, null);
     model.flags = reader.next();
     model.childrenComparedCnt = reader.next();
+    model.posInParent = reader.next();
 
     int pathInd = reader.next();
     model.path = paths[pathInd];
@@ -136,7 +138,6 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
       var children = new ItemFolderDiffModel[childrenLen];
       for (int i = 0; i < childrenLen; i++) {
         children[i] = fromInts(reader, paths, items, model);
-        children[i].posInParent = i;
       }
       model.children = children;
     }
@@ -167,18 +168,5 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
         mP++;
       }
     }
-  }
-
-  private ItemFolderDiffModel child(String path, boolean file) {
-    for (int i = 0; i < children.length; i++) {
-      var child = child(i);
-      if (path.equals(child.path) && child.isFile() == file) return this;
-    }
-    return null;
-  }
-
-  @Override
-  public String toString() {
-    return path;
   }
 }

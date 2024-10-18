@@ -5,10 +5,12 @@ import org.sudu.experiments.diff.folder.FolderDiffModel;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class FrontendTreeNode {
 
   public String name;
+  public boolean isFile;
   public FrontendTreeNode[] children;
 
   FrontendTreeNode findNode(int[] path) {
@@ -52,6 +54,13 @@ public class FrontendTreeNode {
       newChildren[i++] = child;
     }
     this.children = newChildren;
+  }
+
+  public FrontendTreeNode child(String path, boolean isFile) {
+    for (var child: children) {
+      if (child.name.equals(path) && child.isFile == isFile) return child;
+    }
+    return null;
   }
 
   @Override

@@ -28,7 +28,7 @@ public class FolderDiffModel {
 
   public void update(FolderDiffModel newModel) {
     this.children = newModel.children;
-    for (var child: children) child.parent = this;
+    if (children != null) for (var child: children) child.parent = this;
     this.childrenComparedCnt = newModel.childrenComparedCnt;
     this.flags = newModel.flags;
     this.posInParent = newModel.posInParent;

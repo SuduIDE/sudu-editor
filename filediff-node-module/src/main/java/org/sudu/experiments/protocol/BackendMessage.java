@@ -33,7 +33,7 @@ public class BackendMessage {
     if (message == null)
       RemoteFolderDiffModel.writeInts(root, paths, writer);
     else
-      RemoteModelWriter.writeInts(root, paths, message.openedFolders, writer);
+      RemoteModelWriter.writeInts(root, paths, message.openedFolders, writer, message.filtered);
 
     writer.writeAtPos(pathLenPtr, paths.size());
 
