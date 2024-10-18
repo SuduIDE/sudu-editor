@@ -164,13 +164,32 @@ type LanguageSelector = string | ILanguageFilter | Array<string | ILanguageFilte
 // }
 
 export const enum ThemeColor {
+  // tree view
   TreeViewBackground = 0,
-  DefaultForeground = 1,
+  TreeViewForeground = 1,
   SelectedItemBackground = 2,
   SelectedItemForeground = 3,
   HoveredItemBackground = 4,
   InactiveSelectionBackground = 5,
-  ChangedItemBackground = 6
+
+  AddedResourceForeground = 6,
+  DeletedResourceForeground = 7,
+  ModifiedResourceForeground = 8,
+
+  // window title
+  PanelHeaderBackground = 9,
+  PanelHeaderForeground = 10,
+
+  // editor
+  EditorBackground = 11,
+  EditorForeground = 12,
+  CurrentLineBackground = 13,
+
+  // editor diff
+  DeletedRegionBackground = 14,
+  DeletedTextBackground = 15,
+  InsertedRegionBackground = 16,
+  InsertedTextBackground = 17
 }
 
 export type BaseTheme = 'dark' | 'light' | 'darcula';
