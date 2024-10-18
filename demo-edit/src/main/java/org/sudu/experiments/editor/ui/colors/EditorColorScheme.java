@@ -8,13 +8,43 @@ import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.ui.UiFont;
 
 public class EditorColorScheme {
+
+  // tree view
+  public static final int TreeViewBackground = 0;
+  public static final int TreeViewForeground = 1;
+  public static final int SelectedItemBackground = 2;
+  public static final int SelectedItemForeground = 3;
+  public static final int HoveredItemBackground = 4;
+  public static final int InactiveSelectionBackground = 5;
+
+  public static final int AddedResourceForeground = 6;
+  public static final int DeletedResourceForeground = 7;
+  public static final int ModifiedResourceForeground = 8;
+
+  // window title
+  public static final int PanelHeaderBackground = 9;
+  public static final int PanelHeaderForeground = 10;
+
+  // editor
+  public static final int EditorBackground = 11;
+  public static final int EditorForeground = 12;
+  public static final int CurrentLineBackground = 13;
+
+  // editor diff
+  public static final int DeletedRegionBackground = 14;
+  public static final int DeletedTextBackground = 15;
+  public static final int InsertedRegionBackground = 16;
+  public static final int InsertedTextBackground = 17;
+
+  public static final int LastIndex = InsertedTextBackground + 1;
+
   public final EditorColors editor;
   public final FileTreeViewTheme fileTreeView;
   public final DialogItemColors dialogItem;
   public final CodeElementColor[] codeElement;
   public final LineNumbersColors lineNumber;
-  public final DiffColors diff;
-  public final BackgroundHoverColors hoverColors;
+  public final DiffColors codeDiffBg;
+  public BackgroundHoverColors hoverColors;
 
   private static final float defaultFontSize = 15;
   private static final float defaultMenuFontSize = 17;
@@ -39,8 +69,7 @@ public class EditorColorScheme {
         IdeaCodeColors.codeElementColorsDarcula(),
         LineNumbersColors.darcula(),
         Themes.darculaColorScheme(),
-        DiffColors.darcula()
-    );
+        DiffColors.codeDiffDarcula());
   }
 
   public static EditorColorScheme darkIdeaColorScheme() {
@@ -50,8 +79,7 @@ public class EditorColorScheme {
         IdeaCodeColors.codeElementColorsDark(),
         LineNumbersColors.dark(),
         Themes.darkColorScheme(),
-        DiffColors.dark()
-    );
+        DiffColors.codeDiffDark());
   }
 
   public static EditorColorScheme lightIdeaColorScheme() {
@@ -61,7 +89,7 @@ public class EditorColorScheme {
         IdeaCodeColors.codeElementColorsLight(),
         LineNumbersColors.light(),
         Themes.lightColorScheme(),
-        DiffColors.light()
+        DiffColors.codeDiffLight()
     );
   }
 
@@ -70,9 +98,10 @@ public class EditorColorScheme {
       CodeElementColor[] codeElement,
       LineNumbersColors lineNumber,
       DialogItemColors dialogItem,
-      DiffColors diff
+      DiffColors codeDiffBg
   ) {
-    this(editor, fileTreeView, codeElement, lineNumber, dialogItem, diff,
+    this(editor, fileTreeView, codeElement, lineNumber, dialogItem,
+        codeDiffBg,
         new UiFont(defaultFont, defaultMenuFontSize),
         new UiFont(defaultUsagesFont, defaultFontSize),
         new UiFont(defaultFont, defaultFontSize),
@@ -87,7 +116,7 @@ public class EditorColorScheme {
       CodeElementColor[] codeElement,
       LineNumbersColors lineNumber,
       DialogItemColors dialogItem,
-      DiffColors diff,
+      DiffColors codeDiffBg,
       UiFont popupMenuFont,
       UiFont usagesFont,
       UiFont fileViewFont,
@@ -103,28 +132,20 @@ public class EditorColorScheme {
       throw new IllegalArgumentException();
     }
     this.dialogItem = dialogItem;
-    this.diff = diff;
-
+    this.codeDiffBg = codeDiffBg;
     this.popupMenuFont = popupMenuFont;
     this.usagesFont = usagesFont;
     this.fileViewFont = fileViewFont;
     this.fileViewIcons = fileViewIcons;
     this.editorFont = editorFont;
     this.treeViewFont = treeViewFont;
-
-    var hoverColor = fileTreeView.hoveredBg;
-    this.hoverColors = new BackgroundHoverColors(
-        diff.blendWith(hoverColor),
-        ColorOp.blend(editor.bg, hoverColor),
-        ColorOp.blend(lineNumber.caretBgColor,
-            hoverColor)
-    );
+    recomputeHoverColors();
   }
 
   public EditorColorScheme withFontModified(float fontSize) {
     return new EditorColorScheme(
         editor, fileTreeView, codeElement,
-        lineNumber, dialogItem, diff,
+        lineNumber, dialogItem, codeDiffBg,
         popupMenuFont.withSize(fontSize),
         usagesFont.withSize(fontSize),
         fileViewFont.withSize(fontSize),
@@ -140,7 +161,7 @@ public class EditorColorScheme {
         editor.usageBg,
         editor.selectionBg,
         editor.bg,
-        codeElement, diff);
+        codeElement, codeDiffBg);
   }
 
   public CodeLineColorScheme treeViewCodeLineScheme() {
@@ -150,6 +171,106 @@ public class EditorColorScheme {
         editor.usageBg,
         editor.selectionBg,
         editor.bg,
-        codeElement, diff);
+        codeElement, codeDiffBg);
+  }
+
+  public void modify(int m, Color c) {
+    switch (m) {
+      case TreeViewBackground -> {
+        fileTreeView.bg = c;
+        recomputeHoverColors();
+      }
+      case TreeViewForeground ->
+          fileTreeView.textColor = c;
+
+      case SelectedItemBackground -> {
+        fileTreeView.selectedBg = c;
+        recomputeHoverColors();
+      }
+      case SelectedItemForeground ->
+          fileTreeView.selectedText =c;
+
+      case HoveredItemBackground -> {
+        fileTreeView.hoveredBg = c;
+        recomputeHoverColors();
+      }
+      case InactiveSelectionBackground ->
+          fileTreeView.inactiveSelectedBg = c;
+
+      case CurrentLineBackground ->
+          editor.currentLineBg = c;
+
+      case EditorBackground -> {
+        editor.bg = c;
+        lineNumber.bgColor = c;
+      }
+
+      case EditorForeground ->
+        codeElement[0].colorF = c;
+
+      case PanelHeaderBackground -> {
+        System.out.println("PanelHeaderBackground set to " + c);
+        dialogItem.windowColors.windowTitleBgColor = c;
+      }
+      case PanelHeaderForeground -> {
+        System.out.println("PanelHeaderBackground set to " + c);
+        dialogItem.windowColors.windowTitleTextColor = c;
+      }
+
+      case DeletedRegionBackground -> {}
+      case DeletedTextBackground -> {}
+      case InsertedRegionBackground -> {}
+      case InsertedTextBackground -> {}
+
+      case AddedResourceForeground ->
+        fileTreeView.textDiffColors.insertedColor = c;
+
+      case DeletedResourceForeground ->
+          fileTreeView.textDiffColors.deletedColor = c;
+
+      case ModifiedResourceForeground ->
+          fileTreeView.textDiffColors.editedColor = c;
+
+//      case DeletedRegionBackground -> {
+//        System.out.println("DeletedRegionBackground = " + c);
+//        diff.deletedBgColor = ColorOp.blend(
+//            editor.bg, c);
+      //  recomputeHoverColors();
+//      }
+
+//      case DeletedTextBackground -> {
+//        System.out.println("DeletedRegionBackground = " + c);
+//        diff.deletedBgColor = ColorOp.blend(
+//            editor.bg, c);
+//      }
+    }
+  }
+
+  public MergeButtonsColors codeDiffMergeButtons() {
+    return new MergeButtonsColors(
+        null, codeDiffBg,
+        lineNumber.caretTextColor,
+        lineNumber.bgColor,
+        lineNumber.caretBgColor
+    );
+  }
+
+  public MergeButtonsColors fileTreeMergeButtons() {
+    return new MergeButtonsColors(
+        fileTreeView.textDiffColors,
+        null,
+        fileTreeView.textColor,
+        fileTreeView.bg,
+        fileTreeView.hoveredBg
+    );
+  }
+
+  private void recomputeHoverColors() {
+    var hoverColor = fileTreeView.hoveredBg;
+    hoverColors = new BackgroundHoverColors(
+        codeDiffBg.blendWith(hoverColor),
+        ColorOp.blend(fileTreeView.bg, hoverColor),
+        ColorOp.blend(fileTreeView.selectedBg, hoverColor)
+    );
   }
 }

@@ -1,8 +1,10 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.editor.ui.colors.DiffColors;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
+import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.UiContext;
@@ -22,7 +24,8 @@ public class MiddleLine extends View {
 
   private DiffInfo diffModel;
   private DiffRef editor1, editor2;
-  private EditorColorScheme theme;
+  private Color bgColor;
+  private DiffColors diffColors;
 
   public MiddleLine(UiContext context) {
     this.uiContext = context;
@@ -37,8 +40,9 @@ public class MiddleLine extends View {
     editor2 = right;
   }
 
-  public void setTheme(EditorColorScheme theme) {
-    this.theme = theme;
+  public void setTheme(DiffColors diffColors, Color bgColor) {
+    this.diffColors = diffColors;
+    this.bgColor = bgColor;
   }
 
   private void setLinePos(
@@ -60,7 +64,7 @@ public class MiddleLine extends View {
     g.drawRect(
         pos.x, pos.y,
         size,
-        theme.editor.bg);
+        bgColor);
 
     if (diffModel == null) return;
 
@@ -102,7 +106,7 @@ public class MiddleLine extends View {
       if (rectY1 <= rectY0) continue;
       rSize.set(size.x, rectY1 - rectY0);
 
-      V4f color = theme.diff.getDiffColor(theme, range.type);
+      V4f color = diffColors != null ? diffColors.getDiffColor(range.type, bgColor) : bgColor;
 
       if (leftY0 == leftY1) {
         drawLine(g, leftY0, rightY0, lineWidth,

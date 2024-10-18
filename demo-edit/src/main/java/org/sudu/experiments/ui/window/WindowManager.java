@@ -135,18 +135,20 @@ public class WindowManager implements MouseListener, DprChangeListener {
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
-    if (popupMenu != null)
-      popupMenu.onMouseMove(event);
-    var setCursor = uiContext.windowCursor;
-    lastMousePosition.set(event.position);
-    Window[] array = windows.array();
+    var popupHit = popupMenu != null && popupMenu.onMouseMove(event);
     int hitIndex = -1, i = 0;
-    for (; i < array.length; i++) {
-      Window window = array[i];
-      var hit = window.onMouseMove(event, setCursor);
-      if (hit) {
-        hitIndex = i;
-        break;
+
+    lastMousePosition.set(event.position);
+    if (!popupHit) {
+      var setCursor = uiContext.windowCursor;
+      Window[] array = windows.array();
+      for (; i < array.length; i++) {
+        Window window = array[i];
+        var hit = window.onMouseMove(event, setCursor);
+        if (hit) {
+          hitIndex = i;
+          break;
+        }
       }
     }
     if (lastMouseWindow != hitIndex) {
@@ -155,7 +157,7 @@ public class WindowManager implements MouseListener, DprChangeListener {
       }
       lastMouseWindow = hitIndex;
     }
-    if (hitIndex < 0)
+    if (!popupHit && hitIndex < 0)
       uiContext.window.setCursor(null);
     return false;
   }

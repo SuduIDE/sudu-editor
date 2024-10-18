@@ -8,6 +8,7 @@ import org.sudu.experiments.editor.ClrContext;
 import org.sudu.experiments.editor.MergeButtons;
 import org.sudu.experiments.editor.test.MergeButtonsModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.ui.colors.MergeButtonsColors;
 import org.sudu.experiments.editor.ui.window.TestColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.fonts.Fonts;
@@ -17,7 +18,6 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.function.Consumer;
 
@@ -27,6 +27,7 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
 
   MergeButtons buttons = new MergeButtons(true);
   EditorColorScheme colors = EditorColorScheme.darculaIdeaColorScheme();
+  MergeButtonsColors mColors = colors.codeDiffMergeButtons();
   boolean toLeft;
 
   private final ScrollBar scrollBar = new ScrollBar();
@@ -104,7 +105,7 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
     int lastLine = Numbers.iDivRoundUp(scrollPos + controlHeight, lineHeight);
     buttons.draw(
         firstLine, lastLine, (firstLine + lastLine) / 2,
-        api.graphics, colors, ctx);
+        api.graphics, mColors, ctx, true);
 
     drawScrollBar(api.graphics);
   }

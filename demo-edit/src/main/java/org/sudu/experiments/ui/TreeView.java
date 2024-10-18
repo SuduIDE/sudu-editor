@@ -198,7 +198,7 @@ public class TreeView extends ScrollContent implements Focusable {
 
   @Override
   public void draw(WglGraphics g) {
-    var bg = theme.editor.bg;
+    var bg = theme.fileTreeView.bg;
     g.drawRect(pos.x, pos.y, size, bg);
     Objects.requireNonNull(clrContext.font);
     int lineHeight = clrContext.lineHeight;
@@ -241,15 +241,13 @@ public class TreeView extends ScrollContent implements Focusable {
 
       int yPosition = lineHeight * i - scrollPos.y;
 
-      LineDiff diff = diffType != DiffTypes.DEFAULT
-          ? clrContext.ld.seType(DiffTypes.FOLDER_ALIGN_DIFF_TYPE) : null;
-      var bgLineColor = diff == null ? null :
-          theme.diff.getDiffColor(theme, diff.type);
+      var bgLineColor = theme.fileTreeView.bg; // diff.getDiffColor(theme, diffType);
+      clrContext.ld.type = diffType;
       int shift = leftGap + treeShift * mLine.depth;
 
       boolean selected = selectedIndex == i;
       boolean hovered = hoveredIndex == i;
-      if (diff != null) {
+      if (diffType != DiffTypes.DEFAULT) {
         int y = i * lineHeight - scrollPos.y;
         uiContext.v2i1.set(size.x, lineHeight);
         g.drawRect(pos.x, pos.y + y, uiContext.v2i1, bgLineColor);
@@ -259,13 +257,14 @@ public class TreeView extends ScrollContent implements Focusable {
           hasFocus ?
               theme.fileTreeView.selectedBg :
               theme.fileTreeView.inactiveSelectedBg
-          : hovered ? diff != null ?
-            theme.hoverColors.diff.getDiffColor(diff.type, theme.hoverColors.bgColor) :
-            theme.hoverColors.bgColor
-          : diff != null ? bgLineColor : bg;
+          : hovered ?
+            theme.hoverColors.getDiffColor(diffType)
+          : bg;
 
       var foreground = selected && hasFocus ?
-          theme.fileTreeView.selectedText : theme.codeElement[0].colorF;
+          theme.fileTreeView.selectedText :
+          theme.fileTreeView.textDiffColors.getDiffColor(
+              diffType, theme.fileTreeView.textColor);
 
       if (selected || hovered) {
         int y = i * lineHeight - scrollPos.y;
@@ -279,7 +278,6 @@ public class TreeView extends ScrollContent implements Focusable {
       var icon = getIcon(mLine.icon);
 
       if (arrow != null) {
-        var color = theme.codeElement[0];
         int arrowX = startX + shift;
         clrContext.drawIcon(g, arrow,
             arrowX,
@@ -289,7 +287,6 @@ public class TreeView extends ScrollContent implements Focusable {
       }
 
       if (icon != null) {
-        var color = theme.codeElement[0];
         int iconX = startX + shift + arrowWidth + iconMargin1Px;
         clrContext.drawIcon(g, icon,
             iconX,
@@ -317,8 +314,7 @@ public class TreeView extends ScrollContent implements Focusable {
           codeLineScheme, null,
           null, null,
           selected,
-          background, foreground,
-          selected ? null : diff);
+          background, foreground, null);
     }
 
     if (virtualSize.x != virtualSizeX) {

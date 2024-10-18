@@ -1,7 +1,7 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
@@ -13,7 +13,7 @@ import org.sudu.experiments.math.V4f;
 import java.util.function.Consumer;
 
 public class DemoScene1 extends Scene {
-  final Color editorBgColor = EditorColorScheme.darculaIdeaColorScheme().editor.bg;
+  final Color editorBgColor = new Color(IdeaCodeColors.Dark.editBg);
   final V4f bgColor = new V4f(editorBgColor);
   final V2i clientSize = new V2i();
   final TextRect text1Rect = new TextRect();
