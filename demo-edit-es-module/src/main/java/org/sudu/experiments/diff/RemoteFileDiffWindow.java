@@ -24,8 +24,8 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
       Supplier<String[]> fonts,
       Channel channel
   ) {
-//    super(wm, theme, fonts, (_wm) -> new RemoteFileDiffRootView(_wm, channel));
     super(wm, theme, fonts);
+    processEsc = false;
     this.channel = channel;
     this.channel.setOnMessage(this::onMessage);
     this.setOnDiffMade(

@@ -26,23 +26,15 @@ public class FileDiffWindow extends ToolWindow0
   String leftFile, rightFile;
   Focusable focusSave;
   Consumer<FileDiffWindow> onEvent;
+  boolean processEsc = true;
 
   public FileDiffWindow(
       WindowManager wm,
       EditorColorScheme theme,
       Supplier<String[]> fonts
   ) {
-    this(wm, theme, fonts, FileDiffRootView::new);
-  }
-
-  FileDiffWindow(
-      WindowManager wm,
-      EditorColorScheme theme,
-      Supplier<String[]> fonts,
-      Function<WindowManager, FileDiffRootView> rootSupplier
-  ) {
     super(wm, theme, fonts);
-    rootView = rootSupplier.apply(windowManager);
+    rootView = new FileDiffRootView(windowManager);
     rootView.applyTheme(this.theme);
     window = createWindow(rootView, 30);
     window.onFocus(this::onFocus);
@@ -183,7 +175,7 @@ public class FileDiffWindow extends ToolWindow0
       }
       return true;
     }
-    if (event.keyCode == KeyCode.ESC) {
+    if (processEsc && event.keyCode == KeyCode.ESC) {
       if (event.noMods()) window.close();
       else windowManager.nextWindow();
       return true;
