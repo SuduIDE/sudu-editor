@@ -213,7 +213,7 @@ public class EditorColorScheme {
         dialogItem.windowColors.windowTitleBgColor = c;
       }
       case PanelHeaderForeground -> {
-        System.out.println("PanelHeaderBackground set to " + c);
+        System.out.println("PanelHeaderForeground set to " + c);
         dialogItem.windowColors.windowTitleTextColor = c;
       }
 
