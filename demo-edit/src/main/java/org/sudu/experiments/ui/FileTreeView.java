@@ -80,7 +80,6 @@ public class FileTreeView extends TreeView {
 
   @Override
   protected void changeFont() {
-    System.out.println("FileTreeView.changeFont");
     super.changeFont();
     if (mergeButtons != null)
       applyMergeButtonsFont();
@@ -90,8 +89,7 @@ public class FileTreeView extends TreeView {
     mergeButtons.setFont(clrContext.lineHeight, !isLeft, clrContext.font);
     mbWidth = mergeButtons.measure(clrContext.font, uiContext.graphics.mCanvas, dpr);
     leftGapDp = isLeft ? leftGapDpDefault : toDp(mbWidth);
-
-    System.out.println("mergeButtons.measure = " + mbWidth);
+//    System.out.println("mergeButtons.measure = " + mbWidth);
   }
 
   @Override

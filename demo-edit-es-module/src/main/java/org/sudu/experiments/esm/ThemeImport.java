@@ -44,6 +44,7 @@ public interface ThemeImport {
       if (JsHelper.jsIf(v)) {
         JsHelper.consoleInfo("import color " + i + ' ', v);
         var c = new Color(v.stringValue());
+        JsHelper.consoleInfo("color = " + c);
         theme.modify(i, c);
       }
     }
