@@ -164,7 +164,9 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   protected void changeFont() {
-    CodeLineRenderer.makeContentDirty(lines);
+    for (TreeNode treeNode : model.lines)
+      treeNode.line.invalidateCache();
+    CodeLineRenderer.disposeLines(lines);
     clrContext.setFonts(uiFont, dpr, uiContext.graphics);
     clrContext.setLineHeight(EditorConst.LINE_HEIGHT_MULTI, uiContext.graphics);
     disposeIcons();
