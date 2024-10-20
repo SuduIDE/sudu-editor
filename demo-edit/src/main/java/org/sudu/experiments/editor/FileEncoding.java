@@ -20,7 +20,7 @@ public class FileEncoding {
         if (!inRange)
           return false;
       } else {
-        return false;
+//        return false;
       }
     }
     return true;

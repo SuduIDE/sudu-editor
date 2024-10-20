@@ -5,11 +5,9 @@ import org.sudu.experiments.editor.FileEncoding;
 public class EncodingTest {
 
   public static void main(String[] args) {
-    testFile("code.c");
-    testFile("README.md");
-    testFile("code-utf.c");
-    testFile("README-utf.md");
-    testFile("UTF-8-demo.html");
+    testFile("gb2312.txt");
+//    testFile("UTF-8-demo.html");
+//    testFile("ClassL.java");
   }
 
   private static void testFile(String filename) {
