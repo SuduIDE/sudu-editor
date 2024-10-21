@@ -5,7 +5,9 @@ import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.ItemKind;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 
 public class RemoteFolderDiffModel extends FolderDiffModel {
@@ -57,6 +59,29 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
     return null;
   }
 
+  public RemoteFolderDiffModel applyFilter(BitSet filterSet, RemoteFolderDiffModel parent) {
+    int diffType = getDiffType();
+    boolean matchFilter = filterSet.get(diffType);
+    if (!isFile()) matchFilter &= !(diffType == DiffTypes.DEFAULT || diffType == DiffTypes.EDITED);
+    if (isFile() || children == null) return matchFilter ? this : null;
+    List<RemoteFolderDiffModel> filteredChildren = new ArrayList<>();
+    var filteredNode = new RemoteFolderDiffModel(parent, path);
+    for (int i = 0; i < children.length; i++) {
+      var child = child(i);
+      var filteredChild = child.applyFilter(filterSet, filteredNode);
+      if (filteredChild == null) continue;
+      filteredChildren.add(filteredChild);
+    }
+    if (matchFilter || !filteredChildren.isEmpty()) {
+      filteredNode.flags = flags;
+      filteredNode.childrenComparedCnt = childrenComparedCnt;
+      filteredNode.children = filteredChildren.toArray(RemoteFolderDiffModel[]::new);
+      filteredNode.posInParent = posInParent;
+      return filteredNode;
+    }
+    return null;
+  }
+
   public static int[] toInts(
       RemoteFolderDiffModel model,
       List<String> pathList
@@ -73,6 +98,7 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
   ) {
     writer.write(model.flags);
     writer.write(model.childrenComparedCnt);
+    writer.write(model.posInParent);
 
     writer.write(pathList.size());
     pathList.add(model.path);
@@ -96,6 +122,7 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
     RemoteFolderDiffModel model = new RemoteFolderDiffModel(parent, null);
     model.flags = reader.next();
     model.childrenComparedCnt = reader.next();
+    model.posInParent = reader.next();
 
     int pathInd = reader.next();
     model.path = paths[pathInd];
@@ -105,7 +132,6 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
       var children = new RemoteFolderDiffModel[childrenLen];
       for (int i = 0; i < childrenLen; i++) {
         children[i] = fromInts(reader, paths, model);
-        children[i].posInParent = i;
       }
       model.children = children;
     }

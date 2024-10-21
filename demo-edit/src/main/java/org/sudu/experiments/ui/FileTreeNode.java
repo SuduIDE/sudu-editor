@@ -1,6 +1,8 @@
 package org.sudu.experiments.ui;
 
 import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.ui.fs.RemoteFileNode;
+import org.sudu.experiments.ui.fs.RemoteFileTreeNode;
 
 import java.util.Comparator;
 
@@ -150,7 +152,7 @@ public class FileTreeNode extends TreeNode {
   }
 
   private static void setIcon(FileTreeNode node, boolean compared) {
-    if (node.childrenLength() == 0 && !compared) node.iconRefresh();
+    if (node.isClosed() && !compared) node.iconRefresh();
     else node.defaultIcon();
   }
 
