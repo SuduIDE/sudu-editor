@@ -184,7 +184,7 @@ public class EditorColorScheme {
           fileTreeView.textColor = c;
 
       case SelectedItemBackground -> {
-        fileTreeView.selectedBg = c;
+        fileTreeView.selectedBg = ColorOp.blend(fileTreeView.bg, c);
         recomputeHoverColors();
       }
       case SelectedItemForeground ->
@@ -197,9 +197,6 @@ public class EditorColorScheme {
       case InactiveSelectionBackground ->
           fileTreeView.inactiveSelectedBg = c;
 
-      case CurrentLineBackground ->
-          editor.currentLineBg = c;
-
       case EditorBackground -> {
         editor.bg = c;
         lineNumber.bgColor = c;
@@ -207,6 +204,9 @@ public class EditorColorScheme {
 
       case EditorForeground ->
         codeElement[0].colorF = c;
+
+      case CurrentLineBackground ->
+          editor.currentLineBg = c;
 
       case PanelHeaderBackground -> {
         System.out.println("PanelHeaderBackground set to " + c);
