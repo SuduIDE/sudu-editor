@@ -8,6 +8,8 @@ import org.sudu.experiments.math.Color;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
+import static org.sudu.experiments.editor.ui.colors.EditorColorScheme.*;
+
 /*
   export type Theme = {
       [color in ThemeColor]?: string;
@@ -39,16 +41,55 @@ public interface ThemeImport {
     }
 
     JsArrayReader<JSString> rdr = t.cast();
+    Color[] imported = new Color[EditorColorScheme.LastIndex];
+    boolean hasAlpha = false;
     for (int i = 0; i < EditorColorScheme.LastIndex; i++) {
       JSString v = rdr.get(i);
       if (JsHelper.jsIf(v)) {
-        JsHelper.consoleInfo("import color " + i + ' ', v);
+        JsHelper.consoleInfo("import color " + name(i) + ' ', v);
         var c = new Color(v.stringValue());
-        JsHelper.consoleInfo("color = " + c);
-        theme.modify(i, c);
+        JsHelper.consoleInfo("     color: " + c);
+        imported[i] = c;
+        if (c.a != 255) hasAlpha = true;
       }
     }
 
+    if (hasAlpha) {
+      JsHelper.consoleInfo("Colors with alpha:");
+      for (int i = 0; i < imported.length; i++) {
+        if (imported[i] != null && imported[i].a != 255)
+          JsHelper.consoleInfo("  " + name(i) + ": " + imported[i]);
+      }
+    }
+
+    for (int i = 0; i < imported.length; i++) {
+      theme.modify(i, imported[i]);
+    }
+
     return theme;
+  }
+
+  static String name(int n) {
+    return switch (n) {
+      case TreeViewBackground -> "TreeViewBackground";
+      case TreeViewForeground -> "TreeViewForeground";
+      case SelectedItemBackground -> "SelectedItemBackground";
+      case SelectedItemForeground -> "SelectedItemForeground";
+      case HoveredItemBackground -> "HoveredItemBackground";
+      case InactiveSelectionBackground -> "InactiveSelectionBackground";
+      case AddedResourceForeground -> "AddedResourceForeground";
+      case DeletedResourceForeground -> "DeletedResourceForeground";
+      case ModifiedResourceForeground -> "ModifiedResourceForeground";
+      case PanelHeaderBackground -> "PanelHeaderBackground";
+      case PanelHeaderForeground -> "PanelHeaderForeground";
+      case EditorBackground -> "EditorBackground";
+      case EditorForeground -> "EditorForeground";
+      case CurrentLineBackground -> "CurrentLineBackground";
+      case DeletedRegionBackground -> "DeletedRegionBackground";
+      case DeletedTextBackground -> "DeletedTextBackground";
+      case InsertedRegionBackground -> "InsertedRegionBackground";
+      case InsertedTextBackground -> "InsertedTextBackground";
+      default -> "bad name " + n;
+    };
   }
 }
