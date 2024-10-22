@@ -189,13 +189,12 @@ public class EditorColorScheme {
       }
       case SelectedItemForeground ->
           fileTreeView.selectedText =c;
-
       case HoveredItemBackground -> {
-        fileTreeView.hoveredBg = c;
+        fileTreeView.hoveredBg = ColorOp.blend(fileTreeView.bg, c);
         recomputeHoverColors();
       }
       case InactiveSelectionBackground ->
-          fileTreeView.inactiveSelectedBg = c;
+          fileTreeView.inactiveSelectedBg = ColorOp.blend(fileTreeView.bg, c);
 
       case EditorBackground -> {
         editor.bg = c;
