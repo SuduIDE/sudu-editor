@@ -42,7 +42,7 @@ public interface ThemeImport {
 
     JsArrayReader<JSString> rdr = t.cast();
     Color[] imported = new Color[EditorColorScheme.LastIndex];
-    boolean hasAlpha = false;
+    boolean hasAlpha = false, missing = false;
     for (int i = 0; i < EditorColorScheme.LastIndex; i++) {
       JSString v = rdr.get(i);
       if (JsHelper.jsIf(v)) {
@@ -51,6 +51,8 @@ public interface ThemeImport {
         JsHelper.consoleInfo("     color: " + c);
         imported[i] = c;
         if (c.a != 255) hasAlpha = true;
+      } else {
+        missing = true;
       }
     }
 
@@ -62,8 +64,14 @@ public interface ThemeImport {
       }
     }
 
+    if (missing) {
+      JsHelper.consoleInfo("!!! Missing Colors:");
+      for (int i = 0; i < imported.length; i++)
+        if (imported[i] == null) JsHelper.consoleInfo("  " + name(i));
+    }
+
     for (int i = 0; i < imported.length; i++) {
-      theme.modify(i, imported[i]);
+      if (imported[i] != null) theme.modify(i, imported[i]);
     }
 
     return theme;
