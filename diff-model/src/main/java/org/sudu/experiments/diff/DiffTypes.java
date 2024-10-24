@@ -6,6 +6,7 @@ public interface DiffTypes {
   int DELETED = 1;  // LEFT ONLY
   int INSERTED = 2; // RIGHT ONLY
   int EDITED = 3;
+  int EDITED2 = 4; // edited element on edited region
 
   static String name(int type) {
     return switch (type) {

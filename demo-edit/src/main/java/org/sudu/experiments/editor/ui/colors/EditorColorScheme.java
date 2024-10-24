@@ -201,8 +201,10 @@ public class EditorColorScheme {
         lineNumber.bgColor = c;
       }
 
-      case EditorForeground ->
+      case EditorForeground -> {
         codeElement[0].colorF = c;
+        lineNumber.textColor = c;
+      }
 
       case CurrentLineBackground ->
           editor.currentLineBg = c;
@@ -216,9 +218,16 @@ public class EditorColorScheme {
         dialogItem.windowColors.windowTitleTextColor = c;
       }
 
-      case DeletedRegionBackground -> {}
+      case DeletedRegionBackground -> {
+//        codeDiffBg.deletedColor = ColorOp.blend(editor.bg, c);
+      }
+
       case DeletedTextBackground -> {}
-      case InsertedRegionBackground -> {}
+
+      case InsertedRegionBackground -> {
+//        codeDiffBg.insertedColor = ColorOp.blend(editor.bg, c);
+      }
+
       case InsertedTextBackground -> {}
 
       case AddedResourceForeground ->
@@ -229,19 +238,6 @@ public class EditorColorScheme {
 
       case ModifiedResourceForeground ->
           fileTreeView.textDiffColors.editedColor = c;
-
-//      case DeletedRegionBackground -> {
-//        System.out.println("DeletedRegionBackground = " + c);
-//        diff.deletedBgColor = ColorOp.blend(
-//            editor.bg, c);
-      //  recomputeHoverColors();
-//      }
-
-//      case DeletedTextBackground -> {
-//        System.out.println("DeletedRegionBackground = " + c);
-//        diff.deletedBgColor = ColorOp.blend(
-//            editor.bg, c);
-//      }
     }
   }
 

@@ -257,7 +257,7 @@ public class TreeView extends ScrollContent implements Focusable {
           hasFocus ?
               theme.fileTreeView.selectedBg :
               theme.fileTreeView.inactiveSelectedBg
-          : hovered ? theme.fileTreeView.hoveredBg : bg;
+          : hovered ? theme.hoverColors.bgColor : bg;
 
       var foreground = selected && hasFocus ?
           theme.fileTreeView.selectedText :

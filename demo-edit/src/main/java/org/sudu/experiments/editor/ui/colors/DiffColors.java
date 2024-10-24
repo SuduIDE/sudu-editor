@@ -9,21 +9,29 @@ public class DiffColors {
   public Color insertedColor;
   public Color editedColor;
 
+  // edited element on edited region
+  public Color editedColor2;
+
+  DiffColors(Color deletedColor, Color insertedColor, Color editedColor) {
+    this(deletedColor, insertedColor, editedColor, editedColor);
+  }
+
   DiffColors(
       Color deletedColor, Color insertedColor,
-      Color editedColor
+      Color editedColor, Color editedColor2
   ) {
     this.deletedColor = deletedColor;
     this.insertedColor = insertedColor;
     this.editedColor = editedColor;
+    this.editedColor2 = editedColor2;
   }
 
   public static DiffColors codeDiffDarcula() {
     return new DiffColors(
         new Color("#484A4A"),
         new Color("#294436"),
-        new Color("#303C47")
-        // , new Color("#385570")
+        new Color("#303C47"),
+        new Color("#385570")
     );
   }
 
@@ -31,8 +39,8 @@ public class DiffColors {
     return new DiffColors(
         new Color("#484A4A"),
         new Color("#294436"),
-        new Color("#283541")
-        // , new Color("#385570")
+        new Color("#283541"),
+        new Color("#385570")
     );
   }
 
@@ -40,8 +48,8 @@ public class DiffColors {
     return new DiffColors(
         new Color("#D6D6D6"),
         new Color("#BEE6BE"),
-        new Color("#E7EFFA")
-        // , new Color("#C2D8F2")
+        new Color("#E7EFFA"),
+        new Color("#C2D8F2")
     );
   }
 
@@ -71,7 +79,13 @@ public class DiffColors {
 
   public Color getDiffColor(int elementType, int lineType, Color defaultBg) {
     int type = elementType != 0 ? elementType : lineType;
-    return getDiffColor(type, defaultBg);
+    return switch (type) {
+      case DiffTypes.DELETED -> deletedColor;
+      case DiffTypes.INSERTED -> insertedColor;
+      case DiffTypes.EDITED ->
+          lineType == type ? editedColor2 : editedColor;
+      default -> defaultBg;
+    };
   }
 
   public Color getDiffColor(int type, Color bg) {
@@ -79,6 +93,7 @@ public class DiffColors {
       case DiffTypes.DELETED -> deletedColor;
       case DiffTypes.INSERTED -> insertedColor;
       case DiffTypes.EDITED -> editedColor;
+      case DiffTypes.EDITED2 -> editedColor2;
       default -> bg;
     };
   }
@@ -91,7 +106,8 @@ public class DiffColors {
     return new DiffColors(
         ColorOp.blend(deletedColor, color),
         ColorOp.blend(insertedColor, color),
-        ColorOp.blend(editedColor, color)
+        ColorOp.blend(editedColor, color),
+        ColorOp.blend(editedColor2, color)
     );
   }
 }
