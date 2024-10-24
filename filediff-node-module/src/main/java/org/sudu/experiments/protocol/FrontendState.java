@@ -28,7 +28,7 @@ public class FrontendState {
     JsArray<JSObject> result = JsArray.create();
     result.set(p++, jsInts(firstVisibleNode, leftSelectedNode, rightSelectedNode));
 
-    JsArray<JSObject> serializedFrontend = FrontendMessage.serialize(leftRoot, rightRoot, modelRoot, searchQuery);
+    JsArray<JSObject> serializedFrontend = FrontendMessage.serialize(leftRoot, rightRoot, modelRoot, false, searchQuery);
     JsArray<JSObject> serializedBackend = BackendMessage.serializeFullModel(modelRoot, leftRoot.name(), rightRoot.name());
 
     result.set(p++, jsInts(serializedFrontend.getLength(), serializedBackend.getLength()));

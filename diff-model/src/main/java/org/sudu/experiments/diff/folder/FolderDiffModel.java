@@ -28,7 +28,7 @@ public class FolderDiffModel {
 
   public void update(FolderDiffModel newModel) {
     this.children = newModel.children;
-    for (var child: children) child.parent = this;
+    if (children != null) for (var child: children) child.parent = this;
     this.childrenComparedCnt = newModel.childrenComparedCnt;
     this.flags = newModel.flags;
     this.posInParent = newModel.posInParent;
@@ -101,8 +101,8 @@ public class FolderDiffModel {
   public boolean isFile() {
     int itemKind = getItemKind();
     return itemKind == ItemKind.FILE
-        || (isLeft() && itemKind == ItemKind.LEFT_ONLY_FILE)
-        || (isRight() && itemKind == ItemKind.RIGHT_ONLY_FILE);
+        || (isLeftOnly() && itemKind == ItemKind.LEFT_ONLY_FILE)
+        || (isRightOnly() && itemKind == ItemKind.RIGHT_ONLY_FILE);
   }
 
   public int getPropagation() {
