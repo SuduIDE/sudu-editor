@@ -59,9 +59,9 @@ public class FileDiffChannelUpdater {
   private void onFileSave(JsArray<JSObject> jsArray) {
     String source = JsCast.string(jsArray, 0);
     boolean left = JsCast.ints(jsArray, 1)[0] == 1;
-    if (left) {
+    if (left && leftHandle != null) {
       leftHandle.writeText(source, () -> onFileWrite(true, leftHandle.getFullPath()), this::onError);
-    } else {
+    } else if (!left && rightHandle != null) {
       rightHandle.writeText(source, () -> onFileWrite(false, rightHandle.getFullPath()), this::onError);
     }
   }

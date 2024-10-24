@@ -23,6 +23,7 @@ import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.ui.FileTreeView;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ToolWindow0;
+import org.sudu.experiments.ui.TreeNode;
 import org.sudu.experiments.ui.fs.RemoteDirectoryNode;
 import org.sudu.experiments.ui.fs.RemoteFileNode;
 import org.sudu.experiments.ui.fs.RemoteFileTreeNode;
@@ -71,6 +72,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   JsDialogProvider dialogProvider;
 
   private int[] lastFilters = null;
+  private RemoteFolderDiffModel lastSelected;
+  private boolean isLastLeftFocused = false;
 
   public RemoteFolderDiffWindow(
       EditorColorScheme theme,
@@ -177,6 +180,19 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     rootModel.update(msg.root);
     updateNodes(leftRoot, rightRoot, rootModel);
     updateDiffInfo();
+    if (lastSelected != null) {
+      var selectedRoot = !isLastLeftFocused ? leftRoot : rightRoot;
+      TreeNode newSelected = selectedRoot.getNearestParent(lastSelected);
+      if (newSelected != null) {
+        var root = isLastLeftFocused ? rootView.left : rootView.right;
+        root.setSelected(newSelected);
+        int ind = root.selectedIndex();
+        rootView.left.checkScroll(ind);
+        rootView.right.checkScroll(ind);
+      }
+      onFocus();
+      lastSelected = null;
+    }
   }
 
   private void updateNodes(
@@ -365,6 +381,23 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       }
 
       @Override
+      public RemoteFileTreeNode getNearestParent(RemoteFolderDiffModel node) {
+        var current = left ? rightRoot : leftRoot;
+        Deque<String> deque = collectDequePath(node);
+        while (!deque.isEmpty()) {
+          var path = deque.removeFirst();
+          if (deque.isEmpty() && node.isFile()) {
+            RemoteFileNode subNode = current.findSubFile(path);
+            return subNode != null ? subNode : current;
+          }
+          RemoteDirectoryNode subNode = current.findSubDir(path);
+          if (subNode == null) return current;
+          else current = subNode;
+        }
+        return current;
+      }
+
+      @Override
       public RemoteDirectoryNode getOppositeDir(RemoteDirectoryNode node) {
         return getOppositeDir(node.model());
       }
@@ -381,8 +414,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         return modelSupplier;
       }
 
-      private RemoteDirectoryNode getOppositeDir(RemoteFolderDiffModel model) {
-        var root = left ? rightRoot : leftRoot;
+      private static Deque<String> collectDequePath(RemoteFolderDiffModel model) {
         Deque<String> deque = new LinkedList<>();
         var curModel = model;
         while (curModel != null) {
@@ -390,6 +422,12 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
           curModel = curModel.parent();
         }
         deque.removeFirst();
+        return deque;
+      }
+
+      private RemoteDirectoryNode getOppositeDir(RemoteFolderDiffModel model) {
+        var root = left ? rightRoot : leftRoot;
+        Deque<String> deque = collectDequePath(model);
         return getOpposite(root, deque);
       }
 
@@ -690,8 +728,11 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   public void applyDiffFilter(int[] filters) {
+    var focused = getFocused();
     this.lastFilters = filters;
-    System.out.println("filters = " + Arrays.toString(filters));
+    this.isLastLeftFocused = focused == rootView.left;
+    this.lastSelected = focused == null || focused.selectedLine().isEmpty()
+        ? null : ((RemoteFileTreeNode) focused.selectedLine()).model();
     JsArray<JSObject> jsArray = JsArray.create();
     jsArray.set(0, JsCast.jsInts(filters));
     jsArray.push(DiffModelChannelUpdater.APPLY_FILTERS_ARRAY);

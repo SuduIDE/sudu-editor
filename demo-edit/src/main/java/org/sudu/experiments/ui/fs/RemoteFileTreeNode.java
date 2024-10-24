@@ -46,6 +46,10 @@ public class RemoteFileTreeNode extends FileTreeNode {
     return sb.toString();
   }
 
+  public RemoteFileTreeNode getNearestParent(RemoteFolderDiffModel model) {
+    return handle.getNearestParent(model);
+  }
+
   public RemoteFileTreeNode[] getChildren() {
     return (RemoteFileTreeNode[]) children;
   }
