@@ -3,8 +3,10 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
+import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.ui.SetCursor;
 import org.sudu.experiments.ui.UiContext;
 import org.sudu.experiments.ui.window.View;
 
@@ -137,5 +139,11 @@ public class MiddleLine extends View {
       p21.y = p21.y + lineWidth;
     }
     g.drawRect(editorPos, y, temp, color);
+  }
+
+  @Override
+  public void onMouseMove(MouseEvent event, SetCursor setCursor) {
+    if (hitTest(event.position))
+      setCursor.set(null);
   }
 }
