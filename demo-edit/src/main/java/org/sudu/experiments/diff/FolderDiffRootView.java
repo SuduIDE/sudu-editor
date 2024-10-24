@@ -68,6 +68,13 @@ class FolderDiffRootView extends DiffRootView {
         rightReadonly,
         applyDiff
     );
+    int n = Math.min(leftColors.length, rightColors.length);
+    byte a = DiffTypes.DELETED, b = DiffTypes.INSERTED;
+    for (int i = 0; i < n; i++) {
+      byte leftColor = leftColors[i];
+      if (leftColor == a) leftColors[i] = b;
+      else if (leftColor == b) leftColors[i] = a;
+    }
     left.enableMergeButtons(models[0].actions, models[0].lines, leftColors, true);
     right.enableMergeButtons(models[1].actions, models[1].lines, rightColors, false);
   }
