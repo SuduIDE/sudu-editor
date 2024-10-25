@@ -189,7 +189,11 @@ export const enum ThemeColor {
   DeletedRegionBackground = 14,
   DeletedTextBackground = 15,
   InsertedRegionBackground = 16,
-  InsertedTextBackground = 17
+  InsertedTextBackground = 17,
+  LineNumberForeground = 18,
+  ActiveLineNumberForeground = 19,
+  LineNumberActiveForeground = 20
+
 }
 
 export type BaseTheme = 'dark' | 'light' | 'darcula';

@@ -110,6 +110,7 @@ public interface ArrayOp {
       return () -> values;
   }
 
+  @SafeVarargs
   static <T> T[] array(T... values) {
       return values;
   }

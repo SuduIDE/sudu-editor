@@ -3,18 +3,25 @@ package org.sudu.experiments.editor.ui.colors;
 import org.sudu.experiments.math.Color;
 
 public class FileTreeViewTheme {
-  public final Color bg;
-  public final Color selectedBg;
-  public final Color selectedText;
-  public final Color inactiveSelectedBg;
-  public final Color hoveredBg;
+  public Color bg;
+  public Color selectedBg;
+  public Color textColor;
+  public DiffColors textDiffColors;
+  public Color selectedText;
+  public Color inactiveSelectedBg;
+  public Color hoveredBg;
 
   public FileTreeViewTheme(
-      Color bg, Color selectedBg, Color selectedText,
-      Color inactiveSelectedBg, Color hoveredBg
+      Color bg, Color selectedBg,
+      Color textColor,
+      Color selectedText,
+      Color inactiveSelectedBg, Color hoveredBg,
+      DiffColors textDiffColors
   ) {
     this.bg = bg;
     this.selectedBg = selectedBg;
+    this.textColor = textColor;
+    this.textDiffColors = textDiffColors;
     this.selectedText = selectedText;
     this.inactiveSelectedBg = inactiveSelectedBg;
     this.hoveredBg = hoveredBg;
@@ -22,22 +29,35 @@ public class FileTreeViewTheme {
 
   public static FileTreeViewTheme darculaIdea() {
     return new FileTreeViewTheme(
-        new Color("#2B2D30"), new Color("#04395e"),
-        new Color("#FFFFFF"),
-        new Color("#37373d"), new Color("#ffffff11"));
+        new Color("#3C3F41"),
+        new Color("#4B6EAF"),
+        new Color("#BBBBBB"),
+        new Color("#DEDEDE"),
+        new Color("#0D293E"),
+        new Color("#ffffff11"),
+        DiffColors.fileTreeDarcula());
   }
 
   public static FileTreeViewTheme darkIdea() {
     return new FileTreeViewTheme(
-        new Color("#3C3F41"), new Color("#04395e"),
-        new Color("#FFFFFF"),
-        new Color("#37373d"), new Color("#ffffff11"));
+        new Color("#2B2D30"),
+        new Color("#2E436E"),
+        new Color("#DFE1E5"),
+        new Color("#DFE1E5"),
+        new Color("#43454A"),
+        new Color("#ffffff11"),
+        DiffColors.fileTreeDark());
   }
 
   public static FileTreeViewTheme lightIdea() {
     return new FileTreeViewTheme(
-        new Color("#F7F8FA"), new Color("#0060c0"),
-        new Color("#FFFFFF"),
-        new Color("#e4e6f1"), new Color("#00000011"));
+        new Color("#F7F8FA"),
+        new Color("#D4E2FF"),
+        new Color("#000000"),
+        new Color("#000000"),
+        new Color("#DFE1E5"),
+        new Color("#00000011"),
+        DiffColors.fileTreeLight()
+    );
   }
 }

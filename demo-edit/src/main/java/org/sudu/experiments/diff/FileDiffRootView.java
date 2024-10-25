@@ -148,7 +148,7 @@ class FileDiffRootView extends DiffRootView {
 
   public void applyTheme(EditorColorScheme theme) {
     ui.setTheme(theme);
-    middleLine.setTheme(theme);
+    middleLine.setTheme(theme.codeDiffBg, theme.editor.bg);
     editor1.setTheme(theme);
     editor2.setTheme(theme);
   }

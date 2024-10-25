@@ -1,6 +1,7 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.*;
+import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.ui.colors.CodeElementColor;
 import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
@@ -185,10 +186,12 @@ public class CodeLineRenderer implements Disposable {
           elemBgColor = colors.usageBg;
         }
         if (diff != null) {
-          int elementType = diff.elementTypes == null
-              ? 0 : i < diff.elementTypes.length
-              ? diff.elementTypes[i] : 0;
-          elemBgColor = colors.diff.getDiffColor(elementType, diff.type, colors.defaultBg);
+          int[] types = diff.elementTypes;
+          int elementType = types != null && i < types.length ? types[i] : 0;
+          int t = elementType != 0 ?
+              elementType == DiffTypes.EDITED && diff.type == DiffTypes.EDITED ?
+                  DiffTypes.EDITED2 : elementType : diff.type;
+          elemBgColor = colors.diff.getDiffColor(t, colors.defaultBg);
         }
       }
 
@@ -341,7 +344,7 @@ public class CodeLineRenderer implements Disposable {
       V2i size,
       int editorHScrollPos,
       int editorWidth,
-      Color editBgColor
+      V4f editBgColor
   ) {
     int lineMeasure = line.lineMeasure();
     if (lineMeasure != 0) lineMeasure += xOffset;

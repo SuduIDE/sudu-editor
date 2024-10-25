@@ -5,35 +5,35 @@ import org.sudu.experiments.math.V4f;
 
 public class LineNumbersColors {
 
-  public final Color textColor;
-  public final Color bgColor;
-  public final Color caretTextColor;
-  public final Color caretBgColor;
+  public Color textColor;
+  public Color bgColor;
+  public Color caretTextColor;
+  public Color caretBgColor;
 
   public static LineNumbersColors darcula() {
     return new LineNumbersColors(
         new Color("#606366"),
-        new Color("#2B2B2B"),
+        new Color(IdeaCodeColors.Darcula.editBg),
         new Color("#A4A3A3"),
-        new Color("#323232")
+        new Color(IdeaCodeColors.Darcula.caretBg)
     );
   }
 
   public static LineNumbersColors dark() {
     return new LineNumbersColors(
         new Color("#4B5059"),
-        new Color("#1E1F22"),
+        new Color(IdeaCodeColors.Dark.editBg),
         new Color("#A1A3AB"),
-        new Color("#26282E")
+        new Color(IdeaCodeColors.Dark.caretBg)
     );
   }
 
   public static LineNumbersColors light() {
     return new LineNumbersColors(
         new Color("#AEB3C2"),
-        new Color("#FFFFFF"),
+        new Color(IdeaCodeColors.Light.editBg),
         new Color("#767A8A"),
-        new Color("#F5F8FE")
+        new Color(IdeaCodeColors.Light.caretBg)
     );
   }
 
