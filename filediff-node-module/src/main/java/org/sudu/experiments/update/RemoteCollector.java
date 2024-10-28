@@ -92,6 +92,11 @@ public class RemoteCollector {
 
   public void applyDiff(int[] path, boolean left) {
     var model = (ItemFolderDiffModel) root.findNode(path);
+    if (model == null) {
+      String error = root.describeError(path);
+      LoggingJs.debug("applyDiff: root.findNode(path) failed: " + error);
+      return;
+    }
     int diffType = model.getDiffType();
     if (diffType == DiffTypes.DEFAULT) return;
 

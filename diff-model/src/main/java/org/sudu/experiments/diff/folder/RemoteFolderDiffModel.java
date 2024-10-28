@@ -150,4 +150,19 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
         ", \"itemKind\":\"" + ItemKind.name(getItemKind()) + "\"" +
         "}";
   }
+
+  public String describeError(int[] path) {
+    return describeError(path, 0);
+  }
+
+  String describeError(int[] path, int index) {
+    if (index == path.length) return "";
+    if (children == null)
+      return "no children but requested children[" + path[index] + "]";
+    if (path[index] >= children.length)
+      return "path[index](" + path[index] +
+          ") > children.length(" + children.length + ')';
+    return child(path[index]).path + '/' +
+        describeError(path, index + 1);
+  }
 }
