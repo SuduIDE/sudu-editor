@@ -176,21 +176,20 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private void onFiltersApplied(JsArray<JSObject> jsResult) {
+    var root = isLastLeftFocused ? rootView.left : rootView.right;
+    int delta = root.getSelectedIndexDelta();
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
     updateNodes(leftRoot, rightRoot, rootModel);
     updateDiffInfo();
     if (lastSelected != null) {
-      var selectedRoot = !isLastLeftFocused ? leftRoot : rightRoot;
+      var selectedRoot = isLastLeftFocused ? leftRoot : rightRoot;
       TreeNode newSelected = selectedRoot.getNearestParent(lastSelected);
       if (newSelected != null) {
-        var root = isLastLeftFocused ? rootView.left : rootView.right;
-        root.setSelected(newSelected);
-        int ind = root.selectedIndex();
-        rootView.left.checkScroll(ind);
-        rootView.right.checkScroll(ind);
+        root.updateSelected(newSelected, delta);
+        rootView.left.setScrollPosY(root.scrollPos.y);
+        rootView.right.setScrollPosY(root.scrollPos.y);
       }
-      onFocus();
       lastSelected = null;
     }
   }
@@ -382,7 +381,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
       @Override
       public RemoteFileTreeNode getNearestParent(RemoteFolderDiffModel node) {
-        var current = left ? rightRoot : leftRoot;
+        var current = left ? leftRoot : rightRoot;
         Deque<String> deque = collectDequePath(node);
         while (!deque.isEmpty()) {
           var path = deque.removeFirst();
