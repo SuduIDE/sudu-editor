@@ -730,7 +730,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     var focused = getFocused();
     this.lastFilters = filters;
     this.isLastLeftFocused = focused == rootView.left;
-    this.lastSelected = focused == null || focused.selectedLine().isEmpty()
+    this.lastSelected = focused == null || focused.selectedLine() == null || focused.selectedLine().isEmpty()
         ? null : ((RemoteFileTreeNode) focused.selectedLine()).model();
     JsArray<JSObject> jsArray = JsArray.create();
     jsArray.set(0, JsCast.jsInts(filters));
