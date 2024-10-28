@@ -557,7 +557,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       RemoteFolderDiffModel remoteModel = (RemoteFolderDiffModel) model;
       String fromPath = remoteModel.getFullPath(left ? leftRoot.name() : rightRoot.name());
       String toPath = remoteModel.getFullPath(!left ? leftRoot.name() : rightRoot.name());
-      FsDialogs.showDlg(dialogProvider, fromPath, toPath,
+      FsDialogs.showDlg(dialogProvider, fromPath, toPath, remoteModel, left,
           () -> sendApplyDiff(model, left));
     } else {
       sendApplyDiff(model, left);
