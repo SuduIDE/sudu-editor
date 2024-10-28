@@ -550,6 +550,16 @@ public class TreeView extends ScrollContent implements Focusable {
     if (onSelectedLineChanged != null) onSelectedLineChanged.accept(newInd);
   }
 
+  public int getSelectedIndexDelta() {
+    return selectedIndex * clrContext.lineHeight - scrollPos.y;
+  }
+
+  public void updateSelected(TreeNode newSelected, int delta) {
+    setSelected(newSelected);
+    selectedIndex = model.indexOf(newSelected);
+    setScrollPosY(selectedIndex * clrContext.lineHeight - delta);
+  }
+
   @Override
   public boolean onCopy(Consumer<String> setText, boolean isCut) {
     if (selectedLine() != null) {
