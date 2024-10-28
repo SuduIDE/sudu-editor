@@ -1,7 +1,6 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.editor.ui.colors.DiffColors;
 import org.sudu.experiments.editor.ui.colors.MergeButtonsColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.MouseEvent;
@@ -34,7 +33,7 @@ public class MergeButtons implements Disposable {
   private final V2i debug = new V2i();
   private int lineHeight, scrollPos;
   private int firstLine, lastLine;
-  private int selectedBtLine = -1, selectedBtIndex = -1;
+  private int hoverBtLine = -1, hoverBtIndex = -1;
   private final boolean drawBg;
   private boolean toLeft;
   private FontDesk font;
@@ -117,8 +116,8 @@ public class MergeButtons implements Disposable {
       if (nextBt == l) {
         var textColor = diffType != 0 && textColors != null ?
             textColors.getDiffColor(diffType, null) : theme.textColor;
-        var bg = selectedBtLine == l && diffType == 0 ?
-            theme.bg(l == caretLine, hasFocus) : bgColor;
+        var bg = hoverBtLine == l && (theme.bgColors == null || diffType == 0) ?
+            theme.bgColorHovered : bgColor;
         c.drawIcon(g, texture, x, y, bg, textColor);
 
         if (drawFrames) {
@@ -165,12 +164,12 @@ public class MergeButtons implements Disposable {
   }
 
   public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
-    selectedBtLine = -1;
+    hoverBtLine = -1;
     if (!hitTest(event.position)) return false;
     for (int btLine : lines) {
       if (firstLine <= btLine && btLine <= lastLine) {
         if (buttonHitTest(event.position, btLine)) {
-          selectedBtLine = btLine;
+          hoverBtLine = btLine;
           return setCursor.set(Cursor.pointer);
         }
       }
@@ -179,7 +178,7 @@ public class MergeButtons implements Disposable {
   }
 
   public void onMouseLeave() {
-    selectedBtLine = -1;
+    hoverBtLine = -1;
   }
 
   public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button, SetCursor setCursor) {
@@ -190,27 +189,27 @@ public class MergeButtons implements Disposable {
       boolean hit = firstLine <= btLine && btLine <= lastLine &&
           buttonHitTest(event.position, btLine);
       if (hit) {
-        selectedBtLine = btLine;
-        selectedBtIndex = i;
+        hoverBtLine = btLine;
+        hoverBtIndex = i;
         setCursor.setDefault();
         return MouseListener.Static.emptyConsumer;
       }
     }
-    selectedBtLine = selectedBtIndex = -1;
+    hoverBtLine = hoverBtIndex = -1;
     return MouseListener.Static.emptyConsumer;
   }
 
   public boolean onMouseUp(MouseEvent event, int button) {
     Runnable r = null;
     if (button == MouseListener.MOUSE_BUTTON_LEFT) {
-      if (selectedBtLine >= 0) {
-        if (buttonHitTest(event.position, selectedBtLine)) {
-          r = actions[selectedBtIndex];
+      if (hoverBtLine >= 0) {
+        if (buttonHitTest(event.position, hoverBtLine)) {
+          r = actions[hoverBtIndex];
         }
       }
     }
 
-    selectedBtLine = selectedBtIndex = -1;
+    hoverBtLine = hoverBtIndex = -1;
     if (r != null) r.run();
     return r != null;
   }

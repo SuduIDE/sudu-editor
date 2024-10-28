@@ -1,12 +1,14 @@
 package org.sudu.experiments.editor.ui.colors;
 
 import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.ColorOp;
 
 public class MergeButtonsColors {
   public DiffColors textColors;
   public DiffColors bgColors;
   public Color textColor;
   public Color bgColor;
+  public Color bgColorHovered;
   public Color hoverBg;
 
   public MergeButtonsColors(
@@ -21,10 +23,6 @@ public class MergeButtonsColors {
     this.textColor = textColor;
     this.bgColor = bgColor;
     this.hoverBg = hoverBg;
-  }
-
-  public Color bg(boolean selected, boolean hasFocus) {
-    return bgColor;
-//    return selected ? hasFocus ? selectedBg : inactiveSelectedBg : bgColor;
+    bgColorHovered = ColorOp.blend(bgColor, hoverBg);
   }
 }
