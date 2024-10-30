@@ -36,7 +36,11 @@ public class EditorColorScheme {
   public static final int InsertedRegionBackground = 16;
   public static final int InsertedTextBackground = 17;
 
-  public static final int LastIndex = InsertedTextBackground + 1;
+  public static final int LineNumberForeground = 18;
+  public static final int ActiveLineNumberForeground = 19;
+  public static final int LineNumberActiveForeground = 20;
+
+  public static final int LastIndex = LineNumberActiveForeground + 1;
 
   public final EditorColors editor;
   public final FileTreeViewTheme fileTreeView;
@@ -174,7 +178,7 @@ public class EditorColorScheme {
         codeElement, codeDiffBg);
   }
 
-  public void modify(int m, Color c) {
+  public boolean modify(int m, Color c) {
     switch (m) {
       case TreeViewBackground -> {
         fileTreeView.bg = c;
@@ -210,25 +214,29 @@ public class EditorColorScheme {
           editor.currentLineBg = c;
 
       case PanelHeaderBackground -> {
-        System.out.println("PanelHeaderBackground set to " + c);
         dialogItem.windowColors.windowTitleBgColor = c;
       }
       case PanelHeaderForeground -> {
-        System.out.println("PanelHeaderForeground set to " + c);
         dialogItem.windowColors.windowTitleTextColor = c;
       }
 
       case DeletedRegionBackground -> {
 //        codeDiffBg.deletedColor = ColorOp.blend(editor.bg, c);
+        return false;
       }
 
-      case DeletedTextBackground -> {}
+      case DeletedTextBackground -> {
+        return false;
+      }
 
       case InsertedRegionBackground -> {
 //        codeDiffBg.insertedColor = ColorOp.blend(editor.bg, c);
+        return false;
       }
 
-      case InsertedTextBackground -> {}
+      case InsertedTextBackground -> {
+        return false;
+      }
 
       case AddedResourceForeground ->
         fileTreeView.textDiffColors.insertedColor = c;
@@ -238,7 +246,21 @@ public class EditorColorScheme {
 
       case ModifiedResourceForeground ->
           fileTreeView.textDiffColors.editedColor = c;
+
+      case LineNumberForeground -> {
+        lineNumber.textColor = ColorOp.blend(editor.bg, c);
+      }
+
+      case ActiveLineNumberForeground -> {
+        return false;
+      }
+
+      case LineNumberActiveForeground -> {
+        lineNumber.caretTextColor = ColorOp.blend(editor.bg, c);
+      }
     }
+
+    return true;
   }
 
   public MergeButtonsColors codeDiffMergeButtons() {

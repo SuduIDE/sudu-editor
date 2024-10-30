@@ -69,7 +69,10 @@ public interface ThemeImport {
     }
 
     for (int i = 0; i < imported.length; i++) {
-      if (imported[i] != null) theme.modify(i, imported[i]);
+      Color c = imported[i];
+      if (c != null && theme.modify(i, c)) {
+        JsHelper.consoleInfo(name(i) + '(' + i + ") set to " + c);
+      }
     }
 
     return theme;
@@ -95,6 +98,9 @@ public interface ThemeImport {
       case DeletedTextBackground -> "DeletedTextBackground";
       case InsertedRegionBackground -> "InsertedRegionBackground";
       case InsertedTextBackground -> "InsertedTextBackground";
+      case LineNumberForeground -> "LineNumberForeground";
+      case ActiveLineNumberForeground -> "ActiveLineNumberForeground";
+      case LineNumberActiveForeground -> "LineNumberActiveForeground";
       default -> "bad name " + n;
     };
   }
