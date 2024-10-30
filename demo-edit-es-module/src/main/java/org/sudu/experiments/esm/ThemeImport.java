@@ -93,6 +93,7 @@ public interface ThemeImport {
       case PanelHeaderForeground -> "PanelHeaderForeground";
       case EditorBackground -> "EditorBackground";
       case EditorForeground -> "EditorForeground";
+      case CurrentLineBorder -> "CurrentLineBorder";
       case CurrentLineBackground -> "CurrentLineBackground";
       case DeletedRegionBackground -> "DeletedRegionBackground";
       case DeletedTextBackground -> "DeletedTextBackground";

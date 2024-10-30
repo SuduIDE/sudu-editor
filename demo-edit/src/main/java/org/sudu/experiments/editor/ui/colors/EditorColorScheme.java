@@ -28,17 +28,18 @@ public class EditorColorScheme {
   // editor
   public static final int EditorBackground = 11;
   public static final int EditorForeground = 12;
-  public static final int CurrentLineBackground = 13;
+  public static final int CurrentLineBorder = 13;
+  public static final int CurrentLineBackground = 14;
 
   // editor diff
-  public static final int DeletedRegionBackground = 14;
-  public static final int DeletedTextBackground = 15;
-  public static final int InsertedRegionBackground = 16;
-  public static final int InsertedTextBackground = 17;
+  public static final int DeletedRegionBackground = 15;
+  public static final int DeletedTextBackground = 16;
+  public static final int InsertedRegionBackground = 17;
+  public static final int InsertedTextBackground = 18;
 
-  public static final int LineNumberForeground = 18;
-  public static final int ActiveLineNumberForeground = 19;
-  public static final int LineNumberActiveForeground = 20;
+  public static final int LineNumberForeground = 19;
+  public static final int ActiveLineNumberForeground = 20;
+  public static final int LineNumberActiveForeground = 21;
 
   public static final int LastIndex = LineNumberActiveForeground + 1;
 
@@ -210,8 +211,11 @@ public class EditorColorScheme {
         lineNumber.textColor = c;
       }
 
+      case CurrentLineBorder -> editor.currentLineBg =
+          ColorOp.blend(editor.bg, c, 0.25f);
+
       case CurrentLineBackground ->
-          editor.currentLineBg = c;
+          editor.currentLineBg = ColorOp.blend(editor.bg, c);
 
       case PanelHeaderBackground -> {
         dialogItem.windowColors.windowTitleBgColor = c;

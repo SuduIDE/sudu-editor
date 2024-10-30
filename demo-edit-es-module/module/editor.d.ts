@@ -183,16 +183,17 @@ export const enum ThemeColor {
   // editor
   EditorBackground = 11,
   EditorForeground = 12,
-  CurrentLineBackground = 13,
+  CurrentLineBorder = 13,
+  CurrentLineBackground = 14,
 
   // editor diff
-  DeletedRegionBackground = 14,
-  DeletedTextBackground = 15,
-  InsertedRegionBackground = 16,
-  InsertedTextBackground = 17,
-  LineNumberForeground = 18,
-  ActiveLineNumberForeground = 19,
-  LineNumberActiveForeground = 20
+  DeletedRegionBackground = 15,
+  DeletedTextBackground = 16,
+  InsertedRegionBackground = 17,
+  InsertedTextBackground = 18,
+  LineNumberForeground = 19,
+  ActiveLineNumberForeground = 20,
+  LineNumberActiveForeground = 21
 
 }
 
