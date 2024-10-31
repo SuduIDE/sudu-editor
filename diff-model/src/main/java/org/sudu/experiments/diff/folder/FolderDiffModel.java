@@ -167,13 +167,13 @@ public class FolderDiffModel {
     };
   }
 
-  // todo change parent status after diff applying
   public void deleteItem() {
     if (parent == null) throw new RuntimeException("Parent can't be null");
     var newChildren = new FolderDiffModel[parent.children.length - 1];
     for (int i = 0, j = 0; i < parent.children.length; i++) {
       var child = parent.child(i);
       if (this == child) continue;
+      child.posInParent = j;
       newChildren[j++] = child;
     }
     parent.childrenComparedCnt--;
