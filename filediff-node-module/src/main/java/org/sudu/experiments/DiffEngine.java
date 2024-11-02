@@ -100,13 +100,13 @@ public class DiffEngine implements DiffEngineJs {
       FileHandle leftHandle = new NodeFileHandle(leftStr);
       updater.compareLeft(leftHandle);
     } else {
-      updater.sendFileRead(true, leftStr);
+      updater.sendFileRead(true, leftStr, null);
     }
     if (isRightFile) {
       FileHandle rightHandle = new NodeFileHandle(rightStr);
       updater.compareRight(rightHandle);
     } else {
-      updater.sendFileRead(false, rightStr);
+      updater.sendFileRead(false, rightStr, null);
     }
     return new JsFileDiffSession0();
   }
@@ -128,7 +128,7 @@ public class DiffEngine implements DiffEngineJs {
       FileHandle handle = new NodeFileHandle(str);
       updater.beginCompare(handle);
     } else {
-      updater.sendMessage(str);
+      updater.sendMessage(str, null);
     }
     return new JsFileDiffSession0();
   }

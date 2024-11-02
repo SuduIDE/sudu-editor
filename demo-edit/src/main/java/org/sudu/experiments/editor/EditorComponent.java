@@ -881,8 +881,9 @@ public class EditorComponent extends View implements
 
   public void openFile(FileHandle f, Runnable onComplete) {
     Debug.consoleInfo("opening file " + f.getName());
-    f.readAsText(
-        source -> {
+    FileHandle.readTextFile(f,
+        (source, encoding) -> {
+          // todo: encoding
           openFile(source, f.getFullPath());
           onComplete.run();
         },

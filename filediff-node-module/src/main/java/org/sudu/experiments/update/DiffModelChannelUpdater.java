@@ -2,9 +2,12 @@ package org.sudu.experiments.update;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
+import org.sudu.experiments.encoding.FileEncoding;
+import org.sudu.experiments.encoding.TextDecoder;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.js.TextEncoder;
 import org.sudu.experiments.js.node.NodeFileHandle;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.JsCast;
@@ -79,8 +82,9 @@ public class DiffModelChannelUpdater {
     Int32Array key = jsArray.pop().cast();
 
     var fileHandle = new NodeFileHandle(jsPath);
-    fileHandle.readAsText(
-        source -> {
+    FileHandle.readTextFile(fileHandle,
+        (source, encoding) -> {
+          // todo: encoding
           var result = JsArray.create();
           result.push(JSString.valueOf(source));
           result.push(key);
@@ -108,7 +112,8 @@ public class DiffModelChannelUpdater {
     int[] path = JsCast.ints(jsArray, 0);
     boolean left = JsCast.ints(jsArray, 1)[0] == 0;
     String source = JsCast.string(jsArray, 2);
-    collector.fileSave(path, left, source);
+    // todo: add encoding support
+    collector.fileSave(path, left, source, FileEncoding.utf8);
   }
 
   private void onRefresh() {

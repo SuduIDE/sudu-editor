@@ -130,9 +130,11 @@ public class ProjectViewWindow extends ToolWindow0
     }
   }
 
-  private void putModel(String fullPath, String text) {
+  private void putModel(String fullPath, String text, String encoding) {
+    System.out.println("fullPath = " + fullPath + ", encoding = " + encoding);
     SplitInfo splitInfo = SplitText.splitInfo(text);
     var model = new Model(splitInfo.lines, new Uri(fullPath));
+    model.setEncoding(encoding);
     modelMap.put(fullPath, model);
     if (Objects.equals(selectedFile, fullPath)) {
       doSetModel(model);
@@ -141,10 +143,11 @@ public class ProjectViewWindow extends ToolWindow0
 
   private void fetchModel(FileHandle file, String fullPath) {
     requestMap.put(fullPath, fullPath);
-    file.readAsText(
-        text -> {
+    FileHandle.readTextFile(
+        file,
+        (text, coder) -> {
           requestMap.remove(fullPath);
-          putModel(fullPath, text);
+          putModel(fullPath, text, coder);
         },
         error -> {
           requestMap.remove(fullPath);

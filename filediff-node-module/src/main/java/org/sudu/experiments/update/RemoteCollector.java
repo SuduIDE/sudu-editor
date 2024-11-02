@@ -162,11 +162,11 @@ public class RemoteCollector {
     sendApplied();
   }
 
-  public void fileSave(int[] path, boolean left, String source) {
+  public void fileSave(int[] path, boolean left, String source, String encoding) {
     var model = (ItemFolderDiffModel) root.findNode(path);
     var item = (FileHandle) (left ? model.left() : model.right());
     LoggingJs.debug("fileSave " + item);
-    item.writeText(source, () -> cmpFilesAndSend(model, item), this::onError);
+    item.writeText(source, encoding, () -> cmpFilesAndSend(model, item), this::onError);
   }
 
   private void copyFile(ItemFolderDiffModel model, boolean left, Runnable onComplete) {

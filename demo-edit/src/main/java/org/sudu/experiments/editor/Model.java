@@ -25,6 +25,7 @@ public class Model {
 
   public Object platformObject;
   private String docLanguage;
+  private String encoding;
 
   final Selection selection = new Selection();
   final NavigationStack navStack = new NavigationStack();
@@ -93,6 +94,14 @@ public class Model {
 
   public String docLanguage() {
     return docLanguage;
+  }
+
+  public void setEncoding(String encoding) {
+    this.encoding = encoding;
+  }
+
+  public String encoding() {
+    return encoding;
   }
 
   public String uriScheme() {

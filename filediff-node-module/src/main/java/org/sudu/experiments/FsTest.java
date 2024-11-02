@@ -21,11 +21,14 @@ public class FsTest {
     } else {
       JsHelper.consoleInfo("reading file as string", path);
       NodeFileHandle fh = new NodeFileHandle(path);
-      fh.readAsText(s -> {
-        JsHelper.consoleInfo("readAsText complete: "+
-            s.substring(0, Math.min(20, s.length())));
-        onComplete.f();
-      }, e -> JsHelper.consoleError("readAsText error: ", JSString.valueOf(e)));
+      FileHandle.readTextFile(
+          fh, (s, enc) -> {
+            JsHelper.consoleInfo("readAsText complete: encoding=" + enc + ", " +
+                s.substring(0, Math.min(20, s.length())));
+            onComplete.f();
+          },
+          e -> JsHelper.consoleError("readAsText error: ".concat(e))
+      );
     }
   }
 
@@ -85,9 +88,11 @@ public class FsTest {
   }
 
   static void readFileTest(FileHandle fh, int size) {
-    if (size < 1024) {
-      fh.readAsText(
-          text -> JsHelper.consoleInfo("  readAsText " + fh.getName() + " => " + text.length() + " chars"),
+    if (size < 4096) {
+      FileHandle.readTextFile(fh,
+          (text, encoding) ->
+              JsHelper.consoleInfo("  readAsText " + fh.getName()
+                  + " => " + text.length() + " chars, encoding=" + encoding),
           System.err::println
       );
     } else {

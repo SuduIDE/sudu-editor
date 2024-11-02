@@ -25,12 +25,20 @@ public abstract class TextDecoder implements JSObject {
     return create("utf-16");
   }
 
+  public static TextDecoder gbk() {
+    return create("gbk");
+  }
+
   public static JSString decodeUTF16(char[] data) {
     return Singleton.decoderUTF16.decode(data);
   }
 
   public static JSString fromUtf8(byte[] data) {
     return create().decode(JsMemoryAccess.uInt8View(data));
+  }
+
+  public static JSString fromGbk(byte[] data) {
+    return gbk().decode(JsMemoryAccess.uInt8View(data));
   }
 
   public interface Singleton {

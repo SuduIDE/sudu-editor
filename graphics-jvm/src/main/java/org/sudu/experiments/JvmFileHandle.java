@@ -133,7 +133,10 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
   }
 
   @Override
-  public void writeText(String text, Runnable onComplete, Consumer<String> onError) {
+  public void writeText(
+      String text, String encoding,
+      Runnable onComplete, Consumer<String> onError
+  ) {
     onError.accept("not implemented");
   }
 
