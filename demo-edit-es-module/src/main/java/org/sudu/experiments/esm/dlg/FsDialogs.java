@@ -14,20 +14,20 @@ public class FsDialogs {
       boolean left,
       Runnable action
   ) {
-    var bOk = JsNative.createButton("OK", true);
-    var bCancel = JsNative.createButton("cancel", false);
+    var bOk = JsNative.createButton("Confirm", true);
+    var bCancel = JsNative.createButton("Cancel", false);
 
     int diffType = remoteModel.getDiffType();
     boolean isDelete = (left && diffType == DiffTypes.INSERTED) || (!left && diffType == DiffTypes.DELETED);
 
-    String modelType = (remoteModel.isFile() ? "file " : "folder ");
-    String title = "confirm " +
-        modelType +
+    String modelType = (remoteModel.isFile() ? "File " : "Folder ");
+    String title = "Confirm " +
+        modelType.toLowerCase() +
         (isDelete ? "delete " : "copy ") +
         "operation";
     String text = isDelete
         ? modelType + from
-        : "from " + modelType + from + " to " + to;
+        : "From " + modelType + from + " to " + to;
 
     var i = JsNative.createInput(
         title, text,
@@ -36,7 +36,7 @@ public class FsDialogs {
     );
     p.showModalDialog(i).then(
         result -> {
-          if (result.getButton() == bOk)
+          if (result != null && result.getButton() == bOk)
             action.run();
         }, e -> {}
     );
