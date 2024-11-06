@@ -27,7 +27,7 @@ public class FsDialogs {
         "operation";
     String text = isDelete
         ? modelType + from
-        : "From " + modelType + from + " to " + to;
+        : "From " + modelType.toLowerCase() + from + " to " + to;
 
     var i = JsNative.createInput(
         title, text,
