@@ -72,9 +72,9 @@ function testFS(dirname) {
   });
 }
 
-function testFileWrite(file, content) {
+function testFileWrite(file, encoding, content) {
   jobCount++;
-  module.testFileWrite(file, content,
+  module.testFileWrite(file, content, encoding,
       () => {
         console.log("testFileWrite.onComplete");
         mayBeExit();
@@ -114,6 +114,13 @@ function testDirCopy(src, dest) {
   )
 }
 
+function testGbkEncoder() {
+  jobCount++;
+  module.testGbkEncoder();
+  mayBeExit();
+  return "ok";
+}
+
 let args = process.argv;
 
 function runTest() {
@@ -135,10 +142,12 @@ function runTest() {
       return testDiff(dir1, dir2, content);
     case "testFileWrite": {
       const file = args[3];
-      const string = args[4];
+      const encoding = args[4];
+      const string = args[5];
       console.log("file", file);
+      console.log("encoding", encoding);
       console.log("string", string);
-      return testFileWrite(file, string);
+      return testFileWrite(file, encoding, string);
     }
     case "testFileCopy": {
       const src = args[3];
@@ -153,6 +162,9 @@ function runTest() {
       console.log("testDirCopy: src", src);
       console.log("testDirCopy: dest", dest);
       return testDirCopy(src, dest);
+    }
+    case "testGbkEncoder": {
+      return testGbkEncoder();
     }
     default:
       mayBeExit();

@@ -22,7 +22,7 @@ class FileDiffRootView extends DiffRootView {
   DiffInfo diffModel;
   private int modelFlags;
 
-  Consumer<String> onLeftDiffMade, onRightDiffMade;
+  Consumer<Model> onLeftDiffMade, onRightDiffMade;
 
   boolean firstDiffRevealed = false;
   private static final boolean showNavigateLog = true;
@@ -213,19 +213,21 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void setOnDiffMade(
-      Consumer<String> onLeftDiffMade,
-      Consumer<String> onRightDiffMade
+      Consumer<Model> onLeftDiffMade,
+      Consumer<Model> onRightDiffMade
   ) {
     this.onLeftDiffMade = onLeftDiffMade;
     this.onRightDiffMade = onRightDiffMade;
   }
 
   private void onLeftDiffMade() {
-    if (onLeftDiffMade != null) onLeftDiffMade.accept(new String(editor1.getChars()));
+    if (onLeftDiffMade != null)
+      onLeftDiffMade.accept(editor1.model());
   }
 
   private void onRightDiffMade() {
-    if (onRightDiffMade != null) onRightDiffMade.accept(new String(editor2.getChars()));
+    if (onRightDiffMade != null)
+      onRightDiffMade.accept(editor2.model());
   }
 
   private void revealFirstDiff() {

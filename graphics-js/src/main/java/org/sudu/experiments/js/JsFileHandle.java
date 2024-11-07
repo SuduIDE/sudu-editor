@@ -138,7 +138,7 @@ public class JsFileHandle implements FileHandle {
 
   @Override
   public void writeText(
-      String text, String encoding,
+      Object text, String encoding,
       Runnable onComplete, Consumer<String> onError
   ) {
     onError.accept("not implemented");

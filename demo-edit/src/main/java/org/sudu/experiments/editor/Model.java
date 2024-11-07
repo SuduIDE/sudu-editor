@@ -25,7 +25,7 @@ public class Model {
 
   public Object platformObject;
   private String docLanguage;
-  private String encoding;
+  String encoding;
 
   final Selection selection = new Selection();
   final NavigationStack navStack = new NavigationStack();

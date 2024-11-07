@@ -9,6 +9,7 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -134,7 +135,7 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
 
   @Override
   public void writeText(
-      String text, String encoding,
+      Object text, String encoding,
       Runnable onComplete, Consumer<String> onError
   ) {
     onError.accept("not implemented");

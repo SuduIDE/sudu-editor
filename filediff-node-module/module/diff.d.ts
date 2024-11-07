@@ -21,7 +21,7 @@ export interface DiffTestApi {
   ): void;
 
   testFileWrite(
-    path: string, content: string,
+    path: string, content: string, encoding: string,
     onComplete: () => void,
     onError: (error: string) => void
   ): void;
@@ -37,6 +37,8 @@ export interface DiffTestApi {
     onComplete: () => void,
     onError: (error: string) => void
   ): void;
+
+  testGbkEncoder() : void;
 }
 
 export interface FolderDiffSession extends AsyncShutdown {

@@ -4,10 +4,12 @@ import org.sudu.experiments.Channel;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.js.JsHelper;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
 public class FileEditChannelUpdater {
+  static final boolean debug = false;
 
   private FileHandle handle;
   private final Channel channel;
@@ -23,10 +25,13 @@ public class FileEditChannelUpdater {
   }
 
   public void sendMessage(JSString source, JSString encoding) {
-    // todo add encoding support
+    if (debug) LoggingJs.debug(JsHelper.concat(
+        "FileEditChannelUpdater.sendMessage, length = " + source.getLength()
+            + ", encoding = ", encoding));
     JsArray<JSObject> jsArray = JsArray.create();
     jsArray.set(0, source);
-    jsArray.set(1, JSString.valueOf(handle.getName()));
+    jsArray.set(1, encoding);
+    jsArray.set(2, JSString.valueOf(handle.getName()));
     channel.sendMessage(jsArray);
   }
 

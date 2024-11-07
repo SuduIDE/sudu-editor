@@ -1,6 +1,8 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Channel;
+import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.js.JsArray;
@@ -34,11 +36,12 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     );
   }
 
-  private void saveFile(boolean left, String source) {
+  private void saveFile(boolean left, Model m) {
     JsArray<JSObject> jsArray = JsArray.create();
-    jsArray.set(0, JSString.valueOf(source));
-    jsArray.set(1, JsCast.jsInts(left ? 1 : 0));
-    jsArray.push(FileDiffChannelUpdater.FILE_SAVE_MESSAGE);
+    jsArray.set(0, JsCast.jsString(m.document.getChars()));
+    jsArray.set(1, JSString.valueOf(m.encoding()));
+    jsArray.set(2, JsCast.jsInts(left ? 1 : 0));
+    jsArray.set(3, JsCast.jsInts(FileDiffChannelUpdater.FILE_SAVE));
     channel.sendMessage(jsArray);
   }
 
@@ -52,9 +55,13 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
 
   private void onFileOpen(JsArray<JSObject> jsArray) {
     String source = JsCast.string(jsArray, 0);
-    String name = JsCast.string(jsArray, 1);
-    boolean left = JsCast.ints(jsArray, 2)[0] == 1;
-    open(source, name, left);
+    String encoding = JsCast.string(jsArray, 1);
+    String name = JsCast.string(jsArray, 2);
+    boolean left = JsCast.ints(jsArray, 3)[0] == 1;
+    LoggingJs.debug(
+        "RemoteFileDiffWindow.open:  name = " + name
+            + ", encoding = " + encoding);
+    open(source, encoding, name, left);
   }
 
   private void onDiffSent(JsArray<JSObject> jsArray) {

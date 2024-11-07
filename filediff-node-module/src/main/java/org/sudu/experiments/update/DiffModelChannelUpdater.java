@@ -2,12 +2,10 @@ package org.sudu.experiments.update;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
-import org.sudu.experiments.encoding.FileEncoding;
-import org.sudu.experiments.encoding.TextDecoder;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.LoggingJs;
-import org.sudu.experiments.js.TextEncoder;
 import org.sudu.experiments.js.node.NodeFileHandle;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.JsCast;
@@ -16,6 +14,7 @@ import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
 public class DiffModelChannelUpdater {
+  static final boolean debug = false;
 
   private RemoteCollector collector;
   private Channel channel;
@@ -83,22 +82,27 @@ public class DiffModelChannelUpdater {
 
     var fileHandle = new NodeFileHandle(jsPath);
     FileHandle.readTextFile(fileHandle,
-        (source, encoding) -> {
-          // todo: encoding
-          var result = JsArray.create();
-          result.push(JSString.valueOf(source));
-          result.push(key);
-          result.push(OPEN_FILE_ARRAY);
-          channel.sendMessage(result);
-        },
-        error -> {
-          var result = JsArray.create();
-          System.err.println(error);
-          result.push(key);
-          result.push(OPEN_FILE_ARRAY);
-          channel.sendMessage(result);
-        }
+        (source, encoding) -> postOpenFile(source, encoding, key),
+        error -> postError(error, key)
     );
+  }
+
+  private void postOpenFile(String source, String encoding, Int32Array key) {
+    if (debug) LoggingJs.debug(JsHelper.concat(
+            "DiffModelChannelUpdater.postOpenFile: encoding=" +
+                encoding + " length = " + source.length() + ", key =",
+            JsHelper.jsToString(key)));
+    var result = JsArray.create();
+    result.push(JSString.valueOf(source));
+    result.push(JSString.valueOf(encoding));
+    result.push(key);
+    result.push(OPEN_FILE_ARRAY);
+    channel.sendMessage(result);
+  }
+
+  // todo: fix error posting
+  private void postError(String error, Int32Array key) {
+    postOpenFile(error, null, key);
   }
 
   private void onApplyDiff(JsArray<JSObject> jsArray) {
@@ -108,12 +112,12 @@ public class DiffModelChannelUpdater {
   }
 
   private void onFileSave(JsArray<JSObject> jsArray) {
-    System.out.println("DiffModelChannelUpdater.onFileSave");
+    LoggingJs.debug("DiffModelChannelUpdater.onFileSave");
     int[] path = JsCast.ints(jsArray, 0);
     boolean left = JsCast.ints(jsArray, 1)[0] == 0;
-    String source = JsCast.string(jsArray, 2);
-    // todo: add encoding support
-    collector.fileSave(path, left, source, FileEncoding.utf8);
+    Object source = JsCast.directJsToJava(jsArray, 2);
+    String encoding = JsCast.string(jsArray, 3);
+    collector.fileSave(path, left, source, encoding);
   }
 
   private void onRefresh() {

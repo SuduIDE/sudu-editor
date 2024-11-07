@@ -2,14 +2,17 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.diff.tests.CollectorFolderDiffTest;
 import org.sudu.experiments.editor.worker.TestJobs;
-import org.sudu.experiments.js.JsFunctions;
-import org.sudu.experiments.js.JsHelper;
-import org.sudu.experiments.js.Promise;
+import org.sudu.experiments.encoding.GbkEncoding;
+import org.sudu.experiments.encoding.TextDecoder;
+import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeDirectoryHandle;
+import org.sudu.experiments.js.node.NodeFileHandle;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
+
+import java.util.Arrays;
 
 import static org.sudu.experiments.editor.worker.ArgsCast.array;
 
@@ -23,7 +26,7 @@ interface JsDiffTestApi extends JSObject {
       boolean content, JsFunctions.Runnable onComplete);
 
   void testFileWrite(
-      JSString path, JSString content,
+      JSString path, JSString content, JSString encoding,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   );
@@ -39,6 +42,8 @@ interface JsDiffTestApi extends JSObject {
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   );
+
+  void testGbkEncoder();
 }
 
 public class DiffTestApi implements JsDiffTestApi {
@@ -94,19 +99,16 @@ public class DiffTestApi implements JsDiffTestApi {
 
   @Override
   public void testFileWrite(
-      JSString path, JSString content,
+      JSString path, JSString content, JSString encoding,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   ) {
-    Fs.fs().writeFile(
-        path, content, JSString.valueOf("utf-8"),
-        error -> {
-          if (error == null) {
-            onComplete.f();
-          } else {
-            onError.f(JsHelper.jsToString(error));
-          }
-        }
+    var fh = new NodeFileHandle(path);
+    fh.writeText(
+        JsHelper.directJsToJava(content),
+        encoding.stringValue(),
+        onComplete::f,
+        e -> onError.f(JSString.valueOf(e))
     );
   }
 
@@ -144,5 +146,16 @@ public class DiffTestApi implements JsDiffTestApi {
           }
         }
     );
+  }
+
+  @Override
+  public void testGbkEncoder() {
+    var b = GbkEncoding.allGbkCodes();
+    String s = TextDecoder.decodeGbk(b);
+    System.out.println("s.length() = " + s.length() + ", allGBK = " + b.length / 2);
+    byte[] encode = GbkEncoding.encode(s.toCharArray());
+    String s2 = TextDecoder.decodeGbk(encode);
+    System.out.println("s.equals(s2) = " + s.equals(s2));
+    System.out.println("Arrays.equals(b, encode) = " + Arrays.equals(b, encode));
   }
 }

@@ -883,17 +883,17 @@ public class EditorComponent extends View implements
     Debug.consoleInfo("opening file " + f.getName());
     FileHandle.readTextFile(f,
         (source, encoding) -> {
-          // todo: encoding
-          openFile(source, f.getFullPath());
+          openFile(source, f.getFullPath(), encoding);
           onComplete.run();
         },
         System.err::println
     );
   }
 
-  public void openFile(String source, String name) {
+  public void openFile(String source, String name, String encoding) {
     setCaretLinePos(0, 0, false);
     Model newModel = new Model(source, new Uri(name));
+    newModel.setEncoding(encoding);
     setModel(newModel);
   }
 

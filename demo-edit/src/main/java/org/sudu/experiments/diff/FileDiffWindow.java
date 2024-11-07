@@ -1,8 +1,10 @@
 package org.sudu.experiments.diff;
 
+import org.sudu.experiments.Debug;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.editor.CtrlO;
 import org.sudu.experiments.editor.EditorComponent;
+import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -15,7 +17,6 @@ import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class FileDiffWindow extends ToolWindow0
@@ -77,17 +78,17 @@ public class FileDiffWindow extends ToolWindow0
   }
 
   public void open(FileHandle f, boolean left) {
-    var ed = left ? rootView.editor1 : rootView.editor2;
-    ed.openFile(f, () -> {
-      updateTitle(f, left);
-      if (isMyFocus())
-        fireIfModelReady();
-    });
+    Debug.consoleInfo("opening file " + f.getName());
+    FileHandle.readTextFile(f,
+        (source, encoding) ->
+            open(source, encoding, f.getFullPath(), left),
+        System.err::println
+    );
   }
 
-  public void open(String source, String name, boolean left) {
+  public void open(String source, String encoding, String name, boolean left) {
     var ed = left ? rootView.editor1 : rootView.editor2;
-    ed.openFile(source, name);
+    ed.openFile(source, name, encoding);
     updateTitle(name, left);
     if (isMyFocus())
       fireIfModelReady();
@@ -98,10 +99,6 @@ public class FileDiffWindow extends ToolWindow0
       rootView.sendToDiff(true);
       fireEvent();
     }
-  }
-
-  void updateTitle(FileHandle handle, boolean left) {
-    updateTitle(handle.getFullPath(), left);
   }
 
   void updateTitle(String name, boolean left) {
@@ -183,7 +180,9 @@ public class FileDiffWindow extends ToolWindow0
     return false;
   }
 
-  public void setOnDiffMade(Consumer<String> onLeftDiffMade, Consumer<String> onRightDiffMade) {
+  public void setOnDiffMade(
+      Consumer<Model> onLeftDiffMade, Consumer<Model> onRightDiffMade
+  ) {
     rootView.setOnDiffMade(onLeftDiffMade, onRightDiffMade);
   }
 

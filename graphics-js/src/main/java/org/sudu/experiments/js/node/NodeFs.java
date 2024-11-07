@@ -90,7 +90,7 @@ public interface NodeFs extends JSObject {
   void readFile(JSString name, JSString encoding, ReadCallback callback);
 
   void writeFile(
-      JSString name, JSString content, JSString encoding,
+      JSString name, JSObject content, JSString encoding,
       JsFunctions.Consumer<JSObject> callback);
 
   void copyFile(

@@ -7,12 +7,13 @@ import org.sudu.experiments.Subscribers;
 import org.sudu.experiments.diff.folder.FolderDiffSide;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.EditorWindow;
+import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.esm.JsDialogProvider;
 import org.sudu.experiments.esm.JsExternalFileOpener;
 import org.sudu.experiments.esm.dlg.FsDialogs;
 import org.sudu.experiments.js.JsArray;
-import org.sudu.experiments.js.JsMemoryAccess;
+import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
@@ -33,6 +34,7 @@ import org.sudu.experiments.ui.window.WindowManager;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
+import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
@@ -57,8 +59,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   String searchString = "*";
 
-  private final int MAP_SIZE = 100;
-  private final Consumer<String>[] openFileMap = new Consumer[MAP_SIZE];
+  private final TreeMap<Integer, BiConsumer<String, String>>
+      openFileMap = new TreeMap<>();
+
   private int keyCnt = 0;
 
   final ArrayList<ActiveWindow> windows = new ArrayList<>();
@@ -138,11 +141,13 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   private void openFile(JsArray<JSObject> jsResult) {
     int key = ((Int32Array) jsResult.pop()).get(0);
-    var openFileRun = openFileMap[key];
+    var openFileRun = openFileMap.remove(key);
     if (openFileRun != null && jsResult.getLength() != 0) {
       String source = ((JSString) jsResult.get(0)).stringValue();
-      openFileRun.accept(source);
-      openFileMap[key] = null;
+      String encoding = ((JSString) jsResult.get(1)).stringValue();
+      openFileRun.accept(source, encoding);
+    } else {
+      JsHelper.consoleError("error in openFile, key = ", JSNumber.valueOf(key));
     }
   }
 
@@ -449,9 +454,10 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       var window = new EditorWindow(windowManager, theme, fonts);
       window.onControllerEvent(this::onWindowEvent);
       addWindow(window, new JsEditorViewController0());
-      openFileMap[keyCnt] = (source) -> window.open(source, node.name());
-      sendOpenFile(node, left);
-      Consumer<String> onDiffMade = (src) -> fileDiffMade(node.model(), left, src);
+      openFileMap.put(keyCnt, (source, encoding)
+          -> window.open(source, encoding, node.name()));
+      sendOpenFile(node, left, keyCnt++);
+      Consumer<Model> onDiffMade = (src) -> fileDiffMade(node.model(), left, src);
       window.setDiffMade(onDiffMade);
       window.maximize();
       window.setReadonly(left ? rootView.leftReadonly : rootView.rightReadonly);
@@ -467,16 +473,18 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       var window = new FileDiffWindow(windowManager, theme, fonts);
       window.onEvent = this::onWindowEvent;
       addWindow(window, new JsFileDiffViewController0(window));
-      openFileMap[keyCnt] = (source) -> window.open(source, node.name(), left);
-      sendOpenFile(node, left);
-      openFileMap[keyCnt] = (source) -> window.open(source, opposite.name(), !left);
-      sendOpenFile(opposite, !left);
-      Consumer<String> onLeftDiff = left
-          ? (src) -> fileDiffMade(node.model(), true, src)
-          : (src) -> fileDiffMade(opposite.model(), true, src);
-      Consumer<String> onRightDiff = !left
-          ? (src) -> fileDiffMade(node.model(), false, src)
-          : (src) -> fileDiffMade(opposite.model(), false, src);
+      openFileMap.put(keyCnt, (source, encoding) ->
+          window.open(source, encoding, node.name(), left));
+      sendOpenFile(node, left, keyCnt++);
+      openFileMap.put(keyCnt, (source, encoding) ->
+          window.open(source, encoding, opposite.name(), !left));
+      sendOpenFile(opposite, !left, keyCnt++);
+      Consumer<Model> onLeftDiff = left
+          ? src -> fileDiffMade(node.model(), true, src)
+          : src -> fileDiffMade(opposite.model(), true, src);
+      Consumer<Model> onRightDiff = !left
+          ? src -> fileDiffMade(node.model(), false, src)
+          : src -> fileDiffMade(opposite.model(), false, src);
       window.setOnDiffMade(onLeftDiff, onRightDiff);
       window.rootView.setReadonly(rootView.leftReadonly, rootView.rightReadonly);
       window.window.maximize();
@@ -542,14 +550,13 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     channel.sendMessage(result);
   }
 
-  private void sendOpenFile(RemoteFileNode node, boolean left) {
+  private void sendOpenFile(RemoteFileNode node, boolean left, int key) {
     var result = JsArray.create();
     var path = getFullPath(node, left);
-    result.push(JsMemoryAccess.bufferView(new int[]{keyCnt}));
+    result.push(JsCast.jsInts(key));
     result.push(JSString.valueOf(path));
     result.push(DiffModelChannelUpdater.OPEN_FILE_ARRAY);
     channel.sendMessage(result);
-    keyCnt = (keyCnt + 1) % MAP_SIZE;
   }
 
   private void askApplyDiff(FolderDiffModel model, boolean left) {
@@ -573,12 +580,13 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     channel.sendMessage(result);
   }
 
-  void fileDiffMade(FolderDiffModel model, boolean left, String source) {
-    int[] path = model.getPathFromRoot();
+  void fileDiffMade(FolderDiffModel dModel, boolean left, Model model) {
+    int[] path = dModel.getPathFromRoot();
     var result = JsArray.create();
     result.set(0, JsCast.jsInts(path));
     result.set(1, JsCast.jsInts(left ? 0 : 1));
-    result.set(2, JsCast.jsString(source));
+    result.set(2, JsCast.jsString(model.document.getChars()));
+    result.set(3, JsCast.jsString(model.encoding()));
     result.push(DiffModelChannelUpdater.FILE_SAVE_ARRAY);
     channel.sendMessage(result);
   }

@@ -3,8 +3,8 @@ package org.sudu.experiments.update;
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.LoggingJs;
-import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSObject;
@@ -12,6 +12,7 @@ import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
 public class FileDiffChannelUpdater {
+  static final boolean debug = false;
 
   private FileHandle leftHandle, rightHandle;
   private WorkerJobExecutor executor;
@@ -22,8 +23,6 @@ public class FileDiffChannelUpdater {
   public final static int FILE_SAVE = 1;
   public final static int SEND_DIFF = 2;
   public final static int SEND_INT_DIFF = 3;
-  public final static Int32Array FILE_READ_MESSAGE = JsCast.jsInts(FILE_READ);
-  public final static Int32Array FILE_SAVE_MESSAGE = JsCast.jsInts(FILE_SAVE);
   public final static Int32Array SEND_DIFF_MESSAGE = JsCast.jsInts(SEND_DIFF);
   public final static Int32Array SEND_INT_DIFF_MESSAGE = JsCast.jsInts(SEND_INT_DIFF);
 
@@ -60,15 +59,16 @@ public class FileDiffChannelUpdater {
   }
 
   private void onFileSave(JsArray<JSObject> jsArray) {
-    String source = JsCast.string(jsArray, 0);
-    boolean left = JsCast.ints(jsArray, 1)[0] == 1;
-    // todo: add proper encoding
-    String encoding = FileEncoding.utf8;
+    Object source = JsCast.directJsToJava(jsArray, 0);
+    String encoding = JsCast.string(jsArray, 1);
+    boolean left = JsCast.ints(jsArray, 2)[0] == 1;
     if (left && leftHandle != null) {
+      LoggingJs.debug("writeText: encoding = " + encoding + ", file = " + leftHandle);
       leftHandle.writeText(source, encoding,
           () -> onFileWrite(true, leftHandle.getFullPath()),
           this::onError);
     } else if (!left && rightHandle != null) {
+      LoggingJs.debug("writeText: encoding = " + encoding + ", file = " + rightHandle);
       rightHandle.writeText(source, encoding,
           () -> onFileWrite(false, rightHandle.getFullPath()),
           this::onError);
@@ -101,12 +101,16 @@ public class FileDiffChannelUpdater {
   }
 
   public void sendFileRead(boolean left, JSString source, JSString encoding) {
-    // todo add encoding support
+    if (debug) LoggingJs.debug(JsHelper.concat(
+        "FileDiffChannelUpdater.postOpenFile: left=" + left +
+            " length = " + source.getLength() +
+            ", encoding=", encoding));
     JsArray<JSObject> jsArray = JsArray.create();
     jsArray.set(0, source);
-    jsArray.set(1, JSString.valueOf(name(left)));
-    jsArray.set(2, JsCast.jsInts(left ? 1 : 0));
-    jsArray.push(FILE_READ_MESSAGE);
+    jsArray.set(1, encoding);
+    jsArray.set(2, JSString.valueOf(name(left)));
+    jsArray.set(3, JsCast.jsInts(left ? 1 : 0));
+    jsArray.set(4, JsCast.jsInts(FILE_READ));
     channel.sendMessage(jsArray);
   }
 

@@ -21,7 +21,7 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
   EditorComponent editor;
   Focusable focusSave;
   Consumer<EditorWindow> onControllerEvent;
-  Consumer<String> onDiffMade;
+  Consumer<Model> onDiffMade;
 
   public EditorWindow(
       WindowManager wm,
@@ -84,9 +84,9 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
     editor.openFile(f, () -> updateTitle(f));
   }
 
-  public void open(String source, String name) {
+  public void open(String source, String encoding, String name) {
     editor.context.setFocus(editor);
-    editor.openFile(source, name);
+    editor.openFile(source, name, encoding);
     updateTitle(name);
     System.out.println("open file: name = " + name + ", isMyFocus = " + isMyFocus());
     if (isMyFocus())
@@ -142,7 +142,7 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
     window.maximize();
   }
 
-  public void setDiffMade(Consumer<String> onDiffMade) {
+  public void setDiffMade(Consumer<Model> onDiffMade) {
     this.onDiffMade = onDiffMade;
   }
 
@@ -151,6 +151,7 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
   }
 
   void onDiffMade() {
-    if (onDiffMade != null) onDiffMade.accept(new String(editor.getChars()));
+    if (onDiffMade != null)
+      onDiffMade.accept(editor.model);
   }
 }

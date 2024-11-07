@@ -27,7 +27,7 @@ public interface FileHandle extends FsItem {
   void readAsText(Consumer<String> consumer, Consumer<String> onError);
 
   void writeText(
-      String text, String encoding,
+      Object text, String encoding,
       Runnable onComplete, Consumer<String> onError);
 
   void copyTo(String path, Runnable onComplete, Consumer<String> onError);

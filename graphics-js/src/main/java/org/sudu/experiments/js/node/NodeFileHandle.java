@@ -2,8 +2,11 @@ package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.encoding.FileEncoding;
+import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
+import org.sudu.experiments.js.TextEncoder;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
@@ -135,19 +138,22 @@ public class NodeFileHandle implements FileHandle {
     return fs.openSync(jsPath(), fs.constants().O_RDONLY());
   }
 
-  static JSString nodeEncoding(String encoding) {
-    return FileEncoding.gbk.equals(encoding)
-        ? JSString.valueOf("gbk")
-        : JSString.valueOf("utf-8");
-  }
-
   @Override
   public void writeText(
-      String text, String encoding,
+      Object text, String encoding,
       Runnable onComplete, Consumer<String> onError
   ) {
-    Fs.fs().writeFile(
-        jsPath(), JSString.valueOf(text), nodeEncoding(encoding),
+    boolean gbk = FileEncoding.gbk.equals(encoding);
+    JSObject jsText = JsHelper.directJavaToJs(text);
+    if (text instanceof char[] chars) {
+      jsText = JsMemoryAccess.bufferView(chars);
+    } else if (JSString.isInstance(jsText)) {
+      if (gbk) {
+        jsText = JsMemoryAccess.bufferView(
+            GbkEncoding.encode(TextEncoder.toCharArray(jsText.cast())));
+      }
+    }
+    Fs.fs().writeFile(jsPath(), jsText, JSString.valueOf("utf-8"),
         NodeFs.callback(onComplete, onError)
     );
   }
