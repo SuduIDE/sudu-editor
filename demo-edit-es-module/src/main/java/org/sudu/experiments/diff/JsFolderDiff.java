@@ -103,6 +103,9 @@ public class JsFolderDiff implements JsIFolderDiffView {
   @Override
   public void setExternalDialogProvider(JsDialogProvider opener) {}
 
+  @Override
+  public void setExternalStatusBar(JsExternalStatusBar esb) {}
+
   public static Promise<JsIFolderDiffView> newDiff(EditArgs arguments) {
     return JsLauncher.start(
         arguments,

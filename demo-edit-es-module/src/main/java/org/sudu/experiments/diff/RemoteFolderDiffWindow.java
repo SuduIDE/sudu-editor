@@ -11,6 +11,7 @@ import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.esm.JsDialogProvider;
 import org.sudu.experiments.esm.JsExternalFileOpener;
+import org.sudu.experiments.esm.JsExternalStatusBar;
 import org.sudu.experiments.esm.dlg.FsDialogs;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
@@ -73,6 +74,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   JsExternalFileOpener opener;
   JsDialogProvider dialogProvider;
+  JsExternalStatusBar statusBar;
 
   private int[] lastFilters = null;
   private RemoteFolderDiffModel lastSelected;
