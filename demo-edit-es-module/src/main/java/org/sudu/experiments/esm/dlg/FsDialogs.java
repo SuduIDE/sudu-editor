@@ -18,16 +18,15 @@ public class FsDialogs {
     var bCancel = JsNative.createButton("Cancel", false);
 
     int diffType = remoteModel.getDiffType();
-    boolean isDelete = (left && diffType == DiffTypes.INSERTED) || (!left && diffType == DiffTypes.DELETED);
+    boolean isDelete = left ? diffType == DiffTypes.INSERTED
+        : diffType == DiffTypes.DELETED;
 
     String modelType = remoteModel.isFile() ? "File " : "Folder ";
-    String title = "Confirm " +
-        modelType.toLowerCase() +
-        (isDelete ? "delete " : "copy ") +
-        "operation";
+    String title = (isDelete ? "Delete " : "Copy ") + modelType;
+
     String text = isDelete
         ? modelType + from
-        : "From " + modelType.toLowerCase() + from + " to " + to;
+        : "From\n" + from + "\n\nTo\n" + to;
 
     var i = JsNative.createInput(
         title, text,
