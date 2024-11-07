@@ -1,7 +1,7 @@
 // java reflection of this file is located at
 // demo-edit-es-module/src/main/java/org/sudu/experiments/EditJsApi.java
 
-import { Channel, IDisposable } from "./common";
+import {Channel, IDisposable} from "./common";
 
 export {
   Channel, Message, setLogLevel, setLogOutput, newRemoteChannelTest, LogLevel, ChannelTestApi, IDisposable
@@ -58,8 +58,11 @@ export interface IModelChangedEvent {
 export interface ITextModel extends IDisposable {
   language?: string
   uri?: Uri
+
   getOffsetAt(position: IPosition): number
+
   getPositionAt(offset: number): IPosition
+
   getText(): string
 }
 
@@ -244,18 +247,26 @@ export type DialogResult = {
   options: DialogOption[]
 }
 
+export interface ExternalStatusBar {
+  setMessage(text: string | null): void
+}
+
 export interface ExternalDialogProvider {
   showModalDialog(input: DialogInput): Promise<DialogResult | null>
 }
 
 export interface View {
   disconnectFromDom(): void
+
   reconnectToDom(containerId?: string): void
 
   getController(): ViewController;
+
   onControllerUpdate: IEvent<ViewController>
 
   setExternalDialogProvider(opener: ExternalDialogProvider | null): void
+
+  setExternalStatusBar(statusBar: ExternalStatusBar): void
 }
 
 export interface TwoPanelDiff {
@@ -274,7 +285,9 @@ export interface IEditorView extends View, HasTheme, Focusable {
   getModel(): ITextModel
 
   registerDefinitionProvider(languageSelector: LanguageSelector, provider: IDefinitionProvider): IDisposable
+
   registerDeclarationProvider(languageSelector: LanguageSelector, provider: IDeclarationProvider): IDisposable
+
   registerReferenceProvider(languageSelector: LanguageSelector, provider: IReferenceProvider): IDisposable
 
   registerDocumentHighlightProvider(languageSelector: LanguageSelector, provider: IDocumentHighlightProvider): IDisposable
@@ -288,6 +301,7 @@ export interface IEditorView extends View, HasTheme, Focusable {
   revealPosition(position: IPosition): void
 
   getController(): EditorViewController;
+
   onControllerUpdate: IEvent<EditorViewController>
 }
 
@@ -305,6 +319,7 @@ export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
   getRightModel(): ITextModel
 
   getController(): FileDiffViewController;
+
   onControllerUpdate: IEvent<FileDiffViewController>
 }
 
@@ -316,9 +331,11 @@ export interface FileDiffView extends IFileDiffView, IDisposable {
 
 export interface IFolderDiffView extends View, HasTheme, TwoPanelDiff, Focusable {
   isReady(): boolean
+
   onReadyChanged: IEvent<boolean>
 
   getController(): FolderDiffViewController | FileDiffViewController | EditorViewController;
+
   onControllerUpdate: IEvent<FolderDiffViewController | FileDiffViewController | EditorViewController>
 }
 
@@ -341,12 +358,15 @@ export interface FileDiffSelection {
 
 export interface ViewController {
   getViewType(): 'folderDiff' | 'fileDiff' | 'editor'
+
   getSelection(): FolderDiffSelection | FileDiffSelection | undefined
 
   canNavigateUp(): boolean
+
   navigateUp(): void
 
   canNavigateDown(): boolean
+
   navigateDown(): void
 
   refresh(): void
@@ -358,41 +378,50 @@ export const enum DiffType {
 
 export interface FolderDiffViewController extends ViewController {
   getViewType(): 'folderDiff'
+
   getSelection(): FolderDiffSelection | undefined
 
   getDiffFilter(): DiffType[]
+
   applyDiffFilter(filters: DiffType[]): void
 }
 
 export interface FileDiffViewController extends ViewController {
   getViewType(): 'fileDiff'
+
   getSelection(): FileDiffSelection | undefined
 }
 
 export interface EditorViewController extends ViewController {
   getViewType(): 'editor'
+
   getSelection(): undefined
 }
 
 export interface ExternalFileOpener {
   // All paths are absolute
   openFileDiff(leftPath: string, rightPath: string): void
+
   openEditor(path: string): void
 }
 
 export interface RemoteFolderDiffView extends IFolderDiffView, IDisposable {
   getState(): any
+
   applyState(state: any): void
+
   setExternalFileOpener(opener: ExternalFileOpener | null): void
 }
 
 export interface RemoteFileDiffView extends IFileDiffView, IDisposable {
   getState(): any
+
   applyState(state: any): void
 }
 
 export interface RemoteEditorView extends IEditorView, IDisposable {
   getState(): any
+
   applyState(state: any): void
 }
 
