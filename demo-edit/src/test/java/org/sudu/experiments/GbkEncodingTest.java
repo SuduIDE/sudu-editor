@@ -9,8 +9,6 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.IntStream;
 
-import static org.sudu.experiments.EncodingFilesTest.hexDigit;
-
 public class GbkEncodingTest {
 
   public static void main(String[] args) {
@@ -60,7 +58,8 @@ public class GbkEncodingTest {
     System.out.println("m = " + m);
   }
 
-  static void testAllGbkCodes(byte[] all) {
+  static void testAllGbkCodes() {
+    var all = GbkEncoding.allGbkCodes();
     if (all.length != 126*190*2)
       throw new IllegalArgumentException("all.length != 126*190*2");
     boolean isGBK = FileEncoding.isGBK(all);
@@ -83,53 +82,9 @@ public class GbkEncodingTest {
   }
 
   static void testAllGbkAtOnce() {
-    var b = GbkEncoding.allGbkCodes();
-    testAllGbkCodes(b);
-    String s = new String(b, gbk);
-    System.out.println("s.l = " + s.length());
-    System.out.println("126*190 = " + 126 * 190);
-    System.out.println("s.toCharArray().length = " + s.toCharArray().length);
-
-    Map<Character, Character> map = new TreeMap<>();
-    if (s.length() * 2 == b.length) {
-      for (int i = 0; i + i < b.length; i++) {
-        int b0 = b[i + i] & 0xFF, b1 = b[i + i + 1] & 0xFF;
-        char bytes = (char) (b1 * 256 + b0);
-        char ch = s.charAt(i);
-        int cp = s.codePointAt(i);
-        if (ch != cp) {
-          System.out.println("ch != cp = " + cp);
-        }
-        if (Character.isHighSurrogate(ch)) {
-          System.out.println("isHighSurrogate " + Integer.toHexString(ch));
-        }
-        Character key = ch;
-        if (map.containsKey(key)) {
-          System.out.println("map.containsKey key = " + Integer.toHexString(ch));
-        } else {
-          map.put(key, bytes);
-        }
-        if (ch < 128) {
-          System.out.println("ch = " + ch + ", key = " + key);
-        }
-      }
-      System.out.println("map.size() = " + map.size());
-      var iterator = map.entrySet().iterator();
-      if (iterator.hasNext()) {
-        var next = iterator.next();
-        System.out.println("first: key = "
-            + Integer.toHexString(next.getKey()) + ", value = "
-            + Integer.toHexString(next.getValue()));
-
-        while (iterator.hasNext()) {
-          next = iterator.next();
-        }
-
-        System.out.println("last: key = "
-            + Integer.toHexString(next.getKey()) + ", value = "
-            + Integer.toHexString(next.getValue()));
-      }
-    }
+    System.out.println("testAllGbkAtOnce: 126*190 = " + 126 * 190);
+    testAllGbkCodes();
+    GbkEncoding.dump();
   }
 
   static void testPair(byte[] b2) {
@@ -143,13 +98,9 @@ public class GbkEncodingTest {
       int[] array = codePoints.toArray();
       String x = "codepoints " + Arrays.toString(array) +
           ", chars = " + EncodingFilesTest.toHexString(chars) +
-          ", bytes: " + toHexString(b2[0]) + ' ' + toHexString(b2[1]);
+          ", bytes: " + EncodingFilesTest.toHexString(b2[0]) +
+          ' ' + EncodingFilesTest.toHexString(b2[1]);
       System.out.println(x);
     }
-  }
-
-  static String toHexString(byte aByte) {
-    char[] value = {hexDigit((aByte >> 4) & 0xF), hexDigit(aByte & 0xF)};
-    return new String(value);
   }
 }

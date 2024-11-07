@@ -12,8 +12,6 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
 
-import java.util.Arrays;
-
 import static org.sudu.experiments.editor.worker.ArgsCast.array;
 
 interface JsDiffTestApi extends JSObject {
@@ -150,12 +148,22 @@ public class DiffTestApi implements JsDiffTestApi {
 
   @Override
   public void testGbkEncoder() {
-    var b = GbkEncoding.allGbkCodes();
-    String s = TextDecoder.decodeGbk(b);
-    System.out.println("s.length() = " + s.length() + ", allGBK = " + b.length / 2);
-    byte[] encode = GbkEncoding.encode(s.toCharArray());
-    String s2 = TextDecoder.decodeGbk(encode);
-    System.out.println("s.equals(s2) = " + s.equals(s2));
-    System.out.println("Arrays.equals(b, encode) = " + Arrays.equals(b, encode));
+    testAllGbk();
+    testGlyph((byte) 0xA1, (byte) 0xA1);
+  }
+
+  static void testAllGbk() {
+    System.out.println("DiffTestApi.testAllGbk");
+    GbkEncoding.dump();
+  }
+
+  static void testGlyph(byte ... glyph) {
+    System.out.println("testGlyph: " + Integer.toHexString(glyph[0] & 0xFF) +
+        " " + Integer.toHexString(glyph[1] & 0xFF) );
+    String string = TextDecoder.decodeGbk(glyph);
+    System.out.println("  string.charAt(0) = " + Integer.toHexString(string.charAt(0)));
+    byte[] bA1A1en = GbkEncoding.encode(string);
+    System.out.println("  Encoded: " + Integer.toHexString(bA1A1en[0] & 0xFF) +
+        " " + Integer.toHexString(bA1A1en[1] & 0xFF) );
   }
 }

@@ -1,6 +1,7 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.encoding.FileEncoding;
+import org.sudu.experiments.encoding.GbkEncoding;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -14,9 +15,7 @@ public class EncodingFilesTest {
     ideaBug();
 
     if (args.length == 0) {
-      testNormalFiles();
-      testGbkGlyph("cac7.txt");
-      testGbkGlyph("d55d.txt");
+      testDefault();
     } else {
       for (String arg : args) {
         System.out.println("file: " + arg);
@@ -26,11 +25,12 @@ public class EncodingFilesTest {
     }
   }
 
-  private static void testNormalFiles() {
+  private static void testDefault() {
     testFile("gb2312.txt");
     testFile("gbk.txt");
     testFile("UTF-8-demo.html");
     testUtfOffset("UTF-8-demo.html");
+    testGbkGlyph("gbk.a1a1.txt");
   }
 
   private static void ideaBug() {
@@ -59,8 +59,15 @@ public class EncodingFilesTest {
 
   static void testGbkGlyph(String filename) {
     System.out.println("testGbkGlyph: filename = " + filename);
-    byte[] s = ReadResource.readFileBytes(filename, EncodingFilesTest.class);
+    testGbkGlyph(ReadResource.readFileBytes(filename, EncodingFilesTest.class));
+  }
+
+  static void testGbkGlyph(byte[] s) {
     if (testBytes(s)) {
+      StringBuilder sb = new StringBuilder("bytes: ");
+      for (byte b : s)
+        sb.append(toHexString(b)).append(' ');
+      System.out.println(sb);
       String gbkStr = new String(s, gbk);
       if (gbkStr.length() > 0 && isEol(gbkStr.charAt(gbkStr.length() - 1)))
         gbkStr = gbkStr.substring(0, gbkStr.length() - 1);
@@ -68,6 +75,9 @@ public class EncodingFilesTest {
       System.out.println("gbkStr.length() = " + gbkStr.length());
       System.out.println("gbkStr.toCharArray() = " +
           toHexString(gbkStr.toCharArray()));
+      char gbkCode = GbkEncoding.charToGbk[gbkStr.charAt(0)];
+      System.out.println("charToGbk[" + Integer.toHexString(gbkStr.charAt(0)) +
+          "] = " + Integer.toHexString(gbkCode));
     }
   }
 
@@ -114,5 +124,10 @@ public class EncodingFilesTest {
         System.out.println("  test failed i = " + i);
       }
     }
+  }
+
+  static String toHexString(byte aByte) {
+    char[] value = {hexDigit((aByte >> 4) & 0xF), hexDigit(aByte & 0xF)};
+    return new String(value);
   }
 }
