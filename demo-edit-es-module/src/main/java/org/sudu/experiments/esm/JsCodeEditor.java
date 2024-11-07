@@ -348,4 +348,7 @@ public class JsCodeEditor implements JsEditorView {
 
   @Override
   public void setExternalDialogProvider(JsDialogProvider opener) {}
+
+  @Override
+  public void setExternalStatusBar(JsExternalStatusBar esb) {}
 }
