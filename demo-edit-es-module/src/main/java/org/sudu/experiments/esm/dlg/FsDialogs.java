@@ -20,7 +20,7 @@ public class FsDialogs {
     int diffType = remoteModel.getDiffType();
     boolean isDelete = (left && diffType == DiffTypes.INSERTED) || (!left && diffType == DiffTypes.DELETED);
 
-    String modelType = (remoteModel.isFile() ? "File " : "Folder ");
+    String modelType = remoteModel.isFile() ? "File " : "Folder ";
     String title = "Confirm " +
         modelType.toLowerCase() +
         (isDelete ? "delete " : "copy ") +
