@@ -2,8 +2,6 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.diff.tests.CollectorFolderDiffTest;
 import org.sudu.experiments.editor.worker.TestJobs;
-import org.sudu.experiments.encoding.GbkEncoding;
-import org.sudu.experiments.encoding.TextDecoder;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeDirectoryHandle;
@@ -148,22 +146,9 @@ public class DiffTestApi implements JsDiffTestApi {
 
   @Override
   public void testGbkEncoder() {
-    testAllGbk();
-    testGlyph((byte) 0xA1, (byte) 0xA1);
-  }
-
-  static void testAllGbk() {
     System.out.println("DiffTestApi.testAllGbk");
-    GbkEncoding.dump();
+    GbkEncodingTestHelper.dump();
+    GbkEncodingTestHelper.testGlyph((byte) 0xA1, (byte) 0xA1);
   }
 
-  static void testGlyph(byte ... glyph) {
-    System.out.println("testGlyph: " + Integer.toHexString(glyph[0] & 0xFF) +
-        " " + Integer.toHexString(glyph[1] & 0xFF) );
-    String string = TextDecoder.decodeGbk(glyph);
-    System.out.println("  string.charAt(0) = " + Integer.toHexString(string.charAt(0)));
-    byte[] bA1A1en = GbkEncoding.encode(string);
-    System.out.println("  Encoded: " + Integer.toHexString(bA1A1en[0] & 0xFF) +
-        " " + Integer.toHexString(bA1A1en[1] & 0xFF) );
-  }
 }

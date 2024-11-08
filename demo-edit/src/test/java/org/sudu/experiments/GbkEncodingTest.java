@@ -84,7 +84,8 @@ public class GbkEncodingTest {
   static void testAllGbkAtOnce() {
     System.out.println("testAllGbkAtOnce: 126*190 = " + 126 * 190);
     testAllGbkCodes();
-    GbkEncoding.dump();
+    GbkEncodingTestHelper.dump();
+    GbkEncodingTestHelper.testGlyph((byte) 0xA1, (byte) 0xA1);
   }
 
   static void testPair(byte[] b2) {
