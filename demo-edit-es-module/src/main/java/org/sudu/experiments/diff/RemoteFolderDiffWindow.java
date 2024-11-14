@@ -110,6 +110,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     rootView.right.setOnSelectedLineChanged(this::rightSelectedChanged);
 
     controller = new JsFolderDiffController0(this);
+    LoggingJs.info("RemoteFolderDiffWindow created");
   }
 
   @Override
@@ -123,6 +124,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   protected void dispose() {
+    LoggingJs.info("RemoteFolderDiffWindow.dispose");
     window = null;
     rootView = null;
     leftRoot = rightRoot = null;
@@ -156,6 +158,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     rootModel.update(msg.root);
     if (isFiltered()) updateNodes(leftRoot, rightRoot, rootModel);
     if (!updatedRoots) {
+      LoggingJs.info("Init RemoteFolderDiff roots: " + rootModel.recToString());
       updatedRoots = true;
       leftRoot.setLine(replaceSlashes(msg.leftRootName));
       rightRoot.setLine(replaceSlashes(msg.rightRootName));
@@ -319,7 +322,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       case DiffModelChannelUpdater.APPLY_FILTERS -> onFiltersApplied(jsResult);
     }
     LoggingJs.trace(
-        "Got message in " + Numbers.iRnd(Performance.now() - startTime) + "ms"
+        "Got message " + array.get(0) + " in " + Numbers.iRnd(Performance.now() - startTime) + "ms"
     );
   }
 
@@ -335,8 +338,16 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
       @Override
       public void openDir(RemoteDirectoryNode node) {
+        LoggingJs.trace("Expanding dir " + node.name());
         var model = node.model();
-        if (model.children == null) return;
+        if (model == null) {
+          LoggingJs.trace("dir " + node.name() + "haven't model");
+          return;
+        }
+        if (model.children == null) {
+          LoggingJs.trace("model " + node.name() + "haven't children");
+          return;
+        }
 
         int foldersLen = 0;
 

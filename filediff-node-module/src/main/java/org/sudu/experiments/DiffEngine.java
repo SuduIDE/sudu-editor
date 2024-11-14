@@ -25,7 +25,7 @@ public class DiffEngine implements DiffEngineJs {
 
   @Override
   public JsFolderDiffSession startFolderDiff(JSString leftPath, JSString rightPath, Channel channel) {
-    JsHelper.consoleInfo("Starting folder diff ");
+    LoggingJs.info("Starting folder diff");
     boolean scanFileContent = true;
 
     if (notDir(leftPath))
@@ -33,8 +33,8 @@ public class DiffEngine implements DiffEngineJs {
     if (notDir(rightPath))
       throw new IllegalArgumentException("Right path " + rightPath.stringValue() + " should be directory");
 
-    JsHelper.consoleInfo("DiffEngine LeftPath: ", leftPath);
-    JsHelper.consoleInfo("DiffEngine RightPath: ", rightPath);
+    LoggingJs.info(JsHelper.concat("  DiffEngine LeftPath: ", leftPath));
+    LoggingJs.info(JsHelper.concat("  DiffEngine RightPath: ", rightPath));
 
     DirectoryHandle leftHandle = new NodeDirectoryHandle(leftPath);
     DirectoryHandle rightHandle = new NodeDirectoryHandle(rightPath);

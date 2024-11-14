@@ -37,6 +37,7 @@ public class DiffModelChannelUpdater {
       boolean scanFileContent,
       NodeWorkersPool executor, Channel channel
   ) {
+    LoggingJs.info("DiffModelChannelUpdater created");
     this.collector = new RemoteCollector(
         root,
         scanFileContent,
