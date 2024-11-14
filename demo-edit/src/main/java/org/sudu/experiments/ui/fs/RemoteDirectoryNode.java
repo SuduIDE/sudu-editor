@@ -19,9 +19,13 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
   }
 
   public void onClick() {
-    if (isOpened()) closeDir();
-    else openDir();
-    handle.sendModel();
+    if (isOpened()) {
+      closeDir();
+      handle.sendModel(this, true);
+    } else {
+      openDir();
+      handle.sendModel(this, false);
+    }
     handle.updateView();
   }
 

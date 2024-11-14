@@ -2,10 +2,9 @@ package org.sudu.experiments.protocol;
 
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
+import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class FrontendTreeNode {
 
@@ -21,6 +20,30 @@ public class FrontendTreeNode {
     if (ind == path.length) return this;
     if (children == null || path[ind] >= children.length) return null;
     return children[path[ind]].findNode(path, ind + 1);
+  }
+
+  public FrontendTreeNode findNode(Deque<String> path) {
+    if (path.isEmpty()) return this;
+    String name = path.removeFirst();
+    var child = child(name, false);
+    if (child == null) return null;
+    return child.findNode(path);
+  }
+
+  // model can contain only less or equal elements
+  public void updateWithModel(RemoteFolderDiffModel model) {
+    if (children == null) return;
+    if (children.length != model.children.length) {
+      FrontendTreeNode[] newChildren = new FrontendTreeNode[model.children.length];
+      for (int i = 0, j = 0; i < model.children.length; j++) {
+        var modelChild = model.child(i);
+        var nodeChild = children[j];
+        if (modelChild.isFile() == nodeChild.isFile &&
+            modelChild.path.equals(nodeChild.name)
+        ) newChildren[i++] = nodeChild;
+      }
+      this.children = newChildren;
+    }
   }
 
   public void collectPath(int[] path, ArrayWriter pathWriter, FolderDiffModel model, int side) {
@@ -61,6 +84,10 @@ public class FrontendTreeNode {
       if (child.name.equals(path) && child.isFile == isFile) return child;
     }
     return null;
+  }
+
+  public boolean isOpened() {
+    return children != null;
   }
 
   @Override
