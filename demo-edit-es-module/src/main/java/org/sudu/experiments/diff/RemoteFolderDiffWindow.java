@@ -177,6 +177,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private void onDiffApplied(JsArray<JSObject> jsResult) {
+    LoggingJs.info("RemoteFolderDiffWindow.onDiffApplied");
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
     updateNodes(leftRoot, rightRoot, rootModel);
@@ -589,6 +590,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     result.set(1, JsCast.jsInts(left ? 0 : 1));
     result.push(DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
     channel.sendMessage(result);
+    LoggingJs.info("RemoteFolderDiffWindow.sendApplyDiff");
   }
 
   void fileDiffMade(FolderDiffModel dModel, boolean left, Model model) {

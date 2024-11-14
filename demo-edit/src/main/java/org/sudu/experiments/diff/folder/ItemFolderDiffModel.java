@@ -29,7 +29,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   public ItemFolderDiffModel findNeedUpdate(Deque<ItemFolderDiffModel> paths) {
     if (parent == null) return this;
     int diffType = getDiffType();
-    if ((diffType == DiffTypes.DEFAULT || diffType == DiffTypes.EDITED) && countItems() < 2) {
+    if (this.isFile() || (diffType == DiffTypes.DEFAULT || diffType == DiffTypes.EDITED) && countItems() < 2) {
       paths.addFirst(this);
       return parent().findNeedUpdate(paths);
     }
@@ -37,11 +37,15 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   }
 
   public void setItems(FsItem left, FsItem right) {
+    if (!path.equals(left.getName()) || !path.equals(right.getName()))
+      System.out.println("Set items: " + left.getName() + " & " + right.getName() + " to " + path);
     items[0] = left;
     items[1] = right;
   }
 
   public void setItem(FsItem item) {
+    if (!path.equals(item.getName()))
+      System.out.println("Set item: " + item.getName() + " to " + path);
     if (isLeftOnly()) items[0] = item;
     else if (isRightOnly()) items[1] = item;
   }
