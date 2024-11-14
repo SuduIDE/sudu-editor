@@ -151,6 +151,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
       Deque<ItemFolderDiffModel> paths
   ) {
     if (isFile()) return;
+    if (items.isEmpty()) return;
     int len = reader.next();
     var item = items.removeFirst();
     if (len == -1) {
