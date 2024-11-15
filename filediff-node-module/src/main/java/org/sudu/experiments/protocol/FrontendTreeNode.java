@@ -25,7 +25,7 @@ public class FrontendTreeNode {
   public FrontendTreeNode findNode(Deque<String> path) {
     if (path.isEmpty()) return this;
     String name = path.removeFirst();
-    var child = child(name, false);
+    var child = child(-1, name, false);
     if (child == null) return null;
     return child.findNode(path);
   }
@@ -42,8 +42,9 @@ public class FrontendTreeNode {
             modelChild.path.equals(nodeChild.name)
         ) newChildren[i++] = nodeChild;
       }
-      this.children = newChildren;
+      children = newChildren;
     }
+    for (int i = 0; i < children.length; i++) children[i].updateWithModel(model.child(i));
   }
 
   public void collectPath(int[] path, ArrayWriter pathWriter, FolderDiffModel model, int side) {
@@ -79,7 +80,11 @@ public class FrontendTreeNode {
     this.children = newChildren;
   }
 
-  public FrontendTreeNode child(String path, boolean isFile) {
+  public FrontendTreeNode child(int i, String path, boolean isFile) {
+    if (0 < i && i < children.length) {
+      var child = children[i];
+      if (child.name.equals(path) && child.isFile == isFile) return child;
+    }
     for (var child: children) {
       if (child.name.equals(path) && child.isFile == isFile) return child;
     }

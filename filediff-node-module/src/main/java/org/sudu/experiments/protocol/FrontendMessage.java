@@ -21,15 +21,7 @@ public class FrontendMessage {
   public FrontendTreeNode openedFolders;
   public String searchQuery;
 
-  public static final FrontendMessage EMPTY;
-
-  static {
-    EMPTY = new FrontendMessage();
-    EMPTY.openedFolders = new FrontendTreeNode();
-    EMPTY.openedFolders.name = "";
-    EMPTY.openedFolders.isFile = false;
-    EMPTY.searchQuery = "";
-  }
+  public static final FrontendMessage EMPTY = empty();
 
   public FrontendTreeNode findNode(int[] path) {
     return openedFolders.findNode(path);
@@ -135,7 +127,10 @@ public class FrontendMessage {
     writer.write(pathInd);
     writer.write(node.isFile ? 1 : 0);
     if (node.children == null) writer.write(-1);
-    else for (var child: node.children) serialize(child, writer, paths);
+    else {
+      writer.write(node.children.length);
+      for (var child: node.children) serialize(child, writer, paths);
+    }
   }
 
   public static FrontendMessage deserialize(JsArray<JSObject> jsArray) {
@@ -166,6 +161,15 @@ public class FrontendMessage {
         node.children[i] = deserialize(reader, paths);
     }
     return node;
+  }
+
+  public static FrontendMessage empty() {
+    var empty = new FrontendMessage();
+    empty.openedFolders = new FrontendTreeNode();
+    empty.openedFolders.name = "";
+    empty.openedFolders.isFile = false;
+    empty.searchQuery = "";
+    return empty;
   }
 
   @Override

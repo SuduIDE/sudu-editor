@@ -13,8 +13,7 @@ public interface RemoteModelWriter {
       RemoteFolderDiffModel model,
       List<String> pathList,
       FrontendTreeNode frontendNode,
-      ArrayWriter writer,
-      boolean filtered
+      ArrayWriter writer
   ) {
     writer.write(model.flags);
     writer.write(model.childrenComparedCnt);
@@ -30,13 +29,10 @@ public interface RemoteModelWriter {
         writeInts((RemoteFolderDiffModel) child, pathList, DEPTH, writer);
     } else {
       writer.write(model.children.length);
-      boolean wrongLengths = model.children.length != frontendNode.children.length;
       for (int i = 0; i < model.children.length; i++) {
         RemoteFolderDiffModel childModel = model.child(i);
-        FrontendTreeNode childNode = filtered || wrongLengths
-            ? frontendNode.child(childModel.path, childModel.isFile())
-            : frontendNode.children[i];
-        writeInts(childModel, pathList, childNode, writer, filtered);
+        FrontendTreeNode childNode = frontendNode.child(i, childModel.path, childModel.isFile());
+        writeInts(childModel, pathList, childNode, writer);
       }
     }
   }

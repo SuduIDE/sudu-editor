@@ -78,8 +78,11 @@ public class RemoteCollector {
   }
 
   public void refresh() {
+    LoggingJs.info("RemoteCollector.Refresh");
+    var items = root.items;
+    root = new ItemFolderDiffModel(null, "");
+    root.setItems(items[0], items[1]);
     sendToWorkerQueue.clear();
-    LoggingJs.info("Refresh");
     beginCompare();
   }
 

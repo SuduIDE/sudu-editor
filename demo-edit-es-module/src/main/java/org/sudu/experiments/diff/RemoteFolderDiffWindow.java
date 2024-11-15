@@ -51,7 +51,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   protected Channel channel;
   private final double startTime;
 
-  private boolean updatedRoots = false;
+  private boolean updatedRoots = false, refreshed = false;
   boolean finished = false;
 
   String searchString = "*";
@@ -74,7 +74,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private int[] lastFilters = null;
   private RemoteFolderDiffModel lastSelected;
   private boolean isLastLeftFocused = false;
-  private FrontendMessage lastSendFrontendMsg;
+  private FrontendMessage lastSendFrontendMsg = FrontendMessage.empty();
 
   public RemoteFolderDiffWindow(
       EditorColorScheme theme,
@@ -152,14 +152,18 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private void update(JsArray<JSObject> jsResult) {
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
-    if (isFiltered()) updateNodes(leftRoot, rightRoot, rootModel, lastSendFrontendMsg.openedFolders);
+    if (isFiltered() || refreshed) {
+      if (refreshed) lastSendFrontendMsg.openedFolders.updateWithModel(rootModel);
+      updateNodes(leftRoot, rightRoot, rootModel, lastSendFrontendMsg.openedFolders);
+      refreshed = false;
+    }
     if (!updatedRoots) {
       updatedRoots = true;
       leftRoot.setLine(replaceSlashes(msg.leftRootName));
       rightRoot.setLine(replaceSlashes(msg.rightRootName));
       window.setTitle(msg.leftRootName + " <-> " + msg.rightRootName);
-      leftRoot.doOpen();
-      rightRoot.doOpen();
+      if (!leftRoot.isOpened()) leftRoot.doOpen();
+      if (!rightRoot.isOpened()) rightRoot.doOpen();
       sendFrontendModel();
     }
     window.context.window.repaint();
@@ -174,7 +178,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private void onDiffApplied(JsArray<JSObject> jsResult) {
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
-    lastSendFrontendMsg.openedFolders.updateWithModel(rootModel);
+    if (!isFiltered()) lastSendFrontendMsg.openedFolders.updateWithModel(rootModel);
     updateNodes(leftRoot, rightRoot, rootModel, lastSendFrontendMsg.openedFolders);
     updateDiffInfo();
   }
@@ -211,9 +215,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     int lp = 0, rp = 0;
     for (int i = 0; i < model.children.length; i++) {
       var child = model.child(i);
-      var childNode = isFiltered()
-          ? treeNode.child(child.path, child.isFile())
-          : treeNode.children[i];
+      var childNode = treeNode.child(i, child.path, child.isFile());
       if (child.isBoth()) {
         var leftChild = left.child(lp++);
         var rightChild = right.child(rp++);
@@ -240,27 +242,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
     for (int i = 0; i < model.children.length; i++) {
       var child = model.child(i);
-      var childNode = isFiltered()
-          ? treeNode.child(child.path, child.isFile())
-          : treeNode.children[i];
+      var childNode = treeNode.child(i, child.path, child.isFile());
       updateNode(node, child, childNode);
     }
-  }
-
-  private static RemoteFileTreeNode findUpdateNode(
-      RemoteDirectoryNode node,
-      String path,
-      boolean isFolder,
-      boolean isOpened
-  ) {
-    var leftNode = node.findSubItem(path, isFolder);
-    var updNode =  leftNode != null
-        ? leftNode
-        : isFolder
-        ? new RemoteDirectoryNode(path, null, node.depth + 1)
-        : new RemoteFileNode(path, null, node.depth + 1);
-    if (isOpened && isFolder) updNode.open();
-    return updNode;
   }
 
   protected void updateDiffInfo() {
@@ -412,33 +396,24 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       }
 
       private void openFrontendNode(RemoteFolderDiffModel model) {
-        if (lastSendFrontendMsg != null) {
-          var path = collectDequePath(model);
-          var node = lastSendFrontendMsg.find(path);
-          System.out.println(node);
-          if (node == null || node.children != null) return;
-          if (model.children == null) {
-            System.out.println("RemoteFolderDiffWindow.openFrontendNode: Node " + model.path + " has no children");
-            return;
-          }
-          node.children = new FrontendTreeNode[model.children.length];
-          for (int i = 0; i < model.children.length; i++) {
-            var child = model.child(i);
-            node.children[i] = new FrontendTreeNode();
-            node.children[i].name = child.path;
-            node.children[i].isFile = child.isFile();
-          }
-        } else System.out.println("lastFrontendMsg is null");
+        var path = collectDequePath(model);
+        var node = lastSendFrontendMsg.find(path);
+        if (node == null || node.children != null) return;
+        if (model.children == null) return;
+        node.children = new FrontendTreeNode[model.children.length];
+        for (int i = 0; i < model.children.length; i++) {
+          var child = model.child(i);
+          node.children[i] = new FrontendTreeNode();
+          node.children[i].name = child.path;
+          node.children[i].isFile = child.isFile();
+        }
       }
 
       private void closeFrontendNode(RemoteFolderDiffModel model) {
-        if (lastSendFrontendMsg != null) {
-          var path = collectDequePath(model);
-          var node = lastSendFrontendMsg.find(path);
-          System.out.println(node);
-          if (node == null) return;
-          node.children = null;
-        } else System.out.println("lastFrontendMsg is null");
+        var path = collectDequePath(model);
+        var node = lastSendFrontendMsg.find(path);
+        if (node == null) return;
+        node.children = null;
       }
     };
   }
@@ -537,7 +512,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private void sendFrontendModel() {
-    if (!isFiltered()) lastSendFrontendMsg = FrontendMessage.mkFrontendMessage(leftRoot, rightRoot, rootModel, searchString);
+    if (!isFiltered())
+      lastSendFrontendMsg = FrontendMessage.mkFrontendMessage(leftRoot, rightRoot, rootModel, searchString);
     var result = FrontendMessage.serialize(lastSendFrontendMsg);
     result.push(DiffModelChannelUpdater.FRONTEND_MESSAGE_ARRAY);
     channel.sendMessage(result);
@@ -748,7 +724,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   public void refresh() {
+    System.out.println("RemoteFolderDiffWindow.refresh");
     updatedRoots = false;
+    refreshed = true;
     var result = JsArray.create();
     result.push(DiffModelChannelUpdater.REFRESH_ARRAY);
     channel.sendMessage(result);
