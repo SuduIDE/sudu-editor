@@ -107,6 +107,7 @@ public class RemoteCollector {
     lastFrontendMessage.collectPath(path, pathWriter, root, left);
 
     Runnable updateModel = () -> {
+      LoggingJs.info("RemoteCollector.applyDiff.updateModel");
       if (isDeleteDiff) {
         var node = lastFrontendMessage.findNode(path);
         var parentNode = lastFrontendMessage.findParentNode(path);
@@ -143,7 +144,8 @@ public class RemoteCollector {
       sb.append(path);
       st += path.length();
     }
-
+    LoggingJs.info("Upd Model: " + updModel.path);
+    LoggingJs.info("Send reread");
     executor.sendToWorker(true,
         (res) -> updateNode(updModel, !left, updModelPath, res),
         DiffUtils.REREAD_FOLDER,
@@ -152,6 +154,7 @@ public class RemoteCollector {
   }
 
   private void updateNode(ItemFolderDiffModel updModel, boolean left, Deque<ItemFolderDiffModel> updModelPath, Object[] result) {
+    LoggingJs.info("RemoteCollector.updateNode");
     int[] ints = ((ArrayView) result[0]).ints();
     ArrayReader reader = new ArrayReader(ints);
     Deque<FsItem> items = new LinkedList<>();
