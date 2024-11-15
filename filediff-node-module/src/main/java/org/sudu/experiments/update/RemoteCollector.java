@@ -50,7 +50,7 @@ public class RemoteCollector {
 
   private FrontendMessage lastFrontendMessage = FrontendMessage.EMPTY;
   private double lastMessageSentTime;
-  private final double startTime;
+  private double startTime;
 
   private final Deque<Runnable> sendToWorkerQueue;
 
@@ -80,6 +80,8 @@ public class RemoteCollector {
   public void refresh() {
     LoggingJs.info("RemoteCollector.Refresh");
     var items = root.items;
+    firstMessageSent = lastMessageSent = false;
+    startTime = lastMessageSentTime = Performance.now();
     root = new ItemFolderDiffModel(null, "");
     root.setItems(items[0], items[1]);
     sendToWorkerQueue.clear();
