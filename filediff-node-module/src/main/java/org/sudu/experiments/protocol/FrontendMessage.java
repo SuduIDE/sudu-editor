@@ -10,10 +10,7 @@ import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.ui.fs.RemoteFileTreeNode;
 import org.teavm.jso.JSObject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static org.sudu.experiments.protocol.JsCast.ints;
 import static org.sudu.experiments.protocol.JsCast.jsString;
@@ -23,18 +20,8 @@ public class FrontendMessage {
 
   public FrontendTreeNode openedFolders;
   public String searchQuery;
-  public boolean filtered;
 
-  public static final FrontendMessage EMPTY;
-
-  static {
-    EMPTY = new FrontendMessage();
-    EMPTY.openedFolders = new FrontendTreeNode();
-    EMPTY.openedFolders.name = "";
-    EMPTY.openedFolders.isFile = false;
-    EMPTY.searchQuery = "";
-    EMPTY.filtered = false;
-  }
+  public static final FrontendMessage EMPTY = empty();
 
   public FrontendTreeNode findNode(int[] path) {
     return openedFolders.findNode(path);
@@ -45,26 +32,80 @@ public class FrontendMessage {
     return findNode(Arrays.copyOf(path, path.length - 1));
   }
 
+  public FrontendTreeNode find(Deque<String> path) {
+    return openedFolders.findNode(path);
+  }
+
   public void collectPath(int[] path, ArrayWriter pathWriter, FolderDiffModel root, boolean left) {
     openedFolders.collectPath(path, pathWriter, root, left ? FolderDiffSide.LEFT : FolderDiffSide.RIGHT);
   }
 
-  public static JsArray<JSObject> serialize(
+  public static FrontendMessage mkFrontendMessage(
       RemoteFileTreeNode leftRoot,
       RemoteFileTreeNode rightRoot,
       RemoteFolderDiffModel root,
-      boolean filtered,
       String searchQuery
   ) {
+    FrontendMessage message = new FrontendMessage();
+    message.openedFolders = mkFrontendTreeNode(leftRoot, rightRoot, root);
+    message.searchQuery = searchQuery;
+    return message;
+  }
+
+  public static FrontendTreeNode mkFrontendTreeNode(
+      RemoteFileTreeNode left,
+      RemoteFileTreeNode right,
+      RemoteFolderDiffModel model
+  ) {
+    FrontendTreeNode state = new FrontendTreeNode();
+    state.name = model.path;
+    state.isFile = model.isFile();
+
+    if (model.children != null && (left.isOpened() || right.isOpened())) {
+      state.children = new FrontendTreeNode[model.children.length];
+      int lP = 0, rP = 0;
+      for (int i = 0; i < state.children.length; i++) {
+        var child = model.child(i);
+        if (child.isBoth()) {
+          state.children[i] = mkFrontendTreeNode(left.child(lP), right.child(rP), child);
+          lP++;
+          rP++;
+        } else if (child.isLeft()) {
+          state.children[i] = mkFrontendTreeNode(left.child(lP), child);
+          lP++;
+        } else {
+          state.children[i] = mkFrontendTreeNode(right.child(rP), child);
+          rP++;
+        }
+      }
+    }
+    return state;
+  }
+
+  public static FrontendTreeNode mkFrontendTreeNode(RemoteFileTreeNode node, RemoteFolderDiffModel model) {
+    FrontendTreeNode state = new FrontendTreeNode();
+    state.name = model.path;
+    state.isFile = model.isFile();
+
+    if (model.children != null && node.isOpened()) {
+      state.children = new FrontendTreeNode[model.children.length];
+      for (int i = 0; i < state.children.length; i++) {
+        var child = model.child(i);
+        state.children[i] = mkFrontendTreeNode(node.child(i), child);
+      }
+    }
+    return state;
+  }
+
+  public static JsArray<JSObject> serialize(FrontendMessage message) {
     JsArray<JSObject> result = JsArray.create();
     List<String> paths = new ArrayList<>();
 
     ArrayWriter writer = new ArrayWriter();
     int pathLenInd = writer.getPointer();
     writer.write(-1);
-    writer.write(filtered ? 1 : 0);
 
-    serialize(leftRoot, rightRoot, root, writer, paths);
+    serialize(message.openedFolders, writer, paths);
     writer.writeAtPos(pathLenInd, paths.size());
 
     var ints = writer.getInts();
@@ -72,59 +113,23 @@ public class FrontendMessage {
     for (int i = 0; i < paths.size(); i++)
       result.set(1 + i, jsString(paths.get(i)));
 
-    result.set(1 + paths.size(), jsString(searchQuery));
+    result.set(1 + paths.size(), jsString(message.searchQuery));
     return result;
   }
 
-  private static void serialize(
-      RemoteFileTreeNode leftNode,
-      RemoteFileTreeNode rightNode,
-      RemoteFolderDiffModel model,
+  public static void serialize(
+      FrontendTreeNode node,
       ArrayWriter writer,
       List<String> paths
   ) {
     var pathInd = paths.size();
-    paths.add(model.path);
+    paths.add(node.name);
     writer.write(pathInd);
-    writer.write(model.isFile() ? 1 : 0);
-
-    if (leftNode.isClosed() || rightNode.isClosed() || model.children == null)
-      writer.write(-1);
+    writer.write(node.isFile ? 1 : 0);
+    if (node.children == null) writer.write(-1);
     else {
-      writer.write(model.children.length);
-      int lP = 0, rP = 0;
-      for (var child: model.children) {
-        if (child.isBoth()) {
-          serialize(leftNode.child(lP), rightNode.child(rP), (RemoteFolderDiffModel) child, writer, paths);
-          lP++;
-          rP++;
-        } else if (child.isLeft()) {
-          serialize(leftNode.child(lP), (RemoteFolderDiffModel) child, writer, paths);
-          lP++;
-        } else {
-          serialize(rightNode.child(rP), (RemoteFolderDiffModel) child, writer, paths);
-          rP++;
-        }
-      }
-    }
-  }
-
-  private static void serialize(
-      RemoteFileTreeNode node,
-      RemoteFolderDiffModel model,
-      ArrayWriter writer,
-      List<String> paths
-  ) {
-    var pathInd = paths.size();
-    paths.add(model.path);
-    writer.write(pathInd);
-    writer.write(model.isFile() ? 1 : 0);
-
-    if (node.isClosed() || model.children == null) writer.write(-1);
-    else {
-      writer.write(model.children.length);
-      for (int i = 0; i < model.children.length; i++)
-        serialize(node.child(i), model.child(i), writer, paths);
+      writer.write(node.children.length);
+      for (var child: node.children) serialize(child, writer, paths);
     }
   }
 
@@ -137,7 +142,6 @@ public class FrontendMessage {
       paths[i] = JsCast.string(jsArray, 1 + i);
 
     FrontendMessage message = new FrontendMessage();
-    message.filtered = reader.next() == 1;
     message.openedFolders = deserialize(reader, paths);
     message.searchQuery = JsCast.string(jsArray, 1 + pathsLen);
     return message;
@@ -157,6 +161,15 @@ public class FrontendMessage {
         node.children[i] = deserialize(reader, paths);
     }
     return node;
+  }
+
+  public static FrontendMessage empty() {
+    var empty = new FrontendMessage();
+    empty.openedFolders = new FrontendTreeNode();
+    empty.openedFolders.name = "";
+    empty.openedFolders.isFile = false;
+    empty.searchQuery = "";
+    return empty;
   }
 
   @Override
