@@ -243,7 +243,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     for (int i = 0; i < model.children.length; i++) {
       var child = model.child(i);
       var childNode = treeNode.child(i, child.path, child.isFile());
-      updateNode(node, child, childNode);
+      if (node.child(i) instanceof RemoteDirectoryNode dirChildNode)
+        updateNode(dirChildNode, child, childNode);
     }
   }
 
