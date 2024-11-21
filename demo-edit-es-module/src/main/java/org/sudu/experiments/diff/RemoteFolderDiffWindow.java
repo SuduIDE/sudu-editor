@@ -51,7 +51,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   protected Channel channel;
   private final double startTime;
 
-  private boolean updatedRoots = false, refreshed = false;
+  private boolean updatedRoots = false;
   boolean finished = false;
 
   String searchString = "*";
@@ -154,11 +154,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private void update(JsArray<JSObject> jsResult) {
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
-    if (isFiltered() || refreshed) {
-      if (refreshed) lastSendFrontendMsg.openedFolders.updateWithModel(rootModel);
-      updateNodes(leftRoot, rightRoot, rootModel, lastSendFrontendMsg.openedFolders);
-      refreshed = false;
-    }
+    if (isFiltered()) updateNodes(leftRoot, rightRoot, rootModel, lastSendFrontendMsg.openedFolders);
     if (!updatedRoots) {
       LoggingJs.info("Init RemoteFolderDiff roots: " + rootModel.recToString());
       updatedRoots = true;
@@ -206,13 +202,18 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     }
   }
 
+  private void onRefresh(JsArray<JSObject> jsResult) {
+    var msg = BackendMessage.deserialize(jsResult);
+    lastSendFrontendMsg.openedFolders.updateWithModel(msg.root);
+  }
+
   private void updateNodes(
       RemoteDirectoryNode left,
       RemoteDirectoryNode right,
       RemoteFolderDiffModel model,
       FrontendTreeNode treeNode
   ) {
-    if (model.children == null || !treeNode.isOpened()) return;
+    if (model.children == null || treeNode == null || !treeNode.isOpened()) return;
     left.doOpen();
     right.doOpen();
 
@@ -241,7 +242,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       RemoteFolderDiffModel model,
       FrontendTreeNode treeNode
   ) {
-    if (model.children == null || !treeNode.isOpened()) return;
+    if (model.children == null || treeNode == null || !treeNode.isOpened()) return;
     node.doOpen();
 
     for (int i = 0; i < model.children.length; i++) {
@@ -270,6 +271,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       case DiffModelChannelUpdater.OPEN_FILE -> openFile(jsResult);
       case DiffModelChannelUpdater.APPLY_DIFF -> onDiffApplied(jsResult);
       case DiffModelChannelUpdater.APPLY_FILTERS -> onFiltersApplied(jsResult);
+      case DiffModelChannelUpdater.REFRESH -> onRefresh(jsResult);
     }
     LoggingJs.trace(
         "Got message " + array.get(0) + " in " + Numbers.iRnd(Performance.now() - startTime) + "ms"
@@ -409,10 +411,21 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       }
 
       private void openFrontendNode(RemoteFolderDiffModel model) {
+        LoggingJs.trace("RemoteFolderDiffWindow.openFrontendNode: " + model.path);
         var path = collectDequePath(model);
         var node = lastSendFrontendMsg.find(path);
-        if (node == null || node.children != null) return;
-        if (model.children == null) return;
+        if (node == null) {
+          System.err.println("Can't find node: " + model.path);
+          return;
+        }
+        if (node.children != null) {
+          System.err.println("Node children is not null for: " + model.path);
+          return;
+        }
+        if (model.children == null) {
+          System.err.println("Model children is null for: " + model.path);
+          return;
+        }
         node.children = new FrontendTreeNode[model.children.length];
         for (int i = 0; i < model.children.length; i++) {
           var child = model.child(i);
@@ -423,9 +436,13 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       }
 
       private void closeFrontendNode(RemoteFolderDiffModel model) {
+        LoggingJs.trace("RemoteFolderDiffWindow.closeFrontendNode: " + model.path);
         var path = collectDequePath(model);
         var node = lastSendFrontendMsg.find(path);
-        if (node == null) return;
+        if (node == null) {
+          System.err.println("Can't find node: " + model.path);
+          return;
+        }
         node.children = null;
       }
     };
@@ -738,9 +755,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   public void refresh() {
-    System.out.println("RemoteFolderDiffWindow.refresh");
+    LoggingJs.trace("RemoteFolderDiffWindow.refresh");
+    rootView.fireRefreshed();
     updatedRoots = false;
-    refreshed = true;
     var result = JsArray.create();
     result.push(DiffModelChannelUpdater.REFRESH_ARRAY);
     channel.sendMessage(result);

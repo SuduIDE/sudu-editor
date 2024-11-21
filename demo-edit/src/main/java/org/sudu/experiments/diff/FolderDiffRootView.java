@@ -84,6 +84,11 @@ class FolderDiffRootView extends DiffRootView {
       listener.accept(1);
   }
 
+  public void fireRefreshed() {
+    for (IntConsumer listener : stateListeners.array())
+      listener.accept(0);
+  }
+
   void fireSelectionChanged(FolderDiffSelection s) {
     for (SelectionListener listener : selectionListeners.array())
       listener.accept(s);

@@ -47,6 +47,7 @@ public class RemoteCollector {
   private boolean firstMessageSent = false;
   private boolean lastMessageSent = false;
   private boolean isShutdown = false;
+  private boolean isRefresh = false;
 
   private FrontendMessage lastFrontendMessage = FrontendMessage.EMPTY;
   private double lastMessageSentTime;
@@ -81,6 +82,7 @@ public class RemoteCollector {
     LoggingJs.info("RemoteCollector.Refresh");
     var items = root.items;
     firstMessageSent = lastMessageSent = false;
+    isRefresh = true;
     startTime = lastMessageSentTime = Performance.now();
     root = new ItemFolderDiffModel(null, "");
     root.setItems(items[0], items[1]);
@@ -462,6 +464,12 @@ public class RemoteCollector {
     LoggingJs.debug("inComparing: " + inComparing);
     String leftRootName = leftHandle().getFullPath();
     String rightRootName = rightHandle().getFullPath();
+    if (isRefresh) {
+      isRefresh = false;
+      var fullMsg = BackendMessage.serialize(root, message, leftRootName, rightRootName);
+      fullMsg.push(DiffModelChannelUpdater.REFRESH_ARRAY);
+      send.accept(fullMsg);
+    }
     var backendMessage = filteredBackendModel();
     var jsArray = BackendMessage.serialize(backendMessage, message, leftRootName, rightRootName);
     jsArray.push(msgType);
