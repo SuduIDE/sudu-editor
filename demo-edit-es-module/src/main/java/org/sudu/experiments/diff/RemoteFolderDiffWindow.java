@@ -154,7 +154,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private void update(JsArray<JSObject> jsResult) {
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
-    if (isFiltered()) updateNodes(leftRoot, rightRoot, rootModel, lastSendFrontendMsg.openedFolders);
+    if (isFiltered()) updateNodes();
     if (!updatedRoots) {
       LoggingJs.info("Init RemoteFolderDiff roots: " + rootModel.recToString());
       updatedRoots = true;
@@ -165,8 +165,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       if (!rightRoot.isOpened()) rightRoot.doOpen();
       sendFrontendModel();
     }
-    window.context.window.repaint();
-    updateDiffInfo();
+    if (!isFiltered()) updateDiffInfo();
     if (rootModel.isCompared()) {
       finished = true;
       LoggingJs.info("RemoteFolderDiff finished");
@@ -179,8 +178,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
     if (!isFiltered()) lastSendFrontendMsg.openedFolders.updateWithModel(rootModel);
-    updateNodes(leftRoot, rightRoot, rootModel, lastSendFrontendMsg.openedFolders);
-    updateDiffInfo();
+    updateNodes();
   }
 
   private void onFiltersApplied(JsArray<JSObject> jsResult) {
@@ -205,6 +203,23 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private void onRefresh(JsArray<JSObject> jsResult) {
     var msg = BackendMessage.deserialize(jsResult);
     lastSendFrontendMsg.openedFolders.updateWithModel(msg.root);
+  }
+
+  private void updateNodes() {
+    var focusedRoot = getFocused();
+    var selected = focusedRoot.selectedLine();
+    int delta = focusedRoot.getSelectedIndexDelta();
+    var selectedRoot = focusedRoot == rootView.left ? leftRoot : rightRoot;
+    updateNodes(leftRoot, rightRoot, rootModel, lastSendFrontendMsg.openedFolders);
+    updateDiffInfo();
+    if (selected instanceof RemoteFileTreeNode remoteSelected) {
+      TreeNode newSelected = selectedRoot.getNearestParent(remoteSelected.model());
+      if (newSelected != null) {
+        focusedRoot.updateSelected(newSelected, delta);
+        rootView.left.setScrollPosY(focusedRoot.scrollPos.y);
+        rootView.right.setScrollPosY(focusedRoot.scrollPos.y);
+      }
+    }
   }
 
   private void updateNodes(
@@ -661,11 +676,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private FileTreeView getFocused() {
-    return rootView.left.isFocused()
-        ? rootView.left
-        : rootView.right.isFocused()
-        ? rootView.right
-        : null;
+    return rootView.right.isFocused() ? rootView.right : rootView.left;
   }
 
   public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
