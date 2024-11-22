@@ -26,6 +26,7 @@ class FileDiffRootView extends DiffRootView {
 
   boolean firstDiffRevealed = false;
   private static final boolean showNavigateLog = true;
+  private Runnable onRefresh;
 
   FileDiffRootView(WindowManager wm) {
     super(wm.uiContext);
@@ -167,6 +168,7 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void setDiffModel(DiffInfo diffInfo) {
+    System.out.println("FileDiffRootView.setDiffModel");
     diffModel = diffInfo;
     editor1.setDiffModel(diffModel.lineDiffsL);
     editor2.setDiffModel(diffModel.lineDiffsR);
@@ -294,7 +296,17 @@ class FileDiffRootView extends DiffRootView {
     }
   }
 
+  public void setOnRefresh(Runnable onRefresh) {
+    this.onRefresh = onRefresh;
+  }
+
   public void refresh() {
-    sendToDiff(false);
+    System.out.println("FileDiffRootView.refresh");
+    firstDiffRevealed = false;
+    if (onRefresh != null) onRefresh.run();
+  }
+
+  public void unsetModelFlagsBit(int bit) {
+    modelFlags &= ~bit;
   }
 }

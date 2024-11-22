@@ -52,6 +52,7 @@ public class FileDiffChannelUpdater {
   private void onMessage(JsArray<JSObject> jsArray) {
     int type = JsCast.ints(jsArray.pop())[0];
     switch (type) {
+      case FILE_READ -> onFileRead(jsArray);
 //      case SEND_DIFF -> onSendDiff(jsArray);
       case FILE_SAVE -> onFileSave(jsArray);
 //      case SEND_INT_DIFF -> onSendIntervalDiff(jsArray);
@@ -73,6 +74,14 @@ public class FileDiffChannelUpdater {
           () -> onFileWrite(false, rightHandle.getFullPath()),
           this::onError);
     }
+  }
+
+  private void onFileRead(JsArray<JSObject> jsArray) {
+    boolean left = JsCast.ints(jsArray)[0] == 1;
+    FileHandle handle = left ? leftHandle : rightHandle;
+    if (handle == null) return;
+    FileHandle.readTextFile(handle,
+        (text, encoding) -> sendFileRead(left, text, encoding), this::onError);
   }
 
   // todo finish writing in future
@@ -109,7 +118,7 @@ public class FileDiffChannelUpdater {
     jsArray.set(0, source);
     jsArray.set(1, encoding);
     jsArray.set(2, JSString.valueOf(name(left)));
-    jsArray.set(3, JsCast.jsInts(left ? 1 : 0));
+    jsArray.set(3, JsCast.jsInts(left ? 1 : 0, havaHandle(left) ? 1 : 0));
     jsArray.set(4, JsCast.jsInts(FILE_READ));
     channel.sendMessage(jsArray);
   }
@@ -118,6 +127,10 @@ public class FileDiffChannelUpdater {
     var handle = left ? leftHandle : rightHandle;
     if (handle == null) return "";
     else return handle.getName();
+  }
+
+  public boolean havaHandle(boolean left) {
+    return (left ? leftHandle : rightHandle) != null;
   }
 
   private void sendFileRead(boolean left, String source, String encoding) {

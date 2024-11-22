@@ -19,6 +19,7 @@ import static org.sudu.experiments.editor.worker.diff.DiffUtils.readDiffInfo;
 public class RemoteFileDiffWindow extends FileDiffWindow {
 
   private final Channel channel;
+  private boolean haveLeftHandle, haveRightHandle;
 
   public RemoteFileDiffWindow(
       WindowManager wm,
@@ -27,6 +28,7 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
       Channel channel
   ) {
     super(wm, theme, fonts);
+    rootView.setOnRefresh(this::onRefresh);
     processEsc = false;
     this.channel = channel;
     this.channel.setOnMessage(this::onMessage);
@@ -48,16 +50,19 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   private void onMessage(JsArray<JSObject> jsArray) {
     int type = JsCast.ints(jsArray.pop())[0];
     switch (type) {
-      case FileDiffChannelUpdater.FILE_READ -> onFileOpen(jsArray);
+      case FileDiffChannelUpdater.FILE_READ -> onFileRead(jsArray);
       case FileDiffChannelUpdater.SEND_DIFF -> onDiffSent(jsArray);
     }
   }
 
-  private void onFileOpen(JsArray<JSObject> jsArray) {
+  private void onFileRead(JsArray<JSObject> jsArray) {
     String source = JsCast.string(jsArray, 0);
     String encoding = JsCast.string(jsArray, 1);
     String name = JsCast.string(jsArray, 2);
     boolean left = JsCast.ints(jsArray, 3)[0] == 1;
+    boolean haveHandle = JsCast.ints(jsArray, 3)[1] == 1;
+    if (left) haveLeftHandle = haveHandle;
+    else haveRightHandle = haveHandle;
     LoggingJs.debug(
         "RemoteFileDiffWindow.open:  name = " + name
             + ", encoding = " + encoding);
@@ -68,5 +73,27 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     int[] modelInts = JsCast.ints(jsArray, 0);
     DiffInfo model = readDiffInfo(modelInts);
     rootView.setDiffModel(model);
+  }
+
+  private void sendReadFile(boolean left) {
+    LoggingJs.trace("RemoteFileDiffWindow.sendReadFile, left = " + left);
+    JsArray<JSObject> jsArray = JsArray.create();
+    jsArray.set(0, JsCast.jsInts(left ? 1 : 0));
+    jsArray.push(JsCast.jsInts(FileDiffChannelUpdater.FILE_READ));
+    channel.sendMessage(jsArray);
+  }
+
+  public void onRefresh() {
+    LoggingJs.trace("RemoteFileDiffWindow.onRefresh");
+    if (haveLeftHandle) {
+      rootView.unsetModelFlagsBit(1);
+      leftFile = null;
+      sendReadFile(true);
+    }
+    if (haveRightHandle) {
+      rootView.unsetModelFlagsBit(2);
+      rightFile = null;
+      sendReadFile(false);
+    }
   }
 }
