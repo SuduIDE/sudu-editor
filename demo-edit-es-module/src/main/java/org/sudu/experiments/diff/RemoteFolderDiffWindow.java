@@ -353,11 +353,15 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       }
 
       @Override
-      public void sendModel(RemoteDirectoryNode node, boolean open) {
+      public void updateNodes(RemoteDirectoryNode node, boolean open) {
         if (isFiltered()) {
           if (open) openFrontendNode(node.model());
           else closeFrontendNode(node.model());
         }
+      }
+
+      @Override
+      public void sendModel() {
         sendFrontendModel();
       }
 

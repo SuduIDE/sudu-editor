@@ -20,13 +20,14 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
 
   public void onClick() {
     if (isOpened()) closeDir(); else openDir();
-    handle.sendModel(this, isOpened());
+    handle.sendModel();
     handle.updateView();
   }
 
   public void openDir() {
 //    if (model() == null || model().children == null) return;
     doOpen();
+    handle.updateNodes(this, true);
     var opposite = handle.getOppositeDir(this);
     if (opposite != null) opposite.doOpen();
     if (children.length == 1 && children[0] instanceof RemoteDirectoryNode singleDir) singleDir.openDir();
@@ -34,6 +35,7 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
 
   public void closeDir() {
     doClose();
+    handle.updateNodes(this, false);
     var opposite = handle.getOppositeDir(this);
     if (opposite != null) opposite.doClose();
     handle.updateView();
