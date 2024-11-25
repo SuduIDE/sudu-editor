@@ -55,8 +55,13 @@ public class NodeFileHandle implements FileHandle {
     return stats == null ? (stats = Fs.fs().lstatSync(jsPath())) : stats;
   }
 
+  // For actual size() value
+  private NodeFs.Stats actualStats() {
+    return stats = Fs.fs().lstatSync(jsPath());
+  }
+
   private int intSize() {
-    double jsSize = stats().size();
+    double jsSize = actualStats().size();
     int result = (int) jsSize;
     if (result != jsSize) {
       JsHelper.consoleError(
