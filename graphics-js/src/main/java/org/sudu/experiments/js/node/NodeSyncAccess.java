@@ -6,12 +6,10 @@ import org.teavm.jso.core.JSString;
 
 public class NodeSyncAccess implements FileHandle.SyncAccess {
 
-  NodeFs.Stats stats;
   int handle;
   JSString path;
 
-  public NodeSyncAccess(NodeFs.Stats stats, int handle, JSString path) {
-    this.stats = stats;
+  public NodeSyncAccess(int handle, JSString path) {
     this.handle = handle;
     this.path = path;
   }
@@ -25,7 +23,7 @@ public class NodeSyncAccess implements FileHandle.SyncAccess {
 
   @Override
   public double getSize() {
-    return stats.size();
+    return NodeFileHandle.actualStats(path).size();
   }
 
   @Override

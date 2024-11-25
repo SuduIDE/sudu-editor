@@ -52,16 +52,16 @@ public class NodeFileHandle implements FileHandle {
   }
 
   private NodeFs.Stats stats() {
-    return stats == null ? (stats = Fs.fs().lstatSync(jsPath())) : stats;
+    return stats == null ? stats = actualStats(jsPath()) : stats;
   }
 
   // For actual size() value
-  private NodeFs.Stats actualStats() {
-    return stats = Fs.fs().lstatSync(jsPath());
+  static NodeFs.Stats actualStats(JSString jsPath) {
+    return Fs.fs().lstatSync(jsPath);
   }
 
   private int intSize() {
-    double jsSize = actualStats().size();
+    double jsSize = actualStats(jsPath()).size();
     int result = (int) jsSize;
     if (result != jsSize) {
       JsHelper.consoleError(
@@ -76,7 +76,7 @@ public class NodeFileHandle implements FileHandle {
   public void syncAccess(Consumer<SyncAccess> consumer, Consumer<String> onError) {
     try {
       int handle = openSync(Fs.fs());
-      consumer.accept(new NodeSyncAccess(stats(), handle, jsPath()));
+      consumer.accept(new NodeSyncAccess(handle, jsPath()));
     } catch (Exception e) {
       onError.accept(e.getMessage());
     }
