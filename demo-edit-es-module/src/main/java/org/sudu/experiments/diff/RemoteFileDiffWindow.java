@@ -5,6 +5,7 @@ import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
+import org.sudu.experiments.esm.JsExternalStatusBar;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.ui.window.WindowManager;
@@ -17,6 +18,8 @@ import java.util.function.Supplier;
 import static org.sudu.experiments.editor.worker.diff.DiffUtils.readDiffInfo;
 
 public class RemoteFileDiffWindow extends FileDiffWindow {
+
+  JsExternalStatusBar statusBar;
 
   private final Channel channel;
   private boolean haveLeftHandle, haveRightHandle;
@@ -36,6 +39,7 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
         src -> saveFile(true, src),
         src -> saveFile(false, src)
     );
+    this.rootView.setOnFileDiffGet(this::onFileDiffGet);
   }
 
   private void saveFile(boolean left, Model m) {
@@ -95,5 +99,14 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
       rightFile = null;
       sendReadFile(false);
     }
+  }
+
+  public void onFileDiffGet() {
+    var diffInfo = rootView.diffModel;
+    int diffRanges = 0;
+    for (var range: diffInfo.ranges) if (range.type != DiffTypes.DEFAULT) diffRanges++;
+    String statMsg = "Total diffs: " + diffRanges;
+    LoggingJs.info(statMsg);
+    if (statusBar != null) statusBar.setMessage(JSString.valueOf(statMsg));
   }
 }

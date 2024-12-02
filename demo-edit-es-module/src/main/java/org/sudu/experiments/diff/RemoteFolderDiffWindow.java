@@ -170,7 +170,12 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     if (!isFiltered()) updateDiffInfo();
     if (rootModel.isCompared()) {
       finished = true;
-      LoggingJs.info("RemoteFolderDiff finished");
+      String statMsg = msg.leftRootName + " <-> " + msg.rightRootName
+          + " compared in " + msg.timeDelta + "ms"
+          + ". Folder compared: " + msg.foldersCmp
+          + ", files compared: " + msg.filesCmp;
+      LoggingJs.info(statMsg);
+      if (statusBar != null) statusBar.setMessage(JSString.valueOf(statMsg));
       rootView.fireFinished();
     }
   }

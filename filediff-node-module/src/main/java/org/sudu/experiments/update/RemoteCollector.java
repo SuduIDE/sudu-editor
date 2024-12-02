@@ -462,18 +462,29 @@ public class RemoteCollector {
 
   private void send(Consumer<JsArray<JSObject>> send, FrontendMessage message, Int32Array msgType) {
     LoggingJs.debug("inComparing: " + inComparing);
-    String leftRootName = leftHandle().getFullPath();
-    String rightRootName = rightHandle().getFullPath();
     if (isRefresh) {
       isRefresh = false;
-      var fullMsg = BackendMessage.serialize(root, message, leftRootName, rightRootName);
+      var fullMsg = serializeBackendMessage(root, message);
       fullMsg.push(DiffModelChannelUpdater.REFRESH_ARRAY);
       send.accept(fullMsg);
     }
     var backendMessage = filteredBackendModel();
-    var jsArray = BackendMessage.serialize(backendMessage, message, leftRootName, rightRootName);
+    var jsArray = serializeBackendMessage(backendMessage, message);
     jsArray.push(msgType);
     send.accept(jsArray);
+  }
+
+  private JsArray<JSObject> serializeBackendMessage(RemoteFolderDiffModel model, FrontendMessage message) {
+    String leftRootName = leftHandle().getFullPath();
+    String rightRootName = rightHandle().getFullPath();
+    return BackendMessage.serialize(
+        model, message,
+        leftRootName,
+        rightRootName,
+        foldersCompared,
+        filesCompared,
+        getTotalTime()
+    );
   }
 
   private void sendApplied() {
@@ -507,6 +518,10 @@ public class RemoteCollector {
 
   private double getTimeDelta() {
     return Performance.now() - lastMessageSentTime;
+  }
+
+  private int getTotalTime() {
+    return Numbers.iRnd(Performance.now() - startTime);
   }
 
   public void setSendResult(Consumer<JsArray<JSObject>> sendResult) {
