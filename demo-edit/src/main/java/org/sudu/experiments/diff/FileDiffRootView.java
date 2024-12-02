@@ -26,7 +26,7 @@ class FileDiffRootView extends DiffRootView {
 
   boolean firstDiffRevealed = false, needScrollSync = false;
   private static final boolean showNavigateLog = true;
-  private Runnable onRefresh, onDiffModelSet;
+  private Runnable onRefresh, onDiffModelSet, onFileDiffGet;
 
   FileDiffRootView(WindowManager wm) {
     super(wm.uiContext);
@@ -182,6 +182,7 @@ class FileDiffRootView extends DiffRootView {
 
     if (!firstDiffRevealed) revealFirstDiff();
     if (onDiffModelSet != null) onDiffModelSet.run();
+    if (onFileDiffGet != null) onFileDiffGet.run();
   }
 
   public void updateDiffModel(
@@ -303,6 +304,10 @@ class FileDiffRootView extends DiffRootView {
 
   public void setOnDiffModelSet(Runnable onDiffModelSet) {
     this.onDiffModelSet = onDiffModelSet;
+  }
+
+  public void setOnFileDiffGet(Runnable onFileDiffGet) {
+    this.onFileDiffGet = onFileDiffGet;
   }
 
   public void refresh() {
