@@ -444,6 +444,10 @@ public class EditorComponent extends View implements
     return change;
   }
 
+  public int getVScrollPos() {
+    return vScrollPos;
+  }
+
   @Override
   public V2i minimalSize() {
     return new V2i(lineNumbersWidth() + vLineW + vLineLeftDelta, lineHeight);

@@ -23,6 +23,8 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
 
   private final Channel channel;
   private boolean haveLeftHandle, haveRightHandle;
+  private int lastLeftScrollPos = -1;
+  private int lastRightScrollPos = -1;
 
   public RemoteFileDiffWindow(
       WindowManager wm,
@@ -71,6 +73,9 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
         "RemoteFileDiffWindow.open:  name = " + name
             + ", encoding = " + encoding);
     open(source, encoding, name, left);
+    var editor = left ? rootView.editor1 : rootView.editor2;
+    int newScrollPos = left ? lastLeftScrollPos : lastRightScrollPos;
+    if (newScrollPos != -1) editor.setVScrollPosSilent(newScrollPos);
   }
 
   private void onDiffSent(JsArray<JSObject> jsArray) {
@@ -93,11 +98,13 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
       rootView.unsetModelFlagsBit(1);
       leftFile = null;
       sendReadFile(true);
+      lastLeftScrollPos = rootView.editor1.getVScrollPos();
     }
     if (haveRightHandle) {
       rootView.unsetModelFlagsBit(2);
       rightFile = null;
       sendReadFile(false);
+      lastRightScrollPos = rootView.editor2.getVScrollPos();
     }
   }
 
