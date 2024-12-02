@@ -101,14 +101,12 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
       leftFile = null;
       sendReadFile(true);
       lastLeftScrollPos = rootView.editor1.getVScrollPos();
-      lastLeftScrollPos = rootView.editor1.getVScrollPos();
       lastLeftCaretPos = rootView.editor1.model().getCaretPos();
     }
     if (haveRightHandle) {
       rootView.unsetModelFlagsBit(2);
       rightFile = null;
       sendReadFile(false);
-      lastRightScrollPos = rootView.editor2.getVScrollPos();
       lastRightScrollPos = rootView.editor2.getVScrollPos();
       lastRightCaretPos = rootView.editor2.model().getCaretPos();
     }
@@ -126,13 +124,6 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     }
   }
 
-  private void updateOnRefresh() {
-    if (lastLeftCaretPos != null) rootView.editor1.setPosition(lastLeftCaretPos.y, lastLeftCaretPos.x);
-    if (lastRightCaretPos != null) rootView.editor2.setPosition(lastRightCaretPos.y, lastRightCaretPos.x);
-    if (lastLeftScrollPos != -1) rootView.editor1.setVScrollPosSilent(lastLeftScrollPos);
-    if (lastRightScrollPos != -1) rootView.editor2.setVScrollPosSilent(lastRightScrollPos);
-  }
-
   public void onFileDiffGet() {
     var diffInfo = rootView.diffModel;
     int diffRanges = 0;
@@ -140,5 +131,12 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     String statMsg = "Total diffs: " + diffRanges;
     LoggingJs.info(statMsg);
     if (statusBar != null) statusBar.setMessage(JSString.valueOf(statMsg));
+  }
+
+  private void updateOnRefresh() {
+    if (lastLeftCaretPos != null) rootView.editor1.setPosition(lastLeftCaretPos.y, lastLeftCaretPos.x);
+    if (lastRightCaretPos != null) rootView.editor2.setPosition(lastRightCaretPos.y, lastRightCaretPos.x);
+    if (lastLeftScrollPos != -1) rootView.editor1.setVScrollPosSilent(lastLeftScrollPos);
+    if (lastRightScrollPos != -1) rootView.editor2.setVScrollPosSilent(lastRightScrollPos);
   }
 }
