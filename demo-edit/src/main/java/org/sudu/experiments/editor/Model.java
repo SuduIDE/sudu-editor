@@ -108,6 +108,10 @@ public class Model {
     return uri != null ? uri.scheme : null;
   }
 
+  public V2i getCaretPos() {
+    return new V2i(caretLine, caretCharPos);
+  }
+
   void onFileParsed(Object[] result) {
 //    Debug.consoleInfo("onFileParsed");
     fileStructureParsed = ParseStatus.PARSED;
