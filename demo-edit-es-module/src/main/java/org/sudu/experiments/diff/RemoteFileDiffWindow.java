@@ -6,6 +6,7 @@ import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.ui.window.WindowManager;
 import org.sudu.experiments.update.FileDiffChannelUpdater;
@@ -20,6 +21,8 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
 
   private final Channel channel;
   private boolean haveLeftHandle, haveRightHandle;
+  private int lastLeftScrollPos = -1, lastRightScrollPos = -1;
+  private V2i lastLeftCaretPos = null, lastRightCaretPos = null;
 
   public RemoteFileDiffWindow(
       WindowManager wm,
@@ -67,6 +70,7 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
         "RemoteFileDiffWindow.open:  name = " + name
             + ", encoding = " + encoding);
     open(source, encoding, name, left);
+    updateOnRefresh();
   }
 
   private void onDiffSent(JsArray<JSObject> jsArray) {
@@ -89,11 +93,22 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
       rootView.unsetModelFlagsBit(1);
       leftFile = null;
       sendReadFile(true);
+      lastLeftScrollPos = rootView.editor1.getVScrollPos();
+      lastLeftCaretPos = rootView.editor1.model().getCaretPos();
     }
     if (haveRightHandle) {
       rootView.unsetModelFlagsBit(2);
       rightFile = null;
       sendReadFile(false);
+      lastRightScrollPos = rootView.editor2.getVScrollPos();
+      lastRightCaretPos = rootView.editor2.model().getCaretPos();
     }
+  }
+
+  private void updateOnRefresh() {
+    if (lastLeftCaretPos != null) rootView.editor1.setPosition(lastLeftCaretPos.y, lastLeftCaretPos.x);
+    if (lastRightCaretPos != null) rootView.editor2.setPosition(lastRightCaretPos.y, lastRightCaretPos.x);
+    if (lastLeftScrollPos != -1) rootView.editor1.setVScrollPosSilent(lastLeftScrollPos);
+    if (lastRightScrollPos != -1) rootView.editor2.setVScrollPosSilent(lastRightScrollPos);
   }
 }

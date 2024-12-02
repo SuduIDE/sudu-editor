@@ -302,7 +302,6 @@ class FileDiffRootView extends DiffRootView {
 
   public void refresh() {
     System.out.println("FileDiffRootView.refresh");
-    firstDiffRevealed = false;
     if (onRefresh != null) onRefresh.run();
   }
 
