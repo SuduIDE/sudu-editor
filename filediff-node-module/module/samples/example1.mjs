@@ -86,6 +86,20 @@ function testFileWrite(file, encoding, content) {
   )
 }
 
+function testFileReadWrite(fileFrom, fileToS, fileToJ) {
+  jobCount++;
+  module.testFileReadWrite(fileFrom, fileToS, fileToJ,
+      () => {
+        console.log("testFileReadWrite.onComplete");
+        mayBeExit();
+      },
+      (errorString) => {
+        console.log("testFileWrite.onError: ", errorString);
+        mayBeExit();
+      }
+  )
+}
+
 function testFileCopy(src, dest) {
   jobCount++;
   module.testFileCopy(src, dest,
@@ -148,6 +162,15 @@ function runTest() {
       console.log("encoding", encoding);
       console.log("string", string);
       return testFileWrite(file, encoding, string);
+    }
+    case "testFileReadWrite": {
+      const fileFrom = args[3];
+      const fileToS = args[4];
+      const fileToJ = args[5];
+      console.log("fileFrom", fileFrom);
+      console.log("fileToS", fileToS);
+      console.log("fileToJ", fileToJ);
+      return testFileReadWrite(fileFrom, fileToS, fileToJ);
     }
     case "testFileCopy": {
       const src = args[3];

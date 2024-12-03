@@ -26,6 +26,14 @@ export interface DiffTestApi {
     onError: (error: string) => void
   ): void;
 
+  testFileReadWrite(
+    pathFrom: string,
+    pathToS: string,
+    pathToJ: string,
+    onComplete: () => void,
+    onError: (error: string) => void
+  ) : void;
+
   testFileCopy(
     pathFrom: string, pathTo: string,
     onComplete: () => void,

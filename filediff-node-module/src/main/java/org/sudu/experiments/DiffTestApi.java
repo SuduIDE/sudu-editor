@@ -2,6 +2,7 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.diff.tests.CollectorFolderDiffTest;
 import org.sudu.experiments.editor.worker.TestJobs;
+import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeDirectoryHandle;
@@ -9,6 +10,8 @@ import org.sudu.experiments.js.node.NodeFileHandle;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
+
+import java.util.function.Consumer;
 
 import static org.sudu.experiments.editor.worker.ArgsCast.array;
 
@@ -23,6 +26,14 @@ interface JsDiffTestApi extends JSObject {
 
   void testFileWrite(
       JSString path, JSString content, JSString encoding,
+      JsFunctions.Runnable onComplete,
+      JsFunctions.Consumer<JSString> onError
+  );
+
+  void testFileReadWrite(
+      JSString pathFrom,
+      JSString pathToS,
+      JSString pathToJ,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   );
@@ -106,6 +117,30 @@ public class DiffTestApi implements JsDiffTestApi {
         onComplete::f,
         e -> onError.f(JSString.valueOf(e))
     );
+    System.out.println("GbkEncoding.charToGbk[0x3000] = " +
+        Integer.toHexString(GbkEncoding.charToGbk[0x3000]));
+  }
+
+  @Override
+  public void testFileReadWrite(
+      JSString pathFrom, JSString pathToS, JSString pathToJ,
+      JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onError
+  ) {
+    var fhFrom = new NodeFileHandle(pathFrom);
+    var fhToS = new NodeFileHandle(pathToS);
+    var fhToJ = new NodeFileHandle(pathToJ);
+    Consumer<String> error = e -> onError.f(JSString.valueOf(e));
+    int[] box = new int[1];
+    Runnable onCompleteJ = () -> {
+        if (++box[0] == 2) onComplete.f();
+    };
+    FileHandle.readTextFile(
+        fhFrom, (text, encoding) -> {
+          fhToS.writeText(text, encoding, onCompleteJ, error);
+          JSString jsString = JSString.valueOf(text);
+          var jsAsObj = JsHelper.directJsToJava(jsString);
+          fhToJ.writeText(jsAsObj, encoding, onCompleteJ, error);
+        }, error);
   }
 
   @Override

@@ -26,6 +26,11 @@ public interface FileHandle extends FsItem {
   @Deprecated
   void readAsText(Consumer<String> consumer, Consumer<String> onError);
 
+  // parameter text can be string-kind, writer use encoding parameter
+  //  - JSString
+  //  - java String
+  //  - char[]
+  // or binary byte[], writer ignore encoding parameter
   void writeText(
       Object text, String encoding,
       Runnable onComplete, Consumer<String> onError);

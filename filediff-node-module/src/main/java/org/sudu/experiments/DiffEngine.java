@@ -12,6 +12,8 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
 public class DiffEngine implements DiffEngineJs {
+  public static final boolean debug = false;
+
   final NodeWorkersPool pool;
 
   DiffEngine(JsArray<NodeWorker> worker) {
@@ -151,6 +153,6 @@ public class DiffEngine implements DiffEngineJs {
 
   @Override
   public JsDiffTestApi testApi() {
-    return new DiffTestApi(pool);
+    return debug ? new DiffTestApi(pool) : null;
   }
 }
