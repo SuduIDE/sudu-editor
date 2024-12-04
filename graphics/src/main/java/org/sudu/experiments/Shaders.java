@@ -311,8 +311,8 @@ public interface Shaders {
       // todo: "uniform1i(sDiffuse, 0)" needed only once
       //   maybe optimize this later
       gl.uniform1i(sDiffuse, 0);
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+      gl.activeTexture(GLApi.Context.TEXTURE0);
+      gl.bindTexture(GLApi.Context.TEXTURE_2D, texture.texture);
     }
   }
 

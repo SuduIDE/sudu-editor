@@ -6,21 +6,24 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.function.Consumer;
 
-public class RenderTexture extends Scene0 {
+public class DrawTextureTest extends Scene0 {
   final TextRect demoRect = new TextRect(0, 0, 300, 300);
   final DemoRect mouse = new DemoRect(0, 0, 3, 3);
 
   GL.Texture mouseTexture;
   GL.Texture canvasTexture;
+  GL.Texture verticalTexture;
+  V2i vtSize = new V2i();
 
   Canvas textCanvas;
 
   V2i drag;
 
-  public RenderTexture(SceneApi api) {
+  public DrawTextureTest(SceneApi api) {
     super(api);
     WglGraphics g = api.graphics;
     api.input.onMouse.add(new MyInputListener());
@@ -34,6 +37,10 @@ public class RenderTexture extends Scene0 {
     mouseTexture = mouseTexture(g);
     mouse.size.set(mouseTexture.width(), mouseTexture.height());
     mouse.bgColor.set(clearColor);
+
+    verticalTexture = verticalTexture(g);
+    vtSize.x = 10;
+    vtSize.y = verticalTexture.height();
   }
 
   private void layout(V2i clientRect) {
@@ -47,10 +54,30 @@ public class RenderTexture extends Scene0 {
     mouseTexture = Disposable.assign(mouseTexture, null);
     canvasTexture = Disposable.assign(canvasTexture, null);
     textCanvas = Disposable.assign(textCanvas, null);
+    verticalTexture = Disposable.assign(verticalTexture, null);
   }
 
   private GL.Texture mouseTexture(WglGraphics g) {
     GL.ImageData image = TGen.chess(5, 5);
+    GL.Texture texture = g.createTexture();
+    texture.setContent(image);
+    return texture;
+  }
+
+  private GL.Texture verticalTexture(WglGraphics g) {
+    int height = 300;
+    GL.ImageData image = new GL.ImageData(1, height);
+    XorShiftRandom r = new XorShiftRandom(10, 20);
+    byte[] data = image.data;
+    r.fill(data);
+    for (int i = 0; i < height; i++)
+      data[i * 4 + 3] = -1;
+    for (int i = 0; i < height; i += 15) {
+      data[i * 4 + 3] = 0;
+      data[i * 4 + 7] = 0;
+      data[i * 4 + 11] = 0;
+    }
+
     GL.Texture texture = g.createTexture();
     texture.setContent(image);
     return texture;
@@ -69,10 +96,14 @@ public class RenderTexture extends Scene0 {
   public void paint() {
     super.paint();
 
-    demoRect.drawText(api.graphics, canvasTexture, 0, 0);
-    mouse.drawGrayIcon(api.graphics, mouseTexture, 0, 0, 0);
+    var g = api.graphics;
+    demoRect.drawText(g, canvasTexture, 0, 0);
+    g.enableBlend(true);
+    g.drawRect(10, 10, vtSize, verticalTexture);
+    g.enableBlend(false);
+    mouse.drawGrayIcon(g, mouseTexture, 0, 0, 0);
 
-    api.graphics.checkError("paint complete ");
+    g.checkError("paint complete ");
   }
 
   public void onResize(V2i size, float dpr) {
