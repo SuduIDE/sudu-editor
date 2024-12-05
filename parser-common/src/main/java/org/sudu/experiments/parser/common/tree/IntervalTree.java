@@ -125,7 +125,7 @@ public class IntervalTree {
 
   public void makeInsertDiff(int start, int size) {
     if (root.children.size() == 0) {
-      root.updateStop(start + size);
+      root.updateStop(size);
       root.needReparse = true;
     } else {
       updateFlag = false;

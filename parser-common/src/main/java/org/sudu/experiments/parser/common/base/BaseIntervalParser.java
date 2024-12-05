@@ -59,7 +59,7 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
     try {
       walkScopes(intervalRule, scopeWalker);
     } catch (Exception e) {
-      System.err.println(e.getMessage());
+      System.err.println("Exception while interval parsing: " + e.getMessage());
     }
 
     normalize(scopeWalker.currentNode.children);
