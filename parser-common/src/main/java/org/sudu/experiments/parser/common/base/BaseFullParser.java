@@ -90,7 +90,7 @@ public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> imp
   }
 
   protected void throwIfError(ErrorHighlightingStrategy strategy) {
-    if (strategy.haveParseErrors && throwOnError()) throw new ParseCancellationException();
+    if (strategy.haveParseErrors && throwOnError()) throw new RuntimeException();
   }
 
   protected boolean throwOnError() {
