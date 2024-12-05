@@ -177,7 +177,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     LoggingJs.info("RemoteFolderDiffWindow.onDiffApplied");
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
-    if (!isFiltered()) lastSendFrontendMsg.openedFolders.updateWithModel(rootModel);
+    if (!isFiltered()) lastSendFrontendMsg.openedFolders.updateDeepWithModel(rootModel);
     updateNodes();
   }
 

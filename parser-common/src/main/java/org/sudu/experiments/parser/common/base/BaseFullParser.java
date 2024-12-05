@@ -2,9 +2,9 @@ package org.sudu.experiments.parser.common.base;
 
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.ErrorHighlightingStrategy;
-import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.Pos;
 
@@ -20,18 +20,21 @@ public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> imp
 
     initLexer(source);
     var parser = initParser();
-    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes, tokenStyles));
+    var errorStrategy = new ErrorHighlightingStrategy(tokenTypes, tokenStyles);
+    parser.setErrorHandler(errorStrategy);
     parser.removeErrorListeners();
     parser.addErrorListener(parserRecognitionListener);
 
-    var rule = getStartRule(parser);
     highlightTokens();
 
     int[] result;
     try {
+      var rule = getStartRule(parser);
+      throwIfError(errorStrategy);
       var node = walk(rule);
       result = getInts(node);
     } catch (Exception e) {
+      System.err.println("Exception while parsing: " + e.getMessage());
       result = getInts(defaultIntervalNode());
     }
     if (printResult) System.out.println("Parsing done in: " + (System.currentTimeMillis() - parsingStartTime) + "ms");
@@ -84,6 +87,14 @@ public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> imp
     writeUsageToDefinitions(usageToDefinition);
 
     return writer.getInts();
+  }
+
+  protected void throwIfError(ErrorHighlightingStrategy strategy) {
+    if (strategy.haveParseErrors && throwOnError()) throw new RuntimeException();
+  }
+
+  protected boolean throwOnError() {
+    return false;
   }
 
   // Tokens, that

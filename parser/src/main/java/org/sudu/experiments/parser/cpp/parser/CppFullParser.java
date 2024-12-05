@@ -74,4 +74,8 @@ public class CppFullParser extends BaseFullParser<CPP14Parser> {
         || tokenType == CPP14Lexer.LineComment;
   }
 
+  @Override
+  protected boolean throwOnError() {
+    return true;
+  }
 }

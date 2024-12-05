@@ -19,7 +19,7 @@ public class DiffSync {
     this.model = model;
   }
 
-  private void sync(DiffRef from, DiffRef to) {
+  void sync(DiffRef from, DiffRef to) {
     if (model == null || model.ranges == null) return;
     boolean isLeft = from == left;
 

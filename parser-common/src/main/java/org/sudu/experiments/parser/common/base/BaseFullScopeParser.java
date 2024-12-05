@@ -16,21 +16,23 @@ public abstract class BaseFullScopeParser<P extends Parser> extends BaseFullPars
 
     initLexer(source);
     var parser = initParser();
-    parser.setErrorHandler(new ErrorHighlightingStrategy(tokenTypes, tokenStyles));
+    var errorStrategy = new ErrorHighlightingStrategy(tokenTypes, tokenStyles);
+    parser.setErrorHandler(errorStrategy);
     parser.removeErrorListeners();
     parser.addErrorListener(parserRecognitionListener);
 
-    var rule = getStartRule(parser);
     highlightTokens();
 
     IntervalNode node;
     int[] result;
     try {
+      var rule = getStartRule(parser);
+      throwIfError(errorStrategy);
       node = walk(rule);
     } catch (Exception e) {
-      System.err.println(e.getMessage());
-      e.printStackTrace();
+      System.err.println("Exception during parsing: " + e.getMessage());
       node = defaultIntervalNode();
+      scopeWalker = new ScopeWalker(node);
     }
     if (parserErrorOccurred()) node = defaultIntervalNode();
 
