@@ -34,13 +34,6 @@ public class LineNumbersComponent implements Disposable {
 
   private int curFirstLine;
 
-  static V4f getItemColor(EditorColorScheme colorScheme, byte[] colors, int i) {
-    return i >= colors.length || colors[i] == 0
-        ? colorScheme.lineNumber.bgColor
-        : colorScheme.codeDiffBg.getDiffColor(
-            colors[i], colorScheme.lineNumber.bgColor);
-  }
-
   public void setPosition(int x, int y, int width, int height, float dpr) {
     pos.set(x, y);
     size.set(width, height);
@@ -110,10 +103,10 @@ public class LineNumbersComponent implements Disposable {
       curTexture++;
     }
 
-    drawBottom(textHeight, size.y, scheme.lineNumber, g);
+    drawBottom(textHeight, size.y, scheme.editor.bg, g);
 
     if (firstLine <= caretLine && caretLine <= lastLine) {
-      var bgColor = getItemColor(scheme, colors, caretLine);
+      var bgColor = scheme.getDiffColor(colors, caretLine);
       drawCaretLine(scrollPos, caretLine, scheme.lineNumber, g, bgColor);
     }
     g.disableScissor();
@@ -132,12 +125,11 @@ public class LineNumbersComponent implements Disposable {
 
   private void drawBottom(
       int textHeight, int editorBottom,
-      LineNumbersColors colorScheme, WglGraphics g
+      V4f bgColor, WglGraphics g
   ) {
     if (textHeight < editorBottom) {
       g.drawRect(pos.x, pos.y + textHeight,
-        new V2i(size.x, editorBottom - textHeight),
-        colorScheme.bgColor);
+        new V2i(size.x, editorBottom - textHeight), bgColor);
     }
   }
 

@@ -103,6 +103,8 @@ public class EditorComponent extends View implements
   final ClrContext lrContext;
   InputListeners.KeyHandler onKey;
 
+  GL.Texture codeMap;
+
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
     this.g = context.graphics;
@@ -176,6 +178,12 @@ public class EditorComponent extends View implements
 
     if (1<0) DebugHelper.dumpFontsSize(g);
     caret.setWidth(DprUtil.toPx(Caret.defaultWidth, dpr));
+
+    if (codeMap.height() != size.y) {
+      // assert size.y > 0
+      if (model.diffModel != null)
+        buildDiffMap();
+    }
   }
 
   private void toggleBlankLines() {
@@ -361,6 +369,7 @@ public class EditorComponent extends View implements
   }
 
   public void dispose() {
+    clearCodeMap();
     CodeLineRenderer.disposeLines(lines);
     lrContext.dispose();
     lineNumbers.dispose();
@@ -1684,6 +1693,12 @@ public class EditorComponent extends View implements
   public void setDiffModel(LineDiff[] lineDiffs) {
     model.diffModel = lineDiffs;
     updateLineNumbersColors();
+    if (lineDiffs != null) {
+      if (size.y > 0)
+        buildDiffMap();
+    } else {
+      clearCodeMap();
+    }
   }
 
   public void updateLineNumbersColors() {
@@ -1773,4 +1788,19 @@ public class EditorComponent extends View implements
      mergeButtons.setModel(actions, lines);
      mergeButtons.setColors(lineNumbers.colors());
   }
+
+  void buildDiffMap() {
+    if (codeMap == null)
+      codeMap = g.createTexture();
+
+    model.diffModel;
+
+  }
+
+  void clearCodeMap() {
+    if (codeMap != null)
+      codeMap = Disposable.assign(codeMap, null);
+  }
+
+  public void setCodeMap() {}
 }
