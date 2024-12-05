@@ -20,6 +20,7 @@ import static org.sudu.experiments.editor.worker.diff.DiffUtils.readDiffInfo;
 public class RemoteFileDiffWindow extends FileDiffWindow {
 
   private final Channel channel;
+  private boolean needScrollSync = false;
   private boolean haveLeftHandle, haveRightHandle;
   private int lastLeftScrollPos = -1, lastRightScrollPos = -1;
   private V2i lastLeftCaretPos = null, lastRightCaretPos = null;
@@ -32,6 +33,7 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   ) {
     super(wm, theme, fonts);
     rootView.setOnRefresh(this::onRefresh);
+    rootView.setOnDiffModelSet(this::onDiffModelSet);
     processEsc = false;
     this.channel = channel;
     this.channel.setOnMessage(this::onMessage);
@@ -89,6 +91,7 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
 
   public void onRefresh() {
     LoggingJs.trace("RemoteFileDiffWindow.onRefresh");
+    needScrollSync = true;
     if (haveLeftHandle) {
       rootView.unsetModelFlagsBit(1);
       leftFile = null;
@@ -102,6 +105,18 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
       sendReadFile(false);
       lastRightScrollPos = rootView.editor2.getVScrollPos();
       lastRightCaretPos = rootView.editor2.model().getCaretPos();
+    }
+  }
+
+  private void onDiffModelSet() {
+    LoggingJs.trace("RemoteFileDiffWindow.setOnDiffModelSet");
+    if (needScrollSync) {
+      needScrollSync = false;
+      if (focusSave == rootView.editor2) {
+        rootView.diffSync.sync(rootView.editor1, rootView.editor2);
+      } else {
+        rootView.diffSync.sync(rootView.editor2, rootView.editor1);
+      }
     }
   }
 

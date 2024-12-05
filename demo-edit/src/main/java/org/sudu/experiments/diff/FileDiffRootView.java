@@ -24,9 +24,9 @@ class FileDiffRootView extends DiffRootView {
 
   Consumer<Model> onLeftDiffMade, onRightDiffMade;
 
-  boolean firstDiffRevealed = false;
+  boolean firstDiffRevealed = false, needScrollSync = false;
   private static final boolean showNavigateLog = true;
-  private Runnable onRefresh;
+  private Runnable onRefresh, onDiffModelSet;
 
   FileDiffRootView(WindowManager wm) {
     super(wm.uiContext);
@@ -181,6 +181,7 @@ class FileDiffRootView extends DiffRootView {
     editor2.setMergeButtons(m2.actions, m2.lines);
 
     if (!firstDiffRevealed) revealFirstDiff();
+    if (onDiffModelSet != null) onDiffModelSet.run();
   }
 
   public void updateDiffModel(
@@ -300,8 +301,13 @@ class FileDiffRootView extends DiffRootView {
     this.onRefresh = onRefresh;
   }
 
+  public void setOnDiffModelSet(Runnable onDiffModelSet) {
+    this.onDiffModelSet = onDiffModelSet;
+  }
+
   public void refresh() {
     System.out.println("FileDiffRootView.refresh");
+    needScrollSync = true;
     if (onRefresh != null) onRefresh.run();
   }
 
