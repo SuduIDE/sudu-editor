@@ -30,21 +30,33 @@ public class FrontendTreeNode {
     return child.findNode(path);
   }
 
+  public void updateDeepWithModel(RemoteFolderDiffModel model) {
+    if (children == null) return;
+    FrontendTreeNode[] newChildren = new FrontendTreeNode[model.children.length];
+    for (int i = 0; i < model.children.length; i++) {
+      var modelChild = model.child(i);
+      var nodeChild = child(i, modelChild.path, modelChild.isFile());
+      if (nodeChild == null) {
+        nodeChild = new FrontendTreeNode();
+      } else {
+        nodeChild.updateDeepWithModel(modelChild);
+      }
+      newChildren[i] = nodeChild;
+    }
+    children = newChildren;
+  }
+
   // model can contain only less or equal elements
   public void updateWithModel(RemoteFolderDiffModel model) {
     if (children == null) return;
-    if (children.length != model.children.length) {
-      FrontendTreeNode[] newChildren = new FrontendTreeNode[model.children.length];
-      for (int i = 0, j = 0; i < model.children.length; j++) {
-        var modelChild = model.child(i);
-        var nodeChild = children[j];
-        if (modelChild.isFile() == nodeChild.isFile &&
-            modelChild.path.equals(nodeChild.name)
-        ) newChildren[i++] = nodeChild;
-      }
-      children = newChildren;
+    FrontendTreeNode[] newChildren = new FrontendTreeNode[model.children.length];
+    for (int i = 0; i < model.children.length; i++) {
+      var modelChild = model.child(i);
+      var nodeChild = child(i, modelChild.path, modelChild.isFile());
+      if (nodeChild == null) nodeChild = new FrontendTreeNode();
+      newChildren[i] = nodeChild;
     }
-    for (int i = 0; i < children.length; i++) children[i].updateWithModel(model.child(i));
+    children = newChildren;
   }
 
   public void collectPath(int[] path, ArrayWriter pathWriter, FolderDiffModel model, int side) {
