@@ -5,6 +5,7 @@ import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.SizeScanner;
+import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
@@ -80,12 +81,11 @@ public class RemoteCollector {
 
   public void refresh() {
     LoggingJs.info("RemoteCollector.Refresh");
-    var items = root.items;
     firstMessageSent = lastMessageSent = false;
     isRefresh = true;
     startTime = lastMessageSentTime = Performance.now();
-    root = new ItemFolderDiffModel(null, "");
-    root.setItems(items[0], items[1]);
+    root.setCompared(false);
+    root.childrenComparedCnt = 0;
     sendToWorkerQueue.clear();
     beginCompare();
   }
@@ -233,6 +233,21 @@ public class RemoteCollector {
     LoggingJs.error(error);
   }
 
+  private ItemFolderDiffModel oldOrNull(
+      FolderDiffModel[] oldChildren,
+      ItemFolderDiffModel parent,
+      FsItem item
+  ) {
+    String path = item.getName();
+    boolean isFile = item instanceof FileHandle;
+    if (oldChildren == null) return new ItemFolderDiffModel(parent, path);
+    for (var oldChild: oldChildren)
+      if (oldChild instanceof ItemFolderDiffModel itemChild &&
+          path.equals(itemChild.path) && isFile == itemChild.isFile()
+      ) return itemChild;
+    return new ItemFolderDiffModel(parent, path);
+  }
+
   private void compare(ItemFolderDiffModel model) {
     ++inComparing;
     if (model.left() instanceof DirectoryHandle leftDir &&
@@ -275,8 +290,9 @@ public class RemoteCollector {
     FsItem[] rightItem = Arrays.copyOfRange(result, 1 + leftLen, 1 + leftLen + rightLen, FsItem[].class);
 
     int len = diffs.length;
-    model.children = new ItemFolderDiffModel[len];
+    var oldChildren = model.children;
     model.childrenComparedCnt = 0;
+    model.children = new ItemFolderDiffModel[len];
 
     int lP = 0, rP = 0;
     int mP = 0;
@@ -286,7 +302,8 @@ public class RemoteCollector {
       int kind = kinds[mP];
       if (diffs[mP] == DiffTypes.DELETED) {
         edited = true;
-        model.children[mP] = new ItemFolderDiffModel(model, leftItem[lP].getName());
+        model.children[mP] = oldOrNull(oldChildren, model, leftItem[lP]);
+        model.child(mP).setCompared(false);
         model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.DELETED);
@@ -296,7 +313,8 @@ public class RemoteCollector {
         lP++;
       } else if (diffs[mP] == DiffTypes.INSERTED) {
         edited = true;
-        model.children[mP] = new ItemFolderDiffModel(model, rightItem[rP].getName());
+        model.children[mP] = oldOrNull(oldChildren, model, rightItem[rP]);
+        model.child(mP).setCompared(false);
         model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.INSERTED);
@@ -305,7 +323,8 @@ public class RemoteCollector {
         mP++;
         rP++;
       } else {
-        model.children[mP] = new ItemFolderDiffModel(model, leftItem[lP].getName());
+        model.children[mP] = oldOrNull(oldChildren, model, leftItem[lP]);
+        model.child(mP).setCompared(false);
         model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setItems(leftItem[lP], rightItem[rP]);
@@ -397,7 +416,7 @@ public class RemoteCollector {
 
   private void onItemCompared() {
     if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
-    if (--sentToWorker < 0) throw new IllegalStateException("inComparing cannot be negative");
+    if (--sentToWorker < 0) throw new IllegalStateException("sentToWorker cannot be negative");
     if (isShutdown) shutdown();
     else if (inComparing == 0) onComplete();
     else {
