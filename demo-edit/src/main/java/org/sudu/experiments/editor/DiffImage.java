@@ -1,25 +1,27 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.GL;
-import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.ui.colors.DiffColors;
-import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.Color;
+
+import java.util.Arrays;
 
 class DiffImage {
 
-
   static byte[] diffImage(LineDiff[] model, int height) {
     byte[] result = new byte[height];
-    int lA = 0, lB;
-    int doc = model.length, round = height / 2;
+    int lA = 0, lB, doc = model.length;
+    int round = Math.min(doc, height) / 2;
     for (int i = 0; i < height; i++) {
-      lA = (doc * i + round) / height;
+      // lA = (doc * i + round) / height;
       lB = (doc * i + doc + round) / height;
-//      for (int j = lA; j < lB; j++) {}
+      int j = lA, k = lA == lB ? lA + 1 : lB;
+      char[] sss = new char[k - j];
+      Arrays.fill(sss, '.');
+      // for (; j < k; j++) {}
       System.out.println(
-          "[" + i + "] = [" + lA + ", " + lB + ")");
+          "[" + i + "] = [" + lA + ", " + lB + ")" + new String(sss));
 
       lA = lB;
     }
@@ -43,22 +45,5 @@ class DiffImage {
       data[p++] = (byte) c.g;
       data[p++] = (byte) c.a;
     }
-  }
-
-  public static void main(String[] args) {
-    int doc = 12;
-    LineDiff[] model = new LineDiff[doc];
-
-    for (int i = 0; i < model.length; i++) {
-      model[i] = new LineDiff(i % 4);
-    }
-
-//    var diffCode1 = diffImage(model, model.length * 3);
-    var diffCode2 = diffImage(model, 5);
-
-//    DiffColors diffColors = DiffColors.codeDiffDark();
-//    GL.ImageData img = new GL.ImageData(1, diffCode.length);
-//    applyDiffPalette(diffCode, img, diffColors);
-
   }
 }
