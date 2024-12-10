@@ -1,31 +1,46 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.GL;
+import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.ui.colors.DiffColors;
 import org.sudu.experiments.math.Color;
-
-import java.util.Arrays;
 
 class DiffImage {
 
   static byte[] diffImage(LineDiff[] model, int height) {
     byte[] result = new byte[height];
-    int lA = 0, lB, doc = model.length;
+    int a = 0, b, doc = model.length;
     int round = Math.min(doc, height) / 2;
+    int l, r, d, type, j;
     for (int i = 0; i < height; i++) {
-      // lA = (doc * i + round) / height;
-      lB = (doc * i + doc + round) / height;
-      int j = lA, k = lA == lB ? lA + 1 : lB;
-      char[] sss = new char[k - j];
-      Arrays.fill(sss, '.');
-      // for (; j < k; j++) {}
-      System.out.println(
-          "[" + i + "] = [" + lA + ", " + lB + ")" + new String(sss));
+      b = (doc * i + doc + round) / height;
+      l = 0; r = 0; d = 0;
+      j = a;
+      do {
+        type = model[j].type;
+        if (type == DiffTypes.DELETED) l++;
+        else if (type == DiffTypes.INSERTED) r++;
+        else if (type == DiffTypes.EDITED) d++;
+      } while (++j < b);
 
-      lA = lB;
+      if ((j-a) != (a == b ? 1 : b - a))
+        throw new RuntimeException();
+
+      result[i] = (byte) (l > d
+          ? l > r ? DiffTypes.DELETED : DiffTypes.INSERTED
+          : r > d ? DiffTypes.INSERTED : DiffTypes.EDITED);
+
+      a = b;
     }
     return result;
+  }
+
+  static void blurDiffImage(byte[] image) {
+    int length = image.length;
+    if (length < 2) return;
+    int prev = image[0];
+    int curr = image[1];
   }
 
   static void applyDiffPalette(
