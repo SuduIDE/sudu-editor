@@ -39,8 +39,22 @@ class DiffImage {
   static void blurDiffImage(byte[] image) {
     int length = image.length;
     if (length < 2) return;
-    int prev = image[0];
-    int curr = image[1];
+    byte prev = image[0], curr = image[1], next;
+    if (length == 2) {
+      if (prev == 0 && curr != 0) image[0] = curr;
+      if (curr == 0 && prev != 0) image[1] = prev;
+    } else {
+      if (prev == 0 && curr != 0) image[0] = curr;
+      for (int i = 1, e = length - 1; i < e; i++) {
+        next = image[i + 1];
+        if (curr == 0 && ((prev | next) != 0)) {
+          image[i] = prev == 0 ? next : prev;
+        }
+        prev = curr;
+        curr = next;
+      }
+      if (curr == 0 && prev != 0) image[length - 1] = prev;
+    }
   }
 
   static void applyDiffPalette(

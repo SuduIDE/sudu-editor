@@ -1,17 +1,22 @@
 package org.sudu.experiments.editor;
 
+import org.junit.jupiter.api.Assertions;
 import org.sudu.experiments.diff.LineDiff;
+import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.Arrays;
 
 public class DiffImageTest {
 
+  static boolean print = true;
+
   public static void main(String[] args) {
     int doc = 12;
 
     testMag(doc);
-    System.out.println("-------------------------");
+    print("-------------------------");
     testMin(doc);
+    testBlur();
 
 //    DiffColors diffColors = DiffColors.codeDiffDark();
 //    GL.ImageData img = new GL.ImageData(1, diffCode.length);
@@ -37,7 +42,7 @@ public class DiffImageTest {
       char[] sss = new char[a == b ? 1 : b - a];
       Arrays.fill(sss, '.');
 
-      System.out.println(
+      print(
           "[" + i + "] = [" + a + ", " + b + ")" + new String(sss));
 
       a = b;
@@ -47,37 +52,74 @@ public class DiffImageTest {
   }
 
   static void testMin(int modelLength) {
-    System.out.println("   " + modelLength + " -> " + 5);
+    print("   " + modelLength + " -> " + 5);
     diffImageIterateTest(modelLength, 5);
 
-    System.out.println("   " + modelLength + " -> " + 7);
+    print("   " + modelLength + " -> " + 7);
     diffImageIterateTest(modelLength, 7);
 
-    System.out.println("   " + modelLength + " -> " + modelLength);
+    print("   " + modelLength + " -> " + modelLength);
     diffImageIterateTest(modelLength, modelLength);
 
-    System.out.println("   " + modelLength + " -> " + 4);
+    print("   " + modelLength + " -> " + 4);
     diffImageIterateTest(modelLength, 4);
   }
 
+  private static void print(String s) {
+    if (print) System.out.println(s);
+  }
+
   static void testMag(int modelLength) {
-    System.out.println("--------  model.length * 3 + 2  ----------");
+    print("--------  model.length * 3 + 2  ----------");
 
     int height1 = modelLength * 3 + 2;
-    System.out.println("   " + modelLength + " -> " + height1);
+    print("   " + modelLength + " -> " + height1);
     diffImageIterateTest(modelLength, height1);
 
-    System.out.println("--------  modelLength * 3 + 3  ----------");
+    print("--------  modelLength * 3 + 3  ----------");
 
     int height2 = modelLength * 3 + 3;
-    System.out.println("   " + modelLength + " -> " + height2);
+    print("   " + modelLength + " -> " + height2);
     diffImageIterateTest(modelLength, height2);
 
-    System.out.println("--------  modelLength * 3 + 4  ----------");
+    print("--------  modelLength * 3 + 4  ----------");
 
     int height3 = modelLength * 3 + 4;
-    System.out.println("   " + modelLength + " -> " + height3);
+    print("   " + modelLength + " -> " + height3);
     diffImageIterateTest(modelLength, height3);
   }
 
+  static void testBlur() {
+    testBlur2bytes();
+
+    XorShiftRandom r = new XorShiftRandom(34, 55);
+    byte[] data = new byte[100];
+    byte[] copy = new byte[data.length];
+    for (int i = 0; i < 100; i++) {
+      for (int j = 0; j < data.length; j++)
+        data[j] = (byte) r.nextInt(4);
+      System.arraycopy(data, 0, copy, 0, data.length);
+      DiffImage.blurDiffImage(data);
+      for (int j = 0; j < data.length; j++) {
+        int pr = Math.max(j - 1, 0);
+        int nx = Math.min(j + 1, data.length - 1);
+        boolean ok = data[j] == 0
+            ? copy[pr] == 0 && copy[nx] == 0 && copy[j] == 0
+            : copy[j] != 0 || copy[pr] != 0 || copy[nx] != 0;
+        Assertions.assertTrue(ok);
+      }
+    }
+  }
+
+  private static void testBlur2bytes() {
+    byte[] data2_1 = new byte[] { 0, 1 };
+    byte[] data2_2 = new byte[] { 2, 0 };
+    byte[] data2_1e = new byte[] { 1, 1 };
+    byte[] data2_2e = new byte[] { 2, 2 };
+
+    DiffImage.blurDiffImage(data2_1);
+    Assertions.assertArrayEquals(data2_1e, data2_1);
+    DiffImage.blurDiffImage(data2_2);
+    Assertions.assertArrayEquals(data2_2e, data2_2);
+  }
 }
