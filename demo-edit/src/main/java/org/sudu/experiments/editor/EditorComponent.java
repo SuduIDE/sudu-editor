@@ -38,6 +38,7 @@ public class EditorComponent extends View implements
 
   boolean forceMaxFPS = false;
   Runnable[] debugFlags = new Runnable[10];
+  static final boolean dumpFontsOnResize = false;
 
   final Caret caret = new Caret();
   boolean hasFocus;
@@ -62,7 +63,7 @@ public class EditorComponent extends View implements
   static final int vLineXDp = 80;
   static final int vLineWDp = 1;
   static final int vLineLeftDeltaDp = 10;
-  static final int diffImageWidthDp = 20;
+  static final int codeMapWidthDp = 20;
 
   int vLineX;
   int vLineW;
@@ -166,9 +167,9 @@ public class EditorComponent extends View implements
   private void internalLayout() {
     boolean hasMerge = mergeButtons != null;
     mergeWidth = (hasMerge && !mirrored) ? mergeWidth() : 0;
-    vLineX = DprUtil.toPx(vLineXDp, dpr) + mergeWidth;
-    vLineW = DprUtil.toPx(vLineWDp, dpr);
-    vLineLeftDelta = DprUtil.toPx(vLineLeftDeltaDp, dpr);
+    vLineX = toPx(vLineXDp) + mergeWidth;
+    vLineW = toPx(vLineWDp);
+    vLineLeftDelta = toPx(vLineLeftDeltaDp);
 
     int lineNumbersWidth = lineNumbersWidth();
     int lineNumbersX = mirrored ? pos.x + size.x - lineNumbersWidth : pos.x;
@@ -178,10 +179,11 @@ public class EditorComponent extends View implements
     if (hasMerge)
       layoutMergeButtons();
 
-    if (1<0) DebugHelper.dumpFontsSize(g);
-    caret.setWidth(DprUtil.toPx(Caret.defaultWidth, dpr));
+    if (dumpFontsOnResize) DebugHelper.dumpFontsSize(g);
+    caret.setWidth(toPx(Caret.defaultWidth));
 
     if (model.diffModel != null && size.y > 0) {
+      codeMapSize.x = Math.min(size.x, toPx(codeMapWidthDp));
       if (codeMap == null || codeMap.height() != size.y)
         buildDiffMap();
     }
