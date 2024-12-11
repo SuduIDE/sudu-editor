@@ -8,7 +8,17 @@ import org.sudu.experiments.math.Color;
 
 class DiffImage {
 
-  static byte[] diffImage(LineDiff[] model, int height) {
+  static GL.ImageData diffImage(
+      LineDiff[] model, int height, DiffColors colors
+  ) {
+    GL.ImageData img = new GL.ImageData(1, height);
+    byte[] map = diffMap(model, height);
+    blurDiffImage(map);
+    applyDiffPalette(map, img, colors);
+    return img;
+  }
+
+  static byte[] diffMap(LineDiff[] model, int height) {
     byte[] result = new byte[height];
     int a = 0, b, doc = model.length;
     int round = Math.min(doc, height) / 2;
@@ -58,17 +68,16 @@ class DiffImage {
   }
 
   static void applyDiffPalette(
-      byte[] diffState, GL.ImageData img,
-      DiffColors colors
+      byte[] diffMap, GL.ImageData img, DiffColors colors
   ) {
-    if (img.height != diffState.length || img.width != 1) {
+    if (img.height != diffMap.length || img.width != 1) {
       System.err.println("Diff image size mismatch");
       return;
     }
     var data = img.data;
     Color c0 = new Color(0, 0, 0, 0);
-    for (int i = 0, p = 0; i < diffState.length; i++) {
-      Color c = colors.getDiffColor(diffState[i], c0);
+    for (int i = 0, p = 0; i < diffMap.length; i++) {
+      Color c = colors.getDiffColor(diffMap[i], c0);
       data[p++] = (byte) c.r;
       data[p++] = (byte) c.g;
       data[p++] = (byte) c.g;

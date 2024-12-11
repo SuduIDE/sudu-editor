@@ -1792,10 +1792,9 @@ public class EditorComponent extends View implements
   void buildDiffMap() {
     if (codeMap == null)
       codeMap = g.createTexture();
-    GL.ImageData img = new GL.ImageData(1, size.y);
-
-//    model.diffModel;
-
+    var img = DiffImage.diffImage(model.diffModel, size.y, colors.codeDiffBg);
+    codeMap.setContent(img);
+    System.out.println("codeMap built: " + codeMap);
   }
 
   void clearCodeMap() {

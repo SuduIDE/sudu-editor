@@ -48,7 +48,7 @@ public class DiffImageTest {
       a = b;
     }
 
-    DiffImage.diffImage(model(document), height);
+    DiffImage.diffMap(model(document), height);
   }
 
   static void testMin(int modelLength) {
