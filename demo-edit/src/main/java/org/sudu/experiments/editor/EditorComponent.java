@@ -62,6 +62,7 @@ public class EditorComponent extends View implements
   static final int vLineXDp = 80;
   static final int vLineWDp = 1;
   static final int vLineLeftDeltaDp = 10;
+  static final int diffImageWidthDp = 20;
 
   int vLineX;
   int vLineW;
@@ -104,6 +105,7 @@ public class EditorComponent extends View implements
   InputListeners.KeyHandler onKey;
 
   GL.Texture codeMap;
+  final V2i codeMapSize = new V2i();
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -179,9 +181,8 @@ public class EditorComponent extends View implements
     if (1<0) DebugHelper.dumpFontsSize(g);
     caret.setWidth(DprUtil.toPx(Caret.defaultWidth, dpr));
 
-    if (codeMap.height() != size.y) {
-      // assert size.y > 0
-      if (model.diffModel != null)
+    if (model.diffModel != null && size.y > 0) {
+      if (codeMap == null || codeMap.height() != size.y)
         buildDiffMap();
     }
   }
@@ -1692,6 +1693,8 @@ public class EditorComponent extends View implements
 
   public void setDiffModel(LineDiff[] lineDiffs) {
     model.diffModel = lineDiffs;
+    // todo: we can improve this by adding shareble
+    // diff map between LineNumberComponent and codeMapTexture
     updateLineNumbersColors();
     if (lineDiffs != null) {
       if (size.y > 0)
@@ -1795,6 +1798,7 @@ public class EditorComponent extends View implements
     var img = DiffImage.diffImage(model.diffModel, size.y, colors.codeDiffBg);
     codeMap.setContent(img);
     System.out.println("codeMap built: " + codeMap);
+
   }
 
   void clearCodeMap() {
