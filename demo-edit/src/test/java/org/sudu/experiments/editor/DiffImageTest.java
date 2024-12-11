@@ -90,7 +90,7 @@ public class DiffImageTest {
   }
 
   static void testBlur() {
-    testBlur2bytes();
+    testBlurEdgeCases();
 
     XorShiftRandom r = new XorShiftRandom(34, 55);
     byte[] data = new byte[100];
@@ -111,7 +111,7 @@ public class DiffImageTest {
     }
   }
 
-  private static void testBlur2bytes() {
+  private static void testBlurEdgeCases() {
     byte[] data2_1 = new byte[] { 0, 1 };
     byte[] data2_2 = new byte[] { 2, 0 };
     byte[] data2_1e = new byte[] { 1, 1 };
@@ -121,5 +121,15 @@ public class DiffImageTest {
     Assertions.assertArrayEquals(data2_1e, data2_1);
     DiffImage.blurDiffImage(data2_2);
     Assertions.assertArrayEquals(data2_2e, data2_2);
+
+    byte[] data1_1 = new byte[] { 0 };
+    byte[] data1_1e = new byte[] { 0 };
+
+    DiffImage.blurDiffImage(data1_1);
+    Assertions.assertArrayEquals(data1_1e, data1_1);
+
+    data1_1[0] = 1; data1_1e[0] = 1;
+    DiffImage.blurDiffImage(data1_1);
+    Assertions.assertArrayEquals(data1_1e, data1_1);
   }
 }
