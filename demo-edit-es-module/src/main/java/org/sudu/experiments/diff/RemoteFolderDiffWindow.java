@@ -234,6 +234,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     left.doOpen();
     right.doOpen();
 
+    if (treeNode.children.length != model.children.length) treeNode.updateWithModel(model);
     int lp = 0, rp = 0;
     for (int i = 0; i < model.children.length; i++) {
       var child = model.child(i);
@@ -262,6 +263,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     if (model.children == null || treeNode == null || !treeNode.isOpened()) return;
     node.doOpen();
 
+    if (treeNode.children.length != model.children.length) treeNode.updateWithModel(model);
     for (int i = 0; i < model.children.length; i++) {
       var child = model.child(i);
       var childNode = treeNode.child(i, child.path, child.isFile());

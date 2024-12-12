@@ -55,7 +55,11 @@ public class FrontendTreeNode {
     for (int i = 0; i < model.children.length; i++) {
       var modelChild = model.child(i);
       var nodeChild = child(i, modelChild.path, modelChild.isFile());
-      if (nodeChild == null) nodeChild = new FrontendTreeNode();
+      if (nodeChild == null) {
+        nodeChild = new FrontendTreeNode();
+        nodeChild.name = modelChild.path;
+        nodeChild.isFile = modelChild.isFile();
+      }
       newChildren[i] = nodeChild;
     }
     children = newChildren;
