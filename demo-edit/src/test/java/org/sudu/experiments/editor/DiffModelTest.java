@@ -29,9 +29,9 @@ public class DiffModelTest {
 
     DiffModel model = new DiffModel();
     char[] charsL = docL.getChars();
-    int[] intsL = DiffUtils.makeIntervals(docL);
+    int[] intsL = DiffUtils.makeIntervals(docL, true);
     char[] charsR = docR.getChars();
-    int[] intsR = DiffUtils.makeIntervals(docR);
+    int[] intsR = DiffUtils.makeIntervals(docR, true);
 
     int[] res = model.findDiffs(charsL, intsL, charsR, intsR);
 
