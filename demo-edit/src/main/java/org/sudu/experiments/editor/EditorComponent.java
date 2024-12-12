@@ -182,8 +182,9 @@ public class EditorComponent extends View implements
     if (dumpFontsOnResize) DebugHelper.dumpFontsSize(g);
     caret.setWidth(toPx(Caret.defaultWidth));
 
-    if (model.diffModel != null && size.y > 0) {
-      codeMapSize.x = Math.min(size.x, toPx(codeMapWidthDp));
+    codeMapSize.x = Math.min(size.x, toPx(codeMapWidthDp));
+    codeMapSize.y = size.y;
+    if (LineDiff.notEmpty(model.diffModel) && size.y > 0) {
       if (codeMap == null || codeMap.height() != size.y)
         buildDiffMap();
     }
@@ -559,6 +560,8 @@ public class EditorComponent extends View implements
       caret.paint(g, pos);
     }
 
+    if (codeMap != null)
+      drawCodeMap();
     layoutScrollbar();
     drawScrollBar();
 
@@ -578,6 +581,12 @@ public class EditorComponent extends View implements
       Debug.consoleInfo(s);
       CodeLine.cacheMiss = CodeLine.cacheHits = 0;
     }
+  }
+
+  private void drawCodeMap() {
+    g.enableBlend(true);
+    g.drawRect(
+        pos.x + size.x - codeMapSize.x, pos.y, codeMapSize, codeMap);
   }
 
   private void drawGap(int firstLine, int lastLine, int docLen) {
@@ -1698,7 +1707,7 @@ public class EditorComponent extends View implements
     // todo: we can improve this by adding shareble
     // diff map between LineNumberComponent and codeMapTexture
     updateLineNumbersColors();
-    if (lineDiffs != null) {
+    if (LineDiff.notEmpty(lineDiffs)) {
       if (size.y > 0)
         buildDiffMap();
     } else {
@@ -1707,7 +1716,7 @@ public class EditorComponent extends View implements
   }
 
   public void updateLineNumbersColors() {
-    if (model.diffModel != null) {
+    if (LineDiff.notEmpty(model.diffModel)) {
       byte[] c = new byte[model.diffModel.length];
       for (int i = 0; i < c.length; i++) {
         LineDiff ld = model.diffModel[i];
@@ -1808,5 +1817,7 @@ public class EditorComponent extends View implements
       codeMap = Disposable.assign(codeMap, null);
   }
 
-  public void setCodeMap() {}
+  public void setCodeMap() {
+    // todo: later...
+  }
 }

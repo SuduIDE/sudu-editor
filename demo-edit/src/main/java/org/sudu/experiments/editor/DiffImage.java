@@ -28,18 +28,22 @@ class DiffImage {
       l = 0; r = 0; d = 0;
       j = a;
       do {
-        type = model[j].type;
-        if (type == DiffTypes.DELETED) l++;
-        else if (type == DiffTypes.INSERTED) r++;
-        else if (type == DiffTypes.EDITED) d++;
+        LineDiff diff = model[j];
+        if (diff != null) {
+          type = diff.type;
+          if (type == DiffTypes.DELETED) l++;
+          else if (type == DiffTypes.INSERTED) r++;
+          else if (type == DiffTypes.EDITED) d++;
+        }
       } while (++j < b);
 
       if ((j-a) != (a == b ? 1 : b - a))
         throw new RuntimeException();
 
-      result[i] = (byte) (l > d
-          ? l > r ? DiffTypes.DELETED : DiffTypes.INSERTED
-          : r > d ? DiffTypes.INSERTED : DiffTypes.EDITED);
+      result[i] = (l | r | d) == 0 ? 0 :
+          (byte) (l > d
+              ? l > r ? DiffTypes.DELETED : DiffTypes.INSERTED
+              : r > d ? DiffTypes.INSERTED : DiffTypes.EDITED);
 
       a = b;
     }
@@ -77,11 +81,18 @@ class DiffImage {
     var data = img.data;
     Color c0 = new Color(0, 0, 0, 0);
     for (int i = 0, p = 0; i < diffMap.length; i++) {
-      Color c = colors.getDiffColor(diffMap[i], c0);
+      byte type = diffMap[i];
+      if (type == 0) {
+        c0.a = 0;
+      }
+      if (type != 0) {
+        c0.a = 0;
+      }
+      Color c = colors.getDiffColor(type, c0);
       data[p++] = (byte) c.r;
       data[p++] = (byte) c.g;
       data[p++] = (byte) c.g;
-      data[p++] = (byte) c.a;
+      data[p++] = (byte) (type == 0 ? 0 : -1);
     }
   }
 }
