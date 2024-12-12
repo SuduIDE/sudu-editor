@@ -63,7 +63,7 @@ public class EditorComponent extends View implements
   static final int vLineXDp = 80;
   static final int vLineWDp = 1;
   static final int vLineLeftDeltaDp = 10;
-  static final int codeMapWidthDp = 20;
+  static final int codeMapWidthDp = 16;
 
   int vLineX;
   int vLineW;
@@ -584,9 +584,9 @@ public class EditorComponent extends View implements
   }
 
   private void drawCodeMap() {
+    int x = pos.x + (mirrored ? 0 : size.x - codeMapSize.x);
     g.enableBlend(true);
-    g.drawRect(
-        pos.x + size.x - codeMapSize.x, pos.y, codeMapSize, codeMap);
+    g.drawRect(x, pos.y, codeMapSize, codeMap);
   }
 
   private void drawGap(int firstLine, int lastLine, int docLen) {
