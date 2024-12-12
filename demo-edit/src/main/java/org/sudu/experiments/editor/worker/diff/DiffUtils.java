@@ -95,26 +95,32 @@ public class DiffUtils {
     leftReader.beginRead();
   }
 
-  public static int[] makeIntervals(Document document, int fromLine, int toLine) {
+  public static int[] makeIntervals(Document document, int fromLine, int toLine, boolean cmpOnlyLines) {
     ArrayWriter writer = new ArrayWriter();
     writer.write(toLine - fromLine);
     int offset = 0;
     for (int i = fromLine; i < toLine; i++) {
       CodeLine line = document.line(i);
-      int Mi = line.length();
-      writer.write(Mi);
-      for (int j = 0; j < Mi; j++) {
-        var elem = line.get(j);
-        writer.write(offset, elem.length());
-        offset += elem.length();
+      if (cmpOnlyLines) {
+        writer.write(1);
+        writer.write(offset, line.totalStrLength);
+        offset += line.totalStrLength;
+      } else {
+        int Mi = line.length();
+        writer.write(Mi);
+        for (int j = 0; j < Mi; j++) {
+          var elem = line.get(j);
+          writer.write(offset, elem.length());
+          offset += elem.length();
+        }
       }
       offset++;
     }
     return writer.getInts();
   }
 
-  public static int[] makeIntervals(Document document) {
-    return makeIntervals(document, 0, document.length());
+  public static int[] makeIntervals(Document document, boolean cmpOnlyLines) {
+    return makeIntervals(document, 0, document.length(), cmpOnlyLines);
   }
 
   public static DiffInfo readDiffInfo(int[] ints) {
@@ -197,8 +203,8 @@ public class DiffUtils {
   ) {
     char[] chars1 = document1.getChars();
     char[] chars2 = document2.getChars();
-    int[] intervals1 = makeIntervals(document1);
-    int[] intervals2 = makeIntervals(document2);
+    int[] intervals1 = makeIntervals(document1, cmpOnlyLines);
+    int[] intervals2 = makeIntervals(document2, cmpOnlyLines);
 
     window.sendToWorker(true,
         r -> {
@@ -219,8 +225,8 @@ public class DiffUtils {
   ) {
     char[] chars1 = document1.getChars(fromL, toL);
     char[] chars2 = document2.getChars(fromR, toR);
-    int[] intervals1 = makeIntervals(document1, fromL, toL);
-    int[] intervals2 = makeIntervals(document2, fromR, toR);
+    int[] intervals1 = makeIntervals(document1, fromL, toL, false);
+    int[] intervals2 = makeIntervals(document2, fromR, toR, false);
     window.sendToWorker(true,
         r -> {
           int[] reply = ((ArrayView) r[0]).ints();
