@@ -231,6 +231,8 @@ public class EditorComponent extends View implements
     if (!theme.editorFont.equals(fontFamilyName, fontVirtualSize)) {
       changeFont(theme.editorFont.familyName, theme.editorFont.size);
     }
+    if (codeMap != null)
+      buildDiffMap();
   }
 
   void toggleXOffset() {
