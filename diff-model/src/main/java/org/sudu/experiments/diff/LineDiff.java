@@ -22,4 +22,8 @@ public class LineDiff {
   public String toString() {
     return DiffTypes.name(type);
   }
+
+  public static boolean notEmpty(LineDiff[] diff) {
+    return diff != null && (diff.length > 1 || diff[0].type != 0);
+  }
 }

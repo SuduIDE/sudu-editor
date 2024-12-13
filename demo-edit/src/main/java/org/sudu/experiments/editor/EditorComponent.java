@@ -38,6 +38,7 @@ public class EditorComponent extends View implements
 
   boolean forceMaxFPS = false;
   Runnable[] debugFlags = new Runnable[10];
+  static final boolean dumpFontsOnResize = false;
 
   final Caret caret = new Caret();
   boolean hasFocus;
@@ -62,6 +63,7 @@ public class EditorComponent extends View implements
   static final int vLineXDp = 80;
   static final int vLineWDp = 1;
   static final int vLineLeftDeltaDp = 10;
+  static final int codeMapWidthDp = 16;
 
   int vLineX;
   int vLineW;
@@ -102,6 +104,9 @@ public class EditorComponent extends View implements
 
   final ClrContext lrContext;
   InputListeners.KeyHandler onKey;
+
+  GL.Texture codeMap;
+  final V2i codeMapSize = new V2i();
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -162,9 +167,9 @@ public class EditorComponent extends View implements
   private void internalLayout() {
     boolean hasMerge = mergeButtons != null;
     mergeWidth = (hasMerge && !mirrored) ? mergeWidth() : 0;
-    vLineX = DprUtil.toPx(vLineXDp, dpr) + mergeWidth;
-    vLineW = DprUtil.toPx(vLineWDp, dpr);
-    vLineLeftDelta = DprUtil.toPx(vLineLeftDeltaDp, dpr);
+    vLineX = toPx(vLineXDp) + mergeWidth;
+    vLineW = toPx(vLineWDp);
+    vLineLeftDelta = toPx(vLineLeftDeltaDp);
 
     int lineNumbersWidth = lineNumbersWidth();
     int lineNumbersX = mirrored ? pos.x + size.x - lineNumbersWidth : pos.x;
@@ -174,8 +179,15 @@ public class EditorComponent extends View implements
     if (hasMerge)
       layoutMergeButtons();
 
-    if (1<0) DebugHelper.dumpFontsSize(g);
-    caret.setWidth(DprUtil.toPx(Caret.defaultWidth, dpr));
+    if (dumpFontsOnResize) DebugHelper.dumpFontsSize(g);
+    caret.setWidth(toPx(Caret.defaultWidth));
+
+    codeMapSize.x = Math.min(size.x, toPx(codeMapWidthDp));
+    codeMapSize.y = size.y;
+    if (LineDiff.notEmpty(model.diffModel) && size.y > 0) {
+      if (codeMap == null || codeMap.height() != size.y)
+        buildDiffMap();
+    }
   }
 
   private void toggleBlankLines() {
@@ -361,6 +373,7 @@ public class EditorComponent extends View implements
   }
 
   public void dispose() {
+    clearCodeMap();
     CodeLineRenderer.disposeLines(lines);
     lrContext.dispose();
     lineNumbers.dispose();
@@ -547,6 +560,8 @@ public class EditorComponent extends View implements
       caret.paint(g, pos);
     }
 
+    if (codeMap != null)
+      drawCodeMap();
     layoutScrollbar();
     drawScrollBar();
 
@@ -566,6 +581,12 @@ public class EditorComponent extends View implements
       Debug.consoleInfo(s);
       CodeLine.cacheMiss = CodeLine.cacheHits = 0;
     }
+  }
+
+  private void drawCodeMap() {
+    int x = pos.x + (mirrored ? 0 : size.x - codeMapSize.x);
+    g.enableBlend(true);
+    g.drawRect(x, pos.y, codeMapSize, codeMap);
   }
 
   private void drawGap(int firstLine, int lastLine, int docLen) {
@@ -1683,11 +1704,19 @@ public class EditorComponent extends View implements
 
   public void setDiffModel(LineDiff[] lineDiffs) {
     model.diffModel = lineDiffs;
+    // todo: we can improve this by adding shareble
+    // diff map between LineNumberComponent and codeMapTexture
     updateLineNumbersColors();
+    if (LineDiff.notEmpty(lineDiffs)) {
+      if (size.y > 0)
+        buildDiffMap();
+    } else {
+      clearCodeMap();
+    }
   }
 
   public void updateLineNumbersColors() {
-    if (model.diffModel != null) {
+    if (LineDiff.notEmpty(model.diffModel)) {
       byte[] c = new byte[model.diffModel.length];
       for (int i = 0; i < c.length; i++) {
         LineDiff ld = model.diffModel[i];
@@ -1772,5 +1801,23 @@ public class EditorComponent extends View implements
      }
      mergeButtons.setModel(actions, lines);
      mergeButtons.setColors(lineNumbers.colors());
+  }
+
+  void buildDiffMap() {
+    if (codeMap == null)
+      codeMap = g.createTexture();
+    var img = DiffImage.diffImage(model.diffModel, size.y, colors.codeDiffBg);
+    codeMap.setContent(img);
+    System.out.println("codeMap built: " + codeMap);
+
+  }
+
+  void clearCodeMap() {
+    if (codeMap != null)
+      codeMap = Disposable.assign(codeMap, null);
+  }
+
+  public void setCodeMap() {
+    // todo: later...
   }
 }

@@ -10,8 +10,6 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
-import static org.sudu.experiments.editor.LineNumbersComponent.*;
-
 public class LineNumbersTexture implements Disposable {
 
   private GL.Texture lineTexture;
@@ -96,9 +94,9 @@ public class LineNumbersTexture implements Disposable {
     int upper = height / lineHeight;
     int startLine = 0;
     int i = 0;
-    V4f prevColor = getItemColor(colorScheme, colors, baseColorInd + i);
+    V4f prevColor = colorScheme.getDiffColor(colors, baseColorInd + i);
     while (i < upper) {
-      V4f c = getItemColor(colorScheme, colors, baseColorInd + i);
+      V4f c = colorScheme.getDiffColor(colors, baseColorInd + i);
       if (c == prevColor) {
         int h = (i - startLine + 1) * lineHeight;
         rectSize.set(lineTexture.width(), h);

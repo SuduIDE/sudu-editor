@@ -35,7 +35,7 @@ public class TestSceneSelector {
       case "LineNumbersTest" -> LineNumbersTest::new;
       case "SelectFileTest" -> SelectFileTest::new;
       case "WorkerTest" -> WorkerTest::new;
-      case "RenderTexture" -> RenderTexture::new;
+      case "DrawTextureTest" -> DrawTextureTest::new;
       case "ScissorDemo" -> ScissorDemo::new;
       case "TextureRegionTestScene" -> TextureRegionTestScene::new;
       case "ClipboardTest" -> ClipboardTest::new;
