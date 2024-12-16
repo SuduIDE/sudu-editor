@@ -5,14 +5,22 @@ import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.ui.colors.DiffColors;
 import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.V4i;
 
 class DiffImage {
+
+  static final boolean debug = false;
 
   static GL.ImageData diffImage(
       LineDiff[] model, int height, DiffColors colors
   ) {
     GL.ImageData img = new GL.ImageData(1, height);
     byte[] map = diffMap(model, height);
+    if (debug) {
+      V4i s = stats(map);
+      System.out.println("codeMap built: l=" + map.length + ", 1: "
+          + s.x + ", 2: " + s.y + ", 3: " + s.z + ", other: " + s.w);
+    }
     blurDiffImage(map);
     applyDiffPalette(map, img, colors);
     return img;
@@ -69,6 +77,19 @@ class DiffImage {
       }
       if (curr == 0 && prev != 0) image[length - 1] = prev;
     }
+  }
+
+  public static V4i stats(byte[] image) {
+    V4i r = new V4i();
+    for (byte b : image) {
+      switch (b) {
+        case 1 -> r.x++;
+        case 2 -> r.y++;
+        case 3 -> r.z++;
+        default -> r.w++;
+      }
+    }
+    return r;
   }
 
   static void applyDiffPalette(

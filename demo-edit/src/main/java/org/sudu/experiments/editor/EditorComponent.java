@@ -1810,8 +1810,6 @@ public class EditorComponent extends View implements
       codeMap = g.createTexture();
     var img = DiffImage.diffImage(model.diffModel, size.y, colors.codeMapBg);
     codeMap.setContent(img);
-    System.out.println("codeMap built: " + codeMap);
-
   }
 
   void clearCodeMap() {
