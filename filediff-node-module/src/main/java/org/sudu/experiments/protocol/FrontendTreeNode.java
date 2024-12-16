@@ -38,6 +38,8 @@ public class FrontendTreeNode {
       var nodeChild = child(i, modelChild.path, modelChild.isFile());
       if (nodeChild == null) {
         nodeChild = new FrontendTreeNode();
+        nodeChild.name = modelChild.path;
+        nodeChild.isFile = modelChild.isFile();
       } else {
         nodeChild.updateDeepWithModel(modelChild);
       }
@@ -53,7 +55,11 @@ public class FrontendTreeNode {
     for (int i = 0; i < model.children.length; i++) {
       var modelChild = model.child(i);
       var nodeChild = child(i, modelChild.path, modelChild.isFile());
-      if (nodeChild == null) nodeChild = new FrontendTreeNode();
+      if (nodeChild == null) {
+        nodeChild = new FrontendTreeNode();
+        nodeChild.name = modelChild.path;
+        nodeChild.isFile = modelChild.isFile();
+      }
       newChildren[i] = nodeChild;
     }
     children = newChildren;
@@ -93,7 +99,7 @@ public class FrontendTreeNode {
   }
 
   public FrontendTreeNode child(int i, String path, boolean isFile) {
-    if (0 < i && i < children.length) {
+    if (0 <= i && i < children.length) {
       var child = children[i];
       if (child.name.equals(path) && child.isFile == isFile) return child;
     }

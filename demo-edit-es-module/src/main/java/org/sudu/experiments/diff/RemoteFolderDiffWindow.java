@@ -202,7 +202,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   private void onRefresh(JsArray<JSObject> jsResult) {
     var msg = BackendMessage.deserialize(jsResult);
-    lastSendFrontendMsg.openedFolders.updateWithModel(msg.root);
+    lastSendFrontendMsg.openedFolders.updateDeepWithModel(msg.root);
   }
 
   private void updateNodes() {
@@ -228,10 +228,13 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       RemoteFolderDiffModel model,
       FrontendTreeNode treeNode
   ) {
-    if (model.children == null || treeNode == null || !treeNode.isOpened()) return;
+    if (model == null || model.children == null ||
+        treeNode == null || !treeNode.isOpened()
+    ) return;
     left.doOpen();
     right.doOpen();
 
+    if (treeNode.children.length != model.children.length) treeNode.updateWithModel(model);
     int lp = 0, rp = 0;
     for (int i = 0; i < model.children.length; i++) {
       var child = model.child(i);
@@ -260,6 +263,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     if (model.children == null || treeNode == null || !treeNode.isOpened()) return;
     node.doOpen();
 
+    if (treeNode.children.length != model.children.length) treeNode.updateWithModel(model);
     for (int i = 0; i < model.children.length; i++) {
       var child = model.child(i);
       var childNode = treeNode.child(i, child.path, child.isFile());
