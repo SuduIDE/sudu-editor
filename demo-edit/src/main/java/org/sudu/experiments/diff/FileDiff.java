@@ -15,6 +15,7 @@ public class FileDiff extends WindowScene {
     super(api);
     var theme = EditorColorScheme.darkIdeaColorScheme();
     w = new FileDiffWindow(windowManager, theme, this::menuFonts);
+    w.processEsc = false;
   }
 
   public String[] menuFonts() {

@@ -4,6 +4,7 @@ import org.sudu.experiments.editor.EditorConst;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.ColorOp;
+import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.ui.UiFont;
 
@@ -201,10 +202,9 @@ public class EditorColorScheme {
       case InactiveSelectionBackground ->
           fileTreeView.inactiveSelectedBg = ColorOp.blend(fileTreeView.bg, c);
 
-      case EditorBackground -> {
+      case EditorBackground ->
         editor.bg = c;
-        lineNumber.bgColor = c;
-      }
+
 
       case EditorForeground -> {
         codeElement[0].colorF = c;
@@ -217,12 +217,11 @@ public class EditorColorScheme {
       case CurrentLineBackground ->
           editor.currentLineBg = ColorOp.blend(editor.bg, c);
 
-      case PanelHeaderBackground -> {
+      case PanelHeaderBackground ->
         dialogItem.windowColors.windowTitleBgColor = c;
-      }
-      case PanelHeaderForeground -> {
+
+      case PanelHeaderForeground ->
         dialogItem.windowColors.windowTitleTextColor = c;
-      }
 
       case DeletedRegionBackground -> {
 //        codeDiffBg.deletedColor = ColorOp.blend(editor.bg, c);
@@ -259,9 +258,8 @@ public class EditorColorScheme {
         return false;
       }
 
-      case LineNumberActiveForeground -> {
+      case LineNumberActiveForeground ->
         lineNumber.caretTextColor = ColorOp.blend(editor.bg, c);
-      }
     }
 
     return true;
@@ -271,7 +269,7 @@ public class EditorColorScheme {
     return new MergeButtonsColors(
         null, codeDiffBg,
         lineNumber.caretTextColor,
-        lineNumber.bgColor,
+        editor.bg,
         lineNumber.caretBgColor
     );
   }
@@ -293,5 +291,10 @@ public class EditorColorScheme {
         ColorOp.blend(fileTreeView.bg, hoverColor),
         ColorOp.blend(fileTreeView.selectedBg, hoverColor)
     );
+  }
+
+  public V4f getDiffColor(byte[] colors, int i) {
+    return i >= colors.length || colors[i] == 0
+        ? editor.bg : codeDiffBg.getDiffColor(colors[i], editor.bg);
   }
 }
