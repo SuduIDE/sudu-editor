@@ -39,6 +39,15 @@ public class DiffColors {
     );
   }
 
+  public static DiffColors codeDiffHandmade() {
+    return new DiffColors(
+        new Color("#f14c4c"),
+        new Color("#487e01"),
+        new Color("#1b81a8"),
+        new Color("#1b81a8")
+    );
+  }
+
   public static DiffColors codeDiffDark() {
     return new DiffColors(
         new Color("#484A4A"),

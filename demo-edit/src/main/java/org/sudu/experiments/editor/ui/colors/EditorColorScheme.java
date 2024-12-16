@@ -86,7 +86,8 @@ public class EditorColorScheme {
         IdeaCodeColors.codeElementColorsDark(),
         LineNumbersColors.dark(),
         Themes.darkColorScheme(),
-        DiffColors.codeDiffDark());
+        DiffColors.codeDiffDark(),
+        DiffColors.codeDiffHandmade());
   }
 
   public static EditorColorScheme lightIdeaColorScheme() {
