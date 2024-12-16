@@ -1808,7 +1808,7 @@ public class EditorComponent extends View implements
   void buildDiffMap() {
     if (codeMap == null)
       codeMap = g.createTexture();
-    var img = DiffImage.diffImage(model.diffModel, size.y, colors.codeDiffBg);
+    var img = DiffImage.diffImage(model.diffModel, size.y, colors.codeMapBg);
     codeMap.setContent(img);
     System.out.println("codeMap built: " + codeMap);
 

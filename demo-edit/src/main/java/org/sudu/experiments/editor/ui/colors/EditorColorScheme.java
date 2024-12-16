@@ -50,6 +50,7 @@ public class EditorColorScheme {
   public final CodeElementColor[] codeElement;
   public final LineNumbersColors lineNumber;
   public final DiffColors codeDiffBg;
+  public final DiffColors codeMapBg;
   public BackgroundHoverColors hoverColors;
 
   private static final float defaultFontSize = 15;
@@ -104,10 +105,11 @@ public class EditorColorScheme {
       CodeElementColor[] codeElement,
       LineNumbersColors lineNumber,
       DialogItemColors dialogItem,
-      DiffColors codeDiffBg
+      DiffColors codeDiffBg,
+      DiffColors codeMapBg
   ) {
     this(editor, fileTreeView, codeElement, lineNumber, dialogItem,
-        codeDiffBg,
+        codeDiffBg, codeMapBg,
         new UiFont(defaultFont, defaultMenuFontSize),
         new UiFont(defaultUsagesFont, defaultFontSize),
         new UiFont(defaultFont, defaultFontSize),
@@ -122,7 +124,19 @@ public class EditorColorScheme {
       CodeElementColor[] codeElement,
       LineNumbersColors lineNumber,
       DialogItemColors dialogItem,
+      DiffColors codeDiffBg
+  ) {
+    this(editor, fileTreeView, codeElement, lineNumber, dialogItem,
+        codeDiffBg, new DiffColors(codeDiffBg));
+  }
+
+  private EditorColorScheme(
+      EditorColors editor, FileTreeViewTheme fileTreeView,
+      CodeElementColor[] codeElement,
+      LineNumbersColors lineNumber,
+      DialogItemColors dialogItem,
       DiffColors codeDiffBg,
+      DiffColors codeMapBg,
       UiFont popupMenuFont,
       UiFont usagesFont,
       UiFont fileViewFont,
@@ -139,6 +153,7 @@ public class EditorColorScheme {
     }
     this.dialogItem = dialogItem;
     this.codeDiffBg = codeDiffBg;
+    this.codeMapBg = codeMapBg;
     this.popupMenuFont = popupMenuFont;
     this.usagesFont = usagesFont;
     this.fileViewFont = fileViewFont;
@@ -151,7 +166,7 @@ public class EditorColorScheme {
   public EditorColorScheme withFontModified(float fontSize) {
     return new EditorColorScheme(
         editor, fileTreeView, codeElement,
-        lineNumber, dialogItem, codeDiffBg,
+        lineNumber, dialogItem, codeDiffBg, codeMapBg,
         popupMenuFont.withSize(fontSize),
         usagesFont.withSize(fontSize),
         fileViewFont.withSize(fontSize),

@@ -12,6 +12,10 @@ public class DiffColors {
   // edited element on edited region
   public Color editedColor2;
 
+  public DiffColors(DiffColors c) {
+    this(c.deletedColor, c.insertedColor, c.editedColor, c.editedColor2);
+  }
+
   DiffColors(Color deletedColor, Color insertedColor, Color editedColor) {
     this(deletedColor, insertedColor, editedColor, editedColor);
   }
