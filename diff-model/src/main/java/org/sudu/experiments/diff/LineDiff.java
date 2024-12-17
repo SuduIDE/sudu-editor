@@ -24,6 +24,6 @@ public class LineDiff {
   }
 
   public static boolean notEmpty(LineDiff[] diff) {
-    return diff != null && (diff.length > 1 || diff[0].type != 0);
+    return diff != null && (diff.length > 1 || (diff[0] != null && diff[0].type != 0));
   }
 }

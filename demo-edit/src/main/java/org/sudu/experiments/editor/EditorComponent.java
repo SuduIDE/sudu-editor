@@ -557,7 +557,8 @@ public class EditorComponent extends View implements
 
     drawVerticalLine();
 
-    if (drawGap) drawGap(firstLine, lastLine, docLen);
+    if (!mirrored)
+      drawGap(firstLine, lastLine, docLen);
 
     if (hasFocus && caretX >= -caret.width() / 2 && caret.needsPaint(size)) {
       caret.paint(g, pos);
