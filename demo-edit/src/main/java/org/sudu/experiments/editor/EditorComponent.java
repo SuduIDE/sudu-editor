@@ -63,7 +63,8 @@ public class EditorComponent extends View implements
   static final int vLineXDp = 80;
   static final int vLineWDp = 1;
   static final int vLineLeftDeltaDp = 10;
-  static final int codeMapWidthDp = 16;
+  static final int codeMapWidthDp = 15;
+  static final float scrollBarWidthDp = 13;
 
   int vLineX;
   int vLineW;
@@ -170,6 +171,7 @@ public class EditorComponent extends View implements
     vLineX = toPx(vLineXDp) + mergeWidth;
     vLineW = toPx(vLineWDp);
     vLineLeftDelta = toPx(vLineLeftDeltaDp);
+    scrollBarWidth = toPx(scrollBarWidthDp);
 
     int lineNumbersWidth = lineNumbersWidth();
     int lineNumbersX = mirrored ? pos.x + size.x - lineNumbersWidth : pos.x;
@@ -307,7 +309,6 @@ public class EditorComponent extends View implements
     lrContext.setFonts(name, pixelSize, g);
     font = lrContext.font;
     lineHeight = lrContext.setLineHeight(EditorConst.LINE_HEIGHT_MULTI, g);
-    scrollBarWidth = Numbers.iRnd(lrContext.font.WWidth);
     caret.setHeight(lrContext.font.caretHeight(lineHeight));
 
     Debug.consoleInfo("editor font: " + name + " " + pixelSize

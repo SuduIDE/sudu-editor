@@ -130,17 +130,6 @@ public class EditorColorScheme {
       CodeElementColor[] codeElement,
       LineNumbersColors lineNumber,
       DialogItemColors dialogItem,
-      DiffColors codeDiffBg
-  ) {
-    this(editor, fileTreeView, codeElement, lineNumber, dialogItem,
-        codeDiffBg, new DiffColors(codeDiffBg));
-  }
-
-  private EditorColorScheme(
-      EditorColors editor, FileTreeViewTheme fileTreeView,
-      CodeElementColor[] codeElement,
-      LineNumbersColors lineNumber,
-      DialogItemColors dialogItem,
       DiffColors codeDiffBg,
       DiffColors codeMapBg,
       UiFont popupMenuFont,

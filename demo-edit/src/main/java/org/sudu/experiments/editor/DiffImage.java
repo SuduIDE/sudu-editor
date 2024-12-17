@@ -9,20 +9,26 @@ import org.sudu.experiments.math.V4i;
 
 class DiffImage {
 
-  static final boolean debug = false;
+  static final int debug = 0;
 
   static GL.ImageData diffImage(
       LineDiff[] model, int height, DiffColors colors
   ) {
     GL.ImageData img = new GL.ImageData(1, height);
     byte[] map = diffMap(model, height);
-    if (debug) {
+    if (debug > 0) {
       V4i s = stats(map);
-      System.out.println("codeMap built: l=" + map.length + ", 1: "
-          + s.x + ", 2: " + s.y + ", 3: " + s.z + ", other: " + s.w);
-      System.out.println("colors DiffTypes.DELETED = " + colors.getDiffColor(DiffTypes.DELETED, null));
-      System.out.println("colors DiffTypes.INSERTED = " + colors.getDiffColor(DiffTypes.INSERTED, null));
-      System.out.println("colors DiffTypes.EDITED = " + colors.getDiffColor(DiffTypes.EDITED, null));
+      System.out.println("codeMap built: l=" + map.length
+          + ",del: " + s.x + ", ins: " + s.y
+          + ", change: " + s.z + ", unmod: " + s.w);
+      if (debug > 1) {
+        System.out.println("colors DiffTypes.DELETED = "
+            + colors.getDiffColor(DiffTypes.DELETED, null).toHexString());
+        System.out.println("colors DiffTypes.INSERTED = "
+            + colors.getDiffColor(DiffTypes.INSERTED, null).toHexString());
+        System.out.println("colors DiffTypes.EDITED = "
+            + colors.getDiffColor(DiffTypes.EDITED, null).toHexString());
+      }
     }
     blurDiffImage(map);
     applyDiffPalette(map, img, colors);
@@ -106,16 +112,10 @@ class DiffImage {
     Color c0 = new Color(0, 0, 0, 0);
     for (int i = 0, p = 0; i < diffMap.length; i++) {
       byte type = diffMap[i];
-      if (type == 0) {
-        c0.a = 0;
-      }
-      if (type != 0) {
-        c0.a = 0;
-      }
       Color c = colors.getDiffColor(type, c0);
       data[p++] = (byte) c.r;
       data[p++] = (byte) c.g;
-      data[p++] = (byte) c.g;
+      data[p++] = (byte) c.b;
       data[p++] = (byte) c.a;
     }
   }
