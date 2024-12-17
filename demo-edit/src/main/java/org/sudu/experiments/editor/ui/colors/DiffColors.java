@@ -12,6 +12,10 @@ public class DiffColors {
   // edited element on edited region
   public Color editedColor2;
 
+  public DiffColors(DiffColors c) {
+    this(c.deletedColor, c.insertedColor, c.editedColor, c.editedColor2);
+  }
+
   DiffColors(Color deletedColor, Color insertedColor, Color editedColor) {
     this(deletedColor, insertedColor, editedColor, editedColor);
   }
@@ -24,6 +28,14 @@ public class DiffColors {
     this.insertedColor = insertedColor;
     this.editedColor = editedColor;
     this.editedColor2 = editedColor2;
+  }
+
+  public static DiffColors codeMapVSCode() {
+    return new DiffColors(
+        new Color("#f14c4c"),
+        new Color("#487e01"),
+        new Color("#1b81a8")
+    );
   }
 
   public static DiffColors codeDiffDarcula() {
@@ -42,6 +54,23 @@ public class DiffColors {
         new Color("#283541"),
         new Color("#385570")
     );
+  }
+
+  public static DiffColors codeMapDark() {
+    return new DiffColors(
+        new Color("#656E76"),
+        new Color("#447152"),
+        new Color("#43698D"));
+  }
+  public static DiffColors codeMapDarcula() {
+    return codeMapDark();
+  }
+
+  public static DiffColors codeMapLight() {
+    return new DiffColors(
+        new Color("#C8C8C8"),
+        new Color("#AADEAA"),
+        new Color("#B6D2F2"));
   }
 
   public static DiffColors codeDiffLight() {

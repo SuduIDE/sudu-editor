@@ -50,6 +50,7 @@ public class EditorColorScheme {
   public final CodeElementColor[] codeElement;
   public final LineNumbersColors lineNumber;
   public final DiffColors codeDiffBg;
+  public final DiffColors codeMapBg;
   public BackgroundHoverColors hoverColors;
 
   private static final float defaultFontSize = 15;
@@ -75,7 +76,9 @@ public class EditorColorScheme {
         IdeaCodeColors.codeElementColorsDarcula(),
         LineNumbersColors.darcula(),
         Themes.darculaColorScheme(),
-        DiffColors.codeDiffDarcula());
+        DiffColors.codeDiffDarcula(),
+        DiffColors.codeMapDarcula()
+        );
   }
 
   public static EditorColorScheme darkIdeaColorScheme() {
@@ -85,7 +88,9 @@ public class EditorColorScheme {
         IdeaCodeColors.codeElementColorsDark(),
         LineNumbersColors.dark(),
         Themes.darkColorScheme(),
-        DiffColors.codeDiffDark());
+        DiffColors.codeDiffDark(),
+        DiffColors.codeMapDark()
+    );
   }
 
   public static EditorColorScheme lightIdeaColorScheme() {
@@ -95,7 +100,8 @@ public class EditorColorScheme {
         IdeaCodeColors.codeElementColorsLight(),
         LineNumbersColors.light(),
         Themes.lightColorScheme(),
-        DiffColors.codeDiffLight()
+        DiffColors.codeDiffLight(),
+        DiffColors.codeMapLight()
     );
   }
 
@@ -104,10 +110,11 @@ public class EditorColorScheme {
       CodeElementColor[] codeElement,
       LineNumbersColors lineNumber,
       DialogItemColors dialogItem,
-      DiffColors codeDiffBg
+      DiffColors codeDiffBg,
+      DiffColors codeMapBg
   ) {
     this(editor, fileTreeView, codeElement, lineNumber, dialogItem,
-        codeDiffBg,
+        codeDiffBg, codeMapBg,
         new UiFont(defaultFont, defaultMenuFontSize),
         new UiFont(defaultUsagesFont, defaultFontSize),
         new UiFont(defaultFont, defaultFontSize),
@@ -123,6 +130,7 @@ public class EditorColorScheme {
       LineNumbersColors lineNumber,
       DialogItemColors dialogItem,
       DiffColors codeDiffBg,
+      DiffColors codeMapBg,
       UiFont popupMenuFont,
       UiFont usagesFont,
       UiFont fileViewFont,
@@ -139,6 +147,7 @@ public class EditorColorScheme {
     }
     this.dialogItem = dialogItem;
     this.codeDiffBg = codeDiffBg;
+    this.codeMapBg = codeMapBg;
     this.popupMenuFont = popupMenuFont;
     this.usagesFont = usagesFont;
     this.fileViewFont = fileViewFont;
@@ -151,7 +160,7 @@ public class EditorColorScheme {
   public EditorColorScheme withFontModified(float fontSize) {
     return new EditorColorScheme(
         editor, fileTreeView, codeElement,
-        lineNumber, dialogItem, codeDiffBg,
+        lineNumber, dialogItem, codeDiffBg, codeMapBg,
         popupMenuFont.withSize(fontSize),
         usagesFont.withSize(fontSize),
         fileViewFont.withSize(fontSize),
