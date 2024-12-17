@@ -30,21 +30,21 @@ public class DiffColors {
     this.editedColor2 = editedColor2;
   }
 
+  public static DiffColors codeMapHandmade() {
+    return new DiffColors(
+        new Color("#f14c4c"),
+        new Color("#487e01"),
+        new Color("#1b81a8"),
+        new Color("#1b81a8")
+    );
+  }
+
   public static DiffColors codeDiffDarcula() {
     return new DiffColors(
         new Color("#484A4A"),
         new Color("#294436"),
         new Color("#303C47"),
         new Color("#385570")
-    );
-  }
-
-  public static DiffColors codeDiffHandmade() {
-    return new DiffColors(
-        new Color("#f14c4c"),
-        new Color("#487e01"),
-        new Color("#1b81a8"),
-        new Color("#1b81a8")
     );
   }
 
@@ -55,6 +55,23 @@ public class DiffColors {
         new Color("#283541"),
         new Color("#385570")
     );
+  }
+
+  public static DiffColors codeMapDark() {
+    return new DiffColors(
+        new Color("#656E76"),
+        new Color("#447152"),
+        new Color("#43698D"));
+  }
+  public static DiffColors codeMapDarcula() {
+    return codeMapDark();
+  }
+
+  public static DiffColors codeMapLight() {
+    return new DiffColors(
+        new Color("#C8C8C8"),
+        new Color("#AADEAA"),
+        new Color("#B6D2F2"));
   }
 
   public static DiffColors codeDiffLight() {

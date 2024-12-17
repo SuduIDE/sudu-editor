@@ -20,6 +20,9 @@ class DiffImage {
       V4i s = stats(map);
       System.out.println("codeMap built: l=" + map.length + ", 1: "
           + s.x + ", 2: " + s.y + ", 3: " + s.z + ", other: " + s.w);
+      System.out.println("colors DiffTypes.DELETED = " + colors.getDiffColor(DiffTypes.DELETED, null));
+      System.out.println("colors DiffTypes.INSERTED = " + colors.getDiffColor(DiffTypes.INSERTED, null));
+      System.out.println("colors DiffTypes.EDITED = " + colors.getDiffColor(DiffTypes.EDITED, null));
     }
     blurDiffImage(map);
     applyDiffPalette(map, img, colors);
@@ -83,9 +86,9 @@ class DiffImage {
     V4i r = new V4i();
     for (byte b : image) {
       switch (b) {
-        case 1 -> r.x++;
-        case 2 -> r.y++;
-        case 3 -> r.z++;
+        case DiffTypes.DELETED -> r.x++;
+        case DiffTypes.INSERTED -> r.y++;
+        case DiffTypes.EDITED -> r.z++;
         default -> r.w++;
       }
     }
@@ -113,7 +116,7 @@ class DiffImage {
       data[p++] = (byte) c.r;
       data[p++] = (byte) c.g;
       data[p++] = (byte) c.g;
-      data[p++] = (byte) (type == 0 ? 0 : -1);
+      data[p++] = (byte) c.a;
     }
   }
 }

@@ -76,7 +76,10 @@ public class EditorColorScheme {
         IdeaCodeColors.codeElementColorsDarcula(),
         LineNumbersColors.darcula(),
         Themes.darculaColorScheme(),
-        DiffColors.codeDiffDarcula());
+        DiffColors.codeDiffDarcula(),
+//        DiffColors.codeMapDarcula()
+        DiffColors.codeMapHandmade()
+        );
   }
 
   public static EditorColorScheme darkIdeaColorScheme() {
@@ -87,7 +90,8 @@ public class EditorColorScheme {
         LineNumbersColors.dark(),
         Themes.darkColorScheme(),
         DiffColors.codeDiffDark(),
-        DiffColors.codeDiffHandmade());
+        DiffColors.codeMapDark()
+    );
   }
 
   public static EditorColorScheme lightIdeaColorScheme() {
@@ -97,7 +101,8 @@ public class EditorColorScheme {
         IdeaCodeColors.codeElementColorsLight(),
         LineNumbersColors.light(),
         Themes.lightColorScheme(),
-        DiffColors.codeDiffLight()
+        DiffColors.codeDiffLight(),
+        DiffColors.codeMapLight()
     );
   }
 
