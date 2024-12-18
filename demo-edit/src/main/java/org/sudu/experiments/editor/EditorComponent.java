@@ -64,7 +64,7 @@ public class EditorComponent extends View implements
   static final int vLineWDp = 1;
   static final int vLineLeftDeltaDp = 10;
   static final int codeMapWidthDp = 15;
-  static final float scrollBarWidthDp = 13;
+  static final float scrollBarWidthDp = 12;
 
   int vLineX;
   int vLineW;
@@ -588,9 +588,16 @@ public class EditorComponent extends View implements
   }
 
   private void drawCodeMap() {
-    int x = pos.x + (mirrored ? 0 : size.x - codeMapSize.x);
     g.enableBlend(true);
-    g.drawRect(x, pos.y, codeMapSize, codeMap);
+    g.drawRect(codeMapX(), codeMapY(), codeMapSize, codeMap);
+  }
+
+  private int codeMapX() {
+    return pos.x + (mirrored ? 0 : size.x - codeMapSize.x);
+  }
+
+  private int codeMapY() {
+    return pos.y;
   }
 
   private void drawGap(int firstLine, int lastLine, int docLen) {
@@ -1303,6 +1310,17 @@ public class EditorComponent extends View implements
       lock = hScroll.onMouseDown(event.position, hScrollHandler, false);
       if (lock != null) return lock;
 
+      if (codeMap != null && model.diffModel != null) {
+        int line = DiffImage.findDiff(
+            event.position, codeMapX(), codeMapY(), codeMapSize,
+            model.document.length(), model.diffModel);
+
+        if (line >= 0) {
+          revealLine(line);
+          return MouseListener.Static.emptyConsumer;
+        }
+      }
+
       if (lineNumbers.hitTest(event.position))
         return MouseListener.Static.emptyConsumer;
 
@@ -1352,7 +1370,15 @@ public class EditorComponent extends View implements
   protected void onMouseLeaveWindow() {
     if (mergeButtons != null)
       mergeButtons.onMouseLeave();
-    // lineNumbers.onMouseLeave();
+//     lineNumbers.onMouseLeave();
+  }
+
+  boolean onMouseMoveCodeMap(V2i mousePos, SetCursor setCursor) {
+    return codeMap != null &&
+        DiffImage.onMouseMove(mousePos,
+            codeMapX(), codeMapY(), codeMapSize,
+            model.document.length(), model.diffModel)
+        && setCursor.set(Cursor.pointer);
   }
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
@@ -1360,7 +1386,9 @@ public class EditorComponent extends View implements
     var scroll = vScroll.onMouseMove(mousePos, setCursor)
         | hScroll.onMouseMove(mousePos, setCursor);
 
-    if (scroll) {
+    var codeMap = !scroll && onMouseMoveCodeMap(mousePos, setCursor);
+
+    if (scroll || codeMap) {
       onMouseLeaveWindow();
     } else {
       var mb = mergeButtons != null

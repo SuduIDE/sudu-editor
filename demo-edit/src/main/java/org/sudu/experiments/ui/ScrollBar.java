@@ -74,7 +74,7 @@ public class ScrollBar {
 
     public int getPosition(int maxValue) {
       if (maxPosition <= 0) return 0;
-      return Numbers.iDivRound(position, maxValue, maxPosition);
+      return Numbers.divRound(position, maxValue, maxPosition);
     }
 
   }
@@ -157,13 +157,13 @@ public class ScrollBar {
   }
 
   private int scrollControlSize(int viewSize, int virtualSize, int minSize) {
-    return Math.max(Numbers.iDivRound(viewSize, viewSize, virtualSize), minSize);
+    return Math.max(Numbers.divRound(viewSize, viewSize, virtualSize), minSize);
   }
 
   private int scrollControlPos(int scrollPos, int viewSize, int viewFullSize, int controlSize) {
     int virtualScrollRange = viewFullSize - viewSize;
     int displayScrollRange = viewSize - controlSize;
-    return displayScrollRange == 0 ? 0 : Numbers.iDivRound(scrollPos, displayScrollRange, virtualScrollRange);
+    return displayScrollRange == 0 ? 0 : Numbers.divRound(scrollPos, displayScrollRange, virtualScrollRange);
   }
 
   public void draw(WglGraphics g) {
