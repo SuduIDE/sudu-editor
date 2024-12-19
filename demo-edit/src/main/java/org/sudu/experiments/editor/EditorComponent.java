@@ -1304,28 +1304,32 @@ public class EditorComponent extends View implements
         var lock = mergeButtons.onMouseDown(event, button, context.windowCursor);
         if (lock != null) return lock;
       }
-      var lock = vScroll.onMouseDown(event.position, vScrollHandler, true);
-      if (lock != null) return lock;
 
-      lock = hScroll.onMouseDown(event.position, hScrollHandler, false);
-      if (lock != null) return lock;
+      V2i mousePos = event.position;
+      int codeMapLine = hitTestFindDiff(mousePos);
 
-      if (codeMap != null && model.diffModel != null) {
-        int line = DiffImage.findDiff(
-            event.position, codeMapX(), codeMapY(), codeMapSize,
-            model.document.length(), model.diffModel);
-
-        if (line >= 0) {
-          revealLine(line);
-          return MouseListener.Static.emptyConsumer;
-        }
+      // when clicked to a change on codeMap -> forward to vScroll only if hit button
+      if (codeMapLine < 0 || vScroll.hitButton(mousePos)) {
+        var lock = vScroll.onMouseDown(mousePos, vScrollHandler, true);
+        if (lock != null) return lock;
       }
 
-      if (lineNumbers.hitTest(event.position))
+      // when clicked to a change on codeMap -> forward to hScroll only if hit button
+      if (codeMapLine < 0 || hScroll.hitButton(mousePos)) {
+        var lock = hScroll.onMouseDown(mousePos, hScrollHandler, false);
+        if (lock != null) return lock;
+      }
+
+      if (codeMapLine >= 0) {
+        revealLine(codeMapLine);
+        return MouseListener.Static.emptyConsumer;
+      }
+
+      if (lineNumbers.hitTest(mousePos))
         return MouseListener.Static.emptyConsumer;
 
       saveToNavStack();
-      V2i eventPosition = event.position;
+      V2i eventPosition = mousePos;
       Pos pos = computeCharPos(eventPosition);
 
       moveCaret(pos);
@@ -1373,12 +1377,15 @@ public class EditorComponent extends View implements
 //     lineNumbers.onMouseLeave();
   }
 
+  private int hitTestFindDiff(V2i mousePos) {
+    return codeMap == null || model.diffModel == null ? -1 :
+        DiffImage.findDiff(
+            mousePos, codeMapX(), codeMapY(), codeMapSize,
+            model.document.length(), model.diffModel);
+  }
+
   boolean onMouseMoveCodeMap(V2i mousePos, SetCursor setCursor) {
-    return codeMap != null &&
-        DiffImage.onMouseMove(mousePos,
-            codeMapX(), codeMapY(), codeMapSize,
-            model.document.length(), model.diffModel)
-        && setCursor.set(Cursor.pointer);
+    return hitTestFindDiff(mousePos) >= 0 && setCursor.set(Cursor.pointer);
   }
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {

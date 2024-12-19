@@ -26,9 +26,13 @@ public class ScrollBar {
     return Rect.isInside(p, bgPos, bgSize);
   }
 
+  public boolean hitButton(V2i p) {
+    return Rect.isInside(p, buttonPos, buttonSize);
+  }
+
   public Consumer<MouseEvent> onMouseDown(V2i p, Consumer<Event> onMove, boolean isVertical) {
     boolean hitScroll = hitTest(p);
-    boolean hitButton = Rect.isInside(p, buttonPos, buttonSize);
+    boolean hitButton = hitButton(p);
 
     if (hitScroll || hitButton) {
       if (!hitButton) {

@@ -119,13 +119,6 @@ class DiffImage {
     }
   }
 
-  static boolean onMouseMove(
-      V2i mousePos, int cx, int cy, V2i size,
-      int doc, LineDiff[] diffModel
-  ) {
-    return findDiff(mousePos, cx, cy, size, doc, diffModel) >= 0;
-  }
-
   static int findDiff(
       V2i mousePos, int cx, int cy, V2i size,
       int doc, LineDiff[] diffModel
