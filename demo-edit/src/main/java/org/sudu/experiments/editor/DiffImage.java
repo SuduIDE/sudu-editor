@@ -150,6 +150,6 @@ class DiffImage {
 
   static int imageToDocument(int imgPos, int imageLength, int docLength) {
     int line = Numbers.divRound(imgPos, docLength, imageLength);
-    return Numbers.clamp(0, line, imageLength - 1);
+    return Numbers.clamp(0, line, docLength - 1);
   }
 }
