@@ -1383,10 +1383,11 @@ public class EditorComponent extends View implements
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     V2i mousePos = event.position;
-    var scroll = vScroll.onMouseMove(mousePos, setCursor)
-        | hScroll.onMouseMove(mousePos, setCursor);
 
-    var codeMap = !scroll && onMouseMoveCodeMap(mousePos, setCursor);
+    var codeMap = onMouseMoveCodeMap(mousePos, setCursor);
+    var scroll = !codeMap && (
+        vScroll.onMouseMove(mousePos, setCursor) |
+            hScroll.onMouseMove(mousePos, setCursor));
 
     if (scroll || codeMap) {
       onMouseLeaveWindow();
