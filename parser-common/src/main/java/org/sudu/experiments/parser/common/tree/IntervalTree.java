@@ -45,7 +45,7 @@ public class IntervalTree {
   }
 
   public void replaceInterval(Interval from, IntervalNode newTree) {
-    var replaceNode = replaceIntervalRec(root, from);
+    var replaceNode = findReplaceInterval(from);
     if (replaceNode == null) return;
 
     List<ScopeNode> newScopes = newTree.scope != null ? newTree.scope.children : List.of();
@@ -77,6 +77,8 @@ public class IntervalTree {
         parent.children.remove(nodeInd);
         parent.children.addAll(nodeInd, newNodes);
       }
+    } else {
+      replaceNode.needReparse = false;
     }
   }
 
@@ -93,17 +95,21 @@ public class IntervalTree {
     }
   }
 
-  private IntervalNode replaceIntervalRec(IntervalNode curNode, Interval oldNode) {
+  public IntervalNode findReplaceInterval(Interval oldNode) {
+    return findReplaceIntervalRec(root, oldNode);
+  }
+
+  private IntervalNode findReplaceIntervalRec(IntervalNode curNode, Interval oldNode) {
     if (curNode.interval.bordersEqual(oldNode)) {
       for (var subInterval: curNode.children) {
-        var result = replaceIntervalRec(subInterval, oldNode);
+        var result = findReplaceIntervalRec(subInterval, oldNode);
         if (result != null) return result;
       }
       return curNode;
     } else {
       for (var subInterval: curNode.children) {
         if (subInterval.containsInterval(oldNode.start, oldNode.stop)) {
-          var result = replaceIntervalRec(subInterval, oldNode);
+          var result = findReplaceIntervalRec(subInterval, oldNode);
           if (result != null) return result;
         }
       }

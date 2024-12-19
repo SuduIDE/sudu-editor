@@ -110,19 +110,16 @@ public abstract class ParserUtils {
       document.setLine(stLine.x + i, new CodeLine(elements), success);
     }
 
-    if (success) {
-      if (K != 0) {
-        IntervalNode intervalNode = IntervalNode.getNode(reader);
-        Interval oldInterval = new Interval(intervalStart, intervalStop, -1);
-        document.tree.replaceInterval(oldInterval, intervalNode);
-      } else if (graphInts != null && graphChars != null) {
-        ScopeGraphReader graphReader = new ScopeGraphReader(graphInts, graphChars);
-        graphReader.readFromInts();
-        Interval oldInterval = new Interval(intervalStart, intervalStop, -1);
-        document.tree.replaceInterval(oldInterval, graphReader.intervalRoot);
-        document.scopeGraph.root = document.tree.root.scope;
-        document.scopeGraph.typeMap = graphReader.typeMap;
-      }
+    Interval oldInterval = new Interval(intervalStart, intervalStop, -1);
+    if (K != 0) {
+      IntervalNode intervalNode = IntervalNode.getNode(reader);
+      document.tree.replaceInterval(oldInterval, intervalNode);
+    } else if (graphInts != null && graphChars != null) {
+      ScopeGraphReader graphReader = new ScopeGraphReader(graphInts, graphChars);
+      graphReader.readFromInts();
+      document.tree.replaceInterval(oldInterval, graphReader.intervalRoot);
+      document.scopeGraph.root = document.tree.root.scope;
+      document.scopeGraph.typeMap = graphReader.typeMap;
     }
     reader.checkSize();
   }
