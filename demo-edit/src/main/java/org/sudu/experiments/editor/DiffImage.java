@@ -4,8 +4,7 @@ import org.sudu.experiments.GL;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.ui.colors.DiffColors;
-import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.V4i;
+import org.sudu.experiments.math.*;
 
 class DiffImage {
 
@@ -118,5 +117,32 @@ class DiffImage {
       data[p++] = (byte) c.b;
       data[p++] = (byte) c.a;
     }
+  }
+
+  static int findDiff(
+      V2i mousePos, int cx, int cy, V2i size,
+      int doc, LineDiff[] diffModel
+  ) {
+    if (!Rect.isInside(mousePos, cx, cy, size))
+      return -1;
+    int image = size.y;
+    int imgPos = mousePos.y - cy;
+    int lineP = imageToDocument(imgPos - 1, image, doc);
+    int line0 = imageToDocument(imgPos, image, doc);
+    int lineN = imageToDocument(imgPos + 1, image, doc);
+    for (int i = line0; i <= lineN; i++) {
+      LineDiff v = diffModel[i];
+      if (v != null) return i;
+    }
+    for (int i = lineP; i < line0; i++) {
+      LineDiff v = diffModel[i];
+      if (v != null) return i;
+    }
+    return -1;
+  }
+
+  static int imageToDocument(int imgPos, int imageLength, int docLength) {
+    int line = Numbers.divRound(imgPos, docLength, imageLength);
+    return Numbers.clamp(0, line, docLength - 1);
   }
 }

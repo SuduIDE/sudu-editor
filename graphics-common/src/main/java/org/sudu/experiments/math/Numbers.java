@@ -6,10 +6,8 @@ public class Numbers {
     return (numerator + denominator / 2) / denominator;
   }
 
-  // multiply without overflow
-  public static int iDivRound(int a, int b, int denominator) {
-    if (a < Integer.MAX_VALUE / b) return iDivRound(a * b, denominator);
-    return (int) (.5 + ((double) b * a) / denominator);
+  public static int divRound(int a, int b, int denominator) {
+    return (int) (.5 + ((double) a * b) / denominator);
   }
 
   public static int iDivRoundUp(int numerator, int denominator) {

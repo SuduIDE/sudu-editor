@@ -64,7 +64,7 @@ public class EditorComponent extends View implements
   static final int vLineWDp = 1;
   static final int vLineLeftDeltaDp = 10;
   static final int codeMapWidthDp = 15;
-  static final float scrollBarWidthDp = 13;
+  static final float scrollBarWidthDp = 12;
 
   int vLineX;
   int vLineW;
@@ -588,9 +588,16 @@ public class EditorComponent extends View implements
   }
 
   private void drawCodeMap() {
-    int x = pos.x + (mirrored ? 0 : size.x - codeMapSize.x);
     g.enableBlend(true);
-    g.drawRect(x, pos.y, codeMapSize, codeMap);
+    g.drawRect(codeMapX(), codeMapY(), codeMapSize, codeMap);
+  }
+
+  private int codeMapX() {
+    return pos.x + (mirrored ? 0 : size.x - codeMapSize.x);
+  }
+
+  private int codeMapY() {
+    return pos.y;
   }
 
   private void drawGap(int firstLine, int lastLine, int docLen) {
@@ -1297,17 +1304,32 @@ public class EditorComponent extends View implements
         var lock = mergeButtons.onMouseDown(event, button, context.windowCursor);
         if (lock != null) return lock;
       }
-      var lock = vScroll.onMouseDown(event.position, vScrollHandler, true);
-      if (lock != null) return lock;
 
-      lock = hScroll.onMouseDown(event.position, hScrollHandler, false);
-      if (lock != null) return lock;
+      V2i mousePos = event.position;
+      int codeMapLine = hitTestFindDiff(mousePos);
 
-      if (lineNumbers.hitTest(event.position))
+      // when clicked to a change on codeMap -> forward to vScroll only if hit button
+      if (codeMapLine < 0 || vScroll.hitButton(mousePos)) {
+        var lock = vScroll.onMouseDown(mousePos, vScrollHandler, true);
+        if (lock != null) return lock;
+      }
+
+      // when clicked to a change on codeMap -> forward to hScroll only if hit button
+      if (codeMapLine < 0 || hScroll.hitButton(mousePos)) {
+        var lock = hScroll.onMouseDown(mousePos, hScrollHandler, false);
+        if (lock != null) return lock;
+      }
+
+      if (codeMapLine >= 0) {
+        revealLine(codeMapLine);
+        return MouseListener.Static.emptyConsumer;
+      }
+
+      if (lineNumbers.hitTest(mousePos))
         return MouseListener.Static.emptyConsumer;
 
       saveToNavStack();
-      V2i eventPosition = event.position;
+      V2i eventPosition = mousePos;
       Pos pos = computeCharPos(eventPosition);
 
       moveCaret(pos);
@@ -1352,15 +1374,29 @@ public class EditorComponent extends View implements
   protected void onMouseLeaveWindow() {
     if (mergeButtons != null)
       mergeButtons.onMouseLeave();
-    // lineNumbers.onMouseLeave();
+//     lineNumbers.onMouseLeave();
+  }
+
+  private int hitTestFindDiff(V2i mousePos) {
+    return codeMap == null || model.diffModel == null ? -1 :
+        DiffImage.findDiff(
+            mousePos, codeMapX(), codeMapY(), codeMapSize,
+            model.document.length(), model.diffModel);
+  }
+
+  boolean onMouseMoveCodeMap(V2i mousePos, SetCursor setCursor) {
+    return hitTestFindDiff(mousePos) >= 0 && setCursor.set(Cursor.pointer);
   }
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     V2i mousePos = event.position;
-    var scroll = vScroll.onMouseMove(mousePos, setCursor)
-        | hScroll.onMouseMove(mousePos, setCursor);
 
-    if (scroll) {
+    var codeMap = onMouseMoveCodeMap(mousePos, setCursor);
+    var scroll = !codeMap && (
+        vScroll.onMouseMove(mousePos, setCursor) |
+            hScroll.onMouseMove(mousePos, setCursor));
+
+    if (scroll || codeMap) {
       onMouseLeaveWindow();
     } else {
       var mb = mergeButtons != null
