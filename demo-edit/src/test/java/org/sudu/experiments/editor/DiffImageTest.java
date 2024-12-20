@@ -2,6 +2,7 @@ package org.sudu.experiments.editor;
 
 import org.junit.jupiter.api.Assertions;
 import org.sudu.experiments.diff.LineDiff;
+import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.Arrays;
@@ -18,10 +19,36 @@ public class DiffImageTest {
     testMin(doc);
     testBlur();
 
+    testImageToDoc();
+
 //    DiffColors diffColors = DiffColors.codeDiffDark();
 //    GL.ImageData img = new GL.ImageData(1, diffCode.length);
 //    applyDiffPalette(diffCode, img, diffColors);
 
+  }
+
+  static int imageToDocumentBad(int imgPos, int imageLength, int docLength) {
+    int line1 = (int) ((double) (imgPos * docLength) / imageLength + 0.5);
+
+    return Numbers.clamp(0, line1, docLength - 1);
+  }
+
+
+  private static void testImageToDoc() {
+    int qqq = 620 / 50;
+
+    int i0 = imageToDocumentBad(6, 620, 50);
+    int i1 = imageToDocumentBad(7, 620, 50);
+    int e0 = imageToDocumentBad(11, 620, 50);
+    int j1 = imageToDocumentBad(18, 620, 50);
+    int i48 = imageToDocumentBad(601, 620, 50);
+    int i49 = imageToDocumentBad(602, 620, 50);
+    int j49 = imageToDocumentBad(619, 620, 50);
+//    System.out.println("j49 = " + j49);
+    int f0 = DiffImage.imageToDocument(11, 620, 50);
+    int f1 = DiffImage.imageToDocument(12, 620, 50);
+    Assertions.assertEquals(0, f0);
+    Assertions.assertEquals(1, f1);
   }
 
   static LineDiff[] model(int doc) {

@@ -142,7 +142,9 @@ class DiffImage {
   }
 
   static int imageToDocument(int imgPos, int imageLength, int docLength) {
-    int line = Numbers.divRound(imgPos, docLength, imageLength);
+    int round = Math.min(imageLength, docLength) / 2;
+    int line = (imgPos * docLength + round) / imageLength;
+
     return Numbers.clamp(0, line, docLength - 1);
   }
 }
