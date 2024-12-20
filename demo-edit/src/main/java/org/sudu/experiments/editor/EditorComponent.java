@@ -1321,7 +1321,7 @@ public class EditorComponent extends View implements
       }
 
       if (codeMapLine >= 0) {
-        revealLine(codeMapLine);
+        revealLineInCenter(codeMapLine);
         return MouseListener.Static.emptyConsumer;
       }
 
