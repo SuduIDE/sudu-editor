@@ -44,7 +44,7 @@ public class BackendMessage {
     result.set(0, jsInts(writer.getInts()));
     result.set(1, jsString(leftRootName));
     result.set(2, jsString(rightRootName));
-    result.set(3, jsInts(foldersCmp, filesCmp, timeDelta));
+    result.set(3, jsInts(timeDelta, foldersCmp, filesCmp));
     for (int i = 0; i < paths.size(); i++)
       result.set(4 + i, jsString(paths.get(i)));
     return result;

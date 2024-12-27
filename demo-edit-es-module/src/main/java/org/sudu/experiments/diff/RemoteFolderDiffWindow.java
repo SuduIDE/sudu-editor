@@ -170,14 +170,28 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     if (!isFiltered()) updateDiffInfo();
     if (rootModel.isCompared()) {
       finished = true;
-      String statMsg = msg.leftRootName + " <-> " + msg.rightRootName
-          + " compared in " + msg.timeDelta + "ms"
-          + ". Folder compared: " + msg.foldersCmp
-          + ", files compared: " + msg.filesCmp;
-      LoggingJs.info(statMsg);
-      if (statusBar != null) statusBar.setMessage(JSString.valueOf(statMsg));
       rootView.fireFinished();
     }
+    String statMsg = mkStatMsg(msg);
+    LoggingJs.trace("Status: " + statMsg);
+    if (statusBar != null) statusBar.setMessage(JSString.valueOf(statMsg));
+  }
+
+  private String mkStatMsg(BackendMessage msg) {
+    return String.format(
+        "%s %s. Folders compared: %d, files compared: %d",
+        rootModel.isCompared() ? "Compared in" : "In comparing for",
+        mkTimeMsg(msg.timeDelta),
+        msg.foldersCmp, msg.filesCmp
+    );
+  }
+
+  private String mkTimeMsg(int ms) {
+    if (ms < 1000) return ms + " ms";
+    int sec = ms / 1000;
+    int rest;
+    if (sec >= 100 || (rest = (ms % 1000) / 100) == 0) return sec + " sec";
+    return sec + "." + rest + " sec";
   }
 
   private void onDiffApplied(JsArray<JSObject> jsResult) {

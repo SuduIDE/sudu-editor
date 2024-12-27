@@ -127,8 +127,16 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   public void onFileDiffGet() {
     var diffInfo = rootView.diffModel;
     int diffRanges = 0;
-    for (var range: diffInfo.ranges) if (range.type != DiffTypes.DEFAULT) diffRanges++;
-    String statMsg = "Total diffs: " + diffRanges;
+    int linesInserted = 0, linesDeleted = 0;
+    for (var range: diffInfo.ranges) {
+      if (range.type == DiffTypes.DEFAULT) continue;
+      diffRanges++;
+      linesDeleted += range.lenL;
+      linesInserted += range.lenR;
+    }
+    String statMsg = "Total diffs: " + diffRanges
+        + ", lines deleted: " + linesDeleted
+        + ", lines inserted: " + linesInserted;
     LoggingJs.info(statMsg);
     if (statusBar != null) statusBar.setMessage(JSString.valueOf(statMsg));
   }
