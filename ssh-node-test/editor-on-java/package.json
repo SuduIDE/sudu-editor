@@ -1,0 +1,10 @@
+{
+  "name": "editor-on-java",
+  "version": "0.0.0",
+  "description": "Editor on Java ES6 module",
+  "type": "module",
+  "scripts": {},
+  "author": "Kirill",
+  "license": "MIT",
+  "main": "./src/editor.js"
+}
