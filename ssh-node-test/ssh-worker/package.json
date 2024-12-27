@@ -1,9 +1,11 @@
 {
-  "name": "editor-on-java-sample",
-  "version": "1.0.0",
-  "description": "Editor sample site",
+  "name": "ssh-worker",
+  "version": "0.0.0",
+  "description": "ssh-worker",
+
   "author": "Kirill",
   "license": "MIT",
+  "main": "./src/worker.js",
   "scripts": {
     "clean": "npx rimraf dist",
     "build": "npx webpack"
@@ -15,7 +17,6 @@
     "webpack-cli": "^5.0.1"
   },
   "dependencies": {
-    "ssh-worker": "0.0.0",
     "ssh2": "^1.16.0"
   }
 }

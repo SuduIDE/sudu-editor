@@ -5,30 +5,23 @@
 // console.log(`Hello, ${editor}`);
 console.log(`Hello`);
 
-const { readFileSync } = require('fs');
+import { Worker } from 'worker_threads';
 
-const { Client } = require('ssh2');
+let worker = new Worker("./worker.js");
 
-const conn = new Client();
-conn.on('ready', () => {
-  console.log('Client :: ready');
-  conn.exec('uptime', (err, stream) => {
-    if (err) throw err;
-    stream.on('close', (code, signal) => {
-      console.log('Stream :: close :: code: ' + code + ', signal: ' + signal);
-      conn.end();
-    }).on('data', (data) => {
-      console.log('STDOUT: ' + data);
-    }).stderr.on('data', (data) => {
-      console.log('STDERR: ' + data);
-    });
-  });
-}).connect({
-  host: '172.29.85.42',
-  port: 22,
-  username: 'kirill',
-  password: 'gbpltw'
-
- //  privateKey: readFileSync('/path/to/my/key')
+worker.on('message', function(message) {
+    console.log("message from worker: ", message);
+    let f = message === 'finish';
+    console.log("message === 'finish'", f);
+    if (f) worker.terminate();
 });
+
+worker.postMessage("hello worker");
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+
+
+
+
 
