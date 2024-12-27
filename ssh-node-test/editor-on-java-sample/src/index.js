@@ -24,9 +24,11 @@ conn.on('ready', () => {
     });
   });
 }).connect({
-  host: '192.168.100.100',
+  host: '172.29.85.42',
   port: 22,
-  username: 'frylock',
-  privateKey: readFileSync('/path/to/my/key')
+  username: 'kirill',
+  password: 'gbpltw'
+
+ //  privateKey: readFileSync('/path/to/my/key')
 });
 
