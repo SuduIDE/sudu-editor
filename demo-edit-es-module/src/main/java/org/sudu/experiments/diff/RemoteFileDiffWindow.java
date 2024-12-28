@@ -44,7 +44,6 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
         src -> saveFile(true, src),
         src -> saveFile(false, src)
     );
-    this.rootView.setOnFileDiffGet(this::onFileDiffGet);
   }
 
   private void saveFile(boolean left, Model m) {
@@ -122,9 +121,10 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
         rootView.diffSync.sync(rootView.editor2, rootView.editor1);
       }
     }
+    printStat();
   }
 
-  public void onFileDiffGet() {
+  public void printStat() {
     var diffInfo = rootView.diffModel;
     int diffRanges = 0;
     int linesInserted = 0, linesDeleted = 0;
