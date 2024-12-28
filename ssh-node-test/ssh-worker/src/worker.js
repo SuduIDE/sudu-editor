@@ -4,37 +4,43 @@ const { readFileSync } = require('fs');
 
 const { Client } = require('ssh2');
 
-import { parentPort } from 'node:worker_threads';
+import {parentPort} from 'node:worker_threads';
 
-function testClient() {
+function testReadDir(config) {
   const conn = new Client();
   conn.on('ready', () => {
     console.log('Client :: ready');
-    conn.exec('uptime', (err, stream) => {
+    conn.sftp((err, sftp) => {
       if (err) throw err;
-      stream.on('close', (code, signal) => {
-        console.log('Stream :: close :: code: ' + code + ', signal: ' + signal);
+      sftp.readdir('/', (err, list) => {
+        if (err) throw err;
+        console.log("list.length = ", list.length);
+        for (let i = 0; i < list.length; i++) {
+          let file = list[i];
+          console.log("file" + i + " :", file.filename);
+        }
+        // for (const file in list) {
+        //   console.log(file.filename, file.longname)
+        // }
         conn.end();
         parentPort.postMessage("finish");
-      }).on('data', (data) => {
-        console.log('STDOUT: ' + data);
-      }).stderr.on('data', (data) => {
-        console.log('STDERR: ' + data);
       });
     });
-  }).connect({
-    host: '172.29.85.42',
-    port: 22,
-    username: 'kirill',
-    password: 'gbpltw'
-
-    //  privateKey: readFileSync('/path/to/my/key')
-  });
+  }).connect(config);
 }
 
 
 parentPort.onmessage = function(message) {
-  console.log(`Worker: ` + message.data);
-  console.log(`testClient123: `);
-  testClient();
+  let data = message.data;
+  console.log(`Worker: `, data);
+  if ('cmd' in data) {
+    console.log(`cmd =`, data.cmd);
+    switch (data.cmd) {
+      case "readDir":
+        console.log(`readDir, ssh=`, data.ssh);
+        testReadDir(data.ssh);
+        break;
+    }
+  }
+
 }

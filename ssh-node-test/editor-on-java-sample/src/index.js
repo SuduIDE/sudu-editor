@@ -16,7 +16,18 @@ worker.on('message', function(message) {
     if (f) worker.terminate();
 });
 
-worker.postMessage("hello worker");
+worker.postMessage({
+        cmd: "readDir",
+        ssh: {
+            host: '172.29.85.42',
+            port: 22,
+            username: 'kirill',
+            password: 'gbpltw'
+
+            //  privateKey: readFileSync('/path/to/my/key')
+        }
+    }
+);
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
