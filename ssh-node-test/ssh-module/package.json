@@ -15,7 +15,9 @@
     "copy-webpack-plugin": "^11.0.0",
     "rimraf": "^4.1.0",
     "webpack": "^5.75.0",
-    "webpack-cli": "^5.0.1",
+    "webpack-cli": "^5.0.1"
+  },
+  "devDependencies.disabled" : {
     "node-loader": "^2.0.0"
   },
   "dependencies": {
