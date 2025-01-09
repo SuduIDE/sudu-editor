@@ -21,5 +21,3 @@ main();
 export function newEditor(arg) {
   return window.editorApi(arg);
 }
-
-

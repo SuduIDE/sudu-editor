@@ -1,10 +1,11 @@
 {
   "name": "ssh-test",
   "workspaces": [
-    "ssh-worker", "editor-on-java-sample"
+    "ssh-module", "ssh-worker", "editor-on-java-sample"
   ],
   "scripts": {
     "i": "npm install",
+    "build-ssh-module": "npm run -w ssh-module build",
     "build-ssh-worker": "npm run -w ssh-worker build",
     "build-main": "npm run -w editor-on-java-sample build"
   }
