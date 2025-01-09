@@ -85,6 +85,7 @@ public class RemoteCollector {
     firstMessageSent = lastMessageSent = false;
     isRefresh = true;
     startTime = lastMessageSentTime = Performance.now();
+    foldersCompared = filesCompared = 0;
     completeTime = -1;
     root.setCompared(false);
     root.childrenComparedCnt = 0;

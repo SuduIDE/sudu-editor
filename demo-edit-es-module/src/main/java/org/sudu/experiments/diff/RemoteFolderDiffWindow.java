@@ -179,8 +179,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   private String mkStatMsg(BackendMessage msg) {
     return String.format(
-        "%s %s. Folders compared: %d, files compared: %d",
-        rootModel.isCompared() ? "Compared in" : "In comparing for",
+        "Comparison %s %s. Folders compared: %d, files compared: %d",
+        rootModel.isCompared() ? "finished in" : "in process for",
         mkTimeMsg(msg.timeDelta),
         msg.foldersCmp, msg.filesCmp
     );
