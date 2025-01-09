@@ -6,8 +6,8 @@ module.exports = {
     mode:'production',
     target: 'node',
     externals: {
-        '../build/Release/cpufeatures.node': 'require("cpufeatures.node")',
-        './crypto/build/Release/sshcrypto.node': 'require("sshcrypto.node")'
+        // '../build/Release/cpufeatures.node': 'cpufeatures.node',
+        // './crypto/build/Release/sshcrypto.node': 'sshcrypto.node'
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
@@ -19,7 +19,11 @@ module.exports = {
     experiments: {
         outputModule: true,
     },
-    module: { },
+    module: {
+        rules: [
+            { test: /\.node$/, loader: 'node-loader',}
+        ]
+    },
     resolve: {
         extensions: ['.js']
     }
