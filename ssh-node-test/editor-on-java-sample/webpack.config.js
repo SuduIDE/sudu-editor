@@ -13,8 +13,8 @@ module.exports = {
     plugins: [
         new CopyPlugin({
             patterns: [
-                { from: '../node_modules/ssh-worker/dist/worker.mjs', to: '' },
-                { from: '../node_modules/ssh-worker/dist/ssh_mjs.mjs', to: '' },
+                { from: '../ssh-worker/dist/worker.mjs', to: '' },
+                { from: '../ssh-worker/dist/ssh_mjs.mjs', to: '' },
             ]
         })
     ],
