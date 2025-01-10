@@ -7,6 +7,7 @@ module.exports = {
   target: 'node',
   externals: {
     "./ssh_mjs.mjs": 'module ./ssh_mjs.mjs',
+    "node:worker_threads": "module node:worker_threads"
   },
   experiments: {outputModule: true},
   output: {
