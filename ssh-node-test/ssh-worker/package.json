@@ -17,7 +17,6 @@
     "webpack-cli": "^5.0.1"
   },
   "dependencies": {
-    "ssh-worker": "0.0.0",
-    "ssh2": "^1.16.0"
+    "ssh-module": "0.0.0"
   }
 }

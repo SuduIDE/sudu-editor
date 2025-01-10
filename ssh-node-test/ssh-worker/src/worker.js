@@ -1,13 +1,11 @@
 console.log(`Hello, from worker thread`);
 
-const { readFileSync } = require('fs');
-
-const { Client } = require('ssh2');
+import {newSshClient} from "./ssh_mjs.mjs";
 
 import {parentPort} from 'node:worker_threads';
 
 function testReadDir(config) {
-  const conn = new Client();
+  const conn = newSshClient();
   conn.on('ready', () => {
     console.log('Client :: ready');
     conn.sftp((err, sftp) => {

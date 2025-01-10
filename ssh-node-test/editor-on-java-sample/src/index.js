@@ -7,7 +7,7 @@ console.log(`Hello`);
 
 import { Worker } from 'worker_threads';
 
-let worker = new Worker("./worker.js");
+let worker = new Worker("./worker.mjs");
 
 worker.on('message', function(message) {
     console.log("message from worker: ", message);
