@@ -31,32 +31,23 @@ function getConnection(config) {
   return promise;
 }
 
-function doReadDir(sftp, onComplete) {
-  sftp.readdir('/', listFiles);
+function finish(pair, key) {
+  console.log("connection closed: ", key);
+  pair.connection.end();
+  parentPort.postMessage(["finished"]);
 }
 
-function finish(pair) {
-  pair.connect.end();
-  parentPort.postMessage("finish");
+function listFiles(error, list, path) {
+  if (error)
+    list = [];
+  parentPort.postMessage(["listed", path, list]);
 }
 
-function listFiles(error, list) {
-  if (error) {
-
-  } else {
-    console.log("list.length = ", list.length);
-    for (let i = 0; i < list.length; i++) {
-      let file = list[i];
-      console.log("file" + i + " :", file.filename);
-    }
-    parentPort.postMessage("listed");
-  }
-}
-
-function readDir(config) {
+function readDir(config, path) {
   const conn = getConnection(config);
   conn.then(pair => {
-    doReadDir(pair.sftp, () => finish(pair));
+    pair.sftp.readdir(path,
+        (error, list) => listFiles(error, list, path));
   });
 }
 
@@ -64,12 +55,8 @@ function close(config) {
   const key = JSON.stringify(config);
   let promise = connectMap.get(key);
   if (promise) {
-    promise.then(pair => {
-      pair.connection.end();
-      connectMap.delete(key);
-      console.log("connection closed: ", key);
-      parentPort.postMessage("finish");
-    })
+    connectMap.delete(key);
+    promise.then(pair => finish(pair, key));
   }
 }
 
@@ -81,7 +68,7 @@ parentPort.onmessage = function (message) {
     switch (data.cmd) {
       case "readDir":
         console.log(`readDir, ssh=`, data.ssh);
-        readDir(data.ssh);
+        readDir(data.ssh, data.path);
         break;
       case "close":
         console.log(`closing ssh=`, data.ssh);
