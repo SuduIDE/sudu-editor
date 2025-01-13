@@ -1,9 +1,10 @@
 {
-  "name": "editor-on-java-sample",
+  "name": "ssh-test",
   "version": "1.0.0",
   "description": "Editor sample site",
   "author": "Kirill",
   "license": "MIT",
+  "type1": "module",
   "scripts": {
     "clean": "npx rimraf dist",
     "build": "npx webpack"
