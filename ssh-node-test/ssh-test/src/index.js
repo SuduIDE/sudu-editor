@@ -48,10 +48,11 @@ const ssh = {
 };
 
 requests++;
-worker.postMessage({cmd: "readDir", path: '/lib', ssh: ssh});
+worker.postMessage({cmd: "readDir", path: '/home', ssh: ssh});
+
+requests++;
+worker.postMessage({cmd: "readDir", path: '/home/kirill', ssh: ssh});
 
 requests++;
 worker.postMessage({cmd: "readDir", path: '/usr', ssh: ssh});
 
-requests++;
-worker.postMessage({cmd: "readDir", path: '/bin', ssh: ssh});
