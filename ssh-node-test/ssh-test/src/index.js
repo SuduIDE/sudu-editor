@@ -4,11 +4,25 @@ import { Worker } from 'worker_threads';
 
 let worker = new Worker("./worker.mjs");
 
+let requests = 0;
+
 function dumpFolder(path, list) {
-  console.log("directory '" + path + "'list[" + list.length + "]");
+  let s = "";
   for (let i = 0; i < list.length; i++) {
-    console.log("file" + i + " :", list[i].filename);
+    let filename = list[i].filename;
+    s += i + 1 < list.length ? filename + ", " : filename;
   }
+  console.log("  directory '" + path +
+      "', files[" + list.length + "]: " + s);
+}
+
+function closeConnection() {
+  worker.postMessage({cmd: "close", ssh: ssh});
+}
+
+function maybeClose() {
+  if (--requests === 0)
+    closeConnection();
 }
 
 worker.on('message', function(message) {
@@ -16,11 +30,11 @@ worker.on('message', function(message) {
   switch (message[0]) {
     case "finished":
       worker.terminate();
-       break;
+      break;
     case "listed":
       console.log("listed folder ", message[1]);
       dumpFolder(message[1], message[2]);
-      worker.postMessage({cmd: "close", ssh: ssh});
+      maybeClose();
       break;
   }
 });
@@ -33,4 +47,11 @@ const ssh = {
   //  privateKey: readFileSync('/path/to/my/key')
 };
 
-worker.postMessage({cmd: "readDir", path: '/', ssh: ssh});
+requests++;
+worker.postMessage({cmd: "readDir", path: '/lib', ssh: ssh});
+
+requests++;
+worker.postMessage({cmd: "readDir", path: '/usr', ssh: ssh});
+
+requests++;
+worker.postMessage({cmd: "readDir", path: '/bin', ssh: ssh});

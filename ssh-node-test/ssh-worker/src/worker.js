@@ -6,15 +6,19 @@ import {parentPort} from 'node:worker_threads';
 
 const connectMap = new Map();
 
-function connect(config) {
+function connect(config, key) {
   return new Promise(
       (resolve, reject) => {
         const connection = newSshClient();
         connection.on("ready", () => {
-          console.log('connection: ready', config);
+          console.log('worker: connection: ready ', key);
           connection.sftp((err, sftp) => {
-            if (err) reject(err);
-            else resolve({connection, sftp});
+            if (err) {
+              reject(err);
+            } else {
+              console.log("worker: resolve sftp", sftp.constructor.name);
+              resolve({connection, sftp});
+            }
           });
         }).connect(config);
       }
@@ -25,14 +29,14 @@ function getConnection(config) {
   const key = JSON.stringify(config);
   let promise = connectMap.get(key);
   if (!promise) {
-    promise = connect(config);
+    promise = connect(config, key);
     connectMap.set(key, promise);
   }
   return promise;
 }
 
 function finish(pair, key) {
-  console.log("connection closed: ", key);
+  console.log("worker: connection closed: ", key);
   pair.connection.end();
   parentPort.postMessage(["finished"]);
 }
@@ -62,16 +66,16 @@ function close(config) {
 
 parentPort.onmessage = function (message) {
   let data = message.data;
-  console.log(`Worker: `, data);
   if ('cmd' in data) {
-    console.log(`cmd =`, data.cmd);
+    console.log("worker: cmd =", data.cmd);
     switch (data.cmd) {
       case "readDir":
-        console.log(`readDir, ssh=`, data.ssh);
+        console.log("worker: readDir '" + data.path +
+            "', ssh=" + JSON.stringify(data.ssh));
         readDir(data.ssh, data.path);
         break;
       case "close":
-        console.log(`closing ssh=`, data.ssh);
+        console.log("worker: closing ssh=", JSON.stringify(data.ssh));
         close(data.ssh);
     }
   }
