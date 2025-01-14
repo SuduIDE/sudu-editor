@@ -9,6 +9,6 @@
     "build-ssh-worker": "npm run -w ssh-worker build",
     "build-ssh-test":   "npm run -w ssh-test build",
     "build-all": "npm run -w ssh-module -w ssh-worker -w ssh-test build",
-    "build-test": "npm run -w ssh-worker -w ssh-test build"
+    "build-worker-test": "npm run -w ssh-worker -w ssh-test build"
   }
 }

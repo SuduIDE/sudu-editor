@@ -29,13 +29,20 @@ worker.on('message', function(message) {
   console.log("message from worker", message[0]);
   switch (message[0]) {
     case "finished":
+      console.log("  worker.terminate() ....")
       worker.terminate();
       break;
     case "listed":
-      console.log("listed folder ", message[1]);
+      console.log("  listed folder ", message[1]);
       dumpFolder(message[1], message[2]);
       maybeClose();
       break;
+    case "data":
+      console.log("  file data ", message[1]);
+
+      maybeClose();
+      break;
+
   }
 });
 
@@ -55,4 +62,7 @@ worker.postMessage({cmd: "readDir", path: '/home/kirill', ssh: ssh});
 
 requests++;
 worker.postMessage({cmd: "readDir", path: '/usr', ssh: ssh});
+
+requests++;
+worker.postMessage({cmd: "readFile", path: '/home/kirill/.bash_history', ssh: ssh});
 

@@ -1,6 +1,6 @@
 console.log(`Hello, from worker thread`);
 
-import {newSshClient} from "./ssh_mjs.mjs";
+import {newSshClient, OPEN_MODE} from "./ssh_mjs.mjs";
 
 import {parentPort} from 'node:worker_threads';
 
@@ -55,6 +55,21 @@ function readDir(config, path) {
   });
 }
 
+function readFile(config, path) {
+  const conn = getConnection(config);
+  conn.then(pair => {
+    console.log("sftp.OPEN_MODE = ", OPEN_MODE);
+    pair.sftp.open(path, OPEN_MODE.READ, (error, handle) => {
+      if (error) {
+        console.log("sftp.open: path=" + path + ", error = " + error?.message);
+      } else {
+        console.log("sftp.open: path=" + path + ", handle = ", handle);
+      }
+      parentPort.postMessage(["data", path]);
+    });
+  });
+}
+
 function close(config) {
   const key = JSON.stringify(config);
   let promise = connectMap.get(key);
@@ -74,9 +89,15 @@ parentPort.onmessage = function (message) {
             "', ssh=" + JSON.stringify(data.ssh));
         readDir(data.ssh, data.path);
         break;
+      case "readFile":
+        console.log("worker: readFile '" + data.path +
+            "', ssh=" + JSON.stringify(data.ssh) + "\n");
+        readFile(data.ssh, data.path);
+        break;
       case "close":
         console.log("worker: closing ssh=", JSON.stringify(data.ssh));
         close(data.ssh);
+        break;
     }
   }
 
