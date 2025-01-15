@@ -1,0 +1,14 @@
+{
+  "name": "ssh-test",
+  "workspaces": [
+    "ssh-module", "ssh-worker", "ssh-test"
+  ],
+  "scripts": {
+    "i": "npm install --omit=optional",
+    "build-ssh-module": "npm run -w ssh-module build",
+    "build-ssh-worker": "npm run -w ssh-worker build",
+    "build-ssh-test":   "npm run -w ssh-test build",
+    "build-all": "npm run -w ssh-module -w ssh-worker -w ssh-test build",
+    "build-worker-test": "npm run -w ssh-worker -w ssh-test build"
+  }
+}

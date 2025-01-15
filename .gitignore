@@ -21,7 +21,7 @@ node_modules
 /codicon/src/main/resources/fonts/
 /demo-edit-es-module/module/diff.d.ts
 /demo-edit-es-module/module/common.d.ts
-
 .jlsp/out/
-
 .jlsp/
+/ssh-node-test/editor-on-java-sample/dist/
+/ssh-node-test/ssh-module/dist/
