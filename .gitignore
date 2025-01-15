@@ -23,5 +23,4 @@ node_modules
 /demo-edit-es-module/module/common.d.ts
 .jlsp/out/
 .jlsp/
-/ssh-node-test/editor-on-java-sample/dist/
-/ssh-node-test/ssh-module/dist/
+/ssh-module/dist/

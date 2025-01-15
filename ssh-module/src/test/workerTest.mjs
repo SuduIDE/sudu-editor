@@ -61,7 +61,7 @@ const ssh = {
   //  privateKey: readFileSync('/path/to/my/key')
 };
 
-for (let i = 6; i + 1 < args.length; i++) {
+for (let i = 6; i + 1 < args.length; i += 2) {
   let cmd = args[i];
   let path = args[i + 1];
   console.log("cmd = " + cmd + ", path = " + path);

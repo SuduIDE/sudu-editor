@@ -1,6 +1,6 @@
 console.log(`Hello, from worker thread`);
 
-import {newSshClient, OPEN_MODE} from "./ssh_mjs.mjs";
+import {newSshClient, OPEN_MODE} from "../../dist/ssh_mjs.mjs";
 
 import {parentPort} from 'node:worker_threads';
 

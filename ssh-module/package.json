@@ -1,11 +1,13 @@
 {
-  "name": "ssh-test",
-  "version": "1.0.0",
-  "description": "ssh-test",
+  "name": "ssh-module",
+  "version": "0.0.0",
+  "description": "ssh-module",
   "author": "Kirill",
   "license": "MIT",
+  "main": "./src/ssh_mjs.mjs",
   "type1": "module",
   "scripts": {
+    "i": "npm install --omit=optional",
     "clean": "npx rimraf dist",
     "build": "npx webpack"
   },
@@ -15,7 +17,10 @@
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1"
   },
+  "devDependencies.disabled": {
+    "node-loader": "^2.0.0"
+  },
   "dependencies": {
-    "ssh-worker": "0.0.0"
+    "ssh2": "^1.16.0"
   }
 }
