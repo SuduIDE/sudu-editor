@@ -25,6 +25,20 @@ function maybeClose() {
     closeConnection();
 }
 
+function dumpData(message) {
+  console.log("  file data path:", message[1]);
+  if (message.length < 4) {
+    console.log("  error:", message[2]);
+  }
+
+  if (message.length === 4) {
+    const data = message[2];
+    const bytesRead = message[3];
+    console.log("  data.byteLength = ", data.byteLength,
+        ", bytes read:", bytesRead);
+  }
+}
+
 worker.on('message', function(message) {
   console.log("message from worker", message[0]);
   switch (message[0]) {
@@ -38,8 +52,7 @@ worker.on('message', function(message) {
       maybeClose();
       break;
     case "data":
-      console.log("  file data ", message[1]);
-
+      dumpData(message);
       maybeClose();
       break;
 

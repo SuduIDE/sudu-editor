@@ -4,6 +4,8 @@ import {newSshClient, OPEN_MODE} from "../../dist/ssh_mjs.mjs";
 
 import {parentPort} from 'node:worker_threads';
 
+console.log("sftp.OPEN_MODE = ", OPEN_MODE);
+
 const connectMap = new Map();
 
 function connect(config, key) {
@@ -64,7 +66,6 @@ function closeHandle(sftp, handle, path) {
 function readFile(config, path) {
   const conn = getConnection(config);
   conn.then(pair => {
-    console.log("sftp.OPEN_MODE = ", OPEN_MODE);
     pair.sftp.open(path, OPEN_MODE.READ, (error, handle) => {
       if (error) {
         console.log("sftp.open: path=" + path + ", error = " + error?.message);
@@ -72,9 +73,12 @@ function readFile(config, path) {
       } else {
         console.log("sftp.open: path=" + path + ", handle = ", handle);
         pair.sftp.fstat(handle, (error, stats) => {
-          console.log("sftp.fstat: path=" + path + ", stats = ", stats);
+          console.log("sftp.fstat: path=" + path +
+              ", isFile: " + stats.isFile() +
+              ", stats.size = ", stats.size);
+
           if (stats && "size" in stats && stats.size > 0) {
-            const array = new Uint8Array(1024);
+            const array = new Uint8Array(stats.size);
             const off = 0;
             const len = array.byteLength;
             const position = 0;
@@ -88,13 +92,19 @@ function readFile(config, path) {
 
             const readCb = (err, bytesRead, bufferAdjusted, position) => {
               const baseBuffer = bufferAdjusted.buffer;
-              const sameBB = baseBuffer === arrayBuffer;
+              const sameBuffer = baseBuffer === arrayBuffer;
+              console.log("sftp.read complete: buffer is original", sameBuffer);
               if (err) {
                 parentPort.postMessage(["data", path]);
               } else {
-                console.log("sftp.read complete: bytesRead = ",
-                    bytesRead, ", position", position, ", buffer: ", bufferAdjusted)
-                parentPort.postMessage(["data", path, bytesRead]);
+                console.log(
+                    "sftp.read complete: bytesRead = ", bytesRead,
+                    ", position", position,
+                    ", buffer: ", bufferAdjusted.constructor.name, buffer.byteLength)
+                const message = ["data", path, baseBuffer, bytesRead];
+                const transferList = [baseBuffer];
+                parentPort.postMessage(message, transferList);
+                console.log("sftp.read complete: baseBuffer after transfer = ", baseBuffer);
               }
               closeHandle(pair.sftp, handle, path);
             };
