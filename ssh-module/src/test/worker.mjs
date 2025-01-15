@@ -55,6 +55,12 @@ function readDir(config, path) {
   });
 }
 
+function closeHandle(sftp, handle, path) {
+  sftp.close(handle, (error) => {
+    console.log("sftp.close finished: ", path, ", error = ", error);
+  })
+}
+
 function readFile(config, path) {
   const conn = getConnection(config);
   conn.then(pair => {
@@ -62,10 +68,44 @@ function readFile(config, path) {
     pair.sftp.open(path, OPEN_MODE.READ, (error, handle) => {
       if (error) {
         console.log("sftp.open: path=" + path + ", error = " + error?.message);
+        parentPort.postMessage(["data", path]);
       } else {
         console.log("sftp.open: path=" + path + ", handle = ", handle);
+        pair.sftp.fstat(handle, (error, stats) => {
+          console.log("sftp.fstat: path=" + path + ", stats = ", stats);
+          if (stats && "size" in stats && stats.size > 0) {
+            const array = new Uint8Array(1024);
+            const off = 0;
+            const len = array.byteLength;
+            const position = 0;
+            const arrayBuffer = array.buffer;
+            const buffer = Buffer.from(arrayBuffer);
+
+            const isBuffer = Buffer.isBuffer(buffer);
+
+            if (!isBuffer)
+              throw new Error("!Buffer.isBuffer(buffer)");
+
+            const readCb = (err, bytesRead, bufferAdjusted, position) => {
+              const baseBuffer = bufferAdjusted.buffer;
+              const sameBB = baseBuffer === arrayBuffer;
+              if (err) {
+                parentPort.postMessage(["data", path]);
+              } else {
+                console.log("sftp.read complete: bytesRead = ",
+                    bytesRead, ", position", position, ", buffer: ", bufferAdjusted)
+                parentPort.postMessage(["data", path, bytesRead]);
+              }
+              closeHandle(pair.sftp, handle, path);
+            };
+
+            pair.sftp.read(handle, buffer, off, len, position, readCb);
+          } else {
+            parentPort.postMessage(["data", path]);
+            closeHandle(pair.sftp, handle, path);
+          }
+        });
       }
-      parentPort.postMessage(["data", path]);
     });
   });
 }
