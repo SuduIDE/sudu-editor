@@ -11,6 +11,7 @@ import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.esm.JsDialogProvider;
 import org.sudu.experiments.esm.JsExternalFileOpener;
+import org.sudu.experiments.esm.JsExternalStatusBar;
 import org.sudu.experiments.esm.dlg.FsDialogs;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
@@ -70,6 +71,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   JsExternalFileOpener opener;
   JsDialogProvider dialogProvider;
+  JsExternalStatusBar statusBar;
 
   private int[] lastFilters = null;
   private RemoteFolderDiffModel lastSelected;
@@ -168,9 +170,28 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     if (!isFiltered()) updateDiffInfo();
     if (rootModel.isCompared()) {
       finished = true;
-      LoggingJs.info("RemoteFolderDiff finished");
       rootView.fireFinished();
     }
+    String statMsg = mkStatMsg(msg);
+    LoggingJs.trace("Status: " + statMsg);
+    if (statusBar != null) statusBar.setMessage(JSString.valueOf(statMsg));
+  }
+
+  private String mkStatMsg(BackendMessage msg) {
+    return String.format(
+        "Comparison %s %s. Folders compared: %d, files compared: %d",
+        rootModel.isCompared() ? "finished in" : "in process for",
+        mkTimeMsg(msg.timeDelta),
+        msg.foldersCmp, msg.filesCmp
+    );
+  }
+
+  private String mkTimeMsg(int ms) {
+    if (ms < 1000) return ms + " ms";
+    int sec = ms / 1000;
+    int rest;
+    if (sec >= 100 || (rest = (ms % 1000) / 100) == 0) return sec + " sec";
+    return sec + "." + rest + " sec";
   }
 
   private void onDiffApplied(JsArray<JSObject> jsResult) {

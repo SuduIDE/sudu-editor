@@ -16,6 +16,7 @@ public class ReadFolderHandler {
   private final int itemKind;
   private final Consumer<Object[]> r;
   private int readCnt = 0;
+  private int foldersRead, filesRead;
 
   public ReadFolderHandler(
       ItemFolderDiffModel rootModel,
@@ -66,8 +67,12 @@ public class ReadFolderHandler {
       child.setDiffType(diffType);
       child.setItem(children[i].item);
       if (!child.isFile()) {
+        foldersRead++;
         read(child);
-      } else child.itemCompared();
+      } else {
+        filesRead++;
+        child.itemCompared();
+      }
     }
     --readCnt;
     if (readCnt <= 0) {
@@ -76,7 +81,7 @@ public class ReadFolderHandler {
       ArrayList<FsItem> fsItems = new ArrayList<>();
       int[] ints = ItemFolderDiffModel.toInts(rootModel, paths, fsItems);
       result.add(ints);
-      result.add(new int[] {paths.size(), fsItems.size()});
+      result.add(new int[] {paths.size(), fsItems.size(), foldersRead, filesRead});
       result.addAll(paths);
       result.addAll(fsItems);
       ArrayOp.sendArrayList(result, r);

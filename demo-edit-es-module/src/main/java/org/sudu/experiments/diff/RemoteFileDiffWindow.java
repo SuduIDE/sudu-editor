@@ -5,6 +5,7 @@ import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
+import org.sudu.experiments.esm.JsExternalStatusBar;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.protocol.JsCast;
@@ -18,6 +19,8 @@ import java.util.function.Supplier;
 import static org.sudu.experiments.editor.worker.diff.DiffUtils.readDiffInfo;
 
 public class RemoteFileDiffWindow extends FileDiffWindow {
+
+  JsExternalStatusBar statusBar;
 
   private final Channel channel;
   private boolean needScrollSync = false;
@@ -118,6 +121,24 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
         rootView.diffSync.sync(rootView.editor2, rootView.editor1);
       }
     }
+    printStat();
+  }
+
+  public void printStat() {
+    var diffInfo = rootView.diffModel;
+    int diffRanges = 0;
+    int linesInserted = 0, linesDeleted = 0;
+    for (var range: diffInfo.ranges) {
+      if (range.type == DiffTypes.DEFAULT) continue;
+      diffRanges++;
+      linesDeleted += range.lenL;
+      linesInserted += range.lenR;
+    }
+    String statMsg = "Total diffs: " + diffRanges
+        + ", lines deleted: " + linesDeleted
+        + ", lines inserted: " + linesInserted;
+    LoggingJs.info(statMsg);
+    if (statusBar != null) statusBar.setMessage(JSString.valueOf(statMsg));
   }
 
   private void updateOnRefresh() {
