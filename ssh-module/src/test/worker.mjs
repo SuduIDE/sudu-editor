@@ -46,7 +46,24 @@ function finish(pair, key) {
 function listFiles(error, list, path) {
   if (error)
     list = [];
-  parentPort.postMessage(["listed", path, list]);
+  const files = [];
+  const folders = [];
+  console.log("worker: listFiles, l =", list.length, "path:", path);
+  for (let i = 0; i < list.length; i++) {
+    const item = list[i];
+    const filename = item.filename;
+    const size = item.attrs.size;
+    if (item.attrs.isDirectory()) {
+      folders.push(filename);
+    } else if (item.attrs.isFile()) {
+      files.push({filename, size});
+    }
+    console.log("  [" + i + "]: " + item.filename + " -" +
+        (item.attrs.isFile() ? " file" : "") +
+        (item.attrs.isDirectory() ? " dir" : "") +
+        (item.attrs.isSymbolicLink() ? " link" : ""));
+  }
+  parentPort.postMessage(["listed", path, folders, files]);
 }
 
 function readDir(config, path) {
