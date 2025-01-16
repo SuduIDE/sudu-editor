@@ -4,6 +4,8 @@ import {newSshClient, OPEN_MODE} from "../../dist/ssh_mjs.mjs";
 
 import {parentPort} from 'node:worker_threads';
 
+console.log("sftp.OPEN_MODE = ", OPEN_MODE);
+
 const connectMap = new Map();
 
 function connect(config, key) {
@@ -44,7 +46,24 @@ function finish(pair, key) {
 function listFiles(error, list, path) {
   if (error)
     list = [];
-  parentPort.postMessage(["listed", path, list]);
+  const files = [];
+  const folders = [];
+  console.log("worker: listFiles, l =", list.length, "path:", path);
+  for (let i = 0; i < list.length; i++) {
+    const item = list[i];
+    const filename = item.filename;
+    const size = item.attrs.size;
+    if (item.attrs.isDirectory()) {
+      folders.push(filename);
+    } else if (item.attrs.isFile()) {
+      files.push({filename, size});
+    }
+    console.log("  [" + i + "]: " + item.filename + " -" +
+        (item.attrs.isFile() ? " file" : "") +
+        (item.attrs.isDirectory() ? " dir" : "") +
+        (item.attrs.isSymbolicLink() ? " link" : ""));
+  }
+  parentPort.postMessage(["listed", path, folders, files]);
 }
 
 function readDir(config, path) {
@@ -55,17 +74,65 @@ function readDir(config, path) {
   });
 }
 
+function closeHandle(sftp, handle, path) {
+  sftp.close(handle, (error) => {
+    console.log("sftp.close finished: ", path, ", error = ", error);
+  })
+}
+
 function readFile(config, path) {
   const conn = getConnection(config);
   conn.then(pair => {
-    console.log("sftp.OPEN_MODE = ", OPEN_MODE);
     pair.sftp.open(path, OPEN_MODE.READ, (error, handle) => {
       if (error) {
         console.log("sftp.open: path=" + path + ", error = " + error?.message);
+        parentPort.postMessage(["data", path]);
       } else {
         console.log("sftp.open: path=" + path + ", handle = ", handle);
+        pair.sftp.fstat(handle, (error, stats) => {
+          console.log("sftp.fstat: path=" + path +
+              ", isFile: " + stats.isFile() +
+              ", stats.size = ", stats.size);
+
+          if (stats && "size" in stats && stats.size > 0) {
+            const array = new Uint8Array(stats.size);
+            const off = 0;
+            const len = array.byteLength;
+            const position = 0;
+            const arrayBuffer = array.buffer;
+            const buffer = Buffer.from(arrayBuffer);
+
+            const isBuffer = Buffer.isBuffer(buffer);
+
+            if (!isBuffer)
+              throw new Error("!Buffer.isBuffer(buffer)");
+
+            const readCb = (err, bytesRead, bufferAdjusted, position) => {
+              const baseBuffer = bufferAdjusted.buffer;
+              const sameBuffer = baseBuffer === arrayBuffer;
+              console.log("sftp.read complete: buffer is original", sameBuffer);
+              if (err) {
+                parentPort.postMessage(["data", path]);
+              } else {
+                console.log(
+                    "sftp.read complete: bytesRead = ", bytesRead,
+                    ", position", position,
+                    ", buffer: ", bufferAdjusted.constructor.name, buffer.byteLength)
+                const message = ["data", path, baseBuffer, bytesRead];
+                const transferList = [baseBuffer];
+                parentPort.postMessage(message, transferList);
+                console.log("sftp.read complete: baseBuffer after transfer = ", baseBuffer);
+              }
+              closeHandle(pair.sftp, handle, path);
+            };
+
+            pair.sftp.read(handle, buffer, off, len, position, readCb);
+          } else {
+            parentPort.postMessage(["data", path]);
+            closeHandle(pair.sftp, handle, path);
+          }
+        });
       }
-      parentPort.postMessage(["data", path]);
     });
   });
 }

@@ -6,14 +6,18 @@ let worker = new Worker("./worker.mjs");
 
 let requests = 0;
 
-function dumpFolder(path, list) {
+function dumpFolder(path, folders, files) {
   let s = "";
-  for (let i = 0; i < list.length; i++) {
-    let filename = list[i].filename;
-    s += i + 1 < list.length ? filename + ", " : filename;
+  for (let i = 0; i < folders.length; i++) {
+    s += i + (1 < folders.length || files.length > 0) ?
+        folders[i] + ", " : folders[i];
   }
-  console.log("  directory '" + path +
-      "', files[" + list.length + "]: " + s);
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i].filename + "(" + files[i].size + ")";
+    s += i + 1 < files.length ? file + ", " : file;
+  }
+  console.log("  directory '" + path + "', folders[" + folders.length +
+      "], files[" + files.length + "]: " + s);
 }
 
 function closeConnection() {
@@ -25,6 +29,20 @@ function maybeClose() {
     closeConnection();
 }
 
+function dumpData(message) {
+  console.log("  file data path:", message[1]);
+  if (message.length < 4) {
+    console.log("  error:", message[2]);
+  }
+
+  if (message.length === 4) {
+    const data = message[2];
+    const bytesRead = message[3];
+    console.log("  data.byteLength = ", data.byteLength,
+        ", bytes read:", bytesRead);
+  }
+}
+
 worker.on('message', function(message) {
   console.log("message from worker", message[0]);
   switch (message[0]) {
@@ -34,12 +52,13 @@ worker.on('message', function(message) {
       break;
     case "listed":
       console.log("  listed folder ", message[1]);
-      dumpFolder(message[1], message[2]);
+      if (message.length === 4) {
+        dumpFolder(message[1], message[2], message[3]);
+      }
       maybeClose();
       break;
     case "data":
-      console.log("  file data ", message[1]);
-
+      dumpData(message);
       maybeClose();
       break;
 
