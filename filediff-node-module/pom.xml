@@ -35,10 +35,16 @@
 
     <teavm.optimizationLevel>ADVANCED</teavm.optimizationLevel>
 <!--    <teavm.optimizationLevel>SIMPLE</teavm.optimizationLevel>-->
-
+    <npx.exe>npx</npx.exe>
   </properties>
 
   <profiles>
+    <profile>
+      <id>win32</id>
+      <properties>
+        <npx.exe>npx.cmd</npx.exe>
+      </properties>
+    </profile>
     <profile>
       <id>release</id>
       <properties>
@@ -47,6 +53,41 @@
         <teavm.minifying>true</teavm.minifying>
         <teavm.optimizationLevel>ADVANCED</teavm.optimizationLevel>
       </properties>
+    </profile>
+
+    <profile>
+      <id>build-ssd</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>3.1.0</version>
+            <executions>
+              <execution>
+                <id>invoke-ssd-build</id>
+                <phase>generate-sources</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <target>
+                    <exec executable="${npx.exe}" failonerror="true">
+                      <arg value="--version"/>
+<!--                      <arg value="/p:Configuration=Release"/>-->
+<!--                      <arg value="Dll.vcxproj"/>-->
+                    </exec>
+<!--                    <concat destfile="${moduleSrc}/${diffEngine.js}" overwrite="yes">-->
+<!--                      <fileset file="${diffEngine.prefix}"/>-->
+<!--                      <fileset file="${teavm.pre.module.js}/${diffEngine.js}"/>-->
+<!--                      <fileset file="${diffEngine.suffix}"/>-->
+<!--                    </concat>-->
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+        </plugins>
+      </build>
     </profile>
   </profiles>
 
@@ -93,8 +134,8 @@
           <execution>
             <id>diffEngine-js</id>
             <goals>
-              <goal>compile</goal>
-            </goals>
+<!--              <goal>compile</goal>-->
+             </goals>
             <configuration>
               <!-- see org.sudu.experiments.JsBuildPlugin -->
               <properties><invokeMain>true</invokeMain></properties>
@@ -111,7 +152,7 @@
           <execution>
             <id>diffEngine-worker-js</id>
             <goals>
-              <goal>compile</goal>
+<!--              <goal>compile</goal>-->
             </goals>
             <configuration>
               <!-- see org.sudu.experiments.JsBuildPlugin -->

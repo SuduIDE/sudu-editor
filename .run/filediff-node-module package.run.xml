@@ -36,7 +36,9 @@
           <option name="pomFileName" value="pom.xml" />
           <option name="profilesMap">
             <map>
+              <entry key="win32" value="true" />
               <entry key="release" value="true" />
+              <entry key="build-ssd" value="true" />
             </map>
           </option>
           <option name="projectsCmdOptionValues">
