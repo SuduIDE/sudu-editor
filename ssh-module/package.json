@@ -4,12 +4,13 @@
   "description": "ssh-module",
   "author": "Kirill",
   "license": "MIT",
-  "main": "./src/ssh_mjs.mjs",
+  "main": "./src/sshLib.mjs",
   "type1": "module",
   "scripts": {
     "i": "npm install --omit=optional",
     "clean": "npx rimraf dist",
-    "build": "npx webpack"
+    "build": "npx webpack",
+    "install_and_build": "npm install --omit=optional && npx webpack"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^11.0.0",

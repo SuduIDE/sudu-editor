@@ -22,6 +22,11 @@ const diffEngineWorker = path.join(__dirname, "../src/diffEngineWorker.mjs")
 let diffEngine = await createDiffEngine(diffEngineWorker, nThreads);
 let module = diffEngine.testApi();
 
+if (!module) {
+  console.log("diffEngine.testApi() in not exposed");
+  process.exit(-1);
+}
+
 console.log("got module: ", module.constructor.name);
 
 let jobCount = 0;

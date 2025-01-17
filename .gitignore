@@ -11,6 +11,7 @@ target/
 /demo-edit-es-module/module/src/worker.js
 /filediff-node-module/module/src/editor.mjs
 /filediff-node-module/module/src/worker.mjs
+/filediff-node-module/module/src/sshLib.mjs
 diffEngine.mjs
 diffEngineWorker.mjs
 /demo-edit-es-module/webpack-test/package-lock.json

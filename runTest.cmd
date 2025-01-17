@@ -1,5 +1,5 @@
 
-set mjs=filediff-node-module\module\samples\example1.mjs
+set mjs=filediff-node-module\module\samples\diffEngineTest.mjs
 
 set dir=.\
 
