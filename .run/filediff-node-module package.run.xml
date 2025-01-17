@@ -36,7 +36,7 @@
           <option name="pomFileName" value="pom.xml" />
           <option name="profilesMap">
             <map>
-              <entry key="build-ssh" value="true" />
+              <entry key="build-ssh" value="false" />
               <entry key="win32" value="true" />
               <entry key="skip-npm-install" value="true" />
               <entry key="release" value="true" />

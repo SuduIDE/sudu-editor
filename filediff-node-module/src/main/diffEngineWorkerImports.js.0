@@ -3,7 +3,10 @@
 import { parentPort } from 'node:worker_threads';
 import fs from 'node:fs';
 import path from 'node:path';
+import {newSshClient, OPEN_MODE} from "./sshLib.mjs";
 
 global.parentPort = parentPort;
 global.fs = fs;
 global.path = path;
+global.newSshClient = newSshClient;
+global.OPEN_MODE = OPEN_MODE;

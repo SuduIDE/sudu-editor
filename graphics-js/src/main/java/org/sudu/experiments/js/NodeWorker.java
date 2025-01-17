@@ -26,6 +26,11 @@ public interface NodeWorker extends JsMessagePort0 {
     public static native NodeWorker parentPort();
     @JSBody(script = "return {once: true};")
     public static native JSObject once();
+
+    @JSBody(script = "return newSshClient();")
+    public static native JSObject newSshClient();
+    @JSBody(script = "return OPEN_MODE;")
+    public static native JSObject OPEN_MODE();
   }
 
   static void start(
@@ -50,6 +55,9 @@ public interface NodeWorker extends JsMessagePort0 {
   }
 
   static void workerMain(WorkerExecutor executor) {
+    JsHelper.consoleInfo2("OPEN_MODE", Native.OPEN_MODE());
+    JSObject newSshClient = Native.newSshClient();
+    JsHelper.consoleInfo2("newSshClient name", newSshClient);
     WorkerProtocol.bridge = new NodeWorkersBridge();
     Native.parentPort().onMessage(e ->
       WorkerProtocol.onWorkerMessage(executor, e, Native.parentPort())
