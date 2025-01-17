@@ -51,6 +51,8 @@ interface JsDiffTestApi extends JSObject {
   );
 
   void testGbkEncoder();
+
+  void testSSH(JSObject sshPath);
 }
 
 public class DiffTestApi implements JsDiffTestApi {
@@ -186,4 +188,8 @@ public class DiffTestApi implements JsDiffTestApi {
     GbkEncodingTestHelper.testGlyph((byte) 0xA1, (byte) 0xA1);
   }
 
+  @Override
+  public void testSSH(JSObject sshPath) {
+    System.out.println("DiffTestApi.testSSH");
+  }
 }

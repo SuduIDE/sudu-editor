@@ -55,19 +55,19 @@ export interface FolderDiffSession extends AsyncShutdown {
 export interface FileDiffSession extends AsyncShutdown {
 }
 
-export type SSHCredentials = { host: string, port: string } & (
+export type SshCredentials = { host: string, port: string } & (
   { username: string, password: string } |
   { privateKey: string });
 
-export type SSHInput = { path: string, ssh: SSHCredentials }
-export type FileInput = { path: string } | { content: string } | SSHInput;
+export type SshInput = { path: string, ssh: SshCredentials }
+export type FileInput = { path: string } | { content: string } | SshInput;
 
 // java class: org.sudu.experiments.DiffEngineJs
 export interface DiffEngine extends IDisposable {
   // todo add boolean content
   startFolderDiff(
-    leftPath: string | SSHInput,
-    rightPath: string | SSHInput,
+    leftPath: string | SshInput,
+    rightPath: string | SshInput,
     channel: Channel
   ): FolderDiffSession;
 
