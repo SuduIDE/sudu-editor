@@ -27,8 +27,6 @@ public interface NodeWorker extends JsMessagePort0 {
     @JSBody(script = "return {once: true};")
     public static native JSObject once();
 
-    @JSBody(script = "return newSshClient();")
-    public static native JSObject newSshClient();
     @JSBody(script = "return OPEN_MODE;")
     public static native JSObject OPEN_MODE();
   }
