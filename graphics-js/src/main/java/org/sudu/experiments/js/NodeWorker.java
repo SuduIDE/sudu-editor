@@ -55,10 +55,10 @@ public interface NodeWorker extends JsMessagePort0 {
     }
   }
 
-  static void workerMain(WorkerExecutor executor,PlatformBridge bridge) {
+  static void workerMain(WorkerExecutor executor, PlatformBridge bridge) {
     WorkerProtocol.bridge = bridge;
     Native.parentPort().onMessage(e ->
-      WorkerProtocol.onWorkerMessage(executor, e, Native.parentPort())
+        WorkerProtocol.onWorkerMessage(executor, e, Native.parentPort())
     );
     Native.parentPort().postMessage(WorkerProtocol.started());
   }
