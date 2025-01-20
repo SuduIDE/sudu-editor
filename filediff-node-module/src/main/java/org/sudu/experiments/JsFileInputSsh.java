@@ -1,5 +1,6 @@
 package org.sudu.experiments;
 
+import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSObjects;
@@ -11,6 +12,16 @@ import org.teavm.jso.core.JSString;
 // export type SshInput = { path: string, ssh: SSHCredentials }
 
 public interface JsFileInputSsh extends JSObject {
+
+  class Helper {
+    @JSBody(
+        params = {"host", "port", "user", "password"},
+        script = "return {host:host, port:port, user:user, password:password};")
+    public static native JaSshCredentials create(
+        JSString host, JSString port, JSString user, JSString password
+    );
+  }
+
   interface JaSshCredentials extends JSObject {
     @JSProperty
     JSString getHost();

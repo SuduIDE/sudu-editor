@@ -2,6 +2,7 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.editor.worker.FileDiffWorker;
 import org.sudu.experiments.js.NodeWorker;
+import org.sudu.experiments.js.node.NodeWorkersBridge;
 
 import java.util.function.Consumer;
 
@@ -12,6 +13,6 @@ public class DiffEngineWorker {
     }
   }
   public static void main(String[] args) {
-    NodeWorker.workerMain(Executor::execute);
+    NodeWorker.workerMain(Executor::execute, new NodeWorkersBridge());
   }
 }

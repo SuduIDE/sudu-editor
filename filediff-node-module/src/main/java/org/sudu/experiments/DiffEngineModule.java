@@ -1,6 +1,7 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.js.*;
+import org.sudu.experiments.js.node.NodeWorkersBridge;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
@@ -31,6 +32,7 @@ public interface DiffEngineModule {
     return Promise.create(
         (postResult, postError) -> NodeWorker.start(
             array -> postResult.f(new DiffEngine(array)),
-            postError, workerUrl, nT));
+            postError, workerUrl, nT, new NodeWorkersBridge()
+        ));
   }
 }

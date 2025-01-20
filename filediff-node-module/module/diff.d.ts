@@ -47,6 +47,8 @@ export interface DiffTestApi {
   ): void;
 
   testGbkEncoder() : void;
+
+  testSsh(file: SshInput): void;
 }
 
 export interface FolderDiffSession extends AsyncShutdown {

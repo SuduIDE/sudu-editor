@@ -52,7 +52,7 @@ interface JsDiffTestApi extends JSObject {
 
   void testGbkEncoder();
 
-  void testSSH(JSObject sshPath);
+  void testSsh(JSObject sshPath);
 }
 
 public class DiffTestApi implements JsDiffTestApi {
@@ -189,7 +189,11 @@ public class DiffTestApi implements JsDiffTestApi {
   }
 
   @Override
-  public void testSSH(JSObject sshPath) {
-    System.out.println("DiffTestApi.testSSH");
+  public void testSsh(JSObject sshPath) {
+    System.out.println("DiffTestApi.testSsh");
+    System.out.println("JsFileInputSsh.isInstance(sshPath) = "
+        + JsFileInputSsh.isInstance(sshPath));
+    JsHelper.consoleInfo2("path", JsFileInputSsh.getPath(sshPath));
+    JsHelper.consoleInfo2("ssh", JsFileInputSsh.getSsh(sshPath));
   }
 }
