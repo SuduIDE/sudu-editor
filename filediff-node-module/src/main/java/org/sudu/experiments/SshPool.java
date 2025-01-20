@@ -95,13 +95,12 @@ public interface SshPool {
           (postResult, postError) -> {
             JsSshClient client = Native.newSshClient();
             client.onReady(() -> client.sftp((JSError e, JsSftpClient sftp) -> {
-                  if (e == null || JSObjects.isUndefined(e)) {
-                    postResult.f(Native.createRecord(client, sftp));
-                  } else {
-                    postError.f(e);
-                  }
-                })
-            );
+              if (e == null || JSObjects.isUndefined(e)) {
+                postResult.f(Native.createRecord(client, sftp));
+              } else {
+                postError.f(e);
+              }
+            }));
             client.connect(creds);
           }
       );
