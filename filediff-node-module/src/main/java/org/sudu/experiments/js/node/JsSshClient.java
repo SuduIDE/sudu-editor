@@ -11,6 +11,7 @@ public interface JsSshClient extends JSObject {
   void sftp(BiConsumer<JSError, JsSftpClient> handler);
 
   void connect(JSObject sshCredentials);
+  void end();
 
   default void onReady(Runnable handler) {
     on("ready", handler);
