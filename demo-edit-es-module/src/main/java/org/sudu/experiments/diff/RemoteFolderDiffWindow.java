@@ -39,6 +39,8 @@ import org.teavm.jso.typedarrays.Int32Array;
 import java.util.*;
 import java.util.function.*;
 
+import static org.sudu.experiments.diff.RemoteFileDiffWindow.sSuffix;
+
 public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   static boolean debug;
@@ -178,12 +180,11 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private String mkStatMsg(BackendMessage msg) {
-    return String.format(
-        "Comparison %s %s. Folders compared: %d, files compared: %d",
-        rootModel.isCompared() ? "finished in" : "in process for",
-        mkTimeMsg(msg.timeDelta),
-        msg.foldersCmp, msg.filesCmp
-    );
+ //    mkTimeMsg(msg.timeDelta),
+    return "Compared " +
+        msg.foldersCmp + " folder" + sSuffix(msg.foldersCmp) + ", " +
+        msg.filesCmp + " file" + sSuffix(msg.filesCmp) +
+        (rootModel.isCompared() ? "" : " (in progress)");
   }
 
   private String mkTimeMsg(int ms) {

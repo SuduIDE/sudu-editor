@@ -134,11 +134,17 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
       linesDeleted += range.lenL;
       linesInserted += range.lenR;
     }
-    String statMsg = "Total diffs: " + diffRanges
-        + ", lines deleted: " + linesDeleted
-        + ", lines inserted: " + linesInserted;
+    // '{} difference(s): {} lines deleted, {} lines inserted'
+    String statMsg = diffRanges + " difference" + sSuffix(diffRanges) + ": " +
+        linesDeleted + " line" + sSuffix(linesDeleted) + " deleted, " +
+        linesInserted + " line" + sSuffix(linesInserted) + " inserted";
+
     LoggingJs.info(statMsg);
     if (statusBar != null) statusBar.setMessage(JSString.valueOf(statMsg));
+  }
+
+  static String sSuffix(int n) {
+    return n > 1 ? "s" : "";
   }
 
   private void updateOnRefresh() {
