@@ -175,7 +175,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       rootView.fireFinished();
     }
     String statMsg = mkStatMsg(msg);
-    LoggingJs.trace("Status: " + statMsg);
+    LoggingJs.trace("Status: " + statMsg + " " + mkTimeMsg(msg.timeDelta));
     if (statusBar != null) statusBar.setMessage(JSString.valueOf(statMsg));
   }
 
