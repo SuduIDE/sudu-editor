@@ -7,7 +7,19 @@ import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 
+
+// https://github.com/mscdex/ssh2/blob/master/SFTP.md
 public interface JsSftpClient extends JSObject {
+
+  interface Attrs extends JSObject {
+    @JSProperty
+    int getSize();
+    @JSProperty
+    int getAtime();
+    @JSProperty
+    int getMtime();
+  }
+
   interface DirEntry extends JSObject {
     @JSProperty
     JSString getFilename();
