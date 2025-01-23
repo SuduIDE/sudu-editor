@@ -11,7 +11,7 @@ import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.esm.JsDialogProvider;
 import org.sudu.experiments.esm.JsExternalFileOpener;
-import org.sudu.experiments.esm.JsExternalStatusBar;
+import org.sudu.experiments.esm.JsExternalMessageBar;
 import org.sudu.experiments.esm.dlg.FsDialogs;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
@@ -73,7 +73,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   JsExternalFileOpener opener;
   JsDialogProvider dialogProvider;
-  JsExternalStatusBar statusBar;
+  JsExternalMessageBar messageBar;
 
   private int[] lastFilters = null;
   private RemoteFolderDiffModel lastSelected;
@@ -176,7 +176,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     }
     String statMsg = mkStatMsg(msg);
     LoggingJs.trace("Status: " + statMsg + " " + mkTimeMsg(msg.timeDelta));
-    if (statusBar != null) statusBar.setMessage(JSString.valueOf(statMsg));
+    if (messageBar != null) messageBar.setStatusBarMessage(JSString.valueOf(statMsg));
   }
 
   private String mkStatMsg(BackendMessage msg) {

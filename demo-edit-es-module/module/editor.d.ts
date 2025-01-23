@@ -247,8 +247,9 @@ export type DialogResult = {
   options: DialogOption[]
 }
 
-export interface ExternalStatusBar {
-  setMessage(text: string | null): void
+export interface ExternalMessageBar {
+  setStatusBarMessage(text: string | null): void
+  setToolBarMessage(text: string | null): void
 }
 
 export interface ExternalDialogProvider {
@@ -266,7 +267,7 @@ export interface View {
 
   setExternalDialogProvider(opener: ExternalDialogProvider | null): void
 
-  setExternalStatusBar(statusBar: ExternalStatusBar): void
+  setExternalMessageBar(statusBar: ExternalMessageBar): void
 }
 
 export interface TwoPanelDiff {
