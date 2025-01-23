@@ -9,11 +9,11 @@ import java.util.function.Consumer;
 public class NodeDirectoryHandle extends NodeDirectoryHandle0 {
 
   public NodeDirectoryHandle(String name, String[] path) {
-    super(name, path);
+    super(name, path, Fs.pathSep());
   }
 
   public NodeDirectoryHandle(JSString jsPath) {
-    super(jsPath);
+    super(Fs.pathBasename(jsPath), Fs.pathDirname(jsPath), Fs.pathSep());
   }
 
   @Override

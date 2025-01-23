@@ -1,11 +1,10 @@
 package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.JsFileInputSsh.JaSshCredentials;
-import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.SshPool;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.Promise;
-import org.teavm.jso.core.JSError;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.Consumer;
@@ -14,13 +13,25 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
   JaSshCredentials credentials;
 
   public SshDirectoryHandle(String name, String[] path, JaSshCredentials cred) {
-    super(name, path);
+    super(name, path, sep());
     this.credentials = cred;
   }
 
+  static JSString sep() { return JSString.valueOf("/"); }
+
   public SshDirectoryHandle(JSString jsPath, JaSshCredentials cred) {
-    super(jsPath);
+    super(pathBasename(jsPath), pathDirname(jsPath), sep());
     this.credentials = cred;
+  }
+
+  static JSString pathBasename(JSString jsPath) {
+    int lastIndexOf = jsPath.lastIndexOf(sep());
+    return lastIndexOf < 0 ? jsPath : jsPath.slice(0, lastIndexOf);
+  }
+
+  static JSString pathDirname(JSString jsPath) {
+    int lastIndexOf = jsPath.lastIndexOf(sep());
+    return lastIndexOf < 0 ? null : jsPath.slice(lastIndexOf + 1);
   }
 
   @Override
@@ -29,15 +40,24 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
     connected.then(
         connection -> {
           JsSftpClient sftp = connection.getSftp();
-          sftp.readdir(jsPath(), (error, list) -> {
-            LoggingJs.debug("sftp.readdir completed, l = " + list.getLength());
+          JSString jsPath = jsPath();
+          jsPath = JSString.valueOf("/home");
+          JsHelper.consoleInfo2("sftp.readdir jsPath=", jsPath);
+          sftp.readdir(jsPath, (error, list) -> {
+            if (JSObjects.isUndefined(error) || error == null) {
+              JsHelper.consoleInfo2("sftp.readdir completed, l = ", list);
+            } else {
+              JsHelper.consoleInfo2("sftp.readdir error:", error);
+            }
+            reader.onComplete();
           });
         },
-        error -> LoggingJs.error(
-            JsHelper.concat("", JsHelper.getMessage(error))
-        )
+        error -> {
+          JsHelper.consoleInfo2(
+              "SshDirectoryHandle.read connect error:", JsHelper.getMessage(error));
+          reader.onComplete();
+        }
     );
-    reader.onComplete();
   }
 
   @Override

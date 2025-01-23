@@ -3,15 +3,18 @@ package org.sudu.experiments;
 import org.sudu.experiments.JsFileInputSsh.JaSshCredentials;
 import org.sudu.experiments.diff.tests.CollectorFolderDiffTest;
 import org.sudu.experiments.editor.worker.TestJobs;
+import org.sudu.experiments.editor.worker.TestWalker;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeDirectoryHandle;
 import org.sudu.experiments.js.node.NodeFileHandle;
+import org.sudu.experiments.js.node.SshDirectoryHandle;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 import static org.sudu.experiments.editor.worker.ArgsCast.array;
@@ -199,18 +202,28 @@ public class DiffTestApi implements JsDiffTestApi {
     JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
     JsHelper.consoleInfo2("path", path);
     JsHelper.consoleInfo2("ssh", ssh);
-    if (instance) {
-      SshPool.connect(ssh).then(
+    if (instance && path != null) {
+      var dir = new SshDirectoryHandle(path, ssh);
+      dir.read(new TestWalker(dir,
           r -> {
-            JsHelper.consoleInfo2("testSsh.connected:",
-                JsHelper.constructorName(r.getSsh()),
-                JsHelper.constructorName(r.getSsh()));
+            JsHelper.consoleInfo("testWalkerHandler:" + Arrays.toString(r));
             onComplete.f();
-          }, error -> {
-            JsHelper.consoleInfo2("testSsh.error:", error);
-            onComplete.f();
-          }
-      );
+          }));
+//      testPool(onComplete, ssh);
     }
+  }
+
+  static void testPool(JsFunctions.Runnable onComplete, JaSshCredentials ssh) {
+    SshPool.connect(ssh).then(
+        r -> {
+          JsHelper.consoleInfo2("testSsh.connected:",
+              JsHelper.constructorName(r.getSsh()),
+              JsHelper.constructorName(r.getSsh()));
+          onComplete.f();
+        }, error -> {
+          JsHelper.consoleInfo2("testSsh.error:", error);
+          onComplete.f();
+        }
+    );
   }
 }
