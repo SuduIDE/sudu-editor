@@ -112,6 +112,9 @@ public class JsHelper {
   @JSBody(params = {"s0", "obj"}, script = "console.info(s0, obj);")
   public static native void consoleInfo2(String s0, JSObject obj);
 
+  @JSBody(params = {"s0", "obj1", "obj2"}, script = "console.info(s0, obj1, obj2);")
+  public static native void consoleInfo2(String s0, JSObject obj1, JSObject obj2);
+
   @JSBody(params = {"s0", "obj"}, script = "console.error(s0 + obj);")
   public static native void consoleError(String s0, JSObject obj);
 
@@ -200,6 +203,10 @@ public class JsHelper {
   @JSBody(params = {"x"}, script = "return x ? 1 : 0;")
   @NoSideEffects
   public static native boolean jsIf(JSObject x);
+
+  @JSBody(params = {"x"}, script = "return x.constructor.name;")
+  @NoSideEffects
+  public static native JSString constructorName(JSObject x);
 
   public static String toString(JSString jsString, String orElse) {
     return jsIf(jsString) ? jsString.stringValue() : orElse;

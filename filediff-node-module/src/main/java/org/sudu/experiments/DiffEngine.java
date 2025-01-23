@@ -22,7 +22,9 @@ public class DiffEngine implements DiffEngineJs {
 
   @Override
   public void dispose() {
+    JsHelper.consoleInfo("DiffEngine.dispose");
     pool.terminateAll();
+    SshPool.terminate();
   }
 
   @Override

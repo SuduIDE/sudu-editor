@@ -9,6 +9,7 @@ target/
 /webpack-test/package-lock.json
 /demo-edit-es-module/module/src/editor.js
 /demo-edit-es-module/module/src/worker.js
+/demo-edit-es-module/module/src/sshLib.mjs
 /filediff-node-module/module/src/editor.mjs
 /filediff-node-module/module/src/worker.mjs
 /filediff-node-module/module/src/sshLib.mjs

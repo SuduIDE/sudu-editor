@@ -144,7 +144,9 @@ function testSsh(ssh, path) {
   jobCount++;
   const fileInputSsh = { path, ssh };
   // ose_DiffTestApi_testSsh$exported$5
-  module.testSsh(fileInputSsh);
+  module.testSsh(fileInputSsh, () => {
+    mayBeExit();
+  });
   return "testSsh";
 }
 
@@ -204,7 +206,7 @@ function runTest() {
     }
     case "testSsh": {
       const ssh = sshConfig(args, 3);
-      const path = args[8];
+      const path = args[7];
       if (ssh && path) {
         return testSsh(ssh, path);
       } else {

@@ -103,6 +103,7 @@ public interface SshPool {
             }));
             client.onError(error -> {
               JsHelper.consoleInfo2("sshClient.onError", error);
+              JsHelper.consoleInfo("sshClient.onError forwarding the error...");
               postError.f(error);
             });
             client.connect(creds);
@@ -111,5 +112,15 @@ public interface SshPool {
       map.put(key, value = new Value(p));
     }
     return value.v;
+  }
+
+  static void terminate() {
+    for (var e: map.entrySet()) {
+      e.getValue().v.then(r -> {
+        JsHelper.consoleInfo2("terminate a ssh", e.getKey().creds.getHost());
+        r.getSsh().end();
+      }, jsError -> {});
+    }
+    map.clear();
   }
 }
