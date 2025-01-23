@@ -125,8 +125,8 @@ public class JsRemoteFolderDiff implements JsRemoteFolderDiffView {
   }
 
   @Override
-  public void setExternalStatusBar(JsExternalStatusBar esb) {
-    folderDiff.statusBar = esb;
+  public void setExternalMessageBar(JsExternalMessageBar emb) {
+    folderDiff.messageBar = emb;
   }
 
   private FolderDiffRootView rootView() {

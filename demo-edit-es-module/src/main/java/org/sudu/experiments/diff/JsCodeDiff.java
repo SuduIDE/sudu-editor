@@ -119,7 +119,7 @@ public class JsCodeDiff implements JsFileDiffView {
   public void setExternalDialogProvider(JsDialogProvider opener) {}
 
   @Override
-  public void setExternalStatusBar(JsExternalStatusBar esb) {}
+  public void setExternalMessageBar(JsExternalMessageBar emb) {}
 
   public static Promise<JsFileDiffView> newDiff(EditArgs arguments) {
     return JsLauncher.start(
