@@ -140,6 +140,14 @@ function testGbkEncoder() {
   return "ok";
 }
 
+function testSsh(ssh, path) {
+  jobCount++;
+  const fileInputSsh = { path, ssh };
+  // ose_DiffTestApi_testSsh$exported$5
+  module.testSsh(fileInputSsh);
+  return "testSsh";
+}
+
 let args = process.argv;
 
 function runTest() {
@@ -194,6 +202,16 @@ function runTest() {
     case "testGbkEncoder": {
       return testGbkEncoder();
     }
+    case "testSsh": {
+      const ssh = sshConfig(args, 3);
+      const path = args[8];
+      if (ssh && path) {
+        return testSsh(ssh, path);
+      } else {
+        mayBeExit();
+        return "error in args";
+      }
+    }
     default:
       mayBeExit();
       return "not running any test";
@@ -206,3 +224,17 @@ if (r !== undefined) {
   console.log(r);
 }
 
+function sshConfig(args, s) {
+  if (args.length < s + 4) {
+    console.log("args: host port user password");
+    return null;
+  }
+
+  return {
+    host: args[s],
+    port: args[s + 1],
+    username: args[s + 2],
+    password: args[s + 3]
+    //  privateKey: readFileSync('/path/to/my/key')
+  };
+}

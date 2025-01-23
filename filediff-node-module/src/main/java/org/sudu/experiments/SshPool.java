@@ -101,6 +101,10 @@ public interface SshPool {
                 postError.f(e);
               }
             }));
+            client.onError(error -> {
+              JsHelper.consoleInfo2("sshClient.onError", error);
+              postError.f(error);
+            });
             client.connect(creds);
           }
       );

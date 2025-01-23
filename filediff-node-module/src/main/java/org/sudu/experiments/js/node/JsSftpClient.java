@@ -13,19 +13,26 @@ public interface JsSftpClient extends JSObject {
 
   interface Attrs extends JSObject {
     @JSProperty
+    int getMode();
+    @JSProperty
     int getSize();
     @JSProperty
     int getAtime();
     @JSProperty
     int getMtime();
+
+    boolean isDirectory();
+    boolean isFile();
+    boolean isSymbolicLink();
   }
 
   interface DirEntry extends JSObject {
     @JSProperty
     JSString getFilename();
     @JSProperty
-    JSObject getAttrs();
+    Attrs getAttrs();
   }
+
   void readdir(
       JSString path,
       BiConsumer<JSError, JsArrayReader<DirEntry>> callback);

@@ -1,5 +1,6 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.JsFileInputSsh.JaSshCredentials;
 import org.sudu.experiments.diff.tests.CollectorFolderDiffTest;
 import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.encoding.GbkEncoding;
@@ -134,7 +135,7 @@ public class DiffTestApi implements JsDiffTestApi {
     Consumer<String> error = e -> onError.f(JSString.valueOf(e));
     int[] box = new int[1];
     Runnable onCompleteJ = () -> {
-        if (++box[0] == 2) onComplete.f();
+      if (++box[0] == 2) onComplete.f();
     };
     FileHandle.readTextFile(
         fhFrom, (text, encoding) -> {
@@ -191,9 +192,21 @@ public class DiffTestApi implements JsDiffTestApi {
   @Override
   public void testSsh(JSObject sshPath) {
     System.out.println("DiffTestApi.testSsh");
+    boolean instance = JsFileInputSsh.isInstance(sshPath);
     System.out.println("JsFileInputSsh.isInstance(sshPath) = "
-        + JsFileInputSsh.isInstance(sshPath));
-    JsHelper.consoleInfo2("path", JsFileInputSsh.getPath(sshPath));
-    JsHelper.consoleInfo2("ssh", JsFileInputSsh.getSsh(sshPath));
+        + instance);
+    JSString path = JsFileInputSsh.getPath(sshPath);
+    JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
+    JsHelper.consoleInfo2("path", path);
+    JsHelper.consoleInfo2("ssh", ssh);
+    if (instance) {
+      SshPool.connect(ssh).then(
+          r -> {
+            JsHelper.consoleInfo2("testSsh.connected:", r);
+          }, error -> {
+            JsHelper.consoleInfo2("testSsh.error:", error);
+          }
+      );
+    }
   }
 }

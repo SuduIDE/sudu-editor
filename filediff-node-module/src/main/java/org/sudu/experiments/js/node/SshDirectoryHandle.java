@@ -29,7 +29,9 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
     connected.then(
         connection -> {
           JsSftpClient sftp = connection.getSftp();
-
+          sftp.readdir(jsPath(), (error, list) -> {
+            LoggingJs.debug("sftp.readdir completed, l = " + list.getLength());
+          });
         },
         error -> LoggingJs.error(
             JsHelper.concat("", JsHelper.getMessage(error))
