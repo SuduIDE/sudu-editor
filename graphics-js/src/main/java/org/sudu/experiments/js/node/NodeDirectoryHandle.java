@@ -21,7 +21,8 @@ public class NodeDirectoryHandle extends NodeDirectoryHandle0 {
     JSString jsPath = jsPath();
     Fs fs = Fs.fs();
     JsArray<JSString> content = fs.readdirSync(jsPath);
-    String[] childPath = ArrayOp.add(path, name);
+    String[] childPath = content.getLength() > 0
+        ? ArrayOp.add(path, name) : null;
     for (int i = 0; i < content.getLength(); i++) {
       JSString file = content.get(i);
       JSString child = Fs.concatPath(jsPath, file);
@@ -39,7 +40,7 @@ public class NodeDirectoryHandle extends NodeDirectoryHandle0 {
 //            JsHelper.consoleInfo("symbolicLink: ",
 //                Fs.concatPath(file.stringValue(), childPath));
           } else {
-//            JsHelper.consoleError("bad file: ",
+//            JsHelper.consoleError("other fs entry: ",
 //                Fs.concatPath(file.stringValue(), childPath));
           }
         }

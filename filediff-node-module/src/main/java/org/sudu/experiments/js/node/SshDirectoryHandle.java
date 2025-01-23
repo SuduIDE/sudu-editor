@@ -46,13 +46,10 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
           sftp.readdir(jsPath, (error, list) -> {
             if (JSObjects.isUndefined(error) || error == null) {
               JsHelper.consoleInfo("sftp.readdir completed, length = " + list.getLength());
-
-              String[] childPath = null;
+              String[] childPath = list.getLength() > 0
+                  ? ArrayOp.add(path, name) : null;
               for (int i = 0, e = list.getLength(); i < e; i++) {
                 JsSftpClient.DirEntry entry = list.get(i);
-                if (childPath == null)
-                  childPath = ArrayOp.add(path, name);
-
                 if (entry.getAttrs().isDirectory()) {
                   JsHelper.consoleInfo2("sftp.readdir dir", entry.getFilename());
                   var subDir = new SshDirectoryHandle(
