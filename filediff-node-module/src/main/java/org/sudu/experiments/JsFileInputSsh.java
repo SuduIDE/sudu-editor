@@ -22,19 +22,6 @@ public interface JsFileInputSsh extends JSObject {
     );
   }
 
-  interface JaSshCredentials extends JSObject {
-    @JSProperty
-    JSString getHost();
-    @JSProperty
-    JSString getPort();
-    @JSProperty
-    JSString getUsername();
-    @JSProperty
-    JSString getPassword();
-    @JSProperty
-    JSString getPrivateKey();
-  }
-
   static boolean isInstance(JSObject input) {
     return JSObjects.hasProperty(input, "ssh")
         && JSObjects.hasProperty(input, "path");

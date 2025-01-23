@@ -15,10 +15,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 class Key {
-  final JsFileInputSsh.JaSshCredentials creds;
+  final JaSshCredentials creds;
   int hash = 0;
 
-  Key(JsFileInputSsh.JaSshCredentials creds) {
+  Key(JaSshCredentials creds) {
     this.creds = creds;
   }
 
@@ -28,7 +28,7 @@ class Key {
     return h * 31 + sh;
   }
 
-  static int hash(JsFileInputSsh.JaSshCredentials creds) {
+  static int hash(JaSshCredentials creds) {
     int result = 1;
     result = hashUpdate(result, creds.getHost());
     result = hashUpdate(result, creds.getPort());
@@ -48,7 +48,7 @@ class Key {
     if (!(other instanceof Key key))
       return false;
 
-    JsFileInputSsh.JaSshCredentials c2 = key.creds;
+    JaSshCredentials c2 = key.creds;
     return JsHelper.strictEquals(creds.getHost(), c2.getHost()) &&
         JsHelper.strictEquals(creds.getPort(), c2.getPort()) &&
         JsHelper.strictEquals(creds.getUsername(), c2.getUsername()) &&
@@ -87,7 +87,7 @@ public interface SshPool {
 
   Map<Key, Value> map = new HashMap<>();
 
-  static Promise<Record> connect(JsFileInputSsh.JaSshCredentials creds) {
+  static Promise<Record> connect(JaSshCredentials creds) {
     var key = new Key(creds);
     Value value = map.get(key);
     if (value == null) {

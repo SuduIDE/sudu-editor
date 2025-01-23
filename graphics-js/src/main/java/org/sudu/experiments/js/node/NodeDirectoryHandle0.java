@@ -20,12 +20,16 @@ public abstract class NodeDirectoryHandle0 implements DirectoryHandle {
 
   public NodeDirectoryHandle0(JSString pathBasename, JSString pathDirname, JSString sep) {
     this.name = pathBasename.stringValue();
-    this.path = pathDirname == null ? new String[0] : new String[]{
-        pathDirname.stringValue()
-    };
+    this.path = makePath(pathDirname);
     this.sep = sep;
     JsHelper.consoleInfo2("NodeDirectoryHandle0: pathBasename =", pathBasename);
     JsHelper.consoleInfo2("NodeDirectoryHandle0: pathDirname =", pathDirname);
+  }
+
+  static String[] makePath(JSString pathDirname) {
+    return pathDirname == null ? new String[0] : new String[]{
+        pathDirname.stringValue()
+    };
   }
 
   JSString jsPath() {

@@ -2,6 +2,7 @@ package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.js.JsArrayReader;
 import org.sudu.experiments.js.JsFunctions.BiConsumer;
+import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSError;
@@ -36,4 +37,9 @@ public interface JsSftpClient extends JSObject {
   void readdir(
       JSString path,
       BiConsumer<JSError, JsArrayReader<DirEntry>> callback);
+
+  class Native {
+    @JSBody(script = "return OPEN_MODE;")
+    public static native JSObject OPEN_MODE();
+  }
 }

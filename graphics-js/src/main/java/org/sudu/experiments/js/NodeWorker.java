@@ -26,9 +26,6 @@ public interface NodeWorker extends JsMessagePort0 {
     public static native NodeWorker parentPort();
     @JSBody(script = "return {once: true};")
     public static native JSObject once();
-
-    @JSBody(script = "return OPEN_MODE;")
-    public static native JSObject OPEN_MODE();
   }
 
   static void start(

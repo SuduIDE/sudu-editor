@@ -1,6 +1,5 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.JsFileInputSsh.JaSshCredentials;
 import org.sudu.experiments.diff.tests.CollectorFolderDiffTest;
 import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.editor.worker.TestWalker;

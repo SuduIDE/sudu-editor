@@ -1,6 +1,6 @@
 package org.sudu.experiments.js.node;
 
-import org.sudu.experiments.JsFileInputSsh.JaSshCredentials;
+import org.sudu.experiments.JaSshCredentials;
 import org.sudu.experiments.SshPool;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.Promise;
