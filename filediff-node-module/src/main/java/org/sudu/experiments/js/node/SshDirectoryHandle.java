@@ -4,6 +4,7 @@ import org.sudu.experiments.JsFileInputSsh.JaSshCredentials;
 import org.sudu.experiments.SshPool;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.Promise;
+import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
@@ -24,14 +25,14 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
     this.credentials = cred;
   }
 
-  static JSString pathBasename(JSString jsPath) {
-    int lastIndexOf = jsPath.lastIndexOf(sep());
-    return lastIndexOf < 0 ? jsPath : jsPath.slice(0, lastIndexOf);
-  }
-
   static JSString pathDirname(JSString jsPath) {
     int lastIndexOf = jsPath.lastIndexOf(sep());
-    return lastIndexOf < 0 ? null : jsPath.slice(lastIndexOf + 1);
+    return lastIndexOf < 0 ? null : jsPath.slice(0, lastIndexOf);
+  }
+
+  static JSString pathBasename(JSString jsPath) {
+    int lastIndexOf = jsPath.lastIndexOf(sep());
+    return lastIndexOf < 0 ? jsPath : jsPath.slice(lastIndexOf + 1);
   }
 
   @Override
@@ -41,11 +42,27 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
         connection -> {
           JsSftpClient sftp = connection.getSftp();
           JSString jsPath = jsPath();
-          jsPath = JSString.valueOf("/home");
-          JsHelper.consoleInfo2("sftp.readdir jsPath=", jsPath);
+//          JsHelper.consoleInfo2("reading sftp dir jsPath=", jsPath);
           sftp.readdir(jsPath, (error, list) -> {
             if (JSObjects.isUndefined(error) || error == null) {
-              JsHelper.consoleInfo2("sftp.readdir completed, l = ", list);
+              JsHelper.consoleInfo("sftp.readdir completed, length = " + list.getLength());
+
+              String[] childPath = null;
+              for (int i = 0, e = list.getLength(); i < e; i++) {
+                JsSftpClient.DirEntry entry = list.get(i);
+                if (childPath == null)
+                  childPath = ArrayOp.add(path, name);
+
+                if (entry.getAttrs().isDirectory()) {
+                  JsHelper.consoleInfo2("sftp.readdir dir", entry.getFilename());
+                  var subDir = new SshDirectoryHandle(
+                      entry.getFilename().stringValue(),
+                      childPath, credentials);
+                  reader.onDirectory(subDir);
+                } else if (entry.getAttrs().isFile()) {
+                  JsHelper.consoleInfo2("sftp.readdir file", entry.getFilename());
+                }
+              }
             } else {
               JsHelper.consoleInfo2("sftp.readdir error:", error);
             }
