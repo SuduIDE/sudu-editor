@@ -8,10 +8,16 @@ import java.util.function.IntConsumer;
 
 public class SshFileHandle extends NodeFileHandle0 {
   JaSshCredentials credentials;
+  JsSftpClient.Attrs attrs;
 
-  public SshFileHandle(String name, String[] path, JaSshCredentials credentials) {
+  public SshFileHandle(
+      String name, String[] path,
+      JaSshCredentials credentials,
+      JsSftpClient.Attrs attrs
+  ) {
     super(name, path, SshDirectoryHandle.sep());
     this.credentials = credentials;
+    this.attrs = attrs;
   }
 
   public SshFileHandle(JSString jsPath, JaSshCredentials credentials) {
