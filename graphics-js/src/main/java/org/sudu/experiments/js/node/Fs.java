@@ -14,10 +14,6 @@ public abstract class Fs implements NodeFs {
   public static native JSObject lStatNoThrow();
 
   @NoSideEffects
-  @JSBody(params = {"dir", "file"}, script = "return dir + path.sep + file;")
-  public static native JSString concatPath(JSString dir, JSString file);
-
-  @NoSideEffects
   @JSBody(params = {"dir", "sep", "file"}, script = "return dir + sep + file;")
   public static native JSString concatPath(JSString dir, JSString sep, JSString file);
 
@@ -40,14 +36,6 @@ public abstract class Fs implements NodeFs {
 
   @JSBody(params = {"recursive"}, script = "return {recursive: recursive};")
   public static native JSObject mkdirOptions(boolean recursive);
-
-  public static JSString concatPath(String name, String[] path) {
-    JSString jsPath = JSString.valueOf(name);
-    for (int i = path.length - 1; i >= 0; i--) {
-      jsPath = concatPath(JSString.valueOf(path[i]), jsPath);
-    }
-    return jsPath;
-  }
 
   public static JSString concatPath(String name, String[] path, JSString sep) {
     JSString jsPath = JSString.valueOf(name);

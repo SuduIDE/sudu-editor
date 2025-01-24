@@ -25,7 +25,7 @@ public class NodeDirectoryHandle extends NodeDirectoryHandle0 {
         ? ArrayOp.add(path, name) : null;
     for (int i = 0; i < content.getLength(); i++) {
       JSString file = content.get(i);
-      JSString child = Fs.concatPath(jsPath, file);
+      JSString child = Fs.concatPath(jsPath, sep, file);
       var stats = fs.lstatSync(child);
       if (stats.isDirectory()) {
         reader.onDirectory(
