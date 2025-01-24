@@ -24,12 +24,20 @@ public class SshFileHandle extends NodeFileHandle0 {
     this.attrs = attrs;
   }
 
-  public SshFileHandle(JSString jsPath, JaSshCredentials credentials) {
+  public SshFileHandle(
+      JSString jsPath,
+      JaSshCredentials credentials,
+      JsSftpClient.Attrs attrs) {
     super(jsPath,
         SshDirectoryHandle.pathBasename(jsPath),
         SshDirectoryHandle.pathDirname(jsPath),
         SshDirectoryHandle.sep());
     this.credentials = credentials;
+    this.attrs = attrs;
+  }
+
+  public SshFileHandle(JSString jsPath, JaSshCredentials credentials) {
+    this(jsPath, credentials, null);
   }
 
   @Override

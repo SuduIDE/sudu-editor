@@ -1,5 +1,6 @@
 package org.sudu.experiments.js.node;
 
+import org.sudu.experiments.JaSshCredentials;
 import org.sudu.experiments.JsFileInputSsh;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.JSBody;
@@ -20,15 +21,25 @@ public class NodeWorkersBridge implements WorkerProtocol.PlatformBridge {
     } else if (javaObject instanceof SshDirectoryHandle sshDir) {
       message.set(idx++, JSNumber.valueOf(2));
       message.set(idx++, sshDir.jsPath());
-      message.set(idx++, sshDir.credentials.getHost());
-      message.set(idx++, sshDir.credentials.getPort());
-      message.set(idx++, sshDir.credentials.getUsername());
-      message.set(idx++, sshDir.credentials.getPassword());
+      idx = sendSsh(message, idx, sshDir.credentials);
+    } else if (javaObject instanceof SshFileHandle sshFile) {
+      message.set(idx++, JSNumber.valueOf(3));
+      message.set(idx++, sshFile.jsPath());
+      message.set(idx++, sshFile.attrs);
+      idx = sendSsh(message, idx, sshFile.credentials);
     }
 
     else throw new IllegalArgumentException(
         "Illegal argument sent to worker " + javaObject.getClass().getName()
     );
+    return idx;
+  }
+
+  static int sendSsh(JsArray<JSObject> message, int idx, JaSshCredentials sshDir) {
+    message.set(idx++, sshDir.getHost());
+    message.set(idx++, sshDir.getPort());
+    message.set(idx++, sshDir.getUsername());
+    message.set(idx++, sshDir.getPassword());
     return idx;
   }
 
@@ -58,6 +69,17 @@ public class NodeWorkersBridge implements WorkerProtocol.PlatformBridge {
           var ssh = JsFileInputSsh.Helper.create(host, port, user, password);
           r[idx] = new SshDirectoryHandle(jsPath, ssh);
         }
+        case 3 -> {
+          JSString jsPath = array.get(arrayIndex++).cast();
+          JsSftpClient.Attrs attrs = array.get(arrayIndex++).cast();
+          JSString host = array.get(arrayIndex++).cast();
+          JSString port = array.get(arrayIndex++).cast();
+          JSString user = array.get(arrayIndex++).cast();
+          JSString password = array.get(arrayIndex++).cast();
+          var ssh = JsFileInputSsh.Helper.create(host, port, user, password);
+          r[idx] = new SshFileHandle(jsPath, ssh, attrs);
+        }
+
       }
     }
     return arrayIndex;
