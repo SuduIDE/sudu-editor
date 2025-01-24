@@ -40,7 +40,11 @@ public class SshFileHandle extends NodeFileHandle0 {
 
   @Override
   public void getSize(IntConsumer result) {
-
+    if (attrs != null) {
+      result.accept(attrs.getSize());
+    } else {
+      result.accept(0);
+    }
   }
 
   @Override
