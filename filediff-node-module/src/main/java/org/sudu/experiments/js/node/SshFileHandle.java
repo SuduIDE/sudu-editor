@@ -1,6 +1,10 @@
 package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.JaSshCredentials;
+import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.SshPool;
+import org.sudu.experiments.js.JsHelper;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.Consumer;
@@ -43,7 +47,31 @@ public class SshFileHandle extends NodeFileHandle0 {
     if (attrs != null) {
       result.accept(attrs.getSize());
     } else {
-      result.accept(0);
+      SshPool.connect(credentials).then(r -> {
+          r.getSftp().stat(jsPath(), (error, stats) -> {
+            if (!JSObjects.isUndefined(stats)) {
+              attrs = stats;
+              result.accept(stats.getSize());
+            } else {
+              JsHelper.consoleInfo2(
+                  "sftp.stats error", JsHelper.message(error));
+              LoggingJs.error(JsHelper.concat(
+                  "sftp.stats error", JsHelper.message(error)));
+              result.accept(0);
+            }
+          });
+        },
+        error -> {
+          JsHelper.consoleInfo2(
+              "Ssh connect to", credentials.getHost(),
+              "failed, error =", JsHelper.message(error));
+          LoggingJs.error(JsHelper.concat(
+              JsHelper.concat("Ssh connect to ", credentials.getHost()),
+              JsHelper.concat(" failed, error = ", JsHelper.message(error)))
+          );
+          result.accept(0);
+        }
+      );
     }
   }
 

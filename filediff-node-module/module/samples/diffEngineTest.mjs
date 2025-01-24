@@ -140,13 +140,27 @@ function testGbkEncoder() {
   return "ok";
 }
 
-function testSsh(ssh, path) {
-  jobCount++;
-  const fileInputSsh = { path, ssh };
+function testSsh(ssh, args) {
+  const exitHandler = () => { mayBeExit(); };
+
   // ose_DiffTestApi_testSsh$exported$5
-  module.testSsh(fileInputSsh, () => {
-    mayBeExit();
-  });
+
+  for (let i = 0; i < args.length; i += 2) {
+    const sshRef = { path: args[i+1], ssh:ssh };
+    switch (args[i]) {
+      case "dir": {
+        jobCount++;
+        module.testSshDir(sshRef, exitHandler);
+        break;
+      }
+      case "file": {
+        jobCount++;
+        module.testSshFile(sshRef, exitHandler);
+        break;
+      }
+    }
+  }
+
   return "testSsh";
 }
 
@@ -206,9 +220,9 @@ function runTest() {
     }
     case "testSsh": {
       const ssh = sshConfig(args, 3);
-      const path = args[7];
-      if (ssh && path) {
-        return testSsh(ssh, path);
+      if (ssh && args.length > 6) {
+        const slice = args.slice(7, args.length);
+        return testSsh(ssh, slice);
       } else {
         mayBeExit();
         return "error in args";

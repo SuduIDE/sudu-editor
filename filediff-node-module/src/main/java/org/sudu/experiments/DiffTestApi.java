@@ -5,10 +5,7 @@ import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.editor.worker.TestWalker;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.*;
-import org.sudu.experiments.js.node.Fs;
-import org.sudu.experiments.js.node.NodeDirectoryHandle;
-import org.sudu.experiments.js.node.NodeFileHandle;
-import org.sudu.experiments.js.node.SshDirectoryHandle;
+import org.sudu.experiments.js.node.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
@@ -55,7 +52,8 @@ interface JsDiffTestApi extends JSObject {
 
   void testGbkEncoder();
 
-  void testSsh(JSObject sshPath, JsFunctions.Runnable onComplete);
+  void testSshDir(JSObject sshPath, JsFunctions.Runnable onComplete);
+  void testSshFile(JSObject sshPath, JsFunctions.Runnable onComplete);
 }
 
 public class DiffTestApi implements JsDiffTestApi {
@@ -192,9 +190,9 @@ public class DiffTestApi implements JsDiffTestApi {
   }
 
   @Override
-  public void testSsh(JSObject sshPath, JsFunctions.Runnable onComplete) {
-    System.out.println("DiffTestApi.testSsh");
+  public void testSshDir(JSObject sshPath, JsFunctions.Runnable onComplete) {
     boolean instance = JsFileInputSsh.isInstance(sshPath);
+    System.out.println("DiffTestApi.testSshDir");
     System.out.println("JsFileInputSsh.isInstance(sshPath) = "
         + instance);
     JSString path = JsFileInputSsh.getPath(sshPath);
@@ -209,6 +207,27 @@ public class DiffTestApi implements JsDiffTestApi {
             onComplete.f();
           }));
 //      testPool(onComplete, ssh);
+    }
+  }
+
+  @Override
+  public void testSshFile(JSObject sshPath, JsFunctions.Runnable onComplete) {
+    boolean instance = JsFileInputSsh.isInstance(sshPath);
+    System.out.println("DiffTestApi.testSshFile");
+    System.out.println("JsFileInputSsh.isInstance(sshPath) = "
+        + instance);
+    JSString path = JsFileInputSsh.getPath(sshPath);
+    JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
+    JsHelper.consoleInfo2("path", path);
+    JsHelper.consoleInfo2("ssh", ssh);
+    if (instance && path != null) {
+      var file = new SshFileHandle(path, ssh);
+      file.getSize(s -> {
+        JsHelper.consoleInfo("file.getSize: " + s);
+        onComplete.f();
+      });
+    } else {
+      onComplete.f();
     }
   }
 

@@ -22,8 +22,6 @@ public abstract class NodeDirectoryHandle0 implements DirectoryHandle {
     this.name = pathBasename.stringValue();
     this.path = makePath(pathDirname);
     this.sep = sep;
-    JsHelper.consoleInfo2("NodeDirectoryHandle0: pathBasename =", pathBasename);
-    JsHelper.consoleInfo2("NodeDirectoryHandle0: pathDirname =", pathDirname);
   }
 
   static String[] makePath(JSString pathDirname) {

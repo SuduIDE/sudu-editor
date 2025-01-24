@@ -12,6 +12,7 @@ import org.teavm.jso.core.JSString;
 // https://github.com/mscdex/ssh2/blob/master/SFTP.md
 public interface JsSftpClient extends JSObject {
 
+  // Stats === Attrs + helper methods
   interface Attrs extends JSObject {
     @JSProperty
     int getMode();
@@ -37,6 +38,13 @@ public interface JsSftpClient extends JSObject {
   void readdir(
       JSString path,
       BiConsumer<JSError, JsArrayReader<DirEntry>> callback);
+
+  // stat(< string >path, < function >callback) - (void)
+  // Retrieves attributes for path. callback has 2 parameter: < Error >err, < Stats >stats.
+  void stat(
+      JSString path,
+      BiConsumer<JSError, Attrs> callback
+  );
 
   class Native {
     @JSBody(script = "return OPEN_MODE;")

@@ -115,6 +115,9 @@ public class JsHelper {
   @JSBody(params = {"s0", "obj1", "obj2"}, script = "console.info(s0, obj1, obj2);")
   public static native void consoleInfo2(String s0, JSObject obj1, JSObject obj2);
 
+  @JSBody(params = {"s0", "obj1", "s2", "obj3"}, script = "console.info(s0, obj1, s2, obj3);")
+  public static native void consoleInfo2(String s0, JSObject obj1, String s2, JSObject obj3);
+
   @JSBody(params = {"s0", "obj"}, script = "console.error(s0 + obj);")
   public static native void consoleError(String s0, JSObject obj);
 
