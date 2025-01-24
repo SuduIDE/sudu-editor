@@ -8,7 +8,6 @@ import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 
-
 // https://github.com/mscdex/ssh2/blob/master/SFTP.md
 public interface JsSftpClient extends JSObject {
 
@@ -45,9 +44,4 @@ public interface JsSftpClient extends JSObject {
       JSString path,
       BiConsumer<JSError, Attrs> callback
   );
-
-  class Native {
-    @JSBody(script = "return OPEN_MODE;")
-    public static native JSObject OPEN_MODE();
-  }
 }
