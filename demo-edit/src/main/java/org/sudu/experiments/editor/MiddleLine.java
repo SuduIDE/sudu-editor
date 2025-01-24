@@ -26,7 +26,10 @@ public class MiddleLine extends View {
   private DiffInfo diffModel;
   private DiffRef editor1, editor2;
   private Color bgColor;
+  private Color syncLineColor;
   private DiffColors diffColors;
+
+  private int[] syncL, syncR;
 
   public MiddleLine(UiContext context) {
     this.uiContext = context;
@@ -41,9 +44,10 @@ public class MiddleLine extends View {
     editor2 = right;
   }
 
-  public void setTheme(DiffColors diffColors, Color bgColor) {
+  public void setTheme(DiffColors diffColors, Color bgColor, Color syncLineColor) {
     this.diffColors = diffColors;
     this.bgColor = bgColor;
+    this.syncLineColor = syncLineColor;
   }
 
   private void setLinePos(
@@ -123,6 +127,44 @@ public class MiddleLine extends View {
           p21, p22, color
       );
     }
+
+    if (syncL == null || syncR == null) return;
+    for (int i = 0; i < syncL.length; i++) {
+      int lineL = syncL[i];
+      int lineR = syncR[i];
+      int d = EditorConst.SYNC_LINE_HEIGHT / 2;
+
+      int leftY = editor1.lineToPos(lineL),
+          leftY0 = leftY - d,
+          leftY1 = leftY0 + EditorConst.SYNC_LINE_HEIGHT;
+
+      int rightY = editor2.lineToPos(lineR),
+          rightY0 = rightY - d,
+          rightY1 = rightY0 + EditorConst.SYNC_LINE_HEIGHT;
+
+      setLinePos(leftY0, leftY1, rightY0, rightY1);
+
+      int rectY0 = Math.max(Math.min(leftY0, rightY0), pos.y);
+      int rectY1 = Math.min(Math.max(leftY1, rightY1), pos.y + size.y);
+      if (rectY1 <= rectY0) continue;
+
+      int x = EditorConst.SYNC_LINE_HEIGHT;
+
+      if (leftY > rightY) {
+        p12.x -= x;
+        p21.x += x;
+      } else if (leftY < rightY) {
+        p11.x += x;
+        p22.x -= x;
+      }
+
+      rSize.set(size.x, rectY1 - rectY0);
+      g.drawLineFill(
+          pos.x, rectY0, rSize,
+          p11, p12,
+          p21, p22, syncLineColor
+      );
+    }
     if (first <= last) g.enableBlend(false);
   }
 
@@ -142,6 +184,11 @@ public class MiddleLine extends View {
       p21.y = p21.y + lineWidth;
     }
     g.drawRect(editorPos, y, temp, color);
+  }
+
+  public void setSyncLines(int[] syncL, int[] syncR) {
+    this.syncL = syncL;
+    this.syncR = syncR;
   }
 
   @Override

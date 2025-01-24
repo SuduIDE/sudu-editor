@@ -4,8 +4,10 @@ import org.sudu.experiments.Canvas;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.SetCursor;
@@ -27,6 +29,7 @@ public class LineNumbersComponent implements Disposable {
 
   private FontDesk fontDesk;
   private boolean cleartype;
+  private boolean mirrored;
   private int lineHeight;
   private int textureHeight;
 
@@ -137,6 +140,59 @@ public class LineNumbersComponent implements Disposable {
     g.disableScissor();
   }
 
+  public void drawSyncPoints(
+      int scrollPos,
+      int firstLine, int lastLine,
+      int[] syncPoints,
+      int curSyncPoint,
+      int hoverSyncPoint,
+      WglGraphics g, LineNumbersColors scheme
+  ) {
+    for (int sp: syncPoints) {
+      if (firstLine <= sp && sp <= lastLine)
+        drawSyncLine(scrollPos, sp, scheme.syncPoint, g);
+    }
+    if (firstLine <= curSyncPoint && curSyncPoint <= lastLine) {
+      drawSyncLine(scrollPos, curSyncPoint, scheme.currentSyncPoint, g);
+    }
+    if (firstLine <= hoverSyncPoint && hoverSyncPoint <= lastLine) {
+      drawSyncLine(scrollPos, hoverSyncPoint, scheme.hoverSyncPoint, g);
+    }
+  }
+
+  private void drawSyncLine(
+      int scrollPos, int syncLine,
+      Color lineColor,
+      WglGraphics g
+  ) {
+    texture(syncLine / numberOfLines).drawSyncLine(
+        g, pos, scrollPos,
+        textures.length * textureHeight,
+        syncLine, lineColor
+    );
+  }
+
+  private void drawCaretLine(
+      int scrollPos, int caretLine,
+      LineNumbersColors colorScheme, WglGraphics g,
+      V4f bgColor
+  ) {
+    texture(caretLine / numberOfLines).drawCurrentLine(
+        g, pos, scrollPos,
+        textures.length * textureHeight,
+        caretLine, colorScheme, bgColor);
+  }
+
+  private void drawBottom(
+      int textHeight, int editorBottom,
+      V4f bgColor, WglGraphics g
+  ) {
+    if (textHeight < editorBottom) {
+      g.drawRect(pos.x, pos.y + textHeight,
+        new V2i(size.x, editorBottom - textHeight), bgColor);
+    }
+  }
+
   private LineNumbersTexture texture(WglGraphics g, int line) {
     int startLine = (line / numberOfLines) * numberOfLines;
     for (var texture: textures) {
@@ -162,6 +218,11 @@ public class LineNumbersComponent implements Disposable {
     disposeCanvas();
     old.addAll(textures);
     textures.clear();
+  }
+
+  public void setMirrored(boolean mirrored) {
+    this.mirrored = mirrored;
+    for (var texture: textures) texture.setMirrored(mirrored);
   }
 
   private void ensureCanvas(WglGraphics g) {

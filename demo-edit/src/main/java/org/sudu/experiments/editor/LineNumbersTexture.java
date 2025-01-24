@@ -7,6 +7,7 @@ import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
+import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
@@ -19,9 +20,11 @@ public class LineNumbersTexture implements Disposable {
   private int lineHeight;
 
   private final V2i rectSize = new V2i();
+  private final V2i syncLineSize = new V2i();
   private final V4f rectRegion = new V4f();
 
   private boolean cleartype;
+  private boolean mirrored;
   int startLine;
   int lastFrame;
 
@@ -101,6 +104,20 @@ public class LineNumbersTexture implements Disposable {
     draw(g, yPos, dXdY, colorScheme.lineNumber.caretTextColor, bgColor);
   }
 
+  void drawSyncLine(
+      WglGraphics g, V2i dXdY,
+      int scrollPos, int fullTexturesSize,
+      int syncLine,
+      Color lineColor
+  ) {
+    int caretShift = syncLine % numberOfLines;
+    int height = textureSize.y;
+    syncLineSize.x = textureSize.x;
+    if (!mirrored) syncLineSize.x += EditorConst.V_LINE_LEFT_DELTA_DP + EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
+    int yPos = getYPos(scrollPos, fullTexturesSize, height, caretShift) - (EditorConst.SYNC_LINE_HEIGHT / 2);
+    g.drawRect(texturePos.x + dXdY.x, yPos + dXdY.y, syncLineSize, lineColor);
+  }
+
   private void draw(WglGraphics g, int yPos, V2i dXdY, V4f textColor, V4f bgColor) {
     g.drawText(
         dXdY.x,
@@ -112,6 +129,10 @@ public class LineNumbersTexture implements Disposable {
         bgColor,
         cleartype
     );
+  }
+
+  public void setMirrored(boolean mirrored) {
+    this.mirrored = mirrored;
   }
 
   private void drawLine(Canvas canvas, String lineNumber, int yPos, float devicePR) {

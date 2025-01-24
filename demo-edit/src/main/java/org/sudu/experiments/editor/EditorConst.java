@@ -25,11 +25,15 @@ public interface EditorConst {
   int LINE_NUMBERS_TEXTURE_SIZE = 20;
   int LINE_NUMBERS_RIGHT_PADDING = 20;
 
+  int V_LINE_LEFT_DELTA_DP = 10;
+
   double TYPING_STOP_TIME = 1./32.;
   int BIG_RESOLVE_TIME_MS = 100;
 
   int weightRegular = FontDesk.WEIGHT_LIGHT;
   int weightBold    = FontDesk.WEIGHT_SEMI_BOLD;
+
+  int SYNC_LINE_HEIGHT = 5;
 
   static FontDesk setFonts(
       String name, float size,
