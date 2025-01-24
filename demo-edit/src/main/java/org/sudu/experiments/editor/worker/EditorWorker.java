@@ -45,7 +45,8 @@ public class EditorWorker {
       case DiffUtils.FIND_DIFFS -> DiffUtils.findDiffs(
           ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(),
           ArgsCast.array(a, 2).chars(), ArgsCast.array(a, 3).ints(),
-          ArgsCast.array(a, 4).ints(), result);
+          ArgsCast.array(a, 4).ints(), ArgsCast.array(a, 5).ints(),
+          ArgsCast.array(a, 6).ints(), result);
     }
   }
 
