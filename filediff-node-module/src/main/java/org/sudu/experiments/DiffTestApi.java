@@ -3,6 +3,7 @@ package org.sudu.experiments;
 import org.sudu.experiments.diff.tests.CollectorFolderDiffTest;
 import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.editor.worker.TestWalker;
+import org.sudu.experiments.editor.worker.ThreadId;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.*;
@@ -194,7 +195,7 @@ public class DiffTestApi implements JsDiffTestApi {
   @Override
   public void testSshDir(JSObject sshPath, JsFunctions.Runnable onComplete) {
     boolean instance = JsFileInputSsh.isInstance(sshPath);
-    System.out.println("DiffTestApi.testSshDir");
+    System.out.println("DiffTestApi.testSshDir " + ThreadId.id);
     System.out.println("JsFileInputSsh.isInstance(sshPath) = "
         + instance);
     JSString path = JsFileInputSsh.getPath(sshPath);
@@ -214,7 +215,7 @@ public class DiffTestApi implements JsDiffTestApi {
   @Override
   public void testSshFile(JSObject sshPath, JsFunctions.Runnable onComplete) {
     boolean instance = JsFileInputSsh.isInstance(sshPath);
-    System.out.println("DiffTestApi.testSshFile");
+    System.out.println("DiffTestApi.testSshFile " + ThreadId.id);
     System.out.println("JsFileInputSsh.isInstance(sshPath) = "
         + instance);
     JSString path = JsFileInputSsh.getPath(sshPath);
@@ -235,7 +236,7 @@ public class DiffTestApi implements JsDiffTestApi {
   @Override
   public void testSshDirAsync(JSObject sshPath, JsFunctions.Runnable onComplete) {
     boolean instance = JsFileInputSsh.isInstance(sshPath);
-    System.out.println("DiffTestApi.testSshDirAsync");
+    System.out.println("DiffTestApi.testSshDirAsync: " + ThreadId.id);
     if (instance) {
       JSString path = JsFileInputSsh.getPath(sshPath);
       JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
@@ -251,7 +252,7 @@ public class DiffTestApi implements JsDiffTestApi {
   @Override
   public void testSshFileAsync(JSObject sshPath, JsFunctions.Runnable onComplete) {
     boolean instance = JsFileInputSsh.isInstance(sshPath);
-    System.out.println("DiffTestApi.testSshFileAsync");
+    System.out.println("DiffTestApi.testSshFileAsync " + ThreadId.id);
     if (instance) {
       JSString path = JsFileInputSsh.getPath(sshPath);
       JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);

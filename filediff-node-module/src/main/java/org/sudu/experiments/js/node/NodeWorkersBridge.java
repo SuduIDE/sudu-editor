@@ -21,25 +21,17 @@ public class NodeWorkersBridge implements WorkerProtocol.PlatformBridge {
     } else if (javaObject instanceof SshDirectoryHandle sshDir) {
       message.set(idx++, JSNumber.valueOf(2));
       message.set(idx++, sshDir.jsPath());
-      idx = sendSsh(message, idx, sshDir.credentials);
+      idx = putSsh(message, idx, sshDir.credentials);
     } else if (javaObject instanceof SshFileHandle sshFile) {
       message.set(idx++, JSNumber.valueOf(3));
       message.set(idx++, sshFile.jsPath());
       message.set(idx++, sshFile.attrs);
-      idx = sendSsh(message, idx, sshFile.credentials);
+      idx = putSsh(message, idx, sshFile.credentials);
     }
 
     else throw new IllegalArgumentException(
         "Illegal argument sent to worker " + javaObject.getClass().getName()
     );
-    return idx;
-  }
-
-  static int sendSsh(JsArray<JSObject> message, int idx, JaSshCredentials sshDir) {
-    message.set(idx++, sshDir.getHost());
-    message.set(idx++, sshDir.getPort());
-    message.set(idx++, sshDir.getUsername());
-    message.set(idx++, sshDir.getPassword());
     return idx;
   }
 
@@ -62,27 +54,36 @@ public class NodeWorkersBridge implements WorkerProtocol.PlatformBridge {
         }
         case 2 -> {
           JSString jsPath = array.get(arrayIndex++).cast();
-          JSString host = array.get(arrayIndex++).cast();
-          JSString port = array.get(arrayIndex++).cast();
-          JSString user = array.get(arrayIndex++).cast();
-          JSString password = array.get(arrayIndex++).cast();
-          var ssh = JsFileInputSsh.Helper.create(host, port, user, password);
+          var ssh = getSsh(array, arrayIndex);
           r[idx] = new SshDirectoryHandle(jsPath, ssh);
+          arrayIndex += 4;
         }
         case 3 -> {
           JSString jsPath = array.get(arrayIndex++).cast();
           JsSftpClient.Attrs attrs = array.get(arrayIndex++).cast();
-          JSString host = array.get(arrayIndex++).cast();
-          JSString port = array.get(arrayIndex++).cast();
-          JSString user = array.get(arrayIndex++).cast();
-          JSString password = array.get(arrayIndex++).cast();
-          var ssh = JsFileInputSsh.Helper.create(host, port, user, password);
+          var ssh = getSsh(array, arrayIndex);
           r[idx] = new SshFileHandle(jsPath, ssh, attrs);
+          arrayIndex += 4;
         }
-
       }
     }
     return arrayIndex;
+  }
+
+  static JaSshCredentials getSsh(JsArrayReader<JSObject> array, int arrayIndex) {
+    JSString host = array.get(arrayIndex).cast();
+    JSString port = array.get(arrayIndex + 1).cast();
+    JSString user = array.get(arrayIndex + 2).cast();
+    JSString password = array.get(arrayIndex + 3).cast();
+    return JsFileInputSsh.Helper.create(host, port, user, password);
+  }
+
+  static int putSsh(JsArray<JSObject> message, int idx, JaSshCredentials sshDir) {
+    message.set(idx++, sshDir.getHost());
+    message.set(idx++, sshDir.getPort());
+    message.set(idx++, sshDir.getUsername());
+    message.set(idx++, sshDir.getPassword());
+    return idx;
   }
 
   @JSBody(params = "data", script = "return typeof data === 'number';")

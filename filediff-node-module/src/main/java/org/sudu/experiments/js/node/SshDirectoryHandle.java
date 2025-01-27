@@ -52,12 +52,10 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
                 JsSftpClient.DirEntry entry = list.get(i);
                 String entryName = entry.getFilename().stringValue();
                 if (entry.getAttrs().isDirectory()) {
-                  JsHelper.consoleInfo2("sftp.readdir dir", entry.getFilename());
                   var subDir = new SshDirectoryHandle(
                       entryName, childPath, credentials);
                   reader.onDirectory(subDir);
                 } else if (entry.getAttrs().isFile()) {
-                  JsHelper.consoleInfo2("sftp.readdir file", entry.getFilename());
                   var attrs = entry.getAttrs();
                   var file = new SshFileHandle(
                       entryName, childPath, credentials, attrs);
@@ -83,10 +81,12 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
     JSString from = jsPath();
     JSString to = JSString.valueOf(path);
     JSString toParent = Fs.pathDirname(to);
+    onError.accept("not implemented yet");
   }
 
   @Override
   public void remove(Runnable onComplete, Consumer<String> onError) {
     JSString from = jsPath();
+    onError.accept("not implemented yet");
   }
 }
