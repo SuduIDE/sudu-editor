@@ -174,17 +174,33 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       finished = true;
       rootView.fireFinished();
     }
-    String statMsg = mkStatMsg(msg);
-    LoggingJs.trace("Status: " + statMsg + " " + mkTimeMsg(msg.timeDelta));
-    if (messageBar != null) messageBar.setStatusBarMessage(JSString.valueOf(statMsg));
+    setStatMessages(msg);
   }
 
-  private String mkStatMsg(BackendMessage msg) {
+  private void setStatMessages(BackendMessage msg) {
+    String statusBarMsg = mkStatusBarMsg(msg);
+    JSString toolBarMsg = JSString.valueOf(mkToolBarMsg(msg));
+    LoggingJs.trace("Status: " + statusBarMsg + " " + mkTimeMsg(msg.timeDelta));
+    if (messageBar != null) {
+      messageBar.setStatusBarMessage(JSString.valueOf(statusBarMsg));
+      messageBar.setToolBarMessage(toolBarMsg);
+    }
+  }
+
+  private String mkStatusBarMsg(BackendMessage msg) {
  //    mkTimeMsg(msg.timeDelta),
     return "Compared " +
         msg.foldersCmp + " folder" + sSuffix(msg.foldersCmp) + ", " +
         msg.filesCmp + " file" + sSuffix(msg.filesCmp) +
         (rootModel.isCompared() ? "" : " (in progress)");
+  }
+
+  private String mkToolBarMsg(BackendMessage msg) {
+    return switch (msg.differentFiles) {
+      case 0 -> "No different files";
+      case 1 -> "1 different file";
+      default -> msg.differentFiles + " different files";
+    };
   }
 
   private String mkTimeMsg(int ms) {
@@ -199,6 +215,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     LoggingJs.info("RemoteFolderDiffWindow.onDiffApplied");
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
+    setStatMessages(msg);
     if (!isFiltered()) lastSendFrontendMsg.openedFolders.updateDeepWithModel(rootModel);
     updateNodes();
   }
@@ -210,6 +227,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     rootModel.update(msg.root);
     updateNodes(leftRoot, rightRoot, rootModel, lastSendFrontendMsg.openedFolders);
     updateDiffInfo();
+    setStatMessages(msg);
     if (lastSelected != null) {
       var selectedRoot = isLastLeftFocused ? leftRoot : rightRoot;
       TreeNode newSelected = selectedRoot.getNearestParent(lastSelected);
@@ -225,6 +243,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private void onRefresh(JsArray<JSObject> jsResult) {
     var msg = BackendMessage.deserialize(jsResult);
     lastSendFrontendMsg.openedFolders.updateDeepWithModel(msg.root);
+    setStatMessages(msg);
   }
 
   private void updateNodes() {
