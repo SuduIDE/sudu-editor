@@ -55,8 +55,8 @@ public class SshFileHandle extends NodeFileHandle0 {
     if (attrs != null) {
       result.accept(attrs.getSize());
     } else {
-      SshPool.connect(credentials).then(r -> {
-          r.getSftp().stat(jsPath(), (error, stats) -> {
+      SshPool.sftp(credentials, sftp -> {
+          sftp.stat(jsPath(), (error, stats) -> {
             if (!JSObjects.isUndefined(stats)) {
               attrs = stats;
               result.accept(stats.getSize());

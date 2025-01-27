@@ -142,7 +142,7 @@ function testGbkEncoder() {
 
 function testSsh(ssh, args) {
   const exitHandler = () => { mayBeExit(); };
-
+  console.log("test ssh: ", ssh);
   // ose_DiffTestApi_testSsh$exported$5
 
   for (let i = 0; i < args.length; i += 2) {
@@ -170,6 +170,8 @@ function testSsh(ssh, args) {
       }
     }
   }
+
+  if (jobCount == 0) mayBeExit();
 
   return "testSsh";
 }

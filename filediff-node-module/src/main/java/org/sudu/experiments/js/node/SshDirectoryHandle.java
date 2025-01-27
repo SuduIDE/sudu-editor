@@ -3,7 +3,6 @@ package org.sudu.experiments.js.node;
 import org.sudu.experiments.JaSshCredentials;
 import org.sudu.experiments.SshPool;
 import org.sudu.experiments.js.JsHelper;
-import org.sudu.experiments.js.Promise;
 import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
@@ -37,10 +36,8 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
 
   @Override
   public void read(Reader reader) {
-    Promise<SshPool.Record> connected = SshPool.connect(credentials);
-    connected.then(
-        connection -> {
-          JsSftpClient sftp = connection.getSftp();
+    SshPool.sftp(credentials,
+        sftp -> {
           JSString jsPath = jsPath();
 //          JsHelper.consoleInfo2("reading sftp dir jsPath=", jsPath);
           sftp.readdir(jsPath, (error, list) -> {

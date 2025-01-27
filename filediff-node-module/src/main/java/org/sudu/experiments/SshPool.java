@@ -1,5 +1,6 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.Promise;
 import org.sudu.experiments.js.node.JsSftpClient;
@@ -86,6 +87,16 @@ public interface SshPool {
   }
 
   Map<Key, Value> map = new HashMap<>();
+
+  static void sftp(
+      JaSshCredentials creds,
+      JsFunctions.Consumer<JsSftpClient> callback,
+      JsFunctions.Consumer<JSError> error
+  ) {
+    connect(creds).then(
+        r -> callback.f(r.getSftp()), error
+    );
+  }
 
   static Promise<Record> connect(JaSshCredentials creds) {
     var key = new Key(creds);
