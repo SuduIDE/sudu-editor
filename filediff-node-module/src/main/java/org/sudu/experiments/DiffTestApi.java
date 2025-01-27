@@ -54,6 +54,8 @@ interface JsDiffTestApi extends JSObject {
 
   void testSshDir(JSObject sshPath, JsFunctions.Runnable onComplete);
   void testSshFile(JSObject sshPath, JsFunctions.Runnable onComplete);
+  void testSshDirAsync(JSObject sshPath, JsFunctions.Runnable onComplete);
+  void testSshFileAsync(JSObject sshPath, JsFunctions.Runnable onComplete);
 }
 
 public class DiffTestApi implements JsDiffTestApi {
@@ -206,7 +208,6 @@ public class DiffTestApi implements JsDiffTestApi {
             JsHelper.consoleInfo("testWalkerHandler:" + Arrays.toString(r));
             onComplete.f();
           }));
-//      testPool(onComplete, ssh);
     }
   }
 
@@ -231,17 +232,35 @@ public class DiffTestApi implements JsDiffTestApi {
     }
   }
 
-  static void testPool(JsFunctions.Runnable onComplete, JaSshCredentials ssh) {
-    SshPool.connect(ssh).then(
-        r -> {
-          JsHelper.consoleInfo2("testSsh.connected:",
-              JsHelper.constructorName(r.getSsh()),
-              JsHelper.constructorName(r.getSsh()));
-          onComplete.f();
-        }, error -> {
-          JsHelper.consoleInfo2("testSsh.error:", error);
-          onComplete.f();
-        }
-    );
+  @Override
+  public void testSshDirAsync(JSObject sshPath, JsFunctions.Runnable onComplete) {
+    boolean instance = JsFileInputSsh.isInstance(sshPath);
+    System.out.println("DiffTestApi.testSshDirAsync");
+    if (instance) {
+      JSString path = JsFileInputSsh.getPath(sshPath);
+      JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
+      var dir = new SshDirectoryHandle(path, ssh);
+      pool.sendToWorker(objects -> {
+        JsHelper.consoleInfo("DiffTestApi.testSshDirAsync complete, " +
+            "response l =  " + objects.length);
+        onComplete.f();
+      }, TestJobs.asyncWithDir, dir);
+    }
+  }
+
+  @Override
+  public void testSshFileAsync(JSObject sshPath, JsFunctions.Runnable onComplete) {
+    boolean instance = JsFileInputSsh.isInstance(sshPath);
+    System.out.println("DiffTestApi.testSshFileAsync");
+    if (instance) {
+      JSString path = JsFileInputSsh.getPath(sshPath);
+      JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
+      var file = new SshDirectoryHandle(path, ssh);
+      pool.sendToWorker(objects -> {
+        JsHelper.consoleInfo("DiffTestApi.testSshFileAsync complete, " +
+            "response l =  " + objects.length);
+        onComplete.f();
+      }, TestJobs.asyncWithFile, file);
+    }
   }
 }

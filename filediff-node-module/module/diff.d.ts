@@ -50,6 +50,8 @@ export interface DiffTestApi {
 
   testSshDir(file: SshInput, onComplete: () => void): void;
   testSshFile(file: SshInput, onComplete: () => void): void;
+  testSshDirAsync(file: SshInput, onComplete: () => void): void;
+  testSshFileAsync(file: SshInput, onComplete: () => void): void;
 }
 
 export interface FolderDiffSession extends AsyncShutdown {

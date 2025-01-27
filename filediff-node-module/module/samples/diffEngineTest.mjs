@@ -158,6 +158,16 @@ function testSsh(ssh, args) {
         module.testSshFile(sshRef, exitHandler);
         break;
       }
+      case "aDir": {
+        jobCount++;
+        module.testSshDirAsync(sshRef, exitHandler);
+        break;
+      }
+      case "aFile": {
+        jobCount++;
+        module.testSshFileAsync(sshRef, exitHandler);
+        break;
+      }
     }
   }
 
