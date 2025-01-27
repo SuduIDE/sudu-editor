@@ -135,16 +135,27 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
       linesInserted += range.lenR;
     }
     // '{} difference(s): {} lines deleted, {} lines inserted'
-    String statMsg = diffRanges + " difference" + sSuffix(diffRanges) + ": " +
-        linesDeleted + " line" + sSuffix(linesDeleted) + " deleted, " +
-        linesInserted + " line" + sSuffix(linesInserted) + " inserted";
+    JSString statusBarMsg = JSString.valueOf(sSuffix(linesDeleted, "line") + " deleted"
+        + ". " + sSuffix(linesInserted, "line") + " inserted");
+    JSString toolBarMsg = JSString.valueOf(sSuffix(diffRanges, "difference"));
 
-    LoggingJs.info(statMsg);
-    if (messageBar != null) messageBar.setStatusBarMessage(JSString.valueOf(statMsg));
+    LoggingJs.info(statusBarMsg);
+    if (messageBar != null) {
+      messageBar.setStatusBarMessage(statusBarMsg);
+      messageBar.setToolBarMessage(toolBarMsg);
+    }
   }
 
   static String sSuffix(int n) {
-    return n > 1 ? "s" : "";
+    return n != 1 ? "s" : "";
+  }
+
+  static String sSuffix(int n, String name) {
+    return switch (n) {
+      case 0 -> "No " + name + "s";
+      case 1 -> "1 " + name;
+      default -> n + " " + name + "s";
+    };
   }
 
   private void updateOnRefresh() {

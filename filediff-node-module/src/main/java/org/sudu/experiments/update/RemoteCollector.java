@@ -43,6 +43,7 @@ public class RemoteCollector {
   private int sentToWorker = 0;
 
   private int foldersCompared = 0, filesCompared;
+  private int filesInserted = 0, filesDeleted = 0, filesEdited = 0;
   private int lastFoldersCompared = 0, lastFilesCompared = 0;
 
   private boolean firstMessageSent = false;
@@ -86,6 +87,7 @@ public class RemoteCollector {
     isRefresh = true;
     startTime = lastMessageSentTime = Performance.now();
     foldersCompared = filesCompared = 0;
+    filesInserted = filesDeleted = filesEdited = 0;
     completeTime = -1;
     root.setCompared(false);
     root.childrenComparedCnt = 0;
@@ -381,14 +383,25 @@ public class RemoteCollector {
       boolean equals
   ) {
     filesCompared++;
-    if (!equals) model.markUp(DiffTypes.EDITED);
+    if (!equals) {
+      filesEdited++;
+      model.markUp(DiffTypes.EDITED);
+    }
     model.itemCompared();
     onItemCompared();
   }
 
   private void read(ItemFolderDiffModel model) {
     if (model.item() instanceof DirectoryHandle dirHandle) readFolder(model, dirHandle);
-    else model.itemCompared();
+    else {
+      if (model.getDiffType() == DiffTypes.INSERTED) {
+        filesInserted++;
+      } else if (model.getDiffType() == DiffTypes.DELETED) {
+        filesDeleted++;
+      }
+      filesCompared++;
+      model.itemCompared();
+    }
   }
 
   private void readFolder(ItemFolderDiffModel model, DirectoryHandle dirHandle) {
@@ -410,8 +423,15 @@ public class RemoteCollector {
     int[] stats = ArgsCast.intArray(result, 1);
     String[] paths = new String[stats[0]];
     FsItem[] fsItems = new FsItem[stats[1]];
-    foldersCompared += stats[2];
-    filesCompared += stats[3];
+    int foldersRead = stats[2];
+    int filesRead = stats[3];
+    foldersCompared += foldersRead;
+    filesCompared += filesRead;
+    if (model.getDiffType() == DiffTypes.INSERTED) {
+      filesInserted += filesRead;
+    } else if (model.getDiffType() == DiffTypes.DELETED) {
+      filesDeleted += filesRead;
+    }
     for (int i = 0; i < paths.length; i++) paths[i] = (String) result[i + 2];
     for (int i = 0; i < fsItems.length; i++) fsItems[i] = (FsItem) result[stats[0] + i + 2];
     var updModel = ItemFolderDiffModel.fromInts(ints, paths, fsItems);
@@ -508,7 +528,8 @@ public class RemoteCollector {
         rightRootName,
         foldersCompared,
         filesCompared,
-        getTotalTime()
+        getTotalTime(),
+        getDifferentFilesCnt()
     );
   }
 
@@ -587,5 +608,14 @@ public class RemoteCollector {
 
   private boolean isFiltered() {
     return !(lastFiltersLength == 4 || lastFiltersLength == 0);
+  }
+
+  private int getDifferentFilesCnt() {
+    if (!isFiltered()) return filesEdited + filesInserted + filesDeleted;
+    int result = 0;
+    if (lastFilters.get(DiffTypes.EDITED)) result += filesEdited;
+    if (lastFilters.get(DiffTypes.INSERTED)) result += filesInserted;
+    if (lastFilters.get(DiffTypes.DELETED)) result += filesDeleted;
+    return result;
   }
 }
