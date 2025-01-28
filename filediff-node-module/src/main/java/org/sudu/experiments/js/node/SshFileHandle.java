@@ -83,8 +83,9 @@ public class SshFileHandle extends NodeFileHandle0 {
     }
   }
 
+
   @Override
-  public void readAsText(Consumer<String> consumer, Consumer<String> onError) {
+  public void readAsBytes(Consumer<byte[]> consumer, Consumer<String> onError, int begin, int length) {
 
   }
 
@@ -103,8 +104,4 @@ public class SshFileHandle extends NodeFileHandle0 {
 
   }
 
-  @Override
-  public void readAsBytes(Consumer<byte[]> consumer, Consumer<String> onError, int begin, int length) {
-
-  }
 }
