@@ -10,7 +10,6 @@ import org.sudu.experiments.js.node.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
-import org.teavm.jso.typedarrays.ArrayBuffer;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -197,8 +196,7 @@ public class DiffTestApi implements JsDiffTestApi {
   @Override
   public void testNodeBuffer(JsFunctions.Runnable onComplete) {
     byte[] data0 = new byte[1000];
-    ArrayBuffer arrayBuffer = JsMemoryAccess.bufferView(data0).getBuffer();
-    JsBuffer jsBuffer = JsBuffer.from(arrayBuffer);
+    JsBuffer jsBuffer = JsBuffer.from(data0);
     byte[] data1 = JsMemoryAccess.toJavaArray(jsBuffer);
     data1[0] = 77;
     data1[999] = 55;
