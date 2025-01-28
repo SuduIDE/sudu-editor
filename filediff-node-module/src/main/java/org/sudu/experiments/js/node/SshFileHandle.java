@@ -4,8 +4,10 @@ import org.sudu.experiments.JaSshCredentials;
 import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.SshPool;
 import org.sudu.experiments.js.JsHelper;
+import org.sudu.experiments.js.JsMemoryAccess;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
+import org.teavm.jso.typedarrays.ArrayBuffer;
 
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
@@ -86,6 +88,8 @@ public class SshFileHandle extends NodeFileHandle0 {
 
   @Override
   public void readAsBytes(Consumer<byte[]> consumer, Consumer<String> onError, int begin, int length) {
+    byte[] data = new byte[1000];
+    ArrayBuffer arrayBuffer = JsMemoryAccess.bufferView(data).getBuffer();
 
   }
 

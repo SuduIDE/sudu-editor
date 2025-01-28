@@ -47,7 +47,6 @@ public interface JsSftpClient extends JSObject {
       BiConsumer<JSError, Attrs> callback
   );
 
-
   void open(JSString path, int mode, BiConsumer<JSError, JSObject> cb);
 
   void read(

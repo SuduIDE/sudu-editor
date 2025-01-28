@@ -109,7 +109,7 @@ function readFile(config, path) {
 
             const readCb = (err, bytesRead, bufferAdjusted, position) => {
               const baseBuffer = bufferAdjusted.buffer;
-              const array = new Uint8Array(baseBuffer);
+              const array = new Int8Array(baseBuffer);
               const sameBuffer = baseBuffer === arrayBuffer;
               console.log("sftp.read complete: buffer is original", sameBuffer);
               if (err) {
