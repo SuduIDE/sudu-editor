@@ -98,18 +98,6 @@ public class JsFileHandle implements FileHandle {
   }
 
   @Override
-  public void readAsText(Consumer<String> consumer, Consumer<String> onError) {
-    JsFunctions.Consumer<JSError> onJsError = JsHelper.wrapError(onError);
-    JsFunctions.Consumer<JSString> onString = JsFunctions.toJs(consumer);
-    if (jsFile != null) {
-      jsFile.text().then(onString, onJsError);
-    } else {
-      fileHandle.getFile().then(
-          file -> file.text().then(onString, onJsError), onJsError);
-    }
-  }
-
-  @Override
   public void readAsBytes(
       Consumer<byte[]> consumer, Consumer<String> onError,
       int begin, int length
