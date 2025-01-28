@@ -178,6 +178,13 @@ function testSsh(ssh, args) {
   return "testSsh";
 }
 
+function testNodeBuffer() {
+  jobCount++;
+  module.testNodeBuffer(() => {
+    mayBeExit();
+  });
+}
+
 let args = process.argv;
 
 function runTest() {
@@ -241,6 +248,10 @@ function runTest() {
         mayBeExit();
         return "error in args";
       }
+    }
+    case "testNodeBuffer": {
+      testNodeBuffer();
+      return undefined;
     }
     default:
       mayBeExit();

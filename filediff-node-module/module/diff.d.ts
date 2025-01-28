@@ -47,6 +47,7 @@ export interface DiffTestApi {
   ): void;
 
   testGbkEncoder() : void;
+  testNodeBuffer(onComplete: () => void) : void;
 
   testSshDir(file: SshInput, onComplete: () => void): void;
   testSshFile(file: SshInput, onComplete: () => void): void;

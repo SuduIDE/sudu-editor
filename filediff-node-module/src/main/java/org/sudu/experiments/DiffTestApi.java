@@ -10,6 +10,7 @@ import org.sudu.experiments.js.node.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
+import org.teavm.jso.typedarrays.ArrayBuffer;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -52,6 +53,7 @@ interface JsDiffTestApi extends JSObject {
   );
 
   void testGbkEncoder();
+  void testNodeBuffer(JsFunctions.Runnable onComplete);
 
   void testSshDir(JSObject sshPath, JsFunctions.Runnable onComplete);
   void testSshFile(JSObject sshPath, JsFunctions.Runnable onComplete);
@@ -190,6 +192,32 @@ public class DiffTestApi implements JsDiffTestApi {
     System.out.println("DiffTestApi.testAllGbk");
     GbkEncodingTestHelper.dump();
     GbkEncodingTestHelper.testGlyph((byte) 0xA1, (byte) 0xA1);
+  }
+
+  @Override
+  public void testNodeBuffer(JsFunctions.Runnable onComplete) {
+    byte[] data0 = new byte[1000];
+    ArrayBuffer arrayBuffer = JsMemoryAccess.bufferView(data0).getBuffer();
+    JsBuffer jsBuffer = JsBuffer.from(arrayBuffer);
+    byte[] data1 = JsMemoryAccess.toJavaArray(jsBuffer);
+    data1[0] = 77;
+    data1[999] = 55;
+    data1[10] = 100;
+    data1[11] = (byte) 200;
+    JsHelper.consoleInfo("data1[0] = " + data1[0]);
+    JsHelper.consoleInfo("data1[999] = " + data1[999]);
+    pool.sendToWorker(
+        r -> {
+          byte[] bytes = array(r, 1).bytes();
+          JsHelper.consoleInfo("bytes[0] = " + bytes[0]);
+          JsHelper.consoleInfo("bytes[999] = " + bytes[999]);
+          JsHelper.consoleInfo("bytes[10] = " + bytes[10]);
+          JsHelper.consoleInfo("bytes[11] = " + bytes[11]);
+          JsHelper.consoleInfo2("data1.ArrayBuffer",
+              JsMemoryAccess.bufferView(data1).getBuffer());
+          onComplete.f();
+        }, TestJobs.withBytes, data1
+    );
   }
 
   @Override
