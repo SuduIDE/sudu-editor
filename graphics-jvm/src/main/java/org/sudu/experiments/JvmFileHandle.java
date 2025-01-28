@@ -3,13 +3,11 @@ package org.sudu.experiments;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -20,7 +18,6 @@ import java.util.function.IntConsumer;
 // use SyncAccess for many small reads
 public class JvmFileHandle extends JvmFsHandle implements FileHandle {
 
-  static final Function<byte[], String> asUtf8String = b -> new String(b, StandardCharsets.UTF_8);
   static final Function<byte[], byte[]> identity = b -> b;
   static final Set<OpenOption> none = Collections.emptySet();
   static final FileAttribute[] noAttributes = new FileAttribute[0];
@@ -47,11 +44,6 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
       print(e);
       return 0;
     }
-  }
-
-  @Override
-  public void readAsText(Consumer<String> consumer, Consumer<String> onError) {
-    read(consumer, onError, asUtf8String, 0, -1);
   }
 
   @Override

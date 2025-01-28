@@ -94,17 +94,6 @@ public class NodeFileHandle implements FileHandle {
   }
 
   @Override
-  public void readAsText(Consumer<String> consumer, Consumer<String> onError) {
-    Fs.fs().readFile(jsPath(), JSString.valueOf("utf8"), (error, jsString) -> {
-      if (error != null) {
-        onError.accept(Fs.errorCause(error));
-      } else {
-        consumer.accept(jsString.stringValue());
-      }
-    });
-  }
-
-  @Override
   public void readAsBytes(
       Consumer<byte[]> consumer, Consumer<String> onError,
       int begin, int length

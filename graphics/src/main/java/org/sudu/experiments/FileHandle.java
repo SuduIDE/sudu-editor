@@ -23,9 +23,6 @@ public interface FileHandle extends FsItem {
 
   void getSize(IntConsumer result);
 
-  @Deprecated
-  void readAsText(Consumer<String> consumer, Consumer<String> onError);
-
   // parameter text can be string-kind, writer use encoding parameter
   //  - JSString
   //  - java String
