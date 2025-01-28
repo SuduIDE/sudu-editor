@@ -168,6 +168,8 @@ function testSsh(ssh, args) {
         module.testSshFileAsync(sshRef, exitHandler);
         break;
       }
+      default :
+        throw new Error("bad test arg " + args[i]);
     }
   }
 
