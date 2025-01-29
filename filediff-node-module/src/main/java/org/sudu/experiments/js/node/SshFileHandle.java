@@ -99,12 +99,14 @@ public class SshFileHandle extends NodeFileHandle0 {
           this.handle = handle;
           if (length <= 0 && attrs == null) {
             sftp.fstat(handle, (error, stats) -> {
+              JsHelper.consoleInfo2("sftp.fstat completed handle =",
+                  handle, ", stats =", stats);
               if (JSObjects.isUndefined(e)) {
                 this.attrs = stats;
                 doRead(sftp, consumer, onError, begin, attrs.getSize());
               } else {
                 onError.accept(e.getMessage());
-                doClose(sftp, onError);
+                doClose(sftp);
               }
             });
           } else {
@@ -115,7 +117,7 @@ public class SshFileHandle extends NodeFileHandle0 {
           onError.accept(e.getMessage());
         }
       });
-    }, JsHelper.wrapError(onError));
+    }, JsHelper.wrapError("sftp.open error ", onError));
   }
 
   void doRead(
@@ -136,19 +138,27 @@ public class SshFileHandle extends NodeFileHandle0 {
             byte[] r = bytesRead == data.length ?
                 data : Arrays.copyOf(data, bytesRead);
             consumer.accept(r);
-            doClose(sftp, onError);
+            doClose(sftp);
           } else {
             onError.accept(e.getMessage());
           }
         });
   }
 
-  void doClose(JsSftpClient sftp, Consumer<String> onError) {
+  void doClose(JsSftpClient sftp) {
     if (handle != null) {
       var h = handle;
       handle = null;
       JsHelper.consoleInfo2("sftp.close handle =", h);
-      sftp.close(h, JsHelper.wrapError(onError));
+      sftp.close(h, jsError -> {
+        if (!JSObjects.isUndefined(jsError)) {
+          var s = JsHelper.concat(
+              JsHelper.concat("sftp.close error: path=", jsPath()),
+              JsHelper.concat(",error =", JsHelper.message(jsError)));
+          JsHelper.consoleError(s);
+          LoggingJs.error(s);
+        }
+      });
     }
   }
 

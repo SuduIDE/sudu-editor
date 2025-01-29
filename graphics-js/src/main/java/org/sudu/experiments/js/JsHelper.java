@@ -95,6 +95,10 @@ public class JsHelper {
     return jsError -> onError.accept(jsError.getMessage());
   }
 
+  public static JsFunctions.Consumer<JSError> wrapError(String title, Consumer<String> onError) {
+    return jsError -> onError.accept(title.concat(jsError.getMessage()));
+  }
+
   interface HTMLElement extends org.teavm.jso.dom.html.HTMLElement {
     @JSMethod("getBoundingClientRect")
     DOMRect getBoundingClientRectD();
@@ -123,6 +127,9 @@ public class JsHelper {
 
   @JSBody(params = {"s0"}, script = "console.error(s0);")
   public static native void consoleError(String s0);
+
+  @JSBody(params = {"s0"}, script = "console.error(s0);")
+  public static native void consoleError(JSObject s0);
 
   @JSBody(params = {"s", "d"}, script = "console.info(s + d);")
   public static native void consoleInfo(String s, double d);
