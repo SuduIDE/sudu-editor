@@ -4,11 +4,13 @@ import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeDirectoryHandle;
 import org.sudu.experiments.js.node.NodeFileHandle;
+import org.sudu.experiments.js.node.SshDirectoryHandle;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.sudu.experiments.update.FileEditChannelUpdater;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 public class DiffEngine implements DiffEngineJs {
@@ -27,8 +29,25 @@ public class DiffEngine implements DiffEngineJs {
     SshPool.terminate();
   }
 
+  static DirectoryHandle directoryHandle(JSObject input) {
+    if (JSString.isInstance(input)) {
+      JSString localPath = input.cast();
+      return DiffEngine.isDir(localPath) ?
+          new NodeDirectoryHandle(localPath) : null;
+    }
+    if (JsFileInputSsh.isInstance(input)) {
+      JSString path = JsFileInputSsh.getPath(input);
+      JaSshCredentials ssh = JsFileInputSsh.getSsh(input);
+      return JSObjects.isUndefined(path) || JSObjects.isUndefined(ssh)
+          ? null : new SshDirectoryHandle(path, ssh);
+    }
+    return null;
+  }
+
   @Override
-  public JsFolderDiffSession startFolderDiff(JSString leftPath, JSString rightPath, Channel channel) {
+  public JsFolderDiffSession startFolderDiff(
+      JSString leftPath, JSString rightPath, Channel channel
+  ) {
     LoggingJs.info("Starting folder diff");
     boolean scanFileContent = true;
 

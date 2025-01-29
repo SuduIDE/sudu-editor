@@ -125,6 +125,9 @@ public class JsHelper {
   @JSBody(params = {"s0", "obj"}, script = "console.error(s0 + obj);")
   public static native void consoleError(String s0, JSObject obj);
 
+  @JSBody(params = {"s0", "obj"}, script = "console.error(s0, obj);")
+  public static native void consoleError2(String s0, JSObject obj);
+
   @JSBody(params = {"s0"}, script = "console.error(s0);")
   public static native void consoleError(String s0);
 
@@ -265,4 +268,8 @@ public class JsHelper {
 
   @NoSideEffects
   public static native Object directJsToJava(JSObject obj);
+
+  @NoSideEffects
+  @JSBody(params = {"s", "prefix"}, script = "return s.startsWith(prefix);")
+  public static native boolean startsWith(JSString s, String prefix);
 }

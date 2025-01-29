@@ -10,6 +10,7 @@ import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 import java.util.Arrays;
@@ -23,7 +24,7 @@ interface JsDiffTestApi extends JSObject {
   void testFS(JSString path, JsFunctions.Runnable onComplete);
 
   void testDiff(
-      JSString path1, JSString path2,
+      JSObject path1, JSObject path2,
       boolean content, JsFunctions.Runnable onComplete);
 
   void testFileWrite(
@@ -90,20 +91,22 @@ public class DiffTestApi implements JsDiffTestApi {
 
   @Override
   public void testDiff(
-      JSString path1, JSString path2,
+      JSObject path1, JSObject path2,
       boolean content,
       JsFunctions.Runnable onComplete
   ) {
-    if (DiffEngine.notDir(path1) || DiffEngine.notDir(path2)) {
+    DirectoryHandle dir1 = DiffEngine.directoryHandle(path1);
+    DirectoryHandle dir2 = DiffEngine.directoryHandle(path2);
+    if (dir1 == null || dir2 == null) {
+      if (dir1 == null) JsHelper.consoleError2("bad path1:", path1);
+      if (dir2 == null) JsHelper.consoleError2("bad path2:", path2);
       onComplete.f();
       return;
     }
-    NodeDirectoryHandle dir1 = new NodeDirectoryHandle(path1);
-    NodeDirectoryHandle dir2 = new NodeDirectoryHandle(path2);
 
     JsHelper.consoleInfo("testDiff: ");
-    JsHelper.consoleInfo("  path1 = ", path1);
-    JsHelper.consoleInfo("  path2 = ", path2);
+    JsHelper.consoleInfo2("  path1 =", path1);
+    JsHelper.consoleInfo2("  path2 =", path2);
     JsHelper.consoleInfo("  content = ", JSBoolean.valueOf(content));
     JsTime jsTime = new JsTime();
     new CollectorFolderDiffTest(

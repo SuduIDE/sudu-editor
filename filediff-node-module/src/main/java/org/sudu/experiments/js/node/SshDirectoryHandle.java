@@ -36,6 +36,12 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
 
   @Override
   public void read(Reader reader) {
+    if (credentials != null &&
+        JSObjects.isUndefined(credentials.getUsername())
+    ) {
+      JsHelper.consoleInfo("user undefined");
+    }
+    JsHelper.consoleInfo2("sftp", credentials);
     SshPool.sftp(credentials,
         sftp -> {
           JSString jsPath = jsPath();
@@ -67,7 +73,8 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
         },
         error -> {
           JsHelper.consoleInfo2(
-              "SshDirectoryHandle.read connect error:", JsHelper.getMessage(error));
+              "SshDirectoryHandle.read connect error:", JsHelper.getMessage(error),
+              "credentials", credentials);
           reader.onComplete();
         }
     );

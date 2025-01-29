@@ -16,7 +16,7 @@ public interface JsFileInputSsh extends JSObject {
   class Helper {
     @JSBody(
         params = {"host", "port", "user", "password"},
-        script = "return {host:host, port:port, user:user, password:password};")
+        script = "return {host:host, port:port, username:user, password:password};")
     public static native JaSshCredentials create(
         JSString host, JSString port, JSString user, JSString password
     );

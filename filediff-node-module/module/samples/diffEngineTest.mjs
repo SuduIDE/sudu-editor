@@ -250,6 +250,18 @@ function runTest() {
         return "error in args";
       }
     }
+    case "testDiffSsh": {
+      const ssh = sshConfig(args, 3);
+      const sshRoot = args[7];
+      const localRoot = args[8];
+      if (ssh && sshRoot && localRoot) {
+        const sshRef = {path: sshRoot, ssh: ssh};
+        return testDiff(localRoot, sshRef, true);
+      } else {
+        mayBeExit();
+        return "error in args";
+      }
+    }
     case "testNodeBuffer": {
       testNodeBuffer();
       return undefined;
