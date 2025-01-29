@@ -3,6 +3,7 @@ package org.sudu.experiments;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.Promise;
+import org.sudu.experiments.js.node.JaSshCredentials;
 import org.sudu.experiments.js.node.JsSftpClient;
 import org.sudu.experiments.js.node.JsSshClient;
 import org.teavm.jso.JSBody;

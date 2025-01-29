@@ -1,10 +1,7 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.js.*;
-import org.sudu.experiments.js.node.Fs;
-import org.sudu.experiments.js.node.NodeDirectoryHandle;
-import org.sudu.experiments.js.node.NodeFileHandle;
-import org.sudu.experiments.js.node.SshDirectoryHandle;
+import org.sudu.experiments.js.node.*;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.update.FileDiffChannelUpdater;

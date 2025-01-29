@@ -1,7 +1,5 @@
 package org.sudu.experiments.js.node;
 
-import org.sudu.experiments.JaSshCredentials;
-import org.sudu.experiments.JsFileInputSsh;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;

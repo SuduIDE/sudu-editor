@@ -10,7 +10,6 @@ import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
-import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 import java.util.Arrays;

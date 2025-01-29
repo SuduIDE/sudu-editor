@@ -1,4 +1,4 @@
-package org.sudu.experiments;
+package org.sudu.experiments.js.node;
 
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
