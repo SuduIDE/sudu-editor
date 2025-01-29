@@ -17,4 +17,8 @@ public abstract class JsBuffer extends Uint8Array {
   public static JsBuffer from(byte[] data) {
     return JsBuffer.from(JsMemoryAccess.bufferView(data).getBuffer());
   }
+
+  public byte[] asArray() {
+    return JsMemoryAccess.toJavaArray(this);
+  }
 }

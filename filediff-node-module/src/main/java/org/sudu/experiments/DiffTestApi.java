@@ -197,7 +197,7 @@ public class DiffTestApi implements JsDiffTestApi {
   public void testNodeBuffer(JsFunctions.Runnable onComplete) {
     byte[] data0 = new byte[1000];
     JsBuffer jsBuffer = JsBuffer.from(data0);
-    byte[] data1 = JsMemoryAccess.toJavaArray(jsBuffer);
+    byte[] data1 = jsBuffer.asArray();
     data1[0] = 77;
     data1[999] = 55;
     data1[10] = 100;
@@ -211,6 +211,8 @@ public class DiffTestApi implements JsDiffTestApi {
           JsHelper.consoleInfo("bytes[999] = " + bytes[999]);
           JsHelper.consoleInfo("bytes[10] = " + bytes[10]);
           JsHelper.consoleInfo("bytes[11] = " + bytes[11]);
+          if (bytes[0] != 55 || bytes[999] != 77)
+            throw new RuntimeException("testNodeBuffer failed");
           JsHelper.consoleInfo2("data1.ArrayBuffer",
               JsMemoryAccess.bufferView(data1).getBuffer());
           onComplete.f();
