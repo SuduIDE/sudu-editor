@@ -49,10 +49,12 @@ public interface JsSftpClient extends JSObject {
 
   void open(JSString path, int mode, BiConsumer<JSError, JSObject> cb);
 
+  //  Reads length bytes from the resource associated with handle
+  //  starting at position and stores the bytes in buffer starting at offset
   void read(
       JSObject handle,
-      JsBuffer buffer, int offset, int length,
-      int position, ReadResult cb);
+      JsBuffer buffer, int offset,
+      int length, int position, ReadResult cb);
 
   void close(JSObject handle, JsFunctions.Consumer<JSError> cb);
 

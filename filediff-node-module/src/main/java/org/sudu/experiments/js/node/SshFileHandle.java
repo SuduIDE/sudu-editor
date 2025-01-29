@@ -4,17 +4,18 @@ import org.sudu.experiments.JaSshCredentials;
 import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.SshPool;
 import org.sudu.experiments.js.JsHelper;
-import org.sudu.experiments.js.JsMemoryAccess;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
-import org.teavm.jso.typedarrays.ArrayBuffer;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
 public class SshFileHandle extends NodeFileHandle0 {
   JaSshCredentials credentials;
   JsSftpClient.Attrs attrs;
+  JSObject handle;
 
   public SshFileHandle(
       String name, String[] path,
@@ -87,10 +88,39 @@ public class SshFileHandle extends NodeFileHandle0 {
 
 
   @Override
-  public void readAsBytes(Consumer<byte[]> consumer, Consumer<String> onError, int begin, int length) {
-    byte[] data = new byte[1000];
-    ArrayBuffer arrayBuffer = JsMemoryAccess.bufferView(data).getBuffer();
+  public void readAsBytes(
+      Consumer<byte[]> consumer, Consumer<String> onError,
+      int begin, int length
+  ) {
+    SshPool.sftp(credentials, sftp -> {
+      sftp.open(jsPath(), OPEN_MODE.OPEN_MODE().READ(), (e, handle) -> {
+        if (JSObjects.isUndefined(e)) {
+          this.handle = handle;
+          doRead(sftp, consumer, onError, begin, length);
+        } else {
+          onError.accept(e.getMessage());
+        }
+      });
+    }, JsHelper.wrapError(onError));
+  }
 
+  void doRead(
+      JsSftpClient sftp,
+      Consumer<byte[]> consumer, Consumer<String> onError,
+      int begin, int length
+  ) {
+    byte[] data = new byte[length];
+    JsBuffer jsBuffer = JsBuffer.from(data);
+    JsSftpClient.ReadResult cb = (err, bytesRead, buffer, position) -> {
+      if (JSObjects.isUndefined(err)) {
+        onError.accept(err.getMessage());
+      } else {
+        byte[] r = bytesRead == data.length ?
+            data : Arrays.copyOf(data, bytesRead);
+        consumer.accept(r);
+      }
+    };
+    sftp.read(handle, jsBuffer, 0, length, begin, cb);
   }
 
   @Override
