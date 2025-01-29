@@ -92,13 +92,13 @@ public class SshFileHandle extends NodeFileHandle0 {
       int begin, int length
   ) {
     SshPool.sftp(credentials, sftp -> {
-      sftp.open(jsPath(), OPEN_MODE.read(), (e, handle) -> {
+      sftp.open(jsPath(), OPEN_MODE.read(), (e, newHandle) -> {
         JsHelper.consoleInfo2("sftp.open completed handle =",
-            handle, ", error =", e);
+            newHandle, ", error =", e);
         if (JSObjects.isUndefined(e)) {
-          this.handle = handle;
+          handle = newHandle;
           if (length <= 0 && attrs == null) {
-            sftp.fstat(handle, (error, stats) -> {
+            sftp.fstat(newHandle, (error, stats) -> {
               JsHelper.consoleInfo2("sftp.fstat completed handle =",
                   handle, ", stats =", stats);
               if (JSObjects.isUndefined(e)) {
