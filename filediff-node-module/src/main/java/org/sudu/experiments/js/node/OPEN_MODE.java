@@ -1,5 +1,6 @@
 package org.sudu.experiments.js.node;
 
+import org.teavm.interop.NoSideEffects;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
@@ -10,9 +11,14 @@ import org.teavm.jso.JSProperty;
 //  CREAT: 0x00000008,
 //  TRUNC: 0x00000010,
 //  EXCL: 0x00000020
-public class OPEN_MODE implements JSObject {
+public abstract class OPEN_MODE implements JSObject {
+  @NoSideEffects
   @JSBody(script = "return OPEN_MODE;")
   public static native OPEN_MODE OPEN_MODE();
+
+  public static int read() {
+    return OPEN_MODE().READ();
+  }
 
   @JSProperty("READ")
   public native int READ();

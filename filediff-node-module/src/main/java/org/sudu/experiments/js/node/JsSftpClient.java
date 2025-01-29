@@ -40,14 +40,14 @@ public interface JsSftpClient extends JSObject {
       JSString path,
       BiConsumer<JSError, JsArrayReader<DirEntry>> callback);
 
-  // stat(< string >path, < function >callback) - (void)
-  // Retrieves attributes for path. callback has 2 parameter: < Error >err, < Stats >stats.
-  void stat(
-      JSString path,
-      BiConsumer<JSError, Attrs> callback
-  );
+  // Retrieves attributes for path.
+  void stat(JSString path, BiConsumer<JSError, Attrs> callback);
 
-  void open(JSString path, int mode, BiConsumer<JSError, JSObject> cb);
+  // Opens a file filename with flags, flags is any of the OPEN_MODE constants
+  void open(JSString path, int flags, BiConsumer<JSError, JSObject> cb);
+
+  // Retrieves attributes for the resource associated with handle
+  void fstat(JSObject handle, BiConsumer<JSError, Attrs> callback);
 
   //  Reads length bytes from the resource associated with handle
   //  starting at position and stores the bytes in buffer starting at offset
@@ -56,6 +56,7 @@ public interface JsSftpClient extends JSObject {
       JsBuffer buffer, int offset,
       int length, int position, ReadResult cb);
 
+  // Closes the resource associated with handle given by open() or opendir().
   void close(JSObject handle, JsFunctions.Consumer<JSError> cb);
 
   @JSFunctor

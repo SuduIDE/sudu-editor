@@ -86,17 +86,31 @@ public class SshFileHandle extends NodeFileHandle0 {
     }
   }
 
-
   @Override
   public void readAsBytes(
       Consumer<byte[]> consumer, Consumer<String> onError,
       int begin, int length
   ) {
     SshPool.sftp(credentials, sftp -> {
-      sftp.open(jsPath(), OPEN_MODE.OPEN_MODE().READ(), (e, handle) -> {
+      sftp.open(jsPath(), OPEN_MODE.read(), (e, handle) -> {
+        JsHelper.consoleInfo2("sftp.open completed handle =",
+            handle, ", error =", e);
         if (JSObjects.isUndefined(e)) {
           this.handle = handle;
-          doRead(sftp, consumer, onError, begin, length);
+          if (length <= 0 && attrs == null) {
+            sftp.fstat(handle, (error, stats) -> {
+              if (JSObjects.isUndefined(e)) {
+                this.attrs = stats;
+                doRead(sftp, consumer, onError, begin, attrs.getSize());
+              } else {
+                onError.accept(e.getMessage());
+                doClose(sftp, onError);
+              }
+            });
+          } else {
+            int toRead = length > 0 ? length : attrs.getSize();
+            doRead(sftp, consumer, onError, begin, toRead);
+          }
         } else {
           onError.accept(e.getMessage());
         }
@@ -110,32 +124,46 @@ public class SshFileHandle extends NodeFileHandle0 {
       int begin, int length
   ) {
     byte[] data = new byte[length];
-    JsBuffer jsBuffer = JsBuffer.from(data);
-    JsSftpClient.ReadResult cb = (err, bytesRead, buffer, position) -> {
-      if (JSObjects.isUndefined(err)) {
-        onError.accept(err.getMessage());
-      } else {
-        byte[] r = bytesRead == data.length ?
-            data : Arrays.copyOf(data, bytesRead);
-        consumer.accept(r);
-      }
-    };
-    sftp.read(handle, jsBuffer, 0, length, begin, cb);
+    if (length == 0) consumer.accept(data);
+    else sftp.read(handle, JsBuffer.from(data), 0, length, begin,
+        (e, bytesRead, buffer, position) -> {
+          JsHelper.consoleInfo2("sftp.read completed handle =",
+              handle, ", error =", e);
+          if (JSObjects.isUndefined(e)) {
+            if (bytesRead != data.length) {
+              JsHelper.consoleInfo2("sftp.read bytesRead != data.length, path", jsPath());
+            }
+            byte[] r = bytesRead == data.length ?
+                data : Arrays.copyOf(data, bytesRead);
+            consumer.accept(r);
+            doClose(sftp, onError);
+          } else {
+            onError.accept(e.getMessage());
+          }
+        });
+  }
+
+  void doClose(JsSftpClient sftp, Consumer<String> onError) {
+    if (handle != null) {
+      var h = handle;
+      handle = null;
+      JsHelper.consoleInfo2("sftp.close handle =", h);
+      sftp.close(h, JsHelper.wrapError(onError));
+    }
   }
 
   @Override
   public void writeText(Object text, String encoding, Runnable onComplete, Consumer<String> onError) {
-
+    onError.accept("unsupported operation");
   }
 
   @Override
   public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
-
+    onError.accept("unsupported operation");
   }
 
   @Override
   public void remove(Runnable onComplete, Consumer<String> onError) {
-
+    onError.accept("unsupported operation");
   }
-
 }

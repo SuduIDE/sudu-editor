@@ -4,6 +4,7 @@ import org.sudu.experiments.diff.tests.CollectorFolderDiffTest;
 import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.editor.worker.TestWalker;
 import org.sudu.experiments.editor.worker.ThreadId;
+import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.*;
@@ -284,12 +285,21 @@ public class DiffTestApi implements JsDiffTestApi {
     if (instance) {
       JSString path = JsFileInputSsh.getPath(sshPath);
       JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
-      var file = new SshDirectoryHandle(path, ssh);
+      var file = new SshFileHandle(path, ssh);
       pool.sendToWorker(objects -> {
         JsHelper.consoleInfo("DiffTestApi.testSshFileAsync complete, " +
             "response l =  " + objects.length);
+        JsHelper.consoleInfo(" [0] = " + objects[0]);
+        JsHelper.consoleInfo(" [1] = " + objects[1]);
+        byte[] bytes = array(objects, 2).bytes();
+        JsHelper.consoleInfo(" bytes.length = " + bytes.length);
+        JsHelper.consoleInfo(" text: " + shortText(FileEncoding.decodeText(bytes)));
         onComplete.f();
       }, TestJobs.asyncWithFile, file);
     }
+  }
+
+  static String shortText(String s) {
+    return s.length() > 80 ? s.substring(0, 80) : s;
   }
 }
