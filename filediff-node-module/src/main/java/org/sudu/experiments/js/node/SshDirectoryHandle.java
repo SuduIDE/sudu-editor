@@ -35,12 +35,6 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
 
   @Override
   public void read(Reader reader) {
-    if (credentials != null &&
-        JSObjects.isUndefined(credentials.getUsername())
-    ) {
-      JsHelper.consoleInfo("user undefined");
-    }
-    JsHelper.consoleInfo2("sftp", credentials);
     SshPool.sftp(credentials,
         sftp -> {
           JSString jsPath = jsPath();
