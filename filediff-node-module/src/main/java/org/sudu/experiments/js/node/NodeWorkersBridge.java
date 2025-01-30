@@ -71,9 +71,9 @@ public class NodeWorkersBridge implements WorkerProtocol.PlatformBridge {
   static JaSshCredentials getSsh(JsArrayReader<JSObject> array, int arrayIndex) {
     JSString host = array.get(arrayIndex).cast();
     JSString port = array.get(arrayIndex + 1).cast();
-    JSString user = array.get(arrayIndex + 2).cast();
+    JSString username = array.get(arrayIndex + 2).cast();
     JSString password = array.get(arrayIndex + 3).cast();
-    return JsFileInputSsh.Helper.create(host, port, user, password);
+    return JsFileInputSsh.Helper.create(host, port, username, password);
   }
 
   static int putSsh(JsArray<JSObject> message, int idx, JaSshCredentials sshDir) {

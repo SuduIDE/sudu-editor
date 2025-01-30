@@ -15,10 +15,10 @@ public interface JsFileInputSsh extends JSObject {
 
   class Helper {
     @JSBody(
-        params = {"host", "port", "user", "password"},
-        script = "return {host:host, port:port, username:user, password:password};")
+        params = {"host", "port", "username", "password"},
+        script = "return {host:host, port:port, username:username, password:password};")
     public static native JaSshCredentials create(
-        JSString host, JSString port, JSString user, JSString password
+        JSString host, JSString port, JSString username, JSString password
     );
   }
 
