@@ -156,7 +156,7 @@ public class FolderDiffWindow extends ToolWindow0 {
           oppositeDir.onClick.run();
         }
         if (node.childrenLength() > 0) updateModel();
-        updateDiffInfo(0, 0);
+        updateDiffInfo(new int[]{0, 0});
         if (node.folders().length == 1 && node.files().length == 0) {
           node.folders()[0].onClick.run();
         }
@@ -175,7 +175,7 @@ public class FolderDiffWindow extends ToolWindow0 {
         if (oppositeDir != null && oppositeDir.isOpened()) {
           oppositeDir.onClick.run();
         }
-        updateDiffInfo(0, 0);
+        updateDiffInfo(new int[]{0, 0});
       }
 
       DirectoryNode findOppositeDir(DirectoryNode node) {
@@ -225,7 +225,7 @@ public class FolderDiffWindow extends ToolWindow0 {
     updateHandler.beginCompare();
   }
 
-  protected void updateDiffInfo(int foldersCompared, int filesCompared) {
+  protected void updateDiffInfo(int[] stat) {
     if (rootView.left == null || rootView.right == null) return;
     if (leftRoot == null || rightRoot == null) return;
     updateCnt++;
@@ -240,7 +240,7 @@ public class FolderDiffWindow extends ToolWindow0 {
       if (!finished) {
         var title = leftRoot.name() + " ↔ " + rightRoot.name()
             + " - finished in " + Numbers.iRnd(dT) + "s, " +
-            "foldersCompared: " + foldersCompared + ", filesCompared: " + filesCompared;
+            "foldersCompared: " + stat[0] + ", filesCompared: " + stat[1];
         window.setTitle(title);
         finished = true;
         rootView.fireFinished();

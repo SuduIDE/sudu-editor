@@ -7,7 +7,13 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 public class DiffModelUpdater {
 
   public interface Listener {
-    void onComplete(int foldersCompared, int filesCompared);
+    /* stat = {
+         foldersCompared, filesCompared,
+         leftFiles, leftFolders,
+         rightFiles, rightFolders,
+         inserted, deleted, edited
+       } */
+    void onComplete(int[] stat);
   }
 
   public final FolderDiffModel root;
@@ -41,10 +47,10 @@ public class DiffModelUpdater {
   }
 
   private void update() {
-    updateInfo.onComplete(0,0);
+    updateInfo.onComplete(new int[]{0, 0});
   }
 
-  private void onComplete(int foldersCompared, int filesCompared) {
-    updateInfo.onComplete(foldersCompared, filesCompared);
+  private void onComplete(int[] stat) {
+    updateInfo.onComplete(stat);
   }
 }

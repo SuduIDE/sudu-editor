@@ -19,6 +19,10 @@ import java.util.*;
 public class Collector {
 
   protected int foldersCompared = 0, filesCompared = 0;
+  protected int leftFiles = 0, leftFolders = 0;
+  protected int rightFiles = 0, rightFolders = 0;
+  protected int filesInserted = 0, filesDeleted = 0, filesEdited = 0;
+
   protected DiffModelUpdater.Listener onComplete;
 
   private final FolderDiffModel root;
@@ -75,6 +79,8 @@ public class Collector {
       Object[] result
   ) {
     foldersCompared++;
+    leftFolders++;
+    rightFolders++;
     int[] ints = ((ArrayView) result[0]).ints();
 
     int commonLen = ints[0];
@@ -160,7 +166,6 @@ public class Collector {
       FolderDiffModel model,
       Object[] result
   ) {
-    filesCompared++;
     boolean equals = FileCompare.isEquals(result);
     onFilesCompared(model, equals);
   }
@@ -169,13 +174,29 @@ public class Collector {
       FolderDiffModel model,
       boolean equals
   ) {
-    if (!equals) model.markUp(DiffTypes.EDITED);
+    leftFiles++;
+    rightFiles++;
+    filesCompared++;
+    if (!equals) {
+      filesEdited++;
+      model.markUp(DiffTypes.EDITED);
+    }
     onItemCompared(model.itemCompared());
   }
 
   private void read(FolderDiffModel model, FsItem handle) {
     if (handle instanceof DirectoryHandle dirHandle) readFolder(model, dirHandle);
-    else model.itemCompared();
+    else {
+      if (model.getDiffType() == DiffTypes.INSERTED) {
+        filesInserted++;
+        rightFiles++;
+      } else if (model.getDiffType() == DiffTypes.DELETED) {
+        filesDeleted++;
+        leftFiles++;
+      }
+      filesCompared++;
+      model.itemCompared();
+    }
   }
 
   private void readFolder(FolderDiffModel model, DirectoryHandle dirHandle) {
@@ -192,11 +213,24 @@ public class Collector {
       Object[] result
   ) {
     int[] ints = ArgsCast.intArray(result, 0);
-    int[] sizes = ArgsCast.intArray(result, 1);
-    String[] paths = new String[sizes[0]];
-    FsItem[] items = new FsItem[sizes[1]];
-    for (int i = 0; i < sizes[0]; i++) paths[i] = (String) result[i + 2];
-    for (int i = 0; i < sizes[1]; i++) items[i] = (FsItem) result[sizes[0] + i + 2];
+    int[] stats = ArgsCast.intArray(result, 1);
+    String[] paths = new String[stats[0]];
+    FsItem[] items = new FsItem[stats[1]];
+    int foldersRead = stats[2];
+    int filesRead = stats[3];
+    foldersCompared += foldersRead;
+    filesCompared += filesRead;
+    if (model.getDiffType() == DiffTypes.INSERTED) {
+      filesInserted += filesRead;
+      rightFiles += filesRead;
+      rightFolders += foldersRead;
+    } else if (model.getDiffType() == DiffTypes.DELETED) {
+      filesDeleted += filesRead;
+      leftFiles += filesRead;
+      leftFolders += foldersRead;
+    }
+    for (int i = 0; i < stats[0]; i++) paths[i] = (String) result[i + 2];
+    for (int i = 0; i < stats[1]; i++) items[i] = (FsItem) result[stats[0] + i + 2];
     var updModel = ItemFolderDiffModel.fromInts(ints, paths, items);
     model.update(updModel);
     onItemCompared(false);
@@ -204,7 +238,7 @@ public class Collector {
 
   private void onItemCompared(boolean needUpdate) {
     if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
-    if (inComparing == 0) onComplete.onComplete(foldersCompared, filesCompared);
+    if (inComparing == 0) onComplete.onComplete(mkStatInts());
     else if (needUpdate) update.run();
   }
 
@@ -214,5 +248,14 @@ public class Collector {
 
   public void setOnComplete(DiffModelUpdater.Listener onComplete) {
     this.onComplete = onComplete;
+  }
+
+  public int[] mkStatInts() {
+    return new int[] {
+        foldersCompared, filesCompared,
+        leftFiles, leftFolders,
+        rightFiles, rightFolders,
+        filesInserted, filesDeleted, filesEdited
+    };
   }
 }
