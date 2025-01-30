@@ -6,6 +6,8 @@ import org.sudu.experiments.js.JsHelper;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
+import org.teavm.jso.typedarrays.ArrayBufferView;
+import org.teavm.jso.typedarrays.Uint8Array;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -52,6 +54,11 @@ public class SshFileHandle extends NodeFileHandle0 {
     return false;
   }
 
+  JSObject debugHandle() {
+    return
+        Uint8Array.create(handle.<ArrayBufferView>cast().getBuffer());
+  }
+
   @Override
   public void getSize(IntConsumer result) {
     if (attrs != null) {
@@ -92,14 +99,14 @@ public class SshFileHandle extends NodeFileHandle0 {
   ) {
     SshPool.sftp(credentials, sftp -> {
       sftp.open(jsPath(), OPEN_MODE.read(), (e, newHandle) -> {
-        JsHelper.consoleInfo2("sftp.open completed handle =",
-            newHandle, ", error =", e);
         if (JSObjects.isUndefined(e)) {
           handle = newHandle;
+          JsHelper.consoleInfo2("sftp.open completed handle =",
+              debugHandle(), ", error =", e);
           if (length <= 0 && attrs == null) {
             sftp.fstat(newHandle, (error, stats) -> {
-              JsHelper.consoleInfo2("sftp.fstat completed handle =",
-                  handle, ", stats =", stats);
+              JsHelper.consoleInfo2("sftp.fstat completed ",
+                  jsPath(), ", stats =", stats);
               if (JSObjects.isUndefined(e)) {
                 this.attrs = stats;
                 doRead(sftp, consumer, onError, begin, attrs.getSize());
@@ -113,6 +120,8 @@ public class SshFileHandle extends NodeFileHandle0 {
             doRead(sftp, consumer, onError, begin, toRead);
           }
         } else {
+          JsHelper.consoleInfo2(
+              "sftp.open error: path=", jsPath(), "error=", e);
           onError.accept(e.getMessage());
         }
       });
@@ -124,15 +133,20 @@ public class SshFileHandle extends NodeFileHandle0 {
       Consumer<byte[]> consumer, Consumer<String> onError,
       int begin, int length
   ) {
+    JsHelper.consoleInfo2("reading " + length + " bytes at " +
+        begin + " from", jsPath());
     byte[] data = new byte[length];
     if (length == 0) consumer.accept(data);
     else sftp.read(handle, JsBuffer.from(data), 0, length, begin,
         (e, bytesRead, buffer, position) -> {
-          JsHelper.consoleInfo2("sftp.read completed handle =",
-              handle, ", error =", e);
           if (JSObjects.isUndefined(e)) {
+            JsHelper.consoleInfo2(
+                "sftp.read completed path =", jsPath());
             if (bytesRead != data.length) {
-              JsHelper.consoleInfo2("sftp.read bytesRead != data.length, path", jsPath());
+              JsHelper.consoleInfo2(
+                  "sftp.read bytesRead(" + bytesRead +
+                      ") != data.length(" + data.length +
+                      "), path", jsPath());
             }
             byte[] r = bytesRead == data.length ?
                 data : Arrays.copyOf(data, bytesRead);
@@ -146,9 +160,9 @@ public class SshFileHandle extends NodeFileHandle0 {
 
   void doClose(JsSftpClient sftp) {
     if (handle != null) {
+      JsHelper.consoleInfo2("sftp.close handle ", jsPath());
       var h = handle;
       handle = null;
-      JsHelper.consoleInfo2("sftp.close handle =", h);
       sftp.close(h, jsError -> {
         if (!JSObjects.isUndefined(jsError)) {
           var s = JsHelper.concat(
