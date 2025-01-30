@@ -60,8 +60,8 @@ public class SshFileHandle extends NodeFileHandle0 {
   }
 
   JSObject debugHandle() {
-    return
-        Uint8Array.create(handle.<ArrayBufferView>cast().getBuffer());
+    ArrayBufferView abv = handle.cast();
+    return Uint8Array.create(abv.getBuffer());
   }
 
   @Override
