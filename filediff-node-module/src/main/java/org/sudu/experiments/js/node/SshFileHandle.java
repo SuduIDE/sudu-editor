@@ -102,7 +102,7 @@ public class SshFileHandle extends NodeFileHandle0 {
         if (JSObjects.isUndefined(e)) {
           handle = newHandle;
           JsHelper.consoleInfo2("sftp.open completed handle =",
-              debugHandle(), ", error =", e);
+              debugHandle(), ", path=", jsPath());
           if (length <= 0 && attrs == null) {
             sftp.fstat(newHandle, (error, stats) -> {
               JsHelper.consoleInfo2("sftp.fstat completed ",
