@@ -302,6 +302,7 @@ public class DiffTestApi implements JsDiffTestApi {
   }
 
   static String shortText(String s) {
-    return s.length() > 80 ? s.substring(0, 80) : s;
+    String sh = s.length() > 80 ? s.substring(0, 80) : s;
+    return sh.replaceAll("\r", "").replaceAll("\n", " ");
   }
 }

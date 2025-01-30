@@ -3,12 +3,15 @@ package org.sudu.experiments.js.node;
 import org.sudu.experiments.SshPool;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.ArrayOp;
+import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.Consumer;
 
 public class SshDirectoryHandle extends NodeDirectoryHandle0 {
+  static final boolean debugRead = false;
+
   JaSshCredentials credentials;
 
   public SshDirectoryHandle(String name, String[] path, JaSshCredentials cred) {
@@ -37,11 +40,11 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
   public void read(Reader reader) {
     SshPool.sftp(credentials,
         sftp -> {
-          JSString jsPath = jsPath();
-//          JsHelper.consoleInfo2("reading sftp dir jsPath=", jsPath);
-          sftp.readdir(jsPath, (error, list) -> {
+          sftp.readdir(jsPath(), (error, list) -> {
             if (JSObjects.isUndefined(error) || error == null) {
-              JsHelper.consoleInfo("sftp.readdir completed, length = " + list.getLength());
+              if (debugRead) JsHelper.consoleInfo2(
+                  "sftp.readdir completed: path", jsPath(),
+                      ", length =", JSNumber.valueOf(list.getLength()));
               String[] childPath = list.getLength() > 0
                   ? ArrayOp.add(path, name) : null;
               for (int i = 0, e = list.getLength(); i < e; i++) {
