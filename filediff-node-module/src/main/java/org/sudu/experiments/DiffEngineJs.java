@@ -7,7 +7,7 @@ public interface DiffEngineJs extends JSObject {
   void dispose();
 
   JsFolderDiffSession startFolderDiff(
-      JSString leftPath, JSString rightPath,
+      JSObject leftPath, JSObject rightPath,
       Channel channel);
 
   //     startFileDiff(

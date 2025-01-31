@@ -43,24 +43,25 @@ public class DiffEngine implements DiffEngineJs {
 
   @Override
   public JsFolderDiffSession startFolderDiff(
-      JSString leftPath, JSString rightPath, Channel channel
+      JSObject leftPath, JSObject rightPath, Channel channel
   ) {
     LoggingJs.info("Starting folder diff");
     boolean scanFileContent = true;
+    DirectoryHandle leftDir = DiffEngine.directoryHandle(leftPath);
+    DirectoryHandle rightDir = DiffEngine.directoryHandle(rightPath);
 
-    if (notDir(leftPath))
-      throw new IllegalArgumentException("Left path " + leftPath.stringValue() + " should be directory");
-    if (notDir(rightPath))
-      throw new IllegalArgumentException("Right path " + rightPath.stringValue() + " should be directory");
+    if (leftDir == null)
+      throw new IllegalArgumentException(
+          "illegal leftPath argument " + JsHelper.jsToString(leftPath));
+    if (rightDir == null)
+      throw new IllegalArgumentException(
+          "illegal leftPath argument " + JsHelper.jsToString(leftPath));
 
     LoggingJs.info(JsHelper.concat("  DiffEngine LeftPath: ", leftPath));
     LoggingJs.info(JsHelper.concat("  DiffEngine RightPath: ", rightPath));
 
-    DirectoryHandle leftHandle = new NodeDirectoryHandle(leftPath);
-    DirectoryHandle rightHandle = new NodeDirectoryHandle(rightPath);
-
     ItemFolderDiffModel root = new ItemFolderDiffModel(null, "");
-    root.setItems(leftHandle, rightHandle);
+    root.setItems(leftDir, rightDir);
 
     DiffModelChannelUpdater updater = new DiffModelChannelUpdater(
         root,
