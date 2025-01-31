@@ -95,6 +95,10 @@ public class JsHelper {
     return jsError -> onError.accept(jsError.getMessage());
   }
 
+  public static JsFunctions.Consumer<JSError> wrapError(String title, Consumer<String> onError) {
+    return jsError -> onError.accept(title.concat(jsError.getMessage()));
+  }
+
   interface HTMLElement extends org.teavm.jso.dom.html.HTMLElement {
     @JSMethod("getBoundingClientRect")
     DOMRect getBoundingClientRectD();
@@ -109,11 +113,26 @@ public class JsHelper {
   @JSBody(params = {"s0", "obj"}, script = "console.info(s0 + obj);")
   public static native void consoleInfo(String s0, JSObject obj);
 
+  @JSBody(params = {"s0", "obj"}, script = "console.info(s0, obj);")
+  public static native void consoleInfo2(String s0, JSObject obj);
+
+  @JSBody(params = {"s0", "obj1", "obj2"}, script = "console.info(s0, obj1, obj2);")
+  public static native void consoleInfo2(String s0, JSObject obj1, JSObject obj2);
+
+  @JSBody(params = {"s0", "obj1", "s2", "obj3"}, script = "console.info(s0, obj1, s2, obj3);")
+  public static native void consoleInfo2(String s0, JSObject obj1, String s2, JSObject obj3);
+
   @JSBody(params = {"s0", "obj"}, script = "console.error(s0 + obj);")
   public static native void consoleError(String s0, JSObject obj);
 
+  @JSBody(params = {"s0", "obj"}, script = "console.error(s0, obj);")
+  public static native void consoleError2(String s0, JSObject obj);
+
   @JSBody(params = {"s0"}, script = "console.error(s0);")
   public static native void consoleError(String s0);
+
+  @JSBody(params = {"s0"}, script = "console.error(s0);")
+  public static native void consoleError(JSObject s0);
 
   @JSBody(params = {"s", "d"}, script = "console.info(s + d);")
   public static native void consoleInfo(String s, double d);
@@ -198,6 +217,10 @@ public class JsHelper {
   @NoSideEffects
   public static native boolean jsIf(JSObject x);
 
+  @JSBody(params = {"x"}, script = "return x.constructor.name;")
+  @NoSideEffects
+  public static native JSString constructorName(JSObject x);
+
   public static String toString(JSString jsString, String orElse) {
     return jsIf(jsString) ? jsString.stringValue() : orElse;
   }
@@ -245,4 +268,8 @@ public class JsHelper {
 
   @NoSideEffects
   public static native Object directJsToJava(JSObject obj);
+
+  @NoSideEffects
+  @JSBody(params = {"s", "prefix"}, script = "return s.startsWith(prefix);")
+  public static native boolean startsWith(JSString s, String prefix);
 }

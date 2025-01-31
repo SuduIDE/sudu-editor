@@ -1,6 +1,6 @@
 console.log(`Hello, from worker thread`);
 
-import {newSshClient, OPEN_MODE} from "../../dist/ssh_mjs.mjs";
+import {newSshClient, OPEN_MODE} from "../../dist/sshLib.mjs";
 
 import {parentPort} from 'node:worker_threads';
 
@@ -94,11 +94,11 @@ function readFile(config, path) {
               ", isFile: " + stats.isFile() +
               ", stats.size = ", stats.size);
 
-          if (stats && "size" in stats && stats.size > 0) {
-            const array = new Uint8Array(stats.size);
+          if (stats && "size" in stats && stats.size > 3) {
+            const array = new Uint8Array(stats.size - 3);
             const off = 0;
             const len = array.byteLength;
-            const position = 0;
+            const position = 3;
             const arrayBuffer = array.buffer;
             const buffer = Buffer.from(arrayBuffer);
 
@@ -109,6 +109,7 @@ function readFile(config, path) {
 
             const readCb = (err, bytesRead, bufferAdjusted, position) => {
               const baseBuffer = bufferAdjusted.buffer;
+              const array = new Int8Array(baseBuffer);
               const sameBuffer = baseBuffer === arrayBuffer;
               console.log("sftp.read complete: buffer is original", sameBuffer);
               if (err) {

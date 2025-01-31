@@ -4,8 +4,15 @@ import { Worker } from 'worker_threads';
 import fs from 'fs';
 import path from 'path';
 
+// temp
+import {newSshClient, OPEN_MODE} from "./sshLib.mjs";
+
 global.Worker = Worker;
 global.fs = fs;
 global.path = path;
+
+// temp for tests
+global.newSshClient = newSshClient;
+global.OPEN_MODE = OPEN_MODE;
 
 

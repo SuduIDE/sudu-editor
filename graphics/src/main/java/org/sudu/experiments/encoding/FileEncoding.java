@@ -111,4 +111,13 @@ public interface FileEncoding {
     }
     return true;
   }
+
+  static String decodeText(byte[] data) {
+    boolean gbk = !isUtf8(data, true) && isGBK(data);
+    if (gbk) {
+      return TextDecoder.decodeGbk(data);
+    } else {
+      return TextDecoder.decodeUtf8(data);
+    }
+  }
 }

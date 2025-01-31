@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/ssh_mjs.mjs',
+  entry: './src/sshLib.mjs',
   mode: 'production',
   target: 'node',
   externals: {
@@ -10,7 +10,7 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'ssh_mjs.mjs',
+    filename: 'sshLib.mjs',
     library: {
       type: "module",
     }

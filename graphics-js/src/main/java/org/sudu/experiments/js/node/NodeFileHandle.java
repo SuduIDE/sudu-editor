@@ -1,6 +1,5 @@
 package org.sudu.experiments.js.node;
 
-import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.JsHelper;
@@ -12,20 +11,15 @@ import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
-public class NodeFileHandle implements FileHandle {
+public class NodeFileHandle extends NodeFileHandle0 {
 
-  final String name;
-  final String[] path;
-  JSString jsPath;
   NodeFs.Stats stats;
 
   public NodeFileHandle(String name, String[] path) {
-    this.name = name;
-    this.path = path;
+    super(name, path, Fs.pathSep());
   }
 
   public NodeFileHandle(JSString jsPath) {
@@ -33,23 +27,16 @@ public class NodeFileHandle implements FileHandle {
   }
 
   public NodeFileHandle(JSString jsPath, NodeFs.Stats stats) {
-    this.jsPath = jsPath;
+    super(jsPath,
+        Fs.pathBasename(jsPath),
+        Fs.pathDirname(jsPath),
+        Fs.pathSep());
     this.stats = stats;
-    this.name = Fs.pathBasename(jsPath).stringValue();
-    this.path = new String[] {
-        Fs.pathDirname(jsPath).stringValue()
-    };
   }
 
   @Override
   public void getSize(IntConsumer result) {
     result.accept(intSize());
-  }
-
-  JSString jsPath() {
-    if (jsPath == null)
-      jsPath = Fs.concatPath(name, path);
-    return jsPath;
   }
 
   private NodeFs.Stats stats() {
@@ -81,16 +68,6 @@ public class NodeFileHandle implements FileHandle {
     } catch (Exception e) {
       onError.accept(e.getMessage());
     }
-  }
-
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public String[] getPath() {
-    return path;
   }
 
   @Override
@@ -207,16 +184,6 @@ public class NodeFileHandle implements FileHandle {
     } catch (Exception e) {
       onError.accept(e.getMessage());
     }
-  }
-
-  @Override
-  public String toString() {
-    return name;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(name) * 31 + Arrays.hashCode(path);
   }
 
   public boolean isFile() {

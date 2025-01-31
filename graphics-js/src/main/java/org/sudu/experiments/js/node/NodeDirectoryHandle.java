@@ -1,31 +1,19 @@
 package org.sudu.experiments.js.node;
 
-import org.sudu.experiments.DirectoryHandle;
-import org.sudu.experiments.FsItem;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.Consumer;
 
-public class NodeDirectoryHandle implements DirectoryHandle {
-  final String name;
-  final String[] path;
+public class NodeDirectoryHandle extends NodeDirectoryHandle0 {
 
   public NodeDirectoryHandle(String name, String[] path) {
-    this.name = name;
-    this.path = path;
+    super(name, path, Fs.pathSep());
   }
 
   public NodeDirectoryHandle(JSString jsPath) {
-    this.name = Fs.pathBasename(jsPath).stringValue();
-    this.path = new String[]{
-        Fs.pathDirname(jsPath).stringValue()
-    };
-  }
-
-  JSString jsPath() {
-    return Fs.concatPath(name, path);
+    super(Fs.pathBasename(jsPath), Fs.pathDirname(jsPath), Fs.pathSep());
   }
 
   @Override
@@ -33,10 +21,11 @@ public class NodeDirectoryHandle implements DirectoryHandle {
     JSString jsPath = jsPath();
     Fs fs = Fs.fs();
     JsArray<JSString> content = fs.readdirSync(jsPath);
-    String[] childPath = ArrayOp.add(path, name);
+    String[] childPath = content.getLength() > 0
+        ? ArrayOp.add(path, name) : null;
     for (int i = 0; i < content.getLength(); i++) {
       JSString file = content.get(i);
-      JSString child = Fs.concatPath(jsPath, file);
+      JSString child = Fs.concatPath(jsPath, sep, file);
       var stats = fs.lstatSync(child);
       if (stats.isDirectory()) {
         reader.onDirectory(
@@ -51,7 +40,7 @@ public class NodeDirectoryHandle implements DirectoryHandle {
 //            JsHelper.consoleInfo("symbolicLink: ",
 //                Fs.concatPath(file.stringValue(), childPath));
           } else {
-//            JsHelper.consoleError("bad file: ",
+//            JsHelper.consoleError("other fs entry: ",
 //                Fs.concatPath(file.stringValue(), childPath));
           }
         }
@@ -80,20 +69,5 @@ public class NodeDirectoryHandle implements DirectoryHandle {
   public void remove(Runnable onComplete, Consumer<String> onError) {
     JSString from = jsPath();
     Fs.fs().rmdir(from, Fs.mkdirOptions(true), NodeFs.callback(onComplete, onError));
-  }
-
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public String[] getPath() {
-    return path;
-  }
-
-  @Override
-  public String toString() {
-    return FsItem.toString("dir", path, name, false);
   }
 }

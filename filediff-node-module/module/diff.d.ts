@@ -47,6 +47,12 @@ export interface DiffTestApi {
   ): void;
 
   testGbkEncoder() : void;
+  testNodeBuffer(onComplete: () => void) : void;
+
+  testSshDir(file: SshInput, onComplete: () => void): void;
+  testSshFile(file: SshInput, onComplete: () => void): void;
+  testSshDirAsync(file: SshInput, onComplete: () => void): void;
+  testSshFileAsync(file: SshInput, onComplete: () => void): void;
 }
 
 export interface FolderDiffSession extends AsyncShutdown {

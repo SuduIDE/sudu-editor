@@ -1,4 +1,4 @@
-import {newSshClient, OPEN_MODE} from "../../dist/ssh_mjs.mjs";
+import {newSshClient, OPEN_MODE} from "../../dist/sshLib.mjs";
 
 import {testConfig,testSsh} from './testHelper.mjs';
 

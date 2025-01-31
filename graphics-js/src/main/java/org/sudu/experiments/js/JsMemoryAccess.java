@@ -94,6 +94,10 @@ public class JsMemoryAccess {
   @JSByRef
   public static native byte[] toJavaArray(Int8Array data);
 
+  @JSBody(params = "data", script = "return data;")
+  @JSByRef
+  public static native byte[] toJavaArray(Uint8Array data);
+
   @JSByRef
   @JSBody(params = {"array"}, script = "return array;")
   public static native char[] toJavaArray(Uint16Array array);

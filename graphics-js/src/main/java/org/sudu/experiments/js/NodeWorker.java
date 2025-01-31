@@ -1,7 +1,7 @@
 package org.sudu.experiments.js;
 
-import org.sudu.experiments.js.node.NodeWorkersBridge;
 import org.sudu.experiments.worker.WorkerExecutor;
+import org.sudu.experiments.js.WorkerProtocol.PlatformBridge;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
@@ -31,9 +31,10 @@ public interface NodeWorker extends JsMessagePort0 {
   static void start(
       JsFunctions.Consumer<JsArray<NodeWorker>> onStart,
       JsFunctions.Consumer<JSObject> error,
-      JSString url, int count
+      JSString url, int count,
+      PlatformBridge bridge
   ) {
-    WorkerProtocol.bridge = new NodeWorkersBridge();
+    WorkerProtocol.bridge = bridge;
     JsArray<NodeWorker> workers = JsArray.create();
     for (int i = 0; i < count; i++) {
       NodeWorker worker = Native.newWorker(url);
@@ -49,10 +50,10 @@ public interface NodeWorker extends JsMessagePort0 {
     }
   }
 
-  static void workerMain(WorkerExecutor executor) {
-    WorkerProtocol.bridge = new NodeWorkersBridge();
+  static void workerMain(WorkerExecutor executor, PlatformBridge bridge) {
+    WorkerProtocol.bridge = bridge;
     Native.parentPort().onMessage(e ->
-      WorkerProtocol.onWorkerMessage(executor, e, Native.parentPort())
+        WorkerProtocol.onWorkerMessage(executor, e, Native.parentPort())
     );
     Native.parentPort().postMessage(WorkerProtocol.started());
   }

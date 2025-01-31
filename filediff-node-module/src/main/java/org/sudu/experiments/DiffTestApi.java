@@ -2,15 +2,17 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.diff.tests.CollectorFolderDiffTest;
 import org.sudu.experiments.editor.worker.TestJobs;
+import org.sudu.experiments.editor.worker.TestWalker;
+import org.sudu.experiments.editor.worker.ThreadId;
+import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.*;
-import org.sudu.experiments.js.node.Fs;
-import org.sudu.experiments.js.node.NodeDirectoryHandle;
-import org.sudu.experiments.js.node.NodeFileHandle;
+import org.sudu.experiments.js.node.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 import static org.sudu.experiments.editor.worker.ArgsCast.array;
@@ -21,7 +23,7 @@ interface JsDiffTestApi extends JSObject {
   void testFS(JSString path, JsFunctions.Runnable onComplete);
 
   void testDiff(
-      JSString path1, JSString path2,
+      JSObject path1, JSObject path2,
       boolean content, JsFunctions.Runnable onComplete);
 
   void testFileWrite(
@@ -51,6 +53,12 @@ interface JsDiffTestApi extends JSObject {
   );
 
   void testGbkEncoder();
+  void testNodeBuffer(JsFunctions.Runnable onComplete);
+
+  void testSshDir(JSObject sshPath, JsFunctions.Runnable onComplete);
+  void testSshFile(JSObject sshPath, JsFunctions.Runnable onComplete);
+  void testSshDirAsync(JSObject sshPath, JsFunctions.Runnable onComplete);
+  void testSshFileAsync(JSObject sshPath, JsFunctions.Runnable onComplete);
 }
 
 public class DiffTestApi implements JsDiffTestApi {
@@ -82,20 +90,22 @@ public class DiffTestApi implements JsDiffTestApi {
 
   @Override
   public void testDiff(
-      JSString path1, JSString path2,
+      JSObject path1, JSObject path2,
       boolean content,
       JsFunctions.Runnable onComplete
   ) {
-    if (DiffEngine.notDir(path1) || DiffEngine.notDir(path2)) {
+    DirectoryHandle dir1 = DiffEngine.directoryHandle(path1);
+    DirectoryHandle dir2 = DiffEngine.directoryHandle(path2);
+    if (dir1 == null || dir2 == null) {
+      if (dir1 == null) JsHelper.consoleError2("bad path1:", path1);
+      if (dir2 == null) JsHelper.consoleError2("bad path2:", path2);
       onComplete.f();
       return;
     }
-    NodeDirectoryHandle dir1 = new NodeDirectoryHandle(path1);
-    NodeDirectoryHandle dir2 = new NodeDirectoryHandle(path2);
 
     JsHelper.consoleInfo("testDiff: ");
-    JsHelper.consoleInfo("  path1 = ", path1);
-    JsHelper.consoleInfo("  path2 = ", path2);
+    JsHelper.consoleInfo2("  path1 =", path1);
+    JsHelper.consoleInfo2("  path2 =", path2);
     JsHelper.consoleInfo("  content = ", JSBoolean.valueOf(content));
     JsTime jsTime = new JsTime();
     new CollectorFolderDiffTest(
@@ -132,7 +142,7 @@ public class DiffTestApi implements JsDiffTestApi {
     Consumer<String> error = e -> onError.f(JSString.valueOf(e));
     int[] box = new int[1];
     Runnable onCompleteJ = () -> {
-        if (++box[0] == 2) onComplete.f();
+      if (++box[0] == 2) onComplete.f();
     };
     FileHandle.readTextFile(
         fhFrom, (text, encoding) -> {
@@ -186,4 +196,113 @@ public class DiffTestApi implements JsDiffTestApi {
     GbkEncodingTestHelper.testGlyph((byte) 0xA1, (byte) 0xA1);
   }
 
+  @Override
+  public void testNodeBuffer(JsFunctions.Runnable onComplete) {
+    byte[] data0 = new byte[1000];
+    JsBuffer jsBuffer = JsBuffer.from(data0);
+    byte[] data1 = jsBuffer.asArray();
+    data1[0] = 77;
+    data1[999] = 55;
+    data1[10] = 100;
+    data1[11] = (byte) 200;
+    JsHelper.consoleInfo("data1[0] = " + data1[0]);
+    JsHelper.consoleInfo("data1[999] = " + data1[999]);
+    pool.sendToWorker(
+        r -> {
+          byte[] bytes = array(r, 1).bytes();
+          JsHelper.consoleInfo("bytes[0] = " + bytes[0]);
+          JsHelper.consoleInfo("bytes[999] = " + bytes[999]);
+          JsHelper.consoleInfo("bytes[10] = " + bytes[10]);
+          JsHelper.consoleInfo("bytes[11] = " + bytes[11]);
+          if (bytes[0] != 55 || bytes[999] != 77)
+            throw new RuntimeException("testNodeBuffer failed");
+          JsHelper.consoleInfo2("data1.ArrayBuffer",
+              JsMemoryAccess.bufferView(data1).getBuffer());
+          onComplete.f();
+        }, TestJobs.withBytes, data1
+    );
+  }
+
+  @Override
+  public void testSshDir(JSObject sshPath, JsFunctions.Runnable onComplete) {
+    boolean instance = JsFileInputSsh.isInstance(sshPath);
+    System.out.println("DiffTestApi.testSshDir " + ThreadId.id);
+    System.out.println("JsFileInputSsh.isInstance(sshPath) = "
+        + instance);
+    JSString path = JsFileInputSsh.getPath(sshPath);
+    JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
+    JsHelper.consoleInfo2("path", path);
+    JsHelper.consoleInfo2("ssh", ssh);
+    if (instance && path != null) {
+      var dir = new SshDirectoryHandle(path, ssh);
+      dir.read(new TestWalker(dir,
+          r -> {
+            JsHelper.consoleInfo("testWalkerHandler:" + Arrays.toString(r));
+            onComplete.f();
+          }));
+    }
+  }
+
+  @Override
+  public void testSshFile(JSObject sshPath, JsFunctions.Runnable onComplete) {
+    boolean instance = JsFileInputSsh.isInstance(sshPath);
+    System.out.println("DiffTestApi.testSshFile " + ThreadId.id);
+    System.out.println("JsFileInputSsh.isInstance(sshPath) = "
+        + instance);
+    JSString path = JsFileInputSsh.getPath(sshPath);
+    JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
+    JsHelper.consoleInfo2("path", path);
+    JsHelper.consoleInfo2("ssh", ssh);
+    if (instance && path != null) {
+      var file = new SshFileHandle(path, ssh);
+      file.getSize(s -> {
+        JsHelper.consoleInfo("file.getSize: " + s);
+        onComplete.f();
+      });
+    } else {
+      onComplete.f();
+    }
+  }
+
+  @Override
+  public void testSshDirAsync(JSObject sshPath, JsFunctions.Runnable onComplete) {
+    boolean instance = JsFileInputSsh.isInstance(sshPath);
+    System.out.println("DiffTestApi.testSshDirAsync: " + ThreadId.id);
+    if (instance) {
+      JSString path = JsFileInputSsh.getPath(sshPath);
+      JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
+      var dir = new SshDirectoryHandle(path, ssh);
+      pool.sendToWorker(objects -> {
+        JsHelper.consoleInfo("DiffTestApi.testSshDirAsync complete, " +
+            "response l =  " + objects.length);
+        onComplete.f();
+      }, TestJobs.asyncWithDir, dir);
+    }
+  }
+
+  @Override
+  public void testSshFileAsync(JSObject sshPath, JsFunctions.Runnable onComplete) {
+    boolean instance = JsFileInputSsh.isInstance(sshPath);
+    System.out.println("DiffTestApi.testSshFileAsync " + ThreadId.id);
+    if (instance) {
+      JSString path = JsFileInputSsh.getPath(sshPath);
+      JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
+      var file = new SshFileHandle(path, ssh);
+      pool.sendToWorker(objects -> {
+        JsHelper.consoleInfo("DiffTestApi.testSshFileAsync complete, " +
+            "response l =  " + objects.length);
+        JsHelper.consoleInfo(" [0] = " + objects[0]);
+        JsHelper.consoleInfo(" [1] = " + objects[1]);
+        byte[] bytes = array(objects, 2).bytes();
+        JsHelper.consoleInfo(" bytes.length = " + bytes.length);
+        JsHelper.consoleInfo(" text: " + shortText(FileEncoding.decodeText(bytes)));
+        onComplete.f();
+      }, TestJobs.asyncWithFile, file);
+    }
+  }
+
+  static String shortText(String s) {
+    String sh = s.length() > 80 ? s.substring(0, 80) : s;
+    return sh.replaceAll("\r", "").replaceAll("\n", " ");
+  }
 }

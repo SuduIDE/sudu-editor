@@ -1,5 +1,6 @@
 package org.sudu.experiments.js.node;
 
+import org.teavm.interop.NoSideEffects;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSObjects;
@@ -12,11 +13,12 @@ public abstract class Fs implements NodeFs {
   @JSBody(script = "return {throwIfNoEntry: false};")
   public static native JSObject lStatNoThrow();
 
-  @JSBody(params = {"dir", "file"}, script = "return dir + path.sep + file;")
-  public static native JSString concatPath(JSString dir, JSString file);
+  @NoSideEffects
+  @JSBody(params = {"dir", "sep", "file"}, script = "return dir + sep + file;")
+  public static native JSString concatPath(JSString dir, JSString sep, JSString file);
 
-  @JSBody(script = "path.sep.charAt(0);")
-  public static native JSString pathSepChar();
+  @JSBody(script = "return path.sep;")
+  public static native JSString pathSep();
 
   @JSBody(params = {"file"}, script = "return path.basename(file);")
   public static native JSString pathBasename(JSString file);
@@ -35,10 +37,10 @@ public abstract class Fs implements NodeFs {
   @JSBody(params = {"recursive"}, script = "return {recursive: recursive};")
   public static native JSObject mkdirOptions(boolean recursive);
 
-  public static JSString concatPath(String name, String[] path) {
+  public static JSString concatPath(String name, String[] path, JSString sep) {
     JSString jsPath = JSString.valueOf(name);
     for (int i = path.length - 1; i >= 0; i--) {
-      jsPath = concatPath(JSString.valueOf(path[i]), jsPath);
+      jsPath = concatPath(JSString.valueOf(path[i]), sep, jsPath);
     }
     return jsPath;
   }

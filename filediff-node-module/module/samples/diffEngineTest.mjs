@@ -22,6 +22,11 @@ const diffEngineWorker = path.join(__dirname, "../src/diffEngineWorker.mjs")
 let diffEngine = await createDiffEngine(diffEngineWorker, nThreads);
 let module = diffEngine.testApi();
 
+if (!module) {
+  console.log("diffEngine.testApi() in not exposed");
+  process.exit(-1);
+}
+
 console.log("got module: ", module.constructor.name);
 
 let jobCount = 0;
@@ -135,6 +140,52 @@ function testGbkEncoder() {
   return "ok";
 }
 
+function testSsh(ssh, args) {
+  const exitHandler = () => { mayBeExit(); };
+  console.log("test ssh: ", ssh);
+  // ose_DiffTestApi_testSsh$exported$5
+
+  for (let i = 0; i < args.length; i += 2) {
+    const sshRef = { path: args[i+1], ssh:ssh };
+    switch (args[i]) {
+      case "dir": {
+        jobCount++;
+        module.testSshDir(sshRef, exitHandler);
+        break;
+      }
+      case "file": {
+        jobCount++;
+        module.testSshFile(sshRef, exitHandler);
+        break;
+      }
+      case "aDir": {
+        jobCount++;
+        module.testSshDirAsync(sshRef, exitHandler);
+        break;
+      }
+      case "aFile": {
+        jobCount++;
+        module.testSshFileAsync(sshRef, exitHandler);
+        break;
+      }
+      case "aaDir": case "aaFile": break;
+      default :
+        throw new Error("bad test arg " + args[i]);
+    }
+  }
+
+  if (jobCount == 0) mayBeExit();
+
+  return "testSsh";
+}
+
+function testNodeBuffer() {
+  jobCount++;
+  module.testNodeBuffer(() => {
+    mayBeExit();
+  });
+}
+
 let args = process.argv;
 
 function runTest() {
@@ -189,6 +240,32 @@ function runTest() {
     case "testGbkEncoder": {
       return testGbkEncoder();
     }
+    case "testSsh": {
+      const ssh = sshConfig(args, 3);
+      if (ssh && args.length > 6) {
+        const slice = args.slice(7, args.length);
+        return testSsh(ssh, slice);
+      } else {
+        mayBeExit();
+        return "error in args";
+      }
+    }
+    case "testDiffSsh": {
+      const ssh = sshConfig(args, 3);
+      const sshRoot = args[7];
+      const localRoot = args[8];
+      if (ssh && sshRoot && localRoot) {
+        const sshRef = {path: sshRoot, ssh: ssh};
+        return testDiff(localRoot, sshRef, true);
+      } else {
+        mayBeExit();
+        return "error in args";
+      }
+    }
+    case "testNodeBuffer": {
+      testNodeBuffer();
+      return undefined;
+    }
     default:
       mayBeExit();
       return "not running any test";
@@ -201,3 +278,17 @@ if (r !== undefined) {
   console.log(r);
 }
 
+function sshConfig(args, s) {
+  if (args.length < s + 4) {
+    console.log("args: host port user password");
+    return null;
+  }
+
+  return {
+    host: args[s],
+    port: args[s + 1],
+    username: args[s + 2],
+    password: args[s + 3]
+    //  privateKey: readFileSync('/path/to/my/key')
+  };
+}

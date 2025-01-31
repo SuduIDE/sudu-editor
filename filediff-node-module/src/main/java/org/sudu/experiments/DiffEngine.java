@@ -1,18 +1,17 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.js.*;
-import org.sudu.experiments.js.node.Fs;
-import org.sudu.experiments.js.node.NodeDirectoryHandle;
-import org.sudu.experiments.js.node.NodeFileHandle;
+import org.sudu.experiments.js.node.*;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.sudu.experiments.update.FileEditChannelUpdater;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 public class DiffEngine implements DiffEngineJs {
-  public static final boolean debug = false;
+  public static final boolean debug = true;
 
   final NodeWorkersPool pool;
 
@@ -22,27 +21,47 @@ public class DiffEngine implements DiffEngineJs {
 
   @Override
   public void dispose() {
+    JsHelper.consoleInfo("DiffEngine.dispose");
     pool.terminateAll();
+    SshPool.terminate();
+  }
+
+  static DirectoryHandle directoryHandle(JSObject input) {
+    if (JSString.isInstance(input)) {
+      JSString localPath = input.cast();
+      return DiffEngine.isDir(localPath) ?
+          new NodeDirectoryHandle(localPath) : null;
+    }
+    if (JsFileInputSsh.isInstance(input)) {
+      JSString path = JsFileInputSsh.getPath(input);
+      JaSshCredentials ssh = JsFileInputSsh.getSsh(input);
+      return JSObjects.isUndefined(path) || JSObjects.isUndefined(ssh)
+          ? null : new SshDirectoryHandle(path, ssh);
+    }
+    return null;
   }
 
   @Override
-  public JsFolderDiffSession startFolderDiff(JSString leftPath, JSString rightPath, Channel channel) {
+  public JsFolderDiffSession startFolderDiff(
+      JSObject leftPath, JSObject rightPath, Channel channel
+  ) {
     LoggingJs.info("Starting folder diff");
     boolean scanFileContent = true;
+    DirectoryHandle leftDir = DiffEngine.directoryHandle(leftPath);
+    DirectoryHandle rightDir = DiffEngine.directoryHandle(rightPath);
 
-    if (notDir(leftPath))
-      throw new IllegalArgumentException("Left path " + leftPath.stringValue() + " should be directory");
-    if (notDir(rightPath))
-      throw new IllegalArgumentException("Right path " + rightPath.stringValue() + " should be directory");
+    if (leftDir == null)
+      throw new IllegalArgumentException(
+          "illegal leftPath argument " + JsHelper.jsToString(leftPath));
+    if (rightDir == null)
+      throw new IllegalArgumentException(
+          "illegal leftPath argument " + JsHelper.jsToString(leftPath));
 
     LoggingJs.info(JsHelper.concat("  DiffEngine LeftPath: ", leftPath));
     LoggingJs.info(JsHelper.concat("  DiffEngine RightPath: ", rightPath));
 
-    DirectoryHandle leftHandle = new NodeDirectoryHandle(leftPath);
-    DirectoryHandle rightHandle = new NodeDirectoryHandle(rightPath);
-
     ItemFolderDiffModel root = new ItemFolderDiffModel(null, "");
-    root.setItems(leftHandle, rightHandle);
+    root.setItems(leftDir, rightDir);
 
     DiffModelChannelUpdater updater = new DiffModelChannelUpdater(
         root,
