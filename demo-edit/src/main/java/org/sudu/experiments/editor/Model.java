@@ -423,6 +423,7 @@ public class Model {
       case Languages.JAVA -> JavaProxy.PARSE_FULL_FILE_SCOPES;
       case Languages.CPP -> CppProxy.PARSE_FULL_FILE_SCOPES;
       case Languages.JS -> JavaScriptProxy.PARSE_FULL_FILE;
+      case Languages.TS -> TypeScriptProxy.PARSE_FULL_FILE;
       case Languages.ACTIVITY -> ActivityProxy.PARSE_FULL_FILE;
       case Languages.HTML -> HtmlProxy.PARSE_FULL_FILE;
       default -> TextProxy.PARSE_FULL_FILE;
