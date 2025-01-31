@@ -69,6 +69,13 @@ public interface ArrayOp {
     return -1;
   }
 
+  static int indexOf(int[] array, int item) {
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] == item) return i;
+    }
+    return -1;
+  }
+
   static int writeInt16Le(byte[] d, int pos, int value) {
     d[pos] = (byte) value;
     d[pos + 1] = (byte) (value >>> 8);
@@ -153,6 +160,10 @@ public interface ArrayOp {
   }
 
   static <T> boolean contains(T[] array, T item) {
+    return indexOf(array, item) != -1;
+  }
+
+  static boolean contains(int[] array, int item) {
     return indexOf(array, item) != -1;
   }
 }
