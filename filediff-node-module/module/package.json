@@ -5,6 +5,7 @@
   "author": "Kirill Prazdnikov",
   "license": "MIT",
   "main": "./src/module.mjs",
-  "files": [ "./diff.d.ts", "./src/module.mjs", "./src/worker.mjs" ],
+  "files": [ "./diff.d.ts",
+    "./src/module.mjs", "./src/worker.mjs", "./src/sshLib.mjs" ],
   "typings": "./diff.d.ts"
 }
