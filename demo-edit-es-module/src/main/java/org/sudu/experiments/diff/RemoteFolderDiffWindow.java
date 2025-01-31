@@ -196,10 +196,34 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private String mkToolBarMsg(BackendMessage msg) {
+    String text;
+    if (lastFilters == null) {
+      text = "different";
+    } else {
+      // Inserted and deleted are mixed up in filters
+      boolean leftOnly = ArrayOp.contains(lastFilters, DiffTypes.INSERTED);
+      boolean rightOnly = ArrayOp.contains(lastFilters, DiffTypes.DELETED);
+      boolean modified = ArrayOp.contains(lastFilters, DiffTypes.EDITED);
+      if (leftOnly) {
+        if (rightOnly) {
+          text = modified ? "different" : "left or right only";
+        } else {
+          text = modified ? "modified or left only" : "left only";
+        }
+      } else {
+        if (rightOnly) {
+          text = modified ? "modified or right only" : "right only";
+        } else {
+          text = modified ? "modified" : null;
+        }
+      }
+    }
+    if (text == null) return "";
+
     return switch (msg.differentFiles) {
-      case 0 -> "No different files";
-      case 1 -> "1 different file";
-      default -> msg.differentFiles + " different files";
+      case 0 -> "No " + text + " files";
+      case 1 -> "1 " + text + " file";
+      default -> msg.differentFiles + " " + text + " files";
     };
   }
 
