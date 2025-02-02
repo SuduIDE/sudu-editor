@@ -109,7 +109,7 @@ jobs:
         name: Maven Sudu Editor
         run: |
           cd $GITHUB_WORKSPACE/sudu-editor
-          mvn package -am -pl demo-edit-es-module -P release
+          mvn package -am -pl demo-edit-es-module -P build-ssh,release
       -
         name: Upload artifacts to OBS
         if: github.event_name == 'push' && github.ref_type == 'tag'
