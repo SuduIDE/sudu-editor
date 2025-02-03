@@ -51,6 +51,14 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
       -
+        name: Setup Node
+        uses: actions/setup-node@v3
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        with:
+          node-version: '18.x'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@sudu-ide'
+      -
         name: Restore Maven and Gradle Cache
         uses: actions/cache/restore@v3
         with:
@@ -78,12 +86,12 @@ jobs:
           cd $GITHUB_WORKSPACE/antlr4
           mvn install -DskipTests
       -
-        name: Maven Sudu Editor Release
+        name: Maven Sudu Editor && DiffEngine
         if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           cd $GITHUB_WORKSPACE/sudu-editor 
           mvn package -am -pl :codicon -pl :fonts -P downloadFont
-          mvn package -am -pl demo-edit-js,demo-edit-es-module -P release
+          mvn package -am -pl demo-edit-js,demo-edit-es-module -P build-ssh,release
       -
         name: Upload Sudu Editor to OBS
         if: github.event_name == 'push' && github.ref_type == 'tag'
@@ -97,28 +105,23 @@ jobs:
             ./obsutil rm -r -f obs://${{ vars.WEBAPP_OBS_NAME }}
             ./obsutil cp -r -f --flat $GITHUB_WORKSPACE/sudu-editor/demo-edit-js/target/demo-edit-js-1.0-SNAPSHOT/ obs://${{ vars.WEBAPP_OBS_NAME }}/
       -
-        name: Upload release artifacts to OBS
-        if: github.event_name == 'push' && github.ref_type == 'tag'
-        run: |
-          NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
-
-          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/editor.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
-          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/worker.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
-          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/loader.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
-      -
-        name: Maven Sudu Editor
-        run: |
-          cd $GITHUB_WORKSPACE/sudu-editor
-          mvn package -am -pl demo-edit-es-module -P build-ssh,release
-      -
-        name: Upload artifacts to OBS
-        if: github.event_name == 'push' && github.ref_type == 'tag'
+        name: Upload min artifacts to OBS
+        if: false && github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
 
           ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/editor.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
           ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/worker.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
           ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/loader.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
+      -
+        name: Upload dev artifacts to OBS
+        if: false && github.event_name == 'push' && github.ref_type == 'tag'
+        run: |
+          NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
+
+          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/editor.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
+          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/worker.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
+          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/loader.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
       -
         name: Save Maven Cache
         if: github.event_name == 'workflow_dispatch'
@@ -129,14 +132,6 @@ jobs:
             ~/.gradle/wrapper
             ~/.m2/repository
           key: sudu-editor-cache
-      -
-        name: Setup Node
-        uses: actions/setup-node@v3
-        if: github.event_name == 'push' && github.ref_type == 'tag'
-        with:
-          node-version: '18.x'
-          registry-url: 'https://registry.npmjs.org'
-          scope: '@sudu-ide'
       -
         name: Publish Sudu Editor package to NPM Registry
         if: github.event_name == 'push' && github.ref_type == 'tag'

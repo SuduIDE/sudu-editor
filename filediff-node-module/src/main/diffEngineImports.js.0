@@ -4,14 +4,34 @@ import { Worker } from 'worker_threads';
 import fs from 'fs';
 import path from 'path';
 
-// temp
-import {newSshClient, OPEN_MODE} from "./sshLib.mjs";
+// import {newSshClient, OPEN_MODE} from "./sshLib.mjs";
+
+// use mock on main thread avoid SSH operations
+function newSshClient () {
+  let onError = () => {}
+  return {
+    on: (k, h) => {
+      if (k === 'error')
+        onError = h;
+    },
+    connect: () => {
+      onError(new Error('sshLib is not linked'));
+    },
+    end: () => {}
+  };
+}
+
+const OPEN_MODE = {
+  READ:   0x00000001,
+  WRITE:  0x00000002,
+  APPEND: 0x00000004,
+  CREAT:  0x00000008,
+};
 
 global.Worker = Worker;
 global.fs = fs;
 global.path = path;
 
-// temp for tests
 global.newSshClient = newSshClient;
 global.OPEN_MODE = OPEN_MODE;
 
