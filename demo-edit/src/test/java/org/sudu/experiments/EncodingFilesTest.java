@@ -75,7 +75,7 @@ public class EncodingFilesTest {
       System.out.println("gbkStr.length() = " + gbkStr.length());
       System.out.println("gbkStr.toCharArray() = " +
           toHexString(gbkStr.toCharArray()));
-      char gbkCode = GbkEncoding.charToGbk[gbkStr.charAt(0)];
+      char gbkCode = GbkEncoding.Table.charToGbk[gbkStr.charAt(0)];
       System.out.println("charToGbk[" + Integer.toHexString(gbkStr.charAt(0)) +
           "] = " + Integer.toHexString(gbkCode));
     }

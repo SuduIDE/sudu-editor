@@ -128,7 +128,7 @@ public class DiffTestApi implements JsDiffTestApi {
         e -> onError.f(JSString.valueOf(e))
     );
     System.out.println("GbkEncoding.charToGbk[0x3000] = " +
-        Integer.toHexString(GbkEncoding.charToGbk[0x3000]));
+        Integer.toHexString(GbkEncoding.Table.charToGbk[0x3000]));
   }
 
   @Override

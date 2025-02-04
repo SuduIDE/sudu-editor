@@ -20,6 +20,10 @@ public abstract class OPEN_MODE implements JSObject {
     return OPEN_MODE().READ();
   }
 
+  public static int write() {
+    return OPEN_MODE().WRITE();
+  }
+
   @JSProperty("READ")
   public native int READ();
   @JSProperty("WRITE")

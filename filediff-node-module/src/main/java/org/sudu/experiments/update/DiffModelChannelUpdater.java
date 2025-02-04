@@ -14,7 +14,7 @@ import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
 public class DiffModelChannelUpdater {
-  static final boolean debug = false;
+  static final boolean debug = true;
 
   private RemoteCollector collector;
   private Channel channel;

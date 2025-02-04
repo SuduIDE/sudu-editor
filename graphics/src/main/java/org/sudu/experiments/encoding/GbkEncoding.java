@@ -1,7 +1,9 @@
 package org.sudu.experiments.encoding;
 
 public interface GbkEncoding {
-  char[] charToGbk = init();
+  interface Table {
+    char[] charToGbk = init();
+  }
 
   static char[] init() {
     char[] chars = new char[0x10000];
@@ -18,22 +20,28 @@ public interface GbkEncoding {
   }
 
   static byte[] encode(char[] s) {
+    var charToGbk = Table.charToGbk;
     int p = 0;
     byte[] data = new byte[byteLength(s)];
     for (char c : s)
-      p = putChar(p, data, c);
+      p = putChar(p, data, c, charToGbk);
     return data;
   }
 
   static byte[] encode(String s) {
+    var charToGbk = Table.charToGbk;
     int p = 0;
     byte[] data = new byte[byteLength(s)];
     for (int i = 0, l = s.length(); i < l; ++i)
-      p = putChar(p, data, s.charAt(i));
+      p = putChar(p, data, s.charAt(i), charToGbk);
     return data;
   }
 
-  static int putChar(int p, byte[] data, char c) {
+  static int bytesForChar(char c, char[] charToGbk) {
+    return c > 127 && charToGbk[c] != 0 ? 2 : 1;
+  }
+
+  static int putChar(int p, byte[] data, char c, char[] charToGbk) {
     if (c > 127) {
       char gbkCode = charToGbk[c];
       if (gbkCode != 0) {
@@ -51,26 +59,20 @@ public interface GbkEncoding {
   }
 
   static int byteLength(char[] s) {
+    var charToGbk = Table.charToGbk;
     int n = 0;
     for (char c : s) {
-      if (c > 127 && charToGbk[c] != 0) {
-        n += 2;
-      } else {
-        n++;
-      }
+      n += bytesForChar(c, charToGbk);
     }
     return n;
   }
 
   static int byteLength(String s) {
+    var charToGbk = Table.charToGbk;
     int n = 0;
     for (int i = 0, l = s.length(); i < l; ++i) {
       char c = s.charAt(i);
-      if (c > 127 && charToGbk[c] != 0) {
-        n += 2;
-      } else {
-        n++;
-      }
+      n += bytesForChar(c, charToGbk);
     }
     return n;
   }
@@ -93,7 +95,7 @@ public interface GbkEncoding {
       for (int i = 0; i < 126; i++)
         b[i * 190 * 2 + x * 2 + 1] = b2;
     }
-    for (b2= -128; b2 <= -2; b2++) {
+    for (b2 = -128; b2 <= -2; b2++) {
       int x = b2 + 0x40 + 127;
       for (int i = 0; i < 126; i++)
         b[i * 190 * 2 + x * 2 + 1] = b2;
