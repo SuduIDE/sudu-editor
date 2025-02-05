@@ -27,15 +27,15 @@ interface JsDiffTestApi extends JSObject {
       boolean content, JsFunctions.Runnable onComplete);
 
   void testFileWrite(
-      JSString path, JSString content, JSString encoding,
+      JSObject path, JSString content, JSString encoding,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   );
 
   void testFileReadWrite(
-      JSString pathFrom,
-      JSString pathToS,
-      JSString pathToJ,
+      JSObject pathFrom,
+      JSObject pathToS,
+      JSObject pathToJ,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   );
@@ -116,12 +116,14 @@ public class DiffTestApi implements JsDiffTestApi {
 
   @Override
   public void testFileWrite(
-      JSString path, JSString content, JSString encoding,
+      JSObject path, JSString content, JSString encoding,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   ) {
-    var fh = new NodeFileHandle(path);
-    fh.writeText(
+    var fh = DiffEngine.fileHandle(path);
+    if (fh == null)
+      JsHelper.consoleError2("bad path:", path);
+    else fh.writeText(
         JsHelper.directJsToJava(content),
         encoding.stringValue(),
         onComplete::f,
@@ -133,12 +135,12 @@ public class DiffTestApi implements JsDiffTestApi {
 
   @Override
   public void testFileReadWrite(
-      JSString pathFrom, JSString pathToS, JSString pathToJ,
+      JSObject pathFrom, JSObject pathToS, JSObject pathToJ,
       JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onError
   ) {
-    var fhFrom = new NodeFileHandle(pathFrom);
-    var fhToS = new NodeFileHandle(pathToS);
-    var fhToJ = new NodeFileHandle(pathToJ);
+    var fhFrom = DiffEngine.fileHandle(pathFrom);
+    var fhToS = DiffEngine.fileHandle(pathToS);
+    var fhToJ = DiffEngine.fileHandle(pathToJ);
     Consumer<String> error = e -> onError.f(JSString.valueOf(e));
     int[] box = new int[1];
     Runnable onCompleteJ = () -> {

@@ -91,7 +91,14 @@ function testFileWrite(file, encoding, content) {
   )
 }
 
-function testFileReadWrite(fileFrom, fileToS, fileToJ) {
+function testFileReadWrite(args) {
+  const fileFrom = args[3];
+  const fileToS = args[4];
+  const fileToJ = args[5];
+  console.log("fileFrom", fileFrom);
+  console.log("fileToS", fileToS);
+  console.log("fileToJ", fileToJ);
+
   jobCount++;
   module.testFileReadWrite(fileFrom, fileToS, fileToJ,
       () => {
@@ -100,6 +107,35 @@ function testFileReadWrite(fileFrom, fileToS, fileToJ) {
       },
       (errorString) => {
         console.log("testFileWrite.onError: ", errorString);
+        mayBeExit();
+      }
+  )
+}
+
+function testFileReadWriteSsh(args) {
+  sshConfig(args, 3);
+  const fileFrom = args[3+4];
+  const fileToS = args[4+4];
+  const fileToJ = args[5+4];
+
+  if (!args || !fileFrom || !fileToS || !fileToJ) {
+    console.log("args: ssh[4] fileFrom fileTo1 fileTo2");
+    mayBeExit();
+    return;
+  }
+
+  console.log("fileFrom", fileFrom);
+  console.log("fileToS", fileToS);
+  console.log("fileToJ", fileToJ);
+
+  jobCount++;
+  module.testFileReadWrite(fileFrom, fileToS, fileToJ,
+      () => {
+        console.log("testFileReadWriteSsh.onComplete");
+        mayBeExit();
+      },
+      (errorString) => {
+        console.log("testFileReadWriteSsh.onError: ", errorString);
         mayBeExit();
       }
   )
@@ -214,15 +250,12 @@ function runTest() {
       console.log("string", string);
       return testFileWrite(file, encoding, string);
     }
-    case "testFileReadWrite": {
-      const fileFrom = args[3];
-      const fileToS = args[4];
-      const fileToJ = args[5];
-      console.log("fileFrom", fileFrom);
-      console.log("fileToS", fileToS);
-      console.log("fileToJ", fileToJ);
-      return testFileReadWrite(fileFrom, fileToS, fileToJ);
-    }
+    case "testFileReadWrite":
+      return testFileReadWrite(args);
+
+    case "testFileReadWriteSsh":
+      return testFileReadWrite(args);
+
     case "testFileCopy": {
       const src = args[3];
       const dest = args[4];

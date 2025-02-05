@@ -11,7 +11,7 @@ import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 public class DiffEngine implements DiffEngineJs {
-  public static final boolean debug = false;
+  public static final boolean debug = true;
 
   final NodeWorkersPool pool;
 
@@ -37,6 +37,21 @@ public class DiffEngine implements DiffEngineJs {
       JaSshCredentials ssh = JsFileInputSsh.getSsh(input);
       return JSObjects.isUndefined(path) || JSObjects.isUndefined(ssh)
           ? null : new SshDirectoryHandle(path, ssh);
+    }
+    return null;
+  }
+
+  static FileHandle fileHandle(JSObject input) {
+    if (JSString.isInstance(input)) {
+      JSString localPath = input.cast();
+      return Fs.isFile(localPath) ?
+          new NodeFileHandle(localPath) : null;
+    }
+    if (JsFileInputSsh.isInstance(input)) {
+      JSString path = JsFileInputSsh.getPath(input);
+      JaSshCredentials ssh = JsFileInputSsh.getSsh(input);
+      return JSObjects.isUndefined(path) || JSObjects.isUndefined(ssh)
+          ? null : new SshFileHandle(path, ssh);
     }
     return null;
   }
