@@ -112,8 +112,12 @@ function testFileReadWrite(args) {
   )
 }
 
+function sshFile(ssh, path) {
+  return { path, ssh };
+}
+
 function testFileReadWriteSsh(args) {
-  sshConfig(args, 3);
+  const ssh = sshConfig(args, 3);
   const fileFrom = args[3+4];
   const fileToS = args[4+4];
   const fileToJ = args[5+4];
@@ -124,12 +128,14 @@ function testFileReadWriteSsh(args) {
     return;
   }
 
+  console.log("ssh", ssh);
   console.log("fileFrom", fileFrom);
   console.log("fileToS", fileToS);
   console.log("fileToJ", fileToJ);
 
   jobCount++;
-  module.testFileReadWrite(fileFrom, fileToS, fileToJ,
+  module.testFileReadWrite(sshFile(ssh, fileFrom),
+      sshFile(ssh, fileToS), sshFile(ssh, fileToJ),
       () => {
         console.log("testFileReadWriteSsh.onComplete");
         mayBeExit();
@@ -254,7 +260,7 @@ function runTest() {
       return testFileReadWrite(args);
 
     case "testFileReadWriteSsh":
-      return testFileReadWrite(args);
+      return testFileReadWriteSsh(args);
 
     case "testFileCopy": {
       const src = args[3];

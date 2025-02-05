@@ -4,9 +4,10 @@ import { Worker } from 'worker_threads';
 import fs from 'fs';
 import path from 'path';
 
-// import {newSshClient, OPEN_MODE} from "./sshLib.mjs";
+import {newSshClient, OPEN_MODE} from "./sshLib.mjs";
 
 // use mock on main thread avoid SSH operations
+if (0) {
 function newSshClient () {
   let onError = () => {}
   return {
@@ -27,6 +28,7 @@ const OPEN_MODE = {
   APPEND: 0x00000004,
   CREAT:  0x00000008,
 };
+}
 
 global.Worker = Worker;
 global.fs = fs;
