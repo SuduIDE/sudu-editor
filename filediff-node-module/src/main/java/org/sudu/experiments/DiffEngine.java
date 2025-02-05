@@ -29,7 +29,7 @@ public class DiffEngine implements DiffEngineJs {
   static DirectoryHandle directoryHandle(JSObject input) {
     if (JSString.isInstance(input)) {
       JSString localPath = input.cast();
-      return DiffEngine.isDir(localPath) ?
+      return Fs.isDirectory(localPath) ?
           new NodeDirectoryHandle(localPath) : null;
     }
     if (JsFileInputSsh.isInstance(input)) {
@@ -167,22 +167,6 @@ public class DiffEngine implements DiffEngineJs {
       updater.sendMessage(str, null);
     }
     return new JsFileDiffSession0();
-  }
-
-  static boolean notDir(JSString path) {
-    if (!isDir(path)) {
-      JsHelper.consoleError("path is not a directory ", path);
-      return true;
-    }
-    return false;
-  }
-
-  static boolean isDir(JSString path) {
-    return Fs.isDirectory(path);
-  }
-
-  static boolean notFile(JSString path) {
-    return !Fs.isFile(path);
   }
 
   @Override
