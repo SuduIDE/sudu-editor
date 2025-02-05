@@ -1,6 +1,7 @@
 package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.encoding.FileEncoding;
+import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.js.TextDecoder;
@@ -130,7 +131,11 @@ public class NodeFileHandle extends NodeFileHandle0 {
   static JSObject writeObject(Object text, boolean gbk) {
     // todo: we can improve it by direct Utf16 -> Utf8 encoding
     if (text instanceof char[] chars)
-      return TextDecoder.decodeUTF16(chars);
+      return gbk ? JsMemoryAccess.bufferView(GbkEncoding.encode(chars))
+          : TextDecoder.decodeUTF16(chars);
+    if (text instanceof String s)
+      return gbk ? JsMemoryAccess.bufferView(GbkEncoding.encode(s))
+          : TextDecoder.decodeUTF16(s.toCharArray());
     if (text instanceof byte[] bytes)
       return JsMemoryAccess.bufferView(bytes);
 
