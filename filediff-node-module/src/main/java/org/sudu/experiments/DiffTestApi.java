@@ -120,7 +120,7 @@ public class DiffTestApi implements JsDiffTestApi {
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   ) {
-    var fh = DiffEngine.fileHandle(path);
+    var fh = DiffEngine.fileHandle(path, true);
     if (fh == null)
       JsHelper.consoleError2("bad path:", path);
     else fh.writeText(
@@ -138,9 +138,9 @@ public class DiffTestApi implements JsDiffTestApi {
       JSObject pathFrom, JSObject pathToS, JSObject pathToJ,
       JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onError
   ) {
-    var fhFrom = DiffEngine.fileHandle(pathFrom);
-    var fhToS = DiffEngine.fileHandle(pathToS);
-    var fhToJ = DiffEngine.fileHandle(pathToJ);
+    var fhFrom = DiffEngine.fileHandle(pathFrom, true);
+    var fhToS = DiffEngine.fileHandle(pathToS, false);
+    var fhToJ = DiffEngine.fileHandle(pathToJ, false);
     Consumer<String> error = e -> onError.f(JSString.valueOf(e));
     int[] box = new int[1];
     Runnable onCompleteJ = () -> {

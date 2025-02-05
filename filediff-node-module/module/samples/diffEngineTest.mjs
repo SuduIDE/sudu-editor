@@ -106,7 +106,7 @@ function testFileReadWrite(args) {
         mayBeExit();
       },
       (errorString) => {
-        console.log("testFileWrite.onError: ", errorString);
+        console.log("testFileReadWrite.onError: ", errorString);
         mayBeExit();
       }
   )

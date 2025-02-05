@@ -41,10 +41,10 @@ public class DiffEngine implements DiffEngineJs {
     return null;
   }
 
-  static FileHandle fileHandle(JSObject input) {
+  static FileHandle fileHandle(JSObject input, boolean mustExists) {
     if (JSString.isInstance(input)) {
       JSString localPath = input.cast();
-      return Fs.isFile(localPath) ?
+      return (!mustExists || Fs.isFile(localPath)) ?
           new NodeFileHandle(localPath) : null;
     }
     if (JsFileInputSsh.isInstance(input)) {
