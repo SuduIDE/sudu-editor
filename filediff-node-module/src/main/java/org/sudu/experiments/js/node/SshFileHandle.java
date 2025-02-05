@@ -223,6 +223,11 @@ public class SshFileHandle extends NodeFileHandle0 {
       return gbk ? GbkEncodingJs.encode(jsText.cast())
           : TextEncoder.toUtf8(jsText.cast());
 
+    if (text instanceof String s) {
+      return gbk ? GbkEncoding.encode(s) :
+          s.getBytes(StandardCharsets.UTF_8);
+    }
+
     if (text instanceof char[] chars)
       return gbk ? GbkEncoding.encode(chars) :
           // todo: we can improve it by direct Utf16 -> Utf8 encoding
