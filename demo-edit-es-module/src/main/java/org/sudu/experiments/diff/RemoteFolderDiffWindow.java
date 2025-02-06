@@ -562,6 +562,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private void newCodeDiff(RemoteFileNode node, RemoteFileNode opposite, boolean left) {
     if (opener == null) {
       var window = new FileDiffWindow(windowManager, theme, fonts);
+      window.canSelectFiles = false;
       window.onEvent = this::onWindowEvent;
       addWindow(window, new JsFileDiffViewController0(window));
       openFileMap.put(keyCnt, (source, encoding) ->

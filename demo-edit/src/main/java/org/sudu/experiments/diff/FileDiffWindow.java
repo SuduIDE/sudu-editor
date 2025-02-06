@@ -28,6 +28,7 @@ public class FileDiffWindow extends ToolWindow0
   Focusable focusSave;
   Consumer<FileDiffWindow> onEvent;
   boolean processEsc = true;
+  boolean canSelectFiles = true;
 
   public FileDiffWindow(
       WindowManager wm,
@@ -127,10 +128,11 @@ public class FileDiffWindow extends ToolWindow0
     boolean h2 = e2.hitTest(pos);
 
     if (h1 || h2) {
-      var t = h1 ? UiText.selectLeftText : UiText.selectRightText;
-      return edMenu(pos, h1 ? e1 : e2, opener(h1, t));
+      var opener = canSelectFiles ? opener(h1,
+          h1 ? UiText.selectLeftText : UiText.selectRightText) : null;
+      return edMenu(pos, h1 ? e1 : e2, opener);
     }
-    return selectLR();
+    return canSelectFiles ? selectLR() : null;
   }
 
   private Supplier<ToolbarItem[]> edMenu(
@@ -165,7 +167,7 @@ public class FileDiffWindow extends ToolWindow0
 
   @Override
   public boolean onKeyPress(KeyEvent event) {
-    if (CtrlO.test(event)) {
+    if (canSelectFiles && CtrlO.test(event)) {
       var f = windowManager.uiContext.focused();
       if (rootView.editor1 == f || rootView.editor2 == f) {
         selectFile(rootView.editor1 == f);
