@@ -63,7 +63,7 @@ export interface FileDiffSession extends AsyncShutdown {
 
 export type SshCredentials = { host: string, port: string } & (
   { username: string, password: string } |
-  { privateKey: string });
+  { username: string, privateKey: string });
 
 export type SshInput = { path: string, ssh: SshCredentials }
 export type FileInput = { path: string } | { content: string } | SshInput;
