@@ -27,15 +27,15 @@ interface JsDiffTestApi extends JSObject {
       boolean content, JsFunctions.Runnable onComplete);
 
   void testFileWrite(
-      JSString path, JSString content, JSString encoding,
+      JSObject path, JSString content, JSString encoding,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   );
 
   void testFileReadWrite(
-      JSString pathFrom,
-      JSString pathToS,
-      JSString pathToJ,
+      JSObject pathFrom,
+      JSObject pathToS,
+      JSObject pathToJ,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   );
@@ -116,36 +116,45 @@ public class DiffTestApi implements JsDiffTestApi {
 
   @Override
   public void testFileWrite(
-      JSString path, JSString content, JSString encoding,
+      JSObject path, JSString content, JSString encoding,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   ) {
-    var fh = new NodeFileHandle(path);
-    fh.writeText(
+    var fh = DiffEngine.fileHandle(path, true);
+    if (fh == null)
+      JsHelper.consoleError2("bad path:", path);
+    else fh.writeText(
         JsHelper.directJsToJava(content),
         encoding.stringValue(),
         onComplete::f,
         e -> onError.f(JSString.valueOf(e))
     );
     System.out.println("GbkEncoding.charToGbk[0x3000] = " +
-        Integer.toHexString(GbkEncoding.charToGbk[0x3000]));
+        Integer.toHexString(GbkEncoding.Table.charToGbk[0x3000]));
   }
 
   @Override
   public void testFileReadWrite(
-      JSString pathFrom, JSString pathToS, JSString pathToJ,
+      JSObject pathFrom, JSObject pathToS, JSObject pathToJ,
       JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onError
   ) {
-    var fhFrom = new NodeFileHandle(pathFrom);
-    var fhToS = new NodeFileHandle(pathToS);
-    var fhToJ = new NodeFileHandle(pathToJ);
-    Consumer<String> error = e -> onError.f(JSString.valueOf(e));
-    int[] box = new int[1];
+    var fhFrom = DiffEngine.fileHandle(pathFrom, true);
+    var fhToS = DiffEngine.fileHandle(pathToS, false);
+    var fhToJ = DiffEngine.fileHandle(pathToJ, false);
+    int[] box = new int[] {1};
+    Consumer<String> error = e -> {
+      if (--box[0] <= 0)
+        onError.f(JSString.valueOf(e));
+      else
+        JsHelper.consoleError("testFileReadWrite error:" + e);
+    };
     Runnable onCompleteJ = () -> {
-      if (++box[0] == 2) onComplete.f();
+      if (--box[0] <= 0)
+        onComplete.f();
     };
     FileHandle.readTextFile(
         fhFrom, (text, encoding) -> {
+          box[0] = 2;
           fhToS.writeText(text, encoding, onCompleteJ, error);
           JSString jsString = JSString.valueOf(text);
           var jsAsObj = JsHelper.directJsToJava(jsString);

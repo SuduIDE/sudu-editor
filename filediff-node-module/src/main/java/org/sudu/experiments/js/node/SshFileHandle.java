@@ -2,7 +2,10 @@ package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.SshPool;
-import org.sudu.experiments.js.JsHelper;
+import org.sudu.experiments.encoding.FileEncoding;
+import org.sudu.experiments.encoding.GbkEncoding;
+import org.sudu.experiments.encoding.GbkEncodingJs;
+import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSObjects;
@@ -10,6 +13,7 @@ import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.ArrayBufferView;
 import org.teavm.jso.typedarrays.Uint8Array;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
@@ -118,7 +122,7 @@ public class SshFileHandle extends NodeFileHandle0 {
                 doRead(sftp, consumer, onError, begin, attrs.getSize());
               } else {
                 onError.accept(e.getMessage());
-                doClose(sftp);
+                doClose(sftp, null);
               }
             });
           } else {
@@ -152,14 +156,14 @@ public class SshFileHandle extends NodeFileHandle0 {
             byte[] r = bytesRead == data.length ?
                 data : Arrays.copyOf(data, bytesRead);
             consumer.accept(r);
-            doClose(sftp);
+            doClose(sftp, null);
           } else {
             onError.accept(e.getMessage());
           }
         });
   }
 
-  void doClose(JsSftpClient sftp) {
+  void doClose(JsSftpClient sftp, Runnable onComplete) {
     if (handle != null) {
       if (debugOpenClose) JsHelper.consoleInfo2("sftp.close handle ", jsPath());
       var h = handle;
@@ -172,13 +176,67 @@ public class SshFileHandle extends NodeFileHandle0 {
           JsHelper.consoleError(s);
           LoggingJs.error(s);
         }
+        if (onComplete != null) onComplete.run();
       });
     }
   }
 
   @Override
-  public void writeText(Object text, String encoding, Runnable onComplete, Consumer<String> onError) {
-    onError.accept("unsupported operation");
+  public void writeText(
+      Object text, String encoding,
+      Runnable onComplete, Consumer<String> onError
+  ) {
+    boolean gbk = FileEncoding.gbk.equals(encoding);
+    byte[] data = writeObject(text, gbk);
+    if (data == null) {
+      onError.accept("bad input text");
+      return;
+    }
+
+    var we = JsHelper.wrapError("sftp.open error ", onError);
+    SshPool.sftp(credentials, sftp -> sftp.open(
+        jsPath(), OPEN_MODE.write_or_create(), (e, newHandle) -> {
+          if (JSObjects.isUndefined(e)) {
+            if (debugOpenClose) JsHelper.consoleInfo2(
+                "sftp.open_for_write completed handle =", debugHandle(),
+                ", path=", jsPath());
+            handle = newHandle;
+            sftp.write(handle,
+                JsBuffer.from(data), 0, data.length, 0,
+                error -> {
+                  if (JSObjects.isUndefined(error)) {
+                    doClose(sftp, onComplete);
+                  } else {
+                    onError.accept("sftp.write error ".concat(error.getMessage()));
+                    doClose(sftp, null);
+                  }
+                });
+          } else {
+            we.f(e);
+          }
+        }
+    ), we);
+  }
+
+  static byte[] writeObject(Object text, boolean gbk) {
+    JSObject jsText = JsHelper.directJavaToJs(text);
+    if (JSString.isInstance(jsText))
+      return gbk ? GbkEncodingJs.encode(jsText.cast())
+          : TextEncoder.toUtf8(jsText.cast());
+
+    if (text instanceof String s) {
+      return gbk ? GbkEncoding.encode(s) :
+          s.getBytes(StandardCharsets.UTF_8);
+    }
+
+    if (text instanceof char[] chars)
+      return gbk ? GbkEncoding.encode(chars) :
+          // todo: we can improve it by direct Utf16 -> Utf8 encoding
+          new String(chars).getBytes(StandardCharsets.UTF_8);
+    if (text instanceof byte[] bytes)
+      return bytes;
+
+    return null;
   }
 
   @Override

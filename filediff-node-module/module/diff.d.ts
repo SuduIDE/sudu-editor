@@ -16,20 +16,20 @@ export interface DiffTestApi {
   testFS(path: string, onComplete: () => void): void;
 
   testDiff(
-    path1: string, path2: string, withContent: boolean,
+    path1: FileInput, path2: FileInput, withContent: boolean,
     onComplete: () => void
   ): void;
 
   testFileWrite(
-    path: string, content: string, encoding: string,
+    path: FileInput, content: string, encoding: string,
     onComplete: () => void,
     onError: (error: string) => void
   ): void;
 
   testFileReadWrite(
-    pathFrom: string,
-    pathToS: string,
-    pathToJ: string,
+    pathFrom: FileInput,
+    pathToS: FileInput,
+    pathToJ: FileInput,
     onComplete: () => void,
     onError: (error: string) => void
   ) : void;

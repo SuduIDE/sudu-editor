@@ -5,7 +5,6 @@ import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.js.TextDecoder;
-import org.sudu.experiments.js.TextEncoder;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
@@ -13,6 +12,8 @@ import org.teavm.jso.core.JSString;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
+
+import static org.sudu.experiments.encoding.GbkEncodingJs.*;
 
 public class NodeFileHandle extends NodeFileHandle0 {
 
@@ -116,26 +117,33 @@ public class NodeFileHandle extends NodeFileHandle0 {
       Runnable onComplete, Consumer<String> onError
   ) {
     boolean gbk = FileEncoding.gbk.equals(encoding);
-    JSObject jsText = JsHelper.directJavaToJs(text);
+    JSObject writeObject = writeObject(text, gbk);
 
+    if (writeObject != null) {
+      Fs.fs().writeFile(jsPath(), writeObject, JSString.valueOf("utf-8"),
+          NodeFs.callback(onComplete, onError)
+      );
+    } else {
+      onError.accept("bad input text");
+    }
+  }
+
+  static JSObject writeObject(Object text, boolean gbk) {
     // todo: we can improve it by direct Utf16 -> Utf8 encoding
     if (text instanceof char[] chars)
-      jsText = TextDecoder.decodeUTF16(chars);
+      return gbk ? JsMemoryAccess.bufferView(GbkEncoding.encode(chars))
+          : TextDecoder.decodeUTF16(chars);
+    if (text instanceof String s)
+      return gbk ? JsMemoryAccess.bufferView(GbkEncoding.encode(s))
+          : TextDecoder.decodeUTF16(s.toCharArray());
+    if (text instanceof byte[] bytes)
+      return JsMemoryAccess.bufferView(bytes);
 
-    if (JSString.isInstance(jsText)) {
-      if (gbk) {
-        jsText = JsMemoryAccess.bufferView(
-            GbkEncoding.encode(TextEncoder.toCharArray(jsText.cast())));
-      }
-    } else if (text instanceof String string) {
-      jsText = gbk ? JsMemoryAccess.bufferView(GbkEncoding.encode(string))
-          : JSString.valueOf(string);
-    } else if (text instanceof byte[] bytes) {
-      jsText = JsMemoryAccess.bufferView(bytes);
-    }
-    Fs.fs().writeFile(jsPath(), jsText, JSString.valueOf("utf-8"),
-        NodeFs.callback(onComplete, onError)
-    );
+    JSObject jsText = JsHelper.directJavaToJs(text);
+    if (JSString.isInstance(jsText))
+      return gbk ? jsStringToGbk(jsText.cast()) : jsText;
+
+    return null;
   }
 
   @Override

@@ -29,7 +29,7 @@ public class DiffEngine implements DiffEngineJs {
   static DirectoryHandle directoryHandle(JSObject input) {
     if (JSString.isInstance(input)) {
       JSString localPath = input.cast();
-      return DiffEngine.isDir(localPath) ?
+      return Fs.isDirectory(localPath) ?
           new NodeDirectoryHandle(localPath) : null;
     }
     if (JsFileInputSsh.isInstance(input)) {
@@ -37,6 +37,21 @@ public class DiffEngine implements DiffEngineJs {
       JaSshCredentials ssh = JsFileInputSsh.getSsh(input);
       return JSObjects.isUndefined(path) || JSObjects.isUndefined(ssh)
           ? null : new SshDirectoryHandle(path, ssh);
+    }
+    return null;
+  }
+
+  static FileHandle fileHandle(JSObject input, boolean mustExists) {
+    if (JSString.isInstance(input)) {
+      JSString localPath = input.cast();
+      return (!mustExists || Fs.isFile(localPath)) ?
+          new NodeFileHandle(localPath) : null;
+    }
+    if (JsFileInputSsh.isInstance(input)) {
+      JSString path = JsFileInputSsh.getPath(input);
+      JaSshCredentials ssh = JsFileInputSsh.getSsh(input);
+      return JSObjects.isUndefined(path) || JSObjects.isUndefined(ssh)
+          ? null : new SshFileHandle(path, ssh);
     }
     return null;
   }
@@ -152,22 +167,6 @@ public class DiffEngine implements DiffEngineJs {
       updater.sendMessage(str, null);
     }
     return new JsFileDiffSession0();
-  }
-
-  static boolean notDir(JSString path) {
-    if (!isDir(path)) {
-      JsHelper.consoleError("path is not a directory ", path);
-      return true;
-    }
-    return false;
-  }
-
-  static boolean isDir(JSString path) {
-    return Fs.isDirectory(path);
-  }
-
-  static boolean notFile(JSString path) {
-    return !Fs.isFile(path);
   }
 
   @Override

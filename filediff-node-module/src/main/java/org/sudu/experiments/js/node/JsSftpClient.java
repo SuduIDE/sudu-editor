@@ -56,6 +56,12 @@ public interface JsSftpClient extends JSObject {
       JsBuffer buffer, int offset,
       int length, int position, ReadResult cb);
 
+  // Writes length bytes from buffer starting at offset to the resource
+  // associated with handle starting at position.
+  void write(JSObject handle,
+             JsBuffer buffer, int offset, int length,
+             int position,  JsFunctions.Consumer<JSError> cb);
+
   // Closes the resource associated with handle given by open() or opendir().
   void close(JSObject handle, JsFunctions.Consumer<JSError> cb);
 
