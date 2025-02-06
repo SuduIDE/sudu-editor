@@ -122,7 +122,7 @@ public class SshFileHandle extends NodeFileHandle0 {
                 doRead(sftp, consumer, onError, begin, attrs.getSize());
               } else {
                 onError.accept(e.getMessage());
-                doClose(sftp);
+                doClose(sftp, null);
               }
             });
           } else {
@@ -156,14 +156,14 @@ public class SshFileHandle extends NodeFileHandle0 {
             byte[] r = bytesRead == data.length ?
                 data : Arrays.copyOf(data, bytesRead);
             consumer.accept(r);
-            doClose(sftp);
+            doClose(sftp, null);
           } else {
             onError.accept(e.getMessage());
           }
         });
   }
 
-  void doClose(JsSftpClient sftp) {
+  void doClose(JsSftpClient sftp, Runnable onComplete) {
     if (handle != null) {
       if (debugOpenClose) JsHelper.consoleInfo2("sftp.close handle ", jsPath());
       var h = handle;
@@ -176,6 +176,7 @@ public class SshFileHandle extends NodeFileHandle0 {
           JsHelper.consoleError(s);
           LoggingJs.error(s);
         }
+        if (onComplete != null) onComplete.run();
       });
     }
   }
@@ -194,7 +195,7 @@ public class SshFileHandle extends NodeFileHandle0 {
 
     var we = JsHelper.wrapError("sftp.open error ", onError);
     SshPool.sftp(credentials, sftp -> sftp.open(
-        jsPath(), OPEN_MODE.write(), (e, newHandle) -> {
+        jsPath(), OPEN_MODE.write_or_create(), (e, newHandle) -> {
           if (JSObjects.isUndefined(e)) {
             if (debugOpenClose) JsHelper.consoleInfo2(
                 "sftp.open_for_write completed handle =", debugHandle(),
@@ -204,11 +205,11 @@ public class SshFileHandle extends NodeFileHandle0 {
                 JsBuffer.from(data), 0, data.length, 0,
                 error -> {
                   if (JSObjects.isUndefined(error)) {
-                    onComplete.run();
+                    doClose(sftp, onComplete);
                   } else {
-                    onError.accept(error.getMessage());
+                    onError.accept("sftp.write error ".concat(error.getMessage()));
+                    doClose(sftp, null);
                   }
-                  doClose(sftp);
                 });
           } else {
             we.f(e);

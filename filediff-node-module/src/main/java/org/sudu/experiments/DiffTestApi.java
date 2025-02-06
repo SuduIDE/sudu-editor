@@ -141,13 +141,20 @@ public class DiffTestApi implements JsDiffTestApi {
     var fhFrom = DiffEngine.fileHandle(pathFrom, true);
     var fhToS = DiffEngine.fileHandle(pathToS, false);
     var fhToJ = DiffEngine.fileHandle(pathToJ, false);
-    Consumer<String> error = e -> onError.f(JSString.valueOf(e));
-    int[] box = new int[1];
+    int[] box = new int[] {1};
+    Consumer<String> error = e -> {
+      if (--box[0] <= 0)
+        onError.f(JSString.valueOf(e));
+      else
+        JsHelper.consoleError("testFileReadWrite error:" + e);
+    };
     Runnable onCompleteJ = () -> {
-      if (++box[0] == 2) onComplete.f();
+      if (--box[0] <= 0)
+        onComplete.f();
     };
     FileHandle.readTextFile(
         fhFrom, (text, encoding) -> {
+          box[0] = 2;
           fhToS.writeText(text, encoding, onCompleteJ, error);
           JSString jsString = JSString.valueOf(text);
           var jsAsObj = JsHelper.directJsToJava(jsString);
