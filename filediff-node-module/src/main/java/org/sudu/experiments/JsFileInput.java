@@ -2,6 +2,7 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.js.node.*;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
@@ -11,24 +12,41 @@ import org.teavm.jso.core.JSString;
 
 public interface JsFileInput extends JSObject {
 
-
-
-  static FileHandle fileHandle(JSObject input, boolean mustExists) {
-    if (JSString.isInstance(input)) {
-      JSString localPath = input.cast();
-      return (!mustExists || Fs.isFile(localPath)) ?
-          new NodeFileHandle(localPath) : null;
-    }
-    if (JsFileInputSsh.isInstance(input)) {
-      JSString path = JsFileInputSsh.getPath(input);
-      JaSshCredentials ssh = JsFileInputSsh.getSsh(input);
-      return JSObjects.isUndefined(path) || JSObjects.isUndefined(ssh)
-          ? null : new SshFileHandle(path, ssh);
+  static FileHandle fileHandle(JsFileInput input, boolean mustExists) {
+    if (isPath(input)) {
+      JSString path = path(input);
+      if (JsSshInput.hasSsh(input)) {
+        JsSshCredentials ssh = JsSshInput.getSsh(input);
+        return JSObjects.isUndefined(path) || JSObjects.isUndefined(ssh)
+            ? null : new SshFileHandle(path, ssh);
+      }
+      return (!mustExists || Fs.isFile(path)) ?
+          new NodeFileHandle(path) : null;
     }
     return null;
+  }
+
+  static boolean isPath(JSObject input) {
+    return JSString.isInstance(input) || hasPath(input);
   }
 
   static boolean hasPath(JSObject input) {
     return JSObjects.hasProperty(input, "path");
   }
+
+  static JSString path(JSObject input) {
+    return JSString.isInstance(input) ? input.cast()
+        : JsHasPath.getPath(input);
+  }
+
+  static boolean isContent(JSObject input) {
+    return JSObjects.hasProperty(input, "content");
+  }
+
+  static JSString getContent(JSObject input) {
+    return input.<JsFileInput>cast().getContent();
+  }
+
+  @JSProperty
+  JSString getContent();
 }

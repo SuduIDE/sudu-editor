@@ -23,19 +23,19 @@ interface JsDiffTestApi extends JSObject {
   void testFS(JSString path, JsFunctions.Runnable onComplete);
 
   void testDiff(
-      JSObject path1, JSObject path2,
+      JsFolderInput path1, JsFolderInput path2,
       boolean content, JsFunctions.Runnable onComplete);
 
   void testFileWrite(
-      JSObject path, JSString content, JSString encoding,
+      JsFileInput path, JSString content, JSString encoding,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   );
 
   void testFileReadWrite(
-      JSObject pathFrom,
-      JSObject pathToS,
-      JSObject pathToJ,
+      JsFileInput pathFrom,
+      JsFileInput pathToS,
+      JsFileInput pathToJ,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   );
@@ -55,10 +55,10 @@ interface JsDiffTestApi extends JSObject {
   void testGbkEncoder();
   void testNodeBuffer(JsFunctions.Runnable onComplete);
 
-  void testSshDir(JSObject sshPath, JsFunctions.Runnable onComplete);
-  void testSshFile(JSObject sshPath, JsFunctions.Runnable onComplete);
-  void testSshDirAsync(JSObject sshPath, JsFunctions.Runnable onComplete);
-  void testSshFileAsync(JSObject sshPath, JsFunctions.Runnable onComplete);
+  void testSshDir(JsSshInput sshPath, JsFunctions.Runnable onComplete);
+  void testSshFile(JsSshInput sshPath, JsFunctions.Runnable onComplete);
+  void testSshDirAsync(JsSshInput sshPath, JsFunctions.Runnable onComplete);
+  void testSshFileAsync(JsSshInput sshPath, JsFunctions.Runnable onComplete);
 }
 
 public class DiffTestApi implements JsDiffTestApi {
@@ -90,7 +90,7 @@ public class DiffTestApi implements JsDiffTestApi {
 
   @Override
   public void testDiff(
-      JSObject path1, JSObject path2,
+      JsFolderInput path1, JsFolderInput path2,
       boolean content,
       JsFunctions.Runnable onComplete
   ) {
@@ -116,7 +116,7 @@ public class DiffTestApi implements JsDiffTestApi {
 
   @Override
   public void testFileWrite(
-      JSObject path, JSString content, JSString encoding,
+      JsFileInput path, JSString content, JSString encoding,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   ) {
@@ -135,7 +135,7 @@ public class DiffTestApi implements JsDiffTestApi {
 
   @Override
   public void testFileReadWrite(
-      JSObject pathFrom, JSObject pathToS, JSObject pathToJ,
+      JsFileInput pathFrom, JsFileInput pathToS, JsFileInput pathToJ,
       JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onError
   ) {
     var fhFrom = JsFileInput.fileHandle(pathFrom, true);
@@ -143,6 +143,7 @@ public class DiffTestApi implements JsDiffTestApi {
     var fhToJ = JsFileInput.fileHandle(pathToJ, false);
     int[] box = new int[] {1};
     Consumer<String> error = e -> {
+      JsHelper.consoleError("testFileReadWrite error:" + e);
       if (--box[0] <= 0)
         onError.f(JSString.valueOf(e));
       else
@@ -233,13 +234,13 @@ public class DiffTestApi implements JsDiffTestApi {
   }
 
   @Override
-  public void testSshDir(JSObject sshPath, JsFunctions.Runnable onComplete) {
-    boolean instance = JsFileInputSsh.isInstance(sshPath);
+  public void testSshDir(JsSshInput sshPath, JsFunctions.Runnable onComplete) {
+    boolean instance = JsSshInput.isInstance(sshPath);
     System.out.println("DiffTestApi.testSshDir " + ThreadId.id);
     System.out.println("JsFileInputSsh.isInstance(sshPath) = "
         + instance);
-    JSString path = JsFileInputSsh.getPath(sshPath);
-    JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
+    JSString path = sshPath.getPath();
+    JsSshCredentials ssh = sshPath.getSsh();
     JsHelper.consoleInfo2("path", path);
     JsHelper.consoleInfo2("ssh", ssh);
     if (instance && path != null) {
@@ -253,13 +254,13 @@ public class DiffTestApi implements JsDiffTestApi {
   }
 
   @Override
-  public void testSshFile(JSObject sshPath, JsFunctions.Runnable onComplete) {
-    boolean instance = JsFileInputSsh.isInstance(sshPath);
+  public void testSshFile(JsSshInput sshPath, JsFunctions.Runnable onComplete) {
+    boolean instance = JsSshInput.isInstance(sshPath);
     System.out.println("DiffTestApi.testSshFile " + ThreadId.id);
     System.out.println("JsFileInputSsh.isInstance(sshPath) = "
         + instance);
-    JSString path = JsFileInputSsh.getPath(sshPath);
-    JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
+    JSString path = sshPath.getPath();
+    JsSshCredentials ssh = sshPath.getSsh();
     JsHelper.consoleInfo2("path", path);
     JsHelper.consoleInfo2("ssh", ssh);
     if (instance && path != null) {
@@ -274,12 +275,12 @@ public class DiffTestApi implements JsDiffTestApi {
   }
 
   @Override
-  public void testSshDirAsync(JSObject sshPath, JsFunctions.Runnable onComplete) {
-    boolean instance = JsFileInputSsh.isInstance(sshPath);
+  public void testSshDirAsync(JsSshInput sshPath, JsFunctions.Runnable onComplete) {
+    boolean instance = JsSshInput.isInstance(sshPath);
     System.out.println("DiffTestApi.testSshDirAsync: " + ThreadId.id);
     if (instance) {
-      JSString path = JsFileInputSsh.getPath(sshPath);
-      JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
+      JSString path = sshPath.getPath();
+      JsSshCredentials ssh = sshPath.getSsh();
       var dir = new SshDirectoryHandle(path, ssh);
       pool.sendToWorker(objects -> {
         JsHelper.consoleInfo("DiffTestApi.testSshDirAsync complete, " +
@@ -290,12 +291,12 @@ public class DiffTestApi implements JsDiffTestApi {
   }
 
   @Override
-  public void testSshFileAsync(JSObject sshPath, JsFunctions.Runnable onComplete) {
-    boolean instance = JsFileInputSsh.isInstance(sshPath);
+  public void testSshFileAsync(JsSshInput sshPath, JsFunctions.Runnable onComplete) {
+    boolean instance = JsSshInput.isInstance(sshPath);
     System.out.println("DiffTestApi.testSshFileAsync " + ThreadId.id);
     if (instance) {
-      JSString path = JsFileInputSsh.getPath(sshPath);
-      JaSshCredentials ssh = JsFileInputSsh.getSsh(sshPath);
+      JSString path = sshPath.getPath();
+      JsSshCredentials ssh = sshPath.getSsh();
       var file = new SshFileHandle(path, ssh);
       pool.sendToWorker(objects -> {
         JsHelper.consoleInfo("DiffTestApi.testSshFileAsync complete, " +
