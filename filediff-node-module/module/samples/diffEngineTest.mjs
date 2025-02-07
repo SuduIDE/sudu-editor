@@ -295,7 +295,7 @@ function runTest() {
       const localRoot = args[8];
       if (ssh && sshRoot && localRoot) {
         const sshRef = {path: sshRoot, ssh: ssh};
-        return testDiff(localRoot, sshRef, true);
+        return testDiff(sshRef, localRoot, true);
       } else {
         mayBeExit();
         return "error in args";

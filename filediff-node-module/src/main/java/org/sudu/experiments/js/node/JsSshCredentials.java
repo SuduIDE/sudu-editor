@@ -28,7 +28,14 @@ public abstract class JsSshCredentials implements JSObject {
   @JSBody(
       params = {"host", "port", "username", "password"},
       script = "return {host:host, port:port, username:username, password:password};")
-  public static native JsSshCredentials createWithUsername(
+  public static native JsSshCredentials createWithPassword(
       JSString host, JSString port, JSString username, JSString password
+  );
+
+  @JSBody(
+      params = {"host", "port", "username", "privateKey"},
+      script = "return {host:host, port:port, username:username, privateKey:privateKey};")
+  public static native JsSshCredentials createWithPrivateKey(
+      JSString host, JSString port, JSString username, JSString privateKey
   );
 }

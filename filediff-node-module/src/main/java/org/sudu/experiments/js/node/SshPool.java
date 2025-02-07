@@ -1,63 +1,16 @@
-package org.sudu.experiments;
+package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.Promise;
-import org.sudu.experiments.js.node.JsSshCredentials;
-import org.sudu.experiments.js.node.JsSftpClient;
-import org.sudu.experiments.js.node.JsSshClient;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
-import org.teavm.jso.core.JSString;
 
 import java.util.HashMap;
 import java.util.Map;
-
-class Key {
-  final JsSshCredentials creds;
-  int hash = 0;
-
-  Key(JsSshCredentials creds) {
-    this.creds = creds;
-  }
-
-  static int hashUpdate(int h, JSString s) {
-    int sh = s == null || JSObjects.isUndefined(s) ?
-        0 : s.stringValue().hashCode();
-    return h * 31 + sh;
-  }
-
-  static int hash(JsSshCredentials creds) {
-    int result = 1;
-    result = hashUpdate(result, creds.getHost());
-    result = hashUpdate(result, creds.getPort());
-    result = hashUpdate(result, creds.getUsername());
-    result = hashUpdate(result, creds.getPassword());
-    result = hashUpdate(result, creds.getPrivateKey());
-    return result;
-  }
-
-  @Override
-  public int hashCode() {
-    return hash != 0 ? hash : (hash = hash(creds));
-  }
-
-  @Override
-  public boolean equals(Object other) {
-    if (!(other instanceof Key key))
-      return false;
-
-    JsSshCredentials c2 = key.creds;
-    return JsHelper.strictEquals(creds.getHost(), c2.getHost()) &&
-        JsHelper.strictEquals(creds.getPort(), c2.getPort()) &&
-        JsHelper.strictEquals(creds.getUsername(), c2.getUsername()) &&
-        JsHelper.strictEquals(creds.getPassword(), c2.getPassword()) &&
-        JsHelper.strictEquals(creds.getPrivateKey(), c2.getPrivateKey());
-  }
-}
 
 class Value {
   public Promise<SshPool.Record> v;
@@ -87,10 +40,10 @@ public interface SshPool {
     JsSftpClient getSftp();
   }
 
-  Map<Key, Value> map = new HashMap<>();
+  Map<SshHash, Value> map = new HashMap<>();
 
   static void sftp(
-      JsSshCredentials creds,
+      SshHash creds,
       JsFunctions.Consumer<JsSftpClient> callback,
       JsFunctions.Consumer<JSError> error
   ) {
@@ -99,8 +52,7 @@ public interface SshPool {
     );
   }
 
-  static Promise<Record> connect(JsSshCredentials creds) {
-    var key = new Key(creds);
+  static Promise<Record> connect(SshHash key) {
     Value value = map.get(key);
     if (value == null) {
       Promise<Record> p = Promise.create(
@@ -118,7 +70,7 @@ public interface SshPool {
               JsHelper.consoleInfo("sshClient.onError forwarding the error...");
               postError.f(error);
             });
-            client.connect(creds);
+            client.connect(key.jsSshCredentials());
           }
       );
       map.put(key, value = new Value(p));
@@ -129,7 +81,7 @@ public interface SshPool {
   static void terminate() {
     for (var e: map.entrySet()) {
       e.getValue().v.then(r -> {
-        JsHelper.consoleInfo2("terminate a ssh", e.getKey().creds.getHost());
+        JsHelper.consoleInfo2("terminate a ssh", e.getKey().host);
         r.getSsh().end();
       }, jsError -> {});
     }

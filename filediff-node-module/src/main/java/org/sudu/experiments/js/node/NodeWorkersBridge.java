@@ -54,33 +54,35 @@ public class NodeWorkersBridge implements WorkerProtocol.PlatformBridge {
           JSString jsPath = array.get(arrayIndex++).cast();
           var ssh = getSsh(array, arrayIndex);
           r[idx] = new SshDirectoryHandle(jsPath, ssh);
-          arrayIndex += 4;
+          arrayIndex += 5;
         }
         case 3 -> {
           JSString jsPath = array.get(arrayIndex++).cast();
           JsSftpClient.Attrs attrs = array.get(arrayIndex++).cast();
           var ssh = getSsh(array, arrayIndex);
           r[idx] = new SshFileHandle(jsPath, ssh, attrs);
-          arrayIndex += 4;
+          arrayIndex += 5;
         }
       }
     }
     return arrayIndex;
   }
 
-  static JsSshCredentials getSsh(JsArrayReader<JSObject> array, int arrayIndex) {
+  static SshHash getSsh(JsArrayReader<JSObject> array, int arrayIndex) {
     JSString host = array.get(arrayIndex).cast();
     JSString port = array.get(arrayIndex + 1).cast();
     JSString username = array.get(arrayIndex + 2).cast();
     JSString password = array.get(arrayIndex + 3).cast();
-    return JsSshCredentials.createWithUsername(host, port, username, password);
+    JSString privateKey = array.get(arrayIndex + 4).cast();
+    return new SshHash(host, port, username, password, privateKey);
   }
 
-  static int putSsh(JsArray<JSObject> message, int idx, JsSshCredentials sshDir) {
-    message.set(idx++, sshDir.getHost());
-    message.set(idx++, sshDir.getPort());
-    message.set(idx++, sshDir.getUsername());
-    message.set(idx++, sshDir.getPassword());
+  static int putSsh(JsArray<JSObject> message, int idx, SshHash sshDir) {
+    message.set(idx++, sshDir.host);
+    message.set(idx++, sshDir.port);
+    message.set(idx++, sshDir.username);
+    message.set(idx++, sshDir.password);
+    message.set(idx++, sshDir.privateKey);
     return idx;
   }
 

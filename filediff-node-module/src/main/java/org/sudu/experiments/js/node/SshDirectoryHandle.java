@@ -1,6 +1,6 @@
 package org.sudu.experiments.js.node;
 
-import org.sudu.experiments.SshPool;
+import org.sudu.experiments.FsItem;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.core.JSNumber;
@@ -12,18 +12,22 @@ import java.util.function.Consumer;
 public class SshDirectoryHandle extends NodeDirectoryHandle0 {
   static final boolean debugRead = false;
 
-  JsSshCredentials credentials;
+  SshHash credentials;
 
-  public SshDirectoryHandle(String name, String[] path, JsSshCredentials cred) {
+  public SshDirectoryHandle(String name, String[] path, SshHash cred) {
     super(name, path, sep());
     this.credentials = cred;
   }
 
   static JSString sep() { return JSString.valueOf("/"); }
 
-  public SshDirectoryHandle(JSString jsPath, JsSshCredentials cred) {
+  public SshDirectoryHandle(JSString jsPath, SshHash cred) {
     super(pathBasename(jsPath), pathDirname(jsPath), sep());
     this.credentials = cred;
+  }
+
+  public SshDirectoryHandle(JSString jsPath, JsSshCredentials cred) {
+    this(jsPath, new SshHash(cred));
   }
 
   static JSString pathDirname(JSString jsPath) {
@@ -70,7 +74,7 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
         error -> {
           JsHelper.consoleInfo2(
               "SshDirectoryHandle.read connect error:", JsHelper.getMessage(error),
-              "credentials", credentials);
+              "host:", credentials.host);
           reader.onComplete();
         }
     );
@@ -89,4 +93,11 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
     JSString from = jsPath();
     onError.accept("not implemented yet");
   }
+
+  @Override
+  public String toString() {
+    return FsItem.toString("ssh://" + credentials.host.toString(),
+        path, name, false);
+  }
+
 }

@@ -1,7 +1,6 @@
 package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.LoggingJs;
-import org.sudu.experiments.SshPool;
 import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.encoding.GbkEncodingJs;
@@ -23,24 +22,25 @@ public class SshFileHandle extends NodeFileHandle0 {
   static final boolean debugOpenClose = false;
   static final boolean debugRead = false;
 
-  JsSshCredentials credentials;
+  SshHash credentials;
   JsSftpClient.Attrs attrs;
   JSObject handle;
 
   public SshFileHandle(
       String name, String[] path,
-      JsSshCredentials credentials,
+      SshHash key,
       JsSftpClient.Attrs attrs
   ) {
     super(name, path, SshDirectoryHandle.sep());
-    this.credentials = credentials;
+    this.credentials = key;
     this.attrs = attrs;
   }
 
   public SshFileHandle(
       JSString jsPath,
-      JsSshCredentials credentials,
-      JsSftpClient.Attrs attrs) {
+      SshHash credentials,
+      JsSftpClient.Attrs attrs
+  ) {
     super(jsPath,
         SshDirectoryHandle.pathBasename(jsPath),
         SshDirectoryHandle.pathDirname(jsPath),
@@ -49,8 +49,8 @@ public class SshFileHandle extends NodeFileHandle0 {
     this.attrs = attrs;
   }
 
-  public SshFileHandle(JSString jsPath, JsSshCredentials credentials) {
-    this(jsPath, credentials, null);
+  public SshFileHandle(JSString jsPath, JsSshCredentials c) {
+    this(jsPath, new SshHash(c), null);
   }
 
   @Override
@@ -90,10 +90,10 @@ public class SshFileHandle extends NodeFileHandle0 {
         },
         error -> {
           JsHelper.consoleInfo2(
-              "Ssh connect to", credentials.getHost(),
+              "Ssh connect to", credentials.host,
               "failed, error =", JsHelper.message(error));
           LoggingJs.error(JsHelper.concat(
-              JsHelper.concat("Ssh connect to ", credentials.getHost()),
+              JsHelper.concat("Ssh connect to ", credentials.host),
               JsHelper.concat(" failed, error = ", JsHelper.message(error)))
           );
           result.accept(0);

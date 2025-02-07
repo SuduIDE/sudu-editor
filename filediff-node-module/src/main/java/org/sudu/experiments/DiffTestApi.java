@@ -104,8 +104,8 @@ public class DiffTestApi implements JsDiffTestApi {
     }
 
     JsHelper.consoleInfo("testDiff: ");
-    JsHelper.consoleInfo2("  path1 =", path1);
-    JsHelper.consoleInfo2("  path2 =", path2);
+    JsHelper.consoleInfo("  left = " + dir1);
+    JsHelper.consoleInfo("  right = " + dir2);
     JsHelper.consoleInfo("  content = ", JSBoolean.valueOf(content));
     JsTime jsTime = new JsTime();
     new CollectorFolderDiffTest(
