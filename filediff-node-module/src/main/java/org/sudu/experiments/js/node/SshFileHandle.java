@@ -23,13 +23,13 @@ public class SshFileHandle extends NodeFileHandle0 {
   static final boolean debugOpenClose = false;
   static final boolean debugRead = false;
 
-  JaSshCredentials credentials;
+  JsSshCredentials credentials;
   JsSftpClient.Attrs attrs;
   JSObject handle;
 
   public SshFileHandle(
       String name, String[] path,
-      JaSshCredentials credentials,
+      JsSshCredentials credentials,
       JsSftpClient.Attrs attrs
   ) {
     super(name, path, SshDirectoryHandle.sep());
@@ -39,7 +39,7 @@ public class SshFileHandle extends NodeFileHandle0 {
 
   public SshFileHandle(
       JSString jsPath,
-      JaSshCredentials credentials,
+      JsSshCredentials credentials,
       JsSftpClient.Attrs attrs) {
     super(jsPath,
         SshDirectoryHandle.pathBasename(jsPath),
@@ -49,7 +49,7 @@ public class SshFileHandle extends NodeFileHandle0 {
     this.attrs = attrs;
   }
 
-  public SshFileHandle(JSString jsPath, JaSshCredentials credentials) {
+  public SshFileHandle(JSString jsPath, JsSshCredentials credentials) {
     this(jsPath, credentials, null);
   }
 
@@ -64,6 +64,7 @@ public class SshFileHandle extends NodeFileHandle0 {
   }
 
   JSObject debugHandle() {
+    if (handle == null) return JSString.valueOf("null");
     ArrayBufferView abv = handle.cast();
     return Uint8Array.create(abv.getBuffer());
   }
@@ -197,10 +198,10 @@ public class SshFileHandle extends NodeFileHandle0 {
     SshPool.sftp(credentials, sftp -> sftp.open(
         jsPath(), OPEN_MODE.write_or_create(), (e, newHandle) -> {
           if (JSObjects.isUndefined(e)) {
+            handle = newHandle;
             if (debugOpenClose) JsHelper.consoleInfo2(
                 "sftp.open_for_write completed handle =", debugHandle(),
                 ", path=", jsPath());
-            handle = newHandle;
             sftp.write(handle,
                 JsBuffer.from(data), 0, data.length, 0,
                 error -> {

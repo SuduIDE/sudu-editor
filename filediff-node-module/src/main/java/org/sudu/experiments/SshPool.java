@@ -3,7 +3,7 @@ package org.sudu.experiments;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.Promise;
-import org.sudu.experiments.js.node.JaSshCredentials;
+import org.sudu.experiments.js.node.JsSshCredentials;
 import org.sudu.experiments.js.node.JsSftpClient;
 import org.sudu.experiments.js.node.JsSshClient;
 import org.teavm.jso.JSBody;
@@ -17,10 +17,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 class Key {
-  final JaSshCredentials creds;
+  final JsSshCredentials creds;
   int hash = 0;
 
-  Key(JaSshCredentials creds) {
+  Key(JsSshCredentials creds) {
     this.creds = creds;
   }
 
@@ -30,7 +30,7 @@ class Key {
     return h * 31 + sh;
   }
 
-  static int hash(JaSshCredentials creds) {
+  static int hash(JsSshCredentials creds) {
     int result = 1;
     result = hashUpdate(result, creds.getHost());
     result = hashUpdate(result, creds.getPort());
@@ -50,7 +50,7 @@ class Key {
     if (!(other instanceof Key key))
       return false;
 
-    JaSshCredentials c2 = key.creds;
+    JsSshCredentials c2 = key.creds;
     return JsHelper.strictEquals(creds.getHost(), c2.getHost()) &&
         JsHelper.strictEquals(creds.getPort(), c2.getPort()) &&
         JsHelper.strictEquals(creds.getUsername(), c2.getUsername()) &&
@@ -90,7 +90,7 @@ public interface SshPool {
   Map<Key, Value> map = new HashMap<>();
 
   static void sftp(
-      JaSshCredentials creds,
+      JsSshCredentials creds,
       JsFunctions.Consumer<JsSftpClient> callback,
       JsFunctions.Consumer<JSError> error
   ) {
@@ -99,7 +99,7 @@ public interface SshPool {
     );
   }
 
-  static Promise<Record> connect(JaSshCredentials creds) {
+  static Promise<Record> connect(JsSshCredentials creds) {
     var key = new Key(creds);
     Value value = map.get(key);
     if (value == null) {

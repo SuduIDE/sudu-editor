@@ -46,6 +46,6 @@ public abstract class NodeDirectoryHandle0 implements DirectoryHandle {
 
   @Override
   public String toString() {
-    return FsItem.toString("dir", path, name, false);
+    return FsItem.toString("ssh dir", path, name, false);
   }
 }

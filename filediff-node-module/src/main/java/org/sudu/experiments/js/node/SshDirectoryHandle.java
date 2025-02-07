@@ -12,16 +12,16 @@ import java.util.function.Consumer;
 public class SshDirectoryHandle extends NodeDirectoryHandle0 {
   static final boolean debugRead = false;
 
-  JaSshCredentials credentials;
+  JsSshCredentials credentials;
 
-  public SshDirectoryHandle(String name, String[] path, JaSshCredentials cred) {
+  public SshDirectoryHandle(String name, String[] path, JsSshCredentials cred) {
     super(name, path, sep());
     this.credentials = cred;
   }
 
   static JSString sep() { return JSString.valueOf("/"); }
 
-  public SshDirectoryHandle(JSString jsPath, JaSshCredentials cred) {
+  public SshDirectoryHandle(JSString jsPath, JsSshCredentials cred) {
     super(pathBasename(jsPath), pathDirname(jsPath), sep());
     this.credentials = cred;
   }

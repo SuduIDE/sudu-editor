@@ -67,13 +67,14 @@ export type SshCredentials = { host: string, port: string } & (
 
 export type SshInput = { path: string, ssh: SshCredentials }
 export type FileInput = { path: string } | { content: string } | SshInput;
+export type FolderInput = string | SshInput;
 
 // java class: org.sudu.experiments.DiffEngineJs
 export interface DiffEngine extends IDisposable {
   // todo add boolean content
   startFolderDiff(
-    leftPath: string | SshInput,
-    rightPath: string | SshInput,
+    leftPath: FolderInput,
+    rightPath: FolderInput,
     channel: Channel
   ): FolderDiffSession;
 

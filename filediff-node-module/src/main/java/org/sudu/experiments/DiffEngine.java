@@ -6,8 +6,6 @@ import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.sudu.experiments.update.FileEditChannelUpdater;
-import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 public class DiffEngine implements DiffEngineJs {
@@ -26,54 +24,24 @@ public class DiffEngine implements DiffEngineJs {
     SshPool.terminate();
   }
 
-  static DirectoryHandle directoryHandle(JSObject input) {
-    if (JSString.isInstance(input)) {
-      JSString localPath = input.cast();
-      return Fs.isDirectory(localPath) ?
-          new NodeDirectoryHandle(localPath) : null;
-    }
-    if (JsFileInputSsh.isInstance(input)) {
-      JSString path = JsFileInputSsh.getPath(input);
-      JaSshCredentials ssh = JsFileInputSsh.getSsh(input);
-      return JSObjects.isUndefined(path) || JSObjects.isUndefined(ssh)
-          ? null : new SshDirectoryHandle(path, ssh);
-    }
-    return null;
-  }
-
-  static FileHandle fileHandle(JSObject input, boolean mustExists) {
-    if (JSString.isInstance(input)) {
-      JSString localPath = input.cast();
-      return (!mustExists || Fs.isFile(localPath)) ?
-          new NodeFileHandle(localPath) : null;
-    }
-    if (JsFileInputSsh.isInstance(input)) {
-      JSString path = JsFileInputSsh.getPath(input);
-      JaSshCredentials ssh = JsFileInputSsh.getSsh(input);
-      return JSObjects.isUndefined(path) || JSObjects.isUndefined(ssh)
-          ? null : new SshFileHandle(path, ssh);
-    }
-    return null;
-  }
-
   @Override
   public JsFolderDiffSession startFolderDiff(
-      JSObject leftPath, JSObject rightPath, Channel channel
+      JsFolderInput leftPath, JsFolderInput rightPath, Channel channel
   ) {
     LoggingJs.info("Starting folder diff");
     boolean scanFileContent = true;
-    DirectoryHandle leftDir = DiffEngine.directoryHandle(leftPath);
-    DirectoryHandle rightDir = DiffEngine.directoryHandle(rightPath);
+    DirectoryHandle leftDir = JsFolderInput.directoryHandle(leftPath);
+    DirectoryHandle rightDir = JsFolderInput.directoryHandle(rightPath);
 
     if (leftDir == null)
       throw new IllegalArgumentException(
           "illegal leftPath argument " + JsHelper.jsToString(leftPath));
     if (rightDir == null)
       throw new IllegalArgumentException(
-          "illegal leftPath argument " + JsHelper.jsToString(leftPath));
+          "illegal rightPath argument " + JsHelper.jsToString(rightPath));
 
-    LoggingJs.info(JsHelper.concat("  DiffEngine LeftPath: ", leftPath));
-    LoggingJs.info(JsHelper.concat("  DiffEngine RightPath: ", rightPath));
+    LoggingJs.info("  DiffEngine Left: ".concat(leftDir.toString()));
+    LoggingJs.info("  DiffEngine Right: ".concat(rightPath.toString()));
 
     ItemFolderDiffModel root = new ItemFolderDiffModel(null, "");
     root.setItems(leftDir, rightDir);
@@ -88,18 +56,24 @@ public class DiffEngine implements DiffEngineJs {
   }
 
   public JsFileDiffSession startFileDiff(
-      JSObject leftInput, JSObject rightInput,
+      JsFileInput leftInput, JsFileInput rightInput,
       Channel channel,
       JsFolderDiffSession parent
   ) {
     LoggingJs.info("Starting new file diff ...");
 
-    boolean isLeftFile = JsFileInputFile.isInstance(leftInput);
-    boolean isRightFile = JsFileInputFile.isInstance(rightInput);
-    boolean isLeftText = JsFileInputContent.isInstance(leftInput);
-    boolean isRightText = JsFileInputContent.isInstance(rightInput);
-    boolean validatedLeft = isLeftFile ^ isLeftText;
-    boolean validatedRight = isRightFile ^ isRightText;
+    boolean isLeftFile = JsFileInput.isPath(leftInput);
+    boolean isRightFile = JsFileInput.isPath(rightInput);
+    boolean isLeftText = !isLeftFile && JsFileInput.isContent(leftInput);
+    boolean isRightText = !isLeftFile && JsFileInput.isContent(rightInput);
+
+    FileHandle leftHandle = isLeftFile ?
+        JsFileInput.fileHandle(leftInput, true) : null;
+    FileHandle rightHandle = isRightFile ?
+        JsFileInput.fileHandle(rightInput, true) : null;
+
+    boolean validatedLeft = isLeftFile ? leftHandle != null : isLeftText;
+    boolean validatedRight = isRightFile ? rightHandle != null : isRightText;
 
     if (!validatedLeft)
       LoggingJs.error(JsHelper.concat(
@@ -112,18 +86,7 @@ public class DiffEngine implements DiffEngineJs {
     if (!validatedLeft || !validatedRight)
       return null;
 
-    JSString leftStr = isLeftFile
-        ? JsFileInputFile.getPath(leftInput)
-        : JsFileInputContent.getContent(leftInput);
-
-    JSString rightStr = isRightFile
-        ? JsFileInputFile.getPath(rightInput)
-        : JsFileInputContent.getContent(rightInput);
-
-    LoggingJs.info(JsHelper.concat("  left: ", leftStr));
-    LoggingJs.info(JsHelper.concat("  right: ", rightStr));
-
-    LoggingJs.info("  parent instanceof JsFolderDiffSession0: " +
+    LoggingJs.info("  parent is FolderDiffSession: " +
         (parent instanceof JsFolderDiffSession0));
 
     DiffModelChannelUpdater parentUpdater =
@@ -133,15 +96,20 @@ public class DiffEngine implements DiffEngineJs {
         = new FileDiffChannelUpdater(channel, parentUpdater, pool);
 
     if (isLeftFile) {
-      FileHandle leftHandle = new NodeFileHandle(leftStr);
+      LoggingJs.info("  left file: ".concat(leftHandle.toString()));
       updater.compareLeft(leftHandle);
     } else {
+      JSString leftStr = JsFileInput.getContent(leftInput);
+      LoggingJs.info("  left is content, length = " + leftStr.getLength());
       updater.sendFileRead(true, leftStr, null);
     }
+
     if (isRightFile) {
-      FileHandle rightHandle = new NodeFileHandle(rightStr);
+      LoggingJs.info("  right file: ".concat(rightHandle.toString()));
       updater.compareRight(rightHandle);
     } else {
+      JSString rightStr = JsFileInput.getContent(rightInput);
+      LoggingJs.info("  right is content, length = " + rightStr.getLength());
       updater.sendFileRead(false, rightStr, null);
     }
     return new JsFileDiffSession0();
@@ -151,11 +119,11 @@ public class DiffEngine implements DiffEngineJs {
   public JsFileDiffSession startFileEdit(JSString input, Channel channel) {
     JsHelper.consoleInfo("Starting file edit ...");
 
-    boolean isFile = JsFileInputFile.isInstance(input);
+    boolean isFile = JsFileInput.isPath(input);
 
     JSString str = isFile
-        ? JsFileInputFile.getPath(input)
-        : JsFileInputContent.getContent(input);
+        ? JsFileInput.path(input)
+        : JsFileInput.getContent(input);
 
     JsHelper.consoleInfo("  input: ", str);
 
