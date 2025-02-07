@@ -94,8 +94,8 @@ public class DiffTestApi implements JsDiffTestApi {
       boolean content,
       JsFunctions.Runnable onComplete
   ) {
-    DirectoryHandle dir1 = DiffEngine.directoryHandle(path1);
-    DirectoryHandle dir2 = DiffEngine.directoryHandle(path2);
+    DirectoryHandle dir1 = JsFolderInput.directoryHandle(path1);
+    DirectoryHandle dir2 = JsFolderInput.directoryHandle(path2);
     if (dir1 == null || dir2 == null) {
       if (dir1 == null) JsHelper.consoleError2("bad path1:", path1);
       if (dir2 == null) JsHelper.consoleError2("bad path2:", path2);
@@ -120,7 +120,7 @@ public class DiffTestApi implements JsDiffTestApi {
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   ) {
-    var fh = DiffEngine.fileHandle(path, true);
+    var fh = JsFileInput.fileHandle(path, true);
     if (fh == null)
       JsHelper.consoleError2("bad path:", path);
     else fh.writeText(
@@ -138,9 +138,9 @@ public class DiffTestApi implements JsDiffTestApi {
       JSObject pathFrom, JSObject pathToS, JSObject pathToJ,
       JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onError
   ) {
-    var fhFrom = DiffEngine.fileHandle(pathFrom, true);
-    var fhToS = DiffEngine.fileHandle(pathToS, false);
-    var fhToJ = DiffEngine.fileHandle(pathToJ, false);
+    var fhFrom = JsFileInput.fileHandle(pathFrom, true);
+    var fhToS = JsFileInput.fileHandle(pathToS, false);
+    var fhToJ = JsFileInput.fileHandle(pathToJ, false);
     int[] box = new int[] {1};
     Consumer<String> error = e -> {
       if (--box[0] <= 0)

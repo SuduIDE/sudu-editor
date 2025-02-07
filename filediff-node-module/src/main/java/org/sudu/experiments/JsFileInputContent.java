@@ -7,7 +7,7 @@ import org.teavm.jso.core.JSString;
 
 // export type FileInput = { content: string }
 
-public interface JsFileInputContent extends JSObject {
+public interface JsFileInputContent extends JsFileInput {
   static boolean isInstance(JSObject input) {
     return JSObjects.hasProperty(input, "content");
   }
