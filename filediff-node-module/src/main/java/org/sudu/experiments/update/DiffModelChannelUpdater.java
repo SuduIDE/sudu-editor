@@ -6,7 +6,6 @@ import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.LoggingJs;
-import org.sudu.experiments.js.node.NodeFileHandle;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.JsCast;
 import org.teavm.jso.JSObject;
@@ -78,13 +77,14 @@ public class DiffModelChannelUpdater {
   }
 
   private void onOpenFile(JsArray<JSObject> jsArray) {
-    JSString jsPath = jsArray.pop().cast();
-    Int32Array key = jsArray.pop().cast();
+    int[] indPath = JsCast.ints(jsArray.pop().cast());
+    Int32Array ints = jsArray.pop().cast();
+    boolean left = ints.get(1) == 1;
 
-    var fileHandle = new NodeFileHandle(jsPath);
+    var fileHandle = collector.findFileByIndexPath(indPath, left);
     FileHandle.readTextFile(fileHandle,
-        (source, encoding) -> postOpenFile(source, encoding, key),
-        error -> postError(error, key)
+        (source, encoding) -> postOpenFile(source, encoding, ints),
+        error -> postError(error, ints)
     );
   }
 

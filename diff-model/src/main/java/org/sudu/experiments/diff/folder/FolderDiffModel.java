@@ -221,14 +221,14 @@ public class FolderDiffModel {
     if (parent != null) parent.updateItem();
   }
 
-  public FolderDiffModel findNode(int[] path) {
-    return findNode(path, 0);
+  public FolderDiffModel findNodeByIndPath(int[] path) {
+    return findNodeByIndPath(path, 0);
   }
 
-  private FolderDiffModel findNode(int[] path, int ind) {
+  private FolderDiffModel findNodeByIndPath(int[] path, int ind) {
     if (ind == path.length) return this;
     if (children == null || path[ind] >= children.length) return null;
-    return children[path[ind]].findNode(path, ind + 1);
+    return children[path[ind]].findNodeByIndPath(path, ind + 1);
   }
 
   public static final FolderDiffModel DEFAULT = getDefault();

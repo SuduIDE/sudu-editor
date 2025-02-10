@@ -102,8 +102,23 @@ public class RemoteCollector {
     if (sendResult != null) sendMessage();
   }
 
+  public FileHandle findFileByIndexPath(int[] path, boolean left) {
+    var model = (ItemFolderDiffModel) root.findNodeByIndPath(path);
+    if (model == null) {
+      String error = root.describeError(path);
+      LoggingJs.error("findFileByIndexPath: root.findNodeByIndPath(path) failed: " + error);
+      return null;
+    }
+    if (!(model.item(left) instanceof FileHandle fileHandle)) {
+      String error = String.format("model.item(%s): %s isn't file", left, model.getFullPath(""));
+      LoggingJs.error(error);
+      return null;
+    }
+    return fileHandle;
+  }
+
   public void applyDiff(int[] path, boolean left) {
-    var model = (ItemFolderDiffModel) root.findNode(path);
+    var model = (ItemFolderDiffModel) root.findNodeByIndPath(path);
     if (model == null) {
       String error = root.describeError(path);
       LoggingJs.debug("applyDiff: root.findNode(path) failed: " + error);
@@ -178,7 +193,7 @@ public class RemoteCollector {
   }
 
   public void fileSave(int[] path, boolean left, Object source, String encoding) {
-    var model = (ItemFolderDiffModel) root.findNode(path);
+    var model = (ItemFolderDiffModel) root.findNodeByIndPath(path);
     var item = (FileHandle) (left ? model.left() : model.right());
     LoggingJs.debug("fileSave " + item + ", encoding = " + encoding);
     item.writeText(source, encoding, () -> cmpFilesAndSend(model, item), this::onError);

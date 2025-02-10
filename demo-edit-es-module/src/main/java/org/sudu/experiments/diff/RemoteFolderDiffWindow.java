@@ -640,9 +640,10 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   private void sendOpenFile(RemoteFileNode node, boolean left, int key) {
     var result = JsArray.create();
-    var path = getFullPath(node, left);
-    result.push(JsCast.jsInts(key));
-    result.push(JSString.valueOf(path));
+    var path = node.model().getPathFromRoot();
+    var ints = new int[] {key, left ? 1 : 0};
+    result.push(JsCast.jsInts(ints));
+    result.push(JsCast.jsInts(path));
     result.push(DiffModelChannelUpdater.OPEN_FILE_ARRAY);
     channel.sendMessage(result);
   }
