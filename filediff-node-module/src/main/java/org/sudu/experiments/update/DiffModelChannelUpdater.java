@@ -82,7 +82,6 @@ public class DiffModelChannelUpdater {
     boolean left = ints.get(1) == 1;
 
     var fileHandle = collector.findFileByIndexPath(indPath, left);
-    System.out.println("fileHandle = " + fileHandle.getFullPath());
     FileHandle.readTextFile(fileHandle,
         (source, encoding) -> postOpenFile(source, encoding, ints),
         error -> postError(error, ints)
