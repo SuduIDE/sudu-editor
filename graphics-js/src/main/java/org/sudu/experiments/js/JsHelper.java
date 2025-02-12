@@ -272,4 +272,8 @@ public class JsHelper {
   @NoSideEffects
   @JSBody(params = {"s", "prefix"}, script = "return s.startsWith(prefix);")
   public static native boolean startsWith(JSString s, String prefix);
+
+  @NoSideEffects
+  @JSBody(params = {"obj"}, script = "return JSON.stringify(obj);")
+  public static native JSString stringify(JSObject obj);
 }

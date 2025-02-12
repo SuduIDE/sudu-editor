@@ -120,4 +120,9 @@ public interface FileEncoding {
       return TextDecoder.decodeUtf8(data);
     }
   }
+
+  static boolean needGbk(byte[] bytes) {
+    boolean utf8 = isUtf8(bytes, true);
+    return  !utf8 && isGBK(bytes);
+  }
 }

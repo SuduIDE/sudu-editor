@@ -72,8 +72,8 @@ public class DiffEngine implements DiffEngineJs {
     FileHandle rightHandle = isRightFile ?
         JsFileInput.fileHandle(rightInput, true) : null;
 
-    boolean validatedLeft = isLeftFile ? leftHandle != null : isLeftText;
-    boolean validatedRight = isRightFile ? rightHandle != null : isRightText;
+    boolean validatedLeft = leftHandle != null || isLeftText;
+    boolean validatedRight = rightHandle != null || isRightText;
 
     if (!validatedLeft)
       LoggingJs.error(JsHelper.concat(
@@ -116,22 +116,29 @@ public class DiffEngine implements DiffEngineJs {
   }
 
   @Override
-  public JsFileDiffSession startFileEdit(JSString input, Channel channel) {
+  public JsFileDiffSession startFileEdit(JsFileInput input, Channel channel) {
     JsHelper.consoleInfo("Starting file edit ...");
 
     boolean isFile = JsFileInput.isPath(input);
+    boolean isText = !isFile && JsFileInput.isContent(input);
 
-    JSString str = isFile
-        ? JsFileInput.path(input)
-        : JsFileInput.getContent(input);
+    FileHandle fileHandle = isFile ?
+        JsFileInput.fileHandle(input, true) : null;
 
-    JsHelper.consoleInfo("  input: ", str);
+    boolean validate = fileHandle != null || isText;
+    if (!validate) {
+      LoggingJs.error(JsHelper.concat("startFileEdit bad file: ",
+          JsHelper.stringify(input)));
+      return null;
+    }
 
     FileEditChannelUpdater updater = new FileEditChannelUpdater(channel);
-    if (isFile) {
-      FileHandle handle = new NodeFileHandle(str);
-      updater.beginCompare(handle);
+    if (fileHandle != null) {
+      LoggingJs.info("  file: ".concat(fileHandle.toString()));
+      updater.setFile(fileHandle);
     } else {
+      JSString str = JsFileInput.getContent(input);
+      LoggingJs.info("  content, length = " + str.getLength());
       updater.sendMessage(str, null);
     }
     return new JsFileDiffSession0();

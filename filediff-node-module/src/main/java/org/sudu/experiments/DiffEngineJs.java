@@ -1,7 +1,6 @@
 package org.sudu.experiments;
 
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSString;
 
 public interface DiffEngineJs extends JSObject {
   void dispose();
@@ -27,7 +26,7 @@ public interface DiffEngineJs extends JSObject {
 //      channel: Channel
 //  ): FileDiffSession;
 
-  JsFileDiffSession startFileEdit(JSString path, Channel channel);
+  JsFileDiffSession startFileEdit(JsFileInput path, Channel channel);
 
   JsDiffTestApi testApi();
 }

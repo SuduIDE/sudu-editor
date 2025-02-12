@@ -3,6 +3,7 @@ package org.sudu.experiments.update;
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.encoding.JsTextFileReader;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
 import org.teavm.jso.JSObject;
@@ -18,10 +19,9 @@ public class FileEditChannelUpdater {
     this.channel = channel;
   }
 
-  public void beginCompare(FileHandle fileHandle) {
+  public void setFile(FileHandle fileHandle) {
     this.handle = fileHandle;
-    FileHandle.readTextFile(
-      handle, this::sendMessage, this::onError);
+    JsTextFileReader.read(handle, this::sendMessage, this::onError);
   }
 
   public void sendMessage(JSString source, JSString encoding) {
@@ -33,10 +33,6 @@ public class FileEditChannelUpdater {
     jsArray.set(1, encoding);
     jsArray.set(2, JSString.valueOf(handle.getName()));
     channel.sendMessage(jsArray);
-  }
-
-  private void sendMessage(String source, String encoding) {
-    sendMessage(JSString.valueOf(source), JSString.valueOf(encoding));
   }
 
   private void onError(String error) {
