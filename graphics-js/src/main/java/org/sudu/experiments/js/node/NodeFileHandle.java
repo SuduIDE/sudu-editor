@@ -156,7 +156,6 @@ public class NodeFileHandle extends NodeFileHandle0 {
       throw new IllegalArgumentException("Not a compatible DirectoryHandle");
     JSString from = jsPath();
     JSString to = nodeDir.jsPath();
-    JSString toParent = Fs.pathDirname(to);
     Fs fs = Fs.fs();
 
 //    if (debug) JsHelper.consoleInfo(
@@ -164,13 +163,14 @@ public class NodeFileHandle extends NodeFileHandle0 {
 //            JsHelper.concat("file copy: ", from),
 //            JsHelper.concat(" -> ", to)));
 
-    if (!fs.existsSync(toParent)) {
-      fs.mkdirSync(toParent, Fs.mkdirOptions(true));
+    if (!fs.existsSync(to)) {
+      fs.mkdirSync(to, Fs.mkdirOptions(true));
     }
 
-    if (fs.existsSync(to)) {
+    var toFile = Fs.concatPath(to, nodeDir.sep, JSString.valueOf(name));
+    if (fs.existsSync(toFile)) {
       try {
-        fs.unlinkSync(to);
+        fs.unlinkSync(toFile);
       } catch (Exception e) {
         onError.accept(e.getMessage());
       }
