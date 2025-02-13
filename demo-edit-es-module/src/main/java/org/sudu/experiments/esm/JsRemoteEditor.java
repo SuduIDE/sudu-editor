@@ -9,6 +9,7 @@ import org.sudu.experiments.diff.JsEditorViewController0;
 import org.sudu.experiments.diff.JsViewController;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.js.*;
+import org.sudu.experiments.protocol.JsCast;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
@@ -27,6 +28,14 @@ public class JsRemoteEditor implements JsRemoteEditorView {
     editor = demoEdit0().editor();
     if (args.hasTheme()) setTheme(args.getTheme());
     controller = new JsEditorViewController0();
+    channel.setOnMessage(this::onMessage);
+  }
+
+  private void onMessage(JsArray<JSObject> jsArray) {
+    String source = JsCast.string(jsArray, 0);
+    String encoding = JsCast.string(jsArray, 1);
+    String name = JsCast.string(jsArray, 2);
+    editor.openFile(source, encoding, name);
   }
 
   @Override
