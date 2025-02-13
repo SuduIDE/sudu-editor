@@ -61,6 +61,9 @@ interface JsDiffTestApi extends JSObject {
   void testSshFileAsync(JsSshInput sshPath, JsFunctions.Runnable onComplete);
 
   void testDeleteFile(JsFileInput path, JsFunctions.Runnable onComplete);
+  void testCopyFile(
+      JsFileInput from, JsFileInput to,
+      JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onError);
 }
 
 public class DiffTestApi implements JsDiffTestApi {
@@ -324,6 +327,21 @@ public class DiffTestApi implements JsDiffTestApi {
         onComplete.f();
       });
     }
+  }
+
+  @Override
+  public void testCopyFile(
+      JsFileInput from, JsFileInput to,
+      JsFunctions.Runnable onComplete,
+      JsFunctions.Consumer<JSString> onError
+  ) {
+    var fhFrom = JsFileInput.fileHandle(from, true);
+    var fhTo = JsFileInput.fileHandle(to, false);
+    if (fhFrom == null) {
+      onError.f(JSString.valueOf("bad input file"));
+      return;
+    }
+    if (fhTo.canCopyTo())
   }
 
   static String shortText(String s) {
