@@ -23,10 +23,14 @@ public interface DiffEngineJs extends JSObject {
 
 //  startFileEdit(
 //      path: string,
-//      channel: Channel
+//      channel: Channel,
+//      folderDiff?: FolderDiffSession
 //  ): FileDiffSession;
 
-  JsFileDiffSession startFileEdit(JsFileInput path, Channel channel);
+  JsFileDiffSession startFileEdit(
+      JsFileInput path, Channel channel,
+      JsFolderDiffSession parent
+  );
 
   JsDiffTestApi testApi();
 }

@@ -116,7 +116,10 @@ public class DiffEngine implements DiffEngineJs {
   }
 
   @Override
-  public JsFileDiffSession startFileEdit(JsFileInput input, Channel channel) {
+  public JsFileDiffSession startFileEdit(
+      JsFileInput input, Channel channel,
+      JsFolderDiffSession parent
+  ) {
     JsHelper.consoleInfo("Starting file edit ...");
 
     boolean isFile = JsFileInput.isPath(input);

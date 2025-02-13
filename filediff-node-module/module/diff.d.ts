@@ -86,7 +86,10 @@ export interface DiffEngine extends IDisposable {
     folderDiff?: FolderDiffSession
   ): FileDiffSession;
 
-  startFileEdit(file: FileInput, channel: Channel): FileDiffSession;
+  startFileEdit(
+    file: FileInput, channel: Channel,
+    folderDiff?: FolderDiffSession
+  ): FileDiffSession;
 
   testApi(): DiffTestApi;
 }
