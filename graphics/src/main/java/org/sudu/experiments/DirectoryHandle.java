@@ -11,6 +11,7 @@ public interface DirectoryHandle extends FsItem {
   }
   void read(Reader reader);
 
+  @Deprecated
   void copyTo(String path, Runnable onComplete, Consumer<String> onError);
 
   void remove(Runnable onComplete, Consumer<String> onError);

@@ -136,7 +136,7 @@ public class SshFileHandle extends NodeFileHandle0 {
           onError.accept(e.getMessage());
         }
       });
-    }, JsHelper.wrapError("sftp.open error ", onError));
+    }, JsHelper.wrapError("sftp error ", onError));
   }
 
   void doRead(
@@ -194,7 +194,7 @@ public class SshFileHandle extends NodeFileHandle0 {
       return;
     }
 
-    var we = JsHelper.wrapError("sftp.open error ", onError);
+    var we = JsHelper.wrapError("sftp error ", onError);
     SshPool.sftp(credentials, sftp -> sftp.open(
         jsPath(), OPEN_MODE.write_or_create(), (e, newHandle) -> {
           if (JSObjects.isUndefined(e)) {
@@ -247,6 +247,13 @@ public class SshFileHandle extends NodeFileHandle0 {
 
   @Override
   public void remove(Runnable onComplete, Consumer<String> onError) {
-    onError.accept("unsupported operation");
+    var we = JsHelper.wrapError("sftp file remove error ", onError);
+    SshPool.sftp(credentials, sftp -> sftp.unlink(jsPath(),
+        error -> {
+          if (JSObjects.isUndefined(error))
+            onComplete.run();
+          else
+            we.f(error);
+        }), we);
   }
 }

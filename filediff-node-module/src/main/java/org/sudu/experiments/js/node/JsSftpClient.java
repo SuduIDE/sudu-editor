@@ -40,6 +40,9 @@ public interface JsSftpClient extends JSObject {
       JSString path,
       BiConsumer<JSError, JsArrayReader<DirEntry>> callback);
 
+  // Removes the file/symlink at path.
+  void unlink(JSString path, JsFunctions.Consumer<JSError> cb);
+
   // Retrieves attributes for path.
   void stat(JSString path, BiConsumer<JSError, Attrs> callback);
 

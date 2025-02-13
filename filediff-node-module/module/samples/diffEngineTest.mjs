@@ -228,6 +228,29 @@ function testNodeBuffer() {
   });
 }
 
+function testFileDeleteSsh(args) {
+  const ssh = sshConfig(args, 3);
+  const file = args[3 + 4];
+
+  if (!args || !file) {
+    console.log("args: ssh[4] fileToDelete");
+    mayBeExit();
+    return;
+  }
+
+  console.log("ssh", ssh);
+  console.log("file", file);
+
+  jobCount++;
+  module.testDeleteFile(
+      sshFile(ssh, file),
+      () => {
+        console.log("testFileReadWriteSsh.onComplete");
+        mayBeExit();
+      }
+  );
+}
+
 let args = process.argv;
 
 function runTest() {
@@ -305,6 +328,9 @@ function runTest() {
       testNodeBuffer();
       return undefined;
     }
+    case "testFileDeleteSsh":
+      return testFileDeleteSsh(args);
+
     default:
       mayBeExit();
       return "not running any test";

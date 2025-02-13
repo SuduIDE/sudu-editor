@@ -62,7 +62,9 @@ public class NodeDirectoryHandle extends NodeDirectoryHandle0 {
     if (!Fs.fs().existsSync(toParent)) {
       Fs.fs().mkdirSync(toParent, Fs.mkdirOptions(true));
     }
-    Fs.fs().cp(from, to, Fs.cpOptions(true, true), NodeFs.callback(onComplete, onError));
+    Fs.fs().cp(from, to,
+        Fs.cpOptions(true, true),
+        NodeFs.callback(onComplete, onError));
   }
 
   @Override

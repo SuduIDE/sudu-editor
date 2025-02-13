@@ -59,6 +59,8 @@ interface JsDiffTestApi extends JSObject {
   void testSshFile(JsSshInput sshPath, JsFunctions.Runnable onComplete);
   void testSshDirAsync(JsSshInput sshPath, JsFunctions.Runnable onComplete);
   void testSshFileAsync(JsSshInput sshPath, JsFunctions.Runnable onComplete);
+
+  void testDeleteFile(JsFileInput path, JsFunctions.Runnable onComplete);
 }
 
 public class DiffTestApi implements JsDiffTestApi {
@@ -308,6 +310,19 @@ public class DiffTestApi implements JsDiffTestApi {
         JsHelper.consoleInfo(" text: " + shortText(FileEncoding.decodeText(bytes)));
         onComplete.f();
       }, TestJobs.asyncWithFile, file);
+    }
+  }
+
+  @Override
+  public void testDeleteFile(JsFileInput path, JsFunctions.Runnable onComplete) {
+    var fh = JsFileInput.fileHandle(path, true);
+    if (fh == null) {
+      JsHelper.consoleError2("bad path:", path);
+    } else {
+      fh.remove(onComplete::f, e -> {
+        JsHelper.consoleError("fire remove error: " + e);
+        onComplete.f();
+      });
     }
   }
 
