@@ -23,4 +23,5 @@ public interface JsIEditorView extends JsView {
   void revealPosition(JsPosition position);
 
   JsEditorViewController getController();
+  void setReadonly(boolean flag);
 }

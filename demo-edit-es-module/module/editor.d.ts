@@ -304,11 +304,11 @@ export interface IEditorView extends View, HasTheme, Focusable {
   getController(): EditorViewController;
 
   onControllerUpdate: IEvent<EditorViewController>
+
+  setReadonly(flag: boolean): void
 }
 
 export interface EditorView extends IEditorView, IDisposable {
-  setReadonly(flag: boolean): void
-
   setModel(model: ITextModel): void
 
   onDidChangeModel: IEvent<IModelChangedEvent>
