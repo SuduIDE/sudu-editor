@@ -2,6 +2,7 @@ package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.core.JSString;
 
@@ -60,18 +61,20 @@ public class NodeDirectoryHandle extends NodeDirectoryHandle0 {
     if (!(dir instanceof NodeDirectoryHandle nodeDir))
       throw new IllegalArgumentException("Not a compatible DirectoryHandle");
     JSString from = jsPath();
-    JSString to = nodeDir.jsPath();
+    JSString toParent = nodeDir.jsPath();
 
-//    LoggingJs.debug("copyTo: to, toParent");
-//    LoggingJs.debug(to);
-//    LoggingJs.debug(toParent);
-
-    if (!Fs.fs().existsSync(to)) {
-      Fs.fs().mkdirSync(to, Fs.mkdirOptions(true));
+    if (!Fs.fs().existsSync(toParent)) {
+      Fs.fs().mkdirSync(toParent, Fs.mkdirOptions(true));
     }
 
-    var toFile = Fs.concatPath(to, nodeDir.sep, JSString.valueOf(name));
-    Fs.fs().cp(from, toFile,
+    var to = Fs.concatPath(toParent, nodeDir.sep, JSString.valueOf(name));
+
+    if (true) JsHelper.consoleInfo(
+        JsHelper.concat(
+            JsHelper.concat("dir copy: ", from),
+            JsHelper.concat(" -> ", to)));
+
+    Fs.fs().cp(from, to,
         Fs.cpOptions(true, true),
         NodeFs.callback(onComplete, onError));
   }
