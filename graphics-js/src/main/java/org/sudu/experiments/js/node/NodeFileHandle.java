@@ -1,5 +1,6 @@
 package org.sudu.experiments.js.node;
 
+import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.JsHelper;
@@ -147,9 +148,14 @@ public class NodeFileHandle extends NodeFileHandle0 {
   }
 
   @Override
-  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
-    var from = jsPath();
-    var to = JSString.valueOf(path);
+  public void copyTo(
+      DirectoryHandle dir,
+      Runnable onComplete, Consumer<String> onError
+  ) {
+    if (!(dir instanceof NodeDirectoryHandle nodeDir))
+      throw new IllegalArgumentException("Not a compatible DirectoryHandle");
+    JSString from = jsPath();
+    JSString to = nodeDir.jsPath();
     JSString toParent = Fs.pathDirname(to);
     Fs fs = Fs.fs();
 

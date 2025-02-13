@@ -1,5 +1,6 @@
 package org.sudu.experiments.js.node;
 
+import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.core.JSString;
@@ -50,9 +51,16 @@ public class NodeDirectoryHandle extends NodeDirectoryHandle0 {
   }
 
   @Override
-  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
+  public boolean canCopyTo(DirectoryHandle dir) {
+    return super.canCopyTo(dir);
+  }
+
+  @Override
+  public void copyTo(DirectoryHandle dir, Runnable onComplete, Consumer<String> onError) {
+    if (!(dir instanceof NodeDirectoryHandle nodeDir))
+      throw new IllegalArgumentException("Not a compatible DirectoryHandle");
     JSString from = jsPath();
-    JSString to = JSString.valueOf(path);
+    JSString to = nodeDir.jsPath();
     JSString toParent = Fs.pathDirname(to);
 
 //    LoggingJs.debug("copyTo: to, toParent");

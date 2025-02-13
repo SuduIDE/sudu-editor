@@ -11,8 +11,9 @@ public interface DirectoryHandle extends FsItem {
   }
   void read(Reader reader);
 
-
-  boolean canCopyTo(DirectoryHandle dir);
+  default boolean canCopyTo(DirectoryHandle dir) {
+    return false;
+  }
 
   void copyTo(DirectoryHandle dir, Runnable onComplete, Consumer<String> onError);
 

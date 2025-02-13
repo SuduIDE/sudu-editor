@@ -1,5 +1,6 @@
 package org.sudu.experiments.js.node;
 
+import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.ArrayOp;
@@ -81,10 +82,7 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
   }
 
   @Override
-  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
-    JSString from = jsPath();
-    JSString to = JSString.valueOf(path);
-    JSString toParent = Fs.pathDirname(to);
+  public void copyTo(DirectoryHandle dir, Runnable onComplete, Consumer<String> onError) {
     onError.accept("not implemented yet");
   }
 

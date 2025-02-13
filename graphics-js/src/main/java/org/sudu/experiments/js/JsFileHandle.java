@@ -1,5 +1,6 @@
 package org.sudu.experiments.js;
 
+import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
 import org.teavm.jso.core.JSError;
@@ -133,7 +134,10 @@ public class JsFileHandle implements FileHandle {
   }
 
   @Override
-  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
+  public void copyTo(
+      DirectoryHandle dir,
+      Runnable onComplete, Consumer<String> onError
+  ) {
     onError.accept("not implemented");
   }
 
