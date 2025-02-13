@@ -6,6 +6,7 @@ import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.encoding.JsTextFileReader;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
+import org.sudu.experiments.protocol.JsCast;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
@@ -17,11 +18,18 @@ public class FileEditChannelUpdater {
 
   public FileEditChannelUpdater(Channel channel) {
     this.channel = channel;
+    this.channel.setOnMessage(this::onMessage);
   }
 
   public void setFile(FileHandle fileHandle) {
     this.handle = fileHandle;
     JsTextFileReader.read(handle, this::sendMessage, this::onError);
+  }
+
+  public void onMessage(JsArray<JSObject> jsArray) {
+    String source = JsCast.string(jsArray, 0);
+    String encoding = JsCast.string(jsArray, 1);
+    handle.writeText(source, encoding, () -> {}, this::onError);
   }
 
   public void sendMessage(JSString source, JSString encoding) {

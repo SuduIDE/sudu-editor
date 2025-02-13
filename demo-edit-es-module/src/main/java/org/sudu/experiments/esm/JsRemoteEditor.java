@@ -29,6 +29,7 @@ public class JsRemoteEditor implements JsRemoteEditorView {
     if (args.hasTheme()) setTheme(args.getTheme());
     controller = new JsEditorViewController0();
     channel.setOnMessage(this::onMessage);
+    editor.setOnDiffMadeListener((_1, _2, _3) -> onEdit());
   }
 
   private void onMessage(JsArray<JSObject> jsArray) {
@@ -36,6 +37,15 @@ public class JsRemoteEditor implements JsRemoteEditorView {
     String encoding = JsCast.string(jsArray, 1);
     String name = JsCast.string(jsArray, 2);
     editor.openFile(source, encoding, name);
+  }
+
+  private void onEdit() {
+    JSString source = JsCast.jsString(editor.model().document.makeString());
+    JSString encoding = JSString.valueOf(editor.model().encoding());
+    JsArray<JSObject> jsArray = JsArray.create();
+    jsArray.set(0, source);
+    jsArray.set(1, encoding);
+    channel.sendMessage(jsArray);
   }
 
   @Override
