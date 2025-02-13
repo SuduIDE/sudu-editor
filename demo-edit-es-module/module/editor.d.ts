@@ -399,11 +399,11 @@ export interface EditorViewController extends ViewController {
   getSelection(): undefined
 }
 
-export interface ExternalFileOpener {
+export interface DiffExternalFileOpener {
   // All paths are absolute
   openFileDiff(leftPath: string, rightPath: string): void
 
-  openEditor(path: string): void
+  openEditor(path: string, isLeft: boolean): void
 }
 
 export interface RemoteFolderDiffView extends IFolderDiffView, IDisposable {
@@ -411,7 +411,7 @@ export interface RemoteFolderDiffView extends IFolderDiffView, IDisposable {
 
   applyState(state: any): void
 
-  setExternalFileOpener(opener: ExternalFileOpener | null): void
+  setExternalFileOpener(opener: DiffExternalFileOpener | null): void
 }
 
 export interface RemoteFileDiffView extends IFileDiffView, IDisposable {
