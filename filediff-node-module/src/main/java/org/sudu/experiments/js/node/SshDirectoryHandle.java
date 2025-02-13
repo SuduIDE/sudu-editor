@@ -40,6 +40,10 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
     return lastIndexOf < 0 ? jsPath : jsPath.slice(lastIndexOf + 1);
   }
 
+  public String getFullPathWithHost() {
+    return credentials.host.toString() + getFullPath();
+  }
+
   @Override
   public void read(Reader reader) {
     SshPool.sftp(credentials,

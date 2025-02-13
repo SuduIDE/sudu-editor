@@ -12,6 +12,7 @@ import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.js.node.SshDirectoryHandle;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
@@ -535,11 +536,15 @@ public class RemoteCollector {
   }
 
   private JsArray<JSObject> serializeBackendMessage(RemoteFolderDiffModel model, FrontendMessage message) {
-    String leftRootName = leftHandle().getFullPath();
-    String rightRootName = rightHandle().getFullPath();
+    String leftRootPath = leftHandle().getFullPath();
+    String leftRootName = rootName(leftHandle());
+    String rightRootPath = rightHandle().getFullPath();
+    String rightRootName = rootName(rightHandle());
     return BackendMessage.serialize(
         model, message,
+        leftRootPath,
         leftRootName,
+        rightRootPath,
         rightRootName,
         foldersCompared,
         filesCompared,
@@ -632,5 +637,10 @@ public class RemoteCollector {
     if (lastFilters.get(DiffTypes.INSERTED)) result += filesInserted;
     if (lastFilters.get(DiffTypes.DELETED)) result += filesDeleted;
     return result;
+  }
+
+  private String rootName(DirectoryHandle handle) {
+    if (handle instanceof SshDirectoryHandle sshHandle) return sshHandle.getFullPathWithHost();
+    return handle.getFullPath();
   }
 }
