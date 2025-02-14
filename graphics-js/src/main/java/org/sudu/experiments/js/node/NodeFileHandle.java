@@ -1,6 +1,6 @@
 package org.sudu.experiments.js.node;
 
-import org.sudu.experiments.DirectoryHandle;
+import org.sudu.experiments.FsItem;
 import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.JsHelper;
@@ -149,7 +149,7 @@ public class NodeFileHandle extends NodeFileHandle0 {
 
   @Override
   public void copyTo(
-      DirectoryHandle dir,
+      FsItem dest,
       Runnable onComplete, Consumer<String> onError
   ) {
     if (!(dir instanceof NodeDirectoryHandle nodeDir))
@@ -157,6 +157,14 @@ public class NodeFileHandle extends NodeFileHandle0 {
     JSString from = jsPath();
     JSString to = nodeDir.jsPath();
     JSString toParent = Fs.pathDirname(to);
+
+    doCopy(onComplete, onError, from, to, toParent);
+  }
+
+  static void doCopy(
+      Runnable onComplete, Consumer<String> onError,
+      JSString from, JSString to, JSString toParent
+  ) {
     Fs fs = Fs.fs();
 
     if (!fs.existsSync(toParent)) {
@@ -175,11 +183,6 @@ public class NodeFileHandle extends NodeFileHandle0 {
         onError.accept(e.getMessage());
       }
     }
-
-    doCopy(onComplete, onError, from, to);
-  }
-
-  static void doCopy(Runnable onComplete, Consumer<String> onError, JSString from, JSString to) {
     try {
       Fs.fs().copyFileSync(from, to, 0);
       onComplete.run();
