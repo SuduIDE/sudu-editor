@@ -202,6 +202,7 @@ public class SshFileHandle extends NodeFileHandle0 {
             if (debugOpenClose) JsHelper.consoleInfo2(
                 "sftp.open_for_write completed handle =", debugHandle(),
                 ", path=", jsPath());
+            attrs = null;
             sftp.write(handle,
                 JsBuffer.from(data), 0, data.length, 0,
                 error -> {

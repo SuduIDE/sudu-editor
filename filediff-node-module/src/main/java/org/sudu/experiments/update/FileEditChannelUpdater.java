@@ -23,13 +23,13 @@ public class FileEditChannelUpdater {
 
   public void setFile(FileHandle fileHandle) {
     this.handle = fileHandle;
-    JsTextFileReader.read(handle, this::sendMessage, this::onError);
+    JsTextFileReader.read(handle, this::sendMessage, this::onReadError);
   }
 
   public void onMessage(JsArray<JSObject> jsArray) {
     String source = JsCast.string(jsArray, 0);
     String encoding = JsCast.string(jsArray, 1);
-    handle.writeText(source, encoding, () -> {}, this::onError);
+    handle.writeText(source, encoding, () -> onWriteComplete(source), this::onWriteError);
   }
 
   public void sendMessage(JSString source, JSString encoding) {
@@ -43,7 +43,24 @@ public class FileEditChannelUpdater {
     channel.sendMessage(jsArray);
   }
 
-  private void onError(String error) {
+  private void onWriteComplete(String source) {
+    if (!debug) return;
+    String info = "Write complete" +
+        ", Source length = " + source.length() +
+        ", handle " + handle;
+    LoggingJs.debug(info);
+    handle.getSize(this::onSizeGet);
+  }
+
+  private void onSizeGet(int size) {
+    LoggingJs.debug("Size: " + size + ", handle: " + handle);
+  }
+
+  private void onReadError(String error) {
     LoggingJs.log(LoggingJs.ERROR, "Can't read file: " + error);
+  }
+
+  private void onWriteError(String error) {
+    LoggingJs.log(LoggingJs.ERROR, "Can't write file: " + error);
   }
 }
