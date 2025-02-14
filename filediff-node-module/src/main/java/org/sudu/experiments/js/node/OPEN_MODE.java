@@ -21,7 +21,7 @@ public abstract class OPEN_MODE implements JSObject {
   }
 
   public static int write_or_create() {
-    return OPEN_MODE().WRITE() | OPEN_MODE().CREAT();
+    return OPEN_MODE().WRITE() | OPEN_MODE().CREAT() | OPEN_MODE().TRUNC();
   }
 
   @JSProperty("READ")
@@ -32,4 +32,6 @@ public abstract class OPEN_MODE implements JSObject {
   public native int APPEND();
   @JSProperty("CREAT")
   public native int CREAT();
+  @JSProperty("TRUNC")
+  public native int TRUNC();
 }
