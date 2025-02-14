@@ -100,7 +100,8 @@ public class EditorComponent extends View implements
   Runnable hScrollListener, vScrollListener;
   Consumer<EditorComponent> fullFileParseListener;
   TriConsumer<EditorComponent, Integer, Integer> iterativeParseFileListener;
-  TriConsumer<EditorComponent, Diff, Boolean> onDiffMadeListener;
+  TriConsumer<EditorComponent, Diff, Boolean> updateModelOnDiffListener;
+  Consumer<EditorComponent> onDiffMadeListener;
   int vScrollPos = 0;
 
   final ClrContext lrContext;
@@ -161,7 +162,11 @@ public class EditorComponent extends View implements
     iterativeParseFileListener = listener;
   }
 
-  public void setOnDiffMadeListener(TriConsumer<EditorComponent, Diff, Boolean> listener) {
+  public void setUpdateModelOnDiffListener(TriConsumer<EditorComponent, Diff, Boolean> listener) {
+    updateModelOnDiffListener = listener;
+  }
+
+  public void setOnDiffMadeListener(Consumer<EditorComponent> listener) {
     onDiffMadeListener = listener;
   }
 
@@ -1799,9 +1804,16 @@ public class EditorComponent extends View implements
   }
 
   @Override
-  public void onDiffMade(Diff diff, boolean isUndo) {
+  public void updateModelOnDiff(Diff diff, boolean isUndo) {
+    if (updateModelOnDiffListener != null) {
+      updateModelOnDiffListener.accept(this, diff, isUndo);
+    }
+    window().repaint();
+  }
+
+  public void onDiffMade() {
     if (onDiffMadeListener != null) {
-      onDiffMadeListener.accept(this, diff, isUndo);
+      onDiffMadeListener.accept(this);
     }
     window().repaint();
   }

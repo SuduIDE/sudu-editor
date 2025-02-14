@@ -39,12 +39,14 @@ class FileDiffRootView extends DiffRootView {
 
     editor1.setFullFileParseListener(parseListener);
     editor1.setIterativeParseFileListener(iterativeParseListener);
+    editor1.setUpdateModelOnDiffListener(this::updateModelOnDiffMadeListener);
     editor1.setOnDiffMadeListener(this::onDiffMadeListener);
     editor1.highlightResolveError(false);
     editor1.setMirrored(true);
 
     editor2.setFullFileParseListener(parseListener);
     editor2.setIterativeParseFileListener(iterativeParseListener);
+    editor2.setUpdateModelOnDiffListener(this::updateModelOnDiffMadeListener);
     editor2.setOnDiffMadeListener(this::onDiffMadeListener);
     editor2.highlightResolveError(false);
 
@@ -100,8 +102,6 @@ class FileDiffRootView extends DiffRootView {
 
   private void iterativeParseFileListener(EditorComponent editor, int start, int stop) {
     boolean isL = editor == editor1;
-    if (isL) onLeftDiffMade();
-    else onRightDiffMade();
 
     if (diffModel == null) return;
     int startLine = editor.model().document.getLine(start).x;
@@ -132,11 +132,17 @@ class FileDiffRootView extends DiffRootView {
     toModel.document.applyChange(toStartLine, toEndLine, lines);
   }
 
-  private void onDiffMadeListener(EditorComponent editor, Diff diff, boolean isUndo) {
+  private void updateModelOnDiffMadeListener(EditorComponent editor, Diff diff, boolean isUndo) {
     boolean isDelete = diff.isDelete ^ isUndo;
     boolean isL = editor == editor1;
     if (isDelete) onDeleteDiffMadeListener(diff, isL);
     else onInsertDiffMadeListener(diff, isL);
+  }
+
+  private void onDiffMadeListener(EditorComponent editor) {
+    boolean left = editor == editor1;
+    if (left) onLeftDiffMade();
+    else onRightDiffMade();
   }
 
   private void onInsertDiffMadeListener(Diff diff, boolean isL) {
