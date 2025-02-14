@@ -36,7 +36,7 @@ public class JsRemoteEditor implements JsRemoteEditorView {
     String source = JsCast.string(jsArray, 0);
     String encoding = JsCast.string(jsArray, 1);
     String name = JsCast.string(jsArray, 2);
-    editor.openFile(source, encoding, name);
+    editor.openFile(source, name, encoding);
   }
 
   private void onEdit() {
