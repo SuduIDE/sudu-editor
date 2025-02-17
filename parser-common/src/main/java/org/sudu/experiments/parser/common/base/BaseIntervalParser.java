@@ -133,7 +133,8 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
     N = tokensByLine.length;
     M = filter(tokensByLine);
 
-    var node = getLinesIntervalNode(tokensByLine);
+    var node = defaultIntervalNode();
+    node.addChild(defaultInterval());
     node.interval.start += intervalStart;
     node.interval.stop += intervalStart;
     for (var child: node.children) {

@@ -10,11 +10,12 @@ public interface Languages {
   String JAVA = "java";
   String CPP = "cpp";
   String JS = "js";
+  String TS = "ts";
   String ACTIVITY = "activity";
   String HTML = "html";
 
   static String[] getAllLanguages() {
-    return new String[]{TEXT, JAVA, CPP, JS, ACTIVITY};
+    return new String[]{TEXT, JAVA, CPP, JS, TS, ACTIVITY};
   }
 
   static String getLanguage(String lang) {
@@ -39,6 +40,7 @@ public interface Languages {
         || path.endsWith(".h")) return CPP;
     if (path.endsWith(".java")) return JAVA;
     if (path.endsWith(".js")) return JS;
+    if (path.endsWith(".ts")) return TS;
     if (path.endsWith(".activity")) return ACTIVITY;
     if (path.endsWith(".html")
         || path.endsWith(".xml")) return HTML;
@@ -64,6 +66,7 @@ public interface Languages {
       case Languages.JAVA -> FileProxy.JAVA_FILE;
       case Languages.CPP -> FileProxy.CPP_FILE;
       case Languages.JS -> FileProxy.JS_FILE;
+      case Languages.TS -> FileProxy.TS_FILE;
       case Languages.ACTIVITY -> FileProxy.ACTIVITY_FILE;
       case Languages.HTML -> FileProxy.HTML_FILE;
       default -> {
