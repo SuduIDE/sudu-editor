@@ -80,6 +80,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private boolean isLastLeftFocused = false;
   private FrontendMessage lastSendFrontendMsg = FrontendMessage.empty();
 
+  private String leftRootPath, rightRootPath;
+
   public RemoteFolderDiffWindow(
       EditorColorScheme theme,
       WindowManager wm,
@@ -164,6 +166,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       updatedRoots = true;
       leftRoot.setLine(replaceSlashes(msg.leftRootName));
       rightRoot.setLine(replaceSlashes(msg.rightRootName));
+      leftRootPath = msg.leftRootPath;
+      rightRootPath = msg.rightRootPath;
       window.setTitle(msg.leftRootName + " <-> " + msg.rightRootName);
       if (!leftRoot.isOpened()) leftRoot.doOpen();
       if (!rightRoot.isOpened()) rightRoot.doOpen();
@@ -589,7 +593,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private String getFullPath(RemoteFileNode node, boolean left) {
-    return node.getFullPath(left ? leftRoot.name() : rightRoot.name());
+    return node.getFullPath(left ? leftRootPath : rightRootPath);
   }
 
   JsViewController find(ToolWindow0 w) {
@@ -691,6 +695,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         leftRoot,
         rightRoot,
         rootModel,
+        leftRootPath,
+        rightRootPath,
         searchString
     );
     FrontendState state = FrontendState.deserialize(serialized);

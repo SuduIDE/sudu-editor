@@ -22,6 +22,7 @@ public class FrontendState {
       RemoteFileTreeNode leftRoot,
       RemoteFileTreeNode rightRoot,
       RemoteFolderDiffModel modelRoot,
+      String leftPath, String rightPath,
       String searchQuery
   ) {
     int p = 0;
@@ -29,7 +30,11 @@ public class FrontendState {
     result.set(p++, jsInts(firstVisibleNode, leftSelectedNode, rightSelectedNode));
     var frontendMessage = FrontendMessage.mkFrontendMessage(leftRoot, rightRoot, modelRoot, searchQuery);
     JsArray<JSObject> serializedFrontend = FrontendMessage.serialize(frontendMessage);
-    JsArray<JSObject> serializedBackend = BackendMessage.serializeFullModel(modelRoot, leftRoot.name(), rightRoot.name());
+    JsArray<JSObject> serializedBackend = BackendMessage.serializeFullModel(
+        modelRoot,
+        leftPath, leftRoot.name(),
+        rightPath, rightRoot.name()
+    );
 
     result.set(p++, jsInts(serializedFrontend.getLength(), serializedBackend.getLength()));
 
