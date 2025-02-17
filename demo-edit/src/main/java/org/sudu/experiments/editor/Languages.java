@@ -39,7 +39,9 @@ public interface Languages {
         || path.endsWith(".c")
         || path.endsWith(".h")) return CPP;
     if (path.endsWith(".java")) return JAVA;
-    if (path.endsWith(".js")) return JS;
+    if (path.endsWith(".js")
+        || path.endsWith(".mjs")
+        || path.endsWith(".cjs")) return JS;
     if (path.endsWith(".ts")) return TS;
     if (path.endsWith(".activity")) return ACTIVITY;
     if (path.endsWith(".html")
