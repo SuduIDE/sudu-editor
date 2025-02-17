@@ -28,7 +28,8 @@ public class Document extends CodeLines {
   int currentVersion;
   int lastParsedVersion;
   double lastDiffTimestamp;
-  public BiConsumer<Diff, Boolean> onDiffMade;
+  public BiConsumer<Diff, Boolean> updateModelOnDiff;
+  public Runnable onDiffMade;
 
   public Document() {
     this(CodeLine.emptyLine());
@@ -130,11 +131,13 @@ public class Document extends CodeLines {
     }
 
     makeDiff(caretLine, caretCharPos, false, "\n");
+    onDiffMade();
   }
 
   public void concatLines(int caretLine) {
     concatLinesOp(caretLine);
     makeDiff(caretLine, strLength(caretLine), true, "\n");
+    onDiffMade();
   }
 
   private void concatLinesOp(int caretLine) {
@@ -153,16 +156,26 @@ public class Document extends CodeLines {
     }
 
     makeDiff(caretLine, 0, true, deleted);
+    onDiffMade();
   }
 
   public void applyChange(int fromLine, int toLine, CodeLine[] newLines) {
     Diff deleteDiff = deleteLines(fromLine, toLine);
-    if (newLines.length == 0) {
-      if (deleteDiff != null) diffs.add(ArrayOp.array(deleteDiff));
-      currentVersion++;
-      return;
-    }
+    Diff insertDiff = copyLines(fromLine, newLines);
+    if (deleteDiff == null && insertDiff == null) return;
+    onDiffMade();
 
+    Diff[] changeDiffs = new Diff[2];
+    int ptr = 0;
+    if (insertDiff != null) changeDiffs[ptr++] = insertDiff;
+    if (deleteDiff != null) changeDiffs[ptr++] = deleteDiff;
+    changeDiffs = Arrays.copyOf(changeDiffs, ptr);
+    diffs.add(changeDiffs);
+    currentVersion++;
+  }
+
+  private Diff copyLines(int fromLine, CodeLine[] newLines) {
+    if (newLines.length == 0) return null;
     String inserted = Arrays.stream(newLines)
         .map(CodeLine::makeString)
         .collect(Collectors.joining("\n", "", fromLine == length() ? "" : "\n"));
@@ -175,12 +188,7 @@ public class Document extends CodeLines {
     System.arraycopy(document, fromLine, newDocument, fromLine + newLines.length, document.length - fromLine);
 
     this.document = newDocument;
-
-    var changeDiffs = deleteDiff == null
-        ? ArrayOp.array(insertDiff)
-        : ArrayOp.array(insertDiff, deleteDiff);
-    diffs.add(changeDiffs);
-    currentVersion++;
+    return insertDiff;
   }
 
   public CodeLine[] getLines(int fromLine, int toLine) {
@@ -234,6 +242,7 @@ public class Document extends CodeLines {
       makeDiff(caretLine, caretCharPos, true, String.valueOf(getChar(caretLine, caretCharPos)));
       document[caretLine].deleteAt(caretCharPos);
     }
+    onDiffMade();
   }
 
   public void insertAt(int line, int pos, String value) {
@@ -243,6 +252,7 @@ public class Document extends CodeLines {
   public void insertLines(int line, int pos, String[] lines) {
     insertLinesOp(line, pos, lines);
     makeDiff(line, pos, false, String.join("\n", lines));
+    onDiffMade();
   }
 
   private void insertLinesOp(int line, int pos, String[] lines) {
@@ -315,6 +325,7 @@ public class Document extends CodeLines {
     deleteSelectedOp(selection);
     Selection.SelPos leftPos = selection.getLeftPos();
     makeDiff(leftPos.line, leftPos.charInd, true, selected);
+    onDiffMade();
   }
 
   private void deleteSelectedOp(Selection selection) {
@@ -483,7 +494,7 @@ public class Document extends CodeLines {
       tree.makeInsertDiff(posInDoc, diff.change.length());
       scopeGraph.makeInsertDiff(posInDoc, diff.change.length());
     }
-    onDiffMade(diff, false);
+    updateModelOnDiff(diff, false);
   }
 
   public V2i undoLastDiff() {
@@ -520,7 +531,7 @@ public class Document extends CodeLines {
       tree.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
       scopeGraph.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
     }
-    onDiffMade(diff, true);
+    updateModelOnDiff(diff, true);
     return diff.caretReturn;
   }
 
@@ -626,7 +637,11 @@ public class Document extends CodeLines {
     }
   }
 
-  private void onDiffMade(Diff diff, boolean isUndo) {
-    if (this.onDiffMade != null) onDiffMade.accept(diff, isUndo);
+  private void updateModelOnDiff(Diff diff, boolean isUndo) {
+    if (this.updateModelOnDiff != null) updateModelOnDiff.accept(diff, isUndo);
+  }
+
+  private void onDiffMade() {
+    if (onDiffMade != null) onDiffMade.run();
   }
 }

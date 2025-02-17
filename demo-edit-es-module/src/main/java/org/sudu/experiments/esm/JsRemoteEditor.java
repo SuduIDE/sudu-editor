@@ -29,7 +29,7 @@ public class JsRemoteEditor implements JsRemoteEditorView {
     if (args.hasTheme()) setTheme(args.getTheme());
     controller = new JsEditorViewController0();
     channel.setOnMessage(this::onMessage);
-    editor.setIterativeParseFileListener((_1, _2, _3) -> onEdit());
+    editor.setOnDiffMadeListener(this::onEdit);
   }
 
   private void onMessage(JsArray<JSObject> jsArray) {
@@ -39,7 +39,7 @@ public class JsRemoteEditor implements JsRemoteEditorView {
     editor.openFile(source, name, encoding);
   }
 
-  private void onEdit() {
+  private void onEdit(EditorComponent editor) {
     JSString source = JsCast.jsString(editor.model().document.makeString());
     JSString encoding = JSString.valueOf(editor.model().encoding());
     JsArray<JSObject> jsArray = JsArray.create();

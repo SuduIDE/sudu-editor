@@ -75,6 +75,7 @@ public class Model {
     this.uri = uri;
     docLanguage = language;
     document = new Document(text);
+    document.updateModelOnDiff = this::updateModelOnDiff;
     document.onDiffMade = this::onDiffMade;
   }
 
@@ -462,8 +463,12 @@ public class Model {
     return parsedVps.stream().anyMatch(it -> it.x <= editorFirstLine && editorLastLine <= it.y);
   }
 
-  private void onDiffMade(Diff diff, boolean isUndo) {
-    if (editor != null) editor.onDiffMade(diff, isUndo);
+  private void updateModelOnDiff(Diff diff, boolean isUndo) {
+    if (editor != null) editor.updateModelOnDiff(diff, isUndo);
+  }
+
+  private void onDiffMade() {
+    if (editor != null) editor.onDiffMade();
   }
 
   interface EditorToModel {
@@ -472,6 +477,7 @@ public class Model {
     void fireFullFileParsed();
 
     void fireFileIterativeParsed(int start, int stop);
-    void onDiffMade(Diff diff, boolean isUndo);
+    void updateModelOnDiff(Diff diff, boolean isUndo);
+    void onDiffMade();
   }
 }
