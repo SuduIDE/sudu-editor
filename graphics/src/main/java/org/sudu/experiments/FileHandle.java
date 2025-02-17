@@ -32,7 +32,11 @@ public interface FileHandle extends FsItem {
       Object text, String encoding,
       Runnable onComplete, Consumer<String> onError);
 
-  void copyTo(String path, Runnable onComplete, Consumer<String> onError);
+  default boolean canCopyTo(FsItem dst) {
+    return false;
+  }
+
+  void copyTo(FsItem dst, Runnable onComplete, Consumer<String> onError);
 
   void remove(Runnable onComplete, Consumer<String> onError);
 

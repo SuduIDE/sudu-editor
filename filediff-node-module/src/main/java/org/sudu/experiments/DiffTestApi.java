@@ -40,13 +40,13 @@ interface JsDiffTestApi extends JSObject {
       JsFunctions.Consumer<JSString> onError
   );
 
-  void testFileCopy(
+  void testNodeFsCopyFile(
       JSString src, JSString dest,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   );
 
-  void testDirCopy(
+  void testNodeFsCopyDirectory(
       JSString src, JSString dest,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
@@ -61,6 +61,10 @@ interface JsDiffTestApi extends JSObject {
   void testSshFileAsync(JsSshInput sshPath, JsFunctions.Runnable onComplete);
 
   void testDeleteFile(JsFileInput path, JsFunctions.Runnable onComplete);
+
+  void testCopyFileToFolder(
+      JsFileInput from, JsFolderInput toDir, JsFileInput toFile,
+      JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onError);
 }
 
 public class DiffTestApi implements JsDiffTestApi {
@@ -166,7 +170,7 @@ public class DiffTestApi implements JsDiffTestApi {
   }
 
   @Override
-  public void testFileCopy(
+  public void testNodeFsCopyFile(
       JSString src, JSString dest,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
@@ -184,7 +188,7 @@ public class DiffTestApi implements JsDiffTestApi {
   }
 
   @Override
-  public void testDirCopy(
+  public void testNodeFsCopyDirectory(
       JSString src, JSString dest,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
@@ -323,6 +327,30 @@ public class DiffTestApi implements JsDiffTestApi {
         JsHelper.consoleError("fire remove error: " + e);
         onComplete.f();
       });
+    }
+  }
+
+  @Override
+  public void testCopyFileToFolder(
+      JsFileInput from, JsFolderInput toDir, JsFileInput toFile,
+      JsFunctions.Runnable onComplete,
+      JsFunctions.Consumer<JSString> onError
+  ) {
+    var fhFrom = JsFileInput.fileHandle(from, true);
+    var fhToDir = JsFolderInput.directoryHandle(toDir);
+    var fhToFile = JsFileInput.fileHandle(toFile, false);
+    if (fhFrom == null) {
+      onError.f(JSString.valueOf("bad input file"));
+      return;
+    }
+    boolean canCopyTo = fhFrom.canCopyTo(fhToDir);
+    System.out.println("testCopyFileToFolder: fhFrom.canCopyTo(fhTo) = " + canCopyTo);
+
+    if (canCopyTo) {
+      fhFrom.copyTo(fhToDir, onComplete::f, error -> onError.f(
+          JSString.valueOf("FileHandle.copyTo error: " + error)));
+    } else {
+      onError.f(JSString.valueOf("canCopyTo == false"));
     }
   }
 

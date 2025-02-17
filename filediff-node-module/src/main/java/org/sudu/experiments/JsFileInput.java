@@ -13,9 +13,10 @@ import org.teavm.jso.core.JSString;
 public interface JsFileInput extends JSObject {
 
   static FileHandle fileHandle(JsFileInput input, boolean mustExists) {
-    if (isPath(input)) {
-      JSString path = path(input);
-      if (JsSshInput.hasSsh(input)) {
+    boolean isString = JSString.isInstance(input);
+    if (isString || hasPath(input)) {
+      JSString path = isString ? input.cast() : JsHasPath.getPath(input);
+      if (!isString && JsSshInput.hasSsh(input)) {
         JsSshCredentials ssh = JsSshInput.getSsh(input);
         return JSObjects.isUndefined(path) || JSObjects.isUndefined(ssh)
             ? null : new SshFileHandle(path, ssh);

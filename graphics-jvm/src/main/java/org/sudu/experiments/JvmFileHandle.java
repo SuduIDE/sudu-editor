@@ -134,7 +134,10 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
   }
 
   @Override
-  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
+  public void copyTo(
+      FsItem to,
+      Runnable onComplete, Consumer<String> onError
+  ) {
     onError.accept("not implemented");
   }
 

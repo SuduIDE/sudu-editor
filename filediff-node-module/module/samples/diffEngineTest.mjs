@@ -147,31 +147,42 @@ function testFileReadWriteSsh(args) {
   )
 }
 
-function testFileCopy(src, dest) {
+function onComplete(title) {
+  return () => {
+    console.log(title +
+        ".onComplete");
+    mayBeExit();
+  };
+}
+
+function onError(title) {
+  return (errorString) => {
+    console.log(title + ".onError: ", errorString);
+    mayBeExit();
+  };
+}
+
+function testNodeFsCopyFile(src, dest) {
   jobCount++;
-  module.testFileCopy(src, dest,
-      () => {
-        console.log("testFileCopy.onComplete");
-        mayBeExit();
-      },
-      (errorString) => {
-        console.log("testFileWrite.onError: ", errorString);
-        mayBeExit();
-      }
+  module.testNodeFsCopyFile(src, dest,
+      onComplete("testNodeFsCopyFile"),
+      onError("testNodeFsCopyFile")
   )
 }
 
-function testDirCopy(src, dest) {
+function testNodeFsCopyDirectory(src, dest) {
   jobCount++;
-  module.testDirCopy(src, dest,
-      () => {
-        console.log("testFileCopy.onComplete");
-        mayBeExit();
-      },
-      (errorString) => {
-        console.log("testFileWrite.onError: ", errorString);
-        mayBeExit();
-      }
+  module.testNodeFsCopyDirectory(src, dest,
+      onComplete("testNodeFsCopyDirectory"),
+      onError("testNodeFsCopyDirectory")
+  )
+}
+
+function testCopyFileToFolder(src, destDir, destFile) {
+  jobCount++;
+  module.testCopyFileToFolder(src, destDir, destFile,
+      onComplete("testCopyFileToFolder"),
+      onError("testCopyFileToFolder")
   )
 }
 
@@ -216,7 +227,7 @@ function testSsh(ssh, args) {
     }
   }
 
-  if (jobCount == 0) mayBeExit();
+  if (jobCount === 0) mayBeExit();
 
   return "testSsh";
 }
@@ -285,20 +296,31 @@ function runTest() {
     case "testFileReadWriteSsh":
       return testFileReadWriteSsh(args);
 
-    case "testFileCopy": {
+    case "testNodeFsCopyFile": {
       const src = args[3];
       const dest = args[4];
-      console.log("src", src);
-      console.log("dest", dest);
-      return testFileCopy(src, dest);
+      console.log("testNodeFsCopyFile: src", src);
+      console.log("testNodeFsCopyFile: dest", dest);
+      return testNodeFsCopyFile(src, dest);
     }
-    case "testDirCopy": {
+    case "testNodeFsCopyDirectory": {
       const src = args[3];
       const dest = args[4];
-      console.log("testDirCopy: src", src);
-      console.log("testDirCopy: dest", dest);
-      return testDirCopy(src, dest);
+      console.log("testNodeFsCopyDirectory: src", src);
+      console.log("testNodeFsCopyDirectory: dest", dest);
+      return testNodeFsCopyDirectory(src, dest);
     }
+
+    case "testCopyFileToFolder": {
+      const src = args[3];
+      const destDir = args[4];
+      const destFile = args[5];
+      console.log("testCopyFileToFolder: src", src);
+      console.log("testCopyFileToFolder: destDir", destDir);
+      console.log("testCopyFileToFolder: destFile", destFile);
+      return testCopyFileToFolder(src, destDir, destFile);
+    }
+
     case "testGbkEncoder": {
       return testGbkEncoder();
     }

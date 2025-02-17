@@ -9,7 +9,7 @@ import org.sudu.experiments.update.FileEditChannelUpdater;
 import org.teavm.jso.core.JSString;
 
 public class DiffEngine implements DiffEngineJs {
-  public static final boolean debug = false;
+  public static final boolean debug = true;
 
   final NodeWorkersPool pool;
 

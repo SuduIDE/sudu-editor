@@ -129,7 +129,7 @@ class JsDirectoryHandle implements DirectoryHandle {
   }
 
   @Override
-  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
+  public void copyTo(DirectoryHandle dst, Runnable onComplete, Consumer<String> onError) {
     onError.accept("not implemented");
   }
 

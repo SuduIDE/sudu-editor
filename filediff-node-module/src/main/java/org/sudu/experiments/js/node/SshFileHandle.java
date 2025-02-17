@@ -1,5 +1,6 @@
 package org.sudu.experiments.js.node;
 
+import org.sudu.experiments.FsItem;
 import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.GbkEncoding;
@@ -242,7 +243,7 @@ public class SshFileHandle extends NodeFileHandle0 {
   }
 
   @Override
-  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
+  public void copyTo(FsItem dir, Runnable onComplete, Consumer<String> onError) {
     onError.accept("unsupported operation");
   }
 

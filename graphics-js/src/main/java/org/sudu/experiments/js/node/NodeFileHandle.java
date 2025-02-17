@@ -1,5 +1,6 @@
 package org.sudu.experiments.js.node;
 
+import org.sudu.experiments.FsItem;
 import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.JsHelper;
@@ -147,20 +148,45 @@ public class NodeFileHandle extends NodeFileHandle0 {
   }
 
   @Override
-  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
-    var from = jsPath();
-    var to = JSString.valueOf(path);
-    JSString toParent = Fs.pathDirname(to);
-    Fs fs = Fs.fs();
+  public boolean canCopyTo(FsItem dst) {
+    return dst instanceof NodeDirectoryHandle
+        || dst instanceof NodeFileHandle;
+  }
 
-//    if (debug) JsHelper.consoleInfo(
-//        JsHelper.concat(
-//            JsHelper.concat("file copy: ", from),
-//            JsHelper.concat(" -> ", to)));
+  @Override
+  public void copyTo(
+      FsItem dest,
+      Runnable onComplete, Consumer<String> onError
+  ) {
+    JSString from = jsPath(), to, toParent;
+
+    if (dest instanceof NodeFileHandle file) {
+      to = file.jsPath();
+      toParent = Fs.pathDirname(to);
+    } else if (dest instanceof NodeDirectoryHandle dir) {
+      toParent = dir.jsPath();
+      to = Fs.concatPath(toParent, dir.sep, JSString.valueOf(name));
+    } else {
+       throw new IllegalArgumentException("copyTo: bad dest: " + dest);
+    }
+
+    doCopy(onComplete, onError, from, to, toParent);
+  }
+
+  static void doCopy(
+      Runnable onComplete, Consumer<String> onError,
+      JSString from, JSString to, JSString toParent
+  ) {
+    Fs fs = Fs.fs();
 
     if (!fs.existsSync(toParent)) {
       fs.mkdirSync(toParent, Fs.mkdirOptions(true));
     }
+
+    if (true) JsHelper.consoleInfo(
+        JsHelper.concat(
+            JsHelper.concat("file copy: ", from),
+            JsHelper.concat(" -> ", to)));
 
     if (fs.existsSync(to)) {
       try {
@@ -169,11 +195,6 @@ public class NodeFileHandle extends NodeFileHandle0 {
         onError.accept(e.getMessage());
       }
     }
-
-    doCopy(onComplete, onError, from, to);
-  }
-
-  static void doCopy(Runnable onComplete, Consumer<String> onError, JSString from, JSString to) {
     try {
       Fs.fs().copyFileSync(from, to, 0);
       onComplete.run();

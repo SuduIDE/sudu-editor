@@ -11,8 +11,19 @@ public interface DirectoryHandle extends FsItem {
   }
   void read(Reader reader);
 
-  @Deprecated
-  void copyTo(String path, Runnable onComplete, Consumer<String> onError);
+  default boolean canCopyTo(DirectoryHandle dir) {
+    return false;
+  }
+
+  void copyTo(DirectoryHandle dir, Runnable onComplete, Consumer<String> onError);
 
   void remove(Runnable onComplete, Consumer<String> onError);
+
+  default void createDirectory(
+      String name,
+      Consumer<DirectoryHandle> onComplete,
+      Consumer<String> onError
+  ) {
+    onError.accept("not implemented");
+  }
 }
