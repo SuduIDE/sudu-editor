@@ -6,6 +6,8 @@ import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.sudu.experiments.update.FileEditChannelUpdater;
+import org.teavm.jso.JSBody;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
 public class DiffEngine implements DiffEngineJs {
@@ -145,6 +147,25 @@ public class DiffEngine implements DiffEngineJs {
       updater.sendMessage(str, null);
     }
     return new JsFileDiffSession0();
+  }
+
+  @JSBody(params = { "name", "isFile" },
+      script = "return { name:name, isFile:isFile};")
+  static native JSObject newFolderListingEntry(JSString name, boolean isFile);
+
+  @Override
+  public Promise<JsArray<JSObject>> listRemoteDirectory(
+      JsSshInput sshInput, boolean withFiles
+  ) {
+    return Promise.create(
+        (resolve, reject) -> {
+          var array = JsArray.create();
+          array.push(newFolderListingEntry(JSString.valueOf("test1"), false));
+          array.push(newFolderListingEntry(JSString.valueOf("test2"), false));
+          array.push(newFolderListingEntry(JSString.valueOf("test3"), false));
+          resolve.f(array);
+        }
+    );
   }
 
   @Override
