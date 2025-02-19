@@ -33,16 +33,24 @@ public class FileDiffWorker {
 
   static void asyncMethod(String method, Object[] a, Consumer<Object[]> r) {
     switch (method) {
-      case TestJobs.asyncWithFile -> TestJobs.asyncWithFile(ArgsCast.file(a, 0), r);
-      case TestJobs.asyncWithDir -> TestJobs.asyncWithDir(ArgsCast.dir(a, 0), r);
-      case DiffUtils.CMP_FILES -> DiffUtils.compareFiles(ArgsCast.file(a, 0), ArgsCast.file(a, 1), r);
-      case DiffUtils.CMP_FOLDERS -> DiffUtils.compareFolders(ArgsCast.dir(a, 0), ArgsCast.dir(a, 1), r);
-      case DiffUtils.READ_FOLDER -> DiffUtils.readFolder(ArgsCast.dir(a, 0), ArgsCast.array(a, 1).ints(), r);
+      case TestJobs.asyncWithFile -> TestJobs.asyncWithFile(
+          ArgsCast.file(a, 0), r);
+      case TestJobs.asyncWithDir -> TestJobs.asyncWithDir(
+          ArgsCast.dir(a, 0), r);
+      case DiffUtils.CMP_FILES -> DiffUtils.compareFiles(
+          ArgsCast.file(a, 0), ArgsCast.file(a, 1), r);
+      case DiffUtils.CMP_FOLDERS -> DiffUtils.compareFolders(
+          ArgsCast.dir(a, 0), ArgsCast.dir(a, 1), r);
+      case DiffUtils.READ_FOLDER -> DiffUtils.readFolder(
+          ArgsCast.dir(a, 0), ArgsCast.array(a, 1).ints(), r);
       case DiffUtils.REREAD_FOLDER -> DiffUtils.rereadFolder(
           ArgsCast.dir(a, 0),
           ArgsCast.array(a, 1).ints(),
           ArgsCast.array(a, 2).chars(), r
       );
+      case DiffUtils.asyncListDirectory -> DiffUtils.listDirectory(
+          ArgsCast.dir(a, 0), r);
+
       default -> System.out.println("asyncMethod = " + method);
     }
   }

@@ -11,6 +11,7 @@ import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.editor.Document;
+import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.ui.fs.*;
 import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
@@ -234,5 +235,34 @@ public class DiffUtils {
           result.accept(model);
         }, FIND_DIFFS,
         chars1, intervals1, chars2, intervals2, new int[] {0});
+  }
+
+  public static final String asyncListDirectory = "asyncListDirectory";
+
+  public static void listDirectory(
+      DirectoryHandle handle, Consumer<Object[]> r
+  ) {
+    handle.read(new DirectoryHandle.Reader() {
+      final ArrayList<FsItem> items = new ArrayList<>();
+      @Override
+      public void onDirectory(DirectoryHandle dir) {
+        items.add(dir);
+      }
+
+      @Override
+      public void onFile(FileHandle file) {
+        items.add(file);
+      }
+
+      @Override
+      public void onComplete() {
+        ArrayOp.sendArrayList(items, r);
+      }
+
+      @Override
+      public void onError(String error) {
+        r.accept(new Object[] {error});
+      }
+    });
   }
 }
