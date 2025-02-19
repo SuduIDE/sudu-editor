@@ -71,6 +71,16 @@ export type SshInput = { path: string, ssh: SshCredentials }
 export type FileInput = { path: string } | { content: string } | SshInput;
 export type FolderInput = string | SshInput;
 
+export enum FileOrFolder {
+  File, Folder
+}
+
+export type FolderListingEntry = {
+  name: string,
+  type: FileOrFolder
+}
+
+
 // java class: org.sudu.experiments.DiffEngineJs
 export interface DiffEngine extends IDisposable {
   // todo add boolean content
@@ -90,6 +100,8 @@ export interface DiffEngine extends IDisposable {
     file: FileInput, channel: Channel,
     folderDiff?: FolderDiffSession
   ): FileDiffSession;
+
+  listRemoteDirectory(sshInput: SshInput, withFiles: boolean): Promise<FolderListingEntry[]>;
 
   testApi(): DiffTestApi;
 }
