@@ -232,7 +232,7 @@ function testFileDeleteSsh(args) {
   const ssh = sshConfig(args, 3);
   const file = args[3 + 4];
 
-  if (!args || !file) {
+  if (!ssh || !file) {
     console.log("args: ssh[4] fileToDelete");
     mayBeExit();
     return;
@@ -250,6 +250,32 @@ function testFileDeleteSsh(args) {
       }
   );
 }
+
+function testListRemoteDirectory(args) {
+  const ssh = sshConfig(args, 3);
+  const dir = args[3 + 4];
+
+  if (!ssh || !dir) {
+    console.log("args: ssh[4] dir");
+    mayBeExit();
+    return;
+  }
+
+  console.log("ssh", ssh);
+  console.log("dir", dir);
+
+  jobCount++;
+  diffEngine.listRemoteDirectory(sshFile(ssh, dir), true).then(
+      list => {
+        console.log("listRemoteDirectory: ", list);
+        mayBeExit();
+      }, error => {
+        console.error("listRemoteDirectory error: ", error);
+        mayBeExit();
+      }
+  );
+}
+
 
 let args = process.argv;
 
@@ -330,6 +356,9 @@ function runTest() {
     }
     case "testFileDeleteSsh":
       return testFileDeleteSsh(args);
+
+    case "testListRemoteDirectory":
+      return testListRemoteDirectory(args);
 
     default:
       mayBeExit();
