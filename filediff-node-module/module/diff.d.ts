@@ -71,15 +71,7 @@ export type SshInput = { path: string, ssh: SshCredentials }
 export type FileInput = { path: string } | { content: string } | SshInput;
 export type FolderInput = string | SshInput;
 
-export enum FileOrFolder {
-  File, Folder
-}
-
-export type FolderListingEntry = {
-  name: string,
-  type: FileOrFolder
-}
-
+export type FolderListingEntry = { name: string, isFile: boolean };
 
 // java class: org.sudu.experiments.DiffEngineJs
 export interface DiffEngine extends IDisposable {

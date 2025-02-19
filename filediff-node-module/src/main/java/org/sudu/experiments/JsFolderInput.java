@@ -17,6 +17,10 @@ public abstract class JsFolderInput implements JSObject {
       return Fs.isDirectory(localPath) ?
           new NodeDirectoryHandle(localPath) : null;
     }
+    return sshHandle(input.cast());
+  }
+
+  public static DirectoryHandle sshHandle(JsSshInput input) {
     if (JsSshInput.isInstance(input)) {
       JSString path = JsHasPath.getPath(input);
       JsSshCredentials ssh = JsSshInput.getSsh(input);

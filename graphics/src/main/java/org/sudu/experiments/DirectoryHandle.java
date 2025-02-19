@@ -8,6 +8,11 @@ public interface DirectoryHandle extends FsItem {
     default void onDirectory(DirectoryHandle dir) {}
     default void onFile(FileHandle file) {}
     default void onComplete() {}
+    default void onError(String error) {
+      System.err.println(getClass().getSimpleName() +
+          " read directory error: " + error);
+      onComplete();
+    }
   }
   void read(Reader reader);
 

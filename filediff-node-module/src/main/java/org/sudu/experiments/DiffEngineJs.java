@@ -1,5 +1,8 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.js.Promise;
+import org.sudu.experiments.js.node.JsSshInput;
 import org.teavm.jso.JSObject;
 
 public interface DiffEngineJs extends JSObject {
@@ -31,6 +34,9 @@ public interface DiffEngineJs extends JSObject {
       JsFileInput path, Channel channel,
       JsFolderDiffSession parent
   );
+
+  Promise<JsArray<JSObject>> listRemoteDirectory(
+      JsSshInput sshInput, boolean withFiles);
 
   JsDiffTestApi testApi();
 }

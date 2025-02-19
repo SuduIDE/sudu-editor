@@ -1,11 +1,14 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.*;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.sudu.experiments.update.FileEditChannelUpdater;
+import org.teavm.jso.JSBody;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
 public class DiffEngine implements DiffEngineJs {
@@ -145,6 +148,47 @@ public class DiffEngine implements DiffEngineJs {
       updater.sendMessage(str, null);
     }
     return new JsFileDiffSession0();
+  }
+
+  @JSBody(params = { "name", "isFile" },
+      script = "return { name:name, isFile:isFile};")
+  static native JSObject newFolderListingEntry(String name, boolean isFile);
+
+  @Override
+  public Promise<JsArray<JSObject>> listRemoteDirectory(
+      JsSshInput sshInput, boolean withFiles
+  ) {
+
+    DirectoryHandle dir = JsFolderInput.sshHandle(sshInput);
+    if (dir == null) return Promise.reject("bad sshInput");
+
+    return Promise.create((resolve, reject) ->
+        pool.sendToWorker(true,
+            r -> publishRemoteDirectory(r, resolve, reject),
+            DiffUtils.asyncListDirectory, dir)
+    );
+  }
+
+  static void publishRemoteDirectory(
+      Object[] packet,
+      JsFunctions.Consumer<JsArray<JSObject>> resolve,
+      JsFunctions.Consumer<JSObject> reject
+  ) {
+    if (packet.length > 0 && packet[0] instanceof String message) {
+      reject.f(JSString.valueOf(message));
+    } else {
+      var array = JsArray.create();
+      for (Object entry : packet) {
+        if (entry instanceof FsItem item) {
+          boolean isFile = entry instanceof FileHandle;
+          array.push(newFolderListingEntry(item.getName(), isFile));
+        } else {
+          System.err.println(
+              DiffUtils.asyncListDirectory + ": bad data: " + entry);
+        }
+      }
+      resolve.f(array);
+    }
   }
 
   @Override
