@@ -21,5 +21,4 @@ public class HtmlHighlight {
       else if (type == HTMLLexer.ERROR) tokenTypes[ind] = ParserConstants.TokenTypes.ERROR;
     }
   }
-
 }

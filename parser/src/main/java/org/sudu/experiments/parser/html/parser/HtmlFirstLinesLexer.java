@@ -9,7 +9,7 @@ import org.sudu.experiments.parser.html.HtmlSplitRules;
 import org.sudu.experiments.parser.html.gen.HTMLLexer;
 import org.sudu.experiments.parser.html.gen.HTMLParser;
 
-public class HtmlFirstLineLexer extends BaseFirstLinesLexer<HTMLParser> {
+public class HtmlFirstLinesLexer extends BaseFirstLinesLexer<HTMLParser> {
 
   @Override
   protected Lexer initLexer(CharStream stream) {

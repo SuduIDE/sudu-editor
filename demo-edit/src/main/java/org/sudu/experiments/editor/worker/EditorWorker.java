@@ -39,6 +39,7 @@ public class EditorWorker {
       case JavaScriptProxy.PARSE_FULL_FILE -> javascriptProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
       case TypeScriptProxy.PARSE_FULL_FILE -> typescriptProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
       case HtmlProxy.PARSE_FULL_FILE -> htmlProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
+      case JsonProxy.PARSE_FULL_FILE -> jsonProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
       case TextProxy.PARSE_FULL_FILE -> textProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
       case ScopeProxy.RESOLVE_ALL -> ScopeProxy.resolveAll(ArgsCast.array(a, 0).ints(), ArgsCast.array(a, 1).chars(), ArgsCast.array(a, 2).ints(), result);
       case DiffUtils.FIND_DIFFS -> DiffUtils.findDiffs(
