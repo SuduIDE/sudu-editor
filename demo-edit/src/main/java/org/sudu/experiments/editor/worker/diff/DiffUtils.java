@@ -232,6 +232,7 @@ public class DiffUtils {
       Document document1,
       Document document2,
       boolean cmpOnlyLines,
+      int[] syncL, int[] syncR,
       Consumer<DiffInfo> result,
       WorkerJobExecutor window
   ) {
@@ -239,7 +240,6 @@ public class DiffUtils {
     char[] chars2 = document2.getChars();
     int[] intervals1 = makeIntervals(document1, cmpOnlyLines);
     int[] intervals2 = makeIntervals(document2, cmpOnlyLines);
-    int[] syncL = new int[]{}, syncR = new int[]{};
 
     window.sendToWorker(true,
         r -> {

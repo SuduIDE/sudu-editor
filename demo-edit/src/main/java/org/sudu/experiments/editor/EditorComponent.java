@@ -102,6 +102,7 @@ public class EditorComponent extends View implements
   TriConsumer<EditorComponent, Integer, Integer> iterativeParseFileListener;
   TriConsumer<EditorComponent, Diff, Boolean> updateModelOnDiffListener;
   Consumer<EditorComponent> onDiffMadeListener;
+  Runnable onSyncPointToggled;
   int vScrollPos = 0;
   int hScrollPos = 0;
 
@@ -171,6 +172,10 @@ public class EditorComponent extends View implements
 
   public void setOnDiffMadeListener(Consumer<EditorComponent> listener) {
     onDiffMadeListener = listener;
+  }
+
+  public void setOnSyncPointToggled(Runnable listener) {
+    onSyncPointToggled = listener;
   }
 
   private void internalLayout() {
@@ -1720,7 +1725,7 @@ public class EditorComponent extends View implements
     model.parseFullFile();
   }
 
-  private int[] syncPoints() {
+  public int[] syncPoints() {
     int[] syncPoints = new int[syncPointsSet.size()];
     int ptr = 0;
     for (var sp: syncPointsSet) syncPoints[ptr++] = sp;
@@ -1730,6 +1735,10 @@ public class EditorComponent extends View implements
   public int computeSyncLine(V2i eventPosition) {
     int localY = eventPosition.y - pos.y;
     return Numbers.clamp(0, (localY + vScrollPos) / lineHeight, model.document.length());
+  }
+
+  public boolean hasSyncPoints() {
+    return !syncPointsSet.isEmpty();
   }
 
   public boolean hasSyncPoint(V2i eventPos) {
@@ -1744,8 +1753,9 @@ public class EditorComponent extends View implements
     } else {
       syncPointsSet.add(lineInd);
     }
-    System.out.println("Toggle syncPoint on line " + lineInd);
-    System.out.println("Sync points: " + Arrays.toString(syncPoints()));
+    onSyncPointToggled();
+//    System.out.println("Toggle syncPoint on line " + lineInd);
+//    System.out.println("Sync points: " + Arrays.toString(syncPoints()));
   }
 
   public void revealLineInCenter(int lineNumber) {
@@ -1853,6 +1863,10 @@ public class EditorComponent extends View implements
       onDiffMadeListener.accept(this);
     }
     window().repaint();
+  }
+
+  public void onSyncPointToggled() {
+    if (onSyncPointToggled != null) onSyncPointToggled.run();
   }
 
   @Override

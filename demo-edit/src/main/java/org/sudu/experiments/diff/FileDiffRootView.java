@@ -43,12 +43,14 @@ class FileDiffRootView extends DiffRootView {
     editor1.setOnDiffMadeListener(this::onDiffMadeListener);
     editor1.highlightResolveError(false);
     editor1.setMirrored(true);
+    editor1.setOnSyncPointToggled(() -> sendToDiff(true));
 
     editor2.setFullFileParseListener(parseListener);
     editor2.setIterativeParseFileListener(iterativeParseListener);
     editor2.setUpdateModelOnDiffListener(this::updateModelOnDiffMadeListener);
     editor2.setOnDiffMadeListener(this::onDiffMadeListener);
     editor2.highlightResolveError(false);
+    editor2.setOnSyncPointToggled(() -> sendToDiff(true));
 
     diffSync = new DiffSync(editor1, editor2);
     setViews(editor1, editor2, middleLine);
@@ -199,10 +201,15 @@ class FileDiffRootView extends DiffRootView {
   }
 
   protected void sendToDiff(boolean cmpOnlyLines) {
+    int[] syncL = editor1.syncPoints();
+    int[] syncR = editor2.syncPoints();
+    if (syncL.length != syncR.length) return;
     DiffUtils.findDiffs(
         editor1.model().document,
         editor2.model().document,
         cmpOnlyLines,
+        editor1.syncPoints(),
+        editor2.syncPoints(),
         this::setDiffModel,
         ui.windowManager.uiContext.window.worker());
   }
@@ -211,13 +218,17 @@ class FileDiffRootView extends DiffRootView {
       int fromL, int toL,
       int fromR, int toR
   ) {
-    DiffUtils.findIntervalDiffs(
-        editor1.model().document,
-        editor2.model().document,
-        (upd) -> updateDiffModel(fromL, toL, fromR, toR, upd),
-        ui.windowManager.uiContext.window.worker(),
-        fromL, toL, fromR, toR
-    );
+    if (editor1.hasSyncPoints() || editor2.hasSyncPoints()) {
+      sendToDiff(false);
+    } else {
+      DiffUtils.findIntervalDiffs(
+          editor1.model().document,
+          editor2.model().document,
+          (upd) -> updateDiffModel(fromL, toL, fromR, toR, upd),
+          ui.windowManager.uiContext.window.worker(),
+          fromL, toL, fromR, toR
+      );
+    }
   }
 
   public void setOnDiffMade(
