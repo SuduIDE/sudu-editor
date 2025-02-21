@@ -193,6 +193,7 @@ public class EditorUi {
 
       gotoItems(eventPosition, tbb);
       cutCopyPaste(tbb);
+      toggleSyncPoint(tbb, eventPosition);
       if (opener != null) tbb.addItem(opener);
       //noinspection ConstantValue
       if (1 < 0) tbb.addItem("old >", oldDev());
@@ -224,6 +225,18 @@ public class EditorUi {
           tbb.addItem("Paste", this::pasteAction);
         }
       }
+    }
+
+    private void toggleSyncPoint(ToolbarItemBuilder tbb, V2i eventPos) {
+      String text = editor.hasSyncPoint(eventPos)
+          ? "Remove Sync Point"
+          : "Add Sync Point";
+      tbb.addItem(text, () -> toggleSyncPointAction(eventPos));
+    }
+
+    private void toggleSyncPointAction(V2i eventPos) {
+      windowManager.hidePopupMenu();
+      editor.toggleSyncPoint(eventPos);
     }
 
     private org.sudu.experiments.Window window() {
