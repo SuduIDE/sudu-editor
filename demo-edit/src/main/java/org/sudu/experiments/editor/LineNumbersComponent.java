@@ -13,6 +13,7 @@ import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.SetCursor;
 
 import java.util.Arrays;
+import java.util.Set;
 
 public class LineNumbersComponent implements Disposable {
 
@@ -112,6 +113,19 @@ public class LineNumbersComponent implements Disposable {
     g.disableScissor();
   }
 
+  public void drawSyncPoints(
+      int scrollPos,
+      int firstLine, int lastLine,
+      Set<Integer> syncPoints,
+      WglGraphics g, EditorColorScheme scheme
+  ) {
+    for (int i = firstLine; i <= lastLine; i++) {
+      if (syncPoints.contains(i)) {
+        drawSyncLine(scrollPos, i, scheme.lineNumber, g);
+      }
+    }
+  }
+
   private void drawCaretLine(
       int scrollPos, int caretLine,
       LineNumbersColors colorScheme, WglGraphics g,
@@ -121,6 +135,18 @@ public class LineNumbersComponent implements Disposable {
         g, pos, scrollPos,
         textures.length * textureHeight,
         caretLine, colorScheme, bgColor);
+  }
+
+  private void drawSyncLine(
+      int scrollPos, int syncLine,
+      LineNumbersColors colorScheme,
+      WglGraphics g
+  ) {
+    texture(syncLine / numberOfLines).drawSyncLine(
+        g, pos, scrollPos,
+        textures.length * textureHeight,
+        syncLine, colorScheme
+    );
   }
 
   private void drawBottom(
