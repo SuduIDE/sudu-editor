@@ -1,5 +1,6 @@
 package org.sudu.experiments.diff;
 
+import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.Diff;
 import org.sudu.experiments.editor.test.MergeButtonsModel;
@@ -36,6 +37,7 @@ class FileDiffRootView extends DiffRootView {
     middleLine.setLeftRight(editor1, editor2);
     Consumer<EditorComponent> parseListener = this::fullFileParseListener;
     TriConsumer<EditorComponent, Integer, Integer> iterativeParseListener = this::iterativeParseFileListener;
+    SyncPoints syncPoints = new SyncPoints(() -> sendToDiff(false));
 
     editor1.setFullFileParseListener(parseListener);
     editor1.setIterativeParseFileListener(iterativeParseListener);
@@ -43,18 +45,25 @@ class FileDiffRootView extends DiffRootView {
     editor1.setOnDiffMadeListener(this::onDiffMadeListener);
     editor1.highlightResolveError(false);
     editor1.setMirrored(true);
-    editor1.setOnSyncPointToggled(() -> sendToDiff(true));
+    editor1.setSyncPoints(syncPoints, true);
 
     editor2.setFullFileParseListener(parseListener);
     editor2.setIterativeParseFileListener(iterativeParseListener);
     editor2.setUpdateModelOnDiffListener(this::updateModelOnDiffMadeListener);
     editor2.setOnDiffMadeListener(this::onDiffMadeListener);
     editor2.highlightResolveError(false);
-    editor2.setOnSyncPointToggled(() -> sendToDiff(true));
+    editor2.setSyncPoints(syncPoints, false);
 
     diffSync = new DiffSync(editor1, editor2);
     setViews(editor1, editor2, middleLine);
     setEmptyDiffModel();
+  }
+
+  @Override
+  public void draw(WglGraphics g) {
+    super.draw(g);
+    editor1.drawSyncPoints();
+    editor2.drawSyncPoints();
   }
 
   public void setFontFamily(String fontFamily) {
@@ -201,15 +210,14 @@ class FileDiffRootView extends DiffRootView {
   }
 
   protected void sendToDiff(boolean cmpOnlyLines) {
-    int[] syncL = editor1.syncPoints();
-    int[] syncR = editor2.syncPoints();
+    int[] syncL = editor1.copiedSyncPoints();
+    int[] syncR = editor2.copiedSyncPoints();
     if (syncL.length != syncR.length) return;
     DiffUtils.findDiffs(
         editor1.model().document,
         editor2.model().document,
         cmpOnlyLines,
-        editor1.syncPoints(),
-        editor2.syncPoints(),
+        syncL, syncR,
         this::setDiffModel,
         ui.windowManager.uiContext.window.worker());
   }

@@ -146,6 +146,21 @@ public interface ArrayOp {
     return data;
   }
 
+  static int[] insertAt(int value, int[] data, int index) {
+    int[] res = new int[data.length + 1];
+    System.arraycopy(data, 0, res, 0, index);
+    res[index] = value;
+    System.arraycopy(data, index, res, index + 1, data.length - index);
+    return res;
+  }
+
+  static int[] removeAt(int[] data, int index) {
+    int[] res = new int[data.length - 1];
+    System.arraycopy(data, 0, res, 0, index);
+    System.arraycopy(data, index + 1, res, index, data.length - index - 1);
+    return res;
+  }
+
   static <T> T[] reverse(T[] value) {
     for (int i = 0; i < value.length / 2; i++) {
       T temp = value[i];

@@ -7,13 +7,13 @@ import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.SetCursor;
 
 import java.util.Arrays;
-import java.util.Set;
 
 public class LineNumbersComponent implements Disposable {
 
@@ -116,13 +116,17 @@ public class LineNumbersComponent implements Disposable {
   public void drawSyncPoints(
       int scrollPos,
       int firstLine, int lastLine,
-      Set<Integer> syncPoints,
+      int[] syncPoints,
+      int curSyncPoint,
       WglGraphics g, EditorColorScheme scheme
   ) {
-    for (int i = firstLine; i <= lastLine; i++) {
-      if (syncPoints.contains(i)) {
-        drawSyncLine(scrollPos, i, scheme.lineNumber, g);
-      }
+    // Todo colors to scheme
+    for (int sp: syncPoints) {
+      if (firstLine <= sp && sp <= lastLine)
+        drawSyncLine(scrollPos, sp, new Color("#ff0000"), g);
+    }
+    if (firstLine <= curSyncPoint && curSyncPoint <= lastLine) {
+      drawSyncLine(scrollPos, curSyncPoint, new Color("#00ff00"), g);
     }
   }
 
@@ -139,13 +143,13 @@ public class LineNumbersComponent implements Disposable {
 
   private void drawSyncLine(
       int scrollPos, int syncLine,
-      LineNumbersColors colorScheme,
+      Color lineColor,
       WglGraphics g
   ) {
     texture(syncLine / numberOfLines).drawSyncLine(
         g, pos, scrollPos,
         textures.length * textureHeight,
-        syncLine, colorScheme
+        syncLine, lineColor
     );
   }
 
