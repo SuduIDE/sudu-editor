@@ -6,6 +6,7 @@ import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.encoding.GbkEncodingJs;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
@@ -20,7 +21,8 @@ import java.util.function.IntConsumer;
 public class SshFileHandle extends NodeFileHandle0 {
 
   static final boolean debugOpenClose = false;
-  static final boolean debugRead = false;
+  static final boolean debugHandle = false;
+  static final boolean debugReadWrite = false;
 
   SshHash credentials;
   JsSftpClient.Attrs attrs;
@@ -74,32 +76,41 @@ public class SshFileHandle extends NodeFileHandle0 {
     if (attrs != null) {
       result.accept(attrs.getSize());
     } else {
-      SshPool.sftp(credentials, sftp -> {
-          sftp.stat(jsPath(), (error, stats) -> {
-            if (!JSObjects.isUndefined(stats)) {
-              attrs = stats;
-              result.accept(stats.getSize());
-            } else {
-              JsHelper.consoleInfo2(
-                  "sftp.stats error", JsHelper.message(error));
-              LoggingJs.error(JsHelper.concat(
-                  "sftp.stats error", JsHelper.message(error)));
-              result.accept(0);
-            }
-          });
-        },
-        error -> {
-          JsHelper.consoleInfo2(
-              "Ssh connect to", credentials.host,
-              "failed, error =", JsHelper.message(error));
-          LoggingJs.error(JsHelper.concat(
-              JsHelper.concat("Ssh connect to ", credentials.host),
-              JsHelper.concat(" failed, error = ", JsHelper.message(error)))
-          );
-          result.accept(0);
-        }
-      );
+      fetchStats(error ->
+          result.accept(attrs != null ? attrs.getSize() : 0));
     }
+  }
+
+  interface OnError {
+    void onError(JSError error);
+  }
+
+  void fetchStats(OnError onError) {
+    SshPool.sftp(credentials, sftp -> {
+        sftp.stat(jsPath(), (error, stats) -> {
+          if (!JSObjects.isUndefined(stats)) {
+            attrs = stats;
+            onError.onError(null);
+          } else {
+            JsHelper.consoleInfo2(
+                "sftp.stats error", JsHelper.message(error));
+            LoggingJs.error(JsHelper.concat(
+                "sftp.stats error", JsHelper.message(error)));
+            onError.onError(error);
+          }
+        });
+      },
+      error -> {
+        JsHelper.consoleInfo2(
+            "Ssh connect to", credentials.host,
+            "failed, error =", JsHelper.message(error));
+        LoggingJs.error(JsHelper.concat(
+            JsHelper.concat("Ssh connect to ", credentials.host),
+            JsHelper.concat(" failed, error = ", JsHelper.message(error)))
+        );
+        onError.onError(error);
+      }
+    );
   }
 
   @Override
@@ -112,8 +123,9 @@ public class SshFileHandle extends NodeFileHandle0 {
         if (JSObjects.isUndefined(e)) {
           handle = newHandle;
           if (debugOpenClose) JsHelper.consoleInfo2(
-              "sftp.open completed handle =", debugHandle(),
-              ", path=", jsPath());
+              "sftp.open completed path=", jsPath());
+          if (debugHandle) JsHelper.consoleInfo2(
+              "  handle =", debugHandle());
           if (length <= 0 && attrs == null) {
             sftp.fstat(newHandle, (error, stats) -> {
               if (debugOpenClose) JsHelper.consoleInfo2("sftp.fstat completed ",
@@ -144,16 +156,17 @@ public class SshFileHandle extends NodeFileHandle0 {
       Consumer<byte[]> consumer, Consumer<String> onError,
       int begin, int length
   ) {
-    if (debugRead) JsHelper.consoleInfo2("reading " + length + " bytes at " +
+    if (debugReadWrite) JsHelper.consoleInfo2("reading " + length + " bytes at " +
         begin + " from", jsPath());
     byte[] data = new byte[length];
     if (length == 0) consumer.accept(data);
     else sftp.read(handle, JsBuffer.from(data), 0, length, begin,
         (e, bytesRead, buffer, position) -> {
           if (JSObjects.isUndefined(e)) {
-            if (debugRead) JsHelper.consoleInfo2(
+            if (debugReadWrite) JsHelper.consoleInfo2(
                 "sftp.read completed path =", jsPath(),
-                ", bytesRead=", JSNumber.valueOf(bytesRead));
+                ", bytesRead=" + bytesRead + ", pos",
+                JSNumber.valueOf(begin));
             byte[] r = bytesRead == data.length ?
                 data : Arrays.copyOf(data, bytesRead);
             consumer.accept(r);
@@ -194,19 +207,43 @@ public class SshFileHandle extends NodeFileHandle0 {
       return;
     }
 
+    write0(onComplete, onError, data, OPEN_MODE.write_or_create(), 0);
+  }
+
+  @Override
+  public void writeAppend(
+      int filePosition, byte[] data,
+      Runnable onComplete, Consumer<String> onError
+  ) {
+    write0(onComplete, onError, data, OPEN_MODE.append(), filePosition);
+  }
+
+  void write0(
+      Runnable onComplete, Consumer<String> onError,
+      byte[] data, int flags, int position
+  ) {
     var we = JsHelper.wrapError("sftp error ", onError);
     SshPool.sftp(credentials, sftp -> sftp.open(
-        jsPath(), OPEN_MODE.write_or_create(), (e, newHandle) -> {
+        jsPath(), flags, (e, newHandle) -> {
           if (JSObjects.isUndefined(e)) {
             handle = newHandle;
             if (debugOpenClose) JsHelper.consoleInfo2(
-                "sftp.open_for_write completed handle =", debugHandle(),
-                ", path=", jsPath());
+                "sftp.open(" + Integer.toHexString(flags) +
+                    ", pos " + position +
+                    ") completed, path=", jsPath());
+            if (debugHandle) JsHelper.consoleInfo2(
+                "  handle =", debugHandle());
             attrs = null;
             sftp.write(handle,
-                JsBuffer.from(data), 0, data.length, 0,
+                JsBuffer.from(data), 0, data.length, position,
                 error -> {
                   if (JSObjects.isUndefined(error)) {
+                    if (debugReadWrite) {
+                      JsHelper.consoleInfo2("sftp.write(" +
+                          Integer.toHexString(flags) +
+                          ", pos " + position + ") ok, " +
+                          "path=", jsPath());
+                    }
                     doClose(sftp, onComplete);
                   } else {
                     onError.accept("sftp.write error ".concat(error.getMessage()));
@@ -239,11 +276,6 @@ public class SshFileHandle extends NodeFileHandle0 {
       return bytes;
 
     return null;
-  }
-
-  @Override
-  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
-    onError.accept("unsupported operation");
   }
 
   @Override

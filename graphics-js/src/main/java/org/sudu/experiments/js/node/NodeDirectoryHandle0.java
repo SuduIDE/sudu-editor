@@ -2,7 +2,7 @@ package org.sudu.experiments.js.node;
 
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FsItem;
-import org.sudu.experiments.js.JsHelper;
+import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.core.JSString;
 
 import java.util.Arrays;
@@ -32,6 +32,10 @@ public abstract class NodeDirectoryHandle0 implements DirectoryHandle {
 
   JSString jsPath() {
     return Fs.concatPath(name, path, sep);
+  }
+
+  String[] childPath() {
+    return ArrayOp.add(path, name);
   }
 
   @Override

@@ -87,11 +87,6 @@ class JvmDirectoryHandle extends JvmFsHandle implements DirectoryHandle {
   }
 
   @Override
-  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
-    onError.accept("not implemented");
-  }
-
-  @Override
   public void remove(Runnable onComplete, Consumer<String> onError) {
     onError.accept("not implemented");
   }

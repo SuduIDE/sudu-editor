@@ -7,7 +7,7 @@ import org.teavm.jso.typedarrays.Int8Array;
 import static org.sudu.experiments.encoding.GbkEncoding.*;
 
 public interface GbkEncodingJs {
-  // may improve later
+
   static Int8Array jsStringToGbk(JSString jsText) {
     return JsMemoryAccess.bufferView(
         GbkEncodingJs.encode(jsText));

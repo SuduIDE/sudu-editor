@@ -125,24 +125,6 @@ public class JsFileHandle implements FileHandle {
   }
 
   @Override
-  public void writeText(
-      Object text, String encoding,
-      Runnable onComplete, Consumer<String> onError
-  ) {
-    onError.accept("not implemented");
-  }
-
-  @Override
-  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
-    onError.accept("not implemented");
-  }
-
-  @Override
-  public void remove(Runnable onComplete, Consumer<String> onError) {
-    onError.accept("not implemented");
-  }
-
-  @Override
   public String toString() {
     return jsFile != null
         ? FsItem.toString(getClass().getSimpleName(),

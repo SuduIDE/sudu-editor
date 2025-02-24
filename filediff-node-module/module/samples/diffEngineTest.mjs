@@ -6,6 +6,7 @@ import path from 'node:path';
 import url from 'node:url';
 
 const nThreads = 3;
+const timeoutTime = 1000;
 
 const __dirname = path.dirname(
     url.fileURLToPath(new URL(import.meta.url)));
@@ -32,8 +33,12 @@ console.log("got module: ", module.constructor.name);
 let jobCount = 0;
 
 function mayBeExit() {
-  if (--jobCount <= 0)
-    diffEngine.dispose();
+  if (--jobCount <= 0) {
+    if (timeoutTime == 0)
+        diffEngine.dispose();
+    else
+      setTimeout( () => diffEngine.dispose(), timeoutTime);
+  }
 }
 
 function channel() {
@@ -69,7 +74,9 @@ function testDiff(dir1, dir2, content) {
   module.testDiff(dir1, dir2, content, onComplete);
 }
 
-function testFS(dirname) {
+function testFS(args) {
+  const dirname = args[3];
+  console.log("dirname", dirname);
   jobCount++;
   module.testFS(dirname, () => {
     console.log("testFs.onComplete");
@@ -77,18 +84,24 @@ function testFS(dirname) {
   });
 }
 
-function testFileWrite(file, encoding, content) {
+function testFileWrite(args) {
+  const file = args[3];
+  const encoding = args[4];
+  const content = args[5];
+  console.log("file", file);
+  console.log("encoding", encoding);
+  console.log("content", content);
+
+  if (!file || !encoding || !content) {
+    console.log();
+    mayBeExit();
+    return "bad args, usage: file encoding content";
+  }
+
   jobCount++;
   module.testFileWrite(file, content, encoding,
-      () => {
-        console.log("testFileWrite.onComplete");
-        mayBeExit();
-      },
-      (errorString) => {
-        console.log("testFileWrite.onError: ", errorString);
-        mayBeExit();
-      }
-  )
+      onComplete("testFileWrite"),
+      onError("testFileWrite"));
 }
 
 function testFileReadWrite(args) {
@@ -101,15 +114,8 @@ function testFileReadWrite(args) {
 
   jobCount++;
   module.testFileReadWrite(fileFrom, fileToS, fileToJ,
-      () => {
-        console.log("testFileReadWrite.onComplete");
-        mayBeExit();
-      },
-      (errorString) => {
-        console.log("testFileReadWrite.onError: ", errorString);
-        mayBeExit();
-      }
-  )
+      onComplete("testFileReadWrite"),
+      onError("testFileReadWrite"));
 }
 
 function sshFile(ssh, path) {
@@ -136,43 +142,53 @@ function testFileReadWriteSsh(args) {
   jobCount++;
   module.testFileReadWrite(sshFile(ssh, fileFrom),
       sshFile(ssh, fileToS), sshFile(ssh, fileToJ),
-      () => {
-        console.log("testFileReadWriteSsh.onComplete");
-        mayBeExit();
-      },
-      (errorString) => {
-        console.log("testFileReadWriteSsh.onError: ", errorString);
-        mayBeExit();
-      }
+      onComplete("testFileReadWriteSsh"),
+      onError("testFileReadWriteSsh"));
+}
+
+function onComplete(title) {
+  return () => {
+    console.log(title + ".onComplete");
+    mayBeExit();
+  };
+}
+
+function onError(title) {
+  return (errorString) => {
+    console.log(title + ".onError: ", errorString);
+    mayBeExit();
+  };
+}
+
+function testNodeFsCopyFile(args) {
+  const src = args[3];
+  const dest = args[4];
+  console.log("testNodeFsCopyFile: src", src);
+  console.log("testNodeFsCopyFile: dest", dest);
+  jobCount++;
+  module.testNodeFsCopyFile(src, dest,
+      onComplete("testNodeFsCopyFile"),
+      onError("testNodeFsCopyFile")
   )
 }
 
-function testFileCopy(src, dest) {
+function testNodeFsCopyDirectory(args) {
+  const src = args[3];
+  const dest = args[4];
+  console.log("testNodeFsCopyDirectory: src", src);
+  console.log("testNodeFsCopyDirectory: dest", dest);
+
   jobCount++;
-  module.testFileCopy(src, dest,
-      () => {
-        console.log("testFileCopy.onComplete");
-        mayBeExit();
-      },
-      (errorString) => {
-        console.log("testFileWrite.onError: ", errorString);
-        mayBeExit();
-      }
-  )
+  module.testNodeFsCopyDirectory(src, dest,
+      onComplete("testNodeFsCopyDirectory"),
+      onError("testNodeFsCopyDirectory"));
 }
 
-function testDirCopy(src, dest) {
+function testCopyFileToFolder(src, destDir, destFile) {
   jobCount++;
-  module.testDirCopy(src, dest,
-      () => {
-        console.log("testFileCopy.onComplete");
-        mayBeExit();
-      },
-      (errorString) => {
-        console.log("testFileWrite.onError: ", errorString);
-        mayBeExit();
-      }
-  )
+  module.testCopyFileToFolder(src, destDir, destFile,
+      onComplete("testCopyFileToFolder"),
+      onError("testCopyFileToFolder"));
 }
 
 function testGbkEncoder() {
@@ -182,12 +198,18 @@ function testGbkEncoder() {
   return "ok";
 }
 
-function testSsh(ssh, args) {
+function testSsh(args) {
+  const ssh = sshConfig(args, 3);
+
+  if (!(ssh && args.length > 6)) {
+    mayBeExit();
+    return "test ssh: error in args: ssh[4] command args command arg";
+  }
+
   const exitHandler = () => { mayBeExit(); };
   console.log("test ssh: ", ssh);
-  // ose_DiffTestApi_testSsh$exported$5
 
-  for (let i = 0; i < args.length; i += 2) {
+  for (let i = 7; i < args.length; i += 2) {
     const sshRef = { path: args[i+1], ssh:ssh };
     switch (args[i]) {
       case "dir": {
@@ -216,7 +238,7 @@ function testSsh(ssh, args) {
     }
   }
 
-  if (jobCount == 0) mayBeExit();
+  if (jobCount === 0) mayBeExit();
 
   return "testSsh";
 }
@@ -243,12 +265,49 @@ function testFileDeleteSsh(args) {
 
   jobCount++;
   module.testDeleteFile(
-      sshFile(ssh, file),
-      () => {
-        console.log("testFileReadWriteSsh.onComplete");
-        mayBeExit();
-      }
+      sshFile(ssh, file), onComplete("testFileDeleteSsh"));
+}
+
+function runAppendTest(file, str1, str2) {
+  console.log("file", JSON.stringify(file));
+
+  jobCount++;
+  module.testFileAppend(
+      file, str1, str2,
+      onComplete("testFileAppend"),
+      onError("testFileAppend")
   );
+}
+
+function testFileAppend(args) {
+  const file = args[3];
+  const str1 = args[4];
+  const str2 = args[5];
+
+  if (!args || !file || !str1 ||!str2) {
+    console.log("args: ssh[4] file string1 string2");
+    mayBeExit();
+    return;
+  }
+
+  // console.log("ssh", ssh);
+  runAppendTest(file, str1, str2);
+}
+
+function testFileAppendSsh(args) {
+  const ssh = sshConfig(args, 3);
+  const file = args[3+4];
+  const str1 = args[4+4];
+  const str2 = args[5+4];
+
+  if (!args || !file || !str1 ||!str2) {
+    console.log("args: ssh[4] file string1 string2");
+    mayBeExit();
+    return;
+  }
+
+  // console.log("ssh", ssh);
+  runAppendTest(sshFile(ssh, file), str1, str2);
 }
 
 function testListRemoteDirectory(args) {
@@ -276,89 +335,87 @@ function testListRemoteDirectory(args) {
   );
 }
 
+// mkdir error.copy
+// testCopyFileToFolder copyToDir zeroFile WIN32.ipch 3MbFile gb2312.txt error
+function testCopyFileToFolderSsh(args) {
+  const ssh = sshConfig(args, 3);
+  const destDir = args[7];
+  const file1 = args[8];
+  console.log("testCopyFileToFolderSsh: host", ssh.host);
+  console.log("   destDir", destDir);
+  if (!destDir || !file1) {
+    return "testCopyFileToFolderSsh usage: ssh[4] destDir file1 file2 file3";
+  }
+  const sshDir = sshFile(ssh, destDir);
+  for (let i = 1; 7 + i < args.length; i++) {
+    const file = args[7 + i];
+    const src = sshFile(ssh, file);
+    const destFile = sshFile(ssh, file + ".copy");
+    console.log("testCopyFileToFolderSsh: file" + i, file, "dest file", destFile.path);
+    testCopyFileToFolder(src, sshDir, destFile);
+  }
+}
 
-let args = process.argv;
+function testCopyFileToFolderLocal(args) {
+  const destDir = args[3];
+  const file1 = args[4];
+  if (!destDir || !file1) {
+    mayBeExit();
+    return "testCopyFileToFolderLocal usage: destDir file1 file2 file3";
+  }
+  console.log("testCopyFileToFolder: destDir", destDir);
+  for (let i = 1; 3 + i < args.length; i++) {
+    const file = args[3 + i];
+    console.log("testCopyFileToFolder: file" + i, file);
+    testCopyFileToFolder(file, destDir, file + ".copy");
+  }
+}
+
+function testDiffSsh(args) {
+  const ssh = sshConfig(args, 3);
+  const sshRoot = args[7];
+  const localRoot = args[8];
+  if (ssh && sshRoot && localRoot) {
+    const sshRef = {path: sshRoot, ssh: ssh};
+    return testDiff(sshRef, localRoot, true);
+  } else {
+    mayBeExit();
+    return "error in args";
+  }
+}
+
+function testDiffLocal(args) {
+  const dir1 = args[3];
+  const dir2 = args[4];
+  const content = args.length >= 5 && "content" === args[5];
+  console.log("dir1", dir1);
+  console.log("dir2", dir2);
+  console.log("content", content);
+  return testDiff(dir1, dir2, content);
+}
 
 function runTest() {
+  let args = process.argv;
   const cmd = args[2];
   switch (cmd) {
-    case "fib":
-      return testFib();
-    case "testFS":
-      const dirname = args[3];
-      console.log("dirname", dirname);
-      return testFS(dirname);
-    case "testDiff":
-      const dir1 = args[3];
-      const dir2 = args[4];
-      const content = args.length >= 5 && "content" === args[5];
-      console.log("dir1", dir1);
-      console.log("dir2", dir2);
-      console.log("content", content);
-      return testDiff(dir1, dir2, content);
-    case "testFileWrite": {
-      const file = args[3];
-      const encoding = args[4];
-      const string = args[5];
-      console.log("file", file);
-      console.log("encoding", encoding);
-      console.log("string", string);
-      return testFileWrite(file, encoding, string);
-    }
-    case "testFileReadWrite":
-      return testFileReadWrite(args);
-
-    case "testFileReadWriteSsh":
-      return testFileReadWriteSsh(args);
-
-    case "testFileCopy": {
-      const src = args[3];
-      const dest = args[4];
-      console.log("src", src);
-      console.log("dest", dest);
-      return testFileCopy(src, dest);
-    }
-    case "testDirCopy": {
-      const src = args[3];
-      const dest = args[4];
-      console.log("testDirCopy: src", src);
-      console.log("testDirCopy: dest", dest);
-      return testDirCopy(src, dest);
-    }
-    case "testGbkEncoder": {
-      return testGbkEncoder();
-    }
-    case "testSsh": {
-      const ssh = sshConfig(args, 3);
-      if (ssh && args.length > 6) {
-        const slice = args.slice(7, args.length);
-        return testSsh(ssh, slice);
-      } else {
-        mayBeExit();
-        return "error in args";
-      }
-    }
-    case "testDiffSsh": {
-      const ssh = sshConfig(args, 3);
-      const sshRoot = args[7];
-      const localRoot = args[8];
-      if (ssh && sshRoot && localRoot) {
-        const sshRef = {path: sshRoot, ssh: ssh};
-        return testDiff(sshRef, localRoot, true);
-      } else {
-        mayBeExit();
-        return "error in args";
-      }
-    }
-    case "testNodeBuffer": {
-      testNodeBuffer();
-      return undefined;
-    }
-    case "testFileDeleteSsh":
-      return testFileDeleteSsh(args);
-
-    case "testListRemoteDirectory":
-      return testListRemoteDirectory(args);
+    case "fib":  return testFib();
+    case "testFS": return testFS(args);
+    case "testDiff": return testDiffLocal(args);
+    case "testFileWrite": return testFileWrite(args);
+    case "testFileReadWrite":return testFileReadWrite(args);
+    case "testFileReadWriteSsh":return testFileReadWriteSsh(args);
+    case "testNodeFsCopyFile": return testNodeFsCopyFile(args);
+    case "testNodeFsCopyDirectory": return testNodeFsCopyDirectory(args);
+    case "testCopyFileToFolder": return testCopyFileToFolderLocal(args);
+    case "testCopyFileToFolderSsh": return testCopyFileToFolderSsh(args);
+    case "testGbkEncoder": return testGbkEncoder();
+    case "testSsh": return testSsh(args);
+    case "testDiffSsh": return testDiffSsh(args);
+    case "testNodeBuffer": return testNodeBuffer();
+    case "testFileDeleteSsh": return testFileDeleteSsh(args);
+    case "testFileAppend": return testFileAppend(args);
+    case "testFileAppendSsh": return testFileAppendSsh(args);
+    case "testListRemoteDirectory": return testListRemoteDirectory(args);
 
     default:
       mayBeExit();

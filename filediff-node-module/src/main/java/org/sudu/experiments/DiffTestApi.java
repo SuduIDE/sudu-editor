@@ -1,6 +1,7 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.diff.tests.CollectorFolderDiffTest;
+import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.editor.worker.TestJobs;
 import org.sudu.experiments.editor.worker.TestWalker;
 import org.sudu.experiments.editor.worker.ThreadId;
@@ -40,13 +41,13 @@ interface JsDiffTestApi extends JSObject {
       JsFunctions.Consumer<JSString> onError
   );
 
-  void testFileCopy(
+  void testNodeFsCopyFile(
       JSString src, JSString dest,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   );
 
-  void testDirCopy(
+  void testNodeFsCopyDirectory(
       JSString src, JSString dest,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
@@ -61,6 +62,14 @@ interface JsDiffTestApi extends JSObject {
   void testSshFileAsync(JsSshInput sshPath, JsFunctions.Runnable onComplete);
 
   void testDeleteFile(JsFileInput path, JsFunctions.Runnable onComplete);
+
+  void testCopyFileToFolder(
+      JsFileInput from, JsFolderInput toDir, JsFileInput toFile,
+      JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onError);
+
+  void testFileAppend(
+      JsFileInput file, JSString str1, JSString str2,
+      JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onError);
 }
 
 public class DiffTestApi implements JsDiffTestApi {
@@ -122,15 +131,18 @@ public class DiffTestApi implements JsDiffTestApi {
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   ) {
-    var fh = JsFileInput.fileHandle(path, true);
-    if (fh == null)
+    var fh = JsFileInput.fileHandle(path, false);
+    if (fh == null) {
+      onError.f(JsHelper.concat("bad path:", path));
       JsHelper.consoleError2("bad path:", path);
-    else fh.writeText(
-        JsHelper.directJsToJava(content),
-        encoding.stringValue(),
-        onComplete::f,
-        e -> onError.f(JSString.valueOf(e))
-    );
+    } else {
+      fh.writeText(
+          JsHelper.directJsToJava(content),
+          encoding.stringValue(),
+          onComplete::f,
+          e -> onError.f(JSString.valueOf(e))
+      );
+    }
     System.out.println("GbkEncoding.charToGbk[0x3000] = " +
         Integer.toHexString(GbkEncoding.Table.charToGbk[0x3000]));
   }
@@ -166,7 +178,7 @@ public class DiffTestApi implements JsDiffTestApi {
   }
 
   @Override
-  public void testFileCopy(
+  public void testNodeFsCopyFile(
       JSString src, JSString dest,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
@@ -184,7 +196,7 @@ public class DiffTestApi implements JsDiffTestApi {
   }
 
   @Override
-  public void testDirCopy(
+  public void testNodeFsCopyDirectory(
       JSString src, JSString dest,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
@@ -324,6 +336,88 @@ public class DiffTestApi implements JsDiffTestApi {
         onComplete.f();
       });
     }
+  }
+
+  @Override
+  public void testCopyFileToFolder(
+      JsFileInput from, JsFolderInput toDir, JsFileInput toFile,
+      JsFunctions.Runnable onComplete,
+      JsFunctions.Consumer<JSString> onError
+  ) {
+    var fhFrom = JsFileInput.fileHandle(from, true);
+    var fhToDir = JsFolderInput.directoryHandle(toDir);
+    var fhToFile = JsFileInput.fileHandle(toFile, false);
+    if (fhFrom == null) {
+      onError.f(JSString.valueOf("bad input file"));
+      return;
+    }
+//    boolean canCopyTo = fhFrom.canCopyTo(fhToDir);
+//    System.out.println("testCopyFileToFolder: fhFrom.canCopyTo(fhTo) = " + canCopyTo);
+
+    int[] box = new int[1];
+    Consumer<String> error = e -> {
+      String m = "FileHandle.copyTo(" + fhFrom + ") error: " + e;
+      JSString msg = JSString.valueOf(m);
+      JsHelper.consoleError("  testCopyFileToFolder.error:", msg);
+      if (--box[0] <= 0)
+        onError.f(msg);
+
+    };
+    Runnable onCompleteJ = () -> {
+      if (--box[0] <= 0)
+        onComplete.f();
+    };
+
+    if (false) {
+      box[0] = 2;
+      fhFrom.copyTo(fhToDir, onCompleteJ, error);
+      fhFrom.copyTo(fhToFile, onCompleteJ, error);
+    } else {
+      box[0] = 2;
+      Consumer<Object[]> onCopy = p -> FsWorkerJobs.onReply(p,
+          size -> {
+            System.out.println("testCopyFileToFolder: " + size + " bytes copied, from " + fhFrom);
+            onCompleteJ.run();
+          }, error);
+
+      System.out.println("testCopyFileToFolder: call " + FsWorkerJobs.copyFile + "("
+          + fhFrom + "," + fhToFile + ")");
+      pool.sendToWorker(true, onCopy,
+          FsWorkerJobs.copyFile, fhFrom, fhToFile);
+      System.out.println("testCopyFileToFolder: call " + FsWorkerJobs.copyFile + "("
+          + fhFrom + "," + fhToDir + ")");
+      pool.sendToWorker(true, onCopy,
+          FsWorkerJobs.copyFile, fhFrom, fhToDir);
+    }
+  }
+
+  public void testFileAppend(
+      JsFileInput file, JSString str1, JSString str2,
+      JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onError
+  ) {
+    var hFile = JsFileInput.fileHandle(file, false);
+    Consumer<String> eh = error -> onError.f(JSString.valueOf(error));
+    if (hFile == null) {
+      eh.accept("bad input file");
+      return;
+    }
+    var b1 = TextEncoder.toUtf8(str1);
+    var b2 = TextEncoder.toUtf8(str2);
+
+    Runnable verify = () -> hFile.readAsBytes(actual -> {
+      var expected = Arrays.copyOf(b1, b1.length + b2.length);
+      System.arraycopy(b2, 0, expected, b1.length, b2.length);
+      if (Arrays.equals(actual, expected)) {
+        JsHelper.consoleInfo("testFileAppend: verify complete");
+        onComplete.f();
+      } else {
+        eh.accept("result is different from expected");
+      }
+    }, eh);
+    hFile.writeText(
+        b1, null,
+        () -> hFile.writeAppend(b1.length, b2, verify, eh), eh
+    );
   }
 
   static String shortText(String s) {

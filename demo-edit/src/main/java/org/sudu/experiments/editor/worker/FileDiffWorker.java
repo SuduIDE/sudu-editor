@@ -51,6 +51,8 @@ public class FileDiffWorker {
       case DiffUtils.asyncListDirectory -> DiffUtils.listDirectory(
           ArgsCast.dir(a, 0), r);
 
+      case FsWorkerJobs.copyFile -> FsWorkerJobs.copyFile(a, r);
+
       default -> System.out.println("asyncMethod = " + method);
     }
   }

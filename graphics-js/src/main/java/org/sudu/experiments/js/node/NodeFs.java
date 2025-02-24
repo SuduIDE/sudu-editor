@@ -80,6 +80,11 @@ public interface NodeFs extends JSObject {
       ArrayBufferView buffer, int bufferOffset,
       int bytesToRead, double position);
 
+  int writeSync(
+      int handle, ArrayBufferView buffer,
+      int bufferOffset, int bytesToWrite, double position
+  );
+
   int closeSync(int handle);
 
   @JSFunctor

@@ -28,13 +28,31 @@ public interface FileHandle extends FsItem {
   //  - java String
   //  - char[]
   // or binary byte[], writer ignore encoding parameter
-  void writeText(
+  default void writeText(
       Object text, String encoding,
-      Runnable onComplete, Consumer<String> onError);
+      Runnable onComplete, Consumer<String> onError
+  ) {
+    onError.accept("not implemented");
+  }
 
-  void copyTo(String path, Runnable onComplete, Consumer<String> onError);
+  default void writeAppend(
+      int filePosition, byte[] data,
+      Runnable onComplete, Consumer<String> onError
+  ) {
+    onError.accept("not implemented");
+  }
 
-  void remove(Runnable onComplete, Consumer<String> onError);
+  default boolean canCopyTo(FsItem dst) {
+    return false;
+  }
+
+  default void copyTo(FsItem dst, Runnable onComplete, Consumer<String> onError) {
+    onError.accept("not implemented");
+  }
+
+  default void remove(Runnable onComplete, Consumer<String> onError) {
+    onError.accept("not implemented");
+  }
 
   default void readAsBytes(Consumer<byte[]> consumer, Consumer<String> onError) {
     readAsBytes(consumer, onError, 0, -1);

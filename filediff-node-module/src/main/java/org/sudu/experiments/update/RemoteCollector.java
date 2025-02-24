@@ -203,9 +203,10 @@ public class RemoteCollector {
   private void copyFile(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
     LoggingJs.debug("copyFile " + model + ", left = " + left);
     if (!(model.item(left) instanceof FileHandle fileItem)) return;
-    String to = model.getFullPath(!left ? leftHandle().getFullPath() : rightHandle().getFullPath());
-    LoggingJs.debug("copyFile " + fileItem + " -> " + to);
-    fileItem.copyTo(to, onComplete, this::onError);
+    var h = !left ? leftHandle() : rightHandle();
+//    String to = model.getFullPath(h.getFullPath());
+    LoggingJs.debug("copyFile " + fileItem + " -> " + h);
+    fileItem.copyTo(h, onComplete, this::onError);
   }
 
   private void removeFile(ItemFolderDiffModel model, Runnable onComplete) {
@@ -216,9 +217,22 @@ public class RemoteCollector {
 
   private void copyFolder(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
     if (!(model.item(left) instanceof DirectoryHandle dirItem)) return;
-    String to = model.getFullPath(!left ? leftHandle().getFullPath() : rightHandle().getFullPath());
-    LoggingJs.debug("copyFolder " + dirItem + " -> " + to);
-    dirItem.copyTo(to, onComplete, this::onError);
+    DirectoryHandle toDir = left ? rightHandle() : leftHandle();
+    // String to = model.getFullPath(toDir.getFullPath());
+    LoggingJs.debug("copyFolder " + dirItem + " -> " + toDir);
+    if (dirItem.canCopyTo(toDir)) {
+      dirItem.copyTo(toDir, onComplete, this::onError);
+    } else {
+      // list folders, fire copyFile jobs.....
+      slowCopyDirectory(dirItem, toDir, onComplete, this::onError);
+    }
+  }
+
+  private void slowCopyDirectory(
+      DirectoryHandle dirItem, DirectoryHandle toDir,
+      Runnable onComplete, Consumer<String> onError
+  ) {
+    onError.accept("not implemented");
   }
 
   private void removeFolder(ItemFolderDiffModel model, Runnable onComplete) {

@@ -34,13 +34,13 @@ export interface DiffTestApi {
     onError: (error: string) => void
   ) : void;
 
-  testFileCopy(
+  testNodeFsCopyFile(
     pathFrom: string, pathTo: string,
     onComplete: () => void,
     onError: (error: string) => void
   ): void;
 
-  testDirCopy(
+  testNodeFsCopyDirectory(
     pathFrom: string, pathTo: string,
     onComplete: () => void,
     onError: (error: string) => void
@@ -55,6 +55,14 @@ export interface DiffTestApi {
   testSshFileAsync(file: SshInput, onComplete: () => void): void;
 
   testDeleteFile(path: FileInput, onComplete: () => void): void;
+
+  testCopyFileToFolder(
+    from: FileInput, destDir: FolderInput, destFile: FileInput,
+    onComplete: () => void, onError: (error: string) => void): void;
+
+  testFileAppend(
+    file: FileInput, str1: string, str2: string,
+    onComplete: () => void, onError: (error: string) => void): void;
 }
 
 export interface FolderDiffSession extends AsyncShutdown {

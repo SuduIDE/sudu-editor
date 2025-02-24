@@ -1,5 +1,6 @@
 package org.sudu.experiments.js.node;
 
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.ArrayOp;
@@ -84,14 +85,27 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
   }
 
   @Override
-  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
+  public void remove(Runnable onComplete, Consumer<String> onError) {
+    JSString from = jsPath();
     onError.accept("not implemented yet");
   }
 
   @Override
-  public void remove(Runnable onComplete, Consumer<String> onError) {
-    JSString from = jsPath();
-    onError.accept("not implemented yet");
+  public void createFile(
+      String name, Consumer<FileHandle> onComplete, Consumer<String> onError
+  ) {
+    var file = new SshFileHandle(name, childPath(), credentials, null);
+    onComplete.accept(file);
+//    file.fetchStats(
+//        error -> {
+//          if (file.attrs != null &&
+//              (file.attrs.isDirectory() || file.attrs.isSymbolicLink())) {
+//            onError.accept("target is a directory or symbolic link");
+//          } else {
+//            onComplete.accept(file);
+//          }
+//        }
+//    );
   }
 
   @Override

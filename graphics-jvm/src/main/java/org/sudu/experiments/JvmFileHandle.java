@@ -125,24 +125,6 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
     }
   }
 
-  @Override
-  public void writeText(
-      Object text, String encoding,
-      Runnable onComplete, Consumer<String> onError
-  ) {
-    onError.accept("not implemented");
-  }
-
-  @Override
-  public void copyTo(String path, Runnable onComplete, Consumer<String> onError) {
-    onError.accept("not implemented");
-  }
-
-  @Override
-  public void remove(Runnable onComplete, Consumer<String> onError) {
-    onError.accept("not implemented");
-  }
-
   static void print(IOException e) {
     System.err.println(e.getMessage());
   }
