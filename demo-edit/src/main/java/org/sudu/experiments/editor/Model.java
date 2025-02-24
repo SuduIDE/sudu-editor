@@ -427,6 +427,7 @@ public class Model {
       case Languages.TS -> TypeScriptProxy.PARSE_FULL_FILE;
       case Languages.ACTIVITY -> ActivityProxy.PARSE_FULL_FILE;
       case Languages.HTML -> HtmlProxy.PARSE_FULL_FILE;
+      case Languages.JSON -> JsonProxy.PARSE_FULL_FILE;
       default -> TextProxy.PARSE_FULL_FILE;
     } : null;
   }

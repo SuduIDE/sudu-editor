@@ -5,7 +5,7 @@ import org.sudu.experiments.parser.common.base.BaseFirstLinesLexer;
 import org.sudu.experiments.parser.common.base.BaseFullParser;
 import org.sudu.experiments.parser.common.base.BaseFullScopeParser;
 import org.sudu.experiments.parser.common.base.BaseIntervalParser;
-import org.sudu.experiments.parser.html.parser.HtmlFirstLineLexer;
+import org.sudu.experiments.parser.html.parser.HtmlFirstLinesLexer;
 import org.sudu.experiments.parser.html.parser.HtmlFullParser;
 import org.sudu.experiments.parser.html.parser.HtmlIterativeParser;
 
@@ -17,7 +17,7 @@ public class HtmlProxy extends BaseProxy {
 
   @Override
   public BaseFirstLinesLexer<?> getFirstLinesLexer() {
-    return new HtmlFirstLineLexer();
+    return new HtmlFirstLinesLexer();
   }
 
   public static final String PARSE_FULL_FILE = "HtmlProxy.parseFullFile";

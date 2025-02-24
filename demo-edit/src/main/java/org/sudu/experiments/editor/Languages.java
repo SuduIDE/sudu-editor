@@ -13,9 +13,10 @@ public interface Languages {
   String TS = "ts";
   String ACTIVITY = "activity";
   String HTML = "html";
+  String JSON = "json";
 
   static String[] getAllLanguages() {
-    return new String[]{TEXT, JAVA, CPP, JS, TS, ACTIVITY};
+    return new String[]{TEXT, JAVA, CPP, JS, TS, HTML, JSON, ACTIVITY};
   }
 
   static String getLanguage(String lang) {
@@ -23,9 +24,11 @@ public interface Languages {
       case "text", "txt", "plaintext" -> TEXT;
       case "java" -> JAVA;
       case "cpp", "c++" -> CPP;
-      case "js", "javascript" -> JS;
+      case "js", "mjs", "cjs", "javascript" -> JS;
+      case "ts", "typescript" -> TS;
       case "activity" -> ACTIVITY;
       case "html" -> HTML;
+      case "json" -> JSON;
       default -> null;
     };
   }
@@ -46,6 +49,7 @@ public interface Languages {
     if (path.endsWith(".activity")) return ACTIVITY;
     if (path.endsWith(".html")
         || path.endsWith(".xml")) return HTML;
+    if (path.endsWith(".json")) return JSON;
 
     return TEXT;
   }
@@ -71,6 +75,7 @@ public interface Languages {
       case Languages.TS -> FileProxy.TS_FILE;
       case Languages.ACTIVITY -> FileProxy.ACTIVITY_FILE;
       case Languages.HTML -> FileProxy.HTML_FILE;
+      case Languages.JSON -> FileProxy.JSON_FILE;
       default -> {
         System.err.println("Illegal language: " + lang);
         yield FileProxy.TEXT_FILE;
@@ -81,6 +86,7 @@ public interface Languages {
   static boolean isFullReparseOnEdit(String language) {
     return language.equals(ACTIVITY)
         || language.equals(HTML)
+        || language.equals(JSON)
         || language.equals(TEXT);
   }
 

@@ -15,6 +15,7 @@ public class FileProxy {
   public static final int ACTIVITY_FILE = 4;
   public static final int HTML_FILE = 5;
   public static final int TS_FILE = 6;
+  public static final int JSON_FILE = 7;
 
   public static final JavaProxy javaProxy = new JavaProxy();
   public static final CppProxy cppProxy = new CppProxy();
@@ -22,6 +23,7 @@ public class FileProxy {
   public static final TypeScriptProxy typescriptProxy = new TypeScriptProxy();
   public static final ActivityProxy activityProxy = new ActivityProxy();
   public static final HtmlProxy htmlProxy = new HtmlProxy();
+  public static final JsonProxy jsonProxy = new JsonProxy();
   public static final TextProxy textProxy = new TextProxy();
 
   public static final String asyncParseFile = "asyncParseFile";
@@ -98,6 +100,7 @@ public class FileProxy {
       case TS_FILE -> typescriptProxy;
       case ACTIVITY_FILE -> activityProxy;
       case HTML_FILE -> htmlProxy;
+      case JSON_FILE -> jsonProxy;
       default -> textProxy;
     };
   }
