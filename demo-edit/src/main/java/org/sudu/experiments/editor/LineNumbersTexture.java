@@ -41,7 +41,7 @@ public class LineNumbersTexture implements Disposable {
     this.lineHeight = lineHeight;
     this.textureSize = new V2i(textureWidth, this.numberOfLines * lineHeight);
     this.baseline = fontDesk.baselineShift(lineHeight);
-    this.syncLineSize.set(textureWidth, 5);
+    this.syncLineSize.set(textureWidth + EditorConst.LINE_NUMBERS_RIGHT_PADDING, 5);
   }
 
   public int updateTexture(
@@ -143,13 +143,12 @@ public class LineNumbersTexture implements Disposable {
   void drawSyncLine(
       WglGraphics g, V2i dXdY,
       int scrollPos, int fullTexturesSize, int syncLine,
-      LineNumbersColors colorScheme
+      Color lineColor
   ) {
     int caretShift = syncLine % numberOfLines;
     int height = textureSize.y;
     int yPos = getYPos(scrollPos, fullTexturesSize, height, caretShift);
-    // Todo extract color to scheme
-    g.drawRect(texturePos.x + dXdY.x, yPos + dXdY.y, syncLineSize, new Color("#ff0000"));
+    g.drawRect(texturePos.x + dXdY.x, yPos + dXdY.y, syncLineSize, lineColor);
   }
 
   private void draw(WglGraphics g, int yPos, V2i dXdY, V4f textColor, V4f bgColor) {
