@@ -164,13 +164,13 @@ public class DiffEngine implements DiffEngineJs {
 
     return Promise.create((resolve, reject) ->
         pool.sendToWorker(true,
-            r -> publishRemoteDirectory(r, resolve, reject),
+            r -> publishRemoteDirectory(r, withFiles, resolve, reject),
             DiffUtils.asyncListDirectory, dir)
     );
   }
 
   static void publishRemoteDirectory(
-      Object[] packet,
+      Object[] packet, boolean withFiles,
       JsFunctions.Consumer<JsArray<JSObject>> resolve,
       JsFunctions.Consumer<JSObject> reject
   ) {
@@ -181,7 +181,8 @@ public class DiffEngine implements DiffEngineJs {
       for (Object entry : packet) {
         if (entry instanceof FsItem item) {
           boolean isFile = entry instanceof FileHandle;
-          array.push(newFolderListingEntry(item.getName(), isFile));
+          if (!isFile || withFiles)
+            array.push(newFolderListingEntry(item.getName(), isFile));
         } else {
           System.err.println(
               DiffUtils.asyncListDirectory + ": bad data: " + entry);

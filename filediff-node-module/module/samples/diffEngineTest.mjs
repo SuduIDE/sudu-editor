@@ -313,6 +313,7 @@ function testFileAppendSsh(args) {
 function testListRemoteDirectory(args) {
   const ssh = sshConfig(args, 3);
   const dir = args[3 + 4];
+  const withFiles = args[3 + 5] === 'true';
 
   if (!ssh || !dir) {
     console.log("args: ssh[4] dir");
@@ -322,9 +323,10 @@ function testListRemoteDirectory(args) {
 
   console.log("ssh", ssh);
   console.log("dir", dir);
+  console.log("withFiles", withFiles);
 
   jobCount++;
-  diffEngine.listRemoteDirectory(sshFile(ssh, dir), true).then(
+  diffEngine.listRemoteDirectory(sshFile(ssh, dir), withFiles).then(
       list => {
         console.log("listRemoteDirectory: ", list);
         mayBeExit();
