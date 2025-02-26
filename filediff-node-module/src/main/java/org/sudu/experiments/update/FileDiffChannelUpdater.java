@@ -3,13 +3,17 @@ package org.sudu.experiments.update;
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
+import org.sudu.experiments.js.TextEncoder;
 import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
+
+import static org.sudu.experiments.editor.worker.FsWorkerJobs.*;
 
 public class FileDiffChannelUpdater {
   static final boolean debug = false;
@@ -39,13 +43,13 @@ public class FileDiffChannelUpdater {
 
   public void compareLeft(FileHandle leftHandle) {
     this.leftHandle = leftHandle;
-    FileHandle.readTextFile(leftHandle,
+    FsWorkerJobs.readTextFile(executor, leftHandle,
         (text, encoding) -> sendFileRead(true, text, encoding), this::onError);
   }
 
   public void compareRight(FileHandle rightHandle) {
     this.rightHandle = rightHandle;
-    FileHandle.readTextFile(rightHandle,
+    FsWorkerJobs.readTextFile(executor, rightHandle,
         (text, encoding) -> sendFileRead(false, text, encoding), this::onError);
   }
 
@@ -60,17 +64,18 @@ public class FileDiffChannelUpdater {
   }
 
   private void onFileSave(JsArray<JSObject> jsArray) {
-    Object source = JsCast.directJsToJava(jsArray, 0);
+    var jsString = JsCast.jsString(jsArray, 0);
+    var source = TextEncoder.toCharArray(jsString);
     String encoding = JsCast.string(jsArray, 1);
     boolean left = JsCast.ints(jsArray, 2)[0] == 1;
     if (left && leftHandle != null) {
       LoggingJs.debug("writeText: encoding = " + encoding + ", file = " + leftHandle);
-      leftHandle.writeText(source, encoding,
+      fileWriteText(executor, leftHandle, source, encoding,
           () -> onFileWrite(true, leftHandle.getFullPath()),
           this::onError);
     } else if (!left && rightHandle != null) {
       LoggingJs.debug("writeText: encoding = " + encoding + ", file = " + rightHandle);
-      rightHandle.writeText(source, encoding,
+      fileWriteText(executor, rightHandle, source, encoding,
           () -> onFileWrite(false, rightHandle.getFullPath()),
           this::onError);
     }
@@ -79,9 +84,13 @@ public class FileDiffChannelUpdater {
   private void onFileRead(JsArray<JSObject> jsArray) {
     boolean left = JsCast.ints(jsArray)[0] == 1;
     FileHandle handle = left ? leftHandle : rightHandle;
-    if (handle == null) return;
-    FileHandle.readTextFile(handle,
-        (text, encoding) -> sendFileRead(left, text, encoding), this::onError);
+    if (handle == null) {
+      onError("onFileRead: handle is null");
+    } else {
+      FsWorkerJobs.readTextFile(executor, handle,
+          (t, en) -> sendFileRead(left, t, en),
+          this::onError);
+    }
   }
 
   // todo finish writing in future

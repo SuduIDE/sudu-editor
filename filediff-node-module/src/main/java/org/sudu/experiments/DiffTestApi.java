@@ -15,6 +15,7 @@ import org.teavm.jso.core.JSString;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 import static org.sudu.experiments.editor.worker.ArgsCast.array;
 
@@ -34,9 +35,7 @@ interface JsDiffTestApi extends JSObject {
   );
 
   void testFileReadWrite(
-      JsFileInput pathFrom,
-      JsFileInput pathToS,
-      JsFileInput pathToJ,
+      JsFileInput pathFrom, JsFileInput pathTo,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
   );
@@ -136,8 +135,8 @@ public class DiffTestApi implements JsDiffTestApi {
       onError.f(JsHelper.concat("bad path:", path));
       JsHelper.consoleError2("bad path:", path);
     } else {
-      fh.writeText(
-          JsHelper.directJsToJava(content),
+      FsWorkerJobs.fileWriteText(pool, fh,
+          TextEncoder.toCharArray(content),
           encoding.stringValue(),
           onComplete::f,
           e -> onError.f(JSString.valueOf(e))
@@ -149,32 +148,27 @@ public class DiffTestApi implements JsDiffTestApi {
 
   @Override
   public void testFileReadWrite(
-      JsFileInput pathFrom, JsFileInput pathToS, JsFileInput pathToJ,
-      JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onError
+      JsFileInput pathFrom, JsFileInput pathTo,
+      JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onErrorJ
   ) {
     var fhFrom = JsFileInput.fileHandle(pathFrom, true);
-    var fhToS = JsFileInput.fileHandle(pathToS, false);
-    var fhToJ = JsFileInput.fileHandle(pathToJ, false);
-    int[] box = new int[] {1};
-    Consumer<String> error = e -> {
+    var fhTo = JsFileInput.fileHandle(pathTo, false);
+    if (fhFrom == null || fhTo == null) {
+      onErrorJ.f(JsHelper.concat("bad path:", pathFrom));
+      return;
+    }
+    Consumer<String> onError = e -> {
       JsHelper.consoleError("testFileReadWrite error:" + e);
-      if (--box[0] <= 0)
-        onError.f(JSString.valueOf(e));
-      else
-        JsHelper.consoleError("testFileReadWrite error:" + e);
+      onErrorJ.f(JSString.valueOf(e));
     };
-    Runnable onCompleteJ = () -> {
-      if (--box[0] <= 0)
-        onComplete.f();
-    };
-    FileHandle.readTextFile(
-        fhFrom, (text, encoding) -> {
-          box[0] = 2;
-          fhToS.writeText(text, encoding, onCompleteJ, error);
-          JSString jsString = JSString.valueOf(text);
-          var jsAsObj = JsHelper.directJsToJava(jsString);
-          fhToJ.writeText(jsAsObj, encoding, onCompleteJ, error);
-        }, error);
+
+    FsWorkerJobs.readTextFile(pool, fhFrom, (t, en) -> {
+      JsHelper.consoleError("testFileReadWrite: readTextFile ok "
+          + fhFrom + ", l = " + t.length() + ", enc = " + en);
+      FsWorkerJobs.fileWriteText(pool,
+          fhTo, t.toCharArray(), en,
+          onComplete::f, onError);
+    }, onError);
   }
 
   @Override
@@ -331,7 +325,7 @@ public class DiffTestApi implements JsDiffTestApi {
     if (fh == null) {
       JsHelper.consoleError2("bad path:", path);
     } else {
-      fh.remove(onComplete::f, e -> {
+      FsWorkerJobs.removeFile(pool, fh, onComplete::f, e -> {
         JsHelper.consoleError("fire remove error: " + e);
         onComplete.f();
       });
@@ -342,25 +336,25 @@ public class DiffTestApi implements JsDiffTestApi {
   public void testCopyFileToFolder(
       JsFileInput from, JsFolderInput toDir, JsFileInput toFile,
       JsFunctions.Runnable onComplete,
-      JsFunctions.Consumer<JSString> onError
+      JsFunctions.Consumer<JSString> onErrorJs
   ) {
     var fhFrom = JsFileInput.fileHandle(from, true);
     var fhToDir = JsFolderInput.directoryHandle(toDir);
     var fhToFile = JsFileInput.fileHandle(toFile, false);
     if (fhFrom == null) {
-      onError.f(JSString.valueOf("bad input file"));
+      onErrorJs.f(JSString.valueOf("bad input file"));
       return;
     }
 //    boolean canCopyTo = fhFrom.canCopyTo(fhToDir);
 //    System.out.println("testCopyFileToFolder: fhFrom.canCopyTo(fhTo) = " + canCopyTo);
 
     int[] box = new int[1];
-    Consumer<String> error = e -> {
+    Consumer<String> onError = e -> {
       String m = "FileHandle.copyTo(" + fhFrom + ") error: " + e;
       JSString msg = JSString.valueOf(m);
       JsHelper.consoleError("  testCopyFileToFolder.error:", msg);
       if (--box[0] <= 0)
-        onError.f(msg);
+        onErrorJs.f(msg);
 
     };
     Runnable onCompleteJ = () -> {
@@ -370,24 +364,32 @@ public class DiffTestApi implements JsDiffTestApi {
 
     if (false) {
       box[0] = 2;
-      fhFrom.copyTo(fhToDir, onCompleteJ, error);
-      fhFrom.copyTo(fhToFile, onCompleteJ, error);
+      fhFrom.copyTo(fhToDir, onCompleteJ, onError);
+      fhFrom.copyTo(fhToFile, onCompleteJ, onError);
     } else {
       box[0] = 2;
-      Consumer<Object[]> onCopy = p -> FsWorkerJobs.onReply(p,
-          size -> {
-            System.out.println("testCopyFileToFolder: " + size + " bytes copied, from " + fhFrom);
-            onCompleteJ.run();
-          }, error);
 
-      System.out.println("testCopyFileToFolder: call " + FsWorkerJobs.copyFile + "("
-          + fhFrom + "," + fhToFile + ")");
-      pool.sendToWorker(true, onCopy,
-          FsWorkerJobs.copyFile, fhFrom, fhToFile);
-      System.out.println("testCopyFileToFolder: call " + FsWorkerJobs.copyFile + "("
-          + fhFrom + "," + fhToDir + ")");
-      pool.sendToWorker(true, onCopy,
-          FsWorkerJobs.copyFile, fhFrom, fhToDir);
+      IntConsumer onCopy = size -> {
+        System.out.println(
+            "testCopyFileToFolder: " + size + " bytes copied, from " + fhFrom);
+        onCompleteJ.run();
+      };
+
+      System.out.println(
+          "testCopyFileToFolder: call " + FsWorkerJobs.asyncCopyFile + "("
+              + fhFrom + "," + fhToFile + ")");
+
+      FsWorkerJobs.copyFile(
+          pool, fhFrom, fhToFile,
+          onCopy, onError);
+
+      System.out.println(
+          "testCopyFileToFolder: call " + FsWorkerJobs.asyncCopyFile + "("
+              + fhFrom + "," + fhToDir + ")");
+
+      FsWorkerJobs.copyFile(
+          pool, fhFrom, fhToDir,
+          onCopy, onError);
     }
   }
 

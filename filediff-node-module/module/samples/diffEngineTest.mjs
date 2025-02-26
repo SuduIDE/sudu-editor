@@ -105,17 +105,20 @@ function testFileWrite(args) {
 }
 
 function testFileReadWrite(args) {
-  const fileFrom = args[3];
-  const fileToS = args[4];
-  const fileToJ = args[5];
-  console.log("fileFrom", fileFrom);
-  console.log("fileToS", fileToS);
-  console.log("fileToJ", fileToJ);
-
-  jobCount++;
-  module.testFileReadWrite(fileFrom, fileToS, fileToJ,
-      onComplete("testFileReadWrite"),
-      onError("testFileReadWrite"));
+  if (!args[3]) {
+    mayBeExit();
+    return "usage: testFileReadWrite file1 [file2] ..."
+  }
+  for (let i = 3; i < args.length; i++) {
+    const fileFrom = args[i];
+    const fileTo = fileFrom + '.testRW';
+    console.log("fileFrom", fileFrom);
+    console.log("fileTo", fileTo);
+    jobCount++;
+    module.testFileReadWrite(fileFrom, fileTo,
+        onComplete("testFileReadWrite"),
+        onError("testFileReadWrite"));
+  }
 }
 
 function sshFile(ssh, path) {
@@ -124,26 +127,26 @@ function sshFile(ssh, path) {
 
 function testFileReadWriteSsh(args) {
   const ssh = sshConfig(args, 3);
-  const fileFrom = args[3+4];
-  const fileToS = args[4+4];
-  const fileToJ = args[5+4];
+  const file0 = args[3+4];
 
-  if (!args || !fileFrom || !fileToS || !fileToJ) {
-    console.log("args: ssh[4] fileFrom fileTo1 fileTo2");
+  if (!args || !file0) {
     mayBeExit();
-    return;
+    return "args: ssh[4] file1 [file2 ...]";
   }
 
   console.log("ssh", ssh);
-  console.log("fileFrom", fileFrom);
-  console.log("fileToS", fileToS);
-  console.log("fileToJ", fileToJ);
 
-  jobCount++;
-  module.testFileReadWrite(sshFile(ssh, fileFrom),
-      sshFile(ssh, fileToS), sshFile(ssh, fileToJ),
-      onComplete("testFileReadWriteSsh"),
-      onError("testFileReadWriteSsh"));
+  for (let i = 3+4; i < args.length; i++) {
+    const fileFrom = args[i];
+    console.log("fileFrom", fileFrom);
+    const fileTo = fileFrom + '.testRW';
+
+    jobCount++;
+    module.testFileReadWrite(
+        sshFile(ssh, fileFrom), sshFile(ssh, fileTo),
+        onComplete("testFileReadWriteSsh"),
+        onError("testFileReadWriteSsh"));
+  }
 }
 
 function onComplete(title) {

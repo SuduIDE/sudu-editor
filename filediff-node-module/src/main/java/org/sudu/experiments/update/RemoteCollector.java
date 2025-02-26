@@ -9,9 +9,11 @@ import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
+import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.js.TextEncoder;
 import org.sudu.experiments.js.node.SshDirectoryHandle;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
@@ -20,6 +22,7 @@ import org.sudu.experiments.ui.fs.FileCompare;
 import org.sudu.experiments.worker.ArrayView;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
+import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
 import java.util.*;
@@ -29,7 +32,7 @@ public class RemoteCollector {
 
   private ItemFolderDiffModel root;
 
-  private final NodeWorkersPool executor;
+  final NodeWorkersPool executor;
   private final int workerSize;
   private final boolean scanFileContent;
 
@@ -193,26 +196,38 @@ public class RemoteCollector {
     sendApplied();
   }
 
-  public void fileSave(int[] path, boolean left, Object source, String encoding) {
+  public void fileSave(
+      int[] path, boolean left,
+      JSString source, JSString encoding
+  ) {
     var model = (ItemFolderDiffModel) root.findNodeByIndPath(path);
-    var item = (FileHandle) (left ? model.left() : model.right());
-    LoggingJs.debug("fileSave " + item + ", encoding = " + encoding);
-    item.writeText(source, encoding, () -> cmpFilesAndSend(model, item), this::onError);
+    var file = (FileHandle) (left ? model.left() : model.right());
+    char[] chars = TextEncoder.toCharArray(source);
+    LoggingJs.debug("fileSave " + file + ", encoding = " + encoding
+        + ", content length = " + chars.length);
+    FsWorkerJobs.fileWriteText(
+        executor, file, chars, encoding.stringValue(),
+        () -> cmpFilesAndSend(model, file), this::onError);
   }
 
-  private void copyFile(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
+  void copyFile(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
     LoggingJs.debug("copyFile " + model + ", left = " + left);
     if (!(model.item(left) instanceof FileHandle fileItem)) return;
-    var h = !left ? leftHandle() : rightHandle();
-//    String to = model.getFullPath(h.getFullPath());
-    LoggingJs.debug("copyFile " + fileItem + " -> " + h);
-    fileItem.copyTo(h, onComplete, this::onError);
+    var root = !left ? leftHandle() : rightHandle();
+    String fullPath = model.getFullPath(root.getFullPath());
+    // todo: find the opposite path to the model item
+    LoggingJs.debug("copyFile " + fileItem + " -> " + root
+        + ", model.getFullPath = " + fullPath);
+    var fileTo = root;
+    FsWorkerJobs.copyFile(executor, fileItem, fileTo,
+        n -> onComplete.run(), this::onError);
   }
 
   private void removeFile(ItemFolderDiffModel model, Runnable onComplete) {
     if (!(model.item() instanceof FileHandle fileItem)) return;
     LoggingJs.debug("removeFile " + fileItem);
-    fileItem.remove(onComplete, this::onError);
+    FsWorkerJobs.removeFile(executor, fileItem,
+        onComplete, this::onError);
   }
 
   private void copyFolder(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
@@ -238,7 +253,7 @@ public class RemoteCollector {
   private void removeFolder(ItemFolderDiffModel model, Runnable onComplete) {
     if (!(model.item() instanceof DirectoryHandle dirItem)) return;
     LoggingJs.debug("remove folder " + dirItem);
-    dirItem.remove(onComplete, this::onError);
+    FsWorkerJobs.removeDir(executor, dirItem, onComplete, this::onError);
   }
 
   private void cmpFilesAndSend(ItemFolderDiffModel model, FileHandle item) {

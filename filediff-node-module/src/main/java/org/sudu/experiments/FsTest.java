@@ -4,7 +4,6 @@ import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeDirectoryHandle;
-import org.sudu.experiments.js.node.NodeFileHandle;
 import org.teavm.jso.core.JSString;
 
 public class FsTest {
@@ -17,18 +16,10 @@ public class FsTest {
     JsHelper.consoleInfo("stats = ", stats);
     if (stats.isDirectory()) {
       NodeDirectoryHandle dh = new NodeDirectoryHandle(path);
-      new Traverser(() -> JsHelper.consoleInfo("traverseDir done")).go(dh);
-    } else {
-      JsHelper.consoleInfo("reading file as string", path);
-      NodeFileHandle fh = new NodeFileHandle(path);
-      FileHandle.readTextFile(
-          fh, (s, enc) -> {
-            JsHelper.consoleInfo("readAsText complete: encoding=" + enc + ", " +
-                s.substring(0, Math.min(20, s.length())));
-            onComplete.f();
-          },
-          e -> JsHelper.consoleError("readAsText error: ".concat(e))
-      );
+      new Traverser(() -> {
+        JsHelper.consoleInfo("traverseDir done");
+        onComplete.f();
+      }).go(dh);
     }
   }
 
@@ -52,7 +43,9 @@ public class FsTest {
 
     @Override
     public void onFile(FileHandle file) {
-      file.getSize(size -> readFileTest(file, size));
+      file.getSize(size -> {
+        JsHelper.consoleInfo("file " + file + " size = " + size);
+      });
     }
 
     @Override
@@ -64,39 +57,4 @@ public class FsTest {
     }
   }
 
-  static class FileReader {
-    byte[] bytes;
-
-    void readFull(FileHandle fh) {
-      int read = 1024 * 64, total = 0;
-      for (; ; ) {
-        fh.readAsBytes(
-            result -> bytes = result,
-            System.err::println, total, read
-        );
-        if (bytes != null && bytes.length > 0) {
-          int length = bytes.length;
-          bytes = null;
-          total += length;
-          if (length < read)
-            break;
-          read *= 2;
-        } else break;
-      }
-      JsHelper.consoleInfo("  read file " + fh.getName() + " => " + total + " bytes");
-    }
-  }
-
-  static void readFileTest(FileHandle fh, int size) {
-    if (size < 4096) {
-      FileHandle.readTextFile(fh,
-          (text, encoding) ->
-              JsHelper.consoleInfo("  readAsText " + fh.getName()
-                  + " => " + text.length() + " chars, encoding=" + encoding),
-          System.err::println
-      );
-    } else {
-      new FileReader().readFull(fh);
-    }
-  }
 }

@@ -276,4 +276,8 @@ public class JsHelper {
   @NoSideEffects
   @JSBody(params = {"obj"}, script = "return JSON.stringify(obj);")
   public static native JSString stringify(JSObject obj);
+
+  public static JSString fastToJs(String s) {
+    return TextDecoder.decodeUTF16(s.toCharArray());
+  }
 }

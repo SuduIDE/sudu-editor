@@ -27,9 +27,7 @@ export interface DiffTestApi {
   ): void;
 
   testFileReadWrite(
-    pathFrom: FileInput,
-    pathToS: FileInput,
-    pathToJ: FileInput,
+    pathFrom: FileInput, pathTo: FileInput,
     onComplete: () => void,
     onError: (error: string) => void
   ) : void;

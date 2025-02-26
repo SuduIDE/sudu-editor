@@ -3,18 +3,25 @@ package org.sudu.experiments.editor.worker;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
+import org.sudu.experiments.worker.WorkerJobExecutor;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
 public interface FsWorkerJobs {
-  String copyFile = "asyncCopyFile";
+  String asyncCopyFile = "asyncCopyFile";
   int blockSize = 1024 * 1024;
 
   static void copyFile(
-      Object[] args,
-      Consumer<Object[]> r
+      WorkerJobExecutor workers, FileHandle src, FsItem dst,
+      IntConsumer onComplete, Consumer<String> onError
   ) {
+    workers.sendToWorker(onCopy(onComplete, onError),
+        FsWorkerJobs.asyncCopyFile, src, dst);
+  }
+
+  static void asyncCopyFile(Object[] args, Consumer<Object[]> r) {
     FileHandle src = (FileHandle) args[0];
     FsItem dst = (FsItem) args[1];
     if (dst instanceof FileHandle dstFile) {
@@ -22,8 +29,7 @@ public interface FsWorkerJobs {
     } else if (dst instanceof DirectoryHandle dstDir) {
       dstDir.createFile(src.getName(),
           newFile -> new CopyFile(r, src, newFile),
-          e -> postError(e, r)
-      );
+          e -> postError(e, r));
     } else {
       postError("IllegalAccessException", r);
     }
@@ -37,19 +43,19 @@ public interface FsWorkerJobs {
     r.accept(new Object[] { new int[] {0}, error});
   }
 
-  static void onReply(
-      Object[] packet,
-      IntConsumer onComplete,
-      Consumer<String> onError
+  static Consumer<Object[]> onCopy(
+      IntConsumer onComplete, Consumer<String> onError
   ) {
-    int[] data = ArgsCast.array(packet, 0).ints();
-    if (packet.length == 1 && data.length == 2 && data[0] == 1) {
-      onComplete.accept(data[1]);
-    } else {
-      boolean errorMsg = packet.length == 2 && data[0] == 0;
-      var message = errorMsg ? ArgsCast.string(packet, 1) : null;
-      onError.accept(message);
-    }
+    return r -> {
+      int[] data = ArgsCast.array(r, 0).ints();
+      if (r.length == 1 && data.length == 2 && data[0] == 1) {
+        onComplete.accept(data[1]);
+      } else {
+        boolean errorMsg = r.length == 2 && data[0] == 0;
+        var message = errorMsg ? ArgsCast.string(r, 1) : null;
+        onError.accept(message);
+      }
+    };
   }
 
   class CopyFile {
@@ -165,5 +171,99 @@ public interface FsWorkerJobs {
       if (data.length == blockSize)
         read(pos + blockSize);
     }
+  }
+
+  String asyncFileWriteText = "asyncFileWriteText";
+
+  static void fileWriteText(
+      WorkerJobExecutor workers,
+      FileHandle file, char[] content, String encoding,
+      Runnable onComplete, Consumer<String> onError
+  ) {
+    workers.sendToWorker(true, on(onComplete, onError),
+        asyncFileWriteText, file, content, encoding);
+  }
+
+  // args: FileHandle file, char[] content, String encoding
+  // returns [ String error ] or [ null ]
+  static void asyncFileWriteText(Object[] args, Consumer<Object[]> r) {
+    FileHandle file = ArgsCast.file(args, 0);
+    char[] content = ArgsCast.array(args, 1).chars();
+    String encoding = ArgsCast.string(args, 2);
+    file.writeText(content, encoding,
+        () -> r.accept(new Object[0]),
+        error -> r.accept(new Object[]{error}));
+  }
+
+  String asyncReadTextFile = "asyncReadTextFile";
+
+  static void readTextFile(
+      WorkerJobExecutor workers, FileHandle file,
+      BiConsumer<String, String> onComplete, Consumer<String> onError
+  ) {
+    workers.sendToWorker(true, r -> {
+      if (r.length == 2) {
+        onComplete.accept(
+            ArgsCast.string(r, 0),
+            ArgsCast.string(r, 1));
+      } else {
+        onError.accept(ArgsCast.string(r, 0));
+      }
+    }, asyncReadTextFile, file);
+  }
+
+  static void asyncReadTextFile(Object[] args, Consumer<Object[]> r) {
+    FileHandle file = ArgsCast.file(args, 0);
+    FileHandle.readTextFile(file,
+        (t, e) -> r.accept(new Object[]{t, e}),
+        error -> r.accept(new Object[]{error}));
+  }
+
+  String asyncRemoveFile = "asyncRemoveFile";
+
+  static void removeFile(
+      WorkerJobExecutor workers, FileHandle file,
+      Runnable onComplete, Consumer<String> onError
+  ) {
+    workers.sendToWorker(on(onComplete, onError),
+        FsWorkerJobs.asyncRemoveFile, file);
+  }
+
+  // args: FileHandle file
+  // returns [ String error ] or [ null ]
+  static void asyncRemoveFile(Object[] args, Consumer<Object[]> r) {
+    FileHandle file = ArgsCast.file(args, 0);
+    file.remove(() -> r.accept(new Object[0]),
+        error -> r.accept(new Object[]{error}));
+  }
+
+  String asyncRemoveDir = "asyncRemoveDir";
+
+  static void removeDir(
+      WorkerJobExecutor workers, DirectoryHandle dir,
+      Runnable onComplete, Consumer<String> onError
+  ) {
+    workers.sendToWorker(on(onComplete, onError),
+        FsWorkerJobs.asyncRemoveDir, dir);
+  }
+
+  // args: FileHandle file
+  // returns [ String error ] or [ null ]
+  static void asyncRemoveDir(Object[] args, Consumer<Object[]> r) {
+    DirectoryHandle dir = ArgsCast.dir(args, 0);
+    dir.remove(() -> r.accept(new Object[0]),
+        error -> r.accept(new Object[]{error}));
+  }
+
+  static Consumer<Object[]> on(
+      Runnable onComplete, Consumer<String> onError
+  ) {
+    return r -> {
+      if (r.length == 0) {
+        onComplete.run();
+      } else {
+        onError.accept(ArgsCast.string(r,0));
+      }
+    };
   }
 }

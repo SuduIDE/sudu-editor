@@ -100,7 +100,9 @@ public class WorkerProtocol {
       int arrayIndex, Object[] r, int idx
   ) {
     JSObject jsObject = array.get(arrayIndex++);
-    if (JSString.isInstance(jsObject)) {
+    if (jsObject == null) {
+      r[idx] = null;
+    } else if (JSString.isInstance(jsObject)) {
       r[idx] = jsObject.<JSString>cast().stringValue();
     } else if (isArrayBuffer(jsObject)) {
       r[idx] = new JsArrayView(jsObject.cast());
@@ -111,8 +113,11 @@ public class WorkerProtocol {
   }
 
   static int bridgeToJs(Object javaObject, JsArray<JSObject> message, int idx) {
-    if (javaObject instanceof String javaString) {
-      message.set(idx++, JSString.valueOf(javaString));
+    if (javaObject == null) {
+      message.set(idx++, null);
+    } else if (javaObject instanceof String javaString) {
+//      message.set(idx++, JSString.valueOf(javaString));
+      message.set(idx++, TextDecoder.decodeUTF16(javaString.toCharArray()));
     } else if (javaObject instanceof byte[] byteArray) {
       message.set(idx++, JsMemoryAccess.bufferView(byteArray).getBuffer());
     } else if (javaObject instanceof char[] charArray) {

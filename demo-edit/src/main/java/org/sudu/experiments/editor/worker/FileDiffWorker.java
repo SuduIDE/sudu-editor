@@ -51,7 +51,11 @@ public class FileDiffWorker {
       case DiffUtils.asyncListDirectory -> DiffUtils.listDirectory(
           ArgsCast.dir(a, 0), r);
 
-      case FsWorkerJobs.copyFile -> FsWorkerJobs.copyFile(a, r);
+      case FsWorkerJobs.asyncCopyFile -> FsWorkerJobs.asyncCopyFile(a, r);
+      case FsWorkerJobs.asyncFileWriteText -> FsWorkerJobs.asyncFileWriteText(a, r);
+      case FsWorkerJobs.asyncReadTextFile -> FsWorkerJobs.asyncReadTextFile(a, r);
+      case FsWorkerJobs.asyncRemoveFile -> FsWorkerJobs.asyncRemoveFile(a, r);
+      case FsWorkerJobs.asyncRemoveDir -> FsWorkerJobs.asyncRemoveDir(a, r);
 
       default -> System.out.println("asyncMethod = " + method);
     }

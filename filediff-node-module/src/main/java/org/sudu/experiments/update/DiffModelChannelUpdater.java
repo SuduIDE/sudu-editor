@@ -2,10 +2,12 @@ package org.sudu.experiments.update;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
+import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.js.TextDecoder;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.JsCast;
 import org.teavm.jso.JSObject;
@@ -13,7 +15,7 @@ import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
 public class DiffModelChannelUpdater {
-  static final boolean debug = false;
+  static final boolean debug = true;
 
   private RemoteCollector collector;
   private Channel channel;
@@ -82,9 +84,9 @@ public class DiffModelChannelUpdater {
     boolean left = ints.get(1) == 1;
 
     var fileHandle = collector.findFileByIndexPath(indPath, left);
-    FileHandle.readTextFile(fileHandle,
-        (source, encoding) -> postOpenFile(source, encoding, ints),
-        error -> postError(error, ints)
+    FsWorkerJobs.readTextFile(collector.executor, fileHandle,
+        (t, en) -> postOpenFile(t, en, ints),
+        error -> postError(error, ints, fileHandle)
     );
   }
 
@@ -94,15 +96,15 @@ public class DiffModelChannelUpdater {
                 encoding + " length = " + source.length() + ", key =",
             JsHelper.jsToString(key)));
     var result = JsArray.create();
-    result.push(JSString.valueOf(source));
+    result.push(JsHelper.fastToJs(source));
     result.push(JSString.valueOf(encoding));
     result.push(key);
     result.push(OPEN_FILE_ARRAY);
     channel.sendMessage(result);
   }
 
-  // todo: fix error posting
-  private void postError(String error, Int32Array key) {
+  private void postError(String error, Int32Array key, FileHandle file) {
+    LoggingJs.error("error reading file " + file + ", error=" + error);
     postOpenFile(error, null, key);
   }
 
@@ -116,8 +118,8 @@ public class DiffModelChannelUpdater {
     LoggingJs.debug("DiffModelChannelUpdater.onFileSave");
     int[] path = JsCast.ints(jsArray, 0);
     boolean left = JsCast.ints(jsArray, 1)[0] == 0;
-    Object source = JsCast.directJsToJava(jsArray, 2);
-    String encoding = JsCast.string(jsArray, 3);
+    JSString source = JsCast.jsString(jsArray, 2);
+    JSString encoding = JsCast.jsString(jsArray, 3);
     collector.fileSave(path, left, source, encoding);
   }
 
