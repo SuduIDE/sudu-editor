@@ -212,15 +212,23 @@ public class RemoteCollector {
 
   void copyFile(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
     LoggingJs.debug("copyFile " + model + ", left = " + left);
-    if (!(model.item(left) instanceof FileHandle fileItem)) return;
-    var root = !left ? leftHandle() : rightHandle();
-    String fullPath = model.getFullPath(root.getFullPath());
-    // todo: find the opposite path to the model item
-    LoggingJs.debug("copyFile " + fileItem + " -> " + root
-        + ", model.getFullPath = " + fullPath);
-    var fileTo = root;
-    FsWorkerJobs.copyFile(executor, fileItem, fileTo,
-        n -> onComplete.run(), this::onError);
+    if (!(model.item(left) instanceof FileHandle fileItem)) {
+      onError("copyFile: item" + model + "is not a file");
+      return;
+    }
+
+    if (model.item(!left) instanceof FileHandle fileTo) {
+      LoggingJs.debug("copy file " + fileItem.getFullPath() + " to file " + fileTo.getFullPath());
+      FsWorkerJobs.copyFile(executor, fileItem, fileTo, n -> onComplete.run(), this::onError);
+    } else {
+      Consumer<DirectoryHandle> onGetParentDir = dirTo -> {
+        LoggingJs.debug("copy file " + fileItem.getFullPath() + " to folder " + dirTo.getFullPath());
+        if (!(fileItem.canCopyTo(dirTo)))
+          onError("Can't copy file " + fileItem.getFullPath() + " to folder " + dirTo.getFullPath());
+        FsWorkerJobs.copyFile(executor, fileItem, dirTo, n -> onComplete.run(), this::onError);
+      };
+      model.parent().getOrCreateDir(!left, onGetParentDir, this::onError);
+    }
   }
 
   private void removeFile(ItemFolderDiffModel model, Runnable onComplete) {
@@ -231,16 +239,22 @@ public class RemoteCollector {
   }
 
   private void copyFolder(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
-    if (!(model.item(left) instanceof DirectoryHandle dirItem)) return;
-    DirectoryHandle toDir = left ? rightHandle() : leftHandle();
-    // String to = model.getFullPath(toDir.getFullPath());
-    LoggingJs.debug("copyFolder " + dirItem + " -> " + toDir);
-    if (dirItem.canCopyTo(toDir)) {
-      dirItem.copyTo(toDir, onComplete, this::onError);
-    } else {
-      // list folders, fire copyFile jobs.....
-      slowCopyDirectory(dirItem, toDir, onComplete, this::onError);
+    LoggingJs.debug("copyFolder " + model + ", left = " + left);
+    if (!(model.item(left) instanceof DirectoryHandle dirItem)) {
+      onError("copyFolder: item" + model + "is not a folder");
+      return;
     }
+
+    Consumer<DirectoryHandle> onDirGet = dirTo -> {
+      LoggingJs.debug("copy folder " + dirItem.getFullPath() + " to folder " + dirTo.getFullPath());
+      if (dirItem.canCopyTo(dirTo)) {
+        dirItem.copyTo(dirTo, onComplete, this::onError);
+      } else {
+        // list folders, fire copyFile jobs.....
+        slowCopyDirectory(dirItem, dirTo, onComplete, this::onError);
+      }
+    };
+    model.getOrCreateDir(left, onDirGet, this::onError);
   }
 
   private void slowCopyDirectory(

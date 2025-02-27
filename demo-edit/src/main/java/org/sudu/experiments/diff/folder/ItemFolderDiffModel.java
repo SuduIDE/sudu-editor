@@ -1,5 +1,7 @@
 package org.sudu.experiments.diff.folder;
 
+import org.sudu.experiments.DirectoryHandle;
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
@@ -7,10 +9,11 @@ import org.sudu.experiments.diff.DiffTypes;
 
 import java.util.Deque;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
-  public final FsItem[] items = new FsItem[] {null, null};
+  public final FsItem[] items = new FsItem[]{null, null};
 
   public ItemFolderDiffModel(FolderDiffModel parent, String path) {
     super(parent, path);
@@ -109,7 +112,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     if (model.children == null) writer.write(-1);
     else {
       writer.write(model.children.length);
-      for (var child : model.children) writeInts((ItemFolderDiffModel) child, pathList, fsList, writer);
+      for (var child: model.children) writeInts((ItemFolderDiffModel) child, pathList, fsList, writer);
     }
   }
 
@@ -173,5 +176,51 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
         mP++;
       }
     }
+  }
+
+  public void getOrCreateDir(
+      boolean left,
+      Consumer<DirectoryHandle> onComplete,
+      Consumer<String> onError
+  ) {
+    if (item(left) != null) {
+      if (item(left) instanceof DirectoryHandle dir) onComplete.accept(dir);
+      else onError.accept("Not a directory " + item(left));
+    } else {
+      Consumer<DirectoryHandle> onParentDirGet = parentDir -> {
+        // Can't LoggingJs from here
+        System.out.println("Created dir: " + parentDir.getName());
+        parent().setItem(left, parentDir);
+        parentDir.createDirectory(path, onComplete, onError);
+      };
+      parent().getOrCreateDir(left, onParentDirGet, onError);
+    }
+  }
+
+  public void copy(boolean left, ModelCopyStatus copyStatus) {
+    copyStatus.inTraverse++;
+    if (getDiffType() == DiffTypes.DEFAULT) {
+      copyStatus.onTraversed();
+      return;
+    } else if (isFile()) {
+      FileHandle fromFile;
+      FileHandle toFile;
+      if (getDiffType() == DiffTypes.EDITED || (left && isLeftOnly()) || (!left && isRightOnly())) {
+        fromFile = (FileHandle) item(left);
+        toFile = (FileHandle) item(!left);
+        copyStatus.inCopy++;
+        fromFile.copyTo(toFile, copyStatus::onCopied, copyStatus::onError);
+      } else copyStatus.onError("Can't copy file " + item(left));
+    } else {
+      if ((left && isLeftOnly()) || (!left && isRightOnly())) {
+        DirectoryHandle fromDir = (DirectoryHandle) item(left);
+        DirectoryHandle toDir = (DirectoryHandle) item(!left);
+        copyStatus.inCopy++;
+        fromDir.copyTo(toDir, copyStatus::onCopied, copyStatus::onError);
+      } else {
+        for (int i = 0; i < children.length; i++) child(i).copy(left, copyStatus);
+      }
+    }
+    copyStatus.onTraversed();
   }
 }
