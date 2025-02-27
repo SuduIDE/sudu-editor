@@ -90,13 +90,13 @@ public class DiffModelChannelUpdater {
     );
   }
 
-  private void postOpenFile(String source, String encoding, Int32Array key) {
+  private void postOpenFile(char[] source, String encoding, Int32Array key) {
     if (debug) LoggingJs.debug(JsHelper.concat(
             "DiffModelChannelUpdater.postOpenFile: encoding=" +
-                encoding + " length = " + source.length() + ", key =",
+                encoding + " length = " + source.length + ", key =",
             JsHelper.jsToString(key)));
     var result = JsArray.create();
-    result.push(JsHelper.fastToJs(source));
+    result.push(TextDecoder.decodeUTF16(source));
     result.push(JSString.valueOf(encoding));
     result.push(key);
     result.push(OPEN_FILE_ARRAY);
@@ -105,7 +105,7 @@ public class DiffModelChannelUpdater {
 
   private void postError(String error, Int32Array key, FileHandle file) {
     LoggingJs.error("error reading file " + file + ", error=" + error);
-    postOpenFile(error, null, key);
+    postOpenFile(error.toCharArray(), null, key);
   }
 
   private void onApplyDiff(JsArray<JSObject> jsArray) {

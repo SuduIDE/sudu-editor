@@ -67,8 +67,7 @@ public interface FileHandle extends FsItem {
       Consumer<String> onError
   ) {
     fileHandle.readAsBytes(bytes -> {
-      boolean utf8 = FileEncoding.isUtf8(bytes, true);
-      boolean gbk = !utf8 && FileEncoding.isGBK(bytes);
+      boolean gbk = FileEncoding.needGbk(bytes);
       if (gbk) {
         String text = TextDecoder.decodeGbk(bytes);
         peer.accept(text, FileEncoding.gbk);

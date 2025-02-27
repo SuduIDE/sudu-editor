@@ -11,4 +11,12 @@ public interface TextDecoder {
   static String decodeGbk(byte[] bytes) {
     return new String(bytes, Charset.forName("GBK"));
   }
+
+  static char[] utf8ToChar(byte[] bytes) {
+    return decodeUtf8(bytes).toCharArray();
+  }
+
+  static char[] gbkToChar(byte[] bytes) {
+    return decodeGbk(bytes).toCharArray();
+  }
 }

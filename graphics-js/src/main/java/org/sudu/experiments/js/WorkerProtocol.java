@@ -117,7 +117,7 @@ public class WorkerProtocol {
       message.set(idx++, null);
     } else if (javaObject instanceof String javaString) {
 //      message.set(idx++, JSString.valueOf(javaString));
-      message.set(idx++, TextDecoder.decodeUTF16(javaString.toCharArray()));
+      message.set(idx++, JsHelper.fastToJs(javaString));
     } else if (javaObject instanceof byte[] byteArray) {
       message.set(idx++, JsMemoryAccess.bufferView(byteArray).getBuffer());
     } else if (javaObject instanceof char[] charArray) {

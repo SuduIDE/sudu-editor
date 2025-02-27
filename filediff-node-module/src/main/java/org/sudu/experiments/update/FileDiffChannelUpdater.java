@@ -6,6 +6,7 @@ import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
+import org.sudu.experiments.js.TextDecoder;
 import org.sudu.experiments.js.TextEncoder;
 import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.worker.WorkerJobExecutor;
@@ -142,8 +143,8 @@ public class FileDiffChannelUpdater {
     return (left ? leftHandle : rightHandle) != null;
   }
 
-  private void sendFileRead(boolean left, String source, String encoding) {
-    sendFileRead(left, JSString.valueOf(source), JSString.valueOf(encoding));
+  private void sendFileRead(boolean left, char[] source, String encoding) {
+    sendFileRead(left, TextDecoder.decodeUTF16(source), JSString.valueOf(encoding));
   }
 
   private void onError(String error) {

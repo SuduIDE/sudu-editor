@@ -13,6 +13,10 @@ public class ArgsCast {
     return ((ArrayView) args[index]).ints();
   }
 
+  public static char[] charArray(Object[] args, int index) {
+    return ((ArrayView) args[index]).chars();
+  }
+
   public static String string(Object[] args, int index) {
     return (String) args[index];
   }

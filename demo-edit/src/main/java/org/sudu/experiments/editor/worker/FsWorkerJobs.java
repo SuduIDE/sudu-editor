@@ -3,6 +3,8 @@ package org.sudu.experiments.editor.worker;
 import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
+import org.sudu.experiments.encoding.FileEncoding;
+import org.sudu.experiments.encoding.TextDecoder;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.function.BiConsumer;
@@ -199,12 +201,12 @@ public interface FsWorkerJobs {
 
   static void readTextFile(
       WorkerJobExecutor workers, FileHandle file,
-      BiConsumer<String, String> onComplete, Consumer<String> onError
+      BiConsumer<char[], String> onComplete, Consumer<String> onError
   ) {
     workers.sendToWorker(true, r -> {
       if (r.length == 2) {
         onComplete.accept(
-            ArgsCast.string(r, 0),
+            ArgsCast.charArray(r, 0),
             ArgsCast.string(r, 1));
       } else {
         onError.accept(ArgsCast.string(r, 0));
@@ -214,9 +216,15 @@ public interface FsWorkerJobs {
 
   static void asyncReadTextFile(Object[] args, Consumer<Object[]> r) {
     FileHandle file = ArgsCast.file(args, 0);
-    FileHandle.readTextFile(file,
-        (t, e) -> r.accept(new Object[]{t, e}),
-        error -> r.accept(new Object[]{error}));
+
+    file.readAsBytes(bytes -> {
+      boolean gbk = FileEncoding.needGbk(bytes);
+      char[] text = gbk
+          ? TextDecoder.gbkToChar(bytes)
+          : TextDecoder.utf8ToChar(bytes);
+      String encoding = gbk ? FileEncoding.gbk : FileEncoding.utf8;
+      r.accept(new Object[]{text, encoding});
+    }, error -> r.accept(new Object[]{error}));
   }
 
   String asyncRemoveFile = "asyncRemoveFile";
