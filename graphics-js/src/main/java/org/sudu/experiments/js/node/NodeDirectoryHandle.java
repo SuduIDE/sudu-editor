@@ -4,6 +4,7 @@ import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.Consumer;
@@ -51,8 +52,8 @@ public class NodeDirectoryHandle extends NodeDirectoryHandle0 {
   }
 
   @Override
-  public void createFile(String name, Consumer<FileHandle> onComplete, Consumer<String> onError) {
-    onComplete.accept(new NodeFileHandle(name, childPath()));
+  public FileHandle createFileHandle(String name) {
+    return new NodeFileHandle(name, childPath());
   }
 
   @Override
@@ -86,5 +87,22 @@ public class NodeDirectoryHandle extends NodeDirectoryHandle0 {
   public void remove(Runnable onComplete, Consumer<String> onError) {
     JSString from = jsPath();
     Fs.fs().rmdir(from, Fs.mkdirOptions(true), NodeFs.callback(onComplete, onError));
+  }
+
+  @Override
+  public void createDirectory(
+      String name,
+      Consumer<DirectoryHandle> onComplete,
+      Consumer<String> onError
+  ) {
+    JSString jsPath = jsPath();
+    JSString child = Fs.concatPath(jsPath, sep, JSString.valueOf(name));
+    Fs.fs().mkdir(child, (error, r) -> {
+      if (error == null || JSObjects.isUndefined(error)) {
+        onComplete.accept(new NodeDirectoryHandle(name, childPath()));
+      } else {
+        onError.accept(error.getMessage());
+      }
+    });
   }
 }

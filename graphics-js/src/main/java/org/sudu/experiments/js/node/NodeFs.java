@@ -4,6 +4,7 @@ import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.teavm.jso.*;
+import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.ArrayBufferView;
 
@@ -72,6 +73,8 @@ public interface NodeFs extends JSObject {
   boolean existsSync(JSString name);
 
   void mkdirSync(JSString name, JSObject options);
+  void mkdirSync(JSString name);
+  void mkdir(JSString name, Callback2 cb);
 
   int openSync(JSString name, int mode);
 
@@ -88,11 +91,11 @@ public interface NodeFs extends JSObject {
   int closeSync(int handle);
 
   @JSFunctor
-  interface ReadCallback extends JSObject {
-    void f(JSObject error, JSString result);
+  interface Callback2 extends JSObject {
+    void f(JSError error, JSString result);
   }
 
-  void readFile(JSString name, JSString encoding, ReadCallback callback);
+  void readFile(JSString name, JSString encoding, Callback2 callback);
 
   void writeFile(
       JSString name, JSObject content, JSString encoding,

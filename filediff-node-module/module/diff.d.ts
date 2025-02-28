@@ -61,6 +61,14 @@ export interface DiffTestApi {
   testFileAppend(
     file: FileInput, str1: string, str2: string,
     onComplete: () => void, onError: (error: string) => void): void;
+
+  testMkDir(
+    dir: FolderInput, name: string,
+    onComplete: () => void, onError: (error: string) => void): void;
+
+  testRemoveDir(
+    dir: FolderInput,
+    onComplete: () => void, onError: (error: string) => void): void;
 }
 
 export interface FolderDiffSession extends AsyncShutdown {

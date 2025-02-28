@@ -25,15 +25,16 @@ public interface FsWorkerJobs {
 
   static void asyncCopyFile(Object[] args, Consumer<Object[]> r) {
     FileHandle src = (FileHandle) args[0];
-    FsItem dst = (FsItem) args[1];
-    if (dst instanceof FileHandle dstFile) {
-      new CopyFile(r, src, dstFile);
-    } else if (dst instanceof DirectoryHandle dstDir) {
-      dstDir.createFile(src.getName(),
-          newFile -> new CopyFile(r, src, newFile),
-          e -> postError(e, r));
+    FileHandle dest = null;
+    if (args[1] instanceof FileHandle dstFile) {
+      dest = dstFile;
+    } else if (args[1] instanceof DirectoryHandle dstDir) {
+      dest = dstDir.createFileHandle(src.getName());
+    }
+    if (dest != null) {
+      new CopyFile(r, src, dest);
     } else {
-      postError("IllegalAccessException", r);
+      postError("asyncCopyFile bad args", r);
     }
   }
 
@@ -273,5 +274,33 @@ public interface FsWorkerJobs {
         onError.accept(ArgsCast.string(r,0));
       }
     };
+  }
+
+  String asyncMkDir = "asyncMkDir";
+
+  static void mkDir(
+      WorkerJobExecutor workers,
+      DirectoryHandle dir, String name,
+      Consumer<DirectoryHandle> onResult,
+      Consumer<String> onError
+  ) {
+    workers.sendToWorker(
+        r -> {
+          if (r[0] instanceof DirectoryHandle directoryHandle) {
+            onResult.accept(directoryHandle);
+          } else {
+            onError.accept(ArgsCast.string(r, 0));
+          }
+        }, asyncMkDir,
+        dir, name
+    );
+  }
+
+  static void asyncMkDir(Object[] args, Consumer<Object[]> r) {
+    DirectoryHandle dir = ArgsCast.dir(args, 0);
+    String name = ArgsCast.string(args, 1);
+    dir.createDirectory(name,
+        newDir -> r.accept(new Object[]{newDir}),
+        error -> r.accept(new Object[]{error}));
   }
 }

@@ -40,6 +40,13 @@ public interface JsSftpClient extends JSObject {
       JSString path,
       BiConsumer<JSError, JsArrayReader<DirEntry>> callback);
 
+  // Creates a new directory path
+  void mkdir(JSString path, JsFunctions.Consumer<JSError> cb);
+  void mkdir(JSString path, Attrs attrs, JsFunctions.Consumer<JSError> cb);
+
+  // Removes the directory at path. callback has 1 parameter: < Error >err.
+  void rmdir(JSString path, JsFunctions.Consumer<JSError> cb);
+
   // Removes the file/symlink at path.
   void unlink(JSString path, JsFunctions.Consumer<JSError> cb);
 

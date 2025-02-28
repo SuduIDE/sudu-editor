@@ -34,11 +34,7 @@ public interface DirectoryHandle extends FsItem {
     onError.accept("not implemented");
   }
 
-  default void createFile(
-      String name,
-      Consumer<FileHandle> onComplete,
-      Consumer<String> onError
-  ) {
-    onError.accept("not implemented");
+  default FileHandle createFileHandle(String name) {
+    return null;
   }
 }

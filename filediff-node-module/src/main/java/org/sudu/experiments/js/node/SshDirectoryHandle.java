@@ -1,9 +1,11 @@
 package org.sudu.experiments.js.node;
 
+import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.ArrayOp;
+import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
@@ -49,7 +51,7 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
   public void read(Reader reader) {
     SshPool.sftp(credentials,
         sftp -> sftp.readdir(jsPath(), (error, list) -> {
-          if (JSObjects.isUndefined(error) || error == null) {
+          if (JSObjects.isUndefined(error)) {
             if (debugRead) JsHelper.consoleInfo2(
                 "sftp.readdir completed: path", jsPath(),
                     ", length =", JSNumber.valueOf(list.getLength()));
@@ -76,36 +78,66 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
           }
         }),
         error -> {
-          JsHelper.consoleInfo2(
-              "SshDirectoryHandle.read connect error:", JsHelper.getMessage(error),
-              "host:", credentials.host);
+          dumpError("SshDirectoryHandle.read", "connect", error);
           reader.onError(error.getMessage());
         }
     );
   }
 
+  static final String removeDirectory = "SshDirectoryHandle.remove";
+
   @Override
   public void remove(Runnable onComplete, Consumer<String> onError) {
-    JSString from = jsPath();
-    onError.accept("not implemented yet");
+    SshPool.sftp(credentials, sftp -> sftp.rmdir(
+        jsPath(),
+            error -> {
+              if (JSObjects.isUndefined(error)) {
+                onComplete.run();
+              } else {
+                onError.accept(error.getMessage());
+              }
+            }
+        ), cError -> {
+          dumpError(removeDirectory, "connect", cError);
+          onError.accept(cError.getMessage());
+        }
+    );
   }
 
   @Override
-  public void createFile(
-      String name, Consumer<FileHandle> onComplete, Consumer<String> onError
+  public FileHandle createFileHandle(String name) {
+    return new SshFileHandle(name, childPath(), credentials, null);
+  }
+
+  static final String createDirectory = "SshDirectoryHandle.createDirectory";
+
+  @Override
+  public void createDirectory(
+      String name,
+      Consumer<DirectoryHandle> onComplete, Consumer<String> onError
   ) {
-    var file = new SshFileHandle(name, childPath(), credentials, null);
-    onComplete.accept(file);
-//    file.fetchStats(
-//        error -> {
-//          if (file.attrs != null &&
-//              (file.attrs.isDirectory() || file.attrs.isSymbolicLink())) {
-//            onError.accept("target is a directory or symbolic link");
-//          } else {
-//            onComplete.accept(file);
-//          }
-//        }
-//    );
+    JSString child = Fs.concatPath(jsPath(), sep, JSString.valueOf(name));
+    SshPool.sftp(credentials, sftp -> sftp.mkdir(
+            child,
+            error -> {
+              if (JSObjects.isUndefined(error)) {
+                onComplete.accept(
+                    new SshDirectoryHandle(name, childPath(), credentials));
+              } else {
+                onError.accept(error.getMessage());
+              }
+            }
+        ), cError -> {
+          dumpError(createDirectory, "connect", cError);
+          onError.accept(cError.getMessage());
+        }
+    );
+  }
+
+  private void dumpError(String h, String ctx, JSError error) {
+    JsHelper.consoleInfo2(h,
+        JSString.valueOf(ctx), "error:", JsHelper.getMessage(error),
+        "host:", credentials.host);
   }
 
   @Override

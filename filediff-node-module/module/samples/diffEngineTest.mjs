@@ -399,6 +399,60 @@ function testDiffLocal(args) {
   return testDiff(dir1, dir2, content);
 }
 
+function testMkDirSsh(args) {
+  const ssh = sshConfig(args, 3);
+  const dir = args[3 + 4];
+  const name = args[4 + 4];
+
+  if (!dir || !name) {
+    mayBeExit();
+    return "args: ssh[4] folder newName";
+  }
+
+  console.log("ssh", ssh);
+  console.log("dir", dir);
+  console.log("name", name);
+
+  jobCount++;
+  module.testMkDir(sshFile(ssh, dir), name,
+      onComplete("testMkDirSsh"), onError("testMkDirSsh"));
+}
+
+function testMkDir(args) {
+  const dir = args[3];
+  const name = args[4];
+
+  if (!dir || !name) {
+    mayBeExit();
+    return "args: folder newName";
+  }
+
+  console.log("dir", dir);
+  console.log("name", name);
+
+  jobCount++;
+  module.testMkDir(dir, name,
+      onComplete("testMkDirSsh"), onError("testMkDirSsh"));
+}
+
+function testRemoveDirSsh(args) {
+  const ssh = sshConfig(args, 3);
+  const dir = args[3 + 4];
+
+  if (!dir) {
+    mayBeExit();
+    return "args: ssh[4] folder";
+  }
+
+  console.log("ssh", ssh);
+  console.log("dir", dir);
+
+  jobCount++;
+  module.testRemoveDir(sshFile(ssh, dir),
+      onComplete("testMkDirSsh"), onError("testMkDirSsh"));
+}
+
+
 function runTest() {
   let args = process.argv;
   const cmd = args[2];
@@ -421,6 +475,10 @@ function runTest() {
     case "testFileAppend": return testFileAppend(args);
     case "testFileAppendSsh": return testFileAppendSsh(args);
     case "testListRemoteDirectory": return testListRemoteDirectory(args);
+    case "testMkDir": return testMkDir(args);
+    case "testMkDirSsh": return testMkDirSsh(args);
+    case "testRemoveDirSsh": return testRemoveDirSsh(args);
+
 
     default:
       mayBeExit();

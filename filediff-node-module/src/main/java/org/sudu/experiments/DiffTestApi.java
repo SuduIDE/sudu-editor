@@ -69,6 +69,18 @@ interface JsDiffTestApi extends JSObject {
   void testFileAppend(
       JsFileInput file, JSString str1, JSString str2,
       JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onError);
+
+  void testMkDir(
+      JsFolderInput dir, JSString name,
+      JsFunctions.Runnable onComplete,
+      JsFunctions.Consumer<JSString> onError
+  );
+
+  void testRemoveDir(
+      JsFolderInput dir,
+      JsFunctions.Runnable onComplete,
+      JsFunctions.Consumer<JSString> onError
+  );
 }
 
 public class DiffTestApi implements JsDiffTestApi {
@@ -139,7 +151,7 @@ public class DiffTestApi implements JsDiffTestApi {
           TextEncoder.toCharArray(content),
           encoding.stringValue(),
           onComplete::f,
-          e -> onError.f(JSString.valueOf(e))
+          wrap(onError)
       );
     }
     System.out.println("GbkEncoding.charToGbk[0x3000] = " +
@@ -398,7 +410,7 @@ public class DiffTestApi implements JsDiffTestApi {
       JsFunctions.Runnable onComplete, JsFunctions.Consumer<JSString> onError
   ) {
     var hFile = JsFileInput.fileHandle(file, false);
-    Consumer<String> eh = error -> onError.f(JSString.valueOf(error));
+    Consumer<String> eh = wrap(onError);
     if (hFile == null) {
       eh.accept("bad input file");
       return;
@@ -420,6 +432,43 @@ public class DiffTestApi implements JsDiffTestApi {
         b1, null,
         () -> hFile.writeAppend(b1.length, b2, verify, eh), eh
     );
+  }
+
+  static Consumer<String> wrap(JsFunctions.Consumer<JSString> onError) {
+    return error -> onError.f(JSString.valueOf(error));
+  }
+
+  @Override
+  public void testMkDir(
+      JsFolderInput dir, JSString name,
+      JsFunctions.Runnable onComplete,
+      JsFunctions.Consumer<JSString> onError
+  ) {
+    DirectoryHandle dh = JsFolderInput.directoryHandle(dir);
+
+    FsWorkerJobs.mkDir(
+        pool, dh, name.stringValue(),
+        r -> {
+          System.out.println("DiffTestApi.testMkDir ok, r = " + r);
+          onComplete.f();
+        },
+        wrap(onError));
+  }
+
+  @Override
+  public void testRemoveDir(
+      JsFolderInput dir,
+      JsFunctions.Runnable onComplete,
+      JsFunctions.Consumer<JSString> onError
+  ) {
+    DirectoryHandle dh = JsFolderInput.directoryHandle(dir);
+
+    FsWorkerJobs.removeDir(pool, dh,
+        () -> {
+          System.out.println("DiffTestApi.testRemoveDir ok");
+          onComplete.f();
+        },
+        wrap(onError));
   }
 
   static String shortText(String s) {
