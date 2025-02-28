@@ -497,6 +497,46 @@ class DocumentTest {
     }
   }
 
+  @Test void testDiffOnFirstLine() {
+    Document document = doc5();
+    document.applyChange(0, 2, new CodeLine[] {});
+    Diff lastDiff = document.diffs.get(0)[0];
+    String change = lastDiff.change;
+
+    Assertions.assertFalse(change.startsWith("\n"));
+    Assertions.assertTrue(change.endsWith("\n"));
+  }
+
+  @Test void testApplyChangeOnLastLine() {
+    Document document = doc5();
+    document.applyChange(2, document.length(), new CodeLine[] {});
+    Diff lastDiff = document.diffs.get(0)[0];
+    String change = lastDiff.change;
+
+    Assertions.assertTrue(change.startsWith("\n"));
+    Assertions.assertFalse(change.endsWith("\n"));
+  }
+
+  @Test void testApplyChangeOnFirstLineToLast() {
+    Document document = doc5();
+    document.applyChange(0, document.length(), new CodeLine[] {});
+    Diff lastDiff = document.diffs.get(0)[0];
+    String change = lastDiff.change;
+
+    Assertions.assertFalse(change.startsWith("\n"));
+    Assertions.assertFalse(change.endsWith("\n"));
+  }
+
+  @Test void testApplyChangeInMiddle() {
+    Document document = doc5();
+    document.applyChange(2, 4, new CodeLine[] {});
+    Diff lastDiff = document.diffs.get(0)[0];
+    String change = lastDiff.change;
+
+    Assertions.assertTrue(change.startsWith("\n"));
+    Assertions.assertFalse(change.endsWith("\n"));
+  }
+
   @Test void testThrows() {
 
   }
