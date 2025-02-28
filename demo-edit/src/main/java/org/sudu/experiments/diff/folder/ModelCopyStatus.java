@@ -23,6 +23,10 @@ public class ModelCopyStatus {
     onComplete();
   }
 
+  public void onCopiedFile(int bytes) {
+    onCopied();
+  }
+
   public void onComplete() {
     if (inCopy == 0 && inTraverse == 0) onComplete.run();
   }

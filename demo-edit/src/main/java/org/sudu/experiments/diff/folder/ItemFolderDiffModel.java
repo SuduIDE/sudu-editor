@@ -6,6 +6,8 @@ import org.sudu.experiments.FsItem;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
+import org.sudu.experiments.editor.worker.FsWorkerJobs;
+import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.Deque;
 import java.util.List;
@@ -180,6 +182,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
   public void getOrCreateDir(
       boolean left,
+      WorkerJobExecutor executor,
       Consumer<DirectoryHandle> onComplete,
       Consumer<String> onError
   ) {
@@ -191,34 +194,46 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
         // Can't LoggingJs from here
         System.out.println("Created dir: " + parentDir.getName());
         parent().setItem(left, parentDir);
-        parentDir.createDirectory(path, onComplete, onError);
+        FsWorkerJobs.mkDir(executor, parentDir, path, onComplete, onError);
       };
-      parent().getOrCreateDir(left, onParentDirGet, onError);
+      parent().getOrCreateDir(left, executor, onParentDirGet, onError);
     }
   }
 
-  public void copy(boolean left, ModelCopyStatus copyStatus) {
+  public void copy(WorkerJobExecutor executor, boolean left, ModelCopyStatus copyStatus) {
     copyStatus.inTraverse++;
     if (getDiffType() == DiffTypes.DEFAULT) {
       copyStatus.onTraversed();
       return;
     } else if (isFile()) {
-      FileHandle fromFile;
-      FileHandle toFile;
-      if (getDiffType() == DiffTypes.EDITED || (left && isLeftOnly()) || (!left && isRightOnly())) {
-        fromFile = (FileHandle) item(left);
+      FileHandle fromFile = (FileHandle) item(left), toFile;
+      if (getDiffType() == DiffTypes.EDITED) {
         toFile = (FileHandle) item(!left);
-        copyStatus.inCopy++;
-        fromFile.copyTo(toFile, copyStatus::onCopied, copyStatus::onError);
-      } else copyStatus.onError("Can't copy file " + item(left));
-    } else {
-      if ((left && isLeftOnly()) || (!left && isRightOnly())) {
-        DirectoryHandle fromDir = (DirectoryHandle) item(left);
-        DirectoryHandle toDir = (DirectoryHandle) item(!left);
-        copyStatus.inCopy++;
-        fromDir.copyTo(toDir, copyStatus::onCopied, copyStatus::onError);
+      } else if ((left && isLeftOnly()) || (!left && isRightOnly())) {
+        DirectoryHandle toDir = (DirectoryHandle) parent().item(!left);
+        toFile = toDir.createFileHandle(path);
+        setItem(!left, toFile);
       } else {
-        for (int i = 0; i < children.length; i++) child(i).copy(left, copyStatus);
+        copyStatus.onError("Can't copy file " + item(left));
+        return;
+      }
+      copyStatus.inCopy++;
+      FsWorkerJobs.copyFile(executor, fromFile, toFile, copyStatus::onCopiedFile, copyStatus::onError);
+    } else {
+      if (getDiffType() == DiffTypes.EDITED) {
+        for (int i = 0; i < children.length; i++) child(i).copy(executor, left, copyStatus);
+      } else if ((left && isLeftOnly()) || (!left && isRightOnly())) {
+        copyStatus.inCopy++;
+        Consumer<DirectoryHandle> onDirCreated = dirHandle -> {
+          copyStatus.onCopied();
+          setItem(!left, dirHandle);
+          for (int i = 0; i < children.length; i++) child(i).copy(executor, left, copyStatus);
+        };
+        DirectoryHandle toDirParent = (DirectoryHandle) parent().item(!left);
+        FsWorkerJobs.mkDir(executor, toDirParent, path, onDirCreated, copyStatus::onError);
+      } else {
+        copyStatus.onError("Can't copy folder " + item(left));
+        return;
       }
     }
     copyStatus.onTraversed();

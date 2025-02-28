@@ -227,7 +227,7 @@ public class RemoteCollector {
           onError("Can't copy file " + fileItem.getFullPath() + " to folder " + dirTo.getFullPath());
         FsWorkerJobs.copyFile(executor, fileItem, dirTo, n -> onComplete.run(), this::onError);
       };
-      model.parent().getOrCreateDir(!left, onGetParentDir, this::onError);
+      model.parent().getOrCreateDir(!left, executor, onGetParentDir, this::onError);
     }
   }
 
@@ -254,7 +254,7 @@ public class RemoteCollector {
         slowCopyDirectory(dirItem, dirTo, onComplete, this::onError);
       }
     };
-    model.getOrCreateDir(left, onDirGet, this::onError);
+    model.getOrCreateDir(left, executor, onDirGet, this::onError);
   }
 
   private void slowCopyDirectory(
