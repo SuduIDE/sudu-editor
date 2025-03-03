@@ -213,7 +213,7 @@ public class Document extends CodeLines {
     StringBuilder deletedSB = new StringBuilder();
     if (fromLine != 0) deletedSB.append(newLine);
     deletedSB.append(new String(getChars(fromLine, toLine)));
-    if (toLine != length()) deletedSB.deleteCharAt(deletedSB.length() - 1);
+    if (toLine != length() && fromLine != 0) deletedSB.deleteCharAt(deletedSB.length() - 1);
     int deleteLine = fromLine != 0 ? fromLine - 1 : fromLine;
     int deletePos = fromLine != 0 ? line(fromLine - 1).totalStrLength : 0;
     Diff diff = new Diff(deleteLine, deletePos, true, deletedSB.toString());

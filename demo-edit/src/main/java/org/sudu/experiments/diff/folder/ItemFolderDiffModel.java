@@ -37,7 +37,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   }
 
   public void setItems(FsItem left, FsItem right) {
-    if (!path.equals(left.getName()) || !path.equals(right.getName()))
+    if (!path.isEmpty() && !path.equals(left.getName()) || !path.equals(right.getName()) )
       System.out.println("Set items: " + left.getName() + " & " + right.getName() + " to " + path);
     items[0] = left;
     items[1] = right;
