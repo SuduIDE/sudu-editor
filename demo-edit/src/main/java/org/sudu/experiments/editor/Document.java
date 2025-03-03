@@ -506,7 +506,7 @@ public class Document extends CodeLines {
     for (int i = 1; i < complexDiff.length; i++) {
       undoSingleDiff(complexDiff[i]);
     }
-
+    onDiffMade();
     return res;
   }
 
