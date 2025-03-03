@@ -225,6 +225,7 @@ public class EditorComponent extends View implements
     if (caretDiff == null) return;
     setCaretLinePos(caretDiff.x, caretDiff.y, false);
     updateDocumentDiffTimeStamp();
+    onDiffMade();
   }
 
   public void setTheme(EditorColorScheme theme) {
