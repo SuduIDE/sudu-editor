@@ -20,8 +20,8 @@ public class SshHash {
     this.host = host;
     this.port = port;
     this.username = username;
-    this.password = password;
-    this.privateKey = privateKey;
+    this.password = JSObjects.isUndefined(password) ? null : password;
+    this.privateKey = JSObjects.isUndefined(privateKey) ? null : privateKey;
     hash = computeHash();
   }
 
@@ -33,9 +33,16 @@ public class SshHash {
             host, port, username, privateKey);
   }
 
+  static int hashCode(JSString s) {
+    int h = 0;
+    for (int i = 0, e = s.getLength(); i < e; i++) {
+      h = h * 31 + s.charCodeAt(i);
+    }
+    return h;
+  }
+
   static int hashUpdate(int h, JSString s) {
-    int sh = s == null || JSObjects.isUndefined(s) ?
-        0 : s.stringValue().hashCode();
+    int sh = s == null || JSObjects.isUndefined(s) ? 0 : hashCode(s);
     return h * 31 + sh;
   }
 

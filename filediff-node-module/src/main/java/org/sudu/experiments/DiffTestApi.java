@@ -175,7 +175,7 @@ public class DiffTestApi implements JsDiffTestApi {
     };
 
     FsWorkerJobs.readTextFile(pool, fhFrom, (t, en) -> {
-      JsHelper.consoleError("testFileReadWrite: readTextFile ok "
+      JsHelper.consoleInfo("testFileReadWrite: readTextFile ok "
           + fhFrom + ", l = " + t.length + ", enc = " + en);
       FsWorkerJobs.fileWriteText(pool,
           fhTo, t, en,

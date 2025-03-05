@@ -2,6 +2,7 @@
   createDiffEngine, setLogLevel, setLogOutput
 } from "./../src/diffEngine.mjs";
 
+import fs from 'node:fs';
 import path from 'node:path';
 import url from 'node:url';
 
@@ -134,7 +135,7 @@ function testFileReadWriteSsh(args) {
     return "args: ssh[4] file1 [file2 ...]";
   }
 
-  console.log("ssh", ssh);
+  console.log("ssh:", {host: ssh.host, username: ssh.username});
 
   for (let i = 3+4; i < args.length; i++) {
     const fileFrom = args[i];
@@ -498,11 +499,24 @@ function sshConfig(args, s) {
     return null;
   }
 
+  const keyOrPass = args[s + 3];
+  const stats = fs.statSync(keyOrPass, {throwIfNoEntry:false});
+  if (stats && stats.isFile()) {
+    const key = fs.readFileSync(keyOrPass, 'utf8');
+    console.log("using key file " + keyOrPass +
+        ", " + key.length + " bytes");
+    return {
+      host: args[s],
+      port: args[s + 1],
+      username: args[s + 2],
+      privateKey: key
+    };
+  }
+
   return {
     host: args[s],
     port: args[s + 1],
     username: args[s + 2],
-    password: args[s + 3]
-    //  privateKey: readFileSync('/path/to/my/key')
+    password: keyOrPass
   };
 }
