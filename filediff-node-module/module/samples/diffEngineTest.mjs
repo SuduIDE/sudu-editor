@@ -1,6 +1,4 @@
-﻿import {
-  createDiffEngine, setLogLevel, setLogOutput
-} from "./../src/diffEngine.mjs";
+﻿import {createDiffEngine, setLogLevel, setLogOutput} from "./../src/diffEngine.mjs";
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -453,6 +451,123 @@ function testRemoveDirSsh(args) {
       onComplete("testMkDirSsh"), onError("testMkDirSsh"));
 }
 
+function sshWithPass(host, port, username, password) {
+  return {host, port, username, password};
+}
+
+function sshWithPassC(host, port, username, password) {
+  return sshWithPass(cloneString(host), cloneString(port),
+      cloneString(username), cloneString(password));
+}
+
+function sshWithKey(host, port, username, privateKey) {
+  return {host, port, username, privateKey};
+}
+
+function sshWithKeyC(host, port, username, privateKey) {
+  return sshWithKey(cloneString(host), cloneString(port),
+      cloneString(username), cloneString(privateKey));
+}
+
+const te = new TextDecoder();
+const td = new TextEncoder();
+
+function cloneString(string) {
+  return te.decode(td.encode(string));
+}
+
+function testSshHash(args) {
+
+  function checkEquals(ssh1, ssh2, module, result) {
+    const r = module.testSshHash(ssh1, ssh2);
+    if ((r[0] && !result) || (!r[0] && result)) {
+      console.log("checkEquals failed ssh1 =", ssh1, "ssh2 =", ssh2);
+      throw "SshHash check equal failed";
+      }
+  }
+
+  function checkHash(ssh1, ssh2, module, result) {
+    const r = module.testSshHash(ssh1, ssh2);
+    if ((r[1] === r[2]) !== result) {
+      console.log("checkHash failed ssh1 =", ssh1);
+      console.log("    ssh2 =", ssh2);
+      throw "SshHash hash check failed";
+    }
+  }
+
+  function checkHashDifferent(a, b, c, d, e, f, g, h, module) {
+    const p1 = sshWithPassC(a, b, c, d);
+    const p2 = sshWithPassC(e, f, g, h);
+    checkHash(p1, p2, module, false);
+    checkEquals(p1, p2, module, false);
+    const c1 = sshWithKeyC(a, b, c, d);
+    const c2 = sshWithKeyC(e, f, g, h);
+    checkHash(c1, c2, module, false);
+    checkEquals(c1, c2, module, false);
+  }
+
+  const ht = "host";
+  const pt = "22";
+  const us = "myUser";
+  const ps = "pass";
+  const ky = "myKey";
+  try {
+    checkEquals(
+        sshWithPassC(ht, pt, us, ps),
+        sshWithKeyC(ht, pt, us, ps),
+        module, false);
+
+    checkEquals(
+        sshWithPassC(ht, pt, us, ps),
+        sshWithPassC(ht, pt, us, ps),
+        module, true);
+
+    checkEquals(
+        sshWithKeyC(ht, pt, us, ky),
+        sshWithKeyC(ht, pt, us, ky),
+        module, true);
+
+    checkHash(
+        sshWithPassC("a", "b", "c", "d"),
+        sshWithPassC("a", "b", "c", "d"),
+        module, true);
+
+    checkHash(
+        sshWithKeyC("a", "b", "c", "d"),
+        sshWithKeyC("a", "b", "c", "d"),
+        module, true);
+
+    checkHash(
+        sshWithPassC("a", "b", "c", "d"),
+        sshWithKeyC("a", "b", "c", "d"),
+        module, false);
+
+    checkHashDifferent(
+        "a1", "b", "c", "d",
+        "a2", "b", "c", "d",
+        module);
+
+    checkHashDifferent(
+        "a", "b1", "c", "d",
+        "a", "b2", "c", "d",
+        module);
+
+    checkHashDifferent(
+        "a", "b", "c1", "d",
+        "a", "b", "c2", "d",
+        module);
+
+    checkHashDifferent(
+        "a", "b", "c", "d1",
+        "a", "b", "c", "d2",
+        module);
+
+    console.log("testSshHash passed");
+  } catch (e) {
+    console.log("testSshHash failed")
+  }
+  mayBeExit();
+}
 
 function runTest() {
   let args = process.argv;
@@ -479,7 +594,7 @@ function runTest() {
     case "testMkDir": return testMkDir(args);
     case "testMkDirSsh": return testMkDirSsh(args);
     case "testRemoveDirSsh": return testRemoveDirSsh(args);
-
+    case "testSshHash": return testSshHash(args);
 
     default:
       mayBeExit();

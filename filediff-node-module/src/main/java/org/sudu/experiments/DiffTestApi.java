@@ -11,6 +11,7 @@ import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSBoolean;
+import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
 import java.util.Arrays;
@@ -80,6 +81,11 @@ interface JsDiffTestApi extends JSObject {
       JsFolderInput dir,
       JsFunctions.Runnable onComplete,
       JsFunctions.Consumer<JSString> onError
+  );
+
+  JsArray<JSObject> testSshHash(
+      JsSshCredentials ssh1,
+      JsSshCredentials ssh2
   );
 }
 
@@ -469,6 +475,24 @@ public class DiffTestApi implements JsDiffTestApi {
           onComplete.f();
         },
         wrap(onError));
+  }
+
+  @Override
+  public JsArray<JSObject> testSshHash(
+      JsSshCredentials ssh1,
+      JsSshCredentials ssh2
+  ) {
+    var sshHash1 = new SshHash(ssh1);
+    var sshHash2 = new SshHash(ssh2);
+    var equals = sshHash1.equals(sshHash2);
+    var hash1 = sshHash1.hashCode();
+    var hash2 = sshHash2.hashCode();
+
+    var r = JsArray.create();
+    r.push(JSBoolean.valueOf(equals));
+    r.push(JSNumber.valueOf(hash1));
+    r.push(JSNumber.valueOf(hash2));
+    return r;
   }
 
   static String shortText(String s) {

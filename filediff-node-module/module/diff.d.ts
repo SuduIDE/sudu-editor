@@ -69,6 +69,9 @@ export interface DiffTestApi {
   testRemoveDir(
     dir: FolderInput,
     onComplete: () => void, onError: (error: string) => void): void;
+
+  // returns: [equals(), ssh1.hashCode(), ssh2.hashCode
+  testSshHash(ssh1: SshCredentials, ssh2: SshCredentials) : number[];
 }
 
 export interface FolderDiffSession extends AsyncShutdown {
