@@ -5,21 +5,22 @@ import org.sudu.experiments.editor.worker.EditorWorker;
 import org.sudu.experiments.fonts.Codicon;
 import org.sudu.experiments.fonts.JetBrainsMono;
 import org.sudu.experiments.nativelib.AngleDll;
-import org.sudu.experiments.nativelib.SuduDll;
+
+import java.util.function.Function;
 
 public class DemoEditJvm {
 
-  public static void main(String[] args) throws InterruptedException {
-    AngleDll.require();
-    SuduDll.require();
-
+  public static void main(String[] args) {
     var selectScene = TestSceneSelector.selectScene(
         args.length > 0 ? args[0] : "");
+    run(selectScene);
+  }
 
-    Application.run(
-        selectScene, EditorWorker::execute, EditorWorker.numDemoThreads(),
+  static void run(Function<SceneApi, Scene> f) {
+    AngleDll.require();
+
+    Application.run(f, EditorWorker::execute, EditorWorker.numDemoThreads(),
         JetBrainsMono.all(), Codicon.fontResource()
     );
   }
-
 }

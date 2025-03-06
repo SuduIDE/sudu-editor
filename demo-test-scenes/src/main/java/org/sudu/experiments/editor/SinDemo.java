@@ -17,7 +17,7 @@ public class SinDemo extends Scene implements MouseListener  {
   final V4f color = new V4f(1,0,0,1);
   final DemoRect rect = new DemoRect();
   final V2i screen = new V2i();
-  static boolean draw1000; //  = true;
+  static boolean draw1000 = false;
 
   public SinDemo(SceneApi api) {
     super(api);
@@ -105,7 +105,7 @@ public class SinDemo extends Scene implements MouseListener  {
       int idx = rng.nextInt(params.length);
       int y = rng.nextInt(screen.y - rect.size.y);
       V4f param = params[idx];
-      float offset = (param.y - (int)param.y) < .25f ? .5f : 0;
+      float offset = UnderlineConstants.offset(param);
       g.drawSin(rect.pos.x, y, rect.size,
           x0 + offset, halfH + y + offset,
           param, color);
