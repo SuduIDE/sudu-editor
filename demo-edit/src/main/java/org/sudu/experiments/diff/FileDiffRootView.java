@@ -174,7 +174,6 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void setDiffModel(DiffInfo diffInfo) {
-    System.out.println("FileDiffRootView.setDiffModel");
     diffModel = diffInfo;
     editor1.setDiffModel(diffModel.lineDiffsL);
     editor2.setDiffModel(diffModel.lineDiffsR);

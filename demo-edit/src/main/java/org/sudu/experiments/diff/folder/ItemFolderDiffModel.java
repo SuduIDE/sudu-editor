@@ -1,12 +1,18 @@
 package org.sudu.experiments.diff.folder;
 
+import org.sudu.experiments.DirectoryHandle;
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
+import org.sudu.experiments.editor.worker.FsWorkerJobs;
+import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.Deque;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
@@ -37,20 +43,22 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   }
 
   public void setItems(FsItem left, FsItem right) {
-    if (!path.isEmpty() && !path.equals(left.getName()) || !path.equals(right.getName()) )
-      System.out.println("Set items: " + left.getName() + " & " + right.getName() + " to " + path);
+    if (!path.isEmpty() && (!path.equals(left.getName()) || !path.equals(right.getName())))
+      System.err.println("Set items: " + left.getName() + " & " + right.getName() + " to " + path);
     items[0] = left;
     items[1] = right;
   }
 
   public void setItem(FsItem item) {
-    if (!path.equals(item.getName()))
-      System.out.println("Set item: " + item.getName() + " to " + path);
+    if (!path.isEmpty() && !path.equals(item.getName()))
+      System.err.println("Set item: " + item.getName() + " to " + path);
     if (isLeftOnly()) items[0] = item;
     else if (isRightOnly()) items[1] = item;
   }
 
   public void setItem(boolean left, FsItem item) {
+    if (!path.isEmpty() && !path.equals(item.getName()))
+      System.err.println("Set item: " + item.getName() + " to " + path);
     items[left ? 0 : 1] = item;
   }
 
@@ -173,5 +181,102 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
         mP++;
       }
     }
+  }
+
+  public void getOrCreateDir(
+      boolean left,
+      WorkerJobExecutor executor,
+      Consumer<DirectoryHandle> onComplete,
+      Consumer<String> onError
+  ) {
+    if (item(left) != null) {
+      if (item(left) instanceof DirectoryHandle dir) onComplete.accept(dir);
+      else onError.accept("Not a directory " + item(left));
+    } else {
+      Consumer<DirectoryHandle> onParentDirGet = parentDir -> {
+        // Can't LoggingJs from here
+        System.out.println("ItemFolderDiffModel.getOrCreateDir: created dir: " + parentDir.getName());
+        parent().setItem(left, parentDir);
+        FsWorkerJobs.mkDir(executor, parentDir, path, onComplete, onError);
+      };
+      parent().getOrCreateDir(left, executor, onParentDirGet, onError);
+    }
+  }
+
+  public void remove(ModelCopyDeleteStatus status) {
+    status.inTraverse++;
+    if (getDiffType() != DiffTypes.DELETED && getDiffType() != DiffTypes.INSERTED) {
+      status.onError("Can't delete: item " + path + " is not marked as deleted or inserted");
+      status.onTraversed();
+      return;
+    }
+
+    FsItem item = item();
+    if (item instanceof FileHandle file) {
+      status.inWork++;
+      FsWorkerJobs.removeFile(status.executor, file, () -> status.onFileDeleted(this), status::onError);
+    } else if (item instanceof DirectoryHandle dir) {
+      status.markForDelete(this);
+      if (children == null || children.length == 0) {
+        removeEmptyFolder(status);
+      } else {
+        for (int i = 0; i < children.length; i++) child(i).remove(status);
+      }
+    }
+    status.onTraversed();
+  }
+
+  public void removeEmptyFolder(ModelCopyDeleteStatus status) {
+    FsWorkerJobs.removeDir(status.executor, (DirectoryHandle) item(), () -> status.onDirDeleted(this), status::onError);
+  }
+
+  public void copy(boolean left, ModelCopyDeleteStatus status) {
+    status.inTraverse++;
+    if (getDiffType() == DiffTypes.DEFAULT) {
+      status.onTraversed();
+      return;
+    }
+    if (isFile()) copyFile(left, status);
+    else copyFolder(left, status);
+    status.onTraversed();
+  }
+
+  private void copyFolder(boolean left, ModelCopyDeleteStatus status) {
+    if (getDiffType() == DiffTypes.EDITED) {
+      for (int i = 0; i < children.length; i++) child(i).copy(left, status);
+      return;
+    }
+    DirectoryHandle toDirParent;
+    if ((left && isLeftOnly()) || (!left && isRightOnly())) {
+      toDirParent = (DirectoryHandle) parent().item(!left);
+    } else return;
+
+    Consumer<DirectoryHandle> onDirCreated = dirHandle -> {
+      setItem(!left, dirHandle);
+      for (int i = 0; i < children.length; i++) child(i).copy(left, status);
+      status.onCopied();
+    };
+
+    status.inWork++;
+    FsWorkerJobs.mkDir(status.executor, toDirParent, path, onDirCreated, status::onError);
+  }
+
+  private void copyFile(boolean left, ModelCopyDeleteStatus status) {
+    FileHandle fromFile = (FileHandle) item(left), toFile;
+    DirectoryHandle toDir = (DirectoryHandle) parent().item(!left);
+    if (getDiffType() == DiffTypes.EDITED) {
+      toFile = (FileHandle) item(!left);
+    } else if ((left && isLeftOnly()) || (!left && isRightOnly())) {
+      toFile = toDir.createFileHandle(path);
+      setItem(!left, toFile);
+    } else return;
+
+    IntConsumer onFileCopied = (bytes) -> {
+//      insertItem();
+      status.onCopied();
+    };
+
+    status.inWork++;
+    FsWorkerJobs.copyFile(status.executor, fromFile, toFile, onFileCopied, status::onError);
   }
 }
