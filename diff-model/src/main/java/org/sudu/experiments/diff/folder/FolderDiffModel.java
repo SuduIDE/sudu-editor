@@ -178,7 +178,7 @@ public class FolderDiffModel {
     }
     parent.childrenComparedCnt--;
     parent.children = newChildren;
-    parent.updateItem();
+    parent.updateItemOnDelete();
   }
 
   // todo change parent status after diff applying
@@ -217,6 +217,22 @@ public class FolderDiffModel {
         }
       }
     } else haveChanges = getDiffType() != DiffTypes.DEFAULT;
+    setDiffType(haveChanges ? DiffTypes.EDITED : DiffTypes.DEFAULT);
+    if (parent != null) parent.updateItem();
+  }
+
+  public void updateItemOnDelete() {
+    if (children == null || children.length == 0) return;
+    boolean deletedOnly = true;
+    boolean insertedOnly = true;
+    boolean haveChanges = false;
+    for (var child: children) {
+      int diffType = child.getDiffType();
+      deletedOnly &= diffType == DiffTypes.DELETED;
+      insertedOnly &= diffType == DiffTypes.INSERTED;
+      haveChanges |= diffType != DiffTypes.DEFAULT;
+    }
+    if (deletedOnly || insertedOnly) return;
     setDiffType(haveChanges ? DiffTypes.EDITED : DiffTypes.DEFAULT);
     if (parent != null) parent.updateItem();
   }
