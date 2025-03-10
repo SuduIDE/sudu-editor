@@ -71,8 +71,8 @@ public class CodiconDemo extends Scene0 {
     WglGraphics g = api.graphics;
     g.clear(bgColor);
     textRect.pos.set(
-        (size.x - textRect.size.x) / 2,
-        (size.y - textRect.size.y) / 2);
+        (screen.x - textRect.size.x) / 2,
+        (screen.y - textRect.size.y) / 2);
     textRect.drawText(g, texture, 0, 0);
   }
 

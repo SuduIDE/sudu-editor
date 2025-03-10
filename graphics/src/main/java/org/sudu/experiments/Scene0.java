@@ -6,7 +6,7 @@ import org.sudu.experiments.math.V4f;
 
 public class Scene0 extends Scene {
   public final V4f clearColor = Color.Cvt.fromRGB(0, 0, 64);
-  public final V2i size = new V2i();
+  public final V2i screen = new V2i();
   protected float dpr;
 
   public Scene0(SceneApi api) {
@@ -23,7 +23,7 @@ public class Scene0 extends Scene {
   }
 
   public void onResize(V2i newSize, float dpr) {
-    size.set(newSize);
+    screen.set(newSize);
     this.dpr = dpr;
   }
 

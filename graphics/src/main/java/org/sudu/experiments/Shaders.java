@@ -252,7 +252,7 @@ public interface Shaders {
       """
           layout(location = 0) out vec4 outColor;
           uniform vec4 uColor;
-          uniform vec2 uBaseline;
+          uniform vec4 uBaseline;
           uniform vec4 uScaleHExp;
           in vec2 outScreenPos;
           
@@ -266,7 +266,8 @@ public interface Shaders {
             float vDist = abs(sinA * sY - uBaseline.y + pt.y);
             float k = sqrt(1. + (1. - sinA * sinA) * sX * sX * sY * sY * 0.5);
             float v = vDist / (H * k);
-            float alpha = pow(1. - clamp(v + .5, 0.0, 1.0), E);
+            float debug = uBaseline.z;
+            float alpha = pow(1. - clamp(v + .5 + debug, 0.0, 1.0), E);
             outColor = vec4(uColor.xyz, alpha);
           }""";
 
@@ -285,8 +286,8 @@ public interface Shaders {
       gl.uniform4f(uColor, color);
     }
 
-    void set(GLApi.Context gl, float x0, float y0, V4f parameters) {
-      gl.uniform2f(uBaseline, x0, y0);
+    void set(GLApi.Context gl, float x0, float y0, V4f parameters, float debug) {
+      gl.uniform4f(uBaseline, x0, y0, debug, 0);
       gl.uniform4f(uScaleHExp, parameters);
     }
   }
