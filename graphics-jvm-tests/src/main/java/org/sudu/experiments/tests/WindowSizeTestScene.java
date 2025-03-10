@@ -39,8 +39,8 @@ public class WindowSizeTestScene extends Scene0 {
     super.paint();
     V2i horSize = new V2i(0, 1);
     V2i verSize = new V2i(1, 0);
-    int left = -2, right = size.x - 1;
-    int top = 0, bottom = size.y - 1;
+    int left = -2, right = screen.x - 1;
+    int top = 0, bottom = screen.y - 1;
     WglGraphics g = api.graphics;
     for (int i = 0; i < 2000; i++) {
       if (left < right && top <= bottom) {

@@ -250,11 +250,13 @@ public abstract class WglGraphics {
   // parameters: xScale, yScale, H, exp,
   public void drawSin(
       int x, int y, V2i size,
-      float x0, float y0, V4f parameters, V4f color
+      float x0, float y0, V4f parameters, V4f color,
+      float debug
   ) {
     setShader(shSin);
     shSin.setPosition(gl, x, y, size, clientRect);
-    shSin.set(gl, x0, y0, parameters);
+
+    shSin.set(gl, x0, y0, parameters, debug);
     shSin.setColor(gl, color);
     drawRect();
   }

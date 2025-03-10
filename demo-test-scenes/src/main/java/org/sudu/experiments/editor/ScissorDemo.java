@@ -35,7 +35,7 @@ public class ScissorDemo extends Scene0 {
   public void paint() {
     super.paint();
     api.graphics.enableScissor(scissorPos.x, scissorPos.y, scissorSize);
-    TestHelper.drawTiles(demoRect, texture, size, api.graphics);
+    TestHelper.drawTiles(demoRect, texture, screen, api.graphics);
     api.graphics.disableScissor();
   }
 
@@ -53,10 +53,10 @@ public class ScissorDemo extends Scene0 {
           int dy = event.position.y - lastMouse.y;
           scissorPos.x = Numbers.clamp(0,
                   scissorPos.x + dx,
-                  size.x - scissorSize.x);
+                  screen.x - scissorSize.x);
           scissorPos.y = Numbers.clamp(0,
                   scissorPos.y + dy,
-                  size.y - scissorSize.y);
+                  screen.y - scissorSize.y);
         }
         lastMouse = event.position;
         return true;
