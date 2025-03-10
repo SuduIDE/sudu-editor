@@ -1,9 +1,10 @@
 package org.sudu.experiments.editor;
 
-import org.sudu.experiments.Scene;
+import org.sudu.experiments.Scene0;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.IdeaCodeColors;
+import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Numbers;
@@ -11,28 +12,33 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.math.XorShiftRandom;
 
-public class SinDemo extends Scene implements MouseListener  {
+import static org.sudu.experiments.DprUtil.toPx;
 
-  final V4f bgColor = new V4f();
+public class SinDemo extends Scene0 implements MouseListener  {
+
   final V4f color = new V4f(1,0,0,1);
   final DemoRect rect = new DemoRect();
-  final V2i screen = new V2i();
   static boolean draw1000 = false;
 
   public SinDemo(SceneApi api) {
     super(api);
+    clearColor.set(0,0,0,0);
     api.input.onKeyPress.add(this::onKeyEvent);
     api.input.onMouse.add(this);
 
     rect.color.set(IdeaCodeColors.Darcula.editBg);
 
-    rect.set(0, 0, 600, 60);
     t();
   }
 
   public void onResize(V2i size, float dpr) {
-    screen.set(size);
+    this.dpr = dpr;
+    this.size.set(size);
+    rect.set(0, 0, toPx(600, dpr), toPx(60, dpr));
     rect.pos.set((size.x - rect.size.x) / 2, (size.y - rect.size.y) / 2);
+    for (int i = 0; i < params0.length; i++) {
+      params[i] = scaleParams(params0[i], dpr);
+    }
   }
 
   public void dispose() {}
@@ -59,13 +65,17 @@ public class SinDemo extends Scene implements MouseListener  {
   final V4f paramsHuge1 = new V4f(Pi / 24, 15f, 3, .5f);
   final V4f paramsHuge2 = new V4f(Pi / 12, 25f, 3, .5f);
 
-  int[] yOffset = { -120,  -95, -70, -45, -20, 5, 80, 150 };
+  int[] yOffsetDp = { -120,  -95, -70, -45, -20, 5, 80, 150 };
 
-  V4f[] params = {
+  V4f[] params0 = {
       params100,  params125x, params133x,
       params150x, params166x, params200x,
       paramsHuge1, paramsHuge2
   };
+
+  V4f[] params = new V4f[params0.length];
+
+  int usrX, usrY;
 
   @SuppressWarnings("unused")
   private void t() {
@@ -80,13 +90,13 @@ public class SinDemo extends Scene implements MouseListener  {
 
   public void paint() {
     WglGraphics g = api.graphics;
-    g.clear(bgColor);
+    g.clear(clearColor);
     g.enableBlend(true);
     float x0 = rect.pos.x;
     int halfH = rect.size.y / 2;
 
     for (int i = 0; i < params.length; i++) {
-      int yShift = yOffset[i];
+      int yShift = toPx(yOffsetDp[i], dpr);
       V4f param = params[i];
       float offset = UnderlineConstants.offset(param);
       g.drawSin(rect.pos.x, rect.pos.y + yShift, rect.size,
@@ -103,7 +113,7 @@ public class SinDemo extends Scene implements MouseListener  {
     XorShiftRandom rng = new XorShiftRandom(1,2);
     for (int i = 0; i < 1000; i++) {
       int idx = rng.nextInt(params.length);
-      int y = rng.nextInt(screen.y - rect.size.y);
+      int y = rng.nextInt(size.y - rect.size.y);
       V4f param = params[idx];
       float offset = UnderlineConstants.offset(param);
       g.drawSin(rect.pos.x, y, rect.size,
@@ -113,6 +123,12 @@ public class SinDemo extends Scene implements MouseListener  {
   }
 
   boolean onKeyEvent(KeyEvent event) {
+    if (event.isPressed) switch (event.keyCode) {
+      case KeyCode.ARROW_LEFT -> usrX--;
+      case KeyCode.ARROW_RIGHT -> usrX++;
+      case KeyCode.ARROW_UP -> usrY--;
+      case KeyCode.ARROW_DOWN -> usrY++;
+    }
     return false;
   }
 
