@@ -138,7 +138,7 @@ public class DiffEngine implements DiffEngineJs {
       return null;
     }
 
-    FileEditChannelUpdater updater = new FileEditChannelUpdater(channel);
+    FileEditChannelUpdater updater = new FileEditChannelUpdater(channel, pool);
     if (fileHandle != null) {
       LoggingJs.info("  file: ".concat(fileHandle.toString()));
       updater.setFile(fileHandle);

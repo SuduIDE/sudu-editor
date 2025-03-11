@@ -3,10 +3,12 @@ package org.sudu.experiments.update;
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.LoggingJs;
-import org.sudu.experiments.encoding.JsTextFileReader;
+import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
+import org.sudu.experiments.js.TextDecoder;
 import org.sudu.experiments.protocol.JsCast;
+import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
@@ -14,16 +16,21 @@ public class FileEditChannelUpdater {
   static final boolean debug = false;
 
   private FileHandle handle;
-  private final Channel channel;
+  final Channel channel;
+  final WorkerJobExecutor executor;
 
-  public FileEditChannelUpdater(Channel channel) {
+  public FileEditChannelUpdater(Channel channel, WorkerJobExecutor executor) {
     this.channel = channel;
+    this.executor = executor;
     this.channel.setOnMessage(this::onMessage);
   }
 
   public void setFile(FileHandle fileHandle) {
     this.handle = fileHandle;
-    JsTextFileReader.read(handle, this::sendMessage, this::onReadError);
+    FsWorkerJobs.readTextFile(executor, handle,
+        (source, encoding) ->
+            sendMessage(TextDecoder.decodeUTF16(source), JSString.valueOf(encoding)),
+        this::onReadError);
   }
 
   public void onMessage(JsArray<JSObject> jsArray) {
