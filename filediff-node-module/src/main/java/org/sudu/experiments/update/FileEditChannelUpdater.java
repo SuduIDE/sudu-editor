@@ -7,6 +7,7 @@ import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.TextDecoder;
+import org.sudu.experiments.js.TextEncoder;
 import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSObject;
@@ -34,9 +35,12 @@ public class FileEditChannelUpdater {
   }
 
   public void onMessage(JsArray<JSObject> jsArray) {
-    String source = JsCast.string(jsArray, 0);
-    String encoding = JsCast.string(jsArray, 1);
-    handle.writeText(source, encoding, () -> onWriteComplete(source), this::onWriteError);
+    var source = JsCast.jsString(jsArray, 0);
+    var encoding = JsCast.string(jsArray, 1);
+    var sourceLength = source.getLength();
+    FsWorkerJobs.fileWriteText(executor, handle,
+        TextEncoder.toCharArray(source), encoding,
+        () -> onWriteComplete(sourceLength), this::onWriteError);
   }
 
   public void sendMessage(JSString source, JSString encoding) {
@@ -50,10 +54,10 @@ public class FileEditChannelUpdater {
     channel.sendMessage(jsArray);
   }
 
-  private void onWriteComplete(String source) {
+  private void onWriteComplete(int length) {
     if (!debug) return;
     String info = "Write complete" +
-        ", Source length = " + source.length() +
+        ", Source length = " + length +
         ", handle " + handle;
     LoggingJs.debug(info);
     handle.getSize(this::onSizeGet);
