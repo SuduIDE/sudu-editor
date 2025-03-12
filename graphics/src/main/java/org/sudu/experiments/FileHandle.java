@@ -21,7 +21,7 @@ public interface FileHandle extends FsItem {
       Consumer<SyncAccess> consumer,
       Consumer<String> onError);
 
-  void getSize(IntConsumer result);
+  void getSize(IntConsumer result, Consumer<String> onError);
 
   // parameter text can be string-kind, writer use encoding parameter
   //  - JSString
@@ -76,5 +76,25 @@ public interface FileHandle extends FsItem {
         peer.accept(text, FileEncoding.utf8);
       }
     }, onError);
+  }
+
+  class Stats {
+    boolean isDirectory, isFile, isSymbolicLink;
+    double size;
+
+    public Stats(
+        boolean isDirectory, boolean isFile,
+        boolean isSymbolicLink, double size
+    ) {
+      this.isDirectory = isDirectory;
+      this.isFile = isFile;
+      this.isSymbolicLink = isSymbolicLink;
+      this.size = size;
+    }
+  }
+
+  // this method also works when path points to a directory
+  default void stat(BiConsumer<Stats, String> cb) {
+    cb.accept(null, "stat not implemented");
   }
 }

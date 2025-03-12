@@ -193,6 +193,17 @@ public class DiffEngine implements DiffEngineJs {
   }
 
   @Override
+  public Promise<JSObject> stat(JsFileInput input) {
+    FileHandle file = JsFileInput.fileHandle(input, false);
+    if (file == null) return Promise.reject("bad input");
+    // todo implement worker job
+    return Promise.create((resolve, reject) ->
+        pool.sendToWorker(true,
+          r -> { resolve.f(null); },
+            "stat", file));
+  }
+
+  @Override
   public JsDiffTestApi testApi() {
     return debug ? new DiffTestApi(pool) : null;
   }

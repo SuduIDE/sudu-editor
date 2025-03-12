@@ -88,7 +88,7 @@ class JsDirectoryHandle implements DirectoryHandle {
       JsHelper.consoleInfo("JsDirectoryHandle onError:");
       JsHelper.consoleInfo("  name  = ", fsDirectory.getName());
       JsHelper.consoleInfo("  error = ", error);
-      reader.onComplete();
+      reader.onError(error.getMessage());
     }
 
     @Override

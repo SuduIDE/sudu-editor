@@ -90,6 +90,10 @@ export type FolderInput = string | SshInput;
 
 export type FolderListingEntry = { name: string, isFile: boolean };
 
+export type FStats = {
+
+};
+
 // java class: org.sudu.experiments.DiffEngineJs
 export interface DiffEngine extends IDisposable {
   // todo add boolean content
@@ -111,6 +115,8 @@ export interface DiffEngine extends IDisposable {
   ): FileDiffSession;
 
   listRemoteDirectory(sshInput: SshInput, withFiles: boolean): Promise<FolderListingEntry[]>;
+
+  stat(fileOrFolder: FileInput) : Promise<FStats>;
 
   testApi(): DiffTestApi;
 }

@@ -403,10 +403,17 @@ public class RemoteCollector {
       sendToWorkerQueue.addLast(task);
       sendTaskToWorker();
     } else {
+      // todo urgent !!!: move to executor
       new SizeScanner(leftFile, rightFile) {
         @Override
         protected void onComplete(int sizeL, int sizeR) {
           onFilesCompared(model, sizeL == sizeR);
+        }
+
+        @Override
+        protected void onError(String error) {
+          // todo report error
+          onFilesCompared(model, false);
         }
       };
     }

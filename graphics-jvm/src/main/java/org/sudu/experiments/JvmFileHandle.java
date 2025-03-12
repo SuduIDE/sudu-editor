@@ -31,18 +31,17 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
   }
 
   @Override
-  public void getSize(IntConsumer result) {
-    result.accept(getFileSize());
-  }
-
-  private int getFileSize() {
+  public void getSize(IntConsumer result, Consumer<String> onError) {
     try {
       long size = Files.size(path);
-      if (size > (int) size) throw new IOException("size > (int)size");
-      return (int) size;
+      int iSize = (int) size;
+      if (size == iSize) {
+        result.accept(iSize);
+      } else {
+        onError.accept("size is too large");
+      }
     } catch (IOException e) {
-      print(e);
-      return 0;
+      onError.accept(e.getMessage());
     }
   }
 

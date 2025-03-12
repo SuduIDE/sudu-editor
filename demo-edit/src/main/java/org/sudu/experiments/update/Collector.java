@@ -158,6 +158,12 @@ public class Collector {
         protected void onComplete(int sizeL, int sizeR) {
           onFilesCompared(model, sizeL == sizeR);
         }
+
+        @Override
+        protected void onError(String error) {
+          // todo report error
+          onFilesCompared(model, false);
+        }
       };
     }
   }

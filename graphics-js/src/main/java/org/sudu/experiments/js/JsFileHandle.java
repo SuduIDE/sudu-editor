@@ -37,16 +37,13 @@ public class JsFileHandle implements FileHandle {
   }
 
   @Override
-  public void getSize(IntConsumer result) {
+  public void getSize(IntConsumer result, Consumer<String> onError) {
     if (jsFile != null) {
       result.accept(intSize(jsFile.getSize()));
     } else {
       fileHandle.getFile().then(
           f -> result.accept(intSize(f.getSize())),
-          error -> {
-            System.err.println(error.getMessage());
-            result.accept(0);
-          });
+          error -> onError.accept(error.getMessage()));
     }
   }
 

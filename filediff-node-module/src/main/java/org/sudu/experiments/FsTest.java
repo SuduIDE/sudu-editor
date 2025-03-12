@@ -41,11 +41,12 @@ public class FsTest {
       dir.read(this);
     }
 
+    @SuppressWarnings("Convert2MethodRef")
     @Override
     public void onFile(FileHandle file) {
-      file.getSize(size -> {
-        JsHelper.consoleInfo("file " + file + " size = " + size);
-      });
+      file.getSize(size ->
+          JsHelper.consoleInfo("file " + file + " size = " + size),
+          error -> JsHelper.consoleError(error));
     }
 
     @Override
