@@ -9,14 +9,14 @@ import path from 'path';
 
 // use mock on main thread avoid SSH operations
   function newSshClient () {
-    let onResult = () => {}
+    let onError = () => {}
     return {
       on: (k, h) => {
         if (k === 'error')
-          onResult = h;
+          onError = h;
       },
       connect: () => {
-        onResult(new Error('sshLib is not linked'));
+        onError(new Error('sshLib is not linked'));
       },
       end: () => {}
     };

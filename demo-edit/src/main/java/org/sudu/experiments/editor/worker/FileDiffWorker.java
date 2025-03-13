@@ -57,6 +57,7 @@ public class FileDiffWorker {
       case FsWorkerJobs.asyncRemoveFile -> FsWorkerJobs.asyncRemoveFile(a, r);
       case FsWorkerJobs.asyncRemoveDir -> FsWorkerJobs.asyncRemoveDir(a, r);
       case FsWorkerJobs.asyncMkDir -> FsWorkerJobs.asyncMkDir(a, r);
+      case FsWorkerJobs.asyncStats -> FsWorkerJobs.asyncStats(a, r);
 
       default -> System.out.println("asyncMethod = " + method);
     }

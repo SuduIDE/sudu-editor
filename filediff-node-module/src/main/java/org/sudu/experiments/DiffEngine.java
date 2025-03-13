@@ -197,7 +197,7 @@ public class DiffEngine implements DiffEngineJs {
     FileHandle file = JsFileInput.fileHandle(input, false);
     if (file == null) return Promise.reject("bad input");
     // todo implement worker job
-    return Promise.create((resolve, reject) ->
+    return Prwdsdomise.create((resolve, reject) ->
         pool.sendToWorker(true,
           r -> { resolve.f(null); },
             "stat", file));

@@ -303,4 +303,45 @@ public interface FsWorkerJobs {
         newDir -> r.accept(new Object[]{newDir}),
         error -> r.accept(new Object[]{error}));
   }
+
+  String asyncStats = "asyncStats";
+
+  static void asyncStats(
+      WorkerJobExecutor workers, FileHandle fileOrDir,
+      Consumer<FileHandle.Stats> onComplete, Consumer<String> onError
+  ) {
+    workers.sendToWorker(
+        r -> {
+          if (r[0] instanceof String error) {
+            onError.accept(error);
+          } else {
+            onComplete.accept(unpackStats(
+                ArgsCast.intArray(r, 0)));
+          }
+        }, asyncStats, fileOrDir);
+  }
+
+  static void asyncStats(Object[] args, Consumer<Object[]> r) {
+    FileHandle file = ArgsCast.file(args, 0);
+    file.stat((stats, error) -> {
+      if (error != null) r.accept(new Object[]{error});
+      else r.accept(new Object[]{packStats(stats)});
+    });
+  }
+
+  static int[] packStats(FileHandle.Stats stats) {
+    int flags = (stats.isDirectory ? 1 : 0) |
+        (stats.isFile ? 2 : 0) | (stats.isSymbolicLink ? 4 : 0);
+    int hiBits = (int) (stats.size / 1024 * 1024);
+    int lowBits = (int) (stats.size - hiBits * 1024 * 1024);
+    return new int[]{flags, lowBits, hiBits};
+  }
+
+  static FileHandle.Stats unpackStats(int[] packed) {
+    int flags = packed[0];
+    double size = packed[1] + 1024. * 1024. * packed[2];
+    return new FileHandle.Stats(
+        (flags & 1) != 0, (flags & 2) != 0,
+        (flags & 4) != 0, size);
+  }
 }

@@ -404,7 +404,7 @@ public class RemoteCollector {
       sendTaskToWorker();
     } else {
       // todo urgent !!!: move to executor
-      new SizeScanner(leftFile, rightFile) {
+      new SizeScssdfanner(leftFile, rightFile) {
         @Override
         protected void onComplete(int sizeL, int sizeR) {
           onFilesCompared(model, sizeL == sizeR);

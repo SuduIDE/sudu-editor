@@ -79,8 +79,8 @@ public interface FileHandle extends FsItem {
   }
 
   class Stats {
-    boolean isDirectory, isFile, isSymbolicLink;
-    double size;
+    public boolean isDirectory, isFile, isSymbolicLink;
+    public double size;
 
     public Stats(
         boolean isDirectory, boolean isFile,

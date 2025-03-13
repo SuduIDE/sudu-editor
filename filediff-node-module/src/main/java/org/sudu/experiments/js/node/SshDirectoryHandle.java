@@ -137,7 +137,7 @@ public class SshDirectoryHandle extends NodeDirectoryHandle0 {
   private void dumpError(String h, String ctx, JSError error) {
     JsHelper.consoleInfo2(h,
         JSString.valueOf(ctx), "error:", JsHelper.getMessage(error),
-        "host:", credentials.host);
+        ", host:", credentials.host);
   }
 
   @Override
