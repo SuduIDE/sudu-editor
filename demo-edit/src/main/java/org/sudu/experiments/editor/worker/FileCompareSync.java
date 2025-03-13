@@ -1,4 +1,4 @@
-package org.sudu.experiments.ui.fs;
+package org.sudu.experiments.editor.worker;
 
 import org.sudu.experiments.FileHandle;
 

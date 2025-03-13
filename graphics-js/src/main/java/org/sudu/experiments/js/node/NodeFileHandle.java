@@ -12,7 +12,7 @@ import org.teavm.jso.core.JSString;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
+import java.util.function.DoubleConsumer;
 
 import static org.sudu.experiments.encoding.GbkEncodingJs.*;
 
@@ -37,17 +37,9 @@ public class NodeFileHandle extends NodeFileHandle0 {
   }
 
   @Override
-  public void getSize(IntConsumer result, Consumer<String> onError) {
+  public void getSize(DoubleConsumer result, Consumer<String> onError) {
     NodeFs.Stats stats = statsCache();
-    double jsSize = stats.size();
-    int iSize = (int) jsSize;
-    if (iSize == jsSize) {
-      result.accept(iSize);
-    } else {
-      JsHelper.consoleError2(
-          "File is too large: " + name + ", size =",
-          stats.sizeJs());
-    }
+    result.accept(stats.size());
   }
 
   private NodeFs.Stats statsCache() {

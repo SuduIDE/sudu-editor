@@ -1,9 +1,6 @@
 package org.sudu.experiments.js;
 
-import org.teavm.jso.typedarrays.ArrayBuffer;
-import org.teavm.jso.typedarrays.Int32Array;
-import org.teavm.jso.typedarrays.Int8Array;
-import org.teavm.jso.typedarrays.Uint16Array;
+import org.teavm.jso.typedarrays.*;
 
 @SuppressWarnings("ClassCanBeRecord")
 public class JsArrayView implements org.sudu.experiments.worker.ArrayView {
@@ -24,6 +21,11 @@ public class JsArrayView implements org.sudu.experiments.worker.ArrayView {
   @Override
   public int[] ints() {
     return JsMemoryAccess.toJavaArray(Int32Array.create(ab));
+  }
+
+  @Override
+  public double[] numbers() {
+    return JsMemoryAccess.toJavaArray(Float64Array.create(ab));
   }
 
   @Override

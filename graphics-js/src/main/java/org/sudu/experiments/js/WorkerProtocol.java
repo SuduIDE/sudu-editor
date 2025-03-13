@@ -77,7 +77,7 @@ public class WorkerProtocol {
       int end = bridgeToJs(arg, message, start);
       JSObject value = message.get(start);
       start = end;
-      if (isArrayBuffer(value)) transfer.push(value);
+      if (isArrayBufferView(value)) transfer.push(value);
     }
     context.postMessage(message, transfer);
   }
@@ -104,7 +104,7 @@ public class WorkerProtocol {
       r[idx] = null;
     } else if (JSString.isInstance(jsObject)) {
       r[idx] = jsObject.<JSString>cast().stringValue();
-    } else if (isArrayBuffer(jsObject)) {
+    } else if (isArrayBufferView(jsObject)) {
       r[idx] = new JsArrayView(jsObject.cast());
     } else {
       arrayIndex = bridge.toJava(jsObject, array, arrayIndex, r, idx);
@@ -124,6 +124,8 @@ public class WorkerProtocol {
       message.set(idx++, JsMemoryAccess.bufferView(charArray).getBuffer());
     } else if (javaObject instanceof int[] intArray) {
       message.set(idx++, JsMemoryAccess.bufferView(intArray).getBuffer());
+    } else if (javaObject instanceof double[] numbers) {
+      message.set(idx++, JsMemoryAccess.bufferView(numbers).getBuffer());
     } else {
       idx = bridge.toJs(javaObject, message, idx);
     }
@@ -134,7 +136,7 @@ public class WorkerProtocol {
   static native boolean isArray(JSObject data);
 
   @JSBody(params = "data", script = "return data instanceof ArrayBuffer;")
-  static native boolean isArrayBuffer(JSObject data);
+  static native boolean isArrayBufferView(JSObject data);
 
   public static void onWorkerMessage(WorkerExecutor executor, JSObject message, JsMessagePort0 port) {
     if (isPing(message)) {

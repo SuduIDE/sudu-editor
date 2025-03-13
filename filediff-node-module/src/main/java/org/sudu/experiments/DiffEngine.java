@@ -1,5 +1,6 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.*;
@@ -192,15 +193,27 @@ public class DiffEngine implements DiffEngineJs {
     }
   }
 
+  @JSBody(params = {"isDirectory", "isFile", "isSymbolicLink", "size"},
+      script = "return {isDirectory:isDirectory,isFile:isFile" +
+          ",isSymbolicLink:isSymbolicLink,size:size};")
+  static native JSObject exportStats(
+      boolean isDirectory, boolean isFile,
+      boolean isSymbolicLink, double size);
+
+  static JSObject exportStats(FileHandle.Stats stats) {
+    return exportStats(
+        stats.isDirectory, stats.isFile,
+        stats.isSymbolicLink, stats.size);
+  }
+
   @Override
   public Promise<JSObject> stat(JsFileInput input) {
     FileHandle file = JsFileInput.fileHandle(input, false);
-    if (file == null) return Promise.reject("bad input");
-    // todo implement worker job
-    return Prwdsdomise.create((resolve, reject) ->
-        pool.sendToWorker(true,
-          r -> { resolve.f(null); },
-            "stat", file));
+    return file == null ? Promise.reject("bad input") :
+        Promise.create((resolve, reject) ->
+            FsWorkerJobs.asyncStats(pool, file,
+                stats -> resolve.f(exportStats(stats)),
+                error -> reject.f(JSString.valueOf(error))));
   }
 
   @Override

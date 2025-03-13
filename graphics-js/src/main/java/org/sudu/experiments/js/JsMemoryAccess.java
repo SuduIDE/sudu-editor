@@ -126,6 +126,9 @@ public class JsMemoryAccess {
   @JSBody(params = {"data"}, script = "return data;")
   public static native Float32Array bufferView(@JSByRef float[] data);
 
+  @JSBody(params = {"data"}, script = "return data;")
+  public static native Float64Array bufferView(@JSByRef double[] data);
+
   public static Uint8Array uInt8View(byte[] data) {
     Int8Array v = bufferView(data);
     return Uint8Array.create(v.getBuffer(), v.getByteOffset(), v.getByteLength());

@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
+import java.util.function.DoubleConsumer;
 
 public class SshFileHandle extends NodeFileHandle0 {
 
@@ -74,7 +74,7 @@ public class SshFileHandle extends NodeFileHandle0 {
   }
 
   @Override
-  public void getSize(IntConsumer result, Consumer<String> onError) {
+  public void getSize(DoubleConsumer result, Consumer<String> onError) {
     if (attrs != null) {
       postSize(result, onError, null);
     } else {
@@ -82,18 +82,12 @@ public class SshFileHandle extends NodeFileHandle0 {
     }
   }
 
-  private void postSize(IntConsumer result, Consumer<String> onError, JSError error) {
+  private void postSize(DoubleConsumer result, Consumer<String> onError, JSError error) {
     if (error != null || attrs == null) {
       onError.accept(error != null ?
           error.getMessage() : "cant read attributes");
     } else {
-      double size = attrs.getSize();
-      int iLength = (int) size;
-      if (iLength == size) {
-        result.accept(iLength);
-      } else {
-        onError.accept(errorTooLarge);
-      }
+      result.accept(attrs.getSize());
     }
   }
 

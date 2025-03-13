@@ -5,7 +5,7 @@ import org.sudu.experiments.encoding.TextDecoder;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
+import java.util.function.DoubleConsumer;
 
 public interface FileHandle extends FsItem {
   interface SyncAccess {
@@ -21,7 +21,7 @@ public interface FileHandle extends FsItem {
       Consumer<SyncAccess> consumer,
       Consumer<String> onError);
 
-  void getSize(IntConsumer result, Consumer<String> onError);
+  void getSize(DoubleConsumer result, Consumer<String> onError);
 
   // parameter text can be string-kind, writer use encoding parameter
   //  - JSString

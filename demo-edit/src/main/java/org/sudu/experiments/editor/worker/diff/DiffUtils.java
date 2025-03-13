@@ -37,14 +37,6 @@ public class DiffUtils {
     result.add(resultInts);
   }
 
-  public static final String CMP_FILES = "asyncCompareFiles";
-
-  public static void compareFiles(
-      FileHandle left, FileHandle right,
-      Consumer<Object[]> r
-  ) {
-    FileCompare.compare(r, left, right);
-  }
 
   public static final String CMP_FOLDERS = "asyncCompareFolders";
 
