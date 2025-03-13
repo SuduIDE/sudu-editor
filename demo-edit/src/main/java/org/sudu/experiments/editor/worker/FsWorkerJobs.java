@@ -316,7 +316,7 @@ public interface FsWorkerJobs {
             onError.accept(error);
           } else {
             onComplete.accept(unpackStats(
-                ArgsCast.intArray(r, 0)));
+                ArgsCast.array(r, 0).numbers()));
           }
         }, asyncStats, fileOrDir);
   }
@@ -329,19 +329,16 @@ public interface FsWorkerJobs {
     });
   }
 
-  static int[] packStats(FileHandle.Stats stats) {
+  static double[] packStats(FileHandle.Stats stats) {
     int flags = (stats.isDirectory ? 1 : 0) |
         (stats.isFile ? 2 : 0) | (stats.isSymbolicLink ? 4 : 0);
-    int hiBits = (int) (stats.size / 1024 * 1024);
-    int lowBits = (int) (stats.size - hiBits * 1024 * 1024);
-    return new int[]{flags, lowBits, hiBits};
+    return new double[]{flags, stats.size};
   }
 
-  static FileHandle.Stats unpackStats(int[] packed) {
-    int flags = packed[0];
-    double size = packed[1] + 1024. * 1024. * packed[2];
+  static FileHandle.Stats unpackStats(double[] packed) {
+    int flags = (int) packed[0];
     return new FileHandle.Stats(
         (flags & 1) != 0, (flags & 2) != 0,
-        (flags & 4) != 0, size);
+        (flags & 4) != 0, packed[1]);
   }
 }

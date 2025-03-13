@@ -1,6 +1,5 @@
 package org.sudu.experiments.editor.worker;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.math.XorShiftRandom;
@@ -21,7 +20,7 @@ class FsWorkerJobsTest {
           r.nextDouble() < 0.5f,
           size);
 
-      int[] packStats = FsWorkerJobs.packStats(stats);
+      double[] packStats = FsWorkerJobs.packStats(stats);
       assertEquals(2, packStats.length);
       FileHandle.Stats st = FsWorkerJobs.unpackStats(packStats);
       assertEquals(stats.size, st.size);
