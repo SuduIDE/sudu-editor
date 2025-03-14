@@ -1,6 +1,5 @@
 package org.sudu.experiments.js.node;
 
-import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.encoding.GbkEncodingJs;
@@ -104,20 +103,14 @@ public class SshFileHandle extends NodeFileHandle0 {
           } else {
             JsHelper.consoleInfo2(
                 "sftp.stats error", JsHelper.message(error));
-            LoggingJs.error(JsHelper.concat(
-                "sftp.stats error", JsHelper.message(error)));
             onResult.f(error);
           }
         });
       },
       error -> {
         JsHelper.consoleInfo2(
-            "Ssh connect to", credentials.host,
+            "sftp.stats error: connect to", credentials.host,
             "failed, error =", JsHelper.message(error));
-        LoggingJs.error(JsHelper.concat(
-            JsHelper.concat("Ssh connect to ", credentials.host),
-            JsHelper.concat(" failed, error = ", JsHelper.message(error)))
-        );
         onResult.f(error);
       }
     );
@@ -204,7 +197,6 @@ public class SshFileHandle extends NodeFileHandle0 {
               JsHelper.concat("sftp.close error: path=", jsPath()),
               JsHelper.concat(",error =", JsHelper.message(jsError)));
           JsHelper.consoleError(s);
-          LoggingJs.error(s);
         }
         if (onComplete != null) onComplete.run();
       });

@@ -52,6 +52,7 @@ public interface SshPool {
     );
   }
 
+  @SuppressWarnings("Convert2MethodRef")
   static Promise<Record> connect(SshHash key) {
     Value value = map.get(key);
     if (value == null) {
@@ -65,11 +66,7 @@ public interface SshPool {
                 postError.f(e);
               }
             }));
-            client.onError(error -> {
-              JsHelper.consoleInfo2("sshClient.onError", error);
-              JsHelper.consoleInfo("sshClient.onError forwarding the error...");
-              postError.f(error);
-            });
+            client.onError(postError);
             client.connect(key.jsSshCredentials());
           }
       );

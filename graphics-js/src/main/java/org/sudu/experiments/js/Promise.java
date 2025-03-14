@@ -17,7 +17,7 @@ public abstract class Promise<T extends JSObject> implements JSObject {
       script = "return new Promise(executor);"
   )
   public static native <T extends JSObject> Promise<T> create(
-      BiConsumer<Consumer<T>, Consumer<JSObject>> executor
+      BiConsumer<Consumer<T>, Consumer<JSError>> executor
   );
 
   @JSBody(

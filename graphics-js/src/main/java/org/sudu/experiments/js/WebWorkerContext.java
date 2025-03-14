@@ -29,7 +29,7 @@ public abstract class WebWorkerContext implements JsMessagePort0 {
 
   public static void start(
       JsFunctions.Consumer<JsArray<WebWorkerContext>> onStart,
-      JsFunctions.Consumer<JSObject> error,
+      JsFunctions.Consumer<JSError> error,
       JSString url, int count
   ) {
     WorkerProtocol.bridge = new WebWorkersBridge();
