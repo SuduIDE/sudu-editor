@@ -37,8 +37,7 @@ public class FileDiffWorker {
           ArgsCast.file(a, 0), r);
       case TestJobs.asyncWithDir -> TestJobs.asyncWithDir(
           ArgsCast.dir(a, 0), r);
-      case DiffUtils.CMP_FILES -> DiffUtils.compareFiles(
-          ArgsCast.file(a, 0), ArgsCast.file(a, 1), r);
+      case FileCompare.asyncCompareFiles -> FileCompare.asyncCompareFiles(a,r);
       case DiffUtils.CMP_FOLDERS -> DiffUtils.compareFolders(
           ArgsCast.dir(a, 0), ArgsCast.dir(a, 1), r);
       case DiffUtils.READ_FOLDER -> DiffUtils.readFolder(
@@ -57,6 +56,8 @@ public class FileDiffWorker {
       case FsWorkerJobs.asyncRemoveFile -> FsWorkerJobs.asyncRemoveFile(a, r);
       case FsWorkerJobs.asyncRemoveDir -> FsWorkerJobs.asyncRemoveDir(a, r);
       case FsWorkerJobs.asyncMkDir -> FsWorkerJobs.asyncMkDir(a, r);
+      case FsWorkerJobs.asyncStats -> FsWorkerJobs.asyncStats(a, r);
+      case SizeScanner.asyncSizeScanner -> SizeScanner.asyncSizeScanner(a, r);
 
       default -> System.out.println("asyncMethod = " + method);
     }

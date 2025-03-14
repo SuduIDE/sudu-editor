@@ -7,12 +7,12 @@ import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.sudu.experiments.js.TextDecoder;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
 import java.util.Arrays;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
+import java.util.function.DoubleConsumer;
 
 import static org.sudu.experiments.encoding.GbkEncodingJs.*;
 
@@ -37,29 +37,17 @@ public class NodeFileHandle extends NodeFileHandle0 {
   }
 
   @Override
-  public void getSize(IntConsumer result) {
-    result.accept(intSize());
+  public void getSize(DoubleConsumer result, Consumer<String> onError) {
+    NodeFs.Stats stats = statsCache();
+    result.accept(stats.size());
   }
 
-  private NodeFs.Stats stats() {
-    return stats == null ? stats = actualStats(jsPath()) : stats;
+  private NodeFs.Stats statsCache() {
+    return stats == null ? actualStats() : stats;
   }
 
-  // For actual size() value
-  static NodeFs.Stats actualStats(JSString jsPath) {
-    return Fs.fs().lstatSync(jsPath);
-  }
-
-  private int intSize() {
-    double jsSize = actualStats(jsPath()).size();
-    int result = (int) jsSize;
-    if (result != jsSize) {
-      JsHelper.consoleError(
-          "File is too large: " + name + ", size = ",
-          JSNumber.valueOf(jsSize));
-      return 0;
-    }
-    return result;
+  NodeFs.Stats actualStats() {
+    return stats = Fs.fs().lstatSync(jsPath());
   }
 
   @Override
@@ -77,7 +65,9 @@ public class NodeFileHandle extends NodeFileHandle0 {
       Consumer<byte[]> consumer, Consumer<String> onError,
       int begin, int length
   ) {
-    int fileSize = intSize();
+    double jsSize = (length < 0 ? actualStats() : statsCache()).size();
+    int fileSize = (int) jsSize;
+
     if (begin <= fileSize) {
       if (length < 0) length = fileSize;
       else length = Math.min(length, fileSize - begin);
@@ -137,8 +127,8 @@ public class NodeFileHandle extends NodeFileHandle0 {
   @Override
   public void writeAppend(int filePosition, byte[] data, Runnable onComplete, Consumer<String> onError) {
     Fs fs = Fs.fs();
-    var s  = actualStats(jsPath());
     try {
+      var s = actualStats();
       int h = openSyncWriteAppend(fs);
       int written = fs.writeSync(h, JsMemoryAccess.uInt8View(data),
           0, data.length, s.size());
@@ -240,8 +230,18 @@ public class NodeFileHandle extends NodeFileHandle0 {
     }
   }
 
-  public boolean isFile() {
-    return stats().isFile();
+  @Override
+  public void stat(BiConsumer<Stats, String> cb) {
+    try {
+      NodeFs.Stats actualStats = actualStats();
+      cb.accept(new Stats(
+          actualStats.isDirectory(),
+          actualStats.isFile(),
+          actualStats.isSymbolicLink(),
+          actualStats.size()), null);
+    } catch (Exception e) {
+      cb.accept(null, e.getMessage());
+    }
   }
 }
 

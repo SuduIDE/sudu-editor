@@ -9,7 +9,7 @@ import org.teavm.jso.typedarrays.ArrayBuffer;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
+import java.util.function.DoubleConsumer;
 
 public class JsFileHandle implements FileHandle {
 
@@ -37,16 +37,13 @@ public class JsFileHandle implements FileHandle {
   }
 
   @Override
-  public void getSize(IntConsumer result) {
+  public void getSize(DoubleConsumer result, Consumer<String> onError) {
     if (jsFile != null) {
-      result.accept(intSize(jsFile.getSize()));
+      result.accept(jsFile.getSize());
     } else {
       fileHandle.getFile().then(
-          f -> result.accept(intSize(f.getSize())),
-          error -> {
-            System.err.println(error.getMessage());
-            result.accept(0);
-          });
+          f -> result.accept(f.getSize()),
+          error -> onError.accept(error.getMessage()));
     }
   }
 
@@ -72,15 +69,6 @@ public class JsFileHandle implements FileHandle {
         onError.accept("no file handle");
       }
     }
-  }
-
-  private int intSize(double jsSize) {
-    int result = (int) jsSize;
-    if (result != jsSize) {
-      JsHelper.consoleInfo("File is too large: " + getName(), jsSize);
-      return 0;
-    }
-    return result;
   }
 
   @Override

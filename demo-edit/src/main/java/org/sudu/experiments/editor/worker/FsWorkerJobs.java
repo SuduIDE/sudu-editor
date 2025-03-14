@@ -303,4 +303,42 @@ public interface FsWorkerJobs {
         newDir -> r.accept(new Object[]{newDir}),
         error -> r.accept(new Object[]{error}));
   }
+
+  String asyncStats = "asyncStats";
+
+  static void asyncStats(
+      WorkerJobExecutor workers, FileHandle fileOrDir,
+      Consumer<FileHandle.Stats> onComplete, Consumer<String> onError
+  ) {
+    workers.sendToWorker(
+        r -> {
+          if (r[0] instanceof String error) {
+            onError.accept(error);
+          } else {
+            onComplete.accept(unpackStats(
+                ArgsCast.array(r, 0).numbers()));
+          }
+        }, asyncStats, fileOrDir);
+  }
+
+  static void asyncStats(Object[] args, Consumer<Object[]> r) {
+    FileHandle file = ArgsCast.file(args, 0);
+    file.stat((stats, error) -> {
+      if (error != null) r.accept(new Object[]{error});
+      else r.accept(new Object[]{packStats(stats)});
+    });
+  }
+
+  static double[] packStats(FileHandle.Stats stats) {
+    int flags = (stats.isDirectory ? 1 : 0) |
+        (stats.isFile ? 2 : 0) | (stats.isSymbolicLink ? 4 : 0);
+    return new double[]{flags, stats.size};
+  }
+
+  static FileHandle.Stats unpackStats(double[] packed) {
+    int flags = (int) packed[0];
+    return new FileHandle.Stats(
+        (flags & 1) != 0, (flags & 2) != 0,
+        (flags & 4) != 0, packed[1]);
+  }
 }

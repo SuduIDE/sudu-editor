@@ -1,5 +1,6 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.*;
@@ -9,6 +10,7 @@ import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.sudu.experiments.update.FileEditChannelUpdater;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 
 public class DiffEngine implements DiffEngineJs {
@@ -172,10 +174,10 @@ public class DiffEngine implements DiffEngineJs {
   static void publishRemoteDirectory(
       Object[] packet, boolean withFiles,
       JsFunctions.Consumer<JsArray<JSObject>> resolve,
-      JsFunctions.Consumer<JSObject> reject
+      JsFunctions.Consumer<JSError> reject
   ) {
     if (packet.length > 0 && packet[0] instanceof String message) {
-      reject.f(JSString.valueOf(message));
+      reject.f(JsHelper.newError(message));
     } else {
       var array = JsArray.create();
       for (Object entry : packet) {
@@ -190,6 +192,29 @@ public class DiffEngine implements DiffEngineJs {
       }
       resolve.f(array);
     }
+  }
+
+  @JSBody(params = {"isDirectory", "isFile", "isSymbolicLink", "size"},
+      script = "return {isDirectory:isDirectory,isFile:isFile" +
+          ",isSymbolicLink:isSymbolicLink,size:size};")
+  static native JSObject exportStats(
+      boolean isDirectory, boolean isFile,
+      boolean isSymbolicLink, double size);
+
+  static JSObject exportStats(FileHandle.Stats stats) {
+    return exportStats(
+        stats.isDirectory, stats.isFile,
+        stats.isSymbolicLink, stats.size);
+  }
+
+  @Override
+  public Promise<JSObject> stat(JsFileInput input) {
+    FileHandle file = JsFileInput.fileHandle(input, false);
+    return file == null ? Promise.reject("bad input") :
+        Promise.create((resolve, reject) ->
+            FsWorkerJobs.asyncStats(pool, file,
+                stats -> resolve.f(exportStats(stats)),
+                error -> reject.f(JsHelper.newError(error))));
   }
 
   @Override

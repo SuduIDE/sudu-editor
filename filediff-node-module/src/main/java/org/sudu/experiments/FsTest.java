@@ -4,6 +4,7 @@ import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.node.Fs;
 import org.sudu.experiments.js.node.NodeDirectoryHandle;
+import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
 public class FsTest {
@@ -41,11 +42,13 @@ public class FsTest {
       dir.read(this);
     }
 
+    @SuppressWarnings("Convert2MethodRef")
     @Override
     public void onFile(FileHandle file) {
-      file.getSize(size -> {
-        JsHelper.consoleInfo("file " + file + " size = " + size);
-      });
+      file.getSize(size ->
+          JsHelper.consoleInfo2("file " + file + " size = ",
+              JSNumber.valueOf(size)),
+          error -> JsHelper.consoleError(error));
     }
 
     @Override

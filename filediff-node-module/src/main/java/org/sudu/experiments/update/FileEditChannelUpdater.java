@@ -55,16 +55,12 @@ public class FileEditChannelUpdater {
   }
 
   private void onWriteComplete(int length) {
-    if (!debug) return;
-    String info = "Write complete" +
-        ", Source length = " + length +
-        ", handle " + handle;
-    LoggingJs.debug(info);
-    handle.getSize(this::onSizeGet);
-  }
-
-  private void onSizeGet(int size) {
-    LoggingJs.debug("Size: " + size + ", handle: " + handle);
+    if (debug) {
+      String info = "Write complete" +
+          ", Source length = " + length +
+          ", handle " + handle;
+      LoggingJs.debug(info);
+    }
   }
 
   private void onReadError(String error) {

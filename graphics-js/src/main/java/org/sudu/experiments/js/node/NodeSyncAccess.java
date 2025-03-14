@@ -23,7 +23,7 @@ public class NodeSyncAccess implements FileHandle.SyncAccess {
 
   @Override
   public double getSize() {
-    return NodeFileHandle.actualStats(path).size();
+    return Fs.fs().lstatSync(path).size();
   }
 
   @Override

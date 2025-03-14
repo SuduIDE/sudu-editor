@@ -5,6 +5,7 @@ import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.teavm.jso.*;
 import org.teavm.jso.core.JSError;
+import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.ArrayBufferView;
 
@@ -51,6 +52,9 @@ public interface NodeFs extends JSObject {
 
     @JSProperty("size")
     double size();
+
+    @JSProperty("size")
+    JSNumber sizeJs();
   }
 
   Stats lstatSync(JSString name);

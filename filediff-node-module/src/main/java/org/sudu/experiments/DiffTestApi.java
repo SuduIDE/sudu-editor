@@ -294,6 +294,10 @@ public class DiffTestApi implements JsDiffTestApi {
       file.getSize(s -> {
         JsHelper.consoleInfo("file.getSize: " + s);
         onComplete.f();
+      }, error -> {
+        JsHelper.consoleError(
+            "file.getSize error ", JSString.valueOf(error));
+        onComplete.f();
       });
     } else {
       onComplete.f();

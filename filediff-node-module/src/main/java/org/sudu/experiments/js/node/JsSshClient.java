@@ -8,7 +8,7 @@ import org.teavm.jso.core.JSError;
 
 public interface JsSshClient extends JSObject {
   void on(String key, Runnable handler);
-  void on(String key, Consumer<JSObject> handler);
+  void on(String key, Consumer<JSError> handler);
 
   void sftp(BiConsumer<JSError, JsSftpClient> handler);
 
@@ -19,7 +19,7 @@ public interface JsSshClient extends JSObject {
     on("ready", handler);
   }
 
-  default void onError(Consumer<JSObject> handler) {
+  default void onError(Consumer<JSError> handler) {
     on("error", handler);
   }
 }

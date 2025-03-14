@@ -4,22 +4,21 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
-import org.sudu.experiments.diff.SizeScanner;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.diff.folder.ModelCopyDeleteStatus;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
+import org.sudu.experiments.editor.worker.FileCompare;
 import org.sudu.experiments.editor.worker.FsWorkerJobs;
+import org.sudu.experiments.editor.worker.SizeScanner;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.js.JsArray;
-import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.js.TextEncoder;
 import org.sudu.experiments.js.node.SshDirectoryHandle;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
-import org.sudu.experiments.ui.fs.FileCompare;
 import org.sudu.experiments.worker.ArrayView;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
@@ -261,20 +260,17 @@ public class RemoteCollector {
   }
 
   private void cmpFilesAndSend(ItemFolderDiffModel model) {
-    Consumer<Object[]> onCompared = result -> {
-      String message = FileCompare.message(result);
-      if (message != null)
-        LoggingJs.debug("cmpFilesAndSend message: " + message);
-      boolean equals = FileCompare.isEquals(result);
-      if (equals) model.setDiffType(DiffTypes.DEFAULT);
-      else model.setDiffType(DiffTypes.EDITED);
-      model.updateItem();
-      sendApplied();
-    };
-    executor.sendToWorker(
-        onCompared,
-        DiffUtils.CMP_FILES,
-        model.left(), model.right()
+    FileCompare.asyncCompareFiles(executor,
+        (FileHandle) model.left(),
+        (FileHandle) model.right(),
+        (boolean equals, String error) -> {
+          if (error != null)
+            LoggingJs.error("FileCompare error: " + error);
+          if (equals) model.setDiffType(DiffTypes.DEFAULT);
+          else model.setDiffType(DiffTypes.EDITED);
+          model.updateItem();
+          sendApplied();
+        }
     );
   }
 
@@ -394,38 +390,31 @@ public class RemoteCollector {
       FileHandle rightFile
   ) {
     if (scanFileContent) {
-      Runnable task = () -> executor.sendToWorker(
-          result -> onFilesCompared(model, result),
-          DiffUtils.CMP_FILES,
-          leftFile, rightFile
-      );
+      Runnable task = () -> FileCompare.asyncCompareFiles(executor,
+          leftFile, rightFile,
+          (equals, error) -> onFilesCompared(model, equals, error));
       sendToWorkerQueue.addLast(task);
       sendTaskToWorker();
     } else {
-      new SizeScanner(leftFile, rightFile) {
-        @Override
-        protected void onComplete(int sizeL, int sizeR) {
-          onFilesCompared(model, sizeL == sizeR);
-        }
-      };
+      SizeScanner.scan(executor, leftFile, rightFile,
+          (double sizeL, double sizeR, String error) -> {
+            if (error != null) {
+              onFilesCompared(model, false, error);
+            } else {
+              onFilesCompared(model, sizeL == sizeR, null);
+            }
+          }
+      );
     }
   }
 
   private void onFilesCompared(
       ItemFolderDiffModel model,
-      Object[] result
+      boolean equals, String message
   ) {
-    boolean equals = FileCompare.isEquals(result);
-    String message = FileCompare.message(result);
     if (message != null)
       LoggingJs.debug("onFilesCompared message: " + message);
-    onFilesCompared(model, equals);
-  }
 
-  private void onFilesCompared(
-      ItemFolderDiffModel model,
-      boolean equals
-  ) {
     filesCompared++;
     if (!equals) {
       filesEdited++;

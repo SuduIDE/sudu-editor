@@ -4,16 +4,16 @@ import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.FsItem;
 import org.sudu.experiments.diff.DiffTypes;
-import org.sudu.experiments.diff.SizeScanner;
+import org.sudu.experiments.editor.worker.FileCompare;
+import org.sudu.experiments.editor.worker.SizeScanner;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
-import org.sudu.experiments.ui.fs.FileCompare;
 import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
-import java.util.*;
+import java.util.Arrays;
 
 // TODO Remove copypasta
 public class Collector {
@@ -147,33 +147,21 @@ public class Collector {
       FileHandle rightFile
   ) {
     if (scanFileContent) {
-      executor.sendToWorker(
-          result -> onFilesCompared(model, result),
-          DiffUtils.CMP_FILES,
-          leftFile, rightFile
-      );
+      FileCompare.asyncCompareFiles(executor, leftFile, rightFile,
+          (equals, error) -> onFilesCompared(model, equals, error));
     } else {
-      new SizeScanner(leftFile, rightFile) {
-        @Override
-        protected void onComplete(int sizeL, int sizeR) {
-          onFilesCompared(model, sizeL == sizeR);
-        }
-      };
+      SizeScanner.scan(executor, leftFile, rightFile,
+          (sizeL, sizeR, error) ->
+              onFilesCompared(model, sizeL == sizeR, error));
     }
   }
 
   private void onFilesCompared(
       FolderDiffModel model,
-      Object[] result
+      boolean equals, String error
   ) {
-    boolean equals = FileCompare.isEquals(result);
-    onFilesCompared(model, equals);
-  }
-
-  private void onFilesCompared(
-      FolderDiffModel model,
-      boolean equals
-  ) {
+    if (error != null)
+      System.err.println(error);
     leftFiles++;
     rightFiles++;
     filesCompared++;

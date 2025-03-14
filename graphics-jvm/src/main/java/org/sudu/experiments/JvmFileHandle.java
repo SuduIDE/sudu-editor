@@ -11,8 +11,8 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 import java.util.function.Function;
-import java.util.function.IntConsumer;
 
 // JvmFileHandle reads synchronously on worker threads
 // use SyncAccess for many small reads
@@ -31,18 +31,12 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
   }
 
   @Override
-  public void getSize(IntConsumer result) {
-    result.accept(getFileSize());
-  }
-
-  private int getFileSize() {
+  public void getSize(DoubleConsumer result, Consumer<String> onError) {
     try {
       long size = Files.size(path);
-      if (size > (int) size) throw new IOException("size > (int)size");
-      return (int) size;
+      result.accept(size);
     } catch (IOException e) {
-      print(e);
-      return 0;
+      onError.accept(e.getMessage());
     }
   }
 

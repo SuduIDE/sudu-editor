@@ -38,5 +38,7 @@ public interface DiffEngineJs extends JSObject {
   Promise<JsArray<JSObject>> listRemoteDirectory(
       JsSshInput sshInput, boolean withFiles);
 
+  Promise<JSObject> stat(JsFileInput sshInput);
+
   JsDiffTestApi testApi();
 }

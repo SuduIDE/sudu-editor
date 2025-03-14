@@ -1,6 +1,5 @@
 package org.sudu.experiments.js.node;
 
-import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.encoding.GbkEncodingJs;
@@ -15,14 +14,16 @@ import org.teavm.jso.typedarrays.Uint8Array;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
+import java.util.function.DoubleConsumer;
 
 public class SshFileHandle extends NodeFileHandle0 {
 
   static final boolean debugOpenClose = false;
   static final boolean debugHandle = false;
   static final boolean debugReadWrite = false;
+  static final String errorTooLarge = "file is too large";
 
   SshHash credentials;
   JsSftpClient.Attrs attrs;
@@ -72,43 +73,45 @@ public class SshFileHandle extends NodeFileHandle0 {
   }
 
   @Override
-  public void getSize(IntConsumer result) {
+  public void getSize(DoubleConsumer result, Consumer<String> onError) {
     if (attrs != null) {
-      result.accept(attrs.getSize());
+      postSize(result, onError, null);
     } else {
-      fetchStats(error ->
-          result.accept(attrs != null ? attrs.getSize() : 0));
+      fetchStats(r -> postSize(result, onError, r));
     }
   }
 
-  interface OnError {
-    void onError(JSError error);
+  private void postSize(DoubleConsumer result, Consumer<String> onError, JSError error) {
+    if (error != null || attrs == null) {
+      onError.accept(error != null ?
+          error.getMessage() : "cant read attributes");
+    } else {
+      result.accept(attrs.getSize());
+    }
   }
 
-  void fetchStats(OnError onError) {
+  interface OnResult {
+    void f(JSError error);
+  }
+
+  void fetchStats(OnResult onResult) {
     SshPool.sftp(credentials, sftp -> {
         sftp.stat(jsPath(), (error, stats) -> {
           if (!JSObjects.isUndefined(stats)) {
             attrs = stats;
-            onError.onError(null);
+            onResult.f(null);
           } else {
             JsHelper.consoleInfo2(
                 "sftp.stats error", JsHelper.message(error));
-            LoggingJs.error(JsHelper.concat(
-                "sftp.stats error", JsHelper.message(error)));
-            onError.onError(error);
+            onResult.f(error);
           }
         });
       },
       error -> {
         JsHelper.consoleInfo2(
-            "Ssh connect to", credentials.host,
+            "sftp.stats error: connect to", credentials.host,
             "failed, error =", JsHelper.message(error));
-        LoggingJs.error(JsHelper.concat(
-            JsHelper.concat("Ssh connect to ", credentials.host),
-            JsHelper.concat(" failed, error = ", JsHelper.message(error)))
-        );
-        onError.onError(error);
+        onResult.f(error);
       }
     );
   }
@@ -139,7 +142,7 @@ public class SshFileHandle extends NodeFileHandle0 {
               }
             });
           } else {
-            int toRead = length > 0 ? length : attrs.getSize();
+            double toRead = length > 0 ? length : attrs.getSize();
             doRead(sftp, consumer, onError, begin, toRead);
           }
         } else {
@@ -154,13 +157,19 @@ public class SshFileHandle extends NodeFileHandle0 {
   void doRead(
       JsSftpClient sftp,
       Consumer<byte[]> consumer, Consumer<String> onError,
-      int begin, int length
+      int begin, double length
   ) {
-    if (debugReadWrite) JsHelper.consoleInfo2("reading " + length + " bytes at " +
-        begin + " from", jsPath());
-    byte[] data = new byte[length];
+    if (debugReadWrite) JsHelper.consoleInfo2(
+        "reading ", JSNumber.valueOf(length),
+         "bytes at " + begin + ", path", jsPath());
+    int iLength = (int) length;
+    if (iLength != length) {
+      onError.accept(errorTooLarge);
+      return;
+    }
+    byte[] data = new byte[iLength];
     if (length == 0) consumer.accept(data);
-    else sftp.read(handle, JsBuffer.from(data), 0, length, begin,
+    else sftp.read(handle, JsBuffer.from(data), 0, iLength, begin,
         (e, bytesRead, buffer, position) -> {
           if (JSObjects.isUndefined(e)) {
             if (debugReadWrite) JsHelper.consoleInfo2(
@@ -188,7 +197,6 @@ public class SshFileHandle extends NodeFileHandle0 {
               JsHelper.concat("sftp.close error: path=", jsPath()),
               JsHelper.concat(",error =", JsHelper.message(jsError)));
           JsHelper.consoleError(s);
-          LoggingJs.error(s);
         }
         if (onComplete != null) onComplete.run();
       });
@@ -288,5 +296,21 @@ public class SshFileHandle extends NodeFileHandle0 {
           else
             we.f(error);
         }), we);
+  }
+
+  @Override
+  public void stat(BiConsumer<Stats, String> cb) {
+    fetchStats(error -> {
+      if (error != null || attrs == null) {
+        cb.accept(null, error != null ?
+            error.getMessage() : "cant read attributes");
+      } else {
+        cb.accept(new Stats(
+            attrs.isDirectory(),
+            attrs.isFile(),
+            attrs.isSymbolicLink(),
+            attrs.getSize()), null);
+      }
+    });
   }
 }

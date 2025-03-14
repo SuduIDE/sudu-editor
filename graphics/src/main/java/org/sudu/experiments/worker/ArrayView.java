@@ -4,4 +4,5 @@ public interface ArrayView {
   byte[] bytes();
   char[] chars();
   int[] ints();
+  double[] numbers();
 }

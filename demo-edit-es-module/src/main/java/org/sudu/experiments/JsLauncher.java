@@ -8,7 +8,6 @@ import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.math.ArrayOp;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSString;
 
 import java.util.function.Function;
 
@@ -55,7 +54,7 @@ public abstract class JsLauncher {
           if (w.init(sf)) {
             postResult.f(rf.apply(w, arguments));
           } else {
-            postError.f(JSString.valueOf(WebGLError.text));
+            postError.f(JsHelper.newError(WebGLError.text));
           }
         }
       };

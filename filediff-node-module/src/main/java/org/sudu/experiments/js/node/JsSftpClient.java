@@ -18,7 +18,7 @@ public interface JsSftpClient extends JSObject {
     @JSProperty
     int getMode();
     @JSProperty
-    int getSize();
+    double getSize();
     @JSProperty
     int getAtime();
     @JSProperty

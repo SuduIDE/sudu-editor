@@ -65,11 +65,7 @@ public interface SshPool {
                 postError.f(e);
               }
             }));
-            client.onError(error -> {
-              JsHelper.consoleInfo2("sshClient.onError", error);
-              JsHelper.consoleInfo("sshClient.onError forwarding the error...");
-              postError.f(error);
-            });
+            client.onError(postError);
             client.connect(key.jsSshCredentials());
           }
       );

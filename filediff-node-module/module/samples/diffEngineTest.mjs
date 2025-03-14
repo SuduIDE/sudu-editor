@@ -11,7 +11,7 @@ const __dirname = path.dirname(
     url.fileURLToPath(new URL(import.meta.url)));
 
 function logHandler(logLevel, text) {
-  // console.log("Logging at level " + logLevel + ": " + text);
+  console.log("Logging at level " + logLevel + ": " + text);
 }
 
 setLogOutput(logHandler);
@@ -156,8 +156,8 @@ function onComplete(title) {
 }
 
 function onError(title) {
-  return (errorString) => {
-    console.log(title + ".onError: ", errorString);
+  return (error) => {
+    console.log(title + ".onError: ", error.message);
     mayBeExit();
   };
 }
@@ -569,6 +569,52 @@ function testSshHash(args) {
   mayBeExit();
 }
 
+function testStats(args) {
+  if (!args[3]) {
+    mayBeExit();
+    return "usage: testStats file1 [file2] ..."
+  }
+  for (let i = 3; i < args.length; i++) {
+    const file = args[i];
+    console.log("file", file);
+    jobCount++;
+    diffEngine.stat(file).then(
+        stats => {
+          console.log("testStats: file", file, ", stats", stats);
+          mayBeExit();
+        },
+        onError("testStats")
+    );
+  }
+
+}
+
+function testStatsSsh(args) {
+  const ssh = sshConfig(args, 3);
+  const file0 = args[3+4];
+
+  if (!args || !file0) {
+    mayBeExit();
+    return "args: ssh[4] file1 [file2 ...]";
+  }
+
+  console.log("ssh:", {host: ssh.host, username: ssh.username});
+
+  for (let i = 3+4; i < args.length; i++) {
+    const file = args[i];
+    console.log("file", file);
+    jobCount++;
+    diffEngine.stat(sshFile(ssh, file)).then(
+        stats => {
+          console.log("testStatsSsh: file", file, ", stats", stats);
+          mayBeExit();
+        },
+        onError("testStatsSsh")
+    );
+  }
+
+}
+
 function runTest() {
   let args = process.argv;
   const cmd = args[2];
@@ -595,6 +641,8 @@ function runTest() {
     case "testMkDirSsh": return testMkDirSsh(args);
     case "testRemoveDirSsh": return testRemoveDirSsh(args);
     case "testSshHash": return testSshHash(args);
+    case "testStats": return testStats(args);
+    case "testStatsSsh": return testStatsSsh(args);
 
     default:
       mayBeExit();

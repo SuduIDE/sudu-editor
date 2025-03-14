@@ -5,7 +5,7 @@ import org.sudu.experiments.encoding.TextDecoder;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
+import java.util.function.DoubleConsumer;
 
 public interface FileHandle extends FsItem {
   interface SyncAccess {
@@ -21,7 +21,7 @@ public interface FileHandle extends FsItem {
       Consumer<SyncAccess> consumer,
       Consumer<String> onError);
 
-  void getSize(IntConsumer result);
+  void getSize(DoubleConsumer result, Consumer<String> onError);
 
   // parameter text can be string-kind, writer use encoding parameter
   //  - JSString
@@ -76,5 +76,25 @@ public interface FileHandle extends FsItem {
         peer.accept(text, FileEncoding.utf8);
       }
     }, onError);
+  }
+
+  class Stats {
+    public boolean isDirectory, isFile, isSymbolicLink;
+    public double size;
+
+    public Stats(
+        boolean isDirectory, boolean isFile,
+        boolean isSymbolicLink, double size
+    ) {
+      this.isDirectory = isDirectory;
+      this.isFile = isFile;
+      this.isSymbolicLink = isSymbolicLink;
+      this.size = size;
+    }
+  }
+
+  // this method also works when path points to a directory
+  default void stat(BiConsumer<Stats, String> cb) {
+    cb.accept(null, "stat not implemented");
   }
 }

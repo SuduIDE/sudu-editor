@@ -4,6 +4,7 @@ import org.sudu.experiments.worker.WorkerExecutor;
 import org.sudu.experiments.js.WorkerProtocol.PlatformBridge;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 
 public interface NodeWorker extends JsMessagePort0 {
@@ -30,7 +31,7 @@ public interface NodeWorker extends JsMessagePort0 {
 
   static void start(
       JsFunctions.Consumer<JsArray<NodeWorker>> onStart,
-      JsFunctions.Consumer<JSObject> error,
+      JsFunctions.Consumer<JSError> error,
       JSString url, int count,
       PlatformBridge bridge
   ) {
