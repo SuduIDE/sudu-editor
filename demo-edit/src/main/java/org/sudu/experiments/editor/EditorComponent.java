@@ -1771,7 +1771,6 @@ public class EditorComponent extends View implements
       lineNumbers.setColors(c);
       if (mergeButtons != null) mergeButtons.setColors(c);
     } else {
-      System.out.println("deleteDiffModel");
       lineNumbers.setColors(null);
       if (mergeButtons != null) mergeButtons.setColors(lineNumbers.colors());
     }

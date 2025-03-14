@@ -7,6 +7,7 @@ import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.SizeScanner;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
+import org.sudu.experiments.diff.folder.ModelCopyDeleteStatus;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.FsWorkerJobs;
@@ -149,8 +150,7 @@ public class RemoteCollector {
       } else {
         model.editItem(left);
       }
-      if (isDeleteDiff) sendApplied();
-      else updateModelItems(model, left);
+      sendApplied();
     };
     if (model.isFile()) {
       if (!isDeleteDiff) copyFile(model, left, updateModel);
@@ -213,47 +213,46 @@ public class RemoteCollector {
   void copyFile(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
     LoggingJs.debug("copyFile " + model + ", left = " + left);
     if (!(model.item(left) instanceof FileHandle fileItem)) return;
-    var root = !left ? leftHandle() : rightHandle();
-    String fullPath = model.getFullPath(root.getFullPath());
-    // todo: find the opposite path to the model item
-    LoggingJs.debug("copyFile " + fileItem + " -> " + root
-        + ", model.getFullPath = " + fullPath);
-    var fileTo = root;
-    FsWorkerJobs.copyFile(executor, fileItem, fileTo,
-        n -> onComplete.run(), this::onError);
+
+    Consumer<DirectoryHandle> onToDirGet = (toDir) -> {
+      LoggingJs.debug("copyFile " + fileItem + " to dir " + toDir);
+      model.parent().setItem(!left, toDir);
+      ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, onComplete, this::onError);
+      model.copy(left, status);
+    };
+    model.parent().getOrCreateDir(left, executor, onToDirGet, this::onError);
+  }
+
+  private void copyFolder(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
+    LoggingJs.debug("copyFolder " + model + ", left = " + left);
+    if (!(model.item(left) instanceof DirectoryHandle dirItem)) return;
+
+    Consumer<DirectoryHandle> onToDirGet = (toDir) -> {
+      LoggingJs.debug("copyFolder " + dirItem + " -> " + toDir);
+      model.parent().setItem(!left, toDir);
+      if (false && dirItem.canCopyTo(toDir)) {
+        dirItem.copyTo(toDir, onComplete, this::onError);
+      } else {
+        // no need to update model after model copy
+        ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, onComplete, this::onError);
+        model.copy(left, status);
+      }
+    };
+    model.parent().getOrCreateDir(!left, executor, onToDirGet, this::onError);
   }
 
   private void removeFile(ItemFolderDiffModel model, Runnable onComplete) {
     if (!(model.item() instanceof FileHandle fileItem)) return;
     LoggingJs.debug("removeFile " + fileItem);
-    FsWorkerJobs.removeFile(executor, fileItem,
-        onComplete, this::onError);
-  }
-
-  private void copyFolder(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
-    if (!(model.item(left) instanceof DirectoryHandle dirItem)) return;
-    DirectoryHandle toDir = left ? rightHandle() : leftHandle();
-    // String to = model.getFullPath(toDir.getFullPath());
-    LoggingJs.debug("copyFolder " + dirItem + " -> " + toDir);
-    if (dirItem.canCopyTo(toDir)) {
-      dirItem.copyTo(toDir, onComplete, this::onError);
-    } else {
-      // list folders, fire copyFile jobs.....
-      slowCopyDirectory(dirItem, toDir, onComplete, this::onError);
-    }
-  }
-
-  private void slowCopyDirectory(
-      DirectoryHandle dirItem, DirectoryHandle toDir,
-      Runnable onComplete, Consumer<String> onError
-  ) {
-    onError.accept("not implemented");
+    ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, onComplete, this::onError);
+    model.remove(status);
   }
 
   private void removeFolder(ItemFolderDiffModel model, Runnable onComplete) {
     if (!(model.item() instanceof DirectoryHandle dirItem)) return;
-    LoggingJs.debug("remove folder " + dirItem);
-    FsWorkerJobs.removeDir(executor, dirItem, onComplete, this::onError);
+    LoggingJs.debug("removeFolder " + dirItem);
+    ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, onComplete, this::onError);
+    model.remove(status);
   }
 
   private void cmpFilesAndSend(ItemFolderDiffModel model, FileHandle item) {
