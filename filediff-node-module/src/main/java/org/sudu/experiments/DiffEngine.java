@@ -46,7 +46,7 @@ public class DiffEngine implements DiffEngineJs {
           "illegal rightPath argument " + JsHelper.jsToString(rightPath));
 
     LoggingJs.info("  DiffEngine Left: ".concat(leftDir.toString()));
-    LoggingJs.info("  DiffEngine Right: ".concat(rightPath.toString()));
+    LoggingJs.info("  DiffEngine Right: ".concat(rightDir.toString()));
 
     ItemFolderDiffModel root = new ItemFolderDiffModel(null, "");
     root.setItems(leftDir, rightDir);
