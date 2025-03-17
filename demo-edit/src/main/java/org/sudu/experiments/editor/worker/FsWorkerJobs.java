@@ -14,12 +14,35 @@ import java.util.function.IntConsumer;
 public interface FsWorkerJobs {
   String asyncCopyFile = "asyncCopyFile";
   int blockSize = 1024 * 1024;
+  boolean debug = true;
 
   static void copyFile(
       WorkerJobExecutor workers, FileHandle src, FsItem dst,
       IntConsumer onComplete, Consumer<String> onError
   ) {
-    workers.sendToWorker(onCopy(onComplete, onError),
+    if (debug) {
+      System.out.println("FsWorkerJobs.copyFile\n" +
+          ": src = " + src.toString() + " (" + src.getClass().getName() + ")\n" +
+          ", dst = " + dst.toString() + " (" + dst.getClass().getName() + ")");
+      if (src == dst) {
+        System.err.println("FsWorkerJobs.copyFile: copy file to itself " + dst);
+      }
+    }
+    Consumer<Object[]> handler = r -> {
+      int[] data = ArgsCast.array(r, 0).ints();
+      if (r.length == 1 && data.length == 2 && data[0] == 1) {
+        if (debug) {
+          System.out.println("FsWorkerJobs.copyFile completed:" +
+              " dst = " + dst + ", " + data[1] + "bytes");
+        }
+        onComplete.accept(data[1]);
+      } else {
+        boolean errorMsg = r.length == 2 && data[0] == 0;
+        var message = errorMsg ? ArgsCast.string(r, 1) : null;
+        onError.accept(message);
+      }
+    };
+    workers.sendToWorker(handler,
         FsWorkerJobs.asyncCopyFile, src, dst);
   }
 
@@ -44,21 +67,6 @@ public interface FsWorkerJobs {
 
   static void postError(String error, Consumer<Object[]> r) {
     r.accept(new Object[] { new int[] {0}, error});
-  }
-
-  static Consumer<Object[]> onCopy(
-      IntConsumer onComplete, Consumer<String> onError
-  ) {
-    return r -> {
-      int[] data = ArgsCast.array(r, 0).ints();
-      if (r.length == 1 && data.length == 2 && data[0] == 1) {
-        onComplete.accept(data[1]);
-      } else {
-        boolean errorMsg = r.length == 2 && data[0] == 0;
-        var message = errorMsg ? ArgsCast.string(r, 1) : null;
-        onError.accept(message);
-      }
-    };
   }
 
   class CopyFile {

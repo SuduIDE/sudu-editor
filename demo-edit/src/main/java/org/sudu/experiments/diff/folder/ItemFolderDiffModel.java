@@ -214,7 +214,8 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     FsItem item = item();
     if (item instanceof FileHandle file) {
       status.inWork++;
-      FsWorkerJobs.removeFile(status.executor, file, () -> status.onFileDeleted(this), status::onError);
+      FsWorkerJobs.removeFile(status.executor, file,
+          () -> status.onFileDeleted(this), status::onError);
     } else if (item instanceof DirectoryHandle dir) {
       status.markForDelete(this);
       if (children == null || children.length == 0) {
@@ -227,7 +228,8 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   }
 
   public void removeEmptyFolder(ModelCopyDeleteStatus status) {
-    FsWorkerJobs.removeDir(status.executor, (DirectoryHandle) item(), () -> status.onDirDeleted(this), status::onError);
+    FsWorkerJobs.removeDir(status.executor, (DirectoryHandle) item(),
+        () -> status.onDirDeleted(this), status::onError);
   }
 
   public void copy(boolean left, ModelCopyDeleteStatus status) {

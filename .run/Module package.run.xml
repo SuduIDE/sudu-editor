@@ -20,6 +20,7 @@
       </option>
       <option name="myRunnerParameters">
         <MavenRunnerParameters>
+          <option name="cmdOptions" />
           <option name="profiles">
             <set />
           </option>
@@ -31,11 +32,15 @@
               <option value="demo-edit-es-module" />
             </list>
           </option>
+          <option name="multimoduleDir" />
           <option name="pomFileName" value="pom.xml" />
           <option name="profilesMap">
             <map>
-              <entry key="release" value="true" />
+              <entry key="release" value="false" />
             </map>
+          </option>
+          <option name="projectsCmdOptionValues">
+            <list />
           </option>
           <option name="resolveToWorkspace" value="false" />
           <option name="workingDirPath" value="$PROJECT_DIR$" />
