@@ -289,10 +289,11 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   @Override
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
-    int newHover = find(event.position);
-    if (newHover >= 0) hoverItemId = newHover;
-    if (rect.isInside(pos))
+    if (rect.isInside(event.position)) {
+      int newHover = find(event.position);
+      if (newHover >= 0) hoverItemId = newHover;
       context.windowCursor.setDefault();
+    }
   }
 
   @Override

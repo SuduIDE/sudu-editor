@@ -23,6 +23,7 @@ public class WindowManager implements MouseListener, DprChangeListener {
   private final Subscribers<Window> windows = new Subscribers<>(new Window[0]);
   private PopupMenu popupMenu;
   int lastMouseWindow = -1;
+  boolean desktopMousePointer = true;
   final V2i lastMousePosition = new V2i();
 
   public WindowManager(UiContext uiContext) {
@@ -157,9 +158,13 @@ public class WindowManager implements MouseListener, DprChangeListener {
       }
       lastMouseWindow = hitIndex;
     }
-    if (!popupHit && hitIndex < 0)
+    if (desktopMousePointer && !popupHit && hitIndex < 0)
       uiContext.window.setCursor(null);
-    return false;
+    return popupHit || hitIndex >= 0 ;
+  }
+
+  public void setDesktopMousePointer(boolean v) {
+    desktopMousePointer = v;
   }
 
   @Override

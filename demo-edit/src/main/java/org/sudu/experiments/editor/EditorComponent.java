@@ -127,7 +127,7 @@ public class EditorComponent extends View implements
     model.setEditor(this, window().worker());
   }
 
-  /*Disposable*/ void registerMouseScroll(InputListeners input) {
+  /*Disposable*/ void registerMouse(InputListeners input) {
     InputListeners.ScrollHandler onScroll = this::onScroll;
     input.onMouse.add(this);
     input.onScroll.add(onScroll);

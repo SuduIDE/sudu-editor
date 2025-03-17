@@ -19,14 +19,14 @@ public class Editor0 extends WindowScene implements ThemeControl, EditorUi.Clear
 
   public Editor0(SceneApi api) {
     super(api);
-
+    windowManager.setDesktopMousePointer(false);
     ui = new EditorUi(windowManager);
     editor = new EditorComponent(ui);
     uiContext.initFocus(editor);
 
     api.input.onKeyPress.add(new CtrlO(api, this::openFile));
 
-    editor.registerMouseScroll(api.input);
+    editor.registerMouse(api.input);
     api.input.onContextMenu.add(this::onContextMenu);
 
     toggleDark();
