@@ -19,8 +19,24 @@ public interface FsWorkerJobs {
       WorkerJobExecutor workers, FileHandle src, FsItem dst,
       IntConsumer onComplete, Consumer<String> onError
   ) {
-    workers.sendToWorker(onCopy(onComplete, onError),
+    Consumer<Object[]> onCopy = r -> {
+      if (r[0] instanceof String message) {
+        onError.accept(message);
+      } else {
+        int[] data = ArgsCast.intArray(r, 0);
+        onComplete.accept(data[0]);
+      }
+    };
+    workers.sendToWorker(onCopy,
         FsWorkerJobs.asyncCopyFile, src, dst);
+  }
+
+  static void postCopyOk(int bytesWritten, Consumer<Object[]> r) {
+    r.accept(new Object[]{new int[]{ bytesWritten }});
+  }
+
+  static void postCopyError(String error, Consumer<Object[]> r) {
+    r.accept(new Object[]{ error });
   }
 
   static void asyncCopyFile(Object[] args, Consumer<Object[]> r) {
@@ -34,31 +50,8 @@ public interface FsWorkerJobs {
     if (dest != null) {
       new CopyFile(r, src, dest);
     } else {
-      postError("asyncCopyFile bad args", r);
+      postCopyError("asyncCopyFile bad args", r);
     }
-  }
-
-  static void postCopyOk(int bytesWritten, Consumer<Object[]> r) {
-    r.accept(new Object[] { new int[] {1, bytesWritten} });
-  }
-
-  static void postError(String error, Consumer<Object[]> r) {
-    r.accept(new Object[] { new int[] {0}, error});
-  }
-
-  static Consumer<Object[]> onCopy(
-      IntConsumer onComplete, Consumer<String> onError
-  ) {
-    return r -> {
-      int[] data = ArgsCast.array(r, 0).ints();
-      if (r.length == 1 && data.length == 2 && data[0] == 1) {
-        onComplete.accept(data[1]);
-      } else {
-        boolean errorMsg = r.length == 2 && data[0] == 0;
-        var message = errorMsg ? ArgsCast.string(r, 1) : null;
-        onError.accept(message);
-      }
-    };
   }
 
   class CopyFile {
@@ -85,7 +78,7 @@ public interface FsWorkerJobs {
     }
 
     void onError(String error) {
-      postError(error, r);
+      postCopyError(error, r);
     }
 
     void postComplete(int bytesWritten) {
