@@ -18,6 +18,8 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
   public final FsItem[] items = new FsItem[] {null, null};
 
+  private static final boolean DEBUG = true;
+
   public ItemFolderDiffModel(FolderDiffModel parent, String path) {
     super(parent, path);
   }
@@ -195,7 +197,9 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     } else {
       Consumer<DirectoryHandle> onParentDirGet = parentDir -> {
         // Can't LoggingJs from here
-        System.out.println("ItemFolderDiffModel.getOrCreateDir: created dir: " + parentDir.getName());
+        if (DEBUG) {
+          System.out.println("ItemFolderDiffModel.getOrCreateDir: created dir: " + parentDir.getName());
+        }
         parent().setItem(left, parentDir);
         FsWorkerJobs.mkDir(executor, parentDir, path, onComplete, onError);
       };
