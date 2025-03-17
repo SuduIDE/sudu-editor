@@ -210,7 +210,7 @@ public class RemoteCollector {
   }
 
   void copyFile(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
-    LoggingJs.debug("copyFile " + model + ", left = " + left);
+    LoggingJs.debug("copyFile " + model.path + ", left = " + left);
     if (!(model.item(left) instanceof FileHandle fileItem)) return;
 
     ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, onComplete, this::onError);
@@ -222,12 +222,12 @@ public class RemoteCollector {
         model.parent().setItem(!left, toDir);
         model.copy(left, status);
       };
-      model.parent().getOrCreateDir(left, executor, onToDirGet, this::onError);
+      model.parent().getOrCreateDir(!left, executor, onToDirGet, this::onError);
     }
   }
 
   private void copyFolder(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
-    LoggingJs.debug("copyFolder " + model + ", left = " + left);
+    LoggingJs.debug("copyFolder " + model.path + ", left = " + left);
     if (!(model.item(left) instanceof DirectoryHandle dirItem)) return;
 
     ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, onComplete, this::onError);
