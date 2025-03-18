@@ -25,7 +25,7 @@ public class FsDialogs {
     String title = (isDelete ? "Delete " : "Copy ") + modelType;
 
     String text = isDelete
-        ? modelType + from
+        ? modelType + to
         : "From\n" + from + "\n\nTo\n" + to;
 
     var i = JsNative.createInput(
