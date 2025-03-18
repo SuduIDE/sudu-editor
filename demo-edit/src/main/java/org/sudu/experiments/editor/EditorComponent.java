@@ -103,6 +103,7 @@ public class EditorComponent extends View implements
   TriConsumer<EditorComponent, Diff, Boolean> updateModelOnDiffListener;
   Consumer<EditorComponent> onDiffMadeListener;
   int vScrollPos = 0;
+  int hScrollPos = 0;
 
   final ClrContext lrContext;
   InputListeners.KeyHandler onKey;
@@ -451,8 +452,8 @@ public class EditorComponent extends View implements
 
   public boolean setHScrollPosSilent(int hPos) {
     int newHPos = clampScrollPos(hPos, maxHScrollPos());
-    boolean change = newHPos != model.hScrollPos;
-    if (change) model.hScrollPos = newHPos;
+    boolean change = newHPos != hScrollPos;
+    if (change) hScrollPos = newHPos;
     return change;
   }
 
@@ -494,7 +495,7 @@ public class EditorComponent extends View implements
     g.enableScissor(pos, size);
 
     int caretVerticalOffset = (lineHeight - caret.height()) / 2;
-    int caretX = model.caretPos - caret.width() / 2 - model.hScrollPos;
+    int caretX = model.caretPos - caret.width() / 2 - hScrollPos;
     int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
     caret.setPosition(
         dCaret + caretX,
@@ -520,7 +521,7 @@ public class EditorComponent extends View implements
       CodeLineRenderer line = lineRenderer(i);
 
       int lineMeasure = line.updateTexture(
-          cLine, g, lineHeight, editorWidth, model.hScrollPos,
+          cLine, g, lineHeight, editorWidth, hScrollPos,
           i, i % lines.length);
 
       fullWidth = Math.max(fullWidth, lineMeasure + rightPadding);
@@ -529,7 +530,7 @@ public class EditorComponent extends View implements
       LineDiff diff = diffModel == null || i >= diffModel.length ? null : diffModel[i];
       line.draw(
           pos.y + yPosition, dx, g,
-          editorWidth, lineHeight, model.hScrollPos,
+          editorWidth, lineHeight, hScrollPos,
           codeLineColors, getSelLineSegment(i, cLine),
           model.definition, model.usages,
           model.caretLine == i, null, null,
@@ -551,7 +552,7 @@ public class EditorComponent extends View implements
       else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
 
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
-          sizeTmp, model.hScrollPos, editorWidth, tailColor);
+          sizeTmp, hScrollPos, editorWidth, tailColor);
     }
 
     // draw bottom 5 invisible lines
@@ -879,7 +880,7 @@ public class EditorComponent extends View implements
         editorHeight(), editorVirtualHeight(),
         x, scrollBarWidth);
     x = mirrored ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth : pos.x + vLineX;
-    hScroll.layoutHorizontal(model.hScrollPos,
+    hScroll.layoutHorizontal(hScrollPos,
         x,
         editorWidth(), fullWidth,
         pos.y + editorHeight(), scrollBarWidth);
@@ -1044,8 +1045,8 @@ public class EditorComponent extends View implements
   private void adjustEditorHScrollToCaret() {
     int xOffset = Numbers.iRnd(context.dpr * EditorConst.CARET_X_OFFSET);
 
-    int editVisibleXMin = model.hScrollPos;
-    int editVisibleXMax = model.hScrollPos + editorWidth();
+    int editVisibleXMin = hScrollPos;
+    int editVisibleXMax = hScrollPos + editorWidth();
     int caretVisibleX0 = model.caretPos;
     int caretVisibleX1 = model.caretPos + xOffset;
 
@@ -1140,7 +1141,7 @@ public class EditorComponent extends View implements
 
     int line = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, model.document.length() - 1);
     int offset = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
-    int documentXPosition = Math.max(0, localX - offset + model.hScrollPos);
+    int documentXPosition = Math.max(0, localX - offset + hScrollPos);
     int charPos = model.document.line(line).computeCharPos(documentXPosition, g.mCanvas, fonts);
     return new Pos(line, charPos);
   }
@@ -1290,7 +1291,7 @@ public class EditorComponent extends View implements
     int changeY = Numbers.iRnd(lineHeight * 4 * dY / 150);
     int changeX = Numbers.iRnd(dX);
     if (changeY != 0) setScrollPosY(vScrollPos + changeY);
-    if (changeX != 0) setScrollPosX(model.hScrollPos + changeX);
+    if (changeX != 0) setScrollPosX(hScrollPos + changeX);
     return true;
   }
 
@@ -1868,6 +1869,6 @@ public class EditorComponent extends View implements
   }
 
   public void setCodeMap() {
-    // todo: later...
+    // todo: highlight current symbol or selection search...
   }
 }

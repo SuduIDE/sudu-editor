@@ -46,7 +46,7 @@ public class Model {
   long parsingTimeStart, viewportParseStart, resolveTimeStart;
 
   boolean highlightResolveError, printResolveTime;
-  int hScrollPos = 0;
+
   double vScrollLine = .0;
 
   boolean debug = false;
