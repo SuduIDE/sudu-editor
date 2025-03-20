@@ -147,13 +147,14 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   private void openFile(JsArray<JSObject> jsResult) {
     int key = ((Int32Array) jsResult.pop()).get(0);
+    boolean success = ((Int32Array) jsResult.pop()).get(0) == 1;
     var openFileRun = openFileMap.remove(key);
-    if (openFileRun != null && jsResult.getLength() != 0) {
-      String source = ((JSString) jsResult.get(0)).stringValue();
-      String encoding = ((JSString) jsResult.get(1)).stringValue();
+    if (success && openFileRun != null && jsResult.getLength() != 0) {
+      String source = JsCast.string(jsResult, 0);
+      String encoding = JsCast.string(jsResult, 1);
       openFileRun.accept(source, encoding);
     } else {
-      JsHelper.consoleError("error in openFile, key = ", JSNumber.valueOf(key));
+      LoggingJs.error("error in openFile, key = " + key);
     }
   }
 

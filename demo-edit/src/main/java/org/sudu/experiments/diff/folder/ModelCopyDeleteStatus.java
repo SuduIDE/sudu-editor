@@ -48,6 +48,7 @@ public class ModelCopyDeleteStatus {
   }
 
   public void onChildDeleted(ItemFolderDiffModel model) {
+    model.deleteItem();
     var parent = model.parent();
     if (!marked(parent)) return;
     int count = markedForDelete.get(parent) - 1;
@@ -57,6 +58,32 @@ public class ModelCopyDeleteStatus {
 
   public void onComplete() {
     if (inWork == 0 && inTraverse == 0 && markedForDelete.isEmpty()) onComplete.run();
+  }
+
+  public void onFolderDeleteError(ItemFolderDiffModel folder, String error) {
+    onError.accept(error);
+    unmarkParentsForDelete(folder);
+    onComplete();
+  }
+
+  public void onFileDeleteError(ItemFolderDiffModel file, String error) {
+    inWork--;
+    onError.accept(error);
+    unmarkParentsForDelete(file.parent());
+    onComplete();
+  }
+
+  public void onCopyError(String error) {
+    inWork--;
+    onError.accept(error);
+    onComplete();
+  }
+
+  private void unmarkParentsForDelete(ItemFolderDiffModel folder) {
+    if (marked(folder)) {
+      removeMarked(folder);
+      if (folder.parent() != null) unmarkParentsForDelete(folder.parent());
+    }
   }
 
   public void markForDelete(ItemFolderDiffModel model) {
@@ -69,9 +96,5 @@ public class ModelCopyDeleteStatus {
 
   public boolean marked(ItemFolderDiffModel model) {
     return markedForDelete.containsKey(model);
-  }
-
-  public void onError(String error) {
-    onError.accept(error);
   }
 }

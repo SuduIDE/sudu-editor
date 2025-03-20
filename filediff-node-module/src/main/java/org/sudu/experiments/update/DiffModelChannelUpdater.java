@@ -26,12 +26,14 @@ public class DiffModelChannelUpdater {
   public static final int FILE_SAVE = 3;
   public static final int REFRESH = 4;
   public static final int APPLY_FILTERS = 5;
+  public static final int ERROR = 6;
   public static final Int32Array FRONTEND_MESSAGE_ARRAY = JsMemoryAccess.bufferView(new int[]{FRONTEND_MESSAGE});
   public static final Int32Array OPEN_FILE_ARRAY = JsMemoryAccess.bufferView(new int[]{OPEN_FILE});
   public static final Int32Array APPLY_DIFF_ARRAY = JsMemoryAccess.bufferView(new int[]{APPLY_DIFF});
   public static final Int32Array FILE_SAVE_ARRAY = JsMemoryAccess.bufferView(new int[]{FILE_SAVE});
   public static final Int32Array REFRESH_ARRAY = JsMemoryAccess.bufferView(new int[]{REFRESH});
   public static final Int32Array APPLY_FILTERS_ARRAY = JsMemoryAccess.bufferView(new int[]{APPLY_FILTERS});
+  public static final Int32Array ERROR_ARRAY = JsMemoryAccess.bufferView(new int[]{ERROR});
 
   public DiffModelChannelUpdater(
       ItemFolderDiffModel root,
@@ -84,13 +86,14 @@ public class DiffModelChannelUpdater {
     boolean left = ints.get(1) == 1;
 
     var fileHandle = collector.findFileByIndexPath(indPath, left);
+    if (fileHandle == null) postError("Can't get file by index path", ints, null);
     FsWorkerJobs.readTextFile(collector.executor, fileHandle,
-        (t, en) -> postOpenFile(t, en, ints),
+        (t, en) -> postOpenFile(true, t, en, ints),
         error -> postError(error, ints, fileHandle)
     );
   }
 
-  private void postOpenFile(char[] source, String encoding, Int32Array key) {
+  private void postOpenFile(boolean success, char[] source, String encoding, Int32Array key) {
     if (debug) LoggingJs.debug(JsHelper.concat(
             "DiffModelChannelUpdater.postOpenFile: encoding=" +
                 encoding + " length = " + source.length + ", key =",
@@ -98,6 +101,7 @@ public class DiffModelChannelUpdater {
     var result = JsArray.create();
     result.push(TextDecoder.decodeUTF16(source));
     result.push(JSString.valueOf(encoding));
+    result.push(JsCast.jsInts(success ? 1 : 0));
     result.push(key);
     result.push(OPEN_FILE_ARRAY);
     channel.sendMessage(result);
@@ -105,7 +109,7 @@ public class DiffModelChannelUpdater {
 
   private void postError(String error, Int32Array key, FileHandle file) {
     LoggingJs.error("error reading file " + file + ", error=" + error);
-    postOpenFile(error.toCharArray(), null, key);
+    postOpenFile(false, error.toCharArray(), null, key);
   }
 
   private void onApplyDiff(JsArray<JSObject> jsArray) {

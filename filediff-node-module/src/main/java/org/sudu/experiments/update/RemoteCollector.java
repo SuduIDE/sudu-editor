@@ -24,8 +24,6 @@ import org.teavm.jso.browser.Performance;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
-import java.io.File;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -138,17 +136,26 @@ public class RemoteCollector {
     ArrayWriter pathWriter = new ArrayWriter();
     lastFrontendMessage.collectPath(path, pathWriter, root, left);
 
+//    Runnable updateModel = () -> {
+//      LoggingJs.info("RemoteCollector.applyDiff.updateModel");
+//      if (isDeleteDiff) {
+//        var node = lastFrontendMessage.findNode(path);
+//        var parentNode = lastFrontendMessage.findParentNode(path);
+//        if (node != null && parentNode != null) parentNode.deleteItem(node);
+//        model.deleteItem();
+//      } else if (isInsertDiff) {
+//        model.insertItem();
+//      } else {
+//        model.editItem(left);
+//      }
+//      sendApplied();
+//    };
     Runnable updateModel = () -> {
       LoggingJs.info("RemoteCollector.applyDiff.updateModel");
       if (isDeleteDiff) {
         var node = lastFrontendMessage.findNode(path);
         var parentNode = lastFrontendMessage.findParentNode(path);
         if (node != null && parentNode != null) parentNode.deleteItem(node);
-        model.deleteItem();
-      } else if (isInsertDiff) {
-        model.insertItem();
-      } else {
-        model.editItem(left);
       }
       sendApplied();
     };
