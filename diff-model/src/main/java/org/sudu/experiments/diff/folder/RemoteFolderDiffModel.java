@@ -34,16 +34,20 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
   }
 
   public String getFullPath(String root) {
-    StringBuilder sb = new StringBuilder(root).append("/");
-    collectPathFromRoot(sb);
+    StringBuilder sb = new StringBuilder(root);
+    collectPath(sb);
     return sb.toString();
   }
 
   public void collectPathFromRoot(StringBuilder sb) {
-    if (parent != null) {
+    collectPath(sb);
+  }
+
+  private void collectPath(StringBuilder sb) {
+    if (parent != null)
       parent().collectPathFromRoot(sb);
-      if (parent.parent != null) sb.append("/");  // because root path is empty
-    }
+    if (!sb.isEmpty() && !path.isEmpty())
+      sb.append('/');
     sb.append(path);
   }
 
