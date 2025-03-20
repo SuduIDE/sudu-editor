@@ -657,6 +657,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       RemoteFolderDiffModel remoteModel = (RemoteFolderDiffModel) model;
       String fromPath = remoteModel.getFullPath(left ? leftRoot.name() : rightRoot.name());
       String toPath = remoteModel.getFullPath(!left ? leftRoot.name() : rightRoot.name());
+      fromPath = replaceSlashes(fromPath);
+      toPath = replaceSlashes(toPath);
       FsDialogs.showDlg(dialogProvider, fromPath, toPath, remoteModel, left,
           () -> sendApplyDiff(model, left));
     } else {
@@ -738,13 +740,14 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     fireControllerEvent(controller);
   }
 
-  String replaceSlashes(String path) {
+  static String replaceSlashes(String path) {
     int slInd = path.indexOf('/');
     if (slInd == -1) return path;
     int revSlInd = path.indexOf('\\');
     if (revSlInd == -1) return path;
-    char delim = slInd < revSlInd ? '/' : '\\';
-    return path.replace('/', delim).replace('\\', delim);
+    char firstDelim = slInd < revSlInd ? '/' : '\\';
+    char delimToReplace = slInd < revSlInd ? '\\' : '/';
+    return path.replace(delimToReplace, firstDelim);
   }
 
   @Override
