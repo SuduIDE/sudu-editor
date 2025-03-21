@@ -23,7 +23,7 @@ import java.util.function.Function;
 
 public class WebWindow implements Window {
 
-  static final boolean debug = true;
+  static final boolean debug = false;
 
   final AnimationFrameCallback frameCallback = this::onAnimationFrame;
   final Runnable repaint = this::repaint;
