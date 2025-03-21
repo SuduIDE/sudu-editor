@@ -47,8 +47,6 @@ public class JsRemoteFolderDiff implements JsRemoteFolderDiffView {
 
   @Override
   public void focus() {
-    if (1<0)
-      JsHelper.consoleInfo("setting focus to ", window.canvasDivId());
     window.focus();
   }
 

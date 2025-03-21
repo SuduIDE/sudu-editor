@@ -6,6 +6,8 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.browser.AnimationFrameCallback;
 import org.teavm.jso.browser.Performance;
+import org.teavm.jso.browser.TimerHandler;
+import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
@@ -20,6 +22,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class WebWindow implements Window {
+
+  static final boolean debug = true;
 
   final AnimationFrameCallback frameCallback = this::onAnimationFrame;
   final Runnable repaint = this::repaint;
@@ -113,7 +117,23 @@ public class WebWindow implements Window {
   }
 
   public void focus() {
+    if (debug)
+      JsHelper.consoleInfo("setting focus to ", canvasDivId());
     mainCanvas.focus();
+//    debugFocus();
+  }
+
+  private void debugFocus() {
+    TimerHandler handler = new TimerHandler() {
+      @Override
+      public void onTimer() {
+        var e = HTMLDocument.current().getActiveElement();
+        JsHelper.consoleInfo("focus set to ", e,
+            "has focus =", JSBoolean.valueOf(hasFocus()));
+        JsWindow.setTimeout(this, 1000);
+      }
+    };
+    JsWindow.setTimeout(handler, 500);
   }
 
   @Override
