@@ -66,8 +66,9 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
   public RemoteFolderDiffModel applyFilter(BitSet filterSet, RemoteFolderDiffModel parent) {
     int diffType = getDiffType();
     boolean matchFilter = filterSet.get(diffType);
-    if (!isFile()) matchFilter &= !(diffType == DiffTypes.DEFAULT || diffType == DiffTypes.EDITED);
-    if (isFile() || children == null) return matchFilter ? this : null;
+    boolean emptyChildren = children == null || children.length == 0;
+    if (!isFile()) matchFilter &= emptyChildren || !(diffType == DiffTypes.DEFAULT || diffType == DiffTypes.EDITED);
+    if (isFile() || emptyChildren) return matchFilter ? this : null;
     List<RemoteFolderDiffModel> filteredChildren = new ArrayList<>();
     var filteredNode = new RemoteFolderDiffModel(parent, path);
     for (int i = 0; i < children.length; i++) {
