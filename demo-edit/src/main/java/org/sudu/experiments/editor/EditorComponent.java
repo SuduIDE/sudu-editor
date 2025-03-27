@@ -111,6 +111,9 @@ public class EditorComponent extends View implements
   GL.Texture codeMap;
   final V2i codeMapSize = new V2i();
 
+  int[]       codeLineRemap;
+  Runnable[]  remapActions;
+
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
     this.g = context.graphics;
@@ -124,6 +127,7 @@ public class EditorComponent extends View implements
     debugFlags[4] = this::toggleMirrored;
     debugFlags[5] = () -> drawGap = !drawGap;
     debugFlags[6] = () -> printResolveTime = !printResolveTime;
+    debugFlags[7] = this::toggleCodeLineRemap;
 
     model.setEditor(this, window().worker());
   }
@@ -500,7 +504,7 @@ public class EditorComponent extends View implements
     caret.setPosition(
         dCaret + caretX,
         caretVerticalOffset + model.caretLine * lineHeight - vScrollPos);
-    int docLen = model.document.length();
+    int docLen = getNumLines();
 
     int firstLine = getFirstLine();
     int lastLine = getLastLine();
@@ -517,23 +521,26 @@ public class EditorComponent extends View implements
     int rightPadding = toPx(EditorConst.RIGHT_PADDING);
 
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      CodeLine cLine = model.document.line(i);
+      int lineIndex = codeLineRemap != null ? codeLineRemap[i] : i;
+      if (lineIndex < 0) continue;
+      CodeLine cLine = model.document.line(lineIndex);
       CodeLineRenderer line = lineRenderer(i);
 
       int lineMeasure = line.updateTexture(
           cLine, g, lineHeight, editorWidth, hScrollPos,
-          i, i % lines.length);
+          lineIndex, i % lines.length);
 
       fullWidth = Math.max(fullWidth, lineMeasure + rightPadding);
 
       int yPosition = lineHeight * i - vScrollPos;
-      LineDiff diff = diffModel == null || i >= diffModel.length ? null : diffModel[i];
+      LineDiff diff = diffModel == null || lineIndex >= diffModel.length
+          ? null : diffModel[lineIndex];
       line.draw(
           pos.y + yPosition, dx, g,
           editorWidth, lineHeight, hScrollPos,
           codeLineColors, getSelLineSegment(i, cLine),
           model.definition, model.usages,
-          model.caretLine == i, null, null,
+          model.caretLine == lineIndex, null, null,
               diff);
     }
 
@@ -651,12 +658,16 @@ public class EditorComponent extends View implements
     lineNumbers.draw(textHeight, vScrollPos, firstLine, lastLine, caretLine, g, colors);
   }
 
+  public int getNumLines() {
+    return codeLineRemap != null ? codeLineRemap.length : model.document.length();
+  }
+
   public int getFirstLine() {
-    return Math.min(vScrollPos / lineHeight, model.document.length() - 1);
+    return Math.min(vScrollPos / lineHeight, getNumLines() - 1);
   }
 
   public int getLastLine() {
-    return Math.min((vScrollPos + editorHeight() - 1) / lineHeight, model.document.length() - 1);
+    return Math.min((vScrollPos + editorHeight() - 1) / lineHeight, getNumLines() - 1);
   }
 
   public int lineToPos(int line) {
@@ -1139,7 +1150,10 @@ public class EditorComponent extends View implements
     int localX = eventPosition.x - pos.x;
     int localY = eventPosition.y - pos.y;
 
-    int line = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, model.document.length() - 1);
+    int vLine = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, getNumLines());
+    int line = codeLineRemap != null ? codeLineRemap[vLine] : vLine;
+    if (line < 0) ....
+
     int offset = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
     int documentXPosition = Math.max(0, localX - offset + hScrollPos);
     int charPos = model.document.line(line).computeCharPos(documentXPosition, g.mCanvas, fonts);
@@ -1870,5 +1884,30 @@ public class EditorComponent extends View implements
 
   public void setCodeMap() {
     // todo: highlight current symbol or selection search...
+  }
+  
+  public void setCodeLineRemap(int[] remap, Runnable[] remapActions) {
+    codeLineRemap = remap;
+    this.remapActions = remapActions;
+  }
+
+  int[] makeDebugRemap() {
+    int length = model.document.length();
+    int[] r = new int[length / 2];
+    for (int i = 0; i < r.length; i++)
+      r[i] = (i % 9 == 4) ? -1 : (i * 7) % length;
+    return r;
+  }
+
+  Runnable[] remapActions() {
+    return new Runnable[] { () -> {} };
+  }
+
+  void toggleCodeLineRemap() {
+    if (codeLineRemap == null) {
+      setCodeLineRemap(makeDebugRemap(), remapActions());
+    } else {
+      setCodeLineRemap(null, null);
+    }
   }
 }
