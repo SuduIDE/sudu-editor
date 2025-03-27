@@ -271,6 +271,7 @@ public class DiffModel {
   protected boolean validateSyncPoints(int lLen, int rLen) {
     if (syncL == null || syncR == null) return false;
     if (syncL.length != syncR.length) return false;
+    if (syncL.length == 0) return true;
     if (syncL[0] < 0 || syncL[0] > lLen) return false;
     if (syncR[0] < 0 || syncR[0] > rLen) return false;
     for (int i = 1; i < syncL.length; i++) {

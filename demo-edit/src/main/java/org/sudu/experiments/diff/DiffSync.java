@@ -28,14 +28,16 @@ public class DiffSync {
     int syncLine = (fromLastLine + fromFirstLine) / 2;
     int linesDelta = syncLine - fromFirstLine;
 
-    var fromRange = model.range(syncLine, isLeft);
+    var range = model.range(syncLine, isLeft);
+    int fromLine = (isLeft ? range.fromL : range.fromR);
+    int fromLen = (isLeft ? range.lenL : range.lenR);
+    int toLine = (!isLeft ? range.fromL : range.fromR);
+    int toLen = (!isLeft ? range.lenL : range.lenR);
 
-    int rangeDelta = syncLine - (isLeft ? fromRange.fromL : fromRange.fromR);
-    // this used to be
-    //      lineHeight * line - vScrollPos;
+    float posInRange = (float) (syncLine - fromLine) / fromLen;
+
     int scrollDelta = -(from.lineToPos(fromFirstLine) - from.pos().y);
-    int toRangeStart = isLeft ? fromRange.fromR : fromRange.fromL;
-    int toNewLine = (toRangeStart + rangeDelta - linesDelta);
+    int toNewLine = toLine + (int) (posInRange * toLen) - linesDelta;
     to.setVScrollPosSilent(toNewLine * to.lineHeight() + scrollDelta);
   }
 }
