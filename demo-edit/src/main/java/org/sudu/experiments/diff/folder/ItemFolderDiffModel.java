@@ -18,6 +18,8 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
   public final FsItem[] items = new FsItem[] {null, null};
 
+  private static final boolean DEBUG = true;
+
   public ItemFolderDiffModel(FolderDiffModel parent, String path) {
     super(parent, path);
   }
@@ -195,7 +197,9 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     } else {
       Consumer<DirectoryHandle> onParentDirGet = parentDir -> {
         // Can't LoggingJs from here
-        System.out.println("ItemFolderDiffModel.getOrCreateDir: created dir: " + parentDir.getName());
+        if (DEBUG) {
+          System.out.println("ItemFolderDiffModel.getOrCreateDir: created dir: " + parentDir.getName());
+        }
         parent().setItem(left, parentDir);
         FsWorkerJobs.mkDir(executor, parentDir, path, onComplete, onError);
       };
@@ -206,7 +210,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   public void remove(ModelCopyDeleteStatus status) {
     status.inTraverse++;
     if (getDiffType() != DiffTypes.DELETED && getDiffType() != DiffTypes.INSERTED) {
-      status.onError("Can't delete: item " + path + " is not marked as deleted or inserted");
+      status.onCopyError("Can't delete: item " + path + " is not marked as deleted or inserted");
       status.onTraversed();
       return;
     }
@@ -214,8 +218,12 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     FsItem item = item();
     if (item instanceof FileHandle file) {
       status.inWork++;
-      FsWorkerJobs.removeFile(status.executor, file, () -> status.onFileDeleted(this), status::onError);
-    } else if (item instanceof DirectoryHandle dir) {
+      FsWorkerJobs.removeFile(
+          status.executor, file,
+          () -> status.onFileDeleted(this),
+          (err) -> status.onFileDeleteError(this, err)
+      );
+    } else if (item instanceof DirectoryHandle) {
       status.markForDelete(this);
       if (children == null || children.length == 0) {
         removeEmptyFolder(status);
@@ -227,7 +235,11 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   }
 
   public void removeEmptyFolder(ModelCopyDeleteStatus status) {
-    FsWorkerJobs.removeDir(status.executor, (DirectoryHandle) item(), () -> status.onDirDeleted(this), status::onError);
+    FsWorkerJobs.removeDir(
+        status.executor, (DirectoryHandle) item(),
+        () -> status.onDirDeleted(this),
+        (err) -> status.onFolderDeleteError(this, err)
+    );
   }
 
   public void copy(boolean left, ModelCopyDeleteStatus status) {
@@ -258,7 +270,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     };
 
     status.inWork++;
-    FsWorkerJobs.mkDir(status.executor, toDirParent, path, onDirCreated, status::onError);
+    FsWorkerJobs.mkDir(status.executor, toDirParent, path, onDirCreated, status::onCopyError);
   }
 
   private void copyFile(boolean left, ModelCopyDeleteStatus status) {
@@ -272,11 +284,11 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     } else return;
 
     IntConsumer onFileCopied = (bytes) -> {
-//      insertItem();
+      insertItem();
       status.onCopied();
     };
 
     status.inWork++;
-    FsWorkerJobs.copyFile(status.executor, fromFile, toFile, onFileCopied, status::onError);
+    FsWorkerJobs.copyFile(status.executor, fromFile, toFile, onFileCopied, status::onCopyError);
   }
 }

@@ -13,7 +13,8 @@ import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
-import java.util.Arrays;
+import java.util.*;
+import java.util.function.Consumer;
 
 // TODO Remove copypasta
 public class Collector {
@@ -24,6 +25,7 @@ public class Collector {
   protected int filesInserted = 0, filesDeleted = 0, filesEdited = 0;
 
   protected DiffModelUpdater.Listener onComplete;
+  protected Consumer<String> onError = System.err::println;
 
   private final FolderDiffModel root;
   private final WorkerJobExecutor executor;
@@ -82,7 +84,11 @@ public class Collector {
     leftFolders++;
     rightFolders++;
     int[] ints = ((ArrayView) result[0]).ints();
-
+    if (isErrorInts(ints)) {
+      String error = (String) result[1];
+      onError(error);
+      return;
+    }
     int commonLen = ints[0];
     int leftLen = ints[1];
     int rightLen = ints[2];
@@ -201,6 +207,10 @@ public class Collector {
       Object[] result
   ) {
     int[] ints = ArgsCast.intArray(result, 0);
+    if (isErrorInts(ints)) {
+      String error = ArgsCast.string(result, 1);
+      onError(error);
+    }
     int[] stats = ArgsCast.intArray(result, 1);
     String[] paths = new String[stats[0]];
     FsItem[] items = new FsItem[stats[1]];
@@ -236,6 +246,18 @@ public class Collector {
 
   public void setOnComplete(DiffModelUpdater.Listener onComplete) {
     this.onComplete = onComplete;
+  }
+
+  public void setOnError(Consumer<String> onError) {
+    this.onError = onError;
+  }
+
+  private void onError(String error) {
+    onError.accept(error);
+  }
+
+  private boolean isErrorInts(int[] ints) {
+    return ints.length == 1 && ints[0] == -1;
   }
 
   public int[] mkStatInts() {
