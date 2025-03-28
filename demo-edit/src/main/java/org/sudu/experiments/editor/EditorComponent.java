@@ -1748,11 +1748,6 @@ public class EditorComponent extends View implements
     return syncPoints.hasPoint(lineInd);
   }
 
-  public boolean canSetPoint(V2i eventPos) {
-    int lineInd = computeSyncLine(eventPos);
-    return syncPoints.canSet(lineInd);
-  }
-
   public void toggleSyncPoint(V2i eventPos) {
     int lineInd = computeSyncLine(eventPos);
     if (syncPoints.hasPoint(lineInd))

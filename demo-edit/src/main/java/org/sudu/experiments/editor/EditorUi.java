@@ -230,7 +230,7 @@ public class EditorUi {
     private void toggleSyncPoint(ToolbarItemBuilder tbb, V2i eventPos) {
       if (editor.hasSyncPoint(eventPos)) {
         tbb.addItem("Remove Sync Point", () -> toggleSyncPointAction(eventPos));
-      } else if (editor.canSetPoint(eventPos)) {
+      } else {
         tbb.addItem("Add Sync Point", () -> toggleSyncPointAction(eventPos));
       }
     }

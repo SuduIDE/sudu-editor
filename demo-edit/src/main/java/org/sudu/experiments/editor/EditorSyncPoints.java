@@ -38,10 +38,6 @@ public class EditorSyncPoints {
     return left ? syncPoints.syncL.length != 0 : syncPoints.syncR.length != 0;
   }
 
-  public boolean canSet(int i) {
-    return left ? syncPoints.canSetLeft(i) : syncPoints.canSetRight(i);
-  }
-
   public void setPoint(int i) {
     if (left) syncPoints.setLeft(i);
     else syncPoints.setRight(i);
