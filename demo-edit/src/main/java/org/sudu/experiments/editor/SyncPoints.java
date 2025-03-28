@@ -9,6 +9,7 @@ public class SyncPoints {
   public int[] syncL, syncR;
   public int curL, curR;
   private final Runnable onSyncPointsChanged;
+  private static final boolean DEBUG = false;
 
   public SyncPoints(Runnable onSyncPointsChanged) {
     syncL = new int[0];
@@ -23,18 +24,6 @@ public class SyncPoints {
 
   public boolean hasRight(int i) {
     return curR == i || Arrays.binarySearch(syncR, i) >= 0;
-  }
-
-  public boolean canSetLeft(int i) {
-    if (i == curL) return false;
-    if (curR == -1) return true;
-    return Arrays.binarySearch(syncL, i) == Arrays.binarySearch(syncR, curR);
-  }
-
-  public boolean canSetRight(int i) {
-    if (i == curR) return false;
-    if (curL == -1) return true;
-    return Arrays.binarySearch(syncR, i) == Arrays.binarySearch(syncL, curL);
   }
 
   public void removeLeft(int i) {
@@ -85,12 +74,29 @@ public class SyncPoints {
     if (curL == -1 || curR == -1) return;
     int lP = -Arrays.binarySearch(syncL, curL) - 1;
     int rP = -Arrays.binarySearch(syncR, curR) - 1;
-    syncL = ArrayOp.insertAt(curL, syncL, lP);
-    syncR = ArrayOp.insertAt(curR, syncR, rP);
-    System.out.println("lP = " + lP);
-    System.out.println("rP = " + rP);
-    System.out.println("syncL = " + Arrays.toString(syncL));
-    System.out.println("syncR = " + Arrays.toString(syncR));
+    if (lP == rP) {
+      syncL = ArrayOp.insertAt(curL, syncL, lP);
+      syncR = ArrayOp.insertAt(curR, syncR, rP);
+    } else {
+      int min = Math.min(lP, rP);
+      int max = Math.max(lP, rP);
+      int[] newSyncL = new int[syncL.length - (max - min) + 1];
+      int[] newSyncR = new int[syncR.length - (max - min) + 1];
+      System.arraycopy(syncL, 0, newSyncL, 0, min);
+      System.arraycopy(syncR, 0, newSyncR, 0, min);
+      newSyncL[min] = curL;
+      newSyncR[min] = curR;
+      System.arraycopy(syncL, max, newSyncL, min + 1, syncL.length - max);
+      System.arraycopy(syncR, max, newSyncR, min + 1, syncR.length - max);
+      this.syncL = newSyncL;
+      this.syncR = newSyncR;
+    }
+    if (DEBUG) {
+      System.out.println("lP = " + lP);
+      System.out.println("rP = " + rP);
+      System.out.println("syncL = " + Arrays.toString(syncL));
+      System.out.println("syncR = " + Arrays.toString(syncR));
+    }
     curL = curR = -1;
     onSyncPointsChanged.run();
   }
