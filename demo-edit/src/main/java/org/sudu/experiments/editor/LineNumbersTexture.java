@@ -27,12 +27,14 @@ public class LineNumbersTexture implements Disposable {
   private final int baseline;
 
   private boolean cleartype;
+  private boolean mirrored;
 
   public LineNumbersTexture(
       int texturePosY,
       int numberOfLines,
       int textureWidth,
       int lineHeight,
+      boolean mirrored,
       FontDesk fontDesk
   ) {
 
@@ -41,7 +43,7 @@ public class LineNumbersTexture implements Disposable {
     this.lineHeight = lineHeight;
     this.textureSize = new V2i(textureWidth, this.numberOfLines * lineHeight);
     this.baseline = fontDesk.baselineShift(lineHeight);
-    this.syncLineSize.set(textureWidth + EditorConst.LINE_NUMBERS_RIGHT_PADDING, 5);
+    this.mirrored = mirrored;
   }
 
   public int updateTexture(
@@ -142,12 +144,16 @@ public class LineNumbersTexture implements Disposable {
 
   void drawSyncLine(
       WglGraphics g, V2i dXdY,
-      int scrollPos, int fullTexturesSize, int syncLine,
+      int scrollPos, int fullTexturesSize,
+      int syncLine,
       Color lineColor
   ) {
     int caretShift = syncLine % numberOfLines;
     int height = textureSize.y;
-    int yPos = getYPos(scrollPos, fullTexturesSize, height, caretShift);
+    syncLineSize.x = textureSize.x;
+    if (!mirrored) syncLineSize.x += EditorConst.V_LINE_LEFT_DELTA_DP + EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
+    syncLineSize.y = 5;
+    int yPos = getYPos(scrollPos, fullTexturesSize, height, caretShift) - (syncLineSize.y / 2);
     g.drawRect(texturePos.x + dXdY.x, yPos + dXdY.y, syncLineSize, lineColor);
   }
 
@@ -157,7 +163,7 @@ public class LineNumbersTexture implements Disposable {
         rectRegion,
         lineTexture,
         textColor, bgColor, cleartype);
-}
+  }
 
   private int scrollDown(
       Canvas textureCanvas, Canvas updateCanvas,
@@ -223,6 +229,10 @@ public class LineNumbersTexture implements Disposable {
       if (curFirstLine % numberOfLines == 0) break;
     }
     return curFirstLine;
+  }
+
+  public void setMirrored(boolean mirrored) {
+    this.mirrored = mirrored;
   }
 
   private void drawLine(Canvas canvas, String lineNumber, int yPos, float devicePR) {
