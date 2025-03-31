@@ -1014,6 +1014,7 @@ public class EditorComponent extends View implements
 
   private boolean setCaretLine(int value, boolean shift) {
     model.caretLine = Numbers.clamp(0, value, model.document.length() - 1);
+    System.out.println("EditorComponent.setCaretLine: set to " + model.caretLine);
     return setCaretPos(model.caretCharPos, shift);
   }
 
@@ -1074,17 +1075,18 @@ public class EditorComponent extends View implements
   }
 
   public void findUsages(V2i position, ReferenceProvider.Provider provider) {
-    Pos documentPosition = computeCharPos(position);
+    Pos pos = computeCharPos(position);
+    if (pos == null) return;
 
     if (provider != null) {
-      provider.provideReferences(model, documentPosition.line, documentPosition.pos, true,
+      provider.provideReferences(model, pos.line, pos.pos, true,
           (locs) -> showUsagesViaLocations(position, locs), onError);
     }
   }
 
   public void findUsages(V2i position, DefDeclProvider.Provider provider) {
-
     Pos pos = computeCharPos(position);
+    if (pos == null) return;
     Pos startPos = model.document.getElementStart(pos.line, pos.pos);
     String elementName = getElementNameByStartPos(startPos);
 
@@ -1117,8 +1119,10 @@ public class EditorComponent extends View implements
       ui.displayNoUsagesPopup(position);
     } else {
       Pos charPos = computeCharPos(position);
-      Pos startPos = model.document.getElementStart(charPos.line, charPos.pos);
-      ui.showUsagesWindow(position, locs, this, getElementNameByStartPos(startPos));
+      if (charPos != null) {
+        Pos startPos = model.document.getElementStart(charPos.line, charPos.pos);
+        ui.showUsagesWindow(position, locs, this, getElementNameByStartPos(startPos));
+      }
     }
   }
 
@@ -1152,7 +1156,7 @@ public class EditorComponent extends View implements
 
     int vLine = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, getNumLines());
     int line = codeLineRemap != null ? codeLineRemap[vLine] : vLine;
-    if (line < 0) ....
+    if (line < 0) return null;
 
     int offset = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
     int documentXPosition = Math.max(0, localX - offset + hScrollPos);
@@ -1162,9 +1166,11 @@ public class EditorComponent extends View implements
 
   private void dragText(MouseEvent event) {
     Pos pos = computeCharPos(event.position);
-    moveCaret(pos);
-    selection().select(model.caretLine, model.caretCharPos);
-    adjustEditorScrollToCaret();
+    if (pos != null) {
+      moveCaret(pos);
+      selection().select(model.caretLine, model.caretCharPos);
+      adjustEditorScrollToCaret();
+    }
   }
 
   private void moveCaret(Pos pos) {
@@ -1227,6 +1233,7 @@ public class EditorComponent extends View implements
 
     V2i eventPosition = event.position;
     Pos pos = computeCharPos(eventPosition);
+    if (pos == null) return;
     Pos startPos = model.document.getElementStart(pos.line, pos.pos);
     String elementName = getElementNameByStartPos(startPos);
 
@@ -1242,6 +1249,7 @@ public class EditorComponent extends View implements
 
   void onDoubleClickText(V2i eventPosition) {
     Pos pos = computeCharPos(eventPosition);
+    if (pos == null) return;
     CodeLine line = codeLine(pos.line);
     int wordStart = line.getElementStart(model.caretCharPos);
     int wordEnd = line.nextPos(model.caretCharPos);
@@ -1350,8 +1358,9 @@ public class EditorComponent extends View implements
         return MouseListener.Static.emptyConsumer;
 
       saveToNavStack();
-      V2i eventPosition = mousePos;
-      Pos pos = computeCharPos(eventPosition);
+      Pos pos = computeCharPos(mousePos);
+      if (pos == null)
+        return MouseListener.Static.emptyConsumer;
 
       moveCaret(pos);
       model.computeUsages();
@@ -1428,9 +1437,13 @@ public class EditorComponent extends View implements
         if (isInsideText(mousePos)) {
           if (event.ctrl) {
             Pos pos = computeCharPos(mousePos);
-            model.document.moveToElementStart(pos);
-            boolean hasUsage = model.document.hasDefOrUsagesForElementPos(pos);
-            setCursor.set(hasUsage ? Cursor.pointer : Cursor.text);
+            if (pos == null) {
+              setCursor.set(Cursor.pointer);
+            } else {
+              model.document.moveToElementStart(pos);
+              boolean hasUsage = model.document.hasDefOrUsagesForElementPos(pos);
+              setCursor.set(hasUsage ? Cursor.pointer : Cursor.text);
+            }
           } else {
             setCursor.set(Cursor.text);
           }
