@@ -62,7 +62,7 @@ public class EditorComponent extends View implements
   // layout
   static final int vLineXDp = 80;
   static final int vLineWDp = 1;
-  static final int vLineLeftDeltaDp = 10;
+  static final int vLineLeftDeltaDp = EditorConst.V_LINE_LEFT_DELTA_DP;
   static final int codeMapWidthDp = 15;
   static final float scrollBarWidthDp = 12;
 
@@ -261,6 +261,7 @@ public class EditorComponent extends View implements
 
   public void setMirrored(boolean b) {
     mirrored = b;
+    lineNumbers.setMirrored(b);
   }
 
   void toggleMirrored() {

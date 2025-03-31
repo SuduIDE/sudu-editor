@@ -25,6 +25,7 @@ public class LineNumbersComponent implements Disposable {
 
   private FontDesk fontDesk;
   private boolean cleartype;
+  private boolean mirrored;
   private int lineHeight;
   private int textureHeight;
 
@@ -174,6 +175,7 @@ public class LineNumbersComponent implements Disposable {
             oldSize * textureHeight,
             numberOfLines,
             size.x, lineHeight,
+            mirrored,
             fontDesk
         );
         texture.createTexture(g);
@@ -199,6 +201,11 @@ public class LineNumbersComponent implements Disposable {
     this.textureHeight = lineHeight * numberOfLines;
     this.cleartype = cleartype;
     disposeCanvas();
+  }
+
+  public void setMirrored(boolean mirrored) {
+    this.mirrored = mirrored;
+    for (var texture: textures) texture.setMirrored(mirrored);
   }
 
   private void ensureCanvas(WglGraphics g) {
