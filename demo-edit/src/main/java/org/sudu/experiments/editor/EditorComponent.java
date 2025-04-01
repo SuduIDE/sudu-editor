@@ -111,7 +111,7 @@ public class EditorComponent extends View implements
   GL.Texture codeMap;
   final V2i codeMapSize = new V2i();
 
-  int[]       codeLineRemap;
+  int[] docToViewMap, viewToDocMap;
   Runnable[]  remapActions;
 
   public EditorComponent(EditorUi ui) {
@@ -521,7 +521,7 @@ public class EditorComponent extends View implements
     int rightPadding = toPx(EditorConst.RIGHT_PADDING);
 
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      int lineIndex = codeLineRemap != null ? codeLineRemap[i] : i;
+      int lineIndex = docToViewMap != null ? docToViewMap[i] : i;
       if (lineIndex < 0) continue;
       CodeLine cLine = model.document.line(lineIndex);
       CodeLineRenderer line = lineRenderer(i);
@@ -545,18 +545,27 @@ public class EditorComponent extends View implements
     }
 
     V2i sizeTmp = context.v2i1;
-    for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
+    if (drawTails) for (int i = firstLine; i <= lastLine && i < docLen; i++) {
+      int lineIndex = docToViewMap != null ? docToViewMap[i] : i;
+      if (lineIndex < 0) continue;
       CodeLineRenderer line = lineRenderer(i);
       int yPosition = lineHeight * i - vScrollPos;
-      boolean isTailSelected = selection().isTailSelected(i);
+      boolean isTailSelected = selection().isTailSelected(lineIndex);
       V4f tailColor = colors.editor.bg;
-      boolean isCurrentLine = model.caretLine == i;
 
-      if (isTailSelected) tailColor = colors.editor.selectionBg;
-      else if (diffModel != null && i < diffModel.length && diffModel[i] != null && !diffModel[i].isDefault()) {
-        tailColor = colors.codeDiffBg.getDiffColor(colors, diffModel[i].type);
+      if (isTailSelected)
+        tailColor = colors.editor.selectionBg;
+      else {
+        var dm = diffModel != null && lineIndex < diffModel.length
+            ? diffModel[lineIndex] : null;
+        if (dm != null) {
+          tailColor = colors.codeDiffBg.getDiffColor(colors, dm.type);
+        } else {
+          boolean isCurrentLine = model.caretLine == lineIndex;
+          if (isCurrentLine)
+            tailColor = colors.editor.currentLineBg;
+        }
       }
-      else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
 
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
           sizeTmp, hScrollPos, editorWidth, tailColor);
@@ -659,7 +668,7 @@ public class EditorComponent extends View implements
   }
 
   public int getNumLines() {
-    return codeLineRemap != null ? codeLineRemap.length : model.document.length();
+    return docToViewMap != null ? docToViewMap.length : model.document.length();
   }
 
   public int getFirstLine() {
@@ -1014,7 +1023,6 @@ public class EditorComponent extends View implements
 
   private boolean setCaretLine(int value, boolean shift) {
     model.caretLine = Numbers.clamp(0, value, model.document.length() - 1);
-    System.out.println("EditorComponent.setCaretLine: set to " + model.caretLine);
     return setCaretPos(model.caretCharPos, shift);
   }
 
@@ -1154,8 +1162,9 @@ public class EditorComponent extends View implements
     int localX = eventPosition.x - pos.x;
     int localY = eventPosition.y - pos.y;
 
-    int vLine = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, getNumLines());
-    int line = codeLineRemap != null ? codeLineRemap[vLine] : vLine;
+    int vL = (localY + vScrollPos) / lineHeight;
+    int vLine = Numbers.clamp(0, vL, getNumLines() - 1);
+    int line = docToViewMap != null ? docToViewMap[vLine] : vLine;
     if (line < 0) return null;
 
     int offset = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
@@ -1900,7 +1909,7 @@ public class EditorComponent extends View implements
   }
   
   public void setCodeLineRemap(int[] remap, Runnable[] remapActions) {
-    codeLineRemap = remap;
+    docToViewMap = remap;
     this.remapActions = remapActions;
   }
 
@@ -1917,7 +1926,7 @@ public class EditorComponent extends View implements
   }
 
   void toggleCodeLineRemap() {
-    if (codeLineRemap == null) {
+    if (docToViewMap == null) {
       setCodeLineRemap(makeDebugRemap(), remapActions());
     } else {
       setCodeLineRemap(null, null);
