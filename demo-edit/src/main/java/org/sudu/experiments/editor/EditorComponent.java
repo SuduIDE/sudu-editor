@@ -104,6 +104,7 @@ public class EditorComponent extends View implements
   Consumer<EditorComponent> onDiffMadeListener;
   int vScrollPos = 0;
   int hScrollPos = 0;
+  int caretPosX;
 
   final ClrContext lrContext;
   InputListeners.KeyHandler onKey;
@@ -370,7 +371,7 @@ public class EditorComponent extends View implements
       lineNumbers.dispose();
       invalidateFont();
       setFont(name, newPixelFontSize);
-      model.caretPos = caretCodeLine().computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
+      recomputeCaretPos();
       if (mergeButtons != null)
         setMergeButtonsFont();
       internalLayout();
@@ -499,7 +500,7 @@ public class EditorComponent extends View implements
     g.enableScissor(pos, size);
 
     int caretVerticalOffset = (lineHeight - caret.height()) / 2;
-    int caretX = model.caretPos - caret.width() / 2 - hScrollPos;
+    int caretX = caretPosX - caret.width() / 2 - hScrollPos;
     int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
     caret.setPosition(
         dCaret + caretX,
@@ -1028,9 +1029,7 @@ public class EditorComponent extends View implements
 
   private boolean setCaretPos(int charPos, boolean shift) {
     model.caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
-    model.caretPos = dpr == 0 ? 0
-        : caretCodeLine().computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
-    startBlinking();
+    recomputeCaretPos();
     adjustEditorScrollToCaret();
     if (shift) selection().isSelectionStarted = true;
     selection().select(model.caretLine, model.caretCharPos);
@@ -1067,8 +1066,8 @@ public class EditorComponent extends View implements
 
     int editVisibleXMin = hScrollPos;
     int editVisibleXMax = hScrollPos + editorWidth();
-    int caretVisibleX0 = model.caretPos;
-    int caretVisibleX1 = model.caretPos + xOffset;
+    int caretVisibleX0 = caretPosX;
+    int caretVisibleX1 = caretPosX + xOffset;
 
     if (caretVisibleX0 < editVisibleXMin + xOffset) {
       setScrollPosX(caretVisibleX0 - xOffset);
@@ -1185,8 +1184,13 @@ public class EditorComponent extends View implements
   private void moveCaret(Pos pos) {
     model.caretLine = pos.line;
     model.caretCharPos = pos.pos;
-    model.caretPos = model.document.line(pos.line)
-        .computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
+    recomputeCaretPos();
+  }
+
+  private void recomputeCaretPos() {
+    caretPosX = dpr == 0 ? 0 :
+        caretCodeLine().computePixelLocation(
+            model.caretCharPos, g.mCanvas, fonts);
     startBlinking();
   }
 
@@ -1300,7 +1304,7 @@ public class EditorComponent extends View implements
   }
 
   CodeLine caretCodeLine() {
-    return model.document.line(model.caretLine);
+    return model.caretCodeLine();
   }
 
   CodeLine codeLine(int n) {

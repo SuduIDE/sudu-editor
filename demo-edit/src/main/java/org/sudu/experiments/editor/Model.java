@@ -34,7 +34,10 @@ public class Model {
   WorkerJobExecutor executor;
 
   LineDiff[] diffModel;
-  int caretLine, caretCharPos, caretPos;
+
+  // this properties might need to be converted
+  //   to Subscribers<CaretChangeListeners>
+  int caretLine, caretCharPos;
   CodeElement definition = null;
   final List<CodeElement> usages = new ArrayList<>();
   final List<V2i> parsedVps = new ArrayList<>();
@@ -471,6 +474,10 @@ public class Model {
 
   private void onDiffMade() {
     if (editor != null) editor.onDiffMade();
+  }
+
+  CodeLine caretCodeLine() {
+    return document.line(caretLine);
   }
 
   interface EditorToModel {
