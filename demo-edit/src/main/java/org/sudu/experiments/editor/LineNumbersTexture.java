@@ -44,6 +44,7 @@ public class LineNumbersTexture implements Disposable {
     this.textureSize = new V2i(textureWidth, this.numberOfLines * lineHeight);
     this.baseline = fontDesk.baselineShift(lineHeight);
     this.mirrored = mirrored;
+    syncLineSize.y = EditorConst.SYNC_LINE_HEIGHT;
   }
 
   public int updateTexture(
@@ -152,8 +153,7 @@ public class LineNumbersTexture implements Disposable {
     int height = textureSize.y;
     syncLineSize.x = textureSize.x;
     if (!mirrored) syncLineSize.x += EditorConst.V_LINE_LEFT_DELTA_DP + EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
-    syncLineSize.y = 5;
-    int yPos = getYPos(scrollPos, fullTexturesSize, height, caretShift) - (syncLineSize.y / 2);
+    int yPos = getYPos(scrollPos, fullTexturesSize, height, caretShift) - (EditorConst.SYNC_LINE_HEIGHT / 2);
     g.drawRect(texturePos.x + dXdY.x, yPos + dXdY.y, syncLineSize, lineColor);
   }
 

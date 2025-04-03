@@ -42,7 +42,7 @@ class FolderDiffRootView extends DiffRootView {
   }
 
   public void applyTheme(EditorColorScheme theme) {
-    middleLine.setTheme(null, theme.fileTreeView.bg);
+    middleLine.setTheme(null, theme.fileTreeView.bg, theme.lineNumber.syncPoint);
     left.setTheme(theme);
     left.applyTheme(leftScrollView);
     right.setTheme(theme);

@@ -35,9 +35,10 @@ class FileDiffRootView extends DiffRootView {
     editor1 = new EditorComponent(ui);
     editor2 = new EditorComponent(ui);
     middleLine.setLeftRight(editor1, editor2);
+    middleLine.setSyncLines(new int[]{}, new int[]{});
     Consumer<EditorComponent> parseListener = this::fullFileParseListener;
     TriConsumer<EditorComponent, Integer, Integer> iterativeParseListener = this::iterativeParseFileListener;
-    SyncPoints syncPoints = new SyncPoints(() -> sendToDiff(false));
+    SyncPoints syncPoints = new SyncPoints(this::onSyncPointsUpdated);
 
     editor1.setFullFileParseListener(parseListener);
     editor1.setIterativeParseFileListener(iterativeParseListener);
@@ -166,7 +167,7 @@ class FileDiffRootView extends DiffRootView {
 
   public void applyTheme(EditorColorScheme theme) {
     ui.setTheme(theme);
-    middleLine.setTheme(theme.codeDiffBg, theme.editor.bg);
+    middleLine.setTheme(theme.codeDiffBg, theme.editor.bg, theme.lineNumber.syncPoint);
     editor1.setTheme(theme);
     editor2.setTheme(theme);
   }
@@ -337,5 +338,10 @@ class FileDiffRootView extends DiffRootView {
 
   public void unsetModelFlagsBit(int bit) {
     modelFlags &= ~bit;
+  }
+
+  public void onSyncPointsUpdated() {
+    middleLine.setSyncLines(editor1.syncPoints(), editor2.syncPoints());
+    sendToDiff(false);
   }
 }
