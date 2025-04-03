@@ -128,6 +128,7 @@ public class MiddleLine extends View {
       );
     }
 
+    if (syncL == null || syncR == null) return;
     for (int i = 0; i < syncL.length; i++) {
       int lineL = syncL[i];
       int lineR = syncR[i];
