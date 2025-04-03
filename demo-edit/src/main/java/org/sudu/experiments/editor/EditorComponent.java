@@ -662,6 +662,7 @@ public class EditorComponent extends View implements
         firstLine, lastLine,
         syncPoints(),
         syncPoints.curSyncPoint(),
+        syncPoints.possibleSyncPoint,
         g, colors
     );
   }
@@ -1374,8 +1375,14 @@ public class EditorComponent extends View implements
 
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
     if (button == MOUSE_BUTTON_LEFT) {
-      if (lineNumbers.hitTest(event.position)
-          || hitMergeButtons(event.position))
+      if (lineNumbers.hitTest(event.position)) {
+        if (syncPoints.hasAnotherPoint()) {
+          int line = computeSyncLine(event.position);
+          syncPoints.setPoint(line);
+        }
+        return true;
+      }
+      if (hitMergeButtons(event.position))
         return true;
       switch (clickCount) {
         case 1 -> onClickText(event);
@@ -1412,6 +1419,7 @@ public class EditorComponent extends View implements
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     V2i mousePos = event.position;
+    syncPoints.possibleSyncPoint = -1;
 
     var codeMap = onMouseMoveCodeMap(mousePos, setCursor);
     var scroll = !codeMap && (
@@ -1421,10 +1429,17 @@ public class EditorComponent extends View implements
     if (scroll || codeMap) {
       onMouseLeaveWindow();
     } else {
-      var mb = mergeButtons != null
-          && mergeButtons.onMouseMove(event, setCursor)
-          || lineNumbers.onMouseMove(event, setCursor);
-
+      var mb = mergeButtons != null && mergeButtons.onMouseMove(event, setCursor);
+      var ln = lineNumbers.hitTest(event.position);
+      if (ln) {
+        if (syncPoints.hasAnotherPoint()) {
+          syncPoints.possibleSyncPoint = computeSyncLine(event.position);
+          if (!mb) setCursor.set(Cursor.pointer);
+        } else if (!mb) {
+          setCursor.setDefault();
+        }
+      }
+      mb |= ln;
       if (!mb && hitTest(mousePos)) {
         if (isInsideText(mousePos)) {
           if (event.ctrl) {

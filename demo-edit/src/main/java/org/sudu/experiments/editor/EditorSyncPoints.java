@@ -6,6 +6,7 @@ public class EditorSyncPoints {
 
   public final SyncPoints syncPoints;
   public final boolean left;
+  public int possibleSyncPoint = -1;
 
   public EditorSyncPoints(SyncPoints syncPoints, boolean left) {
     this.syncPoints = syncPoints;
@@ -34,6 +35,10 @@ public class EditorSyncPoints {
     return left ? syncPoints.hasLeft(i) : syncPoints.hasRight(i);
   }
 
+  public boolean hasAnotherPoint() {
+    return !left ? syncPoints.curL != -1 : syncPoints.curR != -1;
+  }
+
   public boolean hasSyncPoints() {
     return left ? syncPoints.syncL.length != 0 : syncPoints.syncR.length != 0;
   }
@@ -41,5 +46,6 @@ public class EditorSyncPoints {
   public void setPoint(int i) {
     if (left) syncPoints.setLeft(i);
     else syncPoints.setRight(i);
+    possibleSyncPoint = -1;
   }
 }
