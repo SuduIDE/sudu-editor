@@ -119,19 +119,18 @@ public class LineNumbersComponent implements Disposable {
       int firstLine, int lastLine,
       int[] syncPoints,
       int curSyncPoint,
-      int possibleSyncPoint,
-      WglGraphics g, EditorColorScheme scheme
+      int hoverSyncPoint,
+      WglGraphics g, LineNumbersColors scheme
   ) {
-    // Todo colors to scheme
     for (int sp: syncPoints) {
       if (firstLine <= sp && sp <= lastLine)
-        drawSyncLine(scrollPos, sp, new Color("#ff0000"), g);
+        drawSyncLine(scrollPos, sp, scheme.syncPoint, g);
     }
     if (firstLine <= curSyncPoint && curSyncPoint <= lastLine) {
-      drawSyncLine(scrollPos, curSyncPoint, new Color("#00ff00"), g);
+      drawSyncLine(scrollPos, curSyncPoint, scheme.currentSyncPoint, g);
     }
-    if (firstLine <= possibleSyncPoint && possibleSyncPoint <= lastLine) {
-      drawSyncLine(scrollPos, possibleSyncPoint, new Color("#0000ff"), g);
+    if (firstLine <= hoverSyncPoint && hoverSyncPoint <= lastLine) {
+      drawSyncLine(scrollPos, hoverSyncPoint, scheme.hoverSyncPoint, g);
     }
   }
 
@@ -146,7 +145,7 @@ public class LineNumbersComponent implements Disposable {
         caretLine, colorScheme, bgColor);
   }
 
-  public void drawSyncLine(
+  private void drawSyncLine(
       int scrollPos, int syncLine,
       Color lineColor,
       WglGraphics g
