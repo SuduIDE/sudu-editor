@@ -662,8 +662,8 @@ public class EditorComponent extends View implements
         firstLine, lastLine,
         syncPoints(),
         syncPoints.curSyncPoint(),
-        syncPoints.possibleSyncPoint,
-        g, colors
+        syncPoints.hoverSyncPoint,
+        g, colors.lineNumber
     );
   }
 
@@ -1419,7 +1419,7 @@ public class EditorComponent extends View implements
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     V2i mousePos = event.position;
-    syncPoints.possibleSyncPoint = -1;
+    syncPoints.hoverSyncPoint = -1;
 
     var codeMap = onMouseMoveCodeMap(mousePos, setCursor);
     var scroll = !codeMap && (
@@ -1433,7 +1433,7 @@ public class EditorComponent extends View implements
       var ln = lineNumbers.hitTest(event.position);
       if (ln) {
         if (syncPoints.hasAnotherPoint()) {
-          syncPoints.possibleSyncPoint = computeSyncLine(event.position);
+          syncPoints.hoverSyncPoint = computeSyncLine(event.position);
           if (!mb) setCursor.set(Cursor.pointer);
         } else if (!mb) {
           setCursor.setDefault();
