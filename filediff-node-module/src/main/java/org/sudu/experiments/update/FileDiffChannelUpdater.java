@@ -120,6 +120,10 @@ public class FileDiffChannelUpdater {
   }
 
   public void sendFileRead(boolean left, JSString source, JSString encoding) {
+    sendFileRead(left, source, encoding, JSString.valueOf(name(left)));
+  }
+
+  public void sendFileRead(boolean left, JSString source, JSString encoding, JSString filename) {
     if (debug) LoggingJs.debug(JsHelper.concat(
         "FileDiffChannelUpdater.postOpenFile: left=" + left +
             " length = " + source.getLength() +
@@ -127,7 +131,7 @@ public class FileDiffChannelUpdater {
     JsArray<JSObject> jsArray = JsArray.create();
     jsArray.set(0, source);
     jsArray.set(1, encoding);
-    jsArray.set(2, JSString.valueOf(name(left)));
+    jsArray.set(2, filename);
     jsArray.set(3, JsCast.jsInts(left ? 1 : 0, havaHandle(left) ? 1 : 0));
     jsArray.set(4, JsCast.jsInts(FILE_READ));
     channel.sendMessage(jsArray);

@@ -70,7 +70,7 @@ public class DiffEngine implements DiffEngineJs {
     boolean isLeftFile = JsFileInput.isPath(leftInput);
     boolean isRightFile = JsFileInput.isPath(rightInput);
     boolean isLeftText = !isLeftFile && JsFileInput.isContent(leftInput);
-    boolean isRightText = !isLeftFile && JsFileInput.isContent(rightInput);
+    boolean isRightText = !isRightFile && JsFileInput.isContent(rightInput);
 
     FileHandle leftHandle = isLeftFile ?
         JsFileInput.fileHandle(leftInput, true) : null;
@@ -106,7 +106,8 @@ public class DiffEngine implements DiffEngineJs {
     } else {
       JSString leftStr = JsFileInput.getContent(leftInput);
       LoggingJs.info("  left is content, length = " + leftStr.getLength());
-      updater.sendFileRead(true, leftStr, null);
+      String filename = rightHandle != null ? rightHandle.getName() : "";
+      updater.sendFileRead(true, leftStr, null, JSString.valueOf(filename));
     }
 
     if (isRightFile) {
@@ -115,7 +116,8 @@ public class DiffEngine implements DiffEngineJs {
     } else {
       JSString rightStr = JsFileInput.getContent(rightInput);
       LoggingJs.info("  right is content, length = " + rightStr.getLength());
-      updater.sendFileRead(false, rightStr, null);
+      String filename = leftHandle != null ? leftHandle.getName() : "";
+      updater.sendFileRead(false, rightStr, null, JSString.valueOf(filename));
     }
     return new JsFileDiffSession0();
   }
