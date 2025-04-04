@@ -396,7 +396,7 @@ public class EditorComponent extends View implements
   }
 
   int editorVirtualHeight() {
-    return (model.document.length() + EditorConst.BLANK_LINES) * lineHeight;
+    return (getNumLines() + EditorConst.BLANK_LINES) * lineHeight;
   }
 
   int maxVScrollPos() {
