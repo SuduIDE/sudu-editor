@@ -191,7 +191,12 @@ class FileDiffRootView extends DiffRootView {
     diffSync.setModel(diffModel);
     middleLine.setModel(diffModel);
 
-    var pair = MergeButtonsModel.getModels(diffInfo, editor1.readonly, editor2.readonly, this::applyDiff);
+    var pair = MergeButtonsModel.getModels(
+        diffInfo,
+        editor1.readonly, editor2.readonly,
+        editor1.syncPoints(), editor2.syncPoints(),
+        this::applyDiff
+    );
     MergeButtonsModel m1 = pair[0], m2 = pair[1];
     editor1.setMergeButtons(m1.actions, m1.lines);
     editor2.setMergeButtons(m2.actions, m2.lines);

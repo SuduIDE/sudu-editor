@@ -161,13 +161,16 @@ public interface ArrayOp {
     return res;
   }
 
-  static <T> T[] reverse(T[] value) {
-    for (int i = 0; i < value.length / 2; i++) {
-      T temp = value[i];
-      value[i] = value[value.length - i - 1];
-      value[value.length - i - 1] = temp;
-    }
-    return value;
+  static void swap(int[] array, int i, int j) {
+    int item = array[i];
+    array[i] = array[j];
+    array[j] = item;
+  }
+
+  static <T> void swap(T[] array, int i, int j) {
+    T item = array[i];
+    array[i] = array[j];
+    array[j] = item;
   }
 
   static char[] copyOf(char[] chars) {
