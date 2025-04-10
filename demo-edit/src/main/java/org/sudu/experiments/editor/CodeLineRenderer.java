@@ -249,8 +249,8 @@ public class CodeLineRenderer implements Disposable {
         /* xPos + */ context.underlineOffset,
         yPos + context.underline + context.underlineOffset,
         context.underlineParams,
-        IdeaCodeColors.ElementsDark.error.v.colorF
-    );
+        IdeaCodeColors.ElementsDark.error.v.colorF,
+        0);
     g.enableBlend(false);
   }
 

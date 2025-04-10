@@ -22,6 +22,8 @@ import static org.sudu.experiments.ui.ToolbarConst.fireOnHover;
 import static org.sudu.experiments.ui.ToolbarItemBuilder.ti;
 
 public class EditorUi {
+  static boolean developer = false;
+
   public final WindowManager windowManager;
 
   Window usagesWindow;
@@ -187,7 +189,6 @@ public class EditorUi {
     }
 
     public Supplier<ToolbarItem[]> build(V2i eventPosition, ToolbarItem opener) {
-      boolean developer = false;
 
       ToolbarItemBuilder tbb = new ToolbarItemBuilder();
 
@@ -195,7 +196,7 @@ public class EditorUi {
       cutCopyPaste(tbb);
       if (opener != null) tbb.addItem(opener);
       //noinspection ConstantValue
-      if (1 < 0) tbb.addItem("old >", oldDev());
+      if (developer) tbb.addItem("rendering debug", rDebugMenu());
       tbb.addItem("Language >", languageItems());
       tbb.addItem("Settings >", settingsItems());
       if (developer) {
@@ -327,13 +328,14 @@ public class EditorUi {
           ti("Rep", editor::parseFullFile));
     }
 
-    private Supplier<ToolbarItem[]> oldDev() {
+    private Supplier<ToolbarItem[]> rDebugMenu() {
       return ArrayOp.supplier(
           ti("↓ move", editor::moveDown),
           ti("■ stop", editor::stopMove),
           ti("↑ move", editor::moveUp),
           ti("toggleXOffset", editor::toggleXOffset),
-          ti("toggleTails", editor::toggleTails));
+          ti("toggleTails", editor::toggleTails),
+          ti("toggleCodeLineRemap", editor::toggleCodeLineRemap));
     }
 
     private Supplier<ToolbarItem[]> themes() {

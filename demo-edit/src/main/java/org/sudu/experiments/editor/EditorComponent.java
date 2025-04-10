@@ -104,12 +104,16 @@ public class EditorComponent extends View implements
   Consumer<EditorComponent> onDiffMadeListener;
   int vScrollPos = 0;
   int hScrollPos = 0;
+  int caretPosX;
 
   final ClrContext lrContext;
   InputListeners.KeyHandler onKey;
 
   GL.Texture codeMap;
   final V2i codeMapSize = new V2i();
+
+  int[] docToViewMap, viewToDocMap;
+  Runnable[]  remapActions;
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -124,6 +128,7 @@ public class EditorComponent extends View implements
     debugFlags[4] = this::toggleMirrored;
     debugFlags[5] = () -> drawGap = !drawGap;
     debugFlags[6] = () -> printResolveTime = !printResolveTime;
+    debugFlags[7] = this::toggleCodeLineRemap;
 
     model.setEditor(this, window().worker());
   }
@@ -366,7 +371,7 @@ public class EditorComponent extends View implements
       lineNumbers.dispose();
       invalidateFont();
       setFont(name, newPixelFontSize);
-      model.caretPos = caretCodeLine().computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
+      recomputeCaretPos();
       if (mergeButtons != null)
         setMergeButtonsFont();
       internalLayout();
@@ -391,7 +396,7 @@ public class EditorComponent extends View implements
   }
 
   int editorVirtualHeight() {
-    return (model.document.length() + EditorConst.BLANK_LINES) * lineHeight;
+    return (getNumLines() + EditorConst.BLANK_LINES) * lineHeight;
   }
 
   int maxVScrollPos() {
@@ -495,12 +500,12 @@ public class EditorComponent extends View implements
     g.enableScissor(pos, size);
 
     int caretVerticalOffset = (lineHeight - caret.height()) / 2;
-    int caretX = model.caretPos - caret.width() / 2 - hScrollPos;
+    int caretX = caretPosX - caret.width() / 2 - hScrollPos;
     int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
     caret.setPosition(
         dCaret + caretX,
         caretVerticalOffset + model.caretLine * lineHeight - vScrollPos);
-    int docLen = model.document.length();
+    int docLen = getNumLines();
 
     int firstLine = getFirstLine();
     int lastLine = getLastLine();
@@ -517,39 +522,51 @@ public class EditorComponent extends View implements
     int rightPadding = toPx(EditorConst.RIGHT_PADDING);
 
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      CodeLine cLine = model.document.line(i);
+      int lineIndex = docToViewMap != null ? docToViewMap[i] : i;
+      if (lineIndex < 0) continue;
+      CodeLine cLine = model.document.line(lineIndex);
       CodeLineRenderer line = lineRenderer(i);
 
       int lineMeasure = line.updateTexture(
           cLine, g, lineHeight, editorWidth, hScrollPos,
-          i, i % lines.length);
+          lineIndex, i % lines.length);
 
       fullWidth = Math.max(fullWidth, lineMeasure + rightPadding);
 
       int yPosition = lineHeight * i - vScrollPos;
-      LineDiff diff = diffModel == null || i >= diffModel.length ? null : diffModel[i];
+      LineDiff diff = diffModel == null || lineIndex >= diffModel.length
+          ? null : diffModel[lineIndex];
       line.draw(
           pos.y + yPosition, dx, g,
           editorWidth, lineHeight, hScrollPos,
           codeLineColors, getSelLineSegment(i, cLine),
           model.definition, model.usages,
-          model.caretLine == i, null, null,
+          model.caretLine == lineIndex, null, null,
               diff);
     }
 
     V2i sizeTmp = context.v2i1;
-    for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
+    if (drawTails) for (int i = firstLine; i <= lastLine && i < docLen; i++) {
+      int lineIndex = docToViewMap != null ? docToViewMap[i] : i;
+      if (lineIndex < 0) continue;
       CodeLineRenderer line = lineRenderer(i);
       int yPosition = lineHeight * i - vScrollPos;
-      boolean isTailSelected = selection().isTailSelected(i);
+      boolean isTailSelected = selection().isTailSelected(lineIndex);
       V4f tailColor = colors.editor.bg;
-      boolean isCurrentLine = model.caretLine == i;
 
-      if (isTailSelected) tailColor = colors.editor.selectionBg;
-      else if (diffModel != null && i < diffModel.length && diffModel[i] != null && !diffModel[i].isDefault()) {
-        tailColor = colors.codeDiffBg.getDiffColor(colors, diffModel[i].type);
+      if (isTailSelected)
+        tailColor = colors.editor.selectionBg;
+      else {
+        var dm = diffModel != null && lineIndex < diffModel.length
+            ? diffModel[lineIndex] : null;
+        if (dm != null) {
+          tailColor = colors.codeDiffBg.getDiffColor(colors, dm.type);
+        } else {
+          boolean isCurrentLine = model.caretLine == lineIndex;
+          if (isCurrentLine)
+            tailColor = colors.editor.currentLineBg;
+        }
       }
-      else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
 
       line.drawTail(g, dx, pos.y + yPosition, lineHeight,
           sizeTmp, hScrollPos, editorWidth, tailColor);
@@ -651,12 +668,16 @@ public class EditorComponent extends View implements
     lineNumbers.draw(textHeight, vScrollPos, firstLine, lastLine, caretLine, g, colors);
   }
 
+  public int getNumLines() {
+    return docToViewMap != null ? docToViewMap.length : model.document.length();
+  }
+
   public int getFirstLine() {
-    return Math.min(vScrollPos / lineHeight, model.document.length() - 1);
+    return Math.min(vScrollPos / lineHeight, getNumLines() - 1);
   }
 
   public int getLastLine() {
-    return Math.min((vScrollPos + editorHeight() - 1) / lineHeight, model.document.length() - 1);
+    return Math.min((vScrollPos + editorHeight() - 1) / lineHeight, getNumLines() - 1);
   }
 
   public int lineToPos(int line) {
@@ -1008,9 +1029,7 @@ public class EditorComponent extends View implements
 
   private boolean setCaretPos(int charPos, boolean shift) {
     model.caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
-    model.caretPos = dpr == 0 ? 0
-        : caretCodeLine().computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
-    startBlinking();
+    recomputeCaretPos();
     adjustEditorScrollToCaret();
     if (shift) selection().isSelectionStarted = true;
     selection().select(model.caretLine, model.caretCharPos);
@@ -1047,8 +1066,8 @@ public class EditorComponent extends View implements
 
     int editVisibleXMin = hScrollPos;
     int editVisibleXMax = hScrollPos + editorWidth();
-    int caretVisibleX0 = model.caretPos;
-    int caretVisibleX1 = model.caretPos + xOffset;
+    int caretVisibleX0 = caretPosX;
+    int caretVisibleX1 = caretPosX + xOffset;
 
     if (caretVisibleX0 < editVisibleXMin + xOffset) {
       setScrollPosX(caretVisibleX0 - xOffset);
@@ -1063,17 +1082,18 @@ public class EditorComponent extends View implements
   }
 
   public void findUsages(V2i position, ReferenceProvider.Provider provider) {
-    Pos documentPosition = computeCharPos(position);
+    Pos pos = computeCharPos(position);
+    if (pos == null) return;
 
     if (provider != null) {
-      provider.provideReferences(model, documentPosition.line, documentPosition.pos, true,
+      provider.provideReferences(model, pos.line, pos.pos, true,
           (locs) -> showUsagesViaLocations(position, locs), onError);
     }
   }
 
   public void findUsages(V2i position, DefDeclProvider.Provider provider) {
-
     Pos pos = computeCharPos(position);
+    if (pos == null) return;
     Pos startPos = model.document.getElementStart(pos.line, pos.pos);
     String elementName = getElementNameByStartPos(startPos);
 
@@ -1106,8 +1126,10 @@ public class EditorComponent extends View implements
       ui.displayNoUsagesPopup(position);
     } else {
       Pos charPos = computeCharPos(position);
-      Pos startPos = model.document.getElementStart(charPos.line, charPos.pos);
-      ui.showUsagesWindow(position, locs, this, getElementNameByStartPos(startPos));
+      if (charPos != null) {
+        Pos startPos = model.document.getElementStart(charPos.line, charPos.pos);
+        ui.showUsagesWindow(position, locs, this, getElementNameByStartPos(startPos));
+      }
     }
   }
 
@@ -1139,7 +1161,11 @@ public class EditorComponent extends View implements
     int localX = eventPosition.x - pos.x;
     int localY = eventPosition.y - pos.y;
 
-    int line = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, model.document.length() - 1);
+    int vL = (localY + vScrollPos) / lineHeight;
+    int vLine = Numbers.clamp(0, vL, getNumLines() - 1);
+    int line = docToViewMap != null ? docToViewMap[vLine] : vLine;
+    if (line < 0) return null;
+
     int offset = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
     int documentXPosition = Math.max(0, localX - offset + hScrollPos);
     int charPos = model.document.line(line).computeCharPos(documentXPosition, g.mCanvas, fonts);
@@ -1148,16 +1174,23 @@ public class EditorComponent extends View implements
 
   private void dragText(MouseEvent event) {
     Pos pos = computeCharPos(event.position);
-    moveCaret(pos);
-    selection().select(model.caretLine, model.caretCharPos);
-    adjustEditorScrollToCaret();
+    if (pos != null) {
+      moveCaret(pos);
+      selection().select(model.caretLine, model.caretCharPos);
+      adjustEditorScrollToCaret();
+    }
   }
 
   private void moveCaret(Pos pos) {
     model.caretLine = pos.line;
     model.caretCharPos = pos.pos;
-    model.caretPos = model.document.line(pos.line)
-        .computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
+    recomputeCaretPos();
+  }
+
+  private void recomputeCaretPos() {
+    caretPosX = dpr == 0 ? 0 :
+        caretCodeLine().computePixelLocation(
+            model.caretCharPos, g.mCanvas, fonts);
     startBlinking();
   }
 
@@ -1213,6 +1246,7 @@ public class EditorComponent extends View implements
 
     V2i eventPosition = event.position;
     Pos pos = computeCharPos(eventPosition);
+    if (pos == null) return;
     Pos startPos = model.document.getElementStart(pos.line, pos.pos);
     String elementName = getElementNameByStartPos(startPos);
 
@@ -1228,6 +1262,7 @@ public class EditorComponent extends View implements
 
   void onDoubleClickText(V2i eventPosition) {
     Pos pos = computeCharPos(eventPosition);
+    if (pos == null) return;
     CodeLine line = codeLine(pos.line);
     int wordStart = line.getElementStart(model.caretCharPos);
     int wordEnd = line.nextPos(model.caretCharPos);
@@ -1269,7 +1304,7 @@ public class EditorComponent extends View implements
   }
 
   CodeLine caretCodeLine() {
-    return model.document.line(model.caretLine);
+    return model.caretCodeLine();
   }
 
   CodeLine codeLine(int n) {
@@ -1336,8 +1371,9 @@ public class EditorComponent extends View implements
         return MouseListener.Static.emptyConsumer;
 
       saveToNavStack();
-      V2i eventPosition = mousePos;
-      Pos pos = computeCharPos(eventPosition);
+      Pos pos = computeCharPos(mousePos);
+      if (pos == null)
+        return MouseListener.Static.emptyConsumer;
 
       moveCaret(pos);
       model.computeUsages();
@@ -1414,9 +1450,13 @@ public class EditorComponent extends View implements
         if (isInsideText(mousePos)) {
           if (event.ctrl) {
             Pos pos = computeCharPos(mousePos);
-            model.document.moveToElementStart(pos);
-            boolean hasUsage = model.document.hasDefOrUsagesForElementPos(pos);
-            setCursor.set(hasUsage ? Cursor.pointer : Cursor.text);
+            if (pos == null) {
+              setCursor.set(Cursor.pointer);
+            } else {
+              model.document.moveToElementStart(pos);
+              boolean hasUsage = model.document.hasDefOrUsagesForElementPos(pos);
+              setCursor.set(hasUsage ? Cursor.pointer : Cursor.text);
+            }
           } else {
             setCursor.set(Cursor.text);
           }
@@ -1870,5 +1910,30 @@ public class EditorComponent extends View implements
 
   public void setCodeMap() {
     // todo: highlight current symbol or selection search...
+  }
+  
+  public void setCodeLineRemap(int[] remap, Runnable[] remapActions) {
+    docToViewMap = remap;
+    this.remapActions = remapActions;
+  }
+
+  int[] makeDebugRemap() {
+    int length = model.document.length();
+    int[] r = new int[length / 2];
+    for (int i = 0; i < r.length; i++)
+      r[i] = (i % 9 == 4) ? -1 : (i * 7) % length;
+    return r;
+  }
+
+  Runnable[] remapActions() {
+    return new Runnable[] { () -> {} };
+  }
+
+  void toggleCodeLineRemap() {
+    if (docToViewMap == null) {
+      setCodeLineRemap(makeDebugRemap(), remapActions());
+    } else {
+      setCodeLineRemap(null, null);
+    }
   }
 }
