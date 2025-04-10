@@ -2,6 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.editor.DiffRef;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
+import org.sudu.experiments.editor.worker.diff.DiffRange;
 
 public class DiffSync {
   final DiffRef left, right;
@@ -28,16 +29,30 @@ public class DiffSync {
     int syncLine = (fromLastLine + fromFirstLine) / 2;
     int linesDelta = syncLine - fromFirstLine;
 
-    var range = model.range(syncLine, isLeft);
+    int rangeInd = model.rangeBinSearch(syncLine, isLeft);
+    var range = model.ranges[rangeInd];
+    DiffRange toRange = range;
+    if (range.type == DiffTypes.INSERTED || range.type == DiffTypes.DELETED) {
+      if (rangeInd > 0) {
+        var prevRange = model.ranges[rangeInd - 1];
+        if (prevRange.type == DiffTypes.INSERTED || prevRange.type == DiffTypes.DELETED) toRange = prevRange;
+      }
+    }
+
     int fromLine = (isLeft ? range.fromL : range.fromR);
     int fromLen = (isLeft ? range.lenL : range.lenR);
-    int toLine = (!isLeft ? range.fromL : range.fromR);
-    int toLen = (!isLeft ? range.lenL : range.lenR);
+    int toLine = (!isLeft ? toRange.fromL : toRange.fromR);
+    int toLen = (!isLeft ? toRange.lenL : toRange.lenR);
 
-    float posInRange = (float) (syncLine - fromLine) / fromLen;
+    int toNewLine = toLine - linesDelta;
+    if (range.type == DiffTypes.EDITED) {
+      float posInRange = (float) (syncLine - fromLine) / fromLen;
+      toNewLine += (int) (posInRange * toLen);
+    } else {
+      toNewLine += syncLine - fromLine;
+    }
 
     int scrollDelta = -(from.lineToPos(fromFirstLine) - from.pos().y);
-    int toNewLine = toLine + (int) (posInRange * toLen) - linesDelta;
     to.setVScrollPosSilent(toNewLine * to.lineHeight() + scrollDelta);
   }
 }
