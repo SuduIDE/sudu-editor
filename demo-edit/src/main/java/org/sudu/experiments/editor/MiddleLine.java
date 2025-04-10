@@ -148,12 +148,14 @@ public class MiddleLine extends View {
       int rectY1 = Math.min(Math.max(leftY1, rightY1), pos.y + size.y);
       if (rectY1 <= rectY0) continue;
 
+      int x = EditorConst.SYNC_LINE_HEIGHT;
+
       if (leftY > rightY) {
-        p12.x -= d;
-        p21.x += d;
-      } else if(leftY < rightY) {
-        p11.x += d;
-        p22.x -= d;
+        p12.x -= x;
+        p21.x += x;
+      } else if (leftY < rightY) {
+        p11.x += x;
+        p22.x -= x;
       }
 
       rSize.set(size.x, rectY1 - rectY0);
