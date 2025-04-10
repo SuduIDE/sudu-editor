@@ -41,6 +41,11 @@ public class EditorComponent extends View implements
   static final boolean dumpFontsOnResize = false;
 
   final Caret caret = new Caret();
+  int caretPosX;
+  // this is line number in view coordinates
+  // it must be equals to model.caretLine if no line remapping enabled
+  int caretLine;
+
   boolean hasFocus;
 
   float fontVirtualSize = EditorConst.DEFAULT_FONT_SIZE;
@@ -104,7 +109,6 @@ public class EditorComponent extends View implements
   Consumer<EditorComponent> onDiffMadeListener;
   int vScrollPos = 0;
   int hScrollPos = 0;
-  int caretPosX;
 
   final ClrContext lrContext;
   InputListeners.KeyHandler onKey;
