@@ -41,7 +41,7 @@ public class RereadFolderHandler {
 
   public void read(DirectoryHandle handle) {
     ++readCnt;
-    handle.read(new DiffReader(this::onRead));
+    handle.read(new DiffReader(this::onRead, this::sendError));
   }
 
   public void onRead(TreeS[] children) {
@@ -67,5 +67,13 @@ public class RereadFolderHandler {
       result.addAll(items);
       ArrayOp.sendArrayList(result, r);
     }
+  }
+
+  public void sendError(String error) {
+    System.err.println("RereadFolderHandler.sendError: " + error);
+    ArrayList<Object> result = new ArrayList<>();
+    result.add(new int[]{-1});
+    result.add(error);
+    ArrayOp.sendArrayList(result, r);
   }
 }

@@ -13,9 +13,11 @@ public class DiffReader implements DirectoryHandle.Reader {
   TreeS[] dirs = new TreeS[1], files = new TreeS[1];
   int dP = 0, fP = 0;
   final Consumer<TreeS[]> onComplete;
+  final Consumer<String> onError;
 
-  public DiffReader(Consumer<TreeS[]> onComplete) {
+  public DiffReader(Consumer<TreeS[]> onComplete, Consumer<String> onError) {
     this.onComplete = onComplete;
+    this.onError = onError;
   }
 
   @Override
@@ -36,5 +38,10 @@ public class DiffReader implements DirectoryHandle.Reader {
     Arrays.sort(files, 0, fP, Comparator.comparing(a -> a.name));
     TreeS[] children = ArrayOp.add(dirs, dP, files, fP, new TreeS[fP + dP]);
     onComplete.accept(children);
+  }
+
+  @Override
+  public void onError(String error) {
+    onError.accept(error);
   }
 }

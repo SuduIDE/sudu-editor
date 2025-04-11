@@ -121,6 +121,12 @@ public class DirectoryNode extends FileTreeNode {
         open();
         handler.folderOpened(DirectoryNode.this);
       }
+
+      @Override
+      public void onError(String error) {
+        String msg = "DirectoryNode.onError: error while reading folder " + dir.getFullPath() + ": " + error;
+        System.err.println(msg);
+      }
     });
   }
 

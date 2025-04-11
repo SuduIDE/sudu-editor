@@ -39,7 +39,8 @@ public class ReadFolderHandler {
   public void read(ItemFolderDiffModel model) {
     ++readCnt;
     var dirHandle = (DirectoryHandle) model.item();
-    dirHandle.read(new DiffReader(children -> onFolderRead(model, children)));
+    Consumer<TreeS[]> onComplete = children -> onFolderRead(model, children);
+    dirHandle.read(new DiffReader(onComplete, this::sendError));
   }
 
   public static void setChildren(ItemFolderDiffModel parent, TreeS[] paths) {
@@ -86,5 +87,13 @@ public class ReadFolderHandler {
       result.addAll(fsItems);
       ArrayOp.sendArrayList(result, r);
     }
+  }
+
+  public void sendError(String error) {
+    System.err.println("ReadFolderHandler: " + error);
+    ArrayList<Object> result = new ArrayList<>();
+    result.add(new int[]{-1});
+    result.add(error);
+    ArrayOp.sendArrayList(result, r);
   }
 }
