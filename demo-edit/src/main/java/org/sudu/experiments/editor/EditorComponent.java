@@ -1027,6 +1027,7 @@ public class EditorComponent extends View implements
   }
 
   private boolean setCaretLine(int value, boolean shift) {
+    // write 1
     model.caretLine = Numbers.clamp(0, value, model.document.length() - 1);
     return setCaretPos(model.caretCharPos, shift);
   }
@@ -1090,6 +1091,8 @@ public class EditorComponent extends View implements
     if (pos == null) return;
 
     if (provider != null) {
+      // todo: probable bug: position captured is used to computeCharPos in showUsagesViaLocations,
+      // but the result may differ from previous (local) "Pos pos" value
       provider.provideReferences(model, pos.line, pos.pos, true,
           (locs) -> showUsagesViaLocations(position, locs), onError);
     }
@@ -1163,10 +1166,7 @@ public class EditorComponent extends View implements
 
   Pos computeCharPos(V2i eventPosition) {
     int localX = eventPosition.x - pos.x;
-    int localY = eventPosition.y - pos.y;
-
-    int vL = (localY + vScrollPos) / lineHeight;
-    int vLine = Numbers.clamp(0, vL, getNumLines() - 1);
+    int vLine = mouseToVLine(eventPosition.y);
     int line = docToViewMap != null ? docToViewMap[vLine] : vLine;
     if (line < 0) return null;
 
@@ -1176,7 +1176,14 @@ public class EditorComponent extends View implements
     return new Pos(line, charPos);
   }
 
-  private void dragText(MouseEvent event) {
+  private int mouseToVLine(int mouseY) {
+    int localY = mouseY - pos.y;
+
+    int vL = (localY + vScrollPos) / lineHeight;
+    return Numbers.clamp(0, vL, getNumLines() - 1);
+  }
+
+  private void textSelectMouseHandler(MouseEvent event) {
     Pos pos = computeCharPos(event.position);
     if (pos != null) {
       moveCaret(pos);
@@ -1186,6 +1193,7 @@ public class EditorComponent extends View implements
   }
 
   private void moveCaret(Pos pos) {
+    // write 2
     model.caretLine = pos.line;
     model.caretCharPos = pos.pos;
     recomputeCaretPos();
@@ -1388,7 +1396,7 @@ public class EditorComponent extends View implements
 
       selection().isSelectionStarted = true;
       selection().select(model.caretLine, model.caretCharPos);
-      return this::dragText;
+      return this::textSelectMouseHandler;
     }
     return null;
   }
