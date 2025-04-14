@@ -1127,11 +1127,7 @@ public class EditorComponent extends View implements
   }
 
   private void showUsagesViaLocations(V2i position, Location[] locs) {
-    List<Pos> pos = new ArrayList<>();
-    for (Location loc : locs) {
-      pos.add(new Pos(loc.range.startLineNumber, loc.range.startColumn));
-    }
-    if (pos.isEmpty()) {
+    if (locs.length == 0) {
       ui.displayNoUsagesPopup(position);
     } else {
       Pos charPos = computeCharPos(position);
@@ -1860,7 +1856,6 @@ public class EditorComponent extends View implements
 
   @Override
   public void updateModelOnDiff(Diff diff, boolean isUndo) {
-
     if (updateModelOnDiffListener != null) {
       updateModelOnDiffListener.accept(this, diff, isUndo);
     }
