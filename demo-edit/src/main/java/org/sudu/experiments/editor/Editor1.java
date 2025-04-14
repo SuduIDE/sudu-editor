@@ -12,6 +12,12 @@ public class Editor1 extends Editor0 {
     StartFile.apply(editor);
 
     api.input.onKeyPress.add(this::onKeyPress);
+
+    editor.setUpdateModelOnDiffListener(this::onDiffMade);
+  }
+
+  private void onDiffMade(EditorComponent editorComponent, Diff diff, Boolean isUndo) {
+    System.out.println("onDiffMade: line=" + diff.line + ", lineCount = " + diff.lineCount());
   }
 
   boolean onKeyPress(KeyEvent event) {
