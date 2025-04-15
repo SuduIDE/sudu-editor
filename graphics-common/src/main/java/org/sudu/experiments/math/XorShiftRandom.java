@@ -57,6 +57,10 @@ public class XorShiftRandom {
     return intToDouble01(next());
   }
 
+  public final boolean nextBoolean() {
+    return (next() & 1) == 1;
+  }
+
   public <T> void shuffle(T[] array) {
     for (int i = array.length - 1; i > 0; i--) {
       int r = nextInt(i + 1);

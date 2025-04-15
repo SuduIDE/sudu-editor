@@ -4,7 +4,10 @@ import org.sudu.experiments.Debug;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.fonts.Fonts;
+import org.sudu.experiments.math.XorShiftRandom;
 import org.sudu.experiments.parser.common.Pos;
+
+import java.util.ArrayList;
 
 public class DebugHelper {
   static void dumpFontsSize(WglGraphics g) {
@@ -42,5 +45,28 @@ public class DebugHelper {
   static void dumpReferenceProvider(ReferenceProvider.Provider p, Model m, Pos pos) {
     p.provideReferences(m, pos.line, pos.pos, true,
         DebugHelper::dumpResult, Debug::consoleInfo);
+  }
+
+  static Runnable[] remapActions() {
+    return new Runnable[] { () -> {} };
+  }
+
+  @SuppressWarnings("ToArrayCallWithZeroLengthArrayArgument")
+  static CompactViewRange[] makeDebugRemap(Document doc) {
+    int length = doc.length();
+    int rngMax = length / 7;
+    XorShiftRandom r = new XorShiftRandom();
+    ArrayList<CompactViewRange> ranges = new ArrayList<>();
+
+    int pos = 0;
+
+    while (pos < length) {
+      int l = r.nextInt(rngMax);
+      boolean visible = r.nextBoolean();
+      ranges.add(new CompactViewRange(pos, pos + l, visible));
+      pos += l;
+    }
+
+    return ranges.toArray(new CompactViewRange[ranges.size()]);
   }
 }

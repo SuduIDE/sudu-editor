@@ -116,8 +116,7 @@ public class EditorComponent extends View implements
   GL.Texture codeMap;
   final V2i codeMapSize = new V2i();
 
-  int[] docToView, viewToDocMap;
-  Runnable[]  remapActions;
+  CodeLineMapping docToView = CodeLineMapping.fromModel(model);
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -526,7 +525,7 @@ public class EditorComponent extends View implements
     int rightPadding = toPx(EditorConst.RIGHT_PADDING);
 
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      int lineIndex = docToView != null ? docToView[i] : i;
+      int lineIndex = docToView.viewToDoc(i);
       if (lineIndex < 0) continue;
       CodeLine cLine = model.document.line(lineIndex);
       CodeLineRenderer line = lineRenderer(i);
@@ -551,7 +550,7 @@ public class EditorComponent extends View implements
 
     V2i sizeTmp = context.v2i1;
     if (drawTails) for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      int lineIndex = docToView != null ? docToView[i] : i;
+      int lineIndex = docToView.viewToDoc(i);;
       if (lineIndex < 0) continue;
       CodeLineRenderer line = lineRenderer(i);
       int yPosition = lineHeight * i - vScrollPos;
@@ -673,7 +672,7 @@ public class EditorComponent extends View implements
   }
 
   public int getNumLines() {
-    return docToView != null ? docToView.length : model.document.length();
+    return docToView.length();
   }
 
   public int getFirstLine() {
@@ -1165,7 +1164,7 @@ public class EditorComponent extends View implements
   Pos computeCharPos(V2i eventPosition) {
     int localX = eventPosition.x - pos.x;
     int vLine = mouseToVLine(eventPosition.y);
-    int line = docToView != null ? docToView[vLine] : vLine;
+    int line = docToView.viewToDoc(vLine);
     if (line < 0) return null;
 
     int offset = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
@@ -1921,33 +1920,20 @@ public class EditorComponent extends View implements
   public void setCodeMap() {
     // todo: highlight current symbol or selection search...
   }
-  
-  public void setCodeLineRemap(
-      int[] docToView,
-      Runnable[] remapActions
-  ) {
-    this.docToView = docToView;
-    this.remapActions = remapActions;
-  }
 
-  int[] makeDebugRemap() {
-    int length = model.document.length();
-    int[] dtv = new int[length / 2];
-    int[] vtd = new int[length];
-    for (int i = 0; i < dtv.length; i++)
-      dtv[i] = (i % 9 == 4) ? -1 : (i * 7) % length;
-    return dtv;
-  }
-
-  Runnable[] remapActions() {
-    return new Runnable[] { () -> {} };
+  // call of this method is required for both:
+  // new and in-place edited the data
+  public void setCompactViewModel(CompactViewRange[] data) {
+    docToView = data == null
+        ? CodeLineMapping.fromModel(model)
+        : new CompactCodeView(data);
   }
 
   void toggleCodeLineRemap() {
     if (docToView == null) {
-      setCodeLineRemap(makeDebugRemap(), remapActions());
+      setCompactViewModel(DebugHelper.makeDebugRemap(model.document));
     } else {
-      setCodeLineRemap(null, null);
+      setCompactViewModel(null);
     }
   }
 }

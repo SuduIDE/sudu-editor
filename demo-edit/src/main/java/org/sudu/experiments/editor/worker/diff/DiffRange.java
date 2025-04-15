@@ -18,6 +18,10 @@ public class DiffRange {
 
   public final int toR() { return fromR + lenR; }
 
+  public final int to(boolean left) {
+    return left ? fromL + lenL: fromR + lenR;
+  }
+
   @Override
   public String toString() {
     return String.format("[%d: %d) |-> [%d: %d)", fromL, fromL + lenL, fromR, fromR + lenR);

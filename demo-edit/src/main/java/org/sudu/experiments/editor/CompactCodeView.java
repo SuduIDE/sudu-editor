@@ -1,24 +1,33 @@
 package org.sudu.experiments.editor;
 
 public class CompactCodeView extends CodeLineMapping {
-  int[] docToView;
+  CompactViewRange[] data;
+  int[] lengths;
+  int length;
   CompactViewIterator cache;
 
-  public CompactCodeView(int[] docToView) {
-    this.docToView = docToView;
+  public CompactCodeView(CompactViewRange[] data) {
+    this.data = data;
+    lengths = new int[data.length];
+    length = 0;
+    for (int i = 0; i < data.length; i++) {
+      lengths[i] = length;
+      CompactViewRange range = data[i];
+      length += range.visibleLineCount();
+    }
   }
 
   int length() {
-    return docToView.length;
+    return length;
   }
 
   @Override
-  int docToView(int line) {
-    return docToView[line];
+  int docToView(int docLine) {
+    return -1;
   }
 
   @Override
-  int viewToDoc(int line) {
+  int viewToDoc(int viewLine) {
     return 0;
   }
 

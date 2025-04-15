@@ -2,13 +2,16 @@ package org.sudu.experiments.editor;
 
 public abstract class CodeLineMapping {
   abstract int length();
-  abstract int docToView(int line);
-  abstract int viewToDoc(int line);
+  abstract int docToView(int docLine);
+  abstract int viewToDoc(int viewLine);
+  void clickDelimiter(int index) {}
 
   abstract LineIterator iterateLines(int first);
   abstract void releaseIterator(LineIterator iter);
 
+  // translate view range to document space
   static abstract class LineIterator {
+    // returns index in document space
     abstract int getAndIncrement();
   }
 
@@ -21,13 +24,13 @@ public abstract class CodeLineMapping {
       }
 
       @Override
-      int docToView(int line) {
-        return line;
+      int docToView(int docLine) {
+        return docLine;
       }
 
       @Override
-      int viewToDoc(int line) {
-        return line;
+      int viewToDoc(int viewLine) {
+        return viewLine;
       }
 
       static class TrivialIterator extends LineIterator {
