@@ -131,7 +131,6 @@ public class EditorComponent extends View implements
     debugFlags[4] = this::toggleMirrored;
     debugFlags[5] = () -> drawGap = !drawGap;
     debugFlags[6] = () -> printResolveTime = !printResolveTime;
-    debugFlags[7] = this::toggleCodeLineRemap;
 
     model.setEditor(this, window().worker());
   }
@@ -1744,6 +1743,7 @@ public class EditorComponent extends View implements
 
     Model oldModel = this.model;
     this.model = model;
+    docToView = CodeLineMapping.fromModel(model);
     oldModel.setEditor(null, null);
     model.setEditor(this, window().worker());
     registrations.fireModelChange(oldModel, model);
@@ -1927,13 +1927,5 @@ public class EditorComponent extends View implements
     docToView = data == null
         ? CodeLineMapping.fromModel(model)
         : new CompactCodeView(data);
-  }
-
-  void toggleCodeLineRemap() {
-    if (docToView == null) {
-      setCompactViewModel(DebugHelper.makeDebugRemap(model.document));
-    } else {
-      setCompactViewModel(null);
-    }
   }
 }

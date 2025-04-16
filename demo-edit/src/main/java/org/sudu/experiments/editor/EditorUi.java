@@ -329,13 +329,17 @@ public class EditorUi {
     }
 
     private Supplier<ToolbarItem[]> rDebugMenu() {
-      return ArrayOp.supplier(
+      var array = ArrayOp.array(
           ti("↓ move", editor::moveDown),
           ti("■ stop", editor::stopMove),
           ti("↑ move", editor::moveUp),
           ti("toggleXOffset", editor::toggleXOffset),
-          ti("toggleTails", editor::toggleTails),
-          ti("toggleCodeLineRemap", editor::toggleCodeLineRemap));
+          ti("toggleTails", editor::toggleTails));
+      if (editor.debugFlags[7] != null) {
+        array = ArrayOp.add(array,
+            ti("toggleCodeLineRemap", editor.debugFlags[7]));
+      }
+      return ArrayOp.supplier(array);
     }
 
     private Supplier<ToolbarItem[]> themes() {

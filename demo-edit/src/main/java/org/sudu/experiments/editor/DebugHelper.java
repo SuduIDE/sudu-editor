@@ -54,7 +54,7 @@ public class DebugHelper {
   @SuppressWarnings("ToArrayCallWithZeroLengthArrayArgument")
   static CompactViewRange[] makeDebugRemap(Document doc) {
     int length = doc.length();
-    int rngMax = length / 7;
+    int rngMax = length / 5;
     XorShiftRandom r = new XorShiftRandom();
     ArrayList<CompactViewRange> ranges = new ArrayList<>();
 
@@ -63,7 +63,8 @@ public class DebugHelper {
     while (pos < length) {
       int l = r.nextInt(rngMax);
       boolean visible = r.nextBoolean();
-      ranges.add(new CompactViewRange(pos, pos + l, visible));
+      int endLine = Math.min(pos + l, length);
+      ranges.add(new CompactViewRange(pos, endLine, visible));
       pos += l;
     }
 

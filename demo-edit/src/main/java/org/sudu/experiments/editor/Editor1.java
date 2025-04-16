@@ -11,6 +11,8 @@ public class Editor1 extends Editor0 {
     super(api);
     StartFile.apply(editor);
 
+    editor.debugFlags[7] = this::toggleCodeLineRemap;
+
     api.input.onKeyPress.add(this::onKeyPress);
 
     editor.setUpdateModelOnDiffListener(this::onDiffMade);
@@ -43,4 +45,15 @@ public class Editor1 extends Editor0 {
   protected String[] menuFonts() {
     return Fonts.editorFonts(true);
   }
+
+  static boolean sameClass(Object o1, Object o2) { return o1.getClass() == o2.getClass(); }
+
+  void toggleCodeLineRemap() {
+    if (sameClass(editor.docToView, CodeLineMapping.fromModel(editor.model))) {
+      editor.setCompactViewModel(DebugHelper.makeDebugRemap(editor.model.document));
+    } else {
+      editor.setCompactViewModel(null);
+    }
+  }
+
 }
