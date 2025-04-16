@@ -501,12 +501,6 @@ public class EditorComponent extends View implements
     g.enableBlend(false);
     g.enableScissor(pos, size);
 
-    int caretVerticalOffset = (lineHeight - caret.height()) / 2;
-    int caretX = caretPosX - caret.width() / 2 - hScrollPos;
-    int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
-    caret.setPosition(
-        dCaret + caretX,
-        caretVerticalOffset + model.caretLine * lineHeight - vScrollPos);
     int docLen = getNumLines();
 
     int firstLine = getFirstLine();
@@ -586,9 +580,7 @@ public class EditorComponent extends View implements
     if (!mirrored)
       drawGap(firstLine, lastLine, docLen);
 
-    if (hasFocus && caretX >= -caret.width() / 2 && caret.needsPaint(size)) {
-      caret.paint(g, pos);
-    }
+    drawCaret();
 
     if (codeMap != null)
       drawCodeMap();
@@ -610,6 +602,22 @@ public class EditorComponent extends View implements
       String s = "fullMeasure:" + CodeLine.cacheMiss + ", cacheHits: " + CodeLine.cacheHits;
       Debug.consoleInfo(s);
       CodeLine.cacheMiss = CodeLine.cacheHits = 0;
+    }
+  }
+
+  private void drawCaret() {
+    if (hasFocus && caret.state) {
+      int caretVerticalOffset = (lineHeight - caret.height()) / 2;
+      int caretX = caretPosX - caret.width() / 2 - hScrollPos;
+      int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
+      int viewLine = docToView.docToView(model.caretLine);
+      if (viewLine >= 0) {
+        caret.setLocal(
+            dCaret + caretX,
+            caretVerticalOffset + viewLine * lineHeight - vScrollPos);
+        if (caretX >= -caret.width() / 2 && caret.needsPaint(size))
+          caret.paint(g, pos);
+      }
     }
   }
 

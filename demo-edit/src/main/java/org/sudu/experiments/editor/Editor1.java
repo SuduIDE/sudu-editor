@@ -5,6 +5,8 @@ import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 
+import java.util.Arrays;
+
 public class Editor1 extends Editor0 {
 
   public Editor1(SceneApi api) {
@@ -50,7 +52,9 @@ public class Editor1 extends Editor0 {
 
   void toggleCodeLineRemap() {
     if (sameClass(editor.docToView, CodeLineMapping.fromModel(editor.model))) {
-      editor.setCompactViewModel(DebugHelper.makeDebugRemap(editor.model.document));
+      var cvm = DebugHelper.makeDebugRemap(editor.model.document);
+      editor.setCompactViewModel(cvm);
+      System.out.println("setCompactViewModel: " + Arrays.toString(cvm));
     } else {
       editor.setCompactViewModel(null);
     }

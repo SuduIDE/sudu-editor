@@ -196,7 +196,7 @@ public class DemoScene1 extends Scene {
       mouse.drawGrayIcon(g, iconTexture, 0, 0, 0);
     }
 
-    caret.paint(g, new V2i());
+    if (caret.state) caret.paint(g, new V2i());
 
     g.checkError("paint complete ");
   }
@@ -257,7 +257,7 @@ public class DemoScene1 extends Scene {
       if (button == MouseListener.MOUSE_BUTTON_LEFT) {
         V2i p = event.position;
         V2i drag = text1Rect.isInside(p) ? p : null;
-        caret.setPosition(p.x, p.y);
+        caret.setLocal(p.x, p.y);
         caret.startDelay(api.window.timeNow());
 
         return drag != null ? e -> {
