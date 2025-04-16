@@ -1,6 +1,10 @@
 package org.sudu.experiments.editor;
 
 public abstract class CodeLineMapping {
+
+  static final int compacted = -1;
+  static final int outOfRange = -2;
+
   abstract int length();
   abstract int docToView(int docLine);
   abstract int viewToDoc(int viewLine);

@@ -2,7 +2,6 @@ package org.sudu.experiments.editor;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 
 class CompactViewRangeTest {
@@ -13,7 +12,7 @@ class CompactViewRangeTest {
 
     t1(model1);
 
-    var model2 = model2(model1);
+    var model2 = model2();
 
     t1(model2);
     t2(model2);
@@ -44,31 +43,37 @@ class CompactViewRangeTest {
     }
   }
 
-  // [1..5)
   static CompactViewRange[] model1() {
     return new CompactViewRange[]{
-        new CompactViewRange(1, 5, true)};
+        _1_5_visible()
+    };
   }
 
-  // [8..11)
   static CompactViewRange[] model2() {
-    return model2(model1());
+    return  new CompactViewRange[]{
+        _1_5_visible(),
+        _8_11_invisible()
+    };
   }
-
-  static CompactViewRange[] model2(CompactViewRange[] model1) {
-    return ArrayOp.add(model1,
-        new CompactViewRange(8, 11, false));
-  }
-
-  // [12..17)
 
   static CompactViewRange[] model3() {
-    return model3(model2());
+    return  new CompactViewRange[]{
+        _1_5_visible(),
+        _8_11_invisible(),
+        _12_17_visible()
+    };
   }
 
-  static CompactViewRange[] model3(CompactViewRange[] model3) {
-    return ArrayOp.add(model3,
-        new CompactViewRange(12, 17, true));
+  static CompactViewRange _1_5_visible() {
+    return new CompactViewRange(1, 5, true);
+  }
+
+  static CompactViewRange _8_11_invisible() {
+    return new CompactViewRange(8, 11, false);
+  }
+
+  static CompactViewRange _12_17_visible() {
+    return new CompactViewRange(12, 17, true);
   }
 
   static void t1(CompactViewRange[] m) {
@@ -89,7 +94,7 @@ class CompactViewRangeTest {
 
 
   @Test
-  void testCompactCodeView() {
+  void testViewToDoc() {
     CompactCodeView v = new CompactCodeView(model3());
     V2i[] viewToDocVerifyTable = new V2i[]{
         // [1..5)  visible
@@ -98,19 +103,23 @@ class CompactViewRangeTest {
         new V2i(2, 3),
         new V2i(3, 4),
         // [8..11)  invisible
-        new V2i(4, -1),
+        new V2i(4, CodeLineMapping.compacted),
         // [12..17)  visible
         new V2i(5, 12),
         new V2i(6, 13),
         new V2i(7, 14),
         new V2i(8, 15),
-        new V2i(9, 16)
+        new V2i(9, 16),
+        new V2i(10, CodeLineMapping.outOfRange),
+        new V2i(11, CodeLineMapping.outOfRange),
+        new V2i(-1, CodeLineMapping.outOfRange),
+        new V2i(-2, CodeLineMapping.outOfRange)
     };
-
 
     for (V2i pair : viewToDocVerifyTable) {
       int docLine = v.viewToDoc(pair.x);
-      Assertions.assertEquals(docLine, pair.y);
+      if (pair.y != docLine)
+        Assertions.fail();
     }
   }
 }

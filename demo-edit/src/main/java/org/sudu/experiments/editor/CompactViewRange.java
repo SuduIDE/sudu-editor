@@ -10,9 +10,18 @@ public class CompactViewRange {
     this.visible = visible;
   }
 
+  public boolean inRange(int line) {
+    return startLine <= line && line < endLine;
+  }
+
   public int visibleLineCount() {
     return visible ? endLine - startLine : 1;
   }
+
+  public int length() {
+    return endLine - startLine;
+  }
+
 
   // data.length > 0
   public static int binSearch(int line, CompactViewRange[] data) {
@@ -28,5 +37,10 @@ public class CompactViewRange {
       } else return mid;
     }
     return low;
+  }
+
+  @Override
+  public String toString() {
+    return "[" + startLine + ", " + endLine + ") " + (visible ? "visible" : "");
   }
 }

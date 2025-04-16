@@ -30,11 +30,36 @@ public class CompactCodeView extends CodeLineMapping {
 
   @Override
   int viewToDoc(int viewLine) {
+    if (viewLine == -555)
+      System.out.println("CompactCodeView.viewToDoc");
+
     int idx = Arrays.binarySearch(lengths, viewLine);
+
     if (idx < 0) {
-      int ip = -idx - 1;
+      int p = -idx - 2;
+      if (p < 0 || p >= data.length)
+        return outOfRange;
+
+      int rl = lengths[p];
+
+      if (viewLine < rl)
+        throw new RuntimeException();
+
+      CompactViewRange range = data[p];
+
+      int offset = viewLine - rl;
+      System.out.println("offset = " + offset);
+      if (offset >= range.length())
+        return outOfRange;
+
+      if (!range.visible)
+        throw new RuntimeException();
+
+      return range.startLine + offset;
+    } else {
+      CompactViewRange range = data[idx];
+      return range.visible ? range.startLine : compacted;
     }
-    return 0;
   }
 
   @Override
