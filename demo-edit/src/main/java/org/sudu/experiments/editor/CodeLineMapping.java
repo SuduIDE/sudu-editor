@@ -2,12 +2,16 @@ package org.sudu.experiments.editor;
 
 public abstract class CodeLineMapping {
 
-  static final int compacted = -1;
-  static final int outOfRange = -2;
+  // negative return value is outOfRange or regionIndex
+  static final int outOfRange = -1;
+  static int regionIndex(int r) { return -r - 2; }
+  static boolean isCompacted(int r) { return r < 0 && r != outOfRange; }
 
   abstract int length();
+
   abstract int docToView(int docLine);
   abstract int viewToDoc(int viewLine);
+
   void clickDelimiter(int index) {}
 
   abstract LineIterator iterateLines(int first);

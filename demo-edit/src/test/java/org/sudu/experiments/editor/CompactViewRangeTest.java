@@ -92,7 +92,6 @@ class CompactViewRangeTest {
     Assertions.assertTrue(true);
   }
 
-
   @Test
   void testViewToDoc() {
     CompactCodeView v = new CompactCodeView(model3());
@@ -103,7 +102,7 @@ class CompactViewRangeTest {
         new V2i(2, 3),
         new V2i(3, 4),
         // [8..11)  invisible
-        new V2i(4, CodeLineMapping.compacted),
+        new V2i(4, CodeLineMapping.regionIndex(1)),
         // [12..17)  visible
         new V2i(5, 12),
         new V2i(6, 13),
@@ -111,15 +110,59 @@ class CompactViewRangeTest {
         new V2i(8, 15),
         new V2i(9, 16),
         new V2i(10, CodeLineMapping.outOfRange),
-        new V2i(11, CodeLineMapping.outOfRange),
-        new V2i(-1, CodeLineMapping.outOfRange),
-        new V2i(-2, CodeLineMapping.outOfRange)
+        new V2i(11, CodeLineMapping.outOfRange)
     };
 
     for (V2i pair : viewToDocVerifyTable) {
       int docLine = v.viewToDoc(pair.x);
       if (pair.y != docLine)
         Assertions.fail();
+    }
+  }
+
+  @Test
+  void testDocToView() {
+    CompactCodeView v = new CompactCodeView(model3());
+
+    V2i[] docToViewVerifyTable = new V2i[]{
+        new V2i(0, CodeLineMapping.outOfRange),
+
+        // [1..5)  visible
+        new V2i(1, 0),
+        new V2i(2, 1),
+        new V2i(3, 2),
+        new V2i(4, 3),
+
+        new V2i(5, CodeLineMapping.outOfRange),
+        new V2i(6, CodeLineMapping.outOfRange),
+        new V2i(7, CodeLineMapping.outOfRange),
+
+        // [8..11)  invisible
+        new V2i(8, CodeLineMapping.regionIndex(1)),
+        new V2i(9, CodeLineMapping.regionIndex(1)),
+        new V2i(10, CodeLineMapping.regionIndex(1)),
+
+        // out of range
+        new V2i(11, CodeLineMapping.outOfRange),
+
+        // [12..17)  visible
+        new V2i(12, 5),
+        new V2i(13, 6),
+        new V2i(14, 7),
+        new V2i(15, 8),
+        new V2i(16, 9),
+
+        // out of range
+        new V2i(17, CodeLineMapping.outOfRange),
+        new V2i(18, CodeLineMapping.outOfRange)
+    };
+
+    for (V2i pair : docToViewVerifyTable) {
+      int docLine = v.docToView(pair.x);
+      if (pair.y != docLine) {
+        System.out.println("fail " + pair);
+        Assertions.fail();
+      }
     }
   }
 }

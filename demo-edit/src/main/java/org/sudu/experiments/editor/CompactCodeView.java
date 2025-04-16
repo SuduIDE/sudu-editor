@@ -15,7 +15,7 @@ public class CompactCodeView extends CodeLineMapping {
     for (int i = 0; i < data.length; i++) {
       lengths[i] = length;
       CompactViewRange range = data[i];
-      length += range.visibleLineCount();
+      length += range.visible ? range.length() : 1;
     }
   }
 
@@ -25,40 +25,40 @@ public class CompactCodeView extends CodeLineMapping {
 
   @Override
   int docToView(int docLine) {
-    return -1;
+    int idx = CompactViewRange.binSearch(docLine, data);
+    if (idx >= data.length)
+      return outOfRange;
+    var range = data[idx];
+    if (range.inRange(docLine)) {
+      return range.visible
+          ?  lengths[idx] + docLine - range.startLine
+          : regionIndex(idx);
+    }
+    return outOfRange;
   }
 
   @Override
   int viewToDoc(int viewLine) {
-    if (viewLine == -555)
-      System.out.println("CompactCodeView.viewToDoc");
+    if (viewLine < 0)
+      throw new IllegalArgumentException("viewLine < 0");
 
     int idx = Arrays.binarySearch(lengths, viewLine);
 
+    // you always click in visible region or
+    // the 1st line of collapsed, so
+    // when idx < 0 -> range.visible === true
     if (idx < 0) {
       int p = -idx - 2;
       if (p < 0 || p >= data.length)
         return outOfRange;
 
-      int rl = lengths[p];
-
-      if (viewLine < rl)
-        throw new RuntimeException();
-
-      CompactViewRange range = data[p];
-
-      int offset = viewLine - rl;
-      System.out.println("offset = " + offset);
-      if (offset >= range.length())
-        return outOfRange;
-
-      if (!range.visible)
-        throw new RuntimeException();
-
-      return range.startLine + offset;
+      var range = data[p];
+      int offset = viewLine - lengths[p];
+      int doc = range.startLine + offset;
+      return doc >= range.endLine ? outOfRange : doc;
     } else {
-      CompactViewRange range = data[idx];
-      return range.visible ? range.startLine : compacted;
+      var range = data[idx];
+      return range.visible ? range.startLine : regionIndex(idx);
     }
   }
 
@@ -89,8 +89,7 @@ public class CompactCodeView extends CodeLineMapping {
 
     @Override
     int getAndIncrement() {
-      return 0;
+      return outOfRange;
     }
   }
-
 }

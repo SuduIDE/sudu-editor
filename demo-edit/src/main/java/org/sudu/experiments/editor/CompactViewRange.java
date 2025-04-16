@@ -14,14 +14,9 @@ public class CompactViewRange {
     return startLine <= line && line < endLine;
   }
 
-  public int visibleLineCount() {
-    return visible ? endLine - startLine : 1;
-  }
-
   public int length() {
     return endLine - startLine;
   }
-
 
   // data.length > 0
   public static int binSearch(int line, CompactViewRange[] data) {
