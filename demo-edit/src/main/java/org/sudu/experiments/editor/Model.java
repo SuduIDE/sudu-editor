@@ -489,4 +489,8 @@ public class Model {
     void updateModelOnDiff(Diff diff, boolean isUndo);
     void onDiffMade();
   }
+
+  public boolean hasDiffModel() {
+    return LineDiff.notEmpty(diffModel);
+  }
 }

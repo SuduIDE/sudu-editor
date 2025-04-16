@@ -116,7 +116,7 @@ public class EditorComponent extends View implements
   GL.Texture codeMap;
   final V2i codeMapSize = new V2i();
 
-  CodeLineMapping docToView = CodeLineMapping.fromModel(model);
+  CodeLineMapping docToView = new CodeLineMapping.Id(model);
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -199,7 +199,7 @@ public class EditorComponent extends View implements
 
     codeMapSize.x = Math.min(size.x, toPx(codeMapWidthDp));
     codeMapSize.y = size.y;
-    if (LineDiff.notEmpty(model.diffModel) && size.y > 0) {
+    if (model.hasDiffModel() && size.y > 0) {
       if (codeMap == null || codeMap.height() != size.y)
         buildDiffMap();
     }
@@ -543,7 +543,7 @@ public class EditorComponent extends View implements
 
     V2i sizeTmp = context.v2i1;
     if (drawTails) for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      int lineIndex = docToView.viewToDoc(i);;
+      int lineIndex = docToView.viewToDoc(i);
       if (lineIndex < 0) continue;
       CodeLineRenderer line = lineRenderer(i);
       int yPosition = lineHeight * i - vScrollPos;
@@ -1064,8 +1064,13 @@ public class EditorComponent extends View implements
   private void adjustEditorVScrollToCaret() {
     int editVisibleYMin = vScrollPos;
     int editVisibleYMax = vScrollPos + editorHeight();
-    int caretVisibleY0 = model.caretLine * lineHeight;
-    int caretVisibleY1 = model.caretLine * lineHeight + lineHeight;
+    int line = docToView.docToView(model.caretLine);
+    if (line <= 0) {
+      System.out.println("line = " + line);
+      return;
+    }
+    int caretVisibleY0 = line * lineHeight;
+    int caretVisibleY1 = line * lineHeight + lineHeight;
 
     if (caretVisibleY0 < editVisibleYMin + lineHeight) {
       setScrollPosY(caretVisibleY0 - lineHeight);
@@ -1751,7 +1756,7 @@ public class EditorComponent extends View implements
 
     Model oldModel = this.model;
     this.model = model;
-    docToView = CodeLineMapping.fromModel(model);
+    docToView = new CodeLineMapping.Id(model);
     oldModel.setEditor(null, null);
     model.setEditor(this, window().worker());
     registrations.fireModelChange(oldModel, model);
@@ -1820,7 +1825,7 @@ public class EditorComponent extends View implements
   }
 
   public void updateLineNumbersColors() {
-    if (LineDiff.notEmpty(model.diffModel)) {
+    if (model.hasDiffModel()) {
       byte[] c = new byte[model.diffModel.length];
       for (int i = 0; i < c.length; i++) {
         LineDiff ld = model.diffModel[i];
@@ -1933,7 +1938,6 @@ public class EditorComponent extends View implements
   // new and in-place edited the data
   public void setCompactViewModel(CompactViewRange[] data) {
     docToView = data == null
-        ? CodeLineMapping.fromModel(model)
-        : new CompactCodeView(data);
+        ? new CodeLineMapping.Id(model) : new CompactCodeView(data);
   }
 }

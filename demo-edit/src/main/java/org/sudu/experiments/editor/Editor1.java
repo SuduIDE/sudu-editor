@@ -51,8 +51,9 @@ public class Editor1 extends Editor0 {
   static boolean sameClass(Object o1, Object o2) { return o1.getClass() == o2.getClass(); }
 
   void toggleCodeLineRemap() {
-    if (sameClass(editor.docToView, CodeLineMapping.fromModel(editor.model))) {
-      var cvm = DebugHelper.makeDebugRemap(editor.model.document);
+    if (editor.docToView instanceof CodeLineMapping.Id) {
+//      var cvm = DebugHelper.makeDebugRemap(editor.model.document);
+      var cvm = DebugHelper.t1();
       editor.setCompactViewModel(cvm);
       System.out.println("setCompactViewModel: " + Arrays.toString(cvm));
     } else {

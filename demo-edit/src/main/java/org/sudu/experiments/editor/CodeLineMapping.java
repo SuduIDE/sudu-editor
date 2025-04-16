@@ -23,52 +23,56 @@ public abstract class CodeLineMapping {
     abstract int getAndIncrement();
   }
 
-  static CodeLineMapping fromModel(Model model) {
-    return new CodeLineMapping() {
-      TrivialIterator cache;
+  static class Id extends CodeLineMapping {
+    final Model model;
+    TrivialIterator cache;
+
+    public Id(Model model) {
+      this.model = model;
+    }
+
+    @Override
+    int length() {
+      return model.document.length();
+    }
+
+    @Override
+    int docToView(int docLine) {
+      return docLine;
+    }
+
+    @Override
+    int viewToDoc(int viewLine) {
+      return viewLine;
+    }
+
+    static class TrivialIterator extends LineIterator {
+      int pos;
+
+      public TrivialIterator(int pos) {
+        this.pos = pos;
+      }
       @Override
-      int length() {
-        return model.document.length();
+      int getAndIncrement() {
+        return pos++;
       }
+    }
 
-      @Override
-      int docToView(int docLine) {
-        return docLine;
+    LineIterator iterateLines(int first) {
+      if (cache == null) {
+        return new TrivialIterator(first);
+      } else {
+        cache.pos = first;
+        LineIterator i = cache;
+        cache = null;
+        return i;
       }
+    }
 
-      @Override
-      int viewToDoc(int viewLine) {
-        return viewLine;
-      }
-
-      static class TrivialIterator extends LineIterator {
-        int pos;
-
-        public TrivialIterator(int pos) {
-          this.pos = pos;
-        }
-        @Override
-        int getAndIncrement() {
-          return pos++;
-        }
-      }
-
-      LineIterator iterateLines(int first) {
-        if (cache == null) {
-          return new TrivialIterator(first);
-        } else {
-          cache.pos = first;
-          LineIterator i = cache;
-          cache = null;
-          return i;
-        }
-      }
-
-      @Override
-      void releaseIterator(LineIterator iter) {
-        if (iter instanceof TrivialIterator ti)
-          cache = ti;
-      }
-    };
+    @Override
+    void releaseIterator(LineIterator iter) {
+      if (iter instanceof TrivialIterator ti)
+        cache = ti;
+    }
   }
 }

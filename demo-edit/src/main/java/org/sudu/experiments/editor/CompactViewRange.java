@@ -36,6 +36,6 @@ public class CompactViewRange {
 
   @Override
   public String toString() {
-    return "[" + startLine + ", " + endLine + ") " + (visible ? "visible" : "");
+    return "[" + startLine + ", " + endLine + ")" + (visible ? " visible" : "");
   }
 }

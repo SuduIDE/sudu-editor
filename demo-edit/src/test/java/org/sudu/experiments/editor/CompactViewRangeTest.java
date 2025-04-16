@@ -165,4 +165,14 @@ class CompactViewRangeTest {
       }
     }
   }
+
+  // visible(35, 37),
+  @Test
+  void testDocToView2() {
+    CompactCodeView v = new CompactCodeView(DebugHelper.t1());
+    int toView36 = v.docToView(36);
+    int toView35 = v.docToView(35);
+    Assertions.assertEquals(toView36, toView35);
+
+  }
 }
