@@ -1,5 +1,7 @@
 package org.sudu.experiments.editor;
 
+import java.util.Arrays;
+
 public class CompactCodeView extends CodeLineMapping {
   CompactViewRange[] data;
   int[] lengths;
@@ -28,6 +30,10 @@ public class CompactCodeView extends CodeLineMapping {
 
   @Override
   int viewToDoc(int viewLine) {
+    int idx = Arrays.binarySearch(lengths, viewLine);
+    if (idx < 0) {
+      int ip = -idx - 1;
+    }
     return 0;
   }
 
