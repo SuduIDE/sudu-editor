@@ -532,10 +532,11 @@ public class EditorComponent extends View implements
       int yPosition = lineHeight * i - vScrollPos;
       LineDiff diff = diffModel == null || lineIndex >= diffModel.length
           ? null : diffModel[lineIndex];
+      V2i selectionTemp = context.v2i2;
       line.draw(
           pos.y + yPosition, dx, g,
           editorWidth, lineHeight, hScrollPos,
-          codeLineColors, getSelLineSegment(i, cLine),
+          codeLineColors, getSelLineSegment(lineIndex, cLine, selectionTemp),
           model.definition, model.usages,
           model.caretLine == lineIndex, null, null,
               diff);
@@ -661,8 +662,8 @@ public class EditorComponent extends View implements
     }
   }
 
-  private V2i getSelLineSegment(int lineInd, CodeLine line) {
-    V2i selLine = selection().getLine(lineInd);
+  private V2i getSelLineSegment(int lineInd, CodeLine line, V2i rv) {
+    V2i selLine = selection().getLine(lineInd, rv);
     if (selLine != null) {
       if (selLine.y == -1) selLine.y = line.totalStrLength;
       selLine.x = line.computePixelLocation(selLine.x, g.mCanvas, fonts);
@@ -1192,7 +1193,7 @@ public class EditorComponent extends View implements
     return Numbers.clamp(0, vL, getNumLines() - 1);
   }
 
-  private void textSelectMouseHandler(MouseEvent event) {
+  private void textSelectMouseDrag(MouseEvent event) {
     Pos pos = computeCharPos(event.position);
     if (pos != null) {
       moveCaret(pos);
@@ -1405,7 +1406,7 @@ public class EditorComponent extends View implements
 
       selection().isSelectionStarted = true;
       selection().select(model.caretLine, model.caretCharPos);
-      return this::textSelectMouseHandler;
+      return this::textSelectMouseDrag;
     }
     return null;
   }
