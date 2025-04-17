@@ -1066,10 +1066,10 @@ public class EditorComponent extends View implements
     int editVisibleYMin = vScrollPos;
     int editVisibleYMax = vScrollPos + editorHeight();
     int line = docToView.docToView(model.caretLine);
-    if (line <= 0) {
-      System.out.println("line = " + line);
+    // caret line is not visible
+    if (line < 0)
       return;
-    }
+
     int caretVisibleY0 = line * lineHeight;
     int caretVisibleY1 = line * lineHeight + lineHeight;
 
