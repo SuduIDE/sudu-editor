@@ -32,10 +32,10 @@ public class DiffSync {
     int rangeInd = model.rangeBinSearch(syncLine, isLeft);
     var range = model.ranges[rangeInd];
     DiffRange toRange = range;
-    if (range.type != DiffTypes.DEFAULT) {
+    if (range.type != DiffTypes.DEFAULT && range.type != DiffTypes.EDITED) {
       if (rangeInd > 0) {
         var prevRange = model.ranges[rangeInd - 1];
-        if (prevRange.type != DiffTypes.DEFAULT) toRange = prevRange;
+        if (prevRange.type != DiffTypes.DEFAULT && prevRange.type != DiffTypes.EDITED) toRange = prevRange;
       }
     }
 
