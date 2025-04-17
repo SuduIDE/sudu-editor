@@ -637,12 +637,15 @@ public class EditorComponent extends View implements
 
   private void drawGap(int firstLine, int lastLine, int docLen) {
     LineDiff[] diffModel = model.diffModel;
-    for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      LineDiff currentLineModel = diffModel != null && i < diffModel.length
-          ? diffModel[i]
-          : null;
 
-      if (model.caretLine == i || currentLineModel != null) {
+    for (int i = firstLine; i <= lastLine && i < docLen; i++) {
+      int lineIndex = docToView.viewToDoc(i);
+      if (lineIndex < 0) continue;
+
+      LineDiff currentLineModel = diffModel != null && lineIndex < diffModel.length
+          ? diffModel[lastLine] : null;
+
+      if (model.caretLine == lineIndex || currentLineModel != null) {
         V4f gapColor =
             currentLineModel != null && currentLineModel.type != 0
                 ? colors.codeDiffBg.getDiffColor(colors, currentLineModel.type)
