@@ -24,8 +24,8 @@ public class FolderDiffHandler {
   }
 
   public void read() {
-    left.read(new DiffReader(this::sendLeft));
-    right.read(new DiffReader(this::sendRight));
+    left.read(new DiffReader(this::sendLeft, this::onError));
+    right.read(new DiffReader(this::sendRight, this::onError));
   }
 
   private void sendLeft(TreeS[] leftChildren) {
@@ -113,6 +113,15 @@ public class FolderDiffHandler {
     map.putIfAbsent(item.name, new Pair<>(-1, -1));
     if (item.isFolder) map.get(item.name).first = mP;
     else map.get(item.name).second = mP;
+  }
+
+  private void onError(String error) {
+    this.leftChildren = this.rightChildren = null;
+    System.err.println(error);
+    ArrayList<Object> result = new ArrayList<>();
+    result.add(new int[]{-1});
+    result.add(error);
+    ArrayOp.sendArrayList(result, r);
   }
 
   protected void onCompared(TreeS[] merged, int[] kinds) {

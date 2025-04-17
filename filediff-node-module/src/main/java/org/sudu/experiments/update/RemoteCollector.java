@@ -19,7 +19,6 @@ import org.sudu.experiments.js.node.SshDirectoryHandle;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
-import org.sudu.experiments.worker.ArrayView;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
 import org.teavm.jso.core.JSString;
@@ -110,12 +109,12 @@ public class RemoteCollector {
     var model = (ItemFolderDiffModel) root.findNodeByIndPath(path);
     if (model == null) {
       String error = root.describeError(path);
-      LoggingJs.error("findFileByIndexPath: root.findNodeByIndPath(path) failed: " + error);
+      onError("findFileByIndexPath: root.findNodeByIndPath(path) failed: " + error);
       return null;
     }
     if (!(model.item(left) instanceof FileHandle fileHandle)) {
       String error = String.format("model.item(%s): %s isn't file", left, model.getFullPath(""));
-      LoggingJs.error(error);
+      onError(error);
       return null;
     }
     return fileHandle;
@@ -125,7 +124,7 @@ public class RemoteCollector {
     var model = (ItemFolderDiffModel) root.findNodeByIndPath(path);
     if (model == null) {
       String error = root.describeError(path);
-      LoggingJs.debug("applyDiff: root.findNode(path) failed: " + error);
+      onError("applyDiff: root.findNode(path) failed: " + error);
       return;
     }
     int diffType = model.getDiffType();
@@ -137,17 +136,26 @@ public class RemoteCollector {
     ArrayWriter pathWriter = new ArrayWriter();
     lastFrontendMessage.collectPath(path, pathWriter, root, left);
 
+//    Runnable updateModel = () -> {
+//      LoggingJs.info("RemoteCollector.applyDiff.updateModel");
+//      if (isDeleteDiff) {
+//        var node = lastFrontendMessage.findNode(path);
+//        var parentNode = lastFrontendMessage.findParentNode(path);
+//        if (node != null && parentNode != null) parentNode.deleteItem(node);
+//        model.deleteItem();
+//      } else if (isInsertDiff) {
+//        model.insertItem();
+//      } else {
+//        model.editItem(left);
+//      }
+//      sendApplied();
+//    };
     Runnable updateModel = () -> {
       LoggingJs.info("RemoteCollector.applyDiff.updateModel");
       if (isDeleteDiff) {
         var node = lastFrontendMessage.findNode(path);
         var parentNode = lastFrontendMessage.findParentNode(path);
         if (node != null && parentNode != null) parentNode.deleteItem(node);
-        model.deleteItem();
-      } else if (isInsertDiff) {
-        model.insertItem();
-      } else {
-        model.editItem(left);
       }
       sendApplied();
     };
@@ -185,7 +193,12 @@ public class RemoteCollector {
 
   private void updateNode(ItemFolderDiffModel updModel, boolean left, Deque<ItemFolderDiffModel> updModelPath, Object[] result) {
     LoggingJs.info("RemoteCollector.updateNode");
-    int[] ints = ((ArrayView) result[0]).ints();
+    int[] ints = ArgsCast.intArray(result, 0);
+    if (isErrorInts(ints)) {
+      String error = ArgsCast.string(result, 1);
+      onError(error);
+      return;
+    }
     ArrayReader reader = new ArrayReader(ints);
     Deque<FsItem> items = new LinkedList<>();
     for (int i = 1; i < result.length; i++) {
@@ -327,6 +340,11 @@ public class RemoteCollector {
   ) {
     foldersCompared++;
     int[] ints = ArgsCast.intArray(result, 0);
+    if (isErrorInts(ints)) {
+      String error = ArgsCast.string(result, 1);
+      onError(error);
+      return;
+    }
 
     int commonLen = ints[0];
     int leftLen = ints[1];
@@ -456,6 +474,11 @@ public class RemoteCollector {
       Object[] result
   ) {
     int[] ints = ArgsCast.intArray(result, 0);
+    if (isErrorInts(ints)) {
+      String error = ArgsCast.string(result, 1);
+      onError(error);
+      return;
+    }
     int[] stats = ArgsCast.intArray(result, 1);
     String[] paths = new String[stats[0]];
     FsItem[] fsItems = new FsItem[stats[1]];
@@ -662,5 +685,9 @@ public class RemoteCollector {
   private String rootName(DirectoryHandle handle) {
     if (handle instanceof SshDirectoryHandle sshHandle) return sshHandle.getFullPathWithHost();
     return handle.getFullPath();
+  }
+
+  private boolean isErrorInts(int[] ints) {
+    return ints.length == 1 && ints[0] == -1;
   }
 }
