@@ -25,7 +25,7 @@ public class CompactViewRange {
     while (low <= high) {
       int mid = (low + high) >>> 1;
       CompactViewRange midRange = data[mid];
-      if (midRange.endLine < line) {
+      if (midRange.endLine <= line) {
         low = mid + 1;
       } else if (line < midRange.startLine) {
         high = mid - 1;

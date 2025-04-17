@@ -2,6 +2,9 @@ package org.sudu.experiments.editor.worker.diff;
 
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.LineDiff;
+import org.sudu.experiments.editor.CompactCodeMapping;
+import org.sudu.experiments.editor.CompactViewRange;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +12,10 @@ public class DiffInfo {
 
   public LineDiff[] lineDiffsL;
   public LineDiff[] lineDiffsR;
+  public CompactViewRange[] cvrL;
+  public CompactViewRange[] cvrR;
+  public CompactCodeMapping codeMappingL;
+  public CompactCodeMapping codeMappingR;
   public DiffRange[] ranges;
 
   public DiffInfo(LineDiff[] lineDiffsL, LineDiff[] lineDiffsR, DiffRange[] ranges) {
@@ -38,8 +45,8 @@ public class DiffInfo {
 
       // todo: simplify
       if (midFrom <= lineKey && lineKey < midFrom + midLen) return mid;
-      if (midFrom < lineKey) low = mid + 1;
-      else if (midFrom > lineKey) high = mid - 1;
+      if (midFrom + midLen < lineKey) low = mid + 1;
+      else if (lineKey < midFrom) high = mid - 1;
       else return mid;
     }
     return Math.min(low, ranges.length - 1);

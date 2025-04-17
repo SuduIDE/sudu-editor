@@ -7,10 +7,10 @@ public abstract class CodeLineMapping {
   static int regionIndex(int r) { return -r - 2; }
   static boolean isCompacted(int r) { return r < 0 && r != outOfRange; }
 
-  abstract int length();
+  public abstract int length();
 
-  abstract int docToView(int docLine);
-  abstract int viewToDoc(int viewLine);
+  public abstract int docToView(int docLine);
+  public abstract int viewToDoc(int viewLine);
 
   void clickDelimiter(int index) {}
 
@@ -32,17 +32,17 @@ public abstract class CodeLineMapping {
     }
 
     @Override
-    int length() {
+    public int length() {
       return model.document.length();
     }
 
     @Override
-    int docToView(int docLine) {
+    public int docToView(int docLine) {
       return docLine;
     }
 
     @Override
-    int viewToDoc(int viewLine) {
+    public int viewToDoc(int viewLine) {
       return viewLine;
     }
 

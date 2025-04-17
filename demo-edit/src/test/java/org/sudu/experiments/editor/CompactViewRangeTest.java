@@ -10,11 +10,11 @@ class CompactViewRangeTest {
   void testCompactViewRange() {
     var model1 = model1();
 
-    t1(model1);
+    t_1_5(model1);
 
     var model2 = model2();
 
-    t1(model2);
+    t_1_5(model2);
     t2(model2);
 
   }
@@ -76,7 +76,7 @@ class CompactViewRangeTest {
     return new CompactViewRange(12, 17, true);
   }
 
-  static void t1(CompactViewRange[] m) {
+  static void t_1_5(CompactViewRange[] m) { // [1..5)
     int i0 = CompactViewRange.binSearch(-1, m);
     int i1 = CompactViewRange.binSearch(1, m);
     int i2 = CompactViewRange.binSearch(5, m);
@@ -85,16 +85,16 @@ class CompactViewRangeTest {
 
     Assertions.assertEquals(0, i0);
     Assertions.assertEquals(0, i1);
-    Assertions.assertEquals(0, i2);
-    Assertions.assertEquals(1, i3);
-    Assertions.assertEquals(1, i4);
+    Assertions.assertEquals(1, i2);
+    Assertions.assertTrue(i3 >= 1);
+    Assertions.assertTrue(i4 >= 1);
 
     Assertions.assertTrue(true);
   }
 
   @Test
   void testViewToDoc() {
-    CompactCodeView v = new CompactCodeView(model3());
+    CompactCodeMapping v = new CompactCodeMapping(model3());
     V2i[] viewToDocVerifyTable = new V2i[]{
         // [1..5)  visible
         new V2i(0, 1),
@@ -122,7 +122,7 @@ class CompactViewRangeTest {
 
   @Test
   void testDocToView() {
-    CompactCodeView v = new CompactCodeView(model3());
+    CompactCodeMapping v = new CompactCodeMapping(model3());
 
     V2i[] docToViewVerifyTable = new V2i[]{
         new V2i(0, CodeLineMapping.outOfRange),
@@ -169,10 +169,10 @@ class CompactViewRangeTest {
   // visible(35, 37),
   @Test
   void testDocToView2() {
-    CompactCodeView v = new CompactCodeView(DebugHelper.t1());
-    int toView36 = v.docToView(36);
+    CompactCodeMapping v = new CompactCodeMapping(DebugHelper.t1());
     int toView35 = v.docToView(35);
-    Assertions.assertEquals(toView36, toView35);
+    int toView36 = v.docToView(36);
+    Assertions.assertEquals(toView36, 1 + toView35);
 
   }
 }

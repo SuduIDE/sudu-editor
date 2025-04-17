@@ -1938,6 +1938,6 @@ public class EditorComponent extends View implements
   // new and in-place edited the data
   public void setCompactViewModel(CompactViewRange[] data) {
     docToView = data == null
-        ? new CodeLineMapping.Id(model) : new CompactCodeView(data);
+        ? new CodeLineMapping.Id(model) : new CompactCodeMapping(data);
   }
 }

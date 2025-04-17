@@ -2,13 +2,13 @@ package org.sudu.experiments.editor;
 
 import java.util.Arrays;
 
-public class CompactCodeView extends CodeLineMapping {
+public class CompactCodeMapping extends CodeLineMapping {
   CompactViewRange[] data;
   int[] lengths;
   int length;
   CompactViewIterator cache;
 
-  public CompactCodeView(CompactViewRange[] data) {
+  public CompactCodeMapping(CompactViewRange[] data) {
     this.data = data;
     lengths = new int[data.length];
     length = 0;
@@ -19,12 +19,13 @@ public class CompactCodeView extends CodeLineMapping {
     }
   }
 
-  int length() {
+  @Override
+  public int length() {
     return length;
   }
 
   @Override
-  int docToView(int docLine) {
+  public int docToView(int docLine) {
     int idx = CompactViewRange.binSearch(docLine, data);
     if (idx >= data.length)
       return outOfRange;
@@ -38,7 +39,7 @@ public class CompactCodeView extends CodeLineMapping {
   }
 
   @Override
-  int viewToDoc(int viewLine) {
+  public int viewToDoc(int viewLine) {
     if (viewLine < 0)
       throw new IllegalArgumentException("viewLine < 0");
 
