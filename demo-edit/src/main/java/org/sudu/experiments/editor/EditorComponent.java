@@ -62,7 +62,7 @@ public class EditorComponent extends View implements
   // layout
   static final int vLineXDp = 80;
   static final int vLineWDp = 1;
-  static final int vLineLeftDeltaDp = 10;
+  static final int vLineLeftDeltaDp = EditorConst.V_LINE_LEFT_DELTA_DP;
   static final int codeMapWidthDp = 15;
   static final float scrollBarWidthDp = 12;
 
@@ -110,6 +110,8 @@ public class EditorComponent extends View implements
 
   GL.Texture codeMap;
   final V2i codeMapSize = new V2i();
+
+  EditorSyncPoints syncPoints;
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -259,6 +261,7 @@ public class EditorComponent extends View implements
 
   public void setMirrored(boolean b) {
     mirrored = b;
+    lineNumbers.setMirrored(b);
   }
 
   void toggleMirrored() {
@@ -649,6 +652,19 @@ public class EditorComponent extends View implements
     int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
     int caretLine = model.caretLine;
     lineNumbers.draw(textHeight, vScrollPos, firstLine, lastLine, caretLine, g, colors);
+  }
+
+  public void drawSyncPoints() {
+    int firstLine = getFirstLine();
+    int lastLine = Math.min((vScrollPos + editorHeight() - 1) / lineHeight, model.document.length());
+    lineNumbers.drawSyncPoints(
+        vScrollPos,
+        firstLine, lastLine,
+        syncPoints(),
+        syncPoints.curSyncPoint(),
+        syncPoints.hoverSyncPoint,
+        g, colors.lineNumber
+    );
   }
 
   public int getFirstLine() {
@@ -1359,8 +1375,14 @@ public class EditorComponent extends View implements
 
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
     if (button == MOUSE_BUTTON_LEFT) {
-      if (lineNumbers.hitTest(event.position)
-          || hitMergeButtons(event.position))
+      if (lineNumbers.hitTest(event.position)) {
+        if (syncPoints.hasAnotherPoint()) {
+          int line = computeSyncLine(event.position);
+          syncPoints.setPoint(line);
+        }
+        return true;
+      }
+      if (hitMergeButtons(event.position))
         return true;
       switch (clickCount) {
         case 1 -> onClickText(event);
@@ -1397,6 +1419,7 @@ public class EditorComponent extends View implements
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     V2i mousePos = event.position;
+    syncPoints.hoverSyncPoint = -1;
 
     var codeMap = onMouseMoveCodeMap(mousePos, setCursor);
     var scroll = !codeMap && (
@@ -1406,10 +1429,17 @@ public class EditorComponent extends View implements
     if (scroll || codeMap) {
       onMouseLeaveWindow();
     } else {
-      var mb = mergeButtons != null
-          && mergeButtons.onMouseMove(event, setCursor)
-          || lineNumbers.onMouseMove(event, setCursor);
-
+      var mb = mergeButtons != null && mergeButtons.onMouseMove(event, setCursor);
+      var ln = lineNumbers.hitTest(event.position);
+      if (ln) {
+        if (syncPoints.hasAnotherPoint()) {
+          syncPoints.hoverSyncPoint = computeSyncLine(event.position);
+          if (!mb) setCursor.set(Cursor.pointer);
+        } else if (!mb) {
+          setCursor.setDefault();
+        }
+      }
+      mb |= ln;
       if (!mb && hitTest(mousePos)) {
         if (isInsideText(mousePos)) {
           if (event.ctrl) {
@@ -1712,6 +1742,36 @@ public class EditorComponent extends View implements
     model.parseFullFile();
   }
 
+  public int computeSyncLine(V2i eventPosition) {
+    int localY = eventPosition.y - pos.y;
+    return Numbers.clamp(0, (localY + vScrollPos) / lineHeight, model.document.length());
+  }
+
+  public int[] syncPoints() {
+    return syncPoints.syncPoints();
+  }
+
+  public int[] copiedSyncPoints() {
+    return syncPoints.copiedSyncPoints();
+  }
+
+  public boolean hasSyncPoints() {
+    return syncPoints.hasSyncPoints();
+  }
+
+  public boolean hasSyncPoint(V2i eventPos) {
+    int lineInd = computeSyncLine(eventPos);
+    return syncPoints.hasPoint(lineInd);
+  }
+
+  public void toggleSyncPoint(V2i eventPos) {
+    int lineInd = computeSyncLine(eventPos);
+    if (syncPoints.hasPoint(lineInd))
+      syncPoints.removeSyncPoint(lineInd);
+    else
+      syncPoints.setPoint(lineInd);
+  }
+
   public void revealLineInCenter(int lineNumber) {
     if (lineNumber <= 0) return;
     int computed = lineHeight * (lineNumber - (editorHeight() / (lineHeight * 2)) - 1);
@@ -1817,6 +1877,10 @@ public class EditorComponent extends View implements
       onDiffMadeListener.accept(this);
     }
     window().repaint();
+  }
+
+  public void setSyncPoints(SyncPoints syncPoints, boolean left) {
+    this.syncPoints = new EditorSyncPoints(syncPoints, left);
   }
 
   @Override
