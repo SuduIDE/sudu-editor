@@ -10,6 +10,7 @@ public abstract class CodeLineMapping {
   public abstract int length();
 
   public abstract int docToView(int docLine);
+  public abstract int docToViewCursor(int docLine);
   public abstract int viewToDoc(int viewLine);
 
   void clickDelimiter(int index) {}
@@ -38,6 +39,11 @@ public abstract class CodeLineMapping {
 
     @Override
     public int docToView(int docLine) {
+      return docLine;
+    }
+
+    @Override
+    public int docToViewCursor(int docLine) {
       return docLine;
     }
 

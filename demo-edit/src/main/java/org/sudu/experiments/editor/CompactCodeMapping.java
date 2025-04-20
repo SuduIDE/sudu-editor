@@ -39,6 +39,20 @@ public class CompactCodeMapping extends CodeLineMapping {
   }
 
   @Override
+  public int docToViewCursor(int docLine) {
+    int idx = CompactViewRange.binSearch(docLine, data);
+    if (idx >= data.length)
+      return outOfRange;
+    var range = data[idx];
+    if (range.inRange(docLine)) {
+      int lengthIdx = lengths[idx];
+      return range.visible
+          ?  lengthIdx + docLine - range.startLine : lengthIdx;
+    }
+    return outOfRange;
+  }
+
+  @Override
   public int viewToDoc(int viewLine) {
     if (viewLine < 0)
       throw new IllegalArgumentException("viewLine < 0");

@@ -611,7 +611,7 @@ public class EditorComponent extends View implements
       int caretVerticalOffset = (lineHeight - caret.height()) / 2;
       int caretX = caretPosX - caret.width() / 2 - hScrollPos;
       int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
-      int viewLine = docToView.docToView(model.caretLine);
+      int viewLine = docToView.docToViewCursor(model.caretLine);
       if (viewLine >= 0) {
         caret.setLocal(
             dCaret + caretX,
