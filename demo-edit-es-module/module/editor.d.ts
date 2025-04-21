@@ -272,6 +272,8 @@ export interface View {
 
 export interface TwoPanelDiff {
   setReadonly(leftReadonly: boolean, rightReadonly: boolean): void
+
+  setCompactView(compact: boolean): void;
 }
 
 export interface IEditorView extends View, HasTheme, Focusable {

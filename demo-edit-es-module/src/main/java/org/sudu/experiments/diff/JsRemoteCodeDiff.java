@@ -7,6 +7,7 @@ import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.Function;
@@ -64,6 +65,13 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
   @Override
   public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
     w.rootView.setReadonly(leftReadonly, rightReadonly);
+  }
+
+  @Override
+  public void setCompactView(boolean compact) {
+    LoggingJs.info(
+        JsHelper.concat("setCompactView: ",
+            JSBoolean.valueOf(compact)));
   }
 
   @Override
