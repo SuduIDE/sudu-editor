@@ -67,10 +67,14 @@ public class DiffEngine implements DiffEngineJs {
   ) {
     LoggingJs.info("Starting new file diff ...");
 
-    boolean isLeftFile = JsFileInput.isPath(leftInput);
-    boolean isRightFile = JsFileInput.isPath(rightInput);
-    boolean isLeftText = !isLeftFile && JsFileInput.isContent(leftInput);
-    boolean isRightText = !isRightFile && JsFileInput.isContent(rightInput);
+    // string === fileName
+    boolean isLeftString = JSString.isInstance(leftInput);
+    boolean isLeftText = !isLeftString && JsFileInput.isContent(leftInput);
+    boolean isLeftFile = !isLeftText && JsFileInput.isPath(leftInput);
+
+    boolean isRightString = JSString.isInstance(rightInput);
+    boolean isRightText = !isRightString && JsFileInput.isContent(rightInput);
+    boolean isRightFile = !isRightText && JsFileInput.isPath(rightInput);
 
     FileHandle leftHandle = isLeftFile ?
         JsFileInput.fileHandle(leftInput, true) : null;
@@ -105,9 +109,11 @@ public class DiffEngine implements DiffEngineJs {
       updater.compareLeft(leftHandle);
     } else {
       JSString leftStr = JsFileInput.getContent(leftInput);
-      LoggingJs.info("  left is content, length = " + leftStr.getLength());
-      String filename = rightHandle != null ? rightHandle.getName() : "";
-      updater.sendFileRead(true, leftStr, null, JSString.valueOf(filename));
+      JSString leftPath = JsFileInput.getPath(leftInput);
+      LoggingJs.info("  left is content, length = " + leftStr.getLength() +
+          ", path =" + leftPath.stringValue());
+      updater.sendFileRead(true, leftStr, null,
+          leftPath);
     }
 
     if (isRightFile) {
@@ -115,9 +121,10 @@ public class DiffEngine implements DiffEngineJs {
       updater.compareRight(rightHandle);
     } else {
       JSString rightStr = JsFileInput.getContent(rightInput);
-      LoggingJs.info("  right is content, length = " + rightStr.getLength());
-      String filename = leftHandle != null ? leftHandle.getName() : "";
-      updater.sendFileRead(false, rightStr, null, JSString.valueOf(filename));
+      JSString rightPath = JsFileInput.getPath(rightInput);
+      LoggingJs.info("  right is content, length = " + rightStr.getLength() +
+          ", path =" + rightPath.stringValue());
+      updater.sendFileRead(false, rightStr, null, rightPath);
     }
     return new JsFileDiffSession0();
   }
@@ -129,8 +136,10 @@ public class DiffEngine implements DiffEngineJs {
   ) {
     JsHelper.consoleInfo("Starting file edit ...");
 
-    boolean isFile = JsFileInput.isPath(input);
-    boolean isText = !isFile && JsFileInput.isContent(input);
+    // string === fileName
+    boolean isString = JSString.isInstance(input);
+    boolean isText = !isString && JsFileInput.isContent(input);
+    boolean isFile = !isText && JsFileInput.isPath(input);
 
     FileHandle fileHandle = isFile ?
         JsFileInput.fileHandle(input, true) : null;
@@ -148,8 +157,9 @@ public class DiffEngine implements DiffEngineJs {
       updater.setFile(fileHandle);
     } else {
       JSString str = JsFileInput.getContent(input);
+      JSString path = JsFileInput.getPath(input);
       LoggingJs.info("  content, length = " + str.getLength());
-      updater.sendMessage(str, null);
+      updater.sendMessage(str, null, path);
     }
     return new JsFileDiffSession0();
   }

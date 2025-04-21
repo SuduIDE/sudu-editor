@@ -84,8 +84,9 @@ export type SshCredentials = { host: string, port: string } & (
   { username: string, password: string } |
   { username: string, privateKey: string });
 
-export type SshInput = { path: string, ssh: SshCredentials }
-export type FileInput = { path: string } | { content: string } | SshInput;
+export type SshInput = { path: string, ssh: SshCredentials };
+export type ContentInput = { path: string, content: string };
+export type FileInput = { path: string } | ContentInput | SshInput;
 export type FolderInput = string | SshInput;
 
 export type FolderListingEntry = { name: string, isFile: boolean };
