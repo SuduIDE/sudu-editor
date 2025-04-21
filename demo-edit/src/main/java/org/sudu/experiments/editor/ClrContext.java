@@ -28,6 +28,7 @@ public class ClrContext {
   public boolean cleartype;
 
   public final V4f collapseSin = new V4f();
+  public final V4f collapseSinBold = new V4f();
 
   public ClrContext(boolean cleartype) {
     this.cleartype = cleartype;
@@ -62,7 +63,8 @@ public class ClrContext {
     lineHeight = Numbers.iRnd(fontLineHeight * lineHeightMulti);
     underline = font.underlineShift(lineHeight);
     createRenderingCanvas(g);
-    sinParamsCollapsed(collapseSin, lineHeight);
+    sinParamsCollapsed(collapseSin, lineHeight, false);
+    sinParamsCollapsed(collapseSinBold, lineHeight, true);
     return lineHeight;
   }
 

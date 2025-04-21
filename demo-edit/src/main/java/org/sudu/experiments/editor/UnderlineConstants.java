@@ -12,6 +12,8 @@ interface UnderlineConstants {
   float maxPow  = 1.f / 2;
   float maxPowScale = 4;
   double scalePow = Numbers.log(Numbers.log(maxPow, pow), maxPowScale);
+  float collapsedExtend = 5.f / 32;
+  float collapsedExtendBold = 10.f / 32;
 
   // x = 2 * Pi * frequency
   // y = amplitude
@@ -22,8 +24,11 @@ interface UnderlineConstants {
     scaleUnderlineParams(result, dpr, result);
   }
 
-  static void sinParamsCollapsed(V4f result, float lineHeight) {
-    result.set((float)Math.PI / 1.25f, .50f, 3.f/16, pow);
+  static void sinParamsCollapsed(
+      V4f result, float lineHeight, boolean hover
+  ) {
+    result.set((float)Math.PI / 1.25f, .50f,
+        hover ? collapsedExtendBold : collapsedExtend, pow);
     scaleSinParams(result, lineHeight * .25f, result, 0.5f);
   }
 

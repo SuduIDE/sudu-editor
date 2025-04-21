@@ -15,10 +15,7 @@ import org.sudu.experiments.math.*;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.common.TriConsumer;
 import org.sudu.experiments.text.SplitText;
-import org.sudu.experiments.ui.Focusable;
-import org.sudu.experiments.ui.ScrollBar;
-import org.sudu.experiments.ui.SetCursor;
-import org.sudu.experiments.ui.UiContext;
+import org.sudu.experiments.ui.*;
 import org.sudu.experiments.ui.window.View;
 
 import java.util.*;
@@ -66,15 +63,15 @@ public class EditorComponent extends View implements
   int firstLineRendered, lastLineRendered;
 
   // layout
-  static final int vLineXDp = 80;
+  static final int textBaseXDp = 80;
   static final int vLineWDp = 1;
-  static final int vLineLeftDeltaDp = 10;
+  static final int vLineTextOffsetDp = 10;
   static final int codeMapWidthDp = 15;
   static final float scrollBarWidthDp = 12;
 
-  int vLineX;
+  int textBaseX;
   int vLineW;
-  int vLineLeftDelta;
+  int vLineTextOffset;
   int mergeWidth;
 
   V2i vLineSize = new V2i(1, 0);
@@ -118,6 +115,7 @@ public class EditorComponent extends View implements
   final V2i codeMapSize = new V2i();
 
   CodeLineMapping docToView = new CodeLineMapping.Id(model);
+  int hoveredCollapsedRegion = -1;
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -182,9 +180,9 @@ public class EditorComponent extends View implements
   private void internalLayout() {
     boolean hasMerge = mergeButtons != null;
     mergeWidth = (hasMerge && !mirrored) ? mergeWidth() : 0;
-    vLineX = toPx(vLineXDp) + mergeWidth;
+    textBaseX = toPx(textBaseXDp) + mergeWidth;
     vLineW = toPx(vLineWDp);
-    vLineLeftDelta = toPx(vLineLeftDeltaDp);
+    vLineTextOffset = toPx(vLineTextOffsetDp);
     scrollBarWidth = toPx(scrollBarWidthDp);
 
     int lineNumbersWidth = lineNumbersWidth();
@@ -411,13 +409,13 @@ public class EditorComponent extends View implements
   }
 
   int editorWidth() {
-    int t = mirrored ? scrollBarWidth + vLineLeftDelta : 0;
-    return Math.max(1, size.x - vLineX - t);
+    int t = mirrored ? scrollBarWidth + vLineTextOffset : 0;
+    return Math.max(1, size.x - textBaseX - t);
   }
 
   int lineNumbersWidth() {
     return
-        mirrored ? vLineX : vLineX - vLineLeftDelta - mergeWidth;
+        mirrored ? textBaseX : textBaseX - vLineTextOffset - mergeWidth;
   }
 
   int editorHeight() {
@@ -481,7 +479,7 @@ public class EditorComponent extends View implements
 
   @Override
   public V2i minimalSize() {
-    return new V2i(lineNumbersWidth() + vLineW + vLineLeftDelta, lineHeight);
+    return new V2i(lineNumbersWidth() + vLineW + vLineTextOffset, lineHeight);
   }
 
   @Override
@@ -511,8 +509,8 @@ public class EditorComponent extends View implements
     lastLineRendered = lastLine;
 
     int dx = mirrored
-        ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth
-        : pos.x + vLineX;
+        ? pos.x + vLineW + vLineTextOffset + scrollBarWidth
+        : pos.x + textBaseX;
 
     int editorWidth = editorWidth();
     LineDiff[] diffModel = model.diffModel;
@@ -552,13 +550,13 @@ public class EditorComponent extends View implements
 
       if (lineIndex < 0) {
         if (lineIndex != CodeLineMapping.outOfRange) {
-          sizeTmp.set(editorWidth, lineHeight);
+          sizeTmp.set(editorWidth + xOffset, lineHeight);
           int y = pos.y + yPosition;
-          g.drawRect(dx, y, sizeTmp, colors.editor.numbersVLine);
+          g.drawRect(dx - xOffset, y, sizeTmp, colors.editor.numbersVLine);
           var color = IdeaCodeColors.ElementsDark.error.v.colorF;
           var ce = codeLineColors.codeElement[1].colorF;
           g.enableBlend(true);
-          g.drawSin(dx, y, sizeTmp,
+          g.drawSin(dx - xOffset, y, sizeTmp,
               pos.x + size.x,
               pos.y + yPosition + lineHeight * 0.5f,
               lrContext.collapseSin,
@@ -618,6 +616,14 @@ public class EditorComponent extends View implements
           g, mbColors, lrContext, hasFocus);
     }
 
+    if (true) {
+      sizeTmp.set(dx - pos.x, size.y);
+      var color = IdeaCodeColors.ElementsDark.error.v.colorF;
+      WindowPaint.drawInnerFrame(
+          g, sizeTmp, pos, color, 1, lrContext.size
+      );
+    }
+
 //    g.checkError("paint complete");
     if (0>1) {
       String s = "fullMeasure:" + CodeLine.cacheMiss + ", cacheHits: " + CodeLine.cacheHits;
@@ -630,7 +636,7 @@ public class EditorComponent extends View implements
     if (hasFocus && caret.state) {
       int caretVerticalOffset = (lineHeight - caret.height()) / 2;
       int caretX = caretPosX - caret.width() / 2 - hScrollPos;
-      int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
+      int dCaret = mirrored ? vLineW + vLineTextOffset + scrollBarWidth : textBaseX;
       int viewLine = docToView.docToViewCursor(model.caretLine);
       if (viewLine >= 0) {
         caret.setLocal(
@@ -671,10 +677,10 @@ public class EditorComponent extends View implements
                 ? colors.codeDiffBg.getDiffColor(colors, currentLineModel.type)
                 : colors.editor.currentLineBg;
         vLineSize.x = mirrored
-            ? vLineLeftDelta + scrollBarWidth + vLineW - xOffset
-            : vLineLeftDelta - vLineW - xOffset;
+            ? vLineTextOffset + scrollBarWidth + vLineW - xOffset
+            : vLineTextOffset - vLineW - xOffset;
         vLineSize.y = lineHeight;
-        int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
+        int dx2 = mirrored ? 0 : textBaseX - vLineTextOffset + vLineW;
         int yPosition = lineHeight * i - vScrollPos;
         g.drawRect(pos.x + dx2,
             pos.y + yPosition,
@@ -922,8 +928,8 @@ public class EditorComponent extends View implements
       sizeTmp.y = size.y - yPosition;
       sizeTmp.x = mirrored ? editorWidth + vLineW : editorWidth + xOffset;
       int x = mirrored
-          ? pos.x + vLineLeftDelta + scrollBarWidth + vLineW - xOffset
-          : pos.x + vLineX - xOffset;
+          ? pos.x + vLineTextOffset + scrollBarWidth + vLineW - xOffset
+          : pos.x + textBaseX - xOffset;
       g.drawRect(x, pos.y + yPosition, sizeTmp, colors.editor.bg);
     }
   }
@@ -934,7 +940,7 @@ public class EditorComponent extends View implements
         pos.y,
         editorHeight(), editorVirtualHeight(),
         x, scrollBarWidth);
-    x = mirrored ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth : pos.x + vLineX;
+    x = mirrored ? pos.x + vLineW + vLineTextOffset + scrollBarWidth : pos.x + textBaseX;
     hScroll.layoutHorizontal(hScrollPos,
         x,
         editorWidth(), fullWidth,
@@ -958,12 +964,12 @@ public class EditorComponent extends View implements
     vLineSize.x = vLineW;
     int drawLineX = mirrored
         ? size.x - lineNumbers.width() - vLineW
-        : vLineX - vLineLeftDelta;
+        : textBaseX - vLineTextOffset;
     g.drawRect(pos.x + drawLineX, pos.y, vLineSize, colors.editor.numbersVLine);
     vLineSize.x = mirrored
-        ? vLineLeftDelta + scrollBarWidth + vLineW - xOffset
-        : vLineLeftDelta - vLineW - xOffset;
-    int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
+        ? vLineTextOffset + scrollBarWidth + vLineW - xOffset
+        : vLineTextOffset - vLineW - xOffset;
+    int dx2 = mirrored ? 0 : textBaseX - vLineTextOffset + vLineW;
     g.drawRect(pos.x + dx2, pos.y, vLineSize, colors.editor.bg);
   }
 
@@ -1198,12 +1204,14 @@ public class EditorComponent extends View implements
   }
 
   Pos computeCharPos(V2i eventPosition) {
-    int localX = eventPosition.x - pos.x;
     int vLine = mouseToVLine(eventPosition.y);
     int line = docToView.viewToDoc(vLine);
-    if (line < 0) return null;
+    return line < 0 ? null : computeCharPos(eventPosition, line);
+  }
 
-    int offset = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
+  Pos computeCharPos(V2i eventPosition, int line) {
+    int localX = eventPosition.x - pos.x;
+    int offset = mirrored ? vLineW + vLineTextOffset + scrollBarWidth : textBaseX;
     int documentXPosition = Math.max(0, localX - offset + hScrollPos);
     int charPos = model.document.line(line).computeCharPos(documentXPosition, g.mCanvas, fonts);
     return new Pos(line, charPos);
@@ -1494,10 +1502,12 @@ public class EditorComponent extends View implements
       if (!mb && hitTest(mousePos)) {
         if (isInsideText(mousePos)) {
           if (event.ctrl) {
-            Pos pos = computeCharPos(mousePos);
-            if (pos == null) {
+            int line = docToView.viewToDoc(mouseToVLine(mousePos.y));
+            if (line < 0) {
+              todo: track hover and render bold line
               setCursor.set(Cursor.pointer);
             } else {
+              Pos pos = computeCharPos(mousePos, line);
               model.document.moveToElementStart(pos);
               boolean hasUsage = model.document.hasDefOrUsagesForElementPos(pos);
               setCursor.set(hasUsage ? Cursor.pointer : Cursor.text);
@@ -1599,7 +1609,7 @@ public class EditorComponent extends View implements
   }
 
   private boolean isInsideText(V2i position) {
-    int dx = mirrored ? vLineLeftDelta + vLineW + scrollBarWidth : vLineX;
+    int dx = mirrored ? vLineTextOffset + vLineW + scrollBarWidth : textBaseX;
     return Rect.isInside(position,
         pos.x + dx, pos.y,
         editorWidth(), editorHeight());
