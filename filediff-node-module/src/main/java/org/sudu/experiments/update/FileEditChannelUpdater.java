@@ -29,8 +29,10 @@ public class FileEditChannelUpdater {
   public void setFile(FileHandle fileHandle) {
     this.handle = fileHandle;
     FsWorkerJobs.readTextFile(executor, handle,
-        (source, encoding) ->
-            sendMessage(TextDecoder.decodeUTF16(source), JSString.valueOf(encoding)),
+        (source, encoding) -> sendMessage(
+            TextDecoder.decodeUTF16(source),
+            JSString.valueOf(encoding),
+            JSString.valueOf(handle.getName())),
         this::onReadError);
   }
 
@@ -43,14 +45,14 @@ public class FileEditChannelUpdater {
         () -> onWriteComplete(sourceLength), this::onWriteError);
   }
 
-  public void sendMessage(JSString source, JSString encoding) {
+  public void sendMessage(JSString source, JSString encoding, JSString fileName) {
     if (debug) LoggingJs.debug(JsHelper.concat(
         "FileEditChannelUpdater.sendMessage, length = " + source.getLength()
             + ", encoding = ", encoding));
     JsArray<JSObject> jsArray = JsArray.create();
     jsArray.set(0, source);
     jsArray.set(1, encoding);
-    jsArray.set(2, JSString.valueOf(handle.getName()));
+    jsArray.set(2, fileName);
     channel.sendMessage(jsArray);
   }
 
