@@ -520,16 +520,12 @@ public class EditorComponent extends View implements
 
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
       int lineIndex = docToView.viewToDoc(i);
-      int yPosition = lineHeight * i - vScrollPos;
-
-      if (lineIndex < 0) {
-
-        continue;
-      }
+      if (lineIndex < 0) continue;
 
       CodeLine cLine = model.document.line(lineIndex);
       CodeLineRenderer line = lineRenderer(i);
 
+      int yPosition = lineHeight * i - vScrollPos;
       int lineMeasure = line.updateTexture(
           cLine, g, lineHeight, editorWidth, hScrollPos,
           lineIndex, i % lines.length);

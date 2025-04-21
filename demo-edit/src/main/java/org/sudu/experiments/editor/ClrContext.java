@@ -31,7 +31,7 @@ public class ClrContext {
 
   public ClrContext(boolean cleartype) {
     this.cleartype = cleartype;
-    sinParamsDefault(underlineParams);
+    underlineParams(underlineParams, 1);
   }
 
   public void dispose() {
@@ -67,8 +67,8 @@ public class ClrContext {
   }
 
   public void setDpr(float dpr) {
-    sinParamsDefault(underlineParams);
-    scaleSinParams(underlineParams, dpr, underlineParams);
+    underlineParams(underlineParams, dpr);
+//    scaleSinParams(underlineParams, dpr, underlineParams);
     underlineOffset = UnderlineConstants.offset(underlineParams);
     underlineHBox = UnderlineConstants.boxExtend(underlineParams);
     underlineSize.set(0, underlineHBox * 2);

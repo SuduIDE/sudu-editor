@@ -25,7 +25,6 @@ public class TextSeparatorDemo extends Scene implements MouseListener {
   float dpr;
 
   static void sinParamDefault(V4f param) {
-    UnderlineConstants.sinParamsDefault(param);
   }
 
   public TextSeparatorDemo(SceneApi api) {
@@ -47,6 +46,7 @@ public class TextSeparatorDemo extends Scene implements MouseListener {
     p12.set(x1, yRight);
     p22.set(x1, yRight + lineHeightPx);
     this.dpr = dpr;
+    // UnderlineConstants.underlineParams(param, dpr);
   }
 
   @Override

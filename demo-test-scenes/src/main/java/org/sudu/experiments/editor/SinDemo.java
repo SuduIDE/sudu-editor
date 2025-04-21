@@ -109,7 +109,7 @@ public class SinDemo extends Scene0 implements MouseListener  {
 
   static V4f scaleParams(V4f origin, float scale) {
     V4f result = new V4f();
-    UnderlineConstants.scaleSinParams(origin, scale, result);
+    UnderlineConstants.scaleUnderlineParams(origin, scale, result);
     return result;
   }
 
@@ -132,7 +132,7 @@ public class SinDemo extends Scene0 implements MouseListener  {
 
     static V4f paramsDefault() {
       V4f params = new V4f();
-      UnderlineConstants.sinParamsDefault(params);
+      UnderlineConstants.underlineParams(params, 1);
       return params;
     }
 
