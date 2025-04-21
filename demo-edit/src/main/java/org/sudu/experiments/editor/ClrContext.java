@@ -8,8 +8,7 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.UiFont;
 
-import static org.sudu.experiments.editor.UnderlineConstants.scaleSinParams;
-import static org.sudu.experiments.editor.UnderlineConstants.sinParamsDefault;
+import static org.sudu.experiments.editor.UnderlineConstants.*;
 
 public class ClrContext {
   public final V4f tRegion = new V4f();
@@ -27,6 +26,8 @@ public class ClrContext {
   float underlineOffset;
   public int lineHeight, underline, underlineHBox;
   public boolean cleartype;
+
+  public final V4f collapseSin = new V4f();
 
   public ClrContext(boolean cleartype) {
     this.cleartype = cleartype;
@@ -61,10 +62,11 @@ public class ClrContext {
     lineHeight = Numbers.iRnd(fontLineHeight * lineHeightMulti);
     underline = font.underlineShift(lineHeight);
     createRenderingCanvas(g);
+    sinParamsCollapsed(collapseSin, lineHeight);
     return lineHeight;
   }
 
-  public void setSinDpr(float dpr) {
+  public void setDpr(float dpr) {
     sinParamsDefault(underlineParams);
     scaleSinParams(underlineParams, dpr, underlineParams);
     underlineOffset = UnderlineConstants.offset(underlineParams);

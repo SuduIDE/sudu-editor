@@ -21,6 +21,11 @@ interface UnderlineConstants {
     result.set((float)Math.PI / 3, amplitude, extend, pow);
   }
 
+  static void sinParamsCollapsed(V4f result, float lineHeight) {
+    result.set((float)Math.PI / 3, .75f, .75f, 3.f / 8);
+    scaleSinParams(result, lineHeight * .25f, result);
+  }
+
   static void scaleSinParams(V4f arg, float scale, V4f result) {
     // to reduce noise and improve readability
     // we use scale = .25 when scale below .5

@@ -7,6 +7,7 @@ import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.EditorUi.FontApi;
 import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.editor.ui.colors.MergeButtonsColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.*;
@@ -154,7 +155,7 @@ public class EditorComponent extends View implements
   @Override
   protected void onDprChange(float olDpr, float newDpr) {
     doChangeFont(fontFamilyName, fontVirtualSize);
-    lrContext.setSinDpr(newDpr);
+    lrContext.setDpr(newDpr);
   }
 
   public void setScrollListeners(Runnable hListener, Runnable vListener) {
@@ -519,7 +520,13 @@ public class EditorComponent extends View implements
 
     for (int i = firstLine; i <= lastLine && i < docLen; i++) {
       int lineIndex = docToView.viewToDoc(i);
-      if (lineIndex < 0) continue;
+      int yPosition = lineHeight * i - vScrollPos;
+
+      if (lineIndex < 0) {
+
+        continue;
+      }
+
       CodeLine cLine = model.document.line(lineIndex);
       CodeLineRenderer line = lineRenderer(i);
 
@@ -529,7 +536,6 @@ public class EditorComponent extends View implements
 
       fullWidth = Math.max(fullWidth, lineMeasure + rightPadding);
 
-      int yPosition = lineHeight * i - vScrollPos;
       LineDiff diff = diffModel == null || lineIndex >= diffModel.length
           ? null : diffModel[lineIndex];
       V2i selectionTemp = context.v2i2;
@@ -545,11 +551,29 @@ public class EditorComponent extends View implements
     V2i sizeTmp = context.v2i1;
     if (drawTails) for (int i = firstLine; i <= lastLine && i < docLen; i++) {
       int lineIndex = docToView.viewToDoc(i);
-      if (lineIndex < 0) continue;
-      CodeLineRenderer line = lineRenderer(i);
       int yPosition = lineHeight * i - vScrollPos;
-      boolean isTailSelected = selection().isTailSelected(lineIndex);
       V4f tailColor = colors.editor.bg;
+
+      if (lineIndex < 0) {
+        if (lineIndex != CodeLineMapping.outOfRange) {
+          sizeTmp.set(editorWidth, lineHeight);
+          int y = pos.y + yPosition;
+          g.drawRect(dx, y, sizeTmp, colors.editor.numbersVLine);
+          var color = IdeaCodeColors.ElementsDark.error.v.colorF;
+          var ce = codeLineColors.codeElement[1].colorF;
+          g.enableBlend(true);
+          g.drawSin(dx, y, sizeTmp,
+              pos.x + size.x,
+              pos.y + yPosition + lineHeight * 0.5f,
+              lrContext.collapseSin,
+//              lrContext.underlineParams,
+              color, 0);
+          g.enableBlend(false);
+        }
+        continue;
+      }
+      CodeLineRenderer line = lineRenderer(i);
+      boolean isTailSelected = selection().isTailSelected(lineIndex);
 
       if (isTailSelected)
         tailColor = colors.editor.selectionBg;
