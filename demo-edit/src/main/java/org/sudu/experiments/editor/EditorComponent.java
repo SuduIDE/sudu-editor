@@ -579,7 +579,7 @@ public class EditorComponent extends View implements
 
     g.disableScissor();
 
-    drawLineNumbers(firstLine, lastLine);
+    drawLineNumbers(firstLine, lastLine + 1);
     if (mergeButtons != null) {
       mergeButtons.setScrollPos(vScrollPos);
       mergeButtons.draw(
@@ -729,10 +729,9 @@ public class EditorComponent extends View implements
   }
 
   private void drawLineNumbers(int firstLine, int lastLine) {
-    int editorBottom = size.y;
-    int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
     int caretLine = model.caretLine;
-    lineNumbers.draw(textHeight, vScrollPos, firstLine, lastLine - 1, caretLine, g, colors);
+    int yPos = -(vScrollPos % lineHeight);
+    lineNumbers.drawEditorLines(yPos, firstLine, lastLine, caretLine, g, colors);
   }
 
   public int getNumLines() {
