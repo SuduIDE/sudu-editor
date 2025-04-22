@@ -272,8 +272,6 @@ export interface View {
 
 export interface TwoPanelDiff {
   setReadonly(leftReadonly: boolean, rightReadonly: boolean): void
-
-  setCompactView(compact: boolean): void;
 }
 
 export interface IEditorView extends View, HasTheme, Focusable {
@@ -390,6 +388,8 @@ export interface FolderDiffViewController extends ViewController {
 }
 
 export interface FileDiffViewController extends ViewController {
+  setCompactView(compact: boolean): void;
+
   getViewType(): 'fileDiff'
 
   getSelection(): FileDiffSelection | undefined

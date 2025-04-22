@@ -56,13 +56,6 @@ public class JsRemoteFolderDiff implements JsRemoteFolderDiffView {
   }
 
   @Override
-  public void setCompactView(boolean compact) {
-    LoggingJs.info(
-        JsHelper.concat("setCompactView: ",
-            JSBoolean.valueOf(compact)));
-  }
-
-  @Override
   public void setFontFamily(JSString fontFamily) {
 //    diff.setFontFamily(fontFamily.stringValue());
   }

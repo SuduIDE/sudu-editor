@@ -3,7 +3,6 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.JsLauncher;
 
-import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.WebWindow;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
@@ -71,13 +70,6 @@ public class JsFolderDiff implements JsIFolderDiffView {
   @Override
   public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
     w.setReadonly(leftReadonly, rightReadonly);
-  }
-
-  @Override
-  public void setCompactView(boolean compact) {
-    LoggingJs.info(
-        JsHelper.concat("setCompactView: ",
-            JSBoolean.valueOf(compact)));
   }
 
   @Override
