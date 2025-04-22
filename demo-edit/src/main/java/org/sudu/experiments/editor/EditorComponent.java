@@ -1501,19 +1501,20 @@ public class EditorComponent extends View implements
 
       if (!mb && hitTest(mousePos)) {
         if (isInsideText(mousePos)) {
+          int line = docToView.viewToDoc(mouseToVLine(mousePos.y));
           if (event.ctrl) {
-            int line = docToView.viewToDoc(mouseToVLine(mousePos.y));
-            if (line < 0) {
-              todo: track hover and render bold line
-              setCursor.set(Cursor.pointer);
-            } else {
+            if (line >= 0) {
               Pos pos = computeCharPos(mousePos, line);
               model.document.moveToElementStart(pos);
               boolean hasUsage = model.document.hasDefOrUsagesForElementPos(pos);
               setCursor.set(hasUsage ? Cursor.pointer : Cursor.text);
             }
           } else {
-            setCursor.set(Cursor.text);
+            if (line < 0 && line != CodeLineMapping.outOfRange) {
+              setCursor.set(Cursor.pointer);
+            } else {
+              setCursor.set(Cursor.text);
+            }
           }
         } else {
           setCursor.setDefault();
