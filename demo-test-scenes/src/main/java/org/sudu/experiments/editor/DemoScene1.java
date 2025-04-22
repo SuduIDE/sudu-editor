@@ -257,7 +257,7 @@ public class DemoScene1 extends Scene {
       if (button == MouseListener.MOUSE_BUTTON_LEFT) {
         V2i p = event.position;
         V2i drag = text1Rect.isInside(p) ? p : null;
-        caret.setLocal(p.x, p.y);
+        caret.setPos(p.x, p.y);
         caret.startDelay(api.window.timeNow());
 
         return drag != null ? e -> {

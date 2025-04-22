@@ -50,7 +50,7 @@ public class Caret {
     return state != oldState;
   }
 
-  public void setLocal(int x, int y) {
+  public void setPos(int x, int y) {
     pos.set(x, y);
   }
 
