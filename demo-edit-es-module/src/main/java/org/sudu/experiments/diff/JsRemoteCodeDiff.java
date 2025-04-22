@@ -4,7 +4,6 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.JsDisposable;
 import org.sudu.experiments.js.JsFunctions;
-import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;

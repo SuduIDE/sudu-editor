@@ -1,5 +1,8 @@
 package org.sudu.experiments.diff;
 
+import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.js.JsHelper;
+import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
@@ -44,5 +47,12 @@ public class JsFileDiffViewController0 implements JsFileDiffViewController {
   @Override
   public void refresh() {
     w.rootView.refresh();
+  }
+
+  @Override
+  public void setCompactView(boolean compact) {
+    LoggingJs.info(
+        JsHelper.concat("setCompactView: ",
+            JSBoolean.valueOf(compact)));
   }
 }

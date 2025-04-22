@@ -388,6 +388,8 @@ export interface FolderDiffViewController extends ViewController {
 }
 
 export interface FileDiffViewController extends ViewController {
+  setCompactView(compact: boolean): void;
+
   getViewType(): 'fileDiff'
 
   getSelection(): FileDiffSelection | undefined
