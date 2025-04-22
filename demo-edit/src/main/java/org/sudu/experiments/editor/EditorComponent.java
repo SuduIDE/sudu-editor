@@ -552,14 +552,17 @@ public class EditorComponent extends View implements
         if (lineIndex != CodeLineMapping.outOfRange) {
           sizeTmp.set(editorWidth + xOffset, lineHeight);
           int y = pos.y + yPosition;
-          g.drawRect(dx - xOffset, y, sizeTmp, colors.editor.numbersVLine);
+          g.drawRect(dx - xOffset, y, sizeTmp,
+               tailColor /* colors.editor.numbersVLine */);
           var color = IdeaCodeColors.ElementsDark.error.v.colorF;
           var ce = codeLineColors.codeElement[1].colorF;
           g.enableBlend(true);
+          boolean hover = hoveredCollapsedRegion ==
+              CodeLineMapping.regionIndex(lineIndex);
           g.drawSin(dx - xOffset, y, sizeTmp,
               pos.x + size.x,
               pos.y + yPosition + lineHeight * 0.5f,
-              lrContext.collapseSin,
+              hover? lrContext.collapseSinBold : lrContext.collapseSin,
 //              lrContext.underlineParams,
               color, 0);
           g.enableBlend(false);
@@ -1486,7 +1489,7 @@ public class EditorComponent extends View implements
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     V2i mousePos = event.position;
-
+    hoveredCollapsedRegion = -1;
     var codeMap = onMouseMoveCodeMap(mousePos, setCursor);
     var scroll = !codeMap && (
         vScroll.onMouseMove(mousePos, setCursor) |
@@ -1511,6 +1514,7 @@ public class EditorComponent extends View implements
             }
           } else {
             if (line < 0 && line != CodeLineMapping.outOfRange) {
+              hoveredCollapsedRegion = CodeLineMapping.regionIndex(line);
               setCursor.set(Cursor.pointer);
             } else {
               setCursor.set(Cursor.text);

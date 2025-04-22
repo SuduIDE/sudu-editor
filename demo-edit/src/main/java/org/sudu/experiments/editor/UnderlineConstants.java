@@ -12,8 +12,8 @@ interface UnderlineConstants {
   float maxPow  = 1.f / 2;
   float maxPowScale = 4;
   double scalePow = Numbers.log(Numbers.log(maxPow, pow), maxPowScale);
-  float collapsedExtend = 5.f / 32;
-  float collapsedExtendBold = 10.f / 32;
+  float collapsedExtend = 4.f / 16;
+  float collapsedExtendBold = 7.f / 16;
 
   // x = 2 * Pi * frequency
   // y = amplitude
