@@ -600,7 +600,7 @@ public class EditorComponent extends View implements
 
     drawVerticalLine();
 
-    if (!mirrored)
+    if (!mirrored && drawGap)
       drawGap(firstLine, lastLine, docLen);
 
     if (cpsRegions.position() != 0) {
@@ -702,13 +702,18 @@ public class EditorComponent extends View implements
             ? vLineTextOffset + scrollBarWidth + vLineW - xOffset
             : vLineTextOffset - vLineW - xOffset;
         vLineSize.y = lineHeight;
-        int dx2 = mirrored ? 0 : textBaseX - vLineTextOffset + vLineW;
+        int gapX = mirrored ? 0 : textBaseX - vLineTextOffset + vLineW;
         int yPosition = lineHeight * i - vScrollPos;
-        g.drawRect(pos.x + dx2,
+        g.drawRect(pos.x + gapX,
             pos.y + yPosition,
             vLineSize,
             gapColor
         );
+        if (i == 0)
+          System.out.println(
+              "vLineSize.x = " + vLineSize.x
+                  + ", gapX = " + gapX
+          );
       }
     }
   }
