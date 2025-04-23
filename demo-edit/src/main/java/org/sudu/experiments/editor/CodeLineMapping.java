@@ -13,20 +13,15 @@ public abstract class CodeLineMapping {
   public abstract int docToViewCursor(int docLine);
   public abstract int viewToDoc(int viewLine);
 
-  void clickDelimiter(int index) {}
-
-  abstract LineIterator iterateLines(int first);
-  abstract void releaseIterator(LineIterator iter);
-
-  // translate view range to document space
-  static abstract class LineIterator {
-    // returns index in document space
-    abstract int getAndIncrement();
+  public void viewToDocLines(
+      int viewBegin, int viewEnd, int[] result
+  ) {
+    for (int i = viewBegin; i < viewEnd; i++)
+      result[i - viewBegin] = viewToDoc(i);
   }
 
   static class Id extends CodeLineMapping {
     final Model model;
-    TrivialIterator cache;
 
     public Id(Model model) {
       this.model = model;
@@ -52,33 +47,10 @@ public abstract class CodeLineMapping {
       return viewLine;
     }
 
-    static class TrivialIterator extends LineIterator {
-      int pos;
-
-      public TrivialIterator(int pos) {
-        this.pos = pos;
-      }
-      @Override
-      int getAndIncrement() {
-        return pos++;
-      }
-    }
-
-    LineIterator iterateLines(int first) {
-      if (cache == null) {
-        return new TrivialIterator(first);
-      } else {
-        cache.pos = first;
-        LineIterator i = cache;
-        cache = null;
-        return i;
-      }
-    }
-
     @Override
-    void releaseIterator(LineIterator iter) {
-      if (iter instanceof TrivialIterator ti)
-        cache = ti;
+    public void viewToDocLines(int viewBegin, int viewEnd, int[] result) {
+      for (int i = viewBegin; i < viewEnd; i++)
+        result[i - viewBegin] = i;
     }
   }
 }

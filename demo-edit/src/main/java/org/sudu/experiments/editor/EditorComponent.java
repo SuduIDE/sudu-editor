@@ -85,6 +85,7 @@ public class EditorComponent extends View implements
   int scrollDown, scrollUp;
   boolean drawTails = true;
   boolean drawGap = true;
+  boolean drawTextFrame = false;
   boolean printResolveTime = true;
   int xOffset = CodeLineRenderer.initialOffset;
 
@@ -115,8 +116,8 @@ public class EditorComponent extends View implements
   final V2i codeMapSize = new V2i();
 
   CodeLineMapping docToView = new CodeLineMapping.Id(model);
+  int[] viewToDocMap = new int[0];
   int hoveredCollapsedRegion = -1;
-  final IntVector cpsRegions = new IntVector();
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -131,6 +132,7 @@ public class EditorComponent extends View implements
     debugFlags[4] = this::toggleMirrored;
     debugFlags[5] = () -> drawGap = !drawGap;
     debugFlags[6] = () -> printResolveTime = !printResolveTime;
+    debugFlags[8] = () -> drawTextFrame = !drawTextFrame;
 
     model.setEditor(this, window().worker());
   }
@@ -188,7 +190,7 @@ public class EditorComponent extends View implements
     int lineNumbersWidth = textBase - vLineTextOffset;
 
     textBaseX = mirrored
-        ? vLineW + vLineTextOffset + scrollBarWidth 
+        ? vLineW + vLineTextOffset + scrollBarWidth
         : textBase + mergeWidth;
 
     int textX1 = mirrored ?
@@ -505,10 +507,10 @@ public class EditorComponent extends View implements
     g.enableBlend(false);
     g.enableScissor(pos, size);
 
-    int docLen = getNumLines();
+    int viewLen = getNumLines();
 
     int firstLine = getFirstLine();
-    int lastLine = getLastLine();
+    int lastLine = getLastLine() + 1;
 
     firstLineRendered = firstLine;
     lastLineRendered = lastLine;
@@ -516,7 +518,7 @@ public class EditorComponent extends View implements
     int dx = pos.x + textBaseX;
 
     int editorWidth = editorWidth();
-    
+
     int sinX = mirrored
             ? pos.x + textBaseX - xOffset
             : pos.x + textBaseX - vLineTextOffset + vLineW;
@@ -527,9 +529,20 @@ public class EditorComponent extends View implements
     LineDiff[] diffModel = model.diffModel;
     int rightPadding = toPx(EditorConst.RIGHT_PADDING);
 
-    for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      int lineIndex = docToView.viewToDoc(i);
-      if (lineIndex < 0) continue;
+    if (viewToDocMap.length < (lastLine - firstLine))
+      viewToDocMap = new int[lastLine - firstLine ];
+
+    int lastViewLine = Math.min(lastLine, viewLen);
+    docToView.viewToDocLines(firstLine, lastViewLine, viewToDocMap);
+
+    int numCompacted = 0;
+    for (int i = firstLine; i < lastViewLine; i++) {
+      int lineIndex = viewToDocMap[i - firstLine];
+      if (lineIndex < 0) {
+        if (lineIndex != CodeLineMapping.outOfRange)
+          numCompacted++;
+        continue;
+      }
 
       CodeLine cLine = model.document.line(lineIndex);
       CodeLineRenderer line = lineRenderer(i);
@@ -553,47 +566,11 @@ public class EditorComponent extends View implements
               diff);
     }
 
-    V2i sizeTmp = context.v2i1;
-    cpsRegions.reset();
-    for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      int lineIndex = docToView.viewToDoc(i);
-      int yPosition = lineHeight * i - vScrollPos;
-      V4f tailColor = colors.editor.bg;
-
-      if (lineIndex < 0) {
-        if (lineIndex != CodeLineMapping.outOfRange) {
-          sizeTmp.set(editorWidth + xOffset, lineHeight);
-          g.drawRect(dx - xOffset, pos.y + yPosition, sizeTmp,
-               /*tailColor*/ colors.editor.numbersVLine);
-          cpsRegions.push(i);
-          cpsRegions.push(CodeLineMapping.regionIndex(lineIndex));
-        }
-        continue;
-      }
-      CodeLineRenderer line = lineRenderer(i);
-      boolean isTailSelected = selection().isTailSelected(lineIndex);
-
-      if (isTailSelected)
-        tailColor = colors.editor.selectionBg;
-      else {
-        var dm = diffModel != null && lineIndex < diffModel.length
-            ? diffModel[lineIndex] : null;
-        if (dm != null) {
-          tailColor = colors.codeDiffBg.getDiffColor(colors, dm.type);
-        } else {
-          boolean isCurrentLine = model.caretLine == lineIndex;
-          if (isCurrentLine)
-            tailColor = colors.editor.currentLineBg;
-        }
-      }
-      if (drawTails)
-        line.drawTail(g, dx, pos.y + yPosition, lineHeight,
-          sizeTmp, hScrollPos, editorWidth, tailColor);
-    }
+    drawTails(firstLine, lastViewLine, editorWidth, dx, diffModel);
 
     // draw bottom 5 invisible lines
     if (renderBlankLines) {
-      int nextLine = Math.min(lastLine + 1, docLen);
+      int nextLine = lastViewLine;
       int yPosition = lineHeight * nextLine - vScrollPos;
       drawDocumentBottom(yPosition, editorWidth);
     }
@@ -601,26 +578,10 @@ public class EditorComponent extends View implements
     drawVerticalLine();
 
     if (!mirrored && drawGap)
-      drawGap(firstLine, lastLine, docLen);
+      drawFromLineToText(firstLine, lastViewLine);
 
-    if (cpsRegions.position() != 0) {
-      g.enableBlend(true);
-      int n = cpsRegions.position();
-      var cpsData = cpsRegions.data();
-      sizeTmp.set(sinSizeX, lineHeight);
-
-      for (int i = 0; i < n; i += 2) {
-        int viewLine = cpsData[i];
-        int regionIndex = cpsData[i + 1];
-        int yPosition = lineHeight * viewLine - vScrollPos;
-        boolean hover = hoveredCollapsedRegion == regionIndex;
-        g.drawSin(sinX, pos.y + yPosition, sizeTmp,
-            sinX,pos.y + yPosition + lineHeight * 0.5f,
-            hover ? lrContext.collapseSinBold : lrContext.collapseSin,
-            codeLineColors.collapseWaveColor(), 0);
-      }
-      g.enableBlend(false);
-    }
+    if (numCompacted > 0)
+      drawCompacted(sinX, sinSizeX, firstLine, lastViewLine);
 
     drawCaret();
 
@@ -635,23 +596,85 @@ public class EditorComponent extends View implements
     if (mergeButtons != null) {
       mergeButtons.setScrollPos(vScrollPos);
       mergeButtons.draw(
-          firstLine, lastLine, model.caretLine,
+          firstLine, lastLine - 1, model.caretLine,
           g, mbColors, lrContext, hasFocus);
     }
 
-    if (false) {
-      sizeTmp.set(dx - pos.x, size.y);
-      var color = IdeaCodeColors.ElementsDark.error.v.colorF;
-      WindowPaint.drawInnerFrame(
-          g, sizeTmp, pos, color, 1, lrContext.size
-      );
-    }
+    if (drawTextFrame)
+      drawTextAreaFrame(dx, editorWidth);
 
 //    g.checkError("paint complete");
     if (0>1) {
       String s = "fullMeasure:" + CodeLine.cacheMiss + ", cacheHits: " + CodeLine.cacheHits;
       Debug.consoleInfo(s);
       CodeLine.cacheMiss = CodeLine.cacheHits = 0;
+    }
+  }
+
+  void drawCompacted(int x0, int sizeX, int firstLine, int lastLine) {
+    V2i sizeTmp = context.v2i1;
+    g.enableBlend(true);
+    sizeTmp.set(sizeX, lineHeight);
+    for (int i = firstLine; i < lastLine; i++) {
+      int lineIndex = viewToDocMap[i - firstLine];
+      if (lineIndex < 0 && lineIndex != CodeLineMapping.outOfRange) {
+        int yPosition = lineHeight * i - vScrollPos;
+        boolean hover = hoveredCollapsedRegion == CodeLineMapping.regionIndex(lineIndex);
+        g.drawSin(x0, pos.y + yPosition, sizeTmp,
+            x0,pos.y + yPosition + lineHeight * 0.5f,
+            hover ? lrContext.collapseSinBold : lrContext.collapseSin,
+            codeLineColors.collapseWaveColor(), 0);
+      }
+    }
+    g.enableBlend(false);
+  }
+
+  void drawTextAreaFrame(int dx, int editorWidth) {
+    context.v2i1.set(dx, pos.y);
+    context.v2i2.set(editorWidth, size.y);
+    var color = IdeaCodeColors.ElementsDark.error.v.colorF;
+    WindowPaint.drawInnerFrame(
+        g, context.v2i2, context.v2i1, color, 1, lrContext.size
+    );
+  }
+
+  void drawTails(
+      int firstLine, int lastViewLine, int editorWidth,
+      int xPos, LineDiff[] diffModel
+  ) {
+    V2i sizeTmp = context.v2i1;
+    for (int i = firstLine; i < lastViewLine; i++) {
+      int lineIndex = viewToDocMap[i - firstLine];
+      int yPosition = lineHeight * i - vScrollPos;
+      V4f tailColor = colors.editor.bg;
+
+      if (lineIndex < 0) {
+        if (lineIndex != CodeLineMapping.outOfRange) {
+          sizeTmp.set(editorWidth + xOffset, lineHeight);
+          g.drawRect(xPos - xOffset, pos.y + yPosition,
+              sizeTmp, tailColor);
+        }
+        continue;
+      }
+      CodeLineRenderer line = lineRenderer(i);
+      boolean isTailSelected = selection().isTailSelected(lineIndex);
+
+      if (isTailSelected) {
+        tailColor = colors.editor.selectionBg;
+      } else {
+        var dm = diffModel != null && lineIndex < diffModel.length
+            ? diffModel[lineIndex] : null;
+        if (dm != null) {
+          tailColor = colors.codeDiffBg.getDiffColor(colors, dm.type);
+        } else {
+          boolean isCurrentLine = model.caretLine == lineIndex;
+          if (isCurrentLine)
+            tailColor = colors.editor.currentLineBg;
+        }
+      }
+      if (drawTails)
+        line.drawTail(g, xPos, pos.y + yPosition, lineHeight,
+          sizeTmp, hScrollPos, editorWidth, tailColor);
     }
   }
 
@@ -683,37 +706,26 @@ public class EditorComponent extends View implements
     return pos.y;
   }
 
-  private void drawGap(int firstLine, int lastLine, int docLen) {
+  private void drawFromLineToText(int firstLine, int lastLine) {
     LineDiff[] diffModel = model.diffModel;
+    int xPos0 = textBaseX - vLineTextOffset + vLineW;
+    int xPos1 = textBaseX - xOffset;
+    V2i size = context.v2i1;
+    size.set(xPos1 - xPos0, lineHeight);
 
-    for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      int lineIndex = docToView.viewToDoc(i);
+    for (int i = firstLine; i < lastLine; i++) {
+      int lineIndex = viewToDocMap[i - firstLine];
       if (lineIndex < 0) continue;
 
       LineDiff currentLineModel = diffModel != null && lineIndex < diffModel.length
-          ? diffModel[lastLine] : null;
+          ? diffModel[lineIndex] : null;
 
       if (model.caretLine == lineIndex || currentLineModel != null) {
-        V4f gapColor =
-            currentLineModel != null && currentLineModel.type != 0
-                ? colors.codeDiffBg.getDiffColor(colors, currentLineModel.type)
-                : colors.editor.currentLineBg;
-        vLineSize.x = mirrored
-            ? vLineTextOffset + scrollBarWidth + vLineW - xOffset
-            : vLineTextOffset - vLineW - xOffset;
-        vLineSize.y = lineHeight;
-        int gapX = mirrored ? 0 : textBaseX - vLineTextOffset + vLineW;
+        V4f c = currentLineModel != null && currentLineModel.type != 0
+            ? colors.codeDiffBg.getDiffColor(colors, currentLineModel.type)
+            : colors.editor.currentLineBg;
         int yPosition = lineHeight * i - vScrollPos;
-        g.drawRect(pos.x + gapX,
-            pos.y + yPosition,
-            vLineSize,
-            gapColor
-        );
-        if (i == 0)
-          System.out.println(
-              "vLineSize.x = " + vLineSize.x
-                  + ", gapX = " + gapX
-          );
+        g.drawRect(pos.x + xPos0,pos.y + yPosition, size, c);
       }
     }
   }
@@ -732,7 +744,7 @@ public class EditorComponent extends View implements
     int editorBottom = size.y;
     int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
     int caretLine = model.caretLine;
-    lineNumbers.draw(textHeight, vScrollPos, firstLine, lastLine, caretLine, g, colors);
+    lineNumbers.draw(textHeight, vScrollPos, firstLine, lastLine - 1, caretLine, g, colors);
   }
 
   public int getNumLines() {

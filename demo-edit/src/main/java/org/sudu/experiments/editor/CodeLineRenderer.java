@@ -363,7 +363,7 @@ public class CodeLineRenderer implements Disposable {
   ) {
     CodeLineRenderer[] r = new CodeLineRenderer[newSize];
     int pSrc = 0;
-    if (lines.length > 0) for (int i = first; i <= last; i++) {
+    if (lines.length > 0) for (int i = first; i < last; i++) {
       CodeLine docLine = document.line(i);
       int newIndex = i % r.length;
       int oldIndex = i % lines.length;

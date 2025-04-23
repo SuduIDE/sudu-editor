@@ -6,7 +6,6 @@ public class CompactCodeMapping extends CodeLineMapping {
   CompactViewRange[] data;
   int[] lengths;
   int length;
-  CompactViewIterator cache;
 
   public CompactCodeMapping(CompactViewRange[] data) {
     this.data = data;
@@ -78,33 +77,8 @@ public class CompactCodeMapping extends CodeLineMapping {
   }
 
   @Override
-  LineIterator iterateLines(int first) {
-    if (cache == null) {
-      return new CompactViewIterator(first);
-    } else {
-      var r = cache;
-      r.position = first;
-      cache = null;
-      return r;
-    }
-  }
-
-  @Override
-  void releaseIterator(LineIterator iter) {
-    if (iter instanceof CompactViewIterator cvi)
-      cache = cvi;
-  }
-
-  class CompactViewIterator extends LineIterator {
-    int position;
-
-    public CompactViewIterator(int position) {
-      this.position = position;
-    }
-
-    @Override
-    int getAndIncrement() {
-      return outOfRange;
-    }
+  public void viewToDocLines(int viewBegin, int viewEnd, int[] result) {
+    // todo optimise
+    super.viewToDocLines(viewBegin, viewEnd, result);
   }
 }

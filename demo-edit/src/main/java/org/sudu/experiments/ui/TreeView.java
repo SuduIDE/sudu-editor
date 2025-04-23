@@ -211,7 +211,7 @@ public class TreeView extends ScrollContent implements Focusable {
     if (lines.length < cacheLines) {
       lines = CodeLineRenderer.allocRenderLines(
           cacheLines, lines, clrContext,
-          firstLineRendered, lastLineRendered, model);
+          firstLineRendered, lastLineRendered + 1, model);
     }
 
     g.enableScissor(pos, size);
