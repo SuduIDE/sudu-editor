@@ -217,6 +217,14 @@ public class EditorComponent extends View implements
     }
   }
 
+  private int sinX0() {
+    return pos.x + textBaseX - vLineTextOffset + vLineW;
+  }
+
+  private int sinX1() {
+    return mirrored ? vLineX() : pos.x + size.x;
+  }
+
   private void toggleBlankLines() {
     renderBlankLines = !renderBlankLines;
     Debug.consoleInfo("renderBlankLines = " + renderBlankLines);
@@ -519,13 +527,6 @@ public class EditorComponent extends View implements
 
     int editorWidth = editorWidth();
 
-    int sinX = mirrored
-            ? pos.x + textBaseX - xOffset
-            : pos.x + textBaseX - vLineTextOffset + vLineW;
-
-    int sinSizeX = mirrored ? editorWidth + xOffset :
-        pos.x + size.x - sinX;
-
     LineDiff[] diffModel = model.diffModel;
     int rightPadding = toPx(EditorConst.RIGHT_PADDING);
 
@@ -570,8 +571,7 @@ public class EditorComponent extends View implements
 
     // draw bottom 5 invisible lines
     if (renderBlankLines) {
-      int nextLine = lastViewLine;
-      int yPosition = lineHeight * nextLine - vScrollPos;
+      int yPosition = lineHeight * lastViewLine - vScrollPos;
       drawDocumentBottom(yPosition, editorWidth);
     }
 
@@ -581,7 +581,7 @@ public class EditorComponent extends View implements
       drawFromLineToText(firstLine, lastViewLine);
 
     if (numCompacted > 0)
-      drawCompacted(sinX, sinSizeX, firstLine, lastViewLine);
+      drawCompacted(firstLine, lastViewLine);
 
     drawCaret();
 
@@ -611,10 +611,11 @@ public class EditorComponent extends View implements
     }
   }
 
-  void drawCompacted(int x0, int sizeX, int firstLine, int lastLine) {
+  void drawCompacted(int firstLine, int lastLine) {
+    int x0 = sinX0();
     V2i sizeTmp = context.v2i1;
     g.enableBlend(true);
-    sizeTmp.set(sizeX, lineHeight);
+    sizeTmp.set(sinX1() - x0, lineHeight);
     for (int i = firstLine; i < lastLine; i++) {
       int lineIndex = viewToDocMap[i - firstLine];
       if (lineIndex < 0 && lineIndex != CodeLineMapping.outOfRange) {
