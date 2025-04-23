@@ -5,7 +5,7 @@ public abstract class CodeLineMapping {
   // negative return value is outOfRange or regionIndex
   static final int outOfRange = -1;
   static int regionIndex(int r) { return -r - 2; }
-  static boolean isCompacted(int r) { return r < 0 && r != outOfRange; }
+  static boolean isCompacted(int r) { return r < outOfRange; }
 
   public abstract int length();
 
@@ -52,5 +52,12 @@ public abstract class CodeLineMapping {
       for (int i = viewBegin; i < viewEnd; i++)
         result[i - viewBegin] = i;
     }
+  }
+
+  static boolean hasCollapsedRegions(int[] viewToDocMap, int len) {
+    for (int i = 0; i < len; i++)
+      if (viewToDocMap[i] < outOfRange)
+        return true;
+    return false;
   }
 }

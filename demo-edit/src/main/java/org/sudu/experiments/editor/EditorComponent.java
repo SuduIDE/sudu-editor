@@ -426,11 +426,7 @@ public class EditorComponent extends View implements
   }
 
   int maxHScrollPos() {
-    return Math.max(fullWidth - editorWidth(), 0);
-  }
-
-  int editorWidth() {
-    return textViewWidth;
+    return Math.max(fullWidth - textViewWidth, 0);
   }
 
   int editorHeight() {
@@ -515,42 +511,31 @@ public class EditorComponent extends View implements
     g.enableBlend(false);
     g.enableScissor(pos, size);
 
-    int viewLen = getNumLines();
-
     int firstLine = getFirstLine();
     int lastLine = getLastLine() + 1;
 
     firstLineRendered = firstLine;
     lastLineRendered = lastLine;
 
-    int dx = pos.x + textBaseX;
-
-    int editorWidth = editorWidth();
-
     LineDiff[] diffModel = model.diffModel;
     int rightPadding = toPx(EditorConst.RIGHT_PADDING);
 
     if (viewToDocMap.length < (lastLine - firstLine))
-      viewToDocMap = new int[lastLine - firstLine ];
+      viewToDocMap = new int[lastLine - firstLine];
 
-    int lastViewLine = Math.min(lastLine, viewLen);
+    int lastViewLine = Math.min(lastLine, docToView.length());
     docToView.viewToDocLines(firstLine, lastViewLine, viewToDocMap);
 
-    int numCompacted = 0;
     for (int i = firstLine; i < lastViewLine; i++) {
       int lineIndex = viewToDocMap[i - firstLine];
-      if (lineIndex < 0) {
-        if (lineIndex != CodeLineMapping.outOfRange)
-          numCompacted++;
-        continue;
-      }
+      if (lineIndex < 0) continue;
 
       CodeLine cLine = model.document.line(lineIndex);
       CodeLineRenderer line = lineRenderer(i);
 
       int yPosition = lineHeight * i - vScrollPos;
       int lineMeasure = line.updateTexture(
-          cLine, g, lineHeight, editorWidth, hScrollPos,
+          cLine, g, lineHeight, textViewWidth, hScrollPos,
           lineIndex, i % lines.length);
 
       fullWidth = Math.max(fullWidth, lineMeasure + rightPadding);
@@ -559,20 +544,20 @@ public class EditorComponent extends View implements
           ? null : diffModel[lineIndex];
       V2i selectionTemp = context.v2i2;
       line.draw(
-          pos.y + yPosition, dx, g,
-          editorWidth, lineHeight, hScrollPos,
+          pos.y + yPosition, pos.x + textBaseX, g,
+          textViewWidth, lineHeight, hScrollPos,
           codeLineColors, getSelLineSegment(lineIndex, cLine, selectionTemp),
           model.definition, model.usages,
           model.caretLine == lineIndex, null, null,
               diff);
     }
 
-    drawTails(firstLine, lastViewLine, editorWidth, dx, diffModel);
+    drawTails(firstLine, lastViewLine, pos.x + textBaseX, diffModel);
 
     // draw bottom 5 invisible lines
     if (renderBlankLines) {
       int yPosition = lineHeight * lastViewLine - vScrollPos;
-      drawDocumentBottom(yPosition, editorWidth);
+      drawDocumentBottom(yPosition);
     }
 
     drawVerticalLine();
@@ -580,7 +565,9 @@ public class EditorComponent extends View implements
     if (!mirrored && drawGap)
       drawFromLineToText(firstLine, lastViewLine);
 
-    if (numCompacted > 0)
+    boolean hasCollapsedRegions = CodeLineMapping.hasCollapsedRegions(
+        viewToDocMap, lastViewLine - firstLine);
+    if (hasCollapsedRegions)
       drawCompacted(firstLine, lastViewLine);
 
     drawCaret();
@@ -601,7 +588,7 @@ public class EditorComponent extends View implements
     }
 
     if (drawTextFrame)
-      drawTextAreaFrame(dx, editorWidth);
+      drawTextAreaFrame();
 
 //    g.checkError("paint complete");
     if (0>1) {
@@ -618,7 +605,7 @@ public class EditorComponent extends View implements
     sizeTmp.set(sinX1() - x0, lineHeight);
     for (int i = firstLine; i < lastLine; i++) {
       int lineIndex = viewToDocMap[i - firstLine];
-      if (lineIndex < 0 && lineIndex != CodeLineMapping.outOfRange) {
+      if (lineIndex < CodeLineMapping.outOfRange) {
         int yPosition = lineHeight * i - vScrollPos;
         boolean hover = hoveredCollapsedRegion == CodeLineMapping.regionIndex(lineIndex);
         g.drawSin(x0, pos.y + yPosition, sizeTmp,
@@ -630,9 +617,9 @@ public class EditorComponent extends View implements
     g.enableBlend(false);
   }
 
-  void drawTextAreaFrame(int dx, int editorWidth) {
-    context.v2i1.set(dx, pos.y);
-    context.v2i2.set(editorWidth, size.y);
+  void drawTextAreaFrame() {
+    context.v2i1.set(pos.x + textBaseX, pos.y);
+    context.v2i2.set(textViewWidth, size.y);
     var color = IdeaCodeColors.ElementsDark.error.v.colorF;
     WindowPaint.drawInnerFrame(
         g, context.v2i2, context.v2i1, color, 1, lrContext.size
@@ -640,7 +627,7 @@ public class EditorComponent extends View implements
   }
 
   void drawTails(
-      int firstLine, int lastViewLine, int editorWidth,
+      int firstLine, int lastViewLine,
       int xPos, LineDiff[] diffModel
   ) {
     V2i sizeTmp = context.v2i1;
@@ -651,7 +638,7 @@ public class EditorComponent extends View implements
 
       if (lineIndex < 0) {
         if (lineIndex != CodeLineMapping.outOfRange) {
-          sizeTmp.set(editorWidth + xOffset, lineHeight);
+          sizeTmp.set(textViewWidth + xOffset, lineHeight);
           g.drawRect(xPos - xOffset, pos.y + yPosition,
               sizeTmp, tailColor);
         }
@@ -675,7 +662,7 @@ public class EditorComponent extends View implements
       }
       if (drawTails)
         line.drawTail(g, xPos, pos.y + yPosition, lineHeight,
-          sizeTmp, hScrollPos, editorWidth, tailColor);
+          sizeTmp, hScrollPos, textViewWidth, tailColor);
     }
   }
 
@@ -961,12 +948,12 @@ public class EditorComponent extends View implements
     selection().endPos.set(model.caretLine, model.caretCharPos);
   }
 
-  private void drawDocumentBottom(int yPosition, int editorWidth) {
+  private void drawDocumentBottom(int yPosition) {
     if (yPosition < size.y) {
       V2i sizeTmp = context.v2i1;
 
       sizeTmp.y = size.y - yPosition;
-      sizeTmp.x = mirrored ? editorWidth + vLineW : editorWidth + xOffset;
+      sizeTmp.x = mirrored ? textViewWidth + vLineW : textViewWidth + xOffset;
       int x = mirrored
           ? pos.x + vLineTextOffset + scrollBarWidth + vLineW - xOffset
           : pos.x + textBaseX - xOffset;
@@ -982,7 +969,7 @@ public class EditorComponent extends View implements
         x, scrollBarWidth);
     hScroll.layoutHorizontal(hScrollPos,
         pos.x + textBaseX,
-        editorWidth(), fullWidth,
+        textViewWidth, fullWidth,
         pos.y + editorHeight(), scrollBarWidth);
   }
 
@@ -1156,14 +1143,14 @@ public class EditorComponent extends View implements
     int xOffset = Numbers.iRnd(context.dpr * EditorConst.CARET_X_OFFSET);
 
     int editVisibleXMin = hScrollPos;
-    int editVisibleXMax = hScrollPos + editorWidth();
+    int editVisibleXMax = hScrollPos + textViewWidth;
     int caretVisibleX0 = caretPosX;
     int caretVisibleX1 = caretPosX + xOffset;
 
     if (caretVisibleX0 < editVisibleXMin + xOffset) {
       setScrollPosX(caretVisibleX0 - xOffset);
     } else if (caretVisibleX1 > editVisibleXMax - xOffset) {
-      setScrollPosX(caretVisibleX1 - editorWidth() + xOffset);
+      setScrollPosX(caretVisibleX1 - textViewWidth + xOffset);
     }
   }
 
@@ -1429,6 +1416,13 @@ public class EditorComponent extends View implements
     if (mergeButtons != null && mergeButtons.onMouseUp(event, button))
       return true;
     selection().isSelectionStarted = false;
+
+    int vLine = mouseToVLine(event.position.y);
+    int line = docToView.viewToDoc(vLine);
+    if (line < CodeLineMapping.outOfRange) {
+      int runnable = CodeLineMapping.regionIndex(line);
+      System.out.println("collapse runnable = " + runnable);
+    }
     return true;
   }
 
@@ -1552,7 +1546,7 @@ public class EditorComponent extends View implements
               setCursor.set(hasUsage ? Cursor.pointer : Cursor.text);
             }
           } else {
-            if (line < 0 && line != CodeLineMapping.outOfRange) {
+            if (line < CodeLineMapping.outOfRange) {
               hoveredCollapsedRegion = CodeLineMapping.regionIndex(line);
               setCursor.set(Cursor.pointer);
             } else {
@@ -1655,7 +1649,7 @@ public class EditorComponent extends View implements
   private boolean isInsideText(V2i position) {
     return Rect.isInside(position,
         pos.x + textBaseX, pos.y,
-        editorWidth(), editorHeight());
+        textViewWidth, editorHeight());
   }
 
   private boolean handleSpecialKeys(KeyEvent event) {
