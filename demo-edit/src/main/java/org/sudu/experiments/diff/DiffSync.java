@@ -28,7 +28,11 @@ public class DiffSync {
     int syncLine = (fromLastLine + fromFirstLine) / 2;
     int linesDelta = syncLine - fromFirstLine;
 
+    //  in compact view: convert syncLine -> docLine
+//    syncLine = model.codeMappingL.viewToDoc(syncLine);
     var fromRange = model.range(syncLine, isLeft);
+    //  in compact view: convert fromRange -> viewLine
+//    syncLine = model.codeMappingL.docToView(syncLine);
 
     int rangeDelta = syncLine - (isLeft ? fromRange.fromL : fromRange.fromR);
     // this used to be

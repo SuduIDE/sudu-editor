@@ -9,7 +9,7 @@ public class ModelTest {
   void testSelection() {
     Model model = new Model();
     model.document.insertAt(0,0," ");
-    V2i selectionLine0 = model.selection.getLine(0);
+    V2i selectionLine0 = model.selection.getLine(0, new V2i());
     // we don't have any selection
     Assertions.assertNull(selectionLine0);
   }

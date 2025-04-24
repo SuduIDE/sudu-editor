@@ -1,6 +1,7 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.fonts.FontResources;
+import org.sudu.experiments.nativelib.SuduDll;
 import org.sudu.experiments.text.TextFormat;
 import org.sudu.experiments.win32.*;
 import org.sudu.experiments.worker.WorkerExecutor;
@@ -10,7 +11,7 @@ import java.util.function.Supplier;
 
 public class Application {
 
-  public static void run(Function<SceneApi, Scene> sf, FontResources ... fontConfig) throws InterruptedException {
+  public static void run(Function<SceneApi, Scene> sf, FontResources ... fontConfig) {
     run(sf, WorkerExecutor.i(), 0, fontConfig);
   }
 
@@ -18,7 +19,8 @@ public class Application {
       Function<SceneApi, Scene> sf,
       WorkerExecutor workerExecutor, int numThreads,
       FontResources ... fontConfig
-  ) throws InterruptedException {
+  ) {
+    SuduDll.require();
     Win32Time time = new Win32Time();
     Win32.coInitialize();
     // todo: debug under other launcher
@@ -43,7 +45,11 @@ public class Application {
 
     while (Win32.PeekTranslateDispatchMessage() && window.opened()) {
       eventQueue.execute();
-      if (!window.update()) Thread.sleep(1);
+      if (!window.update()) try {
+        Thread.sleep(1);
+      } catch (InterruptedException e) {
+        break;
+      }
     }
 
     window.dispose();

@@ -8,8 +8,7 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.UiFont;
 
-import static org.sudu.experiments.editor.UnderlineConstants.scaleSinParams;
-import static org.sudu.experiments.editor.UnderlineConstants.sinParamsDefault;
+import static org.sudu.experiments.editor.UnderlineConstants.*;
 
 public class ClrContext {
   public final V4f tRegion = new V4f();
@@ -28,9 +27,12 @@ public class ClrContext {
   public int lineHeight, underline, underlineHBox;
   public boolean cleartype;
 
+  public final V4f collapseSin = new V4f();
+  public final V4f collapseSinBold = new V4f();
+
   public ClrContext(boolean cleartype) {
     this.cleartype = cleartype;
-    sinParamsDefault(underlineParams);
+    underlineParams(underlineParams, 1);
   }
 
   public void dispose() {
@@ -61,12 +63,14 @@ public class ClrContext {
     lineHeight = Numbers.iRnd(fontLineHeight * lineHeightMulti);
     underline = font.underlineShift(lineHeight);
     createRenderingCanvas(g);
+    sinParamsCollapsed(collapseSin, lineHeight, false);
+    sinParamsCollapsed(collapseSinBold, lineHeight, true);
     return lineHeight;
   }
 
-  public void setSinDpr(float dpr) {
-    sinParamsDefault(underlineParams);
-    scaleSinParams(underlineParams, dpr, underlineParams);
+  public void setDpr(float dpr) {
+    underlineParams(underlineParams, dpr);
+//    scaleSinParams(underlineParams, dpr, underlineParams);
     underlineOffset = UnderlineConstants.offset(underlineParams);
     underlineHBox = UnderlineConstants.boxExtend(underlineParams);
     underlineSize.set(0, underlineHBox * 2);

@@ -4,35 +4,39 @@ import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 
 public class Caret {
   public static final float delayK = 1.25f;
 
   public static final int defaultWidth = 2;
 
-  private final DemoRect shape = new DemoRect(0,0, defaultWidth, 20);
-  private double frequency = .5;
+  final V2i pos = new V2i();
+  final V2i size = new V2i(defaultWidth, 20);
+  final V4f color = new V4f();
+
+  boolean state;
+  double frequency = .5;
   private double nextTime = 0;
-  private boolean state;
 
   public Caret() {
-    Color.Cvt.gray(187, shape.color);
+    Color.Cvt.gray(187, color);
   }
 
   void setHeight(int h) {
-    shape.size.y = h;
+    size.y = h;
   }
 
   void setWidth(int w) {
-    shape.size.x = w;
+    size.x = w;
   }
 
   int height() {
-    return shape.size.y;
+    return size.y;
   }
 
   int width() {
-    return shape.size.x;
+    return size.x;
   }
 
   public boolean update(double time) {
@@ -46,8 +50,8 @@ public class Caret {
     return state != oldState;
   }
 
-  public void setPosition(int x, int y) {
-    shape.pos.set(x, y);
+  public void setPos(int x, int y) {
+    pos.set(x, y);
   }
 
   public void startDelay(double timeNow) {
@@ -56,14 +60,14 @@ public class Caret {
   }
 
   public boolean needsPaint(V2i size) {
-    return Rect.isInside(shape.pos, 0, 0, size);
+    return Rect.isInside(pos, 0, 0, size);
   }
 
-  public void paint(WglGraphics g, V2i dXdY) {
-    if (state) shape.draw(g, dXdY.x, dXdY.y);
+  public void paint(WglGraphics g, V2i base) {
+    g.drawRect(pos.x + base.x, pos.y + base.y, size, color);
   }
 
   public void setColor(Color cursorColor) {
-    shape.color.set(cursorColor);
+    color.set(cursorColor);
   }
 }

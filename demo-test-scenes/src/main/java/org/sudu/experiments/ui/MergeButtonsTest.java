@@ -84,7 +84,7 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
     int w = DprUtil.toPx(80, dpr);
     int top = DprUtil.toPx(20, dpr);
     int left = DprUtil.toPx(20, dpr);
-    buttons.setPosition(left, top, w, size.y / 2, dpr);
+    buttons.setPosition(left, top, w, screen.y / 2, dpr);
 
     font = api.graphics.fontDesk(Fonts.Consolas, 20, dpr);
     int _20 = DprUtil.toPx(20, dpr);

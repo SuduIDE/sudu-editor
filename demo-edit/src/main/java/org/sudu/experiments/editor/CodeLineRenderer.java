@@ -249,8 +249,7 @@ public class CodeLineRenderer implements Disposable {
         /* xPos + */ context.underlineOffset,
         yPos + context.underline + context.underlineOffset,
         context.underlineParams,
-        IdeaCodeColors.ElementsDark.error.v.colorF
-    );
+        IdeaCodeColors.ElementsDark.error.v.colorF, 0);
     g.enableBlend(false);
   }
 
@@ -363,7 +362,7 @@ public class CodeLineRenderer implements Disposable {
   ) {
     CodeLineRenderer[] r = new CodeLineRenderer[newSize];
     int pSrc = 0;
-    if (lines.length > 0) for (int i = first; i <= last; i++) {
+    if (lines.length > 0) for (int i = first; i < last; i++) {
       CodeLine docLine = document.line(i);
       int newIndex = i % r.length;
       int oldIndex = i % lines.length;

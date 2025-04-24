@@ -7,6 +7,7 @@ import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.EditorUi.FontApi;
 import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.editor.ui.colors.MergeButtonsColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.*;
@@ -14,10 +15,7 @@ import org.sudu.experiments.math.*;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.common.TriConsumer;
 import org.sudu.experiments.text.SplitText;
-import org.sudu.experiments.ui.Focusable;
-import org.sudu.experiments.ui.ScrollBar;
-import org.sudu.experiments.ui.SetCursor;
-import org.sudu.experiments.ui.UiContext;
+import org.sudu.experiments.ui.*;
 import org.sudu.experiments.ui.window.View;
 
 import java.util.*;
@@ -41,6 +39,11 @@ public class EditorComponent extends View implements
   static final boolean dumpFontsOnResize = false;
 
   final Caret caret = new Caret();
+  int caretPosX;
+  // this is line number in view coordinates
+  // it must be equals to model.caretLine if no line remapping enabled
+  // int caretLine;
+
   boolean hasFocus;
 
   float fontVirtualSize = EditorConst.DEFAULT_FONT_SIZE;
@@ -60,15 +63,15 @@ public class EditorComponent extends View implements
   int firstLineRendered, lastLineRendered;
 
   // layout
-  static final int vLineXDp = 80;
+  static final int textBaseXDp = 80;
   static final int vLineWDp = 1;
-  static final int vLineLeftDeltaDp = 10;
+  static final int vLineTextOffsetDp = 10;
   static final int codeMapWidthDp = 15;
   static final float scrollBarWidthDp = 12;
 
-  int vLineX;
+  int textBaseX, textViewWidth;
   int vLineW;
-  int vLineLeftDelta;
+  int vLineTextOffset;
   int mergeWidth;
 
   V2i vLineSize = new V2i(1, 0);
@@ -82,6 +85,7 @@ public class EditorComponent extends View implements
   int scrollDown, scrollUp;
   boolean drawTails = true;
   boolean drawGap = true;
+  boolean drawTextFrame = false;
   boolean printResolveTime = true;
   int xOffset = CodeLineRenderer.initialOffset;
 
@@ -111,6 +115,10 @@ public class EditorComponent extends View implements
   GL.Texture codeMap;
   final V2i codeMapSize = new V2i();
 
+  CodeLineMapping docToView = new CodeLineMapping.Id(model);
+  int[] viewToDocMap = new int[0];
+  int hoveredCollapsedRegion = -1;
+
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
     this.g = context.graphics;
@@ -124,6 +132,7 @@ public class EditorComponent extends View implements
     debugFlags[4] = this::toggleMirrored;
     debugFlags[5] = () -> drawGap = !drawGap;
     debugFlags[6] = () -> printResolveTime = !printResolveTime;
+    debugFlags[8] = () -> drawTextFrame = !drawTextFrame;
 
     model.setEditor(this, window().worker());
   }
@@ -147,7 +156,7 @@ public class EditorComponent extends View implements
   @Override
   protected void onDprChange(float olDpr, float newDpr) {
     doChangeFont(fontFamilyName, fontVirtualSize);
-    lrContext.setSinDpr(newDpr);
+    lrContext.setDpr(newDpr);
   }
 
   public void setScrollListeners(Runnable hListener, Runnable vListener) {
@@ -174,12 +183,22 @@ public class EditorComponent extends View implements
   private void internalLayout() {
     boolean hasMerge = mergeButtons != null;
     mergeWidth = (hasMerge && !mirrored) ? mergeWidth() : 0;
-    vLineX = toPx(vLineXDp) + mergeWidth;
     vLineW = toPx(vLineWDp);
-    vLineLeftDelta = toPx(vLineLeftDeltaDp);
+    vLineTextOffset = toPx(vLineTextOffsetDp);
     scrollBarWidth = toPx(scrollBarWidthDp);
+    int textBase = toPx(textBaseXDp);
+    int lineNumbersWidth = textBase - vLineTextOffset;
 
-    int lineNumbersWidth = lineNumbersWidth();
+    textBaseX = mirrored
+        ? vLineW + vLineTextOffset + scrollBarWidth
+        : textBase + mergeWidth;
+
+    int textX1 = mirrored ?
+        size.x - vLineW - lineNumbersWidth
+        : size.x;
+
+    textViewWidth = Math.max(1, textX1 - textBaseX);
+
     int lineNumbersX = mirrored ? pos.x + size.x - lineNumbersWidth : pos.x;
 
     lineNumbers.setPosition(lineNumbersX, pos.y,
@@ -192,10 +211,18 @@ public class EditorComponent extends View implements
 
     codeMapSize.x = Math.min(size.x, toPx(codeMapWidthDp));
     codeMapSize.y = size.y;
-    if (LineDiff.notEmpty(model.diffModel) && size.y > 0) {
+    if (model.hasDiffModel() && size.y > 0) {
       if (codeMap == null || codeMap.height() != size.y)
         buildDiffMap();
     }
+  }
+
+  private int sinX0() {
+    return pos.x + textBaseX - vLineTextOffset + vLineW;
+  }
+
+  private int sinX1() {
+    return mirrored ? vLineX() : pos.x + size.x;
   }
 
   private void toggleBlankLines() {
@@ -366,7 +393,7 @@ public class EditorComponent extends View implements
       lineNumbers.dispose();
       invalidateFont();
       setFont(name, newPixelFontSize);
-      model.caretPos = caretCodeLine().computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
+      recomputeCaretPosY();
       if (mergeButtons != null)
         setMergeButtonsFont();
       internalLayout();
@@ -391,7 +418,7 @@ public class EditorComponent extends View implements
   }
 
   int editorVirtualHeight() {
-    return (model.document.length() + EditorConst.BLANK_LINES) * lineHeight;
+    return (getNumLines() + EditorConst.BLANK_LINES) * lineHeight;
   }
 
   int maxVScrollPos() {
@@ -399,17 +426,7 @@ public class EditorComponent extends View implements
   }
 
   int maxHScrollPos() {
-    return Math.max(fullWidth - editorWidth(), 0);
-  }
-
-  int editorWidth() {
-    int t = mirrored ? scrollBarWidth + vLineLeftDelta : 0;
-    return Math.max(1, size.x - vLineX - t);
-  }
-
-  int lineNumbersWidth() {
-    return
-        mirrored ? vLineX : vLineX - vLineLeftDelta - mergeWidth;
+    return Math.max(fullWidth - textViewWidth, 0);
   }
 
   int editorHeight() {
@@ -473,7 +490,7 @@ public class EditorComponent extends View implements
 
   @Override
   public V2i minimalSize() {
-    return new V2i(lineNumbersWidth() + vLineW + vLineLeftDelta, lineHeight);
+    return new V2i(lineNumbers.width() + vLineW + vLineTextOffset, lineHeight);
   }
 
   @Override
@@ -494,82 +511,66 @@ public class EditorComponent extends View implements
     g.enableBlend(false);
     g.enableScissor(pos, size);
 
-    int caretVerticalOffset = (lineHeight - caret.height()) / 2;
-    int caretX = model.caretPos - caret.width() / 2 - hScrollPos;
-    int dCaret = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
-    caret.setPosition(
-        dCaret + caretX,
-        caretVerticalOffset + model.caretLine * lineHeight - vScrollPos);
-    int docLen = model.document.length();
-
     int firstLine = getFirstLine();
-    int lastLine = getLastLine();
+    int lastLine = getLastLine() + 1;
 
     firstLineRendered = firstLine;
     lastLineRendered = lastLine;
 
-    int dx = mirrored
-        ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth
-        : pos.x + vLineX;
-
-    int editorWidth = editorWidth();
     LineDiff[] diffModel = model.diffModel;
     int rightPadding = toPx(EditorConst.RIGHT_PADDING);
 
-    for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      CodeLine cLine = model.document.line(i);
+    if (viewToDocMap.length < (lastLine - firstLine))
+      viewToDocMap = new int[lastLine - firstLine];
+
+    int lastViewLine = Math.min(lastLine, docToView.length());
+    docToView.viewToDocLines(firstLine, lastViewLine, viewToDocMap);
+
+    for (int i = firstLine; i < lastViewLine; i++) {
+      int lineIndex = viewToDocMap[i - firstLine];
+      if (lineIndex < 0) continue;
+
+      CodeLine cLine = model.document.line(lineIndex);
       CodeLineRenderer line = lineRenderer(i);
 
+      int yPosition = lineHeight * i - vScrollPos;
       int lineMeasure = line.updateTexture(
-          cLine, g, lineHeight, editorWidth, hScrollPos,
-          i, i % lines.length);
+          cLine, g, lineHeight, textViewWidth, hScrollPos,
+          lineIndex, i % lines.length);
 
       fullWidth = Math.max(fullWidth, lineMeasure + rightPadding);
 
-      int yPosition = lineHeight * i - vScrollPos;
-      LineDiff diff = diffModel == null || i >= diffModel.length ? null : diffModel[i];
+      LineDiff diff = diffModel == null || lineIndex >= diffModel.length
+          ? null : diffModel[lineIndex];
+      V2i selectionTemp = context.v2i2;
       line.draw(
-          pos.y + yPosition, dx, g,
-          editorWidth, lineHeight, hScrollPos,
-          codeLineColors, getSelLineSegment(i, cLine),
+          pos.y + yPosition, pos.x + textBaseX, g,
+          textViewWidth, lineHeight, hScrollPos,
+          codeLineColors, getSelLineSegment(lineIndex, cLine, selectionTemp),
           model.definition, model.usages,
-          model.caretLine == i, null, null,
+          model.caretLine == lineIndex, null, null,
               diff);
     }
 
-    V2i sizeTmp = context.v2i1;
-    for (int i = firstLine; i <= lastLine && i < docLen && drawTails; i++) {
-      CodeLineRenderer line = lineRenderer(i);
-      int yPosition = lineHeight * i - vScrollPos;
-      boolean isTailSelected = selection().isTailSelected(i);
-      V4f tailColor = colors.editor.bg;
-      boolean isCurrentLine = model.caretLine == i;
-
-      if (isTailSelected) tailColor = colors.editor.selectionBg;
-      else if (diffModel != null && i < diffModel.length && diffModel[i] != null && !diffModel[i].isDefault()) {
-        tailColor = colors.codeDiffBg.getDiffColor(colors, diffModel[i].type);
-      }
-      else if (isCurrentLine) tailColor = colors.editor.currentLineBg;
-
-      line.drawTail(g, dx, pos.y + yPosition, lineHeight,
-          sizeTmp, hScrollPos, editorWidth, tailColor);
-    }
+    drawTails(firstLine, lastViewLine, pos.x + textBaseX, diffModel);
 
     // draw bottom 5 invisible lines
     if (renderBlankLines) {
-      int nextLine = Math.min(lastLine + 1, docLen);
-      int yPosition = lineHeight * nextLine - vScrollPos;
-      drawDocumentBottom(yPosition, editorWidth);
+      int yPosition = lineHeight * lastViewLine - vScrollPos;
+      drawDocumentBottom(yPosition);
     }
 
     drawVerticalLine();
 
-    if (!mirrored)
-      drawGap(firstLine, lastLine, docLen);
+    if (!mirrored && drawGap)
+      drawFromLineToText(firstLine, lastViewLine);
 
-    if (hasFocus && caretX >= -caret.width() / 2 && caret.needsPaint(size)) {
-      caret.paint(g, pos);
-    }
+    boolean hasCollapsedRegions = CodeLineMapping.hasCollapsedRegions(
+        viewToDocMap, lastViewLine - firstLine);
+    if (hasCollapsedRegions)
+      drawCompacted(firstLine, lastViewLine);
+
+    drawCaret();
 
     if (codeMap != null)
       drawCodeMap();
@@ -582,15 +583,101 @@ public class EditorComponent extends View implements
     if (mergeButtons != null) {
       mergeButtons.setScrollPos(vScrollPos);
       mergeButtons.draw(
-          firstLine, lastLine, model.caretLine,
+          firstLine, lastLine - 1, model.caretLine,
           g, mbColors, lrContext, hasFocus);
     }
+
+    if (drawTextFrame)
+      drawTextAreaFrame();
 
 //    g.checkError("paint complete");
     if (0>1) {
       String s = "fullMeasure:" + CodeLine.cacheMiss + ", cacheHits: " + CodeLine.cacheHits;
       Debug.consoleInfo(s);
       CodeLine.cacheMiss = CodeLine.cacheHits = 0;
+    }
+  }
+
+  void drawCompacted(int firstLine, int lastLine) {
+    int x0 = sinX0();
+    V2i sizeTmp = context.v2i1;
+    g.enableBlend(true);
+    sizeTmp.set(sinX1() - x0, lineHeight);
+    for (int i = firstLine; i < lastLine; i++) {
+      int lineIndex = viewToDocMap[i - firstLine];
+      if (lineIndex < CodeLineMapping.outOfRange) {
+        int yPosition = lineHeight * i - vScrollPos;
+        boolean hover = hoveredCollapsedRegion == CodeLineMapping.regionIndex(lineIndex);
+        g.drawSin(x0, pos.y + yPosition, sizeTmp,
+            x0,pos.y + yPosition + lineHeight * 0.5f,
+            hover ? lrContext.collapseSinBold : lrContext.collapseSin,
+            codeLineColors.collapseWaveColor(), 0);
+      }
+    }
+    g.enableBlend(false);
+  }
+
+  void drawTextAreaFrame() {
+    context.v2i1.set(pos.x + textBaseX, pos.y);
+    context.v2i2.set(textViewWidth, size.y);
+    var color = IdeaCodeColors.ElementsDark.error.v.colorF;
+    WindowPaint.drawInnerFrame(
+        g, context.v2i2, context.v2i1, color, 1, lrContext.size
+    );
+  }
+
+  void drawTails(
+      int firstLine, int lastViewLine,
+      int xPos, LineDiff[] diffModel
+  ) {
+    V2i sizeTmp = context.v2i1;
+    for (int i = firstLine; i < lastViewLine; i++) {
+      int lineIndex = viewToDocMap[i - firstLine];
+      int yPosition = lineHeight * i - vScrollPos;
+      V4f tailColor = colors.editor.bg;
+
+      if (lineIndex < 0) {
+        if (lineIndex != CodeLineMapping.outOfRange) {
+          sizeTmp.set(textViewWidth + xOffset, lineHeight);
+          g.drawRect(xPos - xOffset, pos.y + yPosition,
+              sizeTmp, tailColor);
+        }
+        continue;
+      }
+      CodeLineRenderer line = lineRenderer(i);
+      boolean isTailSelected = selection().isTailSelected(lineIndex);
+
+      if (isTailSelected) {
+        tailColor = colors.editor.selectionBg;
+      } else {
+        var dm = diffModel != null && lineIndex < diffModel.length
+            ? diffModel[lineIndex] : null;
+        if (dm != null) {
+          tailColor = colors.codeDiffBg.getDiffColor(colors, dm.type);
+        } else {
+          boolean isCurrentLine = model.caretLine == lineIndex;
+          if (isCurrentLine)
+            tailColor = colors.editor.currentLineBg;
+        }
+      }
+      if (drawTails)
+        line.drawTail(g, xPos, pos.y + yPosition, lineHeight,
+          sizeTmp, hScrollPos, textViewWidth, tailColor);
+    }
+  }
+
+  private void drawCaret() {
+    if (hasFocus && caret.state) {
+      int caretVerticalOffset = (lineHeight - caret.height()) / 2;
+      int caretX = caretPosX - hScrollPos - caret.width() / 2;
+      int viewLine = docToView.docToViewCursor(model.caretLine);
+      if (viewLine >= 0) {
+        caret.setPos(textBaseX + caretX,
+            caretVerticalOffset + viewLine * lineHeight - vScrollPos);
+        if (caretX >= -caret.width() / 2 && caret.needsPaint(size)) {
+          caret.paint(g, pos);
+        }
+      }
     }
   }
 
@@ -607,35 +694,32 @@ public class EditorComponent extends View implements
     return pos.y;
   }
 
-  private void drawGap(int firstLine, int lastLine, int docLen) {
+  private void drawFromLineToText(int firstLine, int lastLine) {
     LineDiff[] diffModel = model.diffModel;
-    for (int i = firstLine; i <= lastLine && i < docLen; i++) {
-      LineDiff currentLineModel = diffModel != null && i < diffModel.length
-          ? diffModel[i]
-          : null;
+    int xPos0 = textBaseX - vLineTextOffset + vLineW;
+    int xPos1 = textBaseX - xOffset;
+    V2i size = context.v2i1;
+    size.set(xPos1 - xPos0, lineHeight);
 
-      if (model.caretLine == i || currentLineModel != null) {
-        V4f gapColor =
-            currentLineModel != null && currentLineModel.type != 0
-                ? colors.codeDiffBg.getDiffColor(colors, currentLineModel.type)
-                : colors.editor.currentLineBg;
-        vLineSize.x = mirrored
-            ? vLineLeftDelta + scrollBarWidth + vLineW - xOffset
-            : vLineLeftDelta - vLineW - xOffset;
-        vLineSize.y = lineHeight;
-        int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
+    for (int i = firstLine; i < lastLine; i++) {
+      int lineIndex = viewToDocMap[i - firstLine];
+      if (lineIndex < 0) continue;
+
+      LineDiff currentLineModel = diffModel != null && lineIndex < diffModel.length
+          ? diffModel[lineIndex] : null;
+
+      if (model.caretLine == lineIndex || currentLineModel != null) {
+        V4f c = currentLineModel != null && currentLineModel.type != 0
+            ? colors.codeDiffBg.getDiffColor(colors, currentLineModel.type)
+            : colors.editor.currentLineBg;
         int yPosition = lineHeight * i - vScrollPos;
-        g.drawRect(pos.x + dx2,
-            pos.y + yPosition,
-            vLineSize,
-            gapColor
-        );
+        g.drawRect(pos.x + xPos0,pos.y + yPosition, size, c);
       }
     }
   }
 
-  private V2i getSelLineSegment(int lineInd, CodeLine line) {
-    V2i selLine = selection().getLine(lineInd);
+  private V2i getSelLineSegment(int lineInd, CodeLine line, V2i rv) {
+    V2i selLine = selection().getLine(lineInd, rv);
     if (selLine != null) {
       if (selLine.y == -1) selLine.y = line.totalStrLength;
       selLine.x = line.computePixelLocation(selLine.x, g.mCanvas, fonts);
@@ -648,15 +732,19 @@ public class EditorComponent extends View implements
     int editorBottom = size.y;
     int textHeight = Math.min(editorBottom, model.document.length() * lineHeight - vScrollPos);
     int caretLine = model.caretLine;
-    lineNumbers.draw(textHeight, vScrollPos, firstLine, lastLine, caretLine, g, colors);
+    lineNumbers.draw(textHeight, vScrollPos, firstLine, lastLine - 1, caretLine, g, colors);
+  }
+
+  public int getNumLines() {
+    return docToView.length();
   }
 
   public int getFirstLine() {
-    return Math.min(vScrollPos / lineHeight, model.document.length() - 1);
+    return Math.min(vScrollPos / lineHeight, getNumLines() - 1);
   }
 
   public int getLastLine() {
-    return Math.min((vScrollPos + editorHeight() - 1) / lineHeight, model.document.length() - 1);
+    return Math.min((vScrollPos + editorHeight() - 1) / lineHeight, getNumLines() - 1);
   }
 
   public int lineToPos(int line) {
@@ -860,15 +948,15 @@ public class EditorComponent extends View implements
     selection().endPos.set(model.caretLine, model.caretCharPos);
   }
 
-  private void drawDocumentBottom(int yPosition, int editorWidth) {
+  private void drawDocumentBottom(int yPosition) {
     if (yPosition < size.y) {
       V2i sizeTmp = context.v2i1;
 
       sizeTmp.y = size.y - yPosition;
-      sizeTmp.x = mirrored ? editorWidth + vLineW : editorWidth + xOffset;
+      sizeTmp.x = mirrored ? textViewWidth + vLineW : textViewWidth + xOffset;
       int x = mirrored
-          ? pos.x + vLineLeftDelta + scrollBarWidth + vLineW - xOffset
-          : pos.x + vLineX - xOffset;
+          ? pos.x + vLineTextOffset + scrollBarWidth + vLineW - xOffset
+          : pos.x + textBaseX - xOffset;
       g.drawRect(x, pos.y + yPosition, sizeTmp, colors.editor.bg);
     }
   }
@@ -879,10 +967,9 @@ public class EditorComponent extends View implements
         pos.y,
         editorHeight(), editorVirtualHeight(),
         x, scrollBarWidth);
-    x = mirrored ? pos.x + vLineW + vLineLeftDelta + scrollBarWidth : pos.x + vLineX;
     hScroll.layoutHorizontal(hScrollPos,
-        x,
-        editorWidth(), fullWidth,
+        pos.x + textBaseX,
+        textViewWidth, fullWidth,
         pos.y + editorHeight(), scrollBarWidth);
   }
 
@@ -901,15 +988,19 @@ public class EditorComponent extends View implements
   private void drawVerticalLine() {
     vLineSize.y = size.y;
     vLineSize.x = vLineW;
-    int drawLineX = mirrored
-        ? size.x - lineNumbers.width() - vLineW
-        : vLineX - vLineLeftDelta;
-    g.drawRect(pos.x + drawLineX, pos.y, vLineSize, colors.editor.numbersVLine);
+    g.drawRect(pos.x + vLineX(), pos.y,
+        vLineSize, colors.editor.numbersVLine);
     vLineSize.x = mirrored
-        ? vLineLeftDelta + scrollBarWidth + vLineW - xOffset
-        : vLineLeftDelta - vLineW - xOffset;
-    int dx2 = mirrored ? 0 : vLineX - vLineLeftDelta + vLineW;
+        ? vLineTextOffset + scrollBarWidth + vLineW - xOffset
+        : vLineTextOffset - vLineW - xOffset;
+    int dx2 = mirrored ? 0 : textBaseX - vLineTextOffset + vLineW;
     g.drawRect(pos.x + dx2, pos.y, vLineSize, colors.editor.bg);
+  }
+
+  private int vLineX() {
+    return mirrored
+        ? size.x - lineNumbers.width() - vLineW
+        : textBaseX - vLineTextOffset;
   }
 
   static int clampScrollPos(int pos, int maxScrollPos) {
@@ -955,6 +1046,7 @@ public class EditorComponent extends View implements
     } else if (alt) {
       // todo: smart move to prev/next method start
     } else {
+      System.out.println("EditorComponent.arrowUpDown");
       setCaretLine(model.caretLine + amount, shiftPressed);
       adjustEditorVScrollToCaret();
     }
@@ -1003,14 +1095,13 @@ public class EditorComponent extends View implements
 
   private boolean setCaretLine(int value, boolean shift) {
     model.caretLine = Numbers.clamp(0, value, model.document.length() - 1);
+    // caretLine = -1;
     return setCaretPos(model.caretCharPos, shift);
   }
 
   private boolean setCaretPos(int charPos, boolean shift) {
     model.caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
-    model.caretPos = dpr == 0 ? 0
-        : caretCodeLine().computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
-    startBlinking();
+    recomputeCaretPosY();
     adjustEditorScrollToCaret();
     if (shift) selection().isSelectionStarted = true;
     selection().select(model.caretLine, model.caretCharPos);
@@ -1032,8 +1123,13 @@ public class EditorComponent extends View implements
   private void adjustEditorVScrollToCaret() {
     int editVisibleYMin = vScrollPos;
     int editVisibleYMax = vScrollPos + editorHeight();
-    int caretVisibleY0 = model.caretLine * lineHeight;
-    int caretVisibleY1 = model.caretLine * lineHeight + lineHeight;
+    int line = docToView.docToView(model.caretLine);
+    // caret line is not visible
+    if (line < 0)
+      return;
+
+    int caretVisibleY0 = line * lineHeight;
+    int caretVisibleY1 = line * lineHeight + lineHeight;
 
     if (caretVisibleY0 < editVisibleYMin + lineHeight) {
       setScrollPosY(caretVisibleY0 - lineHeight);
@@ -1046,14 +1142,14 @@ public class EditorComponent extends View implements
     int xOffset = Numbers.iRnd(context.dpr * EditorConst.CARET_X_OFFSET);
 
     int editVisibleXMin = hScrollPos;
-    int editVisibleXMax = hScrollPos + editorWidth();
-    int caretVisibleX0 = model.caretPos;
-    int caretVisibleX1 = model.caretPos + xOffset;
+    int editVisibleXMax = hScrollPos + textViewWidth;
+    int caretVisibleX0 = caretPosX;
+    int caretVisibleX1 = caretPosX + xOffset;
 
     if (caretVisibleX0 < editVisibleXMin + xOffset) {
       setScrollPosX(caretVisibleX0 - xOffset);
     } else if (caretVisibleX1 > editVisibleXMax - xOffset) {
-      setScrollPosX(caretVisibleX1 - editorWidth() + xOffset);
+      setScrollPosX(caretVisibleX1 - textViewWidth + xOffset);
     }
   }
 
@@ -1063,17 +1159,20 @@ public class EditorComponent extends View implements
   }
 
   public void findUsages(V2i position, ReferenceProvider.Provider provider) {
-    Pos documentPosition = computeCharPos(position);
+    Pos pos = computeCharPos(position);
+    if (pos == null) return;
 
     if (provider != null) {
-      provider.provideReferences(model, documentPosition.line, documentPosition.pos, true,
+      // todo: probable bug: position captured is used to computeCharPos in showUsagesViaLocations,
+      // but the result may differ from previous (local) "Pos pos" value
+      provider.provideReferences(model, pos.line, pos.pos, true,
           (locs) -> showUsagesViaLocations(position, locs), onError);
     }
   }
 
   public void findUsages(V2i position, DefDeclProvider.Provider provider) {
-
     Pos pos = computeCharPos(position);
+    if (pos == null) return;
     Pos startPos = model.document.getElementStart(pos.line, pos.pos);
     String elementName = getElementNameByStartPos(startPos);
 
@@ -1098,16 +1197,14 @@ public class EditorComponent extends View implements
   }
 
   private void showUsagesViaLocations(V2i position, Location[] locs) {
-    List<Pos> pos = new ArrayList<>();
-    for (Location loc : locs) {
-      pos.add(new Pos(loc.range.startLineNumber, loc.range.startColumn));
-    }
-    if (pos.isEmpty()) {
+    if (locs.length == 0) {
       ui.displayNoUsagesPopup(position);
     } else {
       Pos charPos = computeCharPos(position);
-      Pos startPos = model.document.getElementStart(charPos.line, charPos.pos);
-      ui.showUsagesWindow(position, locs, this, getElementNameByStartPos(startPos));
+      if (charPos != null) {
+        Pos startPos = model.document.getElementStart(charPos.line, charPos.pos);
+        ui.showUsagesWindow(position, locs, this, getElementNameByStartPos(startPos));
+      }
     }
   }
 
@@ -1136,28 +1233,44 @@ public class EditorComponent extends View implements
   }
 
   Pos computeCharPos(V2i eventPosition) {
-    int localX = eventPosition.x - pos.x;
-    int localY = eventPosition.y - pos.y;
+    int vLine = mouseToVLine(eventPosition.y);
+    int line = docToView.viewToDoc(vLine);
+    return line < 0 ? null : computeCharPos(eventPosition, line);
+  }
 
-    int line = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, model.document.length() - 1);
-    int offset = mirrored ? vLineW + vLineLeftDelta + scrollBarWidth : vLineX;
-    int documentXPosition = Math.max(0, localX - offset + hScrollPos);
+  Pos computeCharPos(V2i eventPosition, int line) {
+    int localX = eventPosition.x - pos.x - textBaseX + hScrollPos;
+    int documentXPosition = Math.max(0, localX);
     int charPos = model.document.line(line).computeCharPos(documentXPosition, g.mCanvas, fonts);
     return new Pos(line, charPos);
   }
 
-  private void dragText(MouseEvent event) {
+  private int mouseToVLine(int mouseY) {
+    int localY = mouseY - pos.y;
+
+    int vL = (localY + vScrollPos) / lineHeight;
+    return Numbers.clamp(0, vL, getNumLines() - 1);
+  }
+
+  private void textSelectMouseDrag(MouseEvent event) {
     Pos pos = computeCharPos(event.position);
-    moveCaret(pos);
-    selection().select(model.caretLine, model.caretCharPos);
-    adjustEditorScrollToCaret();
+    if (pos != null) {
+      moveCaret(pos);
+      selection().select(model.caretLine, model.caretCharPos);
+      adjustEditorScrollToCaret();
+    }
   }
 
   private void moveCaret(Pos pos) {
     model.caretLine = pos.line;
     model.caretCharPos = pos.pos;
-    model.caretPos = model.document.line(pos.line)
-        .computePixelLocation(model.caretCharPos, g.mCanvas, fonts);
+    recomputeCaretPosY();
+  }
+
+  private void recomputeCaretPosY() {
+    caretPosX = dpr == 0 ? 0 :
+        caretCodeLine().computePixelLocation(
+            model.caretCharPos, g.mCanvas, fonts);
     startBlinking();
   }
 
@@ -1213,6 +1326,7 @@ public class EditorComponent extends View implements
 
     V2i eventPosition = event.position;
     Pos pos = computeCharPos(eventPosition);
+    if (pos == null) return;
     Pos startPos = model.document.getElementStart(pos.line, pos.pos);
     String elementName = getElementNameByStartPos(startPos);
 
@@ -1228,6 +1342,7 @@ public class EditorComponent extends View implements
 
   void onDoubleClickText(V2i eventPosition) {
     Pos pos = computeCharPos(eventPosition);
+    if (pos == null) return;
     CodeLine line = codeLine(pos.line);
     int wordStart = line.getElementStart(model.caretCharPos);
     int wordEnd = line.nextPos(model.caretCharPos);
@@ -1269,7 +1384,7 @@ public class EditorComponent extends View implements
   }
 
   CodeLine caretCodeLine() {
-    return model.document.line(model.caretLine);
+    return model.caretCodeLine();
   }
 
   CodeLine codeLine(int n) {
@@ -1299,6 +1414,13 @@ public class EditorComponent extends View implements
     if (mergeButtons != null && mergeButtons.onMouseUp(event, button))
       return true;
     selection().isSelectionStarted = false;
+
+    int vLine = mouseToVLine(event.position.y);
+    int line = docToView.viewToDoc(vLine);
+    if (line < CodeLineMapping.outOfRange) {
+      int runnable = CodeLineMapping.regionIndex(line);
+      System.out.println("collapse runnable = " + runnable);
+    }
     return true;
   }
 
@@ -1336,9 +1458,10 @@ public class EditorComponent extends View implements
         return MouseListener.Static.emptyConsumer;
 
       saveToNavStack();
-      V2i eventPosition = mousePos;
-      Pos pos = computeCharPos(eventPosition);
-
+      Pos pos = computeCharPos(mousePos);
+      if (pos == null)
+        return MouseListener.Static.emptyConsumer;
+      mouseToVLine(mousePos.y);
       moveCaret(pos);
       model.computeUsages();
 
@@ -1348,7 +1471,7 @@ public class EditorComponent extends View implements
 
       selection().isSelectionStarted = true;
       selection().select(model.caretLine, model.caretCharPos);
-      return this::dragText;
+      return this::textSelectMouseDrag;
     }
     return null;
   }
@@ -1397,7 +1520,7 @@ public class EditorComponent extends View implements
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     V2i mousePos = event.position;
-
+    hoveredCollapsedRegion = -1;
     var codeMap = onMouseMoveCodeMap(mousePos, setCursor);
     var scroll = !codeMap && (
         vScroll.onMouseMove(mousePos, setCursor) |
@@ -1412,13 +1535,21 @@ public class EditorComponent extends View implements
 
       if (!mb && hitTest(mousePos)) {
         if (isInsideText(mousePos)) {
+          int line = docToView.viewToDoc(mouseToVLine(mousePos.y));
           if (event.ctrl) {
-            Pos pos = computeCharPos(mousePos);
-            model.document.moveToElementStart(pos);
-            boolean hasUsage = model.document.hasDefOrUsagesForElementPos(pos);
-            setCursor.set(hasUsage ? Cursor.pointer : Cursor.text);
+            if (line >= 0) {
+              Pos pos = computeCharPos(mousePos, line);
+              model.document.moveToElementStart(pos);
+              boolean hasUsage = model.document.hasDefOrUsagesForElementPos(pos);
+              setCursor.set(hasUsage ? Cursor.pointer : Cursor.text);
+            }
           } else {
-            setCursor.set(Cursor.text);
+            if (line < CodeLineMapping.outOfRange) {
+              hoveredCollapsedRegion = CodeLineMapping.regionIndex(line);
+              setCursor.set(Cursor.pointer);
+            } else {
+              setCursor.set(Cursor.text);
+            }
           }
         } else {
           setCursor.setDefault();
@@ -1514,10 +1645,9 @@ public class EditorComponent extends View implements
   }
 
   private boolean isInsideText(V2i position) {
-    int dx = mirrored ? vLineLeftDelta + vLineW + scrollBarWidth : vLineX;
     return Rect.isInside(position,
-        pos.x + dx, pos.y,
-        editorWidth(), editorHeight());
+        pos.x + textBaseX, pos.y,
+        textViewWidth, editorHeight());
   }
 
   private boolean handleSpecialKeys(KeyEvent event) {
@@ -1695,6 +1825,7 @@ public class EditorComponent extends View implements
 
     Model oldModel = this.model;
     this.model = model;
+    docToView = new CodeLineMapping.Id(model);
     oldModel.setEditor(null, null);
     model.setEditor(this, window().worker());
     registrations.fireModelChange(oldModel, model);
@@ -1763,7 +1894,7 @@ public class EditorComponent extends View implements
   }
 
   public void updateLineNumbersColors() {
-    if (LineDiff.notEmpty(model.diffModel)) {
+    if (model.hasDiffModel()) {
       byte[] c = new byte[model.diffModel.length];
       for (int i = 0; i < c.length; i++) {
         LineDiff ld = model.diffModel[i];
@@ -1870,5 +2001,12 @@ public class EditorComponent extends View implements
 
   public void setCodeMap() {
     // todo: highlight current symbol or selection search...
+  }
+
+  // call of this method is required for both:
+  // new and in-place edited the data
+  public void setCompactViewModel(CompactViewRange[] data, Runnable[] actions) {
+    docToView = data == null
+        ? new CodeLineMapping.Id(model) : new CompactCodeMapping(data);
   }
 }

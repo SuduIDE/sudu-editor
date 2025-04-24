@@ -5,7 +5,6 @@ import org.sudu.experiments.Disposable;
 import org.sudu.experiments.GL;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.diff.DiffTypes;
-import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
@@ -158,7 +157,7 @@ public class TreeView extends ScrollContent implements Focusable {
 
   @Override
   protected void onDprChange(float olDpr, float newDpr) {
-    clrContext.setSinDpr(newDpr);
+    clrContext.setDpr(newDpr);
     if (uiFont != null)
       changeFont();
   }
@@ -212,7 +211,7 @@ public class TreeView extends ScrollContent implements Focusable {
     if (lines.length < cacheLines) {
       lines = CodeLineRenderer.allocRenderLines(
           cacheLines, lines, clrContext,
-          firstLineRendered, lastLineRendered, model);
+          firstLineRendered, lastLineRendered + 1, model);
     }
 
     g.enableScissor(pos, size);

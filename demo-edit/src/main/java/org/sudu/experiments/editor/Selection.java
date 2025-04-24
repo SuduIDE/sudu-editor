@@ -54,14 +54,15 @@ public class Selection {
   }
 
   // y == -1 -> line is fully selected
-  V2i getLine(int line) {
+  V2i getLine(int line, V2i rv) {
     if (isEmpty()) return null;
     SelPos left = getLeftPos();
     SelPos right = getRightPos();
     if (left.line <= line && line <= right.line) {
       int start = line > left.line ? 0 : left.charInd;
       int end = line < right.line ? -1 : right.charInd;
-      return new V2i(start, end);
+      rv.set(start, end);
+      return rv;
     } else return null;
   }
 

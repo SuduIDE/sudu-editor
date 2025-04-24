@@ -34,7 +34,10 @@ public class Model {
   WorkerJobExecutor executor;
 
   LineDiff[] diffModel;
-  int caretLine, caretCharPos, caretPos;
+
+  // this properties might need to be converted
+  //   to Subscribers<CaretChangeListeners>
+  int caretLine, caretCharPos;
   CodeElement definition = null;
   final List<CodeElement> usages = new ArrayList<>();
   final List<V2i> parsedVps = new ArrayList<>();
@@ -473,6 +476,10 @@ public class Model {
     if (editor != null) editor.onDiffMade();
   }
 
+  CodeLine caretCodeLine() {
+    return document.line(caretLine);
+  }
+
   interface EditorToModel {
     void useDocumentHighlightProvider(int line, int column);
 
@@ -481,5 +488,9 @@ public class Model {
     void fireFileIterativeParsed(int start, int stop);
     void updateModelOnDiff(Diff diff, boolean isUndo);
     void onDiffMade();
+  }
+
+  public boolean hasDiffModel() {
+    return LineDiff.notEmpty(diffModel);
   }
 }

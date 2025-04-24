@@ -1,5 +1,6 @@
 package org.sudu.experiments.editor;
 
+import org.sudu.experiments.DprUtil;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.input.MouseEvent;
@@ -9,6 +10,9 @@ public class LineShaderDemo2 extends LineShaderDemo0 {
 
   final V2i pos = new V2i();
   final V2i size = new V2i();
+
+  final float lineHeight = 16;
+  int  lineHeightRPx = 0;
 
   public LineShaderDemo2(SceneApi api) {
     super(api);
@@ -21,9 +25,18 @@ public class LineShaderDemo2 extends LineShaderDemo0 {
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
-    p12.y = event.position.y - 50;
-    p22.y = event.position.y + 100;
+    p12.y = event.position.y - lineHeightRPx / 2;
+    p22.y = p12.y + lineHeightRPx;
     return true;
+  }
+
+  public void onResize(V2i size, float dpr) {
+    lineHeightRPx = DprUtil.toPx(lineHeight * 5, dpr);
+    int lineHeightLPx = DprUtil.toPx(lineHeight * 3, dpr);
+    int y0 = (size.y - lineHeightLPx) / 2;
+    int y1 = y0 + lineHeightLPx;
+    p11.set(150, y0);
+    p21.set(150, y1);
   }
 
   public void paint() {
@@ -55,7 +68,5 @@ public class LineShaderDemo2 extends LineShaderDemo0 {
     size.set(sizeX, rect.pos.y + rect.size.y - p21.y);
     g.drawRect(pos.x, pos.y, size, rect.bgColor);
   }
-
-  public void onResize(V2i size, float dpr) {}
 
 }
