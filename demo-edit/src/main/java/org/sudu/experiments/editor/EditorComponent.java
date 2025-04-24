@@ -2007,7 +2007,7 @@ public class EditorComponent extends View implements
 
   // call of this method is required for both:
   // new and in-place edited the data
-  public void setCompactViewModel(CompactViewRange[] data) {
+  public void setCompactViewModel(CompactViewRange[] data, Runnable[] actions) {
     docToView = data == null
         ? new CodeLineMapping.Id(model) : new CompactCodeMapping(data);
   }
