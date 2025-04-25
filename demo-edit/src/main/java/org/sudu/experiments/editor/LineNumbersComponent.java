@@ -39,6 +39,8 @@ public class LineNumbersComponent implements Disposable {
     pos.set(x, y);
     size.set(width, height);
     this.dpr = dpr;
+    old.addAll(textures);
+    textures.clear();
   }
 
   public int width() {
@@ -143,11 +145,10 @@ public class LineNumbersComponent implements Disposable {
     LineNumbersTexture texture;
     if (!old.isEmpty()) {
       texture = old.removeFirst();
-      texture.startLine = startLine;
     } else {
-      texture = new LineNumbersTexture(startLine, size.x, lineHeight, fontDesk);
+      texture = new LineNumbersTexture();
     }
-    texture.init(g, textureCanvas, dpr);
+    texture.init(g, width(), lineHeight, startLine, textureCanvas, fontDesk, dpr);
     textures.add(texture);
     return texture;
   }
@@ -158,6 +159,8 @@ public class LineNumbersComponent implements Disposable {
     this.textureHeight = lineHeight * numberOfLines;
     this.cleartype = cleartype;
     disposeCanvas();
+    old.addAll(textures);
+    textures.clear();
   }
 
   private void ensureCanvas(WglGraphics g) {

@@ -14,39 +14,40 @@ public class LineNumbersTexture implements Disposable {
 
   private GL.Texture lineTexture;
 
-  private final V2i textureSize;
+  private final V2i textureSize = new V2i();
   private final int numberOfLines = EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
-  private final int lineHeight;
+  private int lineHeight;
 
   private final V2i rectSize = new V2i();
   private final V4f rectRegion = new V4f();
 
-  private final int baseline;
-
   private boolean cleartype;
   int startLine;
 
-  public LineNumbersTexture(
-      int startLine,
-      int textureWidth,
+  void init(
+      WglGraphics g,
+      int width,
       int lineHeight,
-      FontDesk fontDesk
+      int startLine,
+      Canvas textureCanvas,
+      FontDesk fontDesk,
+      float devicePR
   ) {
+    textureCanvas.clear();
     this.startLine = startLine;
     this.lineHeight = lineHeight;
-    this.textureSize = new V2i(textureWidth, numberOfLines * lineHeight);
-    this.baseline = fontDesk.baselineShift(lineHeight);
-  }
+    textureSize.x = width;
+    textureSize.y = numberOfLines * lineHeight;
 
-  void init(WglGraphics g, Canvas textureCanvas, float devicePR) {
-    textureCanvas.clear();
+    int baseline = fontDesk.baselineShift(lineHeight);
+
+    if (lineTexture == null) lineTexture = Disposable.assign(null, g.createTexture());
     for (int i = 0; i < numberOfLines; i++) {
       int number = startLine + i + 1;
       String lineNum = String.valueOf(number);
       drawLine(textureCanvas, lineNum, lineHeight * i + baseline, devicePR);
     }
-    if (lineTexture != null) lineTexture.setContent(textureCanvas);
-    else lineTexture = Disposable.assign(null, g.createTexture(textureCanvas));
+    lineTexture.setContent(textureCanvas);
     cleartype = textureCanvas.cleartype;
   }
 
@@ -121,5 +122,4 @@ public class LineNumbersTexture implements Disposable {
   public void dispose() {
     lineTexture = Disposable.assign(lineTexture, null);
   }
-
 }
