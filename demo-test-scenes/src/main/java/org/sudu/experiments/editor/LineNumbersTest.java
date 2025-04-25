@@ -54,11 +54,14 @@ public class LineNumbersTest extends Scene0 {
     scrollBar.draw(g);
     g.enableBlend(false);
 
-    lineNumbers.draw(
-        controlHeight * 3 / 4,
-        scrollPos,
-        scrollPos / lineHeight, 2 * controlHeight / lineHeight, 10,
-        g, colors);
+    int yPos = -(scrollPos % lineHeight);
+    lineNumbers.drawEditorLines(
+        yPos,
+        scrollPos / lineHeight,
+        2 * controlHeight / lineHeight,
+        10,
+        g, colors
+    );
   }
 
   private void onScrollEvent(ScrollBar.Event event) {
