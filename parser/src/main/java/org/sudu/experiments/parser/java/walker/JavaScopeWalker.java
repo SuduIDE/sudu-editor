@@ -583,15 +583,17 @@ public class JavaScopeWalker extends JavaParserBaseListener {
           ? getType(ctx.pattern().typeType())
           : getType(ctx.typeType(0));
       scopeWalker.getType(typeName.name);
-      if (expr == null) return new RefNode(null, "boolean", RefTypes.LITERAL);
-      else return new ExprRefNode(List.of(expr), "boolean");
+      var booleanType = scopeWalker.getType("boolean");
+      if (expr == null) return new RefNode(null, booleanType, RefTypes.LITERAL);
+      else return new ExprRefNode(List.of(expr), booleanType);
     }
     if (isNonNullAndEmpty(ctx.typeType()) && isNonNullAndEmpty(ctx.expression())) {
       Name typeName = getType(ctx.typeType(0));
       addTypeUsage(ctx.typeType(0));
       var expr = handleExpression(ctx.expression(0));
-      if (expr == null) return new RefNode(null, typeName.name, RefTypes.LITERAL);
-      else return new ExprRefNode(List.of(expr), typeName.name);
+      var type = scopeWalker.getType(typeName.name);
+      if (expr == null) return new RefNode(null, type, RefTypes.LITERAL);
+      else return new ExprRefNode(List.of(expr), type);
     }
     if (isNonNullAndEmpty(ctx.expression()) && ctx.identifier() != null && ctx.COLONCOLON() != null) {
       var first = handleExpression(ctx.expression(0));

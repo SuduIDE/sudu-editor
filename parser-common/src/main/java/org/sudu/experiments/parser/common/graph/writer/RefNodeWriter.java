@@ -39,11 +39,16 @@ public class RefNodeWriter {
   }
 
   private void writeRefName(RefNode node) {
-    String name = node.ref.name;
-    writer.write(declStringBuilder.length(), name.length());
-    writer.write(node.ref.position);
-    writeType(node.type);
-    declStringBuilder.append(name);
+    if (node.ref != null) {
+      String name = node.ref.name;
+      writer.write(declStringBuilder.length(), name.length());
+      writer.write(node.ref.position);
+      writeType(node.type);
+      declStringBuilder.append(name);
+    } else {
+      writer.write(-1);
+      writeType(node.type);
+    }
   }
 
   private void writeType(String type) {

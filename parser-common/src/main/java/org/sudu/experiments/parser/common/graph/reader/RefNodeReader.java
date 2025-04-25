@@ -47,8 +47,9 @@ public class RefNodeReader {
   }
 
   private Name readName() {
-    int offset = reader.next(),
-        count = reader.next();
+    int offset = reader.next();
+    if (offset == -1) return null;
+    int count = reader.next();
     String name = new String(chars, offset, count);
     int pos = reader.next();
     return new Name(name, pos);
