@@ -579,7 +579,7 @@ public class EditorComponent extends View implements
 
     g.disableScissor();
 
-    drawLineNumbers(firstLine, lastLine + 1);
+    drawLineNumbers(firstLine, lastLine);
     if (mergeButtons != null) {
       mergeButtons.setScrollPos(vScrollPos);
       mergeButtons.draw(
