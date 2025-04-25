@@ -17,6 +17,7 @@ import java.util.List;
 
 public class LineNumbersComponent implements Disposable {
 
+  private final static boolean debugTexture = true;
   private final int numberOfLines = EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
 
   public final V2i pos = new V2i();
@@ -34,6 +35,8 @@ public class LineNumbersComponent implements Disposable {
 
   private final List<LineNumbersTexture> textures = new ArrayList<>();
   private final Deque<LineNumbersTexture> old = new ArrayDeque<>();
+
+  private long frameId;
 
   public void setPosition(int x, int y, int width, int height, float dpr) {
     pos.set(x, y);
@@ -59,47 +62,18 @@ public class LineNumbersComponent implements Disposable {
       int yPos,
       int firstLine, int lastLine,
       int caretLine,
+      long frameId,
       WglGraphics g, EditorColorScheme scheme
   ) {
-    ensureCanvas(g);
-    if (textures.size() + old.size() >= 10) filterTextures(firstLine, lastLine);
-    g.enableScissor(pos, size);
-    doDrawRange(yPos, firstLine, lastLine, g, scheme);
+    beginDraw(g, frameId);
+    drawRange(yPos, firstLine, lastLine, g, scheme);
     int dY = yPos + (lastLine - firstLine) * lineHeight;
-    drawBottom(dY, size.y, g, scheme);
+    drawBottom(dY, g, scheme);
     drawCaretLine(yPos, firstLine, caretLine, scheme, g);
-    g.disableScissor();
+    endDraw(g);
   }
 
-  // range = {yPos, firstLine, lastLine}
-  public void drawRanges(
-      int[][] ranges,
-      WglGraphics g, EditorColorScheme scheme
-  ) {
-    ensureCanvas(g);
-    if (textures.size() + old.size() >= 10) filterTextures(ranges[0][0], ranges[ranges.length - 1][1]);
-    g.enableScissor(pos, size);
-    for (var range: ranges) {
-      int yPos = range[0];
-      int firstLine = range[1];
-      int lastLine = range[2];
-      doDrawRange(yPos, firstLine, lastLine, g, scheme);
-    }
-    g.disableScissor();
-  }
-
-  public void drawBottom(
-      int textHeight, int editorBottom,
-      WglGraphics g, EditorColorScheme scheme
-  ) {
-    var bgColor = scheme.editor.bg;
-    bottomSize.x = size.x;
-    bottomSize.y = editorBottom - textHeight;
-    if (textHeight < editorBottom)
-      g.drawRect(pos.x, pos.y + textHeight, bottomSize, bgColor);
-  }
-
-  private void doDrawRange(
+  public void drawRange(
       int yPos,
       int firstLine, int lastLine,
       WglGraphics g, EditorColorScheme scheme
@@ -112,9 +86,21 @@ public class LineNumbersComponent implements Disposable {
       int begin = Math.max(startLine, firstLine);
       int end = Math.min(startLine + numberOfLines, lastLine);
       texture.draw(pos, dY, begin, end, scheme, colors, g);
+      texture.lastFrame = frameId;
       dY += (end - begin) * lineHeight;
       i = (ind + 1) * numberOfLines;
     }
+  }
+
+  public void drawBottom(
+      int textHeight,
+      WglGraphics g, EditorColorScheme scheme
+  ) {
+    var bgColor = scheme.editor.bg;
+    bottomSize.x = size.x;
+    bottomSize.y = size.y - textHeight;
+    if (textHeight < size.y)
+      g.drawRect(pos.x, pos.y + textHeight, bottomSize, bgColor);
   }
 
   public void drawCaretLine(
@@ -128,13 +114,21 @@ public class LineNumbersComponent implements Disposable {
     texture.drawCaretLine(pos, dY, caretLine, colorScheme, colors, g);
   }
 
-  private void filterTextures(int firstLine, int lastLine) {
+  public void beginDraw(WglGraphics g, long frameId) {
+    ensureCanvas(g);
+    g.enableScissor(pos, size);
+    this.frameId = frameId;
     for (var texture: textures) {
-      if (lastLine < texture.startLine || texture.startLine + numberOfLines < firstLine) {
+      if (frameId - texture.lastFrame >= 2) {
         old.add(texture);
+        System.out.println();
       }
     }
     textures.removeAll(old);
+  }
+
+  public void endDraw(WglGraphics g) {
+    g.disableScissor();
   }
 
   private LineNumbersTexture texture(WglGraphics g, int line) {
@@ -146,6 +140,7 @@ public class LineNumbersComponent implements Disposable {
     if (!old.isEmpty()) {
       texture = old.removeFirst();
     } else {
+      if (debugTexture) System.out.println("Created new texture");
       texture = new LineNumbersTexture();
     }
     texture.init(g, width(), lineHeight, startLine, textureCanvas, fontDesk, dpr);

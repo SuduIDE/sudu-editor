@@ -60,6 +60,7 @@ public class LineNumbersTest extends Scene0 {
         scrollPos / lineHeight,
         2 * controlHeight / lineHeight,
         10,
+        0,
         g, colors
     );
   }
