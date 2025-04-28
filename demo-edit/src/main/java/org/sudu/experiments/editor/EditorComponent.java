@@ -731,13 +731,47 @@ public class EditorComponent extends View implements
   }
 
   private void drawLineNumbers(int firstLine, int lastLine) {
-    int caretLine = model.caretLine;
     int yPos = -(vScrollPos % lineHeight);
+    int caretLine = model.caretLine;
     lineNumbers.beginDraw(g, frameId);
-    lineNumbers.drawRange(yPos, firstLine, lastLine, g, colors);
+
+    int l0 = firstLine, l0Value = viewToDocMap[0];
+//  System.out.println("frame --- >");
+    for (int i = firstLine + 1; i < lastLine; i++) {
+      int value = viewToDocMap[i - firstLine];
+      var follow = value < 0 ? l0Value < 0 : value + l0 == l0Value + i;
+      if (!follow) {
+        drawLnSegment(firstLine, yPos, l0, l0Value, i);
+        l0 = i;
+        l0Value = value;
+      }
+    }
+    if (l0 != lastLine) {
+      drawLnSegment(firstLine, yPos, l0, l0Value, lastLine);
+    }
+//  System.out.println("< --- frame");
+
     lineNumbers.drawCaretLine(yPos, firstLine, caretLine, colors, g);
-    lineNumbers.drawEmptyLines(yPos + (lastLine - firstLine) * lineHeight, g, colors);
+    int endOfDocument = yPos + (lastLine - firstLine) * lineHeight;
+    if (endOfDocument < lineNumbers.pos.y + lineNumbers.size.y)
+      lineNumbers.drawEmptyLines(endOfDocument, g, colors);
     lineNumbers.endDraw(g);
+  }
+
+  private void drawLnSegment(int firstLine, int yPos, int l0, int l0Value, int l1) {
+//    System.out.println("drawRange: at line " + l0 + ")" +
+//        (l0Value < 0 ? " - empty" :
+//            "draw [" + l0Value + "..." + (l0Value + l1 - l0) + ")"));
+    int currentY = yPos + (l0 - firstLine) * lineHeight;
+    if (l0Value < 0) {
+      int yTo = yPos + (l1 - firstLine) * lineHeight;
+      lineNumbers.drawEmptyLines(currentY, yTo, g, colors);
+//      System.out.println("drawEmptyLines: height" + (yTo - currentY) + "px,"
+//          + (yTo - currentY) / lineHeight + " lines");
+    } else {
+      lineNumbers.drawRange(currentY,
+          l0Value, l0Value + l1 - l0, g, colors);
+    }
   }
 
   public int getNumLines() {
