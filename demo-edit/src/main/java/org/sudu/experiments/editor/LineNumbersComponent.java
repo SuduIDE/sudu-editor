@@ -164,8 +164,13 @@ public class LineNumbersComponent implements Disposable {
 
   @Override
   public void dispose() {
-    for (var t: textures) t.dispose();
+    for (LineNumbersTexture t : old)
+      t.dispose();
+
+    for (var t: textures)
+      t.dispose();
     textures.clear();
+    old.clear();
     disposeCanvas();
   }
 
