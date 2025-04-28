@@ -36,7 +36,7 @@ public class LineNumbersComponent implements Disposable {
   private final List<LineNumbersTexture> textures = new ArrayList<>();
   private final Deque<LineNumbersTexture> old = new ArrayDeque<>();
 
-  private long frameId;
+  private int frameId;
 
   public void setPosition(int x, int y, int width, int height, float dpr) {
     pos.set(x, y);
@@ -62,13 +62,13 @@ public class LineNumbersComponent implements Disposable {
       int yPos,
       int firstLine, int lastLine,
       int caretLine,
-      long frameId,
+      int frameId,
       WglGraphics g, EditorColorScheme scheme
   ) {
     beginDraw(g, frameId);
     drawRange(yPos, firstLine, lastLine, g, scheme);
     int dY = yPos + (lastLine - firstLine) * lineHeight;
-    drawBottom(dY, g, scheme);
+    drawEmptyLines(dY, g, scheme);
     drawCaretLine(yPos, firstLine, caretLine, scheme, g);
     endDraw(g);
   }
@@ -92,15 +92,22 @@ public class LineNumbersComponent implements Disposable {
     }
   }
 
-  public void drawBottom(
-      int textHeight,
+  public void drawEmptyLines(
+      int yFrom, int yTo,
       WglGraphics g, EditorColorScheme scheme
   ) {
     var bgColor = scheme.editor.bg;
     bottomSize.x = size.x;
-    bottomSize.y = size.y - textHeight;
-    if (textHeight < size.y)
-      g.drawRect(pos.x, pos.y + textHeight, bottomSize, bgColor);
+    bottomSize.y = yTo - yFrom;
+    if (yFrom < size.y)
+      g.drawRect(pos.x, pos.y + yFrom, bottomSize, bgColor);
+  }
+
+  public void drawEmptyLines(
+      int yPos,
+      WglGraphics g, EditorColorScheme scheme
+  ) {
+    drawEmptyLines(yPos, size.y, g, scheme);
   }
 
   public void drawCaretLine(
@@ -114,14 +121,13 @@ public class LineNumbersComponent implements Disposable {
     texture.drawCaretLine(pos, dY, caretLine, colorScheme, colors, g);
   }
 
-  public void beginDraw(WglGraphics g, long frameId) {
+  public void beginDraw(WglGraphics g, int frameId) {
     ensureCanvas(g);
     g.enableScissor(pos, size);
     this.frameId = frameId;
     for (var texture: textures) {
       if (frameId - texture.lastFrame >= 2) {
         old.add(texture);
-        System.out.println();
       }
     }
     textures.removeAll(old);

@@ -119,7 +119,7 @@ public class EditorComponent extends View implements
   int[] viewToDocMap = new int[0];
   int hoveredCollapsedRegion = -1;
 
-  private long frameId;
+  private int frameId;
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -737,7 +737,7 @@ public class EditorComponent extends View implements
     lineNumbers.beginDraw(g, frameId);
     lineNumbers.drawRange(yPos, firstLine, lastLine, g, colors);
     lineNumbers.drawCaretLine(yPos, firstLine, caretLine, colors, g);
-    lineNumbers.drawBottom(yPos + (lastLine - firstLine) * lineHeight, g, colors);
+    lineNumbers.drawEmptyLines(yPos + (lastLine - firstLine) * lineHeight, g, colors);
     lineNumbers.endDraw(g);
   }
 
