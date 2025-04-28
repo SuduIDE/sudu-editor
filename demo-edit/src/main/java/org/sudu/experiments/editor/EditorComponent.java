@@ -731,46 +731,43 @@ public class EditorComponent extends View implements
   }
 
   private void drawLineNumbers(int firstLine, int lastLine) {
-    int yPos = -(vScrollPos % lineHeight);
+    if (viewToDocMap.length == 0) return;
     int caretLine = model.caretLine;
     lineNumbers.beginDraw(g, frameId);
 
     int l0 = firstLine, l0Value = viewToDocMap[0];
-//  System.out.println("frame --- >");
+//    System.out.println("frame --- >");
     for (int i = firstLine + 1; i < lastLine; i++) {
       int value = viewToDocMap[i - firstLine];
       var follow = value < 0 ? l0Value < 0 : value + l0 == l0Value + i;
       if (!follow) {
-        drawLnSegment(firstLine, yPos, l0, l0Value, i);
+        drawLnSegment(l0, l0Value, i);
         l0 = i;
         l0Value = value;
       }
     }
     if (l0 != lastLine) {
-      drawLnSegment(firstLine, yPos, l0, l0Value, lastLine);
+      drawLnSegment(l0, l0Value, lastLine);
     }
-//  System.out.println("< --- frame");
+//    System.out.println("< --- frame");
 
-    lineNumbers.drawCaretLine(yPos, firstLine, caretLine, colors, g);
-    int endOfDocument = yPos + (lastLine - firstLine) * lineHeight;
+    lineNumbers.drawCaretLine(-vScrollPos, caretLine, colors, g);
+    int endOfDocument = lastLine * lineHeight - vScrollPos;
     if (endOfDocument < lineNumbers.pos.y + lineNumbers.size.y)
       lineNumbers.drawEmptyLines(endOfDocument, g, colors);
     lineNumbers.endDraw(g);
   }
 
-  private void drawLnSegment(int firstLine, int yPos, int l0, int l0Value, int l1) {
+  private void drawLnSegment(int l0, int l0Value, int l1) {
 //    System.out.println("drawRange: at line " + l0 + ")" +
 //        (l0Value < 0 ? " - empty" :
 //            "draw [" + l0Value + "..." + (l0Value + l1 - l0) + ")"));
-    int currentY = yPos + (l0 - firstLine) * lineHeight;
+    int l0y = l0 * lineHeight - vScrollPos;
     if (l0Value < 0) {
-      int yTo = yPos + (l1 - firstLine) * lineHeight;
-      lineNumbers.drawEmptyLines(currentY, yTo, g, colors);
-//      System.out.println("drawEmptyLines: height" + (yTo - currentY) + "px,"
-//          + (yTo - currentY) / lineHeight + " lines");
+      int l1y = l1 * lineHeight - vScrollPos;
+      lineNumbers.drawEmptyLines(l0y, l1y, g, colors);
     } else {
-      lineNumbers.drawRange(currentY,
-          l0Value, l0Value + l1 - l0, g, colors);
+      lineNumbers.drawRange(l0y, l0Value, l0Value + l1 - l0, g, colors);
     }
   }
 

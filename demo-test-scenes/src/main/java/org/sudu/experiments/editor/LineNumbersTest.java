@@ -55,14 +55,15 @@ public class LineNumbersTest extends Scene0 {
     g.enableBlend(false);
 
     int yPos = -(scrollPos % lineHeight);
-    lineNumbers.drawEditorLines(
-        yPos,
-        scrollPos / lineHeight,
-        2 * controlHeight / lineHeight,
-        10,
-        0,
-        g, colors
-    );
+    lineNumbers.beginDraw(g, 0);
+    int firstLine = scrollPos / lineHeight;
+    int lastLine = 2 * controlHeight / lineHeight;
+
+    lineNumbers.drawRange(yPos, firstLine, lastLine, g, colors);
+    int dY = yPos + (lastLine - firstLine) * lineHeight;
+    lineNumbers.drawEmptyLines(dY, g, colors);
+    lineNumbers.drawCaretLine(-scrollPos, 10, colors, g);
+    lineNumbers.endDraw(g);
   }
 
   private void onScrollEvent(ScrollBar.Event event) {

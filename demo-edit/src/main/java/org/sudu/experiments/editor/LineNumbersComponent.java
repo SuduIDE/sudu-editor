@@ -58,21 +58,6 @@ public class LineNumbersComponent implements Disposable {
     return colors;
   }
 
-  public void drawEditorLines(
-      int yPos,
-      int firstLine, int lastLine,
-      int caretLine,
-      int frameId,
-      WglGraphics g, EditorColorScheme scheme
-  ) {
-    beginDraw(g, frameId);
-    drawRange(yPos, firstLine, lastLine, g, scheme);
-    int dY = yPos + (lastLine - firstLine) * lineHeight;
-    drawEmptyLines(dY, g, scheme);
-    drawCaretLine(yPos, firstLine, caretLine, scheme, g);
-    endDraw(g);
-  }
-
   public void drawRange(
       int yPos,
       int firstLine, int lastLine,
@@ -112,13 +97,17 @@ public class LineNumbersComponent implements Disposable {
 
   public void drawCaretLine(
       int yPos,
-      int firstLine, int caretLine,
+      int caretLine,
       EditorColorScheme colorScheme,
       WglGraphics g
   ) {
-    var texture = texture(g, caretLine);
-    int dY = yPos + (caretLine - firstLine) * lineHeight;
-    texture.drawCaretLine(pos, dY, caretLine, colorScheme, colors, g);
+    int y0 = yPos + caretLine * lineHeight;
+    int y1 = y0 + lineHeight;
+    var intersect = y0 < pos.y + size.y && pos.y < y1;
+    if (intersect) {
+      var texture = texture(g, caretLine);
+      texture.drawCaretLine(pos, y0, caretLine, colorScheme, colors, g);
+    }
   }
 
   public void beginDraw(WglGraphics g, int frameId) {
