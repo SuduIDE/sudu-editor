@@ -733,7 +733,6 @@ public class EditorComponent extends View implements
   private void drawLineNumbers(int firstLine, int lastLine) {
     int caretLine = model.caretLine;
     int yPos = -(vScrollPos % lineHeight);
-//    lineNumbers.drawEditorLines(yPos, firstLine, lastLine, caretLine, frameId, g, colors);
     lineNumbers.beginDraw(g, frameId);
     lineNumbers.drawRange(yPos, firstLine, lastLine, g, colors);
     lineNumbers.drawCaretLine(yPos, firstLine, caretLine, colors, g);
@@ -1052,7 +1051,7 @@ public class EditorComponent extends View implements
     } else if (alt) {
       // todo: smart move to prev/next method start
     } else {
-      System.out.println("EditorComponent.arrowUpDown");
+//      System.out.println("EditorComponent.arrowUpDown");
       setCaretLine(model.caretLine + amount, shiftPressed);
       adjustEditorVScrollToCaret();
     }
