@@ -24,7 +24,8 @@ public class LineNumbersComponent implements Disposable {
 
   public final V2i pos = new V2i();
   public final V2i size = new V2i();
-  public final V2i bottomSize = new V2i();
+  private final V2i bottomSize = new V2i();
+  private final V2i syncLineSize = new V2i(0, EditorConst.SYNC_LINE_HEIGHT);
   public float dpr;
 
   private FontDesk fontDesk;
@@ -141,7 +142,7 @@ public class LineNumbersComponent implements Disposable {
   }
 
   public void drawSyncPoints(
-      int scrollPos,
+      int yPos,
       int firstLine, int lastLine,
       int[] syncPoints,
       int curSyncPoint,
@@ -150,47 +151,27 @@ public class LineNumbersComponent implements Disposable {
   ) {
     for (int sp: syncPoints) {
       if (firstLine <= sp && sp <= lastLine)
-        drawSyncLine(scrollPos, sp, scheme.syncPoint, g);
+        drawSyncLine(yPos, sp, firstLine, scheme.syncPoint, g);
     }
     if (firstLine <= curSyncPoint && curSyncPoint <= lastLine) {
-      drawSyncLine(scrollPos, curSyncPoint, scheme.currentSyncPoint, g);
+      drawSyncLine(yPos, curSyncPoint, firstLine, scheme.currentSyncPoint, g);
     }
     if (firstLine <= hoverSyncPoint && hoverSyncPoint <= lastLine) {
-      drawSyncLine(scrollPos, hoverSyncPoint, scheme.hoverSyncPoint, g);
+      drawSyncLine(yPos, hoverSyncPoint, firstLine, scheme.hoverSyncPoint, g);
     }
   }
 
   private void drawSyncLine(
-      int scrollPos, int syncLine,
+      int yPos,
+      int syncLine,
+      int startLine,
       Color lineColor,
       WglGraphics g
   ) {
-    texture(syncLine / numberOfLines).drawSyncLine(
-        g, pos, scrollPos,
-        textures.length * textureHeight,
-        syncLine, lineColor
-    );
-  }
-
-  private void drawCaretLine(
-      int scrollPos, int caretLine,
-      LineNumbersColors colorScheme, WglGraphics g,
-      V4f bgColor
-  ) {
-    texture(caretLine / numberOfLines).drawCurrentLine(
-        g, pos, scrollPos,
-        textures.length * textureHeight,
-        caretLine, colorScheme, bgColor);
-  }
-
-  private void drawBottom(
-      int textHeight, int editorBottom,
-      V4f bgColor, WglGraphics g
-  ) {
-    if (textHeight < editorBottom) {
-      g.drawRect(pos.x, pos.y + textHeight,
-        new V2i(size.x, editorBottom - textHeight), bgColor);
-    }
+    syncLineSize.x = width();
+    if (!mirrored) syncLineSize.x += EditorConst.V_LINE_LEFT_DELTA_DP + EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
+    int y = yPos + (syncLine - startLine) * lineHeight - (EditorConst.SYNC_LINE_HEIGHT / 2);
+    g.drawRect(pos.x, y + pos.y, syncLineSize, lineColor);
   }
 
   private LineNumbersTexture texture(WglGraphics g, int line) {
@@ -222,7 +203,6 @@ public class LineNumbersComponent implements Disposable {
 
   public void setMirrored(boolean mirrored) {
     this.mirrored = mirrored;
-    for (var texture: textures) texture.setMirrored(mirrored);
   }
 
   private void ensureCanvas(WglGraphics g) {

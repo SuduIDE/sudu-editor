@@ -751,8 +751,9 @@ public class EditorComponent extends View implements
   public void drawSyncPoints() {
     int firstLine = getFirstLine();
     int lastLine = Math.min((vScrollPos + editorHeight() - 1) / lineHeight, model.document.length());
+    int yPos = -(vScrollPos % lineHeight);
     lineNumbers.drawSyncPoints(
-        vScrollPos,
+        yPos,
         firstLine, lastLine,
         syncPoints(),
         syncPoints.curSyncPoint(),
