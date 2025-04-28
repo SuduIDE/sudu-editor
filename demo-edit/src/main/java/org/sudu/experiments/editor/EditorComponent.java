@@ -749,6 +749,7 @@ public class EditorComponent extends View implements
   }
 
   public void drawSyncPoints() {
+    if (syncPoints == null) return;
     int firstLine = getFirstLine();
     int lastLine = Math.min((vScrollPos + editorHeight() - 1) / lineHeight, model.document.length());
     int yPos = -(vScrollPos % lineHeight);
@@ -1506,7 +1507,7 @@ public class EditorComponent extends View implements
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
     if (button == MOUSE_BUTTON_LEFT) {
       if (lineNumbers.hitTest(event.position)) {
-        if (syncPoints.hasAnotherPoint()) {
+        if (syncPoints != null && syncPoints.hasAnotherPoint()) {
           int line = computeSyncLine(event.position);
           syncPoints.setPoint(line);
         }
@@ -1549,7 +1550,7 @@ public class EditorComponent extends View implements
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     V2i mousePos = event.position;
-    syncPoints.hoverSyncPoint = -1;
+    if (syncPoints != null) syncPoints.hoverSyncPoint = -1;
     hoveredCollapsedRegion = -1;
     var codeMap = onMouseMoveCodeMap(mousePos, setCursor);
     var scroll = !codeMap && (
@@ -1562,7 +1563,7 @@ public class EditorComponent extends View implements
       var mb = mergeButtons != null && mergeButtons.onMouseMove(event, setCursor);
       var ln = lineNumbers.hitTest(event.position);
       if (ln) {
-        if (syncPoints.hasAnotherPoint()) {
+        if (syncPoints != null && syncPoints.hasAnotherPoint()) {
           syncPoints.hoverSyncPoint = computeSyncLine(event.position);
           if (!mb) setCursor.set(Cursor.pointer);
         } else if (!mb) {

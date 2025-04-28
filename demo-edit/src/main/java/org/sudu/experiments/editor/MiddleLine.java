@@ -128,6 +128,11 @@ public class MiddleLine extends View {
       );
     }
 
+    drawSyncPoints(g, rSize);
+    if (first <= last) g.enableBlend(false);
+  }
+
+  private void drawSyncPoints(WglGraphics g, V2i rSize) {
     if (syncL == null || syncR == null) return;
     for (int i = 0; i < syncL.length; i++) {
       int lineL = syncL[i];
@@ -165,7 +170,6 @@ public class MiddleLine extends View {
           p21, p22, syncLineColor
       );
     }
-    if (first <= last) g.enableBlend(false);
   }
 
   private void drawLine(
