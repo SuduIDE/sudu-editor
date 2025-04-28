@@ -119,6 +119,8 @@ public class EditorComponent extends View implements
   int[] viewToDocMap = new int[0];
   int hoveredCollapsedRegion = -1;
 
+  private int frameId;
+
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
     this.g = context.graphics;
@@ -500,7 +502,7 @@ public class EditorComponent extends View implements
   public void draw(WglGraphics g) { paint(); }
 
   public void paint() {
-
+    frameId++;
     int cacheLines = Numbers.iDivRoundUp(size.y, lineHeight) + EditorConst.MIN_CACHE_LINES;
     if (lines.length < cacheLines) {
       lines = CodeLineRenderer.allocRenderLines(
@@ -731,7 +733,12 @@ public class EditorComponent extends View implements
   private void drawLineNumbers(int firstLine, int lastLine) {
     int caretLine = model.caretLine;
     int yPos = -(vScrollPos % lineHeight);
-    lineNumbers.drawEditorLines(yPos, firstLine, lastLine, caretLine, g, colors);
+//    lineNumbers.drawEditorLines(yPos, firstLine, lastLine, caretLine, frameId, g, colors);
+    lineNumbers.beginDraw(g, frameId);
+    lineNumbers.drawRange(yPos, firstLine, lastLine, g, colors);
+    lineNumbers.drawCaretLine(yPos, firstLine, caretLine, colors, g);
+    lineNumbers.drawEmptyLines(yPos + (lastLine - firstLine) * lineHeight, g, colors);
+    lineNumbers.endDraw(g);
   }
 
   public int getNumLines() {

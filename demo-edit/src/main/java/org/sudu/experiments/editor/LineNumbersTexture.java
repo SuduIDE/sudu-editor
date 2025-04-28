@@ -23,6 +23,7 @@ public class LineNumbersTexture implements Disposable {
 
   private boolean cleartype;
   int startLine;
+  int lastFrame;
 
   void init(
       WglGraphics g,
