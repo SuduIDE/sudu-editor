@@ -732,7 +732,6 @@ public class EditorComponent extends View implements
 
   private void drawLineNumbers(int firstLine, int lastLine) {
     if (viewToDocMap.length == 0) return;
-    int caretLine = model.caretLine;
     lineNumbers.beginDraw(g, frameId);
 
     int l0 = firstLine, l0Value = viewToDocMap[0];
@@ -751,7 +750,11 @@ public class EditorComponent extends View implements
     }
 //    System.out.println("< --- frame");
 
-    lineNumbers.drawCaretLine(-vScrollPos, caretLine, colors, g);
+    int viewCursor = docToView.docToView(model.caretLine);
+    if (viewCursor >= 0 && viewCursor >= firstLine && viewCursor < lastLine) {
+      lineNumbers.drawCaretLine(-vScrollPos,
+          viewCursor, model.caretLine, colors, g);
+    }
     int endOfDocument = lastLine * lineHeight - vScrollPos;
     if (endOfDocument < lineNumbers.pos.y + lineNumbers.size.y)
       lineNumbers.drawEmptyLines(endOfDocument, g, colors);

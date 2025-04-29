@@ -62,7 +62,7 @@ public class LineNumbersTest extends Scene0 {
     lineNumbers.drawRange(yPos, firstLine, lastLine, g, colors);
     int dY = yPos + (lastLine - firstLine) * lineHeight;
     lineNumbers.drawEmptyLines(dY, g, colors);
-    lineNumbers.drawCaretLine(-scrollPos, 10, colors, g);
+    lineNumbers.drawCaretLine(-scrollPos, 10, 10, colors, g);
     lineNumbers.endDraw(g);
   }
 

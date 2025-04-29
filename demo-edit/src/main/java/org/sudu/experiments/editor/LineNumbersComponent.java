@@ -97,16 +97,16 @@ public class LineNumbersComponent implements Disposable {
 
   public void drawCaretLine(
       int yPos,
-      int caretLine,
+      int caretViewLine, int caretDocLine,
       EditorColorScheme colorScheme,
       WglGraphics g
   ) {
-    int y0 = yPos + caretLine * lineHeight;
+    int y0 = yPos + caretViewLine * lineHeight;
     int y1 = y0 + lineHeight;
     var intersect = y0 < pos.y + size.y && pos.y < y1;
     if (intersect) {
-      var texture = texture(g, caretLine);
-      texture.drawCaretLine(pos, y0, caretLine, colorScheme, colors, g);
+      var texture = texture(g, caretDocLine);
+      texture.drawCaretLine(pos, y0, caretDocLine, colorScheme, colors, g);
     }
   }
 
