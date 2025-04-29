@@ -1,5 +1,6 @@
 package org.sudu.experiments.diff;
 
+import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.Diff;
 import org.sudu.experiments.editor.test.MergeButtonsModel;
@@ -36,6 +37,7 @@ class FileDiffRootView extends DiffRootView {
     middleLine.setLeftRight(editor1, editor2);
     Consumer<EditorComponent> parseListener = this::fullFileParseListener;
     TriConsumer<EditorComponent, Integer, Integer> iterativeParseListener = this::iterativeParseFileListener;
+    SyncPoints syncPoints = new SyncPoints(this::onSyncPointsUpdated);
 
     editor1.setFullFileParseListener(parseListener);
     editor1.setIterativeParseFileListener(iterativeParseListener);
@@ -43,16 +45,25 @@ class FileDiffRootView extends DiffRootView {
     editor1.setOnDiffMadeListener(this::onDiffMadeListener);
     editor1.highlightResolveError(false);
     editor1.setMirrored(true);
+    editor1.setSyncPoints(syncPoints, true);
 
     editor2.setFullFileParseListener(parseListener);
     editor2.setIterativeParseFileListener(iterativeParseListener);
     editor2.setUpdateModelOnDiffListener(this::updateModelOnDiffMadeListener);
     editor2.setOnDiffMadeListener(this::onDiffMadeListener);
     editor2.highlightResolveError(false);
+    editor2.setSyncPoints(syncPoints, false);
 
     diffSync = new DiffSync(editor1, editor2);
     setViews(editor1, editor2, middleLine);
     setEmptyDiffModel();
+  }
+
+  @Override
+  public void draw(WglGraphics g) {
+    super.draw(g);
+    editor1.drawSyncPoints();
+    editor2.drawSyncPoints();
   }
 
   public void setFontFamily(String fontFamily) {
@@ -155,7 +166,7 @@ class FileDiffRootView extends DiffRootView {
 
   public void applyTheme(EditorColorScheme theme) {
     ui.setTheme(theme);
-    middleLine.setTheme(theme.codeDiffBg, theme.editor.bg);
+    middleLine.setTheme(theme.codeDiffBg, theme.editor.bg, theme.lineNumber.syncPoint);
     editor1.setTheme(theme);
     editor2.setTheme(theme);
   }
@@ -180,7 +191,12 @@ class FileDiffRootView extends DiffRootView {
     diffSync.setModel(diffModel);
     middleLine.setModel(diffModel);
 
-    var pair = MergeButtonsModel.getModels(diffInfo, editor1.readonly, editor2.readonly, this::applyDiff);
+    var pair = MergeButtonsModel.getModels(
+        diffInfo,
+        editor1.readonly, editor2.readonly,
+        editor1.syncPoints(), editor2.syncPoints(),
+        this::applyDiff
+    );
     MergeButtonsModel m1 = pair[0], m2 = pair[1];
     editor1.setMergeButtons(m1.actions, m1.lines);
     editor2.setMergeButtons(m2.actions, m2.lines);
@@ -199,10 +215,14 @@ class FileDiffRootView extends DiffRootView {
   }
 
   protected void sendToDiff(boolean cmpOnlyLines) {
+    int[] syncL = editor1.copiedSyncPoints();
+    int[] syncR = editor2.copiedSyncPoints();
+    if (syncL.length != syncR.length) return;
     DiffUtils.findDiffs(
         editor1.model().document,
         editor2.model().document,
         cmpOnlyLines,
+        syncL, syncR,
         this::setDiffModel,
         ui.windowManager.uiContext.window.worker());
   }
@@ -211,13 +231,17 @@ class FileDiffRootView extends DiffRootView {
       int fromL, int toL,
       int fromR, int toR
   ) {
-    DiffUtils.findIntervalDiffs(
-        editor1.model().document,
-        editor2.model().document,
-        (upd) -> updateDiffModel(fromL, toL, fromR, toR, upd),
-        ui.windowManager.uiContext.window.worker(),
-        fromL, toL, fromR, toR
-    );
+    if (editor1.hasSyncPoints() || editor2.hasSyncPoints()) {
+      sendToDiff(false);
+    } else {
+      DiffUtils.findIntervalDiffs(
+          editor1.model().document,
+          editor2.model().document,
+          (upd) -> updateDiffModel(fromL, toL, fromR, toR, upd),
+          ui.windowManager.uiContext.window.worker(),
+          fromL, toL, fromR, toR
+      );
+    }
   }
 
   public void setOnDiffMade(
@@ -318,5 +342,10 @@ class FileDiffRootView extends DiffRootView {
 
   public void unsetModelFlagsBit(int bit) {
     modelFlags &= ~bit;
+  }
+
+  public void onSyncPointsUpdated() {
+    middleLine.setSyncLines(editor1.syncPoints(), editor2.syncPoints());
+    sendToDiff(false);
   }
 }
