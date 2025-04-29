@@ -1900,7 +1900,7 @@ public class EditorComponent extends View implements
 
   public boolean hasSyncPoint(V2i eventPos) {
     int lineInd = computeSyncLine(eventPos);
-    return syncPoints.hasPoint(lineInd);
+    return syncPoints != null && syncPoints.hasPoint(lineInd);
   }
 
   public void toggleSyncPoint(V2i eventPos) {
