@@ -17,7 +17,7 @@ import java.util.List;
 
 public class LineNumbersComponent implements Disposable {
 
-  private final static boolean debugTexture = true;
+  private final static boolean debugTexture = false;
   private final int numberOfLines = EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
 
   public final V2i pos = new V2i();
