@@ -55,6 +55,12 @@ public interface ThemeImport {
       }
     }
 
+    boolean[] modified = new boolean[imported.length];
+    for (int i = 0; i < imported.length; i++) {
+      Color c = imported[i];
+      modified[i] = c != null && theme.modify(i, c);
+    }
+
     if (debug) {
       if (hasAlpha) {
         JsHelper.consoleInfo("Colors with alpha:");
@@ -72,7 +78,7 @@ public interface ThemeImport {
 
       for (int i = 0; i < imported.length; i++) {
         Color c = imported[i];
-        if (c != null && theme.modify(i, c)) {
+        if (c != null && modified[i]) {
           JsHelper.consoleInfo(name(i) + '(' + i + ") set to " + c);
         }
       }
