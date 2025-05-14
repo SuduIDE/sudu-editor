@@ -55,6 +55,8 @@ class FileDiffRootView extends DiffRootView {
     setEmptyDiffModel();
   }
 
+
+
   public void setFontFamily(String fontFamily) {
     editor1.changeFont(fontFamily, editor1.getFontVirtualSize());
     editor2.changeFont(fontFamily, editor2.getFontVirtualSize());
@@ -318,5 +320,17 @@ class FileDiffRootView extends DiffRootView {
 
   public void unsetModelFlagsBit(int bit) {
     modelFlags &= ~bit;
+  }
+
+  public void setCompactView(boolean compact) {
+    if (compact) {
+      diffModel.buildCompactView();
+    } else {
+      diffModel.clearCompactView();
+    }
+  }
+
+  public boolean hasCompactView() {
+    return diffModel.hasCompactView();
   }
 }

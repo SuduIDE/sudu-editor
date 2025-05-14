@@ -24,6 +24,53 @@ public class DiffInfo {
     this.ranges = ranges;
   }
 
+  public boolean hasCompactView() {
+    return cvrL != null && cvrR != null;
+  }
+
+  public void clearCompactView() {
+    cvrL = null;
+    cvrR = null;
+    codeMappingL = null;
+    codeMappingR = null;
+  }
+
+  public void buildCompactView() {
+    if (ranges == null || ranges.length == 0)
+      return;
+
+    ArrayList<CompactViewRange> l = new ArrayList<>();
+    ArrayList<CompactViewRange> r = new ArrayList<>();
+
+    DiffRange rA = ranges[0];
+
+    for (int i = 1; i < ranges.length; i++) {
+      CompactViewRange rL = cvrL(rA);
+      CompactViewRange rR = cvrR(rA);
+      l.add(rL);
+      r.add(rR);
+      DiffRange rB = ranges[i];
+      rA = rB;
+    }
+    l.add(cvrL(rA));
+    r.add(cvrR(rA));
+    CompactViewRange[] a0 = new CompactViewRange[0];
+    cvrL = l.toArray(a0);
+    cvrR = r.toArray(a0);
+    codeMappingL = new CompactCodeMapping(cvrL);
+    codeMappingR = new CompactCodeMapping(cvrR);
+  }
+
+  static CompactViewRange cvrR(DiffRange rA) {
+    return new CompactViewRange(
+        rA.fromR, rA.toR(), rA.type != DiffTypes.DEFAULT);
+  }
+
+  static CompactViewRange cvrL(DiffRange rA) {
+    return new CompactViewRange(
+        rA.fromL, rA.toL(), rA.type != DiffTypes.DEFAULT);
+  }
+
   public DiffRange range(int lineKey, boolean isL) {
     return ranges[rangeBinSearch(lineKey, isL)];
   }
