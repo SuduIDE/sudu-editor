@@ -1292,8 +1292,8 @@ public class EditorComponent extends View implements
   }
 
   private int mouseToVLine(int mouseY) {
-    int localY = mouseY - pos.y;
-    return (localY + vScrollPos) / lineHeight;
+    int localY = mouseY - pos.y + vScrollPos;
+    return localY / lineHeight;
   }
 
   private int mouseToVLineClamped(int mouseY) {
