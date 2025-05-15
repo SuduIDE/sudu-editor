@@ -49,6 +49,7 @@ public class SyncPoints {
     if (i == -1) return;
     syncL = ArrayOp.removeAt(syncL, i);
     syncR = ArrayOp.removeAt(syncR, i);
+    if (midLineHoverSyncPoint == i) midLineHoverSyncPoint = -1;
     onSyncPointsChanged.run();
   }
 
