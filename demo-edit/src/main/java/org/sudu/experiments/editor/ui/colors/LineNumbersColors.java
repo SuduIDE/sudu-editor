@@ -10,6 +10,7 @@ public class LineNumbersColors {
   public Color syncPoint;        // todo better colors for sync points
   public Color currentSyncPoint;
   public Color hoverSyncPoint;
+  public Color midLineHoverSyncPoint;
 
   public static LineNumbersColors darcula() {
     return new LineNumbersColors(
@@ -18,7 +19,8 @@ public class LineNumbersColors {
         new Color(IdeaCodeColors.Darcula.caretBg),
         new Color("#ff0000"),
         new Color("#00ff00"),
-        new Color("#0000ff")
+        new Color("#0000ff"),
+        new Color("#8c000f")
     );
   }
 
@@ -29,7 +31,8 @@ public class LineNumbersColors {
         new Color(IdeaCodeColors.Dark.caretBg),
         new Color("#ff0000"),
         new Color("#00ff00"),
-        new Color("#0000ff")
+        new Color("#0000ff"),
+        new Color("#8c000f")
     );
   }
 
@@ -40,13 +43,14 @@ public class LineNumbersColors {
         new Color(IdeaCodeColors.Light.caretBg),
         new Color("#ff0000"),
         new Color("#00ff00"),
-        new Color("#0000ff")
+        new Color("#0000ff"),
+        new Color("#8c000f")
     );
   }
 
   LineNumbersColors(
       Color textColor, Color caretTextColor, Color caretBgColor,
-      Color syncPoint, Color currentSyncPoint, Color hoverSyncPoint
+      Color syncPoint, Color currentSyncPoint, Color hoverSyncPoint, Color midLineHoverSyncPoint
   ) {
     this.textColor = textColor;
     this.caretTextColor = caretTextColor;
@@ -54,5 +58,6 @@ public class LineNumbersColors {
     this.syncPoint = syncPoint;
     this.currentSyncPoint = currentSyncPoint;
     this.hoverSyncPoint = hoverSyncPoint;
+    this.midLineHoverSyncPoint = midLineHoverSyncPoint;
   }
 }

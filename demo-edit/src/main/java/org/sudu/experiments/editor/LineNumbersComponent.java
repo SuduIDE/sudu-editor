@@ -147,10 +147,11 @@ public class LineNumbersComponent implements Disposable {
       int[] syncPoints,
       int curSyncPoint,
       int hoverSyncPoint,
+      int midLineHoverSyncPoint,
       WglGraphics g, LineNumbersColors scheme
   ) {
     for (int sp: syncPoints) {
-      if (firstLine <= sp && sp <= lastLine)
+      if (firstLine <= sp && sp <= lastLine && sp != midLineHoverSyncPoint)
         drawSyncLine(yPos, sp, firstLine, scheme.syncPoint, g);
     }
     if (firstLine <= curSyncPoint && curSyncPoint <= lastLine) {
@@ -158,6 +159,9 @@ public class LineNumbersComponent implements Disposable {
     }
     if (firstLine <= hoverSyncPoint && hoverSyncPoint <= lastLine) {
       drawSyncLine(yPos, hoverSyncPoint, firstLine, scheme.hoverSyncPoint, g);
+    }
+    if (firstLine <= midLineHoverSyncPoint && midLineHoverSyncPoint <= lastLine) {
+      drawSyncLine(yPos, midLineHoverSyncPoint, firstLine, scheme.midLineHoverSyncPoint, g);
     }
   }
 

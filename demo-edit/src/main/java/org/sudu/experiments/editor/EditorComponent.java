@@ -759,6 +759,7 @@ public class EditorComponent extends View implements
         syncPoints(),
         syncPoints.curSyncPoint(),
         syncPoints.hoverSyncPoint,
+        syncPoints.getMidLineHoverSyncPoint(),
         g, colors.lineNumber
     );
   }

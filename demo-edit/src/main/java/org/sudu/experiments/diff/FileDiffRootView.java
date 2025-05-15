@@ -55,6 +55,8 @@ class FileDiffRootView extends DiffRootView {
     editor2.setSyncPoints(syncPoints, false);
 
     diffSync = new DiffSync(editor1, editor2);
+    middleLine.setOnMidSyncPointHover(i -> onMidSyncLineHover(syncPoints, i));
+    middleLine.setOnMidSyncPointClick(i -> onMidSyncLineClick(syncPoints, i));
     setViews(editor1, editor2, middleLine);
     setEmptyDiffModel();
   }
@@ -121,7 +123,8 @@ class FileDiffRootView extends DiffRootView {
     var toRangeInd = diffModel.rightNotEmptyBS(stopLine, isL);
 
     if (fromRangeInd != 0 && diffModel.ranges[fromRangeInd].type != DiffTypes.DEFAULT) fromRangeInd--;
-    if (toRangeInd != diffModel.rangeCount() - 1 && diffModel.ranges[toRangeInd].type != DiffTypes.DEFAULT) toRangeInd++;
+    if (toRangeInd != diffModel.rangeCount() - 1 && diffModel.ranges[toRangeInd].type != DiffTypes.DEFAULT)
+      toRangeInd++;
 
     var fromRange = diffModel.ranges[fromRangeInd];
     var toRange = diffModel.ranges[toRangeInd];
@@ -166,7 +169,12 @@ class FileDiffRootView extends DiffRootView {
 
   public void applyTheme(EditorColorScheme theme) {
     ui.setTheme(theme);
-    middleLine.setTheme(theme.codeDiffBg, theme.editor.bg, theme.lineNumber.syncPoint);
+    middleLine.setTheme(
+        theme.codeDiffBg,
+        theme.editor.bg,
+        theme.lineNumber.syncPoint,
+        theme.lineNumber.midLineHoverSyncPoint
+    );
     editor1.setTheme(theme);
     editor2.setTheme(theme);
   }
@@ -347,5 +355,13 @@ class FileDiffRootView extends DiffRootView {
   public void onSyncPointsUpdated() {
     middleLine.setSyncLines(editor1.syncPoints(), editor2.syncPoints());
     sendToDiff(false);
+  }
+
+  public void onMidSyncLineClick(SyncPoints syncPoints, int line) {
+    syncPoints.remove(line);
+  }
+
+  public void onMidSyncLineHover(SyncPoints syncPoints, int line) {
+    syncPoints.midLineHoverSyncPoint = line;
   }
 }

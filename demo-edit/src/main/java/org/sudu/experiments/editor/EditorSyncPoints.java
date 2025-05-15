@@ -48,4 +48,9 @@ public class EditorSyncPoints {
     else syncPoints.setRight(i);
     hoverSyncPoint = -1;
   }
+
+  public int getMidLineHoverSyncPoint() {
+    if (syncPoints.midLineHoverSyncPoint == -1) return -1;
+    return syncPoints()[syncPoints.midLineHoverSyncPoint];
+  }
 }

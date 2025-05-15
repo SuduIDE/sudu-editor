@@ -8,6 +8,7 @@ public class SyncPoints {
 
   public int[] syncL, syncR;
   public int curL, curR;
+  public int midLineHoverSyncPoint = -1;
   private final Runnable onSyncPointsChanged;
   private static final boolean DEBUG = false;
 
@@ -31,10 +32,7 @@ public class SyncPoints {
       curL = -1;
     } else {
       int p = Arrays.binarySearch(syncL, i);
-      if (p == -1) return;
-      syncL = ArrayOp.removeAt(syncL, p);
-      syncR = ArrayOp.removeAt(syncR, p);
-      onSyncPointsChanged.run();
+      remove(p);
     }
   }
 
@@ -43,11 +41,15 @@ public class SyncPoints {
       curR = -1;
     } else {
       int p = Arrays.binarySearch(syncR, i);
-      if (p == -1) return;
-      syncL = ArrayOp.removeAt(syncL, p);
-      syncR = ArrayOp.removeAt(syncR, p);
-      onSyncPointsChanged.run();
+      remove(p);
     }
+  }
+
+  public void remove(int i) {
+    if (i == -1) return;
+    syncL = ArrayOp.removeAt(syncL, i);
+    syncR = ArrayOp.removeAt(syncR, i);
+    onSyncPointsChanged.run();
   }
 
   public void setLeft(int i) {
