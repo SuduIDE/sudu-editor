@@ -991,12 +991,11 @@ public class EditorComponent extends View implements
   private void drawDocumentBottom(int yPosition) {
     if (yPosition < size.y) {
       V2i sizeTmp = context.v2i1;
-
-      sizeTmp.y = size.y - yPosition;
-      sizeTmp.x = mirrored ? textViewWidth + vLineW : textViewWidth + xOffset;
-      int x = mirrored
-          ? pos.x + vLineTextOffset + scrollBarWidth + vLineW - xOffset
+      int x = mirrored ? pos.x + flippedTextOffset()
           : pos.x + textBaseX - xOffset;
+      sizeTmp.x = mirrored ? flippedVLineX() - x
+          : textViewWidth + xOffset;
+      sizeTmp.y = size.y - yPosition;
       g.drawRect(x, pos.y + yPosition, sizeTmp, colors.editor.bg);
     }
   }
@@ -1031,16 +1030,23 @@ public class EditorComponent extends View implements
     g.drawRect(vLineX(), pos.y,
         vLineSize, colors.editor.numbersVLine);
     vLineSize.x = mirrored
-        ? vLineTextOffset + scrollBarWidth + vLineW - xOffset
+        ? flippedTextOffset()
         : vLineTextOffset - vLineW - xOffset;
     int dx2 = mirrored ? 0 : textBaseX - vLineTextOffset + vLineW;
     g.drawRect(pos.x + dx2, pos.y, vLineSize, colors.editor.bg);
   }
 
+  private int flippedTextOffset() {
+    return vLineTextOffset + scrollBarWidth + vLineW - xOffset;
+  }
+
   private int vLineX() {
-    return pos.x + (mirrored
-        ? size.x - lineNumbers.width() - vLineW
-        : textBaseX - vLineTextOffset);
+    return mirrored ? flippedVLineX()
+        : pos.x + textBaseX - vLineTextOffset;
+  }
+
+  private int flippedVLineX() {
+    return pos.x + size.x - lineNumbers.width() - vLineW;
   }
 
   static int clampScrollPos(int pos, int maxScrollPos) {
