@@ -225,7 +225,7 @@ public class MiddleLine extends View {
   @Override
   protected boolean onMouseClick(MouseEvent event, int button, int clickCount) {
     if (hitTest(event.position)) {
-      int syncPoint = getSyncPointInd(event.position.y);
+      int syncPoint = getSyncPointInd(event.position);
       if (syncPoint == -1) return false;
       onSyncLineClick(syncPoint);
     }
@@ -233,12 +233,12 @@ public class MiddleLine extends View {
   }
 
   private boolean checkSyncPointsHover(MouseEvent event) {
-    int syncPoint = getSyncPointInd(event.position.y);
+    int syncPoint = getSyncPointInd(event.position);
     onSyncLineHover(syncPoint);
     return syncPoint != -1;
   }
 
-  private int getSyncPointInd(int posY) {
+  private int getSyncPointInd(V2i position) {
     if (syncL == null || syncR == null) return -1;
     for (int i = 0; i < syncL.length; i++) {
       int lineL = syncL[i];
@@ -257,9 +257,19 @@ public class MiddleLine extends View {
       int rectY1 = Math.min(Math.max(leftY1, rightY1), pos.y + size.y);
       if (rectY1 <= rectY0) continue;
 
-      if (rectY0 <= posY && posY <= rectY1) return i;
+      if (dist(position.x, position.y, pos.x, leftY, pos.x + size.x, rightY) <= d) return i;
     }
     return -1;
+  }
+
+  private int dist(
+      int px, int py,
+      int x0, int y0,
+      int x1, int y1
+  ) {
+    int numerator = Math.abs((x1 - x0) * (y0 - py) - (y1 - y0) * (x0 - px));
+    int denominator = (int) Math.hypot(y1 - y0, x1 - x0);
+    return (numerator / denominator);
   }
 
   private void onSyncLineHover(int line) {
