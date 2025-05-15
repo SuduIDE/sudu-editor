@@ -1273,7 +1273,7 @@ public class EditorComponent extends View implements
   }
 
   Pos computeCharPos(V2i eventPosition) {
-    int vLine = mouseToVLine(eventPosition.y);
+    int vLine = mouseToVLineClamped(eventPosition.y);
     int line = docToView.viewToDoc(vLine);
     return line < 0 ? null : computeCharPos(eventPosition, line);
   }
@@ -1287,9 +1287,12 @@ public class EditorComponent extends View implements
 
   private int mouseToVLine(int mouseY) {
     int localY = mouseY - pos.y;
+    return (localY + vScrollPos) / lineHeight;
+  }
 
-    int vL = (localY + vScrollPos) / lineHeight;
-    return Numbers.clamp(0, vL, getNumLines() - 1);
+  private int mouseToVLineClamped(int mouseY) {
+    return Numbers.clamp(0,
+        mouseToVLine(mouseY), getNumLines() - 1);
   }
 
   private void textSelectMouseDrag(MouseEvent event) {
@@ -1501,7 +1504,6 @@ public class EditorComponent extends View implements
       Pos pos = computeCharPos(mousePos);
       if (pos == null)
         return MouseListener.Static.emptyConsumer;
-      mouseToVLine(mousePos.y);
       moveCaret(pos);
       model.computeUsages();
 
