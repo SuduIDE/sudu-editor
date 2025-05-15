@@ -24,7 +24,7 @@ public class DiffInfo {
     this.ranges = ranges;
   }
 
-  public boolean hasCompactView() {
+  public boolean isCompactedView() {
     return cvrL != null && cvrR != null;
   }
 

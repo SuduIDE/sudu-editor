@@ -525,6 +525,7 @@ public class EditorComponent extends View implements
     if (viewToDocMap.length < (lastLine - firstLine))
       viewToDocMap = new int[lastLine - firstLine];
 
+    // probably redundant call to docToView.length()
     int lastViewLine = Math.min(lastLine, docToView.length());
     docToView.viewToDocLines(firstLine, lastViewLine, viewToDocMap);
 
@@ -1027,7 +1028,7 @@ public class EditorComponent extends View implements
   private void drawVerticalLine() {
     vLineSize.y = size.y;
     vLineSize.x = vLineW;
-    g.drawRect(pos.x + vLineX(), pos.y,
+    g.drawRect(vLineX(), pos.y,
         vLineSize, colors.editor.numbersVLine);
     vLineSize.x = mirrored
         ? vLineTextOffset + scrollBarWidth + vLineW - xOffset
@@ -1037,9 +1038,9 @@ public class EditorComponent extends View implements
   }
 
   private int vLineX() {
-    return mirrored
+    return pos.x + (mirrored
         ? size.x - lineNumbers.width() - vLineW
-        : textBaseX - vLineTextOffset;
+        : textBaseX - vLineTextOffset);
   }
 
   static int clampScrollPos(int pos, int maxScrollPos) {
@@ -2045,7 +2046,14 @@ public class EditorComponent extends View implements
   // call of this method is required for both:
   // new and in-place edited the data
   public void setCompactViewModel(CompactViewRange[] data, Runnable[] actions) {
-    docToView = data == null
-        ? new CodeLineMapping.Id(model) : new CompactCodeMapping(data);
+    setCompactViewModel(new CompactCodeMapping(data), null);
+  }
+
+  public void setCompactViewModel(CodeLineMapping mapping, Runnable[] actions) {
+    docToView = mapping;
+  }
+
+  public void clearCompactViewModel() {
+    docToView = new CodeLineMapping.Id(model);
   }
 }

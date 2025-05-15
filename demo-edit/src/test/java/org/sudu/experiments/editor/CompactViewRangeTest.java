@@ -158,10 +158,14 @@ class CompactViewRangeTest {
     };
 
     for (V2i pair : docToViewVerifyTable) {
-      int docLine = v.docToView(pair.x);
-      if (pair.y != docLine) {
+      int viewLine = v.docToView(pair.x);
+      if (pair.y != viewLine) {
         System.out.println("fail " + pair);
         Assertions.fail();
+      }
+      if (viewLine >= 0) {
+        int actualDoc = v.viewToDoc(viewLine);
+        Assertions.assertEquals(pair.x, actualDoc);
       }
     }
   }
@@ -173,6 +177,52 @@ class CompactViewRangeTest {
     int toView35 = v.docToView(35);
     int toView36 = v.docToView(36);
     Assertions.assertEquals(toView36, 1 + toView35);
+  }
 
+  static CompactViewRange[] _0_51_v_51_69() {
+    return new CompactViewRange[]{
+        new CompactViewRange(0, 51, false),
+        new CompactViewRange(51, 51, true),
+        new CompactViewRange(51, 69, false),
+    };
+  }
+
+  static CompactViewRange[] _0_51_51_69() {
+    return new CompactViewRange[]{
+        new CompactViewRange(0, 51, false),
+        new CompactViewRange(51, 51, false),
+        new CompactViewRange(51, 69, false),
+    };
+  }
+
+  @Test
+  void testViewToDocLinesZeroRange() {
+    int[] viewToDocVerify = new int[]{ -2, -4 };
+
+    CompactCodeMapping v1 = new CompactCodeMapping(_0_51_v_51_69());
+    testTranslation(v1, viewToDocVerify);
+    CompactCodeMapping v2 = new CompactCodeMapping(_0_51_51_69());
+    testTranslation(v2, viewToDocVerify);
+  }
+
+  static void testTranslation(CompactCodeMapping v, int[] viewToDocVerify) {
+    int[] viewToDocTable = new int[20];
+    int viewBegin = 0;
+    int viewEnd = 2;
+    v.viewToDocLines(viewBegin, viewEnd, viewToDocTable);
+    assertBeginWith(viewToDocTable, viewToDocVerify);
+    for (int i = viewBegin; i < viewEnd; i++) {
+      int actualDoc = v.viewToDoc(i);
+      Assertions.assertEquals(viewToDocVerify[i], actualDoc);
+//      int actualView = v.docToView(actualDoc);
+//      Assertions.assertEquals(i, actualView);
+    }
+  }
+
+  static void assertBeginWith(int[] result, int[] checker) {
+    Assertions.assertTrue(result.length >= checker.length);
+    for (int i = 0; i < checker.length; i++) {
+      Assertions.assertEquals(checker[i], result[i]);
+    }
   }
 }

@@ -57,7 +57,7 @@ public class Editor1 extends Editor0 {
       editor.setCompactViewModel(cvm, new Runnable[cvm.length]);
       System.out.println("setCompactViewModel: " + Arrays.toString(cvm));
     } else {
-      editor.setCompactViewModel(null, null);
+      editor.clearCompactViewModel();
     }
   }
 

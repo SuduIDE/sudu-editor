@@ -57,7 +57,6 @@ public class CompactCodeMapping extends CodeLineMapping {
       throw new IllegalArgumentException("viewLine < 0");
 
     int idx = Arrays.binarySearch(lengths, viewLine);
-
     // you always click in visible region or
     // the 1st line of collapsed, so
     // when idx < 0 -> range.visible === true
@@ -72,6 +71,8 @@ public class CompactCodeMapping extends CodeLineMapping {
       return doc >= range.endLine ? outOfRange : doc;
     } else {
       var range = data[idx];
+      while (idx + 1 < lengths.length && range.length() == 0)
+        range = data[++idx];
       return range.visible ? range.startLine : regionIndex(idx);
     }
   }
