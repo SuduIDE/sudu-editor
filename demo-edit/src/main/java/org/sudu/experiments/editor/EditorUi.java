@@ -230,9 +230,9 @@ public class EditorUi {
 
     private void toggleSyncPoint(ToolbarItemBuilder tbb, V2i eventPos) {
       if (editor.hasSyncPoint(eventPos)) {
-        tbb.addItem("Remove Sync Point", () -> toggleSyncPointAction(eventPos));
+        tbb.addItem("Remove Diff Alignment", () -> toggleSyncPointAction(eventPos));
       } else {
-        tbb.addItem("Add Sync Point", () -> toggleSyncPointAction(eventPos));
+        tbb.addItem("Align With...", () -> toggleSyncPointAction(eventPos));
       }
     }
 
