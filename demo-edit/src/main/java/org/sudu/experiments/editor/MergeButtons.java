@@ -10,6 +10,7 @@ import org.sudu.experiments.ui.SetCursor;
 import org.sudu.experiments.ui.WindowPaint;
 import org.sudu.experiments.ui.fonts.Codicons;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class MergeButtons implements Disposable {
@@ -94,14 +95,12 @@ public class MergeButtons implements Disposable {
     this.firstLine = firstLine;
     this.lastLine = lastLine;
     if (lines == null) return;
-    int bIndex = findBIndex(firstLine);
 
     if (texture == null) {
       texture = renderIcon(g, c.cleartype);
     }
 
     g.enableScissor(pos, size);
-    int nextBt = bIndex < lines.length ? lines[bIndex] : -1;
     int x = pos.x;
     bSize.set(texture.width(), lineHeight);
 
@@ -119,7 +118,10 @@ public class MergeButtons implements Disposable {
 //              scheme.error() :
 //              theme.selectedBg :
               theme.bgColor;
-      if (docL >= 0 && nextBt == docL) {
+
+      boolean found = docL >= 0 && Arrays.binarySearch(lines, docL) >= 0;
+
+      if (found) {
         var textColor = diffType != 0 && textColors != null ?
             textColors.getDiffColor(diffType, null) : theme.textColor;
         var bg = hoverBtLine == docL && (theme.bgColors == null || diffType == 0) ?
@@ -131,8 +133,6 @@ public class MergeButtons implements Disposable {
           WindowPaint.drawInnerFrame(g, bSize, debug,
               theme.textColor, -1, c.size);
         }
-        if (++bIndex < lines.length)
-          nextBt = lines[bIndex];
       } else {
         g.drawRect(x, y, bSize, bgColor);
       }
@@ -153,13 +153,6 @@ public class MergeButtons implements Disposable {
       WindowPaint.drawInnerFrame(g, size, pos,
           theme.textColor, -1, c.size);
     }
-  }
-
-  private int findBIndex(int firstLine) {
-    for (int i = 0; i < lines.length; i++)
-      if (lines[i] >= firstLine)
-        return i;
-    return lines.length;
   }
 
   private boolean buttonHitTest(V2i e, int viewLine) {
