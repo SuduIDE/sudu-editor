@@ -1611,7 +1611,7 @@ public class EditorComponent extends View implements
   }
 
   public boolean onKeyPress(KeyEvent event) {
-//    Debug.consoleInfo("EditorComponent::onKey: "+ event.toString());
+//    Debug.consoleInfo("EditorComponent::onKey: " + event.toString());
     if (onKey != null) {
       if (onKey.onKeyPress(event)) return true;
       if (event.prevented) return false;
