@@ -1,8 +1,6 @@
 package org.sudu.experiments.ui;
 
 import org.sudu.experiments.diff.folder.FolderDiffModel;
-import org.sudu.experiments.ui.fs.RemoteFileNode;
-import org.sudu.experiments.ui.fs.RemoteFileTreeNode;
 
 import java.util.Comparator;
 
@@ -107,7 +105,10 @@ public class FileTreeNode extends TreeNode {
                 : children[i++].getModel(t, m, child, childOrNull(another, j++), side, idx);
           } else {
             var anotherChild = childOrNull(another, j++);
-            if (anotherChild == null) t[idx++] = empty(child.getDiffType(), depth);
+            if (anotherChild == null) {
+              t[idx] = empty(child.getDiffType(), depth);
+              m[idx++] = child;
+            }
             else idx = anotherChild.getEmptyModel(t, m, child, idx);
           }
         }
