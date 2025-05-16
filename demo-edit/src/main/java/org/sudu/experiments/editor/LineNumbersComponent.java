@@ -4,8 +4,10 @@ import org.sudu.experiments.Canvas;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.SetCursor;
@@ -22,11 +24,13 @@ public class LineNumbersComponent implements Disposable {
 
   public final V2i pos = new V2i();
   public final V2i size = new V2i();
-  public final V2i bottomSize = new V2i();
+  private final V2i bottomSize = new V2i();
+  private final V2i syncLineSize = new V2i(0, EditorConst.SYNC_LINE_HEIGHT);
   public float dpr;
 
   private FontDesk fontDesk;
   private boolean cleartype;
+  private boolean mirrored;
   private int lineHeight;
   private int textureHeight;
 
@@ -126,6 +130,43 @@ public class LineNumbersComponent implements Disposable {
     g.disableScissor();
   }
 
+  public void drawSyncPoints(
+      int yPos,
+      int firstLine, int lastLine,
+      int[] syncPoints,
+      int curSyncPoint,
+      int hoverSyncPoint,
+      int midLineHoverSyncPoint,
+      WglGraphics g, LineNumbersColors scheme
+  ) {
+    for (int sp: syncPoints) {
+      if (firstLine <= sp && sp <= lastLine && sp != midLineHoverSyncPoint)
+        drawSyncLine(yPos, sp, firstLine, scheme.syncPoint, g);
+    }
+    if (firstLine <= curSyncPoint && curSyncPoint <= lastLine) {
+      drawSyncLine(yPos, curSyncPoint, firstLine, scheme.currentSyncPoint, g);
+    }
+    if (firstLine <= hoverSyncPoint && hoverSyncPoint <= lastLine) {
+      drawSyncLine(yPos, hoverSyncPoint, firstLine, scheme.hoverSyncPoint, g);
+    }
+    if (firstLine <= midLineHoverSyncPoint && midLineHoverSyncPoint <= lastLine) {
+      drawSyncLine(yPos, midLineHoverSyncPoint, firstLine, scheme.midLineHoverSyncPoint, g);
+    }
+  }
+
+  private void drawSyncLine(
+      int yPos,
+      int syncLine,
+      int startLine,
+      Color lineColor,
+      WglGraphics g
+  ) {
+    syncLineSize.x = width();
+    if (!mirrored) syncLineSize.x += EditorConst.V_LINE_LEFT_DELTA_DP + EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
+    int y = yPos + (syncLine - startLine) * lineHeight - (EditorConst.SYNC_LINE_HEIGHT / 2);
+    g.drawRect(pos.x, y + pos.y, syncLineSize, lineColor);
+  }
+
   private LineNumbersTexture texture(WglGraphics g, int line) {
     int startLine = (line / numberOfLines) * numberOfLines;
     for (var texture: textures) {
@@ -151,6 +192,10 @@ public class LineNumbersComponent implements Disposable {
     disposeCanvas();
     old.addAll(textures);
     textures.clear();
+  }
+
+  public void setMirrored(boolean mirrored) {
+    this.mirrored = mirrored;
   }
 
   private void ensureCanvas(WglGraphics g) {

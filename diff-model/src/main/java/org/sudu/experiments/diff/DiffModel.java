@@ -13,7 +13,6 @@ import org.sudu.experiments.utils.Enumerator;
 import org.sudu.experiments.utils.Utils;
 
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 public class DiffModel {
@@ -21,6 +20,8 @@ public class DiffModel {
   public LineDiff[] lineDiffsN, lineDiffsM;
   public List<BaseRange<CodeLineS>> linesRanges;
   public boolean compareLinesOnly = false;
+  public int[] syncL, syncR;
+
   private static final boolean PRINT_LCS_TIME = false;
 
   public int[] findDiffs(
@@ -43,7 +44,7 @@ public class DiffModel {
     prepare(docN);
     prepare(docM);
 
-    linesRanges = countRanges(docN, docM);
+    linesRanges = countSyncRanges(docN, docM);
     for (var range: linesRanges) {
       if (!(range instanceof Diff<CodeLineS> diff)) continue;
       if (diff.isDeletion()) handleDeletion(diff);
@@ -167,10 +168,6 @@ public class DiffModel {
     }
   }
 
-  public static <S> List<BaseRange<S>> countRanges(S[] L, S[] R) {
-    return countRanges(L, R, DiffModel::getMyersLCS);
-  }
-
   public static <S> Pair<Integer, BitSet[]> countFolderCommon(S[] L, S[] R) {
     Enumerator<S> enumerator = new Enumerator<>(L);
     int[] rightEnum = enumerator.enumerate(R);
@@ -188,7 +185,44 @@ public class DiffModel {
     return new Pair<>(commonLen, new BitSet[]{leftCommon, rightCommon});
   }
 
-  public static <S> List<BaseRange<S>> countRanges(S[] L, S[] R, BiFunction<int[][], int[][], LCS> getLCS) {
+  public <S> List<BaseRange<S>> countSyncRanges(S[] L, S[] R) {
+    if (!validateSyncPoints(L.length, R.length)) return countRanges(L, R);
+    int lSt = 0, rSt = 0;
+    Enumerator<S> enumerator = new Enumerator<>();
+    List<BaseRange<S>> result = new ArrayList<>();
+    for (int i = 0; i < syncL.length; i++) {
+      int lEnd = syncL[i],
+          rEnd = syncR[i];
+      result.addAll(countRanges(L, R, lSt, lEnd, rSt, rEnd, enumerator));
+      lSt = lEnd;
+      rSt = rEnd;
+    }
+    if (!(lSt == L.length && rSt == R.length))
+      result.addAll(countRanges(L, R, lSt, L.length, rSt, R.length, enumerator));
+    return result;
+  }
+
+  private static <S> List<BaseRange<S>> countRanges(
+      S[] L, S[] R,
+      int lSt, int lEnd,
+      int rSt, int rEnd,
+      Enumerator<S> enumerator
+  ) {
+    S[] docL = Arrays.copyOfRange(L, lSt, lEnd);
+    S[] docR = Arrays.copyOfRange(R, rSt, rEnd);
+    var ranges = countRanges(docL, docR, enumerator);
+    for (var range: ranges) {
+      range.fromL += lSt;
+      range.fromR += rSt;
+    }
+    return ranges;
+  }
+
+  public static <S> List<BaseRange<S>> countRanges(S[] L, S[] R) {
+    return countRanges(L, R, new Enumerator<>());
+  }
+
+  public static <S> List<BaseRange<S>> countRanges(S[] L, S[] R, Enumerator<S> enumerator) {
     long time = System.currentTimeMillis();
     int lLen = L.length, rLen = R.length;
     int minLen = Math.min(lLen, rLen);
@@ -198,13 +232,12 @@ public class DiffModel {
     for (; endCut < minLen - start && L[lLen - endCut - 1].equals(R[rLen - endCut - 1]); endCut++) ;
     if (lLen == rLen && start == minLen) return singleCommon(minLen);
 
-    var enumerator = new Enumerator<S>();
     var prepL = enumerator.enumerateWithPositions(L, start, endCut);
     var prepR = enumerator.enumerateWithPositions(R, start, endCut);
     var discardedLR = Utils.dropUnique(prepL, prepR, enumerator.counter);
     if (discardedLR[0].length == 0 && discardedLR[1].length == 0) return fastDiff(L, R, start, endCut);
 
-    LCS lcs = getLCS.apply(discardedLR[0], discardedLR[1]);
+    LCS lcs = getMyersLCS(discardedLR[0], discardedLR[1]);
     var ranges = lcs.countRanges(L, R, start, endCut);
     if (PRINT_LCS_TIME) System.out.println("Counted in " + (System.currentTimeMillis() - time) + " ms\n");
     return ranges;
@@ -233,5 +266,22 @@ public class DiffModel {
     ranges.add(diff);
     if (endCut != 0) ranges.add(new CommonRange<>(L.length - endCut, R.length - endCut, endCut));
     return ranges;
+  }
+
+  protected boolean validateSyncPoints(int lLen, int rLen) {
+    if (syncL == null || syncR == null) return false;
+    if (syncL.length != syncR.length) return false;
+    if (syncL.length == 0) return true;
+    if (syncL[0] < 0 || syncL[0] > lLen) return false;
+    if (syncR[0] < 0 || syncR[0] > rLen) return false;
+    for (int i = 1; i < syncL.length; i++) {
+      if (syncL[i] < 0 || syncL[i] > lLen) return false;
+      if (syncR[i] < 0 || syncR[i] > rLen) return false;
+      if (syncL[i] == syncL[i - 1] &&
+          syncR[i] == syncR[i - 1]) return false;
+      if (syncL[i - 1] > syncL[i]) return false;
+      if (syncR[i - 1] > syncR[i]) return false;
+    }
+    return true;
   }
 }

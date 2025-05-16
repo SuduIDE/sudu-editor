@@ -194,6 +194,7 @@ public class EditorUi {
 
       gotoItems(eventPosition, tbb);
       cutCopyPaste(tbb);
+      toggleSyncPoint(tbb, eventPosition);
       if (opener != null) tbb.addItem(opener);
       //noinspection ConstantValue
       if (developer) tbb.addItem("rendering debug", rDebugMenu());
@@ -225,6 +226,19 @@ public class EditorUi {
           tbb.addItem("Paste", this::pasteAction);
         }
       }
+    }
+
+    private void toggleSyncPoint(ToolbarItemBuilder tbb, V2i eventPos) {
+      if (editor.hasSyncPoint(eventPos)) {
+        tbb.addItem("Remove Diff Alignment", () -> toggleSyncPointAction(eventPos));
+      } else {
+        tbb.addItem("Align With...", () -> toggleSyncPointAction(eventPos));
+      }
+    }
+
+    private void toggleSyncPointAction(V2i eventPos) {
+      windowManager.hidePopupMenu();
+      editor.toggleSyncPoint(eventPos);
     }
 
     private org.sudu.experiments.Window window() {
