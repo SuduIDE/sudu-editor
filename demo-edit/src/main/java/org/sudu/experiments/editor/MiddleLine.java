@@ -226,8 +226,10 @@ public class MiddleLine extends View {
   protected boolean onMouseClick(MouseEvent event, int button, int clickCount) {
     if (hitTest(event.position)) {
       int syncPoint = getSyncPointInd(event.position);
-      if (syncPoint == -1) return false;
-      onSyncLineClick(syncPoint);
+      if (syncPoint != -1) {
+        onSyncLineClick(syncPoint);
+        return true;
+      }
     }
     return false;
   }
@@ -240,6 +242,8 @@ public class MiddleLine extends View {
 
   private int getSyncPointInd(V2i position) {
     if (syncL == null || syncR == null) return -1;
+    double minD = Double.POSITIVE_INFINITY;
+    int minInd = -1;
     for (int i = 0; i < syncL.length; i++) {
       int lineL = syncL[i];
       int lineR = syncR[i];
@@ -257,9 +261,13 @@ public class MiddleLine extends View {
       int rectY1 = Math.min(Math.max(leftY1, rightY1), pos.y + size.y);
       if (rectY1 <= rectY0) continue;
 
-      if (dist(position.x, position.y, pos.x, leftY, pos.x + size.x, rightY) <= d) return i;
+      double curD = dist(position.x, position.y, pos.x, leftY, pos.x + size.x, rightY);
+      if (curD <= 10 * d && curD < minD) {
+        minD = curD;
+        minInd = i;
+      }
     }
-    return -1;
+    return minInd;
   }
 
   private double dist(
