@@ -3,8 +3,8 @@ package org.sudu.experiments.editor;
 public abstract class CodeLineMapping {
 
   // negative return value is outOfRange or regionIndex
-  static final int outOfRange = -1;
-  static int regionIndex(int r) { return -r - 2; }
+  public static final int outOfRange = -1;
+  public static int regionIndex(int r) { return -r - 2; }
   static boolean isCompacted(int r) { return r < outOfRange; }
 
   public abstract int length();
