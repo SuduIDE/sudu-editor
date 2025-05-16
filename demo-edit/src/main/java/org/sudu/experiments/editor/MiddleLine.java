@@ -262,14 +262,14 @@ public class MiddleLine extends View {
     return -1;
   }
 
-  private int dist(
+  private double dist(
       int px, int py,
       int x0, int y0,
       int x1, int y1
   ) {
     int numerator = Math.abs((x1 - x0) * (y0 - py) - (y1 - y0) * (x0 - px));
-    int denominator = (int) Math.hypot(y1 - y0, x1 - x0);
-    return (numerator / denominator);
+    double denominator = Math.hypot(y1 - y0, x1 - x0);
+    return numerator / denominator;
   }
 
   private void onSyncLineHover(int line) {
