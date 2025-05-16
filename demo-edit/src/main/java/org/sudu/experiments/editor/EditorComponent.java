@@ -587,7 +587,7 @@ public class EditorComponent extends View implements
       mergeButtons.setScrollPos(vScrollPos);
       mergeButtons.draw(
           firstLine, lastLine - 1, model.caretLine,
-          g, mbColors, lrContext, hasFocus);
+          g, mbColors, lrContext, viewToDocMap);
     }
 
     if (drawTextFrame)
@@ -1873,7 +1873,7 @@ public class EditorComponent extends View implements
 
     Model oldModel = this.model;
     this.model = model;
-    docToView = new CodeLineMapping.Id(model);
+    clearCompactViewModel();
     oldModel.setEditor(null, null);
     model.setEditor(this, window().worker());
     registrations.fireModelChange(oldModel, model);
@@ -2033,6 +2033,7 @@ public class EditorComponent extends View implements
      }
      mergeButtons.setModel(actions, lines);
      mergeButtons.setColors(lineNumbers.colors());
+     mergeButtons.setCodeLineMapping(docToView);
   }
 
   void buildDiffMap() {
@@ -2059,9 +2060,12 @@ public class EditorComponent extends View implements
 
   public void setCompactViewModel(CodeLineMapping mapping, Runnable[] actions) {
     docToView = mapping;
+    if (mergeButtons != null) {
+      mergeButtons.setCodeLineMapping(mapping);
+    }
   }
 
   public void clearCompactViewModel() {
-    docToView = new CodeLineMapping.Id(model);
+    setCompactViewModel(new CodeLineMapping.Id(model), null);
   }
 }

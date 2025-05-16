@@ -38,6 +38,8 @@ public class MergeButtons implements Disposable {
   private boolean toLeft;
   private FontDesk font;
 
+  private CodeLineMapping lineMapping;
+
   static final boolean drawFrames = false;
 
   public MergeButtons() {
@@ -46,6 +48,10 @@ public class MergeButtons implements Disposable {
 
   public MergeButtons(boolean drawBg) {
     this.drawBg = drawBg;
+  }
+
+  void setCodeLineMapping(CodeLineMapping mapping) {
+    lineMapping = mapping;
   }
 
   public void setPosition(int x, int y, int width, int height, float dpr) {
@@ -77,9 +83,8 @@ public class MergeButtons implements Disposable {
 
   public void draw(
       int firstLine, int lastLine, int caretLine,
-      WglGraphics g,
-      MergeButtonsColors theme,
-      ClrContext c, boolean hasFocus
+      WglGraphics g, MergeButtonsColors theme, ClrContext c,
+      int[] viewToDocMap
   ) {
 //    var hoverColors = scheme.hoverColors;
     //  var diffColors = scheme.diff;
@@ -105,7 +110,8 @@ public class MergeButtons implements Disposable {
 
     for (int l = firstLine; l <= lastLine; l++) {
       int y = pos.y + l * lineHeight - scrollPos;
-      byte diffType = l < colors.length ? colors[l] : 0;
+      int docL = viewToDocMap == null ? l : viewToDocMap[l - firstLine];
+      byte diffType = docL >= 0 && docL < colors.length ? colors[docL] : 0;
 
       V4f bgColor = diffType != 0 && bgColors != null ?
           bgColors.getDiffColor(diffType, null) :
@@ -113,10 +119,10 @@ public class MergeButtons implements Disposable {
 //              scheme.error() :
 //              theme.selectedBg :
               theme.bgColor;
-      if (nextBt == l) {
+      if (docL >= 0 && nextBt == docL) {
         var textColor = diffType != 0 && textColors != null ?
             textColors.getDiffColor(diffType, null) : theme.textColor;
-        var bg = hoverBtLine == l && (theme.bgColors == null || diffType == 0) ?
+        var bg = hoverBtLine == docL && (theme.bgColors == null || diffType == 0) ?
             theme.bgColorHovered : bgColor;
         c.drawIcon(g, texture, x, y, bg, textColor);
 
@@ -156,9 +162,9 @@ public class MergeButtons implements Disposable {
     return lines.length;
   }
 
-  private boolean buttonHitTest(V2i e, int lNumber) {
+  private boolean buttonHitTest(V2i e, int viewLine) {
     int x = pos.x;
-    int y = pos.y + lNumber * lineHeight - scrollPos;
+    int y = pos.y + viewLine * lineHeight - scrollPos;
     int size = lineHeight;
     return Rect.isInside(e, x, y, size, size);
   }
@@ -166,10 +172,11 @@ public class MergeButtons implements Disposable {
   public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
     hoverBtLine = -1;
     if (!hitTest(event.position)) return false;
-    for (int btLine : lines) {
-      if (firstLine <= btLine && btLine <= lastLine) {
+    for (int btDocLine : lines) {
+      int btLine = docToView(btDocLine);
+      if (btLine >= 0 && firstLine <= btLine && btLine <= lastLine) {
         if (buttonHitTest(event.position, btLine)) {
-          hoverBtLine = btLine;
+          hoverBtLine = btDocLine;
           return setCursor.set(Cursor.pointer);
         }
       }
@@ -185,11 +192,13 @@ public class MergeButtons implements Disposable {
     if (button != MouseListener.MOUSE_BUTTON_LEFT) return null;
     if (!hitTest(event.position)) return null;
     for (int i = 0; i < lines.length; i++) {
-      int btLine = lines[i];
-      boolean hit = firstLine <= btLine && btLine <= lastLine &&
+      int btDocLine = lines[i];
+      int btLine = docToView(btDocLine);
+      boolean hit = btLine >= 0 &&
+          firstLine <= btLine && btLine <= lastLine &&
           buttonHitTest(event.position, btLine);
       if (hit) {
-        hoverBtLine = btLine;
+        hoverBtLine = btDocLine;
         hoverBtIndex = i;
         setCursor.setDefault();
         return MouseListener.Static.emptyConsumer;
@@ -199,11 +208,17 @@ public class MergeButtons implements Disposable {
     return MouseListener.Static.emptyConsumer;
   }
 
+  private int docToView(int btDocLine) {
+    return lineMapping == null ? btDocLine
+        : lineMapping.docToView(btDocLine);
+  }
+
   public boolean onMouseUp(MouseEvent event, int button) {
     Runnable r = null;
     if (button == MouseListener.MOUSE_BUTTON_LEFT) {
       if (hoverBtLine >= 0) {
-        if (buttonHitTest(event.position, hoverBtLine)) {
+        int btLine = docToView(hoverBtLine);
+        if (btLine >= 0 && buttonHitTest(event.position, btLine)) {
           r = actions[hoverBtIndex];
         }
       }

@@ -331,6 +331,8 @@ class FileDiffRootView extends DiffRootView {
       diffModel.clearCompactView();
       editor1.clearCompactViewModel();
       editor2.clearCompactViewModel();
+      editor1.revealLineInCenter(editor1.caretLine());
+      editor2.revealLineInCenter(editor2.caretLine());
     }
   }
 
