@@ -162,8 +162,8 @@ public class MiddleLine extends View {
       if (fromR < 0) continue;
       int lenL = range.lenL, lenR = range.lenR;
 
-      boolean lVis = lFirst <= fromL && fromL + lenL <= lLast;
-      boolean rVis = rFirst <= fromR && fromR + lenR <= rLast;
+      boolean lVis = lFirst <= fromL + lenL && fromL <= lLast;
+      boolean rVis = rFirst <= fromR + lenR && fromR <= rLast;
       if (lVis || rVis)
         addVisible(fromL, lenL, fromR, lenR, range.type);
     }
