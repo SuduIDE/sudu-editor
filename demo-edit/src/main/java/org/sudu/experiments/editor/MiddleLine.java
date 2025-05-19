@@ -73,44 +73,11 @@ public class MiddleLine extends View {
         size,
         bgColor);
 
-    if (diffModel == null) return;
+    if (diffModel == null || diffColors == null) return;
 
-    CompactCodeMapping cml = diffModel.codeMappingL;
-    CompactCodeMapping cmr = diffModel.codeMappingR;
-
-    // todo: redesign later, last should be beyond the range
-    int e1f = editor1.getFirstLine();
-    int e1l = editor1.getLastLine();
-    int e2f = editor2.getFirstLine();
-    int e2l = editor2.getLastLine();
-
-    nVisible = 0;
-    DiffRange[] ranges = diffModel.ranges;
-    for (DiffRange range : ranges) {
-      if (range.type == 0) continue;
-      int fromL = range.fromL, toL = range.toL() - 1;
-      int fromR = range.fromR, toR = range.toR() - 1;
-      if (cml != null) {
-        fromL = cml.docToView(fromL);
-        if (fromL < 0) continue;
-        toL = cml.docToView(toL);
-        if (toL < 0) continue;
-      }
-
-      if (cmr != null) {
-        fromR = cmr.docToView(fromR);
-        if (fromR < 0) continue;
-        toR = cmr.docToView(toR);
-        if (toR < 0) continue;
-      }
-
-      boolean lVis = e1f <= fromL && toL < e1l;
-      boolean rVis = e2f <= fromR && toR < e2l;
-      if (lVis || rVis)
-        addVisible(fromL, toL, fromR, toR, range.type);
-    }
-
+    computeVisible();
     if (nVisible == 0) return;
+
     g.enableBlend(true);
 
     V2i editor1Pos = editor1.pos();
@@ -122,16 +89,13 @@ public class MiddleLine extends View {
 
     int lineWidth = uiContext.toPx(lineWidthDp);
 
-    System.out.println("frame");
-
     for (int i = 0; i < nVisible; i++) {
       Visible vr = visible[i];
-      System.out.println("vr = " + vr.fromR + "," + vr.toR);
       int leftY0 = editor1.lineToPos(vr.fromL);
-      int leftY1 = editor1.lineToPos(vr.toL + 1);
+      int leftY1 = editor1.lineToPos(vr.fromL + vr.lenL);
 
       int rightY0 = editor2.lineToPos(vr.fromR);
-      int rightY1 = editor2.lineToPos(vr.toR + 1);
+      int rightY1 = editor2.lineToPos(vr.fromR + vr.lenR);
 
       setLinePos(leftY0, leftY1, rightY0, rightY1);
 
@@ -141,7 +105,7 @@ public class MiddleLine extends View {
       if (rectY1 <= rectY0) continue;
       rSize.set(size.x, rectY1 - rectY0);
 
-      V4f color = diffColors != null ? diffColors.getDiffColor(vr.type, bgColor) : bgColor;
+      V4f color = diffColors.getDiffColor(vr.type, bgColor);
 
       if (leftY0 == leftY1) {
         drawLine(g, leftY0, rightY0, lineWidth,
@@ -178,15 +142,42 @@ public class MiddleLine extends View {
     g.drawRect(editorPos, y, temp, color);
   }
 
-  void addVisible(int fromL, int toL, int fromR, int toR, int type) {
+  private void computeVisible() {
+    CompactCodeMapping cml = diffModel.codeMappingL;
+    CompactCodeMapping cmr = diffModel.codeMappingR;
+
+    // todo: redesign later, last should be beyond the range
+    int e1f = editor1.getFirstLine();
+    int e1l = editor1.getLastLine();
+    int e2f = editor2.getFirstLine();
+    int e2l = editor2.getLastLine();
+
+    nVisible = 0;
+    DiffRange[] ranges = diffModel.ranges;
+    for (DiffRange range : ranges) {
+      if (range.type == 0) continue;
+      int fromL = cml != null ? cml.docToView(range.fromL) : range.fromL;
+      if (fromL < 0) continue;
+      int fromR = cmr != null ? cmr.docToView(range.fromR) : range.fromR;
+      if (fromR < 0) continue;
+      int lenL = range.lenL, lenR = range.lenR;
+
+      boolean lVis = e1f <= fromL && fromL + lenL <= e1l;
+      boolean rVis = e2f <= fromR && fromR + lenR <= e2l;
+      if (lVis || rVis)
+        addVisible(fromL, lenL, fromR, lenR, range.type);
+    }
+  }
+
+  void addVisible(int fromL, int lenL, int fromR, int lenR, int type) {
     if (nVisible == visible.length)
       visible = Arrays.copyOf(visible, visible.length * 2);
     Visible r = visible[nVisible];
     if (r == null) visible[nVisible] = r = new Visible();
     r.fromL = fromL;
-    r.toL = toL;
+    r.lenL = lenL;
     r.fromR = fromR;
-    r.toR = toR;
+    r.lenR = lenR;
     r.type = type;
     nVisible++;
   }
@@ -198,7 +189,7 @@ public class MiddleLine extends View {
   }
 
   static class Visible {
-    int fromL, toL, fromR, toR;
+    int fromL, lenL, fromR, lenR;
     int type;
   }
 }
