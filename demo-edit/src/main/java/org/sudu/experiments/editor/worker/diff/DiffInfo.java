@@ -12,6 +12,8 @@ import java.util.function.IntConsumer;
 
 public class DiffInfo {
 
+  static final int linesExtend = 2;
+
   public LineDiff[] lineDiffsL;
   public LineDiff[] lineDiffsR;
   public CompactViewRange[] cvrL;
@@ -37,11 +39,7 @@ public class DiffInfo {
     codeMappingR = null;
   }
 
-  public void buildCompactView(Consumer<IntConsumer> applyToEdit) {
-    buildCompactView(2, applyToEdit);
-  }
-
-  public void buildCompactView(int linesExtend, Consumer<IntConsumer> apply) {
+  public void buildCompactView(Consumer<IntConsumer> apply) {
     if (ranges == null || ranges.length < 2) {
       apply.accept(null);
       return;
@@ -59,38 +57,45 @@ public class DiffInfo {
     // merge pass
     for (int i = 0; i < nRanges; i++) {
       DiffRange dr = ranges[i];
-      if (dr.type == DiffTypes.DEFAULT) {
-        int lenL = l[i].length();
-        int lenR = r[i].length();
-        if (i > 0) {
-          transferRight(i, Math.min(lenL, linesExtend), l);
-          transferRight(i, Math.min(lenR, linesExtend), r);
-          lenL = l[i].length();
-          lenR = r[i].length();
-        }
-        if (i + 1 < nRanges) {
-          transferLeft(i, Math.min(lenL, linesExtend), l);
-          transferLeft(i, Math.min(lenR, linesExtend), r);
-          lenL = l[i].length();
-          lenR = r[i].length();
-        }
-        if (lenR == 0) r[i].visible = true;
-        if (lenL == 0) l[i].visible = true;
-      }
+      if (dr.type == DiffTypes.DEFAULT)
+        expand(linesExtend, i, l, r);
     }
 
     cvrL = l; cvrR = r;
     rebuildAndApply(apply);
   }
 
-  void expandSection(int index) {
-    System.out.println("expand " + index);
+  void expand(int extend, int index, CompactViewRange[] l, CompactViewRange[] r) {
+    CompactViewRange lRange = l[index];
+    CompactViewRange rRange = r[index];
+    int lenL = lRange.length();
+    int lenR = rRange.length();
+    if (index > 0) {
+      transferRight(index, Math.min(lenL, extend), l);
+      transferRight(index, Math.min(lenR, extend), r);
+      lenL = lRange.length();
+      lenR = rRange.length();
+    }
+    if (index + 1 < ranges.length) {
+      transferLeft(index, Math.min(lenL, extend), l);
+      transferLeft(index, Math.min(lenR, extend), r);
+      lenL = lRange.length();
+      lenR = rRange.length();
+    }
+    if (lenR == 0) rRange.visible = true;
+    if (lenL == 0) lRange.visible = true;
+  }
+
+  void expandSection(int index, Consumer<IntConsumer> apply) {
+//    System.out.println("expandSection " + ranges[index]);
+    expand(linesExtend, index, cvrL, cvrR);
+    rebuildAndApply(apply);
   }
 
   private void rebuildAndApply(Consumer<IntConsumer> apply) {
     codeMappingL = new CompactCodeMapping(cvrL);
     codeMappingR = new CompactCodeMapping(cvrR);
-    apply.accept(this::expandSection);
+    apply.accept(n -> expandSection(n, apply));
   }
 
   static void transferLeft(int from, int length, CompactViewRange[] ranges) {
