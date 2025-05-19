@@ -147,10 +147,10 @@ public class MiddleLine extends View {
     CompactCodeMapping cmr = diffModel.codeMappingR;
 
     // todo: redesign later, last should be beyond the range
-    int e1f = editor1.getFirstLine();
-    int e1l = editor1.getLastLine();
-    int e2f = editor2.getFirstLine();
-    int e2l = editor2.getLastLine();
+    int lFirst = editor1.getFirstLine();
+    int lLast = editor1.getLastLine();
+    int rFirst = editor2.getFirstLine();
+    int rLast = editor2.getLastLine();
 
     nVisible = 0;
     DiffRange[] ranges = diffModel.ranges;
@@ -162,8 +162,8 @@ public class MiddleLine extends View {
       if (fromR < 0) continue;
       int lenL = range.lenL, lenR = range.lenR;
 
-      boolean lVis = e1f <= fromL && fromL + lenL <= e1l;
-      boolean rVis = e2f <= fromR && fromR + lenR <= e2l;
+      boolean lVis = lFirst <= fromL && fromL + lenL <= lLast;
+      boolean rVis = rFirst <= fromR && fromR + lenR <= rLast;
       if (lVis || rVis)
         addVisible(fromL, lenL, fromR, lenR, range.type);
     }
