@@ -3,6 +3,7 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.DiffColors;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
+import org.sudu.experiments.editor.worker.diff.DiffRange;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.V2i;
@@ -10,6 +11,8 @@ import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.SetCursor;
 import org.sudu.experiments.ui.UiContext;
 import org.sudu.experiments.ui.window.View;
+
+import java.util.Arrays;
 
 public class MiddleLine extends View {
   public static final float lineWidthDp = 2;
@@ -27,6 +30,9 @@ public class MiddleLine extends View {
   private DiffRef editor1, editor2;
   private Color bgColor;
   private DiffColors diffColors;
+
+  private Visible[] visible = new Visible[4];
+  private int nVisible;
 
   public MiddleLine(UiContext context) {
     this.uiContext = context;
@@ -69,35 +75,63 @@ public class MiddleLine extends View {
 
     if (diffModel == null) return;
 
-    int lineWidth = uiContext.toPx(lineWidthDp);
+    CompactCodeMapping cml = diffModel.codeMappingL;
+    CompactCodeMapping cmr = diffModel.codeMappingR;
 
     // todo: redesign later, last should be beyond the range
-    int lFirst = diffModel.rangeBinSearch(editor1.getFirstLine(), true);
-    int lLast = diffModel.rangeBinSearch(editor1.getLastLine(), true);
-    int rFirst = diffModel.rangeBinSearch(editor2.getFirstLine(), false);
-    int rLast = diffModel.rangeBinSearch(editor2.getLastLine(), false);
+    int e1f = editor1.getFirstLine();
+    int e1l = editor1.getLastLine();
+    int e2f = editor2.getFirstLine();
+    int e2l = editor2.getLastLine();
 
-    int first = Math.min(lFirst, rFirst);
-    int last = Math.max(lLast, rLast);
+    nVisible = 0;
+    DiffRange[] ranges = diffModel.ranges;
+    for (DiffRange range : ranges) {
+      if (range.type == 0) continue;
+      int fromL = range.fromL, toL = range.toL() - 1;
+      int fromR = range.fromR, toR = range.toR() - 1;
+      if (cml != null) {
+        fromL = cml.docToView(fromL);
+        if (fromL < 0) continue;
+        toL = cml.docToView(toL);
+        if (toL < 0) continue;
+      }
 
-    if (first <= last) g.enableBlend(true);
+      if (cmr != null) {
+        fromR = cmr.docToView(fromR);
+        if (fromR < 0) continue;
+        toR = cmr.docToView(toR);
+        if (toR < 0) continue;
+      }
+
+      boolean lVis = e1f <= fromL && toL < e1l;
+      boolean rVis = e2f <= fromR && toR < e2l;
+      if (lVis || rVis)
+        addVisible(fromL, toL, fromR, toR, range.type);
+    }
+
+    if (nVisible == 0) return;
+    g.enableBlend(true);
 
     V2i editor1Pos = editor1.pos();
+    V2i editor2Pos = editor2.pos();
     V2i editor1Size = editor1.size();
     V2i editor2Size = editor2.size();
-    V2i editor2Pos = editor2.pos();
 
     V2i rSize = uiContext.v2i2;
 
-    for (int i = first; i <= last; i++) {
-      var range = diffModel.ranges[i];
-      if (range.type == 0) continue;
+    int lineWidth = uiContext.toPx(lineWidthDp);
 
-      int leftY0 = editor1.lineToPos(range.fromL);
-      int leftY1 = editor1.lineToPos(range.toL());
+    System.out.println("frame");
 
-      int rightY0 = editor2.lineToPos(range.fromR);
-      int rightY1 = editor2.lineToPos(range.toR());
+    for (int i = 0; i < nVisible; i++) {
+      Visible vr = visible[i];
+      System.out.println("vr = " + vr.fromR + "," + vr.toR);
+      int leftY0 = editor1.lineToPos(vr.fromL);
+      int leftY1 = editor1.lineToPos(vr.toL + 1);
+
+      int rightY0 = editor2.lineToPos(vr.fromR);
+      int rightY1 = editor2.lineToPos(vr.toR + 1);
 
       setLinePos(leftY0, leftY1, rightY0, rightY1);
 
@@ -107,7 +141,7 @@ public class MiddleLine extends View {
       if (rectY1 <= rectY0) continue;
       rSize.set(size.x, rectY1 - rectY0);
 
-      V4f color = diffColors != null ? diffColors.getDiffColor(range.type, bgColor) : bgColor;
+      V4f color = diffColors != null ? diffColors.getDiffColor(vr.type, bgColor) : bgColor;
 
       if (leftY0 == leftY1) {
         drawLine(g, leftY0, rightY0, lineWidth,
@@ -123,7 +157,7 @@ public class MiddleLine extends View {
           p21, p22, color
       );
     }
-    if (first <= last) g.enableBlend(false);
+    g.enableBlend(false);
   }
 
   private void drawLine(
@@ -144,9 +178,27 @@ public class MiddleLine extends View {
     g.drawRect(editorPos, y, temp, color);
   }
 
+  void addVisible(int fromL, int toL, int fromR, int toR, int type) {
+    if (nVisible == visible.length)
+      visible = Arrays.copyOf(visible, visible.length * 2);
+    Visible r = visible[nVisible];
+    if (r == null) visible[nVisible] = r = new Visible();
+    r.fromL = fromL;
+    r.toL = toL;
+    r.fromR = fromR;
+    r.toR = toR;
+    r.type = type;
+    nVisible++;
+  }
+
   @Override
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     if (hitTest(event.position))
       setCursor.set(null);
+  }
+
+  static class Visible {
+    int fromL, toL, fromR, toR;
+    int type;
   }
 }

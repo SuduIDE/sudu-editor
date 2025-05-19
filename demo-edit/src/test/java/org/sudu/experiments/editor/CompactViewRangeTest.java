@@ -127,7 +127,7 @@ class CompactViewRangeTest {
     V2i[] docToViewVerifyTable = new V2i[]{
         new V2i(0, CodeLineMapping.outOfRange),
 
-        // [1..5)  visible
+        // [1..5)  visible  -> [0,1,2,3]
         new V2i(1, 0),
         new V2i(2, 1),
         new V2i(3, 2),
@@ -137,7 +137,7 @@ class CompactViewRangeTest {
         new V2i(6, CodeLineMapping.outOfRange),
         new V2i(7, CodeLineMapping.outOfRange),
 
-        // [8..11)  invisible
+        // [8..11)  invisible -> [4]
         new V2i(8, CodeLineMapping.regionIndex(1)),
         new V2i(9, CodeLineMapping.regionIndex(1)),
         new V2i(10, CodeLineMapping.regionIndex(1)),
@@ -145,7 +145,7 @@ class CompactViewRangeTest {
         // out of range
         new V2i(11, CodeLineMapping.outOfRange),
 
-        // [12..17)  visible
+        // [12..17)  visible -> [5,6,7,8,9]
         new V2i(12, 5),
         new V2i(13, 6),
         new V2i(14, 7),

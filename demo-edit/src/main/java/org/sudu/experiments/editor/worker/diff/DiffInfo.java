@@ -90,10 +90,8 @@ public class DiffInfo {
       int midFrom = isL ? midRange.fromL : midRange.fromR;
       int midLen = isL ? midRange.lenL : midRange.lenR;
 
-      // todo: simplify
-      if (midFrom <= lineKey && lineKey < midFrom + midLen) return mid;
       if (midFrom < lineKey) low = mid + 1;
-      else if (midFrom > lineKey) high = mid - 1;
+      else if (midFrom >= midFrom + midLen) high = mid - 1;
       else return mid;
     }
     return Math.min(low, ranges.length - 1);
