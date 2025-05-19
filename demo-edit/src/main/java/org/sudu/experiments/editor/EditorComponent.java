@@ -21,6 +21,7 @@ import org.sudu.experiments.ui.window.View;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class EditorComponent extends View implements
     Focusable,
@@ -116,6 +117,7 @@ public class EditorComponent extends View implements
   final V2i codeMapSize = new V2i();
 
   CodeLineMapping docToView = new CodeLineMapping.Id(model);
+  IntConsumer compactModeActions;
   int[] viewToDocMap = new int[0];
   int hoveredCollapsedRegion = -1;
 
@@ -1468,7 +1470,8 @@ public class EditorComponent extends View implements
     int line = docToView.viewToDoc(vLine);
     if (line < CodeLineMapping.outOfRange) {
       int runnable = CodeLineMapping.regionIndex(line);
-      System.out.println("collapse runnable = " + runnable);
+      if (compactModeActions != null)
+        compactModeActions.accept(runnable);
     }
     return true;
   }
@@ -2054,12 +2057,13 @@ public class EditorComponent extends View implements
 
   // call of this method is required for both:
   // new and in-place edited the data
-  public void setCompactViewModel(CompactViewRange[] data, Runnable[] actions) {
-    setCompactViewModel(new CompactCodeMapping(data), null);
+  public void setCompactViewModel(CompactViewRange[] data, IntConsumer expander) {
+    setCompactViewModel(new CompactCodeMapping(data), expander);
   }
 
-  public void setCompactViewModel(CodeLineMapping mapping, Runnable[] actions) {
+  public void setCompactViewModel(CodeLineMapping mapping, IntConsumer expander) {
     docToView = mapping;
+    compactModeActions = expander;
     if (mergeButtons != null) {
       mergeButtons.setCodeLineMapping(mapping);
     }

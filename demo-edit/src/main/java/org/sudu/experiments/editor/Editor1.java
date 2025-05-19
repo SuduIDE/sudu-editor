@@ -54,7 +54,7 @@ public class Editor1 extends Editor0 {
     if (editor.docToView instanceof CodeLineMapping.Id) {
 //      var cvm = DebugHelper.makeDebugRemap(editor.model.document);
       var cvm = DebugHelper.t1();
-      editor.setCompactViewModel(cvm, new Runnable[cvm.length]);
+      editor.setCompactViewModel(cvm, null);
       System.out.println("setCompactViewModel: " + Arrays.toString(cvm));
     } else {
       editor.clearCompactViewModel();

@@ -7,6 +7,8 @@ import org.sudu.experiments.editor.CompactViewRange;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class DiffInfo {
 
@@ -35,30 +37,78 @@ public class DiffInfo {
     codeMappingR = null;
   }
 
-  public void buildCompactView() {
-    if (ranges == null || ranges.length == 0)
+  public void buildCompactView(Consumer<IntConsumer> applyToEdit) {
+    buildCompactView(2, applyToEdit);
+  }
+
+  public void buildCompactView(int linesExtend, Consumer<IntConsumer> apply) {
+    if (ranges == null || ranges.length < 2) {
+      apply.accept(null);
       return;
-
-    ArrayList<CompactViewRange> l = new ArrayList<>();
-    ArrayList<CompactViewRange> r = new ArrayList<>();
-
-    DiffRange rA = ranges[0];
-
-    for (int i = 1; i < ranges.length; i++) {
-      CompactViewRange rL = cvrL(rA);
-      CompactViewRange rR = cvrR(rA);
-      l.add(rL);
-      r.add(rR);
-      DiffRange rB = ranges[i];
-      rA = rB;
     }
-    l.add(cvrL(rA));
-    r.add(cvrR(rA));
-    CompactViewRange[] a0 = new CompactViewRange[0];
-    cvrL = l.toArray(a0);
-    cvrR = r.toArray(a0);
+
+    int nRanges = ranges.length;
+    CompactViewRange[] l = new CompactViewRange[nRanges];
+    CompactViewRange[] r = new CompactViewRange[nRanges];
+    for (int i = 0; i < nRanges; i++) {
+      DiffRange dr = ranges[i];
+      l[i] = cvrL(dr);
+      r[i] = cvrR(dr);
+    }
+
+    // merge pass
+    for (int i = 0; i < nRanges; i++) {
+      DiffRange dr = ranges[i];
+      if (dr.type == DiffTypes.DEFAULT) {
+        int lenL = l[i].length();
+        int lenR = r[i].length();
+        if (i > 0) {
+          transferRight(i, Math.min(lenL, linesExtend), l);
+          transferRight(i, Math.min(lenR, linesExtend), r);
+          lenL = l[i].length();
+          lenR = r[i].length();
+        }
+        if (i + 1 < nRanges) {
+          transferLeft(i, Math.min(lenL, linesExtend), l);
+          transferLeft(i, Math.min(lenR, linesExtend), r);
+          lenL = l[i].length();
+          lenR = r[i].length();
+        }
+        if (lenR == 0) r[i].visible = true;
+        if (lenL == 0) l[i].visible = true;
+      }
+    }
+
+    cvrL = l; cvrR = r;
+    rebuildAndApply(apply);
+  }
+
+  void expandSection(int index) {
+    System.out.println("expand " + index);
+  }
+
+  private void rebuildAndApply(Consumer<IntConsumer> apply) {
     codeMappingL = new CompactCodeMapping(cvrL);
     codeMappingR = new CompactCodeMapping(cvrR);
+    apply.accept(this::expandSection);
+  }
+
+  static void transferLeft(int from, int length, CompactViewRange[] ranges) {
+    CompactViewRange r = ranges[from];
+    CompactViewRange b = ranges[from + 1];
+    if (r.length() < length || r.endLine != b.startLine)
+      throw new UnsupportedOperationException();
+    r.endLine -= length;
+    b.startLine -= length;
+  }
+
+  static void transferRight(int from, int length, CompactViewRange[] ranges) {
+    CompactViewRange r = ranges[from];
+    CompactViewRange a = ranges[from - 1];
+    if (r.length() < length || a.endLine != r.startLine)
+      throw new UnsupportedOperationException();
+    a.endLine += length;
+    r.startLine += length;
   }
 
   static CompactViewRange cvrR(DiffRange rA) {
@@ -259,3 +309,4 @@ public class DiffInfo {
     return tmp;
   }
 }
+

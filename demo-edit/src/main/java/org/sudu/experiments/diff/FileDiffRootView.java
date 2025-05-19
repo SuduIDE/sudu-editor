@@ -324,9 +324,10 @@ class FileDiffRootView extends DiffRootView {
 
   public void setCompactView(boolean compact) {
     if (compact) {
-      diffModel.buildCompactView();
-      editor1.setCompactViewModel(diffModel.codeMappingL, null);
-      editor2.setCompactViewModel(diffModel.codeMappingR, null);
+      diffModel.buildCompactView(actions -> {
+        editor1.setCompactViewModel(diffModel.codeMappingL, actions);
+        editor2.setCompactViewModel(diffModel.codeMappingR, actions);
+      });
     } else {
       diffModel.clearCompactView();
       editor1.clearCompactViewModel();
