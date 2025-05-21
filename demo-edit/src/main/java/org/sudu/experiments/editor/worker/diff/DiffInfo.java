@@ -29,7 +29,7 @@ public class DiffInfo {
   }
 
   public boolean isCompactedView() {
-    return cvrL != null && cvrR != null;
+    return cvrL != null || cvrR != null;
   }
 
   public void clearCompactView() {
@@ -58,62 +58,27 @@ public class DiffInfo {
     for (int i = 0; i < nRanges; i++) {
       DiffRange dr = ranges[i];
       if (dr.type == DiffTypes.DEFAULT)
-        expand(linesExtend, i, l, r);
+        CompactViewRange.expand(linesExtend, i, l, r);
     }
 
     cvrL = l; cvrR = r;
     rebuildAndApply(apply);
   }
 
-  void expand(int extend, int index, CompactViewRange[] l, CompactViewRange[] r) {
-    CompactViewRange lRange = l[index];
-    CompactViewRange rRange = r[index];
-    int lenL = lRange.length();
-    int lenR = rRange.length();
-    if (index > 0) {
-      transferRight(index, Math.min(lenL, extend), l);
-      transferRight(index, Math.min(lenR, extend), r);
-      lenL = lRange.length();
-      lenR = rRange.length();
-    }
-    if (index + 1 < ranges.length) {
-      transferLeft(index, Math.min(lenL, extend), l);
-      transferLeft(index, Math.min(lenR, extend), r);
-      lenL = lRange.length();
-      lenR = rRange.length();
-    }
-    if (lenR == 0) rRange.visible = true;
-    if (lenL == 0) lRange.visible = true;
-  }
-
   void expandSection(int index, Consumer<IntConsumer> apply) {
 //    System.out.println("expandSection " + ranges[index]);
-    expand(linesExtend, index, cvrL, cvrR);
+    CompactViewRange.expand(linesExtend, index, cvrL, cvrR);
     rebuildAndApply(apply);
   }
 
   private void rebuildAndApply(Consumer<IntConsumer> apply) {
     codeMappingL = new CompactCodeMapping(cvrL);
     codeMappingR = new CompactCodeMapping(cvrR);
-    apply.accept(n -> expandSection(n, apply));
+    apply.accept(getExpander(apply));
   }
 
-  static void transferLeft(int from, int length, CompactViewRange[] ranges) {
-    CompactViewRange r = ranges[from];
-    CompactViewRange b = ranges[from + 1];
-    if (r.length() < length || r.endLine != b.startLine)
-      throw new UnsupportedOperationException();
-    r.endLine -= length;
-    b.startLine -= length;
-  }
-
-  static void transferRight(int from, int length, CompactViewRange[] ranges) {
-    CompactViewRange r = ranges[from];
-    CompactViewRange a = ranges[from - 1];
-    if (r.length() < length || a.endLine != r.startLine)
-      throw new UnsupportedOperationException();
-    a.endLine += length;
-    r.startLine += length;
+  public IntConsumer getExpander(Consumer<IntConsumer> apply) {
+    return n -> expandSection(n, apply);
   }
 
   static CompactViewRange cvrR(DiffRange rA) {
@@ -198,6 +163,16 @@ public class DiffInfo {
       if (isL) ranges[i].fromL += lines;
       else ranges[i].fromR += lines;
     }
+
+    var cvr = isL ? cvrL : cvrR;
+    if (cvr != null) {
+      System.out.println("DiffInfo.insertAt");
+      System.out.println("  lineKey = " + lineKey + ", lines = " + lines + ", isL = " + isL);
+      CompactViewRange.insertLines(lineKey, lines, cvr);
+      var newMapping = new CompactCodeMapping(cvr);
+      if (isL) codeMappingL = newMapping;
+      else codeMappingR = newMapping;
+    }
   }
 
   public void deleteAt(int lineKey, int lines, boolean isL) {
@@ -215,6 +190,16 @@ public class DiffInfo {
     for (int i = toInd + 1; i < ranges.length; i++) {
       if (isL) ranges[i].fromL -= lines;
       else ranges[i].fromR -= lines;
+    }
+
+    var cvr = isL ? cvrL : cvrR;
+    if (cvr != null) {
+      System.out.println("DiffInfo.deleteAt");
+      System.out.println("  lineKey = " + lineKey + ", lines = " + lines + ", isL = " + isL);
+      CompactViewRange.deleteLines(lineKey, lines, cvr);
+      var newMapping = new CompactCodeMapping(cvr);
+      if (isL) codeMappingL = newMapping;
+      else codeMappingR = newMapping;
     }
   }
 

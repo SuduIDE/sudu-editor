@@ -11,6 +11,7 @@ import org.sudu.experiments.parser.common.TriConsumer;
 import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 class FileDiffRootView extends DiffRootView {
   final EditorUi ui;
@@ -148,11 +149,19 @@ class FileDiffRootView extends DiffRootView {
   }
 
   private void onInsertDiffMadeListener(Diff diff, boolean isL) {
-    if (diffModel != null) diffModel.insertAt(diff.line, diff.lineCount(), isL);
+    if (diffModel != null) {
+      diffModel.insertAt(diff.line, diff.lineCount(), isL);
+      if (diffModel.isCompactedView())
+        applyCodeMapping(diffModel.getExpander(this::applyCodeMapping));
+    }
   }
 
   private void onDeleteDiffMadeListener(Diff diff, boolean isL) {
-    if (diffModel != null) diffModel.deleteAt(diff.line, diff.lineCount(), isL);
+    if (diffModel != null) {
+      diffModel.deleteAt(diff.line, diff.lineCount(), isL);
+      if (diffModel.isCompactedView())
+        applyCodeMapping(diffModel.getExpander(this::applyCodeMapping));
+    }
   }
 
   public void applyTheme(EditorColorScheme theme) {
@@ -324,10 +333,7 @@ class FileDiffRootView extends DiffRootView {
 
   public void setCompactView(boolean compact) {
     if (compact) {
-      diffModel.buildCompactView(actions -> {
-        editor1.setCompactViewModel(diffModel.codeMappingL, actions);
-        editor2.setCompactViewModel(diffModel.codeMappingR, actions);
-      });
+      diffModel.buildCompactView(this::applyCodeMapping);
     } else {
       diffModel.clearCompactView();
       editor1.clearCompactViewModel();
@@ -335,6 +341,11 @@ class FileDiffRootView extends DiffRootView {
       editor1.revealLineInCenter(editor1.caretLine());
       editor2.revealLineInCenter(editor2.caretLine());
     }
+  }
+
+  private void applyCodeMapping(IntConsumer actions) {
+    editor1.setCompactViewModel(diffModel.codeMappingL, actions);
+    editor2.setCompactViewModel(diffModel.codeMappingR, actions);
   }
 
   public boolean isCompactedView() {
