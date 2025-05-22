@@ -1,5 +1,6 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.diff.FileDiff;
 import org.sudu.experiments.diff.FolderDiff;
 import org.sudu.experiments.editor.Editor1;
 import org.sudu.experiments.editor.TextSeparatorDemo;
@@ -26,5 +27,9 @@ public interface TMain {
 
   interface FolderDiffMain {
     static void main(String[] $) { run(FolderDiff::new); }
+  }
+
+  interface FileDiffMain {
+    static void main(String[] $) { run(FileDiff::new); }
   }
 }

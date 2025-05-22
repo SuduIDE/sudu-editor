@@ -3,6 +3,7 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.editor.CodeLineMapping;
 import org.sudu.experiments.editor.DiffRef;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
+import org.sudu.experiments.editor.worker.diff.DiffRange;
 
 public class DiffSync {
   final DiffRef left, right;
@@ -44,16 +45,25 @@ public class DiffSync {
 
     //  in compact view: convert syncLine -> docLine
 //    syncLine = model.codeMappingL.viewToDoc(syncLine);
-    var fromRange = model.range(docSyncLine, isLeft);
+    int rangeInd = model.rangeBinSearch(docSyncLine, isLeft);
+    var range = model.ranges[rangeInd];
     //  in compact view: convert fromRange -> viewLine
 //    syncLine = model.codeMappingL.docToView(syncLine);
 
     int viewLinesDelta = viewSyncLine - fromFirstLine;
-    int docRangeDelta = docSyncLine - (isLeft ? fromRange.fromL : fromRange.fromR);
+    int docRangeDelta = docSyncLine - (isLeft ? range.fromL : range.fromR);
     // this used to be
     //      lineHeight * line - vScrollPos;
     int scrollDelta = -((from.lineToPos(fromFirstLine) - from.pos().y));
-    int toRangeStart = isLeft ? fromRange.fromR : fromRange.fromL;
+    DiffRange toRange = range;
+    if (range.type != DiffTypes.DEFAULT && range.type != DiffTypes.EDITED) {
+      if (rangeInd > 0) {
+        var prevRange = model.ranges[rangeInd - 1];
+        if (prevRange.type != DiffTypes.DEFAULT && prevRange.type != DiffTypes.EDITED) toRange = prevRange;
+      }
+    }
+
+    int toRangeStart = isLeft ? toRange.fromR : toRange.fromL;
     int toDocFirstLine = toRangeStart + docRangeDelta;
     int toViewFirstLine = toDocFirstLine;
     if (toCodeMapping != null) {
@@ -63,7 +73,7 @@ public class DiffSync {
       } else if (ind < CodeLineMapping.outOfRange) {
         int regionInd = CodeLineMapping.regionIndex(ind);
         int fstLine = toCodeMapping.docToView(toCvr[regionInd].endLine);
-        if (fstLine > CodeLineMapping.outOfRange) toViewFirstLine = fstLine;
+        if (fstLine > CodeLineMapping.outOfRange) toViewFirstLine = fstLine - 1;
       }
     }
     int toNewLine = (toViewFirstLine - viewLinesDelta);
