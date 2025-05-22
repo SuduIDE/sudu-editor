@@ -114,9 +114,19 @@ class CompactViewRangeTest {
         new V2i(11, CodeLineMapping.outOfRange)
     };
 
+    int[] data = new int[viewToDocVerifyTable.length];
+    v.viewToDocLines(0, data.length, data);
+
+    for (int i = 1; i < data.length; i++) {
+      int[] d2 = new int[data.length - i];
+      v.viewToDocLines(i, i + d2.length, d2);
+      for (int j = 0; j < d2.length; j++)
+        assertEquals(data[i + j], d2[j]);
+    }
+
     for (V2i pair : viewToDocVerifyTable) {
       int docLine = v.viewToDoc(pair.x);
-      if (pair.y != docLine)
+      if (pair.y != docLine || docLine != data[pair.x])
         fail();
     }
   }
