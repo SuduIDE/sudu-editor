@@ -10,21 +10,12 @@ public class CompactViewRange {
     this.visible = visible;
   }
 
-  public boolean inRange(int line) {
-    return startLine <= line && line < endLine;
-  }
-
   public int length() {
     return endLine - startLine;
   }
 
   public boolean contains(int line) {
     return startLine <= line && line < endLine;
-  }
-
-  public void shift(int delta) {
-    startLine += delta;
-    endLine += delta;
   }
 
   @Override
@@ -50,44 +41,37 @@ public class CompactViewRange {
   }
 
   public static void insertLines(int at, int count, CompactViewRange[] data) {
-    int length = data.length;
-    if (length == 0) return;
-    int search = binSearch(at, data);
-    if (search < length) {
-      var range = data[search];
-      if (range.contains(at)) {
-        range.endLine += count;
-        search++;
-      }
-      for (; search < length; search++) {
-        data[search].shift(count);
-      }
-    } else {
-      // insert at end
-      if (search == length && data[length - 1].endLine == at) {
-        data[length - 1].endLine += count;
-      }
-    }
+    addRemoveLines(at, count, data);
+    // insert at end
+    if (data.length > 0)
+      data[data.length - 1].insertLinesAtEnd(at, count);
+  }
+
+  private void insertLinesAtEnd(int at, int count) {
+    if (endLine == at)
+      endLine += count;
   }
 
   public static void deleteLines(int at, int count, CompactViewRange[] data) {
-    int length = data.length, countLeft = count;
+    addRemoveLines(at, -count, data);
+  }
+
+  static void addRemoveLines(int at, int count, CompactViewRange[] data) {
+    int length = data.length;
     if (length == 0) return;
     int search = binSearch(at, data);
-    if (search < length) {
+    for (; search < length; search++) {
       var range = data[search];
-      if (range.contains(at)) {
-        int toRemove = Math.min(range.endLine - countLeft, countLeft);
-        range.endLine -= toRemove;
-        countLeft -= toRemove;
-        at += toRemove;
-        search++;
-      }
-      for (; search < length; search++) {
-        range = data[search];
-        // todo
-      }
+      range.addRemoveLines(at, count);
     }
+  }
+
+  void addRemoveLines(int at, int count) {
+    if (at < startLine)
+      startLine = Math.max(at, startLine + count);
+
+    if (at < endLine)
+      endLine = Math.max(at, endLine + count);
   }
 
   static void transferLeft(int from, int length, CompactViewRange[] ranges) {

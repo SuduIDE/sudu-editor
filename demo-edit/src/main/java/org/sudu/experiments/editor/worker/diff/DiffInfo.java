@@ -166,8 +166,6 @@ public class DiffInfo {
 
     var cvr = isL ? cvrL : cvrR;
     if (cvr != null) {
-      System.out.println("DiffInfo.insertAt");
-      System.out.println("  lineKey = " + lineKey + ", lines = " + lines + ", isL = " + isL);
       CompactViewRange.insertLines(lineKey, lines, cvr);
       var newMapping = new CompactCodeMapping(cvr);
       if (isL) codeMappingL = newMapping;
@@ -194,8 +192,6 @@ public class DiffInfo {
 
     var cvr = isL ? cvrL : cvrR;
     if (cvr != null) {
-      System.out.println("DiffInfo.deleteAt");
-      System.out.println("  lineKey = " + lineKey + ", lines = " + lines + ", isL = " + isL);
       CompactViewRange.deleteLines(lineKey, lines, cvr);
       var newMapping = new CompactCodeMapping(cvr);
       if (isL) codeMappingL = newMapping;

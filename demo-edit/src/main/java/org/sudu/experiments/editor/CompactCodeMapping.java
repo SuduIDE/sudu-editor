@@ -29,7 +29,7 @@ public class CompactCodeMapping extends CodeLineMapping {
     if (idx >= data.length)
       return outOfRange;
     var range = data[idx];
-    if (range.inRange(docLine)) {
+    if (range.contains(docLine)) {
       return range.visible
           ?  lengths[idx] + docLine - range.startLine
           : regionIndex(idx);
@@ -43,7 +43,7 @@ public class CompactCodeMapping extends CodeLineMapping {
     if (idx >= data.length)
       return outOfRange;
     var range = data[idx];
-    if (range.inRange(docLine)) {
+    if (range.contains(docLine)) {
       int lengthIdx = lengths[idx];
       return range.visible
           ?  lengthIdx + docLine - range.startLine : lengthIdx;

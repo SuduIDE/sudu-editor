@@ -264,6 +264,18 @@ class CompactViewRangeTest {
       assertEquals(1, r3[2].startLine);
       assertEquals(4, r3[2].endLine);
     }
+    {
+      var r4 = new CompactViewRange[]{
+          new CompactViewRange(0, 1, false),
+          new CompactViewRange(2, 4, false),
+      };
+
+      CompactViewRange.insertLines(1, 2, r4);
+      assertEquals(0, r4[0].startLine);
+      assertEquals(1, r4[0].endLine);
+      assertEquals(4, r4[1].startLine);
+      assertEquals(6, r4[1].endLine);
+    }
   }
 
   private static CompactViewRange[] insertTestData() {
@@ -272,5 +284,64 @@ class CompactViewRangeTest {
         new CompactViewRange(1, 1, false),
         new CompactViewRange(1, 2, false),
     };
+  }
+
+  @Test
+  void deleteLines() {
+    { // before
+      var r = cvr_5_10();
+      r.addRemoveLines(2, -3);
+      assertEquals(2, r.startLine);
+      assertEquals(7, r.endLine);
+    }{ // after
+      var r = cvr_5_10();
+      r.addRemoveLines(10, -3);
+      assertEquals(5, r.startLine);
+      assertEquals(10, r.endLine);
+    }{ // r.start in deleted, r.end is after deleted
+      // 0,1,2,3,(4,[5,6,7,8),9],10,11
+      // deleteLines(4, 5);
+      // 0,1,2,3,[4],5,6
+      var r = cvr_5_10();
+      r.addRemoveLines(4, -5);
+      assertEquals(4, r.startLine);
+      assertEquals(5, r.endLine);
+    }{ // r.start is before deleted, r.end in deleted
+      // 0,1,2,3,4,[5,6,(7,8,9],10),11
+      // deleteLines(7, 4);
+      // 0,1,2,3,4,[5,6],7
+      var r = cvr_5_10();
+      r.addRemoveLines(7, -4);
+      assertEquals(5, r.startLine);
+      assertEquals(7, r.endLine);
+    }{ // deleted inside r
+      // 0,1,2,3,4,[5,(6,7,8,9)],10,11
+      // deleteLines(6, 4);
+      // 0,1,2,3,4,[5],6,7
+      var r = cvr_5_10();
+      r.addRemoveLines(6, -4);
+      assertEquals(5, r.startLine);
+      assertEquals(6, r.endLine);
+    }{ // deleted outside r
+      // 0,1,2,3,(4,[5,6,7,8,9],10),11
+      // deleteLines(4, 7);
+      // 0,1,2,3,[] 4
+      var r = cvr_5_10();
+      r.addRemoveLines(4, -7);
+      assertEquals(4, r.startLine);
+      assertEquals(4, r.endLine);
+    }{ // deleted equals r
+      // 0,1,2,3,4,[(5,6,7,8,9]),10,11
+      // deleteLines(4, 7);
+      // 0,1,2,3,4,[] 5, 6
+      var r = cvr_5_10();
+      r.addRemoveLines(5, -10);
+      assertEquals(5, r.startLine);
+      assertEquals(5, r.endLine);
+    }
+  }
+
+  static CompactViewRange cvr_5_10() {
+    return new CompactViewRange(5, 10, false);
   }
 }
