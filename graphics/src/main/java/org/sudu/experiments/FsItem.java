@@ -12,7 +12,7 @@ public interface FsItem {
   }
 
   static String toString(String kind, String[] path, String name, boolean onWorker) {
-    StringBuilder sb = new StringBuilder(kind);
+    StringBuilder sb = new StringBuilder(kind).append(':');
     fullPath(path, name, sb);
     if (onWorker) sb.append(" worker");
     return sb.toString();
