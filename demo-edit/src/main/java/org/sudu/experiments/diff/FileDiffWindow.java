@@ -179,6 +179,9 @@ public class FileDiffWindow extends ToolWindow0
       else windowManager.nextWindow();
       return true;
     }
+    if (event.keyCode == KeyCode.F1 && event.singlePress()) {
+      rootView.setCompactView(!rootView.isCompactedView());
+    }
     return false;
   }
 

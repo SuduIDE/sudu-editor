@@ -21,6 +21,7 @@ import org.sudu.experiments.ui.window.View;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class EditorComponent extends View implements
     Focusable,
@@ -116,6 +117,7 @@ public class EditorComponent extends View implements
   final V2i codeMapSize = new V2i();
 
   CodeLineMapping docToView = new CodeLineMapping.Id(model);
+  IntConsumer compactModeActions;
   int[] viewToDocMap = new int[0];
   int hoveredCollapsedRegion = -1;
 
@@ -525,6 +527,7 @@ public class EditorComponent extends View implements
     if (viewToDocMap.length < (lastLine - firstLine))
       viewToDocMap = new int[lastLine - firstLine];
 
+    // probably redundant call to docToView.length()
     int lastViewLine = Math.min(lastLine, docToView.length());
     docToView.viewToDocLines(firstLine, lastViewLine, viewToDocMap);
 
@@ -586,7 +589,7 @@ public class EditorComponent extends View implements
       mergeButtons.setScrollPos(vScrollPos);
       mergeButtons.draw(
           firstLine, lastLine - 1, model.caretLine,
-          g, mbColors, lrContext, hasFocus);
+          g, mbColors, lrContext, viewToDocMap);
     }
 
     if (drawTextFrame)
@@ -990,12 +993,11 @@ public class EditorComponent extends View implements
   private void drawDocumentBottom(int yPosition) {
     if (yPosition < size.y) {
       V2i sizeTmp = context.v2i1;
-
-      sizeTmp.y = size.y - yPosition;
-      sizeTmp.x = mirrored ? textViewWidth + vLineW : textViewWidth + xOffset;
-      int x = mirrored
-          ? pos.x + vLineTextOffset + scrollBarWidth + vLineW - xOffset
+      int x = mirrored ? pos.x + flippedTextOffset()
           : pos.x + textBaseX - xOffset;
+      sizeTmp.x = mirrored ? flippedVLineX() - x
+          : textViewWidth + xOffset;
+      sizeTmp.y = size.y - yPosition;
       g.drawRect(x, pos.y + yPosition, sizeTmp, colors.editor.bg);
     }
   }
@@ -1027,19 +1029,26 @@ public class EditorComponent extends View implements
   private void drawVerticalLine() {
     vLineSize.y = size.y;
     vLineSize.x = vLineW;
-    g.drawRect(pos.x + vLineX(), pos.y,
+    g.drawRect(vLineX(), pos.y,
         vLineSize, colors.editor.numbersVLine);
     vLineSize.x = mirrored
-        ? vLineTextOffset + scrollBarWidth + vLineW - xOffset
+        ? flippedTextOffset()
         : vLineTextOffset - vLineW - xOffset;
     int dx2 = mirrored ? 0 : textBaseX - vLineTextOffset + vLineW;
     g.drawRect(pos.x + dx2, pos.y, vLineSize, colors.editor.bg);
   }
 
+  private int flippedTextOffset() {
+    return vLineTextOffset + scrollBarWidth + vLineW - xOffset;
+  }
+
   private int vLineX() {
-    return mirrored
-        ? size.x - lineNumbers.width() - vLineW
-        : textBaseX - vLineTextOffset;
+    return mirrored ? flippedVLineX()
+        : pos.x + textBaseX - vLineTextOffset;
+  }
+
+  private int flippedVLineX() {
+    return pos.x + size.x - lineNumbers.width() - vLineW;
   }
 
   static int clampScrollPos(int pos, int maxScrollPos) {
@@ -1272,7 +1281,7 @@ public class EditorComponent extends View implements
   }
 
   Pos computeCharPos(V2i eventPosition) {
-    int vLine = mouseToVLine(eventPosition.y);
+    int vLine = mouseToVLineClamped(eventPosition.y);
     int line = docToView.viewToDoc(vLine);
     return line < 0 ? null : computeCharPos(eventPosition, line);
   }
@@ -1285,10 +1294,13 @@ public class EditorComponent extends View implements
   }
 
   private int mouseToVLine(int mouseY) {
-    int localY = mouseY - pos.y;
+    int localY = mouseY - pos.y + vScrollPos;
+    return localY / lineHeight;
+  }
 
-    int vL = (localY + vScrollPos) / lineHeight;
-    return Numbers.clamp(0, vL, getNumLines() - 1);
+  private int mouseToVLineClamped(int mouseY) {
+    return Numbers.clamp(0,
+        mouseToVLine(mouseY), getNumLines() - 1);
   }
 
   private void textSelectMouseDrag(MouseEvent event) {
@@ -1458,7 +1470,8 @@ public class EditorComponent extends View implements
     int line = docToView.viewToDoc(vLine);
     if (line < CodeLineMapping.outOfRange) {
       int runnable = CodeLineMapping.regionIndex(line);
-      System.out.println("collapse runnable = " + runnable);
+      if (compactModeActions != null)
+        compactModeActions.accept(runnable);
     }
     return true;
   }
@@ -1500,7 +1513,6 @@ public class EditorComponent extends View implements
       Pos pos = computeCharPos(mousePos);
       if (pos == null)
         return MouseListener.Static.emptyConsumer;
-      mouseToVLine(mousePos.y);
       moveCaret(pos);
       model.computeUsages();
 
@@ -1602,7 +1614,7 @@ public class EditorComponent extends View implements
   }
 
   public boolean onKeyPress(KeyEvent event) {
-//    Debug.consoleInfo("EditorComponent::onKey: "+ event.toString());
+//    Debug.consoleInfo("EditorComponent::onKey: " + event.toString());
     if (onKey != null) {
       if (onKey.onKeyPress(event)) return true;
       if (event.prevented) return false;
@@ -1864,7 +1876,7 @@ public class EditorComponent extends View implements
 
     Model oldModel = this.model;
     this.model = model;
-    docToView = new CodeLineMapping.Id(model);
+    clearCompactViewModel();
     oldModel.setEditor(null, null);
     model.setEditor(this, window().worker());
     registrations.fireModelChange(oldModel, model);
@@ -2024,6 +2036,7 @@ public class EditorComponent extends View implements
      }
      mergeButtons.setModel(actions, lines);
      mergeButtons.setColors(lineNumbers.colors());
+     mergeButtons.setCodeLineMapping(docToView);
   }
 
   void buildDiffMap() {
@@ -2044,8 +2057,19 @@ public class EditorComponent extends View implements
 
   // call of this method is required for both:
   // new and in-place edited the data
-  public void setCompactViewModel(CompactViewRange[] data, Runnable[] actions) {
-    docToView = data == null
-        ? new CodeLineMapping.Id(model) : new CompactCodeMapping(data);
+  public void setCompactViewModel(CompactViewRange[] data, IntConsumer expander) {
+    setCompactViewModel(new CompactCodeMapping(data), expander);
+  }
+
+  public void setCompactViewModel(CodeLineMapping mapping, IntConsumer expander) {
+    docToView = mapping;
+    compactModeActions = expander;
+    if (mergeButtons != null) {
+      mergeButtons.setCodeLineMapping(mapping);
+    }
+  }
+
+  public void clearCompactViewModel() {
+    setCompactViewModel(new CodeLineMapping.Id(model), null);
   }
 }
