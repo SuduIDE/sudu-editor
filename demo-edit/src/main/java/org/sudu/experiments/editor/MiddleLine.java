@@ -134,7 +134,7 @@ public class MiddleLine extends View {
     }
 
     drawSyncPoints(g, rSize);
-    if (first <= last) g.enableBlend(false);
+    g.enableBlend(false);
   }
 
   private void drawSyncPoints(WglGraphics g, V2i rSize) {
@@ -142,6 +142,11 @@ public class MiddleLine extends View {
     for (int i = 0; i < syncL.length; i++) {
       int lineL = syncL[i];
       int lineR = syncR[i];
+      if (diffModel.codeMappingL != null && diffModel.codeMappingR != null) {
+        lineL = diffModel.codeMappingL.docToView(lineL);
+        lineR = diffModel.codeMappingR.docToView(lineR);
+      }
+      if (lineL < 0 || lineR < 0) continue;
       int d = EditorConst.SYNC_LINE_HEIGHT / 2;
 
       int leftY = editor1.lineToPos(lineL),
@@ -282,6 +287,11 @@ public class MiddleLine extends View {
     for (int i = 0; i < syncL.length; i++) {
       int lineL = syncL[i];
       int lineR = syncR[i];
+      if (diffModel.codeMappingL != null && diffModel.codeMappingR != null) {
+        lineL = diffModel.codeMappingL.docToView(lineL);
+        lineR = diffModel.codeMappingR.docToView(lineR);
+      }
+      if (lineL < 0 || lineR < 0) continue;
       int d = EditorConst.SYNC_LINE_HEIGHT / 2;
 
       int leftY = editor1.lineToPos(lineL),

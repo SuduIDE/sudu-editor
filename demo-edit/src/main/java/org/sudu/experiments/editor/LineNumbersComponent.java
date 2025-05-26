@@ -132,6 +132,7 @@ public class LineNumbersComponent implements Disposable {
   public void drawSyncPoints(
       int yPos,
       int firstLine, int lastLine,
+      CodeLineMapping mapping,
       int[] syncPoints,
       int curSyncPoint,
       int hoverSyncPoint,
@@ -139,18 +140,28 @@ public class LineNumbersComponent implements Disposable {
       WglGraphics g, LineNumbersColors scheme
   ) {
     for (int sp: syncPoints) {
-      if (firstLine <= sp && sp <= lastLine && sp != midLineHoverSyncPoint)
-        drawSyncLine(yPos, sp, firstLine, scheme.syncPoint, g);
+      int viewSyncPoint = docToView(mapping, sp);
+      if (viewSyncPoint < 0) continue;
+      if (firstLine <= viewSyncPoint && viewSyncPoint <= lastLine && viewSyncPoint != midLineHoverSyncPoint)
+        drawSyncLine(yPos, viewSyncPoint, firstLine, scheme.syncPoint, g);
     }
     if (firstLine <= curSyncPoint && curSyncPoint <= lastLine) {
-      drawSyncLine(yPos, curSyncPoint, firstLine, scheme.currentSyncPoint, g);
+      int viewCurSyncPoint = docToView(mapping, curSyncPoint);
+      if (viewCurSyncPoint >= 0) drawSyncLine(yPos, viewCurSyncPoint, firstLine, scheme.currentSyncPoint, g);
     }
     if (firstLine <= hoverSyncPoint && hoverSyncPoint <= lastLine) {
-      drawSyncLine(yPos, hoverSyncPoint, firstLine, scheme.hoverSyncPoint, g);
+      int viewHoverSyncPoint = docToView(mapping, hoverSyncPoint);
+      if (viewHoverSyncPoint >= 0) drawSyncLine(yPos, viewHoverSyncPoint, firstLine, scheme.hoverSyncPoint, g);
     }
     if (firstLine <= midLineHoverSyncPoint && midLineHoverSyncPoint <= lastLine) {
-      drawSyncLine(yPos, midLineHoverSyncPoint, firstLine, scheme.midLineHoverSyncPoint, g);
+      int viewMidLineHoverSyncPoint = docToView(mapping, midLineHoverSyncPoint);
+      if (viewMidLineHoverSyncPoint >= 0) drawSyncLine(yPos, viewMidLineHoverSyncPoint, firstLine, scheme.midLineHoverSyncPoint, g);
     }
+  }
+
+  private int docToView(CodeLineMapping mapping, int sp) {
+    if (mapping == null) return sp;
+    return mapping.docToView(sp);
   }
 
   private void drawSyncLine(

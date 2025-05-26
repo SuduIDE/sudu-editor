@@ -792,6 +792,7 @@ public class EditorComponent extends View implements
     lineNumbers.drawSyncPoints(
         yPos,
         firstLine, lastLine,
+        docToView,
         syncPoints(),
         syncPoints.curSyncPoint(),
         syncPoints.hoverSyncPoint,
@@ -1554,7 +1555,7 @@ public class EditorComponent extends View implements
     if (button == MOUSE_BUTTON_LEFT) {
       if (lineNumbers.hitTest(event.position)) {
         if (syncPoints != null && syncPoints.hasAnotherPoint()) {
-          int line = computeSyncLine(event.position);
+          int line = computeSyncPoint(event.position);
           syncPoints.setPoint(line);
         }
         return true;
@@ -1610,7 +1611,7 @@ public class EditorComponent extends View implements
       var ln = lineNumbers.hitTest(event.position);
       if (ln) {
         if (syncPoints != null && syncPoints.hasAnotherPoint()) {
-          syncPoints.hoverSyncPoint = computeSyncLine(event.position);
+          syncPoints.hoverSyncPoint = computeSyncPoint(event.position);
           if (!mb) setCursor.set(Cursor.pointer);
         } else if (!mb) {
           setCursor.setDefault();
@@ -1927,9 +1928,9 @@ public class EditorComponent extends View implements
     model.parseFullFile();
   }
 
-  public int computeSyncLine(V2i eventPosition) {
+  public int computeSyncPoint(V2i eventPosition) {
     int localY = eventPosition.y - pos.y;
-    return Numbers.clamp(0, (localY + vScrollPos) / lineHeight, model.document.length());
+    return docToView.viewToDoc(Numbers.clamp(0, (localY + vScrollPos) / lineHeight, model.document.length()));
   }
 
   public int[] syncPoints() {
@@ -1945,12 +1946,12 @@ public class EditorComponent extends View implements
   }
 
   public boolean hasSyncPoint(V2i eventPos) {
-    int lineInd = computeSyncLine(eventPos);
+    int lineInd = computeSyncPoint(eventPos);
     return syncPoints != null && syncPoints.hasPoint(lineInd);
   }
 
   public void toggleSyncPoint(V2i eventPos) {
-    int lineInd = computeSyncLine(eventPos);
+    int lineInd = computeSyncPoint(eventPos);
     if (syncPoints.hasPoint(lineInd))
       syncPoints.removeSyncPoint(lineInd);
     else
