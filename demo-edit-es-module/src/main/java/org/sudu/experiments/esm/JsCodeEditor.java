@@ -349,4 +349,7 @@ public class JsCodeEditor implements JsEditorView {
 
   @Override
   public void setExternalMessageBar(JsExternalMessageBar emb) {}
+
+  @Override
+  public void setExternalContextMenuProvider(JsContextMenuProvider p) {}
 }

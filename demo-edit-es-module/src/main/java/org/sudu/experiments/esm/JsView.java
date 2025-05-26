@@ -22,4 +22,5 @@ public interface JsView extends JsHasTheme {
 
   void setExternalDialogProvider(JsDialogProvider opener);
   void setExternalMessageBar(JsExternalMessageBar emb);
+  void setExternalContextMenuProvider(JsContextMenuProvider p);
 }

@@ -256,6 +256,18 @@ export interface ExternalDialogProvider {
   showModalDialog(input: DialogInput): Promise<DialogResult | null>
 }
 
+export enum ContextMenuActions {
+  cut = "cut",
+  copy = "copy",
+  paste = "paste",
+  alignWith = "alignWith",
+  removeAlignment = "removeAlignment",
+}
+
+export interface ContextMenuProvider {
+  showContextMenu(actions: ContextMenuActions[]): void;
+}
+
 export interface View {
   disconnectFromDom(): void
 
@@ -268,6 +280,8 @@ export interface View {
   setExternalDialogProvider(opener: ExternalDialogProvider | null): void
 
   setExternalMessageBar(statusBar: ExternalMessageBar): void
+
+  setExternalContextMenuProvider(p: ContextMenuProvider): void;
 }
 
 export interface TwoPanelDiff {
@@ -354,13 +368,8 @@ export interface FolderDiffSelection {
   isOrphan: boolean
 }
 
-export interface FileDiffSelection {
-}
-
 export interface ViewController {
   getViewType(): 'folderDiff' | 'fileDiff' | 'editor'
-
-  getSelection(): FolderDiffSelection | FileDiffSelection | undefined
 
   canNavigateUp(): boolean
 
@@ -391,8 +400,6 @@ export interface FileDiffViewController extends ViewController {
   setCompactView(compact: boolean): void;
 
   getViewType(): 'fileDiff'
-
-  getSelection(): FileDiffSelection | undefined
 }
 
 export interface EditorViewController extends ViewController {
