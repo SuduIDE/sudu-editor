@@ -28,6 +28,10 @@ public class DiffInfo {
     this.ranges = ranges;
   }
 
+  public boolean isEmpty() {
+    return ranges.length < 2;
+  }
+
   public boolean isCompactedView() {
     return cvrL != null || cvrR != null;
   }
@@ -40,11 +44,6 @@ public class DiffInfo {
   }
 
   public void buildCompactView(Consumer<IntConsumer> apply) {
-    if (ranges == null || ranges.length < 2) {
-      apply.accept(null);
-      return;
-    }
-
     int nRanges = ranges.length;
     CompactViewRange[] l = new CompactViewRange[nRanges];
     CompactViewRange[] r = new CompactViewRange[nRanges];
@@ -67,7 +66,12 @@ public class DiffInfo {
 
   void expandSection(int index, Consumer<IntConsumer> apply) {
 //    System.out.println("expandSection " + ranges[index]);
-    CompactViewRange.expand(linesExtend, index, cvrL, cvrR);
+    if (cvrL.length > 1 || cvrR.length > 1) {
+      CompactViewRange.expand(linesExtend, index, cvrL, cvrR);
+    } else {
+      if (cvrL.length == 1) cvrL[0].visible = true;
+      if (cvrR.length == 1) cvrR[0].visible = true;
+    }
     rebuildAndApply(apply);
   }
 
