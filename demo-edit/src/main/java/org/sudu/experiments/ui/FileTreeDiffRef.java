@@ -6,6 +6,8 @@ import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.window.ScrollView;
 
+import java.util.function.IntConsumer;
+
 public class FileTreeDiffRef implements DiffRef {
   final ScrollView scrollView;
   final TreeView treeView;
@@ -37,7 +39,7 @@ public class FileTreeDiffRef implements DiffRef {
     return treeView.size;
   }
 
-  public void setScrollListeners(Runnable hListener, Runnable vListener) {
+  public void setScrollListeners(Runnable hListener, IntConsumer vListener) {
     scrollView.setListeners(hListener, vListener);
   }
 

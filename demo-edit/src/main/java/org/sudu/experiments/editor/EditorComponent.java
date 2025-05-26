@@ -21,6 +21,7 @@ import org.sudu.experiments.ui.window.View;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class EditorComponent extends View implements
     Focusable,
@@ -101,7 +102,8 @@ public class EditorComponent extends View implements
   private ExternalHighlights externalHighlights;
 
   Consumer<String> onError = System.err::println;
-  Runnable hScrollListener, vScrollListener;
+  Runnable hScrollListener;
+  IntConsumer vScrollListener;
   Consumer<EditorComponent> fullFileParseListener;
   TriConsumer<EditorComponent, Integer, Integer> iterativeParseFileListener;
   TriConsumer<EditorComponent, Diff, Boolean> updateModelOnDiffListener;
@@ -161,7 +163,7 @@ public class EditorComponent extends View implements
     lrContext.setDpr(newDpr);
   }
 
-  public void setScrollListeners(Runnable hListener, Runnable vListener) {
+  public void setScrollListeners(Runnable hListener, IntConsumer vListener) {
     hScrollListener = hListener;
     vScrollListener = vListener;
   }
@@ -464,8 +466,9 @@ public class EditorComponent extends View implements
   }
 
   void setScrollPosY(int vPos) {
+    int delta = vPos - getVScrollPos();
     if (setVScrollPosSilent(vPos) && vScrollListener != null) {
-      vScrollListener.run();
+      vScrollListener.accept(delta);
     }
   }
 

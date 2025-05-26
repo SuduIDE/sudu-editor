@@ -10,6 +10,7 @@ import org.sudu.experiments.ui.ScrollBar;
 import org.sudu.experiments.ui.SetCursor;
 
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class ScrollView extends View {
 
@@ -18,7 +19,8 @@ public class ScrollView extends View {
 
   private ScrollContent content;
   private ScrollBar vScroll, hScroll;
-  private Runnable hListener, vListener;
+  private Runnable hListener;
+  private IntConsumer vListener;
   private float scrollWidth = 10;
   private V4f sbLineColor, sbBackColor;
   private boolean vScrollVisible = true;
@@ -78,7 +80,7 @@ public class ScrollView extends View {
     content.onMouseLeaveWindow();
   }
 
-  public void setListeners(Runnable hsListener, Runnable vsListener) {
+  public void setListeners(Runnable hsListener, IntConsumer vsListener) {
     hListener = hsListener;
     vListener = vsListener;
   }
@@ -177,8 +179,9 @@ public class ScrollView extends View {
   }
 
   public void setScrollPosY(int vScrollPos) {
+    int delta = content.scrollPos.y - vScrollPos;
     if (setVScrollPosSilent(vScrollPos) && vListener != null) {
-      vListener.run();
+      vListener.accept(delta);
     }
   }
 

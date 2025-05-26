@@ -40,7 +40,7 @@ class DiffRefView implements DiffRef {
     return view.size;
   }
 
-  public void setScrollListeners(Runnable hListener, Runnable vListener) {
+  public void setScrollListeners(Runnable hListener, IntConsumer vListener) {
     scrollView.setListeners(hListener, vListener);
   }
 

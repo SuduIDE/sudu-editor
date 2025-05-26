@@ -1,9 +1,9 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.editor.CodeLineMapping;
+import org.sudu.experiments.editor.CompactViewRange;
 import org.sudu.experiments.editor.DiffRef;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
-import org.sudu.experiments.editor.worker.diff.DiffRange;
 
 public class DiffSync {
   final DiffRef left, right;
@@ -13,15 +13,15 @@ public class DiffSync {
     left = l;
     right = r;
 
-    l.setScrollListeners(null, () -> sync(left, right));
-    r.setScrollListeners(null, () -> sync(right, left));
+    l.setScrollListeners(null, (delta) -> sync(delta, left, right));
+    r.setScrollListeners(null, (delta) -> sync(delta, right, left));
   }
 
   public void setModel(DiffInfo model) {
     this.model = model;
   }
 
-  void sync(DiffRef from, DiffRef to) {
+  void sync(int scrollDelta, DiffRef from, DiffRef to) {
     if (model == null || model.ranges == null) return;
     boolean isLeft = from == left;
     var fromCodeMapping = isLeft ? model.codeMappingL : model.codeMappingR;
@@ -29,54 +29,87 @@ public class DiffSync {
     var fromCvr = isLeft ? model.cvrL : model.cvrR;
     var toCvr = !isLeft ? model.cvrL : model.cvrR;
 
-    int fromFirstLine = from.getFirstLine();
-    int fromLastLine = from.getLastLine();
-    int viewSyncLine = (fromLastLine + fromFirstLine) / 2;
-    int docSyncLine = viewSyncLine;
-    if (fromCodeMapping != null) {
-      int ind = fromCodeMapping.viewToDoc(viewSyncLine);
-      if (ind > CodeLineMapping.outOfRange) {
-        docSyncLine = ind;
-      } else if (ind < CodeLineMapping.outOfRange) {
-        int regionInd = CodeLineMapping.regionIndex(ind);
-        docSyncLine = fromCvr[regionInd].startLine;
-      }
-    }
+    int viewFromFirstLine = from.getFirstLine();
+    int viewFromLastLine = from.getLastLine();
+    int viewToFirstLine = to.getFirstLine();
+    int viewToLastLine = to.getLastLine();
 
-    //  in compact view: convert syncLine -> docLine
-//    syncLine = model.codeMappingL.viewToDoc(syncLine);
-    int rangeInd = model.rangeBinSearch(docSyncLine, isLeft);
+    int viewFromSyncLine = (viewFromLastLine + viewFromFirstLine) / 2;
+    int docFromSyncLine = viewToDoc(fromCodeMapping, fromCvr, viewFromSyncLine);
+
+    int viewToSyncLine = (viewToLastLine + viewToFirstLine) / 2;
+    int docToSyncLine = viewToDoc(toCodeMapping, toCvr, viewToSyncLine);
+
+    int rangeInd = model.rangeBinSearch(docFromSyncLine, isLeft);
     var range = model.ranges[rangeInd];
-    //  in compact view: convert fromRange -> viewLine
-//    syncLine = model.codeMappingL.docToView(syncLine);
 
-    int viewLinesDelta = viewSyncLine - fromFirstLine;
-    int docRangeDelta = docSyncLine - (isLeft ? range.fromL : range.fromR);
-    // this used to be
-    //      lineHeight * line - vScrollPos;
-    int scrollDelta = -((from.lineToPos(fromFirstLine) - from.pos().y));
-    DiffRange toRange = range;
-    if (range.type != DiffTypes.DEFAULT && range.type != DiffTypes.EDITED) {
-      if (rangeInd > 0) {
-        var prevRange = model.ranges[rangeInd - 1];
-        if (prevRange.type != DiffTypes.DEFAULT && prevRange.type != DiffTypes.EDITED) toRange = prevRange;
-      }
-    }
+    int fromScrollDelta = -((from.lineToPos(viewFromFirstLine) - from.pos().y));
+    int toScrollDelta = -((to.lineToPos(viewToFirstLine) - to.pos().y));
 
-    int toRangeStart = isLeft ? toRange.fromR : toRange.fromL;
+    int viewFromRangeStart = (docToView(fromCodeMapping, fromCvr, isLeft ? range.fromL : range.fromR)
+        - viewFromFirstLine) * from.lineHeight() + fromScrollDelta;
+    int viewFromRangeEnd = (docToView(fromCodeMapping, fromCvr, isLeft ? range.toL() : range.toR())
+        - viewFromFirstLine) * from.lineHeight() + fromScrollDelta;
+
+    int viewToRangeStart = (docToView(toCodeMapping, toCvr, !isLeft ? range.fromL : range.fromR)
+        - viewToFirstLine) * to.lineHeight() + toScrollDelta;
+    int viewToRangeEnd = (docToView(toCodeMapping, toCvr, !isLeft ? range.toL() : range.toR())
+        - viewToFirstLine) * to.lineHeight() + toScrollDelta;
+
+    boolean isGoodFrom = containsIn(viewFromRangeStart, viewToRangeStart, viewToRangeEnd, viewFromRangeEnd);
+    boolean isGoodTo = containsIn(viewToRangeStart, viewFromRangeStart, viewFromRangeEnd, viewToRangeEnd);
+
+    int viewLinesDelta = viewFromSyncLine - viewFromFirstLine;
+    int docRangeDelta = docFromSyncLine - (isLeft ? range.fromL : range.fromR);
+
+    int toRangeStart = !isLeft ? range.fromL : range.fromR;
     int toDocFirstLine = toRangeStart + docRangeDelta;
-    int toViewFirstLine = toDocFirstLine;
-    if (toCodeMapping != null) {
-      int ind = toCodeMapping.docToView(toDocFirstLine);
-      if (ind > CodeLineMapping.outOfRange) {
-        toViewFirstLine = ind;
-      } else if (ind < CodeLineMapping.outOfRange) {
-        int regionInd = CodeLineMapping.regionIndex(ind);
-        int fstLine = toCodeMapping.docToView(toCvr[regionInd].endLine);
-        if (fstLine > CodeLineMapping.outOfRange) toViewFirstLine = fstLine - 1;
-      }
-    }
+    int toViewFirstLine = docToView(toCodeMapping, toCvr, toDocFirstLine);
     int toNewLine = (toViewFirstLine - viewLinesDelta);
-    to.setVScrollPosSilent(toNewLine * to.lineHeight() + scrollDelta);
+
+    if (isGoodFrom) return;
+    int toNeededScrollPos = toNewLine * to.lineHeight() + fromScrollDelta;
+    if (scrollDelta == 0) {
+      to.setVScrollPosSilent(toNeededScrollPos);
+    } else {
+      int toCurrentScrollPos = -(to.lineToPos(viewToFirstLine) - viewToFirstLine * to.lineHeight() - to.pos().y);
+      int delta = (toNeededScrollPos - toCurrentScrollPos);
+      int a = Math.abs(scrollDelta);
+      int b = Math.abs(delta);
+      boolean sign = delta > 0;
+      int x = Math.min(b, Math.max(
+          2 * a, (int) (.5 * b / a)
+      )) * (sign ? 1 : -1);
+      to.setVScrollPosSilent(toCurrentScrollPos + x);
+    }
+  }
+
+  private int viewToDoc(CodeLineMapping mapping, CompactViewRange[] cvr, int viewValue) {
+    if (mapping == null || cvr == null) return viewValue;
+    int ind = mapping.viewToDoc(viewValue);
+    if (ind > CodeLineMapping.outOfRange) {
+      return ind;
+    } else if (ind < CodeLineMapping.outOfRange) {
+      int regionInd = CodeLineMapping.regionIndex(ind);
+      return cvr[regionInd].startLine;
+    }
+    return CodeLineMapping.outOfRange;
+  }
+
+  private int docToView(CodeLineMapping mapping, CompactViewRange[] cvr, int docValue) {
+    if (mapping == null || cvr == null) return docValue;
+    int ind = mapping.docToView(docValue);
+    if (ind > CodeLineMapping.outOfRange) {
+      return ind;
+    } else if (ind < CodeLineMapping.outOfRange) {
+      int regionInd = CodeLineMapping.regionIndex(ind);
+      int fstLine = mapping.docToView(cvr[regionInd].endLine);
+      if (fstLine > CodeLineMapping.outOfRange) return fstLine - 1;
+    }
+    return CodeLineMapping.outOfRange;
+  }
+
+  private boolean containsIn(int x, int a, int b, int y) {
+    return x <= a && b <= y;
   }
 }
