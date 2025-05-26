@@ -35,13 +35,14 @@ public interface JsFileInput extends JSObject {
     return JSObjects.hasProperty(input, "path");
   }
 
-  static JSString path(JSObject input) {
+  static JSString getPath(JSObject input) {
     return JSString.isInstance(input) ? input.cast()
         : JsHasPath.getPath(input);
   }
 
   static boolean isContent(JSObject input) {
-    return JSObjects.hasProperty(input, "content");
+    return hasPath(input) &&
+        JSObjects.hasProperty(input, "content");
   }
 
   static JSString getContent(JSObject input) {

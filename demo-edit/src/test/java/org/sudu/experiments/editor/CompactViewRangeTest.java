@@ -1,8 +1,9 @@
 package org.sudu.experiments.editor;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.sudu.experiments.math.V2i;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class CompactViewRangeTest {
 
@@ -23,21 +24,21 @@ class CompactViewRangeTest {
     {
       int line = 7;
       int i3 = CompactViewRange.binSearch(line, model2);
-      Assertions.assertEquals(1, i3);
-      Assertions.assertTrue(line < model2[i3].startLine);
-      Assertions.assertTrue(model2[i3 - 1].endLine <= line);
+      assertEquals(1, i3);
+      assertTrue(line < model2[i3].startLine);
+      assertTrue(model2[i3 - 1].endLine <= line);
     }
     {
       int line2 = 8;
       int i4 = CompactViewRange.binSearch(line2, model2);
-      Assertions.assertEquals(1, i4);
-      Assertions.assertEquals(line2, model2[i4].startLine);
+      assertEquals(1, i4);
+      assertEquals(line2, model2[i4].startLine);
     }
     {
       int line3 = 10;
       int i5 = CompactViewRange.binSearch(line3, model2);
-      Assertions.assertEquals(1, i5);
-      Assertions.assertTrue(
+      assertEquals(1, i5);
+      assertTrue(
           model2[i5].startLine < line3 &&
               line3 < model2[i5].endLine);
     }
@@ -83,13 +84,13 @@ class CompactViewRangeTest {
     int i3 = CompactViewRange.binSearch(7, m);
     int i4 = CompactViewRange.binSearch(10, m);
 
-    Assertions.assertEquals(0, i0);
-    Assertions.assertEquals(0, i1);
-    Assertions.assertEquals(1, i2);
-    Assertions.assertTrue(i3 >= 1);
-    Assertions.assertTrue(i4 >= 1);
+    assertEquals(0, i0);
+    assertEquals(0, i1);
+    assertEquals(1, i2);
+    assertTrue(i3 >= 1);
+    assertTrue(i4 >= 1);
 
-    Assertions.assertTrue(true);
+    assertTrue(true);
   }
 
   @Test
@@ -113,10 +114,20 @@ class CompactViewRangeTest {
         new V2i(11, CodeLineMapping.outOfRange)
     };
 
+    int[] data = new int[viewToDocVerifyTable.length];
+    v.viewToDocLines(0, data.length, data);
+
+    for (int i = 1; i < data.length; i++) {
+      int[] d2 = new int[data.length - i];
+      v.viewToDocLines(i, i + d2.length, d2);
+      for (int j = 0; j < d2.length; j++)
+        assertEquals(data[i + j], d2[j]);
+    }
+
     for (V2i pair : viewToDocVerifyTable) {
       int docLine = v.viewToDoc(pair.x);
-      if (pair.y != docLine)
-        Assertions.fail();
+      if (pair.y != docLine || docLine != data[pair.x])
+        fail();
     }
   }
 
@@ -127,7 +138,7 @@ class CompactViewRangeTest {
     V2i[] docToViewVerifyTable = new V2i[]{
         new V2i(0, CodeLineMapping.outOfRange),
 
-        // [1..5)  visible
+        // [1..5)  visible  -> [0,1,2,3]
         new V2i(1, 0),
         new V2i(2, 1),
         new V2i(3, 2),
@@ -137,7 +148,7 @@ class CompactViewRangeTest {
         new V2i(6, CodeLineMapping.outOfRange),
         new V2i(7, CodeLineMapping.outOfRange),
 
-        // [8..11)  invisible
+        // [8..11)  invisible -> [4]
         new V2i(8, CodeLineMapping.regionIndex(1)),
         new V2i(9, CodeLineMapping.regionIndex(1)),
         new V2i(10, CodeLineMapping.regionIndex(1)),
@@ -145,7 +156,7 @@ class CompactViewRangeTest {
         // out of range
         new V2i(11, CodeLineMapping.outOfRange),
 
-        // [12..17)  visible
+        // [12..17)  visible -> [5,6,7,8,9]
         new V2i(12, 5),
         new V2i(13, 6),
         new V2i(14, 7),
@@ -158,10 +169,14 @@ class CompactViewRangeTest {
     };
 
     for (V2i pair : docToViewVerifyTable) {
-      int docLine = v.docToView(pair.x);
-      if (pair.y != docLine) {
+      int viewLine = v.docToView(pair.x);
+      if (pair.y != viewLine) {
         System.out.println("fail " + pair);
-        Assertions.fail();
+        fail();
+      }
+      if (viewLine >= 0) {
+        int actualDoc = v.viewToDoc(viewLine);
+        assertEquals(pair.x, actualDoc);
       }
     }
   }
@@ -172,7 +187,171 @@ class CompactViewRangeTest {
     CompactCodeMapping v = new CompactCodeMapping(DebugHelper.t1());
     int toView35 = v.docToView(35);
     int toView36 = v.docToView(36);
-    Assertions.assertEquals(toView36, 1 + toView35);
+    assertEquals(toView36, 1 + toView35);
+  }
 
+  static CompactViewRange[] _0_51_v_51_69() {
+    return new CompactViewRange[]{
+        new CompactViewRange(0, 51, false),
+        new CompactViewRange(51, 51, true),
+        new CompactViewRange(51, 69, false),
+    };
+  }
+
+  static CompactViewRange[] _0_51_51_69() {
+    return new CompactViewRange[]{
+        new CompactViewRange(0, 51, false),
+        new CompactViewRange(51, 51, false),
+        new CompactViewRange(51, 69, false),
+    };
+  }
+
+  @Test
+  void testViewToDocLinesZeroRange() {
+    int[] viewToDocVerify = new int[]{ -2, -4 };
+
+    CompactCodeMapping v1 = new CompactCodeMapping(_0_51_v_51_69());
+    testTranslation(v1, viewToDocVerify);
+    CompactCodeMapping v2 = new CompactCodeMapping(_0_51_51_69());
+    testTranslation(v2, viewToDocVerify);
+  }
+
+  static void testTranslation(CompactCodeMapping v, int[] viewToDocVerify) {
+    int[] viewToDocTable = new int[20];
+    int viewBegin = 0;
+    int viewEnd = 2;
+    v.viewToDocLines(viewBegin, viewEnd, viewToDocTable);
+    assertBeginWith(viewToDocTable, viewToDocVerify);
+    for (int i = viewBegin; i < viewEnd; i++) {
+      int actualDoc = v.viewToDoc(i);
+      assertEquals(viewToDocVerify[i], actualDoc);
+//      int actualView = v.docToView(actualDoc);
+//      Assertions.assertEquals(i, actualView);
+    }
+  }
+
+  static void assertBeginWith(int[] result, int[] checker) {
+    assertTrue(result.length >= checker.length);
+    for (int i = 0; i < checker.length; i++) {
+      assertEquals(checker[i], result[i]);
+    }
+  }
+
+  @Test
+  void testInsert0() {
+    {
+      var r1 = insertTestData();
+
+      CompactViewRange.insertLines(0, 1, r1);
+      assertEquals(0, r1[0].startLine);
+      assertEquals(2, r1[0].endLine);
+      assertEquals(2, r1[1].startLine);
+      assertEquals(2, r1[1].endLine);
+      assertEquals(2, r1[2].startLine);
+      assertEquals(3, r1[2].endLine);
+    }
+
+    {
+      var r2 = insertTestData();
+
+      CompactViewRange.insertLines(1, 2, r2);
+      assertEquals(0, r2[0].startLine);
+      assertEquals(1, r2[0].endLine);
+      assertEquals(1, r2[1].startLine);
+      assertEquals(1, r2[1].endLine);
+      assertEquals(1, r2[2].startLine);
+      assertEquals(4, r2[2].endLine);
+    }
+
+    {
+      var r3 = insertTestData();
+
+      CompactViewRange.insertLines(2, 2, r3);
+      assertEquals(0, r3[0].startLine);
+      assertEquals(1, r3[0].endLine);
+      assertEquals(1, r3[1].startLine);
+      assertEquals(1, r3[1].endLine);
+      assertEquals(1, r3[2].startLine);
+      assertEquals(4, r3[2].endLine);
+    }
+    {
+      var r4 = new CompactViewRange[]{
+          new CompactViewRange(0, 1, false),
+          new CompactViewRange(2, 4, false),
+      };
+
+      CompactViewRange.insertLines(1, 2, r4);
+      assertEquals(0, r4[0].startLine);
+      assertEquals(1, r4[0].endLine);
+      assertEquals(4, r4[1].startLine);
+      assertEquals(6, r4[1].endLine);
+    }
+  }
+
+  private static CompactViewRange[] insertTestData() {
+    return new CompactViewRange[]{
+        new CompactViewRange(0, 1, false),
+        new CompactViewRange(1, 1, false),
+        new CompactViewRange(1, 2, false),
+    };
+  }
+
+  @Test
+  void deleteLines() {
+    { // before
+      var r = cvr_5_10();
+      r.addRemoveLines(2, -3);
+      assertEquals(2, r.startLine);
+      assertEquals(7, r.endLine);
+    }{ // after
+      var r = cvr_5_10();
+      r.addRemoveLines(10, -3);
+      assertEquals(5, r.startLine);
+      assertEquals(10, r.endLine);
+    }{ // r.start in deleted, r.end is after deleted
+      // 0,1,2,3,(4,[5,6,7,8),9],10,11
+      // deleteLines(4, 5);
+      // 0,1,2,3,[4],5,6
+      var r = cvr_5_10();
+      r.addRemoveLines(4, -5);
+      assertEquals(4, r.startLine);
+      assertEquals(5, r.endLine);
+    }{ // r.start is before deleted, r.end in deleted
+      // 0,1,2,3,4,[5,6,(7,8,9],10),11
+      // deleteLines(7, 4);
+      // 0,1,2,3,4,[5,6],7
+      var r = cvr_5_10();
+      r.addRemoveLines(7, -4);
+      assertEquals(5, r.startLine);
+      assertEquals(7, r.endLine);
+    }{ // deleted inside r
+      // 0,1,2,3,4,[5,(6,7,8,9)],10,11
+      // deleteLines(6, 4);
+      // 0,1,2,3,4,[5],6,7
+      var r = cvr_5_10();
+      r.addRemoveLines(6, -4);
+      assertEquals(5, r.startLine);
+      assertEquals(6, r.endLine);
+    }{ // deleted outside r
+      // 0,1,2,3,(4,[5,6,7,8,9],10),11
+      // deleteLines(4, 7);
+      // 0,1,2,3,[] 4
+      var r = cvr_5_10();
+      r.addRemoveLines(4, -7);
+      assertEquals(4, r.startLine);
+      assertEquals(4, r.endLine);
+    }{ // deleted equals r
+      // 0,1,2,3,4,[(5,6,7,8,9]),10,11
+      // deleteLines(4, 7);
+      // 0,1,2,3,4,[] 5, 6
+      var r = cvr_5_10();
+      r.addRemoveLines(5, -10);
+      assertEquals(5, r.startLine);
+      assertEquals(5, r.endLine);
+    }
+  }
+
+  static CompactViewRange cvr_5_10() {
+    return new CompactViewRange(5, 10, false);
   }
 }

@@ -105,7 +105,7 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
     int lastLine = Numbers.iDivRoundUp(scrollPos + controlHeight, lineHeight);
     buttons.draw(
         firstLine, lastLine, (firstLine + lastLine) / 2,
-        api.graphics, mColors, ctx, true);
+        api.graphics, mColors, ctx, null);
 
     drawScrollBar(api.graphics);
   }

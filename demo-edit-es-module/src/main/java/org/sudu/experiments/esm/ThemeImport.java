@@ -21,6 +21,7 @@ import static org.sudu.experiments.editor.ui.colors.EditorColorScheme.*;
 public interface ThemeImport {
 
   String baseTheme = "baseTheme";
+  boolean debug = false;
 
   static EditorColorScheme fromJs(JSObject t) {
     boolean isString = JSString.isInstance(t);
@@ -54,24 +55,32 @@ public interface ThemeImport {
       }
     }
 
-    if (hasAlpha) {
-      JsHelper.consoleInfo("Colors with alpha:");
-      for (int i = 0; i < imported.length; i++) {
-        if (imported[i] != null && imported[i].a != 255)
-          JsHelper.consoleInfo("  " + name(i) + ": " + imported[i]);
-      }
-    }
-
-    if (missing) {
-      JsHelper.consoleInfo("!!! Missing Colors:");
-      for (int i = 0; i < imported.length; i++)
-        if (imported[i] == null) JsHelper.consoleInfo("  " + name(i));
-    }
-
+    boolean[] modified = new boolean[imported.length];
     for (int i = 0; i < imported.length; i++) {
       Color c = imported[i];
-      if (c != null && theme.modify(i, c)) {
-        JsHelper.consoleInfo(name(i) + '(' + i + ") set to " + c);
+      modified[i] = c != null && theme.modify(i, c);
+    }
+
+    if (debug) {
+      if (hasAlpha) {
+        JsHelper.consoleInfo("Colors with alpha:");
+        for (int i = 0; i < imported.length; i++) {
+          if (imported[i] != null && imported[i].a != 255)
+            JsHelper.consoleInfo("  " + name(i) + ": " + imported[i]);
+        }
+      }
+
+      if (missing) {
+        JsHelper.consoleInfo("!!! Missing Colors:");
+        for (int i = 0; i < imported.length; i++)
+          if (imported[i] == null) JsHelper.consoleInfo("  " + name(i));
+      }
+
+      for (int i = 0; i < imported.length; i++) {
+        Color c = imported[i];
+        if (c != null && modified[i]) {
+          JsHelper.consoleInfo(name(i) + '(' + i + ") set to " + c);
+        }
       }
     }
 

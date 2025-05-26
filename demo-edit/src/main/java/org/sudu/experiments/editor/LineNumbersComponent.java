@@ -19,7 +19,7 @@ import java.util.List;
 
 public class LineNumbersComponent implements Disposable {
 
-  private final static boolean debugTexture = true;
+  private final static boolean debugTexture = false;
   private final int numberOfLines = EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
 
   public final V2i pos = new V2i();
@@ -62,27 +62,11 @@ public class LineNumbersComponent implements Disposable {
     return colors;
   }
 
-  public void drawEditorLines(
-      int yPos,
-      int firstLine, int lastLine,
-      int caretLine,
-      int frameId,
-      WglGraphics g, EditorColorScheme scheme
-  ) {
-    beginDraw(g, frameId);
-    drawRange(yPos, firstLine, lastLine, g, scheme);
-    int dY = yPos + (lastLine - firstLine) * lineHeight;
-    drawEmptyLines(dY, g, scheme);
-    drawCaretLine(yPos, firstLine, caretLine, scheme, g);
-    endDraw(g);
-  }
-
   public void drawRange(
-      int yPos,
+      int dY,
       int firstLine, int lastLine,
       WglGraphics g, EditorColorScheme scheme
   ) {
-    int dY = yPos;
     for (int i = firstLine; i < lastLine; ) {
       int ind = i / numberOfLines;
       int startLine = ind * numberOfLines;
@@ -115,14 +99,18 @@ public class LineNumbersComponent implements Disposable {
   }
 
   public void drawCaretLine(
-      int yPos,
-      int firstLine, int caretLine,
+      int dY,
+      int caretViewLine, int caretDocLine,
       EditorColorScheme colorScheme,
       WglGraphics g
   ) {
-    var texture = texture(g, caretLine);
-    int dY = yPos + (caretLine - firstLine) * lineHeight;
-    texture.drawCaretLine(pos, dY, caretLine, colorScheme, colors, g);
+    int y0 = dY + caretViewLine * lineHeight;
+    int y1 = y0 + lineHeight;
+    var intersect = y0 < size.y && 0 < y1;
+    if (intersect) {
+      var texture = texture(g, caretDocLine);
+      texture.drawCaretLine(pos, y0, caretDocLine, colorScheme, colors, g);
+    }
   }
 
   public void beginDraw(WglGraphics g, int frameId) {
@@ -220,8 +208,13 @@ public class LineNumbersComponent implements Disposable {
 
   @Override
   public void dispose() {
-    for (var t: textures) t.dispose();
+    for (LineNumbersTexture t : old)
+      t.dispose();
+
+    for (var t: textures)
+      t.dispose();
     textures.clear();
+    old.clear();
     disposeCanvas();
   }
 

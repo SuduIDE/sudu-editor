@@ -10,15 +10,21 @@ public class CompactViewRange {
     this.visible = visible;
   }
 
-  public boolean inRange(int line) {
-    return startLine <= line && line < endLine;
-  }
-
   public int length() {
     return endLine - startLine;
   }
 
+  public boolean contains(int line) {
+    return startLine <= line && line < endLine;
+  }
+
+  @Override
+  public String toString() {
+    return "[" + startLine + ", " + endLine + ")" + (visible ? " visible" : "");
+  }
+
   // data.length > 0
+  // the method assume no intersections between ranges
   public static int binSearch(int line, CompactViewRange[] data) {
     int low = 0;
     int high = data.length - 1;
@@ -34,8 +40,80 @@ public class CompactViewRange {
     return low;
   }
 
-  @Override
-  public String toString() {
-    return "[" + startLine + ", " + endLine + ")" + (visible ? " visible" : "");
+  public static void insertLines(int at, int count, CompactViewRange[] data) {
+    addRemoveLines(at, count, data);
+    // insert at end
+    if (data.length > 0)
+      data[data.length - 1].insertLinesAtEnd(at, count);
+  }
+
+  private void insertLinesAtEnd(int at, int count) {
+    if (endLine == at)
+      endLine += count;
+  }
+
+  public static void deleteLines(int at, int count, CompactViewRange[] data) {
+    addRemoveLines(at, -count, data);
+  }
+
+  static void addRemoveLines(int at, int count, CompactViewRange[] data) {
+    int length = data.length;
+    if (length == 0) return;
+    int search = binSearch(at, data);
+    for (; search < length; search++) {
+      var range = data[search];
+      range.addRemoveLines(at, count);
+    }
+  }
+
+  void addRemoveLines(int at, int count) {
+    if (at < startLine)
+      startLine = Math.max(at, startLine + count);
+
+    if (at < endLine)
+      endLine = Math.max(at, endLine + count);
+  }
+
+  static void transferLeft(int from, int length, CompactViewRange[] ranges) {
+    CompactViewRange r = ranges[from];
+    CompactViewRange b = ranges[from + 1];
+    if (r.length() < length || r.endLine != b.startLine)
+      throw new UnsupportedOperationException();
+    r.endLine -= length;
+    b.startLine -= length;
+  }
+
+  static void transferRight(int from, int length, CompactViewRange[] ranges) {
+    CompactViewRange r = ranges[from];
+    CompactViewRange a = ranges[from - 1];
+    if (r.length() < length || a.endLine != r.startLine)
+      throw new UnsupportedOperationException();
+    a.endLine += length;
+    r.startLine += length;
+  }
+
+  public static void expand(
+      int extend, int index, CompactViewRange[] l, CompactViewRange[] r
+  ) {
+    CompactViewRange lRange = l[index];
+    CompactViewRange rRange = r[index];
+    int lenL = lRange.length();
+    int lenR = rRange.length();
+    if (index > 0) {
+      CompactViewRange.transferRight(index, Math.min(lenL, extend), l);
+      CompactViewRange.transferRight(index, Math.min(lenR, extend), r);
+      lenL = lRange.length();
+      lenR = rRange.length();
+    }
+    if (index + 1 < l.length) {
+      CompactViewRange.transferLeft(index, Math.min(lenL, extend), l);
+      lenL = lRange.length();
+    }
+    if (index + 1 < l.length) {
+      CompactViewRange.transferLeft(index, Math.min(lenR, extend), r);
+      lenR = rRange.length();
+    }
+    if (lenR == 0) rRange.visible = true;
+    if (lenL == 0) lRange.visible = true;
   }
 }
