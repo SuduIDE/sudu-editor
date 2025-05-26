@@ -207,6 +207,9 @@ public class JsRemoteEditor implements JsRemoteEditorView {
   public void setExternalMessageBar(JsExternalMessageBar emb) {}
 
   @Override
+  public void setExternalContextMenuProvider(JsContextMenuProvider p) {}
+
+  @Override
   public void setReadonly(boolean flag) {
     editor.readonly = flag;
   }

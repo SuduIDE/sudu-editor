@@ -5,6 +5,7 @@ import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
+import org.sudu.experiments.esm.JsContextMenuProvider;
 import org.sudu.experiments.esm.JsExternalMessageBar;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -23,6 +24,7 @@ import static org.sudu.experiments.editor.worker.diff.DiffUtils.readDiffInfo;
 public class RemoteFileDiffWindow extends FileDiffWindow {
 
   JsExternalMessageBar messageBar;
+  JsContextMenuProvider contextMenuProvider;
 
   private final Channel channel;
   private boolean needScrollSync = false;
