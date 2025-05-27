@@ -210,6 +210,9 @@ public class JsRemoteEditor implements JsRemoteEditorView {
   public void setExternalContextMenuProvider(JsContextMenuProvider p) {}
 
   @Override
+  public void executeMenuAction(JSString action) {}
+
+  @Override
   public void setReadonly(boolean flag) {
     editor.readonly = flag;
   }

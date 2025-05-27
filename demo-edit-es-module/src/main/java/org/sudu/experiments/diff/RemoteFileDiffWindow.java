@@ -10,8 +10,10 @@ import org.sudu.experiments.esm.JsExternalMessageBar;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.protocol.JsCast;
+import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.window.WindowManager;
 import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.teavm.jso.JSObject;
@@ -174,5 +176,30 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   public boolean onKeyPress(KeyEvent event) {
     return event.keyCode == KeyCode.ESC
         && super.onKeyPress(event);
+  }
+
+  @Override
+  protected Supplier<ToolbarItem[]> popupActions(V2i pos) {
+    return super.popupActions(pos);
+  }
+
+  @Override
+  protected boolean onContextMenu(V2i pos) {
+    System.out.println("RemoteFileDiffWindow.onContextMenu");
+    if (contextMenuProvider != null) {
+      var f = focused();
+      if (f != null) {
+        contextMenuProvider.showContextMenu(
+            JsContextMenuProvider.cutCopyPaste()
+        );
+      }
+      return false;
+    } else {
+      return super.onContextMenu(pos);
+    }
+  }
+
+  void executeCommand(JSString command) {
+    JsHelper.consoleInfo("RemoteFileDiffWindow.executeCommand:", command);
   }
 }

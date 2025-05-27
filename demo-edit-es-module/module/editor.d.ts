@@ -282,6 +282,8 @@ export interface View {
   setExternalMessageBar(statusBar: ExternalMessageBar): void
 
   setExternalContextMenuProvider(p: ContextMenuProvider): void;
+
+  executeMenuAction(action: ContextMenuActions): void;
 }
 
 export interface TwoPanelDiff {

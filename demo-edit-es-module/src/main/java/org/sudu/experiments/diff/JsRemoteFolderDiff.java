@@ -130,6 +130,9 @@ public class JsRemoteFolderDiff implements JsRemoteFolderDiffView {
   @Override
   public void setExternalContextMenuProvider(JsContextMenuProvider p) {}
 
+  @Override
+  public void executeMenuAction(JSString action) {}
+
   private FolderDiffRootView rootView() {
     return folderDiff.rootView;
   }

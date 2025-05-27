@@ -110,12 +110,21 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
 
   @Override
   public void setExternalMessageBar(JsExternalMessageBar emb) {
-    ((RemoteFileDiffWindow) this.w).messageBar = emb;
+    remoteFileDiffWindow().messageBar = emb;
+  }
+
+  private RemoteFileDiffWindow remoteFileDiffWindow() {
+    return (RemoteFileDiffWindow) this.w;
   }
 
   @Override
   public void setExternalContextMenuProvider(JsContextMenuProvider p) {
-    ((RemoteFileDiffWindow) this.w).contextMenuProvider = p;
+    remoteFileDiffWindow().contextMenuProvider = p;
+  }
+
+  @Override
+  public void executeMenuAction(JSString action) {
+    remoteFileDiffWindow().executeCommand(action);
   }
 
   static Function<SceneApi, Scene> sf(Channel channel) {

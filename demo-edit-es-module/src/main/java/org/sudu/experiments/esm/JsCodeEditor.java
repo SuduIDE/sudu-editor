@@ -352,4 +352,7 @@ public class JsCodeEditor implements JsEditorView {
 
   @Override
   public void setExternalContextMenuProvider(JsContextMenuProvider p) {}
+
+  @Override
+  public void executeMenuAction(JSString action) {}
 }

@@ -122,6 +122,9 @@ public class JsCodeDiff implements JsFileDiffView {
   @Override
   public void setExternalContextMenuProvider(JsContextMenuProvider p) {}
 
+  @Override
+  public void executeMenuAction(JSString action) {}
+
   public static Promise<JsFileDiffView> newDiff(EditArgs arguments) {
     return JsLauncher.start(
         arguments,
