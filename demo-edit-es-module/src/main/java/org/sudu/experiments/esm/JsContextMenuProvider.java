@@ -9,9 +9,15 @@ public interface JsContextMenuProvider extends JSObject {
 
   static JsArray<JSString> cutCopyPaste() {
     var a = JsArray.<JSString>create();
-    a.push(JSString.valueOf("Cut"));
-    a.push(JSString.valueOf("Copy"));
-    a.push(JSString.valueOf("Paste"));
+    a.push(jsCut());
+    a.push(jsCopy());
+    a.push(jsPaste());
     return a;
   }
+
+  static JSString jsCopy() { return JSString.valueOf("Copy"); }
+  static JSString jsCut() { return JSString.valueOf("Cut"); }
+  static JSString jsPaste() { return JSString.valueOf("Paste"); }
+  static JSString jsAlignWith() { return JSString.valueOf("AlignWith"); }
+  static JSString jsRemoveAlignment() { return JSString.valueOf("RemoveAlignment"); }
 }

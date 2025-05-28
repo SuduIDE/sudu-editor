@@ -2076,4 +2076,24 @@ public class EditorComponent extends View implements
   public void clearCompactViewModel() {
     setCompactViewModel(new CodeLineMapping.Id(model), null);
   }
+
+  public boolean canAlignWith() {
+    return true;
+  }
+
+  public boolean canRemoveAlignment() {
+    return true;
+  }
+
+  public void paste() {
+    window().readClipboardText(
+        this::handleInsert,
+        EditorUi.onError("readClipboardText error: "));
+  }
+
+  public void cutCopy(boolean isCut) {
+    onCopy(text -> window().writeClipboardText(text,
+        org.sudu.experiments.Const.emptyRunnable,
+        EditorUi.onError("writeClipboardText error: ")), isCut);
+  }
 }

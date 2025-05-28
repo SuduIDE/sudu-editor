@@ -2,6 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.editor.EditorComponent;
 import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
@@ -10,7 +11,6 @@ import org.sudu.experiments.esm.JsExternalMessageBar;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.js.JsArray;
-import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.ui.ToolbarItem;
@@ -22,6 +22,8 @@ import org.teavm.jso.core.JSString;
 import java.util.function.Supplier;
 
 import static org.sudu.experiments.editor.worker.diff.DiffUtils.readDiffInfo;
+import static org.sudu.experiments.esm.JsContextMenuProvider.*;
+import static org.sudu.experiments.js.JsHelper.*;
 
 public class RemoteFileDiffWindow extends FileDiffWindow {
 
@@ -185,13 +187,16 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
 
   @Override
   protected boolean onContextMenu(V2i pos) {
-    System.out.println("RemoteFileDiffWindow.onContextMenu");
     if (contextMenuProvider != null) {
       var f = focused();
       if (f != null) {
-        contextMenuProvider.showContextMenu(
-            JsContextMenuProvider.cutCopyPaste()
-        );
+        var actions = cutCopyPaste();
+        if (f.canAlignWith())
+          actions.push(jsAlignWith());
+        if (f.canRemoveAlignment())
+          actions.push(jsRemoveAlignment());
+        consoleInfo2("open contextMenuProvider:", actions);
+        contextMenuProvider.showContextMenu(actions);
       }
       return false;
     } else {
@@ -200,6 +205,26 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   }
 
   void executeCommand(JSString command) {
-    JsHelper.consoleInfo("RemoteFileDiffWindow.executeCommand:", command);
+    consoleInfo2("RemoteFileDiffWindow.executeCommand:", command);
+    if (strictEquals(command, jsAlignWith()))
+      consoleInfo2("Command TODO: ", jsAlignWith());
+    else if (strictEquals(command, jsRemoveAlignment()))
+      consoleInfo2("Command TODO: ", jsRemoveAlignment());
+    else {
+      var f = focused();
+      if (f != null)
+        executeEditorCommand(command, f);
+    }
+  }
+
+  static void executeEditorCommand(JSString command, EditorComponent ed) {
+    if (strictEquals(command, jsCut()))
+      ed.cutCopy(true);
+    else if (strictEquals(command, jsCopy()))
+      ed.cutCopy(false);
+    else if (strictEquals(command, jsPaste()))
+      ed.paste();
+    else
+      consoleError("Unknown command: ", command);
   }
 }

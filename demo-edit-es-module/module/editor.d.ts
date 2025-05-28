@@ -256,12 +256,13 @@ export interface ExternalDialogProvider {
   showModalDialog(input: DialogInput): Promise<DialogResult | null>
 }
 
+// see org.sudu.experiments.esm.JsContextMenuProvider
 export enum ContextMenuActions {
-  cut = "cut",
-  copy = "copy",
-  paste = "paste",
-  alignWith = "alignWith",
-  removeAlignment = "removeAlignment",
+  cut = "Cut",
+  copy = "Copy",
+  paste = "Paste",
+  alignWith = "AlignWith",
+  removeAlignment = "RemoveAlignment",
 }
 
 export interface ContextMenuProvider {
