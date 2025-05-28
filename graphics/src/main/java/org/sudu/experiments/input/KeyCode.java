@@ -11,6 +11,7 @@ public interface KeyCode {
   int CapsLock = 20;
 
   int META = 91;
+  int ContextMenu = 93;
   int SPACE = 32;
 
   int A = 65;

@@ -1620,6 +1620,11 @@ public class EditorComponent extends View implements
       if (event.prevented) return false;
     }
 
+    if (KeyCode.isFKey(event.keyCode) ||
+        event.keyCode == KeyCode.ESC ||
+        event.keyCode == KeyCode.ContextMenu)
+      return false;
+
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
 
     if (!readonly && event.ctrl && event.keyCode == KeyCode.Z) {
@@ -1638,7 +1643,6 @@ public class EditorComponent extends View implements
       return true;
     }
 
-    if (KeyCode.isFKey(event.keyCode) || event.keyCode == KeyCode.ESC) return false;
     if (event.ctrl || event.alt || event.meta) return false;
     return event.key.length() > 0 && handleInsert(event.key);
   }

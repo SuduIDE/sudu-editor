@@ -122,15 +122,13 @@ public class FileDiffWindow extends ToolWindow0
   }
 
   protected Supplier<ToolbarItem[]> popupActions(V2i pos) {
-    var e1 = rootView.editor1;
-    var e2 = rootView.editor2;
-    boolean h1 = e1.hitTest(pos);
-    boolean h2 = e2.hitTest(pos);
+    var focus = focused();
 
-    if (h1 || h2) {
-      var opener = canSelectFiles ? opener(h1,
-          h1 ? UiText.selectLeftText : UiText.selectRightText) : null;
-      return edMenu(pos, h1 ? e1 : e2, opener);
+    if (focus != null) {
+      boolean left = focus == rootView.editor1;
+      var opener = canSelectFiles ? opener(left,
+          left ? UiText.selectLeftText : UiText.selectRightText) : null;
+      return edMenu(pos, focus, opener);
     }
     return canSelectFiles ? selectLR() : null;
   }
