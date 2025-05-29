@@ -202,6 +202,7 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void setDiffModel(DiffInfo diffInfo) {
+    boolean compact = diffModel != null && diffModel.isCompactedView();
     diffModel = diffInfo;
     editor1.setDiffModel(diffModel.lineDiffsL);
     editor2.setDiffModel(diffModel.lineDiffsR);
@@ -220,7 +221,7 @@ class FileDiffRootView extends DiffRootView {
 
     if (!firstDiffRevealed) revealFirstDiff();
     if (onDiffModelSet != null) onDiffModelSet.run();
-    if (!isCompactedView() && !diffModel.isEmpty()) {
+    if (compact && !diffModel.isEmpty()) {
       diffModel.buildCompactView(this::applyCodeMapping);
     }
   }
