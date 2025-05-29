@@ -51,10 +51,10 @@ public class KeyEvent extends KeyModifiers {
   }
 
   public String toString() {
-    var sb = new StringBuilder().append(isPressed ? "key down: " : "key up: ");
+    var sb = new StringBuilder().append(isPressed ? "key down" : "key up");
     if (!key.isEmpty())
       sb.append(", ").append(key);
-    return sb.append("keyCode = ").append(keyCode)
+    return sb.append(", keyCode = ").append(keyCode)
         .append(", isRepeated = ").append(isRepeated).toString();
   }
 
