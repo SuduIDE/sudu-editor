@@ -23,8 +23,9 @@ public interface KeyCode {
   int Z = A + 25;
 
 
+  int F1 = 112;
   int F5 = 116;
-  int F1 = F5 - 4;
+  int F7 = 118;
   int F10 = 121;
   int F11 = 122;
   int F12 = 123;

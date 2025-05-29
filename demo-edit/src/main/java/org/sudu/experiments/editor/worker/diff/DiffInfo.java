@@ -103,10 +103,11 @@ public class DiffInfo {
     int low = 0;
     int high = ranges.length - 1;
 
+    // The last range interval right border is inclusive
     if (high != 0) {
-      // The last range interval right border is inclusive
-      if (isL && ranges[high - 1].toL() == lineKey) return high;
-      if (!isL && ranges[high - 1].toR() == lineKey) return high;
+      var hr = ranges[high - 1];
+      int highValue = isL ? hr.toL() : hr.toR();
+      if (highValue == lineKey) return high;
     }
     while (low <= high) {
       int mid = (low + high) >>> 1;
@@ -114,8 +115,9 @@ public class DiffInfo {
       int midFrom = isL ? midRange.fromL : midRange.fromR;
       int midLen = isL ? midRange.lenL : midRange.lenR;
 
-      if (midFrom + midLen < lineKey) low = mid + 1;
-      else if (lineKey < midFrom) high = mid - 1;
+      if (midFrom <= lineKey && lineKey < midFrom + midLen) return mid;
+      if (midFrom < lineKey) low = mid + 1;
+      else if (midFrom > lineKey) high = mid - 1;
       else return mid;
     }
     return Math.min(low, ranges.length - 1);

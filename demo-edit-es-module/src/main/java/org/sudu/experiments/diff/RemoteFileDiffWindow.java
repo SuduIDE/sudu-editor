@@ -6,6 +6,8 @@ import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.esm.JsExternalMessageBar;
+import org.sudu.experiments.input.KeyCode;
+import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.protocol.JsCast;
@@ -164,5 +166,11 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     if (lastRightCaretPos != null) rootView.editor2.setPosition(lastRightCaretPos.y, lastRightCaretPos.x);
     if (lastLeftScrollPos != -1) rootView.editor1.setVScrollPosSilent(lastLeftScrollPos);
     if (lastRightScrollPos != -1) rootView.editor2.setVScrollPosSilent(lastRightScrollPos);
+  }
+
+  @Override
+  public boolean onKeyPress(KeyEvent event) {
+    return event.keyCode == KeyCode.ESC
+        && super.onKeyPress(event);
   }
 }
