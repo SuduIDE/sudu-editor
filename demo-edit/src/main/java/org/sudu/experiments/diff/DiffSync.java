@@ -69,16 +69,19 @@ public class DiffSync {
 
     if (isGoodFrom) return;
     int toNeededScrollPos = toNewLine * to.lineHeight() + fromScrollDelta;
+    int toCurrentScrollPos = -(to.lineToPos(viewToFirstLine) - viewToFirstLine * to.lineHeight() - to.pos().y);
+    int neededDelta = (toNeededScrollPos - toCurrentScrollPos);
+    if (Math.signum(scrollDelta) != Math.signum(neededDelta)) return;
     if (scrollDelta == 0) {
       to.setVScrollPosSilent(toNeededScrollPos);
     } else {
-      int toCurrentScrollPos = -(to.lineToPos(viewToFirstLine) - viewToFirstLine * to.lineHeight() - to.pos().y);
-      int delta = (toNeededScrollPos - toCurrentScrollPos);
       int a = Math.abs(scrollDelta);
-      int b = Math.abs(delta);
-      boolean sign = delta > 0;
+      int a2 = a * a;
+      int b = Math.abs(neededDelta);
+      boolean sign = neededDelta > 0;
+      float q = (float) Math.log(Math.max(range.lenL, range.lenR));
       int x = Math.min(b, Math.max(
-          2 * a, (int) (.5 * b / a)
+          a2, (int) (q * b / a)
       )) * (sign ? 1 : -1);
       to.setVScrollPosSilent(toCurrentScrollPos + x);
     }
@@ -98,12 +101,12 @@ public class DiffSync {
 
   private int docToView(CodeLineMapping mapping, CompactViewRange[] cvr, int docValue) {
     if (mapping == null || cvr == null) return docValue;
-    int ind = mapping.docToView(docValue);
+    int ind = mapping.docToViewCursor(docValue);
     if (ind > CodeLineMapping.outOfRange) {
       return ind;
     } else if (ind < CodeLineMapping.outOfRange) {
       int regionInd = CodeLineMapping.regionIndex(ind);
-      int fstLine = mapping.docToView(cvr[regionInd].endLine);
+      int fstLine = mapping.docToView(cvr[regionInd].endLine + 1);
       if (fstLine > CodeLineMapping.outOfRange) return fstLine - 1;
     }
     return CodeLineMapping.outOfRange;
