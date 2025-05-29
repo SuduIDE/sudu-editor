@@ -257,7 +257,7 @@ export interface ExternalDialogProvider {
 }
 
 // see org.sudu.experiments.esm.JsContextMenuProvider
-export enum ContextMenuActions {
+export const enum ContextMenuActions {
   cut = "Cut",
   copy = "Copy",
   paste = "Paste",
