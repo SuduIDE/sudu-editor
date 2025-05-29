@@ -104,6 +104,12 @@ public class JsFolderDiff implements JsIFolderDiffView {
   @Override
   public void setExternalMessageBar(JsExternalMessageBar emb) {}
 
+  @Override
+  public void setExternalContextMenuProvider(JsContextMenuProvider p) {}
+
+  @Override
+  public void executeMenuAction(JSString action) {}
+
   public static Promise<JsIFolderDiffView> newDiff(EditArgs arguments) {
     return JsLauncher.start(
         arguments,

@@ -340,6 +340,7 @@ class FileDiffRootView extends DiffRootView {
       editor1.revealLineInCenter(editor1.caretLine());
       editor2.revealLineInCenter(editor2.caretLine());
     }
+    ui.windowManager.uiContext.window.repaint();
   }
 
   private void applyCodeMapping(IntConsumer actions) {
