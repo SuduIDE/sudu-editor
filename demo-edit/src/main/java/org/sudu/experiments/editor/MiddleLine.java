@@ -143,8 +143,8 @@ public class MiddleLine extends View {
       int lineL = syncL[i];
       int lineR = syncR[i];
       if (diffModel.codeMappingL != null && diffModel.codeMappingR != null) {
-        lineL = diffModel.codeMappingL.docToView(lineL);
-        lineR = diffModel.codeMappingR.docToView(lineR);
+        lineL = diffModel.codeMappingL.docToViewCursor(lineL);
+        lineR = diffModel.codeMappingR.docToViewCursor(lineR);
       }
       if (lineL < 0 || lineR < 0) continue;
       int d = EditorConst.SYNC_LINE_HEIGHT / 2;
@@ -288,8 +288,8 @@ public class MiddleLine extends View {
       int lineL = syncL[i];
       int lineR = syncR[i];
       if (diffModel.codeMappingL != null && diffModel.codeMappingR != null) {
-        lineL = diffModel.codeMappingL.docToView(lineL);
-        lineR = diffModel.codeMappingR.docToView(lineR);
+        lineL = diffModel.codeMappingL.docToViewCursor(lineL);
+        lineR = diffModel.codeMappingR.docToViewCursor(lineR);
       }
       if (lineL < 0 || lineR < 0) continue;
       int d = EditorConst.SYNC_LINE_HEIGHT / 2;

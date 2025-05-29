@@ -140,24 +140,24 @@ public class LineNumbersComponent implements Disposable {
       WglGraphics g, LineNumbersColors scheme
   ) {
     for (int sp: syncPoints) {
-      int viewSyncPoint = docToView(mapping, sp);
+      int viewSyncPoint = docToViewCursor(mapping, sp);
       if (firstLine <= viewSyncPoint && viewSyncPoint <= lastLine && viewSyncPoint != midLineHoverSyncPoint)
         drawSyncLine(yPos, viewSyncPoint, firstLine, scheme.syncPoint, g);
     }
-    int viewCurSyncPoint = docToView(mapping, curSyncPoint);
+    int viewCurSyncPoint = docToViewCursor(mapping, curSyncPoint);
     if (firstLine <= viewCurSyncPoint && viewCurSyncPoint <= lastLine)
       drawSyncLine(yPos, viewCurSyncPoint, firstLine, scheme.currentSyncPoint, g);
-    int viewHoverSyncPoint = docToView(mapping, hoverSyncPoint);
+    int viewHoverSyncPoint = docToViewCursor(mapping, hoverSyncPoint);
     if (firstLine <= viewHoverSyncPoint && viewHoverSyncPoint <= lastLine)
       drawSyncLine(yPos, viewHoverSyncPoint, firstLine, scheme.hoverSyncPoint, g);
-    int viewMidLineHoverSyncPoint = docToView(mapping, midLineHoverSyncPoint);
+    int viewMidLineHoverSyncPoint = docToViewCursor(mapping, midLineHoverSyncPoint);
     if (firstLine <= viewMidLineHoverSyncPoint && viewMidLineHoverSyncPoint <= lastLine)
       drawSyncLine(yPos, viewMidLineHoverSyncPoint, firstLine, scheme.midLineHoverSyncPoint, g);
   }
 
-  private int docToView(CodeLineMapping mapping, int sp) {
+  private int docToViewCursor(CodeLineMapping mapping, int sp) {
     if (mapping == null) return sp;
-    return mapping.docToView(sp);
+    return mapping.docToViewCursor(sp);
   }
 
   private void drawSyncLine(
