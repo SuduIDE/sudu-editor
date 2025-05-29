@@ -51,10 +51,6 @@ public class JsFileDiffViewController0 implements JsFileDiffViewController {
 
   @Override
   public void setCompactView(boolean compact) {
-    LoggingJs.info(
-        JsHelper.concat("setCompactView: ",
-            JSBoolean.valueOf(compact)));
-
     w.rootView.setCompactView(compact);
   }
 }
