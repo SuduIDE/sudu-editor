@@ -1930,7 +1930,13 @@ public class EditorComponent extends View implements
 
   public int computeSyncPoint(V2i eventPosition) {
     int localY = eventPosition.y - pos.y;
-    return docToView.viewToDoc(Numbers.clamp(0, (localY + vScrollPos) / lineHeight, model.document.length()));
+    int viewLine = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, model.document.length());
+    if (viewLine == model.document.length()) return viewLine;
+    int docLine = docToView.viewToDoc(viewLine);
+    if (docLine < CodeLineMapping.outOfRange && docToView instanceof CompactCodeMapping mapping) {
+      docLine = mapping.data[CompactCodeMapping.regionIndex(docLine)].startLine;
+    }
+    return docLine;
   }
 
   public int[] syncPoints() {
