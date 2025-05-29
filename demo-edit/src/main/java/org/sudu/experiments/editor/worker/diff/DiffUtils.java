@@ -17,6 +17,7 @@ import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -28,11 +29,14 @@ public class DiffUtils {
   public static void findDiffs(
       char[] charsN, int[] intsN,
       char[] charsM, int[] intsM,
+      int[] syncL, int[] syncR,
       int[] ints,
       List<Object> result
   ) {
     DiffModel model = new DiffModel();
     model.compareLinesOnly = ints[0] == 1;
+    model.syncL = syncL;
+    model.syncR = syncR;
     int[] resultInts = model.findDiffs(charsN, intsN, charsM, intsM);
     result.add(resultInts);
   }
@@ -176,6 +180,43 @@ public class DiffUtils {
     }
   }
 
+  public static void printInfo(
+      DiffInfo info,
+      Document docN, Document docM,
+      int[] syncL, int[] syncR
+  ) {
+    int i = 0, j = 0;
+    ArrayList<String> lines = new ArrayList<>();
+    String subLine = "_".repeat(46);
+    String space = " ".repeat(46);
+    while (i < info.lineDiffsL.length
+        && j < info.lineDiffsR.length) {
+      var diffN = info.lineDiffsL[i];
+      var diffM = info.lineDiffsR[j];
+      lines.add((formatStr(docN, diffN, i) + "\t\t" + formatStr(docM, diffM, j)));
+      i++;
+      j++;
+    }
+    for (; i < info.lineDiffsL.length; i++) {
+      lines.add(formatStr(docN, info.lineDiffsL[i], i));
+    }
+    for (; j < info.lineDiffsR.length; j++) {
+      lines.add(space + "\t\t" + formatStr(docM, info.lineDiffsR[j], j));
+    }
+    int inserted = 0;
+    for (int k = 0; k < syncL.length; k++) {
+      int sL = syncL[k];
+      int sR = syncR[k];
+      if (sL == sR) {
+        lines.add(sL + inserted++, subLine + "\t\t" + subLine);
+      } else {
+        lines.add(sL + inserted++, subLine);
+        lines.add(sR + inserted++, space + "\t\t" + subLine);
+      }
+    }
+    lines.forEach(System.out::println);
+  }
+
   private static String formatStr(Document doc, LineDiff diff, int ind) {
     String line = doc.line(ind).makeString();
     if (line.length() < 40) line = line + " ".repeat(40 - line.length());
@@ -191,6 +232,7 @@ public class DiffUtils {
       Document document1,
       Document document2,
       boolean cmpOnlyLines,
+      int[] syncL, int[] syncR,
       Consumer<DiffInfo> result,
       WorkerJobExecutor window
   ) {
@@ -205,7 +247,11 @@ public class DiffUtils {
           DiffInfo model = readDiffInfo(reply);
           result.accept(model);
         }, FIND_DIFFS,
-        chars1, intervals1, chars2, intervals2, new int[] {cmpOnlyLines ? 1 : 0});
+        chars1, intervals1,
+        chars2, intervals2,
+        syncL, syncR,
+        new int[] {cmpOnlyLines ? 1 : 0}
+    );
   }
 
   public static void findIntervalDiffs(
@@ -220,13 +266,19 @@ public class DiffUtils {
     char[] chars2 = document2.getChars(fromR, toR);
     int[] intervals1 = makeIntervals(document1, fromL, toL, false);
     int[] intervals2 = makeIntervals(document2, fromR, toR, false);
+    int[] syncL = new int[]{}, syncR = new int[]{};
+
     window.sendToWorker(true,
         r -> {
           int[] reply = ((ArrayView) r[0]).ints();
           DiffInfo model = readDiffInfo(reply);
           result.accept(model);
         }, FIND_DIFFS,
-        chars1, intervals1, chars2, intervals2, new int[] {0});
+        chars1, intervals1,
+        chars2, intervals2,
+        syncL, syncR,
+        new int[] {0}
+    );
   }
 
   public static final String asyncListDirectory = "asyncListDirectory";

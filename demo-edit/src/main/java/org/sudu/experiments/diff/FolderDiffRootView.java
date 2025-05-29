@@ -42,7 +42,12 @@ class FolderDiffRootView extends DiffRootView {
   }
 
   public void applyTheme(EditorColorScheme theme) {
-    middleLine.setTheme(null, theme.fileTreeView.bg);
+    middleLine.setTheme(
+        null,
+        theme.fileTreeView.bg,
+        theme.lineNumber.syncPoint,
+        theme.lineNumber.midLineHoverSyncPoint
+    );
     left.setTheme(theme);
     left.applyTheme(leftScrollView);
     right.setTheme(theme);
@@ -80,17 +85,17 @@ class FolderDiffRootView extends DiffRootView {
   }
 
   public void fireFinished() {
-    for (IntConsumer listener : stateListeners.array())
+    for (IntConsumer listener: stateListeners.array())
       listener.accept(1);
   }
 
   public void fireRefreshed() {
-    for (IntConsumer listener : stateListeners.array())
+    for (IntConsumer listener: stateListeners.array())
       listener.accept(0);
   }
 
   void fireSelectionChanged(FolderDiffSelection s) {
-    for (SelectionListener listener : selectionListeners.array())
+    for (SelectionListener listener: selectionListeners.array())
       listener.accept(s);
   }
 

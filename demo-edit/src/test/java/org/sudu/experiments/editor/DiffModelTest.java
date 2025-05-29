@@ -16,6 +16,7 @@ public class DiffModelTest {
 
   public static void main(String[] args) {
     new DiffModelTest().compareDocuments(true);
+    new DiffModelTest().compareDocumentsWithSyncPoints(true);
   }
 
   @Test
@@ -37,6 +38,24 @@ public class DiffModelTest {
 
     DiffInfo info = DiffUtils.readDiffInfo(res);
     if (printResults) DiffUtils.printInfo(info, docL, docR);
+  }
+
+  public void compareDocumentsWithSyncPoints(boolean printResults) {
+    var docL = parse(ReadResource.readFile("ClassL1.java", getClass()));
+    var docR = parse(ReadResource.readFile("ClassR1.java", getClass()));
+
+    DiffModel model = new DiffModel();
+    model.syncL = new int[]{0, 8, 12, 16, 16};
+    model.syncR = new int[]{6, 8, 14, 16, 18};
+    char[] charsL = docL.getChars();
+    int[] intsL = DiffUtils.makeIntervals(docL, true);
+    char[] charsR = docR.getChars();
+    int[] intsR = DiffUtils.makeIntervals(docR, true);
+
+    int[] res = model.findDiffs(charsL, intsL, charsR, intsR);
+
+    DiffInfo info = DiffUtils.readDiffInfo(res);
+    if (printResults) DiffUtils.printInfo(info, docL, docR, model.syncL, model.syncR);
   }
 
   private Document parse(String text) {
