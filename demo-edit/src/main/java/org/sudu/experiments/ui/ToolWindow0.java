@@ -73,7 +73,6 @@ public abstract class ToolWindow0 implements ThemeControl {
   }
 
   protected boolean onContextMenu(V2i pos) {
-    System.out.println("ToolWindow0.onContextMenu: " + pos);
     var actions = popupActions(pos);
     if (actions != null)
       windowManager.showPopup(
