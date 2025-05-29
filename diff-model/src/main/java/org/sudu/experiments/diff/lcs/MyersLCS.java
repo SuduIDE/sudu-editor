@@ -23,8 +23,7 @@ public class MyersLCS extends LCS {
 
   @Override
   public int[][] findCommon() {
-    int threshold = 20000 + 10 * (int) Math.sqrt(lLen + rLen);
-    lcs(0, lLen, 0, rLen, Math.min(threshold, lLen + rLen));
+    lcs(0, lLen, 0, rLen, lLen + rLen);
 
     int[][] res = new int[bitsetLen][2];
     int ptr = 0;
