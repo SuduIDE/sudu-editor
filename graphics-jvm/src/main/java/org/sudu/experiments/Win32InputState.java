@@ -20,7 +20,10 @@ class Win32InputState {
     this.clickCounter = new Win32ClickCounter(timer);
   }
 
-  boolean onKey(long hWnd, int msg, long wParam, long lParam, InputListeners listeners) {
+  boolean onKey(
+      long hWnd, int msg, long wParam, long lParam,
+      V2i window, InputListeners listeners
+  ) {
     boolean onChar = msg == WM_CHAR;
     boolean down = msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN || onChar;
     boolean prevState = (lParam & (1 << 30)) != 0;
@@ -53,19 +56,28 @@ class Win32InputState {
       }
     }
 
+    if (down && contextMenuKey(vKey, ctrl, shift)) {
+      var e = createMouseEvent(window.x / 2, window.y / 2, window);
+      listeners.sendContextMenu(e);
+    }
+
     return keyEvent;
   }
 
   static boolean pasteKey(int vKey, boolean ctrl, boolean shift) {
     return (ctrl && vKey == KeyCode.V) ||
-        (shift && vKey == KeyCode.INSERT);
+        (shift && vKey == VK_INSERT);
   }
 
   static boolean copyOrCutKey(int vKey, boolean ctrl, boolean shift) {
-    return (shift && vKey == KeyCode.DELETE) ||
+    return (shift && vKey == VK_DELETE) ||
         (ctrl && vKey == KeyCode.X) ||
         (ctrl && vKey == KeyCode.C) ||
-        (ctrl && vKey == KeyCode.INSERT);
+        (ctrl && vKey == VK_INSERT);
+  }
+
+  static boolean contextMenuKey(int vKey, boolean ctrl, boolean shift) {
+    return  vKey == VK_APPS && !ctrl && !shift;
   }
 
   void onMouseButton(int msg, long lParam, V2i windowSize, long hWnd, InputListeners listeners) {
@@ -192,6 +204,7 @@ class Win32InputState {
       case VK_NUMLOCK -> KeyCode.NumLock;
       case VK_SCROLL  -> KeyCode.ScrollLock;
       case VK_PAUSE   -> KeyCode.Pause;
+      case VK_APPS    -> KeyCode.ContextMenu;
       default -> 0;
     };
   }
@@ -219,6 +232,7 @@ class Win32InputState {
   static final int VK_INSERT  = 0x2D;
   static final int VK_DELETE  = 0x2E;
   static final int VK_HELP    = 0x2F;
+  static final int VK_APPS    = 0x5D;
   static final int VK_F1      = 0x70;
   static final int VK_F12     = 0x7B;
   static final int VK_KEY0    = 0x30;

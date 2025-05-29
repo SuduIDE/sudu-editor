@@ -333,9 +333,9 @@ public class Win32Window implements WindowPeer, Window {
 
       // keyboard
       case WM_SYSKEYUP, WM_SYSKEYDOWN ->
-          inputState.onKey(hWnd, msg, wParam, lParam, inputListeners);
+          inputState.onKey(hWnd, msg, wParam, lParam, windowSize, inputListeners);
       case WM_KEYUP, WM_KEYDOWN, WM_CHAR -> {
-        if (inputState.onKey(hWnd, msg, wParam, lParam, inputListeners))
+        if (inputState.onKey(hWnd, msg, wParam, lParam, windowSize, inputListeners))
           return 0;
       }
 
