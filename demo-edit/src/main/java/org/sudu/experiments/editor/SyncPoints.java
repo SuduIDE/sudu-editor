@@ -6,9 +6,9 @@ import java.util.Arrays;
 
 public class SyncPoints {
 
-  public int[] syncL, syncR;
-  public int curL, curR;
-  public int midLineHoverSyncPoint = -1;
+  public int[] syncL, syncR;              // doc line
+  public int curL, curR;                  // doc line
+  public int midLineHoverSyncPoint = -1;  // syncL & syncR index
   private final Runnable onSyncPointsChanged;
   private static final boolean DEBUG = false;
 

@@ -220,6 +220,9 @@ class FileDiffRootView extends DiffRootView {
 
     if (!firstDiffRevealed) revealFirstDiff();
     if (onDiffModelSet != null) onDiffModelSet.run();
+    if (!isCompactedView() && !diffModel.isEmpty()) {
+      diffModel.buildCompactView(this::applyCodeMapping);
+    }
   }
 
   public void updateDiffModel(

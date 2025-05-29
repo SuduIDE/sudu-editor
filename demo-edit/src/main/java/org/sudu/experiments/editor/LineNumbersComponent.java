@@ -141,22 +141,18 @@ public class LineNumbersComponent implements Disposable {
   ) {
     for (int sp: syncPoints) {
       int viewSyncPoint = docToView(mapping, sp);
-      if (viewSyncPoint < 0) continue;
       if (firstLine <= viewSyncPoint && viewSyncPoint <= lastLine && viewSyncPoint != midLineHoverSyncPoint)
         drawSyncLine(yPos, viewSyncPoint, firstLine, scheme.syncPoint, g);
     }
-    if (firstLine <= curSyncPoint && curSyncPoint <= lastLine) {
-      int viewCurSyncPoint = docToView(mapping, curSyncPoint);
-      if (viewCurSyncPoint >= 0) drawSyncLine(yPos, viewCurSyncPoint, firstLine, scheme.currentSyncPoint, g);
-    }
-    if (firstLine <= hoverSyncPoint && hoverSyncPoint <= lastLine) {
-      int viewHoverSyncPoint = docToView(mapping, hoverSyncPoint);
-      if (viewHoverSyncPoint >= 0) drawSyncLine(yPos, viewHoverSyncPoint, firstLine, scheme.hoverSyncPoint, g);
-    }
-    if (firstLine <= midLineHoverSyncPoint && midLineHoverSyncPoint <= lastLine) {
-      int viewMidLineHoverSyncPoint = docToView(mapping, midLineHoverSyncPoint);
-      if (viewMidLineHoverSyncPoint >= 0) drawSyncLine(yPos, viewMidLineHoverSyncPoint, firstLine, scheme.midLineHoverSyncPoint, g);
-    }
+    int viewCurSyncPoint = docToView(mapping, curSyncPoint);
+    if (firstLine <= viewCurSyncPoint && viewCurSyncPoint <= lastLine)
+      drawSyncLine(yPos, viewCurSyncPoint, firstLine, scheme.currentSyncPoint, g);
+    int viewHoverSyncPoint = docToView(mapping, hoverSyncPoint);
+    if (firstLine <= viewHoverSyncPoint && viewHoverSyncPoint <= lastLine)
+      drawSyncLine(yPos, viewHoverSyncPoint, firstLine, scheme.hoverSyncPoint, g);
+    int viewMidLineHoverSyncPoint = docToView(mapping, midLineHoverSyncPoint);
+    if (firstLine <= viewMidLineHoverSyncPoint && viewMidLineHoverSyncPoint <= lastLine)
+      drawSyncLine(yPos, viewMidLineHoverSyncPoint, firstLine, scheme.midLineHoverSyncPoint, g);
   }
 
   private int docToView(CodeLineMapping mapping, int sp) {
