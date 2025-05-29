@@ -2078,11 +2078,11 @@ public class EditorComponent extends View implements
   }
 
   public boolean canAlignWith() {
-    return true;
+    return false;
   }
 
   public boolean canRemoveAlignment() {
-    return true;
+    return false;
   }
 
   public void paste() {

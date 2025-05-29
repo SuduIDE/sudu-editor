@@ -188,14 +188,14 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   @Override
   protected boolean onContextMenu(V2i pos) {
     if (contextMenuProvider != null) {
-      var f = focused();
-      if (f != null) {
+      var editor = focused();
+      if (editor != null) {
         var actions = cutCopyPaste();
-        if (f.canAlignWith())
+        if (editor.canAlignWith())
           actions.push(jsAlignWith());
-        if (f.canRemoveAlignment())
+        if (editor.canRemoveAlignment())
           actions.push(jsRemoveAlignment());
-        consoleInfo2("open contextMenuProvider:", actions);
+//        consoleInfo2("open contextMenuProvider:", actions);
         contextMenuProvider.showContextMenu(actions);
       }
       return false;
