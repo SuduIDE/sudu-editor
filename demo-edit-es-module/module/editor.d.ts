@@ -94,7 +94,7 @@ interface ILocation {
   uri: Uri
 }
 
-export enum DocumentHighlightKind {
+export const enum DocumentHighlightKind {
   Text = 0,
   Read = 1,
   Write = 2
