@@ -92,28 +92,23 @@ public class CompactViewRange {
     r.startLine += length;
   }
 
+  static void expand(int extend, int index, CompactViewRange[] m) {
+    CompactViewRange range = m[index];
+    boolean first = index == 0, last = index == m.length - 1;
+    int minSize = (first || last) ? extend + 1 : extend * 2 + 1;
+    if (range.length() > minSize) {
+      if (!first) transferRight(index, extend, m);
+      if (!last) transferLeft(index, extend, m);
+    } else {
+      range.visible = true;
+    }
+  }
+
   public static void expand(
-      int extend, int index, CompactViewRange[] l, CompactViewRange[] r
+      int extend, int index,
+      CompactViewRange[] l, CompactViewRange[] r
   ) {
-    CompactViewRange lRange = l[index];
-    CompactViewRange rRange = r[index];
-    int lenL = lRange.length();
-    int lenR = rRange.length();
-    if (index > 0) {
-      CompactViewRange.transferRight(index, Math.min(lenL, extend), l);
-      CompactViewRange.transferRight(index, Math.min(lenR, extend), r);
-      lenL = lRange.length();
-      lenR = rRange.length();
-    }
-    if (index + 1 < l.length) {
-      CompactViewRange.transferLeft(index, Math.min(lenL, extend), l);
-      lenL = lRange.length();
-    }
-    if (index + 1 < l.length) {
-      CompactViewRange.transferLeft(index, Math.min(lenR, extend), r);
-      lenR = rRange.length();
-    }
-    if (lenR == 0) rRange.visible = true;
-    if (lenL == 0) lRange.visible = true;
+    expand(extend, index, l);
+    expand(extend, index, r);
   }
 }
