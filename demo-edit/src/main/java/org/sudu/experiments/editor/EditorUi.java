@@ -247,25 +247,17 @@ public class EditorUi {
 
     private void pasteAction() {
       windowManager.hidePopupMenu();
-      window().readClipboardText(
-          editor::handleInsert,
-          onError("readClipboardText error: "));
+      editor.paste();
     }
 
     private void cutAction() {
       windowManager.hidePopupMenu();
-      editor.onCopy(copyHandler(), true);
+      editor.cutCopy(true);
     }
 
     private void copyAction() {
       windowManager.hidePopupMenu();
-      editor.onCopy(copyHandler(), false);
-    }
-
-    private Consumer<String> copyHandler() {
-      return text -> window().writeClipboardText(text,
-          org.sudu.experiments.Const.emptyRunnable,
-          onError("writeClipboardText error: "));
+      editor.cutCopy(false);
     }
 
     private Supplier<ToolbarItem[]> languageItems() {

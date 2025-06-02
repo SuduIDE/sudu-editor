@@ -1654,6 +1654,11 @@ public class EditorComponent extends View implements
       if (event.prevented) return false;
     }
 
+    if (KeyCode.isFKey(event.keyCode) ||
+        event.keyCode == KeyCode.ESC ||
+        event.keyCode == KeyCode.ContextMenu)
+      return false;
+
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
 
     if (!readonly && event.ctrl && event.keyCode == KeyCode.Z) {
@@ -1672,7 +1677,6 @@ public class EditorComponent extends View implements
       return true;
     }
 
-    if (KeyCode.isFKey(event.keyCode) || event.keyCode == KeyCode.ESC) return false;
     if (event.ctrl || event.alt || event.meta) return false;
     return event.key.length() > 0 && handleInsert(event.key);
   }
@@ -2145,5 +2149,25 @@ public class EditorComponent extends View implements
 
   public void clearCompactViewModel() {
     setCompactViewModel(new CodeLineMapping.Id(model), null);
+  }
+
+  public boolean canAlignWith() {
+    return false;
+  }
+
+  public boolean canRemoveAlignment() {
+    return false;
+  }
+
+  public void paste() {
+    window().readClipboardText(
+        this::handleInsert,
+        EditorUi.onError("readClipboardText error: "));
+  }
+
+  public void cutCopy(boolean isCut) {
+    onCopy(text -> window().writeClipboardText(text,
+        org.sudu.experiments.Const.emptyRunnable,
+        EditorUi.onError("writeClipboardText error: ")), isCut);
   }
 }

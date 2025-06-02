@@ -12,7 +12,7 @@ import java.util.function.IntConsumer;
 
 public class DiffInfo {
 
-  static final int linesExtend = 2;
+  static final int linesExpand = 3;
 
   public LineDiff[] lineDiffsL;
   public LineDiff[] lineDiffsR;
@@ -57,7 +57,7 @@ public class DiffInfo {
     for (int i = 0; i < nRanges; i++) {
       DiffRange dr = ranges[i];
       if (dr.type == DiffTypes.DEFAULT)
-        CompactViewRange.expand(linesExtend, i, l, r);
+        CompactViewRange.expand(linesExpand, i, l, r);
     }
 
     cvrL = l; cvrR = r;
@@ -67,7 +67,7 @@ public class DiffInfo {
   void expandSection(int index, Consumer<IntConsumer> apply) {
 //    System.out.println("expandSection " + ranges[index]);
     if (cvrL.length > 1 || cvrR.length > 1) {
-      CompactViewRange.expand(linesExtend, index, cvrL, cvrR);
+      CompactViewRange.expand(linesExpand, index, cvrL, cvrR);
     } else {
       if (cvrL.length == 1) cvrL[0].visible = true;
       if (cvrR.length == 1) cvrR[0].visible = true;
