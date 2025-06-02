@@ -44,7 +44,8 @@ public abstract class CodeLineMapping {
 
     @Override
     public int viewToDoc(int viewLine) {
-      return viewLine;
+      return 0 <= viewLine && viewLine < model.document.length() ?
+          viewLine : outOfRange;
     }
 
     @Override
