@@ -51,8 +51,11 @@ public class KeyEvent extends KeyModifiers {
   }
 
   public String toString() {
-    return (isPressed ? "key down: " : "key up: ") + key +
-        ", keyCode = " + keyCode + ", isRepeated = " + isRepeated;
+    var sb = new StringBuilder().append(isPressed ? "key down" : "key up");
+    if (!key.isEmpty())
+      sb.append(", ").append(key);
+    return sb.append(", keyCode = ").append(keyCode)
+        .append(", isRepeated = ").append(isRepeated).toString();
   }
 
   public static boolean handleSpecialKey(KeyEvent event) {

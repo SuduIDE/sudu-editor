@@ -66,7 +66,7 @@ public class EditorComponent extends View implements
   // layout
   static final int textBaseXDp = 80;
   static final int vLineWDp = 1;
-  static final int vLineTextOffsetDp = 10;
+  static final int vLineTextOffsetDp = EditorConst.V_LINE_LEFT_DELTA_DP;
   static final int codeMapWidthDp = 15;
   static final float scrollBarWidthDp = 12;
 
@@ -118,10 +118,14 @@ public class EditorComponent extends View implements
   final V2i codeMapSize = new V2i();
 
   CodeLineMapping docToView = new CodeLineMapping.Id(model);
+  IntConsumer compactModeActions;
   int[] viewToDocMap = new int[0];
   int hoveredCollapsedRegion = -1;
 
   private int frameId;
+
+  EditorSyncPoints syncPoints;
+  private final V2i lastMouseDownPos = new V2i(-1, -1);
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -290,6 +294,7 @@ public class EditorComponent extends View implements
 
   public void setMirrored(boolean b) {
     mirrored = b;
+    lineNumbers.setMirrored(b);
   }
 
   void toggleMirrored() {
@@ -528,6 +533,7 @@ public class EditorComponent extends View implements
     if (viewToDocMap.length < (lastLine - firstLine))
       viewToDocMap = new int[lastLine - firstLine];
 
+    // probably redundant call to docToView.length()
     int lastViewLine = Math.min(lastLine, docToView.length());
     docToView.viewToDocLines(firstLine, lastViewLine, viewToDocMap);
 
@@ -589,7 +595,7 @@ public class EditorComponent extends View implements
       mergeButtons.setScrollPos(vScrollPos);
       mergeButtons.draw(
           firstLine, lastLine - 1, model.caretLine,
-          g, mbColors, lrContext, hasFocus);
+          g, mbColors, lrContext, viewToDocMap);
     }
 
     if (drawTextFrame)
@@ -779,6 +785,23 @@ public class EditorComponent extends View implements
 
   public int getNumLines() {
     return docToView.length();
+  }
+
+  public void drawSyncPoints() {
+    if (syncPoints == null) return;
+    int firstLine = getFirstLine();
+    int lastLine = Math.min((vScrollPos + editorHeight() - 1) / lineHeight, model.document.length());
+    int yPos = -(vScrollPos % lineHeight);
+    lineNumbers.drawSyncPoints(
+        yPos,
+        firstLine, lastLine,
+        docToView,
+        syncPoints(),
+        syncPoints.curSyncPoint(),
+        syncPoints.hoverSyncPoint,
+        syncPoints.getMidLineHoverSyncPoint(),
+        g, colors.lineNumber
+    );
   }
 
   public int getFirstLine() {
@@ -993,12 +1016,11 @@ public class EditorComponent extends View implements
   private void drawDocumentBottom(int yPosition) {
     if (yPosition < size.y) {
       V2i sizeTmp = context.v2i1;
-
-      sizeTmp.y = size.y - yPosition;
-      sizeTmp.x = mirrored ? textViewWidth + vLineW : textViewWidth + xOffset;
-      int x = mirrored
-          ? pos.x + vLineTextOffset + scrollBarWidth + vLineW - xOffset
+      int x = mirrored ? pos.x + flippedTextOffset()
           : pos.x + textBaseX - xOffset;
+      sizeTmp.x = mirrored ? flippedVLineX() - x
+          : textViewWidth + xOffset;
+      sizeTmp.y = size.y - yPosition;
       g.drawRect(x, pos.y + yPosition, sizeTmp, colors.editor.bg);
     }
   }
@@ -1030,19 +1052,26 @@ public class EditorComponent extends View implements
   private void drawVerticalLine() {
     vLineSize.y = size.y;
     vLineSize.x = vLineW;
-    g.drawRect(pos.x + vLineX(), pos.y,
+    g.drawRect(vLineX(), pos.y,
         vLineSize, colors.editor.numbersVLine);
     vLineSize.x = mirrored
-        ? vLineTextOffset + scrollBarWidth + vLineW - xOffset
+        ? flippedTextOffset()
         : vLineTextOffset - vLineW - xOffset;
     int dx2 = mirrored ? 0 : textBaseX - vLineTextOffset + vLineW;
     g.drawRect(pos.x + dx2, pos.y, vLineSize, colors.editor.bg);
   }
 
+  private int flippedTextOffset() {
+    return vLineTextOffset + scrollBarWidth + vLineW - xOffset;
+  }
+
   private int vLineX() {
-    return mirrored
-        ? size.x - lineNumbers.width() - vLineW
-        : textBaseX - vLineTextOffset;
+    return mirrored ? flippedVLineX()
+        : pos.x + textBaseX - vLineTextOffset;
+  }
+
+  private int flippedVLineX() {
+    return pos.x + size.x - lineNumbers.width() - vLineW;
   }
 
   static int clampScrollPos(int pos, int maxScrollPos) {
@@ -1275,7 +1304,7 @@ public class EditorComponent extends View implements
   }
 
   Pos computeCharPos(V2i eventPosition) {
-    int vLine = mouseToVLine(eventPosition.y);
+    int vLine = mouseToVLineClamped(eventPosition.y);
     int line = docToView.viewToDoc(vLine);
     return line < 0 ? null : computeCharPos(eventPosition, line);
   }
@@ -1288,10 +1317,13 @@ public class EditorComponent extends View implements
   }
 
   private int mouseToVLine(int mouseY) {
-    int localY = mouseY - pos.y;
+    int localY = mouseY - pos.y + vScrollPos;
+    return localY / lineHeight;
+  }
 
-    int vL = (localY + vScrollPos) / lineHeight;
-    return Numbers.clamp(0, vL, getNumLines() - 1);
+  private int mouseToVLineClamped(int mouseY) {
+    return Numbers.clamp(0,
+        mouseToVLine(mouseY), getNumLines() - 1);
   }
 
   private void textSelectMouseDrag(MouseEvent event) {
@@ -1461,7 +1493,8 @@ public class EditorComponent extends View implements
     int line = docToView.viewToDoc(vLine);
     if (line < CodeLineMapping.outOfRange) {
       int runnable = CodeLineMapping.regionIndex(line);
-      System.out.println("collapse runnable = " + runnable);
+      if (compactModeActions != null)
+        compactModeActions.accept(runnable);
     }
     return true;
   }
@@ -1469,6 +1502,7 @@ public class EditorComponent extends View implements
   public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
     if (!context.isFocused(this))
       context.setFocus(this);
+    lastMouseDownPos.set(event.position);
 
     if (button == MOUSE_BUTTON_LEFT) {
       if (mergeButtons != null) {
@@ -1503,7 +1537,6 @@ public class EditorComponent extends View implements
       Pos pos = computeCharPos(mousePos);
       if (pos == null)
         return MouseListener.Static.emptyConsumer;
-      mouseToVLine(mousePos.y);
       moveCaret(pos);
       model.computeUsages();
 
@@ -1524,8 +1557,14 @@ public class EditorComponent extends View implements
 
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
     if (button == MOUSE_BUTTON_LEFT) {
-      if (lineNumbers.hitTest(event.position)
-          || hitMergeButtons(event.position))
+      if (lineNumbers.hitTest(event.position)) {
+        if (syncPoints != null && syncPoints.hasAnotherPoint()) {
+          int line = computeSyncPoint(event.position);
+          syncPoints.setPoint(line);
+        }
+        return true;
+      }
+      if (hitMergeButtons(event.position))
         return true;
       switch (clickCount) {
         case 1 -> onClickText(event);
@@ -1562,6 +1601,7 @@ public class EditorComponent extends View implements
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     V2i mousePos = event.position;
+    if (syncPoints != null) syncPoints.hoverSyncPoint = -1;
     hoveredCollapsedRegion = -1;
     var codeMap = onMouseMoveCodeMap(mousePos, setCursor);
     var scroll = !codeMap && (
@@ -1571,10 +1611,17 @@ public class EditorComponent extends View implements
     if (scroll || codeMap) {
       onMouseLeaveWindow();
     } else {
-      var mb = mergeButtons != null
-          && mergeButtons.onMouseMove(event, setCursor)
-          || lineNumbers.onMouseMove(event, setCursor);
-
+      var mb = mergeButtons != null && mergeButtons.onMouseMove(event, setCursor);
+      var ln = lineNumbers.hitTest(event.position);
+      if (ln) {
+        if (syncPoints != null && syncPoints.hasAnotherPoint()) {
+          syncPoints.hoverSyncPoint = computeSyncPoint(event.position);
+          if (!mb) setCursor.set(Cursor.pointer);
+        } else if (!mb) {
+          setCursor.setDefault();
+        }
+      }
+      mb |= ln;
       if (!mb && hitTest(mousePos)) {
         if (isInsideText(mousePos)) {
           int line = docToView.viewToDoc(mouseToVLine(mousePos.y));
@@ -1605,11 +1652,16 @@ public class EditorComponent extends View implements
   }
 
   public boolean onKeyPress(KeyEvent event) {
-//    Debug.consoleInfo("EditorComponent::onKey: "+ event.toString());
+//    Debug.consoleInfo("EditorComponent::onKey: " + event.toString());
     if (onKey != null) {
       if (onKey.onKeyPress(event)) return true;
       if (event.prevented) return false;
     }
+
+    if (KeyCode.isFKey(event.keyCode) ||
+        event.keyCode == KeyCode.ESC ||
+        event.keyCode == KeyCode.ContextMenu)
+      return false;
 
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
 
@@ -1629,7 +1681,6 @@ public class EditorComponent extends View implements
       return true;
     }
 
-    if (KeyCode.isFKey(event.keyCode) || event.keyCode == KeyCode.ESC) return false;
     if (event.ctrl || event.alt || event.meta) return false;
     return event.key.length() > 0 && handleInsert(event.key);
   }
@@ -1867,7 +1918,7 @@ public class EditorComponent extends View implements
 
     Model oldModel = this.model;
     this.model = model;
-    docToView = new CodeLineMapping.Id(model);
+    clearCompactViewModel();
     oldModel.setEditor(null, null);
     model.setEditor(this, window().worker());
     registrations.fireModelChange(oldModel, model);
@@ -1885,31 +1936,67 @@ public class EditorComponent extends View implements
     model.parseFullFile();
   }
 
+  public int computeSyncPoint(V2i eventPosition) {
+    int localY = eventPosition.y - pos.y;
+    int viewDocLength = docToView.docToViewCursor(model.document.length() - 1) + 1;
+    int viewLine = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, viewDocLength);
+    if (viewLine == viewDocLength) return model.document.length();
+    int docLine = docToView.viewToDoc(viewLine);
+    if (docLine < CodeLineMapping.outOfRange && docToView instanceof CompactCodeMapping mapping) {
+      docLine = mapping.data[CompactCodeMapping.regionIndex(docLine)].startLine;
+    }
+    return docLine;
+  }
+
+  public int[] syncPoints() {
+    return syncPoints.syncPoints();
+  }
+
+  public int[] copiedSyncPoints() {
+    return syncPoints.copiedSyncPoints();
+  }
+
+  public boolean hasSyncPoints() {
+    return syncPoints.hasSyncPoints();
+  }
+
+  public boolean hasSyncPoint(V2i eventPos) {
+    int lineInd = computeSyncPoint(eventPos);
+    return hasSyncPoint(lineInd);
+  }
+
+  private boolean hasSyncPoint(int syncPoint) {
+    return syncPoints != null && syncPoints.hasPoint(syncPoint);
+  }
+
+  public void toggleSyncPoint(V2i eventPos) {
+    int lineInd = computeSyncPoint(eventPos);
+    if (syncPoints.hasPoint(lineInd))
+      syncPoints.removeSyncPoint(lineInd);
+    else
+      syncPoints.setPoint(lineInd);
+  }
+
   public void revealLineInCenter(int lineNumber) {
-    if (lineNumber <= 0) return;
-    int computed = lineHeight * (lineNumber - (editorHeight() / (lineHeight * 2)) - 1);
+    int viewLine = docToView.docToViewCursor(lineNumber);
+    if (viewLine < 0) return;
+    int computed = lineHeight *
+        (viewLine - (editorHeight() / (lineHeight * 2)) - 1);
     setScrollPosY(computed);
   }
 
   public void revealLine(int lineNumber) {
-    if (lineNumber <= 0) return;
-    int lineVPos = (lineNumber - 1) * lineHeight;
+    int viewLine = docToView.docToViewCursor(lineNumber);
+    if (viewLine < 0) return;
+    int lineVPos = (viewLine - 1) * lineHeight;
     if (lineVPos >= vScrollPos) {
       if (lineVPos - vScrollPos < editorHeight()) return;
-      scrollDownToLine(lineNumber);
+      setScrollPosY(viewLine > getNumLines()
+          ? maxVScrollPos()
+          : (viewLine + 1) * lineHeight - editorHeight());
     } else {
-      scrollUpToLine(lineNumber);
+      setScrollPosY((viewLine - 2) * lineHeight);
     }
-  }
-
-  private void scrollDownToLine(int lineNumber) {
-    setScrollPosY(lineNumber > model.document.length()
-        ? maxVScrollPos()
-        : (lineNumber + 1) * lineHeight - editorHeight());
-  }
-
-  private void scrollUpToLine(int lineNumber) {
-    setScrollPosY((lineNumber - 2) * lineHeight);
   }
 
   public char[] getChars() {
@@ -1992,6 +2079,10 @@ public class EditorComponent extends View implements
     window().repaint();
   }
 
+  public void setSyncPoints(SyncPoints syncPoints, boolean left) {
+    this.syncPoints = new EditorSyncPoints(syncPoints, left);
+  }
+
   @Override
   public String toString() {
     Uri uri = model().uri;
@@ -2027,6 +2118,7 @@ public class EditorComponent extends View implements
      }
      mergeButtons.setModel(actions, lines);
      mergeButtons.setColors(lineNumbers.colors());
+     mergeButtons.setCodeLineMapping(docToView);
   }
 
   void buildDiffMap() {
@@ -2047,8 +2139,50 @@ public class EditorComponent extends View implements
 
   // call of this method is required for both:
   // new and in-place edited the data
-  public void setCompactViewModel(CompactViewRange[] data, Runnable[] actions) {
-    docToView = data == null
-        ? new CodeLineMapping.Id(model) : new CompactCodeMapping(data);
+  public void setCompactViewModel(CompactViewRange[] data, IntConsumer expander) {
+    setCompactViewModel(new CompactCodeMapping(data), expander);
+  }
+
+  public void setCompactViewModel(CodeLineMapping mapping, IntConsumer expander) {
+    docToView = mapping;
+    compactModeActions = expander;
+    if (mergeButtons != null) {
+      mergeButtons.setCodeLineMapping(mapping);
+    }
+  }
+
+  public void clearCompactViewModel() {
+    setCompactViewModel(new CodeLineMapping.Id(model), null);
+  }
+
+  public boolean canAlignWith() {
+    if (isLastMouseDownPosUnset()) return false;
+    return !hasSyncPoint(computeSyncPoint(lastMouseDownPos));
+  }
+
+  public void paste() {
+    window().readClipboardText(
+        this::handleInsert,
+        EditorUi.onError("readClipboardText error: "));
+  }
+
+  public void cutCopy(boolean isCut) {
+    onCopy(text -> window().writeClipboardText(text,
+        org.sudu.experiments.Const.emptyRunnable,
+        EditorUi.onError("writeClipboardText error: ")), isCut);
+  }
+
+  public void alignWith() {
+    if (isLastMouseDownPosUnset()) return;
+    syncPoints.setPoint(computeSyncPoint(lastMouseDownPos));
+  }
+
+  public void removeAlignment() {
+    if (isLastMouseDownPosUnset()) return;
+    syncPoints.removeSyncPoint(computeSyncPoint(lastMouseDownPos));
+  }
+
+  private boolean isLastMouseDownPosUnset() {
+    return lastMouseDownPos.x == -1 || lastMouseDownPos.y == -1;
   }
 }

@@ -7,8 +7,12 @@ import org.sudu.experiments.editor.CompactViewRange;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class DiffInfo {
+
+  static final int linesExpand = 3;
 
   public LineDiff[] lineDiffsL;
   public LineDiff[] lineDiffsR;
@@ -24,6 +28,73 @@ public class DiffInfo {
     this.ranges = ranges;
   }
 
+  public boolean isEmpty() {
+    return ranges.length < 2;
+  }
+
+  public boolean isCompactedView() {
+    return cvrL != null || cvrR != null;
+  }
+
+  public void clearCompactView() {
+    cvrL = null;
+    cvrR = null;
+    codeMappingL = null;
+    codeMappingR = null;
+  }
+
+  public void buildCompactView(Consumer<IntConsumer> apply) {
+    int nRanges = ranges.length;
+    CompactViewRange[] l = new CompactViewRange[nRanges];
+    CompactViewRange[] r = new CompactViewRange[nRanges];
+    for (int i = 0; i < nRanges; i++) {
+      DiffRange dr = ranges[i];
+      l[i] = cvrL(dr);
+      r[i] = cvrR(dr);
+    }
+
+    // merge pass
+    for (int i = 0; i < nRanges; i++) {
+      DiffRange dr = ranges[i];
+      if (dr.type == DiffTypes.DEFAULT)
+        CompactViewRange.expand(linesExpand, i, l, r);
+    }
+
+    cvrL = l; cvrR = r;
+    rebuildAndApply(apply);
+  }
+
+  void expandSection(int index, Consumer<IntConsumer> apply) {
+//    System.out.println("expandSection " + ranges[index]);
+    if (cvrL.length > 1 || cvrR.length > 1) {
+      CompactViewRange.expand(linesExpand, index, cvrL, cvrR);
+    } else {
+      if (cvrL.length == 1) cvrL[0].visible = true;
+      if (cvrR.length == 1) cvrR[0].visible = true;
+    }
+    rebuildAndApply(apply);
+  }
+
+  private void rebuildAndApply(Consumer<IntConsumer> apply) {
+    codeMappingL = new CompactCodeMapping(cvrL);
+    codeMappingR = new CompactCodeMapping(cvrR);
+    apply.accept(getExpander(apply));
+  }
+
+  public IntConsumer getExpander(Consumer<IntConsumer> apply) {
+    return n -> expandSection(n, apply);
+  }
+
+  static CompactViewRange cvrR(DiffRange rA) {
+    return new CompactViewRange(
+        rA.fromR, rA.toR(), rA.type != DiffTypes.DEFAULT);
+  }
+
+  static CompactViewRange cvrL(DiffRange rA) {
+    return new CompactViewRange(
+        rA.fromL, rA.toL(), rA.type != DiffTypes.DEFAULT);
+  }
+
   public DiffRange range(int lineKey, boolean isL) {
     return ranges[rangeBinSearch(lineKey, isL)];
   }
@@ -32,10 +103,11 @@ public class DiffInfo {
     int low = 0;
     int high = ranges.length - 1;
 
+    // The last range interval right border is inclusive
     if (high != 0) {
-      // The last range interval right border is inclusive
-      if (isL && ranges[high - 1].toL() == lineKey) return high;
-      if (!isL && ranges[high - 1].toR() == lineKey) return high;
+      var hr = ranges[high - 1];
+      int highValue = isL ? hr.toL() : hr.toR();
+      if (highValue == lineKey) return high;
     }
     while (low <= high) {
       int mid = (low + high) >>> 1;
@@ -43,7 +115,6 @@ public class DiffInfo {
       int midFrom = isL ? midRange.fromL : midRange.fromR;
       int midLen = isL ? midRange.lenL : midRange.lenR;
 
-      // todo: simplify
       if (midFrom <= lineKey && lineKey < midFrom + midLen) return mid;
       if (midFrom < lineKey) low = mid + 1;
       else if (midFrom > lineKey) high = mid - 1;
@@ -98,6 +169,14 @@ public class DiffInfo {
       if (isL) ranges[i].fromL += lines;
       else ranges[i].fromR += lines;
     }
+
+    var cvr = isL ? cvrL : cvrR;
+    if (cvr != null) {
+      CompactViewRange.insertLines(lineKey, lines, cvr);
+      var newMapping = new CompactCodeMapping(cvr);
+      if (isL) codeMappingL = newMapping;
+      else codeMappingR = newMapping;
+    }
   }
 
   public void deleteAt(int lineKey, int lines, boolean isL) {
@@ -115,6 +194,14 @@ public class DiffInfo {
     for (int i = toInd + 1; i < ranges.length; i++) {
       if (isL) ranges[i].fromL -= lines;
       else ranges[i].fromR -= lines;
+    }
+
+    var cvr = isL ? cvrL : cvrR;
+    if (cvr != null) {
+      CompactViewRange.deleteLines(lineKey, lines, cvr);
+      var newMapping = new CompactCodeMapping(cvr);
+      if (isL) codeMappingL = newMapping;
+      else codeMappingR = newMapping;
     }
   }
 

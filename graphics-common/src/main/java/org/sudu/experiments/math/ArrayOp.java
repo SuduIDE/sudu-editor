@@ -146,13 +146,31 @@ public interface ArrayOp {
     return data;
   }
 
-  static <T> T[] reverse(T[] value) {
-    for (int i = 0; i < value.length / 2; i++) {
-      T temp = value[i];
-      value[i] = value[value.length - i - 1];
-      value[value.length - i - 1] = temp;
-    }
-    return value;
+  static int[] insertAt(int value, int[] data, int index) {
+    int[] res = new int[data.length + 1];
+    System.arraycopy(data, 0, res, 0, index);
+    res[index] = value;
+    System.arraycopy(data, index, res, index + 1, data.length - index);
+    return res;
+  }
+
+  static int[] removeAt(int[] data, int index) {
+    int[] res = new int[data.length - 1];
+    System.arraycopy(data, 0, res, 0, index);
+    System.arraycopy(data, index + 1, res, index, data.length - index - 1);
+    return res;
+  }
+
+  static void swap(int[] array, int i, int j) {
+    int item = array[i];
+    array[i] = array[j];
+    array[j] = item;
+  }
+
+  static <T> void swap(T[] array, int i, int j) {
+    T item = array[i];
+    array[i] = array[j];
+    array[j] = item;
   }
 
   static char[] copyOf(char[] chars) {

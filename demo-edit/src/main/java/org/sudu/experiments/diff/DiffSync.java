@@ -4,6 +4,7 @@ import org.sudu.experiments.editor.CodeLineMapping;
 import org.sudu.experiments.editor.CompactViewRange;
 import org.sudu.experiments.editor.DiffRef;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
+import org.sudu.experiments.editor.worker.diff.DiffRange;
 
 public class DiffSync {
   final DiffRef left, right;

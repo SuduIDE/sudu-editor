@@ -10,6 +10,7 @@ public interface DiffRef extends Focusable {
 
   // getFirstLine and getLastLine return values in view space,
   // for compact mode it means in the view lines, not in document
+  // the range returned is inclusive: [first...last]
   int getFirstLine();
   int getLastLine();
 

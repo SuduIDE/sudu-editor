@@ -194,6 +194,7 @@ public class EditorUi {
 
       gotoItems(eventPosition, tbb);
       cutCopyPaste(tbb);
+      toggleSyncPoint(tbb, eventPosition);
       if (opener != null) tbb.addItem(opener);
       //noinspection ConstantValue
       if (developer) tbb.addItem("rendering debug", rDebugMenu());
@@ -227,31 +228,36 @@ public class EditorUi {
       }
     }
 
+    private void toggleSyncPoint(ToolbarItemBuilder tbb, V2i eventPos) {
+      if (editor.hasSyncPoint(eventPos)) {
+        tbb.addItem("Remove Diff Alignment", () -> toggleSyncPointAction(eventPos));
+      } else {
+        tbb.addItem("Align With...", () -> toggleSyncPointAction(eventPos));
+      }
+    }
+
+    private void toggleSyncPointAction(V2i eventPos) {
+      windowManager.hidePopupMenu();
+      editor.toggleSyncPoint(eventPos);
+    }
+
     private org.sudu.experiments.Window window() {
       return editor.context.window;
     }
 
     private void pasteAction() {
       windowManager.hidePopupMenu();
-      window().readClipboardText(
-          editor::handleInsert,
-          onError("readClipboardText error: "));
+      editor.paste();
     }
 
     private void cutAction() {
       windowManager.hidePopupMenu();
-      editor.onCopy(copyHandler(), true);
+      editor.cutCopy(true);
     }
 
     private void copyAction() {
       windowManager.hidePopupMenu();
-      editor.onCopy(copyHandler(), false);
-    }
-
-    private Consumer<String> copyHandler() {
-      return text -> window().writeClipboardText(text,
-          org.sudu.experiments.Const.emptyRunnable,
-          onError("writeClipboardText error: "));
+      editor.cutCopy(false);
     }
 
     private Supplier<ToolbarItem[]> languageItems() {

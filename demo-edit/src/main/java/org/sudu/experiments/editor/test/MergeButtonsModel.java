@@ -4,9 +4,12 @@ import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
+import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.XorShiftRandom;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.function.BiConsumer;
 
 public class MergeButtonsModel {
@@ -22,6 +25,7 @@ public class MergeButtonsModel {
       DiffInfo diffInfo,
       boolean leftReadonly,
       boolean rightReadonly,
+      int[] syncL, int[] syncR,
       BiConsumer<DiffRange, Boolean> applyDiff
   ) {
     int n = 0;
@@ -32,13 +36,29 @@ public class MergeButtonsModel {
     int i = 0;
     for (var range: diffInfo.ranges) {
       if (range.type == DiffTypes.DEFAULT) continue;
+      int leftS = Arrays.binarySearch(syncL, range.toL());
+      int rightS = Arrays.binarySearch(syncR, range.toR());
+      if (leftS < 0) leftS = -leftS - 1;
+      if (rightS < 0) rightS = -rightS - 1;
       if (!rightReadonly) {
-        left.lines[i] = line(range.fromL, diffInfo.lineDiffsL.length);
+        int line = range.fromL;
+        if (range.type == DiffTypes.DELETED && leftS > rightS) line--;
+        left.lines[i] = line(line, diffInfo.lineDiffsL.length);
         left.actions[i] = () -> applyDiff.accept(range, true);
+        if (i > 0 && left.lines[i - 1] > left.lines[i]) {
+          ArrayOp.swap(left.lines, i, i - 1);
+          ArrayOp.swap(left.actions, i, i - 1);
+        }
       }
       if (!leftReadonly) {
-        right.lines[i] = line(range.fromR, diffInfo.lineDiffsR.length);
+        int line = range.fromR;
+        if (range.type == DiffTypes.INSERTED && rightS > leftS) line--;
+        right.lines[i] = line(line, diffInfo.lineDiffsR.length);
         right.actions[i] = () -> applyDiff.accept(range, false);
+        if (i > 0 && right.lines[i - 1] > right.lines[i]) {
+          ArrayOp.swap(right.lines, i, i - 1);
+          ArrayOp.swap(right.actions, i, i - 1);
+        }
       }
       i++;
     }
@@ -126,6 +146,7 @@ public class MergeButtonsModel {
         pi += 1 + rand.nextInt(space);
       }
     }
+
     static Runnable action(int pi) {
       return () -> System.out.println("Runnable #" + pi);
     }
