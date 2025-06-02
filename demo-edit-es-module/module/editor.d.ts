@@ -203,9 +203,9 @@ export const enum ThemeColor {
 export type BaseTheme = 'dark' | 'light' | 'darcula';
 
 export type Font = {
-  size: string,
+  size: number,
   family: string,
-  weight: string
+  weight: number
 }
 
 type WithFonts = {
