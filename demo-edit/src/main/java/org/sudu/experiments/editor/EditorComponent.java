@@ -124,6 +124,7 @@ public class EditorComponent extends View implements
   private int frameId;
 
   EditorSyncPoints syncPoints;
+  private int contextMenuSyncPoint = -1;
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -1957,7 +1958,11 @@ public class EditorComponent extends View implements
 
   public boolean hasSyncPoint(V2i eventPos) {
     int lineInd = computeSyncPoint(eventPos);
-    return syncPoints != null && syncPoints.hasPoint(lineInd);
+    return hasSyncPoint(lineInd);
+  }
+
+  private boolean hasSyncPoint(int syncPoint) {
+    return syncPoints != null && syncPoints.hasPoint(syncPoint);
   }
 
   public void toggleSyncPoint(V2i eventPos) {
@@ -2151,12 +2156,9 @@ public class EditorComponent extends View implements
     setCompactViewModel(new CodeLineMapping.Id(model), null);
   }
 
-  public boolean canAlignWith() {
-    return false;
-  }
-
-  public boolean canRemoveAlignment() {
-    return false;
+  public boolean canAlignWith(V2i pos) {
+    contextMenuSyncPoint = computeSyncPoint(pos);
+    return !hasSyncPoint(contextMenuSyncPoint);
   }
 
   public void paste() {
@@ -2169,5 +2171,15 @@ public class EditorComponent extends View implements
     onCopy(text -> window().writeClipboardText(text,
         org.sudu.experiments.Const.emptyRunnable,
         EditorUi.onError("writeClipboardText error: ")), isCut);
+  }
+
+  public void alignWith() {
+    if (contextMenuSyncPoint == -1) return;
+    syncPoints.setPoint(contextMenuSyncPoint);
+  }
+
+  public void removeAlignment() {
+    if (contextMenuSyncPoint == -1) return;
+    syncPoints.removeSyncPoint(contextMenuSyncPoint);
   }
 }
