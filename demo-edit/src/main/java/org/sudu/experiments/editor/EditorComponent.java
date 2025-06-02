@@ -124,7 +124,7 @@ public class EditorComponent extends View implements
   private int frameId;
 
   EditorSyncPoints syncPoints;
-  private V2i lastMouseDownPos;
+  private final V2i lastMouseDownPos = new V2i(-1, -1);
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -1500,7 +1500,7 @@ public class EditorComponent extends View implements
   public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
     if (!context.isFocused(this))
       context.setFocus(this);
-    lastMouseDownPos = event.position;
+    lastMouseDownPos.set(event.position);
 
     if (button == MOUSE_BUTTON_LEFT) {
       if (mergeButtons != null) {
@@ -1936,8 +1936,9 @@ public class EditorComponent extends View implements
 
   public int computeSyncPoint(V2i eventPosition) {
     int localY = eventPosition.y - pos.y;
-    int viewLine = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, model.document.length());
-    if (viewLine == model.document.length()) return viewLine;
+    int viewDocLength = docToView.docToViewCursor(model.document.length() - 1) + 1;
+    int viewLine = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, viewDocLength);
+    if (viewLine == viewDocLength) return model.document.length();
     int docLine = docToView.viewToDoc(viewLine);
     if (docLine < CodeLineMapping.outOfRange && docToView instanceof CompactCodeMapping mapping) {
       docLine = mapping.data[CompactCodeMapping.regionIndex(docLine)].startLine;
@@ -2158,7 +2159,7 @@ public class EditorComponent extends View implements
   }
 
   public boolean canAlignWith() {
-    if (lastMouseDownPos == null) return false;
+    if (isLastMouseDownPosUnset()) return false;
     return !hasSyncPoint(computeSyncPoint(lastMouseDownPos));
   }
 
@@ -2175,12 +2176,16 @@ public class EditorComponent extends View implements
   }
 
   public void alignWith() {
-    if (lastMouseDownPos == null) return;
+    if (isLastMouseDownPosUnset()) return;
     syncPoints.setPoint(computeSyncPoint(lastMouseDownPos));
   }
 
   public void removeAlignment() {
-    if (lastMouseDownPos == null) return;
+    if (isLastMouseDownPosUnset()) return;
     syncPoints.removeSyncPoint(computeSyncPoint(lastMouseDownPos));
+  }
+
+  private boolean isLastMouseDownPosUnset() {
+    return lastMouseDownPos.x == -1 || lastMouseDownPos.y == -1;
   }
 }
