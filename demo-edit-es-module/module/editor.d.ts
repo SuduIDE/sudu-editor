@@ -202,17 +202,24 @@ export const enum ThemeColor {
 
 export type BaseTheme = 'dark' | 'light' | 'darcula';
 
+export type Font = {
+  size: string,
+  family: string,
+  weight: string
+}
+
+type WithFonts = {
+  uiFont: Font,
+  editorFont: Font
+}
+
 export type Theme = {
   [color in ThemeColor]?: string;
 } & {
   baseTheme: BaseTheme;
-} | BaseTheme;
+} & WithFonts | BaseTheme;
 
 export interface HasTheme {
-  setFontFamily(fontFamily: string): void,
-
-  setFontSize(fontSize: number): void,
-
   setTheme(theme: Theme): void
 }
 
