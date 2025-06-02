@@ -1,5 +1,6 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.diff.FileDiff;
 import org.sudu.experiments.diff.FolderDiff;
 import org.sudu.experiments.editor.Editor1;
 import org.sudu.experiments.editor.TextSeparatorDemo;
@@ -31,5 +32,9 @@ public interface TMain {
 
   interface MergeButtonsTestMain {
     static void main(String[] $) { run(MergeButtonsTest::new); }
+  }
+
+  interface FileDiffMain {
+    static void main(String[] $) { run(FileDiff::new); }
   }
 }

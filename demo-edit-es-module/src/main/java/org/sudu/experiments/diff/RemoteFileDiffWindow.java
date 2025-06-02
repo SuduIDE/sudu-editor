@@ -125,9 +125,9 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     if (needScrollSync) {
       needScrollSync = false;
       if (focusSave == rootView.editor2) {
-        rootView.diffSync.sync(rootView.editor1, rootView.editor2);
+        rootView.diffSync.sync(0, rootView.editor1, rootView.editor2);
       } else {
-        rootView.diffSync.sync(rootView.editor2, rootView.editor1);
+        rootView.diffSync.sync(0, rootView.editor2, rootView.editor1);
       }
     }
     printStat();
