@@ -5,6 +5,7 @@ import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.DiffColors;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.V2i;
@@ -13,6 +14,7 @@ import org.sudu.experiments.ui.SetCursor;
 import org.sudu.experiments.ui.UiContext;
 import org.sudu.experiments.ui.window.View;
 
+import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.Arrays;
 
@@ -260,6 +262,11 @@ public class MiddleLine extends View {
     } else {
       onSyncLineHover(-1);
     }
+  }
+
+  @Override
+  protected Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
+    return MouseListener.Static.emptyConsumer;
   }
 
   @Override

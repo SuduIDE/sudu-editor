@@ -1489,12 +1489,14 @@ public class EditorComponent extends View implements
       return true;
     selection().isSelectionStarted = false;
 
-    int vLine = mouseToVLine(event.position.y);
-    int line = docToView.viewToDoc(vLine);
-    if (line < CodeLineMapping.outOfRange) {
-      int runnable = CodeLineMapping.regionIndex(line);
-      if (compactModeActions != null)
-        compactModeActions.accept(runnable);
+    if (isInsideText(event.position)) {
+      int vLine = mouseToVLine(event.position.y);
+      int line = docToView.viewToDoc(vLine);
+      if (line < CodeLineMapping.outOfRange) {
+        int runnable = CodeLineMapping.regionIndex(line);
+        if (compactModeActions != null)
+          compactModeActions.accept(runnable);
+      }
     }
     return true;
   }
