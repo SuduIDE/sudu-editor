@@ -179,7 +179,7 @@ public class ScrollView extends View {
   }
 
   public void setScrollPosY(int vScrollPos) {
-    int delta = content.scrollPos.y - vScrollPos;
+    int delta = vScrollPos - content.scrollPos.y;
     if (setVScrollPosSilent(vScrollPos) && vListener != null) {
       vListener.accept(delta);
     }
