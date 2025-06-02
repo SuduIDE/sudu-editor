@@ -124,7 +124,7 @@ public class EditorComponent extends View implements
   private int frameId;
 
   EditorSyncPoints syncPoints;
-  private int contextMenuSyncPoint = -1;
+  private V2i lastMouseDownPos;
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -1500,6 +1500,7 @@ public class EditorComponent extends View implements
   public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
     if (!context.isFocused(this))
       context.setFocus(this);
+    lastMouseDownPos = event.position;
 
     if (button == MOUSE_BUTTON_LEFT) {
       if (mergeButtons != null) {
@@ -2156,9 +2157,9 @@ public class EditorComponent extends View implements
     setCompactViewModel(new CodeLineMapping.Id(model), null);
   }
 
-  public boolean canAlignWith(V2i pos) {
-    contextMenuSyncPoint = computeSyncPoint(pos);
-    return !hasSyncPoint(contextMenuSyncPoint);
+  public boolean canAlignWith() {
+    if (lastMouseDownPos == null) return false;
+    return !hasSyncPoint(computeSyncPoint(lastMouseDownPos));
   }
 
   public void paste() {
@@ -2174,12 +2175,12 @@ public class EditorComponent extends View implements
   }
 
   public void alignWith() {
-    if (contextMenuSyncPoint == -1) return;
-    syncPoints.setPoint(contextMenuSyncPoint);
+    if (lastMouseDownPos == null) return;
+    syncPoints.setPoint(computeSyncPoint(lastMouseDownPos));
   }
 
   public void removeAlignment() {
-    if (contextMenuSyncPoint == -1) return;
-    syncPoints.removeSyncPoint(contextMenuSyncPoint);
+    if (lastMouseDownPos == null) return;
+    syncPoints.removeSyncPoint(computeSyncPoint(lastMouseDownPos));
   }
 }

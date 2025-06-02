@@ -191,7 +191,7 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
       var editor = focused();
       if (editor != null) {
         var actions = cutCopyPaste();
-        if (editor.canAlignWith(pos))
+        if (editor.canAlignWith())
           actions.push(jsAlignWith());
         else
           actions.push(jsRemoveAlignment());
