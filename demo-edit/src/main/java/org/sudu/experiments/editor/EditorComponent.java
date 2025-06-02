@@ -66,7 +66,7 @@ public class EditorComponent extends View implements
   // layout
   static final int textBaseXDp = 80;
   static final int vLineWDp = 1;
-  static final int vLineTextOffsetDp = 10;
+  static final int vLineTextOffsetDp = EditorConst.V_LINE_LEFT_DELTA_DP;
   static final int codeMapWidthDp = 15;
   static final float scrollBarWidthDp = 12;
 
@@ -122,6 +122,9 @@ public class EditorComponent extends View implements
   int hoveredCollapsedRegion = -1;
 
   private int frameId;
+
+  EditorSyncPoints syncPoints;
+  private final V2i lastMouseDownPos = new V2i(-1, -1);
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -290,6 +293,7 @@ public class EditorComponent extends View implements
 
   public void setMirrored(boolean b) {
     mirrored = b;
+    lineNumbers.setMirrored(b);
   }
 
   void toggleMirrored() {
@@ -779,6 +783,23 @@ public class EditorComponent extends View implements
 
   public int getNumLines() {
     return docToView.length();
+  }
+
+  public void drawSyncPoints() {
+    if (syncPoints == null) return;
+    int firstLine = getFirstLine();
+    int lastLine = Math.min((vScrollPos + editorHeight() - 1) / lineHeight, model.document.length());
+    int yPos = -(vScrollPos % lineHeight);
+    lineNumbers.drawSyncPoints(
+        yPos,
+        firstLine, lastLine,
+        docToView,
+        syncPoints(),
+        syncPoints.curSyncPoint(),
+        syncPoints.hoverSyncPoint,
+        syncPoints.getMidLineHoverSyncPoint(),
+        g, colors.lineNumber
+    );
   }
 
   public int getFirstLine() {
@@ -1479,6 +1500,7 @@ public class EditorComponent extends View implements
   public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
     if (!context.isFocused(this))
       context.setFocus(this);
+    lastMouseDownPos.set(event.position);
 
     if (button == MOUSE_BUTTON_LEFT) {
       if (mergeButtons != null) {
@@ -1533,8 +1555,14 @@ public class EditorComponent extends View implements
 
   public boolean onMouseClick(MouseEvent event, int button, int clickCount) {
     if (button == MOUSE_BUTTON_LEFT) {
-      if (lineNumbers.hitTest(event.position)
-          || hitMergeButtons(event.position))
+      if (lineNumbers.hitTest(event.position)) {
+        if (syncPoints != null && syncPoints.hasAnotherPoint()) {
+          int line = computeSyncPoint(event.position);
+          syncPoints.setPoint(line);
+        }
+        return true;
+      }
+      if (hitMergeButtons(event.position))
         return true;
       switch (clickCount) {
         case 1 -> onClickText(event);
@@ -1571,6 +1599,7 @@ public class EditorComponent extends View implements
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     V2i mousePos = event.position;
+    if (syncPoints != null) syncPoints.hoverSyncPoint = -1;
     hoveredCollapsedRegion = -1;
     var codeMap = onMouseMoveCodeMap(mousePos, setCursor);
     var scroll = !codeMap && (
@@ -1580,10 +1609,17 @@ public class EditorComponent extends View implements
     if (scroll || codeMap) {
       onMouseLeaveWindow();
     } else {
-      var mb = mergeButtons != null
-          && mergeButtons.onMouseMove(event, setCursor)
-          || lineNumbers.onMouseMove(event, setCursor);
-
+      var mb = mergeButtons != null && mergeButtons.onMouseMove(event, setCursor);
+      var ln = lineNumbers.hitTest(event.position);
+      if (ln) {
+        if (syncPoints != null && syncPoints.hasAnotherPoint()) {
+          syncPoints.hoverSyncPoint = computeSyncPoint(event.position);
+          if (!mb) setCursor.set(Cursor.pointer);
+        } else if (!mb) {
+          setCursor.setDefault();
+        }
+      }
+      mb |= ln;
       if (!mb && hitTest(mousePos)) {
         if (isInsideText(mousePos)) {
           int line = docToView.viewToDoc(mouseToVLine(mousePos.y));
@@ -1898,6 +1934,47 @@ public class EditorComponent extends View implements
     model.parseFullFile();
   }
 
+  public int computeSyncPoint(V2i eventPosition) {
+    int localY = eventPosition.y - pos.y;
+    int viewDocLength = docToView.docToViewCursor(model.document.length() - 1) + 1;
+    int viewLine = Numbers.clamp(0, (localY + vScrollPos) / lineHeight, viewDocLength);
+    if (viewLine == viewDocLength) return model.document.length();
+    int docLine = docToView.viewToDoc(viewLine);
+    if (docLine < CodeLineMapping.outOfRange && docToView instanceof CompactCodeMapping mapping) {
+      docLine = mapping.data[CompactCodeMapping.regionIndex(docLine)].startLine;
+    }
+    return docLine;
+  }
+
+  public int[] syncPoints() {
+    return syncPoints.syncPoints();
+  }
+
+  public int[] copiedSyncPoints() {
+    return syncPoints.copiedSyncPoints();
+  }
+
+  public boolean hasSyncPoints() {
+    return syncPoints.hasSyncPoints();
+  }
+
+  public boolean hasSyncPoint(V2i eventPos) {
+    int lineInd = computeSyncPoint(eventPos);
+    return hasSyncPoint(lineInd);
+  }
+
+  private boolean hasSyncPoint(int syncPoint) {
+    return syncPoints != null && syncPoints.hasPoint(syncPoint);
+  }
+
+  public void toggleSyncPoint(V2i eventPos) {
+    int lineInd = computeSyncPoint(eventPos);
+    if (syncPoints.hasPoint(lineInd))
+      syncPoints.removeSyncPoint(lineInd);
+    else
+      syncPoints.setPoint(lineInd);
+  }
+
   public void revealLineInCenter(int lineNumber) {
     int viewLine = docToView.docToViewCursor(lineNumber);
     if (viewLine < 0) return;
@@ -2000,6 +2077,10 @@ public class EditorComponent extends View implements
     window().repaint();
   }
 
+  public void setSyncPoints(SyncPoints syncPoints, boolean left) {
+    this.syncPoints = new EditorSyncPoints(syncPoints, left);
+  }
+
   @Override
   public String toString() {
     Uri uri = model().uri;
@@ -2073,11 +2154,8 @@ public class EditorComponent extends View implements
   }
 
   public boolean canAlignWith() {
-    return false;
-  }
-
-  public boolean canRemoveAlignment() {
-    return false;
+    if (isLastMouseDownPosUnset()) return false;
+    return !hasSyncPoint(computeSyncPoint(lastMouseDownPos));
   }
 
   public void paste() {
@@ -2090,5 +2168,19 @@ public class EditorComponent extends View implements
     onCopy(text -> window().writeClipboardText(text,
         org.sudu.experiments.Const.emptyRunnable,
         EditorUi.onError("writeClipboardText error: ")), isCut);
+  }
+
+  public void alignWith() {
+    if (isLastMouseDownPosUnset()) return;
+    syncPoints.setPoint(computeSyncPoint(lastMouseDownPos));
+  }
+
+  public void removeAlignment() {
+    if (isLastMouseDownPosUnset()) return;
+    syncPoints.removeSyncPoint(computeSyncPoint(lastMouseDownPos));
+  }
+
+  private boolean isLastMouseDownPosUnset() {
+    return lastMouseDownPos.x == -1 || lastMouseDownPos.y == -1;
   }
 }

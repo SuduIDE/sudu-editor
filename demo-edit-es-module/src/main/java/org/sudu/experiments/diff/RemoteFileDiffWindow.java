@@ -193,7 +193,7 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
         var actions = cutCopyPaste();
         if (editor.canAlignWith())
           actions.push(jsAlignWith());
-        if (editor.canRemoveAlignment())
+        else
           actions.push(jsRemoveAlignment());
 //        consoleInfo2("open contextMenuProvider:", actions);
         contextMenuProvider.showContextMenu(actions);
@@ -206,15 +206,8 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
 
   void executeCommand(JSString command) {
     consoleInfo2("RemoteFileDiffWindow.executeCommand:", command);
-    if (strictEquals(command, jsAlignWith()))
-      consoleInfo2("Command TODO: ", jsAlignWith());
-    else if (strictEquals(command, jsRemoveAlignment()))
-      consoleInfo2("Command TODO: ", jsRemoveAlignment());
-    else {
-      var f = focused();
-      if (f != null)
-        executeEditorCommand(command, f);
-    }
+    var f = focused();
+    if (f != null) executeEditorCommand(command, f);
   }
 
   static void executeEditorCommand(JSString command, EditorComponent ed) {
@@ -224,6 +217,10 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
       ed.cutCopy(false);
     else if (strictEquals(command, jsPaste()))
       ed.paste();
+    else if (strictEquals(command, jsAlignWith()))
+      ed.alignWith();
+    else if (strictEquals(command, jsRemoveAlignment()))
+      ed.removeAlignment();
     else
       consoleError("Unknown command: ", command);
   }
