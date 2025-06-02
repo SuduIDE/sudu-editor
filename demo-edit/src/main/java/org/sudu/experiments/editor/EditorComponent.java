@@ -198,7 +198,7 @@ public class EditorComponent extends View implements
     int lineNumbersWidth = textBase - vLineTextOffset;
 
     textBaseX = mirrored
-        ? vLineW + vLineTextOffset + scrollBarWidth
+        ? vLineTextOffset + scrollBarWidth + vLineW
         : textBase + mergeWidth;
 
     int textX1 = mirrored ?
@@ -1016,8 +1016,7 @@ public class EditorComponent extends View implements
   private void drawDocumentBottom(int yPosition) {
     if (yPosition < size.y) {
       V2i sizeTmp = context.v2i1;
-      int x = mirrored ? pos.x + flippedTextOffset()
-          : pos.x + textBaseX - xOffset;
+      int x = pos.x + textBaseX - xOffset;
       sizeTmp.x = mirrored ? flippedVLineX() - x
           : textViewWidth + xOffset;
       sizeTmp.y = size.y - yPosition;
@@ -1055,14 +1054,10 @@ public class EditorComponent extends View implements
     g.drawRect(vLineX(), pos.y,
         vLineSize, colors.editor.numbersVLine);
     vLineSize.x = mirrored
-        ? flippedTextOffset()
+        ? textBaseX - xOffset
         : vLineTextOffset - vLineW - xOffset;
     int dx2 = mirrored ? 0 : textBaseX - vLineTextOffset + vLineW;
     g.drawRect(pos.x + dx2, pos.y, vLineSize, colors.editor.bg);
-  }
-
-  private int flippedTextOffset() {
-    return vLineTextOffset + scrollBarWidth + vLineW - xOffset;
   }
 
   private int vLineX() {
@@ -1490,11 +1485,10 @@ public class EditorComponent extends View implements
     selection().isSelectionStarted = false;
 
     if (isInsideText(event.position)) {
-      int vLine = mouseToVLine(event.position.y);
-      int line = docToView.viewToDoc(vLine);
+      int line = docToView.viewToDoc(mouseToVLine(event.position.y));
       if (line < CodeLineMapping.outOfRange) {
         int runnable = CodeLineMapping.regionIndex(line);
-        if (compactModeActions != null)
+        if (runnable == hoveredCollapsedRegion && compactModeActions != null)
           compactModeActions.accept(runnable);
       }
     }
@@ -1535,22 +1529,30 @@ public class EditorComponent extends View implements
       if (lineNumbers.hitTest(mousePos))
         return MouseListener.Static.emptyConsumer;
 
-      saveToNavStack();
-      Pos pos = computeCharPos(mousePos);
-      if (pos == null)
-        return MouseListener.Static.emptyConsumer;
-      moveCaret(pos);
-      model.computeUsages();
+      if (isInsideText(event.position)) {
+        int line = docToView.viewToDoc(mouseToVLine(event.position.y));
+        // hit compacted region
+        if (line < CodeLineMapping.outOfRange) {
+          return this::onMouseMove;
+        } else {
+          saveToNavStack();
+          Pos pos = computeCharPos(mousePos);
+          if (pos == null)
+            return MouseListener.Static.emptyConsumer;
+          moveCaret(pos);
+          model.computeUsages();
 
-      if (!event.shift && !selection().isSelectionStarted) {
-        selection().startPos.set(model.caretLine, model.caretCharPos);
+          if (!event.shift && !selection().isSelectionStarted) {
+            selection().startPos.set(model.caretLine, model.caretCharPos);
+          }
+
+          selection().isSelectionStarted = true;
+          selection().select(model.caretLine, model.caretCharPos);
+          return this::textSelectMouseDrag;
+        }
       }
-
-      selection().isSelectionStarted = true;
-      selection().select(model.caretLine, model.caretCharPos);
-      return this::textSelectMouseDrag;
     }
-    return null;
+    return MouseListener.Static.emptyConsumer;
   }
 
   private boolean hitMergeButtons(V2i pos) {
@@ -1741,8 +1743,8 @@ public class EditorComponent extends View implements
 
   private boolean isInsideText(V2i position) {
     return Rect.isInside(position,
-        pos.x + textBaseX, pos.y,
-        textViewWidth, editorHeight());
+        pos.x + textBaseX - xOffset, pos.y,
+        textViewWidth + xOffset, editorHeight());
   }
 
   private boolean handleSpecialKeys(KeyEvent event) {
