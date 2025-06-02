@@ -1899,30 +1899,25 @@ public class EditorComponent extends View implements
   }
 
   public void revealLineInCenter(int lineNumber) {
-    if (lineNumber <= 0) return;
-    int computed = lineHeight * (lineNumber - (editorHeight() / (lineHeight * 2)) - 1);
+    int viewLine = docToView.docToViewCursor(lineNumber);
+    if (viewLine < 0) return;
+    int computed = lineHeight *
+        (viewLine - (editorHeight() / (lineHeight * 2)) - 1);
     setScrollPosY(computed);
   }
 
   public void revealLine(int lineNumber) {
-    if (lineNumber <= 0) return;
-    int lineVPos = (lineNumber - 1) * lineHeight;
+    int viewLine = docToView.docToViewCursor(lineNumber);
+    if (viewLine < 0) return;
+    int lineVPos = (viewLine - 1) * lineHeight;
     if (lineVPos >= vScrollPos) {
       if (lineVPos - vScrollPos < editorHeight()) return;
-      scrollDownToLine(lineNumber);
+      setScrollPosY(viewLine > getNumLines()
+          ? maxVScrollPos()
+          : (viewLine + 1) * lineHeight - editorHeight());
     } else {
-      scrollUpToLine(lineNumber);
+      setScrollPosY((viewLine - 2) * lineHeight);
     }
-  }
-
-  private void scrollDownToLine(int lineNumber) {
-    setScrollPosY(lineNumber > model.document.length()
-        ? maxVScrollPos()
-        : (lineNumber + 1) * lineHeight - editorHeight());
-  }
-
-  private void scrollUpToLine(int lineNumber) {
-    setScrollPosY((lineNumber - 2) * lineHeight);
   }
 
   public char[] getChars() {
