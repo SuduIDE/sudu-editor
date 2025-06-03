@@ -101,13 +101,12 @@ public class WindowManager implements MouseListener, DprChangeListener {
     if (isTop) {
       if (lastMouseWindow == 0) {
         window.fireMouseLeave();
-        lastMouseWindow = -1;
       }
       window.blur();
     }
     int index = windows.find(window);
-    if (lastMouseWindow > index)
-      --lastMouseWindow;
+    if (index == lastMouseWindow) lastMouseWindow = -1;
+    else if (lastMouseWindow > index) --lastMouseWindow;
     windows.remove(window);
     if (windows.length() > 0)
       windows.get(0).focus();
