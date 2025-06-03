@@ -69,16 +69,6 @@ class FileDiffRootView extends DiffRootView {
     editor2.drawSyncPoints();
   }
 
-  public void setFontFamily(String fontFamily) {
-    editor1.changeFont(fontFamily, editor1.getFontVirtualSize());
-    editor2.changeFont(fontFamily, editor2.getFontVirtualSize());
-  }
-
-  public void setFontSize(float fontSize) {
-    editor1.changeFont(editor1.getFontFamily(), fontSize);
-    editor2.changeFont(editor2.getFontFamily(), fontSize);
-  }
-
   public void setLeftModel(Model m) {
     editor1.setModel(m);
     sendToDiff(true);

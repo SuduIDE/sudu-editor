@@ -64,16 +64,6 @@ public class JsCodeDiff implements JsFileDiffView {
   }
 
   @Override
-  public void setFontFamily(JSString fontFamily) {
-    w.rootView.setFontFamily(fontFamily.stringValue());
-  }
-
-  @Override
-  public void setFontSize(float fontSize) {
-    w.rootView.setFontSize(fontSize);
-  }
-
-  @Override
   public void setTheme(JSObject theme) {
     var t = ThemeImport.fromJs(theme);
     if (t != null)

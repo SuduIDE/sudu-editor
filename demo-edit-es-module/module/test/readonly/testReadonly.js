@@ -4,7 +4,6 @@ import {initialTextJava, workerUrl} from "../utils.js";
 function test1(editor) {
     let model = newTextModel(initialTextJava, "java", "urlNew")
     editor.setModel(model);
-    editor.setFontSize(20);
 }
 
 function main() {

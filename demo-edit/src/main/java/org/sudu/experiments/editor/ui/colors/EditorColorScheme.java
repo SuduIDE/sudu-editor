@@ -60,7 +60,6 @@ public class EditorColorScheme {
 
   public final UiFont popupMenuFont;
   public final UiFont usagesFont;
-  public final UiFont fileViewFont;
   public final UiFont treeViewFont;
   public final UiFont fileViewIcons;
   public final UiFont editorFont;
@@ -117,7 +116,6 @@ public class EditorColorScheme {
         codeDiffBg, codeMapBg,
         new UiFont(defaultFont, defaultMenuFontSize),
         new UiFont(defaultUsagesFont, defaultFontSize),
-        new UiFont(defaultFont, defaultFontSize),
         new UiFont(Fonts.codicon, defaultFontSize),
         new UiFont(EditorConst.FONT, EditorConst.DEFAULT_FONT_SIZE),
         new UiFont(defaultFont, defaultFontSize)
@@ -133,7 +131,6 @@ public class EditorColorScheme {
       DiffColors codeMapBg,
       UiFont popupMenuFont,
       UiFont usagesFont,
-      UiFont fileViewFont,
       UiFont fileViewIcons,
       UiFont editorFont,
       UiFont treeViewFont
@@ -150,23 +147,10 @@ public class EditorColorScheme {
     this.codeMapBg = codeMapBg;
     this.popupMenuFont = popupMenuFont;
     this.usagesFont = usagesFont;
-    this.fileViewFont = fileViewFont;
     this.fileViewIcons = fileViewIcons;
     this.editorFont = editorFont;
     this.treeViewFont = treeViewFont;
     recomputeHoverColors();
-  }
-
-  public EditorColorScheme withFontModified(float fontSize) {
-    return new EditorColorScheme(
-        editor, fileTreeView, codeElement,
-        lineNumber, dialogItem, codeDiffBg, codeMapBg,
-        popupMenuFont.withSize(fontSize),
-        usagesFont.withSize(fontSize),
-        fileViewFont.withSize(fontSize),
-        fileViewIcons.withSize(fontSize),
-        editorFont.withSize(fontSize),
-        treeViewFont.withSize(fontSize));
   }
 
   public CodeLineColorScheme editorCodeLineScheme() {

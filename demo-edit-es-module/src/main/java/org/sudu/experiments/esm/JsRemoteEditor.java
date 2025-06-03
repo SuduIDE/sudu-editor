@@ -106,16 +106,6 @@ public class JsRemoteEditor implements JsRemoteEditorView {
   }
 
   @Override
-  public void setFontFamily(JSString fontFamily) {
-    editor.changeFont(fontFamily.stringValue(), editor.getFontVirtualSize());
-  }
-
-  @Override
-  public void setFontSize(float fontSize) {
-    editor.changeFont(editor.getFontFamily(), fontSize);
-  }
-
-  @Override
   public void setTheme(JSObject theme) {
     var t = ThemeImport.fromJs(theme);
     if (t != null)
