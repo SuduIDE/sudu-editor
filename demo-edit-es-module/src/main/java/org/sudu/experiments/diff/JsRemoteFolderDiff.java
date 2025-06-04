@@ -14,8 +14,6 @@ public class JsRemoteFolderDiff implements JsRemoteFolderDiffView {
   public final WebWindow window;
   protected RemoteFolderDiffWindow folderDiff;
 
-  private float overrideFontSize = 0;
-
   protected JsRemoteFolderDiff(WebWindow window, EditArgs args) {
     this.window = window;
     var scene = (RemoteFolderDiffScene) window.scene();
@@ -55,27 +53,14 @@ public class JsRemoteFolderDiff implements JsRemoteFolderDiffView {
     folderDiff.setReadonly(leftReadonly, rightReadonly);
   }
 
-  @Override
-  public void setFontFamily(JSString fontFamily) {
-//    diff.setFontFamily(fontFamily.stringValue());
-  }
-
-  @Override
-  public void setFontSize(float fontSize) {
-    overrideFontSize = fontSize;
-    var theme = folderDiff.getTheme().withFontModified(fontSize);
-    folderDiff.applyTheme(theme);
-  }
 
   @Override
   public void setTheme(JSObject jsTheme) {
     var theme = ThemeImport.fromJs(jsTheme);
     if (theme != null) {
-      if (overrideFontSize > 0)
-        theme = theme.withFontModified(overrideFontSize);
       folderDiff.applyTheme(theme);
     } else {
-      Debug.consoleInfo("unknown theme: " + theme);
+      JsHelper.consoleError("unknown theme: ", jsTheme);
     }
     window.repaint();
   }

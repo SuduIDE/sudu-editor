@@ -14,7 +14,6 @@ public class JsFolderDiff implements JsIFolderDiffView {
 
   public final WebWindow window;
   protected FolderDiffWindow w;
-  private float overrideFontSize = 0;
 
   protected JsFolderDiff(WebWindow window, EditArgs args) {
     this.window = window;
@@ -73,27 +72,12 @@ public class JsFolderDiff implements JsIFolderDiffView {
   }
 
   @Override
-  public void setFontFamily(JSString fontFamily) {
-//    diff.setFontFamily(fontFamily.stringValue());
-  }
-
-
-  @Override
-  public void setFontSize(float fontSize) {
-    overrideFontSize = fontSize;
-    var theme = w.getTheme().withFontModified(fontSize);
-    w.applyTheme(theme);
-  }
-
-  @Override
   public void setTheme(JSObject jsTheme) {
     var theme = ThemeImport.fromJs(jsTheme);
     if (theme != null) {
-      if (overrideFontSize > 0)
-        theme = theme.withFontModified(overrideFontSize);
       w.applyTheme(theme);
     } else {
-      Debug.consoleInfo("unknown theme: " + theme);
+      JsHelper.consoleError("unknown theme: ", jsTheme);
     }
     window.repaint();
   }

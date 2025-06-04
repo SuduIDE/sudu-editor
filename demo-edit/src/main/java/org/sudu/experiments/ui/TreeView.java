@@ -145,7 +145,7 @@ public class TreeView extends ScrollContent implements Focusable {
   public void setTheme(EditorColorScheme colors) {
     theme = colors;
     codeLineScheme = colors.treeViewCodeLineScheme();
-    boolean sameFont1 = Objects.equals(uiFont, colors.fileViewFont);
+    boolean sameFont1 = Objects.equals(uiFont, colors.treeViewFont);
     boolean sameFont2 = Objects.equals(uiIcons, colors.fileViewIcons);
     if (!sameFont1 || !sameFont2) {
       uiFont = colors.treeViewFont;

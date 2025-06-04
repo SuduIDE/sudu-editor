@@ -5,6 +5,7 @@ import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.js.JsArrayReader;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.Color;
+import org.sudu.experiments.ui.UiFont;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
@@ -21,6 +22,8 @@ import static org.sudu.experiments.editor.ui.colors.EditorColorScheme.*;
 public interface ThemeImport {
 
   String baseTheme = "baseTheme";
+  String uiFont = "uiFont";
+  String editorFont = "editorFont";
   boolean debug = false;
 
   static EditorColorScheme fromJs(JSObject t) {
@@ -41,7 +44,31 @@ public interface ThemeImport {
       return null;
     }
 
-    JsArrayReader<JSString> rdr = t.cast();
+    importColors(t, theme);
+    importFonts(t, theme);
+
+    return theme;
+  }
+
+  static void importFonts(JSObject t, EditorColorScheme theme) {
+    if (JsHelper.hasProperty(t, editorFont)) {
+      JsFont f = JsHelper.getProperty(t, editorFont);
+      importFont(f, theme.editorFont);
+    }
+    if (JsHelper.hasProperty(t, uiFont)) {
+      JsFont f = JsHelper.getProperty(t, uiFont);
+      importFont(f, theme.treeViewFont);
+    }
+  }
+
+  static void importFont(JsFont f, UiFont font) {
+    font.familyName = f.getFamily();
+    font.size = f.getSize();
+    font.weightRegular = (int) f.getWeight();
+  }
+
+  static void importColors(JSObject jsTheme, EditorColorScheme theme) {
+    JsArrayReader<JSString> rdr = jsTheme.cast();
     Color[] imported = new Color[EditorColorScheme.LastIndex];
     boolean hasAlpha = false, missing = false;
     for (int i = 0; i < EditorColorScheme.LastIndex; i++) {
@@ -83,8 +110,6 @@ public interface ThemeImport {
         }
       }
     }
-
-    return theme;
   }
 
   static String name(int n) {
