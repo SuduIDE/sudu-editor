@@ -2014,6 +2014,7 @@ public class EditorComponent extends View implements
   }
 
   public void setDiffModel(LineDiff[] lineDiffs) {
+    System.out.println("EditorComponent.setDiffModel " + lineDiffs);
     model.diffModel = lineDiffs;
     // todo: we can improve this by adding shareble
     // diff map between LineNumberComponent and codeMapTexture
@@ -2128,7 +2129,8 @@ public class EditorComponent extends View implements
   void buildDiffMap() {
     if (codeMap == null)
       codeMap = g.createTexture();
-    var img = DiffImage.diffImage(model.diffModel, size.y, colors.codeMapBg);
+    var height = Math.min(size.y, lineHeight * docToView.length());
+    var img = DiffImage.diffImage(model.diffModel, height, colors.codeMapBg);
     codeMap.setContent(img);
   }
 
