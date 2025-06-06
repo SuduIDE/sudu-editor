@@ -313,7 +313,17 @@ public class MiddleLine extends View {
       int rectY1 = Math.min(Math.max(leftY1, rightY1), pos.y + size.y);
       if (rectY1 <= rectY0) continue;
 
-      double curD = dist(position.x, position.y, pos.x, leftY, pos.x + size.x, rightY);
+      double curD;
+      if (rectY0 <= position.y && position.y <= rectY1)
+        curD = dist(position.x, position.y, pos.x, leftY, pos.x + size.x, rightY);
+      else {
+        curD = Math.min(
+            dist(position.x, position.y, pos.x, leftY),
+            dist(position.x, position.y, pos.x + size.x, rightY)
+        );
+      }
+      System.out.println(curD);
+
       if (curD <= 10 * d && curD < minD) {
         minD = curD;
         minInd = i;
@@ -330,6 +340,13 @@ public class MiddleLine extends View {
     int numerator = Math.abs((x1 - x0) * (y0 - py) - (y1 - y0) * (x0 - px));
     double denominator = Math.hypot(y1 - y0, x1 - x0);
     return numerator / denominator;
+  }
+
+  private double dist(
+      int px, int py,
+      int x0, int y0
+  ) {
+    return Math.hypot(x0 - px, y0 - py);
   }
 
   private void onSyncLineHover(int line) {
