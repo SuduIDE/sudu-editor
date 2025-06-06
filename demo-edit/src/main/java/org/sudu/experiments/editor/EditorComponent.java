@@ -2132,6 +2132,7 @@ public class EditorComponent extends View implements
     var height = Math.min(size.y, lineHeight * docToView.length());
     var img = DiffImage.diffImage(model.diffModel, height, colors.codeMapBg);
     codeMap.setContent(img);
+    codeMapSize.y = height;
   }
 
   void clearCodeMap() {
