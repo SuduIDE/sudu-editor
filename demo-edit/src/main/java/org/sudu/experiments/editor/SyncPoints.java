@@ -109,12 +109,13 @@ public class SyncPoints {
     int lineCount = diff.lineCount();
     boolean isDelete = diff.isDelete ^ isUndo;
     for (int i = 0; i < syncL.length; i++) {
-      if (from > syncL[i]) continue;
       if (isDelete) {
+        if (from > syncL[i]) continue;
         int change = Math.min(lineCount, syncL[i] - from);
         if (!isUndo) diff.syncPointDiff = change;
         syncL[i] -= change;
       } else {
+        if (from >= syncL[i]) continue;
         int change = isUndo && diff.syncPointDiff != -1 ? diff.syncPointDiff : lineCount;
         syncL[i] += change;
       }
@@ -127,12 +128,13 @@ public class SyncPoints {
     int lineCount = diff.lineCount();
     boolean isDelete = diff.isDelete ^ isUndo;
     for (int i = 0; i < syncR.length; i++) {
-      if (from > syncR[i]) continue;
       if (isDelete) {
+        if (from > syncR[i]) continue;
         int change = Math.min(lineCount, syncR[i] - from);
         if (!isUndo) diff.syncPointDiff = change;
         syncR[i] -= change;
       } else {
+        if (from >= syncR[i]) continue;
         int change = isUndo && diff.syncPointDiff != -1 ? diff.syncPointDiff : lineCount;
         syncR[i] += change;
       }
