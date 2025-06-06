@@ -2129,8 +2129,13 @@ public class EditorComponent extends View implements
   void buildDiffMap() {
     if (codeMap == null)
       codeMap = g.createTexture();
-    var height = Math.min(size.y, lineHeight * docToView.length());
-    var img = DiffImage.diffImage(model.diffModel, height, colors.codeMapBg);
+
+    int viewDocLength = docToView.length();
+    var height = Math.min(size.y, lineHeight * viewDocLength);
+    int[] mapping = new int[viewDocLength];
+    docToView.viewToDocLines(0, viewDocLength, mapping);
+    var img = DiffImage.diffImage(model.diffModel, height,
+        mapping, colors.codeMapBg);
     codeMap.setContent(img);
     codeMapSize.y = height;
   }
@@ -2156,6 +2161,7 @@ public class EditorComponent extends View implements
     if (mergeButtons != null) {
       mergeButtons.setCodeLineMapping(mapping);
     }
+    if (codeMap != null) buildDiffMap();
   }
 
   public void clearCompactViewModel() {
