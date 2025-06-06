@@ -23,6 +23,7 @@ class FileDiffRootView extends DiffRootView {
 
   DiffInfo diffModel;
   private int modelFlags;
+  boolean compactViewRequest;
 
   Consumer<Model> onLeftDiffMade, onRightDiffMade;
 
@@ -192,7 +193,7 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void setDiffModel(DiffInfo diffInfo) {
-    boolean compact = diffModel != null && diffModel.isCompactedView();
+    boolean compact = compactViewRequest;
     diffModel = diffInfo;
     editor1.setDiffModel(diffModel.lineDiffsL);
     editor2.setDiffModel(diffModel.lineDiffsR);
@@ -212,7 +213,7 @@ class FileDiffRootView extends DiffRootView {
     if (!firstDiffRevealed) revealFirstDiff();
     if (onDiffModelSet != null) onDiffModelSet.run();
     if (compact && !diffModel.isEmpty()) {
-      diffModel.buildCompactView(this::applyCodeMapping);
+      buildCompactModel();
     }
   }
 
@@ -369,9 +370,10 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void setCompactView(boolean compact) {
+    compactViewRequest = compact;
     if (compact) {
       if (!diffModel.isEmpty())
-        diffModel.buildCompactView(this::applyCodeMapping);
+        buildCompactModel();
     } else {
       diffModel.clearCompactView();
       editor1.clearCompactViewModel();
@@ -382,12 +384,16 @@ class FileDiffRootView extends DiffRootView {
     ui.windowManager.uiContext.window.repaint();
   }
 
+  private void buildCompactModel() {
+    diffModel.buildCompactView(this::applyCodeMapping);
+  }
+
   private void applyCodeMapping(IntConsumer actions) {
     editor1.setCompactViewModel(diffModel.codeMappingL, actions);
     editor2.setCompactViewModel(diffModel.codeMappingR, actions);
   }
 
   public boolean isCompactedView() {
-    return diffModel.isCompactedView();
+    return compactViewRequest;
   }
 }

@@ -11,10 +11,11 @@ class DiffImage {
   static final int debug = 0;
 
   static GL.ImageData diffImage(
-      LineDiff[] model, int height, DiffColors colors
+      LineDiff[] model, int height,
+      int[] viewToDoc, DiffColors colors
   ) {
     GL.ImageData img = new GL.ImageData(1, height);
-    byte[] map = diffMap(model, height);
+    byte[] map = diffMap(model, height, viewToDoc);
     if (debug > 0) {
       V4i s = stats(map);
       System.out.println("codeMap built: l=" + map.length
@@ -34,9 +35,9 @@ class DiffImage {
     return img;
   }
 
-  static byte[] diffMap(LineDiff[] model, int height) {
+  static byte[] diffMap(LineDiff[] model, int height, int[] viewToDoc) {
     byte[] result = new byte[height];
-    int a = 0, b, doc = model.length;
+    int a = 0, b, doc = viewToDoc.length;
     int round = Math.min(doc, height) / 2;
     int l, r, d, type, j;
     for (int i = 0; i < height; i++) {
@@ -44,7 +45,8 @@ class DiffImage {
       l = 0; r = 0; d = 0;
       j = a;
       do {
-        LineDiff diff = model[j];
+        int docLn = viewToDoc[j];
+        LineDiff diff = docLn < 0 ? null : model[docLn];
         if (diff != null) {
           type = diff.type;
           if (type == DiffTypes.DELETED) l++;

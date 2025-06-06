@@ -74,8 +74,11 @@ public class DiffImageTest {
 
       a = b;
     }
+    int[] viewToDoc = new int[document];
+    for (int i = 0; i < viewToDoc.length; i++)
+      viewToDoc[i] = i;
 
-    DiffImage.diffMap(model(document), height);
+    DiffImage.diffMap(model(document), height, viewToDoc);
   }
 
   static void testMin(int modelLength) {
