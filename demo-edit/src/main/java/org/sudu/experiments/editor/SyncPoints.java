@@ -103,4 +103,53 @@ public class SyncPoints {
     curL = curR = -1;
     onSyncPointsChanged.run();
   }
+
+  public void updateLeftOnDiff(Diff diff, boolean isUndo) {
+    int from = diff.line;
+    int lineCount = diff.lineCount();
+    boolean isDelete = diff.isDelete ^ isUndo;
+    for (int i = 0; i < syncL.length; i++) {
+      if (from > syncL[i]) continue;
+      if (isDelete) {
+        int change = Math.min(lineCount, syncL[i] - from);
+        if (!isUndo) diff.syncPointDiff = change;
+        syncL[i] -= change;
+      } else {
+        int change = isUndo && diff.syncPointDiff != -1 ? diff.syncPointDiff : lineCount;
+        syncL[i] += change;
+      }
+    }
+    removeRepeatPoints();
+  }
+
+  public void updateRightOnDiff(Diff diff, boolean isUndo) {
+    int from = diff.line;
+    int lineCount = diff.lineCount();
+    boolean isDelete = diff.isDelete ^ isUndo;
+    for (int i = 0; i < syncR.length; i++) {
+      if (from > syncR[i]) continue;
+      if (isDelete) {
+        int change = Math.min(lineCount, syncR[i] - from);
+        if (!isUndo) diff.syncPointDiff = change;
+        syncR[i] -= change;
+      } else {
+        int change = isUndo && diff.syncPointDiff != -1 ? diff.syncPointDiff : lineCount;
+        syncR[i] += change;
+      }
+    }
+    removeRepeatPoints();
+  }
+
+  private void removeRepeatPoints() {
+    int i = 1;
+    while (i < syncL.length) {
+      if (syncL[i] == syncL[i - 1] ||
+          syncR[i] == syncR[i - 1]
+      ) {
+        syncL = ArrayOp.removeAt(syncL, i - 1);
+        syncR = ArrayOp.removeAt(syncR, i - 1);
+      } else i++;
+    }
+    onSyncPointsChanged.run();
+  }
 }

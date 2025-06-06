@@ -53,4 +53,9 @@ public class EditorSyncPoints {
     if (syncPoints.midLineHoverSyncPoint == -1) return -1;
     return syncPoints()[syncPoints.midLineHoverSyncPoint];
   }
+
+  public void updateOnDiff(Diff diff, boolean isUndo) {
+    if (left) syncPoints.updateLeftOnDiff(diff, isUndo);
+    else syncPoints.updateRightOnDiff(diff, isUndo);
+  }
 }
