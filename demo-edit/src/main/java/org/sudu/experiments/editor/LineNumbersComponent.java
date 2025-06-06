@@ -31,6 +31,7 @@ public class LineNumbersComponent implements Disposable {
   private FontDesk fontDesk;
   private boolean cleartype;
   private boolean mirrored;
+  private int mergeButtonsWidth;
   private int lineHeight;
   private int textureHeight;
 
@@ -168,7 +169,7 @@ public class LineNumbersComponent implements Disposable {
       WglGraphics g
   ) {
     syncLineSize.x = width();
-    if (!mirrored) syncLineSize.x += EditorConst.V_LINE_LEFT_DELTA_DP + EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
+    if (!mirrored) syncLineSize.x += mergeButtonsWidth;
     int y = yPos + (syncLine - startLine) * lineHeight - (EditorConst.SYNC_LINE_HEIGHT / 2);
     g.drawRect(pos.x, y + pos.y, syncLineSize, lineColor);
   }
@@ -202,6 +203,10 @@ public class LineNumbersComponent implements Disposable {
 
   public void setMirrored(boolean mirrored) {
     this.mirrored = mirrored;
+  }
+
+  public void setMergeButtonsWidth(int mergeButtonsWidth) {
+    this.mergeButtonsWidth = mergeButtonsWidth;
   }
 
   private void ensureCanvas(WglGraphics g) {
