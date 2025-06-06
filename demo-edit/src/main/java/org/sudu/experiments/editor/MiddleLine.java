@@ -322,7 +322,6 @@ public class MiddleLine extends View {
             dist(position.x, position.y, pos.x + size.x, rightY)
         );
       }
-      System.out.println(curD);
 
       if (curD <= 10 * d && curD < minD) {
         minD = curD;
