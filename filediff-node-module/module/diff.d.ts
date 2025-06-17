@@ -98,16 +98,13 @@ export type FStats = {
   size: number;
 };
 
-export type ExcludeList = string;
-
 // java class: org.sudu.experiments.DiffEngineJs
 export interface DiffEngine extends IDisposable {
   // todo add boolean content
   startFolderDiff(
     leftPath: FolderInput,
     rightPath: FolderInput,
-    channel: Channel,
-    excludeList: ExcludeList
+    channel: Channel
   ): FolderDiffSession;
 
   startFileDiff(
