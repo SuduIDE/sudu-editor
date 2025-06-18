@@ -98,7 +98,10 @@ export type FStats = {
   size: number;
 };
 
-export type ExcludeList = string;
+export type ExcludeList = string | {
+  left: string,
+  right: string
+}
 
 // java class: org.sudu.experiments.DiffEngineJs
 export interface DiffEngine extends IDisposable {
