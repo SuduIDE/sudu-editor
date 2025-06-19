@@ -31,12 +31,26 @@ public class DiffEngine implements DiffEngineJs {
 
   @Override
   public JsFolderDiffSession startFolderDiff(
-      JsFolderInput leftPath, JsFolderInput rightPath, Channel channel
+      JsFolderInput leftPath, JsFolderInput rightPath,
+      Channel channel,
+      JSObject excludeList
   ) {
     LoggingJs.info("Starting folder diff");
     boolean scanFileContent = true;
     DirectoryHandle leftDir = JsFolderInput.directoryHandle(leftPath);
     DirectoryHandle rightDir = JsFolderInput.directoryHandle(rightPath);
+
+    boolean singleExclude = JSString.isInstance(excludeList);
+    JSString excludeLeft, excludeRight;
+    if (singleExclude) {
+      excludeRight = excludeLeft = excludeList.cast();
+    } else {
+      excludeLeft = JsHelper.hasString(excludeList, JSString.valueOf("left"));
+      excludeRight = JsHelper.hasString(excludeList, JSString.valueOf("right"));
+    }
+
+    LoggingJs.info("Exclude left: " + excludeLeft);
+    LoggingJs.info("Exclude right: " + excludeRight);
 
     if (leftDir == null)
       throw new IllegalArgumentException(

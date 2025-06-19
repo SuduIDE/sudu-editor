@@ -168,6 +168,22 @@ public class JsHelper {
   @NoSideEffects
   public static native <T extends JSObject> T getProperty(JSObject object, String name);
 
+  @JSBody(params = { "object", "name" }, script = "return name in object;")
+  @NoSideEffects
+  public static native boolean hasProperty(JSObject object, JSString name);
+
+  @JSBody(params = { "object", "name" }, script = "return object[name];")
+  @NoSideEffects
+  public static native <T extends JSObject> T getProperty(JSObject object, JSString name);
+
+  public static JSString hasString(JSObject object, JSString name) {
+    if (hasProperty(object, name)) {
+      JSString value = getProperty(object, name);
+      if (JSString.isInstance(value)) return value;
+    }
+    return null;
+  }
+
   @JSBody(params = {"a", "b"}, script = "return a === b;")
   @NoSideEffects
   public static native boolean strictEquals(JSObject a, JSObject b);
