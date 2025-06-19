@@ -2074,6 +2074,9 @@ public class EditorComponent extends View implements
     if (updateModelOnDiffListener != null) {
       updateModelOnDiffListener.accept(this, diff, isUndo);
     }
+    if (syncPoints != null) {
+      syncPoints.updateOnDiff(diff, isUndo);
+    }
     window().repaint();
   }
 

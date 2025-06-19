@@ -6,6 +6,7 @@ public class Diff {
   public int line, pos;
   public boolean isDelete;
   V2i caretReturn;
+  int syncPointDiff = -1;
   String change;
 
   public Diff(int line, int pos, boolean isDelete, String change) {
