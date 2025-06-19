@@ -55,7 +55,6 @@ public class EditorSyncPoints {
   }
 
   public void updateOnDiff(Diff diff, boolean isUndo) {
-    if (left) syncPoints.updateLeftOnDiff(diff, isUndo);
-    else syncPoints.updateRightOnDiff(diff, isUndo);
+    syncPoints.updateOnDiff(diff, isUndo, left);
   }
 }

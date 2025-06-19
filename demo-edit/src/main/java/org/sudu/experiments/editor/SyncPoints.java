@@ -65,14 +65,6 @@ public class SyncPoints {
     setSyncPoints();
   }
 
-  public int[] getSyncL() {
-    return this.syncL;
-  }
-
-  public int[] getSyncR() {
-    return this.syncR;
-  }
-
   public void setSyncPoints() {
     if (curL == -1 || curR == -1) return;
     int lP = -Arrays.binarySearch(syncL, curL) - 1;
@@ -104,39 +96,21 @@ public class SyncPoints {
     onSyncPointsChanged.run();
   }
 
-  public void updateLeftOnDiff(Diff diff, boolean isUndo) {
+  public void updateOnDiff(Diff diff, boolean isUndo, boolean left) {
+    int[] sync = left ? syncL : syncR;
     int from = diff.line;
     int lineCount = diff.lineCount();
     boolean isDelete = diff.isDelete ^ isUndo;
-    for (int i = 0; i < syncL.length; i++) {
+    for (int i = 0; i < sync.length; i++) {
       if (isDelete) {
-        if (from > syncL[i]) continue;
-        int change = Math.min(lineCount, syncL[i] - from);
+        if (from > sync[i]) continue;
+        int change = Math.min(lineCount, sync[i] - from);
         if (!isUndo) diff.syncPointDiff = change;
-        syncL[i] -= change;
+        sync[i] -= change;
       } else {
-        if (from >= syncL[i]) continue;
+        if (from >= sync[i]) continue;
         int change = isUndo && diff.syncPointDiff != -1 ? diff.syncPointDiff : lineCount;
-        syncL[i] += change;
-      }
-    }
-    removeRepeatPoints();
-  }
-
-  public void updateRightOnDiff(Diff diff, boolean isUndo) {
-    int from = diff.line;
-    int lineCount = diff.lineCount();
-    boolean isDelete = diff.isDelete ^ isUndo;
-    for (int i = 0; i < syncR.length; i++) {
-      if (isDelete) {
-        if (from > syncR[i]) continue;
-        int change = Math.min(lineCount, syncR[i] - from);
-        if (!isUndo) diff.syncPointDiff = change;
-        syncR[i] -= change;
-      } else {
-        if (from >= syncR[i]) continue;
-        int change = isUndo && diff.syncPointDiff != -1 ? diff.syncPointDiff : lineCount;
-        syncR[i] += change;
+        sync[i] += change;
       }
     }
     removeRepeatPoints();
