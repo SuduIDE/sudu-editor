@@ -135,11 +135,12 @@ public class MiddleLine extends View {
       );
     }
 
-    drawSyncPoints(g, rSize);
+    drawSyncPoints(g, rSize, lineWidth);
     g.enableBlend(false);
   }
 
-  private void drawSyncPoints(WglGraphics g, V2i rSize) {
+  private void drawSyncPoints(WglGraphics g, V2i rSize, int lineWidth) {
+    int syncLineHeight = lineWidth;
     if (syncL == null || syncR == null) return;
     for (int i = 0; i < syncL.length; i++) {
       int lineL = syncL[i];
@@ -149,15 +150,13 @@ public class MiddleLine extends View {
         lineR = diffModel.codeMappingR.docToViewCursor(lineR);
       }
       if (lineL < 0 || lineR < 0) continue;
-      int d = EditorConst.SYNC_LINE_HEIGHT / 2;
+      int d = syncLineHeight / 2;
 
-      int leftY = editor1.lineToPos(lineL),
-          leftY0 = leftY - d,
-          leftY1 = leftY0 + EditorConst.SYNC_LINE_HEIGHT;
+      int leftY = editor1.lineToPos(lineL);
+      int rightY = editor2.lineToPos(lineR);
 
-      int rightY = editor2.lineToPos(lineR),
-          rightY0 = rightY - d,
-          rightY1 = rightY0 + EditorConst.SYNC_LINE_HEIGHT;
+      int leftY0 = leftY - d, leftY1 = leftY0 + syncLineHeight;
+      int rightY0 = rightY - d, rightY1 = rightY0 + syncLineHeight;
 
       setLinePos(leftY0, leftY1, rightY0, rightY1);
 
@@ -165,14 +164,14 @@ public class MiddleLine extends View {
       int rectY1 = Math.min(Math.max(leftY1, rightY1), pos.y + size.y);
       if (rectY1 <= rectY0) continue;
 
-      int x = EditorConst.SYNC_LINE_HEIGHT;
+      int t = syncLineHeight / 2;
 
       if (leftY > rightY) {
-        p12.x -= x;
-        p21.x += x;
+        p12.x -= t;
+        p21.x += syncLineHeight - t;
       } else if (leftY < rightY) {
-        p11.x += x;
-        p22.x -= x;
+        p11.x += t;
+        p22.x -= syncLineHeight - t;
       }
 
       rSize.set(size.x, rectY1 - rectY0);
@@ -210,6 +209,7 @@ public class MiddleLine extends View {
     this.syncL = syncL;
     this.syncR = syncR;
   }
+
   private void computeVisible() {
     CompactCodeMapping cml = diffModel.codeMappingL;
     CompactCodeMapping cmr = diffModel.codeMappingR;
