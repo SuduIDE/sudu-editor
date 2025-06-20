@@ -38,7 +38,8 @@ public class DiffModelChannelUpdater {
   public DiffModelChannelUpdater(
       ItemFolderDiffModel root,
       boolean scanFileContent,
-      NodeWorkersPool executor, Channel channel
+      NodeWorkersPool executor, Channel channel,
+      ExcludeList elLeft, ExcludeList elRight
   ) {
     LoggingJs.info("DiffModelChannelUpdater created");
     this.collector = new RemoteCollector(

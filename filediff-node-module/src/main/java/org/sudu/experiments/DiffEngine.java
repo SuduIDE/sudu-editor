@@ -41,16 +41,25 @@ public class DiffEngine implements DiffEngineJs {
     DirectoryHandle rightDir = JsFolderInput.directoryHandle(rightPath);
 
     boolean singleExclude = JSString.isInstance(excludeList);
-    JSString excludeLeft, excludeRight;
-    if (singleExclude) {
-      excludeRight = excludeLeft = excludeList.cast();
-    } else {
-      excludeLeft = JsHelper.hasString(excludeList, JSString.valueOf("left"));
-      excludeRight = JsHelper.hasString(excludeList, JSString.valueOf("right"));
-    }
 
-    LoggingJs.info("Exclude left: " + excludeLeft);
-    LoggingJs.info("Exclude right: " + excludeRight);
+    ExcludeList elLeft, elRight;
+    if (singleExclude) {
+      JSString excludeString = excludeList.cast();
+      elLeft = elRight = new ExcludeList(excludeString.stringValue());
+      LoggingJs.info(JsHelper.concat("Exclude list: ", excludeString));
+    } else {
+      JSString excludeLeft = JsHelper.getString(excludeList,
+          JSString.valueOf("left"));
+      JSString excludeRight = JsHelper.getString(excludeList,
+          JSString.valueOf("right"));
+
+      LoggingJs.info(JsHelper.concat("Exclude left: ", excludeLeft));
+      LoggingJs.info(JsHelper.concat("Exclude right: ", excludeRight));
+      elLeft = excludeLeft != null ?
+          new ExcludeList(excludeLeft.stringValue()) : null;
+      elRight = excludeRight != null ?
+          new ExcludeList(excludeRight.stringValue()) : null;
+    }
 
     if (leftDir == null)
       throw new IllegalArgumentException(
@@ -68,7 +77,8 @@ public class DiffEngine implements DiffEngineJs {
     DiffModelChannelUpdater updater = new DiffModelChannelUpdater(
         root,
         scanFileContent,
-        pool, channel
+        pool, channel,
+        elLeft, elRight
     );
     updater.beginCompare();
     return new JsFolderDiffSession0(updater);

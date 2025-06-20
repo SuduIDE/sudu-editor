@@ -176,7 +176,7 @@ public class JsHelper {
   @NoSideEffects
   public static native <T extends JSObject> T getProperty(JSObject object, JSString name);
 
-  public static JSString hasString(JSObject object, JSString name) {
+  public static JSString getString(JSObject object, JSString name) {
     if (hasProperty(object, name)) {
       JSString value = getProperty(object, name);
       if (JSString.isInstance(value)) return value;
