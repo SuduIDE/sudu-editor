@@ -3,8 +3,7 @@ package org.sudu.experiments.exclude;
 import org.sudu.experiments.exclude.pattern.BasePattern;
 import org.sudu.experiments.text.SplitText;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ExcludeList {
 
@@ -13,6 +12,20 @@ public class ExcludeList {
   /**
    * <a href="https://git-scm.com/docs/gitignore">Gitignore rules</a>
    */
+  public ExcludeList(String leftSrc, String rightSrc) {
+    patterns = new ArrayList<>();
+    exceptions = new ArrayList<>();
+    Set<String> lines = new HashSet<>(Arrays.asList(SplitText.split(leftSrc)));
+    Set<String> rightLines = new HashSet<>(Arrays.asList(SplitText.split(rightSrc)));
+    lines.addAll(rightLines);
+    for (String line: lines) {
+      if (isBlankOrComment(line)) continue;
+      var pattern = BasePattern.mkPattern(line);
+      if (pattern.exclude) patterns.add(pattern);
+      else exceptions.add(pattern);
+    }
+  }
+
   public ExcludeList(String source) {
     patterns = new ArrayList<>();
     exceptions = new ArrayList<>();
