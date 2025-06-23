@@ -130,6 +130,8 @@ public class LineNumbersComponent implements Disposable {
     g.disableScissor();
   }
 
+
+  // todo: move to MiddleLine
   public void drawSyncPoints(
       int yPos,
       int firstLine, int lastLine,
