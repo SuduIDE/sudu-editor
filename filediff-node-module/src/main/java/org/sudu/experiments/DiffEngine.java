@@ -2,6 +2,7 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
+import org.sudu.experiments.exclude.ExcludeList;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.*;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
