@@ -15,11 +15,12 @@ public class FolderDiffModel {
   public FolderDiffModel[] children;
   public int childrenComparedCnt;
   public int flags;
-  // compared     0b...0000000x   x  = (0|1)
-  // isFile       0b...000000x0   x  = (0|1)
-  // propagation  0b...0000xx00   xx = (00|01|10)
-  // diffType     0b...00xx0000   xx = (00|01|10|11)
-  // itemKind     0b...xx000000   xx = (00|01|10|11)
+  // compared     0b...00000000x   x  = (0|1)
+  // isFile       0b...0000000x0   x  = (0|1)
+  // propagation  0b...00000xx00   xx = (00|01|10)
+  // diffType     0b...000xx0000   xx = (00|01|10|11)
+  // itemKind     0b...0xx000000   xx = (00|01|10|11)
+  // excluded     0b...x00000000   xx = (0|1)
   public int posInParent = -1;
 
   public FolderDiffModel(FolderDiffModel parent) {
@@ -77,11 +78,6 @@ public class FolderDiffModel {
     flags = flags & (~0b1) | bit;
   }
 
-//  public void setIsFile(boolean isFile) {
-//    int bit = isFile ? 1 : 0;
-//    flags = flags & (~(0b1 << 1)) | (bit << 1);
-//  }
-
   public void setPropagation(int propagation) {
     flags = flags & (~(0b11 << 2)) | (propagation << 2);
   }
@@ -92,6 +88,11 @@ public class FolderDiffModel {
 
   public void setItemKind(int itemKind) {
     flags = flags & (~(0b11 << 6)) | (itemKind << 6);
+  }
+
+  public void setExcluded(boolean excluded) {
+    int bit = excluded ? 1 : 0;
+    flags = flags & (~(0b1 << 8)) | (bit << 8);
   }
 
   public boolean isCompared() {
@@ -115,6 +116,10 @@ public class FolderDiffModel {
 
   public int getItemKind() {
     return (flags >> 6) & 0b11;
+  }
+
+  public boolean isExcluded() {
+    return ((flags >> 8) & 0b1) == 1;
   }
 
   public int nextInd(int ind, int side) {
