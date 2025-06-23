@@ -31,12 +31,35 @@ public class DiffEngine implements DiffEngineJs {
 
   @Override
   public JsFolderDiffSession startFolderDiff(
-      JsFolderInput leftPath, JsFolderInput rightPath, Channel channel
+      JsFolderInput leftPath, JsFolderInput rightPath,
+      Channel channel,
+      JSObject excludeList
   ) {
     LoggingJs.info("Starting folder diff");
     boolean scanFileContent = true;
     DirectoryHandle leftDir = JsFolderInput.directoryHandle(leftPath);
     DirectoryHandle rightDir = JsFolderInput.directoryHandle(rightPath);
+
+    boolean singleExclude = JSString.isInstance(excludeList);
+
+    ExcludeList elLeft, elRight;
+    if (singleExclude) {
+      JSString excludeString = excludeList.cast();
+      elLeft = elRight = new ExcludeList(excludeString.stringValue());
+      LoggingJs.info(JsHelper.concat("Exclude list: ", excludeString));
+    } else {
+      JSString excludeLeft = JsHelper.getString(excludeList,
+          JSString.valueOf("left"));
+      JSString excludeRight = JsHelper.getString(excludeList,
+          JSString.valueOf("right"));
+
+      LoggingJs.info(JsHelper.concat("Exclude left: ", excludeLeft));
+      LoggingJs.info(JsHelper.concat("Exclude right: ", excludeRight));
+      elLeft = excludeLeft != null ?
+          new ExcludeList(excludeLeft.stringValue()) : null;
+      elRight = excludeRight != null ?
+          new ExcludeList(excludeRight.stringValue()) : null;
+    }
 
     if (leftDir == null)
       throw new IllegalArgumentException(
@@ -54,7 +77,8 @@ public class DiffEngine implements DiffEngineJs {
     DiffModelChannelUpdater updater = new DiffModelChannelUpdater(
         root,
         scanFileContent,
-        pool, channel
+        pool, channel,
+        elLeft, elRight
     );
     updater.beginCompare();
     return new JsFolderDiffSession0(updater);

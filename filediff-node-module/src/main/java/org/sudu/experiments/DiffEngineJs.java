@@ -10,13 +10,14 @@ public interface DiffEngineJs extends JSObject {
 
   JsFolderDiffSession startFolderDiff(
       JsFolderInput leftPath, JsFolderInput rightPath,
-      Channel channel);
+      Channel channel, JSObject excludeList);
 
-  //     startFileDiff(
-  //        leftPath: string, rightPath: string,
-  //        channel: Channel,
-  //        folderDiff?: FolderDiffSession
-  //    ): FileDiffSession;
+  //  startFolderDiff(
+  //    leftPath: FolderInput,
+  //    rightPath: FolderInput,
+  //    channel: Channel,
+  //    excludeList: ExcludeList
+  //  ): FolderDiffSession;
 
   JsFileDiffSession startFileDiff(
       JsFileInput leftInput, JsFileInput rightInput,
