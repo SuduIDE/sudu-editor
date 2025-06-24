@@ -247,6 +247,29 @@ public class MiddleLine extends View {
         r.type = range.type;
       }
     }
+
+    alignLines.clear();
+
+    if (syncL == null || syncR == null) return;
+    for (int i = 0; i < syncL.length; i++) {
+      int lineL = syncL[i];
+      int lineR = syncR[i];
+      if (diffModel.codeMappingL != null && diffModel.codeMappingR != null) {
+        lineL = diffModel.codeMappingL.docToViewCursor(lineL);
+        lineR = diffModel.codeMappingR.docToViewCursor(lineR);
+      }
+      if (lineL < lFirst && lineR < rFirst) {
+        System.out.println("sync line " + i + "clipped up");
+        continue;
+      }
+      if (lineL > lLast && lineR > rLast) {
+        System.out.println("sync line " + i + "clipped down");
+        continue;
+      }
+      Visible syncRecord = alignLines.add();
+      syncRecord.fromL = lineL;
+      syncRecord.fromR = lineR;
+    }
   }
 
   @Override
