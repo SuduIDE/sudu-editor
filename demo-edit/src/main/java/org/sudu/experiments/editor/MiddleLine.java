@@ -22,6 +22,7 @@ public class MiddleLine extends View {
   public static final float lineWidthDp = 2;
 
   public static final int middleLineThicknessDp = 20;
+  public static final int syncLineHitThreshold = 5;
 
   public final UiContext uiContext;
 
@@ -143,23 +144,17 @@ public class MiddleLine extends View {
   }
 
   private void drawSyncPoints(WglGraphics g, V2i rSize, int lineWidth) {
-    int syncLineHeight = lineWidth;
-    if (syncL == null || syncR == null) return;
-    for (int i = 0; i < syncL.length; i++) {
-      int lineL = syncL[i];
-      int lineR = syncR[i];
-      if (diffModel.codeMappingL != null && diffModel.codeMappingR != null) {
-        lineL = diffModel.codeMappingL.docToViewCursor(lineL);
-        lineR = diffModel.codeMappingR.docToViewCursor(lineR);
-      }
-      if (lineL < 0 || lineR < 0) continue;
-      int d = syncLineHeight / 2;
+    int nLines = alignLines.size();
+    var alData = alignLines.data();
+    for (int i = 0; i < nLines; i++) {
+      Visible aLine = alData[i];
+      int d = lineWidth / 2;
 
-      int leftY = editor1.lineToPos(lineL);
-      int rightY = editor2.lineToPos(lineR);
+      int leftY = editor1.lineToPos(aLine.fromL);
+      int rightY = editor2.lineToPos(aLine.fromR);
 
-      int leftY0 = leftY - d, leftY1 = leftY0 + syncLineHeight;
-      int rightY0 = rightY - d, rightY1 = rightY0 + syncLineHeight;
+      int leftY0 = leftY - d, leftY1 = leftY0 + lineWidth;
+      int rightY0 = rightY - d, rightY1 = rightY0 + lineWidth;
 
       setLinePos(leftY0, leftY1, rightY0, rightY1);
 
@@ -170,14 +165,14 @@ public class MiddleLine extends View {
         continue;
       }
 
-      int t = syncLineHeight / 2;
+      int t = lineWidth / 2;
 
       if (leftY > rightY) {
         p12.x -= t;
-        p21.x += syncLineHeight - t;
+        p21.x += lineWidth - t;
       } else if (leftY < rightY) {
         p11.x += t;
-        p22.x -= syncLineHeight - t;
+        p22.x -= lineWidth - t;
       }
 
       rSize.set(size.x, rectY1 - rectY0);
@@ -258,14 +253,9 @@ public class MiddleLine extends View {
         lineL = diffModel.codeMappingL.docToViewCursor(lineL);
         lineR = diffModel.codeMappingR.docToViewCursor(lineR);
       }
-      if (lineL < lFirst && lineR < rFirst) {
-        System.out.println("sync line " + i + "clipped up");
-        continue;
-      }
-      if (lineL > lLast && lineR > rLast) {
-        System.out.println("sync line " + i + "clipped down");
-        continue;
-      }
+      if (lineL < lFirst && lineR < rFirst ||
+          lineL > lLast && lineR > rLast
+      ) continue;
       Visible syncRecord = alignLines.add();
       syncRecord.fromL = lineL;
       syncRecord.fromR = lineR;
@@ -313,39 +303,35 @@ public class MiddleLine extends View {
     if (syncL == null || syncR == null) return -1;
     double minD = Double.POSITIVE_INFINITY;
     int minInd = -1;
-    for (int i = 0; i < syncL.length; i++) {
-      int lineL = syncL[i];
-      int lineR = syncR[i];
-      if (diffModel.codeMappingL != null && diffModel.codeMappingR != null) {
-        lineL = diffModel.codeMappingL.docToViewCursor(lineL);
-        lineR = diffModel.codeMappingR.docToViewCursor(lineR);
-      }
-      if (lineL < 0 || lineR < 0) continue;
-      int d = EditorConst.SYNC_LINE_HEIGHT / 2;
+    int lineWidth = uiContext.toPx(lineWidthDp);
+    int lineWidthHalf = lineWidth / 2;
+    int nLines = alignLines.size();
+    var alData = alignLines.data();
+    for (int i = 0; i < nLines; i++) {
+      Visible aLine = alData[i];
 
-      int leftY = editor1.lineToPos(lineL),
-          leftY0 = leftY - d,
-          leftY1 = leftY0 + EditorConst.SYNC_LINE_HEIGHT;
+      int leftY = editor1.lineToPos(aLine.fromL),
+          leftY0 = leftY - lineWidthHalf,
+          leftY1 = leftY0 + lineWidth;
 
-      int rightY = editor2.lineToPos(lineR),
-          rightY0 = rightY - d,
-          rightY1 = rightY0 + EditorConst.SYNC_LINE_HEIGHT;
+      int rightY = editor2.lineToPos(aLine.fromR),
+          rightY0 = rightY - lineWidthHalf,
+          rightY1 = rightY0 + lineWidth;
 
       int rectY0 = Math.max(Math.min(leftY0, rightY0), pos.y);
       int rectY1 = Math.min(Math.max(leftY1, rightY1), pos.y + size.y);
-      if (rectY1 <= rectY0) continue;
 
       double curD;
-      if (rectY0 <= position.y && position.y <= rectY1)
+      if (rectY0 <= position.y && position.y <= rectY1) {
         curD = dist(position.x, position.y, pos.x, leftY, pos.x + size.x, rightY);
-      else {
+      } else {
         curD = Math.min(
             dist(position.x, position.y, pos.x, leftY),
             dist(position.x, position.y, pos.x + size.x, rightY)
         );
       }
 
-      if (curD <= 10 * d && curD < minD) {
+      if (curD <= syncLineHitThreshold * lineWidth && curD < minD) {
         minD = curD;
         minInd = i;
       }
