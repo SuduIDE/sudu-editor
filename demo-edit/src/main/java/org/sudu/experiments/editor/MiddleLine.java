@@ -145,7 +145,10 @@ public class MiddleLine extends View {
 
   private void drawSyncPoints(WglGraphics g, V2i rSize, int lineWidth) {
     int nLines = alignLines.size();
+    if (nLines == 0) return;
     var alData = alignLines.data();
+    int slw1 = editor1.getSyncLineWidth();
+    int slw2 = editor2.getSyncLineWidth();
     for (int i = 0; i < nLines; i++) {
       Visible aLine = alData[i];
       int d = lineWidth / 2;
@@ -185,17 +188,18 @@ public class MiddleLine extends View {
           p11, p12,
           p21, p22, color
       );
+
     }
   }
 
   private void drawLine(
       WglGraphics g,
       int yLeftStartPosition, int yRightStartPosition,
-      int lineWidth, int editorPos, int editorSize,
+      int lineWidth, int x, int width,
       V4f color, V2i p11, V2i p21
   ) {
     V2i temp = uiContext.v2i1;
-    temp.set(editorSize, lineWidth);
+    temp.set(width, lineWidth);
     int y = yLeftStartPosition;
     if (yRightStartPosition < yLeftStartPosition) {
       y -= lineWidth;
@@ -203,7 +207,7 @@ public class MiddleLine extends View {
     } else {
       p21.y = p21.y + lineWidth;
     }
-    g.drawRect(editorPos, y, temp, color);
+    g.drawRect(x, y, temp, color);
   }
 
   public void setSyncLines(int[] syncL, int[] syncR) {

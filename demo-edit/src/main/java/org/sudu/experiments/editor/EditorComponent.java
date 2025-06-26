@@ -820,6 +820,12 @@ public class EditorComponent extends View implements
   public V2i pos() { return pos; }
   public V2i size() { return size; }
 
+  @Override
+  public int getSyncLineWidth() {
+    int lnw = lineNumbers.width();
+    return mirrored ? lnw : lnw + mergeButtons.size.x;
+  }
+
   private void updateLineNumbersFont() {
     lineNumbers.setFont(lrContext.font, lineHeight, context.cleartype);
   }
