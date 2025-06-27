@@ -13,6 +13,8 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSString;
 
+import java.util.function.Consumer;
+
 public class DiffEngine implements DiffEngineJs {
   public static final boolean debug = false;
 
@@ -250,7 +252,22 @@ public class DiffEngine implements DiffEngineJs {
         Promise.create((resolve, reject) ->
             FsWorkerJobs.asyncStats(pool, file,
                 stats -> resolve.f(exportStats(stats)),
-                error -> reject.f(JsHelper.newError(error))));
+                postReject(reject)));
+  }
+
+  @Override
+  public Promise<JSString> readFile(JsFileInput input) {
+    FileHandle file = JsFileInput.fileHandle(input, false);
+
+    return file == null ? Promise.reject("bad input") :
+        Promise.create((resolve, reject) ->
+            FsWorkerJobs.readTextFile(pool, file,
+                (text, en) -> resolve.f(TextDecoder.decodeUTF16(text)),
+                postReject(reject)));
+  }
+
+  static Consumer<String> postReject(JsFunctions.Consumer<JSError> reject) {
+    return error -> reject.f(JsHelper.newError(error));
   }
 
   @Override
