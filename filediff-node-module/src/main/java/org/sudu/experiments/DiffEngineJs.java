@@ -4,6 +4,7 @@ import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.Promise;
 import org.sudu.experiments.js.node.JsSshInput;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSString;
 
 public interface DiffEngineJs extends JSObject {
   void dispose();
@@ -40,6 +41,8 @@ public interface DiffEngineJs extends JSObject {
       JsSshInput sshInput, boolean withFiles);
 
   Promise<JSObject> stat(JsFileInput sshInput);
+
+  Promise<JSString> readFile(JsFileInput file);
 
   JsDiffTestApi testApi();
 }

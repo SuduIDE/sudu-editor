@@ -128,6 +128,8 @@ export interface DiffEngine extends IDisposable {
 
   stat(fileOrFolder: FileInput) : Promise<FStats>;
 
+  readFile(file: FileInput) : Promise<string>;
+
   testApi(): DiffTestApi;
 }
 
