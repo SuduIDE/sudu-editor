@@ -65,19 +65,23 @@ public class NodeFileHandle extends NodeFileHandle0 {
       Consumer<byte[]> consumer, Consumer<String> onError,
       int begin, int length
   ) {
-    double jsSize = (length < 0 ? actualStats() : statsCache()).size();
-    int fileSize = (int) jsSize;
+    try {
+      double jsSize = (length < 0 ? actualStats() : statsCache()).size();
+      int fileSize = (int) jsSize;
 
-    if (begin <= fileSize) {
-      if (length < 0) length = fileSize;
-      else length = Math.min(length, fileSize - begin);
-      if (length > 0) {
-        doRead(consumer, onError, begin, length);
+      if (begin <= fileSize) {
+        if (length < 0) length = fileSize;
+        else length = Math.min(length, fileSize - begin);
+        if (length > 0) {
+          doRead(consumer, onError, begin, length);
+        } else {
+          consumer.accept(new byte[0]);
+        }
       } else {
-        consumer.accept(new byte[0]);
+        onError.accept("readAsBytes: begin > fileSize");
       }
-    } else {
-      onError.accept("");
+    } catch (Exception e) {
+      onError.accept(e.getMessage());
     }
   }
 
