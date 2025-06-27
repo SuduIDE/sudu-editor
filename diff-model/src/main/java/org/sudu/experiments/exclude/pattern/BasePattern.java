@@ -27,8 +27,9 @@ public abstract class BasePattern {
   }
 
   public static BasePattern mkPattern(String pattern) {
-    // TODO add new patterns types based on containWildcards && containPathWildcards
-    return new WildcardPattern(pattern);
+    if (containsPathWildcards(pattern)) return new PathWildcardPattern(pattern);
+    else if (containsWildcards(pattern)) return new WildcardPattern(pattern);
+    else return new NoWildcardPattern(pattern);
   }
 
   public abstract boolean match(String path, boolean isDir);
@@ -48,5 +49,18 @@ public abstract class BasePattern {
     }
     if (pPos != str.length()) result.add(str.substring(pPos));
     return result;
+  }
+
+  protected static boolean containsPathWildcards(String pattern) {
+    return pattern.contains("**");
+  }
+
+  protected static boolean containsWildcards(String pattern) {
+    for (int i = 0; i < pattern.length(); i++) {
+      char c = pattern.charAt(i);
+      boolean escape = i > 0 && pattern.charAt(i - 1) == '\\';
+      if (!escape && (c == '*' || c == '?' || c == '[')) return true;
+    }
+    return false;
   }
 }
