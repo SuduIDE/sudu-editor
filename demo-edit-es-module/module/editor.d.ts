@@ -178,6 +178,7 @@ export const enum ThemeColor {
   AddedResourceForeground = 6,
   DeletedResourceForeground = 7,
   ModifiedResourceForeground = 8,
+  IgnoredResourceForeground = 22,
 
   // window title
   PanelHeaderBackground = 9,
@@ -197,7 +198,6 @@ export const enum ThemeColor {
   LineNumberForeground = 19,
   ActiveLineNumberForeground = 20,
   LineNumberActiveForeground = 21
-
 }
 
 export type BaseTheme = 'dark' | 'light' | 'darcula';

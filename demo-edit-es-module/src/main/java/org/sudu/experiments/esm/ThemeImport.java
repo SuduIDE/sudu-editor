@@ -123,6 +123,7 @@ public interface ThemeImport {
       case AddedResourceForeground -> "AddedResourceForeground";
       case DeletedResourceForeground -> "DeletedResourceForeground";
       case ModifiedResourceForeground -> "ModifiedResourceForeground";
+      case IgnoredResourceForeground -> "IgnoredResourceForeground";
       case PanelHeaderBackground -> "PanelHeaderBackground";
       case PanelHeaderForeground -> "PanelHeaderForeground";
       case EditorBackground -> "EditorBackground";
