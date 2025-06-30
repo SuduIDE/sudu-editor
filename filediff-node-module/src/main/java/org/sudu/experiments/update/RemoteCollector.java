@@ -69,6 +69,8 @@ public class RemoteCollector {
   private final ExcludeList exclude;
   private static final boolean FILTER_EXCLUDE = false;
 
+  private boolean sendOnComplete = false;
+
   public RemoteCollector(
       ItemFolderDiffModel root,
       boolean scanFileContent,
@@ -99,6 +101,7 @@ public class RemoteCollector {
     foldersCompared = filesCompared = 0;
     filesInserted = filesDeleted = filesEdited = 0;
     completeTime = -1;
+    sendOnComplete = false;
     root.setCompared(false);
     root.childrenComparedCnt = 0;
     sendToWorkerQueue.clear();
@@ -316,7 +319,7 @@ public class RemoteCollector {
         boolean isDir = !model.isFile();
         boolean excluded = exclude.isExcluded(fullPath, isDir);
         model.setExcluded(excluded);
-        if (excluded) model.setSendExcluded(true);
+        model.setSendExcluded(excluded);
       }
     }
     return model;
@@ -513,15 +516,34 @@ public class RemoteCollector {
     for (int i = 0; i < fsItems.length; i++) fsItems[i] = (FsItem) result[stats[0] + i + 2];
     var updModel = ItemFolderDiffModel.fromInts(ints, paths, fsItems);
     model.update(updModel);
+    if (exclude != null) checkExclude(model);
     onItemCompared();
+  }
+
+  private void checkExclude(RemoteFolderDiffModel model) {
+    if (model == null) return;
+    if (model.parent != null && model.parent.isExcluded()) {
+      model.setExcluded(true);
+      model.setExcluded(true);
+    } else {
+      String fullPath = model.getFullPath("");
+      boolean isDir = !model.isFile();
+      boolean excluded = exclude.isExcluded(fullPath, isDir);
+      model.setExcluded(excluded);
+      model.setSendExcluded(excluded);
+    }
+    if (model.children == null) return;
+    for (int i = 0; i < model.children.length; i++) checkExclude(model.child(i));
   }
 
   private void onItemCompared() {
     if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
     if (--sentToWorker < 0) throw new IllegalStateException("sentToWorker cannot be negative");
     if (isShutdown) shutdown();
-    else if (inComparing == 0) onComplete();
-    else {
+    else if (inComparing == 0 && !sendOnComplete) {
+      sendOnComplete = true;
+      onComplete();
+    } else {
       sendTaskToWorker();
       if (sendResult == null || lastMessageSent) return;
       double time = firstMessageSent
@@ -600,9 +622,14 @@ public class RemoteCollector {
   }
 
   private void sendExclude(ItemFolderDiffModel model, FrontendTreeNode frontendNode) {
+    if (model == null) return;
     if (model.isExcluded() && !model.isFile() && !model.isSendExcluded()) {
       model.setSendExcluded(true);
-      compare(model);
+      model.setCompared(false);
+      model.setCompared(false);
+      model.parent().childrenComparedCnt--;
+      if (model.isBoth()) compare(model);
+      else read(model);
     }
     if (model.children == null || frontendNode == null || frontendNode.children == null) return;
     for (int i = 0; i < model.children.length; i++) {
