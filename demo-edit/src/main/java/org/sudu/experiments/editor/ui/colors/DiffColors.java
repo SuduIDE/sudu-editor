@@ -157,7 +157,8 @@ public class DiffColors {
         ColorOp.blend(deletedColor, color),
         ColorOp.blend(insertedColor, color),
         ColorOp.blend(editedColor, color),
-        ColorOp.blend(editedColor2, color)
+        ColorOp.blend(editedColor2, color),
+        ColorOp.blend(excludedColor, color)
     );
   }
 }
