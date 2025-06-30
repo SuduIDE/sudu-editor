@@ -12,6 +12,9 @@ public class DiffColors {
   // edited element on edited region
   public Color editedColor2;
 
+  // excluded color
+  public Color excludedColor;
+
   public DiffColors(DiffColors c) {
     this(c.deletedColor, c.insertedColor, c.editedColor, c.editedColor2);
   }
@@ -28,6 +31,7 @@ public class DiffColors {
     this.insertedColor = insertedColor;
     this.editedColor = editedColor;
     this.editedColor2 = editedColor2;
+    this.excludedColor = new Color("#83841A");  // TODO work with excluded color
   }
 
   public static DiffColors codeMapVSCode() {
@@ -117,7 +121,8 @@ public class DiffColors {
     };
   }
 
-  public Color getDiffColor(int type, Color bg) {
+  public Color getDiffColor(int type, boolean excluded, Color bg) {
+    if (excluded) return excludedColor;
     return switch (type) {
       case DiffTypes.DELETED -> deletedColor;
       case DiffTypes.INSERTED -> insertedColor;
@@ -127,8 +132,12 @@ public class DiffColors {
     };
   }
 
+  public Color getDiffColor(int type, Color bg) {
+    return getDiffColor(type, false, bg);
+  }
+
   public Color getDiffColor(EditorColorScheme colorScheme, int diffType) {
-    return getDiffColor(diffType, colorScheme.editor.bg);
+    return getDiffColor(diffType, false, colorScheme.editor.bg);
   }
 
   public DiffColors blendWith(Color color) {

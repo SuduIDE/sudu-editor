@@ -40,13 +40,14 @@ public class DiffModelChannelUpdater {
       ItemFolderDiffModel root,
       boolean scanFileContent,
       NodeWorkersPool executor, Channel channel,
-      ExcludeList elLeft, ExcludeList elRight
+      ExcludeList exclude
   ) {
     LoggingJs.info("DiffModelChannelUpdater created");
     this.collector = new RemoteCollector(
         root,
         scanFileContent,
-        executor
+        executor,
+        exclude
     );
     this.channel = channel;
     this.channel.setOnMessage(this::onMessage);

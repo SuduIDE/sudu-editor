@@ -13,12 +13,14 @@ import org.sudu.experiments.editor.worker.FileCompare;
 import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.editor.worker.SizeScanner;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
+import org.sudu.experiments.exclude.ExcludeList;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.TextEncoder;
 import org.sudu.experiments.js.node.SshDirectoryHandle;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
+import org.sudu.experiments.protocol.FrontendTreeNode;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
 import org.teavm.jso.core.JSString;
@@ -64,15 +66,20 @@ public class RemoteCollector {
   private final BitSet lastFilters = new BitSet();
   private int lastFiltersLength = 0;
 
+  private final ExcludeList exclude;
+  private static final boolean FILTER_EXCLUDE = false;
+
   public RemoteCollector(
       ItemFolderDiffModel root,
       boolean scanFileContent,
-      NodeWorkersPool executor
+      NodeWorkersPool executor,
+      ExcludeList exclude
   ) {
     this.root = root;
     this.executor = executor;
     this.scanFileContent = scanFileContent;
     this.startTime = this.lastMessageSentTime = Performance.now();
+    this.exclude = exclude;
     sendToWorkerQueue = new LinkedList<>();
     workerSize = executor.workersLength();
   }
@@ -136,20 +143,6 @@ public class RemoteCollector {
     ArrayWriter pathWriter = new ArrayWriter();
     lastFrontendMessage.collectPath(path, pathWriter, root, left);
 
-//    Runnable updateModel = () -> {
-//      LoggingJs.info("RemoteCollector.applyDiff.updateModel");
-//      if (isDeleteDiff) {
-//        var node = lastFrontendMessage.findNode(path);
-//        var parentNode = lastFrontendMessage.findParentNode(path);
-//        if (node != null && parentNode != null) parentNode.deleteItem(node);
-//        model.deleteItem();
-//      } else if (isInsertDiff) {
-//        model.insertItem();
-//      } else {
-//        model.editItem(left);
-//      }
-//      sendApplied();
-//    };
     Runnable updateModel = () -> {
       LoggingJs.info("RemoteCollector.applyDiff.updateModel");
       if (isDeleteDiff) {
@@ -301,15 +294,40 @@ public class RemoteCollector {
   ) {
     String path = item.getName();
     boolean isFile = item instanceof FileHandle;
-    if (oldChildren == null) return new ItemFolderDiffModel(parent, path);
-    for (var oldChild: oldChildren)
-      if (oldChild instanceof ItemFolderDiffModel itemChild &&
-          path.equals(itemChild.path) && isFile == itemChild.isFile()
-      ) return itemChild;
-    return new ItemFolderDiffModel(parent, path);
+    ItemFolderDiffModel model = null;
+    if (oldChildren == null) {
+      model = new ItemFolderDiffModel(parent, path);
+    } else {
+      for (var oldChild: oldChildren) {
+        if (!(oldChild instanceof ItemFolderDiffModel itemChild)) continue;
+        if (path.equals(itemChild.path) && isFile == itemChild.isFile()) {
+          model = itemChild;
+          break;
+        }
+      }
+      if (model == null) model = new ItemFolderDiffModel(parent, path);
+    }
+    if (exclude != null) {
+      if (parent != null && parent.isExcluded()) {
+        model.setExcluded(true);
+        model.setSendExcluded(true);
+      } else {
+        String fullPath = model.getFullPath("");
+        boolean isDir = !model.isFile();
+        boolean excluded = exclude.isExcluded(fullPath, isDir);
+        model.setExcluded(excluded);
+        if (excluded) model.setSendExcluded(true);
+      }
+    }
+    return model;
   }
 
   private void compare(ItemFolderDiffModel model) {
+    if (model.isExcluded() && !model.isSendExcluded()) {
+      LoggingJs.info("Excluded: " + model.getFullPath(""));
+      model.itemCompared();
+      return;
+    }
     ++inComparing;
     if (model.left() instanceof DirectoryHandle leftDir &&
         model.right() instanceof DirectoryHandle rightDir
@@ -573,9 +591,25 @@ public class RemoteCollector {
       send.accept(fullMsg);
     }
     var backendMessage = filteredBackendModel();
+    if (backendMessage instanceof ItemFolderDiffModel && message != null) {
+      sendExclude((ItemFolderDiffModel) backendMessage, message.openedFolders);
+    }
     var jsArray = serializeBackendMessage(backendMessage, message);
     jsArray.push(msgType);
     send.accept(jsArray);
+  }
+
+  private void sendExclude(ItemFolderDiffModel model, FrontendTreeNode frontendNode) {
+    if (model.isExcluded() && !model.isFile() && !model.isSendExcluded()) {
+      model.setSendExcluded(true);
+      compare(model);
+    }
+    if (model.children == null || frontendNode == null || frontendNode.children == null) return;
+    for (int i = 0; i < model.children.length; i++) {
+      ItemFolderDiffModel childModel = model.child(i);
+      FrontendTreeNode childNode = frontendNode.child(i, childModel.path, childModel.isFile());
+      sendExclude(childModel, childNode);
+    }
   }
 
   private JsArray<JSObject> serializeBackendMessage(RemoteFolderDiffModel model, FrontendMessage message) {
@@ -603,7 +637,8 @@ public class RemoteCollector {
   }
 
   public RemoteFolderDiffModel filteredBackendModel() {
-    if (!isFiltered()) return root;
+    if (!isFiltered() && !FILTER_EXCLUDE) return root;
+    if (lastFilters.isEmpty()) fillFilters();
     var filtered = root.applyFilter(lastFilters, null);
     if (filtered == null) {
       filtered = new RemoteFolderDiffModel(null, "");
@@ -623,6 +658,15 @@ public class RemoteCollector {
       lastFilters.set(filter);
     }
     send(sendResult, lastFrontendMessage, DiffModelChannelUpdater.APPLY_FILTERS_ARRAY);
+  }
+
+  private void fillFilters() {
+    lastFilters.clear();
+    lastFilters.set(DiffTypes.DEFAULT);
+    lastFilters.set(DiffTypes.DELETED);
+    lastFilters.set(DiffTypes.INSERTED);
+    lastFilters.set(DiffTypes.EDITED);
+    lastFiltersLength = 4;
   }
 
   private double getTimeDelta() {

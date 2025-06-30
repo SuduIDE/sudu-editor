@@ -45,10 +45,10 @@ public class DiffEngine implements DiffEngineJs {
 
     boolean singleExclude = JSString.isInstance(excludeList);
 
-    ExcludeList elLeft, elRight;
+    ExcludeList exclude;
     if (singleExclude) {
       JSString excludeString = excludeList.cast();
-      elLeft = elRight = new ExcludeList(excludeString.stringValue());
+      exclude = new ExcludeList(excludeString.stringValue());
       LoggingJs.info(JsHelper.concat("Exclude list: ", excludeString));
     } else {
       JSString excludeLeft = JsHelper.getString(excludeList,
@@ -58,10 +58,7 @@ public class DiffEngine implements DiffEngineJs {
 
       LoggingJs.info(JsHelper.concat("Exclude left: ", excludeLeft));
       LoggingJs.info(JsHelper.concat("Exclude right: ", excludeRight));
-      elLeft = excludeLeft != null ?
-          new ExcludeList(excludeLeft.stringValue()) : null;
-      elRight = excludeRight != null ?
-          new ExcludeList(excludeRight.stringValue()) : null;
+      exclude = new ExcludeList(excludeLeft.stringValue(), excludeRight.stringValue());
     }
 
     if (leftDir == null)
@@ -81,7 +78,7 @@ public class DiffEngine implements DiffEngineJs {
         root,
         scanFileContent,
         pool, channel,
-        elLeft, elRight
+        exclude
     );
     updater.beginCompare();
     return new JsFolderDiffSession0(updater);
