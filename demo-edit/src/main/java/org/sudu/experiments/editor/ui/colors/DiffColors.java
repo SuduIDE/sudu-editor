@@ -16,29 +16,31 @@ public class DiffColors {
   public Color excludedColor;
 
   public DiffColors(DiffColors c) {
-    this(c.deletedColor, c.insertedColor, c.editedColor, c.editedColor2);
+    this(c.deletedColor, c.insertedColor, c.editedColor, c.editedColor2, c.excludedColor);
   }
 
-  DiffColors(Color deletedColor, Color insertedColor, Color editedColor) {
-    this(deletedColor, insertedColor, editedColor, editedColor);
+  DiffColors(Color deletedColor, Color insertedColor, Color editedColor, Color excludedColor) {
+    this(deletedColor, insertedColor, editedColor, editedColor, excludedColor);
   }
 
   DiffColors(
       Color deletedColor, Color insertedColor,
-      Color editedColor, Color editedColor2
+      Color editedColor, Color editedColor2,
+      Color excludedColor
   ) {
     this.deletedColor = deletedColor;
     this.insertedColor = insertedColor;
     this.editedColor = editedColor;
     this.editedColor2 = editedColor2;
-    this.excludedColor = new Color("#83841A");  // TODO work with excluded color
+    this.excludedColor = excludedColor;
   }
 
   public static DiffColors codeMapVSCode() {
     return new DiffColors(
         new Color("#f14c4c"),
         new Color("#487e01"),
-        new Color("#1b81a8")
+        new Color("#1b81a8"),
+        null
     );
   }
 
@@ -47,7 +49,8 @@ public class DiffColors {
         new Color("#484A4A"),
         new Color("#294436"),
         new Color("#303C47"),
-        new Color("#385570")
+        new Color("#385570"),
+        new Color("#848504")
     );
   }
 
@@ -56,7 +59,8 @@ public class DiffColors {
         new Color("#484A4A"),
         new Color("#294436"),
         new Color("#283541"),
-        new Color("#385570")
+        new Color("#385570"),
+        new Color("#D69A6B")
     );
   }
 
@@ -64,7 +68,9 @@ public class DiffColors {
     return new DiffColors(
         new Color("#656E76"),
         new Color("#447152"),
-        new Color("#43698D"));
+        new Color("#43698D"),
+        new Color("#D69A6B")
+    );
   }
   public static DiffColors codeMapDarcula() {
     return codeMapDark();
@@ -74,7 +80,9 @@ public class DiffColors {
     return new DiffColors(
         new Color("#C8C8C8"),
         new Color("#AADEAA"),
-        new Color("#B6D2F2"));
+        new Color("#B6D2F2"),
+        new Color("#8C4F00")
+    );
   }
 
   public static DiffColors codeDiffLight() {
@@ -82,7 +90,8 @@ public class DiffColors {
         new Color("#D6D6D6"),
         new Color("#BEE6BE"),
         new Color("#E7EFFA"),
-        new Color("#C2D8F2")
+        new Color("#C2D8F2"),
+        new Color("#8C4F00")
     );
   }
 
@@ -90,7 +99,8 @@ public class DiffColors {
     return new DiffColors(
         new Color("#6F737A"),
         new Color("#73BD79"),
-        new Color("#70AEFF")
+        new Color("#70AEFF"),
+        new Color("#D69A6B")
     );
   }
 
@@ -98,7 +108,8 @@ public class DiffColors {
     return new DiffColors(
         new Color("#6C707E"),
         new Color("#067D17"),
-        new Color("#0033B3")
+        new Color("#0033B3"),
+        new Color("#8C4F00")
     );
   }
 
@@ -106,7 +117,8 @@ public class DiffColors {
     return new DiffColors(
         new Color("#6C6C6C"),
         new Color("#629755"),
-        new Color("#6897BB")
+        new Color("#6897BB"),
+        new Color("#848504")
     );
   }
 
