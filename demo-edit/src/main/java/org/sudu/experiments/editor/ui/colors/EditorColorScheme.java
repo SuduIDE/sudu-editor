@@ -43,7 +43,7 @@ public class EditorColorScheme {
   public static final int ActiveLineNumberForeground = 20;
   public static final int LineNumberActiveForeground = 21;
 
-  public static final int LastIndex = LineNumberActiveForeground + 1;
+  public static final int LastIndex = IgnoredResourceForeground + 1;
 
   public final EditorColors editor;
   public final FileTreeViewTheme fileTreeView;
