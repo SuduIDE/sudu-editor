@@ -21,6 +21,7 @@ public class EditorColorScheme {
   public static final int AddedResourceForeground = 6;
   public static final int DeletedResourceForeground = 7;
   public static final int ModifiedResourceForeground = 8;
+  public static final int IgnoredResourceForeground = 22;
 
   // window title
   public static final int PanelHeaderBackground = 9;
@@ -242,6 +243,9 @@ public class EditorColorScheme {
 
       case ModifiedResourceForeground ->
           fileTreeView.textDiffColors.editedColor = c;
+
+      case IgnoredResourceForeground ->
+          fileTreeView.textDiffColors.excludedColor = c;
 
       case LineNumberForeground -> {
         lineNumber.textColor = ColorOp.blend(editor.bg, c);
