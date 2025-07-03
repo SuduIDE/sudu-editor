@@ -2,6 +2,7 @@ package org.sudu.experiments.editor;
 
 import org.sudu.experiments.Cursor;
 import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.arrays.ObjPool;
 import org.sudu.experiments.editor.ui.colors.DiffColors;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
@@ -16,12 +17,12 @@ import org.sudu.experiments.ui.window.View;
 
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
-import java.util.Arrays;
 
 public class MiddleLine extends View {
   public static final float lineWidthDp = 2;
 
   public static final int middleLineThicknessDp = 20;
+  public static final int syncLineHitThreshold = 5;
 
   public final UiContext uiContext;
 
@@ -42,8 +43,10 @@ public class MiddleLine extends View {
 
   private IntConsumer onMidSyncPointHover;
   private IntConsumer onMidSyncPointClick;
-  private Visible[] visible = new Visible[4];
-  private int nVisible;
+  private final ObjPool<Visible> visible =
+      new ObjPool<>(new Visible[2], Visible::new);
+  private final ObjPool<Visible> alignLines =
+      new ObjPool<>(new Visible[4], Visible::new);
 
   public MiddleLine(UiContext context) {
     this.uiContext = context;
@@ -89,7 +92,7 @@ public class MiddleLine extends View {
     if (diffModel == null || diffColors == null) return;
 
     computeVisible();
-    if (nVisible == 0) return;
+    if (visible.size() == 0) return;
 
     g.enableBlend(true);
 
@@ -102,8 +105,9 @@ public class MiddleLine extends View {
 
     int lineWidth = uiContext.toPx(lineWidthDp);
 
-    for (int i = 0; i < nVisible; i++) {
-      Visible vr = visible[i];
+    var vis = visible.data();
+    for (int i = 0, n = visible.size(); i < n; i++) {
+      Visible vr = vis[i];
       int leftY0 = editor1.lineToPos(vr.fromL);
       int leftY1 = editor1.lineToPos(vr.fromL + vr.lenL);
 
@@ -135,44 +139,43 @@ public class MiddleLine extends View {
       );
     }
 
-    drawSyncPoints(g, rSize);
+    drawSyncPoints(g, rSize, lineWidth);
     g.enableBlend(false);
   }
 
-  private void drawSyncPoints(WglGraphics g, V2i rSize) {
-    if (syncL == null || syncR == null) return;
-    for (int i = 0; i < syncL.length; i++) {
-      int lineL = syncL[i];
-      int lineR = syncR[i];
-      if (diffModel.codeMappingL != null && diffModel.codeMappingR != null) {
-        lineL = diffModel.codeMappingL.docToViewCursor(lineL);
-        lineR = diffModel.codeMappingR.docToViewCursor(lineR);
-      }
-      if (lineL < 0 || lineR < 0) continue;
-      int d = EditorConst.SYNC_LINE_HEIGHT / 2;
+  private void drawSyncPoints(WglGraphics g, V2i rSize, int lineWidth) {
+    int nLines = alignLines.size();
+    if (nLines == 0) return;
+    var alData = alignLines.data();
+    int slw1 = editor1.getSyncLineWidth();
+    int slw2 = editor2.getSyncLineWidth();
+    for (int i = 0; i < nLines; i++) {
+      Visible aLine = alData[i];
+      int d = lineWidth / 2;
 
-      int leftY = editor1.lineToPos(lineL),
-          leftY0 = leftY - d,
-          leftY1 = leftY0 + EditorConst.SYNC_LINE_HEIGHT;
+      int leftY = editor1.lineToPos(aLine.fromL);
+      int rightY = editor2.lineToPos(aLine.fromR);
 
-      int rightY = editor2.lineToPos(lineR),
-          rightY0 = rightY - d,
-          rightY1 = rightY0 + EditorConst.SYNC_LINE_HEIGHT;
+      int leftY0 = leftY - d, leftY1 = leftY0 + lineWidth;
+      int rightY0 = rightY - d, rightY1 = rightY0 + lineWidth;
 
       setLinePos(leftY0, leftY1, rightY0, rightY1);
 
       int rectY0 = Math.max(Math.min(leftY0, rightY0), pos.y);
       int rectY1 = Math.min(Math.max(leftY1, rightY1), pos.y + size.y);
-      if (rectY1 <= rectY0) continue;
+      if (rectY1 <= rectY0) {
+        System.out.println("(rectY1 <= rectY0)");
+        continue;
+      }
 
-      int x = EditorConst.SYNC_LINE_HEIGHT;
+      int t = lineWidth / 2;
 
       if (leftY > rightY) {
-        p12.x -= x;
-        p21.x += x;
+        p12.x -= t;
+        p21.x += lineWidth - t;
       } else if (leftY < rightY) {
-        p11.x += x;
-        p22.x -= x;
+        p11.x += t;
+        p22.x -= lineWidth - t;
       }
 
       rSize.set(size.x, rectY1 - rectY0);
@@ -185,17 +188,18 @@ public class MiddleLine extends View {
           p11, p12,
           p21, p22, color
       );
+
     }
   }
 
   private void drawLine(
       WglGraphics g,
       int yLeftStartPosition, int yRightStartPosition,
-      int lineWidth, int editorPos, int editorSize,
+      int lineWidth, int x, int width,
       V4f color, V2i p11, V2i p21
   ) {
     V2i temp = uiContext.v2i1;
-    temp.set(editorSize, lineWidth);
+    temp.set(width, lineWidth);
     int y = yLeftStartPosition;
     if (yRightStartPosition < yLeftStartPosition) {
       y -= lineWidth;
@@ -203,13 +207,14 @@ public class MiddleLine extends View {
     } else {
       p21.y = p21.y + lineWidth;
     }
-    g.drawRect(editorPos, y, temp, color);
+    g.drawRect(x, y, temp, color);
   }
 
   public void setSyncLines(int[] syncL, int[] syncR) {
     this.syncL = syncL;
     this.syncR = syncR;
   }
+
   private void computeVisible() {
     CompactCodeMapping cml = diffModel.codeMappingL;
     CompactCodeMapping cmr = diffModel.codeMappingR;
@@ -220,7 +225,7 @@ public class MiddleLine extends View {
     int rFirst = editor2.getFirstLine();
     int rLast = editor2.getLastLine();
 
-    nVisible = 0;
+    visible.clear();
     DiffRange[] ranges = diffModel.ranges;
     for (DiffRange range : ranges) {
       if (range.type == 0) continue;
@@ -232,22 +237,33 @@ public class MiddleLine extends View {
 
       boolean lVis = lFirst <= fromL + lenL && fromL <= lLast;
       boolean rVis = rFirst <= fromR + lenR && fromR <= rLast;
-      if (lVis || rVis)
-        addVisible(fromL, lenL, fromR, lenR, range.type);
+      if (lVis || rVis) {
+        Visible r = visible.add();
+        r.fromL = fromL;
+        r.lenL = lenL;
+        r.fromR = fromR;
+        r.lenR = lenR;
+        r.type = range.type;
+      }
     }
-  }
 
-  void addVisible(int fromL, int lenL, int fromR, int lenR, int type) {
-    if (nVisible == visible.length)
-      visible = Arrays.copyOf(visible, visible.length * 2);
-    Visible r = visible[nVisible];
-    if (r == null) visible[nVisible] = r = new Visible();
-    r.fromL = fromL;
-    r.lenL = lenL;
-    r.fromR = fromR;
-    r.lenR = lenR;
-    r.type = type;
-    nVisible++;
+    alignLines.clear();
+
+    if (syncL == null || syncR == null) return;
+    for (int i = 0; i < syncL.length; i++) {
+      int lineL = syncL[i];
+      int lineR = syncR[i];
+      if (diffModel.codeMappingL != null && diffModel.codeMappingR != null) {
+        lineL = diffModel.codeMappingL.docToViewCursor(lineL);
+        lineR = diffModel.codeMappingR.docToViewCursor(lineR);
+      }
+      if (lineL < lFirst && lineR < rFirst ||
+          lineL > lLast && lineR > rLast
+      ) continue;
+      Visible syncRecord = alignLines.add();
+      syncRecord.fromL = lineL;
+      syncRecord.fromR = lineR;
+    }
   }
 
   @Override
@@ -291,39 +307,35 @@ public class MiddleLine extends View {
     if (syncL == null || syncR == null) return -1;
     double minD = Double.POSITIVE_INFINITY;
     int minInd = -1;
-    for (int i = 0; i < syncL.length; i++) {
-      int lineL = syncL[i];
-      int lineR = syncR[i];
-      if (diffModel.codeMappingL != null && diffModel.codeMappingR != null) {
-        lineL = diffModel.codeMappingL.docToViewCursor(lineL);
-        lineR = diffModel.codeMappingR.docToViewCursor(lineR);
-      }
-      if (lineL < 0 || lineR < 0) continue;
-      int d = EditorConst.SYNC_LINE_HEIGHT / 2;
+    int lineWidth = uiContext.toPx(lineWidthDp);
+    int lineWidthHalf = lineWidth / 2;
+    int nLines = alignLines.size();
+    var alData = alignLines.data();
+    for (int i = 0; i < nLines; i++) {
+      Visible aLine = alData[i];
 
-      int leftY = editor1.lineToPos(lineL),
-          leftY0 = leftY - d,
-          leftY1 = leftY0 + EditorConst.SYNC_LINE_HEIGHT;
+      int leftY = editor1.lineToPos(aLine.fromL),
+          leftY0 = leftY - lineWidthHalf,
+          leftY1 = leftY0 + lineWidth;
 
-      int rightY = editor2.lineToPos(lineR),
-          rightY0 = rightY - d,
-          rightY1 = rightY0 + EditorConst.SYNC_LINE_HEIGHT;
+      int rightY = editor2.lineToPos(aLine.fromR),
+          rightY0 = rightY - lineWidthHalf,
+          rightY1 = rightY0 + lineWidth;
 
       int rectY0 = Math.max(Math.min(leftY0, rightY0), pos.y);
       int rectY1 = Math.min(Math.max(leftY1, rightY1), pos.y + size.y);
-      if (rectY1 <= rectY0) continue;
 
       double curD;
-      if (rectY0 <= position.y && position.y <= rectY1)
+      if (rectY0 <= position.y && position.y <= rectY1) {
         curD = dist(position.x, position.y, pos.x, leftY, pos.x + size.x, rightY);
-      else {
+      } else {
         curD = Math.min(
             dist(position.x, position.y, pos.x, leftY),
             dist(position.x, position.y, pos.x + size.x, rightY)
         );
       }
 
-      if (curD <= 10 * d && curD < minD) {
+      if (curD <= syncLineHitThreshold * lineWidth && curD < minD) {
         minD = curD;
         minInd = i;
       }
