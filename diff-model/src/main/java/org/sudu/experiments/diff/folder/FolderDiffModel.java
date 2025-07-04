@@ -39,13 +39,16 @@ public class FolderDiffModel {
 
   // returns true if parent is fully compared
   public boolean itemCompared() {
-    if (isCompared()) System.err.println("File is already compared");
-    if (isCompared() && isExcluded()) return false;
+    if (isCompared()) {
+      if (!isExcluded()) System.err.println("File is already compared");
+      else return false;
+    }
     setCompared(true);
     return parent == null || parent.childCompared();
   }
 
   public boolean childCompared() {
+    if (isCompared()) return false;
     childrenComparedCnt++;
     if (!isFullyCompared()) return false;
     setCompared(true);
