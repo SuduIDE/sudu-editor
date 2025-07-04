@@ -238,9 +238,9 @@ public class TreeView extends ScrollContent implements Focusable {
 
     for (int i = firstLine; i <= lastLine; i++) {
       TreeNode mLine = model.lines[i];
-      FolderDiffModel diffModel = model.models[i];
       var diffType = mLine.diffType;
-      boolean excluded = diffModel.isExcluded();
+      FolderDiffModel diffModel = model.models[i];
+      boolean excluded = diffModel != null && diffModel.isExcluded();
 
       int yPosition = lineHeight * i - scrollPos.y;
 

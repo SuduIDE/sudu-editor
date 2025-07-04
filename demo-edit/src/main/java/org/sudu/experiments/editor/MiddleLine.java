@@ -19,7 +19,9 @@ import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
 public class MiddleLine extends View {
+  public static final boolean debug = true;
   public static final float lineWidthDp = 2;
+  public static final float syncLineWidthDp = 3;
 
   public static final int middleLineThicknessDp = 20;
   public static final int syncLineHitThreshold = 5;
@@ -139,31 +141,31 @@ public class MiddleLine extends View {
       );
     }
 
-    drawSyncPoints(g, rSize, lineWidth);
+    drawSyncPoints(g);
     g.enableBlend(false);
   }
 
-  private void drawSyncPoints(WglGraphics g, V2i rSize, int lineWidth) {
+  private void drawSyncPoints(WglGraphics g) {
     int nLines = alignLines.size();
     if (nLines == 0) return;
+    V2i rSize = uiContext.v2i2;
+    int lineWidth = uiContext.toPx(syncLineWidthDp);
     var alData = alignLines.data();
     int slw1 = editor1.getSyncLineWidth();
     int slw2 = editor2.getSyncLineWidth();
     for (int i = 0; i < nLines; i++) {
       Visible aLine = alData[i];
-      int d = lineWidth / 2;
 
       int leftY = editor1.lineToPos(aLine.fromL);
       int rightY = editor2.lineToPos(aLine.fromR);
+      int leftY1 = leftY + lineWidth;
+      int rightY1 = rightY + lineWidth;
 
-      int leftY0 = leftY - d, leftY1 = leftY0 + lineWidth;
-      int rightY0 = rightY - d, rightY1 = rightY0 + lineWidth;
+      setLinePos(leftY, leftY1, rightY, rightY1);
 
-      setLinePos(leftY0, leftY1, rightY0, rightY1);
-
-      int rectY0 = Math.max(Math.min(leftY0, rightY0), pos.y);
+      int rectY0 = Math.max(Math.min(leftY, rightY), pos.y);
       int rectY1 = Math.min(Math.max(leftY1, rightY1), pos.y + size.y);
-      if (rectY1 <= rectY0) {
+      if (debug) if (rectY1 <= rectY0) {
         System.out.println("(rectY1 <= rectY0)");
         continue;
       }
@@ -189,6 +191,15 @@ public class MiddleLine extends View {
           p21, p22, color
       );
 
+      // draw left right lines
+      V2i temp = uiContext.v2i1;
+      temp.x = slw1;
+      temp.y = p21.y - p11.y;
+      g.drawRect(p11.x - slw1, p11.y, temp, color);
+
+      temp.x = slw2;
+      temp.y = p22.y - p12.y;
+      g.drawRect(p12.x, p12.y, temp, color);
     }
   }
 

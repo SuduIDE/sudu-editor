@@ -797,7 +797,6 @@ public class EditorComponent extends View implements
         yPos,
         firstLine, lastLine,
         docToView,
-        syncPoints(),
         syncPoints.curSyncPoint(),
         syncPoints.hoverSyncPoint,
         syncPoints.getMidLineHoverSyncPoint(),
