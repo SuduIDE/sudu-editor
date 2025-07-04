@@ -138,18 +138,14 @@ public class LineNumbersComponent implements Disposable {
       CodeLineMapping mapping,
       int curSyncPoint,
       int hoverSyncPoint,
-      int midLineHoverSyncPoint,
       WglGraphics g, LineNumbersColors scheme
   ) {
     int viewCurSyncPoint = docToViewCursor(mapping, curSyncPoint);
     if (firstLine <= viewCurSyncPoint && viewCurSyncPoint <= lastLine)
-      drawSyncLine(yPos, viewCurSyncPoint, firstLine, scheme.currentSyncPoint, g);
+      if (true) drawSyncLine(yPos, viewCurSyncPoint, firstLine, scheme.currentSyncPoint, g);
     int viewHoverSyncPoint = docToViewCursor(mapping, hoverSyncPoint);
     if (firstLine <= viewHoverSyncPoint && viewHoverSyncPoint <= lastLine)
-      drawSyncLine(yPos, viewHoverSyncPoint, firstLine, scheme.hoverSyncPoint, g);
-    int viewMidLineHoverSyncPoint = docToViewCursor(mapping, midLineHoverSyncPoint);
-    if (firstLine <= viewMidLineHoverSyncPoint && viewMidLineHoverSyncPoint <= lastLine)
-      drawSyncLine(yPos, viewMidLineHoverSyncPoint, firstLine, scheme.midLineHoverSyncPoint, g);
+      if (true) drawSyncLine(yPos, viewHoverSyncPoint, firstLine, scheme.hoverSyncPoint, g);
   }
 
   private int docToViewCursor(CodeLineMapping mapping, int sp) {

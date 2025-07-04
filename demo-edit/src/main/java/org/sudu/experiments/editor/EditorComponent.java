@@ -799,7 +799,6 @@ public class EditorComponent extends View implements
         docToView,
         syncPoints.curSyncPoint(),
         syncPoints.hoverSyncPoint,
-        syncPoints.getMidLineHoverSyncPoint(),
         g, colors.lineNumber
     );
   }
