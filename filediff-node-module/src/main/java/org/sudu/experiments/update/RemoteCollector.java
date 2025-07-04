@@ -1,7 +1,6 @@
 package org.sudu.experiments.update;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
@@ -53,6 +52,7 @@ public class RemoteCollector {
 
   private boolean firstMessageSent = false;
   private boolean lastMessageSent = false;
+  private boolean onCompleteSent = false;
   private boolean isShutdown = false;
   private boolean isRefresh = false;
 
@@ -67,9 +67,6 @@ public class RemoteCollector {
   private int lastFiltersLength = 0;
 
   private final ExcludeList exclude;
-  private static final boolean FILTER_EXCLUDE = false;
-
-  private boolean sendOnComplete = false;
 
   public RemoteCollector(
       ItemFolderDiffModel root,
@@ -101,7 +98,7 @@ public class RemoteCollector {
     foldersCompared = filesCompared = 0;
     filesInserted = filesDeleted = filesEdited = 0;
     completeTime = -1;
-    sendOnComplete = false;
+    onCompleteSent = false;
     root.setCompared(false);
     root.childrenComparedCnt = 0;
     sendToWorkerQueue.clear();
@@ -112,6 +109,7 @@ public class RemoteCollector {
     double time = Performance.now() - startTime;
     LoggingJs.trace("RemoteCollector got frontend message in " + time + "ms");
     lastFrontendMessage = message;
+    sendExcludedToCompare(root, lastFrontendMessage.openedFolders);
     if (sendResult != null) sendMessage();
   }
 
@@ -162,46 +160,6 @@ public class RemoteCollector {
       if (!isDeleteDiff) copyFolder(model, left, updateModel);
       else removeFolder(model, updateModel);
     }
-  }
-
-  private void updateModelItems(ItemFolderDiffModel model, boolean left) {
-    Deque<ItemFolderDiffModel> updModelPath = new LinkedList<>();
-    var updModel = model.findNeedUpdate(updModelPath);
-
-    int st = 0;
-    StringBuilder sb = new StringBuilder();
-    ArrayWriter writer = new ArrayWriter();
-    writer.write(updModelPath.size());
-    for (var item: updModelPath) {
-      String path = item.path;
-      writer.write(st, path.length(), !item.isFile() ? 1 : 0);
-      sb.append(path);
-      st += path.length();
-    }
-    LoggingJs.info("Upd Model: " + updModel.path);
-    LoggingJs.info("Send reread");
-    executor.sendToWorker(true,
-        (res) -> updateNode(updModel, !left, updModelPath, res),
-        DiffUtils.REREAD_FOLDER,
-        updModel.item(!left), writer.getInts(), sb.toString().toCharArray()
-    );
-  }
-
-  private void updateNode(ItemFolderDiffModel updModel, boolean left, Deque<ItemFolderDiffModel> updModelPath, Object[] result) {
-    LoggingJs.info("RemoteCollector.updateNode");
-    int[] ints = ArgsCast.intArray(result, 0);
-    if (isErrorInts(ints)) {
-      String error = ArgsCast.string(result, 1);
-      onError(error);
-      return;
-    }
-    ArrayReader reader = new ArrayReader(ints);
-    Deque<FsItem> items = new LinkedList<>();
-    for (int i = 1; i < result.length; i++) {
-      items.add((FsItem) result[i]);
-    }
-    updModel.updateFsItems(left, reader, items, updModelPath);
-    sendApplied();
   }
 
   public void fileSave(
@@ -290,39 +248,29 @@ public class RemoteCollector {
     LoggingJs.error(error);
   }
 
-  private ItemFolderDiffModel oldOrNull(
+  private ItemFolderDiffModel oldOrNew(
+      FolderDiffModel[] oldChildren,
+      ItemFolderDiffModel parent,
+      FsItem item
+  ) {
+    ItemFolderDiffModel model = getOldOrNew(oldChildren, parent, item);
+    checkExcludeModel(model);
+    return model;
+  }
+
+  private static ItemFolderDiffModel getOldOrNew(
       FolderDiffModel[] oldChildren,
       ItemFolderDiffModel parent,
       FsItem item
   ) {
     String path = item.getName();
     boolean isFile = item instanceof FileHandle;
-    ItemFolderDiffModel model = null;
-    if (oldChildren == null) {
-      model = new ItemFolderDiffModel(parent, path);
-    } else {
-      for (var oldChild: oldChildren) {
-        if (!(oldChild instanceof ItemFolderDiffModel itemChild)) continue;
-        if (path.equals(itemChild.path) && isFile == itemChild.isFile()) {
-          model = itemChild;
-          break;
-        }
-      }
-      if (model == null) model = new ItemFolderDiffModel(parent, path);
+    if (oldChildren == null) return new ItemFolderDiffModel(parent, path);
+    for (var oldChild: oldChildren) {
+      if (!(oldChild instanceof ItemFolderDiffModel itemChild)) continue;
+      if (path.equals(itemChild.path) && isFile == itemChild.isFile()) return itemChild;
     }
-    if (exclude != null) {
-      if (parent != null && parent.isExcluded()) {
-        model.setExcluded(true);
-        model.setSendExcluded(true);
-      } else {
-        String fullPath = model.getFullPath("");
-        boolean isDir = !model.isFile();
-        boolean excluded = exclude.isExcluded(fullPath, isDir);
-        model.setExcluded(excluded);
-        model.setSendExcluded(excluded);
-      }
-    }
-    return model;
+    return new ItemFolderDiffModel(parent, path);
   }
 
   private void compare(ItemFolderDiffModel model) {
@@ -346,6 +294,7 @@ public class RemoteCollector {
       DirectoryHandle leftDir,
       DirectoryHandle rightDir
   ) {
+    LoggingJs.trace("Comparing folders " + model.path);
     Runnable task = () -> executor.sendToWorker(
         result -> onFoldersCompared(model, result),
         DiffUtils.CMP_FOLDERS,
@@ -359,6 +308,7 @@ public class RemoteCollector {
       ItemFolderDiffModel model,
       Object[] result
   ) {
+    LoggingJs.trace("Compared folders" + model.path);
     foldersCompared++;
     int[] ints = ArgsCast.intArray(result, 0);
     if (isErrorInts(ints)) {
@@ -389,7 +339,7 @@ public class RemoteCollector {
       int kind = kinds[mP];
       if (diffs[mP] == DiffTypes.DELETED) {
         edited = true;
-        model.children[mP] = oldOrNull(oldChildren, model, leftItem[lP]);
+        model.children[mP] = oldOrNew(oldChildren, model, leftItem[lP]);
         model.child(mP).setCompared(false);
         model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
@@ -400,7 +350,7 @@ public class RemoteCollector {
         lP++;
       } else if (diffs[mP] == DiffTypes.INSERTED) {
         edited = true;
-        model.children[mP] = oldOrNull(oldChildren, model, rightItem[rP]);
+        model.children[mP] = oldOrNew(oldChildren, model, rightItem[rP]);
         model.child(mP).setCompared(false);
         model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
@@ -410,7 +360,7 @@ public class RemoteCollector {
         mP++;
         rP++;
       } else {
-        model.children[mP] = oldOrNull(oldChildren, model, leftItem[lP]);
+        model.children[mP] = oldOrNew(oldChildren, model, leftItem[lP]);
         model.child(mP).setCompared(false);
         model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
@@ -431,6 +381,7 @@ public class RemoteCollector {
       FileHandle leftFile,
       FileHandle rightFile
   ) {
+    LoggingJs.trace("Comparing files " + model.path);
     if (scanFileContent) {
       Runnable task = () -> FileCompare.asyncCompareFiles(executor,
           leftFile, rightFile,
@@ -454,6 +405,7 @@ public class RemoteCollector {
       ItemFolderDiffModel model,
       boolean equals, String message
   ) {
+    LoggingJs.trace("Compared files " + model.path);
     if (message != null)
       LoggingJs.debug("onFilesCompared message: " + message);
 
@@ -516,33 +468,41 @@ public class RemoteCollector {
     for (int i = 0; i < fsItems.length; i++) fsItems[i] = (FsItem) result[stats[0] + i + 2];
     var updModel = ItemFolderDiffModel.fromInts(ints, paths, fsItems);
     model.update(updModel);
-    if (exclude != null) checkExclude(model);
+    checkExcludeModelChildren(model);
     onItemCompared();
   }
 
-  private void checkExclude(RemoteFolderDiffModel model) {
-    if (model == null) return;
+  private void checkExcludeModelChildren(RemoteFolderDiffModel model) {
+    if (exclude == null || model == null) return;
+    checkExcludeModel(model);
+    if (model.isExcluded()) model.setSendExcluded(true);
+    if (model.children == null) return;
+    for (int i = 0; i < model.children.length; i++) checkExcludeModelChildren(model.child(i));
+  }
+
+  private void checkExcludeModel(RemoteFolderDiffModel model) {
+    if (exclude == null) return;
     if (model.parent != null && model.parent.isExcluded()) {
       model.setExcluded(true);
-      model.setExcluded(true);
+      model.itemCompared();
     } else {
       String fullPath = model.getFullPath("");
       boolean isDir = !model.isFile();
       boolean excluded = exclude.isExcluded(fullPath, isDir);
       model.setExcluded(excluded);
-      model.setSendExcluded(excluded);
+      if (excluded) model.itemCompared();
     }
-    if (model.children == null) return;
-    for (int i = 0; i < model.children.length; i++) checkExclude(model.child(i));
   }
 
   private void onItemCompared() {
     if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
     if (--sentToWorker < 0) throw new IllegalStateException("sentToWorker cannot be negative");
     if (isShutdown) shutdown();
-    else if (inComparing == 0 && !sendOnComplete) {
-      sendOnComplete = true;
-      onComplete();
+    else if (inComparing == 0) {
+      if (!onCompleteSent) {
+        onCompleteSent = true;
+        onComplete();
+      } else sendMessage();
     } else {
       sendTaskToWorker();
       if (sendResult == null || lastMessageSent) return;
@@ -613,21 +573,15 @@ public class RemoteCollector {
       send.accept(fullMsg);
     }
     var backendMessage = filteredBackendModel();
-    if (backendMessage instanceof ItemFolderDiffModel && message != null) {
-      sendExclude((ItemFolderDiffModel) backendMessage, message.openedFolders);
-    }
     var jsArray = serializeBackendMessage(backendMessage, message);
     jsArray.push(msgType);
     send.accept(jsArray);
   }
 
-  private void sendExclude(ItemFolderDiffModel model, FrontendTreeNode frontendNode) {
+  private void sendExcludedToCompare(ItemFolderDiffModel model, FrontendTreeNode frontendNode) {
     if (model == null) return;
-    if (model.isExcluded() && !model.isFile() && !model.isSendExcluded()) {
+    if (model.isExcluded() && !model.isSendExcluded()) {
       model.setSendExcluded(true);
-      model.setCompared(false);
-      model.setCompared(false);
-      model.parent().childrenComparedCnt--;
       if (model.isBoth()) compare(model);
       else read(model);
     }
@@ -635,7 +589,7 @@ public class RemoteCollector {
     for (int i = 0; i < model.children.length; i++) {
       ItemFolderDiffModel childModel = model.child(i);
       FrontendTreeNode childNode = frontendNode.child(i, childModel.path, childModel.isFile());
-      sendExclude(childModel, childNode);
+      sendExcludedToCompare(childModel, childNode);
     }
   }
 
@@ -664,7 +618,7 @@ public class RemoteCollector {
   }
 
   public RemoteFolderDiffModel filteredBackendModel() {
-    if (!isFiltered() && !FILTER_EXCLUDE) return root;
+    if (!isFiltered()) return root;
     if (lastFilters.isEmpty()) fillFilters();
     var filtered = root.applyFilter(lastFilters, null);
     if (filtered == null) {
