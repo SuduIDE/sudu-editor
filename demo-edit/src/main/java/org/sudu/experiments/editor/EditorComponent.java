@@ -213,7 +213,7 @@ public class EditorComponent extends View implements
         Math.min(lineNumbersWidth, size.x), size.y, dpr);
     if (hasMerge)
       layoutMergeButtons();
-    lineNumbers.setMergeButtonsWidth(mergeButtons.size.x);
+    lineNumbers.setMergeButtonsWidth(mergeButtons != null ? mergeButtons.size.x : 0);
 
     if (dumpFontsOnResize) DebugHelper.dumpFontsSize(g);
     caret.setWidth(toPx(Caret.defaultWidth));
