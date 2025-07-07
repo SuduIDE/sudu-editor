@@ -39,12 +39,16 @@ public class FolderDiffModel {
 
   // returns true if parent is fully compared
   public boolean itemCompared() {
-    if (isCompared()) System.err.println("File is already compared");
+    if (isCompared()) {
+      if (!isExcluded()) System.err.println("File is already compared");
+      else return false;
+    }
     setCompared(true);
     return parent == null || parent.childCompared();
   }
 
   public boolean childCompared() {
+    if (isCompared()) return false;
     childrenComparedCnt++;
     if (!isFullyCompared()) return false;
     setCompared(true);
@@ -302,12 +306,14 @@ public class FolderDiffModel {
 
   public String infoString() {
     return "FolderDiffModel{" +
-        "parent=" + parent +
-        ", childrenComparedCnt=" + childrenComparedCnt +
+        "childrenComparedCnt=" + childrenComparedCnt +
         ", children.length=" + (children != null ? children.length : 0) +
         ", compared=" + isCompared() +
         ", propagation=" + getPropagation() +
-        ", diffType=" + getDiffType() +
+        ", diffType=" + DiffTypes.name(getDiffType()) +
+        ", itemKind=" + ItemKind.name(getDiffType()) +
+        ", exclude=" + isExcluded() +
+        ", sendExcluded=" + isSendExcluded() +
         "}";
   }
 
