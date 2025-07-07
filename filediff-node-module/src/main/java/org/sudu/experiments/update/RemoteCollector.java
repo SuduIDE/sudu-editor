@@ -52,7 +52,6 @@ public class RemoteCollector {
 
   private boolean firstMessageSent = false;
   private boolean lastMessageSent = false;
-  private boolean onCompleteSent = false;
   private boolean isShutdown = false;
   private boolean isRefresh = false;
 
@@ -98,7 +97,6 @@ public class RemoteCollector {
     foldersCompared = filesCompared = 0;
     filesInserted = filesDeleted = filesEdited = 0;
     completeTime = -1;
-    onCompleteSent = false;
     root.setCompared(false);
     root.childrenComparedCnt = 0;
     sendToWorkerQueue.clear();
@@ -503,10 +501,7 @@ public class RemoteCollector {
     if (--sentToWorker < 0) throw new IllegalStateException("sentToWorker cannot be negative");
     if (isShutdown) shutdown();
     else if (inComparing == 0) {
-      if (!onCompleteSent) {
-        onCompleteSent = true;
-        onComplete();
-      } else sendMessage();
+      onComplete();
     } else {
       sendTaskToWorker();
       if (sendResult == null || lastMessageSent) return;
@@ -584,7 +579,7 @@ public class RemoteCollector {
 
   private void sendExcludedToCompare(ItemFolderDiffModel model, FrontendTreeNode frontendNode) {
     if (model == null) return;
-    if (model.isExcluded() && !model.isSendExcluded()) {
+    if (model.isExcluded() && !model.isSendExcluded() && !model.isFile()) {
       model.setSendExcluded(true);
       if (model.isBoth()) compare(model);
       else read(model);
