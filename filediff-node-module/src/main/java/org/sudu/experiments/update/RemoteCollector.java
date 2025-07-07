@@ -274,10 +274,14 @@ public class RemoteCollector {
   }
 
   private void compare(ItemFolderDiffModel model) {
-    if (model.isExcluded() && !model.isSendExcluded()) {
-      LoggingJs.info("Excluded: " + model.getFullPath(""));
-      model.itemCompared();
-      return;
+    if (model.isExcluded()) {
+      if (model.parent != null && model.parent.children.length == 1) {
+        model.setSendExcluded(true);
+      } else if (!model.isSendExcluded()) {
+        LoggingJs.info("Excluded: " + model.getFullPath(""));
+        model.itemCompared();
+        return;
+      }
     }
     ++inComparing;
     if (model.left() instanceof DirectoryHandle leftDir &&
