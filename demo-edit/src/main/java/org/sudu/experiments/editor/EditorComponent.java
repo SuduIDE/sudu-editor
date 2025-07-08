@@ -798,7 +798,7 @@ public class EditorComponent extends View implements
         firstLine, lastLine,
         docToView,
         syncPoints.curSyncPoint(),
-        syncPoints.hoverSyncPoint,
+        syncPoints.syncPoints.hoverSyncPoint,
         g, colors.lineNumber
     );
   }
@@ -1610,7 +1610,7 @@ public class EditorComponent extends View implements
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     V2i mousePos = event.position;
-    if (syncPoints != null) syncPoints.hoverSyncPoint = -1;
+    if (syncPoints != null) syncPoints.setHoverSyncPoint(-1);
     hoveredCollapsedRegion = -1;
     var codeMap = onMouseMoveCodeMap(mousePos, setCursor);
     var scroll = !codeMap && (
@@ -1624,7 +1624,7 @@ public class EditorComponent extends View implements
       var ln = lineNumbers.hitTest(event.position);
       if (ln) {
         if (syncPoints != null && syncPoints.hasAnotherPoint()) {
-          syncPoints.hoverSyncPoint = computeSyncPoint(event.position);
+          syncPoints.setHoverSyncPoint(computeSyncPoint(event.position));
           if (!mb) setCursor.set(Cursor.pointer);
         } else if (!mb) {
           setCursor.setDefault();

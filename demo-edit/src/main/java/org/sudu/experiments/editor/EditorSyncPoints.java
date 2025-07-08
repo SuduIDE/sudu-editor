@@ -6,11 +6,14 @@ public class EditorSyncPoints {
 
   public final SyncPoints syncPoints;
   public final boolean left;
-  public int hoverSyncPoint = -1;
 
   public EditorSyncPoints(SyncPoints syncPoints, boolean left) {
     this.syncPoints = syncPoints;
     this.left = left;
+  }
+
+  public void setHoverSyncPoint(int syncPoint) {
+    syncPoints.hoverSyncPoint = syncPoint;
   }
 
   public int[] copiedSyncPoints() {
@@ -46,7 +49,7 @@ public class EditorSyncPoints {
   public void setPoint(int i) {
     if (left) syncPoints.setLeft(i);
     else syncPoints.setRight(i);
-    hoverSyncPoint = -1;
+    syncPoints.hoverSyncPoint = -1;
   }
 
   public int getMidLineHoverSyncPoint() {

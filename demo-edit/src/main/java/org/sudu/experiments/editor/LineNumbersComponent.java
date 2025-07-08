@@ -113,7 +113,7 @@ public class LineNumbersComponent implements Disposable {
       texture.drawCaretLine(pos, y0, caretDocLine, colorScheme, colors, g);
     }
   }
-  // test 123 134
+
   public void beginDraw(WglGraphics g, int frameId) {
     ensureCanvas(g);
     g.enableScissor(pos, size);

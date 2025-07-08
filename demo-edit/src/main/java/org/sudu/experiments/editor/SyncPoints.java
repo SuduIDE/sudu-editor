@@ -9,6 +9,8 @@ public class SyncPoints {
   public int[] syncL, syncR;              // doc line
   public int curL, curR;                  // doc line
   public int midLineHoverSyncPoint = -1;  // syncL & syncR index
+  public int hoverSyncPoint = -1;
+
   private final Runnable onSyncPointsChanged;
   private static final boolean DEBUG = false;
 
@@ -127,5 +129,10 @@ public class SyncPoints {
       } else i++;
     }
     onSyncPointsChanged.run();
+  }
+
+  public int getMidLineHoverSyncPoint(boolean left) {
+    if (midLineHoverSyncPoint == -1) return -1;
+    return (left ? syncL : syncR)[midLineHoverSyncPoint];
   }
 }

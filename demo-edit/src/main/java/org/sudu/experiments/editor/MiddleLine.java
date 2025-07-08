@@ -40,8 +40,9 @@ public class MiddleLine extends View {
   private Color midLineHoverSyncPointColor;
   private DiffColors diffColors;
 
-  private int[] syncL, syncR;
+  private SyncPoints syncPoints;
   private int hoverSyncPoint = -1;
+  private int curL = -1, curR = -1, hoverSync = -1;
 
   private IntConsumer onMidSyncPointHover;
   private IntConsumer onMidSyncPointClick;
@@ -200,6 +201,15 @@ public class MiddleLine extends View {
       temp.x = slw2;
       temp.y = p22.y - p12.y;
       g.drawRect(p12.x, p12.y, temp, color);
+
+      int curL = syncPoints.curL;
+      if (curL != -1) {
+
+      }
+
+      int leftY = editor1.lineToPos(aLine.fromL);
+      int rightY = editor2.lineToPos(aLine.fromR);
+
     }
   }
 
@@ -221,9 +231,8 @@ public class MiddleLine extends View {
     g.drawRect(x, y, temp, color);
   }
 
-  public void setSyncLines(int[] syncL, int[] syncR) {
-    this.syncL = syncL;
-    this.syncR = syncR;
+  public void setSyncPoints(SyncPoints syncPoints) {
+    this.syncPoints = syncPoints;
   }
 
   private void computeVisible() {
@@ -260,7 +269,9 @@ public class MiddleLine extends View {
 
     alignLines.clear();
 
-    if (syncL == null || syncR == null) return;
+    if (syncPoints == null) return;
+    int[] syncL = syncPoints.syncL, syncR = syncPoints.syncR;
+
     for (int i = 0; i < syncL.length; i++) {
       int lineL = syncL[i];
       int lineR = syncR[i];
@@ -274,6 +285,10 @@ public class MiddleLine extends View {
       Visible syncRecord = alignLines.add();
       syncRecord.fromL = lineL;
       syncRecord.fromR = lineR;
+    }
+
+    if (syncPoints.curL != -1) {
+      translate
     }
   }
 
@@ -315,7 +330,7 @@ public class MiddleLine extends View {
   }
 
   private int getSyncPointInd(V2i position) {
-    if (syncL == null || syncR == null) return -1;
+    if (syncPoints == null) return -1;
     double minD = Double.POSITIVE_INFINITY;
     int minInd = -1;
     int lineWidth = uiContext.toPx(lineWidthDp);

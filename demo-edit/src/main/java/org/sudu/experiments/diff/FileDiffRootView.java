@@ -59,6 +59,8 @@ class FileDiffRootView extends DiffRootView {
     diffSync = new DiffSync(editor1, editor2);
     middleLine.setOnMidSyncPointHover(i -> onMidSyncLineHover(syncPoints, i));
     middleLine.setOnMidSyncPointClick(i -> onMidSyncLineClick(syncPoints, i));
+
+    middleLine.setSyncPoints(syncPoints);
     setViews(editor1, editor2, middleLine);
     setEmptyDiffModel();
   }
@@ -357,7 +359,6 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void onSyncPointsUpdated() {
-    middleLine.setSyncLines(editor1.syncPoints(), editor2.syncPoints());
     sendToDiff(false);
   }
 
