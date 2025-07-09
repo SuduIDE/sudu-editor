@@ -1610,21 +1610,30 @@ public class EditorComponent extends View implements
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     V2i mousePos = event.position;
-    if (syncPoints != null) syncPoints.setHoverSyncPoint(-1);
+    if (syncPoints != null) {
+      System.out.println("EditorComponent.onMouseMove, setHoverSyncPoint(-1)");
+      System.out.println("mousePos = " + mousePos);
+      if (!syncPoints.hasAnotherPoint())
+        syncPoints.setHoverSyncPoint(-1);
+    }
     hoveredCollapsedRegion = -1;
     var codeMap = onMouseMoveCodeMap(mousePos, setCursor);
     var scroll = !codeMap && (
         vScroll.onMouseMove(mousePos, setCursor) |
             hScroll.onMouseMove(mousePos, setCursor));
 
+    System.out.println("(scroll || codeMap) = " + (scroll || codeMap));
     if (scroll || codeMap) {
       onMouseLeaveWindow();
     } else {
       var mb = mergeButtons != null && mergeButtons.onMouseMove(event, setCursor);
       var ln = lineNumbers.hitTest(event.position);
+      System.out.println("lineNumbers.hitTest = " + ln);
       if (ln) {
+        System.out.println("syncPoints.hasAnotherPoint() = " + syncPoints.hasAnotherPoint());
         if (syncPoints != null && syncPoints.hasAnotherPoint()) {
           syncPoints.setHoverSyncPoint(computeSyncPoint(event.position));
+          System.out.println("EditorComponent.onMouseMove, setHoverSyncPoint "  + syncPoints.syncPoints.hoverSyncPoint);
           if (!mb) setCursor.set(Cursor.pointer);
         } else if (!mb) {
           setCursor.setDefault();

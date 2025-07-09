@@ -175,7 +175,9 @@ class FileDiffRootView extends DiffRootView {
         theme.codeDiffBg,
         theme.editor.bg,
         theme.lineNumber.syncPoint,
-        theme.lineNumber.midLineHoverSyncPoint
+        theme.lineNumber.midLineHoverSyncPoint,
+        theme.lineNumber.currentSyncPoint,
+        theme.lineNumber.hoverSyncPoint
     );
     editor1.setTheme(theme);
     editor2.setTheme(theme);

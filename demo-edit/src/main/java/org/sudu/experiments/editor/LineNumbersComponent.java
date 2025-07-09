@@ -142,10 +142,10 @@ public class LineNumbersComponent implements Disposable {
   ) {
     int viewCurSyncPoint = docToViewCursor(mapping, curSyncPoint);
     if (firstLine <= viewCurSyncPoint && viewCurSyncPoint <= lastLine)
-      if (true) drawSyncLine(yPos, viewCurSyncPoint, firstLine, scheme.currentSyncPoint, g);
+      if (false) drawSyncLine(yPos, viewCurSyncPoint, firstLine, scheme.currentSyncPoint, g);
     int viewHoverSyncPoint = docToViewCursor(mapping, hoverSyncPoint);
     if (firstLine <= viewHoverSyncPoint && viewHoverSyncPoint <= lastLine)
-      if (true) drawSyncLine(yPos, viewHoverSyncPoint, firstLine, scheme.hoverSyncPoint, g);
+      if (false) drawSyncLine(yPos, viewHoverSyncPoint, firstLine, scheme.hoverSyncPoint, g);
   }
 
   private int docToViewCursor(CodeLineMapping mapping, int sp) {

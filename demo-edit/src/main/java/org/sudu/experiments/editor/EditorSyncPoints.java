@@ -13,6 +13,7 @@ public class EditorSyncPoints {
   }
 
   public void setHoverSyncPoint(int syncPoint) {
+    System.out.println("syncPoint = " + syncPoint);
     syncPoints.hoverSyncPoint = syncPoint;
   }
 

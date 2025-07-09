@@ -35,14 +35,14 @@ public class MiddleLine extends View {
 
   private DiffInfo diffModel;
   private DiffRef editor1, editor2;
-  private Color bgColor;
-  private Color syncPointColor;
+  private Color bgColor, syncPointColor, currentSyncColor, hoverSyncColor;
   private Color midLineHoverSyncPointColor;
   private DiffColors diffColors;
 
   private SyncPoints syncPoints;
   private int hoverSyncPoint = -1;
-  private int curL = -1, curR = -1, hoverSync = -1;
+  private int editedSyncL = -1, editedSyncR = -1;
+  private boolean editingLeftGreen;
 
   private IntConsumer onMidSyncPointHover;
   private IntConsumer onMidSyncPointClick;
@@ -64,11 +64,16 @@ public class MiddleLine extends View {
     editor2 = right;
   }
 
-  public void setTheme(DiffColors diffColors, Color bgColor, Color syncLineColor, Color midLineHoverSyncPointColor) {
+  public void setTheme(
+      DiffColors diffColors, Color bgColor, Color syncLineColor,
+      Color midLineHoverSyncPointColor, Color currentSyncPoint, Color hoverSyncPoint
+  ) {
     this.diffColors = diffColors;
     this.bgColor = bgColor;
     this.syncPointColor = syncLineColor;
     this.midLineHoverSyncPointColor = midLineHoverSyncPointColor;
+    this.currentSyncColor = currentSyncPoint;
+    this.hoverSyncColor = hoverSyncPoint;
   }
 
   private void setLinePos(
@@ -148,12 +153,29 @@ public class MiddleLine extends View {
 
   private void drawSyncPoints(WglGraphics g) {
     int nLines = alignLines.size();
-    if (nLines == 0) return;
-    V2i rSize = uiContext.v2i2;
-    int lineWidth = uiContext.toPx(syncLineWidthDp);
-    var alData = alignLines.data();
     int slw1 = editor1.getSyncLineWidth();
     int slw2 = editor2.getSyncLineWidth();
+    int lineWidth = uiContext.toPx(syncLineWidthDp);
+    V2i rSize = uiContext.v2i2;
+
+    if (editedSyncL != -1) {
+      int leftY = editor1.lineToPos(editedSyncL);
+      rSize.x = slw1;
+      rSize.y = lineWidth;
+      g.drawRect(pos.x - slw1, leftY, rSize,
+          editingLeftGreen ? currentSyncColor : hoverSyncColor);
+    }
+
+    if (editedSyncR != -1) {
+      int rightY = editor2.lineToPos(editedSyncR);
+      rSize.x = slw2;
+      rSize.y = lineWidth;
+      g.drawRect(pos.x + size.x, rightY, rSize,
+          editingLeftGreen ? hoverSyncColor : currentSyncColor);
+    }
+
+    if (nLines == 0) return;
+    var alData = alignLines.data();
     for (int i = 0; i < nLines; i++) {
       Visible aLine = alData[i];
 
@@ -201,15 +223,6 @@ public class MiddleLine extends View {
       temp.x = slw2;
       temp.y = p22.y - p12.y;
       g.drawRect(p12.x, p12.y, temp, color);
-
-      int curL = syncPoints.curL;
-      if (curL != -1) {
-
-      }
-
-      int leftY = editor1.lineToPos(aLine.fromL);
-      int rightY = editor2.lineToPos(aLine.fromR);
-
     }
   }
 
@@ -275,10 +288,11 @@ public class MiddleLine extends View {
     for (int i = 0; i < syncL.length; i++) {
       int lineL = syncL[i];
       int lineR = syncR[i];
-      if (diffModel.codeMappingL != null && diffModel.codeMappingR != null) {
-        lineL = diffModel.codeMappingL.docToViewCursor(lineL);
-        lineR = diffModel.codeMappingR.docToViewCursor(lineR);
-      }
+      if (cml != null)
+        lineL = cml.docToViewCursor(lineL);
+      if (cmr != null)
+        lineR = cmr.docToViewCursor(lineR);
+
       if (lineL < lFirst && lineR < rFirst ||
           lineL > lLast && lineR > rLast
       ) continue;
@@ -287,8 +301,32 @@ public class MiddleLine extends View {
       syncRecord.fromR = lineR;
     }
 
-    if (syncPoints.curL != -1) {
-      translate
+    int curL = syncPoints.curL;
+    int curR = syncPoints.curR;
+    int edited2 = syncPoints.hoverSyncPoint;
+
+    editedSyncL = -1;
+    editedSyncR = -1;
+
+    if (curL != -1) {
+      editingLeftGreen = true;
+      if (cml != null) curL = cml.docToViewCursor(curL);
+      if (lFirst <= curL && curL <= lLast) editedSyncL = curL;
+
+      if (edited2 != -1) {
+        if (cmr != null) edited2 = cmr.docToViewCursor(edited2);
+        if (rFirst <= edited2 && edited2 <= rLast) editedSyncR = edited2;
+      }
+    }
+
+    if (curR != -1) {
+      editingLeftGreen = false;
+      curR = cmr != null ? cmr.docToViewCursor(curR) : curR;
+      if (rFirst <= curR && curR <= rLast) editedSyncR = curR;
+      if (edited2 != -1) {
+        edited2 = cml != null ? cml.docToViewCursor(edited2) : edited2;
+        if (lFirst <= edited2 && edited2 <= lLast) editedSyncL = edited2;
+      }
     }
   }
 
