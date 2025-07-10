@@ -158,6 +158,58 @@ public class MiddleLine extends View {
     int lineWidth = uiContext.toPx(syncLineWidthDp);
     V2i rSize = uiContext.v2i2;
 
+    if (nLines > 0) {
+      var alData = alignLines.data();
+      for (int i = 0; i < nLines; i++) {
+        Visible aLine = alData[i];
+
+        int leftY = editor1.lineToPos(aLine.fromL);
+        int rightY = editor2.lineToPos(aLine.fromR);
+        int leftY1 = leftY + lineWidth;
+        int rightY1 = rightY + lineWidth;
+
+        setLinePos(leftY, leftY1, rightY, rightY1);
+
+        int rectY0 = Math.max(Math.min(leftY, rightY), pos.y);
+        int rectY1 = Math.min(Math.max(leftY1, rightY1), pos.y + size.y);
+        if (debug) if (rectY1 <= rectY0) {
+          System.out.println("(rectY1 <= rectY0)");
+          continue;
+        }
+
+        int t = lineWidth / 2;
+
+        if (leftY > rightY) {
+          p12.x -= t;
+          p21.x += lineWidth - t;
+        } else if (leftY < rightY) {
+          p11.x += t;
+          p22.x -= lineWidth - t;
+        }
+
+        rSize.set(size.x, rectY1 - rectY0);
+        var color = i == hoverSyncPoint
+            ? midLineHoverSyncPointColor
+            : syncPointColor;
+
+        g.drawLineFill(
+            pos.x, rectY0, rSize,
+            p11, p12,
+            p21, p22, color
+        );
+
+        // draw left right lines
+        V2i temp = uiContext.v2i1;
+        temp.x = slw1;
+        temp.y = p21.y - p11.y;
+        g.drawRect(p11.x - slw1, p11.y, temp, color);
+
+        temp.x = slw2;
+        temp.y = p22.y - p12.y;
+        g.drawRect(p12.x, p12.y, temp, color);
+      }
+    }
+
     if (editedSyncL != -1) {
       int leftY = editor1.lineToPos(editedSyncL);
       rSize.x = slw1;
@@ -172,57 +224,6 @@ public class MiddleLine extends View {
       rSize.y = lineWidth;
       g.drawRect(pos.x + size.x, rightY, rSize,
           editingLeftGreen ? hoverSyncColor : currentSyncColor);
-    }
-
-    if (nLines == 0) return;
-    var alData = alignLines.data();
-    for (int i = 0; i < nLines; i++) {
-      Visible aLine = alData[i];
-
-      int leftY = editor1.lineToPos(aLine.fromL);
-      int rightY = editor2.lineToPos(aLine.fromR);
-      int leftY1 = leftY + lineWidth;
-      int rightY1 = rightY + lineWidth;
-
-      setLinePos(leftY, leftY1, rightY, rightY1);
-
-      int rectY0 = Math.max(Math.min(leftY, rightY), pos.y);
-      int rectY1 = Math.min(Math.max(leftY1, rightY1), pos.y + size.y);
-      if (debug) if (rectY1 <= rectY0) {
-        System.out.println("(rectY1 <= rectY0)");
-        continue;
-      }
-
-      int t = lineWidth / 2;
-
-      if (leftY > rightY) {
-        p12.x -= t;
-        p21.x += lineWidth - t;
-      } else if (leftY < rightY) {
-        p11.x += t;
-        p22.x -= lineWidth - t;
-      }
-
-      rSize.set(size.x, rectY1 - rectY0);
-      var color = i == hoverSyncPoint
-          ? midLineHoverSyncPointColor
-          : syncPointColor;
-
-      g.drawLineFill(
-          pos.x, rectY0, rSize,
-          p11, p12,
-          p21, p22, color
-      );
-
-      // draw left right lines
-      V2i temp = uiContext.v2i1;
-      temp.x = slw1;
-      temp.y = p21.y - p11.y;
-      g.drawRect(p11.x - slw1, p11.y, temp, color);
-
-      temp.x = slw2;
-      temp.y = p22.y - p12.y;
-      g.drawRect(p12.x, p12.y, temp, color);
     }
   }
 
