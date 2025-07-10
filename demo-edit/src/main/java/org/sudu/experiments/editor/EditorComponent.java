@@ -213,7 +213,6 @@ public class EditorComponent extends View implements
         Math.min(lineNumbersWidth, size.x), size.y, dpr);
     if (hasMerge)
       layoutMergeButtons();
-    lineNumbers.setMergeButtonsWidth(mergeButtons.size.x);
 
     if (dumpFontsOnResize) DebugHelper.dumpFontsSize(g);
     caret.setWidth(toPx(Caret.defaultWidth));
@@ -295,7 +294,6 @@ public class EditorComponent extends View implements
 
   public void setMirrored(boolean b) {
     mirrored = b;
-    lineNumbers.setMirrored(b);
   }
 
   void toggleMirrored() {
@@ -788,21 +786,6 @@ public class EditorComponent extends View implements
     return docToView.length();
   }
 
-  public void drawSyncPoints() {
-    if (syncPoints == null) return;
-    int firstLine = getFirstLine();
-    int lastLine = Math.min((vScrollPos + editorHeight() - 1) / lineHeight, model.document.length());
-    int yPos = -(vScrollPos % lineHeight);
-    lineNumbers.drawSyncPoints(
-        yPos,
-        firstLine, lastLine,
-        docToView,
-        syncPoints.curSyncPoint(),
-        syncPoints.syncPoints.hoverSyncPoint,
-        g, colors.lineNumber
-    );
-  }
-
   public int getFirstLine() {
     return Math.min(vScrollPos / lineHeight, getNumLines() - 1);
   }
@@ -1117,7 +1100,6 @@ public class EditorComponent extends View implements
     } else if (alt) {
       // todo: smart move to prev/next method start
     } else {
-//      System.out.println("EditorComponent.arrowUpDown");
       setCaretLine(model.caretLine + amount, shiftPressed);
       adjustEditorVScrollToCaret();
     }

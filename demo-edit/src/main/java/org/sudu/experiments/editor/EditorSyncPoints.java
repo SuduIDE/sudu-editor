@@ -30,10 +30,6 @@ public class EditorSyncPoints {
     return left ? syncPoints.syncL : syncPoints.syncR;
   }
 
-  public int curSyncPoint() {
-    return left ? syncPoints.curL : syncPoints.curR;
-  }
-
   public void removeSyncPoint(int i) {
     if (left) syncPoints.removeLeft(i);
     else syncPoints.removeRight(i);
@@ -55,11 +51,6 @@ public class EditorSyncPoints {
     if (left) syncPoints.setLeft(i);
     else syncPoints.setRight(i);
     syncPoints.hoverSyncPoint = -1;
-  }
-
-  public int getMidLineHoverSyncPoint() {
-    if (syncPoints.midLineHoverSyncPoint == -1) return -1;
-    return syncPoints()[syncPoints.midLineHoverSyncPoint];
   }
 
   public void updateOnDiff(Diff diff, boolean isUndo) {

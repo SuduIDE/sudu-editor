@@ -130,9 +130,4 @@ public class SyncPoints {
     }
     onSyncPointsChanged.run();
   }
-
-  public int getMidLineHoverSyncPoint(boolean left) {
-    if (midLineHoverSyncPoint == -1) return -1;
-    return (left ? syncL : syncR)[midLineHoverSyncPoint];
-  }
 }

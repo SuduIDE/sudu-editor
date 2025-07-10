@@ -9,7 +9,6 @@ import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.function.BiConsumer;
 
 public class MergeButtonsModel {
