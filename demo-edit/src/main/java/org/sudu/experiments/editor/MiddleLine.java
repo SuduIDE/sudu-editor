@@ -321,7 +321,7 @@ public class MiddleLine extends View {
 
     if (curR != -1) {
       editingLeftGreen = false;
-      curR = cmr != null ? cmr.docToViewCursor(curR) : curR;
+      if (cmr != null) curR = cmr.docToViewCursor(curR);
       if (rFirst <= curR && curR <= rLast) editedSyncR = curR;
       if (edited2 != -1) {
         edited2 = cml != null ? cml.docToViewCursor(edited2) : edited2;

@@ -13,8 +13,12 @@ public class EditorSyncPoints {
   }
 
   public void setHoverSyncPoint(int syncPoint) {
-    System.out.println("syncPoint = " + syncPoint);
     syncPoints.hoverSyncPoint = syncPoint;
+  }
+
+  public void clearHoverSyncPoint() {
+    if (hasAnotherPoint())
+      syncPoints.hoverSyncPoint = -1;
   }
 
   public int[] copiedSyncPoints() {
@@ -40,7 +44,7 @@ public class EditorSyncPoints {
   }
 
   public boolean hasAnotherPoint() {
-    return !left ? syncPoints.curL != -1 : syncPoints.curR != -1;
+    return (left ? syncPoints.curR : syncPoints.curL) != -1;
   }
 
   public boolean hasSyncPoints() {
