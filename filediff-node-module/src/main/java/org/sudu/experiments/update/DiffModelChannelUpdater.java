@@ -147,5 +147,6 @@ public class DiffModelChannelUpdater {
   public void changeFolder(DirectoryHandle newDir, boolean left) {
     LoggingJs.info("DiffModelChannelUpdater change " + (left ? "left" : "right") +
         "folder: newDir = " + newDir);
+    collector.changeFolderRoot(newDir, left);
   }
 }

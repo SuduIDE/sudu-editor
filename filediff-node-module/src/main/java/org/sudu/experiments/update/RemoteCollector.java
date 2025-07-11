@@ -92,8 +92,22 @@ public class RemoteCollector {
 
   public void refresh() {
     LoggingJs.info("RemoteCollector.Refresh");
-    firstMessageSent = lastMessageSent = false;
     isRefresh = true;
+    reset();
+    beginCompare();
+  }
+
+  public void changeFolderRoot(DirectoryHandle newDir, boolean left) {
+    var oppositeDir = root.item(!left);
+    root = new ItemFolderDiffModel(null, "");
+    root.setItem(left, newDir);
+    root.setItem(!left, oppositeDir);
+    reset();
+    beginCompare();
+  }
+
+  private void reset() {
+    firstMessageSent = lastMessageSent = false;
     startTime = lastMessageSentTime = Performance.now();
     foldersCompared = filesCompared = 0;
     filesInserted = filesDeleted = filesEdited = 0;
@@ -102,7 +116,6 @@ public class RemoteCollector {
     root.setCompared(false);
     root.childrenComparedCnt = 0;
     sendToWorkerQueue.clear();
-    beginCompare();
   }
 
   public void onMessageGot(FrontendMessage message) {
