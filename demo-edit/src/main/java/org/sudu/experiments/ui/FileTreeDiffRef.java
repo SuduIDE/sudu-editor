@@ -54,5 +54,7 @@ public class FileTreeDiffRef implements DiffRef {
   public boolean onKeyPress(KeyEvent event) {
     return false;
   }
+
+  public int getSyncLineWidth() { return 0; }
 }
 

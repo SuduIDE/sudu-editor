@@ -213,7 +213,6 @@ public class EditorComponent extends View implements
         Math.min(lineNumbersWidth, size.x), size.y, dpr);
     if (hasMerge)
       layoutMergeButtons();
-    lineNumbers.setMergeButtonsWidth(mergeButtons != null ? mergeButtons.size.x : 0);
 
     if (dumpFontsOnResize) DebugHelper.dumpFontsSize(g);
     caret.setWidth(toPx(Caret.defaultWidth));
@@ -295,7 +294,6 @@ public class EditorComponent extends View implements
 
   public void setMirrored(boolean b) {
     mirrored = b;
-    lineNumbers.setMirrored(b);
   }
 
   void toggleMirrored() {
@@ -788,23 +786,6 @@ public class EditorComponent extends View implements
     return docToView.length();
   }
 
-  public void drawSyncPoints() {
-    if (syncPoints == null) return;
-    int firstLine = getFirstLine();
-    int lastLine = Math.min((vScrollPos + editorHeight() - 1) / lineHeight, model.document.length());
-    int yPos = -(vScrollPos % lineHeight);
-    lineNumbers.drawSyncPoints(
-        yPos,
-        firstLine, lastLine,
-        docToView,
-        syncPoints(),
-        syncPoints.curSyncPoint(),
-        syncPoints.hoverSyncPoint,
-        syncPoints.getMidLineHoverSyncPoint(),
-        g, colors.lineNumber
-    );
-  }
-
   public int getFirstLine() {
     return Math.min(vScrollPos / lineHeight, getNumLines() - 1);
   }
@@ -819,6 +800,12 @@ public class EditorComponent extends View implements
 
   public V2i pos() { return pos; }
   public V2i size() { return size; }
+
+  @Override
+  public int getSyncLineWidth() {
+    int lnw = lineNumbers.width();
+    return mirrored ? lnw : lnw + mergeButtons.size.x;
+  }
 
   private void updateLineNumbersFont() {
     lineNumbers.setFont(lrContext.font, lineHeight, context.cleartype);
@@ -1113,7 +1100,6 @@ public class EditorComponent extends View implements
     } else if (alt) {
       // todo: smart move to prev/next method start
     } else {
-//      System.out.println("EditorComponent.arrowUpDown");
       setCaretLine(model.caretLine + amount, shiftPressed);
       adjustEditorVScrollToCaret();
     }
@@ -1606,7 +1592,8 @@ public class EditorComponent extends View implements
 
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     V2i mousePos = event.position;
-    if (syncPoints != null) syncPoints.hoverSyncPoint = -1;
+    if (syncPoints != null)
+      syncPoints.clearHoverSyncPoint();
     hoveredCollapsedRegion = -1;
     var codeMap = onMouseMoveCodeMap(mousePos, setCursor);
     var scroll = !codeMap && (
@@ -1620,7 +1607,7 @@ public class EditorComponent extends View implements
       var ln = lineNumbers.hitTest(event.position);
       if (ln) {
         if (syncPoints != null && syncPoints.hasAnotherPoint()) {
-          syncPoints.hoverSyncPoint = computeSyncPoint(event.position);
+          syncPoints.setHoverSyncPoint(computeSyncPoint(event.position));
           if (!mb) setCursor.set(Cursor.pointer);
         } else if (!mb) {
           setCursor.setDefault();

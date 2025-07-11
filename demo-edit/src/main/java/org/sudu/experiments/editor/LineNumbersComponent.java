@@ -4,10 +4,8 @@ import org.sudu.experiments.Canvas;
 import org.sudu.experiments.Disposable;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
-import org.sudu.experiments.editor.ui.colors.LineNumbersColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.SetCursor;
@@ -25,13 +23,10 @@ public class LineNumbersComponent implements Disposable {
   public final V2i pos = new V2i();
   public final V2i size = new V2i();
   private final V2i bottomSize = new V2i();
-  private final V2i syncLineSize = new V2i(0, EditorConst.SYNC_LINE_HEIGHT);
   public float dpr;
 
   private FontDesk fontDesk;
   private boolean cleartype;
-  private boolean mirrored;
-  private int mergeButtonsWidth;
   private int lineHeight;
   private int textureHeight;
 
@@ -130,49 +125,6 @@ public class LineNumbersComponent implements Disposable {
     g.disableScissor();
   }
 
-  public void drawSyncPoints(
-      int yPos,
-      int firstLine, int lastLine,
-      CodeLineMapping mapping,
-      int[] syncPoints,
-      int curSyncPoint,
-      int hoverSyncPoint,
-      int midLineHoverSyncPoint,
-      WglGraphics g, LineNumbersColors scheme
-  ) {
-    for (int sp: syncPoints) {
-      int viewSyncPoint = docToViewCursor(mapping, sp);
-      if (firstLine <= viewSyncPoint && viewSyncPoint <= lastLine && viewSyncPoint != midLineHoverSyncPoint)
-        drawSyncLine(yPos, viewSyncPoint, firstLine, scheme.syncPoint, g);
-    }
-    int viewCurSyncPoint = docToViewCursor(mapping, curSyncPoint);
-    if (firstLine <= viewCurSyncPoint && viewCurSyncPoint <= lastLine)
-      drawSyncLine(yPos, viewCurSyncPoint, firstLine, scheme.currentSyncPoint, g);
-    int viewHoverSyncPoint = docToViewCursor(mapping, hoverSyncPoint);
-    if (firstLine <= viewHoverSyncPoint && viewHoverSyncPoint <= lastLine)
-      drawSyncLine(yPos, viewHoverSyncPoint, firstLine, scheme.hoverSyncPoint, g);
-    int viewMidLineHoverSyncPoint = docToViewCursor(mapping, midLineHoverSyncPoint);
-    if (firstLine <= viewMidLineHoverSyncPoint && viewMidLineHoverSyncPoint <= lastLine)
-      drawSyncLine(yPos, viewMidLineHoverSyncPoint, firstLine, scheme.midLineHoverSyncPoint, g);
-  }
-
-  private int docToViewCursor(CodeLineMapping mapping, int sp) {
-    if (mapping == null) return sp;
-    return mapping.docToViewCursor(sp);
-  }
-
-  private void drawSyncLine(
-      int yPos,
-      int syncLine,
-      int startLine,
-      Color lineColor,
-      WglGraphics g
-  ) {
-    syncLineSize.x = width();
-    if (!mirrored) syncLineSize.x += mergeButtonsWidth;
-    int y = yPos + (syncLine - startLine) * lineHeight - (EditorConst.SYNC_LINE_HEIGHT / 2);
-    g.drawRect(pos.x, y + pos.y, syncLineSize, lineColor);
-  }
 
   private LineNumbersTexture texture(WglGraphics g, int line) {
     int startLine = (line / numberOfLines) * numberOfLines;
@@ -199,14 +151,6 @@ public class LineNumbersComponent implements Disposable {
     disposeCanvas();
     old.addAll(textures);
     textures.clear();
-  }
-
-  public void setMirrored(boolean mirrored) {
-    this.mirrored = mirrored;
-  }
-
-  public void setMergeButtonsWidth(int mergeButtonsWidth) {
-    this.mergeButtonsWidth = mergeButtonsWidth;
   }
 
   private void ensureCanvas(WglGraphics g) {
@@ -241,5 +185,4 @@ public class LineNumbersComponent implements Disposable {
   public boolean hitTest(V2i point) {
     return Rect.isInside(point, pos, size);
   }
-
 }
