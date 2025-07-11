@@ -53,6 +53,7 @@ public interface SshPool {
   }
 
   static Promise<Record> connect(SshHash key) {
+    JsHelper.consoleInfo2("Connecting to", key.host);
     Value value = map.get(key);
     if (value == null) {
       Promise<Record> p = Promise.create(
@@ -65,11 +66,20 @@ public interface SshPool {
                 postError.f(e);
               }
             }));
-            client.onError(postError);
+            client.onError(jsError -> {
+              JsHelper.consoleInfo2("ssh client error",
+                  JsHelper.message(jsError),
+                  "remove cache record:", key.host);
+              map.remove(key);
+              postError.f(jsError);
+            });
             client.connect(key.jsSshCredentials());
+            JsHelper.consoleInfo2("  newSshClient connect to", key.host);
           }
       );
       map.put(key, value = new Value(p));
+    } else {
+      JsHelper.consoleInfo2("  using existing record", key.host);
     }
     return value.v;
   }
