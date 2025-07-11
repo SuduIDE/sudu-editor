@@ -75,6 +75,7 @@ export interface DiffTestApi {
 }
 
 export interface FolderDiffSession extends AsyncShutdown {
+  changeFolder(newFolder: FolderInput, left: boolean) : void;
 }
 
 export interface FileDiffSession extends AsyncShutdown {
