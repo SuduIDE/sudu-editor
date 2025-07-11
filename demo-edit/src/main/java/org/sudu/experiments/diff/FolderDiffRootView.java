@@ -45,9 +45,10 @@ class FolderDiffRootView extends DiffRootView {
     middleLine.setTheme(
         null,
         theme.fileTreeView.bg,
+        // todo: make a dedicated class for syncPoint theme, move out of LineNumbersColors
         theme.lineNumber.syncPoint,
-        theme.lineNumber.midLineHoverSyncPoint
-    );
+        theme.lineNumber.midLineHoverSyncPoint,
+        theme.lineNumber.currentSyncPoint, theme.lineNumber.hoverSyncPoint);
     left.setTheme(theme);
     left.applyTheme(leftScrollView);
     right.setTheme(theme);

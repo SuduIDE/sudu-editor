@@ -20,8 +20,11 @@ public interface DiffRef extends Focusable {
 
   V2i size();
 
+  int getSyncLineWidth();
+
   // scroll sync
   void setScrollListeners(Runnable hListener, IntConsumer vListener);
   boolean setVScrollPosSilent(int pos);
+
   int lineHeight();
 }

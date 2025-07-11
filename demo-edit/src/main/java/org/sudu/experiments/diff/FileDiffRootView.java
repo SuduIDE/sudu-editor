@@ -1,6 +1,5 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.Diff;
 import org.sudu.experiments.editor.test.MergeButtonsModel;
@@ -59,15 +58,10 @@ class FileDiffRootView extends DiffRootView {
     diffSync = new DiffSync(editor1, editor2);
     middleLine.setOnMidSyncPointHover(i -> onMidSyncLineHover(syncPoints, i));
     middleLine.setOnMidSyncPointClick(i -> onMidSyncLineClick(syncPoints, i));
+
+    middleLine.setSyncPoints(syncPoints);
     setViews(editor1, editor2, middleLine);
     setEmptyDiffModel();
-  }
-
-  @Override
-  public void draw(WglGraphics g) {
-    super.draw(g);
-    editor1.drawSyncPoints();
-    editor2.drawSyncPoints();
   }
 
   public void setLeftModel(Model m) {
@@ -173,7 +167,9 @@ class FileDiffRootView extends DiffRootView {
         theme.codeDiffBg,
         theme.editor.bg,
         theme.lineNumber.syncPoint,
-        theme.lineNumber.midLineHoverSyncPoint
+        theme.lineNumber.midLineHoverSyncPoint,
+        theme.lineNumber.currentSyncPoint,
+        theme.lineNumber.hoverSyncPoint
     );
     editor1.setTheme(theme);
     editor2.setTheme(theme);
@@ -357,7 +353,6 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void onSyncPointsUpdated() {
-    middleLine.setSyncLines(editor1.syncPoints(), editor2.syncPoints());
     sendToDiff(false);
   }
 

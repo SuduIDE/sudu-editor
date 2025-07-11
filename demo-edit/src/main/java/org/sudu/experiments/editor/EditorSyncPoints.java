@@ -6,11 +6,19 @@ public class EditorSyncPoints {
 
   public final SyncPoints syncPoints;
   public final boolean left;
-  public int hoverSyncPoint = -1;
 
   public EditorSyncPoints(SyncPoints syncPoints, boolean left) {
     this.syncPoints = syncPoints;
     this.left = left;
+  }
+
+  public void setHoverSyncPoint(int syncPoint) {
+    syncPoints.hoverSyncPoint = syncPoint;
+  }
+
+  public void clearHoverSyncPoint() {
+    if (hasAnotherPoint())
+      syncPoints.hoverSyncPoint = -1;
   }
 
   public int[] copiedSyncPoints() {
@@ -20,10 +28,6 @@ public class EditorSyncPoints {
 
   public int[] syncPoints() {
     return left ? syncPoints.syncL : syncPoints.syncR;
-  }
-
-  public int curSyncPoint() {
-    return left ? syncPoints.curL : syncPoints.curR;
   }
 
   public void removeSyncPoint(int i) {
@@ -36,7 +40,7 @@ public class EditorSyncPoints {
   }
 
   public boolean hasAnotherPoint() {
-    return !left ? syncPoints.curL != -1 : syncPoints.curR != -1;
+    return (left ? syncPoints.curR : syncPoints.curL) != -1;
   }
 
   public boolean hasSyncPoints() {
@@ -46,12 +50,7 @@ public class EditorSyncPoints {
   public void setPoint(int i) {
     if (left) syncPoints.setLeft(i);
     else syncPoints.setRight(i);
-    hoverSyncPoint = -1;
-  }
-
-  public int getMidLineHoverSyncPoint() {
-    if (syncPoints.midLineHoverSyncPoint == -1) return -1;
-    return syncPoints()[syncPoints.midLineHoverSyncPoint];
+    syncPoints.hoverSyncPoint = -1;
   }
 
   public void updateOnDiff(Diff diff, boolean isUndo) {
