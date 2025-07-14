@@ -312,7 +312,7 @@ public class RemoteCollector {
       ItemFolderDiffModel model,
       Object[] result
   ) {
-    LoggingJs.trace("Compared folders" + model.path);
+    LoggingJs.trace("Compared folders " + model.path);
     foldersCompared++;
     int[] ints = ArgsCast.intArray(result, 0);
     if (isErrorInts(ints)) {
