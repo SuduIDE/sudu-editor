@@ -55,6 +55,7 @@ public class RemoteCollector {
   private boolean onCompleteSent = false;
   private boolean isShutdown = false;
   private boolean isRefresh = false;
+  private boolean isRootReplaced = false;
 
   private FrontendMessage lastFrontendMessage = FrontendMessage.EMPTY;
   private double lastMessageSentTime;
@@ -102,6 +103,7 @@ public class RemoteCollector {
     root = new ItemFolderDiffModel(null, "");
     root.setItem(left, newDir);
     root.setItem(!left, oppositeDir);
+    isRootReplaced = true;
     reset();
     beginCompare();
   }
@@ -593,6 +595,7 @@ public class RemoteCollector {
     var jsArray = serializeBackendMessage(backendMessage, message);
     jsArray.push(msgType);
     send.accept(jsArray);
+    isRootReplaced = false;
   }
 
   private void sendExcludedToCompare(ItemFolderDiffModel model, FrontendTreeNode frontendNode) {
@@ -624,7 +627,8 @@ public class RemoteCollector {
         foldersCompared,
         filesCompared,
         getTotalTime(),
-        getDifferentFilesCnt()
+        getDifferentFilesCnt(),
+        isRootReplaced
     );
   }
 

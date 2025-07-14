@@ -20,6 +20,7 @@ public class BackendMessage {
   public String rightRootPath;
   public int foldersCmp, filesCmp, timeDelta;
   public int differentFiles;
+  public boolean rootReplaced;
 
   public static JsArray<JSObject> serialize(
       RemoteFolderDiffModel root,
@@ -31,7 +32,8 @@ public class BackendMessage {
       int foldersCmp,
       int filesCmp,
       int timeDelta,
-      int differentFiles
+      int differentFiles,
+      boolean rootReplaced
   ) {
     JsArray<JSObject> result = JsArray.create();
     List<String> paths = new ArrayList<>();
@@ -52,7 +54,7 @@ public class BackendMessage {
     result.set(2, jsString(leftRootName));
     result.set(3, jsString(rightRootPath));
     result.set(4, jsString(rightRootName));
-    result.set(5, jsInts(timeDelta, foldersCmp, filesCmp, differentFiles));
+    result.set(5, jsInts(timeDelta, foldersCmp, filesCmp, differentFiles, rootReplaced ? 1 : 0));
     for (int i = 0; i < paths.size(); i++)
       result.set(6 + i, jsString(paths.get(i)));
     return result;
@@ -69,7 +71,7 @@ public class BackendMessage {
         root, null,
         leftRootPath, leftRootName,
         rightRootPath, rightRootName,
-        0, 0, 0, 0
+        0, 0, 0, 0, false
     );
   }
 
@@ -86,6 +88,7 @@ public class BackendMessage {
         foldersCmp = stats[1],
         filesCmp = stats[2],
         differentFiles = stats[3];
+    boolean rootReplaced = stats[4] == 1;
 
     String[] paths = new String[pathLen];
     for (int i = 0; i < pathLen; i++) paths[i] = string(jsArray, i + 6);
@@ -101,6 +104,7 @@ public class BackendMessage {
     message.foldersCmp = foldersCmp;
     message.filesCmp = filesCmp;
     message.differentFiles = differentFiles;
+    message.rootReplaced = rootReplaced;
     return message;
   }
 
