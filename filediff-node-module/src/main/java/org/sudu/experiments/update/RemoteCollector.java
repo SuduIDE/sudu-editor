@@ -67,19 +67,28 @@ public class RemoteCollector {
   private final BitSet lastFilters = new BitSet();
   private int lastFiltersLength = 0;
 
-  private final ExcludeList exclude;
+  private ExcludeList exclude;
+  private String leftExclude;
+  private String rightExclude;
 
   public RemoteCollector(
       ItemFolderDiffModel root,
       boolean scanFileContent,
       NodeWorkersPool executor,
-      ExcludeList exclude
+      String leftExclude,
+      String rightExclude
   ) {
     this.root = root;
     this.executor = executor;
     this.scanFileContent = scanFileContent;
     this.startTime = this.lastMessageSentTime = Performance.now();
-    this.exclude = exclude;
+    this.leftExclude = leftExclude;
+    this.rightExclude = rightExclude;
+    if (leftExclude == rightExclude) {
+      exclude = new ExcludeList(leftExclude);
+    } else {
+      exclude = new ExcludeList(leftExclude, rightExclude);
+    }
     sendToWorkerQueue = new LinkedList<>();
     workerSize = executor.workersLength();
   }
@@ -104,6 +113,9 @@ public class RemoteCollector {
     root.setItem(left, newDir);
     root.setItem(!left, oppositeDir);
     isRootReplaced = true;
+    if (left) leftExclude = excludeList;
+    else rightExclude = excludeList;
+    exclude = new ExcludeList(leftExclude, rightExclude);
     reset();
     beginCompare();
   }
