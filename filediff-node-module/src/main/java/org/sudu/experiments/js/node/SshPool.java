@@ -65,7 +65,13 @@ public interface SshPool {
                 postError.f(e);
               }
             }));
-            client.onError(postError);
+            client.onError(jsError -> {
+              JsHelper.consoleInfo2("ssh client error",
+                  JsHelper.message(jsError),
+                  "remove cache record:", key.host);
+              map.remove(key);
+              postError.f(jsError);
+            });
             client.connect(key.jsSshCredentials());
           }
       );
