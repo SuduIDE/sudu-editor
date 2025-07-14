@@ -98,7 +98,7 @@ public class RemoteCollector {
     beginCompare();
   }
 
-  public void changeFolderRoot(DirectoryHandle newDir, boolean left) {
+  public void changeFolderRoot(DirectoryHandle newDir, boolean left, String excludeList) {
     var oppositeDir = root.item(!left);
     root = new ItemFolderDiffModel(null, "");
     root.setItem(left, newDir);

@@ -144,9 +144,9 @@ public class DiffModelChannelUpdater {
     collector.onRemoteFileSave(left, fullPath);
   }
 
-  public void changeFolder(DirectoryHandle newDir, boolean left) {
+  public void changeFolder(DirectoryHandle newDir, boolean left, String excludeList) {
     LoggingJs.info("DiffModelChannelUpdater change " + (left ? "left" : "right") +
-        "folder: newDir = " + newDir);
-    collector.changeFolderRoot(newDir, left);
+        "folder: newDir = " + newDir + ", excludeList = " + excludeList);
+    collector.changeFolderRoot(newDir, left, excludeList);
   }
 }

@@ -20,14 +20,14 @@ public class JsFolderDiffSession0 implements JsFolderDiffSession {
   }
 
   @Override
-  public void changeFolder(JsFolderInput newPath, boolean left) {
+  public void changeFolder(JsFolderInput newPath, boolean left, String excludeList) {
     DirectoryHandle newDir = JsFolderInput.directoryHandle(newPath);
     if (newDir == null) {
       LoggingJs.error(
           JsHelper.concat("changeFolder bad input: ",
               JsHelper.stringify(newPath)));
     } else {
-      updater.changeFolder(newDir, left);
+      updater.changeFolder(newDir, left, excludeList);
     }
   }
 }
