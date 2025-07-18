@@ -223,6 +223,9 @@ class FileDiffRootView extends DiffRootView {
   }
 
   protected void sendToDiff(boolean cmpOnlyLines) {
+    System.out.println("EditorComponent.sendToDiff: cmpOnlyLines = " + cmpOnlyLines +
+        ", editor1.docL = " + editor1.model().document.length() +
+        ", editor2.docL = " + editor2.model().document.length());
     int[] syncL = editor1.copiedSyncPoints();
     int[] syncR = editor2.copiedSyncPoints();
     if (syncL.length != syncR.length) return;

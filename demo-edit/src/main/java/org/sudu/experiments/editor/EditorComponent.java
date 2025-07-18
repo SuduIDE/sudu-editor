@@ -38,6 +38,7 @@ public class EditorComponent extends View implements
   boolean forceMaxFPS = false;
   Runnable[] debugFlags = new Runnable[10];
   static final boolean dumpFontsOnResize = false;
+  static final boolean debugDiffMap = true;
 
   final Caret caret = new Caret();
   int caretPosX;
@@ -2001,13 +2002,25 @@ public class EditorComponent extends View implements
     return "";
   }
 
+  private boolean buildDiffMapPending;
+
   public void setDiffModel(LineDiff[] lineDiffs) {
+    int docLength = model.document.length();
+    int diffLength = lineDiffs.length;
+    boolean diffMapPending = docLength != diffLength;
+    System.out.println("EditorComponent.setDiffModel: docL=" + docLength
+        + ", lineDiffs.length = " + diffLength
+        + (buildDiffMapPending ? " docLength != diffLength" : ""));
+    if (diffMapPending != buildDiffMapPending) {
+      System.out.println("  diffMapPending = " + diffMapPending);
+    }
+    if (diffMapPending) buildDiffMapPending = true;
     model.diffModel = lineDiffs;
     // todo: we can improve this by adding shareble
     // diff map between LineNumberComponent and codeMapTexture
     updateLineNumbersColors();
     if (LineDiff.notEmpty(lineDiffs)) {
-      if (size.y > 0)
+      if (size.y > 0 /*  && docLength == diffLength */)
         buildDiffMap();
     } else {
       clearCodeMap();
@@ -2068,6 +2081,17 @@ public class EditorComponent extends View implements
   }
 
   public void onDiffMade() {
+    int docLength = model.document.length();
+    int diffLength = model.diffModel.length;
+    System.out.println("EditorComponent.onDiffMade:  docL=" + docLength
+        + ", lineDiffs.length = " + diffLength
+        + ", buildDiffMapPending = " + buildDiffMapPending);
+
+    if (size.y > 0 && buildDiffMapPending && LineDiff.notEmpty(model.diffModel)) {
+      System.out.println("buildDiffMap in onDiffMade, buildDiffMapPending true -> false");
+      buildDiffMap();
+      buildDiffMapPending = false;
+    }
     if (onDiffMadeListener != null) {
       onDiffMadeListener.accept(this);
     }
@@ -2117,11 +2141,24 @@ public class EditorComponent extends View implements
   }
 
   void buildDiffMap() {
+    if (debugDiffMap) {
+      int docLength = model.document.length();
+      int diffLength = model.diffModel.length;
+      int visLen = docToView.length();
+      boolean diffModelError = docLength != diffLength;
+      System.out.println("EditorComponent.buildDiffMap: docL=" + docLength
+          + ", visLen=" + visLen
+          + ", lineDiffs.length = " + diffLength
+          + (diffModelError ? " docLength != diffLength" : ""));
+    }
+
     if (codeMap == null)
       codeMap = g.createTexture();
 
     int viewDocLength = docToView.length();
     var height = Math.min(size.y, lineHeight * viewDocLength);
+    // workaround
+    viewDocLength = Math.min(viewDocLength, model.diffModel.length);
     int[] mapping = new int[viewDocLength];
     docToView.viewToDocLines(0, viewDocLength, mapping);
     var img = DiffImage.diffImage(model.diffModel, height,

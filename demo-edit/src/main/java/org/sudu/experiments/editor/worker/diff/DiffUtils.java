@@ -236,6 +236,9 @@ public class DiffUtils {
       Consumer<DiffInfo> result,
       WorkerJobExecutor window
   ) {
+    System.out.println("  DiffUtils.findDiffs" +
+        ": document1.length() = " + document1.length() +
+        ", document2.length() = " + document2.length());
     char[] chars1 = document1.getChars();
     char[] chars2 = document2.getChars();
     int[] intervals1 = makeIntervals(document1, cmpOnlyLines);
