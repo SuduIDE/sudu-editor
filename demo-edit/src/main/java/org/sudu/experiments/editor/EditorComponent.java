@@ -2010,9 +2010,10 @@ public class EditorComponent extends View implements
     boolean diffMapPending = docLength != diffLength;
     System.out.println("EditorComponent.setDiffModel: docL=" + docLength
         + ", lineDiffs.length = " + diffLength
-        + (buildDiffMapPending ? " docLength != diffLength" : ""));
+        + (diffMapPending ? " docLength != diffLength" : ""));
     if (diffMapPending != buildDiffMapPending) {
-      System.out.println("  diffMapPending = " + diffMapPending);
+      System.out.println("  diffMapPending(" + diffMapPending +
+          ") != buildDiffMapPending(" + buildDiffMapPending + ")");
     }
     if (diffMapPending) buildDiffMapPending = true;
     model.diffModel = lineDiffs;
@@ -2141,6 +2142,10 @@ public class EditorComponent extends View implements
   }
 
   void buildDiffMap() {
+    if (model.diffModel == null) {
+      System.err.println("EditorComponent.buildDiffMap: model.diffModel == null");
+      return;
+    }
     if (debugDiffMap) {
       int docLength = model.document.length();
       int diffLength = model.diffModel.length;
@@ -2152,6 +2157,8 @@ public class EditorComponent extends View implements
           + (diffModelError ? " docLength != diffLength" : ""));
     }
 
+    System.out.println("EditorComponent.buildDiffMap1");
+
     if (codeMap == null)
       codeMap = g.createTexture();
 
@@ -2160,9 +2167,12 @@ public class EditorComponent extends View implements
     // workaround
     viewDocLength = Math.min(viewDocLength, model.diffModel.length);
     int[] mapping = new int[viewDocLength];
+    System.out.println("EditorComponent.buildDiffMap2");
     docToView.viewToDocLines(0, viewDocLength, mapping);
+    System.out.println("EditorComponent.buildDiffMap3");
     var img = DiffImage.diffImage(model.diffModel, height,
         mapping, colors.codeMapBg);
+    System.out.println("EditorComponent.buildDiffMap4");
     codeMap.setContent(img);
     codeMapSize.y = height;
   }
@@ -2188,7 +2198,7 @@ public class EditorComponent extends View implements
     if (mergeButtons != null) {
       mergeButtons.setCodeLineMapping(mapping);
     }
-    if (codeMap != null) buildDiffMap();
+    if (codeMap != null && model.diffModel != null) buildDiffMap();
   }
 
   public void clearCompactViewModel() {
