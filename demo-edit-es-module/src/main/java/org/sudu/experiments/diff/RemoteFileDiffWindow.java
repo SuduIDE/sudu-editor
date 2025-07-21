@@ -104,6 +104,10 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   public void onRefresh() {
     LoggingJs.trace("RemoteFileDiffWindow.onRefresh");
     needScrollSync = true;
+    rootView.editor1.clearCodeMap();
+    rootView.editor2.clearCodeMap();
+    rootView.middleLine.setModel(null);
+
     if (haveLeftHandle) {
       rootView.unsetModelFlagsBit(1);
       leftFile = null;

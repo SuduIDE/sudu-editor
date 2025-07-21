@@ -38,7 +38,8 @@ public class EditorComponent extends View implements
   boolean forceMaxFPS = false;
   Runnable[] debugFlags = new Runnable[10];
   static final boolean dumpFontsOnResize = false;
-  static final boolean debugDiffMap = true;
+  static final boolean debugDiffMap = false;
+  static final boolean debugDiffModel = false;
 
   final Caret caret = new Caret();
   int caretPosX;
@@ -2002,20 +2003,14 @@ public class EditorComponent extends View implements
     return "";
   }
 
-  private boolean buildDiffMapPending;
 
   public void setDiffModel(LineDiff[] lineDiffs) {
     int docLength = model.document.length();
     int diffLength = lineDiffs.length;
-    boolean diffMapPending = docLength != diffLength;
-    System.out.println("EditorComponent.setDiffModel: docL=" + docLength
+    boolean diffInLength = docLength != diffLength;
+    if (debugDiffModel) System.out.println("EditorComponent.setDiffModel: docL=" + docLength
         + ", lineDiffs.length = " + diffLength
-        + (diffMapPending ? " docLength != diffLength" : ""));
-    if (diffMapPending != buildDiffMapPending) {
-      System.out.println("  diffMapPending(" + diffMapPending +
-          ") != buildDiffMapPending(" + buildDiffMapPending + ")");
-    }
-    if (diffMapPending) buildDiffMapPending = true;
+        + (diffInLength ? " docLength != diffLength" : ""));
     model.diffModel = lineDiffs;
     // todo: we can improve this by adding shareble
     // diff map between LineNumberComponent and codeMapTexture
@@ -2045,10 +2040,6 @@ public class EditorComponent extends View implements
 
   public void highlightResolveError(boolean highlight) {
     model.highlightResolveError = highlight;
-  }
-
-  public LineDiff[] diffModel() {
-    return model.diffModel;
   }
 
   public Selection selection() {
@@ -2084,14 +2075,14 @@ public class EditorComponent extends View implements
   public void onDiffMade() {
     int docLength = model.document.length();
     int diffLength = model.diffModel.length;
-    System.out.println("EditorComponent.onDiffMade:  docL=" + docLength
-        + ", lineDiffs.length = " + diffLength
-        + ", buildDiffMapPending = " + buildDiffMapPending);
+    if (debugDiffModel)
+      System.out.println("EditorComponent.onDiffMade:  docL=" + docLength
+          + ", lineDiffs.length = " + diffLength);
 
-    if (size.y > 0 && buildDiffMapPending && LineDiff.notEmpty(model.diffModel)) {
-      System.out.println("buildDiffMap in onDiffMade, buildDiffMapPending true -> false");
+    if (size.y > 0 && LineDiff.notEmpty(model.diffModel)) {
+      if (debugDiffModel)
+        System.out.println("buildDiffMap in onDiffMade");
       buildDiffMap();
-      buildDiffMapPending = false;
     }
     if (onDiffMadeListener != null) {
       onDiffMadeListener.accept(this);
@@ -2143,7 +2134,8 @@ public class EditorComponent extends View implements
 
   void buildDiffMap() {
     if (model.diffModel == null) {
-      System.err.println("EditorComponent.buildDiffMap: model.diffModel == null");
+      if (debugDiffMap)
+        System.err.println("EditorComponent.buildDiffMap: model.diffModel == null");
       return;
     }
     if (debugDiffMap) {
@@ -2157,8 +2149,6 @@ public class EditorComponent extends View implements
           + (diffModelError ? " docLength != diffLength" : ""));
     }
 
-    System.out.println("EditorComponent.buildDiffMap1");
-
     if (codeMap == null)
       codeMap = g.createTexture();
 
@@ -2167,17 +2157,14 @@ public class EditorComponent extends View implements
     // workaround
     viewDocLength = Math.min(viewDocLength, model.diffModel.length);
     int[] mapping = new int[viewDocLength];
-    System.out.println("EditorComponent.buildDiffMap2");
     docToView.viewToDocLines(0, viewDocLength, mapping);
-    System.out.println("EditorComponent.buildDiffMap3");
     var img = DiffImage.diffImage(model.diffModel, height,
         mapping, colors.codeMapBg);
-    System.out.println("EditorComponent.buildDiffMap4");
     codeMap.setContent(img);
     codeMapSize.y = height;
   }
 
-  void clearCodeMap() {
+  public void clearCodeMap() {
     if (codeMap != null)
       codeMap = Disposable.assign(codeMap, null);
   }
