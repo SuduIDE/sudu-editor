@@ -39,7 +39,7 @@ public class EditorComponent extends View implements
   Runnable[] debugFlags = new Runnable[10];
   static final boolean dumpFontsOnResize = false;
   static final boolean debugDiffMap = false;
-  static final boolean debugDiffModel = false;
+  public static final boolean debugDiffModel = false;
 
   final Caret caret = new Caret();
   int caretPosX;
