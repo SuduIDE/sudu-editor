@@ -213,6 +213,7 @@ class FileDiffRootView extends DiffRootView {
     if (compact && !diffModel.isEmpty()) {
       buildCompactModel();
     }
+    ui.windowManager.uiContext.window.repaint();
   }
 
   public void updateDiffModel(

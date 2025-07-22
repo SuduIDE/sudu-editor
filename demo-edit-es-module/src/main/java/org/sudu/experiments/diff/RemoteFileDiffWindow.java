@@ -128,7 +128,7 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   }
 
   private void onDiffModelSet() {
-    LoggingJs.trace("RemoteFileDiffWindow.setOnDiffModelSet");
+    LoggingJs.trace("RemoteFileDiffWindow.onDiffModelSet");
     if (needScrollSync) {
       needScrollSync = false;
       if (focusSave == rootView.editor2) {
