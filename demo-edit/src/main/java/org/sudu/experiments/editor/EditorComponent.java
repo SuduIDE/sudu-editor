@@ -2005,18 +2005,20 @@ public class EditorComponent extends View implements
 
 
   public void setDiffModel(LineDiff[] lineDiffs) {
-    int docLength = model.document.length();
-    int diffLength = lineDiffs.length;
-    boolean diffInLength = docLength != diffLength;
-    if (debugDiffModel) System.out.println("EditorComponent.setDiffModel: docL=" + docLength
-        + ", lineDiffs.length = " + diffLength
-        + (diffInLength ? " docLength != diffLength" : ""));
+    if (debugDiffModel) {
+      int docLength = model.document.length();
+      int diffLength = lineDiffs.length;
+      boolean diffInLength = docLength != diffLength;
+      System.out.println("EditorComponent.setDiffModel: docL=" + docLength
+          + ", lineDiffs.length = " + diffLength
+          + (diffInLength ? " docLength != diffLength" : ""));
+    }
     model.diffModel = lineDiffs;
     // todo: we can improve this by adding shareble
     // diff map between LineNumberComponent and codeMapTexture
     updateLineNumbersColors();
     if (LineDiff.notEmpty(lineDiffs)) {
-      if (size.y > 0 /*  && docLength == diffLength */)
+      if (size.y > 0)
         buildDiffMap();
     } else {
       clearCodeMap();
