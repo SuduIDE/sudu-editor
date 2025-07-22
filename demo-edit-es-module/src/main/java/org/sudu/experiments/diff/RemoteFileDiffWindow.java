@@ -11,6 +11,7 @@ import org.sudu.experiments.esm.JsExternalMessageBar;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.ui.ToolbarItem;
@@ -104,6 +105,12 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   public void onRefresh() {
     LoggingJs.trace("RemoteFileDiffWindow.onRefresh");
     needScrollSync = true;
+    rootView.editor1.clearCodeMap();
+    rootView.editor1.setMergeButtons(ArrayOp.array(), new int[]{});
+    rootView.editor2.clearCodeMap();
+    rootView.editor2.setMergeButtons(ArrayOp.array(), new int[]{});
+    rootView.middleLine.setModel(null);
+
     if (haveLeftHandle) {
       rootView.unsetModelFlagsBit(1);
       leftFile = null;
@@ -121,7 +128,7 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   }
 
   private void onDiffModelSet() {
-    LoggingJs.trace("RemoteFileDiffWindow.setOnDiffModelSet");
+    LoggingJs.trace("RemoteFileDiffWindow.onDiffModelSet");
     if (needScrollSync) {
       needScrollSync = false;
       if (focusSave == rootView.editor2) {

@@ -11,14 +11,12 @@ public class SyncPoints {
   public int midLineHoverSyncPoint = -1;  // syncL & syncR index
   public int hoverSyncPoint = -1;
 
-  private final Runnable onSyncPointsChanged;
   private static final boolean DEBUG = false;
 
-  public SyncPoints(Runnable onSyncPointsChanged) {
+  public SyncPoints() {
     syncL = new int[0];
     syncR = new int[0];
     curL = curR = -1;
-    this.onSyncPointsChanged = onSyncPointsChanged;
   }
 
   public boolean hasLeft(int i) {
@@ -52,7 +50,6 @@ public class SyncPoints {
     syncL = ArrayOp.removeAt(syncL, i);
     syncR = ArrayOp.removeAt(syncR, i);
     if (midLineHoverSyncPoint == i) midLineHoverSyncPoint = -1;
-    onSyncPointsChanged.run();
   }
 
   public void setLeft(int i) {
@@ -67,7 +64,7 @@ public class SyncPoints {
     setSyncPoints();
   }
 
-  public void setSyncPoints() {
+  private void setSyncPoints() {
     if (curL == -1 || curR == -1) return;
     int lP = -Arrays.binarySearch(syncL, curL) - 1;
     int rP = -Arrays.binarySearch(syncR, curR) - 1;
@@ -95,7 +92,6 @@ public class SyncPoints {
       System.out.println("syncR = " + Arrays.toString(syncR));
     }
     curL = curR = -1;
-    onSyncPointsChanged.run();
   }
 
   public void updateOnDiff(Diff diff, boolean isUndo, boolean left) {
@@ -128,6 +124,5 @@ public class SyncPoints {
         syncR = ArrayOp.removeAt(syncR, i - 1);
       } else i++;
     }
-    onSyncPointsChanged.run();
   }
 }

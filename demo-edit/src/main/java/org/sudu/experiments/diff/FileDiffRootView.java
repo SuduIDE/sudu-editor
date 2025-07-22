@@ -38,7 +38,7 @@ class FileDiffRootView extends DiffRootView {
     middleLine.setLeftRight(editor1, editor2);
     Consumer<EditorComponent> parseListener = this::fullFileParseListener;
     TriConsumer<EditorComponent, Integer, Integer> iterativeParseListener = this::iterativeParseFileListener;
-    SyncPoints syncPoints = new SyncPoints(this::onSyncPointsUpdated);
+    SyncPoints syncPoints = new SyncPoints();
 
     editor1.setFullFileParseListener(parseListener);
     editor1.setIterativeParseFileListener(iterativeParseListener);
@@ -137,6 +137,12 @@ class FileDiffRootView extends DiffRootView {
     boolean isL = editor == editor1;
     if (isDelete) onDeleteDiffMadeListener(diff, isL);
     else onInsertDiffMadeListener(diff, isL);
+    if (diffModel != null) {
+      editor.setDiffModel(isL ? diffModel.lineDiffsL : diffModel.lineDiffsR);
+      middleLine.setModel(diffModel);
+      if (diffModel.isCompactedView())
+        applyCodeMapping(diffModel.getExpander(this::applyCodeMapping));
+    }
   }
 
   private void onDiffMadeListener(EditorComponent editor) {
@@ -148,16 +154,12 @@ class FileDiffRootView extends DiffRootView {
   private void onInsertDiffMadeListener(Diff diff, boolean isL) {
     if (diffModel != null) {
       diffModel.insertAt(diff.line, diff.lineCount(), isL);
-      if (diffModel.isCompactedView())
-        applyCodeMapping(diffModel.getExpander(this::applyCodeMapping));
     }
   }
 
   private void onDeleteDiffMadeListener(Diff diff, boolean isL) {
     if (diffModel != null) {
       diffModel.deleteAt(diff.line, diff.lineCount(), isL);
-      if (diffModel.isCompactedView())
-        applyCodeMapping(diffModel.getExpander(this::applyCodeMapping));
     }
   }
 
@@ -211,6 +213,7 @@ class FileDiffRootView extends DiffRootView {
     if (compact && !diffModel.isEmpty()) {
       buildCompactModel();
     }
+    ui.windowManager.uiContext.window.repaint();
   }
 
   public void updateDiffModel(
@@ -223,6 +226,10 @@ class FileDiffRootView extends DiffRootView {
   }
 
   protected void sendToDiff(boolean cmpOnlyLines) {
+    if (EditorComponent.debugDiffModel)
+      System.out.println("EditorComponent.sendToDiff: cmpOnlyLines = " + cmpOnlyLines +
+          ", editor1.docL = " + editor1.model().document.length() +
+          ", editor2.docL = " + editor2.model().document.length());
     int[] syncL = editor1.copiedSyncPoints();
     int[] syncR = editor2.copiedSyncPoints();
     if (syncL.length != syncR.length) return;
@@ -350,10 +357,6 @@ class FileDiffRootView extends DiffRootView {
 
   public void unsetModelFlagsBit(int bit) {
     modelFlags &= ~bit;
-  }
-
-  public void onSyncPointsUpdated() {
-    sendToDiff(false);
   }
 
   public void onMidSyncLineClick(SyncPoints syncPoints, int line) {

@@ -12,7 +12,6 @@ import org.sudu.experiments.parser.common.graph.ScopeGraph;
 
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 public class Document extends CodeLines {
   public static final char newLine = '\n';
@@ -64,7 +63,7 @@ public class Document extends CodeLines {
   }
 
   public void invalidateMeasure() {
-    for (CodeLine line : document) {
+    for (CodeLine line: document) {
       line.invalidateMeasure();
     }
   }
@@ -176,9 +175,14 @@ public class Document extends CodeLines {
 
   private Diff copyLines(int fromLine, CodeLine[] newLines) {
     if (newLines.length == 0) return null;
-    String inserted = Arrays.stream(newLines)
-        .map(CodeLine::makeString)
-        .collect(Collectors.joining("\n", "", fromLine == length() ? "" : "\n"));
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < newLines.length - 1; i++)
+      sb.append(newLines[i].makeString())
+          .append("\n");
+    sb.append(newLines[newLines.length - 1].makeString());
+    if (fromLine != length()) sb.append("\n");
+
+    String inserted = sb.toString();
     Diff insertDiff = new Diff(fromLine, 0, false, inserted);
     makeDiffOp(insertDiff);
 
@@ -188,6 +192,7 @@ public class Document extends CodeLines {
     System.arraycopy(document, fromLine, newDocument, fromLine + newLines.length, document.length - fromLine);
 
     this.document = newDocument;
+    updateModelOnDiff(insertDiff, false);
     return insertDiff;
   }
 
@@ -219,6 +224,7 @@ public class Document extends CodeLines {
     Diff diff = new Diff(deleteLine, deletePos, true, deletedSB.toString());
     deleteLinesOp(fromLine, toLine);
     makeDiffOp(diff);
+    updateModelOnDiff(diff, false);
     return diff;
   }
 
@@ -447,6 +453,7 @@ public class Document extends CodeLines {
 
     diffs.add(ArrayOp.array(diff));
     makeDiffOp(diff);
+    updateModelOnDiff(diff, false);
   }
 
   public void makeDiffWithCaretReturn(
@@ -461,6 +468,7 @@ public class Document extends CodeLines {
     var diff = new Diff(line, from, isDelete, change, caretPos.line, caretPos.pos);
     diffs.add(ArrayOp.array(diff));
     makeDiffOp(diff);
+    updateModelOnDiff(diff, false);
   }
 
   public void makeComplexDiff(
@@ -482,6 +490,7 @@ public class Document extends CodeLines {
       Diff diff = new Diff(lines[i], from[i], areDeletes[i], changes[i]);
       makeDiffOp(diff);
       editorAction.accept(lines[i], changes[i]);
+      updateModelOnDiff(diff, false);
     }
   }
 
@@ -494,7 +503,6 @@ public class Document extends CodeLines {
       tree.makeInsertDiff(posInDoc, diff.change.length());
       scopeGraph.makeInsertDiff(posInDoc, diff.change.length());
     }
-    updateModelOnDiff(diff, false);
   }
 
   public V2i undoLastDiff() {
