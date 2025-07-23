@@ -55,6 +55,7 @@ public class RemoteCollector {
   private boolean onCompleteSent = false;
   private boolean isShutdown = false;
   private boolean isRefresh = false;
+  private boolean isRootReplaced = false;
 
   private FrontendMessage lastFrontendMessage = FrontendMessage.EMPTY;
   private double lastMessageSentTime;
@@ -66,19 +67,28 @@ public class RemoteCollector {
   private final BitSet lastFilters = new BitSet();
   private int lastFiltersLength = 0;
 
-  private final ExcludeList exclude;
+  private ExcludeList exclude;
+  private String leftExclude;
+  private String rightExclude;
 
   public RemoteCollector(
       ItemFolderDiffModel root,
       boolean scanFileContent,
       NodeWorkersPool executor,
-      ExcludeList exclude
+      String leftExclude,
+      String rightExclude
   ) {
     this.root = root;
     this.executor = executor;
     this.scanFileContent = scanFileContent;
     this.startTime = this.lastMessageSentTime = Performance.now();
-    this.exclude = exclude;
+    this.leftExclude = leftExclude;
+    this.rightExclude = rightExclude;
+    if (leftExclude == rightExclude) {
+      exclude = new ExcludeList(leftExclude);
+    } else {
+      exclude = new ExcludeList(leftExclude, rightExclude);
+    }
     sendToWorkerQueue = new LinkedList<>();
     workerSize = executor.workersLength();
   }
@@ -92,8 +102,26 @@ public class RemoteCollector {
 
   public void refresh() {
     LoggingJs.info("RemoteCollector.Refresh");
-    firstMessageSent = lastMessageSent = false;
     isRefresh = true;
+    reset();
+    beginCompare();
+  }
+
+  public void changeFolderRoot(DirectoryHandle newDir, boolean left, String excludeList) {
+    var oppositeDir = root.item(!left);
+    root = new ItemFolderDiffModel(null, "");
+    root.setItem(left, newDir);
+    root.setItem(!left, oppositeDir);
+    isRootReplaced = true;
+    if (left) leftExclude = excludeList;
+    else rightExclude = excludeList;
+    exclude = new ExcludeList(leftExclude, rightExclude);
+    reset();
+    beginCompare();
+  }
+
+  private void reset() {
+    firstMessageSent = lastMessageSent = false;
     startTime = lastMessageSentTime = Performance.now();
     foldersCompared = filesCompared = 0;
     filesInserted = filesDeleted = filesEdited = 0;
@@ -102,7 +130,6 @@ public class RemoteCollector {
     root.setCompared(false);
     root.childrenComparedCnt = 0;
     sendToWorkerQueue.clear();
-    beginCompare();
   }
 
   public void onMessageGot(FrontendMessage message) {
@@ -580,6 +607,7 @@ public class RemoteCollector {
     var jsArray = serializeBackendMessage(backendMessage, message);
     jsArray.push(msgType);
     send.accept(jsArray);
+    isRootReplaced = false;
   }
 
   private void sendExcludedToCompare(ItemFolderDiffModel model, FrontendTreeNode frontendNode) {
@@ -611,7 +639,8 @@ public class RemoteCollector {
         foldersCompared,
         filesCompared,
         getTotalTime(),
-        getDifferentFilesCnt()
+        getDifferentFilesCnt(),
+        isRootReplaced
     );
   }
 

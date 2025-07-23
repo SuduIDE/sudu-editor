@@ -40,14 +40,16 @@ public class DiffModelChannelUpdater {
       ItemFolderDiffModel root,
       boolean scanFileContent,
       NodeWorkersPool executor, Channel channel,
-      ExcludeList exclude
+      String leftExclude,
+      String rightExclude
   ) {
     LoggingJs.info("DiffModelChannelUpdater created");
     this.collector = new RemoteCollector(
         root,
         scanFileContent,
         executor,
-        exclude
+        leftExclude,
+        rightExclude
     );
     this.channel = channel;
     this.channel.setOnMessage(this::onMessage);
@@ -142,5 +144,11 @@ public class DiffModelChannelUpdater {
 
   public void onRemoteFileSave(boolean left, String fullPath) {
     collector.onRemoteFileSave(left, fullPath);
+  }
+
+  public void changeFolder(DirectoryHandle newDir, boolean left, String excludeList) {
+    LoggingJs.info("DiffModelChannelUpdater change " + (left ? "left" : "right") +
+        "folder: newDir = " + newDir + ", excludeList = " + excludeList);
+    collector.changeFolderRoot(newDir, left, excludeList);
   }
 }

@@ -162,8 +162,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private void update(JsArray<JSObject> jsResult) {
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
-    if (isFiltered()) updateNodes();
-    if (!updatedRoots) {
+    if (isFiltered() || msg.rootReplaced) updateNodes();
+    if (!updatedRoots || msg.rootReplaced) {
       LoggingJs.info("Init RemoteFolderDiff roots: " + rootModel.recToString());
       updatedRoots = true;
       leftRoot.setLine(replaceSlashes(msg.leftRootName));
