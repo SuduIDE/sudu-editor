@@ -14,7 +14,6 @@ import org.sudu.experiments.esm.JsExternalFileOpener;
 import org.sudu.experiments.esm.JsExternalMessageBar;
 import org.sudu.experiments.esm.dlg.FsDialogs;
 import org.sudu.experiments.js.JsArray;
-import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
@@ -32,7 +31,6 @@ import org.sudu.experiments.ui.window.WindowManager;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
-import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
@@ -78,6 +76,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private int[] lastFilters = null;
   private RemoteFolderDiffModel lastSelected;
   private boolean isLastLeftFocused = false;
+  private boolean isRefresh = false;
   private FrontendMessage lastSendFrontendMsg = FrontendMessage.empty();
 
   private String leftRootPath, rightRootPath;
@@ -162,7 +161,10 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private void update(JsArray<JSObject> jsResult) {
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
-    if (isFiltered() || msg.rootReplaced) updateNodes();
+    if (isFiltered() || msg.rootReplaced || isRefresh) {
+      isRefresh = false;
+      updateNodes();
+    }
     if (!updatedRoots || msg.rootReplaced) {
       LoggingJs.info("Init RemoteFolderDiff roots: " + rootModel.recToString());
       updatedRoots = true;
@@ -274,6 +276,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     var msg = BackendMessage.deserialize(jsResult);
     lastSendFrontendMsg.openedFolders.updateDeepWithModel(msg.root);
     setStatMessages(msg);
+    isRefresh = true;
   }
 
   private void updateNodes() {
@@ -331,7 +334,9 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       RemoteFolderDiffModel model,
       FrontendTreeNode treeNode
   ) {
-    if (model.children == null || treeNode == null || !treeNode.isOpened()) return;
+    if (model == null || model.children == null ||
+        treeNode == null || !treeNode.isOpened()
+    ) return;
     node.doOpen();
 
     if (treeNode.children.length != model.children.length) treeNode.updateWithModel(model);

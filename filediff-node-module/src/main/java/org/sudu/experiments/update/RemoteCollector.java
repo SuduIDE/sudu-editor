@@ -281,6 +281,9 @@ public class RemoteCollector {
       FsItem item
   ) {
     ItemFolderDiffModel model = getOldOrNew(oldChildren, parent, item);
+    model.setDiffType(DiffTypes.DEFAULT);
+    model.setCompared(false);
+    model.childrenComparedCnt = 0;
     checkExcludeModel(model);
     return model;
   }
@@ -371,7 +374,6 @@ public class RemoteCollector {
       if (diffs[mP] == DiffTypes.DELETED) {
         edited = true;
         model.children[mP] = oldOrNew(oldChildren, model, leftItem[lP]);
-        model.child(mP).setCompared(false);
         model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.DELETED);
@@ -382,7 +384,6 @@ public class RemoteCollector {
       } else if (diffs[mP] == DiffTypes.INSERTED) {
         edited = true;
         model.children[mP] = oldOrNew(oldChildren, model, rightItem[rP]);
-        model.child(mP).setCompared(false);
         model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.INSERTED);
@@ -392,7 +393,6 @@ public class RemoteCollector {
         rP++;
       } else {
         model.children[mP] = oldOrNew(oldChildren, model, leftItem[lP]);
-        model.child(mP).setCompared(false);
         model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setItems(leftItem[lP], rightItem[rP]);
