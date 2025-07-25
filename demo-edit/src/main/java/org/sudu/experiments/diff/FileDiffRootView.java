@@ -38,7 +38,7 @@ class FileDiffRootView extends DiffRootView {
     middleLine.setLeftRight(editor1, editor2);
     Consumer<EditorComponent> parseListener = this::fullFileParseListener;
     TriConsumer<EditorComponent, Integer, Integer> iterativeParseListener = this::iterativeParseFileListener;
-    SyncPoints syncPoints = new SyncPoints();
+    SyncPoints syncPoints = new SyncPoints(() -> sendToDiff(false));
 
     editor1.setFullFileParseListener(parseListener);
     editor1.setIterativeParseFileListener(iterativeParseListener);
