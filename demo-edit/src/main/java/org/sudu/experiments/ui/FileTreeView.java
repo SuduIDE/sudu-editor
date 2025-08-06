@@ -47,6 +47,9 @@ public class FileTreeView extends TreeView {
   }
 
   public void updateModel(FolderDiffModel model, FileTreeNode another, int side) {
+    System.out.println("FileTreeView.updateModel");
+    System.out.println("   root = " + root);
+    System.out.println("   model = " + model + ", another = " + another + ", side = " + side);
     setModel(root.getModel(model, another, side));
   }
 

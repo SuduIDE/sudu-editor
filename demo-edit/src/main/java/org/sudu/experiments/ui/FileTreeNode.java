@@ -67,16 +67,22 @@ public class FileTreeNode extends TreeNode {
   }
 
   public int count(FolderDiffModel model, FileTreeNode another, int side) {
+    System.out.println("FileTreeNode.count1, line = " + line.makeString());
+    System.out.println("  model = " + model + ", another = " + another + ", side = " + side);
     int n = 1;
     if (isOpened()) {
       if (model.children == null) return count();
 
       int i = 0, j = 0;
       for (var child : model.children) {
-        if (child.matchSide(side)) {
+        if (child.matchSide(side) && i < children.length) {
+//          System.out.println("i = " + i);
+//          System.out.println("children.length = " + children.length + " i = " + i);
+          FileTreeNode childNext = children[i++]; // childOrNull(this, i++)
+//          System.out.println("children[" + i + "] = " + childNext);
           n += !child.isBoth()
-              ? children[i++].count(child, null, side)
-              : children[i++].count(child, childOrNull(another, j++), side);
+              ? childNext.count(child, null, side)
+              : childNext.count(child, childOrNull(another, j++), side);
         } else {
           var anotherChild = childOrNull(another, j++);
           if (anotherChild == null) n++;
@@ -99,7 +105,7 @@ public class FileTreeNode extends TreeNode {
       } else {
         int i = 0, j = 0;
         for (FolderDiffModel child: model.children) {
-          if (child.matchSide(side)) {
+          if (child.matchSide(side) && i < children.length) {
             idx = !child.isBoth()
                 ? children[i++].getModel(t, m, child, null, side, idx)
                 : children[i++].getModel(t, m, child, childOrNull(another, j++), side, idx);
