@@ -138,6 +138,7 @@ public class FolderDiffWindow extends ToolWindow0 {
           var window = new FileDiffWindow(windowManager, theme, fonts);
           window.open(node.file, left);
           window.open(oppositeFile.file, !left);
+          window.rootView.setCompactView(true);
         } else {
           var window = new EditorWindow(windowManager, theme, fonts);
           window.open(node.file);
