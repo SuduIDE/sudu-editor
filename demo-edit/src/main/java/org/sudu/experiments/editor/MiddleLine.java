@@ -100,7 +100,8 @@ public class MiddleLine extends View {
     if (diffModel == null || diffColors == null) return;
 
     computeVisible();
-    if (visible.size() == 0) return;
+    if (visible.size() == 0 && alignLines.size() == 0
+        && editedSyncL == -1 && editedSyncR == -1) return;
 
     g.enableBlend(true);
 
