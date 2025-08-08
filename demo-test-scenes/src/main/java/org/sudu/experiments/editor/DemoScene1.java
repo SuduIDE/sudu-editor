@@ -13,6 +13,11 @@ import org.sudu.experiments.math.V4f;
 import java.util.function.Consumer;
 
 public class DemoScene1 extends Scene {
+  static final String goodAcceptReject =  "✔✖";
+  static final String badAcceptReject =  "✔\uFE0F❌";
+  static final String centerText = goodAcceptReject + " " + badAcceptReject + " \uD83D\uDDD9 jsCanvas";
+  static final String lowTextureText = goodAcceptReject + " " + badAcceptReject + " \uD83D\uDDD9 ХуавэЙ 收件人 |";
+
   final Color editorBgColor = new Color(IdeaCodeColors.Dark.editBg);
   final V4f bgColor = new V4f(editorBgColor);
   final V2i clientSize = new V2i();
@@ -116,15 +121,14 @@ public class DemoScene1 extends Scene {
     Canvas h = api.graphics.createCanvas(200, 100, cleartype);
     // h.drawSvgSample();
     h.setFont(Fonts.CourierNew, 11);
-    String text1 = "jsCanvas.setFont(11, CourierNew);";
 //    h.setFillColor(255, 255, 255);
-    h.drawText(text1, 0, 20);
+    h.drawText(centerText, 0, 20);
     h.setFillColor(255, 0, 0);
-    h.drawText(text1, .25f, 40);
+    h.drawText(centerText, .25f, 40);
     h.setFillColor(0, 255, 0);
-    h.drawText(text1, .5f, 60);
+    h.drawText(centerText, .5f, 60);
     h.setFillColor(0, 0, 255);
-    h.drawText(text1, .75f, 80);
+    h.drawText(centerText, .75f, 80);
     GL.Texture texture = api.graphics.createTexture();
     texture.setContent(h);
     h.dispose();
@@ -132,13 +136,12 @@ public class DemoScene1 extends Scene {
   }
 
   private GL.Texture createTextTexture2(boolean cleartype) {
-    String s = " HuaweЙ KeyModifiers 收件人 |";
     Canvas canvas = api.graphics.createCanvas(255, 100, cleartype);
     canvas.setFont(Fonts.SegoeUI, 10);
     System.out.println("canvas.getFont() = " + canvas.getFont());
 
-    canvas.measureText(s);
-    drawSomeText(s, canvas);
+    canvas.measureText(lowTextureText);
+    drawSomeText(lowTextureText, canvas);
 
     GL.Texture texture = api.graphics.createTexture();
     texture.setContent(canvas);
