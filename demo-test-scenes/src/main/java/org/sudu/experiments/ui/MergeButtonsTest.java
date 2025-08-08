@@ -4,6 +4,7 @@ import org.sudu.experiments.DprUtil;
 import org.sudu.experiments.Scene0;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.editor.ClrContext;
 import org.sudu.experiments.editor.MergeButtons;
 import org.sudu.experiments.editor.test.MergeButtonsModel;
@@ -18,6 +19,7 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.function.Consumer;
 
@@ -25,10 +27,12 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
 
   final private SetCursor setCursor;
 
-  MergeButtons buttons = new MergeButtons(true);
+  MergeButtons buttons1 = new MergeButtons(true);
+  MergeButtons buttons2 = new MergeButtons(true);
   EditorColorScheme colors = EditorColorScheme.darculaIdeaColorScheme();
   MergeButtonsColors mColors = colors.codeDiffMergeButtons();
   boolean toLeft;
+  int buttonsHeight;
 
   private final ScrollBar scrollBar = new ScrollBar();
 
@@ -47,22 +51,35 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
     api.input.onScroll.add(this::onMouseWheel);
     api.input.onKeyPress.add(this::onKey);
 
-    var m = new MergeButtonsModel.TestModel(docLines);
-    buttons.setModel(m.actions, m.lines);
-    buttons.setColors(new byte[docLines]);
+    XorShiftRandom rand = new XorShiftRandom();
+    var m = new MergeButtonsModel.TestModel(docLines, rand);
+    buttons1.setModel(m.actions, m.lines);
+    buttons2.setModel(m.actions, m.lines);
+    var map = diffMap(docLines, rand);
+    buttons1.setColors(map);
+    buttons2.setColors(map);
+
   }
 
-
+  static byte[] diffMap(int docLines, XorShiftRandom rand) {
+    byte[] map = new byte[docLines];
+    for (int i = 0; i < map.length; i++)
+      map[i] = (byte) rand.nextInt(DiffTypes.EDITED + 1);
+    return map;
+  }
 
   @Override
   public void dispose() {
-    buttons.dispose();
+    buttons1.dispose();
+    buttons2.dispose();
     super.dispose();
   }
 
   private boolean onKey(KeyEvent keyEvent) {
     if (keyEvent.keyCode == KeyCode.SPACE) {
-      buttons.setFont(lineHeight, toLeft = !toLeft, font);
+      toLeft = !toLeft;
+      buttons1.setFont(lineHeight, toLeft, font);
+      buttons2.setFont(lineHeight, !toLeft, font);
       return true;
     }
     return false;
@@ -71,39 +88,52 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
   Consumer<ScrollBar.Event> vScrollHandler = event -> {
     scrollPos = event.getPosition(scrollMaxPos());
     System.out.println("scrollPos = " + scrollPos + " ... "
-        + (scrollPos + buttons.size.y));
+        + (scrollPos + buttonsHeight));
   };
 
   int scrollMaxPos() {
-    return virtualSize - buttons.size.y;
+    return virtualSize - buttonsHeight;
   }
 
   @Override
   public void onResize(V2i newSize, float dpr) {
     super.onResize(newSize, dpr);
     int w = DprUtil.toPx(80, dpr);
+    int _20 = DprUtil.toPx(20, dpr);
+
     int top = DprUtil.toPx(20, dpr);
     int left = DprUtil.toPx(20, dpr);
-    buttons.setPosition(left, top, w, screen.y / 2, dpr);
+    buttonsHeight = screen.y / 2;
 
     font = api.graphics.fontDesk(Fonts.Consolas, 20, dpr);
-    int _20 = DprUtil.toPx(20, dpr);
     lineHeight = font.lineHeight();
+
+    buttons1.setFont(lineHeight, toLeft, font);
+    buttons2.setFont(lineHeight, !toLeft, font);
+    buttons1.setPosition(left, top, w, buttonsHeight, dpr);
+    buttons2.setPosition(left + w + 2, top, w, buttonsHeight, dpr);
+
+    int measured1 = buttons1.measure(font, api.graphics.mCanvas, dpr);
+    int measured2 = buttons2.measure(font, api.graphics.mCanvas, dpr);
+    System.out.println("measured1 = " + measured1 + ", measured2 = " + measured2);
+
     virtualSize = docLines * lineHeight;
 
-    buttons.setFont(lineHeight, toLeft, font);
   }
 
   final ClrContext ctx = new ClrContext(true);
 
   public void paint() {
     super.paint();
-    int controlHeight = buttons.size.y;
 
-    buttons.setScrollPos(scrollPos);
+    buttons1.setScrollPos(scrollPos);
+    buttons2.setScrollPos(scrollPos);
     int firstLine = scrollPos / lineHeight;
-    int lastLine = Numbers.iDivRoundUp(scrollPos + controlHeight, lineHeight);
-    buttons.draw(
+    int lastLine = Numbers.iDivRoundUp(scrollPos + buttonsHeight, lineHeight);
+    buttons1.draw(
+        firstLine, lastLine, (firstLine + lastLine) / 2,
+        api.graphics, mColors, ctx, null);
+    buttons2.draw(
         firstLine, lastLine, (firstLine + lastLine) / 2,
         api.graphics, mColors, ctx, null);
 
@@ -120,9 +150,9 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
   private void layoutScroll() {
     int _20 = DprUtil.toPx(20, dpr);
     int _22 = DprUtil.toPx(22, dpr);
-    int right = buttons.pos.x + buttons.size.x;
+    int right = buttons2.pos.x + buttons2.size.x;
     scrollBar.layoutVertical(scrollPos,
-        buttons.pos.y, buttons.size.y,
+        buttons2.pos.y, buttons2.size.y,
         virtualSize, right + _22, _20);
   }
 
@@ -131,7 +161,9 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
     if (button == MOUSE_BUTTON_LEFT) {
       var scr = scrollBar.onMouseDown(event.position, vScrollHandler, true);
       if (scr != null) return scr;
-      return buttons.onMouseDown(event, button, setCursor);
+      var b1 = buttons1.onMouseDown(event, button, setCursor);
+      if (b1 != null) return b1;
+      return buttons2.onMouseDown(event, button, setCursor);
     }
 
     return Static.emptyConsumer;
@@ -139,13 +171,16 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
 
   @Override
   public boolean onMouseUp(MouseEvent event, int button) {
-    return buttons.onMouseUp(event, button);
+    boolean b1 = buttons1.onMouseUp(event, button);
+    boolean b2 = buttons2.onMouseUp(event, button);
+    return b1 || b2;
   }
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
-    return scrollBar.onMouseMove(event.position, setCursor)
-        || buttons.onMouseMove(event, setCursor);
+    boolean b1 = buttons1.onMouseMove(event, setCursor);
+    boolean b2 = buttons2.onMouseMove(event, setCursor);
+    return scrollBar.onMouseMove(event.position, setCursor) || b1 || b2;
   }
 
   boolean onMouseWheel(MouseEvent event, float dX, float dY) {

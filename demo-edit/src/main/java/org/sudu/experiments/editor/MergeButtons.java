@@ -15,10 +15,14 @@ import java.util.function.Consumer;
 
 public class MergeButtons implements Disposable {
 
-  static final char arrowL = '≪';
-  static final char arrowR = '≫';
+//  static final char arrowL = '≪';
+//  static final char arrowR = '≫';
   static final char arrowR1 = '→';
   static final char arrowL1 = '←';
+  static final char acceptCh = '✔';
+  static final char rejectCh = '✖';
+  static final char arrowL = acceptCh;
+  static final char arrowR = rejectCh;
 
   public final V2i pos = new V2i();
   public final V2i size = new V2i();
