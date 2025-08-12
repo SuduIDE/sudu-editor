@@ -5,9 +5,10 @@ import org.sudu.experiments.Scene0;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.diff.DiffTypes;
+import org.sudu.experiments.editor.AcceptRejectModel;
 import org.sudu.experiments.editor.ClrContext;
 import org.sudu.experiments.editor.MergeButtons;
-import org.sudu.experiments.editor.test.MergeButtonsModel;
+import org.sudu.experiments.editor.MergeButtonsModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.ui.colors.MergeButtonsColors;
 import org.sudu.experiments.editor.ui.window.TestColors;
@@ -29,6 +30,7 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
 
   MergeButtons buttons1 = new MergeButtons(true);
   MergeButtons buttons2 = new MergeButtons(true);
+  MergeButtons buttonsAR = new MergeButtons(true);
   EditorColorScheme colors = EditorColorScheme.darculaIdeaColorScheme();
   MergeButtonsColors mColors = colors.codeDiffMergeButtons();
   boolean toLeft;
@@ -53,12 +55,14 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
 
     XorShiftRandom rand = new XorShiftRandom();
     var m = new MergeButtonsModel.TestModel(docLines, rand);
+    var arm = new AcceptRejectModel.TestModel(docLines, rand);
     buttons1.setModel(m.actions, m.lines);
     buttons2.setModel(m.actions, m.lines);
+    buttonsAR.setModel(arm.actions, arm.lines);
     var map = diffMap(docLines, rand);
     buttons1.setColors(map);
     buttons2.setColors(map);
-
+    buttonsAR.setColors(map);
   }
 
   static byte[] diffMap(int docLines, XorShiftRandom rand) {
@@ -72,6 +76,7 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
   public void dispose() {
     buttons1.dispose();
     buttons2.dispose();
+    buttonsAR.dispose();
     super.dispose();
   }
 
@@ -80,6 +85,7 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
       toLeft = !toLeft;
       buttons1.setFont(lineHeight, toLeft, font);
       buttons2.setFont(lineHeight, !toLeft, font);
+      buttonsAR.setFont(lineHeight, false, font);
       return true;
     }
     return false;
@@ -98,7 +104,6 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
   @Override
   public void onResize(V2i newSize, float dpr) {
     super.onResize(newSize, dpr);
-    int w = DprUtil.toPx(80, dpr);
     int _20 = DprUtil.toPx(20, dpr);
 
     int top = DprUtil.toPx(20, dpr);
@@ -106,15 +111,22 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
     buttonsHeight = screen.y / 2;
 
     font = api.graphics.fontDesk(Fonts.Consolas, 20, dpr);
-    lineHeight = font.lineHeight();
+    lineHeight = font.lineHeight() * 125 / 100;
 
-    buttons1.setFont(lineHeight, toLeft, font);
-    buttons2.setFont(lineHeight, !toLeft, font);
-    buttons1.setPosition(left, top, w, buttonsHeight, dpr);
-    buttons2.setPosition(left + w + 2, top, w, buttonsHeight, dpr);
+    buttons1.setFont(lineHeight, !toLeft, font);
+    buttons2.setFont(lineHeight, toLeft, font);
+    buttonsAR.setFont(lineHeight, false, font);
 
     int measured1 = buttons1.measure(font, api.graphics.mCanvas, dpr);
     int measured2 = buttons2.measure(font, api.graphics.mCanvas, dpr);
+    int measuredAR = buttonsAR.measure(font, api.graphics.mCanvas, dpr);
+
+    buttons1.setPosition(left, top, measured1, buttonsHeight, dpr);
+    buttons2.setPosition(left + measured1 + 2,
+        top, measured2, buttonsHeight, dpr);
+    buttonsAR.setPosition(left + measured1 + 2 + measured2 + 2,
+        top, measuredAR, buttonsHeight, dpr);
+
     System.out.println("measured1 = " + measured1 + ", measured2 = " + measured2);
 
     virtualSize = docLines * lineHeight;
@@ -128,12 +140,16 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
 
     buttons1.setScrollPos(scrollPos);
     buttons2.setScrollPos(scrollPos);
+    buttonsAR.setScrollPos(scrollPos);
     int firstLine = scrollPos / lineHeight;
     int lastLine = Numbers.iDivRoundUp(scrollPos + buttonsHeight, lineHeight);
     buttons1.draw(
         firstLine, lastLine, (firstLine + lastLine) / 2,
         api.graphics, mColors, ctx, null);
     buttons2.draw(
+        firstLine, lastLine, (firstLine + lastLine) / 2,
+        api.graphics, mColors, ctx, null);
+    buttonsAR.draw(
         firstLine, lastLine, (firstLine + lastLine) / 2,
         api.graphics, mColors, ctx, null);
 
@@ -150,7 +166,7 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
   private void layoutScroll() {
     int _20 = DprUtil.toPx(20, dpr);
     int _22 = DprUtil.toPx(22, dpr);
-    int right = buttons2.pos.x + buttons2.size.x;
+    int right = buttonsAR.pos.x + buttonsAR.size.x;
     scrollBar.layoutVertical(scrollPos,
         buttons2.pos.y, buttons2.size.y,
         virtualSize, right + _22, _20);
@@ -163,7 +179,9 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
       if (scr != null) return scr;
       var b1 = buttons1.onMouseDown(event, button, setCursor);
       if (b1 != null) return b1;
-      return buttons2.onMouseDown(event, button, setCursor);
+      var b2 = buttons2.onMouseDown(event, button, setCursor);
+      if (b2 != null) return b2;
+      return buttonsAR.onMouseDown(event, button, setCursor);
     }
 
     return Static.emptyConsumer;
@@ -173,14 +191,16 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
   public boolean onMouseUp(MouseEvent event, int button) {
     boolean b1 = buttons1.onMouseUp(event, button);
     boolean b2 = buttons2.onMouseUp(event, button);
-    return b1 || b2;
+    boolean b3 = buttonsAR.onMouseUp(event, button);
+    return b1 || b2 || b3;
   }
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
     boolean b1 = buttons1.onMouseMove(event, setCursor);
     boolean b2 = buttons2.onMouseMove(event, setCursor);
-    return scrollBar.onMouseMove(event.position, setCursor) || b1 || b2;
+    boolean b3 = buttonsAR.onMouseMove(event, setCursor);
+    return scrollBar.onMouseMove(event.position, setCursor) || b1 || b2 || b3;
   }
 
   boolean onMouseWheel(MouseEvent event, float dX, float dY) {

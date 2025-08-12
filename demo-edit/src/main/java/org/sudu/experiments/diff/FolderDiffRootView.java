@@ -2,7 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Subscribers;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
-import org.sudu.experiments.editor.test.MergeButtonsModel;
+import org.sudu.experiments.editor.MergeButtonsModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.ui.FileTreeDiffRef;

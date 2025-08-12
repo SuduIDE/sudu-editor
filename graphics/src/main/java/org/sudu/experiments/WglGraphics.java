@@ -120,13 +120,21 @@ public abstract class WglGraphics {
 
   public GL.Texture renderTexture(
       String s, FontDesk font,
-      int lrMargin, int height, int yOffset, boolean cleartype
+      float margin, int height, int yOffset, boolean cleartype
+  ) {
+    return renderTexture(s, font, margin, margin, height, yOffset, cleartype);
+  }
+
+  public GL.Texture renderTexture(
+      String s, FontDesk font,
+      float marginL, float marginR,
+      int height, int yOffset, boolean cleartype
   ) {
     mCanvas.setFont(font);
-    int measured = mCanvas.measurePx(s, lrMargin * 2);
+    int measured = mCanvas.measurePx(s, marginL + marginR);
     Canvas canvas = createCanvas(measured, height, cleartype);
     canvas.setFont(font);
-    canvas.drawText(s, lrMargin, font.baselineShift(height) + yOffset);
+    canvas.drawText(s, marginL, font.baselineShift(height) + yOffset);
     GL.Texture texture = createTexture(canvas);
     canvas.dispose();
     return texture;

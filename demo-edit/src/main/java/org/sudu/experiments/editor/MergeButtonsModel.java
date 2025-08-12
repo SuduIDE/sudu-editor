@@ -1,4 +1,4 @@
-package org.sudu.experiments.editor.test;
+package org.sudu.experiments.editor;
 
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
