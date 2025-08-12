@@ -349,9 +349,7 @@ export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
 }
 
 export interface FileDiffView extends IFileDiffView, IDisposable {
-  setLeftModel(model: ITextModel): void,
-
-  setRightModel(model: ITextModel): void,
+  setModel(modelL: ITextModel, modelR: ITextModel): void
 }
 
 export interface IFolderDiffView extends View, HasTheme, TwoPanelDiff, Focusable {

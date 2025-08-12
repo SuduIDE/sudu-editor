@@ -247,7 +247,7 @@ public class JsHelper {
   public static native JSString constructorName(JSObject x);
 
   public static String toString(JSString jsString, String orElse) {
-    return jsIf(jsString) ? jsString.stringValue() : orElse;
+    return JSString.isInstance(jsString) ? jsString.stringValue() : orElse;
   }
 
   public static JsArray<JSString> javaToJs(String[] array) {
