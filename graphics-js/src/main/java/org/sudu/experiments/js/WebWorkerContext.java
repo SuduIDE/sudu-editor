@@ -22,6 +22,12 @@ public abstract class WebWorkerContext implements JsMessagePort0 {
   @JSProperty("onmessage")
   public abstract void onMessage(JsFunctions.Consumer<MessageEvent> f);
 
+  @JSProperty("onmessageerror") // MessageEvent
+  public abstract void onMessageError(JsFunctions.Consumer<JSObject> f);
+
+  @JSProperty("onerror")  // MessageEvent
+  public abstract void onError(JsFunctions.Consumer<JSObject> f);
+
   @JSProperty("onmessage")
   public abstract void onMessage(JSObject jsObject);
 
@@ -40,12 +46,19 @@ public abstract class WebWorkerContext implements JsMessagePort0 {
       worker.onMessage(message -> {
         if (WorkerProtocol.isStarted(message.getData())) {
           worker.onMessage((JSObject) null);
+          JsFunctions.Consumer<JSObject> onError =
+              workerError -> JsHelper.consoleError2(
+              "unhandled worker error", workerError);
+          worker.onError(onError);
+          worker.onMessageError(onError);
           workers.push(worker);
           if (workers.getLength() == count) onStart.f(workers);
         } else {
           error.f(JsHelper.newError("worker is not started"));
         }
       });
+      worker.onError(event->
+          error.f(JsHelper.newError("worker start error", event)));
     }
   }
 
