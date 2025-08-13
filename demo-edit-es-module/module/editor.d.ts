@@ -16,6 +16,7 @@ export interface EditArgs {
   theme?: Theme
 
   readonly?: boolean
+  disableParser?: boolean
 
   // number of worker threads for parsing and resolve
   // default: 2

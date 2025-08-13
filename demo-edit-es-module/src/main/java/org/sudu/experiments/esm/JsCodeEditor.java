@@ -31,9 +31,11 @@ public class JsCodeEditor implements JsEditorView {
     window = new WebWindow(Editor0::new, WebGLError::onWebGlError,
         args.getContainerId(), workers);
     editor = demoEdit0().editor();
+    editor.setDisableParser(args.getDisableParserOrDefault());
     controller = new JsEditorViewController0();
     if (args.hasTheme()) setTheme(args.getTheme());
-    if (args.hasReadonly()) setReadonly(args.getReadonly());
+    if (args.hasReadonly())
+      setReadonly(args.getReadonly());
   }
 
   @Override

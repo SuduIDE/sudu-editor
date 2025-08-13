@@ -128,6 +128,7 @@ public class EditorComponent extends View implements
 
   EditorSyncPoints syncPoints;
   private final V2i lastMouseDownPos = new V2i(-1, -1);
+  private boolean disableParser = EditorConst.DEFAULT_DISABLE_PARSER;
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -2076,10 +2077,12 @@ public class EditorComponent extends View implements
 
   public void onDiffMade() {
     int docLength = model.document.length();
-    int diffLength = model.diffModel.length;
-    if (debugDiffModel)
-      System.out.println("EditorComponent.onDiffMade:  docL=" + docLength
-          + ", lineDiffs.length = " + diffLength);
+    if (model.diffModel != null) {
+      int diffLength = model.diffModel.length;
+      if (debugDiffModel)
+        System.out.println("EditorComponent.onDiffMade:  docL=" + docLength
+            + ", lineDiffs.length = " + diffLength);
+    }
 
     if (size.y > 0 && LineDiff.notEmpty(model.diffModel)) {
       if (debugDiffModel)
@@ -2169,6 +2172,16 @@ public class EditorComponent extends View implements
   public void clearCodeMap() {
     if (codeMap != null)
       codeMap = Disposable.assign(codeMap, null);
+  }
+
+  public void setDisableParser(boolean disableParser) {
+    System.out.println("EditorComponent.setDisableParser: " + disableParser);
+    this.disableParser = disableParser;
+  }
+
+  @Override
+  public boolean isDisableParser() {
+    return disableParser;
   }
 
   public void setCodeMap() {

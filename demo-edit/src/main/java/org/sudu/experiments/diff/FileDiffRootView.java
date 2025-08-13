@@ -30,7 +30,7 @@ class FileDiffRootView extends DiffRootView {
   private static final boolean showNavigateLog = true;
   private Runnable onRefresh, onDiffModelSet;
 
-  FileDiffRootView(WindowManager wm) {
+  FileDiffRootView(WindowManager wm, boolean disableParser) {
     super(wm.uiContext);
     ui = new EditorUi(wm);
     editor1 = new EditorComponent(ui);
@@ -47,6 +47,7 @@ class FileDiffRootView extends DiffRootView {
     editor1.highlightResolveError(false);
     editor1.setMirrored(true);
     editor1.setSyncPoints(syncPoints, true);
+    editor1.setDisableParser(disableParser);
 
     editor2.setFullFileParseListener(parseListener);
     editor2.setIterativeParseFileListener(iterativeParseListener);
@@ -54,6 +55,7 @@ class FileDiffRootView extends DiffRootView {
     editor2.setOnDiffMadeListener(this::onDiffMadeListener);
     editor2.highlightResolveError(false);
     editor2.setSyncPoints(syncPoints, false);
+    editor2.setDisableParser(disableParser);
 
     diffSync = new DiffSync(editor1, editor2);
     middleLine.setOnMidSyncPointHover(i -> onMidSyncLineHover(syncPoints, i));
@@ -85,6 +87,11 @@ class FileDiffRootView extends DiffRootView {
   public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
     editor1.readonly = leftReadonly;
     editor2.readonly = rightReadonly;
+  }
+
+  public void setDisableParser(boolean disableParser) {
+    editor1.setDisableParser(disableParser);
+    editor2.setDisableParser(disableParser);
   }
 
   public EditorUi.FontApi fontApi() {

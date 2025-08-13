@@ -4,6 +4,7 @@ import org.sudu.experiments.DirectoryHandle;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.FolderDiffSide;
+import org.sudu.experiments.editor.EditorConst;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.test.MergeButtonsModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -37,6 +38,8 @@ public class FolderDiffWindow extends ToolWindow0 {
 
   private int updateCnt = 0;
   private double startTime;
+
+  private boolean disableParser = EditorConst.DEFAULT_DISABLE_PARSER;
 
   public FolderDiffWindow(
       EditorColorScheme theme,
@@ -135,7 +138,7 @@ public class FolderDiffWindow extends ToolWindow0 {
         FileNode oppositeFile = findOppositeFile(node.file);
         if (oppositeFile != null) {
           setOppositeSel(oppositeFile);
-          var window = new FileDiffWindow(windowManager, theme, fonts);
+          var window = new FileDiffWindow(windowManager, theme, fonts, disableParser);
           window.open(node.file, left);
           window.open(oppositeFile.file, !left);
           window.rootView.setCompactView(true);
@@ -282,5 +285,9 @@ public class FolderDiffWindow extends ToolWindow0 {
 
   public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
     rootView.setReadonly(leftReadonly, rightReadonly);
+  }
+
+  public void setDisableParser(boolean disableParser) {
+    this.disableParser = disableParser;
   }
 }

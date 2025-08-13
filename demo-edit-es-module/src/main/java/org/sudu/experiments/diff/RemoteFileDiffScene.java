@@ -8,16 +8,16 @@ import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.math.V2i;
 
-public class RemoteFileDiffScene extends WindowScene{
+public class RemoteFileDiffScene extends WindowScene {
   final Channel channel;
 
   protected RemoteFileDiffWindow w;
 
-  public RemoteFileDiffScene(SceneApi api, Channel channel) {
+  public RemoteFileDiffScene(SceneApi api, boolean disableParser, Channel channel) {
     super(api);
     this.channel = channel;
     var theme = EditorColorScheme.darkIdeaColorScheme();
-    w = new RemoteFileDiffWindow(windowManager, theme, this::menuFonts, channel);
+    w = new RemoteFileDiffWindow(windowManager, theme, this::menuFonts, disableParser, channel);
   }
 
   public String[] menuFonts() {

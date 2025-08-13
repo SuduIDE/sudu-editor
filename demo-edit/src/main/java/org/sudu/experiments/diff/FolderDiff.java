@@ -1,6 +1,7 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.editor.EditorConst;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.ProjectViewWindow;
 import org.sudu.experiments.editor.WindowScene;
@@ -52,7 +53,7 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
   }
 
   private void newFileWindow() {
-    new FileDiffWindow(windowManager, theme, FolderDiff::menuFonts);
+    new FileDiffWindow(windowManager, theme, FolderDiff::menuFonts, EditorConst.DEFAULT_DISABLE_PARSER);
   }
 
   private void newProjectView() {

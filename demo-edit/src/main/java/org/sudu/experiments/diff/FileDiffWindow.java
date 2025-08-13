@@ -33,10 +33,11 @@ public class FileDiffWindow extends ToolWindow0
   public FileDiffWindow(
       WindowManager wm,
       EditorColorScheme theme,
-      Supplier<String[]> fonts
+      Supplier<String[]> fonts,
+      boolean disableParser
   ) {
     super(wm, theme, fonts);
-    rootView = new FileDiffRootView(windowManager);
+    rootView = new FileDiffRootView(windowManager, disableParser);
     rootView.applyTheme(this.theme);
     window = createWindow(rootView, 30);
     window.onFocus(this::onFocus);

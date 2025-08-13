@@ -33,6 +33,8 @@ public interface EditorConst {
   int weightRegular = FontDesk.WEIGHT_LIGHT;
   int weightBold    = FontDesk.WEIGHT_SEMI_BOLD;
 
+  boolean DEFAULT_DISABLE_PARSER = false;
+
   static FontDesk setFonts(
       String name, float size,
       FontDesk[] fonts, WglGraphics g

@@ -1,6 +1,5 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.Debug;
 import org.sudu.experiments.JsLauncher;
 
 import org.sudu.experiments.WebWindow;
@@ -18,6 +17,7 @@ public class JsFolderDiff implements JsIFolderDiffView {
   protected JsFolderDiff(WebWindow window, EditArgs args) {
     this.window = window;
     this.w = ((FolderDiffScene) window.scene()).w;
+    this.w.setDisableParser(args.getDisableParserOrDefault());
     if (args.hasTheme()) setTheme(args.getTheme());
   }
 
