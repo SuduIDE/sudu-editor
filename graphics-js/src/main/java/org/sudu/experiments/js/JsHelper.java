@@ -307,7 +307,7 @@ public class JsHelper {
     return TextDecoder.decodeUTF16(s.toCharArray());
   }
 
-  @JSBody(script = "console.log('debugger'); eval('debugger');")
+  @JSBody(script = "eval('debugger');")
   @NoSideEffects
   public static native void debugger();
 }
