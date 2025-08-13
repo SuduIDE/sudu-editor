@@ -25,7 +25,6 @@ public class MergeButtonsColors {
     this.textColor = textColor;
     this.bgColor = bgColor;
     this.hoverBg = hoverBg;
-    bgColorHovered = new Color(0, 0, 255);
-        ColorOp.blend(bgColor, hoverBg);
+    bgColorHovered = ColorOp.blend(bgColor, hoverBg);
   }
 }
