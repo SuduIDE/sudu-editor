@@ -3,10 +3,7 @@ package org.sudu.experiments.js;
 import org.sudu.experiments.GLApi;
 import org.teavm.interop.NoSideEffects;
 import org.teavm.jso.*;
-import org.teavm.jso.core.JSError;
-import org.teavm.jso.core.JSNumber;
-import org.teavm.jso.core.JSObjects;
-import org.teavm.jso.core.JSString;
+import org.teavm.jso.core.*;
 import org.teavm.jso.dom.css.CSSStyleDeclaration;
 import org.teavm.jso.dom.html.HTMLCanvasElement;
 import org.teavm.jso.typedarrays.ArrayBuffer;
@@ -212,6 +209,10 @@ public class JsHelper {
   @NoSideEffects
   public static native JSError newError(String arg);
 
+  @JSBody(params = {"arg", "cause"}, script = "return new Error(arg, {cause: cause});")
+  @NoSideEffects
+  public static native JSError newError(String arg, JSObject cause);
+
   public interface Error extends JSObject {
     @JSProperty JSString getMessage();
   }
@@ -305,4 +306,8 @@ public class JsHelper {
   public static JSString fastToJs(String s) {
     return TextDecoder.decodeUTF16(s.toCharArray());
   }
+
+  @JSBody(script = "console.log('debugger'); eval('debugger');")
+  @NoSideEffects
+  public static native void debugger();
 }
