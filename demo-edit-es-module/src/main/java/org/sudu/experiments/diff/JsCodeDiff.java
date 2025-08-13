@@ -72,25 +72,20 @@ public class JsCodeDiff implements JsFileDiffView {
   }
 
   @Override
-  public void setLeftModel(JsITextModel model) {
-    if (model instanceof JsTextModel jsTextModel) {
-      w.rootView.setLeftModel(jsTextModel.javaModel);
-    } else if (JSObjects.isUndefined(model)) {
-      throw new IllegalArgumentException("left model is undefined");
-    } else {
-      throw new IllegalArgumentException("bad left model");
+  public void setModel(JsITextModel modelL, JsITextModel modelR) {
+    if (!(modelL instanceof JsTextModel jsModelL)) {
+      boolean undefined = JSObjects.isUndefined(modelL);
+      throw new IllegalArgumentException(
+          undefined ? "left model is undefined" : "bad left model");
     }
-  }
 
-  @Override
-  public void setRightModel(JsITextModel model) {
-    if (model instanceof JsTextModel jsTextModel) {
-      w.rootView.setRightModel(jsTextModel.javaModel);
-    } else if (JSObjects.isUndefined(model)) {
-      throw new IllegalArgumentException("right model is undefined");
-    } else {
-      throw new IllegalArgumentException("bad right model");
+    if (!(modelR instanceof JsTextModel jsModelR)) {
+      boolean undefined = JSObjects.isUndefined(modelR);
+      throw new IllegalArgumentException(
+          undefined ? "right model is undefined" : "bad right model");
     }
+
+    w.rootView.setModel(jsModelL.javaModel, jsModelR.javaModel);
   }
 
   @Override

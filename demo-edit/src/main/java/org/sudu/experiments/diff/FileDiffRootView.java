@@ -64,13 +64,9 @@ class FileDiffRootView extends DiffRootView {
     setEmptyDiffModel();
   }
 
-  public void setLeftModel(Model m) {
-    editor1.setModel(m);
-    sendToDiff(true);
-  }
-
-  public void setRightModel(Model m) {
-    editor2.setModel(m);
+  public void setModel(Model m1, Model m2) {
+    editor1.setModel(m1);
+    editor2.setModel(m2);
     sendToDiff(true);
   }
 
