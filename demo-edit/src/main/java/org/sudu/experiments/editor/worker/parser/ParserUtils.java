@@ -69,6 +69,8 @@ public abstract class ParserUtils {
 
     if (graphInts != null && graphChars != null) {
       updateGraph(document, graphInts, graphChars);
+    } else {
+      document.tree = new IntervalTree(new Interval(0, document.getFullLength(), 0));
     }
   }
 

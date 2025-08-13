@@ -205,11 +205,10 @@ public class Model {
   }
 
   void onFullFileLexed(Object[] result) {
-    firstLinesParsed = ParseStatus.PARSED;
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
     ParserUtils.updateDocument(document, ints, chars);
-    if (editor != null) editor.fireFullFileParsed();
+    setParsed();
   }
 
   void changeModelLanguage(String languageFromParser) {
@@ -332,7 +331,7 @@ public class Model {
     executor.sendToWorker(true, this::onFullFileLexed,
         FileProxy.asyncParseFirstLines,
         chars, new int[]{langType, Integer.MAX_VALUE});
-    firstLinesParsed = ParseStatus.SENT;
+    fullFileParsed = ParseStatus.SENT;
   }
 
   private void sendFirstLines(char[] chars, int langType) {
