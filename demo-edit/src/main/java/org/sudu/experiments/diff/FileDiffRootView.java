@@ -205,8 +205,8 @@ class FileDiffRootView extends DiffRootView {
         this::applyDiff
     );
     MergeButtonsModel m1 = pair[0], m2 = pair[1];
-    editor1.setMergeButtons(m1.actions, m1.lines);
-    editor2.setMergeButtons(m2.actions, m2.lines);
+    editor1.setMergeButtons(m1.actions, null, m1.lines);
+    editor2.setMergeButtons(m2.actions, null, m2.lines);
 
     if (!firstDiffRevealed) revealFirstDiff();
     if (onDiffModelSet != null) onDiffModelSet.run();

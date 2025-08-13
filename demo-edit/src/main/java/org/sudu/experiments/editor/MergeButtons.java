@@ -42,6 +42,7 @@ public class MergeButtons implements Disposable {
   private int lineHeight, scrollPos;
   private int firstLine, lastLine;
   private int hoverBtLine = -1, hoverBtIndex = -1;
+  private boolean hoverBtAccept;
   private final boolean drawBg;
   private boolean toLeft;
   private FontDesk font;
@@ -73,8 +74,7 @@ public class MergeButtons implements Disposable {
     this.toLeft = rtl;
     this.font = font;
 //    System.out.println("MergeButtons.setFont " + font.name + " lh=" + lineHeight);
-    texture = Disposable.dispose(texture);
-    texture2 = Disposable.dispose(texture2);
+    disposeTextures();
   }
 
   public void setModel(Runnable[] act, int[] ln) {
@@ -147,14 +147,18 @@ public class MergeButtons implements Disposable {
       boolean found = docL >= 0 && Arrays.binarySearch(lines, docL) >= 0;
 
       if (found) {
-        var textColor = diffType != 0 && textColors != null ?
-            textColors.getDiffColor(diffType, null) : theme.textColor;
+        var textColor = acceptReject ? theme.acceptColor :
+            diffType != 0 && textColors != null ?
+                textColors.getDiffColor(diffType, null) : theme.textColor;
         boolean hovered = hoverBtLine == docL;
-        var bg = hovered && (theme.bgColors == null || diffType == 0) ?
+        var bg = hovered && hoverBtAccept && (theme.bgColors == null || diffType == 0) ?
             theme.bgColorHovered : bgColor;
         c.drawIcon(g, texture, x, y, bg, textColor);
-        if (acceptReject)
-          c.drawIcon(g, texture2, x + texture.width(), y, bg, textColor);
+        if (acceptReject) {
+          bg = hovered && !hoverBtAccept && (theme.bgColors == null || diffType == 0) ?
+              theme.bgColorHovered : bgColor;
+          c.drawIcon(g, texture2, x + texture.width(), y, bg, theme.rejectColor);
+        }
 
         if (drawFrames) {
           debug.set(x, y);
@@ -190,13 +194,17 @@ public class MergeButtons implements Disposable {
 
   public boolean onMouseMove(MouseEvent event, SetCursor setCursor) {
     hoverBtLine = -1;
-    if (!hitTest(event.position)) return false;
-    int x0 = pos.x;
-    int sizeX = texture != null ? texture.width() : 0;
+    V2i evPos = event.position;
+    if (!hitTest(evPos)) return false;
+    int sizeX1 = texture != null ? texture.width() : 0;
+    int sizeX2 = texture2 != null ? texture2.width() : 0;
+    int x1 = pos.x;
     for (int btDocLine : lines) {
       int btLine = docToView(btDocLine);
       if (btLine >= 0 && firstLine <= btLine && btLine <= lastLine) {
-        if (buttonHitTest(event.position, btLine, x0, sizeX)) {
+        if (buttonHitTest(evPos, btLine, x1, sizeX1 + sizeX2)) {
+          hoverBtAccept = buttonHitTest(evPos, btLine, x1, sizeX1);
+          System.out.println("hoverBtAccept = " + hoverBtAccept);
           hoverBtLine = btDocLine;
           return setCursor.set(Cursor.pointer);
         }
@@ -213,15 +221,16 @@ public class MergeButtons implements Disposable {
     if (button != MouseListener.MOUSE_BUTTON_LEFT) return null;
     if (!hitTest(event.position)) return null;
     int x0 = pos.x;
-    int sizeX = texture != null ? texture.width() : 0;
+    int sizeX1 = texture != null ? texture.width() : 0;
+    int sizeX2 = texture2 != null ? texture2.width() : 0;
+
     for (int i = 0; i < lines.length; i++) {
       int btDocLine = lines[i];
       int btLine = docToView(btDocLine);
       boolean hit = btLine >= 0 &&
           firstLine <= btLine && btLine <= lastLine &&
-          buttonHitTest(event.position, btLine, x0, sizeX);
+          buttonHitTest(event.position, btLine, x0, sizeX1 + sizeX2);
       if (hit) {
-        hoverBtLine = btDocLine;
         hoverBtIndex = i;
         setCursor.setDefault();
         return MouseListener.Static.emptyConsumer;
@@ -238,17 +247,28 @@ public class MergeButtons implements Disposable {
 
   public boolean onMouseUp(MouseEvent event, int button) {
     Runnable r = null;
+    BooleanConsumer bc = null;
     if (button == MouseListener.MOUSE_BUTTON_LEFT) {
       if (hoverBtLine >= 0) {
         int btLine = docToView(hoverBtLine);
-        if (btLine >= 0 && buttonHitTest(event.position, btLine, pos.x, texture != null ? texture.width() : 0)) {
-          r = actions[hoverBtIndex];
+        V2i evPos = event.position;
+        int sizeX1 = texture != null ? texture.width() : 0;
+        int sizeX2 = texture2 != null ? texture2.width() : 0;
+        if (btLine >= 0 && buttonHitTest(evPos, btLine, pos.x, sizeX1 + sizeX2)) {
+          if (isAcceptReject()) {
+            if (hoverBtAccept == buttonHitTest(evPos, btLine, pos.x, sizeX1)) {
+              bc = acceptReject[hoverBtIndex];
+            }
+          } else {
+            r = actions[hoverBtIndex];
+          }
         }
       }
     }
 
     hoverBtLine = hoverBtIndex = -1;
     if (r != null) r.run();
+    if (bc != null) bc.accept(hoverBtAccept);
     return r != null;
   }
 
@@ -283,8 +303,13 @@ public class MergeButtons implements Disposable {
     }
   }
 
+  private void disposeTextures() {
+    texture = Disposable.dispose(texture);
+    texture2 = Disposable.dispose(texture2);
+  }
+
   @Override
   public void dispose() {
-    texture = Disposable.dispose(texture);
+    disposeTextures();
   }
 }

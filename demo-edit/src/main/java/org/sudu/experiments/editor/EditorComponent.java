@@ -2119,7 +2119,7 @@ public class EditorComponent extends View implements
     return mergeButtons.measure(fonts[CodeElement.bold], g.mCanvas, dpr);
   }
 
-  public void setMergeButtons(Runnable[] actions, int[] lines) {
+  public void setMergeButtons(Runnable[] actions, BooleanConsumer acceptReject, int[] lines) {
      if (mergeButtons == null) {
        mergeButtons = new MergeButtons();
        if (colors != null)

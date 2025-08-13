@@ -106,9 +106,9 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     LoggingJs.trace("RemoteFileDiffWindow.onRefresh");
     needScrollSync = true;
     rootView.editor1.clearCodeMap();
-    rootView.editor1.setMergeButtons(ArrayOp.array(), new int[]{});
+    rootView.editor1.setMergeButtons(ArrayOp.array(), null, new int[]{});
     rootView.editor2.clearCodeMap();
-    rootView.editor2.setMergeButtons(ArrayOp.array(), new int[]{});
+    rootView.editor2.setMergeButtons(ArrayOp.array(), null, new int[]{});
     rootView.middleLine.setModel(null);
 
     if (haveLeftHandle) {
