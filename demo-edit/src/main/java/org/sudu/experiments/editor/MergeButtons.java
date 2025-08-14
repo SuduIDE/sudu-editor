@@ -25,7 +25,6 @@ public class MergeButtons implements Disposable {
   static final int iconTextureMarginM = 1;
   static final int iconTextureMarginR = 3;
 
-
   public final V2i pos = new V2i();
   public final V2i size = new V2i();
   public float dpr;
@@ -42,7 +41,7 @@ public class MergeButtons implements Disposable {
   private int lineHeight, scrollPos;
   private int firstLine, lastLine;
   private int hoverBtLine = -1, hoverBtIndex = -1;
-  private boolean hoverBtAccept;
+  private boolean hoverBtAccept = true;
   private final boolean drawBg;
   private boolean toLeft;
   private FontDesk font;
@@ -120,12 +119,12 @@ public class MergeButtons implements Disposable {
     if (texture == null)
       texture = renderIcon(g, c.cleartype,
           acceptReject ? acceptCh : toLeft ? arrowL : arrowR,
-          iconTextureMarginL * dpr,
-          acceptReject ? iconTextureMarginM * dpr : iconTextureMarginR * dpr);
+          iconTextureMarginL,
+          acceptReject ? iconTextureMarginM : iconTextureMarginR);
 
     if (acceptReject && texture2 == null)
       texture2 = renderIcon(g, c.cleartype, rejectCh,
-          iconTextureMarginM * dpr, iconTextureMarginR * dpr);
+          iconTextureMarginM, iconTextureMarginR);
 
     g.enableScissor(pos, size);
     int x = pos.x;
@@ -147,17 +146,19 @@ public class MergeButtons implements Disposable {
       boolean found = docL >= 0 && Arrays.binarySearch(lines, docL) >= 0;
 
       if (found) {
-        var textColor = acceptReject ? theme.acceptColor :
-            diffType != 0 && textColors != null ?
+        var textColor = diffType != 0 && textColors != null ?
                 textColors.getDiffColor(diffType, null) : theme.textColor;
-        boolean hovered = hoverBtLine == docL;
-        var bg = hovered && hoverBtAccept && (theme.bgColors == null || diffType == 0) ?
+        boolean hoveredA = hoverBtLine == docL && hoverBtAccept;
+        var bg = hoveredA && (theme.bgColors == null || diffType == 0) ?
             theme.bgColorHovered : bgColor;
-        c.drawIcon(g, texture, x, y, bg, textColor);
+        c.drawIcon(g, texture, x, y, bg,
+            hoveredA && isAcceptReject() ? theme.acceptColor : textColor);
         if (acceptReject) {
-          bg = hovered && !hoverBtAccept && (theme.bgColors == null || diffType == 0) ?
+          boolean hoveredR = hoverBtLine == docL && !hoverBtAccept;
+          bg = hoveredR && (theme.bgColors == null || diffType == 0) ?
               theme.bgColorHovered : bgColor;
-          c.drawIcon(g, texture2, x + texture.width(), y, bg, theme.rejectColor);
+          c.drawIcon(g, texture2, x + texture.width(), y, bg,
+              hoveredR ? theme.rejectColor : textColor);
         }
 
         if (drawFrames) {
@@ -203,8 +204,7 @@ public class MergeButtons implements Disposable {
       int btLine = docToView(btDocLine);
       if (btLine >= 0 && firstLine <= btLine && btLine <= lastLine) {
         if (buttonHitTest(evPos, btLine, x1, sizeX1 + sizeX2)) {
-          hoverBtAccept = buttonHitTest(evPos, btLine, x1, sizeX1);
-          System.out.println("hoverBtAccept = " + hoverBtAccept);
+          hoverBtAccept = !isAcceptReject() || buttonHitTest(evPos, btLine, x1, sizeX1);
           hoverBtLine = btDocLine;
           return setCursor.set(Cursor.pointer);
         }
@@ -286,7 +286,7 @@ public class MergeButtons implements Disposable {
 //    int yOffset = -Numbers.iDivRound(lastLine, 3, 32);
     int yOffset = 0;
     return g.renderTexture(
-        String.valueOf(icon), font, marginL, marginR,
+        String.valueOf(icon), font, marginL * dpr, marginR * dpr,
         lineHeight, yOffset, cleartype);
   }
 
