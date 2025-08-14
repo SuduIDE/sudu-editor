@@ -1,4 +1,4 @@
-package org.sudu.experiments.editor.test;
+package org.sudu.experiments.editor;
 
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
@@ -134,10 +134,15 @@ public class MergeButtonsModel {
   }
 
   public static class TestModel extends MergeButtonsModel {
+    int logIndex;
+
     public TestModel(int docLines) {
-      super(docLines);
-      int n = docLines / 4;
-      XorShiftRandom rand = new XorShiftRandom();
+      this(docLines, new XorShiftRandom());
+    }
+
+    public TestModel(int docLines, XorShiftRandom rand) {
+      super(docLines / 4);
+      int n = lines.length;
       int space = docLines / (1 + n);
       for (int i = 0, pi = 0; i < n; i++) {
         lines[i] = pi;
@@ -146,8 +151,8 @@ public class MergeButtonsModel {
       }
     }
 
-    static Runnable action(int pi) {
-      return () -> System.out.println("Runnable #" + pi);
+    Runnable action(int pi) {
+      return () -> System.out.println("[" + (++logIndex) + "] Runnable #" + pi);
     }
   }
 }

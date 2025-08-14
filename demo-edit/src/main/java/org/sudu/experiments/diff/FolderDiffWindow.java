@@ -5,7 +5,7 @@ import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.FolderDiffSide;
 import org.sudu.experiments.editor.EditorWindow;
-import org.sudu.experiments.editor.test.MergeButtonsModel;
+import org.sudu.experiments.editor.MergeButtonsModel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Numbers;
