@@ -10,7 +10,6 @@ import org.sudu.experiments.editor.*;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.utils.LanguageSelectorUtils;
-import org.sudu.experiments.js.PromiseUtils;
 import org.sudu.experiments.utils.ProviderUtils;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSObjects;
@@ -334,10 +333,6 @@ public class JsCodeEditor implements JsEditorView {
     }
   }
 
-  @Override
-  public void setExternalDialogProvider(JsDialogProvider opener) {}
-
-  @Override
   public void setExternalMessageBar(JsExternalMessageBar emb) {}
 
   @Override

@@ -1,7 +1,5 @@
-package org.sudu.experiments.utils;
+package org.sudu.experiments.js;
 
-import org.sudu.experiments.js.JsFunctions;
-import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSError;
 

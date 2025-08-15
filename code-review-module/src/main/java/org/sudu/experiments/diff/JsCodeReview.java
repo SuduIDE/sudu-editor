@@ -8,13 +8,13 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
-public class JsCodeDiff implements JsFileDiffView {
+public class JsCodeReview implements JsCodeReviewView {
 
   public final WebWindow window;
   private FileDiffWindow w;
   private JsFileDiffViewController controller;
 
-  public JsCodeDiff(
+  public JsCodeReview(
       WebWindow ww,
       EditArgs args
   ) {
@@ -99,9 +99,6 @@ public class JsCodeDiff implements JsFileDiffView {
   }
 
   @Override
-  public void setExternalDialogProvider(JsDialogProvider opener) {}
-
-  @Override
   public void setExternalMessageBar(JsExternalMessageBar emb) {}
 
   @Override
@@ -110,11 +107,11 @@ public class JsCodeDiff implements JsFileDiffView {
   @Override
   public void executeMenuAction(JSString action) {}
 
-  public static Promise<JsFileDiffView> newDiff(EditArgs arguments) {
+  public static Promise<JsCodeReviewView> newDiff(EditArgs arguments) {
     return ControlFactory.start(
         arguments,
         FileDiff::new,
-        JsCodeDiff::new
+        JsCodeReview::new
     );
   }
 }
