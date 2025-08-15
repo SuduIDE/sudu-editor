@@ -30,7 +30,10 @@ class FileDiffRootView extends DiffRootView {
   private static final boolean showNavigateLog = true;
   private Runnable onRefresh, onDiffModelSet;
 
-  FileDiffRootView(WindowManager wm) {
+  protected final long startTime = System.currentTimeMillis();
+  protected final boolean printTime = true;
+
+  FileDiffRootView(WindowManager wm, boolean disableParser) {
     super(wm.uiContext);
     ui = new EditorUi(wm);
     editor1 = new EditorComponent(ui);
@@ -47,6 +50,7 @@ class FileDiffRootView extends DiffRootView {
     editor1.highlightResolveError(false);
     editor1.setMirrored(true);
     editor1.setSyncPoints(syncPoints, true);
+    editor1.setDisableParser(disableParser);
 
     editor2.setFullFileParseListener(parseListener);
     editor2.setIterativeParseFileListener(iterativeParseListener);
@@ -54,6 +58,7 @@ class FileDiffRootView extends DiffRootView {
     editor2.setOnDiffMadeListener(this::onDiffMadeListener);
     editor2.highlightResolveError(false);
     editor2.setSyncPoints(syncPoints, false);
+    editor2.setDisableParser(disableParser);
 
     diffSync = new DiffSync(editor1, editor2);
     middleLine.setOnMidSyncPointHover(i -> onMidSyncLineHover(syncPoints, i));
@@ -83,11 +88,22 @@ class FileDiffRootView extends DiffRootView {
     editor2.readonly = rightReadonly;
   }
 
+  public void setDisableParser(boolean disableParser) {
+    editor1.setDisableParser(disableParser);
+    editor2.setDisableParser(disableParser);
+  }
+
   public EditorUi.FontApi fontApi() {
     return new FontApi2(editor1, editor2, ui.windowManager.uiContext);
   }
 
   private void fullFileParseListener(EditorComponent editor) {
+    if (printTime) {
+      System.out.println("FileDiffRootView.fullFileParseListener: " +
+          "left = " + (editor1 == editor) +
+          ", time = " + (System.currentTimeMillis() - startTime) + "ms"
+      );
+    }
     if (editor1 == editor) modelFlags |= 1;
     if (editor2 == editor) modelFlags |= 2;
     if ((modelFlags & 3) == 3) {
@@ -187,6 +203,11 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void setDiffModel(DiffInfo diffInfo) {
+    if (printTime) {
+      System.out.println("FileDiffRootView.setDiffModel: time = "
+          + (System.currentTimeMillis() - startTime) + "ms"
+      );
+    }
     boolean compact = compactViewRequest;
     diffModel = diffInfo;
     editor1.setDiffModel(diffModel.lineDiffsL);

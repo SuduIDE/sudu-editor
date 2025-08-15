@@ -289,7 +289,11 @@ public class DiffInfo {
 
   private LineDiff[] insert(int lineKey, int lines, LineDiff[] diffs) {
     LineDiff[] tmp = new LineDiff[diffs.length + lines];
+    LineDiff[] inserted = new LineDiff[lines];
+    int diffType = diffs[lineKey] == null ? DiffTypes.DEFAULT : diffs[lineKey].type;
+    for (int i = 0; i < lines; i++) inserted[i] = new LineDiff(diffType);
     System.arraycopy(diffs, 0, tmp, 0, lineKey);
+    System.arraycopy(inserted, 0, tmp, lineKey, lines);
     System.arraycopy(diffs, lineKey, tmp, lineKey + lines, diffs.length - lineKey);
     return tmp;
   }

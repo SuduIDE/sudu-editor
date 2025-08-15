@@ -41,9 +41,10 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
       WindowManager wm,
       EditorColorScheme theme,
       Supplier<String[]> fonts,
+      boolean disableParser,
       Channel channel
   ) {
-    super(wm, theme, fonts);
+    super(wm, theme, fonts, disableParser);
     canSelectFiles = false;
     rootView.setOnRefresh(this::onRefresh);
     rootView.setOnDiffModelSet(this::onDiffModelSet);

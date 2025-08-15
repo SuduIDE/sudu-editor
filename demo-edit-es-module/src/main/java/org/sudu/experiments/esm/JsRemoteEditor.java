@@ -20,16 +20,21 @@ public class JsRemoteEditor implements JsRemoteEditorView {
   Channel channel;
 
   public JsRemoteEditor(
-      EditArgs args, JsArray<WebWorkerContext> workers, Channel channel
+      EditArgs args,
+      JsArray<WebWorkerContext> workers,
+      Channel channel
   ) {
     this.channel = channel;
     window = new WebWindow(Editor0::new, WebGLError::onWebGlError,
         args.getContainerId(), workers);
     editor = demoEdit0().editor();
+    editor.setDisableParser(args.getDisableParserOrDefault());
     if (args.hasTheme()) setTheme(args.getTheme());
     controller = new JsEditorViewController0();
     channel.setOnMessage(this::onMessage);
     editor.setOnDiffMadeListener(this::onEdit);
+    if (args.hasReadonly())
+      setReadonly(args.getReadonly());
   }
 
   private void onMessage(JsArray<JSObject> jsArray) {

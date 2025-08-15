@@ -120,7 +120,9 @@ public class DiffModel {
     CodeLineS[] lines = new CodeLineS[N];
     for (int i = 0; i < N; i++) {
       int Mi = reader.next();
-      CodeElementS[] elements = new CodeElementS[Mi];
+      CodeElementS[] elements = Mi > 0
+          ? new CodeElementS[Mi]
+          : new CodeElementS[]{new CodeElementS("")};
       for (int j = 0; j < Mi; j++) {
         int offset = reader.next(), count = reader.next();
         String s = new String(chars, offset, count);

@@ -18,6 +18,7 @@ public class JsRemoteFolderDiff implements JsRemoteFolderDiffView {
     this.window = window;
     var scene = (RemoteFolderDiffScene) window.scene();
     this.folderDiff = scene.w;
+    this.folderDiff.setDisableParser(args.getDisableParserOrDefault());
     if (args.hasTheme()) setTheme(args.getTheme());
   }
 

@@ -2,6 +2,7 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.editor.EditorComponent;
+import org.sudu.experiments.editor.EditorConst;
 import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
@@ -12,9 +13,13 @@ public class FileDiff extends WindowScene {
   protected FileDiffWindow w;
 
   public FileDiff(SceneApi api) {
+    this(api, EditorConst.DEFAULT_DISABLE_PARSER);
+  }
+
+  public FileDiff(SceneApi api, boolean disableParser) {
     super(api);
     var theme = EditorColorScheme.darkIdeaColorScheme();
-    w = new FileDiffWindow(windowManager, theme, this::menuFonts);
+    w = new FileDiffWindow(windowManager, theme, this::menuFonts, disableParser);
     w.processEsc = false;
   }
 

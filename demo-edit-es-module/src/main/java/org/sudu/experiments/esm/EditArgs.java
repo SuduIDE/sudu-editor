@@ -1,5 +1,6 @@
 package org.sudu.experiments.esm;
 
+import org.sudu.experiments.editor.EditorConst;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSObjects;
@@ -21,8 +22,13 @@ public interface EditArgs extends JSObject {
 
   String readonlyProperty = "readonly";
 
+  String disableParser = "disableParser";
+
   @JSProperty
   boolean getReadonly();
+
+  @JSProperty
+  boolean getDisableParser();
 
   String numThreadsProperty = "numThreads";
 
@@ -49,6 +55,16 @@ public interface EditArgs extends JSObject {
 
   default boolean hasReadonly() {
     return JSObjects.hasProperty(this, readonlyProperty);
+  }
+
+  default boolean hasDisableParser() {
+    return JSObjects.hasProperty(this, disableParser);
+  }
+
+  default boolean getDisableParserOrDefault() {
+    return hasDisableParser()
+        ? getDisableParser()
+        : EditorConst.DEFAULT_DISABLE_PARSER;
   }
 
   default JSString workerUrl() {

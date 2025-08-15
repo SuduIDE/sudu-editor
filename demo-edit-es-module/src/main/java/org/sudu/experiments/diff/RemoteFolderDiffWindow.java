@@ -81,6 +81,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   private String leftRootPath, rightRootPath;
 
+  private boolean disableParser;
+
   public RemoteFolderDiffWindow(
       EditorColorScheme theme,
       WindowManager wm,
@@ -572,7 +574,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   private void newCodeDiff(RemoteFileNode node, RemoteFileNode opposite, boolean left) {
     if (opener == null) {
-      var window = new FileDiffWindow(windowManager, theme, fonts);
+      var window = new FileDiffWindow(windowManager, theme, fonts, disableParser);
       window.canSelectFiles = false;
       window.onEvent = this::onWindowEvent;
       addWindow(window, new JsFileDiffViewController0(window));
@@ -772,6 +774,10 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
     rootView.setReadonly(leftReadonly, rightReadonly);
+  }
+
+  public void setDisableParser(boolean disableParser) {
+    this.disableParser = disableParser;
   }
 
   public boolean canNavigateUp() {

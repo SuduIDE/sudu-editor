@@ -204,6 +204,13 @@ public class Model {
     }
   }
 
+  void onFullFileLexed(Object[] result) {
+    int[] ints = ((ArrayView) result[0]).ints();
+    char[] chars = ((ArrayView) result[1]).chars();
+    ParserUtils.updateDocument(document, ints, chars);
+    setParsed();
+  }
+
   void changeModelLanguage(String languageFromParser) {
     String language = language();
     if (!Objects.equals(language, languageFromParser)) {
@@ -284,6 +291,7 @@ public class Model {
   }
 
   void requestParseFile() {
+    System.out.println("Model.requestParseFile");
     if (executor == null) return;
     if (isEmpty()) {
       setParsed();
@@ -300,6 +308,10 @@ public class Model {
         ? EditorConst.FILE_SIZE_10_KB
         : EditorConst.FILE_SIZE_5_KB;
     int langType = Languages.getType(lang);
+    if (editor.isDisableParser()) {
+      sendFullFileLexer(chars, langType);
+      return;
+    }
     if (isActivity) {
       sendFull(chars, langType);
     } else if (size <= bigFileSize) {
@@ -313,6 +325,13 @@ public class Model {
       sendFirstLines(copyOf(chars), langType);
       sendFull(chars, langType);
     }
+  }
+
+  private void sendFullFileLexer(char[] chars, int langType) {
+    executor.sendToWorker(true, this::onFullFileLexed,
+        FileProxy.asyncParseFirstLines,
+        chars, new int[]{langType, Integer.MAX_VALUE});
+    fullFileParsed = ParseStatus.SENT;
   }
 
   private void sendFirstLines(char[] chars, int langType) {
@@ -344,11 +363,16 @@ public class Model {
     if (debug) {
       Debug.consoleInfo(getFileName() + "/Model::parseFullFile");
     }
+    char[] chars = document.getChars();
+    if (editor.isDisableParser()) {
+      sendFullFileLexer(chars, Languages.getType(language()));
+      return;
+    }
     String parseJob = parseJobName(language());
     if (parseJob != null) {
       parsingTimeStart = System.currentTimeMillis();
       executor.sendToWorker(true, this::onFileParsed,
-          parseJob, document.getChars());
+          parseJob, chars);
     } else {
       editor.fireFullFileParsed();
     }
@@ -360,6 +384,12 @@ public class Model {
     }
 
     String language = language();
+    if (editor.isDisableParser()) {
+      char[] chars = document.getChars();
+      int langType = Languages.getType(language);
+      sendFullFileLexer(chars, langType);
+      return;
+    }
     var reparseNode = document.tree.getReparseNode();
     if (reparseNode == null) {
       resolveAll();
@@ -488,6 +518,8 @@ public class Model {
     void fireFileIterativeParsed(int start, int stop);
     void updateModelOnDiff(Diff diff, boolean isUndo);
     void onDiffMade();
+
+    boolean isDisableParser();
   }
 
   public boolean hasDiffModel() {

@@ -117,8 +117,8 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
     remoteFileDiffWindow().executeCommand(action);
   }
 
-  static Function<SceneApi, Scene> sf(Channel channel) {
-    return api -> new RemoteFileDiffScene(api, channel);
+  static Function<SceneApi, Scene> sf(EditArgs args, Channel channel) {
+    return api -> new RemoteFileDiffScene(api, args.getDisableParserOrDefault(), channel);
   }
 
   public static Promise<JsRemoteFileDiffView> create(
@@ -126,7 +126,7 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
   ) {
     return JsLauncher.start(
         arguments,
-        sf(channel),
+        sf(arguments, channel),
         JsRemoteCodeDiff::new
     );
   }
