@@ -2122,7 +2122,7 @@ public class EditorComponent extends View implements
     return mergeButtons.measure(fonts[CodeElement.bold], g.mCanvas, dpr);
   }
 
-  public void setMergeButtons(Runnable[] actions, BooleanConsumer acceptReject, int[] lines) {
+  public void setMergeButtons(Runnable[] actions, BooleanConsumer[] acceptReject, int[] lines) {
      if (mergeButtons == null) {
        mergeButtons = new MergeButtons();
        if (colors != null)
@@ -2132,7 +2132,8 @@ public class EditorComponent extends View implements
          internalLayout();
        }
      }
-     mergeButtons.setModel(actions, lines);
+     if (actions != null) mergeButtons.setModel(actions, lines);
+     else if (acceptReject != null) mergeButtons.setModel(acceptReject, lines);
      mergeButtons.setColors(lineNumbers.colors());
      mergeButtons.setCodeLineMapping(docToView);
   }

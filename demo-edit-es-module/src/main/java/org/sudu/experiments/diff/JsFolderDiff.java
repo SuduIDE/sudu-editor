@@ -1,6 +1,5 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.JsLauncher;
 import org.sudu.experiments.ControlFactory;
 
 import org.sudu.experiments.WebWindow;

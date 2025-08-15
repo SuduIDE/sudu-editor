@@ -29,13 +29,15 @@ class FileDiffRootView extends DiffRootView {
   boolean firstDiffRevealed = false, needScrollSync = false;
   private static final boolean showNavigateLog = true;
   private Runnable onRefresh, onDiffModelSet;
+  private final boolean isCodeReview;
 
   protected final long startTime = System.currentTimeMillis();
   protected final boolean printTime = true;
 
-  FileDiffRootView(WindowManager wm, boolean disableParser) {
+  FileDiffRootView(WindowManager wm, boolean disableParser, boolean isCodeReview) {
     super(wm.uiContext);
     ui = new EditorUi(wm);
+    this.isCodeReview = isCodeReview;
     editor1 = new EditorComponent(ui);
     editor2 = new EditorComponent(ui);
     middleLine.setLeftRight(editor1, editor2);
@@ -222,8 +224,13 @@ class FileDiffRootView extends DiffRootView {
         this::applyDiff
     );
     MergeButtonsModel m1 = pair[0], m2 = pair[1];
-    editor1.setMergeButtons(m1.actions, null, m1.lines);
-    editor2.setMergeButtons(m2.actions, null, m2.lines);
+    if (isCodeReview) {
+      editor1.setMergeButtons(null, null, m1.lines);
+      editor2.setMergeButtons(null, m2.acceptReject, m2.lines);
+    } else {
+      editor1.setMergeButtons(m1.actions, null, m1.lines);
+      editor2.setMergeButtons(m2.actions, null, m2.lines);
+    }
 
     if (!firstDiffRevealed) revealFirstDiff();
     if (onDiffModelSet != null) onDiffModelSet.run();

@@ -37,7 +37,7 @@ public class FileDiffWindow extends ToolWindow0
       boolean disableParser
   ) {
     super(wm, theme, fonts);
-    rootView = new FileDiffRootView(windowManager, disableParser);
+    rootView = new FileDiffRootView(windowManager, disableParser, true);
     rootView.applyTheme(this.theme);
     window = createWindow(rootView, 30);
     window.onFocus(this::onFocus);
