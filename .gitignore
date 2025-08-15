@@ -26,3 +26,4 @@ node_modules
 .jlsp/out/
 .jlsp/
 /ssh-module/dist/
+/code-review-module/module/src/

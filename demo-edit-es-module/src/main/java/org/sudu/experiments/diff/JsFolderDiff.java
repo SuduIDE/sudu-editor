@@ -1,6 +1,7 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.JsLauncher;
+import org.sudu.experiments.ControlFactory;
 
 import org.sudu.experiments.WebWindow;
 import org.sudu.experiments.esm.*;
@@ -95,7 +96,7 @@ public class JsFolderDiff implements JsIFolderDiffView {
   public void executeMenuAction(JSString action) {}
 
   public static Promise<JsIFolderDiffView> newDiff(EditArgs arguments) {
-    return JsLauncher.start(
+    return ControlFactory.start(
         arguments,
         FolderDiffScene::new,
         JsFolderDiff::new);

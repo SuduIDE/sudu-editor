@@ -130,7 +130,7 @@ public class JsRemoteFolderDiff implements JsRemoteFolderDiffView {
   public static Promise<JsRemoteFolderDiffView> newDiff(
       EditArgs arguments, Channel channel
   ) {
-    return JsLauncher.start(arguments,
+    return ControlFactory.start(arguments,
         sf(channel), JsRemoteFolderDiff::new);
   }
 }

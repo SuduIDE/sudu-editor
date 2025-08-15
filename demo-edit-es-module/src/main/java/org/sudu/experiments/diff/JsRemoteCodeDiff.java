@@ -124,7 +124,7 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
   public static Promise<JsRemoteFileDiffView> create(
       EditArgs arguments, Channel channel
   ) {
-    return JsLauncher.start(
+    return ControlFactory.start(
         arguments,
         sf(arguments, channel),
         JsRemoteCodeDiff::new

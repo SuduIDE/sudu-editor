@@ -1,0 +1,23 @@
+{
+  "name": "@sudu-ide/code-review",
+  "version": "0.0.9-beta-something",
+  "description": "Code Review tool on Sudu Editor",
+  "author": "Kirill Prazdnikov",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./codereview.d.ts",
+      "default": "./src/codereview.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "index": ["./codereview.d.ts"]
+    }
+  },
+  "files": [
+    "codereview.d.ts",
+    "./src/codereview.js", "./src/worker.js",
+    "common.d.ts"
+  ]
+}

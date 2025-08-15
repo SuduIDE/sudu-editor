@@ -1,21 +1,20 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.*;
+import org.sudu.experiments.ControlFactory;
+import org.sudu.experiments.WebWindow;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
-import java.util.function.Function;
-
-public class JsCodeDiff implements JsFileDiffView {
+public class JsCodeReview implements JsCodeReviewView {
 
   public final WebWindow window;
   private FileDiffWindow w;
   private JsFileDiffViewController controller;
 
-  public JsCodeDiff(
+  public JsCodeReview(
       WebWindow ww,
       EditArgs args
   ) {
@@ -100,9 +99,6 @@ public class JsCodeDiff implements JsFileDiffView {
   }
 
   @Override
-  public void setExternalDialogProvider(JsDialogProvider opener) {}
-
-  @Override
   public void setExternalMessageBar(JsExternalMessageBar emb) {}
 
   @Override
@@ -111,15 +107,11 @@ public class JsCodeDiff implements JsFileDiffView {
   @Override
   public void executeMenuAction(JSString action) {}
 
-  static Function<SceneApi, Scene> sf(EditArgs args) {
-    return api -> new FileDiff(api, args.getDisableParserOrDefault());
-  }
-
-  public static Promise<JsFileDiffView> newDiff(EditArgs arguments) {
+  public static Promise<JsCodeReviewView> newDiff(EditArgs arguments) {
     return ControlFactory.start(
         arguments,
-        sf(arguments),
-        JsCodeDiff::new
+        FileDiff::new,
+        JsCodeReview::new
     );
   }
 }

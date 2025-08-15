@@ -13,6 +13,7 @@
     <module>demo-edit</module>
     <module>ai-demo-js</module>
     <module>demo-edit-js</module>
+    <module>code-review-module</module>
     <module>demo-edit-es-module</module>
     <module>filediff-node-module</module>
     <module>web-console-js</module>

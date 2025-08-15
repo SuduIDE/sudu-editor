@@ -10,7 +10,6 @@ import org.sudu.experiments.editor.*;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.utils.LanguageSelectorUtils;
-import org.sudu.experiments.js.PromiseUtils;
 import org.sudu.experiments.utils.ProviderUtils;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSObjects;
@@ -31,11 +30,9 @@ public class JsCodeEditor implements JsEditorView {
     window = new WebWindow(Editor0::new, WebGLError::onWebGlError,
         args.getContainerId(), workers);
     editor = demoEdit0().editor();
-    editor.setDisableParser(args.getDisableParserOrDefault());
     controller = new JsEditorViewController0();
     if (args.hasTheme()) setTheme(args.getTheme());
-    if (args.hasReadonly())
-      setReadonly(args.getReadonly());
+    if (args.hasReadonly()) setReadonly(args.getReadonly());
   }
 
   @Override
@@ -336,10 +333,6 @@ public class JsCodeEditor implements JsEditorView {
     }
   }
 
-  @Override
-  public void setExternalDialogProvider(JsDialogProvider opener) {}
-
-  @Override
   public void setExternalMessageBar(JsExternalMessageBar emb) {}
 
   @Override
