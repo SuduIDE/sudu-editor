@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 public class MergeButtons implements Disposable {
 
-  static final boolean showAcceptReject = false;
+  static final boolean showAcceptReject = true;
   static final char arrowL = '≪';
   static final char arrowR = '≫';
   static final char acceptCh = showAcceptReject ? '✔' : arrowL;
