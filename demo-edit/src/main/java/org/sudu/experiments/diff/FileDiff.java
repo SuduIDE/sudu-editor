@@ -19,7 +19,7 @@ public class FileDiff extends WindowScene {
   public FileDiff(SceneApi api, boolean disableParser) {
     super(api);
     var theme = EditorColorScheme.darkIdeaColorScheme();
-    w = new FileDiffWindow(windowManager, theme, this::menuFonts, disableParser);
+    w = new FileDiffWindow(windowManager, theme, this::menuFonts, disableParser, true);
     w.processEsc = false;
   }
 

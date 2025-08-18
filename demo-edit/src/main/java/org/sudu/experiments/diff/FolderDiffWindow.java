@@ -138,7 +138,7 @@ public class FolderDiffWindow extends ToolWindow0 {
         FileNode oppositeFile = findOppositeFile(node.file);
         if (oppositeFile != null) {
           setOppositeSel(oppositeFile);
-          var window = new FileDiffWindow(windowManager, theme, fonts, disableParser);
+          var window = new FileDiffWindow(windowManager, theme, fonts, disableParser, false);
           window.open(node.file, left);
           window.open(oppositeFile.file, !left);
           window.rootView.setCompactView(true);
