@@ -15,10 +15,10 @@ import java.util.function.Consumer;
 public class MergeButtons implements Disposable {
 
   static final boolean showAcceptReject = false;
-  static final char acceptCh = '✔';
-  static final char rejectCh = '✖';
-  static final char arrowL = showAcceptReject ? acceptCh : '≪';
-  static final char arrowR = showAcceptReject ? rejectCh : '≫';
+  static final char arrowL = '≪';
+  static final char arrowR = '≫';
+  static final char acceptCh = showAcceptReject ? '✔' : arrowL;
+  static final char rejectCh = showAcceptReject ? '✖' : arrowR;
   static final char arrowR1 = '→';
   static final char arrowL1 = '←';
   static final int iconTextureMarginL = 3;
