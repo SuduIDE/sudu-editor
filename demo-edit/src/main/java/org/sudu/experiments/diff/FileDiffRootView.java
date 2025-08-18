@@ -1,5 +1,6 @@
 package org.sudu.experiments.diff;
 
+import org.sudu.experiments.BooleanConsumer;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.Diff;
 import org.sudu.experiments.editor.MergeButtonsModel;
@@ -223,10 +224,11 @@ class FileDiffRootView extends DiffRootView {
         editor1.syncPoints(), editor2.syncPoints(),
         this::applyDiff
     );
-    MergeButtonsModel m1 = pair[0], m2 = pair[1];
+    MergeButtonsModel m1 = pair.first[0], m2 = pair.first[1];
+    BooleanConsumer[] acceptReject = pair.second;
     if (isCodeReview) {
       editor1.setMergeButtons(null, null, m1.lines);
-      editor2.setMergeButtons(null, m2.acceptReject, m2.lines);
+      editor2.setMergeButtons(null, acceptReject, m2.lines);
     } else {
       editor1.setMergeButtons(m1.actions, null, m1.lines);
       editor2.setMergeButtons(m2.actions, null, m2.lines);

@@ -8,6 +8,7 @@ import org.sudu.experiments.editor.worker.diff.DiffRange;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.XorShiftRandom;
+import org.sudu.experiments.parser.common.Pair;
 
 import java.util.Arrays;
 import java.util.function.BiConsumer;
@@ -15,14 +16,13 @@ import java.util.function.BiConsumer;
 public class MergeButtonsModel {
   public int[] lines;
   public Runnable[] actions;
-  public BooleanConsumer[] acceptReject;
 
   public MergeButtonsModel(int n) {
     actions = new Runnable[n];
     lines = new int[n];
   }
 
-  public static MergeButtonsModel[] getModels(
+  public static Pair<MergeButtonsModel[], BooleanConsumer[]> getModels(
       DiffInfo diffInfo,
       boolean leftReadonly,
       boolean rightReadonly,
@@ -34,7 +34,7 @@ public class MergeButtonsModel {
 
     var left = new MergeButtonsModel(rightReadonly ? 0 : n);
     var right = new MergeButtonsModel(leftReadonly ? 0 : n);
-    right.acceptReject = new BooleanConsumer[leftReadonly && rightReadonly ? 0 : n];
+    var acceptReject = new BooleanConsumer[leftReadonly && rightReadonly ? 0 : n];
     int i = 0;
     for (var range: diffInfo.ranges) {
       if (range.type == DiffTypes.DEFAULT) continue;
@@ -64,13 +64,13 @@ public class MergeButtonsModel {
       }
       var acceptAction = right.actions[i];
       var rejectAction = left.actions[i];
-      right.acceptReject[i] = (accepted) -> {
+      acceptReject[i] = (accepted) -> {
         if (accepted) acceptAction.run();
         else rejectAction.run();
       };
       i++;
     }
-    return new MergeButtonsModel[]{left, right};
+    return Pair.of(new MergeButtonsModel[]{left, right}, acceptReject);
   }
 
   public static MergeButtonsModel[] getFolderModels(
