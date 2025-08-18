@@ -14,11 +14,11 @@ import java.util.function.Consumer;
 
 public class MergeButtons implements Disposable {
 
-  static final boolean showAcceptReject = false;
-  static final char acceptCh = '✔';
-  static final char rejectCh = '✖';
-  static final char arrowL = showAcceptReject ? acceptCh : '≪';
-  static final char arrowR = showAcceptReject ? rejectCh : '≫';
+  static final boolean showAcceptReject = true;
+  static final char arrowL = '≪';
+  static final char arrowR = '≫';
+  static final char acceptCh = showAcceptReject ? '✔' : arrowL;
+  static final char rejectCh = showAcceptReject ? '✖' : arrowR;
   static final char arrowR1 = '→';
   static final char arrowL1 = '←';
   static final int iconTextureMarginL = 3;
@@ -294,12 +294,16 @@ public class MergeButtons implements Disposable {
     if (isAcceptReject()) {
       float marginL = (iconTextureMarginL + iconTextureMarginM) * dpr;
       float marginR = (iconTextureMarginM + iconTextureMarginR) * dpr;
-      return mCanvas.measurePx(font, String.valueOf(acceptCh), marginL) +
+      int measurePx = mCanvas.measurePx(font, String.valueOf(acceptCh), marginL) +
           mCanvas.measurePx(font, String.valueOf(rejectCh), marginR);
+      System.out.println(this + ": measurePx1 = " + measurePx);
+      return measurePx;
     } else {
       float margin = (iconTextureMarginL + iconTextureMarginR) * dpr;
       char icon = toLeft ? arrowL : arrowR;
-      return mCanvas.measurePx(font, String.valueOf(icon), margin);
+      int measurePx = mCanvas.measurePx(font, String.valueOf(icon), margin);
+      System.out.println(this + ": measurePx2 = " + measurePx);
+      return measurePx;
     }
   }
 

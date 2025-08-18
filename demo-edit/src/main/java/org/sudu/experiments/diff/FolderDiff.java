@@ -53,7 +53,7 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
   }
 
   private void newFileWindow() {
-    new FileDiffWindow(windowManager, theme, FolderDiff::menuFonts, EditorConst.DEFAULT_DISABLE_PARSER);
+    new FileDiffWindow(windowManager, theme, FolderDiff::menuFonts, EditorConst.DEFAULT_DISABLE_PARSER, false);
   }
 
   private void newProjectView() {

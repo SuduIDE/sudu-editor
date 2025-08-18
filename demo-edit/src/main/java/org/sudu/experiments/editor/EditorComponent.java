@@ -75,7 +75,6 @@ public class EditorComponent extends View implements
   int textBaseX, textViewWidth;
   int vLineW;
   int vLineTextOffset;
-  int mergeWidth;
 
   V2i vLineSize = new V2i(1, 0);
 
@@ -193,7 +192,7 @@ public class EditorComponent extends View implements
 
   private void internalLayout() {
     boolean hasMerge = mergeButtons != null;
-    mergeWidth = (hasMerge && !mirrored) ? mergeWidth() : 0;
+    int mergeWidth = hasMerge ? mergeWidth() : 0;
     vLineW = toPx(vLineWDp);
     vLineTextOffset = toPx(vLineTextOffsetDp);
     scrollBarWidth = toPx(scrollBarWidthDp);
@@ -215,7 +214,7 @@ public class EditorComponent extends View implements
     lineNumbers.setPosition(lineNumbersX, pos.y,
         Math.min(lineNumbersWidth, size.x), size.y, dpr);
     if (hasMerge)
-      layoutMergeButtons();
+      layoutMergeButtons(mergeWidth);
 
     if (dumpFontsOnResize) DebugHelper.dumpFontsSize(g);
     caret.setWidth(toPx(Caret.defaultWidth));
@@ -2110,10 +2109,9 @@ public class EditorComponent extends View implements
     mergeButtons.setFont(lineHeight, !mirrored, fonts[CodeElement.bold]);
   }
 
-  private void layoutMergeButtons() {
+  private void layoutMergeButtons(int mWidth) {
     int x = mirrored ? lineNumbers.pos.x
         : lineNumbers.pos.x + lineNumbers.size.x;
-    int mWidth = mergeWidth();
     mergeButtons.setPosition(x, lineNumbers.pos.y, mWidth, lineNumbers.size.y, dpr);
     mergeButtons.setScrollPos(vScrollPos);
   }
@@ -2122,7 +2120,7 @@ public class EditorComponent extends View implements
     return mergeButtons.measure(fonts[CodeElement.bold], g.mCanvas, dpr);
   }
 
-  public void setMergeButtons(Runnable[] actions, BooleanConsumer acceptReject, int[] lines) {
+  public void setMergeButtons(Runnable[] actions, BooleanConsumer[] acceptReject, int[] lines) {
      if (mergeButtons == null) {
        mergeButtons = new MergeButtons();
        if (colors != null)
@@ -2132,7 +2130,8 @@ public class EditorComponent extends View implements
          internalLayout();
        }
      }
-     mergeButtons.setModel(actions, lines);
+     if (actions != null) mergeButtons.setModel(actions, lines);
+     else if (acceptReject != null) mergeButtons.setModel(acceptReject, lines);
      mergeButtons.setColors(lineNumbers.colors());
      mergeButtons.setCodeLineMapping(docToView);
   }
