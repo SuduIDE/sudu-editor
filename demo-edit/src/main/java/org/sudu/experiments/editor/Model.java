@@ -322,6 +322,7 @@ public class Model {
   }
 
   private void sendStructure(char[] chars, int langType) {
+    if (langType != FileProxy.JAVA_FILE) return;
     executor.sendToWorker(true, this::onFileStructureParsed,
         FileProxy.asyncParseFile,
         chars, new int[]{langType});
