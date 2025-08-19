@@ -132,7 +132,7 @@ public class Model {
       ParserUtils.updateDocument(document, ints, chars);
     }
     printParsingTime("Full file parsed");
-    if (fullFileLexed != ParseStatus.PARSED) editor.fireFileLexed();
+    if (fullFileLexed != ParseStatus.PARSED && editor != null) editor.fireFileLexed();
     fileStructureParsed = ParseStatus.PARSED;
     fullFileLexed = ParseStatus.PARSED;
     fullFileParsed = ParseStatus.PARSED;
@@ -282,7 +282,7 @@ public class Model {
     String lang = language();
     int langType = Languages.getType(lang);
     char[] chars = document.getChars();
-    if (editor.isDisableParser()) {
+    if (isDisableParser()) {
       sendLexer(chars, langType);
       return;
     }
@@ -345,7 +345,7 @@ public class Model {
       Debug.consoleInfo(getFileName() + "/Model::parseFullFile");
     }
     char[] chars = document.getChars();
-    if (editor.isDisableParser()) {
+    if (isDisableParser()) {
       sendLexer(chars, Languages.getType(language()));
       return;
     }
@@ -354,9 +354,7 @@ public class Model {
       parsingTimeStart = System.currentTimeMillis();
       executor.sendToWorker(true, this::onFileParsed,
           parseJob, chars);
-    } else {
-      editor.fireFileLexed();
-    }
+    } else if (editor != null) editor.fireFileLexed();
   }
 
   void iterativeParsing() {
@@ -365,7 +363,7 @@ public class Model {
     }
 
     String language = language();
-    if (editor.isDisableParser()) {
+    if (isDisableParser()) {
       char[] chars = document.getChars();
       int langType = Languages.getType(language);
       sendLexer(chars, langType);
