@@ -2,6 +2,7 @@ package org.sudu.experiments.esm;
 
 import org.sudu.experiments.SplitInfo;
 import org.sudu.experiments.editor.Model;
+import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.SplitJsText;
 import org.sudu.experiments.js.TextDecoder;
@@ -32,6 +33,11 @@ public class JsTextModel implements JsITextModel {
   @Override
   public void dispose() {
     javaModel.document.clear();
+  }
+
+  @Override
+  public void setEditListener(JsFunctions.Consumer<JsITextModel> listener) {
+    javaModel.setOnDiffMadeListener(() -> listener.f(this));
   }
 
   @Override

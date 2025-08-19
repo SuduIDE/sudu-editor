@@ -1,6 +1,7 @@
 package org.sudu.experiments.esm;
 
 import org.sudu.experiments.js.JsDisposable;
+import org.sudu.experiments.js.JsFunctions;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSString;
 
@@ -10,4 +11,6 @@ public interface JsITextModel extends JsDisposable {
   int getOffsetAt(JsPosition position);
   JsPosition getPositionAt(int offset);
   JSString getText();
+  // setEditListener(listener: (m: ITextModel) => void): void
+  void setEditListener(JsFunctions.Consumer<JsITextModel> listener);
 }

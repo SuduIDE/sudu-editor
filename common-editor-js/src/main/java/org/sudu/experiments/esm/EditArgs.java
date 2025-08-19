@@ -22,10 +22,10 @@ public interface EditArgs extends JSObject {
 
   String readonlyProperty = "readonly";
 
-  String disableParser = "disableParser";
-
   @JSProperty
   boolean getReadonly();
+
+  String disableParser = "disableParser";
 
   @JSProperty
   boolean getDisableParser();

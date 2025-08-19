@@ -16,6 +16,7 @@ export interface EditArgs {
   theme?: Theme
 
   readonly?: boolean
+
   disableParser?: boolean
 
   // number of worker threads for parsing and resolve
@@ -65,6 +66,8 @@ export interface ITextModel extends IDisposable {
   getPositionAt(offset: number): IPosition
 
   getText(): string
+
+  setEditListener(listener: (m: ITextModel) => void): void
 }
 
 type ProviderValue<T> = T | undefined | null;

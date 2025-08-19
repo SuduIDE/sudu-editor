@@ -31,6 +31,7 @@ public class Model {
   final NavigationStack navStack = new NavigationStack();
 
   EditorToModel editor;
+  Runnable onDiffMadeListener;
   WorkerJobExecutor executor;
 
   LineDiff[] diffModel;
@@ -502,8 +503,14 @@ public class Model {
     if (editor != null) editor.updateModelOnDiff(diff, isUndo);
   }
 
+  public void setOnDiffMadeListener(Runnable listener) {
+    onDiffMadeListener = listener;
+  }
+
   private void onDiffMade() {
     if (editor != null) editor.onDiffMade();
+    if (onDiffMadeListener != null)
+      onDiffMadeListener.run();
   }
 
   CodeLine caretCodeLine() {

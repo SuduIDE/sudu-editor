@@ -17,5 +17,8 @@ const initialText2 =
 let model1 = editorApi.newTextModel(initialText1, null, "urlNew")
 let model2 = editorApi.newTextModel(initialText2, null, "urlNew")
 
+model1.setEditListener( m => console.log("model1 change event"))
+model2.setEditListener( m => console.log("model2 change event"))
+
 codeReview.setModel(model1, model2);
 codeReview.focus();

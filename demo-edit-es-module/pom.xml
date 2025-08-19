@@ -54,19 +54,13 @@
   <dependencies>
     <dependency>
       <groupId>org.sudu</groupId>
-      <artifactId>graphics-js</artifactId>
+      <artifactId>common-editor-js</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>org.sudu</groupId>
       <artifactId>filediff-node-module</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.sudu</groupId>
-      <artifactId>demo-edit</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
 
