@@ -42,9 +42,9 @@ public class Model {
   final List<CodeElement> usages = new ArrayList<>();
   final List<V2i> parsedVps = new ArrayList<>();
 
-  int fullFileParsed = ParseStatus.NOT_PARSED;
+  int fullFileLexed = ParseStatus.NOT_PARSED;
   int fileStructureParsed = ParseStatus.NOT_PARSED;
-  int firstLinesParsed = ParseStatus.NOT_PARSED;
+  int fullFileParsed = ParseStatus.NOT_PARSED;
 
   long parsingTimeStart, viewportParseStart, resolveTimeStart;
 
@@ -117,15 +117,8 @@ public class Model {
   }
 
   void onFileParsed(Object[] result) {
-//    Debug.consoleInfo("onFileParsed");
-    fileStructureParsed = ParseStatus.PARSED;
-    firstLinesParsed = ParseStatus.PARSED;
-    fullFileParsed = ParseStatus.PARSED;
-
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
-    // todo: may be remove this from message ?
-    int type = ((ArrayView) result[2]).ints()[0];
 
     if (result.length >= 5) {
       int[] graphInts = ((ArrayView) result[3]).ints();
@@ -138,11 +131,17 @@ public class Model {
     } else {
       ParserUtils.updateDocument(document, ints, chars);
     }
+    printParsingTime("Full file parsed");
+    if (fullFileLexed != ParseStatus.PARSED) editor.fireFileLexed();
+    fileStructureParsed = ParseStatus.PARSED;
+    fullFileLexed = ParseStatus.PARSED;
+    fullFileParsed = ParseStatus.PARSED;
+  }
 
-    if (debug) {
-      Debug.consoleInfo(getFileName() + "/Full file parsed in " + (System.currentTimeMillis() - parsingTimeStart) + "ms");
-    }
-    if (editor != null) editor.fireFullFileParsed();
+  private void printParsingTime(String msg) {
+    if (!debug) return;
+    long time = System.currentTimeMillis() - parsingTimeStart;
+    Debug.consoleInfo(String.format("%s/%s in %dms", getFileName(), msg, time));
   }
 
   void onResolved(Object[] result) {
@@ -151,12 +150,7 @@ public class Model {
     if (document.needReparse() || document.currentVersion != version) return;
     document.onResolve(ints, highlightResolveError);
     computeUsages();
-    if (printResolveTime) {
-      long resolveTime = System.currentTimeMillis() - resolveTimeStart;
-      if (resolveTime >= EditorConst.BIG_RESOLVE_TIME_MS) {
-        Debug.consoleInfo(getFileName() + "/Resolved in " + resolveTime + "ms");
-      }
-    }
+    if (printResolveTime) printParsingTime("Resolved");
   }
 
   void onFileStructureParsed(Object[] result) {
@@ -170,45 +164,31 @@ public class Model {
 
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
-    boolean saveOldLines = firstLinesParsed == ParseStatus.PARSED;
+    boolean saveOldLines = fullFileLexed == ParseStatus.PARSED;
     ParserUtils.updateDocument(document, ints, chars, saveOldLines);
-
-    if (debug) {
-      Debug.consoleInfo(getFileName() + "/File structure parsed in " +
-          (System.currentTimeMillis() - parsingTimeStart) + "ms");
-    }
+    printParsingTime("File structure parsed");
   }
 
   void onVpParsed(Object[] result) {
     if (fullFileParsed == ParseStatus.PARSED) return;
-//    Debug.consoleInfo("onVpParsed");
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
 
     ParserUtils.updateDocumentInterval(document, ints, chars);
-    if (debug) {
-      Debug.consoleInfo(getFileName() + "/Viewport parsed in " +
-          (System.currentTimeMillis() - viewportParseStart) + "ms");
-    }
+    printParsingTime("Viewport parsed");
   }
 
-  void onFirstLinesParsed(Object[] result) {
-    if (fileStructureParsed == ParseStatus.PARSED || fullFileParsed == ParseStatus.PARSED) return;
-    firstLinesParsed = ParseStatus.PARSED;
+  void onFileLexed(Object[] result) {
     int[] ints = ((ArrayView) result[0]).ints();
     char[] chars = ((ArrayView) result[1]).chars();
     ParserUtils.updateDocument(document, ints, chars);
-    if (debug) {
-      Debug.consoleInfo(getFileName() + "/First lines parsed in " +
-          (System.currentTimeMillis() - parsingTimeStart) + "ms");
+    printParsingTime("Full file lexed");
+    if (isDisableParser()) setParsed();
+    else {
+      if (editor != null) editor.fireFileLexed();
+      sendStructure();
+      sendFull();
     }
-  }
-
-  void onFullFileLexed(Object[] result) {
-    int[] ints = ((ArrayView) result[0]).ints();
-    char[] chars = ((ArrayView) result[1]).chars();
-    ParserUtils.updateDocument(document, ints, chars);
-    setParsed();
   }
 
   void changeModelLanguage(String languageFromParser) {
@@ -285,13 +265,13 @@ public class Model {
 
   private void setParsed() {
     fileStructureParsed = ParseStatus.PARSED;
-    firstLinesParsed = ParseStatus.PARSED;
+    fullFileLexed = ParseStatus.PARSED;
     fullFileParsed = ParseStatus.PARSED;
-    if (editor != null) editor.fireFullFileParsed();
+    if (editor != null) editor.fireFileLexed();
   }
 
   void requestParseFile() {
-    System.out.println("Model.requestParseFile");
+    if (debug) System.out.println("Model.requestParseFile");
     if (executor == null) return;
     if (isEmpty()) {
       setParsed();
@@ -300,45 +280,45 @@ public class Model {
     this.parsingTimeStart = System.currentTimeMillis();
 
     String lang = language();
-    boolean isJava = Objects.equals(lang, Languages.JAVA);
-    boolean isActivity = Objects.equals(lang, Languages.ACTIVITY);
+    int langType = Languages.getType(lang);
     char[] chars = document.getChars();
+    if (editor.isDisableParser()) {
+      sendLexer(chars, langType);
+      return;
+    }
+
+    boolean isActivity = Objects.equals(lang, Languages.ACTIVITY);
+    boolean isJava = Objects.equals(lang, Languages.JAVA);
+    boolean isJSON = Objects.equals(lang, Languages.JSON);
+    boolean isHTML = Objects.equals(lang, Languages.HTML);
+
     int size = chars.length;
     int bigFileSize = isJava
         ? EditorConst.FILE_SIZE_10_KB
+        : (isJSON || isHTML)          // Json & html grammars are fast to parse
+        ? EditorConst.FILE_SIZE_50_KB
         : EditorConst.FILE_SIZE_5_KB;
-    int langType = Languages.getType(lang);
-    if (editor.isDisableParser()) {
-      sendFullFileLexer(chars, langType);
-      return;
-    }
-    if (isActivity) {
-      sendFull(chars, langType);
-    } else if (size <= bigFileSize) {
-      sendFull(chars, langType);
-    } else if (isJava) {
-      // Structure parsing is for java only
-      sendFirstLines(copyOf(chars), langType);
-      sendStructure(copyOf(chars), langType);
+
+    if (size <= bigFileSize || isActivity) {
       sendFull(chars, langType);
     } else {
-      sendFirstLines(copyOf(chars), langType);
-      sendFull(chars, langType);
+      sendLexer(chars, langType);
     }
   }
 
-  private void sendFullFileLexer(char[] chars, int langType) {
-    executor.sendToWorker(true, this::onFullFileLexed,
-        FileProxy.asyncParseFirstLines,
-        chars, new int[]{langType, Integer.MAX_VALUE});
-    fullFileParsed = ParseStatus.SENT;
+  private void sendStructure() {
+    sendStructure(document.getChars(), Languages.getType(language()));
   }
 
-  private void sendFirstLines(char[] chars, int langType) {
-    executor.sendToWorker(true, this::onFirstLinesParsed,
-        FileProxy.asyncParseFirstLines,
-        chars, new int[]{langType, EditorConst.FIRST_LINES});
-    firstLinesParsed = ParseStatus.SENT;
+  private void sendFull() {
+    sendFull(document.getChars(), Languages.getType(language()));
+  }
+
+  private void sendLexer(char[] chars, int langType) {
+    executor.sendToWorker(true, this::onFileLexed,
+        FileProxy.asyncLexer,
+        chars, new int[]{langType, Integer.MAX_VALUE});
+    fullFileParsed = ParseStatus.SENT;
   }
 
   private void sendStructure(char[] chars, int langType) {
@@ -365,7 +345,7 @@ public class Model {
     }
     char[] chars = document.getChars();
     if (editor.isDisableParser()) {
-      sendFullFileLexer(chars, Languages.getType(language()));
+      sendLexer(chars, Languages.getType(language()));
       return;
     }
     String parseJob = parseJobName(language());
@@ -374,7 +354,7 @@ public class Model {
       executor.sendToWorker(true, this::onFileParsed,
           parseJob, chars);
     } else {
-      editor.fireFullFileParsed();
+      editor.fireFileLexed();
     }
   }
 
@@ -387,14 +367,14 @@ public class Model {
     if (editor.isDisableParser()) {
       char[] chars = document.getChars();
       int langType = Languages.getType(language);
-      sendFullFileLexer(chars, langType);
+      sendLexer(chars, langType);
       return;
     }
     var reparseNode = document.tree.getReparseNode();
     if (reparseNode == null) {
       resolveAll();
       document.onReparse();
-      if (editor != null) editor.fireFullFileParsed();
+      if (editor != null) editor.fireFileLexed();
       return;
     }
 
@@ -510,10 +490,14 @@ public class Model {
     return document.line(caretLine);
   }
 
+  private boolean isDisableParser() {
+    return editor != null ? editor.isDisableParser() : EditorConst.DEFAULT_DISABLE_PARSER;
+  }
+
   interface EditorToModel {
     void useDocumentHighlightProvider(int line, int column);
 
-    void fireFullFileParsed();
+    void fireFileLexed();
 
     void fireFileIterativeParsed(int start, int stop);
     void updateModelOnDiff(Diff diff, boolean isUndo);

@@ -46,7 +46,7 @@ class FileDiffRootView extends DiffRootView {
     TriConsumer<EditorComponent, Integer, Integer> iterativeParseListener = this::iterativeParseFileListener;
     SyncPoints syncPoints = new SyncPoints(() -> sendToDiff(false));
 
-    editor1.setFullFileParseListener(parseListener);
+    editor1.setFullFileLexedListener(parseListener);
     editor1.setIterativeParseFileListener(iterativeParseListener);
     editor1.setUpdateModelOnDiffListener(this::updateModelOnDiffMadeListener);
     editor1.setOnDiffMadeListener(this::onDiffMadeListener);
@@ -55,7 +55,7 @@ class FileDiffRootView extends DiffRootView {
     editor1.setSyncPoints(syncPoints, true);
     editor1.setDisableParser(disableParser);
 
-    editor2.setFullFileParseListener(parseListener);
+    editor2.setFullFileLexedListener(parseListener);
     editor2.setIterativeParseFileListener(iterativeParseListener);
     editor2.setUpdateModelOnDiffListener(this::updateModelOnDiffMadeListener);
     editor2.setOnDiffMadeListener(this::onDiffMadeListener);

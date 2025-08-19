@@ -56,7 +56,7 @@ public class EditorWorker {
       case TestJobs.asyncWithDir -> TestJobs.asyncWithDir(ArgsCast.dir(a, 0), r);
       case FileProxy.asyncParseFile -> FileProxy.asyncParseFile(ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(), r);
       case FileProxy.asyncParseFullFile -> FileProxy.asyncParseFullFile(ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(), r);
-      case FileProxy.asyncParseFirstLines -> FileProxy.asyncParseFirstLines(ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(), r);
+      case FileProxy.asyncLexer -> FileProxy.asyncLexer(ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(), r);
       case FileProxy.asyncIterativeParsing -> FileProxy.asyncIterativeParsing(
           ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(),
           ArgsCast.array(a, 2).ints(),

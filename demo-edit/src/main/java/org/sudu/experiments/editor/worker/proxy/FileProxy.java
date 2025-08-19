@@ -42,9 +42,9 @@ public class FileProxy {
     parseFullFile(proxy, source, result);
   }
 
-  public static final String asyncParseFirstLines = "asyncParseFirstLines";
+  public static final String asyncLexer = "asyncLexer";
 
-  public static void asyncParseFirstLines(char[] source, int[] langAndLines, Consumer<Object[]> result) {
+  public static void asyncLexer(char[] source, int[] langAndLines, Consumer<Object[]> result) {
     if (langAndLines.length < 2) throw new IllegalArgumentException("Lang type or number of lines is empty");
     int lang = langAndLines[0], lines = langAndLines[1];
     BaseProxy proxy = getBaseProxy(lang);
