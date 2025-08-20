@@ -55,6 +55,10 @@ export interface IModelChangedEvent {
   readonly newModelUrl: Uri | null;
 }
 
+interface TextDocumentContentChangeEvent {
+  // todo: replicate VSCode API event
+};
+
 export interface ITextModel extends IDisposable {
   language?: string
   uri?: Uri
@@ -66,6 +70,11 @@ export interface ITextModel extends IDisposable {
   getText(): string
 
   setEditListener(listener: (m: ITextModel) => void): void
+
+  setText(newText: string, fireEvent: boolean): void
+
+  // todo: pass through changes from VSCode event
+  // applyChanges(changes: TextDocumentContentChangeEvent, undoOrRedoOrUndefined, fireEvent: boolean): void
 }
 
 type ProviderValue<T> = T | undefined | null;

@@ -31,6 +31,12 @@ public class JsTextModel implements JsITextModel {
   }
 
   @Override
+  public void setText(JSString newText, boolean fireEvent) {
+    SplitInfo split = SplitJsText.split(newText);
+    // todo: implement
+  }
+
+  @Override
   public void dispose() {
     javaModel.document.clear();
   }
