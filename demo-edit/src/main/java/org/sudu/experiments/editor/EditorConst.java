@@ -23,7 +23,6 @@ public interface EditorConst {
   float LINE_HEIGHT_MULTI = 1.25f;
 
   int LINE_NUMBERS_TEXTURE_SIZE = 20;
-  int LINE_NUMBERS_RIGHT_PADDING = 20;
 
   int V_LINE_LEFT_DELTA_DP = 10;
 

@@ -86,7 +86,8 @@ public class FileTreeView extends TreeView {
   }
 
   private void applyMergeButtonsFont() {
-    mergeButtons.setFont(clrContext.lineHeight, !isLeft, clrContext.font);
+    mergeButtons.setIcon(MergeButtons.iconArrow(isLeft));
+    mergeButtons.setFont(clrContext.lineHeight, clrContext.font);
     mbWidth = mergeButtons.measure(clrContext.font, uiContext.graphics.mCanvas, dpr);
     leftGapDp = isLeft ? leftGapDpDefault : toDp(mbWidth);
 //    System.out.println("mergeButtons.measure = " + mbWidth);

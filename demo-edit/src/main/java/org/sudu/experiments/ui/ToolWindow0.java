@@ -43,7 +43,11 @@ public abstract class ToolWindow0 implements ThemeControl {
   }
 
   protected Window createWindow(View view, float dpOff) {
-    return createWindow(view, getClass().getSimpleName(), dpOff);
+    return createWindow(view, defaultTitle(), dpOff);
+  }
+
+  protected String defaultTitle() {
+    return getClass().getSimpleName();
   }
 
   protected Window createWindow(View view, String title, float dpOff) {

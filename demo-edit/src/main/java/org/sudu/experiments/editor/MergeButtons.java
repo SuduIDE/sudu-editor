@@ -21,9 +21,10 @@ public class MergeButtons implements Disposable {
   static final char rejectCh = showAcceptReject ? '✖' : arrowR;
   static final char arrowR1 = '→';
   static final char arrowL1 = '←';
+
   static final int iconTextureMarginL = 3;
-  static final int iconTextureMarginM = 1;
-  static final int iconTextureMarginR = 3;
+  static final int iconTextureMarginM = 2;
+  static final int iconTextureMarginR = 4;
 
   public final V2i pos = new V2i();
   public final V2i size = new V2i();
@@ -43,7 +44,7 @@ public class MergeButtons implements Disposable {
   private int hoverBtLine = -1, hoverBtIndex = -1;
   private boolean hoverBtAccept = true;
   private final boolean drawBg;
-  private boolean toLeft;
+  private char icon;
   private FontDesk font;
 
   private CodeLineMapping lineMapping;
@@ -68,9 +69,25 @@ public class MergeButtons implements Disposable {
     this.dpr = dpr;
   }
 
-  public void setFont(int lineHeight, boolean rtl, FontDesk font) {
+  public static char iconArrow(boolean right) {
+    return right ? arrowR : arrowL;
+  }
+
+  public static char iconAcceptReject(boolean accept) {
+    return accept ? acceptCh : rejectCh;
+  }
+
+  public void setIcon(char icon) {
+    this.icon = icon;
+  }
+
+  public void setFont(int lineHeight, char icon, FontDesk font) {
+    setIcon(icon);
+    setFont(lineHeight, font);
+  }
+
+  public void setFont(int lineHeight, FontDesk font) {
     this.lineHeight = lineHeight;
-    this.toLeft = rtl;
     this.font = font;
 //    System.out.println("MergeButtons.setFont " + font.name + " lh=" + lineHeight);
     disposeTextures();
@@ -118,12 +135,12 @@ public class MergeButtons implements Disposable {
 
     if (texture == null)
       texture = renderIcon(g, c.cleartype,
-          acceptReject ? acceptCh : toLeft ? arrowL : arrowR,
+          icon,
           iconTextureMarginL,
           acceptReject ? iconTextureMarginM : iconTextureMarginR);
 
     if (acceptReject && texture2 == null)
-      texture2 = renderIcon(g, c.cleartype, rejectCh,
+      texture2 = renderIcon(g, c.cleartype, acceptCh,
           iconTextureMarginM, iconTextureMarginR);
 
     g.enableScissor(pos, size);
@@ -134,6 +151,9 @@ public class MergeButtons implements Disposable {
 
     var bgColors = theme.bgColors;
     var textColors = theme.textColors;
+
+    var isAccept = icon == acceptCh;
+    var isReject = icon == rejectCh;
 
     for (int l = firstLine; l <= lastLine; l++) {
       int y = pos.y + l * lineHeight - scrollPos;
@@ -148,17 +168,19 @@ public class MergeButtons implements Disposable {
       if (found) {
         var textColor = diffType != 0 && textColors != null ?
                 textColors.getDiffColor(diffType, null) : theme.textColor;
-        boolean hoveredA = hoverBtLine == docL && hoverBtAccept;
-        var bg = hoveredA && (theme.bgColors == null || diffType == 0) ?
+        boolean hoveredL = hoverBtLine == docL && hoverBtAccept;
+        var bg = hoveredL && (theme.bgColors == null || diffType == 0) ?
             theme.bgColorHovered : bgColor;
-        c.drawIcon(g, texture, x, y, bg,
-            hoveredA && isAcceptReject() ? theme.acceptColor : textColor);
+        var fc = (hoveredL && isAccept) ? theme.acceptColor :
+            (hoveredL && isReject) ? theme.rejectColor : textColor;
+        c.drawIcon(g, texture, x, y, bg, fc);
         if (acceptReject) {
           boolean hoveredR = hoverBtLine == docL && !hoverBtAccept;
           bg = hoveredR && (theme.bgColors == null || diffType == 0) ?
               theme.bgColorHovered : bgColor;
-          c.drawIcon(g, texture2, x + texture.width(), y, bg,
-              hoveredR ? theme.rejectColor : textColor);
+          fc = (hoveredR && isAccept) ? theme.rejectColor :
+              (hoveredR && isReject) ? theme.acceptColor : textColor;
+          c.drawIcon(g, texture2, x + texture.width(), y, bg, fc);
         }
 
         if (drawFrames) {
@@ -294,11 +316,10 @@ public class MergeButtons implements Disposable {
     if (isAcceptReject()) {
       float marginL = (iconTextureMarginL + iconTextureMarginM) * dpr;
       float marginR = (iconTextureMarginM + iconTextureMarginR) * dpr;
-      return mCanvas.measurePx(font, String.valueOf(acceptCh), marginL) +
-          mCanvas.measurePx(font, String.valueOf(rejectCh), marginR);
+      return mCanvas.measurePx(font, String.valueOf(icon), marginL) +
+          mCanvas.measurePx(font, String.valueOf(acceptCh), marginR);
     } else {
       float margin = (iconTextureMarginL + iconTextureMarginR) * dpr;
-      char icon = toLeft ? arrowL : arrowR;
       return mCanvas.measurePx(font, String.valueOf(icon), margin);
     }
   }
