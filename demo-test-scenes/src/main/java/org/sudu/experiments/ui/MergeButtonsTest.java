@@ -33,7 +33,6 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
   MergeButtons buttonsAR = new MergeButtons(true);
   EditorColorScheme colors = EditorColorScheme.darculaIdeaColorScheme();
   MergeButtonsColors mColors = colors.codeDiffMergeButtons();
-  boolean toLeft;
   int buttonsHeight;
 
   private final ScrollBar scrollBar = new ScrollBar();
@@ -56,6 +55,9 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
     XorShiftRandom rand = new XorShiftRandom();
     var m = new MergeButtonsModel.TestModel(docLines, rand);
     var arm = new AcceptRejectModel.TestModel(docLines, rand);
+    buttons1.setIcon(MergeButtons.iconArrow(true));
+    buttons2.setIcon(MergeButtons.iconArrow(false));
+    buttonsAR.setIcon(MergeButtons.iconAcceptReject(false));
     buttons1.setModel(m.actions, m.lines);
     buttons2.setModel(m.actions, m.lines);
     buttonsAR.setModel(arm.actions, arm.lines);
@@ -81,13 +83,12 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
   }
 
   private boolean onKey(KeyEvent keyEvent) {
-    if (keyEvent.keyCode == KeyCode.SPACE) {
-      toLeft = !toLeft;
-      buttons1.setFont(lineHeight, toLeft, font);
-      buttons2.setFont(lineHeight, !toLeft, font);
-      buttonsAR.setFont(lineHeight, false, font);
-      return true;
-    }
+//    if (keyEvent.keyCode == KeyCode.SPACE) {
+//      buttons1.setFont(lineHeight, font);
+//      buttons2.setFont(lineHeight, font);
+//      buttonsAR.setFont(lineHeight, font);
+//      return true;
+//    }
     return false;
   }
 
@@ -113,9 +114,9 @@ public class MergeButtonsTest extends Scene0 implements MouseListener {
     font = api.graphics.fontDesk(Fonts.Consolas, 20, dpr);
     lineHeight = font.lineHeight() * 125 / 100;
 
-    buttons1.setFont(lineHeight, !toLeft, font);
-    buttons2.setFont(lineHeight, toLeft, font);
-    buttonsAR.setFont(lineHeight, false, font);
+    buttons1.setFont(lineHeight, font);
+    buttons2.setFont(lineHeight, font);
+    buttonsAR.setFont(lineHeight, font);
 
     int measured1 = buttons1.measure(font, api.graphics.mCanvas, dpr);
     int measured2 = buttons2.measure(font, api.graphics.mCanvas, dpr);

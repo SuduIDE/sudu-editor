@@ -2106,7 +2106,7 @@ public class EditorComponent extends View implements
   }
 
   private void setMergeButtonsFont() {
-    mergeButtons.setFont(lineHeight, !mirrored, fonts[CodeElement.bold]);
+    mergeButtons.setFont(lineHeight, fonts[CodeElement.bold]);
   }
 
   private void layoutMergeButtons(int mWidth) {
@@ -2121,8 +2121,18 @@ public class EditorComponent extends View implements
   }
 
   public void setMergeButtons(Runnable[] actions, BooleanConsumer[] acceptReject, int[] lines) {
+    setMergeButtons(actions, acceptReject, lines, false);
+  }
+
+  public void setMergeButtons(
+      Runnable[] actions, BooleanConsumer[] acceptReject,
+      int[] lines, boolean isCodeReview
+  ) {
      if (mergeButtons == null) {
        mergeButtons = new MergeButtons();
+       mergeButtons.setIcon(isCodeReview
+           ? MergeButtons.iconAcceptReject(!mirrored)
+           : MergeButtons.iconArrow(mirrored));
        if (colors != null)
          mbColors = colors.codeDiffMergeButtons();
        if (dpr != 0) {

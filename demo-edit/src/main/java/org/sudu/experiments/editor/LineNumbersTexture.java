@@ -115,7 +115,7 @@ public class LineNumbersTexture implements Disposable {
   }
 
   private void drawLine(Canvas canvas, String lineNumber, int yPos, float devicePR) {
-    int padding = EditorConst.LINE_NUMBERS_RIGHT_PADDING;
+    int padding = LineNumbersComponent.LINE_NUMBERS_RIGHT_PADDING;
     canvas.drawText(lineNumber, textureSize.x - padding * devicePR, yPos);
   }
 

@@ -16,6 +16,7 @@ import java.util.Deque;
 import java.util.List;
 
 public class LineNumbersComponent implements Disposable {
+  static final int LINE_NUMBERS_RIGHT_PADDING = 16;
 
   private final static boolean debugTexture = false;
   private final int numberOfLines = EditorConst.LINE_NUMBERS_TEXTURE_SIZE;

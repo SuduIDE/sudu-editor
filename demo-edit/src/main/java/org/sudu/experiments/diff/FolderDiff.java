@@ -36,6 +36,9 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
             windowManager.hidePopupMenuThen(this::newFileWindow),
             UiText.newFileWindow),
         new ToolbarItem(
+            windowManager.hidePopupMenuThen(this::newCodeReview),
+            UiText.newCodeReviewWindow),
+        new ToolbarItem(
             windowManager.hidePopupMenuThen(this::newProjectView),
             UiText.newProjectView),
         new ToolbarItem(
@@ -54,6 +57,10 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
 
   private void newFileWindow() {
     new FileDiffWindow(windowManager, theme, FolderDiff::menuFonts, EditorConst.DEFAULT_DISABLE_PARSER, false);
+  }
+
+  private void newCodeReview() {
+    new FileDiffWindow(windowManager, theme, FolderDiff::menuFonts, EditorConst.DEFAULT_DISABLE_PARSER, true);
   }
 
   private void newProjectView() {

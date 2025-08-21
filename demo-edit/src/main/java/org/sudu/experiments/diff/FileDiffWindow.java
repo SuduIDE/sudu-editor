@@ -49,6 +49,11 @@ public class FileDiffWindow extends ToolWindow0
     windowManager.uiContext.setFocus(this);
   }
 
+  @Override
+  protected String defaultTitle() {
+    return rootView.isCodeReview ? "Code review" : super.defaultTitle();
+  }
+
   void fireEvent() {
     if (onEvent != null)
       onEvent.accept(this);
