@@ -128,6 +128,7 @@ public class EditorComponent extends View implements
   EditorSyncPoints syncPoints;
   private final V2i lastMouseDownPos = new V2i(-1, -1);
   private boolean disableParser = EditorConst.DEFAULT_DISABLE_PARSER;
+  private UndoBuffer undoBuffer;
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -1915,6 +1916,7 @@ public class EditorComponent extends View implements
     clearCompactViewModel();
     oldModel.setEditor(null, null);
     model.setEditor(this, window().worker());
+    model.setUndoBuffer(undoBuffer);
     registrations.fireModelChange(oldModel, model);
     vScrollPos = Numbers.iRnd(model.vScrollLine * lineHeight);
   }
@@ -2144,6 +2146,10 @@ public class EditorComponent extends View implements
      else if (acceptReject != null) mergeButtons.setModel(acceptReject, lines);
      mergeButtons.setColors(lineNumbers.colors());
      mergeButtons.setCodeLineMapping(docToView);
+  }
+
+  public void setUndoBuffer(UndoBuffer undoBuffer) {
+    this.undoBuffer = undoBuffer;
   }
 
   void buildDiffMap() {

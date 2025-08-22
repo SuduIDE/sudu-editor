@@ -30,7 +30,8 @@ class FileDiffRootView extends DiffRootView {
   boolean firstDiffRevealed = false, needScrollSync = false;
   private static final boolean showNavigateLog = true;
   private Runnable onRefresh, onDiffModelSet;
-  final boolean isCodeReview;
+  private final boolean isCodeReview;
+  private final UndoBuffer undoBuffer;
 
   protected final long startTime = System.currentTimeMillis();
   protected final boolean printTime = true;
@@ -42,6 +43,7 @@ class FileDiffRootView extends DiffRootView {
     editor1 = new EditorComponent(ui);
     editor2 = new EditorComponent(ui);
     middleLine.setLeftRight(editor1, editor2);
+    undoBuffer = new UndoBuffer();
     Consumer<EditorComponent> parseListener = this::fullFileParseListener;
     TriConsumer<EditorComponent, Integer, Integer> iterativeParseListener = this::iterativeParseFileListener;
     SyncPoints syncPoints = new SyncPoints(() -> sendToDiff(false));
@@ -54,6 +56,7 @@ class FileDiffRootView extends DiffRootView {
     editor1.setMirrored(true);
     editor1.setSyncPoints(syncPoints, true);
     editor1.setDisableParser(disableParser);
+    editor1.setUndoBuffer(undoBuffer);
 
     editor2.setFullFileLexedListener(parseListener);
     editor2.setIterativeParseFileListener(iterativeParseListener);
@@ -62,6 +65,7 @@ class FileDiffRootView extends DiffRootView {
     editor2.highlightResolveError(false);
     editor2.setSyncPoints(syncPoints, false);
     editor2.setDisableParser(disableParser);
+    editor2.setUndoBuffer(undoBuffer);
 
     diffSync = new DiffSync(editor1, editor2);
     middleLine.setOnMidSyncPointHover(i -> onMidSyncLineHover(syncPoints, i));
@@ -378,6 +382,10 @@ class FileDiffRootView extends DiffRootView {
     System.out.println("FileDiffRootView.refresh");
     needScrollSync = true;
     if (onRefresh != null) onRefresh.run();
+  }
+
+  public void undoLastDiff() {
+    undoBuffer.undoLastDiff(editor1.model().document, editor2.model().document);
   }
 
   public void unsetModelFlagsBit(int bit) {
