@@ -13,6 +13,7 @@ public class JsTextModel implements JsITextModel {
   public final Model javaModel;
   public final JsUri jsUri;
   public final JSString jsLanguage;
+  private boolean fireEvent = true;
 
   public JsTextModel(JSString text, JSString language, JsUri uri) {
     SplitInfo split = SplitJsText.split(text);
@@ -31,13 +32,23 @@ public class JsTextModel implements JsITextModel {
   }
 
   @Override
+  public void setText(JSString newText, boolean fireEvent) {
+    String[] lines = SplitJsText.split(newText).lines;
+    this.fireEvent = fireEvent;
+    javaModel.document.replaceText(lines);
+    this.fireEvent = true;
+  }
+
+  @Override
   public void dispose() {
     javaModel.document.clear();
   }
 
   @Override
   public void setEditListener(JsFunctions.Consumer<JsITextModel> listener) {
-    javaModel.setOnDiffMadeListener(() -> listener.f(this));
+    javaModel.setOnDiffMadeListener(() -> {
+      if (fireEvent) listener.f(this);
+    });
   }
 
   @Override

@@ -13,4 +13,6 @@ public interface JsITextModel extends JsDisposable {
   JSString getText();
   // setEditListener(listener: (m: ITextModel) => void): void
   void setEditListener(JsFunctions.Consumer<JsITextModel> listener);
+
+  void setText(JSString newText, boolean fireEvent);
 }

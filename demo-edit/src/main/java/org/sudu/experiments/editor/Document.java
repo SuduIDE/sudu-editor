@@ -158,6 +158,12 @@ public class Document extends CodeLines {
     onDiffMade();
   }
 
+  public void replaceText(String[] newLines) {
+    CodeLine[] newCodeLines = new CodeLine[newLines.length];
+    for (int i = 0; i < newLines.length; i++) newCodeLines[i] = new CodeLine(newLines[i]);
+    applyChange(0, document.length, newCodeLines);
+  }
+
   public void applyChange(int fromLine, int toLine, CodeLine[] newLines) {
     Diff deleteDiff = deleteLines(fromLine, toLine);
     Diff insertDiff = copyLines(fromLine, newLines);
