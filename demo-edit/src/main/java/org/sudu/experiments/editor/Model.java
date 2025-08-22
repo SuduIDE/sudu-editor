@@ -284,6 +284,10 @@ public class Model {
     }
   }
 
+  void setUndoBuffer(UndoBuffer undoBuffer) {
+    document.setUndoBuffer(undoBuffer);
+  }
+
   private void setParsed() {
     fileStructureParsed = ParseStatus.PARSED;
     firstLinesParsed = ParseStatus.PARSED;
