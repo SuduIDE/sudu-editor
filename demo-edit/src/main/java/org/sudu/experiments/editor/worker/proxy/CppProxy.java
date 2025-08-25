@@ -10,15 +10,11 @@ import org.sudu.experiments.parser.cpp.parser.CppFullParser;
 import org.sudu.experiments.parser.cpp.parser.CppFullScopesParser;
 import org.sudu.experiments.parser.cpp.parser.CppIntervalParser;
 
-import java.util.List;
-
 public class CppProxy extends BaseProxy {
 
   public CppProxy() {
     super(FileProxy.CPP_FILE, Languages.CPP);
   }
-
-  public static final String LEXER_FIRST_LINES = "asyncCppProxy.parseFirstLines";
 
   @Override
   public BaseFirstLinesLexer<?> getFirstLinesLexer() {
@@ -42,12 +38,4 @@ public class CppProxy extends BaseProxy {
   public BaseIntervalParser<?> getIntervalParser() {
     return new CppIntervalParser();
   }
-
-  private static void parseInterval(char[] chars, int[] interval, List<Object> result) {
-    CppIntervalParser parser = new CppIntervalParser();
-    int[] ints = parser.parseInterval(chars, interval);
-    result.add(ints);
-    result.add(chars);
-  }
-
 }

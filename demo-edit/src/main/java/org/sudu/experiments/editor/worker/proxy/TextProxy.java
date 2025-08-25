@@ -16,12 +16,12 @@ public class TextProxy extends BaseProxy {
     super(FileProxy.TEXT_FILE, Languages.TEXT);
   }
 
-  public void parseInterval(char[] source, int[] interval, int[] version, Consumer<Object[]> result) {
+  public void parseInterval(char[] source, int[] interval, int version, Consumer<Object[]> result) {
     ArrayList<Object> list = new ArrayList<>();
     int[] ints = getFullParser().parse(source);
     list.add(ints);
     list.add(source);
-    list.add(version);
+    list.add(new int[]{languageType, version});
     ArrayOp.sendArrayList(list, result);
   }
 
