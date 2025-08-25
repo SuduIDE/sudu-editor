@@ -29,19 +29,19 @@ public class EditorWorker {
       case TestJobs.withBytes -> TestJobs.withBytes(ArgsCast.array(a, 0).bytes(), result);
       case TestJobs.withInts -> TestJobs.withInts(ArgsCast.array(a, 0).ints(), result);
       case TestJobs.fibonacci -> TestJobs.fibonacci(ArgsCast.array(a, 0).ints(), result);
-      case ActivityProxy.PARSE_FULL_FILE -> activityProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
-      case JavaProxy.PARSE_FULL_FILE -> javaProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
-      case JavaProxy.PARSE_FULL_FILE_SCOPES -> javaProxy.parseFullFileScopes(ArgsCast.array(a, 0).chars(), result);
-      case JavaProxy.PARSE_VIEWPORT -> javaProxy.parseViewport(ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(), ArgsCast.array(a, 2).ints(), result);
-      case JavaProxy.PARSE_STRUCTURE -> javaProxy.parseStructure(ArgsCast.array(a, 0).chars(), result);
-      case CppProxy.PARSE_FULL_FILE -> cppProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
-      case CppProxy.PARSE_FULL_FILE_SCOPES -> cppProxy.parseFullFileScopes(ArgsCast.array(a, 0).chars(), result);
-      case JavaScriptProxy.PARSE_FULL_FILE -> javascriptProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
-      case TypeScriptProxy.PARSE_FULL_FILE -> typescriptProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
-      case HtmlProxy.PARSE_FULL_FILE -> htmlProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
-      case JsonProxy.PARSE_FULL_FILE -> jsonProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
-      case TextProxy.PARSE_FULL_FILE -> textProxy.parseFullFile(ArgsCast.array(a, 0).chars(), result);
-      case ScopeProxy.RESOLVE_ALL -> ScopeProxy.resolveAll(ArgsCast.array(a, 0).ints(), ArgsCast.array(a, 1).chars(), ArgsCast.array(a, 2).ints(), result);
+      case ActivityProxy.PARSE_FULL_FILE -> activityProxy.parseFullFile(a, result);
+      case JavaProxy.PARSE_FULL_FILE -> javaProxy.parseFullFile(a, result);
+      case JavaProxy.PARSE_FULL_FILE_SCOPES -> javaProxy.parseFullFileScopes(a, result);
+      case JavaProxy.PARSE_VIEWPORT -> javaProxy.parseViewport(a, result);
+      case JavaProxy.PARSE_STRUCTURE -> javaProxy.parseStructure(a, result);
+      case CppProxy.PARSE_FULL_FILE -> cppProxy.parseFullFile(a, result);
+      case CppProxy.PARSE_FULL_FILE_SCOPES -> cppProxy.parseFullFileScopes(a, result);
+      case JavaScriptProxy.PARSE_FULL_FILE -> javascriptProxy.parseFullFile(a, result);
+      case TypeScriptProxy.PARSE_FULL_FILE -> typescriptProxy.parseFullFile(a, result);
+      case HtmlProxy.PARSE_FULL_FILE -> htmlProxy.parseFullFile(a, result);
+      case JsonProxy.PARSE_FULL_FILE -> jsonProxy.parseFullFile(a, result);
+      case TextProxy.PARSE_FULL_FILE -> textProxy.parseFullFile(a, result);
+      case ScopeProxy.RESOLVE_ALL -> ScopeProxy.resolveAll(a, result);
       case DiffUtils.FIND_DIFFS -> DiffUtils.findDiffs(
           ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(),
           ArgsCast.array(a, 2).chars(), ArgsCast.array(a, 3).ints(),
@@ -57,12 +57,7 @@ public class EditorWorker {
       case FileProxy.asyncParseFile -> FileProxy.asyncParseFile(ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(), r);
       case FileProxy.asyncParseFullFile -> FileProxy.asyncParseFullFile(ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(), r);
       case FileProxy.asyncLexer -> FileProxy.asyncLexer(ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(), r);
-      case FileProxy.asyncIterativeParsing -> FileProxy.asyncIterativeParsing(
-          ArgsCast.array(a, 0).chars(), ArgsCast.array(a, 1).ints(),
-          ArgsCast.array(a, 2).ints(),
-          ArgsCast.array(a,3).ints(), ArgsCast.array(a, 4).ints(),
-          ArgsCast.array(a, 5).chars(), r
-      );
+      case FileProxy.asyncIterativeParsing -> FileProxy.asyncIterativeParsing(a, r);
       case DiffUtils.CMP_FOLDERS -> DiffUtils.compareFolders(ArgsCast.dir(a, 0), ArgsCast.dir(a, 1), r);
       case DiffUtils.READ_FOLDER -> DiffUtils.readFolder(ArgsCast.dir(a, 0), ArgsCast.array(a, 1).ints(), r);
       case FileCompare.asyncCompareFiles -> FileCompare.asyncCompareFiles(a, r);

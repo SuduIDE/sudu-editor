@@ -3,6 +3,8 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.SplitInfo;
 import org.sudu.experiments.diff.LineDiff;
+import org.sudu.experiments.editor.worker.ArgsCast;
+import org.sudu.experiments.editor.worker.parser.ParseResult;
 import org.sudu.experiments.editor.worker.parser.ParseStatus;
 import org.sudu.experiments.editor.worker.parser.ParserUtils;
 import org.sudu.experiments.editor.worker.proxy.*;
@@ -11,7 +13,6 @@ import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.common.graph.ScopeGraph;
 import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
 import org.sudu.experiments.text.SplitText;
-import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.*;
@@ -117,20 +118,14 @@ public class Model {
   }
 
   void onFileParsed(Object[] result) {
-    int[] ints = ((ArrayView) result[0]).ints();
-    char[] chars = ((ArrayView) result[1]).chars();
+    var parseRes = new ParseResult(result);
+    if (parseRes.version != document.currentVersion) return;
 
-    if (result.length >= 5) {
-      int[] graphInts = ((ArrayView) result[3]).ints();
-      char[] graphChars = ((ArrayView) result[4]).chars();
-      ParserUtils.updateDocument(document, ints, chars, graphInts, graphChars, false);
-      requestResolve(
-          Arrays.copyOf(graphInts, graphInts.length),
-          copyOf(graphChars)
-      );
-    } else {
-      ParserUtils.updateDocument(document, ints, chars);
-    }
+    ParserUtils.updateDocument(document, parseRes);
+    if (parseRes.haveGraph()) requestResolve(
+        copyOf(parseRes.graphInts),
+        copyOf(parseRes.graphChars)
+    );
     printParsingTime("Full file parsed");
     if (fullFileLexed != ParseStatus.PARSED && editor != null) editor.fireFileLexed();
     fileStructureParsed = ParseStatus.PARSED;
@@ -145,8 +140,8 @@ public class Model {
   }
 
   void onResolved(Object[] result) {
-    int[] ints = ((ArrayView) result[0]).ints();
-    int version = ((ArrayView) result[1]).ints()[0];
+    int[] ints = ArgsCast.intArray(result, 0);
+    int version = ArgsCast.intArray(result, 1)[0];
     if (document.needReparse() || document.currentVersion != version) return;
     document.onResolve(ints, highlightResolveError);
     computeUsages();
@@ -156,32 +151,30 @@ public class Model {
   void onFileStructureParsed(Object[] result) {
     if (fullFileParsed == ParseStatus.PARSED) return;
     fileStructureParsed = ParseStatus.PARSED;
-    int type = ((ArrayView) result[2]).ints()[0];
-    if (type != FileProxy.JAVA_FILE) {
+    var parseRes = new ParseResult(result);
+    if (parseRes.version != document.currentVersion) return;
+    if (parseRes.language != FileProxy.JAVA_FILE) {
       onFileParsed(result);
       return;
     }
 
-    int[] ints = ((ArrayView) result[0]).ints();
-    char[] chars = ((ArrayView) result[1]).chars();
     boolean saveOldLines = fullFileLexed == ParseStatus.PARSED;
-    ParserUtils.updateDocument(document, ints, chars, saveOldLines);
+    ParserUtils.updateDocument(document, parseRes, saveOldLines);
     printParsingTime("File structure parsed");
   }
 
   void onVpParsed(Object[] result) {
     if (fullFileParsed == ParseStatus.PARSED) return;
-    int[] ints = ((ArrayView) result[0]).ints();
-    char[] chars = ((ArrayView) result[1]).chars();
-
-    ParserUtils.updateDocumentInterval(document, ints, chars);
+    var parseRes = new ParseResult(result);
+    if (parseRes.version != document.currentVersion) return;
+    ParserUtils.updateDocumentInterval(document, parseRes);
     printParsingTime("Viewport parsed");
   }
 
   void onFileLexed(Object[] result) {
-    int[] ints = ((ArrayView) result[0]).ints();
-    char[] chars = ((ArrayView) result[1]).chars();
-    ParserUtils.updateDocument(document, ints, chars);
+    var parseRes = new ParseResult(result);
+    if (parseRes.version != document.currentVersion) return;
+    ParserUtils.updateDocument(document, parseRes);
     printParsingTime("Full file lexed");
     if (isDisableParser()) setParsed();
     else {
@@ -224,7 +217,7 @@ public class Model {
     List<Pos> usageList = document.getUsagesList(def);
     if (usageList != null) {
       definition = document.getCodeElement(def);
-      for (var usage : usageList) {
+      for (var usage: usageList) {
         usages.add(document.getCodeElement(usage));
       }
     }
@@ -317,7 +310,7 @@ public class Model {
   private void sendLexer(char[] chars, int langType) {
     executor.sendToWorker(true, this::onFileLexed,
         FileProxy.asyncLexer,
-        chars, new int[]{langType, Integer.MAX_VALUE});
+        chars, new int[]{langType, Integer.MAX_VALUE, document.currentVersion});
     fullFileParsed = ParseStatus.SENT;
   }
 
@@ -325,14 +318,14 @@ public class Model {
     if (langType != FileProxy.JAVA_FILE) return;
     executor.sendToWorker(true, this::onFileStructureParsed,
         FileProxy.asyncParseFile,
-        chars, new int[]{langType});
+        chars, new int[]{langType, document.currentVersion});
     fileStructureParsed = ParseStatus.SENT;
   }
 
   private void sendFull(char[] chars, int langType) {
     executor.sendToWorker(true, this::onFileParsed,
         FileProxy.asyncParseFullFile,
-        chars, new int[]{langType});
+        chars, new int[]{langType, document.currentVersion});
     fullFileParsed = ParseStatus.SENT;
   }
 
@@ -360,6 +353,11 @@ public class Model {
   void iterativeParsing() {
     if (debug) {
       Debug.consoleInfo(getFileName() + "/Model::iterativeParsing");
+    }
+
+    if (fullFileParsed != ParseStatus.PARSED) {
+      requestParseFile();
+      return;
     }
 
     String language = language();
@@ -406,26 +404,17 @@ public class Model {
     if (debug) {
       Debug.consoleInfo(getFileName() + "/Model::onFileIterativeParsed");
     }
-
-    int[] ints = ((ArrayView) result[0]).ints();
-    char[] chars = ((ArrayView) result[1]).chars();
-    int version = ((ArrayView) result[2]).ints()[0];
-    if (document.currentVersion != version) return;
-    int[] graphInts = null;
-    char[] graphChars = null;
-    if (result.length >= 5) {
-      graphInts = ((ArrayView) result[3]).ints();
-      graphChars = ((ArrayView) result[4]).chars();
-    }
+    var parseRes = new ParseResult(result);
+    if (parseRes.version != document.currentVersion) return;
     if (!Languages.isFullReparseOnEdit(language())) {
-      ParserUtils.updateDocumentInterval(document, ints, chars, graphInts, graphChars);
+      ParserUtils.updateDocumentInterval(document, parseRes);
       document.defToUsages.clear();
       document.usageToDef.clear();
       document.countPrefixes();
       document.onReparse();
       resolveAll();
     } else {
-      ParserUtils.updateDocument(document, ints, chars);
+      ParserUtils.updateDocument(document, parseRes);
       document.onReparse();
     }
     if (editor != null) editor.fireFileIterativeParsed(start, stop);
@@ -462,7 +451,10 @@ public class Model {
         viewportParseStart = System.currentTimeMillis();
         executor.sendToWorker(true, this::onVpParsed,
             JavaProxy.PARSE_VIEWPORT,
-            document.getChars(), vpInts, document.getIntervals() );
+            document.getChars(), vpInts,
+            document.getIntervals(),
+            new int[]{document.currentVersion}
+        );
       }
     }
   }
@@ -499,7 +491,9 @@ public class Model {
     void fireFileLexed();
 
     void fireFileIterativeParsed(int start, int stop);
+
     void updateModelOnDiff(Diff diff, boolean isUndo);
+
     void onDiffMade();
 
     boolean isDisableParser();

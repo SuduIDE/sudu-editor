@@ -60,12 +60,11 @@ public class DiffModelTest {
 
   private Document parse(String text) {
     List<Object> result = new ArrayList<>();
-    char[] chars = text.toCharArray();
-    int[] ints;
-    new JavaProxy().parseFullFile(chars, result);
-    ints = (int[]) result.get(0);
+    new JavaProxy().parseFullFile(text.toCharArray(), 0, result);
+    int[] ints = (int[]) result.get(0);
+    char[] source = (char[]) result.get(1);
     Document document = new Document(SplitText.split(text));
-    ParserUtils.updateDocument(document, ints, chars);
+    ParserUtils.updateDocument(document, ints, source, null, null, false);
     return document;
   }
 

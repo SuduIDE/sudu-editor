@@ -21,12 +21,12 @@ import java.util.function.Function;
 
 public abstract class ParserUtils {
 
-  public static void updateDocument(Document document, int[] ints, char[] chars) {
-    updateDocument(document, ints, chars, false);
+  public static void updateDocument(Document document, ParseResult parseRes) {
+    updateDocument(document, parseRes, false);
   }
 
-  public static void updateDocument(Document document, int[] docInts, char[] docChars, boolean saveOldLines) {
-    updateDocument(document, docInts, docChars, null, null, saveOldLines);
+  public static void updateDocument(Document document, ParseResult parseRes, boolean saveOldLines) {
+    updateDocument(document, parseRes.ints, parseRes.source, parseRes.graphInts, parseRes.graphChars, saveOldLines);
   }
 
   public static void updateDocument(
@@ -81,8 +81,8 @@ public abstract class ParserUtils {
     document.tree = new IntervalTree(reader.intervalRoot);
   }
 
-  public static void updateDocumentInterval(Document document, int[] ints, char[] chars) {
-    updateDocumentInterval(document, ints, chars, null, null);
+  public static void updateDocumentInterval(Document document, ParseResult parseRes) {
+    updateDocumentInterval(document, parseRes.ints, parseRes.source, parseRes.graphInts, parseRes.graphChars);
   }
 
   public static void updateDocumentInterval(
