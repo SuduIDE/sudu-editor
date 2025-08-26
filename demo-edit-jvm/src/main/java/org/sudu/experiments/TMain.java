@@ -5,6 +5,7 @@ import org.sudu.experiments.diff.FolderDiff;
 import org.sudu.experiments.editor.Editor1;
 import org.sudu.experiments.editor.TextSeparatorDemo;
 import org.sudu.experiments.editor.SinDemo;
+import org.sudu.experiments.editor.ui.window.WindowsDemo;
 import org.sudu.experiments.ui.MergeButtonsTest;
 
 import static org.sudu.experiments.DemoEditJvm.run;
@@ -36,5 +37,9 @@ public interface TMain {
 
   interface FileDiffMain {
     static void main(String[] $) { run(FileDiff::new); }
+  }
+
+  interface WindowsDemoMain {
+    static void main(String[] $) { run(WindowsDemo::new); }
   }
 }

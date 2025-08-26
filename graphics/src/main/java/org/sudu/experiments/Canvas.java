@@ -42,11 +42,11 @@ public abstract class Canvas implements GLApi.Canvas, Disposable, CanvasDebug {
   }
 
   public int measurePx(String text) {
-    return measurePx(text, 7.f / 8);
+    return measurePx(text, 15.f / 32);
   }
 
   public int measurePx(String text, float pad) {
-    return (int) (measureText(text) + pad);
+    return (int) (measureText(text) + pad + 0.5f);
   }
 
   public abstract void drawText(String s, float x, float y);
