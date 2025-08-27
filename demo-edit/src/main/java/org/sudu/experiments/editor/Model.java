@@ -119,7 +119,10 @@ public class Model {
 
   void onFileParsed(Object[] result) {
     var parseRes = new ParseResult(result);
-    if (parseRes.version != document.currentVersion) return;
+    if (parseRes.version != document.currentVersion) {
+      requestParseFile();
+      return;
+    }
 
     ParserUtils.updateDocument(document, parseRes);
     if (parseRes.haveGraph()) requestResolve(
@@ -355,10 +358,7 @@ public class Model {
       Debug.consoleInfo(getFileName() + "/Model::iterativeParsing");
     }
 
-    if (fullFileParsed != ParseStatus.PARSED) {
-      requestParseFile();
-      return;
-    }
+    if (fullFileParsed != ParseStatus.PARSED) return;
 
     String language = language();
     if (isDisableParser()) {
