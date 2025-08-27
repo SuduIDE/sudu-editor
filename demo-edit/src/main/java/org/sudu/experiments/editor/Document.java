@@ -184,7 +184,9 @@ public class Document extends CodeLines {
     sb.append(newLines[newLines.length - 1].makeString());
 
     String inserted = sb.toString();
-    Diff insertDiff = new Diff(fromLine, 0, false, inserted);
+    int insertLine = !insertFromStart ? fromLine - 1 : fromLine;
+    int insertPos = !insertFromStart ? line(fromLine - 1).totalStrLength : 0;
+    Diff insertDiff = new Diff(insertLine, insertPos, false, inserted);
     makeDiffOp(insertDiff);
 
     CodeLine[] newDocument = new CodeLine[document.length + newLines.length];
