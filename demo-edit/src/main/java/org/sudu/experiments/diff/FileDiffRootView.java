@@ -385,7 +385,7 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void undoLastDiff() {
-    undoBuffer.undoLastDiff(editor1.model().document, editor2.model().document);
+    undoBuffer.undoLastDiff(editor1, editor2);
   }
 
   public void unsetModelFlagsBit(int bit) {

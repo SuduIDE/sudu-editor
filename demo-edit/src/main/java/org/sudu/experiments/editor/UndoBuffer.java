@@ -28,8 +28,10 @@ public class UndoBuffer {
     return doc.undoLastDiff(lastDiff);
   }
 
-  public V2i undoLastDiff(Document doc1, Document doc2) {
+  public V2i undoLastDiff(EditorComponent editor1, EditorComponent editor2) {
     if (diffs.isEmpty()) return null;
+    Document doc1 = editor1.model.document;
+    Document doc2 = editor2.model.document;
     var deque1 = diffs.get(doc1);
     var deque2 = diffs.get(doc2);
     boolean empty1 = deque1 == null || deque1.isEmpty();
@@ -37,14 +39,19 @@ public class UndoBuffer {
     int ind1 = empty1 ? -1 : deque1.peekLast().second;
     int ind2 = empty2 ? -1 : deque2.peekLast().second;
     if (empty1 && empty2) return null;
+    EditorComponent editor = null;
+    Diff[] lastDiff = null;
     if (ind2 > ind1) {
-      Diff[] lastDiff = deque2.removeLast().first;
-      return doc2.undoLastDiff(lastDiff);
+      editor = editor2;
+      lastDiff = deque2.removeLast().first;
     }
     if (ind1 > ind2) {
-      Diff[] lastDiff = deque1.removeLast().first;
-      return doc1.undoLastDiff(lastDiff);
+      editor = editor1;
+      lastDiff = deque1.removeLast().first;
     }
+    if (editor == null || lastDiff == null) return null;
+    var diff = editor.model().document.undoLastDiff(lastDiff);
+    editor.setCaretLinePos(diff.x, diff.y, false);
     return null;
   }
 

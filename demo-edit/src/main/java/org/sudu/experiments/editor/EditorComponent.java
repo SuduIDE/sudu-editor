@@ -1144,7 +1144,7 @@ public class EditorComponent extends View implements
     return false;
   }
 
-  private boolean setCaretLinePos(int line, int pos, boolean shift) {
+  boolean setCaretLinePos(int line, int pos, boolean shift) {
     model.caretCharPos = pos;
     return setCaretLine(line, shift);
   }
@@ -2150,6 +2150,7 @@ public class EditorComponent extends View implements
 
   public void setUndoBuffer(UndoBuffer undoBuffer) {
     this.undoBuffer = undoBuffer;
+    model.setUndoBuffer(undoBuffer);
   }
 
   void buildDiffMap() {
