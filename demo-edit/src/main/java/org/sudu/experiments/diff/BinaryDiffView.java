@@ -1,7 +1,6 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.editor.EditorConst;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.MouseEvent;
@@ -27,12 +26,10 @@ public class BinaryDiffView extends ScrollContent {
   private final UiContext uiContext;
   private EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
 
-  Color editBg, textFg, vLine;
-  V4f tColor = new V4f();
-
   final V2i cellSize = new V2i();
   final V2i lineSize = new V2i();
   final V4f texRect = new V4f();
+  final V4f debugColor = new V4f();
 
   int numBytesPerLine = 16;
   int numLines = 100000;
@@ -43,7 +40,6 @@ public class BinaryDiffView extends ScrollContent {
 
   public BinaryDiffView(UiContext uiContext) {
     this.uiContext = uiContext;
-    readTheme();
   }
 
   @Override
@@ -53,26 +49,15 @@ public class BinaryDiffView extends ScrollContent {
 
   public void setTheme(EditorColorScheme colors) {
     theme = colors;
-    UiFont oldFont = uiFont;
-    readTheme();
-
-    boolean sameFont = Objects.equals(oldFont, colors.editorFont);
-    if (!sameFont) {
+    if (!Objects.equals(uiFont, colors.editorFont)) {
       if (dpr != 0)
         changeFont();
     }
   }
 
-  private void readTheme() {
-    editBg = theme.editor.bg;
-    vLine = theme.editor.numbersVLine;
-    textFg = theme.codeElement[0].colorF;
-    uiFont = theme.editorFont.scale(1);
-  }
-
   @Override
   protected void onDprChange(float olDpr, float newDpr) {
-    if (uiFont != null) {
+    if (theme != null) {
       changeFont();
     }
   }
@@ -95,47 +80,45 @@ public class BinaryDiffView extends ScrollContent {
     layoutScroll();
   }
 
+  static char toHex(int v) {
+    return (char) (v < 10 ? v + '0' : v - 10 + 'A');
+  }
+
   private void changeFont() {
-//    .fontDesk(name, pixelSize, weightRegular, FontDesk.STYLE_NORMAL)
+    uiFont = theme.editorFont.scale(1);
     WglGraphics g = uiContext.graphics;
     fd = g.fontDesk(uiFont, dpr, false);
-    String all = "0123456789ABCDEF";
     char[] cArray = new char[2];
     float[] measure = new float[256];
     int wMax = 0;
     g.mCanvas.setFont(fd);
     for (int y = 0; y < 16; y++) {
-      cArray[0] = all.charAt(y);
+      cArray[0] = toHex(y);
       for (int x = 0; x < 16; x++) {
-        cArray[1] = all.charAt(x);
+        cArray[1] = toHex(x);
         String digit = new String(cArray);
         float measured = g.mCanvas.measureText(digit);
         measure[y * 16 + x] = measured;
         int m = (int) (measured + 15 / 16f);
         wMax = Math.max(wMax, m);
-//        System.out.println("s = " + digit + ", m = " + m + "px");
       }
     }
     int lineHeight = fd.lineHeight(1);
     float baseline = fd.baselineCenterF(lineHeight);
-//    System.out.println("baseline = " + baseline);
-//    System.out.println("wMax = " + wMax);
     cellSize.y = lineHeight;
     cellSize.x = wMax;
     Canvas c = g.createCanvas(wMax * 16, lineHeight * 16, true);
     c.setFont(fd);
     for (int y = 0; y < 16; y++) {
-      cArray[0] = all.charAt(y);
+      cArray[0] = toHex(y);
       for (int i = 0; i < 16; i++) {
-        cArray[1] = all.charAt(i);
+        cArray[1] = toHex(i);
         String digit = new String(cArray);
         float x = i * wMax + 0.5f * (wMax - measure[i * 17]);
-//      System.out.println("s = " + digit + ", x = " + x + ", m = " + measure[i] + "px");
         c.drawText(digit, x, baseline + y * lineHeight);
       }
     }
     texture = g.createTexture(c);
-//    System.out.println("texture.size() = " + texture.size());
     c.dispose();
 
     layout();
@@ -168,7 +151,7 @@ public class BinaryDiffView extends ScrollContent {
     }
 
     g.enableScissor(pos, size);
-    g.drawRect(pos.x, pos.y, size, editBg);
+    g.drawRect(pos.x, pos.y, size, theme.editor.bg);
 
     int vScroll = scrollPos.y;
     int firstLine = vScroll / cellSize.y;
@@ -181,9 +164,10 @@ public class BinaryDiffView extends ScrollContent {
     }
 
     lineSize.set(vLineW, size.y);
-    g.drawRect(vLine1, pos.y, lineSize, theme.editor.numbersVLine);
-    g.drawRect(vLine2, pos.y, lineSize, theme.editor.numbersVLine);
-    g.drawRect(vLine3, pos.y, lineSize, theme.editor.numbersVLine);
+    Color numbersVLine = theme.editor.numbersVLine;
+    g.drawRect(vLine1, pos.y, lineSize, numbersVLine);
+    g.drawRect(vLine2, pos.y, lineSize, numbersVLine);
+    g.drawRect(vLine3, pos.y, lineSize, numbersVLine);
 
     g.disableScissor();
   }
@@ -199,16 +183,26 @@ public class BinaryDiffView extends ScrollContent {
     int addr = line * numBytesPerLine;
     int baseX = pos.x;
     int cellW = cellSize.x;
-    Color.Cvt.fromHSV(0.5 + 0.5 * Math.sin(line / 10.), 0.75, 0.5, 0, tColor);
-    V4f bgColor = debug ? tColor: editBg;
+    var editBg = theme.editor.bg;
+
+    if (debug)
+      Color.Cvt.fromHSV(0.5 + 0.5 * Math.sin(line / 10.),
+          0.75, 0.5, 0, debugColor);
+    V4f bgColor = debug ? debugColor : editBg;
+
+    Color addressC = theme.lineNumber.textColor;
+
     for (int d = 0; d < addressDigitPairs; d++) {
       int addrDigit = (addr >> ((addressDigitPairs - d - 1) * 8)) & 0xFF;
-      drawByte(g, baseX + d * cellW, y, addrDigit, textFg, bgColor);
+      drawByte(g, baseX + d * cellW, y, addrDigit, addressC, bgColor);
     }
+
+    Color textFg = theme.codeElement[0].colorF;
 
     for (int i = 0; i < numBytesPerLine; i++) {
       double h = remInt(i / 16.f + line / Math.PI / 100);
-      Color.Cvt.fromHSV(h, 0.75, 0.5, 0, tColor);
+      if (debug)
+        Color.Cvt.fromHSV(h, 0.75, 0.5, 0, debugColor);
       int x = bytesX1 + i * (cellW + pairPad);
       int b = XorShiftRandom.roll_7_1_9(XorShiftRandom.roll_7_1_9(
           4793 * line + i * 7879 + 2729));
@@ -217,7 +211,8 @@ public class BinaryDiffView extends ScrollContent {
 
     for (int i = 0; i < numBytesPerLine; i++) {
       double h = remInt(i / 16.f + line / Math.PI / 100);
-      Color.Cvt.fromHSV(h, 0.75, 0.5, 0, tColor);
+      if (debug)
+        Color.Cvt.fromHSV(h, 0.75, 0.5, 0, debugColor);
       int x = bytesX2 + i * (cellW + pairPad);
       int b = XorShiftRandom.roll_7_1_9(XorShiftRandom.roll_7_1_9(
           4793 * line + (i + numBytesPerLine) * 7879 + 2729));
