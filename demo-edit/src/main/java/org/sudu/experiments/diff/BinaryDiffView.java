@@ -18,10 +18,11 @@ import java.util.Objects;
 
 public class BinaryDiffView extends ScrollContent {
 
-  public static final float pairPadDp = 3;
-  public static final float vLineDp = 1;
-  public static final float vLinePadDp = 1;
+  public static final float bytePadDp = 3;
+  public static final float vLineDp = 2;
+  public static final float vLinePadDp = 10;
   public static final int addressDigitPairs = 4;
+  public static final boolean debug = false;
 
   private final UiContext uiContext;
   private EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
@@ -30,10 +31,11 @@ public class BinaryDiffView extends ScrollContent {
   V4f tColor = new V4f();
 
   final V2i cellSize = new V2i();
+  final V2i lineSize = new V2i();
   final V4f texRect = new V4f();
 
-  int numBytesPerLine = 8;
-  int numLines = 1000;
+  int numBytesPerLine = 16;
+  int numLines = 100000;
 
   UiFont uiFont;
   FontDesk fd;
@@ -65,7 +67,7 @@ public class BinaryDiffView extends ScrollContent {
     editBg = theme.editor.bg;
     vLine = theme.editor.numbersVLine;
     textFg = theme.codeElement[0].colorF;
-    uiFont = theme.editorFont.scale(1.5f);
+    uiFont = theme.editorFont.scale(1);
   }
 
   @Override
@@ -83,11 +85,11 @@ public class BinaryDiffView extends ScrollContent {
       System.err.println("BinaryDiffView.layout: dpr == 0");
     int vLine = toPx(vLineDp);
     int vLinePad = toPx(vLinePadDp);
-    int pairPad = toPx(pairPadDp);
-    int digitW = pairPad + cellSize.x;
+    int pairPad = toPx(bytePadDp);
+    int bytesW = (numBytesPerLine - 1) * pairPad + numBytesPerLine * cellSize.x;
     int addressW = cellSize.x * addressDigitPairs;
-    int width = numBytesPerLine * digitW * 2
-        + addressW + pairPad + vLine * 3 + vLinePad;
+    int width = addressW + vLinePad + vLine + vLinePad
+        + bytesW + vLinePad + vLine * 3 + vLinePad + bytesW;
     int height = cellSize.y * numLines;
     setVirtualSize(width, height);
     layoutScroll();
@@ -114,7 +116,7 @@ public class BinaryDiffView extends ScrollContent {
 //        System.out.println("s = " + digit + ", m = " + m + "px");
       }
     }
-    int lineHeight = fd.lineHeight(EditorConst.LINE_HEIGHT_MULTI);
+    int lineHeight = fd.lineHeight(1);
     float baseline = fd.baselineCenterF(lineHeight);
 //    System.out.println("baseline = " + baseline);
 //    System.out.println("wMax = " + wMax);
@@ -149,9 +151,14 @@ public class BinaryDiffView extends ScrollContent {
   public void draw(WglGraphics g) {
     int vLineW = toPx(vLineDp);
     int vLinePad = toPx(vLinePadDp);
-    int pairPad = toPx(pairPadDp);
+    int pairPad = toPx(bytePadDp);
 
-    int fileStart1 = cellSize.x * addressDigitPairs + pairPad * 2 + vLineW;
+    int vLine1 = pos.x + cellSize.x * addressDigitPairs + vLinePad;
+    int bytesX1 = vLine1 + vLineW + vLinePad;
+    int vLine2 = bytesX1 + numBytesPerLine * cellSize.x
+        + numBytesPerLine * pairPad - pairPad + vLinePad;
+    int vLine3 = vLine2 + vLineW * 2;
+    int bytesX2 = vLine3 + vLineW + vLinePad;
 
     // find a better place to do this
     if (scrollView != null) {
@@ -168,13 +175,15 @@ public class BinaryDiffView extends ScrollContent {
     int lastLineT = (vScroll + size.y + cellSize.y - 1) / cellSize.y;
     int lastLine = Math.min(lastLineT, numLines);
 
-    System.out.println("firstLine = " + firstLine);
-    System.out.println("lastLine = " + lastLine);
-
     for (int ln = firstLine; ln < lastLine; ln++) {
       int y = ln * cellSize.y - vScroll + pos.y;
-      drawLine(g, ln, y, fileStart1, pairPad);
+      drawLine(g, ln, y, bytesX2, bytesX1, pairPad);
     }
+
+    lineSize.set(vLineW, size.y);
+    g.drawRect(vLine1, pos.y, lineSize, theme.editor.numbersVLine);
+    g.drawRect(vLine2, pos.y, lineSize, theme.editor.numbersVLine);
+    g.drawRect(vLine3, pos.y, lineSize, theme.editor.numbersVLine);
 
     g.disableScissor();
   }
@@ -185,22 +194,34 @@ public class BinaryDiffView extends ScrollContent {
 
   private void drawLine(
       WglGraphics g, int line, int y,
-      int fileStart1, int pairPad
+      int bytesX1, int bytesX2, int pairPad
   ) {
     int addr = line * numBytesPerLine;
     int baseX = pos.x;
+    int cellW = cellSize.x;
+    Color.Cvt.fromHSV(0.5 + 0.5 * Math.sin(line / 10.), 0.75, 0.5, 0, tColor);
+    V4f bgColor = debug ? tColor: editBg;
     for (int d = 0; d < addressDigitPairs; d++) {
       int addrDigit = (addr >> ((addressDigitPairs - d - 1) * 8)) & 0xFF;
-      drawByte(g, baseX + d * cellSize.x, y, addrDigit, textFg, tColor);
+      drawByte(g, baseX + d * cellW, y, addrDigit, textFg, bgColor);
     }
 
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < numBytesPerLine; i++) {
       double h = remInt(i / 16.f + line / Math.PI / 100);
       Color.Cvt.fromHSV(h, 0.75, 0.5, 0, tColor);
-      int x = baseX + fileStart1 + i * (cellSize.x + pairPad);
-      int b = XorShiftRandom.roll_7_1_9(
-          XorShiftRandom.roll_7_1_9(4793 * line + i * 7879 + 2729));
-      drawByte(g, x, y, b, textFg, tColor);
+      int x = bytesX1 + i * (cellW + pairPad);
+      int b = XorShiftRandom.roll_7_1_9(XorShiftRandom.roll_7_1_9(
+          4793 * line + i * 7879 + 2729));
+      drawByte(g, x, y, b, textFg, bgColor);
+    }
+
+    for (int i = 0; i < numBytesPerLine; i++) {
+      double h = remInt(i / 16.f + line / Math.PI / 100);
+      Color.Cvt.fromHSV(h, 0.75, 0.5, 0, tColor);
+      int x = bytesX2 + i * (cellW + pairPad);
+      int b = XorShiftRandom.roll_7_1_9(XorShiftRandom.roll_7_1_9(
+          4793 * line + (i + numBytesPerLine) * 7879 + 2729));
+      drawByte(g, x, y, b, textFg, bgColor);
     }
   }
 
