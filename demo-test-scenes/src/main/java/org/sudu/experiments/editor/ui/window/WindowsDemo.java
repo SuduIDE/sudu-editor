@@ -76,7 +76,7 @@ public class WindowsDemo extends WindowScene implements DprChangeListener {
     String title = "BinView " + ++n;
     Window window = new Window(uiContext);
     ScrollContent content = new BinaryDiffView(new UiContext(api));
-    window.setContent(newScrollView(content));
+    window.setContent(new ScrollView(content));
     window.setTheme(Themes.darculaColorScheme());
     window.setTitleFont(titleFont, titleMargin);
     window.setTitle(title);
@@ -87,8 +87,8 @@ public class WindowsDemo extends WindowScene implements DprChangeListener {
   }
 
   private void initializeWindows() {
-    addWindow();
-    addNoScrollWindow();
+//    addWindow();
+//    addNoScrollWindow();
     addBinDiff();
   }
 

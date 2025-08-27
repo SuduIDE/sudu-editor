@@ -176,7 +176,6 @@ public class TreeView extends ScrollContent implements Focusable {
   void layout() {
     setVirtualSize(virtualSize.x,
         model.lines.length * clrContext.lineHeight);
-    layoutScroll();
   }
 
   public void clearSelection() {
