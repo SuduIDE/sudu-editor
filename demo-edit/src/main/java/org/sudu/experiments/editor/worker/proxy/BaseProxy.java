@@ -32,7 +32,7 @@ public abstract class BaseProxy {
 
   public void parseFullFile(Object[] a, ArrayList<Object> result) {
     char[] source = ArgsCast.array(a, 0).chars();
-    int version = ArgsCast.array(a, 1).ints()[0];
+    int version = ArgsCast.array(a, 1).ints()[1];
     parseFullFile(source, version, result);
   }
 
@@ -49,7 +49,7 @@ public abstract class BaseProxy {
 
   public void parseFullFileScopes(Object[] a, ArrayList<Object> result) {
     char[] source = ArgsCast.array(a, 0).chars();
-    int version = ArgsCast.array(a, 1).ints()[0];
+    int version = ArgsCast.array(a, 1).ints()[1];
     parseFullFileScopes(source, version, result);
   }
 
