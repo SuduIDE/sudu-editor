@@ -42,14 +42,6 @@ public interface FileHandle extends FsItem {
     onError.accept("not implemented");
   }
 
-  default boolean canCopyTo(FsItem dst) {
-    return false;
-  }
-
-  default void copyTo(FsItem dst, Runnable onComplete, Consumer<String> onError) {
-    onError.accept("not implemented");
-  }
-
   default void remove(Runnable onComplete, Consumer<String> onError) {
     onError.accept("not implemented");
   }
