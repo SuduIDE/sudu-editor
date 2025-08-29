@@ -3,6 +3,7 @@ package org.sudu.experiments;
 import org.sudu.experiments.diff.FileDiff;
 import org.sudu.experiments.diff.FolderDiff;
 import org.sudu.experiments.editor.Editor1;
+import org.sudu.experiments.editor.SelectFileTest;
 import org.sudu.experiments.editor.TextSeparatorDemo;
 import org.sudu.experiments.editor.SinDemo;
 import org.sudu.experiments.editor.ui.window.WindowsDemo;
@@ -41,5 +42,9 @@ public interface TMain {
 
   interface WindowsDemoMain {
     static void main(String[] $) { run(WindowsDemo::new); }
+  }
+
+  interface SelectFileTestMain {
+    static void main(String[] $) { run(SelectFileTest::new); }
   }
 }

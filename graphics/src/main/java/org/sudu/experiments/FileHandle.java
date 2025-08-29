@@ -97,4 +97,14 @@ public interface FileHandle extends FsItem {
   default void stat(BiConsumer<Stats, String> cb) {
     cb.accept(null, "stat not implemented");
   }
+
+  double c2_32 = 65536.f * 0x10000;
+
+  static int hi(double addr) {
+    return (int) (addr / c2_32);
+  }
+
+  static int lo(double addr) {
+    return (int) (addr % c2_32);
+  }
 }

@@ -40,6 +40,7 @@ public class BinaryDiffView extends ScrollContent {
 
   public BinaryDiffView(UiContext uiContext) {
     this.uiContext = uiContext;
+    FileHandleHiLoTest.main(null);
   }
 
   @Override
