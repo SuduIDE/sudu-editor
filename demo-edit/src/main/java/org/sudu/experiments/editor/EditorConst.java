@@ -19,6 +19,7 @@ public interface EditorConst {
   int FIRST_LINES = 250;
   int FILE_SIZE_5_KB = 5 * 1024;
   int FILE_SIZE_10_KB = 10 * 1024;
+  int FILE_SIZE_50_KB = 50 * 1024;
 
   float LINE_HEIGHT_MULTI = 1.25f;
 

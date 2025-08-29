@@ -177,6 +177,10 @@ public interface ArrayOp {
     return Arrays.copyOf(chars, chars.length);
   }
 
+  static int[] copyOf(int[] ints) {
+    return Arrays.copyOf(ints, ints.length);
+  }
+
   static <T> boolean contains(T[] array, T item) {
     return indexOf(array, item) != -1;
   }

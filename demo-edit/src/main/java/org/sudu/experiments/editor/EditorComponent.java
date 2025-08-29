@@ -105,7 +105,7 @@ public class EditorComponent extends View implements
   Consumer<String> onError = System.err::println;
   Runnable hScrollListener;
   IntConsumer vScrollListener;
-  Consumer<EditorComponent> fullFileParseListener;
+  Consumer<EditorComponent> fullFileLexedListener;
   TriConsumer<EditorComponent, Integer, Integer> iterativeParseFileListener;
   TriConsumer<EditorComponent, Diff, Boolean> updateModelOnDiffListener;
   Consumer<EditorComponent> onDiffMadeListener;
@@ -174,8 +174,8 @@ public class EditorComponent extends View implements
     vScrollListener = vListener;
   }
 
-  public void setFullFileParseListener(Consumer<EditorComponent> listener) {
-    fullFileParseListener = listener;
+  public void setFullFileLexedListener(Consumer<EditorComponent> listener) {
+    fullFileLexedListener = listener;
   }
 
   public void setIterativeParseFileListener(TriConsumer<EditorComponent, Integer, Integer> listener) {
@@ -2048,9 +2048,9 @@ public class EditorComponent extends View implements
     return model.selection;
   }
 
-  public void fireFullFileParsed() {
-    if (fullFileParseListener != null) {
-      fullFileParseListener.accept(this);
+  public void fireFileLexed() {
+    if (fullFileLexedListener != null) {
+      fullFileLexedListener.accept(this);
     }
     window().repaint();
   }

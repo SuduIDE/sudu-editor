@@ -15,7 +15,7 @@ class JavaParserTest {
   void parseChars() {
     List<Object> result = new ArrayList<>();
     var proxy = new JavaProxy();
-    proxy.parseFullFile(new char[0], result);
+    proxy.parseFullFile(new char[0], 0, result);
 
     for (Object o : result) {
       assertTrue(o.getClass().isArray());

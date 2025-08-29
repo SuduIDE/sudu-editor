@@ -17,13 +17,13 @@ public class ActivityProxy extends BaseProxy {
   }
 
   @Override
-  public void parseFullFile(char[] source, List<Object> result) {
+  public void parseFullFile(char[] source, int version, List<Object> result) {
     var p = new ActivityFullParser();
 
     int[] res = p.parseActivity(source);
     result.add(res);
     result.add(source);
-    result.add(new int[]{FileProxy.ACTIVITY_FILE});
+    result.add(new int[]{languageType, version});
   }
 
   @Override

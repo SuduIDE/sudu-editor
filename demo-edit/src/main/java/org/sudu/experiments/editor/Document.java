@@ -181,15 +181,18 @@ public class Document extends CodeLines {
 
   private Diff copyLines(int fromLine, CodeLine[] newLines) {
     if (newLines.length == 0) return null;
+    boolean insertFromStart = fromLine == 0;
+
     StringBuilder sb = new StringBuilder();
+    if (!insertFromStart) sb.append(newLine);
     for (int i = 0; i < newLines.length - 1; i++)
-      sb.append(newLines[i].makeString())
-          .append("\n");
+      sb.append(newLines[i].makeString()).append("\n");
     sb.append(newLines[newLines.length - 1].makeString());
-    if (fromLine != length()) sb.append("\n");
 
     String inserted = sb.toString();
-    Diff insertDiff = new Diff(fromLine, 0, false, inserted);
+    int insertLine = !insertFromStart ? fromLine - 1 : fromLine;
+    int insertPos = !insertFromStart ? line(fromLine - 1).totalStrLength : 0;
+    Diff insertDiff = new Diff(insertLine, insertPos, false, inserted);
     makeDiffOp(insertDiff);
 
     CodeLine[] newDocument = new CodeLine[document.length + newLines.length];
@@ -221,12 +224,16 @@ public class Document extends CodeLines {
 
   public Diff deleteLines(int fromLine, int toLine) {
     if (fromLine >= toLine) return null;
+    boolean deleteFromStart = fromLine == 0;
+    boolean deleteToEnd = toLine == length();
+
     StringBuilder deletedSB = new StringBuilder();
-    if (fromLine != 0) deletedSB.append(newLine);
+    if (!deleteFromStart) deletedSB.append(newLine);
     deletedSB.append(new String(getChars(fromLine, toLine)));
-    if (toLine != length() && fromLine != 0) deletedSB.deleteCharAt(deletedSB.length() - 1);
-    int deleteLine = fromLine != 0 ? fromLine - 1 : fromLine;
-    int deletePos = fromLine != 0 ? line(fromLine - 1).totalStrLength : 0;
+    if (!deleteFromStart && !deleteToEnd) deletedSB.deleteCharAt(deletedSB.length() - 1);
+
+    int deleteLine = !deleteFromStart ? fromLine - 1 : fromLine;
+    int deletePos = !deleteFromStart ? line(fromLine - 1).totalStrLength : 0;
     Diff diff = new Diff(deleteLine, deletePos, true, deletedSB.toString());
     deleteLinesOp(fromLine, toLine);
     makeDiffOp(diff);
