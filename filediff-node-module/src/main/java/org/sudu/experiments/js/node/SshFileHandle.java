@@ -1,5 +1,6 @@
 package org.sudu.experiments.js.node;
 
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.encoding.GbkEncodingJs;
@@ -23,7 +24,6 @@ public class SshFileHandle extends NodeFileHandle0 {
   static final boolean debugOpenClose = false;
   static final boolean debugHandle = false;
   static final boolean debugReadWrite = false;
-  static final String errorTooLarge = "file is too large";
 
   SshHash credentials;
   JsSftpClient.Attrs attrs;
@@ -119,7 +119,7 @@ public class SshFileHandle extends NodeFileHandle0 {
   @Override
   public void readAsBytes(
       Consumer<byte[]> consumer, Consumer<String> onError,
-      int begin, int length
+      double begin, int length
   ) {
     SshPool.sftp(credentials, sftp -> {
       sftp.open(jsPath(), OPEN_MODE.read(), (e, newHandle) -> {
@@ -135,15 +135,16 @@ public class SshFileHandle extends NodeFileHandle0 {
                   jsPath(), ", stats =", stats);
               if (JSObjects.isUndefined(e)) {
                 this.attrs = stats;
-                doRead(sftp, consumer, onError, begin, attrs.getSize());
+                doRead(sftp, consumer, onError, begin,
+                    FileHandle.limit1gb(attrs.getSize()));
               } else {
                 onError.accept(e.getMessage());
                 doClose(sftp, null);
               }
             });
           } else {
-            double toRead = length > 0 ? length : attrs.getSize();
-            doRead(sftp, consumer, onError, begin, toRead);
+            int rl = FileHandle.limitTail(attrs.getSize(), begin, length);
+            doRead(sftp, consumer, onError, begin, rl);
           }
         } else {
           JsHelper.consoleInfo2(
@@ -154,22 +155,17 @@ public class SshFileHandle extends NodeFileHandle0 {
     }, JsHelper.wrapError("sftp error ", onError));
   }
 
-  void doRead(
+  private void doRead(
       JsSftpClient sftp,
       Consumer<byte[]> consumer, Consumer<String> onError,
-      int begin, double length
+      double begin, int length
   ) {
     if (debugReadWrite) JsHelper.consoleInfo2(
         "reading ", JSNumber.valueOf(length),
          "bytes at " + begin + ", path", jsPath());
-    int iLength = (int) length;
-    if (iLength != length) {
-      onError.accept(errorTooLarge);
-      return;
-    }
-    byte[] data = new byte[iLength];
+    byte[] data = new byte[length];
     if (length == 0) consumer.accept(data);
-    else sftp.read(handle, JsBuffer.from(data), 0, iLength, begin,
+    else sftp.read(handle, JsBuffer.from(data), 0, length, begin,
         (e, bytesRead, buffer, position) -> {
           if (JSObjects.isUndefined(e)) {
             if (debugReadWrite) JsHelper.consoleInfo2(
@@ -237,7 +233,7 @@ public class SshFileHandle extends NodeFileHandle0 {
             handle = newHandle;
             if (debugOpenClose) JsHelper.consoleInfo2(
                 "sftp.open(" + Integer.toHexString(flags) +
-                    ", pos " + position +
+                    ", pos ", JSNumber.valueOf(position),
                     ") completed, path=", jsPath());
             if (debugHandle) JsHelper.consoleInfo2(
                 "  handle =", debugHandle());

@@ -64,7 +64,7 @@ public interface JsSftpClient extends JSObject {
   void read(
       JSObject handle,
       JsBuffer buffer, int offset,
-      int length, int position, ReadResult cb);
+      int length, double position, ReadResult cb);
 
   // Writes length bytes from buffer starting at offset to the resource
   // associated with handle starting at position.

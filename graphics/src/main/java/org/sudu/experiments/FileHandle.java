@@ -42,14 +42,6 @@ public interface FileHandle extends FsItem {
     onError.accept("not implemented");
   }
 
-  default boolean canCopyTo(FsItem dst) {
-    return false;
-  }
-
-  default void copyTo(FsItem dst, Runnable onComplete, Consumer<String> onError) {
-    onError.accept("not implemented");
-  }
-
   default void remove(Runnable onComplete, Consumer<String> onError) {
     onError.accept("not implemented");
   }
@@ -58,8 +50,20 @@ public interface FileHandle extends FsItem {
     readAsBytes(consumer, onError, 0, -1);
   }
 
+  int _1gb = 1 << 30;
+
+  static int limit1gb(double fileSize) {
+    return fileSize < _1gb ? (int) fileSize : _1gb;
+  }
+
+  // read all the file (length<0) or length or tail
+  static int limitTail(double fileSize, double begin, int length) {
+    return length < 0 ? limit1gb(fileSize) :
+        Math.min(length, limit1gb(fileSize - begin));
+  }
+
   void readAsBytes(Consumer<byte[]> consumer, Consumer<String> onError,
-      int begin, int length);
+                   double begin, int length);
 
   static void readTextFile(
       FileHandle fileHandle,
@@ -96,5 +100,13 @@ public interface FileHandle extends FsItem {
   // this method also works when path points to a directory
   default void stat(BiConsumer<Stats, String> cb) {
     cb.accept(null, "stat not implemented");
+  }
+
+  static int hiGb(double addr) {
+    return (int) (addr / _1gb);
+  }
+
+  static int loGb(double addr) {
+    return (int) (addr % _1gb);
   }
 }

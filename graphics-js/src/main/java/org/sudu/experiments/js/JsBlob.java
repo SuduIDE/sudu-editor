@@ -6,7 +6,8 @@ import org.teavm.jso.typedarrays.ArrayBuffer;
 
 public interface JsBlob extends JSObject {
   JsBlob slice(int start);
-  JsBlob slice(int start, int end);
+  JsBlob slice(double start);
+  JsBlob slice(double start, double end);
   Promise<JSString> text();
   Promise<ArrayBuffer> arrayBuffer();
 }

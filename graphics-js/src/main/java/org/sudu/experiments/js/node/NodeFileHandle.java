@@ -1,6 +1,6 @@
 package org.sudu.experiments.js.node;
 
-import org.sudu.experiments.FsItem;
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.JsHelper;
@@ -63,17 +63,15 @@ public class NodeFileHandle extends NodeFileHandle0 {
   @Override
   public void readAsBytes(
       Consumer<byte[]> consumer, Consumer<String> onError,
-      int begin, int length
+      double begin, int length
   ) {
     try {
       double jsSize = (length < 0 ? actualStats() : statsCache()).size();
-      int fileSize = (int) jsSize;
-
-      if (begin <= fileSize) {
-        if (length < 0) length = fileSize;
-        else length = Math.min(length, fileSize - begin);
-        if (length > 0) {
-          doRead(consumer, onError, begin, length);
+      if (begin <= jsSize) {
+        // read all the file (l<0) or length or tail
+        int l = FileHandle.limitTail(jsSize, begin, length);
+        if (l > 0) {
+          doRead(consumer, onError, begin, l);
         } else {
           consumer.accept(new byte[0]);
         }
@@ -85,12 +83,16 @@ public class NodeFileHandle extends NodeFileHandle0 {
     }
   }
 
-  private void doRead(Consumer<byte[]> consumer, Consumer<String> onError, int begin, int length) {
+  private void doRead(
+      Consumer<byte[]> consumer, Consumer<String> onError,
+      double begin, int length
+  ) {
     Fs fs = Fs.fs();
     try {
       int h = openSyncRead(fs);
       byte[] bytes = new byte[length];
-      int numRead = fs.readSync(h, JsMemoryAccess.uInt8View(bytes), 0, length, begin);
+      int numRead = fs.readSync(h,
+          JsMemoryAccess.uInt8View(bytes), 0, length, begin);
       fs.closeSync(h);
       if (numRead != bytes.length) {
         JsHelper.consoleError("read file error, numRead != bytes.length: ", jsPath());
@@ -164,63 +166,6 @@ public class NodeFileHandle extends NodeFileHandle0 {
       return gbk ? jsStringToGbk(jsText.cast()) : jsText;
 
     return null;
-  }
-
-  @Override
-  public boolean canCopyTo(FsItem dst) {
-    return dst instanceof NodeDirectoryHandle
-        || dst instanceof NodeFileHandle;
-  }
-
-  @Override
-  public void copyTo(
-      FsItem dest,
-      Runnable onComplete, Consumer<String> onError
-  ) {
-    JSString from = jsPath(), to, toParent;
-
-    if (dest instanceof NodeFileHandle file) {
-      to = file.jsPath();
-      toParent = Fs.pathDirname(to);
-    } else if (dest instanceof NodeDirectoryHandle dir) {
-      toParent = dir.jsPath();
-      to = Fs.concatPath(toParent, dir.sep, JSString.valueOf(name));
-    } else {
-       throw new IllegalArgumentException("copyTo: bad dest: " + dest);
-    }
-
-    doCopy(onComplete, onError, from, to, toParent);
-  }
-
-  static void doCopy(
-      Runnable onComplete, Consumer<String> onError,
-      JSString from, JSString to, JSString toParent
-  ) {
-    Fs fs = Fs.fs();
-
-    if (!fs.existsSync(toParent)) {
-      fs.mkdirSync(toParent, Fs.mkdirOptions(true));
-    }
-
-    if (true) JsHelper.consoleInfo(
-        JsHelper.concat(
-            JsHelper.concat("file copy: ", from),
-            JsHelper.concat(" -> ", to)));
-
-    if (fs.existsSync(to)) {
-      try {
-        fs.unlinkSync(to);
-      } catch (Exception e) {
-        onError.accept(e.getMessage());
-      }
-    }
-    try {
-      Fs.fs().copyFileSync(from, to, 0);
-      onComplete.run();
-    } catch (Exception e) {
-      String message = e.getMessage();
-      onError.accept(message);
-    }
   }
 
   @Override

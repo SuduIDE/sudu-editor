@@ -384,35 +384,29 @@ public class DiffTestApi implements JsDiffTestApi {
         onComplete.f();
     };
 
-    if (false) {
-      box[0] = 2;
-      fhFrom.copyTo(fhToDir, onCompleteJ, onError);
-      fhFrom.copyTo(fhToFile, onCompleteJ, onError);
-    } else {
-      box[0] = 2;
+    box[0] = 2;
 
-      IntConsumer onCopy = size -> {
-        System.out.println(
-            "testCopyFileToFolder: " + size + " bytes copied, from " + fhFrom);
-        onCompleteJ.run();
-      };
-
+    IntConsumer onCopy = size -> {
       System.out.println(
-          "testCopyFileToFolder: call " + FsWorkerJobs.asyncCopyFile + "("
-              + fhFrom + "," + fhToFile + ")");
+          "testCopyFileToFolder: " + size + " bytes copied, from " + fhFrom);
+      onCompleteJ.run();
+    };
 
-      FsWorkerJobs.copyFile(
-          pool, fhFrom, fhToFile,
-          onCopy, onError);
+    System.out.println(
+        "testCopyFileToFolder: call " + FsWorkerJobs.asyncCopyFile + "("
+            + fhFrom + "," + fhToFile + ")");
 
-      System.out.println(
-          "testCopyFileToFolder: call " + FsWorkerJobs.asyncCopyFile + "("
-              + fhFrom + "," + fhToDir + ")");
+    FsWorkerJobs.copyFile(
+        pool, fhFrom, fhToFile,
+        onCopy, onError);
 
-      FsWorkerJobs.copyFile(
-          pool, fhFrom, fhToDir,
-          onCopy, onError);
-    }
+    System.out.println(
+        "testCopyFileToFolder: call " + FsWorkerJobs.asyncCopyFile + "("
+            + fhFrom + "," + fhToDir + ")");
+
+    FsWorkerJobs.copyFile(
+        pool, fhFrom, fhToDir,
+        onCopy, onError);
   }
 
   public void testFileAppend(
