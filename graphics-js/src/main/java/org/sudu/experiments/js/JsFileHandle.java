@@ -88,7 +88,7 @@ public class JsFileHandle implements FileHandle {
   @Override
   public void readAsBytes(
       Consumer<byte[]> consumer, Consumer<String> onError,
-      int begin, int length
+      double begin, int length
   ) {
     JsFunctions.Consumer<JSError> onJsError = JsHelper.wrapError(onError);
     JsFunctions.Consumer<ArrayBuffer> onBuffer = JsHelper.toJava(consumer);
@@ -103,7 +103,7 @@ public class JsFileHandle implements FileHandle {
   }
 
   private void readBlob(
-      int begin, int length,
+      double begin, int length,
       JsFunctions.Consumer<ArrayBuffer> onBuffer,
       JsFunctions.Consumer<JSError> onJsError, JsFile file
   ) {

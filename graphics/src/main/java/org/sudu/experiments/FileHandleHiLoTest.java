@@ -8,8 +8,8 @@ public class FileHandleHiLoTest {
 
     double dAddr = hi * FileHandle.c2_32 + lo;
 
-    int hi2 = FileHandle.hi(dAddr);
-    int lo2 = FileHandle.lo(dAddr);
+    int hi2 = FileHandle.hiGb(dAddr);
+    int lo2 = FileHandle.loGb(dAddr);
 
     System.out.println("hi2 = " + (hi == hi2));
     System.out.println("lo2 = " + (lo == lo2));

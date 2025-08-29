@@ -50,8 +50,20 @@ public interface FileHandle extends FsItem {
     readAsBytes(consumer, onError, 0, -1);
   }
 
+  int _1gb = 1 << 30;
+
+  static int limit1gb(double fileSize) {
+    return fileSize < _1gb ? (int) fileSize : _1gb;
+  }
+
+  // read all the file (length<0) or length or tail
+  static int limitTail(double fileSize, double begin, int length) {
+    return length < 0 ? limit1gb(fileSize) :
+        Math.min(length, limit1gb(fileSize - begin));
+  }
+
   void readAsBytes(Consumer<byte[]> consumer, Consumer<String> onError,
-      int begin, int length);
+                   double begin, int length);
 
   static void readTextFile(
       FileHandle fileHandle,
@@ -90,13 +102,11 @@ public interface FileHandle extends FsItem {
     cb.accept(null, "stat not implemented");
   }
 
-  double c2_32 = 65536.f * 0x10000;
-
-  static int hi(double addr) {
-    return (int) (addr / c2_32);
+  static int hiGb(double addr) {
+    return (int) (addr / _1gb);
   }
 
-  static int lo(double addr) {
-    return (int) (addr % c2_32);
+  static int loGb(double addr) {
+    return (int) (addr % _1gb);
   }
 }

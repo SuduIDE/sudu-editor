@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 
 class FileCompareAsync {
 
-  static final int maxToRead = 128 * 1024 * 1024;
+  static final int maxToRead = 1024 * 1024 * 1024;
   static final int maxArraySize = 16 * 1024 * 1024;
   static final int minArraySize = 64 * 1024;
 

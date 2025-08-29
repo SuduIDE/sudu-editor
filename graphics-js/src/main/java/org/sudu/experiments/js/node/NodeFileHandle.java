@@ -1,5 +1,6 @@
 package org.sudu.experiments.js.node;
 
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.JsHelper;
@@ -62,17 +63,15 @@ public class NodeFileHandle extends NodeFileHandle0 {
   @Override
   public void readAsBytes(
       Consumer<byte[]> consumer, Consumer<String> onError,
-      int begin, int length
+      double begin, int length
   ) {
     try {
       double jsSize = (length < 0 ? actualStats() : statsCache()).size();
-      int fileSize = (int) jsSize;
-
-      if (begin <= fileSize) {
-        if (length < 0) length = fileSize;
-        else length = Math.min(length, fileSize - begin);
-        if (length > 0) {
-          doRead(consumer, onError, begin, length);
+      if (begin <= jsSize) {
+        // read all the file (l<0) or length or tail
+        int l = FileHandle.limitTail(jsSize, begin, length);
+        if (l > 0) {
+          doRead(consumer, onError, begin, l);
         } else {
           consumer.accept(new byte[0]);
         }
@@ -84,12 +83,16 @@ public class NodeFileHandle extends NodeFileHandle0 {
     }
   }
 
-  private void doRead(Consumer<byte[]> consumer, Consumer<String> onError, int begin, int length) {
+  private void doRead(
+      Consumer<byte[]> consumer, Consumer<String> onError,
+      double begin, int length
+  ) {
     Fs fs = Fs.fs();
     try {
       int h = openSyncRead(fs);
       byte[] bytes = new byte[length];
-      int numRead = fs.readSync(h, JsMemoryAccess.uInt8View(bytes), 0, length, begin);
+      int numRead = fs.readSync(h,
+          JsMemoryAccess.uInt8View(bytes), 0, length, begin);
       fs.closeSync(h);
       if (numRead != bytes.length) {
         JsHelper.consoleError("read file error, numRead != bytes.length: ", jsPath());

@@ -12,13 +12,11 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
-import java.util.function.Function;
 
 // JvmFileHandle reads synchronously on worker threads
 // use SyncAccess for many small reads
 public class JvmFileHandle extends JvmFsHandle implements FileHandle {
 
-  static final Function<byte[], byte[]> identity = b -> b;
   static final Set<OpenOption> none = Collections.emptySet();
   static final FileAttribute[] noAttributes = new FileAttribute[0];
 
@@ -41,42 +39,43 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
   }
 
   @Override
-  public void readAsBytes(Consumer<byte[]> consumer, Consumer<String> onError, int begin, int length) {
-    read(consumer, onError, identity, begin, length);
+  public void readAsBytes(
+      Consumer<byte[]> consumer, Consumer<String> onError,
+      double begin, int length
+  ) {
+    read(consumer, onError, (long) begin, length);
   }
 
-  <T> void read(
-      Consumer<T> consumer,
+  void read(
+      Consumer<byte[]> consumer,
       Consumer<String> onError,
-      Function<byte[], T> transform,
-      int begin, int length
+      long begin, int length
   ) {
     if (isOnWorker()) {
-      read0(consumer, onError, transform, begin, length);
+      read0(consumer, onError, begin, length);
     } else {
       bgWorkerHi.execute(
-          () -> read0(consumer, onError, transform, begin, length));
+          () -> read0(consumer, onError, begin, length));
     }
   }
 
-  <T> void read0(
-      Consumer<T> consumer,
+  void read0(
+      Consumer<byte[]> consumer,
       Consumer<String> onError,
-      Function<byte[], T> transform,
-      int position, int length
+      long position, int length
   ) {
     try (SeekableByteChannel ch = openByteChannel()) {
       if (position != 0)
         ch.position(position);
       int avl = intSize(ch.size() - position);
       int readL = length < 0 ? avl : Math.min(length, avl);
-      T apply = avl <= 0
-          ? transform.apply(new byte[0])
-          : readChannel(transform, readL, ch);
+      var data = avl <= 0
+          ? new byte[0]
+          : readChannel(readL, ch);
       if (isOnWorker()) {
-        consumer.accept(apply);
+        consumer.accept(data);
       } else {
-        edt.execute(() -> consumer.accept(apply));
+        edt.execute(() -> consumer.accept(data));
       }
     } catch (IOException e) {
       String message = e.getMessage();
@@ -92,12 +91,11 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
     return Files.newByteChannel(path, none, noAttributes);
   }
 
-  static <T> T readChannel(
-      Function<byte[], T> transform, int length, SeekableByteChannel ch
+  static byte[] readChannel(int length, SeekableByteChannel ch
   ) throws IOException {
     byte[] data = new byte[length];
     ch.read(ByteBuffer.wrap(data));
-    return transform.apply(data);
+    return data;
   }
 
   private int intSize(long size) throws IOException {
