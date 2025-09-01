@@ -216,7 +216,7 @@ public class SshFileHandle extends NodeFileHandle0 {
 
   @Override
   public void writeAppend(
-      int filePosition, byte[] data,
+      double filePosition, byte[] data,
       Runnable onComplete, Consumer<String> onError
   ) {
     write0(onComplete, onError, data, OPEN_MODE.append(), filePosition);
@@ -224,7 +224,7 @@ public class SshFileHandle extends NodeFileHandle0 {
 
   void write0(
       Runnable onComplete, Consumer<String> onError,
-      byte[] data, int flags, int position
+      byte[] data, int flags, double position
   ) {
     var we = JsHelper.wrapError("sftp error ", onError);
     SshPool.sftp(credentials, sftp -> sftp.open(

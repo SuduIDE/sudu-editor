@@ -6,13 +6,16 @@ public class FileHandleHiLoTest {
     int hi = 54321;
     int lo = 12345678;
 
-    double dAddr = hi * FileHandle.c2_32 + lo;
+    double dAddr = hi * (double)FileHandle._1gb + lo;
 
     int hi2 = FileHandle.hiGb(dAddr);
     int lo2 = FileHandle.loGb(dAddr);
 
-    System.out.println("hi2 = " + (hi == hi2));
-    System.out.println("lo2 = " + (lo == lo2));
+    if ((hi != hi2)) throw new  RuntimeException("(hi != hi2)");
+    if ((lo != lo2)) throw new  RuntimeException("(lo != lo2)");
+
+    double dAddr2 = FileHandle.int2Address(lo2, hi2);
+    if ((dAddr != dAddr2)) throw new  RuntimeException("(dAddr != dAddr2)");
 
     System.out.println("pi in hex = " + Double.toHexString(Math.PI));
 

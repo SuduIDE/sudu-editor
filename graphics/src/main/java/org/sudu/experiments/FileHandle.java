@@ -36,7 +36,7 @@ public interface FileHandle extends FsItem {
   }
 
   default void writeAppend(
-      int filePosition, byte[] data,
+      double filePosition, byte[] data,
       Runnable onComplete, Consumer<String> onError
   ) {
     onError.accept("not implemented");
@@ -108,5 +108,9 @@ public interface FileHandle extends FsItem {
 
   static int loGb(double addr) {
     return (int) (addr % _1gb);
+  }
+
+  static double int2Address(int loGb, int hiGb) {
+    return ((double) _1gb) * hiGb + loGb;
   }
 }

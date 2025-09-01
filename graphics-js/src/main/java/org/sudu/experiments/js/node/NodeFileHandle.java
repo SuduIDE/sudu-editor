@@ -131,7 +131,7 @@ public class NodeFileHandle extends NodeFileHandle0 {
   }
 
   @Override
-  public void writeAppend(int filePosition, byte[] data, Runnable onComplete, Consumer<String> onError) {
+  public void writeAppend(double filePosition, byte[] data, Runnable onComplete, Consumer<String> onError) {
     Fs fs = Fs.fs();
     try {
       var s = actualStats();

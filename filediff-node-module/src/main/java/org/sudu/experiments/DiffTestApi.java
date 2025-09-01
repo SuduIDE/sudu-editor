@@ -16,7 +16,7 @@ import org.teavm.jso.core.JSString;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
+import java.util.function.DoubleConsumer;
 
 import static org.sudu.experiments.editor.worker.ArgsCast.array;
 
@@ -386,7 +386,7 @@ public class DiffTestApi implements JsDiffTestApi {
 
     box[0] = 2;
 
-    IntConsumer onCopy = size -> {
+    DoubleConsumer onCopy = size -> {
       System.out.println(
           "testCopyFileToFolder: " + size + " bytes copied, from " + fhFrom);
       onCompleteJ.run();

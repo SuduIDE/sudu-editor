@@ -12,7 +12,7 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
+import java.util.function.DoubleConsumer;
 
 public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
@@ -283,7 +283,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
       setItem(!left, toFile);
     } else return;
 
-    IntConsumer onFileCopied = (bytes) -> {
+    DoubleConsumer onFileCopied = (bytes) -> {
       insertItem();
       status.onCopied();
     };

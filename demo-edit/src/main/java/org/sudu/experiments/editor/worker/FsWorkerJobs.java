@@ -9,7 +9,7 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
+import java.util.function.DoubleConsumer;
 
 public interface FsWorkerJobs {
   String asyncCopyFile = "asyncCopyFile";
@@ -17,22 +17,24 @@ public interface FsWorkerJobs {
 
   static void copyFile(
       WorkerJobExecutor workers, FileHandle src, FsItem dst,
-      IntConsumer onComplete, Consumer<String> onError
+      DoubleConsumer onComplete, Consumer<String> onError
   ) {
     Consumer<Object[]> onCopy = r -> {
       if (r[0] instanceof String message) {
         onError.accept(message);
       } else {
         int[] data = ArgsCast.intArray(r, 0);
-        onComplete.accept(data[0]);
+        onComplete.accept(FileHandle.int2Address(data[0], data[1]));
       }
     };
     workers.sendToWorker(onCopy,
         FsWorkerJobs.asyncCopyFile, src, dst);
   }
 
-  static void postCopyOk(int bytesWritten, Consumer<Object[]> r) {
-    r.accept(new Object[]{new int[]{ bytesWritten }});
+  static void postCopyOk(double bytesWritten, Consumer<Object[]> r) {
+    r.accept(new Object[]{new int[]{
+        FileHandle.loGb(bytesWritten), FileHandle.hiGb(bytesWritten)
+    }});
   }
 
   static void postCopyError(String error, Consumer<Object[]> r) {
@@ -63,7 +65,7 @@ public interface FsWorkerJobs {
 
     // write queue
     byte[] nextData;
-    int    nextPos;
+    double nextPos;
 
     boolean writing, complete;
 
@@ -81,7 +83,7 @@ public interface FsWorkerJobs {
       postCopyError(error, r);
     }
 
-    void postComplete(int bytesWritten) {
+    void postComplete(double bytesWritten) {
       if (debug) System.out.println(
           " -> postComplete: bytesWritten = " + bytesWritten);
       postCopyOk(bytesWritten, r);
@@ -91,12 +93,12 @@ public interface FsWorkerJobs {
       return "CopyFile(" + src.getName() + "->" + dst.getName() + ").";
     }
 
-    void read(int pos) {
+    void read(double pos) {
       if (debug) System.out.println(hdr() + "Read at " + pos);
       src.readAsBytes(data -> onRead(data, pos), onError, pos, blockSize);
     }
 
-    void onRead(byte[] data, int pos) {
+    void onRead(byte[] data, double pos) {
       if (debug) System.out.println(
           hdr() + "onRead: data.l = " + data.length + ", pos = " + pos);
       if (writing) {
@@ -117,7 +119,7 @@ public interface FsWorkerJobs {
       }
     }
 
-    void onWriteComplete(int bytesWritten) {
+    void onWriteComplete(double bytesWritten) {
       writing = false;
       if (debug) {
         var lStr = nextData != null
@@ -140,7 +142,7 @@ public interface FsWorkerJobs {
       }
     }
 
-    void writeAndFetch(byte[] data, int pos) {
+    void writeAndFetch(byte[] data, double pos) {
       if (debug) System.out.println(
           hdr() + "writeAndFetch: data.l = " + data.length
               + ", pos = " + pos);
@@ -151,7 +153,7 @@ public interface FsWorkerJobs {
       }
 
       writing = true;
-      int bytesWritten = pos + data.length;
+      double bytesWritten = pos + data.length;
       Runnable onComplete = () -> onWriteComplete(bytesWritten);
       if (data.length < blockSize) {
         complete = true;
