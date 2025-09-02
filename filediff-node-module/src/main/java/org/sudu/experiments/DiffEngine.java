@@ -17,7 +17,7 @@ import org.teavm.jso.core.JSString;
 import java.util.function.Consumer;
 
 public class DiffEngine implements DiffEngineJs {
-  public static final boolean debug = false;
+  public static final boolean debug = true;
 
   final NodeWorkersPool pool;
 

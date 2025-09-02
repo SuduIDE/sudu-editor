@@ -157,7 +157,10 @@ function onComplete(title) {
 
 function onError(title) {
   return (error) => {
-    console.log(title + ".onError: ", error.message);
+    if (error.message)
+      console.log(title + ".onError: ", error.message);
+    else
+      console.log(title + ".onError: ", error);
     mayBeExit();
   };
 }
