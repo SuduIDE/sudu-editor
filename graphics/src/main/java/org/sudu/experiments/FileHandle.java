@@ -3,6 +3,7 @@ package org.sudu.experiments;
 import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.TextDecoder;
 
+import java.io.IOException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
@@ -11,7 +12,8 @@ public interface FileHandle extends FsItem {
   interface SyncAccess {
     boolean close();
     double getSize();
-    double read(byte[] buf, double filePos);
+    int read(byte[] buf, double filePos) throws IOException;
+    int write(byte[] buf, double filePos) throws IOException;
   }
 
   // web does not provide sync access to host fs ;/

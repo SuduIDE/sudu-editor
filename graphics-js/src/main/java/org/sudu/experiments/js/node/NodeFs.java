@@ -83,13 +83,13 @@ public interface NodeFs extends JSObject {
   int openSync(JSString name, int mode);
 
   int readSync(
-      int handle,
-      ArrayBufferView buffer, int bufferOffset,
+      int handle, ArrayBufferView buffer, int bufferOffset,
       int bytesToRead, double position);
 
+  // https://nodejs.org/api/fs.html#fswritesyncfd-buffer-offset-length-position
   int writeSync(
-      int handle, ArrayBufferView buffer,
-      int bufferOffset, int bytesToWrite, double position
+      int handle, ArrayBufferView buffer, int bufferOffset,
+      int bytesToWrite, double position
   );
 
   int closeSync(int handle);

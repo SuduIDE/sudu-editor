@@ -4,6 +4,8 @@ import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.js.JsMemoryAccess;
 import org.teavm.jso.core.JSString;
 
+import java.io.IOException;
+
 public class NodeSyncAccess implements FileHandle.SyncAccess {
 
   int handle;
@@ -27,9 +29,24 @@ public class NodeSyncAccess implements FileHandle.SyncAccess {
   }
 
   @Override
-  public double read(byte[] buf, double filePos) {
-    return Fs.fs().readSync(handle,
-        JsMemoryAccess.uInt8View(buf),
-        0, buf.length, filePos);
+  public int read(byte[] buf, double filePos) throws IOException {
+    try {
+      return Fs.fs().readSync(handle,
+          JsMemoryAccess.uInt8View(buf),
+          0, buf.length, filePos);
+    } catch (Throwable e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public int write(byte[] buf, double filePos) throws IOException {
+    try {
+      return Fs.fs().writeSync(handle,
+          JsMemoryAccess.uInt8View(buf),
+          0, buf.length, filePos);
+    } catch (Throwable e) {
+      throw new IOException(e);
+    }
   }
 }

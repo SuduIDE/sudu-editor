@@ -2,6 +2,7 @@ package org.sudu.experiments.editor.worker;
 
 import org.sudu.experiments.FileHandle;
 
+import java.io.IOException;
 import java.util.function.Consumer;
 
 class CopyFile {
@@ -10,6 +11,7 @@ class CopyFile {
 
   final Consumer<Object[]> r;
   final FileHandle src, dst;
+  FileHandle.SyncAccess srcAccess, dstAccess;
   final Consumer<String> onError = this::onError;
 
   // write queue
@@ -26,7 +28,65 @@ class CopyFile {
     this.r = r;
     this.src = src;
     this.dst = dst;
-    read(0);
+    if (src.hasSyncAccess() && dst.hasSyncAccess()) {
+      syncCopy();
+    } else {
+      read(0);
+    }
+  }
+
+  private void syncCopy() {
+    src.syncAccess(this::setSrcAccess, onError);
+    dst.syncAccess(this::setDstAccess, onError);
+  }
+
+  private void setDstAccess(FileHandle.SyncAccess da) {
+    dstAccess = da;
+    if (srcAccess != null) copyFileSync();
+  }
+
+  private void setSrcAccess(FileHandle.SyncAccess sa) {
+    srcAccess = sa;
+    if (dstAccess != null) copyFileSync();
+  }
+
+  private void copyFileSync() {
+    double size = srcAccess.getSize(), pos = 0;
+    int limited = size < 1024 * 1024 ? (int) size : 1024 * 1024;
+    nextData = new byte[limited];
+    for (; pos < size; ) {
+      try {
+        double read = srcAccess.read(nextData, pos);
+        if (read > 0) {
+          double write = dstAccess.write(nextData, pos);
+          if (write != read) {
+            close();
+            onError("file '" + dst.getFullPath() +
+                "': write failed to write " + ((int)write) + " bytes");
+            break;
+          } else  {
+            pos += read;
+          }
+        } else {
+          close();
+          onError("file '" + src.getFullPath() +
+              "': read failed at position" + pos);
+          break;
+        }
+      } catch (IOException e) {
+        close();
+        onError(e.getMessage());
+        break;
+      }
+    }
+    if (pos == size)
+      postComplete(size);
+  }
+
+  private void close() {
+    srcAccess.close();
+    dstAccess.close();
+    // todo: do we need to delete the dst file ?
   }
 
   void onError(String error) {

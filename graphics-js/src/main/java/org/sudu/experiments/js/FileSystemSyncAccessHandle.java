@@ -9,16 +9,16 @@ public interface FileSystemSyncAccessHandle extends JSObject {
   void flush();
   double getSize();
 
-  double read(ArrayBufferView buffer);
-  double read(ArrayBufferView buffer, JSObject options);
+  int read(ArrayBufferView buffer);
+  int read(ArrayBufferView buffer, JSObject options);
 
   void truncate(double newSize);
 
-  double write(ArrayBufferView buffer);
-  double write(ArrayBufferView buffer, JSObject options);
+  int write(ArrayBufferView buffer);
+  int write(ArrayBufferView buffer, JSObject options);
 
   class Js {
     @JSBody(params = "pos", script = "return { at: pos };")
-    public static native  JSObject options(double pos);
+    public static native JSObject options(double pos);
   }
 }
