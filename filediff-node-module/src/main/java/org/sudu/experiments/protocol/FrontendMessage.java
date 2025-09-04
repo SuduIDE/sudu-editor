@@ -23,6 +23,14 @@ public class FrontendMessage {
 
   public static final FrontendMessage EMPTY = empty();
 
+  public FrontendMessage() {
+  }
+
+  public FrontendMessage(FrontendTreeNode openedFolders, String searchQuery) {
+    this.openedFolders = openedFolders;
+    this.searchQuery = searchQuery;
+  }
+
   public FrontendTreeNode findNode(int[] path) {
     return openedFolders.findNode(path);
   }

@@ -58,6 +58,7 @@ public class RemoteCollector {
   private boolean isRootReplaced = false;
 
   private FrontendMessage lastFrontendMessage = FrontendMessage.EMPTY;
+
   private double lastMessageSentTime;
   private double startTime;
   private double completeTime = -1;
@@ -91,6 +92,7 @@ public class RemoteCollector {
     }
     sendToWorkerQueue = new LinkedList<>();
     workerSize = executor.workersLength();
+    fillFilters();
   }
 
   public void beginCompare() {
@@ -570,6 +572,7 @@ public class RemoteCollector {
 
   private void sendMessage() {
     if (sendResult == null) return;
+    if (!firstMessageSent) onFirstMessageSent();
     firstMessageSent = true;
     send(sendResult, lastFrontendMessage, DiffModelChannelUpdater.FRONTEND_MESSAGE_ARRAY);
 
@@ -580,6 +583,10 @@ public class RemoteCollector {
     LoggingJs.trace(progressMsg);
     lastFilesCompared = filesCompared;
     lastFoldersCompared = foldersCompared;
+  }
+
+  private void onFirstMessageSent() {
+
   }
 
   private void onComplete() {
@@ -603,8 +610,8 @@ public class RemoteCollector {
       fullMsg.push(DiffModelChannelUpdater.REFRESH_ARRAY);
       send.accept(fullMsg);
     }
-    var backendMessage = filteredBackendModel();
-    var jsArray = serializeBackendMessage(backendMessage, message);
+    var filtered = filteredFolderDiffModel();
+    var jsArray = serializeBackendMessage(filtered, message);
     jsArray.push(msgType);
     send.accept(jsArray);
     isRootReplaced = false;
@@ -650,7 +657,7 @@ public class RemoteCollector {
     send(sendResult, lastFrontendMessage, DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
   }
 
-  public RemoteFolderDiffModel filteredBackendModel() {
+  public RemoteFolderDiffModel filteredFolderDiffModel() {
     if (!isFiltered()) return root;
     if (lastFilters.isEmpty()) fillFilters();
     var filtered = root.applyFilter(lastFilters, null);
@@ -747,5 +754,65 @@ public class RemoteCollector {
 
   private boolean isErrorInts(int[] ints) {
     return ints.length == 1 && ints[0] == -1;
+  }
+
+  public void navigate(int[] path, boolean left, boolean next) {
+    FolderDiffModel navigated = null;
+    FolderDiffModel filtered = filteredFolderDiffModel();
+    FolderDiffModel[] models = root.getModelPathFromRoot(path);
+    LoggingJs.debug("RemoteCollector.navigate"
+        + ": path = " + Arrays.toString(path)
+        + ", left = " + left
+        + ", next = " + next
+        + ", models = " + Arrays.toString(models)
+    );
+
+    if (path.length == 0) {
+      if (next) navigated = root.findNextFileDiff(-1, left);
+    } else {
+      navigated = next
+          ? navigateNext(models, left, path, path.length - 1)
+          : navigatePrev(models, left, path, path.length - 1);
+    }
+
+    if (navigated != null) {
+      LoggingJs.debug("Navigate to " + JSString.valueOf(((RemoteFolderDiffModel) navigated).getFullPath("")));
+      sendNavigated(filtered, navigated);
+    } else {
+      LoggingJs.debug("Can't find model to navigate");
+    }
+  }
+
+  private FolderDiffModel navigateNext(FolderDiffModel[] models, boolean left, int[] path, int ind) {
+    if (ind < 0) return null;
+    var model = models[ind];
+    int stIndex = path[ind];
+    LoggingJs.trace("RemoteCollector.navigateNext"
+        + ": models = " + Arrays.toString(models)
+        + ", left = " + left
+        + ", ind = " + ind
+        + ", path = " + Arrays.toString(path)
+    );
+    if (ind == path.length - 1 && models[ind].child(path[ind]).isDir()) stIndex--;
+    var next = model.findNextFileDiff(stIndex, left);
+    return next != null ? next : navigateNext(models, left, path, ind - 1);
+  }
+
+  private FolderDiffModel navigatePrev(FolderDiffModel[] models, boolean left, int[] path, int ind) {
+    if (ind < 0) return null;
+    var model = models[ind];
+    var next = model.findPrevFileDiff(path[ind], left);
+    return next != null ? next : navigatePrev(models, left, path, ind - 1);
+  }
+
+  private void sendNavigated(FolderDiffModel filtered, FolderDiffModel navigated) {
+    int[] path = navigated.getPathFromRoot();
+    int[] filteredPath = new int[path.length];
+    FolderDiffModel current = filtered;
+    for (int i = 0; i < path.length; i++) {
+      filteredPath[i] = current.filteredInd(path[i]);
+      current = current.child(filteredPath[i]);
+    }
+    LoggingJs.trace("filteredPath = " + Arrays.toString(filteredPath));
   }
 }

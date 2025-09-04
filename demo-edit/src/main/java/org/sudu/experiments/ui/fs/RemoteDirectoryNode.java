@@ -25,7 +25,6 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
   }
 
   public void openDir() {
-//    if (model() == null || model().children == null) return;
     doOpen();
     handle.updateNodes(this, true);
     var opposite = handle.getOppositeDir(this);
@@ -49,14 +48,6 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
   public void doClose() {
     handle.closeDir(this);
     super.close();
-  }
-
-  public RemoteDirectoryNode getOppositeDir() {
-    return handle.getOppositeDir(this);
-  }
-
-  public RemoteFileTreeNode findSubItem(String path, boolean isFolder) {
-    return isFolder ? findSubDir(path) : findSubFile(path);
   }
 
   public RemoteDirectoryNode findSubDir(String path) {

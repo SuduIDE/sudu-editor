@@ -116,6 +116,10 @@ public class FolderDiffModel {
         || (isRightOnly() && itemKind == ItemKind.RIGHT_ONLY_FILE);
   }
 
+  public boolean isDir() {
+    return !isFile();
+  }
+
   public int getPropagation() {
     return (flags >> 2) & 0b11;
   }
@@ -157,6 +161,14 @@ public class FolderDiffModel {
     return -1;
   }
 
+  public int filteredInd(int fullInd) {
+    if (children == null) return -1;
+    for (int i = 0; i < children.length; i++) {
+      if (child(i).posInParent == fullInd) return i;
+    }
+    return -1;
+  }
+
   public boolean isBoth() {
     int diffType = getDiffType();
     return diffType == DiffTypes.DEFAULT || diffType == DiffTypes.EDITED;
@@ -176,6 +188,10 @@ public class FolderDiffModel {
 
   public boolean isRightOnly() {
     return getDiffType() == DiffTypes.INSERTED;
+  }
+
+  public boolean matchSide(boolean left) {
+    return matchSide(left ? FolderDiffSide.LEFT : FolderDiffSide.RIGHT);
   }
 
   public boolean matchSide(int side) {
@@ -207,23 +223,6 @@ public class FolderDiffModel {
       for (var child: children) child.insertItem();
     }
     updateItem();
-  }
-
-  // todo change parent status after diff applying
-  public void editItem(boolean left) {
-    int diffType = getDiffType();
-    if (diffType == DiffTypes.DEFAULT) return;
-    if (diffType == DiffTypes.EDITED) {
-      if (isFile()) {
-        setDiffType(DiffTypes.DEFAULT);
-        updateItem();
-      } else if (children != null) {
-        for (var child: children) child.editItem(left);
-      }
-    } else {
-      if ((left && diffType == DiffTypes.DELETED) || (!left && diffType == DiffTypes.INSERTED)) this.insertItem();
-//    if ((left && diffType == DiffTypes.INSERTED) || (!left && diffType == DiffTypes.DELETED)) this.deleteItem();
-    }
   }
 
   public void updateItem() {
@@ -266,6 +265,18 @@ public class FolderDiffModel {
     return children[path[ind]].findNodeByIndPath(path, ind + 1);
   }
 
+  public FolderDiffModel[] getModelPathFromRoot(int[] path) {
+    FolderDiffModel[] result = new FolderDiffModel[path.length];
+    collectModelPathFromRoot(path, 0, result);
+    return result;
+  }
+
+  private void collectModelPathFromRoot(int[] path, int ind, FolderDiffModel[] collected) {
+    collected[ind] = this;
+    if (ind == path.length - 1 || children == null) return;
+    children[path[ind]].collectModelPathFromRoot(path, ind + 1, collected);
+  }
+
   public static final FolderDiffModel DEFAULT = getDefault();
 
   private static FolderDiffModel getDefault() {
@@ -287,6 +298,41 @@ public class FolderDiffModel {
       parent.writePathFromRoot(writer);
       writer.write(posInParent);
     }
+  }
+
+  public FolderDiffModel findPrevFileDiff(int index, boolean left) {
+    if (children == null) return null;
+    if (index == -1) index = children.length;
+    for (int i = index - 1; i >= 0; i--) {
+      FolderDiffModel childModel = child(i);
+      int diffType = childModel.getDiffType();
+      boolean matchSide = matchSide(left) && diffType != DiffTypes.DEFAULT;
+      if (!childModel.isFile()) {
+        if (matchSide) {
+          return childModel.findPrevFileDiff(-1, left);
+        } else continue;
+      }
+      if (!matchSide) continue;
+      return childModel;
+    }
+    return null;
+  }
+
+  public FolderDiffModel findNextFileDiff(int index, boolean left) {
+    if (children == null) return null;
+    for (int i = index + 1; i < children.length; i++) {
+      FolderDiffModel childModel = child(i);
+      int diffType = childModel.getDiffType();
+      boolean matchFilter = matchSide(left) && diffType != DiffTypes.DEFAULT;
+      if (!childModel.isFile()) {
+        if (matchFilter) {
+          return childModel.findNextFileDiff(-1, left);
+        } else continue;
+      }
+      if (!matchFilter) continue;
+      return childModel;
+    }
+    return null;
   }
 
   @Override

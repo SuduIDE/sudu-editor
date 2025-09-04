@@ -145,15 +145,7 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
 
   @Override
   public String toString() {
-    return "{" +
-        "\"path\":\"" + path + '\"' +
-        ", \"children\":" + (children == null ? "null" : "FolderDiffModel[" + children.length + "]") +
-        ", \"childrenComparedCnt\":" + childrenComparedCnt +
-        ", \"compared\":" + isCompared() +
-        ", \"propagation\":\"" + PropTypes.name(getPropagation()) + "\"" +
-        ", \"diffType\":\"" + DiffTypes.name(getDiffType()) + "\"" +
-        ", \"itemKind\":\"" + ItemKind.name(getItemKind()) + "\"" +
-        "}";
+    return path;
   }
 
   public String recToString() {

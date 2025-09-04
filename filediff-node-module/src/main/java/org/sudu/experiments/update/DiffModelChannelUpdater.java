@@ -3,7 +3,6 @@ package org.sudu.experiments.update;
 import org.sudu.experiments.*;
 import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.editor.worker.FsWorkerJobs;
-import org.sudu.experiments.exclude.ExcludeList;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.JsMemoryAccess;
@@ -28,6 +27,7 @@ public class DiffModelChannelUpdater {
   public static final int REFRESH = 4;
   public static final int APPLY_FILTERS = 5;
   public static final int ERROR = 6;
+  public static final int NAVIGATE = 7;
   public static final Int32Array FRONTEND_MESSAGE_ARRAY = JsMemoryAccess.bufferView(new int[]{FRONTEND_MESSAGE});
   public static final Int32Array OPEN_FILE_ARRAY = JsMemoryAccess.bufferView(new int[]{OPEN_FILE});
   public static final Int32Array APPLY_DIFF_ARRAY = JsMemoryAccess.bufferView(new int[]{APPLY_DIFF});
@@ -35,6 +35,7 @@ public class DiffModelChannelUpdater {
   public static final Int32Array REFRESH_ARRAY = JsMemoryAccess.bufferView(new int[]{REFRESH});
   public static final Int32Array APPLY_FILTERS_ARRAY = JsMemoryAccess.bufferView(new int[]{APPLY_FILTERS});
   public static final Int32Array ERROR_ARRAY = JsMemoryAccess.bufferView(new int[]{ERROR});
+  public static final Int32Array NAVIGATE_ARRAY = JsMemoryAccess.bufferView(new int[]{NAVIGATE});
 
   public DiffModelChannelUpdater(
       ItemFolderDiffModel root,
@@ -70,6 +71,7 @@ public class DiffModelChannelUpdater {
 
   public void onMessage(JsArray<JSObject> jsArray) {
     Int32Array intArray = jsArray.pop().cast();
+    LoggingJs.info("DiffModelChannelUpdater.onMessage: " + intArray.toString());
     switch (intArray.get(0)) {
       case FRONTEND_MESSAGE -> onFrontendMessage(jsArray);
       case OPEN_FILE -> onOpenFile(jsArray);
@@ -77,6 +79,7 @@ public class DiffModelChannelUpdater {
       case FILE_SAVE -> onFileSave(jsArray);
       case REFRESH -> onRefresh();
       case APPLY_FILTERS -> applyFilters(jsArray);
+      case NAVIGATE -> navigate(jsArray);
     }
   }
 
@@ -137,9 +140,16 @@ public class DiffModelChannelUpdater {
   }
 
   private void applyFilters(JsArray<JSObject> jsArray) {
-    System.out.println("DiffModelChannelUpdater.applyFilters");
+    LoggingJs.info("DiffModelChannelUpdater.applyFilters");
     int[] filters = JsCast.ints(jsArray, 0);
     collector.applyFilters(filters);
+  }
+
+  private void navigate(JsArray<JSObject> jsArray) {
+    int[] path = JsCast.ints(jsArray, 0);
+    int[] ints = JsCast.ints(jsArray, 1);
+    boolean left = ints[0] == 1, next = ints[1] == 1;
+    collector.navigate(path, left, next);
   }
 
   public void onRemoteFileSave(boolean left, String fullPath) {

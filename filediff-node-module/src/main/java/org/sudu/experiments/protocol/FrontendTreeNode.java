@@ -12,6 +12,18 @@ public class FrontendTreeNode {
   public boolean isFile;
   public FrontendTreeNode[] children;
 
+  public FrontendTreeNode() {
+  }
+
+  public FrontendTreeNode(RemoteFolderDiffModel model) {
+    this(model.path, model.isFile());
+  }
+
+  public FrontendTreeNode(String name, boolean isFile) {
+    this.name = name;
+    this.isFile = isFile;
+  }
+
   FrontendTreeNode findNode(int[] path) {
     return findNode(path, 0);
   }
@@ -98,15 +110,27 @@ public class FrontendTreeNode {
     this.children = newChildren;
   }
 
+  public FrontendTreeNode child(String path, boolean isFile) {
+    for (var child: children) {
+      if (child.match(path, isFile)) return child;
+    }
+    return null;
+  }
+
   public FrontendTreeNode child(int i, String path, boolean isFile) {
     if (0 <= i && i < children.length) {
       var child = children[i];
-      if (child.name.equals(path) && child.isFile == isFile) return child;
+      if (child.match(path, isFile)) return child;
     }
-    for (var child: children) {
-      if (child.name.equals(path) && child.isFile == isFile) return child;
-    }
-    return null;
+    return child(path, isFile);
+  }
+
+  public boolean match(RemoteFolderDiffModel model) {
+    return match(model.path, model.isFile());
+  }
+
+  public boolean match(String name, boolean isFile) {
+    return this.isFile == isFile && this.name.equals(name);
   }
 
   public boolean isOpened() {
