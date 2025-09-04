@@ -35,7 +35,7 @@ public class NodeSyncAccess implements FileHandle.SyncAccess {
           JsMemoryAccess.uInt8View(buf),
           0, buf.length, filePos);
     } catch (Throwable e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
   }
 
@@ -46,7 +46,7 @@ public class NodeSyncAccess implements FileHandle.SyncAccess {
           JsMemoryAccess.uInt8View(buf),
           0, buf.length, filePos);
     } catch (Throwable e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
   }
 }
