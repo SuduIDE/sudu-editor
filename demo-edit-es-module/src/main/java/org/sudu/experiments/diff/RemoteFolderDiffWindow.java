@@ -260,6 +260,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     int delta = root.getSelectedIndexDelta();
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
+    LoggingJs.info(fullFrontendMessage.toString());
     updateNodes(leftRoot, rightRoot, rootModel, fullFrontendMessage.openedFolders);
     updateDiffInfo();
     setStatMessages(msg);
@@ -283,10 +284,19 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private void onNavigate(JsArray<JSObject> jsResult) {
+    int[] filteredPath = JsCast.ints(jsResult.pop());
+    boolean left = JsCast.ints(jsResult.pop())[0] == 1;
     var msg = BackendMessage.deserialize(jsResult);
-    fullFrontendMessage.openedFolders.updateDeepWithModel(msg.root);
-    setStatMessages(msg);
-    isRefresh = true;
+    rootModel.update(msg.root);
+    RemoteDirectoryNode rootNode = left ? leftRoot : rightRoot;
+    var navigated = getNavigatedNode(rootNode, rootModel, filteredPath, 0);
+    updateDiffInfo();
+    if (navigated != null) {
+      FileTreeView root = left ? rootView.left : rootView.right;
+      root.setSelected(navigated);
+      rootView.left.checkScroll(root.selectedIndex());
+      rootView.right.checkScroll(root.selectedIndex());
+    }
   }
 
   private void updateNodes() {
@@ -356,6 +366,37 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       if (node.child(i) instanceof RemoteDirectoryNode dirChildNode)
         updateNode(dirChildNode, child, childNode);
     }
+  }
+
+  private RemoteFileNode getNavigatedNode(
+      RemoteFileTreeNode node,
+      RemoteFolderDiffModel model,
+      int[] path, int ind
+  ) {
+    if (ind == path.length) {
+      if (node instanceof RemoteFileNode fileNode) {
+        return fileNode;
+      } else {
+        String errorMsg = "Incorrect path to navigated node: "
+            + Arrays.toString(path) + ". "
+            + node.name() + " is not a file";
+        LoggingJs.error(errorMsg);
+      }
+      return null;
+    }
+    if (!(node instanceof RemoteDirectoryNode dirNode)) {
+      String errorMsg = "Incorrect path to navigated node: "
+          + Arrays.toString(path) + ", ind = " + ind + ". "
+          + node.name() + " is not a directory";
+      LoggingJs.error(errorMsg);
+      return null;
+    }
+
+    int childInd = path[ind];
+    var childModel = model.child(childInd);
+    if (!dirNode.isOpened()) dirNode.doOpenWithOpposite();
+    var childNode = node.child(childModel.path, childModel.isFile());
+    return getNavigatedNode(childNode, childModel, path, ind + 1);
   }
 
   protected void updateDiffInfo() {
@@ -537,13 +578,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       return;
     }
     LoggingJs.trace("openFrontendNode: " + model.path);
-    node.children = new FrontendTreeNode[model.children.length];
-    for (int i = 0; i < model.children.length; i++) {
-      var child = model.child(i);
-      node.children[i] = new FrontendTreeNode();
-      node.children[i].name = child.path;
-      node.children[i].isFile = child.isFile();
-    }
+    node.children = FrontendTreeNode.mkChildrenWithModel(model);
   }
 
   private void closeFrontendNode(RemoteFolderDiffModel model) {
@@ -815,14 +850,14 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   public void navigateUp() {
-    navigate(true);
+    getNavigatedNode(true);
   }
 
   public void navigateDown() {
-    navigate(false);
+    getNavigatedNode(false);
   }
 
-  private void navigate(boolean up) {
+  private void getNavigatedNode(boolean up) {
     var focused = getFocused();
     if (focused == null) return;
     int selectedInd = focused.selectedIndex();

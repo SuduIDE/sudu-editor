@@ -45,6 +45,12 @@ public class RemoteDirectoryNode extends RemoteFileTreeNode {
     super.open();
   }
 
+  public void doOpenWithOpposite() {
+    doOpen();
+    var opposite = handle.getOppositeDir(this);
+    if (opposite != null) opposite.doOpen();
+  }
+
   public void doClose() {
     handle.closeDir(this);
     super.close();

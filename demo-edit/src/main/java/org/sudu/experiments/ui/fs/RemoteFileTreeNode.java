@@ -36,6 +36,14 @@ public class RemoteFileTreeNode extends FileTreeNode {
     return (RemoteFileTreeNode) super.child(ind);
   }
 
+  public RemoteFileTreeNode child(String path, boolean isFile) {
+    for (var child: getChildren()) {
+      var model = child.model();
+      if (model.isFile() == isFile && model.path.equals(path)) return child;
+    }
+    return null;
+  }
+
   public String getFullPath(String root) {
     return model().getFullPath(root);
   }

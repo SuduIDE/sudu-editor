@@ -20,6 +20,7 @@ import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.FrontendTreeNode;
+import org.sudu.experiments.protocol.JsCast;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
 import org.teavm.jso.core.JSString;
@@ -38,6 +39,7 @@ public class RemoteCollector {
 
   private Consumer<JsArray<JSObject>> sendResult;
   private Consumer<JsArray<JSObject>> onComplete;
+  private Consumer<JsArray<JSObject>> onNavigate;
   private Runnable onShutdown;
 
   private static final double SEND_FIRST_MSG_MS = 500;
@@ -572,7 +574,6 @@ public class RemoteCollector {
 
   private void sendMessage() {
     if (sendResult == null) return;
-    if (!firstMessageSent) onFirstMessageSent();
     firstMessageSent = true;
     send(sendResult, lastFrontendMessage, DiffModelChannelUpdater.FRONTEND_MESSAGE_ARRAY);
 
@@ -583,10 +584,6 @@ public class RemoteCollector {
     LoggingJs.trace(progressMsg);
     lastFilesCompared = filesCompared;
     lastFoldersCompared = foldersCompared;
-  }
-
-  private void onFirstMessageSent() {
-
   }
 
   private void onComplete() {
@@ -600,6 +597,10 @@ public class RemoteCollector {
         " - finished in " + Numbers.iRnd(lastMessageSentTime - startTime) + "ms, " +
         "foldersCompared: " + foldersCompared + ", filesCompared: " + filesCompared;
     LoggingJs.info(completeMsg);
+  }
+
+  private void onNavigate(JsArray<JSObject> jsArray) {
+    if (onNavigate != null) onNavigate.accept(jsArray);
   }
 
   private void send(Consumer<JsArray<JSObject>> send, FrontendMessage message, Int32Array msgType) {
@@ -707,6 +708,10 @@ public class RemoteCollector {
     this.onComplete = onComplete;
   }
 
+  public void setOnNavigate(Consumer<JsArray<JSObject>> onNavigate) {
+    this.onNavigate = onNavigate;
+  }
+
   public void shutdown(Runnable onShutdown) {
     this.isShutdown = true;
     this.onShutdown = onShutdown;
@@ -758,26 +763,25 @@ public class RemoteCollector {
 
   public void navigate(int[] path, boolean left, boolean next) {
     FolderDiffModel navigated = null;
-    FolderDiffModel filtered = filteredFolderDiffModel();
-    FolderDiffModel[] models = root.getModelPathFromRoot(path);
-    LoggingJs.debug("RemoteCollector.navigate"
-        + ": path = " + Arrays.toString(path)
-        + ", left = " + left
-        + ", next = " + next
-        + ", models = " + Arrays.toString(models)
-    );
+    RemoteFolderDiffModel filtered = filteredFolderDiffModel();
 
     if (path.length == 0) {
       if (next) navigated = root.findNextFileDiff(-1, left);
     } else {
+      FolderDiffModel[] models = root.getModelPathFromRoot(path);
       navigated = next
           ? navigateNext(models, left, path, path.length - 1)
           : navigatePrev(models, left, path, path.length - 1);
+      if (navigated == null) {
+        var lastModel = models[models.length - 1];
+        var child = lastModel.child(path[path.length - 1]);
+        if (child.isFile()) navigated = child;
+      }
     }
 
     if (navigated != null) {
       LoggingJs.debug("Navigate to " + JSString.valueOf(((RemoteFolderDiffModel) navigated).getFullPath("")));
-      sendNavigated(filtered, navigated);
+      sendNavigated(filtered, navigated, left);
     } else {
       LoggingJs.debug("Can't find model to navigate");
     }
@@ -787,12 +791,6 @@ public class RemoteCollector {
     if (ind < 0) return null;
     var model = models[ind];
     int stIndex = path[ind];
-    LoggingJs.trace("RemoteCollector.navigateNext"
-        + ": models = " + Arrays.toString(models)
-        + ", left = " + left
-        + ", ind = " + ind
-        + ", path = " + Arrays.toString(path)
-    );
     if (ind == path.length - 1 && models[ind].child(path[ind]).isDir()) stIndex--;
     var next = model.findNextFileDiff(stIndex, left);
     return next != null ? next : navigateNext(models, left, path, ind - 1);
@@ -805,14 +803,27 @@ public class RemoteCollector {
     return next != null ? next : navigatePrev(models, left, path, ind - 1);
   }
 
-  private void sendNavigated(FolderDiffModel filtered, FolderDiffModel navigated) {
+  private void sendNavigated(
+      RemoteFolderDiffModel filtered,
+      FolderDiffModel navigated,
+      boolean left
+  ) {
     int[] path = navigated.getPathFromRoot();
-    int[] filteredPath = new int[path.length];
-    FolderDiffModel current = filtered;
-    for (int i = 0; i < path.length; i++) {
-      filteredPath[i] = current.filteredInd(path[i]);
-      current = current.child(filteredPath[i]);
+    int[] filteredPath;
+    if (!isFiltered()) filteredPath = path;
+    else {
+      filteredPath = new int[path.length];
+      FolderDiffModel current = filtered;
+      for (int i = 0; i < path.length; i++) {
+        filteredPath[i] = current.filteredInd(path[i]);
+        current = current.child(filteredPath[i]);
+      }
     }
-    LoggingJs.trace("filteredPath = " + Arrays.toString(filteredPath));
+    lastFrontendMessage.openPath(filtered, filteredPath);
+    var navigateMsg = serializeBackendMessage(filtered, lastFrontendMessage);
+    navigateMsg.push(JsCast.jsInts(left ? 1 : 0));
+    navigateMsg.push(JsCast.jsInts(filteredPath));
+    navigateMsg.push(DiffModelChannelUpdater.NAVIGATE_ARRAY);
+    onNavigate(navigateMsg);
   }
 }

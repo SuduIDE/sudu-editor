@@ -66,6 +66,7 @@ public class DiffModelChannelUpdater {
   public void beginCompare() {
     collector.setSendResult(channel::sendMessage);
     collector.setOnComplete(channel::sendMessage);
+    collector.setOnNavigate(channel::sendMessage);
     collector.beginCompare();
   }
 

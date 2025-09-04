@@ -48,6 +48,10 @@ public class FrontendMessage {
     openedFolders.collectPath(path, pathWriter, root, left ? FolderDiffSide.LEFT : FolderDiffSide.RIGHT);
   }
 
+  public void openPath(RemoteFolderDiffModel model, int[] path) {
+    openedFolders.openPath(model, path, 0);
+  }
+
   public static FrontendMessage mkFrontendMessage(
       RemoteFileTreeNode leftRoot,
       RemoteFileTreeNode rightRoot,
