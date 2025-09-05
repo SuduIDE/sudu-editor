@@ -265,18 +265,17 @@ public class FolderDiffModel {
     return children[path[ind]].findNodeByIndPath(path, ind + 1);
   }
 
-  public FolderDiffModel[] getModelPathFromRoot(int[] path) {
+  public FolderDiffModel[] getModelsByPath(int[] path) {
     FolderDiffModel[] result = new FolderDiffModel[path.length];
-    collectModelPathFromRoot(path, 0, result);
+    collectModelsByPath(path, 0, result);
     return result;
   }
 
-  private void collectModelPathFromRoot(int[] path, int ind, FolderDiffModel[] collected) {
+  private void collectModelsByPath(int[] path, int ind, FolderDiffModel[] collected) {
     collected[ind] = this;
     if (ind == path.length - 1 || children == null) return;
-    children[path[ind]].collectModelPathFromRoot(path, ind + 1, collected);
+    children[path[ind]].collectModelsByPath(path, ind + 1, collected);
   }
-
   public static final FolderDiffModel DEFAULT = getDefault();
 
   private static FolderDiffModel getDefault() {
@@ -333,6 +332,33 @@ public class FolderDiffModel {
       return childModel;
     }
     return null;
+  }
+
+  public boolean canNavigateUp(int index) {
+    if (children == null) return false;
+    if (index == -1) index = children.length;
+    for (int i = index - 1; i >= 0; i--) {
+      FolderDiffModel childModel = child(i);
+      int diffType = childModel.getDiffType();
+      boolean matchSide = diffType != DiffTypes.DEFAULT;
+      if (!childModel.isFile() && matchSide) return true;
+      if (!matchSide || childModel.isDir()) continue;
+      return true;
+    }
+    return false;
+  }
+
+  public boolean canNavigateDown(int index) {
+    if (children == null) return false;
+    for (int i = index + 1; i < children.length; i++) {
+      FolderDiffModel childModel = child(i);
+      int diffType = childModel.getDiffType();
+      boolean matchSide = diffType != DiffTypes.DEFAULT;
+      if (!childModel.isFile() && matchSide) return true;
+      if (!matchSide || childModel.isDir()) continue;
+      return true;
+    }
+    return false;
   }
 
   @Override

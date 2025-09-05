@@ -836,23 +836,37 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private boolean canNavigate(boolean up) {
+    if (lastFilters != null && lastFilters.length == 1 && lastFilters[0] == DiffTypes.DEFAULT) return false;
     var focused = getFocused();
     if (focused == null) return false;
     int selectedInd = focused.selectedIndex();
     if (selectedInd < 0) return false;
-    var diffInfo = rootView.diffSync.model;
-    boolean left = focused == rootView.left;
-    var lines = left ? diffInfo.lineDiffsL : diffInfo.lineDiffsR;
-    if (up) {
-      for (int i = selectedInd - 1; i >= 0; i--) {
-        if (lines[i].type != DiffTypes.DEFAULT) return true;
-      }
+    if (!(focused.selectedLine() instanceof RemoteFileTreeNode selectedNode)) return false;
+    var model = selectedNode.model();
+    int[] path = model.getPathFromRoot();
+    if (path.length == 0) {
+      if (!up) return rootModel.canNavigateDown(-1);
     } else {
-      for (int i = selectedInd + 1; i < lines.length; i++) {
-        if (lines[i].type != DiffTypes.DEFAULT) return true;
-      }
+      var models = model.getModelsByPath(path);
+      return up
+          ? canNavigateUp(models, path, path.length - 1)
+          : canNavigateDown(models, path, path.length - 1);
     }
     return false;
+  }
+
+  private boolean canNavigateDown(FolderDiffModel[] models, int[] path, int ind) {
+    if (ind < 0) return false;
+    var model = models[ind];
+    int stIndex = path[ind];
+    if (ind == path.length - 1 && models[ind].child(path[ind]).isDir()) stIndex--;
+    return model.canNavigateDown(stIndex) || canNavigateDown(models, path, ind - 1);
+  }
+
+  private boolean canNavigateUp(FolderDiffModel[] models, int[] path, int ind) {
+    if (ind < 0) return false;
+    var model = models[ind];
+    return model.canNavigateUp(path[ind]) || canNavigateUp(models, path, ind - 1);
   }
 
   public void navigateUp() {

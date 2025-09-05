@@ -768,7 +768,7 @@ public class RemoteCollector {
     if (filteredPath.length == 0) {
       if (next) navigated = filtered.findNextFileDiff(-1);
     } else {
-      FolderDiffModel[] models = filtered.getModelPathFromRoot(filteredPath);
+      FolderDiffModel[] models = filtered.getModelsByPath(filteredPath);
       navigated = next
           ? navigateNext(models, filteredPath, path.length - 1)
           : navigatePrev(models, filteredPath, path.length - 1);
