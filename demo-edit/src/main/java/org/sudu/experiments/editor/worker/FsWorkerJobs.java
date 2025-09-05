@@ -13,7 +13,6 @@ import java.util.function.DoubleConsumer;
 
 public interface FsWorkerJobs {
   String asyncCopyFile = "asyncCopyFile";
-  int blockSize = 1024 * 1024;
 
   static void copyFile(
       WorkerJobExecutor workers, FileHandle src, FsItem dst,

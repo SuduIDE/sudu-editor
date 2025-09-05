@@ -214,7 +214,7 @@ public class SshFileHandle extends NodeFileHandle0 {
       return;
     }
 
-    write0(onComplete, onError, data, OPEN_MODE.write_or_create(), 0);
+    write0(onComplete, onError, data, OPEN_MODE.write_create_trunc(), 0);
   }
 
   @Override
@@ -222,10 +222,10 @@ public class SshFileHandle extends NodeFileHandle0 {
       double filePosition, byte[] data,
       Runnable onComplete, Consumer<String> onError
   ) {
-    write0(onComplete, onError, data, OPEN_MODE.append(), filePosition);
-    //        filePosition == 0
-//            ? OPEN_MODE.write_or_create()
-//            : OPEN_MODE.append(),
+    var flags = filePosition == 0
+        ? OPEN_MODE.write_create_trunc()
+        : OPEN_MODE.append();
+    write0(onComplete, onError, data, flags, filePosition);
   }
 
   // /home/kirill/copyPlaygroud/5g.dat

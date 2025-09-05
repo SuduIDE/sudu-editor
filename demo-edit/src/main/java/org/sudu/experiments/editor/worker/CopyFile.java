@@ -8,6 +8,8 @@ import java.util.function.Consumer;
 class CopyFile {
   // D2D.ipch README.md zeroFile 3mbFile error
   static final boolean debug = false;
+  static final int copyFileSyncBlock = 1024 * 1024;
+  static final int copyFileAsyncBlock = 1024 * 1024 * 8;
 
   final Consumer<Object[]> r;
   final FileHandle src, dst;
@@ -52,7 +54,8 @@ class CopyFile {
 
   private void copyFileSync() {
     double size = srcAccess.getSize(), pos = 0;
-    int limited = size < 1024 * 1024 ? (int) size : 1024 * 1024;
+    int limited = size < copyFileSyncBlock
+        ? (int) size : copyFileSyncBlock;
     nextData = new byte[limited];
     for (; pos < size; ) {
       try {
@@ -108,14 +111,17 @@ class CopyFile {
     if (debug && depth % 100 == 0)
       System.out.println(hdr() + "Read at " + pos + ", depth = " + depth);
     depth++;
-    src.readAsBytes(data -> onRead(data, pos), onError, pos, FsWorkerJobs.blockSize);
+    src.readAsBytes(
+        data -> onRead(data, pos), onError,
+        pos, copyFileAsyncBlock);
     depth--;
   }
 
   void onRead(byte[] data, double pos) {
     if (debug && depth % 100 == 0)
       System.out.println(
-          hdr() + "onRead: data.l = " + data.length + ", pos = " + pos + ", d = " + depth);
+          hdr() + "onRead: data.l = " + data.length
+              + ", pos = " + pos + ", d = " + depth);
     if (writing) {
       if (nextData != null) {
         onError("internal error 1");
@@ -172,7 +178,7 @@ class CopyFile {
     writing = true;
     double bytesWritten = pos + data.length;
     Runnable onComplete = () -> onWriteComplete(bytesWritten);
-    if (data.length < FsWorkerJobs.blockSize) {
+    if (data.length < copyFileAsyncBlock) {
       complete = true;
       if (debug) System.out.println(
           "  read completed, total bytes =" + bytesWritten);
@@ -183,7 +189,7 @@ class CopyFile {
     else
       dst.writeAppend(pos, data, onComplete, onError);
 
-    if (data.length == FsWorkerJobs.blockSize)
-      read(pos + FsWorkerJobs.blockSize);
+    if (data.length == copyFileAsyncBlock)
+      read(pos + copyFileAsyncBlock);
   }
 }

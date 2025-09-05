@@ -20,7 +20,7 @@ public abstract class OPEN_MODE implements JSObject {
     return OPEN_MODE().READ();
   }
 
-  public static int write_or_create() {
+  public static int write_create_trunc() {
     return OPEN_MODE().WRITE() | OPEN_MODE().CREAT() | OPEN_MODE().TRUNC();
   }
 
