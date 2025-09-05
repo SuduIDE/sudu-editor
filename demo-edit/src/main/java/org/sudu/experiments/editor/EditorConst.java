@@ -25,7 +25,7 @@ public interface EditorConst {
 
   int LINE_NUMBERS_TEXTURE_SIZE = 20;
 
-  int V_LINE_LEFT_DELTA_DP = 10;
+  int V_LINE_LEFT_DELTA_DP = 2;
 
   double TYPING_STOP_TIME = 1./32.;
   int BIG_RESOLVE_TIME_MS = 100;

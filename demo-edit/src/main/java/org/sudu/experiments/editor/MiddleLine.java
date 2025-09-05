@@ -4,6 +4,7 @@ import org.sudu.experiments.Cursor;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.arrays.ObjPool;
 import org.sudu.experiments.editor.ui.colors.DiffColors;
+import org.sudu.experiments.editor.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
 import org.sudu.experiments.input.MouseListener;
@@ -13,6 +14,7 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.SetCursor;
 import org.sudu.experiments.ui.UiContext;
+import org.sudu.experiments.ui.WindowPaint;
 import org.sudu.experiments.ui.window.View;
 
 import java.util.function.Consumer;
@@ -20,6 +22,7 @@ import java.util.function.IntConsumer;
 
 public class MiddleLine extends View {
   public static final boolean debug = true;
+  public static final boolean debugDrawFrame = true;
   public static final float lineWidthDp = 2;
   public static final float syncLineWidthDp = 3;
 
@@ -149,6 +152,10 @@ public class MiddleLine extends View {
     }
 
     drawSyncPoints(g);
+    if (debugDrawFrame) WindowPaint.drawInnerFrame(g,
+        size, pos,
+        IdeaCodeColors.ElementsDark.error.v.colorF,
+        1, uiContext.v2i1);
     g.enableBlend(false);
   }
 
