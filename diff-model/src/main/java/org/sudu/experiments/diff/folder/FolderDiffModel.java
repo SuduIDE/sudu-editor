@@ -300,15 +300,15 @@ public class FolderDiffModel {
     }
   }
 
-  public FolderDiffModel findPrevFileDiff(int index, boolean left) {
+  public FolderDiffModel findPrevFileDiff(int index) {
     if (children == null) return null;
     if (index == -1) index = children.length;
     for (int i = index - 1; i >= 0; i--) {
       FolderDiffModel childModel = child(i);
       int diffType = childModel.getDiffType();
-      boolean matchSide = matchSide(left) && diffType != DiffTypes.DEFAULT;
+      boolean matchSide = diffType != DiffTypes.DEFAULT;
       if (!childModel.isFile() && matchSide) {
-        var childResult = childModel.findPrevFileDiff(-1, left);
+        var childResult = childModel.findPrevFileDiff(-1);
         if (childResult != null) return childResult;
         continue;
       }
@@ -318,14 +318,14 @@ public class FolderDiffModel {
     return null;
   }
 
-  public FolderDiffModel findNextFileDiff(int index, boolean left) {
+  public FolderDiffModel findNextFileDiff(int index) {
     if (children == null) return null;
     for (int i = index + 1; i < children.length; i++) {
       FolderDiffModel childModel = child(i);
       int diffType = childModel.getDiffType();
-      boolean matchSide = matchSide(left) && diffType != DiffTypes.DEFAULT;
+      boolean matchSide = diffType != DiffTypes.DEFAULT;
       if (!childModel.isFile() && matchSide) {
-        var childResult = childModel.findNextFileDiff(-1, left);
+        var childResult = childModel.findNextFileDiff(-1);
         if (childResult != null) return childResult;
         else continue;
       }

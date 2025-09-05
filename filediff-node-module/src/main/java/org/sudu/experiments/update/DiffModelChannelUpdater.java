@@ -72,8 +72,9 @@ public class DiffModelChannelUpdater {
 
   public void onMessage(JsArray<JSObject> jsArray) {
     Int32Array intArray = jsArray.pop().cast();
-    LoggingJs.info("DiffModelChannelUpdater.onMessage: " + intArray.toString());
-    switch (intArray.get(0)) {
+    int type = intArray.get(0);
+    LoggingJs.info("DiffModelChannelUpdater.onMessage: " + messageName(type));
+    switch (type) {
       case FRONTEND_MESSAGE -> onFrontendMessage(jsArray);
       case OPEN_FILE -> onOpenFile(jsArray);
       case APPLY_DIFF -> onApplyDiff(jsArray);
@@ -151,6 +152,20 @@ public class DiffModelChannelUpdater {
     int[] ints = JsCast.ints(jsArray, 1);
     boolean left = ints[0] == 1, next = ints[1] == 1;
     collector.navigate(path, left, next);
+  }
+
+  public static String messageName(int type) {
+    return switch (type) {
+      case FRONTEND_MESSAGE -> "FRONTEND_MESSAGE";
+      case OPEN_FILE -> "OPEN_FILE";
+      case APPLY_DIFF -> "APPLY_DIFF";
+      case FILE_SAVE -> "FILE_SAVE";
+      case REFRESH -> "REFRESH";
+      case APPLY_FILTERS -> "APPLY_FILTERS";
+      case ERROR -> "ERROR";
+      case NAVIGATE -> "NAVIGATE";
+      default -> "UNKNOWN";
+    };
   }
 
   public void onRemoteFileSave(boolean left, String fullPath) {

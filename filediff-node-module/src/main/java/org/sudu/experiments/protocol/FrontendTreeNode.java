@@ -46,7 +46,8 @@ public class FrontendTreeNode {
     if (ind == path.length || model.children == null) return;
     int childInd = path[ind];
     if (children == null) children = mkChildrenWithModel(model);
-    children[childInd].openPath(model.child(childInd), path, ind + 1);
+    var childModel = model.child(childInd);
+    child(childModel.path, childModel.isFile()).openPath(childModel, path, ind + 1);
   }
 
   public void updateDeepWithModel(RemoteFolderDiffModel model) {
