@@ -51,9 +51,11 @@ public class NodeFileHandle extends NodeFileHandle0 {
   }
 
   @Override
-  public void syncAccess(Consumer<SyncAccess> consumer, Consumer<String> onError) {
+  public void syncAccess(Consumer<SyncAccess> consumer, Consumer<String> onError, boolean write) {
     try {
-      int handle = openSyncRead(Fs.fs());
+      int handle = write
+          ? openSyncCreateWriteTrunc(Fs.fs())
+          : openSyncRead(Fs.fs());
       consumer.accept(new NodeSyncAccess(handle, jsPath()));
     } catch (Exception e) {
       onError.accept(e.getMessage());
@@ -108,6 +110,11 @@ public class NodeFileHandle extends NodeFileHandle0 {
     return fs.openSync(jsPath(), fs.constants().O_RDONLY());
   }
 
+  private int openSyncCreateWriteTrunc(Fs fs) {
+    return fs.openSync(jsPath(), fs.constants().O_RDWR() |
+        fs.constants().O_CREAT() | fs.constants().O_TRUNC());
+  }
+
   private int openSyncWriteAppend(Fs fs) {
     return fs.openSync(jsPath(), fs.constants().O_APPEND());
   }
@@ -135,7 +142,9 @@ public class NodeFileHandle extends NodeFileHandle0 {
     Fs fs = Fs.fs();
     try {
       var s = actualStats();
-      int h = openSyncWriteAppend(fs);
+      int h = filePosition == 0
+          ? openSyncCreateWriteTrunc(fs)
+          : openSyncWriteAppend(fs);
       int written = fs.writeSync(h, JsMemoryAccess.uInt8View(data),
           0, data.length, s.size());
       fs.closeSync(h);

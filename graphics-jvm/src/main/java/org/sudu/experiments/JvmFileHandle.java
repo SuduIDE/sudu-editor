@@ -4,21 +4,26 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileAttribute;
-import java.util.Collections;
-import java.util.Set;
+import java.util.EnumSet;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
+
+import static java.nio.file.StandardOpenOption.*;
 
 // JvmFileHandle reads synchronously on worker threads
 // use SyncAccess for many small reads
 public class JvmFileHandle extends JvmFsHandle implements FileHandle {
 
-  static final Set<OpenOption> none = Collections.emptySet();
-  static final FileAttribute[] noAttributes = new FileAttribute[0];
+  static final EnumSet<StandardOpenOption> read = EnumSet.of(READ);
+  static final EnumSet<StandardOpenOption> createWriteTruc =
+      EnumSet.of(CREATE, WRITE, TRUNCATE_EXISTING);
+  static final EnumSet<StandardOpenOption> append =
+      EnumSet.of(WRITE, APPEND);
+  static final FileAttribute[] att0 = new FileAttribute[0];
 
   public JvmFileHandle(Path path, Path root, Executor bgWorker, Executor edt) {
     super(path, root, bgWorker, edt);
@@ -64,7 +69,7 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
       Consumer<String> onError,
       long position, int length
   ) {
-    try (SeekableByteChannel ch = openByteChannel()) {
+    try (SeekableByteChannel ch = Files.newByteChannel(path, read, att0)) {
       if (position != 0)
         ch.position(position);
       int avl = intSize(ch.size() - position);
@@ -87,10 +92,6 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
     }
   }
 
-  SeekableByteChannel openByteChannel() throws IOException {
-    return Files.newByteChannel(path, none, noAttributes);
-  }
-
   static byte[] readChannel(int length, SeekableByteChannel ch
   ) throws IOException {
     byte[] data = new byte[length];
@@ -107,11 +108,14 @@ public class JvmFileHandle extends JvmFsHandle implements FileHandle {
 
   @Override
   public void syncAccess(
-      Consumer<FileHandle.SyncAccess> h,
-      Consumer<String> onError
+      Consumer<SyncAccess> h,
+      Consumer<String> onError,
+      boolean write
   ) {
     try {
-      h.accept(new JvmSyncAccess(openByteChannel()));
+      var channel = Files.newByteChannel(path,
+          write ? createWriteTruc : read, att0);
+      h.accept(new JvmSyncAccess(channel));
     } catch (IOException e) {
       onError.accept(e.getMessage());
     }

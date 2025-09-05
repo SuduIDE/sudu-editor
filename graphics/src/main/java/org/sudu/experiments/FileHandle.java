@@ -21,7 +21,9 @@ public interface FileHandle extends FsItem {
 
   void syncAccess(
       Consumer<SyncAccess> consumer,
-      Consumer<String> onError);
+      Consumer<String> onError,
+      boolean write // todo: add truncate or append as an option ?
+  );
 
   void getSize(DoubleConsumer result, Consumer<String> onError);
 

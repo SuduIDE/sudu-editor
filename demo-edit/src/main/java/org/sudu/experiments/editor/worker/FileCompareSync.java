@@ -19,8 +19,8 @@ class FileCompareSync {
   FileCompareSync(Consumer<Object[]> r, FileHandle left, FileHandle right) {
     result = r;
     Consumer<String> onError = this::onError;
-    left.syncAccess(this::leftAccess, onError);
-    right.syncAccess(this::rightAccess, onError);
+    left.syncAccess(this::leftAccess, onError, false);
+    right.syncAccess(this::rightAccess, onError, false);
   }
 
   private void onError(String error) {

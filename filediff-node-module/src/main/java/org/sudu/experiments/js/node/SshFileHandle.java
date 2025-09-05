@@ -57,7 +57,11 @@ public class SshFileHandle extends NodeFileHandle0 {
   }
 
   @Override
-  public void syncAccess(Consumer<SyncAccess> consumer, Consumer<String> onError) {
+  public void syncAccess(
+      Consumer<SyncAccess> consumer,
+      Consumer<String> onError,
+      boolean write
+  ) {
     onError.accept("unsupported operation");
   }
 
@@ -143,8 +147,7 @@ public class SshFileHandle extends NodeFileHandle0 {
               }
             });
           } else {
-            int rl = FileHandle.limitTail(attrs.getSize(), begin, length);
-            doRead(sftp, consumer, onError, begin, rl);
+            doRead(sftp, consumer, onError, begin, length);
           }
         } else {
           JsHelper.consoleInfo2(
@@ -220,7 +223,12 @@ public class SshFileHandle extends NodeFileHandle0 {
       Runnable onComplete, Consumer<String> onError
   ) {
     write0(onComplete, onError, data, OPEN_MODE.append(), filePosition);
+    //        filePosition == 0
+//            ? OPEN_MODE.write_or_create()
+//            : OPEN_MODE.append(),
   }
+
+  // /home/kirill/copyPlaygroud/5g.dat
 
   void write0(
       Runnable onComplete, Consumer<String> onError,
@@ -233,7 +241,7 @@ public class SshFileHandle extends NodeFileHandle0 {
             handle = newHandle;
             if (debugOpenClose) JsHelper.consoleInfo2(
                 "sftp.open(" + Integer.toHexString(flags) +
-                    ", pos ", JSNumber.valueOf(position),
+                    ", pos =", JSNumber.valueOf(position),
                     ") completed, path=", jsPath());
             if (debugHandle) JsHelper.consoleInfo2(
                 "  handle =", debugHandle());

@@ -55,7 +55,8 @@ public class JsFileHandle implements FileHandle {
   @Override
   public void syncAccess(
       Consumer<SyncAccess> consumer,
-      Consumer<String> onError
+      Consumer<String> onError,
+      boolean write
   ) {
     if (true) {
       throw new RuntimeException();

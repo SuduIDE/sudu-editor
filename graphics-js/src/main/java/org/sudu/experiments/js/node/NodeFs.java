@@ -26,6 +26,9 @@ public interface NodeFs extends JSObject {
     @JSProperty("O_CREAT")
     int O_CREAT();
 
+    @JSProperty("O_TRUNC")
+    int O_TRUNC();
+
     @JSProperty("O_EXCL")
     int O_EXCL();
 

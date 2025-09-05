@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 
 class CopyFile {
   // D2D.ipch README.md zeroFile 3mbFile error
-  static final boolean debug = true;
+  static final boolean debug = false;
 
   final Consumer<Object[]> r;
   final FileHandle src, dst;
@@ -36,8 +36,8 @@ class CopyFile {
   }
 
   private void syncCopy() {
-    src.syncAccess(this::setSrcAccess, onError);
-    dst.syncAccess(this::setDstAccess, onError);
+    src.syncAccess(this::setSrcAccess, onError, false);
+    dst.syncAccess(this::setDstAccess, onError, true);
   }
 
   private void setDstAccess(FileHandle.SyncAccess da) {
