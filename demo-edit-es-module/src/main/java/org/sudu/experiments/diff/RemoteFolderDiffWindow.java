@@ -886,7 +886,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     int selectedInd = focused.selectedIndex();
     if (selectedInd < 0) return;
     var selectedNode = rootView.left.model()[selectedInd];
-    if (selectedNode == null) selectedNode = rootView.right.model()[selectedInd];
+    if (selectedNode == null || selectedNode.isEmpty()) selectedNode = rootView.right.model()[selectedInd];
     if (!(selectedNode instanceof RemoteFileTreeNode selectedRemoteModel)) return;
     LoggingJs.debug("RemoteFolderDiffWindow.getNavigatedNode"
         + ": up = " + up

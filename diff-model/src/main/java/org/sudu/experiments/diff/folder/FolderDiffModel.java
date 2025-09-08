@@ -308,7 +308,7 @@ public class FolderDiffModel {
   private void collectFilteredPath(int[] filtered, int[] path, int ind) {
     if (ind == path.length) return;
     filtered[ind] = filteredInd(path[ind]);
-    collectFilteredPath(filtered, path, ind + 1);
+    child(filtered[ind]).collectFilteredPath(filtered, path, ind + 1);
   }
 
   public FolderDiffModel findPrevFileDiff(int index) {
