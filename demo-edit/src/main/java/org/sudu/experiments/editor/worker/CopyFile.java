@@ -9,6 +9,12 @@ class CopyFile {
   // D2D.ipch README.md zeroFile 3mbFile error
   static final boolean debug = false;
   static final int copyFileSyncBlock = 1024 * 1024;
+
+  // SSH copy performance table
+  //  1mb block -> 680 sec
+  //  8mb block -> 211 sec
+  // 16mb block -> 173 sec
+  // 32mb block -> 177 sec
   static final int copyFileAsyncBlock = 1024 * 1024 * 8;
 
   final Consumer<Object[]> r;
