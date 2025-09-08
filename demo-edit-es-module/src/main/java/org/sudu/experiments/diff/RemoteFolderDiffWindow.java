@@ -841,16 +841,19 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     if (focused == null) return false;
     int selectedInd = focused.selectedIndex();
     if (selectedInd < 0) return false;
-    if (!(focused.selectedLine() instanceof RemoteFileTreeNode selectedNode)) return false;
-    var model = selectedNode.model();
+    var selectedNode = rootView.left.model()[selectedInd];
+    if (selectedNode == null) selectedNode = rootView.right.model()[selectedInd];
+    if (!(selectedNode instanceof RemoteFileTreeNode selectedRemoteModel)) return false;
+    var model = selectedRemoteModel.model();
     int[] path = model.getPathFromRoot();
     if (path.length == 0) {
       if (!up) return rootModel.canNavigateDown(-1);
     } else {
-      var models = model.getModelsByPath(path);
+      int[] filteredPath = filteredPath(rootModel, path);
+      var models = rootModel.getModelsByPath(filteredPath);
       return up
-          ? canNavigateUp(models, path, path.length - 1)
-          : canNavigateDown(models, path, path.length - 1);
+          ? canNavigateUp(models, filteredPath, path.length - 1)
+          : canNavigateDown(models, filteredPath, path.length - 1);
     }
     return false;
   }
@@ -885,6 +888,11 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     var selectedNode = rootView.left.model()[selectedInd];
     if (selectedNode == null) selectedNode = rootView.right.model()[selectedInd];
     if (!(selectedNode instanceof RemoteFileTreeNode selectedRemoteModel)) return;
+    LoggingJs.debug("RemoteFolderDiffWindow.getNavigatedNode"
+        + ": up = " + up
+        + ", left = " + (focused == rootView.left)
+        + ", canNavigate = " + canNavigate(up)
+    );
     var model = selectedRemoteModel.model();
     int[] path = model.getPathFromRoot();
     JsArray<JSObject> jsArray = JsArray.create();
@@ -912,6 +920,11 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   private boolean isFiltered() {
     return lastFilters != null && !(lastFilters.length == 0 || lastFilters.length == 4);
+  }
+
+  private int[] filteredPath(FolderDiffModel filtered, int[] path) {
+    if (!isFiltered()) return path;
+    return filtered.filteredPath(path);
   }
 
   public void refresh() {

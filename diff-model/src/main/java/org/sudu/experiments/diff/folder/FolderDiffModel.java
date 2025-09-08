@@ -299,6 +299,18 @@ public class FolderDiffModel {
     }
   }
 
+  public int[] filteredPath(int[] path) {
+    int[] filtered = new int[path.length];
+    collectFilteredPath(filtered, path, 0);
+    return filtered;
+  }
+
+  private void collectFilteredPath(int[] filtered, int[] path, int ind) {
+    if (ind == path.length) return;
+    filtered[ind] = filteredInd(path[ind]);
+    collectFilteredPath(filtered, path, ind + 1);
+  }
+
   public FolderDiffModel findPrevFileDiff(int index) {
     if (children == null) return null;
     if (index == -1) index = children.length;

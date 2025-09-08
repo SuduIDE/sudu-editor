@@ -820,12 +820,6 @@ public class RemoteCollector {
 
   private int[] filteredPath(FolderDiffModel filtered, int[] path) {
     if (!isFiltered()) return path;
-    int[] filteredPath = new int[path.length];
-    FolderDiffModel current = filtered;
-    for (int i = 0; i < path.length; i++) {
-      filteredPath[i] = current.filteredInd(path[i]);
-      current = current.child(filteredPath[i]);
-    }
-    return filteredPath;
+    return filtered.filteredPath(path);
   }
 }
