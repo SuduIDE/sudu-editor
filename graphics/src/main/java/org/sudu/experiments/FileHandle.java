@@ -3,6 +3,7 @@ package org.sudu.experiments;
 import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.TextDecoder;
 
+import java.io.IOException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
@@ -11,7 +12,8 @@ public interface FileHandle extends FsItem {
   interface SyncAccess {
     boolean close();
     double getSize();
-    double read(byte[] buf, double filePos);
+    int read(byte[] buf, double filePos) throws IOException;
+    int write(byte[] buf, double filePos) throws IOException;
   }
 
   // web does not provide sync access to host fs ;/
@@ -19,7 +21,9 @@ public interface FileHandle extends FsItem {
 
   void syncAccess(
       Consumer<SyncAccess> consumer,
-      Consumer<String> onError);
+      Consumer<String> onError,
+      boolean write // todo: add truncate or append as an option ?
+  );
 
   void getSize(DoubleConsumer result, Consumer<String> onError);
 
@@ -36,17 +40,9 @@ public interface FileHandle extends FsItem {
   }
 
   default void writeAppend(
-      int filePosition, byte[] data,
+      double filePosition, byte[] data,
       Runnable onComplete, Consumer<String> onError
   ) {
-    onError.accept("not implemented");
-  }
-
-  default boolean canCopyTo(FsItem dst) {
-    return false;
-  }
-
-  default void copyTo(FsItem dst, Runnable onComplete, Consumer<String> onError) {
     onError.accept("not implemented");
   }
 
@@ -58,8 +54,20 @@ public interface FileHandle extends FsItem {
     readAsBytes(consumer, onError, 0, -1);
   }
 
+  int _1gb = 1 << 30;
+
+  static int limit1gb(double fileSize) {
+    return fileSize < _1gb ? (int) fileSize : _1gb;
+  }
+
+  // read all the file (length<0) or length or tail
+  static int limitTail(double fileSize, double begin, int length) {
+    return length < 0 ? limit1gb(fileSize) :
+        Math.min(length, limit1gb(fileSize - begin));
+  }
+
   void readAsBytes(Consumer<byte[]> consumer, Consumer<String> onError,
-      int begin, int length);
+                   double begin, int length);
 
   static void readTextFile(
       FileHandle fileHandle,
@@ -96,5 +104,17 @@ public interface FileHandle extends FsItem {
   // this method also works when path points to a directory
   default void stat(BiConsumer<Stats, String> cb) {
     cb.accept(null, "stat not implemented");
+  }
+
+  static int hiGb(double addr) {
+    return (int) (addr / _1gb);
+  }
+
+  static int loGb(double addr) {
+    return (int) (addr % _1gb);
+  }
+
+  static double int2Address(int loGb, int hiGb) {
+    return ((double) _1gb) * hiGb + loGb;
   }
 }

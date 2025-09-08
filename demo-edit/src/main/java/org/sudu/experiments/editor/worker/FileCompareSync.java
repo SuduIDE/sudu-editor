@@ -2,6 +2,7 @@ package org.sudu.experiments.editor.worker;
 
 import org.sudu.experiments.FileHandle;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
@@ -18,8 +19,8 @@ class FileCompareSync {
   FileCompareSync(Consumer<Object[]> r, FileHandle left, FileHandle right) {
     result = r;
     Consumer<String> onError = this::onError;
-    left.syncAccess(this::leftAccess, onError);
-    right.syncAccess(this::rightAccess, onError);
+    left.syncAccess(this::leftAccess, onError, false);
+    right.syncAccess(this::rightAccess, onError, false);
   }
 
   private void onError(String error) {
@@ -89,8 +90,15 @@ class FileCompareSync {
     byte[] leftText = new byte[Math.min(iSize, maxArraySize)];
     byte[] rightText = new byte[leftText.length];
     for (double pos = 0; pos < iSize; ) {
-      int lRead = (int) left.read(leftText, pos);
-      int rRead = (int) right.read(rightText, pos);
+      int lRead = 0, rRead = 0;
+      try {
+        lRead = left.read(leftText, pos);
+        rRead = right.read(rightText, pos);
+      } catch (IOException e) {
+        System.err.println(
+            "compare: error reading file: " + e.getMessage());
+        return false;
+      }
       if (lRead != rRead) return false;
       if (lRead == 0) return true;
       boolean equals = Arrays.equals(

@@ -35,7 +35,7 @@ public interface NodeWorker extends JsMessagePort0 {
       JSString url, int count,
       PlatformBridge bridge
   ) {
-    WorkerProtocol.bridge = bridge;
+    WorkerProtocol.setBridge(bridge);
     JsArray<NodeWorker> workers = JsArray.create();
     for (int i = 0; i < count; i++) {
       NodeWorker worker = Native.newWorker(url);
@@ -52,7 +52,7 @@ public interface NodeWorker extends JsMessagePort0 {
   }
 
   static void workerMain(WorkerExecutor executor, PlatformBridge bridge) {
-    WorkerProtocol.bridge = bridge;
+    WorkerProtocol.setBridge(bridge);
     Native.parentPort().onMessage(e ->
         WorkerProtocol.onWorkerMessage(executor, e, Native.parentPort())
     );

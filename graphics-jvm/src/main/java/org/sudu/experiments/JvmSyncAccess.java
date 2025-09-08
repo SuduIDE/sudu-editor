@@ -33,14 +33,15 @@ class JvmSyncAccess implements FileHandle.SyncAccess {
   }
 
   @Override
-  public double read(byte[] buf, double filePos) {
-    try {
-      ch.position((long) filePos);
-      return ch.read(ByteBuffer.wrap(buf));
-    } catch (IOException e) {
-      JvmFileHandle.print(e);
-    }
-    return 0;
+  public int read(byte[] buf, double filePos) throws IOException {
+    ch.position((long) filePos);
+    return ch.read(ByteBuffer.wrap(buf));
+  }
+
+  @Override
+  public int write(byte[] buf, double filePos) throws IOException {
+    ch.position((long) filePos);
+    return ch.write(ByteBuffer.wrap(buf));
   }
 
   @Override

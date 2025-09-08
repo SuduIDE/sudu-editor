@@ -20,7 +20,15 @@ public class WorkerProtocol {
         Object[] r, int idx);
   }
 
-  public static PlatformBridge bridge;
+  static PlatformBridge bridge;
+
+  public static void setBridge(PlatformBridge bridge) {
+    // during some errors (like stack limit)
+    // TextDecoder.Singleton.decoderUTF16 is not initialized properly
+    // we can pre-init it here
+    TextDecoder.Singleton.class.getClass();
+    WorkerProtocol.bridge = bridge;
+  }
 
   public static JSString started() { return JSString.valueOf("started"); }
 

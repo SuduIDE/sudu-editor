@@ -9,30 +9,31 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
+import java.util.function.DoubleConsumer;
 
 public interface FsWorkerJobs {
   String asyncCopyFile = "asyncCopyFile";
-  int blockSize = 1024 * 1024;
 
   static void copyFile(
       WorkerJobExecutor workers, FileHandle src, FsItem dst,
-      IntConsumer onComplete, Consumer<String> onError
+      DoubleConsumer onComplete, Consumer<String> onError
   ) {
     Consumer<Object[]> onCopy = r -> {
       if (r[0] instanceof String message) {
         onError.accept(message);
       } else {
         int[] data = ArgsCast.intArray(r, 0);
-        onComplete.accept(data[0]);
+        onComplete.accept(FileHandle.int2Address(data[0], data[1]));
       }
     };
     workers.sendToWorker(onCopy,
         FsWorkerJobs.asyncCopyFile, src, dst);
   }
 
-  static void postCopyOk(int bytesWritten, Consumer<Object[]> r) {
-    r.accept(new Object[]{new int[]{ bytesWritten }});
+  static void postCopyOk(double bytesWritten, Consumer<Object[]> r) {
+    r.accept(new Object[]{new int[]{
+        FileHandle.loGb(bytesWritten), FileHandle.hiGb(bytesWritten)
+    }});
   }
 
   static void postCopyError(String error, Consumer<Object[]> r) {
@@ -51,121 +52,6 @@ public interface FsWorkerJobs {
       new CopyFile(r, src, dest);
     } else {
       postCopyError("asyncCopyFile bad args", r);
-    }
-  }
-
-  class CopyFile {
-    static final boolean debug = false;
-
-    final Consumer<Object[]> r;
-    final FileHandle src, dst;
-    final Consumer<String> onError = this::onError;
-
-    // write queue
-    byte[] nextData;
-    int    nextPos;
-
-    boolean writing, complete;
-
-    CopyFile(
-        Consumer<Object[]> r,
-        FileHandle src, FileHandle dst
-    ) {
-      this.r = r;
-      this.src = src;
-      this.dst = dst;
-      read(0);
-    }
-
-    void onError(String error) {
-      postCopyError(error, r);
-    }
-
-    void postComplete(int bytesWritten) {
-      if (debug) System.out.println(
-          " -> postComplete: bytesWritten = " + bytesWritten);
-      postCopyOk(bytesWritten, r);
-    }
-
-    String hdr() {
-      return "CopyFile(" + src.getName() + "->" + dst.getName() + ").";
-    }
-
-    void read(int pos) {
-      if (debug) System.out.println(hdr() + "Read at " + pos);
-      src.readAsBytes(data -> onRead(data, pos), onError, pos, blockSize);
-    }
-
-    void onRead(byte[] data, int pos) {
-      if (debug) System.out.println(
-          hdr() + "onRead: data.l = " + data.length + ", pos = " + pos);
-      if (writing) {
-        if (nextData != null) {
-          onError("internal error 1");
-        } else {
-          if (debug) System.out.println(
-              "  in writing, data -> nextData");
-          nextData = data;
-          nextPos = pos;
-        }
-      } else {
-        if (nextData != null) {
-          onError("internal error 2");
-        } else {
-          writeAndFetch(data, pos);
-        }
-      }
-    }
-
-    void onWriteComplete(int bytesWritten) {
-      writing = false;
-      if (debug) {
-        var lStr = nextData != null
-            ? Integer.toString(nextData.length) : "null";
-        System.out.println(
-            hdr() + "onWriteComplete: nextData.l = " + lStr);
-      }
-      if (nextData != null) {
-        var data = nextData;
-        var pos = nextPos;
-        nextData = null; nextPos = 0;
-        writeAndFetch(data, pos);
-      } else {
-        if (complete) {
-          postComplete(bytesWritten);
-        } else {
-          if (debug) System.out.println(
-              "  waiting read to complete");
-        }
-      }
-    }
-
-    void writeAndFetch(byte[] data, int pos) {
-      if (debug) System.out.println(
-          hdr() + "writeAndFetch: data.l = " + data.length
-              + ", pos = " + pos);
-
-      if (pos > 0 && data.length == 0) {
-        postComplete(pos);
-        return;
-      }
-
-      writing = true;
-      int bytesWritten = pos + data.length;
-      Runnable onComplete = () -> onWriteComplete(bytesWritten);
-      if (data.length < blockSize) {
-        complete = true;
-        if (debug) System.out.println(
-            "  read completed, total bytes =" + bytesWritten);
-      }
-
-      if (pos == 0)
-        dst.writeText(data, null, onComplete, onError);
-      else
-        dst.writeAppend(pos, data, onComplete, onError);
-
-      if (data.length == blockSize)
-        read(pos + blockSize);
     }
   }
 
