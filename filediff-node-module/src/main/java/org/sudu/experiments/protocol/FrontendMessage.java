@@ -23,6 +23,14 @@ public class FrontendMessage {
 
   public static final FrontendMessage EMPTY = empty();
 
+  public FrontendMessage() {
+  }
+
+  public FrontendMessage(FrontendTreeNode openedFolders, String searchQuery) {
+    this.openedFolders = openedFolders;
+    this.searchQuery = searchQuery;
+  }
+
   public FrontendTreeNode findNode(int[] path) {
     return openedFolders.findNode(path);
   }
@@ -38,6 +46,10 @@ public class FrontendMessage {
 
   public void collectPath(int[] path, ArrayWriter pathWriter, FolderDiffModel root, boolean left) {
     openedFolders.collectPath(path, pathWriter, root, left ? FolderDiffSide.LEFT : FolderDiffSide.RIGHT);
+  }
+
+  public void openPath(RemoteFolderDiffModel model, int[] path) {
+    openedFolders.openPath(model, path, 0);
   }
 
   public static FrontendMessage mkFrontendMessage(

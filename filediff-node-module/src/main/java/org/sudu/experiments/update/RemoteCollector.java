@@ -20,6 +20,7 @@ import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
 import org.sudu.experiments.protocol.FrontendTreeNode;
+import org.sudu.experiments.protocol.JsCast;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
 import org.teavm.jso.core.JSString;
@@ -38,6 +39,7 @@ public class RemoteCollector {
 
   private Consumer<JsArray<JSObject>> sendResult;
   private Consumer<JsArray<JSObject>> onComplete;
+  private Consumer<JsArray<JSObject>> onNavigate;
   private Runnable onShutdown;
 
   private static final double SEND_FIRST_MSG_MS = 500;
@@ -58,6 +60,7 @@ public class RemoteCollector {
   private boolean isRootReplaced = false;
 
   private FrontendMessage lastFrontendMessage = FrontendMessage.EMPTY;
+
   private double lastMessageSentTime;
   private double startTime;
   private double completeTime = -1;
@@ -91,6 +94,7 @@ public class RemoteCollector {
     }
     sendToWorkerQueue = new LinkedList<>();
     workerSize = executor.workersLength();
+    fillFilters();
   }
 
   public void beginCompare() {
@@ -595,6 +599,10 @@ public class RemoteCollector {
     LoggingJs.info(completeMsg);
   }
 
+  private void onNavigate(JsArray<JSObject> jsArray) {
+    if (onNavigate != null) onNavigate.accept(jsArray);
+  }
+
   private void send(Consumer<JsArray<JSObject>> send, FrontendMessage message, Int32Array msgType) {
     LoggingJs.debug("inComparing: " + inComparing);
     if (isRefresh) {
@@ -603,8 +611,8 @@ public class RemoteCollector {
       fullMsg.push(DiffModelChannelUpdater.REFRESH_ARRAY);
       send.accept(fullMsg);
     }
-    var backendMessage = filteredBackendModel();
-    var jsArray = serializeBackendMessage(backendMessage, message);
+    var filtered = filteredFolderDiffModel();
+    var jsArray = serializeBackendMessage(filtered, message);
     jsArray.push(msgType);
     send.accept(jsArray);
     isRootReplaced = false;
@@ -650,7 +658,7 @@ public class RemoteCollector {
     send(sendResult, lastFrontendMessage, DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
   }
 
-  public RemoteFolderDiffModel filteredBackendModel() {
+  public RemoteFolderDiffModel filteredFolderDiffModel() {
     if (!isFiltered()) return root;
     if (lastFilters.isEmpty()) fillFilters();
     var filtered = root.applyFilter(lastFilters, null);
@@ -700,6 +708,10 @@ public class RemoteCollector {
     this.onComplete = onComplete;
   }
 
+  public void setOnNavigate(Consumer<JsArray<JSObject>> onNavigate) {
+    this.onNavigate = onNavigate;
+  }
+
   public void shutdown(Runnable onShutdown) {
     this.isShutdown = true;
     this.onShutdown = onShutdown;
@@ -747,5 +759,67 @@ public class RemoteCollector {
 
   private boolean isErrorInts(int[] ints) {
     return ints.length == 1 && ints[0] == -1;
+  }
+
+  public void navigate(int[] path, boolean left, boolean next) {
+    FolderDiffModel navigated = null;
+    RemoteFolderDiffModel filtered = filteredFolderDiffModel();
+    int[] filteredPath = filteredPath(filtered, path);
+    if (filteredPath.length == 0) {
+      if (next) navigated = filtered.findNextFileDiff(-1);
+    } else {
+      FolderDiffModel[] models = filtered.getModelsByPath(filteredPath);
+      navigated = next
+          ? navigateNext(models, filteredPath, path.length - 1)
+          : navigatePrev(models, filteredPath, path.length - 1);
+      if (navigated == null) {
+        var lastModel = models[models.length - 1];
+        var child = lastModel.child(filteredPath[path.length - 1]);
+        if (child.isFile() && child.getDiffType() != DiffTypes.DEFAULT) navigated = child;
+      }
+    }
+
+    if (navigated != null) {
+      LoggingJs.debug("Navigate to " + JSString.valueOf(((RemoteFolderDiffModel) navigated).getFullPath("")));
+      sendNavigated(filtered, navigated, left);
+    } else {
+      LoggingJs.debug("Can't find model to navigate");
+    }
+  }
+
+  private FolderDiffModel navigateNext(FolderDiffModel[] models, int[] path, int ind) {
+    if (ind < 0) return null;
+    var model = models[ind];
+    int stIndex = path[ind];
+    if (ind == path.length - 1 && models[ind].child(path[ind]).isDir()) stIndex--;
+    var next = model.findNextFileDiff(stIndex);
+    return next != null ? next : navigateNext(models, path, ind - 1);
+  }
+
+  private FolderDiffModel navigatePrev(FolderDiffModel[] models, int[] path, int ind) {
+    if (ind < 0) return null;
+    var model = models[ind];
+    var next = model.findPrevFileDiff(path[ind]);
+    return next != null ? next : navigatePrev(models, path, ind - 1);
+  }
+
+  private void sendNavigated(
+      RemoteFolderDiffModel filtered,
+      FolderDiffModel navigated,
+      boolean left
+  ) {
+    int[] path = navigated.getPathFromRoot();
+    int[] filteredPath = filteredPath(filtered, path);
+    lastFrontendMessage.openPath(filtered, filteredPath);
+    var navigateMsg = serializeBackendMessage(filtered, lastFrontendMessage);
+    navigateMsg.push(JsCast.jsInts(left ? 1 : 0));
+    navigateMsg.push(JsCast.jsInts(filteredPath));
+    navigateMsg.push(DiffModelChannelUpdater.NAVIGATE_ARRAY);
+    onNavigate(navigateMsg);
+  }
+
+  private int[] filteredPath(FolderDiffModel filtered, int[] path) {
+    if (!isFiltered()) return path;
+    return filtered.filteredPath(path);
   }
 }

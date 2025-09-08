@@ -12,6 +12,18 @@ public class FrontendTreeNode {
   public boolean isFile;
   public FrontendTreeNode[] children;
 
+  public FrontendTreeNode() {
+  }
+
+  public FrontendTreeNode(RemoteFolderDiffModel model) {
+    this(model.path, model.isFile());
+  }
+
+  public FrontendTreeNode(String name, boolean isFile) {
+    this.name = name;
+    this.isFile = isFile;
+  }
+
   FrontendTreeNode findNode(int[] path) {
     return findNode(path, 0);
   }
@@ -30,39 +42,45 @@ public class FrontendTreeNode {
     return child.findNode(path);
   }
 
+  public void openPath(RemoteFolderDiffModel model, int[] path, int ind) {
+    if (ind == path.length || model.children == null) return;
+    int childInd = path[ind];
+    if (children == null) children = mkChildrenWithModel(model);
+    var childModel = model.child(childInd);
+    child(childModel.path, childModel.isFile()).openPath(childModel, path, ind + 1);
+  }
+
   public void updateDeepWithModel(RemoteFolderDiffModel model) {
     if (children == null) return;
     FrontendTreeNode[] newChildren = new FrontendTreeNode[model.children.length];
     for (int i = 0; i < model.children.length; i++) {
       var modelChild = model.child(i);
       var nodeChild = child(i, modelChild.path, modelChild.isFile());
-      if (nodeChild == null) {
-        nodeChild = new FrontendTreeNode();
-        nodeChild.name = modelChild.path;
-        nodeChild.isFile = modelChild.isFile();
-      } else {
-        nodeChild.updateDeepWithModel(modelChild);
-      }
+      if (nodeChild == null) nodeChild = new FrontendTreeNode(modelChild);
+      nodeChild.updateDeepWithModel(modelChild);
       newChildren[i] = nodeChild;
     }
     children = newChildren;
   }
 
-  // model can contain only less or equal elements
   public void updateWithModel(RemoteFolderDiffModel model) {
     if (children == null) return;
     FrontendTreeNode[] newChildren = new FrontendTreeNode[model.children.length];
     for (int i = 0; i < model.children.length; i++) {
       var modelChild = model.child(i);
       var nodeChild = child(i, modelChild.path, modelChild.isFile());
-      if (nodeChild == null) {
-        nodeChild = new FrontendTreeNode();
-        nodeChild.name = modelChild.path;
-        nodeChild.isFile = modelChild.isFile();
-      }
+      if (nodeChild == null) nodeChild = new FrontendTreeNode(modelChild);
       newChildren[i] = nodeChild;
     }
     children = newChildren;
+  }
+
+  public static FrontendTreeNode[] mkChildrenWithModel(RemoteFolderDiffModel model) {
+    FrontendTreeNode[] children = new FrontendTreeNode[model.children.length];
+    for (int i = 0; i < children.length; i++) {
+      children[i] = new FrontendTreeNode(model.child(i));
+    }
+    return children;
   }
 
   public void collectPath(int[] path, ArrayWriter pathWriter, FolderDiffModel model, int side) {
@@ -98,15 +116,27 @@ public class FrontendTreeNode {
     this.children = newChildren;
   }
 
+  public FrontendTreeNode child(String path, boolean isFile) {
+    for (var child: children) {
+      if (child.match(path, isFile)) return child;
+    }
+    return null;
+  }
+
   public FrontendTreeNode child(int i, String path, boolean isFile) {
     if (0 <= i && i < children.length) {
       var child = children[i];
-      if (child.name.equals(path) && child.isFile == isFile) return child;
+      if (child.match(path, isFile)) return child;
     }
-    for (var child: children) {
-      if (child.name.equals(path) && child.isFile == isFile) return child;
-    }
-    return null;
+    return child(path, isFile);
+  }
+
+  public boolean match(RemoteFolderDiffModel model) {
+    return match(model.path, model.isFile());
+  }
+
+  public boolean match(String name, boolean isFile) {
+    return this.isFile == isFile && this.name.equals(name);
   }
 
   public boolean isOpened() {
