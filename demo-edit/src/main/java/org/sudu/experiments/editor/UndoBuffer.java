@@ -7,7 +7,7 @@ import java.util.*;
 
 public class UndoBuffer {
 
-  private final Map<Document, Deque<Pair<Diff[], Integer>>> diffs;
+  private final Map<Document, UndoStack> diffs;
   private int diffCnt;
 
   public UndoBuffer() {
@@ -16,16 +16,21 @@ public class UndoBuffer {
   }
 
   public void addDiff(Document doc, Diff[] diff) {
-    diffs.putIfAbsent(doc, new ArrayDeque<>());
+    diffs.putIfAbsent(doc, new UndoStack());
     diffs.get(doc).add(Pair.of(diff, diffCnt++));
   }
 
-  public V2i undoLastDiff(Document doc) {
+  public V2i undoLastDiff(Document doc, boolean shift) {
     if (diffs.isEmpty()) return null;
-    var deque = diffs.get(doc);
-    if (deque == null || deque.isEmpty()) return null;
-    Diff[] lastDiff = deque.removeLast().first;
-    return doc.undoLastDiff(lastDiff);
+    var stack = diffs.get(doc);
+    if (stack == null || stack.isEmpty()) return null;
+    Diff[] lastDiff = stack.removeLast().first;
+    return doc.undoLastDiff(lastDiff, shift);
+  }
+
+  public void undoLastDiff(EditorComponent editor1, EditorComponent editor2, boolean shift) {
+    if (!shift) undoLastDiff(editor1, editor2);
+    else redoLastDiff(editor1, editor2);
   }
 
   public void undoLastDiff(EditorComponent editor1, EditorComponent editor2) {
@@ -50,7 +55,33 @@ public class UndoBuffer {
       lastDiff = deque1.removeLast().first;
     }
     if (editor == null || lastDiff == null) return;
-    var diff = editor.model().document.undoLastDiff(lastDiff);
+    var diff = editor.model().document.undoLastDiff(lastDiff, false);
+    editor.setCaretLinePos(diff.x, diff.y, false);
+  }
+
+  public void redoLastDiff(EditorComponent editor1, EditorComponent editor2) {
+    if (diffs.isEmpty()) return;
+    Document doc1 = editor1.model.document;
+    Document doc2 = editor2.model.document;
+    var deque1 = diffs.get(doc1);
+    var deque2 = diffs.get(doc2);
+    boolean empty1 = deque1 == null || !deque1.haveNext();
+    boolean empty2 = deque2 == null || !deque2.haveNext();
+    int ind1 = empty1 ? Integer.MAX_VALUE : deque1.peekNext().second;
+    int ind2 = empty2 ? Integer.MAX_VALUE : deque2.peekNext().second;
+    if (empty1 && empty2) return;
+    EditorComponent editor = null;
+    Diff[] lastDiff = null;
+    if (ind2 < ind1) {
+      editor = editor2;
+      lastDiff = deque2.removeNext().first;
+    }
+    if (ind1 < ind2) {
+      editor = editor1;
+      lastDiff = deque1.removeNext().first;
+    }
+    if (editor == null || lastDiff == null) return;
+    var diff = editor.model().document.undoLastDiff(lastDiff, true);
     editor.setCaretLinePos(diff.x, diff.y, false);
   }
 

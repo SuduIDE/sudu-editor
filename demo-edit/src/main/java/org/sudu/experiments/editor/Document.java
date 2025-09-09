@@ -518,15 +518,16 @@ public class Document extends CodeLines {
     }
   }
 
-  public V2i undoLastDiff() {
-    return undoBuffer.undoLastDiff(this);
+  public V2i undoLastDiff(boolean shift) {
+    return undoBuffer.undoLastDiff(this, shift);
   }
 
-  public V2i undoLastDiff(Diff[] complexDiff) {
+  public V2i undoLastDiff(Diff[] complexDiff, boolean shift) {
     currentVersion++;
-    V2i res = undoSingleDiff(complexDiff[0]);
+    if (shift) complexDiff = ArrayOp.reverse(complexDiff);
+    V2i res = undoSingleDiff(complexDiff[0], shift);
     for (int i = 1; i < complexDiff.length; i++) {
-      undoSingleDiff(complexDiff[i]);
+      undoSingleDiff(complexDiff[i], shift);
     }
     onDiffMade();
     return res;
@@ -536,9 +537,9 @@ public class Document extends CodeLines {
     this.undoBuffer = undoBuffer;
   }
 
-  private V2i undoSingleDiff(Diff diff) {
+  private V2i undoSingleDiff(Diff diff, boolean shift) {
     String[] lines = diff.change.split("\n", -1);
-    if (diff.isDelete) {
+    if (diff.isDelete ^ shift) {
       insertLinesOp(diff.line, diff.pos, lines);
       tree.makeInsertDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
       scopeGraph.makeInsertDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());

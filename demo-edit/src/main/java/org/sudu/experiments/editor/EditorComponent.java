@@ -258,9 +258,9 @@ public class EditorComponent extends View implements
     caret.startDelay(window().timeNow());
   }
 
-  private void undoLastDiff() {
+  private void undoLastDiff(boolean shift) {
     if (selection().isAreaSelected()) setSelectionToCaret();
-    var caretDiff = model.document.undoLastDiff();
+    var caretDiff = model.document.undoLastDiff(shift);
     if (caretDiff == null) return;
     setCaretLinePos(caretDiff.x, caretDiff.y, false);
     updateDocumentDiffTimeStamp();
@@ -1661,7 +1661,7 @@ public class EditorComponent extends View implements
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
 
     if (!readonly && event.ctrl && event.keyCode == KeyCode.Z) {
-      undoLastDiff();
+      undoLastDiff(event.shift);
       return true;
     }
 

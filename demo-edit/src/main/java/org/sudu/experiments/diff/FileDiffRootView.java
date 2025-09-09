@@ -384,8 +384,8 @@ class FileDiffRootView extends DiffRootView {
     if (onRefresh != null) onRefresh.run();
   }
 
-  public void undoLastDiff() {
-    undoBuffer.undoLastDiff(editor1, editor2);
+  public void undoLastDiff(boolean shift) {
+    undoBuffer.undoLastDiff(editor1, editor2, shift);
   }
 
   public void unsetModelFlagsBit(int bit) {
