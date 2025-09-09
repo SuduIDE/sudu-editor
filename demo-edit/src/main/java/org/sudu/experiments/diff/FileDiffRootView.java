@@ -30,7 +30,7 @@ class FileDiffRootView extends DiffRootView {
   boolean firstDiffRevealed = false, needScrollSync = false;
   private static final boolean showNavigateLog = true;
   private Runnable onRefresh, onDiffModelSet;
-  private final boolean isCodeReview;
+  public final boolean isCodeReview;
   private final UndoBuffer undoBuffer;
 
   protected final long startTime = System.currentTimeMillis();
