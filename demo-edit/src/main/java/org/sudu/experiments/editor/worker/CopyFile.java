@@ -58,48 +58,57 @@ class CopyFile {
     if (dstAccess != null) copyFileSync();
   }
 
+  // todo: do we need to delete the dst file on error ?
+
   private void copyFileSync() {
     double size = srcAccess.getSize(), pos = 0;
     int limited = size < copyFileSyncBlock
         ? (int) size : copyFileSyncBlock;
+    String error = null;
     nextData = new byte[limited];
     for (; pos < size; ) {
       try {
-        double read = srcAccess.read(nextData, pos);
+        int read = srcAccess.read(nextData, pos);
         if (read > 0) {
-          double write = dstAccess.write(nextData, pos);
+          int write = dstAccess.write(nextData, read, pos);
           if (write != read) {
-            close();
-            onError("file '" + dst.getFullPath() +
-                "': write failed to write " + ((int)write) + " bytes");
+            error = "file '" + dst.getFullPath() +
+                "': write failed to write " + write + " bytes, read = " + read;
             break;
           } else  {
             pos += read;
           }
         } else {
-          close();
-          onError("file '" + src.getFullPath() +
-              "': read failed at position" + pos);
+          error = "file '" + src.getFullPath() +
+              "': read failed at position" + pos;
           break;
         }
       } catch (IOException e) {
-        close();
-        onError(e.getMessage());
+        error = e.getMessage();
         break;
       }
     }
-    if (pos == size)
-      postComplete(size);
-  }
+    boolean srcClosed = srcAccess.close();
+    boolean dstClosed = dstAccess.close();
+    srcAccess = null;
+    dstAccess = null;
 
-  private void close() {
-    srcAccess.close();
-    dstAccess.close();
-    // todo: do we need to delete the dst file ?
+    if (error == null && !(srcClosed && dstClosed))
+      error = srcClosed
+          ? "error closing destination file"
+          : "error closing source file";
+
+    if (pos != size && error == null)
+      error = "not full file copied";
+
+    if (error == null)
+      postComplete(size);
+    else
+      onError(error);
   }
 
   void onError(String error) {
-    System.out.println("CopyFile.onError: " + error);
+    if (debug) System.out.println("CopyFile.onError: " + error);
     FsWorkerJobs.postCopyError(error, r);
   }
 

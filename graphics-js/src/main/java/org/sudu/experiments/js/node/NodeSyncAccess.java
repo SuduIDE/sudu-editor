@@ -40,11 +40,11 @@ public class NodeSyncAccess implements FileHandle.SyncAccess {
   }
 
   @Override
-  public int write(byte[] buf, double filePos) throws IOException {
+  public int write(byte[] buf, int length, double filePos) throws IOException {
     try {
       return Fs.fs().writeSync(handle,
           JsMemoryAccess.uInt8View(buf),
-          0, buf.length, filePos);
+          0, length, filePos);
     } catch (Throwable e) {
       throw new IOException(e.getMessage());
     }
