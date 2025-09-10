@@ -258,11 +258,11 @@ public class EditorComponent extends View implements
     caret.startDelay(window().timeNow());
   }
 
-  private void undoLastDiff(boolean shift) {
+  private void undoLastDiff(boolean isRedo) {
     if (selection().isAreaSelected()) setSelectionToCaret();
-    var caretDiff = model.document.undoLastDiff(shift);
+    var caretDiff = model.document.undoLastDiff(isRedo);
     if (caretDiff == null) return;
-    var caretReturn = caretDiff.caretReturn;
+    var caretReturn = isRedo ? caretDiff.caretPos : caretDiff.caretReturn;
     setCaretLinePos(caretReturn.x, caretReturn.y, false);
     updateDocumentDiffTimeStamp();
     onDiffMade();

@@ -19,16 +19,16 @@ public class UndoBuffer {
     diffs.get(doc).add(Pair.of(diff, diffCnt++));
   }
 
-  public Diff undoLastDiff(Document doc, boolean shift) {
+  public Diff undoLastDiff(Document doc, boolean isRedo) {
     if (diffs.isEmpty()) return null;
     var stack = diffs.get(doc);
     if (stack == null || stack.isEmpty()) return null;
     Diff[] lastDiff = stack.removeLast().first;
-    return doc.undoLastDiff(lastDiff, shift);
+    return doc.undoLastDiff(lastDiff, isRedo);
   }
 
-  public void undoLastDiff(EditorComponent editor1, EditorComponent editor2, boolean shift) {
-    if (!shift) undoLastDiff(editor1, editor2);
+  public void undoLastDiff(EditorComponent editor1, EditorComponent editor2, boolean isRedo) {
+    if (!isRedo) undoLastDiff(editor1, editor2);
     else redoLastDiff(editor1, editor2);
   }
 
@@ -36,22 +36,22 @@ public class UndoBuffer {
     if (diffs.isEmpty()) return;
     Document doc1 = editor1.model.document;
     Document doc2 = editor2.model.document;
-    var deque1 = diffs.get(doc1);
-    var deque2 = diffs.get(doc2);
-    boolean empty1 = deque1 == null || deque1.isEmpty();
-    boolean empty2 = deque2 == null || deque2.isEmpty();
-    int ind1 = empty1 ? -1 : deque1.peekLast().second;
-    int ind2 = empty2 ? -1 : deque2.peekLast().second;
+    var stack1 = diffs.get(doc1);
+    var stack2 = diffs.get(doc2);
+    boolean empty1 = stack1 == null || stack1.isEmpty();
+    boolean empty2 = stack2 == null || stack2.isEmpty();
+    int ind1 = empty1 ? -1 : stack1.peekLast().second;
+    int ind2 = empty2 ? -1 : stack2.peekLast().second;
     if (empty1 && empty2) return;
     EditorComponent editor = null;
     Diff[] lastDiff = null;
     if (ind2 > ind1) {
       editor = editor2;
-      lastDiff = deque2.removeLast().first;
+      lastDiff = stack2.removeLast().first;
     }
     if (ind1 > ind2) {
       editor = editor1;
-      lastDiff = deque1.removeLast().first;
+      lastDiff = stack1.removeLast().first;
     }
     if (editor == null || lastDiff == null) return;
     var diff = editor.model().document.undoLastDiff(lastDiff, false);
@@ -63,22 +63,22 @@ public class UndoBuffer {
     if (diffs.isEmpty()) return;
     Document doc1 = editor1.model.document;
     Document doc2 = editor2.model.document;
-    var deque1 = diffs.get(doc1);
-    var deque2 = diffs.get(doc2);
-    boolean empty1 = deque1 == null || !deque1.haveNext();
-    boolean empty2 = deque2 == null || !deque2.haveNext();
-    int ind1 = empty1 ? Integer.MAX_VALUE : deque1.peekNext().second;
-    int ind2 = empty2 ? Integer.MAX_VALUE : deque2.peekNext().second;
+    var stack1 = diffs.get(doc1);
+    var stack2 = diffs.get(doc2);
+    boolean empty1 = stack1 == null || !stack1.haveNext();
+    boolean empty2 = stack2 == null || !stack2.haveNext();
+    int ind1 = empty1 ? Integer.MAX_VALUE : stack1.peekNext().second;
+    int ind2 = empty2 ? Integer.MAX_VALUE : stack2.peekNext().second;
     if (empty1 && empty2) return;
     EditorComponent editor = null;
     Diff[] lastDiff = null;
     if (ind2 < ind1) {
       editor = editor2;
-      lastDiff = deque2.removeNext().first;
+      lastDiff = stack2.removeNext().first;
     }
     if (ind1 < ind2) {
       editor = editor1;
-      lastDiff = deque1.removeNext().first;
+      lastDiff = stack1.removeNext().first;
     }
     if (editor == null || lastDiff == null) return;
     var diff = editor.model().document.undoLastDiff(lastDiff, true);
@@ -88,9 +88,9 @@ public class UndoBuffer {
 
   public Diff[] lastDiff(Document doc) {
     if (diffs.isEmpty()) return null;
-    var deque = diffs.get(doc);
-    if (deque == null || deque.isEmpty()) return null;
-    return deque.peekLast().first;
+    var stack = diffs.get(doc);
+    if (stack == null || stack.isEmpty()) return null;
+    return stack.peekLast().first;
   }
 
   public void clear(Document doc) {

@@ -9,6 +9,7 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.common.graph.ScopeGraph;
+import org.sudu.experiments.text.SplitText;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -518,17 +519,17 @@ public class Document extends CodeLines {
     }
   }
 
-  public Diff undoLastDiff(boolean shift) {
-    return undoBuffer.undoLastDiff(this, shift);
+  public Diff undoLastDiff(boolean isRedo) {
+    return undoBuffer.undoLastDiff(this, isRedo);
   }
 
-  public Diff undoLastDiff(Diff[] complexDiff, boolean shift) {
+  public Diff undoLastDiff(Diff[] complexDiff, boolean isRedo) {
     currentVersion++;
-    if (shift) complexDiff = ArrayOp.reverse(complexDiff);
+    if (isRedo) complexDiff = ArrayOp.reverse(complexDiff);
     var firstDiff = complexDiff[0];
-    undoSingleDiff(firstDiff, shift);
+    undoSingleDiff(firstDiff, isRedo);
     for (int i = 1; i < complexDiff.length; i++) {
-      undoSingleDiff(complexDiff[i], shift);
+      undoSingleDiff(complexDiff[i], isRedo);
     }
     onDiffMade();
     return firstDiff;
@@ -538,9 +539,9 @@ public class Document extends CodeLines {
     this.undoBuffer = undoBuffer;
   }
 
-  private void undoSingleDiff(Diff diff, boolean shift) {
-    String[] lines = diff.change.split("\n", -1);
-    if (diff.isDelete ^ shift) {
+  private void undoSingleDiff(Diff diff, boolean isRedo) {
+    String[] lines = SplitText.split(diff.change);
+    if (diff.isDelete ^ isRedo) {
       insertLinesOp(diff.line, diff.pos, lines);
       tree.makeInsertDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
       scopeGraph.makeInsertDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
@@ -559,7 +560,7 @@ public class Document extends CodeLines {
       tree.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
       scopeGraph.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
     }
-    updateModelOnDiff(diff, !shift);
+    updateModelOnDiff(diff, !isRedo);
   }
 
   public void setLastDiffTimestamp(double timestamp) {
