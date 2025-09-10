@@ -68,6 +68,8 @@ export interface ITextModel extends IDisposable {
   getText(): string
 
   setEditListener(listener: (m: ITextModel) => void): void
+
+  setSemanticTokens(legend: object [], semanticTokens: object[]): void
 }
 
 type ProviderValue<T> = T | undefined | null;

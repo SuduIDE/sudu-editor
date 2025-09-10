@@ -6,6 +6,8 @@ import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.SplitJsText;
 import org.sudu.experiments.js.TextDecoder;
+import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSString;
 
 public class JsTextModel implements JsITextModel {
@@ -37,6 +39,11 @@ public class JsTextModel implements JsITextModel {
     this.fireEvent = fireEvent;
     javaModel.document.replaceText(lines);
     this.fireEvent = true;
+  }
+
+  @Override
+  public void setSemanticTokens(JSArray<JSObject> legend, JSArray<JSObject> semanticTokens) {
+
   }
 
   @Override
