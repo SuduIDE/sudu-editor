@@ -1,6 +1,5 @@
 package org.sudu.experiments.editor;
 
-import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.common.Pair;
 
 import java.util.*;
@@ -20,7 +19,7 @@ public class UndoBuffer {
     diffs.get(doc).add(Pair.of(diff, diffCnt++));
   }
 
-  public V2i undoLastDiff(Document doc, boolean shift) {
+  public Diff undoLastDiff(Document doc, boolean shift) {
     if (diffs.isEmpty()) return null;
     var stack = diffs.get(doc);
     if (stack == null || stack.isEmpty()) return null;
@@ -56,7 +55,8 @@ public class UndoBuffer {
     }
     if (editor == null || lastDiff == null) return;
     var diff = editor.model().document.undoLastDiff(lastDiff, false);
-    editor.setCaretLinePos(diff.x, diff.y, false);
+    var caretReturn = diff.caretReturn;
+    editor.setCaretLinePos(caretReturn.x, caretReturn.y, false);
   }
 
   public void redoLastDiff(EditorComponent editor1, EditorComponent editor2) {
@@ -82,7 +82,8 @@ public class UndoBuffer {
     }
     if (editor == null || lastDiff == null) return;
     var diff = editor.model().document.undoLastDiff(lastDiff, true);
-    editor.setCaretLinePos(diff.x, diff.y, false);
+    var caretReturn = diff.caretPos;
+    editor.setCaretLinePos(caretReturn.x, caretReturn.y, false);
   }
 
   public Diff[] lastDiff(Document doc) {

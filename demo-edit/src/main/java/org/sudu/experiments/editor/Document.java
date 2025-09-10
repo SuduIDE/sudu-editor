@@ -518,26 +518,27 @@ public class Document extends CodeLines {
     }
   }
 
-  public V2i undoLastDiff(boolean shift) {
+  public Diff undoLastDiff(boolean shift) {
     return undoBuffer.undoLastDiff(this, shift);
   }
 
-  public V2i undoLastDiff(Diff[] complexDiff, boolean shift) {
+  public Diff undoLastDiff(Diff[] complexDiff, boolean shift) {
     currentVersion++;
     if (shift) complexDiff = ArrayOp.reverse(complexDiff);
-    V2i res = undoSingleDiff(complexDiff[0], shift);
+    var firstDiff = complexDiff[0];
+    undoSingleDiff(firstDiff, shift);
     for (int i = 1; i < complexDiff.length; i++) {
       undoSingleDiff(complexDiff[i], shift);
     }
     onDiffMade();
-    return res;
+    return firstDiff;
   }
 
   public void setUndoBuffer(UndoBuffer undoBuffer) {
     this.undoBuffer = undoBuffer;
   }
 
-  private V2i undoSingleDiff(Diff diff, boolean shift) {
+  private void undoSingleDiff(Diff diff, boolean shift) {
     String[] lines = diff.change.split("\n", -1);
     if (diff.isDelete ^ shift) {
       insertLinesOp(diff.line, diff.pos, lines);
@@ -558,8 +559,7 @@ public class Document extends CodeLines {
       tree.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
       scopeGraph.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
     }
-    updateModelOnDiff(diff, true);
-    return diff.caretReturn;
+    updateModelOnDiff(diff, !shift);
   }
 
   public void setLastDiffTimestamp(double timestamp) {

@@ -1,11 +1,13 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.text.SplitText;
 
 public class Diff {
   public int line, pos;
   public boolean isDelete;
-  V2i caretReturn;
+  V2i caretReturn;  // Caret before diff
+  V2i caretPos;     // Caret after diff
   int syncPointDiff = -1;
   String change;
 
@@ -15,6 +17,8 @@ public class Diff {
     this.caretReturn = makeCaretReturnPos(line, pos, isDelete, change);
     this.isDelete = isDelete;
     this.change = change;
+    if (!isDelete) this.caretPos = caretReturn;
+    this.caretPos = makeCaretReturnPos(caretReturn.x, caretReturn.y, isDelete, change);
   }
 
   public Diff(int line, int pos, boolean isDelete, String change, int caretLine, int caretPos) {
@@ -23,6 +27,8 @@ public class Diff {
     this.caretReturn = new V2i(caretLine, caretPos);
     this.isDelete = isDelete;
     this.change = change;
+    if (!isDelete) this.caretPos = caretReturn;
+    this.caretPos = makeCaretReturnPos(caretReturn.x, caretReturn.y, isDelete, change);
   }
 
   public int length() {
@@ -36,15 +42,15 @@ public class Diff {
     return lineCnt;
   }
 
+  private V2i changeDelta(String change) {
+    String[] lines = SplitText.split(change);
+    return new V2i(lines.length - 1, lines[lines.length - 1].length());
+  }
+
   private V2i makeCaretReturnPos(int line, int pos, boolean isDelete, String change) {
-    String[] lines = change.split("\n", 0);
-    if (isDelete && lines.length > 0) {
-      if (lines.length == 1) {
-        return new V2i(line, pos + lines[0].length());
-      } else {
-        return new V2i(line + lines.length - 1, lines[lines.length - 1].length());
-      }
-    }
-    return new V2i(line, pos);
+    if (isDelete || change.isEmpty()) return new V2i(line, pos);
+    var delta = changeDelta(change);
+    if (delta.x == 0) return new V2i(line, pos + delta.y);
+    else return new V2i(line + delta.x, delta.y);
   }
 }

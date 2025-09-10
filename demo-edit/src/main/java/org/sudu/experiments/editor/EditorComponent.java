@@ -262,7 +262,8 @@ public class EditorComponent extends View implements
     if (selection().isAreaSelected()) setSelectionToCaret();
     var caretDiff = model.document.undoLastDiff(shift);
     if (caretDiff == null) return;
-    setCaretLinePos(caretDiff.x, caretDiff.y, false);
+    var caretReturn = caretDiff.caretReturn;
+    setCaretLinePos(caretReturn.x, caretReturn.y, false);
     updateDocumentDiffTimeStamp();
     onDiffMade();
   }
