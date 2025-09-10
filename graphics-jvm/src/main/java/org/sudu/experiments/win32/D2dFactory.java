@@ -165,9 +165,10 @@ public class D2dFactory implements WglGraphics.CanvasFactory {
         return textLayoutMetrics[IDWriteTextLayout.widthIncludingTrailingWhitespaceIdx];
       }
       hr[0] = _hr;
+      System.err.println("IDWriteTextLayout.GetMetrics failed: " + errorString());
+    } else {
+      System.err.println("IDWriteFactory5.CreateTextLayout failed: " + errorString());
     }
-
-    System.err.println("IDWriteFactory5.CreateTextLayout failed: " + errorString());
     IUnknown.safeRelease(layout);
     return 0;
   }
