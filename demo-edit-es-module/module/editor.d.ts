@@ -57,6 +57,66 @@ export interface IModelChangedEvent {
   readonly newModelUrl: Uri | null;
 }
 
+export enum _SemanticTokenType {
+  Namespace = 'namespace', // For identifiers that declare or reference a namespace, module, or package.
+  Class = 'class', // For identifiers that declare or reference a class type.
+  Enum = 'enum', // For identifiers that declare or reference an enumeration type.
+  Interface = 'interface', // For identifiers that declare or reference an interface type.
+  Struct = 'struct', // For identifiers that declare or reference a struct type.
+  TypeParameter = 'typeParameter', // For identifiers that declare or reference a type parameter.
+  Type = 'type', // For identifiers that declare or reference a type that is not covered above.
+  Parameter = 'parameter', // For identifiers that declare or reference a function or method parameters.
+  Variable = 'variable', // For identifiers that declare or reference a local or global variable.
+  Property = 'property', // For identifiers that declare or reference a member property, member field, or member variable.
+  EnumMember = 'enumMember', // For identifiers that declare or reference an enumeration property, constant, or member.
+  Decorator = 'decorator', // For identifiers that declare or reference decorators and annotations.
+  Event = 'event', // For identifiers that declare an event property.
+  Function = 'function', // For identifiers that declare a function.
+  Method = 'method', // For identifiers that declare a member function or method.
+  Macro = 'macro', // For identifiers that declare a macro.
+  Label = 'label', // For identifiers that declare a label.
+  Comment = 'comment', // For tokens that represent a comment.
+  String = 'string', // For tokens that represent a string literal.
+  Keyword = 'keyword', // For tokens that represent a language keyword.
+  Number = 'number', // For tokens that represent a number literal.
+  Regexp = 'regexp', // For tokens that represent a regular expression literal.
+  Operator = 'operator', // For tokens that represent an operator.
+}
+
+export enum _SemanticTokenModifiers {
+  Declaration = 'declaration', // For declarations of symbols.
+  Definition = 'definition', // For definitions of symbols, for example, in header files.
+  Readonly = 'readonly', // For readonly variables and member fields (constants).
+  Static = 'static', // For class members (static members).
+  Deprecated = 'deprecated', // For symbols that should no longer be used.
+  Abstract = 'abstract', // For types and member functions that are abstract.
+  Async = 'async', // For functions that are marked async.
+  Modification = 'modification', // For variable references where the variable is assigned to.
+  Documentation = 'documentation', // For occurrences of symbols in documentation.
+  DefaultLibrary = 'defaultLibrary', // For symbols that are part of the standard library.
+}
+
+export type _SemanticToken = {
+  line: number;
+  startChar: number;
+  length: number;
+  legendIdx: number;
+  text: string;
+};
+
+export type _SemanticTokenColorSettings = {
+  foreground?: string
+  background?: string
+  italic?: boolean
+  bold?: boolean
+};
+
+export type _SemanticTokenLegendItem = {
+  tokenType: string;
+  modifiers: _SemanticTokenModifiers[];
+  color?: _SemanticTokenColorSettings;
+};
+
 export interface ITextModel extends IDisposable {
   language?: string
   uri?: Uri
@@ -69,7 +129,7 @@ export interface ITextModel extends IDisposable {
 
   setEditListener(listener: (m: ITextModel) => void): void
 
-  setSemanticTokens(legend: SemanticTokenLegendItem[], semanticTokens: SemanticToken[]): void
+  setSemanticTokens(legend: _SemanticTokenLegendItem[], semanticTokens: _SemanticToken[]): void
 }
 
 type ProviderValue<T> = T | undefined | null;
@@ -462,3 +522,4 @@ export function newRemoteFolderDiff(args: EditArgs, channel: Channel): Promise<R
 export function newRemoteFileDiff(args: EditArgs, channel: Channel): Promise<RemoteFileDiffView>
 
 export function newRemoteEditor(args: EditArgs, channel: Channel): Promise<RemoteEditorView>
+
