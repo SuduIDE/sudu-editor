@@ -22,15 +22,9 @@ public class View implements Disposable {
   }
 
   public void setPosition(V2i newPos, V2i newSize, float newDpr) {
-    if (!pos.equals(newPos)) {
-      onPosChange(newPos);
-      pos.set(newPos);
-    }
-    if (!size.equals(newSize)) {
-      onSizeChange(newSize);
-      size.set(newSize);
-    }
-    if (dpr != newDpr) onDprChange(dpr, dpr = newDpr);
+    pos.set(newPos);
+    size.set(newSize);
+    dpr = newDpr;
   }
 
   public void setDprNoFire(float newDpr) {
@@ -68,12 +62,6 @@ public class View implements Disposable {
   protected boolean update(double timestamp) {
     return false;
   }
-
-  protected void onPosChange(V2i newPos) {}
-
-  protected void onSizeChange(V2i newSize) {}
-
-  protected void onDprChange(float olDpr, float newDpr) {}
 
   protected void onTextRenderingSettingsChange() {}
 

@@ -156,7 +156,8 @@ public class TreeView extends ScrollContent implements Focusable {
   }
 
   @Override
-  protected void onDprChange(float olDpr, float newDpr) {
+  public void setPosition(V2i newPos, V2i newSize, float newDpr) {
+    super.setPosition(newPos, newSize, newDpr);
     clrContext.setDpr(newDpr);
     if (uiFont != null)
       changeFont();
