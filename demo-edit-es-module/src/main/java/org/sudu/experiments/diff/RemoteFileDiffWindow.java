@@ -167,7 +167,7 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     return n != 1 ? "s" : "";
   }
 
-  static String sSuffix(int n, String name) {
+  public static String sSuffix(int n, String name) {
     return switch (n) {
       case 0 -> "No " + name + "s";
       case 1 -> "1 " + name;

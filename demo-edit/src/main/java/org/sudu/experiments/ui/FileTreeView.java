@@ -67,6 +67,10 @@ public class FileTreeView extends TreeView {
     mergeButtons.setColors(colors);
   }
 
+  public void disableMergeButtons() {
+    mergeButtons = null;
+  }
+
   public void setRoot(FileTreeNode root) {
     this.root = root;
     updateModel();

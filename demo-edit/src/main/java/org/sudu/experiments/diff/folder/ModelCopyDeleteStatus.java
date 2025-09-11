@@ -9,18 +9,18 @@ public class ModelCopyDeleteStatus {
 
   int inWork, inTraverse;
   final WorkerJobExecutor executor;
-  final Runnable onComplete;
   final Consumer<String> onError;
+  Runnable onComplete;
+  public int copiedFiles, copiedDirs;
+  public int deletedFiles, deletedDirs;
 
   final IdentityHashMap<ItemFolderDiffModel, Integer> markedForDelete;
 
   public ModelCopyDeleteStatus(
       WorkerJobExecutor executor,
-      Runnable onComplete,
       Consumer<String> onError
   ) {
     this.executor = executor;
-    this.onComplete = onComplete;
     this.onError = onError;
     markedForDelete = new IdentityHashMap<>();
   }
@@ -30,18 +30,27 @@ public class ModelCopyDeleteStatus {
     onComplete();
   }
 
-  public void onCopied() {
+  public void onFileCopied() {
     inWork--;
+    copiedFiles++;
+    onComplete();
+  }
+
+  public void onDirCopied() {
+    inWork--;
+    copiedDirs++;
     onComplete();
   }
 
   public void onFileDeleted(ItemFolderDiffModel file) {
     inWork--;
+    deletedFiles++;
     onChildDeleted(file);
     onComplete();
   }
 
   public void onDirDeleted(ItemFolderDiffModel dir) {
+    deletedDirs++;
     removeMarked(dir);
     onChildDeleted(dir);
     onComplete();
@@ -96,5 +105,9 @@ public class ModelCopyDeleteStatus {
 
   public boolean marked(ItemFolderDiffModel model) {
     return markedForDelete.containsKey(model);
+  }
+
+  public void setOnComplete(Runnable onComplete) {
+    this.onComplete = onComplete;
   }
 }

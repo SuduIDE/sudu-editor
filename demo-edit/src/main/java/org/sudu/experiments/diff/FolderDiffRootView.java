@@ -85,6 +85,11 @@ class FolderDiffRootView extends DiffRootView {
     right.enableMergeButtons(models[1].actions, models[1].lines, rightColors, false);
   }
 
+  public void disableMergeButtons() {
+    left.disableMergeButtons();
+    right.disableMergeButtons();
+  }
+
   public void fireFinished() {
     for (IntConsumer listener: stateListeners.array())
       listener.accept(1);

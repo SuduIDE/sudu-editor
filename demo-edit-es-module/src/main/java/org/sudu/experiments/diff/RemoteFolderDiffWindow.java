@@ -80,6 +80,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private String leftRootPath, rightRootPath;
 
   private boolean disableParser;
+  private boolean syncInProcess;
 
   public RemoteFolderDiffWindow(
       EditorColorScheme theme,
@@ -247,11 +248,21 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private void onDiffApplied(JsArray<JSObject> jsResult) {
-    LoggingJs.info("RemoteFolderDiffWindow.onDiffApplied");
+    syncInProcess = false;
+    int[] ints = JsCast.ints(jsResult.pop());
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
     setStatMessages(msg);
     if (!isFiltered()) lastFrontendMessage.openedFolders.updateDeepWithModel(rootModel);
+    updateNodes();
+    FsDialogs.showDlg(dialogProvider, ints);
+  }
+
+  private void onFileSaved(JsArray<JSObject> jsResult) {
+    LoggingJs.info("RemoteFolderDiffWindow.onFileSaved");
+    var msg = BackendMessage.deserialize(jsResult);
+    rootModel.update(msg.root);
+    setStatMessages(msg);
     updateNodes();
   }
 
@@ -408,8 +419,12 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         rootView.left.model(),
         rootView.right.model()
     ));
-    rootView.setMergeButtons(this::askApplyDiff);
+    if (!syncInProcess) rootView.setMergeButtons(this::askApplyDiff);
     window.context.window.repaint();
+  }
+
+  private void disableMergeButtons() {
+    rootView.disableMergeButtons();
   }
 
   private void onChannelMessage(JsArray<JSObject> jsResult) {
@@ -419,6 +434,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       case DiffModelChannelUpdater.FRONTEND_MESSAGE -> update(jsResult);
       case DiffModelChannelUpdater.OPEN_FILE -> openFile(jsResult);
       case DiffModelChannelUpdater.APPLY_DIFF -> onDiffApplied(jsResult);
+      case DiffModelChannelUpdater.FILE_SAVE -> onFileSaved(jsResult);
       case DiffModelChannelUpdater.APPLY_FILTERS -> onFiltersApplied(jsResult);
       case DiffModelChannelUpdater.REFRESH -> onRefresh(jsResult);
       case DiffModelChannelUpdater.NAVIGATE -> onNavigate(jsResult);
@@ -723,6 +739,8 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private void sendApplyDiff(FolderDiffModel model, boolean left) {
+    syncInProcess = true;
+    disableMergeButtons();
     int[] path = model.getPathFromRoot();
     var result = JsArray.create();
     result.set(0, JsCast.jsInts(path));

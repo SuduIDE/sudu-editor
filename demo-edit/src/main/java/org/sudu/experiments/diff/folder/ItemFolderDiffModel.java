@@ -266,7 +266,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     Consumer<DirectoryHandle> onDirCreated = dirHandle -> {
       setItem(!left, dirHandle);
       for (int i = 0; i < children.length; i++) child(i).copy(left, status);
-      status.onCopied();
+      status.onDirCopied();
     };
 
     status.inWork++;
@@ -285,7 +285,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
     DoubleConsumer onFileCopied = (bytes) -> {
       insertItem();
-      status.onCopied();
+      status.onFileCopied();
     };
 
     status.inWork++;

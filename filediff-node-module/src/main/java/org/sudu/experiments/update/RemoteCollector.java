@@ -175,6 +175,7 @@ public class RemoteCollector {
     ArrayWriter pathWriter = new ArrayWriter();
     lastFrontendMessage.collectPath(path, pathWriter, root, left);
 
+    ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, this::onError);
     Runnable updateModel = () -> {
       LoggingJs.info("RemoteCollector.applyDiff.updateModel");
       if (isDeleteDiff) {
@@ -182,14 +183,15 @@ public class RemoteCollector {
         var parentNode = lastFrontendMessage.findParentNode(path);
         if (node != null && parentNode != null) parentNode.deleteItem(node);
       }
-      sendApplied();
+      sendApplied(status);
     };
+    status.setOnComplete(updateModel);
     if (model.isFile()) {
-      if (!isDeleteDiff) copyFile(model, left, updateModel);
-      else removeFile(model, updateModel);
+      if (!isDeleteDiff) copyFile(model, left, status);
+      else removeFile(model, status);
     } else {
-      if (!isDeleteDiff) copyFolder(model, left, updateModel);
-      else removeFolder(model, updateModel);
+      if (!isDeleteDiff) copyFolder(model, left, status);
+      else removeFolder(model, status);
     }
   }
 
@@ -207,11 +209,10 @@ public class RemoteCollector {
         () -> cmpFilesAndSend(model, file), this::onError);
   }
 
-  void copyFile(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
+  void copyFile(ItemFolderDiffModel model, boolean left, ModelCopyDeleteStatus status) {
     LoggingJs.debug("copyFile " + model.path + ", left = " + left);
     if (!(model.item(left) instanceof FileHandle fileItem)) return;
 
-    ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, onComplete, this::onError);
     if (model == root) {
       model.copy(left, status);
     } else {
@@ -224,11 +225,10 @@ public class RemoteCollector {
     }
   }
 
-  private void copyFolder(ItemFolderDiffModel model, boolean left, Runnable onComplete) {
+  private void copyFolder(ItemFolderDiffModel model, boolean left, ModelCopyDeleteStatus status) {
     LoggingJs.debug("copyFolder " + model.path + ", left = " + left);
     if (!(model.item(left) instanceof DirectoryHandle dirItem)) return;
 
-    ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, onComplete, this::onError);
     if (model == root) {
       model.copy(left, status);
     } else {
@@ -241,17 +241,15 @@ public class RemoteCollector {
     }
   }
 
-  private void removeFile(ItemFolderDiffModel model, Runnable onComplete) {
+  private void removeFile(ItemFolderDiffModel model, ModelCopyDeleteStatus status) {
     if (!(model.item() instanceof FileHandle fileItem)) return;
     LoggingJs.debug("removeFile " + fileItem);
-    ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, onComplete, this::onError);
     model.remove(status);
   }
 
-  private void removeFolder(ItemFolderDiffModel model, Runnable onComplete) {
+  private void removeFolder(ItemFolderDiffModel model, ModelCopyDeleteStatus status) {
     if (!(model.item() instanceof DirectoryHandle dirItem)) return;
     LoggingJs.debug("removeFolder " + dirItem);
-    ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, onComplete, this::onError);
     model.remove(status);
   }
 
@@ -270,7 +268,7 @@ public class RemoteCollector {
           if (equals) model.setDiffType(DiffTypes.DEFAULT);
           else model.setDiffType(DiffTypes.EDITED);
           model.updateItem();
-          sendApplied();
+          sendFileSave();
         }
     );
   }
@@ -618,6 +616,21 @@ public class RemoteCollector {
     isRootReplaced = false;
   }
 
+  private void sendApplied(Consumer<JsArray<JSObject>> send, FrontendMessage message, ModelCopyDeleteStatus status) {
+    if (isRefresh) {
+      isRefresh = false;
+      var fullMsg = serializeBackendMessage(root, message);
+      fullMsg.push(DiffModelChannelUpdater.REFRESH_ARRAY);
+      send.accept(fullMsg);
+    }
+    var filtered = filteredFolderDiffModel();
+    var jsArray = serializeBackendMessage(filtered, message);
+    jsArray.push(JsCast.jsInts(status.copiedDirs, status.copiedFiles, status.deletedDirs, status.deletedFiles));
+    jsArray.push(DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
+    send.accept(jsArray);
+    isRootReplaced = false;
+  }
+
   private void sendExcludedToCompare(ItemFolderDiffModel model, FrontendTreeNode frontendNode) {
     if (model == null) return;
     if (model.isExcluded() && !model.isSendExcluded()) {
@@ -652,10 +665,16 @@ public class RemoteCollector {
     );
   }
 
-  private void sendApplied() {
+  private void sendApplied(ModelCopyDeleteStatus status) {
     if (sendResult == null) return;
     LoggingJs.debug("Send applied model");
-    send(sendResult, lastFrontendMessage, DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
+    sendApplied(sendResult, lastFrontendMessage, status);
+  }
+
+  private void sendFileSave() {
+    if (sendResult == null) return;
+    LoggingJs.debug("Send file saved");
+    send(sendResult, lastFrontendMessage, DiffModelChannelUpdater.FILE_SAVE_ARRAY);
   }
 
   public RemoteFolderDiffModel filteredFolderDiffModel() {
