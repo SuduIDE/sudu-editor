@@ -242,20 +242,27 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     );
   }
 
-  public void copy(boolean left, ModelCopyDeleteStatus status) {
+  public void copy(boolean left, boolean removeItems, ModelCopyDeleteStatus status) {
     status.inTraverse++;
     if (getDiffType() == DiffTypes.DEFAULT) {
       status.onTraversed();
       return;
     }
-    if (isFile()) copyFile(left, status);
-    else copyFolder(left, status);
+    if (isFile()) copyFile(left, removeItems, status);
+    else copyFolder(left, removeItems, status);
     status.onTraversed();
   }
 
-  private void copyFolder(boolean left, ModelCopyDeleteStatus status) {
+  private void copyFolder(boolean left, boolean removeItems, ModelCopyDeleteStatus status) {
+    if (removeItems &&
+        (left && isRightOnly()) ||
+        (!left && isLeftOnly())
+    ) {
+      remove(status);
+      return;
+    }
     if (getDiffType() == DiffTypes.EDITED) {
-      for (int i = 0; i < children.length; i++) child(i).copy(left, status);
+      for (int i = 0; i < children.length; i++) child(i).copy(left, removeItems, status);
       return;
     }
     DirectoryHandle toDirParent;
@@ -265,7 +272,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
     Consumer<DirectoryHandle> onDirCreated = dirHandle -> {
       setItem(!left, dirHandle);
-      for (int i = 0; i < children.length; i++) child(i).copy(left, status);
+      for (int i = 0; i < children.length; i++) child(i).copy(left, removeItems, status);
       status.onDirCopied();
     };
 
@@ -273,7 +280,14 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     FsWorkerJobs.mkDir(status.executor, toDirParent, path, onDirCreated, status::onCopyError);
   }
 
-  private void copyFile(boolean left, ModelCopyDeleteStatus status) {
+  private void copyFile(boolean left, boolean removeItems, ModelCopyDeleteStatus status) {
+    if (removeItems &&
+        (left && isRightOnly()) ||
+        (!left && isLeftOnly())
+    ) {
+      remove(status);
+      return;
+    }
     FileHandle fromFile = (FileHandle) item(left), toFile;
     DirectoryHandle toDir = (DirectoryHandle) parent().item(!left);
     if (getDiffType() == DiffTypes.EDITED) {

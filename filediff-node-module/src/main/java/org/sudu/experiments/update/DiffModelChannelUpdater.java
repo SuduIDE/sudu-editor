@@ -124,8 +124,10 @@ public class DiffModelChannelUpdater {
 
   private void onApplyDiff(JsArray<JSObject> jsArray) {
     int[] path = JsCast.ints(jsArray, 0);
-    boolean left = JsCast.ints(jsArray, 1)[0] == 0;
-    collector.applyDiff(path, left);
+    int[] flags = JsCast.ints(jsArray, 1);
+    boolean left = flags[0] == 0;
+    boolean removeItems = flags[1] == 1;
+    collector.applyDiff(path, left, removeItems);
   }
 
   private void onFileSave(JsArray<JSObject> jsArray) {

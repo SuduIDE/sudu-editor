@@ -6,6 +6,7 @@ import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.Subscribers;
 import org.sudu.experiments.diff.folder.FolderDiffSide;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
+import org.sudu.experiments.editor.EditorConst;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -732,19 +733,19 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       fromPath = replaceSlashes(fromPath);
       toPath = replaceSlashes(toPath);
       FsDialogs.showDlg(dialogProvider, fromPath, toPath, remoteModel, left,
-          () -> sendApplyDiff(model, left));
+          (removeItems) -> sendApplyDiff(model, left, removeItems));
     } else {
-      sendApplyDiff(model, left);
+      sendApplyDiff(model, left, EditorConst.DEFAULT_REMOVE_ITEMS);
     }
   }
 
-  private void sendApplyDiff(FolderDiffModel model, boolean left) {
+  private void sendApplyDiff(FolderDiffModel model, boolean left, boolean removeItems) {
     syncInProcess = true;
     disableMergeButtons();
     int[] path = model.getPathFromRoot();
     var result = JsArray.create();
     result.set(0, JsCast.jsInts(path));
-    result.set(1, JsCast.jsInts(left ? 0 : 1));
+    result.set(1, JsCast.jsInts(left ? 0 : 1, removeItems ? 1 : 0));
     result.push(DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
     channel.sendMessage(result);
     LoggingJs.info("RemoteFolderDiffWindow.sendApplyDiff");

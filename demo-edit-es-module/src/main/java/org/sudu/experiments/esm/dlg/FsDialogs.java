@@ -1,5 +1,6 @@
 package org.sudu.experiments.esm.dlg;
 
+import org.sudu.experiments.BooleanConsumer;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.esm.JsDialogProvider;
@@ -16,7 +17,7 @@ public class FsDialogs {
       String from, String to,
       RemoteFolderDiffModel remoteModel,
       boolean left,
-      Runnable action
+      BooleanConsumer action  // true -> Remove orphan files and folders
   ) {
     var bOk = JsNative.createButton("Confirm", true);
     var bCancel = JsNative.createButton("Cancel", false);
@@ -32,15 +33,24 @@ public class FsDialogs {
         ? modelType + to
         : "From\n" + from + "\n\nTo\n" + to;
 
+    JsArray<JsDialogOption> options = JsArray.create();
+    final JsDialogOption syncOption;
+    if (!isDelete && remoteModel.isDir()) {
+      syncOption = JsNative.createOption("Remove orphan files and folders", true);
+      options.set(0, syncOption);
+    } else syncOption = null;
+
     var i = JsNative.createInput(
         title, text,
-        JsArray.create(),
+        options,
         JsHelper.toJsArray(bOk, bCancel)
     );
     p.showModalDialog(i).then(
         result -> {
-          if (result != null && result.getButton() == bOk)
-            action.run();
+          if (result != null && result.getButton() == bOk) {
+            var selected = p.getSelectedOptions();
+            action.accept(syncOption == null || selected.has(syncOption));
+          }
         }, e -> {}
     );
   }

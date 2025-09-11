@@ -32,6 +32,7 @@ public interface EditorConst {
   int weightBold    = FontDesk.WEIGHT_SEMI_BOLD;
 
   boolean DEFAULT_DISABLE_PARSER = false;
+  boolean DEFAULT_REMOVE_ITEMS = false;
 
   static FontDesk setFonts(
       String name, float size,
