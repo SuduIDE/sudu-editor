@@ -300,9 +300,9 @@ public class EditorComponent extends View implements
 
   void toggleMirrored() {
     mirrored = !mirrored;
-    lineNumbers.dispose();
-    lineNumbers = new LineNumbersComponent();
-    updateLineNumbersFont();
+//    lineNumbers.dispose();
+//    lineNumbers = new LineNumbersComponent();
+//    updateLineNumbersFont();
     if (mergeButtons != null && lineHeight != 0)
       setMergeButtonsFont();
     internalLayout();

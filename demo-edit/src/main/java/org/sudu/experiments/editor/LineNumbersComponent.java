@@ -16,10 +16,10 @@ import java.util.Deque;
 import java.util.List;
 
 public class LineNumbersComponent implements Disposable {
-  static final int LINE_NUMBERS_RIGHT_PADDING = 16;
+  static final int LINE_NUMBERS_RIGHT_PADDING = 1;
 
-  private final static boolean debugTexture = false;
-  private final int numberOfLines = EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
+  static final boolean debugTexture = false;
+  static final int numberOfLines = LineNumbersTexture.numberOfLines;
 
   public final V2i pos = new V2i();
   public final V2i size = new V2i();
@@ -41,10 +41,13 @@ public class LineNumbersComponent implements Disposable {
 
   public void setPosition(int x, int y, int width, int height, float dpr) {
     pos.set(x, y);
-    size.set(width, height);
-    this.dpr = dpr;
-    old.addAll(textures);
-    textures.clear();
+    boolean clean = !size.equals(width,  height) || this.dpr != dpr;
+    if (clean) {
+      size.set(width, height);
+      this.dpr = dpr;
+      old.addAll(textures);
+      textures.clear();
+    }
   }
 
   public int width() {

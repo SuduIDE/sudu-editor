@@ -49,7 +49,7 @@ public class MergeButtons implements Disposable {
 
   private CodeLineMapping lineMapping;
 
-  static final boolean drawFrames = false;
+  static final boolean drawFrames = true;
 
   public MergeButtons() {
     this.drawBg = false;
@@ -183,10 +183,10 @@ public class MergeButtons implements Disposable {
           c.drawIcon(g, texture2, x + texture.width(), y, bg, fc);
         }
 
-        if (drawFrames) {
+        if (false && drawFrames) {
           debug.set(x, y);
           WindowPaint.drawInnerFrame(g, bSize, debug,
-              theme.textColor, -1, c.size);
+              theme.textColor, 5, c.size);
         }
       } else {
         g.drawRect(x, y, bSize, bgColor);
@@ -198,15 +198,15 @@ public class MergeButtons implements Disposable {
       bSize.y = size.y - y;
       V4f bgColor = theme.bgColor;
       g.drawRect(x, pos.y + y, bSize, bgColor);
-      if (drawFrames) {
+      if (false && drawFrames) {
         debug.set(x, pos.y + y);
         WindowPaint.drawInnerFrame(g, bSize, debug,
-            theme.textColor, -1, c.size);
+            theme.textColor, 5, c.size);
       }
     }
     if (drawFrames) {
       WindowPaint.drawInnerFrame(g, size, pos,
-          theme.textColor, -1, c.size);
+          theme.textColor, 1, c.size);
     }
   }
 
@@ -320,7 +320,9 @@ public class MergeButtons implements Disposable {
           mCanvas.measurePx(font, String.valueOf(acceptCh), marginR);
     } else {
       float margin = (iconTextureMarginL + iconTextureMarginR) * dpr;
-      return mCanvas.measurePx(font, String.valueOf(icon), margin);
+      int measurePx = mCanvas.measurePx(font, String.valueOf(icon), margin);
+      System.out.println("MergeButtons.measure " + this + ", r = " + measurePx + ", icon = " + icon);
+      return measurePx;
     }
   }
 

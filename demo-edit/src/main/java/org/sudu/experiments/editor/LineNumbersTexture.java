@@ -12,10 +12,11 @@ import org.sudu.experiments.math.V4f;
 
 public class LineNumbersTexture implements Disposable {
 
+  static final int numberOfLines = 20;
+
   private GL.Texture lineTexture;
 
   private final V2i textureSize = new V2i();
-  private final int numberOfLines = EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
   private int lineHeight;
 
   private final V2i rectSize = new V2i();
