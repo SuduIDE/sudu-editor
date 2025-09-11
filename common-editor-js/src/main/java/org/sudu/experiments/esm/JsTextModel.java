@@ -2,11 +2,12 @@ package org.sudu.experiments.esm;
 
 import org.sudu.experiments.SplitInfo;
 import org.sudu.experiments.editor.Model;
+import org.sudu.experiments.esm.semantic.JsSemanticToken;
+import org.sudu.experiments.esm.semantic.JsSemanticTokenLegendItem;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.SplitJsText;
 import org.sudu.experiments.js.TextDecoder;
-import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSString;
 
@@ -42,8 +43,16 @@ public class JsTextModel implements JsITextModel {
   }
 
   @Override
-  public void setSemanticTokens(JSArray<JSObject> legend, JSArray<JSObject> semanticTokens) {
-
+  public void setSemanticTokens(JSArray<JsSemanticTokenLegendItem> legend, JSArray<JsSemanticToken> semanticTokens) {
+    //TODO: implement this method
+    for (int i = 0; i < legend.getLength(); i++) {
+      JsSemanticTokenLegendItem item = legend.get(i);
+      System.out.println(item.print());
+    }
+    for (int i = 0; i < legend.getLength(); i++) {
+      JsSemanticToken item = semanticTokens.get(i);
+      System.out.println(item.print());
+    }
   }
 
   @Override
@@ -88,6 +97,6 @@ public class JsTextModel implements JsITextModel {
     if (model.platformObject == null) {
       return new JsTextModel(model);
     }
-    return (JsTextModel)model.platformObject;
+    return (JsTextModel) model.platformObject;
   }
 }
