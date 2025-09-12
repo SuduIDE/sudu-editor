@@ -39,7 +39,9 @@ public class EditorComponent extends View implements
   Runnable[] debugFlags = new Runnable[10];
   static final boolean dumpFontsOnResize = false;
   static final boolean debugDiffMap = false;
+  static final boolean drawLineNumbersFrame = true;
   public static final boolean debugDiffModel = false;
+
 
   final Caret caret = new Caret();
   int caretPosX;
@@ -188,7 +190,6 @@ public class EditorComponent extends View implements
     onDiffMadeListener = listener;
   }
 
-//  static final float textBaseXDp = 55;
   private void internalLayout() {
     boolean hasMerge = mergeButtons != null;
     int mergeWidth = hasMerge ? mergeWidth() : 0;
@@ -202,19 +203,18 @@ public class EditorComponent extends View implements
         g.mCanvas, dpr);
 //    int textBase = toPx(textBaseXDp);
 //    int lineNumbersWidth = textBase - vLineTextOffset;
-    int textBase = lineNumbersWidth + vLineW + vLineTextOffset;
 
     textBaseX = mirrored
         ? vLineTextOffset + scrollBarWidth + vLineW
-        : textBase + mergeWidth;
+        : lineNumbersWidth + mergeWidth + vLineW + vLineTextOffset;
 
     int textX1 = mirrored ?
-        size.x - vLineW - lineNumbersWidth
+        size.x - lineNumbersWidth - mergeWidth
         : size.x;
 
     textViewWidth = Math.max(1, textX1 - textBaseX);
 
-    int lineNumbersX = mirrored ? pos.x + size.x - lineNumbersWidth : pos.x;
+    int lineNumbersX = mirrored ? pos.x + size.x - lineNumbersWidth - mergeWidth : pos.x;
 
     lineNumbers.setPosition(lineNumbersX, pos.y,
         Math.min(lineNumbersWidth, size.x), size.y, dpr);
@@ -604,12 +604,12 @@ public class EditorComponent extends View implements
           g, mbColors, lrContext, viewToDocMap);
     }
 
-    vLineSize.y = size.y;
-    vLineSize.x = 1;
-    g.drawRect(pos.x + textBaseX, pos.y, vLineSize, IdeaCodeColors.ElementsDark.error.v.colorF);
-
     if (drawTextFrame)
       drawTextAreaFrame();
+    if (drawLineNumbersFrame)
+      WindowPaint.drawInnerFrame(
+          g, lineNumbers.size, lineNumbers.pos,
+          IdeaCodeColors.ElementsDark.error.v.colorF, 1, lrContext.size);
 
 //    g.checkError("paint complete");
     if (0>1) {
@@ -2100,9 +2100,6 @@ public class EditorComponent extends View implements
 
     int newDigits = Numbers.numDecimalDigits(docLength);
     if (newDigits != numDigits) {
-      lineNumbers.dispose();
-//    lineNumbers = new LineNumbersComponent();
-//    updateLineNumbersFont();
       internalLayout();
     }
 
@@ -2125,7 +2122,7 @@ public class EditorComponent extends View implements
   }
 
   private void layoutMergeButtons(int mWidth) {
-    int x = mirrored ? lineNumbers.pos.x
+    int x = mirrored ? pos.x + size.x - mWidth
         : lineNumbers.pos.x + lineNumbers.size.x;
     mergeButtons.setPosition(x, lineNumbers.pos.y, mWidth, lineNumbers.size.y, dpr);
     mergeButtons.setScrollPos(vScrollPos);

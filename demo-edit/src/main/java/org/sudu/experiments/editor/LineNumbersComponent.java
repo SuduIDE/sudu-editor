@@ -13,8 +13,8 @@ import org.sudu.experiments.ui.SetCursor;
 import java.util.*;
 
 public class LineNumbersComponent implements Disposable {
-  static final float rightPad = 1;
-  static final float leftPad = 1;
+  static final float rightPad = 2;
+  static final float leftPad = 3;
 
   static final boolean debugTexture = false;
   static final int numberOfLines = LineNumbersTexture.numberOfLines;
@@ -43,8 +43,8 @@ public class LineNumbersComponent implements Disposable {
     if (clean) {
       size.set(width, height);
       this.dpr = dpr;
-      old.addAll(textures);
-      textures.clear();
+      disposeTextures();
+      disposeCanvas();
     }
   }
 
@@ -166,6 +166,11 @@ public class LineNumbersComponent implements Disposable {
 
   @Override
   public void dispose() {
+    disposeTextures();
+    disposeCanvas();
+  }
+
+  private void disposeTextures() {
     for (LineNumbersTexture t : old)
       t.dispose();
 
@@ -173,7 +178,6 @@ public class LineNumbersComponent implements Disposable {
       t.dispose();
     textures.clear();
     old.clear();
-    disposeCanvas();
   }
 
   private void disposeCanvas() {
