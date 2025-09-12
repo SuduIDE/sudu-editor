@@ -1,5 +1,6 @@
 package org.sudu.experiments.ui;
 
+import org.sudu.experiments.Disposable;
 import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.diff.folder.FolderDiffSide;
@@ -68,7 +69,7 @@ public class FileTreeView extends TreeView {
   }
 
   public void disableMergeButtons() {
-    mergeButtons = null;
+    mergeButtons = Disposable.assign(mergeButtons, null);
   }
 
   public void setRoot(FileTreeNode root) {
