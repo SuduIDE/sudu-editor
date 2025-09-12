@@ -10,13 +10,11 @@ import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.SetCursor;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 
 public class LineNumbersComponent implements Disposable {
-  static final int LINE_NUMBERS_RIGHT_PADDING = 1;
+  static final float rightPad = 1;
+  static final float leftPad = 1;
 
   static final boolean debugTexture = false;
   static final int numberOfLines = LineNumbersTexture.numberOfLines;
@@ -188,5 +186,15 @@ public class LineNumbersComponent implements Disposable {
 
   public boolean hitTest(V2i point) {
     return Rect.isInside(point, pos, size);
+  }
+
+  public int measureDigits(int numDigits, Canvas mCanvas, float dpr) {
+    if (fontDesk == null) {
+      System.err.println("LineNumbersComponent.measureDigits: fontDesk is null");
+      return 0;
+    }
+    char[] d = new char[numDigits];
+    Arrays.fill(d, '0');
+    return mCanvas.measurePx(fontDesk, new String(d), rightPad + leftPad);
   }
 }

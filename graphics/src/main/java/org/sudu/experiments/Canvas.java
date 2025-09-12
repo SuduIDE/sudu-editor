@@ -34,6 +34,7 @@ public abstract class Canvas implements GLApi.Canvas, Disposable, CanvasDebug {
   public abstract void setFont(String font, float size, int weight, int style);
   public abstract void setFont(FontDesk font);
 
+  // todo: do we want measureText(char[]) ? it is more efficient
   public abstract float measureText(String s);
 
   public int measurePx(FontDesk font, String text, float pad) {

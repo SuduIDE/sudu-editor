@@ -66,9 +66,8 @@ public class EditorComponent extends View implements
   int firstLineRendered, lastLineRendered;
 
   // layout
-  static final int textBaseXDp = 80;
   static final int vLineWDp = 1;
-  static final int vLineTextOffsetDp = 10;
+  static final int vLineTextOffsetDp = 7;
   static final int codeMapWidthDp = 15;
   static final float scrollBarWidthDp = 12;
 
@@ -76,7 +75,7 @@ public class EditorComponent extends View implements
   int vLineW;
   int vLineTextOffset;
 
-  V2i vLineSize = new V2i(1, 0);
+  V2i vLineSize = new V2i();
 
   ScrollBar vScroll = new ScrollBar();
   ScrollBar hScroll = new ScrollBar();
@@ -94,7 +93,6 @@ public class EditorComponent extends View implements
   // line numbers
   LineNumbersComponent lineNumbers = new LineNumbersComponent();
   MergeButtons mergeButtons;
-  //int lineNumLeftMargin = 10;
 
   String tabIndent = "  ";
 
@@ -128,6 +126,7 @@ public class EditorComponent extends View implements
   EditorSyncPoints syncPoints;
   private final V2i lastMouseDownPos = new V2i(-1, -1);
   private boolean disableParser = EditorConst.DEFAULT_DISABLE_PARSER;
+  private int numDigits;
 
   public EditorComponent(EditorUi ui) {
     this.context = ui.windowManager.uiContext;
@@ -189,6 +188,7 @@ public class EditorComponent extends View implements
     onDiffMadeListener = listener;
   }
 
+//  static final float textBaseXDp = 55;
   private void internalLayout() {
     boolean hasMerge = mergeButtons != null;
     int mergeWidth = hasMerge ? mergeWidth() : 0;
@@ -196,8 +196,13 @@ public class EditorComponent extends View implements
     vLineW = toPx(vLineWDp);
     vLineTextOffset = toPx(vLineTextOffsetDp);
     scrollBarWidth = toPx(scrollBarWidthDp);
-    int textBase = toPx(textBaseXDp);
-    int lineNumbersWidth = textBase - vLineTextOffset;
+    numDigits = Numbers.numDecimalDigits(model.document.length());
+    int lineNumbersWidth = lineNumbers.measureDigits(
+        numDigits,
+        g.mCanvas, dpr);
+//    int textBase = toPx(textBaseXDp);
+//    int lineNumbersWidth = textBase - vLineTextOffset;
+    int textBase = lineNumbersWidth + vLineW + vLineTextOffset;
 
     textBaseX = mirrored
         ? vLineTextOffset + scrollBarWidth + vLineW
@@ -406,9 +411,9 @@ public class EditorComponent extends View implements
       recomputeCaretPosY();
       if (mergeButtons != null)
         setMergeButtonsFont();
+      updateLineNumbersFont();
       internalLayout();
       adjustEditorScrollToCaret();
-      updateLineNumbersFont();
     }
   }
 
@@ -598,6 +603,10 @@ public class EditorComponent extends View implements
           firstLine, lastLine - 1, model.caretLine,
           g, mbColors, lrContext, viewToDocMap);
     }
+
+    vLineSize.y = size.y;
+    vLineSize.x = 1;
+    g.drawRect(pos.x + textBaseX, pos.y, vLineSize, IdeaCodeColors.ElementsDark.error.v.colorF);
 
     if (drawTextFrame)
       drawTextAreaFrame();
@@ -2088,6 +2097,15 @@ public class EditorComponent extends View implements
     if (onDiffMadeListener != null) {
       onDiffMadeListener.accept(this);
     }
+
+    int newDigits = Numbers.numDecimalDigits(docLength);
+    if (newDigits != numDigits) {
+      lineNumbers.dispose();
+//    lineNumbers = new LineNumbersComponent();
+//    updateLineNumbersFont();
+      internalLayout();
+    }
+
     window().repaint();
   }
 
@@ -2115,10 +2133,6 @@ public class EditorComponent extends View implements
 
   private int mergeWidth() {
     return mergeButtons.measure(fonts[CodeElement.bold], g.mCanvas, dpr);
-  }
-
-  private int lineNumberWidth() {
-    return 0;
   }
 
   public void setMergeButtons(Runnable[] actions, BooleanConsumer[] acceptReject, int[] lines) {
