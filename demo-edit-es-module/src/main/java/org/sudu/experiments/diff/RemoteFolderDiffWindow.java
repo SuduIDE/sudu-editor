@@ -317,6 +317,22 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     rootView.right.checkScroll(rootView.right.selectedIndex());
   }
 
+  private void onSyncStatus(JsArray<JSObject> jsResult) {
+    if (messageBar != null) {
+      int[] status = JsCast.ints(jsResult, 0);
+      int copied = status[0] + status[1];
+      int deleted = status[2] + status[3];
+      if (copied == 0 && deleted == 0) return;
+      StringBuilder sb = new StringBuilder();
+      if (copied != 0) sb.append(sSuffix(copied, "item")).append(" copied");
+      if (deleted != 0) {
+        if (copied != 0) sb.append(", ");
+        sb.append(sSuffix(deleted, "item")).append(" deleted");
+      }
+      messageBar.setStatusBarMessage(JSString.valueOf(sb.toString()));
+    }
+  }
+
   private void updateNodes() {
     var focusedRoot = getFocused();
     var selected = focusedRoot.selectedLine();
@@ -440,6 +456,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       case DiffModelChannelUpdater.APPLY_FILTERS -> onFiltersApplied(jsResult);
       case DiffModelChannelUpdater.REFRESH -> onRefresh(jsResult);
       case DiffModelChannelUpdater.NAVIGATE -> onNavigate(jsResult);
+      case DiffModelChannelUpdater.APPLY_SYNC_STATUS -> onSyncStatus(jsResult);
     }
     LoggingJs.trace("Got message "
         + DiffModelChannelUpdater.messageName(type)

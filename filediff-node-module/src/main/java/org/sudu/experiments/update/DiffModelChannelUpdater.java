@@ -28,6 +28,7 @@ public class DiffModelChannelUpdater {
   public static final int APPLY_FILTERS = 5;
   public static final int ERROR = 6;
   public static final int NAVIGATE = 7;
+  public static final int APPLY_SYNC_STATUS = 8;
   public static final Int32Array FRONTEND_MESSAGE_ARRAY = JsMemoryAccess.bufferView(new int[]{FRONTEND_MESSAGE});
   public static final Int32Array OPEN_FILE_ARRAY = JsMemoryAccess.bufferView(new int[]{OPEN_FILE});
   public static final Int32Array APPLY_DIFF_ARRAY = JsMemoryAccess.bufferView(new int[]{APPLY_DIFF});
@@ -36,6 +37,7 @@ public class DiffModelChannelUpdater {
   public static final Int32Array APPLY_FILTERS_ARRAY = JsMemoryAccess.bufferView(new int[]{APPLY_FILTERS});
   public static final Int32Array ERROR_ARRAY = JsMemoryAccess.bufferView(new int[]{ERROR});
   public static final Int32Array NAVIGATE_ARRAY = JsMemoryAccess.bufferView(new int[]{NAVIGATE});
+  public static final Int32Array APPLY_SYNC_STATUS_ARRAY = JsMemoryAccess.bufferView(new int[]{APPLY_SYNC_STATUS});
 
   public DiffModelChannelUpdater(
       ItemFolderDiffModel root,
@@ -67,6 +69,7 @@ public class DiffModelChannelUpdater {
     collector.setSendResult(channel::sendMessage);
     collector.setOnComplete(channel::sendMessage);
     collector.setOnNavigate(channel::sendMessage);
+    collector.setSendSyncStatus(channel::sendMessage);
     collector.beginCompare();
   }
 
@@ -166,6 +169,7 @@ public class DiffModelChannelUpdater {
       case APPLY_FILTERS -> "APPLY_FILTERS";
       case ERROR -> "ERROR";
       case NAVIGATE -> "NAVIGATE";
+      case APPLY_SYNC_STATUS -> "APPLY_SYNC_STATUS";
       default -> "UNKNOWN";
     };
   }

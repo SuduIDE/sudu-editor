@@ -38,6 +38,7 @@ public class RemoteCollector {
   private final boolean scanFileContent;
 
   private Consumer<JsArray<JSObject>> sendResult;
+  private Consumer<JsArray<JSObject>> sendSyncStatus;
   private Consumer<JsArray<JSObject>> onComplete;
   private Consumer<JsArray<JSObject>> onNavigate;
   private Runnable onShutdown;
@@ -175,7 +176,18 @@ public class RemoteCollector {
     ArrayWriter pathWriter = new ArrayWriter();
     lastFrontendMessage.collectPath(path, pathWriter, root, left);
 
-    ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, this::onError);
+    ModelCopyDeleteStatus status = mkSyncStatus(path, isDeleteDiff);
+    if (model.isFile()) {
+      if (!isDeleteDiff) copyFile(model, left, removeItems, status);
+      else removeFile(model, status);
+    } else {
+      if (!isDeleteDiff) copyFolder(model, left, removeItems, status);
+      else removeFolder(model, status);
+    }
+  }
+
+  private ModelCopyDeleteStatus mkSyncStatus(int[] path, boolean isDeleteDiff) {
+    ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, this::sendStatus, this::onError);
     Runnable updateModel = () -> {
       LoggingJs.info("RemoteCollector.applyDiff.updateModel");
       if (isDeleteDiff) {
@@ -186,13 +198,7 @@ public class RemoteCollector {
       sendApplied(status);
     };
     status.setOnComplete(updateModel);
-    if (model.isFile()) {
-      if (!isDeleteDiff) copyFile(model, left, removeItems, status);
-      else removeFile(model, status);
-    } else {
-      if (!isDeleteDiff) copyFolder(model, left, removeItems, status);
-      else removeFolder(model, status);
-    }
+    return status;
   }
 
   public void fileSave(
@@ -701,6 +707,14 @@ public class RemoteCollector {
     send(sendResult, lastFrontendMessage, DiffModelChannelUpdater.APPLY_FILTERS_ARRAY);
   }
 
+  private void sendStatus(int[] status) {
+    if (sendSyncStatus == null) return;
+    JsArray<JSObject> result = JsArray.create();
+    result.set(0, JsCast.jsInts(status));
+    result.push(DiffModelChannelUpdater.APPLY_SYNC_STATUS_ARRAY);
+    sendSyncStatus.accept(result);
+  }
+
   private void fillFilters() {
     lastFilters.clear();
     lastFilters.set(DiffTypes.DEFAULT);
@@ -729,6 +743,10 @@ public class RemoteCollector {
 
   public void setOnNavigate(Consumer<JsArray<JSObject>> onNavigate) {
     this.onNavigate = onNavigate;
+  }
+
+  public void setSendSyncStatus(Consumer<JsArray<JSObject>> sendSyncStatus) {
+    this.sendSyncStatus = sendSyncStatus;
   }
 
   public void shutdown(Runnable onShutdown) {
