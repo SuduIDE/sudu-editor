@@ -250,6 +250,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   private void onDiffApplied(JsArray<JSObject> jsResult) {
     syncInProcess = false;
+    rootView.fireFinished();
     int[] ints = JsCast.ints(jsResult.pop());
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
@@ -741,6 +742,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
 
   private void sendApplyDiff(FolderDiffModel model, boolean left, boolean removeItems) {
     syncInProcess = true;
+    rootView.fireFileSync();
     disableMergeButtons();
     int[] path = model.getPathFromRoot();
     var result = JsArray.create();
