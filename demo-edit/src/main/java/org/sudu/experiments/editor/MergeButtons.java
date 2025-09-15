@@ -320,9 +320,7 @@ public class MergeButtons implements Disposable {
           mCanvas.measurePx(font, String.valueOf(acceptCh), marginR);
     } else {
       float margin = (iconTextureMarginL + iconTextureMarginR) * dpr;
-      int measurePx = mCanvas.measurePx(font, String.valueOf(icon), margin);
-      System.out.println("MergeButtons.measure " + this + ", r = " + measurePx + ", icon = " + icon);
-      return measurePx;
+      return mCanvas.measurePx(font, String.valueOf(icon), margin);
     }
   }
 

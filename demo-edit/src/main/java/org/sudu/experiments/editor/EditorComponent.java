@@ -205,10 +205,6 @@ public class EditorComponent extends View implements
     int lineNumbersWidth = lineNumbers.measureDigits(
         numDigits, g.mCanvas, dpr);
 
-    System.out.println("EditorComponent.internalLayout" + this +
-        ": mergeWidth = " + mergeWidth +
-        ", lineNumbersWidth = " + lineNumbersWidth);
-
     textBaseX = mirrored
         ? vLineTextOffset + scrollBarWidth
         : lineNumbersWidth + mergeWidth + vLineW + vLineTextOffset;
