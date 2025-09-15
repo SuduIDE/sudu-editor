@@ -14,6 +14,8 @@ import java.util.function.Consumer;
 
 public class MergeButtons implements Disposable {
 
+  static final boolean drawFrames = false;
+
   static final boolean showAcceptReject = true;
   static final char arrowL = '≪';
   static final char arrowR = '≫';
@@ -48,8 +50,6 @@ public class MergeButtons implements Disposable {
   private FontDesk font;
 
   private CodeLineMapping lineMapping;
-
-  static final boolean drawFrames = true;
 
   public MergeButtons() {
     this.drawBg = false;

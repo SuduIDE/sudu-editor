@@ -12,12 +12,13 @@ import org.sudu.experiments.ui.SetCursor;
 
 import java.util.*;
 
+import static org.sudu.experiments.editor.LineNumbersTexture.numberOfLines;
+
 public class LineNumbersComponent implements Disposable {
   static final float rightPad = 2;
   static final float leftPad = 3;
 
   static final boolean debugTexture = false;
-  static final int numberOfLines = LineNumbersTexture.numberOfLines;
 
   public final V2i pos = new V2i();
   public final V2i size = new V2i();

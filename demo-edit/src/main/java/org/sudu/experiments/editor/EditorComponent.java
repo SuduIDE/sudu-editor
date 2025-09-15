@@ -39,7 +39,7 @@ public class EditorComponent extends View implements
   Runnable[] debugFlags = new Runnable[10];
   static final boolean dumpFontsOnResize = false;
   static final boolean debugDiffMap = false;
-  static final boolean drawLineNumbersFrame = true;
+  static final boolean drawLineNumbersFrame = false;
   public static final boolean debugDiffModel = false;
 
 
@@ -68,14 +68,18 @@ public class EditorComponent extends View implements
   int firstLineRendered, lastLineRendered;
 
   // layout
+  // left:  | scroll | vLineTextOffset - xOffset | xOffset + text | vLine | merge buttons | line numbers |
+  // right: | line numbers | merge buttons | vLine | vLineTextOffset - xOffset | xOffset + text |
+
   static final int vLineWDp = 1;
-  static final int vLineTextOffsetDp = 7;
+  static final int vLineTextOffsetDp = 10;
   static final int codeMapWidthDp = 15;
   static final float scrollBarWidthDp = 12;
 
   int textBaseX, textViewWidth;
-  int vLineW;
+  int vLineX, vLineW;
   int vLineTextOffset;
+  int xOffset = CodeLineRenderer.initialOffset;
 
   V2i vLineSize = new V2i();
 
@@ -90,7 +94,6 @@ public class EditorComponent extends View implements
   boolean drawGap = true;
   boolean drawTextFrame = false;
   boolean printResolveTime = true;
-  int xOffset = CodeLineRenderer.initialOffset;
 
   // line numbers
   LineNumbersComponent lineNumbers = new LineNumbersComponent();
@@ -191,35 +194,46 @@ public class EditorComponent extends View implements
   }
 
   private void internalLayout() {
-    boolean hasMerge = mergeButtons != null;
-    int mergeWidth = hasMerge ? mergeWidth() : 0;
-    System.out.println("EditorComponent.internalLayout" + this +  ": mergeWidth = " + mergeWidth);
     vLineW = toPx(vLineWDp);
     vLineTextOffset = toPx(vLineTextOffsetDp);
     scrollBarWidth = toPx(scrollBarWidthDp);
+
+    boolean hasMerge = mergeButtons != null;
+    int mergeWidth = hasMerge ? mergeWidth() : 0;
+
     numDigits = Numbers.numDecimalDigits(model.document.length());
     int lineNumbersWidth = lineNumbers.measureDigits(
-        numDigits,
-        g.mCanvas, dpr);
-//    int textBase = toPx(textBaseXDp);
-//    int lineNumbersWidth = textBase - vLineTextOffset;
+        numDigits, g.mCanvas, dpr);
+
+    System.out.println("EditorComponent.internalLayout" + this +
+        ": mergeWidth = " + mergeWidth +
+        ", lineNumbersWidth = " + lineNumbersWidth);
 
     textBaseX = mirrored
-        ? vLineTextOffset + scrollBarWidth + vLineW
+        ? vLineTextOffset + scrollBarWidth
         : lineNumbersWidth + mergeWidth + vLineW + vLineTextOffset;
 
-    int textX1 = mirrored ?
-        size.x - lineNumbersWidth - mergeWidth
-        : size.x;
+    vLineX = pos.x + (mirrored
+        ? size.x - vLineW - mergeWidth - lineNumbersWidth
+        : lineNumbersWidth + mergeWidth);
+
+    int textX1 = mirrored
+        ? size.x - vLineW - lineNumbersWidth - mergeWidth : size.x;
 
     textViewWidth = Math.max(1, textX1 - textBaseX);
 
-    int lineNumbersX = mirrored ? pos.x + size.x - lineNumbersWidth - mergeWidth : pos.x;
+    int lineNumbersX = mirrored
+        ? pos.x + size.x - lineNumbersWidth
+        : pos.x;
 
-    lineNumbers.setPosition(lineNumbersX, pos.y,
-        Math.min(lineNumbersWidth, size.x), size.y, dpr);
-    if (hasMerge)
-      layoutMergeButtons(mergeWidth);
+    int lnWidth = Math.min(lineNumbersWidth, size.x);
+    lineNumbers.setPosition(lineNumbersX, pos.y, lnWidth, size.y, dpr);
+    if (hasMerge) {
+      int mergeX = mirrored ? lineNumbersX - mergeWidth
+          : pos.x + lineNumbersWidth;
+      mergeButtons.setPosition(mergeX, pos.y, mergeWidth, size.y, dpr);
+      mergeButtons.setScrollPos(vScrollPos);
+    }
 
     if (dumpFontsOnResize) DebugHelper.dumpFontsSize(g);
     caret.setWidth(toPx(Caret.defaultWidth));
@@ -233,11 +247,11 @@ public class EditorComponent extends View implements
   }
 
   private int sinX0() {
-    return pos.x + textBaseX - vLineTextOffset + vLineW;
+    return pos.x + textBaseX - vLineTextOffset;
   }
 
   private int sinX1() {
-    return mirrored ? flippedVLineX() : pos.x + size.x;
+    return mirrored ? vLineX : pos.x + size.x;
   }
 
   private void toggleBlankLines() {
@@ -305,9 +319,6 @@ public class EditorComponent extends View implements
 
   void toggleMirrored() {
     mirrored = !mirrored;
-//    lineNumbers.dispose();
-//    lineNumbers = new LineNumbersComponent();
-//    updateLineNumbersFont();
     if (mergeButtons != null && lineHeight != 0)
       setMergeButtonsFont();
     internalLayout();
@@ -717,7 +728,7 @@ public class EditorComponent extends View implements
 
   private void drawFromLineToText(int firstLine, int lastLine) {
     LineDiff[] diffModel = model.diffModel;
-    int xPos0 = textBaseX - vLineTextOffset + vLineW;
+    int xPos0 = textBaseX - vLineTextOffset;
     int xPos1 = textBaseX - xOffset;
     V2i size = context.v2i1;
     size.set(xPos1 - xPos0, lineHeight);
@@ -1016,7 +1027,7 @@ public class EditorComponent extends View implements
     if (yPosition < size.y) {
       V2i sizeTmp = context.v2i1;
       int x = pos.x + textBaseX - xOffset;
-      sizeTmp.x = mirrored ? flippedVLineX() - x
+      sizeTmp.x = mirrored ? vLineX - x
           : textViewWidth + xOffset;
       sizeTmp.y = size.y - yPosition;
       g.drawRect(x, pos.y + yPosition, sizeTmp, colors.editor.bg);
@@ -1050,19 +1061,12 @@ public class EditorComponent extends View implements
   private void drawVerticalLine() {
     vLineSize.y = size.y;
     vLineSize.x = vLineW;
-    int vLineX = mirrored ? flippedVLineX()
-        : pos.x + textBaseX - vLineTextOffset;
-    g.drawRect(vLineX, pos.y,
-        vLineSize, colors.editor.numbersVLine);
-    vLineSize.x = mirrored
-        ? textBaseX - xOffset
-        : vLineTextOffset - vLineW - xOffset;
-    int dx2 = mirrored ? 0 : textBaseX - vLineTextOffset + vLineW;
-    g.drawRect(pos.x + dx2, pos.y, vLineSize, colors.editor.bg);
-  }
-
-  private int flippedVLineX() {
-    return pos.x + size.x - lineNumbers.width() - vLineW;
+    g.drawRect(vLineX, pos.y, vLineSize, colors.editor.numbersVLine);
+    int x2 = mirrored ? pos.x : vLineX + vLineW;
+    vLineSize.x = mirrored ? textBaseX - xOffset
+        : pos.x + textBaseX - xOffset - x2;
+    g.drawRect(x2, pos.y, vLineSize, colors.editor.bg);
+//        IdeaCodeColors.ElementsDark.error.v.colorF
   }
 
   static int clampScrollPos(int pos, int maxScrollPos) {
@@ -2119,13 +2123,6 @@ public class EditorComponent extends View implements
 
   private void setMergeButtonsFont() {
     mergeButtons.setFont(lineHeight, fonts[CodeElement.bold]);
-  }
-
-  private void layoutMergeButtons(int mWidth) {
-    int x = mirrored ? pos.x + size.x - mWidth
-        : lineNumbers.pos.x + lineNumbers.size.x;
-    mergeButtons.setPosition(x, lineNumbers.pos.y, mWidth, lineNumbers.size.y, dpr);
-    mergeButtons.setScrollPos(vScrollPos);
   }
 
   private int mergeWidth() {

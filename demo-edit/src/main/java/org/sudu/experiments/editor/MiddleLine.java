@@ -21,8 +21,8 @@ import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
 public class MiddleLine extends View {
-  public static final boolean debug = true;
-  public static final boolean debugDrawFrame = true;
+  public static final boolean debug = false;
+  public static final boolean debugDrawFrame = false;
   public static final float lineWidthDp = 2;
   public static final float syncLineWidthDp = 3;
 
