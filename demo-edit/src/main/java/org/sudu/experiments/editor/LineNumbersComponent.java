@@ -10,16 +10,15 @@ import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.SetCursor;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
+
+import static org.sudu.experiments.editor.LineNumbersTexture.numberOfLines;
 
 public class LineNumbersComponent implements Disposable {
-  static final int LINE_NUMBERS_RIGHT_PADDING = 16;
+  static final float rightPad = 2;
+  static final float leftPad = 3;
 
-  private final static boolean debugTexture = false;
-  private final int numberOfLines = EditorConst.LINE_NUMBERS_TEXTURE_SIZE;
+  static final boolean debugTexture = false;
 
   public final V2i pos = new V2i();
   public final V2i size = new V2i();
@@ -41,10 +40,13 @@ public class LineNumbersComponent implements Disposable {
 
   public void setPosition(int x, int y, int width, int height, float dpr) {
     pos.set(x, y);
-    size.set(width, height);
-    this.dpr = dpr;
-    old.addAll(textures);
-    textures.clear();
+    boolean clean = !size.equals(width,  height) || this.dpr != dpr;
+    if (clean) {
+      size.set(width, height);
+      this.dpr = dpr;
+      disposeTextures();
+      disposeCanvas();
+    }
   }
 
   public int width() {
@@ -165,6 +167,11 @@ public class LineNumbersComponent implements Disposable {
 
   @Override
   public void dispose() {
+    disposeTextures();
+    disposeCanvas();
+  }
+
+  private void disposeTextures() {
     for (LineNumbersTexture t : old)
       t.dispose();
 
@@ -172,7 +179,6 @@ public class LineNumbersComponent implements Disposable {
       t.dispose();
     textures.clear();
     old.clear();
-    disposeCanvas();
   }
 
   private void disposeCanvas() {
@@ -185,5 +191,15 @@ public class LineNumbersComponent implements Disposable {
 
   public boolean hitTest(V2i point) {
     return Rect.isInside(point, pos, size);
+  }
+
+  public int measureDigits(int numDigits, Canvas mCanvas, float dpr) {
+    if (fontDesk == null) {
+      System.err.println("LineNumbersComponent.measureDigits: fontDesk is null");
+      return 0;
+    }
+    char[] d = new char[numDigits];
+    Arrays.fill(d, '0');
+    return mCanvas.measurePx(fontDesk, new String(d), rightPad + leftPad);
   }
 }

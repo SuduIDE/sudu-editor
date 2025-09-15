@@ -29,4 +29,13 @@ public class Numbers {
   public static double log(double x, double base) {
     return Math.log(x) / Math.log(base);
   }
+
+  public static int numDecimalDigits(int x) {
+    int d = 1, n = 10;
+    while (d < 10 && x >= n) {
+      d++;
+      n *= 10;
+    }
+    return d;
+  }
 }

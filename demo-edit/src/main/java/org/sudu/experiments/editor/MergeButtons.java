@@ -14,6 +14,8 @@ import java.util.function.Consumer;
 
 public class MergeButtons implements Disposable {
 
+  static final boolean drawFrames = false;
+
   static final boolean showAcceptReject = true;
   static final char arrowL = '≪';
   static final char arrowR = '≫';
@@ -22,7 +24,7 @@ public class MergeButtons implements Disposable {
   static final char arrowR1 = '→';
   static final char arrowL1 = '←';
 
-  static final int iconTextureMarginL = 3;
+  static final int iconTextureMarginL = 4;
   static final int iconTextureMarginM = 2;
   static final int iconTextureMarginR = 4;
 
@@ -48,8 +50,6 @@ public class MergeButtons implements Disposable {
   private FontDesk font;
 
   private CodeLineMapping lineMapping;
-
-  static final boolean drawFrames = false;
 
   public MergeButtons() {
     this.drawBg = false;
@@ -186,7 +186,7 @@ public class MergeButtons implements Disposable {
         if (drawFrames) {
           debug.set(x, y);
           WindowPaint.drawInnerFrame(g, bSize, debug,
-              theme.textColor, -1, c.size);
+              theme.textColor, 1, c.size);
         }
       } else {
         g.drawRect(x, y, bSize, bgColor);
@@ -201,12 +201,12 @@ public class MergeButtons implements Disposable {
       if (drawFrames) {
         debug.set(x, pos.y + y);
         WindowPaint.drawInnerFrame(g, bSize, debug,
-            theme.textColor, -1, c.size);
+            theme.textColor, 1, c.size);
       }
     }
     if (drawFrames) {
       WindowPaint.drawInnerFrame(g, size, pos,
-          theme.textColor, -1, c.size);
+          theme.textColor, 1, c.size);
     }
   }
 
