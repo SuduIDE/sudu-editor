@@ -1923,6 +1923,7 @@ public class EditorComponent extends View implements
     model.setEditor(this, window().worker());
     registrations.fireModelChange(oldModel, model);
     vScrollPos = Numbers.iRnd(model.vScrollLine * lineHeight);
+    checkLineNumbersLayout();
   }
 
   private void clearUsages() {
@@ -2098,12 +2099,18 @@ public class EditorComponent extends View implements
       onDiffMadeListener.accept(this);
     }
 
+    checkLineNumbersLayout();
+
+    window().repaint();
+  }
+
+  private void checkLineNumbersLayout() {
+    if (dpr == 0) return;
+    int docLength = model.document.length();
     int newDigits = Numbers.numDecimalDigits(docLength);
     if (newDigits != numDigits) {
       internalLayout();
     }
-
-    window().repaint();
   }
 
   public void setSyncPoints(SyncPoints syncPoints, boolean left) {

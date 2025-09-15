@@ -24,7 +24,7 @@ public class MergeButtons implements Disposable {
   static final char arrowR1 = '→';
   static final char arrowL1 = '←';
 
-  static final int iconTextureMarginL = 3;
+  static final int iconTextureMarginL = 4;
   static final int iconTextureMarginM = 2;
   static final int iconTextureMarginR = 4;
 
