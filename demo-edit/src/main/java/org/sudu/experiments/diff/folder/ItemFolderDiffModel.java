@@ -295,7 +295,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
     DoubleConsumer onFileCopied = (bytes) -> {
       insertItem();
-      status.onFileCopied();
+      status.onFileCopied(getDiffType() != DiffTypes.EDITED);
     };
 
     status.inWork++;

@@ -12,7 +12,8 @@ public class ModelCopyDeleteStatus {
   final Consumer<String> onError;
   final Consumer<int[]> sendStatus;
   Runnable onComplete;
-  public int copiedFiles, copiedDirs;
+  public int insertedFiles, rewroteFiles;
+  public int copiedDirs;
   public int deletedFiles, deletedDirs;
 
   final IdentityHashMap<ItemFolderDiffModel, Integer> markedForDelete;
@@ -37,9 +38,10 @@ public class ModelCopyDeleteStatus {
     onComplete();
   }
 
-  public void onFileCopied() {
+  public void onFileCopied(boolean inserted) {
     inWork--;
-    copiedFiles++;
+    if (inserted) insertedFiles++;
+    else rewroteFiles++;
     onComplete();
   }
 
@@ -78,7 +80,7 @@ public class ModelCopyDeleteStatus {
       long currentTime = System.currentTimeMillis();
       if (currentTime - lastSendStatusTime > SEND_STATUS_MS) {
         lastSendStatusTime = currentTime;
-        sendStatus.accept(new int[]{copiedDirs, copiedFiles, deletedDirs, deletedFiles});
+        sendStatus.accept(new int[]{copiedDirs, copiedFiles(), deletedDirs, deletedFiles});
       }
     }
   }
@@ -123,5 +125,9 @@ public class ModelCopyDeleteStatus {
 
   public void setOnComplete(Runnable onComplete) {
     this.onComplete = onComplete;
+  }
+
+  public int copiedFiles() {
+    return insertedFiles + rewroteFiles;
   }
 }

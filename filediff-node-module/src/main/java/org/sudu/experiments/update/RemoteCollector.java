@@ -176,7 +176,7 @@ public class RemoteCollector {
     ArrayWriter pathWriter = new ArrayWriter();
     lastFrontendMessage.collectPath(path, pathWriter, root, left);
 
-    ModelCopyDeleteStatus status = mkSyncStatus(path, isDeleteDiff);
+    ModelCopyDeleteStatus status = mkSyncStatus(path, left, isDeleteDiff);
     if (model.isFile()) {
       if (!isDeleteDiff) copyFile(model, left, removeItems, status);
       else removeFile(model, status);
@@ -186,7 +186,7 @@ public class RemoteCollector {
     }
   }
 
-  private ModelCopyDeleteStatus mkSyncStatus(int[] path, boolean isDeleteDiff) {
+  private ModelCopyDeleteStatus mkSyncStatus(int[] path, boolean left, boolean isDeleteDiff) {
     ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, this::sendStatus, this::onError);
     Runnable updateModel = () -> {
       LoggingJs.info("RemoteCollector.applyDiff.updateModel");
@@ -195,6 +195,8 @@ public class RemoteCollector {
         var parentNode = lastFrontendMessage.findParentNode(path);
         if (node != null && parentNode != null) parentNode.deleteItem(node);
       }
+      filesInserted -= left ? status.deletedFiles : status.insertedFiles;
+      filesDeleted -= !left ? status.deletedFiles : status.insertedFiles;
       sendApplied(status);
     };
     status.setOnComplete(updateModel);
@@ -466,6 +468,7 @@ public class RemoteCollector {
         filesDeleted++;
       }
       filesCompared++;
+      model.setSendExcluded(true);
       model.itemCompared();
     }
   }
@@ -631,7 +634,7 @@ public class RemoteCollector {
     }
     var filtered = filteredFolderDiffModel();
     var jsArray = serializeBackendMessage(filtered, message);
-    jsArray.push(JsCast.jsInts(status.copiedDirs, status.copiedFiles, status.deletedDirs, status.deletedFiles));
+    jsArray.push(JsCast.jsInts(status.copiedDirs, status.copiedFiles(), status.deletedDirs, status.deletedFiles));
     jsArray.push(DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
     send.accept(jsArray);
     isRootReplaced = false;
