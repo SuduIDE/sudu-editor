@@ -37,6 +37,8 @@ public class CppDirectiveSplitter {
       int ind = splitToken.getTokenIndex();
       if (splitToken.getType() == EOF) continue;
       if (splitToken.getType() == CPP14DirectiveLexer.NewLine) continue;
+      if (splitToken.getType() == CPP14DirectiveLexer.NewLineSlash)
+        splitTokenTypes[ind] = TokenTypes.ANNOTATION;
       result.add(new SplitToken(splitToken, line, start, splitTokenTypes[ind]));
     }
 
@@ -56,7 +58,10 @@ public class CppDirectiveSplitter {
       super.enterInclude(ctx);
       markToken(ctx.Hash(), TokenTypes.ANNOTATION);
       markToken(ctx.Include(), TokenTypes.ANNOTATION);
-      markToken(ctx.String(), TokenTypes.STRING);
+      for (int i = 2; i < ctx.children.size(); i++) {
+        var node = (TerminalNode) ctx.getChild(i);
+        markToken(node, TokenTypes.STRING);
+      }
     }
 
     @Override
@@ -88,6 +93,9 @@ public class CppDirectiveSplitter {
       markToken(ctx.OctalLiteral(), TokenTypes.NUMERIC);
       markToken(ctx.HexadecimalLiteral(), TokenTypes.NUMERIC);
       markToken(ctx.BinaryLiteral(), TokenTypes.NUMERIC);
+      markToken(ctx.Include(), TokenTypes.KEYWORD);
+      markToken(ctx.Error(), TokenTypes.KEYWORD);
+      markToken(ctx.Unknown(), TokenTypes.ERROR);
     }
 
     private void markToken(TerminalNode node, int type) {
