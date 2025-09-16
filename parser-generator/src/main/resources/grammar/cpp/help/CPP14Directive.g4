@@ -1,12 +1,12 @@
 grammar CPP14Directive;
 
 directive
-    : include
-    | error
-    | dir
+    : include EOF
+    | error EOF
+    | dir EOF
     ;
 
-include: Hash Include String;
+include: Hash Include (String | (Left (Identifier | '/' | '.')+ Right));
 error: Hash Error other*;
 dir: Hash (Identifier | Keyword) other*;
 
@@ -14,9 +14,11 @@ other
     : String | Left | Right | Keyword | Operators | Identifier
     | IntegerLiteral | DecimalLiteral | OctalLiteral | HexadecimalLiteral | BinaryLiteral
     | DirChar
+    | Include | Error
+    | Unknown | Hash
     ;
 
-String : Quote Schar* Quote | Left Schar* Right;
+String : Quote Schar* Quote;
 
 Hash: '#';
 Include: 'include';
@@ -26,7 +28,7 @@ Whitespace: [ \t]+ -> channel(HIDDEN);
 BlockComment: '/*' .*? '*/' -> channel(HIDDEN);
 LineComment: '//' ~ [\r\n]* -> channel(HIDDEN);
 NewLineSlash: '\\' -> channel(HIDDEN);
-NewLine: '\r'? '\n' -> channel(HIDDEN);
+NewLine: ('\r'? '\n' | '\r') -> channel(HIDDEN);
 
 fragment Quote: '"';
 Left: '<';
@@ -173,7 +175,7 @@ Operators
 
 Identifier: Identifiernondigit (Identifiernondigit | DIGIT)*;
 DirChar: ~[#\r\n];
-Other: . -> channel(HIDDEN);
+Unknown: .;
 
 fragment Schar:
 	~ ["\\\r\n]
