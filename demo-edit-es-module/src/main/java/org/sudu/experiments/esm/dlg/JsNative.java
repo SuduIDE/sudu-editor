@@ -27,7 +27,9 @@ public class JsNative {
 
   @JSBody(
       params = {"title", "isDefault"},
-      script = "return {title:title, isDefault:isDefault};"
+      script =
+          "return {title:title, isDefault:isDefault, " +
+              "isEnabled: state => {return true;} };"
   )
   public static native JsDialogOption createOption(
       String title,
