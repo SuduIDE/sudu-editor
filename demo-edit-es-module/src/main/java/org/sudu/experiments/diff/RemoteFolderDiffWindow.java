@@ -265,6 +265,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
     setStatMessages(msg);
+    if (!isFiltered()) lastFrontendMessage.openedFolders.updateDeepWithModel(rootModel);
     updateNodes();
   }
 

@@ -178,6 +178,10 @@ public class FileDiffWindow extends ToolWindow0
       }
       return true;
     }
+    if (event.ctrl && event.keyCode == KeyCode.Z) {
+      rootView.undoLastDiff(event.shift);
+      return true;
+    }
     if (processEsc && event.keyCode == KeyCode.ESC) {
       if (event.noMods()) window.close();
       else windowManager.nextWindow();

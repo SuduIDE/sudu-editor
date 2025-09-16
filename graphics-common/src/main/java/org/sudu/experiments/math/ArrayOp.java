@@ -173,6 +173,13 @@ public interface ArrayOp {
     array[j] = item;
   }
 
+  static <T> T[] reverse(T[] array) {
+    T[] result = Arrays.copyOf(array, array.length);
+    for (int i = 0; i < result.length / 2; i++)
+      swap(result, i, result.length - i - 1);
+    return result;
+  }
+
   static char[] copyOf(char[] chars) {
     return Arrays.copyOf(chars, chars.length);
   }

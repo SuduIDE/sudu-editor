@@ -9,6 +9,7 @@ import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.Interval;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.common.graph.ScopeGraph;
+import org.sudu.experiments.text.SplitText;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -21,7 +22,6 @@ public class Document extends CodeLines {
   public ScopeGraph scopeGraph = new ScopeGraph();
   public final Map<Pos, Pos> usageToDef = new HashMap<>();
   public final Map<Pos, List<Pos>> defToUsages = new HashMap<>();
-  List<Diff[]> diffs = new ArrayList<>();
   public int[] linePrefixSum;
 
   int currentVersion;
@@ -29,6 +29,7 @@ public class Document extends CodeLines {
   double lastDiffTimestamp;
   public BiConsumer<Diff, Boolean> updateModelOnDiff;
   public Runnable onDiffMade;
+  public UndoBuffer undoBuffer = new UndoBuffer();
 
   public Document() {
     this(CodeLine.emptyLine());
@@ -81,7 +82,7 @@ public class Document extends CodeLines {
   }
 
   public void clear() {
-    diffs.clear();
+    undoBuffer.clear(this);
     usageToDef.clear();
     defToUsages.clear();
 
@@ -175,7 +176,7 @@ public class Document extends CodeLines {
     if (insertDiff != null) changeDiffs[ptr++] = insertDiff;
     if (deleteDiff != null) changeDiffs[ptr++] = deleteDiff;
     changeDiffs = Arrays.copyOf(changeDiffs, ptr);
-    diffs.add(changeDiffs);
+    undoBuffer.addDiff(this, changeDiffs);
     currentVersion++;
   }
 
@@ -464,7 +465,7 @@ public class Document extends CodeLines {
   public void makeDiff(Diff diff) {
     currentVersion++;
 
-    diffs.add(ArrayOp.array(diff));
+    undoBuffer.addDiff(this, ArrayOp.array(diff));
     makeDiffOp(diff);
     updateModelOnDiff(diff, false);
   }
@@ -479,7 +480,7 @@ public class Document extends CodeLines {
     currentVersion++;
 
     var diff = new Diff(line, from, isDelete, change, caretPos.line, caretPos.pos);
-    diffs.add(ArrayOp.array(diff));
+    undoBuffer.addDiff(this, ArrayOp.array(diff));
     makeDiffOp(diff);
     updateModelOnDiff(diff, false);
   }
@@ -498,7 +499,7 @@ public class Document extends CodeLines {
     for (int i = 0; i < lines.length; i++) {
       temp[i] = new Diff(lines[i], from[i], areDeletes[i], changes[i], caretPos.line, caretPos.pos);
     }
-    diffs.add(temp);
+    undoBuffer.addDiff(this, temp);
     for (int i = 0; i < lines.length; i++) {
       Diff diff = new Diff(lines[i], from[i], areDeletes[i], changes[i]);
       makeDiffOp(diff);
@@ -518,22 +519,29 @@ public class Document extends CodeLines {
     }
   }
 
-  public V2i undoLastDiff() {
-    currentVersion++;
-
-    if (diffs.size() == 0) return null;
-    Diff[] complexDiff = diffs.remove(diffs.size() - 1);
-    V2i res = undoSingleDiff(complexDiff[0]);
-    for (int i = 1; i < complexDiff.length; i++) {
-      undoSingleDiff(complexDiff[i]);
-    }
-    onDiffMade();
-    return res;
+  public Diff undoLastDiff(boolean isRedo) {
+    return undoBuffer.undoLastDiff(this, isRedo);
   }
 
-  private V2i undoSingleDiff(Diff diff) {
-    String[] lines = diff.change.split("\n", -1);
-    if (diff.isDelete) {
+  public Diff undoLastDiff(Diff[] complexDiff, boolean isRedo) {
+    currentVersion++;
+    if (isRedo) complexDiff = ArrayOp.reverse(complexDiff);
+    var firstDiff = complexDiff[0];
+    undoSingleDiff(firstDiff, isRedo);
+    for (int i = 1; i < complexDiff.length; i++) {
+      undoSingleDiff(complexDiff[i], isRedo);
+    }
+    onDiffMade();
+    return firstDiff;
+  }
+
+  public void setUndoBuffer(UndoBuffer undoBuffer) {
+    this.undoBuffer = undoBuffer;
+  }
+
+  private void undoSingleDiff(Diff diff, boolean isRedo) {
+    String[] lines = SplitText.split(diff.change);
+    if (diff.isDelete ^ isRedo) {
       insertLinesOp(diff.line, diff.pos, lines);
       tree.makeInsertDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
       scopeGraph.makeInsertDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
@@ -552,8 +560,7 @@ public class Document extends CodeLines {
       tree.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
       scopeGraph.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
     }
-    updateModelOnDiff(diff, true);
-    return diff.caretReturn;
+    updateModelOnDiff(diff, !isRedo);
   }
 
   public void setLastDiffTimestamp(double timestamp) {
@@ -656,6 +663,10 @@ public class Document extends CodeLines {
       refElem.color = type;
       refElem.style = style;
     }
+  }
+
+  public Diff[] lastDiff() {
+    return undoBuffer.lastDiff(this);
   }
 
   private void updateModelOnDiff(Diff diff, boolean isUndo) {

@@ -131,6 +131,7 @@ public class EditorComponent extends View implements
   EditorSyncPoints syncPoints;
   private final V2i lastMouseDownPos = new V2i(-1, -1);
   private boolean disableParser = EditorConst.DEFAULT_DISABLE_PARSER;
+  private UndoBuffer undoBuffer;
   private int numDigits;
 
   public EditorComponent(EditorUi ui) {
@@ -272,11 +273,12 @@ public class EditorComponent extends View implements
     caret.startDelay(window().timeNow());
   }
 
-  private void undoLastDiff() {
+  private void undoLastDiff(boolean isRedo) {
     if (selection().isAreaSelected()) setSelectionToCaret();
-    var caretDiff = model.document.undoLastDiff();
+    var caretDiff = model.document.undoLastDiff(isRedo);
     if (caretDiff == null) return;
-    setCaretLinePos(caretDiff.x, caretDiff.y, false);
+    var caretReturn = isRedo ? caretDiff.caretPos : caretDiff.caretReturn;
+    setCaretLinePos(caretReturn.x, caretReturn.y, false);
     updateDocumentDiffTimeStamp();
     onDiffMade();
   }
@@ -1149,7 +1151,7 @@ public class EditorComponent extends View implements
     return false;
   }
 
-  private boolean setCaretLinePos(int line, int pos, boolean shift) {
+  boolean setCaretLinePos(int line, int pos, boolean shift) {
     model.caretCharPos = pos;
     return setCaretLine(line, shift);
   }
@@ -1666,7 +1668,7 @@ public class EditorComponent extends View implements
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
 
     if (!readonly && event.ctrl && event.keyCode == KeyCode.Z) {
-      undoLastDiff();
+      undoLastDiff(event.shift);
       return true;
     }
 
@@ -1921,6 +1923,7 @@ public class EditorComponent extends View implements
     clearCompactViewModel();
     oldModel.setEditor(null, null);
     model.setEditor(this, window().worker());
+    model.setUndoBuffer(undoBuffer);
     registrations.fireModelChange(oldModel, model);
     vScrollPos = Numbers.iRnd(model.vScrollLine * lineHeight);
     checkLineNumbersLayout();
@@ -2156,6 +2159,11 @@ public class EditorComponent extends View implements
      else if (acceptReject != null) mergeButtons.setModel(acceptReject, lines);
      mergeButtons.setColors(lineNumbers.colors());
      mergeButtons.setCodeLineMapping(docToView);
+  }
+
+  public void setUndoBuffer(UndoBuffer undoBuffer) {
+    this.undoBuffer = undoBuffer;
+    model.setUndoBuffer(undoBuffer);
   }
 
   void buildDiffMap() {

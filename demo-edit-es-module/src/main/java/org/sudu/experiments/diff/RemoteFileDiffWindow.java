@@ -184,7 +184,8 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
 
   @Override
   public boolean onKeyPress(KeyEvent event) {
-    return event.keyCode == KeyCode.ESC
+    return (event.keyCode == KeyCode.ESC
+        || event.ctrl && event.keyCode == KeyCode.Z)
         && super.onKeyPress(event);
   }
 
