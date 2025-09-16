@@ -99,6 +99,22 @@ public class ExcludeListTest {
   }
 
   @Test
+  public void fileMatchTest2() {
+    ExcludeList excludeList = new ExcludeList("""
+        .cache
+        """);
+    assertExclude(excludeList, ".cache", false);
+    assertExclude(excludeList, ".cache", true);
+    assertExclude(excludeList, "dir/.cache", false);
+    assertExclude(excludeList, "dir/.cache", true);
+
+    assertNotExclude(excludeList, "something.cache", false);
+    assertNotExclude(excludeList, "something.cache", true);
+    assertNotExclude(excludeList, "dir/something.cache", false);
+    assertNotExclude(excludeList, "dir/something.cache", true);
+  }
+
+  @Test
   public void wildcardTest1() {
     ExcludeList excludeList = new ExcludeList("""
         *.?s
