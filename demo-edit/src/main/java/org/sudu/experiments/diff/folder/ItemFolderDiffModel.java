@@ -16,7 +16,7 @@ import java.util.function.DoubleConsumer;
 
 public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
-  public final FsItem[] items = new FsItem[] {null, null};
+  public final FsItem[] items = new FsItem[]{null, null};
 
   private static final boolean DEBUG = true;
 
@@ -119,7 +119,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     if (model.children == null) writer.write(-1);
     else {
       writer.write(model.children.length);
-      for (var child : model.children) writeInts((ItemFolderDiffModel) child, pathList, fsList, writer);
+      for (var child: model.children) writeInts((ItemFolderDiffModel) child, pathList, fsList, writer);
     }
   }
 
@@ -242,20 +242,25 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     );
   }
 
-  public void copy(boolean left, ModelCopyDeleteStatus status) {
+  public void copy(boolean left, boolean removeItems, ModelCopyDeleteStatus status) {
     status.inTraverse++;
     if (getDiffType() == DiffTypes.DEFAULT) {
       status.onTraversed();
       return;
     }
-    if (isFile()) copyFile(left, status);
-    else copyFolder(left, status);
+    if (isFile()) copyFile(left, removeItems, status);
+    else copyFolder(left, removeItems, status);
     status.onTraversed();
   }
 
-  private void copyFolder(boolean left, ModelCopyDeleteStatus status) {
+  private void copyFolder(boolean left, boolean removeItems, ModelCopyDeleteStatus status) {
+    if (removeItems && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
+      remove(status);
+      return;
+    }
     if (getDiffType() == DiffTypes.EDITED) {
-      for (int i = 0; i < children.length; i++) child(i).copy(left, status);
+      if (children.length == 0) updateItem();
+      else for (int i = 0; i < children.length; i++) child(i).copy(left, removeItems, status);
       return;
     }
     DirectoryHandle toDirParent;
@@ -265,15 +270,20 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
     Consumer<DirectoryHandle> onDirCreated = dirHandle -> {
       setItem(!left, dirHandle);
-      for (int i = 0; i < children.length; i++) child(i).copy(left, status);
-      status.onCopied();
+      if (children.length == 0) updateItem();
+      else for (int i = 0; i < children.length; i++) child(i).copy(left, removeItems, status);
+      status.onDirCopied();
     };
 
     status.inWork++;
     FsWorkerJobs.mkDir(status.executor, toDirParent, path, onDirCreated, status::onCopyError);
   }
 
-  private void copyFile(boolean left, ModelCopyDeleteStatus status) {
+  private void copyFile(boolean left, boolean removeItems, ModelCopyDeleteStatus status) {
+    if (removeItems && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
+      remove(status);
+      return;
+    }
     FileHandle fromFile = (FileHandle) item(left), toFile;
     DirectoryHandle toDir = (DirectoryHandle) parent().item(!left);
     if (getDiffType() == DiffTypes.EDITED) {
@@ -285,7 +295,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
     DoubleConsumer onFileCopied = (bytes) -> {
       insertItem();
-      status.onCopied();
+      status.onFileCopied(getDiffType() != DiffTypes.EDITED);
     };
 
     status.inWork++;

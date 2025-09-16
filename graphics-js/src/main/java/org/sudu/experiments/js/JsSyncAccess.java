@@ -38,8 +38,11 @@ public class JsSyncAccess implements FileHandle.SyncAccess {
   }
 
   @Override
-  public int write(byte[] buf, double filePos) throws IOException {
+  public int write(byte[] buf, int length, double filePos) throws IOException {
     Int8Array buffer = JsMemoryAccess.bufferView(buf);
+    if (length != buf.length)
+      buffer = Int8Array.create(buffer.getBuffer(), 0, length);
+
     try {
       return filePos == 0 ? handle.write(buffer)
           : handle.write(buffer, Js.options(filePos));

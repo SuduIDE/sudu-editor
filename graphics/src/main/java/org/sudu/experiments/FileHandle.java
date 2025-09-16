@@ -13,7 +13,7 @@ public interface FileHandle extends FsItem {
     boolean close();
     double getSize();
     int read(byte[] buf, double filePos) throws IOException;
-    int write(byte[] buf, double filePos) throws IOException;
+    int write(byte[] buf, int length, double filePos) throws IOException;
   }
 
   // web does not provide sync access to host fs ;/

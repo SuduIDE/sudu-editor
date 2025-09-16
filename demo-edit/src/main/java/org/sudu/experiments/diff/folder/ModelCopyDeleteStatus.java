@@ -9,18 +9,26 @@ public class ModelCopyDeleteStatus {
 
   int inWork, inTraverse;
   final WorkerJobExecutor executor;
-  final Runnable onComplete;
   final Consumer<String> onError;
+  final Consumer<int[]> sendStatus;
+  Runnable onComplete;
+  public int insertedFiles, rewroteFiles;
+  public int copiedDirs;
+  public int deletedFiles, deletedDirs;
 
   final IdentityHashMap<ItemFolderDiffModel, Integer> markedForDelete;
 
+  long lastSendStatusTime = System.currentTimeMillis();
+
+  final long SEND_STATUS_MS = 2000;
+
   public ModelCopyDeleteStatus(
       WorkerJobExecutor executor,
-      Runnable onComplete,
+      Consumer<int[]> sendStatus,
       Consumer<String> onError
   ) {
     this.executor = executor;
-    this.onComplete = onComplete;
+    this.sendStatus = sendStatus;
     this.onError = onError;
     markedForDelete = new IdentityHashMap<>();
   }
@@ -30,18 +38,28 @@ public class ModelCopyDeleteStatus {
     onComplete();
   }
 
-  public void onCopied() {
+  public void onFileCopied(boolean inserted) {
     inWork--;
+    if (inserted) insertedFiles++;
+    else rewroteFiles++;
+    onComplete();
+  }
+
+  public void onDirCopied() {
+    inWork--;
+    copiedDirs++;
     onComplete();
   }
 
   public void onFileDeleted(ItemFolderDiffModel file) {
     inWork--;
+    deletedFiles++;
     onChildDeleted(file);
     onComplete();
   }
 
   public void onDirDeleted(ItemFolderDiffModel dir) {
+    deletedDirs++;
     removeMarked(dir);
     onChildDeleted(dir);
     onComplete();
@@ -58,6 +76,13 @@ public class ModelCopyDeleteStatus {
 
   public void onComplete() {
     if (inWork == 0 && inTraverse == 0 && markedForDelete.isEmpty()) onComplete.run();
+    else {
+      long currentTime = System.currentTimeMillis();
+      if (currentTime - lastSendStatusTime > SEND_STATUS_MS) {
+        lastSendStatusTime = currentTime;
+        sendStatus.accept(new int[]{copiedDirs, copiedFiles(), deletedDirs, deletedFiles});
+      }
+    }
   }
 
   public void onFolderDeleteError(ItemFolderDiffModel folder, String error) {
@@ -96,5 +121,13 @@ public class ModelCopyDeleteStatus {
 
   public boolean marked(ItemFolderDiffModel model) {
     return markedForDelete.containsKey(model);
+  }
+
+  public void setOnComplete(Runnable onComplete) {
+    this.onComplete = onComplete;
+  }
+
+  public int copiedFiles() {
+    return insertedFiles + rewroteFiles;
   }
 }

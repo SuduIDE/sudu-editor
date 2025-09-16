@@ -6,6 +6,7 @@ import org.sudu.experiments.diff.folder.FolderDiffModel;
 import org.sudu.experiments.Subscribers;
 import org.sudu.experiments.diff.folder.FolderDiffSide;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
+import org.sudu.experiments.editor.EditorConst;
 import org.sudu.experiments.editor.EditorWindow;
 import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -80,6 +81,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   private String leftRootPath, rightRootPath;
 
   private boolean disableParser;
+  private boolean syncInProcess;
 
   public RemoteFolderDiffWindow(
       EditorColorScheme theme,
@@ -247,7 +249,19 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   }
 
   private void onDiffApplied(JsArray<JSObject> jsResult) {
-    LoggingJs.info("RemoteFolderDiffWindow.onDiffApplied");
+    syncInProcess = false;
+    rootView.fireFinished();
+    int[] ints = JsCast.ints(jsResult.pop());
+    var msg = BackendMessage.deserialize(jsResult);
+    rootModel.update(msg.root);
+    setStatMessages(msg);
+    if (!isFiltered()) lastFrontendMessage.openedFolders.updateDeepWithModel(rootModel);
+    updateNodes();
+    FsDialogs.showDlg(dialogProvider, ints);
+  }
+
+  private void onFileSaved(JsArray<JSObject> jsResult) {
+    LoggingJs.info("RemoteFolderDiffWindow.onFileSaved");
     var msg = BackendMessage.deserialize(jsResult);
     rootModel.update(msg.root);
     setStatMessages(msg);
@@ -302,6 +316,22 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     }
     rootView.left.checkScroll(rootView.left.selectedIndex());
     rootView.right.checkScroll(rootView.right.selectedIndex());
+  }
+
+  private void onSyncStatus(JsArray<JSObject> jsResult) {
+    if (messageBar != null) {
+      int[] status = JsCast.ints(jsResult, 0);
+      int copied = status[0] + status[1];
+      int deleted = status[2] + status[3];
+      if (copied == 0 && deleted == 0) return;
+      StringBuilder sb = new StringBuilder();
+      if (copied != 0) sb.append(sSuffix(copied, "item")).append(" copied");
+      if (deleted != 0) {
+        if (copied != 0) sb.append(", ");
+        sb.append(sSuffix(deleted, "item")).append(" deleted");
+      }
+      messageBar.setStatusBarMessage(JSString.valueOf(sb.toString()));
+    }
   }
 
   private void updateNodes() {
@@ -408,8 +438,12 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         rootView.left.model(),
         rootView.right.model()
     ));
-    rootView.setMergeButtons(this::askApplyDiff);
+    if (!syncInProcess) rootView.setMergeButtons(this::askApplyDiff);
     window.context.window.repaint();
+  }
+
+  private void disableMergeButtons() {
+    rootView.disableMergeButtons();
   }
 
   private void onChannelMessage(JsArray<JSObject> jsResult) {
@@ -419,9 +453,11 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       case DiffModelChannelUpdater.FRONTEND_MESSAGE -> update(jsResult);
       case DiffModelChannelUpdater.OPEN_FILE -> openFile(jsResult);
       case DiffModelChannelUpdater.APPLY_DIFF -> onDiffApplied(jsResult);
+      case DiffModelChannelUpdater.FILE_SAVE -> onFileSaved(jsResult);
       case DiffModelChannelUpdater.APPLY_FILTERS -> onFiltersApplied(jsResult);
       case DiffModelChannelUpdater.REFRESH -> onRefresh(jsResult);
       case DiffModelChannelUpdater.NAVIGATE -> onNavigate(jsResult);
+      case DiffModelChannelUpdater.APPLY_SYNC_STATUS -> onSyncStatus(jsResult);
     }
     LoggingJs.trace("Got message "
         + DiffModelChannelUpdater.messageName(type)
@@ -716,17 +752,20 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       fromPath = replaceSlashes(fromPath);
       toPath = replaceSlashes(toPath);
       FsDialogs.showDlg(dialogProvider, fromPath, toPath, remoteModel, left,
-          () -> sendApplyDiff(model, left));
+          (removeItems) -> sendApplyDiff(model, left, removeItems));
     } else {
-      sendApplyDiff(model, left);
+      sendApplyDiff(model, left, EditorConst.DEFAULT_REMOVE_ITEMS);
     }
   }
 
-  private void sendApplyDiff(FolderDiffModel model, boolean left) {
+  private void sendApplyDiff(FolderDiffModel model, boolean left, boolean removeItems) {
+    syncInProcess = true;
+    rootView.fireFileSync();
+    disableMergeButtons();
     int[] path = model.getPathFromRoot();
     var result = JsArray.create();
     result.set(0, JsCast.jsInts(path));
-    result.set(1, JsCast.jsInts(left ? 0 : 1));
+    result.set(1, JsCast.jsInts(left ? 0 : 1, removeItems ? 1 : 0));
     result.push(DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
     channel.sendMessage(result);
     LoggingJs.info("RemoteFolderDiffWindow.sendApplyDiff");

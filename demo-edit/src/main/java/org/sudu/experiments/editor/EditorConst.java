@@ -25,8 +25,6 @@ public interface EditorConst {
 
   int LINE_NUMBERS_TEXTURE_SIZE = 20;
 
-  int V_LINE_LEFT_DELTA_DP = 10;
-
   double TYPING_STOP_TIME = 1./32.;
   int BIG_RESOLVE_TIME_MS = 100;
 
@@ -34,6 +32,7 @@ public interface EditorConst {
   int weightBold    = FontDesk.WEIGHT_SEMI_BOLD;
 
   boolean DEFAULT_DISABLE_PARSER = false;
+  boolean DEFAULT_REMOVE_ITEMS = false;
 
   static FontDesk setFonts(
       String name, float size,

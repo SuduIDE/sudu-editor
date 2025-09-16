@@ -1,13 +1,13 @@
 package org.sudu.experiments.editor.ui;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.editor.DemoRect;
 import org.sudu.experiments.editor.ui.colors.DialogItemColors;
 import org.sudu.experiments.editor.ui.colors.FindUsagesItemColors;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.input.MouseListener;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
@@ -24,7 +24,6 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   static final int spacingDp = 2;
 
   private final UiContext context;
-  private final DemoRect rect = new DemoRect();
   private final V2i textureSize = new V2i();
   private UiFont uiFont;
   private FontDesk font;
@@ -50,11 +49,6 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     this.context = context;
     this.onClose = onClose;
     onClickOutside(onClose);
-    setDpr();
-  }
-
-  private void setDpr() {
-    spacing = DprUtil.toPx(spacingDp, context.dpr);
   }
 
   public boolean isEmpty() {
@@ -93,7 +87,6 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     maxFileNameLen = 0;
     maxLineLen = 0;
     maxCodeContentLen = 0;
-    rect.makeEmpty();
     onClose = null;
   }
 
@@ -103,12 +96,16 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   }
 
   @Override
-  protected void onDprChange(float olDpr, float newDpr) {
-    measure();
-    setDpr();
-    this.font = null;
-    regionTexture = null;
-    textXPad = 0;
+  public void setPosition(V2i newPos, V2i newSize, float newDpr) {
+    boolean dprChange = dpr != newDpr;
+    super.setPosition(newPos, newSize, newDpr);
+    spacing = DprUtil.toPx(spacingDp, dpr);
+    if (dprChange) {
+      font = null;
+      textXPad = 0;
+      regionTexture = null;
+      measure();
+    }
   }
 
   @Override
@@ -152,15 +149,15 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     V4f bgColor = theme.bgColor;
     g.drawRect(pos.x, pos.y, size, bgColor);
 
-    int x = rect.pos.x;
-    int y = rect.pos.y;
+    int x = pos.x;
+    int y = pos.y;
     int hMargin = context.toPx(hMarinDp);
 
     V2i v2i = context.v2i1;
 
     for (int i = firstLineRendered; i <= lastLineRendered; i++) {
       FindUsagesItem item = itemView(i);
-      int localY = i * getLineHeight() + (i + 1) * spacing;
+      int localY = i * textHeight + (i + 1) * spacing;
       int fileTX = x + hMargin;
       int lineTX = fileTX + maxFileNameLen;
       int contentTX = lineTX + maxLineLen;
@@ -186,12 +183,12 @@ public class FindUsagesView extends ScrollContent implements Focusable {
       v2i.set(Math.max(0, maxLineLen - item.sizeLines.x), item.sizeLines.y);
       g.drawRect(linesX, y1, v2i, itemBg);
       int contentX = contentTX + item.sizeContent.x;
-      v2i.set(Math.max(0, rect.size.x - item.sizeContent.x - maxLineLen - maxFileNameLen - hMargin), item.sizeContent.y);
+      v2i.set(Math.max(0, size.x - item.sizeContent.x - maxLineLen - maxFileNameLen - hMargin), item.sizeContent.y);
       g.drawRect(contentX, y1, v2i, itemBg);
 
       // border
       int borderX = x + size.x - hMargin;
-      v2i.set(hMargin, getLineHeight() + spacing);
+      v2i.set(hMargin, textHeight + spacing);
       g.drawRect(borderX, y1, v2i, bgColor);
     }
 
@@ -235,22 +232,6 @@ public class FindUsagesView extends ScrollContent implements Focusable {
     return view[i % view.length];
   }
 
-  @Override
-  protected void onSizeChange(V2i newSize) {
-    rect.size.set(newSize);
-  }
-
-  @Override
-  protected void onPosChange(V2i newPos) {
-    rect.pos.set(newPos);
-  }
-
-  private void computeVirtualSize() {
-    requireFont();
-    int height = getLineHeight() * items.length + spacing * (items.length + 1);
-    virtualSize.set(size.x, height);
-  }
-
   public V2i setLimitedPosition(V2i position, int minY) {
     int width = maxFileNameLen + maxLineLen + maxCodeContentLen;
     int xPad = context.toPx(5);
@@ -262,7 +243,8 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   public V2i calculateSize(V2i position) {
     measure();
-    computeVirtualSize();
+    int height = getLineHeight() * items.length + spacing * (items.length + 1);
+    virtualSize.set(size.x, height);
     int width = maxFileNameLen + maxLineLen + maxCodeContentLen;
     int oX = context.windowSize.x - position.x - context.toPx(5);
     int oY = context.windowSize.y - position.y - context.toPx(5);
@@ -270,9 +252,9 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   }
 
   private void measure() {
-    Canvas mCanvas = context.mCanvas();
     if (isEmpty()) return;
     requireFont();
+    Canvas mCanvas = context.mCanvas();
     mCanvas.setFont(font);
     var measureWithPad = RegionTextureAllocator.measuringWithWPad(mCanvas, textXPad);
 
@@ -289,7 +271,7 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   @Override
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
-    if (rect.isInside(event.position)) {
+    if (hitTest(event.position)) {
       int newHover = find(event.position);
       if (newHover >= 0) hoverItemId = newHover;
       context.windowCursor.setDefault();
@@ -298,10 +280,10 @@ public class FindUsagesView extends ScrollContent implements Focusable {
 
   @Override
   protected Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
-    if (!rect.isInside(event.position)) {
-      if (!rect.isEmpty() && onClickOutside != null) onClickOutside.run();
+    if (!hitTest(event.position)) {
+      if (onClickOutside != null) onClickOutside.run();
     }
-    return null;
+    return MouseListener.Static.emptyConsumer;
   }
 
   @Override
@@ -337,14 +319,14 @@ public class FindUsagesView extends ScrollContent implements Focusable {
   }
 
   private int getLastLine() {
-    return Math.min((scrollPos.y + rect.size.y - 1 + spacing) / (getLineHeight() + spacing), items.length - 1);
+    return Math.min((scrollPos.y + size.y - 1 + spacing) / (getLineHeight() + spacing), items.length - 1);
   }
 
   private void requireFont() {
     if (font == null) {
       font = context.fontDesk(uiFont);
-      regionTexture = new RegionTexture(this.font.lineHeight());
-      textXPad = Numbers.iRnd(this.font.WWidth);
+      regionTexture = new RegionTexture(font.lineHeight());
+      textXPad = Numbers.iRnd(font.WWidth);
     }
   }
 
@@ -384,16 +366,20 @@ public class FindUsagesView extends ScrollContent implements Focusable {
       }
 
     }
-    if (hoverItemId <= firstLineRendered) {
-      scrollView.setScrollPos(
-          scrollPos.x,
-          hoverItemId * getLineHeight() + hoverItemId * spacing
-      );
-    } else if (hoverItemId >= lastLineRendered) {
-      scrollView.setScrollPos(
-          scrollPos.x,
-          (hoverItemId + 1) * getLineHeight() + (hoverItemId + 2) * spacing - size.y
-      );
+    if (font != null) {
+      if (hoverItemId <= firstLineRendered) {
+        scrollView.setScrollPos(
+            scrollPos.x,
+            hoverItemId * getLineHeight() + hoverItemId * spacing
+        );
+      } else if (hoverItemId >= lastLineRendered) {
+        scrollView.setScrollPos(
+            scrollPos.x,
+            (hoverItemId + 1) * getLineHeight() + (hoverItemId + 2) * spacing - size.y
+        );
+      }
+    } else {
+      System.out.println("FindUsagesView.onKeyPress: font is null");
     }
     return false;
   }

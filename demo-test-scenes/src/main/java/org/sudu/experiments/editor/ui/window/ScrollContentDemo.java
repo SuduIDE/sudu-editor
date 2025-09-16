@@ -34,7 +34,8 @@ public class ScrollContentDemo extends ScrollContent {
   }
 
   @Override
-  protected void onSizeChange(V2i newSize) {
+  public void setPosition(V2i newPos, V2i newSize, float newDpr) {
+    super.setPosition(newPos, newSize, newDpr);
     setVirtualSize(newSize.x * 3, newSize.y * 5);
     onSizeListener.accept(newSize);
   }
