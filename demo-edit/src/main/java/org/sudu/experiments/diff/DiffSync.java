@@ -4,18 +4,21 @@ import org.sudu.experiments.editor.CodeLineMapping;
 import org.sudu.experiments.editor.CompactViewRange;
 import org.sudu.experiments.editor.DiffRef;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
-import org.sudu.experiments.editor.worker.diff.DiffRange;
 
 public class DiffSync {
   final DiffRef left, right;
   DiffInfo model;
 
-  public DiffSync(DiffRef l, DiffRef r) {
+  public DiffSync(DiffRef l, DiffRef r, boolean syncHScroll) {
     left = l;
     right = r;
 
-    l.setScrollListeners(null, (delta) -> sync(delta, left, right));
-    r.setScrollListeners(null, (delta) -> sync(delta, right, left));
+    l.setScrollListeners(
+        syncHScroll ? right::setHScrollPosSilent : null,
+        delta -> sync(delta, left, right));
+    r.setScrollListeners(
+        syncHScroll ? left::setHScrollPosSilent : null,
+        delta -> sync(delta, right, left));
   }
 
   public void setModel(DiffInfo model) {

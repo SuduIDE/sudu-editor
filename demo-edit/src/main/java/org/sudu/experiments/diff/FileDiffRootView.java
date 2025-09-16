@@ -67,7 +67,7 @@ class FileDiffRootView extends DiffRootView {
     editor2.setDisableParser(disableParser);
     editor2.setUndoBuffer(undoBuffer);
 
-    diffSync = new DiffSync(editor1, editor2);
+    diffSync = new DiffSync(editor1, editor2, true);
     middleLine.setOnMidSyncPointHover(i -> onMidSyncLineHover(syncPoints, i));
     middleLine.setOnMidSyncPointClick(i -> onMidSyncLineClick(syncPoints, i));
 

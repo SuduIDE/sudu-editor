@@ -37,7 +37,7 @@ class FolderDiffRootView extends DiffRootView {
     var leftDiffRef = new FileTreeDiffRef(leftScrollView, left);
     var rightDiffRef = new FileTreeDiffRef(rightScrollView, right);
     middleLine.setLeftRight(leftDiffRef, rightDiffRef);
-    diffSync = new DiffSync(leftDiffRef, rightDiffRef);
+    diffSync = new DiffSync(leftDiffRef, rightDiffRef, false);
     setViews(leftScrollView, rightScrollView, middleLine);
   }
 

@@ -19,7 +19,7 @@ public class ScrollView extends View {
 
   private ScrollContent content;
   private ScrollBar vScroll, hScroll;
-  private Runnable hListener;
+  private IntConsumer hListener;
   private IntConsumer vListener;
   private float scrollWidth = 10;
   private V4f sbLineColor, sbBackColor;
@@ -80,7 +80,7 @@ public class ScrollView extends View {
     content.onMouseLeaveWindow();
   }
 
-  public void setListeners(Runnable hsListener, IntConsumer vsListener) {
+  public void setListeners(IntConsumer hsListener, IntConsumer vsListener) {
     hListener = hsListener;
     vListener = vsListener;
   }
@@ -174,14 +174,14 @@ public class ScrollView extends View {
 
   public void setScrollPosX(int hScrollPos) {
     if (setHScrollPosSilent(hScrollPos) && hListener != null) {
-      hListener.run();
+      hListener.accept(content.scrollPos.x);
     }
   }
 
   public void setScrollPosY(int vScrollPos) {
-    int delta = vScrollPos - content.scrollPos.y;
+    int oldPos = content.scrollPos.y;
     if (setVScrollPosSilent(vScrollPos) && vListener != null) {
-      vListener.accept(delta);
+      vListener.accept(content.scrollPos.y - oldPos);
     }
   }
 

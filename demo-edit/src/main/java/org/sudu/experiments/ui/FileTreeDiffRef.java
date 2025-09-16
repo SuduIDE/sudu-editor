@@ -39,12 +39,17 @@ public class FileTreeDiffRef implements DiffRef {
     return treeView.size;
   }
 
-  public void setScrollListeners(Runnable hListener, IntConsumer vListener) {
+  public void setScrollListeners(IntConsumer hListener, IntConsumer vListener) {
     scrollView.setListeners(hListener, vListener);
   }
 
   public boolean setVScrollPosSilent(int pos) {
     return scrollView.setVScrollPosSilent(pos);
+  }
+
+  @Override
+  public boolean setHScrollPosSilent(int pos) {
+    return false;
   }
 
   public int lineHeight() {

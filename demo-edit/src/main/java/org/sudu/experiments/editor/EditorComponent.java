@@ -106,7 +106,7 @@ public class EditorComponent extends View implements
   private ExternalHighlights externalHighlights;
 
   Consumer<String> onError = System.err::println;
-  Runnable hScrollListener;
+  IntConsumer hScrollListener;
   IntConsumer vScrollListener;
   Consumer<EditorComponent> fullFileLexedListener;
   TriConsumer<EditorComponent, Integer, Integer> iterativeParseFileListener;
@@ -173,7 +173,7 @@ public class EditorComponent extends View implements
     internalLayout();
   }
 
-  public void setScrollListeners(Runnable hListener, IntConsumer vListener) {
+  public void setScrollListeners(IntConsumer hListener, IntConsumer vListener) {
     hScrollListener = hListener;
     vScrollListener = vListener;
   }
@@ -481,7 +481,7 @@ public class EditorComponent extends View implements
 
   void setScrollPosX(int hPos) {
     if (setHScrollPosSilent(hPos) && hScrollListener != null) {
-      hScrollListener.run();
+      hScrollListener.accept(hScrollPos);
     }
   }
 
@@ -492,6 +492,7 @@ public class EditorComponent extends View implements
     }
   }
 
+  @Override
   public boolean setHScrollPosSilent(int hPos) {
     int newHPos = clampScrollPos(hPos, maxHScrollPos());
     boolean change = newHPos != hScrollPos;
@@ -499,6 +500,7 @@ public class EditorComponent extends View implements
     return change;
   }
 
+  @Override
   public boolean setVScrollPosSilent(int vPos) {
     int newVPos = clampScrollPos(vPos, maxVScrollPos());
     boolean change = newVPos != vScrollPos;
