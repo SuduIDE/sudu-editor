@@ -1,12 +1,17 @@
 package org.sudu.experiments.diff;
 
-@SuppressWarnings({"FieldCanBeLocal", "unused", "FieldMayBeFinal"})
+import org.sudu.experiments.math.ArrayOp;
+
+import java.util.Arrays;
+import java.util.TreeSet;
+
+@SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class BinDataCache {
 
   public interface DataSource {
     interface Result {
       void onData(double address, byte[] data);
-      void onError(String e);
+      void onError(double address, String e);
     }
     void fetch(double address, int length, Result handler);
   }
@@ -15,10 +20,15 @@ public class BinDataCache {
   private final DataSource source;
   private double[] addr = new double[0];
   private byte[][] data = new byte[0][];
+  private final int chunkSize;
   private int frameNo, memory;
+  private final TreeSet<Double> requestMap = new TreeSet<>();
 
-  public BinDataCache(DataSource source) {
+  private final DataSource.Result onData = onData();
+
+  public BinDataCache(DataSource source, int chunkSize) {
     this.source = source;
+    this.chunkSize = chunkSize;
   }
 
   // repaint is triggered when fetch is completed
@@ -41,12 +51,52 @@ public class BinDataCache {
   //          request length more than available data
 
   public static class GetResult {
-    byte[] data;
-    int offset;
+    public byte[] data;
+    public int offset;
   }
 
-  public boolean getOrFetch(double address, int length, GetResult result) {
-    return false;
+  // we assume that fetch chunkSize == length
+  public boolean getOrFetch(double address, GetResult result) {
+    int s = Arrays.binarySearch(addr, address);
+    if (s < 0) {
+      s =  -s - 1;
+      result.data = null;
+      if (addr.length > s && address + chunkSize < addr[s]) {
+        result.offset = (int) (addr[s] - address - chunkSize);
+      } else {
+        result.offset = chunkSize;
+      }
+      double requestAddress = address - address % chunkSize;
+      Double key = requestAddress;
+      if (!requestMap.contains(key)) {
+        source.fetch(requestAddress, chunkSize, onData);
+        requestMap.add(key);
+      }
+      return false;
+    } else {
+      result.data =  data[s];
+      result.offset = (int) (addr[s] - address);
+      return true;
+    }
+  }
 
+  private DataSource.Result onData() {
+    return new BinDataCache.DataSource.Result() {
+      @Override
+      public void onData(double address, byte[] values) {
+        int s = -Arrays.binarySearch(addr, address) - 1;
+        if (s < 0) {
+          System.err.println("BinDataCache: double fetch at address " + address);
+        } else {
+          addr = ArrayOp.insertAt(address, addr, s);
+          data = ArrayOp.insertAt(values, data, s);
+        }
+      }
+
+      @Override
+      public void onError(double address, String e) {
+        System.err.println("BinDataCache: error fetching data at " + address + ": " + e);
+      }
+    };
   }
 }

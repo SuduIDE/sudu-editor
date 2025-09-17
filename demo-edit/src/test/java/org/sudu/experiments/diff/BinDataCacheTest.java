@@ -49,17 +49,25 @@ class TestRepaint implements Runnable {
 class BinDataCacheTest {
 
   static final int maxMemory = 1024 * 1024;
-  static final int chunkSize = 1024;
+  static final int chunkSize = 1024 * 64;
 
   @Test
   void testGetOrFetch() {
     var data = new TestDataSource();
-    var cache = new BinDataCache(data);
+    var cache = new BinDataCache(data, chunkSize);
     var result = new BinDataCache.GetResult();
 
-    boolean r = cache.getOrFetch(0, chunkSize, result);
+    assertFalse(cache.getOrFetch(0, result));
 
-    assertTrue(r);
+    assertNull(result.data);
+    assertEquals(chunkSize, result.offset);
+
     assertEquals(1, data.chunks.size());
+    // perform double fetch
+    assertFalse(cache.getOrFetch(0, result));
+    assertEquals(1, data.chunks.size());
+
+    data.step();
+    assertTrue(cache.getOrFetch(0, result));
   }
 }
