@@ -43,7 +43,10 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
             UiText.newProjectView),
         new ToolbarItem(
             windowManager.hidePopupMenuThen(this::newEditorWindow),
-            UiText.newEditorWindow)
+            UiText.newEditorWindow),
+        new ToolbarItem(
+            windowManager.hidePopupMenuThen(this::newBinaryDiff),
+            UiText.newBinaryDiffWindow)
     );
     windowManager.showPopup(
         theme.dialogItem, theme.popupMenuFont,
@@ -61,6 +64,10 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
 
   private void newCodeReview() {
     new FileDiffWindow(windowManager, theme, FolderDiff::menuFonts, EditorConst.DEFAULT_DISABLE_PARSER, true);
+  }
+
+  private void newBinaryDiff() {
+    new BinaryDiffWindow(windowManager, theme, FolderDiff::menuFonts);
   }
 
   private void newProjectView() {

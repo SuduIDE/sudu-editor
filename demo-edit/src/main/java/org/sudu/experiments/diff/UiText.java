@@ -9,4 +9,5 @@ public interface UiText {
   String newCodeReviewWindow = "new code review window";
   String newProjectView = "new project view";
   String newEditorWindow = "new editor window";
+  String newBinaryDiffWindow = "new binary diff";
 }

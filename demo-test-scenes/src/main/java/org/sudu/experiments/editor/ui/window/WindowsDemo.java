@@ -1,6 +1,7 @@
 package org.sudu.experiments.editor.ui.window;
 
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.diff.BinaryDiffView;
 import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.Themes;
 import org.sudu.experiments.fonts.Fonts;
@@ -12,6 +13,7 @@ import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.XorShiftRandom;
 import org.sudu.experiments.ui.*;
+import org.sudu.experiments.ui.window.ScrollContent;
 import org.sudu.experiments.ui.window.ScrollView;
 import org.sudu.experiments.ui.window.Window;
 
@@ -37,7 +39,7 @@ public class WindowsDemo extends WindowScene implements DprChangeListener {
 
   @Override
   public void onDprChanged(float oldDpr, float newDpr) {
-    if (oldDpr == 0) openWindows();
+    if (oldDpr == 0) initializeWindows();
   }
 
   private boolean onContextMenu(MouseEvent event) {
@@ -53,16 +55,45 @@ public class WindowsDemo extends WindowScene implements DprChangeListener {
     return ArrayOp.supplier(
         new ToolbarItem(
             windowManager.hidePopupMenuThen(this::addWindow),
-            "addWindow"));
+            "addWindow"),
+        new ToolbarItem(
+            windowManager.hidePopupMenuThen(this::addBinDiff),
+            "addBinDiff")
+        );
   }
 
   private void addWindow() {
-    windowManager.addWindow(newWindow());
+    Window window = newWindow(1, true, "Window " + ++n);
+    setWindowRandomPos(window);
+    windowManager.addWindow(window);
   }
 
-  private void openWindows() {
-    windowManager.addWindow(newWindow());
-    Window noScroll = newWindow(.5f, false, "Window 1");
+  private void addBinDiff() {
+    windowManager.addWindow(newBinWindow());
+  }
+
+  private Window newBinWindow() {
+    String title = "BinView " + ++n;
+    Window window = new Window(uiContext);
+    ScrollContent content = new BinaryDiffView(new UiContext(api));
+    window.setContent(new ScrollView(content));
+    window.setTheme(Themes.darculaColorScheme());
+    window.setTitleFont(titleFont, titleMargin);
+    window.setTitle(title);
+    addColoseWindowHandler(window);
+
+    setWindowRandomPos(window);
+    return window;
+  }
+
+  private void initializeWindows() {
+//    addWindow();
+//    addNoScrollWindow();
+    addBinDiff();
+  }
+
+  private void addNoScrollWindow() {
+    Window noScroll = newWindow(.5f, false, "WindowNS " + ++n);
     V2i screen = uiContext.windowSize;
     windowManager.addWindow(noScroll).setPosition(
         new V2i(screen.x / 10, screen.y / 10),
@@ -70,15 +101,13 @@ public class WindowsDemo extends WindowScene implements DprChangeListener {
     );
   }
 
-  private Window newWindow() {
-    Window window = newWindow(1, true, "Window " + ++n);
+  private void setWindowRandomPos(Window window) {
     V2i screen = uiContext.windowSize;
     int x = screen.x / 10  + r.nextInt(screen.x / 10);
     int y = screen.y / 20  + r.nextInt(screen.y / 20);
     int w = screen.x * 7 / 10  + r.nextInt(screen.x / 10);
     int h = screen.y * 7 / 10  + r.nextInt(screen.y / 10);
     window.setPosition(new V2i(x, y), new V2i(w, h));
-    return window;
   }
 
   private Window newWindow(float v, boolean scroll, String title) {
@@ -89,14 +118,11 @@ public class WindowsDemo extends WindowScene implements DprChangeListener {
     window.setContent(scroll ? newScrollView(contentDemo) : contentDemo);
     window.setTheme(Themes.darculaColorScheme());
     window.setTitleFont(titleFont, titleMargin);
-    window.setOnClose(() -> {
-      windowManager.removeWindow(window);
-      window.dispose();
-    });
+    addColoseWindowHandler(window);
     return window;
   }
 
-  private ScrollView newScrollView(ScrollContentDemo contentDemo) {
+  private ScrollView newScrollView(ScrollContent contentDemo) {
     ScrollView scrollView = new ScrollView(contentDemo);
     TestColors.apply(scrollView);
     return scrollView;
@@ -108,5 +134,12 @@ public class WindowsDemo extends WindowScene implements DprChangeListener {
       if (top != null) top.close();
     }
     return false;
+  }
+
+  private void addColoseWindowHandler(Window window) {
+    window.setOnClose(() -> {
+      windowManager.removeWindow(window);
+      window.dispose();
+    });
   }
 }
