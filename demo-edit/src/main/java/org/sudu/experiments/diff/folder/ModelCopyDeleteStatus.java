@@ -69,7 +69,7 @@ public class ModelCopyDeleteStatus {
     model.deleteItem();
     var parent = model.parent();
     if (parent == null) return;
-    parent.updateItem();
+    parent.updateItemOnDelete();
     if (!marked(parent)) return;
     int count = markedForDelete.get(parent) - 1;
     markedForDelete.put(parent, count);
