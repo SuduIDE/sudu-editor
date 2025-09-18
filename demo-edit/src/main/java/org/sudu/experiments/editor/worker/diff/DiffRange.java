@@ -20,7 +20,7 @@ public class DiffRange {
 
   public boolean inside(int line, boolean left) {
     return (left && fromL <= line && line < toL())
-        || (!left && fromR <= line && line <= toR());
+        || (!left && fromR <= line && line < toR());
   }
 
   @Override
