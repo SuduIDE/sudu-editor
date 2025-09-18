@@ -480,11 +480,11 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
         LoggingJs.trace("Expanding dir " + node.name());
         var model = node.model();
         if (model == null) {
-          LoggingJs.error("dir " + node.name() + "haven't model");
+          LoggingJs.debug("dir " + node.name() + "haven't model");
           return;
         }
         if (model.children == null) {
-          LoggingJs.error("model " + node.name() + "haven't children");
+          LoggingJs.debug("model " + node.name() + "haven't children");
           return;
         }
 
