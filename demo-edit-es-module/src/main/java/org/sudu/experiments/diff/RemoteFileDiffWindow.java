@@ -92,7 +92,7 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   private void onDiffSent(JsArray<JSObject> jsArray) {
     int[] modelInts = JsCast.ints(jsArray, 0);
     DiffInfo model = readDiffInfo(modelInts);
-    rootView.setDiffModel(model);
+    rootView.setDiffModel(model, rootView.docVersions());
   }
 
   private void sendReadFile(boolean left) {

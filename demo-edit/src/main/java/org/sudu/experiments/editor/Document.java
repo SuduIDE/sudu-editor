@@ -669,6 +669,10 @@ public class Document extends CodeLines {
     return undoBuffer.lastDiff(this);
   }
 
+  public int version() {
+    return currentVersion;
+  }
+
   private void updateModelOnDiff(Diff diff, boolean isUndo) {
     if (this.updateModelOnDiff != null) updateModelOnDiff.accept(diff, isUndo);
   }

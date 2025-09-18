@@ -12,15 +12,16 @@ import org.sudu.experiments.diff.folder.ItemFolderDiffModel;
 import org.sudu.experiments.editor.CodeLine;
 import org.sudu.experiments.editor.Document;
 import org.sudu.experiments.editor.EditorComponent;
+import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.ui.fs.*;
-import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class DiffUtils {
@@ -31,7 +32,7 @@ public class DiffUtils {
       char[] charsN, int[] intsN,
       char[] charsM, int[] intsM,
       int[] syncL, int[] syncR,
-      int[] ints,
+      int[] ints, // {cmpLinesOnly, doc1.version, doc2.version}
       List<Object> result
   ) {
     DiffModel model = new DiffModel();
@@ -39,7 +40,9 @@ public class DiffUtils {
     model.syncL = syncL;
     model.syncR = syncR;
     int[] resultInts = model.findDiffs(charsN, intsN, charsM, intsM);
+    int[] versions = Arrays.copyOfRange(ints, 1, 3);
     result.add(resultInts);
+    result.add(versions);
   }
 
 
@@ -234,7 +237,7 @@ public class DiffUtils {
       Document document2,
       boolean cmpOnlyLines,
       int[] syncL, int[] syncR,
-      Consumer<DiffInfo> result,
+      BiConsumer<DiffInfo, int[]> result,
       WorkerJobExecutor window
   ) {
     if (EditorComponent.debugDiffModel)
@@ -245,24 +248,26 @@ public class DiffUtils {
     char[] chars2 = document2.getChars();
     int[] intervals1 = makeIntervals(document1, cmpOnlyLines);
     int[] intervals2 = makeIntervals(document2, cmpOnlyLines);
+    int[] ints = new int[] {cmpOnlyLines ? 1 : 0, document1.version(), document2.version()};
 
     window.sendToWorker(true,
         r -> {
-          int[] reply = ((ArrayView) r[0]).ints();
+          int[] reply = ArgsCast.intArray(r, 0);
+          int[] versions = ArgsCast.intArray(r, 1);
           DiffInfo model = readDiffInfo(reply);
-          result.accept(model);
+          result.accept(model, versions);
         }, FIND_DIFFS,
         chars1, intervals1,
         chars2, intervals2,
         syncL, syncR,
-        new int[] {cmpOnlyLines ? 1 : 0}
+        ints
     );
   }
 
   public static void findIntervalDiffs(
       Document document1,
       Document document2,
-      Consumer<DiffInfo> result,
+      BiConsumer<DiffInfo, int[]> result,
       WorkerJobExecutor window,
       int fromL, int toL,
       int fromR, int toR
@@ -272,17 +277,19 @@ public class DiffUtils {
     int[] intervals1 = makeIntervals(document1, fromL, toL, false);
     int[] intervals2 = makeIntervals(document2, fromR, toR, false);
     int[] syncL = new int[]{}, syncR = new int[]{};
+    int[] ints = {0, document1.version(), document2.version()};
 
     window.sendToWorker(true,
         r -> {
-          int[] reply = ((ArrayView) r[0]).ints();
+          int[] reply = ArgsCast.intArray(r, 0);
+          int[] versions = ArgsCast.intArray(r, 1);
           DiffInfo model = readDiffInfo(reply);
-          result.accept(model);
+          result.accept(model, versions);
         }, FIND_DIFFS,
         chars1, intervals1,
         chars2, intervals2,
         syncL, syncR,
-        new int[] {0}
+        ints
     );
   }
 

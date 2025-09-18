@@ -2265,6 +2265,10 @@ public class EditorComponent extends View implements
     syncPoints.removeSyncPoint(computeSyncPoint(lastMouseDownPos));
   }
 
+  public int docVersion() {
+    return model.document.version();
+  }
+
   private boolean isLastMouseDownPosUnset() {
     return lastMouseDownPos.x == -1 || lastMouseDownPos.y == -1;
   }
