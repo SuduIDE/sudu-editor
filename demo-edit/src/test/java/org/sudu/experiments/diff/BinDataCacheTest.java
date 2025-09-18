@@ -54,20 +54,67 @@ class BinDataCacheTest {
   @Test
   void testGetOrFetch() {
     var data = new TestDataSource();
-    var cache = new BinDataCache(data, chunkSize);
+    var repaint = new TestRepaint();
+    var cache = new BinDataCache(data, chunkSize, repaint);
     var result = new BinDataCache.GetResult();
 
-    assertFalse(cache.getOrFetch(0, result));
+    boolean r1 = cache.getOrFetch(0, result);
+    assertFalse(r1);
 
     assertNull(result.data);
     assertEquals(chunkSize, result.offset);
+    assertEquals(1, data.chunks.size());
+    assertFalse(repaint.getValueAndClear());
 
-    assertEquals(1, data.chunks.size());
     // perform double fetch
-    assertFalse(cache.getOrFetch(0, result));
+    boolean r2 = cache.getOrFetch(0, result);
+
+    assertFalse(r2);
+    assertNull(result.data);
+    assertEquals(chunkSize, result.offset);
     assertEquals(1, data.chunks.size());
+    assertFalse(repaint.getValueAndClear());
 
     data.step();
-    assertTrue(cache.getOrFetch(0, result));
+    assertTrue(repaint.getValueAndClear());
+
+    boolean r3 = cache.getOrFetch(0, result);
+
+    assertTrue(r3);
+    assertEquals(0, result.offset);
+    assertEquals(chunkSize, result.data.length);
+    assertEquals(0, data.chunks.size());
+    assertFalse(repaint.getValueAndClear());
+
+    int offset = chunkSize / 10;
+    boolean r4 = cache.getOrFetch(offset, result);
+    assertTrue(r4);
+    assertEquals(offset, result.offset);
+    assertEquals(chunkSize, result.data.length);
+    assertFalse(repaint.getValueAndClear());
+
+    // [chunk0] -> request chunk3
+    boolean r5 = cache.getOrFetch(chunkSize * 3, result);
+    assertFalse(r5);
+    assertNull(result.data);
+    assertEquals(chunkSize, result.offset);
+    assertFalse(repaint.getValueAndClear());
+
+    data.step();
+    assertTrue(repaint.getValueAndClear());
+    // [chunk0] ... [chunk3]
+
+    int addr2 = chunkSize * 3 - offset;
+    boolean r6 = cache.getOrFetch(addr2, result);
+    assertFalse(r6);
+    assertNull(result.data);
+    assertEquals(offset, result.offset);
+    assertEquals(1, data.chunks.size());
+    assertEquals(chunkSize * 2, data.chunks.getFirst().address());
+    assertFalse(repaint.getValueAndClear());
+
+    data.step();
+    assertTrue(repaint.getValueAndClear());
+
   }
 }

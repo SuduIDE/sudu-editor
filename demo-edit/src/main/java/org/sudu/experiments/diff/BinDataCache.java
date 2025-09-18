@@ -26,13 +26,12 @@ public class BinDataCache {
 
   private final DataSource.Result onData = onData();
 
-  public BinDataCache(DataSource source, int chunkSize) {
+  // repaint is triggered when fetch is completed
+  public BinDataCache(
+      DataSource source, int chunkSize, Runnable repaint
+  ) {
     this.source = source;
     this.chunkSize = chunkSize;
-  }
-
-  // repaint is triggered when fetch is completed
-  public void setRepaint(Runnable repaint) {
     this.repaint = repaint;
   }
 
@@ -58,11 +57,26 @@ public class BinDataCache {
   // we assume that fetch chunkSize == length
   public boolean getOrFetch(double address, GetResult result) {
     int s = Arrays.binarySearch(addr, address);
-    if (s < 0) {
+    if (s >= 0) {
+      result.data =  data[s];
+      result.offset = (int) (addr[s] - address);
+      return true;
+    } else {
       s =  -s - 1;
+
+      if (s > 0 && s - 1 < addr.length) {
+        double cAddress = addr[s - 1];
+        byte[] cData = data[s - 1];
+        if (cAddress < address && address < cAddress + cData.length) {
+          result.data = cData;
+          result.offset = (int) (address - cAddress);
+          return true;
+        }
+      }
+
       result.data = null;
-      if (addr.length > s && address + chunkSize < addr[s]) {
-        result.offset = (int) (addr[s] - address - chunkSize);
+      if (addr.length > s) {
+        result.offset = (int) (addr[s] - address);
       } else {
         result.offset = chunkSize;
       }
@@ -73,10 +87,6 @@ public class BinDataCache {
         requestMap.add(key);
       }
       return false;
-    } else {
-      result.data =  data[s];
-      result.offset = (int) (addr[s] - address);
-      return true;
     }
   }
 
@@ -90,6 +100,7 @@ public class BinDataCache {
         } else {
           addr = ArrayOp.insertAt(address, addr, s);
           data = ArrayOp.insertAt(values, data, s);
+          repaint.run();
         }
       }
 
