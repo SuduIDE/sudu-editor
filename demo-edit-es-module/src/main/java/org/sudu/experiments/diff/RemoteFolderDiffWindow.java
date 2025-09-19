@@ -259,21 +259,31 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     setStatMessages(msg);
     if (!isFiltered()) lastFrontendMessage.openedFolders.updateDeepWithModel(rootModel);
     updateNodes();
-    String diffAppliedMsg = mkDiffAppliedMsg(ints);
     if (notificationsProvider == null) {
-      FsDialogs.showDlg(dialogProvider, diffAppliedMsg);
+      FsDialogs.showDlg(dialogProvider, mkDiffAppliedMsg(ints, "\n"));
     } else {
-      notificationsProvider.info(JSString.valueOf(diffAppliedMsg));
+      notificationsProvider.info(JSString.valueOf(mkDiffAppliedMsg(ints, ", ")));
     }
   }
 
-  private String mkDiffAppliedMsg(int[] ints) {
+  private String mkDiffAppliedMsg(int[] ints, String delim) {
     StringBuilder textSB = new StringBuilder();
-    if (ints[0] != 0) textSB.append(sSuffix(ints[0], "dir")).append(" copied\n");
-    if (ints[1] != 0) textSB.append(sSuffix(ints[1], "file")).append(" copied\n");
-    if (ints[2] != 0) textSB.append(sSuffix(ints[2], "dir")).append(" deleted\n");
-    if (ints[3] != 0) textSB.append(sSuffix(ints[3], "file")).append(" deleted\n");
-    if (Arrays.equals(ints, new int[] {0, 0, 0, 0})) textSB.append("No differences\n");
+    if (ints[0] != 0) {
+      textSB.append(sSuffix(ints[0], "dir")).append(" copied");
+    }
+    if (ints[1] != 0) {
+      if (!textSB.isEmpty()) textSB.append(delim);
+      textSB.append(sSuffix(ints[1], "file")).append(" copied");
+    }
+    if (ints[2] != 0) {
+      if (!textSB.isEmpty()) textSB.append(delim);
+      textSB.append(sSuffix(ints[2], "dir")).append(" deleted");
+    }
+    if (ints[3] != 0) {
+      if (!textSB.isEmpty()) textSB.append(delim);
+      textSB.append(sSuffix(ints[3], "file")).append(" deleted");
+    }
+    if (textSB.isEmpty()) textSB.append("No differences");
     return textSB.toString();
   }
 
