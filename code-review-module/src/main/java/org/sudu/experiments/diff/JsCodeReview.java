@@ -105,6 +105,9 @@ public class JsCodeReview implements JsCodeReviewView {
   public void setExternalContextMenuProvider(JsContextMenuProvider p) {}
 
   @Override
+  public void setJsNotificationsProvider(JsNotificationsProvider p) {}
+
+  @Override
   public void executeMenuAction(JSString action) {}
 
   public static Promise<JsCodeReviewView> newDiff(EditArgs arguments) {

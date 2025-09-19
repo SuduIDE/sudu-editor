@@ -24,5 +24,6 @@ public interface JsView extends JSObject {
 
   void setExternalMessageBar(JsExternalMessageBar emb);
   void setExternalContextMenuProvider(JsContextMenuProvider p);
+  void setJsNotificationsProvider(JsNotificationsProvider p);
   void executeMenuAction(JSString action);
 }

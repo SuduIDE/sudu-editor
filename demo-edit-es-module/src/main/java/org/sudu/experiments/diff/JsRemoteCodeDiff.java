@@ -103,6 +103,9 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
     remoteFileDiffWindow().messageBar = emb;
   }
 
+  @Override
+  public void setNotificationsProvider(JsNotificationsProvider p) {}
+
   private RemoteFileDiffWindow remoteFileDiffWindow() {
     return (RemoteFileDiffWindow) this.w;
   }
