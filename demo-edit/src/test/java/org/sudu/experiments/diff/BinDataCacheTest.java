@@ -27,7 +27,10 @@ class TestDataSource implements BinDataCache.DataSource {
     int size = (int) Math.min(length, fileSize - address);
     byte[] data = address >= fileSize ? null : new byte[size];
     if (data != null) random.fill(data);
-    chunks.addLast(new DataChunk(data, address, null, handler));
+    chunks.addLast(new DataChunk(
+        data, address,
+        data == null ? "eof" : null,
+        handler));
   }
 
   void step() {
@@ -56,7 +59,7 @@ class BinDataCacheTest {
 
   static final int maxMemory = 1024 * 1024;
   static final int chunkSize = 1024 * 64;
-  static final int fileTail = 1024 * 64;
+  static final int fileTail = 12345;
   static final int fileChunks = maxMemory * 2 / chunkSize;
   static final int fileSize = fileChunks * chunkSize + fileTail;
 
@@ -128,6 +131,17 @@ class BinDataCacheTest {
 
     data.step();
     assertTrue(repaint.getValueAndClear());
+    assertEquals(chunkSize * 3, cache.memory());
 
+    // read end of file
+    // [chunk0] ... [chunk2][chunk3]  [tail]
+    int addr3 = fileChunks * chunkSize + fileTail / 2;
+    boolean r7 = cache.getOrFetch(addr3, result);
+    assertFalse(r7);
+    assertEquals(1, data.chunks.size());
+    data.step();
+    assertTrue(repaint.getValueAndClear());
+
+    assertEquals(chunkSize * 3 + fileTail, cache.memory());
   }
 }
