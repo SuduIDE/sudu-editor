@@ -39,6 +39,10 @@ public class BinDataCache {
     frameNo++;
   }
 
+  public int memory() {
+    return memory;
+  }
+
   // possible results:
   //   - false: data at the address is not present
   //        result.offset is amount of data that not present,
@@ -100,6 +104,7 @@ public class BinDataCache {
         } else {
           addr = ArrayOp.insertAt(address, addr, s);
           data = ArrayOp.insertAt(values, data, s);
+          memory += values.length;
           repaint.run();
         }
       }

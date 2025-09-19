@@ -9,19 +9,25 @@ import java.util.LinkedList;
 import static org.junit.jupiter.api.Assertions.*;
 
 record DataChunk(
-    byte[] data, double address,
+    byte[] data, double address, String error,
     BinDataCache.DataSource.Result handler) {}
 
 class TestDataSource implements BinDataCache.DataSource {
 
   final Deque<DataChunk> chunks = new LinkedList<>();
   final XorShiftRandom random = new XorShiftRandom();
+  final int fileSize;
+
+  public TestDataSource(int fileSize) {
+    this.fileSize = fileSize;
+  }
 
   @Override
   public void fetch(double address, int length, Result handler) {
-    byte[] data = new byte[length];
-    random.fill(data);
-    chunks.addLast(new DataChunk(data, address,  handler));
+    int size = (int) Math.min(length, fileSize - address);
+    byte[] data = address >= fileSize ? null : new byte[size];
+    if (data != null) random.fill(data);
+    chunks.addLast(new DataChunk(data, address, null, handler));
   }
 
   void step() {
@@ -50,10 +56,13 @@ class BinDataCacheTest {
 
   static final int maxMemory = 1024 * 1024;
   static final int chunkSize = 1024 * 64;
+  static final int fileTail = 1024 * 64;
+  static final int fileChunks = maxMemory * 2 / chunkSize;
+  static final int fileSize = fileChunks * chunkSize + fileTail;
 
   @Test
   void testGetOrFetch() {
-    var data = new TestDataSource();
+    var data = new TestDataSource(fileSize);
     var repaint = new TestRepaint();
     var cache = new BinDataCache(data, chunkSize, repaint);
     var result = new BinDataCache.GetResult();
@@ -99,9 +108,13 @@ class BinDataCacheTest {
     assertNull(result.data);
     assertEquals(chunkSize, result.offset);
     assertFalse(repaint.getValueAndClear());
+    assertEquals(1, data.chunks.size());
 
+    assertEquals(chunkSize, cache.memory());
     data.step();
     assertTrue(repaint.getValueAndClear());
+    assertEquals(chunkSize * 2, cache.memory());
+
     // [chunk0] ... [chunk3]
 
     int addr2 = chunkSize * 3 - offset;
