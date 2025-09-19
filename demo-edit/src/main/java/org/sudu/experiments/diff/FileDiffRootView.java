@@ -206,11 +206,12 @@ class FileDiffRootView extends DiffRootView {
         new LineDiff[]{rightLine},
         new DiffRange[]{range}
     );
-    setDiffModel(diffInfo, new int[] {-1, -1});
+    setDiffModel(diffInfo, docVersions());
     firstDiffRevealed = false;
   }
 
   public void setDiffModel(DiffInfo diffInfo, int[] versions) {
+    if (!Arrays.equals(versions, docVersions())) return;
     if (printTime) {
       System.out.println("FileDiffRootView.setDiffModel: time = "
           + (System.currentTimeMillis() - startTime) + "ms"
@@ -234,7 +235,7 @@ class FileDiffRootView extends DiffRootView {
     editor1.setMergeButtons(m1.actions, null, m1.lines, false);
     editor2.setMergeButtons(m2.actions, null, m2.lines, isCodeReview);
 
-    if (!firstDiffRevealed) revealFirstDiff(versions);
+    if (!firstDiffRevealed) revealFirstDiff();
     if (onDiffModelSet != null) onDiffModelSet.run();
     if (compact && !diffModel.isEmpty()) {
       buildCompactModel();
@@ -248,6 +249,7 @@ class FileDiffRootView extends DiffRootView {
       int[] versions,
       DiffInfo updateInfo
   ) {
+    if (!Arrays.equals(versions, docVersions())) return;
     diffModel.updateDiffInfo(fromL, toL, fromR, toR, updateInfo);
     setDiffModel(diffModel, versions);
   }
@@ -304,8 +306,7 @@ class FileDiffRootView extends DiffRootView {
       onRightDiffMade.accept(editor2.model());
   }
 
-  private void revealFirstDiff(int[] versions) {
-    if (!Arrays.equals(docVersions(), versions)) return;
+  private void revealFirstDiff() {
     for (var range: diffModel.ranges) {
       if (range.type == DiffTypes.DEFAULT) continue;
       int curL = editor1.caretLine(), curR = editor2.caretLine();
