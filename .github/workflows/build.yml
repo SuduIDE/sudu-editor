@@ -25,41 +25,35 @@ jobs:
     name: Build and Publish
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v3
         with:
           path: 'sudu-editor'
-      -
-        name: Checkout TeaVM
+      - name: Checkout TeaVM
         uses: actions/checkout@v3
         with:
           repository: 'kirillp/teavm'
           ref: 'master'
           path: 'teavm'
-      -
-        name: Checkout Antlr4 TeaVM compatible repo
+      - name: Checkout Antlr4 TeaVM compatible repo
         uses: actions/checkout@v3
         with:
           repository: 'pertsevpv/antlr4-teavm-compatible'
           ref: 'master'
           path: 'antlr4'
-      -
-        name: Set up Java
+      - name: Set up Java
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'adopt'
-      -
-        name: Setup Node
+      - name: Setup Node
         uses: actions/setup-node@v3
         if: github.event_name == 'push' && github.ref_type == 'tag'
         with:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
           scope: '@sudu-ide'
-      -
-        name: Restore Maven and Gradle Cache
+      - name: Restore Maven and Gradle Cache
         uses: actions/cache/restore@v3
         with:
           path: |
@@ -67,33 +61,29 @@ jobs:
             ~/.gradle/wrapper
             ~/.m2/repository
           key: sudu-editor-cache
-      -
-        name: Install OBSUtil
+      - name: Install OBSUtil
         if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           curl -O https://obs-community-intl.obs.ap-southeast-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz
           tar -z -x -v --strip-components 1 --wildcards -f obsutil_linux_amd64.tar.gz obsutil*/obsutil
           chmod +x ./obsutil
           ./obsutil config -e=${{ vars.OBS_ENDPOINT }} -i=${{ secrets.HW_ACCESS_KEY }} -k=${{ secrets.HW_SECRET_KEY }}
-      -
-        name: Maven TeaVM
+      - name: Maven TeaVM
         run: |
           cd $GITHUB_WORKSPACE/teavm
           ./gradlew publishToMavenLocal --no-daemon -x test
-      -
-        name: Maven Antlr4
+      - name: Maven Antlr4
         run: |
           cd $GITHUB_WORKSPACE/antlr4
           mvn install -DskipTests
-      -
-        name: Maven Sudu Editor && DiffEngine
+      - name: Maven Sudu Editor, Code Review and DiffEngine
         if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           cd $GITHUB_WORKSPACE/sudu-editor 
           mvn package -am -pl :codicon -pl :fonts -P downloadFont
           mvn package -am -pl demo-edit-js,demo-edit-es-module -P build-ssh,release
-      -
-        name: Upload Sudu Editor to OBS
+          mvn package -am -pl code-review-module
+      - name: Upload Sudu Editor to OBS
         if: github.event_name == 'push' && github.ref_type == 'tag'
         uses: nick-fields/retry@v3
         id: retry
@@ -104,8 +94,7 @@ jobs:
           command: |
             ./obsutil rm -r -f obs://${{ vars.WEBAPP_OBS_NAME }}
             ./obsutil cp -r -f --flat $GITHUB_WORKSPACE/sudu-editor/demo-edit-js/target/demo-edit-js-1.0-SNAPSHOT/ obs://${{ vars.WEBAPP_OBS_NAME }}/
-      -
-        name: Upload min artifacts to OBS
+      - name: Upload min artifacts to OBS
         if: false && github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
@@ -113,8 +102,7 @@ jobs:
           ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/editor.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
           ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/worker.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
           ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/loader.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
-      -
-        name: Upload dev artifacts to OBS
+      - name: Upload dev artifacts to OBS
         if: false && github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
@@ -122,8 +110,7 @@ jobs:
           ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/editor.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
           ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/worker.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
           ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/loader.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
-      -
-        name: Save Maven Cache
+      - name: Save Maven Cache
         if: github.event_name == 'workflow_dispatch'
         uses: actions/cache/save@v3
         with:
@@ -132,13 +119,15 @@ jobs:
             ~/.gradle/wrapper
             ~/.m2/repository
           key: sudu-editor-cache
-      -
-        name: Publish Sudu Editor package to NPM Registry
+      - name: Publish Sudu Editor packages to NPM Registry
         if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
           echo "::notice::version \"${NEW_VERSION}\""
           cd $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module
+          npm version ${NEW_VERSION}
+          npm publish --access public
+          cd $GITHUB_WORKSPACE/sudu-editor/code-review-module/module
           npm version ${NEW_VERSION}
           npm publish --access public
         env:
