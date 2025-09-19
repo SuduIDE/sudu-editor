@@ -176,18 +176,29 @@ public class RemoteCollector {
     ArrayWriter pathWriter = new ArrayWriter();
     lastFrontendMessage.collectPath(path, pathWriter, root, left);
 
-    ModelCopyDeleteStatus status = mkSyncStatus(path, left, isDeleteDiff);
+    ModelCopyDeleteStatus status = mkSyncStatus(path, left, removeItems, model.isExcluded(), isDeleteDiff);
     if (model.isFile()) {
-      if (!isDeleteDiff) copyFile(model, left, removeItems, status);
+      if (!isDeleteDiff) copyFile(model, left, status);
       else removeFile(model, status);
     } else {
-      if (!isDeleteDiff) copyFolder(model, left, removeItems, status);
+      if (!isDeleteDiff) copyFolder(model, left, status);
       else removeFolder(model, status);
     }
   }
 
-  private ModelCopyDeleteStatus mkSyncStatus(int[] path, boolean left, boolean isDeleteDiff) {
-    ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(executor, this::sendStatus, this::onError);
+  private ModelCopyDeleteStatus mkSyncStatus(
+      int[] path, boolean left,
+      boolean removeItems,
+      boolean syncExcluded,
+      boolean isDeleteDiff
+  ) {
+    ModelCopyDeleteStatus status = new ModelCopyDeleteStatus(
+        executor,
+        this::sendStatus,
+        this::onError,
+        removeItems,
+        syncExcluded
+    );
     Runnable updateModel = () -> {
       LoggingJs.info("RemoteCollector.applyDiff.updateModel");
       if (isDeleteDiff) {
@@ -217,33 +228,33 @@ public class RemoteCollector {
         () -> cmpFilesAndSend(model, file), this::onError);
   }
 
-  void copyFile(ItemFolderDiffModel model, boolean left, boolean removeItems, ModelCopyDeleteStatus status) {
+  void copyFile(ItemFolderDiffModel model, boolean left, ModelCopyDeleteStatus status) {
     LoggingJs.debug("copyFile " + model.path + ", left = " + left);
     if (!(model.item(left) instanceof FileHandle fileItem)) return;
 
     if (model == root) {
-      model.copy(left, removeItems, status);
+      model.copy(left, status);
     } else {
       Consumer<DirectoryHandle> onToDirGet = (toDir) -> {
         LoggingJs.debug("copyFile " + fileItem + " to dir " + toDir);
         model.parent().setItem(!left, toDir);
-        model.copy(left, removeItems, status);
+        model.copy(left, status);
       };
       model.parent().getOrCreateDir(!left, executor, onToDirGet, this::onError);
     }
   }
 
-  private void copyFolder(ItemFolderDiffModel model, boolean left, boolean removeItems, ModelCopyDeleteStatus status) {
+  private void copyFolder(ItemFolderDiffModel model, boolean left, ModelCopyDeleteStatus status) {
     LoggingJs.debug("copyFolder " + model.path + ", left = " + left);
     if (!(model.item(left) instanceof DirectoryHandle dirItem)) return;
 
     if (model == root) {
-      model.copy(left, removeItems, status);
+      model.copy(left, status);
     } else {
       Consumer<DirectoryHandle> onToDirGet = (toDir) -> {
         LoggingJs.debug("copyFolder " + dirItem + " -> " + toDir);
         model.parent().setItem(!left, toDir);
-        model.copy(left, removeItems, status);
+        model.copy(left, status);
       };
       model.parent().getOrCreateDir(!left, executor, onToDirGet, this::onError);
     }

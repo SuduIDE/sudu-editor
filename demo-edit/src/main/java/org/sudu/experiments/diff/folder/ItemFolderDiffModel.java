@@ -214,7 +214,10 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
       status.onTraversed();
       return;
     }
-
+    if (isExcluded() && !status.syncExcluded) {
+      status.onTraversed();
+      return;
+    }
     FsItem item = item();
     if (item instanceof FileHandle file) {
       status.inWork++;
@@ -242,25 +245,25 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     );
   }
 
-  public void copy(boolean left, boolean removeItems, ModelCopyDeleteStatus status) {
+  public void copy(boolean left, ModelCopyDeleteStatus status) {
     status.inTraverse++;
-    if (getDiffType() == DiffTypes.DEFAULT) {
+    if (getDiffType() == DiffTypes.DEFAULT || (isExcluded() && !status.syncExcluded)) {
       status.onTraversed();
       return;
     }
-    if (isFile()) copyFile(left, removeItems, status);
-    else copyFolder(left, removeItems, status);
+    if (isFile()) copyFile(left, status);
+    else copyFolder(left, status);
     status.onTraversed();
   }
 
-  private void copyFolder(boolean left, boolean removeItems, ModelCopyDeleteStatus status) {
-    if (removeItems && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
+  private void copyFolder(boolean left, ModelCopyDeleteStatus status) {
+    if (status.removeItems && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
       remove(status);
       return;
     }
     if (getDiffType() == DiffTypes.EDITED) {
       if (children.length == 0) updateItem();
-      else for (int i = 0; i < children.length; i++) child(i).copy(left, removeItems, status);
+      else for (int i = 0; i < children.length; i++) child(i).copy(left, status);
       return;
     }
     DirectoryHandle toDirParent;
@@ -271,7 +274,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     Consumer<DirectoryHandle> onDirCreated = dirHandle -> {
       setItem(!left, dirHandle);
       if (children.length == 0) updateItem();
-      else for (int i = 0; i < children.length; i++) child(i).copy(left, removeItems, status);
+      else for (int i = 0; i < children.length; i++) child(i).copy(left, status);
       status.onDirCopied();
     };
 
@@ -279,8 +282,8 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     FsWorkerJobs.mkDir(status.executor, toDirParent, path, onDirCreated, status::onCopyError);
   }
 
-  private void copyFile(boolean left, boolean removeItems, ModelCopyDeleteStatus status) {
-    if (removeItems && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
+  private void copyFile(boolean left, ModelCopyDeleteStatus status) {
+    if (status.removeItems && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
       remove(status);
       return;
     }

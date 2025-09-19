@@ -16,6 +16,9 @@ public class ModelCopyDeleteStatus {
   public int copiedDirs;
   public int deletedFiles, deletedDirs;
 
+  final boolean removeItems;
+  final boolean syncExcluded;
+
   final IdentityHashMap<ItemFolderDiffModel, Integer> markedForDelete;
 
   long lastSendStatusTime = System.currentTimeMillis();
@@ -25,12 +28,16 @@ public class ModelCopyDeleteStatus {
   public ModelCopyDeleteStatus(
       WorkerJobExecutor executor,
       Consumer<int[]> sendStatus,
-      Consumer<String> onError
+      Consumer<String> onError,
+      boolean removeItems,
+      boolean syncExcluded
   ) {
     this.executor = executor;
     this.sendStatus = sendStatus;
     this.onError = onError;
     markedForDelete = new IdentityHashMap<>();
+    this.removeItems = removeItems;
+    this.syncExcluded = syncExcluded;
   }
 
   public void onTraversed() {

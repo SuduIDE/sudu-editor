@@ -255,6 +255,12 @@ public class FolderDiffModel {
     if (parent != null) parent.updateItem();
   }
 
+  public boolean shouldSync() {
+    return getDiffType() != DiffTypes.DEFAULT
+        && isCompared()
+        && (!isExcluded() || (isExcluded() && isFile()));
+  }
+
   public FolderDiffModel findNodeByIndPath(int[] path) {
     return findNodeByIndPath(path, 0);
   }

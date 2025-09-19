@@ -88,18 +88,16 @@ public class MergeButtonsModel {
     if (!rightReadonly) {
       int n = 0;
       for (int i = 0; i < diffInfo.lineDiffsL.length; i++) {
-        var line = diffInfo.lineDiffsL[i];
         var model = leftDiffs[i];
-        if (line.type != DiffTypes.DEFAULT && model.isCompared()) n++;
+        if (model.shouldSync()) n++;
       }
       left = new MergeButtonsModel(n);
       for (int lineInd = 0, modelInd = 0; lineInd < diffInfo.lineDiffsL.length; lineInd++) {
-        var leftLine = diffInfo.lineDiffsL[lineInd];
         var leftModel = leftDiffs[lineInd];
-        if (leftLine.type == DiffTypes.DEFAULT || !leftModel.isCompared()) continue;
+        if (!leftModel.shouldSync()) continue;
         left.lines[modelInd] = line(lineInd, diffInfo.lineDiffsL.length);
         left.actions[modelInd] = () -> applyDiff(leftModel, true, applyDiff);
-        leftColors[lineInd] = (byte) diffInfo.lineDiffsL[lineInd].type;  //DiffTypes.FOLDER_ALIGN_DIFF_TYPE;
+        leftColors[lineInd] = (byte) diffInfo.lineDiffsL[lineInd].type;
         modelInd++;
       }
     } else {
@@ -109,18 +107,16 @@ public class MergeButtonsModel {
     if (!leftReadonly) {
       int m = 0;
       for (int i = 0; i < diffInfo.lineDiffsR.length; i++) {
-        var line = diffInfo.lineDiffsR[i];
         var model = rightDiffs[i];
-        if (line.type != DiffTypes.DEFAULT && model.isCompared()) m++;
+        if (model.shouldSync()) m++;
       }
       right = new MergeButtonsModel(m);
       for (int lineInd = 0, modelInd = 0; lineInd < diffInfo.lineDiffsR.length; lineInd++) {
-        var rightLine = diffInfo.lineDiffsR[lineInd];
         var rightModel = rightDiffs[lineInd];
-        if (rightLine.type == DiffTypes.DEFAULT || !rightModel.isCompared()) continue;
+        if (!rightModel.shouldSync()) continue;
         right.lines[modelInd] = line(lineInd, diffInfo.lineDiffsR.length);
         right.actions[modelInd] = () -> applyDiff(rightModel, false, applyDiff);
-        rightColors[lineInd] = (byte) diffInfo.lineDiffsR[lineInd].type;  //DiffTypes.FOLDER_ALIGN_DIFF_TYPE;
+        rightColors[lineInd] = (byte) diffInfo.lineDiffsR[lineInd].type;
         modelInd++;
       }
     } else {
