@@ -114,6 +114,11 @@ public class JsRemoteFolderDiff implements JsRemoteFolderDiffView {
   }
 
   @Override
+  public void setNotificationsProvider(JsNotificationsProvider p) {
+    folderDiff.notificationsProvider = p;
+  }
+
+  @Override
   public void setExternalContextMenuProvider(JsContextMenuProvider p) {}
 
   @Override

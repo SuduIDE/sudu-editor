@@ -55,17 +55,11 @@ public class FsDialogs {
     );
   }
 
-  public static void showDlg(JsDialogProvider p, int[] ints) {
+  public static void showDlg(JsDialogProvider p, String msg) {
     var bOk = JsNative.createButton("OK", true);
-    StringBuilder textSB = new StringBuilder();
-    if (ints[0] != 0) textSB.append(sSuffix(ints[0], "dir")).append(" copied\n");
-    if (ints[1] != 0) textSB.append(sSuffix(ints[1], "file")).append(" copied\n");
-    if (ints[2] != 0) textSB.append(sSuffix(ints[2], "dir")).append(" deleted\n");
-    if (ints[3] != 0) textSB.append(sSuffix(ints[3], "file")).append(" deleted\n");
-    if (Arrays.equals(ints, new int[] {0, 0, 0, 0})) textSB.append("No differences\n");
 
     var i = JsNative.createInput(
-        "File sync completed", textSB.toString(),
+        "File sync completed", msg,
         JsArray.create(),
         JsHelper.toJsArray(bOk)
     );

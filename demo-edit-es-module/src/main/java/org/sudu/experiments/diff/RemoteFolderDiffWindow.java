@@ -13,6 +13,7 @@ import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.esm.JsDialogProvider;
 import org.sudu.experiments.esm.JsExternalFileOpener;
 import org.sudu.experiments.esm.JsExternalMessageBar;
+import org.sudu.experiments.esm.JsNotificationsProvider;
 import org.sudu.experiments.esm.dlg.FsDialogs;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.math.ArrayOp;
@@ -71,6 +72,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
   JsExternalFileOpener opener;
   JsDialogProvider dialogProvider;
   JsExternalMessageBar messageBar;
+  JsNotificationsProvider notificationsProvider;
 
   private int[] lastFilters = null;
   private RemoteFolderDiffModel lastSelected;
@@ -257,7 +259,22 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     setStatMessages(msg);
     if (!isFiltered()) lastFrontendMessage.openedFolders.updateDeepWithModel(rootModel);
     updateNodes();
-    FsDialogs.showDlg(dialogProvider, ints);
+    String diffAppliedMsg = mkDiffAppliedMsg(ints);
+    if (notificationsProvider == null) {
+      FsDialogs.showDlg(dialogProvider, diffAppliedMsg);
+    } else {
+      notificationsProvider.info(JSString.valueOf(diffAppliedMsg));
+    }
+  }
+
+  private String mkDiffAppliedMsg(int[] ints) {
+    StringBuilder textSB = new StringBuilder();
+    if (ints[0] != 0) textSB.append(sSuffix(ints[0], "dir")).append(" copied\n");
+    if (ints[1] != 0) textSB.append(sSuffix(ints[1], "file")).append(" copied\n");
+    if (ints[2] != 0) textSB.append(sSuffix(ints[2], "dir")).append(" deleted\n");
+    if (ints[3] != 0) textSB.append(sSuffix(ints[3], "file")).append(" deleted\n");
+    if (Arrays.equals(ints, new int[] {0, 0, 0, 0})) textSB.append("No differences\n");
+    return textSB.toString();
   }
 
   private void onFileSaved(JsArray<JSObject> jsResult) {
