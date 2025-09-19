@@ -68,6 +68,8 @@ public class ModelCopyDeleteStatus {
   public void onChildDeleted(ItemFolderDiffModel model) {
     model.deleteItem();
     var parent = model.parent();
+    if (parent == null) return;
+    parent.updateItemOnDelete();
     if (!marked(parent)) return;
     int count = markedForDelete.get(parent) - 1;
     markedForDelete.put(parent, count);

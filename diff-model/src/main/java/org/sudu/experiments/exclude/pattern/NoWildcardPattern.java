@@ -10,6 +10,8 @@ public class NoWildcardPattern extends BasePattern {
   public boolean match(String path, boolean isDir) {
     if (matchDirOnly && !isDir) return false;
     if (matchFromRoot) return pattern.equals(path);
-    return path.endsWith(pattern);
+    return path.length() == pattern.length()
+        ? pattern.equals(path)
+        : path.endsWith('/' + pattern);
   }
 }
