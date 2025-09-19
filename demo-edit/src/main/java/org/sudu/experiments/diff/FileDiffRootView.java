@@ -34,7 +34,8 @@ class FileDiffRootView extends DiffRootView {
   public final boolean isCodeReview;
   private final UndoBuffer undoBuffer;
 
-  protected final long startTime = System.currentTimeMillis();
+  protected long sendDiffTime = System.currentTimeMillis();
+  protected long fullParseTime = System.currentTimeMillis();
   protected final boolean printTime = true;
 
   FileDiffRootView(WindowManager wm, boolean disableParser, boolean isCodeReview) {
@@ -107,10 +108,12 @@ class FileDiffRootView extends DiffRootView {
 
   private void fullFileParseListener(EditorComponent editor) {
     if (printTime) {
+      long currentTime = System.currentTimeMillis();
       System.out.println("FileDiffRootView.fullFileParseListener: " +
           "left = " + (editor1 == editor) +
-          ", time = " + (System.currentTimeMillis() - startTime) + "ms"
+          ", time = " + (currentTime - fullParseTime) + "ms"
       );
+      fullParseTime = currentTime;
     }
     if (editor1 == editor) modelFlags |= 1;
     if (editor2 == editor) modelFlags |= 2;
@@ -212,10 +215,10 @@ class FileDiffRootView extends DiffRootView {
 
   public void setDiffModel(DiffInfo diffInfo, int[] versions) {
     if (!Arrays.equals(versions, docVersions())) return;
+    long currentTime = System.currentTimeMillis();
     if (printTime) {
-      System.out.println("FileDiffRootView.setDiffModel: time = "
-          + (System.currentTimeMillis() - startTime) + "ms"
-      );
+      System.out.println("FileDiffRootView.setDiffModel: time = " + (currentTime - sendDiffTime) + "ms");
+      sendDiffTime = currentTime;
     }
     boolean compact = compactViewRequest;
     diffModel = diffInfo;
@@ -259,6 +262,7 @@ class FileDiffRootView extends DiffRootView {
       System.out.println("EditorComponent.sendToDiff: cmpOnlyLines = " + cmpOnlyLines +
           ", editor1.docL = " + editor1.model().document.length() +
           ", editor2.docL = " + editor2.model().document.length());
+    sendDiffTime = System.currentTimeMillis();
     int[] syncL = editor1.copiedSyncPoints();
     int[] syncR = editor2.copiedSyncPoints();
     if (syncL.length != syncR.length) return;
@@ -278,6 +282,7 @@ class FileDiffRootView extends DiffRootView {
     if (editor1.hasSyncPoints() || editor2.hasSyncPoints()) {
       sendToDiff(false);
     } else {
+      sendDiffTime = System.currentTimeMillis();
       DiffUtils.findIntervalDiffs(
           editor1.model().document,
           editor2.model().document,
