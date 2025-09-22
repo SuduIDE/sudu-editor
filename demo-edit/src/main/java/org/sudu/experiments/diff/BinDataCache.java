@@ -10,6 +10,7 @@ public class BinDataCache {
 
   public interface DataSource {
     interface Result {
+      String eof = "eof";
       void onData(double address, byte[] data);
       void onError(double address, String e);
     }
@@ -22,6 +23,7 @@ public class BinDataCache {
   private byte[][] data = new byte[0][];
   private final int chunkSize;
   private int frameNo, memory;
+  private double eofAddress = -1;
   private final TreeSet<Double> requestMap = new TreeSet<>();
 
   private final DataSource.Result onData = onData();
@@ -60,6 +62,12 @@ public class BinDataCache {
 
   // we assume that fetch chunkSize == length
   public boolean getOrFetch(double address, GetResult result) {
+    if (eofAddress >= 0 && address >= eofAddress) {
+      result.data = null;
+      result.offset = chunkSize;
+      return false;
+    }
+
     int s = Arrays.binarySearch(addr, address);
     if (s >= 0) {
       result.data =  data[s];
@@ -111,7 +119,10 @@ public class BinDataCache {
 
       @Override
       public void onError(double address, String e) {
-        System.err.println("BinDataCache: error fetching data at " + address + ": " + e);
+        if (e == eof)
+          eofAddress = address;
+        else
+          System.err.println("BinDataCache: error fetching data at " + address + ": " + e);
       }
     };
   }

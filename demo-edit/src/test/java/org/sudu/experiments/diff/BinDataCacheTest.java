@@ -29,14 +29,18 @@ class TestDataSource implements BinDataCache.DataSource {
     if (data != null) random.fill(data);
     chunks.addLast(new DataChunk(
         data, address,
-        data == null ? "eof" : null,
+        data == null ? Result.eof : null,
         handler));
   }
 
   void step() {
     DataChunk first = chunks.pollFirst();
-    if (first != null)
-      first.handler().onData(first.address(), first.data());
+    if (first != null) {
+      if (first.error() != null)
+        first.handler().onError(first.address(), first.error());
+      else
+        first.handler().onData(first.address(), first.data());
+    }
   }
 }
 
@@ -130,18 +134,34 @@ class BinDataCacheTest {
     assertFalse(repaint.getValueAndClear());
 
     data.step();
-    assertTrue(repaint.getValueAndClear());
+    boolean r7 = repaint.getValueAndClear();
+    assertTrue(r7);
     assertEquals(chunkSize * 3, cache.memory());
 
     // read end of file
     // [chunk0] ... [chunk2][chunk3]  [tail]
     int addr3 = fileChunks * chunkSize + fileTail / 2;
-    boolean r7 = cache.getOrFetch(addr3, result);
-    assertFalse(r7);
+    boolean r8 = cache.getOrFetch(addr3, result);
+    assertFalse(r8);
+    assertEquals(chunkSize, result.offset);
+
     assertEquals(1, data.chunks.size());
     data.step();
     assertTrue(repaint.getValueAndClear());
 
     assertEquals(chunkSize * 3 + fileTail, cache.memory());
+
+    boolean r9 = cache.getOrFetch(addr3, result);
+    assertTrue(r9);
+    assertEquals(fileTail / 2, result.offset);
+    assertEquals(fileTail, result.data.length);
+
+
+    int addrEof = fileChunks * chunkSize + fileTail;
+    boolean r10 = cache.getOrFetch(addrEof, result);
+    assertFalse(r10);
+    assertEquals(chunkSize, result.offset);
+
+    assertEquals(0, data.chunks.size());
   }
 }
