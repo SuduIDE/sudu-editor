@@ -76,6 +76,8 @@ public class BinDataCache {
     } else {
       s =  -s - 1;
 
+      double requestAddress = address - address % chunkSize;
+
       if (s > 0 && s - 1 < addr.length) {
         double cAddress = addr[s - 1];
         byte[] cData = data[s - 1];
@@ -83,6 +85,13 @@ public class BinDataCache {
           result.data = cData;
           result.offset = (int) (address - cAddress);
           return true;
+        }
+        // when we get less than chunkSize of data for current chunk
+        // return an empty block up to the end of the chunk
+        if (cAddress == requestAddress) {
+          result.data = null;
+          result.offset = (int) (requestAddress + chunkSize - address);
+          return false;
         }
       }
 
@@ -92,7 +101,6 @@ public class BinDataCache {
       } else {
         result.offset = chunkSize;
       }
-      double requestAddress = address - address % chunkSize;
       Double key = requestAddress;
       if (!requestMap.contains(key)) {
         source.fetch(requestAddress, chunkSize, onData);

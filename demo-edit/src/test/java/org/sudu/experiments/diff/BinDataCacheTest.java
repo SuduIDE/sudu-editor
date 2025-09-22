@@ -33,7 +33,7 @@ class TestDataSource implements BinDataCache.DataSource {
         handler));
   }
 
-  void step() {
+  void fireFetchComplete() {
     DataChunk first = chunks.pollFirst();
     if (first != null) {
       if (first.error() != null)
@@ -91,7 +91,7 @@ class BinDataCacheTest {
     assertEquals(1, data.chunks.size());
     assertFalse(repaint.getValueAndClear());
 
-    data.step();
+    data.fireFetchComplete();
     assertTrue(repaint.getValueAndClear());
 
     boolean r3 = cache.getOrFetch(0, result);
@@ -118,7 +118,7 @@ class BinDataCacheTest {
     assertEquals(1, data.chunks.size());
 
     assertEquals(chunkSize, cache.memory());
-    data.step();
+    data.fireFetchComplete();
     assertTrue(repaint.getValueAndClear());
     assertEquals(chunkSize * 2, cache.memory());
 
@@ -133,7 +133,7 @@ class BinDataCacheTest {
     assertEquals(chunkSize * 2, data.chunks.getFirst().address());
     assertFalse(repaint.getValueAndClear());
 
-    data.step();
+    data.fireFetchComplete();
     boolean r7 = repaint.getValueAndClear();
     assertTrue(r7);
     assertEquals(chunkSize * 3, cache.memory());
@@ -146,7 +146,7 @@ class BinDataCacheTest {
     assertEquals(chunkSize, result.offset);
 
     assertEquals(1, data.chunks.size());
-    data.step();
+    data.fireFetchComplete();
     assertTrue(repaint.getValueAndClear());
 
     assertEquals(chunkSize * 3 + fileTail, cache.memory());
@@ -156,12 +156,55 @@ class BinDataCacheTest {
     assertEquals(fileTail / 2, result.offset);
     assertEquals(fileTail, result.data.length);
 
-
+    // request beyond eof but before chunk border
+    //    -> get empty space up to chunk border
     int addrEof = fileChunks * chunkSize + fileTail;
     boolean r10 = cache.getOrFetch(addrEof, result);
     assertFalse(r10);
-    assertEquals(chunkSize, result.offset);
+    assertNull(result.data);
+    assertEquals(chunkSize - fileTail, result.offset);
+    assertEquals(0, data.chunks.size());
 
+    int addrBeyondEof = fileChunks * chunkSize + chunkSize;
+    boolean r11 = cache.getOrFetch(addrBeyondEof, result);
+    assertFalse(r11);
+    assertEquals(chunkSize, result.offset);
+    assertEquals(1, data.chunks.size());
+    data.fireFetchComplete();
+    assertEquals(0, data.chunks.size());
+  }
+
+  @Test
+  void testGetOrFetchFilsWithChunkSize() {
+    var data = new TestDataSource(2 * chunkSize);
+    var repaint = new TestRepaint();
+    var cache = new BinDataCache(data, chunkSize, repaint);
+    var result = new BinDataCache.GetResult();
+
+    int offset = chunkSize / 2;
+    boolean r1 = cache.getOrFetch(chunkSize + offset, result);
+    assertFalse(r1);
+    assertNull(result.data);
+    assertEquals(chunkSize, result.offset);
+    data.fireFetchComplete();
+
+    boolean r2 = cache.getOrFetch(chunkSize, result);
+    assertTrue(r2);
+    assertEquals(chunkSize, result.data.length);
+    assertEquals(0, result.offset);
+
+    boolean r3 = cache.getOrFetch(chunkSize * 2, result);
+    assertFalse(r3);
+    assertNull(result.data);
+    assertEquals(chunkSize, result.offset);
+    assertEquals(1, data.chunks.size());
+
+    data.fireFetchComplete();
+
+    boolean r4 = cache.getOrFetch(chunkSize * 2, result);
+    assertFalse(r4);
+    assertNull(result.data);
+    assertEquals(chunkSize, result.offset);
     assertEquals(0, data.chunks.size());
   }
 }
