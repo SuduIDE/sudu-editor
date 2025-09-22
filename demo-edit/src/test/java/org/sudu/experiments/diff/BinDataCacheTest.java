@@ -171,6 +171,7 @@ class BinDataCacheTest {
     assertEquals(chunkSize, result.offset);
     assertEquals(1, data.chunks.size());
     data.fireFetchComplete();
+    assertEquals(chunkSize * 3 + fileTail, cache.memory());
     assertEquals(0, data.chunks.size());
   }
 
