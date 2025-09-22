@@ -1,8 +1,10 @@
 package org.sudu.experiments.diff;
 
 import org.junit.jupiter.api.Test;
+import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.XorShiftRandom;
 
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
 
@@ -33,15 +35,22 @@ class TestDataSource implements BinDataCache.DataSource {
         handler));
   }
 
-  void fireFetchComplete() {
+  boolean fireFetchComplete() {
     DataChunk first = chunks.pollFirst();
     if (first != null) {
       if (first.error() != null)
         first.handler().onError(first.address(), first.error());
       else
         first.handler().onData(first.address(), first.data());
+      return true;
     }
+    return false;
   }
+
+  void fireFetchAll() {
+    while (fireFetchComplete());
+  }
+
 }
 
 class TestRepaint implements Runnable {
@@ -207,5 +216,63 @@ class BinDataCacheTest {
     assertNull(result.data);
     assertEquals(chunkSize, result.offset);
     assertEquals(0, data.chunks.size());
+  }
+
+  @Test
+  void testMaxMemory() {
+    final int numChunks = 5;
+    int maxMemory = chunkSize * 2;
+    var data = new TestDataSource(numChunks * chunkSize);
+    var repaint = new TestRepaint();
+    var cache = new BinDataCache(data, chunkSize, repaint);
+    var result = new BinDataCache.GetResult();
+
+    XorShiftRandom r = new XorShiftRandom();
+
+    int[] ad = new int[4];
+    int[] addr = {0, 1, 2, 3, 4};
+    for (int i = 0; i < ad.length; i++) {
+      int idx = r.nextInt(addr.length);
+      ad[i] = addr[idx] * chunkSize;
+      addr = ArrayOp.removeAt(addr, idx);
+    }
+
+    cache.getOrFetch(ad[0], result);
+    data.fireFetchAll();
+    cache.pruneData(maxMemory);
+    assertTrue(cache.memory() <=  maxMemory);
+
+    cache.getOrFetch(ad[1], result);
+    data.fireFetchAll();
+    cache.pruneData(maxMemory);
+    assertTrue(cache.memory() <= maxMemory);
+
+    cache.getOrFetch(ad[2], result);
+    cache.getOrFetch(ad[3], result);
+    data.fireFetchAll();
+    cache.pruneData(maxMemory);
+    assertTrue(cache.memory() <= maxMemory);
+
+    assertFalse(cache.getOrFetch(ad[0], result));
+    assertFalse(cache.getOrFetch(ad[1], result));
+    assertEquals(2, data.chunks.size());
+
+    data.fireFetchAll();
+    assertEquals(chunkSize * 4, cache.memory());
+    cache.pruneData(maxMemory);
+    assertTrue(cache.memory() <= maxMemory);
+
+    assertFalse(cache.getOrFetch(ad[2], result));
+    assertEquals(1, data.chunks.size());
+    data.fireFetchAll();
+    cache.pruneData(maxMemory);
+    assertTrue(cache.memory() <= maxMemory);
+  }
+
+  @Test
+  void testMaxManyTimes() {
+    for (int i = 0; i < 120; i++) {
+      testMaxMemory();
+    }
   }
 }

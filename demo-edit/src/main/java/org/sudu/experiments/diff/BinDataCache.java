@@ -21,6 +21,7 @@ public class BinDataCache {
   private final DataSource source;
   private double[] addr = new double[0];
   private byte[][] data = new byte[0][];
+  private int[] useTime = new int[0];
   private final int chunkSize;
   private int frameNo, memory;
   private double eofAddress = -1;
@@ -39,6 +40,23 @@ public class BinDataCache {
 
   public void pruneData(int maxMemory) {
     frameNo++;
+    while (useTime.length > 0 && memory > maxMemory) {
+      int length = useTime.length;
+      int oldestIndex = length - 1;
+      int oldestTime = useTime[oldestIndex];
+      for (int i = 0; i < length - 1; i++) {
+        int time =  useTime[i];
+        if (time < oldestTime) {
+          oldestIndex = i;
+          oldestTime = time;
+        }
+      }
+
+      memory -= data[oldestIndex].length;
+      addr = ArrayOp.removeAt(addr, oldestIndex);
+      data = ArrayOp.removeAt(data, oldestIndex);
+      useTime = ArrayOp.removeAt(useTime, oldestIndex);
+    }
   }
 
   public int memory() {
@@ -70,8 +88,9 @@ public class BinDataCache {
 
     int s = Arrays.binarySearch(addr, address);
     if (s >= 0) {
-      result.data =  data[s];
+      result.data = data[s];
       result.offset = (int) (addr[s] - address);
+      useTime[s] = frameNo;
       return true;
     } else {
       s =  -s - 1;
@@ -84,6 +103,7 @@ public class BinDataCache {
         if (cAddress < address && address < cAddress + cData.length) {
           result.data = cData;
           result.offset = (int) (address - cAddress);
+          useTime[s - 1] = frameNo;
           return true;
         }
         // when we get less than chunkSize of data for current chunk
@@ -120,13 +140,16 @@ public class BinDataCache {
         } else {
           addr = ArrayOp.insertAt(address, addr, s);
           data = ArrayOp.insertAt(values, data, s);
+          useTime = ArrayOp.insertAt(frameNo, useTime, s);
           memory += values.length;
+          requestMap.remove(address);
           repaint.run();
         }
       }
 
       @Override
       public void onError(double address, String e) {
+        //noinspection StringEquality
         if (e == eof)
           eofAddress = address;
         else
