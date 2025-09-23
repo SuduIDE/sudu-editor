@@ -779,20 +779,20 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
       fromPath = replaceSlashes(fromPath);
       toPath = replaceSlashes(toPath);
       FsDialogs.showDlg(dialogProvider, fromPath, toPath, remoteModel, left,
-          (removeItems) -> sendApplyDiff(model, left, removeItems));
+          (syncOrphans, syncExcluded) -> sendApplyDiff(model, left, syncOrphans, syncExcluded));
     } else {
-      sendApplyDiff(model, left, EditorConst.DEFAULT_REMOVE_ITEMS);
+      sendApplyDiff(model, left, EditorConst.DEFAULT_SYNC_ORPHANS, EditorConst.DEFAULT_SYNC_EXCLUDED);
     }
   }
 
-  private void sendApplyDiff(FolderDiffModel model, boolean left, boolean removeItems) {
+  private void sendApplyDiff(FolderDiffModel model, boolean left, boolean syncOrphans, boolean syncExcluded) {
     syncInProcess = true;
     rootView.fireFileSync();
     disableMergeButtons();
     int[] path = model.getPathFromRoot();
     var result = JsArray.create();
     result.set(0, JsCast.jsInts(path));
-    result.set(1, JsCast.jsInts(left ? 0 : 1, removeItems ? 1 : 0));
+    result.set(1, JsCast.jsInts(left ? 0 : 1, syncOrphans ? 1 : 0));
     result.push(DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
     channel.sendMessage(result);
     LoggingJs.info("RemoteFolderDiffWindow.sendApplyDiff");

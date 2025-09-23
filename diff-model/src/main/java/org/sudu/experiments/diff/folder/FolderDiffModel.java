@@ -15,13 +15,14 @@ public class FolderDiffModel {
   public FolderDiffModel[] children;
   public int childrenComparedCnt;
   public int flags;
-  // compared     0b...000000000x   x  = (0|1)
-  // isFile       0b...00000000x0   x  = (0|1)
-  // propagation  0b...000000xx00   xx = (00|01|10)
-  // diffType     0b...0000xx0000   xx = (00|01|10|11)
-  // itemKind     0b...00xx000000   xx = (00|01|10|11)
-  // excluded     0b...0x00000000   x  = (0|1)
-  // sendExcluded 0b...x000000000   x  = (0|1)
+  // compared         0b...0000000000x   x  = (0|1)
+  // isFile           0b...000000000x0   x  = (0|1)
+  // propagation      0b...0000000xx00   xx = (00|01|10)
+  // diffType         0b...00000xx0000   xx = (00|01|10|11)
+  // itemKind         0b...000xx000000   xx = (00|01|10|11)
+  // excluded         0b...00x00000000   x  = (0|1)
+  // sendExcluded     0b...0x000000000   x  = (0|1)
+  // containsExcluded 0b...x0000000000   x  = (0|1)
   public int posInParent = -1;
 
   public FolderDiffModel(FolderDiffModel parent) {
@@ -66,10 +67,28 @@ public class FolderDiffModel {
     return children[i];
   }
 
-  public void markUp(int diffType) {
+  public void markUpContainExcluded() {
+    if (containExcluded()) return;
+    setContainExcluded(true);
+    if (parent != null) parent.markUpContainExcluded();
+  }
+
+  public void updateContainExcluded() {
+    if (isFile() && containExcluded()) return;
+    boolean containExcluded = false;
+    for (var child: children) {
+      containExcluded = child.containExcluded() || child.isExcluded();
+      if (containExcluded) break;
+    }
+    if (containExcluded) return;
+    setContainExcluded(false);
+    if (parent != null) parent.updateContainExcluded();
+  }
+
+  public void markUpDiffType(int diffType) {
     setPropagation(PROP_UP);
     setDiffType(diffType);
-    if (parent != null) parent.markUp(diffType);
+    if (parent != null) parent.markUpDiffType(diffType);
   }
 
   public void markDown(int diffType) {
@@ -105,6 +124,11 @@ public class FolderDiffModel {
     flags = flags & (~(0b1 << 9)) | (bit << 9);
   }
 
+  public void setContainExcluded(boolean containExcluded) {
+    int bit = containExcluded ? 1 : 0;
+    flags = flags & (~(0b1 << 10)) | (bit << 10);
+  }
+
   public boolean isCompared() {
     return (flags & 0b1) == 1;
   }
@@ -138,6 +162,10 @@ public class FolderDiffModel {
 
   public boolean isSendExcluded() {
     return ((flags >> 9) & 0b1) == 1;
+  }
+
+  public boolean containExcluded() {
+    return ((flags >> 10) & 0b1) == 1;
   }
 
   public int nextInd(int ind, int side) {

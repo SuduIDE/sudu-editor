@@ -214,7 +214,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
       status.onTraversed();
       return;
     }
-    if (isExcluded() && !status.removeItems) {
+    if (isExcluded() && !status.syncOrphans) {
       status.onTraversed();
       return;
     }
@@ -263,7 +263,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   }
 
   private void copyFolder(boolean left, ModelCopyDeleteStatus status) {
-    if (status.removeItems && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
+    if (status.syncOrphans && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
       remove(status);
       return;
     }
@@ -289,7 +289,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   }
 
   private void copyFile(boolean left, ModelCopyDeleteStatus status) {
-    if (status.removeItems && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
+    if (status.syncOrphans && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
       remove(status);
       return;
     }

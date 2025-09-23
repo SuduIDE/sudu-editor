@@ -161,7 +161,7 @@ public class RemoteCollector {
     return fileHandle;
   }
 
-  public void applyDiff(int[] path, boolean left, boolean removeItems) {
+  public void applyDiff(int[] path, boolean left, boolean syncOrphans, boolean syncExcluded) {
     var model = (ItemFolderDiffModel) root.findNodeByIndPath(path);
     if (model == null) {
       String error = root.describeError(path);
@@ -177,7 +177,8 @@ public class RemoteCollector {
     ArrayWriter pathWriter = new ArrayWriter();
     lastFrontendMessage.collectPath(path, pathWriter, root, left);
 
-    ModelCopyDeleteStatus status = mkSyncStatus(path, left, removeItems, model.isExcluded(), isDeleteDiff);
+    syncExcluded |= model.isExcluded();
+    ModelCopyDeleteStatus status = mkSyncStatus(path, left, syncOrphans, syncExcluded, isDeleteDiff);
     if (model.isFile()) {
       if (!isDeleteDiff) copyFile(model, left, status);
       else removeFile(model, status);
@@ -189,7 +190,7 @@ public class RemoteCollector {
 
   private ModelCopyDeleteStatus mkSyncStatus(
       int[] path, boolean left,
-      boolean removeItems,
+      boolean syncOrphans,
       boolean syncExcluded,
       boolean isDeleteDiff
   ) {
@@ -198,7 +199,7 @@ public class RemoteCollector {
         this::sendStatus,
         this::onError,
         this::readFolder,
-        removeItems,
+        syncOrphans,
         syncExcluded
     );
     Runnable updateModel = () -> {
@@ -426,7 +427,7 @@ public class RemoteCollector {
       }
     }
     if (len == 0) model.itemCompared();
-    if (edited) model.markUp(DiffTypes.EDITED);
+    if (edited) model.markUpDiffType(DiffTypes.EDITED);
     onItemCompared();
   }
 
@@ -466,7 +467,7 @@ public class RemoteCollector {
     filesCompared++;
     if (!equals) {
       filesEdited++;
-      model.markUp(DiffTypes.EDITED);
+      model.markUpDiffType(DiffTypes.EDITED);
     }
     model.itemCompared();
     onItemCompared();
@@ -566,7 +567,10 @@ public class RemoteCollector {
       boolean isDir = !model.isFile();
       boolean excluded = exclude.isExcluded(fullPath, isDir);
       model.setExcluded(excluded);
-      if (excluded) model.itemCompared();
+      if (excluded) {
+        model.itemCompared();
+        model.markUpContainExcluded();
+      }
     }
   }
 

@@ -18,8 +18,8 @@ public class ModelCopyDeleteStatus {
   public int copiedDirs;
   public int deletedFiles, deletedDirs;
 
-  final boolean removeItems;  // true -> remove orphan items on copy
-  final boolean syncExcluded; // true -> copy/delete excluded items (for files only)
+  final boolean syncOrphans;  // true -> remove orphan items on copy
+  final boolean syncExcluded; // true -> copy excluded items (for files only now, wip for folders)
 
   final IdentityHashMap<ItemFolderDiffModel, Integer> markedForDelete;
 
@@ -32,7 +32,7 @@ public class ModelCopyDeleteStatus {
       Consumer<int[]> sendStatus,
       Consumer<String> onError,
       BiConsumer<ItemFolderDiffModel, Runnable> readFolder,
-      boolean removeItems,
+      boolean syncOrphans,
       boolean syncExcluded
   ) {
     this.executor = executor;
@@ -40,7 +40,7 @@ public class ModelCopyDeleteStatus {
     this.onError = onError;
     this.readFolder = readFolder;
     markedForDelete = new IdentityHashMap<>();
-    this.removeItems = removeItems;
+    this.syncOrphans = syncOrphans;
     this.syncExcluded = syncExcluded;
   }
 
