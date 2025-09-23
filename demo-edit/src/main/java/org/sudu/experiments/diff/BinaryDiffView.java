@@ -14,6 +14,8 @@ import org.sudu.experiments.ui.UiFont;
 import org.sudu.experiments.ui.window.ScrollContent;
 
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 
 public class BinaryDiffView extends ScrollContent {
 
@@ -22,6 +24,10 @@ public class BinaryDiffView extends ScrollContent {
   public static final float vLinePadDp = 10;
   public static final int addressDigitPairs = 4;
   public static final boolean debug = false;
+  public static final int emptyLines = 5;
+
+  static int chunkSize = 256 * 1024;
+  static int maxMemory = 4 * 1024 * 1024;
 
   private final UiContext uiContext;
   private EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
@@ -30,16 +36,56 @@ public class BinaryDiffView extends ScrollContent {
   final V2i lineSize = new V2i();
   final V4f texRect = new V4f();
   final V4f debugColor = new V4f();
+  final BinDataCache.GetResult result = new BinDataCache.GetResult();
 
   int numBytesPerLine = 16;
-  int numLines = 100000;
+  int numLines;
+  double sizeL, sizeR;
 
   UiFont uiFont;
   FontDesk fd;
   GL.Texture texture;
 
-  public BinaryDiffView(UiContext uiContext) {
+  BinDataCache dataL, dataR;
+
+  Consumer<String> onError;
+
+  public BinaryDiffView(
+      UiContext uiContext
+  ) {
     this.uiContext = uiContext;
+  }
+
+  public void setOnError(Consumer<String> onError) {
+    this.onError = onError;
+    if (dataL != null) dataL.setOnError(onError);
+    if (dataR != null) dataR.setOnError(onError);
+  }
+
+  public void setData(BinDataCache.DataSource source, Runnable repaint, boolean left) {
+    var data = new BinDataCache(source, chunkSize, repaint);
+    data.setOnError(onError);
+    if (left) { dataL = data; sizeL = 0; }
+    else { dataR = data; sizeR = 0; }
+    DoubleConsumer onSize = size -> {
+      if (left) sizeL = size; else sizeR = size;
+      if (dpr != 0)
+        layout();
+    };
+    Consumer<String> onError = left
+        ? error -> reportError("error reading size of left file: " + error)
+        : error -> reportError("error reading size of right file: " + error);
+    data.fetchSize(onSize, onError);
+    if (dpr != 0)
+      layout();
+  }
+
+  public void reportError(String error) {
+    if (onError == null) {
+      System.err.println(error);
+    } else {
+      onError.accept(error);
+    }
   }
 
   @Override
@@ -76,7 +122,10 @@ public class BinaryDiffView extends ScrollContent {
     int addressW = cellSize.x * addressDigitPairs;
     int width = addressW + vLinePad + vLine + vLinePad
         + bytesW + vLinePad + vLine * 3 + vLinePad + bytesW;
-    int height = cellSize.y * numLines;
+    int numLinesL = (int) (sizeL / numBytesPerLine);
+    int numLinesR = (int) (sizeR / numBytesPerLine);
+    numLines = Math.max(numLinesL, numLinesR);
+    int height = cellSize.y * (numLines + emptyLines);
     setVirtualSize(width, height);
     layoutScroll();
   }
@@ -181,7 +230,7 @@ public class BinaryDiffView extends ScrollContent {
       WglGraphics g, int line, int y,
       int bytesX1, int bytesX2, int pairPad
   ) {
-    int addr = line * numBytesPerLine;
+    double addr = line * numBytesPerLine;
     int baseX = pos.x;
     int cellW = cellSize.x;
     var editBg = theme.editor.bg;
@@ -193,17 +242,29 @@ public class BinaryDiffView extends ScrollContent {
 
     Color addressC = theme.lineNumber.textColor;
 
+    double addrStr = addr;
     for (int d = 0; d < addressDigitPairs; d++) {
-      int addrDigit = (addr >> ((addressDigitPairs - d - 1) * 8)) & 0xFF;
-      drawByte(g, baseX + d * cellW, y, addrDigit, addressC, bgColor);
+      int addrDigit = (int)(addrStr % 256);
+      drawByte(g, baseX + (addressDigitPairs - d - 1) * cellW, y,
+          addrDigit, addressC, bgColor);
+      addrStr = (addrStr - addrDigit)/ 256;
     }
 
     Color textFg = theme.codeElement[0].colorF;
 
+    boolean hasL = dataL != null && dataL.getOrFetch(addr, result);
+    byte[] dataL = hasL ? result.data : null;
+    int offsetL = hasL ? result.offset : 0;
+
+    boolean hasR = dataR != null && dataR.getOrFetch(addr, result);
+    byte[] dataR = hasR ? result.data : null;
+    int offsetR = hasR ? result.offset : 0;
+
     for (int i = 0; i < numBytesPerLine; i++) {
-      double h = remInt(i / 16.f + line / Math.PI / 100);
-      if (debug)
+      if (debug) {
+        double h = remInt(i / 16.f + line / Math.PI / 100);
         Color.Cvt.fromHSV(h, 0.75, 0.5, 0, debugColor);
+      }
       int x = bytesX1 + i * (cellW + pairPad);
       int b = XorShiftRandom.roll_7_1_9(XorShiftRandom.roll_7_1_9(
           4793 * line + i * 7879 + 2729));
@@ -211,9 +272,10 @@ public class BinaryDiffView extends ScrollContent {
     }
 
     for (int i = 0; i < numBytesPerLine; i++) {
-      double h = remInt(i / 16.f + line / Math.PI / 100);
-      if (debug)
+      if (debug) {
+        double h = remInt(i / 16.f + line / Math.PI / 100);
         Color.Cvt.fromHSV(h, 0.75, 0.5, 0, debugColor);
+      }
       int x = bytesX2 + i * (cellW + pairPad);
       int b = XorShiftRandom.roll_7_1_9(XorShiftRandom.roll_7_1_9(
           4793 * line + (i + numBytesPerLine) * 7879 + 2729));

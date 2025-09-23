@@ -1,7 +1,9 @@
 package org.sudu.experiments.editor.ui.window;
 
 import org.sudu.experiments.SceneApi;
+import org.sudu.experiments.diff.BinDataCache;
 import org.sudu.experiments.diff.BinaryDiffView;
+import org.sudu.experiments.diff.TestDiffContent;
 import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.Themes;
 import org.sudu.experiments.fonts.Fonts;
@@ -75,7 +77,12 @@ public class WindowsDemo extends WindowScene implements DprChangeListener {
   private Window newBinWindow() {
     String title = "BinView " + ++n;
     Window window = new Window(uiContext);
-    ScrollContent content = new BinaryDiffView(new UiContext(api));
+    var content = new BinaryDiffView(new UiContext(api));
+    XorShiftRandom r = new XorShiftRandom();
+    TestDiffContent sl = new TestDiffContent(1024 * 1024 + r.nextInt(1024 * 1024));
+    TestDiffContent sr = new TestDiffContent(1024 * 1024 + r.nextInt(1024 * 1024));
+    content.setData(sl, api.input.repaint, true);
+    content.setData(sr, api.input.repaint, false);
     window.setContent(new ScrollView(content));
     window.setTheme(Themes.darculaColorScheme());
     window.setTitleFont(titleFont, titleMargin);

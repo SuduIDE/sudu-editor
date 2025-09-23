@@ -15,6 +15,12 @@ public class TestGraphics extends WglGraphics {
     super(ct, factory, true, 1, 1);
   }
 
+
+  @Override
+  public Runnable repaint() {
+    return () -> {};
+  }
+
   @Override
   public FontDesk fontDesk(String family, float size, int weight, int style) {
     return new FontDesk(

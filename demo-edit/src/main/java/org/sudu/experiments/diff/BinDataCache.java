@@ -4,9 +4,12 @@ import org.sudu.experiments.math.ArrayOp;
 
 import java.util.Arrays;
 import java.util.TreeSet;
+import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class BinDataCache {
+
 
   public interface DataSource {
     interface Result {
@@ -14,10 +17,11 @@ public class BinDataCache {
       void onData(double address, byte[] data);
       void onError(double address, String e);
     }
-    void fetch(double address, int length, Result handler);
+    void fetchSize(DoubleConsumer result, Consumer<String> onError);
+    void fetch(double address, int chinkSize, Result handler);
   }
 
-  private Runnable repaint;
+  private final Runnable repaint;
   private final DataSource source;
   private double[] addr = new double[0];
   private byte[][] data = new byte[0][];
@@ -26,8 +30,8 @@ public class BinDataCache {
   private int frameNo, memory;
   private double eofAddress = -1;
   private final TreeSet<Double> requestMap = new TreeSet<>();
-
   private final DataSource.Result onData = onData();
+  private Consumer<String> onError;
 
   // repaint is triggered when fetch is completed
   public BinDataCache(
@@ -36,6 +40,17 @@ public class BinDataCache {
     this.source = source;
     this.chunkSize = chunkSize;
     this.repaint = repaint;
+  }
+
+  public void setOnError(Consumer<String> onError) {
+    this.onError = onError;
+  }
+
+  public void fetchSize(DoubleConsumer result, Consumer<String> onError) {
+    source.fetchSize(size -> {
+      eofAddress = size;
+      result.accept(size);
+    }, onError);
   }
 
   public void pruneData(int maxMemory) {
@@ -151,9 +166,11 @@ public class BinDataCache {
       public void onError(double address, String e) {
         //noinspection StringEquality
         if (e == eof)
-          eofAddress = address;
-        else
+          if (eofAddress < 0) eofAddress = address;
+        else if (onError == null)
           System.err.println("BinDataCache: error fetching data at " + address + ": " + e);
+        else
+          onError.accept(e);
       }
     };
   }

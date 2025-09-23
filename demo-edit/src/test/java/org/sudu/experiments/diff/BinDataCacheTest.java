@@ -4,9 +4,10 @@ import org.junit.jupiter.api.Test;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.XorShiftRandom;
 
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,8 +26,13 @@ class TestDataSource implements BinDataCache.DataSource {
   }
 
   @Override
-  public void fetch(double address, int length, Result handler) {
-    int size = (int) Math.min(length, fileSize - address);
+  public void fetchSize(DoubleConsumer result, Consumer<String> onError) {
+    result.accept(fileSize);
+  }
+
+  @Override
+  public void fetch(double address, int chinkSize, Result handler) {
+    int size = (int) Math.min(chinkSize, fileSize - address);
     byte[] data = address >= fileSize ? null : new byte[size];
     if (data != null) random.fill(data);
     chunks.addLast(new DataChunk(
