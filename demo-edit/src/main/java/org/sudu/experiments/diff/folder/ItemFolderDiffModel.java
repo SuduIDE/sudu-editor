@@ -214,7 +214,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
       status.onTraversed();
       return;
     }
-    if (isExcluded() && !status.syncExcluded && !status.removeSync) {
+    if (isExcluded() && !status.removeItems) {
       status.onTraversed();
       return;
     }

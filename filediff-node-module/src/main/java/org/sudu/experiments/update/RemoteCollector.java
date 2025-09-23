@@ -198,7 +198,6 @@ public class RemoteCollector {
         this::sendStatus,
         this::onError,
         this::readFolder,
-        isDeleteDiff,
         removeItems,
         syncExcluded
     );
