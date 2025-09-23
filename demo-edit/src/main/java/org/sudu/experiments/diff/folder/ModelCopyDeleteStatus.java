@@ -4,6 +4,7 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.IdentityHashMap;
 import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 public class ModelCopyDeleteStatus {
 
@@ -11,11 +12,13 @@ public class ModelCopyDeleteStatus {
   final WorkerJobExecutor executor;
   final Consumer<String> onError;
   final Consumer<int[]> sendStatus;
+  final BiConsumer<ItemFolderDiffModel, Runnable> readFolder;
   Runnable onComplete;
   public int insertedFiles, rewroteFiles;
   public int copiedDirs;
   public int deletedFiles, deletedDirs;
 
+  final boolean removeSync;
   final boolean removeItems;
   final boolean syncExcluded;
 
@@ -29,13 +32,17 @@ public class ModelCopyDeleteStatus {
       WorkerJobExecutor executor,
       Consumer<int[]> sendStatus,
       Consumer<String> onError,
+      BiConsumer<ItemFolderDiffModel, Runnable> readFolder,
+      boolean removeSync,
       boolean removeItems,
       boolean syncExcluded
   ) {
     this.executor = executor;
     this.sendStatus = sendStatus;
     this.onError = onError;
+    this.readFolder = readFolder;
     markedForDelete = new IdentityHashMap<>();
+    this.removeSync = removeSync;
     this.removeItems = removeItems;
     this.syncExcluded = syncExcluded;
   }

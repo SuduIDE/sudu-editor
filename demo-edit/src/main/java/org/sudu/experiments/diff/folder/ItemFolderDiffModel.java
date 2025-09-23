@@ -214,10 +214,16 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
       status.onTraversed();
       return;
     }
-    if (isExcluded() && !status.syncExcluded) {
+    if (isExcluded() && !status.syncExcluded && !status.removeSync) {
       status.onTraversed();
       return;
     }
+    if (isDir() && children == null) {
+      status.readFolder.accept(this, () -> doRemove(status));
+    } else doRemove(status);
+  }
+
+  private void doRemove(ModelCopyDeleteStatus status) {
     FsItem item = item();
     if (item instanceof FileHandle file) {
       status.inWork++;

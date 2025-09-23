@@ -27,6 +27,7 @@ import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class RemoteCollector {
@@ -196,6 +197,8 @@ public class RemoteCollector {
         executor,
         this::sendStatus,
         this::onError,
+        this::readFolder,
+        isDeleteDiff,
         removeItems,
         syncExcluded
     );
@@ -471,7 +474,16 @@ public class RemoteCollector {
   }
 
   private void read(ItemFolderDiffModel model) {
-    if (model.item() instanceof DirectoryHandle dirHandle) readFolder(model, dirHandle);
+    if (model.isExcluded()) {
+      if (model.parent != null && model.parent.children.length == 1) {
+        model.setSendExcluded(true);
+      } else if (!model.isSendExcluded()) {
+        LoggingJs.info("Excluded: " + model.getFullPath(""));
+        model.itemCompared();
+        return;
+      }
+    }
+    if (model.isDir()) readFolder(model, this::onFolderRead);
     else {
       if (model.getDiffType() == DiffTypes.INSERTED) {
         filesInserted++;
@@ -484,10 +496,22 @@ public class RemoteCollector {
     }
   }
 
-  private void readFolder(ItemFolderDiffModel model, DirectoryHandle dirHandle) {
+  private void readFolder(ItemFolderDiffModel model, Runnable onComplete) {
+    BiConsumer<ItemFolderDiffModel, Object[]> onFolderRead = (m, r) -> {
+      onFolderRead(m, r);
+      onComplete.run();
+    };
+    readFolder(model, onFolderRead);
+  }
+
+  private void readFolder(ItemFolderDiffModel model, BiConsumer<ItemFolderDiffModel, Object[]> onFolderRead) {
+    if (!(model.item() instanceof DirectoryHandle dirHandle)) {
+      LoggingJs.error(String.format("Can't readFolder: %s isn't a folder", model.path));
+      return;
+    }
     ++inComparing;
     Runnable task = () -> executor.sendToWorker(
-        result -> onFolderRead(model, result),
+        result -> onFolderRead.accept(model, result),
         DiffUtils.READ_FOLDER,
         dirHandle, new int[]{model.getDiffType(), model.getItemKind(), model.posInParent}
     );
