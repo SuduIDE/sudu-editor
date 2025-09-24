@@ -13,6 +13,7 @@ public class ModelCopyDeleteStatus {
   final Consumer<String> onError;
   final Consumer<int[]> sendStatus;
   final BiConsumer<ItemFolderDiffModel, Runnable> readFolder;
+  final BiConsumer<ItemFolderDiffModel, Runnable> compareFolders;
   Runnable onComplete;
   public int insertedFiles, rewroteFiles;
   public int copiedDirs;
@@ -32,6 +33,7 @@ public class ModelCopyDeleteStatus {
       Consumer<int[]> sendStatus,
       Consumer<String> onError,
       BiConsumer<ItemFolderDiffModel, Runnable> readFolder,
+      BiConsumer<ItemFolderDiffModel, Runnable> compareFolders,
       boolean syncOrphans,
       boolean syncExcluded
   ) {
@@ -39,6 +41,7 @@ public class ModelCopyDeleteStatus {
     this.sendStatus = sendStatus;
     this.onError = onError;
     this.readFolder = readFolder;
+    this.compareFolders = compareFolders;
     markedForDelete = new IdentityHashMap<>();
     this.syncOrphans = syncOrphans;
     this.syncExcluded = syncExcluded;
