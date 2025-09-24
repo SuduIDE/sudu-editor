@@ -267,6 +267,22 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
       remove(status);
       return;
     }
+    if (children == null) {
+      if (!isExcluded()) {
+        status.onCopyError("model.children == null in non-excluded folder");
+        return;
+      }
+      if (isBoth()) {
+        status.compareFolders.accept(this, () -> doCopyFolder(left, status));
+      } else {
+        status.readFolder.accept(this, () -> doCopyFolder(left, status));
+      }
+      return;
+    }
+    doCopyFolder(left, status);
+  }
+
+  private void doCopyFolder(boolean left, ModelCopyDeleteStatus status) {
     if (getDiffType() == DiffTypes.EDITED) {
       if (children.length == 0) updateItem();
       else for (int i = 0; i < children.length; i++) child(i).copy(left, status);

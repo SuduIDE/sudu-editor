@@ -792,7 +792,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     int[] path = model.getPathFromRoot();
     var result = JsArray.create();
     result.set(0, JsCast.jsInts(path));
-    result.set(1, JsCast.jsInts(left ? 0 : 1, syncOrphans ? 1 : 0));
+    result.set(1, JsCast.jsInts(left ? 0 : 1, syncOrphans ? 1 : 0, syncExcluded ? 1 : 0));
     result.push(DiffModelChannelUpdater.APPLY_DIFF_ARRAY);
     channel.sendMessage(result);
     LoggingJs.info("RemoteFolderDiffWindow.sendApplyDiff");

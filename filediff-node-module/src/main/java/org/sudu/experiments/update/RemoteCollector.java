@@ -103,7 +103,7 @@ public class RemoteCollector {
     String beginMsg = "Begin comparing " + leftHandle().getName() +
         " ↔ " + rightHandle().getName();
     LoggingJs.info(beginMsg);
-    compare(root, this::sendCompareMessage, this::sendFrontendMessage);
+    compare(root, false, this::sendCompareMessage, this::sendFrontendMessage);
   }
 
   public void refresh() {
@@ -199,7 +199,7 @@ public class RemoteCollector {
         this::sendStatus,
         this::onError,
         (m, r) -> readFolder(m, r, () -> {}),
-        (m, r) -> compare(m, r, () -> {}),
+        (m, r) -> compare(m, true, r, () -> {}),
         syncOrphans,
         syncExcluded
     );
@@ -328,8 +328,13 @@ public class RemoteCollector {
     return new ItemFolderDiffModel(parent, path);
   }
 
-  private void compare(ItemFolderDiffModel model, Runnable onCompared, Runnable sendMessage) {
-    if (model.isExcluded()) {
+  private void compare(
+      ItemFolderDiffModel model,
+      boolean scanExcluded,
+      Runnable onCompared,
+      Runnable sendMessage
+  ) {
+    if (!scanExcluded && model.isExcluded()) {
       if (model.parent != null && model.parent.children.length == 1) {
         model.setSendExcluded(true);
       } else if (!model.isSendExcluded()) {
@@ -341,7 +346,7 @@ public class RemoteCollector {
     ++inComparing;
     if (model.left() instanceof DirectoryHandle leftDir &&
         model.right() instanceof DirectoryHandle rightDir
-    ) compareFolders(model, leftDir, rightDir, onCompared, sendMessage);
+    ) compareFolders(model, leftDir, rightDir, scanExcluded, onCompared, sendMessage);
     else if (model.left() instanceof FileHandle leftFile
         && model.right() instanceof FileHandle rightFile
     ) compareFiles(model, leftFile, rightFile, onCompared, sendMessage);
@@ -352,12 +357,13 @@ public class RemoteCollector {
       ItemFolderDiffModel model,
       DirectoryHandle leftDir,
       DirectoryHandle rightDir,
+      boolean scanExcluded,
       Runnable onCompared,
       Runnable sendMessage
   ) {
     LoggingJs.trace("Comparing folders " + model.path);
     Runnable task = () -> executor.sendToWorker(
-        result -> onFoldersCompared(model, onCompared, sendMessage, result),
+        result -> onFoldersCompared(model, scanExcluded, onCompared, sendMessage, result),
         DiffUtils.CMP_FOLDERS,
         leftDir, rightDir
     );
@@ -367,6 +373,7 @@ public class RemoteCollector {
 
   private void onFoldersCompared(
       ItemFolderDiffModel model,
+      boolean scanExcluded,
       Runnable onCompared,
       Runnable sendMessage,
       Object[] result
@@ -425,7 +432,7 @@ public class RemoteCollector {
         model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setItems(leftItem[lP], rightItem[rP]);
-        compare(model.child(mP), onCompared, sendMessage);
+        compare(model.child(mP), scanExcluded, onCompared, sendMessage);
         mP++;
         lP++;
         rP++;
@@ -704,7 +711,7 @@ public class RemoteCollector {
     if (model == null) return;
     if (model.isExcluded() && !model.isSendExcluded()) {
       model.setSendExcluded(true);
-      if (model.isBoth()) compare(model, this::sendCompareMessage, this::sendFrontendMessage);
+      if (model.isBoth()) compare(model, false, this::sendCompareMessage, this::sendFrontendMessage);
       else read(model, this::sendCompareMessage, this::sendFrontendMessage);
     }
     if (model.children == null || frontendNode == null || frontendNode.children == null) return;

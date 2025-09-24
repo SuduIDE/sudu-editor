@@ -116,7 +116,7 @@ public class ModelCopyDeleteStatus {
 
   public void onCopyError(String error) {
     inWork--;
-    onError.accept(error);
+    onError.accept("onCopyError: " + error);
     onComplete();
   }
 
