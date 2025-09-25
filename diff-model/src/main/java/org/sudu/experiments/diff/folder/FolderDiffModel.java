@@ -285,8 +285,7 @@ public class FolderDiffModel {
 
   public boolean shouldSync() {
     return getDiffType() != DiffTypes.DEFAULT
-        && isCompared()
-        && (!isExcluded() || (isExcluded() && isFile()));
+        && isCompared();
   }
 
   public FolderDiffModel findNodeByIndPath(int[] path) {
