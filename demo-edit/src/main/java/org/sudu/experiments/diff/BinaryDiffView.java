@@ -7,7 +7,6 @@ import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
-import org.sudu.experiments.math.XorShiftRandom;
 import org.sudu.experiments.ui.SetCursor;
 import org.sudu.experiments.ui.UiContext;
 import org.sudu.experiments.ui.UiFont;
@@ -38,7 +37,7 @@ public class BinaryDiffView extends ScrollContent {
   final V4f debugColor = new V4f();
   final BinDataCache.GetResult result = new BinDataCache.GetResult();
 
-  int numBytesPerLine = 16;
+  int bytesPerLine = 16;
   int numLines;
   double sizeL, sizeR;
 
@@ -118,12 +117,12 @@ public class BinaryDiffView extends ScrollContent {
     int vLine = toPx(vLineDp);
     int vLinePad = toPx(vLinePadDp);
     int pairPad = toPx(bytePadDp);
-    int bytesW = (numBytesPerLine - 1) * pairPad + numBytesPerLine * cellSize.x;
+    int bytesW = (bytesPerLine - 1) * pairPad + bytesPerLine * cellSize.x;
     int addressW = cellSize.x * addressDigitPairs;
     int width = addressW + vLinePad + vLine + vLinePad
         + bytesW + vLinePad + vLine * 3 + vLinePad + bytesW;
-    int numLinesL = (int) (sizeL / numBytesPerLine);
-    int numLinesR = (int) (sizeR / numBytesPerLine);
+    int numLinesL = (int) ((sizeL + bytesPerLine - 1) / bytesPerLine);
+    int numLinesR = (int) ((sizeR + bytesPerLine - 1) / bytesPerLine);
     numLines = Math.max(numLinesL, numLinesR);
     int height = cellSize.y * (numLines + emptyLines);
     setVirtualSize(width, height);
@@ -188,8 +187,8 @@ public class BinaryDiffView extends ScrollContent {
 
     int vLine1 = pos.x + cellSize.x * addressDigitPairs + vLinePad;
     int bytesX1 = vLine1 + vLineW + vLinePad;
-    int vLine2 = bytesX1 + numBytesPerLine * cellSize.x
-        + numBytesPerLine * pairPad - pairPad + vLinePad;
+    int vLine2 = bytesX1 + bytesPerLine * cellSize.x
+        + bytesPerLine * pairPad - pairPad + vLinePad;
     int vLine3 = vLine2 + vLineW * 2;
     int bytesX2 = vLine3 + vLineW + vLinePad;
 
@@ -210,7 +209,7 @@ public class BinaryDiffView extends ScrollContent {
 
     for (int ln = firstLine; ln < lastLine; ln++) {
       int y = ln * cellSize.y - vScroll + pos.y;
-      drawLine(g, ln, y, bytesX2, bytesX1, pairPad);
+      drawLine(g, ln, y, bytesX1, bytesX2, pairPad);
     }
 
     lineSize.set(vLineW, size.y);
@@ -230,7 +229,7 @@ public class BinaryDiffView extends ScrollContent {
       WglGraphics g, int line, int y,
       int bytesX1, int bytesX2, int pairPad
   ) {
-    double addr = line * numBytesPerLine;
+    double addr = line * bytesPerLine;
     int baseX = pos.x;
     int cellW = cellSize.x;
     var editBg = theme.editor.bg;
@@ -244,10 +243,10 @@ public class BinaryDiffView extends ScrollContent {
 
     double addrStr = addr;
     for (int d = 0; d < addressDigitPairs; d++) {
-      int addrDigit = (int)(addrStr % 256);
+      int addrDigit = (int) (addrStr % 256);
       drawByte(g, baseX + (addressDigitPairs - d - 1) * cellW, y,
           addrDigit, addressC, bgColor);
-      addrStr = (addrStr - addrDigit)/ 256;
+      addrStr = (addrStr - addrDigit) / 256;
     }
 
     Color textFg = theme.codeElement[0].colorF;
@@ -260,26 +259,28 @@ public class BinaryDiffView extends ScrollContent {
     byte[] dataR = hasR ? result.data : null;
     int offsetR = hasR ? result.offset : 0;
 
-    for (int i = 0; i < numBytesPerLine; i++) {
+    for (int i = 0; i < bytesPerLine; i++) {
       if (debug) {
         double h = remInt(i / 16.f + line / Math.PI / 100);
         Color.Cvt.fromHSV(h, 0.75, 0.5, 0, debugColor);
       }
-      int x = bytesX1 + i * (cellW + pairPad);
-      int b = XorShiftRandom.roll_7_1_9(XorShiftRandom.roll_7_1_9(
-          4793 * line + i * 7879 + 2729));
-      drawByte(g, x, y, b, textFg, bgColor);
+      if (dataL != null && offsetL + i < dataL.length) {
+        int x = bytesX1 + i * (cellW + pairPad);
+        int b = 0xFF & dataL[offsetL + i];
+        drawByte(g, x, y, b, textFg, bgColor);
+      }
     }
 
-    for (int i = 0; i < numBytesPerLine; i++) {
+    for (int i = 0; i < bytesPerLine; i++) {
       if (debug) {
         double h = remInt(i / 16.f + line / Math.PI / 100);
         Color.Cvt.fromHSV(h, 0.75, 0.5, 0, debugColor);
       }
-      int x = bytesX2 + i * (cellW + pairPad);
-      int b = XorShiftRandom.roll_7_1_9(XorShiftRandom.roll_7_1_9(
-          4793 * line + (i + numBytesPerLine) * 7879 + 2729));
-      drawByte(g, x, y, b, textFg, bgColor);
+      if (dataR != null && offsetR + i < dataR.length) {
+        int x = bytesX2 + i * (cellW + pairPad);
+        int b = 0xFF & dataR[offsetR + i];
+        drawByte(g, x, y, b, textFg, bgColor);
+      }
     }
   }
 
