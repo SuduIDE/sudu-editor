@@ -141,7 +141,7 @@ public class Collector {
     }
     if (len == 0) model.itemCompared();
     if (edited) {
-      model.markUp(DiffTypes.EDITED);
+      model.markUpDiffType(DiffTypes.EDITED);
       needUpdate = model.getDiffType() == DiffTypes.DEFAULT;
     }
     onItemCompared(needUpdate);
@@ -173,7 +173,7 @@ public class Collector {
     filesCompared++;
     if (!equals) {
       filesEdited++;
-      model.markUp(DiffTypes.EDITED);
+      model.markUpDiffType(DiffTypes.EDITED);
     }
     onItemCompared(model.itemCompared());
   }

@@ -1,15 +1,12 @@
 package org.sudu.experiments.esm.dlg;
 
-import org.sudu.experiments.BooleanConsumer;
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.diff.folder.RemoteFolderDiffModel;
 import org.sudu.experiments.esm.JsDialogProvider;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
 
-import java.util.Arrays;
-
-import static org.sudu.experiments.diff.RemoteFileDiffWindow.sSuffix;
+import java.util.function.BiConsumer;
 
 public class FsDialogs {
   public static void showDlg(
@@ -17,7 +14,9 @@ public class FsDialogs {
       String from, String to,
       RemoteFolderDiffModel remoteModel,
       boolean left,
-      BooleanConsumer action  // true -> Remove orphan files and folders
+      // true, _ -> Remove orphan files and folders
+      // _, true -> Sync excluded files and folders
+      BiConsumer<Boolean, Boolean> action
   ) {
     var bOk = JsNative.createButton("Confirm", true);
     var bCancel = JsNative.createButton("Cancel", false);
@@ -34,11 +33,16 @@ public class FsDialogs {
         : "From\n" + from + "\n\nTo\n" + to;
 
     JsArray<JsDialogOption> options = JsArray.create();
-    final JsDialogOption syncOption;
+    final JsDialogOption syncOrphanOption;
     if (!isDelete && remoteModel.isDir()) {
-      syncOption = JsNative.createOption("Remove orphan files and folders", true);
-      options.set(0, syncOption);
-    } else syncOption = null;
+      syncOrphanOption = JsNative.createOption("Remove orphan files and folders", false);
+      options.push(syncOrphanOption);
+    } else syncOrphanOption = null;
+    final JsDialogOption syncExcludedOption;
+    if (!isDelete && (remoteModel.containExcluded() && !remoteModel.isExcluded())) {
+      syncExcludedOption = JsNative.createOption("Sync excluded files and folders", false);
+      options.push(syncExcludedOption);
+    } else syncExcludedOption = null;
 
     var i = JsNative.createInput(
         title, text,
@@ -49,23 +53,19 @@ public class FsDialogs {
         result -> {
           if (result != null && result.getButton() == bOk) {
             var selected = p.getSelectedOptions();
-            action.accept(syncOption == null || selected.has(syncOption));
+            final boolean syncOrphan = syncOrphanOption == null || selected.has(syncOrphanOption);
+            final boolean syncExcluded = syncOrphanOption == null || selected.has(syncExcludedOption);
+            action.accept(syncOrphan, syncExcluded);
           }
         }, e -> {}
     );
   }
 
-  public static void showDlg(JsDialogProvider p, int[] ints) {
+  public static void showDlg(JsDialogProvider p, String msg) {
     var bOk = JsNative.createButton("OK", true);
-    StringBuilder textSB = new StringBuilder();
-    if (ints[0] != 0) textSB.append(sSuffix(ints[0], "dir")).append(" copied\n");
-    if (ints[1] != 0) textSB.append(sSuffix(ints[1], "file")).append(" copied\n");
-    if (ints[2] != 0) textSB.append(sSuffix(ints[2], "dir")).append(" deleted\n");
-    if (ints[3] != 0) textSB.append(sSuffix(ints[3], "file")).append(" deleted\n");
-    if (Arrays.equals(ints, new int[] {0, 0, 0, 0})) textSB.append("No differences\n");
 
     var i = JsNative.createInput(
-        "File sync completed", textSB.toString(),
+        "File sync completed", msg,
         JsArray.create(),
         JsHelper.toJsArray(bOk)
     );
