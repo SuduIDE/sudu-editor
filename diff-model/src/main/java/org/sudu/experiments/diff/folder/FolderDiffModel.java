@@ -74,7 +74,7 @@ public class FolderDiffModel {
   }
 
   public void updateContainExcluded() {
-    if (isFile() && containExcluded()) return;
+    if (isExcluded() || (isFile() && containExcluded())) return;
     boolean containExcluded = false;
     for (var child: children) {
       containExcluded = child.containExcluded() || child.isExcluded();

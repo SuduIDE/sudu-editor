@@ -76,6 +76,7 @@ public class ModelCopyDeleteStatus {
     deletedDirs++;
     removeMarked(dir);
     onChildDeleted(dir);
+    if (dir.isExcluded() && dir.parent != null) dir.updateContainExcluded();
     onComplete();
   }
 
