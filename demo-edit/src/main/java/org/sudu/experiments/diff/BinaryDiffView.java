@@ -26,7 +26,7 @@ public class BinaryDiffView extends ScrollContent {
   public static final int emptyLines = 5;
 
   static int chunkSize = 256 * 1024;
-  static int maxMemory = 4 * 1024 * 1024;
+  static int maxMemory = 8 * 1024 * 1024;
 
   private final UiContext uiContext;
   private EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
@@ -192,6 +192,11 @@ public class BinaryDiffView extends ScrollContent {
     int vLine3 = vLine2 + vLineW * 2;
     int bytesX2 = vLine3 + vLineW + vLinePad;
 
+    int vScroll = scrollPos.y;
+    int firstLine = vScroll / cellSize.y;
+    int lastLineT = (vScroll + size.y + cellSize.y - 1) / cellSize.y;
+    int lastLine = Math.min(lastLineT, numLines);
+
     // find a better place to do this
     if (scrollView != null) {
       scrollView.setScrollColor(
@@ -201,11 +206,6 @@ public class BinaryDiffView extends ScrollContent {
 
     g.enableScissor(pos, size);
     g.drawRect(pos.x, pos.y, size, theme.editor.bg);
-
-    int vScroll = scrollPos.y;
-    int firstLine = vScroll / cellSize.y;
-    int lastLineT = (vScroll + size.y + cellSize.y - 1) / cellSize.y;
-    int lastLine = Math.min(lastLineT, numLines);
 
     for (int ln = firstLine; ln < lastLine; ln++) {
       int y = ln * cellSize.y - vScroll + pos.y;
@@ -219,6 +219,12 @@ public class BinaryDiffView extends ScrollContent {
     g.drawRect(vLine3, pos.y, lineSize, numbersVLine);
 
     g.disableScissor();
+
+    if (dataL != null) dataL.pruneData(maxMemory);
+    if (dataR != null) dataR.pruneData(maxMemory);
+    if (false) System.out.println("memory = " +
+        ((dataL != null ? dataL.memory() : 0) +
+        (dataR != null ? dataR.memory() : 0)) );
   }
 
   static double remInt(double x) {
@@ -229,25 +235,13 @@ public class BinaryDiffView extends ScrollContent {
       WglGraphics g, int line, int y,
       int bytesX1, int bytesX2, int pairPad
   ) {
-    double addr = line * bytesPerLine;
+    double addr = (double) line * bytesPerLine, addrV = addr;
     int baseX = pos.x;
     int cellW = cellSize.x;
+
     var editBg = theme.editor.bg;
-
-    if (debug)
-      Color.Cvt.fromHSV(0.5 + 0.5 * Math.sin(line / 10.),
-          0.75, 0.5, 0, debugColor);
-    V4f bgColor = debug ? debugColor : editBg;
-
-    Color addressC = theme.lineNumber.textColor;
-
-    double addrStr = addr;
-    for (int d = 0; d < addressDigitPairs; d++) {
-      int addrDigit = (int) (addrStr % 256);
-      drawByte(g, baseX + (addressDigitPairs - d - 1) * cellW, y,
-          addrDigit, addressC, bgColor);
-      addrStr = (addrStr - addrDigit) / 256;
-    }
+    var bgColor = debug ? debugColor : editBg;
+    var addressC = theme.lineNumber.textColor;
 
     var textFg = theme.codeElement[0].colorF;
     var diffBg = theme.codeDiffBg.editedColor2;
@@ -259,6 +253,17 @@ public class BinaryDiffView extends ScrollContent {
     boolean hasR = dataR != null && dataR.getOrFetch(addr, result);
     byte[] dataR = hasR ? result.data : null;
     int offsetR = hasR ? result.offset : 0;
+
+    if (debug)
+      Color.Cvt.fromHSV(0.5 + 0.5 * Math.sin(line / 10.),
+          0.75, 0.5, 0, debugColor);
+
+    for (int d = 0; d < addressDigitPairs; d++) {
+      int addrDigit = (int) (addrV % 256);
+      drawByte(g, baseX + (addressDigitPairs - d - 1) * cellW, y,
+          addrDigit, addressC, bgColor);
+      addrV = (addrV - addrDigit) / 256;
+    }
 
     for (int i = 0; i < bytesPerLine; i++) {
       if (debug) {

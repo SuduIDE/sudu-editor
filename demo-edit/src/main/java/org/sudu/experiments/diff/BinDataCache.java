@@ -66,11 +66,14 @@ public class BinDataCache {
           oldestTime = time;
         }
       }
-
-      memory -= data[oldestIndex].length;
+      int removedBytes = data[oldestIndex].length;
+      memory -= removedBytes;
       addr = ArrayOp.removeAt(addr, oldestIndex);
       data = ArrayOp.removeAt(data, oldestIndex);
       useTime = ArrayOp.removeAt(useTime, oldestIndex);
+      if (false)
+        System.out.println("remove data: tTime = " + oldestTime +
+            ", l = " + removedBytes + ", memory  = " + memory);
     }
   }
 
@@ -138,8 +141,8 @@ public class BinDataCache {
       }
       Double key = requestAddress;
       if (!requestMap.contains(key)) {
-        source.fetch(requestAddress, chunkSize, onData);
         requestMap.add(key);
+        source.fetch(requestAddress, chunkSize, onData);
       }
       return false;
     }
@@ -157,7 +160,8 @@ public class BinDataCache {
           data = ArrayOp.insertAt(values, data, s);
           useTime = ArrayOp.insertAt(frameNo, useTime, s);
           memory += values.length;
-          requestMap.remove(address);
+          if (!requestMap.remove(address))
+            System.err.println("requestMap.remove(address) failed");
           repaint.run();
         }
       }
