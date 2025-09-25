@@ -256,6 +256,12 @@ export interface ContextMenuProvider {
   showContextMenu(actions: ContextMenuActions[]): void;
 }
 
+export interface NotificationsProvider {
+    error(message: string): void;
+    warn(message: string): void;
+    info(message: string): void;
+}
+
 export interface View {
   disconnectFromDom(): void
 
@@ -268,6 +274,8 @@ export interface View {
   setExternalMessageBar(statusBar: ExternalMessageBar): void
 
   setExternalContextMenuProvider(p: ContextMenuProvider): void;
+
+  setNotificationsProvider(provider: NotificationsProvider)
 
   executeMenuAction(action: ContextMenuActions): void;
 }

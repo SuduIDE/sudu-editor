@@ -214,10 +214,16 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
       status.onTraversed();
       return;
     }
-    if (isExcluded() && !status.syncExcluded) {
+    if (isExcluded() && !status.syncOrphans) {
       status.onTraversed();
       return;
     }
+    if (isDir() && children == null) {
+      status.readFolder.accept(this, () -> doRemove(status));
+    } else doRemove(status);
+  }
+
+  private void doRemove(ModelCopyDeleteStatus status) {
     FsItem item = item();
     if (item instanceof FileHandle file) {
       status.inWork++;
@@ -247,7 +253,10 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
   public void copy(boolean left, ModelCopyDeleteStatus status) {
     status.inTraverse++;
-    if (getDiffType() == DiffTypes.DEFAULT || (isExcluded() && !status.syncExcluded)) {
+    boolean syncExcluded = getDiffType() != DiffTypes.DEFAULT
+        && (!isExcluded() || (isExcluded() && status.syncExcluded));
+    boolean containExcluded = getDiffType() == DiffTypes.DEFAULT && isDir() && containExcluded();
+    if (!(containExcluded || syncExcluded)) {
       status.onTraversed();
       return;
     }
@@ -257,10 +266,26 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   }
 
   private void copyFolder(boolean left, ModelCopyDeleteStatus status) {
-    if (status.removeItems && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
+    if (status.syncOrphans && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
       remove(status);
       return;
     }
+    if (children == null) {
+      if (!isExcluded()) {
+        status.onCopyError("model.children == null in non-excluded folder");
+        return;
+      }
+      if (isBoth()) {
+        status.compareFolders.accept(this, () -> doCopyFolder(left, status));
+      } else {
+        status.readFolder.accept(this, () -> doCopyFolder(left, status));
+      }
+      return;
+    }
+    doCopyFolder(left, status);
+  }
+
+  private void doCopyFolder(boolean left, ModelCopyDeleteStatus status) {
     if (getDiffType() == DiffTypes.EDITED) {
       if (children.length == 0) updateItem();
       else for (int i = 0; i < children.length; i++) child(i).copy(left, status);
@@ -283,7 +308,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   }
 
   private void copyFile(boolean left, ModelCopyDeleteStatus status) {
-    if (status.removeItems && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
+    if (status.syncOrphans && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
       remove(status);
       return;
     }

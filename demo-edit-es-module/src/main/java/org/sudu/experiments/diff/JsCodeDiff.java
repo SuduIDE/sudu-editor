@@ -109,6 +109,9 @@ public class JsCodeDiff implements JsFileDiffView {
   public void setExternalContextMenuProvider(JsContextMenuProvider p) {}
 
   @Override
+  public void setNotificationsProvider(JsNotificationsProvider p) {}
+
+  @Override
   public void executeMenuAction(JSString action) {}
 
   static Function<SceneApi, Scene> sf(EditArgs args) {

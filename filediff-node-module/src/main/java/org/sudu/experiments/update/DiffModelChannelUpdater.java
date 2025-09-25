@@ -129,8 +129,9 @@ public class DiffModelChannelUpdater {
     int[] path = JsCast.ints(jsArray, 0);
     int[] flags = JsCast.ints(jsArray, 1);
     boolean left = flags[0] == 0;
-    boolean removeItems = flags[1] == 1;
-    collector.applyDiff(path, left, removeItems);
+    boolean syncOrphans = flags[1] == 1;
+    boolean syncExcluded = flags[2] == 1;
+    collector.applyDiff(path, left, syncOrphans, syncExcluded);
   }
 
   private void onFileSave(JsArray<JSObject> jsArray) {

@@ -4,6 +4,7 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.IdentityHashMap;
 import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 public class ModelCopyDeleteStatus {
 
@@ -11,13 +12,15 @@ public class ModelCopyDeleteStatus {
   final WorkerJobExecutor executor;
   final Consumer<String> onError;
   final Consumer<int[]> sendStatus;
+  final BiConsumer<ItemFolderDiffModel, Runnable> readFolder;
+  final BiConsumer<ItemFolderDiffModel, Runnable> compareFolders;
   Runnable onComplete;
   public int insertedFiles, rewroteFiles;
   public int copiedDirs;
   public int deletedFiles, deletedDirs;
 
-  final boolean removeItems;
-  final boolean syncExcluded;
+  final boolean syncOrphans;  // true -> remove orphan items on copy
+  final boolean syncExcluded; // true -> copy excluded items (for files only now, wip for folders)
 
   final IdentityHashMap<ItemFolderDiffModel, Integer> markedForDelete;
 
@@ -29,14 +32,18 @@ public class ModelCopyDeleteStatus {
       WorkerJobExecutor executor,
       Consumer<int[]> sendStatus,
       Consumer<String> onError,
-      boolean removeItems,
+      BiConsumer<ItemFolderDiffModel, Runnable> readFolder,
+      BiConsumer<ItemFolderDiffModel, Runnable> compareFolders,
+      boolean syncOrphans,
       boolean syncExcluded
   ) {
     this.executor = executor;
     this.sendStatus = sendStatus;
     this.onError = onError;
+    this.readFolder = readFolder;
+    this.compareFolders = compareFolders;
     markedForDelete = new IdentityHashMap<>();
-    this.removeItems = removeItems;
+    this.syncOrphans = syncOrphans;
     this.syncExcluded = syncExcluded;
   }
 
@@ -69,6 +76,7 @@ public class ModelCopyDeleteStatus {
     deletedDirs++;
     removeMarked(dir);
     onChildDeleted(dir);
+    if (dir.isExcluded() && dir.parent != null) dir.updateContainExcluded();
     onComplete();
   }
 
@@ -109,7 +117,7 @@ public class ModelCopyDeleteStatus {
 
   public void onCopyError(String error) {
     inWork--;
-    onError.accept(error);
+    onError.accept("onCopyError: " + error);
     onComplete();
   }
 
