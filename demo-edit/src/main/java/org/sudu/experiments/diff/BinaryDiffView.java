@@ -249,7 +249,8 @@ public class BinaryDiffView extends ScrollContent {
       addrStr = (addrStr - addrDigit) / 256;
     }
 
-    Color textFg = theme.codeElement[0].colorF;
+    var textFg = theme.codeElement[0].colorF;
+    var diffBg = theme.codeDiffBg.editedColor2;
 
     boolean hasL = dataL != null && dataL.getOrFetch(addr, result);
     byte[] dataL = hasL ? result.data : null;
@@ -264,23 +265,18 @@ public class BinaryDiffView extends ScrollContent {
         double h = remInt(i / 16.f + line / Math.PI / 100);
         Color.Cvt.fromHSV(h, 0.75, 0.5, 0, debugColor);
       }
-      if (dataL != null && offsetL + i < dataL.length) {
-        int x = bytesX1 + i * (cellW + pairPad);
-        int b = 0xFF & dataL[offsetL + i];
-        drawByte(g, x, y, b, textFg, bgColor);
-      }
-    }
-
-    for (int i = 0; i < bytesPerLine; i++) {
-      if (debug) {
-        double h = remInt(i / 16.f + line / Math.PI / 100);
-        Color.Cvt.fromHSV(h, 0.75, 0.5, 0, debugColor);
-      }
-      if (dataR != null && offsetR + i < dataR.length) {
-        int x = bytesX2 + i * (cellW + pairPad);
-        int b = 0xFF & dataR[offsetR + i];
-        drawByte(g, x, y, b, textFg, bgColor);
-      }
+      boolean bo1 = dataL != null && offsetL + i < dataL.length;
+      boolean bo2 = dataR != null && offsetR + i < dataR.length;
+      int b1 = bo1 ? 0xFF & dataL[offsetL + i] : -1;
+      int b2 = bo2 ? 0xFF & dataR[offsetR + i] : -1;
+      boolean equals = b1 == b2;
+      int offset = i * (cellW + pairPad);
+      if (bo1)
+        drawByte(g, bytesX1 + offset, y, b1, textFg,
+            equals ? bgColor : diffBg);
+      if (bo2)
+        drawByte(g, bytesX2 + offset, y, b2, textFg,
+            equals ? bgColor : diffBg);
     }
   }
 

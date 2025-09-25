@@ -79,8 +79,12 @@ public class WindowsDemo extends WindowScene implements DprChangeListener {
     Window window = new Window(uiContext);
     var content = new BinaryDiffView(new UiContext(api));
     XorShiftRandom r = new XorShiftRandom();
-    TestDiffContent sl = new TestDiffContent(1024 * 1024 + r.nextInt(1024 * 1024));
-    TestDiffContent sr = new TestDiffContent(1024 * 1024 + r.nextInt(1024 * 1024));
+    TestDiffContent sl = new TestDiffContent(
+        1024 * 1024 + r.nextInt(1024 * 1024),
+        r.nextInt(1024) + 1);
+    TestDiffContent sr = new TestDiffContent(
+        1024 * 1024 + r.nextInt(1024 * 1024),
+        r.nextInt(1024) + 1);
     content.setData(sl, api.input.repaint, true);
     content.setData(sr, api.input.repaint, false);
     window.setContent(new ScrollView(content));
