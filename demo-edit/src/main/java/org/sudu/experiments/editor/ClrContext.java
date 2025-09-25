@@ -3,7 +3,6 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.*;
 import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.fonts.FontDesk;
-import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.UiFont;
@@ -59,8 +58,7 @@ public class ClrContext {
   }
 
   public int setLineHeight(float lineHeightMulti, WglGraphics g) {
-    int fontLineHeight = font.lineHeight();
-    lineHeight = Numbers.iRnd(fontLineHeight * lineHeightMulti);
+    lineHeight = font.lineHeight(lineHeightMulti);
     underline = font.underlineShift(lineHeight);
     createRenderingCanvas(g);
     sinParamsCollapsed(collapseSin, lineHeight, false);
@@ -93,8 +91,10 @@ public class ClrContext {
       WglGraphics g, GL.Texture icon,
       int xPos, int yPos, V4f bgColor, V4f colorF
   ) {
+    if (icon.width() == 0 || icon.height() == 0)
+      return;
     tRegion.set(0, 0, icon.width(), icon.height());
-    size.set(icon.size());
-    drawText(g, icon, xPos, yPos, colorF, bgColor);
+    g.drawText(xPos, yPos, icon.size(), tRegion,
+        icon, colorF, bgColor, cleartype);
   }
 }

@@ -26,6 +26,7 @@ public interface ArrayOp {
     System.arraycopy(a, pos, target, 0, target.length);
     return target;
   }
+
   static <T> T[] remove(T[] from, int pos, T[] target) {
     if (pos > 0) {
       System.arraycopy(from, 0, target, 0, pos);
@@ -154,10 +155,43 @@ public interface ArrayOp {
     return res;
   }
 
+  static <T> T[] insertAt(T value, T[] data, int index) {
+    T[] res = Arrays.copyOf(data, data.length + 1);
+    res[index] = value;
+    System.arraycopy(data, index, res, index + 1, data.length - index);
+    return res;
+  }
+
+  static double[] insertAt(double value, double[] data, int index) {
+    double[] res = new double[data.length + 1];
+    System.arraycopy(data, 0, res, 0, index);
+    res[index] = value;
+    System.arraycopy(data, index, res, index + 1, data.length - index);
+    return res;
+  }
+
   static int[] removeAt(int[] data, int index) {
     int[] res = new int[data.length - 1];
-    System.arraycopy(data, 0, res, 0, index);
-    System.arraycopy(data, index + 1, res, index, data.length - index - 1);
+    if (index > 0)
+      System.arraycopy(data, 0, res, 0, index);
+    if (index - 1 < data.length)
+      System.arraycopy(data, index + 1, res, index, data.length - index - 1);
+    return res;
+  }
+
+  static double[] removeAt(double[] data, int index) {
+    double[] res = new double[data.length - 1];
+    if (index > 0)
+      System.arraycopy(data, 0, res, 0, index);
+    if (index - 1 < data.length)
+      System.arraycopy(data, index + 1, res, index, data.length - index - 1);
+    return res;
+  }
+
+  static <T> T[] removeAt(T[] data, int index) {
+    T[] res = Arrays.copyOf(data, data.length - 1);
+    if (index - 1 < data.length)
+      System.arraycopy(data, index + 1, res, index, data.length - index - 1);
     return res;
   }
 

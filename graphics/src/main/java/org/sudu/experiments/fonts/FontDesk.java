@@ -63,6 +63,10 @@ public class FontDesk {
     return (lineHeight - lineHeight()) / 2;
   }
 
+  public float baselineCenterF(int lineVBox) {
+    return (lineVBox + fAscent - fDescent) * .5f;
+  }
+
   private void debug(float dotWidth) {
     Debug.consoleInfo("new FontDesk: font " + name
         + ", size " + size + ", style = " + sStyle + ", weight " + weight);

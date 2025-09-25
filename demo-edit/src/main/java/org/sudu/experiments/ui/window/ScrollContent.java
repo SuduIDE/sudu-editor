@@ -14,6 +14,7 @@ public class ScrollContent extends View {
 
   public void setVirtualSize(int w, int h) {
     virtualSize.set(w, h);
+    layoutScroll();
   }
 
   protected void layoutScroll() {

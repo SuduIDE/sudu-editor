@@ -1,5 +1,6 @@
 package org.sudu.experiments;
 
+@SuppressWarnings("ConstantValue")
 public class FileHandleHiLoTest {
   public static void main(String[] args) {
 
@@ -16,8 +17,6 @@ public class FileHandleHiLoTest {
 
     double dAddr2 = FileHandle.int2Address(lo2, hi2);
     if ((dAddr != dAddr2)) throw new  RuntimeException("(dAddr != dAddr2)");
-
-    System.out.println("pi in hex = " + Double.toHexString(Math.PI));
 
     double a = Math.pow(2, 53);
     System.out.println("Double.toHexString(a)   = " + Double.toHexString(a));

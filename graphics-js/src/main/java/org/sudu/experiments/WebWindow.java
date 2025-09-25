@@ -204,6 +204,7 @@ public class WebWindow implements Window {
   private void requestNewFrame() {
     animationFrameRequest = JsWindow.requestAnimationFrame(frameCallback);
   }
+
   public void repaint() {
     repaintRequested = true;
   }

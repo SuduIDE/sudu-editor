@@ -4,6 +4,7 @@ import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.math.V4i;
+import org.sudu.experiments.ui.UiFont;
 
 import java.util.function.Consumer;
 
@@ -101,7 +102,18 @@ public abstract class WglGraphics {
   }
 
   public FontDesk fontDesk(String name, float size, float dpr) {
-    return fontDesk(name, DprUtil.toPx(size, dpr));
+    return fontDesk(name, size, dpr,
+        FontDesk.WEIGHT_REGULAR, FontDesk.STYLE_NORMAL);
+  }
+
+  public FontDesk fontDesk(UiFont font, float dpr, boolean bold) {
+    return fontDesk(font.familyName, DprUtil.toPx(font.size, dpr),
+        bold ? font.weightBold : font.weightRegular,
+        FontDesk.STYLE_NORMAL);
+  }
+
+  public FontDesk fontDesk(String name, float size, float dpr, int weight, int style) {
+    return fontDesk(name, DprUtil.toPx(size, dpr), weight, style);
   }
 
   public FontDesk fontDesk(String name, int size) {
