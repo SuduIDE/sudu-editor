@@ -11,6 +11,7 @@ import org.sudu.experiments.editor.worker.diff.DiffRange;
 import org.sudu.experiments.parser.common.TriConsumer;
 import org.sudu.experiments.ui.window.WindowManager;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
@@ -33,7 +34,8 @@ class FileDiffRootView extends DiffRootView {
   public final boolean isCodeReview;
   private final UndoBuffer undoBuffer;
 
-  protected final long startTime = System.currentTimeMillis();
+  protected long sendDiffTime = System.currentTimeMillis();
+  protected long fullParseTime = System.currentTimeMillis();
   protected final boolean printTime = true;
 
   FileDiffRootView(WindowManager wm, boolean disableParser, boolean isCodeReview) {
@@ -106,10 +108,12 @@ class FileDiffRootView extends DiffRootView {
 
   private void fullFileParseListener(EditorComponent editor) {
     if (printTime) {
+      long currentTime = System.currentTimeMillis();
       System.out.println("FileDiffRootView.fullFileParseListener: " +
           "left = " + (editor1 == editor) +
-          ", time = " + (System.currentTimeMillis() - startTime) + "ms"
+          ", time = " + (currentTime - fullParseTime) + "ms"
       );
+      fullParseTime = currentTime;
     }
     if (editor1 == editor) modelFlags |= 1;
     if (editor2 == editor) modelFlags |= 2;
@@ -205,15 +209,16 @@ class FileDiffRootView extends DiffRootView {
         new LineDiff[]{rightLine},
         new DiffRange[]{range}
     );
-    setDiffModel(diffInfo);
+    setDiffModel(diffInfo, docVersions());
     firstDiffRevealed = false;
   }
 
-  public void setDiffModel(DiffInfo diffInfo) {
+  public void setDiffModel(DiffInfo diffInfo, int[] versions) {
+    if (!Arrays.equals(versions, docVersions())) return;
+    long currentTime = System.currentTimeMillis();
     if (printTime) {
-      System.out.println("FileDiffRootView.setDiffModel: time = "
-          + (System.currentTimeMillis() - startTime) + "ms"
-      );
+      System.out.println("FileDiffRootView.setDiffModel: time = " + (currentTime - sendDiffTime) + "ms");
+      sendDiffTime = currentTime;
     }
     boolean compact = compactViewRequest;
     diffModel = diffInfo;
@@ -230,12 +235,8 @@ class FileDiffRootView extends DiffRootView {
     );
     MergeButtonsModel m1 = pair.first[0], m2 = pair.first[1];
     BooleanConsumer[] acceptReject = pair.second;
-//    if (isCodeReview) {
-//      editor2.setMergeButtons(null, acceptReject, m2.lines, true);
-//    } else {
-      editor1.setMergeButtons(m1.actions, null, m1.lines, false);
-      editor2.setMergeButtons(m2.actions, null, m2.lines, isCodeReview);
-//    }
+    editor1.setMergeButtons(m1.actions, null, m1.lines, false);
+    editor2.setMergeButtons(m2.actions, null, m2.lines, isCodeReview);
 
     if (!firstDiffRevealed) revealFirstDiff();
     if (onDiffModelSet != null) onDiffModelSet.run();
@@ -248,10 +249,12 @@ class FileDiffRootView extends DiffRootView {
   public void updateDiffModel(
       int fromL, int toL,
       int fromR, int toR,
+      int[] versions,
       DiffInfo updateInfo
   ) {
+    if (!Arrays.equals(versions, docVersions())) return;
     diffModel.updateDiffInfo(fromL, toL, fromR, toR, updateInfo);
-    setDiffModel(diffModel);
+    setDiffModel(diffModel, versions);
   }
 
   protected void sendToDiff(boolean cmpOnlyLines) {
@@ -259,6 +262,7 @@ class FileDiffRootView extends DiffRootView {
       System.out.println("EditorComponent.sendToDiff: cmpOnlyLines = " + cmpOnlyLines +
           ", editor1.docL = " + editor1.model().document.length() +
           ", editor2.docL = " + editor2.model().document.length());
+    sendDiffTime = System.currentTimeMillis();
     int[] syncL = editor1.copiedSyncPoints();
     int[] syncR = editor2.copiedSyncPoints();
     if (syncL.length != syncR.length) return;
@@ -278,10 +282,11 @@ class FileDiffRootView extends DiffRootView {
     if (editor1.hasSyncPoints() || editor2.hasSyncPoints()) {
       sendToDiff(false);
     } else {
+      sendDiffTime = System.currentTimeMillis();
       DiffUtils.findIntervalDiffs(
           editor1.model().document,
           editor2.model().document,
-          (upd) -> updateDiffModel(fromL, toL, fromR, toR, upd),
+          (upd, versions) -> updateDiffModel(fromL, toL, fromR, toR, versions, upd),
           ui.windowManager.uiContext.window.worker(),
           fromL, toL, fromR, toR
       );
@@ -307,10 +312,12 @@ class FileDiffRootView extends DiffRootView {
   }
 
   private void revealFirstDiff() {
-    firstDiffRevealed = true;
     for (var range: diffModel.ranges) {
       if (range.type == DiffTypes.DEFAULT) continue;
+      int curL = editor1.caretLine(), curR = editor2.caretLine();
+      if (range.inside(curL, true) || range.inside(curR, false)) return;
       setPositionsAtRange(range);
+      firstDiffRevealed = true;
       break;
     }
   }
@@ -413,6 +420,10 @@ class FileDiffRootView extends DiffRootView {
       editor2.revealLineInCenter(editor2.caretLine());
     }
     ui.windowManager.uiContext.window.repaint();
+  }
+
+  int[] docVersions() {
+    return new int[]{editor1.docVersion(), editor2.docVersion()};
   }
 
   private void buildCompactModel() {

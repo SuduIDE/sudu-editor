@@ -18,6 +18,11 @@ public class DiffRange {
 
   public final int toR() { return fromR + lenR; }
 
+  public boolean inside(int line, boolean left) {
+    return (left && fromL <= line && line < toL())
+        || (!left && fromR <= line && line < toR());
+  }
+
   @Override
   public String toString() {
     return String.format("[%d: %d) |-> [%d: %d)", fromL, fromL + lenL, fromR, fromR + lenR);
