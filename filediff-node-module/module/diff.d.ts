@@ -104,6 +104,10 @@ export type ExcludeList = string | {
   right: string
 }
 
+export enum FileContentType {
+  other = 0, utf8 = 1, gbk = 2
+}
+
 // java class: org.sudu.experiments.DiffEngineJs
 export interface DiffEngine extends IDisposable {
   // todo add boolean content
@@ -130,6 +134,8 @@ export interface DiffEngine extends IDisposable {
   stat(fileOrFolder: FileInput) : Promise<FStats>;
 
   readFile(file: FileInput) : Promise<string>;
+
+  detectFileContent(file: FileInput) : Promise<FileContentType>;
 
   testApi(): DiffTestApi;
 }
