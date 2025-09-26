@@ -10,6 +10,7 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
+import java.util.function.IntConsumer;
 
 public interface FsWorkerJobs {
   String asyncCopyFile = "asyncCopyFile";
@@ -106,6 +107,17 @@ public interface FsWorkerJobs {
       r.accept(new Object[]{text, encoding});
     }, error -> r.accept(new Object[]{error}));
   }
+
+  String asyncDetectCodePage = "asyncDetectCodePage";
+  int fileDetectOther = 0;
+  int fileDetectUtf8 = 1;
+  int fileDetectGbk = 2;
+
+  static void detectCodePage(
+      WorkerJobExecutor workers, FileHandle file,
+      IntConsumer onComplete, Consumer<String> onError
+  ) {}
+
 
   String asyncReadBinFile = "asyncReadBinFile";
 

@@ -529,5 +529,7 @@ export function newRemoteFolderDiff(args: EditArgs, channel: Channel): Promise<R
 
 export function newRemoteFileDiff(args: EditArgs, channel: Channel): Promise<RemoteFileDiffView>
 
+export function newRemoteBinaryDiff(args: EditArgs, channel: Channel): Promise<RemoteFileDiffView>
+
 export function newRemoteEditor(args: EditArgs, channel: Channel): Promise<RemoteEditorView>
 
