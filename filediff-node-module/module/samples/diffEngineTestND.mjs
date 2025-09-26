@@ -112,6 +112,40 @@ function testReadFile(args) {
   }
 }
 
+const fileContentOther = 0;
+const fileContentUtf8 = 1;
+const fileContentGbk = 2;
+
+function decorateContentType(number) {
+  switch (number) {
+    case fileContentOther: return "fileContentOther";
+    case fileContentUtf8: return "fileContentUtf8";
+    case fileContentGbk: return "fileContentGbk";
+    default: return "bad file content: " + number;
+  }
+}
+
+function testDetectFileContent(args) {
+  if (!args[3]) {
+    mayBeExit();
+    return "usage: testReadFile file1 [file2] ..."
+  }
+  for (let i = 3; i < args.length; i++) {
+    const file = args[i];
+    console.log("file", file);
+    jobCount++;
+    diffEngine.detectFileContent(file).then(
+        content => {
+          console.log("testDetectFileContent: file", file,
+              ", content type", decorateContentType(content));
+          mayBeExit();
+        },
+        onError("testDetectFileContent")
+    );
+  }
+}
+
+
 const sshPathTestUsage = "args: ssh[4] file1 [file2 ...]";
 
 function testStatsSsh(args) {
@@ -173,6 +207,7 @@ function runTest() {
     case "testStatsSsh": return testStatsSsh(args);
     case "testReadFile": return testReadFile(args);
     case "testReadFileSsh": return testReadFileSsh(args);
+    case "testDetectFileContent": return testDetectFileContent(args);
 
     default:
       mayBeExit();
