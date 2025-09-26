@@ -12,6 +12,7 @@ import org.sudu.experiments.update.FileEditChannelUpdater;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSError;
+import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.Consumer;
@@ -261,6 +262,16 @@ public class DiffEngine implements DiffEngineJs {
         Promise.create((resolve, reject) ->
             FsWorkerJobs.readTextFile(pool, file,
                 (text, en) -> resolve.f(TextDecoder.decodeUTF16(text)),
+                postReject(reject)));
+  }
+
+  @Override
+  public Promise<JSNumber> detectFileContent(JsFileInput input) {
+    FileHandle file = JsFileInput.fileHandle(input, true);
+    return file == null ? Promise.reject("bad input") :
+        Promise.create((resolve, reject) ->
+            FsWorkerJobs.detectCodePage(pool, file,
+                type -> resolve.f(JSNumber.valueOf(type)),
                 postReject(reject)));
   }
 

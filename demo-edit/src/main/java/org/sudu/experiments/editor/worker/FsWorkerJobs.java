@@ -109,15 +109,41 @@ public interface FsWorkerJobs {
   }
 
   String asyncDetectCodePage = "asyncDetectCodePage";
-  int fileDetectOther = 0;
-  int fileDetectUtf8 = 1;
-  int fileDetectGbk = 2;
+
+  int detectBlockSize = 256 * 1024;
+
+  byte fileDetectOther = 0;
+  byte fileDetectUtf8 = 1;
+  byte fileDetectGbk = 2;
 
   static void detectCodePage(
       WorkerJobExecutor workers, FileHandle file,
       IntConsumer onComplete, Consumer<String> onError
-  ) {}
+  ) {
+    workers.sendToWorker(true, r -> {
+      if (r[0] instanceof String) {
+        onError.accept(ArgsCast.string(r, 0));
+      } else {
+        var res = ArgsCast.byteArray(r, 0);
+        onComplete.accept(res[0]);
+      }
+    }, asyncDetectCodePage, file);
+  }
 
+  static void asyncDetectCodePage(Object[] args, Consumer<Object[]> r) {
+    FileHandle file = ArgsCast.file(args, 0);
+    file.readAsBytes(
+        bytes -> {
+          byte detectResult = FileEncoding.isUtf8(bytes, true)
+              ? fileDetectUtf8
+              : FileEncoding.isGBK(bytes)
+              ? fileDetectGbk : fileDetectOther;
+          r.accept(new Object[]{new byte[]{detectResult}});
+        },
+        error -> r.accept(new Object[]{error}),
+        0, detectBlockSize
+    );
+  }
 
   String asyncReadBinFile = "asyncReadBinFile";
 
