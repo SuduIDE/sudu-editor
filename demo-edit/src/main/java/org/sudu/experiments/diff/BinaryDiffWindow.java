@@ -2,7 +2,6 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.FileHandle;
-import org.sudu.experiments.editor.CtrlO;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -24,7 +23,6 @@ public class BinaryDiffWindow extends ToolWindow0
   Window window;
   Focusable focusSave;
   boolean processEsc = true;
-  boolean canSelectFiles = true;
 
   public BinaryDiffWindow(
       WindowManager wm,
@@ -67,12 +65,13 @@ public class BinaryDiffWindow extends ToolWindow0
     rootView.setTheme(theme);
   }
 
-  public void open(FileHandle f) {
+  public void open(FileHandle f, boolean left) {
     Debug.consoleInfo("opening file " + f.getName());
-    FileHandle.readTextFile(f,
-        (source, encoding) -> {},
-        System.err::println
-    );
+    var uiContext = windowManager.uiContext;
+    var worker = uiContext.window.worker();
+
+    var source = new BinFileDataSource(f, worker);
+    rootView.setData(source, uiContext.repaint, left);
   }
 
   protected void dispose() {
@@ -86,27 +85,23 @@ public class BinaryDiffWindow extends ToolWindow0
 
   protected Supplier<ToolbarItem[]> popupActions(V2i pos) {
     return ArrayOp.supplier(
-        opener("open"),
-        new ToolbarItem(() -> {}, "fsdf")
+        opener("open left", true),
+        opener("open right", false)
     );
   }
 
-  private ToolbarItem opener(String t) {
-    return new ToolbarItem(this::selectFile, t);
+  private ToolbarItem opener(String t, boolean left) {
+    return new ToolbarItem(() -> selectFile(left), t);
   }
 
-  private void selectFile() {
+  private void selectFile(boolean left) {
     windowManager.uiContext.window.showOpenFilePicker(
-        windowManager.hidePopupMenuThen(this::open)
+        windowManager.hidePopupMenuThen(f -> open(f, left))
     );
   }
 
   @Override
   public boolean onKeyPress(KeyEvent event) {
-    if (canSelectFiles && CtrlO.test(event)) {
-      selectFile();
-      return true;
-    }
     if (processEsc && event.keyCode == KeyCode.ESC) {
       if (event.noMods()) window.close();
       else windowManager.nextWindow();

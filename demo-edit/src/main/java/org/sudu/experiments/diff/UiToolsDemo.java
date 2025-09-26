@@ -7,27 +7,27 @@ import org.sudu.experiments.editor.ProjectViewWindow;
 import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
-import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.DprChangeListener;
 import org.sudu.experiments.ui.ToolbarItem;
 
-public class FolderDiff extends WindowScene implements DprChangeListener {
+public class UiToolsDemo extends WindowScene implements DprChangeListener {
 
   EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
 
-  public FolderDiff(SceneApi api) {
+  public UiToolsDemo(SceneApi api) {
     super(api);
     uiContext.dprListeners.add(this);
     clearColor.set(new Color(43));
 
-    api.input.onContextMenu.add(this::onContextMenu);
+    api.input.onContextMenu.add(e -> onContextMenu(e.position));
   }
 
   static String[] menuFonts() { return Fonts.editorFonts(true); }
 
-  private boolean onContextMenu(MouseEvent event) {
+  private boolean onContextMenu(V2i position) {
     var actions = ArrayOp.supplier(
         new ToolbarItem(
             windowManager.hidePopupMenuThen(this::newFolderWindow),
@@ -50,36 +50,39 @@ public class FolderDiff extends WindowScene implements DprChangeListener {
     );
     windowManager.showPopup(
         theme.dialogItem, theme.popupMenuFont,
-        event.position, actions);
+        position, actions);
     return true;
   }
 
   private void newFolderWindow() {
-    new FolderDiffWindow(theme, windowManager, FolderDiff::menuFonts);
+    new FolderDiffWindow(theme, windowManager, UiToolsDemo::menuFonts);
   }
 
   private void newFileWindow() {
-    new FileDiffWindow(windowManager, theme, FolderDiff::menuFonts, EditorConst.DEFAULT_DISABLE_PARSER, false);
+    new FileDiffWindow(windowManager, theme, UiToolsDemo::menuFonts, EditorConst.DEFAULT_DISABLE_PARSER, false);
   }
 
   private void newCodeReview() {
-    new FileDiffWindow(windowManager, theme, FolderDiff::menuFonts, EditorConst.DEFAULT_DISABLE_PARSER, true);
+    new FileDiffWindow(windowManager, theme, UiToolsDemo::menuFonts, EditorConst.DEFAULT_DISABLE_PARSER, true);
   }
 
   private void newBinaryDiff() {
-    new BinaryDiffWindow(windowManager, theme, FolderDiff::menuFonts);
+    new BinaryDiffWindow(windowManager, theme, UiToolsDemo::menuFonts);
   }
 
   private void newProjectView() {
-    new ProjectViewWindow(windowManager, theme, FolderDiff::menuFonts);
+    new ProjectViewWindow(windowManager, theme, UiToolsDemo::menuFonts);
   }
 
   private void newEditorWindow() {
-    new EditorWindow(windowManager, theme, FolderDiff::menuFonts).focus();
+    new EditorWindow(windowManager, theme, UiToolsDemo::menuFonts).focus();
   }
 
   @Override
   public void onDprChanged(float oldDpr, float newDpr) {
-    if (oldDpr == 0) newFolderWindow();
+    if (oldDpr == 0) {
+      var w = windowManager.uiContext.windowSize;
+      onContextMenu(new V2i(w.x / 3, w.y / 3));
+    }
   }
 }

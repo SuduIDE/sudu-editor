@@ -3,6 +3,7 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.*;
 import org.sudu.experiments.editor.ui.colors.DialogItemColors;
 import org.sudu.experiments.editor.ui.colors.Themes;
+import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.ToolbarItem;
@@ -16,7 +17,7 @@ public class SelectFileTest extends WindowScene {
   static final int[] pageHash = {
       0xd3f6ea0d, 0x39eedef, 0x88e7738a, 0x6cf7ac8e, 0xcb126086, 0x387eb9c9, 0x88cf2fdf, 0xd6354322,
       0x88c26011, 0x8fdaa415, 0x2034becc, 0x114eec16, 0x21be342b, 0x94287c6d, 0x309bc89a, 0xe062108f,
-      0xe5f75fdd, Arrays.hashCode(new byte[0])
+      0xe5f75fdd
 };
 
   static final String readPageText = "read file in pages";
@@ -68,7 +69,8 @@ public class SelectFileTest extends WindowScene {
     for (int i = 0; i < pageHash.length; i++) {
       int pageI = pageIndex + i, index = i;
       int start = pageI * b16k.length;
-      file.readAsBytes(
+      FsWorkerJobs.readBinFile(
+          api.window.worker(), file, start, b16k.length,
           bytes -> {
             int hashCode = Arrays.hashCode(bytes);
             resultH[index] = hashCode;
@@ -85,15 +87,38 @@ public class SelectFileTest extends WindowScene {
                     + ", l = " + resultL[j]);
               }
               if (failCnt == 0) {
-                System.out.println("test passed");
+                System.out.println("hash test passed");
               } else {
                 System.out.println("passCnt = " + passCnt);
                 System.out.println("failCnt = " + failCnt);
               }
             }
-          }, System.err::println, start, b16k.length
+          }, System.err::println
       );
     }
+
+    // read after end of file
+    readAfterEndOfFile(file);
+  }
+
+  private void readAfterEndOfFile(FileHandle file) {
+    FsWorkerJobs.asyncStats(api.window.worker(), file,
+        s -> readAfterEndOfFile(file, s.size),
+        System.err::println);
+  }
+
+  private void readAfterEndOfFile(FileHandle file, double pos) {
+    FsWorkerJobs.readBinFile(
+        api.window.worker(), file, pos, b16k.length,
+        b -> System.err.println("unexpected bytes length: " + b.length),
+        error -> {
+          System.out.println("SelectFileTest.readAfterEndOfFile: " + error);
+          if (FileHandle.eof(error))
+            System.out.println(FileHandle.eof + " test passed");
+          else
+            System.err.println(error);
+        }
+    );
   }
 
 
@@ -122,7 +147,9 @@ public class SelectFileTest extends WindowScene {
 
   void takeFile(FileHandle file) {
     Debug.consoleInfo("showOpenFilePicker -> " + file);
-    file.readAsBytes(bytes -> openFile(file, bytes), this::onError);
+    FsWorkerJobs.readBinFile(
+        api.window.worker(), file, 0, -1,
+        bytes -> openFile(file, bytes), this::onError);
   }
 
   void onError(String error) {

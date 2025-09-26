@@ -1,6 +1,7 @@
 package org.sudu.experiments.diff;
 
 import org.junit.jupiter.api.Test;
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.XorShiftRandom;
 
@@ -37,7 +38,7 @@ class TestDataSource implements BinDataCache.DataSource {
     if (data != null) random.fill(data);
     chunks.addLast(new DataChunk(
         data, address,
-        data == null ? Result.eof : null,
+        data == null ? FileHandle.eof : null,
         handler));
   }
 

@@ -103,7 +103,9 @@ public interface FileHandle extends FsItem {
 
   // this method also works when path points to a directory
   default void stat(BiConsumer<Stats, String> cb) {
-    cb.accept(null, "stat not implemented");
+    getSize(size -> cb.accept(
+            new Stats(false, true, false, size), null),
+        error -> cb.accept(null, error));
   }
 
   static int hiGb(double addr) {
@@ -116,5 +118,11 @@ public interface FileHandle extends FsItem {
 
   static double int2Address(int loGb, int hiGb) {
     return ((double) _1gb) * hiGb + loGb;
+  }
+
+  String eof = "eof";
+
+  static boolean eof(String e) {
+    return eof.equals(e);
   }
 }

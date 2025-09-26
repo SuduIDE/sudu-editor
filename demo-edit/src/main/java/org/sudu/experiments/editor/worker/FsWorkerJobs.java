@@ -107,6 +107,39 @@ public interface FsWorkerJobs {
     }, error -> r.accept(new Object[]{error}));
   }
 
+  String asyncReadBinFile = "asyncReadBinFile";
+
+  static void readBinFile(
+      WorkerJobExecutor workers, FileHandle file,
+      double address, int size,
+      Consumer<byte[]> onComplete, Consumer<String> onError
+  ) {
+    int loGb = FileHandle.loGb(address);
+    int hiGb = FileHandle.hiGb(address);
+
+    workers.sendToWorker(true, r -> {
+      if (r[0] instanceof String)
+        onError.accept(ArgsCast.string(r, 0));
+      else
+        onComplete.accept(ArgsCast.byteArray(r, 0));
+    }, asyncReadBinFile, file,
+        new int[] {size, loGb, hiGb});
+  }
+
+  static void asyncReadBinFile(Object[] args, Consumer<Object[]> r) {
+    FileHandle file = ArgsCast.file(args, 0);
+    int[] sizePos = ArgsCast.intArray(args, 1);
+    int size = sizePos[0];
+    double address = FileHandle.int2Address(sizePos[1], sizePos[2]);
+    file.readAsBytes(bytes -> {
+      if (bytes.length == 0)
+        r.accept(new Object[]{FileHandle.eof});
+      else
+        r.accept(new Object[]{bytes});
+    },
+    error -> r.accept(new Object[]{error}), address,  size);
+  }
+
   String asyncRemoveFile = "asyncRemoveFile";
 
   static void removeFile(

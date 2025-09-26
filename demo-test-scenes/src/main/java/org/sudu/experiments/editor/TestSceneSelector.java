@@ -16,7 +16,7 @@ import java.util.function.Function;
 
 public class TestSceneSelector {
   static Function<SceneApi, Scene> defaultScene() {
-    return FolderDiff::new;
+    return UiToolsDemo::new;
   }
 
   public static Function<SceneApi, Scene> selectScene(String name) {
@@ -53,7 +53,7 @@ public class TestSceneSelector {
       case "SinDemo" -> SinDemo::new;
       case "DiffMiddleDemo" -> DiffMiddleDemo::new;
       case "FolderTransferDemo" -> FolderTransferDemo::new;
-      case "FolderDiff" -> FolderDiff::new;
+      case "UiToolsDemo" -> UiToolsDemo::new;
       case "FolderDiffScene" -> FolderDiffScene::new;
       case "FileDiff" -> FileDiff::new;
 

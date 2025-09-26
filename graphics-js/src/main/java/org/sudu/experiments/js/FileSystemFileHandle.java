@@ -2,6 +2,7 @@ package org.sudu.experiments.js;
 
 import org.teavm.jso.JSObject;
 
+// https://developer.mozilla.org/en-US/docs/Web/API/FileSystemFileHandle
 public interface FileSystemFileHandle extends FileSystemHandle {
   Promise<JsFile> getFile();
 

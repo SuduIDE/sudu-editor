@@ -1,5 +1,6 @@
 package org.sudu.experiments.diff;
 
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.math.ArrayOp;
 
 import java.util.Arrays;
@@ -13,7 +14,6 @@ public class BinDataCache {
 
   public interface DataSource {
     interface Result {
-      String eof = "eof";
       void onData(double address, byte[] data);
       void onError(double address, String e);
     }
@@ -168,8 +168,7 @@ public class BinDataCache {
 
       @Override
       public void onError(double address, String e) {
-        //noinspection StringEquality
-        if (e == eof)
+        if (FileHandle.eof(e))
           if (eofAddress < 0) eofAddress = address;
         else if (onError == null)
           System.err.println("BinDataCache: error fetching data at " + address + ": " + e);

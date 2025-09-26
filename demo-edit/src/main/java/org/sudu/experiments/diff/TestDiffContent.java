@@ -1,5 +1,6 @@
 package org.sudu.experiments.diff;
 
+import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.math.XorShiftRandom;
 
 import java.util.function.Consumer;
@@ -36,7 +37,7 @@ public class TestDiffContent implements BinDataCache.DataSource {
       }
       handler.onData(address, data);
     } else {
-      handler.onError(address, Result.eof);
+      handler.onError(address, FileHandle.eof);
     }
   }
 }

@@ -62,6 +62,9 @@ public class EditorWorker {
       case DiffUtils.READ_FOLDER -> DiffUtils.readFolder(ArgsCast.dir(a, 0), ArgsCast.array(a, 1).ints(), r);
       case FileCompare.asyncCompareFiles -> FileCompare.asyncCompareFiles(a, r);
       case SizeScanner.asyncSizeScanner -> SizeScanner.asyncSizeScanner(a, r);
+      case FsWorkerJobs.asyncStats -> FsWorkerJobs.asyncStats(a, r);
+      case FsWorkerJobs.asyncReadBinFile -> FsWorkerJobs.asyncReadBinFile(a, r);
+      default -> System.err.println("Unknown method: " + method);
     }
   }
 

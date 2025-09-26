@@ -17,6 +17,10 @@ public class ArgsCast {
     return ((ArrayView) args[index]).chars();
   }
 
+  public static byte[] byteArray(Object[] args, int index) {
+    return ((ArrayView) args[index]).bytes();
+  }
+
   public static String string(Object[] args, int index) {
     return (String) args[index];
   }

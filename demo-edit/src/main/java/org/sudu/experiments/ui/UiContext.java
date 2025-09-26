@@ -19,6 +19,7 @@ public class UiContext implements
   public final WglGraphics graphics;
   public final Window window;
   public final SetCursor windowCursor;
+  public final Runnable repaint;
   public final V2i windowSize = new V2i();
   public float dpr;
   public boolean cleartype;
@@ -34,6 +35,7 @@ public class UiContext implements
   public UiContext(SceneApi api) {
     this.graphics = api.graphics;
     this.window = api.window;
+    repaint = api.input.repaint;
     this.cleartype = graphics.cleartypeSupported;
     windowCursor = SetCursor.wrap(api.window);
     api.input.onFocus.add(this::sendFocusGain);

@@ -53,6 +53,7 @@ public class FileDiffWorker {
       case FsWorkerJobs.asyncCopyFile -> FsWorkerJobs.asyncCopyFile(a, r);
       case FsWorkerJobs.asyncFileWriteText -> FsWorkerJobs.asyncFileWriteText(a, r);
       case FsWorkerJobs.asyncReadTextFile -> FsWorkerJobs.asyncReadTextFile(a, r);
+      case FsWorkerJobs.asyncReadBinFile -> FsWorkerJobs.asyncReadBinFile(a, r);
       case FsWorkerJobs.asyncRemoveFile -> FsWorkerJobs.asyncRemoveFile(a, r);
       case FsWorkerJobs.asyncRemoveDir -> FsWorkerJobs.asyncRemoveDir(a, r);
       case FsWorkerJobs.asyncMkDir -> FsWorkerJobs.asyncMkDir(a, r);
