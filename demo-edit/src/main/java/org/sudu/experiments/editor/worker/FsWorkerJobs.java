@@ -24,7 +24,7 @@ public interface FsWorkerJobs {
         onError.accept(message);
       } else {
         int[] data = ArgsCast.intArray(r, 0);
-        onComplete.accept(FileHandle.int2Address(data[0], data[1]));
+        onComplete.accept(FileHandle.int2Address(data, 0));
       }
     };
     workers.sendToWorker(onCopy,
@@ -32,9 +32,7 @@ public interface FsWorkerJobs {
   }
 
   static void postCopyOk(double bytesWritten, Consumer<Object[]> r) {
-    r.accept(new Object[]{new int[]{
-        FileHandle.loGb(bytesWritten), FileHandle.hiGb(bytesWritten)
-    }});
+    r.accept(new Object[]{FileHandle.address2int(bytesWritten)});
   }
 
   static void postCopyError(String error, Consumer<Object[]> r) {

@@ -154,7 +154,10 @@ public class Collector {
   ) {
     if (scanFileContent) {
       FileCompare.asyncCompareFiles(executor, leftFile, rightFile,
-          (equals, error) -> onFilesCompared(model, equals, error));
+          (size1, size2, diffPos, error) ->
+              onFilesCompared(model,
+                  FileCompare.filesEquals(size1, size2, diffPos),
+                  error));
     } else {
       SizeScanner.scan(executor, leftFile, rightFile,
           (sizeL, sizeR, error) ->

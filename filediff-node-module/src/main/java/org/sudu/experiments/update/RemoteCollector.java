@@ -285,9 +285,10 @@ public class RemoteCollector {
     FileCompare.asyncCompareFiles(executor,
         (FileHandle) model.left(),
         (FileHandle) model.right(),
-        (boolean equals, String error) -> {
+        (size1, size2, diffPos, error) -> {
           if (error != null)
             LoggingJs.error("FileCompare error: " + error);
+          boolean equals = FileCompare.filesEquals(size1, size2, diffPos);
           if (equals) model.setDiffType(DiffTypes.DEFAULT);
           else model.setDiffType(DiffTypes.EDITED);
           model.updateItem();
@@ -454,7 +455,10 @@ public class RemoteCollector {
     if (scanFileContent) {
       Runnable task = () -> FileCompare.asyncCompareFiles(executor,
           leftFile, rightFile,
-          (equals, error) -> onFilesCompared(model, equals, error, onCompared, sendMessage));
+          (size1, size2, diffPos, error) ->
+              onFilesCompared(model,
+                  FileCompare.filesEquals(size1, size2, diffPos),
+                  error, onCompared, sendMessage));
       sendToWorkerQueue.addLast(task);
       sendTaskToWorker();
     } else {

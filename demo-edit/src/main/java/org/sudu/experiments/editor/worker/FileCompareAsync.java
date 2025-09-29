@@ -19,7 +19,8 @@ class FileCompareAsync {
 
   int readLength = minArraySize;
   byte[] leftText, rightText;
-  int filePos = 0;
+  double filePos = 0;
+  double leftSize = -1, rightSize = -1;
 
   FileCompareAsync(
       Consumer<Object[]> result,
@@ -28,7 +29,29 @@ class FileCompareAsync {
     this.result = result;
     this.left = left;
     this.right = right;
+    left.getSize(this::setLeftSize, onError);
+    right.getSize(this::setRightSize, onError);
     nextRequest();
+  }
+
+  private void setLeftSize(double size) {
+    leftSize = size;
+    if (rightSize >= 0)
+      startCompare();
+  }
+
+  private void setRightSize(double size) {
+    rightSize = size;
+    if (leftSize >= 0)
+      startCompare();
+  }
+
+  private void startCompare() {
+    if (leftSize != rightSize) {
+      FileCompare.send(result, leftSize, rightSize, -1);
+    } else {
+      nextRequest();
+    }
   }
 
   private void nextRequest() {
@@ -45,22 +68,23 @@ class FileCompareAsync {
   public void sendLeft(byte[] left) {
     leftText = left;
     if (rightText != null)
-      compare(leftText, rightText);
+      compareBytes(leftText, rightText);
   }
 
   public void sendRight(byte[] right) {
     rightText = right;
     if (leftText != null)
-      compare(leftText, rightText);
+      compareBytes(leftText, rightText);
   }
 
-  private void compare(byte[] leftT, byte[] rightT) {
-    boolean equals = Arrays.equals(leftT, rightT);
-    boolean eof = leftT.length < readLength;
+  private void compareBytes(byte[] leftT, byte[] rightT) {
+    var diffPos = FileCompare.cmpArrays(leftT, rightT);
+    boolean eof = leftT.length < readLength || rightT.length < readLength;
     leftText = null;
     rightText = null;
-    if (!equals) {
-      FileCompare.send(result, false);
+    if (diffPos >= 0) {
+      FileCompare.send(result,
+          leftSize, rightSize, filePos + diffPos);
     } else {
       if (eof || filePos >= maxToRead) {
         if (filePos == maxToRead) {
@@ -69,7 +93,7 @@ class FileCompareAsync {
               "\tr=" + right.getFullPath());
         }
 
-        FileCompare.send(result, true);
+        FileCompare.sendEquals(result, leftSize, rightSize);
       } else {
         filePos += readLength;
         if (readLength * 4 <= maxArraySize) {
