@@ -68,9 +68,8 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
 
   private void onMessage(JsArray<JSObject> jsArray) {
     int type = JsCast.ints(jsArray.pop())[0];
-    switch (type) {
-      case FileDiffChannelUpdater.FILE_READ -> onFileRead(jsArray);
-      case FileDiffChannelUpdater.SEND_DIFF -> onDiffSent(jsArray);
+    if (type == FileDiffChannelUpdater.FILE_READ) {
+      onFileRead(jsArray);
     }
   }
 

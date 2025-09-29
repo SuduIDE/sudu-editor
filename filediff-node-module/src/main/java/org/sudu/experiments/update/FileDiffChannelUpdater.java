@@ -26,10 +26,14 @@ public class FileDiffChannelUpdater {
 
   public final static int FILE_READ = 0;
   public final static int FILE_SAVE = 1;
-  public final static int SEND_DIFF = 2;
-  public final static int SEND_INT_DIFF = 3;
-  public final static Int32Array SEND_DIFF_MESSAGE = JsCast.jsInts(SEND_DIFF);
-  public final static Int32Array SEND_INT_DIFF_MESSAGE = JsCast.jsInts(SEND_INT_DIFF);
+  public final static int FETCH = 2;
+  public final static int FETCH_SIZE = 3;
+  public final static Int32Array FILE_READ_ARRAY = JsCast.jsInts(FILE_READ);
+  public final static Int32Array FILE_SAVE_ARRAY = JsCast.jsInts(FILE_SAVE);
+  public final static Int32Array FETCH_ARRAY = JsCast.jsInts(FETCH);
+  public final static Int32Array FETCH_SIZE_ARRAY = JsCast.jsInts(FETCH_SIZE);
+
+  private final static int BIN_READ_SIZE = 16 * 1024;
 
   public FileDiffChannelUpdater(
       Channel channel,
@@ -58,9 +62,9 @@ public class FileDiffChannelUpdater {
     int type = JsCast.ints(jsArray.pop())[0];
     switch (type) {
       case FILE_READ -> onFileRead(jsArray);
-//      case SEND_DIFF -> onSendDiff(jsArray);
       case FILE_SAVE -> onFileSave(jsArray);
-//      case SEND_INT_DIFF -> onSendIntervalDiff(jsArray);
+      case FETCH -> onFileSave(jsArray);
+      case FETCH_SIZE -> onFileSave(jsArray);
     }
   }
 
@@ -94,26 +98,6 @@ public class FileDiffChannelUpdater {
     }
   }
 
-  // todo finish writing in future
-//  private void onSendDiff(JsArray<JSObject> jsArray) {
-//    String src1 = JsCast.string(jsArray, 0);
-//    String src2 = JsCast.string(jsArray, 1);
-//    int[] intervals1 = JsCast.ints(jsArray, 2);
-//    int[] intervals2 = JsCast.ints(jsArray, 3);
-//    executor.sendToWorker((result) -> {
-//      JsArray<JSObject> jsResult = JsArray.create();
-//      int[] modelInts = ((ArrayView) result[0]).ints();
-//      jsResult.set(0, JsCast.jsInts(modelInts));
-//      jsResult.push(SEND_DIFF_MESSAGE);
-//      channel.sendMessage(jsResult);
-//    }, DiffUtils.FIND_DIFFS, src1.toCharArray(), intervals1, src2.toCharArray(), intervals2);
-//  }
-//
-//  private void onSendIntervalDiff(JsArray<JSObject> jsArray) {
-//
-//  }
-//
-
   private void onFileWrite(boolean left, String fullPath) {
     if (updater != null)
       updater.onRemoteFileSave(left, fullPath);
@@ -132,9 +116,29 @@ public class FileDiffChannelUpdater {
     jsArray.set(0, source);
     jsArray.set(1, encoding);
     jsArray.set(2, filename);
-    jsArray.set(3, JsCast.jsInts(left ? 1 : 0, havaHandle(left) ? 1 : 0));
+    jsArray.set(3, JsCast.jsInts(left ? 1 : 0, haveHandle(left) ? 1 : 0));
     jsArray.set(4, JsCast.jsInts(FILE_READ));
     channel.sendMessage(jsArray);
+  }
+
+  public void fetch(boolean left, double address) {
+    FsWorkerJobs.readBinFile(
+        executor,
+        (left ? leftHandle : rightHandle),
+        address, BIN_READ_SIZE,
+        bytes -> sendFetch(left, address, bytes),
+        this::onError
+    );
+  }
+
+  public void fetchSizeLeft(FileHandle handle) {
+    this.leftHandle = handle;
+    FsWorkerJobs.asyncStats(executor, handle, sz -> sendFetchSize(true, sz.size), this::onError);
+  }
+
+  public void fetchSizeRight(FileHandle handle) {
+    this.rightHandle = handle;
+    FsWorkerJobs.asyncStats(executor, handle, sz -> sendFetchSize(false, sz.size), this::onError);
   }
 
   public String name(boolean left) {
@@ -143,12 +147,30 @@ public class FileDiffChannelUpdater {
     else return handle.getName();
   }
 
-  public boolean havaHandle(boolean left) {
+  public boolean haveHandle(boolean left) {
     return (left ? leftHandle : rightHandle) != null;
   }
 
   private void sendFileRead(boolean left, char[] source, String encoding) {
     sendFileRead(left, TextDecoder.decodeUTF16(source), JSString.valueOf(encoding));
+  }
+
+  private void sendFetch(boolean left, double address, byte[] bytes) {
+    LoggingJs.debug("sendFetch: left = " + left + ", pos = " + address);
+    JsArray<JSObject> jsArray = JsArray.create();
+    jsArray.set(0, JsCast.jsInts(left ? 1 : 0));
+    jsArray.set(1, JsCast.jsBytes(bytes));
+    jsArray.set(2, JsCast.jsInts(left ? 1 : 0));
+    jsArray.push(FETCH_ARRAY);
+  }
+
+  private void sendFetchSize(boolean left, double sz) {
+    LoggingJs.debug("sendFetchSize: left = " + left + ", size = " + sz);
+    JsArray<JSObject> jsArray = JsArray.create();
+    jsArray.set(0, JsCast.jsInts(left ? 1 : 0));
+    jsArray.set(1, JSString.valueOf(name(left)));
+    jsArray.set(2, JsCast.jsNumbers(sz));
+    jsArray.push(FETCH_SIZE_ARRAY);
   }
 
   private void onError(String error) {

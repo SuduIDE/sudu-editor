@@ -21,6 +21,10 @@ public class ArgsCast {
     return ((ArrayView) args[index]).bytes();
   }
 
+  public static double[] doubleArray(Object[] args, int index) {
+    return ((ArrayView) args[index]).numbers();
+  }
+
   public static String string(Object[] args, int index) {
     return (String) args[index];
   }

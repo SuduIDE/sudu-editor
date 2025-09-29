@@ -32,6 +32,7 @@ import org.sudu.experiments.update.DiffModelChannelUpdater;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.browser.Performance;
 import org.teavm.jso.core.JSString;
+import org.teavm.jso.typedarrays.Float64Array;
 import org.teavm.jso.typedarrays.Int32Array;
 
 import java.util.*;
