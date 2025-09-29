@@ -78,22 +78,23 @@ class FileCompareSync {
     }
   }
 
+  // todo: add diff only in line separators
   private double compare(double lSize, double rSize) {
     if (lSize != rSize) {
-      // todo: add diff only in line separators
       return 0;
     }
-    int iSize = (int) Math.min(lSize, Integer.MAX_VALUE);
+    int iSize = (int) Math.min(lSize, FileCompare.maxToRead);
     if (iSize != lSize) {
       // todo: rework to read first FileCompareAsync.maxToRead bytes
       error = "compare: File is too large to analyze: " + Math.max(lSize, iSize);
       return 0;
     }
-    byte[] leftText = new byte[Math.min(iSize, maxArraySize)];
-    byte[] rightText = new byte[leftText.length];
+    int size = Math.min(iSize, maxArraySize);
+    byte[] leftText = new byte[size];
+    byte[] rightText = new byte[size];
     double pos = 0;
-    for (; pos < lSize; ) {
-      int lRead = 0, rRead = 0;
+    while (pos < lSize) {
+      int lRead, rRead;
       try {
         lRead = left.read(leftText, pos);
         rRead = right.read(rightText, pos);
@@ -103,10 +104,8 @@ class FileCompareSync {
       }
       if (lRead != rRead) return pos;
       if (lRead == 0) return -1;
-      boolean equals = Arrays.equals(
-          leftText, 0, lRead,
-          rightText, 0, rRead);
-      if (!equals) return false;
+      int diffPos = FileCompare.cmpArrays(leftText, rightText, lRead);
+      if (diffPos >= 0) return pos + diffPos;
       pos += lRead;
     }
     return -1;

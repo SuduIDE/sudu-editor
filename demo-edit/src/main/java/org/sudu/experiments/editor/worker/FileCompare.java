@@ -7,6 +7,8 @@ import java.util.function.Consumer;
 
 public interface FileCompare {
 
+  int maxToRead = 1024 * 1024 * 1024;
+
   void on(double leftSize, double rightSize,
           double diffLocation, String error);
 
@@ -76,13 +78,16 @@ public interface FileCompare {
   }
 
   static int cmpArrays(byte[] a, byte[] b) {
-    int n = Math.min(a.length, b.length);
+    int min = Math.min(a.length, b.length);
+    var cmp = cmpArrays(a, b, min);
+    return cmp < 0 && a.length != b.length ? min : cmp;
+  }
+
+  static int cmpArrays(byte[] a, byte[] b, int n) {
     for (int i = 0; i < n; i++) {
       if (a[i] != b[i])
         return i;
     }
-    if (a.length != b.length)
-      return n;
     return -1;
   }
 }

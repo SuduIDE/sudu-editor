@@ -2,12 +2,10 @@ package org.sudu.experiments.editor.worker;
 
 import org.sudu.experiments.FileHandle;
 
-import java.util.Arrays;
 import java.util.function.Consumer;
 
 class FileCompareAsync {
 
-  static final int maxToRead = 1024 * 1024 * 1024;
   static final int maxArraySize = 16 * 1024 * 1024;
   static final int minArraySize = 64 * 1024;
 
@@ -86,16 +84,15 @@ class FileCompareAsync {
       FileCompare.send(result,
           leftSize, rightSize, filePos + diffPos);
     } else {
-      if (eof || filePos >= maxToRead) {
-        if (filePos == maxToRead) {
+      filePos += readLength;
+      if (eof || filePos >= FileCompare.maxToRead) {
+        if (filePos == FileCompare.maxToRead) {
           System.err.println("max size hit: \n" +
               "\tl=" + left.getFullPath() + "\n" +
               "\tr=" + right.getFullPath());
         }
-
         FileCompare.sendEquals(result, leftSize, rightSize);
       } else {
-        filePos += readLength;
         if (readLength * 4 <= maxArraySize) {
           readLength *= 4;
           if (readLength >= maxArraySize / 4) {
@@ -103,6 +100,9 @@ class FileCompareAsync {
             System.out.println(
                 "FileCompare: " + left.getName() + " readLength " + m + "M");
           }
+        }
+        if (filePos + readLength > FileCompare.maxToRead) {
+          readLength = (int) (FileCompare.maxToRead - filePos);
         }
         nextRequest();
       }

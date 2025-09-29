@@ -15,5 +15,41 @@ public class FileCompareTest {
   public void testCmpArrays() {
     Assertions.assertEquals(-1, FileCompare.cmpArrays(
         a(1, 2, 3), a(1, 2, 3)));
+    Assertions.assertEquals(1, FileCompare.cmpArrays(
+        a(1, 2, 3), a(1, 3, 3)));
+    Assertions.assertEquals(3, FileCompare.cmpArrays(
+        a(1, 2, 3), a(1, 2, 3, 4 )));
+    Assertions.assertEquals(-1, FileCompare.cmpArrays(
+        a(1, 2, 3, 5), a(1, 2, 3 ), 3));
+    Assertions.assertEquals( 1, FileCompare.cmpArrays(
+        a(1, 3, 3, 5), a(1, 2, 3 ), 3));
+  }
+
+  static final int maxArraySize = 16 * 1024;
+  static final int minArraySize = 64;
+  static final int maxToRead =  1024 * 1024;
+
+  public static void main(String[] args) {
+    int filePos = 0;
+    int readLength = minArraySize;
+
+    while (filePos < maxToRead) {
+      System.out.println("filePos = " + filePos + ", readLength = " + readLength);
+      filePos += readLength;
+      if (readLength * 4 <= maxArraySize) {
+        readLength *= 4;
+      }
+      if (filePos + readLength > maxToRead)
+        readLength = maxToRead - filePos;
+
+      System.out.println("next readLength = " + readLength);
+    }
+    if (filePos > maxToRead) {
+      System.out.println("maxToRead-filePos = " + (maxToRead - filePos));
+    }
+    System.out.println("filePos = " + filePos);
+    System.out.println("maxToRead = " + maxToRead);
+
+
   }
 }
