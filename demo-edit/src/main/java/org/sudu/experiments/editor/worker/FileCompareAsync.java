@@ -7,7 +7,6 @@ import java.util.function.Consumer;
 
 class FileCompareAsync {
 
-  static final int maxToRead = 1024 * 1024 * 1024;
   static final int maxArraySize = 16 * 1024 * 1024;
   static final int minArraySize = 64 * 1024;
 
@@ -19,7 +18,8 @@ class FileCompareAsync {
 
   int readLength = minArraySize;
   byte[] leftText, rightText;
-  int filePos = 0;
+  double filePos = 0;
+  double leftSize = -1, rightSize = -1;
 
   FileCompareAsync(
       Consumer<Object[]> result,
@@ -28,7 +28,28 @@ class FileCompareAsync {
     this.result = result;
     this.left = left;
     this.right = right;
-    nextRequest();
+    left.getSize(this::setLeftSize, onError);
+    right.getSize(this::setRightSize, onError);
+  }
+
+  private void setLeftSize(double size) {
+    leftSize = size;
+    if (rightSize >= 0)
+      startCompare();
+  }
+
+  private void setRightSize(double size) {
+    rightSize = size;
+    if (leftSize >= 0)
+      startCompare();
+  }
+
+  private void startCompare() {
+    if (leftSize != rightSize) {
+      FileCompare.send(result, leftSize, rightSize, 0);
+    } else {
+      nextRequest();
+    }
   }
 
   private void nextRequest() {
@@ -45,33 +66,34 @@ class FileCompareAsync {
   public void sendLeft(byte[] left) {
     leftText = left;
     if (rightText != null)
-      compare(leftText, rightText);
+      compareBytes(leftText, rightText);
   }
 
   public void sendRight(byte[] right) {
     rightText = right;
     if (leftText != null)
-      compare(leftText, rightText);
+      compareBytes(leftText, rightText);
   }
 
-  private void compare(byte[] leftT, byte[] rightT) {
-    boolean equals = Arrays.equals(leftT, rightT);
-    boolean eof = leftT.length < readLength;
+  private void compareBytes(byte[] leftT, byte[] rightT) {
+    var diffPos = FileCompare.cmpArrays(leftT, rightT);
+    boolean eof = leftT.length < readLength || rightT.length < readLength;
     leftText = null;
     rightText = null;
-    if (!equals) {
-      FileCompare.send(result, false);
+    if (diffPos >= 0) {
+      FileCompare.send(result,
+          leftSize, rightSize, filePos + diffPos);
     } else {
-      if (eof || filePos >= maxToRead) {
-        if (filePos == maxToRead) {
-          System.err.println("max size hit: \n" +
-              "\tl=" + left.getFullPath() + "\n" +
-              "\tr=" + right.getFullPath());
+      filePos += leftT.length;
+      if (eof || filePos >= FileCompare.maxToRead) {
+        if (filePos == FileCompare.maxToRead) {
+          System.err.println("max size hit" +
+              ": l=" + left.getFullPath() +
+              ", r=" + right.getFullPath());
         }
-
-        FileCompare.send(result, true);
+        var diffPosR = filePos < leftSize || leftSize < rightSize ? filePos : -1;
+        FileCompare.send(result, leftSize, rightSize, diffPosR);
       } else {
-        filePos += readLength;
         if (readLength * 4 <= maxArraySize) {
           readLength *= 4;
           if (readLength >= maxArraySize / 4) {
@@ -79,6 +101,9 @@ class FileCompareAsync {
             System.out.println(
                 "FileCompare: " + left.getName() + " readLength " + m + "M");
           }
+        }
+        if (filePos + readLength > FileCompare.maxToRead) {
+          readLength = (int) (FileCompare.maxToRead - filePos);
         }
         nextRequest();
       }

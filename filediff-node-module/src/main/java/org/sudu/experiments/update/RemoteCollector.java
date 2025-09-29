@@ -282,12 +282,13 @@ public class RemoteCollector {
   }
 
   private void cmpFilesAndSend(ItemFolderDiffModel model) {
-    FileCompare.asyncCompareFiles(executor,
+    FileCompare.compareFiles(executor,
         (FileHandle) model.left(),
         (FileHandle) model.right(),
-        (boolean equals, String error) -> {
+        (size1, size2, diffPos, error) -> {
           if (error != null)
             LoggingJs.error("FileCompare error: " + error);
+          boolean equals = FileCompare.filesEquals(size1, size2, diffPos);
           if (equals) model.setDiffType(DiffTypes.DEFAULT);
           else model.setDiffType(DiffTypes.EDITED);
           model.updateItem();
@@ -452,9 +453,12 @@ public class RemoteCollector {
   ) {
     LoggingJs.trace("Comparing files " + model.path);
     if (scanFileContent) {
-      Runnable task = () -> FileCompare.asyncCompareFiles(executor,
+      Runnable task = () -> FileCompare.compareFiles(executor,
           leftFile, rightFile,
-          (equals, error) -> onFilesCompared(model, equals, error, onCompared, sendMessage));
+          (size1, size2, diffPos, error) ->
+              onFilesCompared(model,
+                  FileCompare.filesEquals(size1, size2, diffPos),
+                  error, onCompared, sendMessage));
       sendToWorkerQueue.addLast(task);
       sendTaskToWorker();
     } else {

@@ -120,6 +120,25 @@ function testFileReadWrite(args) {
   }
 }
 
+function testFileCompare(args) {
+  if (!args[3]) {
+    mayBeExit();
+    return "usage: testFileCompare file1 [file2] ..."
+  }
+  for (let i = 3; i + 1 < args.length; i += 2) {
+    const file1 = args[i];
+    const file2 = args[i + 1];
+    console.log("cmp file ", file1, " vs ", file2);
+    jobCount++;
+    module.testFileCompare(file1, file2,
+        (result) => {
+          console.log("cmp file ", file1, " vs ", file2, "result", result);
+          mayBeExit();
+        },
+        onError("testFileCompare"));
+  }
+}
+
 function sshFile(ssh, path) {
   return { path, ssh };
 }
@@ -148,6 +167,33 @@ function testFileReadWriteSsh(args) {
   }
 }
 
+function testFileCompareSsh(args) {
+  const ssh = sshConfig(args, 3);
+  const file0 = args[3+4];
+
+  if (!args || !file0) {
+    mayBeExit();
+    return "args: ssh[4] file1 [file2 ...]";
+  }
+
+  console.log("ssh:", {host: ssh.host, username: ssh.username});
+
+  for (let i = 3+4; i + 1 < args.length; i+=2) {
+    const file1 = args[i];
+    const file2 = args[i + 1];
+    console.log("cmp ssh file ", file1, " vs ", file2);
+    jobCount++;
+    module.testFileCompare(
+        sshFile(ssh, file1),
+        sshFile(ssh, file2),
+        (result) => {
+          console.log("cmp file ", file1, " vs ", file2, "result", result);
+          mayBeExit();
+        },
+        onError("testFileCompare"));
+  }
+}
+
 function onComplete(title) {
   return () => {
     console.log(title + ".onComplete");
@@ -158,9 +204,9 @@ function onComplete(title) {
 function onError(title) {
   return (error) => {
     if (error.message)
-      console.log(title + ".onError: ", error.message);
+      console.log(title + ".onError:", error.message);
     else
-      console.log(title + ".onError: ", error);
+      console.log(title + ".onError:", error);
     mayBeExit();
   };
 }
@@ -628,6 +674,8 @@ function runTest() {
     case "testFileWrite": return testFileWrite(args);
     case "testFileReadWrite":return testFileReadWrite(args);
     case "testFileReadWriteSsh":return testFileReadWriteSsh(args);
+    case "testFileCompare": return testFileCompare(args);
+    case "testFileCompareSsh": return testFileCompareSsh(args);
     case "testNodeFsCopyFile": return testNodeFsCopyFile(args);
     case "testNodeFsCopyDirectory": return testNodeFsCopyDirectory(args);
     case "testCopyFileToFolder": return testCopyFileToFolderLocal(args);

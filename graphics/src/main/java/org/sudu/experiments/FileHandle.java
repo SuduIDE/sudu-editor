@@ -120,6 +120,14 @@ public interface FileHandle extends FsItem {
     return ((double) _1gb) * hiGb + loGb;
   }
 
+  static double int2Address(int[] data, int offset) {
+    return int2Address(data[offset], data[offset + 1]);
+  }
+
+  static int[] address2int(double address) {
+    return new int[]{loGb(address), hiGb(address)};
+  }
+
   String eof = "eof";
 
   static boolean eof(String e) {

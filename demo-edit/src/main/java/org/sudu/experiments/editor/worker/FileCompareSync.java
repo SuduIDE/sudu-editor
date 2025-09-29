@@ -49,9 +49,12 @@ class FileCompareSync {
   }
 
   private void compareAndClose() {
-    boolean equals = false;
+    double diffPos = 0;
+    double lSize = 0, rSize = 0;
     try {
-      equals = compare();
+      lSize = left.getSize();
+      rSize = right.getSize();
+      diffPos = compare(lSize, rSize);
     } catch (Exception e) {
       error = e.getMessage();
       System.err.println(error);
@@ -61,7 +64,7 @@ class FileCompareSync {
     if (error != null) {
       FileCompare.send(result, error);
     } else {
-      FileCompare.send(result, equals);
+      FileCompare.send(result, lSize, rSize, diffPos);
     }
   }
 
@@ -75,38 +78,29 @@ class FileCompareSync {
     }
   }
 
-  private boolean compare() {
-    double lSize = left.getSize();
-    double rSize = right.getSize();
+  private double compare(double lSize, double rSize) {
     if (lSize != rSize) {
-      // todo: add diff only in line separators
-      return false;
+      return 0;
     }
-    int iSize = (int) Math.min(lSize, Integer.MAX_VALUE);
-    if (iSize != lSize) {
-      System.err.println("File is too large to analyze: " + lSize);
-      return true;
-    }
-    byte[] leftText = new byte[Math.min(iSize, maxArraySize)];
-    byte[] rightText = new byte[leftText.length];
-    for (double pos = 0; pos < iSize; ) {
-      int lRead = 0, rRead = 0;
+    double sizeLimit = Math.min(lSize, FileCompare.maxToRead);
+    int bufferSize = (int) Math.min(sizeLimit, maxArraySize);
+    byte[] leftText = new byte[bufferSize];
+    byte[] rightText = new byte[bufferSize];
+    double pos = 0;
+    while (pos < sizeLimit) {
+      int lRead, rRead;
       try {
         lRead = left.read(leftText, pos);
         rRead = right.read(rightText, pos);
       } catch (IOException e) {
-        System.err.println(
-            "compare: error reading file: " + e.getMessage());
-        return false;
+        error = "compare: error reading file: " + e.getMessage();
+        return 0;
       }
-      if (lRead != rRead) return false;
-      if (lRead == 0) return true;
-      boolean equals = Arrays.equals(
-          leftText, 0, lRead,
-          rightText, 0, rRead);
-      if (!equals) return false;
+      if (lRead == 0 && rRead == 0) return -1;
+      int diffPos = FileCompare.cmpArrays(leftText, rightText, lRead);
+      if (diffPos >= 0) return pos + diffPos;
       pos += lRead;
     }
-    return true;
+    return pos < lSize ? pos : -1;
   }
 }
