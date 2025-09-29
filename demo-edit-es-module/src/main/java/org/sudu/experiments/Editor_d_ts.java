@@ -57,6 +57,15 @@ public interface Editor_d_ts {
     }
   }
 
+  @JSFunctor interface RemoteBinaryDiffFactory extends JSObject {
+    Promise<JsRemoteFileDiffView> create(EditArgs args, Channel channel);
+
+    class Setter {
+      @JSBody(params = {"f"}, script = "newRemoteBinaryDiff = f;")
+      public static native void set(RemoteFileDiffFactory f);
+    }
+  }
+
   @JSFunctor interface RemoteEditorFactory extends JSObject {
     Promise<JsRemoteEditorView> create(EditArgs args, Channel channel);
 
@@ -72,6 +81,7 @@ public interface Editor_d_ts {
     EditorFactory.Setter.setApi(JsCodeEditor::newEdit);
     FileDiffFactory.Setter.setDiff(JsCodeDiff::newDiff);
     RemoteFileDiffFactory.Setter.set(JsRemoteCodeDiff::create);
+    RemoteBinaryDiffFactory.Setter.set(JsRemoteBinaryDiff::create);
     FolderDiffFactory.Setter.set(JsFolderDiff::newDiff);
     RemoteFolderDiffFactory.Setter.set(JsRemoteFolderDiff::newDiff);
     RemoteEditorFactory.Setter.set(JsRemoteEditor::create);
