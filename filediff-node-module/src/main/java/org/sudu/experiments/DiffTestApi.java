@@ -1,15 +1,13 @@
 package org.sudu.experiments;
 
 import org.sudu.experiments.diff.tests.CollectorFolderDiffTest;
-import org.sudu.experiments.editor.worker.FsWorkerJobs;
-import org.sudu.experiments.editor.worker.TestJobs;
-import org.sudu.experiments.editor.worker.TestWalker;
-import org.sudu.experiments.editor.worker.ThreadId;
+import org.sudu.experiments.editor.worker.*;
 import org.sudu.experiments.encoding.FileEncoding;
 import org.sudu.experiments.encoding.GbkEncoding;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.*;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
@@ -86,6 +84,12 @@ interface JsDiffTestApi extends JSObject {
   JsArray<JSObject> testSshHash(
       JsSshCredentials ssh1,
       JsSshCredentials ssh2
+  );
+
+  void testFileCompare(
+      JsFileInput path1, JsFileInput path2,
+      JsFunctions.Consumer<JsArray<JSNumber>> onComplete,
+      JsFunctions.Consumer<JSString> onError
   );
 }
 
@@ -496,5 +500,32 @@ public class DiffTestApi implements JsDiffTestApi {
   static String shortText(String s) {
     String sh = s.length() > 80 ? s.substring(0, 80) : s;
     return sh.replaceAll("\r", "").replaceAll("\n", " ");
+  }
+
+  @Override
+  public void testFileCompare(
+      JsFileInput path1, JsFileInput path2,
+      JsFunctions.Consumer<JsArray<JSNumber>> onComplete,
+      JsFunctions.Consumer<JSString> onErrorJs
+  ) {
+    var fh1 = JsFileInput.fileHandle(path1, true);
+    var fh2 = JsFileInput.fileHandle(path2, false);
+    if (fh1 == null || fh2 == null) {
+      onErrorJs.f(JsHelper.concat("bad path:",
+          fh1 == null ? path1 : path2));
+      return;
+    }
+
+    FileCompare.compareFiles(pool, fh1, fh2,
+        (s1, s2, diffPos, err) -> {
+          if (err != null) {
+            onErrorJs.f(JSString.valueOf(err));
+          } else {
+            JsArray<JSNumber> a = JsArray.create(3);
+            a.push(JSNumber.valueOf(s1), JSNumber.valueOf(s2),
+                JSNumber.valueOf(diffPos));
+            onComplete.f(a);
+          }
+        });
   }
 }

@@ -282,7 +282,7 @@ public class RemoteCollector {
   }
 
   private void cmpFilesAndSend(ItemFolderDiffModel model) {
-    FileCompare.asyncCompareFiles(executor,
+    FileCompare.compareFiles(executor,
         (FileHandle) model.left(),
         (FileHandle) model.right(),
         (size1, size2, diffPos, error) -> {
@@ -453,7 +453,7 @@ public class RemoteCollector {
   ) {
     LoggingJs.trace("Comparing files " + model.path);
     if (scanFileContent) {
-      Runnable task = () -> FileCompare.asyncCompareFiles(executor,
+      Runnable task = () -> FileCompare.compareFiles(executor,
           leftFile, rightFile,
           (size1, size2, diffPos, error) ->
               onFilesCompared(model,

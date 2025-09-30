@@ -2,7 +2,6 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
-import org.sudu.experiments.exclude.ExcludeList;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.js.node.*;
 import org.sudu.experiments.update.DiffModelChannelUpdater;
@@ -18,7 +17,7 @@ import org.teavm.jso.core.JSString;
 import java.util.function.Consumer;
 
 public class DiffEngine implements DiffEngineJs {
-  public static final boolean debug = false;
+  public static final boolean exposeTestApi = true;
 
   final NodeWorkersPool pool;
 
@@ -281,6 +280,6 @@ public class DiffEngine implements DiffEngineJs {
 
   @Override
   public JsDiffTestApi testApi() {
-    return debug ? new DiffTestApi(pool) : null;
+    return exposeTestApi ? new DiffTestApi(pool) : null;
   }
 }

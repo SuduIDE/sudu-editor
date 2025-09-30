@@ -66,6 +66,9 @@ public class WorkerProtocol {
     if (array.getLength() >= 1) {
       int taskId = array.get(0).<JSNumber>cast().intValue();
       Consumer<Object[]> handler = handlers.apply(taskId);
+//  todo: this error happens when async job send the result more than once
+//        we may need to somehow detect and report such issues
+//      if (handler == null) throw new IllegalArgumentException();
       handler.accept(toJava(array, 1));
     } else throw new IllegalArgumentException();
   }

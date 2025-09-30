@@ -12,7 +12,7 @@ public interface FileCompare {
   void on(double leftSize, double rightSize,
           double diffLocation, String error);
 
-  static void asyncCompareFiles(
+  static void compareFiles(
       WorkerJobExecutor executor,
       FileHandle left, FileHandle right,
       FileCompare result
@@ -54,13 +54,6 @@ public interface FileCompare {
     r.accept(new Object[]{msg});
   }
 
-  static void sendEquals(
-      Consumer<Object[]> r,
-      double lSize, double rSize
-  ) {
-    send(r, lSize, rSize, -1);
-  }
-
   static void send(Consumer<Object[]> r, String error) {
     r.accept(new Object[]{error});
   }
@@ -74,7 +67,7 @@ public interface FileCompare {
   }
 
   static boolean filesEquals(double size1, double size2, double diffPos) {
-    return size1 == size2 && diffPos < 0;
+    return size1 == size2 && (diffPos < 0 || diffPos == maxToRead);
   }
 
   static int cmpArrays(byte[] a, byte[] b) {

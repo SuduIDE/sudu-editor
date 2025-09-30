@@ -2,6 +2,7 @@ package org.sudu.experiments.editor.worker;
 
 import org.sudu.experiments.FileHandle;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 class FileCompareAsync {
@@ -29,7 +30,6 @@ class FileCompareAsync {
     this.right = right;
     left.getSize(this::setLeftSize, onError);
     right.getSize(this::setRightSize, onError);
-    nextRequest();
   }
 
   private void setLeftSize(double size) {
@@ -46,7 +46,7 @@ class FileCompareAsync {
 
   private void startCompare() {
     if (leftSize != rightSize) {
-      FileCompare.send(result, leftSize, rightSize, -1);
+      FileCompare.send(result, leftSize, rightSize, 0);
     } else {
       nextRequest();
     }
@@ -84,14 +84,15 @@ class FileCompareAsync {
       FileCompare.send(result,
           leftSize, rightSize, filePos + diffPos);
     } else {
-      filePos += readLength;
+      filePos += leftT.length;
       if (eof || filePos >= FileCompare.maxToRead) {
         if (filePos == FileCompare.maxToRead) {
-          System.err.println("max size hit: \n" +
-              "\tl=" + left.getFullPath() + "\n" +
-              "\tr=" + right.getFullPath());
+          System.err.println("max size hit" +
+              ": l=" + left.getFullPath() +
+              ", r=" + right.getFullPath());
         }
-        FileCompare.sendEquals(result, leftSize, rightSize);
+        var diffPosR = filePos < leftSize || leftSize < rightSize ? filePos : -1;
+        FileCompare.send(result, leftSize, rightSize, diffPosR);
       } else {
         if (readLength * 4 <= maxArraySize) {
           readLength *= 4;

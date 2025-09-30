@@ -153,7 +153,7 @@ public class Collector {
       FileHandle rightFile
   ) {
     if (scanFileContent) {
-      FileCompare.asyncCompareFiles(executor, leftFile, rightFile,
+      FileCompare.compareFiles(executor, leftFile, rightFile,
           (size1, size2, diffPos, error) ->
               onFilesCompared(model,
                   FileCompare.filesEquals(size1, size2, diffPos),
