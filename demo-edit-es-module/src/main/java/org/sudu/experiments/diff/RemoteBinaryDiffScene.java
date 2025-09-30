@@ -15,19 +15,20 @@ import org.teavm.jso.JSObject;
 
 public class RemoteBinaryDiffScene extends WindowScene {
 
-  private final Channel channel;
+  protected Channel channel;
   protected BinaryDiffWindow w;
   protected RemoteDataSource leftData, rightData;
 
   public RemoteBinaryDiffScene(SceneApi api, Channel channel) {
     super(api);
-    this.channel = channel;
     var theme = EditorColorScheme.darkIdeaColorScheme();
+    this.channel = channel;
     w = new BinaryDiffWindow(windowManager, theme, this::menuFonts);
     leftData = new RemoteDataSource(channel, true);
     rightData = new RemoteDataSource(channel, false);
-    w.rootView.setData(leftData, w.window.context.repaint, true);
-    w.rootView.setData(rightData, w.window.context.repaint, false);
+    w.rootView.setData(leftData, true);
+    w.rootView.setData(rightData, false);
+    w.setOnRefresh(this::onRefresh);
     channel.setOnMessage(this::onMessage);
   }
 
@@ -54,7 +55,6 @@ public class RemoteBinaryDiffScene extends WindowScene {
   }
 
   private void onFetched(JsArray<JSObject> jsArray) {
-    LoggingJs.info("RemoteBinaryDiffScene.onFetched");
     boolean left = JsCast.ints(jsArray, 0)[0] == 1;
     double address = JsCast.doubles(jsArray, 1)[0];
     byte[] bytes = JsCast.bytes(jsArray, 2);
@@ -68,5 +68,12 @@ public class RemoteBinaryDiffScene extends WindowScene {
     double size = JsCast.doubles(jsArray, 2)[0];
     if (left) leftData.sizeHandler.accept(size);
     else rightData.sizeHandler.accept(size);
+  }
+
+  private void onRefresh() {
+    leftData = new RemoteDataSource(channel, true);
+    rightData = new RemoteDataSource(channel, false);
+    w.rootView.setData(leftData, true);
+    w.rootView.setData(rightData, false);
   }
 }

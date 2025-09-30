@@ -24,6 +24,8 @@ public class BinaryDiffWindow extends ToolWindow0
   Focusable focusSave;
   boolean processEsc = true;
 
+  private Runnable onRefresh;
+
   public BinaryDiffWindow(
       WindowManager wm,
       EditorColorScheme theme,
@@ -71,7 +73,7 @@ public class BinaryDiffWindow extends ToolWindow0
     var worker = uiContext.window.worker();
 
     var source = new BinFileDataSource(f, worker);
-    rootView.setData(source, uiContext.repaint, left);
+    rootView.setData(source, left);
   }
 
   protected void dispose() {
@@ -119,6 +121,10 @@ public class BinaryDiffWindow extends ToolWindow0
     return false;
   }
 
+  public void setOnRefresh(Runnable onRefresh) {
+    this.onRefresh = onRefresh;
+  }
+
   public boolean canNavigateDown() {
     return false; // rootView.canNavigateDown(focused());
   }
@@ -133,5 +139,9 @@ public class BinaryDiffWindow extends ToolWindow0
 
   public void navigateUp() {
 //    rootView.navigateUp(focused());
+  }
+
+  public void refresh() {
+    if (onRefresh != null) onRefresh.run();
   }
 }
