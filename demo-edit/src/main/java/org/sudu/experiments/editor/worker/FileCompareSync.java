@@ -82,17 +82,12 @@ class FileCompareSync {
     if (lSize != rSize) {
       return 0;
     }
-    int iSize = (int) Math.min(lSize, FileCompare.maxToRead);
-    if (iSize != lSize && iSize != FileCompare.maxToRead) {
-      // todo: rework to read first FileCompareAsync.maxToRead bytes
-      error = "compare: File is too large to analyze: " + Math.max(lSize, iSize);
-      return 0;
-    }
-    int size = Math.min(iSize, maxArraySize);
-    byte[] leftText = new byte[size];
-    byte[] rightText = new byte[size];
+    double sizeLimit = Math.min(lSize, FileCompare.maxToRead);
+    int bufferSize = (int) Math.min(sizeLimit, maxArraySize);
+    byte[] leftText = new byte[bufferSize];
+    byte[] rightText = new byte[bufferSize];
     double pos = 0;
-    while (pos < iSize) {
+    while (pos < sizeLimit) {
       int lRead, rRead;
       try {
         lRead = left.read(leftText, pos);
