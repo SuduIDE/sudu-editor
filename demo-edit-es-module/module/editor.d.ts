@@ -428,6 +428,8 @@ export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
   onControllerUpdate: IEvent<FileDiffViewController>
 }
 
+export interface IBinaryDiffView extends View, HasTheme, Focusable, TwoPanelDiff {}
+
 export interface FileDiffView extends IFileDiffView, IDisposable {
   setModel(modelL: ITextModel, modelR: ITextModel): void
 }
@@ -517,6 +519,12 @@ export interface RemoteFileDiffView extends IFileDiffView, IDisposable {
   applyState(state: any): void
 }
 
+export interface RemoteBinaryDiffView extends IBinaryDiffView, IDisposable {
+  getState(): any
+
+  applyState(state: any): void
+}
+
 export interface RemoteEditorView extends IEditorView, IDisposable {
   getState(): any
 
@@ -535,7 +543,7 @@ export function newRemoteFolderDiff(args: EditArgs, channel: Channel): Promise<R
 
 export function newRemoteFileDiff(args: EditArgs, channel: Channel): Promise<RemoteFileDiffView>
 
-export function newRemoteBinaryDiff(args: EditArgs, channel: Channel): Promise<RemoteFileDiffView>
+export function newRemoteBinaryDiff(args: EditArgs, channel: Channel): Promise<RemoteBinaryDiffView>
 
 export function newRemoteEditor(args: EditArgs, channel: Channel): Promise<RemoteEditorView>
 

@@ -58,11 +58,11 @@ public interface Editor_d_ts {
   }
 
   @JSFunctor interface RemoteBinaryDiffFactory extends JSObject {
-    Promise<JsRemoteFileDiffView> create(EditArgs args, Channel channel);
+    Promise<JsRemoteBinaryDiff> create(EditArgs args, Channel channel);
 
     class Setter {
       @JSBody(params = {"f"}, script = "newRemoteBinaryDiff = f;")
-      public static native void set(RemoteFileDiffFactory f);
+      public static native void set(RemoteBinaryDiffFactory f);
     }
   }
 

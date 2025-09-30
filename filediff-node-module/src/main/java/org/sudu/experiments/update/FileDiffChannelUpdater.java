@@ -28,12 +28,12 @@ public class FileDiffChannelUpdater {
   public final static int FILE_SAVE = 1;
   public final static int FETCH = 2;
   public final static int FETCH_SIZE = 3;
+  public final static int ERROR = 4;
   public final static Int32Array FILE_READ_ARRAY = JsCast.jsInts(FILE_READ);
   public final static Int32Array FILE_SAVE_ARRAY = JsCast.jsInts(FILE_SAVE);
   public final static Int32Array FETCH_ARRAY = JsCast.jsInts(FETCH);
   public final static Int32Array FETCH_SIZE_ARRAY = JsCast.jsInts(FETCH_SIZE);
-
-  private final static int BIN_READ_SIZE = 16 * 1024;
+  public final static Int32Array ERROR_ARRAY = JsCast.jsInts(ERROR);
 
   public FileDiffChannelUpdater(
       Channel channel,
@@ -63,8 +63,8 @@ public class FileDiffChannelUpdater {
     switch (type) {
       case FILE_READ -> onFileRead(jsArray);
       case FILE_SAVE -> onFileSave(jsArray);
-      case FETCH -> onFileSave(jsArray);
-      case FETCH_SIZE -> onFileSave(jsArray);
+      case FETCH -> fetch(jsArray);
+      case FETCH_SIZE -> fetchSize(jsArray);
     }
   }
 
@@ -121,13 +121,27 @@ public class FileDiffChannelUpdater {
     channel.sendMessage(jsArray);
   }
 
-  public void fetch(boolean left, double address) {
+  public void fetch(JsArray<JSObject> jsArray) {
+    int[] ints = JsCast.ints(jsArray, 0);
+    boolean left = ints[0] == 1;
+    int chinkSize = ints[1];
+    double address = JsCast.doubles(jsArray, 1)[0];
+    fetch(left, address, chinkSize);
+  }
+
+  public void fetchSize(JsArray<JSObject> jsArray) {
+    boolean left = JsCast.ints(jsArray, 0)[0] == 1;
+    var handle = left ? leftHandle : rightHandle;
+    FsWorkerJobs.asyncStats(executor, handle, sz -> sendFetchSize(true, sz.size), this::onError);
+  }
+
+  public void fetch(boolean left, double address, int chinkSize) {
     FsWorkerJobs.readBinFile(
         executor,
         (left ? leftHandle : rightHandle),
-        address, BIN_READ_SIZE,
+        address, chinkSize,
         bytes -> sendFetch(left, address, bytes),
-        this::onError
+        err -> sendError(address, err)
     );
   }
 
@@ -159,9 +173,10 @@ public class FileDiffChannelUpdater {
     LoggingJs.debug("sendFetch: left = " + left + ", pos = " + address);
     JsArray<JSObject> jsArray = JsArray.create();
     jsArray.set(0, JsCast.jsInts(left ? 1 : 0));
-    jsArray.set(1, JsCast.jsBytes(bytes));
-    jsArray.set(2, JsCast.jsInts(left ? 1 : 0));
+    jsArray.set(1, JsCast.jsNumbers(address));
+    jsArray.set(2, JsCast.jsBytes(bytes));
     jsArray.push(FETCH_ARRAY);
+    channel.sendMessage(jsArray);
   }
 
   private void sendFetchSize(boolean left, double sz) {
@@ -171,6 +186,16 @@ public class FileDiffChannelUpdater {
     jsArray.set(1, JSString.valueOf(name(left)));
     jsArray.set(2, JsCast.jsNumbers(sz));
     jsArray.push(FETCH_SIZE_ARRAY);
+    channel.sendMessage(jsArray);
+  }
+
+  private void sendError(double address, String error) {
+    LoggingJs.debug("sendError: address = " + address + ", error = " + error);
+    JsArray<JSObject> jsArray = JsArray.create();
+    jsArray.set(0, JsCast.jsNumbers(address));
+    jsArray.set(1, JSString.valueOf(error));
+    jsArray.push(ERROR_ARRAY);
+    channel.sendMessage(jsArray);
   }
 
   private void onError(String error) {
