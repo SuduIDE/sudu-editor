@@ -14,6 +14,7 @@ public class JsRemoteBinaryDiff implements JsRemoteBinaryDiffView {
 
   public final WebWindow window;
   private BinaryDiffWindow w;
+  private JsBinaryDiffViewController controller;
 
   public JsRemoteBinaryDiff(
       WebWindow ww,
@@ -21,6 +22,7 @@ public class JsRemoteBinaryDiff implements JsRemoteBinaryDiffView {
   ) {
     this.window = ww;
     this.w = ((RemoteBinaryDiffScene) window.scene()).w;
+    controller = new JsBinaryDiffViewController0(w);
     if (args.hasTheme()) setTheme(args.getTheme());
   }
 
@@ -69,13 +71,13 @@ public class JsRemoteBinaryDiff implements JsRemoteBinaryDiffView {
   }
 
   @Override
-  public JsViewController getController() {
-    return null;
+  public JsBinaryDiffViewController getController() {
+    return controller;
   }
 
   @Override
   public JsDisposable onControllerUpdate(JsFunctions.Consumer<JsViewController> callback) {
-    return null;
+    return JsDisposable.empty();
   }
 
   @Override

@@ -25,8 +25,10 @@ public class RemoteDataSource implements BinDataCache.DataSource {
 
   @Override
   public void fetchSize(DoubleConsumer result, Consumer<String> onError) {
-    if (sizeHandler == null) sizeHandler = result;
-    if (sizeError == null) sizeError = onError;
+    if (sizeHandler != null && sizeHandler != result) throw new IllegalStateException("");
+    if (sizeError != null && sizeError != result) throw new IllegalStateException("");
+    sizeHandler = result;
+    sizeError = onError;
     JsArray<JSObject> jsArray = JsArray.create();
     jsArray.set(0, JsCast.jsInts(left ? 1 : 0));
     jsArray.push(FileDiffChannelUpdater.FETCH_SIZE_ARRAY);
@@ -35,7 +37,8 @@ public class RemoteDataSource implements BinDataCache.DataSource {
 
   @Override
   public void fetch(double address, int chinkSize, Result handler) {
-    if (fetchHandler == null) fetchHandler = handler;
+    if (fetchHandler != null && fetchHandler != handler) throw new IllegalStateException("");
+    fetchHandler = handler;
     JsArray<JSObject> jsArray = JsArray.create();
     jsArray.set(0, JsCast.jsInts(left ? 1 : 0, chinkSize));
     jsArray.set(1, JsCast.jsNumbers(address));
