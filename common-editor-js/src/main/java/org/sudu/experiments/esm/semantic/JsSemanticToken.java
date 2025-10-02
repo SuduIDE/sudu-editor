@@ -13,7 +13,7 @@ public interface JsSemanticToken extends JSObject {
   String lineProperty = "line";
 
   @JSProperty
-  JSNumber getStartChar();
+  int getStartChar();
 
   default boolean hasLine() {
     return JSObjects.hasProperty(this, lineProperty);
@@ -22,7 +22,7 @@ public interface JsSemanticToken extends JSObject {
   String startCharProperty = "startChar";
 
   @JSProperty
-  JSNumber getLength();
+  int getLength();
 
   default boolean hasStartChar() {
     return JSObjects.hasProperty(this, startCharProperty);
@@ -31,7 +31,7 @@ public interface JsSemanticToken extends JSObject {
   String lengthProperty = "length";
 
   @JSProperty
-  JSNumber getLegendIdx();
+  int getLegendIdx();
 
   default boolean hasLength() {
     return JSObjects.hasProperty(this, lengthProperty);
@@ -52,36 +52,36 @@ public interface JsSemanticToken extends JSObject {
     return JSObjects.hasProperty(this, textProperty);
   }
 
-  default String print() {
+  static String print(JsSemanticToken it) {
     StringBuilder sb = new StringBuilder();
     sb.append("JsSemanticToken{");
 
-    if (hasLine()) {
-      sb.append("line=").append(getLine().toString());
+    if (it.hasLine()) {
+      sb.append("line=").append(it.getLine().stringValue());
     }
-    if (hasStartChar()) {
+    if (it.hasStartChar()) {
       if (sb.length() > "JsSemanticToken{".length()) {
         sb.append(", ");
       }
-      sb.append("startChar=").append(getStartChar().toString());
+      sb.append("startChar=").append(it.getStartChar());
     }
-    if (hasLength()) {
+    if (it.hasLength()) {
       if (sb.length() > "JsSemanticToken{".length()) {
         sb.append(", ");
       }
-      sb.append("length=").append(getLength().toString());
+      sb.append("length=").append(it.getLength());
     }
-    if (hasLegendIdx()) {
+    if (it.hasLegendIdx()) {
       if (sb.length() > "JsSemanticToken{".length()) {
         sb.append(", ");
       }
-      sb.append("legendIdx=").append(getLegendIdx().toString());
+      sb.append("legendIdx=").append(it.getLegendIdx());
     }
-    if (hasText()) {
+    if (it.hasText()) {
       if (sb.length() > "JsSemanticToken{".length()) {
         sb.append(", ");
       }
-      sb.append("text=").append(getText().toString());
+      sb.append("text=").append(it.getText().stringValue());
     }
 
     sb.append("}");

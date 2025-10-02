@@ -27,7 +27,7 @@ public interface JsSemanticTokenColorSettings extends JSObject {
   }
 
   @JSProperty
-  JSBoolean getItalic();
+  boolean getItalic();
 
   String italicProperty = "italic";
 
@@ -36,7 +36,7 @@ public interface JsSemanticTokenColorSettings extends JSObject {
   }
 
   @JSProperty
-  JSBoolean getBold();
+  boolean getBold();
 
   String boldProperty = "bold";
 
@@ -44,30 +44,30 @@ public interface JsSemanticTokenColorSettings extends JSObject {
     return JSObjects.hasProperty(this, boldProperty);
   }
 
-  default String print() {
+  static String print(JsSemanticTokenColorSettings it) {
     StringBuilder sb = new StringBuilder();
     sb.append("JsSemanticTokenColorSettings{");
 
-    if (hasForeground()) {
-      sb.append("foreground=").append(getForeground().toString());
+    if (it.hasForeground()) {
+      sb.append("foreground=").append(it.getForeground().stringValue());
     }
-    if (hasBackground()) {
+    if (it.hasBackground()) {
       if (sb.length() > "JsSemanticTokenColorSettings{".length()) {
         sb.append(", ");
       }
-      sb.append("background=").append(getBackground().toString());
+      sb.append("background=").append(it.getBackground().stringValue());
     }
-    if (hasItalic()) {
+    if (it.hasItalic()) {
       if (sb.length() > "JsSemanticTokenColorSettings{".length()) {
         sb.append(", ");
       }
-      sb.append("italic=").append(getItalic().toString());
+      sb.append("italic=").append(it.getItalic());
     }
-    if (hasBold()) {
+    if (it.hasBold()) {
       if (sb.length() > "JsSemanticTokenColorSettings{".length()) {
         sb.append(", ");
       }
-      sb.append("bold=").append(getBold().toString());
+      sb.append("bold=").append(it.getBold());
     }
 
     sb.append("}");

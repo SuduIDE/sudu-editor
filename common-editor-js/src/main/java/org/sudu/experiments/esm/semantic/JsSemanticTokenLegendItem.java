@@ -1,8 +1,8 @@
 package org.sudu.experiments.esm.semantic;
 
+import org.sudu.experiments.js.JsArray;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
-import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
@@ -26,7 +26,7 @@ public interface JsSemanticTokenLegendItem extends JSObject {
   }
 
   @JSProperty
-  JSArray<JSString> getModifiers();
+  JsArray<JSString> getModifiers();
 
   String modifiersProperty = "modifiers";
 
@@ -34,24 +34,32 @@ public interface JsSemanticTokenLegendItem extends JSObject {
     return JSObjects.hasProperty(this, modifiersProperty);
   }
 
-  default String print() {
+  static String print(JsSemanticTokenLegendItem it) {
     StringBuilder sb = new StringBuilder();
     sb.append("JsSemanticTokenLegendItem{");
-
-    if (hasTokenType()) {
-      sb.append("tokenType=").append(getTokenType().toString());
+    int initL = sb.length();
+    if (it.hasTokenType()) {
+      sb.append("tokenType=").append(it.getTokenType().stringValue());
     }
-    if (hasColor() && getColor() != JSObjects.undefined()) {
+    if (it.hasColor() && !JSObjects.isUndefined(it.getColor())) {
       if (sb.length() > "JsSemanticTokenLegendItem{".length()) {
         sb.append(", ");
       }
-      sb.append("color=").append(getColor().print());
+      sb.append("color=").append(
+          JsSemanticTokenColorSettings.print(it.getColor()));
     }
-    if (hasModifiers()) {
-      if (sb.length() > "JsSemanticTokenLegendItem{".length()) {
+    if (it.hasModifiers()) {
+      if (sb.length() > initL) {
         sb.append(", ");
       }
-      sb.append("modifiers=").append(getModifiers().toString());
+      sb.append("modifiers={");
+      JsArray<JSString> modifiers = it.getModifiers();
+      for (int i = 0; i < modifiers.getLength(); i++) {
+        sb.append(modifiers.get(i).stringValue());
+        if (i < modifiers.getLength() - 1)
+          sb.append(", ");
+      }
+      sb.append("}");
     }
 
     sb.append("}");
