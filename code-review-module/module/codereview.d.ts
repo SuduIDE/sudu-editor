@@ -5,23 +5,24 @@ import {IDisposable} from "./common";
 
 export * from './common';
 
+export interface WorkerPool {
+  getNumThreads(): number
+}
+
+export function newWorkerPool(workerUrl: string, numThreads: number): Promise<WorkerPool>;
+
+export function loadFonts(codiconUrl: string): Promise<FontFace[]>;
+
 export interface EditArgs {
   containerId: string
 
-  // default value for workerUrl is "worker.js"
-  workerUrl?: string | URL
+  workers: WorkerPool
 
   theme?: Theme
 
   readonly?: boolean
 
   disableParser?: boolean
-
-  // number of worker threads for parsing and resolve
-  // default: 2
-  numThreads?: number
-
-  codiconUrl?: string
 }
 
 interface Uri {
@@ -57,7 +58,7 @@ export interface IModelChangedEvent {
 
 interface TextDocumentContentChangeEvent {
   // todo: replicate VSCode API event
-};
+}
 
 export interface ITextModel extends IDisposable {
   language?: string
@@ -275,7 +276,7 @@ export interface View {
 
   setExternalContextMenuProvider(p: ContextMenuProvider): void;
 
-  setNotificationsProvider(provider: NotificationsProvider)
+  setNotificationsProvider(provider: NotificationsProvider): void
 
   executeMenuAction(action: ContextMenuActions): void;
 }
@@ -391,6 +392,6 @@ export interface EditorViewController extends ViewController {
 
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
 
-export function newEditor(args: EditArgs): Promise<EditorView>
+export function newEditor(args: EditArgs): EditorView
 
-export function newCodeReview(args: EditArgs): Promise<CodeReviewView>
+export function newCodeReview(args: EditArgs): CodeReviewView

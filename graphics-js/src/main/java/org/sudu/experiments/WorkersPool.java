@@ -32,6 +32,10 @@ public abstract class WorkersPool implements WorkerJobExecutor {
     freeWorkers = new int[numWorkers];
   }
 
+  public int numThreads() {
+    return workers.getLength();
+  }
+
   protected abstract void setMessageHandler(int index);
 
   private int nextId() {

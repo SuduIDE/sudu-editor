@@ -5,9 +5,26 @@ import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.esm.semantic.JsSemanticToken;
 import org.sudu.experiments.esm.semantic.JsSemanticTokenLegendItem;
 import org.sudu.experiments.js.*;
+import org.teavm.jso.JSBody;
+import org.teavm.jso.JSFunctor;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
 public class JsTextModel implements JsITextModel {
+
+  @JSFunctor
+  public interface Api extends JSObject {
+    JsITextModel create(JSString value, JSString language, JsUri uri);
+
+    class Setter {
+      @JSBody(params = {"f"}, script = "newTextModel = f;")
+      static native void set(Api f);
+    }
+
+    static void install() {
+      Setter.set(JsTextModel::new);
+    }
+  }
 
   public final Model javaModel;
   public final JsUri jsUri;

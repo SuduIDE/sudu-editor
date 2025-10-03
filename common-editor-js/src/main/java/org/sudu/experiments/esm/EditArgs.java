@@ -1,5 +1,6 @@
 package org.sudu.experiments.esm;
 
+import org.sudu.experiments.WebWorkersPool;
 import org.sudu.experiments.editor.EditorConst;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
@@ -9,6 +10,9 @@ import org.teavm.jso.core.JSString;
 public interface EditArgs extends JSObject {
   @JSProperty
   JSString getContainerId();
+
+  @JSProperty
+  JsWorkerPool getWorkers();
 
   String workerUrlProperty = "workerUrl";
 
@@ -70,5 +74,12 @@ public interface EditArgs extends JSObject {
   default JSString workerUrl() {
     return JSObjects.hasProperty(this, workerUrlProperty)
         ? getWorkerUrl() : JSString.valueOf("worker.js");
+  }
+
+  static WebWorkersPool getPool(EditArgs args) {
+    JsWorkerPool pool = args.getWorkers();
+    if (pool instanceof JsWorkerPool.Impl instance)
+      return instance.workers;
+    throw new IllegalArgumentException("workers pol has to be of type JsWorkerPoolImpl");
   }
 }

@@ -6,7 +6,6 @@ import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSString;
 
 // see ES6moduleExport.template.js.1
 // see editor.d.ts
@@ -19,15 +18,6 @@ public interface Editor_d_ts {
     class Setter {
       @JSBody(params = {"f"}, script = "newEditor = f;")
       public static native void setApi(EditorFactory f);
-    }
-  }
-
-  @JSFunctor interface TextModelFactory extends JSObject {
-    JsITextModel create(JSString value, JSString language, JsUri uri);
-
-    class Setter {
-      @JSBody(params = {"f"}, script = "newTextModel = f;")
-      public static native void setModel(TextModelFactory f);
     }
   }
 
@@ -78,8 +68,8 @@ public interface Editor_d_ts {
 
   static void main(String[] args) {
     LoggingJs.Setter.set();
+    JsTextModel.Api.install();
     EditorFactory.Setter.setApi(JsCodeEditor::newEdit);
-    TextModelFactory.Setter.setModel(JsTextModel::new);
     FileDiffFactory.Setter.setDiff(JsCodeDiff::newDiff);
     RemoteFileDiffFactory.Setter.set(JsRemoteCodeDiff::create);
     FolderDiffFactory.Setter.set(JsFolderDiff::newDiff);

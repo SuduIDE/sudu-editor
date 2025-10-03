@@ -26,10 +26,9 @@ public class JsCodeEditor implements JsEditorView {
   private final EditorComponent editor;
   JsEditorViewController controller;
 
-  public JsCodeEditor(EditArgs args, JsArray<WebWorkerContext> workers) {
-    window = new WebWindow(Editor0::new, WebGLError::onWebGlError,
-        args.getContainerId(), workers);
-    editor = demoEdit0().editor();
+  public JsCodeEditor(WebWindow window, Editor0 editor, EditArgs args) {
+    this.window = window;
+    this.editor = editor.editor();
     controller = new JsEditorViewController0();
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly()) setReadonly(args.getReadonly());
@@ -320,17 +319,15 @@ public class JsCodeEditor implements JsEditorView {
         ));
   }
 
-  public static Promise<JsIEditorView> newEdit(EditArgs arguments) {
-    if (JsCanvas.checkFontMetricsAPI()) {
-      return Promise.create((postResult, postError) ->
-          WebWorkerContext.start(
-              worker -> postResult.f(new JsCodeEditor(arguments, worker)),
-              postError,
-              arguments.workerUrl(),
-              arguments.numWorkerThreads()));
-    } else {
-      return Promise.reject(FireFoxWarning.message);
-    }
+  public static JsCodeEditor newEdit(EditArgs args) {
+    if (!JsCanvas.checkFontMetricsAPI())
+      throw new RuntimeException("Font metrics API is not supported");
+    var w = new WebWindow(args.getContainerId(), EditArgs.getPool(args));
+    if (w.api() == null)
+      throw new RuntimeException(WebGLError.text);
+    var editor = new Editor0(w.api());
+    w.setScene(editor);
+    return new JsCodeEditor(w, editor, args);
   }
 
   public void setExternalMessageBar(JsExternalMessageBar emb) {}
@@ -340,4 +337,7 @@ public class JsCodeEditor implements JsEditorView {
 
   @Override
   public void executeMenuAction(JSString action) {}
+
+  @Override
+  public void setJsNotificationsProvider(JsNotificationsProvider p) {}
 }

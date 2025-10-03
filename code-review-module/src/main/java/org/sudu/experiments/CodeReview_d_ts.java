@@ -2,19 +2,17 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.diff.*;
 import org.sudu.experiments.esm.*;
-import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSString;
 
 // see ES6moduleExport.template.js.1
-// see editor.d.ts
+// see codereview.d.ts
 
 public interface CodeReview_d_ts {
 
   @JSFunctor interface EditorFactory extends JSObject {
-    Promise<JsIEditorView> create(EditArgs args);
+    JsIEditorView create(EditArgs args);
 
     class Setter {
       @JSBody(params = {"f"}, script = "newEditor = f;")
@@ -22,17 +20,8 @@ public interface CodeReview_d_ts {
     }
   }
 
-  @JSFunctor interface TextModelFactory extends JSObject {
-    JsITextModel create(JSString value, JSString language, JsUri uri);
-
-    class Setter {
-      @JSBody(params = {"f"}, script = "newTextModel = f;")
-      public static native void setModel(TextModelFactory f);
-    }
-  }
-
   @JSFunctor interface CodeReviewFactory extends JSObject {
-    Promise<JsCodeReviewView> create(EditArgs args);
+    JsCodeReviewView create(EditArgs args);
 
     class Setter {
       @JSBody(params = {"f"}, script = "newCodeReview = f;")
@@ -40,11 +29,12 @@ public interface CodeReview_d_ts {
     }
   }
 
-
   static void main(String[] args) {
 //    LoggingJs.Setter.set();
+    JsTextModel.Api.install();
+    JsLoadFonts.install();
+    JsWorkerPool.install();
     EditorFactory.Setter.setApi(JsCodeEditor::newEdit);
-    TextModelFactory.Setter.setModel(JsTextModel::new);
-    CodeReviewFactory.Setter.setDiff(JsCodeReview::newDiff);
+    CodeReviewFactory.Setter.setDiff(JsCodeReview::newCodeReview);
   }
 }

@@ -1,6 +1,6 @@
 package org.sudu.experiments.diff;
 
-import org.sudu.experiments.ControlFactory;
+import org.sudu.experiments.WebGLError;
 import org.sudu.experiments.WebWindow;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
@@ -15,11 +15,11 @@ public class JsCodeReview implements JsCodeReviewView {
   private JsFileDiffViewController controller;
 
   public JsCodeReview(
-      WebWindow ww,
+      FileDiffWindow fileDiff, WebWindow ww,
       EditArgs args
   ) {
     this.window = ww;
-    this.w = ((FileDiff) window.scene()).w;
+    this.w = fileDiff;
     controller = new JsFileDiffViewController0(w);
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly())
@@ -110,11 +110,18 @@ public class JsCodeReview implements JsCodeReviewView {
   @Override
   public void executeMenuAction(JSString action) {}
 
-  public static Promise<JsCodeReviewView> newDiff(EditArgs arguments) {
-    return ControlFactory.start(
-        arguments,
-        FileDiff::new,
-        JsCodeReview::new
-    );
+  public static JsCodeReviewView newCodeReview(EditArgs arguments) {
+    if (!JsCanvas.checkFontMetricsAPI())
+      throw new RuntimeException(FireFoxWarning.message);
+
+    var w = new WebWindow(arguments.getContainerId(),
+        EditArgs.getPool(arguments));
+
+    if (w.api() == null)
+      throw new RuntimeException(WebGLError.text);
+
+    var fileDiff = new FileDiff(w.api());
+    w.setScene(fileDiff);
+    return new JsCodeReview(fileDiff.w, w, arguments);
   }
 }

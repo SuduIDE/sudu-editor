@@ -57,15 +57,20 @@ public class WebWindow implements Window {
       JSString canvasDivId,
       JsArray<WebWorkerContext> workers
   ) {
-    this(canvasDivId, workers);
+    this(canvasDivId, new WebWorkersPool(workers));
     if (!init(factory))
       onWebGlError.run();
   }
 
   // this ctor requires init after call
   public WebWindow(JSString canvasDivId, JsArray<WebWorkerContext> workers) {
+    this(canvasDivId, new WebWorkersPool(workers));
+  }
+
+  // this ctor requires init after call
+  public WebWindow(JSString canvasDivId, WebWorkersPool workers) {
     this.canvasDivId = canvasDivId;
-    this.workers = new WebWorkersPool(workers);
+    this.workers = workers;
 
 //    JsHelper.consoleInfo("starting web window on " + canvasDivId);
     mainCanvas = JsHelper.createMainCanvas(null);
@@ -197,8 +202,13 @@ public class WebWindow implements Window {
     HTMLDocument.current().setTitle(title);
   }
 
-  private SceneApi api() {
-    return new SceneApi(g, eventHandler.listeners, this);
+  public void setScene(Scene s) {
+    scene = Disposable.assign(scene, s);
+  }
+
+  public SceneApi api() {
+    return g == null ? null :
+        new SceneApi(g, eventHandler.listeners, this);
   }
 
   private void requestNewFrame() {

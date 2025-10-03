@@ -1,7 +1,12 @@
+
 const editorApi = await import("../src/codereview.js");
 
-const codeReview = await editorApi.newCodeReview({
-    containerId: "editor", workerUrl: "../src/worker.js"
+const threadPool = await editorApi.newWorkerPool("../src/worker.js", 3);
+
+console.log("threadPool.getNumThreads()=", threadPool.getNumThreads())
+
+const codeReview = editorApi.newCodeReview({
+    containerId: "editor", workers: threadPool
 });
 
 const initialText1 =

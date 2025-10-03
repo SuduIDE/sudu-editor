@@ -7,6 +7,12 @@ export {
   Channel, Message, setLogLevel, setLogOutput, newRemoteChannelTest, LogLevel, ChannelTestApi, IDisposable
 } from './common';
 
+export interface WorkerPool {
+  getNumThreads(): number
+}
+
+export function newWorkerPool(workerUrl: string, numThreads: number): ITextModel
+
 export interface EditArgs {
   containerId: string
 
