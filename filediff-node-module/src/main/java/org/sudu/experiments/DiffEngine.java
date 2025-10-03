@@ -14,7 +14,10 @@ import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
+import java.io.File;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class DiffEngine implements DiffEngineJs {
   public static final boolean exposeTestApi = true;
@@ -128,29 +131,43 @@ public class DiffEngine implements DiffEngineJs {
     FileDiffChannelUpdater updater
         = new FileDiffChannelUpdater(channel, parentUpdater, pool);
 
-    if (isLeftFile) {
-      LoggingJs.info("  left file: ".concat(leftHandle.toString()));
-      updater.compareLeft(leftHandle);
-    } else {
-      JSString leftStr = JsFileInput.getContent(leftInput);
-      JSString leftPath = JsFileInput.getPath(leftInput);
-      LoggingJs.info("  left is content, length = " + leftStr.getLength() +
-          ", path =" + leftPath.stringValue());
-      updater.sendFileRead(true, leftStr, null,
-          leftPath);
-    }
+    checkFileContent(leftHandle, leftContentType ->
+        checkFileContent(rightHandle, rightContentType -> {
+        boolean startBinDiff = leftContentType == 0 || rightContentType == 0;
+        if (startBinDiff) {
+          updater.fetchSizeLeft(leftHandle);
+          updater.fetchSizeRight(rightHandle);
+        } else {
+          if (isLeftFile) {
+            LoggingJs.info("  left file: ".concat(leftHandle.toString()));
+            updater.compareLeft(leftHandle);
+          } else {
+            JSString leftStr = JsFileInput.getContent(leftInput);
+            JSString leftPath = JsFileInput.getPath(leftInput);
+            LoggingJs.info("  left is content, length = " + leftStr.getLength() +
+                ", path =" + leftPath.stringValue());
+            updater.sendFileRead(true, leftStr, null, leftPath);
+          }
 
-    if (isRightFile) {
-      LoggingJs.info("  right file: ".concat(rightHandle.toString()));
-      updater.compareRight(rightHandle);
-    } else {
-      JSString rightStr = JsFileInput.getContent(rightInput);
-      JSString rightPath = JsFileInput.getPath(rightInput);
-      LoggingJs.info("  right is content, length = " + rightStr.getLength() +
-          ", path =" + rightPath.stringValue());
-      updater.sendFileRead(false, rightStr, null, rightPath);
-    }
+          if (isRightFile) {
+            LoggingJs.info("  right file: ".concat(rightHandle.toString()));
+            updater.compareRight(rightHandle);
+          } else {
+            JSString rightStr = JsFileInput.getContent(rightInput);
+            JSString rightPath = JsFileInput.getPath(rightInput);
+            LoggingJs.info("  right is content, length = " + rightStr.getLength() +
+                ", path =" + rightPath.stringValue());
+            updater.sendFileRead(false, rightStr, null, rightPath);
+          }
+        }
+      })
+    );
     return new JsFileDiffSession0();
+  }
+
+  private void checkFileContent(FileHandle handle, IntConsumer onTypeGot) {
+    if (handle == null) onTypeGot.accept(-1);
+    else FsWorkerJobs.detectCodePage(pool, handle, onTypeGot, LoggingJs::error);
   }
 
   @Override

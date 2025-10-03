@@ -52,6 +52,14 @@ import org.teavm.jso.core.JSString;
     Static.logger.log(DEBUG, message);
   }
 
+  static void warn(String message) {
+    Static.logger.log(WARN, JSString.valueOf(message));
+  }
+
+  static void warn(JSString message) {
+    Static.logger.log(WARN, message);
+  }
+
   class Static {
     public static int level;
     public static LoggingJs logger;
