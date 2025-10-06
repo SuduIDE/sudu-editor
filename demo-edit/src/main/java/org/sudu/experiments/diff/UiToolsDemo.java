@@ -46,7 +46,10 @@ public class UiToolsDemo extends WindowScene implements DprChangeListener {
             UiText.newEditorWindow),
         new ToolbarItem(
             windowManager.hidePopupMenuThen(this::newBinaryDiff),
-            UiText.newBinaryDiffWindow)
+            UiText.newBinaryDiffWindow),
+        new ToolbarItem(
+            windowManager.hidePopupMenuThen(this::newBinaryDiff),
+            UiText.newInlineDiffWindow)
     );
     windowManager.showPopup(
         theme.dialogItem, theme.popupMenuFont,
@@ -68,6 +71,10 @@ public class UiToolsDemo extends WindowScene implements DprChangeListener {
 
   private void newBinaryDiff() {
     new BinaryDiffWindow(windowManager, theme, UiToolsDemo::menuFonts);
+  }
+
+  private void newInlineDiff() {
+    new InlineDiffWindow(windowManager, theme, UiToolsDemo::menuFonts);
   }
 
   private void newProjectView() {

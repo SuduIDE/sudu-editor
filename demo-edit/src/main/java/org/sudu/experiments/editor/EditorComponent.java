@@ -830,7 +830,7 @@ public class EditorComponent extends View implements
   }
 
   private void updateLineNumbersFont() {
-    lineNumbers.setFont(lrContext.font, lineHeight, context.cleartype);
+    lineNumbers.setFont(lrContext.font, lineHeight, lrContext.cleartype);
   }
 
   private CodeLineRenderer lineRenderer(int i) {
