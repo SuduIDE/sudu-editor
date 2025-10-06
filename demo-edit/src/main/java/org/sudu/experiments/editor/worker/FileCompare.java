@@ -5,6 +5,9 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.function.Consumer;
 
+import static org.sudu.experiments.FileHandle.hiGb;
+import static org.sudu.experiments.FileHandle.loGb;
+
 public interface FileCompare {
 
   int maxToRead = 1024 * 1024 * 1024;
@@ -12,22 +15,61 @@ public interface FileCompare {
   void on(double leftSize, double rightSize,
           double diffLocation, String error);
 
+  static void findNextDiff(
+      WorkerJobExecutor executor,
+      FileHandle left,
+      FileHandle right,
+      double address,
+      int bytesPerLine,
+      boolean skipDiff,
+      boolean findNext,   // true/false -> finding next/prev diff
+      FileCompare result
+  ) {
+    int[] ints = new int[] {
+        loGb(address),
+        hiGb(address),
+        bytesPerLine,
+        skipDiff ? 1 : 0,
+        findNext ? 1 : 0
+    };
+    executor.sendToWorker(r -> onBinaryDiffCompared(r, result), asyncFindNextDiff, left, right, ints);
+  }
+
   static void compareFiles(
       WorkerJobExecutor executor,
       FileHandle left, FileHandle right,
       FileCompare result
   ) {
-    executor.sendToWorker(r-> {
-      if (isMessage(r)) {
-        result.on(0,0,0, message(r));
-      } else {
-        var data = ArgsCast.intArray(r, 0);
-        result.on(
-            FileHandle.int2Address(data, 0),
-            FileHandle.int2Address(data, 2),
-            FileHandle.int2Address(data, 4), null);
-      }
-    }, asyncCompareFiles, left, right);
+    executor.sendToWorker(r -> onBinaryDiffCompared(r, result), asyncCompareFiles, left, right);
+  }
+
+  String asyncFindNextDiff = "asyncFindNextDiff";
+
+  static void asyncFindNextDiff(Object[] a, Consumer<Object[]> r) {
+    FileHandle left = ArgsCast.file(a, 0);
+    FileHandle right = ArgsCast.file(a, 1);
+    int[] ints = ArgsCast.intArray(a, 2);
+    double address = FileHandle.int2Address(ints[0], ints[1]);
+    int bytesPerLine = ints[2];
+    boolean skipDiff = ints[3] == 1, findNext = ints[4] == 1;
+
+    if (left.hasSyncAccess() && right.hasSyncAccess()) {
+      new FileDiffSync(r, left, right, address, bytesPerLine, skipDiff, findNext);
+    } else {
+      new FileDiffAsync(r, left, right, address, bytesPerLine, skipDiff, findNext);
+    }
+  }
+
+  static void onBinaryDiffCompared(Object[] r, FileCompare result) {
+    if (isMessage(r)) {
+      result.on(0, 0, 0, message(r));
+    } else {
+      var data = ArgsCast.intArray(r, 0);
+      result.on(
+          FileHandle.int2Address(data, 0),
+          FileHandle.int2Address(data, 2),
+          FileHandle.int2Address(data, 4), null);
+    }
   }
 
   String asyncCompareFiles = "asyncCompareFiles";
@@ -47,9 +89,9 @@ public interface FileCompare {
       double lSize, double rSize, double diffPos
   ) {
     int[] msg = {
-        FileHandle.loGb(lSize), FileHandle.hiGb(lSize),
-        FileHandle.loGb(rSize), FileHandle.hiGb(rSize),
-        FileHandle.loGb(diffPos), FileHandle.hiGb(diffPos),
+        loGb(lSize), hiGb(lSize),
+        loGb(rSize), hiGb(rSize),
+        loGb(diffPos), hiGb(diffPos),
     };
     r.accept(new Object[]{msg});
   }
@@ -77,9 +119,13 @@ public interface FileCompare {
   }
 
   static int cmpArrays(byte[] a, byte[] b, int n) {
-    for (int i = 0; i < n; i++) {
+    return cmpArrays(a, b, 0, n);
+  }
+
+  static int cmpArrays(byte[] a, byte[] b, int from, int to) {
+    for (int i = from; i < to; i++) {
       if (a[i] != b[i])
-        return i;
+        return i - from;
     }
     return -1;
   }

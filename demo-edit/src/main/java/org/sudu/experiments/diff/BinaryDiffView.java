@@ -44,10 +44,12 @@ public class BinaryDiffView extends ScrollContent {
   UiFont uiFont;
   FontDesk fd;
   GL.Texture texture;
+  boolean firstLineEdited;
 
   BinDataCache dataL, dataR;
 
   Consumer<String> onError;
+  BooleanConsumer navigate;
 
   public BinaryDiffView(
       UiContext uiContext
@@ -209,7 +211,8 @@ public class BinaryDiffView extends ScrollContent {
 
     for (int ln = firstLine; ln < lastLine; ln++) {
       int y = ln * cellSize.y - vScroll + pos.y;
-      drawLine(g, ln, y, bytesX1, bytesX2, pairPad);
+      boolean edited = drawLine(g, ln, y, bytesX1, bytesX2, pairPad);
+      if (ln == firstLine) firstLineEdited = edited;
     }
 
     lineSize.set(vLineW, size.y);
@@ -231,7 +234,7 @@ public class BinaryDiffView extends ScrollContent {
     return x - (int) x;
   }
 
-  private void drawLine(
+  private boolean drawLine(
       WglGraphics g, int line, int y,
       int bytesX1, int bytesX2, int pairPad
   ) {
@@ -286,6 +289,7 @@ public class BinaryDiffView extends ScrollContent {
           addrDigit, addressC, addrBgColor);
       addrV = (addrV - addrDigit) / 256;
     }
+    return containEdited;
   }
 
   private void drawByte(WglGraphics g, int x, int y, int value, V4f color, V4f bgColor) {
@@ -301,5 +305,26 @@ public class BinaryDiffView extends ScrollContent {
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     if (hitTest(event.position))
       setCursor.set(null);
+  }
+
+  protected int firstLine() {
+    return scrollPos.y / cellSize.y;
+  }
+
+  public void navigateToLine(int line) {
+    scrollPos.y = cellSize.y * line;
+    uiContext.repaint.run();
+  }
+
+  public void navigateDown() {
+    if (navigate != null) navigate.accept(true);
+  }
+
+  public void navigateUp() {
+    if (navigate != null) navigate.accept(false);
+  }
+
+  public void setNavigate(BooleanConsumer navigate) {
+    this.navigate = navigate;
   }
 }

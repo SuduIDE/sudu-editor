@@ -3,6 +3,7 @@ package org.sudu.experiments.update;
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.LoggingJs;
+import org.sudu.experiments.editor.worker.FileCompare;
 import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
@@ -26,14 +27,18 @@ public class FileDiffChannelUpdater {
 
   public final static int FILE_READ = 0;
   public final static int FILE_SAVE = 1;
-  public final static int FETCH = 2;
-  public final static int FETCH_SIZE = 3;
+  public final static int BIN_FETCH = 2;
+  public final static int BIN_FETCH_SIZE = 3;
   public final static int ERROR = 4;
+  public final static int BIN_NAVIGATE = 5;
+  public final static int BIN_CAN_NAVIGATE = 6;
   public final static Int32Array FILE_READ_ARRAY = JsCast.jsInts(FILE_READ);
   public final static Int32Array FILE_SAVE_ARRAY = JsCast.jsInts(FILE_SAVE);
-  public final static Int32Array FETCH_ARRAY = JsCast.jsInts(FETCH);
-  public final static Int32Array FETCH_SIZE_ARRAY = JsCast.jsInts(FETCH_SIZE);
+  public final static Int32Array FETCH_ARRAY = JsCast.jsInts(BIN_FETCH);
+  public final static Int32Array FETCH_SIZE_ARRAY = JsCast.jsInts(BIN_FETCH_SIZE);
   public final static Int32Array ERROR_ARRAY = JsCast.jsInts(ERROR);
+  public final static Int32Array BIN_NAVIGATE_ARRAY = JsCast.jsInts(BIN_NAVIGATE);
+  public final static Int32Array BIN_CAN_NAVIGATE_ARRAY = JsCast.jsInts(BIN_CAN_NAVIGATE);
 
   public FileDiffChannelUpdater(
       Channel channel,
@@ -60,12 +65,27 @@ public class FileDiffChannelUpdater {
 
   private void onMessage(JsArray<JSObject> jsArray) {
     int type = JsCast.ints(jsArray.pop())[0];
+    LoggingJs.info("FileDiffChannelUpdater.onMessage: type = " + name(type));
     switch (type) {
       case FILE_READ -> onFileRead(jsArray);
       case FILE_SAVE -> onFileSave(jsArray);
-      case FETCH -> fetch(jsArray);
-      case FETCH_SIZE -> fetchSize(jsArray);
+      case BIN_FETCH -> fetch(jsArray);
+      case BIN_FETCH_SIZE -> fetchSize(jsArray);
+      case BIN_NAVIGATE -> navigate(jsArray);
+      case BIN_CAN_NAVIGATE -> canNavigate(jsArray);
     }
+  }
+
+  private String name(int type) {
+    return switch (type) {
+      case FILE_READ -> "FILE_READ";
+      case FILE_SAVE -> "FILE_SAVE";
+      case BIN_FETCH -> "BIN_FETCH";
+      case BIN_FETCH_SIZE -> "BIN_FETCH_SIZE";
+      case BIN_NAVIGATE -> "BIN_NAVIGATE";
+      case BIN_CAN_NAVIGATE -> "BIN_CAN_NAVIGATE";
+      default -> "UNKNOWN";
+    };
   }
 
   private void onFileSave(JsArray<JSObject> jsArray) {
@@ -133,6 +153,39 @@ public class FileDiffChannelUpdater {
     boolean left = JsCast.ints(jsArray, 0)[0] == 1;
     var handle = left ? leftHandle : rightHandle;
     FsWorkerJobs.asyncStats(executor, handle, sz -> sendFetchSize(true, sz.size), this::onError);
+  }
+
+  public void navigate(JsArray<JSObject> jsArray) {
+    int[] ints = JsCast.ints(jsArray, 0);
+    int bytesPerLine = ints[0];
+    double address = JsCast.doubles(jsArray, 1)[0];
+    boolean skipDiff = ints[1] == 1, findNext = ints[2] == 1;
+    LoggingJs.info("FileDiffChannelUpdater.navigate: bytesPerLine = " + bytesPerLine
+        + ", address = " + address
+        + ", skipDiff = " + skipDiff
+        + ", findNext = " + findNext
+    );
+    FileCompare.findNextDiff(executor,
+        leftHandle, rightHandle,
+        address, bytesPerLine,
+        skipDiff, findNext,
+        this::onNavigate
+    );
+  }
+
+  public void canNavigate(JsArray<JSObject> jsArray) {
+    int[] ints = JsCast.ints(jsArray, 0);
+    int firstLine = ints[0], chunkSize = ints[1], bytesPerLine = ints[2];
+    double address = JsCast.doubles(jsArray, 1)[0];
+    boolean isDiff = ints[3] == 1;
+  }
+
+  public void onNavigate(double lSz, double rSz, double dPos, String err) {
+    LoggingJs.info("onNavigate: lSz = " + lSz + ", rSz = " + rSz + ", dPos = " + dPos + ", err = " + err);
+    JsArray<JSObject> jsArray = JsArray.create();
+    jsArray.set(0, JsCast.jsNumbers(dPos));
+    jsArray.push(BIN_NAVIGATE_ARRAY);
+    channel.sendMessage(jsArray);
   }
 
   public void fetch(boolean left, double address, int chinkSize) {

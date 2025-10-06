@@ -16,14 +16,14 @@ import org.teavm.jso.JSObject;
 public class RemoteBinaryDiffScene extends WindowScene {
 
   protected Channel channel;
-  protected BinaryDiffWindow w;
+  protected RemoteBinaryDiffWindow w;
   protected RemoteDataSource leftData, rightData;
 
   public RemoteBinaryDiffScene(SceneApi api, Channel channel) {
     super(api);
     var theme = EditorColorScheme.darkIdeaColorScheme();
     this.channel = channel;
-    w = new BinaryDiffWindow(windowManager, theme, this::menuFonts);
+    w = new RemoteBinaryDiffWindow(windowManager, theme, this::menuFonts, channel);
     leftData = new RemoteDataSource(channel, true);
     rightData = new RemoteDataSource(channel, false);
     w.rootView.setData(leftData, true);
@@ -49,8 +49,10 @@ public class RemoteBinaryDiffScene extends WindowScene {
     int type = JsCast.ints(m.pop())[0];
     LoggingJs.info("RemoteDataSource.onMessage got " + type);
     switch (type) {
-      case FileDiffChannelUpdater.FETCH -> onFetched(m);
-      case FileDiffChannelUpdater.FETCH_SIZE -> onSizeFetched(m);
+      case FileDiffChannelUpdater.BIN_FETCH -> onFetched(m);
+      case FileDiffChannelUpdater.BIN_FETCH_SIZE -> onSizeFetched(m);
+      case FileDiffChannelUpdater.BIN_NAVIGATE -> onNavigate(m);
+      case FileDiffChannelUpdater.BIN_CAN_NAVIGATE -> onCanNavigate(m);
     }
   }
 
@@ -68,6 +70,15 @@ public class RemoteBinaryDiffScene extends WindowScene {
     double size = JsCast.doubles(jsArray, 2)[0];
     if (left) leftData.sizeHandler.accept(size);
     else rightData.sizeHandler.accept(size);
+  }
+
+  private void onNavigate(JsArray<JSObject> m) {
+    double line = JsCast.doubles(m, 0)[0];
+    if (line >= 0) w.rootView.navigateToLine((int) (line / w.rootView.bytesPerLine));
+  }
+
+  private void onCanNavigate(JsArray<JSObject> m) {
+
   }
 
   private void onRefresh() {

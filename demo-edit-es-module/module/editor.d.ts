@@ -369,7 +369,7 @@ export interface View {
 
   setExternalContextMenuProvider(p: ContextMenuProvider): void;
 
-  setNotificationsProvider(listener: NotificationsProvider)
+  setNotificationsProvider(listener: NotificationsProvider): void;
 
   executeMenuAction(action: ContextMenuActions): void;
 }

@@ -61,6 +61,7 @@ public class EditorWorker {
       case DiffUtils.CMP_FOLDERS -> DiffUtils.compareFolders(ArgsCast.dir(a, 0), ArgsCast.dir(a, 1), r);
       case DiffUtils.READ_FOLDER -> DiffUtils.readFolder(ArgsCast.dir(a, 0), ArgsCast.array(a, 1).ints(), r);
       case FileCompare.asyncCompareFiles -> FileCompare.asyncCompareFiles(a, r);
+      case FileCompare.asyncFindNextDiff -> FileCompare.asyncFindNextDiff(a, r);
       case SizeScanner.asyncSizeScanner -> SizeScanner.asyncSizeScanner(a, r);
       case FsWorkerJobs.asyncStats -> FsWorkerJobs.asyncStats(a, r);
       case FsWorkerJobs.asyncReadBinFile -> FsWorkerJobs.asyncReadBinFile(a, r);

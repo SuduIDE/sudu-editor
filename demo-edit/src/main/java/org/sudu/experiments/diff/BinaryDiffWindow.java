@@ -121,27 +121,34 @@ public class BinaryDiffWindow extends ToolWindow0
     return false;
   }
 
+  public int firstLine() {
+    return rootView.firstLine();
+  }
+
   public void setOnRefresh(Runnable onRefresh) {
     this.onRefresh = onRefresh;
   }
 
   public boolean canNavigateDown() {
-    return false; // rootView.canNavigateDown(focused());
+    return false;
   }
 
   public void navigateDown() {
-//    rootView.navigateDown(focused());
+    rootView.navigateDown();
   }
 
   public boolean canNavigateUp() {
-    return false; // rootView.canNavigateUp(focused());
+    return false;
   }
 
   public void navigateUp() {
-//    rootView.navigateUp(focused());
+    rootView.navigateUp();
   }
 
   public void refresh() {
-    if (onRefresh != null) onRefresh.run();
+    if (onRefresh != null) {
+      onRefresh.run();
+      window.context.repaint.run();
+    }
   }
 }
