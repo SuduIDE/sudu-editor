@@ -354,7 +354,7 @@ public class Model {
     if (parseJob != null) {
       parsingTimeStart = System.currentTimeMillis();
       executor.sendToWorker(true, this::onFileParsed,
-          parseJob, chars);
+          parseJob, chars, new int[]{Languages.getType(language()), document.version()});
     } else if (editor != null) editor.fireFileLexed();
   }
 
@@ -401,7 +401,7 @@ public class Model {
     int version = document.currentVersion;
     executor.sendToWorker(true,
         res -> onFileIterativeParsed(res, start, stop), FileProxy.asyncIterativeParsing,
-        chars, type, interval, new int[]{version}, graphInts, graphChars
+        chars, type, interval, new int[]{Languages.getType(language()), version}, graphInts, graphChars
     );
   }
 
@@ -458,7 +458,7 @@ public class Model {
             JavaProxy.PARSE_VIEWPORT,
             document.getChars(), vpInts,
             document.getIntervals(),
-            new int[]{document.currentVersion}
+            new int[]{Languages.getType(language()), document.currentVersion}
         );
       }
     }
