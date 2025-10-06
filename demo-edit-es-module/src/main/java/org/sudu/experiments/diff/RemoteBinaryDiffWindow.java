@@ -3,7 +3,9 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.js.JsArray;
+import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.protocol.JsCast;
+import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.window.WindowManager;
 import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.teavm.jso.JSObject;
@@ -28,6 +30,11 @@ public class RemoteBinaryDiffWindow extends BinaryDiffWindow {
 
   public void setOnRefresh(Runnable onRefresh) {
     this.onRefresh = onRefresh;
+  }
+
+  @Override
+  protected Supplier<ToolbarItem[]> popupActions(V2i pos) {
+    return null;
   }
 
   private void navigate(boolean next) {

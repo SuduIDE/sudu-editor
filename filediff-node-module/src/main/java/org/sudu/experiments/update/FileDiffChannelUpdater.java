@@ -152,7 +152,7 @@ public class FileDiffChannelUpdater {
   public void fetchSize(JsArray<JSObject> jsArray) {
     boolean left = JsCast.ints(jsArray, 0)[0] == 1;
     var handle = left ? leftHandle : rightHandle;
-    FsWorkerJobs.asyncStats(executor, handle, sz -> sendFetchSize(true, sz.size), this::onError);
+    FsWorkerJobs.asyncStats(executor, handle, sz -> sendFetchSize(left, sz.size), this::onError);
   }
 
   public void navigate(JsArray<JSObject> jsArray) {
