@@ -268,7 +268,7 @@ public class FolderDiffModel {
   }
 
   public void updateItemOnDelete() {
-    if (children == null || children.length == 0) return;
+    if (children == null) return;
     boolean deletedOnly = true;
     boolean insertedOnly = true;
     boolean haveChanges = false;
@@ -278,7 +278,7 @@ public class FolderDiffModel {
       insertedOnly &= diffType == DiffTypes.INSERTED;
       haveChanges |= diffType != DiffTypes.DEFAULT;
     }
-    if (deletedOnly || insertedOnly) return;
+    if (children.length != 0 && (deletedOnly || insertedOnly)) return;
     setDiffType(haveChanges ? DiffTypes.EDITED : DiffTypes.DEFAULT);
     if (parent != null) parent.updateItem();
   }

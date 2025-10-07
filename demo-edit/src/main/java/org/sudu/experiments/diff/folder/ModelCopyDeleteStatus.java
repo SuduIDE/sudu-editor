@@ -23,6 +23,7 @@ public class ModelCopyDeleteStatus {
   final boolean syncExcluded; // true -> copy excluded items (for files only now, wip for folders)
 
   final IdentityHashMap<ItemFolderDiffModel, Integer> markedForDelete;
+  private Consumer<String> trace;
 
   long lastSendStatusTime = System.currentTimeMillis();
 
@@ -84,7 +85,6 @@ public class ModelCopyDeleteStatus {
     model.deleteItem();
     var parent = model.parent();
     if (parent == null) return;
-    parent.updateItemOnDelete();
     if (!marked(parent)) return;
     int count = markedForDelete.get(parent) - 1;
     markedForDelete.put(parent, count);
@@ -142,6 +142,19 @@ public class ModelCopyDeleteStatus {
 
   public void setOnComplete(Runnable onComplete) {
     this.onComplete = onComplete;
+  }
+
+  public void setTrace(Consumer<String> trace) {
+    this.trace = trace;
+  }
+
+  public void trace(String msg) {
+    if (trace != null) {
+      trace.accept(String.format(
+          "%s, inWork = %d, inTraverse = %d, markedForDelete.size = %d",
+          msg, inWork, inTraverse, markedForDelete.size())
+      );
+    }
   }
 
   public int copiedFiles() {

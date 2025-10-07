@@ -47,7 +47,6 @@ public class RemoteCollector {
   private static final double SEND_FIRST_MSG_MS = 500;
   private static final double SEND_MSG_MS = 2000;
 
-  private int inComparing = 0;
   private int sentToWorker = 0;
 
   private int foldersCompared = 0, filesCompared;
@@ -76,6 +75,23 @@ public class RemoteCollector {
   private String leftExclude;
   private String rightExclude;
 
+  private final Counter counter;
+
+  private static class Counter {
+    public int inComparing;
+    public Runnable onComplete;
+    public Runnable sendMessage;
+
+    public Counter(Runnable onComplete, Runnable sendMessage) {
+      this.onComplete = onComplete;
+      this.sendMessage = sendMessage;
+    }
+
+    public void inc() {
+      ++inComparing;
+    }
+  }
+
   public RemoteCollector(
       ItemFolderDiffModel root,
       boolean scanFileContent,
@@ -89,6 +105,7 @@ public class RemoteCollector {
     this.startTime = this.lastMessageSentTime = Performance.now();
     this.leftExclude = leftExclude;
     this.rightExclude = rightExclude;
+    counter = new Counter(this::sendCompareMessage, this::sendFrontendMessage);
     if (leftExclude == rightExclude) {
       exclude = new ExcludeList(leftExclude);
     } else {
@@ -103,7 +120,7 @@ public class RemoteCollector {
     String beginMsg = "Begin comparing " + leftHandle().getName() +
         " ↔ " + rightHandle().getName();
     LoggingJs.info(beginMsg);
-    compare(root, false, this::sendCompareMessage, this::sendFrontendMessage);
+    compare(root, false, counter);
   }
 
   public void refresh() {
@@ -198,11 +215,12 @@ public class RemoteCollector {
         executor,
         this::sendStatus,
         this::onError,
-        (m, r) -> readFolder(m, r, () -> {}),
-        (m, r) -> compare(m, true, r, () -> {}),
+        (m, r) -> read(m, true, new Counter(r, () -> {})),
+        (m, r) -> compare(m, true, new Counter(r, () -> {})),
         syncOrphans,
         syncExcluded
     );
+    status.setTrace(LoggingJs::trace);
     Runnable updateModel = () -> {
       LoggingJs.info("RemoteCollector.applyDiff.updateModel");
       if (isDeleteDiff) {
@@ -332,8 +350,7 @@ public class RemoteCollector {
   private void compare(
       ItemFolderDiffModel model,
       boolean scanExcluded,
-      Runnable onCompared,
-      Runnable sendMessage
+      Counter cnt
   ) {
     if (!scanExcluded && model.isExcluded()) {
       if (model.parent != null && model.parent.children.length == 1) {
@@ -344,13 +361,13 @@ public class RemoteCollector {
         return;
       }
     }
-    ++inComparing;
+    cnt.inc();
     if (model.left() instanceof DirectoryHandle leftDir &&
         model.right() instanceof DirectoryHandle rightDir
-    ) compareFolders(model, leftDir, rightDir, scanExcluded, onCompared, sendMessage);
+    ) compareFolders(model, leftDir, rightDir, scanExcluded, cnt);
     else if (model.left() instanceof FileHandle leftFile
         && model.right() instanceof FileHandle rightFile
-    ) compareFiles(model, leftFile, rightFile, onCompared, sendMessage);
+    ) compareFiles(model, leftFile, rightFile, cnt);
     else throw new IllegalArgumentException();
   }
 
@@ -359,12 +376,11 @@ public class RemoteCollector {
       DirectoryHandle leftDir,
       DirectoryHandle rightDir,
       boolean scanExcluded,
-      Runnable onCompared,
-      Runnable sendMessage
+      Counter cnt
   ) {
     LoggingJs.trace("Comparing folders " + model.path);
     Runnable task = () -> executor.sendToWorker(
-        result -> onFoldersCompared(model, scanExcluded, onCompared, sendMessage, result),
+        result -> onFoldersCompared(model, scanExcluded, cnt, result),
         DiffUtils.CMP_FOLDERS,
         leftDir, rightDir
     );
@@ -375,8 +391,7 @@ public class RemoteCollector {
   private void onFoldersCompared(
       ItemFolderDiffModel model,
       boolean scanExcluded,
-      Runnable onCompared,
-      Runnable sendMessage,
+      Counter cnt,
       Object[] result
   ) {
     LoggingJs.trace("Compared folders " + model.path);
@@ -415,7 +430,7 @@ public class RemoteCollector {
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.DELETED);
         model.child(mP).setItem(leftItem[lP]);
-        read(model.child(mP), onCompared, sendMessage);
+        read(model.child(mP), scanExcluded, cnt);
         mP++;
         lP++;
       } else if (diffs[mP] == DiffTypes.INSERTED) {
@@ -425,7 +440,7 @@ public class RemoteCollector {
         model.child(mP).setItemKind(kind);
         model.child(mP).setDiffType(DiffTypes.INSERTED);
         model.child(mP).setItem(rightItem[rP]);
-        read(model.child(mP), onCompared, sendMessage);
+        read(model.child(mP), scanExcluded, cnt);
         mP++;
         rP++;
       } else {
@@ -433,7 +448,7 @@ public class RemoteCollector {
         model.child(mP).posInParent = mP;
         model.child(mP).setItemKind(kind);
         model.child(mP).setItems(leftItem[lP], rightItem[rP]);
-        compare(model.child(mP), scanExcluded, onCompared, sendMessage);
+        compare(model.child(mP), scanExcluded, cnt);
         mP++;
         lP++;
         rP++;
@@ -441,15 +456,14 @@ public class RemoteCollector {
     }
     if (len == 0) model.itemCompared();
     if (edited) model.markUpDiffType(DiffTypes.EDITED);
-    onItemCompared(onCompared, sendMessage);
+    onItemCompared(cnt);
   }
 
   private void compareFiles(
       ItemFolderDiffModel model,
       FileHandle leftFile,
       FileHandle rightFile,
-      Runnable onCompared,
-      Runnable sendMessage
+      Counter cnt
   ) {
     LoggingJs.trace("Comparing files " + model.path);
     if (scanFileContent) {
@@ -458,13 +472,13 @@ public class RemoteCollector {
           (size1, size2, diffPos, error) ->
               onFilesCompared(model,
                   FileCompare.filesEquals(size1, size2, diffPos),
-                  error, onCompared, sendMessage));
+                  error, cnt));
       sendToWorkerQueue.addLast(task);
       sendTaskToWorker();
     } else {
       SizeScanner.scan(executor, leftFile, rightFile,
           (double sizeL, double sizeR, String error) ->
-              onFilesCompared(model, sizeL == sizeR, error, onCompared, sendMessage)
+              onFilesCompared(model, sizeL == sizeR, error, cnt)
       );
     }
   }
@@ -473,8 +487,7 @@ public class RemoteCollector {
       ItemFolderDiffModel model,
       boolean equals,
       String message,
-      Runnable onCompared,
-      Runnable sendMessage
+      Counter cnt
   ) {
     LoggingJs.trace("Compared files " + model.path);
     if (message != null)
@@ -486,15 +499,15 @@ public class RemoteCollector {
       model.markUpDiffType(DiffTypes.EDITED);
     }
     model.itemCompared();
-    onItemCompared(onCompared, sendMessage);
+    onItemCompared(cnt);
   }
 
   private void read(
       ItemFolderDiffModel model,
-      Runnable onCompared,
-      Runnable sendMessage
+      boolean scanExcluded,
+      Counter cnt
   ) {
-    if (model.isExcluded()) {
+    if (!scanExcluded && model.isExcluded()) {
       if (model.parent != null && model.parent.children.length == 1) {
         model.setSendExcluded(true);
       } else if (!model.isSendExcluded()) {
@@ -505,8 +518,8 @@ public class RemoteCollector {
     }
     if (model.isDir()) {
       BiConsumer<ItemFolderDiffModel, Object[]> onFolderRead =
-          (m, r) -> onFolderRead(m, onCompared, sendMessage, r);
-      readFolder(model, onFolderRead);
+          (m, r) -> onFolderRead(m, cnt, r);
+      readFolder(model, onFolderRead, cnt);
     } else {
       if (model.getDiffType() == DiffTypes.INSERTED) {
         filesInserted++;
@@ -521,20 +534,15 @@ public class RemoteCollector {
 
   private void readFolder(
       ItemFolderDiffModel model,
-      Runnable onCompared,
-      Runnable sendMessage
+      BiConsumer<ItemFolderDiffModel, Object[]> onFolderRead,
+      Counter cnt
   ) {
-    BiConsumer<ItemFolderDiffModel, Object[]> onFolderRead = (m, r) ->
-        onFolderRead(m, onCompared, sendMessage, r);
-    readFolder(model, onFolderRead);
-  }
-
-  private void readFolder(ItemFolderDiffModel model, BiConsumer<ItemFolderDiffModel, Object[]> onFolderRead) {
     if (!(model.item() instanceof DirectoryHandle dirHandle)) {
       LoggingJs.error(String.format("Can't readFolder: %s isn't a folder", model.path));
       return;
     }
-    ++inComparing;
+    LoggingJs.trace("RemoteCollector.readFolder: folder = " + dirHandle.getFullPath());
+    ++cnt.inComparing;
     Runnable task = () -> executor.sendToWorker(
         result -> onFolderRead.accept(model, result),
         DiffUtils.READ_FOLDER,
@@ -546,10 +554,10 @@ public class RemoteCollector {
 
   private void onFolderRead(
       ItemFolderDiffModel model,
-      Runnable onCompared,
-      Runnable sendMessage,
+      Counter cnt,
       Object[] result
   ) {
+    LoggingJs.trace("RemoteCollector.readFolder: onFolderRead = " + model.item().getFullPath());
     int[] ints = ArgsCast.intArray(result, 0);
     if (isErrorInts(ints)) {
       String error = ArgsCast.string(result, 1);
@@ -573,7 +581,7 @@ public class RemoteCollector {
     var updModel = ItemFolderDiffModel.fromInts(ints, paths, fsItems);
     model.update(updModel);
     checkExcludeModelChildren(model);
-    onItemCompared(onCompared, sendMessage);
+    onItemCompared(cnt);
   }
 
   private void checkExcludeModelChildren(RemoteFolderDiffModel model) {
@@ -601,19 +609,20 @@ public class RemoteCollector {
     }
   }
 
-  private void onItemCompared(Runnable onComplete, Runnable sendMessage) {
-    if (--inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
+  private void onItemCompared(Counter cnt) {
+    LoggingJs.trace("onItemCompared: inComparing = " + cnt.inComparing);
+    if (--cnt.inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
     if (--sentToWorker < 0) throw new IllegalStateException("sentToWorker cannot be negative");
     if (isShutdown) shutdown();
-    else if (inComparing == 0) {
-      onComplete.run();
+    else if (cnt.inComparing == 0) {
+      cnt.onComplete.run();
     } else {
       sendTaskToWorker();
       if (sendResult == null || lastMessageSent) return;
       double time = firstMessageSent
           ? RemoteCollector.SEND_MSG_MS
           : RemoteCollector.SEND_FIRST_MSG_MS;
-      if (getTimeDelta() >= time) sendMessage.run();
+      if (getTimeDelta() >= time) cnt.sendMessage.run();
     }
   }
 
@@ -682,7 +691,7 @@ public class RemoteCollector {
   }
 
   private void send(Consumer<JsArray<JSObject>> send, FrontendMessage message, Int32Array msgType) {
-    LoggingJs.debug("inComparing: " + inComparing);
+//    LoggingJs.debug("inComparing: " + inComparing);
     if (isRefresh) {
       isRefresh = false;
       var fullMsg = serializeBackendMessage(root, message);
@@ -715,8 +724,8 @@ public class RemoteCollector {
     if (model == null) return;
     if (model.isExcluded() && !model.isSendExcluded()) {
       model.setSendExcluded(true);
-      if (model.isBoth()) compare(model, false, this::sendCompareMessage, this::sendFrontendMessage);
-      else read(model, this::sendCompareMessage, this::sendFrontendMessage);
+      if (model.isBoth()) compare(model, false, counter);
+      else read(model, false, counter);
     }
     if (model.children == null || frontendNode == null || frontendNode.children == null) return;
     for (int i = 0; i < model.children.length; i++) {
