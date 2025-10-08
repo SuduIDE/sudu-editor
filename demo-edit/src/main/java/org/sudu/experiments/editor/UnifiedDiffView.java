@@ -1,8 +1,12 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.Debug;
+import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.worker.diff.DiffInfo;
+import org.sudu.experiments.editor.worker.diff.DiffRange;
+import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ScrollBar;
@@ -11,13 +15,20 @@ import org.sudu.experiments.ui.window.View;
 
 import java.util.Objects;
 
-public class InlineDiffView extends View implements Focusable
+public class UnifiedDiffView extends View implements Focusable
 {
+  static final boolean drawLineNumbersFrame = false;
+
   final UiContext context;
   final ClrContext lrContext;
   final Caret caret = new Caret();
   final ScrollBar vScroll = new ScrollBar();
   final ScrollBar hScroll = new ScrollBar();
+
+  final LineNumbersComponent lineNumbers1 = new LineNumbersComponent();
+  final LineNumbersComponent lineNumbers2 = new LineNumbersComponent();
+
+  WglGraphics g;
   EditorColorScheme colors;
   CodeLineColorScheme codeLineColors;
   float fontVirtualSize = EditorConst.DEFAULT_FONT_SIZE;
@@ -28,9 +39,16 @@ public class InlineDiffView extends View implements Focusable
   CodeLineRenderer[] lines = new CodeLineRenderer[0];
   int firstLineRendered, lastLineRendered;
 
-  public InlineDiffView(UiContext uiContext) {
+  // model data
+  Model model1 = new Model(), model2 = model1;
+  DiffInfo diffInfo;
+  int[] docLines;
+  boolean[] docIndex;
+
+  public UnifiedDiffView(UiContext uiContext) {
     context = uiContext;
     lrContext = new ClrContext(uiContext.cleartype);
+    g = context.graphics;
   }
 
   public void setTheme(EditorColorScheme theme) {
@@ -44,12 +62,6 @@ public class InlineDiffView extends View implements Focusable
     }
 //    if (codeMap != null)
 //      buildDiffMap();
-  }
-
-
-  @Override
-  public boolean onKeyPress(KeyEvent event) {
-    return false;
   }
 
   public void changeFont(String name, float virtualSize) {
@@ -69,15 +81,16 @@ public class InlineDiffView extends View implements Focusable
       lineNumbers2.dispose();
       invalidateFont();
       setFont(name, newPixelFontSize);
-      recomputeCaretPosY();
+//      recomputeCaretPosY();
       updateLineNumbersFont();
       internalLayout();
-      adjustEditorScrollToCaret();
+//      adjustEditorScrollToCaret();
     }
   }
 
   private void updateLineNumbersFont() {
-    lineNumbers.setFont(lrContext.font, lrContext.lineHeight, context.cleartype);
+    lineNumbers1.setFont(lrContext);
+    lineNumbers2.setFont(lrContext);
   }
 
   private void invalidateFont() {
@@ -104,4 +117,51 @@ public class InlineDiffView extends View implements Focusable
     }
   }
 
+  @Override
+  protected void onTextRenderingSettingsChange() {
+    lrContext.enableCleartype(context.cleartype, g);
+    CodeLineRenderer.makeContentDirty(lines);
+    lineNumbers1.dispose();
+    lineNumbers2.dispose();
+    updateLineNumbersFont();
+  }
+
+  private void internalLayout() {
+  }
+
+  @Override
+  public boolean onKeyPress(KeyEvent event) {
+    return false;
+  }
+
+  public void setModel(Model model, int index) {
+    docLines = null;
+    docIndex = null;
+    if (index == 0) model1 = model; else model2 = model;
+    if (!model1.document.isEmpty() && !model2.document.isEmpty()) {
+      DiffUtils.findDiffs(model1.document, model2.document, true,
+          new int[0], new int[0], this::onDiffs, context.window.worker());
+    }
+  }
+
+  private void buildDocIndex() {
+    DiffRange[] ranges = diffInfo.ranges;
+    int size = UnifiedDiffOp.unifiedSize(ranges);
+    docLines = new int[size];
+    docIndex = new boolean[size];
+    UnifiedDiffOp.buildDocIndex(ranges, docLines, docIndex);
+  }
+
+  private void onDiffs(DiffInfo di, int[] versions) {
+    if (versions[0] == model1.document.version()
+        && versions[1] == model2.document.version()
+    ) {
+      diffInfo = di;
+      buildDocIndex();
+    } else {
+      System.out.println("onDiffs: version mismatch: doc1.v = " + model1.document.version() +
+          ", got version " + versions[0] + ", doc2.v = " + model2.document.version() +
+          ", got version" + versions[1]);
+    }
+  }
 }

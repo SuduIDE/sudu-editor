@@ -8,17 +8,18 @@ import java.util.function.Function;
 
 public interface SplitText {
 
-  static SplitInfo split(
-      int length,
-      Function<Integer, Character> charAt
-  ) {
+  abstract class Source {
+    abstract char charAt(int index);
+  }
+
+  static SplitInfo split(int length, Source source) {
     String[] lines = new String[8];
     byte[] lineSeparators = new byte[8];
     char[] buffer = new char[16];
     int column = 0, line = 0;
 
     for (int i = 0; i <= length; ++i) {
-      char codeAt = i < length ? charAt.apply(i) : '\n';
+      char codeAt = i < length ? source.charAt(i) : '\n';
 
       if (codeAt == '\n') {
         String value = new String(buffer, 0, column);
@@ -29,7 +30,7 @@ public interface SplitText {
       } else if (codeAt == '\r') {
         String value = new String(buffer, 0, column);
         lines = ArrayOp.addAt(value, lines, line);
-        if (i + 1 < length && charAt.apply(i + 1) == '\n') {
+        if (i + 1 < length && source.charAt(i + 1) == '\n') {
           i++;
           lineSeparators = ArrayOp.addAt(SplitInfo.CRLF, lineSeparators, line);
         } else {
@@ -55,6 +56,18 @@ public interface SplitText {
   }
 
   static SplitInfo splitInfo(String source) {
-    return split(source.length(), source::charAt);
+    return split(source.length(), new Source() {
+      char charAt(int index) {
+        return source.charAt(index);
+      }
+    });
+  }
+
+  static SplitInfo splitInfo(char[] source) {
+    return split(source.length, new Source() {
+      char charAt(int index) {
+        return source[index];
+      }
+    });
   }
 }

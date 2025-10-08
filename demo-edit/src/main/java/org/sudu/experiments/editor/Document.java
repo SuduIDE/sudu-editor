@@ -45,6 +45,10 @@ public class Document extends CodeLines {
     tree = initialInterval();
   }
 
+  public boolean isEmpty() {
+    return document.length == 1 && document[0].totalStrLength == 0;
+  }
+
   private IntervalTree initialInterval() {
     return IntervalTree.singleInterval(0, getFullLength(), 0);
   }

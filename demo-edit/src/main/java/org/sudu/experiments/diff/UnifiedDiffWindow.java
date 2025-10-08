@@ -2,38 +2,43 @@ package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.SplitInfo;
+import org.sudu.experiments.editor.UnifiedDiffView;
+import org.sudu.experiments.editor.Model;
+import org.sudu.experiments.editor.Uri;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.ui.Focusable;
 import org.sudu.experiments.ui.ToolWindow0;
 import org.sudu.experiments.ui.ToolbarItem;
-import org.sudu.experiments.ui.window.ScrollView;
 import org.sudu.experiments.ui.window.Window;
 import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Supplier;
 
-public class InlineDiffWindow extends ToolWindow0
+public class UnifiedDiffWindow extends ToolWindow0
     implements Focusable
 {
-  BinaryDiffView rootView;
+  UnifiedDiffView rootView;
   Window window;
   Focusable focusSave;
   boolean processEsc = true;
 
-  public InlineDiffWindow(
+  public UnifiedDiffWindow(
       WindowManager wm,
       EditorColorScheme theme,
       Supplier<String[]> fonts
   ) {
     super(wm, theme, fonts);
-    rootView = new BinaryDiffView(wm.uiContext);
+    rootView = new UnifiedDiffView(wm.uiContext);
     rootView.setTheme(theme);
-    var scrollView = new ScrollView(rootView);
-    window = createWindow(scrollView, 30);
+//    var scrollView = new ScrollView(rootView);
+    window = createWindow(rootView, 40);
     window.onFocus(this::onFocus);
     window.onBlur(this::onBlur);
     windowManager.addWindow(window);
@@ -68,10 +73,14 @@ public class InlineDiffWindow extends ToolWindow0
   public void open(FileHandle f, boolean left) {
     Debug.consoleInfo("opening file " + f.getName());
     var uiContext = windowManager.uiContext;
-    var worker = uiContext.window.worker();
 
-    var source = new BinFileDataSource(f, worker);
-    rootView.setData(source, uiContext.repaint, left);
+    FsWorkerJobs.readTextFile(uiContext.window.worker(), f,
+        (text, encoding) -> {
+          SplitInfo splitInfo = SplitText.splitInfo(text);
+          var model = new Model(splitInfo.lines, new Uri(f.getFullPath()));
+          model.setEncoding(encoding);
+          rootView.setModel(model, left ? 0 : 1);
+        }, System.err::println);
   }
 
   protected void dispose() {

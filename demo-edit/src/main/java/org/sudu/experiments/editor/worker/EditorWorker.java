@@ -63,6 +63,7 @@ public class EditorWorker {
       case FileCompare.asyncCompareFiles -> FileCompare.asyncCompareFiles(a, r);
       case SizeScanner.asyncSizeScanner -> SizeScanner.asyncSizeScanner(a, r);
       case FsWorkerJobs.asyncStats -> FsWorkerJobs.asyncStats(a, r);
+      case FsWorkerJobs.asyncReadTextFile -> FsWorkerJobs.asyncReadTextFile(a, r);
       case FsWorkerJobs.asyncReadBinFile -> FsWorkerJobs.asyncReadBinFile(a, r);
       default -> System.err.println("Unknown method: " + method);
     }

@@ -251,12 +251,7 @@ public class DiffUtils {
     int[] ints = new int[] {cmpOnlyLines ? 1 : 0, document1.version(), document2.version()};
 
     window.sendToWorker(true,
-        r -> {
-          int[] reply = ArgsCast.intArray(r, 0);
-          int[] versions = ArgsCast.intArray(r, 1);
-          DiffInfo model = readDiffInfo(reply);
-          result.accept(model, versions);
-        }, FIND_DIFFS,
+        fdResult(result), FIND_DIFFS,
         chars1, intervals1,
         chars2, intervals2,
         syncL, syncR,
@@ -280,17 +275,21 @@ public class DiffUtils {
     int[] ints = {0, document1.version(), document2.version()};
 
     window.sendToWorker(true,
-        r -> {
-          int[] reply = ArgsCast.intArray(r, 0);
-          int[] versions = ArgsCast.intArray(r, 1);
-          DiffInfo model = readDiffInfo(reply);
-          result.accept(model, versions);
-        }, FIND_DIFFS,
+        fdResult(result), FIND_DIFFS,
         chars1, intervals1,
         chars2, intervals2,
         syncL, syncR,
         ints
     );
+  }
+
+  private static Consumer<Object[]> fdResult(BiConsumer<DiffInfo, int[]> result) {
+    return r -> {
+      int[] reply = ArgsCast.intArray(r, 0);
+      int[] versions = ArgsCast.intArray(r, 1);
+      DiffInfo model = readDiffInfo(reply);
+      result.accept(model, versions);
+    };
   }
 
   public static final String asyncListDirectory = "asyncListDirectory";
