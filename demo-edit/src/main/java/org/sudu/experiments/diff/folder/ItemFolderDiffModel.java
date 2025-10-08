@@ -258,7 +258,8 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   public void copy(boolean left, ModelCopyDeleteStatus status) {
     status.inTraverse++;
     boolean syncExcluded = status.syncExcluded && (isExcluded() || (isDir() && containExcluded()));
-    if (!(syncExcluded || getDiffType() != DiffTypes.DEFAULT)) {
+    boolean haveDiff = !isExcluded() && getDiffType() != DiffTypes.DEFAULT;
+    if (!(syncExcluded || haveDiff)) {
       status.onTraversed();
       return;
     }

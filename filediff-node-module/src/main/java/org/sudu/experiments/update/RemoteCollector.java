@@ -610,7 +610,6 @@ public class RemoteCollector {
   }
 
   private void onItemCompared(Counter cnt) {
-    LoggingJs.trace("onItemCompared: inComparing = " + cnt.inComparing);
     if (--cnt.inComparing < 0) throw new IllegalStateException("inComparing cannot be negative");
     if (--sentToWorker < 0) throw new IllegalStateException("sentToWorker cannot be negative");
     if (isShutdown) shutdown();
