@@ -11,6 +11,7 @@ class FileDiffSync extends FileCompareSync {
   final int bytesPerLine;
   final boolean findNext;
   boolean skipDiff;
+  double filePos;
 
   FileDiffSync(
       Consumer<Object[]> r,
@@ -32,22 +33,27 @@ class FileDiffSync extends FileCompareSync {
   }
 
   @Override
+  protected void sendResult(double lSize, double rSize, double diffPos) {
+    NextDiffTask.send(result, lSize, rSize, diffPos, filePos, skipDiff);
+  }
+
+  @Override
   protected double compare(double lSize, double rSize) {
     return findNext ? findNextDiff(lSize, rSize) : findPrevDiff(lSize, rSize);
   }
 
   private double findNextDiff(double lSize, double rSize) {
     double size = Math.min(lSize, rSize);
-    double sizeLimit = Math.min(size, FileCompare.maxToRead);
+    double sizeLimit = Math.min(size, address + FileCompare.maxToRead);
     int bufferSize = (int) Math.min(sizeLimit, maxArraySize);
     byte[] leftText = new byte[bufferSize];
     byte[] rightText = new byte[bufferSize];
-    double pos = address;
-    while (pos < sizeLimit) {
+    filePos = address;
+    while (filePos < sizeLimit) {
       int lRead, rRead;
       try {
-        lRead = left.read(leftText, pos);
-        rRead = right.read(rightText, pos);
+        lRead = left.read(leftText, filePos);
+        rRead = right.read(rightText, filePos);
       } catch (IOException e) {
         error = "findNextDiff: error reading file: " + e.getMessage();
         return -1;
@@ -58,13 +64,13 @@ class FileDiffSync extends FileCompareSync {
         int to = Math.min(i + bytesPerLine, read);
         int diffPos = FileCompare.cmpArrays(leftText, rightText, i, to);
         if (diffPos >= 0) {
-          if (!skipDiff) return pos + i + diffPos;
+          if (!skipDiff) return filePos + i + diffPos;
         } else skipDiff = false;
         i += bytesPerLine;
       }
-      pos += read;
+      filePos += read;
     }
-    return lSize == rSize || skipDiff ? -1 : size;
+    return filePos >= size && lSize != rSize && !skipDiff ? size : -1;
   }
 
   private double findPrevDiff(double lSize, double rSize) {
@@ -73,13 +79,13 @@ class FileDiffSync extends FileCompareSync {
     int bufferSize = (int) Math.min(Math.min(address, size), maxArraySize);
     byte[] leftText = new byte[bufferSize];
     byte[] rightText = new byte[bufferSize];
-    double pos = Math.max(0, address - bufferSize);
+    filePos = Math.max(0, address - bufferSize);
     double lastDiffPos = -1;
-    while (pos >= posLimit) {
+    while (filePos >= posLimit) {
       int lRead, rRead;
       try {
-        lRead = left.read(leftText, pos);
-        rRead = right.read(rightText, pos);
+        lRead = left.read(leftText, filePos);
+        rRead = right.read(rightText, filePos);
       } catch (IOException e) {
         error = "findPrevDiff: error reading file: " + e.getMessage();
         return -1;
@@ -90,14 +96,14 @@ class FileDiffSync extends FileCompareSync {
         int from = i - bytesPerLine;
         int diffPos = FileCompare.cmpArrays(leftText, rightText, from, i);
         if (diffPos >= 0) {
-          lastDiffPos = Math.max(pos + i + diffPos - bytesPerLine, 0);
+          lastDiffPos = Math.max(filePos + i + diffPos - bytesPerLine, 0);
         } else if (lastDiffPos != -1) {
           return lastDiffPos;
         }
         i -= bytesPerLine;
       }
-      if (pos <= posLimit) break;
-      pos = Math.max(posLimit, pos - bufferSize);
+      if (filePos <= posLimit) break;
+      filePos = Math.max(posLimit, filePos - bufferSize);
     }
     return lastDiffPos;
   }

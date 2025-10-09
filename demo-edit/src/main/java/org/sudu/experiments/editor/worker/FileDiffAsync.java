@@ -58,23 +58,24 @@ class FileDiffAsync extends FileCompareAsync {
       int diffPos = FileCompare.cmpArrays(leftText, rightText, i, to);
       if (diffPos >= 0) {
         if (!skipDiff) {
-          FileCompare.send(result, leftSize, rightSize, filePos + i + diffPos);
+          NextDiffTask.send(result, leftSize, rightSize, filePos + i + diffPos, filePos, false);
           return;
         }
       } else skipDiff = false;
       i += bytesPerLine;
     }
-    double sizeLimit = Math.min(Math.min(leftSize, rightSize), FileCompare.maxToRead);
+    double size = Math.min(leftSize, rightSize);
+    double sizeLimit = Math.min(size, address + FileCompare.maxToRead);
     boolean eof = filePos >= sizeLimit;
     leftText = null;
     rightText = null;
     if (eof) {
-      double diffPos = leftSize == rightSize || skipDiff ? -1 : Math.min(leftSize, rightSize);
-      FileCompare.send(result, leftSize, rightSize, diffPos);
+      double diffPos = filePos >= size && leftSize != rightSize && !skipDiff ? size : -1;
+      NextDiffTask.send(result, leftSize, rightSize, diffPos, filePos, skipDiff);
     } else {
       if (readLength * 4 <= maxArraySize) readLength *= 4;
       filePos += read;
-      if (filePos - address + readLength > FileCompare.maxToRead)
+      if (filePos + readLength > address + FileCompare.maxToRead)
         readLength = (int) (FileCompare.maxToRead - filePos);
       nextRequest();
     }
@@ -88,7 +89,7 @@ class FileDiffAsync extends FileCompareAsync {
       if (diffPos >= 0) {
         lastDiffPos = Math.max(filePos + i + diffPos - bytesPerLine, 0);
       } else if (lastDiffPos != -1) {
-        FileCompare.send(result, leftSize, rightSize, lastDiffPos);
+        NextDiffTask.send(result, leftSize, rightSize, lastDiffPos, filePos, skipDiff);
         return;
       }
       i -= bytesPerLine;
@@ -98,7 +99,7 @@ class FileDiffAsync extends FileCompareAsync {
     rightText = null;
     boolean eof = filePos <= posLimit;
     if (eof) {
-      FileCompare.send(result, leftSize, rightSize, lastDiffPos);
+      NextDiffTask.send(result, leftSize, rightSize, lastDiffPos, filePos, skipDiff);
     } else {
       double oldFilePos = filePos;
       if (readLength * 4 <= maxArraySize) readLength *= 4;

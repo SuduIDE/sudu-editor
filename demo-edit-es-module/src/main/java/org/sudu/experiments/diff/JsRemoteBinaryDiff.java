@@ -13,7 +13,7 @@ import java.util.function.Function;
 public class JsRemoteBinaryDiff implements JsRemoteBinaryDiffView {
 
   public final WebWindow window;
-  private BinaryDiffWindow w;
+  private RemoteBinaryDiffWindow w;
   private JsBinaryDiffViewController controller;
 
   public JsRemoteBinaryDiff(
@@ -97,7 +97,7 @@ public class JsRemoteBinaryDiff implements JsRemoteBinaryDiffView {
 
   @Override
   public void setNotificationsProvider(JsNotificationsProvider p) {
-
+    this.w.setNotificationsProvider(p);
   }
 
   @Override

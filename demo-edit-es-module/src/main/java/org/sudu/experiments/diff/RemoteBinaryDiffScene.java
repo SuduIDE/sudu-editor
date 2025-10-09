@@ -12,6 +12,7 @@ import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.protocol.RemoteDataSource;
 import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSString;
 
 public class RemoteBinaryDiffScene extends WindowScene {
 
@@ -53,6 +54,7 @@ public class RemoteBinaryDiffScene extends WindowScene {
       case FileDiffChannelUpdater.BIN_FETCH_SIZE -> onSizeFetched(m);
       case FileDiffChannelUpdater.BIN_NAVIGATE -> onNavigate(m);
       case FileDiffChannelUpdater.BIN_CAN_NAVIGATE -> onCanNavigate(m);
+      case FileDiffChannelUpdater.NOTIFY -> onNotification(m);
     }
   }
 
@@ -79,6 +81,11 @@ public class RemoteBinaryDiffScene extends WindowScene {
 
   private void onCanNavigate(JsArray<JSObject> m) {
 
+  }
+
+  private void onNotification(JsArray<JSObject> m) {
+    JSString notification = JsCast.jsString(m, 0);
+    w.onNotification(notification);
   }
 
   private void onRefresh() {

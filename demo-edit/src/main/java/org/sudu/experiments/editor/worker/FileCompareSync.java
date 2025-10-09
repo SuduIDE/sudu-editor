@@ -65,8 +65,12 @@ class FileCompareSync {
     if (error != null) {
       FileCompare.send(result, error);
     } else {
-      FileCompare.send(result, lSize, rSize, diffPos);
+      sendResult(lSize, rSize, diffPos);
     }
+  }
+
+  protected void sendResult(double lSize, double rSize, double diffPos) {
+    FileCompare.send(result, lSize, rSize, diffPos);
   }
 
   private void closeAll(boolean emitError) {

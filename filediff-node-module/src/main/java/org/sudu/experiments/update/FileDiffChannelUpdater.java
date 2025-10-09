@@ -5,6 +5,7 @@ import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.editor.worker.FileCompare;
 import org.sudu.experiments.editor.worker.FsWorkerJobs;
+import org.sudu.experiments.editor.worker.NextDiffTask;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.TextDecoder;
@@ -21,7 +22,7 @@ public class FileDiffChannelUpdater {
   static final boolean debug = false;
 
   private FileHandle leftHandle, rightHandle;
-  private WorkerJobExecutor executor;
+  private final WorkerJobExecutor executor;
   private final Channel channel;
   private final DiffModelChannelUpdater updater;
 
@@ -32,6 +33,7 @@ public class FileDiffChannelUpdater {
   public final static int ERROR = 4;
   public final static int BIN_NAVIGATE = 5;
   public final static int BIN_CAN_NAVIGATE = 6;
+  public final static int NOTIFY = 7;
   public final static Int32Array FILE_READ_ARRAY = JsCast.jsInts(FILE_READ);
   public final static Int32Array FILE_SAVE_ARRAY = JsCast.jsInts(FILE_SAVE);
   public final static Int32Array FETCH_ARRAY = JsCast.jsInts(BIN_FETCH);
@@ -39,6 +41,7 @@ public class FileDiffChannelUpdater {
   public final static Int32Array ERROR_ARRAY = JsCast.jsInts(ERROR);
   public final static Int32Array BIN_NAVIGATE_ARRAY = JsCast.jsInts(BIN_NAVIGATE);
   public final static Int32Array BIN_CAN_NAVIGATE_ARRAY = JsCast.jsInts(BIN_CAN_NAVIGATE);
+  public final static Int32Array NOTIFY_ARRAY = JsCast.jsInts(NOTIFY);
 
   public FileDiffChannelUpdater(
       Channel channel,
@@ -165,19 +168,23 @@ public class FileDiffChannelUpdater {
         + ", skipDiff = " + skipDiff
         + ", findNext = " + findNext
     );
-    FileCompare.findNextDiff(executor,
+    new NextDiffTask(executor,
         leftHandle, rightHandle,
         address, bytesPerLine,
         skipDiff, findNext,
+        this::sendNotification,
         this::onNavigate
     );
   }
 
   public void canNavigate(JsArray<JSObject> jsArray) {
-    int[] ints = JsCast.ints(jsArray, 0);
-    int firstLine = ints[0], chunkSize = ints[1], bytesPerLine = ints[2];
-    double address = JsCast.doubles(jsArray, 1)[0];
-    boolean isDiff = ints[3] == 1;
+  }
+
+  public void sendNotification(String msg) {
+    JsArray<JSObject> jsArray = JsArray.create();
+    jsArray.set(0, JSString.valueOf(msg));
+    jsArray.push(NOTIFY_ARRAY);
+    channel.sendMessage(jsArray);
   }
 
   public void onNavigate(double lSz, double rSz, double dPos, String err) {

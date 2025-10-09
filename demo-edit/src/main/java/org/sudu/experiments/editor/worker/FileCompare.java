@@ -15,26 +15,6 @@ public interface FileCompare {
   void on(double leftSize, double rightSize,
           double diffLocation, String error);
 
-  static void findNextDiff(
-      WorkerJobExecutor executor,
-      FileHandle left,
-      FileHandle right,
-      double address,
-      int bytesPerLine,
-      boolean skipDiff,
-      boolean findNext,   // true/false -> finding next/prev diff
-      FileCompare result
-  ) {
-    int[] ints = new int[] {
-        loGb(address),
-        hiGb(address),
-        bytesPerLine,
-        skipDiff ? 1 : 0,
-        findNext ? 1 : 0
-    };
-    executor.sendToWorker(r -> onBinaryDiffCompared(r, result), asyncFindNextDiff, left, right, ints);
-  }
-
   static void compareFiles(
       WorkerJobExecutor executor,
       FileHandle left, FileHandle right,

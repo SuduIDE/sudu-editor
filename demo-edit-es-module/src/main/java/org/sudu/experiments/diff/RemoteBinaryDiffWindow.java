@@ -1,7 +1,9 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.Channel;
+import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.esm.JsNotificationsProvider;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.protocol.JsCast;
@@ -9,12 +11,14 @@ import org.sudu.experiments.ui.ToolbarItem;
 import org.sudu.experiments.ui.window.WindowManager;
 import org.sudu.experiments.update.FileDiffChannelUpdater;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSString;
 
 import java.util.function.Supplier;
 
 public class RemoteBinaryDiffWindow extends BinaryDiffWindow {
 
   private final Channel channel;
+  private JsNotificationsProvider notificationsProvider;
   private Runnable onRefresh;
 
   public RemoteBinaryDiffWindow(
@@ -32,6 +36,10 @@ public class RemoteBinaryDiffWindow extends BinaryDiffWindow {
     this.onRefresh = onRefresh;
   }
 
+  public void setNotificationsProvider(JsNotificationsProvider p) {
+    this.notificationsProvider = p;
+  }
+
   @Override
   protected Supplier<ToolbarItem[]> popupActions(V2i pos) {
     return null;
@@ -46,6 +54,11 @@ public class RemoteBinaryDiffWindow extends BinaryDiffWindow {
     jsArray.set(1, JsCast.jsNumbers(address));
     jsArray.push(FileDiffChannelUpdater.BIN_NAVIGATE_ARRAY);
     channel.sendMessage(jsArray);
+  }
+
+  void onNotification(JSString notification) {
+    LoggingJs.info("onNotification: " + notification.stringValue());
+    notificationsProvider.info(notification);
   }
 
   public void refresh() {
