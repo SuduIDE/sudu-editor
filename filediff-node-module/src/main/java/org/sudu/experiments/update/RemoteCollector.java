@@ -230,6 +230,7 @@ public class RemoteCollector {
       }
       filesInserted -= left ? status.deletedFiles : status.insertedFiles;
       filesDeleted -= !left ? status.deletedFiles : status.insertedFiles;
+      filesEdited -= status.rewroteFiles;
       sendApplied(status);
     };
     status.setOnComplete(updateModel);
@@ -456,6 +457,7 @@ public class RemoteCollector {
     }
     if (len == 0) model.itemCompared();
     if (edited) model.markUpDiffType(DiffTypes.EDITED);
+    model.setSendExcluded(true);
     onItemCompared(cnt);
   }
 
@@ -499,6 +501,7 @@ public class RemoteCollector {
       model.markUpDiffType(DiffTypes.EDITED);
     }
     model.itemCompared();
+    model.setSendExcluded(true);
     onItemCompared(cnt);
   }
 
@@ -580,6 +583,7 @@ public class RemoteCollector {
     for (int i = 0; i < fsItems.length; i++) fsItems[i] = (FsItem) result[stats[0] + i + 2];
     var updModel = ItemFolderDiffModel.fromInts(ints, paths, fsItems);
     model.update(updModel);
+    model.setSendExcluded(true);
     checkExcludeModelChildren(model);
     onItemCompared(cnt);
   }
@@ -721,7 +725,7 @@ public class RemoteCollector {
 
   private void sendExcludedToCompare(ItemFolderDiffModel model, FrontendTreeNode frontendNode) {
     if (model == null) return;
-    if (model.isExcluded() && !model.isSendExcluded()) {
+    if (model.children == null && model.isExcluded() && !model.isSendExcluded()) {
       model.setSendExcluded(true);
       if (model.isBoth()) compare(model, false, counter);
       else read(model, false, counter);
