@@ -169,7 +169,7 @@ public class EditorComponent extends View implements
     if (dprChange) {
       doChangeFont(fontFamilyName, fontVirtualSize);
       lrContext.setDpr(dpr);
-    }
+    } // else // internalLayout happens inside doChangeFont, no need to do it twice
     internalLayout();
   }
 
