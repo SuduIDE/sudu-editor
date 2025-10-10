@@ -43,8 +43,8 @@ public abstract class ParserUtils {
 
     int documentLength = document.length();
 
-    if (document.document.length < N) {
-      document.document = ArrayOp.resizeOrReturn(document.document, N);
+    if (document.lines.length < N) {
+      document.lines = ArrayOp.resizeOrReturn(document.lines, N);
     }
 
     for (int i = 0; i < N; i++) {
@@ -55,7 +55,7 @@ public abstract class ParserUtils {
       }
       CodeElement[] elements = readElements(reader, docChars, 0);
       CodeLine line = new CodeLine(elements);
-      document.document[i] = line;
+      document.lines[i] = line;
     }
     document.countPrefixes();
 
@@ -102,8 +102,8 @@ public abstract class ParserUtils {
 
     V2i stLine = document.getLine(intervalStart);
     V2i endLine = document.getLine(intervalStop);
-    CodeElement[] left = document.line(stLine.x).getElementsToLeft(stLine.y);
-    CodeElement[] right = document.line(endLine.x).getElementsToRight(endLine.y);
+    CodeElement[] left = document.lines[stLine.x].getElementsToLeft(stLine.y);
+    CodeElement[] right = document.lines[endLine.x].getElementsToRight(endLine.y);
 
     for (int i = 0; i < N; i++) {
       CodeElement[] elements = readElements(reader, chars, intervalStart);

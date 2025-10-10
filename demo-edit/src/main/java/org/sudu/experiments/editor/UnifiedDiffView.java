@@ -3,6 +3,8 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.Canvas;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.WglGraphics;
+import org.sudu.experiments.diff.DiffTypes;
+import org.sudu.experiments.diff.LineDiff;
 import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
@@ -53,16 +55,18 @@ public class UnifiedDiffView extends View implements Focusable
   DiffInfo diffInfo;
   int[] docLines;
   boolean[] docIndex;
+  CodeLines docWrapper = docWrapper();
 
   // layout
   int vLineX, vLineW, scrollBarWidth;
-  int vLineTextOffset;
+  int vLineTextOffset, textBaseX, textViewWidth;
   int numDigits1, numDigits2;
+  int fullWidth = 0;
   V2i vLineSize = new V2i();
 
   // render cache
   CodeLineRenderer[] lines = new CodeLineRenderer[0];
-  int firstLineRendered, lastLineRendered;
+  int firstViewLine, lastViewLine;
 
   public UnifiedDiffView(UiContext uiContext) {
     context = uiContext;
@@ -169,7 +173,8 @@ public class UnifiedDiffView extends View implements Focusable
     lineNumbers1.setPosition(lnPos1, pos.y, lnWidth1, size.y, dpr);
     lineNumbers1.setPosition(lnPos2, pos.y, lnWidth2, size.y, dpr);
     vLineX = pos.x + lnWidth1 + lnWidth2;
-
+    textBaseX = lnWidth1 + lnWidth2 + vLineW + vLineTextOffset;
+    textViewWidth = Math.max(1, size.x - textBaseX);
   }
 
   @Override
@@ -199,6 +204,19 @@ public class UnifiedDiffView extends View implements Focusable
     }
   }
 
+  public CodeLine codeLine(int i) {
+    var model = docIndex[i] ? model2 : model1;
+    return model.document.lines[docLines[i]];
+  }
+
+  CodeLines docWrapper() {
+    return new CodeLines() {
+      public CodeLine line(int i) {
+        return codeLine(i);
+      }
+    };
+  }
+
   private void buildDocIndex() {
     DiffRange[] ranges = diffInfo.ranges;
     int size = UnifiedDiffOp.unifiedSize(ranges);
@@ -211,7 +229,14 @@ public class UnifiedDiffView extends View implements Focusable
     if (versions[0] == model1.document.version()
         && versions[1] == model2.document.version()
     ) {
+      LineDiff.replaceEdited(di.lineDiffsL, DiffTypes.DELETED);
+      LineDiff.replaceEdited(di.lineDiffsR, DiffTypes.INSERTED);
       diffInfo = di;
+      model1.diffModel = di.lineDiffsL;
+      model2.diffModel = di.lineDiffsR;
+      lineNumbers1.setColors(LineDiff.colors(model1.diffModel));
+      lineNumbers2.setColors(LineDiff.colors(model2.diffModel));
+
       buildDocIndex();
     } else {
       System.out.println("onDiffs: version mismatch: doc1.v = " + model1.document.version() +
@@ -224,7 +249,57 @@ public class UnifiedDiffView extends View implements Focusable
   public void draw(WglGraphics g) {
     super.draw(g);
     drawVLine(g);
+
+    int lineHeight = lrContext.lineHeight;
+    int cacheLines = Numbers.iDivRoundUp(size.y, lineHeight) + EditorConst.MIN_CACHE_LINES;
+    if (lines.length < cacheLines) {
+      lines = CodeLineRenderer.allocRenderLines(
+          cacheLines, lines, lrContext,
+          firstViewLine, lastViewLine, docWrapper);
+    }
+
+    if (docLines == null) return;
+    firstViewLine = Math.min(
+        vScrollPos / lineHeight, docLines.length - 1);
+    lastViewLine = Math.min(
+        (vScrollPos + size.y - 1) / lineHeight, docLines.length - 1) + 1;
+    int lastViewLine = Math.min(this.lastViewLine, docLines.length);
+
+    System.out.println(
+        "draw: firstViewLine = " + firstViewLine + ", lastViewLine = " + lastViewLine);
+    int rightPadding = toPx(EditorConst.RIGHT_PADDING);
+    int fullWidth = 0;
+
+    for (int i = firstViewLine; i < lastViewLine; i++) {
+      int lineIndex = i; // viewToDocMap[i - firstLine];
+      if (lineIndex < 0) continue;
+
+      var model = docIndex[i] ? model2 : model1;
+      var diffModel = model.diffModel;
+      int docLine = docLines[i];
+      CodeLine cLine = model.document.lines[docLine];
+      CodeLineRenderer line = lineRenderer(i);
+      int yPosition = lineHeight * i - vScrollPos;
+      int lineMeasure = line.updateTexture(
+          cLine, g, lineHeight, textViewWidth, hScrollPos,
+          lineIndex, i % lines.length);
+
+      fullWidth = Math.max(fullWidth, lineMeasure + rightPadding);
+
+      LineDiff diff = diffModel == null || docLine >= diffModel.length
+          ? null : diffModel[docLine];
+      V2i selectionTemp = context.v2i2;
+      line.draw(
+          pos.y + yPosition, pos.x + textBaseX, g,
+          textViewWidth, lineHeight, hScrollPos,
+          codeLineColors, null, //  getSelLineSegment(lineIndex, cLine, selectionTemp),
+          model.definition, model.usages,
+          model.caretLine == lineIndex, null, null,
+          diff);
+    }
+    this.fullWidth = fullWidth;
   }
+
 
   private void drawVLine(WglGraphics g) {
     vLineSize.y = size.y;
@@ -232,4 +307,7 @@ public class UnifiedDiffView extends View implements Focusable
     g.drawRect(vLineX, pos.y, vLineSize, colors.editor.numbersVLine);
   }
 
+  private CodeLineRenderer lineRenderer(int i) {
+    return lines[i % lines.length];
+  }
 }

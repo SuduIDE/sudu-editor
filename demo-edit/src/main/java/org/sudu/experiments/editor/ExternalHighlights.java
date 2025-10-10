@@ -20,7 +20,7 @@ class ExternalHighlights {
       int startLine = hl.range.startLineNumber;
       int endLine = hl.range.endLineNumber;
       for (int ln = startLine; ln <= endLine && ln < length; ln++) {
-        CodeLine codeLine = document.line(ln);
+        CodeLine codeLine = document.lines[ln];
         if (codeLine.elements.length == 0) continue;
         int startChar = ln > startLine ? 0
             : Math.max(hl.range.startColumn, 0);

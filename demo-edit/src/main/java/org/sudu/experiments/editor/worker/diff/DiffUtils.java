@@ -101,7 +101,7 @@ public class DiffUtils {
     writer.write(toLine - fromLine);
     int offset = 0;
     for (int i = fromLine; i < toLine; i++) {
-      CodeLine line = document.line(i);
+      CodeLine line = document.lines[i];
       if (cmpOnlyLines) {
         writer.write(1);
         writer.write(offset, line.totalStrLength);
@@ -222,7 +222,7 @@ public class DiffUtils {
   }
 
   private static String formatStr(Document doc, LineDiff diff, int ind) {
-    String line = doc.line(ind).makeString();
+    String line = doc.lines[ind].makeString();
     if (line.length() < 40) line = line + " ".repeat(40 - line.length());
 
     if (diff == null) return String.format("%4d  %.40s", ind + 1, line);
