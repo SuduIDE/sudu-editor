@@ -290,7 +290,9 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   }
 
   private void doCopyFolder(boolean left, ModelCopyDeleteStatus status) {
-    if (getDiffType() == DiffTypes.EDITED) {
+    int diffType = getDiffType();
+    boolean syncExcluded = status.syncExcluded && (isExcluded() || containExcluded());
+    if (diffType == DiffTypes.EDITED || syncExcluded) {
       if (children.length == 0) updateItem();
       else for (int i = 0; i < children.length; i++) child(i).copy(left, status);
       status.onTraversed();
