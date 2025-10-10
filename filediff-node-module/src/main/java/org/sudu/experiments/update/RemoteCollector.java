@@ -353,7 +353,7 @@ public class RemoteCollector {
       boolean scanExcluded,
       Counter cnt
   ) {
-    if (!scanExcluded && model.isExcluded()) {
+    if (!scanExcluded && model.isExcluded() && model.isDir()) {
       if (model.parent != null && model.parent.children.length == 1) {
         model.setSendExcluded(true);
       } else if (!model.isSendExcluded()) {
