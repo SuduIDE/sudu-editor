@@ -19,6 +19,8 @@ public class ModelCopyDeleteStatus {
   public int copiedDirs;
   public int deletedFiles, deletedDirs;
 
+  public boolean copyingPhase;
+
   final boolean syncOrphans;  // true -> remove orphan items on copy
   final boolean syncExcluded; // true -> copy excluded items (for files only now, wip for folders)
 

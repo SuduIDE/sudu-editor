@@ -195,7 +195,7 @@ public class RemoteCollector {
     lastFrontendMessage.collectPath(path, pathWriter, root, left);
 
     syncExcluded |= model.isExcluded();
-    ModelCopyDeleteStatus status = mkSyncStatus(path, left, syncOrphans, syncExcluded, isDeleteDiff);
+    ModelCopyDeleteStatus status = mkSyncStatus(model, path, left, syncOrphans, syncExcluded, isDeleteDiff);
     if (model.isFile()) {
       if (!isDeleteDiff) copyFile(model, left, status);
       else removeFile(model, status);
@@ -206,6 +206,7 @@ public class RemoteCollector {
   }
 
   private ModelCopyDeleteStatus mkSyncStatus(
+      ItemFolderDiffModel model,
       int[] path, boolean left,
       boolean syncOrphans,
       boolean syncExcluded,
@@ -220,9 +221,9 @@ public class RemoteCollector {
         syncOrphans,
         syncExcluded
     );
-    status.setTrace(LoggingJs::trace);
-    Runnable updateModel = () -> {
-      LoggingJs.info("RemoteCollector.applyDiff.updateModel");
+    Runnable onCopyPhaseCompleted = () -> {
+      LoggingJs.trace("ModelCopyDeleteStatus: copy phase completed");
+      // Updating model
       if (isDeleteDiff) {
         var node = lastFrontendMessage.findNode(path);
         var parentNode = lastFrontendMessage.findParentNode(path);
@@ -233,7 +234,21 @@ public class RemoteCollector {
       filesEdited -= status.rewroteFiles;
       sendApplied(status);
     };
-    status.setOnComplete(updateModel);
+    Runnable onRemovePhaseCompleted = () -> {
+      LoggingJs.trace("ModelCopyDeleteStatus: remove phase completed");
+      if (isDeleteDiff) {
+        onCopyPhaseCompleted.run();
+      } else {
+        status.copyingPhase = true;
+        status.setOnComplete(onCopyPhaseCompleted);
+        if (model.isFile()) copyFile(model, left, status);
+        else copyFolder(model, left, status);
+      }
+    };
+    status.copyingPhase = !isDeleteDiff && !syncExcluded;
+    status.setTrace(LoggingJs::trace);
+    if (status.copyingPhase) status.setOnComplete(onCopyPhaseCompleted);
+    else status.setOnComplete(onRemovePhaseCompleted);
     return status;
   }
 

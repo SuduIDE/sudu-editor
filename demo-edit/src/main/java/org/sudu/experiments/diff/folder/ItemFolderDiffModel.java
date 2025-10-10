@@ -212,6 +212,7 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   }
 
   public void remove(ModelCopyDeleteStatus status) {
+    if (status.copyingPhase) return;
     status.inTraverse++;
     if (getDiffType() != DiffTypes.DELETED && getDiffType() != DiffTypes.INSERTED) {
       status.onCopyError("Can't delete: item " + path + " is not marked as deleted or inserted");
@@ -321,6 +322,10 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   private void copyFile(boolean left, ModelCopyDeleteStatus status) {
     if (status.syncOrphans && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
       remove(status);
+      status.onTraversed();
+      return;
+    }
+    if (!status.copyingPhase) {
       status.onTraversed();
       return;
     }
