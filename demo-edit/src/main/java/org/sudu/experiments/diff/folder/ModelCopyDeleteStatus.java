@@ -31,6 +31,8 @@ public class ModelCopyDeleteStatus {
 
   final long SEND_STATUS_MS = 2000;
 
+  int scanTaskCnt = 0;
+
   public ModelCopyDeleteStatus(
       WorkerJobExecutor executor,
       Consumer<int[]> sendStatus,
@@ -50,7 +52,13 @@ public class ModelCopyDeleteStatus {
     this.syncExcluded = syncExcluded;
   }
 
-  public void onTraversed() {
+  public void inTraverse(ItemFolderDiffModel model) {
+//    trace("ModelCopyDeleteStatus.inTraverse " + model.getFullPath("") + ";");
+    inTraverse++;
+  }
+
+  public void onTraversed(ItemFolderDiffModel model) {
+//    trace("ModelCopyDeleteStatus.onTraversed " + model.getFullPath("") + ";");
     inTraverse--;
     onComplete();
   }
@@ -150,13 +158,14 @@ public class ModelCopyDeleteStatus {
     this.trace = trace;
   }
 
+  public void status() {
+    trace(String.format(
+        "inWork = %d, inTraverse = %d, markedForDelete.size = %d",
+        inWork, inTraverse, markedForDelete.size()));
+  }
+
   public void trace(String msg) {
-    if (trace != null) {
-      trace.accept(String.format(
-          "%s, inWork = %d, inTraverse = %d, markedForDelete.size = %d",
-          msg, inWork, inTraverse, markedForDelete.size())
-      );
-    }
+    if (trace != null) trace.accept(msg);
   }
 
   public int copiedFiles() {

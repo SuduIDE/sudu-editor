@@ -406,6 +406,10 @@ public class FolderDiffModel {
     return false;
   }
 
+  public int[] readFolderInts() {
+    return new int[]{getDiffType(), getItemKind(), isExcluded() ? 1 : 0, posInParent};
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

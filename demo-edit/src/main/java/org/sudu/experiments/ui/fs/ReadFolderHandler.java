@@ -14,6 +14,7 @@ public class ReadFolderHandler {
   public final ItemFolderDiffModel rootModel;
   private final int diffType;
   private final int itemKind;
+  private final boolean isExcluded;
   private final Consumer<Object[]> r;
   private int readCnt = 0;
   private int foldersRead, filesRead;
@@ -22,17 +23,20 @@ public class ReadFolderHandler {
       ItemFolderDiffModel rootModel,
       int diffType,
       int itemKind,
+      boolean isExcluded,
       Consumer<Object[]> r
   ) {
     this.rootModel = rootModel;
     this.diffType = diffType;
     this.itemKind = itemKind;
+    this.isExcluded = isExcluded;
     this.r = r;
   }
 
   public void beginRead() {
     rootModel.setDiffType(diffType);
     rootModel.setItemKind(itemKind);
+    rootModel.setExcluded(isExcluded);
     read(rootModel);
   }
 
@@ -66,6 +70,7 @@ public class ReadFolderHandler {
     for (int i = 0; i < children.length; i++) {
       var child = model.child(i);
       child.setDiffType(diffType);
+      child.setExcluded(isExcluded);
       child.setItem(children[i].item);
       if (!child.isFile()) {
         foldersRead++;

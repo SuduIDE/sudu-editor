@@ -564,7 +564,7 @@ public class RemoteCollector {
     Runnable task = () -> executor.sendToWorker(
         result -> onFolderRead.accept(model, result),
         DiffUtils.READ_FOLDER,
-        dirHandle, new int[]{model.getDiffType(), model.getItemKind(), model.posInParent}
+        dirHandle, model.readFolderInts()
     );
     sendToWorkerQueue.addLast(task);
     sendTaskToWorker();
