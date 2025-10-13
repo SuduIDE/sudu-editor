@@ -56,6 +56,10 @@ public class UnifiedDiffView extends View implements Focusable
   int[] docLines;
   boolean[] docIndex;
   CodeLines docWrapper = docWrapper();
+  
+  // line number mappings for both documents
+  int[] lineNumbers1Array = new int[0];
+  int[] lineNumbers2Array = new int[0];
 
   // layout
   int vLineX, vLineW, scrollBarWidth;
@@ -67,6 +71,7 @@ public class UnifiedDiffView extends View implements Focusable
   // render cache
   CodeLineRenderer[] lines = new CodeLineRenderer[0];
   int firstViewLine, lastViewLine;
+  private int frameId;
 
   public UnifiedDiffView(UiContext uiContext) {
     context = uiContext;
@@ -168,10 +173,10 @@ public class UnifiedDiffView extends View implements Focusable
     numDigits2 = Numbers.numDecimalDigits(model2.document.length());
     Canvas mCanvas = context.graphics.mCanvas;
     int lnWidth1 = lineNumbers1.measureDigits(numDigits1, mCanvas, dpr);
-    int lnWidth2 = lineNumbers1.measureDigits(numDigits1, mCanvas, dpr);
+    int lnWidth2 = lineNumbers2.measureDigits(numDigits2, mCanvas, dpr);
     int lnPos1 = pos.x, lnPos2 = pos.x + lnWidth1;
     lineNumbers1.setPosition(lnPos1, pos.y, lnWidth1, size.y, dpr);
-    lineNumbers1.setPosition(lnPos2, pos.y, lnWidth2, size.y, dpr);
+    lineNumbers2.setPosition(lnPos2, pos.y, lnWidth2, size.y, dpr);
     vLineX = pos.x + lnWidth1 + lnWidth2;
     textBaseX = lnWidth1 + lnWidth2 + vLineW + vLineTextOffset;
     textViewWidth = Math.max(1, size.x - textBaseX);
@@ -197,6 +202,8 @@ public class UnifiedDiffView extends View implements Focusable
   public void setModel(Model model, int index) {
     docLines = null;
     docIndex = null;
+    lineNumbers1Array = new int[0];
+    lineNumbers2Array = new int[0];
     if (index == 0) model1 = model; else model2 = model;
     if (!model1.document.isEmpty() && !model2.document.isEmpty()) {
       DiffUtils.findDiffs(model1.document, model2.document, true,
@@ -238,6 +245,7 @@ public class UnifiedDiffView extends View implements Focusable
       lineNumbers2.setColors(LineDiff.colors(model2.diffModel));
 
       buildDocIndex();
+      buildLineNumberMappings();
     } else {
       System.out.println("onDiffs: version mismatch: doc1.v = " + model1.document.version() +
           ", got version " + versions[0] + ", doc2.v = " + model2.document.version() +
@@ -248,6 +256,7 @@ public class UnifiedDiffView extends View implements Focusable
   @Override
   public void draw(WglGraphics g) {
     super.draw(g);
+    frameId++;
     drawVLine(g);
 
     int lineHeight = lrContext.lineHeight;
@@ -264,6 +273,9 @@ public class UnifiedDiffView extends View implements Focusable
     lastViewLine = Math.min(
         (vScrollPos + size.y - 1) / lineHeight, docLines.length - 1) + 1;
     int lastViewLine = Math.min(this.lastViewLine, docLines.length);
+
+    if (lineNumbers1Array.length != 0)
+      drawLineNumbers(g, firstViewLine, lastViewLine);
 
     System.out.println(
         "draw: firstViewLine = " + firstViewLine + ", lastViewLine = " + lastViewLine);
@@ -305,6 +317,77 @@ public class UnifiedDiffView extends View implements Focusable
     vLineSize.y = size.y;
     vLineSize.x = vLineW;
     g.drawRect(vLineX, pos.y, vLineSize, colors.editor.numbersVLine);
+  }
+
+  private void drawLineNumbers(WglGraphics g, int firstViewLine, int lastViewLine) {
+    int lineHeight = lrContext.lineHeight;
+    
+    // Draw line numbers for both sides
+    lineNumbers1.beginDraw(g, 0);
+    lineNumbers2.beginDraw(g, 0);
+    
+    for (int i = firstViewLine; i < lastViewLine; i++) {
+      int yPosition = lineHeight * i - vScrollPos;
+      
+      // Draw line number for model1 (left side)
+      if (lineNumbers1Array[i] >= 0) {
+        lineNumbers1.drawRange(yPosition, lineNumbers1Array[i], lineNumbers1Array[i] + 1, g, colors);
+      } else {
+        lineNumbers1.drawEmptyLines(yPosition, yPosition + lineHeight, g, colors);
+      }
+      
+      // Draw line number for model2 (right side)
+      if (lineNumbers2Array[i] >= 0) {
+        lineNumbers2.drawRange(yPosition, lineNumbers2Array[i], lineNumbers2Array[i] + 1, g, colors);
+      } else {
+        lineNumbers2.drawEmptyLines(yPosition, yPosition + lineHeight, g, colors);
+      }
+    }
+    
+    lineNumbers1.endDraw(g);
+    lineNumbers2.endDraw(g);
+  }
+  
+  private void buildLineNumberMappings() {
+    if (lineNumbers1Array.length != docLines.length) {
+      lineNumbers1Array = new int[docLines.length];
+      lineNumbers2Array = new int[docLines.length];
+    }
+    
+    // Initialize arrays with -1 (no line number)
+    for (int i = 0; i < lineNumbers1Array.length; i++) {
+      lineNumbers1Array[i] = -1;
+      lineNumbers2Array[i] = -1;
+    }
+    
+    // Track current positions in both documents
+    int currentLine1 = 0, currentLine2 = 0;
+    int unifiedPos = 0;
+    
+    for (DiffRange range : diffInfo.ranges) {
+      switch (range.type) {
+        case DiffTypes.DEFAULT, DiffTypes.INSERTED -> {
+          // Only right side has content
+          for (int i = 0; i < range.lenR; i++) {
+            if (unifiedPos < lineNumbers2Array.length) {
+              lineNumbers2Array[unifiedPos] = range.fromR + i;
+            }
+            unifiedPos++;
+          }
+          currentLine2 += range.lenR;
+        }
+        case DiffTypes.DELETED -> {
+          // Only left side has content
+          for (int i = 0; i < range.lenL; i++) {
+            if (unifiedPos < lineNumbers1Array.length) {
+              lineNumbers1Array[unifiedPos] = range.fromL + i;
+            }
+            unifiedPos++;
+          }
+          currentLine1 += range.lenL;
+        }
+      }
+    }
   }
 
   private CodeLineRenderer lineRenderer(int i) {
