@@ -225,7 +225,13 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
       return;
     }
     if (isDir() && children == null) {
-      status.readFolder.accept(this, () -> doRemove(status));
+      int scanTaskNumber = ++status.scanTaskCnt;
+      status.trace("Sending scan task #" + scanTaskNumber);
+      Runnable onScanTaskDone = () -> {
+        status.trace("Scan task #" + scanTaskNumber + " completed");
+        doRemove(status);
+      };
+      status.readFolder.accept(this, onScanTaskDone);
     } else doRemove(status);
   }
 
@@ -291,13 +297,12 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     }
     final int scanTaskNumber = ++status.scanTaskCnt;
     status.trace("Sending scan task #" + scanTaskNumber);
-    if (isBoth()) status.compareFolders.accept(this, onScanTaskDone(scanTaskNumber, left, status));
-    else status.readFolder.accept(this, onScanTaskDone(scanTaskNumber, left, status));
-  }
-
-  private Runnable onScanTaskDone(int scanTaskNumber, boolean left, ModelCopyDeleteStatus status) {
-    status.trace("Scan task #" + scanTaskNumber + " completed");
-    return () -> doCopyFolder(left, status);
+    Runnable onScanTaskDone = () -> {
+      status.trace("Scan task #" + scanTaskNumber + " completed");
+      doCopyFolder(left, status);
+    };
+    if (isBoth()) status.compareFolders.accept(this, onScanTaskDone);
+    else status.readFolder.accept(this, onScanTaskDone);
   }
 
   private void doCopyFolder(boolean left, ModelCopyDeleteStatus status) {

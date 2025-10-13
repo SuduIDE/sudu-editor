@@ -245,7 +245,7 @@ public class RemoteCollector {
         else copyFolder(model, left, status);
       }
     };
-    status.copyingPhase = !isDeleteDiff && !syncExcluded;
+    status.copyingPhase = !isDeleteDiff && !syncOrphans;
     status.setTrace(LoggingJs::trace);
     if (status.copyingPhase) status.setOnComplete(onCopyPhaseCompleted);
     else status.setOnComplete(onRemovePhaseCompleted);
