@@ -215,4 +215,12 @@ class ArrayOpTest {
     assertTrue(ArrayOp.contains(strs, "y"));
     assertFalse(ArrayOp.contains(strs, "z"));
   }
+
+  @Test
+  void testFillSequence() {
+    int[] expected = { 0, 0, 5, 6, 7, 0 };
+    int[] a = new int[expected.length];
+    ArrayOp.fillSequence(a, 2, 2 + 3, 5);
+    assertArrayEquals(expected, a);
+  }
 }

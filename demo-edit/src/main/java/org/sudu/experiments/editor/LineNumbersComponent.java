@@ -146,6 +146,10 @@ public class LineNumbersComponent implements Disposable {
     return texture;
   }
 
+  public void setFont(ClrContext lrContext) {
+    setFont(lrContext.font, lrContext.lineHeight, lrContext.cleartype);
+  }
+
   public void setFont(FontDesk font, int lineHeight, boolean cleartype) {
     this.fontDesk = font;
     this.lineHeight = lineHeight;

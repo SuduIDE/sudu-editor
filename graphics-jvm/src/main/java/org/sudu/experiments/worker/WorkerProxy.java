@@ -28,6 +28,7 @@ public class WorkerProxy {
   }
 
   static Object convertArg(Object arg, Executor edt) {
+    if (arg == null) return null;
     if (arg instanceof String) return arg;
     if (arg instanceof byte[] bytes) return new Array(bytes, null, null, null);
     if (arg instanceof char[] chars) return new Array(null, chars, null, null);

@@ -10,6 +10,7 @@ import org.sudu.experiments.diff.JsViewController;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.protocol.JsCast;
+import org.sudu.experiments.text.SplitJsText;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 

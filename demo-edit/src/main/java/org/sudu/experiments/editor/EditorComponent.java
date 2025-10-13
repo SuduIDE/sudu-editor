@@ -169,7 +169,7 @@ public class EditorComponent extends View implements
     if (dprChange) {
       doChangeFont(fontFamilyName, fontVirtualSize);
       lrContext.setDpr(dpr);
-    }
+    } // else // internalLayout happens inside doChangeFont, no need to do it twice
     internalLayout();
   }
 
@@ -553,12 +553,13 @@ public class EditorComponent extends View implements
     // probably redundant call to docToView.length()
     int lastViewLine = Math.min(lastLine, docToView.length());
     docToView.viewToDocLines(firstLine, lastViewLine, viewToDocMap);
+    int fullWidth = 0;
 
     for (int i = firstLine; i < lastViewLine; i++) {
       int lineIndex = viewToDocMap[i - firstLine];
       if (lineIndex < 0) continue;
 
-      CodeLine cLine = model.document.line(lineIndex);
+      CodeLine cLine = model.document.lines[lineIndex];
       CodeLineRenderer line = lineRenderer(i);
 
       int yPosition = lineHeight * i - vScrollPos;
@@ -579,6 +580,8 @@ public class EditorComponent extends View implements
           model.caretLine == lineIndex, null, null,
               diff);
     }
+
+    this.fullWidth = fullWidth;
 
     drawTails(firstLine, lastViewLine, pos.x + textBaseX, diffModel);
 
@@ -830,7 +833,7 @@ public class EditorComponent extends View implements
   }
 
   private void updateLineNumbersFont() {
-    lineNumbers.setFont(lrContext.font, lineHeight, context.cleartype);
+    lineNumbers.setFont(lrContext.font, lineHeight, lrContext.cleartype);
   }
 
   private CodeLineRenderer lineRenderer(int i) {
@@ -872,7 +875,7 @@ public class EditorComponent extends View implements
     if (selection().isAreaSelected()) {
       shiftTabSelection();
     } else {
-      CodeLine codeLine = model.document.line(model.caretLine);
+      CodeLine codeLine = model.document.lines[model.caretLine];
       if (codeLine.elements.length > 0) {
         String indent = calculateTabIndent(codeLine);
         if (indent == null) return true;
@@ -897,7 +900,7 @@ public class EditorComponent extends View implements
     int prevCaretLine = model.caretLine;
     int size = 0;
     for (int l = left.line; l <= right.line; l++) {
-      CodeLine codeLine = model.document.line(l);
+      CodeLine codeLine = model.document.lines[l];
       if (codeLine.elements.length > 0) {
         String indent = calculateTabIndent(codeLine);
         if (indent == null) continue;
@@ -918,7 +921,7 @@ public class EditorComponent extends View implements
     }
     tabDiffHandler(lines, 0, true, changes, new Pos(prevCaretLine, prevCaretPos),
         (l, c) -> {
-          CodeLine codeLine = model.document.line(l);
+          CodeLine codeLine = model.document.lines[l];
           codeLine.delete(0, c.length());
         }
     );
@@ -955,7 +958,7 @@ public class EditorComponent extends View implements
 
   boolean handleEnter() {
     if (selection().isAreaSelected()) deleteSelectedArea();
-    model.document.line(model.caretLine).invalidateCache();
+    model.document.lines[model.caretLine].invalidateCache();
     model.document.newLineOp(model.caretLine, model.caretCharPos);
     updateDocumentDiffTimeStamp();
     return setCaretLinePos(model.caretLine + 1, 0, false);
@@ -1133,7 +1136,7 @@ public class EditorComponent extends View implements
       }
     } else if (newPos < 0) {  // goto prev line
       if (model.caretLine > 0) {
-        int pos = model.document.line(model.caretLine - 1).totalStrLength;
+        int pos = model.document.lines[model.caretLine - 1].totalStrLength;
         setCaretLinePos(model.caretLine - 1, pos, shiftPressed);
       }
     } else {
@@ -1306,7 +1309,7 @@ public class EditorComponent extends View implements
   Pos computeCharPos(V2i eventPosition, int line) {
     int localX = eventPosition.x - pos.x - textBaseX + hScrollPos;
     int documentXPosition = Math.max(0, localX);
-    int charPos = model.document.line(line).computeCharPos(documentXPosition, g.mCanvas, fonts);
+    int charPos = model.document.lines[line].computeCharPos(documentXPosition, g.mCanvas, fonts);
     return new Pos(line, charPos);
   }
 
@@ -1456,7 +1459,7 @@ public class EditorComponent extends View implements
   }
 
   CodeLine codeLine(int n) {
-    return model.document.line(n);
+    return model.document.lines[n];
   }
 
   // InputListener methods
@@ -2039,13 +2042,9 @@ public class EditorComponent extends View implements
 
   public void updateLineNumbersColors() {
     if (model.hasDiffModel()) {
-      byte[] c = new byte[model.diffModel.length];
-      for (int i = 0; i < c.length; i++) {
-        LineDiff ld = model.diffModel[i];
-        c[i] = ld != null ? (byte) ld.type : 0;
-      }
-      lineNumbers.setColors(c);
-      if (mergeButtons != null) mergeButtons.setColors(c);
+      var colors = LineDiff.colors(model.diffModel);
+      lineNumbers.setColors(colors);
+      if (mergeButtons != null) mergeButtons.setColors(colors);
     } else {
       lineNumbers.setColors(null);
       if (mergeButtons != null) mergeButtons.setColors(lineNumbers.colors());

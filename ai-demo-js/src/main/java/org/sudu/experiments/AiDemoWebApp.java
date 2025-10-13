@@ -4,6 +4,7 @@ import org.sudu.experiments.editor.Editor0;
 import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.Uri;
 import org.sudu.experiments.js.*;
+import org.sudu.experiments.text.SplitJsText;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.html.HTMLButtonElement;
 import org.teavm.jso.dom.html.HTMLElement;
