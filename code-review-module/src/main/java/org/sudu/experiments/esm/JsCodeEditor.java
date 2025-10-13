@@ -340,7 +340,4 @@ public class JsCodeEditor implements JsEditorView {
 
   @Override
   public void executeMenuAction(JSString action) {}
-
-  @Override
-  public void setJsNotificationsProvider(JsNotificationsProvider p) {}
 }
