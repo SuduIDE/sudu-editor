@@ -633,15 +633,15 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     var path = collectDequePath(model);
     var node = lastFrontendMessage.find(path);
     if (node == null) {
-      LoggingJs.error("Can't find node: " + model.path);
+      LoggingJs.warn("Can't find node: " + model.path);
       return;
     }
     if (node.children != null) {
-      LoggingJs.error("Node children is not null for: " + model.path);
+      LoggingJs.warn("Node children is not null for: " + model.path);
       return;
     }
     if (model.children == null) {
-      LoggingJs.error("Model children is null for: " + model.path);
+      LoggingJs.warn("Model children is null for: " + model.path);
       return;
     }
     LoggingJs.trace("openFrontendNode: " + model.path);
@@ -653,7 +653,7 @@ public class RemoteFolderDiffWindow extends ToolWindow0 {
     var path = collectDequePath(model);
     var node = lastFrontendMessage.find(path);
     if (node == null) {
-      LoggingJs.error("Can't find node: " + model.path);
+      LoggingJs.warn("Can't find node: " + model.path);
       return;
     }
     node.children = null;

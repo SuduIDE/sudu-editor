@@ -3,7 +3,6 @@ package org.sudu.experiments.editor.worker;
 import org.sudu.experiments.FileHandle;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.function.Consumer;
 
 import org.sudu.experiments.FileHandle.SyncAccess;
@@ -16,6 +15,8 @@ class FileCompareSync {
   SyncAccess left, right;
   String error;
 
+  FileCompareSync() {}
+
   FileCompareSync(Consumer<Object[]> r, FileHandle left, FileHandle right) {
     result = r;
     Consumer<String> onError = this::onError;
@@ -23,14 +24,14 @@ class FileCompareSync {
     right.syncAccess(this::rightAccess, onError, false);
   }
 
-  private void onError(String error) {
+  protected void onError(String error) {
     System.err.println(error);
     this.error = error;
     closeAll(false);
     FileCompare.send(result, error);
   }
 
-  private void leftAccess(SyncAccess l) {
+  protected void leftAccess(SyncAccess l) {
     if (error == null) {
       left = l;
       if (right != null) compareAndClose();
@@ -39,7 +40,7 @@ class FileCompareSync {
     }
   }
 
-  private void rightAccess(SyncAccess r) {
+  protected void rightAccess(SyncAccess r) {
     if (error == null) {
       right = r;
       if (left != null) compareAndClose();
@@ -64,8 +65,12 @@ class FileCompareSync {
     if (error != null) {
       FileCompare.send(result, error);
     } else {
-      FileCompare.send(result, lSize, rSize, diffPos);
+      sendResult(lSize, rSize, diffPos);
     }
+  }
+
+  protected void sendResult(double lSize, double rSize, double diffPos) {
+    FileCompare.send(result, lSize, rSize, diffPos);
   }
 
   private void closeAll(boolean emitError) {
@@ -78,7 +83,7 @@ class FileCompareSync {
     }
   }
 
-  private double compare(double lSize, double rSize) {
+  protected double compare(double lSize, double rSize) {
     if (lSize != rSize) {
       return 0;
     }

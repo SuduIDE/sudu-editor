@@ -38,6 +38,7 @@ public class FileDiffWorker {
       case TestJobs.asyncWithDir -> TestJobs.asyncWithDir(
           ArgsCast.dir(a, 0), r);
       case FileCompare.asyncCompareFiles -> FileCompare.asyncCompareFiles(a,r);
+      case FileCompare.asyncFindNextDiff -> FileCompare.asyncFindNextDiff(a,r);
       case DiffUtils.CMP_FOLDERS -> DiffUtils.compareFolders(
           ArgsCast.dir(a, 0), ArgsCast.dir(a, 1), r);
       case DiffUtils.READ_FOLDER -> DiffUtils.readFolder(

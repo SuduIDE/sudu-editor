@@ -2,7 +2,6 @@ package org.sudu.experiments.editor.worker;
 
 import org.sudu.experiments.FileHandle;
 
-import java.util.Arrays;
 import java.util.function.Consumer;
 
 class FileCompareAsync {
@@ -21,6 +20,8 @@ class FileCompareAsync {
   double filePos = 0;
   double leftSize = -1, rightSize = -1;
 
+  FileCompareAsync() {}
+
   FileCompareAsync(
       Consumer<Object[]> result,
       FileHandle left, FileHandle right
@@ -32,19 +33,19 @@ class FileCompareAsync {
     right.getSize(this::setRightSize, onError);
   }
 
-  private void setLeftSize(double size) {
+  protected void setLeftSize(double size) {
     leftSize = size;
     if (rightSize >= 0)
       startCompare();
   }
 
-  private void setRightSize(double size) {
+  protected void setRightSize(double size) {
     rightSize = size;
     if (leftSize >= 0)
       startCompare();
   }
 
-  private void startCompare() {
+  protected void startCompare() {
     if (leftSize != rightSize) {
       FileCompare.send(result, leftSize, rightSize, 0);
     } else {
@@ -52,7 +53,7 @@ class FileCompareAsync {
     }
   }
 
-  private void nextRequest() {
+  protected void nextRequest() {
     left.readAsBytes(sendLeft, onError, filePos, readLength);
     right.readAsBytes(sendRight, onError, filePos, readLength);
   }
@@ -75,7 +76,7 @@ class FileCompareAsync {
       compareBytes(leftText, rightText);
   }
 
-  private void compareBytes(byte[] leftT, byte[] rightT) {
+  protected void compareBytes(byte[] leftT, byte[] rightT) {
     var diffPos = FileCompare.cmpArrays(leftT, rightT);
     boolean eof = leftT.length < readLength || rightT.length < readLength;
     leftText = null;

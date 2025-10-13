@@ -44,10 +44,12 @@ public class BinaryDiffView extends ScrollContent {
   UiFont uiFont;
   FontDesk fd;
   GL.Texture texture;
+  boolean firstLineEdited;
 
   BinDataCache dataL, dataR;
 
   Consumer<String> onError;
+  BooleanConsumer navigate;
 
   public BinaryDiffView(
       UiContext uiContext
@@ -61,8 +63,8 @@ public class BinaryDiffView extends ScrollContent {
     if (dataR != null) dataR.setOnError(onError);
   }
 
-  public void setData(BinDataCache.DataSource source, Runnable repaint, boolean left) {
-    var data = new BinDataCache(source, chunkSize, repaint);
+  public void setData(BinDataCache.DataSource source, boolean left) {
+    var data = new BinDataCache(source, chunkSize, uiContext.repaint);
     data.setOnError(onError);
     if (left) { dataL = data; sizeL = 0; }
     else { dataR = data; sizeR = 0; }
@@ -209,14 +211,15 @@ public class BinaryDiffView extends ScrollContent {
 
     for (int ln = firstLine; ln < lastLine; ln++) {
       int y = ln * cellSize.y - vScroll + pos.y;
-      drawLine(g, ln, y, bytesX1, bytesX2, pairPad);
+      boolean edited = drawLine(g, ln, y, bytesX1, bytesX2, pairPad);
+      if (ln == firstLine) firstLineEdited = edited;
     }
 
     lineSize.set(vLineW, size.y);
     Color numbersVLine = theme.editor.numbersVLine;
-    g.drawRect(vLine1, pos.y, lineSize, numbersVLine);
-    g.drawRect(vLine2, pos.y, lineSize, numbersVLine);
-    g.drawRect(vLine3, pos.y, lineSize, numbersVLine);
+    g.drawRect(vLine1 - scrollPos.x, pos.y, lineSize, numbersVLine);
+    g.drawRect(vLine2 - scrollPos.x, pos.y, lineSize, numbersVLine);
+    g.drawRect(vLine3 - scrollPos.x, pos.y, lineSize, numbersVLine);
 
     g.disableScissor();
 
@@ -231,7 +234,7 @@ public class BinaryDiffView extends ScrollContent {
     return x - (int) x;
   }
 
-  private void drawLine(
+  private boolean drawLine(
       WglGraphics g, int line, int y,
       int bytesX1, int bytesX2, int pairPad
   ) {
@@ -258,13 +261,7 @@ public class BinaryDiffView extends ScrollContent {
       Color.Cvt.fromHSV(0.5 + 0.5 * Math.sin(line / 10.),
           0.75, 0.5, 0, debugColor);
 
-    for (int d = 0; d < addressDigitPairs; d++) {
-      int addrDigit = (int) (addrV % 256);
-      drawByte(g, baseX + (addressDigitPairs - d - 1) * cellW, y,
-          addrDigit, addressC, bgColor);
-      addrV = (addrV - addrDigit) / 256;
-    }
-
+    boolean containEdited = false;
     for (int i = 0; i < bytesPerLine; i++) {
       if (debug) {
         double h = remInt(i / 16.f + line / Math.PI / 100);
@@ -275,14 +272,24 @@ public class BinaryDiffView extends ScrollContent {
       int b1 = bo1 ? 0xFF & dataL[offsetL + i] : -1;
       int b2 = bo2 ? 0xFF & dataR[offsetR + i] : -1;
       boolean equals = b1 == b2;
+      containEdited |= !equals;
       int offset = i * (cellW + pairPad);
       if (bo1)
-        drawByte(g, bytesX1 + offset, y, b1, textFg,
+        drawByte(g, bytesX1 + offset - scrollPos.x, y, b1, textFg,
             equals ? bgColor : diffBg);
       if (bo2)
-        drawByte(g, bytesX2 + offset, y, b2, textFg,
+        drawByte(g, bytesX2 + offset - scrollPos.x, y, b2, textFg,
             equals ? bgColor : diffBg);
     }
+
+    var addrBgColor = containEdited ? diffBg : bgColor;
+    for (int d = 0; d < addressDigitPairs; d++) {
+      int addrDigit = (int) (addrV % 256);
+      drawByte(g, baseX + (addressDigitPairs - d - 1) * cellW - scrollPos.x, y,
+          addrDigit, addressC, addrBgColor);
+      addrV = (addrV - addrDigit) / 256;
+    }
+    return containEdited;
   }
 
   private void drawByte(WglGraphics g, int x, int y, int value, V4f color, V4f bgColor) {
@@ -298,5 +305,26 @@ public class BinaryDiffView extends ScrollContent {
   public void onMouseMove(MouseEvent event, SetCursor setCursor) {
     if (hitTest(event.position))
       setCursor.set(null);
+  }
+
+  protected int firstLine() {
+    return scrollPos.y / cellSize.y;
+  }
+
+  public void navigateToLine(int line) {
+    scrollPos.y = cellSize.y * line;
+    uiContext.repaint.run();
+  }
+
+  public void navigateDown() {
+    if (navigate != null) navigate.accept(true);
+  }
+
+  public void navigateUp() {
+    if (navigate != null) navigate.accept(false);
+  }
+
+  public void setNavigate(BooleanConsumer navigate) {
+    this.navigate = navigate;
   }
 }
