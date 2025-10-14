@@ -6,7 +6,9 @@ const threadPool = await editorApi.newWorkerPool("../src/worker.js", 3);
 console.log("threadPool.getNumThreads()=", threadPool.getNumThreads())
 
 const codeReview = editorApi.newCodeReview({
-    containerId: "editor", workers: threadPool
+  containerId: "editor",
+  workers: threadPool,
+  disableParser: true
 });
 
 const initialText1 =

@@ -120,7 +120,7 @@ public class JsCodeReview implements JsCodeReviewView {
     if (w.api() == null)
       throw new RuntimeException(WebGLError.text);
 
-    var fileDiff = new FileDiff(w.api());
+    var fileDiff = new FileDiff(w.api(), arguments.getDisableParserOrDefault());
     w.setScene(fileDiff);
     return new JsCodeReview(fileDiff.w, w, arguments);
   }
