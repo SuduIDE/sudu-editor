@@ -28,7 +28,7 @@ public class JavaProxy extends BaseProxy {
     char[] source = ArgsCast.array(a, 0).chars();
     int[] viewport = ArgsCast.array(a, 1).ints();
     int[] intervals = ArgsCast.array(a, 2).ints();
-    int version = ArgsCast.array(a, 3).ints()[0];
+    int version = ArgsCast.array(a, 3).ints()[1];
     parseViewport(source, viewport, intervals, version, result);
   }
 
