@@ -104,7 +104,7 @@ export type ExcludeList = string | {
   right: string
 }
 
-export enum FileContentType {
+export const enum FileContentType {
   other = 0, utf8 = 1, gbk = 2
 }
 
