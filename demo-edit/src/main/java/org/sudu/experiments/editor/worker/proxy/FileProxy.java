@@ -57,7 +57,7 @@ public class FileProxy {
     char[] chars = ArgsCast.array(a, 0).chars();
     int[] type = ArgsCast.array(a, 1).ints();
     int[] interval = ArgsCast.array(a, 2).ints();
-    int version = ArgsCast.array(a, 3).ints()[0];
+    int version = ArgsCast.array(a, 3).ints()[1];
     int[] graphInts = ArgsCast.array(a, 4).ints();
     char[] graphChars = ArgsCast.array(a, 5).chars();
     asyncIterativeParsing(chars, type, interval, version, graphInts, graphChars, r);
