@@ -82,6 +82,10 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     return items[1];
   }
 
+  public FsItem notNullItem() {
+    return left() != null ? left() : right();
+  }
+
   private int countItems() {
     return (left() == null ? 0 : 1) + (right() == null ? 0 : 1);
   }
@@ -208,23 +212,32 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
   }
 
   public void remove(ModelCopyDeleteStatus status) {
-    status.inTraverse++;
+    status.trace("ItemFolderDiffModel.remove " + getFullPath("") + ";");
+    if (status.copyingPhase) return;
+    status.inTraverse(this);
     if (getDiffType() != DiffTypes.DELETED && getDiffType() != DiffTypes.INSERTED) {
       status.onCopyError("Can't delete: item " + path + " is not marked as deleted or inserted");
-      status.onTraversed();
+      status.onTraversed(this);
       return;
     }
     if (isExcluded() && !status.syncOrphans) {
-      status.onTraversed();
+      status.onTraversed(this);
       return;
     }
     if (isDir() && children == null) {
-      status.readFolder.accept(this, () -> doRemove(status));
+      int scanTaskNumber = ++status.scanTaskCnt;
+      status.trace("Sending scan task #" + scanTaskNumber);
+      Runnable onScanTaskDone = () -> {
+        status.trace("Scan task #" + scanTaskNumber + " completed");
+        doRemove(status);
+      };
+      status.readFolder.accept(this, onScanTaskDone);
     } else doRemove(status);
   }
 
   private void doRemove(ModelCopyDeleteStatus status) {
-    FsItem item = item();
+    status.trace("ItemFolderDiffModel.doRemove " + getFullPath("") + ";");
+    FsItem item = notNullItem();
     if (item instanceof FileHandle file) {
       status.inWork++;
       FsWorkerJobs.removeFile(
@@ -240,63 +253,79 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
         for (int i = 0; i < children.length; i++) child(i).remove(status);
       }
     }
-    status.onTraversed();
+    status.onTraversed(this);
   }
 
   public void removeEmptyFolder(ModelCopyDeleteStatus status) {
     FsWorkerJobs.removeDir(
-        status.executor, (DirectoryHandle) item(),
+        status.executor, (DirectoryHandle) notNullItem(),
         () -> status.onDirDeleted(this),
         (err) -> status.onFolderDeleteError(this, err)
     );
   }
 
   public void copy(boolean left, ModelCopyDeleteStatus status) {
-    status.inTraverse++;
-    boolean syncExcluded = getDiffType() != DiffTypes.DEFAULT
-        && (!isExcluded() || (isExcluded() && status.syncExcluded));
-    boolean containExcluded = getDiffType() == DiffTypes.DEFAULT && isDir() && containExcluded();
-    if (!(containExcluded || syncExcluded)) {
-      status.onTraversed();
+    status.trace("ItemFolderDiffModel.copy " + getFullPath("") + ";");
+    status.inTraverse(this);
+    boolean syncExcluded = status.syncExcluded && (isExcluded() || (isDir() && containExcluded()));
+    boolean haveDiff = !isExcluded() && getDiffType() != DiffTypes.DEFAULT;
+    if (!(syncExcluded || haveDiff)) {
+      status.onTraversed(this);
       return;
     }
     if (isFile()) copyFile(left, status);
     else copyFolder(left, status);
-    status.onTraversed();
   }
 
   private void copyFolder(boolean left, ModelCopyDeleteStatus status) {
+    status.trace("ItemFolderDiffModel.copyFolder " + getFullPath("") + ";");
     if (status.syncOrphans && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
       remove(status);
+      status.onTraversed(this);
       return;
     }
-    if (children == null) {
-      if (!isExcluded()) {
-        status.onCopyError("model.children == null in non-excluded folder");
-        return;
-      }
-      if (isBoth()) {
-        status.compareFolders.accept(this, () -> doCopyFolder(left, status));
-      } else {
-        status.readFolder.accept(this, () -> doCopyFolder(left, status));
-      }
+    if (children == null) sendExcludedToScan(left, status);
+    else doCopyFolder(left, status);
+  }
+
+  private void sendExcludedToScan(boolean left, ModelCopyDeleteStatus status) {
+    status.trace("ItemFolderDiffModel.sendExcludedToScan " + getFullPath("") + ";");
+    if (!isExcluded()) {
+      status.onCopyError("model.children == null in non-excluded folder");
+      status.onTraversed(this);
       return;
     }
-    doCopyFolder(left, status);
+    final int scanTaskNumber = ++status.scanTaskCnt;
+    status.trace("Sending scan task #" + scanTaskNumber);
+    Runnable onScanTaskDone = () -> {
+      status.trace("Scan task #" + scanTaskNumber + " completed");
+      doCopyFolder(left, status);
+    };
+    if (isBoth()) status.compareFolders.accept(this, onScanTaskDone);
+    else status.readFolder.accept(this, onScanTaskDone);
   }
 
   private void doCopyFolder(boolean left, ModelCopyDeleteStatus status) {
-    if (getDiffType() == DiffTypes.EDITED) {
+    status.trace("ItemFolderDiffModel.doCopyFolder " + getFullPath("") + ";");
+    int diffType = getDiffType();
+    boolean syncExcluded = diffType == DiffTypes.DEFAULT && status.syncExcluded && (isExcluded() || containExcluded());
+    if (diffType == DiffTypes.EDITED || syncExcluded) {
       if (children.length == 0) updateItem();
       else for (int i = 0; i < children.length; i++) child(i).copy(left, status);
+      status.onTraversed(this);
       return;
     }
+
     DirectoryHandle toDirParent;
-    if ((left && isLeftOnly()) || (!left && isRightOnly())) {
+    if (status.copyingPhase && ((left && isLeftOnly()) || (!left && isRightOnly()))) {
       toDirParent = (DirectoryHandle) parent().item(!left);
-    } else return;
+    } else {
+      status.onTraversed(this);
+      return;
+    }
 
     Consumer<DirectoryHandle> onDirCreated = dirHandle -> {
+      status.trace("Dir created " + dirHandle);
       setItem(!left, dirHandle);
       if (children.length == 0) updateItem();
       else for (int i = 0; i < children.length; i++) child(i).copy(left, status);
@@ -305,11 +334,18 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
     status.inWork++;
     FsWorkerJobs.mkDir(status.executor, toDirParent, path, onDirCreated, status::onCopyError);
+    status.onTraversed(this);
   }
 
   private void copyFile(boolean left, ModelCopyDeleteStatus status) {
+    status.trace("ItemFolderDiffModel.copyFile " + getFullPath("") + ";");
     if (status.syncOrphans && ((left && isRightOnly()) || (!left && isLeftOnly()))) {
       remove(status);
+      status.onTraversed(this);
+      return;
+    }
+    if (!status.copyingPhase) {
+      status.onTraversed(this);
       return;
     }
     FileHandle fromFile = (FileHandle) item(left), toFile;
@@ -319,7 +355,10 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
     } else if ((left && isLeftOnly()) || (!left && isRightOnly())) {
       toFile = toDir.createFileHandle(path);
       setItem(!left, toFile);
-    } else return;
+    } else {
+      status.onTraversed(this);
+      return;
+    }
 
     DoubleConsumer onFileCopied = (bytes) -> {
       insertItem();
@@ -328,5 +367,6 @@ public class ItemFolderDiffModel extends RemoteFolderDiffModel {
 
     status.inWork++;
     FsWorkerJobs.copyFile(status.executor, fromFile, toFile, onFileCopied, status::onCopyError);
+    status.onTraversed(this);
   }
 }

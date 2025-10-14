@@ -184,7 +184,7 @@ public class RemoteFolderDiffModel extends FolderDiffModel {
         ", compared=" + isCompared() +
         ", propagation=" + getPropagation() +
         ", diffType=" + DiffTypes.name(getDiffType()) +
-        ", itemKind=" + ItemKind.name(getDiffType()) +
+        ", itemKind=" + ItemKind.name(getItemKind()) +
         ", exclude=" + isExcluded() +
         ", sendExcluded=" + isSendExcluded() +
         "}";

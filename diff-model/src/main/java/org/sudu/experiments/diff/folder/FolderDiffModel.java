@@ -268,7 +268,7 @@ public class FolderDiffModel {
   }
 
   public void updateItemOnDelete() {
-    if (children == null || children.length == 0) return;
+    if (children == null) return;
     boolean deletedOnly = true;
     boolean insertedOnly = true;
     boolean haveChanges = false;
@@ -278,7 +278,7 @@ public class FolderDiffModel {
       insertedOnly &= diffType == DiffTypes.INSERTED;
       haveChanges |= diffType != DiffTypes.DEFAULT;
     }
-    if (deletedOnly || insertedOnly) return;
+    if (children.length != 0 && (deletedOnly || insertedOnly)) return;
     setDiffType(haveChanges ? DiffTypes.EDITED : DiffTypes.DEFAULT);
     if (parent != null) parent.updateItem();
   }
@@ -406,6 +406,10 @@ public class FolderDiffModel {
     return false;
   }
 
+  public int[] readFolderInts() {
+    return new int[]{getDiffType(), getItemKind(), isExcluded() ? 1 : 0, posInParent};
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -428,7 +432,7 @@ public class FolderDiffModel {
         ", compared=" + isCompared() +
         ", propagation=" + getPropagation() +
         ", diffType=" + DiffTypes.name(getDiffType()) +
-        ", itemKind=" + ItemKind.name(getDiffType()) +
+        ", itemKind=" + ItemKind.name(getItemKind()) +
         ", exclude=" + isExcluded() +
         ", sendExcluded=" + isSendExcluded() +
         "}";

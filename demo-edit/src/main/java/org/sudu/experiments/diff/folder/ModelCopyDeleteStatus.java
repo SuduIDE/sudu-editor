@@ -19,14 +19,19 @@ public class ModelCopyDeleteStatus {
   public int copiedDirs;
   public int deletedFiles, deletedDirs;
 
+  public boolean copyingPhase;
+
   final boolean syncOrphans;  // true -> remove orphan items on copy
   final boolean syncExcluded; // true -> copy excluded items (for files only now, wip for folders)
 
   final IdentityHashMap<ItemFolderDiffModel, Integer> markedForDelete;
+  private Consumer<String> trace;
 
   long lastSendStatusTime = System.currentTimeMillis();
 
   final long SEND_STATUS_MS = 2000;
+
+  int scanTaskCnt = 0;
 
   public ModelCopyDeleteStatus(
       WorkerJobExecutor executor,
@@ -47,7 +52,13 @@ public class ModelCopyDeleteStatus {
     this.syncExcluded = syncExcluded;
   }
 
-  public void onTraversed() {
+  public void inTraverse(ItemFolderDiffModel model) {
+//    trace("ModelCopyDeleteStatus.inTraverse " + model.getFullPath("") + ";");
+    inTraverse++;
+  }
+
+  public void onTraversed(ItemFolderDiffModel model) {
+//    trace("ModelCopyDeleteStatus.onTraversed " + model.getFullPath("") + ";");
     inTraverse--;
     onComplete();
   }
@@ -84,7 +95,6 @@ public class ModelCopyDeleteStatus {
     model.deleteItem();
     var parent = model.parent();
     if (parent == null) return;
-    parent.updateItemOnDelete();
     if (!marked(parent)) return;
     int count = markedForDelete.get(parent) - 1;
     markedForDelete.put(parent, count);
@@ -142,6 +152,20 @@ public class ModelCopyDeleteStatus {
 
   public void setOnComplete(Runnable onComplete) {
     this.onComplete = onComplete;
+  }
+
+  public void setTrace(Consumer<String> trace) {
+    this.trace = trace;
+  }
+
+  public void status() {
+    trace(String.format(
+        "inWork = %d, inTraverse = %d, markedForDelete.size = %d",
+        inWork, inTraverse, markedForDelete.size()));
+  }
+
+  public void trace(String msg) {
+    if (trace != null) trace.accept(msg);
   }
 
   public int copiedFiles() {

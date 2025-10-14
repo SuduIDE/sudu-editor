@@ -201,7 +201,7 @@ public class Collector {
     executor.sendToWorker(
         result -> onFolderRead(model, result),
         DiffUtils.READ_FOLDER,
-        dirHandle, new int[]{model.getDiffType(), model.getItemKind(), 0}
+        dirHandle, model.readFolderInts()
     );
   }
 

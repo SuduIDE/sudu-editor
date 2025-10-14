@@ -66,10 +66,11 @@ public class DiffUtils {
     var model = new ItemFolderDiffModel(null, folder.getName());
     int diffType = ints[0];
     int itemKind = ints[1];
+    boolean isExcluded = ints[2] == 1;
     model.setDiffType(diffType);
     model.setItem(folder);
-    var reader = new ReadFolderHandler(model, diffType, itemKind, r);
-    model.posInParent = ints[2];
+    var reader = new ReadFolderHandler(model, diffType, itemKind, isExcluded, r);
+    model.posInParent = ints[3];
     reader.beginRead();
   }
 
