@@ -258,7 +258,7 @@ public interface FsWorkerJobs {
       WorkerJobExecutor workers, FileHandle fileOrDir,
       Consumer<FileHandle.Stats> onComplete, Consumer<String> onError
   ) {
-    workers.sendToWorker(
+    workers.sendToWorker(true,
         r -> {
           if (r[0] instanceof String error) {
             onError.accept(error);
