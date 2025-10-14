@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class Utils {
+  public static boolean printParserError = false;
 
   public static void markError(int[] tokenTypes, int[] tokenStyles, int ind) {
     if (ind < 0 || ind > tokenTypes.length - 1) return;
@@ -21,7 +22,8 @@ public class Utils {
   }
 
   public static void printError(int line, int charPos, String msg) {
-    System.err.println(line + ":" + charPos + " " + msg);
+    if (printParserError)
+      System.err.println(line + ":" + charPos + " " + msg);
   }
 
 }
