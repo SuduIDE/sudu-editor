@@ -67,9 +67,11 @@ public class NextDiffTask {
     double size = Math.min(sizeL, sizeR);
     boolean scanToEnd = findNext ? address >= size : address <= 0;
     if (scanToEnd) {
-      sendNotification.accept("Scanned to end, no differences found");
+      String msg = findNext ? "No next change" : "No previous change";
+      sendNotification.accept(msg);
     } else {
-      sendNotification.accept("No differences found, scanning next Gb block");
+      String msg = findNext ? "next" : "previous";
+      sendNotification.accept("No change found yet, searching for " + msg + " change");
       send();
     }
   }
