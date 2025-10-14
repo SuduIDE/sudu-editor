@@ -19,33 +19,62 @@ interface UnifiedDiffOp {
     return size;
   }
 
-  static void buildDocIndex(DiffRange[] ranges, int[] lines, boolean[] index) {
+  static void buildDocIndex(
+      DiffRange[] ranges,
+      int[] lines, boolean[] index,
+      int[] lLn, int[] rLn
+  ) {
     int pos = 0;
     for (DiffRange range : ranges) {
       switch (range.type) {
-        case DiffTypes.DEFAULT, DiffTypes.INSERTED ->
-            pos = addRangeR(range, pos, lines, index);
+        case DiffTypes.DEFAULT ->
+            pos = addDefaultRange(range, lines, index, lLn, rLn, pos);
         case DiffTypes.DELETED ->
-            pos = addRangeL(range, pos, lines, index);
+            pos = addLeftRange(range, lines, index, lLn, rLn, pos);
+        case DiffTypes.INSERTED ->
+            pos = addRightRange(range, lines, index, lLn, rLn, pos);
         case DiffTypes.EDITED -> {
-          pos = addRangeL(range, pos, lines, index);
-          pos = addRangeR(range, pos, lines, index);
+          pos = addLeftRange(range, lines, index, lLn, rLn, pos);
+          pos = addRightRange(range, lines, index, lLn, rLn, pos);
         }
       }
     }
   }
 
-  static int addRangeL(DiffRange r, int pos, int[] lines, boolean[] index) {
-    ArrayOp.fillSequence(lines, pos, pos + r.lenL, r.fromL);
-    Arrays.fill(index, pos, pos + r.lenL, false);
-    pos += r.lenL;
+  private static int addDefaultRange(
+      DiffRange range, int[] lines, boolean[] index,
+      int[] lLn, int[] rLn, int pos
+  ) {
+    int end = pos + range.lenR;
+    Arrays.fill(index, pos, end, true);
+    ArrayOp.fillSequence(lines, pos, end, range.fromR);
+    ArrayOp.fillSequence(rLn, pos, end, range.fromR);
+    ArrayOp.fillSequence(lLn, pos, end, range.fromL);
+    pos = end;
     return pos;
   }
 
-  static int addRangeR(DiffRange r, int pos, int[] lines, boolean[] index) {
-    ArrayOp.fillSequence(lines, pos, pos + r.lenR, r.fromR);
-    Arrays.fill(index, pos, pos + r.lenR, true);
-    pos += r.lenR;
-    return pos;
+  static int addRightRange(
+      DiffRange range, int[] lines, boolean[] index,
+      int[] lLn, int[] rLn, int pos
+  ) {
+    int end = pos + range.lenR;
+    Arrays.fill(index, pos, end, true);
+    ArrayOp.fillSequence(lines, pos, end, range.fromR);
+    ArrayOp.fillSequence(rLn, pos, end, range.fromR);
+    Arrays.fill(lLn, pos, end, -1);
+    return end;
+  }
+
+  static int addLeftRange(
+      DiffRange range, int[] lines, boolean[] index,
+      int[] lLn, int[] rLn, int pos
+  ) {
+    int end = pos + range.lenL;
+    Arrays.fill(index, pos, end, false);
+    ArrayOp.fillSequence(lines, pos, end, range.fromL);
+    ArrayOp.fillSequence(lLn, pos, end, range.fromL);
+    Arrays.fill(rLn, pos, end, -1);
+    return end;
   }
 }

@@ -11,6 +11,7 @@ import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.input.KeyEvent;
+import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.Focusable;
@@ -20,8 +21,7 @@ import org.sudu.experiments.ui.window.View;
 
 import java.util.Objects;
 
-public class UnifiedDiffView extends View implements Focusable
-{
+public class UnifiedDiffView extends View implements Focusable {
 
   static final float vLineSpaceDp = 10;
   static final float vLineWDp = 1;
@@ -53,13 +53,13 @@ public class UnifiedDiffView extends View implements Focusable
   // model data
   Model model1 = new Model(), model2 = model1;
   DiffInfo diffInfo;
+  // document lines to view mapping
   int[] docLines;
   boolean[] docIndex;
+  // line number values
+  int[] ln1Values, ln2Values;
   CodeLines docWrapper = docWrapper();
   
-  // line number mappings for both documents
-  int[] lineNumbers1Array = new int[0];
-  int[] lineNumbers2Array = new int[0];
 
   // layout
   int vLineX, vLineW, scrollBarWidth;
@@ -202,8 +202,7 @@ public class UnifiedDiffView extends View implements Focusable
   public void setModel(Model model, int index) {
     docLines = null;
     docIndex = null;
-    lineNumbers1Array = new int[0];
-    lineNumbers2Array = new int[0];
+    ln1Values = ln2Values = null;
     if (index == 0) model1 = model; else model2 = model;
     if (!model1.document.isEmpty() && !model2.document.isEmpty()) {
       DiffUtils.findDiffs(model1.document, model2.document, true,
@@ -229,7 +228,14 @@ public class UnifiedDiffView extends View implements Focusable
     int size = UnifiedDiffOp.unifiedSize(ranges);
     docLines = new int[size];
     docIndex = new boolean[size];
-    UnifiedDiffOp.buildDocIndex(ranges, docLines, docIndex);
+    ln1Values = new int[size];
+    ln2Values = new int[size];
+
+    UnifiedDiffOp.buildDocIndex(ranges,
+        docLines, docIndex,
+        ln1Values, ln2Values);
+    lineNumbers1.setColors(LineDiff.colors(model1.diffModel));
+    lineNumbers2.setColors(LineDiff.colors(model2.diffModel));
   }
 
   private void onDiffs(DiffInfo di, int[] versions) {
@@ -241,11 +247,7 @@ public class UnifiedDiffView extends View implements Focusable
       diffInfo = di;
       model1.diffModel = di.lineDiffsL;
       model2.diffModel = di.lineDiffsR;
-      lineNumbers1.setColors(LineDiff.colors(model1.diffModel));
-      lineNumbers2.setColors(LineDiff.colors(model2.diffModel));
-
       buildDocIndex();
-      buildLineNumberMappings();
     } else {
       System.out.println("onDiffs: version mismatch: doc1.v = " + model1.document.version() +
           ", got version " + versions[0] + ", doc2.v = " + model2.document.version() +
@@ -274,7 +276,7 @@ public class UnifiedDiffView extends View implements Focusable
         (vScrollPos + size.y - 1) / lineHeight, docLines.length - 1) + 1;
     int lastViewLine = Math.min(this.lastViewLine, docLines.length);
 
-    if (lineNumbers1Array.length != 0)
+    if (ln1Values.length != 0)
       drawLineNumbers(g, firstViewLine, lastViewLine);
 
     System.out.println(
@@ -320,74 +322,28 @@ public class UnifiedDiffView extends View implements Focusable
   }
 
   private void drawLineNumbers(WglGraphics g, int firstViewLine, int lastViewLine) {
+    drawLineNumbers(g, firstViewLine, lastViewLine, lineNumbers1, ln1Values,
+        colors.codeDiffBg.insertedColor);
+    drawLineNumbers(g, firstViewLine, lastViewLine, lineNumbers2, ln2Values,
+        colors.codeDiffBg.deletedColor);
+  }
+
+  // todo optimize
+  private void drawLineNumbers(
+      WglGraphics g, int firstViewLine, int lastViewLine,
+      LineNumbersComponent lineNumbers, int[] values, Color bg
+  ) {
     int lineHeight = lrContext.lineHeight;
-    
-    // Draw line numbers for both sides
-    lineNumbers1.beginDraw(g, 0);
-    lineNumbers2.beginDraw(g, 0);
-    
+    lineNumbers.beginDraw(g, 0);
     for (int i = firstViewLine; i < lastViewLine; i++) {
       int yPosition = lineHeight * i - vScrollPos;
-      
-      // Draw line number for model1 (left side)
-      if (lineNumbers1Array[i] >= 0) {
-        lineNumbers1.drawRange(yPosition, lineNumbers1Array[i], lineNumbers1Array[i] + 1, g, colors);
+      if (values[i] >= 0) {
+        lineNumbers.drawRange(yPosition, values[i], values[i] + 1, g, colors);
       } else {
-        lineNumbers1.drawEmptyLines(yPosition, yPosition + lineHeight, g, colors);
-      }
-      
-      // Draw line number for model2 (right side)
-      if (lineNumbers2Array[i] >= 0) {
-        lineNumbers2.drawRange(yPosition, lineNumbers2Array[i], lineNumbers2Array[i] + 1, g, colors);
-      } else {
-        lineNumbers2.drawEmptyLines(yPosition, yPosition + lineHeight, g, colors);
+        lineNumbers.drawEmptyLines(yPosition, yPosition + lineHeight, g, bg);
       }
     }
-    
-    lineNumbers1.endDraw(g);
-    lineNumbers2.endDraw(g);
-  }
-  
-  private void buildLineNumberMappings() {
-    if (lineNumbers1Array.length != docLines.length) {
-      lineNumbers1Array = new int[docLines.length];
-      lineNumbers2Array = new int[docLines.length];
-    }
-    
-    // Initialize arrays with -1 (no line number)
-    for (int i = 0; i < lineNumbers1Array.length; i++) {
-      lineNumbers1Array[i] = -1;
-      lineNumbers2Array[i] = -1;
-    }
-    
-    // Track current positions in both documents
-    int currentLine1 = 0, currentLine2 = 0;
-    int unifiedPos = 0;
-    
-    for (DiffRange range : diffInfo.ranges) {
-      switch (range.type) {
-        case DiffTypes.DEFAULT, DiffTypes.INSERTED -> {
-          // Only right side has content
-          for (int i = 0; i < range.lenR; i++) {
-            if (unifiedPos < lineNumbers2Array.length) {
-              lineNumbers2Array[unifiedPos] = range.fromR + i;
-            }
-            unifiedPos++;
-          }
-          currentLine2 += range.lenR;
-        }
-        case DiffTypes.DELETED -> {
-          // Only left side has content
-          for (int i = 0; i < range.lenL; i++) {
-            if (unifiedPos < lineNumbers1Array.length) {
-              lineNumbers1Array[unifiedPos] = range.fromL + i;
-            }
-            unifiedPos++;
-          }
-          currentLine1 += range.lenL;
-        }
-      }
-    }
+    lineNumbers.endDraw(g);
   }
 
   private CodeLineRenderer lineRenderer(int i) {

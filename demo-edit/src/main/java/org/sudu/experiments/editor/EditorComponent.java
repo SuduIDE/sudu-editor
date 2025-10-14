@@ -801,7 +801,7 @@ public class EditorComponent extends View implements
     int l0y = l0 * lineHeight - vScrollPos;
     if (l0Value < 0) {
       int l1y = l1 * lineHeight - vScrollPos;
-      lineNumbers.drawEmptyLines(l0y, l1y, g, colors);
+      lineNumbers.drawEmptyLines(l0y, l1y, g, colors.editor.bg);
     } else {
       lineNumbers.drawRange(l0y, l0Value, l0Value + l1 - l0, g, colors);
     }

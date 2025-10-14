@@ -6,6 +6,7 @@ import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.MouseEvent;
+import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.SetCursor;
@@ -81,9 +82,8 @@ public class LineNumbersComponent implements Disposable {
 
   public void drawEmptyLines(
       int yFrom, int yTo,
-      WglGraphics g, EditorColorScheme scheme
+      WglGraphics g, Color bgColor
   ) {
-    var bgColor = scheme.editor.bg;
     bottomSize.x = size.x;
     bottomSize.y = yTo - yFrom;
     if (yFrom < size.y)
@@ -94,7 +94,7 @@ public class LineNumbersComponent implements Disposable {
       int yPos,
       WglGraphics g, EditorColorScheme scheme
   ) {
-    drawEmptyLines(yPos, size.y, g, scheme);
+    drawEmptyLines(yPos, size.y, g, scheme.editor.bg);
   }
 
   public void drawCaretLine(
