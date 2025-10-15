@@ -5,6 +5,7 @@ import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.esm.semantic.JsSemanticToken;
 import org.sudu.experiments.esm.semantic.JsSemanticTokenLegendItem;
 import org.sudu.experiments.js.*;
+import org.sudu.experiments.text.SplitJsText;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;

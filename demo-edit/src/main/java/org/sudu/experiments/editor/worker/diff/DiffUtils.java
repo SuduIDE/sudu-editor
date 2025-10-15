@@ -102,7 +102,7 @@ public class DiffUtils {
     writer.write(toLine - fromLine);
     int offset = 0;
     for (int i = fromLine; i < toLine; i++) {
-      CodeLine line = document.line(i);
+      CodeLine line = document.lines[i];
       if (cmpOnlyLines) {
         writer.write(1);
         writer.write(offset, line.totalStrLength);
@@ -223,7 +223,7 @@ public class DiffUtils {
   }
 
   private static String formatStr(Document doc, LineDiff diff, int ind) {
-    String line = doc.line(ind).makeString();
+    String line = doc.lines[ind].makeString();
     if (line.length() < 40) line = line + " ".repeat(40 - line.length());
 
     if (diff == null) return String.format("%4d  %.40s", ind + 1, line);
@@ -252,12 +252,7 @@ public class DiffUtils {
     int[] ints = new int[] {cmpOnlyLines ? 1 : 0, document1.version(), document2.version()};
 
     window.sendToWorker(true,
-        r -> {
-          int[] reply = ArgsCast.intArray(r, 0);
-          int[] versions = ArgsCast.intArray(r, 1);
-          DiffInfo model = readDiffInfo(reply);
-          result.accept(model, versions);
-        }, FIND_DIFFS,
+        fdResult(result), FIND_DIFFS,
         chars1, intervals1,
         chars2, intervals2,
         syncL, syncR,
@@ -281,17 +276,21 @@ public class DiffUtils {
     int[] ints = {0, document1.version(), document2.version()};
 
     window.sendToWorker(true,
-        r -> {
-          int[] reply = ArgsCast.intArray(r, 0);
-          int[] versions = ArgsCast.intArray(r, 1);
-          DiffInfo model = readDiffInfo(reply);
-          result.accept(model, versions);
-        }, FIND_DIFFS,
+        fdResult(result), FIND_DIFFS,
         chars1, intervals1,
         chars2, intervals2,
         syncL, syncR,
         ints
     );
+  }
+
+  private static Consumer<Object[]> fdResult(BiConsumer<DiffInfo, int[]> result) {
+    return r -> {
+      int[] reply = ArgsCast.intArray(r, 0);
+      int[] versions = ArgsCast.intArray(r, 1);
+      DiffInfo model = readDiffInfo(reply);
+      result.accept(model, versions);
+    };
   }
 
   public static final String asyncListDirectory = "asyncListDirectory";

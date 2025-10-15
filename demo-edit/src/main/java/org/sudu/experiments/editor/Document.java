@@ -17,7 +17,7 @@ import java.util.function.BiConsumer;
 public class Document extends CodeLines {
   public static final char newLine = '\n';
 
-  public CodeLine[] document;
+  public CodeLine[] lines;
   public IntervalTree tree;
   public ScopeGraph scopeGraph = new ScopeGraph();
   public final Map<Pos, Pos> usageToDef = new HashMap<>();
@@ -41,8 +41,12 @@ public class Document extends CodeLines {
 
   public Document(CodeLine... data) {
     if (data.length == 0) throw new IllegalArgumentException();
-    document = data;
+    lines = data;
     tree = initialInterval();
+  }
+
+  public boolean isEmpty() {
+    return lines.length == 1 && lines[0].totalStrLength == 0;
   }
 
   private IntervalTree initialInterval() {
@@ -50,31 +54,31 @@ public class Document extends CodeLines {
   }
 
   public CodeLine line(int i) {
-    return document[i];
+    return lines[i];
   }
 
   public char getChar(int line, int pos) {
-    return line(line).getChar(pos);
+    return lines[line].getChar(pos);
   }
 
   public void invalidateFont() {
-    for (CodeLine codeLine: document) {
+    for (CodeLine codeLine: lines) {
       codeLine.invalidateCache();
     }
   }
 
   public void invalidateMeasure() {
-    for (CodeLine line: document) {
+    for (CodeLine line: lines) {
       line.invalidateMeasure();
     }
   }
 
   public int length() {
-    return document.length;
+    return lines.length;
   }
 
   public int getFullLength() {
-    return getIntervalLength(0, document.length);
+    return getIntervalLength(0, lines.length);
   }
 
   public int getIntervalLength(int fromLine, int toLine) {
@@ -91,12 +95,12 @@ public class Document extends CodeLines {
   }
 
   public int strLength(int i) {
-    return document[i].totalStrLength;
+    return lines[i].totalStrLength;
   }
 
   public void setLine(int ind, CodeLine newLine, boolean success) {
-    var oldLine = document[ind];
-    document[ind] = newLine;
+    var oldLine = lines[ind];
+    lines[ind] = newLine;
     if (success || oldLine.length() != newLine.length()) return;
     for (int i = 0; i < oldLine.length(); i++) {
       CodeElement oldElem = oldLine.elements[i];
@@ -111,23 +115,23 @@ public class Document extends CodeLines {
   }
 
   public void newLineOp(int caretLine, int caretCharPos) {
-    CodeLine line = document[caretLine];
+    CodeLine line = lines[caretLine];
 
-    document = Arrays.copyOf(document, document.length + 1);
-    for (int pos = document.length - 1; pos - 1 > caretLine; pos--) {
-      document[pos] = document[pos - 1];
+    lines = Arrays.copyOf(lines, lines.length + 1);
+    for (int pos = lines.length - 1; pos - 1 > caretLine; pos--) {
+      lines[pos] = lines[pos - 1];
     }
 
     if (caretCharPos == 0) {
-      document[caretLine] = new CodeLine();
-      document[caretLine + 1] = line;
+      lines[caretLine] = new CodeLine();
+      lines[caretLine + 1] = line;
     } else if (caretCharPos == line.totalStrLength) {
-      document[caretLine] = line;
-      document[caretLine + 1] = new CodeLine();
+      lines[caretLine] = line;
+      lines[caretLine + 1] = new CodeLine();
     } else {
       CodeLine[] split = line.split(caretCharPos);
-      document[caretLine] = split[0];
-      document[caretLine + 1] = split[1];
+      lines[caretLine] = split[0];
+      lines[caretLine + 1] = split[1];
     }
 
     makeDiff(caretLine, caretCharPos, false, "\n");
@@ -142,17 +146,17 @@ public class Document extends CodeLines {
 
   private void concatLinesOp(int caretLine) {
     if (caretLine + 1 >= length()) return;
-    CodeLine newLine = CodeLine.concat(document[caretLine], document[caretLine + 1]);
+    CodeLine newLine = CodeLine.concat(lines[caretLine], lines[caretLine + 1]);
     deleteLineOp(caretLine);
-    document[caretLine] = newLine;
+    lines[caretLine] = newLine;
   }
 
   public void deleteLine(int caretLine) {
-    String deleted = line(caretLine).makeString().concat("\n");
-    if (document.length > 1) {
+    String deleted = lines[caretLine].makeString().concat("\n");
+    if (lines.length > 1) {
       deleteLineOp(caretLine);
     } else {
-      document[0].delete(0);
+      lines[0].delete(0);
     }
 
     makeDiff(caretLine, 0, true, deleted);
@@ -162,7 +166,7 @@ public class Document extends CodeLines {
   public void replaceText(String[] newLines) {
     CodeLine[] newCodeLines = new CodeLine[newLines.length];
     for (int i = 0; i < newLines.length; i++) newCodeLines[i] = new CodeLine(newLines[i]);
-    applyChange(0, document.length, newCodeLines);
+    applyChange(0, lines.length, newCodeLines);
   }
 
   public void applyChange(int fromLine, int toLine, CodeLine[] newLines) {
@@ -192,35 +196,35 @@ public class Document extends CodeLines {
 
     String inserted = sb.toString();
     int insertLine = !insertFromStart ? fromLine - 1 : fromLine;
-    int insertPos = !insertFromStart ? line(fromLine - 1).totalStrLength : 0;
+    int insertPos = !insertFromStart ? lines[fromLine - 1].totalStrLength : 0;
     Diff insertDiff = new Diff(insertLine, insertPos, false, inserted);
     makeDiffOp(insertDiff);
 
-    CodeLine[] newDocument = new CodeLine[document.length + newLines.length];
-    System.arraycopy(document, 0, newDocument, 0, fromLine);
+    CodeLine[] newDocument = new CodeLine[lines.length + newLines.length];
+    System.arraycopy(lines, 0, newDocument, 0, fromLine);
     System.arraycopy(newLines, 0, newDocument, fromLine, newLines.length);
-    System.arraycopy(document, fromLine, newDocument, fromLine + newLines.length, document.length - fromLine);
+    System.arraycopy(lines, fromLine, newDocument, fromLine + newLines.length, lines.length - fromLine);
 
-    this.document = newDocument;
+    this.lines = newDocument;
     updateModelOnDiff(insertDiff, false);
     return insertDiff;
   }
 
   public CodeLine[] getLines(int fromLine, int toLine) {
-    return Arrays.stream(Arrays.copyOfRange(document, fromLine, toLine))
+    return Arrays.stream(Arrays.copyOfRange(lines, fromLine, toLine))
         .map(line -> new CodeLine(line.makeString()))
         .toArray(CodeLine[]::new);
   }
 
   public String copyLine(int caretLine) {
-    return document[caretLine].makeString().concat("\n");
+    return lines[caretLine].makeString().concat("\n");
   }
 
   private void deleteLineOp(int caretLine) {
-    if (caretLine >= document.length || caretLine < 0) throw new RuntimeException();
-    CodeLine[] doc = new CodeLine[document.length - 1];
-    ArrayOp.remove(document, caretLine, doc);
-    document = doc;
+    if (caretLine >= lines.length || caretLine < 0) throw new RuntimeException();
+    CodeLine[] doc = new CodeLine[lines.length - 1];
+    ArrayOp.remove(lines, caretLine, doc);
+    lines = doc;
   }
 
   public Diff deleteLines(int fromLine, int toLine) {
@@ -234,7 +238,7 @@ public class Document extends CodeLines {
     if (!deleteFromStart && !deleteToEnd) deletedSB.deleteCharAt(deletedSB.length() - 1);
 
     int deleteLine = !deleteFromStart ? fromLine - 1 : fromLine;
-    int deletePos = !deleteFromStart ? line(fromLine - 1).totalStrLength : 0;
+    int deletePos = !deleteFromStart ? lines[fromLine - 1].totalStrLength : 0;
     Diff diff = new Diff(deleteLine, deletePos, true, deletedSB.toString());
     deleteLinesOp(fromLine, toLine);
     makeDiffOp(diff);
@@ -243,30 +247,30 @@ public class Document extends CodeLines {
   }
 
   private void deleteLinesOp(int fromLine, int toLine) {
-    if (fromLine >= document.length || fromLine < 0) throw new RuntimeException();
-    if (toLine > document.length || toLine < 0) throw new RuntimeException();
+    if (fromLine >= lines.length || fromLine < 0) throw new RuntimeException();
+    if (toLine > lines.length || toLine < 0) throw new RuntimeException();
 
-    CodeLine[] doc = new CodeLine[document.length - toLine + fromLine];
-    ArrayOp.remove(document, fromLine, toLine, doc);
-    document = doc;
+    CodeLine[] doc = new CodeLine[lines.length - toLine + fromLine];
+    ArrayOp.remove(lines, fromLine, toLine, doc);
+    lines = doc;
   }
 
   public void deleteChar(int caretLine, int caretCharPos) {
     if (isLastPosition(caretLine, caretCharPos)) {
       // do nothing at the document end
-      if (caretLine != document.length - 1) {
+      if (caretLine != lines.length - 1) {
         makeDiff(caretLine, caretCharPos, true, "\n");
         concatLinesOp(caretLine);
       }
     } else {
       makeDiff(caretLine, caretCharPos, true, String.valueOf(getChar(caretLine, caretCharPos)));
-      document[caretLine].deleteAt(caretCharPos);
+      lines[caretLine].deleteAt(caretCharPos);
     }
     onDiffMade();
   }
 
   public void insertAt(int line, int pos, String value) {
-    document[line].insertAt(pos, value);
+    lines[line].insertAt(pos, value);
   }
 
   public void insertLines(int line, int pos, String[] lines) {
@@ -278,15 +282,15 @@ public class Document extends CodeLines {
   private void insertLinesOp(int line, int pos, String[] lines) {
     if (lines.length == 0) return;
     if (lines.length == 1) {
-      document[line].insertAt(pos, lines[0]);
+      this.lines[line].insertAt(pos, lines[0]);
       return;
     }
     int len = lines.length - 1;
 
-    CodeLine[] pair = document[line].split(pos);
+    CodeLine[] pair = this.lines[line].split(pos);
     CodeLine splitA = pair[0];
     CodeLine splitB = pair[1];
-    CodeLine[] doc = Arrays.copyOf(document, document.length + len);
+    CodeLine[] doc = Arrays.copyOf(this.lines, this.lines.length + len);
 
     for (int p = doc.length - 1; p - len > line; p--) {
       doc[p] = doc[p - len];
@@ -300,11 +304,11 @@ public class Document extends CodeLines {
     }
     splitB.insertToBegin(lines[len]);
     doc[line + len] = splitB;
-    document = doc;
+    this.lines = doc;
   }
 
   private boolean isLastPosition(int caretLine, int caretCharPos) {
-    return caretCharPos >= document[caretLine].totalStrLength;
+    return caretCharPos >= lines[caretLine].totalStrLength;
   }
 
   public String copy(Selection selection, boolean isCut) {
@@ -318,19 +322,19 @@ public class Document extends CodeLines {
     Selection.SelPos rightPos = selection.getRightPos();
 
     if (leftPos.line == rightPos.line) {
-      String line = document[leftPos.line].makeString();
+      String line = lines[leftPos.line].makeString();
       return line.substring(leftPos.charInd, rightPos.charInd);
     } else {
       StringBuilder selected = new StringBuilder();
 
-      String firstLine = document[leftPos.line]
+      String firstLine = lines[leftPos.line]
           .makeString(leftPos.charInd);
       selected.append(firstLine).append('\n');
 
-      Arrays.stream(document, leftPos.line + 1, rightPos.line)
+      Arrays.stream(lines, leftPos.line + 1, rightPos.line)
           .forEach(line -> selected.append(line.makeString()).append('\n'));
 
-      String lastLine = document[rightPos.line]
+      String lastLine = lines[rightPos.line]
           .makeString(0, rightPos.charInd);
       selected.append(lastLine);
       return selected.toString();
@@ -352,10 +356,10 @@ public class Document extends CodeLines {
     Selection.SelPos leftPos = selection.getLeftPos();
     Selection.SelPos rightPos = selection.getRightPos();
     if (leftPos.line == rightPos.line) {
-      document[leftPos.line].delete(leftPos.charInd, rightPos.charInd);
+      lines[leftPos.line].delete(leftPos.charInd, rightPos.charInd);
     } else {
-      document[leftPos.line].delete(leftPos.charInd);
-      if (rightPos.charInd != 0) document[rightPos.line].delete(0, rightPos.charInd);
+      lines[leftPos.line].delete(leftPos.charInd);
+      if (rightPos.charInd != 0) lines[rightPos.line].delete(0, rightPos.charInd);
       deleteLinesOp(leftPos.line + 1, rightPos.line);
       concatLinesOp(leftPos.line);
     }
@@ -374,20 +378,21 @@ public class Document extends CodeLines {
   }
 
   public Pos getElementStart(int line, int charPos) {
-    int elemPos = line(line).getElementStart(charPos);
+    int elemPos = lines[line].getElementStart(charPos);
     return new Pos(line, elemPos);
   }
 
   public void moveToElementStart(Pos pos) {
-    pos.pos = line(pos.line).getElementStart(pos.pos);
+    pos.pos = lines[pos.line].getElementStart(pos.pos);
   }
 
   public V2i getLine(int ind) {
-    for (int i = 0, sum = 0; i < document.length; i++) {
-      if (sum + line(i).totalStrLength >= ind) return new V2i(i, ind - sum);
-      sum += line(i).totalStrLength + 1;
+    for (int i = 0, sum = 0; i < lines.length; i++) {
+      int totalStrLength = lines[i].totalStrLength;
+      if (sum + totalStrLength >= ind) return new V2i(i, ind - sum);
+      sum += totalStrLength + 1;
     }
-    return new V2i(document.length, 0);
+    return new V2i(lines.length, 0);
   }
 
   public int getLineStartInd(int firstLine) {
@@ -396,7 +401,7 @@ public class Document extends CodeLines {
 
   public int getLineStartInd(int fromLine, int firstLine) {
     int result = 0;
-    int lines = document.length;
+    int lines = this.lines.length;
     for (int i = fromLine; i < firstLine; ) {
       result += strLength(i);
       if (++i < lines) result++;
@@ -406,10 +411,10 @@ public class Document extends CodeLines {
 
   public int getVpEnd(int lastLine) {
     int result = 0;
-    int limit = Math.min(lastLine + 1, document.length);
+    int limit = Math.min(lastLine + 1, lines.length);
     for (int i = 0; i < limit; i++) {
       result += strLength(i);
-      if (i != document.length - 1) result++;
+      if (i != lines.length - 1) result++;
     }
     return result;
   }
@@ -430,17 +435,17 @@ public class Document extends CodeLines {
   }
 
   public CodeElement getCodeElement(Pos pos) {
-    return line(pos.line).getCodeElement(pos.pos);
+    return lines[pos.line].getCodeElement(pos.pos);
   }
 
   public char[] getChars() {
-    return getChars(0, document.length);
+    return getChars(0, lines.length);
   }
 
   public char[] getChars(int fromLine, int toLine) {
     char[] dst = new char[getIntervalLength(fromLine, toLine)];
     for (int i = fromLine, pos = 0; i < toLine; ) {
-      pos = document[i].toCharArray(dst, pos);
+      pos = lines[i].toCharArray(dst, pos);
       if (++i < length()) dst[pos++] = newLine;
     }
     return dst;
@@ -587,15 +592,15 @@ public class Document extends CodeLines {
 
   public Pos getPositionAt(int offset) {
     int lineOffset = 0;
-    for (int line = 0; line < document.length; ++line) {
-      CodeLine codeLine = document[line];
+    for (int line = 0; line < lines.length; ++line) {
+      CodeLine codeLine = lines[line];
       int lineLength = codeLine.totalStrLength;
       if (offset <= lineOffset + lineLength) {
         return new Pos(line, offset - lineOffset);
       }
       lineOffset += lineLength + 1;
     }
-    return new Pos(document.length, 0);
+    return new Pos(lines.length, 0);
   }
 
   public int getOffsetAt(Pos pos) {
@@ -605,17 +610,17 @@ public class Document extends CodeLines {
   public int getOffsetAt(int lineNumber, int column) {
     int position = 0;
     for (int i = 0; i < lineNumber; ) {
-      position += document[i].totalStrLength;
-      if (++i < document.length) position++;
+      position += lines[i].totalStrLength;
+      if (++i < lines.length) position++;
       else break;
     }
     return position + column;
   }
 
   public void countPrefixes() {
-    linePrefixSum = new int[document.length + 1];
-    for (int i = 0; i < document.length; i++) {
-      linePrefixSum[i + 1] = linePrefixSum[i] + line(i).totalStrLength + 1;
+    linePrefixSum = new int[lines.length + 1];
+    for (int i = 0; i < lines.length; i++) {
+      linePrefixSum[i + 1] = linePrefixSum[i] + lines[i].totalStrLength + 1;
     }
   }
 
@@ -627,7 +632,7 @@ public class Document extends CodeLines {
     if (lineInd - 1 < 0) len = 0;
     else len = linePrefixSum[lineInd - 1];
     Pos pos = new Pos(lineInd - 1, offset - len);
-    if (pos.pos >= line(pos.line).totalStrLength) {
+    if (pos.pos >= lines[pos.line].totalStrLength) {
       pos.line++;
       pos.pos = 0;
     }
@@ -643,7 +648,7 @@ public class Document extends CodeLines {
       int refFlag = reader.next();
       if (refFlag == -1) continue;
       var refPos = binarySearchPosAt(reader.next());
-      var refElem = line(refPos.line).getCodeElement(refPos.pos);
+      var refElem = lines[refPos.line].getCodeElement(refPos.pos);
 
       int declFlag = reader.next();
       if (declFlag == -1) {

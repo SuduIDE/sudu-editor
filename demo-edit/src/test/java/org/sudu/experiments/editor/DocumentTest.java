@@ -38,33 +38,33 @@ class DocumentTest {
   @Test void concatTest() {
     Document d = doc4();
     d.concatLines(0);
-    Assertions.assertEquals(d.document.length, 3);
-    Assertions.assertEquals(d.document[0].elements.length, 2);
-    Assertions.assertEquals(d.document[0].elements[0].s, "AB");
-    Assertions.assertEquals(d.document[0].elements[1].s, "CD");
-    Assertions.assertEquals(d.document[1].elements.length, 1);
-    Assertions.assertEquals(d.document[1].elements[0].s, "EF");
-    Assertions.assertEquals(d.document[2].elements.length, 1);
-    Assertions.assertEquals(d.document[2].elements[0].s, "GH");
+    Assertions.assertEquals(d.lines.length, 3);
+    Assertions.assertEquals(d.lines[0].elements.length, 2);
+    Assertions.assertEquals(d.lines[0].elements[0].s, "AB");
+    Assertions.assertEquals(d.lines[0].elements[1].s, "CD");
+    Assertions.assertEquals(d.lines[1].elements.length, 1);
+    Assertions.assertEquals(d.lines[1].elements[0].s, "EF");
+    Assertions.assertEquals(d.lines[2].elements.length, 1);
+    Assertions.assertEquals(d.lines[2].elements[0].s, "GH");
 
     d.concatLines(0);
 
-    Assertions.assertEquals(d.document.length, 2);
-    Assertions.assertEquals(d.document[0].elements.length, 3);
-    Assertions.assertEquals(d.document[0].elements[0].s, "AB");
-    Assertions.assertEquals(d.document[0].elements[1].s, "CD");
-    Assertions.assertEquals(d.document[0].elements[2].s, "EF");
-    Assertions.assertEquals(d.document[1].elements.length, 1);
-    Assertions.assertEquals(d.document[1].elements[0].s, "GH");
+    Assertions.assertEquals(d.lines.length, 2);
+    Assertions.assertEquals(d.lines[0].elements.length, 3);
+    Assertions.assertEquals(d.lines[0].elements[0].s, "AB");
+    Assertions.assertEquals(d.lines[0].elements[1].s, "CD");
+    Assertions.assertEquals(d.lines[0].elements[2].s, "EF");
+    Assertions.assertEquals(d.lines[1].elements.length, 1);
+    Assertions.assertEquals(d.lines[1].elements[0].s, "GH");
 
     d.concatLines(0);
 
-    Assertions.assertEquals(d.document.length, 1);
-    Assertions.assertEquals(d.document[0].elements.length, 4);
-    Assertions.assertEquals(d.document[0].elements[0].s, "AB");
-    Assertions.assertEquals(d.document[0].elements[1].s, "CD");
-    Assertions.assertEquals(d.document[0].elements[2].s, "EF");
-    Assertions.assertEquals(d.document[0].elements[3].s, "GH");
+    Assertions.assertEquals(d.lines.length, 1);
+    Assertions.assertEquals(d.lines[0].elements.length, 4);
+    Assertions.assertEquals(d.lines[0].elements[0].s, "AB");
+    Assertions.assertEquals(d.lines[0].elements[1].s, "CD");
+    Assertions.assertEquals(d.lines[0].elements[2].s, "EF");
+    Assertions.assertEquals(d.lines[0].elements[3].s, "GH");
   }
 
   @Test void concatTest2() {
@@ -72,26 +72,26 @@ class DocumentTest {
     d.concatLines(1);
     d.concatLines(1);
 
-    Assertions.assertEquals(d.document.length, 2);
-    Assertions.assertEquals(d.document[1].elements.length, 3);
-    Assertions.assertEquals(d.document[0].elements[0].s, "AB");
-    Assertions.assertEquals(d.document[1].elements[0].s, "CD");
-    Assertions.assertEquals(d.document[1].elements[1].s, "EF");
-    Assertions.assertEquals(d.document[1].elements[2].s, "GH");
+    Assertions.assertEquals(d.lines.length, 2);
+    Assertions.assertEquals(d.lines[1].elements.length, 3);
+    Assertions.assertEquals(d.lines[0].elements[0].s, "AB");
+    Assertions.assertEquals(d.lines[1].elements[0].s, "CD");
+    Assertions.assertEquals(d.lines[1].elements[1].s, "EF");
+    Assertions.assertEquals(d.lines[1].elements[2].s, "GH");
   }
 
   @Test void concat3Test() {
     Document d = doc4();
     d.concatLines(2);
 
-    Assertions.assertEquals(d.document.length, 3);
-    Assertions.assertEquals(d.document[0].elements.length, 1);
-    Assertions.assertEquals(d.document[1].elements.length, 1);
-    Assertions.assertEquals(d.document[2].elements.length, 2);
-    Assertions.assertEquals(d.document[0].elements[0].s, "AB");
-    Assertions.assertEquals(d.document[1].elements[0].s, "CD");
-    Assertions.assertEquals(d.document[2].elements[0].s, "EF");
-    Assertions.assertEquals(d.document[2].elements[1].s, "GH");
+    Assertions.assertEquals(d.lines.length, 3);
+    Assertions.assertEquals(d.lines[0].elements.length, 1);
+    Assertions.assertEquals(d.lines[1].elements.length, 1);
+    Assertions.assertEquals(d.lines[2].elements.length, 2);
+    Assertions.assertEquals(d.lines[0].elements[0].s, "AB");
+    Assertions.assertEquals(d.lines[1].elements[0].s, "CD");
+    Assertions.assertEquals(d.lines[2].elements[0].s, "EF");
+    Assertions.assertEquals(d.lines[2].elements[1].s, "GH");
   }
 
   static Document newDocument(int n) {
@@ -102,27 +102,27 @@ class DocumentTest {
     Document a = newDocument(3);
     a.newLineOp(0,0);
 
-    Assertions.assertEquals(a.document.length,4);
-    Assertions.assertEquals(a.document[0].elements.length,0);
+    Assertions.assertEquals(a.lines.length,4);
+    Assertions.assertEquals(a.lines[0].elements.length,0);
 
     Document b = newDocument(3);
 
     b.newLineOp(0,b.strLength(0));
 
-    Assertions.assertEquals(b.document.length,4);
-    Assertions.assertEquals(b.document[1].elements.length,0);
+    Assertions.assertEquals(b.lines.length,4);
+    Assertions.assertEquals(b.lines[1].elements.length,0);
 
     Document c = newDocument(3);
     c.newLineOp(c.length() - 1, 0);
 
-    Assertions.assertEquals(c.document.length,4);
-    Assertions.assertEquals(c.document[2].elements.length,0);
+    Assertions.assertEquals(c.lines.length,4);
+    Assertions.assertEquals(c.lines[2].elements.length,0);
 
     Document d = newDocument(3);
     d.newLineOp(d.length() - 1, d.strLength(d.length() - 1));
 
-    Assertions.assertEquals(d.document.length,4);
-    Assertions.assertEquals(d.document[3].elements.length,0);
+    Assertions.assertEquals(d.lines.length,4);
+    Assertions.assertEquals(d.lines[3].elements.length,0);
   }
 
   @Test void newLineTest2() {
@@ -130,23 +130,23 @@ class DocumentTest {
     {
       Document a = new Document(line());
       a.newLineOp(0, 1);
-      Assertions.assertEquals(a.document.length, 2);
-      Assertions.assertEquals(a.document[0].elements.length, 1);
-      Assertions.assertEquals(a.document[0].elements[0].s, "A");
-      Assertions.assertEquals(a.document[1].elements.length, 1);
-      Assertions.assertEquals(a.document[1].elements[0].s, "B");
+      Assertions.assertEquals(a.lines.length, 2);
+      Assertions.assertEquals(a.lines[0].elements.length, 1);
+      Assertions.assertEquals(a.lines[0].elements[0].s, "A");
+      Assertions.assertEquals(a.lines[1].elements.length, 1);
+      Assertions.assertEquals(a.lines[1].elements[0].s, "B");
       list.add(a);
     }
     {
       Document b = new Document(new CodeLine(abElement("AB"), abElement("CD")));
       b.newLineOp(0, 1);
 
-      Assertions.assertEquals(b.document.length, 2);
-      Assertions.assertEquals(b.document[0].elements.length, 1);
-      Assertions.assertEquals(b.document[0].elements[0].s, "A");
-      Assertions.assertEquals(b.document[1].elements.length, 2);
-      Assertions.assertEquals(b.document[1].elements[0].s, "B");
-      Assertions.assertEquals(b.document[1].elements[1].s, "CD");
+      Assertions.assertEquals(b.lines.length, 2);
+      Assertions.assertEquals(b.lines[0].elements.length, 1);
+      Assertions.assertEquals(b.lines[0].elements[0].s, "A");
+      Assertions.assertEquals(b.lines[1].elements.length, 2);
+      Assertions.assertEquals(b.lines[1].elements[0].s, "B");
+      Assertions.assertEquals(b.lines[1].elements[1].s, "CD");
       list.add(b);
     }
     {
@@ -155,11 +155,11 @@ class DocumentTest {
       c.newLineOp(0, 2);
       list.add(c);
 
-      Assertions.assertEquals(c.document.length, 2);
-      Assertions.assertEquals(c.document[0].elements.length, 1);
-      Assertions.assertEquals(c.document[0].elements[0].s, "AB");
-      Assertions.assertEquals(c.document[1].elements.length, 1);
-      Assertions.assertEquals(c.document[1].elements[0].s, "CD");
+      Assertions.assertEquals(c.lines.length, 2);
+      Assertions.assertEquals(c.lines[0].elements.length, 1);
+      Assertions.assertEquals(c.lines[0].elements[0].s, "AB");
+      Assertions.assertEquals(c.lines[1].elements.length, 1);
+      Assertions.assertEquals(c.lines[1].elements[0].s, "CD");
     }
     {
       Document d = new Document(
@@ -167,25 +167,25 @@ class DocumentTest {
       d.newLineOp(0, 3);
       list.add(d);
 
-      Assertions.assertEquals(d.document.length, 2);
-      Assertions.assertEquals(d.document[0].elements.length, 2);
-      Assertions.assertEquals(d.document[0].elements[0].s, "AB");
-      Assertions.assertEquals(d.document[0].elements[1].s, "C");
-      Assertions.assertEquals(d.document[1].elements.length, 1);
-      Assertions.assertEquals(d.document[1].elements[0].s, "D");
+      Assertions.assertEquals(d.lines.length, 2);
+      Assertions.assertEquals(d.lines[0].elements.length, 2);
+      Assertions.assertEquals(d.lines[0].elements[0].s, "AB");
+      Assertions.assertEquals(d.lines[0].elements[1].s, "C");
+      Assertions.assertEquals(d.lines[1].elements.length, 1);
+      Assertions.assertEquals(d.lines[1].elements[0].s, "D");
     }
     {
       Document e = new Document(
           new CodeLine(abElement("AB"), abElement("CD"), abElement("EF")));
       e.newLineOp(0, 3);
       list.add(e);
-      Assertions.assertEquals(e.document.length, 2);
-      Assertions.assertEquals(e.document[0].elements.length, 2);
-      Assertions.assertEquals(e.document[0].elements[0].s, "AB");
-      Assertions.assertEquals(e.document[0].elements[1].s, "C");
-      Assertions.assertEquals(e.document[1].elements.length, 2);
-      Assertions.assertEquals(e.document[1].elements[0].s, "D");
-      Assertions.assertEquals(e.document[1].elements[1].s, "EF");
+      Assertions.assertEquals(e.lines.length, 2);
+      Assertions.assertEquals(e.lines[0].elements.length, 2);
+      Assertions.assertEquals(e.lines[0].elements[0].s, "AB");
+      Assertions.assertEquals(e.lines[0].elements[1].s, "C");
+      Assertions.assertEquals(e.lines[1].elements.length, 2);
+      Assertions.assertEquals(e.lines[1].elements[0].s, "D");
+      Assertions.assertEquals(e.lines[1].elements[1].s, "EF");
     }
 //    System.out.println("r = " + list);
   }
@@ -238,47 +238,47 @@ class DocumentTest {
     doc0.deleteLine(0);
     doc0.deleteLine(0);
     doc0.deleteLine(0);
-    Assertions.assertEquals(doc0.document.length, 1);
+    Assertions.assertEquals(doc0.lines.length, 1);
 
-    CodeLine[] copy = Arrays.copyOf(doc4.document, doc4.document.length);
+    CodeLine[] copy = Arrays.copyOf(doc4.lines, doc4.lines.length);
     doc4.deleteLine(3);
-    Assertions.assertEquals(doc4.document.length, 3);
-    Assertions.assertSame(doc4.line(0), copy[0]);
-    Assertions.assertSame(doc4.line(1), copy[1]);
-    Assertions.assertSame(doc4.line(2), copy[2]);
+    Assertions.assertEquals(doc4.lines.length, 3);
+    Assertions.assertSame(doc4.lines[0], copy[0]);
+    Assertions.assertSame(doc4.lines[1], copy[1]);
+    Assertions.assertSame(doc4.lines[2], copy[2]);
 
     doc4.deleteLine(0);
-    Assertions.assertEquals(doc4.document.length, 2);
-    Assertions.assertSame(doc4.line(0), copy[1]);
-    Assertions.assertSame(doc4.line(1), copy[2]);
+    Assertions.assertEquals(doc4.lines.length, 2);
+    Assertions.assertSame(doc4.lines[0], copy[1]);
+    Assertions.assertSame(doc4.lines[1], copy[2]);
 
     doc4.deleteLine(1);
-    Assertions.assertEquals(doc4.document.length, 1);
-    Assertions.assertSame(doc4.line(0), copy[1]);
+    Assertions.assertEquals(doc4.lines.length, 1);
+    Assertions.assertSame(doc4.lines[0], copy[1]);
 
-    Assertions.assertTrue(doc4.document[0].totalStrLength > 0);
+    Assertions.assertTrue(doc4.lines[0].totalStrLength > 0);
     doc4.deleteLine(0);
-    Assertions.assertEquals(doc4.document.length, 1);
-    Assertions.assertEquals(doc4.document[0].totalStrLength, 0);
+    Assertions.assertEquals(doc4.lines.length, 1);
+    Assertions.assertEquals(doc4.lines[0].totalStrLength, 0);
   }
 
   @Test void deleteLinesTest() {
     Document doc5 = doc5();
-    CodeLine[] copy = Arrays.copyOf(doc5.document, doc5.document.length);
+    CodeLine[] copy = Arrays.copyOf(doc5.lines, doc5.lines.length);
 
     doc5.deleteLines(1, 3);
-    Assertions.assertEquals(doc5.document.length, 3);
-    Assertions.assertEquals(doc5.document[0], copy[0]);
-    Assertions.assertEquals(doc5.document[1], copy[3]);
-    Assertions.assertEquals(doc5.document[2], copy[4]);
+    Assertions.assertEquals(doc5.lines.length, 3);
+    Assertions.assertEquals(doc5.lines[0], copy[0]);
+    Assertions.assertEquals(doc5.lines[1], copy[3]);
+    Assertions.assertEquals(doc5.lines[2], copy[4]);
 
     doc5.deleteLines(0, 1);
-    Assertions.assertEquals(doc5.document.length, 2);
-    Assertions.assertEquals(doc5.document[0], copy[3]);
-    Assertions.assertEquals(doc5.document[1], copy[4]);
+    Assertions.assertEquals(doc5.lines.length, 2);
+    Assertions.assertEquals(doc5.lines[0], copy[3]);
+    Assertions.assertEquals(doc5.lines[1], copy[4]);
 
     doc5.deleteLines(0, 2);
-    Assertions.assertEquals(doc5.document.length, 0);
+    Assertions.assertEquals(doc5.lines.length, 0);
   }
 
   @Test void deleteSelectedTest() {
@@ -289,41 +289,41 @@ class DocumentTest {
 
     doc5.deleteSelected(selection);
 
-    Assertions.assertEquals(doc5.document.length, 2);
-    Assertions.assertEquals(doc5.document[0].makeString(), "This is demo is designed to investigate");
-    Assertions.assertEquals(doc5.document[0].elements.length, 3);
+    Assertions.assertEquals(doc5.lines.length, 2);
+    Assertions.assertEquals(doc5.lines[0].makeString(), "This is demo is designed to investigate");
+    Assertions.assertEquals(doc5.lines[0].elements.length, 3);
 
     selection.startPos.set(1, 2);
     selection.endPos.set(1, 8);
 
     doc5.deleteSelected(selection);
 
-    Assertions.assertEquals(doc5.document.length, 2);
-    Assertions.assertEquals(doc5.document[1].makeString(), "pence limits of this approach");
-    Assertions.assertEquals(doc5.document[1].elements.length, 2);
+    Assertions.assertEquals(doc5.lines.length, 2);
+    Assertions.assertEquals(doc5.lines[1].makeString(), "pence limits of this approach");
+    Assertions.assertEquals(doc5.lines[1].elements.length, 2);
 
     selection.startPos.set(1, 2);
     selection.endPos.set(1, 20);
 
     doc5.deleteSelected(selection);
 
-    Assertions.assertEquals(doc5.document.length, 2);
-    Assertions.assertEquals(doc5.document[1].makeString(), "pe approach");
-    Assertions.assertEquals(doc5.document[1].elements.length, 2);
+    Assertions.assertEquals(doc5.lines.length, 2);
+    Assertions.assertEquals(doc5.lines[1].makeString(), "pe approach");
+    Assertions.assertEquals(doc5.lines[1].elements.length, 2);
 
     selection.startPos.set(1, 0);
     selection.endPos.set(1, 3);
 
     doc5.deleteSelected(selection);
 
-    Assertions.assertEquals(doc5.document.length, 2);
-    Assertions.assertEquals(doc5.document[1].makeString(), "approach");
-    Assertions.assertEquals(doc5.document[1].elements.length, 1);
+    Assertions.assertEquals(doc5.lines.length, 2);
+    Assertions.assertEquals(doc5.lines[1].makeString(), "approach");
+    Assertions.assertEquals(doc5.lines[1].elements.length, 1);
   }
 
   @Test void copyTest() {
     Document doc5 = doc5();
-    CodeLine[] copy = Arrays.copyOf(doc5.document, doc5.document.length);
+    CodeLine[] copy = Arrays.copyOf(doc5.lines, doc5.lines.length);
     Selection selection = new Selection();
     String copied;
 
@@ -332,13 +332,13 @@ class DocumentTest {
 
     copied = doc5.copy(selection, false);
     Assertions.assertEquals(copied, "an experimental");
-    Assertions.assertArrayEquals(doc5.document, copy);
+    Assertions.assertArrayEquals(doc5.lines, copy);
 
     copied = doc5.copy(selection, true);
     Assertions.assertEquals(copied, "an experimental");
-    Assertions.assertEquals(doc5.document[0].elements[0].s, "This is ");
-    Assertions.assertEquals(doc5.document[0].elements[1].s, " project");
-    for (int i = 1; i < 5; i++) Assertions.assertEquals(doc5.document[i], copy[i]);
+    Assertions.assertEquals(doc5.lines[0].elements[0].s, "This is ");
+    Assertions.assertEquals(doc5.lines[0].elements[1].s, " project");
+    for (int i = 1; i < 5; i++) Assertions.assertEquals(doc5.lines[i], copy[i]);
 
     String expected = """
         a portable (Web + Desktop)
@@ -357,14 +357,14 @@ class DocumentTest {
     Document doc = new Document(new CodeLine());
 
     doc.insertLines(0, 0, new String[]{"This is an"});
-    Assertions.assertEquals(doc.document.length, 1);
-    Assertions.assertEquals(doc.document[0].elements.length, 1);
-    Assertions.assertEquals(doc.document[0].makeString(), "This is an");
+    Assertions.assertEquals(doc.lines.length, 1);
+    Assertions.assertEquals(doc.lines[0].elements.length, 1);
+    Assertions.assertEquals(doc.lines[0].makeString(), "This is an");
 
     doc.insertLines(0, 10, new String[]{" experimental project"});
-    Assertions.assertEquals(doc.document.length, 1);
-    Assertions.assertEquals(doc.document[0].elements.length, 1);
-    Assertions.assertEquals(doc.document[0].makeString(), "This is an experimental project");
+    Assertions.assertEquals(doc.lines.length, 1);
+    Assertions.assertEquals(doc.lines[0].elements.length, 1);
+    Assertions.assertEquals(doc.lines[0].makeString(), "This is an experimental project");
   }
 
   @Test void testCodeLineInsertEmpty() {
@@ -381,18 +381,18 @@ class DocumentTest {
     Document doc = new Document(new CodeLine());
 
     doc.insertLines(0, 0, new String[]{"line 1", "line 4", "line 5"});
-    Assertions.assertEquals(doc.document.length, 3);
-    Assertions.assertEquals(doc.document[0].elements[0].s, "line 1");
-    Assertions.assertEquals(doc.document[1].elements[0].s, "line 4");
-    Assertions.assertEquals(doc.document[2].elements[0].s, "line 5");
+    Assertions.assertEquals(doc.lines.length, 3);
+    Assertions.assertEquals(doc.lines[0].elements[0].s, "line 1");
+    Assertions.assertEquals(doc.lines[1].elements[0].s, "line 4");
+    Assertions.assertEquals(doc.lines[2].elements[0].s, "line 5");
 
     doc.insertLines(1, 0, new String[]{"line 2", "line 3", ""});
-    Assertions.assertEquals(doc.document.length, 5);
-    Assertions.assertEquals(doc.document[0].elements[0].s, "line 1");
-    Assertions.assertEquals(doc.document[1].elements[0].s, "line 2");
-    Assertions.assertEquals(doc.document[2].elements[0].s, "line 3");
-    Assertions.assertEquals(doc.document[3].elements[0].s, "line 4");
-    Assertions.assertEquals(doc.document[4].elements[0].s, "line 5");
+    Assertions.assertEquals(doc.lines.length, 5);
+    Assertions.assertEquals(doc.lines[0].elements[0].s, "line 1");
+    Assertions.assertEquals(doc.lines[1].elements[0].s, "line 2");
+    Assertions.assertEquals(doc.lines[2].elements[0].s, "line 3");
+    Assertions.assertEquals(doc.lines[3].elements[0].s, "line 4");
+    Assertions.assertEquals(doc.lines[4].elements[0].s, "line 5");
   }
 
   @Test
@@ -438,8 +438,8 @@ class DocumentTest {
     Document document = doc5();
     System.out.println(document.makeString());
 
-    int l0 = document.line(0).makeString().length();
-    int l1 = document.line(1).makeString().length();
+    int l0 = document.lines[0].makeString().length();
+    int l1 = document.lines[1].makeString().length();
     Pos at0 = document.getPositionAt(0);
     Assertions.assertEquals(at0, new Pos(0, 0));
     Assertions.assertEquals(document.getOffsetAt(at0), 0);

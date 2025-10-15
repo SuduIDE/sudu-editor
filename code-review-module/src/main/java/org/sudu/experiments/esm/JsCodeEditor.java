@@ -9,6 +9,7 @@ import org.sudu.experiments.diff.JsViewController;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.text.SplitJsText;
 import org.sudu.experiments.utils.LanguageSelectorUtils;
 import org.sudu.experiments.utils.ProviderUtils;
 import org.teavm.jso.JSObject;

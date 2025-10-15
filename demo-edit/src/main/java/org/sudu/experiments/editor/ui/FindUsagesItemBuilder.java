@@ -1,9 +1,6 @@
 package org.sudu.experiments.editor.ui;
 
-import org.sudu.experiments.editor.EditorComponent;
-import org.sudu.experiments.editor.Location;
-import org.sudu.experiments.editor.Model;
-import org.sudu.experiments.editor.Uri;
+import org.sudu.experiments.editor.*;
 import org.sudu.experiments.parser.common.Pos;
 
 import java.util.ArrayList;
@@ -51,12 +48,12 @@ public class FindUsagesItemBuilder {
       String fileName;
       if (defs == null) {
         intLineNumber = usages.get(i).line;
-        codeContent = model.document.line(intLineNumber).makeString().trim();
+        codeContent = model.document.lines[intLineNumber].makeString().trim();
         fileName = fileName(model.uri);
       } else {
         intLineNumber = defs[i].range.startLineNumber;
-        codeContent = Objects.equals(model.uri, defs[i].uri)
-            ? model.document.line(intLineNumber).makeString().trim() : "";
+        codeContent = Objects.equals(model.uri, defs[i].uri) ?
+            model.document.lines[intLineNumber].makeString().trim() : "";
 
         fileName = fileName(defs[i].uri);
       }

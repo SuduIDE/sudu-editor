@@ -466,8 +466,8 @@ public class Model {
 
   private boolean isEmpty() {
     return document.length() == 1
-        && document.line(0).length() == 1
-        && document.line(0).get(0).length() == 0;
+        && document.lines[0].length() == 1
+        && document.lines[0].get(0).length() == 0;
   }
 
   private boolean isVpParsed(int editorFirstLine, int editorLastLine) {
@@ -489,7 +489,7 @@ public class Model {
   }
 
   CodeLine caretCodeLine() {
-    return document.line(caretLine);
+    return document.lines[caretLine];
   }
 
   private boolean isDisableParser() {

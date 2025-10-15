@@ -6,7 +6,7 @@ import org.sudu.experiments.diff.FileDiff;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.js.Fetch;
 import org.sudu.experiments.js.JsHelper;
-import org.sudu.experiments.js.SplitJsText;
+import org.sudu.experiments.text.SplitJsText;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.Consumer;

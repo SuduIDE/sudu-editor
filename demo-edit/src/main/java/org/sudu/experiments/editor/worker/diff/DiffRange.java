@@ -1,5 +1,7 @@
 package org.sudu.experiments.editor.worker.diff;
 
+import org.sudu.experiments.diff.DiffTypes;
+
 public class DiffRange {
 
   public int fromL, lenL;
@@ -25,6 +27,8 @@ public class DiffRange {
 
   @Override
   public String toString() {
-    return String.format("[%d: %d) |-> [%d: %d)", fromL, fromL + lenL, fromR, fromR + lenR);
+    return String.format("[%d: %d) |-> [%d: %d) %s", fromL, fromL + lenL,
+        fromR, fromR + lenR,
+        DiffTypes.name(type));
   }
 }

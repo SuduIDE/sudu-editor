@@ -229,4 +229,9 @@ public interface ArrayOp {
   static boolean contains(int[] array, int item) {
     return indexOf(array, item) != -1;
   }
+
+  static void fillSequence(int[] array, int start, int end, int value) {
+    for (int i = start, v = value; i < end; ++v, ++i)
+      array[i] = v;
+  }
 }

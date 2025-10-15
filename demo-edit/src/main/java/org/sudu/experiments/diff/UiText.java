@@ -10,4 +10,5 @@ public interface UiText {
   String newProjectView = "new project view";
   String newEditorWindow = "new editor window";
   String newBinaryDiffWindow = "new binary diff";
+  String newUnifiedDiffWindow = "new unified diff";
 }
