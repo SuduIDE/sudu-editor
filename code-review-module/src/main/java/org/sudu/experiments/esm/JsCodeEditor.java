@@ -305,21 +305,6 @@ public class JsCodeEditor implements JsEditorView {
     editor.readonly = flag;
   }
 
-  @Override
-  public JsDisposable onDidChangeModel(JsFunctions.Consumer<JsIModelChangedEvent> f) {
-    var listener = convert(f);
-    return JsDisposable.of(editor.registrations()
-            .modelChangeListeners.disposableAdd(listener));
-  }
-
-  static BiConsumer<Model, Model> convert(JsFunctions.Consumer<JsIModelChangedEvent> jsCallback) {
-    return (oldModel, newModel) -> jsCallback.f(
-        JsIModelChangedEvent.create(
-            JsUri.fromJava(oldModel.uri),
-            JsUri.fromJava(newModel.uri)
-        ));
-  }
-
   public static JsCodeEditor newEdit(EditArgs args) {
     if (!JsCanvas.checkFontMetricsAPI())
       throw new RuntimeException("Font metrics API is not supported");

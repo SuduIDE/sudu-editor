@@ -19,9 +19,6 @@ public class EditorRegistrations {
   public final Subscribers<DocumentHighlightProvider> documentHighlightProviders =
       new Subscribers<>(new DocumentHighlightProvider[0]);
 
-  public final Subscribers<BiConsumer<Model, Model>> modelChangeListeners =
-      new Subscribers<BiConsumer<Model, Model>>(new BiConsumer[0]);
-
   public final Subscribers<EditorOpener> openers = new Subscribers<>(new EditorOpener[0]);
 
   public DefDeclProvider.Provider findDefinitionProvider(String language, String scheme) {
@@ -64,11 +61,5 @@ public class EditorRegistrations {
       }
     }
     return null;
-  }
-
-  public void fireModelChange(Model oldModel, Model newModel) {
-    for (BiConsumer<Model, Model> listener : modelChangeListeners.array()) {
-      listener.accept(oldModel, newModel);
-    }
   }
 }
