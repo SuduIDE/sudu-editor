@@ -14,6 +14,10 @@ public abstract class Model0 extends CodeLines {
 
   abstract Document document();
 
+  abstract CodeLineMapping defaultMapping();
+
+  abstract void invalidateFont();
+
   interface EditorToModel {
     void useDocumentHighlightProvider(int line, int column);
 

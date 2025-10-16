@@ -500,4 +500,19 @@ public class Model extends Model0 {
   LineDiff lineDiff(int i) {
     return diffModel == null || i >= diffModel.length ? null : diffModel[i];
   }
+
+  @Override
+  CodeLineMapping defaultMapping() {
+    return new CodeLineMapping.Id(document);
+  }
+
+  @Override
+  Document document() {
+    return document;
+  }
+
+  @Override
+  void invalidateFont() {
+    document.invalidateFont();
+  }
 }

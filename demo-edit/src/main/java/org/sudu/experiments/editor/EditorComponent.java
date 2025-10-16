@@ -122,7 +122,7 @@ public class EditorComponent extends View implements
   GL.Texture codeMap;
   final V2i codeMapSize = new V2i();
 
-  CodeLineMapping docToView = new CodeLineMapping.Id(model);
+  CodeLineMapping docToView = model.defaultMapping();
   IntConsumer compactModeActions;
   int[] viewToDocMap = new int[0];
   int hoveredCollapsedRegion = -1;
@@ -431,7 +431,7 @@ public class EditorComponent extends View implements
 //    Debug.consoleInfo("invalidateFont");
 
     CodeLineRenderer.disposeLines(lines);
-    model.document.invalidateFont();
+    model.invalidateFont();
   }
 
   public void dispose() {
@@ -541,7 +541,6 @@ public class EditorComponent extends View implements
     firstLineRendered = firstLine;
     lastLineRendered = lastLine;
 
-    LineDiff[] diffModel = model.diffModel;
     int rightPadding = toPx(EditorConst.RIGHT_PADDING);
 
     if (viewToDocMap.length < (lastLine - firstLine))
@@ -556,7 +555,7 @@ public class EditorComponent extends View implements
       int lineIndex = viewToDocMap[i - firstLine];
       if (lineIndex < 0) continue;
 
-      CodeLine cLine = model.document.lines[lineIndex];
+      CodeLine cLine = model.line(lineIndex);
       CodeLineRenderer line = lineRenderer(i);
 
       int yPosition = lineHeight * i - vScrollPos;
@@ -566,8 +565,7 @@ public class EditorComponent extends View implements
 
       fullWidth = Math.max(fullWidth, lineMeasure + rightPadding);
 
-      LineDiff diff = diffModel == null || lineIndex >= diffModel.length
-          ? null : diffModel[lineIndex];
+      LineDiff diff = model.lineDiff(lineIndex);
       V2i selectionTemp = context.v2i2;
       line.draw(
           pos.y + yPosition, pos.x + textBaseX, g,
@@ -580,7 +578,7 @@ public class EditorComponent extends View implements
 
     this.fullWidth = fullWidth;
 
-    drawTails(firstLine, lastViewLine, pos.x + textBaseX, diffModel);
+    drawTails(firstLine, lastViewLine, pos.x + textBaseX);
 
     // draw bottom 5 invisible lines
     if (renderBlankLines) {
@@ -658,10 +656,7 @@ public class EditorComponent extends View implements
     );
   }
 
-  void drawTails(
-      int firstLine, int lastViewLine,
-      int xPos, LineDiff[] diffModel
-  ) {
+  void drawTails(int firstLine, int lastViewLine, int xPos) {
     V2i sizeTmp = context.v2i1;
     for (int i = firstLine; i < lastViewLine; i++) {
       int lineIndex = viewToDocMap[i - firstLine];
@@ -727,7 +722,6 @@ public class EditorComponent extends View implements
   }
 
   private void drawFromLineToText(int firstLine, int lastLine) {
-    LineDiff[] diffModel = model.diffModel;
     int xPos0 = textBaseX - vLineTextOffset;
     int xPos1 = textBaseX - xOffset;
     V2i size = context.v2i1;
@@ -737,8 +731,7 @@ public class EditorComponent extends View implements
       int lineIndex = viewToDocMap[i - firstLine];
       if (lineIndex < 0) continue;
 
-      LineDiff currentLineModel = diffModel != null && lineIndex < diffModel.length
-          ? diffModel[lineIndex] : null;
+      LineDiff currentLineModel = model.lineDiff(lineIndex);
 
       if (model.caretLine == lineIndex || currentLineModel != null) {
         V4f c = currentLineModel != null && currentLineModel.type != 0
@@ -2231,7 +2224,7 @@ public class EditorComponent extends View implements
   }
 
   public void clearCompactViewModel() {
-    setCompactViewModel(new CodeLineMapping.Id(model), null);
+    setCompactViewModel(model.defaultMapping(), null);
   }
 
   public boolean canAlignWith() {
