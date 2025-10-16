@@ -3,6 +3,7 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.parser.common.Pair;
 
 import java.util.*;
+import java.util.function.Function;
 
 public class UndoBuffer {
 
@@ -14,9 +15,11 @@ public class UndoBuffer {
     this.diffCnt = 0;
   }
 
+  Function<Document, UndoStack> newStack = key -> new UndoStack();
+
   public void addDiff(Document doc, Diff[] diff) {
-    diffs.putIfAbsent(doc, new UndoStack());
-    diffs.get(doc).add(Pair.of(diff, diffCnt++));
+    var stack = diffs.computeIfAbsent(doc, newStack);
+    stack.add(Pair.of(diff, diffCnt++));
   }
 
   public Diff undoLastDiff(Document doc, boolean isRedo) {
