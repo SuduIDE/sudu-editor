@@ -101,7 +101,10 @@ public class JsRemoteEditor implements JsRemoteEditorView {
   @Override
   public void setText(JSString t) {
     Model prevModel = editor.model();
-    Model model = new Model(SplitJsText.split(t), prevModel.docLanguage(), prevModel.uri);
+    Model model = new Model(
+        SplitJsText.split(t),
+        prevModel.document.language,
+        prevModel.uri);
     editor.setModel(model);
   }
 

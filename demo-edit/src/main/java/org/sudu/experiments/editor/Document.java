@@ -17,6 +17,8 @@ import java.util.function.BiConsumer;
 public class Document extends CodeLines {
   public static final char newLine = '\n';
 
+  public String language;
+  public String encoding;
   public CodeLine[] lines;
   public IntervalTree tree;
   public ScopeGraph scopeGraph = new ScopeGraph();
@@ -618,10 +620,10 @@ public class Document extends CodeLines {
   }
 
   public void countPrefixes() {
-    linePrefixSum = new int[lines.length + 1];
-    for (int i = 0; i < lines.length; i++) {
+    if (linePrefixSum == null || linePrefixSum.length != lines.length + 1)
+      linePrefixSum = new int[lines.length + 1];
+    for (int i = 0; i < lines.length; i++)
       linePrefixSum[i + 1] = linePrefixSum[i] + lines[i].totalStrLength + 1;
-    }
   }
 
   private Pos binarySearchPosAt(int offset) {

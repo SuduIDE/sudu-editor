@@ -25,8 +25,6 @@ public class Model {
   public final Document document;
 
   public Object platformObject;
-  private String docLanguage;
-  String encoding;
 
   final Selection selection = new Selection();
   final NavigationStack navStack = new NavigationStack();
@@ -65,21 +63,22 @@ public class Model {
   }
 
   public Model(SplitInfo text, String language, Uri uri) {
-    this(text.lines, language, uri);
+    this(text.lines, language, null, uri);
   }
 
   public Model(String[] text, Uri uri) {
-    this(text, null, uri);
+    this(text, null, null, uri);
   }
 
   public Model() {
-    this(new String[0], null, null);
+    this(new String[0], null, null, null);
   }
 
-  public Model(String[] text, String language, Uri uri) {
+  public Model(String[] text, String language, String encoding, Uri uri) {
     this.uri = uri;
-    docLanguage = language;
     document = new Document(text);
+    document.language = language;
+    document.encoding = encoding;
     document.updateModelOnDiff = this::updateModelOnDiff;
     document.onDiffMade = this::onDiffMade;
   }
@@ -91,23 +90,19 @@ public class Model {
   }
 
   public void setLanguage(String language) {
-    docLanguage = language;
+    document.language = language;
   }
 
   public String language() {
-    return docLanguage != null ? docLanguage : languageFromFile();
-  }
-
-  public String docLanguage() {
-    return docLanguage;
+    return document.language != null ? document.language : languageFromFile();
   }
 
   public void setEncoding(String encoding) {
-    this.encoding = encoding;
+    document.encoding = encoding;
   }
 
   public String encoding() {
-    return encoding;
+    return document.encoding;
   }
 
   public String uriScheme() {
@@ -185,17 +180,6 @@ public class Model {
       if (editor != null) editor.fireFileLexed();
       sendStructure();
       sendFull();
-    }
-  }
-
-  void changeModelLanguage(String languageFromParser) {
-    String language = language();
-    if (!Objects.equals(language, languageFromParser)) {
-      if (debug) {
-        Debug.consoleInfo(getFileName() + "/change model language: from = "
-            + language + " to = " + languageFromParser);
-      }
-      setLanguage(languageFromParser);
     }
   }
 

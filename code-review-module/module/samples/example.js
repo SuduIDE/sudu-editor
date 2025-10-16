@@ -29,3 +29,8 @@ model2.setEditListener( m => console.log("model2 change event"))
 
 codeReview.setModel(model1, model2);
 codeReview.focus();
+
+
+const textModel = editorApi.newTextModel(initialText1, null, {path:"text.txt"});
+
+console.log("language", textModel.language);

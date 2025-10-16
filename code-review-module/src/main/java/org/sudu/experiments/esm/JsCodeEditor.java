@@ -16,7 +16,6 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class JsCodeEditor implements JsEditorView {
@@ -73,7 +72,10 @@ public class JsCodeEditor implements JsEditorView {
   @Override
   public void setText(JSString t) {
     Model prevModel = editor.model();
-    Model model = new Model(SplitJsText.split(t), prevModel.docLanguage(), prevModel.uri);
+    Model model = new Model(
+        SplitJsText.split(t),
+        prevModel.document.language,
+        prevModel.uri);
     editor.setModel(model);
   }
 

@@ -1104,7 +1104,7 @@ public class EditorComponent extends View implements
     externalHighlights = null;
     lineNumbers.setColors(null);
     if (mergeButtons != null)
-      mergeButtons.setColors(lineNumbers.colors());
+      mergeButtons.setColors(null);
   }
 
   boolean arrowUpDown(int amount, boolean ctrl, boolean alt, boolean shiftPressed) {
