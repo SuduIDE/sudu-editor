@@ -58,6 +58,11 @@ public class JsCodeReview implements JsCodeReviewView {
   }
 
   @Override
+  public boolean hasFocus() {
+    return window.hasFocus();
+  }
+
+  @Override
   public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
     JsHelper.consoleInfo("JsCodeDiff0.setReadonly");
     w.rootView.setReadonly(leftReadonly, rightReadonly);

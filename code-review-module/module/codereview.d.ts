@@ -237,6 +237,7 @@ export interface HasTheme {
 
 export interface Focusable {
   focus(): void
+  hasFocus(): boolean
 }
 
 export interface ExternalMessageBar {

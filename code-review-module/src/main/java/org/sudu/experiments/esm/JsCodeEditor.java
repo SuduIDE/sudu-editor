@@ -62,6 +62,11 @@ public class JsCodeEditor implements JsEditorView {
   }
 
   @Override
+  public boolean hasFocus() {
+    return window.hasFocus();
+  }
+
+  @Override
   public final void dispose() {
     window.dispose();
   }

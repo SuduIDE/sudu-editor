@@ -11,6 +11,7 @@ public interface JsView extends JSObject {
   void setTheme(JSObject theme);
   void dispose();
   void focus();
+  boolean hasFocus();
   void disconnectFromDom();
   void reconnectToDom(JSString containedId);
 

@@ -35,3 +35,20 @@ model12.setEditListener( m => console.log("model12 change event"))
 codeReview1.setModel(model11, model12);
 codeReview2.setModel(model21, model22);
 codeReview1.focus();
+
+let number = 1;
+let focus1 = false;
+let focus2 = false;
+
+setInterval(() => {
+  const f1 = codeReview1.hasFocus();
+  const f2 = codeReview2.hasFocus();
+  if (f1 !== focus1 || f2 !== focus2) {
+    console.log(number, "codeReview1.hasFocus()", f1);
+    console.log(number, "codeReview2.hasFocus()", f2);
+    focus1 = f1;
+    focus2 = f2;
+    number++;
+  }
+}, 200);
+
