@@ -19,7 +19,7 @@ import java.util.*;
 
 import static org.sudu.experiments.math.ArrayOp.copyOf;
 
-public class Model {
+public class Model extends Model0 {
 
   public final Uri uri;
   public final Document document;
@@ -37,7 +37,6 @@ public class Model {
 
   // this properties might need to be converted
   //   to Subscribers<CaretChangeListeners>
-  int caretLine, caretCharPos;
   CodeElement definition = null;
   final List<CodeElement> usages = new ArrayList<>();
   final List<V2i> parsedVps = new ArrayList<>();
@@ -45,6 +44,7 @@ public class Model {
   int fullFileLexed = ParseStatus.NOT_PARSED;
   int fileStructureParsed = ParseStatus.NOT_PARSED;
   int fullFileParsed = ParseStatus.NOT_PARSED;
+  int iterativeVersion;
 
   long parsingTimeStart, viewportParseStart, resolveTimeStart;
 
@@ -103,6 +103,10 @@ public class Model {
 
   public String encoding() {
     return document.encoding;
+  }
+
+  public CodeLine line(int i) {
+    return document.lines[i];
   }
 
   public String uriScheme() {
@@ -480,21 +484,20 @@ public class Model {
     return editor != null ? editor.isDisableParser() : EditorConst.DEFAULT_DISABLE_PARSER;
   }
 
-  interface EditorToModel {
-    void useDocumentHighlightProvider(int line, int column);
-
-    void fireFileLexed();
-
-    void fireFileIterativeParsed(int start, int stop);
-
-    void updateModelOnDiff(Diff diff, boolean isUndo);
-
-    void onDiffMade();
-
-    boolean isDisableParser();
-  }
-
   public boolean hasDiffModel() {
     return LineDiff.notEmpty(diffModel);
+  }
+
+  @Override
+  public void update(double timestamp) {
+    if (document.needReparse(timestamp) && iterativeVersion != document.currentVersion) {
+      iterativeVersion = document.currentVersion;
+      iterativeParsing();
+    }
+  }
+
+  @Override
+  LineDiff lineDiff(int i) {
+    return diffModel == null || i >= diffModel.length ? null : diffModel[i];
   }
 }

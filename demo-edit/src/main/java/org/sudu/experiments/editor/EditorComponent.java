@@ -57,7 +57,8 @@ public class EditorComponent extends View implements
   final FontDesk[] fonts;
   int lineHeight, scrollBarWidth;
 
-  Model model = new Model();
+  Model0 model = new Model();
+
   EditorRegistrations registrations = new EditorRegistrations();
   EditorColorScheme colors;
   CodeLineColorScheme codeLineColors;
@@ -457,13 +458,9 @@ public class EditorComponent extends View implements
     return size.y;
   }
 
-  private int iterativeVersion;
 
   public boolean update(double timestamp) {
-    if (model.document.needReparse(timestamp) && iterativeVersion != model.document.currentVersion) {
-      iterativeVersion = model.document.currentVersion;
-      iterativeParsing();
-    }
+    model.update(timestamp);
 
     if (lineHeight != 0) parseViewport();
 
@@ -532,7 +529,7 @@ public class EditorComponent extends View implements
     if (lines.length < cacheLines) {
       lines = CodeLineRenderer.allocRenderLines(
           cacheLines, lines, lrContext,
-          firstLineRendered, lastLineRendered, model.document);
+          firstLineRendered, lastLineRendered, model);
     }
 
     g.enableBlend(false);
@@ -1458,8 +1455,9 @@ public class EditorComponent extends View implements
     return model.caretCodeLine();
   }
 
+  // todo: inline
   CodeLine codeLine(int n) {
-    return model.document.lines[n];
+    return model.line(n);
   }
 
   // InputListener methods

@@ -37,8 +37,8 @@ public class UndoBuffer {
 
   public void undoLastDiff(EditorComponent editor1, EditorComponent editor2) {
     if (diffs.isEmpty()) return;
-    Document doc1 = editor1.model.document;
-    Document doc2 = editor2.model.document;
+    Document doc1 = editor1.model.document();
+    Document doc2 = editor2.model.document();
     var stack1 = diffs.get(doc1);
     var stack2 = diffs.get(doc2);
     boolean empty1 = stack1 == null || stack1.isEmpty();
@@ -64,8 +64,8 @@ public class UndoBuffer {
 
   public void redoLastDiff(EditorComponent editor1, EditorComponent editor2) {
     if (diffs.isEmpty()) return;
-    Document doc1 = editor1.model.document;
-    Document doc2 = editor2.model.document;
+    Document doc1 = editor1.model.document();
+    Document doc2 = editor2.model.document();
     var stack1 = diffs.get(doc1);
     var stack2 = diffs.get(doc2);
     boolean empty1 = stack1 == null || !stack1.haveNext();

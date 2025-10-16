@@ -14,7 +14,7 @@ import org.sudu.experiments.text.SplitText;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-public class Document extends CodeLines {
+public class Document {
   public static final char newLine = '\n';
 
   public String language;
@@ -53,10 +53,6 @@ public class Document extends CodeLines {
 
   private IntervalTree initialInterval() {
     return IntervalTree.singleInterval(0, getFullLength(), 0);
-  }
-
-  public CodeLine line(int i) {
-    return lines[i];
   }
 
   public char getChar(int line, int pos) {
