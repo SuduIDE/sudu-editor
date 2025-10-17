@@ -123,7 +123,7 @@ class DiffImage {
 
   static int findDiff(
       V2i mousePos, int cx, int cy, V2i size,
-      int doc, LineDiff[] diffModel
+      int doc, Model0 model
   ) {
     if (!Rect.isInside(mousePos, cx, cy, size))
       return -1;
@@ -133,11 +133,11 @@ class DiffImage {
     int line0 = imageToDocument(imgPos, image, doc);
     int lineN = imageToDocument(imgPos + 1, image, doc);
     for (int i = line0; i <= lineN; i++) {
-      LineDiff v = diffModel[i];
+      LineDiff v = model.lineDiff(i);
       if (v != null) return i;
     }
     for (int i = lineP; i < line0; i++) {
-      LineDiff v = diffModel[i];
+      LineDiff v = model.lineDiff(i);
       if (v != null) return i;
     }
     return -1;

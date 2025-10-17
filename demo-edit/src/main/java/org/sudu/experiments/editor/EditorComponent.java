@@ -203,7 +203,7 @@ public class EditorComponent extends View implements
     boolean hasMerge = mergeButtons != null;
     int mergeWidth = hasMerge ? mergeWidth() : 0;
 
-    numDigits = Numbers.numDecimalDigits(model.document.length());
+    numDigits = Numbers.numDecimalDigits(model.length());
     int lineNumbersWidth = lineNumbers.measureDigits(
         numDigits, g.mCanvas, dpr);
 
@@ -275,12 +275,13 @@ public class EditorComponent extends View implements
   }
 
   private void undoLastDiff(boolean isRedo) {
-    if (selection().isAreaSelected()) setSelectionToCaret();
+    if (selection().isAreaSelected())
+      model.setSelectionToCaret();
     var caretDiff = model.document.undoLastDiff(isRedo);
     if (caretDiff == null) return;
     var caretReturn = isRedo ? caretDiff.caretPos : caretDiff.caretReturn;
     setCaretLinePos(caretReturn.x, caretReturn.y, false);
-    updateDocumentDiffTimeStamp();
+    model.updateDocumentDiffTimeStamp();
     onDiffMade();
   }
 
@@ -423,7 +424,7 @@ public class EditorComponent extends View implements
         setMergeButtonsFont();
       updateLineNumbersFont();
       internalLayout();
-      adjustEditorScrollToCaret();
+      adjustEditorVScrollToCaret();
     }
   }
 
@@ -677,8 +678,7 @@ public class EditorComponent extends View implements
       if (isTailSelected) {
         tailColor = colors.editor.selectionBg;
       } else {
-        var dm = diffModel != null && lineIndex < diffModel.length
-            ? diffModel[lineIndex] : null;
+        var dm = model.lineDiff(lineIndex);
         if (dm != null) {
           tailColor = colors.codeDiffBg.getDiffColor(colors, dm.type);
         } else {
@@ -854,7 +854,7 @@ public class EditorComponent extends View implements
       left.charInd += tabIndent.length();
       right.charInd += tabIndent.length();
       setCaretPosWithSelection(model.caretCharPos + tabIndent.length());
-      updateDocumentDiffTimeStamp();
+      model.updateDocumentDiffTimeStamp();
     } else {
       handleInsert(tabIndent);
     }
@@ -876,7 +876,7 @@ public class EditorComponent extends View implements
         setCaretPosWithSelection(model.caretCharPos - indent.length());
       }
     }
-    updateDocumentDiffTimeStamp();
+    model.updateDocumentDiffTimeStamp();
     return true;
   }
 
@@ -950,7 +950,7 @@ public class EditorComponent extends View implements
     if (selection().isAreaSelected()) deleteSelectedArea();
     model.document.lines[model.caretLine].invalidateCache();
     model.document.newLineOp(model.caretLine, model.caretCharPos);
-    updateDocumentDiffTimeStamp();
+    model.updateDocumentDiffTimeStamp();
     return setCaretLinePos(model.caretLine + 1, 0, false);
   }
 
@@ -958,7 +958,7 @@ public class EditorComponent extends View implements
     if (selection().isAreaSelected()) deleteSelectedArea();
     else model.document.deleteChar(model.caretLine, model.caretCharPos);
     adjustEditorScrollToCaret();
-    updateDocumentDiffTimeStamp();
+    model.updateDocumentDiffTimeStamp();
     return true;
   }
 
@@ -979,7 +979,7 @@ public class EditorComponent extends View implements
         cPos = model.caretCharPos - 1;
         model.document.deleteChar(cLine, cPos);
       }
-      updateDocumentDiffTimeStamp();
+      model.updateDocumentDiffTimeStamp();
       return setCaretLinePos(cLine, cPos, false);
     }
   }
@@ -997,8 +997,8 @@ public class EditorComponent extends View implements
     else newCaretPos = lines[lines.length - 1].length();
 
     setCaretLinePos(newCaretLine, newCaretPos, false);
-    setSelectionToCaret();
-    updateDocumentDiffTimeStamp();
+    model.setSelectionToCaret();
+    model.updateDocumentDiffTimeStamp();
     return true;
   }
 
@@ -1006,14 +1006,8 @@ public class EditorComponent extends View implements
     var leftPos = selection().getLeftPos();
     model.document.deleteSelected(selection());
     setCaretLinePos(leftPos.line, leftPos.charInd, false);
-    setSelectionToCaret();
-    updateDocumentDiffTimeStamp();
-  }
-
-  private void setSelectionToCaret() {
-    selection().isSelectionStarted = false;
-    selection().startPos.set(model.caretLine, model.caretCharPos);
-    selection().endPos.set(model.caretLine, model.caretCharPos);
+    model.setSelectionToCaret();
+    model.updateDocumentDiffTimeStamp();
   }
 
   private void drawDocumentBottom(int yPosition) {
@@ -1121,12 +1115,12 @@ public class EditorComponent extends View implements
             : model.caretCharPos + shift;
 
     if (newPos > caretCodeLine.totalStrLength) { // goto next line
-      if (model.caretLine + 1 < model.document.length()) {
+      if (model.caretLine + 1 < model.length()) {
         setCaretLinePos(model.caretLine + 1, 0, shiftPressed);
       }
     } else if (newPos < 0) {  // goto prev line
       if (model.caretLine > 0) {
-        int pos = model.document.lines[model.caretLine - 1].totalStrLength;
+        int pos = model.line(model.caretLine - 1).totalStrLength;
         setCaretLinePos(model.caretLine - 1, pos, shiftPressed);
       }
     } else {
@@ -1138,11 +1132,11 @@ public class EditorComponent extends View implements
 
   private boolean shiftSelection(boolean shift) {
     if (selection().isAreaSelected() && !shift) {
-      setSelectionToCaret();
+      model.setSelectionToCaret();
       adjustEditorScrollToCaret();
       return true;
     }
-    if (!shift || !selection().isAreaSelected()) setSelectionToCaret();
+    if (!shift || !selection().isAreaSelected()) model.setSelectionToCaret();
     return false;
   }
 
@@ -1152,18 +1146,17 @@ public class EditorComponent extends View implements
   }
 
   private boolean setCaretLine(int value, boolean shift) {
-    model.caretLine = Numbers.clamp(0, value, model.document.length() - 1);
+    model.caretLine = Numbers.clamp(0, value, model.length() - 1);
     // caretLine = -1;
-    return setCaretPos(model.caretCharPos, shift);
+    setCaretPos(model.caretCharPos, shift);
+
+    adjustEditorVScrollToCaret();
+    return true;
   }
 
   private boolean setCaretPos(int charPos, boolean shift) {
-    model.caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
+    model.setCaretPos(charPos, shift);
     recomputeCaretPosY();
-    adjustEditorScrollToCaret();
-    if (shift) selection().isSelectionStarted = true;
-    selection().select(model.caretLine, model.caretCharPos);
-    selection().isSelectionStarted = false;
     return true;
   }
 
@@ -1213,7 +1206,7 @@ public class EditorComponent extends View implements
 
   private void applyHighlights() {
     clearUsages();
-    externalHighlights.buildUsages(model.document, model.usages);
+    externalHighlights.buildUsages(model.document(), model.usages);
   }
 
   public void findUsages(V2i position, ReferenceProvider.Provider provider) {
@@ -1275,16 +1268,19 @@ public class EditorComponent extends View implements
   }
 
   public void useDocumentHighlightProvider(int line, int column) {
-    var p = registrations.findDocumentHighlightProvider(model.language(), model.uriScheme());
+    Uri uri = model.uri();
+    var p = registrations.findDocumentHighlightProvider(
+        model.document().language, uri != null ?uri.scheme : null);
     if (p != null) {
-      Model saveModel = model;
-      p.provide(model, line, column,
-          highlights -> setHighlights(saveModel, line, column, highlights),
+      Model0 saveModel = model;
+      p.provide(model.jsExportModel(), line, column,
+          highlights -> setHighlights(
+              saveModel, line, column, highlights),
           onError);
     }
   }
 
-  void setHighlights(Model saveModel, int line, int column, DocumentHighlight[] highlights) {
+  void setHighlights(Model0 saveModel, int line, int column, DocumentHighlight[] highlights) {
     if (model != saveModel || model.caretLine != line || model.caretCharPos != column) return; // late reply
     externalHighlights = new ExternalHighlights(line, column, highlights);
     applyHighlights();
@@ -1299,7 +1295,7 @@ public class EditorComponent extends View implements
   Pos computeCharPos(V2i eventPosition, int line) {
     int localX = eventPosition.x - pos.x - textBaseX + hScrollPos;
     int documentXPosition = Math.max(0, localX);
-    int charPos = model.document.lines[line].computeCharPos(documentXPosition, g.mCanvas, fonts);
+    int charPos = model.line(line).computeCharPos(documentXPosition, g.mCanvas, fonts);
     return new Pos(line, charPos);
   }
 
@@ -1323,15 +1319,15 @@ public class EditorComponent extends View implements
   }
 
   private void moveCaret(Pos pos) {
-    model.caretLine = pos.line;
-    model.caretCharPos = pos.pos;
+    model.moveCaret(pos);
     recomputeCaretPosY();
   }
 
-  private void recomputeCaretPosY() {
+  public void recomputeCaretPosY() {
     caretPosX = dpr == 0 ? 0 :
-        caretCodeLine().computePixelLocation(
+        model.caretCodeLine().computePixelLocation(
             model.caretCharPos, g.mCanvas, fonts);
+    adjustEditorHScrollToCaret();
     startBlinking();
   }
 
@@ -1364,7 +1360,7 @@ public class EditorComponent extends View implements
   }
 
   public void gotoDefinition(Location loc) {
-    if (!Objects.equals(loc.uri, model.uri)) {
+    if (!Objects.equals(loc.uri, model.uri())) {
       EditorOpener editorOpener = registrations.findOpener();
       if (editorOpener != null) {
         window().runLater(() -> {
@@ -1586,10 +1582,10 @@ public class EditorComponent extends View implements
   }
 
   private int hitTestFindDiff(V2i mousePos) {
-    return codeMap == null || model.diffModel == null ? -1 :
+    return codeMap == null || model.hasDiffModel() ? -1 :
         DiffImage.findDiff(
             mousePos, codeMapX(), codeMapY(), codeMapSize,
-            model.document.length(), model.diffModel);
+            model.length(), model);
   }
 
   boolean onMouseMoveCodeMap(V2i mousePos, SetCursor setCursor) {
@@ -1661,7 +1657,10 @@ public class EditorComponent extends View implements
         event.keyCode == KeyCode.ContextMenu)
       return false;
 
-    if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
+    if (event.ctrl && event.keyCode == KeyCode.A) {
+      model.selectAll();
+      return true;
+    }
 
     if (!readonly && event.ctrl && event.keyCode == KeyCode.Z) {
       undoLastDiff(event.shift);
@@ -1684,7 +1683,7 @@ public class EditorComponent extends View implements
   }
 
   void debugPrintDocumentIntervals() {
-    model.document.printIntervals();
+    model.debugPrintDocumentIntervals();
   }
 
   void parseViewport() {
@@ -1693,10 +1692,6 @@ public class EditorComponent extends View implements
 
   public void parseFullFile() {
     model.parseFullFile();
-  }
-
-  public void iterativeParsing() {
-    model.iterativeParsing();
   }
 
   public boolean onCopy(Consumer<String> setText, boolean isCut) {
@@ -1721,8 +1716,8 @@ public class EditorComponent extends View implements
       result = model.document.copy(selection(), isCut);
       if (isCut) {
         setCaretLinePos(left.line, left.charInd, false);
-        setSelectionToCaret();
-        updateDocumentDiffTimeStamp();
+        model.setSelectionToCaret();
+        model.updateDocumentDiffTimeStamp();
       }
     }
 
@@ -1790,15 +1785,7 @@ public class EditorComponent extends View implements
   }
 
   void saveToNavStack() {
-    NavigationContext curr = model.navStack.getCurrentCtx();
-    if (curr != null && model.caretLine == curr.getLine() && model.caretCharPos == curr.getCharPos()) {
-      return;
-    }
-    model.navStack.add(new NavigationContext(
-        model.caretLine,
-        model.caretCharPos,
-        selection()
-    ));
+    model.saveToNavStack();
   }
 
   boolean navigateBack() {
@@ -1844,51 +1831,8 @@ public class EditorComponent extends View implements
     return false;
   }
 
-  private boolean handleDoubleKey(KeyEvent event) {
-    if (event.ctrl || event.alt) return false;
-    if (event.key.equals("{")) {
-      handleInsert("{}");
-      setCaretPos(model.caretCharPos - 1, false);
-      return true;
-    }
-    if (event.key.equals("(")) {
-      handleInsert("()");
-      setCaretPos(model.caretCharPos - 1, false);
-      return true;
-    }
-    if (event.key.equals("[")) {
-      handleInsert("[]");
-      setCaretPos(model.caretCharPos - 1, false);
-      return true;
-    }
-    if (event.key.equals("<")) {
-      handleInsert("<>");
-      setCaretPos(model.caretCharPos - 1, false);
-      return true;
-    }
-    if (event.key.equals("\"")) {
-      handleInsert("\"\"");
-      setCaretPos(model.caretCharPos - 1, false);
-      return true;
-    }
-    if (event.key.equals("'")) {
-      handleInsert("''");
-      setCaretPos(model.caretCharPos - 1, false);
-      return true;
-    }
-    return false;
-  }
-
-  public boolean selectAll() {
-    int line = model.document.length() - 1;
-    int charInd = model.document.strLength(line);
-    selection().startPos.set(0, 0);
-    selection().endPos.set(model.document.length() - 1, charInd);
-    return true;
-  }
-
-  private void updateDocumentDiffTimeStamp() {
-    model.document.setLastDiffTimestamp(window().timeNow());
+  public double timeNow() {
+    return window().timeNow();
   }
 
   public void setPosition(int column, int lineNumber) {
@@ -1914,7 +1858,7 @@ public class EditorComponent extends View implements
     // todo: remove model.clearUsages() from  onNewModel
     onNewModel();
 
-    Model oldModel = this.model;
+    Model0 oldModel = this.model;
     this.model = model;
     clearCompactViewModel();
     oldModel.setEditor(null, null);
@@ -2076,15 +2020,7 @@ public class EditorComponent extends View implements
   }
 
   public void onDiffMade() {
-    int docLength = model.document.length();
-    if (model.diffModel != null) {
-      int diffLength = model.diffModel.length;
-      if (debugDiffModel)
-        System.out.println("EditorComponent.onDiffMade:  docL=" + docLength
-            + ", lineDiffs.length = " + diffLength);
-    }
-
-    if (size.y > 0 && LineDiff.notEmpty(model.diffModel)) {
+    if (size.y > 0 && model.hasDiffModel()) {
       if (debugDiffModel)
         System.out.println("buildDiffMap in onDiffMade");
       buildDiffMap();
@@ -2100,7 +2036,7 @@ public class EditorComponent extends View implements
 
   private void checkLineNumbersLayout() {
     if (dpr == 0) return;
-    int docLength = model.document.length();
+    int docLength = model.length();
     int newDigits = Numbers.numDecimalDigits(docLength);
     if (newDigits != numDigits) {
       internalLayout();
@@ -2158,20 +2094,16 @@ public class EditorComponent extends View implements
   }
 
   void buildDiffMap() {
-    if (model.diffModel == null) {
+    if (!model.hasDiffModel()) {
       if (debugDiffMap)
         System.err.println("EditorComponent.buildDiffMap: model.diffModel == null");
       return;
     }
     if (debugDiffMap) {
-      int docLength = model.document.length();
-      int diffLength = model.diffModel.length;
+      int docLength = model.length();
       int visLen = docToView.length();
-      boolean diffModelError = docLength != diffLength;
       System.out.println("EditorComponent.buildDiffMap: docL=" + docLength
-          + ", visLen=" + visLen
-          + ", lineDiffs.length = " + diffLength
-          + (diffModelError ? " docLength != diffLength" : ""));
+          + ", visLen=" + visLen);
     }
 
     if (codeMap == null)
@@ -2180,7 +2112,7 @@ public class EditorComponent extends View implements
     int viewDocLength = docToView.length();
     var height = Math.min(size.y, lineHeight * viewDocLength);
     // workaround
-    viewDocLength = Math.min(viewDocLength, model.diffModel.length);
+//    viewDocLength = Math.min(viewDocLength, model.diffModel.length);
     int[] mapping = new int[viewDocLength];
     docToView.viewToDocLines(0, viewDocLength, mapping);
     var img = DiffImage.diffImage(model.diffModel, height,
@@ -2220,7 +2152,7 @@ public class EditorComponent extends View implements
     if (mergeButtons != null) {
       mergeButtons.setCodeLineMapping(mapping);
     }
-    if (codeMap != null && model.diffModel != null) buildDiffMap();
+    if (codeMap != null && model.hasDiffModel()) buildDiffMap();
   }
 
   public void clearCompactViewModel() {
@@ -2255,7 +2187,7 @@ public class EditorComponent extends View implements
   }
 
   public int docVersion() {
-    return model.document.version();
+    return model.document().version();
   }
 
   private boolean isLastMouseDownPosUnset() {

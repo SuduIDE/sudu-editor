@@ -26,19 +26,14 @@ public class Model extends Model0 {
 
   public Object platformObject;
 
-  final Selection selection = new Selection();
   final NavigationStack navStack = new NavigationStack();
 
-  EditorToModel editor;
   Runnable onDiffMadeListener;
-  WorkerJobExecutor executor;
 
   LineDiff[] diffModel;
 
   // this properties might need to be converted
   //   to Subscribers<CaretChangeListeners>
-  CodeElement definition = null;
-  final List<CodeElement> usages = new ArrayList<>();
   final List<V2i> parsedVps = new ArrayList<>();
 
   int fullFileLexed = ParseStatus.NOT_PARSED;
@@ -48,9 +43,6 @@ public class Model extends Model0 {
 
   long parsingTimeStart, viewportParseStart, resolveTimeStart;
 
-  boolean highlightResolveError, printResolveTime;
-
-  double vScrollLine = .0;
 
   boolean debug = false;
 
@@ -238,18 +230,17 @@ public class Model extends Model0 {
   }
 
   void setEditor(EditorToModel editor, WorkerJobExecutor executor) {
-    this.editor = editor;
-    this.executor = executor;
+    super.setEditor(editor, executor);
     if (executor != null) {
-      if (fullFileParsed == ParseStatus.NOT_PARSED) requestParseFile();
+      if (fullFileParsed == ParseStatus.NOT_PARSED)
+        requestParseFile();
       // todo: execute eny pending jobs here
-    } else {
-      document.invalidateMeasure();
     }
   }
 
-  void setUndoBuffer(UndoBuffer undoBuffer) {
-    document.setUndoBuffer(undoBuffer);
+  @Override
+  void documentInvalidateMeasure() {
+    document.invalidateMeasure();
   }
 
   private void setParsed() {
@@ -329,6 +320,7 @@ public class Model extends Model0 {
     return uri != null ? uri.getFileName() : "";
   }
 
+  @Override
   void parseFullFile() {
     if (debug) {
       Debug.consoleInfo(getFileName() + "/Model::parseFullFile");
@@ -476,6 +468,7 @@ public class Model extends Model0 {
       onDiffMadeListener.run();
   }
 
+  @Override
   CodeLine caretCodeLine() {
     return document.lines[caretLine];
   }
@@ -484,7 +477,8 @@ public class Model extends Model0 {
     return editor != null ? editor.isDisableParser() : EditorConst.DEFAULT_DISABLE_PARSER;
   }
 
-  public boolean hasDiffModel() {
+  @Override
+  boolean hasDiffModel() {
     return LineDiff.notEmpty(diffModel);
   }
 
@@ -512,7 +506,66 @@ public class Model extends Model0 {
   }
 
   @Override
+  Uri uri() {
+    return uri;
+  }
+
+  @Override
+  int length() {
+    return document.lines.length;
+  }
+
+  @Override
   void invalidateFont() {
     document.invalidateFont();
+  }
+
+  // editing
+
+
+  @Override
+  void updateDocumentDiffTimeStamp() {
+    document.setLastDiffTimestamp(editor.timeNow());
+  }
+
+  @Override
+  void selectAll() {
+    int line = document.lines.length - 1;
+    int charInd = document.strLength(line);
+    selection.startPos.set(0, 0);
+    selection.endPos.set(line, charInd);
+  }
+
+  @Override
+  void saveToNavStack() {
+    NavigationContext curr = navStack.getCurrentCtx();
+    if (curr != null && caretLine == curr.getLine() && caretCharPos == curr.getCharPos()) {
+      return;
+    }
+    navStack.add(
+        new NavigationContext(caretLine, caretCharPos, selection)
+    );
+  }
+
+  @Override
+  void setCaretPos(int charPos, boolean shift) {
+    super.setCaretPos(charPos, shift);
+    if (shift) selection.isSelectionStarted = true;
+    selection.select(caretLine, caretCharPos);
+    selection.isSelectionStarted = false;
+  }
+
+  // parsing
+  @Override
+  void debugPrintDocumentIntervals() {
+    document.printIntervals();
+  }
+
+
+  // js interop
+
+  @Override
+  Model jsExportModel() {
+    return this;
   }
 }
