@@ -55,7 +55,7 @@ public class UniDiffModel extends Model0 {
   }
 
   @Override
-  Document document() {
+  public Document document() {
     return model2.document;
   }
 
@@ -95,15 +95,42 @@ public class UniDiffModel extends Model0 {
   }
 
   @Override
+  void handleInsert(String s) {}
+
+  @Override
+  void newLine() {}
+
+  @Override
+  void handleDelete() {}
+
+  @Override
+  void handleBackspace() {}
+
+  @Override
+  void handleTab(boolean shiftPressed) {}
+
+  @Override
   void selectAll() {
     model2.selectAll();
   }
 
   @Override
-  void saveToNavStack() {
-    // todo:
-    model2.saveToNavStack();
+  void undoLastDiff(boolean isRedo) {}
+
+  @Override
+  String onCopy(boolean isCut) {
+    return "todo: implement copy";
   }
+
+  // navigate
+
+  @Override
+  void saveToNavStack() {}
+
+  @Override
+  void navigateBack() {}
+  @Override
+  void navigateForward() {}
 
   // parsing
 
@@ -121,7 +148,7 @@ public class UniDiffModel extends Model0 {
 
   // js interop
   @Override
-  Model jsExportModel() {
+  public Model jsExportModel() {
     return model2;
   }
 }

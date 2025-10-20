@@ -16,6 +16,7 @@ import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 import static org.sudu.experiments.math.ArrayOp.copyOf;
 
@@ -501,7 +502,7 @@ public class Model extends Model0 {
   }
 
   @Override
-  Document document() {
+  public Document document() {
     return document;
   }
 
@@ -526,6 +527,222 @@ public class Model extends Model0 {
   @Override
   void updateDocumentDiffTimeStamp() {
     document.setLastDiffTimestamp(editor.timeNow());
+  }
+
+  // todo: need to restore selection state after undo
+  @Override
+  void undoLastDiff(boolean isRedo) {
+    if (selection.isAreaSelected())
+      setSelectionToCaret();
+    var caretDiff = document.undoLastDiff(isRedo);
+    if (caretDiff == null) return;
+    var caretReturn = isRedo ? caretDiff.caretPos : caretDiff.caretReturn;
+    setCaretLinePos(caretReturn.x, caretReturn.y);
+    updateDocumentDiffTimeStamp();
+    onDiffMade();
+  }
+
+  public String onCopy(boolean isCut) {
+    var left = selection.getLeftPos();
+    int line = left.line;
+    String result;
+
+    if (!selection.isAreaSelected()) {
+      result = document.copyLine(line);
+      int newLine = Math.min(document.length() - 1, line);
+
+      selection.endPos.set(newLine, 0);
+      if (line < document.length() - 1)
+        selection.startPos.set(newLine + 1, 0);
+      else
+        selection.endPos.set(newLine, document.strLength(newLine));
+
+      if (isCut) deleteSelectedArea();
+
+    } else {
+      result = document.copy(selection, isCut);
+      if (isCut) {
+        setCaretLinePos(left.line, left.charInd);
+        setSelectionToCaret();
+        updateDocumentDiffTimeStamp();
+      }
+    }
+    return result;
+  }
+
+  public void handleInsert(String s) {
+    if (selection.isAreaSelected()) deleteSelectedArea();
+    String[] lines = SplitText.split(s);
+
+    document.insertLines(caretLine, caretCharPos, lines);
+
+    int newCaretLine = caretLine + lines.length - 1;
+    int newCaretPos;
+    if (newCaretLine == caretLine) newCaretPos = caretCharPos + lines[0].length();
+    else newCaretPos = lines[lines.length - 1].length();
+
+    setCaretLinePos(newCaretLine, newCaretPos);
+    setSelectionToCaret();
+    updateDocumentDiffTimeStamp();
+  }
+
+  void deleteSelectedArea() {
+    var leftPos = selection.getLeftPos();
+    document.deleteSelected(selection);
+    setCaretLinePos(leftPos.line, leftPos.charInd);
+    setSelectionToCaret();
+    updateDocumentDiffTimeStamp();
+  }
+
+  void newLine() {
+    if (selection.isAreaSelected()) deleteSelectedArea();
+    document.lines[caretLine].invalidateCache();
+    document.newLineOp(caretLine, caretCharPos);
+    updateDocumentDiffTimeStamp();
+    setCaretLinePos(caretLine + 1, 0);
+  }
+
+  void handleDelete() {
+    if (selection.isAreaSelected()) deleteSelectedArea();
+    else document.deleteChar(caretLine, caretCharPos);
+    if (editor != null) {
+      editor.recomputeCaretPosY();
+      editor.recomputeCaretPosX();
+    }
+    updateDocumentDiffTimeStamp();
+  }
+
+  void handleBackspace() {
+    if (selection.isAreaSelected()) {
+      deleteSelectedArea();
+    } else {
+      if (caretCharPos == 0 && caretLine == 0) return;
+
+      int cLine, cPos;
+      if (caretCharPos == 0) {
+        cLine = caretLine - 1;
+        cPos = document.strLength(cLine);
+        document.concatLines(cLine);
+      } else {
+        cLine = caretLine;
+        cPos = caretCharPos - 1;
+        document.deleteChar(cLine, cPos);
+      }
+      updateDocumentDiffTimeStamp();
+      setCaretLinePos(cLine, cPos);
+    }
+  }
+
+  void handleTab(boolean shiftPressed) {
+    if (shiftPressed) handleShiftTabOp();
+    else handleTabOp();
+  }
+
+  private void handleTabOp() {
+    if (selection.isAreaSelected()) {
+      Selection.SelPos left = selection.getLeftPos();
+      Selection.SelPos right = selection.getRightPos();
+      int size = right.line - left.line + 1;
+      int[] lines = new int[size];
+      String[] changes = new String[size];
+      int i = 0;
+      for (int l = left.line; l <= right.line; l++) {
+        lines[i] = l;
+        changes[i++] = tabIndent;
+      }
+
+      tabDiffHandler(
+          lines, 0, false, changes,
+          new Pos(caretLine, caretCharPos),
+          (l, c) -> document.insertAt(l, 0, tabIndent)
+      );
+
+      left.charInd += tabIndent.length();
+      right.charInd += tabIndent.length();
+      setCaretPos(caretCharPos + length());
+      updateDocumentDiffTimeStamp();
+    } else {
+      handleInsert(tabIndent);
+    }
+  }
+
+  private void handleShiftTabOp() {
+    if (selection.isAreaSelected()) {
+      shiftTabSelection();
+    } else {
+      CodeLine codeLine = caretCodeLine();
+      if (codeLine.elements.length > 0) {
+        String indent = calculateTabIndent(codeLine, tabIndent.length());
+        if (indent == null) return;
+        document.makeDiffWithCaretReturn(
+            caretLine, 0, true, indent, new Pos(caretLine, caretCharPos)
+        );
+        codeLine.delete(0, indent.length());
+        setCaretPos(caretCharPos - indent.length());
+      }
+    }
+    updateDocumentDiffTimeStamp();
+  }
+
+  private void shiftTabSelection() {
+    Selection.SelPos left = selection.getLeftPos();
+    Selection.SelPos right = selection.getRightPos();
+    int initSize = right.line - left.line + 1;
+    int[] lines = new int[initSize];
+    String[] changes = new String[initSize];
+    int prevCaretPos = caretCharPos;
+    int prevCaretLine = caretLine;
+    int size = 0;
+    for (int l = left.line; l <= right.line; l++) {
+      CodeLine codeLine = document.lines[l];
+      if (codeLine.elements.length > 0) {
+        String indent = calculateTabIndent(codeLine, tabIndent.length());
+        if (indent == null) continue;
+        lines[size] = l;
+        changes[size++] = indent;
+      }
+    }
+    lines = Arrays.copyOf(lines, size);
+    changes = Arrays.copyOf(changes, size);
+    for (int i = 0; i < size; i++) {
+      String indent = changes[i];
+      int l = lines[i];
+      if (l == left.line) left.charInd = Math.max(0, left.charInd - indent.length());
+      if (l == right.line) {
+        right.charInd = Math.max(0, right.charInd - indent.length());
+        setCaretPos(caretCharPos - indent.length());
+      }
+    }
+    tabDiffHandler(lines, 0, true, changes, new Pos(prevCaretLine, prevCaretPos),
+        (l, c) -> {
+          CodeLine codeLine = document.lines[l];
+          codeLine.delete(0, c.length());
+        }
+    );
+  }
+
+  private void tabDiffHandler(
+      int[] lines,
+      int fromValue,
+      boolean isDelValue,
+      String[] changes,
+      Pos caretPosition,
+      BiConsumer<Integer, String> editorAction
+
+  ) {
+    if (lines.length == 0) return;
+    int[] from = new int[lines.length];
+    boolean[] areDeletes = new boolean[lines.length];
+    Arrays.fill(from, fromValue);
+    Arrays.fill(areDeletes, isDelValue);
+    document.makeComplexDiff(
+        lines,
+        from,
+        areDeletes,
+        changes,
+        caretPosition,
+        editorAction
+    );
   }
 
   @Override
@@ -555,6 +772,21 @@ public class Model extends Model0 {
     selection.isSelectionStarted = false;
   }
 
+  void navigateBack() {
+    saveToNavStack();
+    NavigationContext prev = navStack.getPrevCtx();
+    if (prev == null) return;
+    setCaretLinePos(prev.getLine(), prev.getCharPos());
+    selection.set(prev.getSelection());
+  }
+
+  void navigateForward() {
+    NavigationContext curr = navStack.getNextCtx();
+    if (curr == null) return;
+    setCaretLinePos(curr.getLine(), curr.getCharPos());
+    selection.set(curr.getSelection());
+  }
+
   // parsing
   @Override
   void debugPrintDocumentIntervals() {
@@ -565,7 +797,7 @@ public class Model extends Model0 {
   // js interop
 
   @Override
-  Model jsExportModel() {
+  public Model jsExportModel() {
     return this;
   }
 }

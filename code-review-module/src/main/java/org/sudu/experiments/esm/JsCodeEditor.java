@@ -71,17 +71,13 @@ public class JsCodeEditor implements JsEditorView {
 
   @Override
   public void setText(JSString t) {
-    Model prevModel = editor.model();
-    Model model = new Model(
-        SplitJsText.split(t),
-        prevModel.document.language,
-        prevModel.uri);
-    editor.setModel(model);
+    String[] lines = SplitJsText.split(t).lines;
+    editor.model().document().replaceText(lines);
   }
 
   @Override
   public JSString getText() {
-    char[] chars = editor.model().document.getChars();
+    char[] chars = editor.model().document().getChars();
     return TextDecoder.decodeUTF16(chars);
   }
 
@@ -125,7 +121,7 @@ public class JsCodeEditor implements JsEditorView {
 
   @Override
   public JsITextModel getModel() {
-    return JsTextModel.fromJava(editor.model());
+    return JsTextModel.fromJava(editor.model().jsExportModel());
   }
 
   @Override
@@ -194,7 +190,7 @@ public class JsCodeEditor implements JsEditorView {
     return (model, line, column, onResult, onError) ->
         PromiseUtils.<JsArrayReader<JsLocation>>promiseOrT(
             provider.provideDefinition(
-                JsTextModel.fromJava(model),
+                JsTextModel.fromJava(model.jsExportModel()),
                 JsPosition.fromJava(column, line),
                 JsCancellationToken.create()),
             jsArr -> acceptLocations(jsArr, onResult, onError),
@@ -205,7 +201,7 @@ public class JsCodeEditor implements JsEditorView {
     return (model, line, column, onResult, onError) ->
         PromiseUtils.<JsArrayReader<JsLocation>>promiseOrT(
             provider.provideDeclaration(
-                JsTextModel.fromJava(model),
+                JsTextModel.fromJava(model.jsExportModel()),
                 JsPosition.fromJava(column, line),
                 JsCancellationToken.create()),
             jsArr -> acceptLocations(jsArr, onResult, onError),

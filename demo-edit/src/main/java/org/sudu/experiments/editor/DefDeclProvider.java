@@ -13,7 +13,7 @@ public class DefDeclProvider extends LanguageSelectors {
 
   public interface Provider {
     void provide(
-        Model model, int line, int column,
+        Model0 model, int line, int column,
         Consumer<Location[]> result,
         Consumer<String> onError);
   }

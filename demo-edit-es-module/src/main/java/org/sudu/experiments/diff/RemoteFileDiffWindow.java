@@ -4,6 +4,7 @@ import org.sudu.experiments.Channel;
 import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.editor.EditorComponent;
 import org.sudu.experiments.editor.Model;
+import org.sudu.experiments.editor.Model0;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.esm.JsContextMenuProvider;
@@ -57,10 +58,10 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     );
   }
 
-  private void saveFile(boolean left, Model m) {
+  private void saveFile(boolean left, Model0 m) {
     JsArray<JSObject> jsArray = JsArray.create();
-    jsArray.set(0, JsCast.jsString(m.document.getChars()));
-    jsArray.set(1, JSString.valueOf(m.encoding()));
+    jsArray.set(0, JsCast.jsString(m.document().getChars()));
+    jsArray.set(1, JSString.valueOf(m.document().encoding));
     jsArray.set(2, JsCast.jsInts(left ? 1 : 0));
     jsArray.set(3, JsCast.jsInts(FileDiffChannelUpdater.FILE_SAVE));
     channel.sendMessage(jsArray);

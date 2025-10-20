@@ -22,6 +22,9 @@ public abstract class Model0 extends CodeLines {
 
   boolean highlightResolveError, printResolveTime;
 
+  // editor settings
+  String tabIndent = "  ";
+
   abstract int length();
 
   abstract boolean hasDiffModel();
@@ -38,7 +41,7 @@ public abstract class Model0 extends CodeLines {
 
   abstract void documentInvalidateMeasure();
 
-  abstract Document document();
+  public abstract Document document();
 
   abstract Uri uri();
 
@@ -48,16 +51,31 @@ public abstract class Model0 extends CodeLines {
 
   // editing
 
-  // why diff ?
   abstract void updateDocumentDiffTimeStamp();
   abstract void selectAll();
   abstract void saveToNavStack();
+  abstract void navigateBack();
+  abstract void navigateForward();
+
   abstract CodeLine caretCodeLine();
 
   void setCaretPos(int charPos, boolean shift) {
     caretCharPos = Numbers.clamp(0, charPos, caretCodeLine().totalStrLength);
   }
 
+  void setCaretLinePos(int line, int pos) {
+    caretCharPos = pos;
+    caretLine = line;
+    editor.recomputeCaretPosX();
+    editor.recomputeCaretPosY();
+  }
+
+  void setCaretPos(int pos) {
+    caretCharPos = pos;
+    editor.recomputeCaretPosX();
+  }
+
+  // call from mouse drags, no need to clamp to valid range
   void moveCaret(Pos pos) {
     caretLine = pos.line;
     caretCharPos = pos.pos;
@@ -69,13 +87,36 @@ public abstract class Model0 extends CodeLines {
     selection.endPos.set(caretLine, caretCharPos);
   }
 
+  void setSelectionRange(Range range) {
+    selection.startPos.set(range.startLineNumber, range.startColumn);
+    selection.endPos.set(range.endLineNumber, range.endColumn);
+    setCaretLinePos(selection.startPos.line, selection.startPos.charInd);
+  }
+
   void setUndoBuffer(UndoBuffer undoBuffer) {
     document().setUndoBuffer(undoBuffer);
   }
 
+  abstract void handleInsert(String s);
+  abstract void newLine();
+  abstract void handleDelete();
+  abstract void handleBackspace();
+  abstract void handleTab(boolean shiftPressed);
+
+  String calculateTabIndent(CodeLine codeLine, int tabLength) {
+    int count = Numbers.clamp(0, tabLength, codeLine.getBlankStartLength());
+    return count == 0 ? null : " ".repeat(count);
+  }
+
+  abstract void undoLastDiff(boolean isRedo);
+
+  abstract String onCopy(boolean isCut);
+
   // parsing
   abstract void parseFullFile();
   abstract void debugPrintDocumentIntervals();
+
+  void computeUsages() {}
 
   interface EditorToModel {
     void useDocumentHighlightProvider(int line, int column);
@@ -91,9 +132,12 @@ public abstract class Model0 extends CodeLines {
     boolean isDisableParser();
 
     double timeNow();
+
+    void recomputeCaretPosX();
+    void recomputeCaretPosY();
   }
 
   // jsInterop
 
-  abstract Model jsExportModel();
+  public abstract Model jsExportModel();
 }
