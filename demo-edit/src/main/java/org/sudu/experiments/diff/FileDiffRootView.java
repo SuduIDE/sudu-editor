@@ -453,6 +453,8 @@ class FileDiffRootView extends DiffRootView {
   private void applyCodeMapping(IntConsumer actions) {
     editor1.setCompactViewModel(diffModel.codeMappingL, actions);
     editor2.setCompactViewModel(diffModel.codeMappingR, actions);
+    if (onDocumentSizeChange != null)
+      onDocumentSizeChange.run();
   }
 
   public boolean isCompactedView() {

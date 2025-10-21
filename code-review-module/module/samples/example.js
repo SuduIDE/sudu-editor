@@ -37,3 +37,9 @@ codeReview.setDiffSizeListener(
 
 codeReview.setModel(model1, model2);
 codeReview.focus();
+
+let compactView = false;
+
+setInterval(() => {
+  codeReview.getController().setCompactView(compactView = !compactView);
+}, 10000)
