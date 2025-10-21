@@ -8,6 +8,7 @@ import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
+import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.common.TriConsumer;
 import org.sudu.experiments.ui.window.WindowManager;
 
@@ -30,7 +31,7 @@ class FileDiffRootView extends DiffRootView {
 
   boolean firstDiffRevealed = false, needScrollSync = false;
   private static final boolean showNavigateLog = true;
-  private Runnable onRefresh, onDiffModelSet;
+  private Runnable onRefresh, onDiffModelSet, onDocumentSizeChange;
   public final boolean isCodeReview;
   private final UndoBuffer undoBuffer;
 
@@ -166,6 +167,8 @@ class FileDiffRootView extends DiffRootView {
       if (diffModel.isCompactedView())
         applyCodeMapping(diffModel.getExpander(this::applyCodeMapping));
     }
+    if (onDocumentSizeChange != null)
+      onDocumentSizeChange.run();
   }
 
   private void onDiffMadeListener(EditorComponent editor) {
@@ -196,8 +199,14 @@ class FileDiffRootView extends DiffRootView {
         theme.lineNumber.currentSyncPoint,
         theme.lineNumber.hoverSyncPoint
     );
+    int lineHeight1 = editor1.lineHeight();
+    int lineHeight2 = editor2.lineHeight();
     editor1.setTheme(theme);
     editor2.setTheme(theme);
+    if (lineHeight1 != editor1.lineHeight() || lineHeight2 != editor2.lineHeight()) {
+      if (onDocumentSizeChange != null)
+        onDocumentSizeChange.run();
+    }
   }
 
   public void setEmptyDiffModel() {
@@ -238,15 +247,17 @@ class FileDiffRootView extends DiffRootView {
     editor1.setMergeButtons(m1.actions, null, m1.lines, false);
     editor2.setMergeButtons(m2.actions, null, m2.lines, isCodeReview);
 
-    if (!firstDiffRevealed) revealFirstDiff();
-    if (onDiffModelSet != null) onDiffModelSet.run();
     if (compact && !diffModel.isEmpty()) {
       buildCompactModel();
     }
+    if (!firstDiffRevealed) revealFirstDiff();
+    if (onDiffModelSet != null) onDiffModelSet.run();
+    if (onDocumentSizeChange != null)
+      onDocumentSizeChange.run();
     ui.windowManager.uiContext.window.repaint();
   }
 
-  public void updateDiffModel(
+  private void updateDiffModel(
       int fromL, int toL,
       int fromR, int toR,
       int[] versions,
@@ -385,6 +396,10 @@ class FileDiffRootView extends DiffRootView {
     this.onDiffModelSet = onDiffModelSet;
   }
 
+  public void setOnDocumentSizeChange(Runnable onDocumentSizeChange) {
+    this.onDocumentSizeChange = onDocumentSizeChange;
+  }
+
   public void refresh() {
     System.out.println("FileDiffRootView.refresh");
     needScrollSync = true;
@@ -410,14 +425,19 @@ class FileDiffRootView extends DiffRootView {
   public void setCompactView(boolean compact) {
     compactViewRequest = compact;
     if (compact) {
-      if (!diffModel.isEmpty())
+      if (!diffModel.isEmpty()) {
         buildCompactModel();
+        if (onDocumentSizeChange != null)
+          onDocumentSizeChange.run();
+      }
     } else {
       diffModel.clearCompactView();
       editor1.clearCompactViewModel();
       editor2.clearCompactViewModel();
       editor1.revealLineInCenter(editor1.caretLine());
       editor2.revealLineInCenter(editor2.caretLine());
+      if (onDocumentSizeChange != null)
+        onDocumentSizeChange.run();
     }
     ui.windowManager.uiContext.window.repaint();
   }
@@ -437,5 +457,13 @@ class FileDiffRootView extends DiffRootView {
 
   public boolean isCompactedView() {
     return compactViewRequest;
+  }
+
+  @Override
+  public void setPosition(V2i newPos, V2i newSize, float newDpr) {
+    float dpr = this.dpr;
+    super.setPosition(newPos, newSize, newDpr);
+    if (dpr != newDpr && onDocumentSizeChange != null)
+      onDocumentSizeChange.run();
   }
 }

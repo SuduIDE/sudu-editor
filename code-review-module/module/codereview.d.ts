@@ -326,6 +326,14 @@ export interface EditorView extends IEditorView, IDisposable {
   onDidChangeModel: IEvent<IModelChangedEvent>
 }
 
+interface IDiffSizeChangeCallback {
+  (
+    numLines: number,
+    lineHeight: number,
+    cssLineHeight: number
+  ): void
+}
+
 export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
   getLeftModel(): ITextModel
 
@@ -334,6 +342,8 @@ export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
   getController(): FileDiffViewController;
 
   onControllerUpdate: IEvent<FileDiffViewController>
+
+  setDiffSizeListener(cb: IDiffSizeChangeCallback): void
 }
 
 export interface CodeReviewView extends IFileDiffView, IDisposable {
