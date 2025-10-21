@@ -1,5 +1,6 @@
 
 const editorApi = await import("../src/codereview.js");
+const { initControlPanel } = await import("./control-panel.js");
 
 const threadPool = await editorApi.newWorkerPool("../src/worker.js", 3);
 
@@ -10,6 +11,8 @@ const codeReview = editorApi.newCodeReview({
   workers: threadPool,
   disableParser: true
 });
+
+initControlPanel(codeReview)
 
 const initialText1 =
     "This is an experimental project\n" +
@@ -38,8 +41,4 @@ codeReview.setDiffSizeListener(
 codeReview.setModel(model1, model2);
 codeReview.focus();
 
-let compactView = false;
 
-setInterval(() => {
-  codeReview.getController().setCompactView(compactView = !compactView);
-}, 10000)
