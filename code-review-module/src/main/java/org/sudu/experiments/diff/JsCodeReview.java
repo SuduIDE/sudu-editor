@@ -13,6 +13,9 @@ public class JsCodeReview implements JsCodeReviewView {
   public final WebWindow window;
   private FileDiffWindow w;
   private JsFileDiffViewController controller;
+  private IDiffSizeChangeCallback sizeListener;
+  private int eventNumLines, eventLineHeight;
+  private float eventCssLineHeight;
 
   public JsCodeReview(
       FileDiffWindow fileDiff, WebWindow ww,
@@ -24,6 +27,35 @@ public class JsCodeReview implements JsCodeReviewView {
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly())
       setReadonly(args.getReadonly(), args.getReadonly());
+
+    w.rootView.setOnDocumentSizeChange(this::onDocumentSizeChange);
+  }
+
+  void onDocumentSizeChange() {
+    if (sizeListener != null && w.rootView.dpr != 0) {
+      int numLines = Math.max(
+          w.rootView.editor1.getNumLines(),
+          w.rootView.editor2.getNumLines());
+      int lineHeight = Math.max(
+          w.rootView.editor1.lineHeight(),
+          w.rootView.editor2.lineHeight());
+      float cssLineHeight = lineHeight / w.rootView.dpr;
+      if (numLines != eventNumLines
+          || lineHeight != eventLineHeight
+          || cssLineHeight != eventCssLineHeight) {
+        sizeListener.f(
+            eventNumLines = numLines,
+            eventLineHeight = lineHeight,
+            eventCssLineHeight = cssLineHeight);
+      }
+    }
+  }
+
+  @Override
+  public void setDiffSizeListener(IDiffSizeChangeCallback listener) {
+    sizeListener = listener;
+    eventNumLines = eventLineHeight = 0;
+    eventCssLineHeight = 0;
   }
 
   @Override
