@@ -1,24 +1,11 @@
-export const initControlPanel = (codeReview, compactView = true) => {
-    const controller = codeReview.getController()
-    const uid = (Math.random() * 10000) | 0
-
-    const controlPanelId = `control-panel-${uid}`
-    const buttons = {
-        next: 'next',
-        prev: 'prev',
-        toggle: 'toggle'
-    }
-
-    const buttonText = {
-        next: '🔽',
-        prev: '🔼',
-        toggle: '↕️'
-    }
-
+const initStyle = () => {
+    const styleId = 'control-panel-style'
+    if (document.getElementById(styleId)) return
     const style = document.createElement('style')
+    style.id = styleId
     style.innerHTML = `
-        #${controlPanelId} {
-        position: fixed;
+    .control-panel {
+        position: absolute;
         display: flex;
         right: 25px;
         top: 10px;
@@ -27,15 +14,15 @@ export const initControlPanel = (codeReview, compactView = true) => {
         z-index: 100000;
     }
 
-    #${controlPanelId}>button:first-child {
+    .control-panel>button:first-child {
         border-radius: 3px 0px 0px 3px;
     }
 
-    #${controlPanelId}>button:last-child {
+    .control-panel>button:last-child {
         border-radius: 0px 3px 3px 0px;
     }
 
-    #${controlPanelId}>button {
+    .control-panel>button {
         padding: 5px;
         background-color: inherit;
         padding-bottom: 6px;
@@ -44,57 +31,40 @@ export const initControlPanel = (codeReview, compactView = true) => {
     }
 
 
-    #${controlPanelId}>button:hover {
+    .control-panel>button:hover {
         box-shadow: inset 0 0 0 10px rgba(83, 83, 83, 0.9);
     }
     `
     document.head.appendChild(style)
+}
+
+export const initControlPanel = (parentElement = document.body) => {
+    initStyle()
     const root = document.createElement('div')
-    root.id = controlPanelId
+    root.classList.add('control-panel')
 
-    Object.values(buttons).forEach((name) => {
-        const element = document.createElement('button')
-        element.id = name
-        element.innerText = buttonText[name]
-        root.appendChild(element)
-    })
+    parentElement.style.position = 'relative'
+    parentElement.append(root)
 
-    document.body.append(root)
+    const api = {
+        /**
+         *
+         * @param {string} icon
+         * @param {(event: PointerEvent)=> void | Promise<void>} handler
+         * @returns {api}
+         */
+        add: (icon, handler) => {
+            const element = document.createElement('button')
 
+            element.onclick = (ev) => {
+                handler(ev)
+            }
 
-    const nextButton = document.getElementById(buttons.next)
-    const prevButton = document.getElementById(buttons.prev)
-    const toggleViewButton = document.getElementById(buttons.toggle)
-    controller.setCompactView(compactView)
+            element.innerText = icon
 
-    if (nextButton) {
-        nextButton.onclick = (ev) => {
-            ev.preventDefault()
-            const canNavigateDown = controller.canNavigateDown();
-            console.log('canNavigateDown =', canNavigateDown)
-            canNavigateDown && controller.navigateDown()
-            codeReview.focus();
+            root.appendChild(element)
+            return api
         }
     }
-
-    if (prevButton) {
-        prevButton.onclick = (ev) => {
-            ev.preventDefault()
-            const canNavigateUp = controller.canNavigateUp();
-            console.log('canNavigateUp =', canNavigateUp)
-            canNavigateUp && controller.navigateUp()
-            codeReview.focus();
-        }
-    }
-
-    if (toggleViewButton) {
-        toggleViewButton.onclick = (ev) => {
-            ev.preventDefault()
-            compactView = !compactView
-            console.log('compactView =', compactView)
-            controller.setCompactView(compactView)
-            codeReview.focus();
-        }
-    }
-
+    return api
 }
