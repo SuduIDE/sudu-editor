@@ -196,7 +196,7 @@ public class CodeLineRenderer implements Disposable {
       }
 
       if (isFullSelected || isFullUnselected) {
-        CodeElementColor c = colors.codeElement[e.color];
+        CodeElementColor c = colors.elementColor(e.color);
         V4f bgColor = isFullSelected ? colors.selectionBg :
             requireNonNullElse(elemBgColor, c.colorB != null ? c.colorB : colors.defaultBg);
         context.tRegion.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
@@ -261,7 +261,7 @@ public class CodeLineRenderer implements Disposable {
       V4f elemBgColor,
       V4f overrideForeground
   ) {
-    CodeElementColor c = colors.codeElement[e.color];
+    CodeElementColor c = colors.elementColor(e.color);
     V4f colorF = overrideForeground != null ? overrideForeground : c.colorF;
     V4f colorB = requireNonNullElse(elemBgColor, c.colorB != null ? c.colorB : colors.defaultBg);
     V4f selColorB = colors.selectionBg;

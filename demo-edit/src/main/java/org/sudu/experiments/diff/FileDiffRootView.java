@@ -31,6 +31,7 @@ class FileDiffRootView extends DiffRootView {
   boolean firstDiffRevealed = false, needScrollSync = false;
   private static final boolean showNavigateLog = true;
   private Runnable onRefresh, onDiffModelSet;
+  private Consumer<Model> requestSemanticHighlight;
   public final boolean isCodeReview;
   private final UndoBuffer undoBuffer;
 
@@ -120,6 +121,7 @@ class FileDiffRootView extends DiffRootView {
     if ((modelFlags & 3) == 3) {
       sendToDiff(false);
     }
+    requestSemanticHighlight(editor.model());
   }
 
   private void iterativeParseFileListener(EditorComponent editor, int start, int stop) {
@@ -437,5 +439,18 @@ class FileDiffRootView extends DiffRootView {
 
   public boolean isCompactedView() {
     return compactViewRequest;
+  }
+
+  public void setRequestSemanticHighlight(Consumer<Model> requestSemanticHighlight) {
+    this.requestSemanticHighlight = requestSemanticHighlight;
+  }
+
+  public void requestSemanticHighlight(boolean left) {
+    requestSemanticHighlight(left ? getLeftModel() : getRightModel());
+  }
+
+  private void requestSemanticHighlight(Model model) {
+    if (requestSemanticHighlight != null)
+      requestSemanticHighlight.accept(model);
   }
 }

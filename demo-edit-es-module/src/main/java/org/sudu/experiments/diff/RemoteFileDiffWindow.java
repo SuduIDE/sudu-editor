@@ -68,8 +68,9 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
 
   private void onMessage(JsArray<JSObject> jsArray) {
     int type = JsCast.ints(jsArray.pop())[0];
-    if (type == FileDiffChannelUpdater.FILE_READ) {
-      onFileRead(jsArray);
+    switch (type) {
+      case FileDiffChannelUpdater.FILE_READ -> onFileRead(jsArray);
+      case FileDiffChannelUpdater.FILE_SAVE -> onFileSaved(jsArray);
     }
   }
 
@@ -86,6 +87,11 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
             + ", encoding = " + encoding);
     open(source, encoding, name, left);
     updateOnRefresh();
+  }
+
+  private void onFileSaved(JsArray<JSObject> jsArray) {
+    boolean left = JsCast.ints(jsArray, 0)[0] == 1;
+    rootView.requestSemanticHighlight(left);
   }
 
   private void onDiffSent(JsArray<JSObject> jsArray) {

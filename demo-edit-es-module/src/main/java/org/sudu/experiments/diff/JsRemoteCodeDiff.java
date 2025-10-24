@@ -89,6 +89,11 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
   }
 
   @Override
+  public void setRequestSemanticHighlight(JsFunctions.Consumer<JsITextModel> listener) {
+    w.rootView.setRequestSemanticHighlight((model) -> listener.f(JsTextModel.fromJava(model)));
+  }
+
+  @Override
   public JsDisposable onControllerUpdate(
       JsFunctions.Consumer<JsViewController> callback
   ) {

@@ -14,6 +14,8 @@ import org.sudu.experiments.text.SplitText;
 import java.util.*;
 import java.util.function.BiConsumer;
 
+import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
+
 public class Document extends CodeLines {
   public static final char newLine = '\n';
 
@@ -106,8 +108,9 @@ public class Document extends CodeLines {
       CodeElement oldElem = oldLine.elements[i];
       CodeElement newElem = newLine.elements[i];
       if (oldElem.isError()) continue;
-      if (oldElem.color != ParserConstants.TokenTypes.DEFAULT &&
-          newElem.color == ParserConstants.TokenTypes.DEFAULT) {
+      boolean replacedToDefault = oldElem.color != DEFAULT && newElem.color == DEFAULT;
+      boolean oldSemanticToken = isSemanticToken(oldElem.color);
+      if (replacedToDefault || oldSemanticToken) {
         newElem.color = oldElem.color;
         newElem.style = oldElem.style;
       }

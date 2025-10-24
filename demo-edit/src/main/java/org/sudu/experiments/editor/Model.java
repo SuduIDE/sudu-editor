@@ -482,6 +482,19 @@ public class Model {
     onDiffMadeListener = listener;
   }
 
+  public void setSemanticToken(
+      int lineInd, int startCharPos,
+      int tokenType, int tokenStyle
+  ) {
+    if (lineInd < 0 || lineInd >= document.length()) return;
+    var line = document.line(lineInd);
+    if (startCharPos < 0 || startCharPos >= line.totalStrLength) return;
+    var element = line.getCodeElement(startCharPos);
+    line.contentDirty |= element.style != tokenStyle;
+    element.color = tokenType;
+    element.style = tokenStyle;
+  }
+
   private void onDiffMade() {
     if (editor != null) editor.onDiffMade();
     if (onDiffMadeListener != null)
