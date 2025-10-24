@@ -4,6 +4,7 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
@@ -97,6 +98,11 @@ public class JsCodeDiff implements JsFileDiffView {
   @Override
   public JsITextModel getRightModel() {
     return JsTextModel.fromJava(w.rootView.getRightModel());
+  }
+
+  @Override
+  public void setRequestSemanticHighlight(JsFunctions.Consumer<JsITextModel> listener) {
+    w.rootView.setRequestSemanticHighlight((model) -> listener.f(JsTextModel.fromJava(model)));
   }
 
   @Override
