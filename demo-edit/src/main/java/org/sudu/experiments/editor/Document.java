@@ -103,7 +103,7 @@ public class Document extends CodeLines {
   public void setLine(int ind, CodeLine newLine, boolean success) {
     var oldLine = lines[ind];
     lines[ind] = newLine;
-    if (success || oldLine.length() != newLine.length()) return;
+    if (/*success || */oldLine.length() != newLine.length()) return;
     for (int i = 0; i < oldLine.length(); i++) {
       CodeElement oldElem = oldLine.elements[i];
       CodeElement newElem = newLine.elements[i];

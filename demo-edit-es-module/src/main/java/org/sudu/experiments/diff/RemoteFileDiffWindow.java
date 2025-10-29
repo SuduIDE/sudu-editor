@@ -87,11 +87,11 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
             + ", encoding = " + encoding);
     open(source, encoding, name, left);
     updateOnRefresh();
+    rootView.requestSemanticHighlight(left);
   }
 
   private void onFileSaved(JsArray<JSObject> jsArray) {
     boolean left = JsCast.ints(jsArray, 0)[0] == 1;
-    rootView.requestSemanticHighlight(left);
   }
 
   private void onDiffSent(JsArray<JSObject> jsArray) {

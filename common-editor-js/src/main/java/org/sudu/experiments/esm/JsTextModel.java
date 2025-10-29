@@ -2,6 +2,7 @@ package org.sudu.experiments.esm;
 
 import org.sudu.experiments.SplitInfo;
 import org.sudu.experiments.editor.Model;
+import org.sudu.experiments.editor.SemanticTokenInfo;
 import org.sudu.experiments.esm.semantic.JsSemanticToken;
 import org.sudu.experiments.esm.semantic.JsSemanticTokenLegendItem;
 import org.sudu.experiments.js.*;
@@ -65,29 +66,26 @@ public class JsTextModel implements JsITextModel {
     System.out.println("JsTextModel.setSemanticTokens: ");
     System.out.println("\tlegend.length = " + legend.getLength());
     System.out.println("\tsemanticTokens.length = " + semanticTokens.getLength());
-    for (int i = 0; i < legend.getLength(); i++) {
-      JsSemanticTokenLegendItem item = legend.get(i);
-      System.out.println(i + ": " + JsSemanticTokenLegendItem.print(item));
-    }
+    var tokens = new SemanticTokenInfo[semanticTokens.getLength()];
     for (int i = 0; i < semanticTokens.getLength(); i++) {
       var token = semanticTokens.get(i);
-      System.out.println(JsSemanticToken.print(token));
       if (!validateSemanticToken(token)) continue;
-      int lineInd = token.getLine();
-      int startChar = token.getStartChar();
-      int legendIdx = token.getLegendIdx();
-      String text = token.getText().stringValue();
-      var legendItem = legend.get(legendIdx);
+      var legendItem = legend.get(token.getLegendIdx());
       var tokenType = ParserConstants.TokenTypes.getSemanticType(legendItem.getTokenType().stringValue());
       var tokenStyle = getTokenStyle(legendItem);
-      javaModel.setSemanticToken(lineInd, startChar, tokenType, tokenStyle);
+      tokens[i] = new SemanticTokenInfo(
+          token.getLine(), token.getStartChar(),
+          tokenType, tokenStyle,
+          token.getText().stringValue()
+      );
     }
+    javaModel.setSemanticTokens(tokens);
   }
 
   private static int getTokenStyle(JsSemanticTokenLegendItem legendItem) {
-    if (!legendItem.hasModifiers()) return 0;
+    int style = ParserConstants.TokenStyles.NORMAL;
+    if (!legendItem.hasModifiers()) return style;
     var modifiers = legendItem.getModifiers();
-    int style = 0;
     for (int i = 0; i < modifiers.getLength(); i++) {
       var modifier = modifiers.get(i);
       style |= ParserConstants.TokenStyles.getSemanticStyle(modifier.stringValue());

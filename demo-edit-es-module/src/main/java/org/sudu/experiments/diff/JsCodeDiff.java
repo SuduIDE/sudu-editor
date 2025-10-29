@@ -101,8 +101,8 @@ public class JsCodeDiff implements JsFileDiffView {
   }
 
   @Override
-  public void setRequestSemanticHighlight(JsFunctions.Consumer<JsITextModel> listener) {
-    w.rootView.setRequestSemanticHighlight((model) -> listener.f(JsTextModel.fromJava(model)));
+  public void setRequestSemanticHighlight(JsFunctions.Consumer<JSBoolean> listener) {
+    w.rootView.setRequestSemanticHighlight((isLeft) -> listener.f(JSBoolean.valueOf(isLeft)));
   }
 
   @Override

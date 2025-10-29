@@ -6,6 +6,7 @@ import org.sudu.experiments.js.JsDisposable;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.Function;
@@ -89,8 +90,8 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
   }
 
   @Override
-  public void setRequestSemanticHighlight(JsFunctions.Consumer<JsITextModel> listener) {
-    w.rootView.setRequestSemanticHighlight((model) -> listener.f(JsTextModel.fromJava(model)));
+  public void setRequestSemanticHighlight(JsFunctions.Consumer<JSBoolean> listener) {
+    w.rootView.setRequestSemanticHighlight((isLeft) -> listener.f(JSBoolean.valueOf(isLeft)));
   }
 
   @Override
