@@ -26,13 +26,14 @@ class FileDiffRootView extends DiffRootView {
   DiffInfo diffModel;
   private int modelFlags;
   boolean compactViewRequest;
+  final boolean[] semanticRequests = new boolean[2];
 
   Consumer<Model> onLeftDiffMade, onRightDiffMade;
 
   boolean firstDiffRevealed = false, needScrollSync = false;
   private static final boolean showNavigateLog = true;
-  private Runnable onRefresh, onDiffModelSet, onDocumentSizeChange;
-  private Consumer<Model> requestSemanticHighlight;
+  private Runnable onRefresh, onDiffModelSet;
+  private BooleanConsumer requestSemanticHighlight;
   public final boolean isCodeReview;
   private final UndoBuffer undoBuffer;
 
@@ -122,7 +123,6 @@ class FileDiffRootView extends DiffRootView {
     if ((modelFlags & 3) == 3) {
       sendToDiff(false);
     }
-    requestSemanticHighlight(editor.model());
   }
 
   private void iterativeParseFileListener(EditorComponent editor, int start, int stop) {
@@ -471,16 +471,17 @@ class FileDiffRootView extends DiffRootView {
       onDocumentSizeChange.run();
   }
 
-  public void setRequestSemanticHighlight(Consumer<Model> requestSemanticHighlight) {
+  public void setRequestSemanticHighlight(BooleanConsumer requestSemanticHighlight) {
     this.requestSemanticHighlight = requestSemanticHighlight;
+    if (semanticRequests[0]) requestSemanticHighlight(true);
+    if (semanticRequests[1]) requestSemanticHighlight(false);
   }
 
-  public void requestSemanticHighlight(boolean left) {
-    requestSemanticHighlight(left ? getLeftModel() : getRightModel());
-  }
-
-  private void requestSemanticHighlight(Model model) {
-    if (requestSemanticHighlight != null)
-      requestSemanticHighlight.accept(model);
+  public void requestSemanticHighlight(boolean isLeft) {
+    if (requestSemanticHighlight != null) {
+      requestSemanticHighlight.accept(isLeft);
+    } else {
+      semanticRequests[isLeft ? 0 : 1] = true;
+    }
   }
 }

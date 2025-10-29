@@ -43,6 +43,7 @@ public class Model {
   CodeElement definition = null;
   final List<CodeElement> usages = new ArrayList<>();
   final List<V2i> parsedVps = new ArrayList<>();
+  private SemanticTokenInfo[] pendingSemanticTokens;
 
   int fullFileLexed = ParseStatus.NOT_PARSED;
   int fileStructureParsed = ParseStatus.NOT_PARSED;
@@ -186,6 +187,7 @@ public class Model {
       sendStructure();
       sendFull();
     }
+    setSemanticTokens(pendingSemanticTokens);
   }
 
   void changeModelLanguage(String languageFromParser) {
@@ -319,6 +321,7 @@ public class Model {
     executor.sendToWorker(true, this::onFileLexed,
         FileProxy.asyncLexer,
         chars, new int[]{langType, Integer.MAX_VALUE, document.currentVersion});
+    pendingSemanticTokens = null;
     fullFileParsed = ParseStatus.SENT;
   }
 
@@ -482,17 +485,25 @@ public class Model {
     onDiffMadeListener = listener;
   }
 
-  public void setSemanticToken(
-      int lineInd, int startCharPos,
-      int tokenType, int tokenStyle
-  ) {
-    if (lineInd < 0 || lineInd >= document.length()) return;
-    var line = document.line(lineInd);
-    if (startCharPos < 0 || startCharPos >= line.totalStrLength) return;
-    var element = line.getCodeElement(startCharPos);
-    line.contentDirty |= element.style != tokenStyle;
-    element.color = tokenType;
-    element.style = tokenStyle;
+  public void setSemanticTokens(SemanticTokenInfo[] tokens) {
+    if (tokens == null) return;
+    if (fullFileLexed == ParseStatus.PARSED) {
+      for (var token: tokens) setSemanticToken(token);
+      pendingSemanticTokens = null;
+    } else {
+      pendingSemanticTokens = tokens;
+    }
+  }
+
+  private void setSemanticToken(SemanticTokenInfo token) {
+    if (token == null || token.line < 0 || token.line >= document.length()) return;
+    var line = document.line(token.line);
+    if (token.startCharPos < 0 || token.startCharPos >= line.totalStrLength) return;
+    var element = line.getCodeElement(token.startCharPos);
+    if (element == null || !element.s.equals(token.text)) return;
+    line.contentDirty |= element.style != token.tokenStyle;
+    element.color = token.tokenType;
+    element.style = token.tokenStyle;
   }
 
   private void onDiffMade() {

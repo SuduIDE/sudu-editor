@@ -425,7 +425,7 @@ export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
 
   getController(): FileDiffViewController;
 
-  setRequestSemanticHighlight(listener: (isLeft: ITextModel) => void): void;
+  setRequestSemanticHighlight(listener: (isLeft: boolean) => void): void;
 
   onControllerUpdate: IEvent<FileDiffViewController>
 }

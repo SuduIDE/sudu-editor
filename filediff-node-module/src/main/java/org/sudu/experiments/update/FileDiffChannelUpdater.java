@@ -222,7 +222,7 @@ public class FileDiffChannelUpdater {
   public String name(boolean left) {
     var handle = left ? leftHandle : rightHandle;
     if (handle == null) return "";
-    else return handle.getFullPath();
+    else return handle.getName();
   }
 
   public boolean haveHandle(boolean left) {
