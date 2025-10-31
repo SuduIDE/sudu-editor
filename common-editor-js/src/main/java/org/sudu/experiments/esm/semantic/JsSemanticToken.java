@@ -52,6 +52,10 @@ public interface JsSemanticToken extends JSObject {
     return JSObjects.hasProperty(this, textProperty);
   }
 
+  default String print() {
+    return print(this);
+  }
+
   static String print(JsSemanticToken it) {
     StringBuilder sb = new StringBuilder();
     sb.append("JsSemanticToken{");

@@ -13,6 +13,8 @@ import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
+import static org.sudu.experiments.parser.ParserConstants.TokenTypes.getSemanticType;
+
 public class JsTextModel implements JsITextModel {
 
   @JSFunctor
@@ -33,6 +35,7 @@ public class JsTextModel implements JsITextModel {
   public final JsUri jsUri;
   public final JSString jsLanguage;
   private boolean fireEvent = true;
+  public static final boolean PRINT_DEBUG = true;
 
   public JsTextModel(JSString text, JSString language, JsUri uri) {
     SplitInfo split = SplitJsText.split(text);
@@ -63,20 +66,29 @@ public class JsTextModel implements JsITextModel {
       JsArray<JsSemanticTokenLegendItem> legend,
       JsArray<JsSemanticToken> semanticTokens
   ) {
-    System.out.println("JsTextModel.setSemanticTokens: ");
-    System.out.println("\tlegend.length = " + legend.getLength());
-    System.out.println("\tsemanticTokens.length = " + semanticTokens.getLength());
+    if (PRINT_DEBUG) {
+      System.out.println("JsTextModel.setSemanticTokens: ");
+      System.out.println("\tlegend.length = " + legend.getLength());
+      System.out.println("\tsemanticTokens.length = " + semanticTokens.getLength());
+      for (int i = 0; i < legend.getLength(); i++) System.out.println(i + ": " + legend.get(i).print());
+    }
     var tokens = new SemanticTokenInfo[semanticTokens.getLength()];
     for (int i = 0; i < semanticTokens.getLength(); i++) {
       var token = semanticTokens.get(i);
+      if (PRINT_DEBUG) System.out.println(token.print());
       if (!validateSemanticToken(token)) continue;
       var legendItem = legend.get(token.getLegendIdx());
-      var tokenType = ParserConstants.TokenTypes.getSemanticType(legendItem.getTokenType().stringValue());
+      var color = legendItem.hasColor() ? legendItem.getColor() : null;
+      var colorF = color != null && color.hasForeground() ? color.getForeground().stringValue() : null;
+      var colorB = color != null && color.hasBackground() ? color.getBackground().stringValue() : null;
+      var text = token.getText().stringValue();
+      var tokenType = getSemanticType(legendItem.getTokenType().stringValue());
       var tokenStyle = getTokenStyle(legendItem);
       tokens[i] = new SemanticTokenInfo(
           token.getLine(), token.getStartChar(),
           tokenType, tokenStyle,
-          token.getText().stringValue()
+          colorF, colorB,
+          text
       );
     }
     javaModel.setSemanticTokens(tokens);

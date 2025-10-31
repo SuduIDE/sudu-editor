@@ -3,6 +3,7 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.SplitInfo;
 import org.sudu.experiments.diff.LineDiff;
+import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.parser.ParseResult;
 import org.sudu.experiments.editor.worker.parser.ParseStatus;
@@ -501,7 +502,11 @@ public class Model {
     if (token.startCharPos < 0 || token.startCharPos >= line.totalStrLength) return;
     var element = line.getCodeElement(token.startCharPos);
     if (element == null || !element.s.equals(token.text)) return;
-    line.contentDirty |= element.style != token.tokenStyle;
+    if (token.hasColor() && editor != null) {
+      var colorScheme = editor.getColorScheme();
+      token.tokenType = colorScheme.getSemanticIndex(token.foreground, token.background);
+    }
+    line.contentDirty = true;
     element.color = token.tokenType;
     element.style = token.tokenStyle;
   }
@@ -532,6 +537,8 @@ public class Model {
     void onDiffMade();
 
     boolean isDisableParser();
+
+    CodeLineColorScheme getColorScheme();
   }
 
   public boolean hasDiffModel() {
