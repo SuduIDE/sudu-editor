@@ -181,6 +181,7 @@ public class Model {
     var parseRes = new ParseResult(result);
     if (parseRes.version != document.currentVersion) return;
     ParserUtils.updateDocument(document, parseRes);
+    fullFileLexed = ParseStatus.PARSED;
     printParsingTime("Full file lexed");
     if (isDisableParser()) setParsed();
     else {
@@ -501,7 +502,10 @@ public class Model {
     var line = document.line(token.line);
     if (token.startCharPos < 0 || token.startCharPos >= line.totalStrLength) return;
     var element = line.getCodeElement(token.startCharPos);
-    if (element == null || !element.s.equals(token.text)) return;
+    if (element == null || !element.s.equals(token.text)) {
+      System.err.println("element.s = " + element.s + ". token.text = " + token.text);
+      return;
+    }
     if (token.hasColor() && editor != null) {
       var colorScheme = editor.getColorScheme();
       token.tokenType = colorScheme.getSemanticIndex(token.foreground, token.background);
