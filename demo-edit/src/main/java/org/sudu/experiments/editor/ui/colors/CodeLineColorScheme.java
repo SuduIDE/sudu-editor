@@ -2,6 +2,12 @@ package org.sudu.experiments.editor.ui.colors;
 
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.parser.ParserConstants;
+import org.sudu.experiments.parser.common.Pair;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
 
@@ -11,8 +17,10 @@ public class CodeLineColorScheme {
   public final Color usageBg;
   public final Color selectionBg;
   public final Color defaultBg;
-  public final CodeElementColor[] codeElement;    // TokenTypes
-  public final CodeElementColor[] semanticColors; // Semantic TokenTypes
+  public final CodeElementColor[] codeElement;                  // TokenTypes
+  public final CodeElementColor[] defaultSemanticColors;        // Semantic TokenTypes
+  public final ArrayList<CodeElementColor> semanticColors;      // Semantic Tokens, that have color property
+  public final Map<Pair<String, String>, Integer> colorToIndex; // (foreground, background) -> index
   public final DiffColors diff;
 
   public CodeLineColorScheme(
@@ -27,7 +35,7 @@ public class CodeLineColorScheme {
     this.defaultBg = defaultBg;
     this.codeElement = codeElement;
     this.diff = diff;
-    this.semanticColors = new CodeElementColor[] {
+    this.defaultSemanticColors = new CodeElementColor[] {
         codeElement[TYPE],       // Namespace — For identifiers that declare or reference a namespace, module, or package.
         codeElement[TYPE],       // Class — For identifiers that declare or reference a class type.
         codeElement[TYPE],       // Enum — For identifiers that declare or reference an enumeration type.
@@ -51,13 +59,43 @@ public class CodeLineColorScheme {
         codeElement[NUMERIC],    // Number — For tokens that represent a number literal.
         codeElement[STRING],     // Regexp — For tokens that represent a regular expression literal.
         codeElement[OPERATOR],   // Operator — For tokens that represent an operator.
+
+        codeElement[ANNOTATION], // Modifier — ???
+        codeElement[OPERATOR],   // Bracket — ???
+
+        codeElement[KEYWORD],    // Builtin Constant — ???
+        codeElement[DEFAULT],    // Default — ???
+
+        codeElement[DEFAULT],    // Unknown — ???
     };
+    semanticColors = new ArrayList<>();
+    colorToIndex = new HashMap<>();
+  }
+
+  public int getSemanticIndex(String foreground, String background) {
+    var key = Pair.of(
+        Objects.requireNonNullElse(foreground, ""),
+        Objects.requireNonNullElse(background, "")
+    );
+    var ind = colorToIndex.get(key);
+    if (ind == null) {
+      Color colorF = foreground != null ? new Color(foreground) : codeElement[DEFAULT].colorF;
+      Color colorB = background != null ? new Color(background) : codeElement[DEFAULT].colorB;
+      var elemColor = new CodeElementColor(colorF, colorB);
+      ind = semanticColors.size();
+      semanticColors.add(elemColor);
+      colorToIndex.put(key, ind);
+    }
+    return TYPES_LENGTH + SEMANTIC_LENGTH + ind;
   }
 
   public CodeElementColor elementColor(int ind) {
-    if (ind < ParserConstants.TokenTypes.TYPES_LENGTH) return codeElement[ind];
-    ind -= ParserConstants.TokenTypes.TYPES_LENGTH;
-    return semanticColors[ind];
+    if (ind < TYPES_LENGTH) return codeElement[ind];
+    ind -= TYPES_LENGTH;
+    if (ind < SEMANTIC_LENGTH) return defaultSemanticColors[ind];
+    ind -= SEMANTIC_LENGTH;
+    if (semanticColors.isEmpty()) return codeElement[DEFAULT];
+    return semanticColors.get(ind);
   }
 
   public Color collapseWaveColor() {

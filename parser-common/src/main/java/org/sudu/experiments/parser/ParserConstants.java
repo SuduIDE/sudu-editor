@@ -25,6 +25,8 @@ public interface ParserConstants {
 
     Map<String, Integer> semanticTokenTypeMap = fillMap();
 
+    int SEMANTIC_LENGTH = semanticTokenTypeMap.size();
+
     private static Map<String, Integer> fillMap() {
       Map<String, Integer> map = new HashMap<>();
       int counter = TYPES_LENGTH;
@@ -50,9 +52,15 @@ public interface ParserConstants {
       map.put("keyword", counter++);
       map.put("number", counter++);
       map.put("regexp", counter++);
-      map.put("operator", counter);
+      map.put("operator", counter++);
 
-      map.put("unknown", -1);
+      map.put("modifier", counter++);
+      map.put("bracket", counter++);
+
+      map.put("builtinConstant", counter++);
+      map.put("module", counter++);
+
+      map.put("unknown", counter);
       return map;
     }
 
@@ -62,7 +70,8 @@ public interface ParserConstants {
 
     static int getSemanticType(String tokenType) {
       var type = semanticTokenTypeMap.get(tokenType);
-      return type == null ? ERROR : type == -1 ? DEFAULT : type;
+      if (type == null) System.err.println("Illegal type: " + tokenType);
+      return type == null ? ERROR : type;
     }
   }
 
