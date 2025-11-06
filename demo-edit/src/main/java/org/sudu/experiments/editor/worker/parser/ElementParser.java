@@ -109,6 +109,8 @@ public class ElementParser implements IntParser, FirstLinesIntLexer {
     result.set('\\');
     result.set('\'');
     result.set('\"');
+    result.set('@');
+    result.set('=');
     return result;
   }
 }

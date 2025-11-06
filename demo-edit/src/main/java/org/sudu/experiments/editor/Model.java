@@ -503,14 +503,17 @@ public class Model {
     if (token.startCharPos < 0 || token.startCharPos >= line.totalStrLength) return;
     var element = line.getCodeElement(token.startCharPos);
     if (element == null || !element.s.equals(token.text)) {
-      System.err.println("element.s = " + element.s + ". token.text = " + token.text);
+      String errMsg;
+      if (element == null) errMsg = String.format("Element at (%d:%d) is null", token.line, token.startCharPos);
+      else errMsg = String.format("element.s = %s, token.text = %s", element.s, token.text);
+      System.err.println(errMsg);
       return;
     }
     if (token.hasColor() && editor != null) {
       var colorScheme = editor.getColorScheme();
       token.tokenType = colorScheme.getSemanticIndex(token.foreground, token.background);
     }
-    line.contentDirty = true;
+    line.contentDirty = element.style != token.tokenStyle;
     element.color = token.tokenType;
     element.style = token.tokenStyle;
   }
