@@ -32,7 +32,7 @@ class FileDiffRootView extends DiffRootView {
 
   boolean firstDiffRevealed = false, needScrollSync = false;
   private static final boolean showNavigateLog = true;
-  private Runnable onRefresh, onDiffModelSet;
+  private Runnable onRefresh, onDiffModelSet, onDocumentSizeChange;
   private BooleanConsumer requestSemanticHighlight;
   public final boolean isCodeReview;
   private final UndoBuffer undoBuffer;
