@@ -83,7 +83,13 @@ public class JsTextModel implements JsITextModel {
       var colorB = color != null && color.hasBackground() ? color.getBackground().stringValue() : null;
       var text = token.getText().stringValue();
       var tokenType = getSemanticType(legendItem.getTokenType().stringValue());
-      var tokenStyle = getTokenStyle(legendItem);
+      int tokenStyle;
+      if (color == null) tokenStyle = getDefaultTokenStyle(legendItem);
+      else {
+        tokenStyle = ParserConstants.TokenStyles.NORMAL;
+        if (color.hasItalic() && color.getItalic()) tokenStyle |= ParserConstants.TokenStyles.ITALIC;
+        if (color.hasBold() && color.getBold()) tokenStyle |= ParserConstants.TokenStyles.BOLD;
+      }
       tokens[i] = new SemanticTokenInfo(
           token.getLine(), token.getStartChar(),
           tokenType, tokenStyle,
@@ -94,7 +100,7 @@ public class JsTextModel implements JsITextModel {
     javaModel.setSemanticTokens(tokens);
   }
 
-  private static int getTokenStyle(JsSemanticTokenLegendItem legendItem) {
+  private static int getDefaultTokenStyle(JsSemanticTokenLegendItem legendItem) {
     int style = ParserConstants.TokenStyles.NORMAL;
     if (!legendItem.hasModifiers()) return style;
     var modifiers = legendItem.getModifiers();
