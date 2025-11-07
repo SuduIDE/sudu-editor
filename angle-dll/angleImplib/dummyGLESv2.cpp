@@ -2,6 +2,8 @@
 
 #include <entry_points_gles_2_0_autogen.h>
 #include <entry_points_gles_3_0_autogen.h>
+#include <entry_points_egl_autogen.h>
+#include <entry_points_egl_ext_autogen.h>
 
 void GL_ActiveTexture(GLenum texture) {}
 
@@ -98,8 +100,6 @@ void GL_Flush() {}
 
 void GL_GetRenderbufferParameteriv(GLenum target, GLenum pname, GLint *params) {}
 
-#include <entry_points_egl_autogen.h>
-
 EGLDisplay EGL_GetPlatformDisplay(EGLenum platform,
                                  void *native_display,
                                  const EGLAttrib *attrib_list){ return 0; }
@@ -141,3 +141,10 @@ EGLBoolean EGL_SwapBuffers(EGLDisplay dpy, EGLSurface surface) { return 0; }
 EGLBoolean EGL_QuerySurface(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint* value) { return 0; }
 
 const char * EGL_QueryString(EGLDisplay dpy, EGLint name) { return 0; }
+
+EGLSurface EGL_CreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list) { return 0; }
+
+EGLDisplay EGL_GetPlatformDisplayEXT(EGLenum platform, void *native_display, const EGLint *attrib_list) { return 0; }
+
+void GL_ReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels) {}
+
