@@ -75,9 +75,9 @@ public class JsTextModel implements JsITextModel {
     var tokens = new SemanticTokenInfo[semanticTokens.getLength()];
     for (int i = 0; i < semanticTokens.getLength(); i++) {
       var token = semanticTokens.get(i);
-      if (PRINT_DEBUG) System.out.println(token.print());
-      if (!validateSemanticToken(token)) continue;
       var legendItem = legend.get(token.getLegendIdx());
+      if (PRINT_DEBUG) System.out.println(token.print() + ", legend = " + legendItem.print());
+      if (!validateSemanticToken(token)) continue;
       var color = legendItem.hasColor() ? legendItem.getColor() : null;
       var colorF = color != null && color.hasForeground() ? color.getForeground().stringValue() : null;
       var colorB = color != null && color.hasBackground() ? color.getBackground().stringValue() : null;

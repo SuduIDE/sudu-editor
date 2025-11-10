@@ -94,7 +94,7 @@ public class CodeLineColorScheme {
     ind -= TYPES_LENGTH;
     if (ind < SEMANTIC_LENGTH) return defaultSemanticColors[ind];
     ind -= SEMANTIC_LENGTH;
-    if (semanticColors.isEmpty()) return codeElement[DEFAULT];
+    if (semanticColors.size() < ind) return codeElement[DEFAULT];
     return semanticColors.get(ind);
   }
 
