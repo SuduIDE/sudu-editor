@@ -26,14 +26,12 @@ class FileDiffRootView extends DiffRootView {
   DiffInfo diffModel;
   private int modelFlags;
   boolean compactViewRequest;
-  final boolean[] semanticRequests = new boolean[2];
 
   Consumer<Model> onLeftDiffMade, onRightDiffMade;
 
   boolean firstDiffRevealed = false, needScrollSync = false;
   private static final boolean showNavigateLog = true;
   private Runnable onRefresh, onDiffModelSet, onDocumentSizeChange;
-  private BooleanConsumer requestSemanticHighlight;
   public final boolean isCodeReview;
   private final UndoBuffer undoBuffer;
 
@@ -469,19 +467,5 @@ class FileDiffRootView extends DiffRootView {
     super.setPosition(newPos, newSize, newDpr);
     if (dpr != newDpr && onDocumentSizeChange != null)
       onDocumentSizeChange.run();
-  }
-
-  public void setRequestSemanticHighlight(BooleanConsumer requestSemanticHighlight) {
-    this.requestSemanticHighlight = requestSemanticHighlight;
-    if (semanticRequests[0]) requestSemanticHighlight(true);
-    if (semanticRequests[1]) requestSemanticHighlight(false);
-  }
-
-  public void requestSemanticHighlight(boolean isLeft) {
-    if (requestSemanticHighlight != null) {
-      requestSemanticHighlight.accept(isLeft);
-    } else {
-      semanticRequests[isLeft ? 0 : 1] = true;
-    }
   }
 }
