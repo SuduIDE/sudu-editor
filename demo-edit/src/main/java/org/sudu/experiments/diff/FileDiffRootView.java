@@ -47,11 +47,11 @@ class FileDiffRootView extends DiffRootView {
     editor2 = new EditorComponent(ui);
     middleLine.setLeftRight(editor1, editor2);
     undoBuffer = new UndoBuffer();
-    Consumer<EditorComponent> parseListener = this::fullFileParseListener;
+    Consumer<EditorComponent> lexerListener = this::fullFileLexedListener;
     TriConsumer<EditorComponent, Integer, Integer> iterativeParseListener = this::iterativeParseFileListener;
     SyncPoints syncPoints = new SyncPoints(() -> sendToDiff(false));
 
-    editor1.setFullFileLexedListener(parseListener);
+    editor1.setFullFileLexedListener(lexerListener);
     editor1.setIterativeParseFileListener(iterativeParseListener);
     editor1.setUpdateModelOnDiffListener(this::updateModelOnDiffMadeListener);
     editor1.setOnDiffMadeListener(this::onDiffMadeListener);
@@ -61,7 +61,7 @@ class FileDiffRootView extends DiffRootView {
     editor1.setDisableParser(disableParser);
     editor1.setUndoBuffer(undoBuffer);
 
-    editor2.setFullFileLexedListener(parseListener);
+    editor2.setFullFileLexedListener(lexerListener);
     editor2.setIterativeParseFileListener(iterativeParseListener);
     editor2.setUpdateModelOnDiffListener(this::updateModelOnDiffMadeListener);
     editor2.setOnDiffMadeListener(this::onDiffMadeListener);
@@ -82,6 +82,7 @@ class FileDiffRootView extends DiffRootView {
   public void setModel(Model m1, Model m2) {
     editor1.setModel(m1);
     editor2.setModel(m2);
+    setEmptyDiffModel();
     sendToDiff(true);
   }
 
@@ -107,10 +108,10 @@ class FileDiffRootView extends DiffRootView {
     return new FontApi2(editor1, editor2, ui.windowManager.uiContext);
   }
 
-  private void fullFileParseListener(EditorComponent editor) {
+  private void fullFileLexedListener(EditorComponent editor) {
     if (printTime) {
       long currentTime = System.currentTimeMillis();
-      System.out.println("FileDiffRootView.fullFileParseListener: " +
+      System.out.println("FileDiffRootView.fullFileLexedListener: " +
           "left = " + (editor1 == editor) +
           ", time = " + (currentTime - fullParseTime) + "ms"
       );
@@ -210,14 +211,14 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void setEmptyDiffModel() {
-    var leftLine = new LineDiff(DiffTypes.DEFAULT);
-    var rightLine = new LineDiff(DiffTypes.DEFAULT);
-    var range = new DiffRange(0, 1, 0, 1, DiffTypes.DEFAULT);
-    var diffInfo = new DiffInfo(
-        new LineDiff[]{leftLine},
-        new LineDiff[]{rightLine},
-        new DiffRange[]{range}
-    );
+    var leftModel = editor1.model();
+    var rightModel = editor2.model();
+    LineDiff[] leftLines = new LineDiff[leftModel.document.length()];
+    LineDiff[] rightLines = new LineDiff[rightModel.document.length()];
+    for (int i = 0; i < leftLines.length; i++) leftLines[i] = new LineDiff(DiffTypes.DEFAULT);
+    for (int i = 0; i < rightLines.length; i++) rightLines[i] = new LineDiff(DiffTypes.DEFAULT);
+    var range = new DiffRange(0, leftLines.length, 0, rightLines.length, DiffTypes.DEFAULT);
+    var diffInfo = new DiffInfo(leftLines, rightLines, new DiffRange[]{range});
     setDiffModel(diffInfo, docVersions());
     firstDiffRevealed = false;
   }
