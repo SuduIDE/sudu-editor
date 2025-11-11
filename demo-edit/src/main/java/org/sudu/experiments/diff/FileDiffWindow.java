@@ -96,6 +96,7 @@ public class FileDiffWindow extends ToolWindow0
   public void open(String source, String encoding, String name, boolean left) {
     var ed = left ? rootView.editor1 : rootView.editor2;
     ed.openFile(source, name, encoding);
+    rootView.setEmptyDiffModel();
     updateTitle(name, left);
     if (isMyFocus())
       fireIfModelReady();
