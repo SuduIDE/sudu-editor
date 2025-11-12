@@ -65,6 +65,8 @@ EGLAttrib displayAttribs[] = {
     EGLDisplay display = EGL_GetPlatformDisplay(EGL_PLATFORM_ANGLE_ANGLE, 0, displayAttribs);
 
     printf("sizeof(EGLAttrib) = %zd\n", sizeof(EGLAttrib));
+    printf("sizeof(GLsizei) = %zd\n", sizeof(GLsizei));
+
     printf("EGL display %p\n", display);
 
     if (display == EGL_NO_DISPLAY) {

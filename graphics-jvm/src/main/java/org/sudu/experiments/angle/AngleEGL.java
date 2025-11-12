@@ -10,6 +10,9 @@ public class AngleEGL {
   public static final int EGL_FALSE      = 0;
   public static final int EGL_TRUE       = 1;
 
+  public static final int EGL_PBUFFER_BIT    = 0x0001;
+  public static final int EGL_OPENGL_ES2_BIT = 0x0004;
+
   public static final int EGL_SUCCESS                                = 0x3000;
   public static final int EGL_NOT_INITIALIZED                        = 0x3001;
   public static final int EGL_BAD_MATCH                              = 0x3009;
@@ -17,7 +20,9 @@ public class AngleEGL {
   public static final int EGL_BLUE_SIZE                              = 0x3022;
   public static final int EGL_GREEN_SIZE                             = 0x3023;
   public static final int EGL_RED_SIZE                               = 0x3024;
+  public static final int EGL_SURFACE_TYPE                           = 0x3033;
   public static final int EGL_NONE                                   = 0x3038;
+  public static final int EGL_RENDERABLE_TYPE                        = 0x3040;
   public static final int EGL_PLATFORM_ANGLE_ANGLE                   = 0x3202;
   public static final int EGL_PLATFORM_ANGLE_TYPE_ANGLE              = 0x3203;
   public static final int EGL_PLATFORM_ANGLE_MAX_VERSION_MAJOR_ANGLE = 0x3204;
@@ -36,7 +41,7 @@ public class AngleEGL {
   public static native int getError();
   // returns EGLDisplay
   public static native long getPlatformDisplay(int platform, long native_display, long[] attrib_list);
-  public static native boolean initialize(long display);
+  public static native boolean initialize(long display); // do we need to add &major, &minor ?
   public static native boolean terminate(long display);
   public static native boolean chooseConfig(long display, int[] attrib_list, long[] configs, int[] num_config);
   public static native long queryString(long display, int name);
@@ -47,6 +52,7 @@ public class AngleEGL {
 
   // returns EGLSurface
   public static native long createWindowSurface(long display, long config, long hWnd, int[] attrib_list);
+  public static native long createPbufferSurface(long display, long config, int[] attrib_list);
   public static native boolean destroySurface(long display, long surface);
 
   // return EGLContext
@@ -87,11 +93,30 @@ public class AngleEGL {
         EGL_NONE);
   }
 
+  public static int[] rgba8888PBufferAttributes() {
+    return a(
+        EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+        EGL_RED_SIZE, 8,
+        EGL_GREEN_SIZE, 8,
+        EGL_BLUE_SIZE, 8,
+        EGL_ALPHA_SIZE, 8,
+        EGL_NONE);
+  }
+
   public static long chooseConfig8888(long display) {
+    return chooseSingleConfig(display, rgba8888Attributes());
+  }
+
+  public static long chooseConfigPBuffer(long display) {
+    return chooseSingleConfig(display, rgba8888PBufferAttributes());
+  }
+
+  private static long chooseSingleConfig(long display, int[] attribList) {
     long[] configs = new long[1];
     int[] numConfig = new int[1];
     boolean chooseConfig = AngleEGL.chooseConfig(
-        display, rgba8888Attributes(), configs, numConfig);
+        display, attribList, configs, numConfig);
     return chooseConfig && numConfig[0] == 1 ? configs[0] : 0;
   }
 
@@ -104,6 +129,11 @@ public class AngleEGL {
   public static V2i querySurfaceSize(long display, long surface) {
     int[] value = new int[2];
     return querySurfaceSize(display, surface, value) ? new V2i(value[0], value[1]) : null;
+  }
+
+  public static long createPBufferSurface(long display, long config, int w, int h) {
+    return createPbufferSurface(display, config,
+        a(EGL_WIDTH, w, EGL_HEIGHT, h, EGL_NONE));
   }
 
   public static String getErrorString() {

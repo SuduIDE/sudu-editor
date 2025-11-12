@@ -270,6 +270,16 @@ void Java_org_sudu_experiments_angle_AngleGL_texSubImage2D(JNIEnv* j, jobject,
   j->ReleasePrimitiveArrayCritical(jArray, pixels, 0);
 }
 
+void Java_org_sudu_experiments_angle_AngleGL_readPixels(JNIEnv* j, jclass,
+  jint x, jint y, jint width, jint height,
+  jint format, jint type,
+  jbyteArray jArray
+) {
+  auto pixels = j->GetPrimitiveArrayCritical(jArray, 0);
+  GL_ReadPixels(x, y, width, height, format, type, pixels);
+  j->ReleasePrimitiveArrayCritical(jArray, pixels, 0);
+}
+
 void Java_org_sudu_experiments_angle_AngleGL_texSubImage2DPtr(JNIEnv*, jclass,
   jint target, jint level, jint xoffset, jint yoffset,
   jint width, jint height, jint format, jint type,
@@ -344,6 +354,16 @@ jlong Java_org_sudu_experiments_angle_AngleEGL_createWindowSurface(
   auto attrib_list = jAttribList ? (jint*)j->GetPrimitiveArrayCritical(jAttribList, 0) : nullptr;
   auto r = EGL_CreateWindowSurface(EGLDisplay(display), EGLConfig(config), 
       EGLNativeWindowType(hWnd), PCEGLint(attrib_list));
+  if (jAttribList) j->ReleasePrimitiveArrayCritical(jAttribList, attrib_list, 0);
+  return jlong(r);
+}
+
+jlong Java_org_sudu_experiments_angle_AngleEGL_createPbufferSurface(
+  JNIEnv *j, jclass, jlong display, jlong config, jintArray jAttribList
+) {
+  auto attrib_list = jAttribList ? (jint*)j->GetPrimitiveArrayCritical(jAttribList, 0) : nullptr;
+  auto r = EGL_CreatePbufferSurface(EGLDisplay(display), EGLConfig(config),
+      PCEGLint(attrib_list));
   if (jAttribList) j->ReleasePrimitiveArrayCritical(jAttribList, attrib_list, 0);
   return jlong(r);
 }
