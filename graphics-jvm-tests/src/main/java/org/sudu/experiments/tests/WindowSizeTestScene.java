@@ -14,11 +14,16 @@ import org.sudu.experiments.math.XorShiftRandom;
 public class WindowSizeTestScene extends Scene0 {
 
   Disposable disposable;
-  V4f mainColor = Color.Cvt.fromHSV(r(), 1, 1);
+  V4f mainColor;
 
-  public WindowSizeTestScene(SceneApi api) {
+  public WindowSizeTestScene(SceneApi api, double h) {
     super(api);
     disposable = api.input.onKeyPress.disposableAdd(this::onKeyPress);
+    mainColor = Color.Cvt.fromHSV(h, 1, 1);
+  }
+
+  public WindowSizeTestScene(SceneApi api) {
+    this(api, r());
   }
 
   @Override

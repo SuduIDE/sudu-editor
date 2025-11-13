@@ -333,4 +333,8 @@ public abstract class AngleGL implements GLApi.Context {
   public native int getRenderbufferParameteri(int target, int name);
 
   static native long getString(int name);
+
+  public static native void readPixels(
+      int x, int y, int width, int height,
+      int format, int type, byte[] pixels);
 }
