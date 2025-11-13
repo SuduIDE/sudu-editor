@@ -286,6 +286,10 @@ public interface GL {
       this(width, height, Format.RGBA);
     }
 
+    public int bytesPerLine() {
+      return bytesPerLine(width, format);
+    }
+
     public static int bytesPerLine(int width, Format format) {
       return format == Format.RGBA ? width * 4 : align4(width);
     }

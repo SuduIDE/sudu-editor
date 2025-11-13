@@ -46,6 +46,15 @@ public class Color extends V4f {
     super.set(c);
   }
 
+  public Color(V4f c) {
+    super.set(c);
+    computeRgba();
+  }
+
+  public Color(byte r, byte g, byte b, byte a) {
+    this(r & 0xFF, g & 0xFF, b & 0xFF, a & 0xFF);
+  }
+
   public String toHexString() {
     return Cvt.toHexString(r, g, b);
   }
