@@ -124,6 +124,10 @@ public class FileDiffChannelUpdater {
   private void onFileWrite(boolean left, String fullPath) {
     if (updater != null)
       updater.onRemoteFileSave(left, fullPath);
+    JsArray<JSObject> jsArray = JsArray.create();
+    jsArray.set(0, JsCast.jsInts(left ? 1 : 0));
+    jsArray.push(FILE_SAVE_ARRAY);
+    channel.sendMessage(jsArray);
   }
 
   public void sendFileRead(boolean left, JSString source, JSString encoding) {

@@ -3,6 +3,7 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.SplitInfo;
 import org.sudu.experiments.diff.LineDiff;
+import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.parser.ParseResult;
 import org.sudu.experiments.editor.worker.parser.ParseStatus;
@@ -43,6 +44,7 @@ public class Model {
   CodeElement definition = null;
   final List<CodeElement> usages = new ArrayList<>();
   final List<V2i> parsedVps = new ArrayList<>();
+  private SemanticTokenInfo[] pendingSemanticTokens;
 
   int fullFileLexed = ParseStatus.NOT_PARSED;
   int fileStructureParsed = ParseStatus.NOT_PARSED;
@@ -179,6 +181,7 @@ public class Model {
     var parseRes = new ParseResult(result);
     if (parseRes.version != document.currentVersion) return;
     ParserUtils.updateDocument(document, parseRes);
+    fullFileLexed = ParseStatus.PARSED;
     printParsingTime("Full file lexed");
     if (isDisableParser()) setParsed();
     else {
@@ -186,6 +189,7 @@ public class Model {
       sendStructure();
       sendFull();
     }
+    setSemanticTokens(pendingSemanticTokens);
   }
 
   void changeModelLanguage(String languageFromParser) {
@@ -319,6 +323,7 @@ public class Model {
     executor.sendToWorker(true, this::onFileLexed,
         FileProxy.asyncLexer,
         chars, new int[]{langType, Integer.MAX_VALUE, document.currentVersion});
+    pendingSemanticTokens = null;
     fullFileParsed = ParseStatus.SENT;
   }
 
@@ -482,6 +487,37 @@ public class Model {
     onDiffMadeListener = listener;
   }
 
+  public void setSemanticTokens(SemanticTokenInfo[] tokens) {
+    if (tokens == null) return;
+    if (fullFileLexed == ParseStatus.PARSED) {
+      for (var token: tokens) setSemanticToken(token);
+      pendingSemanticTokens = null;
+    } else {
+      pendingSemanticTokens = tokens;
+    }
+  }
+
+  private void setSemanticToken(SemanticTokenInfo token) {
+    if (token == null || token.line < 0 || token.line >= document.length()) return;
+    var line = document.line(token.line);
+    if (token.startCharPos < 0 || token.startCharPos >= line.totalStrLength) return;
+    var element = line.getCodeElement(token.startCharPos);
+    if (element == null || !element.s.equals(token.text)) {
+      String errMsg;
+      if (element == null) errMsg = String.format("Element at (%d:%d) is null", token.line, token.startCharPos);
+      else errMsg = String.format("element.s = %s, token.text = %s", element.s, token.text);
+      System.err.println(errMsg);
+      return;
+    }
+    if (token.hasColor() && editor != null) {
+      var colorScheme = editor.getColorScheme();
+      token.tokenType = colorScheme.getSemanticIndex(token.foreground, token.background);
+    }
+    line.contentDirty = element.style != token.tokenStyle;
+    element.color = token.tokenType;
+    element.style = token.tokenStyle;
+  }
+
   private void onDiffMade() {
     if (editor != null) editor.onDiffMade();
     if (onDiffMadeListener != null)
@@ -508,6 +544,8 @@ public class Model {
     void onDiffMade();
 
     boolean isDisableParser();
+
+    CodeLineColorScheme getColorScheme();
   }
 
   public boolean hasDiffModel() {

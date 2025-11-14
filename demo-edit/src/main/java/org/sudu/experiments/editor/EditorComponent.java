@@ -2214,6 +2214,11 @@ public class EditorComponent extends View implements
     return disableParser;
   }
 
+  @Override
+  public CodeLineColorScheme getColorScheme() {
+    return codeLineColors;
+  }
+
   public void setCodeMap() {
     // todo: highlight current symbol or selection search...
   }

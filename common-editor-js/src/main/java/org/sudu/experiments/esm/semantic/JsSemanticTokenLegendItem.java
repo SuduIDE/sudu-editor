@@ -34,6 +34,10 @@ public interface JsSemanticTokenLegendItem extends JSObject {
     return JSObjects.hasProperty(this, modifiersProperty);
   }
 
+  default String print() {
+    return print(this);
+  }
+
   static String print(JsSemanticTokenLegendItem it) {
     StringBuilder sb = new StringBuilder();
     sb.append("JsSemanticTokenLegendItem{");

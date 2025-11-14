@@ -55,7 +55,7 @@ public abstract class ParserUtils {
       }
       CodeElement[] elements = readElements(reader, docChars, 0);
       CodeLine line = new CodeLine(elements);
-      document.lines[i] = line;
+      document.setLine(i, line, true);
     }
     document.countPrefixes();
 

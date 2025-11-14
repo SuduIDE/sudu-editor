@@ -8,7 +8,7 @@ import org.teavm.jso.core.JSString;
 
 public interface JsSemanticToken extends JSObject {
   @JSProperty
-  JSString getLine();
+  int getLine();
 
   String lineProperty = "line";
 
@@ -52,12 +52,16 @@ public interface JsSemanticToken extends JSObject {
     return JSObjects.hasProperty(this, textProperty);
   }
 
+  default String print() {
+    return print(this);
+  }
+
   static String print(JsSemanticToken it) {
     StringBuilder sb = new StringBuilder();
     sb.append("JsSemanticToken{");
 
     if (it.hasLine()) {
-      sb.append("line=").append(it.getLine().stringValue());
+      sb.append("line=").append(it.getLine());
     }
     if (it.hasStartChar()) {
       if (sb.length() > "JsSemanticToken{".length()) {
