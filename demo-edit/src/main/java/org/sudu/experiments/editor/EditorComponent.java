@@ -828,8 +828,7 @@ public class EditorComponent extends View implements
 
   @Override
   public int getSyncLineWidth() {
-    int lnw = lineNumbers.width();
-    return mirrored ? lnw : lnw + mergeButtons.size.x;
+    return lineNumbers.width() + mergeButtons.size.x;
   }
 
   private void updateLineNumbersFont() {
