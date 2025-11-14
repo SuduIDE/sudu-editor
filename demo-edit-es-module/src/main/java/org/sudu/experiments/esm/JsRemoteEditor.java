@@ -46,8 +46,8 @@ public class JsRemoteEditor implements JsRemoteEditorView {
   }
 
   private void onEdit(EditorComponent editor) {
-    JSString source = JsCast.jsString(editor.model().document.makeString());
-    JSString encoding = JSString.valueOf(editor.model().encoding());
+    JSString source = JsCast.jsString(editor.model().document().makeString());
+    JSString encoding = JSString.valueOf(editor.model().document().encoding);
     JsArray<JSObject> jsArray = JsArray.create();
     jsArray.set(0, source);
     jsArray.set(1, encoding);
@@ -100,14 +100,13 @@ public class JsRemoteEditor implements JsRemoteEditorView {
 
   @Override
   public void setText(JSString t) {
-    Model prevModel = editor.model();
-    Model model = new Model(SplitJsText.split(t), prevModel.docLanguage(), prevModel.uri);
-    editor.setModel(model);
+    String[] lines = SplitJsText.split(t).lines;
+    editor.model().document().replaceText(lines);
   }
 
   @Override
   public JSString getText() {
-    char[] chars = editor.model().document.getChars();
+    char[] chars = editor.model().document().getChars();
     return TextDecoder.decodeUTF16(chars);
   }
 
@@ -131,7 +130,7 @@ public class JsRemoteEditor implements JsRemoteEditorView {
 
   @Override
   public JsITextModel getModel() {
-    return JsTextModel.fromJava(editor.model());
+    return JsTextModel.fromJava(editor.model().jsExportModel());
   }
 
   @Override

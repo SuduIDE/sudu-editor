@@ -76,12 +76,12 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
 
   @Override
   public JsITextModel getLeftModel() {
-    return JsTextModel.fromJava(w.rootView.getLeftModel());
+    return JsTextModel.fromJava(w.rootView.getLeftModel().jsExportModel());
   }
 
   @Override
   public JsITextModel getRightModel() {
-    return JsTextModel.fromJava(w.rootView.getRightModel());
+    return JsTextModel.fromJava(w.rootView.getRightModel().jsExportModel());
   }
 
   @Override

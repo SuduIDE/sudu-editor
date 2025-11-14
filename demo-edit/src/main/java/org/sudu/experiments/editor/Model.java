@@ -3,7 +3,6 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.SplitInfo;
 import org.sudu.experiments.diff.LineDiff;
-import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.parser.ParseResult;
 import org.sudu.experiments.editor.worker.parser.ParseStatus;
@@ -17,44 +16,35 @@ import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 import static org.sudu.experiments.math.ArrayOp.copyOf;
 
-public class Model {
+public class Model extends Model0 {
 
   public final Uri uri;
   public final Document document;
 
   public Object platformObject;
-  private String docLanguage;
-  String encoding;
 
-  final Selection selection = new Selection();
   final NavigationStack navStack = new NavigationStack();
 
-  EditorToModel editor;
   Runnable onDiffMadeListener;
-  WorkerJobExecutor executor;
 
   LineDiff[] diffModel;
 
   // this properties might need to be converted
   //   to Subscribers<CaretChangeListeners>
-  int caretLine, caretCharPos;
-  CodeElement definition = null;
-  final List<CodeElement> usages = new ArrayList<>();
   final List<V2i> parsedVps = new ArrayList<>();
   private SemanticTokenInfo[] pendingSemanticTokens;
 
   int fullFileLexed = ParseStatus.NOT_PARSED;
   int fileStructureParsed = ParseStatus.NOT_PARSED;
   int fullFileParsed = ParseStatus.NOT_PARSED;
+  int iterativeVersion;
 
   long parsingTimeStart, viewportParseStart, resolveTimeStart;
 
-  boolean highlightResolveError, printResolveTime;
-
-  double vScrollLine = .0;
 
   boolean debug = false;
 
@@ -67,21 +57,22 @@ public class Model {
   }
 
   public Model(SplitInfo text, String language, Uri uri) {
-    this(text.lines, language, uri);
+    this(text.lines, language, null, uri);
   }
 
   public Model(String[] text, Uri uri) {
-    this(text, null, uri);
+    this(text, null, null, uri);
   }
 
   public Model() {
-    this(new String[0], null, null);
+    this(new String[0], null, null, null);
   }
 
-  public Model(String[] text, String language, Uri uri) {
+  public Model(String[] text, String language, String encoding, Uri uri) {
     this.uri = uri;
-    docLanguage = language;
     document = new Document(text);
+    document.language = language;
+    document.encoding = encoding;
     document.updateModelOnDiff = this::updateModelOnDiff;
     document.onDiffMade = this::onDiffMade;
   }
@@ -93,23 +84,23 @@ public class Model {
   }
 
   public void setLanguage(String language) {
-    docLanguage = language;
+    document.language = language;
   }
 
   public String language() {
-    return docLanguage != null ? docLanguage : languageFromFile();
-  }
-
-  public String docLanguage() {
-    return docLanguage;
+    return document.language != null ? document.language : languageFromFile();
   }
 
   public void setEncoding(String encoding) {
-    this.encoding = encoding;
+    document.encoding = encoding;
   }
 
   public String encoding() {
-    return encoding;
+    return document.encoding;
+  }
+
+  public CodeLine line(int i) {
+    return document.lines[i];
   }
 
   public String uriScheme() {
@@ -192,17 +183,6 @@ public class Model {
     setSemanticTokens(pendingSemanticTokens);
   }
 
-  void changeModelLanguage(String languageFromParser) {
-    String language = language();
-    if (!Objects.equals(language, languageFromParser)) {
-      if (debug) {
-        Debug.consoleInfo(getFileName() + "/change model language: from = "
-            + language + " to = " + languageFromParser);
-      }
-      setLanguage(languageFromParser);
-    }
-  }
-
   void computeUsages() {
     Pos caretPos = new Pos(caretLine, caretCharPos);
     Pos elementPos = document.getElementStart(caretLine, caretCharPos);
@@ -235,11 +215,6 @@ public class Model {
     }
   }
 
-  void clearUsages() {
-    definition = null;
-    usages.clear();
-  }
-
   void requestResolve(int[] ints, char[] chars) {
     if (executor != null) {
       resolveTimeStart = System.currentTimeMillis();
@@ -254,18 +229,17 @@ public class Model {
   }
 
   void setEditor(EditorToModel editor, WorkerJobExecutor executor) {
-    this.editor = editor;
-    this.executor = executor;
+    super.setEditor(editor, executor);
     if (executor != null) {
-      if (fullFileParsed == ParseStatus.NOT_PARSED) requestParseFile();
+      if (fullFileParsed == ParseStatus.NOT_PARSED)
+        requestParseFile();
       // todo: execute eny pending jobs here
-    } else {
-      document.invalidateMeasure();
     }
   }
 
-  void setUndoBuffer(UndoBuffer undoBuffer) {
-    document.setUndoBuffer(undoBuffer);
+  @Override
+  void documentInvalidateMeasure() {
+    document.invalidateMeasure();
   }
 
   private void setParsed() {
@@ -346,6 +320,7 @@ public class Model {
     return uri != null ? uri.getFileName() : "";
   }
 
+  @Override
   void parseFullFile() {
     if (debug) {
       Debug.consoleInfo(getFileName() + "/Model::parseFullFile");
@@ -449,6 +424,7 @@ public class Model {
     requestResolve(writer.graphInts, writer.graphChars);
   }
 
+  @Override
   void parseViewport(int editorFirstLine, int editorLastLine) {
     if (fullFileParsed == ParseStatus.PARSED || fileStructureParsed != ParseStatus.PARSED) return;
     boolean vpParsed = isVpParsed(editorFirstLine, editorLastLine);
@@ -499,7 +475,7 @@ public class Model {
 
   private void setSemanticToken(SemanticTokenInfo token) {
     if (token == null || token.line < 0 || token.line >= document.length()) return;
-    var line = document.line(token.line);
+    var line = document.lines[token.line];
     if (token.startCharPos < 0 || token.startCharPos >= line.totalStrLength) return;
     var element = line.getCodeElement(token.startCharPos);
     if (element == null || !element.s.equals(token.text)) {
@@ -524,6 +500,7 @@ public class Model {
       onDiffMadeListener.run();
   }
 
+  @Override
   CodeLine caretCodeLine() {
     return document.lines[caretLine];
   }
@@ -532,23 +509,332 @@ public class Model {
     return editor != null ? editor.isDisableParser() : EditorConst.DEFAULT_DISABLE_PARSER;
   }
 
-  interface EditorToModel {
-    void useDocumentHighlightProvider(int line, int column);
 
-    void fireFileLexed();
-
-    void fireFileIterativeParsed(int start, int stop);
-
-    void updateModelOnDiff(Diff diff, boolean isUndo);
-
-    void onDiffMade();
-
-    boolean isDisableParser();
-
-    CodeLineColorScheme getColorScheme();
-  }
 
   public boolean hasDiffModel() {
     return LineDiff.notEmpty(diffModel);
+  }
+
+  @Override
+  public void update(double timestamp) {
+    if (document.needReparse(timestamp) && iterativeVersion != document.currentVersion) {
+      iterativeVersion = document.currentVersion;
+      iterativeParsing();
+    }
+  }
+
+  @Override
+  LineDiff lineDiff(int i) {
+    return diffModel == null || i >= diffModel.length ? null : diffModel[i];
+  }
+
+  @Override
+  CodeLineMapping defaultMapping() {
+    return new CodeLineMapping.Id(document);
+  }
+
+  @Override
+  public Document document() {
+    return document;
+  }
+
+  @Override
+  Uri uri() {
+    return uri;
+  }
+
+  @Override
+  int length() {
+    return document.lines.length;
+  }
+
+  @Override
+  void invalidateFont() {
+    document.invalidateFont();
+  }
+
+  // editing
+
+
+  @Override
+  void updateDocumentDiffTimeStamp() {
+    document.setLastDiffTimestamp(editor.timeNow());
+  }
+
+  // todo: need to restore selection state after undo
+  @Override
+  void undoLastDiff(boolean isRedo) {
+    if (selection.isAreaSelected())
+      setSelectionToCaret();
+    var caretDiff = document.undoLastDiff(isRedo);
+    if (caretDiff == null) return;
+    var caretReturn = isRedo ? caretDiff.caretPos : caretDiff.caretReturn;
+    setCaretLinePos(caretReturn.x, caretReturn.y);
+    updateDocumentDiffTimeStamp();
+    onDiffMade();
+  }
+
+  public String onCopy(boolean isCut) {
+    var left = selection.getLeftPos();
+    int line = left.line;
+    String result;
+
+    if (!selection.isAreaSelected()) {
+      result = document.copyLine(line);
+      int newLine = Math.min(document.length() - 1, line);
+
+      selection.endPos.set(newLine, 0);
+      if (line < document.length() - 1)
+        selection.startPos.set(newLine + 1, 0);
+      else
+        selection.endPos.set(newLine, document.strLength(newLine));
+
+      if (isCut) deleteSelectedArea();
+
+    } else {
+      result = document.copy(selection, isCut);
+      if (isCut) {
+        setCaretLinePos(left.line, left.charInd);
+        setSelectionToCaret();
+        updateDocumentDiffTimeStamp();
+      }
+    }
+    return result;
+  }
+
+  public void handleInsert(String s) {
+    if (selection.isAreaSelected()) deleteSelectedArea();
+    String[] lines = SplitText.split(s);
+
+    document.insertLines(caretLine, caretCharPos, lines);
+
+    int newCaretLine = caretLine + lines.length - 1;
+    int newCaretPos;
+    if (newCaretLine == caretLine) newCaretPos = caretCharPos + lines[0].length();
+    else newCaretPos = lines[lines.length - 1].length();
+
+    setCaretLinePos(newCaretLine, newCaretPos);
+    setSelectionToCaret();
+    updateDocumentDiffTimeStamp();
+  }
+
+  void deleteSelectedArea() {
+    var leftPos = selection.getLeftPos();
+    document.deleteSelected(selection);
+    setCaretLinePos(leftPos.line, leftPos.charInd);
+    setSelectionToCaret();
+    updateDocumentDiffTimeStamp();
+  }
+
+  void newLine() {
+    if (selection.isAreaSelected()) deleteSelectedArea();
+    document.lines[caretLine].invalidateCache();
+    document.newLineOp(caretLine, caretCharPos);
+    updateDocumentDiffTimeStamp();
+    setCaretLinePos(caretLine + 1, 0);
+  }
+
+  void handleDelete() {
+    if (selection.isAreaSelected()) deleteSelectedArea();
+    else document.deleteChar(caretLine, caretCharPos);
+    if (editor != null) {
+      editor.recomputeCaretPosY();
+      editor.recomputeCaretPosX();
+    }
+    updateDocumentDiffTimeStamp();
+  }
+
+  void handleBackspace() {
+    if (selection.isAreaSelected()) {
+      deleteSelectedArea();
+    } else {
+      if (caretCharPos == 0 && caretLine == 0) return;
+
+      int cLine, cPos;
+      if (caretCharPos == 0) {
+        cLine = caretLine - 1;
+        cPos = document.strLength(cLine);
+        document.concatLines(cLine);
+      } else {
+        cLine = caretLine;
+        cPos = caretCharPos - 1;
+        document.deleteChar(cLine, cPos);
+      }
+      updateDocumentDiffTimeStamp();
+      setCaretLinePos(cLine, cPos);
+    }
+  }
+
+  void handleTab(boolean shiftPressed) {
+    if (shiftPressed) handleShiftTabOp();
+    else handleTabOp();
+  }
+
+  private void handleTabOp() {
+    if (selection.isAreaSelected()) {
+      Selection.SelPos left = selection.getLeftPos();
+      Selection.SelPos right = selection.getRightPos();
+      int size = right.line - left.line + 1;
+      int[] lines = new int[size];
+      String[] changes = new String[size];
+      int i = 0;
+      for (int l = left.line; l <= right.line; l++) {
+        lines[i] = l;
+        changes[i++] = tabIndent;
+      }
+
+      tabDiffHandler(
+          lines, 0, false, changes,
+          new Pos(caretLine, caretCharPos),
+          (l, c) -> document.insertAt(l, 0, tabIndent)
+      );
+
+      left.charInd += tabIndent.length();
+      right.charInd += tabIndent.length();
+      setCaretPos(caretCharPos + length());
+      updateDocumentDiffTimeStamp();
+    } else {
+      handleInsert(tabIndent);
+    }
+  }
+
+  private void handleShiftTabOp() {
+    if (selection.isAreaSelected()) {
+      shiftTabSelection();
+    } else {
+      CodeLine codeLine = caretCodeLine();
+      if (codeLine.elements.length > 0) {
+        String indent = calculateTabIndent(codeLine, tabIndent.length());
+        if (indent == null) return;
+        document.makeDiffWithCaretReturn(
+            caretLine, 0, true, indent, new Pos(caretLine, caretCharPos)
+        );
+        codeLine.delete(0, indent.length());
+        setCaretPos(caretCharPos - indent.length());
+      }
+    }
+    updateDocumentDiffTimeStamp();
+  }
+
+  private void shiftTabSelection() {
+    Selection.SelPos left = selection.getLeftPos();
+    Selection.SelPos right = selection.getRightPos();
+    int initSize = right.line - left.line + 1;
+    int[] lines = new int[initSize];
+    String[] changes = new String[initSize];
+    int prevCaretPos = caretCharPos;
+    int prevCaretLine = caretLine;
+    int size = 0;
+    for (int l = left.line; l <= right.line; l++) {
+      CodeLine codeLine = document.lines[l];
+      if (codeLine.elements.length > 0) {
+        String indent = calculateTabIndent(codeLine, tabIndent.length());
+        if (indent == null) continue;
+        lines[size] = l;
+        changes[size++] = indent;
+      }
+    }
+    lines = Arrays.copyOf(lines, size);
+    changes = Arrays.copyOf(changes, size);
+    for (int i = 0; i < size; i++) {
+      String indent = changes[i];
+      int l = lines[i];
+      if (l == left.line) left.charInd = Math.max(0, left.charInd - indent.length());
+      if (l == right.line) {
+        right.charInd = Math.max(0, right.charInd - indent.length());
+        setCaretPos(caretCharPos - indent.length());
+      }
+    }
+    tabDiffHandler(lines, 0, true, changes, new Pos(prevCaretLine, prevCaretPos),
+        (l, c) -> {
+          CodeLine codeLine = document.lines[l];
+          codeLine.delete(0, c.length());
+        }
+    );
+  }
+
+  private void tabDiffHandler(
+      int[] lines,
+      int fromValue,
+      boolean isDelValue,
+      String[] changes,
+      Pos caretPosition,
+      BiConsumer<Integer, String> editorAction
+
+  ) {
+    if (lines.length == 0) return;
+    int[] from = new int[lines.length];
+    boolean[] areDeletes = new boolean[lines.length];
+    Arrays.fill(from, fromValue);
+    Arrays.fill(areDeletes, isDelValue);
+    document.makeComplexDiff(
+        lines,
+        from,
+        areDeletes,
+        changes,
+        caretPosition,
+        editorAction
+    );
+  }
+
+  @Override
+  void selectAll() {
+    int line = document.lines.length - 1;
+    int charInd = document.strLength(line);
+    selection.startPos.set(0, 0);
+    selection.endPos.set(line, charInd);
+  }
+
+  @Override
+  void saveToNavStack() {
+    NavigationContext curr = navStack.getCurrentCtx();
+    if (curr != null && caretLine == curr.getLine() && caretCharPos == curr.getCharPos()) {
+      return;
+    }
+    navStack.add(
+        new NavigationContext(caretLine, caretCharPos, selection)
+    );
+  }
+
+  @Override
+  void navStackPop() {
+    navStack.pop();
+  }
+
+  @Override
+  void setCaretPos(int charPos, boolean shift) {
+    super.setCaretPos(charPos, shift);
+    if (shift) selection.isSelectionStarted = true;
+    selection.select(caretLine, caretCharPos);
+    selection.isSelectionStarted = false;
+  }
+
+  void navigateBack() {
+    saveToNavStack();
+    NavigationContext prev = navStack.getPrevCtx();
+    if (prev == null) return;
+    setCaretLinePos(prev.getLine(), prev.getCharPos());
+    selection.set(prev.getSelection());
+  }
+
+  void navigateForward() {
+    NavigationContext curr = navStack.getNextCtx();
+    if (curr == null) return;
+    setCaretLinePos(curr.getLine(), curr.getCharPos());
+    selection.set(curr.getSelection());
+  }
+
+  // parsing
+  @Override
+  void debugPrintDocumentIntervals() {
+    document.printIntervals();
+  }
+
+
+  // js interop
+
+  @Override
+  public Model jsExportModel() {
+    return this;
   }
 }

@@ -20,18 +20,7 @@ public abstract class CodeLineMapping {
       result[i - viewBegin] = viewToDoc(i);
   }
 
-  static class Id extends CodeLineMapping {
-    final Model model;
-
-    public Id(Model model) {
-      this.model = model;
-    }
-
-    @Override
-    public int length() {
-      return model.document.length();
-    }
-
+  static abstract class CodeLineMapping0 extends CodeLineMapping {
     @Override
     public int docToView(int docLine) {
       return docLine;
@@ -43,15 +32,28 @@ public abstract class CodeLineMapping {
     }
 
     @Override
-    public int viewToDoc(int viewLine) {
-      return 0 <= viewLine && viewLine < model.document.length() ?
-          viewLine : outOfRange;
-    }
-
-    @Override
     public void viewToDocLines(int viewBegin, int viewEnd, int[] result) {
       for (int i = viewBegin; i < viewEnd; i++)
         result[i - viewBegin] = i;
+    }
+
+    @Override
+    public int viewToDoc(int viewLine) {
+      return 0 <= viewLine && viewLine < length() ?
+          viewLine : outOfRange;
+    }
+  }
+
+  static class Id extends CodeLineMapping0 {
+    final Document document;
+
+    public Id(Document document) {
+      this.document = document;
+    }
+
+    @Override
+    public int length() {
+      return document.length();
     }
   }
 

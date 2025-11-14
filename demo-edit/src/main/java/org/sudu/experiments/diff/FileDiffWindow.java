@@ -5,6 +5,7 @@ import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.editor.CtrlO;
 import org.sudu.experiments.editor.EditorComponent;
 import org.sudu.experiments.editor.Model;
+import org.sudu.experiments.editor.Model0;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.input.KeyCode;
 import org.sudu.experiments.input.KeyEvent;
@@ -204,7 +205,7 @@ public class FileDiffWindow extends ToolWindow0
   }
 
   public void setOnDiffMade(
-      Consumer<Model> onLeftDiffMade, Consumer<Model> onRightDiffMade
+      Consumer<Model0> onLeftDiffMade, Consumer<Model0> onRightDiffMade
   ) {
     rootView.setOnDiffMade(onLeftDiffMade, onRightDiffMade);
   }

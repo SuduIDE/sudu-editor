@@ -147,7 +147,7 @@ public class JsTextModel implements JsITextModel {
 
   @Override
   public JSString getLanguage() {
-    String language = javaModel.language();
+    String language = javaModel.document.language;
     return JSString.valueOf(language);
   }
 

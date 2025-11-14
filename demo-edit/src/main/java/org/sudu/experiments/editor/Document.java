@@ -16,9 +16,11 @@ import java.util.function.BiConsumer;
 
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
 
-public class Document extends CodeLines {
+public class Document {
   public static final char newLine = '\n';
 
+  public String language;
+  public String encoding;
   public CodeLine[] lines;
   public IntervalTree tree;
   public ScopeGraph scopeGraph = new ScopeGraph();
@@ -53,10 +55,6 @@ public class Document extends CodeLines {
 
   private IntervalTree initialInterval() {
     return IntervalTree.singleInterval(0, getFullLength(), 0);
-  }
-
-  public CodeLine line(int i) {
-    return lines[i];
   }
 
   public char getChar(int line, int pos) {
@@ -621,10 +619,10 @@ public class Document extends CodeLines {
   }
 
   public void countPrefixes() {
-    linePrefixSum = new int[lines.length + 1];
-    for (int i = 0; i < lines.length; i++) {
+    if (linePrefixSum == null || linePrefixSum.length != lines.length + 1)
+      linePrefixSum = new int[lines.length + 1];
+    for (int i = 0; i < lines.length; i++)
       linePrefixSum[i + 1] = linePrefixSum[i] + lines[i].totalStrLength + 1;
-    }
   }
 
   private Pos binarySearchPosAt(int offset) {

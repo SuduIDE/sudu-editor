@@ -328,7 +328,7 @@ public class EditorUi {
     private Supplier<ToolbarItem[]> parser() {
       return ArrayOp.supplier(
           ti("Int", editor::debugPrintDocumentIntervals),
-          ti("Iter", editor::iterativeParsing),
+//          ti("Iter", editor::iterativeParsing),
           ti("VP", editor::parseViewport),
           ti("Resolve", editor::resolveAll),
           ti("Rep", editor::parseFullFile));

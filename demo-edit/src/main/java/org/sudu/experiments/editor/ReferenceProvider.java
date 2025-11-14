@@ -13,7 +13,7 @@ public class ReferenceProvider extends LanguageSelectors {
 
   public interface Provider {
     void provideReferences(
-        Model model,
+        Model0 model,
         int line,
         int column,
         boolean includeDeclaration,

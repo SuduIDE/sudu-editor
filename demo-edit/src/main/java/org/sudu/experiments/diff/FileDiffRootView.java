@@ -27,7 +27,7 @@ class FileDiffRootView extends DiffRootView {
   private int modelFlags;
   boolean compactViewRequest;
 
-  Consumer<Model> onLeftDiffMade, onRightDiffMade;
+  Consumer<Model0> onLeftDiffMade, onRightDiffMade;
 
   boolean firstDiffRevealed = false, needScrollSync = false;
   private static final boolean showNavigateLog = true;
@@ -86,11 +86,11 @@ class FileDiffRootView extends DiffRootView {
     sendToDiff(true);
   }
 
-  public Model getLeftModel() {
+  public Model0 getLeftModel() {
     return editor1.model();
   }
 
-  public Model getRightModel() {
+  public Model0 getRightModel() {
     return editor2.model();
   }
 
@@ -128,8 +128,8 @@ class FileDiffRootView extends DiffRootView {
     boolean isL = editor == editor1;
 
     if (diffModel == null) return;
-    int startLine = editor.model().document.getLine(start).x;
-    int stopLine = editor.model().document.getLine(stop).x;
+    int startLine = editor.model().document().getLine(start).x;
+    int stopLine = editor.model().document().getLine(stop).x;
     var fromRangeInd = diffModel.leftNotEmptyBS(startLine, isL);
     var toRangeInd = diffModel.rightNotEmptyBS(stopLine, isL);
 
@@ -148,13 +148,13 @@ class FileDiffRootView extends DiffRootView {
     var fromModel = isL ? editor1.model() : editor2.model();
     int fromStartLine = isL ? range.fromL : range.fromR;
     int fromEndLine = isL ? range.toL() : range.toR();
-    var lines = fromModel.document.getLines(fromStartLine, fromEndLine);
+    var lines = fromModel.document().getLines(fromStartLine, fromEndLine);
 
     int toStartLine = !isL ? range.fromL : range.fromR;
     int toEndLine = !isL ? range.toL() : range.toR();
 
     var toModel = !isL ? editor1.model() : editor2.model();
-    toModel.document.applyChange(toStartLine, toEndLine, lines);
+    toModel.document().applyChange(toStartLine, toEndLine, lines);
   }
 
   private void updateModelOnDiffMadeListener(EditorComponent editor, Diff diff, boolean isUndo) {
@@ -272,15 +272,15 @@ class FileDiffRootView extends DiffRootView {
   protected void sendToDiff(boolean cmpOnlyLines) {
     if (EditorComponent.debugDiffModel)
       System.out.println("EditorComponent.sendToDiff: cmpOnlyLines = " + cmpOnlyLines +
-          ", editor1.docL = " + editor1.model().document.length() +
-          ", editor2.docL = " + editor2.model().document.length());
+          ", editor1.docL = " + editor1.model().document().length() +
+          ", editor2.docL = " + editor2.model().document().length());
     sendDiffTime = System.currentTimeMillis();
     int[] syncL = editor1.copiedSyncPoints();
     int[] syncR = editor2.copiedSyncPoints();
     if (syncL.length != syncR.length) return;
     DiffUtils.findDiffs(
-        editor1.model().document,
-        editor2.model().document,
+        editor1.model().document(),
+        editor2.model().document(),
         cmpOnlyLines,
         syncL, syncR,
         this::setDiffModel,
@@ -296,8 +296,8 @@ class FileDiffRootView extends DiffRootView {
     } else {
       sendDiffTime = System.currentTimeMillis();
       DiffUtils.findIntervalDiffs(
-          editor1.model().document,
-          editor2.model().document,
+          editor1.model().document(),
+          editor2.model().document(),
           (upd, versions) -> updateDiffModel(fromL, toL, fromR, toR, versions, upd),
           ui.windowManager.uiContext.window.worker(),
           fromL, toL, fromR, toR
@@ -306,8 +306,8 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void setOnDiffMade(
-      Consumer<Model> onLeftDiffMade,
-      Consumer<Model> onRightDiffMade
+      Consumer<Model0> onLeftDiffMade,
+      Consumer<Model0> onRightDiffMade
   ) {
     this.onLeftDiffMade = onLeftDiffMade;
     this.onRightDiffMade = onRightDiffMade;
