@@ -209,11 +209,11 @@ public class MiddleLine extends View {
 
         // draw left right lines
         V2i temp = uiContext.v2i1;
-        temp.x = slw1;
+        temp.x = p11.x - pos.x + slw1;
         temp.y = p21.y - p11.y;
-        g.drawRect(p11.x - slw1, p11.y, temp, color);
+        g.drawRect(pos.x - slw1, p11.y, temp, color);
 
-        temp.x = slw2;
+        temp.x = slw2 + pos.x + size.x - p12.x;
         temp.y = p22.y - p12.y;
         g.drawRect(p12.x, p12.y, temp, color);
       }
