@@ -270,10 +270,20 @@ void Java_org_sudu_experiments_angle_AngleGL_texSubImage2D(JNIEnv* j, jobject,
   j->ReleasePrimitiveArrayCritical(jArray, pixels, 0);
 }
 
-void Java_org_sudu_experiments_angle_AngleGL_readPixels(JNIEnv* j, jclass,
+void Java_org_sudu_experiments_angle_AngleGL_readPixels__IIIIII_3B(JNIEnv* j, jclass,
   jint x, jint y, jint width, jint height,
   jint format, jint type,
   jbyteArray jArray
+) {
+  auto pixels = j->GetPrimitiveArrayCritical(jArray, 0);
+  GL_ReadPixels(x, y, width, height, format, type, pixels);
+  j->ReleasePrimitiveArrayCritical(jArray, pixels, 0);
+}
+
+void Java_org_sudu_experiments_angle_AngleGL_readPixels__IIIIII_3I(JNIEnv* j, jclass,
+  jint x, jint y, jint width, jint height,
+  jint format, jint type,
+  jintArray jArray
 ) {
   auto pixels = j->GetPrimitiveArrayCritical(jArray, 0);
   GL_ReadPixels(x, y, width, height, format, type, pixels);

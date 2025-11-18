@@ -11,50 +11,34 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.sudu.experiments.angle.AngleEglTest.*;
+import static org.sudu.experiments.angle.AngleEglTest.t;
 
 public class AngleEglOffscreenTest {
   public static void main(String[] args) throws IOException {
     Helper.loadDlls();
-    CoInitialize.check();
 
-    dumpVersion(0);
+    AngleOffscreen offscreen = new AngleOffscreen(true);
 
-    long display = AngleEGL.getPlatformDisplayD3D11(0);
-    System.out.println("display = " + Long.toHexString(display));
-    if (display == 0)
-      throw new RuntimeException(e("Failed to getPlatformDisplayD3D11(0): "));
+    var error = offscreen.initialize();
+    if (error != null) throw new RuntimeException(error);
 
-    if (!AngleEGL.initialize(display))
-      throw new RuntimeException(e("Failed to initialize EGL: "));
-
-    long config = AngleEGL.chooseConfigPBuffer(display);
-    if (config == 0)
-      throw new RuntimeException(e("Failed to choose PBuffer EGL config: "));
-
-    System.out.println("config = " + Long.toHexString(config));
+    System.out.println("display = " + Long.toHexString(offscreen.display));
+    System.out.println("config  = " + Long.toHexString(offscreen.config));
+    System.out.println("context = " + Long.toHexString(offscreen.context));
 
     V2i size = new V2i(320, 240);
 
-    long surface = AngleEGL.createPBufferSurface(display, config, size.x, size.y);
-    if (surface == 0)
-        throw new RuntimeException(e("Failed to create EGL surface: "));
+    error = offscreen.createSurface(size.x, size.y);
+    if (error != null) throw new RuntimeException(error);
 
-    System.out.println("surface = " + surface);
-
-    long context = AngleEGL.createContext(display, config, 0, true);
-    if (context == 0)
-      throw new RuntimeException(e("AngleEGL.createContext failed: "));
-
-    System.out.println("context = " + context);
-
-    t(AngleEGL.makeCurrent(display, surface, surface, context));
+    System.out.println("surface = " + offscreen.surface);
+    t(offscreen.makeCurrent());
 
     System.out.println("AngleEGL.getCurrentContext() = " + Long.toHexString(AngleEGL.getCurrentContext()));
 
     // init all
-    var grFactory = Win32Graphics.lazyInit(D2dFactory.create());
-    var graphics = grFactory.get();
+
+    var graphics = offscreen.getGraphics();
     var noWindow = new NoWindow();
     var input = new InputListeners(noWindow::repaint);
     var api = new SceneApi(graphics, input, noWindow);
@@ -64,10 +48,8 @@ public class AngleEglOffscreenTest {
     renderAndSave(api, size);
 
     // Clean up EGL
-    AngleEGL.makeCurrent(display, 0, 0, 0);
-    t(AngleEGL.destroySurface(display, surface));
-    t(AngleEGL.destroyContext(display, context));
-    t(AngleEGL.terminate(display));
+    t(offscreen.removeCurrent());
+    offscreen.dispose();
   }
 
   record HueColor(double h, String name) {}

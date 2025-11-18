@@ -9,7 +9,7 @@ public class AngleEglTest {
   public static void main(String[] args) {
     Helper.loadDlls();
 
-    dumpVersion(0);
+    AngleOffscreen.dumpVersion(0);
 
     int windowWidth = 1280;
     int windowHeight = 720;
@@ -36,7 +36,7 @@ public class AngleEglTest {
     System.out.println("initialized = " + initialized);
     AngleEGL.dumpError();
 
-    dumpVersion(display);
+    AngleOffscreen.dumpVersion(display);
 
     long config = AngleEGL.chooseConfig8888(display);
     System.out.println("chooseConfig8888 = " + Long.toHexString(config));
@@ -94,22 +94,6 @@ public class AngleEglTest {
     System.out.println("terminate = " + terminate);
   }
 
-  static void dumpVersion(long display) {
-    if (display == 0) {
-      String version = AngleEGL.getString(display, AngleEGL.EGL_VERSION);
-      System.out.println("Angle.version = " + version);
-      t(version != null, "version == null: ");
-
-      String extensions = AngleEGL.getString(display, AngleEGL.EGL_EXTENSIONS);
-      System.out.println("Angle.extensions = " + extensions);
-    } else {
-      String vendor = AngleEGL.getString(display, AngleEGL.EGL_VENDOR);
-      String clientApis = AngleEGL.getString(display, AngleEGL.EGL_CLIENT_APIS);
-      System.out.println("  Angle.vendor = " + vendor);
-      System.out.println("  Angle.clientApis = " + clientApis);
-    }
-    AngleEGL.dumpError();
-  }
 
   static String e(String s) {
     return s.concat(AngleEGL.getErrorString());

@@ -337,4 +337,8 @@ public abstract class AngleGL implements GLApi.Context {
   public static native void readPixels(
       int x, int y, int width, int height,
       int format, int type, byte[] pixels);
+
+  public static native void readPixels(
+      int x, int y, int width, int height,
+      int format, int type, int[] pixels);
 }
