@@ -16,6 +16,7 @@ import org.teavm.jso.core.JSString;
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.getSemanticType;
 
 public class JsTextModel implements JsITextModel {
+  public static final boolean PRINT_DEBUG = false;
 
   @JSFunctor
   public interface Api extends JSObject {
@@ -35,7 +36,6 @@ public class JsTextModel implements JsITextModel {
   public final JsUri jsUri;
   public final JSString jsLanguage;
   private boolean fireEvent = true;
-  public static final boolean PRINT_DEBUG = true;
 
   public JsTextModel(JSString text, JSString language, JsUri uri) {
     SplitInfo split = SplitJsText.split(text);
