@@ -27,7 +27,7 @@ public class Diff {
     this.caretReturn = new V2i(caretLine, caretPos);
     this.isDelete = isDelete;
     this.change = change;
-    if (!isDelete) this.caretPos = caretReturn;
+//    if (!isDelete) this.caretPos = caretReturn;
     this.caretPos = makeCaretReturnPos(caretReturn.x, caretReturn.y, isDelete, change);
   }
 
@@ -40,6 +40,14 @@ public class Diff {
     for (int i = 0; i < change.length(); i++)
       if (change.charAt(i) == '\n') lineCnt++;
     return lineCnt;
+  }
+
+  public Diff copyWithNewLine(int oppositeLine) {
+    int delta = line - oppositeLine;
+    Diff copied = new Diff(oppositeLine, pos, isDelete, change);
+    copied.caretPos = new V2i(caretPos.x - delta, caretPos.y);
+    copied.caretReturn = new V2i(caretReturn.x - delta, caretReturn.y);
+    return copied;
   }
 
   private V2i changeDelta(String change) {

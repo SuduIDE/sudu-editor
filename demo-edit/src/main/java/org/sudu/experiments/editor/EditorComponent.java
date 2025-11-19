@@ -132,6 +132,7 @@ public class EditorComponent extends View implements
   private final V2i lastMouseDownPos = new V2i(-1, -1);
   private boolean disableParser = EditorConst.DEFAULT_DISABLE_PARSER;
   private UndoBuffer undoBuffer;
+  private BiConsumer<Diff[], Boolean> syncEditing;
   private int numDigits;
 
   public EditorComponent(EditorUi ui) {
@@ -1155,7 +1156,7 @@ public class EditorComponent extends View implements
     return false;
   }
 
-  boolean setCaretLinePos(int line, int pos, boolean shift) {
+  public boolean setCaretLinePos(int line, int pos, boolean shift) {
     model.caretCharPos = pos;
     return setCaretLine(line, shift);
   }
@@ -1927,7 +1928,7 @@ public class EditorComponent extends View implements
     clearCompactViewModel();
     oldModel.setEditor(null, null);
     model.setEditor(this, window().worker());
-    model.setUndoBuffer(undoBuffer);
+    registrations.fireModelChange(oldModel, model);
     vScrollPos = Numbers.iRnd(model.vScrollLine * lineHeight);
     checkLineNumbersLayout();
   }
@@ -2162,7 +2163,6 @@ public class EditorComponent extends View implements
 
   public void setUndoBuffer(UndoBuffer undoBuffer) {
     this.undoBuffer = undoBuffer;
-    model.setUndoBuffer(undoBuffer);
   }
 
   void buildDiffMap() {
@@ -2217,8 +2217,21 @@ public class EditorComponent extends View implements
     return codeLineColors;
   }
 
+  public UndoBuffer getUndoBuffer() {
+    return undoBuffer;
+  }
+
+  @Override
+  public void syncEditing(Diff[] diffs, boolean isUndo) {
+    if (syncEditing != null) syncEditing.accept(diffs, isUndo);
+  }
+
   public void setCodeMap() {
     // todo: highlight current symbol or selection search...
+  }
+
+  public void setSyncEditing(BiConsumer<Diff[], Boolean> syncEditing) {
+    this.syncEditing = syncEditing;
   }
 
   // call of this method is required for both:

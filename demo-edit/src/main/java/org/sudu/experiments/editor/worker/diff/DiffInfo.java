@@ -64,6 +64,12 @@ public class DiffInfo {
     rebuildAndApply(apply);
   }
 
+  public int oppositeLine(int line, boolean isLeft) {
+    var range = range(line, isLeft);
+    if (range.type != DiffTypes.DEFAULT) return -1;
+    return line - range.from(isLeft) + range.from(!isLeft);
+  }
+
   void expandSection(int index, Consumer<IntConsumer> apply) {
 //    System.out.println("expandSection " + ranges[index]);
     if (cvrL.length > 1 || cvrR.length > 1) {
@@ -151,7 +157,7 @@ public class DiffInfo {
     int ind = rangeBinSearch(lineKey, isL);
     while (ind - 1 >= 0) {
       var range = ranges[ind - 1];
-      int start = isL ? range.fromL : range.fromR;
+      int start = range.from(isL);
       if (start == lineKey) ind--;
       else break;
     }

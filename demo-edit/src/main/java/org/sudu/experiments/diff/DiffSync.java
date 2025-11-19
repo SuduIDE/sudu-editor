@@ -50,24 +50,23 @@ public class DiffSync {
     int fromScrollDelta = -((from.lineToPos(viewFromFirstLine) - from.pos().y));
     int toScrollDelta = -((to.lineToPos(viewToFirstLine) - to.pos().y));
 
-    int viewFromRangeStart = (docToView(fromCodeMapping, fromCvr, isLeft ? range.fromL : range.fromR)
+    int viewFromRangeStart = (docToView(fromCodeMapping, fromCvr, range.from(isLeft))
         - viewFromFirstLine) * from.lineHeight() + fromScrollDelta;
-    int viewFromRangeEnd = (docToView(fromCodeMapping, fromCvr, isLeft ? range.toL() : range.toR())
+    int viewFromRangeEnd = (docToView(fromCodeMapping, fromCvr, range.to(isLeft))
         - viewFromFirstLine) * from.lineHeight() + fromScrollDelta;
 
-    int viewToRangeStart = (docToView(toCodeMapping, toCvr, !isLeft ? range.fromL : range.fromR)
+    int viewToRangeStart = (docToView(toCodeMapping, toCvr, range.from(!isLeft))
         - viewToFirstLine) * to.lineHeight() + toScrollDelta;
-    int viewToRangeEnd = (docToView(toCodeMapping, toCvr, !isLeft ? range.toL() : range.toR())
+    int viewToRangeEnd = (docToView(toCodeMapping, toCvr, range.to(!isLeft))
         - viewToFirstLine) * to.lineHeight() + toScrollDelta;
 
     boolean isGoodFrom = containsIn(viewFromRangeStart, viewToRangeStart, viewToRangeEnd, viewFromRangeEnd);
     boolean isGoodTo = containsIn(viewToRangeStart, viewFromRangeStart, viewFromRangeEnd, viewToRangeEnd);
 
     int viewLinesDelta = viewFromSyncLine - viewFromFirstLine;
-    int docRangeDelta = docFromSyncLine - (isLeft ? range.fromL : range.fromR);
+    int docRangeDelta = docFromSyncLine - range.from(isLeft);
 
-    int toRangeStart = !isLeft ? range.fromL : range.fromR;
-    int toDocFirstLine = toRangeStart + docRangeDelta;
+    int toDocFirstLine = range.from(!isLeft) + docRangeDelta;
     int toViewFirstLine = docToView(toCodeMapping, toCvr, toDocFirstLine);
     int toNewLine = (toViewFirstLine - viewLinesDelta);
 

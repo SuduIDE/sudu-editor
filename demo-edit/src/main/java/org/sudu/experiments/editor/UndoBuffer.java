@@ -1,8 +1,10 @@
 package org.sudu.experiments.editor;
 
+import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.common.Pair;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class UndoBuffer {
 
@@ -15,8 +17,12 @@ public class UndoBuffer {
   }
 
   public void addDiff(Document doc, Diff[] diff) {
+    addDiff(doc, diff, diffCnt++);
+  }
+
+  public void addDiff(Document doc, Diff[] diff, int version) {
     diffs.putIfAbsent(doc, new UndoStack());
-    diffs.get(doc).add(Pair.of(diff, diffCnt++));
+    diffs.get(doc).add(Pair.of(diff, version));
   }
 
   public Diff undoLastDiff(Document doc, boolean isRedo) {
@@ -24,66 +30,65 @@ public class UndoBuffer {
     var stack = diffs.get(doc);
     if (stack == null || stack.isEmpty()) return null;
     Diff[] lastDiff = stack.removeLast().first;
-    return doc.undoLastDiff(lastDiff, isRedo);
+    return doc.doCpxDiff(lastDiff, isRedo);
   }
 
-  public void undoLastDiff(EditorComponent editor1, EditorComponent editor2, boolean isRedo) {
-    if (!isRedo) undoLastDiff(editor1, editor2);
-    else redoLastDiff(editor1, editor2);
+  public void undoLastDiff(Document doc1, Document doc2, BiConsumer<Boolean, V2i> setCaretPos, boolean isRedo) {
+    if (!isRedo) undoLastDiff(doc1, doc2, setCaretPos);
+    else redoLastDiff(doc1, doc2, setCaretPos);
   }
 
-  public void undoLastDiff(EditorComponent editor1, EditorComponent editor2) {
+  public void undoLastDiff(Document editor1, Document editor2, BiConsumer<Boolean, V2i> setCaretPos) {
     if (diffs.isEmpty()) return;
-    Document doc1 = editor1.model.document;
-    Document doc2 = editor2.model.document;
-    var stack1 = diffs.get(doc1);
-    var stack2 = diffs.get(doc2);
+    var stack1 = diffs.get(editor1);
+    var stack2 = diffs.get(editor2);
     boolean empty1 = stack1 == null || stack1.isEmpty();
     boolean empty2 = stack2 == null || stack2.isEmpty();
     int ind1 = empty1 ? -1 : stack1.peekLast().second;
     int ind2 = empty2 ? -1 : stack2.peekLast().second;
     if (empty1 && empty2) return;
-    EditorComponent editor = null;
-    Diff[] lastDiff = null;
     if (ind2 > ind1) {
-      editor = editor2;
-      lastDiff = stack2.removeLast().first;
+      var diff = editor2.undoLastDiff(stack2.removeLast().first, false);
+      setCaretPos.accept(false, diff.caretReturn);
+    } else if (ind1 > ind2) {
+      var diff = editor1.undoLastDiff(stack1.removeLast().first, false);
+      setCaretPos.accept(true, diff.caretReturn);
+    } else {
+      var leftDiff = editor1.undoLastDiff(stack1.removeLast().first, false);
+      setCaretPos.accept(true, leftDiff.caretReturn);
+      var rightDiff = editor2.undoLastDiff(stack2.removeLast().first, false);
+      setCaretPos.accept(false, rightDiff.caretReturn);
     }
-    if (ind1 > ind2) {
-      editor = editor1;
-      lastDiff = stack1.removeLast().first;
-    }
-    if (editor == null || lastDiff == null) return;
-    var diff = editor.model().document.undoLastDiff(lastDiff, false);
-    var caretReturn = diff.caretReturn;
-    editor.setCaretLinePos(caretReturn.x, caretReturn.y, false);
   }
 
-  public void redoLastDiff(EditorComponent editor1, EditorComponent editor2) {
+  public void redoLastDiff(Document editor1, Document editor2, BiConsumer<Boolean, V2i> setCaretPos) {
     if (diffs.isEmpty()) return;
-    Document doc1 = editor1.model.document;
-    Document doc2 = editor2.model.document;
-    var stack1 = diffs.get(doc1);
-    var stack2 = diffs.get(doc2);
+    var stack1 = diffs.get(editor1);
+    var stack2 = diffs.get(editor2);
     boolean empty1 = stack1 == null || !stack1.haveNext();
     boolean empty2 = stack2 == null || !stack2.haveNext();
     int ind1 = empty1 ? Integer.MAX_VALUE : stack1.peekNext().second;
     int ind2 = empty2 ? Integer.MAX_VALUE : stack2.peekNext().second;
     if (empty1 && empty2) return;
-    EditorComponent editor = null;
-    Diff[] lastDiff = null;
     if (ind2 < ind1) {
-      editor = editor2;
-      lastDiff = stack2.removeNext().first;
+      var diff = editor2.undoLastDiff(stack2.removeLast().first, true);
+      setCaretPos.accept(false, diff.caretPos);
+    } else if (ind1 < ind2) {
+      var diff = editor1.undoLastDiff(stack1.removeLast().first, true);
+      setCaretPos.accept(true, diff.caretPos);
+    } else {
+      var leftDiff = editor1.undoLastDiff(stack1.removeLast().first, true);
+      setCaretPos.accept(true, leftDiff.caretPos);
+      var rightDiff = editor2.undoLastDiff(stack2.removeLast().first, true);
+      setCaretPos.accept(false, rightDiff.caretPos);
     }
-    if (ind1 < ind2) {
-      editor = editor1;
-      lastDiff = stack1.removeNext().first;
-    }
-    if (editor == null || lastDiff == null) return;
-    var diff = editor.model().document.undoLastDiff(lastDiff, true);
-    var caretReturn = diff.caretPos;
-    editor.setCaretLinePos(caretReturn.x, caretReturn.y, false);
+  }
+
+  public Pair<Diff[], Integer> lastDiffVersion(Document doc) {
+    if (diffs.isEmpty()) return null;
+    var stack = diffs.get(doc);
+    if (stack == null || stack.isEmpty()) return null;
+    return stack.peekLast();
   }
 
   public Diff[] lastDiff(Document doc) {

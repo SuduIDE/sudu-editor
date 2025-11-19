@@ -17,6 +17,7 @@ import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 import static org.sudu.experiments.math.ArrayOp.copyOf;
 
@@ -57,6 +58,7 @@ public class Model {
   double vScrollLine = .0;
 
   boolean debug = false;
+  private UndoBuffer defaultUndoBuffer = new UndoBuffer();
 
   public Model(String text, Uri uri) {
     this(text, null, uri);
@@ -84,6 +86,8 @@ public class Model {
     document = new Document(text);
     document.updateModelOnDiff = this::updateModelOnDiff;
     document.onDiffMade = this::onDiffMade;
+    document.syncEditing = this::syncEditing;
+    document.getUndoBuffer = this::getUndoBuffer;
   }
 
   String languageFromFile() {
@@ -262,10 +266,6 @@ public class Model {
     } else {
       document.invalidateMeasure();
     }
-  }
-
-  void setUndoBuffer(UndoBuffer undoBuffer) {
-    document.setUndoBuffer(undoBuffer);
   }
 
   private void setParsed() {
@@ -483,6 +483,14 @@ public class Model {
     if (editor != null) editor.updateModelOnDiff(diff, isUndo);
   }
 
+  private void syncEditing(Diff[] diffs, boolean isUndo) {
+    if (editor != null) editor.syncEditing(diffs, isUndo);
+  }
+
+  private UndoBuffer getUndoBuffer() {
+    return editor != null ? editor.getUndoBuffer() : null;
+  }
+
   public void setOnDiffMadeListener(Runnable listener) {
     onDiffMadeListener = listener;
   }
@@ -546,6 +554,10 @@ public class Model {
     boolean isDisableParser();
 
     CodeLineColorScheme getColorScheme();
+
+    UndoBuffer getUndoBuffer();
+
+    void syncEditing(Diff[] diffs, boolean isUndo);
   }
 
   public boolean hasDiffModel() {

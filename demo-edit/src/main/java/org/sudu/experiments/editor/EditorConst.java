@@ -34,6 +34,7 @@ public interface EditorConst {
   boolean DEFAULT_DISABLE_PARSER = false;
   boolean DEFAULT_SYNC_ORPHANS = false;
   boolean DEFAULT_SYNC_EXCLUDED = true;
+  boolean DEFAULT_ENABLE_SYNC_EDIT = true;
 
   static FontDesk setFonts(
       String name, float size,

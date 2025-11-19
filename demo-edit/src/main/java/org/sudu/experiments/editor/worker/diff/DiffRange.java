@@ -16,19 +16,25 @@ public class DiffRange {
     this.type = type;
   }
 
+  public int from(boolean isLeft) { return isLeft ? fromL : fromR; }
+
+  public int to(boolean isLeft) { return isLeft ? toL() : toR(); }
+
+  public int len(boolean isLeft) { return isLeft ? lenL : lenR; }
+
   public final int toL() { return fromL + lenL; }
 
   public final int toR() { return fromR + lenR; }
 
   public boolean inside(int line, boolean left) {
-    return (left && fromL <= line && line < toL())
-        || (!left && fromR <= line && line < toR());
+    return from(left) <= line && line < to(left);
   }
 
   @Override
   public String toString() {
-    return String.format("[%d: %d) |-> [%d: %d) %s", fromL, fromL + lenL,
-        fromR, fromR + lenR,
+    return String.format("[%d: %d) |-> [%d: %d) %s",
+        fromL, toL(),
+        fromR, toR(),
         DiffTypes.name(type));
   }
 }
