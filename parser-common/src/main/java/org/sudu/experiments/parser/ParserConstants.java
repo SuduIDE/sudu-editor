@@ -54,11 +54,12 @@ public interface ParserConstants {
       map.put("regexp", counter++);
       map.put("operator", counter++);
 
+      // Token types from various lang extensions
       map.put("modifier", counter++);
       map.put("bracket", counter++);
-
       map.put("builtinConstant", counter++);
       map.put("module", counter++);
+      map.put("annotation", counter++);
 
       map.put("unknown", counter);
       return map;
@@ -70,8 +71,8 @@ public interface ParserConstants {
 
     static int getSemanticType(String tokenType) {
       var type = semanticTokenTypeMap.get(tokenType);
-      if (type == null) System.err.println("Illegal type: " + tokenType);
-      return type == null ? ERROR : type;
+      if (type == null) System.out.println("TokenTypes.illegal type: " + tokenType);
+      return type == null ? DEFAULT : type;
     }
   }
 

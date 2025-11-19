@@ -60,11 +60,12 @@ public class CodeLineColorScheme {
         codeElement[STRING],     // Regexp — For tokens that represent a regular expression literal.
         codeElement[OPERATOR],   // Operator — For tokens that represent an operator.
 
+        // Token types from various lang extensions
         codeElement[ANNOTATION], // Modifier — ???
         codeElement[OPERATOR],   // Bracket — ???
-
         codeElement[KEYWORD],    // Builtin Constant — ???
-        codeElement[DEFAULT],    // Default — ???
+        codeElement[DEFAULT],    // Module — ???
+        codeElement[ANNOTATION], // Annotation — ???
 
         codeElement[DEFAULT],    // Unknown — ???
     };
