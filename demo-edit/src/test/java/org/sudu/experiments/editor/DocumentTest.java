@@ -500,7 +500,7 @@ class DocumentTest {
   @Test void testDiffOnFirstLine() {
     Document document = doc5();
     document.applyChange(0, 2, new CodeLine[] {});
-    Diff lastDiff = document.lastDiff()[0];
+    Diff lastDiff = document.lastDiff().diffs[0];
     String change = lastDiff.change;
 
     Assertions.assertFalse(change.startsWith("\n"));
@@ -510,7 +510,7 @@ class DocumentTest {
   @Test void testApplyChangeOnLastLine() {
     Document document = doc5();
     document.applyChange(2, document.length(), new CodeLine[] {});
-    Diff lastDiff = document.lastDiff()[0];
+    Diff lastDiff = document.lastDiff().diffs[0];
     String change = lastDiff.change;
 
     Assertions.assertTrue(change.startsWith("\n"));
@@ -520,7 +520,7 @@ class DocumentTest {
   @Test void testApplyChangeOnFirstLineToLast() {
     Document document = doc5();
     document.applyChange(0, document.length(), new CodeLine[] {});
-    Diff lastDiff = document.lastDiff()[0];
+    Diff lastDiff = document.lastDiff().diffs[0];
     String change = lastDiff.change;
 
     Assertions.assertFalse(change.startsWith("\n"));
@@ -530,7 +530,7 @@ class DocumentTest {
   @Test void testApplyChangeInMiddle() {
     Document document = doc5();
     document.applyChange(2, 4, new CodeLine[] {});
-    Diff lastDiff = document.lastDiff()[0];
+    Diff lastDiff = document.lastDiff().diffs[0];
     String change = lastDiff.change;
 
     Assertions.assertTrue(change.startsWith("\n"));

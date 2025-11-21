@@ -32,9 +32,10 @@ public class Document extends CodeLines {
   int lastParsedVersion;
   double lastDiffTimestamp;
   public BiConsumer<Diff, Boolean> updateModelOnDiff;
-  public BiConsumer<Diff[], Boolean> syncEditing;
+  public BiConsumer<CpxDiff, Boolean> syncEditing;
   public Supplier<UndoBuffer> getUndoBuffer;
   public Supplier<V2i> getCaretPos;
+  public Supplier<Selection> getSelection;
   public Runnable onDiffMade;
 
   public Document() {
@@ -187,7 +188,7 @@ public class Document extends CodeLines {
     if (insertDiff != null) changeDiffs[ptr++] = insertDiff;
     if (deleteDiff != null) changeDiffs[ptr++] = deleteDiff;
     changeDiffs = Arrays.copyOf(changeDiffs, ptr);
-    undoBuffer().addDiff(this, changeDiffs);
+    undoBuffer().addDiff(this, mkCpxDiff(changeDiffs));
     currentVersion++;
   }
 
@@ -476,24 +477,29 @@ public class Document extends CodeLines {
 
   public void makeDiff(Diff diff) {
     currentVersion++;
-    var cpxDiff = ArrayOp.array(diff);
+    var cpxDiff = mkCpxDiff(diff);
     undoBuffer().addDiff(this, cpxDiff);
     makeDiffOp(diff);
     updateModelOnDiff(diff, false);
     syncEditing(cpxDiff, false);
   }
 
-  public void makeDiffWithCaretReturn(
-      int line,
-      int from,
-      boolean isDelete,
-      String change,
-      Pos caretPos
-  ) {
-    currentVersion++;
+  public CpxDiff mkCpxDiff(Diff diff) {
+    return mkCpxDiff(ArrayOp.array(diff));
+  }
 
-    var diff = new Diff(line, from, isDelete, change, caretPos.line, caretPos.pos);
-    undoBuffer().addDiff(this, ArrayOp.array(diff));
+  public CpxDiff mkCpxDiff(Diff[] diffs) {
+    return mkCpxDiff(diffs, caretPos());
+  }
+
+  public CpxDiff mkCpxDiff(Diff[] diffs, V2i caretPos) {
+    return new CpxDiff(diffs, selection(), caretPos);
+  }
+
+  public void makeDiffWithCaretReturn(int line, int from, boolean isDelete, String change) {
+    currentVersion++;
+    var diff = new Diff(line, from, isDelete, change);
+    undoBuffer().addDiff(this, mkCpxDiff(diff));
     makeDiffOp(diff);
     updateModelOnDiff(diff, false);
   }
@@ -503,23 +509,24 @@ public class Document extends CodeLines {
       int[] from,
       boolean[] areDeletes,
       String[] changes,
-      Pos caretPos,
+      V2i caretPos,
       BiConsumer<Integer, String> editorAction
   ) {
     currentVersion++;
 
-    Diff[] temp = new Diff[lines.length];
+    Diff[] diffs = new Diff[lines.length];
     for (int i = 0; i < lines.length; i++) {
-      temp[i] = new Diff(lines[i], from[i], areDeletes[i], changes[i], caretPos.line, caretPos.pos);
+      diffs[i] = new Diff(lines[i], from[i], areDeletes[i], changes[i]);
     }
-    undoBuffer().addDiff(this, temp);
+    var cpxDiff = mkCpxDiff(diffs, caretPos);
+    undoBuffer().addDiff(this, cpxDiff);
     for (int i = 0; i < lines.length; i++) {
       Diff diff = new Diff(lines[i], from[i], areDeletes[i], changes[i]);
       makeDiffOp(diff);
       editorAction.accept(lines[i], changes[i]);
       updateModelOnDiff(diff, false);
     }
-    syncEditing(temp, false);
+    syncEditing(cpxDiff, false);
   }
 
   void makeDiffOp(Diff diff) {
@@ -533,21 +540,21 @@ public class Document extends CodeLines {
     }
   }
 
-  public Diff undoLastDiff(boolean isRedo) {
+  public CpxDiff undoLastDiff(boolean isRedo) {
     return undoBuffer().undoLastDiff(this, isRedo);
   }
 
-  public Diff undoLastDiff(Diff[] cpxDiff, boolean isRedo) {
-    var diff = doCpxDiff(cpxDiff, isRedo);
-    return diff;
+  public CpxDiff undoLastDiff(CpxDiff cpxDiff, boolean isRedo) {
+    return doCpxDiff(cpxDiff, isRedo);
   }
 
-  public Diff doCpxDiff(Diff[] complexDiff, boolean isRedo) {
+  public CpxDiff doCpxDiff(CpxDiff cpxDiff, boolean isRedo) {
     currentVersion++;
-    if (isRedo) complexDiff = ArrayOp.reverse(complexDiff);
-    for (var diff: complexDiff) doDiff(diff, isRedo);
+    var diffs = cpxDiff.diffs;
+    if (isRedo) diffs = ArrayOp.reverse(diffs);
+    for (var diff: diffs) doDiff(diff, isRedo);
     onDiffMade();
-    return complexDiff[0];
+    return cpxDiff;
   }
 
   private void doDiff(Diff diff, boolean isRedo) {
@@ -676,11 +683,11 @@ public class Document extends CodeLines {
     }
   }
 
-  public Diff[] lastDiff() {
+  public CpxDiff lastDiff() {
     return undoBuffer().lastDiff(this);
   }
 
-  public Pair<Diff[], Integer> lastDiffVersion() {
+  public Pair<CpxDiff, Integer> lastDiffVersion() {
     return undoBuffer().lastDiffVersion(this);
   }
 
@@ -689,7 +696,11 @@ public class Document extends CodeLines {
   }
 
   public V2i caretPos() {
-    return getCaretPos.get();
+    return getCaretPos != null ? getCaretPos.get() : new V2i(0, 0);
+  }
+
+  public Selection selection() {
+    return getSelection != null ? getSelection.get() : null;
   }
 
   public int version() {
@@ -700,7 +711,7 @@ public class Document extends CodeLines {
     if (this.updateModelOnDiff != null) updateModelOnDiff.accept(diff, isUndo);
   }
 
-  private void syncEditing(Diff[] diff, boolean isUndo) {
+  private void syncEditing(CpxDiff diff, boolean isUndo) {
     if (syncEditing != null) syncEditing.accept(diff, isUndo);
   }
 

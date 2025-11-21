@@ -4,7 +4,7 @@ import org.sudu.experiments.parser.common.Pair;
 
 import java.util.ArrayList;
 
-public class UndoStack extends ArrayList<Pair<Diff[], Integer>> {
+public class UndoStack extends ArrayList<Pair<CpxDiff, Integer>> {
 
   private int position;
 
@@ -23,28 +23,28 @@ public class UndoStack extends ArrayList<Pair<Diff[], Integer>> {
   }
 
   @Override
-  public boolean add(Pair<Diff[], Integer> pair) {
+  public boolean add(Pair<CpxDiff, Integer> pair) {
     removeRange(position, size());
     position++;
     return super.add(pair);
   }
 
-  public Pair<Diff[], Integer> removeLast() {
+  public Pair<CpxDiff, Integer> removeLast() {
     if (position == 0) return null;
     return get(--position);
   }
 
-  public Pair<Diff[], Integer> peekLast() {
+  public Pair<CpxDiff, Integer> peekLast() {
     if (position == 0) return null;
     return get(position - 1);
   }
 
-  public Pair<Diff[], Integer> removeNext() {
+  public Pair<CpxDiff, Integer> removeNext() {
     if (position == size()) return null;
     return get(position++);
   }
 
-  public Pair<Diff[], Integer> peekNext() {
+  public Pair<CpxDiff, Integer> peekNext() {
     if (position == size()) return null;
     return get(position);
   }

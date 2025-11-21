@@ -16,20 +16,20 @@ public class UndoBuffer {
     this.diffCnt = 0;
   }
 
-  public void addDiff(Document doc, Diff[] diff) {
+  public void addDiff(Document doc, CpxDiff diff) {
     addDiff(doc, diff, diffCnt++);
   }
 
-  public void addDiff(Document doc, Diff[] diff, int version) {
+  public void addDiff(Document doc, CpxDiff diff, int version) {
     diffs.putIfAbsent(doc, new UndoStack());
     diffs.get(doc).add(Pair.of(diff, version));
   }
 
-  public Diff undoLastDiff(Document doc, boolean isRedo) {
+  public CpxDiff undoLastDiff(Document doc, boolean isRedo) {
     if (diffs.isEmpty()) return null;
     var stack = diffs.get(doc);
     if (stack == null || stack.isEmpty()) return null;
-    Diff[] lastDiff = stack.removeLast().first;
+    CpxDiff lastDiff = stack.removeLast().first;
     return doc.doCpxDiff(lastDiff, isRedo);
   }
 
@@ -49,15 +49,15 @@ public class UndoBuffer {
     if (empty1 && empty2) return;
     if (ind2 > ind1) {
       var diff = editor2.undoLastDiff(stack2.removeLast().first, false);
-      setCaretPos.accept(false, diff.caretReturn);
+      setCaretPos.accept(false, diff.caretBefore);
     } else if (ind1 > ind2) {
       var diff = editor1.undoLastDiff(stack1.removeLast().first, false);
-      setCaretPos.accept(true, diff.caretReturn);
-    } else {
+      setCaretPos.accept(true, diff.caretBefore);
+    } else if (ind1 != -1) {
       var leftDiff = editor1.undoLastDiff(stack1.removeLast().first, false);
-      setCaretPos.accept(true, leftDiff.caretReturn);
+      setCaretPos.accept(true, leftDiff.caretBefore);
       var rightDiff = editor2.undoLastDiff(stack2.removeLast().first, false);
-      setCaretPos.accept(false, rightDiff.caretReturn);
+      setCaretPos.accept(false, rightDiff.caretBefore);
     }
   }
 
@@ -72,26 +72,26 @@ public class UndoBuffer {
     if (empty1 && empty2) return;
     if (ind2 < ind1) {
       var diff = editor2.undoLastDiff(stack2.removeLast().first, true);
-      setCaretPos.accept(false, diff.caretPos);
+      setCaretPos.accept(false, diff.caretAfter);
     } else if (ind1 < ind2) {
       var diff = editor1.undoLastDiff(stack1.removeLast().first, true);
-      setCaretPos.accept(true, diff.caretPos);
-    } else {
+      setCaretPos.accept(true, diff.caretAfter);
+    } else if (ind1 != Integer.MAX_VALUE) {
       var leftDiff = editor1.undoLastDiff(stack1.removeLast().first, true);
-      setCaretPos.accept(true, leftDiff.caretPos);
+      setCaretPos.accept(true, leftDiff.caretAfter);
       var rightDiff = editor2.undoLastDiff(stack2.removeLast().first, true);
-      setCaretPos.accept(false, rightDiff.caretPos);
+      setCaretPos.accept(false, rightDiff.caretAfter);
     }
   }
 
-  public Pair<Diff[], Integer> lastDiffVersion(Document doc) {
+  public Pair<CpxDiff, Integer> lastDiffVersion(Document doc) {
     if (diffs.isEmpty()) return null;
     var stack = diffs.get(doc);
     if (stack == null || stack.isEmpty()) return null;
     return stack.peekLast();
   }
 
-  public Diff[] lastDiff(Document doc) {
+  public CpxDiff lastDiff(Document doc) {
     if (diffs.isEmpty()) return null;
     var stack = diffs.get(doc);
     if (stack == null || stack.isEmpty()) return null;

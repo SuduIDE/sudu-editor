@@ -132,7 +132,7 @@ public class EditorComponent extends View implements
   private final V2i lastMouseDownPos = new V2i(-1, -1);
   private boolean disableParser = EditorConst.DEFAULT_DISABLE_PARSER;
   private UndoBuffer undoBuffer;
-  private BiConsumer<Diff[], Boolean> syncEditing;
+  private BiConsumer<CpxDiff, Boolean> syncEditing;
   private int numDigits;
 
   public EditorComponent(EditorUi ui) {
@@ -278,7 +278,7 @@ public class EditorComponent extends View implements
     if (selection().isAreaSelected()) setSelectionToCaret();
     var caretDiff = model.document.undoLastDiff(isRedo);
     if (caretDiff == null) return;
-    var caretReturn = isRedo ? caretDiff.caretPos : caretDiff.caretReturn;
+    var caretReturn = isRedo ? caretDiff.caretAfter : caretDiff.caretBefore;
     setCaretLinePos(caretReturn.x, caretReturn.y, false);
     updateDocumentDiffTimeStamp();
     onDiffMade();
@@ -858,7 +858,7 @@ public class EditorComponent extends View implements
         changes[i++] = tabIndent;
       }
 
-      tabDiffHandler(lines, 0, false, changes, new Pos(model.caretLine, model.caretCharPos),
+      tabDiffHandler(lines, false, changes, new V2i(model.caretLine, model.caretCharPos),
           (l, c) -> model.document.insertAt(l, 0, tabIndent)
       );
       left.charInd += tabIndent.length();
@@ -880,7 +880,7 @@ public class EditorComponent extends View implements
         String indent = calculateTabIndent(codeLine);
         if (indent == null) return true;
         model.document.makeDiffWithCaretReturn(
-            model.caretLine, 0, true, indent, new Pos(model.caretLine, model.caretCharPos)
+            model.caretLine, 0, true, indent
         );
         codeLine.delete(0, indent.length());
         setCaretPosWithSelection(model.caretCharPos - indent.length());
@@ -919,7 +919,7 @@ public class EditorComponent extends View implements
         setCaretPosWithSelection(model.caretCharPos - indent.length());
       }
     }
-    tabDiffHandler(lines, 0, true, changes, new Pos(prevCaretLine, prevCaretPos),
+    tabDiffHandler(lines, true, changes, new V2i(prevCaretLine, prevCaretPos),
         (l, c) -> {
           CodeLine codeLine = model.document.lines[l];
           codeLine.delete(0, c.length());
@@ -934,17 +934,15 @@ public class EditorComponent extends View implements
 
   private void tabDiffHandler(
       int[] lines,
-      int fromValue,
       boolean isDelValue,
       String[] changes,
-      Pos caretPosition,
+      V2i caretPosition,
       BiConsumer<Integer, String> editorAction
-
   ) {
     if (lines.length == 0) return;
     int[] from = new int[lines.length];
     boolean[] areDeletes = new boolean[lines.length];
-    Arrays.fill(from, fromValue);
+    Arrays.fill(from, 0);
     Arrays.fill(areDeletes, isDelValue);
     model.document.makeComplexDiff(
         lines,
@@ -2222,7 +2220,7 @@ public class EditorComponent extends View implements
   }
 
   @Override
-  public void syncEditing(Diff[] diffs, boolean isUndo) {
+  public void syncEditing(CpxDiff diffs, boolean isUndo) {
     if (syncEditing != null) syncEditing.accept(diffs, isUndo);
   }
 
@@ -2230,7 +2228,7 @@ public class EditorComponent extends View implements
     // todo: highlight current symbol or selection search...
   }
 
-  public void setSyncEditing(BiConsumer<Diff[], Boolean> syncEditing) {
+  public void setSyncEditing(BiConsumer<CpxDiff, Boolean> syncEditing) {
     this.syncEditing = syncEditing;
   }
 

@@ -177,23 +177,16 @@ class FileDiffRootView extends DiffRootView {
       onDocumentSizeChange.run();
   }
 
-  private void syncEditing(boolean left, Diff[] diffs, boolean isUndo) {
+  private void syncEditing(boolean left, CpxDiff cpxDiff, boolean isUndo) {
     if (!enableSyncEditing) return;
     EditorComponent current = left ? editor1 : editor2;
     var diffVersion = current.model().document.lastDiffVersion();
-
     EditorComponent another = !left ? editor1 : editor2;
-    Diff[] anotherDiffs = new Diff[diffs.length];
-    int len = 0;
-    for (Diff diff: diffs) {
-      var oppositeLine = diffModel.oppositeLine(diff.line, left);
-      if (oppositeLine == -1) continue;
-      anotherDiffs[len++] = diff.copyWithNewLine(oppositeLine);
-    }
-    if (len == 0) return;
-    anotherDiffs = Arrays.copyOf(anotherDiffs, len);
-    another.model().document.doCpxDiff(anotherDiffs, !isUndo);
-    undoBuffer.addDiff(another.model().document, anotherDiffs, diffVersion.second);
+    CpxDiff anotherDiff = cpxDiff.copyWithNewLine((l) -> diffModel.oppositeLine(l, left));
+
+    if (anotherDiff.diffs.length == 0) return;
+    another.model().document.doCpxDiff(anotherDiff, !isUndo);
+    undoBuffer.addDiff(another.model().document, anotherDiff, diffVersion.second);
     another.model().document.lastDiffVersion().second = diffVersion.second;
   }
 

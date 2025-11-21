@@ -58,7 +58,6 @@ public class Model {
   double vScrollLine = .0;
 
   boolean debug = false;
-  private UndoBuffer defaultUndoBuffer = new UndoBuffer();
 
   public Model(String text, Uri uri) {
     this(text, null, uri);
@@ -88,6 +87,8 @@ public class Model {
     document.onDiffMade = this::onDiffMade;
     document.syncEditing = this::syncEditing;
     document.getUndoBuffer = this::getUndoBuffer;
+    document.getCaretPos = () -> new V2i(caretLine, caretCharPos);
+    document.getSelection = () -> this.selection;
   }
 
   String languageFromFile() {
@@ -483,7 +484,7 @@ public class Model {
     if (editor != null) editor.updateModelOnDiff(diff, isUndo);
   }
 
-  private void syncEditing(Diff[] diffs, boolean isUndo) {
+  private void syncEditing(CpxDiff diffs, boolean isUndo) {
     if (editor != null) editor.syncEditing(diffs, isUndo);
   }
 
@@ -557,7 +558,7 @@ public class Model {
 
     UndoBuffer getUndoBuffer();
 
-    void syncEditing(Diff[] diffs, boolean isUndo);
+    void syncEditing(CpxDiff diffs, boolean isUndo);
   }
 
   public boolean hasDiffModel() {
