@@ -322,8 +322,6 @@ export interface IEditorView extends View, HasTheme, Focusable {
 
 export interface EditorView extends IEditorView, IDisposable {
   setModel(model: ITextModel): void
-
-  onDidChangeModel: IEvent<IModelChangedEvent>
 }
 
 interface IDiffSizeChangeCallback {

@@ -34,7 +34,6 @@ public class JsTextModel implements JsITextModel {
 
   public final Model javaModel;
   public final JsUri jsUri;
-  public final JSString jsLanguage;
   private boolean fireEvent = true;
 
   public JsTextModel(JSString text, JSString language, JsUri uri) {
@@ -42,7 +41,6 @@ public class JsTextModel implements JsITextModel {
     String lang = JsHelper.toString(language, null);
     javaModel = new Model(split, lang, uri.toJava());
     javaModel.platformObject = this;
-    jsLanguage = language;
     jsUri = uri;
   }
 
@@ -50,7 +48,6 @@ public class JsTextModel implements JsITextModel {
     javaModel = model;
     javaModel.platformObject = this;
     jsUri = null;
-    jsLanguage = null;
   }
 
   @Override
@@ -150,7 +147,8 @@ public class JsTextModel implements JsITextModel {
 
   @Override
   public JSString getLanguage() {
-    return jsLanguage != null ? jsLanguage : JSString.valueOf(javaModel.docLanguage());
+    String language = javaModel.language();
+    return JSString.valueOf(language);
   }
 
   public static JsTextModel fromJava(Model model) {

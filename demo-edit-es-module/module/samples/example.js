@@ -9,17 +9,10 @@ const initialText =
     "to write a portable (Web + Desktop)\n" +
     "editor in java and kotlin";
 
-function modelChanged(modelChanged) {
-    console.log("modelChanged"
-        + ": old = " + modelChanged.oldModelUrl
-        + ", new = " + modelChanged.newModelUrl);
-}
-
 editor.focus();
 
 let model = editorApi.newTextModel(initialText, "language", "urlNew")
 
-editor.onDidChangeModel(modelChanged);
 editor.setModel(model);
 
 let p31 = model.getPositionAt(31);

@@ -65,4 +65,6 @@ const controls = {
 
 Object.entries(controls).forEach(([icon, handler]) => controlPanel.add(icon, handler))
 
+const textModel = editorApi.newTextModel(initialText1, null, {path:"text.txt"});
 
+console.log("language", textModel.language);

@@ -414,8 +414,6 @@ export interface IEditorView extends View, HasTheme, Focusable {
 
 export interface EditorView extends IEditorView, IDisposable {
   setModel(model: ITextModel): void
-
-  onDidChangeModel: IEvent<IModelChangedEvent>
 }
 
 export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {

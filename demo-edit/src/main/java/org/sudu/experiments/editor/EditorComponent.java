@@ -1928,7 +1928,6 @@ public class EditorComponent extends View implements
     oldModel.setEditor(null, null);
     model.setEditor(this, window().worker());
     model.setUndoBuffer(undoBuffer);
-    registrations.fireModelChange(oldModel, model);
     vScrollPos = Numbers.iRnd(model.vScrollLine * lineHeight);
     checkLineNumbersLayout();
   }

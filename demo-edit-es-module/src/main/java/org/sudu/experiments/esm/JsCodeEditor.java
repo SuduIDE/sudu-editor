@@ -309,21 +309,6 @@ public class JsCodeEditor implements JsEditorView {
     editor.readonly = flag;
   }
 
-  @Override
-  public JsDisposable onDidChangeModel(JsFunctions.Consumer<JsIModelChangedEvent> f) {
-    var listener = convert(f);
-    return JsDisposable.of(editor.registrations()
-            .modelChangeListeners.disposableAdd(listener));
-  }
-
-  static BiConsumer<Model, Model> convert(JsFunctions.Consumer<JsIModelChangedEvent> jsCallback) {
-    return (oldModel, newModel) -> jsCallback.f(
-        JsIModelChangedEvent.create(
-            JsUri.fromJava(oldModel.uri),
-            JsUri.fromJava(newModel.uri)
-        ));
-  }
-
   public static Promise<JsIEditorView> newEdit(EditArgs arguments) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
