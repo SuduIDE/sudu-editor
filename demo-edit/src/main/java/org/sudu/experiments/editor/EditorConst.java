@@ -36,6 +36,8 @@ public interface EditorConst {
   boolean DEFAULT_SYNC_EXCLUDED = true;
   boolean DEFAULT_ENABLE_SYNC_EDIT = true;
 
+  String tabIndent = "  ";
+
   static FontDesk setFonts(
       String name, float size,
       FontDesk[] fonts, WglGraphics g

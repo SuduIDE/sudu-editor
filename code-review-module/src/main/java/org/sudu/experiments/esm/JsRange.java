@@ -20,8 +20,8 @@ public abstract class JsRange implements JSObject {
 
   public static JsRange fromJava(Selection s) {
     return JsRange.create(
-        s.endPos.charInd + 1, s.endPos.line + 1,
-        s.startPos.charInd + 1, s.startPos.line + 1);
+        s.endPos.charPos + 1, s.endPos.line + 1,
+        s.startPos.charPos + 1, s.startPos.line + 1);
   }
 
   public static JsRange fromJava(Range r) {

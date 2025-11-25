@@ -32,4 +32,9 @@ public class Diff {
   public Diff copyWithNewLine(int oppositeLine) {
     return new Diff(oppositeLine, pos, isDelete, change);
   }
+
+  @Override
+  public String toString() {
+    return change.replaceAll("\n", "\\\\n");
+  }
 }

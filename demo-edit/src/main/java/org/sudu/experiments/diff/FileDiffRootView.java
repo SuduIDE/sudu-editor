@@ -8,8 +8,10 @@ import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
+import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.common.TriConsumer;
+import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.Arrays;
@@ -182,12 +184,12 @@ class FileDiffRootView extends DiffRootView {
     EditorComponent current = left ? editor1 : editor2;
     var diffVersion = current.model().document.lastDiffVersion();
     EditorComponent another = !left ? editor1 : editor2;
+
     CpxDiff anotherDiff = cpxDiff.copyWithNewLine((l) -> diffModel.oppositeLine(l, left));
 
     if (anotherDiff.diffs.length == 0) return;
     another.model().document.doCpxDiff(anotherDiff, !isUndo);
     undoBuffer.addDiff(another.model().document, anotherDiff, diffVersion.second);
-    another.model().document.lastDiffVersion().second = diffVersion.second;
   }
 
   private void onDiffMadeListener(EditorComponent editor) {

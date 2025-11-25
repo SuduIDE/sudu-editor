@@ -17,7 +17,6 @@ import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.*;
-import java.util.function.BiConsumer;
 
 import static org.sudu.experiments.math.ArrayOp.copyOf;
 
@@ -87,7 +86,7 @@ public class Model {
     document.onDiffMade = this::onDiffMade;
     document.syncEditing = this::syncEditing;
     document.getUndoBuffer = this::getUndoBuffer;
-    document.getCaretPos = () -> new V2i(caretLine, caretCharPos);
+    document.getCaretPos = this::getCaretPos;
     document.getSelection = () -> this.selection;
   }
 
@@ -236,7 +235,7 @@ public class Model {
     }
 
     if (editor != null) {
-      editor.useDocumentHighlightProvider(caretPos.line, caretPos.pos);
+      editor.useDocumentHighlightProvider(caretPos.line, caretPos.charPos);
     }
   }
 

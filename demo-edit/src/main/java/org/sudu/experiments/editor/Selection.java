@@ -1,13 +1,14 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.parser.common.Pos;
 
 import java.util.Objects;
 
 public class Selection {
 
-  public final SelPos startPos = new SelPos();
-  public final SelPos endPos = new SelPos();
+  public final Pos startPos = new Pos();
+  public final Pos endPos = new Pos();
   public boolean isSelectionStarted;
 
   Selection() {}
@@ -34,33 +35,27 @@ public class Selection {
     endPos.set(line + 1, 0);
   }
 
-  SelPos getLeftPos() {
-    if (startPos.compareTo(endPos) <= 0)
-      return startPos;
-    else
-      return endPos;
+  Pos getLeftPos() {
+    return startPos.compareTo(endPos) <= 0 ? startPos : endPos;
   }
 
-  SelPos getRightPos() {
-    if (startPos.compareTo(endPos) >= 0)
-      return startPos;
-    else
-      return endPos;
+  Pos getRightPos() {
+    return startPos.compareTo(endPos) >= 0 ? startPos : endPos;
   }
 
   boolean isEmpty() {
     return startPos.line == endPos.line
-        && startPos.charInd == endPos.charInd;
+        && startPos.charPos == endPos.charPos;
   }
 
   // y == -1 -> line is fully selected
   V2i getLine(int line, V2i rv) {
     if (isEmpty()) return null;
-    SelPos left = getLeftPos();
-    SelPos right = getRightPos();
+    Pos left = getLeftPos();
+    Pos right = getRightPos();
     if (left.line <= line && line <= right.line) {
-      int start = line > left.line ? 0 : left.charInd;
-      int end = line < right.line ? -1 : right.charInd;
+      int start = line > left.line ? 0 : left.charPos;
+      int end = line < right.line ? -1 : right.charPos;
       rv.set(start, end);
       return rv;
     } else return null;
@@ -72,58 +67,8 @@ public class Selection {
 
   boolean isTailSelected(int line) {
     if (!isAreaSelected()) return false;
-    SelPos left = getLeftPos();
-    SelPos right = getRightPos();
+    Pos left = getLeftPos();
+    Pos right = getRightPos();
     return left.line <= line && line < right.line;
-  }
-
-  public static class SelPos implements Comparable<SelPos> {
-    public int line;
-    public int charInd;
-
-    public SelPos() {}
-
-    public SelPos(int lineInd, int charInd) {
-      this.line = lineInd;
-      this.charInd = charInd;
-    }
-
-    SelPos(SelPos selPos) {
-      this.line = selPos.line;
-      this.charInd = selPos.charInd;
-    }
-
-    public void set(int lineInd, int charInd) {
-      this.line = lineInd;
-      this.charInd = charInd;
-    }
-
-    public void set(SelPos selPos) {
-      this.line = selPos.line;
-      this.charInd = selPos.charInd;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      return equals((SelPos) o);
-    }
-
-    public boolean equals(SelPos selPos) {
-      return line == selPos.line && charInd == selPos.charInd;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(line, charInd);
-    }
-
-    @Override
-    public int compareTo(SelPos another) {
-      int lineCmp = Integer.compare(this.line, another.line);
-      if (lineCmp != 0) return lineCmp;
-      else return Integer.compare(this.charInd, another.charInd);
-    }
   }
 }

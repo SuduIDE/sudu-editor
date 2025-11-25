@@ -117,7 +117,7 @@ public abstract class BaseParser<P extends Parser> {
     for (var entry: usageMap.entrySet()) {
       var usage = entry.getKey();
       var def = entry.getValue();
-      writer.write(usage.line - 1, usage.pos, def.line - 1, def.pos);
+      writer.write(usage.line - 1, usage.charPos, def.line - 1, def.charPos);
     }
   }
 

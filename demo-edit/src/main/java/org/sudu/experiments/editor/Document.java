@@ -93,12 +93,13 @@ public class Document extends CodeLines {
   }
 
   public void clear() {
-    undoBuffer().clear(this);
     usageToDef.clear();
     defToUsages.clear();
 
     currentVersion = lastParsedVersion = 0;
     tree = initialInterval();
+    var undoBuffer = undoBuffer();
+    if (undoBuffer != null) undoBuffer.clear(this);
   }
 
   public int strLength(int i) {
@@ -188,7 +189,7 @@ public class Document extends CodeLines {
     if (insertDiff != null) changeDiffs[ptr++] = insertDiff;
     if (deleteDiff != null) changeDiffs[ptr++] = deleteDiff;
     changeDiffs = Arrays.copyOf(changeDiffs, ptr);
-    undoBuffer().addDiff(this, mkCpxDiff(changeDiffs));
+    addDiff(mkCpxDiff(changeDiffs));
     currentVersion++;
   }
 
@@ -281,6 +282,10 @@ public class Document extends CodeLines {
     lines[line].insertAt(pos, value);
   }
 
+  public void deleteAt(int line, int pos, int endIndex) {
+    lines[line].delete(pos, endIndex);
+  }
+
   public void insertLines(int line, int pos, String[] lines) {
     insertLinesOp(line, pos, lines);
     makeDiff(line, pos, false, String.join("\n", lines));
@@ -326,27 +331,23 @@ public class Document extends CodeLines {
   }
 
   public String getSelectedText(Selection selection) {
-    Selection.SelPos leftPos = selection.getLeftPos();
-    Selection.SelPos rightPos = selection.getRightPos();
+    Pos leftPos = selection.getLeftPos();
+    Pos rightPos = selection.getRightPos();
 
     if (leftPos.line == rightPos.line) {
-      String line = lines[leftPos.line].makeString();
-      return line.substring(leftPos.charInd, rightPos.charInd);
-    } else {
-      StringBuilder selected = new StringBuilder();
-
-      String firstLine = lines[leftPos.line]
-          .makeString(leftPos.charInd);
-      selected.append(firstLine).append('\n');
-
-      Arrays.stream(lines, leftPos.line + 1, rightPos.line)
-          .forEach(line -> selected.append(line.makeString()).append('\n'));
-
-      String lastLine = lines[rightPos.line]
-          .makeString(0, rightPos.charInd);
-      selected.append(lastLine);
-      return selected.toString();
+      return lines[leftPos.line].makeString(leftPos.charPos, rightPos.charPos);
     }
+    StringBuilder selected = new StringBuilder();
+
+    String firstLine = lines[leftPos.line].makeString(leftPos.charPos);
+    selected.append(firstLine).append('\n');
+
+    Arrays.stream(lines, leftPos.line + 1, rightPos.line)
+        .forEach(line -> selected.append(line.makeString()).append('\n'));
+
+    String lastLine = lines[rightPos.line].makeString(0, rightPos.charPos);
+    selected.append(lastLine);
+    return selected.toString();
   }
 
   public void deleteSelected(Selection selection) {
@@ -354,22 +355,20 @@ public class Document extends CodeLines {
   }
 
   private void deleteSelected(Selection selection, String selected) {
-    deleteSelectedOp(selection);
-    Selection.SelPos leftPos = selection.getLeftPos();
-    makeDiff(leftPos.line, leftPos.charInd, true, selected);
+    deleteAreaOp(selection.getLeftPos(), selection.getRightPos());
+    Pos leftPos = selection.getLeftPos();
+    makeDiff(leftPos.line, leftPos.charPos, true, selected);
     onDiffMade();
   }
 
-  private void deleteSelectedOp(Selection selection) {
-    Selection.SelPos leftPos = selection.getLeftPos();
-    Selection.SelPos rightPos = selection.getRightPos();
-    if (leftPos.line == rightPos.line) {
-      lines[leftPos.line].delete(leftPos.charInd, rightPos.charInd);
+  private void deleteAreaOp(Pos from, Pos to) {
+    if (from.line == to.line) {
+      lines[from.line].delete(from.charPos, to.charPos);
     } else {
-      lines[leftPos.line].delete(leftPos.charInd);
-      if (rightPos.charInd != 0) lines[rightPos.line].delete(0, rightPos.charInd);
-      deleteLinesOp(leftPos.line + 1, rightPos.line);
-      concatLinesOp(leftPos.line);
+      lines[from.line].delete(from.charPos);
+      if (to.charPos != 0) lines[to.line].delete(0, to.charPos);
+      deleteLinesOp(from.line + 1, to.line);
+      concatLinesOp(from.line);
     }
   }
 
@@ -391,7 +390,7 @@ public class Document extends CodeLines {
   }
 
   public void moveToElementStart(Pos pos) {
-    pos.pos = lines[pos.line].getElementStart(pos.pos);
+    pos.charPos = lines[pos.line].getElementStart(pos.charPos);
   }
 
   public V2i getLine(int ind) {
@@ -443,7 +442,7 @@ public class Document extends CodeLines {
   }
 
   public CodeElement getCodeElement(Pos pos) {
-    return lines[pos.line].getCodeElement(pos.pos);
+    return lines[pos.line].getCodeElement(pos.charPos);
   }
 
   public char[] getChars() {
@@ -478,14 +477,27 @@ public class Document extends CodeLines {
   public void makeDiff(Diff diff) {
     currentVersion++;
     var cpxDiff = mkCpxDiff(diff);
-    undoBuffer().addDiff(this, cpxDiff);
+    addDiff(cpxDiff);
     makeDiffOp(diff);
+    syncEditing(cpxDiff);
     updateModelOnDiff(diff, false);
-    syncEditing(cpxDiff, false);
   }
 
   public CpxDiff mkCpxDiff(Diff diff) {
     return mkCpxDiff(ArrayOp.array(diff));
+  }
+
+  public CpxDiff mkCpxDiff(
+      int[] lines,
+      int[] poses,
+      boolean isDelete,
+      String[] changes,
+      V2i caretPos
+  ) {
+    Diff[] diffs = new Diff[lines.length];
+    for (int i = 0; i < lines.length; i++)
+      diffs[i] = new Diff(lines[i], poses[i], isDelete, changes[i]);
+    return mkCpxDiff(diffs, caretPos);
   }
 
   public CpxDiff mkCpxDiff(Diff[] diffs) {
@@ -499,34 +511,29 @@ public class Document extends CodeLines {
   public void makeDiffWithCaretReturn(int line, int from, boolean isDelete, String change) {
     currentVersion++;
     var diff = new Diff(line, from, isDelete, change);
-    undoBuffer().addDiff(this, mkCpxDiff(diff));
+    var cpxDiff = mkCpxDiff(diff);
+    addDiff(cpxDiff);
     makeDiffOp(diff);
+    syncEditing(cpxDiff);
     updateModelOnDiff(diff, false);
   }
 
-  public void makeComplexDiff(
-      int[] lines,
-      int[] from,
-      boolean[] areDeletes,
+  public void makeTabCpxDiff(
+      int[] lines, int[] poses,
+      boolean isDelete,
       String[] changes,
-      V2i caretPos,
-      BiConsumer<Integer, String> editorAction
+      V2i caretPos
   ) {
     currentVersion++;
-
-    Diff[] diffs = new Diff[lines.length];
+    var cpxDiff = mkCpxDiff(lines, poses, isDelete, changes, caretPos);
+    addDiff(cpxDiff);
+    for (int i = 0; i < lines.length; i++) makeDiffOp(cpxDiff.diffs[i]);
+    syncEditing(cpxDiff);
     for (int i = 0; i < lines.length; i++) {
-      diffs[i] = new Diff(lines[i], from[i], areDeletes[i], changes[i]);
+      if (!isDelete) insertAt(lines[i], 0, EditorConst.tabIndent);
+      else deleteAt(lines[i], 0, changes[i].length());
+      updateModelOnDiff(cpxDiff.diffs[i], false);
     }
-    var cpxDiff = mkCpxDiff(diffs, caretPos);
-    undoBuffer().addDiff(this, cpxDiff);
-    for (int i = 0; i < lines.length; i++) {
-      Diff diff = new Diff(lines[i], from[i], areDeletes[i], changes[i]);
-      makeDiffOp(diff);
-      editorAction.accept(lines[i], changes[i]);
-      updateModelOnDiff(diff, false);
-    }
-    syncEditing(cpxDiff, false);
   }
 
   void makeDiffOp(Diff diff) {
@@ -563,18 +570,12 @@ public class Document extends CodeLines {
       insertLinesOp(diff.line, diff.pos, lines);
       tree.makeInsertDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
       scopeGraph.makeInsertDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
-
     } else {
-      Selection selection = new Selection();
-      selection.startPos.set(diff.line, diff.pos);
-
-      if (lines.length == 1) {
-        selection.endPos.set(diff.line, diff.pos + lines[0].length());
-      } else {
-        selection.endPos.set(diff.line + lines.length - 1, lines[lines.length - 1].length());
-      }
-
-      deleteSelectedOp(selection);
+      Pos from = new Pos(diff.line, diff.pos);
+      Pos to = lines.length == 1
+          ? new Pos(diff.line, diff.pos + lines[0].length())
+          : new Pos(diff.line + lines.length - 1, ArrayOp.last(lines).length());
+      deleteAreaOp(from, to);
       tree.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
       scopeGraph.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
     }
@@ -617,7 +618,7 @@ public class Document extends CodeLines {
   }
 
   public int getOffsetAt(Pos pos) {
-    return getOffsetAt(pos.line, pos.pos);
+    return getOffsetAt(pos.line, pos.charPos);
   }
 
   public int getOffsetAt(int lineNumber, int column) {
@@ -645,9 +646,9 @@ public class Document extends CodeLines {
     if (lineInd - 1 < 0) len = 0;
     else len = linePrefixSum[lineInd - 1];
     Pos pos = new Pos(lineInd - 1, offset - len);
-    if (pos.pos >= lines[pos.line].totalStrLength) {
+    if (pos.charPos >= lines[pos.line].totalStrLength) {
       pos.line++;
-      pos.pos = 0;
+      pos.charPos = 0;
     }
     return pos;
   }
@@ -661,7 +662,7 @@ public class Document extends CodeLines {
       int refFlag = reader.next();
       if (refFlag == -1) continue;
       var refPos = binarySearchPosAt(reader.next());
-      var refElem = lines[refPos.line].getCodeElement(refPos.pos);
+      var refElem = lines[refPos.line].getCodeElement(refPos.charPos);
 
       int declFlag = reader.next();
       if (declFlag == -1) {
@@ -683,8 +684,16 @@ public class Document extends CodeLines {
     }
   }
 
+  private void addDiff(CpxDiff cpxDiff) {
+    var undoBuffer = undoBuffer();
+    if (undoBuffer == null) return;
+    undoBuffer.addDiff(this, cpxDiff);
+  }
+
   public CpxDiff lastDiff() {
-    return undoBuffer().lastDiff(this);
+    var undoBuffer = undoBuffer();
+    if (undoBuffer == null) return null;
+    return undoBuffer.lastDiff(this);
   }
 
   public Pair<CpxDiff, Integer> lastDiffVersion() {
@@ -692,11 +701,11 @@ public class Document extends CodeLines {
   }
 
   public UndoBuffer undoBuffer() {
-    return getUndoBuffer.get();
+    return getUndoBuffer != null ? getUndoBuffer.get() : null;
   }
 
   public V2i caretPos() {
-    return getCaretPos != null ? getCaretPos.get() : new V2i(0, 0);
+    return getCaretPos != null ? getCaretPos.get() : null;
   }
 
   public Selection selection() {
@@ -711,8 +720,8 @@ public class Document extends CodeLines {
     if (this.updateModelOnDiff != null) updateModelOnDiff.accept(diff, isUndo);
   }
 
-  private void syncEditing(CpxDiff diff, boolean isUndo) {
-    if (syncEditing != null) syncEditing.accept(diff, isUndo);
+  private void syncEditing(CpxDiff diff) {
+    if (syncEditing != null) syncEditing.accept(diff, false);
   }
 
   private void onDiffMade() {

@@ -38,48 +38,48 @@ public class UndoBuffer {
     else redoLastDiff(doc1, doc2, setCaretPos);
   }
 
-  public void undoLastDiff(Document editor1, Document editor2, BiConsumer<Boolean, V2i> setCaretPos) {
+  public void undoLastDiff(Document doc1, Document doc2, BiConsumer<Boolean, V2i> setCaretPos) {
     if (diffs.isEmpty()) return;
-    var stack1 = diffs.get(editor1);
-    var stack2 = diffs.get(editor2);
+    var stack1 = diffs.get(doc1);
+    var stack2 = diffs.get(doc2);
     boolean empty1 = stack1 == null || stack1.isEmpty();
     boolean empty2 = stack2 == null || stack2.isEmpty();
     int ind1 = empty1 ? -1 : stack1.peekLast().second;
     int ind2 = empty2 ? -1 : stack2.peekLast().second;
     if (empty1 && empty2) return;
     if (ind2 > ind1) {
-      var diff = editor2.undoLastDiff(stack2.removeLast().first, false);
+      var diff = doc2.undoLastDiff(stack2.removeLast().first, false);
       setCaretPos.accept(false, diff.caretBefore);
     } else if (ind1 > ind2) {
-      var diff = editor1.undoLastDiff(stack1.removeLast().first, false);
+      var diff = doc1.undoLastDiff(stack1.removeLast().first, false);
       setCaretPos.accept(true, diff.caretBefore);
     } else if (ind1 != -1) {
-      var leftDiff = editor1.undoLastDiff(stack1.removeLast().first, false);
+      var leftDiff = doc1.undoLastDiff(stack1.removeLast().first, false);
       setCaretPos.accept(true, leftDiff.caretBefore);
-      var rightDiff = editor2.undoLastDiff(stack2.removeLast().first, false);
+      var rightDiff = doc2.undoLastDiff(stack2.removeLast().first, false);
       setCaretPos.accept(false, rightDiff.caretBefore);
     }
   }
 
-  public void redoLastDiff(Document editor1, Document editor2, BiConsumer<Boolean, V2i> setCaretPos) {
+  public void redoLastDiff(Document doc1, Document doc2, BiConsumer<Boolean, V2i> setCaretPos) {
     if (diffs.isEmpty()) return;
-    var stack1 = diffs.get(editor1);
-    var stack2 = diffs.get(editor2);
+    var stack1 = diffs.get(doc1);
+    var stack2 = diffs.get(doc2);
     boolean empty1 = stack1 == null || !stack1.haveNext();
     boolean empty2 = stack2 == null || !stack2.haveNext();
     int ind1 = empty1 ? Integer.MAX_VALUE : stack1.peekNext().second;
     int ind2 = empty2 ? Integer.MAX_VALUE : stack2.peekNext().second;
     if (empty1 && empty2) return;
     if (ind2 < ind1) {
-      var diff = editor2.undoLastDiff(stack2.removeLast().first, true);
+      var diff = doc2.undoLastDiff(stack2.removeNext().first, true);
       setCaretPos.accept(false, diff.caretAfter);
     } else if (ind1 < ind2) {
-      var diff = editor1.undoLastDiff(stack1.removeLast().first, true);
+      var diff = doc1.undoLastDiff(stack1.removeNext().first, true);
       setCaretPos.accept(true, diff.caretAfter);
     } else if (ind1 != Integer.MAX_VALUE) {
-      var leftDiff = editor1.undoLastDiff(stack1.removeLast().first, true);
+      var leftDiff = doc1.undoLastDiff(stack1.removeNext().first, true);
       setCaretPos.accept(true, leftDiff.caretAfter);
-      var rightDiff = editor2.undoLastDiff(stack2.removeLast().first, true);
+      var rightDiff = doc2.undoLastDiff(stack2.removeNext().first, true);
       setCaretPos.accept(false, rightDiff.caretAfter);
     }
   }

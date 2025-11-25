@@ -29,7 +29,7 @@ public class DebugHelper {
 
 
   static void dumpProvider(DefDeclProvider.Provider provider, Model m, Pos pos) {
-    provider.provide(m, pos.line, pos.pos,
+    provider.provide(m, pos.line, pos.charPos,
         DebugHelper::dumpResult, Debug::consoleInfo);
   }
 
@@ -43,7 +43,7 @@ public class DebugHelper {
   }
 
   static void dumpReferenceProvider(ReferenceProvider.Provider p, Model m, Pos pos) {
-    p.provideReferences(m, pos.line, pos.pos, true,
+    p.provideReferences(m, pos.line, pos.charPos, true,
         DebugHelper::dumpResult, Debug::consoleInfo);
   }
 

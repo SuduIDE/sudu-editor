@@ -2,6 +2,7 @@ package org.sudu.experiments.math;
 
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -222,5 +223,24 @@ class ArrayOpTest {
     int[] a = new int[expected.length];
     ArrayOp.fillSequence(a, 2, 2 + 3, 5);
     assertArrayEquals(expected, a);
+  }
+
+  @Test
+  void testFlatten() {
+    String[] expectedEmpty = ArrayOp.array();
+    String[][] test1 = ArrayOp.array();
+
+    String[] expectedSeq = ArrayOp.array("1", "2", "3", "4", "5", "6");
+    String[][] testFlat = new String[][]{ArrayOp.array("1", "2", "3", "4", "5", "6")};
+
+    String[][] test = ArrayOp.array(
+        ArrayOp.array("1", "2"),
+        ArrayOp.array("3", "4", "5"),
+        ArrayOp.array("6")
+    );
+
+    assertArrayEquals(expectedEmpty, ArrayOp.flatten(test1));
+    assertArrayEquals(expectedSeq, ArrayOp.flatten(testFlat));
+    assertArrayEquals(expectedSeq, ArrayOp.flatten(test));
   }
 }
