@@ -209,7 +209,22 @@ export const enum ThemeColor {
   InsertedTextBackground = 18,
   LineNumberForeground = 19,
   ActiveLineNumberForeground = 20,
-  LineNumberActiveForeground = 21
+  LineNumberActiveForeground = 21,
+
+  SyntaxDefault = 30,
+  SyntaxKeyword,
+  SyntaxNull,
+  SyntaxBoolean,
+  SyntaxSemi,
+  SyntaxField,
+  SyntaxString,
+  SyntaxError,
+  SyntaxNumeric,
+  SyntaxMethod,
+  SyntaxComment,
+  SyntaxAnnotation,
+  SyntaxType,
+  SyntaxOperator
 }
 
 export type BaseTheme = 'dark' | 'light' | 'darcula';
