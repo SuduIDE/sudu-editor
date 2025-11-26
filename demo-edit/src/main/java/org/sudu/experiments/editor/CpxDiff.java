@@ -2,6 +2,7 @@ package org.sudu.experiments.editor;
 
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.parser.common.Pair;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.text.SplitText;
 
@@ -16,8 +17,8 @@ public class CpxDiff {
 
   public CpxDiff(Diff[] diffs, Selection selection, V2i caretBefore) {
     this.diffs = diffs;
-    this.from = selection != null ? selection.getLeftPos() : null;
-    this.to = selection != null ? selection.getRightPos() : null;
+    this.from = selection != null ? selection.getLeftPos().copy() : null;
+    this.to = selection != null ? selection.getRightPos().copy() : null;
     this.caretBefore = caretBefore;
     var last = last();
     this.caretAfter = last.isDelete ? caretBefore : makeCaretReturnPos(last.line, last.pos, last.change);
@@ -36,6 +37,10 @@ public class CpxDiff {
     this.caretAfter = caretAfter;
   }
 
+  public Pair<Pos, Pos> selection() {
+    return Pair.of(from, to);
+  }
+
   public CpxDiff copyWithNewLine(Function<Integer, Integer> getOpposite) {
     Diff[][] tmp = new Diff[diffs.length][];
     for (int i = 0; i < diffs.length; i++) tmp[i] = splitDiffByLines(diffs[i]);
@@ -50,9 +55,7 @@ public class CpxDiff {
     copiedDiffs = Arrays.copyOf(copiedDiffs, len);
     var copiedCaretBefore = new V2i(getOpposite.apply(caretBefore.x), caretBefore.y);
     var copiedCaretAfter = new V2i(getOpposite.apply(caretAfter.x), caretAfter.y);
-    var copiedFrom = new Pos(getOpposite.apply(from.line), from.charPos);
-    var copiedTo = new Pos(getOpposite.apply(to.line), to.charPos);
-    return new CpxDiff(copiedDiffs, copiedFrom, copiedTo, copiedCaretBefore, copiedCaretAfter);
+    return new CpxDiff(copiedDiffs, null, null , copiedCaretBefore, copiedCaretAfter);
   }
 
   private Diff[] splitDiffByLines(Diff diff) {

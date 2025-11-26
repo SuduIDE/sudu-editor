@@ -33,6 +33,10 @@ public class Pos implements Comparable<Pos> {
     return new Pos(token.getLine(), token.getCharPositionInLine());
   }
 
+  public Pos copy() {
+    return new Pos(line, charPos);
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

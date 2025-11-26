@@ -8,10 +8,10 @@ import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
-import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.parser.common.Pair;
+import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.common.TriConsumer;
-import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.Arrays;
@@ -428,12 +428,17 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void undoLastDiff(boolean isRedo) {
-    undoBuffer.undoLastDiff(editor1.model().document, editor2.model().document, this::setCaretPos, isRedo);
+    undoBuffer.undoLastDiff(editor1.model().document, editor2.model().document, this::restore, isRedo);
   }
 
-  private void setCaretPos(boolean isLeft, V2i pos) {
+  private void restore(boolean isLeft, V2i pos, Pair<Pos, Pos> selection) {
     var editor = isLeft ? editor1 : editor2;
     editor.setCaretLinePos(pos.x, pos.y, false);
+    if (selection.first == null || selection.second == null) return;
+    editor.setSelection(
+        selection.second.charPos, selection.second.line,
+        selection.first.charPos, selection.first.line
+    );
   }
 
   public boolean modelFlagsReady() {
