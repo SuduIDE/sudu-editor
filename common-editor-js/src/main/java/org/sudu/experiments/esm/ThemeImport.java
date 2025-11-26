@@ -24,7 +24,7 @@ public interface ThemeImport {
   String baseTheme = "baseTheme";
   String uiFont = "uiFont";
   String editorFont = "editorFont";
-  boolean debug = false;
+  boolean debug = true;
 
   static EditorColorScheme fromJs(JSObject t) {
     boolean isString = JSString.isInstance(t);
@@ -137,6 +137,20 @@ public interface ThemeImport {
       case LineNumberForeground -> "LineNumberForeground";
       case ActiveLineNumberForeground -> "ActiveLineNumberForeground";
       case LineNumberActiveForeground -> "LineNumberActiveForeground";
+      case SyntaxKeyword -> " SyntaxKeyword";
+      case SyntaxNull -> " SyntaxNull";
+      case SyntaxBoolean -> " SyntaxBoolean";
+      case SyntaxSemi -> " SyntaxSemi";
+      case SyntaxField -> " SyntaxField";
+      case SyntaxString -> " SyntaxString";
+      case SyntaxError -> " SyntaxError";
+      case SyntaxNumeric -> " SyntaxNumeric";
+      case SyntaxMethod -> " SyntaxMethod";
+      case SyntaxComment -> " SyntaxComment";
+      case SyntaxAnnotation -> " SyntaxAnnotation";
+      case SyntaxType -> " SyntaxType";
+      case SyntaxOperator -> " SyntaxOperator";
+
       default -> "bad name " + n;
     };
   }

@@ -43,6 +43,20 @@ public class EditorColorScheme {
   public static final int ActiveLineNumberForeground = 20;
   public static final int LineNumberActiveForeground = 21;
 
+  public static final int SyntaxKeyword = 30;
+  public static final int SyntaxNull = 31;
+  public static final int SyntaxBoolean = 32;
+  public static final int SyntaxSemi = 33;
+  public static final int SyntaxField = 34;
+  public static final int SyntaxString = 35;
+  public static final int SyntaxError = 36;
+  public static final int SyntaxNumeric = 37;
+  public static final int SyntaxMethod = 38;
+  public static final int SyntaxComment = 39;
+  public static final int SyntaxAnnotation = 40;
+  public static final int SyntaxType = 41;
+  public static final int SyntaxOperator = 42;
+
   public static final int LastIndex = IgnoredResourceForeground + 1;
 
   public final EditorColors editor;
@@ -199,7 +213,6 @@ public class EditorColorScheme {
       case EditorBackground ->
         editor.bg = c;
 
-
       case EditorForeground -> {
         codeElement[0].colorF = c;
         lineNumber.textColor = c;
@@ -257,9 +270,30 @@ public class EditorColorScheme {
 
       case LineNumberActiveForeground ->
         lineNumber.caretTextColor = ColorOp.blend(editor.bg, c);
+
+      // syntax
+      case SyntaxKeyword    -> setCodeForeground(ParserConstants.TokenTypes.KEYWORD, c);
+      case SyntaxNull       -> setCodeForeground(ParserConstants.TokenTypes.NULL, c);
+      case SyntaxBoolean    -> setCodeForeground(ParserConstants.TokenTypes.BOOLEAN, c);
+      case SyntaxSemi       -> setCodeForeground(ParserConstants.TokenTypes.SEMI, c);
+      case SyntaxField      -> setCodeForeground(ParserConstants.TokenTypes.FIELD, c);
+      case SyntaxString     -> setCodeForeground(ParserConstants.TokenTypes.STRING, c);
+      case SyntaxError      -> setCodeForeground(ParserConstants.TokenTypes.ERROR, c);
+      case SyntaxNumeric    -> setCodeForeground(ParserConstants.TokenTypes.NUMERIC, c);
+      case SyntaxMethod     -> setCodeForeground(ParserConstants.TokenTypes.METHOD, c);
+      case SyntaxComment    -> setCodeForeground(ParserConstants.TokenTypes.COMMENT, c);
+      case SyntaxAnnotation -> setCodeForeground(ParserConstants.TokenTypes.ANNOTATION, c);
+      case SyntaxType       -> setCodeForeground(ParserConstants.TokenTypes.TYPE, c);
+      case SyntaxOperator   -> setCodeForeground(ParserConstants.TokenTypes.OPERATOR, c);
     }
 
     return true;
+  }
+
+  private void setCodeForeground(int id, Color c) {
+    codeElement[id] = new CodeElementColor(
+        c, codeElement[id].colorB
+    );
   }
 
   public MergeButtonsColors codeDiffMergeButtons() {

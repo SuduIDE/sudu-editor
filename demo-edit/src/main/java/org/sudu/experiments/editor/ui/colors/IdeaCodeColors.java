@@ -81,7 +81,6 @@ public interface IdeaCodeColors {
     ElementsLight(Color color, Color bgColor) {
       v = new CodeElementColor(color, bgColor);
     }
-
   }
 
   enum ElementsDark {
@@ -90,8 +89,8 @@ public interface IdeaCodeColors {
     field(new Color("#C77DBB")),
     string(new Color("#6AAB73")),
     comma(Dark.defaultText),
-    error(new Color("#F75464")),
-    unused(new Color("#6F737A")),
+    error(Dark.error),
+    unused(Dark.unused),
     number(new Color("#2AACB8")),
     method(new Color("#56A8F5")),
     showUsage(Darcula.defaultText, new Color("#373B39")),
@@ -138,6 +137,8 @@ public interface IdeaCodeColors {
     Color scrollBarLine = new Color(107, 106, 107, 128);
     Color scrollBarBg = new Color(30, 31, 34, 0);
     Color caretBg = new Color("#26282E");
+    Color error = new Color("#F75464");
+    Color unused = new Color("#6F737A");
   }
 
   interface Light {

@@ -1,13 +1,14 @@
 package org.sudu.experiments.editor;
 
-import org.sudu.experiments.editor.ui.colors.IdeaCodeColors.ElementsDarcula;
+import org.sudu.experiments.editor.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.math.XorShiftRandom;
+import org.sudu.experiments.parser.ParserConstants;
 
 public class TestText {
   static CodeElement[] spaces() {
-    int keyword = ElementsDarcula.keyword.ordinal();
-    int braceMatch = ElementsDarcula.braceMatch.ordinal();
-    int commaIndex = ElementsDarcula.comma.ordinal();
+    int keyword = ParserConstants.TokenTypes.KEYWORD;
+    int braceMatch = 10;
+    int commaIndex = 4;
 
     CodeElement sp = new CodeElement(" ", 0);
     CodeElement br1 = new CodeElement("(", 0);
@@ -33,8 +34,8 @@ public class TestText {
   }
 
   static CodeElement[] words(XorShiftRandom r) {
-    int numColors = ElementsDarcula.values().length - 1;
-    int string = ElementsDarcula.string.ordinal();
+    int numColors = IdeaCodeColors.codeElementColorsDarcula().length;
+    int string = ParserConstants.TokenTypes.STRING;
     return new CodeElement[]{
         new CodeElement("return", r.nextInt(numColors), r.nextInt(4)),
         new CodeElement("System", r.nextInt(numColors), r.nextInt(4)),
