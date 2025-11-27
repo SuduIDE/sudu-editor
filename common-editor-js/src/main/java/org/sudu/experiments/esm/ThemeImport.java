@@ -24,7 +24,7 @@ public interface ThemeImport {
   String baseTheme = "baseTheme";
   String uiFont = "uiFont";
   String editorFont = "editorFont";
-  boolean debug = true;
+  boolean debug = false;
 
   static EditorColorScheme fromJs(JSObject t) {
     boolean isString = JSString.isInstance(t);
