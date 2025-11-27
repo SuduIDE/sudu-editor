@@ -57,7 +57,7 @@ public class EditorColorScheme {
   public static final int SyntaxType = 41;
   public static final int SyntaxOperator = 42;
 
-  public static final int LastIndex = IgnoredResourceForeground + 1;
+  public static final int LastIndex = SyntaxOperator + 1;
 
   public final EditorColors editor;
   public final FileTreeViewTheme fileTreeView;
@@ -327,5 +327,48 @@ public class EditorColorScheme {
   public V4f getDiffColor(byte[] colors, int i) {
     return i >= colors.length || colors[i] == 0
         ? editor.bg : codeDiffBg.getDiffColor(colors[i], editor.bg);
+  }
+
+  public static String name(int n) {
+    return switch (n) {
+      case TreeViewBackground -> "TreeViewBackground";
+      case TreeViewForeground -> "TreeViewForeground";
+      case SelectedItemBackground -> "SelectedItemBackground";
+      case SelectedItemForeground -> "SelectedItemForeground";
+      case HoveredItemBackground -> "HoveredItemBackground";
+      case InactiveSelectionBackground -> "InactiveSelectionBackground";
+      case AddedResourceForeground -> "AddedResourceForeground";
+      case DeletedResourceForeground -> "DeletedResourceForeground";
+      case ModifiedResourceForeground -> "ModifiedResourceForeground";
+      case IgnoredResourceForeground -> "IgnoredResourceForeground";
+      case PanelHeaderBackground -> "PanelHeaderBackground";
+      case PanelHeaderForeground -> "PanelHeaderForeground";
+      case EditorBackground -> "EditorBackground";
+      case EditorForeground -> "EditorForeground";
+      case CurrentLineBorder -> "CurrentLineBorder";
+      case CurrentLineBackground -> "CurrentLineBackground";
+      case DeletedRegionBackground -> "DeletedRegionBackground";
+      case DeletedTextBackground -> "DeletedTextBackground";
+      case InsertedRegionBackground -> "InsertedRegionBackground";
+      case InsertedTextBackground -> "InsertedTextBackground";
+      case LineNumberForeground -> "LineNumberForeground";
+      case ActiveLineNumberForeground -> "ActiveLineNumberForeground";
+      case LineNumberActiveForeground -> "LineNumberActiveForeground";
+      case SyntaxKeyword -> " SyntaxKeyword";
+      case SyntaxNull -> " SyntaxNull";
+      case SyntaxBoolean -> " SyntaxBoolean";
+      case SyntaxSemi -> " SyntaxSemi";
+      case SyntaxField -> " SyntaxField";
+      case SyntaxString -> " SyntaxString";
+      case SyntaxError -> " SyntaxError";
+      case SyntaxNumeric -> " SyntaxNumeric";
+      case SyntaxMethod -> " SyntaxMethod";
+      case SyntaxComment -> " SyntaxComment";
+      case SyntaxAnnotation -> " SyntaxAnnotation";
+      case SyntaxType -> " SyntaxType";
+      case SyntaxOperator -> " SyntaxOperator";
+
+      default -> "bad name " + n;
+    };
   }
 }
