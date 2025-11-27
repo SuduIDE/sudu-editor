@@ -17,10 +17,10 @@ public class CpxDiff {
 
   public CpxDiff(Diff[] diffs, Selection selection, V2i caretBefore) {
     this.diffs = diffs;
-    this.from = selection != null ? selection.getLeftPos().copy() : null;
-    this.to = selection != null ? selection.getRightPos().copy() : null;
+    this.from = selection != null ? new Pos(selection.getLeftPos()) : null;
+    this.to = selection != null ? new Pos(selection.getRightPos()) : null;
     this.caretBefore = caretBefore;
-    var last = last();
+    var last = ArrayOp.last(diffs);
     this.caretAfter = last.isDelete ? caretBefore : makeCaretReturnPos(last.line, last.pos, last.change);
   }
 
@@ -48,6 +48,7 @@ public class CpxDiff {
     Diff[] copiedDiffs = new Diff[flatten.length];
     int len = 0;
     for (Diff diff: flatten) {
+      if (diff.change.isEmpty()) continue;
       int oppositeLine = getOpposite.apply(diff.line);
       if (oppositeLine == -1) continue;
       copiedDiffs[len++] = diff.copyWithNewLine(oppositeLine);
@@ -82,10 +83,6 @@ public class CpxDiff {
 
   private V2i changeDelta(String change) {
     String[] lines = SplitText.split(change);
-    return new V2i(lines.length - 1, lines[lines.length - 1].length());
-  }
-
-  private Diff last() {
-    return diffs[diffs.length - 1];
+    return new V2i(lines.length - 1, ArrayOp.last(lines).length());
   }
 }

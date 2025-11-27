@@ -16,6 +16,7 @@ import org.sudu.experiments.exclude.ExcludeList;
 import org.sudu.experiments.js.JsArray;
 import org.sudu.experiments.js.TextEncoder;
 import org.sudu.experiments.js.node.SshDirectoryHandle;
+import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.Numbers;
 import org.sudu.experiments.protocol.BackendMessage;
 import org.sudu.experiments.protocol.FrontendMessage;
@@ -911,7 +912,7 @@ public class RemoteCollector {
           ? navigateNext(models, filteredPath, path.length - 1)
           : navigatePrev(models, filteredPath, path.length - 1);
       if (navigated == null) {
-        var lastModel = models[models.length - 1];
+        var lastModel = ArrayOp.last(models);
         var child = lastModel.child(filteredPath[path.length - 1]);
         if (child.isFile() && child.getDiffType() != DiffTypes.DEFAULT) navigated = child;
       }

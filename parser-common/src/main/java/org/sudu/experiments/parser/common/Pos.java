@@ -11,6 +11,10 @@ public class Pos implements Comparable<Pos> {
 
   public Pos() {}
 
+  public Pos(Pos pos) {
+    set(pos);
+  }
+
   public Pos(int line, int charPos) {
     set(line, charPos);
   }
@@ -31,10 +35,6 @@ public class Pos implements Comparable<Pos> {
 
   public static Pos fromToken(Token token) {
     return new Pos(token.getLine(), token.getCharPositionInLine());
-  }
-
-  public Pos copy() {
-    return new Pos(line, charPos);
   }
 
   @Override

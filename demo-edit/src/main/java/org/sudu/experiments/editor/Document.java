@@ -201,7 +201,7 @@ public class Document extends CodeLines {
     if (!insertFromStart) sb.append(newLine);
     for (int i = 0; i < newLines.length - 1; i++)
       sb.append(newLines[i].makeString()).append("\n");
-    sb.append(newLines[newLines.length - 1].makeString());
+    sb.append(ArrayOp.last(newLines).makeString());
 
     String inserted = sb.toString();
     int insertLine = !insertFromStart ? fromLine - 1 : fromLine;

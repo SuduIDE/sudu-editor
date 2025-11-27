@@ -248,7 +248,7 @@ public class CodeLine {
   }
 
   public void insertToEnd(String value) {
-    int elemSize = elements.length == 0 ? 0 : elements[elements.length - 1].s.length();
+    int elemSize = elements.length == 0 ? 0 : ArrayOp.last(elements).s.length();
     insertAt(elements.length - 1, elemSize, value);
   }
 

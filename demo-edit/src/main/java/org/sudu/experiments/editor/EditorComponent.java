@@ -983,7 +983,7 @@ public class EditorComponent extends View implements
     int newCaretLine = model.caretLine + lines.length - 1;
     int newCaretPos;
     if (newCaretLine == model.caretLine) newCaretPos = model.caretCharPos + lines[0].length();
-    else newCaretPos = lines[lines.length - 1].length();
+    else newCaretPos = ArrayOp.last(lines).length();
 
     setCaretLinePos(newCaretLine, newCaretPos, false);
     setSelectionToCaret();
