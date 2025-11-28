@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.base.BaseFirstLinesLexer;
+import org.sudu.experiments.parser.help.Helper;
 import org.sudu.experiments.parser.json.JsonSplitRules;
 import org.sudu.experiments.parser.json.gen.JsonLexer;
 import org.sudu.experiments.parser.json.gen.JsonParser;

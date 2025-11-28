@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.parser.common.NullParser;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.base.BaseFirstLinesLexer;
+import org.sudu.experiments.parser.help.Helper;
 import org.sudu.experiments.parser.typescript.TsSplitRules;
 import org.sudu.experiments.parser.typescript.gen.LightTypeScriptLexer;
 import org.sudu.experiments.parser.typescript.parser.highlighting.LightTypeScriptHighlighting;

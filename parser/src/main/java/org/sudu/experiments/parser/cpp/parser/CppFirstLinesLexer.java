@@ -9,6 +9,7 @@ import org.sudu.experiments.parser.cpp.CppSplitRules;
 import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
 import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
 import org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting;
+import org.sudu.experiments.parser.help.Helper;
 
 public class CppFirstLinesLexer extends BaseFirstLinesLexer<CPP14Parser> {
 

@@ -29,22 +29,31 @@ public interface IdeaCodeColors {
 
   enum ElementsDarcula {
     defaultText(Darcula.defaultText),
-    keyword(new Color("#CC7832")),
-    field(new Color("#9876AA")),
-    string(new Color("#6A8759")),
-    comma(new Color("#CC7832")),
-    error(new Color(188, 63, 60)),
-    unused(new Color("#72737A")),
-    number(new Color("#6897BB")),
-    method(new Color("#FFC66D")),
-    showUsage(Darcula.defaultText, new Color(52, 65, 52)),
-    braceMatch(new Color("#FFEF28"), new Color("#3B514D")),
-    comment(new Color("#808080")),
-    annotation(new Color("#BBB529")),
+    keyword(Darcula.keyword),
+    nullLiteral(Darcula.keyword),
+    booleanLiteral(Darcula.keyword),
+    semi(Darcula.keyword),
+    field("#9876AA"),
+    string("#6A8759"),
+    error("#BC3F3C"),
+    number("#6897BB"),
+    method("#FFC66D"),
+    comment("#808080"),
+    annotation("#BBB529"),
     type(Darcula.defaultText), // Old color: #287BDE
-    operator(new Color("#5F8C8A"));
+    operator("#5F8C8A"),
+    escape(Darcula.keyword),
+    cppDirective(Darcula.keyword),
+
+    br1(Darcula.defaultText),
+    br2(Darcula.defaultText),
+    br3(Darcula.defaultText);
 
     public final CodeElementColor v;
+
+    ElementsDarcula(String color) {
+      this(new Color(color));
+    }
 
     ElementsDarcula(Color color) {
       v = new CodeElementColor(color, null);
@@ -57,22 +66,31 @@ public interface IdeaCodeColors {
 
   enum ElementsLight {
     defaultText(Light.defaultText),
-    keyword(new Color("#0033b3")),
-    field(new Color("#871094" )),
-    string(new Color("#3C7C16")),
-    comma(Light.defaultText),
-    error(new Color("#F93900")),
-    unused(new Color("#808080")),
-    number(new Color("#164FF1")),
-    method(new Color("#396179")),
-    showUsage(Light.defaultText, new Color(0xed, 0xeb, 0xfc)),
-    braceMatch(new Color("#FFEF28"), new Color("#93D9D9")),
-    comment(new Color("#808080")),
-    annotation(new Color("#BBB529")),
-    type(new Color("#287BDE")),
-    operator(new Color("#5F8C8A"));
+    keyword(Light.keyword),
+    nullLiteral(Light.keyword),
+    booleanLiteral(Light.keyword),
+    semi(Light.defaultText),
+    field("#871094"),
+    string("#3C7C16"),
+    error("#F93900"),
+    number("#164FF1"),
+    method("#396179"),
+    comment("#808080"),
+    annotation("#BBB529"),
+    type("#287BDE"),
+    operator("#5F8C8A"),
+    escape(Light.keyword),
+    cppDirective(Light.keyword),
+
+    br1(Light.defaultText),
+    br2(Light.defaultText),
+    br3(Light.defaultText);
 
     public final CodeElementColor v;
+
+    ElementsLight(String color) {
+      this(new Color(color));
+    }
 
     ElementsLight(Color color) {
       v = new CodeElementColor(color, null);
@@ -85,22 +103,31 @@ public interface IdeaCodeColors {
 
   enum ElementsDark {
     defaultText(Dark.defaultText),
-    keyword(new Color("#CF8E6D")),
-    field(new Color("#C77DBB")),
-    string(new Color("#6AAB73")),
-    comma(Dark.defaultText),
+    keyword(Dark.keyword),
+    nullLiteral(Dark.keyword),
+    booleanLiteral(Dark.keyword),
+    semi(Dark.defaultText),
+    field("#C77DBB"),
+    string("#6AAB73"),
     error(Dark.error),
-    unused(Dark.unused),
-    number(new Color("#2AACB8")),
-    method(new Color("#56A8F5")),
-    showUsage(Darcula.defaultText, new Color("#373B39")),
-    braceMatch(Darcula.defaultText, new Color("#43454A")),
-    comment(new Color("#7A7E85")),
-    annotation(new Color("#B3AE60")),
+    number("#2AACB8"),
+    method("#56A8F5"),
+    comment("#7A7E85"),
+    annotation("#B3AE60"),
     type(Dark.defaultText),
-    operator(new Color("#5F8C8A"));
+    operator("#5F8C8A"),
+    escape(Dark.keyword),
+    cppDirective(Dark.keyword),
+
+    br1(Dark.defaultText),
+    br2(Dark.defaultText),
+    br3(Dark.defaultText);
 
     public final CodeElementColor v;
+
+    ElementsDark(String color) {
+      this(new Color(color));
+    }
 
     ElementsDark(Color color) {
       v = new CodeElementColor(color, null);
@@ -123,6 +150,7 @@ public interface IdeaCodeColors {
     Color scrollBarLine = new Color(85, 85, 85, 128);
     Color scrollBarBg = new Color(43, 43, 43, 0);
     Color caretBg = new Color("#323232");
+    Color keyword = new Color("#CC7832");
   }
 
   interface Dark {
@@ -139,6 +167,7 @@ public interface IdeaCodeColors {
     Color caretBg = new Color("#26282E");
     Color error = new Color("#F75464");
     Color unused = new Color("#6F737A");
+    Color keyword = new Color("#CF8E6D");
   }
 
   interface Light {
@@ -153,5 +182,6 @@ public interface IdeaCodeColors {
     Color scrollBarLine = new Color(205, 205, 205, 153);
     Color scrollBarBg = new Color(255, 255, 255, 0);
     Color caretBg = new Color("#F5F8FE");
+    Color keyword = new Color("#0033b3");
   }
 }
