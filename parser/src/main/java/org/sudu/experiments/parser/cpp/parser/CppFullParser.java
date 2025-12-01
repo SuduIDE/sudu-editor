@@ -64,16 +64,6 @@ public class CppFullParser extends BaseFullParser<CPP14Parser> {
     CppLexerHighlighting.highlightTokens(allTokens, tokenTypes, tokenStyles);
   }
 
-  public static boolean isDirective(int tokenType) {
-    return tokenType == CPP14Lexer.Directive
-        || tokenType == CPP14Lexer.MultiLineMacro;
-  }
-
-  public static boolean isComment(int tokenType) {
-    return tokenType == CPP14Lexer.BlockComment
-        || tokenType == CPP14Lexer.LineComment;
-  }
-
   @Override
   protected boolean throwOnError() {
     return true;

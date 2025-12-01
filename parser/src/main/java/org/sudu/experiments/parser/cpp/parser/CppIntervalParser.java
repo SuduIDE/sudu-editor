@@ -59,16 +59,6 @@ public class CppIntervalParser extends BaseIntervalParser<CPP14Parser> {
     CppLexerHighlighting.highlightTokens(allTokens, tokenTypes, tokenStyles);
   }
 
-  public static boolean isDirective(int tokenType) {
-    return tokenType == CPP14Lexer.Directive
-        || tokenType == CPP14Lexer.MultiLineMacro;
-  }
-
-  public static boolean isComment(int tokenType) {
-    return tokenType == CPP14Lexer.BlockComment
-        || tokenType == CPP14Lexer.LineComment;
-  }
-
   @Override
   protected void walkScopes(ParserRuleContext startRule, ScopeWalker scopeWalker) {
     ParseTreeWalker treeWalker = new ParseTreeWalker();

@@ -224,7 +224,10 @@ export const enum ThemeColor {
   SyntaxComment,
   SyntaxAnnotation,
   SyntaxType,
-  SyntaxOperator
+  SyntaxOperator,
+  SyntaxEscapeChar,
+  SyntaxCppDirective,
+  SyntaxDocumentation
 }
 
 export type BaseTheme = 'dark' | 'light' | 'darcula';

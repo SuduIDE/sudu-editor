@@ -56,8 +56,11 @@ public class EditorColorScheme {
   public static final int SyntaxAnnotation = 40;
   public static final int SyntaxType = 41;
   public static final int SyntaxOperator = 42;
+  public static final int SyntaxEscapeChar = 43;
+  public static final int SyntaxCppDirective = 44;
+  public static final int SyntaxDocumentation = 45;
 
-  public static final int LastIndex = SyntaxOperator + 1;
+  public static final int LastIndex = SyntaxDocumentation + 1;
 
   public final EditorColors editor;
   public final FileTreeViewTheme fileTreeView;
@@ -272,19 +275,22 @@ public class EditorColorScheme {
         lineNumber.caretTextColor = ColorOp.blend(editor.bg, c);
 
       // syntax
-      case SyntaxKeyword    -> setCodeForeground(ParserConstants.TokenTypes.KEYWORD, c);
-      case SyntaxNull       -> setCodeForeground(ParserConstants.TokenTypes.NULL, c);
-      case SyntaxBoolean    -> setCodeForeground(ParserConstants.TokenTypes.BOOLEAN, c);
-      case SyntaxSemi       -> setCodeForeground(ParserConstants.TokenTypes.SEMI, c);
-      case SyntaxField      -> setCodeForeground(ParserConstants.TokenTypes.FIELD, c);
-      case SyntaxString     -> setCodeForeground(ParserConstants.TokenTypes.STRING, c);
-      case SyntaxError      -> setCodeForeground(ParserConstants.TokenTypes.ERROR, c);
-      case SyntaxNumeric    -> setCodeForeground(ParserConstants.TokenTypes.NUMERIC, c);
-      case SyntaxMethod     -> setCodeForeground(ParserConstants.TokenTypes.METHOD, c);
-      case SyntaxComment    -> setCodeForeground(ParserConstants.TokenTypes.COMMENT, c);
-      case SyntaxAnnotation -> setCodeForeground(ParserConstants.TokenTypes.ANNOTATION, c);
-      case SyntaxType       -> setCodeForeground(ParserConstants.TokenTypes.TYPE, c);
-      case SyntaxOperator   -> setCodeForeground(ParserConstants.TokenTypes.OPERATOR, c);
+      case SyntaxKeyword       -> setCodeForeground(ParserConstants.TokenTypes.KEYWORD, c);
+      case SyntaxNull          -> setCodeForeground(ParserConstants.TokenTypes.NULL, c);
+      case SyntaxBoolean       -> setCodeForeground(ParserConstants.TokenTypes.BOOLEAN, c);
+      case SyntaxSemi          -> setCodeForeground(ParserConstants.TokenTypes.SEMI, c);
+      case SyntaxField         -> setCodeForeground(ParserConstants.TokenTypes.FIELD, c);
+      case SyntaxString        -> setCodeForeground(ParserConstants.TokenTypes.STRING, c);
+      case SyntaxError         -> setCodeForeground(ParserConstants.TokenTypes.ERROR, c);
+      case SyntaxNumeric       -> setCodeForeground(ParserConstants.TokenTypes.NUMERIC, c);
+      case SyntaxMethod        -> setCodeForeground(ParserConstants.TokenTypes.METHOD, c);
+      case SyntaxComment       -> setCodeForeground(ParserConstants.TokenTypes.COMMENT, c);
+      case SyntaxAnnotation    -> setCodeForeground(ParserConstants.TokenTypes.ANNOTATION, c);
+      case SyntaxType          -> setCodeForeground(ParserConstants.TokenTypes.TYPE, c);
+      case SyntaxOperator      -> setCodeForeground(ParserConstants.TokenTypes.OPERATOR, c);
+      case SyntaxEscapeChar    -> setCodeForeground(ParserConstants.TokenTypes.ESCAPE_CHAR, c);
+      case SyntaxCppDirective  -> setCodeForeground(ParserConstants.TokenTypes.CPP_DIRECTIVE, c);
+      case SyntaxDocumentation -> setCodeForeground(ParserConstants.TokenTypes.DOCUMENTATION, c);
     }
 
     return true;
@@ -367,6 +373,9 @@ public class EditorColorScheme {
       case SyntaxAnnotation -> " SyntaxAnnotation";
       case SyntaxType -> " SyntaxType";
       case SyntaxOperator -> " SyntaxOperator";
+      case SyntaxEscapeChar -> " SyntaxEscapeChar";
+      case SyntaxCppDirective -> " SyntaxCppDirective";
+      case SyntaxDocumentation -> " SyntaxDocumentation";
 
       default -> "bad name " + n;
     };

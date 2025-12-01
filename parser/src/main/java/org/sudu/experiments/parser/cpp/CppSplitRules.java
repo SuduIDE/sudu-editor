@@ -22,6 +22,7 @@ public class CppSplitRules extends SplitRules {
   private boolean isMultilineToken(Token token) {
     int type = token.getType();
     return type == CPP14Lexer.BlockComment
+        || type == CPP14Lexer.Documentation
         || type == CPP14Lexer.Directive
         || type == CPP14Lexer.MultiLineMacro
         || type == CPP14Lexer.StringLiteral;

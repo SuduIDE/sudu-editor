@@ -22,12 +22,11 @@ public interface ParserConstants {
     int OPERATOR      = 13;
     int ESCAPE_CHAR   = 14;
     int CPP_DIRECTIVE = 15;
+    int DOCUMENTATION = 16;
 
-    int BR_1          = 16;
-    int BR_2          = 17;
-    int BR_3          = 18;
-
-    int JAVADOC = STRING;
+    int BR_1          = 17;
+    int BR_2          = 18;
+    int BR_3          = 19;
 
     int TYPES_LENGTH = BR_3 + 1;
 

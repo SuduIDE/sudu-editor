@@ -44,6 +44,7 @@ public interface IdeaCodeColors {
     operator("#5F8C8A"),
     escape(Darcula.keyword),
     cppDirective(Darcula.keyword),
+    documentation("#629755"),
 
     br1(Darcula.defaultText),
     br2(Darcula.defaultText),
@@ -81,6 +82,7 @@ public interface IdeaCodeColors {
     operator("#5F8C8A"),
     escape(Light.keyword),
     cppDirective(Light.keyword),
+    documentation("#8C8C8C"),
 
     br1(Light.defaultText),
     br2(Light.defaultText),
@@ -118,6 +120,7 @@ public interface IdeaCodeColors {
     operator("#5F8C8A"),
     escape(Dark.keyword),
     cppDirective(Dark.keyword),
+    documentation("#5F826B"),
 
     br1(Dark.defaultText),
     br2(Dark.defaultText),
