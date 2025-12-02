@@ -9,6 +9,8 @@ import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.editor.worker.diff.DiffRange;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.parser.common.Pair;
+import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.common.TriConsumer;
 import org.sudu.experiments.ui.window.WindowManager;
 
@@ -33,6 +35,7 @@ class FileDiffRootView extends DiffRootView {
   private static final boolean showNavigateLog = true;
   private Runnable onRefresh, onDiffModelSet, onDocumentSizeChange;
   public final boolean isCodeReview;
+  public final boolean enableSyncEditing;
   private final UndoBuffer undoBuffer;
 
   protected long sendDiffTime = System.currentTimeMillis();
@@ -43,6 +46,8 @@ class FileDiffRootView extends DiffRootView {
     super(wm.uiContext);
     ui = new EditorUi(wm);
     this.isCodeReview = isCodeReview;
+//    this.enableSyncEditing = isCodeReview;
+    this.enableSyncEditing = EditorConst.DEFAULT_ENABLE_SYNC_EDIT;
     editor1 = new EditorComponent(ui);
     editor2 = new EditorComponent(ui);
     middleLine.setLeftRight(editor1, editor2);
@@ -60,6 +65,7 @@ class FileDiffRootView extends DiffRootView {
     editor1.setSyncPoints(syncPoints, true);
     editor1.setDisableParser(disableParser);
     editor1.setUndoBuffer(undoBuffer);
+    editor1.setSyncEditing((diff, isUndo) -> this.syncEditing(true, diff, isUndo));
 
     editor2.setFullFileLexedListener(lexerListener);
     editor2.setIterativeParseFileListener(iterativeParseListener);
@@ -69,6 +75,7 @@ class FileDiffRootView extends DiffRootView {
     editor2.setSyncPoints(syncPoints, false);
     editor2.setDisableParser(disableParser);
     editor2.setUndoBuffer(undoBuffer);
+    editor2.setSyncEditing((diff, isUndo) -> this.syncEditing(false, diff, isUndo));
 
     diffSync = new DiffSync(editor1, editor2, true);
     middleLine.setOnMidSyncPointHover(i -> onMidSyncLineHover(syncPoints, i));
@@ -117,19 +124,16 @@ class FileDiffRootView extends DiffRootView {
       );
       fullParseTime = currentTime;
     }
-    if (editor1 == editor) modelFlags |= 1;
-    if (editor2 == editor) modelFlags |= 2;
-    if ((modelFlags & 3) == 3) {
-      sendToDiff(false);
-    }
+    setModelFlagsBit(editor1 == editor ? 0b01 : 0b10);
+    if (modelFlagsReady()) sendToDiff(false);
   }
 
   private void iterativeParseFileListener(EditorComponent editor, int start, int stop) {
     boolean isL = editor == editor1;
-    modelFlags |= isL ? 0b01 : 0b10;
+    setModelFlagsBit(isL ? 0b01 : 0b10);
 
     if (diffModel == null) {
-      if ((modelFlags & 0b11) == 0b11)
+      if (modelFlagsReady())
         sendToDiff(false);
       return;
     }
@@ -145,18 +149,18 @@ class FileDiffRootView extends DiffRootView {
     var fromRange = diffModel.ranges[fromRangeInd];
     var toRange = diffModel.ranges[toRangeInd];
 
-    sendIntervalToDiff(fromRange.fromL, toRange.toL(), fromRange.fromR, toRange.toR());
+    if (modelFlagsReady()) sendIntervalToDiff(fromRange.fromL, toRange.toL(), fromRange.fromR, toRange.toR());
   }
 
   private void applyDiff(DiffRange range, boolean isL) {
     if (range.type == DiffTypes.DEFAULT) return;
     var fromModel = isL ? editor1.model() : editor2.model();
-    int fromStartLine = isL ? range.fromL : range.fromR;
+    int fromStartLine = range.from(isL);
     int fromEndLine = isL ? range.toL() : range.toR();
     var lines = fromModel.document.getLines(fromStartLine, fromEndLine);
 
-    int toStartLine = !isL ? range.fromL : range.fromR;
-    int toEndLine = !isL ? range.toL() : range.toR();
+    int toStartLine = range.from(!isL);
+    int toEndLine = range.to(!isL);
 
     var toModel = !isL ? editor1.model() : editor2.model();
     toModel.document.applyChange(toStartLine, toEndLine, lines);
@@ -165,6 +169,8 @@ class FileDiffRootView extends DiffRootView {
   private void updateModelOnDiffMadeListener(EditorComponent editor, Diff diff, boolean isUndo) {
     boolean isDelete = diff.isDelete ^ isUndo;
     boolean isL = editor == editor1;
+    unsetModelFlagsBit(isL ? 0b01 : 0b10);
+
     if (isDelete) onDeleteDiffMadeListener(diff, isL);
     else onInsertDiffMadeListener(diff, isL);
     if (diffModel != null) {
@@ -175,6 +181,19 @@ class FileDiffRootView extends DiffRootView {
     }
     if (onDocumentSizeChange != null)
       onDocumentSizeChange.run();
+  }
+
+  private void syncEditing(boolean left, CpxDiff cpxDiff, boolean isUndo) {
+    if (!enableSyncEditing) return;
+    EditorComponent current = left ? editor1 : editor2;
+    var diffVersion = current.model().document.lastDiffVersion();
+    EditorComponent another = !left ? editor1 : editor2;
+
+    CpxDiff anotherDiff = cpxDiff.copyWithNewLine((l) -> diffModel.oppositeLine(l, left));
+
+    if (anotherDiff.diffs.length == 0) return;
+    another.model().document.doCpxDiff(anotherDiff, !isUndo);
+    undoBuffer.addDiff(another.model().document, anotherDiff, diffVersion.second);
   }
 
   private void onDiffMadeListener(EditorComponent editor) {
@@ -410,11 +429,29 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void undoLastDiff(boolean isRedo) {
-    undoBuffer.undoLastDiff(editor1, editor2, isRedo);
+    undoBuffer.undoLastDiff(editor1.model().document, editor2.model().document, this::restore, isRedo);
+  }
+
+  private void restore(boolean isLeft, V2i pos, Pair<Pos, Pos> selection) {
+    var editor = isLeft ? editor1 : editor2;
+    editor.setCaretLinePos(pos.x, pos.y, false);
+    if (selection.first == null || selection.second == null) return;
+    editor.setSelection(
+        selection.second.charPos, selection.second.line,
+        selection.first.charPos, selection.first.line
+    );
+  }
+
+  public boolean modelFlagsReady() {
+    return (modelFlags & 0b11) == 0b11;
   }
 
   public void unsetModelFlagsBit(int bit) {
     modelFlags &= ~bit;
+  }
+
+  public void setModelFlagsBit(int bit) {
+    modelFlags |= bit;
   }
 
   public void onMidSyncLineClick(SyncPoints syncPoints, int line) {

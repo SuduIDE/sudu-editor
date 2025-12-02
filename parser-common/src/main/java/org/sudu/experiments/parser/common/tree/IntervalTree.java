@@ -37,11 +37,14 @@ public class IntervalTree {
 
   private IntervalNode getReparseNode(IntervalNode curNode) {
     if (curNode.needReparse) return curNode;
+    IntervalNode result = null;
     for (var subNode: curNode.children) {
-      var result = getReparseNode(subNode);
-      if (result != null) return result;
+      var current = getReparseNode(subNode);
+      if (current == null) continue;
+      if (result != null) return curNode;
+      result = current;
     }
-    return null;
+    return result;
   }
 
   public void replaceInterval(Interval from, IntervalNode newTree) {

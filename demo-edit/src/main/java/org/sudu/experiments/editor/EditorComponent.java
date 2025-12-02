@@ -23,6 +23,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
+import static org.sudu.experiments.editor.EditorConst.tabIndent;
+
 public class EditorComponent extends View implements
     Focusable,
     MouseListener,
@@ -99,8 +101,6 @@ public class EditorComponent extends View implements
   LineNumbersComponent lineNumbers = new LineNumbersComponent();
   MergeButtons mergeButtons;
 
-  String tabIndent = "  ";
-
   public boolean readonly = false;
   boolean mirrored = false;
   private ExternalHighlights externalHighlights;
@@ -132,6 +132,7 @@ public class EditorComponent extends View implements
   private final V2i lastMouseDownPos = new V2i(-1, -1);
   private boolean disableParser = EditorConst.DEFAULT_DISABLE_PARSER;
   private UndoBuffer undoBuffer;
+  private BiConsumer<CpxDiff, Boolean> syncEditing;
   private int numDigits;
 
   public EditorComponent(EditorUi ui) {
@@ -277,7 +278,7 @@ public class EditorComponent extends View implements
     if (selection().isAreaSelected()) setSelectionToCaret();
     var caretDiff = model.document.undoLastDiff(isRedo);
     if (caretDiff == null) return;
-    var caretReturn = isRedo ? caretDiff.caretPos : caretDiff.caretReturn;
+    var caretReturn = isRedo ? caretDiff.caretAfter : caretDiff.caretBefore;
     setCaretLinePos(caretReturn.x, caretReturn.y, false);
     updateDocumentDiffTimeStamp();
     onDiffMade();
@@ -846,8 +847,8 @@ public class EditorComponent extends View implements
 
   private boolean handleTabOp() {
     if (selection().isAreaSelected()) {
-      Selection.SelPos left = selection().getLeftPos();
-      Selection.SelPos right = selection().getRightPos();
+      Pos left = selection().getLeftPos();
+      Pos right = selection().getRightPos();
       int size = right.line - left.line + 1;
       int[] lines = new int[size];
       String[] changes = new String[size];
@@ -856,12 +857,9 @@ public class EditorComponent extends View implements
         lines[i] = l;
         changes[i++] = tabIndent;
       }
-
-      tabDiffHandler(lines, 0, false, changes, new Pos(model.caretLine, model.caretCharPos),
-          (l, c) -> model.document.insertAt(l, 0, tabIndent)
-      );
-      left.charInd += tabIndent.length();
-      right.charInd += tabIndent.length();
+      tabDiffHandler(lines, false, changes, model.getCaretPos());
+      left.charPos += tabIndent.length();
+      right.charPos += tabIndent.length();
       setCaretPosWithSelection(model.caretCharPos + tabIndent.length());
       updateDocumentDiffTimeStamp();
     } else {
@@ -879,7 +877,7 @@ public class EditorComponent extends View implements
         String indent = calculateTabIndent(codeLine);
         if (indent == null) return true;
         model.document.makeDiffWithCaretReturn(
-            model.caretLine, 0, true, indent, new Pos(model.caretLine, model.caretCharPos)
+            model.caretLine, 0, true, indent
         );
         codeLine.delete(0, indent.length());
         setCaretPosWithSelection(model.caretCharPos - indent.length());
@@ -890,13 +888,12 @@ public class EditorComponent extends View implements
   }
 
   private void shiftTabSelection() {
-    Selection.SelPos left = selection().getLeftPos();
-    Selection.SelPos right = selection().getRightPos();
+    Pos left = selection().getLeftPos();
+    Pos right = selection().getRightPos();
     int initSize = right.line - left.line + 1;
     int[] lines = new int[initSize];
     String[] changes = new String[initSize];
-    int prevCaretPos = model.caretCharPos;
-    int prevCaretLine = model.caretLine;
+    V2i prevCaretPos = model.getCaretPos();
     int size = 0;
     for (int l = left.line; l <= right.line; l++) {
       CodeLine codeLine = model.document.lines[l];
@@ -912,18 +909,13 @@ public class EditorComponent extends View implements
     for (int i = 0; i < size; i++) {
       String indent = changes[i];
       int l = lines[i];
-      if (l == left.line) left.charInd = Math.max(0, left.charInd - indent.length());
+      if (l == left.line) left.charPos = Math.max(0, left.charPos - indent.length());
       if (l == right.line) {
-        right.charInd = Math.max(0, right.charInd - indent.length());
+        right.charPos = Math.max(0, right.charPos - indent.length());
         setCaretPosWithSelection(model.caretCharPos - indent.length());
       }
     }
-    tabDiffHandler(lines, 0, true, changes, new Pos(prevCaretLine, prevCaretPos),
-        (l, c) -> {
-          CodeLine codeLine = model.document.lines[l];
-          codeLine.delete(0, c.length());
-        }
-    );
+    tabDiffHandler(lines, true, changes, prevCaretPos);
   }
 
   private String calculateTabIndent(CodeLine codeLine) {
@@ -933,26 +925,14 @@ public class EditorComponent extends View implements
 
   private void tabDiffHandler(
       int[] lines,
-      int fromValue,
-      boolean isDelValue,
+      boolean isDelete,
       String[] changes,
-      Pos caretPosition,
-      BiConsumer<Integer, String> editorAction
-
+      V2i caretPosition
   ) {
     if (lines.length == 0) return;
     int[] from = new int[lines.length];
-    boolean[] areDeletes = new boolean[lines.length];
-    Arrays.fill(from, fromValue);
-    Arrays.fill(areDeletes, isDelValue);
-    model.document.makeComplexDiff(
-        lines,
-        from,
-        areDeletes,
-        changes,
-        caretPosition,
-        editorAction
-    );
+    Arrays.fill(from, 0);
+    model.document.makeTabCpxDiff(lines, from, isDelete, changes, caretPosition);
   }
 
   boolean handleEnter() {
@@ -1003,7 +983,7 @@ public class EditorComponent extends View implements
     int newCaretLine = model.caretLine + lines.length - 1;
     int newCaretPos;
     if (newCaretLine == model.caretLine) newCaretPos = model.caretCharPos + lines[0].length();
-    else newCaretPos = lines[lines.length - 1].length();
+    else newCaretPos = ArrayOp.last(lines).length();
 
     setCaretLinePos(newCaretLine, newCaretPos, false);
     setSelectionToCaret();
@@ -1014,7 +994,7 @@ public class EditorComponent extends View implements
   private void deleteSelectedArea() {
     var leftPos = selection().getLeftPos();
     model.document.deleteSelected(selection());
-    setCaretLinePos(leftPos.line, leftPos.charInd, false);
+    setCaretLinePos(leftPos.line, leftPos.charPos, false);
     setSelectionToCaret();
     updateDocumentDiffTimeStamp();
   }
@@ -1155,7 +1135,7 @@ public class EditorComponent extends View implements
     return false;
   }
 
-  boolean setCaretLinePos(int line, int pos, boolean shift) {
+  public boolean setCaretLinePos(int line, int pos, boolean shift) {
     model.caretCharPos = pos;
     return setCaretLine(line, shift);
   }
@@ -1232,7 +1212,7 @@ public class EditorComponent extends View implements
     if (provider != null) {
       // todo: probable bug: position captured is used to computeCharPos in showUsagesViaLocations,
       // but the result may differ from previous (local) "Pos pos" value
-      provider.provideReferences(model, pos.line, pos.pos, true,
+      provider.provideReferences(model, pos.line, pos.charPos, true,
           (locs) -> showUsagesViaLocations(position, locs), onError);
     }
   }
@@ -1240,11 +1220,11 @@ public class EditorComponent extends View implements
   public void findUsages(V2i position, DefDeclProvider.Provider provider) {
     Pos pos = computeCharPos(position);
     if (pos == null) return;
-    Pos startPos = model.document.getElementStart(pos.line, pos.pos);
+    Pos startPos = model.document.getElementStart(pos.line, pos.charPos);
     String elementName = getElementNameByStartPos(startPos);
 
     if (provider != null) {
-      provider.provide(model, pos.line, pos.pos,
+      provider.provide(model, pos.line, pos.charPos,
           (locs) -> gotoDefinition(position, locs, elementName), onError);
       return;
     }
@@ -1269,14 +1249,14 @@ public class EditorComponent extends View implements
     } else {
       Pos charPos = computeCharPos(position);
       if (charPos != null) {
-        Pos startPos = model.document.getElementStart(charPos.line, charPos.pos);
+        Pos startPos = model.document.getElementStart(charPos.line, charPos.charPos);
         ui.showUsagesWindow(position, locs, this, getElementNameByStartPos(startPos));
       }
     }
   }
 
   public final void gotoUsage(Pos defPos) {
-    setCaretLinePos(defPos.line, defPos.pos, false);
+    setCaretLinePos(defPos.line, defPos.charPos, false);
     int nextPos = caretCodeLine().nextPos(model.caretCharPos);
     selection().endPos.set(model.caretLine, nextPos);
     selection().startPos.set(model.caretLine, model.caretCharPos);
@@ -1333,7 +1313,7 @@ public class EditorComponent extends View implements
 
   private void moveCaret(Pos pos) {
     model.caretLine = pos.line;
-    model.caretCharPos = pos.pos;
+    model.caretCharPos = pos.charPos;
     recomputeCaretPosY();
   }
 
@@ -1397,12 +1377,12 @@ public class EditorComponent extends View implements
     V2i eventPosition = event.position;
     Pos pos = computeCharPos(eventPosition);
     if (pos == null) return;
-    Pos startPos = model.document.getElementStart(pos.line, pos.pos);
+    Pos startPos = model.document.getElementStart(pos.line, pos.charPos);
     String elementName = getElementNameByStartPos(startPos);
 
     var provider = registrations.findDefinitionProvider(model.language(), model.uriScheme());
     if (provider != null) {
-      provider.provide(model, pos.line, pos.pos,
+      provider.provide(model, pos.line, pos.charPos,
           (locs) -> gotoDefinition(eventPosition, locs, elementName), onError);
     } else {
       // Default def provider
@@ -1728,7 +1708,7 @@ public class EditorComponent extends View implements
     } else {
       result = model.document.copy(selection(), isCut);
       if (isCut) {
-        setCaretLinePos(left.line, left.charInd, false);
+        setCaretLinePos(left.line, left.charPos, false);
         setSelectionToCaret();
         updateDocumentDiffTimeStamp();
       }
@@ -1927,7 +1907,6 @@ public class EditorComponent extends View implements
     clearCompactViewModel();
     oldModel.setEditor(null, null);
     model.setEditor(this, window().worker());
-    model.setUndoBuffer(undoBuffer);
     vScrollPos = Numbers.iRnd(model.vScrollLine * lineHeight);
     checkLineNumbersLayout();
   }
@@ -2162,7 +2141,6 @@ public class EditorComponent extends View implements
 
   public void setUndoBuffer(UndoBuffer undoBuffer) {
     this.undoBuffer = undoBuffer;
-    model.setUndoBuffer(undoBuffer);
   }
 
   void buildDiffMap() {
@@ -2217,8 +2195,21 @@ public class EditorComponent extends View implements
     return codeLineColors;
   }
 
+  public UndoBuffer getUndoBuffer() {
+    return undoBuffer;
+  }
+
+  @Override
+  public void syncEditing(CpxDiff diffs, boolean isUndo) {
+    if (syncEditing != null) syncEditing.accept(diffs, isUndo);
+  }
+
   public void setCodeMap() {
     // todo: highlight current symbol or selection search...
+  }
+
+  public void setSyncEditing(BiConsumer<CpxDiff, Boolean> syncEditing) {
+    this.syncEditing = syncEditing;
   }
 
   // call of this method is required for both:

@@ -84,6 +84,10 @@ public class Model {
     document = new Document(text);
     document.updateModelOnDiff = this::updateModelOnDiff;
     document.onDiffMade = this::onDiffMade;
+    document.syncEditing = this::syncEditing;
+    document.getUndoBuffer = this::getUndoBuffer;
+    document.getCaretPos = this::getCaretPos;
+    document.getSelection = () -> this.selection;
   }
 
   String languageFromFile() {
@@ -231,7 +235,7 @@ public class Model {
     }
 
     if (editor != null) {
-      editor.useDocumentHighlightProvider(caretPos.line, caretPos.pos);
+      editor.useDocumentHighlightProvider(caretPos.line, caretPos.charPos);
     }
   }
 
@@ -262,10 +266,6 @@ public class Model {
     } else {
       document.invalidateMeasure();
     }
-  }
-
-  void setUndoBuffer(UndoBuffer undoBuffer) {
-    document.setUndoBuffer(undoBuffer);
   }
 
   private void setParsed() {
@@ -483,6 +483,14 @@ public class Model {
     if (editor != null) editor.updateModelOnDiff(diff, isUndo);
   }
 
+  private void syncEditing(CpxDiff diffs, boolean isUndo) {
+    if (editor != null) editor.syncEditing(diffs, isUndo);
+  }
+
+  private UndoBuffer getUndoBuffer() {
+    return editor != null ? editor.getUndoBuffer() : null;
+  }
+
   public void setOnDiffMadeListener(Runnable listener) {
     onDiffMadeListener = listener;
   }
@@ -546,6 +554,10 @@ public class Model {
     boolean isDisableParser();
 
     CodeLineColorScheme getColorScheme();
+
+    UndoBuffer getUndoBuffer();
+
+    void syncEditing(CpxDiff diffs, boolean isUndo);
   }
 
   public boolean hasDiffModel() {

@@ -1,5 +1,7 @@
 package org.sudu.experiments.editor;
 
+import org.sudu.experiments.math.ArrayOp;
+
 public class CompactViewRange {
   public int startLine, endLine; // [ .. )
   public boolean visible;
@@ -44,7 +46,7 @@ public class CompactViewRange {
     addRemoveLines(at, count, data);
     // insert at end
     if (data.length > 0)
-      data[data.length - 1].insertLinesAtEnd(at, count);
+      ArrayOp.last(data).insertLinesAtEnd(at, count);
   }
 
   private void insertLinesAtEnd(int at, int count) {

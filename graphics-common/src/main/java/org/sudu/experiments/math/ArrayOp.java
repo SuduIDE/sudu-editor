@@ -3,6 +3,7 @@ package org.sudu.experiments.math;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface ArrayOp {
@@ -212,6 +213,23 @@ public interface ArrayOp {
     for (int i = 0; i < result.length / 2; i++)
       swap(result, i, result.length - i - 1);
     return result;
+  }
+
+  static <T> T[] flatten(T[][] array) {
+    if (array.length == 0) return ArrayOp.array();
+    if (array.length == 1) return array[0];
+    int flattenLen = 0;
+    for (T[] arr: array) flattenLen += arr.length;
+    T[] flatten = Arrays.copyOf(array[0], flattenLen);
+    for (int i = 1, pos = array[0].length; i < array.length; i++) {
+      System.arraycopy(array[i], 0, flatten, pos, array[i].length);
+      pos += array[i].length;
+    }
+    return flatten;
+  }
+
+  static <T> T last(T[] array) {
+    return array[array.length - 1];
   }
 
   static char[] copyOf(char[] chars) {

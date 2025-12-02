@@ -17,7 +17,7 @@ public class NavigationContext {
   }
 
   public int getCharPos() {
-    return pos.pos;
+    return pos.charPos;
   }
 
   public Selection getSelection() {

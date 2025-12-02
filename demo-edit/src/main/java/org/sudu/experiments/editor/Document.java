@@ -3,6 +3,7 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.Debug;
 import org.sudu.experiments.arrays.ArrayReader;
 import org.sudu.experiments.parser.ParserConstants;
+import org.sudu.experiments.parser.common.Pair;
 import org.sudu.experiments.parser.common.tree.IntervalTree;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
@@ -13,6 +14,7 @@ import org.sudu.experiments.text.SplitText;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
 
@@ -30,8 +32,11 @@ public class Document extends CodeLines {
   int lastParsedVersion;
   double lastDiffTimestamp;
   public BiConsumer<Diff, Boolean> updateModelOnDiff;
+  public BiConsumer<CpxDiff, Boolean> syncEditing;
+  public Supplier<UndoBuffer> getUndoBuffer;
+  public Supplier<V2i> getCaretPos;
+  public Supplier<Selection> getSelection;
   public Runnable onDiffMade;
-  public UndoBuffer undoBuffer = new UndoBuffer();
 
   public Document() {
     this(CodeLine.emptyLine());
@@ -88,12 +93,13 @@ public class Document extends CodeLines {
   }
 
   public void clear() {
-    undoBuffer.clear(this);
     usageToDef.clear();
     defToUsages.clear();
 
     currentVersion = lastParsedVersion = 0;
     tree = initialInterval();
+    var undoBuffer = undoBuffer();
+    if (undoBuffer != null) undoBuffer.clear(this);
   }
 
   public int strLength(int i) {
@@ -183,7 +189,7 @@ public class Document extends CodeLines {
     if (insertDiff != null) changeDiffs[ptr++] = insertDiff;
     if (deleteDiff != null) changeDiffs[ptr++] = deleteDiff;
     changeDiffs = Arrays.copyOf(changeDiffs, ptr);
-    undoBuffer.addDiff(this, changeDiffs);
+    addDiff(mkCpxDiff(changeDiffs));
     currentVersion++;
   }
 
@@ -195,7 +201,7 @@ public class Document extends CodeLines {
     if (!insertFromStart) sb.append(newLine);
     for (int i = 0; i < newLines.length - 1; i++)
       sb.append(newLines[i].makeString()).append("\n");
-    sb.append(newLines[newLines.length - 1].makeString());
+    sb.append(ArrayOp.last(newLines).makeString());
 
     String inserted = sb.toString();
     int insertLine = !insertFromStart ? fromLine - 1 : fromLine;
@@ -276,6 +282,10 @@ public class Document extends CodeLines {
     lines[line].insertAt(pos, value);
   }
 
+  public void deleteAt(int line, int pos, int endIndex) {
+    lines[line].delete(pos, endIndex);
+  }
+
   public void insertLines(int line, int pos, String[] lines) {
     insertLinesOp(line, pos, lines);
     makeDiff(line, pos, false, String.join("\n", lines));
@@ -321,27 +331,23 @@ public class Document extends CodeLines {
   }
 
   public String getSelectedText(Selection selection) {
-    Selection.SelPos leftPos = selection.getLeftPos();
-    Selection.SelPos rightPos = selection.getRightPos();
+    Pos leftPos = selection.getLeftPos();
+    Pos rightPos = selection.getRightPos();
 
     if (leftPos.line == rightPos.line) {
-      String line = lines[leftPos.line].makeString();
-      return line.substring(leftPos.charInd, rightPos.charInd);
-    } else {
-      StringBuilder selected = new StringBuilder();
-
-      String firstLine = lines[leftPos.line]
-          .makeString(leftPos.charInd);
-      selected.append(firstLine).append('\n');
-
-      Arrays.stream(lines, leftPos.line + 1, rightPos.line)
-          .forEach(line -> selected.append(line.makeString()).append('\n'));
-
-      String lastLine = lines[rightPos.line]
-          .makeString(0, rightPos.charInd);
-      selected.append(lastLine);
-      return selected.toString();
+      return lines[leftPos.line].makeString(leftPos.charPos, rightPos.charPos);
     }
+    StringBuilder selected = new StringBuilder();
+
+    String firstLine = lines[leftPos.line].makeString(leftPos.charPos);
+    selected.append(firstLine).append('\n');
+
+    Arrays.stream(lines, leftPos.line + 1, rightPos.line)
+        .forEach(line -> selected.append(line.makeString()).append('\n'));
+
+    String lastLine = lines[rightPos.line].makeString(0, rightPos.charPos);
+    selected.append(lastLine);
+    return selected.toString();
   }
 
   public void deleteSelected(Selection selection) {
@@ -349,22 +355,20 @@ public class Document extends CodeLines {
   }
 
   private void deleteSelected(Selection selection, String selected) {
-    deleteSelectedOp(selection);
-    Selection.SelPos leftPos = selection.getLeftPos();
-    makeDiff(leftPos.line, leftPos.charInd, true, selected);
+    deleteAreaOp(selection.getLeftPos(), selection.getRightPos());
+    Pos leftPos = selection.getLeftPos();
+    makeDiff(leftPos.line, leftPos.charPos, true, selected);
     onDiffMade();
   }
 
-  private void deleteSelectedOp(Selection selection) {
-    Selection.SelPos leftPos = selection.getLeftPos();
-    Selection.SelPos rightPos = selection.getRightPos();
-    if (leftPos.line == rightPos.line) {
-      lines[leftPos.line].delete(leftPos.charInd, rightPos.charInd);
+  private void deleteAreaOp(Pos from, Pos to) {
+    if (from.line == to.line) {
+      lines[from.line].delete(from.charPos, to.charPos);
     } else {
-      lines[leftPos.line].delete(leftPos.charInd);
-      if (rightPos.charInd != 0) lines[rightPos.line].delete(0, rightPos.charInd);
-      deleteLinesOp(leftPos.line + 1, rightPos.line);
-      concatLinesOp(leftPos.line);
+      lines[from.line].delete(from.charPos);
+      if (to.charPos != 0) lines[to.line].delete(0, to.charPos);
+      deleteLinesOp(from.line + 1, to.line);
+      concatLinesOp(from.line);
     }
   }
 
@@ -386,7 +390,7 @@ public class Document extends CodeLines {
   }
 
   public void moveToElementStart(Pos pos) {
-    pos.pos = lines[pos.line].getElementStart(pos.pos);
+    pos.charPos = lines[pos.line].getElementStart(pos.charPos);
   }
 
   public V2i getLine(int ind) {
@@ -438,7 +442,7 @@ public class Document extends CodeLines {
   }
 
   public CodeElement getCodeElement(Pos pos) {
-    return lines[pos.line].getCodeElement(pos.pos);
+    return lines[pos.line].getCodeElement(pos.charPos);
   }
 
   public char[] getChars() {
@@ -472,47 +476,63 @@ public class Document extends CodeLines {
 
   public void makeDiff(Diff diff) {
     currentVersion++;
-
-    undoBuffer.addDiff(this, ArrayOp.array(diff));
+    var cpxDiff = mkCpxDiff(diff);
+    addDiff(cpxDiff);
     makeDiffOp(diff);
+    syncEditing(cpxDiff);
     updateModelOnDiff(diff, false);
   }
 
-  public void makeDiffWithCaretReturn(
-      int line,
-      int from,
-      boolean isDelete,
-      String change,
-      Pos caretPos
-  ) {
-    currentVersion++;
-
-    var diff = new Diff(line, from, isDelete, change, caretPos.line, caretPos.pos);
-    undoBuffer.addDiff(this, ArrayOp.array(diff));
-    makeDiffOp(diff);
-    updateModelOnDiff(diff, false);
+  public CpxDiff mkCpxDiff(Diff diff) {
+    return mkCpxDiff(ArrayOp.array(diff));
   }
 
-  public void makeComplexDiff(
+  public CpxDiff mkCpxDiff(
       int[] lines,
-      int[] from,
-      boolean[] areDeletes,
+      int[] poses,
+      boolean isDelete,
       String[] changes,
-      Pos caretPos,
-      BiConsumer<Integer, String> editorAction
+      V2i caretPos
+  ) {
+    Diff[] diffs = new Diff[lines.length];
+    for (int i = 0; i < lines.length; i++)
+      diffs[i] = new Diff(lines[i], poses[i], isDelete, changes[i]);
+    return mkCpxDiff(diffs, caretPos);
+  }
+
+  public CpxDiff mkCpxDiff(Diff[] diffs) {
+    return mkCpxDiff(diffs, caretPos());
+  }
+
+  public CpxDiff mkCpxDiff(Diff[] diffs, V2i caretPos) {
+    return new CpxDiff(diffs, selection(), caretPos);
+  }
+
+  public void makeDiffWithCaretReturn(int line, int from, boolean isDelete, String change) {
+    currentVersion++;
+    var diff = new Diff(line, from, isDelete, change);
+    var cpxDiff = mkCpxDiff(diff);
+    addDiff(cpxDiff);
+    makeDiffOp(diff);
+    syncEditing(cpxDiff);
+    updateModelOnDiff(diff, false);
+  }
+
+  public void makeTabCpxDiff(
+      int[] lines, int[] poses,
+      boolean isDelete,
+      String[] changes,
+      V2i caretPos
   ) {
     currentVersion++;
-
-    Diff[] temp = new Diff[lines.length];
+    var cpxDiff = mkCpxDiff(lines, poses, isDelete, changes, caretPos);
+    addDiff(cpxDiff);
+    for (int i = 0; i < lines.length; i++) makeDiffOp(cpxDiff.diffs[i]);
+    syncEditing(cpxDiff);
     for (int i = 0; i < lines.length; i++) {
-      temp[i] = new Diff(lines[i], from[i], areDeletes[i], changes[i], caretPos.line, caretPos.pos);
-    }
-    undoBuffer.addDiff(this, temp);
-    for (int i = 0; i < lines.length; i++) {
-      Diff diff = new Diff(lines[i], from[i], areDeletes[i], changes[i]);
-      makeDiffOp(diff);
-      editorAction.accept(lines[i], changes[i]);
-      updateModelOnDiff(diff, false);
+      if (!isDelete) insertAt(lines[i], 0, EditorConst.tabIndent);
+      else deleteAt(lines[i], 0, changes[i].length());
+      updateModelOnDiff(cpxDiff.diffs[i], false);
     }
   }
 
@@ -527,44 +547,35 @@ public class Document extends CodeLines {
     }
   }
 
-  public Diff undoLastDiff(boolean isRedo) {
-    return undoBuffer.undoLastDiff(this, isRedo);
+  public CpxDiff undoLastDiff(boolean isRedo) {
+    return undoBuffer().undoLastDiff(this, isRedo);
   }
 
-  public Diff undoLastDiff(Diff[] complexDiff, boolean isRedo) {
+  public CpxDiff undoLastDiff(CpxDiff cpxDiff, boolean isRedo) {
+    return doCpxDiff(cpxDiff, isRedo);
+  }
+
+  public CpxDiff doCpxDiff(CpxDiff cpxDiff, boolean isRedo) {
     currentVersion++;
-    if (isRedo) complexDiff = ArrayOp.reverse(complexDiff);
-    var firstDiff = complexDiff[0];
-    undoSingleDiff(firstDiff, isRedo);
-    for (int i = 1; i < complexDiff.length; i++) {
-      undoSingleDiff(complexDiff[i], isRedo);
-    }
+    var diffs = cpxDiff.diffs;
+    if (isRedo) diffs = ArrayOp.reverse(diffs);
+    for (var diff: diffs) doDiff(diff, isRedo);
     onDiffMade();
-    return firstDiff;
+    return cpxDiff;
   }
 
-  public void setUndoBuffer(UndoBuffer undoBuffer) {
-    this.undoBuffer = undoBuffer;
-  }
-
-  private void undoSingleDiff(Diff diff, boolean isRedo) {
+  private void doDiff(Diff diff, boolean isRedo) {
     String[] lines = SplitText.split(diff.change);
     if (diff.isDelete ^ isRedo) {
       insertLinesOp(diff.line, diff.pos, lines);
       tree.makeInsertDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
       scopeGraph.makeInsertDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
-
     } else {
-      Selection selection = new Selection();
-      selection.startPos.set(diff.line, diff.pos);
-
-      if (lines.length == 1) {
-        selection.endPos.set(diff.line, diff.pos + lines[0].length());
-      } else {
-        selection.endPos.set(diff.line + lines.length - 1, lines[lines.length - 1].length());
-      }
-
-      deleteSelectedOp(selection);
+      Pos from = new Pos(diff.line, diff.pos);
+      Pos to = lines.length == 1
+          ? new Pos(diff.line, diff.pos + lines[0].length())
+          : new Pos(diff.line + lines.length - 1, ArrayOp.last(lines).length());
+      deleteAreaOp(from, to);
       tree.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
       scopeGraph.makeDeleteDiff(getLineStartInd(diff.line) + diff.pos, diff.change.length());
     }
@@ -607,7 +618,7 @@ public class Document extends CodeLines {
   }
 
   public int getOffsetAt(Pos pos) {
-    return getOffsetAt(pos.line, pos.pos);
+    return getOffsetAt(pos.line, pos.charPos);
   }
 
   public int getOffsetAt(int lineNumber, int column) {
@@ -635,9 +646,9 @@ public class Document extends CodeLines {
     if (lineInd - 1 < 0) len = 0;
     else len = linePrefixSum[lineInd - 1];
     Pos pos = new Pos(lineInd - 1, offset - len);
-    if (pos.pos >= lines[pos.line].totalStrLength) {
+    if (pos.charPos >= lines[pos.line].totalStrLength) {
       pos.line++;
-      pos.pos = 0;
+      pos.charPos = 0;
     }
     return pos;
   }
@@ -651,7 +662,7 @@ public class Document extends CodeLines {
       int refFlag = reader.next();
       if (refFlag == -1) continue;
       var refPos = binarySearchPosAt(reader.next());
-      var refElem = lines[refPos.line].getCodeElement(refPos.pos);
+      var refElem = lines[refPos.line].getCodeElement(refPos.charPos);
 
       int declFlag = reader.next();
       if (declFlag == -1) {
@@ -673,8 +684,32 @@ public class Document extends CodeLines {
     }
   }
 
-  public Diff[] lastDiff() {
+  private void addDiff(CpxDiff cpxDiff) {
+    var undoBuffer = undoBuffer();
+    if (undoBuffer == null) return;
+    undoBuffer.addDiff(this, cpxDiff);
+  }
+
+  public CpxDiff lastDiff() {
+    var undoBuffer = undoBuffer();
+    if (undoBuffer == null) return null;
     return undoBuffer.lastDiff(this);
+  }
+
+  public Pair<CpxDiff, Integer> lastDiffVersion() {
+    return undoBuffer().lastDiffVersion(this);
+  }
+
+  public UndoBuffer undoBuffer() {
+    return getUndoBuffer != null ? getUndoBuffer.get() : null;
+  }
+
+  public V2i caretPos() {
+    return getCaretPos != null ? getCaretPos.get() : null;
+  }
+
+  public Selection selection() {
+    return getSelection != null ? getSelection.get() : null;
   }
 
   public int version() {
@@ -683,6 +718,10 @@ public class Document extends CodeLines {
 
   private void updateModelOnDiff(Diff diff, boolean isUndo) {
     if (this.updateModelOnDiff != null) updateModelOnDiff.accept(diff, isUndo);
+  }
+
+  private void syncEditing(CpxDiff diff) {
+    if (syncEditing != null) syncEditing.accept(diff, false);
   }
 
   private void onDiffMade() {
