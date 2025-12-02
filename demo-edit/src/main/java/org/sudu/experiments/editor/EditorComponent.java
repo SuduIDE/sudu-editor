@@ -1907,7 +1907,6 @@ public class EditorComponent extends View implements
     clearCompactViewModel();
     oldModel.setEditor(null, null);
     model.setEditor(this, window().worker());
-    registrations.fireModelChange(oldModel, model);
     vScrollPos = Numbers.iRnd(model.vScrollLine * lineHeight);
     checkLineNumbersLayout();
   }
