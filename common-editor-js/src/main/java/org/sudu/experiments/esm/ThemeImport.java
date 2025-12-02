@@ -99,8 +99,11 @@ public interface ThemeImport {
 
       if (missing) {
         JsHelper.consoleInfo("!!! Missing Colors:");
-        for (int i = 0; i < imported.length; i++)
-          if (imported[i] == null) JsHelper.consoleInfo("  " + name(i));
+        for (int i = 0; i < imported.length; i++) {
+          if (i >= 23 && i <= 29) continue;
+          if (imported[i] == null)
+            JsHelper.consoleInfo("  " + name(i));
+        }
       }
 
       for (int i = 0; i < imported.length; i++) {
@@ -112,32 +115,4 @@ public interface ThemeImport {
     }
   }
 
-  static String name(int n) {
-    return switch (n) {
-      case TreeViewBackground -> "TreeViewBackground";
-      case TreeViewForeground -> "TreeViewForeground";
-      case SelectedItemBackground -> "SelectedItemBackground";
-      case SelectedItemForeground -> "SelectedItemForeground";
-      case HoveredItemBackground -> "HoveredItemBackground";
-      case InactiveSelectionBackground -> "InactiveSelectionBackground";
-      case AddedResourceForeground -> "AddedResourceForeground";
-      case DeletedResourceForeground -> "DeletedResourceForeground";
-      case ModifiedResourceForeground -> "ModifiedResourceForeground";
-      case IgnoredResourceForeground -> "IgnoredResourceForeground";
-      case PanelHeaderBackground -> "PanelHeaderBackground";
-      case PanelHeaderForeground -> "PanelHeaderForeground";
-      case EditorBackground -> "EditorBackground";
-      case EditorForeground -> "EditorForeground";
-      case CurrentLineBorder -> "CurrentLineBorder";
-      case CurrentLineBackground -> "CurrentLineBackground";
-      case DeletedRegionBackground -> "DeletedRegionBackground";
-      case DeletedTextBackground -> "DeletedTextBackground";
-      case InsertedRegionBackground -> "InsertedRegionBackground";
-      case InsertedTextBackground -> "InsertedTextBackground";
-      case LineNumberForeground -> "LineNumberForeground";
-      case ActiveLineNumberForeground -> "ActiveLineNumberForeground";
-      case LineNumberActiveForeground -> "LineNumberActiveForeground";
-      default -> "bad name " + n;
-    };
-  }
 }

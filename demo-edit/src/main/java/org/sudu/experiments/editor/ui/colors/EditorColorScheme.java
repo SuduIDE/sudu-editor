@@ -43,7 +43,24 @@ public class EditorColorScheme {
   public static final int ActiveLineNumberForeground = 20;
   public static final int LineNumberActiveForeground = 21;
 
-  public static final int LastIndex = IgnoredResourceForeground + 1;
+  public static final int SyntaxKeyword = 30;
+  public static final int SyntaxNull = 31;
+  public static final int SyntaxBoolean = 32;
+  public static final int SyntaxSemi = 33;
+  public static final int SyntaxField = 34;
+  public static final int SyntaxString = 35;
+  public static final int SyntaxError = 36;
+  public static final int SyntaxNumeric = 37;
+  public static final int SyntaxMethod = 38;
+  public static final int SyntaxComment = 39;
+  public static final int SyntaxAnnotation = 40;
+  public static final int SyntaxType = 41;
+  public static final int SyntaxOperator = 42;
+  public static final int SyntaxEscapeChar = 43;
+  public static final int SyntaxCppDirective = 44;
+  public static final int SyntaxDocumentation = 45;
+
+  public static final int LastIndex = SyntaxDocumentation + 1;
 
   public final EditorColors editor;
   public final FileTreeViewTheme fileTreeView;
@@ -199,7 +216,6 @@ public class EditorColorScheme {
       case EditorBackground ->
         editor.bg = c;
 
-
       case EditorForeground -> {
         codeElement[0].colorF = c;
         lineNumber.textColor = c;
@@ -257,9 +273,33 @@ public class EditorColorScheme {
 
       case LineNumberActiveForeground ->
         lineNumber.caretTextColor = ColorOp.blend(editor.bg, c);
+
+      // syntax
+      case SyntaxKeyword       -> setCodeForeground(ParserConstants.TokenTypes.KEYWORD, c);
+      case SyntaxNull          -> setCodeForeground(ParserConstants.TokenTypes.NULL, c);
+      case SyntaxBoolean       -> setCodeForeground(ParserConstants.TokenTypes.BOOLEAN, c);
+      case SyntaxSemi          -> setCodeForeground(ParserConstants.TokenTypes.SEMI, c);
+      case SyntaxField         -> setCodeForeground(ParserConstants.TokenTypes.FIELD, c);
+      case SyntaxString        -> setCodeForeground(ParserConstants.TokenTypes.STRING, c);
+      case SyntaxError         -> setCodeForeground(ParserConstants.TokenTypes.ERROR, c);
+      case SyntaxNumeric       -> setCodeForeground(ParserConstants.TokenTypes.NUMERIC, c);
+      case SyntaxMethod        -> setCodeForeground(ParserConstants.TokenTypes.METHOD, c);
+      case SyntaxComment       -> setCodeForeground(ParserConstants.TokenTypes.COMMENT, c);
+      case SyntaxAnnotation    -> setCodeForeground(ParserConstants.TokenTypes.ANNOTATION, c);
+      case SyntaxType          -> setCodeForeground(ParserConstants.TokenTypes.TYPE, c);
+      case SyntaxOperator      -> setCodeForeground(ParserConstants.TokenTypes.OPERATOR, c);
+      case SyntaxEscapeChar    -> setCodeForeground(ParserConstants.TokenTypes.ESCAPE_CHAR, c);
+      case SyntaxCppDirective  -> setCodeForeground(ParserConstants.TokenTypes.CPP_DIRECTIVE, c);
+      case SyntaxDocumentation -> setCodeForeground(ParserConstants.TokenTypes.DOCUMENTATION, c);
     }
 
     return true;
+  }
+
+  private void setCodeForeground(int id, Color c) {
+    codeElement[id] = new CodeElementColor(
+        c, codeElement[id].colorB
+    );
   }
 
   public MergeButtonsColors codeDiffMergeButtons() {
@@ -293,5 +333,51 @@ public class EditorColorScheme {
   public V4f getDiffColor(byte[] colors, int i) {
     return i >= colors.length || colors[i] == 0
         ? editor.bg : codeDiffBg.getDiffColor(colors[i], editor.bg);
+  }
+
+  public static String name(int n) {
+    return switch (n) {
+      case TreeViewBackground -> "TreeViewBackground";
+      case TreeViewForeground -> "TreeViewForeground";
+      case SelectedItemBackground -> "SelectedItemBackground";
+      case SelectedItemForeground -> "SelectedItemForeground";
+      case HoveredItemBackground -> "HoveredItemBackground";
+      case InactiveSelectionBackground -> "InactiveSelectionBackground";
+      case AddedResourceForeground -> "AddedResourceForeground";
+      case DeletedResourceForeground -> "DeletedResourceForeground";
+      case ModifiedResourceForeground -> "ModifiedResourceForeground";
+      case IgnoredResourceForeground -> "IgnoredResourceForeground";
+      case PanelHeaderBackground -> "PanelHeaderBackground";
+      case PanelHeaderForeground -> "PanelHeaderForeground";
+      case EditorBackground -> "EditorBackground";
+      case EditorForeground -> "EditorForeground";
+      case CurrentLineBorder -> "CurrentLineBorder";
+      case CurrentLineBackground -> "CurrentLineBackground";
+      case DeletedRegionBackground -> "DeletedRegionBackground";
+      case DeletedTextBackground -> "DeletedTextBackground";
+      case InsertedRegionBackground -> "InsertedRegionBackground";
+      case InsertedTextBackground -> "InsertedTextBackground";
+      case LineNumberForeground -> "LineNumberForeground";
+      case ActiveLineNumberForeground -> "ActiveLineNumberForeground";
+      case LineNumberActiveForeground -> "LineNumberActiveForeground";
+      case SyntaxKeyword -> " SyntaxKeyword";
+      case SyntaxNull -> " SyntaxNull";
+      case SyntaxBoolean -> " SyntaxBoolean";
+      case SyntaxSemi -> " SyntaxSemi";
+      case SyntaxField -> " SyntaxField";
+      case SyntaxString -> " SyntaxString";
+      case SyntaxError -> " SyntaxError";
+      case SyntaxNumeric -> " SyntaxNumeric";
+      case SyntaxMethod -> " SyntaxMethod";
+      case SyntaxComment -> " SyntaxComment";
+      case SyntaxAnnotation -> " SyntaxAnnotation";
+      case SyntaxType -> " SyntaxType";
+      case SyntaxOperator -> " SyntaxOperator";
+      case SyntaxEscapeChar -> " SyntaxEscapeChar";
+      case SyntaxCppDirective -> " SyntaxCppDirective";
+      case SyntaxDocumentation -> " SyntaxDocumentation";
+
+      default -> "bad name " + n;
+    };
   }
 }

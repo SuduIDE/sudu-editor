@@ -41,7 +41,7 @@ public class CPP14Parser extends CPP14ParserBase {
 		Ellipsis=131, Identifier=132, DecimalLiteral=133, OctalLiteral=134, HexadecimalLiteral=135, 
 		BinaryLiteral=136, Integersuffix=137, UserDefinedIntegerLiteral=138, UserDefinedFloatingLiteral=139, 
 		UserDefinedStringLiteral=140, UserDefinedCharacterLiteral=141, Whitespace=142, 
-		Newline=143, BlockComment=144, LineComment=145, ERROR=146;
+		Newline=143, Documentation=144, BlockComment=145, LineComment=146, ERROR=147;
 	public static final int
 		RULE_translationUnit = 0, RULE_primaryExpression = 1, RULE_idExpression = 2, 
 		RULE_unqualifiedId = 3, RULE_qualifiedId = 4, RULE_nestedNameSpecifier = 5, 
@@ -213,8 +213,8 @@ public class CPP14Parser extends CPP14ParserBase {
 			"Semi", "Dot", "DotStar", "Ellipsis", "Identifier", "DecimalLiteral", 
 			"OctalLiteral", "HexadecimalLiteral", "BinaryLiteral", "Integersuffix", 
 			"UserDefinedIntegerLiteral", "UserDefinedFloatingLiteral", "UserDefinedStringLiteral", 
-			"UserDefinedCharacterLiteral", "Whitespace", "Newline", "BlockComment", 
-			"LineComment", "ERROR"
+			"UserDefinedCharacterLiteral", "Whitespace", "Newline", "Documentation", 
+			"BlockComment", "LineComment", "ERROR"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -8879,7 +8879,7 @@ public class CPP14Parser extends CPP14ParserBase {
 			setState(1347);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & -2L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & -88080385L) != 0) || ((((_la - 128)) & ~0x3f) == 0 && ((1L << (_la - 128)) & 524287L) != 0)) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & -2L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & -88080385L) != 0) || ((((_la - 128)) & ~0x3f) == 0 && ((1L << (_la - 128)) & 1048575L) != 0)) {
 				{
 				setState(1346);
 				balancedTokenSeq();
@@ -8943,7 +8943,7 @@ public class CPP14Parser extends CPP14ParserBase {
 				setState(1354); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & -2L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & -88080385L) != 0) || ((((_la - 128)) & ~0x3f) == 0 && ((1L << (_la - 128)) & 524287L) != 0) );
+			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & -2L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & -88080385L) != 0) || ((((_la - 128)) & ~0x3f) == 0 && ((1L << (_la - 128)) & 1048575L) != 0) );
 			}
 		}
 		catch (RecognitionException re) {
@@ -9179,6 +9179,7 @@ public class CPP14Parser extends CPP14ParserBase {
 			case UserDefinedCharacterLiteral:
 			case Whitespace:
 			case Newline:
+			case Documentation:
 			case BlockComment:
 			case LineComment:
 			case ERROR:
@@ -15773,7 +15774,7 @@ public class CPP14Parser extends CPP14ParserBase {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001\u0092\u0845\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001"+
+		"\u0004\u0001\u0093\u0845\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001"+
 		"\u0002\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004"+
 		"\u0002\u0005\u0007\u0005\u0002\u0006\u0007\u0006\u0002\u0007\u0007\u0007"+
 		"\u0002\b\u0007\b\u0002\t\u0007\t\u0002\n\u0007\n\u0002\u000b\u0007\u000b"+

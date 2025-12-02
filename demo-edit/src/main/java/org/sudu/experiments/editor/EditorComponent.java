@@ -624,7 +624,7 @@ public class EditorComponent extends View implements
     if (drawLineNumbersFrame)
       WindowPaint.drawInnerFrame(
           g, lineNumbers.size, lineNumbers.pos,
-          IdeaCodeColors.ElementsDark.error.v.colorF, 1, lrContext.size);
+          IdeaCodeColors.Dark.error, 1, lrContext.size);
 
 //    g.checkError("paint complete");
     if (0>1) {
@@ -656,7 +656,7 @@ public class EditorComponent extends View implements
   void drawTextAreaFrame() {
     context.v2i1.set(pos.x + textBaseX, pos.y);
     context.v2i2.set(textViewWidth, size.y);
-    var color = IdeaCodeColors.ElementsDark.error.v.colorF;
+    var color = IdeaCodeColors.Dark.error;
     WindowPaint.drawInnerFrame(
         g, context.v2i2, context.v2i1, color, 1, lrContext.size
     );

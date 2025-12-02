@@ -56,8 +56,8 @@ public class CppDirectiveSplitter {
     @Override
     public void enterInclude(IncludeContext ctx) {
       super.enterInclude(ctx);
-      markToken(ctx.Hash(), TokenTypes.ANNOTATION);
-      markToken(ctx.Include(), TokenTypes.ANNOTATION);
+      markToken(ctx.Hash(), TokenTypes.CPP_DIRECTIVE);
+      markToken(ctx.Include(), TokenTypes.CPP_DIRECTIVE);
       for (int i = 2; i < ctx.children.size(); i++) {
         var node = (TerminalNode) ctx.getChild(i);
         markToken(node, TokenTypes.STRING);
@@ -67,16 +67,16 @@ public class CppDirectiveSplitter {
     @Override
     public void enterError(ErrorContext ctx) {
       super.enterError(ctx);
-      markToken(ctx.Hash(), TokenTypes.ANNOTATION);
-      markToken(ctx.Error(), TokenTypes.ANNOTATION);
+      markToken(ctx.Hash(), TokenTypes.CPP_DIRECTIVE);
+      markToken(ctx.Error(), TokenTypes.CPP_DIRECTIVE);
     }
 
     @Override
     public void enterDir(DirContext ctx) {
       super.enterDir(ctx);
-      markToken(ctx.Hash(), TokenTypes.ANNOTATION);
-      markToken(ctx.Identifier(), TokenTypes.ANNOTATION);
-      markToken(ctx.Keyword(), TokenTypes.ANNOTATION);
+      markToken(ctx.Hash(), TokenTypes.CPP_DIRECTIVE);
+      markToken(ctx.Identifier(), TokenTypes.CPP_DIRECTIVE);
+      markToken(ctx.Keyword(), TokenTypes.CPP_DIRECTIVE);
     }
 
     @Override

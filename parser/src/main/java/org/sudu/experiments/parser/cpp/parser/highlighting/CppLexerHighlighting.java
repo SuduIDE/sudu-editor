@@ -21,6 +21,7 @@ public class CppLexerHighlighting {
       else if (isNull(type)) tokenTypes[ind] = NULL;
       else if (isSemi(type)) tokenTypes[ind] = SEMI;
       else if (isComment(token.getType())) tokenTypes[ind] = COMMENT;
+      else if (isDoc(token.getType())) tokenTypes[ind] = DOCUMENTATION;
       else if (isDirective(token.getType())) tokenTypes[ind] = ANNOTATION;
       else if (isOperator(token.getType())) tokenTypes[ind] = OPERATOR;
       else if (isError(token.getType()) || token.getType() == -1) Utils.markError(tokenTypes, tokenStyles, ind);
@@ -59,6 +60,9 @@ public class CppLexerHighlighting {
   public static boolean isComment(int tokenType) {
     return tokenType == CPP14Lexer.BlockComment
         || tokenType == CPP14Lexer.LineComment;
+  }
+  public static boolean isDoc(int tokenType) {
+    return tokenType == CPP14Lexer.Documentation;
   }
 
   public static boolean isDirective(int tokenType) {

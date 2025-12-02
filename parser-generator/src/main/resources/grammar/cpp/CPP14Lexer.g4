@@ -393,6 +393,8 @@ Whitespace: [ \t]+ -> channel(HIDDEN);
 
 Newline: ('\r' '\n'? | '\n') -> channel(HIDDEN);
 
+Documentation: '/**' .*? '*/' -> channel(HIDDEN);
+
 BlockComment: '/*' .*? '*/' -> channel(HIDDEN);
 
 LineComment: '//' ~ [\r\n]* -> channel(HIDDEN);

@@ -155,7 +155,7 @@ public class MiddleLine extends View {
     if (debugDrawFrame)
       WindowPaint.drawInnerFrame(g,
         size, pos,
-        IdeaCodeColors.ElementsDark.error.v.colorF,
+        IdeaCodeColors.Dark.error,
         1, uiContext.v2i1);
     g.enableBlend(false);
   }

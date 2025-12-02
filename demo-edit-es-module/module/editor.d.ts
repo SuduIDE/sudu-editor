@@ -269,7 +269,24 @@ export const enum ThemeColor {
   InsertedTextBackground = 18,
   LineNumberForeground = 19,
   ActiveLineNumberForeground = 20,
-  LineNumberActiveForeground = 21
+  LineNumberActiveForeground = 21,
+
+  SyntaxKeyword = 30,
+  SyntaxNull,
+  SyntaxBoolean,
+  SyntaxSemi,
+  SyntaxField,
+  SyntaxString,
+  SyntaxError,
+  SyntaxNumeric,
+  SyntaxMethod,
+  SyntaxComment,
+  SyntaxAnnotation,
+  SyntaxType,
+  SyntaxOperator,
+  SyntaxEscapeChar,
+  SyntaxCppDirective,
+  SyntaxDocumentation
 }
 
 export type BaseTheme = 'dark' | 'light' | 'darcula';
@@ -281,8 +298,8 @@ export type Font = {
 }
 
 type WithFonts = {
-  uiFont: Font,
-  editorFont: Font
+  uiFont?: Font,
+  editorFont?: Font
 }
 
 export type Theme = {

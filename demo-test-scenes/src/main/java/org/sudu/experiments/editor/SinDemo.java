@@ -80,7 +80,7 @@ public class SinDemo extends Scene0 implements MouseListener  {
     frameSize.set(rect.size.x + 4, vSize + 4);
     framePos.set(rect.pos.x - 2, startY - 2);
     WindowPaint.drawInnerFrame(g, frameSize, framePos,
-        IdeaCodeColors.ElementsDark.unused.v.colorF, 1, frameT);
+        IdeaCodeColors.Dark.unused, 1, frameT);
 
     if (draw1000) draw1000(g, x0, vSize);
 

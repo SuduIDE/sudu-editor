@@ -6,22 +6,29 @@ import java.util.Map;
 public interface ParserConstants {
 
   interface TokenTypes {
-    int DEFAULT = 0;
-    int KEYWORD = 1;
-    int NULL = 1;
-    int BOOLEAN = 1;
-    int SEMI = 1;
-    int FIELD = 2;
-    int STRING = 3;
-    int ERROR = 5;
-    int NUMERIC = 7;
-    int METHOD = 8;
-    int COMMENT = 11;
-    int ANNOTATION = 12;
-    int TYPE = 13;
-    int OPERATOR = 14;
-    int JAVADOC = STRING; // todo fix later
-    int TYPES_LENGTH = OPERATOR + 1;
+    int DEFAULT       = 0;
+    int KEYWORD       = 1;
+    int NULL          = 2;
+    int BOOLEAN       = 3;
+    int SEMI          = 4;
+    int FIELD         = 5;
+    int STRING        = 6;
+    int ERROR         = 7;
+    int NUMERIC       = 8;
+    int METHOD        = 9;
+    int COMMENT       = 10;
+    int ANNOTATION    = 11;
+    int TYPE          = 12;
+    int OPERATOR      = 13;
+    int ESCAPE_CHAR   = 14;
+    int CPP_DIRECTIVE = 15;
+    int DOCUMENTATION = 16;
+
+    int BR_1          = 17;
+    int BR_2          = 18;
+    int BR_3          = 19;
+
+    int TYPES_LENGTH = BR_3 + 1;
 
     Map<String, Integer> semanticTokenTypeMap = fillMap();
 

@@ -1,4 +1,4 @@
-lexer grammar JavaStringSplitter;
+lexer grammar StringSplitter;
 
 TRI_QUOTE: '"""';
 QUOTE: '"' | '\'';
@@ -9,7 +9,7 @@ ESCAPE
     | '\\' 'u'+ HexDigit HexDigit HexDigit HexDigit
     ;
 
-NEW_LINE:           '\r'? '\n';
+NEW_LINE: '\r'? '\n' | '\r';
 
 fragment HexDigits
     : HexDigit ((HexDigit | '_')* HexDigit)?

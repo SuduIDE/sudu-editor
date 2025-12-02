@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.*;
 import org.sudu.experiments.parser.common.base.BaseFullParser;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
+import org.sudu.experiments.parser.help.Helper;
 import org.sudu.experiments.parser.javascript.JsSplitRules;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptParser;
 import org.sudu.experiments.parser.javascript.gen.LightJavaScriptLexer;
