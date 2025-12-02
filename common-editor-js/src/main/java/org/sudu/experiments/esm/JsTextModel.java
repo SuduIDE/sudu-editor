@@ -79,10 +79,12 @@ public class JsTextModel implements JsITextModel {
       var colorF = color != null && color.hasForeground() ? color.getForeground().stringValue() : null;
       var colorB = color != null && color.hasBackground() ? color.getBackground().stringValue() : null;
       var text = token.getText().stringValue();
-      var tokenType = getSemanticType(legendItem.getTokenType().stringValue());
-      int tokenStyle;
-      if (color == null) tokenStyle = getDefaultTokenStyle(legendItem);
-      else {
+      int tokenType, tokenStyle;
+      if (color == null) {
+        tokenType = getSemanticType(legendItem.getTokenType().stringValue());
+        tokenStyle = getDefaultTokenStyle(legendItem);
+      } else {
+        tokenType = ParserConstants.TokenTypes.DEFAULT;
         tokenStyle = ParserConstants.TokenStyles.NORMAL;
         if (color.hasItalic() && color.getItalic()) tokenStyle |= ParserConstants.TokenStyles.ITALIC;
         if (color.hasBold() && color.getBold()) tokenStyle |= ParserConstants.TokenStyles.BOLD;
