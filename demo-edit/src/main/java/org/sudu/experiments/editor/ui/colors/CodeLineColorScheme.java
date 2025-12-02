@@ -60,12 +60,6 @@ public class CodeLineColorScheme {
         codeElement[STRING],     // Regexp — For tokens that represent a regular expression literal.
         codeElement[OPERATOR],   // Operator — For tokens that represent an operator.
 
-        codeElement[ANNOTATION], // Modifier — ???
-        codeElement[OPERATOR],   // Bracket — ???
-
-        codeElement[KEYWORD],    // Builtin Constant — ???
-        codeElement[DEFAULT],    // Default — ???
-
         codeElement[DEFAULT],    // Unknown — ???
     };
     semanticColors = new ArrayList<>();

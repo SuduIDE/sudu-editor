@@ -132,7 +132,11 @@ class FileDiffRootView extends DiffRootView {
     boolean isL = editor == editor1;
     setModelFlagsBit(isL ? 0b01 : 0b10);
 
-    if (diffModel == null) return;
+    if (diffModel == null) {
+      if (modelFlagsReady())
+        sendToDiff(false);
+      return;
+    }
     int startLine = editor.model().document.getLine(start).x;
     int stopLine = editor.model().document.getLine(stop).x;
     var fromRangeInd = diffModel.leftNotEmptyBS(startLine, isL);
@@ -231,15 +235,12 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void setEmptyDiffModel() {
-    var leftModel = editor1.model();
-    var rightModel = editor2.model();
-    LineDiff[] leftLines = new LineDiff[leftModel.document.length()];
-    LineDiff[] rightLines = new LineDiff[rightModel.document.length()];
-    for (int i = 0; i < leftLines.length; i++) leftLines[i] = new LineDiff(DiffTypes.DEFAULT);
-    for (int i = 0; i < rightLines.length; i++) rightLines[i] = new LineDiff(DiffTypes.DEFAULT);
-    var range = new DiffRange(0, leftLines.length, 0, rightLines.length, DiffTypes.DEFAULT);
-    var diffInfo = new DiffInfo(leftLines, rightLines, new DiffRange[]{range});
-    setDiffModel(diffInfo, docVersions());
+    if ((modelFlags & 0b11) == 0b11) return;
+    diffModel = null;
+    editor1.setDiffModel(null);
+    editor2.setDiffModel(null);
+    diffSync.setModel(null);
+    middleLine.setModel(null);
     firstDiffRevealed = false;
   }
 
