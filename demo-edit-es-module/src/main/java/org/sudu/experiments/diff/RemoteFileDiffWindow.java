@@ -146,6 +146,7 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   }
 
   public void printStat() {
+    if (rootView.diffModel == null) return;
     var diffInfo = rootView.diffModel;
     int diffRanges = 0;
     int linesInserted = 0, linesDeleted = 0;

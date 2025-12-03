@@ -184,7 +184,7 @@ class FileDiffRootView extends DiffRootView {
   }
 
   private void syncEditing(boolean left, CpxDiff cpxDiff, boolean isUndo) {
-    if (!enableSyncEditing) return;
+    if (!enableSyncEditing || diffModel == null) return;
     EditorComponent current = left ? editor1 : editor2;
     var diffVersion = current.model().document.lastDiffVersion();
     EditorComponent another = !left ? editor1 : editor2;
@@ -356,6 +356,7 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public boolean canNavigateUp(EditorComponent focused) {
+    if (diffModel == null) return false;
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
     int rangeInd = diffModel.leftBS(lineInd, left);
@@ -366,6 +367,7 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void navigateUp(EditorComponent focused) {
+    if (diffModel == null) return;
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
     int rangeInd = diffModel.leftBS(lineInd, left);
@@ -378,6 +380,7 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public boolean canNavigateDown(EditorComponent focused) {
+    if (diffModel == null) return false;
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
     int rangeInd = diffModel.rangeBinSearch(lineInd, left);
@@ -388,6 +391,7 @@ class FileDiffRootView extends DiffRootView {
   }
 
   public void navigateDown(EditorComponent focused) {
+    if (diffModel == null) return;
     int lineInd = focused.caretLine();
     boolean left = focused == editor1;
     int rangeInd = diffModel.rangeBinSearch(lineInd, left);
@@ -464,6 +468,7 @@ class FileDiffRootView extends DiffRootView {
 
   public void setCompactView(boolean compact) {
     compactViewRequest = compact;
+    if (diffModel == null) return;
     if (compact) {
       if (!diffModel.isEmpty()) {
         buildCompactModel();
