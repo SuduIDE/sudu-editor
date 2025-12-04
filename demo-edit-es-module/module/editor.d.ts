@@ -11,7 +11,7 @@ export interface WorkerPool {
   getNumThreads(): number
 }
 
-export function newWorkerPool(workerUrl: string, numThreads: number): ITextModel
+export function newWorkerPool(workerUrl: string, numThreads: number): Promise<WorkerPool>;
 
 export interface EditArgs {
   containerId: string
@@ -47,20 +47,6 @@ interface IEvent<T> {
    * @param listener callback to be called when event is fired
    */
   (listener: (e: T) => any): IDisposable;
-}
-
-/**
- * An event describing that an editor has had its model reset (i.e. `editor.setModel()`).
- */
-export interface IModelChangedEvent {
-  /**
-   * The `uri` of the previous model or null.
-   */
-  readonly oldModelUrl: Uri | null;
-  /**
-   * The `uri` of the new model or null.
-   */
-  readonly newModelUrl: Uri | null;
 }
 
 export enum _SemanticTokenType {

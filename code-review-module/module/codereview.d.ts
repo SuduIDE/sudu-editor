@@ -42,20 +42,6 @@ interface IEvent<T> {
   (listener: (e: T) => any): IDisposable;
 }
 
-/**
- * An event describing that an editor has had its model reset (i.e. `editor.setModel()`).
- */
-export interface IModelChangedEvent {
-  /**
-   * The `uri` of the previous model or null.
-   */
-  readonly oldModelUrl: Uri | null;
-  /**
-   * The `uri` of the new model or null.
-   */
-  readonly newModelUrl: Uri | null;
-}
-
 interface TextDocumentContentChangeEvent {
   // todo: replicate VSCode API event
 }
@@ -211,8 +197,7 @@ export const enum ThemeColor {
   ActiveLineNumberForeground = 20,
   LineNumberActiveForeground = 21,
 
-  SyntaxDefault = 30,
-  SyntaxKeyword,
+  SyntaxKeyword = 30,
   SyntaxNull,
   SyntaxBoolean,
   SyntaxSemi,
