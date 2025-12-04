@@ -15,6 +15,7 @@ public class CppLexerHighlighting {
       int ind = token.getTokenIndex();
       int type = token.getType();
       if (isKeyword(type)) tokenTypes[ind] = KEYWORD;
+      else if (isControl(type)) tokenTypes[ind] = CONTROL;
       else if (isNumeric(type)) tokenTypes[ind] = NUMERIC;
       else if (isBooleanLiteral(type)) tokenTypes[ind] = BOOLEAN;
       else if (isStringOrChar(type)) tokenTypes[ind] = STRING;
@@ -30,7 +31,20 @@ public class CppLexerHighlighting {
 
   public static boolean isKeyword(int tokenType) {
     return tokenType >= CPP14Lexer.Alignas
-        && tokenType <= CPP14Lexer.While;
+        && tokenType <= CPP14Lexer.While
+        && !isControl(tokenType);
+  }
+
+  public static boolean isControl(int tokenType) {
+    return switch (tokenType) {
+      case CPP14Lexer.Return, CPP14Lexer.Break,
+           CPP14Lexer.Continue, CPP14Lexer.Goto,
+           CPP14Lexer.If, CPP14Lexer.Else,
+           CPP14Lexer.For, CPP14Lexer.Do,
+           CPP14Lexer.While, CPP14Lexer.Switch,
+           CPP14Lexer.Case, CPP14Lexer.Default -> true;
+      default -> false;
+    };
   }
 
   public static boolean isNumeric(int tokenType) {
