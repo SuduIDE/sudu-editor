@@ -1,9 +1,10 @@
-import {Channel, IDisposable} from './common'
+import { IDisposable } from '@sudu-ide/types';
+import { Channel } from './common'
+
+export { setLogLevel, setLogOutput, LogLevel, IDisposable } from '@sudu-ide/types';
 
 export {
-  Channel, Message,
-  setLogLevel, setLogOutput, newRemoteChannelTest,
-  LogLevel, ChannelTestApi, IDisposable
+  Channel, Message, newRemoteChannelTest, ChannelTestApi
 } from './common';
 
 export interface AsyncShutdown {

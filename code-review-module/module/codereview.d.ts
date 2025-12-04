@@ -1,9 +1,8 @@
 // java reflection of this file is located at
 // code-review-module/src/main/java/org/sudu/experiments/CodeReview_d_ts.java
 
-import {IDisposable} from "./common";
-
-export * from './common';
+import { IDisposable } from '@sudu-ide/types';
+export * from '@sudu-ide/types';
 
 export interface WorkerPool {
   getNumThreads(): number
@@ -25,22 +24,6 @@ export interface EditArgs {
   disableParser?: boolean
 }
 
-interface Uri {
-  scheme?: string,
-  authority?: string,
-  path?: string
-}
-
-interface IEvent<T> {
-  /**
-   * Registers disposable event callback
-   *
-   * When event is fired, a new value V will be delivered to all listeners that were registered at the moment when the value V processing started.
-   * It means that if listener A disposes listener B during processing of value V, listener B will still receive value V.
-   * @param listener callback to be called when event is fired
-   */
-  (listener: (e: T) => any): IDisposable;
-}
 
 interface TextDocumentContentChangeEvent {
   // todo: replicate VSCode API event

@@ -1,17 +1,13 @@
 // java reflection of this file is located at
 // demo-edit-es-module/src/main/java/org/sudu/experiments/EditJsApi.java
 
-import {Channel, IDisposable} from "./common";
+import { Uri, IEvent } from '@sudu-ide/types/frontend';
 
-export {
-  Channel, Message, setLogLevel, setLogOutput, newRemoteChannelTest, LogLevel, ChannelTestApi, IDisposable
-} from './common';
+import { IDisposable } from '@sudu-ide/types';
 
-export interface WorkerPool {
-  getNumThreads(): number
-}
+export { setLogLevel, setLogOutput, LogLevel } from '@sudu-ide/types';
 
-export function newWorkerPool(workerUrl: string, numThreads: number): Promise<WorkerPool>;
+export { Channel, Message, newRemoteChannelTest, ChannelTestApi } from './common';
 
 export interface EditArgs {
   containerId: string
@@ -30,23 +26,6 @@ export interface EditArgs {
   numThreads?: number
 
   codiconUrl?: string
-}
-
-interface Uri {
-  scheme?: string,
-  authority?: string,
-  path?: string
-}
-
-interface IEvent<T> {
-  /**
-   * Registers disposable event callback
-   *
-   * When event is fired, a new value V will be delivered to all listeners that were registered at the moment when the value V processing started.
-   * It means that if listener A disposes listener B during processing of value V, listener B will still receive value V.
-   * @param listener callback to be called when event is fired
-   */
-  (listener: (e: T) => any): IDisposable;
 }
 
 export enum _SemanticTokenType {
