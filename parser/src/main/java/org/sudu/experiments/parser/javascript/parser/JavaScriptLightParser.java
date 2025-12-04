@@ -1,17 +1,15 @@
 package org.sudu.experiments.parser.javascript.parser;
 
 import org.antlr.v4.runtime.*;
+import org.sudu.experiments.parser.common.NullParser;
 import org.sudu.experiments.parser.common.base.BaseFullParser;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
-import org.sudu.experiments.parser.help.Helper;
 import org.sudu.experiments.parser.javascript.JsSplitRules;
-import org.sudu.experiments.parser.javascript.gen.JavaScriptParser;
 import org.sudu.experiments.parser.javascript.gen.LightJavaScriptLexer;
-import org.sudu.experiments.parser.javascript.parser.highlighting.JavaScriptLexerHighlighting;
 import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptLexerHighlighting;
 
-public class JavaScriptLightParser extends BaseFullParser<JavaScriptParser> {
+public class JavaScriptLightParser extends BaseFullParser<NullParser> {
 
   @Override
   public int[] parse(char[] source) {
@@ -29,7 +27,7 @@ public class JavaScriptLightParser extends BaseFullParser<JavaScriptParser> {
   }
 
   @Override
-  protected JavaScriptParser initParser() {
+  protected NullParser initParser() {
     return null;
   }
 
@@ -46,7 +44,7 @@ public class JavaScriptLightParser extends BaseFullParser<JavaScriptParser> {
   }
 
   @Override
-  protected ParserRuleContext getStartRule(JavaScriptParser parser) {
+  protected ParserRuleContext getStartRule(NullParser parser) {
     return null;
   }
 
@@ -59,9 +57,4 @@ public class JavaScriptLightParser extends BaseFullParser<JavaScriptParser> {
   protected void highlightTokens() {
     LightJavaScriptLexerHighlighting.highlightTokens(allTokens, tokenTypes);
   }
-
-  public static boolean isComment(int tokenType) {
-    return JavaScriptLexerHighlighting.isComment(tokenType);
-  }
-
 }
