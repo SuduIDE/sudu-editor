@@ -6,13 +6,13 @@ import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.base.BaseFirstLinesLexer;
 import org.sudu.experiments.parser.javascript.JsSplitRules;
 import org.sudu.experiments.parser.javascript.gen.LightJavaScriptLexer;
-import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptLexerHighlighting;
+import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptHighlighting;
 
 public class JavaScriptFirstLinesLexer extends BaseFirstLinesLexer<NullParser> {
 
   @Override
   protected void highlightTokens() {
-    LightJavaScriptLexerHighlighting.highlightTokens(allTokens, tokenTypes);
+    LightJavaScriptHighlighting.highlightTokens(allTokens, tokenTypes);
   }
 
   @Override

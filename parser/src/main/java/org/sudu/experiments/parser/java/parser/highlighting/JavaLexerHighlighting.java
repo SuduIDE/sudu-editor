@@ -15,6 +15,7 @@ public class JavaLexerHighlighting {
       int ind = token.getTokenIndex();
       int type = token.getType();
       if (isKeyword(type)) tokenTypes[ind] = KEYWORD;
+      else if (isControl(type)) tokenTypes[ind] = CONTROL;
       else if (isNumeric(type)) tokenTypes[ind] = NUMERIC;
       else if (isBooleanLiteral(type)) tokenTypes[ind] = BOOLEAN;
       else if (isStringOrChar(type)) tokenTypes[ind] = STRING;
@@ -47,8 +48,22 @@ public class JavaLexerHighlighting {
 
   // Tokens from MODULE to VAR can be used as identifiers
   public static boolean isKeyword(int type) {
-    return (type >= JavaLexer.ABSTRACT && type <= JavaLexer.WHILE)
-        || (type >= JavaLexer.YIELD && type <= JavaLexer.NON_SEALED);
+    return ((type >= JavaLexer.ABSTRACT && type <= JavaLexer.WHILE)
+        || (type >= JavaLexer.YIELD && type <= JavaLexer.NON_SEALED))
+        && !isControl(type);
+  }
+
+  public static boolean isControl(int type) {
+    return switch (type) {
+      case JavaLexer.RETURN, JavaLexer.BREAK,
+           JavaLexer.CONTINUE, JavaLexer.GOTO,
+           JavaLexer.IF, JavaLexer.ELSE,
+           JavaLexer.FOR, JavaLexer.DO,
+           JavaLexer.WHILE, JavaLexer.SWITCH,
+           JavaLexer.CASE, JavaLexer.DEFAULT,
+           JavaLexer.YIELD -> true;
+      default -> false;
+    };
   }
 
   public static boolean isKeywordIdentifier(int type) {

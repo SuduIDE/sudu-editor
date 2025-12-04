@@ -7,7 +7,7 @@ import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.javascript.JsSplitRules;
 import org.sudu.experiments.parser.javascript.gen.LightJavaScriptLexer;
-import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptLexerHighlighting;
+import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptHighlighting;
 
 public class JavaScriptLightParser extends BaseFullParser<NullParser> {
 
@@ -55,6 +55,6 @@ public class JavaScriptLightParser extends BaseFullParser<NullParser> {
 
   @Override
   protected void highlightTokens() {
-    LightJavaScriptLexerHighlighting.highlightTokens(allTokens, tokenTypes);
+    LightJavaScriptHighlighting.highlightTokens(allTokens, tokenTypes);
   }
 }
