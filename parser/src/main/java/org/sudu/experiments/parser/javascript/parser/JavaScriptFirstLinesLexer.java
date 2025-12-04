@@ -1,15 +1,14 @@
 package org.sudu.experiments.parser.javascript.parser;
 
 import org.antlr.v4.runtime.*;
-import org.sudu.experiments.parser.common.base.BaseFirstLinesLexer;
+import org.sudu.experiments.parser.common.NullParser;
 import org.sudu.experiments.parser.common.SplitRules;
-import org.sudu.experiments.parser.help.Helper;
+import org.sudu.experiments.parser.common.base.BaseFirstLinesLexer;
 import org.sudu.experiments.parser.javascript.JsSplitRules;
-import org.sudu.experiments.parser.javascript.gen.JavaScriptParser;
 import org.sudu.experiments.parser.javascript.gen.LightJavaScriptLexer;
 import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptLexerHighlighting;
 
-public class JavaScriptFirstLinesLexer extends BaseFirstLinesLexer<JavaScriptParser> {
+public class JavaScriptFirstLinesLexer extends BaseFirstLinesLexer<NullParser> {
 
   @Override
   protected void highlightTokens() {
