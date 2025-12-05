@@ -8,25 +8,26 @@ public interface ParserConstants {
   interface TokenTypes {
     int DEFAULT       = 0;
     int KEYWORD       = 1;
-    int NULL          = 2;
-    int BOOLEAN       = 3;
-    int SEMI          = 4;
-    int FIELD         = 5;
-    int STRING        = 6;
-    int ERROR         = 7;
-    int NUMERIC       = 8;
-    int METHOD        = 9;
-    int COMMENT       = 10;
-    int ANNOTATION    = 11;
-    int TYPE          = 12;
-    int OPERATOR      = 13;
-    int ESCAPE_CHAR   = 14;
-    int CPP_DIRECTIVE = 15;
-    int DOCUMENTATION = 16;
+    int CONTROL       = 2;  // keywords such as if-else, break, continue, return etc...
+    int NULL          = 3;
+    int BOOLEAN       = 4;
+    int SEMI          = 5;
+    int FIELD         = 6;
+    int STRING        = 7;
+    int ERROR         = 8;
+    int NUMERIC       = 9;
+    int METHOD        = 10;
+    int COMMENT       = 11;
+    int ANNOTATION    = 12;
+    int TYPE          = 13;
+    int OPERATOR      = 14;
+    int ESCAPE_CHAR   = 15;
+    int CPP_DIRECTIVE = 16;
+    int DOCUMENTATION = 17;
 
-    int BR_1          = 17;
-    int BR_2          = 18;
-    int BR_3          = 19;
+    int BR_1          = 18;
+    int BR_2          = 19;
+    int BR_3          = 20;
 
     int TYPES_LENGTH = BR_3 + 1;
 
