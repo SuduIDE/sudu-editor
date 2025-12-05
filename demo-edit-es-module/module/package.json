@@ -16,18 +16,27 @@
   },
   "typesVersions": {
     "*": {
-      "index": ["./editor.d.ts"],
-      "engine": ["./diff.d.ts"]
+      "index": [
+        "./editor.d.ts"
+      ],
+      "engine": [
+        "./diff.d.ts"
+      ]
     }
   },
   "files": [
     "editor.d.ts",
-    "./src/editor.js", "./src/worker.js", "./src/loader.js",
-    "diff.d.ts","common.d.ts",
-    "./src/sshLib.mjs", "./src/diffEngine.mjs", "./src/diffEngineWorker.mjs"
+    "./src/editor.js",
+    "./src/worker.js",
+    "./src/loader.js",
+    "diff.d.ts",
+    "common.d.ts",
+    "./src/sshLib.mjs",
+    "./src/diffEngine.mjs",
+    "./src/diffEngineWorker.mjs"
   ],
   "dependencies": {
-    "@sudu-ide/types": "^0.0.1"
+    "@sudu-ide/types": "0.0.1"
   },
   "scripts": {
     "link-local": "npm link ../../common-ts-types"

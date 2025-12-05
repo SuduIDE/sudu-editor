@@ -1,4 +1,4 @@
-import { IDisposable } from "./types";
+import { IDisposable } from "./common";
 
 export interface Uri {
   scheme?: string,
