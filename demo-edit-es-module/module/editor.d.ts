@@ -10,8 +10,6 @@ export { setLogLevel, setLogOutput, LogLevel } from '@sudu-ide/types';
 
 export { Channel, Message, newRemoteChannelTest, ChannelTestApi } from './common';
 
-export * from '../../filediff-node-module/module'
-
 export interface EditArgs {
   containerId: string
 
