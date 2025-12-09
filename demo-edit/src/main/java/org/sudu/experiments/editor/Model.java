@@ -513,7 +513,8 @@ public class Model {
     if (element == null || !element.s.equals(token.text)) {
       String errMsg = element == null
           ? "element at (" + token.line + ":" + token.startCharPos + ") is null"
-          : "element.s = " + element.s + " != token.text = " + token.text;
+          : "element.s(" + element.s + ") != token.text(" + token.text
+          + "), token.line=" + token.line + ", token.startCharPos =  " + token.startCharPos;
       System.err.println(errMsg);
       return;
     }
