@@ -55,8 +55,9 @@ public class WebApp {
 
   static Scene createScene(SceneApi api) {
     String hash = JsWindow.current().getLocation().getHash();
-    if ("#wasmDemo".equals(hash)) return new WasmDemo(api);
-    if ("#diffDemo".equals(hash) || hash.isEmpty())
+    if ("#wasmDemo".equals(hash))
+      return new WasmDemo(api);
+    if ("#diffDemo".equals(hash))
       return new DiffDemoJs(api);
     String name = hash.isEmpty() ? "" : hash.substring(1);
     return TestSceneSelector.selectScene(name).apply(api);
