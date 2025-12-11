@@ -5,7 +5,17 @@
   "author": "Kirill Prazdnikov",
   "license": "MIT",
   "main": "./src/module.mjs",
-  "files": [ "./diff.d.ts",
-    "./src/module.mjs", "./src/worker.mjs", "./src/sshLib.mjs" ],
-  "typings": "./diff.d.ts"
+  "files": [
+    "./diff.d.ts",
+    "./src/module.mjs",
+    "./src/worker.mjs",
+    "./src/sshLib.mjs"
+  ],
+  "typings": "./diff.d.ts",
+  "dependencies": {
+    "@sudu-ide/types": "0.0.1"
+  },
+  "scripts": {
+    "link-local": "npm link ../../common-ts-types"
+  }
 }

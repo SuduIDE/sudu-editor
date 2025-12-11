@@ -1,0 +1,26 @@
+{
+  "name": "@sudu-ide/types",
+  "version": "0.0.1",
+  "description": "Common Sudu Editor types",
+  "author": "Kirill Prazdnikov",
+  "license": "MIT",
+  "exports": {
+    "./frontend": "./frontend.d.ts",
+    ".": "./common.d.ts"
+  },
+  "typesVersions": {
+    "*": {
+      "index": [
+        "./common.d.ts"
+      ],
+      "frontend": [
+        "./frontend.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "index.d.ts",
+    "common.d.ts",
+    "frontend.d.ts"
+  ]
+}

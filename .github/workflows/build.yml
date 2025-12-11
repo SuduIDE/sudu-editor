@@ -124,6 +124,9 @@ jobs:
         run: |
           NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
           echo "::notice::version \"${NEW_VERSION}\""
+          cd $GITHUB_WORKSPACE/common-ts-types
+          npm version ${NEW_VERSION}
+          npm publish --access public
           cd $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module
           npm version ${NEW_VERSION}
           npm publish --access public
