@@ -13,7 +13,7 @@
   ],
   "typings": "./diff.d.ts",
   "dependencies": {
-    "@sudu-ide/types": "0.0.1"
+    "@sudu-ide/types": "*"
   },
   "scripts": {
     "link-local": "npm link ../../common-ts-types"
