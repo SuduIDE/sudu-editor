@@ -95,7 +95,7 @@ public class FileTreeNode extends TreeNode {
     if (isOpened()) {
       if (model.children == null) {
         for (FileTreeNode child: children)
-          idx = child.getModel(t, diffType, idx, model.isCompared());
+          idx = child.getModel(t, m, diffType, idx, model.isCompared());
       } else {
         int i = 0, j = 0;
         for (FolderDiffModel child: model.children) {
@@ -117,13 +117,14 @@ public class FileTreeNode extends TreeNode {
     return idx;
   }
 
-  private int getModel(TreeNode[] t, int diffType, int idx, boolean compared) {
+  private int getModel(TreeNode[] t, FolderDiffModel[] m, int diffType, int idx, boolean compared) {
     this.diffType = diffType;
-    t[idx++] = this;
+    t[idx] = this;
+    m[idx++] = new FolderDiffModel(null);
     setIcon(this, compared);
     if (isOpened()) {
       for (var child: children)
-        idx = child.getModel(t, diffType, idx, compared);
+        idx = child.getModel(t, m, diffType, idx, compared);
     }
     return idx;
   }
