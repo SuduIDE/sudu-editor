@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 public class FolderDiffWindow extends ToolWindow0 {
 
   private static final boolean PRINT_STAT = true;
-  private static final boolean dummyMergeButtons = true;
+  private static final boolean dummyMergeButtons = false;
 
   Window window;
   Focusable focusSave;
@@ -263,10 +263,12 @@ public class FolderDiffWindow extends ToolWindow0 {
         rootView.left.model(),
         rootView.right.model()
     ));
-    rootView.setMergeButtons(null);
-    if (dummyMergeButtons) {
-      dummyMergeButtons(rootView.left, true);
-      dummyMergeButtons(rootView.right, false);
+    if (leftRoot != null && rightRoot != null) {
+      rootView.setMergeButtons(null);
+      if (dummyMergeButtons) {
+        dummyMergeButtons(rootView.left, true);
+        dummyMergeButtons(rootView.right, false);
+      }
     }
   }
 
