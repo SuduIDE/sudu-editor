@@ -31,7 +31,7 @@ public abstract class NodeFileHandle0 implements FileHandle {
     this.sep = sep;
   }
 
-  JSString jsPath() {
+  public JSString jsPath() {
     if (jsPath == null)
       jsPath = Fs.concatPath(name, path, sep);
     return jsPath;

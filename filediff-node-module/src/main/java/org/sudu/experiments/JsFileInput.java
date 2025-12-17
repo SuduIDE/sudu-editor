@@ -12,7 +12,7 @@ import org.teavm.jso.core.JSString;
 
 public interface JsFileInput extends JSObject {
 
-  static FileHandle fileHandle(JsFileInput input, boolean mustExists) {
+  static NodeFileHandle0 fileHandle(JsFileInput input, boolean mustExists) {
     boolean isString = JSString.isInstance(input);
     if (isString || hasPath(input)) {
       JSString path = isString ? input.cast() : JsHasPath.getPath(input);

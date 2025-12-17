@@ -2,6 +2,7 @@ package org.sudu.experiments.update;
 
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.JsExternalFileWriter;
 import org.sudu.experiments.LoggingJs;
 import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.js.JsArray;
@@ -19,10 +20,16 @@ public class FileEditChannelUpdater {
   private FileHandle handle;
   final Channel channel;
   final WorkerJobExecutor executor;
+  final JsExternalFileWriter writer;
 
-  public FileEditChannelUpdater(Channel channel, WorkerJobExecutor executor) {
+  public FileEditChannelUpdater(
+      Channel channel,
+      JsExternalFileWriter writer,
+      WorkerJobExecutor executor
+  ) {
     this.channel = channel;
     this.executor = executor;
+    this.writer = writer;
     this.channel.setOnMessage(this::onMessage);
   }
 

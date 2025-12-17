@@ -228,6 +228,10 @@ public class JsHelper {
   @JSBody(params = {"left", "right"}, script = "return left + right;")
   public static native JSString concat(String left, JSObject right);
 
+  @JSBody(params = {"a", "b", "c", "d"}, script = "return a+b+c+d;")
+  public static native JSString concat(
+      String a, JSObject b, String c, JSObject d);
+
   @JSBody(params = {"left", "right"}, script = "return left + right;")
   public static native JSString concat(JSString left, JSObject right);
 

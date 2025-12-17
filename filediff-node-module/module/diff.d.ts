@@ -1,4 +1,4 @@
-import { IDisposable } from '@sudu-ide/types';
+import { IDisposable, Thenable } from '@sudu-ide/types';
 import { Channel } from './common'
 
 export { setLogLevel, setLogOutput, LogLevel, IDisposable } from '@sudu-ide/types';
@@ -9,6 +9,16 @@ export {
 
 export interface AsyncShutdown {
   shutdown(): Promise<void>;
+}
+
+export const enum Encoding {
+  gbk = "gbk",
+}
+
+// encoding parameter is one of enum Encoding
+// or Utf-8 otherwise
+export interface ExternalFileWriter {
+  writeFile(path: string, content: string, encoding: Encoding | null): Thenable<boolean>;
 }
 
 export interface DiffTestApi {
@@ -122,11 +132,13 @@ export interface DiffEngine extends IDisposable {
   startFileDiff(
     left: FileInput, right: FileInput,
     channel: Channel,
+    w: ExternalFileWriter,
     folderDiff?: FolderDiffSession
   ): FileDiffSession;
 
   startFileEdit(
     file: FileInput, channel: Channel,
+    w: ExternalFileWriter,
     folderDiff?: FolderDiffSession
   ): FileDiffSession;
 

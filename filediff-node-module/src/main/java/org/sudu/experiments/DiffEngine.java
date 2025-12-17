@@ -14,8 +14,6 @@ import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
-import java.io.File;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
@@ -90,6 +88,7 @@ public class DiffEngine implements DiffEngineJs {
   public JsFileDiffSession startFileDiff(
       JsFileInput leftInput, JsFileInput rightInput,
       Channel channel,
+      JsExternalFileWriter writer,
       JsFolderDiffSession parent
   ) {
     LoggingJs.info("Starting new file diff ...");
@@ -103,9 +102,9 @@ public class DiffEngine implements DiffEngineJs {
     boolean isRightText = !isRightString && JsFileInput.isContent(rightInput);
     boolean isRightFile = !isRightText && JsFileInput.isPath(rightInput);
 
-    FileHandle leftHandle = isLeftFile ?
+    NodeFileHandle0 leftHandle = isLeftFile ?
         JsFileInput.fileHandle(leftInput, true) : null;
-    FileHandle rightHandle = isRightFile ?
+    NodeFileHandle0 rightHandle = isRightFile ?
         JsFileInput.fileHandle(rightInput, true) : null;
 
     boolean validatedLeft = leftHandle != null || isLeftText;
@@ -128,8 +127,9 @@ public class DiffEngine implements DiffEngineJs {
     DiffModelChannelUpdater parentUpdater =
         JsHelper.jsIf(parent) ? ((JsFolderDiffSession0) parent).updater : null;
 
-    FileDiffChannelUpdater updater
-        = new FileDiffChannelUpdater(channel, parentUpdater, pool);
+    var updater = new FileDiffChannelUpdater(
+        channel, parentUpdater, writer, pool
+    );
 
     checkFileContent(leftHandle, leftContentType ->
         checkFileContent(rightHandle, rightContentType -> {
@@ -173,6 +173,7 @@ public class DiffEngine implements DiffEngineJs {
   @Override
   public JsFileDiffSession startFileEdit(
       JsFileInput input, Channel channel,
+      JsExternalFileWriter writer,
       JsFolderDiffSession parent
   ) {
     JsHelper.consoleInfo("Starting file edit ...");
@@ -192,7 +193,7 @@ public class DiffEngine implements DiffEngineJs {
       return null;
     }
 
-    FileEditChannelUpdater updater = new FileEditChannelUpdater(channel, pool);
+    var updater = new FileEditChannelUpdater(channel, writer, pool);
     if (fileHandle != null) {
       LoggingJs.info("  file: ".concat(fileHandle.toString()));
       updater.setFile(fileHandle);

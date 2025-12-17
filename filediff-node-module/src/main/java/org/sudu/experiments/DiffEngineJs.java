@@ -8,6 +8,7 @@ import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
 public interface DiffEngineJs extends JSObject {
+
   void dispose();
 
   JsFolderDiffSession startFolderDiff(
@@ -24,6 +25,7 @@ public interface DiffEngineJs extends JSObject {
   JsFileDiffSession startFileDiff(
       JsFileInput leftInput, JsFileInput rightInput,
       Channel channel,
+      JsExternalFileWriter writer,
       JsFolderDiffSession parent
   );
 
@@ -35,6 +37,7 @@ public interface DiffEngineJs extends JSObject {
 
   JsFileDiffSession startFileEdit(
       JsFileInput path, Channel channel,
+      JsExternalFileWriter writer,
       JsFolderDiffSession parent
   );
 

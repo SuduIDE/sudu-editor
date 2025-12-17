@@ -2,17 +2,18 @@ package org.sudu.experiments.update;
 
 import org.sudu.experiments.Channel;
 import org.sudu.experiments.FileHandle;
+import org.sudu.experiments.JsExternalFileWriter;
 import org.sudu.experiments.LoggingJs;
-import org.sudu.experiments.editor.worker.FileCompare;
 import org.sudu.experiments.editor.worker.FsWorkerJobs;
 import org.sudu.experiments.editor.worker.NextDiffTask;
-import org.sudu.experiments.js.JsArray;
-import org.sudu.experiments.js.JsHelper;
-import org.sudu.experiments.js.TextDecoder;
-import org.sudu.experiments.js.TextEncoder;
+import org.sudu.experiments.js.*;
+import org.sudu.experiments.js.node.NodeFileHandle0;
+import org.sudu.experiments.js.node.SshFileHandle;
 import org.sudu.experiments.protocol.JsCast;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSError;
+import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.typedarrays.Int32Array;
 
@@ -21,10 +22,11 @@ import static org.sudu.experiments.editor.worker.FsWorkerJobs.*;
 public class FileDiffChannelUpdater {
   static final boolean debug = false;
 
-  private FileHandle leftHandle, rightHandle;
+  private NodeFileHandle0 leftHandle, rightHandle;
   private final WorkerJobExecutor executor;
   private final Channel channel;
   private final DiffModelChannelUpdater updater;
+  private final JsExternalFileWriter writer;
 
   public final static int FILE_READ = 0;
   public final static int FILE_SAVE = 1;
@@ -46,21 +48,23 @@ public class FileDiffChannelUpdater {
   public FileDiffChannelUpdater(
       Channel channel,
       DiffModelChannelUpdater updater,
+      JsExternalFileWriter writer,
       WorkerJobExecutor executor
   ) {
     this.executor = executor;
     this.channel = channel;
+    this.writer = writer;
     this.channel.setOnMessage(this::onMessage);
     this.updater = updater;
   }
 
-  public void compareLeft(FileHandle leftHandle) {
+  public void compareLeft(NodeFileHandle0 leftHandle) {
     this.leftHandle = leftHandle;
     FsWorkerJobs.readTextFile(executor, leftHandle,
         (text, encoding) -> sendFileRead(true, text, encoding), this::onError);
   }
 
-  public void compareRight(FileHandle rightHandle) {
+  public void compareRight(NodeFileHandle0 rightHandle) {
     this.rightHandle = rightHandle;
     FsWorkerJobs.readTextFile(executor, rightHandle,
         (text, encoding) -> sendFileRead(false, text, encoding), this::onError);
@@ -93,19 +97,37 @@ public class FileDiffChannelUpdater {
 
   private void onFileSave(JsArray<JSObject> jsArray) {
     var jsString = JsCast.jsString(jsArray, 0);
-    var source = TextEncoder.toCharArray(jsString);
-    String encoding = JsCast.string(jsArray, 1);
+    JSString encodingJs = JsCast.jsString(jsArray, 1);
+    String encoding = encodingJs.stringValue();
     boolean left = JsCast.ints(jsArray, 2)[0] == 1;
     if (left && leftHandle != null) {
-      LoggingJs.debug("writeText: encoding = " + encoding + ", file = " + leftHandle);
-      fileWriteText(executor, leftHandle, source, encoding,
-          () -> onFileWrite(true, leftHandle.getFullPath()),
-          this::onError);
+      saveFile(jsString, encodingJs, encoding, leftHandle, true);
     } else if (!left && rightHandle != null) {
-      LoggingJs.debug("writeText: encoding = " + encoding + ", file = " + rightHandle);
-      fileWriteText(executor, rightHandle, source, encoding,
-          () -> onFileWrite(false, rightHandle.getFullPath()),
-          this::onError);
+      saveFile(jsString, encodingJs, encoding, rightHandle, false);
+    }
+  }
+
+  private void saveFile(
+      JSString jsString, JSString encodingJs, String encoding,
+      NodeFileHandle0 handle, boolean isLeft
+  ) {
+    LoggingJs.debug("writeText: encoding = " + encoding + ", file = " + handle);
+    boolean isSSH = handle instanceof SshFileHandle;
+    Runnable onComplete = () -> onFileWrite(isLeft, handle.getFullPath());
+    if (!isSSH && writer != null && !JSObjects.isUndefined(writer)) {
+      JsFunctions.Consumer<JSError> onError =
+          e -> LoggingJs.warn(JsHelper.concat(
+              "Can't write file: ", JsHelper.message(e),
+              ", path = ", handle.jsPath()));
+      writer.writeFile(handle.jsPath(), jsString, encodingJs).then(
+          r -> onComplete.run(), onError);
+    } else {
+      var source = TextEncoder.toCharArray(jsString);
+      fileWriteText(executor, handle, source, encoding,
+          onComplete, error -> LoggingJs.log(LoggingJs.ERROR,
+              "Can't write file: " + error +
+                  ", path = " + handle.getFullPath())
+      );
     }
   }
 
@@ -209,12 +231,12 @@ public class FileDiffChannelUpdater {
     );
   }
 
-  public void fetchSizeLeft(FileHandle handle) {
+  public void fetchSizeLeft(NodeFileHandle0 handle) {
     this.leftHandle = handle;
     FsWorkerJobs.asyncStats(executor, handle, sz -> sendFetchSize(true, sz.size), this::onError);
   }
 
-  public void fetchSizeRight(FileHandle handle) {
+  public void fetchSizeRight(NodeFileHandle0 handle) {
     this.rightHandle = handle;
     FsWorkerJobs.asyncStats(executor, handle, sz -> sendFetchSize(false, sz.size), this::onError);
   }
