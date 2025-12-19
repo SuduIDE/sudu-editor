@@ -6,7 +6,7 @@ import org.sudu.experiments.js.JsDisposable;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSBoolean;
+import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
 import java.util.function.Function;
@@ -82,6 +82,16 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
   @Override
   public JsITextModel getRightModel() {
     return JsTextModel.fromJava(w.rootView.getRightModel());
+  }
+
+  @Override
+  public void setAutoSave(JSString jsAutoSave, JSNumber jsAutoSaveDelay) {
+    LoggingJs.info("JsRemoteCodeDiff.setAutoSave: autoSave = " + jsAutoSave.stringValue()
+        + ", autoSaveDelay = " + jsAutoSaveDelay.intValue()
+    );
+    int autoSave = AutoSave.from(jsAutoSave.stringValue());
+    int autoSaveDelay = jsAutoSaveDelay.intValue();
+    w.setAutoSave(autoSave, autoSaveDelay);
   }
 
   @Override

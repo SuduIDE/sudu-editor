@@ -37,6 +37,9 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   private int lastLeftScrollPos = -1, lastRightScrollPos = -1;
   private V2i lastLeftCaretPos = null, lastRightCaretPos = null;
 
+  private double lastLeftDiffMadeTime, lastRightDiffMadeTime;
+  private int lastLeftDocVersionSaved, lastRightDocVersionSaved;
+
   public RemoteFileDiffWindow(
       WindowManager wm,
       EditorColorScheme theme,
@@ -48,13 +51,42 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     canSelectFiles = false;
     rootView.setOnRefresh(this::onRefresh);
     rootView.setOnDiffModelSet(this::onDiffModelSet);
+    rootView.setOnFocusLost(this::onEditorFocusLost);
     processEsc = false;
     this.channel = channel;
     this.channel.setOnMessage(this::onMessage);
     this.setOnDiffMade(
-        src -> saveFile(true, src),
-        src -> saveFile(false, src)
+        src -> onDiffMade(true, src),
+        src -> onDiffMade(false, src)
     );
+  }
+
+  private void onDiffMade(boolean left, Model m) {
+    switch (autoSave) {
+      case -1 -> saveFile(left, m);
+      case AutoSave.AFTER_DELAY -> {
+        double timeNow = window.context.window.timeNow();
+        if (left) lastLeftDiffMadeTime = timeNow;
+        else lastRightDiffMadeTime = timeNow;
+      }
+    }
+  }
+
+  @Override
+  public void checkTimer(double time) {
+    super.checkTimer(time);
+    if (autoSave != AutoSave.AFTER_DELAY) return;
+    if (needSave(true, time)) saveFileOnDelay(true);
+    if (needSave(false, time)) saveFileOnDelay(false);
+  }
+
+  private void saveFileOnDelay(boolean left) {
+    LoggingJs.debug("RemoteFileDiffWindow.saveFileOnDelay: left = " + left);
+    var editor = left ? rootView.editor1 : rootView.editor2;
+    int version = editor.docVersion();
+    if (left) lastLeftDocVersionSaved = version;
+    else lastRightDocVersionSaved = version;
+    saveFile(left, editor.model());
   }
 
   private void saveFile(boolean left, Model m) {
@@ -87,6 +119,19 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
             + ", encoding = " + encoding);
     open(source, encoding, name, left);
     updateOnRefresh();
+  }
+
+  private void onEditorFocusLost(boolean left) {
+    if (autoSave != AutoSave.ON_FOCUS_CHANGE) return;
+    var editor = left ? rootView.editor1 : rootView.editor2;
+    saveFile(left, editor.model());
+  }
+
+  private boolean needSave(boolean left, double timeNow) {
+    int version = left ? rootView.editor1.docVersion() : rootView.editor2.docVersion();
+    int savedVersion = left ? lastLeftDocVersionSaved : lastRightDocVersionSaved;
+    double lastDiffTime = left ? lastLeftDiffMadeTime : lastRightDiffMadeTime;
+    return version != savedVersion && (timeNow - lastDiffTime) * 1000 >= autoSaveDelay;
   }
 
   private void onFileSaved(JsArray<JSObject> jsArray) {

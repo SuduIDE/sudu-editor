@@ -4,7 +4,7 @@ import org.sudu.experiments.*;
 import org.sudu.experiments.esm.*;
 import org.sudu.experiments.js.*;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.core.JSBoolean;
+import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
 
@@ -98,6 +98,11 @@ public class JsCodeDiff implements JsFileDiffView {
   @Override
   public JsITextModel getRightModel() {
     return JsTextModel.fromJava(w.rootView.getRightModel());
+  }
+
+  @Override
+  public void setAutoSave(JSString autoSave, JSNumber autoSaveDelay) {
+
   }
 
   @Override

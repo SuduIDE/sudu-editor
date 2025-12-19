@@ -16,6 +16,7 @@ import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
 
 class FileDiffRootView extends DiffRootView {
@@ -34,6 +35,7 @@ class FileDiffRootView extends DiffRootView {
   boolean firstDiffRevealed = false, needScrollSync = false;
   private static final boolean showNavigateLog = true;
   private Runnable onRefresh, onDiffModelSet, onDocumentSizeChange;
+  private DoubleConsumer onTimeGot;
   public final boolean isCodeReview;
   public final boolean enableSyncEditing;
   private final UndoBuffer undoBuffer;
@@ -426,6 +428,15 @@ class FileDiffRootView extends DiffRootView {
     this.onDocumentSizeChange = onDocumentSizeChange;
   }
 
+  public void setOnTimeGot(DoubleConsumer onTimeGot) {
+    this.onTimeGot = onTimeGot;
+  }
+
+  public void setOnFocusLost(BooleanConsumer onFocusLost) {
+    editor1.setOnFocusLost(() -> onFocusLost.accept(true));
+    editor2.setOnFocusLost(() -> onFocusLost.accept(false));
+  }
+
   public void refresh() {
     System.out.println("FileDiffRootView.refresh");
     needScrollSync = true;
@@ -512,5 +523,12 @@ class FileDiffRootView extends DiffRootView {
     super.setPosition(newPos, newSize, newDpr);
     if (dpr != newDpr && onDocumentSizeChange != null)
       onDocumentSizeChange.run();
+  }
+
+  @Override
+  protected boolean update(double timestamp) {
+    boolean result = super.update(timestamp);
+    if (onTimeGot != null) onTimeGot.accept(timestamp);
+    return result;
   }
 }

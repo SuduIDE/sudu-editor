@@ -133,6 +133,7 @@ public class EditorComponent extends View implements
   private boolean disableParser = EditorConst.DEFAULT_DISABLE_PARSER;
   private UndoBuffer undoBuffer;
   private BiConsumer<CpxDiff, Boolean> syncEditing;
+  private Runnable onFocusLost;
   private int numDigits;
 
   public EditorComponent(EditorUi ui) {
@@ -264,6 +265,7 @@ public class EditorComponent extends View implements
 
   public void onFocusLost() {
     hasFocus = false;
+    if (onFocusLost != null) onFocusLost.run();
   }
 
   public boolean isFocused() {
@@ -2210,6 +2212,10 @@ public class EditorComponent extends View implements
 
   public void setSyncEditing(BiConsumer<CpxDiff, Boolean> syncEditing) {
     this.syncEditing = syncEditing;
+  }
+
+  public void setOnFocusLost(Runnable onFocusLost) {
+    this.onFocusLost = onFocusLost;
   }
 
   // call of this method is required for both:
