@@ -3,9 +3,11 @@ package org.sudu.experiments;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 public class DllLoader {
@@ -63,12 +65,16 @@ public class DllLoader {
   public static Path appPath(Class<?> aClass) {
     URL url = aClass.getProtectionDomain().getCodeSource().getLocation();
     if ("file".equals(url.getProtocol())) {
-      File file = new File(url.getFile());
-      if (file.isDirectory()) return file.toPath();
-      if (file.isFile()) {
-        if (file.getPath().endsWith(".jar")) {
-          return file.getParentFile().getParentFile().toPath();
+      try {
+        Path path = Paths.get(url.toURI());
+        if (Files.isDirectory(path)) return path;
+        if (Files.isRegularFile(path)) {
+          if (path.toString().endsWith(".jar")) {
+            return path.getParent().getParent();
+          }
         }
+      } catch (URISyntaxException e) {
+        throw new RuntimeException(e);
       }
     }
     throw new RuntimeException("unexpected location " + url);
