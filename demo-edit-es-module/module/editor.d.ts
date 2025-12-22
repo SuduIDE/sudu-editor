@@ -45,6 +45,8 @@ export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
   onControllerUpdate: IEvent<FileDiffViewController>
 
   setAutoSave(autoSave: string, autoSaveDelay: number): void;
+
+  onDidWindowChange(focused: boolean): void;
 }
 
 export interface IBinaryDiffView extends View, HasTheme, Focusable, TwoPanelDiff {}

@@ -6,6 +6,7 @@ import org.sudu.experiments.js.JsDisposable;
 import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSNumber;
 import org.teavm.jso.core.JSString;
 
@@ -92,6 +93,13 @@ public class JsRemoteCodeDiff implements JsRemoteFileDiffView {
     int autoSave = AutoSave.from(jsAutoSave.stringValue());
     int autoSaveDelay = jsAutoSaveDelay.intValue();
     w.setAutoSave(autoSave, autoSaveDelay);
+  }
+
+  @Override
+  public void onDidWindowChange(JSBoolean jsFocused) {
+    boolean focused = jsFocused.booleanValue();
+    LoggingJs.info("JsRemoteCodeDiff.onDidWindowChange: focused = " + focused);
+    if (!focused) w.onWindowFocusLost();
   }
 
   @Override

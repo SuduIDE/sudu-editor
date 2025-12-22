@@ -18,6 +18,7 @@ public interface KeyCode {
   int C = 67;
   int O = 79;
   int P = 80;
+  int S = A + 18;
   int V = 86;
   int X = 88;
   int W = 87;

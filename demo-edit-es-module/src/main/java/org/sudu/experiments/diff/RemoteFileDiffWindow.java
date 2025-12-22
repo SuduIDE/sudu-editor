@@ -76,20 +76,36 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   public void checkTimer(double time) {
     super.checkTimer(time);
     if (autoSave != AutoSave.AFTER_DELAY) return;
-    if (needSave(true, time)) saveFileOnDelay(true);
-    if (needSave(false, time)) saveFileOnDelay(false);
+    if (needSave(true, time)) saveFile(true);
+    if (needSave(false, time)) saveFile(false);
   }
 
-  private void saveFileOnDelay(boolean left) {
-    LoggingJs.debug("RemoteFileDiffWindow.saveFileOnDelay: left = " + left);
+  @Override
+  public void onWindowFocusLost() {
+    super.onWindowFocusLost();
+    if (autoSave != AutoSave.ON_WINDOW_CHANGE) return;
+    if (needSave(true)) saveFile(true);
+    if (needSave(false)) saveFile(false);
+  }
+
+  @Override
+  public void saveFiles() {
+    super.saveFiles();
+    if (needSave(true)) saveFile(true);
+    if (needSave(false)) saveFile(false);
+  }
+
+  private void saveFile(boolean left) {
+    LoggingJs.debug("RemoteFileDiffWindow.saveFile: left = " + left);
     var editor = left ? rootView.editor1 : rootView.editor2;
-    int version = editor.docVersion();
-    if (left) lastLeftDocVersionSaved = version;
-    else lastRightDocVersionSaved = version;
     saveFile(left, editor.model());
   }
 
   private void saveFile(boolean left, Model m) {
+    int version = m.document.version();
+    if (left) lastLeftDocVersionSaved = version;
+    else lastRightDocVersionSaved = version;
+
     JsArray<JSObject> jsArray = JsArray.create();
     jsArray.set(0, JsCast.jsString(m.document.getChars()));
     jsArray.set(1, JSString.valueOf(m.encoding()));
@@ -123,15 +139,18 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
 
   private void onEditorFocusLost(boolean left) {
     if (autoSave != AutoSave.ON_FOCUS_CHANGE) return;
-    var editor = left ? rootView.editor1 : rootView.editor2;
-    saveFile(left, editor.model());
+    saveFile(left);
+  }
+
+  private boolean needSave(boolean left) {
+    int version = left ? rootView.editor1.docVersion() : rootView.editor2.docVersion();
+    int savedVersion = left ? lastLeftDocVersionSaved : lastRightDocVersionSaved;
+    return version != savedVersion;
   }
 
   private boolean needSave(boolean left, double timeNow) {
-    int version = left ? rootView.editor1.docVersion() : rootView.editor2.docVersion();
-    int savedVersion = left ? lastLeftDocVersionSaved : lastRightDocVersionSaved;
     double lastDiffTime = left ? lastLeftDiffMadeTime : lastRightDiffMadeTime;
-    return version != savedVersion && (timeNow - lastDiffTime) * 1000 >= autoSaveDelay;
+    return needSave(left) && (timeNow - lastDiffTime) * 1000 >= autoSaveDelay;
   }
 
   private void onFileSaved(JsArray<JSObject> jsArray) {
@@ -234,9 +253,10 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
 
   @Override
   public boolean onKeyPress(KeyEvent event) {
-    return (event.keyCode == KeyCode.ESC
-        || event.ctrl && event.keyCode == KeyCode.Z)
-        && super.onKeyPress(event);
+    boolean esc = event.keyCode == KeyCode.ESC;
+    boolean ctrlS = event.ctrl && event.keyCode == KeyCode.S;
+    boolean ctrlZ = event.ctrl && event.keyCode == KeyCode.Z;
+    return (esc || ctrlS || ctrlZ) && super.onKeyPress(event);
   }
 
   @Override

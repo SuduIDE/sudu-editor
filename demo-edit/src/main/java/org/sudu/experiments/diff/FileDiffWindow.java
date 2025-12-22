@@ -185,6 +185,10 @@ public class FileDiffWindow extends ToolWindow0
       rootView.undoLastDiff(event.shift);
       return true;
     }
+    if (event.ctrl && event.keyCode == KeyCode.S) {
+      saveFiles();
+      return true;
+    }
     if (processEsc && event.keyCode == KeyCode.ESC) {
       if (event.noMods()) window.close();
       else windowManager.nextWindow();
@@ -233,6 +237,14 @@ public class FileDiffWindow extends ToolWindow0
   }
 
   public void checkTimer(double time) {
+
+  }
+
+  public void onWindowFocusLost() {
+
+  }
+
+  public void saveFiles() {
 
   }
 
