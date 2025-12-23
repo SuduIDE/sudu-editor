@@ -232,6 +232,7 @@ export const enum ThemeColor {
   LineNumberActiveForeground = 21,
 
   SyntaxKeyword = 30,
+  SyntaxControl,
   SyntaxNull,
   SyntaxBoolean,
   SyntaxSemi,

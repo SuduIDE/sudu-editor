@@ -7,7 +7,7 @@ import org.sudu.experiments.parser.common.base.FirstLinesIntLexer;
 import org.sudu.experiments.parser.common.base.IntParser;
 import org.sudu.experiments.parser.typescript.parser.TypeScriptFirstLinesLexer;
 import org.sudu.experiments.parser.typescript.parser.TypeScriptLightParser;
-import org.sudu.experiments.parser.typescript.parser.highlighting.TypeScriptIntervalParser;
+import org.sudu.experiments.parser.typescript.parser.TypeScriptIntervalParser;
 
 public class TypeScriptProxy extends BaseProxy {
 

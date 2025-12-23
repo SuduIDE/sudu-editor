@@ -30,6 +30,7 @@ public interface IdeaCodeColors {
   enum ElementsDarcula {
     defaultText(Darcula.defaultText),
     keyword(Darcula.keyword),
+    control(Darcula.keyword),
     nullLiteral(Darcula.keyword),
     booleanLiteral(Darcula.keyword),
     semi(Darcula.keyword),
@@ -68,6 +69,7 @@ public interface IdeaCodeColors {
   enum ElementsLight {
     defaultText(Light.defaultText),
     keyword(Light.keyword),
+    control(Light.keyword),
     nullLiteral(Light.keyword),
     booleanLiteral(Light.keyword),
     semi(Light.defaultText),
@@ -106,6 +108,7 @@ public interface IdeaCodeColors {
   enum ElementsDark {
     defaultText(Dark.defaultText),
     keyword(Dark.keyword),
+    control(Dark.keyword),
     nullLiteral(Dark.keyword),
     booleanLiteral(Dark.keyword),
     semi(Dark.defaultText),

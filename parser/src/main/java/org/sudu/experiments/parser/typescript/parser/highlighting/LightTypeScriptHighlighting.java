@@ -18,6 +18,7 @@ public class LightTypeScriptHighlighting {
       else if (isBoolean(type)) tokenTypes[ind] = BOOLEAN;
       else if (isNumeric(type)) tokenTypes[ind] = NUMERIC;
       else if (isKeyword(type)) tokenTypes[ind] = KEYWORD;
+      else if (isControl(type)) tokenTypes[ind] = CONTROL;
       else if (isString(type)) tokenTypes[ind] = STRING;
       else if (isSemi(type)) tokenTypes[ind] = SEMI;
     }
@@ -32,8 +33,21 @@ public class LightTypeScriptHighlighting {
   }
 
   private static boolean isKeyword(int tokenType) {
-    return tokenType >= LightTypeScriptLexer.Break
-        && tokenType <= LightTypeScriptLexer.Is;
+    return (tokenType >= LightTypeScriptLexer.Break
+        && tokenType <= LightTypeScriptLexer.Is)
+        && !isControl(tokenType);
+  }
+
+  public static boolean isControl(int tokenType) {
+    return switch (tokenType) {
+      case LightTypeScriptLexer.Return, LightTypeScriptLexer.Break,
+           LightTypeScriptLexer.Continue, LightTypeScriptLexer.If,
+           LightTypeScriptLexer.Else, LightTypeScriptLexer.For,
+           LightTypeScriptLexer.Do, LightTypeScriptLexer.While,
+           LightTypeScriptLexer.Switch, LightTypeScriptLexer.Case,
+           LightTypeScriptLexer.Default, LightTypeScriptLexer.Yield -> true;
+      default -> false;
+    };
   }
 
   private static boolean isNumeric(int tokenType) {
