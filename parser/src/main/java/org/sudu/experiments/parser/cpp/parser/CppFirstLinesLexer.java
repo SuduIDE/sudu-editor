@@ -29,7 +29,7 @@ public class CppFirstLinesLexer extends BaseFirstLinesLexer<CPP14Parser> {
   }
 
   @Override
-  protected boolean tokenFilter(Token token) {
+  protected boolean doTokenFilter(Token token) {
     int type = token.getType();
     return type != CPP14Lexer.Newline
         && type != CPP14Lexer.EOF;

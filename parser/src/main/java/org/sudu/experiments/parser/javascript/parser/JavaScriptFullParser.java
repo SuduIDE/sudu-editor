@@ -54,7 +54,7 @@ public class JavaScriptFullParser extends BaseFullParser<JavaScriptParser> {
   }
 
   @Override
-  protected boolean tokenFilter(Token token) {
+  protected boolean doTokenFilter(Token token) {
     int type = token.getType();
     return type != JavaScriptLexer.LineTerminator
         && type != JavaScriptLexer.EOF;

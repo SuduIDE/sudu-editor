@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.ErrorHighlightingStrategy;
+import org.sudu.experiments.parser.SplitToken;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.Pos;
 
@@ -97,6 +98,5 @@ public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> imp
     return false;
   }
 
-  // Tokens, that
-  protected abstract boolean tokenFilter(Token token);
+  protected abstract boolean doTokenFilter(Token token);
 }

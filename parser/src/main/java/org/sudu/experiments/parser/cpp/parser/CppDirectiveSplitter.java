@@ -32,14 +32,23 @@ public class CppDirectiveSplitter {
     var walker = new ParseTreeWalker();
     walker.walk(new DirectiveWalker(splitTokenTypes), directive);
 
-    int line = token.getLine() - 1, start = token.getStartIndex();
+    int baseLine = token.getLine() - 1;
+    int baseStartIndex = token.getStartIndex();
+    int totalDelta = 0;
     for (var splitToken : allTokens) {
       int ind = splitToken.getTokenIndex();
       if (splitToken.getType() == EOF) continue;
       if (splitToken.getType() == CPP14DirectiveLexer.NewLine) continue;
       if (splitToken.getType() == CPP14DirectiveLexer.NewLineSlash)
         splitTokenTypes[ind] = TokenTypes.ANNOTATION;
-      result.add(new SplitToken(splitToken, line, start, splitTokenTypes[ind]));
+
+      int delta = splitToken.getText().length() - splitToken.getStopIndex() - splitToken.getStartIndex() + 1;
+      int startIndex = baseStartIndex + totalDelta + splitToken.getStartIndex();
+      int stopIndex = baseStartIndex + totalDelta + splitToken.getStopIndex() + delta;
+      int line = baseLine + splitToken.getLine();
+      totalDelta += delta;
+
+      result.add(new SplitToken(splitToken, line, startIndex, stopIndex, splitTokenTypes[ind]));
     }
 
     return result;

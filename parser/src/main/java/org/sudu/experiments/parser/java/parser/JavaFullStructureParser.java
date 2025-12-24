@@ -35,7 +35,7 @@ public class JavaFullStructureParser extends BaseFullParser<JavaStructureParser>
   }
 
   @Override
-  protected boolean tokenFilter(Token token) {
+  protected boolean doTokenFilter(Token token) {
     int type = token.getType();
     return type != JavaStructureLexer.NEW_LINE
         && type != JavaStructureLexer.EOF;

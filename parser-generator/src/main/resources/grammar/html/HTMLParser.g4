@@ -53,10 +53,12 @@ htmlElement
     : TAG_OPEN TAG_NAME htmlAttribute*? (TAG_CLOSE | TAG_SLASH_CLOSE)
     | TAG_OPEN TAG_SLASH TAG_NAME TAG_CLOSE
     | SCRIPTLET
+    | script
+    | style
     ;
 
 htmlContent
-    : htmlChardata? ((htmlElement | CDATA | htmlComment) htmlChardata?)*?
+    : htmlChardata? ((htmlElement | CDATA | htmlComment) htmlChardata?)*
     ;
 
 htmlAttribute
@@ -78,4 +80,12 @@ htmlMisc
 htmlComment
     : HTML_COMMENT
     | HTML_CONDITIONAL_COMMENT
+    ;
+
+script
+    : SCRIPT_OPEN (SCRIPT_BODY | SCRIPT_SHORT_BODY)
+    ;
+
+style
+    : STYLE_OPEN (STYLE_BODY | STYLE_SHORT_BODY)
     ;

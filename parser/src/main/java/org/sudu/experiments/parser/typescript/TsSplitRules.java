@@ -13,7 +13,7 @@ public class TsSplitRules extends SplitRules {
   public List<TokenSplitRule> getRules() {
     return List.of(
         makeRule(this::isStringLiteral, Helper::splitStringOrCharLiteral),
-        makeRule(this::isMultiline, super::splitTokenByLine)
+        makeRule(this::isMultiline, Helper::splitMultilineToken)
     );
   }
 

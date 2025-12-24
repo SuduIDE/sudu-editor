@@ -58,7 +58,7 @@ public class TypeScriptIntervalParser extends BaseIntervalParser<NullParser> {
   }
 
   @Override
-  protected boolean tokenFilter(Token token) {
+  protected boolean doTokenFilter(Token token) {
     int type = token.getType();
     return type != LightTypeScriptLexer.LineTerminator
         && type != LightTypeScriptLexer.EOF;

@@ -23,7 +23,7 @@ public class JsonFirstLinesLexer extends BaseFirstLinesLexer<JsonParser> {
   }
 
   @Override
-  protected boolean tokenFilter(Token token) {
+  protected boolean doTokenFilter(Token token) {
     return token.getType() != JsonLexer.NEWLINE
         && token.getType() != JsonLexer.EOF;
   }

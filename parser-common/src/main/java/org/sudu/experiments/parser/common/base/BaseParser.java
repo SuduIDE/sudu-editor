@@ -34,13 +34,18 @@ public abstract class BaseParser<P extends Parser> {
   protected abstract ParserRuleContext getStartRule(P parser);
   protected abstract IntervalNode walk(ParserRuleContext startRule);
   protected abstract SplitRules initSplitRules();
-  protected abstract boolean tokenFilter(Token token);
+  protected abstract boolean doTokenFilter(Token token);
   protected abstract void highlightTokens();
 
   static <T> Supplier<T> supplier(T t) { return () -> t; }
 
   protected void initLexer(String source) {
     initLexerWithStream(supplier(source), source.length(), CharStreams.fromString(source));
+  }
+
+  // Split tokens must be filtered in SplitRules methods
+  protected boolean tokenFilter(Token token) {
+    return token instanceof SplitToken || doTokenFilter(token);
   }
 
   protected void initLexer(char[] source) {

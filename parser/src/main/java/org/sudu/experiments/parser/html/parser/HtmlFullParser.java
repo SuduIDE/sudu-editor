@@ -43,7 +43,7 @@ public class HtmlFullParser extends BaseFullParser<HTMLParser> {
   }
 
   @Override
-  protected boolean tokenFilter(Token token) {
+  protected boolean doTokenFilter(Token token) {
     return token.getType() != HTMLLexer.SEA_NEW_LINE
         && token.getType() != HTMLLexer.TAG_NEW_LINE
         && token.getType() != HTMLLexer.EOF;

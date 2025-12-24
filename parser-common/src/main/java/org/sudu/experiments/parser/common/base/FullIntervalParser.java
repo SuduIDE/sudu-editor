@@ -49,7 +49,7 @@ public abstract class FullIntervalParser<T extends Parser, P extends BaseFullPar
   }
 
   @Override
-  protected boolean tokenFilter(Token token) {
+  protected boolean doTokenFilter(Token token) {
     return false;
   }
 

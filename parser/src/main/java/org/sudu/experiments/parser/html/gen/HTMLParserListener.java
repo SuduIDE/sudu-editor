@@ -105,4 +105,26 @@ public interface HTMLParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitHtmlComment(HTMLParser.HtmlCommentContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link HTMLParser#script}.
+	 * @param ctx the parse tree
+	 */
+	void enterScript(HTMLParser.ScriptContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link HTMLParser#script}.
+	 * @param ctx the parse tree
+	 */
+	void exitScript(HTMLParser.ScriptContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link HTMLParser#style}.
+	 * @param ctx the parse tree
+	 */
+	void enterStyle(HTMLParser.StyleContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link HTMLParser#style}.
+	 * @param ctx the parse tree
+	 */
+	void exitStyle(HTMLParser.StyleContext ctx);
 }

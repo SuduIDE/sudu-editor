@@ -27,7 +27,7 @@ public class JavaScriptFirstLinesLexer extends BaseFirstLinesLexer<JavaScriptPar
   }
 
   @Override
-  protected boolean tokenFilter(Token token) {
+  protected boolean doTokenFilter(Token token) {
     int type = token.getType();
     return type != LightJavaScriptLexer.LineTerminator
         && type != LightJavaScriptLexer.EOF;

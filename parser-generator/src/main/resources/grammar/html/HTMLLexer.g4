@@ -46,7 +46,9 @@ SCRIPTLET: '<?' .*? '?>' | '<%' .*? '%>';
 
 SEA_WS: (' ' | '\t')+;
 
-SEA_NEW_LINE : '\r'? '\n';
+SCRIPT_OPEN: '<script' .*? '>' -> pushMode(SCRIPT);
+STYLE_OPEN: '<style' .*? '>' -> pushMode(STYLE);
+SEA_NEW_LINE : ('\r'? '\n' | '\r');
 
 TAG_OPEN: '<' -> pushMode(TAG);
 
@@ -96,6 +98,22 @@ fragment TAG_NameStartChar:
     | '\uF900' ..'\uFDCF'
     | '\uFDF0' ..'\uFFFD'
 ;
+
+// <scripts>
+
+mode SCRIPT;
+
+SCRIPT_BODY: .*? '</script>' -> popMode;
+
+SCRIPT_SHORT_BODY: .*? '</>' -> popMode;
+
+// <styles>
+
+mode STYLE;
+
+STYLE_BODY: .*? '</style>' -> popMode;
+
+STYLE_SHORT_BODY: .*? '</>' -> popMode;
 
 // attribute values
 

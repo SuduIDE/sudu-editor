@@ -8,12 +8,20 @@ public class SplitToken implements Token {
 
   public Token split;
   public int splitType;
-  public int startLine, startPos;
+  public int line;
+  public int startIndex, stopIndex;
 
-  public SplitToken(Token split, int startLine, int startPos, int splitType) {
+  public SplitToken(
+      Token split,
+      int line,
+      int startIndex,
+      int stopIndex,
+      int splitType
+  ) {
     this.split = split;
-    this.startLine = startLine;
-    this.startPos = startPos;
+    this.line = line;
+    this.startIndex = startIndex;
+    this.stopIndex = stopIndex;
     this.splitType = splitType;
   }
 
@@ -24,7 +32,7 @@ public class SplitToken implements Token {
 
   @Override
   public int getType() {
-    return split.getType();
+    throw new UnsupportedOperationException();
   }
 
   public int getSplitType() {
@@ -33,12 +41,12 @@ public class SplitToken implements Token {
 
   @Override
   public int getLine() {
-    return startLine + split.getLine();
+    return line;
   }
 
   @Override
   public int getCharPositionInLine() {
-    return split.getCharPositionInLine();
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -53,12 +61,12 @@ public class SplitToken implements Token {
 
   @Override
   public int getStartIndex() {
-    return startPos + split.getStartIndex();
+    return startIndex;
   }
 
   @Override
   public int getStopIndex() {
-    return startPos + split.getStopIndex();
+    return stopIndex;
   }
 
   @Override

@@ -48,7 +48,7 @@ public class TypeScriptLightParser extends BaseFullParser<NullParser> {
   }
 
   @Override
-  protected boolean tokenFilter(Token token) {
+  protected boolean doTokenFilter(Token token) {
     int type = token.getType();
     return type != LightTypeScriptLexer.LineTerminator
         && type != LightTypeScriptLexer.EOF;

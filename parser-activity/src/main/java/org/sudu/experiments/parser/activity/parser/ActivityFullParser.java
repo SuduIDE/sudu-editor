@@ -57,7 +57,7 @@ public class ActivityFullParser extends BaseFullParser<ActivityParser> {
   }
 
   @Override
-  protected boolean tokenFilter(Token token) {
+  protected boolean doTokenFilter(Token token) {
     int type = token.getType();
     return type != ActivityLexer.EOF && type != ActivityLexer.NEW_LINE;
   }

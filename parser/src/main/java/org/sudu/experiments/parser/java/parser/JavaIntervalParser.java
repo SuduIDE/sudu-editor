@@ -36,7 +36,7 @@ public class JavaIntervalParser extends BaseIntervalParser<JavaParser> {
   }
 
   @Override
-  protected boolean tokenFilter(Token token) {
+  protected boolean doTokenFilter(Token token) {
     int type = token.getType();
     return type != JavaLexer.NEW_LINE
         && type != JavaLexer.EOF;
