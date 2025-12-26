@@ -7,18 +7,21 @@ import org.antlr.v4.runtime.TokenSource;
 public class SplitToken implements Token {
 
   public Token split;
+  public String text;
   public int splitType;
   public int line;
   public int startIndex, stopIndex;
 
   public SplitToken(
       Token split,
+      String text,
       int line,
       int startIndex,
       int stopIndex,
       int splitType
   ) {
     this.split = split;
+    this.text = text;
     this.line = line;
     this.startIndex = startIndex;
     this.stopIndex = stopIndex;
@@ -27,7 +30,7 @@ public class SplitToken implements Token {
 
   @Override
   public String getText() {
-    return split.getText();
+    return text;
   }
 
   @Override
@@ -51,7 +54,7 @@ public class SplitToken implements Token {
 
   @Override
   public int getChannel() {
-    return split.getChannel();
+    throw new UnsupportedOperationException();
   }
 
   @Override

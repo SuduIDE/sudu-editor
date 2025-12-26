@@ -10,6 +10,7 @@ import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.base.BaseFullScopeParser;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
+import org.sudu.experiments.parser.help.Helper;
 import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
@@ -34,10 +35,8 @@ public class JavaFullScopesParser extends BaseFullScopeParser<JavaParser> {
   }
 
   @Override
-  protected boolean doTokenFilter(Token token) {
-    int type = token.getType();
-    return type != JavaLexer.NEW_LINE
-        && type != JavaLexer.EOF;
+  protected String language() {
+    return Helper.JAVA;
   }
 
   @Override

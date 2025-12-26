@@ -16,6 +16,7 @@ import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
 import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
 import org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting;
 import org.sudu.experiments.parser.cpp.walker.CppScopeWalker;
+import org.sudu.experiments.parser.help.Helper;
 
 public class CppFullScopesParser extends BaseFullScopeParser<CPP14Parser> {
 
@@ -50,10 +51,8 @@ public class CppFullScopesParser extends BaseFullScopeParser<CPP14Parser> {
   }
 
   @Override
-  protected boolean doTokenFilter(Token token) {
-    int type = token.getType();
-    return type != CPP14Lexer.Newline
-        && type != CPP14Lexer.EOF;
+  protected String language() {
+    return Helper.CPP;
   }
 
   @Override

@@ -9,6 +9,7 @@ import org.sudu.experiments.parser.common.base.BaseIntervalParser;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.help.Helper;
 import org.sudu.experiments.parser.java.JavaSplitRules;
 import org.sudu.experiments.parser.java.gen.JavaLexer;
 import org.sudu.experiments.parser.java.gen.JavaParser;
@@ -156,10 +157,8 @@ public class JavaViewportIntervalsParser extends BaseIntervalParser<JavaParser> 
   }
 
   @Override
-  protected boolean doTokenFilter(Token token) {
-    int type = token.getType();
-    return type != JavaLexer.NEW_LINE
-        && type != JavaLexer.EOF;
+  protected String language() {
+    return Helper.JAVA;
   }
 
   public static boolean isComment(int type) {

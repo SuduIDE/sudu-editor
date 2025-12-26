@@ -7,6 +7,7 @@ import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.base.BaseFullParser;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
+import org.sudu.experiments.parser.help.Helper;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptLexer;
 import org.sudu.experiments.parser.javascript.gen.JavaScriptParser;
 import org.sudu.experiments.parser.javascript.parser.highlighting.JavaScriptLexerHighlighting;
@@ -54,10 +55,8 @@ public class JavaScriptFullParser extends BaseFullParser<JavaScriptParser> {
   }
 
   @Override
-  protected boolean doTokenFilter(Token token) {
-    int type = token.getType();
-    return type != JavaScriptLexer.LineTerminator
-        && type != JavaScriptLexer.EOF;
+  protected String language() {
+    return Helper.JS_LIGHT;
   }
 
   @Override

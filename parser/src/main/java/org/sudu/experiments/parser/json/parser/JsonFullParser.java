@@ -44,9 +44,8 @@ public class JsonFullParser extends BaseFullParser<JsonParser> {
   }
 
   @Override
-  protected boolean doTokenFilter(Token token) {
-    return token.getType() != JsonLexer.NEWLINE
-        && token.getType() != JsonLexer.EOF;
+  protected String language() {
+    return Helper.JSON;
   }
 
   @Override

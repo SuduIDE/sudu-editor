@@ -24,10 +24,8 @@ public class TypeScriptFirstLinesLexer extends BaseFirstLinesLexer<NullParser> {
   }
 
   @Override
-  protected boolean doTokenFilter(Token token) {
-    int type = token.getType();
-    return type != LightTypeScriptLexer.LineTerminator
-        && type != LightTypeScriptLexer.EOF;
+  protected String language() {
+    return Helper.TS_LIGHT;
   }
 
   @Override

@@ -14,4 +14,8 @@ public class ActivityIterativeParser extends FullIntervalParser<ActivityParser, 
     return fullParser.parseActivity(source);
   }
 
+  @Override
+  protected String language() {
+    return "activity";
+  }
 }

@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.base.BaseFirstLinesLexer;
+import org.sudu.experiments.parser.help.Helper;
 import org.sudu.experiments.parser.html.HtmlSplitRules;
 import org.sudu.experiments.parser.html.gen.HTMLLexer;
 import org.sudu.experiments.parser.html.gen.HTMLParser;
@@ -22,10 +23,8 @@ public class HtmlFirstLinesLexer extends BaseFirstLinesLexer<HTMLParser> {
   }
 
   @Override
-  protected boolean doTokenFilter(Token token) {
-    return token.getType() != HTMLLexer.SEA_NEW_LINE
-        && token.getType() != HTMLLexer.TAG_NEW_LINE
-        && token.getType() != HTMLLexer.EOF;
+  protected String language() {
+    return Helper.HTML;
   }
 
   @Override

@@ -9,6 +9,7 @@ import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.base.BaseIntervalParser;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
+import org.sudu.experiments.parser.help.Helper;
 import org.sudu.experiments.parser.typescript.TsSplitRules;
 import org.sudu.experiments.parser.typescript.gen.LightTypeScriptLexer;
 
@@ -58,10 +59,8 @@ public class TypeScriptIntervalParser extends BaseIntervalParser<NullParser> {
   }
 
   @Override
-  protected boolean doTokenFilter(Token token) {
-    int type = token.getType();
-    return type != LightTypeScriptLexer.LineTerminator
-        && type != LightTypeScriptLexer.EOF;
+  protected String language() {
+    return Helper.TS_LIGHT;
   }
 
   @Override

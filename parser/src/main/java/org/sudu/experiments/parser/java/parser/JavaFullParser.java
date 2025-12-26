@@ -39,10 +39,8 @@ public class JavaFullParser extends BaseFullParser<JavaParser> {
   }
 
   @Override
-  protected boolean doTokenFilter(Token token) {
-    int type = token.getType();
-    return type != JavaLexer.NEW_LINE
-        && type != JavaLexer.EOF;
+  protected String language() {
+    return Helper.JAVA;
   }
 
   @Override

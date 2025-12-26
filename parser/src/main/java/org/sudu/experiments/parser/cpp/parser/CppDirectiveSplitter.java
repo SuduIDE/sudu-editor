@@ -48,7 +48,7 @@ public class CppDirectiveSplitter {
       int line = baseLine + splitToken.getLine();
       totalDelta += delta;
 
-      result.add(new SplitToken(splitToken, line, startIndex, stopIndex, splitTokenTypes[ind]));
+      result.add(new SplitToken(splitToken, splitToken.getText(), line, startIndex, stopIndex, splitTokenTypes[ind]));
     }
 
     return result;

@@ -6,6 +6,7 @@ import org.sudu.experiments.parser.ParserConstants;
 import org.sudu.experiments.parser.common.base.BaseFullParser;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
+import org.sudu.experiments.parser.help.Helper;
 import org.sudu.experiments.parser.java.JavaStructureSplitRules;
 import org.sudu.experiments.parser.java.gen.st.JavaStructureLexer;
 import org.sudu.experiments.parser.java.gen.st.JavaStructureParser;
@@ -35,10 +36,8 @@ public class JavaFullStructureParser extends BaseFullParser<JavaStructureParser>
   }
 
   @Override
-  protected boolean doTokenFilter(Token token) {
-    int type = token.getType();
-    return type != JavaStructureLexer.NEW_LINE
-        && type != JavaStructureLexer.EOF;
+  protected String language() {
+    return Helper.JAVA;
   }
 
   @Override

@@ -44,10 +44,7 @@ public class HtmlSplitRules extends SplitRules {
     int totalDelta = 0;
 
     for (var token: allTokens) {
-      int type = token.getType();
-      if (type == LightJavaScriptLexer.EOF) continue;
-      if (type == LightJavaScriptLexer.LineTerminator) continue;
-
+      if (token.getType() == Token.EOF) continue;
       int ind = token.getTokenIndex();
       int delta = Helper.tokenDelta(token);
 

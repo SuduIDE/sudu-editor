@@ -52,7 +52,7 @@ SEA_NEW_LINE : ('\r'? '\n' | '\r');
 
 TAG_OPEN: '<' -> pushMode(TAG);
 
-HTML_TEXT: ~'<'+;
+HTML_TEXT: ~[<\n\r]+;
 
 // tag declarations
 
@@ -71,7 +71,7 @@ TAG_EQUALS: '=' -> pushMode(ATTVALUE);
 TAG_NAME: TAG_NameStartChar TAG_NameChar*;
 
 TAG_WHITESPACE: [ \t] -> channel(HIDDEN);
-TAG_NEW_LINE : '\r'? '\n' -> channel(HIDDEN);
+TAG_NEW_LINE : ('\r'? '\n' | '\r') -> channel(HIDDEN);
 
 ERROR: . -> channel(HIDDEN);
 

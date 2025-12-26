@@ -3,7 +3,6 @@ package org.sudu.experiments.parser.cpp.parser;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.sudu.experiments.parser.common.base.BaseIntervalParser;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
@@ -15,6 +14,7 @@ import org.sudu.experiments.parser.cpp.gen.CPP14Parser;
 import org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting;
 import org.sudu.experiments.parser.cpp.walker.CppScopeWalker;
 import org.sudu.experiments.parser.ParserConstants.IntervalTypes;
+import org.sudu.experiments.parser.help.Helper;
 
 public class CppIntervalParser extends BaseIntervalParser<CPP14Parser> {
 
@@ -48,10 +48,8 @@ public class CppIntervalParser extends BaseIntervalParser<CPP14Parser> {
   }
 
   @Override
-  protected boolean doTokenFilter(Token token) {
-    int type = token.getType();
-    return type != CPP14Lexer.Newline
-        && type != CPP14Lexer.EOF;
+  protected String language() {
+    return Helper.CPP;
   }
 
   @Override

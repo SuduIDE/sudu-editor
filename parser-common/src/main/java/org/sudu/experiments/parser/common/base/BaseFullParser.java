@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.ErrorHighlightingStrategy;
 import org.sudu.experiments.parser.SplitToken;
+import org.sudu.experiments.parser.common.Pair;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.Pos;
 
@@ -52,15 +53,16 @@ public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> imp
     int[] nodeInts = node != null ? node.toInts() : new int[]{};
     int K = nodeInts.length;
     int L = usageToDefinition.size();
+    var tokenInfo = new ArrayList<Pair<Integer, Token>>();
 
-    List<Token>[] tokensByLine = groupTokensByLine(allTokens, N);
+    List<Token>[] tokensByLine = groupTokensByLine(allTokens, tokenInfo, N);
     N = tokensByLine.length;
-    M = filter(tokensByLine);
+    M = count(tokensByLine);
 
     writer = new ArrayWriter(3 + N + 4 * M + K + 4 * L);
     writer.write(N, K, L);
 
-    writeTokens(N, tokensByLine);
+    writeTokens(N, tokensByLine, tokenInfo);
     writer.write(nodeInts);
     writeUsageToDefinitions(usageToDefinition);
 
@@ -72,10 +74,11 @@ public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> imp
     int M;
     int K;
     int L = usageToDefinition.size();
+    var tokenInfo = new ArrayList<Pair<Integer, Token>>();
 
-    List<Token>[] tokensByLine = groupTokensByLine(allTokens, N);
+    List<Token>[] tokensByLine = groupTokensByLine(allTokens, tokenInfo, N);
     N = tokensByLine.length;
-    M = filter(tokensByLine);
+    M = count(tokensByLine);
     IntervalNode node = getLinesIntervalNode(tokensByLine);
     int[] nodeInts = node.toInts();
     K = nodeInts.length;
@@ -83,7 +86,7 @@ public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> imp
     writer = new ArrayWriter(3 + N + 4 * M + K + 4 * L);
     writer.write(N, K, L);
 
-    writeTokens(N, tokensByLine);
+    writeTokens(N, tokensByLine, tokenInfo);
     writer.write(nodeInts);
     writeUsageToDefinitions(usageToDefinition);
 
@@ -98,5 +101,4 @@ public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> imp
     return false;
   }
 
-  protected abstract boolean doTokenFilter(Token token);
 }
