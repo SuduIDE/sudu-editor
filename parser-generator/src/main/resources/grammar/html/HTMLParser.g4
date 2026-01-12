@@ -36,7 +36,7 @@ options {
 }
 
 htmlDocument
-    : scriptletOrSeaWs* XML? scriptletOrSeaWs* DTD? scriptletOrSeaWs* htmlContent
+    : scriptletOrSeaWs* XML? scriptletOrSeaWs* DTD? scriptletOrSeaWs* htmlContent EOF
     ;
 
 scriptletOrSeaWs
@@ -58,7 +58,7 @@ htmlElement
     ;
 
 htmlContent
-    : htmlChardata? ((htmlElement | CDATA | htmlComment) htmlChardata?)*
+    : htmlChardata*? ((htmlElement | CDATA | htmlComment) htmlChardata*?)*?
     ;
 
 htmlAttribute

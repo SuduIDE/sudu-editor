@@ -8,13 +8,11 @@ import org.sudu.experiments.parser.cpp.gen.help.CPP14DirectiveBaseListener;
 import org.sudu.experiments.parser.cpp.gen.help.CPP14DirectiveParser;
 import org.sudu.experiments.parser.cpp.gen.help.CPP14DirectiveLexer;
 
-import static org.sudu.experiments.parser.cpp.gen.help.CPP14DirectiveParser.*;
-
-
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.sudu.experiments.parser.ParserConstants.*;
+import static org.sudu.experiments.parser.cpp.gen.help.CPP14DirectiveParser.*;
 
 public class CppDirectiveSplitter {
 
@@ -32,23 +30,13 @@ public class CppDirectiveSplitter {
     var walker = new ParseTreeWalker();
     walker.walk(new DirectiveWalker(splitTokenTypes), directive);
 
-    int baseLine = token.getLine() - 1;
-    int baseStartIndex = token.getStartIndex();
-    int totalDelta = 0;
     for (var splitToken : allTokens) {
       int ind = splitToken.getTokenIndex();
       if (splitToken.getType() == EOF) continue;
-      if (splitToken.getType() == CPP14DirectiveLexer.NewLine) continue;
       if (splitToken.getType() == CPP14DirectiveLexer.NewLineSlash)
         splitTokenTypes[ind] = TokenTypes.ANNOTATION;
 
-      int delta = splitToken.getText().length() - splitToken.getStopIndex() - splitToken.getStartIndex() + 1;
-      int startIndex = baseStartIndex + totalDelta + splitToken.getStartIndex();
-      int stopIndex = baseStartIndex + totalDelta + splitToken.getStopIndex() + delta;
-      int line = baseLine + splitToken.getLine();
-      totalDelta += delta;
-
-      result.add(new SplitToken(splitToken, splitToken.getText(), line, startIndex, stopIndex, splitTokenTypes[ind]));
+      result.add(new SplitToken(splitToken, splitToken.getText(), splitTokenTypes[ind], TokenStyles.NORMAL));
     }
 
     return result;

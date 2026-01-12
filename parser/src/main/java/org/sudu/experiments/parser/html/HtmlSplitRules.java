@@ -3,6 +3,8 @@ package org.sudu.experiments.parser.html;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
+import org.sudu.experiments.parser.ParserConstants;
+import org.sudu.experiments.parser.SplitToken;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.help.Helper;
 import org.sudu.experiments.parser.html.gen.HTMLLexer;
@@ -39,27 +41,18 @@ public class HtmlSplitRules extends SplitRules {
     LightJavaScriptLexerHighlighting.highlightTokens(allTokens, tokenTypes);
 
     var result = new ArrayList<Token>();
-    int baseLine = script.getLine() - 1;
-    int baseStartIndex = script.getStartIndex();
-    int totalDelta = 0;
 
     for (var token: allTokens) {
       if (token.getType() == Token.EOF) continue;
       int ind = token.getTokenIndex();
-      int delta = Helper.tokenDelta(token);
 
       List<Token> splitTokens = JsSplitRules.isMultiline(token)
           ? Helper.splitMultilineToken(token)
           : Collections.singletonList(token);
 
       for (var splitToken: splitTokens) {
-        result.add(Helper.mkSplitToken(splitToken,
-            baseStartIndex, baseLine,
-            totalDelta, delta,
-            tokenTypes[ind])
-        );
+        result.add(new SplitToken(splitToken, splitToken.getText(), tokenTypes[ind], ParserConstants.TokenStyles.NORMAL));
       }
-      totalDelta += delta;
     }
     return result;
   }
