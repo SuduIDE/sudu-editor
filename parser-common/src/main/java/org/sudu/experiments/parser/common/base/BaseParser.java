@@ -100,7 +100,6 @@ public abstract class BaseParser<P extends Parser> {
       List<Pair<Integer, Token>> tokenInfo
   ) {
     int tokenInd = 0;
-    String source = fileSource.get();
     for (int i = 0; i < N; i++) {
       var tokensOnLine = tokensByLine[i];
       writer.write(tokensOnLine.size());
@@ -108,11 +107,6 @@ public abstract class BaseParser<P extends Parser> {
         var pair = tokenInfo.get(tokenInd);
         int start = pair.first;
         int stop = start + pair.second.getText().length();
-        String substring = source.substring(start, stop);
-        String text = token.getText();
-        if (!substring.equals(text)) {
-          System.out.println();
-        }
         int ind = token.getTokenIndex();
         int type = token instanceof SplitToken split ? split.getTokenType() : tokenTypes[ind];
         int style = token instanceof SplitToken split ? split.getTokenStyle() : tokenStyles[ind];
@@ -141,7 +135,6 @@ public abstract class BaseParser<P extends Parser> {
       List<Pair<Integer, Token>> tokenInfo,  // (start, token)
       int N
   ) {
-    String source = fileSource.get();
     List<Token>[] lineToTokens = new List[N];
     int startIndex = 0;
     int lineIndex = 0;
