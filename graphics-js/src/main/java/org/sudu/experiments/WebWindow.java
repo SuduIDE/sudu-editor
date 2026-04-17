@@ -2,11 +2,13 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.js.*;
 import org.sudu.experiments.math.Numbers;
+import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.browser.AnimationFrameCallback;
 import org.teavm.jso.browser.Performance;
 import org.teavm.jso.browser.TimerHandler;
+import org.teavm.jso.canvas.CanvasRenderingContext2D;
 import org.teavm.jso.core.JSBoolean;
 import org.teavm.jso.core.JSError;
 import org.teavm.jso.core.JSObjects;
@@ -23,14 +25,16 @@ import java.util.function.Function;
 
 public class WebWindow implements Window {
 
-  static final boolean debug = false;
+  static final boolean debug = true;
 
   final AnimationFrameCallback frameCallback = this::onAnimationFrame;
   final Runnable repaint = this::repaint;
   final HTMLCanvasElement mainCanvas;
+  final CanvasRenderingContext2D draw2d;
   final ResizeObserver observer = ResizeObserver.create(this::onSizeObserved);
   final EventListener<Event> handleWindowResize = this::handleWindowResize;
 
+  private V2i clientRect = null;
   private JSString canvasDivId;
   private JsInput eventHandler;
   private WebGraphics g;
@@ -41,6 +45,7 @@ public class WebWindow implements Window {
 
   // workers and jobs
   private final WebWorkersPool workers;
+  private final boolean ownsWorkers;
 
   public WebWindow(
       Function<SceneApi, Scene> factory,
@@ -57,44 +62,42 @@ public class WebWindow implements Window {
       JSString canvasDivId,
       JsArray<WebWorkerContext> workers
   ) {
-    this(canvasDivId, new WebWorkersPool(workers));
+    this(canvasDivId, new WebWorkersPool(workers), true);
     if (!init(factory))
       onWebGlError.run();
   }
 
   // this ctor requires init after call
   public WebWindow(JSString canvasDivId, JsArray<WebWorkerContext> workers) {
-    this(canvasDivId, new WebWorkersPool(workers));
+    this(canvasDivId, new WebWorkersPool(workers), true);
   }
 
   // this ctor requires init after call
-  public WebWindow(JSString canvasDivId, WebWorkersPool workers) {
+  public WebWindow(JSString canvasDivId, WebWorkersPool workers, boolean ownsWorkers) {
+    this.ownsWorkers = ownsWorkers;
     this.canvasDivId = canvasDivId;
     this.workers = workers;
 
 //    JsHelper.consoleInfo("starting web window on " + canvasDivId);
     mainCanvas = JsHelper.createMainCanvas(null);
-    GLApi.Context gl = JsHelper.createWebglContext(mainCanvas);
+    draw2d = mainCanvas.getContext("2d").cast();
+    draw2d.setGlobalCompositeOperation("copy");
+    g = WebGraphics.getInstance();
 
-    if (gl != null) {
+    if (g != null) {
       connectToDom(canvasDivId);
       eventHandler = new JsInput(mainCanvas, repaint);
-      g = new WebGraphics(gl, repaint);
       observer.observePixelsOrDefault(mainCanvas);
 
       JsWindow.current().addEventListener("resize", handleWindowResize);
     }
   }
 
-  public JSString canvasDivId() {
-    return canvasDivId;
-  }
-
   public void disconnectFromDom() {
     Node parentNode = mainCanvas.getParentNode();
     if (parentNode != null) {
       parentNode.removeChild(mainCanvas);
-      g.clientRect.set(0, 0);
+      clientRect = null;
       JsWindow.cancelAnimationFrame(animationFrameRequest);
     } else {
       System.err.println("disconnectFromDom: called on already disconnected");
@@ -123,7 +126,7 @@ public class WebWindow implements Window {
 
   public void focus() {
     if (debug)
-      JsHelper.consoleInfo("setting focus to ", canvasDivId());
+      JsHelper.consoleInfo("setting focus to", canvasDivId);
     mainCanvas.focus();
 //    debugFocus();
   }
@@ -147,7 +150,7 @@ public class WebWindow implements Window {
   }
 
   void onSizeObserved(JsArrayReader<ResizeObserver.ResizeObserverEntry> entries, ResizeObserver o) {
-//    JsHelper.consoleInfo("onSizeObserved: entries.length = ", entries.getLength());
+    JsHelper.consoleInfo("onSizeObserved: entries.length = ", entries.getLength());
     for (int i = 0, n = entries.getLength(); i < n; i++) {
       var entry = entries.get(i);
       if (entry.getTarget() == mainCanvas) {
@@ -180,12 +183,13 @@ public class WebWindow implements Window {
     JsWindow.current().removeEventListener("resize", handleWindowResize);
 
     observer.disconnect();
-    g.dispose();
+    // g.dispose();
     if (eventHandler != null) {
       eventHandler.dispose();
       eventHandler = null;
     }
-    workers.terminateAll();
+    if (ownsWorkers)
+      workers.terminateAll();
   }
 
   public boolean init(Function<SceneApi, Scene> sf) {
@@ -219,11 +223,21 @@ public class WebWindow implements Window {
     repaintRequested = true;
   }
 
+  private void paintScene() {
+    JsHelper.consoleInfo("paint scene", canvasDivId);
+    g.ensureSize(clientRect.x, clientRect.y);
+    g.setViewPortAndClientRect(clientRect.x, clientRect.y);
+    scene.paint();
+    draw2d.drawImage(g.glCanvas,
+        0,g.canvasHeight - clientRect.y, clientRect.x, clientRect.y,
+        0,0, clientRect.x, clientRect.y);
+  }
+
   private void onAnimationFrame(double timestamp) {
     if (scene.update(timestamp / 1000) || repaintRequested) {
-      if (g.clientRect.x * g.clientRect.y != 0) {
+      if (clientRect != null && clientRect.x * clientRect.y != 0) {
         repaintRequested = false;
-        scene.paint();
+        paintScene();
       }
     }
     requestNewFrame();
@@ -235,22 +249,25 @@ public class WebWindow implements Window {
   static native void setStyleWHPx(CSSStyleDeclaration style, double w, double h);
 
   private void onCanvasSizeChanged(int inlineSize, int blockSize) {
-    if (1 < 0) {
-      JsHelper.consoleInfo("  onCanvasSizeChanged: ", canvasDivId);
-      JsHelper.consoleInfo("    inlineSize =  ", inlineSize);
-      JsHelper.consoleInfo("    blockSize =  ", blockSize);
+    if (1 > 0) {
+      JsHelper.consoleInfo2("  onCanvasSizeChanged: ", canvasDivId);
+      JsHelper.consoleInfo("    inlineSize =", inlineSize);
+      JsHelper.consoleInfo("    blockSize =", blockSize);
     }
-    eventHandler.setClientRect(inlineSize, blockSize);
+    if (clientRect == null)
+      clientRect = new V2i();
+    clientRect.set(inlineSize, blockSize);
+    JsHelper.consoleInfo("clientRect set to", clientRect.x, clientRect.y);
+    eventHandler.setClientRect(clientRect);
 
     boolean visible = inlineSize != 0 && blockSize != 0;
     if (visible) {
       mainCanvas.setWidth(inlineSize);
       mainCanvas.setHeight(blockSize);
     }
-    g.setViewPortAndClientRect(inlineSize, blockSize);
-    scene.onResize(g.clientRect, devicePixelRatio());
+    scene.onResize(clientRect, devicePixelRatio());
     if (visible) {
-      scene.paint();
+      paintScene();
     }
   }
 
@@ -260,9 +277,11 @@ public class WebWindow implements Window {
       JsHelper.consoleInfo("  devicePixelRatio  = ", devicePixelRatio());
     }
 
-    scene.onResize(g.clientRect, devicePixelRatio());
-    if (g.clientRect.x * g.clientRect.y != 0) {
-      scene.paint();
+    if (clientRect != null) {
+      scene.onResize(clientRect, devicePixelRatio());
+      if (clientRect.x * clientRect.y != 0) {
+        paintScene();
+      }
     }
   }
 

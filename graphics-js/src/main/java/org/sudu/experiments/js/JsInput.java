@@ -57,8 +57,8 @@ public class JsInput {
     return HTMLDocument.current().getActiveElement();
   }
 
-  public void setClientRect(int w, int h) {
-    clientRect = new V2i(w, h);
+  public void setClientRect(V2i clientRect) {
+    this.clientRect = clientRect;
   }
 
   public void dispose() {

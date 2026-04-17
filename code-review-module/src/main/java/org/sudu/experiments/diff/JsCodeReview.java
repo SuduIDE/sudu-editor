@@ -152,7 +152,7 @@ public class JsCodeReview implements JsCodeReviewView {
       throw new RuntimeException(FireFoxWarning.message);
 
     var w = new WebWindow(arguments.getContainerId(),
-        EditArgs.getPool(arguments));
+        EditArgs.getPool(arguments), false);
 
     if (w.api() == null)
       throw new RuntimeException(WebGLError.text);
