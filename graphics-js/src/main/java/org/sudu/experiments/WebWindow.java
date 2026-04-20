@@ -150,7 +150,7 @@ public class WebWindow implements Window {
   }
 
   void onSizeObserved(JsArrayReader<ResizeObserver.ResizeObserverEntry> entries, ResizeObserver o) {
-    JsHelper.consoleInfo("onSizeObserved: entries.length = ", entries.getLength());
+    // JsHelper.consoleInfo("onSizeObserved: entries.length = ", entries.getLength());
     for (int i = 0, n = entries.getLength(); i < n; i++) {
       var entry = entries.get(i);
       if (entry.getTarget() == mainCanvas) {
@@ -159,7 +159,7 @@ public class WebWindow implements Window {
             var size = entry.getDevicePixelContentBoxSize().get(0);
             onCanvasSizeChanged((int) size.getInlineSize(), (int) size.getBlockSize());
           }
-        } else {
+        } else { //fallback when no "devicePixelContentBoxSize" provided
           var domRect = entry.getContentRect();
           double ratio = devicePixelRatio();
           int width = Numbers.iRnd(domRect.getWidth() * ratio);
@@ -224,13 +224,13 @@ public class WebWindow implements Window {
   }
 
   private void paintScene() {
-    JsHelper.consoleInfo("paint scene", canvasDivId);
     g.ensureSize(clientRect.x, clientRect.y);
     g.setViewPortAndClientRect(clientRect.x, clientRect.y);
     scene.paint();
+    JsHelper.consoleInfo("paint scene", canvasDivId, clientRect.x, "x", clientRect.y);
     draw2d.drawImage(g.glCanvas,
-        0,g.canvasHeight - clientRect.y, clientRect.x, clientRect.y,
-        0,0, clientRect.x, clientRect.y);
+        0, g.canvasHeight - clientRect.y, clientRect.x, clientRect.y,
+        0, 0, clientRect.x, clientRect.y);
   }
 
   private void onAnimationFrame(double timestamp) {
@@ -249,16 +249,14 @@ public class WebWindow implements Window {
   static native void setStyleWHPx(CSSStyleDeclaration style, double w, double h);
 
   private void onCanvasSizeChanged(int inlineSize, int blockSize) {
-    if (1 > 0) {
-      JsHelper.consoleInfo2("  onCanvasSizeChanged: ", canvasDivId);
-      JsHelper.consoleInfo("    inlineSize =", inlineSize);
-      JsHelper.consoleInfo("    blockSize =", blockSize);
-    }
     if (clientRect == null)
       clientRect = new V2i();
     clientRect.set(inlineSize, blockSize);
-    JsHelper.consoleInfo("clientRect set to", clientRect.x, clientRect.y);
     eventHandler.setClientRect(clientRect);
+    if (1 < 0) {
+      JsHelper.consoleInfo("  onCanvasSizeChanged: ", canvasDivId,
+          "clientRect set to", clientRect.x, clientRect.y);
+    }
 
     boolean visible = inlineSize != 0 && blockSize != 0;
     if (visible) {

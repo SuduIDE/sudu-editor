@@ -475,7 +475,7 @@ public class EditorComponent extends View implements
 
     // repaint only if caret blinking
     // or animation in progress
-    return caret.update(timestamp) || scrollMoving
+    return (caret.update(timestamp) && hasFocus) || scrollMoving
         // || replaceCurrentLine
         || forceMaxFPS;
   }

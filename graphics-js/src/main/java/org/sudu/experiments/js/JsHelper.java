@@ -136,8 +136,17 @@ public class JsHelper {
   @JSBody(params = {"s0", "obj1", "obj2"}, script = "console.info(s0 + obj1 + obj2);")
   public static native void consoleInfo(String s0, JSObject obj1, JSObject obj2);
 
-  @JSBody(params = {"s0", "obj1", "s2", "obj3"}, script = "console.info(s0 + obj1 + s2 + obj3);")
+  @JSBody(params = {"s0", "obj1", "s2", "obj3"}, script = "console.info(s0, obj1, s2, obj3);")
   public static native void consoleInfo(String s0, JSObject obj1, String s2, JSObject obj3);
+
+  @JSBody(params = {"s0", "obj1", "s2", "d3"}, script = "console.info(s0, obj1, s2, d3);")
+  public static native void consoleInfo(String s0, JSObject obj1, String s2, double d3);
+
+  @JSBody(params = {"s0", "obj1", "s2", "d3", "d4"}, script = "console.info(s0, obj1, s2, d3, d4);")
+  public static native void consoleInfo(String s0, JSObject obj1, String s2, double d3, double d4);
+
+  @JSBody(params = {"s0", "o1", "d2", "s3", "d4"}, script = "console.info(s0, o1, d2, s3, d4);")
+  public static native void consoleInfo(String s0, JSObject o1, double d2, String s3, double d4);
 
   @JSBody(params = {"obj"}, script = "return obj[Symbol.toStringTag];")
   @NoSideEffects
