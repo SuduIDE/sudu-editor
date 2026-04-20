@@ -43,7 +43,7 @@ export const initControlPanel = (parentElement = document.body) => {
     const root = document.createElement('div')
     root.classList.add('control-panel')
 
-    parentElement.style.position = 'relative'
+    // parentElement.style.position = 'relative'
     parentElement.append(root)
 
     const api = {

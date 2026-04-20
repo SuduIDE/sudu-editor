@@ -44,8 +44,10 @@ public interface ThemeImport {
       return null;
     }
 
-    importColors(t, theme);
-    importFonts(t, theme);
+    if (!isString) {
+      importColors(t, theme);
+      importFonts(t, theme);
+    }
 
     return theme;
   }

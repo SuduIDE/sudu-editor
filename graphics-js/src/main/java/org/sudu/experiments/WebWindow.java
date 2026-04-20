@@ -253,7 +253,7 @@ public class WebWindow implements Window {
       clientRect = new V2i();
     clientRect.set(inlineSize, blockSize);
     eventHandler.setClientRect(clientRect);
-    if (1 < 0) {
+    if (1 > 0) {
       JsHelper.consoleInfo("  onCanvasSizeChanged: ", canvasDivId,
           "clientRect set to", clientRect.x, clientRect.y);
     }
@@ -270,7 +270,7 @@ public class WebWindow implements Window {
   }
 
   private void handleWindowResize(Event evt) {
-    if (1 < 0) {
+    if (1 > 0) {
       JsHelper.consoleInfo("handleWindowResize: ", canvasDivId);
       JsHelper.consoleInfo("  devicePixelRatio  = ", devicePixelRatio());
     }
