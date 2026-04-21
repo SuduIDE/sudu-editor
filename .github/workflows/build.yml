@@ -20,6 +20,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  id-token: write  # Required for OIDC
+
 jobs:
   build:
     name: Build and Publish
@@ -133,5 +136,3 @@ jobs:
           cd $GITHUB_WORKSPACE/sudu-editor/code-review-module/module
           npm version ${NEW_VERSION}
           npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
