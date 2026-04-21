@@ -52,11 +52,13 @@ public class WebGraphics extends WglGraphics {
     int cWidth = glCanvas.getWidth(), cHeight = glCanvas.getHeight();
     if (cWidth < x) {
       glCanvas.setWidth(canvasWidth = x);
-      JsHelper.consoleInfo("canvasWidth now", canvasWidth);
+      if (WebWindow.debug)
+        JsHelper.consoleInfo("canvasWidth now", canvasWidth);
     }
     if (cHeight < y) {
       glCanvas.setHeight(canvasHeight = y);
-      JsHelper.consoleInfo("canvasHeight now", canvasHeight);
+      if (WebWindow.debug)
+        JsHelper.consoleInfo("canvasHeight now", canvasHeight);
     }
   }
 

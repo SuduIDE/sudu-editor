@@ -2181,7 +2181,7 @@ public class EditorComponent extends View implements
   }
 
   public void setDisableParser(boolean disableParser) {
-    System.out.println("EditorComponent.setDisableParser: " + disableParser);
+    // System.out.println("EditorComponent.setDisableParser: " + disableParser);
     this.disableParser = disableParser;
   }
 

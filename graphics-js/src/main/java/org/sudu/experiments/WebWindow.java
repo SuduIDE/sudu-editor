@@ -25,7 +25,7 @@ import java.util.function.Function;
 
 public class WebWindow implements Window {
 
-  static final boolean debug = true;
+  static final boolean debug = false;
 
   final AnimationFrameCallback frameCallback = this::onAnimationFrame;
   final Runnable repaint = this::repaint;
@@ -227,7 +227,8 @@ public class WebWindow implements Window {
     g.ensureSize(clientRect.x, clientRect.y);
     g.setViewPortAndClientRect(clientRect.x, clientRect.y);
     scene.paint();
-    JsHelper.consoleInfo("paint scene", canvasDivId, clientRect.x, "x", clientRect.y);
+    if (debug)
+      JsHelper.consoleInfo("paint scene", canvasDivId, clientRect.x, "x", clientRect.y);
     draw2d.drawImage(g.glCanvas,
         0, g.canvasHeight - clientRect.y, clientRect.x, clientRect.y,
         0, 0, clientRect.x, clientRect.y);
@@ -253,7 +254,7 @@ public class WebWindow implements Window {
       clientRect = new V2i();
     clientRect.set(inlineSize, blockSize);
     eventHandler.setClientRect(clientRect);
-    if (1 > 0) {
+    if (debug) {
       JsHelper.consoleInfo("  onCanvasSizeChanged: ", canvasDivId,
           "clientRect set to", clientRect.x, clientRect.y);
     }
@@ -270,7 +271,7 @@ public class WebWindow implements Window {
   }
 
   private void handleWindowResize(Event evt) {
-    if (1 > 0) {
+    if (debug) {
       JsHelper.consoleInfo("handleWindowResize: ", canvasDivId);
       JsHelper.consoleInfo("  devicePixelRatio  = ", devicePixelRatio());
     }
