@@ -7,7 +7,7 @@ const initStyle = () => {
     .control-panel {
         position: absolute;
         display: flex;
-        right: 25px;
+        right: 20px;
         top: 10px;
         border-radius: 3px;
         background-color: rgba(83, 83, 83, 0.6);
