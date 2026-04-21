@@ -4,12 +4,23 @@ import * as editorApi from "../src/codereview.js";
 const NUM_EDITORS = 50;
 
 const container = document.body;
+const editorDivs = [];
 for (let i = 1; i <= NUM_EDITORS; i++) {
   const div = document.createElement("div");
   div.id = "editor" + i;
   div.className = "editor";
   container.appendChild(div);
+  editorDivs.push(div);
 }
+
+const visibilityObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    const id = entry.target.id;
+    console.log("editor", id, entry.isIntersecting ? "visible" : "invisible");
+  });
+});
+
+editorDivs.forEach(div => visibilityObserver.observe(div));
 
 const threadPool = await editorApi.newWorkerPool("../src/worker.js", 3);
 
