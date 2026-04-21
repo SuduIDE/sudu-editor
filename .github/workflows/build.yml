@@ -50,12 +50,16 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         if: github.event_name == 'push' && github.ref_type == 'tag'
         with:
-          node-version: '18.x'
+          node-version: '20' # Node 20 or 24 is required for modern npm
           registry-url: 'https://registry.npmjs.org'
           scope: '@sudu-ide'
+      - name: Upgrade npm CLI
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        # Trusted Publishing requires npm v11.5.1 or newer
+        run: npm install -g npm@latest
       - name: Restore Maven and Gradle Cache
         uses: actions/cache/restore@v3
         with:
