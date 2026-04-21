@@ -1,6 +1,7 @@
 package org.sudu.experiments.js;
 
 import org.sudu.experiments.GLApi;
+import org.sudu.experiments.WebGraphics;
 import org.teavm.interop.NoSideEffects;
 import org.teavm.jso.*;
 import org.teavm.jso.core.*;
@@ -36,20 +37,6 @@ public class JsHelper {
 
   public static HTMLCanvasElement createCanvas() {
     return HTMLDocument.current().createElement("canvas").cast();
-  }
-
-  @JSBody(params = {"antialias", "stencil", "premultipliedAlpha", "alpha"},
-      script = "return {antialias: antialias, stencil: stencil, premultipliedAlpha: premultipliedAlpha, alpha: alpha};")
-  public static native JSObject canvasContextAttributes(
-      boolean antialias,
-      boolean stencil,
-      boolean premultipliedAlpha,
-      boolean alpha
-  );
-
-  public static GLApi.Context createWebglContext(HTMLCanvasElement canvas) {
-    JSObject attributes = canvasContextAttributes(false, false, true, true);
-    return canvas.getContext("webgl2", attributes).cast();
   }
 
   public static String setCursor(String cursor, String currentCursor, org.teavm.jso.dom.html.HTMLElement element) {
@@ -107,7 +94,7 @@ public class JsHelper {
   @JSBody(params = {"s"}, script = "console.info(s);")
   public static native void consoleInfo(JSObject s);
 
-  @JSBody(params = {"s0", "obj"}, script = "console.info(s0 + obj);")
+  @JSBody(params = {"s0", "obj"}, script = "console.info(s0, obj);")
   public static native void consoleInfo(String s0, JSObject obj);
 
   @JSBody(params = {"s0", "obj"}, script = "console.info(s0, obj);")
@@ -140,14 +127,26 @@ public class JsHelper {
   @JSBody(params = {"s0"}, script = "console.error(s0);")
   public static native void consoleError(JSObject s0);
 
-  @JSBody(params = {"s", "d"}, script = "console.info(s + d);")
+  @JSBody(params = {"s", "d"}, script = "console.info(s, d);")
   public static native void consoleInfo(String s, double d);
+
+  @JSBody(params = {"s", "a", "b"}, script = "console.info(s, a, b);")
+  public static native void consoleInfo(String s, double a, double b);
 
   @JSBody(params = {"s0", "obj1", "obj2"}, script = "console.info(s0 + obj1 + obj2);")
   public static native void consoleInfo(String s0, JSObject obj1, JSObject obj2);
 
-  @JSBody(params = {"s0", "obj1", "s2", "obj3"}, script = "console.info(s0 + obj1 + s2 + obj3);")
+  @JSBody(params = {"s0", "obj1", "s2", "obj3"}, script = "console.info(s0, obj1, s2, obj3);")
   public static native void consoleInfo(String s0, JSObject obj1, String s2, JSObject obj3);
+
+  @JSBody(params = {"s0", "obj1", "s2", "d3"}, script = "console.info(s0, obj1, s2, d3);")
+  public static native void consoleInfo(String s0, JSObject obj1, String s2, double d3);
+
+  @JSBody(params = {"s0", "obj1", "s2", "d3", "d4"}, script = "console.info(s0, obj1, s2, d3, d4);")
+  public static native void consoleInfo(String s0, JSObject obj1, String s2, double d3, double d4);
+
+  @JSBody(params = {"s0", "o1", "d2", "s3", "d4"}, script = "console.info(s0, o1, d2, s3, d4);")
+  public static native void consoleInfo(String s0, JSObject o1, double d2, String s3, double d4);
 
   @JSBody(params = {"obj"}, script = "return obj[Symbol.toStringTag];")
   @NoSideEffects

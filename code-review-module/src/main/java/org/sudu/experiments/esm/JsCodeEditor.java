@@ -313,7 +313,7 @@ public class JsCodeEditor implements JsEditorView {
   public static JsCodeEditor newEdit(EditArgs args) {
     if (!JsCanvas.checkFontMetricsAPI())
       throw new RuntimeException("Font metrics API is not supported");
-    var w = new WebWindow(args.getContainerId(), EditArgs.getPool(args));
+    var w = new WebWindow(args.getContainerId(), EditArgs.getPool(args), false);
     if (w.api() == null)
       throw new RuntimeException(WebGLError.text);
     var editor = new Editor0(w.api());

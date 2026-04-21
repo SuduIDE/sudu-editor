@@ -25,6 +25,7 @@ interface NewWorkerPool extends JSObject {
 
 public interface JsWorkerPool extends JSObject {
   int getNumThreads();
+  void dispose();
 
   static Promise<JsWorkerPool> create(JSString url, int numThreads) {
     return Promise.create((postResult, postError) -> {
@@ -49,6 +50,11 @@ public interface JsWorkerPool extends JSObject {
     @Override
     public int getNumThreads() {
       return workers.numThreads();
+    }
+
+    @Override
+    public void dispose() {
+      workers.terminateAll();
     }
   }
 }

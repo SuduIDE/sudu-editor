@@ -67,6 +67,7 @@ public class DemoScene1 extends Scene {
       System.out.println("t = " + t.width() + "x" + t.height());
       iconTexture = Disposable.assign(iconTexture, t);
       mouse.size.set(iconTexture.width(), iconTexture.height());
+      DemoScene1.this.api.window.repaint();
     });
 
     mouse.bgColor.set(bgColor);

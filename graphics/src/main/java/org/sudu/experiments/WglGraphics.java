@@ -31,7 +31,7 @@ public abstract class WglGraphics {
   private GL.Mesh rectangle;
 
   // state
-  final V2i clientRect = new V2i();
+  private final V2i clientRect = new V2i();
   private GL.Program currentShader;
   private int attributeMask = 0;
   private boolean blendState;

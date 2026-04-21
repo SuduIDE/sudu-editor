@@ -7,7 +7,7 @@ const initStyle = () => {
     .control-panel {
         position: absolute;
         display: flex;
-        right: 25px;
+        right: 20px;
         top: 10px;
         border-radius: 3px;
         background-color: rgba(83, 83, 83, 0.6);
@@ -43,7 +43,10 @@ export const initControlPanel = (parentElement = document.body) => {
     const root = document.createElement('div')
     root.classList.add('control-panel')
 
-    parentElement.style.position = 'relative'
+    const position = getComputedStyle(parentElement).position
+    if (position === 'static') {
+        parentElement.style.position = 'relative'
+    }
     parentElement.append(root)
 
     const api = {
