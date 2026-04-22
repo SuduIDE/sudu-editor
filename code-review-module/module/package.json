@@ -4,6 +4,9 @@
   "description": "Code Review tool on Sudu Editor",
   "author": "Kirill Prazdnikov",
   "license": "MIT",
+  "repository": {
+    "url":  "https://github.com/SuduIDE/sudu-editor"
+  },
   "exports": {
     ".": {
       "types": "./codereview.d.ts",

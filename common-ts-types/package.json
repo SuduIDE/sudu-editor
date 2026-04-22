@@ -4,6 +4,9 @@
   "description": "Common Sudu Editor types",
   "author": "Kirill Prazdnikov",
   "license": "MIT",
+  "repository": {
+    "url":  "https://github.com/SuduIDE/sudu-editor"
+  },
   "exports": {
     "./frontend": "./frontend.d.ts",
     ".": "./common.d.ts"

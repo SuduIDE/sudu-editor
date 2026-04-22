@@ -4,6 +4,9 @@
   "description": "Sudu Editor built on Java",
   "author": "Kirill Prazdnikov",
   "license": "MIT",
+  "repository": {
+    "url":  "https://github.com/SuduIDE/sudu-editor"
+  },
   "exports": {
     ".": {
       "types": "./editor.d.ts",
