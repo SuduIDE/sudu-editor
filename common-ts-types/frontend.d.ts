@@ -274,6 +274,7 @@ export interface HasTheme {
 
 export interface Focusable {
   focus(): void
+  hasFocus(): boolean
 }
 
 // see org.sudu.experiments.esm.JsContextMenuProvider
