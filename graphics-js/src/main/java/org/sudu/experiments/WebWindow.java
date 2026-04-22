@@ -190,6 +190,7 @@ public class WebWindow implements Window {
     }
     if (ownsWorkers)
       workers.terminateAll();
+    setScene(null);
   }
 
   public boolean init(Function<SceneApi, Scene> sf) {
@@ -361,5 +362,9 @@ public class WebWindow implements Window {
   public boolean addChild(String title, Function<SceneApi, Scene> sf) {
     Debug.consoleInfo("Window.addChild is not for web");
     return false;
+  }
+
+  public String textureUsage() {
+    return g.tc.string();
   }
 }

@@ -32,6 +32,24 @@ console.log("threadPool.getNumThreads()=", threadPool.getNumThreads())
 const codeReviews = [];
 const controlPanels = [];
 
+const modelsA = [];
+const modelsB = [];
+
+const initialText =
+    "This is an experimental project\n" +
+    "to write a portable (Web + Desktop)\n" +
+    "editor in java and kotlin\n";
+
+for (let i = 1; i <= NUM_EDITORS; i++) {
+  let model1 = editorApi.newTextModel(initialText + "model " + i + " a", null, "urlNew")
+  let model2 = editorApi.newTextModel(initialText + "model " + i + " b", null, "urlNew")
+
+  model1.setEditListener(m => console.log("model " + i + " a " + "change event"))
+  model2.setEditListener(m => console.log("model " + i + " b " + "change event"))
+  modelsA.push(model1);
+  modelsB.push(model2);
+}
+
 for (let i = 1; i <= NUM_EDITORS; i++) {
   const codeReview = editorApi.newCodeReview({
     containerId: "editor" + i, workers: threadPool
@@ -40,19 +58,7 @@ for (let i = 1; i <= NUM_EDITORS; i++) {
 
   const controlPanel = initControlPanel(document.getElementById("editor" + i))
   controlPanels.push(controlPanel);
-
-  const initialText =
-    "This is an experimental project\n" +
-    "to write a portable (Web + Desktop)\n" +
-    "editor in java and kotlin\n";
-
-  let model1 = editorApi.newTextModel(initialText + "model " + i + " a", null, "urlNew")
-  let model2 = editorApi.newTextModel(initialText + "model " + i + " b", null, "urlNew")
-
-  model1.setEditListener(m => console.log("model " + i + " a " + "change event"))
-  model2.setEditListener(m => console.log("model " + i + " b " + "change event"))
-
-  codeReview.setModel(model1, model2);
+  codeReview.setModel(modelsA[i - 1], modelsB[i - 1]);
 }
 
 codeReviews[0].focus();
@@ -94,3 +100,8 @@ const controls = (codeReview, compactView = false) => {
 codeReviews.forEach((codeReview, i) => {
   Object.entries(controls(codeReview)).forEach(([icon, handler]) => controlPanels[i].add(icon, handler))
 });
+
+
+setInterval(() => {
+  console.log("textureUsage", codeReviews[0].textureUsage());
+}, 1000)

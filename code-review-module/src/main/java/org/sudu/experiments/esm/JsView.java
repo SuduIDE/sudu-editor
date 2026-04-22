@@ -14,6 +14,8 @@ public interface JsView extends JSObject {
   boolean hasFocus();
   void disconnectFromDom();
   void reconnectToDom(JSString containedId);
+  // diagnostics
+  JSString textureUsage();
 
   // getController(): FolderDiffViewController | FileDiffViewController;
   JsViewController getController();

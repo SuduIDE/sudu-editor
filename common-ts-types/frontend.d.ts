@@ -347,6 +347,8 @@ export interface ExternalDialogProvider {
 }
 
 export interface View {
+  textureUsage(): string;
+
   disconnectFromDom(): void
 
   reconnectToDom(containerId?: string): void
