@@ -1,6 +1,6 @@
 {
   "name": "@sudu-ide/editor",
-  "version": "0.0.1-alpha",
+  "version": "0.0.127",
   "description": "Sudu Editor built on Java",
   "author": "Kirill Prazdnikov",
   "license": "MIT",
