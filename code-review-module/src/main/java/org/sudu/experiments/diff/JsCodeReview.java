@@ -65,11 +65,6 @@ public class JsCodeReview implements JsCodeReviewView {
   }
 
   @Override
-  public JSString textureUsage() {
-    return JSString.valueOf(window.textureUsage());
-  }
-
-  @Override
   public JsViewController getController() {
     return controller;
   }

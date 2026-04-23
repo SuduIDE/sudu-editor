@@ -78,6 +78,7 @@ public interface Editor_d_ts {
   static void main(String[] args) {
     LoggingJs.Setter.set();
     JsTextModel.Api.install();
+    WebGraphics.setApi();
     EditorFactory.Setter.setApi(JsCodeEditor::newEdit);
     FileDiffFactory.Setter.setDiff(JsCodeDiff::newDiff);
     RemoteFileDiffFactory.Setter.set(JsRemoteCodeDiff::create);

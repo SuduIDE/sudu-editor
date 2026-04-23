@@ -363,8 +363,4 @@ public class WebWindow implements Window {
     Debug.consoleInfo("Window.addChild is not for web");
     return false;
   }
-
-  public String textureUsage() {
-    return g.tc.string();
-  }
 }

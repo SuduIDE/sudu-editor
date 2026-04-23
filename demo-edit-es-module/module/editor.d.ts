@@ -118,6 +118,8 @@ export interface RemoteEditorView extends IEditorView, IDisposable {
   applyState(state: any): void
 }
 
+export function textureUsage(): string;
+
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
 
 export function newEditor(args: EditArgs): Promise<EditorView>

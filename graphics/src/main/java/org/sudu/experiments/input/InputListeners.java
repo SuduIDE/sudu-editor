@@ -117,11 +117,12 @@ public class InputListeners {
     return false;
   }
 
-  public void sendMouseWheel(MouseEvent e, float dX, float dY) {
+  public boolean sendMouseWheel(MouseEvent e, float dX, float dY) {
     repaint.run();
     for (ScrollHandler listener : onScroll.array()) {
-      if (listener.onScroll(e, dX, dY)) return;
+      if (listener.onScroll(e, dX, dY)) return true;
     }
+    return false;
   }
 
   public boolean sendContextMenu(MouseEvent e) {

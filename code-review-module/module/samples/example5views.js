@@ -67,7 +67,6 @@ setInterval(() => {
   number++;
 }, 200);
 
-
 setInterval(() => {
-  console.log("textureUsage", editors[0].textureUsage());
+  console.log("textureUsage", editorApi.textureUsage());
 }, 1000)

@@ -1,16 +1,25 @@
-import { initControlPanel } from "./control-panel.js";
+import {initControlPanel} from "./control-panel.js";
 import * as editorApi from "../src/codereview.js";
 
 const NUM_EDITORS = 50;
 
 const container = document.body;
-const editorDivs = [];
+const editorDivs = Array(NUM_EDITORS);
+const codeReviews = new Array(NUM_EDITORS);
+const controlPanels = new Array(NUM_EDITORS);
 
-for (let i = 1; i <= NUM_EDITORS; i++) {
+const modelsA = new Array(NUM_EDITORS);
+const modelsB = new Array(NUM_EDITORS);
+
+function divId(i) {
+  return "editor" + (i + 1);
+}
+
+for (let i = 0; i < NUM_EDITORS; i++) {
   const div = document.createElement("div");
-  div.id = "editor" + i;
+  div.id = divId(i);
   div.className = "editor";
-  editorDivs.push(div);
+  editorDivs[i] = div;
 }
 
 container.append(...editorDivs);
@@ -29,36 +38,37 @@ const threadPool = await editorApi.newWorkerPool("../src/worker.js", 3);
 
 console.log("threadPool.getNumThreads()=", threadPool.getNumThreads())
 
-const codeReviews = [];
-const controlPanels = [];
-
-const modelsA = [];
-const modelsB = [];
 
 const initialText =
     "This is an experimental project\n" +
     "to write a portable (Web + Desktop)\n" +
     "editor in java and kotlin\n";
 
-for (let i = 1; i <= NUM_EDITORS; i++) {
-  let model1 = editorApi.newTextModel(initialText + "model " + i + " a", null, "urlNew")
-  let model2 = editorApi.newTextModel(initialText + "model " + i + " b", null, "urlNew")
+for (let i = 0; i < NUM_EDITORS; i++) {
+  const idA = "model " + (i + 1) + " a";
+  const idB = "model " + (i + 1) + " b";
+  const model1 = editorApi.newTextModel(initialText + idA, null, idA)
+  const model2 = editorApi.newTextModel(initialText + idB, null, idB)
 
-  model1.setEditListener(m => console.log("model " + i + " a " + "change event"))
-  model2.setEditListener(m => console.log("model " + i + " b " + "change event"))
-  modelsA.push(model1);
-  modelsB.push(model2);
+  model1.setEditListener(m => console.log(idA, "change event"))
+  model2.setEditListener(m => console.log(idB, "change event"))
+  modelsA[i] = model1;
+  modelsB[i] = model2;
+  const containerId = divId(i);
+  controlPanels[i] = initControlPanel(document.getElementById(containerId));
 }
 
-for (let i = 1; i <= NUM_EDITORS; i++) {
+function createCodeReview(i) {
+  const containerId = divId(i);
   const codeReview = editorApi.newCodeReview({
-    containerId: "editor" + i, workers: threadPool
+    containerId, workers: threadPool
   });
-  codeReviews.push(codeReview);
+  codeReviews[i] = codeReview;
+  codeReview.setModel(modelsA[i], modelsB[i]);
+}
 
-  const controlPanel = initControlPanel(document.getElementById("editor" + i))
-  controlPanels.push(controlPanel);
-  codeReview.setModel(modelsA[i - 1], modelsB[i - 1]);
+for (let i = 0; i < NUM_EDITORS; i++) {
+  createCodeReview(i);
 }
 
 codeReviews[0].focus();
@@ -68,40 +78,69 @@ const focusStates = new Array(NUM_EDITORS).fill(false);
 
 setInterval(() => {
   codeReviews.forEach((codeReview, i) => {
-    const f = codeReview.hasFocus();
+    const f = codeReview?.hasFocus();
     if (f !== focusStates[i]) {
-      console.log(number, "editor" + (i + 1) + ".hasFocus()", f);
+      console.log(number, divId(i), "hasFocus()", f);
       focusStates[i] = f;
       number++;
     }
   });
 }, 200);
 
-const controls = (codeReview, compactView = false) => {
-  const controller = codeReview.getController()
-  controller.setCompactView(compactView)
+const controls = (i) => {
+  let compactView = false;
   return ({
     '🔼': () => {
-      controller.canNavigateUp() && controller.navigateUp();
-      codeReview.focus();
+      const codeReview = codeReviews[i];
+      if (codeReview) {
+        const controller = codeReview.getController()
+        controller.canNavigateUp() && controller.navigateUp();
+        codeReview.focus();
+      }
     },
     '🔽': () => {
-      controller.canNavigateDown() && controller.navigateDown();
-      codeReview.focus();
+      const codeReview = codeReviews[i];
+      if (codeReview) {
+        const controller = codeReview.getController()
+        controller.canNavigateDown() && controller.navigateDown();
+        codeReview.focus();
+      }
     },
     '↕️': () => {
-      compactView = !compactView;
-      controller.setCompactView(compactView);
-      codeReview.focus();
+      const codeReview = codeReviews[i];
+      if (codeReview) {
+        const controller = codeReview.getController()
+        compactView = !compactView;
+        controller.setCompactView(compactView);
+        codeReview.focus();
+      }
+    },
+    '🔃': () => {
+      const div = editorDivs[i];
+      const codeReview = codeReviews[i];
+      console.log(div.children, div.children.length);
+      if (div.children.length === 2) {
+        codeReview.disconnectFromDom();
+      } else {
+        codeReview.reconnectToDom();
+      }
+    },
+    '❌': () => {
+      if (codeReviews[i]) {
+        codeReviews[i].dispose();
+        codeReviews[i] = null;
+      } else {
+        createCodeReview(i);
+      }
     }
   });
 }
 
-codeReviews.forEach((codeReview, i) => {
-  Object.entries(controls(codeReview)).forEach(([icon, handler]) => controlPanels[i].add(icon, handler))
-});
-
+for (let i = 0; i < NUM_EDITORS; i++) {
+  Object.entries(controls(i))
+      .forEach(([icon, handler]) => controlPanels[i].add(icon, handler))
+}
 
 setInterval(() => {
-  console.log("textureUsage", codeReviews[0].textureUsage());
+  console.log("textureUsage", editorApi.textureUsage());
 }, 1000)

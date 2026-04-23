@@ -6,11 +6,11 @@ import org.sudu.experiments.js.JsCanvas;
 import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.OffscreenCanvas;
 import org.teavm.jso.JSBody;
+import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.events.EventListener;
-import org.teavm.jso.dom.html.HTMLCanvasElement;
 import org.teavm.jso.dom.html.HTMLImageElement;
 
 import java.util.function.Consumer;
@@ -34,6 +34,23 @@ public class WebGraphics extends WglGraphics {
       }
     }
     return instance;
+  }
+
+  @JSFunctor
+  interface TextureUsageApi extends JSObject {
+    JSString f();
+  }
+
+  public static JSString textureUsage() {
+    return instance == null ? JSString.valueOf("")
+        : JSString.valueOf(instance.tc.string());
+  }
+
+  @JSBody(params = {"f"}, script = "textureUsage = f;")
+  static native void setApi(TextureUsageApi f);
+
+  public static void setApi() {
+    setApi(WebGraphics::textureUsage);
   }
 
   private WebGraphics(OffscreenCanvas canvas, GLApi.Context gl) {

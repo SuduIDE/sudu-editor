@@ -71,11 +71,6 @@ public class JsCodeEditor implements JsEditorView {
     window.dispose();
   }
 
-  @Override
-  public JSString textureUsage() {
-    return JSString.valueOf(window.textureUsage());
-  }
-
   private Editor0 demoEdit0() {
     return (Editor0) window.scene();
   }

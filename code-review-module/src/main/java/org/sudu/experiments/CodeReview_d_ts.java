@@ -34,6 +34,7 @@ public interface CodeReview_d_ts {
     JsTextModel.Api.install();
     JsLoadFonts.install();
     JsWorkerPool.install();
+    WebGraphics.setApi();
     EditorFactory.Setter.setApi(JsCodeEditor::newEdit);
     CodeReviewFactory.Setter.setDiff(JsCodeReview::newCodeReview);
   }
