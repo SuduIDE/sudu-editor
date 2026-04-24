@@ -65,7 +65,7 @@ public abstract class BaseParser<P extends Parser> {
     tokenRecognitionListener = new ErrorRecognizerListener();
 
     Lexer lexer = initLexer(stream);
-    lexer.setTokenFactory(new LangTokenFactory(language()));
+    lexer.setTokenFactory(new CommonTokenFactory());
     lexer.addErrorListener(tokenRecognitionListener);
 
     tokenStream = new CommonTokenStream(lexer);
@@ -135,6 +135,7 @@ public abstract class BaseParser<P extends Parser> {
       List<Pair<Integer, Token>> tokenInfo,  // (start, token)
       int N
   ) {
+    String source = fileSource.get();
     List<Token>[] lineToTokens = new List[N];
     int startIndex = 0;
     int lineIndex = 0;
@@ -145,13 +146,11 @@ public abstract class BaseParser<P extends Parser> {
         if (isEOF(split)) continue;
         if (isNewLine(split)) {
           lineIndex++;
-          startIndex += split.getText().length();
-          continue;
+        } else {
+          lineToTokens[lineIndex].add(split);
+          tokenInfo.add(Pair.of(startIndex, split));
         }
-        int stopIndex = startIndex + split.getText().length();
-        lineToTokens[lineIndex].add(split);
-        tokenInfo.add(Pair.of(startIndex, split));
-        startIndex = stopIndex;
+        startIndex += split.getText().length();
       }
     }
     return lineToTokens;
@@ -165,8 +164,15 @@ public abstract class BaseParser<P extends Parser> {
   }
 
   protected List<Token> splitToken(Token token) {
+    if (isEOF(token)) return Collections.singletonList(token);
     for (var rule: splitRules.getRules()) {
-      if (rule.test(token)) return rule.split(token);
+      if (rule.test(token)) {
+        if (token instanceof CommonToken ct) {
+          int type = tokenTypes[ct.getTokenIndex()];
+          ct.setType(type);
+        }
+        return rule.split(token);
+      }
     }
     return Collections.singletonList(token);
   }

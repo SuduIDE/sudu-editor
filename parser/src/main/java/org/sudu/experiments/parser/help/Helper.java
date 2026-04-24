@@ -57,8 +57,7 @@ public class Helper {
       } else if (line.equals("\r")) {
         result.add(new SplitToken(token, "\r", token.getType(), TokenStyles.NORMAL));
       } else {
-        var splitToken = new SplitToken(token, line, token.getType(), TokenStyles.NORMAL);
-        result.add(splitToken);
+        result.add(new SplitToken(token, line, token.getType(), TokenStyles.NORMAL));
       }
       prev = line;
     }
