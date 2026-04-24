@@ -4,18 +4,17 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.sudu.experiments.parser.common.NullParser;
 import org.sudu.experiments.parser.common.base.BaseIntervalParser;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.SplitRules;
-import org.sudu.experiments.parser.help.Helper;
 import org.sudu.experiments.parser.javascript.JsSplitRules;
-import org.sudu.experiments.parser.javascript.gen.JavaScriptParser;
 import org.sudu.experiments.parser.javascript.gen.LightJavaScriptLexer;
-import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptLexerHighlighting;
+import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptHighlighting;
 import java.util.Arrays;
 
-public class JavaScriptIntervalParser extends BaseIntervalParser<JavaScriptParser> {
+public class JavaScriptIntervalParser extends BaseIntervalParser<NullParser> {
 
   @Override
   public int[] parseInterval(char[] source, int[] interval, int[] graphInts, char[] graphChars) {
@@ -34,12 +33,12 @@ public class JavaScriptIntervalParser extends BaseIntervalParser<JavaScriptParse
   }
 
   @Override
-  protected JavaScriptParser initParser() {
+  protected NullParser initParser() {
     return null;
   }
 
   @Override
-  protected ParserRuleContext getStartRule(JavaScriptParser parser) {
+  protected ParserRuleContext getStartRule(NullParser parser) {
     return null;
   }
 
@@ -62,11 +61,7 @@ public class JavaScriptIntervalParser extends BaseIntervalParser<JavaScriptParse
 
   @Override
   protected void highlightTokens() {
-    LightJavaScriptLexerHighlighting.highlightTokens(allTokens, tokenTypes);
-  }
-
-  public static boolean isComment(int tokenType) {
-    return LightJavaScriptLexerHighlighting.isComment(tokenType);
+    LightJavaScriptHighlighting.highlightTokens(allTokens, tokenTypes);
   }
 
   @Override

@@ -7,7 +7,7 @@ import java.util.List;
 
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
 
-public class LightJavaScriptLexerHighlighting {
+public class LightJavaScriptHighlighting {
 
   public static void highlightTokens(List<Token> allTokens, int[] tokenTypes) {
     for (var token : allTokens) {
@@ -18,6 +18,7 @@ public class LightJavaScriptLexerHighlighting {
       else if (isBoolean(type)) tokenTypes[ind] = BOOLEAN;
       else if (isNumeric(type)) tokenTypes[ind] = NUMERIC;
       else if (isKeyword(type)) tokenTypes[ind] = KEYWORD;
+      else if (isControl(type)) tokenTypes[ind] = CONTROL;
       else if (isString(type)) tokenTypes[ind] = STRING;
       else if (isSemi(type)) tokenTypes[ind] = SEMI;
     }
@@ -37,12 +38,25 @@ public class LightJavaScriptLexerHighlighting {
   }
 
   public static boolean isKeyword(int tokenType) {
-    return tokenType >= LightJavaScriptLexer.Break
+    return (tokenType >= LightJavaScriptLexer.Break
         && tokenType <= LightJavaScriptLexer.Static
         && tokenType != LightJavaScriptLexer.Let
         && tokenType != LightJavaScriptLexer.Async
         && tokenType != LightJavaScriptLexer.As
-        && tokenType != LightJavaScriptLexer.From;
+        && tokenType != LightJavaScriptLexer.From)
+        && !isControl(tokenType);
+  }
+
+  public static boolean isControl(int tokenType) {
+    return switch (tokenType) {
+      case LightJavaScriptLexer.Return, LightJavaScriptLexer.Break,
+           LightJavaScriptLexer.Continue, LightJavaScriptLexer.If,
+           LightJavaScriptLexer.Else, LightJavaScriptLexer.For,
+           LightJavaScriptLexer.Do, LightJavaScriptLexer.While,
+           LightJavaScriptLexer.Switch, LightJavaScriptLexer.Case,
+           LightJavaScriptLexer.Default, LightJavaScriptLexer.Yield -> true;
+      default -> false;
+    };
   }
 
   public static boolean isString(int tokenType) {

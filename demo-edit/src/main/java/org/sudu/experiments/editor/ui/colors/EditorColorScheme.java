@@ -44,21 +44,22 @@ public class EditorColorScheme {
   public static final int LineNumberActiveForeground = 21;
 
   public static final int SyntaxKeyword = 30;
-  public static final int SyntaxNull = 31;
-  public static final int SyntaxBoolean = 32;
-  public static final int SyntaxSemi = 33;
-  public static final int SyntaxField = 34;
-  public static final int SyntaxString = 35;
-  public static final int SyntaxError = 36;
-  public static final int SyntaxNumeric = 37;
-  public static final int SyntaxMethod = 38;
-  public static final int SyntaxComment = 39;
-  public static final int SyntaxAnnotation = 40;
-  public static final int SyntaxType = 41;
-  public static final int SyntaxOperator = 42;
-  public static final int SyntaxEscapeChar = 43;
-  public static final int SyntaxCppDirective = 44;
-  public static final int SyntaxDocumentation = 45;
+  public static final int SyntaxControl = 31;
+  public static final int SyntaxNull = 32;
+  public static final int SyntaxBoolean = 33;
+  public static final int SyntaxSemi = 34;
+  public static final int SyntaxField = 35;
+  public static final int SyntaxString = 36;
+  public static final int SyntaxError = 37;
+  public static final int SyntaxNumeric = 38;
+  public static final int SyntaxMethod = 39;
+  public static final int SyntaxComment = 40;
+  public static final int SyntaxAnnotation = 41;
+  public static final int SyntaxType = 42;
+  public static final int SyntaxOperator = 43;
+  public static final int SyntaxEscapeChar = 44;
+  public static final int SyntaxCppDirective = 45;
+  public static final int SyntaxDocumentation = 46;
 
   public static final int LastIndex = SyntaxDocumentation + 1;
 
@@ -276,6 +277,7 @@ public class EditorColorScheme {
 
       // syntax
       case SyntaxKeyword       -> setCodeForeground(ParserConstants.TokenTypes.KEYWORD, c);
+      case SyntaxControl       -> setCodeForeground(ParserConstants.TokenTypes.CONTROL, c);
       case SyntaxNull          -> setCodeForeground(ParserConstants.TokenTypes.NULL, c);
       case SyntaxBoolean       -> setCodeForeground(ParserConstants.TokenTypes.BOOLEAN, c);
       case SyntaxSemi          -> setCodeForeground(ParserConstants.TokenTypes.SEMI, c);
@@ -361,6 +363,7 @@ public class EditorColorScheme {
       case ActiveLineNumberForeground -> "ActiveLineNumberForeground";
       case LineNumberActiveForeground -> "LineNumberActiveForeground";
       case SyntaxKeyword -> " SyntaxKeyword";
+      case SyntaxControl -> " SyntaxControl";
       case SyntaxNull -> " SyntaxNull";
       case SyntaxBoolean -> " SyntaxBoolean";
       case SyntaxSemi -> " SyntaxSemi";

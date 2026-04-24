@@ -1,4 +1,4 @@
-package org.sudu.experiments.parser.typescript.parser.highlighting;
+package org.sudu.experiments.parser.typescript.parser;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Lexer;
@@ -11,6 +11,7 @@ import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.typescript.TsSplitRules;
 import org.sudu.experiments.parser.typescript.gen.LightTypeScriptLexer;
+import org.sudu.experiments.parser.typescript.parser.highlighting.LightTypeScriptHighlighting;
 
 import java.util.Arrays;
 
