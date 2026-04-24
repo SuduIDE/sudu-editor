@@ -19,6 +19,9 @@ import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
 class FileDiffRootView extends DiffRootView {
+  static final boolean printTime = false;
+  static final boolean showNavigateLog = false;
+
   final EditorUi ui;
   final EditorComponent editor1;
   final EditorComponent editor2;
@@ -32,7 +35,6 @@ class FileDiffRootView extends DiffRootView {
   Consumer<Model> onLeftDiffMade, onRightDiffMade;
 
   boolean firstDiffRevealed = false, needScrollSync = false;
-  private static final boolean showNavigateLog = true;
   private Runnable onRefresh, onDiffModelSet, onDocumentSizeChange;
   public final boolean isCodeReview;
   public final boolean enableSyncEditing;
@@ -40,7 +42,6 @@ class FileDiffRootView extends DiffRootView {
 
   protected long sendDiffTime = System.currentTimeMillis();
   protected long fullParseTime = System.currentTimeMillis();
-  protected final boolean printTime = true;
 
   FileDiffRootView(WindowManager wm, boolean disableParser, boolean isCodeReview) {
     super(wm.uiContext);
@@ -244,7 +245,19 @@ class FileDiffRootView extends DiffRootView {
     firstDiffRevealed = false;
   }
 
+  boolean disposed = false;
+
+  @Override
+  public void dispose() {
+    disposed = true;
+    diffModel = null;
+    diffSync.setModel(null);
+    super.dispose();
+  }
+
   public void setDiffModel(DiffInfo diffInfo, int[] versions) {
+    // temporary fix for async return on disposed view
+    if (disposed) return;
     if (!Arrays.equals(versions, docVersions())) return;
     long currentTime = System.currentTimeMillis();
     if (printTime) {

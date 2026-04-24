@@ -1,7 +1,7 @@
 import {initControlPanel} from "./control-panel.js";
 import * as editorApi from "../src/codereview.js";
 
-const NUM_EDITORS = 50;
+const NUM_EDITORS = window.NUM_EDITORS ?? 50;
 
 const container = document.body;
 const editorDivs = Array(NUM_EDITORS);
@@ -11,6 +11,11 @@ const controlPanels = new Array(NUM_EDITORS);
 const modelsA = new Array(NUM_EDITORS);
 const modelsB = new Array(NUM_EDITORS);
 
+const threadPool = await editorApi.newWorkerPool("../src/worker.js", 3);
+
+const focusStates = new Array(NUM_EDITORS).fill(false);
+let messageId = 1;
+
 function divId(i) {
   return "editor" + (i + 1);
 }
@@ -19,6 +24,7 @@ for (let i = 0; i < NUM_EDITORS; i++) {
   const div = document.createElement("div");
   div.id = divId(i);
   div.className = "editor";
+  div.internalId = i;
   editorDivs[i] = div;
 }
 
@@ -26,18 +32,17 @@ container.append(...editorDivs);
 console.log("document.body.getClientRects", document.body.getClientRects());
 
 const visibilityObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    const id = entry.target.id;
-    console.log("editor", id, entry.isIntersecting ? "visible" : "invisible");
-  });
+  for (const entry of entries) {
+    let element = entry.target;
+    if (0) console.log(
+        "editor", element.id,
+        "internalId", element.internalId,
+        entry.isIntersecting ? "visible" : "invisible");
+    changeCodeReviewVisibility(entry.isIntersecting, element.internalId);
+  }
 });
 
-editorDivs.forEach(div => visibilityObserver.observe(div));
-
-const threadPool = await editorApi.newWorkerPool("../src/worker.js", 3);
-
 console.log("threadPool.getNumThreads()=", threadPool.getNumThreads())
-
 
 const initialText =
     "This is an experimental project\n" +
@@ -58,6 +63,8 @@ for (let i = 0; i < NUM_EDITORS; i++) {
   controlPanels[i] = initControlPanel(document.getElementById(containerId));
 }
 
+editorDivs.forEach(div => visibilityObserver.observe(div));
+
 function createCodeReview(i) {
   const containerId = divId(i);
   const codeReview = editorApi.newCodeReview({
@@ -67,22 +74,35 @@ function createCodeReview(i) {
   codeReview.setModel(modelsA[i], modelsB[i]);
 }
 
-for (let i = 0; i < NUM_EDITORS; i++) {
-  createCodeReview(i);
+function deleteCodeReview(i) {
+  codeReviews[i].dispose();
+  codeReviews[i] = null;
 }
 
-codeReviews[0].focus();
+function changeCodeReviewVisibility(isVisible, i) {
+  if (codeReviews[i] && !isVisible) {
+    console.log(messageId++, "removing editor", i);
+    deleteCodeReview(i);
+  }
+  if (!codeReviews[i] && isVisible) {
+    console.log(messageId++, "adding editor", i);
+    createCodeReview(i);
+  }
+}
 
-let number = 1;
-const focusStates = new Array(NUM_EDITORS).fill(false);
+if (0) {
+  for (let i = 0; i < NUM_EDITORS; i++) {
+    createCodeReview(i);
+  }
+  codeReviews[0].focus();
+}
 
 setInterval(() => {
   codeReviews.forEach((codeReview, i) => {
-    const f = codeReview?.hasFocus();
+    const f = codeReview && codeReview.hasFocus();
     if (f !== focusStates[i]) {
-      console.log(number, divId(i), "hasFocus()", f);
+      // console.log(messageId++, divId(i), "hasFocus()", f);
       focusStates[i] = f;
-      number++;
     }
   });
 }, 200);
@@ -127,8 +147,7 @@ const controls = (i) => {
     },
     '❌': () => {
       if (codeReviews[i]) {
-        codeReviews[i].dispose();
-        codeReviews[i] = null;
+        deleteCodeReview(i);
       } else {
         createCodeReview(i);
       }
@@ -141,6 +160,10 @@ for (let i = 0; i < NUM_EDITORS; i++) {
       .forEach(([icon, handler]) => controlPanels[i].add(icon, handler))
 }
 
+let textureUsageInfo = "";
+
 setInterval(() => {
-  console.log("textureUsage", editorApi.textureUsage());
-}, 1000)
+  let data = editorApi.textureUsage();
+  //if (data !== textureUsageInfo)
+    console.log(messageId++, "textureUsage", textureUsageInfo = data);
+}, 1000);

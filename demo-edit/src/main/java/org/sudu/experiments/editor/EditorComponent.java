@@ -33,9 +33,9 @@ public class EditorComponent extends View implements
     DiffRef
 {
 
-  final UiContext context;
-  final WglGraphics g;
-  final EditorUi ui;
+  UiContext context;
+  WglGraphics g;
+  EditorUi ui;
 
   boolean forceMaxFPS = false;
   Runnable[] debugFlags = new Runnable[10];
@@ -118,6 +118,7 @@ public class EditorComponent extends View implements
   final ClrContext lrContext;
   InputListeners.KeyHandler onKey;
 
+  boolean buildCodeMapRequest;
   GL.Texture codeMap;
   final V2i codeMapSize = new V2i();
 
@@ -196,6 +197,8 @@ public class EditorComponent extends View implements
   }
 
   private void internalLayout() {
+    if (debugDisposed)
+      System.err.println("internalLayout called on disposed view");
     vLineW = toPx(vLineWDp);
     vLineTextOffset = toPx(vLineTextOffsetDp);
     scrollBarWidth = toPx(scrollBarWidthDp);
@@ -370,7 +373,7 @@ public class EditorComponent extends View implements
     lineHeight = lrContext.setLineHeight(EditorConst.LINE_HEIGHT_MULTI, g);
     caret.setHeight(lrContext.font.caretHeight(lineHeight));
 
-    Debug.consoleInfo("editor font: " + name + " " + pixelSize
+    if (false) Debug.consoleInfo("editor font: " + name + " " + pixelSize
 //        + ", ascent+descent = " + lrContext.font.lineHeight()
         + ", lineHeight = " + lineHeight
         /* + ", caretHeight = " + caret.height() */ );
@@ -434,12 +437,21 @@ public class EditorComponent extends View implements
     model.document.invalidateFont();
   }
 
+  boolean debugDisposed = false;
+
   public void dispose() {
+    debugDisposed = true;
+    dpr = 0;
+    size.set(0,0);
     clearCodeMap();
     CodeLineRenderer.disposeLines(lines);
     lrContext.dispose();
     lineNumbers.dispose();
     mergeButtons = Disposable.assign(mergeButtons, null);
+    model.setEditor(null, null);
+    context = null;
+    g =  null;
+    ui = null;
   }
 
   int editorVirtualHeight() {
@@ -604,7 +616,7 @@ public class EditorComponent extends View implements
 
     drawCaret();
 
-    if (codeMap != null)
+    if (buildCodeMapRequest || codeMap != null)
       drawCodeMap();
     layoutScrollbar();
     drawScrollBar();
@@ -718,6 +730,10 @@ public class EditorComponent extends View implements
   }
 
   private void drawCodeMap() {
+    if (buildCodeMapRequest) {
+      buildDiffMapTexture();
+      buildCodeMapRequest = false;
+    }
     g.enableBlend(true);
     g.drawRect(codeMapX(), codeMapY(), codeMapSize, codeMap);
   }
@@ -2144,6 +2160,10 @@ public class EditorComponent extends View implements
   }
 
   void buildDiffMap() {
+    buildCodeMapRequest = true;
+  }
+
+  void buildDiffMapTexture() {
     if (model.diffModel == null) {
       if (debugDiffMap)
         System.err.println("EditorComponent.buildDiffMap: model.diffModel == null");

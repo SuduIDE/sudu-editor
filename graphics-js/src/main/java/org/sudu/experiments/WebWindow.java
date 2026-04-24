@@ -23,17 +23,19 @@ import org.teavm.jso.dom.xml.Node;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static org.sudu.experiments.js.ResizeObserver.ResizeObserverEntry.devicePixelContentBoxSize;
+
 public class WebWindow implements Window {
 
   static final boolean debug = false;
 
   final AnimationFrameCallback frameCallback = this::onAnimationFrame;
   final Runnable repaint = this::repaint;
-  final HTMLCanvasElement mainCanvas;
-  final CanvasRenderingContext2D draw2d;
-  final ResizeObserver observer = ResizeObserver.create(this::onSizeObserved);
   final EventListener<Event> handleWindowResize = this::handleWindowResize;
 
+  final ResizeObserver observer = ResizeObserver.create(this::onSizeObserved);
+  private HTMLCanvasElement mainCanvas;
+  private CanvasRenderingContext2D draw2d;
   private V2i clientRect = null;
   private JSString canvasDivId;
   private JsInput eventHandler;
@@ -98,7 +100,7 @@ public class WebWindow implements Window {
     if (parentNode != null) {
       parentNode.removeChild(mainCanvas);
       clientRect = null;
-      JsWindow.cancelAnimationFrame(animationFrameRequest);
+      cancelAnimationRequest();
     } else {
       System.err.println("disconnectFromDom: called on already disconnected");
     }
@@ -154,7 +156,7 @@ public class WebWindow implements Window {
     for (int i = 0, n = entries.getLength(); i < n; i++) {
       var entry = entries.get(i);
       if (entry.getTarget() == mainCanvas) {
-        if (JSObjects.hasProperty(entry, entry.devicePixelContentBoxSize)) {
+        if (JSObjects.hasProperty(entry, devicePixelContentBoxSize)) {
           if (entry.getDevicePixelContentBoxSize().getLength() == 1) {
             var size = entry.getDevicePixelContentBoxSize().get(0);
             onCanvasSizeChanged((int) size.getInlineSize(), (int) size.getBlockSize());
@@ -176,10 +178,7 @@ public class WebWindow implements Window {
 
   @SuppressWarnings("unused")
   public void dispose() {
-    if (animationFrameRequest != 0) {
-      JsWindow.cancelAnimationFrame(animationFrameRequest);
-      animationFrameRequest = 0;
-    }
+    disconnectFromDom();
     JsWindow.current().removeEventListener("resize", handleWindowResize);
 
     observer.disconnect();
@@ -191,6 +190,15 @@ public class WebWindow implements Window {
     if (ownsWorkers)
       workers.terminateAll();
     setScene(null);
+    mainCanvas = null;
+    draw2d = null;
+  }
+
+  private void cancelAnimationRequest() {
+    if (animationFrameRequest != 0) {
+      JsWindow.cancelAnimationFrame(animationFrameRequest);
+      animationFrameRequest = 0;
+    }
   }
 
   public boolean init(Function<SceneApi, Scene> sf) {
