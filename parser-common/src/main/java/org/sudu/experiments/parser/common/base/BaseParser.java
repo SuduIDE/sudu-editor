@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.*;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.parser.*;
+import org.sudu.experiments.parser.common.Pair;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.common.SplitRules;
@@ -34,7 +35,7 @@ public abstract class BaseParser<P extends Parser> {
   protected abstract ParserRuleContext getStartRule(P parser);
   protected abstract IntervalNode walk(ParserRuleContext startRule);
   protected abstract SplitRules initSplitRules();
-  protected abstract boolean tokenFilter(Token token);
+  protected abstract String language();
   protected abstract void highlightTokens();
 
   static <T> Supplier<T> supplier(T t) { return () -> t; }
@@ -64,6 +65,7 @@ public abstract class BaseParser<P extends Parser> {
     tokenRecognitionListener = new ErrorRecognizerListener();
 
     Lexer lexer = initLexer(stream);
+    lexer.setTokenFactory(new CommonTokenFactory());
     lexer.addErrorListener(tokenRecognitionListener);
 
     tokenStream = new CommonTokenStream(lexer);
@@ -92,17 +94,24 @@ public abstract class BaseParser<P extends Parser> {
     tokenStyles = new int[1];
   }
 
-  protected void writeTokens(int N, List<Token>[] tokensByLine) {
+  protected void writeTokens(
+      int N,
+      List<Token>[] tokensByLine,
+      List<Pair<Integer, Token>> tokenInfo
+  ) {
+    int tokenInd = 0;
     for (int i = 0; i < N; i++) {
       var tokensOnLine = tokensByLine[i];
       writer.write(tokensOnLine.size());
       for (var token: tokensOnLine) {
-        int start = token.getStartIndex();
-        int stop = token.getStopIndex() + 1;
+        var pair = tokenInfo.get(tokenInd);
+        int start = pair.first;
+        int stop = start + pair.second.getText().length();
         int ind = token.getTokenIndex();
-        int type = token instanceof SplitToken splitToken ? splitToken.getSplitType() : tokenTypes[ind];
-        int style = token instanceof SplitToken ? ParserConstants.TokenTypes.DEFAULT : tokenStyles[ind];
+        int type = token instanceof SplitToken split ? split.getTokenType() : tokenTypes[ind];
+        int style = token instanceof SplitToken split ? split.getTokenStyle() : tokenStyles[ind];
         writer.write(start, stop, type, style);
+        tokenInd++;
       }
     }
   }
@@ -121,37 +130,49 @@ public abstract class BaseParser<P extends Parser> {
     }
   }
 
-  protected List<Token>[] groupTokensByLine(List<Token> allTokens, int N) {
+  protected List<Token>[] groupTokensByLine(
+      List<Token> allTokens,
+      List<Pair<Integer, Token>> tokenInfo,  // (start, token)
+      int N
+  ) {
+    String source = fileSource.get();
     List<Token>[] lineToTokens = new List[N];
-    for (var token : allTokens) {
-      for (var splitted : splitToken(token)) {
-        int line = splitted.getLine() - 1;
-        if (line >= lineToTokens.length) lineToTokens = ArrayOp.resizeOrReturn(lineToTokens, line + 1);
-        if (lineToTokens[line] == null) lineToTokens[line] = new ArrayList<>();
-        lineToTokens[line].add(splitted);
+    int startIndex = 0;
+    int lineIndex = 0;
+    for (var token: allTokens) {
+      for (var split: splitToken(token)) {
+        if (lineIndex >= lineToTokens.length) lineToTokens = ArrayOp.resizeOrReturn(lineToTokens, lineIndex + 1);
+        if (lineToTokens[lineIndex] == null) lineToTokens[lineIndex] = new ArrayList<>();
+        if (isEOF(split)) continue;
+        if (isNewLine(split)) {
+          lineIndex++;
+        } else {
+          lineToTokens[lineIndex].add(split);
+          tokenInfo.add(Pair.of(startIndex, split));
+        }
+        startIndex += split.getText().length();
       }
     }
     return lineToTokens;
   }
 
-  protected int filter(List<Token>[] tokensByLine) {
-    int M = 0;
-    int N = tokensByLine.length;
-    for (int i = 0; i < N; i++) {
-      if (tokensByLine[i] != null) {
-        var filtered = tokensByLine[i].stream()
-            .filter(this::tokenFilter)
-            .toList();
-        tokensByLine[i] = filtered;
-        M += filtered.size();
-      } else tokensByLine[i] = Collections.emptyList();
-    }
-    return M;
+  protected int count(List<Token>[] tokens) {
+    int cnt = 0;
+    for (var lineTokens: tokens)
+      cnt += lineTokens.size();
+    return cnt;
   }
 
   protected List<Token> splitToken(Token token) {
+    if (isEOF(token)) return Collections.singletonList(token);
     for (var rule: splitRules.getRules()) {
-      if (rule.test(token)) return rule.split(token);
+      if (rule.test(token)) {
+        if (token instanceof CommonToken ct) {
+          int type = tokenTypes[ct.getTokenIndex()];
+          ct.setType(type);
+        }
+        return rule.split(token);
+      }
     }
     return Collections.singletonList(token);
   }
@@ -183,5 +204,14 @@ public abstract class BaseParser<P extends Parser> {
     }
     if (root.children.isEmpty()) root.addChild(defaultInterval());
     return root;
+  }
+
+  protected static boolean isNewLine(Token token) {
+    String text = token.getText();
+    return text.equals("\n") || text.equals("\r\n") || text.equals("\r");
+  }
+
+  protected static boolean isEOF(Token token) {
+    return token.getType() == Token.EOF;
   }
 }

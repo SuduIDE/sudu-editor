@@ -31,7 +31,7 @@ public interface EditorConst {
   int weightRegular = FontDesk.WEIGHT_LIGHT;
   int weightBold    = FontDesk.WEIGHT_SEMI_BOLD;
 
-  boolean DEFAULT_DISABLE_PARSER = false;
+  boolean DEFAULT_DISABLE_PARSER = true;
   boolean DEFAULT_SYNC_ORPHANS = false;
   boolean DEFAULT_SYNC_EXCLUDED = true;
   boolean DEFAULT_ENABLE_SYNC_EDIT = false;

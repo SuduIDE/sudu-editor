@@ -15,7 +15,7 @@ public class CppSplitRules extends SplitRules {
     return List.of(
         makeRule(this::isStringOrCharLiteral, Helper::splitStringOrCharLiteral),
         makeRule(this::isMacroOrDirective, this::splitMacroOrDirective),
-        makeRule(this::isMultilineToken, super::splitTokenByLine)
+        makeRule(this::isMultilineToken, Helper::splitMultilineToken)
     );
   }
 

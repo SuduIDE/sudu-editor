@@ -7,19 +7,20 @@ import org.antlr.v4.runtime.TokenSource;
 public class SplitToken implements Token {
 
   public Token split;
-  public int splitType;
-  public int startLine, startPos;
+  public String text;
+  public int tokenType, tokenStyle;
+  public int line;
 
-  public SplitToken(Token split, int startLine, int startPos, int splitType) {
+  public SplitToken(Token split, String text, int tokenType, int tokenStyle) {
     this.split = split;
-    this.startLine = startLine;
-    this.startPos = startPos;
-    this.splitType = splitType;
+    this.text = text;
+    this.tokenType = tokenType;
+    this.tokenStyle = tokenStyle;
   }
 
   @Override
   public String getText() {
-    return split.getText();
+    return text;
   }
 
   @Override
@@ -27,23 +28,19 @@ public class SplitToken implements Token {
     return split.getType();
   }
 
-  public int getSplitType() {
-    return splitType;
-  }
-
   @Override
   public int getLine() {
-    return startLine + split.getLine();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public int getCharPositionInLine() {
-    return split.getCharPositionInLine();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public int getChannel() {
-    return split.getChannel();
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -53,12 +50,12 @@ public class SplitToken implements Token {
 
   @Override
   public int getStartIndex() {
-    return startPos + split.getStartIndex();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public int getStopIndex() {
-    return startPos + split.getStopIndex();
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -69,5 +66,13 @@ public class SplitToken implements Token {
   @Override
   public CharStream getInputStream() {
     return split.getInputStream();
+  }
+
+  public int getTokenType() {
+    return tokenType;
+  }
+
+  public int getTokenStyle() {
+    return tokenStyle;
   }
 }

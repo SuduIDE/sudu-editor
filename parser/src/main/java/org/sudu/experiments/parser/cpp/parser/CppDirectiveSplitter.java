@@ -8,13 +8,11 @@ import org.sudu.experiments.parser.cpp.gen.help.CPP14DirectiveBaseListener;
 import org.sudu.experiments.parser.cpp.gen.help.CPP14DirectiveParser;
 import org.sudu.experiments.parser.cpp.gen.help.CPP14DirectiveLexer;
 
-import static org.sudu.experiments.parser.cpp.gen.help.CPP14DirectiveParser.*;
-
-
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.sudu.experiments.parser.ParserConstants.*;
+import static org.sudu.experiments.parser.cpp.gen.help.CPP14DirectiveParser.*;
 
 public class CppDirectiveSplitter {
 
@@ -32,14 +30,13 @@ public class CppDirectiveSplitter {
     var walker = new ParseTreeWalker();
     walker.walk(new DirectiveWalker(splitTokenTypes), directive);
 
-    int line = token.getLine() - 1, start = token.getStartIndex();
     for (var splitToken : allTokens) {
       int ind = splitToken.getTokenIndex();
       if (splitToken.getType() == EOF) continue;
-      if (splitToken.getType() == CPP14DirectiveLexer.NewLine) continue;
       if (splitToken.getType() == CPP14DirectiveLexer.NewLineSlash)
         splitTokenTypes[ind] = TokenTypes.ANNOTATION;
-      result.add(new SplitToken(splitToken, line, start, splitTokenTypes[ind]));
+
+      result.add(new SplitToken(splitToken, splitToken.getText(), splitTokenTypes[ind], TokenStyles.NORMAL));
     }
 
     return result;

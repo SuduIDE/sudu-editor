@@ -30,8 +30,6 @@
  */
 lexer grammar LightJavaScriptLexer;
 
-channels { ERROR }
-
 HashBangLine:                   '#!' ~[\r\n\u2028\u2029]*; // only allowed at start
 MultiLineComment:               '/*' .*? '*/'             -> channel(HIDDEN);
 SingleLineComment:              '//' ~[\r\n\u2028\u2029]* -> channel(HIDDEN);
@@ -111,15 +109,20 @@ DecimalLiteral:                 DecimalIntegerLiteral '.' [0-9] [0-9_]* Exponent
 
 /// Numeric Literals
 
-HexIntegerLiteral:              '0' [xX] [0-9a-fA-F] HexDigit*;
+HexIntegerLiteral:              '0' [xX] HexDigit HexDigit_*;
 OctalIntegerLiteral:            '0' [0-7]+;
 OctalIntegerLiteral2:           '0' [oO] [0-7] [_0-7]*;
 BinaryIntegerLiteral:           '0' [bB] [01] [_01]*;
 
-BigHexIntegerLiteral:           '0' [xX] [0-9a-fA-F] HexDigit* 'n';
+BigHexIntegerLiteral:           '0' [xX] HexDigit HexDigit_* 'n';
 BigOctalIntegerLiteral:         '0' [oO] [0-7] [_0-7]* 'n';
 BigBinaryIntegerLiteral:        '0' [bB] [01] [_01]* 'n';
 BigDecimalIntegerLiteral:       DecimalIntegerLiteral 'n';
+
+Color
+    :                           '#' HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit
+    |                           '#' HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit
+    ;
 
 /// Keywords
 
@@ -191,14 +194,15 @@ BackTick:                       '`';
 
 WhiteSpaces:                    [\t\u000B\u000C\u0020\u00A0]+ -> channel(HIDDEN);
 
-LineTerminator:                 [\r\n\u2028\u2029] -> channel(HIDDEN);
+LineTerminator:                 (('r'? '\n') | '\r') -> channel(HIDDEN);
+
+Error:                          . -> channel(HIDDEN);
 
 /// Comments
 
 
 HtmlComment:                    '<!--' .*? '-->' -> channel(HIDDEN);
 CDataComment:                   '<![CDATA[' .*? ']]>' -> channel(HIDDEN);
-UnexpectedCharacter:            . -> channel(ERROR);
 
 mode TEMPLATE;
 
@@ -234,16 +238,16 @@ fragment CharacterEscapeSequence
     ;
 
 fragment HexEscapeSequence
-    : 'x' HexDigit HexDigit
+    : 'x' HexDigit_ HexDigit_
     ;
 
 fragment UnicodeEscapeSequence
-    : 'u' HexDigit HexDigit HexDigit HexDigit
-    | 'u' '{' HexDigit HexDigit+ '}'
+    : 'u' HexDigit_ HexDigit_ HexDigit_ HexDigit_
+    | 'u' '{' HexDigit_ HexDigit_+ '}'
     ;
 
 fragment ExtendedUnicodeEscapeSequence
-    : 'u' '{' HexDigit+ '}'
+    : 'u' '{' HexDigit_+ '}'
     ;
 
 fragment SingleEscapeCharacter
@@ -265,6 +269,10 @@ fragment LineContinuation
     ;
 
 fragment HexDigit
+    : [0-9a-fA-F]
+    ;
+
+fragment HexDigit_
     : [_0-9a-fA-F]
     ;
 

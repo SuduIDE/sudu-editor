@@ -5,12 +5,14 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.arrays.ArrayWriter;
 import org.sudu.experiments.parser.ErrorHighlightingStrategy;
+import org.sudu.experiments.parser.common.Pair;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.graph.writer.ScopeGraphWriter;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.common.graph.reader.ScopeGraphReader;
 import org.sudu.experiments.parser.common.graph.type.TypeMap;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -109,15 +111,16 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
     int success = this.success ? 1 : -1;
     int[] nodeInts = node != null ? node.toInts() : new int[]{};
     int K = nodeInts.length;
+    var tokenInfo = new ArrayList<Pair<Integer, Token>>();
 
-    List<Token>[] tokensByLine = groupTokensByLine(allTokens, N);
+    List<Token>[] tokensByLine = groupTokensByLine(allTokens, tokenInfo, N);
     N = tokensByLine.length;
-    M = filter(tokensByLine);
+    M = count(tokensByLine);
 
     writer = new ArrayWriter(5 + N + K + 4 * M);
     writer.write(intervalStart, intervalStop, success, N, K);
 
-    writeTokens(N, tokensByLine);
+    writeTokens(N, tokensByLine, tokenInfo);
     writer.write(nodeInts);
 
     return writer.getInts();
@@ -128,10 +131,11 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
     int M;
     int success = this.success ? 1 : -1;
     int K;
+    var tokenInfo = new ArrayList<Pair<Integer, Token>>();
 
-    List<Token>[] tokensByLine = groupTokensByLine(allTokens, N);
+    List<Token>[] tokensByLine = groupTokensByLine(allTokens, tokenInfo, N);
     N = tokensByLine.length;
-    M = filter(tokensByLine);
+    M = count(tokensByLine);
 
     var node = defaultIntervalNode();
     node.addChild(defaultInterval());
@@ -147,7 +151,7 @@ public abstract class BaseIntervalParser<P extends Parser> extends BaseParser<P>
     writer = new ArrayWriter(5 + N + K + 4 * M);
     writer.write(intervalStart, intervalStop, success, N, K);
 
-    writeTokens(N, tokensByLine);
+    writeTokens(N, tokensByLine, tokenInfo);
     writer.write(nodeInts);
 
     return writer.getInts();

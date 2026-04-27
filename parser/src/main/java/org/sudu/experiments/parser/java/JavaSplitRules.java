@@ -13,7 +13,7 @@ public class JavaSplitRules extends SplitRules {
   public List<TokenSplitRule> getRules() {
     return List.of(
         makeRule(this::isStringOrCharLiteral, Helper::splitStringOrCharLiteral),
-        makeRule(this::isMultiline, super::splitTokenByLine)
+        makeRule(this::isMultiline, Helper::splitMultilineToken)
     );
   }
 

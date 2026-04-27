@@ -11,6 +11,8 @@ ESCAPE
 
 NEW_LINE: '\r'? '\n' | '\r';
 
+ERROR: .;
+
 fragment HexDigits
     : HexDigit ((HexDigit | '_')* HexDigit)?
     ;

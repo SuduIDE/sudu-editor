@@ -33,7 +33,7 @@ public class LightJavaScriptLexerHighlighting {
 
   public static boolean isNumeric(int tokenType) {
     return tokenType >= LightJavaScriptLexer.DecimalLiteral
-        && tokenType <= LightJavaScriptLexer.BigDecimalIntegerLiteral;
+        && tokenType <= LightJavaScriptLexer.Color;
   }
 
   public static boolean isKeyword(int tokenType) {
