@@ -11,8 +11,14 @@ public class PythonSplitRules extends SplitRules {
   @Override
   public List<TokenSplitRule> getRules() {
     return List.of(
+        makeRule(this::isMultiline, Helper::splitMultilineToken),
         makeRule(this::isString, Helper::splitStringOrCharLiteral)
     );
+  }
+
+  private boolean isMultiline(Token token) {
+    int type = token.getType();
+    return type == PythonLexer.LINE_JOIN;
   }
 
   private boolean isString(Token token) {
