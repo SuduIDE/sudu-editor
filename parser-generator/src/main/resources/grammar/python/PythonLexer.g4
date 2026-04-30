@@ -131,8 +131,13 @@ POWER_ASSIGN       : '**=';
 IDIV_ASSIGN        : '//=';
 
 STRING:
-    ([uU] | [fF] [rR]? | [rR] [fF]?)? (SHORT_STRING | LONG_STRING)
-    | ([bB] [rR]? | [rR] [bB]) (SHORT_BYTES | LONG_BYTES)
+    ([uU] | [fF] [rR]? | [rR] [fF]?)? SHORT_STRING
+    | ([bB] [rR]? | [rR] [bB]) SHORT_BYTES
+;
+
+MULTILINE_STRING:
+    ([uU] | [fF] [rR]? | [rR] [fF]?)? LONG_STRING
+    | ([bB] [rR]? | [rR] [bB]) LONG_BYTES
 ;
 
 DECIMAL_INTEGER : [1-9] [0-9]* | '0'+;
@@ -156,6 +161,7 @@ LINE_JOIN : '\\' [ \t]* RN -> channel(HIDDEN);
 NEWLINE   : RN             {this.HandleNewLine();} -> channel(HIDDEN);
 WS        : [ \t]+         {this.HandleSpaces();} -> channel(HIDDEN);
 COMMENT   : '#' ~[\r\n\f]* -> channel(HIDDEN);
+ERROR: . -> channel(HIDDEN);
 
 // Fragments
 
