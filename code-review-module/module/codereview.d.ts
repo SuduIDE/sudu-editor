@@ -19,7 +19,12 @@ export function newWorkerPool(workerUrl: string, numThreads: number): Promise<Wo
 
 export function loadFonts(codiconUrl: string): Promise<FontFace[]>;
 
-export function textureUsage(): string;
+export interface GlDebugApi {
+  textureUsage(): string;
+  loseContext(): void;
+}
+
+export let glDebugApi : GlDebugApi;
 
 export interface EditArgs {
   containerId: string

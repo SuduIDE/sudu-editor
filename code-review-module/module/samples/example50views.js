@@ -161,9 +161,10 @@ for (let i = 0; i < NUM_EDITORS; i++) {
 }
 
 let textureUsageInfo = "";
+const glDebugApi = editorApi.glDebugApi;
 
 setInterval(() => {
-  let data = editorApi.textureUsage();
+  let data = glDebugApi.textureUsage();
   //if (data !== textureUsageInfo)
     console.log(messageId++, "textureUsage", textureUsageInfo = data);
 }, 1000);

@@ -113,7 +113,7 @@ public interface GL {
 
   class TextureContext {
     final GLApi.Context gl;
-    int counter, memory;
+    int counter, memory, allocations;
 
     TextureContext(GLApi.Context gl) {
       this.gl = gl;
@@ -129,7 +129,9 @@ public interface GL {
       if (mb > 0) {
         sb.append(mb).append("m");
       }
-      return sb.append(k).append("k").toString();
+      return sb.append(k).append("k")
+          .append(", allocations = ").append(allocations)
+          .toString();
     }
   }
 
@@ -143,6 +145,7 @@ public interface GL {
       this.ctx = ctx;
       texture = ctx.gl.createTexture();
       ctx.counter++;
+      ctx.allocations++;
     }
 
     @Override

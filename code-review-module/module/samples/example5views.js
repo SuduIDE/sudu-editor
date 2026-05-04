@@ -68,5 +68,5 @@ setInterval(() => {
 }, 200);
 
 setInterval(() => {
-  console.log("textureUsage", editorApi.textureUsage());
+  console.log("textureUsage", editorApi.glDebugApi.textureUsage());
 }, 1000)

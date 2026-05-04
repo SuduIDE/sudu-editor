@@ -5,8 +5,9 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.canvas.CanvasImageSource;
+import org.teavm.jso.dom.events.EventTarget;
 
-public abstract class OffscreenCanvas implements JSObject, CanvasImageSource {
+public abstract class OffscreenCanvas implements JSObject, CanvasImageSource, EventTarget {
   @JSProperty
   public abstract int getWidth();
   @JSProperty

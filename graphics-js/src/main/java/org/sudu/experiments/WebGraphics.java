@@ -10,6 +10,7 @@ import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSString;
+import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLImageElement;
 
@@ -32,25 +33,48 @@ public class WebGraphics extends WglGraphics {
       if (gl != null) {
         instance = new WebGraphics(c, gl);
       }
+      c.addEventListener("webglcontextlost", new EventListener<Event>() {
+        @Override
+        public void handleEvent(Event evt) {
+          JsHelper.consoleInfo("webglcontextlost", evt);
+        }
+      });
+      c.addEventListener("webglcontextrestored", new EventListener<Event>() {
+        @Override
+        public void handleEvent(Event evt) {
+          JsHelper.consoleInfo("webglcontextrestored", evt);
+        }
+      });
+
     }
     return instance;
   }
 
-  @JSFunctor
-  interface TextureUsageApi extends JSObject {
-    JSString f();
+  interface GlDebugApi extends JSObject {
+    JSString textureUsage();
+    void loseContext();
   }
 
-  public static JSString textureUsage() {
-    return instance == null ? JSString.valueOf("")
-        : JSString.valueOf(instance.tc.string());
-  }
+  @JSBody(params = {"f"}, script = "glDebugApi = f;")
+  static native void setApi(GlDebugApi f);
 
-  @JSBody(params = {"f"}, script = "textureUsage = f;")
-  static native void setApi(TextureUsageApi f);
+  @JSBody(params = {"gl"}, script = "gl.getExtension('WEBGL_lose_context').loseContext();")
+  static native void looseContext(GLApi.Context gl);
 
   public static void setApi() {
-    setApi(WebGraphics::textureUsage);
+    setApi(new GlDebugApi() {
+      @Override
+      public JSString textureUsage() {
+        return instance == null ? JSString.valueOf("")
+            : JSString.valueOf(instance.tc.string());
+      }
+
+      @Override
+      public void loseContext() {
+        if (instance != null)
+          looseContext(instance.gl);
+      }
+    });
   }
 
   private WebGraphics(OffscreenCanvas canvas, GLApi.Context gl) {
