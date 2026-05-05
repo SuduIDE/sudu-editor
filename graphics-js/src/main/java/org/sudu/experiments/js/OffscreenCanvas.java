@@ -19,6 +19,7 @@ public abstract class OffscreenCanvas implements JSObject, CanvasImageSource, Ev
   public abstract void setHeight(int height);
 
   public abstract JSObject getContext(String contextId, JSObject attributes);
+  public abstract JSObject getContext(String contextId);
   public abstract ImageBitmap transferToImageBitmap();
 
   @JSBody(params = {"w", "h"}, script = "return new OffscreenCanvas(w,h);")

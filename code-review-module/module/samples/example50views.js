@@ -1,6 +1,8 @@
 import {initControlPanel} from "./control-panel.js";
 import * as editorApi from "../src/codereview.js";
 
+const createDestroyOnVisible = false;
+
 const NUM_EDITORS = window.NUM_EDITORS ?? 50;
 
 const container = document.body;
@@ -38,7 +40,8 @@ const visibilityObserver = new IntersectionObserver((entries) => {
         "editor", element.id,
         "internalId", element.internalId,
         entry.isIntersecting ? "visible" : "invisible");
-    changeCodeReviewVisibility(entry.isIntersecting, element.internalId);
+    if (createDestroyOnVisible)
+      changeCodeReviewVisibility(entry.isIntersecting, element.internalId);
   }
 });
 
@@ -90,7 +93,7 @@ function changeCodeReviewVisibility(isVisible, i) {
   }
 }
 
-if (0) {
+if (!createDestroyOnVisible) {
   for (let i = 0; i < NUM_EDITORS; i++) {
     createCodeReview(i);
   }

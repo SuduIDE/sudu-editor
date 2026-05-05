@@ -2,8 +2,10 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.js.JsCanvas;
 import org.sudu.experiments.js.JsMemoryAccess;
+import org.sudu.experiments.js.OffscreenCanvas;
 import org.sudu.experiments.math.V4f;
 import org.teavm.jso.JSMethod;
+import org.teavm.jso.dom.html.HTMLImageElement;
 import org.teavm.jso.typedarrays.ArrayBufferView;
 import org.teavm.jso.webgl.*;
 
@@ -111,6 +113,8 @@ public interface GLApi {
       texSubImage2D(target, level, xOffset, yOffset, width, height, format, type,
           JsMemoryAccess.uInt8View(pixels));
     }
+
+    void texSubImage2D(int target, int level, int xoffset, int yoffset, int format, int type, OffscreenCanvas image);
 
     default void texSubImage2D(int target, int level, int xOffset, int yOffset, int format, int type, Canvas canvas) {
       texSubImage2D(target, level, xOffset, yOffset, format, type, ((JsCanvas)canvas).element);
