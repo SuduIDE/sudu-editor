@@ -18,6 +18,7 @@ public class Helper {
   public static final String ACTIVITY = "activity";
   public static final String HTML     = "html";
   public static final String JSON     = "json";
+  public static final String PYTHON   = "python";
 
   public static List<Token> splitStringOrCharLiteral(Token token) {
     var text = CharStreams.fromString(token.getText());
