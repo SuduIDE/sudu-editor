@@ -423,4 +423,5 @@ export const enum DiffType {
 
 export interface TwoPanelDiff {
   setReadonly(leftReadonly: boolean, rightReadonly: boolean): void
+  enableMergeButtons(leftToRight: boolean, rightToLeft: boolean): void
 }

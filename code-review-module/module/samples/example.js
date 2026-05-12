@@ -11,6 +11,9 @@ const codeReview = editorApi.newCodeReview({
     disableParser: true
 });
 
+codeReview.setReadonly(true, false);
+// codeReview.enableMergeButtons(true, false);
+
 const controlPanel = initControlPanel(document.getElementById("editor"))
 
 const initialText1 =

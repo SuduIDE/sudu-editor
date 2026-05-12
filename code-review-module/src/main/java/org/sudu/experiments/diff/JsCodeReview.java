@@ -96,8 +96,12 @@ public class JsCodeReview implements JsCodeReviewView {
 
   @Override
   public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
-    JsHelper.consoleInfo("JsCodeDiff0.setReadonly");
     w.rootView.setReadonly(leftReadonly, rightReadonly);
+  }
+
+  @Override
+  public void enableMergeButtons(boolean leftToRight, boolean rightToLeft) {
+    w.rootView.enableMergeButtons(leftToRight, rightToLeft);
   }
 
   @Override

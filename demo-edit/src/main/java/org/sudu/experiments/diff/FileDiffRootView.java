@@ -42,6 +42,7 @@ class FileDiffRootView extends DiffRootView {
 
   protected long sendDiffTime = System.currentTimeMillis();
   protected long fullParseTime = System.currentTimeMillis();
+  private boolean mergeLeftToRight = true, mergeRightToLeft = true;
 
   FileDiffRootView(WindowManager wm, boolean disableParser, boolean isCodeReview) {
     super(wm.uiContext);
@@ -105,6 +106,11 @@ class FileDiffRootView extends DiffRootView {
   public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
     editor1.readonly = leftReadonly;
     editor2.readonly = rightReadonly;
+  }
+
+  public void enableMergeButtons(boolean leftToRight, boolean rightToLeft) {
+    this.mergeLeftToRight = leftToRight;
+    this.mergeRightToLeft = rightToLeft;
   }
 
   public void setDisableParser(boolean disableParser) {
@@ -273,7 +279,7 @@ class FileDiffRootView extends DiffRootView {
 
     var pair = MergeButtonsModel.getModels(
         diffInfo,
-        editor1.readonly, editor2.readonly,
+        !mergeRightToLeft, !mergeLeftToRight,
         editor1.syncPoints(), editor2.syncPoints(),
         this::applyDiff
     );
