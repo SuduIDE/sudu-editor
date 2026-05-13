@@ -239,6 +239,18 @@ public class DiffInfo {
     return ranges.length;
   }
 
+  // { linesAdded, linesRemoved, linesModified }
+  public int[] linesInfo() {
+    int linesAdded = 0, linesRemoved = 0, linesModified = 0;
+    for (var range: ranges) {
+      if (range.type == DiffTypes.DEFAULT) continue;
+      if (range.type == DiffTypes.INSERTED) linesAdded += range.lenR;
+      if (range.type == DiffTypes.DELETED) linesRemoved += range.lenL;
+      if (range.type == DiffTypes.EDITED) linesModified += range.lenL + range.lenR;
+    }
+    return new int[]{linesAdded, linesRemoved, linesModified};
+  }
+
   private void merge(List<DiffRange> ranges, DiffRange newRange) {
     DiffRange left = ranges.get(ranges.size() - 1);
     int leftType = left.type, rightType = newRange.type;

@@ -113,20 +113,12 @@ public class JsCodeReview implements JsCodeReviewView {
   }
 
   @Override
-  public void setModel(JsITextModel modelL, JsITextModel modelR) {
-    if (!(modelL instanceof JsTextModel jsModelL)) {
-      boolean undefined = JSObjects.isUndefined(modelL);
-      throw new IllegalArgumentException(
-          undefined ? "left model is undefined" : "bad left model");
+  public void setModel(JsITextDiffModel model) {
+    if (!(model instanceof JsTextDiffModel jsModel)) {
+      boolean undefined = JSObjects.isUndefined(model);
+      throw new IllegalArgumentException(undefined ? "Model is undefined" : "Bad model: " + JsHelper.stringify(model));
     }
-
-    if (!(modelR instanceof JsTextModel jsModelR)) {
-      boolean undefined = JSObjects.isUndefined(modelR);
-      throw new IllegalArgumentException(
-          undefined ? "right model is undefined" : "bad right model");
-    }
-
-    w.rootView.setModel(jsModelL.javaModel, jsModelR.javaModel);
+    w.rootView.setModel(jsModel.javaModel);
   }
 
   @Override

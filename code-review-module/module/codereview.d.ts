@@ -63,10 +63,29 @@ export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
 }
 
 export interface CodeReviewView extends IFileDiffView, IDisposable {
-  setModel(modelL: ITextModel, modelR: ITextModel): void
+  setModel(model: ITextDiffModel): void
 }
 
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
+
+export interface LinesInfo {
+  linesAdded : number;
+  linesRemoved : number;
+  linesModified : number;
+}
+
+export interface ITextDiffModel {
+  getLeftModel(): ITextModel;
+  getRightModel(): ITextModel;
+
+  getLinesInfo(): Promise<LinesInfo>;
+}
+
+export function newDiffModel(
+    text1: string, text2: string,
+    uri1?: Uri, uri2?: Uri,
+    language?: string,
+): ITextDiffModel
 
 export function newEditor(args: EditArgs): EditorView
 

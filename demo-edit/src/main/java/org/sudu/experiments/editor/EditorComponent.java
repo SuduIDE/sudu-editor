@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
+import java.util.function.Supplier;
 
 import static org.sudu.experiments.editor.EditorConst.tabIndent;
 
@@ -112,6 +113,7 @@ public class EditorComponent extends View implements
   TriConsumer<EditorComponent, Integer, Integer> iterativeParseFileListener;
   TriConsumer<EditorComponent, Diff, Boolean> updateModelOnDiffListener;
   Consumer<EditorComponent> onDiffMadeListener;
+  Supplier<UndoBuffer> getUndoBuffer;
   int vScrollPos = 0;
   int hScrollPos = 0;
 
@@ -132,7 +134,6 @@ public class EditorComponent extends View implements
   EditorSyncPoints syncPoints;
   private final V2i lastMouseDownPos = new V2i(-1, -1);
   private boolean disableParser = EditorConst.DEFAULT_DISABLE_PARSER;
-  private UndoBuffer undoBuffer;
   private BiConsumer<CpxDiff, Boolean> syncEditing;
   private int numDigits;
 
@@ -194,6 +195,10 @@ public class EditorComponent extends View implements
 
   public void setOnDiffMadeListener(Consumer<EditorComponent> listener) {
     onDiffMadeListener = listener;
+  }
+
+  public void setGetUndoBuffer(Supplier<UndoBuffer> getUndoBuffer) {
+    this.getUndoBuffer = getUndoBuffer;
   }
 
   private void internalLayout() {
@@ -279,7 +284,7 @@ public class EditorComponent extends View implements
 
   private void undoLastDiff(boolean isRedo) {
     if (selection().isAreaSelected()) setSelectionToCaret();
-    var caretDiff = model.document.undoLastDiff(isRedo);
+    var caretDiff = getUndoBuffer().undoLastDiff(model.document, isRedo);
     if (caretDiff == null) return;
     var caretReturn = isRedo ? caretDiff.caretAfter : caretDiff.caretBefore;
     setCaretLinePos(caretReturn.x, caretReturn.y, false);
@@ -2114,6 +2119,10 @@ public class EditorComponent extends View implements
     this.syncPoints = new EditorSyncPoints(syncPoints, left);
   }
 
+  public EditorSyncPoints getSyncPoints() {
+    return syncPoints;
+  }
+
   @Override
   public String toString() {
     Uri uri = model().uri;
@@ -2153,10 +2162,6 @@ public class EditorComponent extends View implements
      else if (acceptReject != null) mergeButtons.setModel(acceptReject, lines);
      mergeButtons.setColors(lineNumbers.colors());
      mergeButtons.setCodeLineMapping(docToView);
-  }
-
-  public void setUndoBuffer(UndoBuffer undoBuffer) {
-    this.undoBuffer = undoBuffer;
   }
 
   void buildDiffMap() {
@@ -2216,7 +2221,7 @@ public class EditorComponent extends View implements
   }
 
   public UndoBuffer getUndoBuffer() {
-    return undoBuffer;
+    return getUndoBuffer.get();
   }
 
   @Override
