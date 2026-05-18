@@ -16,30 +16,21 @@ const controlPanel = initControlPanel(document.getElementById("editor"))
 const initialText1 =
     `Deleted line 1
 Deleted line 2
-
 Common line
-
 Edited line 1-3
 Edited line 1-4
 Edited line 1-5
-
-Common line
-
-`;
+Common line`;
 
 const initialText2 = `Common line
-
 Edited line 2-1
 Edited line 2-2
 Edited line 2-3
 Edited line 2-4
-
 Common line
-
 Inserted line 2-5
 Inserted line 2-6
-Inserted line 2-7
-`;
+Inserted line 2-7`;
 
 let model = editorApi.newDiffModel(initialText1, initialText2, "url1", "url2", null);
 

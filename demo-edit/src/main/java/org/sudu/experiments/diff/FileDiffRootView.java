@@ -79,8 +79,10 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
   }
 
   public void setModel(FileDiffModel model) {
-    if (fileDiffModel != null) {
+    FileDiffModel oldModel = fileDiffModel;
+    if (oldModel != null) {
       fileDiffModel.viewToModel = null;
+      model.setModelFlagsBit(oldModel.getModelFlags());
     }
 
     fileDiffModel = model;
@@ -88,13 +90,30 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
     fileDiffModel.setExecutor(window().worker());
     editor1.setModel(model.leftModel);
     editor2.setModel(model.rightModel);
-
-    setEmptyDiffModel();
-    sendToDiff(true);
+    if (model.modelFlagsReady()) sendToDiff(true);
   }
 
   public void setModel(Model m1, Model m2) {
     setModel(new FileDiffModel(m1, m2));
+  }
+
+  public void setDefaultModel() {
+    setModel(editor1.model(), editor2.model());
+  }
+
+  public void setEmptyDiffModel() {
+    if (fileDiffModel != null) fileDiffModel.diffModel = null;
+    editor1.setDiffModel(null);
+    editor2.setDiffModel(null);
+    diffSync.setModel(null);
+    middleLine.setModel(null);
+    firstDiffRevealed = false;
+  }
+
+  public void onFileOpened(boolean left) {
+    var model = new FileDiffModel(editor1.model(), editor2.model());
+    model.setModelFlagsBit(left ? 0b01 : 0b10);
+    setDefaultModel();
   }
 
   public Model getLeftModel() {
@@ -188,21 +207,9 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
     }
   }
 
-  public void setEmptyDiffModel() {
-    if (fileDiffModel != null && fileDiffModel.modelFlagsReady()) return;
-    editor1.setDiffModel(null);
-    editor2.setDiffModel(null);
-    diffSync.setModel(null);
-    middleLine.setModel(null);
-    firstDiffRevealed = false;
-  }
-
-  boolean disposed = false;
-
   @Override
   public void dispose() {
-    disposed = true;
-    diffSync.setModel(null);
+    setEmptyDiffModel();
     super.dispose();
   }
 
@@ -343,7 +350,6 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
 
   @Override
   public void setDiffModel(DiffInfo diffModel) {
-    System.out.println("FileDiffRootView.setDiffModel");
     updateModelOnDiff(diffModel);
 
     boolean compact = compactViewRequest;
@@ -377,6 +383,7 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
   }
 
   private void applyCodeMapping(IntConsumer actions) {
+    if (fileDiffModel.diffModel == null) return;
     editor1.setCompactViewModel(fileDiffModel.diffModel.codeMappingL, actions);
     editor2.setCompactViewModel(fileDiffModel.diffModel.codeMappingR, actions);
     onDocumentSizeChange();

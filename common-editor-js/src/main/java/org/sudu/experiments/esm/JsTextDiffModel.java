@@ -1,7 +1,6 @@
 package org.sudu.experiments.esm;
 
 import org.sudu.experiments.editor.worker.diff.FileDiffModel;
-import org.sudu.experiments.js.JsHelper;
 import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSFunctor;
@@ -21,7 +20,6 @@ public class JsTextDiffModel implements JsITextDiffModel {
     modelL = new JsTextModel(text1, language, uri1);
     modelR = new JsTextModel(text2, language, uri2);
     javaModel = new FileDiffModel(modelL.javaModel, modelR.javaModel);
-    JsHelper.consoleInfo("JsTextDiffModel.JsTextDiffModel");
   }
 
   @JSFunctor

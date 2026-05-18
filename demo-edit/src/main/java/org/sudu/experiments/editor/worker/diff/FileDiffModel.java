@@ -79,7 +79,7 @@ public class FileDiffModel {
 
     if (isDelete) onDeleteDiffMadeListener(diff, left);
     else onInsertDiffMadeListener(diff, left);
-    if (viewToModel != null) {
+    if (viewToModel != null && diffModel != null) {
       viewToModel.updateModelOnDiff(diffModel);
     }
   }
@@ -204,7 +204,7 @@ public class FileDiffModel {
 
   public DiffRange navigateUp(int lineInd, boolean left) {
     int rangeInd = diffModel.leftBS(lineInd, left);
-    for (int i = rangeInd - 1; i >= 0; i--){
+    for (int i = rangeInd - 1; i >= 0; i--) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return diffModel.ranges[i];
     }
     return null;
@@ -236,6 +236,14 @@ public class FileDiffModel {
 
   public boolean modelFlagsReady() {
     return (modelFlags & 0b11) == 0b11;
+  }
+
+  public int getModelFlags() {
+    return modelFlags;
+  }
+
+  public void setModelFlags(int modelFlags) {
+    this.modelFlags = modelFlags;
   }
 
   public void unsetModelFlagsBit(int bit) {
