@@ -13,18 +13,20 @@ public class JsTextDiffModel implements JsITextDiffModel {
   public final FileDiffModel javaModel;
 
   public JsTextDiffModel(
+      JsWorkerPool workerPool,
       JSString text1, JSString text2,
       JsUri uri1, JsUri uri2,
       JSString language
   ) {
-    modelL = new JsTextModel(text1, language, uri1);
-    modelR = new JsTextModel(text2, language, uri2);
-    javaModel = new FileDiffModel(modelL.javaModel, modelR.javaModel);
+    modelL = new JsTextModel(workerPool, text1, language, uri1);
+    modelR = new JsTextModel(workerPool, text2, language, uri2);
+    javaModel = new FileDiffModel(JsWorkerPool.pool(workerPool), modelL.javaModel, modelR.javaModel);
   }
 
   @JSFunctor
   public interface Api extends JSObject {
     JsTextDiffModel create(
+        JsWorkerPool workerPool,
         JSString text1, JSString text2,
         JsUri uri1, JsUri uri2,
         JSString language

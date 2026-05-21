@@ -87,14 +87,13 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
 
     fileDiffModel = model;
     fileDiffModel.viewToModel = this;
-    fileDiffModel.setExecutor(window().worker());
     editor1.setModel(model.leftModel);
     editor2.setModel(model.rightModel);
     if (model.modelFlagsReady()) sendToDiff(true);
   }
 
   public void setModel(Model m1, Model m2) {
-    setModel(new FileDiffModel(m1, m2));
+    setModel(new FileDiffModel(window().worker(), m1, m2));
   }
 
   public void setDefaultModel() {
@@ -111,7 +110,7 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
   }
 
   public void onFileOpened(boolean left) {
-    var model = new FileDiffModel(editor1.model(), editor2.model());
+    var model = new FileDiffModel(window().worker(), editor1.model(), editor2.model());
     model.setModelFlagsBit(left ? 0b01 : 0b10);
     setDefaultModel();
   }

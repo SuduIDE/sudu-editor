@@ -268,6 +268,10 @@ public class Model {
     }
   }
 
+  public void setExecutor(WorkerJobExecutor executor) {
+    this.executor = executor;
+  }
+
   private void setParsed() {
     fileStructureParsed = ParseStatus.PARSED;
     fullFileLexed = ParseStatus.PARSED;

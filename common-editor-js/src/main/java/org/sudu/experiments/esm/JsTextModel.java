@@ -20,7 +20,9 @@ public class JsTextModel implements JsITextModel {
 
   @JSFunctor
   public interface Api extends JSObject {
-    JsITextModel create(JSString value, JSString language, JsUri uri);
+    JsITextModel create(
+        JsWorkerPool workerPool,
+        JSString value, JSString language, JsUri uri);
 
     class Setter {
       @JSBody(params = {"f"}, script = "newTextModel = f;")
@@ -36,10 +38,13 @@ public class JsTextModel implements JsITextModel {
   public final JsUri jsUri;
   private boolean fireEvent = true;
 
-  public JsTextModel(JSString text, JSString language, JsUri uri) {
+  public JsTextModel(JsWorkerPool workerPool,
+                     JSString text, JSString language, JsUri uri
+  ) {
     SplitInfo split = SplitJsText.split(text);
     String lang = JsHelper.toString(language, null);
     javaModel = new Model(split, lang, uri.toJava());
+    javaModel.setExecutor(JsWorkerPool.pool(workerPool));
     javaModel.platformObject = this;
     jsUri = uri;
   }

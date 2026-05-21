@@ -31,9 +31,11 @@ public class FileDiffModel {
     void setDiffModel(DiffInfo diffModel);
   }
 
-  public FileDiffModel(Model leftModel, Model rightModel) {
+  public FileDiffModel(WorkerJobExecutor executor, Model leftModel, Model rightModel) {
     this.leftModel = leftModel;
     this.rightModel = rightModel;
+    this.executor = executor;
+    sendToDiff(false);
   }
 
   public void sendToDiff(boolean cmpOnlyLines) {
@@ -74,7 +76,7 @@ public class FileDiffModel {
   }
 
   public void updateModelOnDiffMadeListener(boolean left, Diff diff, boolean isUndo) {
-    unsetModelFlagsBit(left ? 0b01 : 0b10);
+//    unsetModelFlagsBit(left ? 0b01 : 0b10);
     boolean isDelete = diff.isDelete ^ isUndo;
 
     if (isDelete) onDeleteDiffMadeListener(diff, left);
@@ -224,10 +226,6 @@ public class FileDiffModel {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return diffModel.ranges[i];
     }
     return null;
-  }
-
-  public void setExecutor(WorkerJobExecutor executor) {
-    this.executor = executor;
   }
 
   int[] docVersions() {

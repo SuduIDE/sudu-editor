@@ -26,7 +26,7 @@ const initialText2 =
     "to write an portable (Web + Desktop)\n" +
     "editor in kotlin and java";
 
-let model = editorApi.newDiffModel(initialText1, initialText2, "urlNew", "urlNew", null);
+let model = editorApi.newDiffModel(threadPool, initialText1, initialText2, "urlNew", "urlNew", null);
 
 codeReview.setDiffSizeListener(
     (numLines, lineHeight, cssLineHeight) => {
@@ -64,6 +64,6 @@ const controls = {
 
 Object.entries(controls).forEach(([icon, handler]) => controlPanel.add(icon, handler))
 
-const textModel = editorApi.newTextModel(initialText1, null, {path:"text.txt"});
+const textModel = editorApi.newTextModel(threadPool, initialText1, null, {path:"text.txt"});
 
 console.log("language", textModel.language);

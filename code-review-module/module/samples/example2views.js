@@ -27,8 +27,8 @@ const initialText2 =
   "to write an portable (Web + Desktop)\n" +
   "editor in kotlin and java\n";
 
-let model1 = editorApi.newDiffModel(initialText1 + "model11", initialText2 + "model12", "urlNew", "urlNew", null)
-let model2 = editorApi.newDiffModel(initialText1 + "model21", initialText2 + "model22", "urlNew", "urlNew", null)
+let model1 = editorApi.newDiffModel(threadPool, initialText1 + "model11", initialText2 + "model12", "urlNew", "urlNew", null)
+let model2 = editorApi.newDiffModel(threadPool, initialText1 + "model21", initialText2 + "model22", "urlNew", "urlNew", null)
 
 model1.getLeftModel().setEditListener(m => console.log("model11 change event"))
 model1.getRightModel().setEditListener(m => console.log("model12 change event"))
