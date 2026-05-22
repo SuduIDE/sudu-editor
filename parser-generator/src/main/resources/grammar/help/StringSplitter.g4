@@ -1,6 +1,9 @@
 lexer grammar StringSplitter;
 
-TRI_QUOTE: '"""';
+TRI_QUOTE
+    : '"""'     // Java-like
+    | '\'\'\''  // Python-like
+    ;
 QUOTE: '"' | '\'';
 CHARS: ~["\\\r\n]+;
 ESCAPE

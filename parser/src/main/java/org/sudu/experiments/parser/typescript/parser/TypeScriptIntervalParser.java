@@ -1,20 +1,21 @@
-package org.sudu.experiments.parser.javascript.parser;
+package org.sudu.experiments.parser.typescript.parser;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.sudu.experiments.parser.common.NullParser;
+import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.base.BaseIntervalParser;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
-import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.help.Helper;
-import org.sudu.experiments.parser.javascript.JsSplitRules;
-import org.sudu.experiments.parser.javascript.gen.LightJavaScriptLexer;
-import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptLexerHighlighting;
+import org.sudu.experiments.parser.typescript.TsSplitRules;
+import org.sudu.experiments.parser.typescript.gen.LightTypeScriptLexer;
+import org.sudu.experiments.parser.typescript.parser.highlighting.LightTypeScriptHighlighting;
+
 import java.util.Arrays;
 
-public class JavaScriptIntervalParser extends BaseIntervalParser<NullParser> {
+public class TypeScriptIntervalParser extends BaseIntervalParser<NullParser> {
 
   @Override
   public int[] parseInterval(char[] source, int[] interval, int[] graphInts, char[] graphChars) {
@@ -28,8 +29,13 @@ public class JavaScriptIntervalParser extends BaseIntervalParser<NullParser> {
   }
 
   @Override
+  protected void walkScopes(ParserRuleContext startRule, ScopeWalker scopeWalker) {
+
+  }
+
+  @Override
   protected Lexer initLexer(CharStream stream) {
-    return new LightJavaScriptLexer(stream);
+    return new LightTypeScriptLexer(stream);
   }
 
   @Override
@@ -49,25 +55,16 @@ public class JavaScriptIntervalParser extends BaseIntervalParser<NullParser> {
 
   @Override
   protected SplitRules initSplitRules() {
-    return new JsSplitRules();
+    return new TsSplitRules();
   }
 
   @Override
   protected String language() {
-    return Helper.JS_LIGHT;
+    return Helper.TS_LIGHT;
   }
 
   @Override
   protected void highlightTokens() {
-    LightJavaScriptLexerHighlighting.highlightTokens(allTokens, tokenTypes);
-  }
-
-  public static boolean isComment(int tokenType) {
-    return LightJavaScriptLexerHighlighting.isComment(tokenType);
-  }
-
-  @Override
-  protected void walkScopes(ParserRuleContext startRule, ScopeWalker scopeWalker) {
-
+    LightTypeScriptHighlighting.highlightTokens(allTokens, tokenTypes);
   }
 }
