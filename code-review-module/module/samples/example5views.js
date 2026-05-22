@@ -20,7 +20,7 @@ for (let i = 1; i <= 5; i++) {
       "to write a portable (Web + Desktop)\n" +
       "editor in java and kotlin\n" +
       "editorId = " + containerId;
-  const model = editorApi.newTextModel(initialText, null, "url" + containerId)
+  const model = editorApi.newTextModel(workers, initialText, null, "url" + containerId)
   model.setEditListener(m => console.log("containerId change event"))
   editor.setModel(model);
   const focused = i === 1;

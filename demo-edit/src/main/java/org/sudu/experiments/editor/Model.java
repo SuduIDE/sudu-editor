@@ -49,6 +49,7 @@ public class Model {
   int fullFileLexed = ParseStatus.NOT_PARSED;
   int fileStructureParsed = ParseStatus.NOT_PARSED;
   int fullFileParsed = ParseStatus.NOT_PARSED;
+  int iterativeFileParsed = ParseStatus.PARSED;
 
   long parsingTimeStart, viewportParseStart, resolveTimeStart;
 
@@ -196,6 +197,21 @@ public class Model {
     setSemanticTokens(pendingSemanticTokens);
   }
 
+  void onFileLexedIterative(Object[] result) {
+    var parseRes = new ParseResult(result);
+    if (parseRes.version != document.currentVersion) return;
+    ParserUtils.updateDocument(document, parseRes);
+    fullFileLexed = iterativeFileParsed = ParseStatus.PARSED;
+    printParsingTime("Full file lexed");
+    if (isDisableParser()) setParsed();
+    else {
+      if (editor != null) editor.fireFileLexed();
+      sendStructure();
+      sendFull();
+    }
+    setSemanticTokens(pendingSemanticTokens);
+  }
+
   void changeModelLanguage(String languageFromParser) {
     String language = language();
     if (!Objects.equals(language, languageFromParser)) {
@@ -331,6 +347,14 @@ public class Model {
     fullFileParsed = ParseStatus.SENT;
   }
 
+  private void sendLexerIterative(char[] chars, int langType) {
+    executor.sendToWorker(true, this::onFileLexedIterative,
+            FileProxy.asyncLexer,
+            chars, new int[]{langType, Integer.MAX_VALUE, document.currentVersion});
+    pendingSemanticTokens = null;
+    iterativeFileParsed = ParseStatus.SENT;
+  }
+
   private void sendStructure(char[] chars, int langType) {
     if (langType != FileProxy.JAVA_FILE) return;
     executor.sendToWorker(true, this::onFileStructureParsed,
@@ -371,14 +395,14 @@ public class Model {
     if (debug) {
       Debug.consoleInfo(getFileName() + "/Model::iterativeParsing");
     }
-
+    iterativeFileParsed = ParseStatus.NOT_PARSED;
     if (fullFileParsed != ParseStatus.PARSED) return;
 
     String language = language();
     if (isDisableParser()) {
       char[] chars = document.getChars();
       int langType = Languages.getType(language);
-      sendLexer(chars, langType);
+      sendLexerIterative(chars, langType);
       return;
     }
     var reparseNode = document.tree.getReparseNode();
@@ -408,6 +432,7 @@ public class Model {
       graphChars = new char[]{};
     }
     int version = document.currentVersion;
+    iterativeFileParsed = ParseStatus.SENT;
     executor.sendToWorker(true,
         res -> onFileIterativeParsed(res, start, stop), FileProxy.asyncIterativeParsing,
         chars, type, interval, new int[]{Languages.getType(language()), version}, graphInts, graphChars
@@ -431,6 +456,7 @@ public class Model {
       ParserUtils.updateDocument(document, parseRes);
       document.onReparse();
     }
+    iterativeFileParsed = ParseStatus.PARSED;
     if (editor != null) editor.fireFileIterativeParsed(start, stop);
   }
 

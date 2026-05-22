@@ -32,7 +32,7 @@ Inserted line 2-5
 Inserted line 2-6
 Inserted line 2-7`;
 
-let model = editorApi.newDiffModel(initialText1, initialText2, "url1", "url2", null);
+let model = editorApi.newDiffModel(threadPool, initialText1, initialText2, "url1", "url2", null);
 
 codeReview.setModel(model);
 codeReview.focus()

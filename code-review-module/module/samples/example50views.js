@@ -55,6 +55,7 @@ for (let i = 0; i < NUM_EDITORS; i++) {
   const idA = "model " + (i + 1) + " a";
   const idB = "model " + (i + 1) + " b";
   const model = editorApi.newDiffModel(
+      threadPool,
       initialText + idA, initialText + idB,
       idA, idB, null)
 
