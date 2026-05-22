@@ -96,7 +96,7 @@ export interface ITextModel extends IDisposable {
 
   getText(): string
 
-  setEditListener(listener: (m: ITextModel) => void): void
+  setEditListener(listener: (m: ITextModel, from: number, to: number, diff: string[]) => void): void
 
   setText(newText: string, fireEvent: boolean): void
 
