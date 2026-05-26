@@ -22,13 +22,33 @@ public class FileDiffModel {
   WorkerJobExecutor executor;
 
   private Consumer<int[]> getLinesInfo;
+  private Consumer<ApplyChangeInfo> applyRejectListener;
   private int diffStatus = DiffStatus.NOT_COMPARED;
+  private boolean enableSyncEdit = EditorConst.DEFAULT_ENABLE_SYNC_EDIT;;
   private int modelFlags;
 
   public interface ViewToModel {
     int[] getSyncPoints(boolean left);
     void updateModelOnDiff(DiffInfo diffModel);
     void setDiffModel(DiffInfo diffModel);
+  }
+
+  public static class ApplyChangeInfo {
+    public int oldFrom, oldTo;
+    public int newFrom, newTo;
+    public boolean isAccepted;
+
+    public ApplyChangeInfo(
+        int oldFrom, int oldTo,
+        int newFrom, int newTo,
+        boolean isAccepted
+    ) {
+      this.oldFrom = oldFrom;
+      this.oldTo = oldTo;
+      this.newFrom = newFrom;
+      this.newTo = newTo;
+      this.isAccepted = isAccepted;
+    }
   }
 
   public FileDiffModel(WorkerJobExecutor executor, Model leftModel, Model rightModel) {
@@ -118,8 +138,32 @@ public class FileDiffModel {
     if (diffStatus == DiffStatus.NOT_COMPARED) sendToDiff(true);
   }
 
+  public void applyDiff(DiffRange range, boolean left) {
+    if (range.type == DiffTypes.DEFAULT) return;
+    var fromModel = left ? leftModel : rightModel;
+    var toModel = !left ? leftModel : rightModel;
+
+    int fromStartLine = range.from(left);
+    int fromEndLine = range.to(left);
+    var lines = fromModel.document.getLines(fromStartLine, fromEndLine);
+
+    int toStartLine = range.from(!left);
+    int toEndLine = range.to(!left);
+
+    toModel.document.applyChange(toStartLine, toEndLine, lines);
+
+    if (applyRejectListener == null) return;
+    applyRejectListener.accept(
+        new ApplyChangeInfo(
+            range.fromL, range.toL(),
+            range.fromR, range.toR(),
+            !left
+        )
+    );
+  }
+
   public void syncEditing(boolean left, CpxDiff cpxDiff, boolean isUndo) {
-    if (diffModel == null) return;
+    if (!enableSyncEdit || diffModel == null) return;
     Model current = left ? leftModel : rightModel;
     var diffVersion = current.document.lastDiffVersion();
     Model another = !left ? leftModel : rightModel;
@@ -250,5 +294,13 @@ public class FileDiffModel {
 
   public void setModelFlagsBit(int bit) {
     modelFlags |= bit;
+  }
+
+  public void setEnableSyncEdit(boolean enableSyncEdit) {
+    this.enableSyncEdit = enableSyncEdit;
+  }
+
+  public void setApplyRejectListener(Consumer<ApplyChangeInfo> applyRejectListener) {
+    this.applyRejectListener = applyRejectListener;
   }
 }

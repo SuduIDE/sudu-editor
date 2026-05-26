@@ -12,13 +12,13 @@ import java.util.function.Function;
 public class CpxDiff {
 
   public final Diff[] diffs;
-  public final Pos from, to;
+  public final Pos fromSelected, toSelected;
   public final V2i caretBefore, caretAfter;
 
   public CpxDiff(Diff[] diffs, Selection selection, V2i caretBefore) {
     this.diffs = diffs;
-    this.from = selection != null ? new Pos(selection.getLeftPos()) : null;
-    this.to = selection != null ? new Pos(selection.getRightPos()) : null;
+    this.fromSelected = selection != null ? new Pos(selection.getLeftPos()) : null;
+    this.toSelected = selection != null ? new Pos(selection.getRightPos()) : null;
     this.caretBefore = caretBefore;
     var last = ArrayOp.last(diffs);
     this.caretAfter = last.isDelete ? caretBefore : makeCaretReturnPos(last.line, last.pos, last.change);
@@ -26,19 +26,19 @@ public class CpxDiff {
 
   public CpxDiff(
       Diff[] diffs,
-      Pos from, Pos to,
+      Pos fromSelected, Pos toSelected,
       V2i caretBefore,
       V2i caretAfter
   ) {
     this.diffs = diffs;
-    this.from = from;
-    this.to = to;
+    this.fromSelected = fromSelected;
+    this.toSelected = toSelected;
     this.caretBefore = caretBefore;
     this.caretAfter = caretAfter;
   }
 
   public Pair<Pos, Pos> selection() {
-    return Pair.of(from, to);
+    return Pair.of(fromSelected, toSelected);
   }
 
   public CpxDiff copyWithNewLine(Function<Integer, Integer> getOpposite) {
@@ -72,6 +72,17 @@ public class CpxDiff {
       diffBegin = 0;
     }
     return diffs;
+  }
+
+  public int[] diffLineRanges() {
+    if (diffs.length == 0) return new int[] {-1, -1};
+    int from = Integer.MAX_VALUE;
+    int to = Integer.MIN_VALUE;
+    for (var diff: diffs) {
+      from = Math.min(from, diff.line);
+      to = Math.max(to, diff.line);
+    }
+    return new int[] {from, to};
   }
 
   private V2i makeCaretReturnPos(int line, int pos, String change) {

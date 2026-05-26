@@ -17,6 +17,7 @@ import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import static org.sudu.experiments.math.ArrayOp.copyOf;
 
@@ -33,7 +34,7 @@ public class Model {
   final NavigationStack navStack = new NavigationStack();
 
   EditorToModel editor;
-  Runnable onDiffMadeListener;
+  Consumer<int[]> onDiffMadeListener;
   WorkerJobExecutor executor;
 
   LineDiff[] diffModel;
@@ -84,7 +85,8 @@ public class Model {
     docLanguage = language;
     document = new Document(text);
     document.updateModelOnDiff = this::updateModelOnDiff;
-    document.onDiffMade = this::onDiffMade;
+    document.onEditMade = this::onDiffMade;
+    document.onChangeApplied = this::onChangeApplied;
     document.syncEditing = this::syncEditing;
     document.getUndoBuffer = this::getUndoBuffer;
     document.getCaretPos = this::getCaretPos;
@@ -521,7 +523,7 @@ public class Model {
     return editor != null ? editor.getUndoBuffer() : null;
   }
 
-  public void setOnDiffMadeListener(Runnable listener) {
+  public void setOnDiffMadeListener(Consumer<int[]> listener) {
     onDiffMadeListener = listener;
   }
 
@@ -557,10 +559,13 @@ public class Model {
     element.style = token.tokenStyle;
   }
 
-  private void onDiffMade() {
+  private void onDiffMade(CpxDiff cpxDiff) {
     if (editor != null) editor.onDiffMade();
-    if (onDiffMadeListener != null)
-      onDiffMadeListener.run();
+    if (onDiffMadeListener != null) onDiffMadeListener.accept(cpxDiff.diffLineRanges());
+  }
+
+  private void onChangeApplied(CpxDiff cpxDiff) {
+    if (editor != null) editor.onDiffMade();
   }
 
   CodeLine caretCodeLine() {

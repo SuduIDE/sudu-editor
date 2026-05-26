@@ -77,11 +77,22 @@ export interface LinesInfo {
   linesModified : number;
 }
 
+export interface ApplyChangeInfo {
+  oldFrom: number;
+  oldTo: number;
+  newFrom: number;
+  newTo: number;
+  isAccepted: boolean;
+}
+
 export interface ITextDiffModel {
   getLeftModel(): ITextModel;
   getRightModel(): ITextModel;
 
   getLinesInfo(): Promise<LinesInfo>;
+
+  setApplyRejectListener(listener: (info: ApplyChangeInfo) => void): void;
+  enableSyncEdit(flag: boolean): void;
 }
 
 export function newDiffModel(

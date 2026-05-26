@@ -33,11 +33,15 @@ Inserted line 2-6
 Inserted line 2-7`;
 
 let model = editorApi.newDiffModel(threadPool, initialText1, initialText2, "url1", "url2", null);
+model.setApplyRejectListener(info => console.log('Change applied: ', info));
+model.getLeftModel().setEditListener((m, info) => console.log('Left edit: ', info))
+model.getRightModel().setEditListener((m, info) => console.log('Right edit: ', info))
 
 codeReview.setModel(model);
 codeReview.focus()
 
 let compactView = false
+let enableSyncEdit = false
 const controller = codeReview.getController();
 controller.setCompactView(compactView)
 
@@ -54,6 +58,10 @@ const controls = {
     compactView = !compactView
     controller.setCompactView(compactView)
     codeReview.focus()
+  },
+  '⇔': () => {
+    enableSyncEdit ^= true;
+    model.enableSyncEdit(enableSyncEdit);
   },
   '🔄️': () => window.location.reload(),
   'linesInfo': () => {

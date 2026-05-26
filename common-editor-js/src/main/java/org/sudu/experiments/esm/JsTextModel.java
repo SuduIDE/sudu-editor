@@ -125,9 +125,9 @@ public class JsTextModel implements JsITextModel {
   }
 
   @Override
-  public void setEditListener(JsFunctions.Consumer<JsITextModel> listener) {
-    javaModel.setOnDiffMadeListener(() -> {
-      if (fireEvent) listener.f(this);
+  public void setEditListener(JsFunctions.BiConsumer<JsITextModel, JsEditInfo> listener) {
+    javaModel.setOnDiffMadeListener((range) -> {
+      if (fireEvent) listener.f(this, JsEditInfo.create(range[0], range[1]));
     });
   }
 

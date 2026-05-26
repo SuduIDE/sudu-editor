@@ -15,8 +15,8 @@ public interface JsITextModel extends JsDisposable {
   int getOffsetAt(JsPosition position);
   JsPosition getPositionAt(int offset);
   JSString getText();
-  // setEditListener(listener: (m: ITextModel) => void): void
-  void setEditListener(JsFunctions.Consumer<JsITextModel> listener);
+  // setEditListener(listener: (m: ITextModel, info: EditInfo) => void): void
+  void setEditListener(JsFunctions.BiConsumer<JsITextModel, JsEditInfo> listener);
 
   void setText(JSString newText, boolean fireEvent);
   void setSemanticTokens(

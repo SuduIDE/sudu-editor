@@ -30,7 +30,6 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
   boolean firstDiffRevealed = false, needScrollSync = false;
   private Runnable onRefresh, onDiffModelSet, onDocumentSizeChange;
   public final boolean isCodeReview;
-  public final boolean enableSyncEditing;
   private boolean mergeLeftToRight = true, mergeRightToLeft = true;
 
   FileDiffModel fileDiffModel;
@@ -39,8 +38,6 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
     super(wm.uiContext);
     ui = new EditorUi(wm);
     this.isCodeReview = isCodeReview;
-//    this.enableSyncEditing = isCodeReview;
-    this.enableSyncEditing = EditorConst.DEFAULT_ENABLE_SYNC_EDIT;
     editor1 = new EditorComponent(ui);
     editor2 = new EditorComponent(ui);
     middleLine.setLeftRight(editor1, editor2);
@@ -162,22 +159,13 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
     return fileDiffModel.undoBuffer;
   }
 
-  private void applyDiff(DiffRange range, boolean isL) {
-    if (range.type == DiffTypes.DEFAULT) return;
-    var fromModel = isL ? editor1.model() : editor2.model();
-    int fromStartLine = range.from(isL);
-    int fromEndLine = isL ? range.toL() : range.toR();
-    var lines = fromModel.document.getLines(fromStartLine, fromEndLine);
-
-    int toStartLine = range.from(!isL);
-    int toEndLine = range.to(!isL);
-
-    var toModel = !isL ? editor1.model() : editor2.model();
-    toModel.document.applyChange(toStartLine, toEndLine, lines);
+  private void applyDiff(DiffRange range, boolean left) {
+    if (fileDiffModel == null) return;
+    fileDiffModel.applyDiff(range.copy(), left);
   }
 
   private void syncEditing(boolean left, CpxDiff cpxDiff, boolean isUndo) {
-    if (!enableSyncEditing || fileDiffModel == null) return;
+    if (fileDiffModel == null) return;
     fileDiffModel.syncEditing(left, cpxDiff, isUndo);
   }
 

@@ -14,6 +14,7 @@ import org.sudu.experiments.text.SplitText;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
@@ -36,7 +37,8 @@ public class Document extends CodeLines {
   public Supplier<UndoBuffer> getUndoBuffer;
   public Supplier<V2i> getCaretPos;
   public Supplier<Selection> getSelection;
-  public Runnable onDiffMade;
+  public Consumer<CpxDiff> onEditMade;
+  public Consumer<CpxDiff> onChangeApplied;
 
   public Document() {
     this(CodeLine.emptyLine());
@@ -143,14 +145,14 @@ public class Document extends CodeLines {
       lines[caretLine + 1] = split[1];
     }
 
-    makeDiff(caretLine, caretCharPos, false, "\n");
-    onDiffMade();
+    var cpxDiff = makeDiff(caretLine, caretCharPos, false, "\n");
+    onEditMade(cpxDiff);
   }
 
   public void concatLines(int caretLine) {
     concatLinesOp(caretLine);
-    makeDiff(caretLine, strLength(caretLine), true, "\n");
-    onDiffMade();
+    var cpxDiff = makeDiff(caretLine, strLength(caretLine), true, "\n");
+    onEditMade(cpxDiff);
   }
 
   private void concatLinesOp(int caretLine) {
@@ -168,8 +170,8 @@ public class Document extends CodeLines {
       lines[0].delete(0);
     }
 
-    makeDiff(caretLine, 0, true, deleted);
-    onDiffMade();
+    var cpxDiff = makeDiff(caretLine, 0, true, deleted);
+    onEditMade(cpxDiff);
   }
 
   public void replaceText(String[] newLines) {
@@ -182,14 +184,15 @@ public class Document extends CodeLines {
     Diff deleteDiff = deleteLines(fromLine, toLine);
     Diff insertDiff = copyLines(fromLine, newLines);
     if (deleteDiff == null && insertDiff == null) return;
-    onDiffMade();
 
     Diff[] changeDiffs = new Diff[2];
     int ptr = 0;
     if (insertDiff != null) changeDiffs[ptr++] = insertDiff;
     if (deleteDiff != null) changeDiffs[ptr++] = deleteDiff;
     changeDiffs = Arrays.copyOf(changeDiffs, ptr);
-    addDiff(mkCpxDiff(changeDiffs));
+    var cpxDiff = mkCpxDiff(changeDiffs);
+    onChangeApplied(cpxDiff);
+    addDiff(cpxDiff);
     currentVersion++;
   }
 
@@ -269,14 +272,15 @@ public class Document extends CodeLines {
     if (isLastPosition(caretLine, caretCharPos)) {
       // do nothing at the document end
       if (caretLine != lines.length - 1) {
-        makeDiff(caretLine, caretCharPos, true, "\n");
+        var cpxDiff = makeDiff(caretLine, caretCharPos, true, "\n");
         concatLinesOp(caretLine);
+        onEditMade(cpxDiff);
       }
     } else {
-      makeDiff(caretLine, caretCharPos, true, String.valueOf(getChar(caretLine, caretCharPos)));
+      var cpxDiff = makeDiff(caretLine, caretCharPos, true, String.valueOf(getChar(caretLine, caretCharPos)));
       lines[caretLine].deleteAt(caretCharPos);
+      onEditMade(cpxDiff);
     }
-    onDiffMade();
   }
 
   public void insertAt(int line, int pos, String value) {
@@ -289,8 +293,8 @@ public class Document extends CodeLines {
 
   public void insertLines(int line, int pos, String[] lines) {
     insertLinesOp(line, pos, lines);
-    makeDiff(line, pos, false, String.join("\n", lines));
-    onDiffMade();
+    var cpxDiff = makeDiff(line, pos, false, String.join("\n", lines));
+    onEditMade(cpxDiff);
   }
 
   private void insertLinesOp(int line, int pos, String[] lines) {
@@ -358,8 +362,8 @@ public class Document extends CodeLines {
   private void deleteSelected(Selection selection, String selected) {
     deleteAreaOp(selection.getLeftPos(), selection.getRightPos());
     Pos leftPos = selection.getLeftPos();
-    makeDiff(leftPos.line, leftPos.charPos, true, selected);
-    onDiffMade();
+    var cpxDiff = makeDiff(leftPos.line, leftPos.charPos, true, selected);
+    onEditMade(cpxDiff);
   }
 
   private void deleteAreaOp(Pos from, Pos to) {
@@ -471,17 +475,18 @@ public class Document extends CodeLines {
     return intervals;
   }
 
-  public void makeDiff(int line, int from, boolean isDelete, String change) {
-    makeDiff(new Diff(line, from, isDelete, change));
+  public CpxDiff makeDiff(int line, int from, boolean isDelete, String change) {
+    return makeDiff(new Diff(line, from, isDelete, change));
   }
 
-  public void makeDiff(Diff diff) {
+  public CpxDiff makeDiff(Diff diff) {
     currentVersion++;
     var cpxDiff = mkCpxDiff(diff);
     addDiff(cpxDiff);
     makeDiffOp(diff);
     syncEditing(cpxDiff);
     updateModelOnDiff(diff, false);
+    return cpxDiff;
   }
 
   public CpxDiff mkCpxDiff(Diff diff) {
@@ -561,7 +566,7 @@ public class Document extends CodeLines {
     var diffs = cpxDiff.diffs;
     if (isRedo) diffs = ArrayOp.reverse(diffs);
     for (var diff: diffs) doDiff(diff, isRedo);
-    onDiffMade();
+    onEditMade(cpxDiff);
     return cpxDiff;
   }
 
@@ -725,7 +730,11 @@ public class Document extends CodeLines {
     if (syncEditing != null) syncEditing.accept(diff, false);
   }
 
-  private void onDiffMade() {
-    if (onDiffMade != null) onDiffMade.run();
+  private void onEditMade(CpxDiff cpxDiff) {
+    if (onEditMade != null) onEditMade.accept(cpxDiff);
+  }
+
+  private void onChangeApplied(CpxDiff cpxDiff) {
+    if (onChangeApplied != null) onChangeApplied.accept(cpxDiff);
   }
 }

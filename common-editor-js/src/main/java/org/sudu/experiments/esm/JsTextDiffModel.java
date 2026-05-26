@@ -1,6 +1,7 @@
 package org.sudu.experiments.esm;
 
 import org.sudu.experiments.editor.worker.diff.FileDiffModel;
+import org.sudu.experiments.js.JsFunctions;
 import org.sudu.experiments.js.Promise;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSFunctor;
@@ -58,6 +59,21 @@ public class JsTextDiffModel implements JsITextDiffModel {
         javaModel.getLinesInfo(ints ->
             onResult.f(JsLinesInfo.create(ints[0], ints[1], ints[2])))
     );
+  }
+
+  @Override
+  public void setApplyRejectListener(JsFunctions.Consumer<JsApplyChangeInfo> listener) {
+    javaModel.setApplyRejectListener(info ->
+        listener.f(JsApplyChangeInfo.create(
+            info.oldFrom, info.oldTo,
+            info.newFrom, info.newTo,
+            info.isAccepted))
+    );
+  }
+
+  @Override
+  public void enableSyncEdit(boolean flag) {
+    javaModel.setEnableSyncEdit(flag);
   }
 
   @Override
