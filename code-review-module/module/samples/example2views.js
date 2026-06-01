@@ -30,8 +30,8 @@ const initialText2 =
 let model1 = editorApi.newDiffModel(threadPool, initialText1 + "model11", initialText2 + "model12", "urlNew", "urlNew", null)
 let model2 = editorApi.newDiffModel(threadPool, initialText1 + "model21", initialText2 + "model22", "urlNew", "urlNew", null)
 
-model1.getLeftModel().setEditListener(m => console.log("model11 change event"))
-model1.getRightModel().setEditListener(m => console.log("model12 change event"))
+model1.getLeftModel().setEditListener((m, info) => console.log("model11 change event: ", info))
+model1.getRightModel().setEditListener((m, info) => console.log("model12 change event: ", info))
 
 codeReview1.setModel(model1);
 codeReview2.setModel(model2);

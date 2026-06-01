@@ -31,8 +31,8 @@ public class UndoBuffer {
   public CpxDiff undoLastDiff(Document doc, boolean isRedo) {
     if (diffs.isEmpty()) return null;
     var stack = diffs.get(doc);
-    if (stack == null || stack.isEmpty()) return null;
-    CpxDiff lastDiff = stack.removeLast().first;
+    if (stack == null || (isRedo ? !stack.haveNext() : stack.isEmpty())) return null;
+    CpxDiff lastDiff = (isRedo ? stack.removeNext() : stack.removeLast()).first;
     return doc.doCpxDiff(lastDiff, isRedo);
   }
 

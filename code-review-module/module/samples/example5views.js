@@ -21,7 +21,7 @@ for (let i = 1; i <= 5; i++) {
       "editor in java and kotlin\n" +
       "editorId = " + containerId;
   const model = editorApi.newTextModel(workers, initialText, null, "url" + containerId)
-  model.setEditListener(m => console.log("containerId change event"))
+  model.setEditListener((m, info) => console.log("containerId change event: ", info))
   editor.setModel(model);
   const focused = i === 1;
   if (focused) editor.focus();

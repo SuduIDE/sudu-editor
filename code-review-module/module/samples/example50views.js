@@ -59,8 +59,8 @@ for (let i = 0; i < NUM_EDITORS; i++) {
       initialText + idA, initialText + idB,
       idA, idB, null)
 
-  model.getLeftModel().setEditListener(m => console.log(idA, "change event"))
-  model.getRightModel().setEditListener(m => console.log(idB, "change event"))
+  model.getLeftModel().setEditListener((m, info) => console.log(idA, "change event: ", info))
+  model.getRightModel().setEditListener((m, info) => console.log(idB, "change event: ", info))
   models[i] = model;
   const containerId = divId(i);
   controlPanels[i] = initControlPanel(document.getElementById(containerId));

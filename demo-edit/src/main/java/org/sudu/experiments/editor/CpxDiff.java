@@ -82,7 +82,7 @@ public class CpxDiff {
       from = Math.min(from, diff.line);
       to = Math.max(to, diff.line);
     }
-    return new int[] {from, to};
+    return new int[] {from, to + 1};
   }
 
   private V2i makeCaretReturnPos(int line, int pos, String change) {

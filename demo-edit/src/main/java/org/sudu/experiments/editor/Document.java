@@ -181,8 +181,11 @@ public class Document extends CodeLines {
   }
 
   public void applyChange(int fromLine, int toLine, CodeLine[] newLines) {
-    Diff deleteDiff = deleteLines(fromLine, toLine);
-    Diff insertDiff = copyLines(fromLine, newLines);
+    boolean applyFromTheStart = fromLine == 0;
+    boolean applyToTheEnd = toLine == length();
+
+    Diff deleteDiff = deleteLines(fromLine, toLine, applyFromTheStart, applyToTheEnd);
+    Diff insertDiff = copyLines(fromLine, newLines, applyFromTheStart, applyToTheEnd);
     if (deleteDiff == null && insertDiff == null) return;
 
     Diff[] changeDiffs = new Diff[2];
@@ -196,20 +199,23 @@ public class Document extends CodeLines {
     currentVersion++;
   }
 
-  private Diff copyLines(int fromLine, CodeLine[] newLines) {
+  private Diff copyLines(
+      int fromLine, CodeLine[] newLines,
+      boolean insertFromTheStart,
+      boolean insertToTheEnd
+  ) {
     if (newLines.length == 0) return null;
-    boolean insertFromStart = fromLine == 0;
 
     StringBuilder sb = new StringBuilder();
-    if (!insertFromStart) sb.append(newLine);
+    if (!insertFromTheStart) sb.append(newLine);
     for (int i = 0; i < newLines.length - 1; i++)
-      sb.append(newLines[i].makeString()).append("\n");
+      sb.append(newLines[i].makeString()).append(newLine);
     sb.append(ArrayOp.last(newLines).makeString());
-    if (insertFromStart) sb.append(newLine);
+    if (insertFromTheStart && !insertToTheEnd) sb.append(newLine);
 
     String inserted = sb.toString();
-    int insertLine = !insertFromStart ? fromLine - 1 : fromLine;
-    int insertPos = !insertFromStart ? lines[fromLine - 1].totalStrLength : 0;
+    int insertLine = !insertFromTheStart ? fromLine - 1 : fromLine;
+    int insertPos = !insertFromTheStart ? lines[fromLine - 1].totalStrLength : 0;
     Diff insertDiff = new Diff(insertLine, insertPos, false, inserted);
     makeDiffOp(insertDiff);
 
@@ -241,17 +247,23 @@ public class Document extends CodeLines {
   }
 
   public Diff deleteLines(int fromLine, int toLine) {
+    return deleteLines(fromLine, toLine, fromLine == 0, toLine == length());
+  }
+
+  public Diff deleteLines(
+      int fromLine, int toLine,
+      boolean deleteFromTheStart,
+      boolean deleteToTheEnd
+  ) {
     if (fromLine >= toLine) return null;
-    boolean deleteFromStart = fromLine == 0;
-    boolean deleteToEnd = toLine == length();
 
     StringBuilder deletedSB = new StringBuilder();
-    if (!deleteFromStart) deletedSB.append(newLine);
+    if (!deleteFromTheStart) deletedSB.append(newLine);
     deletedSB.append(new String(getChars(fromLine, toLine)));
-    if (!deleteFromStart && !deleteToEnd) deletedSB.deleteCharAt(deletedSB.length() - 1);
+    if (!deleteFromTheStart && !deleteToTheEnd) deletedSB.deleteCharAt(deletedSB.length() - 1);
 
-    int deleteLine = !deleteFromStart ? fromLine - 1 : fromLine;
-    int deletePos = !deleteFromStart ? lines[fromLine - 1].totalStrLength : 0;
+    int deleteLine = !deleteFromTheStart ? fromLine - 1 : fromLine;
+    int deletePos = !deleteFromTheStart ? lines[fromLine - 1].totalStrLength : 0;
     Diff diff = new Diff(deleteLine, deletePos, true, deletedSB.toString());
     deleteLinesOp(fromLine, toLine);
     makeDiffOp(diff);
@@ -262,10 +274,14 @@ public class Document extends CodeLines {
   private void deleteLinesOp(int fromLine, int toLine) {
     if (fromLine >= lines.length || fromLine < 0) throw new RuntimeException();
     if (toLine > lines.length || toLine < 0) throw new RuntimeException();
-
-    CodeLine[] doc = new CodeLine[lines.length - toLine + fromLine];
-    ArrayOp.remove(lines, fromLine, toLine, doc);
-    lines = doc;
+    int newLength = lines.length - toLine + fromLine;
+    if (newLength == 0) {
+      lines = ArrayOp.array(CodeLine.emptyLine());
+    } else {
+      CodeLine[] doc = new CodeLine[newLength];
+      ArrayOp.remove(lines, fromLine, toLine, doc);
+      lines = doc;
+    }
   }
 
   public void deleteChar(int caretLine, int caretCharPos) {

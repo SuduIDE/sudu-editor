@@ -13,9 +13,8 @@ const codeReview = editorApi.newCodeReview({
 
 const controlPanel = initControlPanel(document.getElementById("editor"))
 
-const initialText1 =
-    `Deleted line 1
-Deleted line 2
+const initialText1 = `Deleted line 1-1
+Deleted line 1-2
 Common line
 Edited line 1-3
 Edited line 1-4
