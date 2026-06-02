@@ -275,13 +275,9 @@ public class Document extends CodeLines {
     if (fromLine >= lines.length || fromLine < 0) throw new RuntimeException();
     if (toLine > lines.length || toLine < 0) throw new RuntimeException();
     int newLength = lines.length - toLine + fromLine;
-    if (newLength == 0) {
-      lines = ArrayOp.array(CodeLine.emptyLine());
-    } else {
-      CodeLine[] doc = new CodeLine[newLength];
-      ArrayOp.remove(lines, fromLine, toLine, doc);
-      lines = doc;
-    }
+    CodeLine[] doc = new CodeLine[newLength];
+    ArrayOp.remove(lines, fromLine, toLine, doc);
+    lines = doc;
   }
 
   public void deleteChar(int caretLine, int caretCharPos) {
@@ -315,6 +311,15 @@ public class Document extends CodeLines {
 
   private void insertLinesOp(int line, int pos, String[] lines) {
     if (lines.length == 0) return;
+    if (this.lines.length == 0) {
+      if (line != 0 && pos != 0) throw new IllegalArgumentException(String.format(
+          "Document.insertLines: Trying to insert lines in empty document at (%d: %d)",
+          line, pos));
+      CodeLine[] doc = new CodeLine[lines.length];
+      for (int i = 0; i < doc.length; i++) doc[i] = new CodeLine(lines[i]);
+      this.lines = doc;
+      return;
+    }
     if (lines.length == 1) {
       this.lines[line].insertAt(pos, lines[0]);
       return;
