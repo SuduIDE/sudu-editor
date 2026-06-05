@@ -65,7 +65,9 @@ public class DiffInfo {
   }
 
   public int oppositeLine(int line, boolean isLeft) {
-    var range = range(line, isLeft);
+    int rangeInd = rangeBinSearch(line, isLeft);
+    rangeInd = nextNotEmptyRange(rangeInd, isLeft);
+    var range = ranges[rangeInd];
     if (range.type != DiffTypes.DEFAULT) return -1;
     return line - range.from(isLeft) + range.from(!isLeft);
   }
@@ -162,6 +164,13 @@ public class DiffInfo {
       else break;
     }
     return ind;
+  }
+
+  public int nextNotEmptyRange(int rangeInd, boolean isLeft) {
+    for (; rangeInd < ranges.length; rangeInd++) {
+      if (ranges[rangeInd].len(isLeft) > 0) return rangeInd;
+    }
+    return rangeInd - 1;
   }
 
   public void insertAt(int lineKey, int lines, boolean isL) {

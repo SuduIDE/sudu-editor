@@ -17,7 +17,9 @@ import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static org.sudu.experiments.math.ArrayOp.copyOf;
 
@@ -34,7 +36,7 @@ public class Model {
   final NavigationStack navStack = new NavigationStack();
 
   EditorToModel editor;
-  Consumer<int[]> onDiffMadeListener;
+
   WorkerJobExecutor executor;
 
   LineDiff[] diffModel;
@@ -59,6 +61,10 @@ public class Model {
   double vScrollLine = .0;
 
   boolean debug = false;
+
+  private Consumer<int[]> onDiffMadeListener;
+  private BiConsumer<CpxDiff, Boolean> syncEditing;
+  private Supplier<UndoBuffer> getUndoBuffer;
 
   public Model(String text, Uri uri) {
     this(text, null, uri);
@@ -516,11 +522,19 @@ public class Model {
   }
 
   private void syncEditing(CpxDiff diffs, boolean isUndo) {
-    if (editor != null) editor.syncEditing(diffs, isUndo);
+    if (syncEditing != null) syncEditing.accept(diffs, isUndo);
   }
 
   private UndoBuffer getUndoBuffer() {
-    return editor != null ? editor.getUndoBuffer() : null;
+    return getUndoBuffer != null ? getUndoBuffer.get() : null;
+  }
+
+  public void setSyncEditing(BiConsumer<CpxDiff, Boolean> syncEditing) {
+    this.syncEditing = syncEditing;
+  }
+
+  public void setGetUndoBuffer(Supplier<UndoBuffer> getUndoBuffer) {
+    this.getUndoBuffer = getUndoBuffer;
   }
 
   public void setOnDiffMadeListener(Consumer<int[]> listener) {
@@ -590,10 +604,6 @@ public class Model {
     boolean isDisableParser();
 
     CodeLineColorScheme getColorScheme();
-
-    UndoBuffer getUndoBuffer();
-
-    void syncEditing(CpxDiff diffs, boolean isUndo);
   }
 
   public boolean hasDiffModel() {

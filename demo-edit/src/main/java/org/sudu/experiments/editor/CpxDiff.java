@@ -41,7 +41,10 @@ public class CpxDiff {
     return Pair.of(fromSelected, toSelected);
   }
 
-  public CpxDiff copyWithNewLine(Function<Integer, Integer> getOpposite) {
+  public CpxDiff copyWithNewLine(
+      Function<Integer, Integer> getOpposite,
+      int oldLength, int newLength
+  ) {
     Diff[][] tmp = new Diff[diffs.length][];
     for (int i = 0; i < diffs.length; i++) tmp[i] = splitDiffByLines(diffs[i]);
     Diff[] flatten = ArrayOp.flatten(tmp);
@@ -51,7 +54,7 @@ public class CpxDiff {
       if (diff.change.isEmpty()) continue;
       int oppositeLine = getOpposite.apply(diff.line);
       if (oppositeLine == -1) continue;
-      copiedDiffs[len++] = diff.copyWithNewLine(oppositeLine);
+      copiedDiffs[len++] = diff.copyWithNewLine(oppositeLine, oldLength, newLength);
     }
     copiedDiffs = Arrays.copyOf(copiedDiffs, len);
     var copiedCaretBefore = new V2i(getOpposite.apply(caretBefore.x), caretBefore.y);
@@ -82,7 +85,7 @@ public class CpxDiff {
       from = Math.min(from, diff.line);
       to = Math.max(to, diff.line);
     }
-    return new int[] {from, to + 1};
+    return new int[]{from, to + 1};
   }
 
   private V2i makeCaretReturnPos(int line, int pos, String change) {

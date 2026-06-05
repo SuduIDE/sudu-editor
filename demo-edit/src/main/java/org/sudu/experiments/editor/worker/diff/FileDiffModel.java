@@ -24,7 +24,7 @@ public class FileDiffModel {
   private Consumer<int[]> getLinesInfo;
   private Consumer<ApplyChangeInfo> applyRejectListener;
   private int diffStatus = DiffStatus.NOT_COMPARED;
-  private boolean enableSyncEdit = EditorConst.DEFAULT_ENABLE_SYNC_EDIT;
+  private boolean enableSyncEdit = true;
   private int modelFlags;
 
   public interface ViewToModel {
@@ -53,7 +53,11 @@ public class FileDiffModel {
 
   public FileDiffModel(WorkerJobExecutor executor, Model leftModel, Model rightModel) {
     this.leftModel = leftModel;
+    this.leftModel.setGetUndoBuffer(() -> undoBuffer);
+    this.leftModel.setSyncEditing((diff, isUndo) -> syncEditing(true, diff, isUndo));
     this.rightModel = rightModel;
+    this.rightModel.setGetUndoBuffer(() -> undoBuffer);
+    this.rightModel.setSyncEditing((diff, isUndo) -> syncEditing(false, diff, isUndo));
     this.executor = executor;
     sendToDiff(false);
   }
@@ -168,7 +172,10 @@ public class FileDiffModel {
     var diffVersion = current.document.lastDiffVersion();
     Model another = !left ? leftModel : rightModel;
 
-    CpxDiff anotherDiff = cpxDiff.copyWithNewLine((l) -> diffModel.oppositeLine(l, left));
+    CpxDiff anotherDiff = cpxDiff.copyWithNewLine(
+        (l) -> diffModel.oppositeLine(l, left),
+        current.document.length(), another.document.length()
+    );
 
     if (anotherDiff.diffs.length == 0) return;
     another.document.doCpxDiff(anotherDiff, !isUndo);

@@ -134,7 +134,6 @@ public class EditorComponent extends View implements
   EditorSyncPoints syncPoints;
   private final V2i lastMouseDownPos = new V2i(-1, -1);
   private boolean disableParser = EditorConst.DEFAULT_DISABLE_PARSER;
-  private BiConsumer<CpxDiff, Boolean> syncEditing;
   private int numDigits;
 
   public EditorComponent(EditorUi ui) {
@@ -2224,17 +2223,8 @@ public class EditorComponent extends View implements
     return getUndoBuffer.get();
   }
 
-  @Override
-  public void syncEditing(CpxDiff diffs, boolean isUndo) {
-    if (syncEditing != null) syncEditing.accept(diffs, isUndo);
-  }
-
   public void setCodeMap() {
     // todo: highlight current symbol or selection search...
-  }
-
-  public void setSyncEditing(BiConsumer<CpxDiff, Boolean> syncEditing) {
-    this.syncEditing = syncEditing;
   }
 
   // call of this method is required for both:
