@@ -1,13 +1,13 @@
 package org.sudu.experiments.editor;
 
+import org.sudu.experiments.editor.worker.diff.DiffInfo;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.common.Pair;
 import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.text.SplitText;
 
-import java.util.Arrays;
-import java.util.function.Function;
+import java.util.*;
 
 public class CpxDiff {
 
@@ -37,44 +37,74 @@ public class CpxDiff {
     this.caretAfter = caretAfter;
   }
 
+  public static class DiffMaker {
+    private final DiffInfo diffInfo;
+    private final CpxDiff cpxDiff;
+    private final boolean left;
+    private final int oldLength;
+    private final int newLength;
+
+    public DiffMaker(
+        DiffInfo diffInfo, CpxDiff cpxDiff,
+        boolean left,
+        int oldLength, int newLength
+    ) {
+      this.diffInfo = diffInfo;
+      this.cpxDiff = cpxDiff;
+      this.left = left;
+      this.oldLength = oldLength;
+      this.newLength = newLength;
+    }
+
+    public static CpxDiff mkOppositeDiff(
+        DiffInfo diffInfo, CpxDiff cpxDiff,
+        boolean left,
+        int oldLength, int newLength
+    ) {
+      return new DiffMaker(diffInfo, cpxDiff, left, oldLength, newLength).mkOppositeDiff();
+    }
+
+    private CpxDiff mkOppositeDiff() {
+      List<Diff> oppositeDiffs = new ArrayList<>();
+      for (var diff: cpxDiff.diffs) {
+        var lines = SplitText.split(diff.change);
+        if (lines.length == 0) continue;
+        int diffLine = diff.line, diffBegin = diff.pos;
+        boolean skippedPrevLine = false;
+        for (int l = 0; l < lines.length; l++) {
+          boolean isMidLine = skippedPrevLine || l != lines.length - 1;
+          var opLine = diffInfo.oppositeLine(diffLine, left);
+          if (opLine == -1) {
+            diffLine++;
+            diffBegin = 0;
+            skippedPrevLine = true;
+          } else {
+            StringBuilder line = new StringBuilder(lines[l]);
+            if (isMidLine) line.append(Document.newLine);
+            oppositeDiffs.add(new Diff(opLine, diffBegin, diff.isDelete, line.toString()));
+
+            if (isMidLine) {
+              diffLine++;
+              diffBegin = 0;
+            } else {
+              diffBegin += lines[l].length();
+            }
+            skippedPrevLine = false;
+          }
+        }
+      }
+      var copiedCaretBefore = new V2i(diffInfo.oppositeLine(cpxDiff.caretBefore.x, left), cpxDiff.caretBefore.y);
+      var copiedCaretAfter = new V2i(diffInfo.oppositeLine(cpxDiff.caretAfter.x, left), cpxDiff.caretAfter.y);
+      return new CpxDiff(
+          oppositeDiffs.toArray(Diff[]::new),
+          null, null,
+          copiedCaretBefore, copiedCaretAfter
+      );
+    }
+  }
+
   public Pair<Pos, Pos> selection() {
     return Pair.of(fromSelected, toSelected);
-  }
-
-  public CpxDiff copyWithNewLine(
-      Function<Integer, Integer> getOpposite,
-      int oldLength, int newLength
-  ) {
-    Diff[][] tmp = new Diff[diffs.length][];
-    for (int i = 0; i < diffs.length; i++) tmp[i] = splitDiffByLines(diffs[i]);
-    Diff[] flatten = ArrayOp.flatten(tmp);
-    Diff[] copiedDiffs = new Diff[flatten.length];
-    int len = 0;
-    for (Diff diff: flatten) {
-      if (diff.change.isEmpty()) continue;
-      int oppositeLine = getOpposite.apply(diff.line);
-      if (oppositeLine == -1) continue;
-      copiedDiffs[len++] = diff.copyWithNewLine(oppositeLine, oldLength, newLength);
-    }
-    copiedDiffs = Arrays.copyOf(copiedDiffs, len);
-    var copiedCaretBefore = new V2i(getOpposite.apply(caretBefore.x), caretBefore.y);
-    var copiedCaretAfter = new V2i(getOpposite.apply(caretAfter.x), caretAfter.y);
-    return new CpxDiff(copiedDiffs, null, null , copiedCaretBefore, copiedCaretAfter);
-  }
-
-  private Diff[] splitDiffByLines(Diff diff) {
-    var lines = SplitText.split(diff.change);
-    if (lines.length == 1) return ArrayOp.array(diff);
-    Diff[] diffs = new Diff[lines.length];
-    int diffLine = diff.line;
-    int diffBegin = diff.pos;
-    for (int l = 0; l < lines.length; l++) {
-      String line = l != lines.length - 1 ? lines[l].concat("\n") : lines[l];
-      diffs[l] = new Diff(diffLine, diffBegin, diff.isDelete, line);
-      diffLine++;
-      diffBegin = 0;
-    }
-    return diffs;
   }
 
   public int[] diffLineRanges() {

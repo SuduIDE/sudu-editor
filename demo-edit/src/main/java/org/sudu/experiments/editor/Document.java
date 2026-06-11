@@ -388,11 +388,6 @@ public class Document extends CodeLines {
   }
 
   private void deleteAreaOp(Pos from, Pos to) {
-    if (to.line == length()) {
-      if (to.charPos > 0) throw new IllegalArgumentException();
-      to.line = length() - 1;
-      to.charPos = line(to.line).totalStrLength;
-    }
     if (from.line == to.line) {
       lines[from.line].delete(from.charPos, to.charPos);
     } else {

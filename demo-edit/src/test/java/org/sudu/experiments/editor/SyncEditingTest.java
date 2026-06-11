@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.editor.worker.diff.FileDiffModel;
 import org.sudu.experiments.math.ArrayOp;
-import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
@@ -33,6 +32,8 @@ public class SyncEditingTest {
       Inserted line 2-5
       Inserted line 2-6
       Inserted line 2-7""";
+
+  private static final boolean PRINT_DOC = true;
 
   @Test
   public void testSyncEditing1() {
@@ -101,10 +102,41 @@ public class SyncEditingTest {
 
     left.document.deleteSelected(leftSel);
 
+    printDocs(left, right);
     Assertions.assertEquals("", left.document.makeString());
+    Assertions.assertEquals(1, left.document.length());
     Assertions.assertEquals(7, right.document.length());
   }
 
+  @Test
+  public void testSyncEditing4() {
+    var left = new Model(leftDoc, null);
+    var right = new Model(rightDoc, null);
+    var model = new FileDiffModel(new MockExecutor(), left, right);
+    model.setEnableSyncEdit(true);
+
+    var rightSel = new Selection();
+    rightSel.startPos.set(0, 0);
+    rightSel.endPos.set(
+        right.document.length() - 1,
+        right.document.strLength(right.document.length() - 1));
+
+    right.document.deleteSelected(rightSel);
+
+    printDocs(left, right);
+    Assertions.assertEquals("", right.document.makeString());
+    Assertions.assertEquals(1, right.document.length());
+    Assertions.assertEquals(5, left.document.length());
+  }
+
+  private static void printDocs(Model left, Model right) {
+    if (!PRINT_DOC) return;
+    System.out.println("—".repeat(10));
+    System.out.println(left.document.makeString());
+    System.out.println("—".repeat(10));
+    System.out.println(right.document.makeString());
+    System.out.println("—".repeat(10));
+  }
 
   private static class MockExecutor implements WorkerJobExecutor {
 
