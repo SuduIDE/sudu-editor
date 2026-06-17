@@ -150,8 +150,9 @@ public class Document extends CodeLines {
   }
 
   public void concatLines(int caretLine) {
+    int caretPos = strLength(caretLine);
     concatLinesOp(caretLine);
-    var cpxDiff = makeDiff(caretLine, strLength(caretLine), true, "\n");
+    var cpxDiff = makeDiff(caretLine, caretPos, true, "\n");
     onEditMade(cpxDiff);
   }
 

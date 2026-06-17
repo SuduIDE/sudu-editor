@@ -1,6 +1,6 @@
 package org.sudu.experiments.editor;
 
-import org.sudu.experiments.editor.worker.diff.DiffInfo;
+import org.sudu.experiments.editor.worker.diff.FileDiffModel;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.common.Pair;
@@ -38,63 +38,62 @@ public class CpxDiff {
   }
 
   public static class DiffMaker {
-    private final DiffInfo diffInfo;
+    private final FileDiffModel model;
     private final CpxDiff cpxDiff;
     private final boolean left;
-    private final int oldLength;
-    private final int newLength;
 
-    public DiffMaker(
-        DiffInfo diffInfo, CpxDiff cpxDiff,
-        boolean left,
-        int oldLength, int newLength
-    ) {
-      this.diffInfo = diffInfo;
+    public DiffMaker(FileDiffModel model, CpxDiff cpxDiff, boolean left) {
+      this.model = model;
       this.cpxDiff = cpxDiff;
       this.left = left;
-      this.oldLength = oldLength;
-      this.newLength = newLength;
     }
 
-    public static CpxDiff mkOppositeDiff(
-        DiffInfo diffInfo, CpxDiff cpxDiff,
-        boolean left,
-        int oldLength, int newLength
-    ) {
-      return new DiffMaker(diffInfo, cpxDiff, left, oldLength, newLength).mkOppositeDiff();
+    public static CpxDiff mkOppositeDiff(FileDiffModel model, CpxDiff cpxDiff, boolean left) {
+      return new DiffMaker(model, cpxDiff, left).mkOppositeDiff();
     }
 
     private CpxDiff mkOppositeDiff() {
       List<Diff> oppositeDiffs = new ArrayList<>();
+      var diffModel = model.diffModel;
+      var from = left ? model.leftModel : model.rightModel;
+      var to = !left ? model.leftModel : model.rightModel;
+      boolean skippedPrevLine = false;
       for (var diff: cpxDiff.diffs) {
         var lines = SplitText.split(diff.change);
         if (lines.length == 0) continue;
-        int diffLine = diff.line, diffBegin = diff.pos;
-        boolean skippedPrevLine = false;
+        boolean singleLineDiff = lines.length == 1;
+        int diffBegin = diff.pos;
         for (int l = 0; l < lines.length; l++) {
-          boolean isMidLine = skippedPrevLine || l != lines.length - 1;
-          var opLine = diffInfo.oppositeLine(diffLine, left);
-          if (opLine == -1) {
-            diffLine++;
+          var oppositeLine = diffModel.oppositeLine(diff.line + l, left);
+          boolean isMidLine = !singleLineDiff && (skippedPrevLine || l != lines.length - 1);
+          boolean isLastLine = !singleLineDiff && oppositeLine == to.document.length() - 1;
+
+          if (oppositeLine == -1) {
             diffBegin = 0;
             skippedPrevLine = true;
           } else {
-            StringBuilder line = new StringBuilder(lines[l]);
-            if (isMidLine) line.append(Document.newLine);
-            oppositeDiffs.add(new Diff(opLine, diffBegin, diff.isDelete, line.toString()));
+            StringBuilder line = new StringBuilder();
+            int curLine = oppositeLine;
+            int curBegin = diffBegin;
 
-            if (isMidLine) {
-              diffLine++;
+            if (isLastLine) {
+              curLine--;
+              curBegin = to.document.line(curLine).totalStrLength;
+              line.append(Document.newLine);
               diffBegin = 0;
-            } else {
-              diffBegin += lines[l].length();
             }
-            skippedPrevLine = false;
+            line.append(lines[l]);
+            diffBegin += lines[l].length();
+            if (!isLastLine && isMidLine) {
+              line.append(Document.newLine);
+              diffBegin = 0;
+            }
+            oppositeDiffs.add(new Diff(curLine, curBegin, diff.isDelete, line.toString()));
           }
         }
       }
-      var copiedCaretBefore = new V2i(diffInfo.oppositeLine(cpxDiff.caretBefore.x, left), cpxDiff.caretBefore.y);
-      var copiedCaretAfter = new V2i(diffInfo.oppositeLine(cpxDiff.caretAfter.x, left), cpxDiff.caretAfter.y);
+      var copiedCaretBefore = new V2i(diffModel.oppositeLine(cpxDiff.caretBefore.x, left), cpxDiff.caretBefore.y);
+      var copiedCaretAfter = new V2i(diffModel.oppositeLine(cpxDiff.caretAfter.x, left), cpxDiff.caretAfter.y);
       return new CpxDiff(
           oppositeDiffs.toArray(Diff[]::new),
           null, null,

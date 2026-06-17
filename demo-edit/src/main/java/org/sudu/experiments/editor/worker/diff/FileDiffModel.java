@@ -172,11 +172,7 @@ public class FileDiffModel {
     var diffVersion = current.document.lastDiffVersion();
     Model another = !left ? leftModel : rightModel;
 
-    CpxDiff anotherDiff = CpxDiff.DiffMaker.mkOppositeDiff(
-        diffModel, cpxDiff, left,
-        current.document.length(),
-        another.document.length()
-    );
+    CpxDiff anotherDiff = CpxDiff.DiffMaker.mkOppositeDiff(this, cpxDiff, left);
 
     if (anotherDiff.diffs.length == 0) return;
     another.document.doCpxDiff(anotherDiff, !isUndo);

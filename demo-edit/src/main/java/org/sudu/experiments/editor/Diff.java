@@ -29,15 +29,8 @@ public class Diff {
     return lineCnt;
   }
 
-  public Diff copyWithNewLine(int oppositeLine, int oldLength, int newLength) {
-    StringBuilder changeSB = new StringBuilder(change);
-//    if (change.endsWith("\n")) changeSB.deleteCharAt(changeSB.length() - 1);
-//    if (oppositeLine + 1 != newLength) changeSB.append("\n");
-    return new Diff(oppositeLine, pos, isDelete, changeSB.toString());
-  }
-
   @Override
   public String toString() {
-    return change;
+    return String.format("(%d:%d): \"%s\"", line, pos, change);
   }
 }
