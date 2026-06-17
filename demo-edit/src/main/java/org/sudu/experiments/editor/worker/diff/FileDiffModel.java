@@ -24,7 +24,7 @@ public class FileDiffModel {
   private Consumer<int[]> getLinesInfo;
   private Consumer<ApplyChangeInfo> applyRejectListener;
   private int diffStatus = DiffStatus.NOT_COMPARED;
-  private boolean enableSyncEdit = true;
+  private boolean enableSyncEdit = EditorConst.DEFAULT_ENABLE_SYNC_EDIT;
   private int modelFlags;
 
   public interface ViewToModel {
