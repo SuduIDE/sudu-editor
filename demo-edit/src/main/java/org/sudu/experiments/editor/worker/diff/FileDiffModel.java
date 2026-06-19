@@ -31,6 +31,7 @@ public class FileDiffModel {
     int[] getSyncPoints(boolean left);
     void updateModelOnDiff(DiffInfo diffModel);
     void setDiffModel(DiffInfo diffModel);
+    void restoreSelection(boolean left, V2i caret, Pair<Pos, Pos> selection);
   }
 
   public static class ApplyChangeInfo {
@@ -179,8 +180,8 @@ public class FileDiffModel {
     undoBuffer.addDiff(another.document, anotherDiff, diffVersion.second);
   }
 
-  public void undoLastDiff(boolean isRedo, TriConsumer<Boolean, V2i, Pair<Pos, Pos>> restore) {
-    undoBuffer.undoLastDiff(leftModel.document, rightModel.document, restore, isRedo);
+  public void undoLastDiff(boolean isRedo) {
+    undoBuffer.undoLastDiff(leftModel.document, rightModel.document, restoreSelection(), isRedo);
   }
 
   public void setDiffModel(DiffInfo diffInfo, int[] versions) {
@@ -306,5 +307,9 @@ public class FileDiffModel {
 
   public void setApplyRejectListener(Consumer<ApplyChangeInfo> applyRejectListener) {
     this.applyRejectListener = applyRejectListener;
+  }
+
+  public TriConsumer<Boolean, V2i, Pair<Pos, Pos>> restoreSelection() {
+    return viewToModel != null ? viewToModel::restoreSelection : null;
   }
 }

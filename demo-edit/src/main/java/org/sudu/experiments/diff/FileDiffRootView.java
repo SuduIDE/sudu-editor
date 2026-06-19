@@ -12,6 +12,7 @@ import org.sudu.experiments.parser.common.TriConsumer;
 import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.IntConsumer;
 
 class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel {
@@ -269,10 +270,11 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
   }
 
   public void undoLastDiff(boolean isRedo) {
-    fileDiffModel.undoLastDiff(isRedo, this::restore);
+    fileDiffModel.undoLastDiff(isRedo);
   }
 
-  private void restore(boolean isLeft, V2i pos, Pair<Pos, Pos> selection) {
+  @Override
+  public void restoreSelection(boolean isLeft, V2i pos, Pair<Pos, Pos> selection) {
     var editor = isLeft ? editor1 : editor2;
     editor.setCaretLinePos(pos.x, pos.y, false);
     if (selection.first == null || selection.second == null) return;

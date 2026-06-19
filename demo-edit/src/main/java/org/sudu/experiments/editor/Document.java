@@ -583,6 +583,15 @@ public class Document extends CodeLines {
     return doCpxDiff(cpxDiff, isRedo);
   }
 
+  public CpxDiff doSyncCpxDiff(CpxDiff cpxDiff, boolean isRedo) {
+    currentVersion++;
+    var diffs = cpxDiff.diffs;
+    if (isRedo) diffs = ArrayOp.reverse(diffs);
+    for (var diff: diffs) doDiff(diff, !isRedo);
+    onEditMade(cpxDiff);
+    return cpxDiff;
+  }
+
   public CpxDiff doCpxDiff(CpxDiff cpxDiff, boolean isRedo) {
     currentVersion++;
     var diffs = cpxDiff.diffs;

@@ -62,21 +62,25 @@ public class CpxDiff {
         var lines = SplitText.split(diff.change);
         if (lines.length == 0) continue;
         boolean singleLineDiff = lines.length == 1;
+        boolean newLineAdded = false;
         int diffBegin = diff.pos;
         for (int l = 0; l < lines.length; l++) {
           var oppositeLine = diffModel.oppositeLine(diff.line + l, left);
+          if (l == lines.length - 1 && lines[l].isEmpty()) continue;
           boolean isMidLine = !singleLineDiff && (skippedPrevLine || l != lines.length - 1);
-          boolean isLastLine = !singleLineDiff && oppositeLine == to.document.length() - 1;
-
+          boolean isLastLine = !singleLineDiff
+              && oppositeLine == to.document.length() - 1
+              && diff.line == from.document.length() - 1;
           if (oppositeLine == -1) {
             diffBegin = 0;
             skippedPrevLine = true;
+            newLineAdded = false;
           } else {
             StringBuilder line = new StringBuilder();
             int curLine = oppositeLine;
             int curBegin = diffBegin;
 
-            if (isLastLine) {
+            if (isLastLine && oppositeLine != 0 && !newLineAdded) {
               curLine--;
               curBegin = to.document.line(curLine).totalStrLength;
               line.append(Document.newLine);
@@ -84,22 +88,47 @@ public class CpxDiff {
             }
             line.append(lines[l]);
             diffBegin += lines[l].length();
-            if (!isLastLine && isMidLine) {
+            if (!(isLastLine && oppositeLine != 0) && isMidLine) {
               line.append(Document.newLine);
               diffBegin = 0;
             }
             oppositeDiffs.add(new Diff(curLine, curBegin, diff.isDelete, line.toString()));
+            newLineAdded = line.toString().endsWith("\n");
           }
         }
       }
       var copiedCaretBefore = new V2i(diffModel.oppositeLine(cpxDiff.caretBefore.x, left), cpxDiff.caretBefore.y);
       var copiedCaretAfter = new V2i(diffModel.oppositeLine(cpxDiff.caretAfter.x, left), cpxDiff.caretAfter.y);
+      var merged = mergeDiffs(oppositeDiffs).toArray(Diff[]::new);
       return new CpxDiff(
-          oppositeDiffs.toArray(Diff[]::new),
+          merged,
           null, null,
           copiedCaretBefore, copiedCaretAfter
       );
     }
+  }
+
+  private static List<Diff> mergeDiffs(List<Diff> diffs) {
+    if (diffs.size() <= 1) return diffs;
+    List<Diff> merged = new ArrayList<>();
+    Diff diff = diffs.get(0);
+    StringBuilder change = new StringBuilder(diff.change);
+
+    int line = diff.line;
+    for (int i = 1; i < diffs.size(); i++) {
+      var cur = diffs.get(i);
+      if (cur.line == line + 1 && cur.isDelete == diff.isDelete) {
+        change.append(cur.change);
+        line++;
+      } else {
+        merged.add(new Diff(diff.line, diff.pos, diff.isDelete, change.toString()));
+        diff = cur;
+        change = new StringBuilder(diff.change);
+        line = diff.line;
+      }
+    }
+    merged.add(new Diff(diff.line, diff.pos, diff.isDelete, change.toString()));
+    return merged;
   }
 
   public Pair<Pos, Pos> selection() {
