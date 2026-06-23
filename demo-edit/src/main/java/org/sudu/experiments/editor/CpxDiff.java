@@ -146,6 +146,10 @@ public class CpxDiff {
     return new int[]{from, to + 1};
   }
 
+  public boolean isEmpty() {
+    return diffs.length == 0;
+  }
+
   private V2i makeCaretReturnPos(int line, int pos, String change) {
     if (change.isEmpty()) return new V2i(line, pos);
     var delta = changeDelta(change);

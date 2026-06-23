@@ -101,7 +101,7 @@ public class FileDiffModel {
   }
 
   public void updateModelOnDiffMadeListener(boolean left, Diff diff, boolean isUndo) {
-//    unsetModelFlagsBit(left ? 0b01 : 0b10);
+    unsetModelFlagsBit(left ? 0b01 : 0b10);
     boolean isDelete = diff.isDelete ^ isUndo;
 
     if (isDelete) onDeleteDiffMadeListener(diff, left);
@@ -168,16 +168,19 @@ public class FileDiffModel {
   }
 
   public void syncEditing(boolean left, CpxDiff cpxDiff, boolean isUndo) {
-    if (!enableSyncEdit || diffModel == null) return;
-    Model current = left ? leftModel : rightModel;
-    var diffVersion = current.document.lastDiffVersion();
-    Model another = !left ? leftModel : rightModel;
+    if (!enableSyncEdit) return;
+    if (diffModel != null) {
+      Model current = left ? leftModel : rightModel;
+      var diffVersion = current.document.lastDiffVersion();
+      Model another = !left ? leftModel : rightModel;
 
-    CpxDiff anotherDiff = CpxDiff.DiffMaker.mkOppositeDiff(this, cpxDiff, left);
+      CpxDiff anotherDiff = CpxDiff.DiffMaker.mkOppositeDiff(this, cpxDiff, left);
 
-    if (anotherDiff.diffs.length == 0) return;
-    another.document.doCpxDiff(anotherDiff, !isUndo);
-    undoBuffer.addDiff(another.document, anotherDiff, diffVersion.second);
+      if (!anotherDiff.isEmpty()) {
+        another.document.doCpxDiff(anotherDiff, !isUndo);
+        undoBuffer.addDiff(another.document, anotherDiff, diffVersion.second);
+      }
+    }
   }
 
   public void undoLastDiff(boolean isRedo) {
