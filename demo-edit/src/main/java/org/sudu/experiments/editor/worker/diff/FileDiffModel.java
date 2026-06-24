@@ -222,15 +222,15 @@ public class FileDiffModel {
   }
 
   public boolean isEmpty() {
-    return diffModel.isEmpty();
+    return diffModel == null || diffModel.isEmpty();
   }
 
   public void clearCompactView() {
-    diffModel.clearCompactView();
+    if (diffModel != null) diffModel.clearCompactView();
   }
 
   public void buildCompactView(Consumer<IntConsumer> apply) {
-    diffModel.buildCompactView(apply);
+    if (diffModel != null) diffModel.buildCompactView(apply);
   }
 
   int[] getSyncPoints(boolean left) {
@@ -239,10 +239,11 @@ public class FileDiffModel {
   }
 
   boolean hasSyncPoints(boolean left) {
-    return getSyncPoints(left).length == 0;
+    return getSyncPoints(left).length > 0;
   }
 
   public DiffRange firstRange(int caretL, int caretR) {
+    if (diffModel == null) return null;
     for (var range: diffModel.ranges) {
       if (range.type == DiffTypes.DEFAULT) continue;
       return (range.inside(caretL, true) || range.inside(caretR, false))
@@ -252,6 +253,7 @@ public class FileDiffModel {
   }
 
   public boolean canNavigateUp(int lineInd, boolean left) {
+    if (diffModel == null) return false;
     int rangeInd = diffModel.leftBS(lineInd, left);
     for (int i = rangeInd - 1; i >= 0; i--) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return true;
@@ -260,6 +262,7 @@ public class FileDiffModel {
   }
 
   public DiffRange navigateUp(int lineInd, boolean left) {
+    if (diffModel == null) return null;
     int rangeInd = diffModel.leftBS(lineInd, left);
     for (int i = rangeInd - 1; i >= 0; i--) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return diffModel.ranges[i];
@@ -268,6 +271,7 @@ public class FileDiffModel {
   }
 
   public boolean canNavigateDown(int lineInd, boolean left) {
+    if (diffModel == null) return false;
     int rangeInd = diffModel.rangeBinSearch(lineInd, left);
     for (int i = rangeInd + 1; i < diffModel.ranges.length; i++) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return true;
@@ -276,6 +280,7 @@ public class FileDiffModel {
   }
 
   public DiffRange navigateDown(int lineInd, boolean left) {
+    if (diffModel == null) return null;
     int rangeInd = diffModel.rangeBinSearch(lineInd, left);
     for (int i = rangeInd + 1; i < diffModel.ranges.length; i++) {
       if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return diffModel.ranges[i];
