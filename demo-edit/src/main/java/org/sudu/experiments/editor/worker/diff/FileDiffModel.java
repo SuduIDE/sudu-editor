@@ -14,6 +14,9 @@ import java.util.function.Consumer;
 
 public class FileDiffModel {
 
+  public static final int LEFT_MODEL_BIT = 0b01;
+  public static final int RIGHT_MODEL_BIT = 0b10;
+
   public final Model leftModel, rightModel;
   public final UndoBuffer undoBuffer = new UndoBuffer();
   public DiffInfo diffModel;
@@ -96,12 +99,12 @@ public class FileDiffModel {
   }
 
   public void fullFileLexedListener(boolean left) {
-    setModelFlagsBit(left ? 0b01 : 0b10);
+    setModelFlagsBit(left);
     if (modelFlagsReady()) sendToDiff(false);
   }
 
   public void updateModelOnDiffMadeListener(boolean left, Diff diff, boolean isUndo) {
-    unsetModelFlagsBit(left ? 0b01 : 0b10);
+    unsetModelFlagsBit(left);
     boolean isDelete = diff.isDelete ^ isUndo;
 
     if (isDelete) onDeleteDiffMadeListener(diff, left);
@@ -112,7 +115,7 @@ public class FileDiffModel {
   }
 
   public void iterativeParseFileListener(boolean left, int start, int stop) {
-    setModelFlagsBit(left ? 0b01 : 0b10);
+    setModelFlagsBit(left ? LEFT_MODEL_BIT : RIGHT_MODEL_BIT);
 
     if (diffModel == null) {
       if (modelFlagsReady()) sendToDiff(false);
@@ -292,8 +295,12 @@ public class FileDiffModel {
     return modelFlags;
   }
 
-  public void setModelFlags(int modelFlags) {
-    this.modelFlags = modelFlags;
+  public void setModelFlagsBit(boolean left) {
+    setModelFlagsBit(left ? LEFT_MODEL_BIT : RIGHT_MODEL_BIT);
+  }
+
+  public void unsetModelFlagsBit(boolean left) {
+    unsetModelFlagsBit(left ? LEFT_MODEL_BIT : RIGHT_MODEL_BIT);
   }
 
   public void unsetModelFlagsBit(int bit) {

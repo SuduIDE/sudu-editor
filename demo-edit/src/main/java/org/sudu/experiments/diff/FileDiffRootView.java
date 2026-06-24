@@ -105,7 +105,7 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
 
   public void onFileOpened(boolean left) {
     var model = new FileDiffModel(window().worker(), editor1.model(), editor2.model());
-    model.setModelFlagsBit(left ? 0b01 : 0b10);
+    model.setModelFlagsBit(left);
     setDefaultModel();
   }
 

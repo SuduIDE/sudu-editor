@@ -112,14 +112,14 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
 
     if (rootView.fileDiffModel != null) {
       if (haveLeftHandle) {
-        rootView.fileDiffModel.unsetModelFlagsBit(0b01);
+        rootView.fileDiffModel.unsetModelFlagsBit(true);
         leftFile = null;
         sendReadFile(true);
         lastLeftScrollPos = rootView.editor1.getVScrollPos();
         lastLeftCaretPos = rootView.editor1.model().getCaretPos();
       }
       if (haveRightHandle) {
-        rootView.fileDiffModel.unsetModelFlagsBit(0b10);
+        rootView.fileDiffModel.unsetModelFlagsBit(false);
         rightFile = null;
         sendReadFile(false);
         lastRightScrollPos = rootView.editor2.getVScrollPos();
