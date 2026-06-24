@@ -33,7 +33,7 @@ public class SyncEditingTest {
       Inserted line 2-6
       Inserted line 2-7""";
 
-  private static final boolean PRINT_DOC = true;
+  private static final boolean PRINT_DOC = false;
 
   @Test
   public void testSyncEditing1() {

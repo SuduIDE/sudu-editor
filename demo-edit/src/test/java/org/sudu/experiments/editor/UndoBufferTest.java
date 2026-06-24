@@ -15,7 +15,7 @@ public class UndoBufferTest {
       Old line 2
       Old line 3
       Old line 4""";
-  private static final boolean PRINT_DOC = true;
+  private static final boolean PRINT_DOC = false;
 
   @Test
   public void testApplyEditChange1() {
