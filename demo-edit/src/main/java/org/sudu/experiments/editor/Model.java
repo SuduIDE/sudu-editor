@@ -17,6 +17,9 @@ import org.sudu.experiments.text.SplitText;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static org.sudu.experiments.math.ArrayOp.copyOf;
 
@@ -33,7 +36,7 @@ public class Model {
   final NavigationStack navStack = new NavigationStack();
 
   EditorToModel editor;
-  Runnable onDiffMadeListener;
+
   WorkerJobExecutor executor;
 
   LineDiff[] diffModel;
@@ -49,6 +52,7 @@ public class Model {
   int fullFileLexed = ParseStatus.NOT_PARSED;
   int fileStructureParsed = ParseStatus.NOT_PARSED;
   int fullFileParsed = ParseStatus.NOT_PARSED;
+  int iterativeFileParsed = ParseStatus.PARSED;
 
   long parsingTimeStart, viewportParseStart, resolveTimeStart;
 
@@ -57,6 +61,10 @@ public class Model {
   double vScrollLine = .0;
 
   boolean debug = false;
+
+  private Consumer<int[]> onDiffMadeListener;
+  private BiConsumer<CpxDiff, Boolean> syncEditing;
+  private Supplier<UndoBuffer> getUndoBuffer;
 
   public Model(String text, Uri uri) {
     this(text, null, uri);
@@ -83,7 +91,8 @@ public class Model {
     docLanguage = language;
     document = new Document(text);
     document.updateModelOnDiff = this::updateModelOnDiff;
-    document.onDiffMade = this::onDiffMade;
+    document.onEditMade = this::onDiffMade;
+    document.onChangeApplied = this::onChangeApplied;
     document.syncEditing = this::syncEditing;
     document.getUndoBuffer = this::getUndoBuffer;
     document.getCaretPos = this::getCaretPos;
@@ -196,6 +205,21 @@ public class Model {
     setSemanticTokens(pendingSemanticTokens);
   }
 
+  void onFileLexedIterative(Object[] result) {
+    var parseRes = new ParseResult(result);
+    if (parseRes.version != document.currentVersion) return;
+    ParserUtils.updateDocument(document, parseRes);
+    fullFileLexed = iterativeFileParsed = ParseStatus.PARSED;
+    printParsingTime("Full file lexed");
+    if (isDisableParser()) setParsed();
+    else {
+      if (editor != null) editor.fireFileLexed();
+      sendStructure();
+      sendFull();
+    }
+    setSemanticTokens(pendingSemanticTokens);
+  }
+
   void changeModelLanguage(String languageFromParser) {
     String language = language();
     if (!Objects.equals(language, languageFromParser)) {
@@ -268,6 +292,10 @@ public class Model {
     }
   }
 
+  public void setExecutor(WorkerJobExecutor executor) {
+    this.executor = executor;
+  }
+
   private void setParsed() {
     fileStructureParsed = ParseStatus.PARSED;
     fullFileLexed = ParseStatus.PARSED;
@@ -327,6 +355,14 @@ public class Model {
     fullFileParsed = ParseStatus.SENT;
   }
 
+  private void sendLexerIterative(char[] chars, int langType) {
+    executor.sendToWorker(true, this::onFileLexedIterative,
+            FileProxy.asyncLexer,
+            chars, new int[]{langType, Integer.MAX_VALUE, document.currentVersion});
+    pendingSemanticTokens = null;
+    iterativeFileParsed = ParseStatus.SENT;
+  }
+
   private void sendStructure(char[] chars, int langType) {
     if (langType != FileProxy.JAVA_FILE) return;
     executor.sendToWorker(true, this::onFileStructureParsed,
@@ -367,14 +403,14 @@ public class Model {
     if (debug) {
       Debug.consoleInfo(getFileName() + "/Model::iterativeParsing");
     }
-
+    iterativeFileParsed = ParseStatus.NOT_PARSED;
     if (fullFileParsed != ParseStatus.PARSED) return;
 
     String language = language();
     if (isDisableParser()) {
       char[] chars = document.getChars();
       int langType = Languages.getType(language);
-      sendLexer(chars, langType);
+      sendLexerIterative(chars, langType);
       return;
     }
     var reparseNode = document.tree.getReparseNode();
@@ -404,6 +440,7 @@ public class Model {
       graphChars = new char[]{};
     }
     int version = document.currentVersion;
+    iterativeFileParsed = ParseStatus.SENT;
     executor.sendToWorker(true,
         res -> onFileIterativeParsed(res, start, stop), FileProxy.asyncIterativeParsing,
         chars, type, interval, new int[]{Languages.getType(language()), version}, graphInts, graphChars
@@ -427,6 +464,7 @@ public class Model {
       ParserUtils.updateDocument(document, parseRes);
       document.onReparse();
     }
+    iterativeFileParsed = ParseStatus.PARSED;
     if (editor != null) editor.fireFileIterativeParsed(start, stop);
   }
 
@@ -484,14 +522,22 @@ public class Model {
   }
 
   private void syncEditing(CpxDiff diffs, boolean isUndo) {
-    if (editor != null) editor.syncEditing(diffs, isUndo);
+    if (syncEditing != null) syncEditing.accept(diffs, isUndo);
   }
 
   private UndoBuffer getUndoBuffer() {
-    return editor != null ? editor.getUndoBuffer() : null;
+    return getUndoBuffer != null ? getUndoBuffer.get() : null;
   }
 
-  public void setOnDiffMadeListener(Runnable listener) {
+  public void setSyncEditing(BiConsumer<CpxDiff, Boolean> syncEditing) {
+    this.syncEditing = syncEditing;
+  }
+
+  public void setGetUndoBuffer(Supplier<UndoBuffer> getUndoBuffer) {
+    this.getUndoBuffer = getUndoBuffer;
+  }
+
+  public void setOnDiffMadeListener(Consumer<int[]> listener) {
     onDiffMadeListener = listener;
   }
 
@@ -527,10 +573,13 @@ public class Model {
     element.style = token.tokenStyle;
   }
 
-  private void onDiffMade() {
+  private void onDiffMade(CpxDiff cpxDiff) {
     if (editor != null) editor.onDiffMade();
-    if (onDiffMadeListener != null)
-      onDiffMadeListener.run();
+    if (onDiffMadeListener != null) onDiffMadeListener.accept(cpxDiff.diffLineRanges());
+  }
+
+  private void onChangeApplied(CpxDiff cpxDiff) {
+    if (editor != null) editor.onDiffMade();
   }
 
   CodeLine caretCodeLine() {
@@ -555,10 +604,6 @@ public class Model {
     boolean isDisableParser();
 
     CodeLineColorScheme getColorScheme();
-
-    UndoBuffer getUndoBuffer();
-
-    void syncEditing(CpxDiff diffs, boolean isUndo);
   }
 
   public boolean hasDiffModel() {

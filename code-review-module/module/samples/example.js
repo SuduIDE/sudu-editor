@@ -26,11 +26,7 @@ const initialText2 =
     "to write an portable (Web + Desktop)\n" +
     "editor in kotlin and java";
 
-let model1 = editorApi.newTextModel(initialText1, null, "urlNew")
-let model2 = editorApi.newTextModel(initialText2, null, "urlNew")
-
-model1.setEditListener(m => console.log("Test: model1 change event"))
-model2.setEditListener(m => console.log("Test: model2 change event"))
+let model = editorApi.newDiffModel(threadPool, initialText1, initialText2, "urlNew", "urlNew", null);
 
 codeReview.setDiffSizeListener(
     (numLines, lineHeight, cssLineHeight) => {
@@ -40,7 +36,7 @@ codeReview.setDiffSizeListener(
     }
 )
 
-codeReview.setModel(model1, model2);
+codeReview.setModel(model);
 codeReview.focus()
 
 let compactView = false
@@ -68,6 +64,6 @@ const controls = {
 
 Object.entries(controls).forEach(([icon, handler]) => controlPanel.add(icon, handler))
 
-const textModel = editorApi.newTextModel(initialText1, null, {path:"text.txt"});
+const textModel = editorApi.newTextModel(threadPool, initialText1, null, {path:"text.txt"});
 
 console.log("language", textModel.language);

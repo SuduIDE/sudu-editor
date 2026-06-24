@@ -86,6 +86,11 @@ export type _SemanticTokenLegendItem = {
   color?: _SemanticTokenColorSettings;
 };
 
+export type EditInfo = {
+  from: number,
+  to: number,
+}
+
 export interface ITextModel extends IDisposable {
   language?: string
   uri?: Uri
@@ -96,7 +101,7 @@ export interface ITextModel extends IDisposable {
 
   getText(): string
 
-  setEditListener(listener: (m: ITextModel) => void): void
+  setEditListener(listener: (m: ITextModel, info: EditInfo) => void): void
 
   setText(newText: string, fireEvent: boolean): void
 

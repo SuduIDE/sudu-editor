@@ -63,10 +63,44 @@ export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
 }
 
 export interface CodeReviewView extends IFileDiffView, IDisposable {
-  setModel(modelL: ITextModel, modelR: ITextModel): void
+  setModel(model: ITextDiffModel): void
 }
 
-export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
+export function newTextModel(
+  workers: WorkerPool,
+  text: string, language?: string, uri?: Uri
+): ITextModel
+
+export interface LinesInfo {
+  linesAdded : number;
+  linesRemoved : number;
+  linesModified : number;
+}
+
+export interface ApplyChangeInfo {
+  oldFrom: number;
+  oldTo: number;
+  newFrom: number;
+  newTo: number;
+  isAccepted: boolean;
+}
+
+export interface ITextDiffModel {
+  getLeftModel(): ITextModel;
+  getRightModel(): ITextModel;
+
+  getLinesInfo(): Promise<LinesInfo>;
+
+  setApplyRejectListener(listener: (info: ApplyChangeInfo) => void): void;
+  enableSyncEdit(flag: boolean): void;
+}
+
+export function newDiffModel(
+    workers: WorkerPool,
+    text1: string, text2: string,
+    uri1?: Uri, uri2?: Uri,
+    language?: string,
+): ITextDiffModel
 
 export function newEditor(args: EditArgs): EditorView
 

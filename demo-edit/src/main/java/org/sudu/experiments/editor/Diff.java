@@ -29,12 +29,8 @@ public class Diff {
     return lineCnt;
   }
 
-  public Diff copyWithNewLine(int oppositeLine) {
-    return new Diff(oppositeLine, pos, isDelete, change);
-  }
-
   @Override
   public String toString() {
-    return change.replaceAll("\n", "\\\\n");
+    return String.format("(%d:%d): \"%s\"", line, pos, change);
   }
 }
