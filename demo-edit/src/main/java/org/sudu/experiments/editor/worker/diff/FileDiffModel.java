@@ -115,7 +115,7 @@ public class FileDiffModel {
   }
 
   public void iterativeParseFileListener(boolean left, int start, int stop) {
-    setModelFlagsBit(left ? LEFT_MODEL_BIT : RIGHT_MODEL_BIT);
+    setModelFlagsBit(left);
 
     if (diffModel == null) {
       if (modelFlagsReady()) sendToDiff(false);
