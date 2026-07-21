@@ -31,7 +31,7 @@ public abstract class WglGraphics {
   private GL.Mesh rectangle;
 
   // state
-  private final V2i clientRect = new V2i();
+  public final V2i clientRect = new V2i();
   private GL.Program currentShader;
   private int attributeMask = 0;
   private boolean blendState;
@@ -248,6 +248,10 @@ public abstract class WglGraphics {
     attributeMask = rectangle.draw(attributeMask);
   }
 
+  public void drawMesh(GL.Mesh mesh) {
+    attributeMask = mesh.draw(attributeMask);
+  }
+
   public void drawRect(int x, int y, V2i size, V4f color) {
     setShader(shConstColor);
     shConstColor.setPosition(gl, x, y, size, clientRect);
@@ -339,7 +343,7 @@ public abstract class WglGraphics {
     gl.checkError(title);
   }
 
-  private void setShader(GL.Program shader) {
+  public void setShader(GL.Program shader) {
     // syncScissor();
     if (shader != currentShader) {
       gl.useProgram(shader.program);

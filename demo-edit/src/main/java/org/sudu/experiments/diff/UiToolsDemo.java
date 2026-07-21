@@ -82,7 +82,9 @@ public class UiToolsDemo extends WindowScene implements DprChangeListener {
   }
 
   private void newEditorWindow() {
-    new EditorWindow(windowManager, theme, UiToolsDemo::menuFonts).focus();
+    EditorWindow editorWindow = new EditorWindow(windowManager, theme, UiToolsDemo::menuFonts);
+    editorWindow.focus();
+    editorWindow.setDisableParser(false);
   }
 
   @Override
