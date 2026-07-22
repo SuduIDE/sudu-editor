@@ -9,12 +9,12 @@ import static org.sudu.experiments.Shaders.*;
 
 class SwimlaneShader extends Shaders.Shader2d {
   final GLApi.UniformLocation uColor;
-  final GLApi.UniformLocation uParameters;
+//  final GLApi.UniformLocation uParameters;
 
   SwimlaneShader(GLApi.Context gl) {
     super(gl, vsCode(), psCode(), GL.VertexLayout.POS2_UV2);
     uColor = gl.getUniformLocation(program, "uColor");
-    uParameters = gl.getUniformLocation(program, "uParameters");
+   // uParameters = gl.getUniformLocation(program, "uParameters");
   }
 
   static GL.Mesh createSwRectangle(GLApi.Context gl, float x0, float x1) {
@@ -32,31 +32,38 @@ class SwimlaneShader extends Shaders.Shader2d {
             uniform vec2 uResolution;
             uniform vec2 uParameters;
             in vec2 vPos, vTex;
-            out vec2 outScreenPos;
-            out vec2 textureUV;
+            out vec2 screenPos;
+            out vec2 lrScreen;
             
-            vec2 glToPixel(vec2 pos, vec2 resolution) {
-              return vec2((pos.x + 1.0) * 0.5 * resolution.x, (1.0 - pos.y) * 0.5 * resolution.y);
-            }
+            float translateScaleX(float x) { return x * uSizePos.x + uSizePos.z; }
+            float translateScaleY(float y) { return y * uSizePos.y + uSizePos.w; }
 
-            vec2 pixelToGl(vec2 px, vec2 resolution) {
-              return vec2(px.x * 2.0 / resolution.x - 1.0, 1.0 - px.y * 2.0 / resolution.y);
-            }
-
-            vec2 translateScale(vec2 pos) {
-              return vec2(pos.x * uSizePos.x + uSizePos.z, pos.y * uSizePos.y + uSizePos.w);
-            }
+            float glToPixelX(float x) { return (x + 1.0) * 0.5 * uResolution.x; }
+            float glToPixelY(float y) { return (1.0 - y) * 0.5 * uResolution.y; }
+            float pixelToGlX(float x) { return x * 2.0 / uResolution.x - 1.0; }
+            float pixelToGlY(float y) { return 1.0 - y * 2.0 / uResolution.y; }
+            
+            vec2 glToPixel(vec2 gl) { return vec2(glToPixelX(gl.x), glToPixelY(gl.y)); }
+            vec2 pixelToGl(vec2 px) { return vec2(pixelToGlX(px.x), pixelToGlY(px.y)); }
             
             void main() {
-              vec2 pos = translateScale(vPos);
               float lX = mix(vPos.x, vTex.x, vTex.y);
               float rX = mix(vTex.x, vPos.x, vTex.y);
-              outScreenPos = glToPixel(pos, uResolution.xy);
-              if (uParameters.x > 0.5) {
-                outScreenPos.x = mix(floor(outScreenPos.x), ceil(outScreenPos.x), vTex.y);
-                pos = pixelToGl(outScreenPos, uResolution.xy);
-              }
-              textureUV = vTex;
+
+              vec2 pos = vec2(translateScaleX(vPos.x), translateScaleY(vPos.y));
+              float lPx = glToPixelX(translateScaleX(lX));
+              float rPx = glToPixelX(translateScaleX(rX));
+  
+              float screenX = glToPixelX(pos.x);
+              float screenY = glToPixelY(pos.y);
+            
+              // extend left/right edge to left/right pixel bound
+              screenX = mix(floor(screenX), ceil(screenX), vTex.y);
+              // convert back to gl space
+              pos.x = pixelToGlX(screenX);
+
+              screenPos = vec2(screenX, screenY);
+              lrScreen = vec2(lPx, rPx);
               gl_Position = vec4(pos, 0.0, 1.0);
             }""";
   }
@@ -66,13 +73,13 @@ class SwimlaneShader extends Shaders.Shader2d {
         """
             layout(location = 0) out vec4 outColor;
             uniform vec4 uColor;
-            in vec2 textureUV;
-            in vec2 outScreenPos;
+            in vec2 screenPos;
+            in vec2 lrScreen;
             void main() {
-              float f = fract(outScreenPos.y);
-              float g = outScreenPos.y - trunc(outScreenPos.y);
-              float a = textureUV.y * 0.5 + 0.5;
-              outColor = vec4(uColor.xyz * a, 1.0);
+              float lPx = max(lrScreen.x, screenPos.x - 0.5);
+              float rPx = min(lrScreen.y, screenPos.x + 0.5);
+              float inside = rPx - lPx;
+              outColor = vec4(uColor.xyz * inside, 1.0);
             }""";
   }
 
@@ -81,6 +88,6 @@ class SwimlaneShader extends Shaders.Shader2d {
   }
 
   void setParameters(GLApi.Context gl, float x, float y) {
-    gl.uniform2f(uParameters, x, y);
+  //  gl.uniform2f(uParameters, x, y);
   }
 }

@@ -2,21 +2,25 @@ package org.sudu.experiments.swimlane;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.editor.DemoRect;
-import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.input.MouseListener;
+import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.SetCursor;
 
 import java.util.function.Consumer;
 
-public class SwimlaneTest extends Scene0 implements MouseListener {
+public class SwimlaneTest extends Scene0 implements MouseListener, InputListeners.KeyHandler {
 
   final WglGraphics g;
 
   private final SetCursor setCursor;
   final SwimlaneShader shader;
   GL.Mesh mesh;
+
+  float m1L, m1R;
+  float m2L, m2R;
+
+  GL.Mesh mesh1, mesh2;
 
   DemoRect control = new DemoRect();
 
@@ -25,6 +29,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener {
 
   float animTime, lastTs;
   boolean mouseDown;
+  boolean uParameterX = false;
 
   public SwimlaneTest(SceneApi api) {
     super(api);
@@ -32,6 +37,8 @@ public class SwimlaneTest extends Scene0 implements MouseListener {
     Color.Cvt.gray(255, control.color);
     api.input.onMouse.add(this);
     api.input.onScroll.add(this::onMouseWheel);
+    api.input.onKeyPress.add(this);
+    api.input.onKeyRelease.add(this);
     this.g = api.graphics;
     setCursor = SetCursor.wrap(api.window);
     createMesh();
@@ -64,6 +71,11 @@ public class SwimlaneTest extends Scene0 implements MouseListener {
 
   @Override
   public void paint() {
+    if (mesh1 == null)
+      mesh1 = SwimlaneShader.createSwRectangle(g.gl, m1L, m1R);
+    if (mesh2 == null)
+      mesh2 = SwimlaneShader.createSwRectangle(g.gl, m2L, m2R);
+
     g.clear(clearColor);
     drawRect();
     g.enableBlend(true);
@@ -72,18 +84,31 @@ public class SwimlaneTest extends Scene0 implements MouseListener {
 
   private void drawRect() {
     g.setShader(shader);
-    shader.setPosition(g.gl, control.pos.x, control.pos.y, control.size, g.clientRect);
     shader.setColor(g.gl, control.color);
+    shader.setPosition(g.gl, control.pos.x, control.pos.y - control.size.y - 5, control.size, g.clientRect);
+    g.drawMesh(mesh1);
+    shader.setPosition(g.gl, control.pos.x, control.pos.y, control.size, g.clientRect);
+    g.drawMesh(mesh2);
+    shader.setPosition(g.gl, control.pos.x, control.pos.y + control.size.y + 5, control.size, g.clientRect);
     g.drawMesh(mesh);
   }
+
+  float pixelToGlX(float x, int screenX) { return x * 2.f / screenX - 1.f; }
+  float pixelToGlY(float y, int screenY) { return 1.f - y * 2.f / screenY; }
 
   @Override
   public void onResize(V2i size, float dpr) {
     super.onResize(size, dpr);
     int _20 = DprUtil.toPx(20, dpr);
-    int _50 = size.x / 2;
-    control.size.set(_50, _20);
+    int width = size.x / 2;
+    control.size.set(width, _20);
     control.pos.set((size.x - control.size.x) / 2, (size.y - control.size.y) / 2);
+
+    m1L = pixelToGlX(10-.25f, width);
+    m1R = pixelToGlX(20+.25f, width);
+
+    m2L = pixelToGlX(10-.75f, width);
+    m2R = pixelToGlX(20+.75f, width);
   }
 
   boolean onMouseWheel(MouseEvent event, float dX, float dY) {
@@ -113,6 +138,17 @@ public class SwimlaneTest extends Scene0 implements MouseListener {
 
   @Override
   public boolean onMouseMove(MouseEvent event) {
+    return false;
+  }
+
+  @Override
+  public boolean onKeyPress(KeyEvent event) {
+    if (event.keyCode == KeyCode.SPACE && event.singlePress()) {
+      uParameterX = !uParameterX;
+      System.out.println("uParameterX = " + uParameterX);
+      return true;
+    }
+    System.out.println("event = " + event);
     return false;
   }
 
