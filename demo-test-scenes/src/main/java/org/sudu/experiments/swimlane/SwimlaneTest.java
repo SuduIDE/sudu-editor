@@ -1,10 +1,11 @@
 package org.sudu.experiments.swimlane;
 
 import org.sudu.experiments.*;
-import org.sudu.experiments.editor.DemoRect;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.Color;
+import org.sudu.experiments.math.V2f;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.SetCursor;
 
 import java.util.function.Consumer;
@@ -15,39 +16,50 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
 
   private final SetCursor setCursor;
   final SwimlaneShader shader;
-  GL.Mesh mesh;
 
-  float m1L, m1R;
-  float m2L, m2R;
+  float[] data1 = new float[8];
+  float[] data2 = new float[16000];
 
-  GL.Mesh mesh1, mesh2;
+  GL.Mesh mesh1;
+  GL.Mesh mesh2;
 
-  DemoRect control = new DemoRect();
+  final V4f color = new V4f(1,1,1,1);
+  V2f pos = new V2f();
+  V2f size = new V2f();
+
+  V2f posT = new V2f();
+  V2f sizeT = new V2f();
 
   int scrollPos = 0;
   int virtualSize = 5000;
 
   float animTime, lastTs;
+  float scale = 1;
   boolean mouseDown;
   boolean uParameterX = false;
 
   public SwimlaneTest(SceneApi api) {
     super(api);
     Color.Cvt.gray(0, clearColor);
-    Color.Cvt.gray(255, control.color);
+    Color.Cvt.gray(255, color);
     api.input.onMouse.add(this);
     api.input.onScroll.add(this::onMouseWheel);
     api.input.onKeyPress.add(this);
     api.input.onKeyRelease.add(this);
     this.g = api.graphics;
     setCursor = SetCursor.wrap(api.window);
-    createMesh();
     shader = new SwimlaneShader(g.gl);
+  }
+
+  static GL.Mesh disposeMesh(GL.Mesh mesh) {
+    if (mesh != null)
+      mesh.dispose();
+    return null;
   }
 
   @Override
   public void dispose() {
-    mesh.dispose();
+    disposeMesh();
     shader.dispose(g.gl);
     super.dispose();
   }
@@ -56,66 +68,74 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   public boolean update(double timestamp) {
     if (mouseDown) {
       animTime += (float) timestamp - lastTs;
-      mesh.dispose();
-      createMesh();
+      scale = (float) (2.25f + Math.sin(animTime) * 2f);
     }
     lastTs = (float) timestamp;
     return mouseDown;
   }
 
-  private void createMesh() {
-    mesh = SwimlaneShader.createSwRectangle(g.gl,
-        -0.5f + 0.5f * (float) Math.sin(animTime),
-        0.5f + 0.5f * (float) Math.cos(animTime));
-  }
+  static float[] a(float ... lr) { return lr; }
 
   @Override
   public void paint() {
     if (mesh1 == null)
-      mesh1 = SwimlaneShader.createSwRectangle(g.gl, m1L, m1R);
+      mesh1 = SwimlaneShader.createSwimlaneMesh(g.gl, data1);
     if (mesh2 == null)
-      mesh2 = SwimlaneShader.createSwRectangle(g.gl, m2L, m2R);
+      mesh2 = SwimlaneShader.createSwimlaneMesh(g.gl, data2);
 
+    g.setBlend(WglGraphics.blendAddSrcA);
     g.clear(clearColor);
     drawRect();
-    g.enableBlend(true);
     g.enableBlend(false);
   }
 
   private void drawRect() {
     g.setShader(shader);
-    shader.setColor(g.gl, control.color);
-    shader.setPosition(g.gl, control.pos.x, control.pos.y - control.size.y - 5, control.size, g.clientRect);
+    shader.setColor(g.gl, color);
+    posT.set(pos);
+    sizeT.set(size.x * scale, size.y);
+    shader.setPosition(g.gl, pos.x, pos.y - sizeT.y - 5, sizeT, g.clientRect);
     g.drawMesh(mesh1);
-    shader.setPosition(g.gl, control.pos.x, control.pos.y, control.size, g.clientRect);
+    shader.setPosition(g.gl, pos.x, posT.y, sizeT, g.clientRect);
     g.drawMesh(mesh2);
-    shader.setPosition(g.gl, control.pos.x, control.pos.y + control.size.y + 5, control.size, g.clientRect);
-    g.drawMesh(mesh);
   }
 
   float pixelToGlX(float x, int screenX) { return x * 2.f / screenX - 1.f; }
   float pixelToGlY(float y, int screenY) { return 1.f - y * 2.f / screenY; }
 
   @Override
-  public void onResize(V2i size, float dpr) {
-    super.onResize(size, dpr);
+  public void onResize(V2i sSize, float dpr) {
+    super.onResize(sSize, dpr);
     int _20 = DprUtil.toPx(20, dpr);
-    int width = size.x / 2;
-    control.size.set(width, _20);
-    control.pos.set((size.x - control.size.x) / 2, (size.y - control.size.y) / 2);
+    int width = sSize.x * 7 / 8;
+    size.set(width, _20);
+    pos.set((sSize.x - size.x) / 2, (sSize.y - size.y) / 2);
 
-    m1L = pixelToGlX(10-.25f, width);
-    m1R = pixelToGlX(20+.25f, width);
+    data1[0] = pixelToGlX(10-.25f, width);
+    data1[1] = pixelToGlX(20+.25f, width);
 
-    m2L = pixelToGlX(10-.75f, width);
-    m2R = pixelToGlX(20+.75f, width);
+    data1[2] = pixelToGlX(20+.75f, width);
+    data1[3] = pixelToGlX(45+.5f, width);
+
+    data1[4] = pixelToGlX(45+.5f, width);
+    data1[5] = pixelToGlX(50, width);
+
+    data1[6] = pixelToGlX(53-1.f/51, width);
+    data1[7] = pixelToGlX(58+1.f/51, width);
+
+    for (int i = 0; i < data2.length / 2; i++) {
+      data2[i*2    ] = pixelToGlX(i * 3, width);
+      data2[i*2 + 1] = pixelToGlX(i * 3 + 1, width);
+    }
+    disposeMesh();
+  }
+
+  private void disposeMesh() {
+    mesh1 = disposeMesh(mesh1);
+    mesh2 = disposeMesh(mesh2);
   }
 
   boolean onMouseWheel(MouseEvent event, float dX, float dY) {
-    int change = (Math.abs((int) dY) + 4) / 2;
-    int change1 = dY < 0 ? -1 : 1;
-    scrollPos = clampScrollPos(scrollPos + change * change1);
-
     return true;
   }
 
@@ -151,13 +171,5 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     System.out.println("event = " + event);
     return false;
   }
-
-  int clampScrollPos(int pos) {
-    return Math.min(Math.max(0, pos), scrollMaxValue());
-  }
-
-  int scrollMaxValue() { return virtualSize - controlHeight(); }
-
-  int controlHeight() { return control.size.y; }
 
 }

@@ -1,5 +1,6 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.math.V2f;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
@@ -177,6 +178,15 @@ public interface Shaders {
     public void setPosition(GLApi.Context gl, float x, float y, V2i size, V2i screen) {
       float sx = (float) size.x / screen.x;
       float sy = (float) size.y / screen.y;
+      float px = (x * 2 + size.x) / screen.x - 1;
+      float py = 1 - (y * 2 + size.y) / screen.y;
+      gl.uniform4f(uSizePos, sx, sy, px, py);
+      setScreenSize(gl, screen);
+    }
+
+    public void setPosition(GLApi.Context gl, float x, float y, V2f size, V2i screen) {
+      float sx = size.x / screen.x;
+      float sy = size.y / screen.y;
       float px = (x * 2 + size.x) / screen.x - 1;
       float py = 1 - (y * 2 + size.y) / screen.y;
       gl.uniform4f(uSizePos, sx, sy, px, py);

@@ -17,6 +17,32 @@ class SwimlaneShader extends Shaders.Shader2d {
    // uParameters = gl.getUniformLocation(program, "uParameters");
   }
 
+  // x1,-1, x0,1, /**/ x1,1, x0,1, /**/ x0,-1, x1,0, /**/ x0,1, x1,0
+  static void setVbSquare(int p, float x0, float x1, float[] vb) {
+    vb[p   ] = x1; vb[p+1 ] = -1;  vb[p+2 ] = x0;  vb[p+3 ] = 1;
+    vb[p+4 ] = x1; vb[p+5 ] =  1;  vb[p+6 ] = x0;  vb[p+7 ] = 1;
+    vb[p+8 ] = x0; vb[p+9 ] = -1;  vb[p+10] = x1;  vb[p+11] = 0;
+    vb[p+12] = x0; vb[p+13] =  1;  vb[p+14] = x1;  vb[p+15] = 0;
+  }
+
+  static void setIbSquare(int p, int n, char[] ib) {
+    ib[p  ] = (char) (n  ); ib[p+1] = (char) (n+1); ib[p+2] = (char) (n+2);
+    ib[p+3] = (char) (n+1); ib[p+4] = (char) (n+2); ib[p+5] = (char) (n+3);
+  }
+
+  static GL.Mesh createSwimlaneMesh(GLApi.Context gl, float[] tsBE) {
+    int numSquares = Math.min(tsBE.length / 2, 0x1_00_00 / 4);
+    float[] vb  = new float[numSquares * 4 * 4];
+    char[] ib = new char[numSquares * 6];
+    for (int i = 0; i < numSquares; i++) {
+      int vbp = i * 16, ibp = i * 6;
+      float x0 = tsBE[i * 2], x1 = tsBE[i * 2 + 1];
+      setVbSquare(vbp, x0, x1, vb);
+      setIbSquare(ibp, i * 4, ib);
+    }
+    return new GL.Mesh(gl, GL.VertexLayout.POS2_UV2, vb, ib);
+  }
+
   static GL.Mesh createSwRectangle(GLApi.Context gl, float x0, float x1) {
     float[] vbData = { x1,-1, x0,1, /**/ x1,1, x0,1, /**/ x0,-1, x1,0, /**/ x0,1, x1,0  };
     char[] index = { 0, 1, 2, /**/ 1, 2, 3, /**/  /* 0, 2, 1, */ /**/ /* 1, 3, 2 */ };
