@@ -178,10 +178,12 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   }
 
   private void drawScrollBar() {
+    g.enableBlend(true);
     vScroll.drawBg(g);
     hScroll.drawBg(g);
     vScroll.drawButton(g);
     hScroll.drawButton(g);
+    g.enableBlend(false);
   }
 
   private void createMesh() {
