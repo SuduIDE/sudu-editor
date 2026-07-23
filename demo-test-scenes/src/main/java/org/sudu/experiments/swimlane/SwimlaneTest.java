@@ -139,7 +139,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
       updated = true;
       float delta = (float) Math.cbrt(scAnimTime) / 10 * (down ? -1 : 1);
       scale += delta;
-      scale = Math.max(MIN_SCALE, Math.min(scale, MAX_SCALE));
+      clampScaleValue();
       scAnimTime += (float) timestamp - scLastTs;
       setVScrollPosByScale();
     } else {
@@ -149,7 +149,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
       updated = true;
       float delta = (float) (Math.pow(ofAnimTime, .3f)) / screen.x * (left ? -1 : 1);
       offset += delta;
-      offset = Math.max(MIN_OFFSET, Math.min(offset, MAX_OFFSET));
+      clampOffsetValue();
       ofAnimTime += (float) timestamp - ofLastTs;
       setHScrollPosByOffset();
     } else {
@@ -157,6 +157,14 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     }
     scLastTs = ofLastTs = (float) timestamp;
     return updated;
+  }
+
+  private void clampScaleValue() {
+    scale = Math.max(MIN_SCALE, Math.min(scale, MAX_SCALE));
+  }
+
+  private void clampOffsetValue() {
+    offset = Math.max(MIN_OFFSET, Math.min(offset, MAX_OFFSET));
   }
 
   @Override
@@ -243,8 +251,10 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
         public void accept(MouseEvent e) {
           int deltaY = e.position.y - startY;
           scale *= (float) Math.pow(2.f, 2. * deltaY / screen.y);
+          clampScaleValue();
           int deltaX = e.position.x - startX;
           offset += 2.f * deltaX / screen.x / scale;
+          clampOffsetValue();
           startX = e.position.x;
           startY = e.position.y;
           setVScrollPosByScale();
