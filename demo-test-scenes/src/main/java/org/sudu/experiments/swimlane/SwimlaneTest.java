@@ -17,6 +17,8 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   public static final int lineEventsMax = 15000;
   public static final int lines = 20;
 
+  static final boolean render2Lines = false;
+
   final WglGraphics g;
 
   private final SetCursor setCursor;
@@ -34,12 +36,15 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   // layout
   int sizeY, gapY, startY;
 
+  int scrollPos = 0;
+  int virtualSize = 5000;
+
   // debug
   final float MIN_SCALE = .5f, MAX_SCALE = 500f;
   final float MIN_OFFSET = -1, MAX_OFFSET = 1;
   float scAnimTime, scLastTs;
   float ofAnimTime, ofLastTs;
-  float scale = 20;
+  float scale = 25;
   float offset = 0;
   boolean mouseDown;
   boolean uParameterX = false;
@@ -62,7 +67,8 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     setCursor = SetCursor.wrap(api.window);
     shader = new SwimlaneShader(g.gl);
     data = SwimlaneData.create(
-        lines, lineEventsMin, lineEventsMax,
+        lines + (render2Lines ? lines / 2 : 0),
+        lineEventsMin, lineEventsMax,
         timeRange, durationFrequency, gapFrequency);
     color = new V4f[data.length];
     XorShiftRandom r = new  XorShiftRandom();
@@ -161,9 +167,9 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     g.setBlend(WglGraphics.blendAddSrcA);
     g.clear(clearColor);
     drawRect();
+    g.enableBlend(false);
     layoutScrollbar();
     drawScrollBar();
-    g.enableBlend(false);
   }
 
   private void layoutScrollbar() {
@@ -188,25 +194,31 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   private void drawRect() {
     g.setShader(shader);
 
-    for (int i = 0; i < mesh.length; i++) {
+    for (int i = 0, p = 0; i < lines; i++) {
       int y = startY + (gapY + sizeY) * i;
 
       float sx = 2f / timeRange * scale;
-      float px = roundToScreenPixel(scale * (offset - 1)) ;
+      float px = roundToScreenPixel(scale * (offset - 1));
       float sy = 1.f * sizeY / screen.y;
       float py = 1 - (y * 2.f + sizeY) / screen.y;
 
       shader.setPosition(g.gl, sx, sy, px, py, g.clientRect);
-      shader.setColor(g.gl, color[i]);
-      g.drawMesh(mesh[i]);
+      shader.setColor(g.gl, color[p]);
+      g.drawMesh(mesh[p]);
+      p++;
+      if (render2Lines && i % 2 == 0) {
+        shader.setColor(g.gl, color[p]);
+        g.drawMesh(mesh[p]);
+        p++;
+      }
     }
   }
 
   @Override
   public void onResize(V2i sSize, float dpr) {
     super.onResize(sSize, dpr);
-    sizeY = sSize.y / (data.length + data.length / 2);
-    gapY = (sSize.y - sizeY * data.length) / data.length;
+    sizeY = sSize.y / (lines + lines / 2);
+    gapY = (sSize.y - sizeY * lines) / lines;
     startY = gapY / 2;
   }
 
@@ -218,8 +230,25 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
     if (button == MOUSE_BUTTON_LEFT) {
       mouseDown = true;
-      if (vScroll.hitButton(event.position)) return vScroll.onMouseDown(event.position, this::onVScroll, true);
-      if (hScroll.hitButton(event.position)) return hScroll.onMouseDown(event.position, this::onHScroll, false);
+      if (vScroll.hitButton(event.position))
+        return vScroll.onMouseDown(event.position, this::onVScroll, true);
+      if (hScroll.hitButton(event.position))
+        return hScroll.onMouseDown(event.position, this::onHScroll, false);
+      return new Consumer<>() {
+        int startX = event.position.x;
+        int startY = event.position.y;
+        @Override
+        public void accept(MouseEvent e) {
+          int deltaY = e.position.y - startY;
+          scale *= (float) Math.pow(2.f, 2. * deltaY / screen.y);
+          int deltaX = e.position.x - startX;
+          offset += 2.f * deltaX / screen.x / scale;
+          startX = e.position.x;
+          startY = e.position.y;
+          setVScrollPosByScale();
+          setHScrollPosByScale();
+        }
+      };
     }
     return Static.emptyConsumer;
   }
