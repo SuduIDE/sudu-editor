@@ -39,10 +39,15 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   int virtualSize = 5000;
 
   // debug
-  float animTime, lastTs;
+  final float MIN_SCALE = .5f, MAX_SCALE = 100f;
+  float scAnimTime, scLastTs;
+  float ofAnimTime, ofLastTs;
   float scale = 1;
+  float offset = -1;
   boolean mouseDown;
   boolean uParameterX = false;
+  boolean down = false, up = false;
+  boolean left = false, right = false;
 
   public SwimlaneTest(SceneApi api) {
     super(api);
@@ -95,11 +100,22 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
 
   @Override
   public boolean update(double timestamp) {
-    if (mouseDown) {
-      animTime += (float) timestamp - lastTs;
-      scale = (float) (2.25f + Math.sin(animTime) * 2f);
+    if (down ^ up) {
+      float delta = (float) Math.log10(1 + scAnimTime) / 100 * (down ? -1 : 1);
+      scale += delta;
+      scale = Math.max(MIN_SCALE, Math.min(scale, MAX_SCALE));
+      scAnimTime += (float) timestamp - scLastTs;
+    } else {
+      scAnimTime = 0;
     }
-    lastTs = (float) timestamp;
+    if (left ^ right) {
+      float delta = (float) Math.sqrt(ofAnimTime) / 1000 * (left ? -1 : 1);
+      offset += delta;
+      ofAnimTime += (float) timestamp - ofLastTs;
+    } else {
+      ofAnimTime = 0;
+    }
+    scLastTs = ofLastTs = (float) timestamp;
     return mouseDown;
   }
 
@@ -134,8 +150,8 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     for (int i = 0; i < mesh.length; i++) {
       int y = startY + (gapY + sizeY) * i;
 
-      float sx = 2f / timeRange * 18 / 20;
-      float px = -1 + 2.f / 20;
+      float sx = 2f / timeRange * scale;
+      float px = offset;
       float sy = 1.f * sizeY / screen.y;
       float py = 1 - (y * 2.f + sizeY) / screen.y;
 
@@ -181,6 +197,10 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
 
   @Override
   public boolean onKeyPress(KeyEvent event) {
+    if (event.keyCode == KeyCode.ARROW_DOWN) down = event.isPressed;
+    if (event.keyCode == KeyCode.ARROW_UP) up = event.isPressed;
+    if (event.keyCode == KeyCode.ARROW_LEFT) left = event.isPressed;
+    if (event.keyCode == KeyCode.ARROW_RIGHT) right = event.isPressed;
     if (event.keyCode == KeyCode.SPACE && event.singlePress()) {
       uParameterX = !uParameterX;
       System.out.println("uParameterX = " + uParameterX);
