@@ -12,8 +12,8 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   public static final int timeRange = 100;
   public static final int durationFrequency = 5;
   public static final int gapFrequency = 2;
-  public static final int lineEventsMin = 150;
-  public static final int lineEventsMax = 300;
+  public static final int lineEventsMin = 10000;
+  public static final int lineEventsMax = 15000;
   public static final int lines = 20;
 
   final WglGraphics g;
@@ -42,8 +42,8 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   final float MIN_SCALE = .5f, MAX_SCALE = 100f;
   float scAnimTime, scLastTs;
   float ofAnimTime, ofLastTs;
-  float scale = 1;
-  float offset = -1;
+  float scale = 20;
+  float offset = 0;
   boolean mouseDown;
   boolean uParameterX = false;
   boolean down = false, up = false;
@@ -69,6 +69,15 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
       color[i] = new V4f();
       setRandomColor(color[i], r);
     }
+    int events = countEvents(data);
+    api.window.setTitle("Swimlane demo " + events + " events");
+  }
+
+  static int countEvents(float[][] data) {
+    int count = 0;
+    for (float[] line : data)
+      count += line.length / 2;
+    return count;
   }
 
   private void setRandomColor(V4f c, XorShiftRandom r) {
@@ -98,6 +107,11 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     super.dispose();
   }
 
+  float roundToScreenPixel(float offset) {
+    int deltaPixels = Math.round(offset * screen.x / 2.f);
+    return deltaPixels * 2.f / screen.x;
+  }
+
   @Override
   public boolean update(double timestamp) {
     boolean updated = false;
@@ -112,7 +126,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     }
     if (left ^ right) {
       updated = true;
-      float delta = (float) (Math.sqrt(1+ofAnimTime)) / 1000 * (left ? -1 : 1);
+      float delta = (float) (2 * Math.pow(1 + ofAnimTime, 1)) / screen.x * (left ? -1 : 1);
       offset += delta;
       ofAnimTime += (float) timestamp - ofLastTs;
     } else {
@@ -152,7 +166,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
       int y = startY + (gapY + sizeY) * i;
 
       float sx = 2f / timeRange * scale;
-      float px = offset;
+      float px = roundToScreenPixel(offset) - 1;
       float sy = 1.f * sizeY / screen.y;
       float py = 1 - (y * 2.f + sizeY) / screen.y;
 
@@ -196,18 +210,34 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     return false;
   }
 
+  int m = 0;
+
   @Override
   public boolean onKeyPress(KeyEvent event) {
     if (event.keyCode == KeyCode.ARROW_DOWN) down = event.isPressed;
     if (event.keyCode == KeyCode.ARROW_UP) up = event.isPressed;
     if (event.keyCode == KeyCode.ARROW_LEFT) left = event.isPressed;
     if (event.keyCode == KeyCode.ARROW_RIGHT) right = event.isPressed;
+
+    if (false) {
+      if (event.keyCode == KeyCode.ARROW_LEFT && event.singlePress()) {
+        // left = event.isPressed;
+        offset -= 2.f / screen.x;
+        System.out.println("[" + (++m) + "]offset = " + offset);
+      }
+      if (event.keyCode == KeyCode.ARROW_RIGHT && event.singlePress()) {
+        // right = event.isPressed;
+        offset += 2.f / screen.x;
+        System.out.println("[" + (++m) + "]offset = " + offset);
+      }
+    }
+
     if (event.keyCode == KeyCode.SPACE && event.singlePress()) {
       uParameterX = !uParameterX;
       System.out.println("uParameterX = " + uParameterX);
       return true;
     }
-    System.out.println("event = " + event);
+//    System.out.println("event = " + event);
     return false;
   }
 
