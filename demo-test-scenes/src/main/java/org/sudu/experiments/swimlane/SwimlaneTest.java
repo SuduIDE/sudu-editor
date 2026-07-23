@@ -100,8 +100,10 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
 
   @Override
   public boolean update(double timestamp) {
+    boolean updated = false;
     if (down ^ up) {
-      float delta = (float) Math.log10(1 + scAnimTime) / 100 * (down ? -1 : 1);
+      updated = true;
+      float delta = (float) Math.log10(10 + scAnimTime) / 100 * (down ? -1 : 1);
       scale += delta;
       scale = Math.max(MIN_SCALE, Math.min(scale, MAX_SCALE));
       scAnimTime += (float) timestamp - scLastTs;
@@ -109,14 +111,15 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
       scAnimTime = 0;
     }
     if (left ^ right) {
-      float delta = (float) Math.sqrt(ofAnimTime) / 1000 * (left ? -1 : 1);
+      updated = true;
+      float delta = (float) (Math.sqrt(1+ofAnimTime)) / 1000 * (left ? -1 : 1);
       offset += delta;
       ofAnimTime += (float) timestamp - ofLastTs;
     } else {
       ofAnimTime = 0;
     }
     scLastTs = ofLastTs = (float) timestamp;
-    return mouseDown;
+    return updated;
   }
 
   @Override
@@ -134,8 +137,6 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     mesh = new GL.Mesh[data.length];
     for (int i = 0; i < data.length; i++) {
       mesh[i] = SwimlaneShader.createSwimlaneMesh(g.gl, data[i]);
-
-      System.out.println("data[i][data[i].length - 1] = " + data[i][data[i].length - 1]);
     }
   }
 
