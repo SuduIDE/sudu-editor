@@ -12,7 +12,8 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   public static final int timeRange = 100;
   public static final int durationFrequency = 5;
   public static final int gapFrequency = 2;
-  public static final int lineEvents = 10000;
+  public static final int lineEventsMin = 150;
+  public static final int lineEventsMax = 300;
   public static final int lines = 20;
 
   final WglGraphics g;
@@ -45,7 +46,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
 
   public SwimlaneTest(SceneApi api) {
     super(api);
-    Color.Cvt.gray(25, clearColor);
+    Color.Cvt.fromHSV(4./6, 1, .125, clearColor);
 //    Color.Cvt.gray(255, color);
     api.input.onMouse.add(this);
     api.input.onScroll.add(this::onMouseWheel);
@@ -54,7 +55,9 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     this.g = api.graphics;
     setCursor = SetCursor.wrap(api.window);
     shader = new SwimlaneShader(g.gl);
-    data = SwimlaneData.create(lines, lineEvents, timeRange, durationFrequency, gapFrequency);
+    data = SwimlaneData.create(
+        lines, lineEventsMin, lineEventsMax,
+        timeRange, durationFrequency, gapFrequency);
     color = new V4f[data.length];
     XorShiftRandom r = new  XorShiftRandom();
     for (int i = 0; i < color.length; i++) {
@@ -65,7 +68,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
 
   private void setRandomColor(V4f c, XorShiftRandom r) {
     double h = r.nextDouble();
-    double s = .7 + r.nextDouble() * .3;
+    double s = .5 + r.nextDouble() * .25;
     double v = .75 + r.nextDouble() * .25;
     Color.Cvt.fromHSV(h, s, v, 1, c);
   }
