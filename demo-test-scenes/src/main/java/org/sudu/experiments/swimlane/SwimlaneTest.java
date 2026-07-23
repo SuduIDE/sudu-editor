@@ -46,7 +46,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
 
   public SwimlaneTest(SceneApi api) {
     super(api);
-    Color.Cvt.fromHSV(4./6, 1, .125, clearColor);
+    Color.Cvt.fromHSV(4./6, 1, .125/2, clearColor);
 //    Color.Cvt.gray(255, color);
     api.input.onMouse.add(this);
     api.input.onScroll.add(this::onMouseWheel);
@@ -69,7 +69,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   private void setRandomColor(V4f c, XorShiftRandom r) {
     double h = r.nextDouble();
     double s = .5 + r.nextDouble() * .25;
-    double v = .75 + r.nextDouble() * .25;
+    double v = .66 + r.nextDouble() * .33/2;
     Color.Cvt.fromHSV(h, s, v, 1, c);
   }
 
