@@ -3,6 +3,7 @@ package org.sudu.experiments.swimlane;
 import org.sudu.experiments.*;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.*;
+import org.sudu.experiments.ui.ScrollBar;
 import org.sudu.experiments.ui.SetCursor;
 
 import java.util.function.Consumer;
@@ -33,13 +34,9 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   // layout
   int sizeY, gapY, startY;
 
-  V2f sizeT = new V2f();
-
-  int scrollPos = 0;
-  int virtualSize = 5000;
-
   // debug
-  final float MIN_SCALE = .5f, MAX_SCALE = 100f;
+  final float MIN_SCALE = .5f, MAX_SCALE = 500f;
+  final float MIN_OFFSET = -1, MAX_OFFSET = 1;
   float scAnimTime, scLastTs;
   float ofAnimTime, ofLastTs;
   float scale = 20;
@@ -48,6 +45,10 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   boolean uParameterX = false;
   boolean down = false, up = false;
   boolean left = false, right = false;
+
+  final int V_VIRTUAL = 10000, H_VIRTUAL = 20000;
+  final ScrollBar vScroll, hScroll;
+  int vScrollPos = 0, hScrollPos = 0;
 
   public SwimlaneTest(SceneApi api) {
     super(api);
@@ -70,7 +71,20 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
       setRandomColor(color[i], r);
     }
     int events = countEvents(data);
+
+    vScroll = new ScrollBar();
+    hScroll = new ScrollBar();
+    applyScrollStyle(vScroll);
+    applyScrollStyle(hScroll);
+    setVScrollPosByScale();
+    setHScrollPosByScale();
     api.window.setTitle("Swimlane demo " + events + " events");
+  }
+
+  private void applyScrollStyle(ScrollBar bar) {
+    bar.setColor(
+        new Color(80, 80, 80, 200),
+        new Color(43, 43, 43, 228));
   }
 
   static int countEvents(float[][] data) {
@@ -117,18 +131,21 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     boolean updated = false;
     if (down ^ up) {
       updated = true;
-      float delta = (float) Math.log10(10 + scAnimTime) / 100 * (down ? -1 : 1);
+      float delta = (float) Math.cbrt(scAnimTime) / 10 * (down ? -1 : 1);
       scale += delta;
       scale = Math.max(MIN_SCALE, Math.min(scale, MAX_SCALE));
       scAnimTime += (float) timestamp - scLastTs;
+      setVScrollPosByScale();
     } else {
       scAnimTime = 0;
     }
     if (left ^ right) {
       updated = true;
-      float delta = (float) (2 * Math.pow(1 + ofAnimTime, 1)) / screen.x * (left ? -1 : 1);
+      float delta = (float) (Math.pow(ofAnimTime, .3f)) / screen.x * (left ? -1 : 1);
       offset += delta;
+      offset = Math.max(MIN_OFFSET, Math.min(offset, MAX_OFFSET));
       ofAnimTime += (float) timestamp - ofLastTs;
+      setHScrollPosByScale();
     } else {
       ofAnimTime = 0;
     }
@@ -144,7 +161,21 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     g.setBlend(WglGraphics.blendAddSrcA);
     g.clear(clearColor);
     drawRect();
+    layoutScrollbar();
+    drawScrollBar();
     g.enableBlend(false);
+  }
+
+  private void layoutScrollbar() {
+    vScroll.layoutVertical(vScrollPos, 0, screen.y, V_VIRTUAL, screen.x, 15);
+    hScroll.layoutHorizontal(hScrollPos, 0, screen.x, H_VIRTUAL, screen.y, 15);
+  }
+
+  private void drawScrollBar() {
+    vScroll.drawBg(g);
+    hScroll.drawBg(g);
+    vScroll.drawButton(g);
+    hScroll.drawButton(g);
   }
 
   private void createMesh() {
@@ -157,16 +188,11 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   private void drawRect() {
     g.setShader(shader);
 
-    int screenWidth = screen.x * 20 / 18;
-
-    sizeT.x = 1.f * screen.x / timeRange; // * scale;
-    sizeT.y = sizeY;
-
     for (int i = 0; i < mesh.length; i++) {
       int y = startY + (gapY + sizeY) * i;
 
       float sx = 2f / timeRange * scale;
-      float px = roundToScreenPixel(offset) - 1;
+      float px = roundToScreenPixel(scale * (offset - 1)) ;
       float sy = 1.f * sizeY / screen.y;
       float py = 1 - (y * 2.f + sizeY) / screen.y;
 
@@ -192,8 +218,9 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   public Consumer<MouseEvent> onMouseDown(MouseEvent event, int button) {
     if (button == MOUSE_BUTTON_LEFT) {
       mouseDown = true;
+      if (vScroll.hitButton(event.position)) return vScroll.onMouseDown(event.position, this::onVScroll, true);
+      if (hScroll.hitButton(event.position)) return hScroll.onMouseDown(event.position, this::onHScroll, false);
     }
-
     return Static.emptyConsumer;
   }
 
@@ -208,6 +235,26 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   @Override
   public boolean onMouseMove(MouseEvent event) {
     return false;
+  }
+
+  private void onVScroll(ScrollBar.Event event) {
+    vScrollPos = event.getPosition(V_VIRTUAL - screen.y);
+    float p = ((float) vScrollPos) / (V_VIRTUAL - screen.y);
+    scale = p * (MAX_SCALE - MIN_SCALE) + MIN_SCALE;
+  }
+
+  private void onHScroll(ScrollBar.Event event) {
+    hScrollPos = event.getPosition(H_VIRTUAL - screen.x);
+    float p = ((float) hScrollPos) / (H_VIRTUAL - screen.x);
+    offset = p * (MAX_OFFSET - MIN_OFFSET) + MIN_OFFSET;
+  }
+
+  private void setVScrollPosByScale() {
+    vScrollPos = (int) (((scale - MIN_SCALE) / (MAX_SCALE - MIN_SCALE)) * (V_VIRTUAL - screen.y));
+  }
+
+  private void setHScrollPosByScale() {
+    hScrollPos = (int) (((offset - MIN_OFFSET) / (MAX_OFFSET - MIN_OFFSET)) * (H_VIRTUAL- screen.x));
   }
 
   int m = 0;
