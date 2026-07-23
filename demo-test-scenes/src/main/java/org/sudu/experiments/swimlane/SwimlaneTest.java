@@ -83,7 +83,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     applyScrollStyle(vScroll);
     applyScrollStyle(hScroll);
     setVScrollPosByScale();
-    setHScrollPosByScale();
+    setHScrollPosByOffset();
     api.window.setTitle("Swimlane demo " + events + " events");
   }
 
@@ -151,7 +151,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
       offset += delta;
       offset = Math.max(MIN_OFFSET, Math.min(offset, MAX_OFFSET));
       ofAnimTime += (float) timestamp - ofLastTs;
-      setHScrollPosByScale();
+      setHScrollPosByOffset();
     } else {
       ofAnimTime = 0;
     }
@@ -248,7 +248,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
           startX = e.position.x;
           startY = e.position.y;
           setVScrollPosByScale();
-          setHScrollPosByScale();
+          setHScrollPosByOffset();
         }
       };
     }
@@ -277,15 +277,15 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   private void onHScroll(ScrollBar.Event event) {
     hScrollPos = event.getPosition(H_VIRTUAL - screen.x);
     float p = ((float) hScrollPos) / (H_VIRTUAL - screen.x);
-    offset = p * (MAX_OFFSET - MIN_OFFSET) + MIN_OFFSET;
+    offset = -(p * (MAX_OFFSET - MIN_OFFSET) + MIN_OFFSET);
   }
 
   private void setVScrollPosByScale() {
     vScrollPos = (int) (((scale - MIN_SCALE) / (MAX_SCALE - MIN_SCALE)) * (V_VIRTUAL - screen.y));
   }
 
-  private void setHScrollPosByScale() {
-    hScrollPos = (int) (((offset - MIN_OFFSET) / (MAX_OFFSET - MIN_OFFSET)) * (H_VIRTUAL- screen.x));
+  private void setHScrollPosByOffset() {
+    hScrollPos = (int) (((-offset - MIN_OFFSET) / (MAX_OFFSET - MIN_OFFSET)) * (H_VIRTUAL - screen.x));
   }
 
   int m = 0;
