@@ -2,10 +2,7 @@ package org.sudu.experiments.swimlane;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.input.*;
-import org.sudu.experiments.math.Color;
-import org.sudu.experiments.math.V2f;
-import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.math.V4f;
+import org.sudu.experiments.math.*;
 import org.sudu.experiments.ui.SetCursor;
 
 import java.util.function.Consumer;
@@ -30,7 +27,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   GL.Mesh mesh[];
 
   // colors
-  final V4f color = new V4f(1,1,1,1);
+  V4f color[];
 
   // layout
   int sizeY, gapY, startY;
@@ -48,8 +45,8 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
 
   public SwimlaneTest(SceneApi api) {
     super(api);
-    Color.Cvt.gray(0, clearColor);
-    Color.Cvt.gray(255, color);
+    Color.Cvt.gray(25, clearColor);
+//    Color.Cvt.gray(255, color);
     api.input.onMouse.add(this);
     api.input.onScroll.add(this::onMouseWheel);
     api.input.onKeyPress.add(this);
@@ -58,6 +55,19 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     setCursor = SetCursor.wrap(api.window);
     shader = new SwimlaneShader(g.gl);
     data = SwimlaneData.create(lines, lineEvents, timeRange, durationFrequency, gapFrequency);
+    color = new V4f[data.length];
+    XorShiftRandom r = new  XorShiftRandom();
+    for (int i = 0; i < color.length; i++) {
+      color[i] = new V4f();
+      setRandomColor(color[i], r);
+    }
+  }
+
+  private void setRandomColor(V4f c, XorShiftRandom r) {
+    double h = r.nextDouble();
+    double s = .7 + r.nextDouble() * .3;
+    double v = .75 + r.nextDouble() * .25;
+    Color.Cvt.fromHSV(h, s, v, 1, c);
   }
 
   static GL.Mesh disposeMesh(GL.Mesh mesh) {
@@ -112,7 +122,6 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
 
   private void drawRect() {
     g.setShader(shader);
-    shader.setColor(g.gl, color);
 
     int screenWidth = screen.x * 20 / 18;
 
@@ -122,12 +131,13 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     for (int i = 0; i < mesh.length; i++) {
       int y = startY + (gapY + sizeY) * i;
 
-      float sx = 2f / timeRange;
+      float sx = 2f / timeRange * 18 / 20;
+      float px = -1 + 2.f / 20;
       float sy = 1.f * sizeY / screen.y;
-      float px = -1;
       float py = 1 - (y * 2.f + sizeY) / screen.y;
 
       shader.setPosition(g.gl, sx, sy, px, py, g.clientRect);
+      shader.setColor(g.gl, color[i]);
       g.drawMesh(mesh[i]);
     }
   }
