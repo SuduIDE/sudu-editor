@@ -94,6 +94,10 @@ public class XorShiftRandom {
     return poissonNumber(frequency, nextDouble());
   }
 
+  public double poissonTime(double frequency) {
+    return poissonTime(frequency, nextDouble());
+  }
+
   static public int poissonNumber(double frequency, double next) {
     double P = Math.exp(-frequency); // p[0]
     double M = next - P;             // р.р. [0,1]
@@ -102,4 +106,8 @@ public class XorShiftRandom {
       P *= frequency / ++k;
     return k;
   }
-}
+
+  // random in [0, 1)
+  public static double poissonTime(double frequency, double random) {
+    return -Math.log(1 - random) / frequency;
+  }}
