@@ -116,12 +116,18 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
 
     int screenWidth = screen.x * 20 / 18;
 
-    sizeT.x = 1.f * screenWidth / timeRange; // * scale;
+    sizeT.x = 1.f * screen.x / timeRange; // * scale;
     sizeT.y = sizeY;
 
     for (int i = 0; i < mesh.length; i++) {
       int y = startY + (gapY + sizeY) * i;
-      shader.setPosition(g.gl, 0, y, sizeT, g.clientRect);
+
+      float sx = 2f / timeRange;
+      float sy = 1.f * sizeY / screen.y;
+      float px = -1;
+      float py = 1 - (y * 2.f + sizeY) / screen.y;
+
+      shader.setPosition(g.gl, sx, sy, px, py, g.clientRect);
       g.drawMesh(mesh[i]);
     }
   }
