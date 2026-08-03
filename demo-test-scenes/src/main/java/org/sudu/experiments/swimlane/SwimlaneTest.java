@@ -42,16 +42,24 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   // debug
   final float MIN_SCALE = .5f, MAX_SCALE = 500f;
   final float MIN_OFFSET = -1, MAX_OFFSET = 1;
-  float scAnimTime, scLastTs;
-  float ofAnimTime, ofLastTs;
+  final float FRICTION = 8f;
+  final float SCALE_ACCEL = 200f;
+  final float OFFSET_ACCEL = .5f;
+  final float EPS = 1e-4f;
+  float scaleVelocity = 0;
+  float offsetVelocity = 0;
+  float lastTimestamp = 0;
   float scale = 25;
   float offset = 0;
   boolean mouseDown;
   boolean uParameterX = false;
+  float dragScaleVelocity = 0;
+  float dragOffsetVelocity = 0;
+  float dragLastTs = 0;
   boolean down = false, up = false;
   boolean left = false, right = false;
 
-  final int V_VIRTUAL = 10000, H_VIRTUAL = 20000;
+  final int V_VIRTUAL = 20000, H_VIRTUAL = 40000;
   final ScrollBar vScroll, hScroll;
   int vScrollPos = 0, hScrollPos = 0;
 
@@ -134,28 +142,34 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
 
   @Override
   public boolean update(double timestamp) {
+    float dt = lastTimestamp != 0 ? (float) (timestamp - lastTimestamp) : 0;
+    lastTimestamp = (float) timestamp;
+    if (dt <= 0) return false;
+
     boolean updated = false;
-    if (down ^ up) {
-      updated = true;
-      float delta = (float) Math.cbrt(scAnimTime) / 10 * (down ? -1 : 1);
-      scale += delta;
+    if (down ^ up) scaleVelocity += (float) (SCALE_ACCEL * Math.sqrt(scale) * dt * (down ? 1 : -1));
+    if (left ^ right) offsetVelocity += OFFSET_ACCEL * dt * (left ? 1 : -1);
+
+    float frictionFactor = (float) Math.exp(-FRICTION * dt);
+    scaleVelocity *= frictionFactor;
+    offsetVelocity *= frictionFactor;
+
+    if (Math.abs(scaleVelocity) > EPS) {
+      scale += scaleVelocity * dt;
       clampScaleValue();
-      scAnimTime += (float) timestamp - scLastTs;
       setVScrollPosByScale();
-    } else {
-      scAnimTime = 0;
-    }
-    if (left ^ right) {
       updated = true;
-      float delta = (float) (Math.pow(ofAnimTime, .3f)) / screen.x * (left ? -1 : 1);
-      offset += delta;
-      clampOffsetValue();
-      ofAnimTime += (float) timestamp - ofLastTs;
-      setHScrollPosByOffset();
     } else {
-      ofAnimTime = 0;
+      scaleVelocity = 0;
     }
-    scLastTs = ofLastTs = (float) timestamp;
+    if (Math.abs(offsetVelocity) > EPS) {
+      offset += offsetVelocity * dt;
+      clampOffsetValue();
+      setHScrollPosByOffset();
+      updated = true;
+    } else {
+      offsetVelocity = 0;
+    }
     return updated;
   }
 
@@ -207,7 +221,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     for (int i = 0, p = 0; i < lines; i++) {
       int y = startY + (gapY + sizeY) * i;
 
-      float sx = 2f / timeRange * scale;
+      float sx = 2f / timeRange * roundToScreenPixel(scale);
       float px = roundToScreenPixel(scale * (offset - 1));
       float sy = 1.f * sizeY / screen.y;
       float py = 1 - (y * 2.f + sizeY) / screen.y;
@@ -249,12 +263,24 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
         int startY = event.position.y;
         @Override
         public void accept(MouseEvent e) {
+          float dt = dragLastTs != 0 ? lastTimestamp - dragLastTs : 0;
+          dragLastTs = lastTimestamp;
+
           int deltaY = e.position.y - startY;
-          scale *= (float) Math.pow(2.f, 2. * deltaY / screen.y);
+          float scaleDelta = scale * ((float) Math.pow(2.f, 2. * deltaY / screen.y) - 1);
+          scale += scaleDelta;
           clampScaleValue();
+
           int deltaX = e.position.x - startX;
-          offset += 2.f * deltaX / screen.x / scale;
+          float offsetDelta = 2.f * deltaX / screen.x / scale;
+          offset += offsetDelta;
           clampOffsetValue();
+
+          if (dt > 0) {
+            dragScaleVelocity = scaleDelta / dt;
+            dragOffsetVelocity = offsetDelta / dt;
+          }
+
           startX = e.position.x;
           startY = e.position.y;
           setVScrollPosByScale();
@@ -269,6 +295,11 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   public boolean onMouseUp(MouseEvent event, int button) {
     if (button == MOUSE_BUTTON_LEFT) {
       mouseDown = false;
+      scaleVelocity = dragScaleVelocity;
+      offsetVelocity = dragOffsetVelocity;
+      dragScaleVelocity = 0;
+      dragOffsetVelocity = 0;
+      dragLastTs = 0;
     }
     return true;
   }
@@ -279,12 +310,14 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   }
 
   private void onVScroll(ScrollBar.Event event) {
+    scaleVelocity = 0;
     vScrollPos = event.getPosition(V_VIRTUAL - screen.y);
     float p = ((float) vScrollPos) / (V_VIRTUAL - screen.y);
     scale = p * (MAX_SCALE - MIN_SCALE) + MIN_SCALE;
   }
 
   private void onHScroll(ScrollBar.Event event) {
+    offsetVelocity = 0;
     hScrollPos = event.getPosition(H_VIRTUAL - screen.x);
     float p = ((float) hScrollPos) / (H_VIRTUAL - screen.x);
     offset = -(p * (MAX_OFFSET - MIN_OFFSET) + MIN_OFFSET);
