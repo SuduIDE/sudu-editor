@@ -221,7 +221,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     for (int i = 0, p = 0; i < lines; i++) {
       int y = startY + (gapY + sizeY) * i;
 
-      float sx = 2f / timeRange * roundToScreenPixel(scale);
+      float sx = 2f / timeRange * scale;
       float px = roundToScreenPixel(scale * (offset - 1));
       float sy = 1.f * sizeY / screen.y;
       float py = 1 - (y * 2.f + sizeY) / screen.y;
