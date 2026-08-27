@@ -8,13 +8,8 @@ import org.sudu.experiments.math.V4f;
 import static org.sudu.experiments.Shaders.*;
 
 class SwimlaneShader extends Shaders.Shader2d {
-  final GLApi.UniformLocation uColor;
-//  final GLApi.UniformLocation uParameters;
-
   SwimlaneShader(GLApi.Context gl) {
     super(gl, vsCode(), psCode(), GL.VertexLayout.POS2_UV2);
-    uColor = gl.getUniformLocation(program, "uColor");
-   // uParameters = gl.getUniformLocation(program, "uParameters");
   }
 
   // x1,-1, x0,1, /**/ x1,1, x0,1, /**/ x0,-1, x1,0, /**/ x0,1, x1,0
@@ -98,19 +93,14 @@ class SwimlaneShader extends Shaders.Shader2d {
     return shaderHeader + psShaderPrecision +
         """
             layout(location = 0) out vec4 outColor;
-            uniform vec4 uColor;
             in vec2 screenPos;
             in vec2 lrScreen;
             void main() {
               float lPx = max(lrScreen.x, screenPos.x - 0.5);
               float rPx = min(lrScreen.y, screenPos.x + 0.5);
               float inside = rPx - lPx;
-              outColor = vec4(uColor.xyz * inside, 1.0);
+              outColor = vec4(inside, inside, inside, 1.0);
             }""";
-  }
-
-  void setColor(GLApi.Context gl, V4f color) {
-    gl.uniform4f(uColor, color);
   }
 }
 

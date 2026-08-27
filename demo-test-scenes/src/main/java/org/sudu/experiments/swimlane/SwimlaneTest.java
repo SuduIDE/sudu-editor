@@ -282,7 +282,6 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
       float py = 1 - (y * 2.f + 1) / screenY;
 
       shader.setPosition(g.gl, sx, sy, px, py, g.clientRect);
-      shader.setColor(g.gl, white);
       g.drawMesh(mesh[p]);
       p++;
     }
