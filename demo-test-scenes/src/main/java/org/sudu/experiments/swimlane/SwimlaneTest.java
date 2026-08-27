@@ -146,6 +146,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   public void dispose() {
     disposeMesh();
     shader.dispose(g.gl);
+    tRectShader.dispose(g.gl);
     framebuffer = Disposable.dispose(framebuffer);
     rtTexture = Disposable.dispose(rtTexture);
     super.dispose();
