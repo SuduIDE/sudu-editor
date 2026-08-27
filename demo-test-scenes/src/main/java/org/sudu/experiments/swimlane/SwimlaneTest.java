@@ -18,11 +18,16 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   public static final int lines = 20;
 
   static final boolean render2Lines = false;
+  public static final int SCROLL_WIDTH = 15;
+
+  public final V4f black = new V4f(0, 0, 0, 1);
+  public final V4f white = new V4f(1, 1, 1, 1);
 
   final WglGraphics g;
 
   private final SetCursor setCursor;
   final SwimlaneShader shader;
+  final SwimlaneFromTextureShader tRectShader;
 
   // data
   float[][] data;
@@ -63,9 +68,14 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   final ScrollBar vScroll, hScroll;
   int vScrollPos = 0, hScrollPos = 0;
 
+  GL.Texture rtTexture;
+  GL.FrameBuffer framebuffer;
+  final V4f textureRect =  new V4f();
+
   public SwimlaneTest(SceneApi api) {
     super(api);
     Color.Cvt.fromHSV(4./6, 1, .125/2, clearColor);
+    clearColor.set(0, 0, 0, 1);
 //    Color.Cvt.gray(255, color);
     api.input.onMouse.add(this);
     api.input.onScroll.add(this::onMouseWheel);
@@ -74,6 +84,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     this.g = api.graphics;
     setCursor = SetCursor.wrap(api.window);
     shader = new SwimlaneShader(g.gl);
+    tRectShader = new SwimlaneFromTextureShader(g.gl);
     data = SwimlaneData.create(
         lines + (render2Lines ? lines / 2 : 0),
         lineEventsMin, lineEventsMax,
@@ -93,6 +104,9 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     setVScrollPosByScale();
     setHScrollPosByOffset();
     api.window.setTitle("Swimlane demo " + events + " events");
+
+    framebuffer = new GL.FrameBuffer(g.gl);
+    rtTexture = g.createTexture();
   }
 
   private void applyScrollStyle(ScrollBar bar) {
@@ -132,6 +146,8 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   public void dispose() {
     disposeMesh();
     shader.dispose(g.gl);
+    framebuffer = Disposable.dispose(framebuffer);
+    rtTexture = Disposable.dispose(rtTexture);
     super.dispose();
   }
 
@@ -183,20 +199,35 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
 
   @Override
   public void paint() {
+    if (rtTexture.width() != g.clientRect.x || rtTexture.height() != lines) {
+      System.out.println("resize rtt to " + g.clientRect.x + ", " + lines);
+      rtTexture.setSize(g.clientRect.x, lines);
+      if (!framebuffer.bindTexture(rtTexture)) {
+        System.err.println("Error binding texture");
+        return;
+      }
+    }
     if (mesh == null)
       createMesh();
 
-    g.setBlend(WglGraphics.blendAddSrcA);
+    framebuffer.bindFramebuffer();
+    g.clear(black);
+    drawSwimlanes(rtTexture.height());
+    g.setDefaultFramebuffer();
     g.clear(clearColor);
-    drawRect();
+    int halfSize = (sizeY + 1) / 2;
+
     g.enableBlend(false);
+    g.drawRect(0,rtTexture.height() / 4, rtTexture.size(), rtTexture);
+    drawRects(startY, gapY, sizeY, screen.y);
+
     layoutScrollbar();
     drawScrollBar();
   }
 
   private void layoutScrollbar() {
-    vScroll.layoutVertical(vScrollPos, 0, screen.y, V_VIRTUAL, screen.x, 15);
-    hScroll.layoutHorizontal(hScrollPos, 0, screen.x, H_VIRTUAL, screen.y, 15);
+    vScroll.layoutVertical(vScrollPos, 0, screen.y, V_VIRTUAL, screen.x, SCROLL_WIDTH);
+    hScroll.layoutHorizontal(hScrollPos, 0, screen.x, H_VIRTUAL, screen.y, SCROLL_WIDTH);
   }
 
   private void drawScrollBar() {
@@ -215,35 +246,57 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     }
   }
 
-  private void drawRect() {
+  final V2i drawTexSize = new V2i();
+
+  private void drawRects(
+      int startY, int gapY, int sizeY, int screenY
+  ) {
+    g.setBlend(WglGraphics.blendNo);
+    g.setShader(tRectShader);
+    tRectShader.setTexture(g.gl, rtTexture);
+    textureRect.set(0, 0, rtTexture.width(), 0);
+    drawTexSize.set(rtTexture.width(), sizeY);
+
+    for (int i = 0; i < lines; i++) {
+      int y = startY + (gapY + sizeY) * i;
+
+      tRectShader.setPosition(g.gl, 0, y, drawTexSize, g.clientRect);
+      textureRect.y = i + 0.5f;
+      tRectShader.setTextureRect(g.gl, rtTexture, textureRect);
+      tRectShader.set(g.gl, clearColor, color[i]);
+      g.drawRect();
+    }
+  }
+
+  private void drawSwimlanes(int screenY) {
+    g.setBlend(WglGraphics.blendAddSrcA);
     g.setShader(shader);
 
     for (int i = 0, p = 0; i < lines; i++) {
-      int y = startY + (gapY + sizeY) * i;
+      int y = lines - i - 1;
 
       float sx = 2f / timeRange * scale;
       float px = roundToScreenPixel(scale * (offset - 1));
-      float sy = 1.f * sizeY / screen.y;
-      float py = 1 - (y * 2.f + sizeY) / screen.y;
+      float sy = 1.f / screenY;
+      float py = 1 - (y * 2.f + 1) / screenY;
 
       shader.setPosition(g.gl, sx, sy, px, py, g.clientRect);
-      shader.setColor(g.gl, color[p]);
+      shader.setColor(g.gl, white);
       g.drawMesh(mesh[p]);
       p++;
-      if (render2Lines && i % 2 == 0) {
-        shader.setColor(g.gl, color[p]);
-        g.drawMesh(mesh[p]);
-        p++;
-      }
     }
+    g.enableBlend(false);
   }
 
   @Override
   public void onResize(V2i sSize, float dpr) {
     super.onResize(sSize, dpr);
-    sizeY = sSize.y / (lines + lines / 2);
-    gapY = (sSize.y - sizeY * lines) / lines;
-    startY = gapY / 2;
+    int textureSize = lines;
+    int textureOccupied = textureSize + textureSize / 2;
+    int occupied = textureSize + textureSize / 2 + SCROLL_WIDTH;
+    sizeY = (sSize.y - occupied) / (lines + lines / 2);
+    gapY = (sSize.y - occupied - sizeY * lines) / (lines - 1);
+    startY = textureOccupied;
   }
 
   boolean onMouseWheel(MouseEvent event, float dX, float dY) {

@@ -112,8 +112,33 @@ class SwimlaneShader extends Shaders.Shader2d {
   void setColor(GLApi.Context gl, V4f color) {
     gl.uniform4f(uColor, color);
   }
+}
 
-  void setParameters(GLApi.Context gl, float x, float y) {
-  //  gl.uniform2f(uParameters, x, y);
+class SwimlaneFromTextureShader extends Shaders.SimpleTextureTransformed {
+  final GLApi.UniformLocation uColorB, uColorF;
+  SwimlaneFromTextureShader(GLApi.Context gl) {
+    super(gl, psCode());
+    uColorB = gl.getUniformLocation(program, "uColorB");
+    uColorF = gl.getUniformLocation(program, "uColorF");
+  }
+
+  void set(GLApi.Context gl, V4f colorB, V4f colorF) {
+    gl.uniform4f(uColorB, colorB);
+    gl.uniform4f(uColorF, colorF);
+  }
+
+  static String psCode() {
+    return shaderHeader + psShaderPrecision +
+        """
+          layout(location = 0) out vec4 outColor;
+          uniform vec4 uColorB;
+          uniform vec4 uColorF;
+          uniform sampler2D sDiffuse;
+          in vec2 textureUV;
+          void main() {
+            vec3 t = texture(sDiffuse, textureUV).rgb;
+            float gray = (t.r + t.b + t.g) / 3.0;
+            outColor = vec4(mix(uColorB.rgb, uColorF.rgb, gray), 1.0);
+          }""";
   }
 }
