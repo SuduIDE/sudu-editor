@@ -93,11 +93,20 @@ class SwimlaneShader extends Shaders.Shader2d {
     return shaderHeader + psShaderPrecision +
         """
             layout(location = 0) out vec4 outColor;
+            
+            // center of current pixel in screen space
+            // center +- 0.5 - full current pixel
             in vec2 screenPos;
+            
+            // {left, right} event bounds in screen pixel space
             in vec2 lrScreen;
+            
             void main() {
+             // left event bound in current screen pixel
               float lPx = max(lrScreen.x, screenPos.x - 0.5);
+              // right event bound in current screen pixel
               float rPx = min(lrScreen.y, screenPos.x + 0.5);
+              // coverage of event for current screen pixel
               float inside = rPx - lPx;
               outColor = vec4(inside, inside, inside, 1.0);
             }""";
@@ -105,16 +114,45 @@ class SwimlaneShader extends Shaders.Shader2d {
 }
 
 class SwimlaneFromTextureShader extends Shaders.SimpleTextureTransformed {
-  final GLApi.UniformLocation uColorB, uColorF;
+  final GLApi.UniformLocation uColorB, uColorF, uMinValue;
   SwimlaneFromTextureShader(GLApi.Context gl) {
-    super(gl, psCode());
+    super(gl, vsCode(), psCode());
     uColorB = gl.getUniformLocation(program, "uColorB");
     uColorF = gl.getUniformLocation(program, "uColorF");
+    uMinValue = gl.getUniformLocation(program, "uMinValue");
   }
 
   void set(GLApi.Context gl, V4f colorB, V4f colorF) {
     gl.uniform4f(uColorB, colorB);
     gl.uniform4f(uColorF, colorF);
+  }
+
+  void setMinValue(GLApi.Context gl, float minValue) {
+    gl.uniform2f(uMinValue, minValue, minValue);
+  }
+
+  private static String vsCode() {
+    return shaderHeader + psShaderPrecision + screenPixelPos +
+        """
+            uniform vec4 uSizePos;
+            uniform vec2 uResolution;
+            uniform vec4 uTexTransform;
+            in vec2 vPos, vTex;
+            out vec2 outScreenPos;
+            out vec2 textureUV;
+            out vec2 vPos_vPixel;
+
+            void main() {
+              vec2 pos = vec2(vPos.x * uSizePos.x + uSizePos.z, vPos.y * uSizePos.y + uSizePos.w);
+              outScreenPos = pixelPos(pos, uResolution.xy);
+              textureUV = uTexTransform.xy + vTex * uTexTransform.zw;
+            
+              // uSizePos.y = 1.f * sizeY / uResolution.y
+              vPos_vPixel.x = vPos.y * 0.5 + 0.5; // 0..1
+              vPos_vPixel.y = uSizePos.y * uResolution.y;
+            
+              gl_Position = vec4(pos, 0.0, 1.0);
+            }""";
   }
 
   static String psCode() {
@@ -123,11 +161,18 @@ class SwimlaneFromTextureShader extends Shaders.SimpleTextureTransformed {
           layout(location = 0) out vec4 outColor;
           uniform vec4 uColorB;
           uniform vec4 uColorF;
+          uniform vec2 uMinValue;
           uniform sampler2D sDiffuse;
           in vec2 textureUV;
+          in vec2 vPos_vPixel; // x - vertical pos (0..1), y - vertical size in pixels
           void main() {
             vec3 t = texture(sDiffuse, textureUV).rgb;
             float gray = (t.r + t.b + t.g) / 3.0;
+            float vSizePx = vPos_vPixel.y / 255.0;
+            float pixelLowEdge = vPos_vPixel.x - 0.5 * (1.0 / vPos_vPixel.y);
+            float pixelCoverage = max(min((gray - pixelLowEdge) * vPos_vPixel.y, 1.0), 0.0);
+            pixelCoverage = gray > 0.0 ? uMinValue.x + gray * (1.0 - uMinValue.x) : 0.0;
+            outColor = vec4(mix(uColorB.rgb, uColorF.rgb, pixelCoverage), 1.0);
             outColor = vec4(mix(uColorB.rgb, uColorF.rgb, gray), 1.0);
           }""";
   }

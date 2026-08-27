@@ -75,7 +75,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   public SwimlaneTest(SceneApi api) {
     super(api);
     Color.Cvt.fromHSV(4./6, 1, .125/2, clearColor);
-    clearColor.set(0, 0, 0, 1);
+//     clearColor.set(0, 0, 0, 1);
 //    Color.Cvt.gray(255, color);
     api.input.onMouse.add(this);
     api.input.onScroll.add(this::onMouseWheel);
@@ -259,6 +259,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     g.setBlend(WglGraphics.blendNo);
     g.setShader(tRectShader);
     tRectShader.setTexture(g.gl, rtTexture);
+    tRectShader.setMinValue(g.gl, 0.25f);
     textureRect.set(0, 0, rtTexture.width(), 0);
     drawTexSize.set(rtTexture.width(), sizeY);
 
