@@ -12,6 +12,7 @@ class Shader extends Handle implements GLApi.Shader { Shader(int h) { super(h); 
 class Buffer  extends Handle implements GLApi.Buffer { Buffer(int h) { super(h); }}
 class Program extends Handle implements GLApi.Program { Program(int h) { super(h); }}
 class Texture extends Handle implements GLApi.Texture { Texture(int h) { super(h); }}
+class Framebuffer extends Handle implements GLApi.Framebuffer { Framebuffer(int h) { super(h); }}
 class UniformLocation extends Handle implements GLApi.UniformLocation { UniformLocation(int h) { super(h); }}
 
 public abstract class AngleGL implements GLApi.Context {
@@ -341,4 +342,41 @@ public abstract class AngleGL implements GLApi.Context {
   public static native void readPixels(
       int x, int y, int width, int height,
       int format, int type, int[] pixels);
+
+  // framebuffer
+
+  static native int glGenFramebuffer();
+
+  @Override
+  public GLApi.Framebuffer createFramebuffer() {
+    int handle = glGenFramebuffer();
+    return new Framebuffer(handle);
+  }
+
+  static native void glDeleteFramebuffer(int handle);
+
+  @Override
+  public void deleteFramebuffer(GLApi.Framebuffer framebuffer) {
+    int handle = ((Framebuffer) framebuffer).handle;
+    glDeleteFramebuffer(handle);
+  }
+
+  static native void glBindFramebuffer(int target, int texture);
+
+  @Override
+  public void bindFramebuffer(int target, GLApi.Framebuffer framebuffer) {
+    int handle = framebuffer != null ? ((Framebuffer) framebuffer).handle : 0;
+    glBindFramebuffer(target, handle);
+  }
+
+  static native void glFramebufferTexture2D(int target, int attachment, int texTarget, int texture, int level);
+
+  @Override
+  public void framebufferTexture2D(int target, int attachment, int texTarget, GLApi.Texture texture, int level) {
+    int handle = ((Texture) texture).handle;
+    glFramebufferTexture2D(target, attachment, texTarget, handle, level);
+  }
+
+  @Override
+  public native int checkFramebufferStatus(int target);
 }

@@ -313,17 +313,35 @@ public interface Shaders {
       this(gl, vsCode2d, psCode);
     }
 
-    SimpleTexture(GLApi.Context gl, String vsCode, String psCode) {
+    protected SimpleTexture(GLApi.Context gl, String vsCode, String psCode) {
       super(gl, vsCode, psCode, GL.VertexLayout.POS2_UV2);
       sDiffuse = gl.getUniformLocation(program, "sDiffuse");
     }
 
-    void setTexture(GLApi.Context gl, GL.Texture texture) {
+    public void setTexture(GLApi.Context gl, GL.Texture texture) {
       // todo: "uniform1i(sDiffuse, 0)" needed only once
       //   maybe optimize this later
       gl.uniform1i(sDiffuse, 0);
       gl.activeTexture(GLApi.Context.TEXTURE0);
       gl.bindTexture(GLApi.Context.TEXTURE_2D, texture.texture);
+    }
+  }
+
+  class SimpleTextureTransformed extends SimpleTexture {
+    final GLApi.UniformLocation uTexTransform;
+
+    protected SimpleTextureTransformed(GLApi.Context gl, String psCode) {
+      super(gl, vsCode2dTexTransform, psCode);
+      uTexTransform = gl.getUniformLocation(program, "uTexTransform");
+    }
+
+    public void setTextureRect(GLApi.Context gl, GL.Texture texture, V4f texRect) {
+      int sx = texture.size.x, sy = texture.size.y;
+      float dx = texRect.x / sx;
+      float dy = texRect.y / sy;
+      float mx = texRect.z / sx;
+      float my = texRect.w / sy;
+      gl.uniform4f(uTexTransform, dx, dy, mx, my);
     }
   }
 
@@ -340,15 +358,13 @@ public interface Shaders {
     }
   }
 
-  class Text0 extends SimpleTexture {
-    final GLApi.UniformLocation uTexTransform;
+  class Text0 extends SimpleTextureTransformed {
     final GLApi.UniformLocation uColor, uBgColor;
     final GLApi.UniformLocation uTextPow;
     private float textPowCache;
 
-    public Text0(GLApi.Context gl, String vs, String ps) {
-      super(gl, vs, ps);
-      uTexTransform = gl.getUniformLocation(program, "uTexTransform");
+    public Text0(GLApi.Context gl, String ps) {
+      super(gl, ps);
       uColor = gl.getUniformLocation(program, "uColor");
       uBgColor = gl.getUniformLocation(program, "uBgColor");
       uTextPow = gl.getUniformLocation(program, "uTextPow");
@@ -365,26 +381,17 @@ public interface Shaders {
       gl.uniform4f(uColor, color);
       gl.uniform4f(uBgColor, bgColor);
     }
-
-    public void setTextureRect(GLApi.Context gl, GL.Texture texture, V4f texRect) {
-      int sx = texture.size.x, sy = texture.size.y;
-      float dx = texRect.x / sx;
-      float dy = texRect.y / sy;
-      float mx = texRect.z / sx;
-      float my = texRect.w / sy;
-      gl.uniform4f(uTexTransform, dx, dy, mx, my);
-    }
   }
 
   class TextGray extends Text0 {
     TextGray(GLApi.Context gl) {
-      super(gl, vsCode2dTexTransform, psCodeText);
+      super(gl, psCodeText);
     }
   }
 
   class TextClearType extends Text0 {
     TextClearType(GLApi.Context gl) {
-      super(gl, vsCode2dTexTransform, psCodeTextClearType);
+      super(gl, psCodeTextClearType);
     }
   }
 

@@ -160,7 +160,16 @@ public abstract class WglGraphics {
 
   public void setViewPortAndClientRect(int w, int h) {
     clientRect.set(w, h);
+    setViewPortToClientRect();
+  }
+
+  public void setViewPortToClientRect() {
     gl.viewport(0, 0, clientRect.x, clientRect.y);
+  }
+
+  public void setDefaultFramebuffer() {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    setViewPortToClientRect();
   }
 
   // WglGraphics is shared between different windows and angle contexts
@@ -260,7 +269,7 @@ public abstract class WglGraphics {
     }
   }
 
-  private void drawRect() {
+  public void drawRect() {
     attributeMask = rectangle.draw(attributeMask);
   }
 

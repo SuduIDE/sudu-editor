@@ -21,6 +21,8 @@ public interface GLApi {
 
   interface Texture extends WebGLTexture {}
 
+  interface Framebuffer extends WebGLFramebuffer {}
+
   interface Context extends WebGLRenderingContext {
 
     // webgl2 texture internal formats, for glTexStorage2D
@@ -136,5 +138,12 @@ public interface GLApi {
       int error = getError();
       if (error != 0) System.out.println(title + error);
     }
+
+    // framebuffer
+    Framebuffer createFramebuffer();
+    void deleteFramebuffer(Framebuffer framebuffer);
+    void bindFramebuffer(int target, Framebuffer framebuffer);
+    void framebufferTexture2D(int target, int attachment, int texTarget, Texture texture, int level);
+    int checkFramebufferStatus(int target);
   }
 }

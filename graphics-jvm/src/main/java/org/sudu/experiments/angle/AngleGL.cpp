@@ -434,3 +434,29 @@ jboolean Java_org_sudu_experiments_angle_AngleEGL_querySurfaceSize(
   j->SetIntArrayRegion(jArray, 0, 2, (jint*)value);
   return r1 && r2;
 }
+
+
+jint Java_org_sudu_experiments_angle_AngleGL_glGenFramebuffer(JNIEnv*, jclass) {
+  GLuint framebuffers[1] = { 0 };
+  GL_GenFramebuffers(1, framebuffers);
+  return framebuffers[0];
+}
+
+void Java_org_sudu_experiments_angle_AngleGL_glDeleteFramebuffer(JNIEnv*, jclass, jint handle) {
+  GLuint framebuffers[1] = { GLuint(handle) };
+  GL_DeleteFramebuffers(1, framebuffers);
+}
+
+void Java_org_sudu_experiments_angle_AngleGL_glBindFramebuffer(JNIEnv*, jclass, jint target, jint texture) {
+  GL_BindFramebuffer(GLenum(target), GLuint(texture));
+}
+
+void Java_org_sudu_experiments_angle_AngleGL_glFramebufferTexture2D(JNIEnv*, jclass,
+  jint target, jint attachment, jint texTarget, jint texture, jint level
+) {
+  GL_FramebufferTexture2D(GLenum(target), GLenum(attachment), GLenum(texTarget), GLuint(texture), level);
+}
+
+JNIEXPORT jint JNICALL Java_org_sudu_experiments_angle_AngleGL_checkFramebufferStatus(JNIEnv*, jobject, jint target) {
+  return GL_CheckFramebufferStatus(GLenum(target));
+}
