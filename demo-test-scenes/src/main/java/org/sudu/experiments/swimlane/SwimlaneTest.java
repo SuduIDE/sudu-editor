@@ -49,7 +49,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   final float MIN_OFFSET = -1, MAX_OFFSET = 1;
   final float FRICTION = 8f;
   final float SCALE_ACCEL = 200f;
-  final float OFFSET_ACCEL = .5f;
+  final float OFFSET_ACCEL = 2f;
   final float EPS = 1e-4f;
   float scaleVelocity = 0;
   float offsetVelocity = 0;
@@ -165,11 +165,15 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
 
     boolean updated = false;
     if (down ^ up) scaleVelocity += (float) (SCALE_ACCEL * Math.sqrt(scale) * dt * (down ? 1 : -1));
-    if (left ^ right) offsetVelocity += OFFSET_ACCEL * dt * (left ? 1 : -1);
 
-    float frictionFactor = (float) Math.exp(-FRICTION * dt);
-    scaleVelocity *= frictionFactor;
-    offsetVelocity *= frictionFactor;
+    boolean move = left | right;
+    if (move)
+      offsetVelocity += OFFSET_ACCEL * dt * ((left ? 1 : 0) + (right ? -1 : 0));
+
+    float frictionFactorS = (float) Math.exp(-FRICTION * dt);
+    float frictionFactorO = (float) Math.exp(-(move ? 1 : FRICTION) * dt);
+    scaleVelocity *= frictionFactorS;
+    offsetVelocity *= frictionFactorO;
 
     if (Math.abs(scaleVelocity) > EPS) {
       scale += scaleVelocity * dt;
@@ -180,7 +184,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
       scaleVelocity = 0;
     }
     if (Math.abs(offsetVelocity) > EPS) {
-      offset += offsetVelocity * dt;
+      offset += offsetVelocity * dt / scale;
       clampOffsetValue();
       setHScrollPosByOffset();
       updated = true;
@@ -349,7 +353,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     if (button == MOUSE_BUTTON_LEFT) {
       mouseDown = false;
       scaleVelocity = dragScaleVelocity;
-      offsetVelocity = dragOffsetVelocity;
+      offsetVelocity = dragOffsetVelocity * scale;
       dragScaleVelocity = 0;
       dragOffsetVelocity = 0;
       dragLastTs = 0;
