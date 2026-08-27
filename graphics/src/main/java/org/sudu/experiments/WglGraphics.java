@@ -31,10 +31,16 @@ public abstract class WglGraphics {
   private GL.Mesh rectangle;
 
   // state
-  private final V2i clientRect = new V2i();
+  public final V2i clientRect = new V2i();
   private GL.Program currentShader;
   private int attributeMask = 0;
-  private boolean blendState;
+
+  public static final int blendNo = 0;
+  public static final int blendSrcA = 1;
+  public static final int blendAddSrcA = 2;
+
+  private int blendState;
+
   private boolean scissorState, scissorRequest, scissorSync;
   private final V4i scissor = new V4i();
 
@@ -180,16 +186,26 @@ public abstract class WglGraphics {
     gl.clear(GLApi.Context.COLOR_BUFFER_BIT);
   }
 
-  public boolean enableBlend(boolean en) {
-    if (en == blendState) return en;
-    if (en) {
+  public void enableBlend(boolean en) {
+    setBlend(en ? blendSrcA : blendNo);
+  }
+
+  public int setBlend(int type) {
+    if (type == blendState) return type;
+    if (type > 0) {
       gl.enable(GLApi.Context.BLEND);
-      gl.blendFuncSeparate(GLApi.Context.SRC_ALPHA, GLApi.Context.ONE_MINUS_SRC_ALPHA, GLApi.Context.ONE, GLApi.Context.ONE);
+      switch (type) {
+        case blendSrcA ->
+            gl.blendFuncSeparate(GLApi.Context.SRC_ALPHA, GLApi.Context.ONE_MINUS_SRC_ALPHA, GLApi.Context.ONE, GLApi.Context.ONE);
+        case blendAddSrcA ->
+            gl.blendFuncSeparate(GLApi.Context.SRC_ALPHA, GLApi.Context.ONE, GLApi.Context.ONE, GLApi.Context.ONE);
+      }
+
     } else {
       gl.disable(GLApi.Context.BLEND);
     }
-    boolean oldMode = blendState;
-    blendState = en;
+    int oldMode = blendState;
+    blendState = type;
     return oldMode;
   }
 
@@ -246,6 +262,10 @@ public abstract class WglGraphics {
 
   private void drawRect() {
     attributeMask = rectangle.draw(attributeMask);
+  }
+
+  public void drawMesh(GL.Mesh mesh) {
+    attributeMask = mesh.draw(attributeMask);
   }
 
   public void drawRect(int x, int y, V2i size, V4f color) {
@@ -339,7 +359,7 @@ public abstract class WglGraphics {
     gl.checkError(title);
   }
 
-  private void setShader(GL.Program shader) {
+  public void setShader(GL.Program shader) {
     // syncScissor();
     if (shader != currentShader) {
       gl.useProgram(shader.program);

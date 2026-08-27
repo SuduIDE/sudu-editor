@@ -356,7 +356,7 @@ public interface GL {
   }
 
   class Program {
-    final GLApi.Program program;
+    protected GLApi.Program program;
     final VertexLayout layout;
 
     protected Program(GLApi.Context gl, String vsCode, String psCode, VertexLayout layout) {
@@ -367,6 +367,11 @@ public interface GL {
       }
       linkProgram(gl, program);
       if (checkErrorOnShaderLink) gl.checkError("compileProgram exit: ");
+    }
+
+    public void dispose(GLApi.Context gl) {
+      gl.deleteProgram(program);
+      program = null;
     }
 
     static GLApi.Program compileProgram(GLApi.Context gl, String vsCode, String psCode) {

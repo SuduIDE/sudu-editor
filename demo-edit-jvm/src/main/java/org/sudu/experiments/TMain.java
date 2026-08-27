@@ -3,11 +3,9 @@ package org.sudu.experiments;
 import org.sudu.experiments.diff.FileDiff;
 import org.sudu.experiments.diff.FolderDiffScene;
 import org.sudu.experiments.diff.UiToolsDemo;
-import org.sudu.experiments.editor.Editor1;
-import org.sudu.experiments.editor.SelectFileTest;
-import org.sudu.experiments.editor.TextSeparatorDemo;
-import org.sudu.experiments.editor.SinDemo;
+import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.ui.window.WindowsDemo;
+import org.sudu.experiments.swimlane.SwimlaneTest;
 import org.sudu.experiments.ui.MergeButtonsTest;
 
 import static org.sudu.experiments.DemoEditJvm.run;
@@ -51,5 +49,9 @@ public interface TMain {
 
   interface SelectFileTestMain {
     static void main(String[] $) { run(SelectFileTest::new); }
+  }
+
+  interface SwimlaneTestMain {
+    static void main(String[] $) { run(SwimlaneTest::new); }
   }
 }

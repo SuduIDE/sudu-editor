@@ -1,5 +1,6 @@
 package org.sudu.experiments;
 
+import org.sudu.experiments.math.V2f;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
@@ -160,7 +161,7 @@ public interface Shaders {
 
     final V2i shaderValue = new V2i();
 
-    Shader2d(GLApi.Context gl, String vsCode, String psCode, GL.VertexLayout layout) {
+    protected Shader2d(GLApi.Context gl, String vsCode, String psCode, GL.VertexLayout layout) {
       super(gl, vsCode, psCode, layout);
       uResolution = gl.getUniformLocation(program, "uResolution");
       uSizePos = gl.getUniformLocation(program, "uSizePos");
@@ -174,11 +175,20 @@ public interface Shaders {
       }
     }
 
-    void setPosition(GLApi.Context gl, float x, float y, V2i size, V2i screen) {
+    // vPos input : -1 .. 1
+    // vec2 pos = vec2(vPos.x * uSizePos.x + uSizePos.z, vPos.y * uSizePos.y + uSizePos.w);
+    // pos full screen : -1 .. 1
+
+    public void setPosition(GLApi.Context gl, float x, float y, V2i size, V2i screen) {
       float sx = (float) size.x / screen.x;
       float sy = (float) size.y / screen.y;
       float px = (x * 2 + size.x) / screen.x - 1;
       float py = 1 - (y * 2 + size.y) / screen.y;
+      gl.uniform4f(uSizePos, sx, sy, px, py);
+      setScreenSize(gl, screen);
+    }
+
+    public void setPosition(GLApi.Context gl, float sx, float sy, float px, float py, V2i screen) {
       gl.uniform4f(uSizePos, sx, sy, px, py);
       setScreenSize(gl, screen);
     }

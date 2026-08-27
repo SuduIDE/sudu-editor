@@ -17,7 +17,7 @@
     <module>common-editor-js</module>
     <module>demo-edit-es-module</module>
     <module>filediff-node-module</module>
-    <module>web-console-js</module>
+    <module>swimlane-demo</module>
     <module>demo-edit-jvm</module>
     <module>graphics</module>
     <module>graphics-common</module>

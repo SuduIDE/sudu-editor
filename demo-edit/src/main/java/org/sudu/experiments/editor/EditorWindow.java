@@ -40,6 +40,10 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
     windowManager.addWindow(window);
   }
 
+  public void setDisableParser(boolean disableParser) {
+    editor.setDisableParser(disableParser);
+  }
+
   public void onControllerEvent(Consumer<EditorWindow> handler) {
     onControllerEvent = handler;
   }
