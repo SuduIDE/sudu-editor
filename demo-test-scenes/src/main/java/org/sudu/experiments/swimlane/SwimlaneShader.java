@@ -9,7 +9,7 @@ import static org.sudu.experiments.Shaders.*;
 
 class SwimlaneShader extends Shaders.Shader2d {
   SwimlaneShader(GLApi.Context gl) {
-    super(gl, vsCode(), psCode(), GL.VertexLayout.POS2_UV2);
+    super(gl, vsCode(), psCode(), GL.VertexLayout.POS2_UV2_DATA2);
   }
 
   // x1,-1, x0,1, /**/ x1,1, x0,1, /**/ x0,-1, x1,0, /**/ x0,1, x1,0
@@ -20,6 +20,14 @@ class SwimlaneShader extends Shaders.Shader2d {
     vb[p+12] = x0; vb[p+13] =  1;  vb[p+14] = x1;  vb[p+15] = 0;
   }
 
+  // x1,-1, x0,1, gapPrev,gapNext, /**/ x1,1, x0,1, gapPrev,gapNext, /**/ x0,-1, x1,0, gapPrev,gapNext, /**/ x0,1, x1,0, gapPrev,gapNext
+  static void setVbSquareWithGaps(int p, float x0, float x1, float gapPrev, float gapNext, float[] vb) {
+    vb[p   ] = x1; vb[p+1 ] = -1;  vb[p+2 ] = x0;  vb[p+3 ] = 1;  vb[p+4 ] = gapPrev;  vb[p+5 ] = gapNext;
+    vb[p+6 ] = x1; vb[p+7 ] =  1;  vb[p+8 ] = x0;  vb[p+9 ] = 1;  vb[p+10] = gapPrev;  vb[p+11] = gapNext;
+    vb[p+12] = x0; vb[p+13] = -1;  vb[p+14] = x1;  vb[p+15] = 0;  vb[p+16] = gapPrev;  vb[p+17] = gapNext;
+    vb[p+18] = x0; vb[p+19] =  1;  vb[p+20] = x1;  vb[p+21] = 0;  vb[p+22] = gapPrev;  vb[p+23] = gapNext;
+  }
+
   static void setIbSquare(int p, int n, char[] ib) {
     ib[p  ] = (char) (n  ); ib[p+1] = (char) (n+1); ib[p+2] = (char) (n+2);
     ib[p+3] = (char) (n+1); ib[p+4] = (char) (n+2); ib[p+5] = (char) (n+3);
@@ -27,21 +35,36 @@ class SwimlaneShader extends Shaders.Shader2d {
 
   static GL.Mesh createSwimlaneMesh(GLApi.Context gl, float[] tsBE) {
     int numSquares = Math.min(tsBE.length / 2, 0x1_00_00 / 4);
-    float[] vb  = new float[numSquares * 4 * 4];
+    float[] vb  = new float[numSquares * 4 * 6];
     char[] ib = new char[numSquares * 6];
     for (int i = 0; i < numSquares; i++) {
-      int vbp = i * 16, ibp = i * 6;
+      int vbp = i * 24, ibp = i * 6;
       float x0 = tsBE[i * 2], x1 = tsBE[i * 2 + 1];
-      setVbSquare(vbp, x0, x1, vb);
+      // distance from previous event end
+      float gapPrev = i == 0 ? 0 : x0 - tsBE[i * 2 - 1];
+      // distance to next event start
+      float gapNext = i == numSquares - 1 ? 0 : tsBE[i * 2 + 2] - x1;
+      setVbSquareWithGaps(vbp, x0, x1, gapPrev, gapNext, vb);
       setIbSquare(ibp, i * 4, ib);
     }
-    return new GL.Mesh(gl, GL.VertexLayout.POS2_UV2, vb, ib);
+    return new GL.Mesh(gl, GL.VertexLayout.POS2_UV2_DATA2, vb, ib);
   }
 
   static GL.Mesh createSwRectangle(GLApi.Context gl, float x0, float x1) {
     float[] vbData = { x1,-1, x0,1, /**/ x1,1, x0,1, /**/ x0,-1, x1,0, /**/ x0,1, x1,0  };
     char[] index = { 0, 1, 2, /**/ 1, 2, 3, /**/  /* 0, 2, 1, */ /**/ /* 1, 3, 2 */ };
     return new GL.Mesh(gl, GL.VertexLayout.POS2_UV2, vbData, index);
+  }
+
+  static GL.Mesh createSwRectangleWithGaps(GLApi.Context gl, float x0, float x1, float gapPrev, float gapNext) {
+    float[] vbData = {
+        x1,-1, x0,1, gapPrev,gapNext,
+        x1, 1, x0,1, gapPrev,gapNext,
+        x0,-1, x1,0, gapPrev,gapNext,
+        x0, 1, x1,0, gapPrev,gapNext
+    };
+    char[] index = { 0, 1, 2, /**/ 1, 2, 3 };
+    return new GL.Mesh(gl, GL.VertexLayout.POS2_UV2_DATA2, vbData, index);
   }
 
   // vTex.x - opposite coordinate
@@ -52,9 +75,10 @@ class SwimlaneShader extends Shaders.Shader2d {
             uniform vec4 uSizePos;
             uniform vec2 uResolution;
             uniform vec2 uParameters;
-            in vec2 vPos, vTex;
+            in vec2 vPos, vTex, vData;
             out vec2 screenPos;
             out vec2 lrScreen;
+            out vec2 leftRightDistance;
             
             float translateScaleX(float x) { return x * uSizePos.x + uSizePos.z; }
             float translateScaleY(float y) { return y * uSizePos.y + uSizePos.w; }
@@ -85,6 +109,10 @@ class SwimlaneShader extends Shaders.Shader2d {
 
               screenPos = vec2(screenX, screenY);
               lrScreen = vec2(lPx, rPx);
+              // gap to prev event end / next event start, in device pixels
+              float gapPrevPx = glToPixelX(translateScaleX(vData.x));
+              float gapNextPx = glToPixelX(translateScaleX(vData.y));
+              leftRightDistance = vec2(gapPrevPx, gapNextPx);
               gl_Position = vec4(pos, 0.0, 1.0);
             }""";
   }
@@ -100,6 +128,9 @@ class SwimlaneShader extends Shaders.Shader2d {
             
             // {left, right} event bounds in screen pixel space
             in vec2 lrScreen;
+            
+            // distances to prev event end / next event start, in screen pixels
+            in vec2 leftRightDistance;
             
             void main() {
              // left event bound in current screen pixel
