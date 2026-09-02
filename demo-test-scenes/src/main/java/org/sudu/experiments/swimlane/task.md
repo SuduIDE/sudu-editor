@@ -42,6 +42,22 @@ similar to previous one, it was hold in float32 array [pos.x, pos.y, uv.x, uv.y]
 - Vertex shader gets the distance in new fields, then it need to convert it to device pixels, 
  like it does for current event begin and end, outputs leftRightDistance varying 
  (in device pixels, same coordinate system used for other data) for future use in pixel shader.
-- 
 
+-----
 
+The purpose is to make isolated thin events (less than 1px) visible at exactly 1 device pixel.
+
+I want to extend the event left and right if the distance to prev/next event is "large"
+lets introduce a constant (in the VS code) that will mean the margin, in device pixels
+and of the BOTH distances (to left and to right) more then he margin then we extend the event in both directions: to left and to right simultaneously
+and extend rage is computed like this: (1.0 - (event.x1 - event.x0)) / 2, so the resulting event size will be equal to 1 device pixel, we will extend it in both directions uniformly 
+
+Events at the start/end of the line also needs to be extended if opposite distance large enought, for that reason we can assume that the left most event (and rightmost) have quite large fake distance to left (for leftmost evevnt) or to the right (for right most event)
+
+eventSize means event.x1-event.x0 - the length of the event
+
+lets margin be equal to 3 device pixels
+
+we extend the eveny only if gapPrevPx AND gapNextPx greater or equal to the margin 
+
+the quad vertices snap to pixel boundaries via floor/ceil operations must be applied after extension 

@@ -40,10 +40,10 @@ class SwimlaneShader extends Shaders.Shader2d {
     for (int i = 0; i < numSquares; i++) {
       int vbp = i * 24, ibp = i * 6;
       float x0 = tsBE[i * 2], x1 = tsBE[i * 2 + 1];
-      // distance from previous event end
-      float gapPrev = i == 0 ? 0 : x0 - tsBE[i * 2 - 1];
-      // distance to next event start
-      float gapNext = i == numSquares - 1 ? 0 : tsBE[i * 2 + 2] - x1;
+      // distance from previous event end (fake large gap for first event)
+      float gapPrev = i == 0 ? 999.0f : x0 - tsBE[i * 2 - 1];
+      // distance to next event start (fake large gap for last event)
+      float gapNext = i == numSquares - 1 ? 999.0f : tsBE[i * 2 + 2] - x1;
       setVbSquareWithGaps(vbp, x0, x1, gapPrev, gapNext, vb);
       setIbSquare(ibp, i * 4, ib);
     }
@@ -78,7 +78,6 @@ class SwimlaneShader extends Shaders.Shader2d {
             in vec2 vPos, vTex, vData;
             out vec2 screenPos;
             out vec2 lrScreen;
-            out vec2 leftRightDistance;
             
             float translateScaleX(float x) { return x * uSizePos.x + uSizePos.z; }
             float translateScaleY(float y) { return y * uSizePos.y + uSizePos.w; }
@@ -98,21 +97,28 @@ class SwimlaneShader extends Shaders.Shader2d {
               vec2 pos = vec2(translateScaleX(vPos.x), translateScaleY(vPos.y));
               float lPx = glToPixelX(translateScaleX(lX));
               float rPx = glToPixelX(translateScaleX(rX));
-  
-              float screenX = glToPixelX(pos.x);
+
+              // gap to prev event end / next event start, in device pixels
+              float gapPrevPx = vData.x * uSizePos.x * 0.5 * uResolution.x;
+              float gapNextPx = vData.y * uSizePos.x * 0.5 * uResolution.x;
+
+              // extend event if both gaps >= margin
+              const float MARGIN = 3.0;
+              float eventSize = rPx - lPx;
+              float extendedL = lPx, extendedR = rPx;
+              if (gapPrevPx >= MARGIN && gapNextPx >= MARGIN && eventSize < 1.0) {
+                float extend = (1.0 - eventSize) * 0.5;
+                extendedL = lPx - extend;
+                extendedR = rPx + extend;
+              }
+
               float screenY = glToPixelY(pos.y);
-            
-              // extend left/right edge to left/right pixel bound
-              screenX = mix(floor(screenX), ceil(screenX), vTex.y);
-              // convert back to gl space
+              // snap quad to pixel boundaries of the extended event
+              float screenX = mix(floor(extendedL), ceil(extendedR), vTex.y);
               pos.x = pixelToGlX(screenX);
 
               screenPos = vec2(screenX, screenY);
-              lrScreen = vec2(lPx, rPx);
-              // gap to prev event end / next event start, in device pixels
-              float gapPrevPx = glToPixelX(translateScaleX(vData.x));
-              float gapNextPx = glToPixelX(translateScaleX(vData.y));
-              leftRightDistance = vec2(gapPrevPx, gapNextPx);
+              lrScreen = vec2(extendedL, extendedR);
               gl_Position = vec4(pos, 0.0, 1.0);
             }""";
   }
@@ -128,9 +134,6 @@ class SwimlaneShader extends Shaders.Shader2d {
             
             // {left, right} event bounds in screen pixel space
             in vec2 lrScreen;
-            
-            // distances to prev event end / next event start, in screen pixels
-            in vec2 leftRightDistance;
             
             void main() {
              // left event bound in current screen pixel
