@@ -67,12 +67,14 @@ pixel so it becomes visible.
 
 ### Extension approach
 
-Branchless smooth transition using two margins per side:
+Branchless smooth transition using two margins per side.
+The target size is driven by uniform vec2 uTargetSize (use .x, .y is unused).
+The Java framework lacks uniform1f, so a vec2 is used to pass a single float.
 
   const float MARGIN1 = 2.0;  // no extension below this gap
   const float MARGIN2 = 4.0;  // full extension at or above this gap
 
-  float extendMax = max(0.0, (1.0 - eventSize) * 0.5);
+  float extendMax = max(0.0, (uTargetSize.x - eventSize) * 0.5);
   float factorL = clamp((gapPrevPx - MARGIN1) / (MARGIN2 - MARGIN1), 0.0, 1.0);
   float factorR = clamp((gapNextPx - MARGIN1) / (MARGIN2 - MARGIN1), 0.0, 1.0);
   float factor = (factorL + factorR) * 0.5;
@@ -80,17 +82,21 @@ Branchless smooth transition using two margins per side:
   float extendedL = lPx - extend;
   float extendedR = rPx + extend;
 
+uTargetSize.x is the max size after extension (e.g. 1.0 → events extend to 1px;
+0.0 → no extension; any value works). extendMax = (uTargetSize.x - eventSize) * 0.5
+is the per-side extension to reach that target size.
+
 Linear factor per side:
   gap <= MARGIN1 (2px) → factor = 0 → no extension
   gap >= MARGIN2 (4px) → factor = 1 → full extension
   MARGIN1 < gap < MARGIN2 → linear interpolation → smooth transition
 
 Averaged factor: (factorL + factorR) * 0.5 — ensures max extension stays at
-extendMax (event → 1px) when both gaps are large. Individual factors allow
+extendMax (event → target size) when both gaps are large. Individual factors allow
 partial extension when only one side has a large gap.
 
-eventSize guard: extendMax = max(0.0, ...) absorbs the eventSize < 1.0 check.
-When eventSize >= 1.0, extendMax = 0, no extension regardless of factors.
+eventSize guard: extendMax = max(0.0, ...) absorbs the eventSize >= target check.
+When eventSize >= uTargetSize.x, extendMax = 0, no extension regardless of factors.
 
 Edge events (first/last) use eventRange (total span from first event start to last event end)
 as a fake gap on the missing side, so the factor ramps up when the one real neighboring
@@ -136,10 +142,11 @@ Pixel shader:
 ### Files changed
 
   GL.java                    — VertexAttribute.DATA2, VertexLayout.POS2_UV2_DATA2
-  SwimlaneShader.java        — new mesh methods, new vertex format, VS extension logic
+  SwimlaneShader.java        — new mesh methods, new vertex format, VS extension logic,
+                               uTargetSize uniform (vec2, .x used) + setTargetSize()
+  SwimlaneTest.java          — targetSize toggle via SPACE key, uniform set in drawSwimlanes
 
 ### What was NOT changed
 
-  SwimlaneTest.java          — no changes needed
   SwimlaneFromTextureShader  — untouched (dead code left as-is per earlier decision)
   Old setVbSquare / createSwRectangle — preserved, unused

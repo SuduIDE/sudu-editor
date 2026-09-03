@@ -56,6 +56,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   float lastTimestamp = 0;
   float scale = 25;
   float offset = 0;
+  float targetSize = 1;
   boolean mouseDown;
   boolean uParameterX = false;
   float dragScaleVelocity = 0;
@@ -277,6 +278,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   private void drawSwimlanes(int screenY) {
     g.setBlend(WglGraphics.blendAddSrcA);
     g.setShader(shader);
+    shader.setTargetSize(g.gl, targetSize);
 
     for (int i = 0, p = 0; i < lines; i++) {
       int y = lines - i - 1;
@@ -412,8 +414,8 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     }
 
     if (event.keyCode == KeyCode.SPACE && event.singlePress()) {
-      uParameterX = !uParameterX;
-      System.out.println("uParameterX = " + uParameterX);
+      targetSize = targetSize == 1 ? 0 : 1;
+      System.out.println("targetSize = " + targetSize);
       return true;
     }
 //    System.out.println("event = " + event);

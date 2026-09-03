@@ -8,8 +8,15 @@ import org.sudu.experiments.math.V4f;
 import static org.sudu.experiments.Shaders.*;
 
 class SwimlaneShader extends Shaders.Shader2d {
+  final GLApi.UniformLocation uTargetSize;
+
   SwimlaneShader(GLApi.Context gl) {
     super(gl, vsCode(), psCode(), GL.VertexLayout.POS2_UV2_DATA2);
+    uTargetSize = gl.getUniformLocation(program, "uTargetSize");
+  }
+
+  void setTargetSize(GLApi.Context gl, float size) {
+    gl.uniform2f(uTargetSize, size, 0);
   }
 
   // x1,-1, x0,1, /**/ x1,1, x0,1, /**/ x0,-1, x1,0, /**/ x0,1, x1,0
@@ -74,7 +81,7 @@ class SwimlaneShader extends Shaders.Shader2d {
         """
             uniform vec4 uSizePos;
             uniform vec2 uResolution;
-            uniform vec2 uParameters;
+            uniform vec2 uTargetSize;
             in vec2 vPos, vTex, vData;
             out vec2 screenPos;
             out vec2 lrScreen;
@@ -106,7 +113,7 @@ class SwimlaneShader extends Shaders.Shader2d {
               const float MARGIN1 = 2.0;
               const float MARGIN2 = 4.0;
               float eventSize = rPx - lPx;
-              float extendMax = max(0.0, (1.0 - eventSize) * 0.5);
+              float extendMax = max(0.0, (uTargetSize.x - eventSize) * 0.5);
               float factorL = clamp((gapPrevPx - MARGIN1) / (MARGIN2 - MARGIN1), 0.0, 1.0);
               float factorR = clamp((gapNextPx - MARGIN1) / (MARGIN2 - MARGIN1), 0.0, 1.0);
               float factor = (factorL + factorR) * 0.5;
