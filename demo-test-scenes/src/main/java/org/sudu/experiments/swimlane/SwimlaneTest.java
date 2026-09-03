@@ -49,13 +49,14 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   final float MIN_OFFSET = -1, MAX_OFFSET = 1;
   final float FRICTION = 8f;
   final float SCALE_ACCEL = 200f;
-  final float OFFSET_ACCEL = .5f;
+  final float OFFSET_ACCEL = 2f;
   final float EPS = 1e-4f;
   float scaleVelocity = 0;
   float offsetVelocity = 0;
   float lastTimestamp = 0;
   float scale = 25;
   float offset = 0;
+  float targetSize = 1;
   boolean mouseDown;
   boolean uParameterX = false;
   float dragScaleVelocity = 0;
@@ -75,7 +76,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   public SwimlaneTest(SceneApi api) {
     super(api);
     Color.Cvt.fromHSV(4./6, 1, .125/2, clearColor);
-    clearColor.set(0, 0, 0, 1);
+//     clearColor.set(0, 0, 0, 1);
 //    Color.Cvt.gray(255, color);
     api.input.onMouse.add(this);
     api.input.onScroll.add(this::onMouseWheel);
@@ -165,11 +166,15 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
 
     boolean updated = false;
     if (down ^ up) scaleVelocity += (float) (SCALE_ACCEL * Math.sqrt(scale) * dt * (down ? 1 : -1));
-    if (left ^ right) offsetVelocity += OFFSET_ACCEL * dt * (left ? 1 : -1);
 
-    float frictionFactor = (float) Math.exp(-FRICTION * dt);
-    scaleVelocity *= frictionFactor;
-    offsetVelocity *= frictionFactor;
+    boolean move = left | right;
+    if (move)
+      offsetVelocity += OFFSET_ACCEL * dt * ((left ? 1 : 0) + (right ? -1 : 0));
+
+    float frictionFactorS = (float) Math.exp(-FRICTION * dt);
+    float frictionFactorO = (float) Math.exp(-(move ? 1 : FRICTION) * dt);
+    scaleVelocity *= frictionFactorS;
+    offsetVelocity *= frictionFactorO;
 
     if (Math.abs(scaleVelocity) > EPS) {
       scale += scaleVelocity * dt;
@@ -180,7 +185,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
       scaleVelocity = 0;
     }
     if (Math.abs(offsetVelocity) > EPS) {
-      offset += offsetVelocity * dt;
+      offset += offsetVelocity * dt / scale;
       clampOffsetValue();
       setHScrollPosByOffset();
       updated = true;
@@ -255,6 +260,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     g.setBlend(WglGraphics.blendNo);
     g.setShader(tRectShader);
     tRectShader.setTexture(g.gl, rtTexture);
+    tRectShader.setMinValue(g.gl, 0.25f);
     textureRect.set(0, 0, rtTexture.width(), 0);
     drawTexSize.set(rtTexture.width(), sizeY);
 
@@ -272,6 +278,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
   private void drawSwimlanes(int screenY) {
     g.setBlend(WglGraphics.blendAddSrcA);
     g.setShader(shader);
+    shader.setTargetSize(g.gl, targetSize);
 
     for (int i = 0, p = 0; i < lines; i++) {
       int y = lines - i - 1;
@@ -349,7 +356,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     if (button == MOUSE_BUTTON_LEFT) {
       mouseDown = false;
       scaleVelocity = dragScaleVelocity;
-      offsetVelocity = dragOffsetVelocity;
+      offsetVelocity = dragOffsetVelocity * scale;
       dragScaleVelocity = 0;
       dragOffsetVelocity = 0;
       dragLastTs = 0;
@@ -407,8 +414,8 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     }
 
     if (event.keyCode == KeyCode.SPACE && event.singlePress()) {
-      uParameterX = !uParameterX;
-      System.out.println("uParameterX = " + uParameterX);
+      targetSize = targetSize == 1 ? 0 : 1;
+      System.out.println("targetSize = " + targetSize);
       return true;
     }
 //    System.out.println("event = " + event);

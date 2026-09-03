@@ -309,7 +309,8 @@ public interface GL {
 
   enum VertexAttribute {
     POS2("vPos", Type.FLOAT, 2, false, 0),
-    TEX2("vTex", Type.FLOAT, 2, false, 1);
+    TEX2("vTex", Type.FLOAT, 2, false, 1),
+    DATA2("vData", Type.FLOAT, 2, false, 2);
 
     final String name;
     final Type type;
@@ -329,7 +330,8 @@ public interface GL {
   }
 
   enum VertexLayout {
-    POS2_UV2( VertexAttribute.POS2, VertexAttribute.TEX2);
+    POS2_UV2( VertexAttribute.POS2, VertexAttribute.TEX2),
+    POS2_UV2_DATA2( VertexAttribute.POS2, VertexAttribute.TEX2, VertexAttribute.DATA2);
     public final VertexAttribute[] attributes;
     public final VertexAttribute[] floatAttributes, byteAttributes;
     public final int floatSize, byteSize;
