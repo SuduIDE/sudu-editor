@@ -37,13 +37,13 @@ class SwimlaneShader extends Shaders.Shader2d {
     int numSquares = Math.min(tsBE.length / 2, 0x1_00_00 / 4);
     float[] vb  = new float[numSquares * 4 * 6];
     char[] ib = new char[numSquares * 6];
+    float eventRange = tsBE[(numSquares - 1) * 2 + 1] - tsBE[0];
     for (int i = 0; i < numSquares; i++) {
       int vbp = i * 24, ibp = i * 6;
       float x0 = tsBE[i * 2], x1 = tsBE[i * 2 + 1];
-      // distance from previous event end (fake large gap for first event)
-      float gapPrev = i == 0 ? 999.0f : x0 - tsBE[i * 2 - 1];
-      // distance to next event start (fake large gap for last event)
-      float gapNext = i == numSquares - 1 ? 999.0f : tsBE[i * 2 + 2] - x1;
+      float gapPrev = i == 0 ? eventRange : x0 - tsBE[i * 2 - 1];
+      boolean last = i * 2 + 2 >= tsBE.length;
+      float gapNext = last ? eventRange : tsBE[i * 2 + 2] - x1;
       setVbSquareWithGaps(vbp, x0, x1, gapPrev, gapNext, vb);
       setIbSquare(ibp, i * 4, ib);
     }
@@ -103,7 +103,7 @@ class SwimlaneShader extends Shaders.Shader2d {
               float gapNextPx = vData.y * uSizePos.x * 0.5 * uResolution.x;
 
               // extend event if both gaps >= margin
-              const float MARGIN = 3.0;
+              const float MARGIN = 2.0;
               float eventSize = rPx - lPx;
               float extendedL = lPx, extendedR = rPx;
               if (gapPrevPx >= MARGIN && gapNextPx >= MARGIN && eventSize < 1.0) {

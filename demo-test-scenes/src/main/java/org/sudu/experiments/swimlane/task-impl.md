@@ -18,9 +18,12 @@ New vertex format: { vec2 pos, vec2 uv, vec2 data } — 6 floats per vertex.
   data.x = distance from this event's start to the previous event's end
   data.y = distance from this event's end to the next event's start
 
-For the first event, data.x = 999.0 (fake large gap).
-For the last event, data.y = 999.0 (fake large gap).
-Middle events use real gap values.
+For the first event, data.x = eventRange (distance from first event start to last event end).
+For the last event (only when all events fit in the mesh), data.y = eventRange.
+
+If we don't have gap data (edge events), the gap is assumed to be eventRange
+(tsBE[last] - tsBE[0]). If the mesh is a subset and gap data can be retrieved
+from tsBE, then it should be the correct value from tsBE.
 
 ### Implementation
 
@@ -70,8 +73,9 @@ device pixel so it becomes visible.
     // both gaps are large AND event is thin — extend the event
   }
 
-Edge events (first/last) use fake large gaps (999.0) on the missing side,
-so the condition triggers when the one real neighboring gap is large enough.
+Edge events (first/last) use eventRange (total span from first event start to last event end)
+as a fake gap on the missing side, so the condition triggers when the one real neighboring
+gap is large enough.
 
 ### Extension formula
 
