@@ -1,6 +1,5 @@
 package org.sudu.experiments;
 
-import org.sudu.experiments.math.V2f;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.math.V4f;
 
@@ -331,7 +330,11 @@ public interface Shaders {
     final GLApi.UniformLocation uTexTransform;
 
     protected SimpleTextureTransformed(GLApi.Context gl, String psCode) {
-      super(gl, vsCode2dTexTransform, psCode);
+      this(gl, vsCode2dTexTransform, psCode);
+    }
+
+    protected SimpleTextureTransformed(GLApi.Context gl, String vsCode, String psCode) {
+      super(gl, vsCode, psCode);
       uTexTransform = gl.getUniformLocation(program, "uTexTransform");
     }
 
