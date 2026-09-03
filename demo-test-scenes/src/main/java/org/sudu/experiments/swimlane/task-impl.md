@@ -62,31 +62,39 @@ The conversion chain is:
 ## Goal 2: Extend isolated thin events
 
 Very thin events (less than 1 device pixel wide) are invisible when zoomed out.
-If an event is isolated (large gaps on both sides), extend it to exactly 1
-device pixel so it becomes visible.
+If an event is isolated (large gaps on both sides), extend it toward 1 device
+pixel so it becomes visible.
 
-### Conditions
+### Extension approach
 
-  const float MARGIN = 2.0;  // device pixels
+Branchless smooth transition using two margins per side:
 
-  if (gapPrevPx >= MARGIN && gapNextPx >= MARGIN && eventSize < 1.0) {
-    // both gaps are large AND event is thin — extend the event
-  }
+  const float MARGIN1 = 2.0;  // no extension below this gap
+  const float MARGIN2 = 4.0;  // full extension at or above this gap
+
+  float extendMax = max(0.0, (1.0 - eventSize) * 0.5);
+  float factorL = clamp((gapPrevPx - MARGIN1) / (MARGIN2 - MARGIN1), 0.0, 1.0);
+  float factorR = clamp((gapNextPx - MARGIN1) / (MARGIN2 - MARGIN1), 0.0, 1.0);
+  float factor = (factorL + factorR) * 0.5;
+  float extend = extendMax * factor;
+  float extendedL = lPx - extend;
+  float extendedR = rPx + extend;
+
+Linear factor per side:
+  gap <= MARGIN1 (2px) → factor = 0 → no extension
+  gap >= MARGIN2 (4px) → factor = 1 → full extension
+  MARGIN1 < gap < MARGIN2 → linear interpolation → smooth transition
+
+Averaged factor: (factorL + factorR) * 0.5 — ensures max extension stays at
+extendMax (event → 1px) when both gaps are large. Individual factors allow
+partial extension when only one side has a large gap.
+
+eventSize guard: extendMax = max(0.0, ...) absorbs the eventSize < 1.0 check.
+When eventSize >= 1.0, extendMax = 0, no extension regardless of factors.
 
 Edge events (first/last) use eventRange (total span from first event start to last event end)
-as a fake gap on the missing side, so the condition triggers when the one real neighboring
+as a fake gap on the missing side, so the factor ramps up when the one real neighboring
 gap is large enough.
-
-### Extension formula
-
-  eventSize = rPx - lPx                     // current event width in pixels
-  extend = (1.0 - eventSize) * 0.5          // per side
-  extendedL = lPx - extend
-  extendedR = rPx + extend
-
-Result: final event width = 1.0 device pixel (extend * 2 + eventSize = 1.0).
-
-If eventSize >= 1.0, extend <= 0, no extension needed.
 
 ### Quad vertex snapping
 
@@ -114,9 +122,11 @@ pixel shader. The pixel shader computes coverage unchanged:
 Vertex shader:
   1. Compute original event bounds (lPx, rPx) from pos/uv encoding
   2. Convert gap distances to device pixels: vData * uSizePos.x * 0.5 * uResolution.x
-  3. If both gaps >= MARGIN and eventSize < 1.0: extend event to 1px width
-  4. Snap quad vertices to pixel boundaries of the extended event
-  5. Output extended bounds in lrScreen varying
+  3. Compute extendMax = max(0.0, (1.0 - eventSize) * 0.5)
+  4. Compute per-side factors from gap distances, average them
+  5. Apply extension: extendedL = lPx - extend, extendedR = rPx + extend
+  6. Snap quad vertices to pixel boundaries of the extended event
+  7. Output extended bounds in lrScreen varying
 
 Pixel shader:
   1. Clamp extended bounds to current pixel [center-0.5, center+0.5]

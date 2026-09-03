@@ -61,3 +61,22 @@ lets margin be equal to 3 device pixels
 we extend the eveny only if gapPrevPx AND gapNextPx greater or equal to the margin 
 
 the quad vertices snap to pixel boundaries via floor/ceil operations must be applied after extension 
+
+now there is two major issue to address :
+1. "if (gapPrevPx >= MARGIN && gapNextPx >= MARGIN && eventSize < 1.0) {"
+
+any if in the shader code making JUMPS, it was not frame before but the star appears on the next frame
+so 1st goal is to remove if, we do the following :
+
+a) we split gapPrexPx and gapNextPs processing into individual parts
+b) we make two margins instead of one (MARGIN), MARGIN1 = 2 and MARGIN2 = 4
+when the the gap is between MARGIN1 and MARGIN2, the amount of extend is "animated" between 0 and maxExtend
+where maxExtend=(1-eventSize)*0.5
+the extend factor is linear:  min(1, max(0, (MARGIN1 - gap)/(MARGIN1 - MARGIN2)))
+the extend factor is individual for left gap and for right   
+c) we still have eventSize < 1.0 condition to not make negative extends
+
+2. TBD later after 1 is implemented
+
+make the plan and ask all the unclear questions
+also not forget to update the documentation      

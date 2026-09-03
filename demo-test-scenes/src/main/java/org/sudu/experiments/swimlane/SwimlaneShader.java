@@ -102,15 +102,17 @@ class SwimlaneShader extends Shaders.Shader2d {
               float gapPrevPx = vData.x * uSizePos.x * 0.5 * uResolution.x;
               float gapNextPx = vData.y * uSizePos.x * 0.5 * uResolution.x;
 
-              // extend event if both gaps >= margin
-              const float MARGIN = 2.0;
+              // extend event: branchless smooth transition
+              const float MARGIN1 = 2.0;
+              const float MARGIN2 = 4.0;
               float eventSize = rPx - lPx;
-              float extendedL = lPx, extendedR = rPx;
-              if (gapPrevPx >= MARGIN && gapNextPx >= MARGIN && eventSize < 1.0) {
-                float extend = (1.0 - eventSize) * 0.5;
-                extendedL = lPx - extend;
-                extendedR = rPx + extend;
-              }
+              float extendMax = max(0.0, (1.0 - eventSize) * 0.5);
+              float factorL = clamp((gapPrevPx - MARGIN1) / (MARGIN2 - MARGIN1), 0.0, 1.0);
+              float factorR = clamp((gapNextPx - MARGIN1) / (MARGIN2 - MARGIN1), 0.0, 1.0);
+              float factor = (factorL + factorR) * 0.5;
+              float extend = extendMax * factor;
+              float extendedL = lPx - extend;
+              float extendedR = rPx + extend;
 
               float screenY = glToPixelY(pos.y);
               // snap quad to pixel boundaries of the extended event
