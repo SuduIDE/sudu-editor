@@ -44,13 +44,15 @@ class SwimlaneShader extends Shaders.Shader2d {
     int numSquares = Math.min(tsBE.length / 2, 0x1_00_00 / 4);
     float[] vb  = new float[numSquares * 4 * 6];
     char[] ib = new char[numSquares * 6];
-    float eventRange = tsBE[(numSquares - 1) * 2 + 1] - tsBE[0];
+    // Edge fake-gap for the first/last event: a huge constant so an isolated/thin edge event is
+    // treated as having plenty of empty space on the boundary side (enables the extension).
+    float edgeGap = 1_000_000;
     for (int i = 0; i < numSquares; i++) {
       int vbp = i * 24, ibp = i * 6;
       float x0 = tsBE[i * 2], x1 = tsBE[i * 2 + 1];
-      float gapPrev = i == 0 ? eventRange : x0 - tsBE[i * 2 - 1];
+      float gapPrev = i == 0 ? edgeGap : x0 - tsBE[i * 2 - 1];
       boolean last = i * 2 + 2 >= tsBE.length;
-      float gapNext = last ? eventRange : tsBE[i * 2 + 2] - x1;
+      float gapNext = last ? edgeGap : tsBE[i * 2 + 2] - x1;
       setVbSquareWithGaps(vbp, x0, x1, gapPrev, gapNext, vb);
       setIbSquare(ibp, i * 4, ib);
     }

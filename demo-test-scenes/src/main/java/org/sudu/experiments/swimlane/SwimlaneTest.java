@@ -260,7 +260,7 @@ public class SwimlaneTest extends Scene0 implements MouseListener, InputListener
     g.setBlend(WglGraphics.blendNo);
     g.setShader(tRectShader);
     tRectShader.setTexture(g.gl, rtTexture);
-    tRectShader.setMinValue(g.gl, 0.25f);
+    tRectShader.setMinValue(g.gl, 0.0f);
     textureRect.set(0, 0, rtTexture.width(), 0);
     drawTexSize.set(rtTexture.width(), sizeY);
 
