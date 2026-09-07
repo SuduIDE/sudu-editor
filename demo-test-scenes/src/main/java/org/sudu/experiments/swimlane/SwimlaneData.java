@@ -13,8 +13,11 @@ public class SwimlaneData {
     float[][] r = new float[lines][];
 
     XorShiftRandom random = new XorShiftRandom();
+    float minScale = 0;
     for (int i = 0; i < lines; i++) {
-      int events = lineSizeMin + random.nextInt(lineSizeMax - lineSizeMin + 1);
+      // Test hook: line 3 gets a single isolated event so we can inspect how one event renders.
+      boolean single = i == 3;
+      int events = single ? 1 : lineSizeMin + random.nextInt(lineSizeMax - lineSizeMin + 1);
       float[] line = new float[events * 2];
       r[i] = line;
       double t = 0;
@@ -26,8 +29,13 @@ public class SwimlaneData {
         t += dur + gap;
       }
       float scale = (float) (timeRange / t);
+      minScale = i == 0 ? scale : Math.min(scale, minScale);
+    }
+    for (int i = 0; i < lines; i++) {
+      var line = r[i];
+      int events = line.length / 2;
       for (int j = 0; j < events * 2; j++) {
-        line[j] *= scale;
+        line[j] *= minScale;
       }
     }
     return r;
