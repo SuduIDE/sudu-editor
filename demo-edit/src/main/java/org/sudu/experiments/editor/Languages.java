@@ -14,6 +14,7 @@ public interface Languages {
   String ACTIVITY = "activity";
   String HTML = "html";
   String JSON = "json";
+  String PYTHON = "PYTHON";
 
   static String[] getAllLanguages() {
     return new String[]{TEXT, JAVA, CPP, JS, TS, HTML, JSON, ACTIVITY};
@@ -50,7 +51,9 @@ public interface Languages {
     if (path.endsWith(".html")
         || path.endsWith(".xml")) return HTML;
     if (path.endsWith(".json")) return JSON;
-
+    if (path.endsWith(".py")
+        || path.endsWith(".pyc")
+        || path.endsWith(".pyo")) return PYTHON;
     return TEXT;
   }
 
@@ -75,6 +78,7 @@ public interface Languages {
       case Languages.TS -> FileProxy.TS_FILE;
       case Languages.ACTIVITY -> FileProxy.ACTIVITY_FILE;
       case Languages.HTML -> FileProxy.HTML_FILE;
+      case Languages.PYTHON -> FileProxy.PYTHON_FILE;
       case Languages.JSON -> FileProxy.JSON_FILE;
       default -> {
         System.err.println("Illegal language: " + lang);

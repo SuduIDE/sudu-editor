@@ -1,21 +1,21 @@
-package org.sudu.experiments.parser.typescript.parser.highlighting;
+package org.sudu.experiments.parser.python.parser;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
 import org.sudu.experiments.parser.common.NullParser;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.base.BaseIntervalParser;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.help.Helper;
-import org.sudu.experiments.parser.typescript.TsSplitRules;
-import org.sudu.experiments.parser.typescript.gen.LightTypeScriptLexer;
+import org.sudu.experiments.parser.python.PythonSplitRules;
+import org.sudu.experiments.parser.python.gen.PythonLexer;
+import org.sudu.experiments.parser.python.parser.highlighting.PythonHighlighting;
 
 import java.util.Arrays;
 
-public class TypeScriptIntervalParser extends BaseIntervalParser<NullParser> {
+public class PythonIntervalParser extends BaseIntervalParser<NullParser> {
 
   @Override
   public int[] parseInterval(char[] source, int[] interval, int[] graphInts, char[] graphChars) {
@@ -35,7 +35,7 @@ public class TypeScriptIntervalParser extends BaseIntervalParser<NullParser> {
 
   @Override
   protected Lexer initLexer(CharStream stream) {
-    return new LightTypeScriptLexer(stream);
+    return new PythonLexer(stream);
   }
 
   @Override
@@ -55,16 +55,16 @@ public class TypeScriptIntervalParser extends BaseIntervalParser<NullParser> {
 
   @Override
   protected SplitRules initSplitRules() {
-    return new TsSplitRules();
+    return new PythonSplitRules();
   }
 
   @Override
   protected String language() {
-    return Helper.TS_LIGHT;
+    return Helper.PYTHON;
   }
 
   @Override
   protected void highlightTokens() {
-    LightTypeScriptHighlighting.highlightTokens(allTokens, tokenTypes);
+    PythonHighlighting.highlightTokens(allTokens, tokenTypes);
   }
 }
