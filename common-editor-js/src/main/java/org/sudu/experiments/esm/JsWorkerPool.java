@@ -57,5 +57,11 @@ public interface JsWorkerPool extends JSObject {
       workers.terminateAll();
     }
   }
+
+  static WebWorkersPool pool(JsWorkerPool pool) {
+    if (pool instanceof JsWorkerPool.Impl instance)
+      return instance.workers;
+    throw new IllegalArgumentException("workers pool has to be of type JsWorkerPoolImpl");
+  }
 }
 

@@ -1,6 +1,8 @@
 import {initControlPanel} from "./control-panel.js";
 import * as editorApi from "../src/codereview.js";
 
+const createDestroyOnVisible = false;
+
 const NUM_EDITORS = window.NUM_EDITORS ?? 50;
 
 const container = document.body;
@@ -8,8 +10,7 @@ const editorDivs = Array(NUM_EDITORS);
 const codeReviews = new Array(NUM_EDITORS);
 const controlPanels = new Array(NUM_EDITORS);
 
-const modelsA = new Array(NUM_EDITORS);
-const modelsB = new Array(NUM_EDITORS);
+const models = new Array(NUM_EDITORS);
 
 const threadPool = await editorApi.newWorkerPool("../src/worker.js", 3);
 
@@ -38,7 +39,8 @@ const visibilityObserver = new IntersectionObserver((entries) => {
         "editor", element.id,
         "internalId", element.internalId,
         entry.isIntersecting ? "visible" : "invisible");
-    changeCodeReviewVisibility(entry.isIntersecting, element.internalId);
+    if (createDestroyOnVisible)
+      changeCodeReviewVisibility(entry.isIntersecting, element.internalId);
   }
 });
 
@@ -52,13 +54,14 @@ const initialText =
 for (let i = 0; i < NUM_EDITORS; i++) {
   const idA = "model " + (i + 1) + " a";
   const idB = "model " + (i + 1) + " b";
-  const model1 = editorApi.newTextModel(initialText + idA, null, idA)
-  const model2 = editorApi.newTextModel(initialText + idB, null, idB)
+  const model = editorApi.newDiffModel(
+      threadPool,
+      initialText + idA, initialText + idB,
+      idA, idB, null)
 
-  model1.setEditListener(m => console.log(idA, "change event"))
-  model2.setEditListener(m => console.log(idB, "change event"))
-  modelsA[i] = model1;
-  modelsB[i] = model2;
+  model.getLeftModel().setEditListener((m, info) => console.log(idA, "change event: ", info))
+  model.getRightModel().setEditListener((m, info) => console.log(idB, "change event: ", info))
+  models[i] = model;
   const containerId = divId(i);
   controlPanels[i] = initControlPanel(document.getElementById(containerId));
 }
@@ -71,7 +74,7 @@ function createCodeReview(i) {
     containerId, workers: threadPool
   });
   codeReviews[i] = codeReview;
-  codeReview.setModel(modelsA[i], modelsB[i]);
+  codeReview.setModel(models[i]);
 }
 
 function deleteCodeReview(i) {
@@ -90,7 +93,7 @@ function changeCodeReviewVisibility(isVisible, i) {
   }
 }
 
-if (0) {
+if (!createDestroyOnVisible) {
   for (let i = 0; i < NUM_EDITORS; i++) {
     createCodeReview(i);
   }
@@ -161,9 +164,10 @@ for (let i = 0; i < NUM_EDITORS; i++) {
 }
 
 let textureUsageInfo = "";
+const glDebugApi = editorApi.glDebugApi;
 
 setInterval(() => {
-  let data = editorApi.textureUsage();
+  let data = glDebugApi.textureUsage();
   //if (data !== textureUsageInfo)
     console.log(messageId++, "textureUsage", textureUsageInfo = data);
 }, 1000);

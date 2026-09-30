@@ -2,8 +2,10 @@ package org.sudu.experiments;
 
 import org.sudu.experiments.js.JsCanvas;
 import org.sudu.experiments.js.JsMemoryAccess;
+import org.sudu.experiments.js.OffscreenCanvas;
 import org.sudu.experiments.math.V4f;
 import org.teavm.jso.JSMethod;
+import org.teavm.jso.dom.html.HTMLImageElement;
 import org.teavm.jso.typedarrays.ArrayBufferView;
 import org.teavm.jso.webgl.*;
 
@@ -18,6 +20,8 @@ public interface GLApi {
   interface UniformLocation extends WebGLUniformLocation {}
 
   interface Texture extends WebGLTexture {}
+
+  interface Framebuffer extends WebGLFramebuffer {}
 
   interface Context extends WebGLRenderingContext {
 
@@ -112,6 +116,8 @@ public interface GLApi {
           JsMemoryAccess.uInt8View(pixels));
     }
 
+    void texSubImage2D(int target, int level, int xoffset, int yoffset, int format, int type, OffscreenCanvas image);
+
     default void texSubImage2D(int target, int level, int xOffset, int yOffset, int format, int type, Canvas canvas) {
       texSubImage2D(target, level, xOffset, yOffset, format, type, ((JsCanvas)canvas).element);
     }
@@ -132,5 +138,12 @@ public interface GLApi {
       int error = getError();
       if (error != 0) System.out.println(title + error);
     }
+
+    // framebuffer
+    Framebuffer createFramebuffer();
+    void deleteFramebuffer(Framebuffer framebuffer);
+    void bindFramebuffer(int target, Framebuffer framebuffer);
+    void framebufferTexture2D(int target, int attachment, int texTarget, Texture texture, int level);
+    int checkFramebufferStatus(int target);
   }
 }

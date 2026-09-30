@@ -4,7 +4,7 @@ import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
 
 public interface JsCodeReviewView extends JsICodeReviewView {
-  void setModel(JsITextModel modelL, JsITextModel modelR);
+  void setModel(JsITextDiffModel fileDiffModel);
 
   @JSFunctor
   interface IDiffSizeChangeCallback extends JSObject {

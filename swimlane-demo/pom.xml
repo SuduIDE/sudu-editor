@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>web-console-js</artifactId>
+  <artifactId>swimlane-demo</artifactId>
   <version>1.0-SNAPSHOT</version>
 
   <parent>
@@ -15,7 +15,7 @@
   </parent>
 
   <properties>
-    <mainClass>org.sudu.experiments.ConsoleWebApp</mainClass>
+    <mainClass>org.sudu.experiments.SwimlaneWebDemo</mainClass>
 
     <!-- compiler settings -->
     <teavm.sourceMaps>true</teavm.sourceMaps>
@@ -72,6 +72,12 @@
       <version>${jupiter.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.sudu</groupId>
+      <artifactId>demo-test-scenes</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -87,7 +93,7 @@
               <goal>compile</goal>
             </goals>
             <configuration>
-              <targetDirectory>${project.build.directory}/generated/js/teavm</targetDirectory>
+              <targetDirectory>${project.build.directory}/generated/js</targetDirectory>
               <mainClass>${mainClass}</mainClass>
               <minifying>${teavm.minifying}</minifying>
               <debugInformationGenerated>${teavm.debugInfo}</debugInformationGenerated>
@@ -123,7 +129,22 @@
         </configuration>
       </plugin>
 
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>${maven.warplugin.version}</version>
 
+        <configuration>
+          <webResources>
+            <resource><directory>${project.build.directory}/generated/js</directory></resource>
+<!--            <resource>-->
+<!--              <directory>${project.basedir}/../codicon/src/main/resources</directory>-->
+<!--              <includes><include>**/*.ttf</include></includes>-->
+<!--            </resource>-->
+          </webResources>
+          <packagingExcludes>WEB-INF/classes/,WEB-INF/lib/</packagingExcludes>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
@@ -136,8 +157,8 @@
             <goals><goal>run</goal></goals>
             <configuration>
               <target>
-                <delete dir="target/console-js-1.0-SNAPSHOT/WEB-INF/classes" />
-                <delete dir="target/console-js-1.0-SNAPSHOT/WEB-INF/lib" />
+                <delete dir="target/swimlane-demo-1.0-SNAPSHOT/WEB-INF" />
+                <delete dir="target/swimlane-demo-1.0-SNAPSHOT/META-INF" />
               </target>
             </configuration>
           </execution>

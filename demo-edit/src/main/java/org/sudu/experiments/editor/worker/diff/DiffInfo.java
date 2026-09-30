@@ -65,7 +65,9 @@ public class DiffInfo {
   }
 
   public int oppositeLine(int line, boolean isLeft) {
-    var range = range(line, isLeft);
+    int rangeInd = rangeBinSearch(line, isLeft);
+    rangeInd = nextNotEmptyRange(rangeInd, isLeft);
+    var range = ranges[rangeInd];
     if (range.type != DiffTypes.DEFAULT) return -1;
     return line - range.from(isLeft) + range.from(!isLeft);
   }
@@ -164,6 +166,13 @@ public class DiffInfo {
     return ind;
   }
 
+  public int nextNotEmptyRange(int rangeInd, boolean isLeft) {
+    for (; rangeInd < ranges.length; rangeInd++) {
+      if (ranges[rangeInd].len(isLeft) > 0) return rangeInd;
+    }
+    return rangeInd - 1;
+  }
+
   public void insertAt(int lineKey, int lines, boolean isL) {
     if (isL) this.lineDiffsL = insert(lineKey, lines, lineDiffsL);
     else this.lineDiffsR = insert(lineKey, lines, lineDiffsR);
@@ -237,6 +246,18 @@ public class DiffInfo {
 
   public int rangeCount() {
     return ranges.length;
+  }
+
+  // { linesAdded, linesRemoved, linesModified }
+  public int[] linesInfo() {
+    int linesAdded = 0, linesRemoved = 0, linesModified = 0;
+    for (var range: ranges) {
+      if (range.type == DiffTypes.DEFAULT) continue;
+      if (range.type == DiffTypes.INSERTED) linesAdded += range.lenR;
+      if (range.type == DiffTypes.DELETED) linesRemoved += range.lenL;
+      if (range.type == DiffTypes.EDITED) linesModified += range.lenL + range.lenR;
+    }
+    return new int[]{linesAdded, linesRemoved, linesModified};
   }
 
   private void merge(List<DiffRange> ranges, DiffRange newRange) {

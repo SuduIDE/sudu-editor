@@ -113,7 +113,7 @@ public interface GL {
 
   class TextureContext {
     final GLApi.Context gl;
-    int counter, memory;
+    int counter, memory, allocations;
 
     TextureContext(GLApi.Context gl) {
       this.gl = gl;
@@ -129,7 +129,9 @@ public interface GL {
       if (mb > 0) {
         sb.append(mb).append("m");
       }
-      return sb.append(k).append("k").toString();
+      return sb.append(k).append("k")
+          .append(", allocations = ").append(allocations)
+          .toString();
     }
   }
 
@@ -143,6 +145,7 @@ public interface GL {
       this.ctx = ctx;
       texture = ctx.gl.createTexture();
       ctx.counter++;
+      ctx.allocations++;
     }
 
     @Override
@@ -159,6 +162,7 @@ public interface GL {
     private void getNewHandle() {
       ctx.gl.deleteTexture(texture);
       texture = ctx.gl.createTexture();
+      ctx.allocations++;
     }
 
     public int width() { return size.x; }
@@ -204,6 +208,10 @@ public interface GL {
     public void setContent(Canvas canvas) {
       checkSizeAndAllocate(canvas.width, canvas.height, GLApi.Context.RGBA8);
       doUpdate(canvas, 0, 0);
+    }
+
+    public void setSize(int w, int h) {
+      checkSizeAndAllocate(w, h, GLApi.Context.RGBA8);
     }
 
     private void checkSizeAndAllocate(int newWidth, int newHeight, int internalformat) {
@@ -353,7 +361,7 @@ public interface GL {
   }
 
   class Program {
-    final GLApi.Program program;
+    protected GLApi.Program program;
     final VertexLayout layout;
 
     protected Program(GLApi.Context gl, String vsCode, String psCode, VertexLayout layout) {
@@ -364,6 +372,11 @@ public interface GL {
       }
       linkProgram(gl, program);
       if (checkErrorOnShaderLink) gl.checkError("compileProgram exit: ");
+    }
+
+    public void dispose(GLApi.Context gl) {
+      gl.deleteProgram(program);
+      program = null;
     }
 
     static GLApi.Program compileProgram(GLApi.Context gl, String vsCode, String psCode) {
@@ -407,6 +420,44 @@ public interface GL {
         gl.deleteProgram(program);
         throw new RuntimeException("vs <-> ps link error: " + infoLog);
       }
+    }
+  }
+
+  class FrameBuffer implements Disposable {
+    final GLApi.Context gl;
+    GLApi.Framebuffer framebuffer;
+    int width, height;
+
+    public FrameBuffer(GLApi.Context gl) {
+      this.gl = gl;
+      framebuffer = gl.createFramebuffer();
+    }
+
+    public int width() { return width; }
+    public int height() { return height; }
+
+    public void dispose() {
+      if (framebuffer != null) {
+        gl.deleteFramebuffer(framebuffer);
+        framebuffer = null;
+      }
+    }
+
+    public boolean bindTexture(Texture texture) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture.texture, 0);
+      gl.checkError("after bindFramebuffer and framebufferTexture2D");
+      width = texture.width();
+      height = texture.height();
+      boolean ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      return ok;
+    }
+
+    public boolean bindFramebuffer() {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+      gl.viewport(0, 0, width, height);
+      return gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE;
     }
   }
 

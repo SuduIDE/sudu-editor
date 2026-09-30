@@ -1,7 +1,6 @@
 package org.sudu.experiments.js;
 
 import org.sudu.experiments.Canvas;
-import org.sudu.experiments.Debug;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.math.Color;
 import org.teavm.jso.JSBody;
@@ -11,10 +10,9 @@ import org.teavm.jso.JSProperty;
 import org.teavm.jso.canvas.CanvasRenderingContext2D;
 import org.teavm.jso.core.JSObjects;
 import org.teavm.jso.core.JSString;
-import org.teavm.jso.dom.html.HTMLCanvasElement;
 
 public class JsCanvas extends Canvas {
-  public HTMLCanvasElement element;
+  public OffscreenCanvas element;
   final Context2D c2d;
   private JSString jsFont;
 
@@ -22,9 +20,7 @@ public class JsCanvas extends Canvas {
     super(cleartype);
     this.width = width;
     this.height = height;
-    element = HTMLDocument.current().createElement("canvas").cast();
-    element.setWidth(width);
-    element.setHeight(height);
+    element = OffscreenCanvas.crate(width, height);
 
     c2d = (cleartype
         ? element.getContext("2d", canvasAttributesNoAlpha())
@@ -165,7 +161,7 @@ public class JsCanvas extends Canvas {
   }
 
   public static boolean checkFontMetricsAPI() {
-    HTMLCanvasElement canvas = JsHelper.createCanvas();
+    var canvas = OffscreenCanvas.crate(16, 16);
     Context2D c2d = canvas.getContext("2d").cast();
     TextMetrics textMetrics = c2d.measureTextD("");
     return JSObjects.hasProperty(textMetrics, "fontBoundingBoxAscent")

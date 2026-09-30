@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="ConsoleApp package" type="MavenRunConfiguration" factoryName="Maven">
+  <configuration default="false" name="swimlane-demo" type="MavenRunConfiguration" factoryName="Maven">
     <MavenSettings>
       <option name="myGeneralSettings" />
       <option name="myRunnerSettings">
@@ -13,13 +13,13 @@
             <map />
           </option>
           <option name="passParentEnv" value="true" />
-          <option name="runMavenInBackground" value="true" />
           <option name="skipTests" value="true" />
           <option name="vmOptions" value="" />
         </MavenRunnerSettings>
       </option>
       <option name="myRunnerParameters">
         <MavenRunnerParameters>
+          <option name="cmdOptions" />
           <option name="profiles">
             <set />
           </option>
@@ -28,14 +28,18 @@
               <option value="package" />
               <option value="-am" />
               <option value="-pl" />
-              <option value="web-console-js" />
+              <option value="swimlane-demo" />
             </list>
           </option>
+          <option name="multimoduleDir" />
           <option name="pomFileName" value="pom.xml" />
           <option name="profilesMap">
             <map>
               <entry key="release" value="true" />
             </map>
+          </option>
+          <option name="projectsCmdOptionValues">
+            <list />
           </option>
           <option name="resolveToWorkspace" value="false" />
           <option name="workingDirPath" value="$PROJECT_DIR$" />

@@ -231,4 +231,29 @@ public class TestContext implements GLApi.Context {
     Debug.consoleInfo("\tstepDrawCalls: " + stepDrawCalls);
     stepDrawCalls = 0;
   }
+
+  @Override
+  public GLApi.Framebuffer createFramebuffer() {
+    return null;
+  }
+
+  @Override
+  public void deleteFramebuffer(GLApi.Framebuffer framebuffer) {
+
+  }
+
+  @Override
+  public void bindFramebuffer(int target, GLApi.Framebuffer framebuffer) {
+
+  }
+
+  @Override
+  public void framebufferTexture2D(int target, int attachment, int texTarget, GLApi.Texture texture, int level) {
+
+  }
+
+  @Override
+  public int checkFramebufferStatus(int target) {
+    return 0;
+  }
 }

@@ -100,6 +100,12 @@ void GL_Flush() {}
 
 void GL_GetRenderbufferParameteriv(GLenum target, GLenum pname, GLint *params) {}
 
+void GL_GenFramebuffers(GLsizei n, GLuint *framebuffers) {}
+void GL_DeleteFramebuffers(GLsizei n, const GLuint *framebuffers) {}
+void GL_BindFramebuffer(GLenum target, GLuint framebuffer) {}
+void GL_FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level) {}
+GLenum GL_CheckFramebufferStatus(GLenum target) { return 0; }
+
 EGLDisplay EGL_GetPlatformDisplay(EGLenum platform,
                                  void *native_display,
                                  const EGLAttrib *attrib_list){ return 0; }

@@ -30,6 +30,10 @@ public class DiffRange {
     return from(left) <= line && line < to(left);
   }
 
+  public DiffRange copy() {
+    return new DiffRange(fromL, lenL, fromR, lenR, type);
+  }
+
   @Override
   public String toString() {
     return String.format("[%d: %d) |-> [%d: %d) %s",

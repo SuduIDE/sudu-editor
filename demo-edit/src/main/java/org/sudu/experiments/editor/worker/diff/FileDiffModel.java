@@ -1,0 +1,330 @@
+package org.sudu.experiments.editor.worker.diff;
+
+import org.sudu.experiments.diff.DiffTypes;
+import org.sudu.experiments.editor.*;
+import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.parser.common.Pair;
+import org.sudu.experiments.parser.common.Pos;
+import org.sudu.experiments.parser.common.TriConsumer;
+import org.sudu.experiments.worker.WorkerJobExecutor;
+
+import java.util.Arrays;
+import java.util.function.IntConsumer;
+import java.util.function.Consumer;
+
+public class FileDiffModel {
+
+  public static final int LEFT_MODEL_BIT = 0b01;
+  public static final int RIGHT_MODEL_BIT = 0b10;
+
+  public final Model leftModel, rightModel;
+  public final UndoBuffer undoBuffer = new UndoBuffer();
+  public DiffInfo diffModel;
+  public ViewToModel viewToModel;
+
+  WorkerJobExecutor executor;
+
+  private Consumer<int[]> getLinesInfo;
+  private Consumer<ApplyChangeInfo> applyRejectListener;
+  private int diffStatus = DiffStatus.NOT_COMPARED;
+  private boolean enableSyncEdit = EditorConst.DEFAULT_ENABLE_SYNC_EDIT;
+  private int modelFlags;
+
+  public interface ViewToModel {
+    int[] getSyncPoints(boolean left);
+    void updateModelOnDiff(DiffInfo diffModel);
+    void setDiffModel(DiffInfo diffModel);
+    void restoreSelection(boolean left, V2i caret, Pair<Pos, Pos> selection);
+  }
+
+  public static class ApplyChangeInfo {
+    public int oldFrom, oldTo;
+    public int newFrom, newTo;
+    public boolean isAccepted;
+
+    public ApplyChangeInfo(
+        int oldFrom, int oldTo,
+        int newFrom, int newTo,
+        boolean isAccepted
+    ) {
+      this.oldFrom = oldFrom;
+      this.oldTo = oldTo;
+      this.newFrom = newFrom;
+      this.newTo = newTo;
+      this.isAccepted = isAccepted;
+    }
+  }
+
+  public FileDiffModel(WorkerJobExecutor executor, Model leftModel, Model rightModel) {
+    this.leftModel = leftModel;
+    this.leftModel.setGetUndoBuffer(() -> undoBuffer);
+    this.leftModel.setSyncEditing((diff, isUndo) -> syncEditing(true, diff, isUndo));
+    this.rightModel = rightModel;
+    this.rightModel.setGetUndoBuffer(() -> undoBuffer);
+    this.rightModel.setSyncEditing((diff, isUndo) -> syncEditing(false, diff, isUndo));
+    this.executor = executor;
+    sendToDiff(false);
+  }
+
+  public void sendToDiff(boolean cmpOnlyLines) {
+    int[] syncL = getSyncPoints(true);
+    int[] syncR = getSyncPoints(false);
+    if (syncL.length != syncR.length) return;
+    diffStatus = DiffStatus.SENT;
+    DiffUtils.findDiffs(
+        leftModel.document,
+        rightModel.document,
+        cmpOnlyLines,
+        syncL, syncR,
+        this::setDiffModel,
+        executor
+    );
+  }
+
+  protected void sendIntervalToDiff(
+      int fromL, int toL,
+      int fromR, int toR
+  ) {
+    if (hasSyncPoints(true) || hasSyncPoints(false)) {
+      sendToDiff(false);
+    } else {
+      DiffUtils.findIntervalDiffs(
+          leftModel.document, rightModel.document,
+          (upd, versions) -> updateDiffModel(fromL, toL, fromR, toR, versions, upd),
+          executor,
+          fromL, toL,
+          fromR, toR
+      );
+    }
+  }
+
+  public void fullFileLexedListener(boolean left) {
+    setModelFlagsBit(left);
+    if (modelFlagsReady()) sendToDiff(false);
+  }
+
+  public void updateModelOnDiffMadeListener(boolean left, Diff diff, boolean isUndo) {
+    unsetModelFlagsBit(left);
+    boolean isDelete = diff.isDelete ^ isUndo;
+
+    if (isDelete) onDeleteDiffMadeListener(diff, left);
+    else onInsertDiffMadeListener(diff, left);
+    if (viewToModel != null && diffModel != null) {
+      viewToModel.updateModelOnDiff(diffModel);
+    }
+  }
+
+  public void iterativeParseFileListener(boolean left, int start, int stop) {
+    setModelFlagsBit(left);
+
+    if (diffModel == null) {
+      if (modelFlagsReady()) sendToDiff(false);
+      return;
+    }
+    var model = left ? leftModel : rightModel;
+    int startLine = model.document.getLine(start).x;
+    int stopLine = model.document.getLine(stop).x;
+    var fromRangeInd = diffModel.leftNotEmptyBS(startLine, left);
+    var toRangeInd = diffModel.rightNotEmptyBS(stopLine, left);
+
+    if (fromRangeInd != 0 && diffModel.ranges[fromRangeInd].type != DiffTypes.DEFAULT) fromRangeInd--;
+    if (toRangeInd != diffModel.rangeCount() - 1 && diffModel.ranges[toRangeInd].type != DiffTypes.DEFAULT)
+      toRangeInd++;
+
+    var fromRange = diffModel.ranges[fromRangeInd];
+    var toRange = diffModel.ranges[toRangeInd];
+
+    if (modelFlagsReady()) sendIntervalToDiff(fromRange.fromL, toRange.toL(), fromRange.fromR, toRange.toR());
+  }
+
+  public void getLinesInfo(Consumer<int[]> linesInfoConsumer) {
+    if (diffStatus == DiffStatus.COMPARED) {
+      linesInfoConsumer.accept(diffModel.linesInfo());
+      return;
+    }
+    getLinesInfo = linesInfoConsumer;
+    if (diffStatus == DiffStatus.NOT_COMPARED) sendToDiff(true);
+  }
+
+  public void applyDiff(DiffRange range, boolean left) {
+    if (range.type == DiffTypes.DEFAULT) return;
+    var fromModel = left ? leftModel : rightModel;
+    var toModel = !left ? leftModel : rightModel;
+
+    int fromStartLine = range.from(left);
+    int fromEndLine = range.to(left);
+    var lines = fromModel.document.getLines(fromStartLine, fromEndLine);
+
+    int toStartLine = range.from(!left);
+    int toEndLine = range.to(!left);
+
+    toModel.document.applyChange(toStartLine, toEndLine, lines);
+
+    if (applyRejectListener == null) return;
+    applyRejectListener.accept(
+        new ApplyChangeInfo(
+            range.fromL, range.toL(),
+            range.fromR, range.toR(),
+            !left
+        )
+    );
+  }
+
+  public void syncEditing(boolean left, CpxDiff cpxDiff, boolean isUndo) {
+    if (!enableSyncEdit) return;
+    if (diffModel != null) {
+      Model current = left ? leftModel : rightModel;
+      var diffVersion = current.document.lastDiffVersion();
+      Model another = !left ? leftModel : rightModel;
+
+      CpxDiff anotherDiff = CpxDiff.DiffMaker.mkOppositeDiff(this, cpxDiff, left);
+
+      if (!anotherDiff.isEmpty()) {
+        another.document.doCpxDiff(anotherDiff, !isUndo);
+        undoBuffer.addDiff(another.document, anotherDiff, diffVersion.second);
+      }
+    }
+  }
+
+  public void undoLastDiff(boolean isRedo) {
+    undoBuffer.undoLastDiff(leftModel.document, rightModel.document, restoreSelection(), isRedo);
+  }
+
+  public void setDiffModel(DiffInfo diffInfo, int[] versions) {
+    if (!Arrays.equals(versions, docVersions())) return;
+    this.diffModel = diffInfo;
+    diffStatus = DiffStatus.COMPARED;
+    if (getLinesInfo != null) getLinesInfo.accept(diffInfo.linesInfo());
+    if (viewToModel != null) viewToModel.setDiffModel(diffModel);
+  }
+
+  void updateDiffModel(
+      int fromL, int toL,
+      int fromR, int toR,
+      int[] versions,
+      DiffInfo updateInfo
+  ) {
+    if (!Arrays.equals(versions, docVersions())) return;
+    diffModel.updateDiffInfo(fromL, toL, fromR, toR, updateInfo);
+    setDiffModel(diffModel, versions);
+  }
+
+  private void onInsertDiffMadeListener(Diff diff, boolean left) {
+    if (diffModel != null) {
+      diffModel.insertAt(diff.line, diff.lineCount(), left);
+    }
+  }
+
+  private void onDeleteDiffMadeListener(Diff diff, boolean left) {
+    if (diffModel != null) {
+      diffModel.deleteAt(diff.line, diff.lineCount(), left);
+    }
+  }
+
+  public boolean isEmpty() {
+    return diffModel == null || diffModel.isEmpty();
+  }
+
+  public void clearCompactView() {
+    if (diffModel != null) diffModel.clearCompactView();
+  }
+
+  public void buildCompactView(Consumer<IntConsumer> apply) {
+    if (diffModel != null) diffModel.buildCompactView(apply);
+  }
+
+  int[] getSyncPoints(boolean left) {
+    if (viewToModel == null) return new int[]{};
+    return viewToModel.getSyncPoints(left);
+  }
+
+  boolean hasSyncPoints(boolean left) {
+    return getSyncPoints(left).length > 0;
+  }
+
+  public DiffRange firstRange(int caretL, int caretR) {
+    if (diffModel == null) return null;
+    for (var range: diffModel.ranges) {
+      if (range.type == DiffTypes.DEFAULT) continue;
+      return (range.inside(caretL, true) || range.inside(caretR, false))
+          ? null : range;
+    }
+    return null;
+  }
+
+  public boolean canNavigateUp(int lineInd, boolean left) {
+    if (diffModel == null) return false;
+    int rangeInd = diffModel.leftBS(lineInd, left);
+    for (int i = rangeInd - 1; i >= 0; i--) {
+      if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return true;
+    }
+    return false;
+  }
+
+  public DiffRange navigateUp(int lineInd, boolean left) {
+    if (diffModel == null) return null;
+    int rangeInd = diffModel.leftBS(lineInd, left);
+    for (int i = rangeInd - 1; i >= 0; i--) {
+      if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return diffModel.ranges[i];
+    }
+    return null;
+  }
+
+  public boolean canNavigateDown(int lineInd, boolean left) {
+    if (diffModel == null) return false;
+    int rangeInd = diffModel.rangeBinSearch(lineInd, left);
+    for (int i = rangeInd + 1; i < diffModel.ranges.length; i++) {
+      if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return true;
+    }
+    return false;
+  }
+
+  public DiffRange navigateDown(int lineInd, boolean left) {
+    if (diffModel == null) return null;
+    int rangeInd = diffModel.rangeBinSearch(lineInd, left);
+    for (int i = rangeInd + 1; i < diffModel.ranges.length; i++) {
+      if (diffModel.ranges[i].type != DiffTypes.DEFAULT) return diffModel.ranges[i];
+    }
+    return null;
+  }
+
+  int[] docVersions() {
+    return new int[]{leftModel.document.version(), rightModel.document.version()};
+  }
+
+  public boolean modelFlagsReady() {
+    return (modelFlags & 0b11) == 0b11;
+  }
+
+  public int getModelFlags() {
+    return modelFlags;
+  }
+
+  public void setModelFlagsBit(boolean left) {
+    setModelFlagsBit(left ? LEFT_MODEL_BIT : RIGHT_MODEL_BIT);
+  }
+
+  public void unsetModelFlagsBit(boolean left) {
+    unsetModelFlagsBit(left ? LEFT_MODEL_BIT : RIGHT_MODEL_BIT);
+  }
+
+  public void unsetModelFlagsBit(int bit) {
+    modelFlags &= ~bit;
+  }
+
+  public void setModelFlagsBit(int bit) {
+    modelFlags |= bit;
+  }
+
+  public void setEnableSyncEdit(boolean enableSyncEdit) {
+    this.enableSyncEdit = enableSyncEdit;
+  }
+
+  public void setApplyRejectListener(Consumer<ApplyChangeInfo> applyRejectListener) {
+    this.applyRejectListener = applyRejectListener;
+  }
+
+  public TriConsumer<Boolean, V2i, Pair<Pos, Pos>> restoreSelection() {
+    return viewToModel != null ? viewToModel::restoreSelection : null;
+  }
+}

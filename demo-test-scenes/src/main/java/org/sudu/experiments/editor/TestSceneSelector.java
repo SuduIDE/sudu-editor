@@ -4,6 +4,7 @@ import org.sudu.experiments.Debug;
 import org.sudu.experiments.Scene;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.diff.*;
+import org.sudu.experiments.swimlane.SwimlaneTest;
 import org.sudu.experiments.ui.FileTreeDemo;
 import org.sudu.experiments.ui.MergeButtonsTest;
 import org.sudu.experiments.editor.menu.FindUsagesDemo;
@@ -56,6 +57,7 @@ public class TestSceneSelector {
       case "UiToolsDemo" -> UiToolsDemo::new;
       case "FolderDiffScene" -> FolderDiffScene::new;
       case "FileDiff" -> FileDiff::new;
+      case "SwimlaneTest" -> SwimlaneTest::new;
 
 //      case "#wasm" -> new WasmDemo(api);
     };

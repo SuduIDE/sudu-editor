@@ -31,8 +31,8 @@ public class UndoBuffer {
   public CpxDiff undoLastDiff(Document doc, boolean isRedo) {
     if (diffs.isEmpty()) return null;
     var stack = diffs.get(doc);
-    if (stack == null || stack.isEmpty()) return null;
-    CpxDiff lastDiff = stack.removeLast().first;
+    if (stack == null || (isRedo ? !stack.haveNext() : stack.isEmpty())) return null;
+    CpxDiff lastDiff = (isRedo ? stack.removeNext() : stack.removeLast()).first;
     return doc.doCpxDiff(lastDiff, isRedo);
   }
 
@@ -59,15 +59,15 @@ public class UndoBuffer {
     if (empty1 && empty2) return;
     if (ind2 > ind1) {
       var diff = doc2.undoLastDiff(stack2.removeLast().first, false);
-      restore.accept(false, diff.caretBefore, diff.selection());
+      if (restore != null) restore.accept(false, diff.caretBefore, diff.selection());
     } else if (ind1 > ind2) {
       var diff = doc1.undoLastDiff(stack1.removeLast().first, false);
-      restore.accept(true, diff.caretBefore, diff.selection());
+      if (restore != null) restore.accept(true, diff.caretBefore, diff.selection());
     } else if (ind1 != -1) {
       var leftDiff = doc1.undoLastDiff(stack1.removeLast().first, false);
-      restore.accept(true, leftDiff.caretBefore, leftDiff.selection());
+      if (restore != null) restore.accept(true, leftDiff.caretBefore, leftDiff.selection());
       var rightDiff = doc2.undoLastDiff(stack2.removeLast().first, false);
-      restore.accept(false, rightDiff.caretBefore, rightDiff.selection());
+      if (restore != null) restore.accept(false, rightDiff.caretBefore, rightDiff.selection());
     }
   }
 
@@ -85,15 +85,15 @@ public class UndoBuffer {
     if (empty1 && empty2) return;
     if (ind2 < ind1) {
       var diff = doc2.undoLastDiff(stack2.removeNext().first, true);
-      restore.accept(false, diff.caretAfter, diff.selection());
+      if (restore != null) restore.accept(false, diff.caretAfter, diff.selection());
     } else if (ind1 < ind2) {
       var diff = doc1.undoLastDiff(stack1.removeNext().first, true);
-      restore.accept(true, diff.caretAfter, diff.selection());
+      if (restore != null) restore.accept(true, diff.caretAfter, diff.selection());
     } else if (ind1 != Integer.MAX_VALUE) {
       var leftDiff = doc1.undoLastDiff(stack1.removeNext().first, true);
-      restore.accept(true, leftDiff.caretAfter, leftDiff.selection());
+      if (restore != null) restore.accept(true, leftDiff.caretAfter, leftDiff.selection());
       var rightDiff = doc2.undoLastDiff(stack2.removeNext().first, true);
-      restore.accept(false, rightDiff.caretAfter, rightDiff.selection());
+      if (restore != null) restore.accept(false, rightDiff.caretAfter, rightDiff.selection());
     }
   }
 

@@ -30,6 +30,7 @@ public class Editor0 extends WindowScene implements ThemeControl, EditorUi.Clear
     api.input.onKeyPress.add(new CtrlO(api, this::openFile));
 
     editor.registerMouse(api.input);
+    editor.setGetUndoBuffer(() -> undoBuffer);
     api.input.onContextMenu.add(this::onContextMenu);
 
     toggleDark();

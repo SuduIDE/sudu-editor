@@ -39,6 +39,7 @@ public class FileDiffWindow extends ToolWindow0
     super(wm, theme, fonts);
     rootView = new FileDiffRootView(windowManager, disableParser, isCodeReview);
     rootView.applyTheme(this.theme);
+    rootView.setDefaultModel();
     window = createWindow(rootView, 30);
     window.onFocus(this::onFocus);
     window.onBlur(this::onBlur);
@@ -96,7 +97,7 @@ public class FileDiffWindow extends ToolWindow0
   public void open(String source, String encoding, String name, boolean left) {
     var ed = left ? rootView.editor1 : rootView.editor2;
     ed.openFile(source, name, encoding);
-    rootView.setEmptyDiffModel();
+    rootView.onFileOpened(left);
     updateTitle(name, left);
     if (isMyFocus())
       fireIfModelReady();

@@ -93,12 +93,6 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     boolean left = JsCast.ints(jsArray, 0)[0] == 1;
   }
 
-  private void onDiffSent(JsArray<JSObject> jsArray) {
-    int[] modelInts = JsCast.ints(jsArray, 0);
-    DiffInfo model = readDiffInfo(modelInts);
-    rootView.setDiffModel(model, rootView.docVersions());
-  }
-
   private void sendReadFile(boolean left) {
     LoggingJs.trace("RemoteFileDiffWindow.sendReadFile, left = " + left);
     JsArray<JSObject> jsArray = JsArray.create();
@@ -116,19 +110,21 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
     rootView.editor2.setMergeButtons(ArrayOp.array(), null, new int[]{});
     rootView.middleLine.setModel(null);
 
-    if (haveLeftHandle) {
-      rootView.unsetModelFlagsBit(1);
-      leftFile = null;
-      sendReadFile(true);
-      lastLeftScrollPos = rootView.editor1.getVScrollPos();
-      lastLeftCaretPos = rootView.editor1.model().getCaretPos();
-    }
-    if (haveRightHandle) {
-      rootView.unsetModelFlagsBit(2);
-      rightFile = null;
-      sendReadFile(false);
-      lastRightScrollPos = rootView.editor2.getVScrollPos();
-      lastRightCaretPos = rootView.editor2.model().getCaretPos();
+    if (rootView.fileDiffModel != null) {
+      if (haveLeftHandle) {
+        rootView.fileDiffModel.unsetModelFlagsBit(true);
+        leftFile = null;
+        sendReadFile(true);
+        lastLeftScrollPos = rootView.editor1.getVScrollPos();
+        lastLeftCaretPos = rootView.editor1.model().getCaretPos();
+      }
+      if (haveRightHandle) {
+        rootView.fileDiffModel.unsetModelFlagsBit(false);
+        rightFile = null;
+        sendReadFile(false);
+        lastRightScrollPos = rootView.editor2.getVScrollPos();
+        lastRightCaretPos = rootView.editor2.model().getCaretPos();
+      }
     }
   }
 
@@ -146,8 +142,8 @@ public class RemoteFileDiffWindow extends FileDiffWindow {
   }
 
   public void printStat() {
-    if (rootView.diffModel == null) return;
-    var diffInfo = rootView.diffModel;
+    if (rootView.fileDiffModel == null) return;
+    var diffInfo = rootView.fileDiffModel.diffModel;
     int diffRanges = 0;
     int linesInserted = 0, linesDeleted = 0;
     for (var range: diffInfo.ranges) {

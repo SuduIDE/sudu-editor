@@ -15,6 +15,8 @@ public interface GLApi {
 
   interface Texture {}
 
+  interface Framebuffer {}
+
   interface Context {
 
     int VENDOR                    = 0x1F00;
@@ -86,6 +88,13 @@ public interface GLApi {
     int VERTEX_SHADER                    = 0x8B31;
     int COMPILE_STATUS                   = 0x8B81;
     int LINK_STATUS                      = 0x8B82;
+
+    int FRAMEBUFFER                    = 0x8D40;
+    int COLOR_ATTACHMENT0              = 0x8CE0;
+    int DEPTH_ATTACHMENT               = 0x8D00;
+    int STENCIL_ATTACHMENT             = 0x8D20;
+    int DEPTH_STENCIL_ATTACHMENT       = 0x821A;
+    int FRAMEBUFFER_COMPLETE           = 0x8CD5;
 
     String getParameterString(int name);
 
@@ -196,5 +205,11 @@ public interface GLApi {
     void vertexAttribPointer(int index, int size, int type, boolean normalized, int stride, int offset);
 
     void texParameteri(int target, int pname, int param);
+
+    Framebuffer createFramebuffer();
+    void deleteFramebuffer(Framebuffer framebuffer);
+    void bindFramebuffer(int target, Framebuffer framebuffer);
+    void framebufferTexture2D(int target, int attachment, int texTarget, Texture texture, int level);
+    int checkFramebufferStatus(int target);
   }
 }

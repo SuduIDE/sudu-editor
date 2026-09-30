@@ -77,9 +77,6 @@ public interface EditArgs extends JSObject {
   }
 
   static WebWorkersPool getPool(EditArgs args) {
-    JsWorkerPool pool = args.getWorkers();
-    if (pool instanceof JsWorkerPool.Impl instance)
-      return instance.workers;
-    throw new IllegalArgumentException("workers pool has to be of type JsWorkerPoolImpl");
+    return JsWorkerPool.pool(args.getWorkers());
   }
 }

@@ -113,7 +113,8 @@ public class Win32Window implements WindowPeer, Window {
     }
 
     scene = sf.apply(api());
-    setTitle(scene.getClass().getSimpleName());
+    if (title.isEmpty())
+      setTitle(scene.getClass().getSimpleName());
     scene.onResize(angleSurfaceSize, devicePixelRatio());
 
     return renderFirst(maximized);
