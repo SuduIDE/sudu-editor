@@ -24,7 +24,6 @@ public class Editor0 extends WindowScene implements ThemeControl, EditorUi.Clear
     ui = new EditorUi(windowManager);
     undoBuffer = new UndoBuffer();
     editor = new EditorComponent(ui);
-    editor.setUndoBuffer(undoBuffer);
     uiContext.initFocus(editor);
 
     api.input.onKeyPress.add(new CtrlO(api, this::openFile));
