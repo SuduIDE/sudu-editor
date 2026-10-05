@@ -143,7 +143,7 @@ const editor = editorApi.newEditor({
   workers: threadPool,
 });
 
-const model = editorApi.newTextModel(threadPool, SAMPLE, "java", { path: "Sample.java" });
+const model = editorApi.newTextModel(threadPool, SAMPLE, "js", { path: "Sample.js" });
 editor.setModel(model);
 editor.focus();
 
@@ -248,7 +248,8 @@ function renderRows(records) {
   for (const r of records) {
     const tr = document.createElement("tr");
     tr.className = `kind-${r.kind}`;
-    tr.dataset.line = String(r.line);
+    // assignment coerces to a string on its own; dataset is DOMString-typed
+    tr.dataset.line = r.line;
     tr.style.height = `${geom.rowHeight}px`;
 
     const cells = [
@@ -373,15 +374,17 @@ function wireScrollSync() {
     pendingEcho = -1;
   });
 
-  // Both calls below move the caret, so setCaretListener already highlights the
-  // row that was clicked - no explicit update needed here.
+  // Clicking a row only moves the caret; it must not scroll. The editor keeps
+  // the caret visible by itself, scrolling the minimum needed, so the line stays
+  // where it was instead of jumping to the middle of the viewport.
+  //
+  // `setPosition` also moves the caret, so setCaretListener already highlights
+  // the row that was clicked - no explicit update needed here.
   tableBody.addEventListener("click", (event) => {
     const row = event.target.closest("tr[data-line]");
     if (!row) return;
 
-    const line = Number(row.dataset.line);
-    editor.setPosition({ lineNumber: line, column: 1 });
-    editor.revealLineInCenter(line);
+    editor.setPosition({ lineNumber: Number(row.dataset.line), column: 1 });
     editor.focus();
   });
 
