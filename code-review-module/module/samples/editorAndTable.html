@@ -177,8 +177,9 @@
       width: 100%;
       table-layout: fixed;
       border-collapse: collapse;
-      font-family: "Consolas", "Cascadia Mono", monospace;
-      /* font-size and line-height are set from the editor line height */
+      /* font-family, font-size and line-height all come from the editor, so the
+         table text matches it exactly; monospace is only the pre-script default */
+      font-family: monospace;
     }
 
     table.metrics th, table.metrics td {
@@ -197,7 +198,8 @@
     #table-head th.left { text-align: left; }
 
     table.metrics td.num { text-align: right; color: #b5b5b5; }
-    table.metrics td.kind { text-align: left; font-size: 0.85em; letter-spacing: 0.04em; }
+    /* no font-size here: every cell renders at the editor's font size */
+    table.metrics td.kind { text-align: left; letter-spacing: 0.04em; }
     table.metrics td.preview { text-align: left; }
 
     /* the row holding the editor caret */

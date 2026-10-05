@@ -67,6 +67,26 @@ public interface JsIEditorView extends JsView {
   /** Height of a single line, in device pixels. */
   int getLineHeight();
 
+  /**
+   * Font size the editor rasterizes text at, in device pixels - the same unit as
+   * every other pixel value this API reports. Divide by
+   * {@link #getDevicePixelRatio} for the CSS pixels a DOM element needs.
+   *
+   * This is the size the editor's font was created with, so it is not rounded
+   * and dividing it back by the device pixel ratio returns the exact CSS pixel
+   * size, including on fractional ratios such as 1.25.
+   *
+   * 0 before the editor has resolved its font.
+   */
+  double getFontSize();
+
+  /**
+   * CSS font family name the editor renders text with, e.g. {@code "Consolas"}.
+   *
+   * null before the editor has resolved its font.
+   */
+  JSString getFontFamily();
+
   /** Number of lines that fit in the editor viewport. */
   int getViewportRows();
 

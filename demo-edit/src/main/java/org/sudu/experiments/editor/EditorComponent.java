@@ -612,6 +612,16 @@ public class EditorComponent extends View implements
   @Override
   public int lineHeight() { return lineHeight; }
 
+  /**
+   * Font size the editor rasterizes text with, in device pixels.
+   *
+   * This is the {@link FontDesk} size the glyphs were actually rendered at, not
+   * a value recomputed from the virtual font size and the device pixel ratio.
+   *
+   * 0 before the editor has resolved its font.
+   */
+  public float fontSize() { return lrContext.fontSize(); }
+
   @Override
   public void draw(WglGraphics g) { paint(); }
 

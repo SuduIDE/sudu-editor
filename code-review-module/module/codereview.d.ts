@@ -169,6 +169,26 @@ export interface EditorView extends IEditorView, IDisposable {
 
   /** `window.devicePixelRatio`, to convert device pixels to CSS pixels. */
   getDevicePixelRatio(): number
+
+  /**
+   * Font size the editor rasterizes text at, in **device** pixels, like every
+   * other pixel value this API reports. Divide by {@link getDevicePixelRatio}
+   * to get the CSS pixels a DOM `font-size` needs.
+   *
+   * This is the size the editor's font was created with, so it is not rounded
+   * and dividing it back by the device pixel ratio returns the exact CSS pixel
+   * size, including on fractional ratios such as 1.25.
+   *
+   * `0` before the editor has resolved its font.
+   */
+  getFontSize(): number
+
+  /**
+   * Font family the editor renders text with, e.g. `"Consolas"`.
+   *
+   * `null` before the editor has resolved its font.
+   */
+  getFontFamily(): string | null
 }
 
 export function newCodeReview(args: EditArgs): CodeReviewView

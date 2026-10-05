@@ -374,6 +374,20 @@ public class JsCodeEditor implements JsEditorView {
   }
 
   @Override
+  public double getFontSize() {
+    // The size the editor's own FontDesk was created with, in device pixels.
+    // Read from the font rather than recomputed as virtualSize * dpr, so it
+    // stays correct if the way the editor rasterizes its font ever changes.
+    return editor.fontSize();
+  }
+
+  @Override
+  public JSString getFontFamily() {
+    String family = editor.getFontFamily();
+    return family == null ? null : JSString.valueOf(family);
+  }
+
+  @Override
   public double getDevicePixelRatio() {
     return window.devicePixelRatio();
   }

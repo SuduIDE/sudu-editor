@@ -158,13 +158,18 @@ editor.focus();
  */
 const geom = {
   dpr: 0,             // window.devicePixelRatio, unitless (e.g. 2), not a length
-  lineHeight: 0,      // DEVICE px: editor height of one line
+  lineHeight: 0,      // DEVICE px, INTEGER: editor height of one line. Whole
+                      // device pixels, which is what makes row alignment exact
   editorHeight: 0,    // DEVICE px: editor viewport height
   maxVScrollPos: 0,   // DEVICE px: largest value setVScrollPos accepts; 0 if the
                       // document already fits, i.e. there is nothing to scroll
   numLines: 0,        // unitless line count, no pixel unit applies
   rowHeight: 0,       // CSS px: lineHeight / dpr; height of one table row, and
                       // what makes table rows line up with editor lines
+  fontSize: 0,        // CSS px, FLOAT: the size of the editor's own font, rounded
+                      // to nothing, so glyphs match the editor exactly
+  fontFamily: null,   // the editor's font family name, without a CSS fallback
+                      // stack; null until the editor has resolved its font
 };
 
 /**
@@ -181,15 +186,31 @@ function readGeometry() {
     return false;
   }
 
+  // The editor reports two different quantities here, and they must not be
+  // confused or derived from one another:
+  //
+  //   lineHeight is an *integer* device pixel count. Dividing it by dpr gives
+  //     the row height, and because the device count is a whole number,
+  //     rowHeight * dpr is exactly that integer again: every row lands on the
+  //     same device pixels the editor draws its lines on, with no drift
+  //     accumulating down the table.
+  //
+  //   fontSize is the *floating point* size of the editor's own font. It is not
+  //     rounded, because the table has to render glyphs at the same size the
+  //     editor does, and an integer device size would not divide back cleanly
+  //     on a fractional ratio.
   geom.rowHeight = geom.lineHeight / geom.dpr;
   geom.numLines = editor.getNumLines();
   geom.maxVScrollPos = editor.getMaxVScrollPos();
 
-  // a row has to be tall enough for its text, so cap the font at a fraction of
-  // the row and pin the line height to the row height
-  const fontSize = Math.max(Math.min(geom.rowHeight * 0.8, 14), 8);
+  // The editor resolves its font in the same pass that produces lineHeight, so
+  // a positive lineHeight already means both of these are real values.
+  geom.fontSize = editor.getFontSize() / geom.dpr;
+  geom.fontFamily = editor.getFontFamily();
+
   for (const table of [tableHead, tableContent]) {
-    table.style.fontSize = `${fontSize}px`;
+    table.style.fontFamily = `${geom.fontFamily}, monospace`;
+    table.style.fontSize = `${geom.fontSize}px`;
     table.style.lineHeight = `${geom.rowHeight}px`;
   }
   tableHead.style.height = `${geom.rowHeight}px`;
@@ -451,7 +472,7 @@ function start() {
   console.log(
     `editor+table: rows=${tableBody.querySelectorAll("tr[data-line]").length}` +
       ` rowHeight=${geom.rowHeight}css dpr=${geom.dpr} numLines=${geom.numLines}` +
-      ` filler=${trailingRowCount()}`
+      ` font=${geom.fontFamily} ${geom.fontSize}css filler=${trailingRowCount()}`
   );
   return true;
 }
