@@ -310,6 +310,64 @@ public class JsCodeEditor implements JsEditorView {
     editor.readonly = flag;
   }
 
+  @Override
+  public void setVScrollListener(VScrollListener listener) {
+    if (listener == null) {
+      editor.setVScrollObserver(null);
+    } else {
+      editor.setVScrollObserver(pos -> {
+        if (listener != null) listener.onVScroll(pos);
+      });
+    }
+  }
+
+  @Override
+  public int getVScrollPos() {
+    return editor.getVScrollPos();
+  }
+
+  @Override
+  public void setVScrollPos(int vScrollPos) {
+    if (editor.setVScrollPos(vScrollPos)) {
+      // Scene.update only reports a repaint for scroll it drove itself
+      // (wheel, scrollbar, keyboard paging), so a position set from here would
+      // leave the canvas showing the old scroll range until the next unrelated
+      // repaint. Ask for one explicitly.
+      window.repaint();
+    }
+  }
+
+  @Override
+  public int getLineHeight() {
+    return editor.lineHeight();
+  }
+
+  @Override
+  public int getViewportRows() {
+    int lh = editor.lineHeight();
+    return lh == 0 ? 0 : editor.editorHeight() / lh;
+  }
+
+  @Override
+  public int getNumLines() {
+    return editor.getNumLines();
+  }
+
+  @Override
+  public int getMaxVScrollPos() {
+    return editor.maxVScrollPos();
+  }
+
+  @Override
+  public int getEditorHeight() {
+    return editor.editorHeight();
+  }
+
+  @Override
+  public double getDevicePixelRatio() {
+    return window.devicePixelRatio();
+  }
+
   public static JsCodeEditor newEdit(EditArgs args) {
     if (!JsCanvas.checkFontMetricsAPI())
       throw new RuntimeException("Font metrics API is not supported");

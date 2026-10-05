@@ -6,7 +6,7 @@ import { IDisposable } from '@sudu-ide/types';
 import {
   Uri, IEvent, ITextModel,
   View, HasTheme, Theme, Focusable, TwoPanelDiff,
-  EditorView, FileDiffViewController
+  IEditorView, FileDiffViewController
 } from '@sudu-ide/types/frontend';
 
 export * from '@sudu-ide/types';
@@ -103,5 +103,60 @@ export function newDiffModel(
 ): ITextDiffModel
 
 export function newEditor(args: EditArgs): EditorView
+
+/**
+ * Observer of the editor vertical scroll.
+ *
+ * The editor renders into a canvas and does its own virtual scrolling, so it
+ * has no DOM scrollbar to listen to: this callback is the only way to observe
+ * vertical scroll. It fires on mouse wheel, scrollbar drag, keyboard paging,
+ * caret reveal and {@link EditorView.setVScrollPos}.
+ *
+ * The reported position, and every other size reported by the editor below,
+ * is in *device pixels*: divide by {@link EditorView.getDevicePixelRatio} to
+ * get CSS pixels, or multiply a CSS pixel value coming from the DOM to convert
+ * it back into device pixels.
+ */
+export interface EditorScrollListener {
+  (vScrollPos: number): void
+}
+
+export interface EditorView extends IEditorView, IDisposable {
+  setModel(model: ITextModel): void
+
+  /**
+   * Registers a vertical scroll observer, replacing any previous one.
+   * Pass `null` to remove it.
+   */
+  setVScrollListener(listener: EditorScrollListener | null): void
+
+  /** Current vertical scroll position, in device pixels. */
+  getVScrollPos(): number
+
+  /**
+   * Sets the vertical scroll position, in device pixels. The value is clamped
+   * to `[0, getMaxVScrollPos()]` and, when it actually changes, notifies the
+   * listener installed by {@link setVScrollListener} and repaints the canvas.
+   */
+  setVScrollPos(vScrollPos: number): void
+
+  /** Height of a single line, in device pixels. */
+  getLineHeight(): number
+
+  /** Number of whole lines that fit into the editor viewport. */
+  getViewportRows(): number
+
+  /** Document line count. */
+  getNumLines(): number
+
+  /** Largest value accepted by {@link setVScrollPos}, in device pixels. */
+  getMaxVScrollPos(): number
+
+  /** Editor height, in device pixels. */
+  getEditorHeight(): number
+
+  /** `window.devicePixelRatio`, to convert device pixels to CSS pixels. */
+  getDevicePixelRatio(): number
+}
 
 export function newCodeReview(args: EditArgs): CodeReviewView

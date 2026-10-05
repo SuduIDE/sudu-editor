@@ -109,6 +109,7 @@ public class EditorComponent extends View implements
   Consumer<String> onError = System.err::println;
   IntConsumer hScrollListener;
   IntConsumer vScrollListener;
+  IntConsumer vScrollObserver;
   Consumer<EditorComponent> fullFileLexedListener;
   TriConsumer<EditorComponent, Integer, Integer> iterativeParseFileListener;
   TriConsumer<EditorComponent, Diff, Boolean> updateModelOnDiffListener;
@@ -462,7 +463,7 @@ public class EditorComponent extends View implements
     return (getNumLines() + EditorConst.BLANK_LINES) * lineHeight;
   }
 
-  int maxVScrollPos() {
+  public int maxVScrollPos() {
     return Math.max(editorVirtualHeight() - size.y, 0);
   }
 
@@ -470,7 +471,7 @@ public class EditorComponent extends View implements
     return Math.max(fullWidth - textViewWidth, 0);
   }
 
-  int editorHeight() {
+  public int editorHeight() {
     return size.y;
   }
 
@@ -504,9 +505,22 @@ public class EditorComponent extends View implements
 
   void setScrollPosY(int vPos) {
     int delta = vPos - getVScrollPos();
-    if (setVScrollPosSilent(vPos) && vScrollListener != null) {
-      vScrollListener.accept(delta);
+    if (setVScrollPosSilent(vPos)) {
+      notifyVScroll(delta);
     }
+  }
+
+  /**
+   * Registers an observer notified with the absolute vertical scroll position
+   * (in device pixels) on every user driven scroll: wheel, scrollbar drag,
+   * keyboard paging, caret reveal and programmatic {@link #setVScrollPos}.
+   *
+   * Unlike {@link #setScrollListeners}, this does not take over the listener
+   * used for diff pane synchronization, and reports the absolute position
+   * rather than a delta.
+   */
+  public void setVScrollObserver(IntConsumer observer) {
+    this.vScrollObserver = observer;
   }
 
   @Override
@@ -530,6 +544,34 @@ public class EditorComponent extends View implements
 
   public int getVScrollPos() {
     return vScrollPos;
+  }
+
+  /**
+   * Sets the vertical scroll position from code, clamped to the valid range,
+   * and notifies both the diff sync listener and the scroll observer.
+   * Prefer this over {@link #setVScrollPosSilent} when the change should be
+   * visible to external scroll observers.
+   *
+   * @return whether the position actually changed
+   */
+  public boolean setVScrollPos(int vPos) {
+    return setVScrollPosSilent(vPos) && notifyVScroll(vPos - vScrollPos);
+  }
+
+  /**
+   * Notifies the diff sync listener and the scroll observer of an already
+   * applied vertical scroll change.
+   *
+   * @return true if the position had changed, i.e. there was something to notify
+   */
+  private boolean notifyVScroll(int delta) {
+    if (vScrollListener != null) {
+      vScrollListener.accept(delta);
+    }
+    if (vScrollObserver != null) {
+      vScrollObserver.accept(vScrollPos);
+    }
+    return true;
   }
 
   @Override
