@@ -42,6 +42,22 @@ public interface JsIEditorView extends JsView {
   /** Registers a vertical scroll observer, replacing any previous one. */
   void setVScrollListener(VScrollListener listener);
 
+  /**
+   * Called with the caret's line, 1-based to match {@link #getPosition},
+   * whenever the caret moves to a different line: arrow keys, Home/End,
+   * Page Up/Down, mouse click and drag, goto definition/declaration and
+   * {@link #setPosition}.
+   *
+   * Column-only moves within one line are not reported.
+   */
+  @JSFunctor
+  interface CaretListener extends JSObject {
+    void onCaretLine(int lineNumber);
+  }
+
+  /** Registers a caret line observer, replacing any previous one. */
+  void setCaretListener(CaretListener listener);
+
   /** Current vertical scroll position, in device pixels. */
   int getVScrollPos();
 

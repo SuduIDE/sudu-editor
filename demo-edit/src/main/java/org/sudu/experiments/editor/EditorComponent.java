@@ -110,6 +110,8 @@ public class EditorComponent extends View implements
   IntConsumer hScrollListener;
   IntConsumer vScrollListener;
   IntConsumer vScrollObserver;
+  IntConsumer caretLineObserver;
+  int lastNotifiedCaretLine = -1;
   Consumer<EditorComponent> fullFileLexedListener;
   TriConsumer<EditorComponent, Integer, Integer> iterativeParseFileListener;
   TriConsumer<EditorComponent, Diff, Boolean> updateModelOnDiffListener;
@@ -521,6 +523,34 @@ public class EditorComponent extends View implements
    */
   public void setVScrollObserver(IntConsumer observer) {
     this.vScrollObserver = observer;
+  }
+
+  /**
+   * Registers an observer notified with the caret's document line whenever it
+   * moves to a different line: arrow keys, Home/End, Page Up/Down, mouse click
+   * and drag, goto definition/declaration, and {@link #setCaretLinePos}.
+   *
+   * Only line changes are reported, so a listener tracking "which line is the
+   * caret on" is not woken up for every character typed.
+   *
+   * The line is 0-based, matching {@link Model#caretLine}; add one for the
+   * 1-based line numbers the JS API reports.
+   */
+  public void setCaretLineObserver(IntConsumer observer) {
+    this.caretLineObserver = observer;
+    // force the next move to notify, even if it lands on the same line the
+    // previous observer saw
+    lastNotifiedCaretLine = -1;
+  }
+
+  /**
+   * Notifies the caret observer, but only when the caret actually changed line.
+   */
+  private void notifyCaretLine() {
+    if (caretLineObserver == null) return;
+    if (model.caretLine == lastNotifiedCaretLine) return;
+    lastNotifiedCaretLine = model.caretLine;
+    caretLineObserver.accept(model.caretLine);
   }
 
   @Override
@@ -1215,6 +1245,7 @@ public class EditorComponent extends View implements
     if (shift) selection().isSelectionStarted = true;
     selection().select(model.caretLine, model.caretCharPos);
     selection().isSelectionStarted = false;
+    notifyCaretLine();
     return true;
   }
 
@@ -1377,6 +1408,7 @@ public class EditorComponent extends View implements
     model.caretLine = pos.line;
     model.caretCharPos = pos.charPos;
     recomputeCaretPosY();
+    notifyCaretLine();
   }
 
   private void recomputeCaretPosY() {

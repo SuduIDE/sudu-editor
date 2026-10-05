@@ -322,6 +322,16 @@ public class JsCodeEditor implements JsEditorView {
   }
 
   @Override
+  public void setCaretListener(CaretListener listener) {
+    if (listener == null) {
+      editor.setCaretLineObserver(null);
+    } else {
+      // EditorComponent reports 0-based lines, the JS API is 1-based
+      editor.setCaretLineObserver(line -> listener.onCaretLine(line + 1));
+    }
+  }
+
+  @Override
   public int getVScrollPos() {
     return editor.getVScrollPos();
   }

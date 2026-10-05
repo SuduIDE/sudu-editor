@@ -130,6 +130,18 @@ export interface EditorView extends IEditorView, IDisposable {
    */
   setVScrollListener(listener: EditorScrollListener | null): void
 
+  /**
+   * Registers an observer notified with the caret's line whenever the caret
+   * moves to a different line: arrow keys, Home/End, Page Up/Down, mouse click
+   * and drag, goto definition/declaration and {@link setPosition}.
+   *
+   * Column-only moves within a single line are not reported. The line is
+   * 1-based, matching {@link IEditorView.getPosition}.
+   *
+   * Pass `null` to remove the observer.
+   */
+  setCaretListener(listener: ((lineNumber: number) => void) | null): void
+
   /** Current vertical scroll position, in device pixels. */
   getVScrollPos(): number
 

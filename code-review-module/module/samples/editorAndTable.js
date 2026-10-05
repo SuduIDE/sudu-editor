@@ -296,27 +296,41 @@ function recompute() {
 // caret highlight
 // ---------------------------------------------------------------------------
 
-function caretLineNumber() {
-  const pos = editor.getPosition();
-  return pos && pos.lineNumber > 0 ? pos.lineNumber : null;
-}
-
 let currentRow = null;
 
+/**
+ * Reads the caret line and applies it.
+ *
+ * Only needed where the editor has not told us the line itself: after a
+ * re-render, and when the caret line could not be clamped. Caret movement
+ * arrives through `setCaretListener` instead, which is why there is no polling
+ * here - a poll cannot be both instant and cheap.
+ */
 function updateCurrentRow() {
-  const line = caretLineNumber();
-  if (currentRow && (!line || currentRow.dataset.line !== String(line))) {
-    currentRow.classList.remove("current");
-    currentRow = null;
-  }
-  if (!line) return;
+  const pos = editor.getPosition();
+  const line = pos && pos.lineNumber > 0 ? pos.lineNumber : null;
+  if (!line) return clearHighlight();
+  highlightRow(line);
+}
 
-  const row = tableBody.querySelector(`tr[data-line="${line}"]`);
-  if (row && row !== currentRow) {
-    if (currentRow) currentRow.classList.remove("current");
-    row.classList.add("current");
-    currentRow = row;
-  }
+/**
+ * Moves the caret highlight to the given row, if it is not already there.
+ * The editor reports the caret line, which is exactly the `data-line` value
+ * the rows carry, so no position lookup is needed.
+ */
+function highlightRow(lineNumber) {
+  const row = tableBody.querySelector(`tr[data-line="${lineNumber}"]`);
+  if (!row || row === currentRow) return;
+  if (currentRow) currentRow.classList.remove("current");
+  row.classList.add("current");
+  currentRow = row;
+}
+
+/** Drops the highlight, for when the caret line has no row. */
+function clearHighlight() {
+  if (!currentRow) return;
+  currentRow.classList.remove("current");
+  currentRow = null;
 }
 
 // ---------------------------------------------------------------------------
@@ -340,7 +354,6 @@ function onEditorScroll(vScrollPosDevicePx) {
   if (Math.abs(tableScroll.scrollTop - target) >= 0.5) {
     tableScroll.scrollTop = target;
   }
-  updateCurrentRow();
 }
 
 function wireScrollSync() {
@@ -349,14 +362,19 @@ function wireScrollSync() {
     if (followEditor) onEditorScroll(vScrollPos);
   });
 
+  // Caret movement, synchronous with the editor's own handling of the key or
+  // mouse event, so the highlight keeps up with the caret exactly.
+  editor.setCaretListener(highlightRow);
+
   tableScroll.addEventListener("scroll", () => {
     const devicePos = Math.round(tableScroll.scrollTop * geom.dpr);
     pendingEcho = devicePos;
     editor.setVScrollPos(devicePos);
     pendingEcho = -1;
-    updateCurrentRow();
   });
 
+  // Both calls below move the caret, so setCaretListener already highlights the
+  // row that was clicked - no explicit update needed here.
   tableBody.addEventListener("click", (event) => {
     const row = event.target.closest("tr[data-line]");
     if (!row) return;
@@ -365,7 +383,6 @@ function wireScrollSync() {
     editor.setPosition({ lineNumber: line, column: 1 });
     editor.revealLineInCenter(line);
     editor.focus();
-    updateCurrentRow();
   });
 
   followButton.addEventListener("click", () => {
@@ -382,9 +399,6 @@ function wireScrollSync() {
     if (geom.rowHeight !== previousRowHeight) recompute();
     if (followEditor) onEditorScroll(editor.getVScrollPos());
   });
-
-  // caret movement that does not scroll still moves the highlight
-  setInterval(updateCurrentRow, 200);
 }
 
 // ---------------------------------------------------------------------------
@@ -438,6 +452,9 @@ function start() {
   );
   return true;
 }
+
+// exposed so the sample can be driven and inspected from the console
+Object.assign(window, { editor, geom });
 
 // The editor needs a layout pass and its font metrics before it can report a
 // line height, so wait for real values rather than inventing one.
