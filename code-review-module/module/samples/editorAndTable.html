@@ -107,7 +107,8 @@
       flex: 1 1 auto;
       min-width: 0;
       height: 100%;
-      background-color: #252526;
+      --table-bg: #252526;
+      background-color: var(--table-bg);
       overflow: hidden;
     }
 
@@ -180,6 +181,24 @@
       /* font-family, font-size and line-height all come from the editor, so the
          table text matches it exactly; monospace is only the pre-script default */
       font-family: monospace;
+    }
+
+    /*
+      The opaque background has to be on the table element itself, not on the
+      scroller, tbody, tr or td - measured, only this placement works.
+
+      Chrome composites a scrolling container (`#table-scroll` has
+      `overflow-y: scroll`) into its own layer. When that layer's contents are
+      not opaque, Chrome drops subpixel text antialiasing, so the body text
+      renders grayscale and blurry. The header is unaffected because `.hcols`
+      only has `overflow: hidden`, which is never composited, which is why the
+      two look different.
+
+      Nothing is painted differently: `--table-bg` is the same colour the pane
+      already showed through.
+    */
+    #table-scroll table {
+      background-color: var(--table-bg);
     }
 
     table.metrics th, table.metrics td {
