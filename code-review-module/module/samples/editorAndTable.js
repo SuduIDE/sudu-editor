@@ -164,12 +164,31 @@ const geom = {
   maxVScrollPos: 0,   // DEVICE px: largest value setVScrollPos accepts; 0 if the
                       // document already fits, i.e. there is nothing to scroll
   numLines: 0,        // unitless line count, no pixel unit applies
-  rowHeight: 0,       // CSS px: lineHeight / dpr; height of one table row, and
-                      // what makes table rows line up with editor lines
   fontSize: 0,        // CSS px, FLOAT: the size of the editor's own font, rounded
                       // to nothing, so glyphs match the editor exactly
   fontFamily: null,   // the editor's font family name, without a CSS fallback
                       // stack; null until the editor has resolved its font
+
+  /**
+   * CSS px: the height of one table row, which is what makes rows line up with
+   * editor lines.
+   *
+   * Named for its unit because the other lengths here are in *device* pixels -
+   * this is the one the DOM consumes, and mixing the two up is the easy mistake.
+   *
+   * Derived rather than stored: `lineHeight` and `dpr` are both right here, and
+   * a stored copy could disagree with them. `readGeometry` assigns those two
+   * before it knows the editor is ready, so between a failed read and the next
+   * successful one a stored copy would be left over from the previous layout
+   * while its inputs had already moved on.
+   *
+   * `lineHeight` is a whole number of device pixels, so `cssRowHeight * dpr` is
+   * exactly that integer again - the rows land on the same device pixels the
+   * editor draws its lines on, with no drift accumulating down the table.
+   */
+  get cssRowHeight() {
+    return this.lineHeight / this.dpr;
+  },
 };
 
 /**
@@ -187,19 +206,15 @@ function readGeometry() {
   }
 
   // The editor reports two different quantities here, and they must not be
-  // confused or derived from one another:
+  // confused with one another:
   //
-  //   lineHeight is an *integer* device pixel count. Dividing it by dpr gives
-  //     the row height, and because the device count is a whole number,
-  //     rowHeight * dpr is exactly that integer again: every row lands on the
-  //     same device pixels the editor draws its lines on, with no drift
-  //     accumulating down the table.
+  //   lineHeight is an *integer* device pixel count; `geom.cssRowHeight` derives
+  //     the CSS row height from it.
   //
   //   fontSize is the *floating point* size of the editor's own font. It is not
   //     rounded, because the table has to render glyphs at the same size the
   //     editor does, and an integer device size would not divide back cleanly
   //     on a fractional ratio.
-  geom.rowHeight = geom.lineHeight / geom.dpr;
   geom.numLines = editor.getNumLines();
   geom.maxVScrollPos = editor.getMaxVScrollPos();
 
@@ -211,9 +226,9 @@ function readGeometry() {
   for (const table of [tableHead, tableContent]) {
     table.style.fontFamily = `${geom.fontFamily}, monospace`;
     table.style.fontSize = `${geom.fontSize}px`;
-    table.style.lineHeight = `${geom.rowHeight}px`;
+    table.style.lineHeight = `${geom.cssRowHeight}px`;
   }
-  tableHead.style.height = `${geom.rowHeight}px`;
+  tableHead.style.height = `${geom.cssRowHeight}px`;
 
   return true;
 }
@@ -271,7 +286,7 @@ function renderRows(records) {
     tr.className = `kind-${r.kind}`;
     // assignment coerces to a string on its own; dataset is DOMString-typed
     tr.dataset.line = r.line;
-    tr.style.height = `${geom.rowHeight}px`;
+    tr.style.height = `${geom.cssRowHeight}px`;
 
     const cells = [
       ["num", r.line],
@@ -297,7 +312,7 @@ function renderRows(records) {
   for (let i = 0; i < trailingRowCount(); i++) {
     const tr = document.createElement("tr");
     tr.className = "filler";
-    tr.style.height = `${geom.rowHeight}px`;
+    tr.style.height = `${geom.cssRowHeight}px`;
     const td = document.createElement("td");
     td.colSpan = COLUMNS.length + 1;
     td.textContent = "~";
@@ -418,9 +433,9 @@ function wireScrollSync() {
   model.setEditListener(recompute);
 
   window.addEventListener("resize", () => {
-    const previousRowHeight = geom.rowHeight;
+    const previousRowHeight = geom.cssRowHeight;
     if (!readGeometry()) return;
-    if (geom.rowHeight !== previousRowHeight) recompute();
+    if (geom.cssRowHeight !== previousRowHeight) recompute();
     if (followEditor) onEditorScroll(editor.getVScrollPos());
   });
 }
@@ -471,7 +486,7 @@ function start() {
 
   console.log(
     `editor+table: rows=${tableBody.querySelectorAll("tr[data-line]").length}` +
-      ` rowHeight=${geom.rowHeight}css dpr=${geom.dpr} numLines=${geom.numLines}` +
+      ` rowHeight=${geom.cssRowHeight}css dpr=${geom.dpr} numLines=${geom.numLines}` +
       ` font=${geom.fontFamily} ${geom.fontSize}css filler=${trailingRowCount()}`
   );
   return true;
