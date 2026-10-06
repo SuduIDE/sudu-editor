@@ -97,9 +97,14 @@ jobs:
         run: |
           NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
           echo "::notice::version \"${NEW_VERSION}\""
+          if [[ "$NEW_VERSION" == *-* ]]; then
+            NPM_TAG="alpha"
+          else
+            NPM_TAG="latest"
+          fi
           cd $GITHUB_WORKSPACE/sudu-editor/common-ts-types
-          npm publish --access public
+          npm publish --access public --tag "$NPM_TAG"
           cd $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module
-          npm publish --access public
+          npm publish --access public --tag "$NPM_TAG"
           cd $GITHUB_WORKSPACE/sudu-editor/code-review-module/module
-          npm publish --access public
+          npm publish --access public --tag "$NPM_TAG"
