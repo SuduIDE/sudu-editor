@@ -2,6 +2,7 @@ package org.sudu.experiments.esm;
 
 import org.sudu.experiments.diff.JsEditorViewController;
 import org.sudu.experiments.js.JsDisposable;
+import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.core.JSString;
 
@@ -24,4 +25,80 @@ public interface JsIEditorView extends JsView {
 
   JsEditorViewController getController();
   void setReadonly(boolean flag);
+
+  /**
+   * Called with the absolute vertical scroll position, in device pixels,
+   * on every user driven vertical scroll: mouse wheel, scrollbar drag,
+   * keyboard paging, caret reveal and {@link #setVScrollPos}.
+   *
+   * Note the editor is rendered to a canvas and has no DOM scrollbar,
+   * so this callback is the only way to observe its vertical scroll.
+   */
+  @JSFunctor
+  interface VScrollListener extends JSObject {
+    void onVScroll(int vScrollPos);
+  }
+
+  /** Registers a vertical scroll observer, replacing any previous one. */
+  void setVScrollListener(VScrollListener listener);
+
+  /**
+   * Called with the caret's line, 1-based to match {@link #getPosition},
+   * whenever the caret moves to a different line: arrow keys, Home/End,
+   * Page Up/Down, mouse click and drag, goto definition/declaration and
+   * {@link #setPosition}.
+   *
+   * Column-only moves within one line are not reported.
+   */
+  @JSFunctor
+  interface CaretListener extends JSObject {
+    void onCaretLine(int lineNumber);
+  }
+
+  /** Registers a caret line observer, replacing any previous one. */
+  void setCaretListener(CaretListener listener);
+
+  /** Current vertical scroll position, in device pixels. */
+  int getVScrollPos();
+
+  /** Sets the vertical scroll position, in device pixels. Notifies the listener. */
+  void setVScrollPos(int vScrollPos);
+
+  /** Height of a single line, in device pixels. */
+  int getLineHeight();
+
+  /**
+   * Font size the editor rasterizes text at, in device pixels - the same unit as
+   * every other pixel value this API reports. Divide by
+   * {@link #getDevicePixelRatio} for the CSS pixels a DOM element needs.
+   *
+   * This is the size the editor's font was created with, so it is not rounded
+   * and dividing it back by the device pixel ratio returns the exact CSS pixel
+   * size, including on fractional ratios such as 1.25.
+   *
+   * 0 before the editor has resolved its font.
+   */
+  double getFontSize();
+
+  /**
+   * CSS font family name the editor renders text with, e.g. {@code "Consolas"}.
+   *
+   * null before the editor has resolved its font.
+   */
+  JSString getFontFamily();
+
+  /** Number of lines that fit in the editor viewport. */
+  int getViewportRows();
+
+  /** Document line count. */
+  int getNumLines();
+
+  /** Maximum vertical scroll position, in device pixels. */
+  int getMaxVScrollPos();
+
+  /** Editor height in device pixels. */
+  int getEditorHeight();
+
+  /** Window.devicePixelRatio, used to convert device pixels to CSS pixels. */
+  double getDevicePixelRatio();
 }

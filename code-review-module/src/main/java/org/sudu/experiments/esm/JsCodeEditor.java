@@ -310,6 +310,88 @@ public class JsCodeEditor implements JsEditorView {
     editor.readonly = flag;
   }
 
+  @Override
+  public void setVScrollListener(VScrollListener listener) {
+    if (listener == null) {
+      editor.setVScrollObserver(null);
+    } else {
+      editor.setVScrollObserver(pos -> {
+        if (listener != null) listener.onVScroll(pos);
+      });
+    }
+  }
+
+  @Override
+  public void setCaretListener(CaretListener listener) {
+    if (listener == null) {
+      editor.setCaretLineObserver(null);
+    } else {
+      // EditorComponent reports 0-based lines, the JS API is 1-based
+      editor.setCaretLineObserver(line -> listener.onCaretLine(line + 1));
+    }
+  }
+
+  @Override
+  public int getVScrollPos() {
+    return editor.getVScrollPos();
+  }
+
+  @Override
+  public void setVScrollPos(int vScrollPos) {
+    if (editor.setVScrollPos(vScrollPos)) {
+      // Scene.update only reports a repaint for scroll it drove itself
+      // (wheel, scrollbar, keyboard paging), so a position set from here would
+      // leave the canvas showing the old scroll range until the next unrelated
+      // repaint. Ask for one explicitly.
+      window.repaint();
+    }
+  }
+
+  @Override
+  public int getLineHeight() {
+    return editor.lineHeight();
+  }
+
+  @Override
+  public int getViewportRows() {
+    int lh = editor.lineHeight();
+    return lh == 0 ? 0 : editor.editorHeight() / lh;
+  }
+
+  @Override
+  public int getNumLines() {
+    return editor.getNumLines();
+  }
+
+  @Override
+  public int getMaxVScrollPos() {
+    return editor.maxVScrollPos();
+  }
+
+  @Override
+  public int getEditorHeight() {
+    return editor.editorHeight();
+  }
+
+  @Override
+  public double getFontSize() {
+    // The size the editor's own FontDesk was created with, in device pixels.
+    // Read from the font rather than recomputed as virtualSize * dpr, so it
+    // stays correct if the way the editor rasterizes its font ever changes.
+    return editor.fontSize();
+  }
+
+  @Override
+  public JSString getFontFamily() {
+    String family = editor.getFontFamily();
+    return family == null ? null : JSString.valueOf(family);
+  }
+
+  @Override
+  public double getDevicePixelRatio() {
+    return window.devicePixelRatio();
+  }
+
   public static JsCodeEditor newEdit(EditArgs args) {
     if (!JsCanvas.checkFontMetricsAPI())
       throw new RuntimeException("Font metrics API is not supported");

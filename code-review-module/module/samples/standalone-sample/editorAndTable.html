@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sudu editor - editor + synchronized metrics table</title>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #2b2b2b;
+      color: #cccccc;
+      font-family: system-ui, "Segoe UI", sans-serif;
+      overflow: hidden;
+    }
+
+    body { display: flex; flex-direction: column; }
+
+    #toolbar {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 10px;
+      background-color: #333333;
+      border-bottom: 1px solid #454545;
+      font-size: 12px;
+      user-select: none;
+    }
+
+    #toolbar .title { font-weight: 600; }
+    #toolbar .spacer { flex: 1 1 auto; }
+
+    #toolbar button {
+      background-color: #3c3c3c;
+      color: #cccccc;
+      border: 1px solid #555555;
+      border-radius: 3px;
+      padding: 3px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    #toolbar button:hover { background-color: #4a4a4a; }
+
+    /*
+      The column header spans the full width, above the editor as well as
+      above the table. `#header-row` and `#panes` are both flex rows driven by
+      the same `--editor-width`, so the header's left pad, the editor and the
+      table always stay in step without measuring anything.
+    */
+    #split-root {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      --editor-width: 60%;
+      --splitter-width: 6px;
+    }
+
+    #header-row {
+      flex: 0 0 auto;
+      display: flex;
+      background-color: #2d2d2d;
+      border-bottom: 1px solid #454545;
+    }
+
+    /* mirrors the editor pane, keeps the labels clear of it */
+    .hpad { flex: 0 0 var(--editor-width); min-width: 0; }
+
+    /* mirrors the splitter, so the labels line up with the table columns */
+    .hsplit { flex: 0 0 var(--splitter-width); }
+
+    .hcols {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    #panes {
+      flex: 1 1 auto;
+      display: flex;
+      min-height: 0;
+    }
+
+    #editor-pane {
+      position: relative;
+      flex: 0 0 var(--editor-width);
+      min-width: 0;
+      height: 100%;
+    }
+
+    #splitter {
+      flex: 0 0 var(--splitter-width);
+      cursor: col-resize;
+      background-color: #333333;
+      border-left: 1px solid #454545;
+      border-right: 1px solid #454545;
+    }
+
+    #splitter:hover { background-color: #4a4a4a; }
+
+    #table-pane {
+      position: relative;
+      flex: 1 1 auto;
+      min-width: 0;
+      height: 100%;
+      --table-bg: #252526;
+      background-color: var(--table-bg);
+      overflow: hidden;
+    }
+
+    /*
+      The header is a separate element rather than a sticky row, because a
+      sticky row would occupy layout space inside the scrolling viewport and
+      push every body row down, breaking the 1:1 alignment with the editor
+      lines. Header and body tables share a colgroup and `table-layout: fixed`,
+      and their containers are the same width, so the columns line up.
+    */
+    #table-scroll {
+      height: 100%;
+      overflow-y: scroll;
+      overflow-x: hidden;
+    }
+
+    /*
+      The editor paints its scrollbar onto the canvas, so this DOM scrollbar is
+      the only light-colored chrome on the page. Style it from the same theme
+      constants the editor uses for the default (dark) theme:
+
+        width  EditorComponent.scrollBarWidthDp        = 12
+        track  IdeaCodeColors.Dark.scrollBarBg         = rgb(30 31 34 / 0)
+        thumb  IdeaCodeColors.Dark.scrollBarLine       = rgb(107 106 107 / 128)
+               128/255 = 50.2%
+
+      `scrollbar-gutter: stable` goes on the header wrapper too. The two tables
+      share one <colgroup> of percentage widths, so if only the scrolling body
+      loses the scrollbar's width, every column is scaled by a different factor
+      and the header no longer lines up with the body.
+    */
+    #table-scroll, .hcols {
+      scrollbar-gutter: stable;
+    }
+
+    /*
+      Firefox only, and behind @supports on purpose: per spec a non-auto
+      `scrollbar-color` makes the UA ignore `::-webkit-scrollbar` altogether, and
+      Chromium would then fall back to the 15px platform scrollbar instead of the
+      12px one the editor draws.
+    */
+    @supports not selector(::-webkit-scrollbar) {
+      #table-scroll, .hcols {
+        scrollbar-color: rgb(107 106 107 / 50.2%) transparent;
+      }
+    }
+
+    #table-scroll::-webkit-scrollbar,
+    .hcols::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    #table-scroll::-webkit-scrollbar-track,
+    .hcols::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    /* ScrollBar.drawButton insets the thumb by 1px on each side */
+    #table-scroll::-webkit-scrollbar-thumb,
+    .hcols::-webkit-scrollbar-thumb {
+      background-color: rgb(107 106 107 / 50.2%);
+      border: 1px solid transparent;
+      background-clip: padding-box;
+    }
+
+    table.metrics {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+      /* font-family, font-size and line-height all come from the editor, so the
+         table text matches it exactly; monospace is only the pre-script default */
+      font-family: monospace;
+    }
+
+    /*
+      The opaque background has to be on the table element itself, not on the
+      scroller, tbody, tr or td - measured, only this placement works.
+
+      Chrome composites a scrolling container (`#table-scroll` has
+      `overflow-y: scroll`) into its own layer. When that layer's contents are
+      not opaque, Chrome drops subpixel text antialiasing, so the body text
+      renders grayscale and blurry. The header is unaffected because `.hcols`
+      only has `overflow: hidden`, which is never composited, which is why the
+      two look different.
+
+      Nothing is painted differently: `--table-bg` is the same colour the pane
+      already showed through.
+    */
+    #table-scroll table {
+      background-color: var(--table-bg);
+    }
+
+    table.metrics th, table.metrics td {
+      padding: 0 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #table-head th {
+      color: #9d9d9d;
+      text-align: right;
+      font-weight: 600;
+    }
+
+    #table-head th.left { text-align: left; }
+
+    table.metrics td.num { text-align: right; color: #b5b5b5; }
+    /* no font-size here: every cell renders at the editor's font size */
+    table.metrics td.kind { text-align: left; letter-spacing: 0.04em; }
+    table.metrics td.preview { text-align: left; }
+
+    /* the row holding the editor caret */
+    table.metrics tr.current td {
+      background-color: #37373d;
+      color: #ffffff;
+    }
+
+    tr.kind-blank td.preview  { color: #6a6a6a; }
+    tr.kind-comment td.preview { color: #6a9955; }
+
+    tr.kind-blank td.kind   { color: #6a6a6a; }
+    tr.kind-comment td.kind { color: #6a9955; }
+    tr.kind-code td.kind    { color: #569cd6; }
+
+    /* filler rows matching the editor's trailing blank lines, so the table
+       can reach the same maximum scroll position as the editor */
+    tr.filler td { color: #4a4a4a; text-align: center; }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <span class="title">Editor + synchronized metrics table</span>
+    <span class="spacer"></span>
+    <button id="toggle-follow" type="button">follow editor: on</button>
+    <button id="recompute" type="button">recompute metrics</button>
+  </div>
+
+  <div id="split-root">
+    <!-- column header, spanning above both the editor and the table -->
+    <div id="header-row">
+      <div class="hpad"></div>
+      <div class="hsplit"></div>
+      <div class="hcols">
+        <table class="metrics" id="table-head">
+          <colgroup id="head-cols"></colgroup>
+          <thead>
+            <tr>
+              <th>line</th>
+              <th>len</th>
+              <th>indent</th>
+              <th>sym</th>
+              <th>ops</th>
+              <th>score</th>
+              <th class="left">kind</th>
+              <th class="left">source</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+    </div>
+
+    <div id="panes">
+      <div id="editor-pane"></div>
+      <div id="splitter"></div>
+      <div id="table-pane">
+        <div id="table-scroll">
+          <table class="metrics">
+            <colgroup id="body-cols"></colgroup>
+            <tbody id="metrics-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" charset="utf-8" src="editorAndTable.js"></script>
+</body>
+</html>
