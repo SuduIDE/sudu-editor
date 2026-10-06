@@ -68,13 +68,6 @@ jobs:
             ~/.gradle/wrapper
             ~/.m2/repository
           key: sudu-editor-cache
-      - name: Install OBSUtil
-        if: github.event_name == 'push' && github.ref_type == 'tag'
-        run: |
-          curl -O https://obs-community-intl.obs.ap-southeast-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz
-          tar -z -x -v --strip-components 1 --wildcards -f obsutil_linux_amd64.tar.gz obsutil*/obsutil
-          chmod +x ./obsutil
-          ./obsutil config -e=${{ vars.OBS_ENDPOINT }} -i=${{ secrets.HW_ACCESS_KEY }} -k=${{ secrets.HW_SECRET_KEY }}
       - name: Maven TeaVM
         run: |
           cd $GITHUB_WORKSPACE/teavm
