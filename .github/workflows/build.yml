@@ -53,7 +53,7 @@ jobs:
         uses: actions/setup-node@v4
         if: github.event_name == 'push' && github.ref_type == 'tag'
         with:
-          node-version: '20' # Node 20 or 24 is required for modern npm
+          node-version: '26' # Node 20 or 24 is required for modern npm
           registry-url: 'https://registry.npmjs.org'
           scope: '@sudu-ide'
       - name: Upgrade npm CLI
