@@ -1,6 +1,6 @@
 {
   "name": "@sudu-ide/types",
-  "version": "0.0.129-alpha2",
+  "version": "0.0.129-alpha3",
   "description": "Common Sudu Editor types",
   "author": "Kirill Prazdnikov",
   "license": "MIT",
