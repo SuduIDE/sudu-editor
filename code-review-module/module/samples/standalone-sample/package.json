@@ -1,0 +1,8 @@
+{
+  "name": "standalone-sample",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@sudu-ide/code-review": "0.0.129-alpha5"
+  }
+}
