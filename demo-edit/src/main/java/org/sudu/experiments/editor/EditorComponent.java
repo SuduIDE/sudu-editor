@@ -2018,7 +2018,6 @@ public class EditorComponent extends View implements
     onNewModel();
 
     Model oldModel = this.model;
-    int oldVScrollPos = vScrollPos;
     this.model = model;
     clearCompactViewModel();
     oldModel.setEditor(null, null);
