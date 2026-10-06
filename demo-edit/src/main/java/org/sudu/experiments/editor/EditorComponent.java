@@ -608,6 +608,13 @@ public class EditorComponent extends View implements
     return true;
   }
 
+  private boolean notifyVScrollObserver() {
+    if (vScrollObserver != null) {
+      vScrollObserver.accept(vScrollPos);
+    }
+    return true;
+  }
+
   @Override
   public V2i minimalSize() {
     return new V2i(lineNumbers.width() + vLineW + vLineTextOffset, lineHeight);
@@ -2019,7 +2026,7 @@ public class EditorComponent extends View implements
     vScrollPos = Numbers.iRnd(model.vScrollLine * lineHeight);
     lastNotifiedCaretLine = -1;
     notifyCaretLine();
-    notifyVScroll(vScrollPos - oldVScrollPos);
+    notifyVScrollObserver();
     checkLineNumbersLayout();
   }
 
