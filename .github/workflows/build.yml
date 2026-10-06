@@ -90,33 +90,6 @@ jobs:
           mvn package -am -pl :codicon -pl :fonts -P downloadFont
           mvn package -am -pl demo-edit-js,demo-edit-es-module -P build-ssh,release
           mvn package -am -pl code-review-module
-      - name: Upload Sudu Editor to OBS
-        if: github.event_name == 'push' && github.ref_type == 'tag'
-        uses: nick-fields/retry@v3
-        id: retry
-        with:
-          max_attempts: 10
-          timeout_minutes: 5
-          retry_on: any
-          command: |
-            ./obsutil rm -r -f obs://${{ vars.WEBAPP_OBS_NAME }}
-            ./obsutil cp -r -f --flat $GITHUB_WORKSPACE/sudu-editor/demo-edit-js/target/demo-edit-js-1.0-SNAPSHOT/ obs://${{ vars.WEBAPP_OBS_NAME }}/
-      - name: Upload min artifacts to OBS
-        if: false && github.event_name == 'push' && github.ref_type == 'tag'
-        run: |
-          NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
-
-          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/editor.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
-          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/worker.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
-          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/loader.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/min/
-      - name: Upload dev artifacts to OBS
-        if: false && github.event_name == 'push' && github.ref_type == 'tag'
-        run: |
-          NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
-
-          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/editor.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
-          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/worker.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
-          ./obsutil cp $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module/src/loader.js obs://${{ vars.PUBLIC_OBS_NAME }}/sudu-editor/${NEW_VERSION}/dev/
       - name: Save Maven Cache
         if: github.event_name == 'workflow_dispatch'
         uses: actions/cache/save@v3
