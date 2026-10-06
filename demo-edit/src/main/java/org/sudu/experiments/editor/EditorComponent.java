@@ -585,7 +585,11 @@ public class EditorComponent extends View implements
    * @return whether the position actually changed
    */
   public boolean setVScrollPos(int vPos) {
-    return setVScrollPosSilent(vPos) && notifyVScroll(vPos - vScrollPos);
+    int oldVScrollPos = vScrollPos;
+    if (setVScrollPosSilent(vPos)) {
+      return notifyVScroll(vScrollPos - oldVScrollPos);
+    }
+    return false;
   }
 
   /**
@@ -2007,11 +2011,15 @@ public class EditorComponent extends View implements
     onNewModel();
 
     Model oldModel = this.model;
+    int oldVScrollPos = vScrollPos;
     this.model = model;
     clearCompactViewModel();
     oldModel.setEditor(null, null);
     model.setEditor(this, window().worker());
     vScrollPos = Numbers.iRnd(model.vScrollLine * lineHeight);
+    lastNotifiedCaretLine = -1;
+    notifyCaretLine();
+    notifyVScroll(vScrollPos - oldVScrollPos);
     checkLineNumbersLayout();
   }
 
