@@ -29,28 +29,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           path: 'sudu-editor'
       - name: Checkout TeaVM
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           repository: 'kirillp/teavm'
           ref: 'master'
           path: 'teavm'
       - name: Checkout Antlr4 TeaVM compatible repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           repository: 'pertsevpv/antlr4-teavm-compatible'
           ref: 'master'
           path: 'antlr4'
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v6
         with:
           java-version: '21'
           distribution: 'temurin'
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         if: github.event_name == 'push' && github.ref_type == 'tag'
         with:
           node-version: '26' # Node 20 or 24 is required for modern npm
@@ -61,7 +61,7 @@ jobs:
         # Trusted Publishing requires npm v11.5.1 or newer
         run: npm install -g npm@latest
       - name: Restore Maven and Gradle Cache
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v6
         with:
           path: |
             ~/.gradle/caches
@@ -85,7 +85,7 @@ jobs:
           mvn package -am -pl code-review-module
       - name: Save Maven Cache
         if: github.event_name == 'workflow_dispatch'
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v6
         with:
           path: |
             ~/.gradle/caches
