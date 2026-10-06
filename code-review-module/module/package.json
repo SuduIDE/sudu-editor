@@ -1,11 +1,11 @@
 {
   "name": "@sudu-ide/code-review",
-  "version": "0.0.129-alpha4",
+  "version": "0.0.129-alpha5",
   "description": "Code Review tool on Sudu Editor",
   "author": "Kirill Prazdnikov",
   "license": "MIT",
   "repository": {
-    "url":  "https://github.com/SuduIDE/sudu-editor"
+    "url": "https://github.com/SuduIDE/sudu-editor"
   },
   "exports": {
     ".": {
@@ -23,7 +23,7 @@
     "./src/codereview.js", "./src/worker.js"
   ],
   "dependencies": {
-    "@sudu-ide/types": "0.0.129-alpha2"
+    "@sudu-ide/types": "0.0.129-alpha5"
   },
   "scripts": {
     "link-local": "npm link ../../common-ts-types"
