@@ -41,6 +41,7 @@ public class EditorWorker {
       case HtmlProxy.PARSE_FULL_FILE -> htmlProxy.parseFullFile(a, result);
       case JsonProxy.PARSE_FULL_FILE -> jsonProxy.parseFullFile(a, result);
       case PythonProxy.PARSE_FULL_FILE -> pythonProxy.parseFullFile(a, result);
+      case AscendCProxy.PARSE_FULL_FILE -> ascendCProxy.parseFullFile(a, result);
       case TextProxy.PARSE_FULL_FILE -> textProxy.parseFullFile(a, result);
       case ScopeProxy.RESOLVE_ALL -> ScopeProxy.resolveAll(a, result);
       case DiffUtils.FIND_DIFFS -> DiffUtils.findDiffs(

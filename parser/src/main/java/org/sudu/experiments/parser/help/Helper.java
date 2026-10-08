@@ -11,14 +11,15 @@ import java.util.*;
 public class Helper {
 
   // Languages
-  public static final String JAVA     = "java";
-  public static final String CPP      = "cpp";
-  public static final String JS_LIGHT = "js.light";
-  public static final String TS_LIGHT = "ts.light";
-  public static final String ACTIVITY = "activity";
-  public static final String HTML     = "html";
-  public static final String JSON     = "json";
-  public static final String PYTHON   = "python";
+  public static final String JAVA       = "java";
+  public static final String CPP        = "cpp";
+  public static final String JS_LIGHT   = "js.light";
+  public static final String TS_LIGHT   = "ts.light";
+  public static final String ACTIVITY   = "activity";
+  public static final String HTML       = "html";
+  public static final String JSON       = "json";
+  public static final String PYTHON     = "python";
+  public static final String ASCEND_C   = "ascend-c";
 
   public static List<Token> splitStringOrCharLiteral(Token token) {
     var text = CharStreams.fromString(token.getText());

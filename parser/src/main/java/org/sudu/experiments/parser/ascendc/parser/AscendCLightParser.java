@@ -1,16 +1,18 @@
-package org.sudu.experiments.parser.typescript.parser;
+package org.sudu.experiments.parser.ascendc.parser;
 
-import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.Lexer;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.sudu.experiments.parser.common.NullParser;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.base.BaseFullParser;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.help.Helper;
-import org.sudu.experiments.parser.typescript.TsSplitRules;
-import org.sudu.experiments.parser.typescript.gen.LightTypeScriptLexer;
-import org.sudu.experiments.parser.typescript.parser.highlighting.LightTypeScriptHighlighting;
+import org.sudu.experiments.parser.ascendc.AscendCSplitRules;
+import org.sudu.experiments.parser.ascendc.gen.AscendCLexer;
+import org.sudu.experiments.parser.ascendc.parser.highlighting.AscendCHighlighting;
 
-public class TypeScriptLightParser extends BaseFullParser<NullParser> {
+public class AscendCLightParser extends BaseFullParser<NullParser> {
 
   @Override
   public int[] parse(char[] source) {
@@ -19,7 +21,7 @@ public class TypeScriptLightParser extends BaseFullParser<NullParser> {
 
   @Override
   protected Lexer initLexer(CharStream stream) {
-    return new LightTypeScriptLexer(stream);
+    return new AscendCLexer(stream);
   }
 
   @Override
@@ -39,16 +41,16 @@ public class TypeScriptLightParser extends BaseFullParser<NullParser> {
 
   @Override
   protected SplitRules initSplitRules() {
-    return new TsSplitRules();
+    return new AscendCSplitRules();
   }
 
   @Override
   protected String language() {
-    return Helper.TS_LIGHT;
+    return Helper.ASCEND_C;
   }
 
   @Override
   protected void highlightTokens() {
-    LightTypeScriptHighlighting.highlightTokens(allTokens, tokenTypes);
+    AscendCHighlighting.INSTANCE.highlight(allTokens, tokenTypes, tokenStyles);
   }
 }

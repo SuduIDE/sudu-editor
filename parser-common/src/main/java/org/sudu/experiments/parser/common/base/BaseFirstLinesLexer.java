@@ -25,7 +25,7 @@ public abstract class BaseFirstLinesLexer<P extends Parser> extends BaseFullPars
     markBrackets(allTokens, tokenTypes);
 
     var result = getInts(defaultIntervalNode());
-    System.out.println("Lexing viewport time " + (System.currentTimeMillis() - parsingStartTime) + "ms");
+    System.out.println("Lexing first lines " + language() + " time " + (System.currentTimeMillis() - parsingStartTime) + "ms");
     return result;
   }
 

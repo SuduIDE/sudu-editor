@@ -14,7 +14,7 @@ public class CppSplitRules extends SplitRules {
   public List<TokenSplitRule> getRules() {
     return List.of(
         makeRule(this::isStringOrCharLiteral, Helper::splitStringOrCharLiteral),
-        makeRule(this::isMacroOrDirective, this::splitMacroOrDirective),
+        makeRule(this::isMacroOrDirective, CppDirectiveSplitter::divideDirective),
         makeRule(this::isMultilineToken, Helper::splitMultilineToken)
     );
   }
@@ -38,9 +38,5 @@ public class CppSplitRules extends SplitRules {
     int type = token.getType();
     return type == CPP14Lexer.StringLiteral
         || type == CPP14Lexer.CharacterLiteral;
-  }
-
-  private List<Token> splitMacroOrDirective(Token token) {
-    return CppDirectiveSplitter.divideDirective(token);
   }
 }

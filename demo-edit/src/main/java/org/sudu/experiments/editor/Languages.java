@@ -3,6 +3,7 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.editor.worker.proxy.FileProxy;
 
 import java.util.Locale;
+import java.util.Objects;
 
 public interface Languages {
 
@@ -14,10 +15,11 @@ public interface Languages {
   String ACTIVITY = "activity";
   String HTML = "html";
   String JSON = "json";
-  String PYTHON = "PYTHON";
+  String PYTHON = "python";
+  String ASCEND_C = "ascend-c";
 
   static String[] getAllLanguages() {
-    return new String[]{TEXT, JAVA, CPP, JS, TS, HTML, JSON, ACTIVITY};
+    return new String[]{TEXT, JAVA, CPP, JS, TS, HTML, JSON, ACTIVITY, PYTHON};
   }
 
   static String getLanguage(String lang) {
@@ -35,36 +37,19 @@ public interface Languages {
   }
 
   static String languageFromFilename(String path) {
-    if (path == null) return TEXT;
-    if (path.endsWith(".cpp")
-        || path.endsWith(".cc")
-        || path.endsWith(".cxx")
-        || path.endsWith(".hpp")
-        || path.endsWith(".c")
-        || path.endsWith(".h")) return CPP;
-    if (path.endsWith(".java")) return JAVA;
-    if (path.endsWith(".js")
-        || path.endsWith(".mjs")
-        || path.endsWith(".cjs")) return JS;
-    if (path.endsWith(".ts")) return TS;
-    if (path.endsWith(".activity")) return ACTIVITY;
-    if (path.endsWith(".html")
-        || path.endsWith(".xml")) return HTML;
-    if (path.endsWith(".json")) return JSON;
-    if (path.endsWith(".py")
-        || path.endsWith(".pyc")
-        || path.endsWith(".pyo")) return PYTHON;
-    return TEXT;
-  }
-
-  static String getLanguage(int type) {
-    return switch (type) {
-      case 0 -> TEXT;
-      case 1 -> JAVA;
-      case 2 -> CPP;
-      case 3 -> JS;
-      case 4 -> ACTIVITY;
-      default -> null;
+    int d;
+    if (path == null || (d = path.lastIndexOf('.')) == -1) return TEXT;
+    String extension = path.substring(d);
+    return switch (extension) {
+      case ".cpp", ".cc", ".cxx", ".hpp", ".c", ".h" -> CPP;
+      case ".java" -> JAVA;
+      case ".js", ".mjs", ".cjs" -> JS;
+      case ".ts" -> TS;
+      case ".activity" -> ACTIVITY;
+      case ".html", ".xml" -> HTML;
+      case ".json" -> JSON;
+      case ".py", ".pyc", ".pyo" -> PYTHON;
+      default -> TEXT;
     };
   }
 
@@ -80,6 +65,7 @@ public interface Languages {
       case Languages.HTML -> FileProxy.HTML_FILE;
       case Languages.PYTHON -> FileProxy.PYTHON_FILE;
       case Languages.JSON -> FileProxy.JSON_FILE;
+      case Languages.ASCEND_C -> FileProxy.ASCEND_C_FILE;
       default -> {
         System.err.println("Illegal language: " + lang);
         yield FileProxy.TEXT_FILE;
@@ -94,4 +80,8 @@ public interface Languages {
         || language.equals(TEXT);
   }
 
+  static boolean isCppVersion(String lang) {
+    return Objects.equals(lang, Languages.CPP)
+        || Objects.equals(lang, Languages.ASCEND_C);
+  }
 }

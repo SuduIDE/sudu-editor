@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
 import org.sudu.experiments.editor.worker.diff.FileDiffModel;
+import org.sudu.experiments.editor.worker.parser.ParseStatus;
 import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.worker.ArrayView;
 import org.sudu.experiments.worker.WorkerJobExecutor;
@@ -39,6 +40,8 @@ public class SyncEditingTest {
   public void testSyncEditing1() {
     var left = new Model(leftDoc, null);
     var right = new Model(leftDoc, null);
+    left.fullFileLexed = ParseStatus.PARSED;
+    right.fullFileLexed = ParseStatus.PARSED;
     var model = new FileDiffModel(new MockExecutor(), left, right);
     model.setEnableSyncEdit(true);
 
@@ -67,6 +70,8 @@ public class SyncEditingTest {
   public void testSyncEditing2() {
     var left = new Model(leftDoc, null);
     var right = new Model(rightDoc, null);
+    left.fullFileLexed = ParseStatus.PARSED;
+    right.fullFileLexed = ParseStatus.PARSED;
     var model = new FileDiffModel(new MockExecutor(), left, right);
     model.setEnableSyncEdit(true);
 
@@ -91,6 +96,8 @@ public class SyncEditingTest {
   public void testSyncEditing3() {
     var left = new Model(leftDoc, null);
     var right = new Model(rightDoc, null);
+    left.fullFileLexed = ParseStatus.PARSED;
+    right.fullFileLexed = ParseStatus.PARSED;
     var model = new FileDiffModel(new MockExecutor(), left, right);
     model.setEnableSyncEdit(true);
 
@@ -112,6 +119,8 @@ public class SyncEditingTest {
   public void testSyncEditing4() {
     var left = new Model(leftDoc, null);
     var right = new Model(rightDoc, null);
+    left.fullFileLexed = ParseStatus.PARSED;
+    right.fullFileLexed = ParseStatus.PARSED;
     var model = new FileDiffModel(new MockExecutor(), left, right);
     model.setEnableSyncEdit(true);
 
@@ -133,6 +142,8 @@ public class SyncEditingTest {
   public void testSyncEditing5() {
     var left = new Model("", null);
     var right = new Model("", null);
+    left.fullFileLexed = ParseStatus.PARSED;
+    right.fullFileLexed = ParseStatus.PARSED;
     var model = new FileDiffModel(new MockExecutor(), left, right);
     model.setEnableSyncEdit(true);
 
@@ -183,6 +194,8 @@ public class SyncEditingTest {
   public void testSyncEditing6() {
     var left = new Model("Common Line\nCommon Line", null);
     var right = new Model("Common Line\nCommon Line", null);
+    left.fullFileLexed = ParseStatus.PARSED;
+    right.fullFileLexed = ParseStatus.PARSED;
     var model = new FileDiffModel(new MockExecutor(), left, right);
     model.setEnableSyncEdit(true);
 
@@ -212,6 +225,8 @@ public class SyncEditingTest {
   public void testSyncEditing7() {
     var left = new Model("Common Line\nCommon Line", null);
     var right = new Model("Common Line\nCommon Line", null);
+    left.fullFileLexed = ParseStatus.PARSED;
+    right.fullFileLexed = ParseStatus.PARSED;
     var model = new FileDiffModel(new MockExecutor(), left, right);
     model.setEnableSyncEdit(false);
 
@@ -241,6 +256,8 @@ public class SyncEditingTest {
   public void testSyncEditing8() {
     var left = new Model(leftDoc, null);
     var right = new Model(rightDoc, null);
+    left.fullFileLexed = ParseStatus.PARSED;
+    right.fullFileLexed = ParseStatus.PARSED;
     var model = new FileDiffModel(new MockExecutor(), left, right);
     model.setEnableSyncEdit(true);
 
@@ -269,6 +286,8 @@ public class SyncEditingTest {
   public void testSyncEditing9() {
     var left = new Model(leftDoc, null);
     var right = new Model(rightDoc, null);
+    left.fullFileLexed = ParseStatus.PARSED;
+    right.fullFileLexed = ParseStatus.PARSED;
     var model = new FileDiffModel(new MockExecutor(), left, right);
     model.setEnableSyncEdit(true);
 

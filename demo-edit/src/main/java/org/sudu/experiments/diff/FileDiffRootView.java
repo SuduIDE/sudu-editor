@@ -54,6 +54,7 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
     editor1.setMirrored(true);
     editor1.setSyncPoints(syncPoints, true);
     editor1.setDisableParser(disableParser);
+    editor1.setGetUndoBuffer(this::getUndoBuffer);
 
     editor2.setFullFileLexedListener(lexerListener);
     editor2.setIterativeParseFileListener(iterativeParseListener);
@@ -62,6 +63,7 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
     editor2.highlightResolveError(false);
     editor2.setSyncPoints(syncPoints, false);
     editor2.setDisableParser(disableParser);
+    editor2.setGetUndoBuffer(this::getUndoBuffer);
 
     diffSync = new DiffSync(editor1, editor2, true);
     middleLine.setOnMidSyncPointHover(i -> onMidSyncLineHover(syncPoints, i));

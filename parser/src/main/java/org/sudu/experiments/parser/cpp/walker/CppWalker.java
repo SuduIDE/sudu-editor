@@ -11,11 +11,11 @@ import org.sudu.experiments.parser.cpp.gen.CPP14ParserBaseListener;
 import org.sudu.experiments.parser.cpp.model.CppBlock;
 import org.sudu.experiments.parser.cpp.model.CppClass;
 import org.sudu.experiments.parser.cpp.model.CppMethod;
+import org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting;
 
 import java.util.*;
 
 import static org.sudu.experiments.parser.ParserConstants.*;
-import static org.sudu.experiments.parser.cpp.parser.highlighting.CppLexerHighlighting.*;
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
 
 public class CppWalker extends CPP14ParserBaseListener {
@@ -243,18 +243,7 @@ public class CppWalker extends CPP14ParserBaseListener {
   public void visitTerminal(TerminalNode node) {
     super.visitTerminal(node);
     var token = node.getSymbol();
-    int type = token.getType();
-    int ind = token.getTokenIndex();
-    /*if (type == CPP14Lexer.Identifier) visitIdentifier(node);
-    else*/ if (isKeyword(type)) tokenTypes[ind] = KEYWORD;
-    else if (isNumeric(type)) tokenTypes[ind] = NUMERIC;
-    else if (isBooleanLiteral(type)) tokenTypes[ind] = BOOLEAN;
-    else if (isStringOrChar(type)) tokenTypes[ind] = STRING;
-    else if (isNull(type)) tokenTypes[ind] = NULL;
-    else if (isSemi(type)) tokenTypes[ind] = SEMI;
-    else if (isComment(type)) tokenTypes[ind] = COMMENT;
-    else if (isDirective(type)) tokenTypes[ind] = ANNOTATION;
-    else if (isOperator(type)) tokenTypes[ind] = OPERATOR;
+    CppLexerHighlighting.INSTANCE.highlight(token, tokenTypes, tokenStyles);
   }
 
   private void enterBlock() {

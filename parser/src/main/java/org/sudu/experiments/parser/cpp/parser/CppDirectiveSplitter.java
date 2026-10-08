@@ -3,6 +3,9 @@ package org.sudu.experiments.parser.cpp.parser;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.sudu.experiments.parser.ErrorHighlightingStrategy;
+import org.sudu.experiments.parser.ErrorMarkListener;
+import org.sudu.experiments.parser.ErrorRecognizerListener;
 import org.sudu.experiments.parser.SplitToken;
 import org.sudu.experiments.parser.cpp.gen.help.CPP14DirectiveBaseListener;
 import org.sudu.experiments.parser.cpp.gen.help.CPP14DirectiveParser;
@@ -26,6 +29,8 @@ public class CppDirectiveSplitter {
     int[] splitTokenTypes = new int[allTokens.size()];
 
     CPP14DirectiveParser directiveParser = new CPP14DirectiveParser(directiveStream);
+    directiveParser.removeErrorListeners();
+    directiveParser.addErrorListener(new ErrorRecognizerListener());
     var directive = directiveParser.directive();
     var walker = new ParseTreeWalker();
     walker.walk(new DirectiveWalker(splitTokenTypes), directive);

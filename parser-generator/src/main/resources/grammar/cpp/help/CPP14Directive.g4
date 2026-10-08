@@ -11,7 +11,7 @@ error: Hash Error other*;
 dir: Hash (Identifier | Keyword) other*;
 
 other
-    : String | Left | Right | Keyword | Operators | Identifier
+    : String | Left | Right | Keyword | (Operators | Dot | Slash) | Identifier
     | IntegerLiteral | DecimalLiteral | OctalLiteral | HexadecimalLiteral | BinaryLiteral
     | DirChar
     | Include | Error
@@ -132,7 +132,6 @@ Operators
     | '+'
     | '-'
     | '*'
-    | '/'
     | '%'
     | '^'
     | '&'
@@ -168,10 +167,12 @@ Operators
     | ':'
     | '::'
     | ';'
-    | '.'
     | '.*'
     | '...'
     ;
+
+Slash: '/';
+Dot  : '.';
 
 Identifier: Identifiernondigit (Identifiernondigit | DIGIT)*;
 DirChar: ~[#\r\n];

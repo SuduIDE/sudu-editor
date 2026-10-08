@@ -57,13 +57,13 @@ public class FileDiffModel {
 
   public FileDiffModel(WorkerJobExecutor executor, Model leftModel, Model rightModel) {
     this.leftModel = leftModel;
-    this.leftModel.setGetUndoBuffer(() -> undoBuffer);
+//    this.leftModel.setGetUndoBuffer(() -> undoBuffer);
     this.leftModel.setSyncEditing((diff, isUndo) -> syncEditing(true, diff, isUndo));
     this.rightModel = rightModel;
-    this.rightModel.setGetUndoBuffer(() -> undoBuffer);
+//    this.rightModel.setGetUndoBuffer(() -> undoBuffer);
     this.rightModel.setSyncEditing((diff, isUndo) -> syncEditing(false, diff, isUndo));
     this.executor = executor;
-    sendToDiff(false);
+    if (leftModel.fileLexed() && rightModel.fileLexed()) sendToDiff(false);
   }
 
   public void sendToDiff(boolean cmpOnlyLines) {
