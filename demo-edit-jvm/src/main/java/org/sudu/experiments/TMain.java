@@ -35,6 +35,10 @@ public interface TMain {
     static void main(String[] $) { run(MergeButtonsTest::new); }
   }
 
+  interface ProjectViewMain {
+    static void main(String[] $) { run(ProjectViewDemo::newProjectViewScene); }
+  }
+
   interface FileDiffMain {
     static void main(String[] $) { run(FileDiff::new); }
   }

@@ -42,7 +42,9 @@ public class AscendCHighlighting extends Highlighting {
         // Directive
         AscendCLexer.DIRECTIVE, AscendCLexer.MULTILINE_MACRO, OPERATOR,
         // Operator
-        AscendCLexer.SCOPE, AscendCLexer.COMMA, OPERATOR
+        AscendCLexer.SCOPE, AscendCLexer.DECREMENT, OPERATOR,
+        // Commas
+        AscendCLexer.QUESTION, AscendCLexer.COMMA, SEMI
     );
     addErrorRule(AscendCLexer.UNKNOWN);
   }

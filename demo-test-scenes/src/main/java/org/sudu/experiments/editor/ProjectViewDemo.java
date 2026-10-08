@@ -37,6 +37,15 @@ public class ProjectViewDemo extends WindowScene implements DprChangeListener {
     if (oldDpr == 0) newProjectView();
   }
 
+  public static Scene newProjectViewScene(SceneApi api) {
+    return new WindowScene(api) {
+      final EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
+      {
+        new ProjectViewWindow(windowManager, theme, ProjectViewDemo::menuFonts).window.fullscreen();
+      }
+    };
+  }
+
   private void newProjectView() {
     new ProjectViewWindow(windowManager, theme, ProjectViewDemo::menuFonts);
   }

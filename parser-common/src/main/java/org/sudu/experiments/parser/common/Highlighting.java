@@ -19,7 +19,7 @@ public abstract class Highlighting {
   }
 
   protected void addRules(int... intervals) {
-    if (intervals.length % 3 != 0) return;
+    if (intervals.length % 3 != 0) throw new IllegalArgumentException();
     rules = ArrayOp.add(rules, intervals);
     length += intervals.length / 3;
   }
