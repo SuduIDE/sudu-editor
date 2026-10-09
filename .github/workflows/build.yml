@@ -81,8 +81,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/sudu-editor 
           mvn package -am -pl :codicon -pl :fonts -P downloadFont
-          mvn package -am -pl demo-edit-js,demo-edit-es-module -P build-ssh,release
-          mvn package -am -pl code-review-module
+          mvn package -am -pl code-review-module,demo-edit-es-module -P build-ssh,release
       - name: Save Maven Cache
         if: github.event_name == 'workflow_dispatch'
         uses: actions/cache/save@v6
