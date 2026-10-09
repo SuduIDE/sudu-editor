@@ -56,15 +56,16 @@ This document captures all decisions made during the discussion of the line numb
 
 ## 5) Where to store display numbers
 
-**Question:** Folding/compact uses document model indices for numbering. So display number is document model index/number for numbered lines. How to model this?
+**Question:** How to model display line numbers, and how do they relate to folding/compact views?
 
-**Decision:** Store display numbers on `CodeLine` and set them when building the view.
+**Decision:** Store display numbers on `CodeLine`, decoupled from the compact view model.
 
-- **Field meaning:** `lineNumber` on `CodeLine` is the **display number to show** in the gutter (the logical number rendered). For numbered view lines in folding/compact mode, this corresponds to the document model index/line number associated with that view line.
-- **Set during view construction:** When building the view sequence (via `docToView` or compact view model), assign `line.lineNumber = <document display number>` and `line.hasLineNumber = true` for lines that correspond to document lines that should be numbered.
+- **Field meaning:** `lineNumber` on `CodeLine` is the **display number to show** in the gutter. It is **not** required to equal the line's position, and it is **not** the compact view model's index.
+- **Clarification on compact view (important):** The statement that "numbering is the document model index" applies **only to the compact view model's internal bookkeeping** - the compaction/folding model works with **real document indices** (not visual line numbers) for its structural mapping. This is *not* a statement about what the gutter displays. Do **not** conflate compact model indices with the gutter display number.
+- **Set during view construction:** When building/refreshing the view sequence (via `docToView` or the compact view model), assign `line.lineNumber = <display number>` and `line.hasLineNumber = <true/false>` for each line, based on that line's source of truth (e.g. its logical source line number). The compact view model's indices are used only for its own mapping; the display number is independent data stored on the line.
 - **Attached lines:** For attached disasm lines (separate `CodeLine`s in the same `Document`), set `line.hasLineNumber = false` (and typically `line.editable = false`). They do not show numbers.
 - **Flags remain independent:** `hasLineNumber` controls visibility; `editable` controls editing. The value of `lineNumber` is only meaningful when `hasLineNumber == true`.
-- **Rationale:** This matches the constraint that folding/compact view uses document model indices for numbering. It keeps the renderer simple (just reads fields).
+- **Rationale:** Decoupling the display number from position and from compact/folding indices is what allows **per-line numbers that need not match the view slot** (see Q12) - e.g. imported/renumbered source lines. (Non-integer labels such as hex addresses are not gutter numbers; they belong in `CodeElement` content.)
 
 ## 6) Migration/cleanup
 
@@ -148,8 +149,80 @@ This document captures all decisions made during the discussion of the line numb
 - **CodeLineRenderer draws the gutter itself:** `CodeLineRenderer.draw()` performs the whole gutter draw per row: diff background rect (`[x, x+leftMarginWidth)`, using existing `LineDiff diff` parameter) → caret highlight (if `isCaretLine`, per Q3) → line number from the tile cache (if `line.hasLineNumber`). Then the horizontal text strips offset by `leftMarginWidth`, unchanged.
 - **Cache is keyed by number, not view position:** Works with non-contiguous numbers caused by interleaved disasm lines and with compact/folding views - view lines with numbers 37 and 100 simply fetch tiles `[20,40)` and `[100,120)`; lines with `hasLineNumber == false` fetch nothing.
 - **Per-frame update mechanism (unchanged from today):**
-  - Glyph shapes are rasterized only when a tile is missing (evicted) or font/lineHeight/cleartype changes.
-  - Colors (caret highlight, diff background, selection) are applied at draw time via `g.drawText(x, y, size, region, texture, textColor, bgColor, cleartype)` modulation - no re-rasterization for color changes.
+  - Glyph coverage is rasterized only when a tile is missing (evicted) or font/lineHeight/cleartype changes.
+  - Colors (caret highlight, diff background, selection) are applied at draw time via `g.drawText(...)`: the shader combines the stored coverage mask with the supplied `textColor`/`bgColor`, so color changes need no re-rasterization. See [text-rendering-and-shaders.md](text-rendering-and-shaders.md).
   - Stale tiles are evicted by `frameId` as today (`lastFrame` bookkeeping).
 - **No separate LineNumbersComponent pass for numbers/BG/caret:** After migration, the renderer's draw pass covers those; sync points remain in the existing separate pass (out of scope, TBD - see Q1/Q2).
 - **LineNumbersTexture is retained** as the rasterization/cache implementation; `LineNumbersComponent` (the pass owner) is what gets removed in Phase 3 (see Q6).
+
+## 12) Staged transition - Step 1 (per-line numbers via number-addressed tiles)
+
+**Goal:** Actually display per-line numbers in the first step, where each view line shows its own `CodeLine.lineNumber` (or none when `hasLineNumber == false`), while keeping the change minimal and the majority of the gutter code unchanged (`LineNumbersComponent` + `LineNumbersTexture` stay).
+
+**Key realization (from discussion):** Display numbers are **not random strings** - they are the natural source sequence with gaps for attached/inline lines, e.g. `{1,-,-,-,2,3,-,4,-,-,5,...}`, i.e. **plain integers**. See Q13 for the exact tile mechanics. Therefore:
+
+- The existing tile rasterization is already universal: a tile is just a **bank of 20 consecutive integers** (`bank+1 .. bank+20`), keyed by bank. It does not need to know anything about the lines.
+- **No content-driven rasterization is needed** for integer numbers.
+- **No renumber-invalidation is needed**: tile content remains a pure function of the bank (as today). Only font/lineHeight/cleartype changes dispose tiles (as today).
+- The only change is the **rendering driver**: from "view row `i` displays number = `start + i`" to "resolve this view line's number `N`, then fetch the tile for `N` and draw its row".
+
+**Core idea:** Keep the tile cache **keyed by number bank** (`bank = ((N-1)/20)*20`), view-independent and scroll-stable, but resolve each view line's number `N` from a provider (the `CodeLine`), and draw the tile's row `(N-1) % 20` at that view row. Lines with `hasLineNumber == false` draw nothing (background only).
+
+**Touch points (small, coherent):**
+
+1. **`CodeLine`** - add `hasLineNumber = true`, `editable = true`, `lineNumber = 0` (defaults per Q9). Model-only.
+2. **`LineNumbersTexture`** - **unchanged** (still rasterizes a bank of 20 consecutive integers, right-aligned; color modulation at draw time). The lookup for number `N` is tile `bank(N)`, region row `(N-1) % 20` (see Q13).
+3. **`LineNumbersComponent`** - expose a **number-addressed** lookup/draw, e.g. `drawNumber(yPos, N, scheme, colors, g)` (or return `(texture, regionY)` for `N`), in addition to / instead of the range-based `drawRange`. Cache/pool/eviction logic unchanged. Width derived from `Document.maxLineNumber` (Q4) via `measureDigits`.
+4. **`EditorComponent`** - provide each visible view line's `N` (from `CodeLine.lineNumber`/`hasLineNumber`); drive drawing per view line, batching adjacent view rows whose numbers are consecutive and whose diff background matches into a single rect (as today's batched runs). Non-numbered rows draw background only. Compute gutter width from `maxLineNumber`.
+
+**Batching / performance note:** Within a run of adjacent view rows with consecutive numbers and the same diff color, one `g.drawText` region can cover multiple rows (as current `drawRange` does). A non-numbered row simply breaks the run (it cannot be part of a number region), and is filled with background. No per-scroll re-rasterization occurs: tiles are number-addressed and view-independent.
+
+**Assumptions this step relies on (state explicitly):**
+
+- Display numbers are **plain integers** (natural sequence with gaps). Non-integer / hex / arbitrary labels are **not** a gutter concern in this design: if inline disasm needs them, they go into `CodeElement` content and render as part of the line's text - so the integer-bank model for the gutter remains sufficient.
+- Attached disasm lines are `CodeLine`s **in the same `Document`**, with `hasLineNumber == false` (they occupy document indices; nothing is drawn for them).
+- One document per gutter (two-pane diff still uses `lineNumbers1`/`lineNumbers2`). Single-pane unified diff is a later step.
+- A given `CodeLine`'s `lineNumber` is stable for its identity (not different per view). If two views ever need different numbers for the same line, this keying must be revisited.
+- **Compact/folding view model indices are internal bookkeeping only and are not the displayed numbers** (see Q5). The display number is independent data stored on the line.
+
+**Explicitly NOT Option B:** Gutter drawing (background + caret + number) still happens in `LineNumbersComponent`; `CodeLineRenderer` is untouched in this step. Option B (renderer draws the gutter, component retired) remains the later target; this step's fields and data model carry over unchanged.
+
+**Note on the Fork A/Fork B distinction:** Originally two options were framed - Fork A (number equals position) vs Fork B (arbitrary per-line value, assumed to need content-driven rasterization). The realization above collapses the difference: tiles already cover arbitrary **integer** values via banks, so the implementation is close to the existing design, and the substantive change is only the number-addressed rendering driver plus the `CodeLine` fields.
+
+## 13) LineNumbersTexture mechanics (and the number-addressed lookup)
+
+**Purpose:** Document exactly how `LineNumbersTexture` works, to confirm that per-line numbers need no change to rasterization - only a different lookup driver.
+
+**What a tile is:**
+
+- One `GL.Texture` holding a **bank of 20 consecutive integers**. Texture size = `(gutterWidth, 20 * lineHeight)`.
+- `init(width, lineHeight, startLine, textureCanvas, fontDesk, devicePR)`: clears the canvas and draws `String.valueOf(startLine + i + 1)` at row `i` (`lineHeight * i + baseline`), right-aligned with `rightPad`; then `lineTexture.setContent(textureCanvas)`; records `cleartype`.
+- Content is a **coverage mask**, not real font colors; the actual foreground/background are supplied at draw time. That is why no per-line or per-color rasterization is needed - details in [text-rendering-and-shaders.md](text-rendering-and-shaders.md).
+
+**Bank / row math for a number `N` (1-based):**
+
+```
+bank(N)   = ((N - 1) / 20) * 20        // startLine of the tile
+row(N)    = (N - 1) % 20               // row within the tile
+textureY  = row(N) * lineHeight
+```
+
+**Drawing (`draw`, `drawCaretLine`):**
+
+- `draw(dXdY, yPos, fromLine, toLine, colorScheme, colors, g)`: `fromLine`/`toLine` are `(N-1)` bounds. It walks rows, groups adjacent rows with the same diff background (`colorScheme.getDiffColor(colors, n)`) into one `g.drawText` call over a region `(0, d + offset*lineHeight, width, h)`, using `lineNumberScheme.textColor` as foreground. Returns early if the tile doesn't cover `[fromLine, toLine)`.
+- `drawCaretLine(dXdY, yPos, caretLine, colorScheme, colors, g)`: draws a single row with `colorScheme.lineNumber.caretTextColor` foreground and the line's diff background.
+- `g.drawText(...)` combines the stored coverage mask with the given foreground/background colors, so caret/diff/selection states are pure draw-time state (see [text-rendering-and-shaders.md](text-rendering-and-shaders.md)).
+
+**Pool / eviction (`LineNumbersComponent`):**
+
+- Holds `List<LineNumbersTexture> textures` and a `Deque old` pool, plus `frameId`.
+- `texture(g, line)` finds a tile with the matching `startLine`, else reuses from `old` or creates one; `init` rasterizes on creation.
+- `beginDraw` marks tiles used this frame; tiles not used for ≥ 2 frames move to `old`; `endDraw` disables scissor.
+- `setFont(...)` disposes the canvas and moves all tiles to `old` (forces re-rasterization with the new font/metrics).
+- `measureDigits(numDigits, ...)` measures the width of `numDigits` zeros (plus padding) for gutter sizing.
+
+**Consequence for per-line numbers (the key point):**
+
+Because a tile is just a bank of integers and lookup is by number, showing number `N` on **any** view row requires only `bank(N)` + `row(N)`. The provider supplies `N` per view line (or "none"). **No change to rasterization, no per-line texture, no renumber invalidation** - only the driver changes (Q12).
+
+**Boundary:** This integer-bank model covers plain integer display values (including gaps). Non-integer / hex-string / arbitrary labels are handled **outside** the number gutter - they are placed in `CodeElement` content and render as regular line text. So the gutter only ever needs integer bank lookups, and no content-driven rasterization is required for line numbers.
