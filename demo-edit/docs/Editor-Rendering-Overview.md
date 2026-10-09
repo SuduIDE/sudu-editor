@@ -17,5 +17,7 @@ High-level map of how the editor renders a document, and where to find the detai
 - [LineNumbersComponent.md](LineNumbersComponent.md) - gutter component: tiling, range drawing, caret line, sizing.
 - [LineNumbersTexture.md](LineNumbersTexture.md) - the 20-number texture tile: rasterization, range slicing, tiling/recycling.
 - [text-rendering-and-shaders.md](text-rendering-and-shaders.md) - how all text is rasterized (coverage mask) and colored at draw time (app-wide).
+- [text-tokenization-pipeline.md](text-tokenization-pipeline.md) - source -> lines -> worker parser -> tokenized `CodeElement`s, and edits/reparse.
 - [line-numbers-refactoring-plan.md](line-numbers-refactoring-plan.md) - goals and high-level plan for the line-number refactoring.
 - [line-numbers-refactoring-QA.md](line-numbers-refactoring-QA.md) - detailed Q&A decisions, staged transition, and `LineNumbersTexture` mechanics.
+- [inline-disasm-open-questions.md](inline-disasm-open-questions.md) - open questions for inline disassembly, uniform diff, and numbering.
