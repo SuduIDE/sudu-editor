@@ -14,6 +14,9 @@ LineNumbersTexture renders a batch of line numbers into a single GL texture and 
 ## Implementation Notes
 - When drawing a range, draw() tracks consecutive lines with same background color to batch: it stores prevColor from first line, accumulates height while color unchanged, and flushes a rect+text draw when color changes (or at end). The draw helper draws a single chunk at (yPos + startLine*lineHeight) using rectRegion/rectSize covering that chunk.
 - rectRegion/rectSize are reused V4f/V2i instances (per texture).
-- cleartype flag is stored from textureCanvas and passed through on draw.
+- cleartype flag is stored from textureCanvas and passed through on draw. What this flag means for color/coverage is described in [text-rendering-and-shaders.md](text-rendering-and-shaders.md).
+
+## See also
+- [text-rendering-and-shaders.md](text-rendering-and-shaders.md) - rasterized coverage mask + shader color combination (app-wide, not line-number-specific).
 - If the requested range falls entirely outside the tile, draw() returns early.
 
