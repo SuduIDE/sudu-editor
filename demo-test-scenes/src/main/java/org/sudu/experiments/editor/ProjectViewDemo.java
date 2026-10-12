@@ -11,7 +11,7 @@ import org.sudu.experiments.ui.DprChangeListener;
 import org.sudu.experiments.ui.ToolbarItem;
 
 public class ProjectViewDemo extends WindowScene implements DprChangeListener {
-  EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
+  static EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
 
   public ProjectViewDemo(SceneApi api) {
     super(api);
@@ -39,9 +39,9 @@ public class ProjectViewDemo extends WindowScene implements DprChangeListener {
 
   public static Scene newProjectViewScene(SceneApi api) {
     return new WindowScene(api) {
-      final EditorColorScheme theme = EditorColorScheme.darkIdeaColorScheme();
       {
-        new ProjectViewWindow(windowManager, theme, ProjectViewDemo::menuFonts).window.fullscreen();
+        var w = new ProjectViewWindow(windowManager, ProjectViewDemo.theme, ProjectViewDemo::menuFonts);
+        w.window.fullscreen();
       }
     };
   }

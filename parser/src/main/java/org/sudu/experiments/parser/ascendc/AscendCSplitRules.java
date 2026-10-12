@@ -24,6 +24,7 @@ public class AscendCSplitRules extends SplitRules {
   private boolean isStringOrCharLiteral(Token token) {
     int type = token.getType();
     return type == AscendCLexer.STRING_LITERAL
+        || type == AscendCLexer.RAW_STRING_LITERAL
         || type == AscendCLexer.CHAR_LITERAL;
   }
 

@@ -12,6 +12,7 @@ import org.sudu.experiments.parser.common.SplitRules;
 import java.nio.CharBuffer;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public abstract class BaseParser<P extends Parser> {
 
@@ -153,6 +154,9 @@ public abstract class BaseParser<P extends Parser> {
         startIndex += split.getText().length();
       }
     }
+    String[] lines = Arrays.stream(lineToTokens).map(line ->
+        line != null ? line.stream().map(Token::getText).collect(Collectors.joining("")) : "<null>"
+    ).toArray(String[]::new);
     return lineToTokens;
   }
 

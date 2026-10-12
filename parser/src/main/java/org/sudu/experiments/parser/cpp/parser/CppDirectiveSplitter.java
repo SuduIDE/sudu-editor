@@ -3,8 +3,6 @@ package org.sudu.experiments.parser.cpp.parser;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.sudu.experiments.parser.ErrorHighlightingStrategy;
-import org.sudu.experiments.parser.ErrorMarkListener;
 import org.sudu.experiments.parser.ErrorRecognizerListener;
 import org.sudu.experiments.parser.SplitToken;
 import org.sudu.experiments.parser.cpp.gen.help.CPP14DirectiveBaseListener;
@@ -40,6 +38,8 @@ public class CppDirectiveSplitter {
       if (splitToken.getType() == EOF) continue;
       if (splitToken.getType() == CPP14DirectiveLexer.NewLineSlash)
         splitTokenTypes[ind] = TokenTypes.ANNOTATION;
+      if (splitToken.getType() == CPP14DirectiveLexer.BlockComment)
+        splitTokenTypes[ind] = TokenTypes.COMMENT;
 
       result.add(new SplitToken(splitToken, splitToken.getText(), splitTokenTypes[ind], TokenStyles.NORMAL));
     }
@@ -90,6 +90,7 @@ public class CppDirectiveSplitter {
       markToken(ctx.Left(), TokenTypes.OPERATOR);
       markToken(ctx.Right(), TokenTypes.OPERATOR);
       markToken(ctx.String(), TokenTypes.STRING);
+      markToken(ctx.RawString(), TokenTypes.STRING);
       markToken(ctx.IntegerLiteral(), TokenTypes.NUMERIC);
       markToken(ctx.DecimalLiteral(), TokenTypes.NUMERIC);
       markToken(ctx.OctalLiteral(), TokenTypes.NUMERIC);

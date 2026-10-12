@@ -17,10 +17,11 @@ public class CPP14DirectiveParser extends Parser {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		String=1, Hash=2, Include=3, Error=4, Whitespace=5, BlockComment=6, LineComment=7, 
-		NewLineSlash=8, NewLine=9, Left=10, Right=11, IntegerLiteral=12, DecimalLiteral=13, 
-		OctalLiteral=14, HexadecimalLiteral=15, BinaryLiteral=16, Keyword=17, 
-		Operators=18, Slash=19, Dot=20, Identifier=21, DirChar=22, Unknown=23;
+		String=1, RawString=2, Hash=3, Include=4, Error=5, Whitespace=6, BlockComment=7, 
+		LineComment=8, NewLineSlash=9, NewLine=10, Left=11, Right=12, IntegerLiteral=13, 
+		DecimalLiteral=14, OctalLiteral=15, HexadecimalLiteral=16, BinaryLiteral=17, 
+		Keyword=18, Operators=19, Slash=20, Dot=21, Identifier=22, DirChar=23, 
+		Unknown=24;
 	public static final int
 		RULE_directive = 0, RULE_include = 1, RULE_error = 2, RULE_dir = 3, RULE_other = 4;
 	private static String[] makeRuleNames() {
@@ -32,7 +33,7 @@ public class CPP14DirectiveParser extends Parser {
 
 	private static String[] makeLiteralNames() {
 		return new String[] {
-			null, null, "'#'", "'include'", "'error'", null, null, null, "'\\'", 
+			null, null, null, "'#'", "'include'", "'error'", null, null, null, "'\\'", 
 			null, "'<'", "'>'", null, null, null, null, null, null, null, "'/'", 
 			"'.'"
 		};
@@ -40,10 +41,11 @@ public class CPP14DirectiveParser extends Parser {
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
 	private static String[] makeSymbolicNames() {
 		return new String[] {
-			null, "String", "Hash", "Include", "Error", "Whitespace", "BlockComment", 
-			"LineComment", "NewLineSlash", "NewLine", "Left", "Right", "IntegerLiteral", 
-			"DecimalLiteral", "OctalLiteral", "HexadecimalLiteral", "BinaryLiteral", 
-			"Keyword", "Operators", "Slash", "Dot", "Identifier", "DirChar", "Unknown"
+			null, "String", "RawString", "Hash", "Include", "Error", "Whitespace", 
+			"BlockComment", "LineComment", "NewLineSlash", "NewLine", "Left", "Right", 
+			"IntegerLiteral", "DecimalLiteral", "OctalLiteral", "HexadecimalLiteral", 
+			"BinaryLiteral", "Keyword", "Operators", "Slash", "Dot", "Identifier", 
+			"DirChar", "Unknown"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -238,7 +240,7 @@ public class CPP14DirectiveParser extends Parser {
 					{
 					setState(25);
 					_la = _input.LA(1);
-					if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 3670016L) != 0)) ) {
+					if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 7340032L) != 0)) ) {
 					_errHandler.recoverInline(this);
 					}
 					else {
@@ -251,7 +253,7 @@ public class CPP14DirectiveParser extends Parser {
 					setState(28); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
-				} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & 3670016L) != 0) );
+				} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & 7340032L) != 0) );
 				setState(30);
 				match(Right);
 				}
@@ -311,7 +313,7 @@ public class CPP14DirectiveParser extends Parser {
 			setState(38);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 16776222L) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 33552446L) != 0)) {
 				{
 				{
 				setState(35);
@@ -382,7 +384,7 @@ public class CPP14DirectiveParser extends Parser {
 			setState(46);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 16776222L) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 33552446L) != 0)) {
 				{
 				{
 				setState(43);
@@ -409,6 +411,7 @@ public class CPP14DirectiveParser extends Parser {
 	@SuppressWarnings("CheckReturnValue")
 	public static class OtherContext extends ParserRuleContext {
 		public TerminalNode String() { return getToken(CPP14DirectiveParser.String, 0); }
+		public TerminalNode RawString() { return getToken(CPP14DirectiveParser.RawString, 0); }
 		public TerminalNode Left() { return getToken(CPP14DirectiveParser.Left, 0); }
 		public TerminalNode Right() { return getToken(CPP14DirectiveParser.Right, 0); }
 		public TerminalNode Keyword() { return getToken(CPP14DirectiveParser.Keyword, 0); }
@@ -449,10 +452,19 @@ public class CPP14DirectiveParser extends Parser {
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case String:
+			case RawString:
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(49);
-				match(String);
+				_la = _input.LA(1);
+				if ( !(_la==String || _la==RawString) ) {
+				_errHandler.recoverInline(this);
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
+					consume();
+				}
 				}
 				break;
 			case Left:
@@ -483,7 +495,7 @@ public class CPP14DirectiveParser extends Parser {
 				{
 				setState(53);
 				_la = _input.LA(1);
-				if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 1835008L) != 0)) ) {
+				if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 3670016L) != 0)) ) {
 				_errHandler.recoverInline(this);
 				}
 				else {
@@ -586,7 +598,7 @@ public class CPP14DirectiveParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001\u0017D\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
+		"\u0004\u0001\u0018D\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
 		"\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004\u0001"+
 		"\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001"+
 		"\u0000\u0001\u0000\u0001\u0000\u0003\u0000\u0014\b\u0000\u0001\u0001\u0001"+
@@ -597,42 +609,43 @@ public class CPP14DirectiveParser extends Parser {
 		"\u0003\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001"+
 		"\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001"+
 		"\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0003\u0004B\b"+
-		"\u0004\u0001\u0004\u0000\u0000\u0005\u0000\u0002\u0004\u0006\b\u0000\u0003"+
-		"\u0001\u0000\u0013\u0015\u0002\u0000\u0011\u0011\u0015\u0015\u0001\u0000"+
-		"\u0012\u0014S\u0000\u0013\u0001\u0000\u0000\u0000\u0002\u0015\u0001\u0000"+
-		"\u0000\u0000\u0004!\u0001\u0000\u0000\u0000\u0006)\u0001\u0000\u0000\u0000"+
-		"\bA\u0001\u0000\u0000\u0000\n\u000b\u0003\u0002\u0001\u0000\u000b\f\u0005"+
-		"\u0000\u0000\u0001\f\u0014\u0001\u0000\u0000\u0000\r\u000e\u0003\u0004"+
-		"\u0002\u0000\u000e\u000f\u0005\u0000\u0000\u0001\u000f\u0014\u0001\u0000"+
-		"\u0000\u0000\u0010\u0011\u0003\u0006\u0003\u0000\u0011\u0012\u0005\u0000"+
-		"\u0000\u0001\u0012\u0014\u0001\u0000\u0000\u0000\u0013\n\u0001\u0000\u0000"+
-		"\u0000\u0013\r\u0001\u0000\u0000\u0000\u0013\u0010\u0001\u0000\u0000\u0000"+
-		"\u0014\u0001\u0001\u0000\u0000\u0000\u0015\u0016\u0005\u0002\u0000\u0000"+
-		"\u0016\u001f\u0005\u0003\u0000\u0000\u0017 \u0005\u0001\u0000\u0000\u0018"+
-		"\u001a\u0005\n\u0000\u0000\u0019\u001b\u0007\u0000\u0000\u0000\u001a\u0019"+
-		"\u0001\u0000\u0000\u0000\u001b\u001c\u0001\u0000\u0000\u0000\u001c\u001a"+
-		"\u0001\u0000\u0000\u0000\u001c\u001d\u0001\u0000\u0000\u0000\u001d\u001e"+
-		"\u0001\u0000\u0000\u0000\u001e \u0005\u000b\u0000\u0000\u001f\u0017\u0001"+
-		"\u0000\u0000\u0000\u001f\u0018\u0001\u0000\u0000\u0000 \u0003\u0001\u0000"+
-		"\u0000\u0000!\"\u0005\u0002\u0000\u0000\"&\u0005\u0004\u0000\u0000#%\u0003"+
-		"\b\u0004\u0000$#\u0001\u0000\u0000\u0000%(\u0001\u0000\u0000\u0000&$\u0001"+
-		"\u0000\u0000\u0000&\'\u0001\u0000\u0000\u0000\'\u0005\u0001\u0000\u0000"+
-		"\u0000(&\u0001\u0000\u0000\u0000)*\u0005\u0002\u0000\u0000*.\u0007\u0001"+
-		"\u0000\u0000+-\u0003\b\u0004\u0000,+\u0001\u0000\u0000\u0000-0\u0001\u0000"+
-		"\u0000\u0000.,\u0001\u0000\u0000\u0000./\u0001\u0000\u0000\u0000/\u0007"+
-		"\u0001\u0000\u0000\u00000.\u0001\u0000\u0000\u00001B\u0005\u0001\u0000"+
-		"\u00002B\u0005\n\u0000\u00003B\u0005\u000b\u0000\u00004B\u0005\u0011\u0000"+
-		"\u00005B\u0007\u0002\u0000\u00006B\u0005\u0015\u0000\u00007B\u0005\f\u0000"+
-		"\u00008B\u0005\r\u0000\u00009B\u0005\u000e\u0000\u0000:B\u0005\u000f\u0000"+
-		"\u0000;B\u0005\u0010\u0000\u0000<B\u0005\u0016\u0000\u0000=B\u0005\u0003"+
-		"\u0000\u0000>B\u0005\u0004\u0000\u0000?B\u0005\u0017\u0000\u0000@B\u0005"+
-		"\u0002\u0000\u0000A1\u0001\u0000\u0000\u0000A2\u0001\u0000\u0000\u0000"+
-		"A3\u0001\u0000\u0000\u0000A4\u0001\u0000\u0000\u0000A5\u0001\u0000\u0000"+
-		"\u0000A6\u0001\u0000\u0000\u0000A7\u0001\u0000\u0000\u0000A8\u0001\u0000"+
-		"\u0000\u0000A9\u0001\u0000\u0000\u0000A:\u0001\u0000\u0000\u0000A;\u0001"+
-		"\u0000\u0000\u0000A<\u0001\u0000\u0000\u0000A=\u0001\u0000\u0000\u0000"+
-		"A>\u0001\u0000\u0000\u0000A?\u0001\u0000\u0000\u0000A@\u0001\u0000\u0000"+
-		"\u0000B\t\u0001\u0000\u0000\u0000\u0006\u0013\u001c\u001f&.A";
+		"\u0004\u0001\u0004\u0000\u0000\u0005\u0000\u0002\u0004\u0006\b\u0000\u0004"+
+		"\u0001\u0000\u0014\u0016\u0002\u0000\u0012\u0012\u0016\u0016\u0001\u0000"+
+		"\u0001\u0002\u0001\u0000\u0013\u0015S\u0000\u0013\u0001\u0000\u0000\u0000"+
+		"\u0002\u0015\u0001\u0000\u0000\u0000\u0004!\u0001\u0000\u0000\u0000\u0006"+
+		")\u0001\u0000\u0000\u0000\bA\u0001\u0000\u0000\u0000\n\u000b\u0003\u0002"+
+		"\u0001\u0000\u000b\f\u0005\u0000\u0000\u0001\f\u0014\u0001\u0000\u0000"+
+		"\u0000\r\u000e\u0003\u0004\u0002\u0000\u000e\u000f\u0005\u0000\u0000\u0001"+
+		"\u000f\u0014\u0001\u0000\u0000\u0000\u0010\u0011\u0003\u0006\u0003\u0000"+
+		"\u0011\u0012\u0005\u0000\u0000\u0001\u0012\u0014\u0001\u0000\u0000\u0000"+
+		"\u0013\n\u0001\u0000\u0000\u0000\u0013\r\u0001\u0000\u0000\u0000\u0013"+
+		"\u0010\u0001\u0000\u0000\u0000\u0014\u0001\u0001\u0000\u0000\u0000\u0015"+
+		"\u0016\u0005\u0003\u0000\u0000\u0016\u001f\u0005\u0004\u0000\u0000\u0017"+
+		" \u0005\u0001\u0000\u0000\u0018\u001a\u0005\u000b\u0000\u0000\u0019\u001b"+
+		"\u0007\u0000\u0000\u0000\u001a\u0019\u0001\u0000\u0000\u0000\u001b\u001c"+
+		"\u0001\u0000\u0000\u0000\u001c\u001a\u0001\u0000\u0000\u0000\u001c\u001d"+
+		"\u0001\u0000\u0000\u0000\u001d\u001e\u0001\u0000\u0000\u0000\u001e \u0005"+
+		"\f\u0000\u0000\u001f\u0017\u0001\u0000\u0000\u0000\u001f\u0018\u0001\u0000"+
+		"\u0000\u0000 \u0003\u0001\u0000\u0000\u0000!\"\u0005\u0003\u0000\u0000"+
+		"\"&\u0005\u0005\u0000\u0000#%\u0003\b\u0004\u0000$#\u0001\u0000\u0000"+
+		"\u0000%(\u0001\u0000\u0000\u0000&$\u0001\u0000\u0000\u0000&\'\u0001\u0000"+
+		"\u0000\u0000\'\u0005\u0001\u0000\u0000\u0000(&\u0001\u0000\u0000\u0000"+
+		")*\u0005\u0003\u0000\u0000*.\u0007\u0001\u0000\u0000+-\u0003\b\u0004\u0000"+
+		",+\u0001\u0000\u0000\u0000-0\u0001\u0000\u0000\u0000.,\u0001\u0000\u0000"+
+		"\u0000./\u0001\u0000\u0000\u0000/\u0007\u0001\u0000\u0000\u00000.\u0001"+
+		"\u0000\u0000\u00001B\u0007\u0002\u0000\u00002B\u0005\u000b\u0000\u0000"+
+		"3B\u0005\f\u0000\u00004B\u0005\u0012\u0000\u00005B\u0007\u0003\u0000\u0000"+
+		"6B\u0005\u0016\u0000\u00007B\u0005\r\u0000\u00008B\u0005\u000e\u0000\u0000"+
+		"9B\u0005\u000f\u0000\u0000:B\u0005\u0010\u0000\u0000;B\u0005\u0011\u0000"+
+		"\u0000<B\u0005\u0017\u0000\u0000=B\u0005\u0004\u0000\u0000>B\u0005\u0005"+
+		"\u0000\u0000?B\u0005\u0018\u0000\u0000@B\u0005\u0003\u0000\u0000A1\u0001"+
+		"\u0000\u0000\u0000A2\u0001\u0000\u0000\u0000A3\u0001\u0000\u0000\u0000"+
+		"A4\u0001\u0000\u0000\u0000A5\u0001\u0000\u0000\u0000A6\u0001\u0000\u0000"+
+		"\u0000A7\u0001\u0000\u0000\u0000A8\u0001\u0000\u0000\u0000A9\u0001\u0000"+
+		"\u0000\u0000A:\u0001\u0000\u0000\u0000A;\u0001\u0000\u0000\u0000A<\u0001"+
+		"\u0000\u0000\u0000A=\u0001\u0000\u0000\u0000A>\u0001\u0000\u0000\u0000"+
+		"A?\u0001\u0000\u0000\u0000A@\u0001\u0000\u0000\u0000B\t\u0001\u0000\u0000"+
+		"\u0000\u0006\u0013\u001c\u001f&.A";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {
