@@ -28,13 +28,13 @@ doc:
 
 - **Q1-Q2** - gutter/diff background **stays in the current path** for now (moving it to `CodeLineRenderer` is deferred); sync points are **out of scope**.
 - **Q3** - caret gutter highlight: drawn for the caret view line regardless of `hasLineNumber` (stays in the current path).
-- **Q4** - gutter width from the document-global max line number; view-independent.
+- **Q4** - number-column width (`leftMarginWidth`) from the document-global max line number; view-independent.
 - **Q5** - display numbers stored on `CodeLine`, decoupled from compact/folding indices.
 - **Q6** - keep `LineNumbersComponent`/`LineNumbersTexture`; moving the drawing pass to the renderer is deferred.
-- **Q7** - text positioning/padding (`textBaseX = leftMarginWidth + horizontalPadding`) unchanged.
+- **Q7** - text positioning/padding unchanged (`leftMarginWidth` = **number-column width**; `textBaseX = leftMarginWidth + mergeWidth + vLineW + vLineTextOffset` non-mirrored, mirrored variant per `internalLayout`).
 - **Q8** - editing guards: block edits on/through non-editable lines; copy always allowed.
 - **Q9** - backward-compatible defaults; JS<->Java mapping of "no line number".
-- **Q10** - gutter bounds `[0, leftMarginWidth)`.
+- **Q10** - number-column bounds `[0, leftMarginWidth)`; merge buttons / vertical rule outside.
 - **Q11** - texture storage: existing tile stays in `LineNumbersComponent`; shared-cache Option B is deferred.
 - **Q12** - staged Step 1: number-addressed tile lookup (integer banks).
 - **Q13** - `LineNumbersTexture` mechanics (coverage mask; bank/row math).

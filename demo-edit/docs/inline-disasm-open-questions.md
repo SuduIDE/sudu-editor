@@ -38,7 +38,7 @@ The **source index array (Q4/Q5) is built here**, at document creation, from the
 
 **Context:** today nothing in the model generates disassembly.
 
-**Open:** later edits may insert/remove disassembly lines; the index is then **maintained/patched** rather than rebuilt (Q5). Whether disassembly can also be added/replaced lazily after creation is not yet decided.
+**Deferred (out of scope for v1):** adding/replacing disassembly lazily after creation is not planned — disassembly documents are built once at creation (Q3/Q9) and read-only; a lazy-add path would reintroduce mapping maintenance (Q5). The index is therefore rebuilt only by recreating the document.
 
 ### 3. Lifetime and anchoring of disassembly lines — DECIDED (scope: out of scope for now)
 
@@ -73,19 +73,22 @@ The **source index array (Q4/Q5) is built here**, at document creation, from the
 - (b) Build a filtered `char[]` on demand with no persistent index buffer.
 - (c) Pass a source-line mask to the worker and let it skip disassembly lines (leaks disassembly into the parser contract).
 
-### 5. Line index mapping (parser <-> document) — DECIDED (tentative)
+### 5. Line index mapping (parser <-> document) — DECIDED
 
 **Decision:** Store only the **forward** index array `sourceToDoc` (source line → document line) — this is the **same index buffer as Q4**. It is built at document creation from the line descriptors (Q2); **`null` means the identity mapping** (no disassembly lines, see Q4).
 
 - **`sourceToDoc[i] = documentLine`** for source line `i`. The inverse is **not stored**: for a document line `d`, the source line is simply `document.lines[d].lineNumber` (non-source / disassembly lines carry no line number). A second array would only mirror the model.
 - **1-based numbers vs 0-based indices:** line numbers are 1-based (source line 1 has number 1) while the forward array is indexed 0-based; both use the same ordering, so `sourceIndex(d) = document.lines[d].lineNumber - 1`.
+- **Ordinal invariant (constrains `lineNumber`):** whenever `sourceToDoc != null`, `lineNumber` is **always the 1-based source ordinal**. The JS API assigns it from the source descriptors (Q2), so it holds structurally. **Display renumbering / arbitrary values are not supported in a disassembly document** — the "arbitrary display number" freedom in [line-numbers-refactoring-QA.md](line-numbers-refactoring-QA.md) Q5 applies only to documents with `sourceToDoc == null` (identity), whose reverse mapping is identity and never consults `lineNumber`.
 - **Used when applying results:** the parser returns `N` source lines; instead of `document.lines[i]`, write the tokenized `CodeLine` to `document.lines[sourceToDoc[i]]`. This is exactly why the mapping is needed ("apply the colorized parser response back to the model").
 - **No maintenance for now:** editing disassembly documents is out of scope (Q3), so the buffer is built at creation and not patched. Ordinary documents use `null` (identity) and need no mapping at all.
-- **Also needed for character offsets:** intervals, scope graph, and usages use character offsets too, so a source-space ↔ document-space **offset** mapping is required (see Q6). The line map alone is not sufficient.
+- **Character-offset mapping (source ↔ document):** intervals, scope graph, and usages use character offsets, so an offset map is required (Q6). Let `srcStart[i]` be the source char offset of source line `i` (`srcStart[0] = 0`; `srcStart[i+1] = srcStart[i] + strLength(sourceToDoc[i]) + 1`) and `docLineStart(d) = document.getLineStartInd(d)`:
+  - **source → doc:** find the source line `i` containing offset `x`; `docOffset(x) = docLineStart(sourceToDoc[i]) + (x − srcStart[i])`.
+  - **doc → source:** let `d = document.getLine(x).x`; if `d` is a source line (`sourceToDoc[i] == d`), `srcOffset(x) = srcStart[i] + (x − docLineStart(d))`; if `d` is a disassembly line, the offset has **no source equivalent** — callers snap to the enclosing source line (used only in viewport translation, Q8).
 
 **Context:** the parser returns `N` **source** lines; `ParserUtils.updateDocument` currently replaces `document.lines[0..N)`.
 
-**Open detail:** whether indexing is redefined so disassembly lines are "attached" to a source index (this overlaps Q6).
+**Closed detail (from Q6):** indexing is **not** redefined — disassembly lines remain separate document lines referenced by the parallel `sourceToDoc`; Q6 option (b) (attach-to-source-index) was rejected.
 
 ### 6. Shared coordinate space for Pos/tree/scope/usages — DECIDED (a)
 
@@ -95,7 +98,7 @@ The **source index array (Q4/Q5) is built here**, at document creation, from the
 - **Rendering is content-based:** line/character coloring lives in each line's `CodeElement`s (written via `setLine`), not in the model structures — normal rendering does not need source→doc translation.
 - **Positions are consulted only at interaction time:** goto-definition, find-usages, hover, code lens, folding look up `tree`/`usageToDef`/`scopeGraph` from a user action; translation happens there, in both directions.
 
-**Hit-testing fast path (doc → source):** for a clicked document line `d`, the source index is O(1) from its line number: `i = document.lines[d].lineNumber - 1`; sanity-check with `sourceToDoc[i] == d`. If the line is disassembly (no line number) or the check fails, fall back to a binary search over `sourceToDoc`. Reverse (source → doc) is a direct array read: `sourceToDoc[i]`.
+**Hit-testing fast path (doc → source):** the `lineNumber`-based shortcut is valid only where the ordinal invariant (Q5) holds, i.e. when `sourceToDoc != null`: for a clicked document line `d`, `i = document.lines[d].lineNumber - 1`; sanity-check with `sourceToDoc[i] == d`. If the line is disassembly (no line number) or the check fails, fall back to a binary search over `sourceToDoc`. When `sourceToDoc == null` (identity), the reverse is simply `d` — the fast path never consults `lineNumber`. Reverse (source → doc) is a direct array read: `sourceToDoc[i]`.
 
 **Consequence for Q7/Q8:** the parser's structures are consumed as-is (source space). Only `updateDocumentInterval`'s splice conversions map the interval's source bounds to doc lines so results can be written into `document.lines` via `sourceToDoc`.
 
@@ -107,9 +110,15 @@ The **source index array (Q4/Q5) is built here**, at document creation, from the
 
 **Decision:** Line-level application is exactly the Q5 mapping: the parser returns `N` source lines; write parsed source line `i` to `document.lines[sourceToDoc[i]]` (identity when `null`). Writing through the mapping **cannot clobber** disassembly lines, because they are simply absent from the mapping.
 
-**Residual details (mechanical; they do not change the model):**
+**Residual details (the offset conversions are specified in the interval-apply step below; everything else is mechanical — nothing changes the model):**
 - **Full apply (`ParserUtils.updateDocument`):** the loop writes via `sourceToDoc[i]`. The array-resize guard and the `saveOldLines` skip condition `i < documentLength` are today evaluated against the **document**, but with interleaved disassembly the loop iterates **source** lines — these guards must be evaluated in source space (with disasm, `lines.length` is already ≥ `N`, and skipping happens per source line).
-- **Interval apply (`ParserUtils.updateDocumentInterval`):** `intervalStart/Stop` are offsets in the `char[]` sent to the worker, i.e. **source space** (see Q6); they are translated to doc offsets before `document.getLine()`, and `setLine(stLine.x + i, ...)` becomes `setLine(sourceToDoc[srcLeft + i], ...)`. The `left`/`right` element splices remain valid because reparse boundaries always land on **source** lines — disassembly lines never sit on a boundary.
+- **Interval apply (`ParserUtils.updateDocumentInterval`)** — spell out the mapping. `intervalStart/Stop` are char offsets in the **source-only** `char[]` the worker parsed; `srcStart[i]` is the cumulative source-line start table from Q5 (`srcStart[0] = 0`, `srcStart[i+1] = srcStart[i] + strLength(sourceToDoc[i]) + 1`).
+  1. **Locate the boundary source lines:** `s` = largest `i` with `srcStart[i] ≤ intervalStart` (binary search), in-line char `c = intervalStart − srcStart[s]`; likewise `e` / `c2` for `intervalStop`, with `srcStart[i] < intervalStop` since the stop is exclusive.
+  2. **Translate to doc lines:** `docLeft = sourceToDoc[s]`, `docRight = sourceToDoc[e]`. The in-line chars `c`, `c2` are valid in the doc lines unchanged — disassembly only adds **lines** between source lines, it never mutates source line content, so the text inside line `s` is byte-identical in both spaces.
+  3. **Boundary splices:** `left = document.lines[docLeft].getElementsToLeft(c)`, `right = document.lines[docRight].getElementsToRight(c2)` — the same calls as today, but on the mapped doc lines. Reparse boundaries always land on **source** lines, never on disassembly lines, so `docLeft`/`docRight` are never disassembly slots.
+  4. **Write the `N` replacement lines:** for `i` in `0..N-1`, `document.setLine(sourceToDoc[s + i], new CodeLine(elements), success)`. The worker's `N` source lines replace source interval `[s, s+N)`; each is scattered into its doc slot via `sourceToDoc`, so interleaved disassembly lines are never overwritten. Payload element offsets stay interval-relative, as today — no rebasing.
+  5. **Tree/graph:** `tree.replaceInterval` and graph data keep **source-space** coordinates (Q6) — no offset translation at apply time.
+- **Reverse (doc → source offsets)** is needed by interaction paths only: use `docOffsetToSrc` from Q5 — `d = document.getLine(x).x`; if `d` is a source line (`sourceToDoc[i] == d`) then `srcOffset = srcStart[i] + (x − docLineStart(d))`; if `d` is a disassembly line there is **no source equivalent** — callers snap to the enclosing source line (viewport translation, Q8).
 - **`tree.replaceInterval`, `usageToDef`, `defToUsages`, `scopeGraph`:** remain in **source space** (Q6, decided) — no translation at apply time; the interaction layer translates on demand.
 - **`setLine` semantic-token preservation** works unchanged (per doc slot).
 - **Non-goal:** diff/undo/edit paths (Q10–Q12) are not adapted — editable documents have `null` mapping and disassembly documents are not edited (Q3).
@@ -133,56 +142,100 @@ That source range is what the fast parser receives (source-only payload, Q4). Th
 
 **Context:** `Model.parseViewport` computes `document.getLineStartInd(firstLine)` / `getVpEnd(lastLine)` / `getIntervals()` from visible document lines.
 
-### 9. Incremental reparse vs disassembly insertion
+### 9. Incremental reparse vs disassembly insertion — DECIDED (not required for v1)
+
+**Decision:** Incremental (iterative) reparse is **not required** when disassembly is present — in the first version a disassembly document is **always read-only**, so `Model.iterativeParsing` never fires for it:
+
+- **Read-only contract:** documents built with disassembly lines are read-only by construction (Q3: editing-with-disasm is out of scope). Concretely, `EditorComponent.readonly` must be `true` whenever a disassembly document is attached.
+- **Guard (warn once):** if a non-read-only editor (`editor.readonly == false`) receives/attaches a document with inline disassembly, emit a **single warning** (per document, not repeated). This prevents silently corrupting the source↔doc mapping, which is built once at creation and never patched.
+- **Coordinates (if reparse is ever enabled later):** intervals are expressed in **source space** end-to-end — `document.tree.getReparseNode()` → sent interval → `replaceInterval` (Q6/Q7) — and line writes reuse Q7's mapping (`setLine(sourceToDoc[s + i], ...)`). Recorded now so the later change is mechanical.
+- **View-level disassembly changes never invalidate the tree:** no reparse is triggered for a purely view-level change (see Q10).
+
 **Context:** `Model.iterativeParsing` uses `document.tree.getReparseNode()` and sends the interval plus `document.getChars()`.
-**Open:** How are reparse intervals expressed (source or document space)? Do inserting/removing disassembly lines invalidate the tree, and if so, can we avoid a reparse for a purely view-level change?
 
 ---
 
 ## C. Versioning, diff, and editing
 
-### 10. Versioning: which changes invalidate the parse?
+### 10. Versioning: which changes invalidate the parse? — DECIDED
+
+**Decision:** View-level disassembly changes do **not** bump `document.currentVersion` — they must never force a reparse. In v1 this is largely moot: disassembly documents are read-only (Q9) and disassembly is built once at creation, so there are no post-creation view-level add/remove events at all. Folding is a view-layer concept and does not touch the parse version. `currentVersion` therefore advances only on **source edits**, exactly as today.
+
 **Context:** `parseRes.version` must equal `document.currentVersion` to be applied.
-**Open:** Should adding/removing/folding disassembly lines (view-level) bump `document.currentVersion`? Expected answer: no - view-level changes should not force a reparse. Need to confirm and implement.
 
-### 11. Diff, sync, and copy must exclude disassembly
+### 11. Diff, sync, and copy must exclude disassembly — DECIDED (copy includes disasm)
+
+**Decision:** Two separate contracts, never conflated:
+
+- **Copy includes disassembly:** a user copy copies **all selected text, disassembly included** — what is selected is what is copied. It operates on the **document** directly (doc space); no source↔doc translation.
+- **Diff / sync / parse payload stay source-only:** `updateModelOnDiff`, `CpxDiff`, `syncEditing`, and the worker payload remain **source text only**. This holds structurally, not via per-API filters:
+  - editable documents have `null` mapping (no disassembly) → today's diff/sync path verbatim;
+  - disassembly documents are read-only (Q9) → edits/diff/sync never fire for them (Q10/Q12).
+- **Implementation note:** the worker payload keeps using the materialized **source-only** `char[]` (Q4) — a different path from user-facing copy, which reads the full document text (including disassembly). Keep `Document.getChars()` (document text, used by copy) distinct from the source materialization (used by the worker).
+
 **Context:** `updateModelOnDiff`, `CpxDiff`, `syncEditing`, `Document.getChars()`/`getFullLength`, and copy operate over "the document".
-**Open:** How do we guarantee disassembly lines are excluded from source diff/sync/copy while still being visible and selectable? What is the "copy" contract - copy source only, or include disassembly? (Selection across all lines is allowed; what is copied is the question.)
 
-### 12. Undo/redo
+### 12. Undo/redo — DECIDED
+
+**Decision:** Disassembly insertions do **not** participate in undo/redo — they are derived/view data, not user edits. In v1 this is moot: disassembly documents are read-only (Q9), so no edits (and thus no undo history) occur on them; `UndoBuffer` is untouched. Ordinary documents have `null` mapping and their undo path is today's, verbatim.
+
 **Context:** `UndoBuffer` records edits over the document.
-**Open:** Do disassembly insertions participate in undo? Expected: no - they are derived/view data, not user edits. Confirm.
 
 ---
 
 ## D. Rendering and numbering
 
-### 13. Styling of disassembly `CodeElement`s
-**Open:** Which colors/styles do disassembly elements use (a dedicated scheme, not `ParserConstants.TokenTypes`)? Does `setSemanticTokens` ever touch them? How do they look in diff mode?
+### 13. Styling of disassembly `CodeElement`s — PARTIALLY DECIDED (color scheme TBD)
 
-### 14. Line numbers for disassembly
-**Decided:** disassembly lines have `hasLineNumber == false`; non-integer labels (e.g. addresses) go into `CodeElement` content, not the gutter (see [line-numbers-refactoring-QA.md](line-numbers-refactoring-QA.md) Q5/Q12/Q13).
-**Open:** Is an address column actually desired? If so, is it `CodeElement` content only, or a second gutter lane? (Current decision says content.)
+**Decision:**
+- **Diff-mode look is NOT applicable** to disassembly documents: a diff model never exists for them (folding/diff build on the diff model — Q16), and disassembly documents are read-only (Q9).
+- **`setSemanticTokens` never touches disassembly elements:** semantic tokens are produced from the **source text only** (they are never emitted for disassembly lines). On top of that, `Model.setSemanticToken` already rejects mismatches via `element.s.equals(token.text)`; for disassembly documents it must additionally resolve/bypass via the source mapping so a token targets only source lines that are members of `sourceToDoc`.
+- **Color scheme: TBD (deferred).** Even though the parser never sees disassembly text, a later dedicated disasm colorization may still reuse `ParserConstants.TokenTypes` constants — they are color constants, not a parser-only contract. TBD items (for the later disasm styling note): instruction vs operand vs address-prefix coloring, fallback color, font style.
 
-### 15. Numbering source lines when disassembly is present
-**Context:** Display numbers are arbitrary integers from `CodeLine.lineNumber` (per-line, not position-derived).
-**Open:** When disassembly lines are interleaved, source lines must keep their **source** numbers (e.g. `{1,-,-,2,3,-,4}`). Who assigns `lineNumber` - the parse pipeline, the view builder, or the disassembly producer? How is it kept consistent across edits/folding?
+**Context:** Which colors/styles do disassembly elements use? Does `setSemanticTokens` ever touch them? How do they look in diff mode?
 
-### 16. Interaction with compact view / folding
+### 14. Line numbers for disassembly — DECIDED
+
+**Decision:** disassembly lines have `hasLineNumber == false`; **no address column** — addresses (non-integer labels) go into `CodeElement` **content**, not the gutter and not a second gutter lane (see [line-numbers-refactoring-QA.md](line-numbers-refactoring-QA.md) Q5/Q12/Q13).
+
+### 15. Numbering source lines when disassembly is present — DECIDED
+
+**Decision:** The **disassembly producer (JS API)** assigns `lineNumber` at document creation, from the line descriptors (Q2) — and in a disassembly document it **is the 1-based source ordinal** (Q5 invariant), so `{1,-,-,2,3,-,4}` is exactly the descriptors' numbers. The source index buffer is built from those same descriptors (Q4/Q5), so numbering and source-ness come from one source of truth.
+
+- **Ordinary (non-disasm) documents are unaffected:** numbering stays with view construction per line-numbers-refactoring-QA.md Q5 (display numbers, filled by the producer on load, no ordinal constraint).
+- **Edits do not renumber:** editing documents that contain disassembly is out of scope (Q3); a future edit path would re-validate/re-assign numbers then, not now.
+- **Folding does not renumber:** `lineNumber` is per-line display data; folding/compact-view mapping is a separate index, and display numbers persist (line-numbers QA Q5).
+
+**Context:** when disassembly lines are interleaved, source lines must keep their **source** numbers (e.g. `{1,-,-,2,3,-,4}`).
+
+### 16. Interaction with compact view / folding — DECIDED (out of scope; TBD)
+
+**Decision:** Folding is built only on the **diff model**, and a diff model **never exists for disassembly documents** — so folding does not apply to them and is **out of the current scope** (TBD for a later version). `CompactCodeMapping` therefore only composes with the number provider for editable/source documents (`null` mapping), where today's semantics are unchanged.
+
 **Context:** `CompactCodeMapping` uses real document indices.
-**Open:** Should folding a source line fold its attached disassembly lines too? How do the compact mappings and number provider compose when disassembly is present?
 
 ---
 
 ## E. Unified diff composition
 
-### 17. Unified diff + inline disassembly
-**Context:** Unified diff interleaves lines from two documents; inline disassembly attaches to lines within one document.
-**Open:** How do these compose - can a diff line also have inline disassembly? Which document's disassembly is shown? How is numbering resolved when both sides contribute numbers?
+### 17. Unified diff + inline disassembly — DECIDED (they do not compose in v1)
 
-### 18. Two-pane diff vs unified view
+**Decision:** Inline disassembly and unified diff **do not compose** in the first version — they are **orthogonal line structures**:
+
+- the **unified** view separates **docA/docB** (two documents);
+- **inline disassembly** separates **doc/disasm** (one document plus attached disassembly lines).
+
+A diff line never also carries inline disassembly in v1. Disassembly stays a read-only single-document presentation (Q9), and numbering never has to reconcile two disassembly sides.
+
+**Context:** Unified diff interleaves lines from two documents; inline disassembly attaches to lines within one document.
+
+### 18. Two-pane diff vs unified view — DECIDED
+
+**Decision:**
+- **Two-pane diff does NOT support disassembly in the first version** — neither side is a disassembly document.
+- **Unified diff is also not a disassembly view:** its line separation is **docA/docB** (two documents), not **doc/disasm**. It is a later step and a **view-level interleave of already-tokenized documents** — it does not reuse the parser pipeline.
+
 **Context:** Today two-pane diff uses `lineNumbers1`/`lineNumbers2` and separate `LineNumbersComponent`s; unified (single-pane) is a later step.
-**Open:** Is unified diff a new view over two `Document`s, and does it reuse the parser pipeline at all, or is it purely a view-level interleave of already-tokenized documents?
 
 ---
 
@@ -194,9 +247,18 @@ Most other questions depend on **Q1 (where disassembly lives)** and **Q6 (coordi
 - **Q2 is decided:** disassembly is supplied via a dedicated **JS API** that builds the document from an array of **line descriptors** (line number present ⇒ source line); the source index array is built there.
 - **Q3 is decided (out of scope for now):** editing documents that contain disassembly is not handled; the index is built once at creation and not patched.
 - **Q4 is decided:** the "source-only buffer" is an **index buffer** (document line indices, **not** a text copy); the worker payload is materialized from it. Source-ness is determined by **membership in the index**, not `hasLineNumber`. **`null` means identity** (no disassembly lines), so ordinary documents need no mapping and no maintenance.
-- **Q5 is decided (tentative):** store only the forward `sourceToDoc` buffer, built at creation; the inverse is derived from `CodeLine.lineNumber` (no second array). Used to apply parser results back.
-- **Q6 is decided (a):** model structures (`tree`/`scopeGraph`/`usageToDef`) stay in **source space**; translation to document space happens only in the render/hit-test (interaction) layer. Hit-test doc→source uses the O(1) `lineNumber` fast path with a `sourceToDoc[i] == d` sanity check.
+- **Q5 is decided:** store only the forward `sourceToDoc` buffer, built at creation; the inverse is derived from `CodeLine.lineNumber` **under the ordinal invariant** (`sourceToDoc != null` ⇒ `lineNumber` == 1-based source ordinal; display renumbering is disallowed in disasm documents). Used to apply parser results back; char offsets via the Q5 formula.
+- **Q6 is decided (a):** model structures (`tree`/`scopeGraph`/`usageToDef`) stay in **source space**; translation to document space happens only in the render/hit-test (interaction) layer. Hit-test doc→source uses the O(1) `lineNumber` fast path (ordinal invariant) with a `sourceToDoc[i] == d` sanity check; identity/null mapping reverse is just `d`.
 - **Q7 is decided:** line-level application is the Q5 mapping (`setLine(sourceToDoc[i], ...)`); interval/tree/graph offsets (Q8/Q9 wording above) are source-space and keyed on Q6.
 - **Q8 is decided:** viewport → source range via **binary search over `sourceToDoc`** (monotonic); no visible source ⇒ skip parse; `parsedVps` stores source intervals to avoid re-parsing.
-- Then Q9 (incremental reparse) follows.
+- **Q9 is decided:** incremental reparse is **not required** when disassembly is present — disasm documents are always read-only (`EditorComponent.readonly`); **warn once** if a non-RO editor attaches a disassembly document.
+- **Q10 is decided:** view-level disassembly changes never bump `document.currentVersion`; version advances only on source edits (as today).
+- **Q11 is decided:** **copy includes disassembly** (all selected text); diff/sync/parse payload stay source-only — structurally guaranteed by RO disasm docs (Q9) + `null` mapping on editable docs.
+- **Q12 is decided:** disassembly insertions do not participate in undo/redo (derived view data; moot while disasm docs are RO).
+- **Q13 is partially decided:** diff-mode look not applicable (no diff model for disasm docs); `setSemanticTokens` never touches disasm elements (source-only tokens + `element.s.equals(token.text)` guard); **color scheme TBD** in a dedicated disasm styling note.
+- **Q14 is decided:** no address column — non-integer labels go into `CodeElement` content.
+- **Q15 is decided:** numbers are assigned by the disassembly producer (JS API) at creation; `lineNumber` is the 1-based source ordinal (Q5 invariant); edits/folding never renumber (Q3, per-line display data).
+- **Q16 is decided (out of scope, TBD):** folding builds on the diff model, which never exists for disasm documents; folding is out of the current scope.
+- **Q17 is decided (no composition in v1):** inline disassembly and unified diff do not compose — unified separates **docA/docB**, inline disasm separates **doc/disasm**; a diff line never carries disassembly in v1.
+- **Q18 is decided:** two-pane diff does not support disassembly in v1; unified diff is a later docA/docB view-level interleave of already-tokenized documents (no parser pipeline).
 - If Q1 were revisited to (b)/(c) (separate layer or second document), the parser pipeline would stay mostly untouched and the work would concentrate in the view/interleave and numbering layers.

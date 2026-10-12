@@ -64,6 +64,7 @@ This document captures all decisions made during the discussion of the line numb
 - **Set during view construction:** When building/refreshing the view sequence (via `docToView` or the compact view model), assign `line.lineNumber = <display number>` and `line.hasLineNumber = <true/false>` for each line, based on that line's source of truth (e.g. its logical source line number). The compact view model's indices are used only for its own mapping; the display number is independent data stored on the line.
 - **Attached lines:** For attached disasm lines (separate `CodeLine`s in the same `Document`), set `line.hasLineNumber = false` (and typically `line.editable = false`). They do not show numbers.
 - **Flags remain independent:** `hasLineNumber` controls visibility; `editable` controls editing. The value of `lineNumber` is only meaningful when `hasLineNumber == true`.
+- **Disassembly constraint (reconciles with inline-disasm Q5/Q6):** the "arbitrary display value" freedom above applies **only to documents without disassembly** (`sourceToDoc == null`, i.e. the identity mapping). In a **disassembly document**, `lineNumber` is **constrained to the 1-based source ordinal** — the model's reverse mapping (`doc → source`) is derived from it. This holds structurally because the disassembly JS API assigns `lineNumber` from the source descriptors at document creation. **Display renumbering / arbitrary values are not supported inside a disassembly document.**
 - **Rationale:** Decoupling the display number from position and from compact/folding indices is what allows **per-line numbers that need not match the view slot** (see Q12) - e.g. imported/renumbered source lines. (Non-integer labels such as hex addresses are not gutter numbers; they belong in `CodeElement` content.)
 
 ## 6) Migration/cleanup
@@ -80,15 +81,15 @@ This document captures all decisions made during the discussion of the line numb
 
 ## 7) Text positioning & padding
 
-**Question:** Confirm leftMarginWidth is gutter width; textBaseX unchanged; hit testing same.
+**Question:** Confirm `leftMarginWidth` is the number-column width; text start unchanged; hit testing same.
 
-**Decision:** Yes - preserve existing layout math exactly.
+**Decision:** Yes - preserve `EditorComponent.internalLayout` exactly. `leftMarginWidth` denotes **only the number column** (the `LineNumbersComponent` width), not the entire left gutter area.
 
-- **Gutter width:** `leftMarginWidth` is the fixed width (pixels) of the left gutter area.
-- **Text start:** `textBaseX = leftMarginWidth + horizontalPadding` (unchanged).
+- **Number-column width:** `leftMarginWidth` = `lineNumbersWidth` in `EditorComponent.internalLayout` - a fixed pixel width measured from the maximum line number (`lineNumbers.measureDigits`, see Q4). It sizes the `LineNumbersComponent` (`lineNumbers.setPosition(pos.x, ..., lineNumbersWidth, ...)`).
+- **Text start (matches `internalLayout`):** non-mirrored `textBaseX = leftMarginWidth + mergeWidth + vLineW + vLineTextOffset`; mirrored `textBaseX = vLineTextOffset + scrollBarWidth`. The **merge buttons** occupy `[leftMarginWidth, leftMarginWidth + mergeWidth)` (when a merge/diff bar exists) and the **vertical rule** sits at `vLineX = leftMarginWidth + mergeWidth` - both **outside** the number column.
 - **Horizontal texture slicing:** No changes to horizontal texture slicing or horizontal scroll logic.
-- **Hit testing:** If `x < leftMarginWidth`, treat as gutter area/click. Otherwise map to text positions by subtracting `leftMarginWidth` using the same math as today. No change to coordinate mapping for text.
-- **No overlap:** Gutter drawing is restricted to horizontal range `[0, leftMarginWidth)`. Text drawing starts at `leftMarginWidth` and extends to the right edge. No overlap between gutter and text areas.
+- **Hit testing:** If `x < leftMarginWidth`, treat as a number-column click for that view line. The merge-button / vertical-rule strip between the number column and the text is part of the broader gutter, not `leftMarginWidth`. Text coordinate mapping is unchanged.
+- **No overlap:** Number-column drawing (background, caret highlight, number) is restricted to `[0, leftMarginWidth)`. Text drawing starts at `textBaseX` and extends right. Merge buttons and the vertical rule own their columns in between; nothing overlaps.
 - **Clipping:** Apply same vertical row clipping as current implementation.
 
 ## 8) Editing guard details
@@ -112,12 +113,14 @@ This document captures all decisions made during the discussion of the line numb
 - **Defaults on CodeLine:** Add fields with safe defaults:
   - `public boolean hasLineNumber = true`
   - `public boolean editable = true`
-  - `public int lineNumber = 0`
+  - `public int lineNumber = 0` &nbsp;(= "not assigned" sentinel — see below)
 - **Constructors:** Existing CodeLine construction sites continue to work without changes. Update constructors where convenient, but not required due to defaults.
-- **Behavior unchanged:** Any existing code paths that do not explicitly set these flags behave identically to before the refactoring.
+- **Behavior unchanged (the driver renders nothing when `lineNumber == 0`):** the tile cache only addresses banks for `N ≥ 1`, so the number-addressed driver renders `N = lineNumber` **only when `lineNumber ≥ 1`**; `lineNumber == 0` renders **no number**, and the tile formulas never see `N == 0` (Java `((0-1)/20)*20` / `(0-1)%20` would be invalid). Existing behavior is preserved by the **producer eagerly filling `lineNumber`** for numbered lines on load (see JS → Java mapping; view construction per Q5) — **not** by any fallback in the driver. `hasLineNumber == false` lines are never resolved (background only). **Shipping note:** the producer change must land together with the driver — until the producer sends numbers, `lineNumber == 0` everywhere and the gutter would show none (a visible regression during Step 1 if shipped alone).
+- **`lineNumber == 0` is the "not assigned" sentinel, not line 0:** such a line shows **no number** — the cache supports numbering only from 1. Ordinary documents rely on the producer assigning numbers on load; disassembly documents always carry explicit source ordinals (disasm Q5).
 - **JS → Java API mapping:**
   - If the line number is absent/`undefined` in the JS payload, set `hasLineNumber = false` (and leave `lineNumber` as-is or 0).
   - If the line number is present in the JS payload, set `hasLineNumber = true` and `lineNumber = <value>`.
+  - **Ordinary source documents:** the caller/JS sends contiguous numbers `1..N` for all lines, so today's gutter numbering is reproduced exactly (no driver fallback exists). An absent number truly means the line has none (e.g. disassembly) and renders no number.
   - `editable` defaults to `true` on the Java side unless explicitly set by the caller. For disasm/attached lines created on the Java side, explicitly set `editable = false` (and `hasLineNumber = false`).
 - **Java → JS mapping (reverse):** On JS side, represent "no line number" as absence/`undefined`. This matches the above.
 
@@ -127,7 +130,7 @@ This document captures all decisions made during the discussion of the line numb
 
 **Decision:** Enforce strict separation.
 
-- **Horizontal bounds:** Gutter drawing (background, caret highlight, line number) is restricted to `[0, leftMarginWidth)`. Text drawing starts at `leftMarginWidth`.
+- **Horizontal bounds:** Number-column drawing (background, caret highlight, line number) is restricted to `[0, leftMarginWidth)`; the merge buttons / vertical rule sit outside this range (see Q7). Text drawing starts at `textBaseX`.
 - **No overlap:** There is no overlap between gutter content and text content.
 - **Coordinate system:** Use the same coordinate system as EditorComponent.
 - **Clipping:** Apply vertical clipping per row (same as current implementation). This ensures clean rendering and no bleed between rows.
@@ -171,10 +174,10 @@ This document captures all decisions made during the discussion of the line numb
 
 **Touch points (small, coherent):**
 
-1. **`CodeLine`** - add `hasLineNumber = true`, `editable = true`, `lineNumber = 0` (defaults per Q9). Model-only.
+1. **`CodeLine`** - add `hasLineNumber = true`, `editable = true`, `lineNumber = 0` (defaults per Q9; `0` is the "not assigned" sentinel). Model-only.
 2. **`LineNumbersTexture`** - **unchanged** (still rasterizes a bank of 20 consecutive integers, right-aligned; color modulation at draw time). The lookup for number `N` is tile `bank(N)`, region row `(N-1) % 20` (see Q13).
 3. **`LineNumbersComponent`** - expose a **number-addressed** lookup/draw, e.g. `drawNumber(yPos, N, diff, scheme, colors, g)` (or return `(texture, regionY)` for `N`, with the background driven separately by `diff`), in addition to / instead of the range-based `drawRange`. The line's `LineDiff`/document line is passed **explicitly** for the background color, independent of `N` (see Q14). Cache/pool/eviction logic unchanged. Width derived from `Document.maxLineNumber` (Q4) via `measureDigits`.
-4. **`EditorComponent`** - provide each visible view line's `N` (from `CodeLine.lineNumber`/`hasLineNumber`); drive drawing per view line, batching adjacent view rows whose numbers are consecutive and whose diff background matches into a single rect (as today's batched runs). Non-numbered rows draw background only. Compute gutter width from `maxLineNumber`.
+4. **`EditorComponent`** - resolve each visible view line's `N`; render the tile row for `N = lineNumber` **only when `lineNumber ≥ 1`**, otherwise render nothing (the cache only supports numbers from 1; `N == 0` never reaches the tile math). Numbers for ordinary documents come from the producer filling `lineNumber` on load (Q9) — no driver fallback. Drive drawing per view line, batching adjacent view rows whose numbers are consecutive and whose diff background matches into a single rect (as today's batched runs). Non-numbered rows draw background only. Compute gutter width from `maxLineNumber`.
 
 **Batching / performance note:** Within a run of adjacent view rows with consecutive numbers and the same diff color, one `g.drawText` region can cover multiple rows (as current `drawRange` does). A non-numbered row simply breaks the run (it cannot be part of a number region), and is filled with background. No per-scroll re-rasterization occurs: tiles are number-addressed and view-independent.
 
