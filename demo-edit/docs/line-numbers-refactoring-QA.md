@@ -2,24 +2,23 @@
 
 This document captures all decisions made during the discussion of the line numbers refactoring plan. It is intended to be the source of truth for implementation.
 
-## 1) Diff backgrounds in gutter
+## 1) Diff backgrounds in gutter (scope: stays in the current path)
 
-**Question:** LineNumbersComponent draws diff backgrounds in the gutter area. If numbers move into CodeLineRenderer, should renderer also draw gutter-area diff backgrounds?
+**Question:** LineNumbersComponent draws diff backgrounds in the gutter area. Does that move to CodeLineRenderer?
 
-**Decision:** Yes.
+**Decision (revised):** **No - not in this refactoring.** Gutter drawing for a row (diff background + line number + caret highlight) stays in the current `LineNumbersComponent` / `EditorComponent` path. The minimal changeset is the **model refactoring** (put the per-line number state on `CodeLine`, see Q9) plus the **number-addressed lookup driver** in the existing component (Q12). Moving the whole gutter draw into `CodeLineRenderer` (the later "Option B", Q11) is **deferred**.
 
-- **Move responsibility to CodeLineRenderer.** All gutter rendering for a row (gutter background + line number) moves from LineNumbersComponent to CodeLineRenderer. This includes drawing the gutter diff background for that line.
-- **Leverage existing parameter.** Since `CodeLineRenderer.draw()` already takes `LineDiff diff`, the renderer will draw the gutter background rectangle in `[x, x+leftMarginWidth)` with the diff-appropriate colors, and draw the line number in that same area.
-- **Caret highlight included.** The gutter caret highlight for the caret line also belongs to CodeLineRenderer (see Q3).
-- **Sync points exception.** Sync points drawing remains **out of scope** for CodeLineRenderer in this refactoring. Sync points rendering and its visuals stay in the current path (LineNumbersComponent/EditorComponent) for now and will be TBD later.
-- **Draw order considerations.** Sync points are drawn in a separate pass. We must ensure they render on top of the gutter area without clobbering, preserving the same z-order as current behavior.
-- **State required.** CodeLineRenderer needs `leftMarginWidth`, `diff`, and whether the line is the caret line. No sync point state is passed to CodeLineRenderer in this phase.
+- **No renderer change for now.** `CodeLineRenderer` is untouched; it continues to render only the text area. Do not move the diff background / number / caret draw into it yet.
+- **Already-available parameter (for the future).** `CodeLineRenderer.draw()` already takes `LineDiff diff`, so the later move is low-friction - but it is out of scope now.
+- **Caret highlight:** behavior unchanged and stays in the current path; it is still drawn for the caret view line regardless of `hasLineNumber` (see Q3).
+- **Diff background source:** the current component already has the diff model; the number-addressed driver must pass the row's `LineDiff` explicitly rather than deriving the color from `N` (see Q14).
+- **Sync points exception.** Sync points drawing stays as-is entirely (current path, out of scope, TBD - see Q2).
 
 ## 2) Sync points drawing and hit testing
 
-**Question:** You agreed renderer should draw sync point markers in gutter when applicable. Define API for state; hit testing moves to EditorComponent - how to map gutter clicks to sync point actions?
+**Question:** Should sync point markers be drawn in the gutter, and how is hit testing mapped to sync point actions?
 
-**Decision:** Sync points drawing is **out of scope** for CodeLineRenderer in this refactoring. It will remain as-is for now and may be addressed later (TBD).
+**Decision:** Sync points drawing is **out of scope** in this refactoring - it stays in the current path. It will remain as-is for now and may be addressed later (TBD).
 
 - **Drawing:** Sync points drawing stays as-is (LineNumbersComponent/EditorComponent path). Do not move to CodeLineRenderer in this refactoring.
 - **Hit testing:** In EditorComponent, when a mouse click occurs with `x < leftMarginWidth`, treat it as a gutter click for that view line (map y to view line). If that view line has a sync point, trigger the sync point action (preserving current behavior). Otherwise, treat as a gutter click (e.g. move caret to that line) - preserve current behavior.
@@ -27,7 +26,7 @@ This document captures all decisions made during the discussion of the line numb
 
 ## 3) Caret in gutter
 
-**Question:** Draw caret highlight in gutter for caret line (when it has line number). Just background highlight or also separate caret indicator?
+**Question:** Draw caret highlight in gutter for the caret line. Just background highlight, or also a separate caret indicator?
 
 **Decision:** Preserve exact current visuals. The caret gutter highlight is independent of whether a line number is rendered.
 
@@ -69,15 +68,15 @@ This document captures all decisions made during the discussion of the line numb
 
 ## 6) Migration/cleanup
 
-**Question:** Keep or remove LineNumbersComponent/LineNumbersTexture after moving to renderer?
+**Question:** Keep or remove LineNumbersComponent/LineNumbersTexture?
 
-**Decision:** Use a phased migration approach.
+**Decision:** Keep both. This refactoring is scoped to the **model** plus the **number-addressed lookup** in the existing component; moving the drawing pass into `CodeLineRenderer` is **deferred** (see Q1, Q11).
 
-- **Phase 1 (Model + Renderer):** Add flags to `CodeLine` (`hasLineNumber`, `editable`, `lineNumber`) with sensible defaults. Extend `CodeLineRenderer` to draw gutter background, line number, and caret highlight in the gutter area (driven by new parameters: `leftMarginWidth`, `diff`, `isCaretLine`). Sync points drawing is not added to the renderer (remains separate, TBD).
-- **Phase 2 (Editor integration):** Update `EditorComponent` to compute `leftMarginWidth` from the document's global max line number (with `hasLineNumber == true`), pass required state to renderers per view line, and stop calling `LineNumbersComponent.draw*` for the row's number/background/caret rendering that has moved. Keep hit testing updated for gutter clicks (including sync points as today). Sync points rendering remains unchanged for now.
-- **Phase 3 (Verification & cleanup):** Verify visual parity and behavior against the current implementation. Once stable and correct, deprecate/remove `LineNumbersComponent` and all its unused references as appropriate. **Note:** `LineNumbersTexture` is **kept** (reused as the tile cache for CodeLineRenderer - see Q11); only the component that owned the separate drawing pass goes away. Do not remove until fully verified. Sync points handling may be revisited later (TBD).
-
-**Rationale:** Low risk, allows easy comparison and rollback during transition.
+- **In scope (minimal changeset):**
+  - Add `hasLineNumber`, `editable`, `lineNumber` to `CodeLine`, with backward-compatible defaults (Q9).
+  - Make the existing gutter drawing **number-addressed**: resolve each view line's `N` (or "none") and look up the tile bank (Q12, Q13, Q14). This stays in `LineNumbersComponent`.
+- **Out of scope (deferred):** moving gutter background / number / caret drawing into `CodeLineRenderer`; retiring `LineNumbersComponent`. Both `LineNumbersComponent` and `LineNumbersTexture` are kept unchanged in ownership.
+- **Rationale:** Smallest safe change that delivers per-line optional numbers. The drawing-ownership move can be done later without changing the model or the lookup, so deferring it now creates no rework.
 
 ## 7) Text positioning & padding
 
@@ -133,27 +132,29 @@ This document captures all decisions made during the discussion of the line numb
 - **Coordinate system:** Use the same coordinate system as EditorComponent.
 - **Clipping:** Apply vertical clipping per row (same as current implementation). This ensures clean rendering and no bleed between rows.
 
-## 11) Line number texture storage (Option B - agreed)
+## 11) Line number texture storage (deferred - future Option B)
 
-**Question:** LineNumbersComponent/LineNumbersTexture currently own rasterized line-number textures. If line number rendering moves to CodeLineRenderer, which textures hold the rendered line-number glyph shapes, and how are they updated per frame?
+**Status:** **Deferred.** In the current minimal changeset the existing `LineNumbersTexture` tile and its pool stay owned by `LineNumbersComponent`, unchanged. The material below records the **later** target for when gutter drawing moves into `CodeLineRenderer` (see Q1, Q6); it is not part of the current scope.
+
+**Question (future):** If line number rendering moves to CodeLineRenderer, which textures hold the rendered line-number glyph shapes, and how are they updated per frame?
 
 **Context - options considered:**
 - **Option A:** Per-renderer gutter texture (one extra `GL.Texture` per CodeLineRenderer, rasterized in `updateTexture()` when the line changes). Self-contained, but duplicates logic across renderers.
-- **Option B (chosen):** Keep the existing 20-number tile texture (`LineNumbersTexture`), relocate the pool out of LineNumbersComponent into a shared cache; CodeLineRenderer draws from it.
+- **Option B (later target):** Keep the existing 20-number tile texture (`LineNumbersTexture`), relocate the pool out of LineNumbersComponent into a shared cache; CodeLineRenderer draws from it.
 - **Option C:** Digit glyph atlas (0-9), compose numbers per draw. Zero re-rasterization but many draw calls per frame and right-align logic written from scratch - not worth it.
 
-**Decision:** Option B - keep `LineNumbersTexture` tile (20 numbers per tile), move ownership out of the component drawing pass.
+**Decision (when the move happens):** Option B - keep `LineNumbersTexture` tile (20 numbers per tile), move ownership out of the component drawing pass. Not in the current scope.
 
 - **Tile concept unchanged:** `LineNumbersTexture` rasterizes 20 consecutive numbers (`numberOfLines = 20`) into one texture sized `(gutterWidth, 20 * lineHeight)`, right-aligned, one row per number. Reuses tested rasterization: right-align, padding, cleartype handling.
 - **Pool becomes a shared cache:** Move the tile pool (keyed by `startLine = (line / 20) * 20`, frame-based eviction, on-demand rasterization) from `LineNumbersComponent` into a shared cache - owned by `EditorComponent` or `ClrContext` (e.g. a small `LineNumberTiles` helper). It is a texture cache only, not a rendering component.
 - **CodeLineRenderer draws the gutter itself:** `CodeLineRenderer.draw()` performs the whole gutter draw per row: diff background rect (`[x, x+leftMarginWidth)`, using existing `LineDiff diff` parameter) → caret highlight (if `isCaretLine`, per Q3) → line number from the tile cache (if `line.hasLineNumber`). Then the horizontal text strips offset by `leftMarginWidth`, unchanged.
-- **Cache is keyed by number, not view position:** Works with non-contiguous numbers caused by interleaved disasm lines and with compact/folding views - view lines with numbers 37 and 100 simply fetch tiles `[20,40)` and `[100,120)`; lines with `hasLineNumber == false` fetch nothing.
+- **Cache is keyed by number bank, not view position:** Works with non-contiguous numbers caused by interleaved disasm lines and with compact/folding views - view lines with numbers 37 and 100 simply fetch the tiles keyed by `startLine` 20 (`bank(37)`) and 80 (`bank(100)`), covering numbers 21-40 and 81-100 respectively; lines with `hasLineNumber == false` fetch nothing.
 - **Per-frame update mechanism (unchanged from today):**
   - Glyph coverage is rasterized only when a tile is missing (evicted) or font/lineHeight/cleartype changes.
   - Colors (caret highlight, diff background, selection) are applied at draw time via `g.drawText(...)`: the shader combines the stored coverage mask with the supplied `textColor`/`bgColor`, so color changes need no re-rasterization. See [text-rendering-and-shaders.md](text-rendering-and-shaders.md).
   - Stale tiles are evicted by `frameId` as today (`lastFrame` bookkeeping).
 - **No separate LineNumbersComponent pass for numbers/BG/caret:** After migration, the renderer's draw pass covers those; sync points remain in the existing separate pass (out of scope, TBD - see Q1/Q2).
-- **LineNumbersTexture is retained** as the rasterization/cache implementation; `LineNumbersComponent` (the pass owner) is what gets removed in Phase 3 (see Q6).
+- **LineNumbersTexture is retained** as the rasterization/cache implementation; `LineNumbersComponent` (the pass owner) is what would be removed when the drawing pass moves into the renderer (see Q1, Q6) - not in the current scope.
 
 ## 12) Staged transition - Step 1 (per-line numbers via number-addressed tiles)
 
@@ -172,7 +173,7 @@ This document captures all decisions made during the discussion of the line numb
 
 1. **`CodeLine`** - add `hasLineNumber = true`, `editable = true`, `lineNumber = 0` (defaults per Q9). Model-only.
 2. **`LineNumbersTexture`** - **unchanged** (still rasterizes a bank of 20 consecutive integers, right-aligned; color modulation at draw time). The lookup for number `N` is tile `bank(N)`, region row `(N-1) % 20` (see Q13).
-3. **`LineNumbersComponent`** - expose a **number-addressed** lookup/draw, e.g. `drawNumber(yPos, N, scheme, colors, g)` (or return `(texture, regionY)` for `N`), in addition to / instead of the range-based `drawRange`. Cache/pool/eviction logic unchanged. Width derived from `Document.maxLineNumber` (Q4) via `measureDigits`.
+3. **`LineNumbersComponent`** - expose a **number-addressed** lookup/draw, e.g. `drawNumber(yPos, N, diff, scheme, colors, g)` (or return `(texture, regionY)` for `N`, with the background driven separately by `diff`), in addition to / instead of the range-based `drawRange`. The line's `LineDiff`/document line is passed **explicitly** for the background color, independent of `N` (see Q14). Cache/pool/eviction logic unchanged. Width derived from `Document.maxLineNumber` (Q4) via `measureDigits`.
 4. **`EditorComponent`** - provide each visible view line's `N` (from `CodeLine.lineNumber`/`hasLineNumber`); drive drawing per view line, batching adjacent view rows whose numbers are consecutive and whose diff background matches into a single rect (as today's batched runs). Non-numbered rows draw background only. Compute gutter width from `maxLineNumber`.
 
 **Batching / performance note:** Within a run of adjacent view rows with consecutive numbers and the same diff color, one `g.drawText` region can cover multiple rows (as current `drawRange` does). A non-numbered row simply breaks the run (it cannot be part of a number region), and is filled with background. No per-scroll re-rasterization occurs: tiles are number-addressed and view-independent.
@@ -209,7 +210,8 @@ textureY  = row(N) * lineHeight
 
 **Drawing (`draw`, `drawCaretLine`):**
 
-- `draw(dXdY, yPos, fromLine, toLine, colorScheme, colors, g)`: `fromLine`/`toLine` are `(N-1)` bounds. It walks rows, groups adjacent rows with the same diff background (`colorScheme.getDiffColor(colors, n)`) into one `g.drawText` call over a region `(0, d + offset*lineHeight, width, h)`, using `lineNumberScheme.textColor` as foreground. Returns early if the tile doesn't cover `[fromLine, toLine)`.
+- `draw(dXdY, yPos, fromLine, toLine, colorScheme, colors, g)`: today `fromLine`/`toLine` are `(N-1)` bounds and serve **two roles at once** - the tile row range to draw (`[fromLine, toLine)`) **and** the index into the diff model via `colorScheme.getDiffColor(colors, n)`. That double duty is only valid because today's 1:1 numbering makes `number - 1 == document line index`. It walks rows, groups adjacent rows with the same diff background into one `g.drawText` call over a region `(0, d + offset*lineHeight, width, h)`, using `lineNumberScheme.textColor` as foreground. Returns early if the tile doesn't cover `[fromLine, toLine)`.
+- **Correction for the number-addressed driver:** once display numbers are decoupled from document position (gaps, non-contiguous), the tile row `(N-1) % 20` and the background color are **different inputs**. The row is a texture coordinate derived from `N`; the background must come from the **document line / `LineDiff`** of that view row. Do not index the diff model by `N`. See Q14.
 - `drawCaretLine(dXdY, yPos, caretLine, colorScheme, colors, g)`: draws a single row with `colorScheme.lineNumber.caretTextColor` foreground and the line's diff background.
 - `g.drawText(...)` combines the stored coverage mask with the given foreground/background colors, so caret/diff/selection states are pure draw-time state (see [text-rendering-and-shaders.md](text-rendering-and-shaders.md)).
 
@@ -226,3 +228,16 @@ textureY  = row(N) * lineHeight
 Because a tile is just a bank of integers and lookup is by number, showing number `N` on **any** view row requires only `bank(N)` + `row(N)`. The provider supplies `N` per view line (or "none"). **No change to rasterization, no per-line texture, no renumber invalidation** - only the driver changes (Q12).
 
 **Boundary:** This integer-bank model covers plain integer display values (including gaps). Non-integer / hex-string / arbitrary labels are handled **outside** the number gutter - they are placed in `CodeElement` content and render as regular line text. So the gutter only ever needs integer bank lookups, and no content-driven rasterization is required for line numbers.
+
+## 14) Background color source in number-addressed drawing
+
+**Question:** In number-addressed drawing, what supplies the gutter/diff background color for a view row - the number `N`, or the document line?
+
+**Decision:** The background comes from the **view row's document line / `LineDiff`**, passed **explicitly** and independently of `N`. The number `N` is used **only** for the tile lookup (`bank(N)` / `row(N)`).
+
+- **Why the question arises:** `LineNumbersTexture.draw(fromLine, toLine, ...)` currently uses `fromLine`/`toLine` both as the tile row range **and** as the index into `colors` (`colorScheme.getDiffColor(colors, n)`). That is only correct because numbering is 1:1 today (`number - 1 == view row == document line`).
+- **After the change:** display numbers are per-line and can have gaps. Two adjacent view rows can have **consecutive numbers but different document lines** (hence different diff colors), and consecutive document lines can have **non-consecutive numbers**. Therefore the texture row range and the diff color are **independent inputs** and must not be derived from each other.
+- **API shape:** in Step 1, `LineNumbersComponent.drawNumber(yPos, N, diff, scheme, colors, g)` - `N` selects `bank(N)`/`row(N)`; `diff` (the view row's `LineDiff`) selects the gutter background. Equivalently, return `(texture, regionY)` for `N` and let the caller fill the background from `diff`. Do **not** compute the diff color from `N`.
+- **Batching:** adjacent view rows may be merged into a single `g.drawText` region only when **both** their tile rows are consecutive **and** their `LineDiff`/background colors are equal (Q12).
+- **CodeLineRenderer target:** `CodeLineRenderer.draw()` already receives `LineDiff diff` (Q1-Q2), so once the gutter moves into the renderer the diff is naturally available per row; Step 1 just has to thread it from `EditorComponent` into `drawNumber`.
+- **No change to cached texture:** the tile stays a view-independent integer bank; only the per-row background source is made explicit.
