@@ -2231,7 +2231,7 @@ public class EditorComponent extends View implements
   }
 
   public LangOptions getLangOptions() {
-    return getLangOptions();
+    return getLangOptions.get();
   }
 
   public void setCodeMap() {
