@@ -17,7 +17,7 @@ Status: **open, being triaged**. Resolved items are marked **DECIDED** inline (w
 **Rationale:**
 - One document keeps a single view order, so there is no separate interleave layer to build or keep in sync.
 - The existing compact/folding mapping already works over document indices, so disassembly lines need no special view mapping.
-- Matches the line-numbers refactoring assumption (see [line-numbers-refactoring-QA.md](line-numbers-refactoring-QA.md) Q12: attached disasm lines are `CodeLine`s in the same `Document`, with `hasLineNumber = false`).
+- Matches the line-numbers refactoring assumption (see [line-numbers-refactoring-QA.md](line-numbers-refactoring-QA.md) Q12: attached disasm lines are `CodeLine`s in the same `Document`, never numbered — `lineNumber == 0`, not members of `sourceToDoc`).
 
 **Consequence:** The parser must receive a **source-only** view; today `document.getChars()` includes everything. This puts **Q4 (source extraction)**, **Q5 (line index mapping)**, and **Q6 (coordinate space)** on the critical path (see section F).
 
@@ -63,7 +63,7 @@ The **source index array (Q4/Q5) is built here**, at document creation, from the
 - **Payload:** when calling the worker, the source `char[]` is **materialized** from the referenced lines (the worker still needs a text payload).
 - **Identity shortcut:** when the document has **no disassembly lines**, the buffer is **`null`**, meaning the mapping is the identity (`docLine == sourceLine`). This is the common case, so no array is allocated and no maintenance code runs.
 
-**Source of truth for source-ness:** the **source index buffer itself** decides which lines are source — **not** `hasLineNumber`. A line is source iff it is present in the index. `hasLineNumber` stays **display-only** (whether the gutter shows a number).
+**Source of truth for source-ness:** the **source index buffer itself** decides which lines are source — a line is source iff it is present in the index. Numbering coincides with source-ness (Q5 ordinal invariant / line-numbers Q9), and **there is no per-line `hasLineNumber` flag**: numbered ⟺ member; every member carries `lineNumber` = its ordinal, every non-member (attached line) has `lineNumber == 0` and shows nothing.
 
 **Consequence:** This same index buffer is the mapping used to apply the parser response back (Q5), and the worker's positions are in **source space** (Q6).
 
@@ -121,7 +121,7 @@ The **source index array (Q4/Q5) is built here**, at document creation, from the
 - **Reverse (doc → source offsets)** is needed by interaction paths only: use `docOffsetToSrc` from Q5 — `d = document.getLine(x).x`; if `d` is a source line (`sourceToDoc[i] == d`) then `srcOffset = srcStart[i] + (x − docLineStart(d))`; if `d` is a disassembly line there is **no source equivalent** — callers snap to the enclosing source line (viewport translation, Q8).
 - **`tree.replaceInterval`, `usageToDef`, `defToUsages`, `scopeGraph`:** remain in **source space** (Q6, decided) — no translation at apply time; the interaction layer translates on demand.
 - **`setLine` semantic-token preservation** works unchanged (per doc slot).
-- **Non-goal:** diff/undo/edit paths (Q10–Q12) are not adapted — editable documents have `null` mapping and disassembly documents are not edited (Q3).
+- **Non-goal:** diff/undo/edit paths (Q10–Q12) are not adapted — source-only documents have `null` mapping and disassembly documents are not edited (Q3; editability derives from `!readonly && numbered`, line-numbers Q8).
 
 **Context:** `ParserUtils.updateDocument` / `updateDocumentInterval` / `setLine(i, ..., success)` assume line `i` is a source line today; with the mapping they write to doc slots while preserving that assumption.
 
@@ -169,7 +169,7 @@ That source range is what the fast parser receives (source-only payload, Q4). Th
 
 - **Copy includes disassembly:** a user copy copies **all selected text, disassembly included** — what is selected is what is copied. It operates on the **document** directly (doc space); no source↔doc translation.
 - **Diff / sync / parse payload stay source-only:** `updateModelOnDiff`, `CpxDiff`, `syncEditing`, and the worker payload remain **source text only**. This holds structurally, not via per-API filters:
-  - editable documents have `null` mapping (no disassembly) → today's diff/sync path verbatim;
+  - source-only documents have `null` mapping (no disassembly) → today's diff/sync path verbatim;
   - disassembly documents are read-only (Q9) → edits/diff/sync never fire for them (Q10/Q12).
 - **Implementation note:** the worker payload keeps using the materialized **source-only** `char[]` (Q4) — a different path from user-facing copy, which reads the full document text (including disassembly). Keep `Document.getChars()` (document text, used by copy) distinct from the source materialization (used by the worker).
 
@@ -196,13 +196,13 @@ That source range is what the fast parser receives (source-only payload, Q4). Th
 
 ### 14. Line numbers for disassembly — DECIDED
 
-**Decision:** disassembly lines have `hasLineNumber == false`; **no address column** — addresses (non-integer labels) go into `CodeElement` **content**, not the gutter and not a second gutter lane (see [line-numbers-refactoring-QA.md](line-numbers-refactoring-QA.md) Q5/Q12/Q13).
+**Decision:** disassembly lines are **never numbered** (`lineNumber == 0`; not members of `sourceToDoc`); **no address column** — addresses (non-integer labels) go into `CodeElement` **content**, not the gutter and not a second gutter lane (see [line-numbers-refactoring-QA.md](line-numbers-refactoring-QA.md) Q5/Q12/Q13).
 
 ### 15. Numbering source lines when disassembly is present — DECIDED
 
 **Decision:** The **disassembly producer (JS API)** assigns `lineNumber` at document creation, from the line descriptors (Q2) — and in a disassembly document it **is the 1-based source ordinal** (Q5 invariant), so `{1,-,-,2,3,-,4}` is exactly the descriptors' numbers. The source index buffer is built from those same descriptors (Q4/Q5), so numbering and source-ness come from one source of truth. **`0`/AUTO is never used for these lines** — source ordinals are explicit `≥ 1` (AUTO is a classic-document concept, see Q5 and line-numbers QA Q9).
 
-- **Ordinary (non-disasm) documents are unaffected:** numbering follows line-numbers-refactoring-QA.md Q5/Q9 — display numbers with **no ordinal constraint**, and `lineNumber == 0` means **AUTO** (derive `index + 1`), so editable documents never renumber (no producer fill, no edit-time maintenance).
+- **Ordinary (non-disasm) documents are unaffected:** numbering follows line-numbers-refactoring-QA.md Q5/Q9 — display numbers with **no ordinal constraint**, and `lineNumber == 0` means **AUTO** (derive `index + 1`), so documents that can be edited never renumber (editability derives from numbering + `editor.readonly` — line-numbers Q8/Q9; no producer fill, no edit-time maintenance).
 - **Edits do not renumber:** editing documents that contain disassembly is out of scope (Q3); a future edit path would re-validate/re-assign numbers then, not now.
 - **Folding does not renumber:** `lineNumber` is per-line display data; folding/compact-view mapping is a separate index, and display numbers persist (line-numbers QA Q5).
 
@@ -210,7 +210,7 @@ That source range is what the fast parser receives (source-only payload, Q4). Th
 
 ### 16. Interaction with compact view / folding — DECIDED (out of scope; TBD)
 
-**Decision:** Folding is built only on the **diff model**, and a diff model **never exists for disassembly documents** — so folding does not apply to them and is **out of the current scope** (TBD for a later version). `CompactCodeMapping` therefore only composes with the number provider for editable/source documents (`null` mapping), where today's semantics are unchanged.
+**Decision:** Folding is built only on the **diff model**, and a diff model **never exists for disassembly documents** — so folding does not apply to them and is **out of the current scope** (TBD for a later version). `CompactCodeMapping` therefore only composes with the number provider for source-only documents (`null` mapping), where today's semantics are unchanged.
 
 **Context:** `CompactCodeMapping` uses real document indices.
 
@@ -246,7 +246,7 @@ Most other questions depend on **Q1 (where disassembly lives)** and **Q6 (coordi
 - **Q1 is decided: (a) same `Document`.** Consequence: the parser only sees source, so its data lives in **source space** and Q4-Q9 are on the critical path.
 - **Q2 is decided:** disassembly is supplied via a dedicated **JS API** that builds the document from an array of **line descriptors** (line number present ⇒ source line); the source index array is built there.
 - **Q3 is decided (out of scope for now):** editing documents that contain disassembly is not handled; the index is built once at creation and not patched.
-- **Q4 is decided:** the "source-only buffer" is an **index buffer** (document line indices, **not** a text copy); the worker payload is materialized from it. Source-ness is determined by **membership in the index**, not `hasLineNumber`. **`null` means identity** (no disassembly lines), so ordinary documents need no mapping and no maintenance.
+- **Q4 is decided:** the "source-only buffer" is an **index buffer** (document line indices, **not** a text copy); the worker payload is materialized from it. Source-ness is determined by **membership in the index**, and numbering coincides with it (numbered ⟺ member; no dedicated `hasLineNumber` flag is added — line-numbers Q9). **`null` means identity** (no disassembly lines), so ordinary documents need no mapping and no maintenance.
 - **Q5 is decided:** store only the forward `sourceToDoc` buffer, built at creation; the inverse is derived from `CodeLine.lineNumber` **under the ordinal invariant** (`sourceToDoc != null` ⇒ `lineNumber` == 1-based source ordinal; display renumbering is disallowed in disasm documents). Used to apply parser results back; char offsets via the Q5 formula.
 - **Q6 is decided (a):** model structures (`tree`/`scopeGraph`/`usageToDef`) stay in **source space**; translation to document space happens only in the render/hit-test (interaction) layer. Hit-test doc→source uses the O(1) `lineNumber` fast path (ordinal invariant) with a `sourceToDoc[i] == d` sanity check; identity/null mapping reverse is just `d`.
 - **Q7 is decided:** line-level application is the Q5 mapping (`setLine(sourceToDoc[i], ...)`); interval/tree/graph offsets (Q8/Q9 wording above) are source-space and keyed on Q6.

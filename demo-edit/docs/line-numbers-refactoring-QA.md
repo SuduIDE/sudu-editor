@@ -10,7 +10,7 @@ This document captures all decisions made during the discussion of the line numb
 
 - **No renderer change for now.** `CodeLineRenderer` is untouched; it continues to render only the text area. Do not move the diff background / number / caret draw into it yet.
 - **Already-available parameter (for the future).** `CodeLineRenderer.draw()` already takes `LineDiff diff`, so the later move is low-friction - but it is out of scope now.
-- **Caret highlight:** behavior unchanged and stays in the current path; it is still drawn for the caret view line regardless of `hasLineNumber` (see Q3).
+- **Caret highlight:** behavior unchanged and stays in the current path; it is still drawn for the caret view line regardless of whether the line shows a number (see Q3).
 - **Diff background source:** the current component already has the diff model; the number-addressed driver must pass the row's `LineDiff` explicitly rather than deriving the color from `N` (see Q14).
 - **Sync points exception.** Sync points drawing stays as-is entirely (current path, out of scope, TBD - see Q2).
 
@@ -30,19 +30,19 @@ This document captures all decisions made during the discussion of the line numb
 
 **Decision:** Preserve exact current visuals. The caret gutter highlight is independent of whether a line number is rendered.
 
-- **Unified highlight.** The gutter caret highlight is a state of the line itself, not tied to whether `hasLineNumber` is true. It must be drawn for the current caret line regardless of whether the line number is shown.
-- **Condition:** Draw the gutter caret background whenever the view line is the caret line: `if (isCaretLine)`. Do **not** gate this on `line.hasLineNumber`.
-- **Draw order:** For each row, if `isCaretLine` is true, draw the caret highlight background in `[x, x+leftMarginWidth)` first. Then, if `line.hasLineNumber == true`, draw the line number text on top. If `line.hasLineNumber == false`, draw nothing else in that gutter area - only the caret highlight remains.
+- **Unified highlight.** The gutter caret highlight is a state of the line itself, not tied to whether the line is numbered. It must be drawn for the current caret line regardless of whether the line number is shown.
+- **Condition:** Draw the gutter caret background whenever the view line is the caret line: `if (isCaretLine)`. Do **not** gate this on numbering (`lineNumber` / source-ness) — every caret line gets the background.
+- **Draw order:** For each row, if `isCaretLine` is true, draw the caret highlight background in `[x, x+leftMarginWidth)` first. Then, if the line is numbered (Q9: `lineNumber > 0`, or AUTO in a classic doc), draw the line number text on top. Otherwise (attached line, `lineNumber == 0` under a mapping), draw nothing else in that gutter area - only the caret highlight remains.
 - **No visual changes.** This preserves the exact current behavior. For lines without line numbers, the gutter area of that caret row still shows the caret highlight; the text-area caret remains the primary indicator.
 - **Styling:** Use the same colors, same rectangle dimensions, and same conditions as LineNumbersComponent does today.
 
 ## 4) Max width calculation & recomputation
 
-**Question:** leftMarginWidth from max lineNumber with hasLineNumber true. Scope (whole doc vs visible)? When to recompute? Also ensure stability across compact/folding.
+**Question:** leftMarginWidth from the max **numbered** line (`lineNumber > 0`, else the AUTO line count). Scope (whole doc vs visible)? When to recompute? Also ensure stability across compact/folding.
 
 **Decision:** Use a view-independent, document-global max width that remains stable across view modes and scrolling.
 
-- **Scope (full document):** Compute `leftMarginWidth` from the maximum line number among lines with `hasLineNumber == true` across the **entire document model** (full view), not just the visible range. Do not depend on compact view or folding state.
+- **Scope (full document):** Compute `leftMarginWidth` from the maximum number among **numbered** lines (Q9: `lineNumber > 0`, or AUTO-derived `index + 1` in a classic doc — attached lines are never candidates) across the **entire document model** (full view), not just the visible range. Do not depend on compact view or folding state.
 - **Effective number (AUTO-aware, Q9):** the candidate for the max is `lineNumber > 0 ? lineNumber : index + 1` — where `lineNumber == 0` means AUTO (derive natural order). For a classic document (`sourceToDoc == null`) this is simply the **line count**, so AUTO makes `maxLineNumber` trivially correct after any edit (bump on insert / recompute on delete, per the update rules below) — no per-line maintenance.
 - **Stability:** This prevents horizontal text jumps when toggling compact mode, folding/unfolding, or when scrolling. Gutter width remains consistent.
 - **Store in Document:** Add fields to `Document`, e.g. `int maxLineNumber` and/or `float maxLineNumberWidth` (pixel width derived from `maxLineNumber` using the same font metrics used for rendering numbers).
@@ -62,9 +62,9 @@ This document captures all decisions made during the discussion of the line numb
 
 - **Field meaning:** `lineNumber` on `CodeLine` is the **display number to show** in the gutter. It is **not** required to equal the line's position, and it is **not** the compact view model's index.
 - **Clarification on compact view (important):** The statement that "numbering is the document model index" applies **only to the compact view model's internal bookkeeping** - the compaction/folding model works with **real document indices** (not visual line numbers) for its structural mapping. This is *not* a statement about what the gutter displays. Do **not** conflate compact model indices with the gutter display number.
-- **Set during view construction:** When building/refreshing the view sequence (via `docToView` or the compact view model), assign `line.lineNumber = <display number>` and `line.hasLineNumber = <true/false>` for each line, based on that line's source of truth (e.g. its logical source line number). The compact view model's indices are used only for its own mapping; the display number is independent data stored on the line.
-- **Attached lines:** For attached disasm lines (separate `CodeLine`s in the same `Document`), set `line.hasLineNumber = false` (and typically `line.editable = false`). They do not show numbers.
-- **Flags remain independent:** `hasLineNumber` controls visibility; `editable` controls editing. The value of `lineNumber` is only meaningful when `hasLineNumber == true`.
+- **Set during view construction:** When building/refreshing the view sequence (via `docToView` or the compact view model), assign `line.lineNumber = <display number>` for numbered (source) lines; attached lines keep `lineNumber == 0`. The compact view model's indices are used only for its own mapping; the display number is independent data stored on the line.
+- **Attached lines:** For attached disasm lines (separate `CodeLine`s in the same `Document`), `lineNumber` stays `0` and they are **not members of `sourceToDoc`** — they show no numbers.
+- **No per-line boolean flags — deliberately not added:** numbering is derived (`numbered(d) = sourceToDoc == null` **or** `lineNumber > 0`, Q9) and editability is derived from it plus the editor-level `readonly` (Q8). Dedicated flags would be redundant copies of derivable state (a source of bugs/undefined states), so nothing exists to get out of sync.
 - **Disassembly constraint (reconciles with inline-disasm Q5/Q6):** the "arbitrary display value" freedom above applies **only to documents without disassembly** (`sourceToDoc == null`, i.e. the identity mapping). In a **disassembly document**, `lineNumber` is **constrained to the 1-based source ordinal** — the model's reverse mapping (`doc → source`) is derived from it. This holds structurally because the disassembly JS API assigns `lineNumber` from the source descriptors at document creation. **Display renumbering / arbitrary values are not supported inside a disassembly document.**
 - **`lineNumber == 0` is AUTO in classic documents (reconciles with Q9):** in a document with `sourceToDoc == null`, `0` means **natural ordinal** — the driver shows `index + 1`, no stored value. Explicit values (`lineNumber ≥ 1`) are then **caller-managed**: they are the "arbitrary display" freedom and are fine for view-only / imported / renumbered sources, but they **go stale when the document is edited** (the editor never rewrites `lineNumber`). **AUTO (`0`) is the correct value for editable documents** — editing is only possible in classic documents (disassembly documents are read-only, disasm Q9), which is exactly where AUTO removes all number maintenance.
 - **Rationale:** Decoupling the display number from position and from compact/folding indices is what allows **per-line numbers that need not match the view slot** (see Q12) - e.g. imported/renumbered source lines. (Non-integer labels such as hex addresses are not gutter numbers; they belong in `CodeElement` content.)
@@ -76,7 +76,7 @@ This document captures all decisions made during the discussion of the line numb
 **Decision:** Keep both. This refactoring is scoped to the **model** plus the **number-addressed lookup** in the existing component; moving the drawing pass into `CodeLineRenderer` is **deferred** (see Q1, Q11).
 
 - **In scope (minimal changeset):**
-  - Add `hasLineNumber`, `editable`, `lineNumber` to `CodeLine`, with backward-compatible defaults (Q9).
+  - Add `lineNumber` to `CodeLine` (dedicated `hasLineNumber`/`editable` booleans are **deliberately not added** — they would be redundant copies of derivable state and a source of bugs, Q9/Q8).
   - Make the existing gutter drawing **number-addressed**: resolve each view line's `N` (or "none") and look up the tile bank (Q12, Q13, Q14). This stays in `LineNumbersComponent`.
 - **Out of scope (deferred):** moving gutter background / number / caret drawing into `CodeLineRenderer`; retiring `LineNumbersComponent`. Both `LineNumbersComponent` and `LineNumbersTexture` are kept unchanged in ownership.
 - **Rationale:** Smallest safe change that delivers per-line optional numbers. The drawing-ownership move can be done later without changing the model or the lookup, so deferring it now creates no rework.
@@ -96,15 +96,20 @@ This document captures all decisions made during the discussion of the line numb
 
 ## 8) Editing guard details
 
-**Question:** Block if caret on non-editable OR selection spans any non-editable. Clarify edge cases.
+**Question:** Block if caret on an attached (non-numbered) line OR selection spans any. Clarify edge cases. (Editability itself is derived — see Decision.)
 
-**Decision:** Apply conservative guards as specified.
+**Decision:** Editability is **derived** — no dedicated per-line `editable` boolean is added (same redundancy argument as `hasLineNumber`, Q9). A line is editable iff:
 
-- **Empty selection (caret):** Block all modifying operations (insert, delete, backspace, typing, cut/paste that modifies text) if the caret is on a line with `editable == false`.
-- **Non-empty selection:** Block modifying operations if any view line that is fully or partially inside the selection range has `editable == false`. In other words, if the selection spans any non-editable line, edits are blocked.
-- **Coverage of attached lines:** Attached disasm lines have `editable == false` (and `hasLineNumber == false`), so both cases correctly prevent editing them.
-- **Copy allowed:** Selection/copy (non-modifying operations) must remain allowed across **all** lines, including non-editable lines - per the requirements.
-- **Partial crossings:** Any selection that includes or crosses into a non-editable line counts as spanning a non-editable line → edits are blocked. This is the intended conservative behavior.
+`editable(d) = !editor.readonly && numbered(d)`, where `numbered(d) = (sourceToDoc == null) || (lineNumber > 0)` (Q9).
+
+`EditorComponent.readonly` (set via `EditorWindow.setReadonly`) is the global gate — already enforced before cut/paste/undo today. With the guards:
+
+- **Empty selection (caret):** Block all modifying operations (insert, delete, backspace, typing, cut/paste that modifies text) if the caret is on an **attached (non-numbered) line** (`lineNumber == 0` under a mapping) — or if `editor.readonly` is set.
+- **Non-empty selection:** Block modifying operations if any view line that is fully or partially inside the selection range is an attached (non-numbered) line. In other words, if the selection spans any non-numbered line, edits are blocked.
+- **Coverage of attached lines:** Attached disasm lines are not numbered (`lineNumber == 0`, not in `sourceToDoc`), so both cases above correctly prevent editing them — no per-line flag needed.
+- **Copy allowed:** Selection/copy (non-modifying operations) must remain allowed across **all** lines, including attached non-numbered lines - per the requirements.
+- **Partial crossings:** Any selection that includes or crosses into an attached non-numbered line counts as spanning one → edits are blocked. This is the intended conservative behavior.
+- **Lost expressiveness (accepted):** a "locked numbered line" inside an otherwise editable classic document is **not expressible** — numbering and `readonly` are the only editability discriminators. Not a requirement: the only non-editable lines ever needed are attached disasm lines, which numbering already covers.
 
 ## 9) Backward compatibility
 
@@ -112,19 +117,25 @@ This document captures all decisions made during the discussion of the line numb
 
 **Decision:** Ensure full backward compatibility.
 
-- **Defaults on CodeLine:** Add fields with safe defaults:
-  - `public boolean hasLineNumber = true`
-  - `public boolean editable = true`
+- **Defaults on CodeLine:** Add a single field with a safe default:
   - `public int lineNumber = 0` &nbsp;(= **AUTO** — derive the natural ordinal `index + 1`; see below)
+- **No dedicated `hasLineNumber` / `editable` booleans (decided — not worth adding):** dedicated flags would be redundant copies of derivable state and a source of bugs / undefined states. Numbering and editability are both **derived**:
+  - `numbered(d) = (sourceToDoc == null) || (lineNumber > 0)` — the **render predicate**;
+  - `editable(d) = !editor.readonly && numbered(d)` — the **editing predicate** (Q8), with `EditorComponent.readonly` the only flag involved.
+  One **creation-time invariant** replaces both fields: `lineNumber > 0` **iff** the line is a member of `sourceToDoc` (classic docs trivially: all lines are source).
 - **Constructors:** Existing CodeLine construction sites continue to work without changes. Update constructors where convenient, but not required due to defaults.
-- **Behavior unchanged via AUTO (no fill, no driver fallback, no shipping hazard):** the number-addressed driver resolves a numbered line's `N` as `N = lineNumber > 0 ? lineNumber : index + 1` for classic documents (`sourceToDoc == null`). With the default `lineNumber == 0`, that is **exactly today's contiguous `1..N` numbering** — documents that never touch the field render identically to today, and the earlier "producer must eagerly fill `lineNumber` on load" requirement, together with its "gutter would blank if shipped alone" shipping note, is **dropped**. The tile formulas only ever see `N ≥ 1` (AUTO is resolved to `index + 1` before tile math; Java `((0-1)/20)*20` / `(0-1)%20` remains invalid for `N == 0`, but `0` never reaches the tile layer). `hasLineNumber == false` lines are never resolved (background only).
-- **`lineNumber == 0` is AUTO (natural ordinal), not "line 0":** for classic documents the driver shows `index + 1`; the cache never addresses `N == 0`. Disassembly documents **never** use AUTO on numbered lines — their source lines carry explicit ordinals `≥ 1` (disasm Q5), so a numbered line with `0` in a disassembly document is a **producer contract violation** (warn-once / assert; detail TBD).
+- **Behavior unchanged via AUTO (no fill, no driver fallback, no shipping hazard):** a line's number `N` is resolved from the single render predicate:
+  - `lineNumber > 0` → show `lineNumber`;
+  - `lineNumber == 0` with `sourceToDoc == null` (classic doc) → **AUTO**: show `index + 1`;
+  - `lineNumber == 0` with a mapping → **attached line**: show nothing.
+  With the default `lineNumber == 0`, classic documents get **exactly today's contiguous `1..N` numbering** — documents that never touch the field render identically to today, and the earlier "producer must eagerly fill `lineNumber` on load" requirement, together with its "gutter would blank if shipped alone" shipping note, is **dropped**. The tile formulas only ever see `N ≥ 1` (AUTO is resolved to `index + 1` before tile math; Java `((0-1)/20)*20` / `(0-1)%20` remains invalid for `N == 0`, but `0` never reaches the tile layer).
+- **`lineNumber == 0` is AUTO-or-attached (resolved by document context), not "line 0":** classic doc (`sourceToDoc == null`) → **AUTO**, driver shows `index + 1`; mapped doc → **attached line**, shows nothing; the cache never addresses `N == 0`. Disassembly documents **never** use AUTO on numbered lines — their source lines carry explicit ordinals `≥ 1` (disasm Q5), so a **member of `sourceToDoc`** whose `lineNumber == 0` is a **producer contract violation** (warn-once / assert; detail TBD).
 - **JS → Java API mapping:**
-  - If the line number is absent/`undefined` in the JS payload, set `hasLineNumber = false` (and leave `lineNumber` as-is or 0).
-  - If the line number is present in the JS payload, set `hasLineNumber = true` and `lineNumber = <value>`.
-  - **Ordinary source documents (no disassembly):** the caller **may omit the number entirely** — `lineNumber` stays `0` (AUTO) and the driver derives `index + 1`, reproducing today's numbering exactly. An explicit `≥ 1` value is used as-is (caller-managed: fine for view-only / imported / renumbered sources, but it goes stale under editing — Q5; **AUTO is the correct value for editable documents**). An absent number in a **disassembly** document means `hasLineNumber = false` (a disasm line) and renders no number.
+  - If the line number is absent/`undefined` in the JS payload → **attached line**: leave `lineNumber = 0` and exclude it from `sourceToDoc`.
+  - If the line number is present in the JS payload → **numbered line**: set `lineNumber = <value>` (≥ 1) and include it in `sourceToDoc`.
+  - **Ordinary source documents (no disassembly):** the caller **may omit the number entirely** — `lineNumber` stays `0` (AUTO) and the driver derives `index + 1`, reproducing today's numbering exactly. An explicit `≥ 1` value is used as-is (caller-managed: fine for view-only / imported / renumbered sources, but it goes stale under editing — Q5; **AUTO is the correct value for editable documents**). An absent number in a **disassembly** document means the line is **attached** (`lineNumber == 0`, not in `sourceToDoc`) and renders no number.
   - **Non-JS construction paths (`Document(String[])` / `CodeLine.makeLines`, JVM demos, tests, non-JS editors):** need **no number fill at all** — an ordinary document built from plain text keeps the `lineNumber = 0` default and gets correct `1..N` numbering via AUTO. (This supersedes the earlier "eager fill on load" requirement that the reviewer flagged.) Explicit ordinals are required only **inside disassembly documents**, where the disasm producer assigns them at creation (disasm Q15).
-  - `editable` defaults to `true` on the Java side unless explicitly set by the caller. For disasm/attached lines created on the Java side, explicitly set `editable = false` (and `hasLineNumber = false`).
+  - No `editable` in the mapping — editability is derived (Q8). For disasm/attached lines created on the Java side, `lineNumber` stays `0` and the line is excluded from `sourceToDoc`.
 - **Java → JS mapping (reverse):** On JS side, represent "no line number" as absence/`undefined`. This matches the above.
 
 ## 10) Gutter area bounds
@@ -153,8 +164,8 @@ This document captures all decisions made during the discussion of the line numb
 
 - **Tile concept unchanged:** `LineNumbersTexture` rasterizes 20 consecutive numbers (`numberOfLines = 20`) into one texture sized `(gutterWidth, 20 * lineHeight)`, right-aligned, one row per number. Reuses tested rasterization: right-align, padding, cleartype handling.
 - **Pool becomes a shared cache:** Move the tile pool (keyed by `startLine = (line / 20) * 20`, frame-based eviction, on-demand rasterization) from `LineNumbersComponent` into a shared cache - owned by `EditorComponent` or `ClrContext` (e.g. a small `LineNumberTiles` helper). It is a texture cache only, not a rendering component.
-- **CodeLineRenderer draws the gutter itself:** `CodeLineRenderer.draw()` performs the whole gutter draw per row: diff background rect (`[x, x+leftMarginWidth)`, using existing `LineDiff diff` parameter) → caret highlight (if `isCaretLine`, per Q3) → line number from the tile cache (if `line.hasLineNumber`). Then the horizontal text strips offset to **`textBaseX`** (see Q7) — offsetting by `leftMarginWidth` alone would misalign the text whenever merge buttons / the vertical rule are present (merge strip occupies `[leftMarginWidth, leftMarginWidth + mergeWidth)`, vertical rule at `leftMarginWidth + mergeWidth`).
-- **Cache is keyed by number bank, not view position:** Works with non-contiguous numbers caused by interleaved disasm lines and with compact/folding views - view lines with numbers 37 and 100 simply fetch the tiles keyed by `startLine` 20 (`bank(37)`) and 80 (`bank(100)`), covering numbers 21-40 and 81-100 respectively; lines with `hasLineNumber == false` fetch nothing.
+- **CodeLineRenderer draws the gutter itself:** `CodeLineRenderer.draw()` performs the whole gutter draw per row: diff background rect (`[x, x+leftMarginWidth)`, using existing `LineDiff diff` parameter) → caret highlight (if `isCaretLine`, per Q3) → line number from the tile cache (if the line is numbered, Q9). Then the horizontal text strips offset to **`textBaseX`** (see Q7) — offsetting by `leftMarginWidth` alone would misalign the text whenever merge buttons / the vertical rule are present (merge strip occupies `[leftMarginWidth, leftMarginWidth + mergeWidth)`, vertical rule at `leftMarginWidth + mergeWidth`).
+- **Cache is keyed by number bank, not view position:** Works with non-contiguous numbers caused by interleaved disasm lines and with compact/folding views - view lines with numbers 37 and 100 simply fetch the tiles keyed by `startLine` 20 (`bank(37)`) and 80 (`bank(100)`), covering numbers 21-40 and 81-100 respectively; attached lines (no number resolved, Q9) fetch nothing.
 - **Per-frame update mechanism (unchanged from today):**
   - Glyph coverage is rasterized only when a tile is missing (evicted) or font/lineHeight/cleartype changes.
   - Colors (caret highlight, diff background, selection) are applied at draw time via `g.drawText(...)`: the shader combines the stored coverage mask with the supplied `textColor`/`bgColor`, so color changes need no re-rasterization. See [text-rendering-and-shaders.md](text-rendering-and-shaders.md).
@@ -164,7 +175,7 @@ This document captures all decisions made during the discussion of the line numb
 
 ## 12) Staged transition - Step 1 (per-line numbers via number-addressed tiles)
 
-**Goal:** Actually display per-line numbers in the first step, where each view line shows its own `CodeLine.lineNumber` (or none when `hasLineNumber == false`), while keeping the change minimal and the majority of the gutter code unchanged (`LineNumbersComponent` + `LineNumbersTexture` stay).
+**Goal:** Actually display per-line numbers in the first step, where each view line shows its own `CodeLine.lineNumber` (or none for attached lines), while keeping the change minimal and the majority of the gutter code unchanged (`LineNumbersComponent` + `LineNumbersTexture` stay).
 
 **Key realization (from discussion):** Display numbers are **not random strings** - they are the natural source sequence with gaps for attached/inline lines, e.g. `{1,-,-,-,2,3,-,4,-,-,5,...}`, i.e. **plain integers**. See Q13 for the exact tile mechanics. Therefore:
 
@@ -173,21 +184,21 @@ This document captures all decisions made during the discussion of the line numb
 - **No renumber-invalidation is needed**: tile content remains a pure function of the bank (as today). Only font/lineHeight/cleartype changes dispose tiles (as today).
 - The only change is the **rendering driver**: from "view row `i` displays number = `start + i`" to "resolve this view line's number `N`, then fetch the tile for `N` and draw its row".
 
-**Core idea:** Keep the tile cache **keyed by number bank** (`bank = ((N-1)/20)*20`), view-independent and scroll-stable, but resolve each view line's number `N` from a provider (the `CodeLine`), and draw the tile's row `(N-1) % 20` at that view row. Lines with `hasLineNumber == false` draw nothing (background only).
+**Core idea:** Keep the tile cache **keyed by number bank** (`bank = ((N-1)/20)*20`), view-independent and scroll-stable, but resolve each view line's number `N` from a provider (the `CodeLine`), and draw the tile's row `(N-1) % 20` at that view row. Attached lines (no number resolved, Q9) draw nothing (background only).
 
 **Touch points (small, coherent):**
 
-1. **`CodeLine`** - add `hasLineNumber = true`, `editable = true`, `lineNumber = 0` (defaults per Q9; `0` = **AUTO** — derive the natural ordinal `index + 1`). Model-only.
+1. **`CodeLine`** - add `lineNumber = 0` (dedicated `hasLineNumber`/`editable` booleans are **not added** — derived, Q9/Q8). Model-only; `0` = **AUTO** — derive the natural ordinal `index + 1`.
 2. **`LineNumbersTexture`** - **unchanged** (still rasterizes a bank of 20 consecutive integers, right-aligned; color modulation at draw time). The lookup for number `N` is tile `bank(N)`, region row `(N-1) % 20` (see Q13).
 3. **`LineNumbersComponent`** - expose a **number-addressed** lookup/draw, e.g. `drawNumber(yPos, N, diff, scheme, colors, g)` (or return `(texture, regionY)` for `N`, with the background driven separately by `diff`), in addition to / instead of the range-based `drawRange`. The line's `LineDiff`/document line is passed **explicitly** for the background color, independent of `N` (see Q14). Cache/pool/eviction logic unchanged. Width derived from `Document.maxLineNumber` (Q4) via `measureDigits`.
-4. **`EditorComponent`** - resolve each visible view line's `N`: `index + 1` when `lineNumber == 0` (AUTO, classic docs) — else the stored `lineNumber` — and render the tile row for `N` only when the line has `hasLineNumber == true` (`N` is resolved to a value `≥ 1` before tile math; `N == 0` never reaches the tile layer). Classic documents need **no producer fill** (AUTO, Q9). Drive drawing per view line, batching adjacent view rows whose numbers are consecutive and whose diff background matches into a single rect (as today's batched runs). Non-numbered rows draw background only. Compute gutter width from `maxLineNumber` (AUTO-aware, Q4).
+4. **`EditorComponent`** - resolve each visible view line's `N` from the Q9 predicate: `lineNumber > 0` → stored value; `lineNumber == 0` + `sourceToDoc == null` → `index + 1` (AUTO); `lineNumber == 0` + mapped → **no number** (attached). Render the tile row only when `N` was resolved (`N ≥ 1` before tile math; `N == 0` never reaches the tile layer). Classic documents need **no producer fill** (AUTO, Q9). Drive drawing per view line, batching adjacent view rows whose numbers are consecutive and whose diff background matches into a single rect (as today's batched runs). Non-numbered rows draw background only. Compute gutter width from `maxLineNumber` (AUTO-aware, Q4).
 
 **Batching / performance note:** Within a run of adjacent view rows with consecutive numbers and the same diff color, one `g.drawText` region can cover multiple rows (as current `drawRange` does). A non-numbered row simply breaks the run (it cannot be part of a number region), and is filled with background. No per-scroll re-rasterization occurs: tiles are number-addressed and view-independent.
 
 **Assumptions this step relies on (state explicitly):**
 
 - Display numbers are **plain integers** (natural sequence with gaps). Non-integer / hex / arbitrary labels are **not** a gutter concern in this design: if inline disasm needs them, they go into `CodeElement` content and render as part of the line's text - so the integer-bank model for the gutter remains sufficient.
-- Attached disasm lines are `CodeLine`s **in the same `Document`**, with `hasLineNumber == false` (they occupy document indices; nothing is drawn for them).
+- Attached disasm lines are `CodeLine`s **in the same `Document`**, with `lineNumber == 0` (not members of `sourceToDoc`; they occupy document indices; nothing is drawn for them).
 - One document per gutter (two-pane diff still uses `lineNumbers1`/`lineNumbers2`). Single-pane unified diff is a later step.
 - A given `CodeLine`'s `lineNumber` is stable for its identity (not different per view). If two views ever need different numbers for the same line, this keying must be revisited.
 - **Compact/folding view model indices are internal bookkeeping only and are not the displayed numbers** (see Q5). The display number is independent data stored on the line.
