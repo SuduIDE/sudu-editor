@@ -13,6 +13,12 @@ public interface ArrayOp {
     return s;
   }
 
+  static int[] add(int[] a, int[] b) {
+    int[] s = Arrays.copyOf(a, a.length + b.length);
+    System.arraycopy(b, 0, s, a.length, b.length);
+    return s;
+  }
+
   static <T> T[] add(T[] a, T[] b, T[] res) {
     return add(a, a.length, b, b.length, res);
   }
@@ -129,6 +135,10 @@ public interface ArrayOp {
   }
 
   static byte[] resizeOrReturn(byte[] array, int size) {
+    return array.length == size ? array : Arrays.copyOf(array, size);
+  }
+
+  static int[] resizeOrReturn(int[] array, int size) {
     return array.length == size ? array : Arrays.copyOf(array, size);
   }
 

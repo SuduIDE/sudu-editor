@@ -43,6 +43,15 @@ public abstract class BaseFullParser<P extends Parser> extends BaseParser<P> imp
     return result;
   }
 
+  protected int[] lightParse(char[] source) {
+    long parsingTime = System.currentTimeMillis();
+    initLexer(source);
+    highlightTokens();
+    var result = getIntsWithLinesIntervalNode();
+    System.out.println("Light " + language() + " lexing time: " + (System.currentTimeMillis() - parsingTime) + "ms");
+    return result;
+  }
+
   protected int[] getInts() {
     return getInts(null);
   }

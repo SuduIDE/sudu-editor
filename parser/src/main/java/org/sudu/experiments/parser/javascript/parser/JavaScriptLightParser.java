@@ -14,12 +14,7 @@ public class JavaScriptLightParser extends BaseFullParser<NullParser> {
 
   @Override
   public int[] parse(char[] source) {
-    long parsingTime = System.currentTimeMillis();
-    initLexer(source);
-    highlightTokens();
-    var result = getIntsWithLinesIntervalNode();
-    System.out.println("Light lexing js time: " + (System.currentTimeMillis() - parsingTime) + "ms");
-    return result;
+    return lightParse(source);
   }
 
   @Override

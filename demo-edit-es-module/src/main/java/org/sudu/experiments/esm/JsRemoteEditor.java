@@ -30,6 +30,9 @@ public class JsRemoteEditor implements JsRemoteEditorView {
         args.getContainerId(), workers);
     editor = demoEdit0().editor();
     editor.setDisableParser(args.getDisableParserOrDefault());
+    var langOptions = args.resolveLangOptions();
+    if (langOptions != null)
+      editor.setGetLangOptions(() -> langOptions);
     if (args.hasTheme()) setTheme(args.getTheme());
     controller = new JsEditorViewController0();
     channel.setOnMessage(this::onMessage);

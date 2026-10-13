@@ -6,6 +6,7 @@ package org.sudu.experiments.editor;
 import org.sudu.experiments.FileHandle;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
+import org.sudu.experiments.editor.worker.parser.LangOptions;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.input.MouseEvent;
 import org.sudu.experiments.math.V2i;
@@ -17,19 +18,23 @@ public class Editor0 extends WindowScene implements ThemeControl, EditorUi.Clear
   final EditorComponent editor;
   final EditorUi ui;
   final UndoBuffer undoBuffer;
+  final LangOptions langOptions;
 
   public Editor0(SceneApi api) {
     super(api);
     windowManager.setDesktopMousePointer(false);
     ui = new EditorUi(windowManager);
     undoBuffer = new UndoBuffer();
+    langOptions = new LangOptions();
     editor = new EditorComponent(ui);
     uiContext.initFocus(editor);
 
     api.input.onKeyPress.add(new CtrlO(api, this::openFile));
+    langOptions.enableAll();
 
     editor.registerMouse(api.input);
     editor.setGetUndoBuffer(() -> undoBuffer);
+    editor.setGetLangOptions(() -> langOptions);
     api.input.onContextMenu.add(this::onContextMenu);
 
     toggleDark();

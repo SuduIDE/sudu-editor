@@ -9,6 +9,7 @@ import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.ui.colors.IdeaCodeColors;
 import org.sudu.experiments.editor.ui.colors.MergeButtonsColors;
+import org.sudu.experiments.editor.worker.parser.LangOptions;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.*;
 import org.sudu.experiments.math.*;
@@ -19,7 +20,6 @@ import org.sudu.experiments.ui.*;
 import org.sudu.experiments.ui.window.View;
 
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.Supplier;
@@ -117,6 +117,7 @@ public class EditorComponent extends View implements
   TriConsumer<EditorComponent, Diff, Boolean> updateModelOnDiffListener;
   Consumer<EditorComponent> onDiffMadeListener;
   Supplier<UndoBuffer> getUndoBuffer;
+  Supplier<LangOptions> getLangOptions;
   int vScrollPos = 0;
   int hScrollPos = 0;
 
@@ -201,6 +202,10 @@ public class EditorComponent extends View implements
 
   public void setGetUndoBuffer(Supplier<UndoBuffer> getUndoBuffer) {
     this.getUndoBuffer = getUndoBuffer;
+  }
+
+  public void setGetLangOptions(Supplier<LangOptions> getLangOptions) {
+    this.getLangOptions = getLangOptions;
   }
 
   private void internalLayout() {
@@ -2021,6 +2026,8 @@ public class EditorComponent extends View implements
     this.model = model;
     clearCompactViewModel();
     oldModel.setEditor(null, null);
+    model.setGetUndoBuffer(getUndoBuffer);
+    model.setGetLangOptions(getLangOptions);
     model.setEditor(this, window().worker());
     vScrollPos = Numbers.iRnd(model.vScrollLine * lineHeight);
     lastNotifiedCaretLine = -1;
@@ -2319,6 +2326,10 @@ public class EditorComponent extends View implements
 
   public UndoBuffer getUndoBuffer() {
     return getUndoBuffer.get();
+  }
+
+  public LangOptions getLangOptions() {
+    return getLangOptions.get();
   }
 
   public void setCodeMap() {

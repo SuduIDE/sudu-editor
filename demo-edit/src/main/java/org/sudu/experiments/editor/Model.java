@@ -7,6 +7,7 @@ import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.parser.ParseResult;
 import org.sudu.experiments.editor.worker.parser.ParseStatus;
+import org.sudu.experiments.editor.worker.parser.LangOptions;
 import org.sudu.experiments.editor.worker.parser.ParserUtils;
 import org.sudu.experiments.editor.worker.proxy.*;
 import org.sudu.experiments.math.V2i;
@@ -65,6 +66,7 @@ public class Model {
   private Consumer<int[]> onDiffMadeListener;
   private BiConsumer<CpxDiff, Boolean> syncEditing;
   private Supplier<UndoBuffer> getUndoBuffer;
+  private Supplier<LangOptions> getLangOptions;
 
   public Model(String text, Uri uri) {
     this(text, null, uri);
@@ -110,7 +112,11 @@ public class Model {
   }
 
   public String language() {
-    return docLanguage != null ? docLanguage : languageFromFile();
+    String lang = docLanguage != null ? docLanguage : languageFromFile();
+    var options = getLangOptions != null ? getLangOptions.get() : null;
+    if (options == null) return lang;
+    if (Languages.isCppVersion(lang)) return options.getCppVersion(lang);
+    return options.isEnabled(lang) ? lang : Languages.TEXT;
   }
 
   public String docLanguage() {
@@ -131,6 +137,10 @@ public class Model {
 
   public V2i getCaretPos() {
     return new V2i(caretLine, caretCharPos);
+  }
+
+  public boolean fileLexed() {
+    return fullFileLexed == ParseStatus.PARSED;
   }
 
   void onFileParsed(Object[] result) {
@@ -477,6 +487,8 @@ public class Model {
       case Languages.ACTIVITY -> ActivityProxy.PARSE_FULL_FILE;
       case Languages.HTML -> HtmlProxy.PARSE_FULL_FILE;
       case Languages.JSON -> JsonProxy.PARSE_FULL_FILE;
+      case Languages.PYTHON -> PythonProxy.PARSE_FULL_FILE;
+      case Languages.ASCEND_C -> AscendCProxy.PARSE_FULL_FILE;
       default -> TextProxy.PARSE_FULL_FILE;
     } : null;
   }
@@ -535,6 +547,10 @@ public class Model {
 
   public void setGetUndoBuffer(Supplier<UndoBuffer> getUndoBuffer) {
     this.getUndoBuffer = getUndoBuffer;
+  }
+
+  public void setGetLangOptions(Supplier<LangOptions> getLangOptions) {
+    this.getLangOptions = getLangOptions;
   }
 
   public void setOnDiffMadeListener(Consumer<int[]> listener) {

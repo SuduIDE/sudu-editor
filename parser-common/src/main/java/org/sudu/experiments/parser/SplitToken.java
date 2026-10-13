@@ -75,4 +75,9 @@ public class SplitToken implements Token {
   public int getTokenStyle() {
     return tokenStyle;
   }
+
+  @Override
+  public String toString() {
+    return text;
+  }
 }

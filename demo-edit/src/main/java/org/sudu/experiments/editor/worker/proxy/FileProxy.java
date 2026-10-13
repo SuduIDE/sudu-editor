@@ -17,6 +17,7 @@ public class FileProxy {
   public static final int TS_FILE = 6;
   public static final int JSON_FILE = 7;
   public static final int PYTHON_FILE = 8;
+  public static final int ASCEND_C_FILE = 9;
 
   public static final JavaProxy javaProxy = new JavaProxy();
   public static final CppProxy cppProxy = new CppProxy();
@@ -26,6 +27,7 @@ public class FileProxy {
   public static final HtmlProxy htmlProxy = new HtmlProxy();
   public static final JsonProxy jsonProxy = new JsonProxy();
   public static final PythonProxy pythonProxy = new PythonProxy();
+  public static final AscendCProxy ascendCProxy = new AscendCProxy();
   public static final TextProxy textProxy = new TextProxy();
 
   public static final String asyncParseFile = "asyncParseFile";
@@ -123,6 +125,7 @@ public class FileProxy {
       case HTML_FILE -> htmlProxy;
       case JSON_FILE -> jsonProxy;
       case PYTHON_FILE -> pythonProxy;
+      case ASCEND_C_FILE -> ascendCProxy;
       default -> textProxy;
     };
   }

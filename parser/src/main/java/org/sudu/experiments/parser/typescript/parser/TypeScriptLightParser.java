@@ -14,12 +14,7 @@ public class TypeScriptLightParser extends BaseFullParser<NullParser> {
 
   @Override
   public int[] parse(char[] source) {
-    long parsingTime = System.currentTimeMillis();
-    initLexer(source);
-    highlightTokens();
-    var result = getIntsWithLinesIntervalNode();
-    System.out.println("Light lexing ts time: " + (System.currentTimeMillis() - parsingTime) + "ms");
-    return result;
+    return lightParse(source);
   }
 
   @Override

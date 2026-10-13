@@ -33,6 +33,9 @@ public class JsCodeEditor implements JsEditorView {
         args.getContainerId(), workers);
     editor = demoEdit0().editor();
     editor.setDisableParser(args.getDisableParserOrDefault());
+    var langOptions = args.resolveLangOptions();
+    if (langOptions != null)
+      editor.setGetLangOptions(() -> langOptions);
     controller = new JsEditorViewController0();
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly())

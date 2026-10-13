@@ -27,6 +27,9 @@ public class JsCodeReview implements JsCodeReviewView {
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly())
       setReadonly(args.getReadonly(), args.getReadonly());
+    var langOptions = args.resolveLangOptions();
+    if (langOptions != null)
+      w.rootView.setGetLangOptions(() -> langOptions);
 
     w.rootView.setOnDocumentSizeChange(this::onDocumentSizeChange);
   }

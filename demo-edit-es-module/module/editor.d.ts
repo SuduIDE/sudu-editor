@@ -33,6 +33,29 @@ export interface EditArgs {
   numThreads?: number
 
   codiconUrl?: string
+
+  langOptions?: LangOptions
+}
+
+export const enum Languages {
+  TEXT = "text",
+  JAVA = "java",
+  CPP = "cpp",
+  JS = "js",
+  TS = "ts",
+  ACTIVITY = "activity",
+  HTML = "html",
+  JSON = "json",
+  PYTHON = "python",
+  ASCEND_C = "ascend-c",
+}
+
+export interface LangOptions {
+  isEnabled(lang: string): boolean;
+  enable(lang: string): void;
+  disable(lang: string): void;
+  enableAll(): void;
+  disableAll(): void;
 }
 
 export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
@@ -119,6 +142,8 @@ export interface RemoteEditorView extends IEditorView, IDisposable {
 }
 
 export function textureUsage(): string;
+
+export function newLangOptions(): LangOptions;
 
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
 

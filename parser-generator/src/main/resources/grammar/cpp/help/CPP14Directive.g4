@@ -11,7 +11,7 @@ error: Hash Error other*;
 dir: Hash (Identifier | Keyword) other*;
 
 other
-    : String | Left | Right | Keyword | Operators | Identifier
+    : (String | RawString) | Left | Right | Keyword | (Operators | Dot | Slash) | Identifier
     | IntegerLiteral | DecimalLiteral | OctalLiteral | HexadecimalLiteral | BinaryLiteral
     | DirChar
     | Include | Error
@@ -19,6 +19,13 @@ other
     ;
 
 String : Quote Schar* Quote;
+RawString
+    : 'R"' Schar* '"'
+    | 'u8R"' Schar* '"'
+    | 'uR"'  Schar* '"'
+    | 'UR"'  Schar* '"'
+    | 'LR"'  Schar* '"'
+    ;
 
 Hash: '#';
 Include: 'include';
@@ -132,7 +139,6 @@ Operators
     | '+'
     | '-'
     | '*'
-    | '/'
     | '%'
     | '^'
     | '&'
@@ -168,10 +174,12 @@ Operators
     | ':'
     | '::'
     | ';'
-    | '.'
     | '.*'
     | '...'
     ;
+
+Slash: '/';
+Dot  : '.';
 
 Identifier: Identifiernondigit (Identifiernondigit | DIGIT)*;
 DirChar: ~[#\r\n];
@@ -208,7 +216,6 @@ fragment Simpleescapesequence:
 	| '\\f'
 	| '\\n'
 	| '\\r'
-	| ('\\' ('\r' '\n'? | '\n'))
 	| '\\t'
 	| '\\v';
 fragment Octalescapesequence:

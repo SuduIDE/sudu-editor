@@ -9,7 +9,7 @@ public class ErrorRecognizerListener extends ConsoleErrorListener {
   @Override
   public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
     if (Utils.printParserError)
-      System.err.println(line + ":" + charPositionInLine + " " + msg);
+      System.out.println(line + ":" + charPositionInLine + " " + msg);
     errorOccurred = true;
   }
 

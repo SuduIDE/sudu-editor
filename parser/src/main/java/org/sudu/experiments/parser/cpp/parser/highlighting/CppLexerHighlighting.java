@@ -1,84 +1,45 @@
 package org.sudu.experiments.parser.cpp.parser.highlighting;
 
-import org.antlr.v4.runtime.Token;
-import org.sudu.experiments.parser.Utils;
+import org.sudu.experiments.parser.common.Highlighting;
 import org.sudu.experiments.parser.cpp.gen.CPP14Lexer;
-
-import java.util.List;
 
 import static org.sudu.experiments.parser.ParserConstants.TokenTypes.*;
 
-public class CppLexerHighlighting {
+public class CppLexerHighlighting extends Highlighting {
 
-  public static void highlightTokens(List<Token> allTokens, int[] tokenTypes, int[] tokenStyles) {
-    for (var token : allTokens) {
-      int ind = token.getTokenIndex();
-      int type = token.getType();
-      if (isKeyword(type)) tokenTypes[ind] = KEYWORD;
-      else if (isNumeric(type)) tokenTypes[ind] = NUMERIC;
-      else if (isBooleanLiteral(type)) tokenTypes[ind] = BOOLEAN;
-      else if (isStringOrChar(type)) tokenTypes[ind] = STRING;
-      else if (isNull(type)) tokenTypes[ind] = NULL;
-      else if (isSemi(type)) tokenTypes[ind] = SEMI;
-      else if (isComment(token.getType())) tokenTypes[ind] = COMMENT;
-      else if (isDoc(token.getType())) tokenTypes[ind] = DOCUMENTATION;
-      else if (isDirective(token.getType())) tokenTypes[ind] = ANNOTATION;
-      else if (isOperator(token.getType())) tokenTypes[ind] = OPERATOR;
-      else if (isError(token.getType()) || token.getType() == -1) Utils.markError(tokenTypes, tokenStyles, ind);
-    }
-  }
+  public static final Highlighting INSTANCE = new CppLexerHighlighting();
 
-  public static boolean isKeyword(int tokenType) {
-    return tokenType >= CPP14Lexer.Alignas
-        && tokenType <= CPP14Lexer.While;
+  private CppLexerHighlighting() {
+    addRules(
+        // Keyword
+        CPP14Lexer.Alignas, CPP14Lexer.While, KEYWORD,
+        // Numeric
+        CPP14Lexer.IntegerLiteral, CPP14Lexer.IntegerLiteral, NUMERIC,
+        CPP14Lexer.FloatingLiteral, CPP14Lexer.FloatingLiteral, NUMERIC,
+        // Boolean
+        CPP14Lexer.BooleanLiteral, CPP14Lexer.BooleanLiteral, BOOLEAN,
+        // Char
+        CPP14Lexer.CharacterLiteral, CPP14Lexer.CharacterLiteral, STRING,
+        // String
+        CPP14Lexer.StringLiteral, CPP14Lexer.StringLiteral, STRING,
+        // Null
+        CPP14Lexer.PointerLiteral, CPP14Lexer.PointerLiteral, NULL,
+        CPP14Lexer.Nullptr, CPP14Lexer.Nullptr, NULL,
+        // Semi
+        CPP14Lexer.Semi, CPP14Lexer.Semi, SEMI,
+        CPP14Lexer.Comma, CPP14Lexer.Comma, SEMI,
+        // Comment
+        CPP14Lexer.BlockComment, CPP14Lexer.LineComment, COMMENT,
+        // Doc
+        CPP14Lexer.Documentation, CPP14Lexer.Documentation, DOCUMENTATION,
+        // Directive
+        CPP14Lexer.MultiLineMacro, CPP14Lexer.Directive, CPP_DIRECTIVE,
+        // Operator
+        CPP14Lexer.LeftBracket, CPP14Lexer.RightBracket, OPERATOR,
+        CPP14Lexer.Plus, CPP14Lexer.Ellipsis, OPERATOR,
+        // Error
+        CPP14Lexer.ERROR, CPP14Lexer.ERROR, ERROR
+    );
+    addErrorRule(CPP14Lexer.ERROR);
   }
-
-  public static boolean isNumeric(int tokenType) {
-    return tokenType == CPP14Lexer.IntegerLiteral
-        || tokenType == CPP14Lexer.FloatingLiteral;
-  }
-
-  public static boolean isBooleanLiteral(int tokenType) {
-    return tokenType == CPP14Lexer.BooleanLiteral;
-  }
-
-  public static boolean isStringOrChar(int tokenType) {
-    return tokenType == CPP14Lexer.CharacterLiteral
-        || tokenType == CPP14Lexer.StringLiteral;
-  }
-
-  public static boolean isNull(int tokenType) {
-    return tokenType == CPP14Lexer.PointerLiteral
-        || tokenType == CPP14Lexer.Nullptr;
-  }
-
-  public static boolean isSemi(int tokenType) {
-    return tokenType == CPP14Lexer.Semi
-        || tokenType == CPP14Lexer.Comma;
-  }
-
-  public static boolean isComment(int tokenType) {
-    return tokenType == CPP14Lexer.BlockComment
-        || tokenType == CPP14Lexer.LineComment;
-  }
-  public static boolean isDoc(int tokenType) {
-    return tokenType == CPP14Lexer.Documentation;
-  }
-
-  public static boolean isDirective(int tokenType) {
-    return tokenType == CPP14Lexer.Directive
-        || tokenType == CPP14Lexer.MultiLineMacro;
-  }
-
-  public static boolean isOperator(int tokenType) {
-    return tokenType == CPP14Lexer.LeftBracket
-        || tokenType == CPP14Lexer.RightBracket
-        || (tokenType >= CPP14Lexer.Plus
-        && tokenType <= CPP14Lexer.Ellipsis);
-  }
-
-  public static boolean isError(int tokenType) {
-    return tokenType == CPP14Lexer.ERROR;
-  }
-
 }

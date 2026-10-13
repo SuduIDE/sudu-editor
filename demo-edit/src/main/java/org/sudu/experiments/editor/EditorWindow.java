@@ -19,6 +19,7 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
   Window window;
   EditorUi ui;
   EditorComponent editor;
+  UndoBuffer undoBuffer;
   Focusable focusSave;
   Consumer<EditorWindow> onControllerEvent;
   Consumer<Model> onDiffMade;
@@ -29,9 +30,11 @@ public class EditorWindow extends ToolWindow0 implements InputListeners.KeyHandl
       Supplier<String[]> fonts
   ) {
     super(wm, theme, fonts);
+    undoBuffer = new UndoBuffer();
     ui = new EditorUi(wm);
     editor = new EditorComponent(ui);
     editor.setIterativeParseFileListener((_1, _2, _3) -> onDiffMade());
+    editor.setGetUndoBuffer(() -> undoBuffer);
     window = createWindow(editor, 25);
     window.onFocus(this::onFocus);
     window.onBlur(this::onBlur);
