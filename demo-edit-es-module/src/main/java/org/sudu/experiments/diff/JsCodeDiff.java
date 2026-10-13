@@ -26,6 +26,9 @@ public class JsCodeDiff implements JsFileDiffView {
     if (args.hasTheme()) setTheme(args.getTheme());
     if (args.hasReadonly())
       setReadonly(args.getReadonly(), args.getReadonly());
+    var langOptions = args.resolveLangOptions();
+    if (langOptions != null)
+      w.rootView.setGetLangOptions(() -> langOptions);
   }
 
   @Override

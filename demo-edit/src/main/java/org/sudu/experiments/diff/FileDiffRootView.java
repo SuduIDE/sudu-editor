@@ -5,6 +5,7 @@ import org.sudu.experiments.Window;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.*;
+import org.sudu.experiments.editor.worker.parser.LangOptions;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.common.Pair;
 import org.sudu.experiments.parser.common.Pos;
@@ -14,6 +15,7 @@ import org.sudu.experiments.ui.window.WindowManager;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
+import java.util.function.Supplier;
 
 class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel {
   static final boolean showNavigateLog = false;
@@ -72,6 +74,11 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
     middleLine.setSyncPoints(syncPoints);
     setViews(editor1, editor2, middleLine);
     setEmptyDiffModel();
+  }
+
+  public void setGetLangOptions(Supplier<LangOptions> getLangOptions) {
+    editor1.setGetLangOptions(getLangOptions);
+    editor2.setGetLangOptions(getLangOptions);
   }
 
   public void setModel(FileDiffModel model) {
