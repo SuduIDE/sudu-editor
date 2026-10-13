@@ -124,19 +124,6 @@
           <webResources>
             <resource><directory>${project.build.directory}/generated/js</directory></resource>
 <!--            <resource><directory>${project.basedir}/../wasm-test/target/wasm</directory></resource>-->
-          </webResources>
-          <packagingExcludes>WEB-INF/classes/,WEB-INF/lib/</packagingExcludes>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>${maven.warplugin.version}</version>
-
-        <configuration>
-          <webResources>
-            <resource><directory>${project.build.directory}/generated/js</directory></resource>
 <!--            <resource>-->
 <!--              <directory>${project.basedir}/../codicon/src/main/resources</directory>-->
 <!--              <includes><include>**/*.ttf</include></includes>-->
