@@ -103,8 +103,12 @@ jobs:
             NPM_TAG="latest"
           fi
           cd $GITHUB_WORKSPACE/sudu-editor/common-ts-types
+          npm version "$NEW_VERSION" --no-git-tag-version --allow-same-version
           npm publish --access public --tag "$NPM_TAG"
           cd $GITHUB_WORKSPACE/sudu-editor/demo-edit-es-module/module
+          npm version "$NEW_VERSION" --no-git-tag-version --allow-same-version
           npm publish --access public --tag "$NPM_TAG"
           cd $GITHUB_WORKSPACE/sudu-editor/code-review-module/module
+          npm version "$NEW_VERSION" --no-git-tag-version --allow-same-version
+          npm pkg set "dependencies.@sudu-ide/types=$NEW_VERSION"
           npm publish --access public --tag "$NPM_TAG"

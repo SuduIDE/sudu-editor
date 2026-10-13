@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@sudu-ide/code-review": "0.0.129-alpha5"
+    "@sudu-ide/code-review": "0.0.130-alpha3"
   }
 }
