@@ -20,4 +20,4 @@ High-level map of how the editor renders a document, and where to find the detai
 - [text-tokenization-pipeline.md](text-tokenization-pipeline.md) - source -> lines -> worker parser -> tokenized `CodeElement`s, and edits/reparse.
 - [line-numbers-refactoring-plan.md](line-numbers-refactoring-plan.md) - goals and high-level plan for the line-number refactoring.
 - [line-numbers-refactoring-QA.md](line-numbers-refactoring-QA.md) - detailed Q&A decisions, staged transition, and `LineNumbersTexture` mechanics.
-- [inline-disasm-open-questions.md](inline-disasm-open-questions.md) - open questions for inline disassembly, uniform diff, and numbering.
+- [inline-disasm-open-questions.md](inline-disasm-open-questions.md) - **decisions** (Q1-Q18) for inline disassembly, unified diff, and disassembly-aware numbering; see [text-tokenization-pipeline.md](text-tokenization-pipeline.md) for how they are applied to the parse pipeline.

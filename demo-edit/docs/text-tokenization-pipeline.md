@@ -63,4 +63,17 @@ If disassembly lines live in the same `Document` (as planned), then:
 - `ParserUtils.updateDocument` would overwrite disassembly lines with parsed source lines.
 - Diff/sync/copy would treat disassembly lines as editable source unless excluded.
 
-These consequences are the basis of [inline-disasm-open-questions.md](inline-disasm-open-questions.md).
+These consequences are the basis of [inline-disasm-open-questions.md](inline-disasm-open-questions.md). How each is resolved is summarized below.
+
+## How the disassembly decisions resolve this
+
+All decisions live in [inline-disasm-open-questions.md](inline-disasm-open-questions.md) (Q&A, Q1-Q18). For **one document with interleaved disassembly**:
+
+- **Worker payload is source-only (Q4):** the model keeps a **source index buffer** `sourceToDoc` (source line → document line). The worker `char[]` is materialized from those lines; disassembly never reaches the parser. **`null` means the identity mapping** — ordinary documents behave exactly as today: no array, no maintenance.
+- **Lines are applied through the mapping (Q5/Q7):** the parser returns `N` source lines; `ParserUtils` writes `document.setLine(sourceToDoc[i], ...)`, so disassembly lines are never overwritten. `lineNumber` on a disassembly document's source lines **is the 1-based source ordinal** (Q5 invariant); arbitrary display renumbering is only available for documents without disassembly.
+- **One coordinate space: source (Q6):** `tree`, `scopeGraph`, `usageToDef`/`defToUsages`, and reparse intervals stay **source-space**. Translation to document space happens **only in the interaction layer** (render/hit-test), using the Q5 offset formulas.
+- **Versioning / reparse (Q9/Q10):** disassembly documents are **read-only** (`EditorComponent.readonly`) — no edits, no incremental reparse. View-level disassembly changes never bump `document.currentVersion`.
+- **Diff / sync / copy (Q11):** **copy includes disassembly** (all selected text); diff/sync and the parse payload remain source-only. Diff/folding/merge models never exist for disassembly documents (Q16/Q18).
+- **Viewport parsing (Q8):** the visible document range is translated to a source range by **binary search over `sourceToDoc`**; an all-disassembly viewport skips the parse.
+
+The *Invariants (today)* above are exactly the identity case (`sourceToDoc == null`): they still hold, unchanged, for every document without disassembly.

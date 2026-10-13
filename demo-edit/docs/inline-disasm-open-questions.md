@@ -92,7 +92,7 @@ The **source index array (Q4/Q5) is built here**, at document creation, from the
 
 ### 6. Shared coordinate space for Pos/tree/scope/usages — DECIDED (a)
 
-**Decision:** Keep `usageToDef`/`defToUsages`, `IntervalTree`, `scopeGraph`, and viewport/reparse intervals in **source space** — exactly what the parser/library produces. Translate to **document space only when rendering/hit-testing** (interaction layer). Chosen to **reduce risk**: `ParserUtils` and the apply path stay untouched; no structure is rewritten.
+**Decision:** Keep `usageToDef`/`defToUsages`, `IntervalTree`, `scopeGraph`, and viewport/reparse intervals in **source space** — exactly what the parser/library produces. Translate to **document space only when rendering/hit-testing** (interaction layer). Chosen to **reduce risk**: the structures stay **as the parser emits them** — no structure is rewritten. Only the **write/scatter path in `ParserUtils`** adapts (source-space loop guards, writes routed via `sourceToDoc` — see Q7); that work is mechanical and does not change the model.
 
 **Why this stays low-risk:**
 - **Rendering is content-based:** line/character coloring lives in each line's `CodeElement`s (written via `setLine`), not in the model structures — normal rendering does not need source→doc translation.
@@ -100,7 +100,7 @@ The **source index array (Q4/Q5) is built here**, at document creation, from the
 
 **Hit-testing fast path (doc → source):** the `lineNumber`-based shortcut is valid only where the ordinal invariant (Q5) holds, i.e. when `sourceToDoc != null`: for a clicked document line `d`, `i = document.lines[d].lineNumber - 1`; sanity-check with `sourceToDoc[i] == d`. If the line is disassembly (no line number) or the check fails, fall back to a binary search over `sourceToDoc`. When `sourceToDoc == null` (identity), the reverse is simply `d` — the fast path never consults `lineNumber`. Reverse (source → doc) is a direct array read: `sourceToDoc[i]`.
 
-**Consequence for Q7/Q8:** the parser's structures are consumed as-is (source space). Only `updateDocumentInterval`'s splice conversions map the interval's source bounds to doc lines so results can be written into `document.lines` via `sourceToDoc`.
+**Consequence for Q7/Q8:** the parser's structures are consumed as-is (source space). Only the **apply path** adapts: `updateDocument`'s loop writes each parsed source line `i` into doc slot `sourceToDoc[i]` with source-space guards, and `updateDocumentInterval`'s splice conversions map the interval's source bounds to doc lines so results can be written into `document.lines` via `sourceToDoc`.
 
 **Alternatives considered (rejected):**
 - (b) Make the document index **source-only** and attach disassembly lines to source indices (rewrites the model index; more invasive).
@@ -163,7 +163,7 @@ That source range is what the fast parser receives (source-only payload, Q4). Th
 
 **Context:** `parseRes.version` must equal `document.currentVersion` to be applied.
 
-### 11. Diff, sync, and copy must exclude disassembly — DECIDED (copy includes disasm)
+### 11. Diff/sync/parse exclude disassembly; copy includes it — DECIDED
 
 **Decision:** Two separate contracts, never conflated:
 
