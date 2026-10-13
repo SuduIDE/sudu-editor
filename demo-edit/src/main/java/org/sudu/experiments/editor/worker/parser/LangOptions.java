@@ -10,10 +10,11 @@ import java.util.Set;
 public class LangOptions {
 
   private final Set<String> langSet;
-  private boolean warmPrinted = false;
+  private boolean warnPrinted = false;
 
   public LangOptions() {
     this.langSet = new HashSet<>();
+    enableAll();
   }
 
   public boolean structureParsingEnabled(String lang) {
@@ -27,9 +28,9 @@ public class LangOptions {
     if (!enabledAscendC && !enabledCpp) return Languages.TEXT;
     if (enabledAscendC && isAscendC) return Languages.ASCEND_C;
     if (enabledAscendC && enabledCpp) {
-      if (!warmPrinted) {
+      if (!warnPrinted) {
         System.err.println("[warn] C++ and Ascend C are both enabled in the same time");
-        warmPrinted = true;
+        warnPrinted = true;
       }
       return Languages.CPP;
     }
