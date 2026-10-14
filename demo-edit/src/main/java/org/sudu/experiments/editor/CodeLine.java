@@ -13,6 +13,8 @@ public class CodeLine {
 
   CodeElement[] elements;
   public int totalStrLength;
+  /** Display number; 0 = AUTO (classic) or attached (mapped). */
+  public int lineNumber;
 
   float[] fMeasure;
   int[] iMeasure;

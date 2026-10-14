@@ -102,6 +102,46 @@ public class LineNumbersTexture implements Disposable {
     draw(g, yPos, dXdY, colorScheme.lineNumber.caretTextColor, bgColor);
   }
 
+  /** Draw {@code count} consecutive numbers starting at 1-based {@code firstN}. */
+  void drawNumberRun(
+      V2i dXdY,
+      int yPos,
+      int firstN,
+      int count,
+      int docLine,
+      EditorColorScheme colorScheme,
+      byte[] colors,
+      WglGraphics g
+  ) {
+    if (firstN < 1 || count < 1) return;
+    int zeroBased = firstN - 1;
+    if (startLine + numberOfLines <= zeroBased || zeroBased < startLine) return;
+    int d = (zeroBased % numberOfLines) * lineHeight;
+    var bgColor = colorScheme.getDiffColor(colors, docLine);
+    rectSize.set(textureSize.x, count * lineHeight);
+    rectRegion.set(0, d, textureSize.x, count * lineHeight);
+    draw(g, yPos, dXdY, colorScheme.lineNumber.textColor, bgColor);
+  }
+
+  void drawCaretNumber(
+      V2i dXdY,
+      int yPos,
+      int N,
+      int docLine,
+      EditorColorScheme colorScheme,
+      byte[] colors,
+      WglGraphics g
+  ) {
+    if (N < 1) return;
+    int zeroBased = N - 1;
+    if (startLine + numberOfLines <= zeroBased || zeroBased < startLine) return;
+    int d = (zeroBased % numberOfLines) * lineHeight;
+    var bgColor = colorScheme.getDiffColor(colors, docLine);
+    rectSize.set(textureSize.x, lineHeight);
+    rectRegion.set(0, d, textureSize.x, lineHeight);
+    draw(g, yPos, dXdY, colorScheme.lineNumber.caretTextColor, bgColor);
+  }
+
   private void draw(WglGraphics g, int yPos, V2i dXdY, V4f textColor, V4f bgColor) {
     g.drawText(
         dXdY.x,
