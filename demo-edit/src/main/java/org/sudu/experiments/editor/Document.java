@@ -912,11 +912,28 @@ public class Document extends CodeLines {
     if (lineInd - 1 < 0) len = 0;
     else len = linePrefixSum[lineInd - 1];
     Pos pos = new Pos(lineInd - 1, offset - len);
+    if (pos.line < 0) return new Pos(0, 0);
+    if (pos.line >= lines.length) {
+      return new Pos(lines.length - 1, lines[lines.length - 1].totalStrLength);
+    }
     if (pos.charPos >= lines[pos.line].totalStrLength) {
       pos.line++;
       pos.charPos = 0;
     }
     return pos;
+  }
+
+  /** Source-space offset → Pos. Identity documents reuse the document-space search. */
+  private Pos sourcePosAt(int offset) {
+    if (sourceToDoc == null) return binarySearchPosAt(offset);
+    int srcLine = sourceLineAtOffset(offset);
+    int charPos = offset - srcStart[srcLine];
+    int len = strLength(sourceToDoc[srcLine]);
+    if (charPos >= len) {
+      return srcLine + 1 < sourceToDoc.length
+          ? new Pos(srcLine + 1, 0) : new Pos(srcLine, len);
+    }
+    return new Pos(srcLine, charPos);
   }
 
   public void onResolve(int[] resolveInts, boolean highlightErrors) {
@@ -927,26 +944,30 @@ public class Document extends CodeLines {
     while (reader.hasNext()) {
       int refFlag = reader.next();
       if (refFlag == -1) continue;
-      var refPos = binarySearchPosAt(reader.next());
-      var refElem = lines[refPos.line].getCodeElement(refPos.charPos);
+      Pos refSrc = sourcePosAt(reader.next());
+      Pos refDoc = toDocPos(refSrc);
+      if (refDoc == null) continue;
+      CodeElement refElem = lines[refDoc.line].getCodeElement(refDoc.charPos);
 
       int declFlag = reader.next();
       if (declFlag == -1) {
-        if (highlightErrors) {
+        if (highlightErrors && refElem != null) {
           refElem.color = ParserConstants.TokenTypes.DEFAULT;
           refElem.style = ParserConstants.TokenStyles.error(refElem.style);
         }
         continue;
       }
-      var declPos = binarySearchPosAt(reader.next());
-      var type = reader.next();
-      var style = reader.next();
+      Pos declSrc = sourcePosAt(reader.next());
+      int type = reader.next();
+      int style = reader.next();
 
-      usageToDef.put(refPos, declPos);
-      defToUsages.putIfAbsent(declPos, new ArrayList<>());
-      defToUsages.get(declPos).add(refPos);
-      refElem.color = type;
-      refElem.style = style;
+      usageToDef.put(refSrc, declSrc);
+      defToUsages.putIfAbsent(declSrc, new ArrayList<>());
+      defToUsages.get(declSrc).add(refSrc);
+      if (refElem != null) {
+        refElem.color = type;
+        refElem.style = style;
+      }
     }
   }
 

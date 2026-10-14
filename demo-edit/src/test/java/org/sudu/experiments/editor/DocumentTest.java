@@ -608,6 +608,30 @@ class DocumentTest {
     Assertions.assertEquals(2, d.resolveLineNumber(1));
   }
 
+  @Test void testOnResolveMappedUsesSourceOffsets() {
+    Document d = Document.fromDescriptors(
+        new String[]{"ab", "xx", "cd"},
+        new int[]{1, 0, 2});
+    Assertions.assertArrayEquals(new int[]{0, 3}, d.srcStart);
+    // source text "ab\ncd": offset 3 is source line 1 ("cd"); offset 0 is source line 0 ("ab")
+    d.onResolve(new int[]{1, 3, 1, 0, 7, 0}, false);
+    Pos ref = new Pos(1, 0);
+    Pos decl = new Pos(0, 0);
+    Assertions.assertEquals(decl, d.usageToDef.get(ref));
+    Assertions.assertTrue(d.defToUsages.get(decl).contains(ref));
+    Assertions.assertEquals(7, d.lines[2].get(0).color);
+    Assertions.assertEquals(0, d.lines[1].get(0).color);
+  }
+
+  @Test void testOnResolveIdentityUnchanged() {
+    Document d = new Document(new String[]{"ab", "cd"});
+    d.onResolve(new int[]{1, 3, 1, 0, 7, 0}, false);
+    Pos ref = new Pos(1, 0);
+    Pos decl = new Pos(0, 0);
+    Assertions.assertEquals(decl, d.usageToDef.get(ref));
+    Assertions.assertEquals(7, d.lines[1].get(0).color);
+  }
+
   static Document doc4() {
     return new Document(ab("AB"), ab("CD"), ab("EF"), ab("GH"));
   }
