@@ -61,7 +61,7 @@ If disassembly lines live in the same `Document` (as planned), then:
 - Parser line indices would no longer match document line indices (extra lines above shift everything).
 - `Pos(line, char)`, the `IntervalTree`, `scopeGraph`, `usageToDef`/`defToUsages`, viewport ranges, and incremental reparse intervals would all be offset by the number of interleaved disassembly lines.
 - `ParserUtils.updateDocument` would overwrite disassembly lines with parsed source lines.
-- Diff/sync/copy would treat disassembly lines as editable source unless excluded.
+- Diff/sync/copy must not treat disassembly lines as editable source — resolved by the **hard read-only gate** (a mapped document, `sourceToDoc != null`, is never editable — disasm Q9) and by **copy** operating on the document directly (disasm Q11).
 
 These consequences are the basis of [inline-disasm-open-questions.md](inline-disasm-open-questions.md). How each is resolved is summarized below.
 
@@ -71,8 +71,8 @@ All decisions live in [inline-disasm-open-questions.md](inline-disasm-open-quest
 
 - **Worker payload is source-only (Q4):** the model keeps a **source index buffer** `sourceToDoc` (source line → document line). The worker `char[]` is materialized from those lines; disassembly never reaches the parser. **`null` means the identity mapping** — ordinary documents behave exactly as today: no array, no maintenance.
 - **Lines are applied through the mapping (Q5/Q7):** the parser returns `N` source lines; `ParserUtils` writes `document.setLine(sourceToDoc[i], ...)` **preserving `lineNumber`** (disasm Q7 — parse apply must not wipe the ordinals), so disassembly lines are never overwritten. `lineNumber` on a disassembly document's source lines **is the 1-based source ordinal** (Q5 invariant); arbitrary display renumbering is only available for documents without disassembly. Classic documents without disassembly may leave `lineNumber == 0` — **AUTO**: the driver derives the document line index + 1, so classic documents that can be edited need no number maintenance at all (line-numbers QA Q9).
-- **One coordinate space: source (Q6):** `tree`, `scopeGraph`, `usageToDef`/`defToUsages`, and reparse intervals stay **source-space**. Translation to document space happens **only in the interaction layer** (render/hit-test), using the Q5 offset formulas.
-- **Versioning / reparse (Q9/Q10):** disassembly documents are **read-only** (`EditorComponent.readonly`) — no edits, no incremental reparse. View-level disassembly changes never bump `document.currentVersion`.
+- **One coordinate space: source (Q6):** `tree`, `scopeGraph`, `usageToDef`/`defToUsages`, and reparse intervals stay **source-space**, and `Pos.line` in them is **always a source index** when mapped. Translation to document space happens **only in the interaction layer** (render/hit-test), via the explicit caret path **doc → source (`lineNumber − 1`, sanity-checked) → source-space lookup → map results back through `sourceToDoc`** before `getCodeElement`/navigation, and the Q5 offset formulas.
+- **Versioning / reparse (Q9/Q10):** disassembly documents are **hard read-only** — modifying ops are blocked at the model gate whenever `sourceToDoc != null` (all lines), with `EditorComponent.readonly` the UI mirror set at attach; no edits, no incremental reparse. Mapped-doc interval apply is normative **`N == e − s + 1`** (no line insert/delete in apply; abort on mismatch, Q7). View-level disassembly changes never bump `document.currentVersion`.
 - **Diff / sync / copy (Q11):** **copy includes disassembly** (all selected text); diff/sync and the parse payload remain source-only. Diff/folding/merge models never exist for disassembly documents (Q16/Q18).
 - **Viewport parsing (Q8):** the visible document range is translated to a source range by **binary search over `sourceToDoc`**; an all-disassembly viewport skips the parse.
 

@@ -11,6 +11,8 @@
 5. **Preserve performance**: Use the same rendering approach/resources where sensible (same font). Draw numbers efficiently.
 6. **Preserve selection/copy behavior**: Allow selecting across all lines for copy; constrain editing appropriately.
 
+> **Sequencing (read this first):** These goals are **sequenced, not simultaneous deliverables** for this refactoring. The immediate scope is goals **3-6** (per-line numbers + inline rendering). **Unified diff (goal 1) is a later, separate view-level step** and — per [inline-disasm-open-questions.md](inline-disasm-open-questions.md) Q17-Q18 — **does not compose with inline disassembly in v1**. Goal 2 (inline rendering) and goal 1 (unified diff) are orthogonal line structures, not one combined feature.
+
 ## Current State Summary
 
 - **CodeLine**: Represents a single document line split into CodeElements. No line number/flags. Pure model.
@@ -32,7 +34,7 @@ doc:
 - **Q5** - display numbers stored on `CodeLine`, decoupled from compact/folding indices.
 - **Q6** - keep `LineNumbersComponent`/`LineNumbersTexture`; moving the drawing pass to the renderer is deferred.
 - **Q7** - text positioning/padding unchanged (`leftMarginWidth` = **number-column width**; `textBaseX = leftMarginWidth + mergeWidth + vLineW + vLineTextOffset` non-mirrored, mirrored variant per `internalLayout`).
-- **Q8** - editing guards: edits blocked on attached (non-numbered) lines or when `readonly`; copy always allowed; editability derived from numbering + editor `readonly`.
+- **Q8** - editing guards: **any mapped document (`sourceToDoc != null`) is never editable** (hard mapping gate, disasm Q9); in classic documents edits are blocked on attached (non-numbered) lines or when `readonly`; copy always allowed; editability derived as `!readonly && (sourceToDoc == null) && numbered`.
 - **Q9** - backward-compatible defaults (`lineNumber == 0` = **AUTO**: derive the natural ordinal as **document line index + 1**, never the view row); JS<->Java mapping.
 - **Q10** - number-column bounds `[0, leftMarginWidth)`; merge buttons / vertical rule outside.
 - **Q11** - texture storage: existing tile stays in `LineNumbersComponent`; shared-cache Option B is deferred.
