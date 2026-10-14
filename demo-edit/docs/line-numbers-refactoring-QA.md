@@ -120,7 +120,7 @@ editable(d) = !editor.readonly && sourceToDoc == null && numbered(d)
 - **Coverage of attached lines:** Attached disasm lines are not numbered (`lineNumber == 0`, not in `sourceToDoc`), so the attached-line guards above correctly prevent editing them — no per-line flag needed. In practice an attached line implies `sourceToDoc != null`, which gate 1 already blocks; the attached-line check is a second line of defense.
 - **Copy allowed:** Selection/copy (non-modifying operations) must remain allowed across **all** lines, including attached non-numbered lines - per the requirements.
 - **Partial crossings:** Any selection that includes or crosses into an attached non-numbered line counts as spanning one → edits are blocked. This is the intended conservative behavior.
-- **Lost expressiveness (accepted):** a "locked numbered line" inside an otherwise editable classic document is **not expressible** — numbering and `readonly` are the only editability discriminators. Not a requirement: the only non-editable lines ever needed are attached disasm lines, which numbering already covers.
+- **Lost expressiveness (accepted):** the editability discriminators are `sourceToDoc == null` plus `!readonly` (Q8's gates): a **mapped document is never editable**, and a classic document is editable iff `!readonly`. So a "locked numbered line" inside an otherwise editable classic document is **not expressible**. That was never a requirement — the only non-editable lines ever needed are attached disasm lines, and the null-mapping gate already blocks those (numbering is not the gate).
 
 ## 9) Backward compatibility
 
