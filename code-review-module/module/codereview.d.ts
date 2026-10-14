@@ -96,6 +96,26 @@ export function newTextModel(
   text: string, language?: string, uri?: Uri
 ): ITextModel
 
+/**
+ * A descriptor of one line of an inline-disassembly document.
+ * `lineNumber` present (> 0) marks a source line carrying that ordinal;
+ * absent (or 0) marks an attached disassembly line. `text` is the line content.
+ */
+export interface InlineDisasmLine {
+  lineNumber?: number;
+  text: string;
+}
+
+/**
+ * Creates a read-only document that interleaves source lines with attached
+ * disassembly lines. The document is never editable; source lines keep their
+ * explicit ordinals in the line-numbers gutter, attached lines are unnumbered.
+ */
+export function newTextModelWithInline(
+  workers: WorkerPool,
+  lines: InlineDisasmLine[], language?: string, uri?: Uri
+): ITextModel
+
 export interface LinesInfo {
   linesAdded : number;
   linesRemoved : number;

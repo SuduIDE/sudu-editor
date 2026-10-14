@@ -99,17 +99,30 @@ public class LineNumbersComponent implements Disposable {
 
   public void drawCaretLine(
       int dY,
-      int caretViewLine, int caretDocLine,
+      int caretViewLine, int caretDocLine, int caretNumber,
       EditorColorScheme colorScheme,
       WglGraphics g
   ) {
+    if (caretNumber < 1) return;
     int y0 = dY + caretViewLine * lineHeight;
     int y1 = y0 + lineHeight;
     var intersect = y0 < size.y && 0 < y1;
     if (intersect) {
-      var texture = texture(g, caretDocLine);
-      texture.drawCaretLine(pos, y0, caretDocLine, colorScheme, colors, g);
+      var texture = texture(g, caretNumber - 1);
+      texture.drawCaretNumber(pos, y0, caretNumber, caretDocLine, colorScheme, colors, g);
     }
+  }
+
+  public void drawNumberRun(
+      int dY,
+      int firstNumber, int count, int firstColorLine,
+      EditorColorScheme scheme,
+      WglGraphics g
+  ) {
+    if (count <= 0 || firstNumber < 1) return;
+    var texture = texture(g, firstNumber - 1);
+    texture.drawNumberRun(pos, dY, firstNumber, count, firstColorLine, scheme, colors, g);
+    texture.lastFrame = frameId;
   }
 
   public void beginDraw(WglGraphics g, int frameId) {

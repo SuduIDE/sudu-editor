@@ -15,6 +15,7 @@ import org.sudu.experiments.parser.common.graph.reader.ScopeGraphReader;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -47,6 +48,8 @@ public abstract class ParserUtils {
       document.lines = ArrayOp.resizeOrReturn(document.lines, N);
     }
 
+    int[] sourceToDoc = document.sourceToDoc;
+
     for (int i = 0; i < N; i++) {
       if (saveOldLines && i < documentLength) {
         int len = reader.next();
@@ -54,8 +57,14 @@ public abstract class ParserUtils {
         continue;
       }
       CodeElement[] elements = readElements(reader, docChars, 0);
+      // For mapped (inline-disassembly) documents the parse result is indexed by source
+      // line, so translate it to the document line carrying that source line.
+      int docLine = sourceToDoc == null ? i : document.sourceToDocLine(i);
+      if (docLine < 0) continue;
       CodeLine line = new CodeLine(elements);
-      document.setLine(i, line, true);
+      // never lose the ordinal assigned at creation (Q2/Q7 apply invariant)
+      line.lineNumber = document.lines[docLine].lineNumber;
+      document.setLine(docLine, line, true);
     }
     document.countPrefixes();
 
@@ -65,6 +74,7 @@ public abstract class ParserUtils {
     document.defToUsages.clear();
     ParserUtils.getUsageToDefMap(reader, L, document.usageToDef);
     ParserUtils.getDefToUsagesMap(document.usageToDef, document.defToUsages);
+    if (sourceToDoc != null) remapSourcePositions(document);
     reader.checkSize();
 
     if (graphInts != null && graphChars != null) {
@@ -171,6 +181,33 @@ public abstract class ParserUtils {
       defMap.computeIfAbsent(definition, mapFunc).add(usage);
     }
     for (var usages : defMap.values()) Collections.sort(usages);
+  }
+
+  // Parse results are expressed in source coordinates; rewrite the usage/definition maps
+  // onto document lines for mapped (inline-disassembly) documents.
+  private static void remapSourcePositions(Document document) {
+    Map<Pos, Pos> usageToDef = new HashMap<>(document.usageToDef);
+    Map<Pos, List<Pos>> defToUsages = new HashMap<>(document.defToUsages);
+    document.usageToDef.clear();
+    document.defToUsages.clear();
+
+    for (var entry : usageToDef.entrySet()) {
+      Pos usage = document.sourcePosToDocPos(entry.getKey());
+      Pos definition = document.sourcePosToDocPos(entry.getValue());
+      if (usage == null || definition == null) continue;
+      document.usageToDef.put(usage, definition);
+    }
+
+    for (var entry : defToUsages.entrySet()) {
+      Pos definition = document.sourcePosToDocPos(entry.getKey());
+      if (definition == null) continue;
+      List<Pos> usages = new ArrayList<>();
+      for (Pos usage : entry.getValue()) {
+        Pos mapped = document.sourcePosToDocPos(usage);
+        if (mapped != null) usages.add(mapped);
+      }
+      document.defToUsages.put(definition, usages);
+    }
   }
 
 }

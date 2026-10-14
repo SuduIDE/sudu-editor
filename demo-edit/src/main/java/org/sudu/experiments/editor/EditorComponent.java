@@ -104,6 +104,16 @@ public class EditorComponent extends View implements
 
   public boolean readonly = false;
   boolean mirrored = false;
+
+  /**
+   * Effective read-only state. A mapped (inline-disassembly) document is always read-only:
+   * all modifying operations are blocked, for every line, not only attached ones (Q8/Q9).
+   * {@link #readonly} remains the caller/UI mirror, set when the document is attached.
+   */
+  public boolean isReadonly() {
+    return readonly || model.document.hasSourceMapping();
+  }
+
   private ExternalHighlights externalHighlights;
 
   Consumer<String> onError = System.err::println;
@@ -218,7 +228,7 @@ public class EditorComponent extends View implements
     boolean hasMerge = mergeButtons != null;
     int mergeWidth = hasMerge ? mergeWidth() : 0;
 
-    numDigits = Numbers.numDecimalDigits(model.document.length());
+    numDigits = Numbers.numDecimalDigits(model.document.maxLineNumber());
     int lineNumbersWidth = lineNumbers.measureDigits(
         numDigits, g.mCanvas, dpr);
 
@@ -886,44 +896,55 @@ public class EditorComponent extends View implements
     if (viewToDocMap.length == 0) return;
     lineNumbers.beginDraw(g, frameId);
 
-    int l0 = firstLine, l0Value = viewToDocMap[0];
-//    System.out.println("frame --- >");
-    for (int i = firstLine + 1; i < lastLine; i++) {
-      int value = viewToDocMap[i - firstLine];
-      var follow = value < 0 ? l0Value < 0 : value + l0 == l0Value + i;
-      if (!follow) {
-        drawLnSegment(l0, l0Value, i);
-        l0 = i;
-        l0Value = value;
+    Document document = model.document;
+    int dY = -vScrollPos;
+
+    int i = firstLine;
+    while (i < lastLine) {
+      int docLine = viewToDocMap[i - firstLine];
+      if (docLine < 0) {
+        // collapsed region / out of range: just clear the gutter
+        int j = i;
+        while (j < lastLine && viewToDocMap[j - firstLine] < 0) j++;
+        lineNumbers.drawEmptyLines(
+            i * lineHeight + dY, j * lineHeight + dY, g, colors.editor.bg);
+        i = j;
+        continue;
       }
+      int number = document.effectiveLineNumber(docLine);
+      if (number < 1) {
+        // attached disassembly line: never numbered (Q14), paint the gutter background
+        lineNumbers.drawEmptyLines(
+            i * lineHeight + dY, (i + 1) * lineHeight + dY, g, colors.editor.bg);
+        i++;
+        continue;
+      }
+      // batch consecutive numbers while they stay consecutive in the document and share a
+      // texture bank (batching must never cross a bank boundary)
+      int j = i + 1;
+      while (j < lastLine) {
+        int docLine2 = viewToDocMap[j - firstLine];
+        if (docLine2 != docLine + (j - i)) break;
+        int number2 = document.effectiveLineNumber(docLine2);
+        if (number2 != number + (j - i)) break;
+        if (LineNumbersTexture.bank(number2) != LineNumbersTexture.bank(number)) break;
+        j++;
+      }
+      lineNumbers.drawNumberRun(
+          i * lineHeight + dY, number, j - i, docLine, colors, g);
+      i = j;
     }
-    if (l0 != lastLine) {
-      drawLnSegment(l0, l0Value, lastLine);
-    }
-//    System.out.println("< --- frame");
 
     int viewCursor = docToView.docToView(model.caretLine);
     if (viewCursor >= 0 && viewCursor >= firstLine && viewCursor < lastLine) {
-      lineNumbers.drawCaretLine(-vScrollPos,
-          viewCursor, model.caretLine, colors, g);
+      int caretNumber = document.effectiveLineNumber(model.caretLine);
+      lineNumbers.drawCaretLine(dY,
+          viewCursor, model.caretLine, caretNumber, colors, g);
     }
     int endOfDocument = lastLine * lineHeight - vScrollPos;
     if (endOfDocument < lineNumbers.pos.y + lineNumbers.size.y)
       lineNumbers.drawEmptyLines(endOfDocument, g, colors);
     lineNumbers.endDraw(g);
-  }
-
-  private void drawLnSegment(int l0, int l0Value, int l1) {
-//    System.out.println("drawRange: at line " + l0 + ")" +
-//        (l0Value < 0 ? " - empty" :
-//            "draw [" + l0Value + "..." + (l0Value + l1 - l0) + ")"));
-    int l0y = l0 * lineHeight - vScrollPos;
-    if (l0Value < 0) {
-      int l1y = l1 * lineHeight - vScrollPos;
-      lineNumbers.drawEmptyLines(l0y, l1y, g, colors.editor.bg);
-    } else {
-      lineNumbers.drawRange(l0y, l0Value, l0Value + l1 - l0, g, colors);
-    }
   }
 
   public int getNumLines() {
@@ -1092,7 +1113,7 @@ public class EditorComponent extends View implements
   }
 
   public boolean handleInsert(String s) {
-    if (readonly) return false;
+    if (isReadonly()) return false;
     if (selection().isAreaSelected()) deleteSelectedArea();
     String[] lines = SplitText.split(s);
 
@@ -1771,7 +1792,7 @@ public class EditorComponent extends View implements
 
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
 
-    if (!readonly && event.ctrl && event.keyCode == KeyCode.Z) {
+    if (!isReadonly() && event.ctrl && event.keyCode == KeyCode.Z) {
       undoLastDiff(event.shift);
       return true;
     }
@@ -1808,7 +1829,7 @@ public class EditorComponent extends View implements
   }
 
   public boolean onCopy(Consumer<String> setText, boolean isCut) {
-    if (isCut && readonly) return false;
+    if (isCut && isReadonly()) return false;
     var left = selection().getLeftPos();
     int line = left.line;
     String result;
@@ -1860,7 +1881,7 @@ public class EditorComponent extends View implements
   }
 
   private boolean handleEditingKeys(KeyEvent event) {
-    if (readonly) return false;
+    if (isReadonly()) return false;
     return switch (event.keyCode) {
       case KeyCode.TAB -> handleTab(event.shift);
       case KeyCode.ENTER -> handleEnter();
@@ -2212,8 +2233,7 @@ public class EditorComponent extends View implements
 
   private void checkLineNumbersLayout() {
     if (dpr == 0) return;
-    int docLength = model.document.length();
-    int newDigits = Numbers.numDecimalDigits(docLength);
+    int newDigits = Numbers.numDecimalDigits(model.document.maxLineNumber());
     if (newDigits != numDigits) {
       internalLayout();
     }

@@ -89,9 +89,13 @@ public class Model {
   }
 
   public Model(String[] text, String language, Uri uri) {
+    this(new Document(text), language, uri);
+  }
+
+  public Model(Document document, String language, Uri uri) {
     this.uri = uri;
     docLanguage = language;
-    document = new Document(text);
+    this.document = document;
     document.updateModelOnDiff = this::updateModelOnDiff;
     document.onEditMade = this::onDiffMade;
     document.onChangeApplied = this::onChangeApplied;
@@ -99,6 +103,12 @@ public class Model {
     document.getUndoBuffer = this::getUndoBuffer;
     document.getCaretPos = this::getCaretPos;
     document.getSelection = () -> this.selection;
+  }
+
+  // The parser always works on the source-only text. For ordinary documents this equals
+  // getChars(); for mapped (inline-disassembly) documents it strips the attached lines.
+  private char[] parseChars() {
+    return document.hasSourceMapping() ? document.getSourceChars() : document.getChars();
   }
 
   String languageFromFile() {
@@ -324,7 +334,7 @@ public class Model {
 
     String lang = language();
     int langType = Languages.getType(lang);
-    char[] chars = document.getChars();
+    char[] chars = parseChars();
     if (isDisableParser()) {
       sendLexer(chars, langType);
       return;
@@ -350,11 +360,11 @@ public class Model {
   }
 
   private void sendStructure() {
-    sendStructure(document.getChars(), Languages.getType(language()));
+    sendStructure(parseChars(), Languages.getType(language()));
   }
 
   private void sendFull() {
-    sendFull(document.getChars(), Languages.getType(language()));
+    sendFull(parseChars(), Languages.getType(language()));
   }
 
   private void sendLexer(char[] chars, int langType) {
@@ -396,7 +406,7 @@ public class Model {
     if (debug) {
       Debug.consoleInfo(getFileName() + "/Model::parseFullFile");
     }
-    char[] chars = document.getChars();
+    char[] chars = parseChars();
     if (isDisableParser()) {
       sendLexer(chars, Languages.getType(language()));
       return;
@@ -418,7 +428,7 @@ public class Model {
 
     String language = language();
     if (isDisableParser()) {
-      char[] chars = document.getChars();
+      char[] chars = parseChars();
       int langType = Languages.getType(language);
       sendLexerIterative(chars, langType);
       return;
@@ -433,7 +443,7 @@ public class Model {
 
     int start = reparseNode.getStart(), stop = reparseNode.getStop();
     int[] interval = new int[]{start, stop, reparseNode.getType()};
-    char[] chars = document.getChars();
+    char[] chars = parseChars();
     int[] type = new int[]{Languages.getType(language)};
 
     int[] graphInts;
@@ -500,6 +510,10 @@ public class Model {
   }
 
   void parseViewport(int editorFirstLine, int editorLastLine) {
+    // Viewport parsing is index-addressed against the document lines. For mapped
+    // (inline-disassembly) documents we only ever run the full-file parse, since the
+    // document is read-only and its viewport lines are not source lines (Q6/Q7).
+    if (document.hasSourceMapping()) return;
     if (fullFileParsed == ParseStatus.PARSED || fileStructureParsed != ParseStatus.PARSED) return;
     boolean vpParsed = isVpParsed(editorFirstLine, editorLastLine);
     if (!vpParsed) {
@@ -568,15 +582,20 @@ public class Model {
   }
 
   private void setSemanticToken(SemanticTokenInfo token) {
-    if (token == null || token.line < 0 || token.line >= document.length()) return;
-    var line = document.line(token.line);
+    if (token == null || token.line < 0) return;
+    // Semantic tokens are delivered in source coordinates; translate them to the document
+    // line carrying that source line for mapped (inline-disassembly) documents (Q13).
+    int docLine = document.sourceToDocLine(token.line);
+    if (docLine < 0 || docLine >= document.length()) return;
+    var line = document.line(docLine);
     if (token.startCharPos < 0 || token.startCharPos >= line.totalStrLength) return;
     var element = line.getCodeElement(token.startCharPos);
     if (element == null || !element.s.equals(token.text)) {
       String errMsg = element == null
-          ? "element at (" + token.line + ":" + token.startCharPos + ") is null"
+          ? "element at (" + docLine + ":" + token.startCharPos + ") is null"
           : "element.s(" + element.s + ") != token.text(" + token.text
-          + "), token.line=" + token.line + ", token.startCharPos =  " + token.startCharPos;
+          + "), token.line=" + token.line + ", docLine=" + docLine
+          + ", token.startCharPos =  " + token.startCharPos;
       System.err.println(errMsg);
       return;
     }

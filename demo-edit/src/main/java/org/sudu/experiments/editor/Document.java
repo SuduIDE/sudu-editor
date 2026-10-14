@@ -29,6 +29,17 @@ public class Document extends CodeLines {
   public final Map<Pos, List<Pos>> defToUsages = new HashMap<>();
   public int[] linePrefixSum;
 
+  // Document <-> source mapping for inline-disassembly documents.
+  //
+  //  null  => ordinary document. The document is its own "source": identity mapping.
+  //           Nothing is maintained, and every Q6-Q9 offset in the QA docs is a no-op.
+  //  !=null => mapped document (inline disassembly). sourceToDoc.length == number of
+  //           source lines; sourceToDoc[i] is the document line index of the i-th source
+  //           line. The array is set once at creation and is read-only afterwards.
+  //
+  // See demo-edit/docs/inline-disasm-open-questions.md (Q4/Q5/Q8).
+  public int[] sourceToDoc;
+
   int currentVersion;
   int lastParsedVersion;
   double lastDiffTimestamp;
@@ -52,6 +63,105 @@ public class Document extends CodeLines {
     if (data.length == 0) throw new IllegalArgumentException();
     lines = data;
     tree = initialInterval();
+  }
+
+  /**
+   * Creates a mapped (inline-disassembly) document from interleaved lines.
+   *
+   * @param data       the interleaved document lines; source lines carry
+   *                   {@link CodeLine#lineNumber} &gt; 0, attached disassembly lines carry 0.
+   * @param sourceCount number of source lines, i.e. {@code sourceToDoc.length}.
+   */
+  public static Document mapped(CodeLine[] data, int sourceCount) {
+    Document document = new Document(data);
+    document.sourceToDoc = new int[sourceCount];
+    int src = 0;
+    for (int i = 0; i < data.length; i++) {
+      if (data[i].lineNumber > 0) document.sourceToDoc[src++] = i;
+    }
+    return document;
+  }
+
+  public boolean hasSourceMapping() {
+    return sourceToDoc != null;
+  }
+
+  /** Number of source lines: {@code sourceToDoc.length}, or the document length for identity docs. */
+  public int sourceLineCount() {
+    return sourceToDoc == null ? lines.length : sourceToDoc.length;
+  }
+
+  /**
+   * Document line index carrying source line {@code sourceIndex}. For identity documents
+   * this is {@code sourceIndex} itself; returns -1 when out of range.
+   */
+  public int sourceToDocLine(int sourceIndex) {
+    return sourceToDoc == null
+        ? (sourceIndex >= 0 && sourceIndex < lines.length ? sourceIndex : -1)
+        : (sourceIndex >= 0 && sourceIndex < sourceToDoc.length ? sourceToDoc[sourceIndex] : -1);
+  }
+
+  /**
+   * Translates a source-space position to a document-space position for mapped
+   * documents. Identity documents return the position unchanged.
+   */
+  public Pos sourcePosToDocPos(Pos sourcePos) {
+    if (sourceToDoc == null) return sourcePos;
+    int docLine = sourceToDocLine(sourcePos.line);
+    return docLine < 0 ? null : new Pos(docLine, sourcePos.charPos);
+  }
+
+  /** The line number rendered for {@code docLine}, or 0 when the line is not numbered. */
+  public int effectiveLineNumber(int docLine) {
+    if (docLine < 0 || docLine >= lines.length) return 0;
+    int n = lines[docLine].lineNumber;
+    if (n > 0) return n;
+    // AUTO: identity documents derive the ordinal from the line index. Mapped documents
+    // only number explicit source lines, so an attached line renders no number (Q14).
+    return sourceToDoc == null ? docLine + 1 : 0;
+  }
+
+  /** AUTO-aware maximum line number, used to size the gutter. */
+  public int maxLineNumber() {
+    if (sourceToDoc == null) return length();
+    int max = 0;
+    for (CodeLine line : lines)
+      if (line.lineNumber > max) max = line.lineNumber;
+    return max;
+  }
+
+  /**
+   * Source-only character materialization sent to the parser. For identity documents this
+   * is exactly {@link #getChars()}; for mapped documents it concatenates only the source
+   * lines, so the parser never sees disassembly text.
+   */
+  public char[] getSourceChars() {
+    return getSourceChars(0, sourceLineCount());
+  }
+
+  public char[] getSourceChars(int fromSource, int toSource) {
+    if (sourceToDoc == null) return getChars(fromSource, toSource);
+    char[] dst = new char[getSourceLength(fromSource, toSource)];
+    int pos = 0;
+    for (int i = fromSource; i < toSource; i++) {
+      int docLine = sourceToDocLine(i);
+      if (docLine < 0) continue;
+      pos = lines[docLine].toCharArray(dst, pos);
+      if (i + 1 < toSource) dst[pos++] = newLine;
+    }
+    return dst;
+  }
+
+  public int getSourceLength(int fromSource, int toSource) {
+    if (sourceToDoc == null) return getIntervalLength(fromSource, toSource);
+    int len = 0;
+    for (int i = fromSource; i < toSource; i++) {
+      int docLine = sourceToDocLine(i);
+      if (docLine < 0) continue;
+      len += lines[docLine].totalStrLength;
+      if (i + 1 < toSource) len++;
+    }
+    return len;
   }
 
   public boolean isEmpty() {
@@ -675,6 +785,40 @@ public class Document extends CodeLines {
     }
   }
 
+  private int[] sourcePrefixSum;
+
+  public void countSourcePrefixes() {
+    int n = sourceLineCount();
+    int[] prefix = new int[n + 1];
+    for (int i = 0; i < n; i++) {
+      int docLine = sourceToDocLine(i);
+      int len = docLine < 0 ? 0 : lines[docLine].totalStrLength;
+      prefix[i + 1] = prefix[i] + len + 1;
+    }
+    sourcePrefixSum = prefix;
+  }
+
+  // Source-space offset -> document Pos. Positions produced by the parser/worker are always
+  // expressed against the source-only text (see getSourceChars), so resolve them here.
+  private Pos binarySearchSourcePosAt(int offset) {
+    if (sourceToDoc == null) return binarySearchPosAt(offset);
+    if (sourcePrefixSum == null) countSourcePrefixes();
+    int srcLine = Arrays.binarySearch(sourcePrefixSum, offset);
+    if (srcLine < 0) srcLine = -srcLine - 1;
+    int len = srcLine - 1 < 0 ? 0 : sourcePrefixSum[srcLine - 1];
+    int charPos = offset - len;
+    int docLine = sourceToDocLine(srcLine - 1);
+    if (docLine < 0) return new Pos(0, 0);
+    if (charPos >= lines[docLine].totalStrLength) {
+      // offset sat on the source newline: snap to the start of the next source line
+      int nextSrc = srcLine;
+      int nextDoc = sourceToDocLine(nextSrc);
+      if (nextDoc >= 0) return new Pos(nextDoc, 0);
+      return new Pos(docLine, lines[docLine].totalStrLength);
+    }
+    return new Pos(docLine, charPos);
+  }
+
   private Pos binarySearchPosAt(int offset) {
     if (linePrefixSum == null) return getPositionAt(offset);
     int lineInd = Arrays.binarySearch(linePrefixSum, offset);
@@ -695,10 +839,11 @@ public class Document extends CodeLines {
     usageToDef.clear();
     defToUsages.clear();
     countPrefixes();
+    if (sourceToDoc != null) countSourcePrefixes();
     while (reader.hasNext()) {
       int refFlag = reader.next();
       if (refFlag == -1) continue;
-      var refPos = binarySearchPosAt(reader.next());
+      var refPos = binarySearchSourcePosAt(reader.next());
       var refElem = lines[refPos.line].getCodeElement(refPos.charPos);
 
       int declFlag = reader.next();
@@ -709,7 +854,7 @@ public class Document extends CodeLines {
         }
         continue;
       }
-      var declPos = binarySearchPosAt(reader.next());
+      var declPos = binarySearchSourcePosAt(reader.next());
       var type = reader.next();
       var style = reader.next();
 

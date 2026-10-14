@@ -1,6 +1,8 @@
 package org.sudu.experiments.esm;
 
 import org.sudu.experiments.SplitInfo;
+import org.sudu.experiments.editor.CodeLine;
+import org.sudu.experiments.editor.Document;
 import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.SemanticTokenInfo;
 import org.sudu.experiments.esm.semantic.JsSemanticToken;
@@ -27,12 +29,52 @@ public class JsTextModel implements JsITextModel {
     class Setter {
       @JSBody(params = {"f"}, script = "newTextModel = f;")
       static native void set(Api f);
+
+      @JSBody(params = {"f"}, script = "newTextModelWithInline = f;")
+      static native void setInline(InlineApi f);
     }
 
     static void install() {
       Setter.set(JsTextModel::new);
+      Setter.setInline(JsTextModel::newInline);
     }
   }
+
+  // Builds a mapped (inline-disassembly) document from an array of line descriptors.
+  // See demo-edit/docs/inline-disasm-open-questions.md (Q2).
+  @JSFunctor
+  public interface InlineApi extends JSObject {
+    JsITextModel create(
+        JsWorkerPool workerPool,
+        JsArray<JsInlineDisasmLine> lines,
+        JSString language, JsUri uri);
+  }
+
+  public static JsTextModel newInline(
+      JsWorkerPool workerPool,
+      JsArray<JsInlineDisasmLine> jsLines,
+      JSString language, JsUri uri
+  ) {
+    int n = jsLines == null ? 0 : jsLines.getLength();
+    int sourceCount = 0;
+    CodeLine[] data = new CodeLine[Math.max(1, n)];
+    for (int i = 0; i < n; i++) {
+      JsInlineDisasmLine d = jsLines.get(i);
+      String text = d != null && d.hasText() ? d.getText().stringValue() : "";
+      CodeLine line = new CodeLine(text);
+      if (d != null && d.hasLineNumber()) line.lineNumber = d.getLineNumber();
+      if (line.lineNumber > 0) sourceCount++;
+      data[i] = line;
+    }
+    if (n == 0) data[0] = new CodeLine("");
+
+    Document document = Document.mapped(data, sourceCount);
+    String lang = JsHelper.toString(language, null);
+    Model model = new Model(document, lang, uri != null ? uri.toJava() : null);
+    model.setExecutor(JsWorkerPool.pool(workerPool));
+    return new JsTextModel(model);
+  }
+
 
   public final Model javaModel;
   public final JsUri jsUri;

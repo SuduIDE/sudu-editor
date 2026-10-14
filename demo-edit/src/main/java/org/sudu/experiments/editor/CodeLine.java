@@ -14,6 +14,13 @@ public class CodeLine {
   CodeElement[] elements;
   public int totalStrLength;
 
+  // Explicit line ordinal shown in the line-numbers gutter.
+  //  0            => AUTO: the number is derived from the document line index (classic docs),
+  //                  or the line carries no number at all (mapped / inline-disasm docs).
+  //  > 0          => explicit ordinal (caller managed; in mapped docs it marks a source line).
+  // See demo-edit/docs/line-numbers-refactoring-QA.md (AUTO) and demo-edit/docs/inline-disasm-open-questions.md (Q14).
+  public int lineNumber = 0;
+
   float[] fMeasure;
   int[] iMeasure;
   int[] lengthCache;
