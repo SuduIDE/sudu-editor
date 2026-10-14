@@ -150,4 +150,9 @@ public class CodeLineTest {
   private static CodeLine line1() {
     return new CodeLine(Arrays.copyOf(elements1, elements1.length));
   }
+
+  @Test public void defaultLineNumberIsAuto() {
+    assertEquals(0, new CodeLine("abc").lineNumber);
+    assertEquals(0, new CodeLine().lineNumber);
+  }
 }

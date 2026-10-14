@@ -2,7 +2,7 @@
 // demo-edit-es-module/src/main/java/org/sudu/experiments/EditJsApi.java
 
 import {
-  Uri, IEvent, ITextModel,
+  Uri, IEvent, ITextModel, ILineDescriptor,
   View, HasTheme, Theme, Focusable, TwoPanelDiff,
   ViewController, EditorViewController, FileDiffViewController,
   IEditorView, EditorView,
@@ -146,6 +146,10 @@ export function textureUsage(): string;
 export function newLangOptions(): LangOptions;
 
 export function newTextModel(text: string, language?: string, uri?: Uri): ITextModel
+
+export function newTextModelFromLines(
+  lines: ILineDescriptor[], language?: string, uri?: Uri
+): ITextModel
 
 export function newEditor(args: EditArgs): Promise<EditorView>
 

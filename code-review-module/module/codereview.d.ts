@@ -4,7 +4,7 @@
 import { IDisposable } from '@sudu-ide/types';
 
 import {
-  Uri, IEvent, ITextModel,
+  Uri, IEvent, ITextModel, ILineDescriptor,
   View, HasTheme, Theme, Focusable, TwoPanelDiff,
   IEditorView, FileDiffViewController
 } from '@sudu-ide/types/frontend';
@@ -94,6 +94,11 @@ export function newLangOptions(): LangOptions;
 export function newTextModel(
   workers: WorkerPool,
   text: string, language?: string, uri?: Uri
+): ITextModel
+
+export function newTextModelFromLines(
+  workers: WorkerPool,
+  lines: ILineDescriptor[], language?: string, uri?: Uri
 ): ITextModel
 
 export interface LinesInfo {

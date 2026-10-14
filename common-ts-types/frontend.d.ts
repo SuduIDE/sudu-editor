@@ -91,6 +91,11 @@ export type EditInfo = {
   to: number,
 }
 
+export interface ILineDescriptor {
+  lineNumber?: number
+  content: string
+}
+
 export interface ITextModel extends IDisposable {
   language?: string
   uri?: Uri
