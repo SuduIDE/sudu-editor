@@ -31,6 +31,7 @@ public interface Languages {
     if (LangBuildFlags.JSON) list.add(JSON);
     if (LangBuildFlags.ACTIVITY) list.add(ACTIVITY);
     if (LangBuildFlags.PYTHON) list.add(PYTHON);
+    if (LangBuildFlags.ASCEND_C) list.add(ASCEND_C);
     return list.toArray(new String[0]);
   }
 
@@ -55,7 +56,7 @@ public interface Languages {
     if (path == null || (d = path.lastIndexOf('.')) == -1) return TEXT;
     String extension = path.substring(d);
     String lang = switch (extension) {
-      case ".cpp", ".cc", ".cxx", ".hpp", ".c", ".h" -> CPP;
+      case ".cpp", ".cc", ".cxx", ".hpp", ".c", ".h" -> LangBuildFlags.CPP ? CPP : ASCEND_C;
       case ".java" -> JAVA;
       case ".js", ".mjs", ".cjs" -> JS;
       case ".ts" -> TS;
@@ -63,6 +64,7 @@ public interface Languages {
       case ".html", ".xml" -> HTML;
       case ".json" -> JSON;
       case ".py", ".pyc", ".pyo" -> PYTHON;
+      case ".asc" -> LangBuildFlags.ASCEND_C ? ASCEND_C : CPP;
       default -> TEXT;
     };
     return LangBuildFlags.isCompiled(lang) ? lang : TEXT;
