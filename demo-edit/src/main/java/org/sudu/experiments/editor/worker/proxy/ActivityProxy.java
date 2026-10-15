@@ -1,7 +1,6 @@
 package org.sudu.experiments.editor.worker.proxy;
 
 import org.sudu.experiments.editor.Languages;
-import org.sudu.experiments.parser.activity.gen.ActivityLexer;
 import org.sudu.experiments.parser.activity.parser.ActivityFirstLinesLexer;
 import org.sudu.experiments.parser.activity.parser.ActivityFullParser;
 import org.sudu.experiments.parser.activity.parser.ActivityIterativeParser;

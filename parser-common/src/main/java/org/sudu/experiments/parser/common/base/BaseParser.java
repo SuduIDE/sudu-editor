@@ -202,7 +202,7 @@ public abstract class BaseParser<P extends Parser> {
     int lineStart = 0;
     for (var line: tokensByLine) {
       if (line.isEmpty()) continue;
-      int lineStop = line.get(line.size() - 1).getText().length();
+      int lineStop = lineStart + line.get(line.size() - 1).getText().length();
       root.addChild(new Interval(lineStart, lineStop, 0));
       lineStart = lineStop;
     }
