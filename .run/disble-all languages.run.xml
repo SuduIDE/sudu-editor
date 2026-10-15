@@ -1,0 +1,57 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="disble-all languages" type="MavenRunConfiguration" factoryName="Maven">
+    <MavenSettings>
+      <option name="myGeneralSettings" />
+      <option name="myRunnerSettings">
+        <MavenRunnerSettings>
+          <option name="delegateBuildToMaven" value="false" />
+          <option name="environmentProperties">
+            <map />
+          </option>
+          <option name="jreName" value="#USE_PROJECT_JDK" />
+          <option name="mavenProperties">
+            <map />
+          </option>
+          <option name="passParentEnv" value="true" />
+          <option name="skipTests" value="true" />
+          <option name="vmOptions" value="" />
+        </MavenRunnerSettings>
+      </option>
+      <option name="myRunnerParameters">
+        <MavenRunnerParameters>
+          <option name="cmdOptions" />
+          <option name="profiles">
+            <set />
+          </option>
+          <option name="goals">
+            <list>
+              <option value="generate-sources" />
+              <option value="-pl" />
+              <option value="demo-edit" />
+              <option value="-Dsudu.lang.java=false" />
+              <option value="-Dsudu.lang.cpp=false" />
+              <option value="-Dsudu.lang.js=false" />
+              <option value="-Dsudu.lang.ts=false" />
+              <option value="-Dsudu.lang.activity=false" />
+              <option value="-Dsudu.lang.html=false" />
+              <option value="-Dsudu.lang.json=false" />
+              <option value="-Dsudu.lang.python=false" />
+              <option value="-Dsudu.lang.ascendc=false" />
+            </list>
+          </option>
+          <option name="multimoduleDir" />
+          <option name="pomFileName" value="pom.xml" />
+          <option name="profilesMap">
+            <map />
+          </option>
+          <option name="projectsCmdOptionValues">
+            <list />
+          </option>
+          <option name="resolveToWorkspace" value="false" />
+          <option name="workingDirPath" value="$PROJECT_DIR$" />
+        </MavenRunnerParameters>
+      </option>
+    </MavenSettings>
+    <method v="2" />
+  </configuration>
+</component>
