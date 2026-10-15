@@ -2,7 +2,19 @@
 
 Decisions for integrating inline disassembly (and composing it with unified diff and per-line numbering) into the pipeline described in [text-tokenization-pipeline.md](text-tokenization-pipeline.md).
 
-Status: **decided (Q1-Q18)** — every question is marked **DECIDED** inline (with rationale and consequences). This file kept its original `inline-disasm-open-questions.md` name and URL for link stability, but it is **no longer an open-questions / triage doc**: the questions are settled and this is the source of truth for the inline-disassembly work. The only remaining open items are the ones explicitly marked **TBD** (Q13 disasm color scheme; Q2 lazy add/replace).
+Status: **implemented (v1, complete)** — every question is marked **DECIDED** inline (with rationale and consequences) and the resulting design is implemented and working end-to-end. This file kept its original `inline-disasm-open-questions.md` name and URL for link stability, but it is **no longer an open-questions / triage doc**: the questions are settled and this is the source of truth for the inline-disassembly work.
+
+## Implementation (v1) — where the decisions landed
+
+- **Model** (`demo-edit`): a nullable `Document.sourceToDoc` mapping plus `srcStart` and `maxLineNumber`, built once at creation by `Document.fromDescriptors(...)` from the descriptor ordinals; the per-line number lives on `CodeLine.lineNumber` (`0` = AUTO in a classic document / attached in a mapped one). Every `Document` mutation is hard-blocked while `sourceToDoc != null` (`Document.rejectMappedEdit`). — `Document`, `CodeLine`
+- **Parser / viewport**: `ParserUtils.updateDocument` / `updateDocumentInterval` scatter parser output through `sourceToDoc` (preserving `lineNumber`); `Model.parseViewport` translates the visible document range into a source range by binary search and `parsedVps` stores the covered **source** intervals; `Model.setSemanticToken` and `Document.onResolve` work in source space and colour **source lines only**. — `ParserUtils`, `Model`, `Document`
+- **Rendering**: the gutter is driven by a number-addressed lookup (`EditorComponent` + `LineNumbersTexture`); attached disassembly lines render unnumbered. — `EditorComponent`, `LineNumbersComponent`, `LineNumbersTexture`
+- **Read-only**: `EditorComponent.editsBlocked()` blocks every modifying operation when `sourceToDoc != null`; `readonly` is the UI mirror set at attach, with a warn-once fallback (Q9).
+- **JS API**: `newTextModelFromLines(workers, lines, language?, uri?)` over `ILineDescriptor` (`{ lineNumber?, content }`, declared in `common-ts-types/frontend.d.ts`); Java side is `JsTextModel` / `JsLineDescriptor`. — `common-editor-js`, `code-review-module`
+- **Sample**: `code-review-module/module/samples/inlineDisasm.js` + `.html`.
+- **Tests**: `DocumentTest`, `ParserUtilsMappedTest`, `CodeLineTest`.
+
+Still explicitly **deferred / TBD** (none blocking v1): **Q13** disassembly color scheme; **Q2** lazy add/replace after creation; **Q16** folding for disassembly documents. Unified diff (**Q17-Q18**) remains a later, separate view-level step and does not compose with inline disassembly in v1.
 
 ---
 
@@ -10,7 +22,7 @@ Status: **decided (Q1-Q18)** — every question is marked **DECIDED** inline (wi
 
 ### 1. Where do disassembly lines live? — DECIDED (a)
 
-**Decision (tentative, "for now"):** Variant **(a)** - disassembly lines are `CodeLine`s **in the same `Document.lines`**, interleaved with source lines.
+**Decision:** Variant **(a)** - disassembly lines are `CodeLine`s **in the same `Document.lines`**, interleaved with source lines. (Implemented in v1.)
 
 **Context:** Earlier decision says disassembly lines are `CodeLine`s in the same `Document` (so view order is document order, and compact mapping includes them).
 
@@ -25,7 +37,7 @@ Status: **decided (Q1-Q18)** — every question is marked **DECIDED** inline (wi
 - (b) A distinct "attached lines" layer owned by the view/editor, rendered interleaved but **not** part of the parser document.
 - (c) A second `Document` for disassembly, interleaved at view time.
 
-**Status:** Provisional ("for now"); revisit (b)/(c) if keeping disassembly in the parser document proves too costly.
+**Status:** Implemented in v1 (variant (a) shipped). Revisit (b)/(c) only if keeping disassembly in the parser document proves too costly.
 
 ### 2. Who produces disassembly lines, and when? — DECIDED
 
