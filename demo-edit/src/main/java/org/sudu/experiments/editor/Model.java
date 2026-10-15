@@ -119,7 +119,7 @@ public class Model {
   public String language() {
     String lang = docLanguage != null ? docLanguage : languageFromFile();
     var options = getLangOptions != null ? getLangOptions.get() : null;
-    if (options == null) return lang;
+    if (options == null) return LangBuildFlags.isCompiled(lang) ? lang : Languages.TEXT;
     if (Languages.isCppVersion(lang)) return options.getCppVersion(lang);
     return options.isEnabled(lang) ? lang : Languages.TEXT;
   }
