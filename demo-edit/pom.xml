@@ -14,7 +14,22 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
+  <!--
+    Compile-time language inclusion (TeaVM DCE). Override via -D, e.g.:
+      mvn -pl demo-edit-es-module -am package -Dsudu.lang.cpp=false -Dsudu.lang.ascendc=false
+    text is always included. Runtime LangOptions can only disable languages from this set.
+  -->
   <properties>
+    <sudu.lang.java>true</sudu.lang.java>
+    <sudu.lang.cpp>true</sudu.lang.cpp>
+    <sudu.lang.js>true</sudu.lang.js>
+    <sudu.lang.ts>true</sudu.lang.ts>
+    <sudu.lang.activity>true</sudu.lang.activity>
+    <sudu.lang.html>true</sudu.lang.html>
+    <sudu.lang.json>true</sudu.lang.json>
+    <sudu.lang.python>true</sudu.lang.python>
+    <sudu.lang.ascendc>true</sudu.lang.ascendc>
+    <build-helper.version>3.5.0</build-helper.version>
   </properties>
 
   <packaging>jar</packaging>
@@ -58,6 +73,52 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>${maven.resource.version}</version>
+        <executions>
+          <execution>
+            <id>filter-lang-build-flags</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/generated-sources/lang-flags</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.basedir}/src/main/java-templates</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+              <delimiters>
+                <delimiter>@</delimiter>
+              </delimiters>
+              <useDefaultDelimiters>false</useDefaultDelimiters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>${build-helper.version}</version>
+        <executions>
+          <execution>
+            <id>add-lang-flags-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/lang-flags</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>

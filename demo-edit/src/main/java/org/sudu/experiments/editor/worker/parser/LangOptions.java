@@ -7,6 +7,11 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Runtime enable/disable for languages that were compiled into the build
+ * ({@link LangBuildFlags}). Does not affect JS bundle size; use Maven
+ * {@code sudu.lang.*} properties for that.
+ */
 public class LangOptions {
 
   private final Set<String> langSet;
@@ -23,8 +28,8 @@ public class LangOptions {
 
   public String getCppVersion(String lang) {
     boolean isAscendC = Objects.equals(lang, Languages.ASCEND_C);
-    boolean enabledAscendC = langSet.contains(Languages.ASCEND_C);
-    boolean enabledCpp = langSet.contains(Languages.CPP);
+    boolean enabledAscendC = langSet.contains(Languages.ASCEND_C) && LangBuildFlags.ASCEND_C;
+    boolean enabledCpp = langSet.contains(Languages.CPP) && LangBuildFlags.CPP;
     if (!enabledAscendC && !enabledCpp) return Languages.TEXT;
     if (enabledAscendC && isAscendC) return Languages.ASCEND_C;
     if (enabledAscendC && enabledCpp) {
@@ -38,11 +43,12 @@ public class LangOptions {
   }
 
   public boolean isEnabled(String lang) {
-    return Objects.equals(Languages.TEXT, lang) || langSet.contains(lang);
+    return Objects.equals(Languages.TEXT, lang)
+        || (LangBuildFlags.isCompiled(lang) && langSet.contains(lang));
   }
 
   public void enable(String lang) {
-    langSet.add(lang);
+    if (LangBuildFlags.isCompiled(lang)) langSet.add(lang);
   }
 
   public void enableAll() {

@@ -1,6 +1,7 @@
 package org.sudu.experiments.editor.worker.proxy;
 
 import org.sudu.experiments.editor.worker.ArgsCast;
+import org.sudu.experiments.editor.worker.parser.LangBuildFlags;
 import org.sudu.experiments.math.ArrayOp;
 
 import java.util.ArrayList;
@@ -19,15 +20,16 @@ public class FileProxy {
   public static final int PYTHON_FILE = 8;
   public static final int ASCEND_C_FILE = 9;
 
-  public static final JavaProxy javaProxy = new JavaProxy();
-  public static final CppProxy cppProxy = new CppProxy();
-  public static final JavaScriptProxy javascriptProxy = new JavaScriptProxy();
-  public static final TypeScriptProxy typescriptProxy = new TypeScriptProxy();
-  public static final ActivityProxy activityProxy = new ActivityProxy();
-  public static final HtmlProxy htmlProxy = new HtmlProxy();
-  public static final JsonProxy jsonProxy = new JsonProxy();
-  public static final PythonProxy pythonProxy = new PythonProxy();
-  public static final AscendCProxy ascendCProxy = new AscendCProxy();
+  // BaseProxy type so disabled langs leave no concrete *Proxy type in bytecode (TeaVM DCE).
+  public static final BaseProxy javaProxy = LangBuildFlags.JAVA ? new JavaProxy() : null;
+  public static final BaseProxy cppProxy = LangBuildFlags.CPP ? new CppProxy() : null;
+  public static final BaseProxy javascriptProxy = LangBuildFlags.JS ? new JavaScriptProxy() : null;
+  public static final BaseProxy typescriptProxy = LangBuildFlags.TS ? new TypeScriptProxy() : null;
+  public static final BaseProxy activityProxy = LangBuildFlags.ACTIVITY ? new ActivityProxy() : null;
+  public static final BaseProxy htmlProxy = LangBuildFlags.HTML ? new HtmlProxy() : null;
+  public static final BaseProxy jsonProxy = LangBuildFlags.JSON ? new JsonProxy() : null;
+  public static final BaseProxy pythonProxy = LangBuildFlags.PYTHON ? new PythonProxy() : null;
+  public static final BaseProxy ascendCProxy = LangBuildFlags.ASCEND_C ? new AscendCProxy() : null;
   public static final TextProxy textProxy = new TextProxy();
 
   public static final String asyncParseFile = "asyncParseFile";
@@ -98,7 +100,8 @@ public class FileProxy {
       Consumer<Object[]> result
   ) {
     ArrayList<Object> list = new ArrayList<>();
-    if (proxy == javaProxy) javaProxy.parseStructure(source, version, list);
+    if (LangBuildFlags.JAVA && proxy == javaProxy)
+      ((JavaProxy) javaProxy).parseStructure(source, version, list);
     else proxy.parseFullFile(source, version, list);
     ArrayOp.sendArrayList(list, result);
   }
@@ -117,15 +120,15 @@ public class FileProxy {
 
   private static BaseProxy getBaseProxy(int type) {
     return switch (type) {
-      case JAVA_FILE -> javaProxy;
-      case CPP_FILE -> cppProxy;
-      case JS_FILE -> javascriptProxy;
-      case TS_FILE -> typescriptProxy;
-      case ACTIVITY_FILE -> activityProxy;
-      case HTML_FILE -> htmlProxy;
-      case JSON_FILE -> jsonProxy;
-      case PYTHON_FILE -> pythonProxy;
-      case ASCEND_C_FILE -> ascendCProxy;
+      case JAVA_FILE -> LangBuildFlags.JAVA ? javaProxy : textProxy;
+      case CPP_FILE -> LangBuildFlags.CPP ? cppProxy : textProxy;
+      case JS_FILE -> LangBuildFlags.JS ? javascriptProxy : textProxy;
+      case TS_FILE -> LangBuildFlags.TS ? typescriptProxy : textProxy;
+      case ACTIVITY_FILE -> LangBuildFlags.ACTIVITY ? activityProxy : textProxy;
+      case HTML_FILE -> LangBuildFlags.HTML ? htmlProxy : textProxy;
+      case JSON_FILE -> LangBuildFlags.JSON ? jsonProxy : textProxy;
+      case PYTHON_FILE -> LangBuildFlags.PYTHON ? pythonProxy : textProxy;
+      case ASCEND_C_FILE -> LangBuildFlags.ASCEND_C ? ascendCProxy : textProxy;
       default -> textProxy;
     };
   }
