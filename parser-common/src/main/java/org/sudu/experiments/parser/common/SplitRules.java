@@ -2,11 +2,19 @@ package org.sudu.experiments.parser.common;
 
 import org.antlr.v4.runtime.Token;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract class SplitRules {
+
+  public static final SplitRules EMPTY = new SplitRules() {
+    @Override
+    public List<TokenSplitRule> getRules() {
+      return Collections.emptyList();
+    }
+  };
 
   public abstract List<TokenSplitRule> getRules();
 

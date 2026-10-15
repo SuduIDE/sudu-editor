@@ -32,8 +32,6 @@ public class ProjectView extends ViewArray implements
     undoBuffer = new UndoBuffer();
     langOptions = new LangOptions();
     langOptions.enableAll();
-    langOptions.disable(Languages.CPP);
-    langOptions.enable(Languages.ASCEND_C);
     editor = new EditorComponent(ui);
     editor.setGetUndoBuffer(() -> undoBuffer);
     editor.setGetLangOptions(() -> langOptions);

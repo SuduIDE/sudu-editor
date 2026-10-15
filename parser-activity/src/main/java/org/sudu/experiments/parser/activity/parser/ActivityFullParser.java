@@ -48,12 +48,7 @@ public class ActivityFullParser extends BaseFullParser<ActivityParser> {
 
   @Override
   protected SplitRules initSplitRules() {
-    return new SplitRules() {
-      @Override
-      public List<TokenSplitRule> getRules() {
-        return Collections.emptyList();
-      }
-    };
+    return SplitRules.EMPTY;
   }
 
   @Override

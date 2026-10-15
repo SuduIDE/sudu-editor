@@ -1,6 +1,8 @@
 package org.sudu.experiments.editor.worker.proxy;
 
 import org.sudu.experiments.editor.Languages;
+import org.sudu.experiments.parser.activity.gen.ActivityLexer;
+import org.sudu.experiments.parser.activity.parser.ActivityFirstLinesLexer;
 import org.sudu.experiments.parser.activity.parser.ActivityFullParser;
 import org.sudu.experiments.parser.activity.parser.ActivityIterativeParser;
 import org.sudu.experiments.parser.common.base.BaseFirstLinesLexer;
@@ -28,7 +30,7 @@ public class ActivityProxy extends BaseProxy {
 
   @Override
   public BaseFirstLinesLexer<?> getFirstLinesLexer() {
-    throw new UnsupportedOperationException();
+    return new ActivityFirstLinesLexer();
   }
 
   public static final String PARSE_FULL_FILE = "ActivityParser.parseFullFile";
