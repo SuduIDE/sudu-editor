@@ -29,6 +29,16 @@ public class Document extends CodeLines {
   public final Map<Pos, List<Pos>> defToUsages = new HashMap<>();
   public int[] linePrefixSum;
 
+  /** Source line → document line. {@code null} means identity (no inline disassembly). */
+  public int[] sourceToDoc;
+  /** Cumulative source-char starts; built once with {@link #sourceToDoc}. */
+  public int[] srcStart;
+  /** Document-global max display number (AUTO-aware). */
+  public int maxLineNumber;
+  boolean mappedReadonlyWarned;
+  boolean producerViolationWarned;
+  boolean applyAbortWarned;
+
   int currentVersion;
   int lastParsedVersion;
   double lastDiffTimestamp;
@@ -52,6 +62,203 @@ public class Document extends CodeLines {
     if (data.length == 0) throw new IllegalArgumentException();
     lines = data;
     tree = initialInterval();
+    maxLineNumber = data.length;
+  }
+
+  /**
+   * Build a document from per-line content and optional display numbers.
+   * {@code lineNumbers[i] > 0} marks a source line; {@code 0} is attached (or AUTO
+   * if no number is present on any line).
+   */
+  public static Document fromDescriptors(String[] contents, int[] lineNumbers) {
+    if (contents.length == 0) return new Document();
+    CodeLine[] data = new CodeLine[contents.length];
+    int sourceCount = 0;
+    for (int i = 0; i < contents.length; i++) {
+      data[i] = new CodeLine(contents[i]);
+      int n = lineNumbers != null && i < lineNumbers.length ? lineNumbers[i] : 0;
+      if (n > 0) {
+        data[i].lineNumber = n;
+        sourceCount++;
+      }
+    }
+    Document doc = new Document(data);
+    if (sourceCount > 0) {
+      int[] map = new int[sourceCount];
+      for (int i = 0, s = 0; i < data.length; i++) {
+        if (data[i].lineNumber > 0) map[s++] = i;
+      }
+      doc.initSourceMapping(map);
+    }
+    return doc;
+  }
+
+  public boolean isMapped() {
+    return sourceToDoc != null;
+  }
+
+  public int sourceCount() {
+    return sourceToDoc == null ? lines.length : sourceToDoc.length;
+  }
+
+  /** The only writer of {@link #sourceToDoc} / {@link #srcStart} besides tests. */
+  public void initSourceMapping(int[] sourceToDoc) {
+    this.sourceToDoc = sourceToDoc;
+    this.srcStart = computeSrcStart();
+    refreshMaxLineNumber();
+  }
+
+  public void refreshMaxLineNumber() {
+    if (sourceToDoc == null) {
+      maxLineNumber = lines.length;
+      return;
+    }
+    int max = 0;
+    for (CodeLine line : lines) {
+      if (line.lineNumber > max) max = line.lineNumber;
+    }
+    maxLineNumber = max;
+  }
+
+  public int resolveLineNumber(int documentIndex) {
+    if (documentIndex < 0 || documentIndex >= lines.length) return 0;
+    int stored = lines[documentIndex].lineNumber;
+    if (stored > 0) return stored;
+    if (sourceToDoc == null) return documentIndex + 1;
+    if (indexOfDocLine(documentIndex) >= 0) {
+      warnProducerViolation();
+    }
+    return 0;
+  }
+
+  public int docLineOfSource(int sourceIndex) {
+    if (sourceToDoc == null) return sourceIndex;
+    if (sourceIndex < 0 || sourceIndex >= sourceToDoc.length) return -1;
+    return sourceToDoc[sourceIndex];
+  }
+
+  public int sourceIndex(int documentLine) {
+    if (sourceToDoc == null) return documentLine;
+    if (documentLine < 0 || documentLine >= lines.length) return -1;
+    int n = lines[documentLine].lineNumber;
+    if (n > 0) {
+      int s = n - 1;
+      if (s >= 0 && s < sourceToDoc.length && sourceToDoc[s] == documentLine) return s;
+    }
+    return indexOfDocLine(documentLine);
+  }
+
+  /** Greatest source index {@code i} with {@code sourceToDoc[i] < documentLine}, or {@code -1}. */
+  public int enclosingSource(int documentLine) {
+    if (sourceToDoc == null) return documentLine;
+    return lowerBound(sourceToDoc, documentLine) - 1;
+  }
+
+  public int indexOfDocLine(int documentLine) {
+    if (sourceToDoc == null) return documentLine;
+    int i = lowerBound(sourceToDoc, documentLine);
+    if (i < sourceToDoc.length && sourceToDoc[i] == documentLine) return i;
+    return -1;
+  }
+
+  public static int lowerBound(int[] a, int value) {
+    int lo = 0, hi = a.length;
+    while (lo < hi) {
+      int mid = (lo + hi) >>> 1;
+      if (a[mid] < value) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  }
+
+  public static int upperBound(int[] a, int value) {
+    int lo = 0, hi = a.length;
+    while (lo < hi) {
+      int mid = (lo + hi) >>> 1;
+      if (a[mid] <= value) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  }
+
+  public int sourceLineAtOffset(int sourceOffset) {
+    if (srcStart == null) return getLine(sourceOffset).x;
+    int i = upperBound(srcStart, sourceOffset) - 1;
+    if (i < 0) return 0;
+    if (i >= srcStart.length) return srcStart.length - 1;
+    return i;
+  }
+
+  public int sourceLineAtEndOffset(int exclusiveStop) {
+    if (srcStart == null) return getLine(Math.max(0, exclusiveStop)).x;
+    int e = lowerBound(srcStart, exclusiveStop) - 1;
+    return Math.max(0, e);
+  }
+
+  public Pos toSourcePos(Pos docPos) {
+    if (sourceToDoc == null) return docPos;
+    int s = sourceIndex(docPos.line);
+    if (s < 0) return null;
+    int max = strLength(sourceToDoc[s]);
+    int c = Math.min(docPos.charPos, max);
+    return new Pos(s, c);
+  }
+
+  public Pos toDocPos(Pos sourcePos) {
+    if (sourceToDoc == null) return sourcePos;
+    if (sourcePos.line < 0 || sourcePos.line >= sourceToDoc.length) return null;
+    return new Pos(sourceToDoc[sourcePos.line], sourcePos.charPos);
+  }
+
+  public int toDocLine(int sourceLine) {
+    if (sourceToDoc == null) return sourceLine;
+    if (sourceLine < 0 || sourceLine >= sourceToDoc.length) return -1;
+    return sourceToDoc[sourceLine];
+  }
+
+  public char[] getSourceChars() {
+    if (sourceToDoc == null) return getChars();
+    int n = sourceToDoc.length;
+    if (n == 0) return new char[0];
+    int len = srcStart[n - 1] + strLength(sourceToDoc[n - 1]);
+    char[] dst = new char[len];
+    for (int i = 0, pos = 0; i < n; ) {
+      pos = lines[sourceToDoc[i]].toCharArray(dst, pos);
+      if (++i < n) dst[pos++] = newLine;
+    }
+    return dst;
+  }
+
+  int[] computeSrcStart() {
+    if (sourceToDoc == null) return null;
+    int n = sourceToDoc.length;
+    int[] start = new int[n];
+    for (int i = 0; i < n - 1; i++) {
+      start[i + 1] = start[i] + strLength(sourceToDoc[i]) + 1;
+    }
+    return start;
+  }
+
+  void warnProducerViolation() {
+    if (producerViolationWarned) return;
+    producerViolationWarned = true;
+    System.err.println("Document: sourceToDoc member has lineNumber == 0");
+  }
+
+  public void warnApplyAbort() {
+    if (applyAbortWarned) return;
+    applyAbortWarned = true;
+    System.err.println("Document: mapped interval apply aborted (N != e - s + 1)");
+  }
+
+  public void warnMappedReadonly() {
+    if (mappedReadonlyWarned) return;
+    mappedReadonlyWarned = true;
+    System.err.println("Document: mapped document attached without readonly");
+  }
+
+  private boolean rejectMappedEdit() {
+    return sourceToDoc != null;
   }
 
   public boolean isEmpty() {
@@ -126,6 +333,7 @@ public class Document extends CodeLines {
   }
 
   public void newLineOp(int caretLine, int caretCharPos) {
+    if (rejectMappedEdit()) return;
     CodeLine line = lines[caretLine];
 
     lines = Arrays.copyOf(lines, lines.length + 1);
@@ -146,13 +354,16 @@ public class Document extends CodeLines {
     }
 
     var cpxDiff = makeDiff(caretLine, caretCharPos, false, "\n");
+    refreshMaxLineNumber();
     onEditMade(cpxDiff);
   }
 
   public void concatLines(int caretLine) {
+    if (rejectMappedEdit()) return;
     int caretPos = strLength(caretLine);
     concatLinesOp(caretLine);
     var cpxDiff = makeDiff(caretLine, caretPos, true, "\n");
+    refreshMaxLineNumber();
     onEditMade(cpxDiff);
   }
 
@@ -164,6 +375,7 @@ public class Document extends CodeLines {
   }
 
   public void deleteLine(int caretLine) {
+    if (rejectMappedEdit()) return;
     String deleted = lines[caretLine].makeString().concat("\n");
     if (lines.length > 1) {
       deleteLineOp(caretLine);
@@ -172,16 +384,19 @@ public class Document extends CodeLines {
     }
 
     var cpxDiff = makeDiff(caretLine, 0, true, deleted);
+    refreshMaxLineNumber();
     onEditMade(cpxDiff);
   }
 
   public void replaceText(String[] newLines) {
+    if (rejectMappedEdit()) return;
     CodeLine[] newCodeLines = new CodeLine[newLines.length];
     for (int i = 0; i < newLines.length; i++) newCodeLines[i] = new CodeLine(newLines[i]);
     applyChange(0, lines.length, newCodeLines);
   }
 
   public void applyChange(int fromLine, int toLine, CodeLine[] newLines) {
+    if (rejectMappedEdit()) return;
     boolean applyFromTheStart = fromLine == 0;
     boolean applyToTheEnd = toLine == length();
 
@@ -198,6 +413,7 @@ public class Document extends CodeLines {
     onChangeApplied(cpxDiff);
     addDiff(cpxDiff);
     currentVersion++;
+    refreshMaxLineNumber();
   }
 
   private Diff copyLines(
@@ -248,6 +464,7 @@ public class Document extends CodeLines {
   }
 
   public Diff deleteLines(int fromLine, int toLine) {
+    if (rejectMappedEdit()) return null;
     return deleteLines(fromLine, toLine, fromLine == 0, toLine == length());
   }
 
@@ -256,6 +473,7 @@ public class Document extends CodeLines {
       boolean deleteFromTheStart,
       boolean deleteToTheEnd
   ) {
+    if (rejectMappedEdit()) return null;
     if (fromLine >= toLine) return null;
 
     StringBuilder deletedSB = new StringBuilder();
@@ -282,6 +500,7 @@ public class Document extends CodeLines {
   }
 
   public void deleteChar(int caretLine, int caretCharPos) {
+    if (rejectMappedEdit()) return;
     if (isLastPosition(caretLine, caretCharPos)) {
       // do nothing at the document end
       if (caretLine != lines.length - 1) {
@@ -297,16 +516,20 @@ public class Document extends CodeLines {
   }
 
   public void insertAt(int line, int pos, String value) {
+    if (rejectMappedEdit()) return;
     lines[line].insertAt(pos, value);
   }
 
   public void deleteAt(int line, int pos, int endIndex) {
+    if (rejectMappedEdit()) return;
     lines[line].delete(pos, endIndex);
   }
 
   public void insertLines(int line, int pos, String[] lines) {
+    if (rejectMappedEdit()) return;
     insertLinesOp(line, pos, lines);
     var cpxDiff = makeDiff(line, pos, false, String.join("\n", lines));
+    refreshMaxLineNumber();
     onEditMade(cpxDiff);
   }
 
@@ -382,9 +605,11 @@ public class Document extends CodeLines {
   }
 
   private void deleteSelected(Selection selection, String selected) {
+    if (rejectMappedEdit()) return;
     deleteAreaOp(selection.getLeftPos(), selection.getRightPos());
     Pos leftPos = selection.getLeftPos();
     var cpxDiff = makeDiff(leftPos.line, leftPos.charPos, true, selected);
+    refreshMaxLineNumber();
     onEditMade(cpxDiff);
   }
 
@@ -552,6 +777,7 @@ public class Document extends CodeLines {
       String[] changes,
       V2i caretPos
   ) {
+    if (rejectMappedEdit()) return;
     currentVersion++;
     var cpxDiff = mkCpxDiff(lines, poses, isDelete, changes, caretPos);
     addDiff(cpxDiff);
@@ -580,10 +806,12 @@ public class Document extends CodeLines {
   }
 
   public CpxDiff undoLastDiff(CpxDiff cpxDiff, boolean isRedo) {
+    if (rejectMappedEdit()) return null;
     return doCpxDiff(cpxDiff, isRedo);
   }
 
   public CpxDiff doSyncCpxDiff(CpxDiff cpxDiff, boolean isRedo) {
+    if (rejectMappedEdit()) return null;
     currentVersion++;
     var diffs = cpxDiff.diffs;
     if (isRedo) diffs = ArrayOp.reverse(diffs);
@@ -593,6 +821,7 @@ public class Document extends CodeLines {
   }
 
   public CpxDiff doCpxDiff(CpxDiff cpxDiff, boolean isRedo) {
+    if (rejectMappedEdit()) return null;
     currentVersion++;
     var diffs = cpxDiff.diffs;
     if (isRedo) diffs = ArrayOp.reverse(diffs);
@@ -679,15 +908,29 @@ public class Document extends CodeLines {
     if (linePrefixSum == null) return getPositionAt(offset);
     int lineInd = Arrays.binarySearch(linePrefixSum, offset);
     if (lineInd < 0) lineInd = -lineInd - 1;
-    int len;
-    if (lineInd - 1 < 0) len = 0;
-    else len = linePrefixSum[lineInd - 1];
-    Pos pos = new Pos(lineInd - 1, offset - len);
-    if (pos.charPos >= lines[pos.line].totalStrLength) {
-      pos.line++;
-      pos.charPos = 0;
+    int line = lineInd - 1;
+    if (line < 0) return new Pos(0, 0);
+    if (line >= lines.length) {
+      return new Pos(lines.length - 1, lines[lines.length - 1].totalStrLength);
     }
-    return pos;
+    int charPos = offset - linePrefixSum[line];
+    if (charPos >= lines[line].totalStrLength) {
+      return new Pos(line + 1, 0);
+    }
+    return new Pos(line, charPos);
+  }
+
+  /** Source-space offset → Pos. Identity documents reuse the document-space search. */
+  private Pos sourcePosAt(int offset) {
+    if (sourceToDoc == null) return binarySearchPosAt(offset);
+    int srcLine = sourceLineAtOffset(offset);
+    int charPos = offset - srcStart[srcLine];
+    int len = strLength(sourceToDoc[srcLine]);
+    if (charPos >= len) {
+      return srcLine + 1 < sourceToDoc.length
+          ? new Pos(srcLine + 1, 0) : new Pos(srcLine, len);
+    }
+    return new Pos(srcLine, charPos);
   }
 
   public void onResolve(int[] resolveInts, boolean highlightErrors) {
@@ -698,26 +941,30 @@ public class Document extends CodeLines {
     while (reader.hasNext()) {
       int refFlag = reader.next();
       if (refFlag == -1) continue;
-      var refPos = binarySearchPosAt(reader.next());
-      var refElem = lines[refPos.line].getCodeElement(refPos.charPos);
+      Pos refSrc = sourcePosAt(reader.next());
+      Pos refDoc = toDocPos(refSrc);
+      if (refDoc == null) continue;
+      CodeElement refElem = lines[refDoc.line].getCodeElement(refDoc.charPos);
 
       int declFlag = reader.next();
       if (declFlag == -1) {
-        if (highlightErrors) {
+        if (highlightErrors && refElem != null) {
           refElem.color = ParserConstants.TokenTypes.DEFAULT;
           refElem.style = ParserConstants.TokenStyles.error(refElem.style);
         }
         continue;
       }
-      var declPos = binarySearchPosAt(reader.next());
-      var type = reader.next();
-      var style = reader.next();
+      Pos declSrc = sourcePosAt(reader.next());
+      int type = reader.next();
+      int style = reader.next();
 
-      usageToDef.put(refPos, declPos);
-      defToUsages.putIfAbsent(declPos, new ArrayList<>());
-      defToUsages.get(declPos).add(refPos);
-      refElem.color = type;
-      refElem.style = style;
+      usageToDef.put(refSrc, declSrc);
+      defToUsages.putIfAbsent(declSrc, new ArrayList<>());
+      defToUsages.get(declSrc).add(refSrc);
+      if (refElem != null) {
+        refElem.color = type;
+        refElem.style = style;
+      }
     }
   }
 

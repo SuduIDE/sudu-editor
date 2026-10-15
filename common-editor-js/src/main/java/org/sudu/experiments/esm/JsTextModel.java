@@ -1,6 +1,7 @@
 package org.sudu.experiments.esm;
 
 import org.sudu.experiments.SplitInfo;
+import org.sudu.experiments.editor.Document;
 import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.SemanticTokenInfo;
 import org.sudu.experiments.esm.semantic.JsSemanticToken;
@@ -31,6 +32,20 @@ public class JsTextModel implements JsITextModel {
 
     static void install() {
       Setter.set(JsTextModel::new);
+      FromLines.Setter.set(JsTextModel::fromLines);
+    }
+  }
+
+  @JSFunctor
+  public interface FromLines extends JSObject {
+    JsITextModel create(
+        JsWorkerPool workerPool,
+        JsArray<JsLineDescriptor> lines,
+        JSString language, JsUri uri);
+
+    class Setter {
+      @JSBody(params = {"f"}, script = "newTextModelFromLines = f;")
+      static native void set(FromLines f);
     }
   }
 
@@ -47,6 +62,28 @@ public class JsTextModel implements JsITextModel {
     javaModel.setExecutor(JsWorkerPool.pool(workerPool));
     javaModel.platformObject = this;
     jsUri = uri;
+  }
+
+  public static JsTextModel fromLines(
+      JsWorkerPool workerPool,
+      JsArray<JsLineDescriptor> lines,
+      JSString language, JsUri uri
+  ) {
+    int n = lines.getLength();
+    String[] contents = new String[n];
+    int[] numbers = new int[n];
+    for (int i = 0; i < n; i++) {
+      JsLineDescriptor d = lines.get(i);
+      contents[i] = d.hasContent() ? JsHelper.toString(d.getContent(), "") : "";
+      numbers[i] = d.hasLineNumber() ? d.getLineNumber() : 0;
+    }
+    Model model = new Model(
+        Document.fromDescriptors(contents, numbers),
+        JsHelper.toString(language, null),
+        uri.toJava());
+    model.setExecutor(JsWorkerPool.pool(workerPool));
+    JsTextModel js = new JsTextModel(model);
+    return js;
   }
 
   private JsTextModel(Model model) {

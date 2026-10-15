@@ -6,9 +6,9 @@ import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.FontDesk;
 import org.sudu.experiments.input.MouseEvent;
-import org.sudu.experiments.math.Color;
 import org.sudu.experiments.math.Rect;
 import org.sudu.experiments.math.V2i;
+import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.SetCursor;
 
 import java.util.*;
@@ -82,7 +82,7 @@ public class LineNumbersComponent implements Disposable {
 
   public void drawEmptyLines(
       int yFrom, int yTo,
-      WglGraphics g, Color bgColor
+      WglGraphics g, V4f bgColor
   ) {
     bottomSize.x = size.x;
     bottomSize.y = yTo - yFrom;
@@ -103,13 +103,40 @@ public class LineNumbersComponent implements Disposable {
       EditorColorScheme colorScheme,
       WglGraphics g
   ) {
+    drawCaretLine(dY, caretViewLine, caretDocLine, caretDocLine + 1, colorScheme, g);
+  }
+
+  public void drawCaretLine(
+      int dY,
+      int caretViewLine, int caretDocLine, int N,
+      EditorColorScheme colorScheme,
+      WglGraphics g
+  ) {
     int y0 = dY + caretViewLine * lineHeight;
     int y1 = y0 + lineHeight;
     var intersect = y0 < size.y && 0 < y1;
-    if (intersect) {
-      var texture = texture(g, caretDocLine);
-      texture.drawCaretLine(pos, y0, caretDocLine, colorScheme, colors, g);
+    if (!intersect) return;
+    if (N < 1) {
+      drawEmptyLines(y0, y1, g, colorScheme.getDiffColor(colors, caretDocLine));
+      return;
     }
+    var texture = texture(g, N - 1);
+    texture.drawCaretNumber(pos, y0, N, caretDocLine, colorScheme, colors, g);
+    texture.lastFrame = frameId;
+  }
+
+  public void drawNumber(int yPos, int N, int docLine, EditorColorScheme scheme, WglGraphics g) {
+    drawNumberRun(yPos, N, 1, docLine, scheme, g);
+  }
+
+  public void drawNumberRun(
+      int yPos, int firstN, int count, int docLine,
+      EditorColorScheme scheme, WglGraphics g
+  ) {
+    if (firstN < 1 || count < 1) return;
+    var texture = texture(g, firstN - 1);
+    texture.drawNumberRun(pos, yPos, firstN, count, docLine, scheme, colors, g);
+    texture.lastFrame = frameId;
   }
 
   public void beginDraw(WglGraphics g, int frameId) {
