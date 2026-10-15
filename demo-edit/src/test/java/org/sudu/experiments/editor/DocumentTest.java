@@ -549,6 +549,89 @@ class DocumentTest {
 
   }
 
+  @Test void testMaxLineNumberAuto() {
+    Document d = doc4();
+    Assertions.assertEquals(4, d.maxLineNumber);
+    Assertions.assertFalse(d.isMapped());
+    Assertions.assertEquals(1, d.resolveLineNumber(0));
+    Assertions.assertEquals(4, d.resolveLineNumber(3));
+    d.newLineOp(3, 2);
+    Assertions.assertEquals(5, d.maxLineNumber);
+  }
+
+  @Test void testFromDescriptorsMapping() {
+    Document d = Document.fromDescriptors(
+        new String[]{"src1", "dis", "src2"},
+        new int[]{1, 0, 2});
+    Assertions.assertTrue(d.isMapped());
+    Assertions.assertArrayEquals(new int[]{0, 2}, d.sourceToDoc);
+    Assertions.assertEquals(1, d.lines[0].lineNumber);
+    Assertions.assertEquals(0, d.lines[1].lineNumber);
+    Assertions.assertEquals(2, d.lines[2].lineNumber);
+    Assertions.assertEquals(1, d.resolveLineNumber(0));
+    Assertions.assertEquals(0, d.resolveLineNumber(1));
+    Assertions.assertEquals(2, d.resolveLineNumber(2));
+    Assertions.assertEquals(2, d.maxLineNumber);
+    Assertions.assertEquals(0, d.sourceIndex(0));
+    Assertions.assertEquals(-1, d.sourceIndex(1));
+    Assertions.assertEquals(1, d.sourceIndex(2));
+    Assertions.assertEquals(0, d.enclosingSource(1));
+  }
+
+  @Test void testGetSourceChars() {
+    Document d = Document.fromDescriptors(
+        new String[]{"ab", "xx", "cd"},
+        new int[]{1, 0, 2});
+    Assertions.assertEquals("ab\nxx\ncd", d.makeString());
+    Assertions.assertEquals("ab\ncd", new String(d.getSourceChars()));
+    Assertions.assertArrayEquals(new int[]{0, 3}, d.srcStart);
+  }
+
+  @Test void testMappedEditRejected() {
+    Document d = Document.fromDescriptors(
+        new String[]{"ab", "xx"},
+        new int[]{1, 0});
+    String before = d.makeString();
+    d.insertLines(0, 0, new String[]{"z"});
+    d.deleteChar(0, 0);
+    d.newLineOp(0, 0);
+    Assertions.assertEquals(before, d.makeString());
+    Assertions.assertEquals(1, d.lines[0].lineNumber);
+  }
+
+  @Test void testClassicOmitsStayAuto() {
+    Document d = Document.fromDescriptors(
+        new String[]{"a", "b"},
+        new int[]{0, 0});
+    Assertions.assertFalse(d.isMapped());
+    Assertions.assertEquals(1, d.resolveLineNumber(0));
+    Assertions.assertEquals(2, d.resolveLineNumber(1));
+  }
+
+  @Test void testOnResolveMappedUsesSourceOffsets() {
+    Document d = Document.fromDescriptors(
+        new String[]{"ab", "xx", "cd"},
+        new int[]{1, 0, 2});
+    Assertions.assertArrayEquals(new int[]{0, 3}, d.srcStart);
+    // source text "ab\ncd": offset 3 is source line 1 ("cd"); offset 0 is source line 0 ("ab")
+    d.onResolve(new int[]{1, 3, 1, 0, 7, 0}, false);
+    Pos ref = new Pos(1, 0);
+    Pos decl = new Pos(0, 0);
+    Assertions.assertEquals(decl, d.usageToDef.get(ref));
+    Assertions.assertTrue(d.defToUsages.get(decl).contains(ref));
+    Assertions.assertEquals(7, d.lines[2].get(0).color);
+    Assertions.assertEquals(0, d.lines[1].get(0).color);
+  }
+
+  @Test void testOnResolveIdentityUnchanged() {
+    Document d = new Document(new String[]{"ab", "cd"});
+    d.onResolve(new int[]{1, 3, 1, 0, 7, 0}, false);
+    Pos ref = new Pos(1, 0);
+    Pos decl = new Pos(0, 0);
+    Assertions.assertEquals(decl, d.usageToDef.get(ref));
+    Assertions.assertEquals(7, d.lines[1].get(0).color);
+  }
+
   static Document doc4() {
     return new Document(ab("AB"), ab("CD"), ab("EF"), ab("GH"));
   }

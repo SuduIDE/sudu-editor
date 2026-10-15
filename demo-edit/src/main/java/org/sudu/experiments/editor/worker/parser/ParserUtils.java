@@ -41,21 +41,29 @@ public abstract class ParserUtils {
     int K = reader.next();
     int L = reader.next();
 
-    int documentLength = document.length();
+    int sourceCount = document.sourceCount();
+    boolean mapped = document.isMapped();
 
-    if (document.lines.length < N) {
+    if (!mapped && document.lines.length < N) {
       document.lines = ArrayOp.resizeOrReturn(document.lines, N);
     }
 
     for (int i = 0; i < N; i++) {
-      if (saveOldLines && i < documentLength) {
+      if (saveOldLines && i < sourceCount) {
         int len = reader.next();
         reader.skip(4 * len);
         continue;
       }
+      int docSlot = mapped ? document.docLineOfSource(i) : i;
+      if (docSlot < 0 || docSlot >= document.lines.length) {
+        readElements(reader, docChars, 0);
+        continue;
+      }
       CodeElement[] elements = readElements(reader, docChars, 0);
       CodeLine line = new CodeLine(elements);
-      document.setLine(i, line, true);
+      CodeLine prev = document.lines[docSlot];
+      line.lineNumber = prev != null ? prev.lineNumber : (mapped ? i + 1 : 0);
+      document.setLine(docSlot, line, true);
     }
     document.countPrefixes();
 
@@ -100,16 +108,51 @@ public abstract class ParserUtils {
     int N = reader.next();
     int K = reader.next();
 
-    V2i stLine = document.getLine(intervalStart);
-    V2i endLine = document.getLine(intervalStop);
-    CodeElement[] left = document.lines[stLine.x].getElementsToLeft(stLine.y);
-    CodeElement[] right = document.lines[endLine.x].getElementsToRight(endLine.y);
+    int stDoc, stChar, endDoc, endChar;
+    if (document.isMapped()) {
+      int s = document.sourceLineAtOffset(intervalStart);
+      int e = document.sourceLineAtEndOffset(intervalStop);
+      if (N != e - s + 1) {
+        document.warnApplyAbort();
+        return;
+      }
+      stDoc = document.docLineOfSource(s);
+      endDoc = document.docLineOfSource(e);
+      stChar = intervalStart - document.srcStart[s];
+      endChar = intervalStop - document.srcStart[e];
+      for (int i = 0; i < N; i++) {
+        int docSlot = document.docLineOfSource(s + i);
+        CodeElement[] elements = readElements(reader, chars, intervalStart);
+        if (i == 0) elements = ArrayOp.add(
+            document.lines[stDoc].getElementsToLeft(stChar), elements);
+        if (i == N - 1) elements = ArrayOp.add(
+            elements, document.lines[endDoc].getElementsToRight(endChar));
+        CodeLine line = new CodeLine(elements);
+        CodeLine prev = document.lines[docSlot];
+        line.lineNumber = prev != null ? prev.lineNumber : s + i + 1;
+        document.setLine(docSlot, line, success);
+      }
+    } else {
+      V2i stLine = document.getLine(intervalStart);
+      V2i endLine = document.getLine(intervalStop);
+      stDoc = stLine.x;
+      stChar = stLine.y;
+      endDoc = endLine.x;
+      endChar = endLine.y;
+      CodeElement[] left = document.lines[stDoc].getElementsToLeft(stChar);
+      CodeElement[] right = document.lines[endDoc].getElementsToRight(endChar);
 
-    for (int i = 0; i < N; i++) {
-      CodeElement[] elements = readElements(reader, chars, intervalStart);
-      if (i == 0) elements = ArrayOp.add(left, elements);
-      if (i == N - 1) elements = ArrayOp.add(elements, right);
-      document.setLine(stLine.x + i, new CodeLine(elements), success);
+      for (int i = 0; i < N; i++) {
+        CodeElement[] elements = readElements(reader, chars, intervalStart);
+        if (i == 0) elements = ArrayOp.add(left, elements);
+        if (i == N - 1) elements = ArrayOp.add(elements, right);
+        CodeLine line = new CodeLine(elements);
+        int slot = stDoc + i;
+        if (slot < document.lines.length && document.lines[slot] != null) {
+          line.lineNumber = document.lines[slot].lineNumber;
+        }
+        document.setLine(slot, line, success);
+      }
     }
 
     if (success) {

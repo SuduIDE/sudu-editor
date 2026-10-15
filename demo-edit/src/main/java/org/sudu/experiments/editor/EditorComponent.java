@@ -218,7 +218,7 @@ public class EditorComponent extends View implements
     boolean hasMerge = mergeButtons != null;
     int mergeWidth = hasMerge ? mergeWidth() : 0;
 
-    numDigits = Numbers.numDecimalDigits(model.document.length());
+    numDigits = Numbers.numDecimalDigits(Math.max(1, model.document.maxLineNumber));
     int lineNumbersWidth = lineNumbers.measureDigits(
         numDigits, g.mCanvas, dpr);
 
@@ -886,26 +886,49 @@ public class EditorComponent extends View implements
     if (viewToDocMap.length == 0) return;
     lineNumbers.beginDraw(g, frameId);
 
-    int l0 = firstLine, l0Value = viewToDocMap[0];
-//    System.out.println("frame --- >");
-    for (int i = firstLine + 1; i < lastLine; i++) {
-      int value = viewToDocMap[i - firstLine];
-      var follow = value < 0 ? l0Value < 0 : value + l0 == l0Value + i;
-      if (!follow) {
-        drawLnSegment(l0, l0Value, i);
-        l0 = i;
-        l0Value = value;
+    Document doc = model.document;
+    int runView = -1, runN = 0, runDoc = -1, runCount = 0, runBank = -1, runColorDoc = -1;
+    for (int view = firstLine; view < lastLine; view++) {
+      int docLine = viewToDocMap[view - firstLine];
+      if (docLine < 0) {
+        flushNumberRun(runView, runN, runCount, runDoc);
+        runCount = 0;
+        int y0 = view * lineHeight - vScrollPos;
+        lineNumbers.drawEmptyLines(y0, y0 + lineHeight, g, colors.editor.bg);
+        continue;
+      }
+      int N = doc.resolveLineNumber(docLine);
+      if (N < 1) {
+        flushNumberRun(runView, runN, runCount, runDoc);
+        runCount = 0;
+        int y0 = view * lineHeight - vScrollPos;
+        lineNumbers.drawEmptyLines(y0, y0 + lineHeight, g, colors.getDiffColor(lineNumbers.colors(), docLine));
+        continue;
+      }
+      int bank = ((N - 1) / LineNumbersTexture.numberOfLines) * LineNumbersTexture.numberOfLines;
+      boolean canBatch = runCount > 0
+          && bank == runBank
+          && N == runN + runCount
+          && sameGutterColor(runColorDoc, docLine);
+      if (!canBatch) {
+        flushNumberRun(runView, runN, runCount, runDoc);
+        runView = view;
+        runN = N;
+        runDoc = docLine;
+        runCount = 1;
+        runBank = bank;
+        runColorDoc = docLine;
+      } else {
+        runCount++;
       }
     }
-    if (l0 != lastLine) {
-      drawLnSegment(l0, l0Value, lastLine);
-    }
-//    System.out.println("< --- frame");
+    flushNumberRun(runView, runN, runCount, runDoc);
 
     int viewCursor = docToView.docToView(model.caretLine);
     if (viewCursor >= 0 && viewCursor >= firstLine && viewCursor < lastLine) {
+      int caretN = doc.resolveLineNumber(model.caretLine);
       lineNumbers.drawCaretLine(-vScrollPos,
-          viewCursor, model.caretLine, colors, g);
+          viewCursor, model.caretLine, caretN, colors, g);
     }
     int endOfDocument = lastLine * lineHeight - vScrollPos;
     if (endOfDocument < lineNumbers.pos.y + lineNumbers.size.y)
@@ -913,10 +936,20 @@ public class EditorComponent extends View implements
     lineNumbers.endDraw(g);
   }
 
+  private void flushNumberRun(int runView, int runN, int runCount, int runDoc) {
+    if (runCount <= 0) return;
+    int y = runView * lineHeight - vScrollPos;
+    lineNumbers.drawNumberRun(y, runN, runCount, runDoc, colors, g);
+  }
+
+  private boolean sameGutterColor(int docA, int docB) {
+    byte[] c = lineNumbers.colors();
+    byte ca = docA >= 0 && docA < c.length ? c[docA] : 0;
+    byte cb = docB >= 0 && docB < c.length ? c[docB] : 0;
+    return ca == cb;
+  }
+
   private void drawLnSegment(int l0, int l0Value, int l1) {
-//    System.out.println("drawRange: at line " + l0 + ")" +
-//        (l0Value < 0 ? " - empty" :
-//            "draw [" + l0Value + "..." + (l0Value + l1 - l0) + ")"));
     int l0y = l0 * lineHeight - vScrollPos;
     if (l0Value < 0) {
       int l1y = l1 * lineHeight - vScrollPos;
@@ -1092,7 +1125,7 @@ public class EditorComponent extends View implements
   }
 
   public boolean handleInsert(String s) {
-    if (readonly) return false;
+    if (editsBlocked()) return false;
     if (selection().isAreaSelected()) deleteSelectedArea();
     String[] lines = SplitText.split(s);
 
@@ -1327,6 +1360,7 @@ public class EditorComponent extends View implements
   public void findUsages(V2i position, ReferenceProvider.Provider provider) {
     Pos pos = computeCharPos(position);
     if (pos == null) return;
+    if (model.document.toSourcePos(pos) == null) return;
 
     if (provider != null) {
       // todo: probable bug: position captured is used to computeCharPos in showUsagesViaLocations,
@@ -1339,6 +1373,7 @@ public class EditorComponent extends View implements
   public void findUsages(V2i position, DefDeclProvider.Provider provider) {
     Pos pos = computeCharPos(position);
     if (pos == null) return;
+    if (model.document.toSourcePos(pos) == null) return;
     Pos startPos = model.document.getElementStart(pos.line, pos.charPos);
     String elementName = getElementNameByStartPos(startPos);
 
@@ -1348,17 +1383,24 @@ public class EditorComponent extends View implements
       return;
     }
 
-    Pos def = model.document.usageToDef.get(startPos);
-    if (def != null) {
-      gotoUsage(def);
+    Pos sourceStart = model.document.toSourcePos(startPos);
+    if (sourceStart == null) {
+      ui.displayNoUsagesPopup(position);
       return;
     }
 
-    List<Pos> usages = model.document.defToUsages.get(startPos);
+    Pos def = model.document.usageToDef.get(sourceStart);
+    if (def != null) {
+      Pos defDoc = model.document.toDocPos(def);
+      if (defDoc != null) gotoUsage(defDoc);
+      return;
+    }
+
+    List<Pos> usages = model.document.defToUsages.get(sourceStart);
     if (usages == null || usages.isEmpty()) {
       ui.displayNoUsagesPopup(position);
     } else {
-      ui.showUsagesWindow(position, usages, this, elementName);
+      ui.showUsagesWindow(position, mapUsagesToDoc(usages), this, elementName);
     }
   }
 
@@ -1445,23 +1487,37 @@ public class EditorComponent extends View implements
   }
 
   private boolean gotoByLocalProvider(V2i position, Pos elementStart, String elementName) {
-    var defPos = model.document.usageToDef.get(elementStart);
+    Pos sourceStart = model.document.toSourcePos(elementStart);
+    if (sourceStart == null) return false;
+    var defPos = model.document.usageToDef.get(sourceStart);
     if (defPos != null) {
-      gotoUsage(defPos);
-      return true;
+      Pos defDoc = model.document.toDocPos(defPos);
+      if (defDoc != null) gotoUsage(defDoc);
+      return defDoc != null;
     } else {
-      var usagesList = model.document.defToUsages.get(elementStart);
+      var usagesList = model.document.defToUsages.get(sourceStart);
       if (usagesList != null && !usagesList.isEmpty()) {
-        if (usagesList.size() == 1) {
-          gotoUsage(usagesList.get(0));
+        List<Pos> docUsages = mapUsagesToDoc(usagesList);
+        if (docUsages.isEmpty()) return false;
+        if (docUsages.size() == 1) {
+          gotoUsage(docUsages.get(0));
           return true;
         } else {
-          ui.showUsagesWindow(position, usagesList, this, elementName);
+          ui.showUsagesWindow(position, docUsages, this, elementName);
           return true;
         }
       }
     }
     return false;
+  }
+
+  private List<Pos> mapUsagesToDoc(List<Pos> sourceUsages) {
+    List<Pos> docUsages = new ArrayList<>(sourceUsages.size());
+    for (Pos usage : sourceUsages) {
+      Pos doc = model.document.toDocPos(usage);
+      if (doc != null) docUsages.add(doc);
+    }
+    return docUsages;
   }
 
   private void gotoDefinition(V2i position, Location[] locs, String elementName) {
@@ -1497,6 +1553,7 @@ public class EditorComponent extends View implements
     V2i eventPosition = event.position;
     Pos pos = computeCharPos(eventPosition);
     if (pos == null) return;
+    if (model.document.toSourcePos(pos) == null) return;
     Pos startPos = model.document.getElementStart(pos.line, pos.charPos);
     String elementName = getElementNameByStartPos(startPos);
 
@@ -1771,7 +1828,7 @@ public class EditorComponent extends View implements
 
     if (event.ctrl && event.keyCode == KeyCode.A) return selectAll();
 
-    if (!readonly && event.ctrl && event.keyCode == KeyCode.Z) {
+    if (!editsBlocked() && event.ctrl && event.keyCode == KeyCode.Z) {
       undoLastDiff(event.shift);
       return true;
     }
@@ -1808,7 +1865,7 @@ public class EditorComponent extends View implements
   }
 
   public boolean onCopy(Consumer<String> setText, boolean isCut) {
-    if (isCut && readonly) return false;
+    if (isCut && editsBlocked()) return false;
     var left = selection().getLeftPos();
     int line = left.line;
     String result;
@@ -1860,7 +1917,7 @@ public class EditorComponent extends View implements
   }
 
   private boolean handleEditingKeys(KeyEvent event) {
-    if (readonly) return false;
+    if (editsBlocked()) return false;
     return switch (event.keyCode) {
       case KeyCode.TAB -> handleTab(event.shift);
       case KeyCode.ENTER -> handleEnter();
@@ -2029,11 +2086,22 @@ public class EditorComponent extends View implements
     model.setGetUndoBuffer(getUndoBuffer);
     model.setGetLangOptions(getLangOptions);
     model.setEditor(this, window().worker());
+    if (model.document.isMapped()) {
+      readonly = true;
+    }
     vScrollPos = Numbers.iRnd(model.vScrollLine * lineHeight);
     lastNotifiedCaretLine = -1;
     notifyCaretLine();
     notifyVScrollObserver();
     checkLineNumbersLayout();
+  }
+
+  private boolean editsBlocked() {
+    if (model.document.isMapped()) {
+      if (!readonly) model.document.warnMappedReadonly();
+      return true;
+    }
+    return readonly;
   }
 
   private void clearUsages() {
@@ -2212,8 +2280,7 @@ public class EditorComponent extends View implements
 
   private void checkLineNumbersLayout() {
     if (dpr == 0) return;
-    int docLength = model.document.length();
-    int newDigits = Numbers.numDecimalDigits(docLength);
+    int newDigits = Numbers.numDecimalDigits(Math.max(1, model.document.maxLineNumber));
     if (newDigits != numDigits) {
       internalLayout();
     }

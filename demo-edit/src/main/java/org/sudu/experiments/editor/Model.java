@@ -89,9 +89,13 @@ public class Model {
   }
 
   public Model(String[] text, String language, Uri uri) {
+    this(new Document(text), language, uri);
+  }
+
+  public Model(Document document, String language, Uri uri) {
     this.uri = uri;
     docLanguage = language;
-    document = new Document(text);
+    this.document = document;
     document.updateModelOnDiff = this::updateModelOnDiff;
     document.onEditMade = this::onDiffMade;
     document.onChangeApplied = this::onChangeApplied;
@@ -242,6 +246,10 @@ public class Model {
   }
 
   void computeUsages() {
+    if (document.isMapped() && document.sourceIndex(caretLine) < 0) {
+      clearUsages();
+      return;
+    }
     Pos caretPos = new Pos(caretLine, caretCharPos);
     Pos elementPos = document.getElementStart(caretLine, caretCharPos);
     computeUsages(caretPos, elementPos);
@@ -256,15 +264,20 @@ public class Model {
   private void computeUsages(Pos caretPos, Pos elementPos) {
     clearUsages();
 
-    Pos def = document.getDefinition(elementPos);
+    Pos sourceElem = document.toSourcePos(elementPos);
+    if (sourceElem == null) return;
 
-    if (def == null) def = elementPos;
+    Pos def = document.getDefinition(sourceElem);
+
+    if (def == null) def = sourceElem;
 
     List<Pos> usageList = document.getUsagesList(def);
     if (usageList != null) {
-      definition = document.getCodeElement(def);
+      Pos defDoc = document.toDocPos(def);
+      if (defDoc != null) definition = document.getCodeElement(defDoc);
       for (var usage: usageList) {
-        usages.add(document.getCodeElement(usage));
+        Pos usageDoc = document.toDocPos(usage);
+        if (usageDoc != null) usages.add(document.getCodeElement(usageDoc));
       }
     }
 
@@ -324,7 +337,7 @@ public class Model {
 
     String lang = language();
     int langType = Languages.getType(lang);
-    char[] chars = document.getChars();
+    char[] chars = sourceChars();
     if (isDisableParser()) {
       sendLexer(chars, langType);
       return;
@@ -349,12 +362,16 @@ public class Model {
     }
   }
 
+  private char[] sourceChars() {
+    return document.getSourceChars();
+  }
+
   private void sendStructure() {
-    sendStructure(document.getChars(), Languages.getType(language()));
+    sendStructure(sourceChars(), Languages.getType(language()));
   }
 
   private void sendFull() {
-    sendFull(document.getChars(), Languages.getType(language()));
+    sendFull(sourceChars(), Languages.getType(language()));
   }
 
   private void sendLexer(char[] chars, int langType) {
@@ -396,7 +413,7 @@ public class Model {
     if (debug) {
       Debug.consoleInfo(getFileName() + "/Model::parseFullFile");
     }
-    char[] chars = document.getChars();
+    char[] chars = sourceChars();
     if (isDisableParser()) {
       sendLexer(chars, Languages.getType(language()));
       return;
@@ -413,12 +430,13 @@ public class Model {
     if (debug) {
       Debug.consoleInfo(getFileName() + "/Model::iterativeParsing");
     }
+    if (document.isMapped()) return;
     iterativeFileParsed = ParseStatus.NOT_PARSED;
     if (fullFileParsed != ParseStatus.PARSED) return;
 
     String language = language();
     if (isDisableParser()) {
-      char[] chars = document.getChars();
+      char[] chars = sourceChars();
       int langType = Languages.getType(language);
       sendLexerIterative(chars, langType);
       return;
@@ -433,7 +451,7 @@ public class Model {
 
     int start = reparseNode.getStart(), stop = reparseNode.getStop();
     int[] interval = new int[]{start, stop, reparseNode.getType()};
-    char[] chars = document.getChars();
+    char[] chars = sourceChars();
     int[] type = new int[]{Languages.getType(language)};
 
     int[] graphInts;
@@ -501,22 +519,39 @@ public class Model {
 
   void parseViewport(int editorFirstLine, int editorLastLine) {
     if (fullFileParsed == ParseStatus.PARSED || fileStructureParsed != ParseStatus.PARSED) return;
-    boolean vpParsed = isVpParsed(editorFirstLine, editorLastLine);
-    if (!vpParsed) {
-      if (Languages.JAVA.equals(language())) {
-        int firstLine = Math.max(0, editorFirstLine - EditorConst.VIEWPORT_OFFSET);
-        int lastLine = Math.min(document.length() - 1, editorLastLine + EditorConst.VIEWPORT_OFFSET);
-        parsedVps.add(new V2i(firstLine, lastLine));
-        int[] vpInts = new int[]{document.getLineStartInd(firstLine), document.getVpEnd(lastLine), firstLine};
-        viewportParseStart = System.currentTimeMillis();
-        executor.sendToWorker(true, this::onVpParsed,
-            JavaProxy.PARSE_VIEWPORT,
-            document.getChars(), vpInts,
-            document.getIntervals(),
-            new int[]{Languages.getType(language()), document.currentVersion}
-        );
+    if (!Languages.JAVA.equals(language())) return;
+
+    int firstLine = Math.max(0, editorFirstLine - EditorConst.VIEWPORT_OFFSET);
+    int lastLine = Math.min(document.length() - 1, editorLastLine + EditorConst.VIEWPORT_OFFSET);
+    int srcFirst = firstLine, srcLast = lastLine;
+    int[] vpInts;
+    if (document.isMapped()) {
+      srcFirst = Document.lowerBound(document.sourceToDoc, firstLine);
+      srcLast = Document.upperBound(document.sourceToDoc, lastLine) - 1;
+      if (srcFirst < document.sourceToDoc.length
+          && document.sourceToDoc[srcFirst] > firstLine
+          && srcFirst > 0) {
+        srcFirst--;
       }
+      if (srcFirst > srcLast) return;
+      if (isVpParsed(srcFirst, srcLast)) return;
+      parsedVps.add(new V2i(srcFirst, srcLast));
+      int vpStart = document.srcStart[srcFirst];
+      int vpEnd = document.srcStart[srcLast]
+          + document.strLength(document.sourceToDoc[srcLast]);
+      vpInts = new int[]{vpStart, vpEnd, srcFirst};
+    } else {
+      if (isVpParsed(firstLine, lastLine)) return;
+      parsedVps.add(new V2i(firstLine, lastLine));
+      vpInts = new int[]{document.getLineStartInd(firstLine), document.getVpEnd(lastLine), firstLine};
     }
+    viewportParseStart = System.currentTimeMillis();
+    executor.sendToWorker(true, this::onVpParsed,
+        JavaProxy.PARSE_VIEWPORT,
+        sourceChars(), vpInts,
+        document.getIntervals(),
+        new int[]{Languages.getType(language()), document.currentVersion}
+    );
   }
 
   private boolean isEmpty() {
@@ -568,8 +603,10 @@ public class Model {
   }
 
   private void setSemanticToken(SemanticTokenInfo token) {
-    if (token == null || token.line < 0 || token.line >= document.length()) return;
-    var line = document.line(token.line);
+    if (token == null || token.line < 0 || token.line >= document.sourceCount()) return;
+    int docLine = document.toDocLine(token.line);
+    if (docLine < 0) return;
+    var line = document.line(docLine);
     if (token.startCharPos < 0 || token.startCharPos >= line.totalStrLength) return;
     var element = line.getCodeElement(token.startCharPos);
     if (element == null || !element.s.equals(token.text)) {
