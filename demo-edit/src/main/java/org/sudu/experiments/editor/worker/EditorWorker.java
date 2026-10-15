@@ -101,7 +101,9 @@ public class EditorWorker {
     }
     if (LangBuildFlags.ASCEND_C && AscendCProxy.PARSE_FULL_FILE.equals(method)) {
       ascendCProxy.parseFullFile(a, result);
+      return;
     }
+    System.err.println("Unknown or compiled-out language method: " + method);
   }
 
   static void asyncMethod(String method, Object[] a, Consumer<Object[]> r) {

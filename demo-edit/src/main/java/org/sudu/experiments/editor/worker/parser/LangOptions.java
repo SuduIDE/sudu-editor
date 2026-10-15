@@ -15,7 +15,6 @@ import java.util.Set;
 public class LangOptions {
 
   private final Set<String> langSet;
-  private boolean warnPrinted = false;
 
   public LangOptions() {
     this.langSet = new HashSet<>();
@@ -32,13 +31,7 @@ public class LangOptions {
     boolean enabledCpp = langSet.contains(Languages.CPP) && LangBuildFlags.CPP;
     if (!enabledAscendC && !enabledCpp) return Languages.TEXT;
     if (enabledAscendC && isAscendC) return Languages.ASCEND_C;
-    if (enabledAscendC && enabledCpp) {
-      if (!warnPrinted) {
-        System.err.println("[warn] C++ and Ascend C are both enabled in the same time");
-        warnPrinted = true;
-      }
-      return Languages.CPP;
-    }
+    if (enabledAscendC && enabledCpp) return Languages.CPP;
     return enabledCpp ? Languages.CPP : Languages.ASCEND_C;
   }
 

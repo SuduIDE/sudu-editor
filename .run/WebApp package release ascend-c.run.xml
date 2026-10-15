@@ -30,13 +30,13 @@
               <option value="-pl" />
               <option value="demo-edit-js" />
               <option value="-Dsudu.lang.java=false" />
+              <option value="-Dsudu.lang.cpp=false" />
               <option value="-Dsudu.lang.js=false" />
               <option value="-Dsudu.lang.ts=false" />
               <option value="-Dsudu.lang.activity=false" />
               <option value="-Dsudu.lang.html=false" />
               <option value="-Dsudu.lang.json=false" />
               <option value="-Dsudu.lang.python=false" />
-              <option value="-Dsudu.lang.ascendc=false" />
             </list>
           </option>
           <option name="multimoduleDir" />
