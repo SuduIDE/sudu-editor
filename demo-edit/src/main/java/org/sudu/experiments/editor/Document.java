@@ -908,13 +908,12 @@ public class Document extends CodeLines {
     if (linePrefixSum == null) return getPositionAt(offset);
     int lineInd = Arrays.binarySearch(linePrefixSum, offset);
     if (lineInd < 0) lineInd = -lineInd - 1;
-    int len = lineInd - 1 < 0 ? 0 : linePrefixSum[lineInd - 1];
     int line = lineInd - 1;
-    int charPos = offset - len;
     if (line < 0) return new Pos(0, 0);
     if (line >= lines.length) {
       return new Pos(lines.length - 1, lines[lines.length - 1].totalStrLength);
     }
+    int charPos = offset - linePrefixSum[line];
     if (charPos >= lines[line].totalStrLength) {
       return new Pos(line + 1, 0);
     }
