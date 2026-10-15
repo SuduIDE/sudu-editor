@@ -908,19 +908,17 @@ public class Document extends CodeLines {
     if (linePrefixSum == null) return getPositionAt(offset);
     int lineInd = Arrays.binarySearch(linePrefixSum, offset);
     if (lineInd < 0) lineInd = -lineInd - 1;
-    int len;
-    if (lineInd - 1 < 0) len = 0;
-    else len = linePrefixSum[lineInd - 1];
-    Pos pos = new Pos(lineInd - 1, offset - len);
-    if (pos.line < 0) return new Pos(0, 0);
-    if (pos.line >= lines.length) {
+    int len = lineInd - 1 < 0 ? 0 : linePrefixSum[lineInd - 1];
+    int line = lineInd - 1;
+    int charPos = offset - len;
+    if (line < 0) return new Pos(0, 0);
+    if (line >= lines.length) {
       return new Pos(lines.length - 1, lines[lines.length - 1].totalStrLength);
     }
-    if (pos.charPos >= lines[pos.line].totalStrLength) {
-      pos.line++;
-      pos.charPos = 0;
+    if (charPos >= lines[line].totalStrLength) {
+      return new Pos(line + 1, 0);
     }
-    return pos;
+    return new Pos(line, charPos);
   }
 
   /** Source-space offset → Pos. Identity documents reuse the document-space search. */
