@@ -45,10 +45,12 @@ public interface Languages {
       case "activity" -> ACTIVITY;
       case "html" -> HTML;
       case "json" -> JSON;
+      case "python", "py" -> PYTHON;
+      case "ascend-c", "ascendc", "asc" -> ASCEND_C;
       default -> null;
     };
     if (resolved == null) return null;
-    return LangBuildFlags.isCompiled(resolved) ? resolved : TEXT;
+    return resolveLanguage(resolved);
   }
 
   static String languageFromFilename(String path) {
@@ -56,7 +58,7 @@ public interface Languages {
     if (path == null || (d = path.lastIndexOf('.')) == -1) return TEXT;
     String extension = path.substring(d);
     String lang = switch (extension) {
-      case ".cpp", ".cc", ".cxx", ".hpp", ".c", ".h" -> LangBuildFlags.CPP ? CPP : ASCEND_C;
+      case ".cpp", ".cc", ".cxx", ".hpp", ".c", ".h" -> CPP;
       case ".java" -> JAVA;
       case ".js", ".mjs", ".cjs" -> JS;
       case ".ts" -> TS;
@@ -64,10 +66,10 @@ public interface Languages {
       case ".html", ".xml" -> HTML;
       case ".json" -> JSON;
       case ".py", ".pyc", ".pyo" -> PYTHON;
-      case ".asc" -> LangBuildFlags.ASCEND_C ? ASCEND_C : CPP;
+      case ".asc" -> ASCEND_C;
       default -> TEXT;
     };
-    return LangBuildFlags.isCompiled(lang) ? lang : TEXT;
+    return resolveLanguage(lang);
   }
 
   static int getType(String lang) {
