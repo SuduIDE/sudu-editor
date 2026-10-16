@@ -2,6 +2,8 @@
 
 > **Note:** This document holds only the goals, intentions, and current-state summary. All decisions live in [line-numbers-refactoring-QA.md](line-numbers-refactoring-QA.md), which is the single source of truth. See the topic index under [Decisions](#decisions).
 
+> **Status (v1):** the immediate scope — goals **3-6** (per-line numbers + inline rendering) — is **implemented and working**. **Goal 1 (unified diff) is not yet implemented**; it remains a later, separate view-level step. See the implementation notes in [inline-disasm-open-questions.md](inline-disasm-open-questions.md).
+
 ## Goals and Intentions
 
 1. **Unified diff view**: Support rendering where lines from two documents can interlace (unified diff style), rather than side-by-side split.
@@ -11,14 +13,16 @@
 5. **Preserve performance**: Use the same rendering approach/resources where sensible (same font). Draw numbers efficiently.
 6. **Preserve selection/copy behavior**: Allow selecting across all lines for copy; constrain editing appropriately.
 
-> **Sequencing (read this first):** These goals are **sequenced, not simultaneous deliverables** for this refactoring. The immediate scope is goals **3-6** (per-line numbers + inline rendering). **Unified diff (goal 1) is a later, separate view-level step** and — per [inline-disasm-open-questions.md](inline-disasm-open-questions.md) Q17-Q18 — **does not compose with inline disassembly in v1**. Goal 2 (inline rendering) and goal 1 (unified diff) are orthogonal line structures, not one combined feature.
+> **Sequencing (read this first):** These goals are **sequenced, not simultaneous deliverables** for this refactoring. The immediate scope is goals **3-6** (per-line numbers + inline rendering) — **now implemented** (see Status above). **Unified diff (goal 1) is a later, separate view-level step** and — per [inline-disasm-open-questions.md](inline-disasm-open-questions.md) Q17-Q18 — **does not compose with inline disassembly in v1**. Goal 2 (inline rendering) and goal 1 (unified diff) are orthogonal line structures, not one combined feature.
 
 ## Current State Summary
 
-- **CodeLine**: Represents a single document line split into CodeElements. No line number/flags. Pure model.
-- **CodeLineRenderer**: Renders a CodeLine to texture tiles, handles selection/highlights/diffs, horizontal scrolling. No line numbers.
-- **LineNumbersComponent + LineNumbersTexture**: Separate gutter renderer (tiled textures in batches of 20), does hit testing, cursor changes, diff backgrounds, caret highlighting. Drawn in separate pass by EditorComponent.
-- **EditorComponent**: Uses docToView (CodeLineMapping) to map view lines to document lines. Renderer pool recycles by content identity. Layout has separate gutter width.
+Status: the immediate scope (goals **3-6**: per-line numbers + inline rendering) is **implemented**; **goal 1 (unified diff) is not yet implemented**.
+
+- **CodeLine**: Represents a single document line split into CodeElements. Now also carries the per-line display number `lineNumber` (`0` = **AUTO** in a classic document, or attached / unnumbered in a mapped one). *(implemented)*
+- **CodeLineRenderer**: Renders a CodeLine to texture tiles, handles selection/highlights/diffs, horizontal scrolling. Still renders only the text area — no line numbers; the gutter stays a separate pass.
+- **LineNumbersComponent + LineNumbersTexture**: Separate gutter renderer (tiled textures, integer banks of `numberOfLines == 20`), now driven by a **number-addressed lookup** (`LineNumbersTexture.drawNumberRun`); does hit testing, cursor changes, diff backgrounds, caret highlighting. Drawn in a separate pass by EditorComponent.
+- **EditorComponent**: Uses docToView (CodeLineMapping) to map view lines to document lines. Renderer pool recycles by content identity. Layout has a separate gutter width, sized from the document-global max line number. Gates editing via `editsBlocked()` — a mapped document (`sourceToDoc != null`) is read-only.
 
 ## Decisions
 
