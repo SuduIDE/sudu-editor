@@ -50,6 +50,7 @@ public class Model {
   final List<CodeElement> usages = new ArrayList<>();
   final List<V2i> parsedVps = new ArrayList<>();
   private SemanticTokenInfo[] pendingSemanticTokens;
+  private SemanticTokenInfo[] documentTokens;
 
   int fullFileLexed = ParseStatus.NOT_PARSED;
   int fileStructureParsed = ParseStatus.NOT_PARSED;
@@ -308,6 +309,7 @@ public class Model {
   void setEditor(EditorToModel editor, WorkerJobExecutor executor) {
     this.editor = editor;
     this.executor = executor;
+    applyDocumentTokens();
     if (executor != null) {
       if (fullFileParsed == ParseStatus.NOT_PARSED) requestParseFile();
       // todo: execute eny pending jobs here
@@ -615,6 +617,40 @@ public class Model {
     if (token == null || token.line < 0 || token.line >= document.sourceCount()) return;
     int docLine = document.toDocLine(token.line);
     if (docLine < 0) return;
+    applyTokenAt(token, docLine);
+  }
+
+  /**
+   * Tokens that belong to the document as built (e.g. disassembly run segments
+   * from {@code newTextModelFromLines}). Unlike semantic tokens they address
+   * document lines directly, so attached lines can be colored. Colors are
+   * resolved through the editor color scheme, so they are applied when the
+   * editor is attached (or right away if it already is).
+   */
+  public void setDocumentTokens(SemanticTokenInfo[] tokens) {
+    documentTokens = tokens;
+    applyDocumentTokens();
+  }
+
+  /**
+   * Re-resolves document-token colors against the current editor color scheme.
+   * Needed after a theme change, which rebuilds the scheme (and therefore the
+   * palette of explicit colors). Does nothing when no document tokens exist.
+   */
+  public void reapplyDocumentTokens() {
+    applyDocumentTokens();
+  }
+
+  private void applyDocumentTokens() {
+    if (documentTokens == null || editor == null) return;
+    if (editor.getColorScheme() == null) return;
+    for (var token: documentTokens) {
+      if (token == null || token.line < 0 || token.line >= document.length()) continue;
+      applyTokenAt(token, token.line);
+    }
+  }
+
+  private void applyTokenAt(SemanticTokenInfo token, int docLine) {
     var line = document.line(docLine);
     if (token.startCharPos < 0 || token.startCharPos >= line.totalStrLength) return;
     var element = line.getCodeElement(token.startCharPos);

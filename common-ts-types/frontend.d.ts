@@ -86,14 +86,33 @@ export type _SemanticTokenLegendItem = {
   color?: _SemanticTokenColorSettings;
 };
 
+// A per-document token dictionary: token type name -> color settings.
+// Lets a caller introduce new token types (for example for inline disassembly)
+// without extending _SemanticTokenType. Names are free-form and only have to be
+// known to the document they are used with.
+export type _TokenDictionary = {
+  [tokenType: string]: _SemanticTokenColorSettings;
+};
+
 export type EditInfo = {
   from: number,
   to: number,
 }
 
+export interface ILineToken {
+  // literal text of this run
+  text: string
+  // optional token type looked up in the document token dictionary;
+  // omitted => plain default text, as in a document without tokenization
+  tokenType?: string
+}
+
 export interface ILineDescriptor {
+  // 1-based source ordinal; omit for attached (for example disassembly) lines
   lineNumber?: number
-  content: string
+  // run segments; concatenated they form the line text.
+  // A plain line is a single run without tokenType.
+  tokens: ILineToken[]
 }
 
 export interface ITextModel extends IDisposable {

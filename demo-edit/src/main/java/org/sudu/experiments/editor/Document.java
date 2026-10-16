@@ -73,20 +73,31 @@ public class Document extends CodeLines {
   public static Document fromDescriptors(String[] contents, int[] lineNumbers) {
     if (contents.length == 0) return new Document();
     CodeLine[] data = new CodeLine[contents.length];
+    for (int i = 0; i < contents.length; i++) data[i] = new CodeLine(contents[i]);
+    return fromLines(data, lineNumbers);
+  }
+
+  /**
+   * Build a document from already tokenized lines and optional display numbers.
+   * The numbering rules are the same as in {@link #fromDescriptors}; use this
+   * overload when a line carries its own {@link CodeElement} split (for example
+   * disassembly), so semantic/descriptor tokens can match its elements.
+   */
+  public static Document fromLines(CodeLine[] lines, int[] lineNumbers) {
+    if (lines.length == 0) return new Document();
     int sourceCount = 0;
-    for (int i = 0; i < contents.length; i++) {
-      data[i] = new CodeLine(contents[i]);
+    for (int i = 0; i < lines.length; i++) {
       int n = lineNumbers != null && i < lineNumbers.length ? lineNumbers[i] : 0;
       if (n > 0) {
-        data[i].lineNumber = n;
+        lines[i].lineNumber = n;
         sourceCount++;
       }
     }
-    Document doc = new Document(data);
+    Document doc = new Document(lines);
     if (sourceCount > 0) {
       int[] map = new int[sourceCount];
-      for (int i = 0, s = 0; i < data.length; i++) {
-        if (data[i].lineNumber > 0) map[s++] = i;
+      for (int i = 0, s = 0; i < lines.length; i++) {
+        if (lines[i].lineNumber > 0) map[s++] = i;
       }
       doc.initSourceMapping(map);
     }
