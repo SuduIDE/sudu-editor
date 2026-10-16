@@ -2,7 +2,6 @@ package org.sudu.experiments.esm;
 
 import org.sudu.experiments.WebWorkersPool;
 import org.sudu.experiments.editor.EditorConst;
-import org.sudu.experiments.editor.worker.parser.LangOptions;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSObjects;
@@ -45,11 +44,6 @@ public interface EditArgs extends JSObject {
   @JSProperty
   JSString getCodiconUrl();
 
-  String langOptionsProperty = "langOptions";
-
-  @JSProperty
-  JsILangOptions getLangOptions();
-
   default boolean hasCodiconUrl() {
     return JSObjects.hasProperty(this, codiconUrlProp);
   }
@@ -71,20 +65,10 @@ public interface EditArgs extends JSObject {
     return JSObjects.hasProperty(this, disableParser);
   }
 
-  default boolean hasLangOptions() {
-    return JSObjects.hasProperty(this, langOptionsProperty);
-  }
-
   default boolean getDisableParserOrDefault() {
     return hasDisableParser()
         ? getDisableParser()
         : EditorConst.DEFAULT_DISABLE_PARSER;
-  }
-
-  default LangOptions resolveLangOptions() {
-    if (!hasLangOptions()) return null;
-    JsILangOptions opts = getLangOptions();
-    return opts instanceof JsLangOptions js ? js.javaLangOptions : null;
   }
 
   default JSString workerUrl() {
