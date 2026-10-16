@@ -28,15 +28,30 @@ Build requirements
    mvn install -DskipTests
    ```
 
-3. now you can build demo-edit-es-module and ai-demo-js
+3. Generate `LangBuildFlags` before building JS modules or running the Java desktop app.
+   This runs `generate-sources` for `demo-edit` and is required so IDEA/Maven can
+   compile language selection flags:
+      - IDEA run-configuration: `generate-sources`
+      - or `mvn generate-sources -pl demo-edit`
+
+   Output: `demo-edit/target/generated-sources/lang-flags/.../LangBuildFlags.java`
+   Mark that folder as a generated sources root in the IDE if it is not picked up
+   automatically.
+
+   Optional — omit languages at build time to shrink `worker.js` (TeaVM DCE) via
+   Maven properties `sudu.lang.*` (e.g. `-Dsudu.lang.cpp=false`). Runtime
+   `LangOptions` can only further restrict the compiled-in set and does not
+   reduce JS size.
+
+4. now you can build demo-edit-es-module and ai-demo-js
       - `mvn package -am -pl demo-edit-es-module -P release`
       - `mvn package -am -pl ai-demo-js -P release`
 
-4. To download fonts (for demo-edit-js and demo-edit-jvm), run the task:
+5. To download fonts (for demo-edit-js and demo-edit-jvm), run the task:
 
    `mvn package -am -pl :codicon -pl :fonts -f pom.xml`
 
-5. demo-edit-js includes WebAssembly demo, and requires the latest emscripten to compile it. You may skip it if you don't need demo-edit-js:
+6. demo-edit-js includes WebAssembly demo, and requires the latest emscripten to compile it. You may skip it if you don't need demo-edit-js:
 
     ```
     install python from Microsoft Store
@@ -52,7 +67,7 @@ Build requirements
     set EMSDK D:\emsdk  
     ```
 
-6. To build the desktop Windows app (demo-edit-jvm), you need Microsoft Visual Studio 2022.
+7. To build the desktop Windows app (demo-edit-jvm), you need Microsoft Visual Studio 2022.
 
    Do not use installer UX, there is a commandline below that installs only necessary components
 
@@ -69,7 +84,7 @@ Build requirements
    set MSBuildPath=C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin
    ```
 
-7. Edit environment to access MSBuild(for graphics-jvm) or Clang(emscripten, for demo-edit-js):
+8. Edit environment to access MSBuild(for graphics-jvm) or Clang(emscripten, for demo-edit-js):
    ```
    rundll32 sysdm.cpl,EditEnvironmentVariables
    ```
@@ -83,13 +98,13 @@ Build requirements
      clang --help
      ```
 
-8. Desktop version (demo-edit-jvm) requires libGLESv2.dll - Angle library. 
+9. Desktop version (demo-edit-jvm) requires libGLESv2.dll - Angle library. 
    One way of getting it is to run org.sudu.experiments.nativelib.CopyAngleToResources
    You may also need to build native parts of project with this maven command:
    `mvn package -am -pl graphics-jvm`
    After this steps you can simply run org.sudu.experiments.DemoEditJvm
 
-9. If you want to build webpack-test, you need Node.js version 18+. 
+10. If you want to build webpack-test, you need Node.js version 18+. 
    Steps:  
    1. Run maven task to build the module (any of "a" or "b")
       1. run IDEA run-configuration "Module package"

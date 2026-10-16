@@ -7,6 +7,7 @@ import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.parser.ParseResult;
 import org.sudu.experiments.editor.worker.parser.ParseStatus;
+import org.sudu.experiments.editor.worker.parser.LangBuildFlags;
 import org.sudu.experiments.editor.worker.parser.LangOptions;
 import org.sudu.experiments.editor.worker.parser.ParserUtils;
 import org.sudu.experiments.editor.worker.proxy.*;
@@ -118,7 +119,7 @@ public class Model {
   public String language() {
     String lang = docLanguage != null ? docLanguage : languageFromFile();
     var options = getLangOptions != null ? getLangOptions.get() : null;
-    if (options == null) return lang;
+    if (options == null) return LangBuildFlags.isCompiled(lang) ? lang : Languages.TEXT;
     if (Languages.isCppVersion(lang)) return options.getCppVersion(lang);
     return options.isEnabled(lang) ? lang : Languages.TEXT;
   }
@@ -497,18 +498,26 @@ public class Model {
   }
 
   static String parseJobName(String language) {
-    return language != null ? switch (language) {
-      case Languages.JAVA -> JavaProxy.PARSE_FULL_FILE_SCOPES;
-      case Languages.CPP -> CppProxy.PARSE_FULL_FILE_SCOPES;
-      case Languages.JS -> JavaScriptProxy.PARSE_FULL_FILE;
-      case Languages.TS -> TypeScriptProxy.PARSE_FULL_FILE;
-      case Languages.ACTIVITY -> ActivityProxy.PARSE_FULL_FILE;
-      case Languages.HTML -> HtmlProxy.PARSE_FULL_FILE;
-      case Languages.JSON -> JsonProxy.PARSE_FULL_FILE;
-      case Languages.PYTHON -> PythonProxy.PARSE_FULL_FILE;
-      case Languages.ASCEND_C -> AscendCProxy.PARSE_FULL_FILE;
-      default -> TextProxy.PARSE_FULL_FILE;
-    } : null;
+    if (language == null) return null;
+    if (Languages.JAVA.equals(language) && LangBuildFlags.JAVA)
+      return JavaProxy.PARSE_FULL_FILE_SCOPES;
+    if (Languages.CPP.equals(language) && LangBuildFlags.CPP)
+      return CppProxy.PARSE_FULL_FILE_SCOPES;
+    if (Languages.JS.equals(language) && LangBuildFlags.JS)
+      return JavaScriptProxy.PARSE_FULL_FILE;
+    if (Languages.TS.equals(language) && LangBuildFlags.TS)
+      return TypeScriptProxy.PARSE_FULL_FILE;
+    if (Languages.ACTIVITY.equals(language) && LangBuildFlags.ACTIVITY)
+      return ActivityProxy.PARSE_FULL_FILE;
+    if (Languages.HTML.equals(language) && LangBuildFlags.HTML)
+      return HtmlProxy.PARSE_FULL_FILE;
+    if (Languages.JSON.equals(language) && LangBuildFlags.JSON)
+      return JsonProxy.PARSE_FULL_FILE;
+    if (Languages.PYTHON.equals(language) && LangBuildFlags.PYTHON)
+      return PythonProxy.PARSE_FULL_FILE;
+    if (Languages.ASCEND_C.equals(language) && LangBuildFlags.ASCEND_C)
+      return AscendCProxy.PARSE_FULL_FILE;
+    return TextProxy.PARSE_FULL_FILE;
   }
 
   void resolveAll() {
@@ -519,7 +528,7 @@ public class Model {
 
   void parseViewport(int editorFirstLine, int editorLastLine) {
     if (fullFileParsed == ParseStatus.PARSED || fileStructureParsed != ParseStatus.PARSED) return;
-    if (!Languages.JAVA.equals(language())) return;
+    if (!LangBuildFlags.JAVA || !Languages.JAVA.equals(language())) return;
 
     int firstLine = Math.max(0, editorFirstLine - EditorConst.VIEWPORT_OFFSET);
     int lastLine = Math.min(document.length() - 1, editorLastLine + EditorConst.VIEWPORT_OFFSET);

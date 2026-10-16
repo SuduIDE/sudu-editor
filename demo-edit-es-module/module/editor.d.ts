@@ -50,6 +50,11 @@ export const enum Languages {
   ASCEND_C = "ascend-c",
 }
 
+/**
+ * Runtime language enable/disable. Only affects languages compiled into the
+ * build (Maven properties sudu.lang.*). Disabling here does not shrink the
+ * JS bundle; omit languages at build time to exclude their parsers from worker.js.
+ */
 export interface LangOptions {
   isEnabled(lang: string): boolean;
   enable(lang: string): void;

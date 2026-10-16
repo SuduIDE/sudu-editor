@@ -1,6 +1,7 @@
 package org.sudu.experiments.editor.worker;
 
 import org.sudu.experiments.editor.worker.diff.DiffUtils;
+import org.sudu.experiments.editor.worker.parser.LangBuildFlags;
 import org.sudu.experiments.editor.worker.proxy.*;
 import org.sudu.experiments.math.ArrayOp;
 
@@ -29,19 +30,6 @@ public class EditorWorker {
       case TestJobs.withBytes -> TestJobs.withBytes(ArgsCast.array(a, 0).bytes(), result);
       case TestJobs.withInts -> TestJobs.withInts(ArgsCast.array(a, 0).ints(), result);
       case TestJobs.fibonacci -> TestJobs.fibonacci(ArgsCast.array(a, 0).ints(), result);
-      case ActivityProxy.PARSE_FULL_FILE -> activityProxy.parseFullFile(a, result);
-      case JavaProxy.PARSE_FULL_FILE -> javaProxy.parseFullFile(a, result);
-      case JavaProxy.PARSE_FULL_FILE_SCOPES -> javaProxy.parseFullFileScopes(a, result);
-      case JavaProxy.PARSE_VIEWPORT -> javaProxy.parseViewport(a, result);
-      case JavaProxy.PARSE_STRUCTURE -> javaProxy.parseStructure(a, result);
-      case CppProxy.PARSE_FULL_FILE -> cppProxy.parseFullFile(a, result);
-      case CppProxy.PARSE_FULL_FILE_SCOPES -> cppProxy.parseFullFileScopes(a, result);
-      case JavaScriptProxy.PARSE_FULL_FILE -> javascriptProxy.parseFullFile(a, result);
-      case TypeScriptProxy.PARSE_FULL_FILE -> typescriptProxy.parseFullFile(a, result);
-      case HtmlProxy.PARSE_FULL_FILE -> htmlProxy.parseFullFile(a, result);
-      case JsonProxy.PARSE_FULL_FILE -> jsonProxy.parseFullFile(a, result);
-      case PythonProxy.PARSE_FULL_FILE -> pythonProxy.parseFullFile(a, result);
-      case AscendCProxy.PARSE_FULL_FILE -> ascendCProxy.parseFullFile(a, result);
       case TextProxy.PARSE_FULL_FILE -> textProxy.parseFullFile(a, result);
       case ScopeProxy.RESOLVE_ALL -> ScopeProxy.resolveAll(a, result);
       case DiffUtils.FIND_DIFFS -> DiffUtils.findDiffs(
@@ -49,7 +37,73 @@ public class EditorWorker {
           ArgsCast.array(a, 2).chars(), ArgsCast.array(a, 3).ints(),
           ArgsCast.array(a, 4).ints(), ArgsCast.array(a, 5).ints(),
           ArgsCast.array(a, 6).ints(), result);
+      default -> syncLangMethod(method, a, result);
     }
+  }
+
+  /**
+   * Language parse jobs guarded by {@link LangBuildFlags} so TeaVM can drop
+   * disabled lexer/parser graphs from worker.js.
+   */
+  static void syncLangMethod(String method, Object[] a, ArrayList<Object> result) {
+    if (LangBuildFlags.JAVA) {
+      JavaProxy java = (JavaProxy) javaProxy;
+      if (JavaProxy.PARSE_FULL_FILE.equals(method)) {
+        java.parseFullFile(a, result);
+        return;
+      }
+      if (JavaProxy.PARSE_FULL_FILE_SCOPES.equals(method)) {
+        java.parseFullFileScopes(a, result);
+        return;
+      }
+      if (JavaProxy.PARSE_VIEWPORT.equals(method)) {
+        java.parseViewport(a, result);
+        return;
+      }
+      if (JavaProxy.PARSE_STRUCTURE.equals(method)) {
+        java.parseStructure(a, result);
+        return;
+      }
+    }
+    if (LangBuildFlags.CPP) {
+      if (CppProxy.PARSE_FULL_FILE.equals(method)) {
+        cppProxy.parseFullFile(a, result);
+        return;
+      }
+      if (CppProxy.PARSE_FULL_FILE_SCOPES.equals(method)) {
+        cppProxy.parseFullFileScopes(a, result);
+        return;
+      }
+    }
+    if (LangBuildFlags.JS && JavaScriptProxy.PARSE_FULL_FILE.equals(method)) {
+      javascriptProxy.parseFullFile(a, result);
+      return;
+    }
+    if (LangBuildFlags.TS && TypeScriptProxy.PARSE_FULL_FILE.equals(method)) {
+      typescriptProxy.parseFullFile(a, result);
+      return;
+    }
+    if (LangBuildFlags.ACTIVITY && ActivityProxy.PARSE_FULL_FILE.equals(method)) {
+      activityProxy.parseFullFile(a, result);
+      return;
+    }
+    if (LangBuildFlags.HTML && HtmlProxy.PARSE_FULL_FILE.equals(method)) {
+      htmlProxy.parseFullFile(a, result);
+      return;
+    }
+    if (LangBuildFlags.JSON && JsonProxy.PARSE_FULL_FILE.equals(method)) {
+      jsonProxy.parseFullFile(a, result);
+      return;
+    }
+    if (LangBuildFlags.PYTHON && PythonProxy.PARSE_FULL_FILE.equals(method)) {
+      pythonProxy.parseFullFile(a, result);
+      return;
+    }
+    if (LangBuildFlags.ASCEND_C && AscendCProxy.PARSE_FULL_FILE.equals(method)) {
+      ascendCProxy.parseFullFile(a, result);
+      return;
+    }
+    System.err.println("Unknown or compiled-out language method: " + method);
   }
 
   static void asyncMethod(String method, Object[] a, Consumer<Object[]> r) {

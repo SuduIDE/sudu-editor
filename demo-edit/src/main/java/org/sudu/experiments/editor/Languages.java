@@ -1,7 +1,9 @@
 package org.sudu.experiments.editor;
 
+import org.sudu.experiments.editor.worker.parser.LangBuildFlags;
 import org.sudu.experiments.editor.worker.proxy.FileProxy;
 
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -19,11 +21,22 @@ public interface Languages {
   String ASCEND_C = "ascend-c";
 
   static String[] getAllLanguages() {
-    return new String[]{TEXT, JAVA, CPP, JS, TS, HTML, JSON, ACTIVITY, PYTHON};
+    ArrayList<String> list = new ArrayList<>();
+    list.add(TEXT);
+    if (LangBuildFlags.JAVA) list.add(JAVA);
+    if (LangBuildFlags.CPP) list.add(CPP);
+    if (LangBuildFlags.JS) list.add(JS);
+    if (LangBuildFlags.TS) list.add(TS);
+    if (LangBuildFlags.HTML) list.add(HTML);
+    if (LangBuildFlags.JSON) list.add(JSON);
+    if (LangBuildFlags.ACTIVITY) list.add(ACTIVITY);
+    if (LangBuildFlags.PYTHON) list.add(PYTHON);
+    if (LangBuildFlags.ASCEND_C) list.add(ASCEND_C);
+    return list.toArray(new String[0]);
   }
 
   static String getLanguage(String lang) {
-    return switch (lang.toLowerCase(Locale.ENGLISH)) {
+    String resolved = switch (lang.toLowerCase(Locale.ENGLISH)) {
       case "text", "txt", "plaintext" -> TEXT;
       case "java" -> JAVA;
       case "cpp", "c++" -> CPP;
@@ -34,14 +47,16 @@ public interface Languages {
       case "json" -> JSON;
       default -> null;
     };
+    if (resolved == null) return null;
+    return LangBuildFlags.isCompiled(resolved) ? resolved : TEXT;
   }
 
   static String languageFromFilename(String path) {
     int d;
     if (path == null || (d = path.lastIndexOf('.')) == -1) return TEXT;
     String extension = path.substring(d);
-    return switch (extension) {
-      case ".cpp", ".cc", ".cxx", ".hpp", ".c", ".h" -> CPP;
+    String lang = switch (extension) {
+      case ".cpp", ".cc", ".cxx", ".hpp", ".c", ".h" -> LangBuildFlags.CPP ? CPP : ASCEND_C;
       case ".java" -> JAVA;
       case ".js", ".mjs", ".cjs" -> JS;
       case ".ts" -> TS;
@@ -49,12 +64,14 @@ public interface Languages {
       case ".html", ".xml" -> HTML;
       case ".json" -> JSON;
       case ".py", ".pyc", ".pyo" -> PYTHON;
+      case ".asc" -> LangBuildFlags.ASCEND_C ? ASCEND_C : CPP;
       default -> TEXT;
     };
+    return LangBuildFlags.isCompiled(lang) ? lang : TEXT;
   }
 
   static int getType(String lang) {
-    if (lang == null) return FileProxy.TEXT_FILE;
+    if (lang == null || !LangBuildFlags.isCompiled(lang)) return FileProxy.TEXT_FILE;
     return switch (lang) {
       case Languages.TEXT -> FileProxy.TEXT_FILE;
       case Languages.JAVA -> FileProxy.JAVA_FILE;
