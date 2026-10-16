@@ -8,7 +8,6 @@ import org.sudu.experiments.editor.worker.ArgsCast;
 import org.sudu.experiments.editor.worker.parser.ParseResult;
 import org.sudu.experiments.editor.worker.parser.ParseStatus;
 import org.sudu.experiments.editor.worker.parser.LangBuildFlags;
-import org.sudu.experiments.editor.worker.parser.LangOptions;
 import org.sudu.experiments.editor.worker.parser.ParserUtils;
 import org.sudu.experiments.editor.worker.proxy.*;
 import org.sudu.experiments.math.V2i;
@@ -67,7 +66,6 @@ public class Model {
   private Consumer<int[]> onDiffMadeListener;
   private BiConsumer<CpxDiff, Boolean> syncEditing;
   private Supplier<UndoBuffer> getUndoBuffer;
-  private Supplier<LangOptions> getLangOptions;
 
   public Model(String text, Uri uri) {
     this(text, null, uri);
@@ -118,10 +116,7 @@ public class Model {
 
   public String language() {
     String lang = docLanguage != null ? docLanguage : languageFromFile();
-    var options = getLangOptions != null ? getLangOptions.get() : null;
-    if (options == null) return LangBuildFlags.isCompiled(lang) ? lang : Languages.TEXT;
-    if (Languages.isCppVersion(lang)) return options.getCppVersion(lang);
-    return options.isEnabled(lang) ? lang : Languages.TEXT;
+    return Languages.resolveLanguage(lang);
   }
 
   public String docLanguage() {
@@ -591,10 +586,6 @@ public class Model {
 
   public void setGetUndoBuffer(Supplier<UndoBuffer> getUndoBuffer) {
     this.getUndoBuffer = getUndoBuffer;
-  }
-
-  public void setGetLangOptions(Supplier<LangOptions> getLangOptions) {
-    this.getLangOptions = getLangOptions;
   }
 
   public void setOnDiffMadeListener(Consumer<int[]> listener) {

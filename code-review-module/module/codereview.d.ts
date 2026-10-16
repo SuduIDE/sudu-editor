@@ -36,8 +36,6 @@ export interface EditArgs {
   readonly?: boolean
 
   disableParser?: boolean
-
-  langOptions?: LangOptions
 }
 
 export const enum Languages {
@@ -51,14 +49,6 @@ export const enum Languages {
   JSON = "json",
   PYTHON = "python",
   ASCEND_C = "ascend-c",
-}
-
-export interface LangOptions {
-  isEnabled(lang: string): boolean;
-  enable(lang: string): void;
-  disable(lang: string): void;
-  enableAll(): void;
-  disableAll(): void;
 }
 
 interface TextDocumentContentChangeEvent {
@@ -88,8 +78,6 @@ export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
 export interface CodeReviewView extends IFileDiffView, IDisposable {
   setModel(model: ITextDiffModel): void
 }
-
-export function newLangOptions(): LangOptions;
 
 export function newTextModel(
   workers: WorkerPool,

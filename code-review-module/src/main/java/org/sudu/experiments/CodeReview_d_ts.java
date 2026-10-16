@@ -32,7 +32,6 @@ public interface CodeReview_d_ts {
   static void main(String[] args) {
 //    LoggingJs.Setter.set();
     JsTextModel.Api.install();
-    JsLangOptions.Api.install();
     JsTextDiffModel.Api.install();
     JsLoadFonts.install();
     JsWorkerPool.install();

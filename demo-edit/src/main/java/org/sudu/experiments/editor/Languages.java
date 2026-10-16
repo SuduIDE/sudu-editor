@@ -101,4 +101,20 @@ public interface Languages {
     return Objects.equals(lang, Languages.CPP)
         || Objects.equals(lang, Languages.ASCEND_C);
   }
+
+  /**
+   * Resolve a language against compile-time {@link LangBuildFlags}.
+   * For cpp / ascend-c, falls back to the other variant when only one is compiled in.
+   */
+  static String resolveLanguage(String lang) {
+    if (isCppVersion(lang)) {
+      boolean wantAscendC = Objects.equals(lang, ASCEND_C);
+      if (wantAscendC && LangBuildFlags.ASCEND_C) return ASCEND_C;
+      if (!wantAscendC && LangBuildFlags.CPP) return CPP;
+      if (LangBuildFlags.CPP) return CPP;
+      if (LangBuildFlags.ASCEND_C) return ASCEND_C;
+      return TEXT;
+    }
+    return LangBuildFlags.isCompiled(lang) ? lang : TEXT;
+  }
 }

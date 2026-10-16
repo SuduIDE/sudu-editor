@@ -17,7 +17,7 @@
   <!--
     Compile-time language inclusion (TeaVM DCE). Override via -D, e.g.:
       mvn -pl demo-edit-es-module -am package -Dsudu.lang.cpp=false -Dsudu.lang.ascendc=false
-    text is always included. Runtime LangOptions can only disable languages from this set.
+    text is always included.
   -->
   <properties>
     <sudu.lang.java>true</sudu.lang.java>

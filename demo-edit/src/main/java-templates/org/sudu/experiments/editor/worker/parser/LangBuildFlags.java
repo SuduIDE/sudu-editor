@@ -4,7 +4,6 @@ package org.sudu.experiments.editor.worker.parser;
  * Compile-time language inclusion flags for TeaVM dead-code elimination.
  * Values are filtered from Maven properties {@code sudu.lang.*} at generate-sources.
  * Disabled languages are not linked into {@code worker.js}.
- * Runtime {@link LangOptions} can only further restrict this compiled-in set.
  */
 public final class LangBuildFlags {
 

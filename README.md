@@ -39,9 +39,7 @@ Build requirements
    automatically.
 
    Optional — omit languages at build time to shrink `worker.js` (TeaVM DCE) via
-   Maven properties `sudu.lang.*` (e.g. `-Dsudu.lang.cpp=false`). Runtime
-   `LangOptions` can only further restrict the compiled-in set and does not
-   reduce JS size.
+   Maven properties `sudu.lang.*` (e.g. `-Dsudu.lang.cpp=false`).
 
 4. now you can build demo-edit-es-module and ai-demo-js
       - `mvn package -am -pl demo-edit-es-module -P release`
