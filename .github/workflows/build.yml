@@ -7,6 +7,7 @@ on:
       - v0.[0-9]+.[0-9]+-rc[0-9]+
       - v0.[0-9]+.[0-9]+-beta[0-9]+
       - v0.[0-9]+.[0-9]+-alpha[0-9]+
+      - v0.[0-9]+.[0-9]+-ascendc[0-9]+
 
   pull_request:
     branches:
@@ -79,10 +80,15 @@ jobs:
       - name: Maven Sudu Editor, Code Review and DiffEngine
         if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
-          cd $GITHUB_WORKSPACE/sudu-editor 
+          cd $GITHUB_WORKSPACE/sudu-editor
+          LANG_FLAGS=""
+          if [[ "${{ github.ref_name }}" == *-ascendc* ]]; then
+            LANG_FLAGS="-Dsudu.lang.java=false -Dsudu.lang.cpp=false -Dsudu.lang.js=false -Dsudu.lang.ts=false -Dsudu.lang.activity=false -Dsudu.lang.html=false -Dsudu.lang.json=false -Dsudu.lang.python=false -Dsudu.lang.ascendc=true"
+            echo "::notice::ascend-c-only language flags enabled"
+          fi
           mvn package -am -pl :codicon -pl :fonts -P downloadFont
-          mvn package -am -pl demo-edit-js,demo-edit-es-module -P build-ssh,release
-          mvn package -am -pl code-review-module
+          mvn package -am -pl demo-edit-js,demo-edit-es-module -P build-ssh,release $LANG_FLAGS
+          mvn package -am -pl code-review-module $LANG_FLAGS
       - name: Save Maven Cache
         if: github.event_name == 'workflow_dispatch'
         uses: actions/cache/save@v6
@@ -97,11 +103,14 @@ jobs:
         run: |
           NEW_VERSION=$(echo ${{ github.ref_name }} | tr -d 'v')
           echo "::notice::version \"${NEW_VERSION}\""
-          if [[ "$NEW_VERSION" == *-* ]]; then
+          if [[ "$NEW_VERSION" == *-ascendc* ]]; then
+            NPM_TAG="ascendc"
+          elif [[ "$NEW_VERSION" == *-* ]]; then
             NPM_TAG="alpha"
           else
             NPM_TAG="latest"
           fi
+          echo "::notice::npm tag \"${NPM_TAG}\""
           cd $GITHUB_WORKSPACE/sudu-editor/common-ts-types
           npm version "$NEW_VERSION" --no-git-tag-version --allow-same-version
           npm publish --access public --tag "$NPM_TAG"

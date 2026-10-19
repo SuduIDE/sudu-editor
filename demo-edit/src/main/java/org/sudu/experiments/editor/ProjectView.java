@@ -1,7 +1,6 @@
 package org.sudu.experiments.editor;
 
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
-import org.sudu.experiments.editor.worker.parser.LangOptions;
 import org.sudu.experiments.fonts.Fonts;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.FileTreeView;
@@ -22,7 +21,6 @@ public class ProjectView extends ViewArray implements
   FileTreeView treeView;
   EditorComponent editor;
   UndoBuffer undoBuffer;
-  LangOptions langOptions;
 
   public ProjectView(WindowManager wm, ThemeControl tc, boolean jbFonts) {
     ui = new EditorUi(wm);
@@ -30,11 +28,8 @@ public class ProjectView extends ViewArray implements
     treeScrollView = new ScrollView(treeView);
     split = new ViewFill();
     undoBuffer = new UndoBuffer();
-    langOptions = new LangOptions();
-    langOptions.enableAll();
     editor = new EditorComponent(ui);
     editor.setGetUndoBuffer(() -> undoBuffer);
-    editor.setGetLangOptions(() -> langOptions);
     themeControl = tc;
     setViews(treeScrollView, split, editor);
 //    ui.windowManager.uiContext.initFocus(editor);
