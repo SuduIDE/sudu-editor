@@ -348,6 +348,11 @@ public class JsCodeEditor implements JsEditorView {
   }
 
   @Override
+  public void setVScrollVisible(boolean visible) {
+    editor.setVScrollVisible(visible);
+  }
+
+  @Override
   public int getLineHeight() {
     return editor.lineHeight();
   }

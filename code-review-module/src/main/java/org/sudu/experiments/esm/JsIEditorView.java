@@ -64,6 +64,13 @@ public interface JsIEditorView extends JsView {
   /** Sets the vertical scroll position, in device pixels. Notifies the listener. */
   void setVScrollPos(int vScrollPos);
 
+  /**
+   * Shows or hides the vertical scroll bar. When hidden the bar is not drawn
+   * and takes no mouse input, but wheel, keyboard and {@link #setVScrollPos}
+   * still scroll the view.
+   */
+  void setVScrollVisible(boolean visible);
+
   /** Height of a single line, in device pixels. */
   int getLineHeight();
 

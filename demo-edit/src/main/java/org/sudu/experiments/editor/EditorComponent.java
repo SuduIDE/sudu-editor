@@ -96,6 +96,7 @@ public class EditorComponent extends View implements
   boolean drawGap = true;
   boolean drawTextFrame = false;
   boolean printResolveTime = true;
+  boolean vScrollVisible = true;
 
   // line numbers
   LineNumbersComponent lineNumbers = new LineNumbersComponent();
@@ -525,6 +526,20 @@ public class EditorComponent extends View implements
    */
   public void setVScrollObserver(IntConsumer observer) {
     this.vScrollObserver = observer;
+  }
+
+  /**
+   * Shows or hides the vertical scroll bar.
+   *
+   * When hidden the bar is neither drawn nor hit-tested: clicks and drags on
+   * its area fall through to the text, and the pointer cursor is not shown
+   * there. Wheel, keyboard and programmatic scrolling are unaffected, so the
+   * position can still be driven from outside (e.g. synced with another view).
+   */
+  public void setVScrollVisible(boolean visible) {
+    if (vScrollVisible == visible) return;
+    vScrollVisible = visible;
+    if (context != null) window().repaint();
   }
 
   /**
@@ -1177,7 +1192,7 @@ public class EditorComponent extends View implements
   }
 
   private void drawScrollBar() {
-    boolean vv = vScroll.visible();
+    boolean vv = vScrollVisible && vScroll.visible();
     boolean hv = hScroll.visible();
     if (vv || hv) {
       g.enableBlend(true);
@@ -1665,7 +1680,7 @@ public class EditorComponent extends View implements
       int codeMapLine = hitTestFindDiff(mousePos);
 
       // when clicked to a change on codeMap -> forward to vScroll only if hit button
-      if (codeMapLine < 0 || vScroll.hitButton(mousePos)) {
+      if (vScrollVisible && (codeMapLine < 0 || vScroll.hitButton(mousePos))) {
         var lock = vScroll.onMouseDown(mousePos, vScrollHandler, true);
         if (lock != null) return lock;
       }
@@ -1765,7 +1780,7 @@ public class EditorComponent extends View implements
     hoveredCollapsedRegion = -1;
     var codeMap = onMouseMoveCodeMap(mousePos, setCursor);
     var scroll = !codeMap && (
-        vScroll.onMouseMove(mousePos, setCursor) |
+        (vScrollVisible && vScroll.onMouseMove(mousePos, setCursor)) |
             hScroll.onMouseMove(mousePos, setCursor));
 
     if (scroll || codeMap) {
