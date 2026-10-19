@@ -83,7 +83,7 @@ jobs:
           cd $GITHUB_WORKSPACE/sudu-editor
           LANG_FLAGS=""
           if [[ "${{ github.ref_name }}" == *-ascendc* ]]; then
-            LANG_FLAGS="-Dsudu.lang.java=false -Dsudu.lang.cpp=false -Dsudu.lang.js=false -Dsudu.lang.ts=false -Dsudu.lang.activity=false -Dsudu.lang.html=false -Dsudu.lang.json=false -Dsudu.lang.python=false"
+            LANG_FLAGS="-Dsudu.lang.java=false -Dsudu.lang.cpp=false -Dsudu.lang.js=false -Dsudu.lang.ts=false -Dsudu.lang.activity=false -Dsudu.lang.html=false -Dsudu.lang.json=false -Dsudu.lang.python=false -Dsudu.lang.ascendc=true"
             echo "::notice::ascend-c-only language flags enabled"
           fi
           mvn package -am -pl :codicon -pl :fonts -P downloadFont
