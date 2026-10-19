@@ -35,19 +35,6 @@ export interface EditArgs {
   codiconUrl?: string
 }
 
-export const enum Languages {
-  TEXT = "text",
-  JAVA = "java",
-  CPP = "cpp",
-  JS = "js",
-  TS = "ts",
-  ACTIVITY = "activity",
-  HTML = "html",
-  JSON = "json",
-  PYTHON = "python",
-  ASCEND_C = "ascend-c",
-}
-
 export interface IFileDiffView extends View, HasTheme, Focusable, TwoPanelDiff {
   getLeftModel(): ITextModel
 

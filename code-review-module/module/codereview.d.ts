@@ -38,19 +38,6 @@ export interface EditArgs {
   disableParser?: boolean
 }
 
-export const enum Languages {
-  TEXT = "text",
-  JAVA = "java",
-  CPP = "cpp",
-  JS = "js",
-  TS = "ts",
-  ACTIVITY = "activity",
-  HTML = "html",
-  JSON = "json",
-  PYTHON = "python",
-  ASCEND_C = "ascend-c",
-}
-
 interface TextDocumentContentChangeEvent {
   // todo: replicate VSCode API event
 }
