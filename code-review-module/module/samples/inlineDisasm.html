@@ -6,10 +6,18 @@
   <style>
     html, body { background-color:#2b2b2b; }
     #editor { position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; }
+    #tokenMode {
+      position: absolute; top: 10px; right: 14px; z-index: 10;
+      padding: 6px 12px; border-radius: 5px; cursor: pointer;
+      font: 12px/1.4 system-ui, sans-serif;
+      color: #e6e6e6; background: #3c3f41; border: 1px solid #6a6a6a;
+    }
+    #tokenMode:hover { background: #4a4d4f; }
   </style>
 </head>
 <body>
 <div id="editor"></div>
+<button id="tokenMode" type="button">tokens: custom dictionary</button>
 
 <script type="module" charset="utf-8" src="inlineDisasm.js"></script>
 
