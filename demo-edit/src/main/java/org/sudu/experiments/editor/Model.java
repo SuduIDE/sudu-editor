@@ -614,9 +614,26 @@ public class Model {
   /**
    * Tokens that belong to the document as built (e.g. disassembly run segments
    * from {@code newTextModelFromLines}). Unlike semantic tokens they address
-   * document lines directly, so attached lines can be colored. Colors are
-   * resolved through the editor color scheme, so they are applied when the
-   * editor is attached (or right away if it already is).
+   * document lines directly, so attached lines can be colored.
+   *
+   * <p><b>Attached lines</b> (no {@code lineNumber}, not in {@code sourceToDoc})
+   * are the intended target: the parser never sees them, so their colors live for
+   * the whole lifetime of the document.
+   *
+   * <p><b>Numbered (source) lines are best-effort only.</b> The editor's job is
+   * to colorize source lines from the language parser, so a caller-supplied
+   * {@code tokenType} there is a hint, not a guarantee. {@code ParserUtils.updateDocument}
+   * rebuilds every source {@code CodeLine} from parser output, and
+   * {@code Document.setLine} then copies the old element colors back <b>by
+   * position</b> when the element count is unchanged (it does not compare text).
+   * So a caller color may survive, may be attached to a different parser element,
+   * or may be dropped when the parser changes the split. Semantic tokens later
+   * delivered by the language parser overwrite matching elements through
+   * {@code setSemanticTokens}. Do not rely on these colors on numbered lines;
+   * colors on attached lines are unaffected by parsing.
+   *
+   * <p>Colors are resolved through the editor color scheme, so they are applied
+   * when the editor is attached (or right away if it already is).
    */
   public void setDocumentTokens(SemanticTokenInfo[] tokens) {
     documentTokens = tokens;

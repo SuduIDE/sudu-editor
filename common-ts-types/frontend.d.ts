@@ -103,7 +103,9 @@ export interface ILineToken {
   // literal text of this run
   text: string
   // optional token type looked up in the document token dictionary;
-  // omitted => plain default text, as in a document without tokenization
+  // omitted => plain default text, as in a document without tokenization.
+  // Colors are guaranteed on attached lines (no lineNumber); on a numbered
+  // source line they are best-effort and the language parser takes precedence.
   tokenType?: string
 }
 

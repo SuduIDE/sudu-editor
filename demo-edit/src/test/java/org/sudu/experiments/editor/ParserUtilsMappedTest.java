@@ -132,6 +132,70 @@ public class ParserUtilsMappedTest {
     assertEquals(new Color("#ff0000"), second.elementColor(d.lines[0].get(0).color).colorF);
   }
 
+  @Test void parseKeepsCallerColorOnAttachedLine() {
+    Document d = Document.fromDescriptors(
+        new String[]{"ab", "xx", "cd"},
+        new int[]{1, 0, 2});
+    Model model = new Model(d, "cpp", null);
+    CodeLineColorScheme scheme = EditorColorScheme.darculaIdeaColorScheme().editorCodeLineScheme();
+    model.setEditor(new EditorStub(scheme), null);
+    model.setDocumentTokens(new SemanticTokenInfo[]{
+        new SemanticTokenInfo(1, 0, ParserConstants.TokenTypes.DEFAULT, 0, "#00ff00", null, "xx")
+    });
+
+    ParserUtils.updateDocument(d, twoLines(), "ab\ncd".toCharArray(), null, null, false);
+
+    // attached line is outside sourceToDoc: the parser never visits it
+    assertEquals(new Color("#00ff00"), scheme.elementColor(d.lines[1].get(0).color).colorF);
+  }
+
+  @Test void parseCarriesCallerColorOnSourceLineByPosition() {
+    // parser output keeps one element for "ab", so Document.setLine copies the
+    // caller color by position: a best-effort color may survive a parse
+    Document d = Document.fromDescriptors(new String[]{"ab", "cd"}, new int[]{1, 2});
+    Model model = new Model(d, "cpp", null);
+    CodeLineColorScheme scheme = EditorColorScheme.darculaIdeaColorScheme().editorCodeLineScheme();
+    model.setEditor(new EditorStub(scheme), null);
+    model.setDocumentTokens(new SemanticTokenInfo[]{
+        new SemanticTokenInfo(0, 0, ParserConstants.TokenTypes.DEFAULT, 0, "#ff0000", null, "ab")
+    });
+
+    ParserUtils.updateDocument(d, twoLines(), "ab\ncd".toCharArray(), null, null, false);
+    assertEquals(new Color("#ff0000"), scheme.elementColor(d.lines[0].get(0).color).colorF);
+
+    // when the parser changes the split, the element count differs and the
+    // caller color is dropped in favour of the parser colors
+    Document split = Document.fromDescriptors(new String[]{"ab", "cd"}, new int[]{1, 2});
+    Model splitModel = new Model(split, "cpp", null);
+    splitModel.setEditor(new EditorStub(scheme), null);
+    splitModel.setDocumentTokens(new SemanticTokenInfo[]{
+        new SemanticTokenInfo(0, 0, ParserConstants.TokenTypes.DEFAULT, 0, "#ff0000", null, "ab")
+    });
+
+    ParserUtils.updateDocument(split, splitLine(), "ab\ncd".toCharArray(), null, null, false);
+    assertEquals(2, split.lines[0].length());
+    assertEquals(3, split.lines[0].get(0).color);
+    assertEquals(7, split.lines[0].get(1).color);
+  }
+
+  // two source lines, one element each: "ab" (type 3) and "cd" (type 4)
+  private static int[] twoLines() {
+    return new int[]{
+        2, 0, 0,
+        1, 0, 2, 3, 0,
+        1, 3, 5, 4, 0
+    };
+  }
+
+  // the same, but "ab" is split into two elements (types 3 and 7)
+  private static int[] splitLine() {
+    return new int[]{
+        2, 0, 0,
+        2, 0, 1, 3, 0, 1, 2, 7, 0,
+        1, 3, 5, 4, 0
+    };
+  }
+
   static final class EditorStub implements Model.EditorToModel {
     CodeLineColorScheme scheme;
 
