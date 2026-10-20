@@ -60,6 +60,11 @@ public abstract class ParserUtils {
         continue;
       }
       CodeElement[] elements = readElements(reader, docChars, 0);
+      // Source lines are rebuilt from parser output; only lineNumber is carried
+      // over here. Document.setLine may then copy semantic-token colors from the
+      // old elements by position (when the element count is unchanged), so colors
+      // supplied through Model.setDocumentTokens are best-effort on numbered
+      // lines. Attached lines are never visited by the parser and keep theirs.
       CodeLine line = new CodeLine(elements);
       CodeLine prev = document.lines[docSlot];
       line.lineNumber = prev != null ? prev.lineNumber : (mapped ? i + 1 : 0);

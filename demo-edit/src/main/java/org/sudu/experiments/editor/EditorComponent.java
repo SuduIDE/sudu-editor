@@ -296,6 +296,9 @@ public class EditorComponent extends View implements
   public void setTheme(EditorColorScheme theme) {
     colors = theme;
     codeLineColors = colors.editorCodeLineScheme();
+    // the scheme (and its explicit-color palette) is a new instance, so tokens
+    // that carry explicit colors must resolve against it again
+    model.reapplyDocumentTokens();
     if (colors != null)
       mbColors = colors.codeDiffMergeButtons();
     caret.setColor(theme.editor.cursor);
