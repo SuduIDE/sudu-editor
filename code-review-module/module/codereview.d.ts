@@ -161,10 +161,9 @@ export interface EditorView extends IEditorView, IDisposable {
   /**
    * Shows or hides the vertical scroll bar.
    *
-   * When hidden the bar is not drawn and takes no mouse input: clicks and
-   * drags on its area reach the text instead, and the pointer cursor is not
-   * shown there. Mouse wheel, keyboard and {@link setVScrollPos} keep working,
-   * so scrolling can still be driven from outside the editor.
+   * When hidden the bar is not drawn and takes no mouse input; the pointer
+   * cursor is not shown there. Mouse wheel, keyboard and {@link setVScrollPos}
+   * keep working, so scrolling can still be driven from outside the editor.
    */
   setVScrollVisible(visible: boolean): void
 

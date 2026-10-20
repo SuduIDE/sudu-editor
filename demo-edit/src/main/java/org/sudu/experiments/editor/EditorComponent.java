@@ -531,10 +531,20 @@ public class EditorComponent extends View implements
   /**
    * Shows or hides the vertical scroll bar.
    *
-   * When hidden the bar is neither drawn nor hit-tested: clicks and drags on
-   * its area fall through to the text, and the pointer cursor is not shown
-   * there. Wheel, keyboard and programmatic scrolling are unaffected, so the
-   * position can still be driven from outside (e.g. synced with another view).
+   * When hidden the bar is neither drawn nor hit-tested, and the pointer cursor
+   * is not shown there. Wheel, keyboard and programmatic scrolling still work,
+   * so the position can be driven from outside (e.g. synced with another view).
+   *
+   * Layout is left unchanged, so the space the bar occupied is not reclaimed:
+   * <ul>
+   *   <li>non-mirrored: the bar overlays the right edge of the text, so after
+   *   hiding it clicks in that strip reach the text;</li>
+   *   <li>mirrored: the bar sits in a left inset reserved by {@code textBaseX},
+   *   so hiding it leaves that gutter empty and clicks there do not reach the
+   *   text. Mirrored editors are not exposed through the JS API, so this is not
+   *   reachable today; reclaiming the inset would require {@code internalLayout}
+   *   to skip it while the bar is hidden.</li>
+   * </ul>
    */
   public void setVScrollVisible(boolean visible) {
     if (vScrollVisible == visible) return;
