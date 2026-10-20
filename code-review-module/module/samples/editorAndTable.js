@@ -145,6 +145,10 @@ const editor = editorApi.newEditor({
 
 const model = editorApi.newTextModel(threadPool, SAMPLE, "js", { path: "Sample.js" });
 editor.setModel(model);
+// The table on the right has its own DOM scrollbar and the two panes are kept
+// in sync through setVScrollListener, so the editor's canvas scrollbar would be
+// a second, redundant one. Hide it; wheel/keyboard scrolling still works.
+editor.setVScrollVisible(false);
 editor.focus();
 
 // ---------------------------------------------------------------------------
