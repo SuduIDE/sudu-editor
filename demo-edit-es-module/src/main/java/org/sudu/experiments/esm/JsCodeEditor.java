@@ -309,6 +309,15 @@ public class JsCodeEditor implements JsEditorView {
     editor.readonly = flag;
   }
 
+  @Override
+  public void highlightRanges(JsArrayReader<JsRange> ranges) {}
+
+  @Override
+  public void selectNextRange() {}
+
+  @Override
+  public void selectPrevRange() {}
+
   public static Promise<JsIEditorView> newEdit(EditArgs arguments) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->

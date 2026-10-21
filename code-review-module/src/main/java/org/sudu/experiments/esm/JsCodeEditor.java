@@ -311,6 +311,15 @@ public class JsCodeEditor implements JsEditorView {
   }
 
   @Override
+  public void highlightRanges(JsArrayReader<JsRange> ranges) {}
+
+  @Override
+  public void selectNextRange() {}
+
+  @Override
+  public void selectPrevRange() {}
+
+  @Override
   public void setVScrollListener(VScrollListener listener) {
     if (listener == null) {
       editor.setVScrollObserver(null);

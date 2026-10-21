@@ -442,6 +442,12 @@ export interface IEditorView extends View, HasTheme, Focusable {
   onControllerUpdate: IEvent<EditorViewController>
 
   setReadonly(flag: boolean): void
+
+  highlightRanges(ranges: IRange[]): void
+
+  selectNextRange(): void
+
+  selectPrevRange(): void
 }
 
 export interface EditorView extends IEditorView, IDisposable {
