@@ -9,6 +9,10 @@ import * as editorApi from "../src/codereview.js";
  * this module (`setVScrollListener` / `getVScrollPos` / `setVScrollPos`), whose
  * values are in *device* pixels, while the DOM works in CSS pixels, so
  * everything crossing that boundary is divided by the device pixel ratio.
+ *
+ * The toolbar search is a small caller of `selectAndReveal`: the `reveal`
+ * checkbox maps to its `shouldReveal` flag and `notify` to its
+ * `fireVScrollListener` flag, so both behaviours can be tried side by side.
  */
 
 const SAMPLE = [
@@ -375,6 +379,107 @@ function clearHighlight() {
 }
 
 // ---------------------------------------------------------------------------
+// search
+// ---------------------------------------------------------------------------
+
+const searchInput = document.getElementById("search-input");
+const searchPrevButton = document.getElementById("search-prev");
+const searchNextButton = document.getElementById("search-next");
+const searchRevealCheckbox = document.getElementById("search-reveal");
+const searchNotifyCheckbox = document.getElementById("search-notify");
+const searchStatus = document.getElementById("search-status");
+
+/** Index into the current query's matches; reset whenever the query changes. */
+let searchIndex = -1;
+let searchQuery = "";
+
+/**
+ * Finds every occurrence of `query` in `text`, case-insensitively.
+ *
+ * The ranges are in the editor's 1-based coordinates - the shape
+ * `selectAndReveal` accepts - so they can be passed straight through.
+ */
+function findMatches(text, query) {
+  if (query === "") return [];
+
+  const needle = query.toLowerCase();
+  const matches = [];
+  const lines = text.split("\n");
+
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const haystack = lines[lineIndex].toLowerCase();
+    let at = haystack.indexOf(needle);
+    while (at !== -1) {
+      matches.push({
+        startLineNumber: lineIndex + 1,
+        startColumn: at + 1,
+        endLineNumber: lineIndex + 1,
+        endColumn: at + 1 + needle.length,
+      });
+      at = haystack.indexOf(needle, at + 1);
+    }
+  }
+
+  return matches;
+}
+
+/**
+ * Selects the next (delta 1) or previous (delta -1) match and hands it to
+ * `selectAndReveal`, wrapping around at the ends.
+ */
+function stepSearch(delta) {
+  const query = searchInput.value;
+  if (query !== searchQuery) {
+    searchQuery = query;
+    searchIndex = -1;
+  }
+
+  const matches = findMatches(editor.getText(), query);
+  if (matches.length === 0) {
+    searchStatus.textContent = query === "" ? "" : "no match";
+    return;
+  }
+
+  // -1 means this query has no current match. The first step should land on
+  // the first match going forward and the last match going backward.
+  // (index + delta + length) % length treats -1 as a real index, so the first
+  // backward step evaluates to length - 2 and skips the final match.
+  if (searchIndex < 0) {
+    searchIndex = delta < 0 ? matches.length - 1 : 0;
+  } else {
+    searchIndex = (searchIndex + delta + matches.length) % matches.length;
+  }
+  searchStatus.textContent = `${searchIndex + 1}/${matches.length}`;
+
+  // `shouldReveal` decides whether the editor scrolls to the match at all;
+  // `fireVScrollListener` decides whether the table's scroll observer hears
+  // about the resulting scroll (leave it off to keep the table in place).
+  editor.selectAndReveal(
+    matches[searchIndex],
+    searchRevealCheckbox.checked,
+    searchNotifyCheckbox.checked
+  );
+}
+
+function wireSearch() {
+  searchNextButton.addEventListener("click", () => stepSearch(1));
+  searchPrevButton.addEventListener("click", () => stepSearch(-1));
+
+  searchInput.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    stepSearch(event.shiftKey ? -1 : 1);
+  });
+
+  // A new query starts from the first match again.
+  searchInput.addEventListener("input", () => {
+    searchQuery = "";
+    searchIndex = -1;
+    searchStatus.textContent = "";
+  });
+}
+
+// ---------------------------------------------------------------------------
 // scroll sync
 // ---------------------------------------------------------------------------
 
@@ -486,6 +591,7 @@ function start() {
   renderColumns();
   renderRows(analyze(editor.getText()));
   wireScrollSync();
+  wireSearch();
   updateCurrentRow();
 
   console.log(

@@ -23,6 +23,21 @@ public interface JsIEditorView extends JsView {
   void revealLine(int line);
   void revealPosition(JsPosition position);
 
+  /**
+   * Selects the given range, optionally scrolling it into view.
+   *
+   * <p>Line numbers and columns are 1-based, matching {@link JsPosition}.
+   * The caret is placed at the range start.
+   *
+   * @param shouldReveal        true to scroll the range start into view
+   *                            vertically and horizontally, false to only select
+   * @param fireVScrollListener whether to notify the observer registered with
+   *                            {@link #setVScrollListener} when the call
+   *                            changed the vertical scroll position. Diff pane
+   *                            synchronization is not affected.
+   */
+  void selectAndReveal(JsRange range, boolean shouldReveal, boolean fireVScrollListener);
+
   JsEditorViewController getController();
   void setReadonly(boolean flag);
 

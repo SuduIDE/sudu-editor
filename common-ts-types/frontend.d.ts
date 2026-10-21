@@ -437,6 +437,20 @@ export interface IEditorView extends View, HasTheme, Focusable {
 
   revealPosition(position: IPosition): void
 
+  /**
+   * Selects `range` and optionally scrolls it into view.
+   *
+   * The caret is placed at the range start.
+   *
+   * @param shouldReveal `true` to scroll the start of the range into view
+   *        vertically and horizontally, `false` to only select without scrolling
+   * @param fireVScrollListener whether to notify the vertical scroll observer
+   *        (the {@link EditorView.setVScrollListener} callback, where available)
+   *        when the call changed the vertical scroll position. Diff pane
+   *        synchronization is not affected.
+   */
+  selectAndReveal(range: IRange, shouldReveal: boolean, fireVScrollListener: boolean): void
+
   getController(): EditorViewController;
 
   onControllerUpdate: IEvent<EditorViewController>

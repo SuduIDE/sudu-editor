@@ -46,6 +46,41 @@
     #toolbar button:hover { background-color: #4a4a4a; }
 
     /*
+      Search controls. `reveal` and `notify` are wired straight to the two
+      boolean parameters of IEditorView.selectAndReveal.
+    */
+    #toolbar .search {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    #toolbar input[type="search"] {
+      width: 150px;
+      background-color: #2b2b2b;
+      color: #cccccc;
+      border: 1px solid #555555;
+      border-radius: 3px;
+      padding: 3px 6px;
+      font-size: 12px;
+    }
+
+    #toolbar .search label {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      color: #9d9d9d;
+      cursor: pointer;
+    }
+
+    #search-status {
+      min-width: 6ch;
+      color: #9d9d9d;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /*
       The column header spans the full width, above the editor as well as
       above the table. `#header-row` and `#panes` are both flex rows driven by
       the same `--editor-width`, so the header's left pad, the editor and the
@@ -242,6 +277,20 @@
 <body>
   <div id="toolbar">
     <span class="title">Editor + synchronized metrics table</span>
+
+    <span class="search">
+      <input id="search-input" type="search" placeholder="find in editor" autocomplete="off"/>
+      <button id="search-prev" type="button" title="previous match (Shift+Enter)">prev</button>
+      <button id="search-next" type="button" title="next match (Enter)">next</button>
+      <span id="search-status"></span>
+      <label title="scroll the editor to the match; off = only select">
+        <input id="search-reveal" type="checkbox" checked/> reveal
+      </label>
+      <label title="notify the table scroll listener about the reveal">
+        <input id="search-notify" type="checkbox" checked/> notify
+      </label>
+    </span>
+
     <span class="spacer"></span>
     <button id="toggle-follow" type="button">follow editor: on</button>
     <button id="recompute" type="button">recompute metrics</button>

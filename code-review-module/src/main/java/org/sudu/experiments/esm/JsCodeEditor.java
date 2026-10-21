@@ -306,6 +306,15 @@ public class JsCodeEditor implements JsEditorView {
   }
 
   @Override
+  public void selectAndReveal(JsRange range, boolean shouldReveal, boolean fireVScrollListener) {
+    Range javaRange = new Range();
+    range.toJava(javaRange);
+    editor.selectAndReveal(javaRange, shouldReveal, fireVScrollListener);
+    // the selection may change even when the scroll position does not
+    window.repaint();
+  }
+
+  @Override
   public void setReadonly(boolean flag) {
     editor.readonly = flag;
   }

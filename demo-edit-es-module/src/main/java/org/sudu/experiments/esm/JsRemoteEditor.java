@@ -183,6 +183,15 @@ public class JsRemoteEditor implements JsRemoteEditorView {
     // todo: also set hScroll position here
   }
 
+  @Override
+  public void selectAndReveal(JsRange range, boolean shouldReveal, boolean fireVScrollListener) {
+    Range javaRange = new Range();
+    range.toJava(javaRange);
+    editor.selectAndReveal(javaRange, shouldReveal, fireVScrollListener);
+    // the selection may change even when the scroll position does not
+    window.repaint();
+  }
+
   public static Promise<JsRemoteEditorView> create(EditArgs arguments, Channel channel) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->
