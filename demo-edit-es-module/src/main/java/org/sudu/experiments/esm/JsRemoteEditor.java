@@ -224,4 +224,19 @@ public class JsRemoteEditor implements JsRemoteEditorView {
   public void setReadonly(boolean flag) {
     editor.readonly = flag;
   }
+
+  @Override
+  public void highlightRanges(JsArrayReader<JsRange> ranges) {
+    editor.highlightRanges(JsCodeEditor.toRanges(ranges));
+  }
+
+  @Override
+  public void selectNextRange() {
+    editor.selectNextRange();
+  }
+
+  @Override
+  public void selectPrevRange() {
+    editor.selectPrevRange();
+  }
 }

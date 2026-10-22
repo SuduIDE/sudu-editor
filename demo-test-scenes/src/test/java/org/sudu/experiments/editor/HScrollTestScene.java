@@ -14,7 +14,6 @@ import org.sudu.experiments.math.V4f;
 import org.sudu.experiments.ui.ScrollBar;
 import org.sudu.experiments.ui.SetCursor;
 
-import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class HScrollTestScene extends Scene {
@@ -79,7 +78,6 @@ public class HScrollTestScene extends Scene {
   Color error = new Color(188, 63, 60);
   V4f debugColor = new Color("#CC7832");
   V4f debugColorBg = new Color("#A9B7C6");
-  ArrayList<CodeElement> usages = new ArrayList<>();
 
   @Override
   public void paint() {
@@ -96,8 +94,8 @@ public class HScrollTestScene extends Scene {
         viewportSize.x, scrollPosH, 0, 0);
 
     codeLineRenderer.draw(200, 0, g,
-        viewportSize.x, fontSize, scrollPosH, colors, null,
-        null, usages, false, null, null, null);
+        viewportSize.x, fontSize, scrollPosH, colors,
+        null, 0, false, null, null);
 
     drawDebug(300, 0);
 

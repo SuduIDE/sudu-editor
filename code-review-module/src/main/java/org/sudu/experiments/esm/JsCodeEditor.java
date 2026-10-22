@@ -320,6 +320,31 @@ public class JsCodeEditor implements JsEditorView {
   }
 
   @Override
+  public void highlightRanges(JsArrayReader<JsRange> ranges) {
+    editor.highlightRanges(toRanges(ranges));
+  }
+
+  @Override
+  public void selectNextRange() {
+    editor.selectNextRange();
+  }
+
+  @Override
+  public void selectPrevRange() {
+    editor.selectPrevRange();
+  }
+
+  static Range[] toRanges(JsArrayReader<JsRange> jsArr) {
+    if (jsArr == null) return null;
+    Range[] result = new Range[jsArr.getLength()];
+    for (int i = 0; i < result.length; i++) {
+      result[i] = new Range();
+      jsArr.get(i).toJava(result[i]);
+    }
+    return result;
+  }
+
+  @Override
   public void setVScrollListener(VScrollListener listener) {
     if (listener == null) {
       editor.setVScrollObserver(null);

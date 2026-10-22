@@ -1,18 +1,18 @@
 package org.sudu.experiments.editor;
 
 public class Range {
-  public int endColumn;
-  public int endLineNumber;
-  public int startColumn;
   public int startLineNumber;
+  public int startColumn;
+  public int endLineNumber;
+  public int endColumn;
 
   public Range() {}
 
-  public Range(int endColumn, int endLineNumber, int startColumn, int startLineNumber) {
-    this.endColumn = endColumn;
-    this.endLineNumber = endLineNumber;
-    this.startColumn = startColumn;
+  public Range(int startLineNumber, int startColumn, int endLineNumber, int endColumn) {
     this.startLineNumber = startLineNumber;
+    this.startColumn = startColumn;
+    this.endLineNumber = endLineNumber;
+    this.endColumn = endColumn;
   }
 
   public Selection toSelection() {

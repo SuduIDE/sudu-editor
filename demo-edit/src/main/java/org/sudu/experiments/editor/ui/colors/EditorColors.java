@@ -8,6 +8,7 @@ public class EditorColors {
   public Color numbersVLine;
   public Color footerFill;
   public Color selectionBg;
+  public Color highlightRangesBg;
   public Color definitionBg;
   public Color usageBg;
   public Color scrollBarBg;
@@ -20,6 +21,7 @@ public class EditorColors {
       Color numbersVLine,
       Color footerFill,
       Color selectionBg,
+      Color highlightRangesBg,
       Color definitionBg,
       Color usageBg,
       Color scrollBarBg,
@@ -31,6 +33,7 @@ public class EditorColors {
     this.numbersVLine = numbersVLine;
     this.footerFill = footerFill;
     this.selectionBg = selectionBg;
+    this.highlightRangesBg = highlightRangesBg;
     this.definitionBg = definitionBg;
     this.usageBg = usageBg;
     this.scrollBarBg = scrollBarBg;
@@ -45,6 +48,7 @@ public class EditorColors {
         new Color(IdeaCodeColors.Darcula.editNumbersVLine),
         new Color(IdeaCodeColors.Darcula.editFooterFill),
         new Color(IdeaCodeColors.Darcula.editSelectedBg),
+        new Color(IdeaCodeColors.Darcula.highlightRangeBg),
         new Color(IdeaCodeColors.Darcula.definitionBgColor),
         new Color(IdeaCodeColors.Darcula.usageBgColor),
         new Color(IdeaCodeColors.Darcula.scrollBarBg),
@@ -60,6 +64,7 @@ public class EditorColors {
         new Color(IdeaCodeColors.Dark.editNumbersVLine),
         new Color(IdeaCodeColors.Dark.editFooterFill),
         new Color(IdeaCodeColors.Dark.editSelectedBg),
+        new Color(IdeaCodeColors.Dark.highlightRangeBg),
         new Color(IdeaCodeColors.Dark.definitionBgColor),
         new Color(IdeaCodeColors.Dark.usageBgColor),
         new Color(IdeaCodeColors.Dark.scrollBarBg),
@@ -75,6 +80,7 @@ public class EditorColors {
         new Color(IdeaCodeColors.Light.editNumbersVLine),
         new Color(IdeaCodeColors.Light.editFooterFill),
         new Color(IdeaCodeColors.Light.editSelectedBg),
+        new Color(IdeaCodeColors.Light.highlightRangeBg),
         new Color(IdeaCodeColors.Light.definitionBgColor),
         new Color(IdeaCodeColors.Light.usageBgColor),
         new Color(IdeaCodeColors.Light.scrollBarBg),

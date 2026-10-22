@@ -23,6 +23,9 @@ public class CodeLineRenderer implements Disposable {
   CodeLine line;
   GL.Texture[] textures;
   int curFromTexture = 0;
+  private final V2i selTemp = new V2i();
+  /** Reused across paints so highlight pixel segments are not allocated every frame. */
+  private V2i[] highlightScratch = new V2i[0];
 
   public CodeLineRenderer(ClrContext context) {
     this.context = context;
@@ -136,16 +139,29 @@ public class CodeLineRenderer implements Disposable {
       int lineHeight,
       int horScrollPos,
       CodeLineColorScheme colors,
-      V2i selectedSegment,
-      CodeElement def,
-      List<CodeElement> usages,
-      boolean isCurrentLine,
-      V4f overrideBackground, V4f overrideForeground,
-      LineDiff diff
+      Model model,
+      int lineIndex,
+      boolean paintSelection,
+      V4f overrideBackground, V4f overrideForeground
   ) {
     int lineMeasure = line.lineMeasure();
     if (lineMeasure == 0 || horScrollPos >= lineMeasure)
       return;
+
+    CodeElement def = model != null ? model.definition : null;
+    List<CodeElement> usages = model != null ? model.usages : null;
+    boolean isCurrentLine = model != null && model.caretLine == lineIndex;
+    LineDiff diff = model != null && model.diffModel != null && lineIndex < model.diffModel.length
+        ? model.diffModel[lineIndex]
+        : null;
+    V2i selectedSegment = paintSelection && model != null
+        ? selectedSegment(model, lineIndex, g) : null;
+    int highlightCount = model != null ? fillHighlightSegments(model, lineIndex, g) : 0;
+
+    if (selectedSegment != null) selectedSegment.y = Math.min(selectedSegment.y, lineMeasure);
+    for (int h = 0; h < highlightCount; h++) {
+      highlightScratch[h].y = Math.min(highlightScratch[h].y, lineMeasure);
+    }
 
     int[] iMeasure = line.iMeasure;
     CodeElement[] words = line.elements;
@@ -170,61 +186,34 @@ public class CodeLineRenderer implements Disposable {
       int drawWidth = Math.min((curTexture + 1) * TEXTURE_WIDTH, pxLen) - texturePos;
       if (drawOnCurTexture && isLastWord) drawWidth += xOffset;
 
-      boolean isNotSelected = selectedSegment == null;
-      boolean isFullUnselected = isNotSelected
-          || isFullUnselected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
-      boolean isFullSelected = !isNotSelected
-          && isFullSelected(selectedSegment, texturePos, drawWidth, isLastWord ? 2 * xOffset : xOffset);
+      CodeElementColor c = colors.elementColor(e.color);
+      V4f colorF = overrideForeground != null ? overrideForeground : c.colorF;
+      V4f colorB = requireNonNullElse(
+          resolveElementBg(colors, e, def, usages, isCurrentLine, overrideBackground, diff, i),
+          c.colorB != null ? c.colorB : colors.defaultBg);
 
-      V4f elemBgColor = null;
-      if (overrideBackground != null) {
-        elemBgColor = overrideBackground;
-      } else {
-        if (isCurrentLine/* && !isDiff*/) elemBgColor = colors.currentLineBg;
-        if (e == def) elemBgColor = colors.definitionBg;
-        if (usages != null && usages.contains(e)) {
-          elemBgColor = colors.usageBg;
-        }
-        if (diff != null) {
-          int[] types = diff.elementTypes;
-          int elementType = types != null && i < types.length ? types[i] : 0;
-          int t = elementType != 0 ?
-              elementType == DiffTypes.EDITED && diff.type == DiffTypes.EDITED ?
-                  DiffTypes.EDITED2 : elementType : diff.type;
-          elemBgColor = colors.diff.getDiffColor(t, colors.defaultBg);
-        }
+      int regionX = texturePos - curTexture * TEXTURE_WIDTH;
+      int screenX = xPos + dx;
+      drawTextRegion(g, texture, screenX, yPosition, regionX, drawWidth, lineHeight, colorF, colorB);
+
+      int endPad = isLastWord ? 2 * xOffset : xOffset;
+      int midPad = isLastWord ? 0 : xOffset;
+      int chunkEnd = Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH);
+
+      for (int h = 0; h < highlightCount; h++) {
+        drawRangeOverlay(g, texture, screenX, yPosition, lineHeight,
+            texturePos, drawWidth, regionX, chunkEnd, midPad, endPad,
+            highlightScratch[h], colorF, colors.highlightRangesBg);
       }
-
-      if (isFullSelected || isFullUnselected) {
-        CodeElementColor c = colors.elementColor(e.color);
-        V4f bgColor = isFullSelected ? colors.selectionBg :
-            requireNonNullElse(elemBgColor, c.colorB != null ? c.colorB : colors.defaultBg);
-        context.tRegion.set(texturePos - curTexture * TEXTURE_WIDTH, 0, drawWidth, lineHeight);
-        context.size.set(drawWidth, lineHeight);
-        V4f foreground = overrideForeground != null ? overrideForeground : c.colorF;
-        context.drawText(g, texture, xPos + dx, yPosition, foreground, bgColor);
-      } else {
-        selectedSegment.y = Math.min(selectedSegment.y, lineMeasure);
-        int pre = texturePos >= selectedSegment.x
-            ? drawWidth
-            : Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH)
-            - selectedSegment.x - (isLastWord ? 0 : xOffset);
-        int post = texturePos + drawWidth <= selectedSegment.y + (isLastWord ? 2 * xOffset : xOffset)
-            ? 0
-            : Math.min(pxLen, (curTexture + 1) * TEXTURE_WIDTH)
-            - selectedSegment.y - (isLastWord ? 0 : xOffset);
-        int regionX = texturePos - curTexture * TEXTURE_WIDTH;
-        drawSelected(g, xPos + dx, yPosition,
-            lineHeight, colors,
-            texture, e,
-            drawWidth, pre, post, regionX, elemBgColor, overrideForeground
-        );
+      if (selectedSegment != null) {
+        drawRangeOverlay(g, texture, screenX, yPosition, lineHeight,
+            texturePos, drawWidth, regionX, chunkEnd, midPad, endPad,
+            selectedSegment, colorF, colors.selectionBg);
       }
 
       int underlineIndex = e.underlineIndex();
-
       if (underlineIndex > 0) {
-        drawUnderline(xPos + dx, yPosition, g, drawWidth, underlineIndex);
+        drawUnderline(screenX, yPosition, g, drawWidth, underlineIndex);
       }
 
       texturePos += drawWidth;
@@ -235,6 +224,114 @@ public class CodeLineRenderer implements Disposable {
         i--;
       }
     }
+  }
+
+  private V2i selectedSegment(Model model, int lineIndex, WglGraphics g) {
+    V2i selLine = model.selection.getLine(lineIndex, selTemp);
+    if (selLine == null) return null;
+    if (selLine.y == -1) selLine.y = line.totalStrLength;
+    selLine.x = line.computePixelLocation(selLine.x, g.mCanvas, context.fonts);
+    selLine.y = line.computePixelLocation(selLine.y, g.mCanvas, context.fonts);
+    return selLine;
+  }
+
+  /**
+   * Fills {@link #highlightScratch} with pixel segments for {@code lineIndex}.
+   * @return number of segments written (0 when none)
+   */
+  private int fillHighlightSegments(Model model, int lineIndex, WglGraphics g) {
+    Range[] ranges = model.highlightRanges;
+    if (ranges == null || ranges.length == 0) return 0;
+    int n = 0;
+    for (Range r : ranges) {
+      if (r != null && r.startLineNumber <= lineIndex && lineIndex <= r.endLineNumber) n++;
+    }
+    if (n == 0) return 0;
+    ensureHighlightScratch(n);
+    int j = 0;
+    for (Range r : ranges) {
+      if (r == null || lineIndex < r.startLineNumber || lineIndex > r.endLineNumber) continue;
+      int start = lineIndex > r.startLineNumber ? 0 : r.startColumn;
+      int end = lineIndex < r.endLineNumber ? line.totalStrLength : r.endColumn;
+      highlightScratch[j++].set(
+          line.computePixelLocation(start, g.mCanvas, context.fonts),
+          line.computePixelLocation(end, g.mCanvas, context.fonts));
+    }
+    return n;
+  }
+
+  private void ensureHighlightScratch(int n) {
+    if (highlightScratch.length >= n) return;
+    V2i[] next = Arrays.copyOf(highlightScratch, n);
+    for (int i = 0; i < n; i++) {
+      if (next[i] == null) next[i] = new V2i();
+    }
+    highlightScratch = next;
+  }
+
+  private V4f resolveElementBg(
+      CodeLineColorScheme colors,
+      CodeElement e,
+      CodeElement def,
+      List<CodeElement> usages,
+      boolean isCurrentLine,
+      V4f overrideBackground,
+      LineDiff diff,
+      int elementIndex
+  ) {
+    if (overrideBackground != null) return overrideBackground;
+    V4f elemBgColor = null;
+    if (isCurrentLine) elemBgColor = colors.currentLineBg;
+    if (e == def) elemBgColor = colors.definitionBg;
+    if (usages != null && usages.contains(e)) elemBgColor = colors.usageBg;
+    if (diff != null) {
+      int[] types = diff.elementTypes;
+      int elementType = types != null && elementIndex < types.length ? types[elementIndex] : 0;
+      int t = elementType != 0
+          ? elementType == DiffTypes.EDITED && diff.type == DiffTypes.EDITED
+              ? DiffTypes.EDITED2 : elementType
+          : diff.type;
+      elemBgColor = colors.diff.getDiffColor(t, colors.defaultBg);
+    }
+    return elemBgColor;
+  }
+
+  private void drawTextRegion(
+      WglGraphics g, GL.Texture texture,
+      int x, int y, int regionX, int width, int lineHeight,
+      V4f colorF, V4f colorB
+  ) {
+    if (width <= 0) return;
+    context.tRegion.set(regionX, 0, width, lineHeight);
+    context.size.set(width, lineHeight);
+    context.drawText(g, texture, x, y, colorF, colorB);
+  }
+
+  /** Redraws the intersection of {@code range} with the current chunk using {@code overlayBg}. */
+  private void drawRangeOverlay(
+      WglGraphics g, GL.Texture texture,
+      int xPos, int yPosition, int lineHeight,
+      int texturePos, int drawWidth, int regionX, int chunkEnd,
+      int midPad, int endPad,
+      V2i range, V4f colorF, V4f overlayBg
+  ) {
+    if (isFullUnselected(range, texturePos, drawWidth, endPad)) return;
+    if (isFullSelected(range, texturePos, drawWidth, endPad)) {
+      drawTextRegion(g, texture, xPos, yPosition, regionX, drawWidth, lineHeight, colorF, overlayBg);
+      return;
+    }
+    int pre = texturePos >= range.x
+        ? drawWidth
+        : chunkEnd - range.x - midPad;
+    int post = texturePos + drawWidth <= range.y + endPad
+        ? 0
+        : chunkEnd - range.y - midPad;
+    int midWidth = pre - post;
+    int midOffset = drawWidth - pre;
+    drawTextRegion(g, texture,
+        xPos + midOffset, yPosition,
+        regionX + midOffset, midWidth, lineHeight,
+        colorF, overlayBg);
   }
 
   private void drawUnderline(int xPos, int yPos, WglGraphics g, int drawWidth, int underlineIndex) {
@@ -251,36 +348,6 @@ public class CodeLineRenderer implements Disposable {
         context.underlineParams,
         IdeaCodeColors.Dark.error, 0);
     g.enableBlend(false);
-  }
-
-  private void drawSelected(
-      WglGraphics g, int xPos, int yPosition,
-      int lineHeight, CodeLineColorScheme colors,
-      GL.Texture texture, CodeElement e,
-      int drawWidth, int pre, int post, int regionX,
-      V4f elemBgColor,
-      V4f overrideForeground
-  ) {
-    CodeElementColor c = colors.elementColor(e.color);
-    V4f colorF = overrideForeground != null ? overrideForeground : c.colorF;
-    V4f colorB = requireNonNullElse(elemBgColor, c.colorB != null ? c.colorB : colors.defaultBg);
-    V4f selColorB = colors.selectionBg;
-
-    V4f tRegion = context.tRegion;
-    V2i size = context.size;
-    tRegion.set(regionX, 0, drawWidth - pre, lineHeight);
-    size.set(drawWidth - pre, lineHeight);
-    context.drawText(g, texture, xPos, yPosition, colorF, colorB);
-
-    tRegion.set(regionX + drawWidth - post, 0, post, lineHeight);
-    size.set(post, lineHeight);
-    context.drawText(g, texture, xPos + drawWidth - post, yPosition,
-        colorF, colorB);
-
-    tRegion.set(regionX + drawWidth - pre, 0, pre - post, lineHeight);
-    size.set(pre - post, lineHeight);
-    context.drawText(g, texture, xPos + drawWidth - pre, yPosition,
-        colorF, selColorB);
   }
 
   static <T> T requireNonNullElse(T obj, T defaultObj) {

@@ -1,6 +1,7 @@
 package org.sudu.experiments.esm;
 
 import org.sudu.experiments.diff.JsEditorViewController;
+import org.sudu.experiments.js.JsArrayReader;
 import org.sudu.experiments.js.JsDisposable;
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
@@ -37,6 +38,10 @@ public interface JsIEditorView extends JsView {
    *                            synchronization is not affected.
    */
   void selectAndReveal(JsRange range, boolean shouldReveal, boolean fireVScrollListener);
+
+  void highlightRanges(JsArrayReader<JsRange> ranges);
+  void selectNextRange();
+  void selectPrevRange();
 
   JsEditorViewController getController();
   void setReadonly(boolean flag);

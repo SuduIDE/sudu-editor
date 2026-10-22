@@ -139,10 +139,10 @@ export interface ITextModel extends IDisposable {
 
 // numeration starts from 1
 export interface IRange {
-  endColumn: number,
-  endLineNumber: number,
+  startLineNumber: number,
   startColumn: number,
-  startLineNumber: number
+  endLineNumber: number,
+  endColumn: number
 }
 
 export interface ICancellationToken {
@@ -443,13 +443,35 @@ export interface IEditorView extends View, HasTheme, Focusable {
    * The caret is placed at the range start.
    *
    * @param shouldReveal `true` to scroll the start of the range into view
-   *        vertically and horizontally, `false` to only select without scrolling
+   *        (vertically via reveal-in-center, and horizontally to the caret),
+   *        `false` to only select without scrolling
    * @param fireVScrollListener whether to notify the vertical scroll observer
    *        (the {@link EditorView.setVScrollListener} callback, where available)
    *        when the call changed the vertical scroll position. Diff pane
    *        synchronization is not affected.
    */
   selectAndReveal(range: IRange, shouldReveal: boolean, fireVScrollListener: boolean): void
+
+  /**
+   * Paints the given ranges as highlights. Pass an empty array or `null` to
+   * clear. Java callers: the array is retained by reference until the next
+   * call — do not mutate it afterward. JS bridges copy on call, so mutating
+   * the JS array afterward is a no-op.
+   */
+  highlightRanges(ranges: IRange[] | null): void
+
+  /**
+   * Selects the next highlight after the caret and reveals it in the center.
+   * Always scrolls and fires the vertical scroll listener. No-op if none.
+   */
+  selectNextRange(): void
+
+  /**
+   * Selects the previous highlight before the caret and reveals it in the
+   * center. Always scrolls and fires the vertical scroll listener. A caret
+   * inside a match skips that match. No-op if none.
+   */
+  selectPrevRange(): void
 
   getController(): EditorViewController;
 

@@ -318,6 +318,31 @@ public class JsCodeEditor implements JsEditorView {
     editor.readonly = flag;
   }
 
+  @Override
+  public void highlightRanges(JsArrayReader<JsRange> ranges) {
+    editor.highlightRanges(toRanges(ranges));
+  }
+
+  @Override
+  public void selectNextRange() {
+    editor.selectNextRange();
+  }
+
+  @Override
+  public void selectPrevRange() {
+    editor.selectPrevRange();
+  }
+
+  static Range[] toRanges(JsArrayReader<JsRange> jsArr) {
+    if (jsArr == null) return null;
+    Range[] result = new Range[jsArr.getLength()];
+    for (int i = 0; i < result.length; i++) {
+      result[i] = new Range();
+      jsArr.get(i).toJava(result[i]);
+    }
+    return result;
+  }
+
   public static Promise<JsIEditorView> newEdit(EditArgs arguments) {
     if (JsCanvas.checkFontMetricsAPI()) {
       return Promise.create((postResult, postError) ->

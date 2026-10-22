@@ -147,6 +147,7 @@ public interface IdeaCodeColors {
     Color editNumbersVLine = new Color(55);
     Color editBg = new Color(43);
     Color editSelectedBg = new Color(33, 66, 131);
+    Color highlightRangeBg = new Color("#155221");
     Color editFooterFill = new Color(60, 63, 65);
     Color usageBgColor = new Color("#344134");
     Color definitionBgColor = new Color("#40332B");
@@ -162,6 +163,7 @@ public interface IdeaCodeColors {
     Color editNumbersVLine = new Color("#313438");
     Color editBg = new Color("#1E1F22");
     Color editSelectedBg = new Color("#214283");
+    Color highlightRangeBg = new Color("#2D543F");
     Color editFooterFill = new Color("#2B2D30");
     Color usageBgColor = new Color("#373B39");
     Color definitionBgColor = new Color("#402F33");
@@ -180,6 +182,7 @@ public interface IdeaCodeColors {
     Color editBg = new Color(0xff, 0xff, 0xff);
     Color editSelectedBg = new Color("#A6D2FF");
     Color editFooterFill = new Color("#F8F9FB");
+    Color highlightRangeBg = new Color("#CCCCFF");
     Color usageBgColor = new Color("#edebfc");
     Color definitionBgColor = new Color("#FCE8F4");
     Color scrollBarLine = new Color(205, 205, 205, 153);

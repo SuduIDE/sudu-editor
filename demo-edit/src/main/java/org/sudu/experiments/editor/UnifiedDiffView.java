@@ -289,7 +289,6 @@ public class UnifiedDiffView extends View implements Focusable {
       if (lineIndex < 0) continue;
 
       var model = docIndex[i] ? model2 : model1;
-      var diffModel = model.diffModel;
       int docLine = docLines[i];
       CodeLine cLine = model.document.lines[docLine];
       CodeLineRenderer line = lineRenderer(i);
@@ -300,16 +299,12 @@ public class UnifiedDiffView extends View implements Focusable {
 
       fullWidth = Math.max(fullWidth, lineMeasure + rightPadding);
 
-      LineDiff diff = diffModel == null || docLine >= diffModel.length
-          ? null : diffModel[docLine];
-      V2i selectionTemp = context.v2i2;
       line.draw(
           pos.y + yPosition, pos.x + textBaseX, g,
           textViewWidth, lineHeight, hScrollPos,
-          codeLineColors, null, //  getSelLineSegment(lineIndex, cLine, selectionTemp),
-          model.definition, model.usages,
-          model.caretLine == lineIndex, null, null,
-          diff);
+          // selection painting stays off (was null selectedSegment before)
+          codeLineColors, model, docLine, false,
+          null, null);
     }
     this.fullWidth = fullWidth;
   }

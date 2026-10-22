@@ -16,6 +16,7 @@ public class CodeLineColorScheme {
   public final Color definitionBg;
   public final Color usageBg;
   public final Color selectionBg;
+  public final Color highlightRangesBg;
   public final Color defaultBg;
   public final CodeElementColor[] codeElement;                  // TokenTypes
   public final CodeElementColor[] defaultSemanticColors;        // Semantic TokenTypes
@@ -25,13 +26,14 @@ public class CodeLineColorScheme {
 
   public CodeLineColorScheme(
       Color currentLineBg, Color definitionBg, Color usageBg,
-      Color selectionBg, Color defaultBg,
+      Color selectionBg, Color highlightRangesBg, Color defaultBg,
       CodeElementColor[] codeElement, DiffColors diff
   ) {
     this.currentLineBg = currentLineBg;
     this.definitionBg = definitionBg;
     this.usageBg = usageBg;
     this.selectionBg = selectionBg;
+    this.highlightRangesBg = highlightRangesBg;
     this.defaultBg = defaultBg;
     this.codeElement = codeElement;
     this.diff = diff;

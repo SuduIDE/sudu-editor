@@ -46,8 +46,10 @@
     #toolbar button:hover { background-color: #4a4a4a; }
 
     /*
-      Search controls. `reveal` and `notify` are wired straight to the two
-      boolean parameters of IEditorView.selectAndReveal.
+      Search controls. Matches are painted with IEditorView.highlightRanges.
+      `prev` / `next` use selectAndReveal (with reveal/notify flags, wrapping).
+      `range prev` / `range next` use selectPrevRange / selectNextRange
+      (from the caret, no wrap).
     */
     #toolbar .search {
       display: flex;
@@ -280,8 +282,10 @@
 
     <span class="search">
       <input id="search-input" type="search" placeholder="find in editor" autocomplete="off"/>
-      <button id="search-prev" type="button" title="previous match (Shift+Enter)">prev</button>
-      <button id="search-next" type="button" title="next match (Enter)">next</button>
+      <button id="search-prev" type="button" title="previous match via selectAndReveal (Shift+Enter)">prev</button>
+      <button id="search-next" type="button" title="next match via selectAndReveal (Enter)">next</button>
+      <button id="range-prev" type="button" title="previous highlight from caret via selectPrevRange">range prev</button>
+      <button id="range-next" type="button" title="next highlight from caret via selectNextRange">range next</button>
       <span id="search-status"></span>
       <label title="scroll the editor to the match; off = only select">
         <input id="search-reveal" type="checkbox" checked/> reveal

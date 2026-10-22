@@ -177,6 +177,7 @@ public class EditorColorScheme {
         editor.definitionBg,
         editor.usageBg,
         editor.selectionBg,
+        editor.highlightRangesBg,
         editor.bg,
         codeElement, codeDiffBg);
   }
@@ -187,6 +188,7 @@ public class EditorColorScheme {
         editor.definitionBg,
         editor.usageBg,
         editor.selectionBg,
+        editor.highlightRangesBg,
         editor.bg,
         codeElement, codeDiffBg);
   }

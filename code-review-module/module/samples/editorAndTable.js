@@ -10,9 +10,10 @@ import * as editorApi from "../src/codereview.js";
  * values are in *device* pixels, while the DOM works in CSS pixels, so
  * everything crossing that boundary is divided by the device pixel ratio.
  *
- * The toolbar search is a small caller of `selectAndReveal`: the `reveal`
- * checkbox maps to its `shouldReveal` flag and `notify` to its
- * `fireVScrollListener` flag, so both behaviours can be tried side by side.
+ * The toolbar search paints every match with `highlightRanges`. Prev/next
+ * step with `selectAndReveal` (wrapping; `reveal` / `notify` checkboxes).
+ * Range prev/next call `selectPrevRange` / `selectNextRange` from the caret
+ * with no wrapping.
  */
 
 const SAMPLE = [
@@ -385,6 +386,8 @@ function clearHighlight() {
 const searchInput = document.getElementById("search-input");
 const searchPrevButton = document.getElementById("search-prev");
 const searchNextButton = document.getElementById("search-next");
+const rangePrevButton = document.getElementById("range-prev");
+const rangeNextButton = document.getElementById("range-next");
 const searchRevealCheckbox = document.getElementById("search-reveal");
 const searchNotifyCheckbox = document.getElementById("search-notify");
 const searchStatus = document.getElementById("search-status");
@@ -397,7 +400,8 @@ let searchQuery = "";
  * Finds every occurrence of `query` in `text`, case-insensitively.
  *
  * The ranges are in the editor's 1-based coordinates - the shape
- * `selectAndReveal` accepts - so they can be passed straight through.
+ * `highlightRanges` / `selectAndReveal` accept - so they can be passed
+ * straight through.
  */
 function findMatches(text, query) {
   if (query === "") return [];
@@ -423,9 +427,15 @@ function findMatches(text, query) {
   return matches;
 }
 
+/** Paints every match (or clears the paint when there are none). */
+function applyHighlight(matches) {
+  editor.highlightRanges(matches);
+}
+
 /**
  * Selects the next (delta 1) or previous (delta -1) match and hands it to
- * `selectAndReveal`, wrapping around at the ends.
+ * `selectAndReveal`, wrapping around at the ends. All matches stay painted
+ * via `highlightRanges`.
  */
 function stepSearch(delta) {
   const query = searchInput.value;
@@ -435,6 +445,7 @@ function stepSearch(delta) {
   }
 
   const matches = findMatches(editor.getText(), query);
+  applyHighlight(matches);
   if (matches.length === 0) {
     searchStatus.textContent = query === "" ? "" : "no match";
     return;
@@ -461,9 +472,40 @@ function stepSearch(delta) {
   );
 }
 
+/**
+ * Steps with selectNextRange / selectPrevRange (no wrap). Updates the status
+ * from the caret's new position against the current matches.
+ */
+function stepRange(next) {
+  const query = searchInput.value;
+  const matches = findMatches(editor.getText(), query);
+  applyHighlight(matches);
+  if (matches.length === 0) {
+    searchStatus.textContent = query === "" ? "" : "no match";
+    return;
+  }
+
+  if (next) editor.selectNextRange();
+  else editor.selectPrevRange();
+
+  const pos = editor.getPosition();
+  const index = matches.findIndex(
+    (m) =>
+      m.startLineNumber === pos.lineNumber && m.startColumn === pos.column
+  );
+  if (index >= 0) {
+    searchQuery = query;
+    searchIndex = index;
+    searchStatus.textContent = `${index + 1}/${matches.length}`;
+  }
+  // caret unchanged when there was no next/prev range — leave status as is
+}
+
 function wireSearch() {
   searchNextButton.addEventListener("click", () => stepSearch(1));
   searchPrevButton.addEventListener("click", () => stepSearch(-1));
+  rangeNextButton.addEventListener("click", () => stepRange(true));
+  rangePrevButton.addEventListener("click", () => stepRange(false));
 
   searchInput.addEventListener("keydown", (event) => {
     if (event.key !== "Enter") return;
@@ -471,11 +513,15 @@ function wireSearch() {
     stepSearch(event.shiftKey ? -1 : 1);
   });
 
-  // A new query starts from the first match again.
+  // Typing updates the highlight paint immediately; next/prev resets to the
+  // first match of the new query.
   searchInput.addEventListener("input", () => {
     searchQuery = "";
     searchIndex = -1;
-    searchStatus.textContent = "";
+    const matches = findMatches(editor.getText(), searchInput.value);
+    applyHighlight(matches);
+    searchStatus.textContent =
+      searchInput.value === "" ? "" : matches.length === 0 ? "no match" : `${matches.length} matches`;
   });
 }
 

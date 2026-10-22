@@ -712,16 +712,11 @@ public class EditorComponent extends View implements
 
       fullWidth = Math.max(fullWidth, lineMeasure + rightPadding);
 
-      LineDiff diff = diffModel == null || lineIndex >= diffModel.length
-          ? null : diffModel[lineIndex];
-      V2i selectionTemp = context.v2i2;
       line.draw(
           pos.y + yPosition, pos.x + textBaseX, g,
           textViewWidth, lineHeight, hScrollPos,
-          codeLineColors, getSelLineSegment(lineIndex, cLine, selectionTemp),
-          model.definition, model.usages,
-          model.caretLine == lineIndex, null, null,
-              diff);
+          codeLineColors, model, lineIndex, true,
+          null, null);
     }
 
     this.fullWidth = fullWidth;
@@ -898,16 +893,6 @@ public class EditorComponent extends View implements
         g.drawRect(pos.x + xPos0,pos.y + yPosition, size, c);
       }
     }
-  }
-
-  private V2i getSelLineSegment(int lineInd, CodeLine line, V2i rv) {
-    V2i selLine = selection().getLine(lineInd, rv);
-    if (selLine != null) {
-      if (selLine.y == -1) selLine.y = line.totalStrLength;
-      selLine.x = line.computePixelLocation(selLine.x, g.mCanvas, fonts);
-      selLine.y = line.computePixelLocation(selLine.y, g.mCanvas, fonts);
-    }
-    return selLine;
   }
 
   private void drawLineNumbers(int firstLine, int lastLine) {
@@ -2202,15 +2187,51 @@ public class EditorComponent extends View implements
   }
 
   public void revealLineInCenter(int lineNumber) {
+    revealLineInCenter(lineNumber, true);
+  }
+
+  private void revealLineInCenter(int lineNumber, boolean notifyObserver) {
     int viewLine = docToView.docToViewCursor(lineNumber);
     if (viewLine < 0) return;
     int computed = lineHeight *
         (viewLine - (editorHeight() / (lineHeight * 2)) - 1);
-    setScrollPosY(computed);
+    setScrollPosY(computed, notifyObserver);
   }
 
   public void revealLine(int lineNumber) {
     revealLine(lineNumber, true);
+  }
+
+  public void highlightRanges(Range[] ranges) {
+    model.highlightRanges = ranges;
+    window().repaint();
+  }
+
+  /**
+   * Selects the next highlighted range after the caret and reveals it in the
+   * center. Always scrolls and notifies the vertical scroll observer (same as
+   * {@code selectAndReveal(range, true, true)}). No-op when there is no next
+   * range.
+   */
+  public void selectNextRange() {
+    Range range = model.findAdjacentHighlightRange(true);
+    if (range == null) return;
+    selectAndReveal(range, true, true);
+    window().repaint();
+  }
+
+  /**
+   * Selects the previous highlighted range before the caret and reveals it in
+   * the center. Always scrolls and notifies the vertical scroll observer (same
+   * as {@code selectAndReveal(range, true, true)}). No-op when there is no
+   * previous range. A caret inside a match skips that match and goes to the
+   * one before it.
+   */
+  public void selectPrevRange() {
+    Range range = model.findAdjacentHighlightRange(false);
+    if (range == null) return;
+    selectAndReveal(range, true, true);
+    window().repaint();
   }
 
   private void revealLine(int lineNumber, boolean notifyObserver) {
@@ -2238,8 +2259,9 @@ public class EditorComponent extends View implements
    *
    * <p>When {@code shouldReveal} is false, nothing is scrolled: only the
    * selection and the caret move. When it is true, the range start is revealed
-   * on both axes. Vertical scrolling follows {@link #revealLine}; horizontal
-   * scrolling follows the caret, which this call places at the range start.
+   * on both axes. Vertical scrolling follows {@link #revealLineInCenter};
+   * horizontal scrolling follows the caret, which this call places at the
+   * range start.
    *
    * <p>The reveal notifies the vertical scroll observer only when
    * {@code fireVScrollListener} is true and the vertical position changed. The
@@ -2258,9 +2280,9 @@ public class EditorComponent extends View implements
     selection().startPos.set(range.startLineNumber, range.startColumn);
     selection().endPos.set(range.endLineNumber, range.endColumn);
     if (shouldReveal) {
-      revealLine(range.startLineNumber, fireVScrollListener);
-      // revealLine only moves the vertical scroll. The caret is already at
-      // the range start, so the same horizontal adjustment a caret move uses
+      revealLineInCenter(range.startLineNumber, fireVScrollListener);
+      // revealLineInCenter only moves the vertical scroll. The caret is already
+      // at the range start, so the same horizontal adjustment a caret move uses
       // brings that column into view.
       adjustEditorHScrollToCaret();
     }

@@ -317,10 +317,8 @@ public class TreeView extends ScrollContent implements Focusable {
           pos.y + yPosition,
           startX + textShift,
           g, width, lineHeight, hScrollPos,
-          codeLineScheme, null,
-          null, null,
-          selected,
-          background, foreground, null);
+          codeLineScheme, null, 0, false,
+          background, foreground);
     }
 
     if (virtualSize.x != virtualSizeX) {
