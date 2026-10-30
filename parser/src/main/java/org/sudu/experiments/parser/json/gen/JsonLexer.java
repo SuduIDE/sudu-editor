@@ -32,7 +32,7 @@ public class JsonLexer extends Lexer {
 		return new String[] {
 			"STRING", "NUMBER", "BOOLEAN", "NULL", "OPEN_BRACKET", "CLOSE_BRACKET", 
 			"OPEN_BRACE", "CLOSE_BRACE", "COMMA", "COLON", "COMMENT", "LINE_COMMENT", 
-			"NEW_LINE", "WS", "ERROR", "Esc", "Unicode", "Hex", "Safecodepoint", 
+			"NEW_LINE", "WS", "ERROR", "Esc", "Unicode", "Hex", "SafeCodePoint", 
 			"Int", "Exp"
 		};
 	}

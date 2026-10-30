@@ -73,15 +73,15 @@ public class CPP14Lexer extends Lexer {
 			"RIGHT_SHIFT_ASSIGN", "EQUAL", "NOT_EQUAL", "LESS_EQUAL", "GREATER_EQUAL", 
 			"AND_AND", "OR_OR", "PLUS_PLUS", "MINUS_MINUS", "COMMA", "ARROW_STAR", 
 			"ARROW", "QUESTION", "COLON", "DOUBLECOLON", "SEMI", "DOT", "DOT_STAR", 
-			"ELLIPSIS", "Hexquad", "Universalcharactername", "IDENTIFIER", "Identifiernondigit", 
-			"Nondigit", "Digit", "DECIMAL_LITERAL", "OCTAL_LITERAL", "HEXADECIMAL_LITERAL", 
-			"BINARY_LITERAL", "Nonzerodigit", "Octaldigit", "Hexadecimaldigit", "Binarydigit", 
-			"INTEGERSUFFIX", "Unsignedsuffix", "Longsuffix", "Longlongsuffix", "Cchar", 
-			"Escapesequence", "Simpleescapesequence", "Octalescapesequence", "Hexadecimalescapesequence", 
-			"Fractionalconstant", "Exponentpart", "Sign", "Digitsequence", "Floatingsuffix", 
-			"Encodingprefix", "Schar", "Rawstring", "USER_DEFINED_INTEGER_LITERAL", 
+			"ELLIPSIS", "HexQuad", "UniversalCharacterName", "IDENTIFIER", "IdentifierNonDigit", 
+			"NonDigit", "Digit", "DECIMAL_LITERAL", "OCTAL_LITERAL", "HEXADECIMAL_LITERAL", 
+			"BINARY_LITERAL", "NonZeroDigit", "OctalDigit", "HexadecimalDigit", "BinaryDigit", 
+			"INTEGERSUFFIX", "UnsignedSuffix", "LongSuffix", "LongLongSuffix", "CChar", 
+			"EscapeSequence", "SimpleEscapeSequence", "OctalEscapeSequence", "HexadecimalEscapeSequence", 
+			"FractionalConstant", "ExponentPart", "Sign", "DigitSequence", "FloatingSuffix", 
+			"EncodingPrefix", "SChar", "RawString", "USER_DEFINED_INTEGER_LITERAL", 
 			"USER_DEFINED_FLOATING_LITERAL", "USER_DEFINED_STRING_LITERAL", "USER_DEFINED_CHARACTER_LITERAL", 
-			"Udsuffix", "WHITESPACE", "NEW_LINE", "DOCUMENTATION", "BLOCK_COMMENT", 
+			"UdSuffix", "WHITESPACE", "NEW_LINE", "DOCUMENTATION", "BLOCK_COMMENT", 
 			"LINE_COMMENT", "ERROR"
 		};
 	}

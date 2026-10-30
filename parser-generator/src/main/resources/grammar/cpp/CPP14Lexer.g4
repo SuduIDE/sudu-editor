@@ -11,14 +11,14 @@ INTEGER_LITERAL:
     | BINARY_LITERAL INTEGERSUFFIX?
 ;
 
-CHARACTER_LITERAL: ('u' | 'U' | 'L')? '\'' Cchar+ '\'';
+CHARACTER_LITERAL: ('u' | 'U' | 'L')? '\'' CChar+ '\'';
 
 FLOATING_LITERAL:
-    Fractionalconstant Exponentpart? Floatingsuffix?
-    | Digitsequence Exponentpart Floatingsuffix?
+    FractionalConstant ExponentPart? FloatingSuffix?
+    | DigitSequence ExponentPart FloatingSuffix?
 ;
 
-STRING_LITERAL: Encodingprefix? (Rawstring | '"' Schar* '"');
+STRING_LITERAL: EncodingPrefix? (RawString | '"' SChar* '"');
 
 BOOLEAN_LITERAL: FALSE_ | TRUE_;
 
@@ -283,56 +283,56 @@ DOT_STAR: '.*';
 
 ELLIPSIS: '...';
 
-fragment Hexquad: Hexadecimaldigit Hexadecimaldigit Hexadecimaldigit Hexadecimaldigit;
+fragment HexQuad: HexadecimalDigit HexadecimalDigit HexadecimalDigit HexadecimalDigit;
 
-fragment Universalcharactername: '\\u' Hexquad | '\\U' Hexquad Hexquad;
+fragment UniversalCharacterName: '\\u' HexQuad | '\\U' HexQuad HexQuad;
 
 IDENTIFIER:
     /*
-	 Identifiernondigit | IDENTIFIER Identifiernondigit | IDENTIFIER Digit
-	 */ Identifiernondigit (Identifiernondigit | Digit)*
+	 IdentifierNonDigit | IDENTIFIER IdentifierNonDigit | IDENTIFIER Digit
+	 */ IdentifierNonDigit (IdentifierNonDigit | Digit)*
 ;
 
-fragment Identifiernondigit: Nondigit | Universalcharactername;
+fragment IdentifierNonDigit: NonDigit | UniversalCharacterName;
 
-fragment Nondigit: [a-zA-Z_];
+fragment NonDigit: [a-zA-Z_];
 
 fragment Digit: [0-9];
 
-DECIMAL_LITERAL: Nonzerodigit ('\''? Digit)*;
+DECIMAL_LITERAL: NonZeroDigit ('\''? Digit)*;
 
-OCTAL_LITERAL: '0' ('\''? Octaldigit)*;
+OCTAL_LITERAL: '0' ('\''? OctalDigit)*;
 
-HEXADECIMAL_LITERAL: ('0x' | '0X') Hexadecimaldigit ( '\''? Hexadecimaldigit)*;
+HEXADECIMAL_LITERAL: ('0x' | '0X') HexadecimalDigit ( '\''? HexadecimalDigit)*;
 
-BINARY_LITERAL: ('0b' | '0B') Binarydigit ('\''? Binarydigit)*;
+BINARY_LITERAL: ('0b' | '0B') BinaryDigit ('\''? BinaryDigit)*;
 
-fragment Nonzerodigit: [1-9];
+fragment NonZeroDigit: [1-9];
 
-fragment Octaldigit: [0-7];
+fragment OctalDigit: [0-7];
 
-fragment Hexadecimaldigit: [0-9a-fA-F];
+fragment HexadecimalDigit: [0-9a-fA-F];
 
-fragment Binarydigit: [01];
+fragment BinaryDigit: [01];
 
 INTEGERSUFFIX:
-    Unsignedsuffix Longsuffix?
-    | Unsignedsuffix Longlongsuffix?
-    | Longsuffix Unsignedsuffix?
-    | Longlongsuffix Unsignedsuffix?
+    UnsignedSuffix LongSuffix?
+    | UnsignedSuffix LongLongSuffix?
+    | LongSuffix UnsignedSuffix?
+    | LongLongSuffix UnsignedSuffix?
 ;
 
-fragment Unsignedsuffix: [uU];
+fragment UnsignedSuffix: [uU];
 
-fragment Longsuffix: [lL];
+fragment LongSuffix: [lL];
 
-fragment Longlongsuffix: 'll' | 'LL';
+fragment LongLongSuffix: 'll' | 'LL';
 
-fragment Cchar: ~ ['\\\r\n] | Escapesequence | Universalcharactername;
+fragment CChar: ~ ['\\\r\n] | EscapeSequence | UniversalCharacterName;
 
-fragment Escapesequence: Simpleescapesequence | Octalescapesequence | Hexadecimalescapesequence;
+fragment EscapeSequence: SimpleEscapeSequence | OctalEscapeSequence | HexadecimalEscapeSequence;
 
-fragment Simpleescapesequence:
+fragment SimpleEscapeSequence:
     '\\\''
     | '\\"'
     | '\\?'
@@ -347,47 +347,47 @@ fragment Simpleescapesequence:
     | '\\v'
 ;
 
-fragment Octalescapesequence:
-    '\\' Octaldigit
-    | '\\' Octaldigit Octaldigit
-    | '\\' Octaldigit Octaldigit Octaldigit
+fragment OctalEscapeSequence:
+    '\\' OctalDigit
+    | '\\' OctalDigit OctalDigit
+    | '\\' OctalDigit OctalDigit OctalDigit
 ;
 
-fragment Hexadecimalescapesequence: '\\x' Hexadecimaldigit+;
+fragment HexadecimalEscapeSequence: '\\x' HexadecimalDigit+;
 
-fragment Fractionalconstant: Digitsequence? '.' Digitsequence | Digitsequence '.';
+fragment FractionalConstant: DigitSequence? '.' DigitSequence | DigitSequence '.';
 
-fragment Exponentpart: 'e' Sign? Digitsequence | 'E' Sign? Digitsequence;
+fragment ExponentPart: 'e' Sign? DigitSequence | 'E' Sign? DigitSequence;
 
 fragment Sign: [+-];
 
-fragment Digitsequence: Digit ('\''? Digit)*;
+fragment DigitSequence: Digit ('\''? Digit)*;
 
-fragment Floatingsuffix: [flFL];
+fragment FloatingSuffix: [flFL];
 
-fragment Encodingprefix: 'u8' | 'u' | 'U' | 'L';
+fragment EncodingPrefix: 'u8' | 'u' | 'U' | 'L';
 
-fragment Schar: ~ ["\\\r\n] | Escapesequence | Universalcharactername;
+fragment SChar: ~ ["\\\r\n] | EscapeSequence | UniversalCharacterName;
 
-fragment Rawstring: 'R"' ( '\\' ["()] | ~[\r\n (])*? '(' ~[)]*? ')' ( '\\' ["()] | ~[\r\n "])*? '"';
+fragment RawString: 'R"' ( '\\' ["()] | ~[\r\n (])*? '(' ~[)]*? ')' ( '\\' ["()] | ~[\r\n "])*? '"';
 
 USER_DEFINED_INTEGER_LITERAL:
-    DECIMAL_LITERAL Udsuffix
-    | OCTAL_LITERAL Udsuffix
-    | HEXADECIMAL_LITERAL Udsuffix
-    | BINARY_LITERAL Udsuffix
+    DECIMAL_LITERAL UdSuffix
+    | OCTAL_LITERAL UdSuffix
+    | HEXADECIMAL_LITERAL UdSuffix
+    | BINARY_LITERAL UdSuffix
 ;
 
 USER_DEFINED_FLOATING_LITERAL:
-    Fractionalconstant Exponentpart? Udsuffix
-    | Digitsequence Exponentpart Udsuffix
+    FractionalConstant ExponentPart? UdSuffix
+    | DigitSequence ExponentPart UdSuffix
 ;
 
-USER_DEFINED_STRING_LITERAL: STRING_LITERAL Udsuffix;
+USER_DEFINED_STRING_LITERAL: STRING_LITERAL UdSuffix;
 
-USER_DEFINED_CHARACTER_LITERAL: CHARACTER_LITERAL Udsuffix;
+USER_DEFINED_CHARACTER_LITERAL: CHARACTER_LITERAL UdSuffix;
 
-fragment Udsuffix: IDENTIFIER;
+fragment UdSuffix: IDENTIFIER;
 
 WHITESPACE: [ \t]+ -> channel(HIDDEN);
 

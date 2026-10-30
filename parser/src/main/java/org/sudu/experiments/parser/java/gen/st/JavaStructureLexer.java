@@ -36,7 +36,7 @@ public class JavaStructureLexer extends Lexer {
 			"ENUM", "RECORD", "WS", "COMMENT", "LINE_COMMENT", "NEW_LINE", "STRING_LITERAL", 
 			"CHAR_LITERAL", "AT_INTERFACE", "ANNOTATION", "COR_PAREN_SEQ", "DEFAULT", 
 			"SYNCHRONIZED", "FINAL", "SEALED", "NON_SEALED", "MODIFIER", "IDENTIFIER", 
-			"ERROR", "QualifiedName", "AltQualifiedName", "DIAMONDS", "Literal", 
+			"ERROR", "QualifiedName", "AltQualifiedName", "Diamonds", "Literal", 
 			"Skipable", "ExponentPart", "EscapeSequence", "HexDigits", "HexDigit", 
 			"Digits", "LetterOrDigit", "Letter"
 		};

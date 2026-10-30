@@ -157,8 +157,8 @@ CLOSE_BRACKET : ']' {this.DecIndentLevel();};
 
 NAME: IdStart IdContinue*;
 
-LINE_JOIN : '\\' [ \t]* Rn -> channel(HIDDEN);
-NEW_LINE  : Rn             {this.HandleNewLine();} -> channel(HIDDEN);
+LINE_JOIN : '\\' [ \t]* NewLine -> channel(HIDDEN);
+NEW_LINE  : NewLine             {this.HandleNewLine();} -> channel(HIDDEN);
 WS        : [ \t]+         {this.HandleSpaces();} -> channel(HIDDEN);
 COMMENT   : '#' ~[\r\n\f]* -> channel(HIDDEN);
 ERROR: . -> channel(HIDDEN);
@@ -166,15 +166,15 @@ ERROR: . -> channel(HIDDEN);
 // Fragments
 
 fragment ShortString:
-    '\'' ('\\' (Rn | .) | ~[\\\r\n'])* '\''
-    | '"' ('\\' (Rn | .) | ~[\\\r\n"])* '"'
+    '\'' ('\\' (NewLine | .) | ~[\\\r\n'])* '\''
+    | '"' ('\\' (NewLine | .) | ~[\\\r\n"])* '"'
 ;
 
 fragment LongString: '\'\'\'' LongStringItem*? '\'\'\'' | '"""' LongStringItem*? '"""';
 
-fragment LongStringItem: ~'\\' | '\\' (Rn | .);
+fragment LongStringItem: ~'\\' | '\\' (NewLine | .);
 
-fragment Rn: '\r\n' | '\r' | '\n';
+fragment NewLine: '\r\n' | '\r' | '\n';
 
 fragment ExponentOrPointFloat: ([0-9]+ | PointFloat) [eE] [+-]? [0-9]+ | PointFloat;
 

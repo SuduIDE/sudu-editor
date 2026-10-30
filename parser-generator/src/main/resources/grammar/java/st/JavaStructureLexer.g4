@@ -8,10 +8,10 @@ PACKAGE:            (ANNOTATION Skipable*)* 'package' Skipable+ QualifiedName Sk
 IMPORT:             'import' Skipable+ ('static' Skipable+)? QualifiedName Skipable* ('.' Skipable* '*')? Skipable* ';';
 STATIC:             'static';
 
-CLASS:              'class' Skipable+ IDENTIFIER (Skipable* DIAMONDS)?;
-INTERFACE:          'interface' Skipable+ IDENTIFIER (Skipable* DIAMONDS)?;
+CLASS:              'class' Skipable+ IDENTIFIER (Skipable* Diamonds)?;
+INTERFACE:          'interface' Skipable+ IDENTIFIER (Skipable* Diamonds)?;
 ENUM:               'enum';
-RECORD:             'record' Skipable+ IDENTIFIER (Skipable* DIAMONDS)?;
+RECORD:             'record' Skipable+ IDENTIFIER (Skipable* Diamonds)?;
 
 
 WS:                 [ \t\u000C]+ -> channel(HIDDEN);
@@ -53,7 +53,7 @@ fragment QualifiedName
 fragment AltQualifiedName
     : (IDENTIFIER Skipable* '.' Skipable*)* '@' Skipable* IDENTIFIER;
 
-fragment DIAMONDS:           '<' (DIAMONDS | Skipable | ~[>])*? '>';
+fragment Diamonds:           '<' (Diamonds | Skipable | ~[>])*? '>';
 
 fragment Literal
     : STRING_LITERAL

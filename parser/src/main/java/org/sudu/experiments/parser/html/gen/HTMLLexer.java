@@ -37,11 +37,11 @@ public class HTMLLexer extends Lexer {
 			"HTML_COMMENT", "HTML_CONDITIONAL_COMMENT", "XML", "CDATA", "DTD", "SCRIPTLET", 
 			"SEA_WS", "SCRIPT_OPEN", "STYLE_OPEN", "TAG_OPEN", "HTML_TEXT", "NEW_LINE", 
 			"ERROR", "TAG_CLOSE", "TAG_SLASH_CLOSE", "TAG_SLASH", "TAG_EQUALS", "TAG_NAME", 
-			"TAG_WHITESPACE", "TAG_NEW_LINE", "TAG_ERROR", "HEXDIGIT", "DIGIT", "TAG_NameChar", 
-			"TAG_NameStartChar", "SCRIPT_BODY", "SCRIPT_SHORT_BODY", "STYLE_BODY", 
+			"TAG_WHITESPACE", "TAG_NEW_LINE", "TAG_ERROR", "HexDigit", "Digit", "TagNameChar", 
+			"TagNameStartChar", "SCRIPT_BODY", "SCRIPT_SHORT_BODY", "STYLE_BODY", 
 			"STYLE_SHORT_BODY", "ATTVALUE_VALUE", "ATTRIBUTE", "ATTVALUE_NEW_LINE", 
-			"ATTVALUE_ERROR", "ATTCHARS", "ATTCHAR", "HEXCHARS", "DECCHARS", "DOUBLE_QUOTE_STRING", 
-			"SINGLE_QUOTE_STRING"
+			"ATTVALUE_ERROR", "AttChars", "AttChar", "HexChars", "DecChars", "DoubleQuoteString", 
+			"SingleQuoteString"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();

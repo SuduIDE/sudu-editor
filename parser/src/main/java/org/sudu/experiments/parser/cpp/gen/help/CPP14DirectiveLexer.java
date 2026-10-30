@@ -36,11 +36,11 @@ public class CPP14DirectiveLexer extends Lexer {
 			"BLOCK_COMMENT", "LINE_COMMENT", "NEW_LINE_SLASH", "NEW_LINE", "Quote", 
 			"LEFT", "RIGHT", "INTEGER_LITERAL", "DECIMAL_LITERAL", "OCTAL_LITERAL", 
 			"HEXADECIMAL_LITERAL", "BINARY_LITERAL", "KEYWORD", "OPERATORS", "SLASH", 
-			"DOT", "IDENTIFIER", "DIR_CHAR", "ERROR", "Schar", "Integersuffix", "Identifiernondigit", 
-			"Nondigit", "Digit", "Universalcharactername", "Hexquad", "Hexadecimaldigit", 
-			"Escapesequence", "Simpleescapesequence", "Octalescapesequence", "Hexadecimalescapesequence", 
-			"Octaldigit", "Nonzerodigit", "Binarydigit", "Unsignedsuffix", "Longsuffix", 
-			"Longlongsuffix"
+			"DOT", "IDENTIFIER", "DIR_CHAR", "ERROR", "SChar", "IntegerSuffix", "IdentifierNonDigit", 
+			"NonDigit", "Digit", "UniversalCharacterName", "HexQuad", "HexadecimalDigit", 
+			"EscapeSequence", "SimpleEscapeSequence", "OctalEscapeSequence", "HexadecimalEscapeSequence", 
+			"OctalDigit", "NonZeroDigit", "BinaryDigit", "UnsignedSuffix", "LongSuffix", 
+			"LongLongSuffix"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();

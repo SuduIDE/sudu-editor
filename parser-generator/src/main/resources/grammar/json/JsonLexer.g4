@@ -1,7 +1,7 @@
 
 lexer grammar JsonLexer;
 
-STRING: '"' (Esc | Safecodepoint)* '"';
+STRING: '"' (Esc | SafeCodePoint)* '"';
 NUMBER: '-'? Int ('.' [0-9]+)? Exp?;
 BOOLEAN: 'true'| 'false';
 NULL: 'null';
@@ -31,7 +31,7 @@ fragment Hex
     : [0-9a-fA-F]
     ;
 
-fragment Safecodepoint
+fragment SafeCodePoint
     : ~ ["\\\u0000-\u001F]
     ;
 

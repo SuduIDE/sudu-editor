@@ -1,4 +1,4 @@
-// Generated from C:/Users/Huawei/IdeaProjects/sudu-editor/parser-generator/src/main/resources/grammar/python/PythonLexer.g4 by ANTLR 4.13.1
+// Generated from parser-generator/src/main/resources/grammar/python/PythonLexer.g4 by ANTLR 4.13.1
 package org.sudu.experiments.parser.python.gen;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
@@ -58,7 +58,7 @@ public class PythonLexer extends PythonLexerBase {
 			"BIN_INTEGER", "IMAG_NUMBER", "FLOAT_NUMBER", "OPEN_PAREN", "CLOSE_PAREN", 
 			"OPEN_BRACE", "CLOSE_BRACE", "OPEN_BRACKET", "CLOSE_BRACKET", "NAME", 
 			"LINE_JOIN", "NEW_LINE", "WS", "COMMENT", "ERROR", "ShortString", "LongString", 
-			"LongStringItem", "Rn", "ExponentOrPointFloat", "PointFloat", "ShortBytes", 
+			"LongStringItem", "NewLine", "ExponentOrPointFloat", "PointFloat", "ShortBytes", 
 			"LongBytes", "LongBytesItem", "ShortBytesCharNoSingleQuote", "ShortBytesCharNoDoubleQuote", 
 			"LongBytesChar", "BytesEscapeSeq", "IdContinue", "IdStart"
 		};
