@@ -31,7 +31,8 @@ public class HtmlHighlight {
           || type == HTMLLexer.TAG_OPEN
           || type == HTMLLexer.TAG_CLOSE
           || type == HTMLLexer.TAG_SLASH_CLOSE
-          || type == HTMLLexer.TAG_SLASH) {
+          || type == HTMLLexer.TAG_SLASH
+          || type == HTMLLexer.TAG_NAME) {
         tokenTypes[ind] = ParserConstants.TokenTypes.ANNOTATION;
       } else if (type == HTMLLexer.TAG_EQUALS) {
         tokenTypes[ind] = ParserConstants.TokenTypes.OPERATOR;
