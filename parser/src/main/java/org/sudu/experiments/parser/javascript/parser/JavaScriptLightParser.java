@@ -6,8 +6,8 @@ import org.sudu.experiments.parser.common.base.BaseFullParser;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.help.Helper;
+import org.sudu.experiments.parser.ecmascript.gen.LightEcmaScriptLexer;
 import org.sudu.experiments.parser.javascript.JsSplitRules;
-import org.sudu.experiments.parser.javascript.gen.LightJavaScriptLexer;
 import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptLexerHighlighting;
 
 public class JavaScriptLightParser extends BaseFullParser<NullParser> {
@@ -19,7 +19,7 @@ public class JavaScriptLightParser extends BaseFullParser<NullParser> {
 
   @Override
   protected Lexer initLexer(CharStream stream) {
-    return new LightJavaScriptLexer(stream);
+    return new LightEcmaScriptLexer(stream);
   }
 
   @Override

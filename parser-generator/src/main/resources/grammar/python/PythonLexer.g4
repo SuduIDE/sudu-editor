@@ -131,13 +131,13 @@ POWER_ASSIGN       : '**=';
 IDIV_ASSIGN        : '//=';
 
 STRING:
-    ([uU] | [fF] [rR]? | [rR] [fF]?)? SHORT_STRING
-    | ([bB] [rR]? | [rR] [bB]) SHORT_BYTES
+    ([uU] | [fF] [rR]? | [rR] [fF]?)? ShortString
+    | ([bB] [rR]? | [rR] [bB]) ShortBytes
 ;
 
 MULTILINE_STRING:
-    ([uU] | [fF] [rR]? | [rR] [fF]?)? LONG_STRING
-    | ([bB] [rR]? | [rR] [bB]) LONG_BYTES
+    ([uU] | [fF] [rR]? | [rR] [fF]?)? LongString
+    | ([bB] [rR]? | [rR] [bB]) LongBytes
 ;
 
 DECIMAL_INTEGER : [1-9] [0-9]* | '0'+;
@@ -145,8 +145,8 @@ OCT_INTEGER     : '0' [oO] [0-7]+;
 HEX_INTEGER     : '0' [xX] [0-9a-fA-F]+;
 BIN_INTEGER     : '0' [bB] [01]+;
 
-IMAG_NUMBER  : (EXPONENT_OR_POINT_FLOAT | [0-9]+) [jJ];
-FLOAT_NUMBER : EXPONENT_OR_POINT_FLOAT;
+IMAG_NUMBER  : (ExponentOrPointFloat | [0-9]+) [jJ];
+FLOAT_NUMBER : ExponentOrPointFloat;
 
 OPEN_PAREN    : '(' {this.IncIndentLevel();};
 CLOSE_PAREN   : ')' {this.DecIndentLevel();};
@@ -155,41 +155,41 @@ CLOSE_BRACE   : '}' {this.DecIndentLevel();};
 OPEN_BRACKET  : '[' {this.IncIndentLevel();};
 CLOSE_BRACKET : ']' {this.DecIndentLevel();};
 
-NAME: ID_START ID_CONTINUE*;
+NAME: IdStart IdContinue*;
 
-LINE_JOIN : '\\' [ \t]* RN -> channel(HIDDEN);
-NEWLINE   : RN             {this.HandleNewLine();} -> channel(HIDDEN);
+LINE_JOIN : '\\' [ \t]* NewLine -> channel(HIDDEN);
+NEW_LINE  : NewLine             {this.HandleNewLine();} -> channel(HIDDEN);
 WS        : [ \t]+         {this.HandleSpaces();} -> channel(HIDDEN);
 COMMENT   : '#' ~[\r\n\f]* -> channel(HIDDEN);
 ERROR: . -> channel(HIDDEN);
 
 // Fragments
 
-fragment SHORT_STRING:
-    '\'' ('\\' (RN | .) | ~[\\\r\n'])* '\''
-    | '"' ('\\' (RN | .) | ~[\\\r\n"])* '"'
+fragment ShortString:
+    '\'' ('\\' (NewLine | .) | ~[\\\r\n'])* '\''
+    | '"' ('\\' (NewLine | .) | ~[\\\r\n"])* '"'
 ;
 
-fragment LONG_STRING: '\'\'\'' LONG_STRING_ITEM*? '\'\'\'' | '"""' LONG_STRING_ITEM*? '"""';
+fragment LongString: '\'\'\'' LongStringItem*? '\'\'\'' | '"""' LongStringItem*? '"""';
 
-fragment LONG_STRING_ITEM: ~'\\' | '\\' (RN | .);
+fragment LongStringItem: ~'\\' | '\\' (NewLine | .);
 
-fragment RN: '\r'? '\n';
+fragment NewLine: '\r\n' | '\r' | '\n';
 
-fragment EXPONENT_OR_POINT_FLOAT: ([0-9]+ | POINT_FLOAT) [eE] [+-]? [0-9]+ | POINT_FLOAT;
+fragment ExponentOrPointFloat: ([0-9]+ | PointFloat) [eE] [+-]? [0-9]+ | PointFloat;
 
-fragment POINT_FLOAT: [0-9]* '.' [0-9]+ | [0-9]+ '.';
+fragment PointFloat: [0-9]* '.' [0-9]+ | [0-9]+ '.';
 
-fragment SHORT_BYTES:
-    '\'' (SHORT_BYTES_CHAR_NO_SINGLE_QUOTE | BYTES_ESCAPE_SEQ)* '\''
-    | '"' (SHORT_BYTES_CHAR_NO_DOUBLE_QUOTE | BYTES_ESCAPE_SEQ)* '"'
+fragment ShortBytes:
+    '\'' (ShortBytesCharNoSingleQuote | BytesEscapeSeq)* '\''
+    | '"' (ShortBytesCharNoDoubleQuote | BytesEscapeSeq)* '"'
 ;
 
-fragment LONG_BYTES: '\'\'\'' LONG_BYTES_ITEM*? '\'\'\'' | '"""' LONG_BYTES_ITEM*? '"""';
+fragment LongBytes: '\'\'\'' LongBytesItem*? '\'\'\'' | '"""' LongBytesItem*? '"""';
 
-fragment LONG_BYTES_ITEM: LONG_BYTES_CHAR | BYTES_ESCAPE_SEQ;
+fragment LongBytesItem: LongBytesChar | BytesEscapeSeq;
 
-fragment SHORT_BYTES_CHAR_NO_SINGLE_QUOTE:
+fragment ShortBytesCharNoSingleQuote:
     [\u0000-\u0009]
     | [\u000B-\u000C]
     | [\u000E-\u0026]
@@ -197,7 +197,7 @@ fragment SHORT_BYTES_CHAR_NO_SINGLE_QUOTE:
     | [\u005D-\u007F]
 ;
 
-fragment SHORT_BYTES_CHAR_NO_DOUBLE_QUOTE:
+fragment ShortBytesCharNoDoubleQuote:
     [\u0000-\u0009]
     | [\u000B-\u000C]
     | [\u000E-\u0021]
@@ -206,14 +206,14 @@ fragment SHORT_BYTES_CHAR_NO_DOUBLE_QUOTE:
 ;
 
 /// Any ASCII character except "\"
-fragment LONG_BYTES_CHAR: [\u0000-\u005B] | [\u005D-\u007F];
+fragment LongBytesChar: [\u0000-\u005B] | [\u005D-\u007F];
 
 /// "\" <any ASCII character>
-fragment BYTES_ESCAPE_SEQ: '\\' [\u0000-\u007F];
+fragment BytesEscapeSeq: '\\' [\u0000-\u007F];
 
 /// All characters in id_start, plus characters in the categories Mn, Mc, Nd, Pc and others with the Other_ID_Continue property
-fragment ID_CONTINUE:
-    ID_START
+fragment IdContinue:
+    IdStart
     | [0-9]
     | [\u0300-\u036F]
     | [\u0483-\u0486]
@@ -418,7 +418,7 @@ fragment ID_CONTINUE:
 ;
 
 /// All characters in general categories Lu, Ll, Lt, Lm, Lo, Nl, the underscore, and characters with the Other_ID_Start property
-fragment ID_START:
+fragment IdStart:
     '_'
     | [A-Z]
     | [a-z]

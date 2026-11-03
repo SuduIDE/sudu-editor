@@ -19,7 +19,7 @@ public class JsonParser extends Parser {
 	public static final int
 		STRING=1, NUMBER=2, BOOLEAN=3, NULL=4, OPEN_BRACKET=5, CLOSE_BRACKET=6, 
 		OPEN_BRACE=7, CLOSE_BRACE=8, COMMA=9, COLON=10, COMMENT=11, LINE_COMMENT=12, 
-		NEWLINE=13, WS=14, ERROR=15;
+		NEW_LINE=13, WS=14, ERROR=15;
 	public static final int
 		RULE_json = 0, RULE_obj = 1, RULE_pair = 2, RULE_arr = 3, RULE_value = 4;
 	private static String[] makeRuleNames() {
@@ -40,7 +40,7 @@ public class JsonParser extends Parser {
 		return new String[] {
 			null, "STRING", "NUMBER", "BOOLEAN", "NULL", "OPEN_BRACKET", "CLOSE_BRACKET", 
 			"OPEN_BRACE", "CLOSE_BRACE", "COMMA", "COLON", "COMMENT", "LINE_COMMENT", 
-			"NEWLINE", "WS", "ERROR"
+			"NEW_LINE", "WS", "ERROR"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();

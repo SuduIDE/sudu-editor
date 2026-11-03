@@ -42,7 +42,6 @@ htmlDocument
 scriptletOrSeaWs
     : SCRIPTLET
     | SEA_WS
-    | SEA_NEW_LINE
     ;
 
 htmlElements
@@ -68,13 +67,11 @@ htmlAttribute
 htmlChardata
     : HTML_TEXT
     | SEA_WS
-    | SEA_NEW_LINE
     ;
 
 htmlMisc
     : htmlComment
     | SEA_WS
-    | SEA_NEW_LINE
     ;
 
 htmlComment

@@ -8,8 +8,8 @@ import org.sudu.experiments.parser.SplitToken;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.help.Helper;
 import org.sudu.experiments.parser.html.gen.HTMLLexer;
+import org.sudu.experiments.parser.ecmascript.gen.LightEcmaScriptLexer;
 import org.sudu.experiments.parser.javascript.JsSplitRules;
-import org.sudu.experiments.parser.javascript.gen.LightJavaScriptLexer;
 import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptLexerHighlighting;
 
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ public class HtmlSplitRules extends SplitRules {
 
   private List<Token> splitScript(Token script) {
     String text = script.getText();
-    var jsLexer = new LightJavaScriptLexer(CharStreams.fromString(text));
+    var jsLexer = new LightEcmaScriptLexer(CharStreams.fromString(text));
     var scriptStream = new CommonTokenStream(jsLexer);
     scriptStream.fill();
 

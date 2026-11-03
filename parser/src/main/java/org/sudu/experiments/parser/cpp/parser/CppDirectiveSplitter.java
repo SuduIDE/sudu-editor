@@ -36,9 +36,9 @@ public class CppDirectiveSplitter {
     for (var splitToken : allTokens) {
       int ind = splitToken.getTokenIndex();
       if (splitToken.getType() == EOF) continue;
-      if (splitToken.getType() == CPP14DirectiveLexer.NewLineSlash)
+      if (splitToken.getType() == CPP14DirectiveLexer.NEW_LINE_SLASH)
         splitTokenTypes[ind] = TokenTypes.ANNOTATION;
-      if (splitToken.getType() == CPP14DirectiveLexer.BlockComment)
+      if (splitToken.getType() == CPP14DirectiveLexer.BLOCK_COMMENT)
         splitTokenTypes[ind] = TokenTypes.COMMENT;
 
       result.add(new SplitToken(splitToken, splitToken.getText(), splitTokenTypes[ind], TokenStyles.NORMAL));
@@ -58,8 +58,8 @@ public class CppDirectiveSplitter {
     @Override
     public void enterInclude(IncludeContext ctx) {
       super.enterInclude(ctx);
-      markToken(ctx.Hash(), TokenTypes.CPP_DIRECTIVE);
-      markToken(ctx.Include(), TokenTypes.CPP_DIRECTIVE);
+      markToken(ctx.HASH(), TokenTypes.CPP_DIRECTIVE);
+      markToken(ctx.INCLUDE(), TokenTypes.CPP_DIRECTIVE);
       for (int i = 2; i < ctx.children.size(); i++) {
         var node = (TerminalNode) ctx.getChild(i);
         markToken(node, TokenTypes.STRING);
@@ -69,36 +69,35 @@ public class CppDirectiveSplitter {
     @Override
     public void enterError(ErrorContext ctx) {
       super.enterError(ctx);
-      markToken(ctx.Hash(), TokenTypes.CPP_DIRECTIVE);
-      markToken(ctx.Error(), TokenTypes.CPP_DIRECTIVE);
+      markToken(ctx.HASH(), TokenTypes.CPP_DIRECTIVE);
+      markToken(ctx.ERROR_DIRECTIVE(), TokenTypes.CPP_DIRECTIVE);
     }
 
     @Override
     public void enterDir(DirContext ctx) {
       super.enterDir(ctx);
-      markToken(ctx.Hash(), TokenTypes.CPP_DIRECTIVE);
-      markToken(ctx.Identifier(), TokenTypes.CPP_DIRECTIVE);
-      markToken(ctx.Keyword(), TokenTypes.CPP_DIRECTIVE);
+      markToken(ctx.HASH(), TokenTypes.CPP_DIRECTIVE);
+      markToken(ctx.IDENTIFIER(), TokenTypes.CPP_DIRECTIVE);
+      markToken(ctx.KEYWORD(), TokenTypes.CPP_DIRECTIVE);
     }
 
     @Override
     public void enterOther(OtherContext ctx) {
       super.enterOther(ctx);
       if (ctx.parent instanceof ErrorContext) return;
-      markToken(ctx.Keyword(), TokenTypes.KEYWORD);
-      markToken(ctx.Operators(), TokenTypes.OPERATOR);
-      markToken(ctx.Left(), TokenTypes.OPERATOR);
-      markToken(ctx.Right(), TokenTypes.OPERATOR);
-      markToken(ctx.String(), TokenTypes.STRING);
-      markToken(ctx.RawString(), TokenTypes.STRING);
-      markToken(ctx.IntegerLiteral(), TokenTypes.NUMERIC);
-      markToken(ctx.DecimalLiteral(), TokenTypes.NUMERIC);
-      markToken(ctx.OctalLiteral(), TokenTypes.NUMERIC);
-      markToken(ctx.HexadecimalLiteral(), TokenTypes.NUMERIC);
-      markToken(ctx.BinaryLiteral(), TokenTypes.NUMERIC);
-      markToken(ctx.Include(), TokenTypes.KEYWORD);
-      markToken(ctx.Error(), TokenTypes.KEYWORD);
-      markToken(ctx.Unknown(), TokenTypes.ERROR);
+      markToken(ctx.KEYWORD(), TokenTypes.KEYWORD);
+      markToken(ctx.OPERATORS(), TokenTypes.OPERATOR);
+      markToken(ctx.LEFT(), TokenTypes.OPERATOR);
+      markToken(ctx.RIGHT(), TokenTypes.OPERATOR);
+      markToken(ctx.STRING(), TokenTypes.STRING);
+      markToken(ctx.RAW_STRING(), TokenTypes.STRING);
+      markToken(ctx.INTEGER_LITERAL(), TokenTypes.NUMERIC);
+      markToken(ctx.DECIMAL_LITERAL(), TokenTypes.NUMERIC);
+      markToken(ctx.OCTAL_LITERAL(), TokenTypes.NUMERIC);
+      markToken(ctx.HEXADECIMAL_LITERAL(), TokenTypes.NUMERIC);
+      markToken(ctx.BINARY_LITERAL(), TokenTypes.NUMERIC);
+      markToken(ctx.INCLUDE(), TokenTypes.KEYWORD);
+      markToken(ctx.ERROR_DIRECTIVE(), TokenTypes.KEYWORD);
     }
 
     private void markToken(TerminalNode node, int type) {
