@@ -1,8 +1,8 @@
 
 lexer grammar JsonLexer;
 
-STRING: '"' (ESC | SAFECODEPOINT)* '"';
-NUMBER: '-'? INT ('.' [0-9]+)? EXP?;
+STRING: '"' (Esc | SafeCodePoint)* '"';
+NUMBER: '-'? Int ('.' [0-9]+)? Exp?;
 BOOLEAN: 'true'| 'false';
 NULL: 'null';
 OPEN_BRACKET: '[';
@@ -14,28 +14,28 @@ COLON: ':';
 
 COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
 LINE_COMMENT: '//' ~[\r\n]* -> channel(HIDDEN);
-NEWLINE: '\r'? '\n' -> channel(HIDDEN);
+NEW_LINE: ('\r\n' | '\r' | '\n') -> channel(HIDDEN);
 WS: [ \t]+ -> channel(HIDDEN);
 
 ERROR: . -> channel(HIDDEN);
 
-fragment ESC
-    : '\\' (["\\/bfnrt] | UNICODE)
+fragment Esc
+    : '\\' (["\\/bfnrt] | Unicode)
     ;
 
-fragment UNICODE
-    : 'u' HEX HEX HEX HEX
+fragment Unicode
+    : 'u' Hex Hex Hex Hex
     ;
 
-fragment HEX
+fragment Hex
     : [0-9a-fA-F]
     ;
 
-fragment SAFECODEPOINT
+fragment SafeCodePoint
     : ~ ["\\\u0000-\u001F]
     ;
 
-fragment INT
+fragment Int
     // integer part forbids leading 0s (e.g. `01`)
     : '0'
     | [1-9] [0-9]*
@@ -43,7 +43,7 @@ fragment INT
 
 // no leading zeros
 
-fragment EXP
+fragment Exp
     // exponent number permits leading 0s (e.g. `1e01`)
     : [Ee] [+-]? [0-9]+
     ;

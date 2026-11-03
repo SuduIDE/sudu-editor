@@ -92,7 +92,7 @@ public class CppWalker extends CPP14ParserBaseListener {
     if (!isInsideParameters) return;
     if (ctx.declSpecifierSeq() != null) {
       var type = ctx.declSpecifierSeq().getStop();
-      if (type.getType() != CPP14Lexer.Identifier) return;
+      if (type.getType() != CPP14Lexer.IDENTIFIER) return;
       tokenTypes[type.getTokenIndex()] = TYPE;
     }
   }
@@ -124,7 +124,7 @@ public class CppWalker extends CPP14ParserBaseListener {
   public void enterTemplateName(CPP14Parser.TemplateNameContext ctx) {
     super.enterTemplateName(ctx);
     if (!isInsideParameters) return;
-    var node = ctx.Identifier().getSymbol();
+    var node = ctx.IDENTIFIER().getSymbol();
     int ind = node.getTokenIndex();
     tokenTypes[ind] = TYPE;
   }
@@ -132,13 +132,13 @@ public class CppWalker extends CPP14ParserBaseListener {
   @Override
   public void enterIterationStatement(CPP14Parser.IterationStatementContext ctx) {
     super.enterIterationStatement(ctx);
-    if (ctx.For() != null) enterBlock();
+    if (ctx.FOR() != null) enterBlock();
   }
 
   @Override
   public void exitIterationStatement(CPP14Parser.IterationStatementContext ctx) {
     super.exitIterationStatement(ctx);
-    if (ctx.For() != null) exitBlock();
+    if (ctx.FOR() != null) exitBlock();
   }
 
   @Override
@@ -282,13 +282,13 @@ public class CppWalker extends CPP14ParserBaseListener {
 
   static TerminalNode getIdentifier(CPP14Parser.IdExpressionContext idExpression) {
     return idExpression.unqualifiedId() != null
-        ? idExpression.unqualifiedId().Identifier()
-        : idExpression.qualifiedId().unqualifiedId().Identifier();
+        ? idExpression.unqualifiedId().IDENTIFIER()
+        : idExpression.qualifiedId().unqualifiedId().IDENTIFIER();
   }
 
   static TerminalNode getIdentifier(CPP14Parser.ClassNameContext ctx) {
-    if (ctx.Identifier() != null) return ctx.Identifier();
-    else return ctx.simpleTemplateId().templateName().Identifier();
+    if (ctx.IDENTIFIER() != null) return ctx.IDENTIFIER();
+    else return ctx.simpleTemplateId().templateName().IDENTIFIER();
   }
 
   static List<TypedDecl> getMethodArguments(CPP14Parser.DeclaratorContext declaratorContext) {
@@ -345,10 +345,10 @@ public class CppWalker extends CPP14ParserBaseListener {
     if (!(node.getParent().getParent().getParent() instanceof CPP14Parser.PostfixExpressionContext postfixExpr))
       return false;
     return postfixExpr.getChildCount() >= 3
-        && postfixExpr.Arrow() != null
+        && postfixExpr.ARROW() != null
         && postfixExpr.postfixExpression() != null
         && postfixExpr.postfixExpression().primaryExpression() != null
-        && postfixExpr.postfixExpression().primaryExpression().This() != null;
+        && postfixExpr.postfixExpression().primaryExpression().THIS() != null;
   }
 
   static CPP14Parser.DeclaratoridContext getDeclaratorId(CPP14Parser.NoPointerDeclaratorContext ctx) {

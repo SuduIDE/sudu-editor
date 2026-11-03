@@ -201,7 +201,7 @@ WS:                 [ \t\u000C]+ -> channel(HIDDEN);
 JAVADOC:            '/**' .*? '*/'    -> channel(HIDDEN);
 COMMENT:            '/*' .*? '*/'    -> channel(HIDDEN);
 LINE_COMMENT:       '//' ~[\r\n]*    -> channel(HIDDEN);
-NEW_LINE:           '\r'? '\n' ->  channel(HIDDEN);
+NEW_LINE:           ('\r\n' | '\r' | '\n') -> channel(HIDDEN);
 
 // Identifiers
 

@@ -10,6 +10,7 @@ import java.util.List;
 public class GenerateParsers {
 
   private static final String baseGenPath = "parser/src/main/java/org/sudu/experiments/parser/";
+  private static final String activityGenPath = "parser-activity/src/main/java/org/sudu/experiments/parser/";
   private static final String basePackageName = "org.sudu.experiments.parser.";
   private static final Path grammarPath = Path.of("parser-generator/src/main/resources/grammar/");
 
@@ -31,8 +32,12 @@ public class GenerateParsers {
         path = path.replaceFirst("[/\\\\]", "/gen/");
         var packageName = basePackageName + path.replaceAll("[/\\\\]", ".");
         if (packageName.endsWith(".")) packageName = packageName.substring(0, packageName.length() - 1);
+        boolean isActivity = grammars.stream().anyMatch(p ->
+            Path.of(p).getFileName().toString().startsWith("Activity"));
+        if (isActivity && !generateActivity) return;
+        String outputPath = (isActivity ? activityGenPath : baseGenPath) + path;
         generate(
-            baseGenPath + path,
+            outputPath,
             packageName,
             grammars.toArray(String[]::new)
         );
@@ -43,9 +48,6 @@ public class GenerateParsers {
   }
 
   private static void generate(String outputDir, String packageName, String[] grammarPaths) {
-    if (!generateActivity && Arrays.stream(grammarPaths).anyMatch(path ->
-        Path.of(path).getFileName().toString().startsWith("Activity")
-    )) return;
     String[] args = new String[5 + grammarPaths.length];
     args[0] = "-o";
     args[1] = outputDir;

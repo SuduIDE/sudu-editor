@@ -56,7 +56,7 @@ SEALED
 NON_SEALED
 MODIFIER
 IDENTIFIER
-ANY
+ERROR
 
 rule names:
 compilationUnit

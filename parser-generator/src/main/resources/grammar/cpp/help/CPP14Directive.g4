@@ -6,53 +6,53 @@ directive
     | dir EOF
     ;
 
-include: Hash Include (String | (Left (Identifier | '/' | '.')+ Right));
-error: Hash Error other*;
-dir: Hash (Identifier | Keyword) other*;
+include: HASH INCLUDE (STRING | (LEFT (IDENTIFIER | '/' | '.')+ RIGHT));
+error: HASH ERROR_DIRECTIVE other*;
+dir: HASH (IDENTIFIER | KEYWORD) other*;
 
 other
-    : (String | RawString) | Left | Right | Keyword | (Operators | Dot | Slash) | Identifier
-    | IntegerLiteral | DecimalLiteral | OctalLiteral | HexadecimalLiteral | BinaryLiteral
-    | DirChar
-    | Include | Error
-    | Unknown | Hash
+    : (STRING | RAW_STRING) | LEFT | RIGHT | KEYWORD | (OPERATORS | DOT | SLASH) | IDENTIFIER
+    | INTEGER_LITERAL | DECIMAL_LITERAL | OCTAL_LITERAL | HEXADECIMAL_LITERAL | BINARY_LITERAL
+    | DIR_CHAR
+    | INCLUDE | ERROR_DIRECTIVE
+    | HASH
     ;
 
-String : Quote Schar* Quote;
-RawString
-    : 'R"' Schar* '"'
-    | 'u8R"' Schar* '"'
-    | 'uR"'  Schar* '"'
-    | 'UR"'  Schar* '"'
-    | 'LR"'  Schar* '"'
+STRING : Quote SChar* Quote;
+RAW_STRING
+    : 'R"' SChar* '"'
+    | 'u8R"' SChar* '"'
+    | 'uR"'  SChar* '"'
+    | 'UR"'  SChar* '"'
+    | 'LR"'  SChar* '"'
     ;
 
-Hash: '#';
-Include: 'include';
-Error: 'error';
+HASH: '#';
+INCLUDE: 'include';
+ERROR_DIRECTIVE: 'error';
 
-Whitespace: [ \t]+ -> channel(HIDDEN);
-BlockComment: '/*' .*? '*/' -> channel(HIDDEN);
-LineComment: '//' ~ [\r\n]* -> channel(HIDDEN);
-NewLineSlash: '\\' -> channel(HIDDEN);
-NewLine: ('\r'? '\n' | '\r') -> channel(HIDDEN);
+WHITESPACE: [ \t]+ -> channel(HIDDEN);
+BLOCK_COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
+LINE_COMMENT: '//' ~ [\r\n]* -> channel(HIDDEN);
+NEW_LINE_SLASH: '\\' -> channel(HIDDEN);
+NEW_LINE: ('\r\n' | '\r' | '\n') -> channel(HIDDEN);
 
 fragment Quote: '"';
-Left: '<';
-Right: '>';
+LEFT: '<';
+RIGHT: '>';
 
-IntegerLiteral:
-	DecimalLiteral Integersuffix?
-	| OctalLiteral Integersuffix?
-	| HexadecimalLiteral Integersuffix?
-	| BinaryLiteral Integersuffix?
+INTEGER_LITERAL:
+	DECIMAL_LITERAL IntegerSuffix?
+	| OCTAL_LITERAL IntegerSuffix?
+	| HEXADECIMAL_LITERAL IntegerSuffix?
+	| BINARY_LITERAL IntegerSuffix?
 	;
-DecimalLiteral: NONZERODIGIT ('\''? DIGIT)*;
-OctalLiteral: '0' ('\''? OCTALDIGIT)*;
-HexadecimalLiteral: ('0x' | '0X') HEXADECIMALDIGIT ('\''? HEXADECIMALDIGIT)*;
-BinaryLiteral: ('0b' | '0B') BINARYDIGIT ('\''? BINARYDIGIT)*;
+DECIMAL_LITERAL: NonZeroDigit ('\''? Digit)*;
+OCTAL_LITERAL: '0' ('\''? OctalDigit)*;
+HEXADECIMAL_LITERAL: ('0x' | '0X') HexadecimalDigit ('\''? HexadecimalDigit)*;
+BINARY_LITERAL: ('0b' | '0B') BinaryDigit ('\''? BinaryDigit)*;
 
-Keyword
+KEYWORD
     : 'alignas'
     | 'alignof'
     | 'asm'
@@ -129,7 +129,7 @@ Keyword
     | 'wchar_t'
     | 'while'
     ;
-Operators
+OPERATORS
     : '('
     | ')'
     | '['
@@ -178,35 +178,35 @@ Operators
     | '...'
     ;
 
-Slash: '/';
-Dot  : '.';
+SLASH: '/';
+DOT  : '.';
 
-Identifier: Identifiernondigit (Identifiernondigit | DIGIT)*;
-DirChar: ~[#\r\n];
-Unknown: .;
+IDENTIFIER: IdentifierNonDigit (IdentifierNonDigit | Digit)*;
+DIR_CHAR: ~[#\r\n];
+ERROR: . -> channel(HIDDEN);
 
-fragment Schar:
+fragment SChar:
 	~ ["\\\r\n]
-	| Escapesequence
-	| Universalcharactername;
-fragment Integersuffix:
-	Unsignedsuffix Longsuffix?
-	| Unsignedsuffix Longlongsuffix?
-	| Longsuffix Unsignedsuffix?
-	| Longlongsuffix Unsignedsuffix?;
-fragment Identifiernondigit: NONDIGIT | Universalcharactername;
-fragment NONDIGIT: [a-zA-Z_];
-fragment DIGIT: [0-9];
-fragment Universalcharactername
-    : '\\u' Hexquad
-	| '\\U' Hexquad Hexquad;
-fragment Hexquad: HEXADECIMALDIGIT HEXADECIMALDIGIT HEXADECIMALDIGIT HEXADECIMALDIGIT;
-fragment HEXADECIMALDIGIT: [0-9a-fA-F];
-fragment Escapesequence:
-	Simpleescapesequence
-	| Octalescapesequence
-	| Hexadecimalescapesequence;
-fragment Simpleescapesequence:
+	| EscapeSequence
+	| UniversalCharacterName;
+fragment IntegerSuffix:
+	UnsignedSuffix LongSuffix?
+	| UnsignedSuffix LongLongSuffix?
+	| LongSuffix UnsignedSuffix?
+	| LongLongSuffix UnsignedSuffix?;
+fragment IdentifierNonDigit: NonDigit | UniversalCharacterName;
+fragment NonDigit: [a-zA-Z_];
+fragment Digit: [0-9];
+fragment UniversalCharacterName
+    : '\\u' HexQuad
+	| '\\U' HexQuad HexQuad;
+fragment HexQuad: HexadecimalDigit HexadecimalDigit HexadecimalDigit HexadecimalDigit;
+fragment HexadecimalDigit: [0-9a-fA-F];
+fragment EscapeSequence:
+	SimpleEscapeSequence
+	| OctalEscapeSequence
+	| HexadecimalEscapeSequence;
+fragment SimpleEscapeSequence:
 	'\\\''
 	| '\\"'
 	| '\\?'
@@ -218,14 +218,14 @@ fragment Simpleescapesequence:
 	| '\\r'
 	| '\\t'
 	| '\\v';
-fragment Octalescapesequence:
-	'\\' OCTALDIGIT
-	| '\\' OCTALDIGIT OCTALDIGIT
-	| '\\' OCTALDIGIT OCTALDIGIT OCTALDIGIT;
-fragment Hexadecimalescapesequence: '\\x' HEXADECIMALDIGIT+;
-fragment OCTALDIGIT: [0-7];
-fragment NONZERODIGIT: [1-9];
-fragment BINARYDIGIT: [01];
-fragment Unsignedsuffix: [uU];
-fragment Longsuffix: [lL];
-fragment Longlongsuffix: 'll' | 'LL';
+fragment OctalEscapeSequence:
+	'\\' OctalDigit
+	| '\\' OctalDigit OctalDigit
+	| '\\' OctalDigit OctalDigit OctalDigit;
+fragment HexadecimalEscapeSequence: '\\x' HexadecimalDigit+;
+fragment OctalDigit: [0-7];
+fragment NonZeroDigit: [1-9];
+fragment BinaryDigit: [01];
+fragment UnsignedSuffix: [uU];
+fragment LongSuffix: [lL];
+fragment LongLongSuffix: 'll' | 'LL';

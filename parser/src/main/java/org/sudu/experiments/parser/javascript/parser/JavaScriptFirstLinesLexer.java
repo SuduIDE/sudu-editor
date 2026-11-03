@@ -5,8 +5,8 @@ import org.sudu.experiments.parser.common.NullParser;
 import org.sudu.experiments.parser.common.base.BaseFirstLinesLexer;
 import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.help.Helper;
+import org.sudu.experiments.parser.ecmascript.gen.LightEcmaScriptLexer;
 import org.sudu.experiments.parser.javascript.JsSplitRules;
-import org.sudu.experiments.parser.javascript.gen.LightJavaScriptLexer;
 import org.sudu.experiments.parser.javascript.parser.highlighting.LightJavaScriptLexerHighlighting;
 
 public class JavaScriptFirstLinesLexer extends BaseFirstLinesLexer<NullParser> {
@@ -18,7 +18,7 @@ public class JavaScriptFirstLinesLexer extends BaseFirstLinesLexer<NullParser> {
 
   @Override
   protected Lexer initLexer(CharStream stream) {
-    return new LightJavaScriptLexer(stream);
+    return new LightEcmaScriptLexer(stream);
   }
 
   @Override

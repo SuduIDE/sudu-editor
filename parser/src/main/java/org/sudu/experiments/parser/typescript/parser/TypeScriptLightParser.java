@@ -6,8 +6,8 @@ import org.sudu.experiments.parser.common.SplitRules;
 import org.sudu.experiments.parser.common.base.BaseFullParser;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.help.Helper;
+import org.sudu.experiments.parser.ecmascript.gen.LightEcmaScriptLexer;
 import org.sudu.experiments.parser.typescript.TsSplitRules;
-import org.sudu.experiments.parser.typescript.gen.LightTypeScriptLexer;
 import org.sudu.experiments.parser.typescript.parser.highlighting.LightTypeScriptHighlighting;
 
 public class TypeScriptLightParser extends BaseFullParser<NullParser> {
@@ -19,7 +19,9 @@ public class TypeScriptLightParser extends BaseFullParser<NullParser> {
 
   @Override
   protected Lexer initLexer(CharStream stream) {
-    return new LightTypeScriptLexer(stream);
+    var lexer = new LightEcmaScriptLexer(stream);
+    lexer.setTypeScript(true);
+    return lexer;
   }
 
   @Override

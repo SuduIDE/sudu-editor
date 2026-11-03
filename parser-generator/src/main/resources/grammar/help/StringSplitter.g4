@@ -12,9 +12,9 @@ ESCAPE
     | '\\' 'u'+ HexDigit HexDigit HexDigit HexDigit
     ;
 
-NEW_LINE: '\r'? '\n' | '\r';
+NEW_LINE: ('\r\n' | '\r' | '\n') -> channel(HIDDEN);
 
-ERROR: .;
+ERROR: . -> channel(HIDDEN);
 
 fragment HexDigits
     : HexDigit ((HexDigit | '_')* HexDigit)?

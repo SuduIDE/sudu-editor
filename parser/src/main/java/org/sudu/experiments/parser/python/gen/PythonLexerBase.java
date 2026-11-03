@@ -17,7 +17,7 @@ public abstract class PythonLexerBase extends Lexer {
     // The stack that keeps track of the indentation level.
     private final Deque<Integer> _indents = new ArrayDeque<>();
 
-    // A circular buffer where extra tokens are pushed on (see the NEWLINE and WS lexer rules).
+    // A circular buffer where extra tokens are pushed on (see the NEW_LINE and WS lexer rules).
     private int _firstTokensInd;
     private int _lastTokenInd;
     private Token[] _buffer = new Token[32];
@@ -91,7 +91,7 @@ public abstract class PythonLexerBase extends Lexer {
     }
 
     protected void HandleNewLine() {
-        emit(PythonLexer.NEWLINE, HIDDEN, getText());
+        emit(PythonLexer.NEW_LINE, HIDDEN, getText());
 
         char next = (char) _input.LA(1);
 
@@ -105,7 +105,7 @@ public abstract class PythonLexerBase extends Lexer {
     protected void HandleSpaces() {
         char next = (char) _input.LA(1);
 
-        if ((_lastToken == null || _lastToken.getType() == PythonLexer.NEWLINE) && IsNotNewLineOrComment(next))
+        if ((_lastToken == null || _lastToken.getType() == PythonLexer.NEW_LINE) && IsNotNewLineOrComment(next))
         {
             // Calculates the indentation of the provided spaces, taking the
             // following rules into account:

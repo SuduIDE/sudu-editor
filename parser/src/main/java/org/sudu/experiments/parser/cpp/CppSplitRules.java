@@ -21,22 +21,22 @@ public class CppSplitRules extends SplitRules {
 
   private boolean isMultilineToken(Token token) {
     int type = token.getType();
-    return type == CPP14Lexer.BlockComment
-        || type == CPP14Lexer.Documentation
-        || type == CPP14Lexer.Directive
-        || type == CPP14Lexer.MultiLineMacro
-        || type == CPP14Lexer.StringLiteral;
+    return type == CPP14Lexer.BLOCK_COMMENT
+        || type == CPP14Lexer.DOCUMENTATION
+        || type == CPP14Lexer.DIRECTIVE
+        || type == CPP14Lexer.MULTI_LINE_MACRO
+        || type == CPP14Lexer.STRING_LITERAL;
   }
 
   private boolean isMacroOrDirective(Token token) {
     int type = token.getType();
-    return type == CPP14Lexer.Directive
-        || type == CPP14Lexer.MultiLineMacro;
+    return type == CPP14Lexer.DIRECTIVE
+        || type == CPP14Lexer.MULTI_LINE_MACRO;
   }
 
   private boolean isStringOrCharLiteral(Token token) {
     int type = token.getType();
-    return type == CPP14Lexer.StringLiteral
-        || type == CPP14Lexer.CharacterLiteral;
+    return type == CPP14Lexer.STRING_LITERAL
+        || type == CPP14Lexer.CHARACTER_LITERAL;
   }
 }

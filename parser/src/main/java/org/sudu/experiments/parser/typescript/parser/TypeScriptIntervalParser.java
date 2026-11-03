@@ -9,8 +9,8 @@ import org.sudu.experiments.parser.common.base.BaseIntervalParser;
 import org.sudu.experiments.parser.common.graph.ScopeWalker;
 import org.sudu.experiments.parser.common.tree.IntervalNode;
 import org.sudu.experiments.parser.help.Helper;
+import org.sudu.experiments.parser.ecmascript.gen.LightEcmaScriptLexer;
 import org.sudu.experiments.parser.typescript.TsSplitRules;
-import org.sudu.experiments.parser.typescript.gen.LightTypeScriptLexer;
 import org.sudu.experiments.parser.typescript.parser.highlighting.LightTypeScriptHighlighting;
 
 import java.util.Arrays;
@@ -35,7 +35,9 @@ public class TypeScriptIntervalParser extends BaseIntervalParser<NullParser> {
 
   @Override
   protected Lexer initLexer(CharStream stream) {
-    return new LightTypeScriptLexer(stream);
+    var lexer = new LightEcmaScriptLexer(stream);
+    lexer.setTypeScript(true);
+    return lexer;
   }
 
   @Override

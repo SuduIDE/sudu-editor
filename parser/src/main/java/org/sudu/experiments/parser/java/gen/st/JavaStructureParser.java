@@ -21,7 +21,7 @@ public class JavaStructureParser extends Parser {
 		ENUM=9, RECORD=10, WS=11, COMMENT=12, LINE_COMMENT=13, NEW_LINE=14, STRING_LITERAL=15, 
 		CHAR_LITERAL=16, AT_INTERFACE=17, ANNOTATION=18, COR_PAREN_SEQ=19, DEFAULT=20, 
 		SYNCHRONIZED=21, FINAL=22, SEALED=23, NON_SEALED=24, MODIFIER=25, IDENTIFIER=26, 
-		ANY=27;
+		ERROR=27;
 	public static final int
 		RULE_compilationUnit = 0, RULE_packageDeclaration = 1, RULE_importDeclaration = 2, 
 		RULE_typeDeclaration = 3, RULE_modifier = 4, RULE_classDeclaration = 5, 
@@ -55,7 +55,7 @@ public class JavaStructureParser extends Parser {
 			"INTERFACE", "ENUM", "RECORD", "WS", "COMMENT", "LINE_COMMENT", "NEW_LINE", 
 			"STRING_LITERAL", "CHAR_LITERAL", "AT_INTERFACE", "ANNOTATION", "COR_PAREN_SEQ", 
 			"DEFAULT", "SYNCHRONIZED", "FINAL", "SEALED", "NON_SEALED", "MODIFIER", 
-			"IDENTIFIER", "ANY"
+			"IDENTIFIER", "ERROR"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();

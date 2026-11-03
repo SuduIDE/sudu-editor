@@ -74,7 +74,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     scopeWalker.addInterval(ctx, TYPE);
     scopeWalker.enterInterval();
 
-    scopeWalker.newIntervalStart = ctx.LeftBrace().getSymbol().getStartIndex() + 1;
+    scopeWalker.newIntervalStart = ctx.LEFT_BRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
@@ -83,13 +83,13 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
 //    scopeWalker.exitScope();
     scopeWalker.exitInterval();
 
-    scopeWalker.newIntervalStart = ctx.RightBrace().getSymbol().getStartIndex() + 1;
+    scopeWalker.newIntervalStart = ctx.RIGHT_BRACE().getSymbol().getStartIndex() + 1;
   }
 
   @Override
   public void enterMemberSpecification(CPP14Parser.MemberSpecificationContext ctx) {
     super.enterMemberSpecification(ctx);
-    if (ctx.accessSpecifier() != null && ctx.Colon() != null) {
+    if (ctx.accessSpecifier() != null && ctx.COLON() != null) {
       scopeWalker.enterScope();
       scopeWalker.addInterval(ctx, UNKNOWN);
       scopeWalker.enterInterval();
@@ -302,7 +302,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   }
 
   RefNode handleCondExpr(CPP14Parser.ConditionalExpressionContext condExpr) {
-    if (allNotNull(condExpr.Question(), condExpr.expression(), condExpr.Colon(), condExpr.assignmentExpression())) {
+    if (allNotNull(condExpr.QUESTION(), condExpr.expression(), condExpr.COLON(), condExpr.assignmentExpression())) {
       List<RefNode> exprs = new ArrayList<>();
       exprs.add(handleOrExpr(condExpr.logicalOrExpression()));
       exprs.addAll(handleExpression(condExpr.expression()));
@@ -375,9 +375,9 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
       return handlePostExpr(unaryExpression.postfixExpression());
     else if (unaryExpression.unaryExpression() != null)
       return handleUnaryExpression(unaryExpression.unaryExpression());
-    else if (unaryExpression.Sizeof() != null)
+    else if (unaryExpression.SIZEOF() != null)
       return handleSizeOf(unaryExpression.theTypeId());
-    else if (unaryExpression.Alignof() != null)
+    else if (unaryExpression.ALIGNOF() != null)
       return handleAlignOf(unaryExpression.theTypeId());
     else if (unaryExpression.noExceptExpression() != null)
       return handleNoExceptExpr(unaryExpression.noExceptExpression());
@@ -390,7 +390,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
     if (postfixExpression.primaryExpression() != null)
       return handlePrimaryExpr(postfixExpression.primaryExpression());
 
-    if (allNotNull(postfixExpression.postfixExpression(), postfixExpression.LeftBracket(), postfixExpression.RightBracket())) {
+    if (allNotNull(postfixExpression.postfixExpression(), postfixExpression.LEFT_BRACKET(), postfixExpression.RIGHT_BRACKET())) {
       var refs = new ArrayList<>(List.of(handlePostExpr(postfixExpression.postfixExpression())));
 
       if (postfixExpression.expression() != null)
@@ -406,7 +406,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
       var name = Name.fromRule(postfixExpression.idExpression(), offset);
       RefNode curRef;
 
-      if (allNotNull(postfixExpression.LeftParen(), postfixExpression.LeftParen())) {
+      if (allNotNull(postfixExpression.LEFT_PAREN(), postfixExpression.LEFT_PAREN())) {
         List<RefNode> callArgs = postfixExpression.expressionList() != null
             ? handleExpressionList(postfixExpression.expressionList())
             : List.of();
@@ -420,7 +420,7 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
       } else return new QualifiedRefNode(List.of(prev, curRef));
     }
 
-    if (allNotNull(postfixExpression.postfixExpression(), postfixExpression.LeftParen(), postfixExpression.RightParen())) {
+    if (allNotNull(postfixExpression.postfixExpression(), postfixExpression.LEFT_PAREN(), postfixExpression.RIGHT_PAREN())) {
       List<RefNode> callArgs = postfixExpression.expressionList() != null
           ? handleExpressionList(postfixExpression.expressionList())
           : List.of();
@@ -475,8 +475,8 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
       return new ExprRefNode(handleExpression(primaryExpression.expression()));
     else if (primaryExpression.idExpression() != null)
       return handleIdExpression(primaryExpression.idExpression());
-    else if (primaryExpression.This() != null)
-      return new RefNode(Name.fromNode(primaryExpression.This(), offset), null, RefTypes.THIS);
+    else if (primaryExpression.THIS() != null)
+      return new RefNode(Name.fromNode(primaryExpression.THIS(), offset), null, RefTypes.THIS);
     else return handleLambdaExpression(primaryExpression.lambdaExpression());
   }
 
@@ -491,11 +491,11 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   private RefNode handleLiteral(CPP14Parser.LiteralContext literal) {
     String type = null;
     var node = (TerminalNode) literal.getChild(0);
-    if (literal.IntegerLiteral() != null) type = "int";
-    else if (literal.CharacterLiteral() != null) type = "char";
-    else if (literal.FloatingLiteral() != null) type = "float";
-    else if (literal.StringLiteral() != null) type = "char*";
-    else if (literal.BooleanLiteral() != null) type = "boolean";
+    if (literal.INTEGER_LITERAL() != null) type = "int";
+    else if (literal.CHARACTER_LITERAL() != null) type = "char";
+    else if (literal.FLOATING_LITERAL() != null) type = "float";
+    else if (literal.STRING_LITERAL() != null) type = "char*";
+    else if (literal.BOOLEAN_LITERAL() != null) type = "boolean";
     if (type != null) scopeWalker.getType(type);
     return new RefNode(Name.fromNode(node, offset), type, RefTypes.LITERAL);
   }
@@ -678,13 +678,13 @@ public class CppScopeWalker extends CPP14ParserBaseListener {
   }
 
   static TerminalNode getIdentifier(CPP14Parser.UnqualifiedIdContext unqualifiedId) {
-    if (unqualifiedId.Identifier() != null) return unqualifiedId.Identifier();
+    if (unqualifiedId.IDENTIFIER() != null) return unqualifiedId.IDENTIFIER();
     else return null; // todo
   }
 
   static TerminalNode getIdentifier(CPP14Parser.ClassNameContext ctx) {
-    if (ctx.Identifier() != null) return ctx.Identifier();
-    else return ctx.simpleTemplateId().templateName().Identifier();
+    if (ctx.IDENTIFIER() != null) return ctx.IDENTIFIER();
+    else return ctx.simpleTemplateId().templateName().IDENTIFIER();
   }
 
   static String getType(CPP14Parser.DeclSpecifierSeqContext ctx) {
