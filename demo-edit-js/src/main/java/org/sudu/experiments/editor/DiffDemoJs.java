@@ -18,8 +18,8 @@ public class DiffDemoJs extends FileDiff {
 
   public DiffDemoJs(SceneApi api) {
     super(api);
-    load(model -> left().setModel(model), classL);
-    load(model -> right().setModel(model), classR);
+    load(model -> setModel(model, true), classL);
+    load(model -> setModel(model, false), classR);
   }
 
   @Override

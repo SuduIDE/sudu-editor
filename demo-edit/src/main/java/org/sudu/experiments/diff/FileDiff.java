@@ -3,6 +3,7 @@ package org.sudu.experiments.diff;
 import org.sudu.experiments.SceneApi;
 import org.sudu.experiments.editor.EditorComponent;
 import org.sudu.experiments.editor.EditorConst;
+import org.sudu.experiments.editor.Model;
 import org.sudu.experiments.editor.WindowScene;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.fonts.Fonts;
@@ -33,6 +34,11 @@ public class FileDiff extends WindowScene {
 
   protected EditorComponent right() {
     return w.rootView.editor2;
+  }
+
+  protected void setModel(Model model, boolean left) {
+    (left ? left() : right()).setModel(model);
+    w.rootView.onFileOpened(left);
   }
 
   @Override
