@@ -1,27 +1,20 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.BooleanConsumer;
-import org.sudu.experiments.Window;
 import org.sudu.experiments.editor.*;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
 import org.sudu.experiments.editor.worker.diff.*;
-import org.sudu.experiments.math.V2i;
-import org.sudu.experiments.parser.common.Pair;
-import org.sudu.experiments.parser.common.Pos;
-import org.sudu.experiments.parser.common.TriConsumer;
 import org.sudu.experiments.ui.window.WindowManager;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.IntConsumer;
 
-class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel {
+class FileDiffRootView extends AbstractFileDiffRootView {
   static final boolean showNavigateLog = false;
 
-  final EditorUi ui;
   final EditorComponent editor1;
   final EditorComponent editor2;
-
+  final MiddleLine middleLine;
   final DiffSync diffSync;
 
   boolean compactViewRequest;
@@ -29,41 +22,22 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
   Consumer<Model> onLeftDiffMade, onRightDiffMade;
 
   boolean firstDiffRevealed = false, needScrollSync = false;
-  private Runnable onRefresh, onDiffModelSet, onDocumentSizeChange;
-  public final boolean isCodeReview;
   private boolean mergeLeftToRight = true, mergeRightToLeft = true;
 
-  FileDiffModel fileDiffModel;
-
   FileDiffRootView(WindowManager wm, boolean disableParser, boolean isCodeReview) {
-    super(wm.uiContext);
-    ui = new EditorUi(wm);
-    this.isCodeReview = isCodeReview;
+    super(wm, isCodeReview);
     editor1 = new EditorComponent(ui);
     editor2 = new EditorComponent(ui);
+    middleLine = new MiddleLine(wm.uiContext);
     middleLine.setLeftRight(editor1, editor2);
-    Consumer<EditorComponent> lexerListener = this::fullFileLexedListener;
-    TriConsumer<EditorComponent, Integer, Integer> iterativeParseListener = this::iterativeParseFileListener;
     SyncPoints syncPoints = new SyncPoints(() -> sendToDiff(false));
 
-    editor1.setFullFileLexedListener(lexerListener);
-    editor1.setIterativeParseFileListener(iterativeParseListener);
-    editor1.setUpdateModelOnDiffListener(this::updateModelOnDiffMadeListener);
-    editor1.setOnDiffMadeListener(this::onDiffMadeListener);
-    editor1.highlightResolveError(false);
+    configureEditor(editor1, disableParser);
     editor1.setMirrored(true);
     editor1.setSyncPoints(syncPoints, true);
-    editor1.setDisableParser(disableParser);
-    editor1.setGetUndoBuffer(this::getUndoBuffer);
 
-    editor2.setFullFileLexedListener(lexerListener);
-    editor2.setIterativeParseFileListener(iterativeParseListener);
-    editor2.setUpdateModelOnDiffListener(this::updateModelOnDiffMadeListener);
-    editor2.setOnDiffMadeListener(this::onDiffMadeListener);
-    editor2.highlightResolveError(false);
+    configureEditor(editor2, disableParser);
     editor2.setSyncPoints(syncPoints, false);
-    editor2.setDisableParser(disableParser);
-    editor2.setGetUndoBuffer(this::getUndoBuffer);
 
     diffSync = new DiffSync(editor1, editor2, true);
     middleLine.setOnMidSyncPointHover(i -> onMidSyncLineHover(syncPoints, i));
@@ -74,18 +48,20 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
     setEmptyDiffModel();
   }
 
-  public void setModel(FileDiffModel model) {
-    FileDiffModel oldModel = fileDiffModel;
-    if (oldModel != null) {
-      fileDiffModel.viewToModel = null;
-      model.setModelFlagsBit(oldModel.getModelFlags());
-    }
+  @Override
+  EditorComponent editor() {
+    return editor1;
+  }
 
-    fileDiffModel = model;
-    fileDiffModel.viewToModel = this;
+  @Override
+  EditorComponent editor(boolean left) {
+    return left ? editor1 : editor2;
+  }
+
+  @Override
+  void attachEditors(FileDiffModel model) {
     editor1.setModel(model.leftModel);
     editor2.setModel(model.rightModel);
-    if (model.modelFlagsReady()) sendToDiff(true);
   }
 
   public void setModel(Model m1, Model m2) {
@@ -97,9 +73,7 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
   }
 
   public void setEmptyDiffModel() {
-    if (fileDiffModel != null) fileDiffModel.diffModel = null;
-    editor1.setDiffModel(null);
-    editor2.setDiffModel(null);
+    clearViewDiff();
     diffSync.setModel(null);
     middleLine.setModel(null);
     firstDiffRevealed = false;
@@ -118,43 +92,14 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
     return editor2.model();
   }
 
-  public void setReadonly(boolean leftReadonly, boolean rightReadonly) {
-    editor1.readonly = leftReadonly;
-    editor2.readonly = rightReadonly;
-  }
-
   public void enableMergeButtons(boolean leftToRight, boolean rightToLeft) {
     this.mergeLeftToRight = leftToRight;
     this.mergeRightToLeft = rightToLeft;
   }
 
-  public void setDisableParser(boolean disableParser) {
-    editor1.setDisableParser(disableParser);
-    editor2.setDisableParser(disableParser);
-  }
-
+  @Override
   public EditorUi.FontApi fontApi() {
     return new FontApi2(editor1, editor2, ui.windowManager.uiContext);
-  }
-
-  void fullFileLexedListener(EditorComponent editor) {
-    if (fileDiffModel != null) fileDiffModel.fullFileLexedListener(editor == editor1);
-  }
-
-  void iterativeParseFileListener(EditorComponent editor, int start, int stop) {
-    if (fileDiffModel != null) fileDiffModel.iterativeParseFileListener(editor == editor1, start, stop);
-  }
-
-  void updateModelOnDiffMadeListener(EditorComponent editor, Diff diff, boolean isUndo) {
-    if (fileDiffModel != null) fileDiffModel.updateModelOnDiffMadeListener(editor == editor1, diff, isUndo);
-  }
-
-  void sendToDiff(boolean cmpOnlyLines) {
-    if (fileDiffModel != null) fileDiffModel.sendToDiff(cmpOnlyLines);
-  }
-
-  UndoBuffer getUndoBuffer() {
-    return fileDiffModel.undoBuffer;
   }
 
   private void applyDiff(DiffRange range, boolean left) {
@@ -162,14 +107,14 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
     fileDiffModel.applyDiff(range.copy(), left);
   }
 
-  private void onDiffMadeListener(EditorComponent editor) {
-    boolean left = editor == editor1;
+  @Override
+  protected void onDiffMade(boolean left) {
     if (left) onLeftDiffMade();
     else onRightDiffMade();
   }
 
+  @Override
   public void applyTheme(EditorColorScheme theme) {
-    ui.setTheme(theme);
     middleLine.setTheme(
         theme.codeDiffBg,
         theme.editor.bg,
@@ -178,13 +123,7 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
         theme.lineNumber.currentSyncPoint,
         theme.lineNumber.hoverSyncPoint
     );
-    int lineHeight1 = editor1.lineHeight();
-    int lineHeight2 = editor2.lineHeight();
-    editor1.setTheme(theme);
-    editor2.setTheme(theme);
-    if (lineHeight1 != editor1.lineHeight() || lineHeight2 != editor2.lineHeight()) {
-      onDocumentSizeChange();
-    }
+    super.applyTheme(theme);
   }
 
   @Override
@@ -219,70 +158,19 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
     firstDiffRevealed = true;
   }
 
-  public boolean canNavigateUp(EditorComponent focused) {
-    if (fileDiffModel == null) return false;
-    return fileDiffModel.canNavigateUp(focused.caretLine(), focused == editor1);
-  }
-
-  public void navigateUp(EditorComponent focused) {
-    if (fileDiffModel == null) return;
-    var range = fileDiffModel.navigateUp(focused.caretLine(), focused == editor1);
-    if (range != null) setPositionsAtRange(range);
-  }
-
-  public boolean canNavigateDown(EditorComponent focused) {
-    if (fileDiffModel == null) return false;
-    return fileDiffModel.canNavigateDown(focused.caretLine(), focused == editor1);
-  }
-
-  public void navigateDown(EditorComponent focused) {
-    if (fileDiffModel == null) return;
-    var range = fileDiffModel.navigateDown(focused.caretLine(), focused == editor1);
-    if (range != null) setPositionsAtRange(range);
-  }
-
-  private void setPositionsAtRange(DiffRange range) {
-    editor1.setPosition(0, range.fromL);
-    editor1.revealLineInCenter(range.fromL);
-    editor2.setPosition(0, range.fromR);
-    editor2.revealLineInCenter(range.fromR);
-    window().repaint();
+  @Override
+  protected void setPositionsAtRange(DiffRange range) {
+    super.setPositionsAtRange(range);
     if (showNavigateLog) {
       System.out.println("Navigated on lines " + (range.fromL + 1) + " and " + (range.fromR + 1));
     }
   }
 
-  public void setOnRefresh(Runnable onRefresh) {
-    this.onRefresh = onRefresh;
-  }
-
-  public void setOnDiffModelSet(Runnable onDiffModelSet) {
-    this.onDiffModelSet = onDiffModelSet;
-  }
-
-  public void setOnDocumentSizeChange(Runnable onDocumentSizeChange) {
-    this.onDocumentSizeChange = onDocumentSizeChange;
-  }
-
+  @Override
   public void refresh() {
     System.out.println("FileDiffRootView.refresh");
     needScrollSync = true;
-    if (onRefresh != null) onRefresh.run();
-  }
-
-  public void undoLastDiff(boolean isRedo) {
-    fileDiffModel.undoLastDiff(isRedo);
-  }
-
-  @Override
-  public void restoreSelection(boolean isLeft, V2i pos, Pair<Pos, Pos> selection) {
-    var editor = isLeft ? editor1 : editor2;
-    editor.setCaretLinePos(pos.x, pos.y, false);
-    if (selection.first == null || selection.second == null) return;
-    editor.setSelection(
-        selection.second.charPos, selection.second.line,
-        selection.first.charPos, selection.first.line
-    );
+    super.refresh();
   }
 
   public void onMidSyncLineClick(SyncPoints syncPoints, int line) {
@@ -307,8 +195,7 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
       editor2.clearCompactViewModel();
       editor1.revealLineInCenter(editor1.caretLine());
       editor2.revealLineInCenter(editor2.caretLine());
-      if (onDocumentSizeChange != null)
-        onDocumentSizeChange.run();
+      onDocumentSizeChange();
     }
     window().repaint();
   }
@@ -322,17 +209,13 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
 
   @Override
   public void updateModelOnDiff(DiffInfo diffModel) {
-    editor1.setDiffModel(diffModel.lineDiffsL);
-    editor2.setDiffModel(diffModel.lineDiffsR);
+    super.updateModelOnDiff(diffModel);
     diffSync.setModel(diffModel);
     middleLine.setModel(diffModel);
-    onDocumentSizeChange();
   }
 
   @Override
-  public void setDiffModel(DiffInfo diffModel) {
-    updateModelOnDiff(diffModel);
-
+  protected void onDiffModelApplied(DiffInfo diffModel) {
     boolean compact = compactViewRequest;
     var pair = MergeButtonsModel.getModels(
         diffModel,
@@ -347,16 +230,6 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
 
     if (compact && !diffModel.isEmpty()) buildCompactModel();
     if (!firstDiffRevealed) revealFirstDiff();
-    if (onDiffModelSet != null) onDiffModelSet.run();
-    window().repaint();
-  }
-
-  public void onDocumentSizeChange() {
-    if (onDocumentSizeChange != null) onDocumentSizeChange.run();
-  }
-
-  private Window window() {
-    return ui.windowManager.uiContext.window;
   }
 
   private void buildCompactModel() {
@@ -375,9 +248,7 @@ class FileDiffRootView extends DiffRootView implements FileDiffModel.ViewToModel
   }
 
   @Override
-  public void setPosition(V2i newPos, V2i newSize, float newDpr) {
-    float dpr = this.dpr;
-    super.setPosition(newPos, newSize, newDpr);
-    if (dpr != newDpr) onDocumentSizeChange();
+  protected void layoutViews() {
+    DiffRootView.layoutLeftMiddleRight(views, pos, size, dpr);
   }
 }

@@ -2179,6 +2179,7 @@ public class EditorComponent extends View implements
   }
 
   public void toggleSyncPoint(V2i eventPos) {
+    if (syncPoints == null) return;
     int lineInd = computeSyncPoint(eventPos);
     if (syncPoints.hasPoint(lineInd))
       syncPoints.removeSyncPoint(lineInd);

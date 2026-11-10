@@ -207,3 +207,12 @@ export interface EditorView extends IEditorView, IDisposable {
 }
 
 export function newCodeReview(args: EditArgs): CodeReviewView
+
+export interface SideDiffRootView extends View, HasTheme, Focusable, IDisposable {
+  setModel(model: ITextDiffModel): void
+  readonly left: boolean
+}
+
+export type SideDiffView = SideDiffRootView
+
+export function newSideDiff(args: EditArgs, left: boolean): SideDiffView

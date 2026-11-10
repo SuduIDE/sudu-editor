@@ -2,6 +2,7 @@ package org.sudu.experiments.editor.worker.diff;
 
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.editor.*;
+import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.common.Pair;
 import org.sudu.experiments.parser.common.Pos;
@@ -20,7 +21,7 @@ public class FileDiffModel {
   public final Model leftModel, rightModel;
   public final UndoBuffer undoBuffer = new UndoBuffer();
   public DiffInfo diffModel;
-  public ViewToModel viewToModel;
+  public ViewToModel[] editorToView;
 
   WorkerJobExecutor executor;
 
@@ -109,8 +110,8 @@ public class FileDiffModel {
 
     if (isDelete) onDeleteDiffMadeListener(diff, left);
     else onInsertDiffMadeListener(diff, left);
-    if (viewToModel != null && diffModel != null) {
-      viewToModel.updateModelOnDiff(diffModel);
+    if (diffModel != null) {
+      forEachView(v -> v.updateModelOnDiff(diffModel));
     }
   }
 
@@ -195,7 +196,7 @@ public class FileDiffModel {
     this.diffModel = diffInfo;
     diffStatus = DiffStatus.COMPARED;
     if (getLinesInfo != null) getLinesInfo.accept(diffInfo.linesInfo());
-    if (viewToModel != null) viewToModel.setDiffModel(diffModel);
+    forEachView(v -> v.setDiffModel(diffModel));
   }
 
   void updateDiffModel(
@@ -234,8 +235,13 @@ public class FileDiffModel {
   }
 
   int[] getSyncPoints(boolean left) {
-    if (viewToModel == null) return new int[]{};
-    return viewToModel.getSyncPoints(left);
+    ViewToModel[] views = editorToView;
+    if (views == null) return new int[0];
+    for (ViewToModel v : views) {
+      int[] sp = v.getSyncPoints(left);
+      if (sp != null && sp.length > 0) return sp;
+    }
+    return new int[0];
   }
 
   boolean hasSyncPoints(boolean left) {
@@ -325,6 +331,28 @@ public class FileDiffModel {
   }
 
   public TriConsumer<Boolean, V2i, Pair<Pos, Pos>> restoreSelection() {
-    return viewToModel != null ? viewToModel::restoreSelection : null;
+    if (editorToView == null) return null;
+    return (left, caret, selection) ->
+        forEachView(v -> v.restoreSelection(left, caret, selection));
+  }
+
+  public void addView(ViewToModel view) {
+    if (view == null) return;
+    if (editorToView == null) {
+      editorToView = new ViewToModel[]{view};
+      return;
+    }
+    if (ArrayOp.indexOf(editorToView, view) >= 0) return;
+    editorToView = ArrayOp.add(editorToView, view);
+  }
+
+  public void removeView(ViewToModel view) {
+    editorToView = ArrayOp.remove(editorToView, view);
+  }
+
+  private void forEachView(Consumer<ViewToModel> action) {
+    ViewToModel[] views = editorToView;
+    if (views == null) return;
+    for (ViewToModel v : views) action.accept(v);
   }
 }
