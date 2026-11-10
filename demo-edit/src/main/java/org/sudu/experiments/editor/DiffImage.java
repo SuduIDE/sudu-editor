@@ -46,7 +46,7 @@ class DiffImage {
       j = a;
       do {
         int docLn = viewToDoc[j];
-        LineDiff diff = docLn < 0 ? null : model[docLn];
+        LineDiff diff = docLn < 0 || docLn >= model.length ? null : model[docLn];
         if (diff != null) {
           type = diff.type;
           if (type == DiffTypes.DELETED) l++;

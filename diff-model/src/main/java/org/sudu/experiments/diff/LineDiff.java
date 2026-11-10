@@ -24,7 +24,8 @@ public class LineDiff {
   }
 
   public static boolean notEmpty(LineDiff[] diff) {
-    return diff != null && (diff.length > 1 || (diff[0] != null && diff[0].type != 0));
+    if (diff == null || diff.length == 0) return false;
+    return diff.length > 1 || (diff[0] != null && diff[0].type != 0);
   }
 
   public static void replaceEdited(LineDiff[] diffs, int target) {

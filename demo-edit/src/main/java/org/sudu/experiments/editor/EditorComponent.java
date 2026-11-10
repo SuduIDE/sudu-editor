@@ -4,6 +4,7 @@ package org.sudu.experiments.editor;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.diff.LineDiff;
+import org.sudu.experiments.editor.worker.diff.DiffRange;
 import org.sudu.experiments.editor.EditorUi.FontApi;
 import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -104,6 +105,7 @@ public class EditorComponent extends View implements
 
   public boolean readonly = false;
   boolean mirrored = false;
+  boolean sideView = false;
   private ExternalHighlights externalHighlights;
 
   Consumer<String> onError = System.err::println;
@@ -327,6 +329,14 @@ public class EditorComponent extends View implements
 
   public void setMirrored(boolean b) {
     mirrored = b;
+  }
+
+  public void setSideView(boolean sideView) {
+    this.sideView = sideView;
+  }
+
+  public boolean isSideView() {
+    return sideView;
   }
 
   void toggleMirrored() {
@@ -810,7 +820,11 @@ public class EditorComponent extends View implements
       V4f tailColor = colors.editor.bg;
 
       if (lineIndex < 0) {
-        if (lineIndex != CodeLineMapping.outOfRange) {
+        if (lineIndex == CodeLineMapping.outOfRange && sideView) {
+          sizeTmp.set(textViewWidth + xOffset, lineHeight);
+          g.drawRect(xPos - xOffset, pos.y + yPosition,
+              sizeTmp, fillerBg(i));
+        } else if (lineIndex != CodeLineMapping.outOfRange) {
           sizeTmp.set(textViewWidth + xOffset, lineHeight);
           g.drawRect(xPos - xOffset, pos.y + yPosition,
               sizeTmp, tailColor);
@@ -871,6 +885,13 @@ public class EditorComponent extends View implements
     return pos.y;
   }
 
+  private V4f fillerBg(int viewLine) {
+    int type = docToView.viewLineDiffType(viewLine);
+    return type != 0
+        ? colors.codeDiffBg.getDiffColor(colors, type)
+        : colors.editor.bg;
+  }
+
   private void drawFromLineToText(int firstLine, int lastLine) {
     LineDiff[] diffModel = model.diffModel;
     int xPos0 = textBaseX - vLineTextOffset;
@@ -880,7 +901,13 @@ public class EditorComponent extends View implements
 
     for (int i = firstLine; i < lastLine; i++) {
       int lineIndex = viewToDocMap[i - firstLine];
-      if (lineIndex < 0) continue;
+      if (lineIndex < 0) {
+        if (sideView && lineIndex == CodeLineMapping.outOfRange) {
+          int yPosition = lineHeight * i - vScrollPos;
+          g.drawRect(pos.x + xPos0, pos.y + yPosition, size, fillerBg(i));
+        }
+        continue;
+      }
 
       LineDiff currentLineModel = diffModel != null && lineIndex < diffModel.length
           ? diffModel[lineIndex] : null;
@@ -907,7 +934,9 @@ public class EditorComponent extends View implements
         flushNumberRun(runView, runN, runCount, runDoc);
         runCount = 0;
         int y0 = view * lineHeight - vScrollPos;
-        lineNumbers.drawEmptyLines(y0, y0 + lineHeight, g, colors.editor.bg);
+        V4f emptyBg = sideView && docLine == CodeLineMapping.outOfRange
+            ? fillerBg(view) : colors.editor.bg;
+        lineNumbers.drawEmptyLines(y0, y0 + lineHeight, g, emptyBg);
         continue;
       }
       int N = doc.resolveLineNumber(docLine);
@@ -1884,7 +1913,22 @@ public class EditorComponent extends View implements
   }
 
   void parseViewport() {
-    model.parseViewport(getFirstLine(), getLastLine());
+    int first = getFirstLine();
+    int last = getLastLine();
+    if (sideView) {
+      int firstDoc = -1, lastDoc = -1;
+      for (int i = first; i <= last; i++) {
+        int doc = docToView.viewToDoc(i);
+        if (doc >= 0) {
+          if (firstDoc < 0) firstDoc = doc;
+          lastDoc = doc;
+        }
+      }
+      if (firstDoc < 0) return;
+      first = firstDoc;
+      last = lastDoc;
+    }
+    model.parseViewport(first, last);
   }
 
   public void parseFullFile() {
@@ -2303,7 +2347,7 @@ public class EditorComponent extends View implements
   public void setDiffModel(LineDiff[] lineDiffs) {
     if (debugDiffModel) {
       int docLength = model.document.length();
-      int diffLength = lineDiffs.length;
+      int diffLength = lineDiffs == null ? 0 : lineDiffs.length;
       boolean diffInLength = docLength != diffLength;
       System.out.println("EditorComponent.setDiffModel: docL=" + docLength
           + ", lineDiffs.length = " + diffLength
@@ -2318,7 +2362,17 @@ public class EditorComponent extends View implements
         buildDiffMap();
     } else {
       clearCodeMap();
+      if (sideView) clearCompactViewModel();
     }
+  }
+
+  public void setDiffRanges(DiffRange[] ranges, boolean left) {
+    if (!sideView) return;
+    if (ranges == null || ranges.length == 0) {
+      clearCompactViewModel();
+      return;
+    }
+    setCompactViewModel(new AlignedDiffMapping(ranges, left), null);
   }
 
   public void updateLineNumbersColors() {
@@ -2472,8 +2526,8 @@ public class EditorComponent extends View implements
 
     int viewDocLength = docToView.length();
     var height = Math.min(size.y, lineHeight * viewDocLength);
-    // workaround
-    viewDocLength = Math.min(viewDocLength, model.diffModel.length);
+    if (!sideView)
+      viewDocLength = Math.min(viewDocLength, model.diffModel.length);
     int[] mapping = new int[viewDocLength];
     docToView.viewToDocLines(0, viewDocLength, mapping);
     var img = DiffImage.diffImage(model.diffModel, height,
@@ -2522,6 +2576,7 @@ public class EditorComponent extends View implements
     if (mergeButtons != null) {
       mergeButtons.setCodeLineMapping(mapping);
     }
+    if (lineHeight != 0) setVScrollPosSilent(vScrollPos);
     if (codeMap != null && model.diffModel != null) buildDiffMap();
   }
 

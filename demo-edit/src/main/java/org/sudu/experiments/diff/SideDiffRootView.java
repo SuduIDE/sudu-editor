@@ -17,6 +17,7 @@ class SideDiffRootView extends AbstractFileDiffRootView {
     super(wm, isCodeReview);
     this.left = left;
     editor = new EditorComponent(ui);
+    editor.setSideView(true);
     configureEditor(editor, disableParser);
     setViews(editor);
   }
@@ -27,7 +28,7 @@ class SideDiffRootView extends AbstractFileDiffRootView {
   }
 
   @Override
-  EditorComponent editor(boolean isLeft) {
+  EditorComponent editorForSide(boolean isLeft) {
     return isLeft == left ? editor : null;
   }
 

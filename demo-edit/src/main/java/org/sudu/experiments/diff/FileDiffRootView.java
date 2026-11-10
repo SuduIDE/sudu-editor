@@ -54,7 +54,7 @@ class FileDiffRootView extends AbstractFileDiffRootView {
   }
 
   @Override
-  EditorComponent editor(boolean left) {
+  EditorComponent editorForSide(boolean left) {
     return left ? editor1 : editor2;
   }
 

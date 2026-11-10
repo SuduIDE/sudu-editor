@@ -530,6 +530,7 @@ public class Model {
 
     int firstLine = Math.max(0, editorFirstLine - EditorConst.VIEWPORT_OFFSET);
     int lastLine = Math.min(document.length() - 1, editorLastLine + EditorConst.VIEWPORT_OFFSET);
+    if (firstLine > lastLine) return;
     int srcFirst = firstLine, srcLast = lastLine;
     int[] vpInts;
     if (document.isMapped()) {
