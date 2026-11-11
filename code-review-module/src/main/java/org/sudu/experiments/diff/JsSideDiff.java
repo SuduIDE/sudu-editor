@@ -88,6 +88,27 @@ public class JsSideDiff implements JsSideDiffView {
   }
 
   @Override
+  public int getVScrollPos() {
+    return w.rootView.editor.getVScrollPos();
+  }
+
+  @Override
+  public void setVScrollPos(int vScrollPos) {
+    if (w.rootView.editor.setVScrollPos(vScrollPos)) {
+      window.repaint();
+    }
+  }
+
+  @Override
+  public void setVScrollListener(JsIEditorView.VScrollListener listener) {
+    if (listener == null) {
+      w.rootView.editor.setVScrollObserver(null);
+    } else {
+      w.rootView.editor.setVScrollObserver(listener::onVScroll);
+    }
+  }
+
+  @Override
   public void setExternalMessageBar(JsExternalMessageBar emb) {}
 
   @Override

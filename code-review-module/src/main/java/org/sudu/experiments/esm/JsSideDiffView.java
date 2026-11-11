@@ -7,4 +7,8 @@ public interface JsSideDiffView extends JsView {
 
   @JSProperty
   boolean getLeft();
+
+  int getVScrollPos();
+  void setVScrollPos(int vScrollPos);
+  void setVScrollListener(JsIEditorView.VScrollListener listener);
 }

@@ -100,6 +100,10 @@ const rightView = editorApi.newSideDiff({
 
 leftView.setModel(model);
 rightView.setModel(model);
+
+leftView.setVScrollListener((pos) => rightView.setVScrollPos(pos));
+rightView.setVScrollListener((pos) => leftView.setVScrollPos(pos));
+
 leftView.focus();
 
 console.log("SideDiff left.left =", leftView.left, "right.left =", rightView.left);
