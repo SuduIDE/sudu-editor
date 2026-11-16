@@ -158,6 +158,44 @@ class FileDiffModelOncePerEditTest {
   }
 
   @Test
+  void rebindIgnoresEditorSupplierThatReadsStaleField() {
+    Model left = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    Model right = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    FileDiffModel first = new FileDiffModel(new NoopExecutor(), left, right);
+    CountingView view = new CountingView();
+    first.addView(view);
+    first.removeView(view);
+
+    FileDiffModel second = new FileDiffModel(new NoopExecutor(), left, right);
+    left.prependGetUndoBuffer(() -> first.undoBuffer);
+    first.addView(view);
+    assertSame(first.undoBuffer, second.undoBuffer);
+
+    left.document.insertLines(0, 0, new String[]{"x"});
+    assertEquals("xa", left.document.line(0).makeString());
+
+    first.undoLastDiff(false);
+    assertEquals("a", left.document.line(0).makeString());
+  }
+
+  @Test
+  void overlappingPairDoesNotStealRightUndoBuffer() {
+    Model left1 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    Model right = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    FileDiffModel first = new FileDiffModel(new NoopExecutor(), left1, right);
+    Model left2 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    FileDiffModel second = new FileDiffModel(new NoopExecutor(), left2, right);
+    assertSame(first.undoBuffer, right.undoBuffer());
+    assertSame(first.undoBuffer, second.undoBuffer);
+
+    right.document.insertLines(0, 0, new String[]{"x"});
+    assertEquals("xa", right.document.line(0).makeString());
+
+    first.undoLastDiff(false);
+    assertEquals("a", right.document.line(0).makeString());
+  }
+
+  @Test
   void syncEditRunsOnceFromAnEnabledModel() {
     Model left = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
     Model right = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
@@ -206,6 +244,25 @@ class FileDiffModelOncePerEditTest {
 
     assertEquals("xa", left.document.line(0).makeString());
     assertEquals("xa", right.document.line(0).makeString());
+  }
+
+  @Test
+  void emptyOppositeDoesNotMirrorOntoADifferentPair() {
+    Model left = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    Model right1 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    Model right2 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    FileDiffModel first = new FileDiffModel(new NoopExecutor(), left, right1);
+    FileDiffModel second = new FileDiffModel(new NoopExecutor(), left, right2);
+    first.diffModel = editedAllRange();
+    second.diffModel = equalRange();
+    first.setEnableSyncEdit(true);
+    second.setEnableSyncEdit(true);
+
+    left.document.insertLines(0, 0, new String[]{"x"});
+
+    assertEquals("xa", left.document.line(0).makeString());
+    assertEquals("a", right1.document.line(0).makeString());
+    assertEquals("a", right2.document.line(0).makeString());
   }
 
   static DiffInfo editedLaterRange() {

@@ -86,10 +86,12 @@ public class FileDiffModel {
   }
 
   void adoptUndoBuffer() {
+    UndoBuffer previous = undoBuffer;
+    undoBuffer = null;
     UndoBuffer existing = leftModel.undoBuffer();
     if (existing == null) existing = rightModel.undoBuffer();
     if (existing != null) undoBuffer = existing;
-    else if (undoBuffer == null) undoBuffer = new UndoBuffer();
+    else undoBuffer = previous != null ? previous : new UndoBuffer();
   }
 
   void bindToDocuments() {
@@ -230,11 +232,13 @@ public class FileDiffModel {
   public boolean syncEditing(boolean left, CpxDiff cpxDiff, boolean isUndo) {
     if (!enableSyncEdit || diffModel == null) return false;
     Model current = left ? leftModel : rightModel;
-    var diffVersion = current.document.lastDiffVersion();
     Model another = !left ? leftModel : rightModel;
+    Model claimed = current.syncEditPeer();
+    if (claimed == null) current.claimSyncEditPeer(another);
+    else if (claimed != another) return false;
 
+    var diffVersion = current.document.lastDiffVersion();
     CpxDiff anotherDiff = CpxDiff.DiffMaker.mkOppositeDiff(this, cpxDiff, left);
-
     if (anotherDiff.isEmpty()) return false;
     another.document.doCpxDiff(anotherDiff, !isUndo);
     undoBuffer.addDiff(another.document, anotherDiff, diffVersion.second);

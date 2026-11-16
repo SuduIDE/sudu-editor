@@ -74,6 +74,7 @@ public class Model {
   private final List<Runnable> onFileLexed = new ArrayList<>();
   private final List<BiPredicate<CpxDiff, Boolean>> syncEditing = new ArrayList<>();
   private final List<Supplier<UndoBuffer>> undoBuffers = new ArrayList<>();
+  private Model syncEditPeer;
 
   public Model(String text, Uri uri) {
     this(text, null, uri);
@@ -673,8 +674,13 @@ public class Model {
   }
 
   private void syncEditing(CpxDiff diffs, boolean isUndo) {
-    for (int i = 0; i < syncEditing.size(); i++) {
-      if (syncEditing.get(i).test(diffs, isUndo)) return;
+    syncEditPeer = null;
+    try {
+      for (int i = 0; i < syncEditing.size(); i++) {
+        if (syncEditing.get(i).test(diffs, isUndo)) return;
+      }
+    } finally {
+      syncEditPeer = null;
     }
   }
 
@@ -690,6 +696,14 @@ public class Model {
     return getUndoBuffer();
   }
 
+  public Model syncEditPeer() {
+    return syncEditPeer;
+  }
+
+  public void claimSyncEditPeer(Model peer) {
+    if (syncEditPeer == null) syncEditPeer = peer;
+  }
+
   public void addSyncEditing(BiPredicate<CpxDiff, Boolean> listener) {
     if (listener != null && !syncEditing.contains(listener))
       syncEditing.add(listener);
@@ -700,6 +714,11 @@ public class Model {
   }
 
   public void addGetUndoBuffer(Supplier<UndoBuffer> supplier) {
+    if (supplier != null && !undoBuffers.contains(supplier))
+      undoBuffers.add(supplier);
+  }
+
+  void prependGetUndoBuffer(Supplier<UndoBuffer> supplier) {
     if (supplier != null && !undoBuffers.contains(supplier))
       undoBuffers.add(0, supplier);
   }
