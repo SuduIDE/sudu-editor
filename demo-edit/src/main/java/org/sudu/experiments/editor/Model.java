@@ -74,6 +74,7 @@ public class Model {
   private final List<Runnable> onFileLexed = new ArrayList<>();
   private final List<BiPredicate<CpxDiff, Boolean>> syncEditing = new ArrayList<>();
   private final List<Supplier<UndoBuffer>> undoBuffers = new ArrayList<>();
+  private final List<Supplier<UndoBuffer>> undoBufferInFlight = new ArrayList<>();
   private Model syncEditPeer;
 
   public Model(String text, Uri uri) {
@@ -686,10 +687,24 @@ public class Model {
 
   private UndoBuffer getUndoBuffer() {
     for (int i = 0; i < undoBuffers.size(); i++) {
-      UndoBuffer buffer = undoBuffers.get(i).get();
-      if (buffer != null) return buffer;
+      Supplier<UndoBuffer> supplier = undoBuffers.get(i);
+      if (undoBufferInFlight(supplier)) continue;
+      undoBufferInFlight.add(supplier);
+      try {
+        UndoBuffer buffer = supplier.get();
+        if (buffer != null) return buffer;
+      } finally {
+        undoBufferInFlight.remove(undoBufferInFlight.size() - 1);
+      }
     }
     return null;
+  }
+
+  private boolean undoBufferInFlight(Supplier<UndoBuffer> supplier) {
+    for (int i = 0; i < undoBufferInFlight.size(); i++) {
+      if (undoBufferInFlight.get(i) == supplier) return true;
+    }
+    return false;
   }
 
   public UndoBuffer undoBuffer() {

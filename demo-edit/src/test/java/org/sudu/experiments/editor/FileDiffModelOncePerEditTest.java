@@ -179,6 +179,27 @@ class FileDiffModelOncePerEditTest {
   }
 
   @Test
+  void rebindWithLiveEditorSupplierDoesNotRecurse() {
+    Model left = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    Model right = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    FileDiffModel first = new FileDiffModel(new NoopExecutor(), left, right);
+    CountingView view = new CountingView();
+    first.addView(view);
+    first.removeView(view);
+
+    FileDiffModel second = new FileDiffModel(new NoopExecutor(), left, right);
+    left.prependGetUndoBuffer(() -> left.undoBuffer());
+    first.addView(view);
+    assertSame(first.undoBuffer, second.undoBuffer);
+
+    left.document.insertLines(0, 0, new String[]{"x"});
+    assertEquals("xa", left.document.line(0).makeString());
+
+    first.undoLastDiff(false);
+    assertEquals("a", left.document.line(0).makeString());
+  }
+
+  @Test
   void overlappingPairDoesNotStealRightUndoBuffer() {
     Model left1 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
     Model right = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
@@ -204,6 +225,31 @@ class FileDiffModelOncePerEditTest {
     Model right2 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
     FileDiffModel second = new FileDiffModel(new NoopExecutor(), left2, right2);
     FileDiffModel join = new FileDiffModel(new NoopExecutor(), left1, right2);
+    assertSame(second.undoBuffer, right2.undoBuffer());
+
+    left1.document.insertLines(0, 0, new String[]{"x"});
+    right2.document.insertLines(0, 0, new String[]{"y"});
+    assertEquals("xa", left1.document.line(0).makeString());
+    assertEquals("ya", right2.document.line(0).makeString());
+
+    join.undoLastDiff(false);
+    assertEquals("xa", left1.document.line(0).makeString());
+    assertEquals("a", right2.document.line(0).makeString());
+
+    first.undoLastDiff(false);
+    assertEquals("a", left1.document.line(0).makeString());
+  }
+
+  @Test
+  void joinPairWithEditorSupplierUndoesRightFromLiveBuffer() {
+    Model left1 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    Model right1 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    FileDiffModel first = new FileDiffModel(new NoopExecutor(), left1, right1);
+    Model left2 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    Model right2 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    FileDiffModel second = new FileDiffModel(new NoopExecutor(), left2, right2);
+    FileDiffModel join = new FileDiffModel(new NoopExecutor(), left1, right2);
+    right2.prependGetUndoBuffer(() -> right2.undoBuffer());
     assertSame(second.undoBuffer, right2.undoBuffer());
 
     left1.document.insertLines(0, 0, new String[]{"x"});
