@@ -13,9 +13,12 @@ import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FileDiffModelOncePerEditTest {
 
@@ -197,6 +200,20 @@ class FileDiffModelOncePerEditTest {
 
     first.undoLastDiff(false);
     assertEquals("a", left.document.line(0).makeString());
+  }
+
+  @Test
+  void disposingEditorUnregistersUndoSupplier() {
+    Model left = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    Model right = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    FileDiffModel diff = new FileDiffModel(new NoopExecutor(), left, right);
+    Supplier<UndoBuffer> editor = () -> left.undoBuffer();
+    left.addGetUndoBuffer(editor);
+    assertTrue(left.hasGetUndoBuffer(editor));
+
+    left.removeGetUndoBuffer(editor);
+    assertFalse(left.hasGetUndoBuffer(editor));
+    assertSame(diff.undoBuffer, left.undoBuffer());
   }
 
   @Test

@@ -465,6 +465,7 @@ public class EditorComponent extends View implements
     lrContext.dispose();
     lineNumbers.dispose();
     mergeButtons = Disposable.assign(mergeButtons, null);
+    model.removeGetUndoBuffer(getUndoBuffer);
     model.detachEditor(this);
     context = null;
     g =  null;

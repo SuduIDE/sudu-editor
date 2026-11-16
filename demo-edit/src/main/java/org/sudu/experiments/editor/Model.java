@@ -742,6 +742,10 @@ public class Model {
     undoBuffers.remove(supplier);
   }
 
+  boolean hasGetUndoBuffer(Supplier<UndoBuffer> supplier) {
+    return undoBuffers.contains(supplier);
+  }
+
   public void setOnDiffMadeListener(Consumer<int[]> listener) {
     onDiffMadeListener = listener;
   }
