@@ -138,6 +138,26 @@ class FileDiffModelOncePerEditTest {
   }
 
   @Test
+  void rebindAdoptsTheLiveUndoBuffer() {
+    Model left = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    Model right = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    FileDiffModel first = new FileDiffModel(new NoopExecutor(), left, right);
+    CountingView view = new CountingView();
+    first.addView(view);
+    first.removeView(view);
+
+    FileDiffModel second = new FileDiffModel(new NoopExecutor(), left, right);
+    first.addView(view);
+    assertSame(first.undoBuffer, second.undoBuffer);
+
+    left.document.insertLines(0, 0, new String[]{"x"});
+    assertEquals("xa", left.document.line(0).makeString());
+
+    first.undoLastDiff(false);
+    assertEquals("a", left.document.line(0).makeString());
+  }
+
+  @Test
   void syncEditRunsOnceFromAnEnabledModel() {
     Model left = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
     Model right = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
@@ -171,6 +191,23 @@ class FileDiffModelOncePerEditTest {
     assertEquals("xa", right.document.line(0).makeString());
   }
 
+  @Test
+  void emptyOppositeFallsThroughToAMappedModel() {
+    Model left = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    Model right = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    FileDiffModel first = new FileDiffModel(new NoopExecutor(), left, right);
+    FileDiffModel second = new FileDiffModel(new NoopExecutor(), left, right);
+    first.diffModel = editedAllRange();
+    second.diffModel = equalRange();
+    first.setEnableSyncEdit(true);
+    second.setEnableSyncEdit(true);
+
+    left.document.insertLines(0, 0, new String[]{"x"});
+
+    assertEquals("xa", left.document.line(0).makeString());
+    assertEquals("xa", right.document.line(0).makeString());
+  }
+
   static DiffInfo editedLaterRange() {
     return new DiffInfo(
         new LineDiff[3], new LineDiff[3],
@@ -186,6 +223,15 @@ class FileDiffModelOncePerEditTest {
         new LineDiff[3], new LineDiff[3],
         new DiffRange[] {
             new DiffRange(0, 3, 0, 3, DiffTypes.DEFAULT)
+        }
+    );
+  }
+
+  static DiffInfo editedAllRange() {
+    return new DiffInfo(
+        new LineDiff[3], new LineDiff[3],
+        new DiffRange[] {
+            new DiffRange(0, 3, 0, 3, DiffTypes.EDITED)
         }
     );
   }

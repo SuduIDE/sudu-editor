@@ -22,7 +22,7 @@ public class FileDiffModel {
   public static final int RIGHT_MODEL_BIT = 0b10;
 
   public final Model leftModel, rightModel;
-  public final UndoBuffer undoBuffer;
+  public UndoBuffer undoBuffer;
   public DiffInfo diffModel;
   public ViewToModel[] viewsToModel;
 
@@ -79,17 +79,22 @@ public class FileDiffModel {
   public FileDiffModel(WorkerJobExecutor executor, Model leftModel, Model rightModel) {
     this.leftModel = leftModel;
     this.rightModel = rightModel;
-    UndoBuffer existing = leftModel.undoBuffer();
-    if (existing == null) existing = rightModel.undoBuffer();
-    this.undoBuffer = existing != null ? existing : new UndoBuffer();
     this.getUndoBuffer = () -> this.undoBuffer;
     this.executor = executor;
     bindToDocuments();
     if (leftModel.fileLexed() && rightModel.fileLexed()) sendToDiff(false);
   }
 
+  void adoptUndoBuffer() {
+    UndoBuffer existing = leftModel.undoBuffer();
+    if (existing == null) existing = rightModel.undoBuffer();
+    if (existing != null) undoBuffer = existing;
+    else if (undoBuffer == null) undoBuffer = new UndoBuffer();
+  }
+
   void bindToDocuments() {
     if (boundToDocuments) return;
+    adoptUndoBuffer();
     leftModel.addOnUpdateModelOnDiff(leftOnUpdateModelOnDiff);
     leftModel.addOnIterativeParsed(leftOnIterativeParsed);
     leftModel.addOnFileLexed(leftOnFileLexed);
@@ -230,10 +235,9 @@ public class FileDiffModel {
 
     CpxDiff anotherDiff = CpxDiff.DiffMaker.mkOppositeDiff(this, cpxDiff, left);
 
-    if (!anotherDiff.isEmpty()) {
-      another.document.doCpxDiff(anotherDiff, !isUndo);
-      undoBuffer.addDiff(another.document, anotherDiff, diffVersion.second);
-    }
+    if (anotherDiff.isEmpty()) return false;
+    another.document.doCpxDiff(anotherDiff, !isUndo);
+    undoBuffer.addDiff(another.document, anotherDiff, diffVersion.second);
     return true;
   }
 

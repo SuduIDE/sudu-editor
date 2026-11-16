@@ -701,7 +701,7 @@ public class Model {
 
   public void addGetUndoBuffer(Supplier<UndoBuffer> supplier) {
     if (supplier != null && !undoBuffers.contains(supplier))
-      undoBuffers.add(supplier);
+      undoBuffers.add(0, supplier);
   }
 
   public void removeGetUndoBuffer(Supplier<UndoBuffer> supplier) {
