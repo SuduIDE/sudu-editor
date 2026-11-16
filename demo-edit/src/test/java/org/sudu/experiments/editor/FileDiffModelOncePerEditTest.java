@@ -196,6 +196,30 @@ class FileDiffModelOncePerEditTest {
   }
 
   @Test
+  void joinPairUndoesRightFromItsLiveBuffer() {
+    Model left1 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    Model right1 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    FileDiffModel first = new FileDiffModel(new NoopExecutor(), left1, right1);
+    Model left2 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    Model right2 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    FileDiffModel second = new FileDiffModel(new NoopExecutor(), left2, right2);
+    FileDiffModel join = new FileDiffModel(new NoopExecutor(), left1, right2);
+    assertSame(second.undoBuffer, right2.undoBuffer());
+
+    left1.document.insertLines(0, 0, new String[]{"x"});
+    right2.document.insertLines(0, 0, new String[]{"y"});
+    assertEquals("xa", left1.document.line(0).makeString());
+    assertEquals("ya", right2.document.line(0).makeString());
+
+    join.undoLastDiff(false);
+    assertEquals("xa", left1.document.line(0).makeString());
+    assertEquals("a", right2.document.line(0).makeString());
+
+    first.undoLastDiff(false);
+    assertEquals("a", left1.document.line(0).makeString());
+  }
+
+  @Test
   void syncEditRunsOnceFromAnEnabledModel() {
     Model left = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
     Model right = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
@@ -256,6 +280,24 @@ class FileDiffModelOncePerEditTest {
     first.diffModel = editedAllRange();
     second.diffModel = equalRange();
     first.setEnableSyncEdit(true);
+    second.setEnableSyncEdit(true);
+
+    left.document.insertLines(0, 0, new String[]{"x"});
+
+    assertEquals("xa", left.document.line(0).makeString());
+    assertEquals("a", right1.document.line(0).makeString());
+    assertEquals("a", right2.document.line(0).makeString());
+  }
+
+  @Test
+  void missingDiffClaimsPeerAndDoesNotMirrorOntoAnotherPair() {
+    Model left = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    Model right1 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    Model right2 = new Model(new String[]{"a", "b", "c"}, Languages.TEXT, null);
+    FileDiffModel first = new FileDiffModel(new NoopExecutor(), left, right1);
+    FileDiffModel second = new FileDiffModel(new NoopExecutor(), left, right2);
+    first.setEnableSyncEdit(true);
+    second.diffModel = equalRange();
     second.setEnableSyncEdit(true);
 
     left.document.insertLines(0, 0, new String[]{"x"});

@@ -230,23 +230,36 @@ public class FileDiffModel {
   }
 
   public boolean syncEditing(boolean left, CpxDiff cpxDiff, boolean isUndo) {
-    if (!enableSyncEdit || diffModel == null) return false;
+    if (!enableSyncEdit) return false;
     Model current = left ? leftModel : rightModel;
     Model another = !left ? leftModel : rightModel;
     Model claimed = current.syncEditPeer();
     if (claimed == null) current.claimSyncEditPeer(another);
     else if (claimed != another) return false;
+    if (diffModel == null) return false;
 
     var diffVersion = current.document.lastDiffVersion();
     CpxDiff anotherDiff = CpxDiff.DiffMaker.mkOppositeDiff(this, cpxDiff, left);
     if (anotherDiff.isEmpty()) return false;
     another.document.doCpxDiff(anotherDiff, !isUndo);
-    undoBuffer.addDiff(another.document, anotherDiff, diffVersion.second);
+    UndoBuffer otherBuf = another.undoBuffer();
+    if (otherBuf == null) otherBuf = undoBuffer;
+    if (otherBuf != null) {
+      if (diffVersion != null) otherBuf.addDiff(another.document, anotherDiff, diffVersion.second);
+      else otherBuf.addDiff(another.document, anotherDiff);
+    }
     return true;
   }
 
   public void undoLastDiff(boolean isRedo) {
-    undoBuffer.undoLastDiff(leftModel.document, rightModel.document, restoreSelection(), isRedo);
+    UndoBuffer leftBuf = leftModel.undoBuffer();
+    UndoBuffer rightBuf = rightModel.undoBuffer();
+    if (leftBuf == null) leftBuf = undoBuffer;
+    if (rightBuf == null) rightBuf = undoBuffer;
+    UndoBuffer.undoLastDiff(
+        leftBuf, leftModel.document,
+        rightBuf, rightModel.document,
+        restoreSelection(), isRedo);
   }
 
   public void setDiffModel(DiffInfo diffInfo, int[] versions) {

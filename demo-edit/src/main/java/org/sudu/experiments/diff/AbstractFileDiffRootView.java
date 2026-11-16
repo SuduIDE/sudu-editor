@@ -33,11 +33,11 @@ abstract class AbstractFileDiffRootView extends ViewArray
 
   abstract void attachEditors(FileDiffModel model);
 
-  protected void configureEditor(EditorComponent ed, boolean disableParser) {
+  protected void configureEditor(EditorComponent ed, boolean disableParser, boolean left) {
     ed.setOnDiffMadeListener(this::onDiffMadeListener);
     ed.highlightResolveError(false);
     ed.setDisableParser(disableParser);
-    ed.setGetUndoBuffer(this::getUndoBuffer);
+    ed.setGetUndoBuffer(() -> undoBufferFor(left));
   }
 
   public void setModel(FileDiffModel model) {
@@ -89,7 +89,14 @@ abstract class AbstractFileDiffRootView extends ViewArray
   }
 
   UndoBuffer getUndoBuffer() {
-    return fileDiffModel != null ? fileDiffModel.undoBuffer : null;
+    return undoBufferFor(true);
+  }
+
+  UndoBuffer undoBufferFor(boolean left) {
+    if (fileDiffModel == null) return null;
+    Model m = left ? fileDiffModel.leftModel : fileDiffModel.rightModel;
+    UndoBuffer live = m != null ? m.undoBuffer() : null;
+    return live != null ? live : fileDiffModel.undoBuffer;
   }
 
   protected boolean isLeftEditor(EditorComponent editor) {

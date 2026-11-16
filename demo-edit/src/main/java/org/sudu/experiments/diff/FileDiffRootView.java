@@ -32,11 +32,11 @@ class FileDiffRootView extends AbstractFileDiffRootView {
     middleLine.setLeftRight(editor1, editor2);
     SyncPoints syncPoints = new SyncPoints(() -> sendToDiff(false));
 
-    configureEditor(editor1, disableParser);
+    configureEditor(editor1, disableParser, true);
     editor1.setMirrored(true);
     editor1.setSyncPoints(syncPoints, true);
 
-    configureEditor(editor2, disableParser);
+    configureEditor(editor2, disableParser, false);
     editor2.setSyncPoints(syncPoints, false);
 
     diffSync = new DiffSync(editor1, editor2, true);

@@ -19,7 +19,7 @@ class SideDiffRootView extends AbstractFileDiffRootView {
     this.left = left;
     editor = new EditorComponent(ui);
     editor.setEnableDiffAligning(true);
-    configureEditor(editor, disableParser);
+    configureEditor(editor, disableParser, left);
     setViews(editor);
   }
 
