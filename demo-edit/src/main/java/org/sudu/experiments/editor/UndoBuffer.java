@@ -6,21 +6,19 @@ import org.sudu.experiments.parser.common.Pos;
 import org.sudu.experiments.parser.common.TriConsumer;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 public class UndoBuffer {
 
+  private static int nextVersion;
+
   private final Map<Document, UndoStack> diffs;
-  private int diffCnt;
 
   public UndoBuffer() {
     this.diffs = new HashMap<>();
-    this.diffCnt = 0;
   }
 
   public void addDiff(Document doc, CpxDiff diff) {
-    addDiff(doc, diff, diffCnt++);
+    addDiff(doc, diff, nextVersion++);
   }
 
   public void addDiff(Document doc, CpxDiff diff, int version) {
@@ -41,17 +39,34 @@ public class UndoBuffer {
       TriConsumer<Boolean, V2i, Pair<Pos, Pos>> restore,
       boolean isRedo
   ) {
-    if (!isRedo) undoLastDiff(doc1, doc2, restore);
-    else redoLastDiff(doc1, doc2, restore);
+    undoLastDiff(this, doc1, this, doc2, restore, isRedo);
+  }
+
+  public static void undoLastDiff(
+      UndoBuffer buf1, Document doc1,
+      UndoBuffer buf2, Document doc2,
+      TriConsumer<Boolean, V2i, Pair<Pos, Pos>> restore,
+      boolean isRedo
+  ) {
+    if (buf1 == null && buf2 == null) return;
+    if (!isRedo) undoLastDiff(buf1, doc1, buf2, doc2, restore);
+    else redoLastDiff(buf1, doc1, buf2, doc2, restore);
   }
 
   public void undoLastDiff(
       Document doc1, Document doc2,
       TriConsumer<Boolean, V2i, Pair<Pos, Pos>> restore
   ) {
-    if (diffs.isEmpty()) return;
-    var stack1 = diffs.get(doc1);
-    var stack2 = diffs.get(doc2);
+    undoLastDiff(this, doc1, this, doc2, restore);
+  }
+
+  public static void undoLastDiff(
+      UndoBuffer buf1, Document doc1,
+      UndoBuffer buf2, Document doc2,
+      TriConsumer<Boolean, V2i, Pair<Pos, Pos>> restore
+  ) {
+    var stack1 = stack(buf1, doc1);
+    var stack2 = stack(buf2, doc2);
     boolean empty1 = stack1 == null || stack1.isEmpty();
     boolean empty2 = stack2 == null || stack2.isEmpty();
     int ind1 = empty1 ? -1 : stack1.peekLast().second;
@@ -75,9 +90,16 @@ public class UndoBuffer {
       Document doc1, Document doc2,
       TriConsumer<Boolean, V2i, Pair<Pos, Pos>> restore
   ) {
-    if (diffs.isEmpty()) return;
-    var stack1 = diffs.get(doc1);
-    var stack2 = diffs.get(doc2);
+    redoLastDiff(this, doc1, this, doc2, restore);
+  }
+
+  public static void redoLastDiff(
+      UndoBuffer buf1, Document doc1,
+      UndoBuffer buf2, Document doc2,
+      TriConsumer<Boolean, V2i, Pair<Pos, Pos>> restore
+  ) {
+    var stack1 = stack(buf1, doc1);
+    var stack2 = stack(buf2, doc2);
     boolean empty1 = stack1 == null || !stack1.haveNext();
     boolean empty2 = stack2 == null || !stack2.haveNext();
     int ind1 = empty1 ? Integer.MAX_VALUE : stack1.peekNext().second;
@@ -113,5 +135,9 @@ public class UndoBuffer {
 
   public void clear(Document doc) {
     diffs.remove(doc);
+  }
+
+  private static UndoStack stack(UndoBuffer buf, Document doc) {
+    return buf == null ? null : buf.diffs.get(doc);
   }
 }

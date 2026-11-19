@@ -2,6 +2,7 @@ package org.sudu.experiments.editor.worker.diff;
 
 import org.sudu.experiments.diff.DiffTypes;
 import org.sudu.experiments.editor.*;
+import org.sudu.experiments.math.ArrayOp;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.parser.common.Pair;
 import org.sudu.experiments.parser.common.Pos;
@@ -9,8 +10,11 @@ import org.sudu.experiments.parser.common.TriConsumer;
 import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.Arrays;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.IntConsumer;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class FileDiffModel {
 
@@ -18,9 +22,9 @@ public class FileDiffModel {
   public static final int RIGHT_MODEL_BIT = 0b10;
 
   public final Model leftModel, rightModel;
-  public final UndoBuffer undoBuffer = new UndoBuffer();
+  public UndoBuffer undoBuffer;
   public DiffInfo diffModel;
-  public ViewToModel viewToModel;
+  public ViewToModel[] viewsToModel;
 
   WorkerJobExecutor executor;
 
@@ -29,6 +33,23 @@ public class FileDiffModel {
   private int diffStatus = DiffStatus.NOT_COMPARED;
   private boolean enableSyncEdit = EditorConst.DEFAULT_ENABLE_SYNC_EDIT;
   private int modelFlags;
+  private boolean boundToDocuments;
+
+  private final BiConsumer<Diff, Boolean> leftOnUpdateModelOnDiff =
+      (diff, isUndo) -> updateModelOnDiffMadeListener(true, diff, isUndo);
+  private final BiConsumer<Integer, Integer> leftOnIterativeParsed =
+      (start, stop) -> iterativeParseFileListener(true, start, stop);
+  private final Runnable leftOnFileLexed = () -> fullFileLexedListener(true);
+  private final BiConsumer<Diff, Boolean> rightOnUpdateModelOnDiff =
+      (diff, isUndo) -> updateModelOnDiffMadeListener(false, diff, isUndo);
+  private final BiConsumer<Integer, Integer> rightOnIterativeParsed =
+      (start, stop) -> iterativeParseFileListener(false, start, stop);
+  private final Runnable rightOnFileLexed = () -> fullFileLexedListener(false);
+  private final Supplier<UndoBuffer> getUndoBuffer;
+  private final BiPredicate<CpxDiff, Boolean> leftSyncEditing =
+      (diff, isUndo) -> syncEditing(true, diff, isUndo);
+  private final BiPredicate<CpxDiff, Boolean> rightSyncEditing =
+      (diff, isUndo) -> syncEditing(false, diff, isUndo);
 
   public interface ViewToModel {
     int[] getSyncPoints(boolean left);
@@ -57,13 +78,51 @@ public class FileDiffModel {
 
   public FileDiffModel(WorkerJobExecutor executor, Model leftModel, Model rightModel) {
     this.leftModel = leftModel;
-    this.leftModel.setGetUndoBuffer(() -> undoBuffer);
-    this.leftModel.setSyncEditing((diff, isUndo) -> syncEditing(true, diff, isUndo));
     this.rightModel = rightModel;
-    this.rightModel.setGetUndoBuffer(() -> undoBuffer);
-    this.rightModel.setSyncEditing((diff, isUndo) -> syncEditing(false, diff, isUndo));
+    this.getUndoBuffer = () -> this.undoBuffer;
     this.executor = executor;
+    bindToDocuments();
     if (leftModel.fileLexed() && rightModel.fileLexed()) sendToDiff(false);
+  }
+
+  void adoptUndoBuffer() {
+    UndoBuffer previous = undoBuffer;
+    undoBuffer = null;
+    UndoBuffer existing = leftModel.undoBuffer();
+    if (existing == null) existing = rightModel.undoBuffer();
+    if (existing != null) undoBuffer = existing;
+    else undoBuffer = previous != null ? previous : new UndoBuffer();
+  }
+
+  void bindToDocuments() {
+    if (boundToDocuments) return;
+    adoptUndoBuffer();
+    leftModel.addOnUpdateModelOnDiff(leftOnUpdateModelOnDiff);
+    leftModel.addOnIterativeParsed(leftOnIterativeParsed);
+    leftModel.addOnFileLexed(leftOnFileLexed);
+    leftModel.addGetUndoBuffer(getUndoBuffer);
+    leftModel.addSyncEditing(leftSyncEditing);
+    rightModel.addOnUpdateModelOnDiff(rightOnUpdateModelOnDiff);
+    rightModel.addOnIterativeParsed(rightOnIterativeParsed);
+    rightModel.addOnFileLexed(rightOnFileLexed);
+    rightModel.addGetUndoBuffer(getUndoBuffer);
+    rightModel.addSyncEditing(rightSyncEditing);
+    boundToDocuments = true;
+  }
+
+  public void unbindFromDocuments() {
+    if (!boundToDocuments) return;
+    leftModel.removeOnUpdateModelOnDiff(leftOnUpdateModelOnDiff);
+    leftModel.removeOnIterativeParsed(leftOnIterativeParsed);
+    leftModel.removeOnFileLexed(leftOnFileLexed);
+    leftModel.removeGetUndoBuffer(getUndoBuffer);
+    leftModel.removeSyncEditing(leftSyncEditing);
+    rightModel.removeOnUpdateModelOnDiff(rightOnUpdateModelOnDiff);
+    rightModel.removeOnIterativeParsed(rightOnIterativeParsed);
+    rightModel.removeOnFileLexed(rightOnFileLexed);
+    rightModel.removeGetUndoBuffer(getUndoBuffer);
+    rightModel.removeSyncEditing(rightSyncEditing);
+    boundToDocuments = false;
   }
 
   public void sendToDiff(boolean cmpOnlyLines) {
@@ -109,8 +168,8 @@ public class FileDiffModel {
 
     if (isDelete) onDeleteDiffMadeListener(diff, left);
     else onInsertDiffMadeListener(diff, left);
-    if (viewToModel != null && diffModel != null) {
-      viewToModel.updateModelOnDiff(diffModel);
+    if (diffModel != null) {
+      forEachView(v -> v.updateModelOnDiff(diffModel));
     }
   }
 
@@ -170,24 +229,37 @@ public class FileDiffModel {
     );
   }
 
-  public void syncEditing(boolean left, CpxDiff cpxDiff, boolean isUndo) {
-    if (!enableSyncEdit) return;
-    if (diffModel != null) {
-      Model current = left ? leftModel : rightModel;
-      var diffVersion = current.document.lastDiffVersion();
-      Model another = !left ? leftModel : rightModel;
+  public boolean syncEditing(boolean left, CpxDiff cpxDiff, boolean isUndo) {
+    if (!enableSyncEdit) return false;
+    Model current = left ? leftModel : rightModel;
+    Model another = !left ? leftModel : rightModel;
+    Model claimed = current.syncEditPeer();
+    if (claimed == null) current.claimSyncEditPeer(another);
+    else if (claimed != another) return false;
+    if (diffModel == null) return false;
 
-      CpxDiff anotherDiff = CpxDiff.DiffMaker.mkOppositeDiff(this, cpxDiff, left);
-
-      if (!anotherDiff.isEmpty()) {
-        another.document.doCpxDiff(anotherDiff, !isUndo);
-        undoBuffer.addDiff(another.document, anotherDiff, diffVersion.second);
-      }
+    var diffVersion = current.document.lastDiffVersion();
+    CpxDiff anotherDiff = CpxDiff.DiffMaker.mkOppositeDiff(this, cpxDiff, left);
+    if (anotherDiff.isEmpty()) return false;
+    another.document.doCpxDiff(anotherDiff, !isUndo);
+    UndoBuffer otherBuf = another.undoBuffer();
+    if (otherBuf == null) otherBuf = undoBuffer;
+    if (otherBuf != null) {
+      if (diffVersion != null) otherBuf.addDiff(another.document, anotherDiff, diffVersion.second);
+      else otherBuf.addDiff(another.document, anotherDiff);
     }
+    return true;
   }
 
   public void undoLastDiff(boolean isRedo) {
-    undoBuffer.undoLastDiff(leftModel.document, rightModel.document, restoreSelection(), isRedo);
+    UndoBuffer leftBuf = leftModel.undoBuffer();
+    UndoBuffer rightBuf = rightModel.undoBuffer();
+    if (leftBuf == null) leftBuf = undoBuffer;
+    if (rightBuf == null) rightBuf = undoBuffer;
+    UndoBuffer.undoLastDiff(
+        leftBuf, leftModel.document,
+        rightBuf, rightModel.document,
+        restoreSelection(), isRedo);
   }
 
   public void setDiffModel(DiffInfo diffInfo, int[] versions) {
@@ -195,7 +267,7 @@ public class FileDiffModel {
     this.diffModel = diffInfo;
     diffStatus = DiffStatus.COMPARED;
     if (getLinesInfo != null) getLinesInfo.accept(diffInfo.linesInfo());
-    if (viewToModel != null) viewToModel.setDiffModel(diffModel);
+    forEachView(v -> v.setDiffModel(diffModel));
   }
 
   void updateDiffModel(
@@ -234,8 +306,12 @@ public class FileDiffModel {
   }
 
   int[] getSyncPoints(boolean left) {
-    if (viewToModel == null) return new int[]{};
-    return viewToModel.getSyncPoints(left);
+    if (viewsToModel == null) return new int[0];
+    for (ViewToModel v : viewsToModel) {
+      int[] sp = v.getSyncPoints(left);
+      if (sp != null && sp.length > 0) return sp;
+    }
+    return new int[0];
   }
 
   boolean hasSyncPoints(boolean left) {
@@ -325,6 +401,30 @@ public class FileDiffModel {
   }
 
   public TriConsumer<Boolean, V2i, Pair<Pos, Pos>> restoreSelection() {
-    return viewToModel != null ? viewToModel::restoreSelection : null;
+    if (viewsToModel == null) return null;
+    return (left, caret, selection) ->
+        forEachView(v -> v.restoreSelection(left, caret, selection));
+  }
+
+  public void addView(ViewToModel view) {
+    if (view == null) return;
+    bindToDocuments();
+    if (viewsToModel == null) {
+      viewsToModel = new ViewToModel[]{view};
+      return;
+    }
+    if (ArrayOp.indexOf(viewsToModel, view) >= 0) return;
+    viewsToModel = ArrayOp.add(viewsToModel, view);
+  }
+
+  public void removeView(ViewToModel view) {
+    ViewToModel[] before = viewsToModel;
+    viewsToModel = ArrayOp.remove(viewsToModel, view);
+    if (before != null && viewsToModel == null) unbindFromDocuments();
+  }
+
+  private void forEachView(Consumer<ViewToModel> action) {
+    if (viewsToModel == null) return;
+    for (ViewToModel v : viewsToModel) action.accept(v);
   }
 }

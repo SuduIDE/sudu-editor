@@ -78,6 +78,7 @@ public class JsTextDiffModel implements JsITextDiffModel {
 
   @Override
   public void dispose() {
+    javaModel.unbindFromDocuments();
     modelL.dispose();
     modelR.dispose();
   }

@@ -4,6 +4,7 @@ package org.sudu.experiments.editor;
 
 import org.sudu.experiments.*;
 import org.sudu.experiments.diff.LineDiff;
+import org.sudu.experiments.editor.worker.diff.DiffRange;
 import org.sudu.experiments.editor.EditorUi.FontApi;
 import org.sudu.experiments.editor.ui.colors.CodeLineColorScheme;
 import org.sudu.experiments.editor.ui.colors.EditorColorScheme;
@@ -104,6 +105,7 @@ public class EditorComponent extends View implements
 
   public boolean readonly = false;
   boolean mirrored = false;
+  boolean enableDiffAligning = false;
   private ExternalHighlights externalHighlights;
 
   Consumer<String> onError = System.err::println;
@@ -126,6 +128,7 @@ public class EditorComponent extends View implements
   boolean buildCodeMapRequest;
   GL.Texture codeMap;
   final V2i codeMapSize = new V2i();
+  int[] codeMapViewToDoc;
 
   CodeLineMapping docToView = new CodeLineMapping.Id(model);
   IntConsumer compactModeActions;
@@ -154,7 +157,7 @@ public class EditorComponent extends View implements
     debugFlags[6] = () -> printResolveTime = !printResolveTime;
     debugFlags[8] = () -> drawTextFrame = !drawTextFrame;
 
-    model.setEditor(this, window().worker());
+    model.attachEditor(this, window().worker());
   }
 
   /*Disposable*/ void registerMouse(InputListeners input) {
@@ -329,6 +332,10 @@ public class EditorComponent extends View implements
     mirrored = b;
   }
 
+  public void setEnableDiffAligning(boolean enableDiffAligning) {
+    this.enableDiffAligning = enableDiffAligning;
+  }
+
   void toggleMirrored() {
     mirrored = !mirrored;
     if (mergeButtons != null && lineHeight != 0)
@@ -458,7 +465,8 @@ public class EditorComponent extends View implements
     lrContext.dispose();
     lineNumbers.dispose();
     mergeButtons = Disposable.assign(mergeButtons, null);
-    model.setEditor(null, null);
+    model.removeGetUndoBuffer(getUndoBuffer);
+    model.detachEditor(this);
     context = null;
     g =  null;
     ui = null;
@@ -810,7 +818,11 @@ public class EditorComponent extends View implements
       V4f tailColor = colors.editor.bg;
 
       if (lineIndex < 0) {
-        if (lineIndex != CodeLineMapping.outOfRange) {
+        if (lineIndex == CodeLineMapping.outOfRange && enableDiffAligning) {
+          sizeTmp.set(textViewWidth + xOffset, lineHeight);
+          g.drawRect(xPos - xOffset, pos.y + yPosition,
+              sizeTmp, colors.editor.bg);
+        } else if (lineIndex != CodeLineMapping.outOfRange) {
           sizeTmp.set(textViewWidth + xOffset, lineHeight);
           g.drawRect(xPos - xOffset, pos.y + yPosition,
               sizeTmp, tailColor);
@@ -826,7 +838,10 @@ public class EditorComponent extends View implements
         var dm = diffModel != null && lineIndex < diffModel.length
             ? diffModel[lineIndex] : null;
         if (dm != null) {
-          tailColor = colors.codeDiffBg.getDiffColor(colors, dm.type);
+          boolean isBlank = model.document.line(lineIndex).totalStrLength == 0;
+          int type = LineDiff.editedDelInsTailType(diffModel, lineIndex, isBlank);
+          if (type == 0) type = dm.type;
+          tailColor = colors.codeDiffBg.getDiffColor(colors, type);
         } else {
           boolean isCurrentLine = model.caretLine == lineIndex;
           if (isCurrentLine)
@@ -880,7 +895,13 @@ public class EditorComponent extends View implements
 
     for (int i = firstLine; i < lastLine; i++) {
       int lineIndex = viewToDocMap[i - firstLine];
-      if (lineIndex < 0) continue;
+      if (lineIndex < 0) {
+        if (enableDiffAligning && lineIndex == CodeLineMapping.outOfRange) {
+          int yPosition = lineHeight * i - vScrollPos;
+          g.drawRect(pos.x + xPos0, pos.y + yPosition, size, colors.editor.bg);
+        }
+        continue;
+      }
 
       LineDiff currentLineModel = diffModel != null && lineIndex < diffModel.length
           ? diffModel[lineIndex] : null;
@@ -1782,10 +1803,11 @@ public class EditorComponent extends View implements
   }
 
   private int hitTestFindDiff(V2i mousePos) {
-    return codeMap == null || model.diffModel == null ? -1 :
+    return codeMap == null || model.diffModel == null
+        || codeMapViewToDoc == null ? -1 :
         DiffImage.findDiff(
             mousePos, codeMapX(), codeMapY(), codeMapSize,
-            model.document.length(), model.diffModel);
+            codeMapViewToDoc, model.diffModel);
   }
 
   boolean onMouseMoveCodeMap(V2i mousePos, SetCursor setCursor) {
@@ -1884,7 +1906,22 @@ public class EditorComponent extends View implements
   }
 
   void parseViewport() {
-    model.parseViewport(getFirstLine(), getLastLine());
+    int first = getFirstLine();
+    int last = getLastLine();
+    if (enableDiffAligning) {
+      int firstDoc = -1, lastDoc = -1;
+      for (int i = first; i <= last; i++) {
+        int doc = docToView.viewToDoc(i);
+        if (doc >= 0) {
+          if (firstDoc < 0) firstDoc = doc;
+          lastDoc = doc;
+        }
+      }
+      if (firstDoc < 0) return;
+      first = firstDoc;
+      last = lastDoc;
+    }
+    model.parseViewport(first, last);
   }
 
   public void parseFullFile() {
@@ -2113,9 +2150,10 @@ public class EditorComponent extends View implements
     Model oldModel = this.model;
     this.model = model;
     clearCompactViewModel();
-    oldModel.setEditor(null, null);
-    model.setGetUndoBuffer(getUndoBuffer);
-    model.setEditor(this, window().worker());
+    oldModel.removeGetUndoBuffer(getUndoBuffer);
+    oldModel.detachEditor(this);
+    model.addGetUndoBuffer(getUndoBuffer);
+    model.attachEditor(this, window().worker());
     if (model.document.isMapped()) {
       readonly = true;
     }
@@ -2166,7 +2204,7 @@ public class EditorComponent extends View implements
   }
 
   public boolean hasSyncPoints() {
-    return syncPoints.hasSyncPoints();
+    return syncPoints != null && syncPoints.hasSyncPoints();
   }
 
   public boolean hasSyncPoint(V2i eventPos) {
@@ -2179,6 +2217,7 @@ public class EditorComponent extends View implements
   }
 
   public void toggleSyncPoint(V2i eventPos) {
+    if (syncPoints == null) return;
     int lineInd = computeSyncPoint(eventPos);
     if (syncPoints.hasPoint(lineInd))
       syncPoints.removeSyncPoint(lineInd);
@@ -2302,7 +2341,7 @@ public class EditorComponent extends View implements
   public void setDiffModel(LineDiff[] lineDiffs) {
     if (debugDiffModel) {
       int docLength = model.document.length();
-      int diffLength = lineDiffs.length;
+      int diffLength = lineDiffs == null ? 0 : lineDiffs.length;
       boolean diffInLength = docLength != diffLength;
       System.out.println("EditorComponent.setDiffModel: docL=" + docLength
           + ", lineDiffs.length = " + diffLength
@@ -2317,7 +2356,17 @@ public class EditorComponent extends View implements
         buildDiffMap();
     } else {
       clearCodeMap();
+      if (enableDiffAligning) clearCompactViewModel();
     }
+  }
+
+  public void setDiffRanges(DiffRange[] ranges, boolean left) {
+    if (!enableDiffAligning) return;
+    if (ranges == null || ranges.length == 0) {
+      clearCompactViewModel();
+      return;
+    }
+    setCompactViewModel(new AlignedDiffMapping(ranges, left), null);
   }
 
   public void updateLineNumbersColors() {
@@ -2471,17 +2520,32 @@ public class EditorComponent extends View implements
 
     int viewDocLength = docToView.length();
     var height = Math.min(size.y, lineHeight * viewDocLength);
-    // workaround
-    viewDocLength = Math.min(viewDocLength, model.diffModel.length);
+    if (!enableDiffAligning)
+      viewDocLength = Math.min(viewDocLength, model.diffModel.length);
     int[] mapping = new int[viewDocLength];
     docToView.viewToDocLines(0, viewDocLength, mapping);
+    byte[] viewTypes = codeMapViewTypes(mapping, model.diffModel);
     var img = DiffImage.diffImage(model.diffModel, height,
-        mapping, colors.codeMapBg);
+        mapping, viewTypes, colors.codeMapBg);
     codeMap.setContent(img);
     codeMapSize.y = height;
+    codeMapViewToDoc = mapping;
+  }
+
+  // One type per view row. Alignment blanks stay empty so the editor,
+  // map, and hit-test all treat padding the same way.
+  private byte[] codeMapViewTypes(int[] mapping, LineDiff[] diffs) {
+    byte[] types = new byte[mapping.length];
+    for (int i = 0; i < mapping.length; i++) {
+      int doc = mapping[i];
+      if (doc >= 0 && doc < diffs.length && diffs[doc] != null)
+        types[i] = (byte) diffs[doc].type;
+    }
+    return types;
   }
 
   public void clearCodeMap() {
+    codeMapViewToDoc = null;
     if (codeMap != null)
       codeMap = Disposable.assign(codeMap, null);
   }
@@ -2521,6 +2585,7 @@ public class EditorComponent extends View implements
     if (mergeButtons != null) {
       mergeButtons.setCodeLineMapping(mapping);
     }
+    if (lineHeight != 0) setVScrollPosSilent(vScrollPos);
     if (codeMap != null && model.diffModel != null) buildDiffMap();
   }
 
@@ -2529,7 +2594,7 @@ public class EditorComponent extends View implements
   }
 
   public boolean canAlignWith() {
-    if (isLastMouseDownPosUnset()) return false;
+    if (syncPoints == null || isLastMouseDownPosUnset()) return false;
     return !hasSyncPoint(computeSyncPoint(lastMouseDownPos));
   }
 

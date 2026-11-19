@@ -19,6 +19,7 @@ import org.sudu.experiments.worker.WorkerJobExecutor;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -37,6 +38,8 @@ public class Model {
   final NavigationStack navStack = new NavigationStack();
 
   EditorToModel editor;
+  private final List<EditorToModel> editors = new ArrayList<>();
+  private final List<WorkerJobExecutor> executors = new ArrayList<>();
 
   WorkerJobExecutor executor;
 
@@ -66,8 +69,13 @@ public class Model {
   boolean debug = false;
 
   private Consumer<int[]> onDiffMadeListener;
-  private BiConsumer<CpxDiff, Boolean> syncEditing;
-  private Supplier<UndoBuffer> getUndoBuffer;
+  private final List<BiConsumer<Diff, Boolean>> onUpdateModelOnDiff = new ArrayList<>();
+  private final List<BiConsumer<Integer, Integer>> onIterativeParsed = new ArrayList<>();
+  private final List<Runnable> onFileLexed = new ArrayList<>();
+  private final List<BiPredicate<CpxDiff, Boolean>> syncEditing = new ArrayList<>();
+  private final List<Supplier<UndoBuffer>> undoBuffers = new ArrayList<>();
+  private final List<Supplier<UndoBuffer>> undoBufferInFlight = new ArrayList<>();
+  private Model syncEditPeer;
 
   public Model(String text, Uri uri) {
     this(text, null, uri);
@@ -158,7 +166,7 @@ public class Model {
         copyOf(parseRes.graphChars)
     );
     printParsingTime("Full file parsed");
-    if (fullFileLexed != ParseStatus.PARSED && editor != null) editor.fireFileLexed();
+    if (fullFileLexed != ParseStatus.PARSED) fireFileLexed();
     fileStructureParsed = ParseStatus.PARSED;
     fullFileLexed = ParseStatus.PARSED;
     fullFileParsed = ParseStatus.PARSED;
@@ -210,7 +218,7 @@ public class Model {
     printParsingTime("Full file lexed");
     if (isDisableParser()) setParsed();
     else {
-      if (editor != null) editor.fireFileLexed();
+      fireFileLexed();
       sendStructure();
       sendFull();
     }
@@ -225,7 +233,7 @@ public class Model {
     printParsingTime("Full file lexed");
     if (isDisableParser()) setParsed();
     else {
-      if (editor != null) editor.fireFileLexed();
+      fireFileLexed();
       sendStructure();
       sendFull();
     }
@@ -279,9 +287,7 @@ public class Model {
       }
     }
 
-    if (editor != null) {
-      editor.useDocumentHighlightProvider(caretPos.line, caretPos.charPos);
-    }
+    forEachEditor(e -> e.useDocumentHighlightProvider(caretPos.line, caretPos.charPos));
   }
 
   void clearUsages() {
@@ -303,15 +309,68 @@ public class Model {
   }
 
   void setEditor(EditorToModel editor, WorkerJobExecutor executor) {
-    this.editor = editor;
+    editors.clear();
+    executors.clear();
+    this.editor = null;
     this.executor = executor;
+    if (editor != null) attachEditor(editor, executor);
+    if (executor == null) document.invalidateMeasure();
+  }
+
+  void attachEditor(EditorToModel editor, WorkerJobExecutor executor) {
+    if (editor == null) return;
+    int i = editors.indexOf(editor);
+    if (i >= 0) {
+      if (executor != null) executors.set(i, executor);
+    } else {
+      editors.add(editor);
+      executors.add(executor);
+    }
+    bindLiveEditor();
     applyDocumentTokens();
-    if (executor != null) {
+    if (this.executor != null) {
       if (fullFileParsed == ParseStatus.NOT_PARSED) requestParseFile();
       // todo: execute eny pending jobs here
-    } else {
-      document.invalidateMeasure();
     }
+  }
+
+  void detachEditor(EditorToModel editor) {
+    if (editor == null) return;
+    int i = editors.indexOf(editor);
+    if (i < 0) return;
+    editors.remove(i);
+    executors.remove(i);
+    bindLiveEditor();
+    if (editors.isEmpty()) document.invalidateMeasure();
+  }
+
+  private void bindLiveEditor() {
+    this.editor = editors.isEmpty() ? null : editors.get(0);
+    this.executor = null;
+    for (int i = 0; i < executors.size(); i++) {
+      WorkerJobExecutor ex = executors.get(i);
+      if (ex != null) {
+        this.executor = ex;
+        break;
+      }
+    }
+  }
+
+  private EditorToModel colorSchemeEditor() {
+    for (int i = 0; i < editors.size(); i++) {
+      EditorToModel e = editors.get(i);
+      if (e.getColorScheme() != null) return e;
+    }
+    return null;
+  }
+
+  private void fireFileLexed() {
+    for (int i = 0; i < onFileLexed.size(); i++) onFileLexed.get(i).run();
+    forEachEditor(EditorToModel::fireFileLexed);
+  }
+
+  private void forEachEditor(Consumer<EditorToModel> action) {
+    for (int i = 0; i < editors.size(); i++) action.accept(editors.get(i));
   }
 
   public void setExecutor(WorkerJobExecutor executor) {
@@ -322,7 +381,7 @@ public class Model {
     fileStructureParsed = ParseStatus.PARSED;
     fullFileLexed = ParseStatus.PARSED;
     fullFileParsed = ParseStatus.PARSED;
-    if (editor != null) editor.fireFileLexed();
+    fireFileLexed();
   }
 
   void requestParseFile() {
@@ -422,7 +481,7 @@ public class Model {
       parsingTimeStart = System.currentTimeMillis();
       executor.sendToWorker(true, this::onFileParsed,
           parseJob, chars, new int[]{Languages.getType(language()), document.version()});
-    } else if (editor != null) editor.fireFileLexed();
+    } else fireFileLexed();
   }
 
   void iterativeParsing() {
@@ -444,7 +503,7 @@ public class Model {
     if (reparseNode == null) {
       resolveAll();
       document.onReparse();
-      if (editor != null) editor.fireFileLexed();
+      fireFileLexed();
       return;
     }
 
@@ -492,7 +551,9 @@ public class Model {
       document.onReparse();
     }
     iterativeFileParsed = ParseStatus.PARSED;
-    if (editor != null) editor.fireFileIterativeParsed(start, stop);
+    for (int i = 0; i < onIterativeParsed.size(); i++)
+      onIterativeParsed.get(i).accept(start, stop);
+    forEachEditor(e -> e.fireFileIterativeParsed(start, stop));
   }
 
   static String parseJobName(String language) {
@@ -530,6 +591,7 @@ public class Model {
 
     int firstLine = Math.max(0, editorFirstLine - EditorConst.VIEWPORT_OFFSET);
     int lastLine = Math.min(document.length() - 1, editorLastLine + EditorConst.VIEWPORT_OFFSET);
+    if (firstLine > lastLine) return;
     int srcFirst = firstLine, srcLast = lastLine;
     int[] vpInts;
     if (document.isMapped()) {
@@ -607,27 +669,112 @@ public class Model {
   }
 
   private void updateModelOnDiff(Diff diff, boolean isUndo) {
-    if (editor != null) editor.updateModelOnDiff(diff, isUndo);
+    for (int i = 0; i < onUpdateModelOnDiff.size(); i++)
+      onUpdateModelOnDiff.get(i).accept(diff, isUndo);
+    forEachEditor(e -> e.updateModelOnDiff(diff, isUndo));
   }
 
   private void syncEditing(CpxDiff diffs, boolean isUndo) {
-    if (syncEditing != null) syncEditing.accept(diffs, isUndo);
+    syncEditPeer = null;
+    try {
+      for (int i = 0; i < syncEditing.size(); i++) {
+        if (syncEditing.get(i).test(diffs, isUndo)) return;
+      }
+    } finally {
+      syncEditPeer = null;
+    }
   }
 
   private UndoBuffer getUndoBuffer() {
-    return getUndoBuffer != null ? getUndoBuffer.get() : null;
+    for (int i = 0; i < undoBuffers.size(); i++) {
+      Supplier<UndoBuffer> supplier = undoBuffers.get(i);
+      if (undoBufferInFlight(supplier)) continue;
+      undoBufferInFlight.add(supplier);
+      try {
+        UndoBuffer buffer = supplier.get();
+        if (buffer != null) return buffer;
+      } finally {
+        undoBufferInFlight.remove(undoBufferInFlight.size() - 1);
+      }
+    }
+    return null;
   }
 
-  public void setSyncEditing(BiConsumer<CpxDiff, Boolean> syncEditing) {
-    this.syncEditing = syncEditing;
+  private boolean undoBufferInFlight(Supplier<UndoBuffer> supplier) {
+    for (int i = 0; i < undoBufferInFlight.size(); i++) {
+      if (undoBufferInFlight.get(i) == supplier) return true;
+    }
+    return false;
   }
 
-  public void setGetUndoBuffer(Supplier<UndoBuffer> getUndoBuffer) {
-    this.getUndoBuffer = getUndoBuffer;
+  public UndoBuffer undoBuffer() {
+    return getUndoBuffer();
+  }
+
+  public Model syncEditPeer() {
+    return syncEditPeer;
+  }
+
+  public void claimSyncEditPeer(Model peer) {
+    if (syncEditPeer == null) syncEditPeer = peer;
+  }
+
+  public void addSyncEditing(BiPredicate<CpxDiff, Boolean> listener) {
+    if (listener != null && !syncEditing.contains(listener))
+      syncEditing.add(listener);
+  }
+
+  public void removeSyncEditing(BiPredicate<CpxDiff, Boolean> listener) {
+    syncEditing.remove(listener);
+  }
+
+  public void addGetUndoBuffer(Supplier<UndoBuffer> supplier) {
+    if (supplier != null && !undoBuffers.contains(supplier))
+      undoBuffers.add(supplier);
+  }
+
+  void prependGetUndoBuffer(Supplier<UndoBuffer> supplier) {
+    if (supplier != null && !undoBuffers.contains(supplier))
+      undoBuffers.add(0, supplier);
+  }
+
+  public void removeGetUndoBuffer(Supplier<UndoBuffer> supplier) {
+    undoBuffers.remove(supplier);
+  }
+
+  boolean hasGetUndoBuffer(Supplier<UndoBuffer> supplier) {
+    return undoBuffers.contains(supplier);
   }
 
   public void setOnDiffMadeListener(Consumer<int[]> listener) {
     onDiffMadeListener = listener;
+  }
+
+  public void addOnUpdateModelOnDiff(BiConsumer<Diff, Boolean> listener) {
+    if (listener != null && !onUpdateModelOnDiff.contains(listener))
+      onUpdateModelOnDiff.add(listener);
+  }
+
+  public void removeOnUpdateModelOnDiff(BiConsumer<Diff, Boolean> listener) {
+    onUpdateModelOnDiff.remove(listener);
+  }
+
+  public void addOnIterativeParsed(BiConsumer<Integer, Integer> listener) {
+    if (listener != null && !onIterativeParsed.contains(listener))
+      onIterativeParsed.add(listener);
+  }
+
+  public void removeOnIterativeParsed(BiConsumer<Integer, Integer> listener) {
+    onIterativeParsed.remove(listener);
+  }
+
+  public void addOnFileLexed(Runnable listener) {
+    if (listener != null && !onFileLexed.contains(listener))
+      onFileLexed.add(listener);
+  }
+
+  public void removeOnFileLexed(Runnable listener) {
+    onFileLexed.remove(listener);
   }
 
   public void setSemanticTokens(SemanticTokenInfo[] tokens) {
@@ -686,8 +833,7 @@ public class Model {
   }
 
   private void applyDocumentTokens() {
-    if (documentTokens == null || editor == null) return;
-    if (editor.getColorScheme() == null) return;
+    if (documentTokens == null || colorSchemeEditor() == null) return;
     for (var token: documentTokens) {
       if (token == null || token.line < 0 || token.line >= document.length()) continue;
       applyTokenAt(token, token.line);
@@ -706,9 +852,12 @@ public class Model {
       System.err.println(errMsg);
       return;
     }
-    if (token.hasColor() && editor != null) {
-      var colorScheme = editor.getColorScheme();
-      token.tokenType = colorScheme.getSemanticIndex(token.foreground, token.background);
+    if (token.hasColor()) {
+      EditorToModel schemeEd = colorSchemeEditor();
+      if (schemeEd != null) {
+        var colorScheme = schemeEd.getColorScheme();
+        token.tokenType = colorScheme.getSemanticIndex(token.foreground, token.background);
+      }
     }
     line.contentDirty = element.style != token.tokenStyle;
     element.color = token.tokenType;
@@ -716,20 +865,24 @@ public class Model {
   }
 
   private void onDiffMade(CpxDiff cpxDiff) {
-    if (editor != null) editor.onDiffMade();
+    forEachEditor(EditorToModel::onDiffMade);
     if (onDiffMadeListener != null) onDiffMadeListener.accept(cpxDiff.diffLineRanges());
   }
 
   private void onChangeApplied(CpxDiff cpxDiff) {
-    if (editor != null) editor.onDiffMade();
+    forEachEditor(EditorToModel::onDiffMade);
   }
 
   CodeLine caretCodeLine() {
     return document.lines[caretLine];
   }
 
-  private boolean isDisableParser() {
-    return editor != null ? editor.isDisableParser() : EditorConst.DEFAULT_DISABLE_PARSER;
+  boolean isDisableParser() {
+    if (editors.isEmpty()) return EditorConst.DEFAULT_DISABLE_PARSER;
+    for (int i = 0; i < editors.size(); i++) {
+      if (!editors.get(i).isDisableParser()) return false;
+    }
+    return true;
   }
 
   interface EditorToModel {

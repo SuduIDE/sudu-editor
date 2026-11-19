@@ -1,10 +1,10 @@
 package org.sudu.experiments.diff;
 
 import org.sudu.experiments.DprUtil;
-import org.sudu.experiments.WglGraphics;
 import org.sudu.experiments.editor.MiddleLine;
 import org.sudu.experiments.math.V2i;
 import org.sudu.experiments.ui.UiContext;
+import org.sudu.experiments.ui.window.View;
 import org.sudu.experiments.ui.window.ViewArray;
 
 abstract class DiffRootView extends ViewArray {
@@ -14,8 +14,7 @@ abstract class DiffRootView extends ViewArray {
     middleLine = new MiddleLine(uiContext);
   }
 
-  @Override
-  protected void layoutViews() {
+  static void layoutLeftMiddleRight(View[] views, V2i pos, V2i size, float dpr) {
     int px = DprUtil.toPx(MiddleLine.middleLineThicknessDp, dpr);
     int edSize = (size.x - px) / 2;
     V2i chPos = new V2i(pos);
@@ -29,5 +28,10 @@ abstract class DiffRootView extends ViewArray {
     chPos.x = pos.x + edSize;
     // middle
     views[2].setPosition(chPos, chSize, dpr);
+  }
+
+  @Override
+  protected void layoutViews() {
+    layoutLeftMiddleRight(views, pos, size, dpr);
   }
 }

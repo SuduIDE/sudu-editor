@@ -13,6 +13,10 @@ public abstract class CodeLineMapping {
   public abstract int docToViewCursor(int docLine);
   public abstract int viewToDoc(int viewLine);
 
+  public int viewLineDiffType(int viewLine) {
+    return 0;
+  }
+
   public void viewToDocLines(
       int viewBegin, int viewEnd, int[] result
   ) {

@@ -14,8 +14,15 @@ class DiffImage {
       LineDiff[] model, int height,
       int[] viewToDoc, DiffColors colors
   ) {
+    return diffImage(model, height, viewToDoc, null, colors);
+  }
+
+  static GL.ImageData diffImage(
+      LineDiff[] model, int height,
+      int[] viewToDoc, byte[] viewTypes, DiffColors colors
+  ) {
     GL.ImageData img = new GL.ImageData(1, height);
-    byte[] map = diffMap(model, height, viewToDoc);
+    byte[] map = diffMap(model, height, viewToDoc, viewTypes);
     if (debug > 0) {
       V4i s = stats(map);
       System.out.println("codeMap built: l=" + map.length
@@ -36,6 +43,12 @@ class DiffImage {
   }
 
   static byte[] diffMap(LineDiff[] model, int height, int[] viewToDoc) {
+    return diffMap(model, height, viewToDoc, null);
+  }
+
+  static byte[] diffMap(
+      LineDiff[] model, int height, int[] viewToDoc, byte[] viewTypes
+  ) {
     byte[] result = new byte[height];
     int a = 0, b, doc = viewToDoc.length;
     int round = Math.min(doc, height) / 2;
@@ -45,14 +58,10 @@ class DiffImage {
       l = 0; r = 0; d = 0;
       j = a;
       do {
-        int docLn = viewToDoc[j];
-        LineDiff diff = docLn < 0 ? null : model[docLn];
-        if (diff != null) {
-          type = diff.type;
-          if (type == DiffTypes.DELETED) l++;
-          else if (type == DiffTypes.INSERTED) r++;
-          else if (type == DiffTypes.EDITED) d++;
-        }
+        type = viewLineType(j, viewToDoc, model, viewTypes);
+        if (type == DiffTypes.DELETED) l++;
+        else if (type == DiffTypes.INSERTED) r++;
+        else if (type == DiffTypes.EDITED) d++;
       } while (++j < b);
 
       if ((j-a) != (a == b ? 1 : b - a))
@@ -121,26 +130,46 @@ class DiffImage {
     }
   }
 
+  static int viewLineType(
+      int viewLine, int[] viewToDoc, LineDiff[] model, byte[] viewTypes
+  ) {
+    if (viewTypes != null) {
+      return viewLine >= 0 && viewLine < viewTypes.length ? viewTypes[viewLine] : 0;
+    }
+    int docLn = viewToDoc[viewLine];
+    LineDiff diff = docLn < 0 || docLn >= model.length ? null : model[docLn];
+    return diff == null ? 0 : diff.type;
+  }
+
   static int findDiff(
       V2i mousePos, int cx, int cy, V2i size,
-      int doc, LineDiff[] diffModel
+      int[] viewToDoc, LineDiff[] diffModel
   ) {
+    if (viewToDoc == null || viewToDoc.length == 0) return -1;
     if (!Rect.isInside(mousePos, cx, cy, size))
       return -1;
     int image = size.y;
     int imgPos = mousePos.y - cy;
-    int lineP = imageToDocument(imgPos - 1, image, doc);
-    int line0 = imageToDocument(imgPos, image, doc);
-    int lineN = imageToDocument(imgPos + 1, image, doc);
+    int viewLen = viewToDoc.length;
+    int lineP = imageToDocument(imgPos - 1, image, viewLen);
+    int line0 = imageToDocument(imgPos, image, viewLen);
+    int lineN = imageToDocument(imgPos + 1, image, viewLen);
     for (int i = line0; i <= lineN; i++) {
-      LineDiff v = diffModel[i];
-      if (v != null) return i;
+      int doc = diffDocLine(viewToDoc, i, diffModel);
+      if (doc >= 0) return doc;
     }
     for (int i = lineP; i < line0; i++) {
-      LineDiff v = diffModel[i];
-      if (v != null) return i;
+      int doc = diffDocLine(viewToDoc, i, diffModel);
+      if (doc >= 0) return doc;
     }
     return -1;
+  }
+
+  static int diffDocLine(int[] viewToDoc, int viewLine, LineDiff[] model) {
+    if (viewLine < 0 || viewLine >= viewToDoc.length) return -1;
+    int doc = viewToDoc[viewLine];
+    if (doc < 0 || doc >= model.length) return -1;
+    return model[doc] != null ? doc : -1;
   }
 
   static int imageToDocument(int imgPos, int imageLength, int docLength) {

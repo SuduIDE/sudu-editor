@@ -29,6 +29,15 @@ public interface CodeReview_d_ts {
     }
   }
 
+  @JSFunctor interface SideDiffFactory extends JSObject {
+    JsSideDiffView create(EditArgs args, boolean left);
+
+    class Setter {
+      @JSBody(params = {"f"}, script = "newSideDiff = f;")
+      public static native void set(SideDiffFactory f);
+    }
+  }
+
   static void main(String[] args) {
 //    LoggingJs.Setter.set();
     JsTextModel.Api.install();
@@ -38,5 +47,6 @@ public interface CodeReview_d_ts {
     WebGraphics.setApi();
     EditorFactory.Setter.setApi(JsCodeEditor::newEdit);
     CodeReviewFactory.Setter.setDiff(JsCodeReview::newCodeReview);
+    SideDiffFactory.Setter.set(JsSideDiff::newSideDiff);
   }
 }
