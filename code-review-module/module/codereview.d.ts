@@ -77,6 +77,15 @@ export interface SideDiffView extends View, HasTheme, Focusable, IDisposable {
   setVScrollListener(listener: EditorScrollListener | null): void
 
   /**
+   * Shows or hides the vertical scroll bar.
+   *
+   * When hidden the bar is not drawn and takes no mouse input; the pointer
+   * cursor is not shown there. Mouse wheel, keyboard and {@link setVScrollPos}
+   * keep working, so scrolling can still be driven from outside the editor.
+   */
+  setVScrollVisible(visible: boolean): void
+
+  /**
    * Paints the given ranges as highlights. Pass an empty array or `null` to
    * clear. Java callers: the array is retained by reference until the next
    * call — do not mutate it afterward. JS bridges copy on call, so mutating

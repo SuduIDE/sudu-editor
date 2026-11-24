@@ -100,6 +100,11 @@ public class JsSideDiff implements JsSideDiffView {
   }
 
   @Override
+  public void setVScrollVisible(boolean visible) {
+    w.rootView.editor.setVScrollVisible(visible);
+  }
+
+  @Override
   public void setVScrollListener(JsIEditorView.VScrollListener listener) {
     if (listener == null) {
       w.rootView.editor.setVScrollObserver(null);

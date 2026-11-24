@@ -12,6 +12,7 @@ public interface JsSideDiffView extends JsView {
   int getVScrollPos();
   void setVScrollPos(int vScrollPos);
   void setVScrollListener(JsIEditorView.VScrollListener listener);
+  void setVScrollVisible(boolean visible);
 
   void highlightRanges(JsArrayReader<JsRange> ranges);
   void selectNextRange();
