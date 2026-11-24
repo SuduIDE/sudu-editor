@@ -109,6 +109,21 @@ public class JsSideDiff implements JsSideDiffView {
   }
 
   @Override
+  public void highlightRanges(JsArrayReader<JsRange> ranges) {
+    w.rootView.editor.highlightRanges(JsCodeEditor.toRanges(ranges));
+  }
+
+  @Override
+  public void selectNextRange() {
+    w.rootView.editor.selectNextRange();
+  }
+
+  @Override
+  public void selectPrevRange() {
+    w.rootView.editor.selectPrevRange();
+  }
+
+  @Override
   public void setExternalMessageBar(JsExternalMessageBar emb) {}
 
   @Override

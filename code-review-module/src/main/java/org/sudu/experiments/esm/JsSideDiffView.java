@@ -1,5 +1,6 @@
 package org.sudu.experiments.esm;
 
+import org.sudu.experiments.js.JsArrayReader;
 import org.teavm.jso.JSProperty;
 
 public interface JsSideDiffView extends JsView {
@@ -11,4 +12,8 @@ public interface JsSideDiffView extends JsView {
   int getVScrollPos();
   void setVScrollPos(int vScrollPos);
   void setVScrollListener(JsIEditorView.VScrollListener listener);
+
+  void highlightRanges(JsArrayReader<JsRange> ranges);
+  void selectNextRange();
+  void selectPrevRange();
 }

@@ -4,7 +4,7 @@
 import { IDisposable } from '@sudu-ide/types';
 
 import {
-  Uri, IEvent, ITextModel, ILineDescriptor, _TokenDictionary,
+  Uri, IEvent, ITextModel, ILineDescriptor, IRange, _TokenDictionary,
   View, HasTheme, Theme, Focusable, TwoPanelDiff,
   IEditorView, FileDiffViewController
 } from '@sudu-ide/types/frontend';
@@ -75,6 +75,27 @@ export interface SideDiffView extends View, HasTheme, Focusable, IDisposable {
   setVScrollPos(vScrollPos: number): void
 
   setVScrollListener(listener: EditorScrollListener | null): void
+
+  /**
+   * Paints the given ranges as highlights. Pass an empty array or `null` to
+   * clear. Java callers: the array is retained by reference until the next
+   * call — do not mutate it afterward. JS bridges copy on call, so mutating
+   * the JS array afterward is a no-op.
+   */
+  highlightRanges(ranges: IRange[] | null): void
+
+  /**
+   * Selects the next highlight after the caret and reveals it in the center.
+   * Always scrolls and fires the vertical scroll listener. No-op if none.
+   */
+  selectNextRange(): void
+
+  /**
+   * Selects the previous highlight before the caret and reveals it in the
+   * center. Always scrolls and fires the vertical scroll listener. A caret
+   * inside a match skips that match. No-op if none.
+   */
+  selectPrevRange(): void
 }
 
 export function newTextModel(
