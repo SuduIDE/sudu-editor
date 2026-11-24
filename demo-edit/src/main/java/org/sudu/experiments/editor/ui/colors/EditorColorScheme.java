@@ -235,19 +235,15 @@ public class EditorColorScheme {
       case PanelHeaderForeground ->
         dialogItem.windowColors.windowTitleTextColor = c;
 
-      case DeletedRegionBackground -> {
-//        codeDiffBg.deletedColor = ColorOp.blend(editor.bg, c);
-        return false;
-      }
+      case DeletedRegionBackground ->
+          codeDiffBg.deletedColor = ColorOp.blend(editor.bg, c);
 
       case DeletedTextBackground -> {
         return false;
       }
 
-      case InsertedRegionBackground -> {
-//        codeDiffBg.insertedColor = ColorOp.blend(editor.bg, c);
-        return false;
-      }
+      case InsertedRegionBackground ->
+          codeDiffBg.insertedColor = ColorOp.blend(editor.bg, c);
 
       case InsertedTextBackground -> {
         return false;
