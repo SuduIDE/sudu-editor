@@ -199,8 +199,15 @@ console.log("SideDiff left.left =", leftView1.left, "right.left =", rightView1.l
 // The two left panes share the left model and the two right panes share the
 // right model, so the ranges are the same per side, but each pane has its own
 // canvas: call highlightRanges on every pane so each one repaints. Ranges are
-// 1-based. prev / next call selectPrevRange / selectNextRange on the pane last
-// clicked; those reveal the match and fire the vertical scroll listener.
+// 1-based.
+//
+// Caret and selection live on that same model. prev / next call
+// selectPrevRange / selectNextRange once, on the pane last clicked. Calling
+// it on both panes of a side would advance the shared caret twice. The other
+// pane of that side then receives setVScrollPos so it scrolls to the same
+// place and fires its vertical scroll listener (left1 <-> right1, left2 <->
+// right2). setVScrollPos repaints only when the position changes, so the
+// ranges are applied again to repaint the shared selection.
 // ---------------------------------------------------------------------------
 
 const searchInput = document.getElementById("search-input");
@@ -248,26 +255,51 @@ function findMatches(text, query) {
   return matches;
 }
 
-function applyHighlight(query) {
+function rangesFor(query) {
+  // null clears; an empty array clears as well
+  if (query === "") {
+    return { leftRanges: null, rightRanges: null, leftCount: 0, rightCount: 0 };
+  }
   const leftMatches = findMatches(textL, query);
   const rightMatches = findMatches(textR, query);
-  // null clears; an empty array clears as well
-  const leftRanges = query === "" ? null : leftMatches;
-  const rightRanges = query === "" ? null : rightMatches;
-  leftView1.highlightRanges(leftRanges);
-  leftView2.highlightRanges(leftRanges);
-  rightView1.highlightRanges(rightRanges);
-  rightView2.highlightRanges(rightRanges);
+  return {
+    leftRanges: leftMatches,
+    rightRanges: rightMatches,
+    leftCount: leftMatches.length,
+    rightCount: rightMatches.length,
+  };
+}
+
+function paintRanges(ranges) {
+  leftView1.highlightRanges(ranges.leftRanges);
+  leftView2.highlightRanges(ranges.leftRanges);
+  rightView1.highlightRanges(ranges.rightRanges);
+  rightView2.highlightRanges(ranges.rightRanges);
+}
+
+function applyHighlight(query) {
+  const ranges = rangesFor(query);
+  paintRanges(ranges);
   searchStatus.textContent = query === ""
     ? ""
-    : `left ${leftMatches.length} · right ${rightMatches.length}`;
+    : `left ${ranges.leftCount} · right ${ranges.rightCount}`;
+  return ranges;
+}
+
+// The other pane bound to the same model. selectNext/Prev must run once.
+function otherPane(view) {
+  if (view.left) return view === leftView1 ? leftView2 : leftView1;
+  return view === rightView1 ? rightView2 : rightView1;
 }
 
 function stepRange(next) {
-  applyHighlight(searchInput.value);
+  const ranges = applyHighlight(searchInput.value);
   if (searchInput.value === "") return;
   if (next) activeView.selectNextRange();
   else activeView.selectPrevRange();
+  const sibling = otherPane(activeView);
+  sibling.setVScrollPos(activeView.getVScrollPos());
+  sibling.highlightRanges(activeView.left ? ranges.leftRanges : ranges.rightRanges);
 }
 
 rangeNextButton.addEventListener("click", () => stepRange(true));
