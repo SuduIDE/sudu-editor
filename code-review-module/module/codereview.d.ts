@@ -90,19 +90,34 @@ export interface SideDiffView extends View, HasTheme, Focusable, IDisposable {
    * clear. Java callers: the array is retained by reference until the next
    * call — do not mutate it afterward. JS bridges copy on call, so mutating
    * the JS array afterward is a no-op.
+   *
+   * Writes the ranges onto the model. {@link selectNextRange} and
+   * {@link selectPrevRange} mutate that model too, so every
+   * {@link SideDiffView} bound to it shares highlights, caret and selection.
+   * Scroll position and the canvas stay on each view.
    */
   highlightRanges(ranges: IRange[] | null): void
 
   /**
    * Selects the next highlight after the caret and reveals it in the center.
-   * Always scrolls and fires the vertical scroll listener. No-op if none.
+   * Scrolls this view. The vertical scroll listener fires only when the
+   * clamped position changes, so a reveal that leaves the position unchanged
+   * does not move a pane synced from that listener. No-op if none.
+   *
+   * Moves the caret and selection on the model, shared with every
+   * {@link SideDiffView} bound to that model.
    */
   selectNextRange(): void
 
   /**
    * Selects the previous highlight before the caret and reveals it in the
-   * center. Always scrolls and fires the vertical scroll listener. A caret
-   * inside a match skips that match. No-op if none.
+   * center. Scrolls this view. The vertical scroll listener fires only when
+   * the clamped position changes, so a reveal that leaves the position
+   * unchanged does not move a pane synced from that listener. A caret inside
+   * a match skips that match. No-op if none.
+   *
+   * Moves the caret and selection on the model, shared with every
+   * {@link SideDiffView} bound to that model.
    */
   selectPrevRange(): void
 }

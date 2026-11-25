@@ -462,14 +462,16 @@ export interface IEditorView extends View, HasTheme, Focusable {
 
   /**
    * Selects the next highlight after the caret and reveals it in the center.
-   * Always scrolls and fires the vertical scroll listener. No-op if none.
+   * Scrolls to center the match. The vertical scroll listener fires only when
+   * the clamped position changes. No-op if none.
    */
   selectNextRange(): void
 
   /**
    * Selects the previous highlight before the caret and reveals it in the
-   * center. Always scrolls and fires the vertical scroll listener. A caret
-   * inside a match skips that match. No-op if none.
+   * center. Scrolls to center the match. The vertical scroll listener fires
+   * only when the clamped position changes. A caret inside a match skips that
+   * match. No-op if none.
    */
   selectPrevRange(): void
 
