@@ -38,6 +38,8 @@ public class EditorColorScheme {
   public static final int DeletedTextBackground = 16;
   public static final int InsertedRegionBackground = 17;
   public static final int InsertedTextBackground = 18;
+  public static final int EditedRegionBackground = 23;
+  public static final int EditedElementRegionBackground = 24;
 
   public static final int LineNumberForeground = 19;
   public static final int ActiveLineNumberForeground = 20;
@@ -249,6 +251,12 @@ public class EditorColorScheme {
         return false;
       }
 
+      case EditedRegionBackground ->
+        codeDiffBg.editedColor = ColorOp.blend(editor.bg, c);
+
+      case EditedElementRegionBackground ->
+        codeDiffBg.editedColor2 = ColorOp.blend(editor.bg, c);
+
       case AddedResourceForeground ->
         fileTreeView.textDiffColors.insertedColor = c;
 
@@ -355,6 +363,8 @@ public class EditorColorScheme {
       case DeletedTextBackground -> "DeletedTextBackground";
       case InsertedRegionBackground -> "InsertedRegionBackground";
       case InsertedTextBackground -> "InsertedTextBackground";
+      case EditedRegionBackground -> "EditedRegionBackground";
+      case EditedElementRegionBackground -> "EditedElementRegionBackground";
       case LineNumberForeground -> "LineNumberForeground";
       case ActiveLineNumberForeground -> "ActiveLineNumberForeground";
       case LineNumberActiveForeground -> "LineNumberActiveForeground";
