@@ -258,6 +258,14 @@ export const enum ThemeColor {
   DeletedTextBackground = 16,
   InsertedRegionBackground = 17,
   InsertedTextBackground = 18,
+  EditedRegionBackground = 23,
+  EditedElementRegionBackground = 24,
+
+  // overview ruler; stored as sent, including alpha
+  InsertedCodeMapBackground = 25,
+  DeletedCodeMapBackground = 26,
+  EditedCodeMapBackground = 27,
+
   LineNumberForeground = 19,
   ActiveLineNumberForeground = 20,
   LineNumberActiveForeground = 21,
@@ -462,14 +470,16 @@ export interface IEditorView extends View, HasTheme, Focusable {
 
   /**
    * Selects the next highlight after the caret and reveals it in the center.
-   * Always scrolls and fires the vertical scroll listener. No-op if none.
+   * Scrolls to center the match. The vertical scroll listener fires only when
+   * the clamped position changes. No-op if none.
    */
   selectNextRange(): void
 
   /**
    * Selects the previous highlight before the caret and reveals it in the
-   * center. Always scrolls and fires the vertical scroll listener. A caret
-   * inside a match skips that match. No-op if none.
+   * center. Scrolls to center the match. The vertical scroll listener fires
+   * only when the clamped position changes. A caret inside a match skips that
+   * match. No-op if none.
    */
   selectPrevRange(): void
 

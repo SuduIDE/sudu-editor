@@ -100,12 +100,32 @@ public class JsSideDiff implements JsSideDiffView {
   }
 
   @Override
+  public void setVScrollVisible(boolean visible) {
+    w.rootView.editor.setVScrollVisible(visible);
+  }
+
+  @Override
   public void setVScrollListener(JsIEditorView.VScrollListener listener) {
     if (listener == null) {
       w.rootView.editor.setVScrollObserver(null);
     } else {
       w.rootView.editor.setVScrollObserver(listener::onVScroll);
     }
+  }
+
+  @Override
+  public void highlightRanges(JsArrayReader<JsRange> ranges) {
+    w.rootView.editor.highlightRanges(JsCodeEditor.toRanges(ranges));
+  }
+
+  @Override
+  public void selectNextRange() {
+    w.rootView.editor.selectNextRange();
+  }
+
+  @Override
+  public void selectPrevRange() {
+    w.rootView.editor.selectPrevRange();
   }
 
   @Override

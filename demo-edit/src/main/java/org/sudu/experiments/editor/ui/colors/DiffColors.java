@@ -122,17 +122,6 @@ public class DiffColors {
     );
   }
 
-  public Color getDiffColor(int elementType, int lineType, Color defaultBg) {
-    int type = elementType != 0 ? elementType : lineType;
-    return switch (type) {
-      case DiffTypes.DELETED -> deletedColor;
-      case DiffTypes.INSERTED -> insertedColor;
-      case DiffTypes.EDITED ->
-          lineType == type ? editedColor2 : editedColor;
-      default -> defaultBg;
-    };
-  }
-
   public Color getDiffColor(int type, boolean excluded, Color bg) {
     if (excluded) return excludedColor;
     return switch (type) {

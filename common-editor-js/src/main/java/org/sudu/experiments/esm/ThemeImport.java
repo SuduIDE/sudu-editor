@@ -102,7 +102,8 @@ public interface ThemeImport {
       if (missing) {
         JsHelper.consoleInfo("!!! Missing Colors:");
         for (int i = 0; i < imported.length; i++) {
-          if (i >= 23 && i <= 29) continue;
+          // 28 and 29 are still unused.
+          if (i >= 28 && i <= 29) continue;
           if (imported[i] == null)
             JsHelper.consoleInfo("  " + name(i));
         }

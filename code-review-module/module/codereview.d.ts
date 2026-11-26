@@ -4,7 +4,7 @@
 import { IDisposable } from '@sudu-ide/types';
 
 import {
-  Uri, IEvent, ITextModel, ILineDescriptor, _TokenDictionary,
+  Uri, IEvent, ITextModel, ILineDescriptor, IRange, _TokenDictionary,
   View, HasTheme, Theme, Focusable, TwoPanelDiff,
   IEditorView, FileDiffViewController
 } from '@sudu-ide/types/frontend';
@@ -75,6 +75,51 @@ export interface SideDiffView extends View, HasTheme, Focusable, IDisposable {
   setVScrollPos(vScrollPos: number): void
 
   setVScrollListener(listener: EditorScrollListener | null): void
+
+  /**
+   * Shows or hides the vertical scroll bar.
+   *
+   * When hidden the bar is not drawn and takes no mouse input; the pointer
+   * cursor is not shown there. Mouse wheel, keyboard and {@link setVScrollPos}
+   * keep working, so scrolling can still be driven from outside the editor.
+   */
+  setVScrollVisible(visible: boolean): void
+
+  /**
+   * Paints the given ranges as highlights. Pass an empty array or `null` to
+   * clear. Java callers: the array is retained by reference until the next
+   * call — do not mutate it afterward. JS bridges copy on call, so mutating
+   * the JS array afterward is a no-op.
+   *
+   * Writes the ranges onto the model. {@link selectNextRange} and
+   * {@link selectPrevRange} mutate that model too, so every
+   * {@link SideDiffView} bound to it shares highlights, caret and selection.
+   * Scroll position and the canvas stay on each view.
+   */
+  highlightRanges(ranges: IRange[] | null): void
+
+  /**
+   * Selects the next highlight after the caret and reveals it in the center.
+   * Scrolls this view. The vertical scroll listener fires only when the
+   * clamped position changes, so a reveal that leaves the position unchanged
+   * does not move a pane synced from that listener. No-op if none.
+   *
+   * Moves the caret and selection on the model, shared with every
+   * {@link SideDiffView} bound to that model.
+   */
+  selectNextRange(): void
+
+  /**
+   * Selects the previous highlight before the caret and reveals it in the
+   * center. Scrolls this view. The vertical scroll listener fires only when
+   * the clamped position changes, so a reveal that leaves the position
+   * unchanged does not move a pane synced from that listener. A caret inside
+   * a match skips that match. No-op if none.
+   *
+   * Moves the caret and selection on the model, shared with every
+   * {@link SideDiffView} bound to that model.
+   */
+  selectPrevRange(): void
 }
 
 export function newTextModel(
