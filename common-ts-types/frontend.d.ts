@@ -261,6 +261,10 @@ export const enum ThemeColor {
   EditedRegionBackground = 23,
   EditedElementRegionBackground = 24,
 
+  InsertedCodeMapBackground = 25,
+  DeletedCodeMapBackground = 26,
+  EditedCodeMapBackground = 27,
+
   LineNumberForeground = 19,
   ActiveLineNumberForeground = 20,
   LineNumberActiveForeground = 21,

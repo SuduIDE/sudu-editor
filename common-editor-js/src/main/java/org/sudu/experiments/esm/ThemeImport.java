@@ -102,8 +102,8 @@ public interface ThemeImport {
       if (missing) {
         JsHelper.consoleInfo("!!! Missing Colors:");
         for (int i = 0; i < imported.length; i++) {
-          // 23 and 24 are edited-region slots. 25-29 are still unused.
-          if (i >= 25 && i <= 29) continue;
+          // 28 and 29 are still unused.
+          if (i >= 28 && i <= 29) continue;
           if (imported[i] == null)
             JsHelper.consoleInfo("  " + name(i));
         }

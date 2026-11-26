@@ -41,6 +41,11 @@ public class EditorColorScheme {
   public static final int EditedRegionBackground = 23;
   public static final int EditedElementRegionBackground = 24;
 
+  // overview ruler. Blended with the editor background, same as region colors.
+  public static final int InsertedCodeMapBackground = 25;
+  public static final int DeletedCodeMapBackground = 26;
+  public static final int EditedCodeMapBackground = 27;
+
   public static final int LineNumberForeground = 19;
   public static final int ActiveLineNumberForeground = 20;
   public static final int LineNumberActiveForeground = 21;
@@ -237,34 +242,34 @@ public class EditorColorScheme {
       case PanelHeaderForeground ->
         dialogItem.windowColors.windowTitleTextColor = c;
 
-      case DeletedRegionBackground -> {
-        Color blended = ColorOp.blend(editor.bg, c);
-        codeDiffBg.deletedColor = blended;
-        codeMapBg.deletedColor = blended;
-      }
+      case DeletedRegionBackground ->
+        codeDiffBg.deletedColor = ColorOp.blend(editor.bg, c);
 
       case DeletedTextBackground -> {
         return false;
       }
 
-      case InsertedRegionBackground -> {
-        Color blended = ColorOp.blend(editor.bg, c);
-        codeDiffBg.insertedColor = blended;
-        codeMapBg.insertedColor = blended;
-      }
+      case InsertedRegionBackground ->
+        codeDiffBg.insertedColor = ColorOp.blend(editor.bg, c);
 
       case InsertedTextBackground -> {
         return false;
       }
 
-      case EditedRegionBackground -> {
-        Color blended = ColorOp.blend(editor.bg, c);
-        codeDiffBg.editedColor = blended;
-        codeMapBg.editedColor = blended;
-      }
+      case EditedRegionBackground ->
+        codeDiffBg.editedColor = ColorOp.blend(editor.bg, c);
 
       case EditedElementRegionBackground ->
         codeDiffBg.editedColor2 = ColorOp.blend(editor.bg, c);
+
+      case InsertedCodeMapBackground ->
+        codeMapBg.insertedColor = ColorOp.blend(editor.bg, c);
+
+      case DeletedCodeMapBackground ->
+        codeMapBg.deletedColor = ColorOp.blend(editor.bg, c);
+
+      case EditedCodeMapBackground ->
+        codeMapBg.editedColor = ColorOp.blend(editor.bg, c);
 
       case AddedResourceForeground ->
         fileTreeView.textDiffColors.insertedColor = c;
@@ -374,6 +379,9 @@ public class EditorColorScheme {
       case InsertedTextBackground -> "InsertedTextBackground";
       case EditedRegionBackground -> "EditedRegionBackground";
       case EditedElementRegionBackground -> "EditedElementRegionBackground";
+      case InsertedCodeMapBackground -> "InsertedCodeMapBackground";
+      case DeletedCodeMapBackground -> "DeletedCodeMapBackground";
+      case EditedCodeMapBackground -> "EditedCodeMapBackground";
       case LineNumberForeground -> "LineNumberForeground";
       case ActiveLineNumberForeground -> "ActiveLineNumberForeground";
       case LineNumberActiveForeground -> "LineNumberActiveForeground";
