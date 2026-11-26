@@ -41,7 +41,7 @@ public class EditorColorScheme {
   public static final int EditedRegionBackground = 23;
   public static final int EditedElementRegionBackground = 24;
 
-  // overview ruler. Blended with the editor background, same as region colors.
+  // overview ruler. Stored as sent, including alpha.
   public static final int InsertedCodeMapBackground = 25;
   public static final int DeletedCodeMapBackground = 26;
   public static final int EditedCodeMapBackground = 27;
@@ -263,13 +263,13 @@ public class EditorColorScheme {
         codeDiffBg.editedColor2 = ColorOp.blend(editor.bg, c);
 
       case InsertedCodeMapBackground ->
-        codeMapBg.insertedColor = ColorOp.blend(editor.bg, c);
+        codeMapBg.insertedColor = c;
 
       case DeletedCodeMapBackground ->
-        codeMapBg.deletedColor = ColorOp.blend(editor.bg, c);
+        codeMapBg.deletedColor = c;
 
       case EditedCodeMapBackground ->
-        codeMapBg.editedColor = ColorOp.blend(editor.bg, c);
+        codeMapBg.editedColor = c;
 
       case AddedResourceForeground ->
         fileTreeView.textDiffColors.insertedColor = c;

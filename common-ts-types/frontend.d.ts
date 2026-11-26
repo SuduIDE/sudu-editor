@@ -261,6 +261,7 @@ export const enum ThemeColor {
   EditedRegionBackground = 23,
   EditedElementRegionBackground = 24,
 
+  // overview ruler; stored as sent, including alpha
   InsertedCodeMapBackground = 25,
   DeletedCodeMapBackground = 26,
   EditedCodeMapBackground = 27,
